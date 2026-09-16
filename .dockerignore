@@ -1,0 +1,7 @@
+# Build context filter for images built from the repository root.
+.git
+.env
+prototype
+bin
+coverage.*
+**/node_modules

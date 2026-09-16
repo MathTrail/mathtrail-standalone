@@ -1,0 +1,16 @@
+# Local copy of the prototype repository: reference material only, never committed.
+/prototype/
+
+# Planning documents: reference material for the author, deleted once no longer needed.
+/PRODUCT-V1.md
+/RUN.md
+/docs/prototype/
+/docs/reconciliation.md
+
+# Secrets
+.env
+
+# Build and test output
+bin/
+coverage.*
+*.out
