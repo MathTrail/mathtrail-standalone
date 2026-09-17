@@ -170,8 +170,20 @@ func (s *oauthServer) fetchCIMD(clientID string) (*cimdClient, error) {
 	}
 	s.store.mu.Unlock()
 
-	client := &http.Client{Timeout: 5 * time.Second}
-	resp, err := client.Get(clientID) //nolint:noctx // spike; opts.Timeout already bounds this
+	// 10s and one retry: a live run against claude.ai's real CIMD document hit
+	// "context deadline exceeded" on a 5s timeout with no retry, even though a
+	// plain curl to the same URL from the same devcontainer completed in
+	// ~0.2s moments later — most likely a slow first DNS resolution inside
+	// this process rather than the endpoint actually being slow.
+	client := &http.Client{Timeout: 10 * time.Second}
+	var resp *http.Response
+	var err error
+	for attempt := 0; attempt < 2; attempt++ {
+		resp, err = client.Get(clientID) //nolint:noctx // spike; opts.Timeout already bounds this
+		if err == nil {
+			break
+		}
+	}
 	if err != nil {
 		return nil, fmt.Errorf("fetch client-id-metadata-document: %w", err)
 	}
