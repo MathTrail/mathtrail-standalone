@@ -69,9 +69,9 @@ Project context lives in these files, not in chat history.
   Each tool's exact version is pinned directly where it is installed — as an `ARG` in
   `.devcontainer/Dockerfile`, as a literal in `devcontainer.json`. No separate versions file,
   no checksum verification.
-- **Language:**
-  - English: code, every comment in code and config files (Go, TS, SQL, YAML, HCL, Dockerfile, justfile, `.env.example`, …), model instructions and content in `content/`, locale keys, `CLAUDE.md` and `README.md`.
-  - Russian: project documents (PRODUCT-V1, RUN, SPEC, `docs/`) and reports to the author.
+- **Language: English everywhere.** Code, every comment in code and config files (Go, TS, SQL, YAML, HCL, Dockerfile, justfile, `.env.example`, …), model instructions and content in `content/`, locale keys, and every project document — PRODUCT-V1, RUN, SPEC, everything under `docs/`, `CLAUDE.md` and `README.md`.
+  - Reports to the author in chat are in Russian.
+  - The frozen prototype copies under `docs/prototype/` stay in Russian as they were written: they are a historical record, cited but never rewritten.
   - Tasks for the child are written by the chat's model in the chat language.
 - **One contest is never named.** Our tasks are olympiad-style problems. The repository never names the international multiple-choice contest the project started from, in any language (prototype D36). Other olympiads may be named, e.g. as problem sources. Content wording is always our own.
 - **Children's data.**
