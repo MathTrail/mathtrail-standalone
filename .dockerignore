@@ -2,6 +2,7 @@
 .git
 .env
 prototype
+reference
 bin
 coverage.*
 **/node_modules

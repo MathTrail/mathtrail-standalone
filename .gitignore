@@ -1,3 +1,6 @@
+# Reference copies of other repositories: read-only material, never committed.
+/reference/
+
 # Local copy of the prototype repository: reference material only, never committed.
 /prototype/
 
