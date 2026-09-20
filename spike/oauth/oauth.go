@@ -265,10 +265,22 @@ func (s *oauthServer) authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Always grant exactly "mcp", regardless of what was requested: this makes
-	// the mcp:advanced tool's insufficient-scope / step-up demo (mcp.go)
-	// deterministic instead of depending on what a live host happens to ask for.
-	const grantedScope = "mcp"
+	// Grant exactly what was asked for (this spike approves everyone), falling
+	// back to "mcp" when the client asks for nothing.
+	//
+	// An earlier version always granted a hard-coded "mcp" to keep the
+	// insufficient-scope demo deterministic. A live Claude run showed why that
+	// was wrong: after whoami_advanced answered 403 insufficient_scope, Claude
+	// *did* start a step-up flow and re-ran /authorize with
+	// scope="mcp mcp:advanced" — and the server silently downgraded it back to
+	// "mcp", so the step-up could never complete and looked, from the model's
+	// side, like the host ignoring the challenge. The demo stays deterministic
+	// anyway: a host asks for "mcp" first, so the first whoami_advanced call
+	// still fails and still triggers the step-up.
+	grantedScope := scope
+	if grantedScope == "" {
+		grantedScope = "mcp"
+	}
 
 	code := newToken()
 	s.store.mu.Lock()
@@ -463,6 +475,10 @@ func (s *oauthServer) verifyToken(_ context.Context, token string, _ *http.Reque
 	rec, ok := s.store.accessTokens[token]
 	s.store.mu.Unlock()
 	if !ok {
+		// Logged so a live run can see the 401 happen: hosts refresh by
+		// expires_in and never send a genuinely stale token, so the only way
+		// this fires is /spike/revoke (below) or a restarted process.
+		s.logger.Info("token_unknown")
 		return nil, auth.ErrInvalidToken
 	}
 	if time.Now().After(rec.ExpiresAt) {
@@ -474,4 +490,35 @@ func (s *oauthServer) verifyToken(_ context.Context, token string, _ *http.Reque
 		Expiration: rec.ExpiresAt,
 		UserID:     rec.ClientID,
 	}, nil
+}
+
+// -- Spike-only kill switch ---------------------------------------------------
+
+// revoke drops tokens so the next call from a live host arrives
+// unauthenticated. It exists because the "401 mid-conversation" case from
+// T04's checklist could not be reproduced any other way: hosts refresh by
+// expires_in and never actually put a stale token on the wire.
+//
+//	/spike/revoke            drops access tokens  -> host should refresh silently
+//	/spike/revoke?what=all   drops refresh too    -> host must re-authorize
+//
+// Answers to GET so it can be fired from a phone browser mid-test, and has no
+// authentication of its own. Both are indefensible outside a throwaway spike
+// with no real data behind it.
+func (s *oauthServer) revoke(w http.ResponseWriter, r *http.Request) {
+	all := r.URL.Query().Get("what") == "all"
+
+	s.store.mu.Lock()
+	droppedAccess := len(s.store.accessTokens)
+	s.store.accessTokens = make(map[string]*accessToken)
+	droppedRefresh := 0
+	if all {
+		droppedRefresh = len(s.store.refreshTokens)
+		s.store.refreshTokens = make(map[string]*refreshToken)
+	}
+	s.store.mu.Unlock()
+
+	s.logger.Info("spike_revoke", "dropped_access", droppedAccess, "dropped_refresh", droppedRefresh)
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	fmt.Fprintf(w, "dropped %d access token(s), %d refresh token(s)\n", droppedAccess, droppedRefresh)
 }

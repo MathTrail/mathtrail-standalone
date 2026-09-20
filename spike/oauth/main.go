@@ -46,6 +46,7 @@ func main() {
 	mux.HandleFunc("/authorize", srv.authorize)
 	mux.HandleFunc("/token", srv.token)
 	mux.HandleFunc("/mcp", srv.mcpHandler(requireToolScope(streamable)))
+	mux.HandleFunc("/spike/revoke", srv.revoke)
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("ok"))
