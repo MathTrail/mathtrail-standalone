@@ -1,6 +1,8 @@
 # mathtrail-standalone
 
-Free, open-source standalone MathTrail app for LLM applications. It generates and validates adaptive maths olympiad-style tasks for grades 1–6, with interactive MCP widgets.
+Free, open-source standalone MathTrail app for LLM applications: an endless stream of checked olympiad-style maths tasks for grades 1–6, in any language, with a diagnosis of the child's mistake and a memory of how they are progressing.
+
+It is neither a homework solver nor a drill of the school syllabus. It turns an adult's own Claude or ChatGPT chat into an adaptive olympiad trainer for a child in grades 1–6.
 
 > **Status:** early development. Nothing is usable yet; see the plan in [RUN.md](RUN.md).
 
@@ -18,6 +20,16 @@ Design points:
 - **No LLM calls of its own.** Only the chat's model writes text.
 - **Stateless.** The service stores nothing between requests. The child's profile is a JSON file in the parent's own Google Drive, and the answer to the current task is encrypted there.
 - **Self-contained.** It runs as a single Go binary on Google Cloud Run: no database, no queues, no other services.
+
+## Why not just ask the chat directly?
+
+Ask a chat model for "an olympiad task for grade 2" and it will cheerfully hand you a task with no solution, with two correct options, or with the arithmetic wrong. MathTrail leaves the writing to the model and puts a program behind it:
+
+- **Tasks do not run out.** Every task is written for the child's topic, difficulty, interests and yesterday's mistake, in the language of the chat — not drawn from a fixed bank in one language.
+- **A program checks the model.** A task reaches the child only after it passes the checks: exactly one correct option, the answer reproduced by a brute-force solver, readability for the grade, no near-duplicate of an earlier task, a well-formed text drawing.
+- **A wrong answer is a diagnosis.** Every wrong option is tied to a named trap — off-by-one in gaps, a missed case while enumerating, double counting — and the explanation starts from how the child reasoned, not from the right answer.
+
+"Checked" means exactly what the program checks. Whether the wording, the drawing and the solution agree in meaning is checked by the model's own self-check, so this is not a promise of a flawless task every time.
 
 ## Development
 
