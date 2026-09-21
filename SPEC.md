@@ -16,14 +16,14 @@
 | 4 | [The task: what the model gets and what it hands in](#4-the-task-what-the-model-gets-and-what-it-hands-in) | T12 |
 | 5 | [The checks a submitted task passes](#5-the-checks-a-submitted-task-passes) | T12 |
 | 6 | [The Starlark solver](#6-the-starlark-solver) | T13 |
-| 7 | The MCP tools | T14 |
-| 8 | Widgets, screens and languages | T14 |
+| 7 | [The MCP tools](#7-the-mcp-tools) | T14 |
+| 8 | [Widgets, screens and languages](#8-widgets-screens-and-languages) | T14 |
 | 9 | Sign-in and tokens | T15 |
 | 10 | Limits | T15 |
 | 11 | Configuration | T15 |
 | 12 | Logging and metrics | T15 |
 
-Sections 7–12 are not written yet. Section 9 will be assembled from [docs/architecture/02-auth.md](docs/architecture/02-auth.md), and sections 7–8 from [03-flows.md](docs/architecture/03-flows.md), [04-profile.md](docs/architecture/04-profile.md) and [05-storage.md](docs/architecture/05-storage.md).
+Sections 9–12 are not written yet. Section 9 will be assembled from [docs/architecture/02-auth.md](docs/architecture/02-auth.md).
 
 ---
 
@@ -876,6 +876,198 @@ Four ports, four shapes: a one-liner, a comprehension over a helper, an iterativ
 
 ---
 
+# 7. The MCP tools
+
+The contract between the server, the chat's model and the widget. The flows these tools appear in are [03-flows](docs/architecture/03-flows.md); this section fixes their names, their arguments and the shape of what they return. The JSON schemas themselves are written in T23.
+
+## 7.1 The six tools
+
+| Tool | What it does | Called by | Draws a card | `readOnly` | `idempotent` |
+|---|---|---|---|---|---|
+| `get_profile` | The child's profile, or the fact that there is none yet, plus the rule's recommendation | the model | yes | yes | yes |
+| `save_profile` | Creates the profile or changes the fields the parent owns | the model | yes | no | yes |
+| `get_progress` | Ratings and ranks per topic, mastered topics, recent answers, the misconception map | the model | yes | yes | yes |
+| `next_task` | Opens a request and returns the package to write a task from | the model | **no** | no | yes, within the window |
+| `submit_task` | Takes the written task through the checks and hands it to the child | the model | yes | no | **no** — each call spends an attempt |
+| `submit_answer` | Records the child's answer once, updates the ratings, returns the diagnosis | the **widget**, or the model in text mode | **no** | no | yes |
+
+Six tools for the five capabilities of PRODUCT 4.1: the profile is split into reading and writing so that reading can be annotated read-only and a host can treat it accordingly.
+
+**Names are final**, and nothing else depends on them being exact: the host prefixes them with the connector's name (`MathTrail:get_profile` in Claude), so every instruction describes a tool by what it does and never by a literal name (R07).
+
+Each tool carries the MCP annotations of the table plus `destructiveHint: false` and `openWorldHint: false` — nothing here reaches beyond the parent's own file — and a human `title`. Each declares an `outputSchema`, so a host that validates structured results can.
+
+**No tool takes a `student_id`** (О-41). The profile is determined by the token (02-auth), the free edition has one child, and an argument the model has to invent is an argument the model gets wrong.
+
+## 7.2 What goes in
+
+| Tool | Arguments |
+|---|---|
+| `get_profile`, `get_progress` | none |
+| `save_profile` | `pseudonym`, `grade`, `interests`, `excluded_skills`, `notes`, `ui_language` — all optional, at least one present; `pseudonym` and `grade` required when there is no profile yet. Caps and types are 04-profile |
+| `next_task` | `language` (BCP 47, required); `topic`, `difficulty`, `reason` — optional, and `reason` is required when either of the other two is present (section 3.4) |
+| `submit_task` | `request_id`, `brief`, `task`, `solver`, `self_check`, `language` — sections 4.2–4.5 and 6.2 |
+| `submit_answer` | `task_id`, `answer` (`A`–`E`), `hint_used`, `confused` — the two flags default to false (03-flows) |
+
+## 7.3 What comes out
+
+Every result has three parts, and the rule of 03-flows governs all of them: **the model sees everything, and so does the widget the result draws**. The split below is about what each part is *for*, not about who can read it.
+
+- **`content`** — text. This is the whole lesson when no widget is rendered (О-10): the task read out, the result explained, the progress described. It is written for a model to relay, in the task's own language where the text is for the child, and in English where it is for the model.
+- **`structuredContent`** — the widget's payload, and the same data in machine form for the model. It never contains the answer, the trap texts or the solution before the child has answered (PRODUCT 4.4, criterion 11.3), and it never contains the generation package — which is why `next_task` draws no card at all.
+- **`_meta`** — `ui.resourceUri` on the four tools that draw a card, and `securitySchemes` declaring oauth2 with the scope `mcp` on all six. `ui.visibility` is left unset everywhere, which means the default: both the model and the app may call. Setting it to `["model"]` on the five tools the widget never calls was considered and rejected — the only benefit is defence in depth against our own widget, and a host that mis-reads the list would break text mode, which is the product's fallback rather than a nicety.
+
+Two fields appear in the `structuredContent` of every tool:
+
+- **`screen`** — which widget screen this payload is for (8.2). The widget never has to guess from the shape of the data.
+- **`last_answer`** — the outcome of the last recorded answer, or null. One line, and it is the compensating control for a lost `ui/update-model-context` (03-flows): a model that missed the widget's message still learns from its next call that the child has answered, and what happened.
+
+`next_task` adds one more: **`already_open`** — true when the request was already open, with its age in seconds, so an impatient second ask does not become a second generation racing the first (03-flows).
+
+## 7.4 Errors, refusals and the words they use
+
+A refusal is not a failure. The two are answered differently:
+
+- **A refusal the model can act on** — a task that failed the checks, a limit reached, a request that is no longer open — is an ordinary result with `status` set to `rejected`, `limited` or `stale` and the codes of section 5.9. `isError` stays false: the model is meant to read it, fix something and try again, and a host that paints errors red teaches the child nothing useful.
+- **A failure of ours** — Drive unavailable, the profile unreadable, the sealing key gone — is `isError: true` with one sentence.
+
+The wording rules are the same for both, and they are not stylistic: no internal error text, no stack, no Drive message passed through (CLAUDE.md, "Errors"); no answer letter and no option text in anything `submit_task` returns, because that result draws a card (5.1); and every message names what to do next — fix this field, ask again tomorrow, ask for a new task.
+
+## 7.5 Which language, and who decides
+
+Three languages travel through the system and they come from three different places. Confusing them is the easiest way to show a child the wrong thing.
+
+| What | Where it comes from |
+|---|---|
+| The **task** — wording, options, hint, solution | The `language` argument of `next_task`, which the model fills from the conversation. Stored with the task and the request (04-profile) |
+| The **widget** — buttons, labels, screens | The host's `locale` from the app context (8.4), overridden by `ui_language` in the profile when the parent set one (О-14) |
+| **Server-rendered pages** — the consent screen, error pages | `Accept-Language`, and only `en` and `ru` exist (8.9) |
+
+When the model omits `language`, the server falls back in this order: `_meta["openai/locale"]` if the host sent one — ChatGPT does — then `ui_language` from the profile, then `en`. The fallback is a safety net, not a design: a task in the wrong language is a wasted generation, so the tool's description says the argument is required and the instructions repeat it.
+
+---
+
+# 8. Widgets, screens and languages
+
+Everything here is the MCP Apps extension 2026-01-26 as the `@modelcontextprotocol/ext-apps` 2.0.0 library implements it; where the library and the specification text disagree, the library wins (R06). What T03 confirmed live in Claude is marked as such.
+
+## 8.1 One resource
+
+| Property | Value |
+|---|---|
+| URI | `ui://mathtrail/app.html` |
+| MIME type | `text/html;profile=mcp-app` |
+| Contents | One HTML file with the Preact bundle, the styles and every dictionary inlined — no external load of any kind (О-13, PRODUCT 4.2) |
+| `_meta.ui.csp` | All four lists empty: `connectDomains`, `resourceDomains`, `frameDomains`, `baseUriDomains`. Empty is the secure default in the library — no network, no third-party resources, no nested frames |
+| `_meta.ui.permissions` | None requested: no camera, no microphone, nothing |
+| `_meta.ui.domain` | Not set. A dedicated sandbox origin exists for OAuth callbacks and API allowlists inside a view; ours does neither |
+| `_meta.ui.prefersBorder` | `true` — the card is a task, and a visible boundary is what makes it read as one |
+
+The empty CSP is worth stating as a property rather than a setting: a widget that cannot reach the network cannot leak what it holds, and what it holds is a child's task.
+
+## 8.2 The six screens
+
+One resource, six screens, and the payload says which — `structuredContent.screen` (7.3). The widget never infers a screen from the shape of the data, because a wrong guess would show a child the wrong thing.
+
+| `screen` | Drawn by | Shows |
+|---|---|---|
+| `first_run` | `get_profile` when there is no file | What the app is, and what the parent has to fill in |
+| `profile` | `get_profile`, `save_profile` | Pseudonym, grade, interests, constraints; editing |
+| `progress` | `get_progress` | The rating per topic with its rank (О-48, R12), mastered topics, recent answers, the misconception map, the recommendation |
+| `task` | `submit_task` when it accepts | Wording, drawing, `A`–`E`, Hint, I don't understand, Next task |
+| `waiting` | `submit_task` when it refuses, and locally after "Next task" | "Preparing the next task…", a warm-up, and after 120 seconds the deadline message (03-flows) |
+| `result` | Locally, after `submit_answer` returns to the widget | Right or wrong, the trap behind the chosen option, the solution, Next task |
+
+`result` and `waiting` are the two screens no tool result draws directly: the card the child is already looking at turns itself over. That is why `submit_answer` carries no `ui.resourceUri` (03-flows).
+
+## 8.3 What the widget does
+
+| Action | How |
+|---|---|
+| Record an answer | `callServerTool("submit_answer", …)` — the result comes back to the widget, and the card turns to `result` |
+| Ask for the next task | `sendMessage` (`ui/message`) — only the model can write a task |
+| Ask for a simpler explanation | `sendMessage`, when "I don't understand" is pressed after answering |
+| Tell the model what happened | `updateModelContext` after an answer — one line, no conversation turn spent |
+| Fit its card | `sendSizeChanged` when the content's height changes |
+
+It calls nothing else. No `requestDisplayMode` — a task card is an inline card. No `openLink`, no `downloadFile`. The hint needs no call at all: it arrives with the task and is revealed locally, and the fact that it was opened travels with the answer (03-flows).
+
+`sendMessage` and `updateModelContext` were confirmed in T03 only as far as "the call returns"; both have compensating controls and neither is load-bearing for correctness (03-flows).
+
+## 8.4 What the host tells the widget
+
+The app context arrives at startup and again on every change (`ui/notifications/host-context-changed`). What v1 uses, with the values T03 saw live in Claude:
+
+| Field | Used for | Live values |
+|---|---|---|
+| `locale` | The dictionary (8.6) | `en-US` on web and phone |
+| `theme` | Light or dark | `dark` on web, `light` on the phone — it follows the device, not the account |
+| `displayMode` | Layout; `inline` is the only one v1 designs for | `inline` |
+| `containerDimensions` | The layout's width | 736 px on web, 353 px on the phone |
+| `safeAreaInsets` | Padding under a notch | All zeros for an inline card |
+| `styles` | The host's own CSS variables, so the card looks native | `light-dark(…)` variables |
+| `timeZone` | Nothing yet — see below | IANA format |
+| `toolInfo` | Debugging only: the whole tool definition, `_meta` included | — |
+
+The layout works from **320 px** and never scrolls horizontally (PRODUCT 4.2); 353 px is what a real phone gave us, so the margin is thin and is tested rather than assumed.
+
+`timeZone` is the field that answers an open question from 03-flows: the daily counters roll over at a UTC midnight because the server has no idea where the family is, and the host has been telling the widget all along. v1 keeps UTC — the counters are cost ceilings and nothing is displayed from them (R13) — but if that ever changes, the timezone does not need asking for.
+
+## 8.5 When there is no widget
+
+Text mode is not a fallback path through different tools; it is the same tools with nobody drawing the cards (О-10). Every result's `content` is a complete rendering of that screen in words: the task read out without its answer, the diagnosis after an answer, the progress as a short list. A host that renders nothing loses the button that records an answer without spending a conversation turn — and that is the whole of what it loses.
+
+The one thing text mode must never do is improvise the missing pieces: the answer is not in the payload to be read out early, and the model has no way to fetch it before the child answers.
+
+## 8.6 Dictionaries
+
+Strings are never baked into a component; they are looked up by key (PRODUCT 4.2).
+
+- **Format** — one flat JSON object per locale, `web/locales/<tag>.json`, keys in dot notation (`task.hint`, `result.correct`, `rank.3`). Placeholders are named: `{count}`, `{topic}`.
+- **Plurals** — `Intl.PluralRules` with the CLDR categories, so a key that varies by number is a small object: `{"one": "…", "few": "…", "many": "…", "other": "…"}`. Numbers and dates go through `Intl.NumberFormat` and `Intl.DateTimeFormat`. No i18n library, no ICU parser: the platform has all three.
+- **Where they live** — inside the single HTML file, all of them. The widget has no network (8.1), so a dictionary it does not already hold is a dictionary it can never fetch. At roughly 2.5 KB of JSON per locale, twenty-odd locales are around 50 KB before compression, which the budget of one embedded file absorbs. If that stops being true, the escape is to inline one locale per resource read rather than to give the widget a network.
+- **Lookup** — the full tag first (`pt-BR`), then the language alone (`pt`), then `en`. A missing key falls back the same way and, in a development build, fails loudly.
+- **Adding a language** is adding a file (PRODUCT 4.2); no code changes, and T59 is where the translations land.
+
+## 8.7 The languages of v1
+
+О-14а asks for the world's largest languages. v1 ships **22**: `en`, `zh-Hans`, `hi`, `es`, `ar`, `fr`, `bn`, `pt`, `ru`, `ur`, `id`, `de`, `ja`, `tr`, `ko`, `vi`, `it`, `fa`, `pl`, `uk`, `th`, `nl`.
+
+The list is a starting point chosen by number of speakers and by where a parent might plausibly meet the app, not a promise. A locale outside it is served by its language's nearest match or by English, which is exactly what the lookup above does.
+
+## 8.8 Right to left
+
+`ar`, `fa` and `ur` are written right to left, so the widget sets `dir="rtl"` on the document for them and lays out with logical CSS properties — `margin-inline-start`, `padding-inline-end`, `text-align: start` — rather than left and right.
+
+One exception matters more than the rest: **the text drawing is always laid out left to right**, inside a `<pre dir="ltr">`. A monospace picture of a number line or a balance is a grid of characters whose meaning is positional; mirroring it turns a correct drawing into a wrong one. The wording around it is mirrored, the picture is not.
+
+## 8.9 Server-rendered pages
+
+Two pages are rendered by the server rather than by a widget: the consent screen of 02-auth and the error pages of the sign-in flow. They exist outside the chat, in a browser, with no app context to read a locale from.
+
+They are served in **`en` or `ru` only**, chosen by `Accept-Language`, with `Content-Language` set on the response. That is a deliberate narrowing of PRODUCT 4.2, which describes widgets: a consent screen in twenty-two languages is twenty-two more things to keep in step with the privacy policy, which itself exists in one language (T19).
+
+## 8.10 `window.openai`
+
+ChatGPT exposes its own `window.openai` API beside the standard one: widget state, modal windows, payment (PRODUCT 9.3). v1 uses none of it. The widget is written against the MCP Apps library alone, and where a host offers something extra it is read through feature detection and treated as sugar — never as a requirement, and never as a second code path to test. The same rule covers anything ChatGPT-specific that turns up in T63: if it cannot be feature-detected and ignored, it does not go in.
+
+## 8.11 Every scenario, its tools and its screens
+
+The acceptance check for this part: each scenario of PRODUCT 3 has tools, a screen and a rendering in words.
+
+| Scenario | Tools | Screens | In text mode |
+|---|---|---|---|
+| 1. First sign-in | `get_profile`, `save_profile` | `first_run` → `profile` → `waiting` | The model asks for the pseudonym, grade, interests and constraints in the chat and reads the saved profile back |
+| 2. The task | `next_task`, `submit_task` | `waiting` → `task` | The wording, the drawing and the options `A`–`E` are read out; the hint on request |
+| 3. The answer | `submit_answer` | `task` → `result` | The child types a letter, the model calls the tool and explains from the trap it returns |
+| 4. The next task | `sendMessage` → `next_task`, `submit_task` | `result` → `waiting` → `task` | The child or the adult asks in words |
+| 5. Progress | `get_progress` | `progress` | Ratings, ranks, mastered topics and the recommendation as a short list |
+| 6. The profile | `get_profile`, `save_profile` | `profile` | The same fields, read out and changed by asking |
+
+Every row's text column is the `content` of the same result that draws the screen — one payload, two renderings (7.3).
+
+---
+
 ## Remarks on PRODUCT and RUN
 
 Collected while writing this part; none of them changes a product decision.
@@ -901,3 +1093,11 @@ Added while writing section 6:
 13. **Three of the 450 checks sample with a seeded RNG and have no mechanical port.** They demonstrate an invariant over twenty thousand random games; the port computes the invariant. If one of them resists, that reference task is replaced rather than the no-randomness rule bent. **For:** T31.
 14. **Charging steps for elements produced inside a helper is the only bound on memory we have**, and it writes to `Thread.Steps`, a field the SDK documents as "incremented by the interpreter". It works — the limit is tested on every instruction — but it is a use the library does not promise. If a future version makes the counter read-only, the sandbox needs a counter of its own. **For:** T28.
 15. **The step and time limits are guesses until measured.** 10,000,000 steps and 2 seconds are an order of magnitude above what the four ports in 6.9 need, but the real distribution is the 450 solvers, and only T29 will have it. **For:** T29, and the configuration in section 11.
+
+Added while writing sections 7 and 8:
+
+16. **Tool visibility is left at the default, both model and app.** Restricting the five tools the widget never calls to `["model"]` is defence in depth against our own code, and a host that mis-read the list would break text mode. Worth one live check in T62 that all six tools reach the model. **For:** T41, T62.
+17. **The host tells the widget the family's timezone.** `timeZone` in the app context, IANA format. v1 keeps its daily counters on a UTC day and displays nothing from them, so there is nothing to do — but the open question in 03-flows now has a cheap answer whenever it is wanted. **For:** T52, T57.
+18. **Every dictionary lives in the one HTML file**, because the widget has no network by design. Twenty-two locales are around 50 KB before compression. If the bundle outgrows its budget the escape is to inline one locale per `resources/read`, not to open the CSP. **For:** T42, T54, T59.
+19. **The list of 22 languages is a starting point, not a promise** (О-14а). It is chosen by speakers and plausibility, and a locale outside it lands on its language or on English by the ordinary lookup. **For:** T59.
+20. **`securitySchemes` is still an unverified placement.** T04 put it in `_meta` because the draft's top-level field does not exist on the SDK's `Tool`, and no host has been seen reading either form. **For:** T41, and a live check in T63.
