@@ -1,4 +1,4 @@
-"""Export golden vectors from the prototype (RUN.md T16).
+"""Export golden vectors from the prototype.
 
 The Go implementations of the rating formulas, the readability filter, the near-duplicate measure and the rule are
 checked against these files. They are the prototype's own numbers, produced by the prototype's own code: this script
@@ -26,8 +26,8 @@ CORRIDOR_GRID_START, CORRIDOR_GRID_STOP, CORRIDOR_GRID_STEP = -2.0, 3.5, 0.25
 SEED_STUDENTS = ("dima", "masha", "olya", "petya", "sasha")
 TOP_PAIRS = 50
 
-# The prototype's docs/architecture/05-ratings.md worked example predates D37 and uses one k0 for all three
-# parameters. It is exported as it stands so that the numbers printed in that document can be checked against code.
+# The prototype's own worked example uses one k0 for all three parameters, from before they were split. It is
+# exported as it stands, so that the numbers printed alongside it can be checked against running code.
 DOC_EXAMPLE_K0 = 0.4
 DOC_EXAMPLE_STEPS = (
     {"difficulty": 2, "correct": True},
@@ -350,7 +350,7 @@ def write(path: Path, payload: dict) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Export the prototype's golden vectors (RUN.md T16).")
+    parser = argparse.ArgumentParser(description="Export the prototype's golden vectors.")
     parser.add_argument("--out", type=Path, required=True, help="directory to write the vectors into")
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)

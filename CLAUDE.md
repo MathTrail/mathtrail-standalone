@@ -105,7 +105,7 @@ content/          catalogs, reference tasks and model instructions, embedded
 web/              widget sources
 ```
 
-`mentor-api` groups the same way (`domain/`, `infra/`, `transport/`), but puts `repository.go` and `handler.go` inside each domain package, so its domain imports gin and pgx. We keep the grouping and drop that part: our domains are computation — ratings, checks, the solver contract — and they stay free of I/O. That is what makes them testable against the golden vectors from T16 with no mocks at all.
+`mentor-api` groups the same way (`domain/`, `infra/`, `transport/`) and serves HTTP with gin, which we do too — but it puts `repository.go` and `handler.go` inside each domain package, so its domain imports gin and pgx. We keep the grouping and the framework, and drop that part: our domains are computation — ratings, checks, the solver contract — and they stay free of I/O. That is what makes them testable against the golden vectors from T16 with no mocks at all.
 
 ### The dependency rule
 
@@ -167,7 +167,7 @@ Implementations of the same interface must be interchangeable, and that is worth
 
 ### Config
 
-- Environment variables only, read in `internal/config`, nowhere else. (`mentor-api` uses Viper; we do not — the service is configured entirely through Cloud Run env vars, PRODUCT 6.)
+- Environment variables only, read in `internal/config`, nowhere else (PRODUCT 6). Viper does the reading, as in `mentor-api`: one declaration per variable carries its name, its default and its type, and no file or remote source is registered.
 - Defaults as named constants; `Validate()` returns errors that name the offending variable.
 - The listen port comes from `PORT`.
 - Dev-only switches, such as the dev auth stub, refuse to start when `K_SERVICE` is set.
@@ -230,5 +230,8 @@ Open the repository in VS Code and choose "Reopen in Container" (`.devcontainer/
   - To change a version: edit the literal everywhere it appears (Dockerfile, `devcontainer.json` for Docker or the Claude Code extension), rebuild the container.
 - **Container marker.** `MATHTRAIL_DEVCONTAINER=1` is set only inside the container. A session that does not see it is on the host and must stop (see "Devcontainer only").
 - **Claude Code.** Its config lives in the `mathtrail-standalone-claude` volume, so the login survives rebuilds. Auto-update is off; the version is pinned.
-- **Just recipes.** `just --list` shows all recipes.
-- **Build context.** The devcontainer image is built with the repository root as context; `.dockerignore` keeps `.git`, `.env`, `prototype/`, `reference/` and `node_modules` out of it.
+- **Just recipes.** `just --list` shows all of them. The everyday ones are `just fmt`, `just test`, `just lint`, `just build` and `just run`; the two that must be green before a task is done are **`just ci-lint`** and **`just ci-test`** (race detector and coverage), and they are what CI runs.
+- **Git hooks.** `.githooks/pre-commit` is enabled by `post-start` through `core.hooksPath`. It runs formatting, a build and the tests — enough to catch what is embarrassing, while the linter, the race detector, `govulncheck` and `gitleaks` wait for CI.
+- **The runtime image.** `just docker-build` builds it and `just docker-run` starts it on port 8080. Both base images are pinned by tag and digest in the `Dockerfile`: a Go builder and a distroless static runtime that has no shell and runs as a non-root user.
+- **Anything that is not Go runs in a container too.** `just golden` exports the prototype's vectors using the pinned `uv` image and the prototype's own PostgreSQL compose file, so no Python and no database is ever installed into the devcontainer (`testdata/golden/export/README.md`).
+- **Build context.** The devcontainer image is built with the repository root as context; `.dockerignore` keeps `.git`, `.env`, `prototype/`, `reference/`, `docs/`, `testdata/` and `node_modules` out of it and out of the runtime image.

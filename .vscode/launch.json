@@ -1,0 +1,39 @@
+{
+  // Debugging configurations for the server and its tests.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run the server",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/server",
+      "env": {
+        "PORT": "8080",
+        "MATHTRAIL_LOG_LEVEL": "debug",
+        "MATHTRAIL_LOG_FORMAT": "console"
+      }
+    },
+    {
+      "name": "Run the server as Cloud Run sees it",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/server",
+      "env": {
+        "PORT": "8080",
+        "K_SERVICE": "mathtrail",
+        "MATHTRAIL_PUBLIC_URL": "https://mathtrail.example",
+        "MATHTRAIL_LOG_LEVEL": "info"
+      }
+    },
+    {
+      "name": "Debug the test under the cursor",
+      "type": "go",
+      "request": "launch",
+      "mode": "test",
+      "program": "${fileDirname}",
+      "args": ["-test.run", "${selectedText}"]
+    }
+  ]
+}

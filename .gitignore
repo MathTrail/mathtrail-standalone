@@ -9,10 +9,6 @@
 /docs/prototype/
 /docs/reconciliation.md
 
-# T03 spike (spike/protocol/, deleted in T17): build artifacts, not the checked-in placeholder.
-/spike/protocol/widget/node_modules/
-/spike/protocol/widget/dist/
-
 # Secrets
 .env
 
@@ -20,3 +16,13 @@
 bin/
 coverage.*
 *.out
+*.test
+*.exe
+*.prof
+
+# Go workspace files: this repository is one module
+go.work
+go.work.sum
+
+# Node modules of the widget build (web/)
+node_modules/

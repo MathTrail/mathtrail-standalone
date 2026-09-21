@@ -1181,7 +1181,7 @@ Two instances can both let a task through at the same moment, and the daily coun
 
 ## 11.1 Two tiers, and the rule between them
 
-- **Environment variables** carry deployment facts, secrets and the operational ceilings someone might need to move without a release. They are read in `internal/config` and nowhere else, defaults are named constants, and `Validate()` names the offending variable (CLAUDE.md).
+- **Environment variables** carry deployment facts, secrets and the operational ceilings someone might need to move without a release. They are read in `internal/config` and nowhere else, by Viper, which holds each variable's name, default and type in one declaration (R18); the defaults are named constants, and `Validate()` names the offending variable. No file and no remote source is registered: a deployment is configured by its environment and by nothing else.
 - **Named constants in the binary** carry the product's own numbers: the rating constants, the readability thresholds, the duplicate thresholds, the drawing limits, the solver limits, the window sizes and the package budget. Changing one of these changes what the product *is*, and the golden vectors (T16) pin them, so it is a code change with tests rather than a deploy-time knob.
 
 Where section 5.4 says the drawing limits are "configuration, not constants in the code", it means this second tier: one named place, not literals scattered through the checks. They are calibrated in T58 and they ship with the binary.
@@ -1207,8 +1207,14 @@ Where section 5.4 says the drawing limits are "configuration, not constants in t
 | `MATHTRAIL_DRIVE_TIMEOUT` | no | 10s | no | Every Drive call |
 | `MATHTRAIL_REQUEST_WINDOW` | no | 15m | no | When an open request counts as abandoned (03-flows) |
 | `MATHTRAIL_LOG_LEVEL` | no | info | no | Logging |
+| `MATHTRAIL_LOG_FORMAT` | no | json | no | Logging: json for a collector, console to read by eye |
+| `MATHTRAIL_HTTP_READ_HEADER_TIMEOUT` | no | 5s | no | The HTTP server (9.2) |
+| `MATHTRAIL_HTTP_READ_TIMEOUT` | no | 30s | no | The HTTP server (9.2) |
+| `MATHTRAIL_HTTP_WRITE_TIMEOUT` | no | 60s | no | The HTTP server (9.2) |
+| `MATHTRAIL_HTTP_IDLE_TIMEOUT` | no | 120s | no | The HTTP server (9.2) |
+| `MATHTRAIL_SHUTDOWN_TIMEOUT` | no | 10s | no | Graceful shutdown |
 | `MATHTRAIL_DEV_AUTH` | no | off | no | The dev sign-in stub; refuses to start under `K_SERVICE` (9.4) |
-| `K_SERVICE` | — | set by Cloud Run | no | Read, never set by us: it is how the service knows it is not a laptop |
+| `K_SERVICE` | — | set by the platform | no | Read, never set by us: it is how the service knows it is not a laptop. An empty variable counts as unset (R18) |
 
 Secrets arrive as Secret Manager references resolved by Cloud Run at instance start, never as literals in a deploy command, and never in the repository (PRODUCT 6, 8).
 
@@ -1224,6 +1230,8 @@ Configuration is read once, validated once, and a service that cannot satisfy it
 
 Structured JSON on stdout, one object per line, with the keys Cloud Run reads: `severity`, `message`, `time`. Everything else is a snake_case field beside them. Messages are lowercase and describe an event, not a sentence: `tool_call`, `task_accepted`, `limit_hit`.
 
+**Nothing is sampled.** A logging library that drops repeats of the same message is protecting a disk, and it would be dropping exactly the lines this section exists for: the messages are a small set of event names with the detail in the fields, so a burst of refusals is the shape a sampler throws away first. Everything in 12.4 is counted from these lines, and a count taken from a sample is wrong precisely when something is going wrong. The rate limits of section 10 are what bounds the volume instead.
+
 Every line that belongs to one MCP request carries the same `request_id`; every line that belongs to a signed-in user carries `user` — the derived identifier of 02-auth, never Google's `sub`. A line may carry `instructions_version` when the event concerns a generated task (О-21).
 
 ## 12.2 The events
@@ -1231,6 +1239,7 @@ Every line that belongs to one MCP request carries the same `request_id`; every 
 | Event | When | Fields beside the common ones |
 |---|---|---|
 | `startup`, `shutdown` | Process lifecycle | version, revision, the content's version |
+| `http_request` | Every HTTP request, once, unless it is a probe that succeeded | status, method, path, masked query, duration, body size |
 | `tool_call` | Every MCP tool call, once, at the boundary | tool, outcome, status, duration_ms |
 | `task_requested` | `next_task` opened or returned a request | topic, level, difficulty, goal, tutor_mode, already_open |
 | `task_submitted` | Every `submit_task` | attempt, outcome, primary code, every failed check, duration_ms, solver_steps, solver_ms |

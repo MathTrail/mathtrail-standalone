@@ -1,8 +1,15 @@
 # Build context filter for images built from the repository root.
+# The image needs the Go sources and nothing else.
 .git
+.github
+.vscode
 .env
+.devcontainer
 prototype
 reference
+docs
+testdata
 bin
 coverage.*
+*.md
 **/node_modules
