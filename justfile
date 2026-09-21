@@ -21,6 +21,11 @@ GO_LICENSES := "github.com/google/go-licenses/v2@v2.0.1"
 # the result under MIT.
 ALLOWED_LICENSES := "MIT,BSD-2-Clause,BSD-3-Clause,Apache-2.0,ISC"
 
+# The origin the site is published on. Every absolute address on the site, and
+# the CNAME that claims the domain, are built from this one value.
+SITE_BASE := "https://mathtrail.app"
+SITE_DIR := "site/dist"
+
 # The build identity, stamped into the binary at link time. Computed once per
 # run of just, so that a binary and the image built beside it carry the same
 # words.
@@ -96,9 +101,9 @@ _license-list:
     Third-party licenses
     ====================
 
-    The Go modules below are linked into the MathTrail binary. Each line is a
-    license, the module it covers, and the text of that license at the exact
-    version in go.mod. MathTrail itself is MIT; see LICENSE.
+    The Go modules below are linked into the programs this repository builds.
+    Each line is a license, the module it covers, and the text of that license
+    at the exact version in go.mod. MathTrail itself is MIT; see LICENSE.
 
     Rewrite this file with: just licenses
 
@@ -162,6 +167,20 @@ ci-licenses:
         echo "THIRD_PARTY_LICENSES is out of date: run just licenses and commit the result." >&2
         exit 1
     fi
+
+# -- Site -------------------------------------------------------------------
+
+# Render the site into site/dist/
+site:
+    go run ./cmd/sitegen -base {{ SITE_BASE }} -out {{ SITE_DIR }}
+
+# Render the site and serve it, so a page can be read the way a visitor reads it
+site-serve port="8081":
+    go run ./cmd/sitegen -base {{ SITE_BASE }} -out {{ SITE_DIR }} -serve :{{ port }}
+
+# Render the site and refuse it if anything about it is wrong
+ci-site: site
+    go run ./cmd/sitecheck -base {{ SITE_BASE }} -dir {{ SITE_DIR }}
 
 # -- Container --------------------------------------------------------------
 

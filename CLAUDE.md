@@ -89,6 +89,7 @@ Checked against `reference/mentor-api/`, the platform's reference service. Where
 
 ```
 cmd/server/main.go
+cmd/sitegen/ sitecheck/   the public site: renders it, and refuses a broken one
 internal/
   app/            DI container, HTTP server
   config/ logger/ version/
@@ -96,11 +97,13 @@ internal/
     rating/ tutor/ checks/ solver/ profile/
   infra/          everything that talks to the outside world
     drive/ starlark/ seal/
+  site/           render/ turns the site's sources into files, check/ judges them
   store/          storage interface plus its in-memory and Drive implementations
   transport/
     mcp/          tools, ui:// resources
     http/         /healthz, OAuth endpoints
 content/          catalogs, reference tasks and model instructions, embedded
+site/             the public site: texts per locale, templates, assets
 web/              widget sources
 ```
 

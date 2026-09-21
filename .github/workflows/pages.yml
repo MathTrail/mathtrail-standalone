@@ -1,0 +1,105 @@
+# Builds the site and, on main, publishes it. The build runs inside the same
+# toolchain image as every other check, so a page rendered here and a page
+# rendered on a laptop come from the same Go at the same version; the deployment
+# itself runs on the runner, because that is where the Pages API is reachable.
+name: Pages
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+# A new push replaces the run of the branch it belongs to. A deployment is never
+# cancelled halfway: the site that is live would be left half replaced.
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Git refuses a repository whose files belong to somebody else, which is what a
+  # checkout inside a container looks like to it.
+  GIT_CONFIG_COUNT: "1"
+  GIT_CONFIG_KEY_0: safe.directory
+  GIT_CONFIG_VALUE_0: "*"
+  GOMODCACHE: /tmp/go/mod
+  GOCACHE: /tmp/go/build
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  toolchain:
+    name: Toolchain image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.image.outputs.reference }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/just
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: image
+        run: echo "reference=$(just ci-toolchain-image)" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build the site
+    needs: toolchain
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    container:
+      image: ${{ needs.toolchain.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            /tmp/go/mod
+            /tmp/go/build
+          key: go-${{ hashFiles('go.sum') }}
+          restore-keys: go-
+      - name: Render the site and hold it to its own rules
+        run: just ci-site
+      - name: Keep the site for the deployment
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site/dist
+          # The archive drops dotfiles unless it is told otherwise, and .nojekyll
+          # is a dotfile.
+          include-hidden-files: true
+
+  deploy:
+    name: Publish
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      # pages lets the token create a deployment; id-token mints the OIDC token
+      # the Pages API checks the deployment's origin with.
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="{{ .Lang }}" dir="{{ .Dir }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ .Title }}</title>
+<meta name="description" content="{{ .Description }}">
+<link rel="canonical" href="{{ .Canonical }}">
+{{- range .Alternates }}
+<link rel="alternate" hreflang="{{ .Hreflang }}" href="{{ .URL }}">
+{{- end }}
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{ .SiteName }}">
+<meta property="og:title" content="{{ .Title }}">
+<meta property="og:description" content="{{ .Description }}">
+<meta property="og:url" content="{{ .Canonical }}">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="masthead">
+<a class="wordmark" href="{{ .HomeURL }}">{{ .SiteName }}</a>
+<nav class="languages" aria-label="{{ .Text.language }}">
+{{- range .Languages }}
+{{- if .Current }}
+<span aria-current="true">{{ .Name }}</span>
+{{- else }}
+<a href="{{ .URL }}" hreflang="{{ .Hreflang }}" lang="{{ .Hreflang }}">{{ .Name }}</a>
+{{- end }}
+{{- end }}
+</nav>
+</header>
+<main>
+{{ .Body }}
+</main>
+<footer>
+<p>{{ .Text.openSource }}</p>
+<nav class="documents">
+{{- range .Documents }}
+<a href="{{ .URL }}">{{ .Label }}</a>
+{{- end }}
+<a href="https://github.com/MathTrail/mathtrail-standalone">{{ .Text.source }}</a>
+</nav>
+</footer>
+</body>
+</html>
