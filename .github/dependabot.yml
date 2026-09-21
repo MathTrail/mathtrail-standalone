@@ -1,0 +1,34 @@
+# Dependabot proposes new versions; a pull request changes a pinned version and
+# nothing else, because every version in this repository is exact.
+version: 2
+
+updates:
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      # Routine bumps travel together. A major version arrives on its own,
+      # because it is the one that has to be read before it is merged.
+      go-modules:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+
+  # The image the service runs on, and the one it is developed in.
+  - package-ecosystem: docker
+    directories:
+      - /
+      - /.devcontainer
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5

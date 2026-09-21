@@ -61,6 +61,8 @@ All development happens in the devcontainer; nothing but Docker and VS Code is n
 3. `just --list` shows the available recipes. The usual ones are `just run` to start the service, `just test` while writing code, and `just ci-lint` with `just ci-test` before calling anything done.
 4. `just docker-build` and `just docker-run` build and start the runtime image; `curl localhost:8080/healthz` answers from it.
 
+Every pull request runs the same `ci-*` recipes on GitHub Actions — formatting and lint, the tests under the race detector, the generated mocks — together with a vulnerability scan, a secret scan, the dependency licenses and a build of the runtime image.
+
 ## Documents
 
 - [docs/](docs/) — architecture diagrams, the implementation decision log and reports of live runs.
@@ -68,6 +70,6 @@ All development happens in the devcontainer; nothing but Docker and VS Code is n
 
 ## License and trademark
 
-The code and the bundled content (catalogs, reference tasks, model instructions) are released under the [MIT License](LICENSE).
+The code and the bundled content (catalogs, reference tasks, model instructions) are released under the [MIT License](LICENSE). The dependencies linked into the binary, and the licenses they carry, are listed in [THIRD_PARTY_LICENSES](THIRD_PARTY_LICENSES).
 
 The MIT License does not grant any rights to the name "MathTrail" or its logos. If you fork this project and run it publicly, please give your version a different name.

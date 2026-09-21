@@ -5,6 +5,21 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
 BINARY := "bin/server"
+MODULE := "github.com/MathTrail/mathtrail-standalone"
+
+# The image the full checks run inside. Lowercase throughout: a registry rejects a
+# repository name that is not.
+TOOLCHAIN_IMAGE := "ghcr.io/mathtrail/mathtrail-standalone/toolchain"
+
+# Exact versions of the tools that only the full checks need. Each is a Go
+# program run straight from its module, so none of them is installed anywhere.
+GOVULNCHECK := "golang.org/x/vuln/cmd/govulncheck@v1.8.0"
+GITLEAKS := "github.com/zricethezav/gitleaks/v8@v8.30.1"
+GO_LICENSES := "github.com/google/go-licenses/v2@v2.0.1"
+
+# What a dependency's license may be: permissive, and compatible with releasing
+# the result under MIT.
+ALLOWED_LICENSES := "MIT,BSD-2-Clause,BSD-3-Clause,Apache-2.0,ISC"
 
 # The build identity, stamped into the binary at link time. Computed once per
 # run of just, so that a binary and the image built beside it carry the same
@@ -12,7 +27,7 @@ BINARY := "bin/server"
 VERSION := `git describe --tags --always --dirty 2>/dev/null || echo dev`
 COMMIT := `git rev-parse --short HEAD 2>/dev/null || echo unknown`
 DATE := `date -u +%Y-%m-%dT%H:%M:%SZ`
-SYMBOLS := "github.com/MathTrail/mathtrail-standalone/internal/version"
+SYMBOLS := MODULE + "/internal/version"
 LDFLAGS := "-X " + SYMBOLS + ".Version=" + VERSION + " -X " + SYMBOLS + ".Commit=" + COMMIT + " -X " + SYMBOLS + ".Date=" + DATE
 
 # List all recipes
@@ -62,6 +77,37 @@ mocks:
     fi
     mockery
 
+# Rewrite THIRD_PARTY_LICENSES from the dependency graph
+licenses:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    list=$(just _license-list)
+    # The file is replaced only once the whole list is in hand: a report that
+    # died halfway would otherwise leave the repository claiming fewer
+    # dependencies than it ships.
+    printf '%s\n' "$list" > THIRD_PARTY_LICENSES
+    echo "THIRD_PARTY_LICENSES: $(grep -c 'https://' THIRD_PARTY_LICENSES) modules."
+
+# The license list as the dependency graph reports it right now
+_license-list:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cat <<'HEADER'
+    Third-party licenses
+    ====================
+
+    The Go modules below are linked into the MathTrail binary. Each line is a
+    license, the module it covers, and the text of that license at the exact
+    version in go.mod. MathTrail itself is MIT; see LICENSE.
+
+    Rewrite this file with: just licenses
+
+    HEADER
+    # The report goes to stdout and the progress of the scan to stderr, which is
+    # noise here. The columns are license, module, license text.
+    go run {{ GO_LICENSES }} report ./... --ignore {{ MODULE }} 2>/dev/null \
+        | awk -F, '{ printf "%-13s %-46s %s\n", $3, $1, $2 }'
+
 # -- The full checks --------------------------------------------------------
 
 # Formatting and lint
@@ -91,7 +137,56 @@ ci-mocks-check:
         exit 1
     fi
 
+# Fail on a known vulnerability in code the service actually reaches
+ci-vuln:
+    go run {{ GOVULNCHECK }} ./...
+
+# Fail if anything in the history of the repository looks like a secret
+ci-secrets:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # A history git declines to read scans as zero commits and reports itself clean,
+    # which is the one outcome worse than a failure. Refuse to start instead.
+    git rev-parse --verify HEAD > /dev/null
+    go run {{ GITLEAKS }} git --no-banner --redact .
+
+# Fail if a dependency carries a license we may not ship, or the list is stale
+ci-licenses:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    go run {{ GO_LICENSES }} check ./... --allowed_licenses={{ ALLOWED_LICENSES }}
+    # The list is built first and compared second: a report that failed to run
+    # would otherwise look exactly like a list somebody forgot to update.
+    list=$(just _license-list)
+    if ! printf '%s\n' "$list" | diff -u THIRD_PARTY_LICENSES - ; then
+        echo "THIRD_PARTY_LICENSES is out of date: run just licenses and commit the result." >&2
+        exit 1
+    fi
+
 # -- Container --------------------------------------------------------------
+
+# Publish the image the full checks run inside, and print its exact reference
+ci-toolchain-image:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    # The tag is a function of what the image is built from: one definition of
+    # the environment means one image, and any edit to it means a new one.
+    reference="{{ TOOLCHAIN_IMAGE }}:$(sha256sum .devcontainer/Dockerfile | cut -c1-16)"
+
+    if ! docker buildx imagetools inspect "$reference" > /dev/null 2>&1; then
+        echo "This environment is not published yet; building it." >&2
+        docker build --target toolchain --file .devcontainer/Dockerfile --tag "$reference" . >&2
+        docker push "$reference" >&2
+    fi
+
+    # The digest, not the tag: a tag can be moved, and a version here is exact.
+    # Read with awk rather than a Go template, whose braces would collide with
+    # the interpolation syntax of this file.
+    digest=$(docker buildx imagetools inspect "$reference" | awk '/^Digest:/ { print $2 }')
+
+    # The one thing on stdout, so that a caller can read it with a substitution.
+    echo "{{ TOOLCHAIN_IMAGE }}@${digest}"
 
 # Build the runtime image
 docker-build tag="mathtrail:dev":

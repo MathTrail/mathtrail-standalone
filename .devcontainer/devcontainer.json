@@ -4,7 +4,9 @@
     "name": "MathTrail Standalone DevContainer",
     "build": {
         "dockerfile": "Dockerfile",
-        // Repository root as context, per CLAUDE.md "Build context" (.dockerignore trims it).
+        // The full environment, not the toolchain stage on its own.
+        "target": "devcontainer",
+        // Repository root as context; .dockerignore trims it.
         "context": ".."
     },
     "features": {

@@ -2,27 +2,23 @@
 # Exact versions only: the base image is pinned by digest, every tool below by an ARG default.
 # Kept compatible with the classic builder as well as BuildKit: no heredocs, no RUN --mount,
 # no TARGETARCH (arch is detected at RUN time via dpkg instead).
-FROM mcr.microsoft.com/devcontainers/base:3.0.8-noble@sha256:d7c468679f45a52ad3673d06656b5bf16e488990b17216a1fa295d9e1f89d724
+#
+# Two stages. `toolchain` holds what it takes to build and check the code, and is the stage
+# the automated checks run inside. `devcontainer` adds what a person needs on top of that and
+# is the default stage, so building this file with no target gives the full environment.
+
+# -- toolchain: builds and checks the code -----------------------------------
+
+FROM mcr.microsoft.com/devcontainers/base:3.0.8-noble@sha256:d7c468679f45a52ad3673d06656b5bf16e488990b17216a1fa295d9e1f89d724 AS toolchain
 
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
 ARG GO_VERSION=1.27.1
-# Go editor tooling, installed with `go install`; the Go extension must not fetch its own
-# copies (see devcontainer.json settings).
-ARG GOPLS_VERSION=0.23.0
-ARG DELVE_VERSION=1.27.2
 # Node.js LTS for the widget build.
 ARG NODE_VERSION=24.21.0
 ARG JUST_VERSION=1.58.0
 ARG GOLANGCI_LINT_VERSION=2.13.2
 ARG MOCKERY_VERSION=3.8.0
-# Tunnel for live runs against chat hosts.
-ARG CLOUDFLARED_VERSION=2026.9.1
-# Docker Compose plugin. Installed by us because the docker-in-docker feature cannot pin it;
-# ours in /usr/local/lib/docker/cli-plugins takes precedence over the feature's copy.
-ARG DOCKER_COMPOSE_VERSION=5.5.1
-# Claude Code CLI. The VS Code extension in devcontainer.json must have the same version.
-ARG CLAUDE_CODE_VERSION=2.1.273
 
 RUN arch="$(dpkg --print-architecture)"; \
     case "$arch" in \
@@ -55,6 +51,36 @@ RUN arch="$(dpkg --print-architecture)"; \
         | tar -C "$workdir" -xz mockery; \
     install -m 0755 "$workdir/mockery" /usr/local/bin/mockery; \
     \
+    rm -rf "$workdir"
+
+ENV PATH="/usr/local/go/bin:/usr/local/node/bin:/home/vscode/go/bin:/home/vscode/.local/bin:${PATH}" \
+    GOTOOLCHAIN=local
+
+# -- devcontainer: the toolchain, plus what a person works with --------------
+
+FROM toolchain AS devcontainer
+
+SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
+
+# Go editor tooling, installed with `go install`; the Go extension must not fetch its own
+# copies (see devcontainer.json settings).
+ARG GOPLS_VERSION=0.23.0
+ARG DELVE_VERSION=1.27.2
+# Tunnel for live runs against chat hosts.
+ARG CLOUDFLARED_VERSION=2026.9.1
+# Docker Compose plugin. Installed by us because the docker-in-docker feature cannot pin it;
+# ours in /usr/local/lib/docker/cli-plugins takes precedence over the feature's copy.
+ARG DOCKER_COMPOSE_VERSION=5.5.1
+# Claude Code CLI. The VS Code extension in devcontainer.json must have the same version.
+ARG CLAUDE_CODE_VERSION=2.1.273
+
+RUN arch="$(dpkg --print-architecture)"; \
+    case "$arch" in \
+        amd64) go_arch=amd64; gnu_arch=x86_64 ;; \
+        arm64) go_arch=arm64; gnu_arch=aarch64 ;; \
+        *) echo "unsupported architecture: $arch" >&2; exit 1 ;; \
+    esac; \
+    \
     echo "cloudflared ${CLOUDFLARED_VERSION}"; \
     curl -fsSL --retry 3 -o /usr/local/bin/cloudflared "https://github.com/cloudflare/cloudflared/releases/download/${CLOUDFLARED_VERSION}/cloudflared-linux-${go_arch}"; \
     chmod 0755 /usr/local/bin/cloudflared; \
@@ -62,12 +88,7 @@ RUN arch="$(dpkg --print-architecture)"; \
     echo "docker compose ${DOCKER_COMPOSE_VERSION}"; \
     install -d -m 0755 /usr/local/lib/docker/cli-plugins; \
     curl -fsSL --retry 3 -o /usr/local/lib/docker/cli-plugins/docker-compose "https://github.com/docker/compose/releases/download/v${DOCKER_COMPOSE_VERSION}/docker-compose-linux-${gnu_arch}"; \
-    chmod 0755 /usr/local/lib/docker/cli-plugins/docker-compose; \
-    \
-    rm -rf "$workdir"
-
-ENV PATH="/usr/local/go/bin:/usr/local/node/bin:/home/vscode/go/bin:/home/vscode/.local/bin:${PATH}" \
-    GOTOOLCHAIN=local
+    chmod 0755 /usr/local/lib/docker/cli-plugins/docker-compose
 
 # gopls and dlv are built from source; the Go checksum database verifies the modules.
 RUN echo "gopls ${GOPLS_VERSION}, dlv ${DELVE_VERSION}" \
