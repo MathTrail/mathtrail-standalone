@@ -1,0 +1,196 @@
+/* One table of tokens, redefined once for a dark viewer. Everything below reads
+   from it, so a colour or a rhythm is changed in exactly one place. */
+:root {
+    --ink: #1a1d21;
+    --ink-soft: #4d5560;
+    --paper: #fdfcfa;
+    --paper-sunk: #f2efe9;
+    --rule: #ddd8ce;
+    --accent: #1f6f5c;
+    --accent-ink: #ffffff;
+
+    --step-1: 0.25rem;
+    --step-2: 0.5rem;
+    --step-3: 1rem;
+    --step-4: 1.75rem;
+    --step-5: 3rem;
+
+    --radius: 0.5rem;
+    --measure: 65ch;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --ink: #eceae6;
+        --ink-soft: #a8b0ba;
+        --paper: #16181b;
+        --paper-sunk: #1f2226;
+        --rule: #333840;
+        --accent: #6fd3b5;
+        --accent-ink: #10231e;
+    }
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    /* The reader's own font, so the page costs no download and looks native
+       on every system it is opened on. */
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+        Arial, "Noto Sans", sans-serif;
+    line-height: 1.6;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    margin: 0;
+    padding: 0 var(--step-3);
+    background: var(--paper);
+    color: var(--ink);
+}
+
+main,
+.masthead,
+footer {
+    max-width: var(--measure);
+    margin-inline: auto;
+}
+
+/* Logical properties throughout: the same rules lay out a right-to-left page
+   without a mirrored stylesheet. */
+.masthead {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--step-3);
+    align-items: baseline;
+    justify-content: space-between;
+    padding-block: var(--step-4);
+    border-block-end: 1px solid var(--rule);
+}
+
+.wordmark {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.languages {
+    display: flex;
+    gap: var(--step-3);
+    font-size: 0.9375rem;
+}
+
+.languages [aria-current] {
+    color: var(--ink-soft);
+}
+
+main {
+    padding-block: var(--step-5) var(--step-4);
+}
+
+h1 {
+    font-size: clamp(1.875rem, 1.3rem + 2.5vw, 2.75rem);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-block: 0 var(--step-4);
+    text-wrap: balance;
+}
+
+h2 {
+    font-size: 1.375rem;
+    line-height: 1.25;
+    margin-block: var(--step-5) var(--step-3);
+}
+
+p {
+    margin-block: 0 var(--step-3);
+}
+
+main > p:first-of-type,
+.lede {
+    font-size: 1.1875rem;
+    color: var(--ink-soft);
+}
+
+a {
+    color: var(--accent);
+    text-underline-offset: 0.15em;
+}
+
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: var(--step-1);
+}
+
+footer {
+    padding-block: var(--step-4) var(--step-5);
+    border-block-start: 1px solid var(--rule);
+    color: var(--ink-soft);
+    font-size: 0.9375rem;
+}
+
+.documents {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--step-3);
+}
+
+/* A long legal page is read, not skimmed: give its headings room to separate
+   one obligation from the next. */
+main h2 + p {
+    margin-block-start: 0;
+}
+
+main ul {
+    padding-inline-start: var(--step-4);
+}
+
+main li {
+    margin-block-end: var(--step-2);
+}
+
+/* The apex is a doorway, not a page to read: centre it and give it room. */
+.chooser main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--step-4);
+    min-height: 100svh;
+    justify-content: center;
+    text-align: center;
+    padding-block: var(--step-5);
+}
+
+.chooser h1 {
+    margin-block-end: 0;
+}
+
+.chooser .lede {
+    max-width: 40ch;
+    margin-block-end: 0;
+}
+
+.chooser .languages a {
+    padding: var(--step-2) var(--step-3);
+    border-radius: var(--radius);
+    background: var(--paper-sunk);
+    text-decoration: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

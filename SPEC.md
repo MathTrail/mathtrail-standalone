@@ -1047,7 +1047,7 @@ One exception matters more than the rest: **the text drawing is always laid out 
 
 Two pages are rendered by the server rather than by a widget: the consent screen of 02-auth and the error pages of the sign-in flow. They exist outside the chat, in a browser, with no app context to read a locale from.
 
-They are served in **`en` or `ru` only**, chosen by `Accept-Language`, with `Content-Language` set on the response. That is a deliberate narrowing of PRODUCT 4.2, which describes widgets: a consent screen in twenty-two languages is twenty-two more things to keep in step with the privacy policy, which itself exists in one language (T19).
+They are served in **`en` or `ru` only**, chosen by `Accept-Language`, with `Content-Language` set on the response. That is a deliberate narrowing of PRODUCT 4.2, which describes widgets: a consent screen in twenty-two languages is twenty-two wordings of what the parent is agreeing to, each of which has to keep step with the privacy policy it points at. The policy itself does reach every language the widget speaks (О-50), so whether these two pages should follow it is open as О-51 and settled before the dictionaries of T59 are written.
 
 ## 8.10 `window.openai`
 

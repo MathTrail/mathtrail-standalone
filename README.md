@@ -1,4 +1,4 @@
-# mathtrail-standalone
+# MathTrail
 
 Free, open-source standalone MathTrail app for LLM applications: an endless stream of checked olympiad-style maths tasks for grades 1–6, in any language, with a diagnosis of the child's mistake and a memory of how they are progressing.
 
