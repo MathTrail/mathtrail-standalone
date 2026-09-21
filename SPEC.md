@@ -15,7 +15,7 @@
 | 3 | [Choosing the next task: the rule](#3-choosing-the-next-task-the-rule) | T11 |
 | 4 | [The task: what the model gets and what it hands in](#4-the-task-what-the-model-gets-and-what-it-hands-in) | T12 |
 | 5 | [The checks a submitted task passes](#5-the-checks-a-submitted-task-passes) | T12 |
-| 6 | The Starlark solver | T13 |
+| 6 | [The Starlark solver](#6-the-starlark-solver) | T13 |
 | 7 | The MCP tools | T14 |
 | 8 | Widgets, screens and languages | T14 |
 | 9 | Sign-in and tokens | T15 |
@@ -23,7 +23,7 @@
 | 11 | Configuration | T15 |
 | 12 | Logging and metrics | T15 |
 
-Sections 6–12 are not written yet. Section 9 will be assembled from [docs/architecture/02-auth.md](docs/architecture/02-auth.md), and sections 7–8 from [03-flows.md](docs/architecture/03-flows.md), [04-profile.md](docs/architecture/04-profile.md) and [05-storage.md](docs/architecture/05-storage.md).
+Sections 7–12 are not written yet. Section 9 will be assembled from [docs/architecture/02-auth.md](docs/architecture/02-auth.md), and sections 7–8 from [03-flows.md](docs/architecture/03-flows.md), [04-profile.md](docs/architecture/04-profile.md) and [05-storage.md](docs/architecture/05-storage.md).
 
 ---
 
@@ -653,6 +653,229 @@ Three is the prototype's number and its reasoning holds: after two pointed corre
 
 ---
 
+# 6. The Starlark solver
+
+## 6.1 What it is for
+
+Of the checks in section 5, one is not an opinion: the model hands in a short program that finds the answer by brute force, the service runs it, and the answer it arrives at is compared with the answer the model claimed. Two witnesses to the same number — the reasoning that wrote the task and a program that enumerates it — are the strongest guarantee in the product, and the reason a topic that cannot be enumerated does not enter the catalog (1.2).
+
+The limitation is worth stating in the same breath: the program is written by the same model that wrote the task, so if the model misread its own wording, the program will confirm the misreading (the prototype's 5.3). What the solver catches is arithmetic, miscounting and the option that is secretly also correct — which is most of what goes wrong.
+
+It runs **inside our process**, in the embedded Starlark interpreter (О-8, PRODUCT 7): no Docker, no network, no second service. The prototype needed a container because it ran Python; Starlark is a language designed to be embedded and cut down — no imports, no file access, no clock, no threads — so the sandbox is the language, and what is left to configure is the dialect and the limits.
+
+## 6.2 The contract
+
+The model submits one source file. It defines exactly one entry point:
+
+```python
+def solve(options):
+    """options: {"A": "4", "B": "5", "C": "6", "D": "8", "E": "12"} — the task's own option texts.
+    Returns the list of letters the conditions of the task actually allow."""
+    pairs = combinations(["Ann", "Ben", "Kim"], 2)
+    return match(options, len(pairs))
+```
+
+- **`solve` takes the options and returns letters.** The options come in as an argument rather than as a global because the service calls `solve` twice, and the second call is what makes the contract mean something (below).
+- **The return value is a list or tuple of distinct letters** from `A` to `E`, in any order. An empty list is a legitimate answer: it means the conditions allow none of the options, which is a disagreement, not an error.
+- **`match(options, value)`** is the intended last line: it returns the letters whose option text matches a computed value (6.5). A solver that computes 6 and finds no option saying 6 returns an empty list and fails loudly — which is exactly what should happen when the wording and the options disagree.
+- The program may define anything else it needs above `solve`. Top-level statements run once, before the call.
+
+**The service runs the program twice.** First with the options as submitted; then with the letters permuted by a fixed rotation (A→C, B→D, C→E, D→A, E→B) and the texts moved with them. The verdict is accepted only if both runs return exactly one letter, and the letter of the second run is the image of the first under the permutation. A program that hard-codes `return ["C"]` passes the first run and fails the second; a program that computes a value and looks it up in `options` passes both. The second run costs one more execution of a program that already finished in milliseconds, and it converts "the solver agreed" from a statement about a string into a statement about a computation.
+
+It does not make cheating impossible — a model that hard-codes the *value* rather than the letter still passes — and it is not meant to. It removes the laziest failure, which is also the most likely one.
+
+**The verdict** then feeds section 5.7: exactly one letter, equal to `correct_answer`, in both runs → the check passes. Anything else → `solver_disagrees`.
+
+## 6.3 What counts as an error
+
+Everything in this table is `solver_error`, and the model is told which line of it happened, in one short sentence, with no interpreter internals attached (О-8, SPEC 5.7).
+
+| Status | When |
+|---|---|
+| `bad_source` | the source does not parse, or uses something the dialect forbids — `load`, a recursive function, a construct removed from Starlark |
+| `no_entry_point` | no `solve`, or it is not a function, or it does not take exactly one argument |
+| `error` | the program failed while running: `fail()`, an index or type error, a helper's cap exceeded |
+| `timeout` | the step limit or the wall-clock limit tripped (6.6) |
+| `bad_output` | the result is not a list or tuple, or holds something other than distinct single letters `A`–`E` |
+
+`ok` is the only status that reaches the verdict of 6.2. The distinction matters for the aggregate log (О-16): a model that trips `timeout` on a topic is telling us the topic's search space is too big for the catalog's entry rule, and that is a content problem, not a bug.
+
+## 6.4 The dialect
+
+Starlark is Python-shaped but deliberately smaller, and `syntax.FileOptions` decides how much of the difference we take back. What we set, and why:
+
+| Option | v1 | Why |
+|---|---|---|
+| `Set` | **on** | Sets with `add`, `union` and membership are how a search remembers where it has been. Elements must be hashable, which tuples of numbers are |
+| `While` | **on** | A breadth-first search needs a loop whose length is not known in advance. Iterating a list while appending to it is an error in Starlark, so without `while` every search has to be written as a bounded `for`, which models get wrong |
+| `TopLevelControl` | **on** | Models write scripts, not modules; an `if` or a `for` at the top level should not be a parse error when the program is otherwise correct |
+| `GlobalReassign` | **on** | Reassigning a top-level name is ordinary Python and forbidding it buys nothing here |
+| `Recursion` | **off** | This is the one we keep closed. A recursive Starlark function recurses on the **Go** stack, and a stack overflow in Go cannot be recovered: it would take the whole instance down, not the request (T28). Search is written iteratively, and the porting table in 6.8 shows the two-line transformation |
+| `LoadBindsGlobally` | off | Irrelevant: there is no module loader at all, so any `load` fails as `bad_source` |
+
+Beyond the options, what the model must know it does **not** have: imports of any kind, classes, `try`/`except`, `yield`, generators, `lambda` with statements, f-strings (`%` and `.format` are there), `while`-`else`, sorting in place (`sorted()` returns a new list), and any access to time, randomness, the filesystem or the network. Integers are arbitrary precision, `/` produces a float and `//` an integer, and dictionaries iterate in insertion order.
+
+## 6.5 The helpers
+
+Starlark's universe has `len`, `range`, `min`, `max`, `sorted`, `enumerate`, `zip`, `abs`, `any`, `all`, `int`, `str` and the rest of the small set — and nothing resembling `itertools`, which is what a brute force is mostly made of. So the sandbox predeclares thirteen functions. They are few on purpose: every helper is code we write, test, document and explain to a model that has one shot at using it correctly.
+
+| Helper | Returns | Notes |
+|---|---|---|
+| `permutations(seq, r=None)` | list of tuples | `r` defaults to the length of `seq` |
+| `combinations(seq, r)` | list of tuples | |
+| `combinations_with_replacement(seq, r)` | list of tuples | |
+| `product(*seqs, repeat=1)` | list of tuples | |
+| `sum(seq, start=0)` | number | Starlark has no `sum` |
+| `prod(seq, start=1)` | number | |
+| `gcd(a, b)` | integer | The building block for exact fractions: multiply through instead of dividing |
+| `is_leap(year)` | bool | |
+| `days_in_month(year, month)` | integer | |
+| `weekday(year, month, day)` | 0–6, Monday is 0 | |
+| `add_days(date, n)` | `(y, m, d)` | Dates are plain three-element tuples; no new type to learn |
+| `days_between(a, b)` | integer | Signed, in days |
+| `match(options, value)` | list of letters | 6.5.1 |
+
+**Every helper that builds a list is capped at 1,000,000 elements** and fails with `error` beyond it, and — this is the part that matters — **each element it produces costs one step** from the budget of 6.6. Starlark limits computation but not memory, and allocations inside a built-in are invisible to the interpreter's own accounting (T28); charging the step budget for produced elements puts the one limit we do have in front of the one we do not.
+
+There is **no random number generator**, seeded or otherwise. A brute force that samples proves nothing about uniqueness, and a verdict that depends on a seed is a verdict nobody can reproduce from the task alone. Where the prototype's checks sampled — three of the 450 do — the port replaces the sample with the invariant it was demonstrating (6.8).
+
+### 6.5.1 How `match` compares
+
+`match(options, value)` returns every letter whose option text matches `value`:
+
+- if both the option text and the value parse as numbers, they are compared as numbers, so `6`, `6.0` and `" 6 "` all match;
+- otherwise they are compared as strings, after trimming the ends and folding case, so `"It is impossible"` matches whatever the option says, spacing aside;
+- nothing else: no unit stripping, no "12 cm" matching 12. An option carrying a unit is matched by passing the string.
+
+A well-formed task yields exactly one letter. Two letters mean two options say the same thing, which `bad_structure` should already have caught (5.2); zero means the computed answer is not among the options, and that is `solver_disagrees` — the most valuable thing this check finds.
+
+## 6.6 The limits
+
+| Limit | v1 | Enforced by |
+|---|---|---|
+| Steps | 10,000,000 | `thread.SetMaxExecutionSteps`; the interpreter tests the counter on every instruction |
+| Wall clock | 2 seconds per run | A context timeout whose expiry calls `thread.Cancel`, which is safe from another goroutine |
+| Memory | no direct limit | Bounded indirectly: helpers charge steps per element and cap each call at 1,000,000 |
+| Source size | 8 KB | Checked before parsing; a solver longer than that is a transcription, not a brute force |
+| Result | 5 letters | 6.2 |
+| Concurrent runs | 4 per instance | A solver holds a core for up to two seconds, and a Cloud Run instance has few |
+
+Both runs of 6.2 share none of these budgets: each gets its own.
+
+The numbers are configuration (section 11), and T29's bench over 450 reference solvers is what calibrates them: it reports the step count of every solver, and the limit should sit an order of magnitude above the worst of them. For scale, a search over eight permuted items is about 400,000 steps and a breadth-first search over a thousand states about 50,000.
+
+The cancellation has one known gap, and it is the reason the helpers cap themselves: the interpreter notices a cancellation between instructions, so a built-in that is halfway through building a huge list will finish building it first.
+
+## 6.7 What the guide for the model says
+
+The generation package (4.1) carries a page about the solver, and it is short on purpose. It states the contract of 6.2 with one worked example; it lists the helpers of 6.5 as a table; it names the five differences from Python that actually bite — no imports, no recursion, no `try`, `sorted()` not `.sort()`, `//` for integer division; it gives the step and time limits as "roughly a million operations is fine, a billion is not"; and it ends with the one instruction that prevents most failures: **compute the answer, then return `match(options, value)` — do not write the letter yourself.**
+
+The solver templates of `content/solvers/` (R08, О-43) carry the same shape per topic, generalised from a reference task's own solver. What the guide must not do is turn into a Starlark tutorial: a model that needs one is not going to write a correct brute force either.
+
+## 6.8 Porting the prototype's 450 checks
+
+The prototype proved every reference answer with a Python function that returned the answer as a value; a test then required that exactly one option matched it and that the option was the task's `correct_answer` (`tests/example_checks/`). v1 keeps the idea and changes the shape: **the check becomes the reference task's own solver**, written to the contract of 6.2 and stored in its `solver` field (1.5).
+
+That is worth more than a translation. The 450 solvers then run through exactly the pipeline a submitted task runs through — the same dialect, the same helpers, the same limits, the same two runs — so they become the regression suite of the sandbox itself, and a change to any limit is tested against 450 real programs before it reaches a child.
+
+**The bench** (T29) loads every reference task, runs its solver twice as 6.2 requires, and fails if the verdict is not exactly the task's `correct_answer`. It reports the step count and the duration of each, which is what calibrates 6.6.
+
+**What translates how:**
+
+| Python in the prototype | Starlark in v1 | Where it appears |
+|---|---|---|
+| `itertools.permutations`, `combinations`, `combinations_with_replacement`, `product` | The helpers of the same name | Everywhere |
+| `itertools.pairwise(xs)` | `for i in range(len(xs) - 1)` | `counting.gaps` |
+| `itertools.count()` | `while` with an explicit counter | `time.clocks`, `pigeonhole.basic` |
+| `math.prod` | `prod` | `arithmetic.tricks` |
+| `collections.deque` with `popleft` | A list plus a head index: `head = 0`, `while head < len(queue)` | `algorithms.weighing_pouring`, `parity.alternation` |
+| `functools.lru_cache` on a recursive function | Bottom-up dynamic programming over a `dict` — recursion is off (6.4) | `algorithms.weighing_pouring` |
+| `fractions.Fraction` | Exact integers: multiply through by the denominators, or compare `a/b` with `c/d` as `a*d` against `c*b` | `arithmetic.tricks`, `algorithms.weighing_pouring` |
+| `datetime.date`, `timedelta`, `calendar.monthrange` | `add_days`, `days_between`, `days_in_month`, `weekday`, `is_leap` on `(y, m, d)` tuples | `time.calendar` |
+| `random.Random(seed)` sampling many runs | Rewritten as the invariant it was demonstrating, or as an exhaustive search over the smaller equivalent state space | `parity.alternation`, three checks |
+| `assert` | `fail("…")` | The `only()` guard |
+
+The `random` row is the only one that is not mechanical, and it is the one worth being strict about. Those three checks ran twenty thousand random games to show that the parity of the result never changes; the parity is the mathematical content of the task, and a solver that computes it directly is both shorter and an actual proof. If a reference task turns out to have no such rewrite, the task is replaced rather than the rule bent — sampling is not brute force.
+
+**The batches**, 150 checks each, ordered so that the hardest constructs arrive last, when the helpers and the bench have been exercised:
+
+| Batch | Task | Topics | Checks | First meets |
+|---|---|---|---|---|
+| 1 | T29 | The bench itself, `combinatorics.enumeration`, `logic.ordering`, `counting.gaps` | 150 | the four combinatorial helpers, `pairwise` |
+| 2 | T30 | `arithmetic.tricks`, `pigeonhole.basic`, `time.clocks` | 150 | `prod`, `Fraction`, `count` |
+| 3 | T31 | `parity.alternation`, `time.calendar`, `logic.knights_liars`, `algorithms.weighing_pouring` | 150 | `deque`, `lru_cache`, the calendar helpers, `random` |
+
+The reference tasks written for grades 5–6 (1.6) carry their solvers from the start: T37–T39 write each task and its solver together, against the same contract.
+
+## 6.9 Four ports, in full
+
+**Enumeration** — `enum-12-d1-2`, "how many pairs can be chosen from three children". The Python was `len(list(combinations(["Ann", "Ben", "Kim"], 2)))`.
+
+```python
+def solve(options):
+    pairs = combinations(["Ann", "Ben", "Kim"], 2)
+    return match(options, len(pairs))
+```
+
+**Calendar** — `cal-34-d1-3`, "how many days in March, April and May together". The Python summed `calendar.monthrange(2023, m)[1]`.
+
+```python
+def solve(options):
+    days = sum([days_in_month(2023, month) for month in [3, 4, 5]])
+    return match(options, days)
+```
+
+**Pouring** — the breadth-first search over jug states, the prototype's `steps_to` with a `deque`. A list with a head index replaces the queue, and a dict replaces the visited set.
+
+```python
+CAPACITIES = [3, 5]
+GOAL = 2
+
+def next_states(state):
+    following = []
+    for i in range(len(CAPACITIES)):
+        following.append(state[:i] + (CAPACITIES[i],) + state[i + 1:])
+        following.append(state[:i] + (0,) + state[i + 1:])
+        for j in range(len(CAPACITIES)):
+            if i != j:
+                amount = min(state[i], CAPACITIES[j] - state[j])
+                poured = list(state)
+                poured[i] = poured[i] - amount
+                poured[j] = poured[j] + amount
+                following.append(tuple(poured))
+    return following
+
+def solve(options):
+    start = (0, 0)
+    steps = {start: 0}
+    queue = [start]
+    head = 0
+    while head < len(queue):
+        state = queue[head]
+        head = head + 1
+        if GOAL in state:
+            return match(options, steps[state])
+        for following in next_states(state):
+            if following not in steps:
+                steps[following] = steps[state] + 1
+                queue.append(following)
+    return match(options, "It is impossible")
+```
+
+**Weighings** — `light_weighings`, the prototype's `@lru_cache` recursion: the fewest weighings that always find one lighter coin among twelve. Recursion is off, so the same recurrence is filled in from the bottom.
+
+```python
+def solve(options):
+    best = {0: 0, 1: 0}
+    for coins in range(2, 13):
+        best[coins] = min([1 + max(best[k], best[coins - 2 * k]) for k in range(1, coins // 2 + 1)])
+    return match(options, best[12])
+```
+
+Four ports, four shapes: a one-liner, a comprehension over a helper, an iterative search, and a dynamic program. Between them they cover what the remaining 446 need.
+
+---
+
 ## Remarks on PRODUCT and RUN
 
 Collected while writing this part; none of them changes a product decision.
@@ -671,3 +894,10 @@ Added while writing sections 4 and 5:
 9. **The near-duplicate thresholds are two numbers, not one.** 0.6 for word trigrams is the prototype's, measured; 0.7 for character bigrams is reasoned from the smaller sets. T32 has 450 reference tasks to calibrate both against before anything ships. **For:** T32.
 10. **Every drawing limit is provisional until T58** and lives in the configuration, not in the code. If the calibration moves the width, the drawing frames of T36b are re-checked against the new number (R09). **For:** T34, T36b, T58.
 11. **`design_thought_process` is written and never read.** It exists to make the model state its plan before committing to it, and the service throws it away — it is not stored, not logged and not shown. If T36 finds the package tight, this is one field whose cost is entirely in the model's output, not ours. **For:** T36.
+
+Added while writing section 6:
+
+12. **The permuted second run is new; the prototype had nothing like it.** It costs one more execution of a program that has already finished and it catches a solver that returns a hard-coded letter. If T29's bench finds a legitimate solver that cannot survive it, the answer is to drop the second run rather than to weaken the first. **For:** T28, T29.
+13. **Three of the 450 checks sample with a seeded RNG and have no mechanical port.** They demonstrate an invariant over twenty thousand random games; the port computes the invariant. If one of them resists, that reference task is replaced rather than the no-randomness rule bent. **For:** T31.
+14. **Charging steps for elements produced inside a helper is the only bound on memory we have**, and it writes to `Thread.Steps`, a field the SDK documents as "incremented by the interpreter". It works — the limit is tested on every instruction — but it is a use the library does not promise. If a future version makes the counter read-only, the sandbox needs a counter of its own. **For:** T28.
+15. **The step and time limits are guesses until measured.** 10,000,000 steps and 2 seconds are an order of magnitude above what the four ports in 6.9 need, but the real distribution is the 450 solvers, and only T29 will have it. **For:** T29, and the configuration in section 11.
