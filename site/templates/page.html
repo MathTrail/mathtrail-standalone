@@ -20,7 +20,7 @@
 <body>
 <header class="masthead">
 <a class="wordmark" href="{{ .HomeURL }}">{{ .SiteName }}</a>
-<nav class="languages" aria-label="Language">
+<nav class="languages" aria-label="{{ .Text.language }}">
 {{- range .Languages }}
 {{- if .Current }}
 <span aria-current="true">{{ .Name }}</span>
@@ -34,8 +34,13 @@
 {{ .Body }}
 </main>
 <footer>
-<p>{{ .SiteName }} is free and open source.
-<a href="https://github.com/MathTrail/mathtrail-standalone">Source code</a></p>
+<p>{{ .Text.openSource }}</p>
+<nav class="documents">
+{{- range .Documents }}
+<a href="{{ .URL }}">{{ .Label }}</a>
+{{- end }}
+<a href="https://github.com/MathTrail/mathtrail-standalone">{{ .Text.source }}</a>
+</nav>
 </footer>
 </body>
 </html>

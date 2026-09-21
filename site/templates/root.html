@@ -21,7 +21,7 @@
 <main>
 <h1>{{ .SiteName }}</h1>
 <p class="lede">{{ .Description }}</p>
-<nav class="languages" aria-label="Language">
+<nav class="languages" aria-label="{{ .Text.language }}">
 {{- range .Languages }}
 <a href="{{ .URL }}" hreflang="{{ .Hreflang }}" lang="{{ .Hreflang }}">{{ .Name }}</a>
 {{- end }}

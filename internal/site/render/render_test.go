@@ -14,11 +14,14 @@ const pageTemplate = `<html lang="{{ .Lang }}" dir="{{ .Dir }}">` +
 	`<link rel="canonical" href="{{ .Canonical }}">` +
 	`{{ range .Alternates }}<link rel="alternate" hreflang="{{ .Hreflang }}" href="{{ .URL }}">{{ end }}` +
 	`{{ range .Languages }}<a href="{{ .URL }}">{{ .Name }}{{ if .Current }}*{{ end }}</a>{{ end }}` +
+	`<nav aria-label="{{ .Text.language }}">` +
+	`{{ range .Documents }}<a class="doc" href="{{ .URL }}">{{ .Label }}</a>{{ end }}</nav>` +
 	`{{ .Body }}</html>`
 
 const rootTemplate = `<html lang="{{ .Lang }}"><title>{{ .Title }}</title>` +
 	`<link rel="canonical" href="{{ .Canonical }}">` +
-	`{{ range .Alternates }}<link rel="alternate" hreflang="{{ .Hreflang }}" href="{{ .URL }}">{{ end }}</html>`
+	`{{ range .Alternates }}<link rel="alternate" hreflang="{{ .Hreflang }}" href="{{ .URL }}">{{ end }}` +
+	`<nav aria-label="{{ .Text.language }}"></nav></html>`
 
 func options() render.Options {
 	return render.Options{
@@ -38,6 +41,8 @@ func source() fstest.MapFS {
 		"content/en/index.md":   text("Home"),
 		"content/en/privacy.md": text("Privacy"),
 		"content/ru/index.md":   text("Главная"),
+		"strings/en.json":       &fstest.MapFile{Data: []byte(`{"language":"Language","privacy":"Privacy"}`)},
+		"strings/ru.json":       &fstest.MapFile{Data: []byte(`{"language":"Язык","privacy":"Приватность"}`)},
 		"templates/page.html":   &fstest.MapFile{Data: []byte(pageTemplate)},
 		"templates/root.html":   &fstest.MapFile{Data: []byte(rootTemplate)},
 		"assets/style.css":      &fstest.MapFile{Data: []byte("body{color:#000}")},

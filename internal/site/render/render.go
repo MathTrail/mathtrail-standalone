@@ -66,7 +66,10 @@ func Build(source fs.FS, opt Options) ([]File, error) {
 		return nil, fmt.Errorf("render: reference locale is empty")
 	}
 
-	templates, err := template.ParseFS(source, path.Join(templatesDir, "*.html"))
+	// A name the templates ask for and the locale does not have is a build
+	// failure rather than a blank on a published page.
+	templates, err := template.New(templatesDir).Option("missingkey=error").
+		ParseFS(source, path.Join(templatesDir, "*.html"))
 	if err != nil {
 		return nil, fmt.Errorf("render: parse templates: %w", err)
 	}
@@ -79,12 +82,17 @@ func Build(source fs.FS, opt Options) ([]File, error) {
 		return nil, fmt.Errorf("render: reference locale %q has no content", opt.ReferenceLocale)
 	}
 
-	files, err := renderPages(templates, pages, opt)
+	text, err := readStrings(source, pages.locales, opt.ReferenceLocale)
 	if err != nil {
 		return nil, err
 	}
 
-	root, err := renderRoot(templates, pages, opt)
+	files, err := renderPages(templates, pages, text, opt)
+	if err != nil {
+		return nil, err
+	}
+
+	root, err := renderRoot(templates, pages, text, opt)
 	if err != nil {
 		return nil, err
 	}
@@ -215,6 +223,13 @@ type languageLink struct {
 	Current  bool
 }
 
+// documentLink is one entry of the footer: a page of this locale, under the
+// name this locale calls it.
+type documentLink struct {
+	Label string
+	URL   string
+}
+
 // pageData is everything a template needs to lay out one page.
 type pageData struct {
 	Lang        string
@@ -227,12 +242,19 @@ type pageData struct {
 	Body        template.HTML
 	Alternates  []alternate
 	Languages   []languageLink
+	Documents   []documentLink
+	Text        map[string]string
 }
 
 // renderPages lays out every locale's every page.
-func renderPages(templates *template.Template, pages pageSet, opt Options) ([]File, error) {
+func renderPages(templates *template.Template, pages pageSet, text stringSet, opt Options) ([]File, error) {
 	var files []File
 	for _, locale := range pages.locales {
+		documents, err := documentsFor(pages, text, locale)
+		if err != nil {
+			return nil, err
+		}
+
 		for name, doc := range pages.byLocale[locale] {
 			body, err := markdown(doc.body)
 			if err != nil {
@@ -250,6 +272,8 @@ func renderPages(templates *template.Template, pages pageSet, opt Options) ([]Fi
 				Body:        body,
 				Alternates:  alternatesFor(pages, opt, name),
 				Languages:   languagesFor(pages, name, locale),
+				Documents:   documents,
+				Text:        text[locale],
 			}
 
 			rendered, err := execute(templates, "page.html", &data)
@@ -262,11 +286,32 @@ func renderPages(templates *template.Template, pages pageSet, opt Options) ([]Fi
 	return files, nil
 }
 
+// documentsFor lists the pages a locale has besides its front page, each under
+// its own label. A page with no label in this locale stops the build: it would
+// otherwise reach a reader as an unnamed link.
+func documentsFor(pages pageSet, text stringSet, locale string) ([]documentLink, error) {
+	var links []documentLink
+	for _, name := range pages.names {
+		if name == indexPage {
+			continue
+		}
+		if _, ok := pages.byLocale[locale][name]; !ok {
+			continue
+		}
+		label, ok := text[locale][name]
+		if !ok {
+			return nil, fmt.Errorf("render: %s.json has no label for the page %q", locale, name)
+		}
+		links = append(links, documentLink{Label: label, URL: pageURL(locale, name)})
+	}
+	return links, nil
+}
+
 // renderRoot lays out the page the apex serves. It is a doorway rather than a
 // translation: it names the product, says what it is, and hands the reader the
 // languages it exists in. A bare redirect would be cheaper, but the apex is the
 // address the product is listed under, and a redirect is a poor thing to list.
-func renderRoot(templates *template.Template, pages pageSet, opt Options) (File, error) {
+func renderRoot(templates *template.Template, pages pageSet, text stringSet, opt Options) (File, error) {
 	reference := pages.byLocale[opt.ReferenceLocale][indexPage]
 	data := pageData{
 		Lang:        opt.ReferenceLocale,
@@ -278,6 +323,7 @@ func renderRoot(templates *template.Template, pages pageSet, opt Options) (File,
 		HomeURL:     "/",
 		Alternates:  alternatesFor(pages, opt, indexPage),
 		Languages:   languagesFor(pages, indexPage, ""),
+		Text:        text[opt.ReferenceLocale],
 	}
 
 	rendered, err := execute(templates, "root.html", &data)

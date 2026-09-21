@@ -136,6 +136,26 @@ footer {
     font-size: 0.9375rem;
 }
 
+.documents {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--step-3);
+}
+
+/* A long legal page is read, not skimmed: give its headings room to separate
+   one obligation from the next. */
+main h2 + p {
+    margin-block-start: 0;
+}
+
+main ul {
+    padding-inline-start: var(--step-4);
+}
+
+main li {
+    margin-block-end: var(--step-2);
+}
+
 /* The apex is a doorway, not a page to read: centre it and give it room. */
 .chooser main {
     display: flex;
