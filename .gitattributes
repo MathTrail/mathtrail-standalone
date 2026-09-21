@@ -1,0 +1,8 @@
+# Files used inside Linux containers keep LF line endings on every host
+*.sh text eol=lf
+*.env text eol=lf
+justfile text eol=lf
+Dockerfile text eol=lf
+
+# Default: let Git normalise line endings
+* text=auto

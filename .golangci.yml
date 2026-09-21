@@ -1,0 +1,113 @@
+# Verify after editing: golangci-lint config verify
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  default: standard # errcheck, govet, ineffassign, staticcheck, unused
+  enable:
+    - bodyclose # a response body left open is a leaked connection
+    - depguard # the dependency rule, enforced rather than remembered
+    - dupl
+    - errorlint # %w and errors.Is/As instead of == and %v
+    - gocritic
+    - gosec
+    - misspell
+    - nakedret
+    - noctx # every request that blocks carries a context
+    - nolintlint # a //nolint without a reason is a silent exception
+    - revive
+    - unconvert
+    - unparam
+    - usestdlibvars
+    - wastedassign
+    - whitespace
+
+  settings:
+    depguard:
+      rules:
+        # Nothing in internal/domain may reach for the outside world: those
+        # packages are pure computation, and that is what makes them testable
+        # against the golden vectors with no mocks at all.
+        domain-stays-pure:
+          files:
+            - "**/internal/domain/**"
+          deny:
+            - pkg: net/http
+              desc: domain is pure computation; move the I/O to internal/infra or internal/transport
+            - pkg: github.com/gin-gonic/gin
+              desc: HTTP handlers live in internal/transport/http, not in a domain package
+            - pkg: github.com/modelcontextprotocol/go-sdk
+              desc: the MCP SDK belongs in internal/transport/mcp
+            - pkg: google.golang.org/api
+              desc: Google APIs belong in internal/infra
+            - pkg: go.starlark.net
+              desc: the Starlark interpreter belongs in internal/infra/starlark
+            - pkg: database/sql
+              desc: the service keeps no state of its own and has no database
+        # The whole service has no database and makes no LLM calls; an import
+        # of either is a mistake worth catching at the earliest moment.
+        no-database-anywhere:
+          files:
+            - "$all"
+          deny:
+            - pkg: github.com/jackc/pgx
+              desc: the service keeps no state of its own and has no database
+
+    errcheck:
+      check-type-assertions: true
+
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - opinionated
+        - performance
+        - style
+      disabled-checks:
+        - whyNoLint # nolintlint covers it, with better messages
+
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment # readability of a struct beats a few bytes of padding
+
+    revive:
+      rules:
+        - name: exported # every exported identifier has a doc comment starting with its name
+        - name: package-comments
+        - name: context-as-argument
+        - name: error-strings
+        - name: error-return
+        - name: indent-error-flow
+        - name: var-naming
+        - name: unreachable-code
+        - name: redefines-builtin-id
+
+    dupl:
+      threshold: 150
+
+  exclusions:
+    presets:
+      - comments
+      - std-error-handling
+    rules:
+      # Tests may repeat themselves and may hard-code what they are testing;
+      # a table-driven test that lints clean is not the goal.
+      - path: _test\.go$
+        linters:
+          - dupl
+          - gosec
+          - unparam
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    gofmt:
+      simplify: true
+    goimports:
+      local-prefixes:
+        - github.com/MathTrail/mathtrail-standalone

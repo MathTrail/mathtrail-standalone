@@ -1,0 +1,56 @@
+// Devcontainer for MathTrail standalone: all development happens here (see CLAUDE.md).
+// Tool versions are pinned directly in this file and in .devcontainer/Dockerfile.
+{
+    "name": "MathTrail Standalone DevContainer",
+    "build": {
+        "dockerfile": "Dockerfile",
+        // Repository root as context, per CLAUDE.md "Build context" (.dockerignore trims it).
+        "context": ".."
+    },
+    "features": {
+        // Exact feature version, resolved by digest in devcontainer-lock.json.
+        // The feature's own buildx download is unpinned, so it is disabled; compose is installed by
+        // the Dockerfile, so the feature's standalone docker-compose is disabled too.
+        "ghcr.io/devcontainers/features/docker-in-docker:4.1.1": {
+            "version": "29.8.1",
+            "moby": true,
+            "mobyBuildxVersion": "0.37.1",
+            "installDockerBuildx": false,
+            "dockerDashComposeVersion": "none"
+        }
+    },
+    "remoteUser": "vscode",
+    "mounts": [
+        // Claude Code login and settings survive container rebuilds.
+        "source=mathtrail-standalone-claude,target=/home/vscode/.claude,type=volume"
+    ],
+    "containerEnv": {
+        // Marker checked by Claude sessions (CLAUDE.md, "Devcontainer only").
+        "MATHTRAIL_DEVCONTAINER": "1",
+        "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
+        "DISABLE_AUTOUPDATER": "1"
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                // gopls and dlv come pinned from the image; the Go extension must not fetch its own.
+                "go.toolsManagement.autoUpdate": false,
+                "go.toolsManagement.checkForUpdates": "off",
+                "files.eol": "\n",
+                "files.insertFinalNewline": true
+            },
+            // Exact versions; the Claude Code extension matches CLAUDE_CODE_VERSION.
+            "extensions": [
+                "anthropic.claude-code@2.1.273",
+                "golang.go@0.56.1",
+                "redhat.vscode-yaml@1.24.0",
+                "nefrob.vscode-just-syntax@0.10.2",
+                "bierner.markdown-mermaid@1.32.1",
+                "eamodio.gitlens@19.2.0",
+                "ms-azuretools.vscode-containers@2.5.1"
+            ]
+        }
+    },
+    "postStartCommand": "bash .devcontainer/post-start.sh",
+    "forwardPorts": [8080]
+}

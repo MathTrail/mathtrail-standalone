@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# Runs what is cheap and catches what is embarrassing: formatting, a build and
+# the tests. Everything slower — the linter, the race detector, coverage,
+# vulnerability and secret scanning — stays out of it, so that a commit does
+# not become a wait.
+set -euo pipefail
+
+if ! ls -- *.go **/*.go >/dev/null 2>&1 && ! git diff --cached --name-only | grep -q '\.go$'; then
+    exit 0
+fi
+
+# A hook inherits whatever environment the commit was made from, and that
+# environment does not always carry the Go toolchain on PATH.
+for dir in /usr/local/go/bin /usr/lib/go/bin /opt/go/bin "${HOME:-}/go/bin"; do
+    if [ -x "$dir/go" ]; then
+        PATH="$dir:$PATH"
+    fi
+done
+export PATH
+
+# gofmt ships beside the compiler, which is not always the directory go itself
+# was found in.
+if command -v go >/dev/null && ! command -v gofmt >/dev/null; then
+    goroot_bin="$(go env GOROOT)/bin"
+    if [ -x "$goroot_bin/gofmt" ]; then
+        export PATH="$goroot_bin:$PATH"
+    fi
+fi
+
+# Some environments have no toolchain at all and are not meant to: a commit
+# made from one is not blocked, it only goes without these checks. Nothing is
+# waved through — the full checks run them again and gate the merge.
+for tool in gofmt go; do
+    if ! command -v "$tool" >/dev/null; then
+        echo "pre-commit: no Go toolchain here — skipping formatting, the build and the tests." >&2
+        exit 0
+    fi
+done
+
+# A tool that cannot read the tree must stop the commit, not report a clean one.
+if ! unformatted=$(gofmt -s -l .); then
+    echo "pre-commit: gofmt could not read the tree." >&2
+    exit 1
+fi
+if [ -n "$unformatted" ]; then
+    echo "pre-commit: these files need gofmt -s:" >&2
+    echo "$unformatted" >&2
+    echo "Run: just fmt" >&2
+    exit 1
+fi
+
+if ! go build ./... >/dev/null; then
+    echo "pre-commit: the build failed." >&2
+    exit 1
+fi
+
+if ! go test ./... -count=1 >/dev/null; then
+    echo "pre-commit: tests failed. Run: just test" >&2
+    exit 1
+fi

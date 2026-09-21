@@ -1,0 +1,375 @@
+{
+  "examples_nearest_neighbour": {
+    "count": 450,
+    "histogram": {
+      "0.20-0.25": 2,
+      "0.25-0.30": 5,
+      "0.30-0.35": 31,
+      "0.35-0.40": 40,
+      "0.40-0.45": 51,
+      "0.45-0.50": 47,
+      "0.50-0.55": 43,
+      "0.55-0.60": 24,
+      "0.60-0.65": 30,
+      "0.65-0.70": 27,
+      "0.70-0.75": 35,
+      "0.75-0.80": 19,
+      "0.80-0.85": 22,
+      "0.85-0.90": 28,
+      "0.90-0.95": 24,
+      "0.95-1.00": 22
+    },
+    "max": 1.0,
+    "median": 0.5692308
+  },
+  "examples_top_pairs": [
+    {
+      "a": "kl-34-d3-3",
+      "b": "kl-34-d3-5",
+      "similarity": 1.0
+    },
+    {
+      "a": "tri-12-d2-3",
+      "b": "tri-12-d4-2",
+      "similarity": 1.0
+    },
+    {
+      "a": "wp-34-d1-1",
+      "b": "wp-34-d2-1",
+      "similarity": 0.97604793
+    },
+    {
+      "a": "wp-34-d2-1",
+      "b": "wp-34-d3-5",
+      "similarity": 0.97604793
+    },
+    {
+      "a": "wp-34-d3-4",
+      "b": "wp-34-d3-5",
+      "similarity": 0.97604793
+    },
+    {
+      "a": "wp-34-d4-1",
+      "b": "wp-34-d5-4",
+      "similarity": 0.96850395
+    },
+    {
+      "a": "pig-12-d3-1",
+      "b": "pig-12-d5-1",
+      "similarity": 0.96428573
+    },
+    {
+      "a": "wp-34-d1-1",
+      "b": "wp-34-d2-5",
+      "similarity": 0.96407187
+    },
+    {
+      "a": "pig-12-d4-1",
+      "b": "pig-34-d3-1",
+      "similarity": 0.962963
+    },
+    {
+      "a": "wp-34-d2-2",
+      "b": "wp-34-d3-2",
+      "similarity": 0.96062994
+    },
+    {
+      "a": "wp-34-d2-2",
+      "b": "wp-34-d4-1",
+      "similarity": 0.96062994
+    },
+    {
+      "a": "wp-34-d2-2",
+      "b": "wp-34-d5-4",
+      "similarity": 0.96062994
+    },
+    {
+      "a": "kl-34-d2-3",
+      "b": "kl-34-d2-4",
+      "similarity": 0.9591837
+    },
+    {
+      "a": "kl-34-d2-1",
+      "b": "kl-34-d4-4",
+      "similarity": 0.95348835
+    },
+    {
+      "a": "wp-34-d3-2",
+      "b": "wp-34-d4-1",
+      "similarity": 0.953125
+    },
+    {
+      "a": "wp-34-d3-2",
+      "b": "wp-34-d5-4",
+      "similarity": 0.953125
+    },
+    {
+      "a": "wp-34-d1-1",
+      "b": "wp-34-d3-5",
+      "similarity": 0.9526627
+    },
+    {
+      "a": "wp-34-d1-1",
+      "b": "wp-34-d4-2",
+      "similarity": 0.9526627
+    },
+    {
+      "a": "wp-34-d2-1",
+      "b": "wp-34-d3-4",
+      "similarity": 0.9526627
+    },
+    {
+      "a": "wp-34-d2-1",
+      "b": "wp-34-d4-2",
+      "similarity": 0.9526627
+    },
+    {
+      "a": "wp-34-d3-4",
+      "b": "wp-34-d4-2",
+      "similarity": 0.9526627
+    },
+    {
+      "a": "wp-34-d3-5",
+      "b": "wp-34-d4-2",
+      "similarity": 0.9526627
+    },
+    {
+      "a": "kl-34-d3-2",
+      "b": "kl-34-d4-5",
+      "similarity": 0.9435484
+    },
+    {
+      "a": "kl-34-d2-1",
+      "b": "kl-34-d2-2",
+      "similarity": 0.9411765
+    },
+    {
+      "a": "wp-34-d2-1",
+      "b": "wp-34-d2-5",
+      "similarity": 0.9408284
+    },
+    {
+      "a": "wp-34-d2-5",
+      "b": "wp-34-d4-2",
+      "similarity": 0.9408284
+    },
+    {
+      "a": "wp-34-d1-1",
+      "b": "wp-34-d3-4",
+      "similarity": 0.9298246
+    },
+    {
+      "a": "kl-34-d2-3",
+      "b": "kl-34-d3-3",
+      "similarity": 0.9292929
+    },
+    {
+      "a": "kl-34-d2-3",
+      "b": "kl-34-d3-5",
+      "similarity": 0.9292929
+    },
+    {
+      "a": "kl-34-d2-4",
+      "b": "kl-34-d3-3",
+      "similarity": 0.9292929
+    },
+    {
+      "a": "kl-34-d2-4",
+      "b": "kl-34-d3-5",
+      "similarity": 0.9292929
+    },
+    {
+      "a": "tri-12-d1-1",
+      "b": "tri-12-d2-3",
+      "similarity": 0.9285714
+    },
+    {
+      "a": "tri-12-d1-1",
+      "b": "tri-12-d4-2",
+      "similarity": 0.9285714
+    },
+    {
+      "a": "tri-12-d1-1",
+      "b": "tri-12-d4-5",
+      "similarity": 0.9285714
+    },
+    {
+      "a": "pig-12-d3-2",
+      "b": "pig-34-d1-1",
+      "similarity": 0.9270833
+    },
+    {
+      "a": "par-34-d2-4",
+      "b": "par-34-d4-2",
+      "similarity": 0.9259259
+    },
+    {
+      "a": "wp-34-d4-4",
+      "b": "wp-34-d5-1",
+      "similarity": 0.925
+    },
+    {
+      "a": "kl-34-d1-2",
+      "b": "kl-34-d2-2",
+      "similarity": 0.9186047
+    },
+    {
+      "a": "wp-34-d2-5",
+      "b": "wp-34-d3-4",
+      "similarity": 0.91812867
+    },
+    {
+      "a": "wp-34-d2-5",
+      "b": "wp-34-d3-5",
+      "similarity": 0.91812867
+    },
+    {
+      "a": "wp-34-d1-3",
+      "b": "wp-34-d2-4",
+      "similarity": 0.9126984
+    },
+    {
+      "a": "kl-34-d1-2",
+      "b": "kl-34-d2-1",
+      "similarity": 0.90804595
+    },
+    {
+      "a": "pig-12-d2-5",
+      "b": "pig-34-d2-3",
+      "similarity": 0.9072165
+    },
+    {
+      "a": "pig-12-d5-4",
+      "b": "pig-34-d4-1",
+      "similarity": 0.90654206
+    },
+    {
+      "a": "clk-12-d1-5",
+      "b": "clk-34-d1-1",
+      "similarity": 0.90625
+    },
+    {
+      "a": "enum-12-d2-1",
+      "b": "enum-34-d1-1",
+      "similarity": 0.9027778
+    },
+    {
+      "a": "enum-12-d3-2",
+      "b": "enum-12-d5-1",
+      "similarity": 0.9019608
+    },
+    {
+      "a": "kl-34-d2-2",
+      "b": "kl-34-d4-4",
+      "similarity": 0.89772725
+    },
+    {
+      "a": "pig-12-d4-1",
+      "b": "pig-34-d5-1",
+      "similarity": 0.8965517
+    },
+    {
+      "a": "pig-34-d3-1",
+      "b": "pig-34-d5-1",
+      "similarity": 0.8965517
+    }
+  ],
+  "pairs": [
+    {
+      "a": "Four spaceships dock in pairs. How many different pairs can they make?",
+      "b": "Four spaceships dock in pairs. How many different pairs can they make?",
+      "name": "identical",
+      "similarity": 1.0
+    },
+    {
+      "a": "Four spaceships dock in pairs. How many different pairs can they make?",
+      "b": "Four spaceships dock in pairs. How many different pairs can the ships make?",
+      "name": "one_word_changed",
+      "similarity": 0.9354839
+    },
+    {
+      "a": "Four spaceships dock in pairs. How many different pairs can they make?",
+      "b": "Seven spaceships dock in pairs. How many different pairs can they make?",
+      "name": "numbers_changed",
+      "similarity": 0.84615386
+    },
+    {
+      "a": "Four spaceships dock in pairs. How many different pairs can they make?",
+      "b": "Four kittens play in pairs. How many different pairs can they make?",
+      "name": "same_idea_new_setting",
+      "similarity": 0.625
+    },
+    {
+      "a": "Masha has 3 red balls and 2 blue balls. How many balls does she have?",
+      "b": "How many balls does Masha have? She has 3 red balls and 2 blue balls.",
+      "name": "sentences_reordered",
+      "similarity": 1.0
+    },
+    {
+      "a": "Four spaceships dock in pairs.",
+      "b": "FOUR   SPACESHIPS   DOCK   IN   PAIRS.",
+      "name": "case_and_spacing",
+      "similarity": 1.0
+    },
+    {
+      "a": "Four spaceships dock in pairs. How many different pairs can they make?",
+      "b": "A clock strikes 3 times at three o'clock. How long does it strike at six o'clock?",
+      "name": "unrelated",
+      "similarity": 0.14285715
+    },
+    {
+      "a": "Четыре корабля стыкуются парами. Сколько разных пар получится?",
+      "b": "Четыре корабля стыкуются парами. Сколько разных пар получится?",
+      "name": "cyrillic_identical",
+      "similarity": 1.0
+    },
+    {
+      "a": "Четыре корабля стыкуются парами. Сколько разных пар получится?",
+      "b": "Четыре корабля стыкуются парами. Сколько разных пар выйдет?",
+      "name": "cyrillic_one_word_changed",
+      "similarity": 0.7704918
+    },
+    {
+      "a": "Четыре корабля стыкуются парами. Сколько разных пар получится?",
+      "b": "Семь кораблей стыкуются парами. Сколько разных пар получится?",
+      "name": "cyrillic_numbers_changed",
+      "similarity": 0.73770493
+    },
+    {
+      "a": "Четыре корабля стыкуются парами. Сколько разных пар получится?",
+      "b": "Четыре котёнка играют парами. Сколько разных пар получится?",
+      "name": "cyrillic_same_idea_new_setting",
+      "similarity": 0.6119403
+    },
+    {
+      "a": "У Маши три красных шара.",
+      "b": "У Маши было три красных шара.",
+      "name": "cyrillic_declension",
+      "similarity": 0.82758623
+    },
+    {
+      "a": "Четыре корабля стыкуются парами. Сколько разных пар получится?",
+      "b": "Часы бьют три раза в три часа. Сколько они бьют в шесть часов?",
+      "name": "cyrillic_unrelated",
+      "similarity": 0.13953489
+    },
+    {
+      "a": "Четыре корабля стыкуются парами.",
+      "b": "Four spaceships dock in pairs.",
+      "name": "cyrillic_vs_latin",
+      "similarity": 0.0
+    },
+    {
+      "a": "",
+      "b": "Four spaceships dock in pairs.",
+      "name": "empty_vs_text",
+      "similarity": 0.0
+    }
+  ],
+  "source": {
+    "engine": "postgresql",
+    "note": "similarity(a, b) is the Jaccard index of the two trigram sets after pg_trgm's own normalisation: lowercase, non-alphanumerics to spaces, every word padded with two leading spaces and one trailing space.",
+    "pg_trgm_version": "1.6",
+    "server_version": "17.11 (Debian 17.11-1.pgdg13+2)"
+  }
+}

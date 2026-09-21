@@ -1,0 +1,310 @@
+{
+  "briefs": [
+    {
+      "brief": {
+        "constraints": [],
+        "difficulty": 2,
+        "excluded_skills": [
+          "multiplication",
+          "division",
+          "division_with_remainder",
+          "fractions",
+          "order_of_operations",
+          "numbers_above_20",
+          "numbers_above_100",
+          "numbers_above_1000",
+          "hours_minutes",
+          "unit_conversion"
+        ],
+        "pedagogical_goal": "new_topic",
+        "profile_fields_used": [
+          "grade",
+          "interests",
+          "mastered_topics",
+          "excluded_skills",
+          "consecutive_failures",
+          "history"
+        ],
+        "rationale": "Rule: no failure now; combinatorics.enumeration is the unmastered topic never given yet, so new_topic. Difficulty 2 is inside the corridor.",
+        "setting": "trains",
+        "target_concept": "combinatorics.enumeration",
+        "traps_to_use": [
+          "missed_case",
+          "double_count"
+        ]
+      },
+      "profile": {
+        "consecutive_failures": 0,
+        "excluded_skills": [
+          "multiplication",
+          "division",
+          "division_with_remainder",
+          "fractions",
+          "order_of_operations",
+          "numbers_above_20",
+          "numbers_above_100",
+          "numbers_above_1000",
+          "hours_minutes",
+          "unit_conversion"
+        ],
+        "grade": 1,
+        "history_rows": 3,
+        "interests": [
+          "cats",
+          "trains"
+        ],
+        "mastered_topics": [],
+        "theta": -0.06546487,
+        "topic_ratings": {
+          "arithmetic.tricks": {
+            "answers": 1,
+            "delta": 0.09300599
+          },
+          "counting.gaps": {
+            "answers": 1,
+            "delta": -0.31661898
+          },
+          "logic.ordering": {
+            "answers": 1,
+            "delta": 0.086061254
+          }
+        }
+      },
+      "student": "dima"
+    },
+    {
+      "brief": {
+        "constraints": [],
+        "difficulty": 1,
+        "excluded_skills": [
+          "division_with_remainder",
+          "fractions"
+        ],
+        "pedagogical_goal": "reinforce",
+        "profile_fields_used": [
+          "grade",
+          "interests",
+          "excluded_skills",
+          "consecutive_failures",
+          "history"
+        ],
+        "rationale": "Rule: 2 failures in a row, the last one in time.clocks, so reinforce. Difficulty 1 is the closest to the corridor, which holds no level; a little too easy.",
+        "setting": "robots",
+        "target_concept": "time.clocks",
+        "traps_to_use": [
+          "wrong_operation",
+          "off_by_one"
+        ]
+      },
+      "profile": {
+        "consecutive_failures": 2,
+        "excluded_skills": [
+          "division_with_remainder",
+          "fractions"
+        ],
+        "grade": 3,
+        "history_rows": 3,
+        "interests": [
+          "space",
+          "robots"
+        ],
+        "mastered_topics": [
+          "logic.knights_liars"
+        ],
+        "theta": -0.21347414,
+        "topic_ratings": {
+          "combinatorics.enumeration": {
+            "answers": 1,
+            "delta": -0.24344192
+          },
+          "logic.knights_liars": {
+            "answers": 1,
+            "delta": 0.086061254
+          },
+          "time.clocks": {
+            "answers": 1,
+            "delta": -0.30927607
+          }
+        }
+      },
+      "student": "masha"
+    },
+    {
+      "brief": {
+        "constraints": [],
+        "difficulty": 2,
+        "excluded_skills": [
+          "division",
+          "division_with_remainder",
+          "fractions",
+          "numbers_above_100",
+          "numbers_above_1000",
+          "unit_conversion"
+        ],
+        "pedagogical_goal": "new_topic",
+        "profile_fields_used": [
+          "grade",
+          "interests",
+          "mastered_topics",
+          "excluded_skills",
+          "consecutive_failures",
+          "history"
+        ],
+        "rationale": "Rule: no failure now; logic.ordering is the unmastered topic never given yet, so new_topic. Difficulty 2 is inside the corridor.",
+        "setting": "drawing",
+        "target_concept": "logic.ordering",
+        "traps_to_use": [
+          "ignored_condition",
+          "reversed_relation"
+        ]
+      },
+      "profile": {
+        "consecutive_failures": 0,
+        "excluded_skills": [
+          "division",
+          "division_with_remainder",
+          "fractions",
+          "numbers_above_100",
+          "numbers_above_1000",
+          "unit_conversion"
+        ],
+        "grade": 2,
+        "history_rows": 5,
+        "interests": [
+          "horses",
+          "drawing"
+        ],
+        "mastered_topics": [
+          "counting.gaps"
+        ],
+        "theta": -0.07786842,
+        "topic_ratings": {
+          "combinatorics.enumeration": {
+            "answers": 1,
+            "delta": -0.31153655
+          },
+          "counting.gaps": {
+            "answers": 3,
+            "delta": 0.45801777
+          },
+          "time.calendar": {
+            "answers": 1,
+            "delta": -0.31393874
+          }
+        }
+      },
+      "student": "olya"
+    },
+    {
+      "brief": {
+        "constraints": [],
+        "difficulty": 2,
+        "excluded_skills": [
+          "numbers_above_1000"
+        ],
+        "pedagogical_goal": "new_topic",
+        "profile_fields_used": [
+          "grade",
+          "interests",
+          "mastered_topics",
+          "excluded_skills",
+          "consecutive_failures",
+          "history"
+        ],
+        "rationale": "Rule: no failure now; time.clocks is the unmastered topic never given yet, so new_topic. Difficulty 2 is inside the corridor.",
+        "setting": "football",
+        "target_concept": "time.clocks",
+        "traps_to_use": [
+          "wrong_operation",
+          "off_by_one"
+        ]
+      },
+      "profile": {
+        "consecutive_failures": 0,
+        "excluded_skills": [
+          "numbers_above_1000"
+        ],
+        "grade": 3,
+        "history_rows": 6,
+        "interests": [
+          "football",
+          "dinosaurs"
+        ],
+        "mastered_topics": [
+          "arithmetic.tricks",
+          "counting.gaps",
+          "logic.ordering"
+        ],
+        "theta": 0.292692,
+        "topic_ratings": {
+          "arithmetic.tricks": {
+            "answers": 1,
+            "delta": 0.22397028
+          },
+          "combinatorics.enumeration": {
+            "answers": 1,
+            "delta": -0.18300821
+          },
+          "counting.gaps": {
+            "answers": 1,
+            "delta": 0.1536034
+          },
+          "logic.knights_liars": {
+            "answers": 1,
+            "delta": 0.14600542
+          },
+          "logic.ordering": {
+            "answers": 1,
+            "delta": 0.16
+          },
+          "pigeonhole.basic": {
+            "answers": 1,
+            "delta": 0.14119011
+          }
+        }
+      },
+      "student": "petya"
+    },
+    {
+      "brief": {
+        "constraints": [],
+        "difficulty": 2,
+        "excluded_skills": [],
+        "pedagogical_goal": "new_topic",
+        "profile_fields_used": [
+          "grade",
+          "interests",
+          "mastered_topics",
+          "excluded_skills",
+          "consecutive_failures",
+          "history"
+        ],
+        "rationale": "Rule: no failure now; logic.ordering is the unmastered topic never given yet, so new_topic. Difficulty 2 is inside the corridor.",
+        "setting": "music",
+        "target_concept": "logic.ordering",
+        "traps_to_use": [
+          "ignored_condition",
+          "reversed_relation"
+        ]
+      },
+      "profile": {
+        "consecutive_failures": 0,
+        "excluded_skills": [],
+        "grade": 4,
+        "history_rows": 0,
+        "interests": [
+          "music",
+          "ocean animals"
+        ],
+        "mastered_topics": [],
+        "theta": 0.0,
+        "topic_ratings": {}
+      },
+      "student": "sasha"
+    }
+  ],
+  "source": {
+    "note": "The prototype's rule (its SPEC 5.7, D40) on the five seed profiles. v1 changes three things and these vectors do not cover them: the goal 'motivate' is gone (О-34), the setting rotates by the total answer count rather than by the number of history rows, and grades 5-6 exist (SPEC 3.3). Everything else — the goal, the topic, the difficulty and the traps — is the same.",
+    "trap_count": 2
+  }
+}

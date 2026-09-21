@@ -1,0 +1,13 @@
+# Mocks are generated into a mocks/ folder next to the interface and committed;
+#
+# Every interface lives in the package that provides it, so this file lists
+# those packages as they appear. It is empty until the first interface does.
+all: false
+template: mockery
+dir: "{{.InterfaceDir}}/mocks"
+pkgname: mocks
+filename: "mock_{{.InterfaceName | snakecase}}.go"
+structname: "Mock{{.InterfaceName}}"
+template-data:
+  with-expecter: true # generated mocks get EXPECT(), as in the platform's other services
+packages: {}

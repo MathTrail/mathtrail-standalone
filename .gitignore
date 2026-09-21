@@ -1,0 +1,28 @@
+# Reference copies of other repositories: read-only material, never committed.
+/reference/
+
+# Local copy of the prototype repository: reference material only, never committed.
+/prototype/
+
+# Planning documents: reference material for the author, deleted once no longer needed.
+/PRODUCT-V1.md
+/docs/prototype/
+/docs/reconciliation.md
+
+# Secrets
+.env
+
+# Build and test output
+bin/
+coverage.*
+*.out
+*.test
+*.exe
+*.prof
+
+# Go workspace files: this repository is one module
+go.work
+go.work.sum
+
+# Node modules of the widget build (web/)
+node_modules/
