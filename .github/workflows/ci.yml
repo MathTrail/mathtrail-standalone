@@ -18,6 +18,19 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+# Settings every job needs, passed through the environment rather than written into
+# a home directory, so that they hold for every step whatever user it runs as.
+env:
+  # Git refuses a repository whose files belong to somebody else, which is what a
+  # checkout inside a container looks like to it.
+  GIT_CONFIG_COUNT: "1"
+  GIT_CONFIG_KEY_0: safe.directory
+  GIT_CONFIG_VALUE_0: "*"
+  # Fixed places for what Go downloads and builds, so that the paths a job caches
+  # and the paths Go reads are the same ones.
+  GOMODCACHE: /tmp/go/mod
+  GOCACHE: /tmp/go/build
+
 defaults:
   run:
     shell: bash
@@ -58,8 +71,8 @@ jobs:
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
-            /root/go/pkg/mod
-            /root/.cache/go-build
+            /tmp/go/mod
+            /tmp/go/build
           key: go-${{ hashFiles('go.sum') }}
           restore-keys: go-
       - run: just ci-lint
@@ -79,8 +92,8 @@ jobs:
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
-            /root/go/pkg/mod
-            /root/.cache/go-build
+            /tmp/go/mod
+            /tmp/go/build
           key: go-${{ hashFiles('go.sum') }}
           restore-keys: go-
       - run: just ci-test
@@ -115,8 +128,8 @@ jobs:
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
-            /root/go/pkg/mod
-            /root/.cache/go-build
+            /tmp/go/mod
+            /tmp/go/build
           key: go-${{ hashFiles('go.sum') }}
           restore-keys: go-
       - run: just ci-mocks-check
@@ -136,8 +149,8 @@ jobs:
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
-            /root/go/pkg/mod
-            /root/.cache/go-build
+            /tmp/go/mod
+            /tmp/go/build
           key: go-${{ hashFiles('go.sum') }}
           restore-keys: go-
       - run: just ci-vuln
@@ -162,8 +175,8 @@ jobs:
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
-            /root/go/pkg/mod
-            /root/.cache/go-build
+            /tmp/go/mod
+            /tmp/go/build
           key: go-${{ hashFiles('go.sum') }}
           restore-keys: go-
       - run: just ci-secrets
