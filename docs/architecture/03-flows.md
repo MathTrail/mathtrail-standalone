@@ -109,6 +109,8 @@ sequenceDiagram
 
 **What the model gets and what the child gets.** The model receives the wording, the options and the hint — never the answer, the trap texts or the solution; that is the same split the prototype used, and it is what keeps criterion 11.3 true while the model is still in the conversation. The child sees the card with no answer on it. One honest exception, settled in О-27: the adult who opens the host's own tool-call log sees the task the model submitted, answer included — T03 confirmed Claude shows the raw request JSON. That is outside the threat model and belongs in the privacy policy (T19).
 
+**One request, one generation.** A child who gets impatient and asks again in the chat sets the model off a second time: it calls `next_task`, gets the same open request back, and would cheerfully write a second task for it. Both submissions would then spend attempts from the same counter of three and cut each other's work off, ending in `attempts_exhausted` with nothing to show. So the repeated result says outright that a generation for this request is already under way and how old it is, and asks for the task already written instead of a new one ("Doing nothing twice").
+
 ## Scenario 3. The answer, with a widget
 
 ```mermaid
@@ -135,6 +137,10 @@ sequenceDiagram
 ```
 
 **The button records before anything is explained.** The order in the diagram is the requirement: the press calls the tool, the tool writes the profile, and only then is anything said to anybody. Nothing about the recording depends on the model noticing (О-42) — and it must not, because the two mechanisms that tell the model what happened, `ui/message` and `ui/update-model-context`, were only confirmed in T03 as far as "the call returns without an error"; that they land in the conversation has not been seen with human eyes yet. If both silently do nothing, the child still gets the result screen, the ratings are still updated, and the model catches up on its next call, because every tool result carries the outcome of the last answer.
+
+**The model may not state the task's state from memory.** If `ui/update-model-context` is the mechanism that fails, the child is already reading the result screen while the model's context still holds an unanswered task — and a child who then types "but why is that the answer?" would be answered from a picture two minutes out of date. The compensating control is a rule in the instructions (T36): before saying anything about the current task — praising it, explaining it, offering the next one — the model calls a tool and reads the state back. Every tool result carries the outcome of the last recorded answer for exactly this reason, so one call is enough and no round trip is wasted.
+
+The obvious alternative is worse: having the widget send a chat message after every answer would keep the model in step by construction, and would spend a turn of the conversation each time. On a free tier those turns are the scarce resource this whole design protects (PRODUCT 6), and a button that costs none of them is the point of О-42.
 
 **"Hint" and "I don't understand" cost nothing extra.** The hint is part of the task the model submitted, so the widget already has it and reveals it with no call at all; that it was opened travels with the answer. "I don't understand" pressed before answering travels the same way. Pressed after the answer, it is simply a request to the model for a simpler explanation and is not recorded — the lesson is over by then, and О-33 only needs these flags for choosing the next step.
 
@@ -204,9 +210,11 @@ The child presses "Next task" — on the result screen, or on the task card itse
 
 The waiting screen has a second source, and it is a gift rather than a complication: a refused `submit_task` draws a card too, and that card is the waiting screen. A generation that takes three attempts therefore leaves the child two visible signs that something is being worked on, instead of ninety silent seconds.
 
-The waiting card does not know when the new one arrives, and it is not worth finding out: the only ways are polling — a Drive read per poll, against a budget PRODUCT 9.4 wants minimal — or a host mechanism nobody has verified. So the old card keeps its warm-up and the child's attention moves to the new card below it. T56 owns how that is drawn.
+The waiting card does not know when the new one arrives, and it is not worth finding out: the only ways are polling — a Drive read per poll, against a budget PRODUCT 9.4 wants minimal — or a host mechanism nobody has verified. So the child's attention moves to the new card that appears below, and the old one is left behind.
 
-The median generation in the prototype was 69 seconds (PRODUCT 4.4). That is the number the waiting screen is designed around, not a timeout: nothing in the flow gives up on its own.
+**Left behind, but not left spinning.** A card that animates for ever claims something is happening long after nothing is, and the fallback this design leans on — the adult types "next task" into the chat — never occurs to anybody while the screen still looks busy. So the waiting screen has a deadline: **after 120 seconds** with no new card it stops looking like work in progress and says plainly that the task is not being prepared, that it can be asked for in the chat, and offers a button that sends the request once more. It is a local timer — no call, no Drive read, no dependence on the host — and 120 seconds is about 1.7 times the prototype's 69-second median (PRODUCT 4.4), far enough out that an ordinary generation is never interrupted by it. T56 draws it; the deadline itself is part of the flow, not of the drawing.
+
+That is the only place in the lesson where anything gives up on its own. Nothing else has a timeout: a generation takes as long as the model takes.
 
 ## The state machine of the current task
 
@@ -227,7 +235,7 @@ stateDiagram-v2
 
 Two transitions are worth their own sentence:
 
-- **`requested → none` after three attempts.** The child is handed nothing, the model says so and may ask for a new task, and the daily counter is untouched — a refused attempt is not a generation (О-35). Three is the prototype's limit and its reasoning holds: after two pointed corrections a model usually cycles through the same broken variants, and a refusal is itself a signal about which topics and traps it stumbles on.
+- **`requested → none` after three attempts.** The child is handed nothing, the model says so and may ask for a new task, and the daily counter of accepted tasks is untouched — a refused attempt is not a generation (О-35). The counter of failed generations goes up instead, and it is what stops the loop ("The daily counters"). Three is the prototype's limit and its reasoning holds: after two pointed corrections a model usually cycles through the same broken variants, and a refusal is itself a signal about which topics and traps it stumbles on.
 - **`issued → requested`, skipping an unanswered task.** PRODUCT 4.2 puts "Next task" on the task card, so the child may walk away from a task they do not want. The skipped task leaves no trace in the ratings — there is no answer to learn from (О-33) — but its fingerprint stays in the profile, so it will not come back as a near-duplicate. The generation it cost is not refunded: it was an accepted task.
 
 ## Doing nothing twice
@@ -236,24 +244,28 @@ The service keeps no memory between calls, so every "only once" rule is a field 
 
 | What could happen twice | What stops it |
 |---|---|
-| The model calls `next_task` twice for the same request | While an open request is younger than the abandonment window, `next_task` returns **the same** request id and the same brief instead of opening a second one, and writes nothing |
+| The model calls `next_task` twice for the same request | While an open request is younger than the abandonment window, `next_task` returns **the same** request id and the same brief instead of opening a second one, and writes nothing. The repeat also says so: it carries that the request is already open and how many seconds ago it started, and asks for the task already written rather than a second one |
 | An attempt is submitted against an old request | `submit_task` carries the request id; anything but the open one is `stale_request`, and no attempt is spent |
 | A fourth attempt | The counter lives in the open request, not in the model's memory, so it survives a restart, another instance and a forgetful model |
 | The same task is answered twice — the child presses a button and the model also calls the tool | `submit_answer` is keyed by the task id: the first call records, any later one returns the same recorded result and writes nothing. Ratings move once |
 | Two tabs or two devices answer at once | The same key, plus the revision check on the write (T10, T51): the loser retries, sees the answer already recorded, and returns it |
 | The same task text comes back later | The fingerprints of past tasks are kept in the profile and the near-duplicate check runs inside `submit_task` (T32); the profile holds fingerprints, not texts (О-40) |
 
-## The daily counter
+## The daily counters
 
 The unit of the daily limit is **an accepted task** (О-35). It follows that:
 
 - it is **checked** in `next_task`, before the model spends a minute writing something it cannot be given — the refusal names when the child may come back;
 - it is **incremented** in `submit_task`, in the same write that makes the task current, and only when the task is accepted;
-- an abandoned request, a rejected attempt, a refusal after three attempts and a skipped task cost nothing;
+- an abandoned request, a rejected attempt, a refusal after three attempts and a skipped task cost nothing against it;
 - it lives in the profile, so it is shared by every instance (О-15, О-24) — the request rate, by contrast, is counted per instance in memory and may therefore be several times looser;
 - the overshoot is bounded at one: a child at the limit can have at most one request already open when the last acceptance lands.
 
-The counter carries the date it belongs to and resets when the date changes. The service has no reliable idea of the family's timezone, so that date is UTC — for a family in UTC+3 the day turns over at three in the morning, which is acceptable and is written down here so nobody looks for a bug later. The number itself is set in T52, and the field in T09.
+The counter carries the date it belongs to and resets when the date changes. The service has no reliable idea of the family's timezone, so that date is UTC. The number itself is set in T52, and the field in T09.
+
+**The second counter: failed generations.** О-35 is deliberate — a refusal must not cost the child a task they never received — but on its own it leaves a loop with nothing shared to stop it. A model that keeps failing the checks on some topic exhausts its three attempts, the request closes, and it may ask again immediately, for ever. The request rate looks like the brake and is not much of one: it is counted in each instance's memory and can be several times looser than it reads (О-24). What that loop costs is worth naming precisely, because it is not what it looks like either — the service makes no LLM calls at all (PRODUCT 4.3), so nobody is paying us for tokens. It costs the family their message limit on a free tier, which is the scarce resource of the whole product (PRODUCT 6), and it costs a stream of Drive calls.
+
+So `daily` carries a second counter, `failed`, raised whenever a request ends in `attempts_exhausted`, and `next_task` refuses once it reaches its ceiling — five in a day by default, with the number set in T52. The refusal is `limit_reached` with its own wording and its own reason in the log; it needs no code of its own. The daily generation limit keeps its unit exactly as О-35 defined it, an accepted task: this is a separate fuse, not a redefinition.
 
 ## Refusal codes, and what goes back to the model
 
@@ -272,7 +284,7 @@ Every failed check comes back at once, so the model can fix everything in one mo
 | `drawing_mismatch` | the labels in the wording and in the structural description disagree (О-37) | which labels do not match | yes |
 | `stale_request` | the request id is not the open one, or there is no open request | ask for a task first | no |
 | `attempts_exhausted` | the third rejection | nothing was handed out, a new task may be requested, and the daily limit was not touched | the request closes |
-| `limit_reached` | the daily generation limit or the request rate (T52) | a plain sentence the model relays to the child, and when to come back | no |
+| `limit_reached` | the daily limit of accepted tasks, the ceiling on failed generations, or the request rate (T52) | a plain sentence the model relays to the child, and when to come back; which of the three ceilings it was goes into the log, not to the child | no |
 
 Two rules about the wording of all of them: they are written for a model that has to act on them, so they name the field and the fix rather than the internal error (CLAUDE.md, "Errors"); and none of them is ever rendered as a card, so nothing in them reaches the child directly.
 
@@ -300,18 +312,20 @@ Two rules about the wording of all of them: they are written for a model that ha
 | 4.4 The tool-call log is outside the threat model (О-27) | The paragraph under scenario 2 |
 | 4.4 The waiting screen and the warm-up (О-26) | "The waiting screen and Next task" |
 | 6 Every tool's Drive reads and writes are known | "The tools, and what each costs in Drive" |
-| 6 The daily limit and the request rate | "The daily counter"; `limit_reached` |
+| 6 The daily limit and the request rate | "The daily counters"; `limit_reached` |
 | 6 The free tiers' message budget | Scenario 3: a button press spends no model turn |
 
 ## Notes for PRODUCT/SPEC
 
 Found while drawing the flows. None changes a product decision, so none becomes an open question in PRODUCT 12.2.
 
-1. **Two host mechanisms are still only half-verified.** `ui/message` and `ui/update-model-context` returned successfully in T03 but were never seen landing in a conversation. Nothing in this design depends on them — the answer is recorded by the tool, and the model catches up from the next tool result — but "Next task" without `ui/message` falls back to the adult typing. **For:** T46 and T62–T63, which must watch for both in the transcript, and T56.
+1. **Two host mechanisms are still only half-verified.** `ui/message` and `ui/update-model-context` returned successfully in T03 but were never seen landing in a conversation. Nothing depends on them for correctness — the answer is recorded by the tool — but each needs a compensating control that has to be built rather than assumed: a deadline on the waiting screen for a lost `ui/message`, and the rule never to speak about the current task from memory for a lost `ui/update-model-context`. Both are specified above. **For:** T46 and T62–T63, which must watch for both in the transcript; T56 and T36, which build the two controls.
 2. **`submit_answer` renders no card of its own.** In a widget host where the child types the letter in the chat instead of pressing a button, the task card therefore keeps showing the task while the model explains in words. The alternative — giving the tool its own widget — risks two cards for one press, which T03 never tested ("several widgets in one turn" is still `?` in its matrix). **For:** T55 and T56, and worth one live check in T62.
-3. **The waiting card cannot dismiss itself.** Polling would cost a Drive read each time. **For:** T56, which decides what it shows after a minute of waiting.
-4. **The day of the daily counter is a UTC day.** If local-day semantics are wanted, the widget knows the browser's timezone and could pass it. **For:** T09 and T52.
+3. **The waiting card cannot dismiss itself, so it has a deadline instead.** Polling would cost a Drive read each time, so after 120 seconds the card stops looking busy and points at the chat ("The waiting screen and Next task"). The number is a requirement of the flow; what the card looks like when it fires is **for:** T56.
+4. **The day of the daily counters is a UTC day.** It costs less than it looks: the product shows no rhythm of practice at all (R13, О-49), so an early rollover makes a limit looser for one evening and never stricter. If exactness is wanted, the widget knows the browser's timezone and could pass it. **For:** T09 and T52.
 5. **The abandonment window for an open request is a number nobody has fixed yet** — around fifteen minutes fits a 69-second median and three attempts. **For:** T15, confirmed in T52.
 6. **Skipping an unanswered task is allowed** because PRODUCT 4.2 puts "Next task" on the task card. It costs a generation and leaves no rating trace. **For:** T15, to carry into SPEC explicitly.
-7. **Every tool result carries the outcome of the last recorded answer** — one line, so a model that missed the widget's message does not congratulate a child on a task they got wrong. **For:** T14, in the output schemas.
+7. **Every tool result carries the outcome of the last recorded answer** — one line, so a model that missed the widget's message does not congratulate a child on a task they got wrong. It is what makes the rule of scenario 3 — read the state back before speaking about it — cost a single call. **For:** T14, in the output schemas, and T36 for the rule itself.
 8. **A tool cannot decide per call whether it draws a card.** The host takes `_meta.ui.resourceUri` from the tool definition, so `submit_task` draws one even when it refuses — which is why refusals are written to name no answer letter, and why the widget has to render sensibly from a payload that carries no task. **For:** T14 and T55–T56; worth confirming in T62 that Claude does not also draw a card for a call the widget itself made.
+9. **`next_task` has to be able to say "already under way".** The repeat of an open request carries a flag and the request's age, so an impatient second ask does not become a second generation racing the first for the same three attempts. **For:** T14, in the output schema, and T44.
+10. **The ceiling on failed generations is a new number in the profile.** `daily.failed` and its limit of five a day come from this pass, not from a product decision; О-35 is untouched. **For:** T09, T26 and T52, and entry R15 in the decision log.

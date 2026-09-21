@@ -61,11 +61,15 @@ Every tool call is read → compute → write (03-flows). The cost in HTTP calls
 | `get_profile`, `get_progress` | 2 — `files.list`, `files.get(alt=media)` | 1 — `files.get(alt=media)` |
 | `save_profile`, `next_task`, `submit_task`, `submit_answer` | 3 — list, get, `files.update` | 2 — get, update |
 | First sign-in, no file yet | 3–4 — list (miss), the bin check, the folder, `files.create` multipart | — |
-| Every fiftieth write | +2 — `revisions.list`, unpin the oldest | same |
+| A pinned write — every fiftieth, or the first of a day | +2 — `revisions.list`, release the oldest pin | same |
 
 A whole task — `next_task`, `submit_task`, `submit_answer` — costs six Drive calls on a warm instance. Every response asks for a narrow `fields` list, so nothing but the few fields we use crosses the wire.
 
 The file id is cached in the instance's memory, keyed by the user identifier from 02-auth. It is a cache in the strict sense: a stale id produces a `404`, which falls back to the search. Nothing durable is keyed by that identifier, which 02-auth requires.
+
+**A read straight after a write may arrive early.** Drive does not promise that the next read sees the revision just written, and the lesson makes exactly that call pattern: the widget records an answer and the model asks for the next task a second later. So the cache holds one more thing beside the file id — **the `revision` this instance last wrote**. If a read comes back with a lower `revision` than that, the instance reads once more after about 250 ms; if the second read is still behind, it proceeds from **its own** last written state, which cannot be older than what Drive is serving. The case is logged, because a stale read that happens often would mean something else is wrong.
+
+This is per instance and makes no promise across them: a second instance reading an early copy sees what Drive gives it. That is the same window the two-tab race lives in, and the same four measures cover it.
 
 **The rule that matters more than the budget: nothing slow may happen between the read and the write.** Every check that does not need the profile — the structure, the Starlark solver, the readability, the drawing — runs *before* the profile is read; only the near-duplicate check needs it, and it is a comparison against fingerprints already in hand. The read-modify-write window is therefore microseconds of pure computation rather than the second or more a solver can take. This is not a micro-optimisation: with no conditional write, that window *is* the race, and shrinking it is most of the protection we can buy.
 
@@ -103,11 +107,16 @@ What the service does about it, in order of how much it buys:
 
 Damaged means the download does not parse as JSON, or parses but fails validation — an unknown schema version is *not* damage and has its own answer (04-profile).
 
-1. **Look back through the revisions.** `revisions.list`, newest first, at most five, and `revisions.get(alt=media)` on each until one parses and validates.
+1. **Look back through the revisions.** One `revisions.list`, then at most five bodies fetched with `revisions.get(alt=media)`, newest first, until one parses and validates. The five are **the four newest revisions plus the newest pinned one** — never simply the last five. The difference matters exactly when it is needed: a fault that writes six broken states in a row would push every pinned snapshot out of a five-deep window, and the one revision that is guaranteed to still exist is the pinned one.
 2. **Restore it forward**, as a new revision — nothing is deleted, so a mistaken recovery is itself recoverable — and say plainly what happened: the file was damaged, this is the state from such-and-such a date, and anything answered after it is gone.
 3. **If nothing parses**, stop. The service does not overwrite a file it cannot read. The tool result names the file and the folder and offers two ways out: restore an older version from Drive's own version history, which the parent can do themselves, or start a new profile — which renames the damaged file aside rather than deleting it.
 
-**Keeping enough history to recover from.** Drive purges unpinned revisions once there are a hundred of them, which at three writes per task is about a day and a half. So **every fiftieth write is pinned** with `keepRevisionForever=true` — a query parameter on the update we were making anyway, so it costs nothing — using the file's own `revision` counter to decide. That leaves a snapshot roughly every seventeen tasks, and the two-hundred-pin ceiling is far away; when the pinned set reaches a hundred, the oldest pins are released during the same fiftieth write. A pinned revision is a full copy against the parent's own Drive quota — a hundred of them is about three megabytes, which is not a number anybody will notice. Recent history stays unpinned and purgeable, which is exactly right: the day-old states are the ones worth keeping, and the minute-old ones are still in the head.
+**Keeping enough history to recover from.** Drive purges unpinned revisions once there are a hundred of them, which at three writes per task is about a day and a half. So some writes are pinned with `keepRevisionForever=true` — a query parameter on the update we were making anyway, so it costs nothing — and **two independent triggers** decide which:
+
+- **every fiftieth write**, by the file's own `revision` counter — ours, not Drive's `version`, and it moves by exactly one per successful write;
+- **the first write of a new day**, seen by comparing the date of the `updated_at` already in the file with today's. No new field, and no arithmetic that can drift.
+
+Two triggers because one of them can be skipped. A write lost in the race above takes its revision number with it, and a counter that only ever fires on an exact multiple is a counter that can miss; the calendar trigger cannot miss more than a day. The recovery window above and these two triggers are one decision, R17: neither half is worth much without the other. That leaves a snapshot roughly every seventeen tasks, and the two-hundred-pin ceiling is far away; when the pinned set reaches a hundred, the oldest pins are released during the same fiftieth write. A pinned revision is a full copy against the parent's own Drive quota — a hundred of them is about three megabytes, which is not a number anybody will notice. Recent history stays unpinned and purgeable, which is exactly right: the day-old states are the ones worth keeping, and the minute-old ones are still in the head.
 
 ## When the file is gone
 
@@ -123,8 +132,8 @@ Damaged means the download does not parse as JSON, or parses but fails validatio
 
 | Answer | What it means | What we do |
 |---|---|---|
-| `403 userRateLimitExceeded`, `429` | Too many calls for this user or project | Truncated exponential backoff with jitter — but bounded by the host's patience, so at most two retries a few hundred milliseconds apart, then a clear message that the model relays |
-| `5xx` | Drive is having a moment | The same two retries |
+| `403 userRateLimitExceeded`, `429` | Too many calls for this user or project | Two retries, at about 0.5 s and 1.5 s with jitter, then a clear message that the model relays. Drive's own advice is backoff up to 32 seconds, which no chat host will wait for — so this is a short attempt at riding out a blip, not a strategy for a real block. It should never fire: at 325,000 quota units a minute per user and six calls per task, a persistent `429` means our call budget is wrong, so it is counted as its own metric (T60) rather than quietly retried |
+| `5xx` | Drive is having a moment | The same two retries, and the same counter |
 | `403 storageQuotaExceeded` | The parent's Drive is full | No retry helps. The message has to be specific — the answer was **not** recorded and the Drive needs space — because this is the one failure where the child did something and it did not stick |
 | `404` on a cached id | The file moved out from under the cache | Drop the cache entry and search again |
 | `401`, `invalid_grant` | The grant is gone | A 401 with a challenge, as above |
@@ -133,7 +142,7 @@ Internal error text never reaches the model or the parent; what goes back is a s
 
 ## The daily counter with several instances
 
-The counter of accepted tasks lives in the file precisely so that instances share it (О-15, О-35). Two acceptances that overlap in the window above can both increment from the same value, and one increment is lost — the limit is then looser by one for that day. That is the same trade О-24 already made for the request rate, which is counted per instance and can be several times looser; an exact counter needs shared storage, and shared storage is what v1 does not have. The daily counter is a cost ceiling, not an accounting record, and a family that gets one extra task is not a problem to solve with Redis.
+Both daily counters — accepted tasks and failed generations (04-profile) — live in the file precisely so that instances share them (О-15, О-35, R15). Two acceptances that overlap in the window above can both increment from the same value, and one increment is lost — the limit is then looser by one for that day. That is the same trade О-24 already made for the request rate, which is counted per instance and can be several times looser; an exact counter needs shared storage, and shared storage is what v1 does not have. Both counters are cost ceilings, not accounting records, and a family that gets one extra task is not a problem to solve with Redis.
 
 ## Export
 
@@ -154,13 +163,15 @@ The export is the file. It is JSON, it is in the parent's own Drive, in a folder
 | 11.4 The profile survives a service restart | Nothing but caches lives in memory; the file id cache falls back to a search |
 | 11.4 The profile survives a repeat sign-in | The file is found by its marker, not by a path or a remembered id, so a new token finds the same file — in the same Google account |
 | 11.4 The profile survives two tabs at once | "Two tabs" |
+| 11.4 The profile survives a read that arrives before the write it should see | "One read, one write": the instance remembers the revision it last wrote and never steps backwards from it |
 | 11.4 A corrupted file recovers comprehensibly | "When the file is damaged" |
 
 ## Notes for PRODUCT/SPEC
 
 1. **The unrecoverable case is one line in the FAQ.** If the parent empties the Drive bin, the profile is gone — no server-side copy exists, by design. Worth saying out loud next to the privacy policy, because "we store nothing" and "we cannot get your data back" are the same sentence read from two sides. **For:** T19.
-2. **The retry budget is bounded by the host, not by Drive.** Drive's own advice is backoff up to 32 seconds; a chat host will have given up long before. Two short retries and a clear message is the compromise, and the numbers belong in SPEC. **For:** T15, T51.
-3. **Pinning every fiftieth revision is a number, not a law.** It follows from three writes per task and Drive's hundred-revision purge. If the write count per task changes, it changes with it. **For:** T51.
+2. **The retry budget is bounded by the host, not by Drive.** Drive's own advice is backoff up to 32 seconds; a chat host will have given up long before. Two short retries — 0.5 s and 1.5 s — and then a clear message is the compromise, and the honest reading is that a real rate-limit block is not something the service can ride out at all. That is why a persistent `429` is a metric rather than a retry loop. **For:** T15, T51, T60.
+3. **Pinning every fiftieth revision is a number, not a law**, and it now has a calendar trigger beside it so that a missed multiple cannot cost a whole history. Both follow from three writes per task and Drive's hundred-revision purge; if the write count per task changes, they change with it. **For:** T51.
 4. **`storageQuotaExceeded` deserves its own message and its own test**: it is the only failure where the child acted and the result was not saved. **For:** T51, and the wording in T15.
 5. **Two profile files is a state we report but never merge.** If it turns out to happen in practice, merging deserves a decision rather than an improvisation. **For:** T51, and a live check in T62.
 6. **The `schema` in `appProperties` is a convenience copy.** It must be written on every update that changes the schema version, or it will drift from the file. **For:** T50.
+7. **Drive's consistency after a write is assumed, not documented.** The guard above — remember the revision just written, re-read once, then trust our own copy — is written against the possibility, not against a measurement. T51 fakes an early read in a test, and T53 is the first place a real one could show up. **For:** T51, T53.
