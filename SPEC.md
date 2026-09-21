@@ -18,12 +18,12 @@
 | 6 | [The Starlark solver](#6-the-starlark-solver) | T13 |
 | 7 | [The MCP tools](#7-the-mcp-tools) | T14 |
 | 8 | [Widgets, screens and languages](#8-widgets-screens-and-languages) | T14 |
-| 9 | Sign-in and tokens | T15 |
-| 10 | Limits | T15 |
-| 11 | Configuration | T15 |
-| 12 | Logging and metrics | T15 |
+| 9 | [The HTTP surface, sign-in and tokens](#9-the-http-surface-sign-in-and-tokens) | T15 |
+| 10 | [Limits](#10-limits) | T15 |
+| 11 | [Configuration](#11-configuration) | T15 |
+| 12 | [Logging and metrics](#12-logging-and-metrics) | T15 |
 
-Sections 9–12 are not written yet. Section 9 will be assembled from [docs/architecture/02-auth.md](docs/architecture/02-auth.md).
+Every section is written. The architecture diagrams behind them are in [docs/architecture/](docs/architecture/): the context diagram, the sign-in design, the tool flows, the profile file and its storage in Drive.
 
 ---
 
@@ -1068,6 +1068,213 @@ Every row's text column is the `content` of the same result that draws the scree
 
 ---
 
+# 9. The HTTP surface, sign-in and tokens
+
+The design and the reasoning are [02-auth](docs/architecture/02-auth.md); this section is the operational form of it — every path the service answers on, the rules that apply to all of them, and the parameters somebody deploying this has to get right.
+
+## 9.1 The endpoints
+
+| Path | Method | Auth | Cache | Notes |
+|---|---|---|---|---|
+| `/healthz` | GET | none | `no-store` | The only path served on any `Host` |
+| `/mcp` | GET, POST | Bearer | `no-store` | The MCP endpoint, stateless Streamable HTTP over 2026-07-28 |
+| `/.well-known/oauth-protected-resource/mcp` | GET | none | `max-age=3600` | RFC 9728 for the resource `<public-url>/mcp` |
+| `/.well-known/oauth-protected-resource` | GET | none | `max-age=3600` | The same document at the root |
+| `/.well-known/oauth-authorization-server` | GET | none | `max-age=3600` | RFC 8414 |
+| `/oauth/register` | POST | none | `no-store` | RFC 7591, stateless: the record is sealed into the `client_id` |
+| `/oauth/authorize` | GET | the parent's browser | `no-store` | Validates, then the consent screen or Google |
+| `/oauth/consent` | POST | CSRF cookie | `no-store` | The parent's approval of one client |
+| `/oauth/callback` | GET | CSRF cookie | `no-store` | Google's redirect target; issues our code |
+| `/oauth/token` | POST | PKCE or the refresh token | `no-store` | `authorization_code` and `refresh_token` |
+| `/oauth/revoke` | POST | the token itself | `no-store` | RFC 7009; revokes the grant at Google |
+
+Nothing else exists. There is no admin path, no metrics endpoint — the metrics are the logs (section 12) — and no page a child could land on.
+
+## 9.2 The rules that apply to every request
+
+| Rule | Value |
+|---|---|
+| **Host** | Only the configured public host is served; anything else gets `404` with an empty body, except `/healthz`. The issuer, the canonical resource and every absolute URL come from `MATHTRAIL_PUBLIC_URL`, never from the request (02-auth) |
+| **Origin** | On `/mcp`, a request carrying an `Origin` that is not the public URL is refused with `403`. The SDK's own DNS-rebinding protection stays on: the service listens on its real domain, unlike the spikes |
+| **CORS** | The `.well-known` documents answer `Access-Control-Allow-Origin: *` — they are public metadata a browser-based client may fetch. Nothing else sends CORS headers, and no endpoint answers a preflight with credentials |
+| **Body size** | 1 MB on `/mcp` (a submitted task with its solver is ~20 KB), 64 KB on the OAuth endpoints, 64 KB on a fetched Client ID Metadata Document |
+| **Timeouts** | Read header 5 s, read 30 s, write 60 s, idle 120 s; the server's own shutdown grace is 10 s. Outbound: Google token and revocation 10 s, Drive 10 s per call, CIMD 10 s with one retry |
+| **Headers on every response** | `Strict-Transport-Security: max-age=31536000`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `Cache-Control` as the table above |
+| **Headers on server-rendered pages** | Plus `Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'` and `Content-Language` |
+| **The client's address** | The **last** entry of `X-Forwarded-For` — the hop the platform appended. Anything a client sends arrives before it and is therefore untrusted. Cloud Run's container contract does not document the header, so T53 confirms it on the deployed service before the per-IP limit is trusted |
+| **Method and content type** | Every endpoint answers only the methods in 9.1; `/oauth/token`, `/oauth/register` and `/oauth/revoke` require `application/x-www-form-urlencoded` or `application/json` as their RFCs say |
+
+## 9.3 The parameters of the sign-in
+
+The lifetimes and formats of 02-auth, gathered:
+
+| What | Value |
+|---|---|
+| Our scope | `mcp`, the only one v1 has |
+| Google's scopes | `openid` and `https://www.googleapis.com/auth/drive.file` |
+| Google's authorization request | `access_type=offline`, `prompt=consent` on every sign-in, PKCE S256, a `nonce` bound to the CSRF cookie |
+| Authorization code | 60 s, single use in practice through its lifetime, PKCE S256 required |
+| Access token | 15 minutes, and never longer than the Google access token inside it minus 60 s |
+| Refresh token | 30 days sliding, at most 90 days from the original sign-in, rotated on every use |
+| The Google access token inside | Refreshed when under 5 minutes remain |
+| `state` and the CSRF cookie | 10 minutes |
+| Consent cookie | 180 days, `HttpOnly; Secure; SameSite=Lax; Path=/oauth` |
+| Token format | `mt1.<purpose>.<kid>.<base64url>` — XChaCha20-Poly1305, per-purpose subkeys by HKDF-SHA256, the purpose and key id as additional data |
+| Key ring | Two live keys, rotation every 90 days, the previous key kept one period; pinned Secret Manager versions read once at startup |
+| Clock skew allowed | 60 s |
+| CIMD fetch | HTTPS with a path only; DNS resolved by us and private, loopback, link-local, unique-local, multicast and metadata addresses refused; the validated address dialled; no redirects; 64 KB and 10 s with one retry; cached by the document's own headers with a floor of 5 minutes and a ceiling of 24 hours; the document's `client_id` must equal the URL |
+| Clients | Public only: `token_endpoint_auth_methods_supported` is `["none"]` and no client secret is ever issued |
+
+## 9.4 The dev sign-in, and why it cannot reach production
+
+Until phase 5 the service runs with a development sign-in stub so that the tools can be exercised without Google (RUN T41). It is a single environment variable, and it carries its own refusal: **when `K_SERVICE` is set — which Cloud Run always sets — a service configured with the dev stub refuses to start.** Not a warning, not a log line: the process exits with a message naming the variable.
+
+The same rule covers anything else that trades safety for convenience later: the switch is an environment variable, the refusal is at startup, and the check is `K_SERVICE`, because that is the one signal a developer cannot accidentally reproduce on a laptop.
+
+---
+
+# 10. Limits
+
+PRODUCT 6 asks that one user cannot bring the service down or push it past the free tier. Four ceilings do that, and they are counted in two different places for a reason that О-15 and О-24 settled: what must be shared lives in the profile, what only has to be approximately right lives in the instance's memory.
+
+## 10.1 What is limited, and where it is counted
+
+| Limit | Counted in | Shared between instances |
+|---|---|---|
+| Requests per user per minute | The instance's memory, keyed by the user id of 02-auth | No — with N instances the effective rate is up to N times looser (О-24) |
+| Requests per IP per minute, before sign-in | The instance's memory, keyed by the address of 9.2 | No |
+| Requests per instance per minute, all users | The instance's memory | No — it is a fuse for one instance, not a service-wide quota |
+| Accepted tasks per day | `daily.accepted` in the profile | **Yes** — every instance reads the same file (О-15) |
+| Failed generations per day | `daily.failed` in the profile | **Yes** (R15) |
+
+The per-user rate limiter holds at most a few thousand entries per instance and evicts the oldest; a limiter that can grow without bound is itself a way to bring an instance down.
+
+## 10.2 The starting numbers
+
+| Limit | Start | Reasoning |
+|---|---|---|
+| Per user | 30 requests/minute, burst 10 | A lesson is six tool calls a minute at its busiest; thirty leaves room for a widget and a model working at once |
+| Per IP, before sign-in | 20 requests/minute | The OAuth and metadata endpoints only. A sign-in is under ten requests |
+| Per instance | 200 requests/minute | A fuse: beyond this something is wrong, and shedding load beats being killed |
+| Accepted tasks per day | 20 | A long session is ten to fifteen tasks; twenty is generous and still bounds the cost |
+| Failed generations per day | 5 | It exists to stop a loop, not to ration a lesson (R15) |
+
+Every number is an environment variable (section 11) and every one is a guess until T64 measures a real session. The order of magnitude is what matters here: they are set so that a family never meets them and a runaway meets them within a minute.
+
+## 10.3 What the child hears
+
+A limit is the one refusal a child sees the consequence of, so the message has three parts and no jargon: what happened, when it clears, and what can be done meanwhile. "That is all the new tasks for today — there will be more tomorrow. You can still look at your progress, or go back over the last task." The model relays it; the widget shows the same words on the card it is on.
+
+The rate limits are different: they mean something is wrong, not that a rule was hit, so the message says to try again in a moment and nothing more. The daily ceilings are the only ones that name a time.
+
+No refusal ever names a limit's number, because a number invites arithmetic rather than a lesson.
+
+## 10.4 What is deliberately not exact
+
+Two instances can both let a task through at the same moment, and the daily counter then undercounts by one (05-storage). The rate limit can be several times looser than it reads. Both are accepted: an exact counter needs shared storage, shared storage is a database, and PRODUCT 6 says there is none. The limits are cost ceilings, not an accounting system, and the cost of being wrong by one task is one task.
+
+---
+
+# 11. Configuration
+
+## 11.1 Two tiers, and the rule between them
+
+- **Environment variables** carry deployment facts, secrets and the operational ceilings someone might need to move without a release. They are read in `internal/config` and nowhere else, defaults are named constants, and `Validate()` names the offending variable (CLAUDE.md).
+- **Named constants in the binary** carry the product's own numbers: the rating constants, the readability thresholds, the duplicate thresholds, the drawing limits, the solver limits, the window sizes and the package budget. Changing one of these changes what the product *is*, and the golden vectors (T16) pin them, so it is a code change with tests rather than a deploy-time knob.
+
+Where section 5.4 says the drawing limits are "configuration, not constants in the code", it means this second tier: one named place, not literals scattered through the checks. They are calibrated in T58 and they ship with the binary.
+
+## 11.2 The environment
+
+| Variable | Required | Default | Secret | Used by |
+|---|---|---|---|---|
+| `PORT` | yes | 8080 | no | The HTTP server; Cloud Run injects it |
+| `MATHTRAIL_PUBLIC_URL` | yes | — | no | The issuer, the canonical resource, every absolute URL, the `Host` check (9.2) |
+| `MATHTRAIL_GOOGLE_CLIENT_ID` | yes | — | no | The Google OAuth client |
+| `MATHTRAIL_GOOGLE_CLIENT_SECRET` | yes | — | **yes** | The Google token exchange |
+| `MATHTRAIL_SEAL_KEY_CURRENT` | yes | — | **yes** | Sealing and unsealing (9.3) |
+| `MATHTRAIL_SEAL_KEY_PREVIOUS` | no | empty | **yes** | Unsealing during a rotation |
+| `MATHTRAIL_RATE_USER_PER_MIN` | no | 30 | no | Limits |
+| `MATHTRAIL_RATE_IP_PER_MIN` | no | 20 | no | Limits |
+| `MATHTRAIL_RATE_INSTANCE_PER_MIN` | no | 200 | no | Limits |
+| `MATHTRAIL_DAILY_TASKS` | no | 20 | no | Limits |
+| `MATHTRAIL_DAILY_FAILED` | no | 5 | no | Limits |
+| `MATHTRAIL_SOLVER_STEPS` | no | 10000000 | no | The sandbox (6.6) |
+| `MATHTRAIL_SOLVER_TIMEOUT` | no | 2s | no | The sandbox |
+| `MATHTRAIL_SOLVER_CONCURRENCY` | no | 4 | no | The sandbox |
+| `MATHTRAIL_DRIVE_TIMEOUT` | no | 10s | no | Every Drive call |
+| `MATHTRAIL_REQUEST_WINDOW` | no | 15m | no | When an open request counts as abandoned (03-flows) |
+| `MATHTRAIL_LOG_LEVEL` | no | info | no | Logging |
+| `MATHTRAIL_DEV_AUTH` | no | off | no | The dev sign-in stub; refuses to start under `K_SERVICE` (9.4) |
+| `K_SERVICE` | — | set by Cloud Run | no | Read, never set by us: it is how the service knows it is not a laptop |
+
+Secrets arrive as Secret Manager references resolved by Cloud Run at instance start, never as literals in a deploy command, and never in the repository (PRODUCT 6, 8).
+
+## 11.3 Starting up
+
+Configuration is read once, validated once, and a service that cannot satisfy its own configuration does not start: a missing key, an unparseable URL, a dev switch under `K_SERVICE`, a `PORT` that is not a number. The content in the binary is validated at the same moment (catalogs, reference tasks, schemas, dictionaries), because a catalog that disagrees with a reference task is a bug that must not wait for a child to find it.
+
+---
+
+# 12. Logging and metrics
+
+## 12.1 The shape of a line
+
+Structured JSON on stdout, one object per line, with the keys Cloud Run reads: `severity`, `message`, `time`. Everything else is a snake_case field beside them. Messages are lowercase and describe an event, not a sentence: `tool_call`, `task_accepted`, `limit_hit`.
+
+Every line that belongs to one MCP request carries the same `request_id`; every line that belongs to a signed-in user carries `user` — the derived identifier of 02-auth, never Google's `sub`. A line may carry `instructions_version` when the event concerns a generated task (О-21).
+
+## 12.2 The events
+
+| Event | When | Fields beside the common ones |
+|---|---|---|
+| `startup`, `shutdown` | Process lifecycle | version, revision, the content's version |
+| `tool_call` | Every MCP tool call, once, at the boundary | tool, outcome, status, duration_ms |
+| `task_requested` | `next_task` opened or returned a request | topic, level, difficulty, goal, tutor_mode, already_open |
+| `task_submitted` | Every `submit_task` | attempt, outcome, primary code, every failed check, duration_ms, solver_steps, solver_ms |
+| `task_accepted` | A task became current | topic, level, difficulty, attempts, seconds since the request opened, instructions_version |
+| `answer_recorded` | `submit_answer` recorded an answer | topic, difficulty, correct, trap, hint_used, confused, pace |
+| `limit_hit` | Any ceiling of section 10 | which ceiling, the counter's value |
+| `auth_*` | authorize, consent, callback, token, refresh, revoke, reject | client_id, registration (cimd or dcr), redirect host, resource, requested and granted scope, kid, outcome, reason |
+| `cimd_fetch` | A Client ID Metadata Document was fetched | host, cached, duration_ms, outcome |
+| `drive_call` | Every Drive operation | op, duration_ms, retries, outcome |
+| `drive_conflict`, `drive_stale_read`, `drive_recovered` | The storage paths of 05-storage | what happened, revisions involved |
+| `solver_run` | Every sandbox run, both of the two | status, steps, duration_ms |
+
+## 12.3 What never appears
+
+No task text, no option, no answer letter — neither the child's nor the correct one; `correct` is a boolean and `trap` is a catalog id. No pseudonym, no notes, no interests. No token, code, verifier, cookie or key — only a key id. No Google `sub`, no email, no name. No Drive file id, and no file contents in an error.
+
+The rule is not "redact before writing" but "never build the string": a log call that takes a profile is a log call waiting to leak, so the logger is given fields, and the fields are the ones in the table above (О-16, PRODUCT 6).
+
+## 12.4 What the numbers are for
+
+Every metric of PRODUCT 6 is a count over these lines, and the MVP needs no metrics backend to get them (О-16): acceptance rate and the reasons for refusal from `task_submitted`; generation time from `task_accepted`; attempts per accepted task from the same; limit hits from `limit_hit`; the instructions version on every one of them, so two versions are never mixed (О-21).
+
+This pass added four that matter operationally: `solver_run.steps`, which is what calibrates the sandbox's ceiling (6.6); `drive_stale_read`, which should be rare and means Drive is serving behind; repeated `drive_call` retries, which mean the call budget is wrong (05-storage); and `limit_hit` on the failed-generation ceiling, which means a topic is defeating the models rather than a family being greedy (R15).
+
+T60 is where the log is audited against this section, line by line, and T64 is where the numbers first come from real load.
+
+## 12.5 Coverage of PRODUCT 6
+
+| Requirement | Where |
+|---|---|
+| One executable, stateless, configured through environment variables | 11 |
+| $0 within the free tier, budget alert | 10 (limits), T20 (the alert) |
+| Per-user limits, per-IP before sign-in, a service-wide fuse, a comprehensible message | 10 |
+| The request rate in memory, the daily counter in the profile (О-15, О-24) | 10.1, 10.4 |
+| The free tiers' message budget | 7.3 (`content` for text mode), 8.3 (a button spends no turn) |
+| Phones first: from 320 px, finger-sized buttons, a drawing that fits | 8.4, 5.4 |
+| Tools answer in under a second, Drive aside | 9.2 (timeouts), 6.6 (the solver's ceiling), 05-storage (the call budget) |
+| OAuth 2.1 with PKCE, short-lived tokens, a check on every request | 9.3 |
+| The OAuth state and the Google tokens sealed, the key in Secret Manager (О-7) | 9.3, 11.2 |
+| No secrets in the repository | 11.2 |
+| Minimal data, no personal data in the logs | 12.3 |
+| A privacy policy and terms published | Outside the code: T19 |
+| Aggregates in the logs: outcome, reason, time, attempts, limit hits, instructions version (О-16, О-21) | 12.2, 12.4 |
+
+---
+
 ## Remarks on PRODUCT and RUN
 
 Collected while writing this part; none of them changes a product decision.
@@ -1101,3 +1308,10 @@ Added while writing sections 7 and 8:
 18. **Every dictionary lives in the one HTML file**, because the widget has no network by design. Twenty-two locales are around 50 KB before compression. If the bundle outgrows its budget the escape is to inline one locale per `resources/read`, not to open the CSP. **For:** T42, T54, T59.
 19. **The list of 22 languages is a starting point, not a promise** (О-14а). It is chosen by speakers and plausibility, and a locale outside it lands on its language or on English by the ordinary lookup. **For:** T59.
 20. **`securitySchemes` is still an unverified placement.** T04 put it in `_meta` because the draft's top-level field does not exist on the SDK's `Tool`, and no host has been seen reading either form. **For:** T41, and a live check in T63.
+
+Added while writing sections 9 to 12:
+
+21. **The client's address rests on an undocumented platform behaviour.** Taking the last entry of `X-Forwarded-For` is right if the platform appends its own hop, and Cloud Run's container contract does not mention the header at all. Until T53 confirms it on the deployed service, the per-IP limit is a guess about a header. **For:** T52, T53.
+22. **Every limit's number is a starting point, not a measurement.** Thirty requests a minute, twenty tasks a day, five failed generations: chosen so that a family never meets them and a runaway meets them within a minute. T64 is the first time any of them sees real load. **For:** T52, T64.
+23. **The two tiers of configuration are a rule someone will want to break.** The first time a number in the second tier needs changing in a hurry — a drawing width after a live run, say — the temptation is to add an environment variable. The answer is a release: the golden vectors pin these numbers, and a knob that can move them can move the product out from under its own tests. **For:** T17, T58.
+24. **`MATHTRAIL_DEV_AUTH` is the only switch that trades safety for convenience**, and it is the only one allowed to exist. Anything similar added later refuses to start under `K_SERVICE` the same way, or it does not go in. **For:** T41.
