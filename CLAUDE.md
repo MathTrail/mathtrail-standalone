@@ -73,7 +73,6 @@ Project context lives in these files, not in chat history.
   - Reports to the author in chat are in Russian.
   - The frozen prototype copies under `docs/prototype/` stay in Russian as they were written: they are a historical record, cited but never rewritten.
   - Tasks for the child are written by the chat's model in the chat language.
-- **One contest is never named.** Our tasks are olympiad-style problems. The repository never names the international multiple-choice contest the project started from, in any language (prototype D36). Other olympiads may be named, e.g. as problem sources. Content wording is always our own.
 - **Children's data.**
   - Only a pseudonym, never a real name, birth date or school.
   - No personal data, task text or answers in logs or metrics.
@@ -225,7 +224,7 @@ Implementations of the same interface must be interchangeable, and that is worth
 Open the repository in VS Code and choose "Reopen in Container" (`.devcontainer/`). Inside the container:
 
 - **Pinned versions.** No separate versions file: each tool's exact version is an `ARG` default in `.devcontainer/Dockerfile`, repeated as a literal in `.devcontainer/devcontainer.json` where needed.
-  - The devcontainer image installs Go, gopls, dlv, Node.js, just, golangci-lint, mockery, cloudflared, the Docker Compose plugin and Claude Code straight from the Dockerfile, no checksum verification beyond what `go install` already does for Go modules.
+  - The Dockerfile has two stages. `toolchain` installs Go, Node.js, just, golangci-lint and mockery; `devcontainer` adds gopls, dlv, cloudflared, the Docker Compose plugin and Claude Code on top, and is the stage the container is built from. The full checks run in the `toolchain` stage, published to GHCR and pinned by digest. Everything is installed straight from the Dockerfile, with no checksum verification beyond what `go install` already does for Go modules.
   - Docker (docker-in-docker, Moby engine and buildx) comes from a devcontainer feature pinned in `devcontainer.json` and `devcontainer-lock.json`.
   - To change a version: edit the literal everywhere it appears (Dockerfile, `devcontainer.json` for Docker or the Claude Code extension), rebuild the container.
 - **Container marker.** `MATHTRAIL_DEVCONTAINER=1` is set only inside the container. A session that does not see it is on the host and must stop (see "Devcontainer only").
