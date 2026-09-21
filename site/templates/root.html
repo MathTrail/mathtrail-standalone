@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="{{ .Lang }}" dir="{{ .Dir }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ .Title }}</title>
+<meta name="description" content="{{ .Description }}">
+<link rel="canonical" href="{{ .Canonical }}">
+{{- range .Alternates }}
+<link rel="alternate" hreflang="{{ .Hreflang }}" href="{{ .URL }}">
+{{- end }}
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{ .SiteName }}">
+<meta property="og:title" content="{{ .Title }}">
+<meta property="og:description" content="{{ .Description }}">
+<meta property="og:url" content="{{ .Canonical }}">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body class="chooser">
+<main>
+<h1>{{ .SiteName }}</h1>
+<p class="lede">{{ .Description }}</p>
+<nav class="languages" aria-label="Language">
+{{- range .Languages }}
+<a href="{{ .URL }}" hreflang="{{ .Hreflang }}" lang="{{ .Hreflang }}">{{ .Name }}</a>
+{{- end }}
+</nav>
+</main>
+</body>
+</html>
