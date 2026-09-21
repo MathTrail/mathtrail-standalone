@@ -1,0 +1,4232 @@
+{
+  "anchors": [
+    {
+      "fk_grade": -0.07833333333333137,
+      "longest_sentence_words": 9,
+      "name": "SIMPLE",
+      "ok_by_grade_en": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true
+      },
+      "ok_by_grade_ru": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true
+      },
+      "sentences": 2,
+      "text": "Masha has 3 red balls and 2 blue balls. How many balls does she have?"
+    },
+    {
+      "fk_grade": 5.401481481481483,
+      "longest_sentence_words": 14,
+      "name": "HARDER_WORDS",
+      "ok_by_grade_en": {
+        "1": false,
+        "2": false,
+        "3": true,
+        "4": true
+      },
+      "ok_by_grade_ru": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true
+      },
+      "sentences": 3,
+      "text": "A caterpillar crawls along a wooden fence. Every morning it climbs three metres, and every evening it slides down one metre. When does it reach the top?"
+    },
+    {
+      "fk_grade": 3.4925862068965543,
+      "longest_sentence_words": 23,
+      "name": "LONG_SENTENCE",
+      "ok_by_grade_en": {
+        "1": false,
+        "2": false,
+        "3": true,
+        "4": true
+      },
+      "ok_by_grade_ru": {
+        "1": false,
+        "2": false,
+        "3": true,
+        "4": true
+      },
+      "sentences": 2,
+      "text": "Tom and his little sister Ann walk to the big park by the river and see a lot of ducks and geese there. How many birds do they see?"
+    },
+    {
+      "fk_grade": 4.075303030303029,
+      "longest_sentence_words": 27,
+      "name": "VERY_LONG_SENTENCE",
+      "ok_by_grade_en": {
+        "1": false,
+        "2": false,
+        "3": false,
+        "4": false
+      },
+      "ok_by_grade_ru": {
+        "1": false,
+        "2": false,
+        "3": false,
+        "4": false
+      },
+      "sentences": 2,
+      "text": "Tom and his little sister Ann walk to the big park by the river and they see a lot of ducks and a lot of geese there. How many birds do they see?"
+    },
+    {
+      "fk_grade": 11.513043478260872,
+      "longest_sentence_words": 10,
+      "name": "HARD",
+      "ok_by_grade_en": {
+        "1": false,
+        "2": false,
+        "3": false,
+        "4": false
+      },
+      "ok_by_grade_ru": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true
+      },
+      "sentences": 3,
+      "text": "Every afternoon seven classmates exchange colourful postcards. Each classmate sends exactly one postcard to every other classmate. How many postcards are delivered altogether?"
+    },
+    {
+      "fk_grade": 2.4833333333333343,
+      "longest_sentence_words": 7,
+      "name": "SPACESHIPS",
+      "ok_by_grade_en": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true
+      },
+      "ok_by_grade_ru": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true
+      },
+      "sentences": 2,
+      "text": "Four spaceships dock in pairs. How many different pairs can they make?"
+    },
+    {
+      "fk_grade": 2.375769230769233,
+      "longest_sentence_words": 8,
+      "name": "SPACESHIPS_AGAIN",
+      "ok_by_grade_en": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true
+      },
+      "ok_by_grade_ru": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true
+      },
+      "sentences": 2,
+      "text": "Four spaceships dock in pairs. How many different pairs can the ships make?"
+    },
+    {
+      "fk_grade": -0.6699999999999982,
+      "longest_sentence_words": 8,
+      "name": "CLOCK",
+      "ok_by_grade_en": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true
+      },
+      "ok_by_grade_ru": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true
+      },
+      "sentences": 2,
+      "text": "A clock strikes 3 times at three o'clock. How long does it strike at six o'clock?"
+    }
+  ],
+  "examples": [
+    {
+      "difficulty": 1,
+      "fk_grade": 3.068333333333335,
+      "grade_level": "1-2",
+      "id": "cal-12-d1-1",
+      "longest_sentence_words": 12,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": -1.254999999999999,
+      "grade_level": "1-2",
+      "id": "cal-12-d1-2",
+      "longest_sentence_words": 8,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 2.6459090909090897,
+      "grade_level": "1-2",
+      "id": "cal-12-d1-3",
+      "longest_sentence_words": 8,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": -0.347307692307691,
+      "grade_level": "1-2",
+      "id": "cal-12-d1-4",
+      "longest_sentence_words": 8,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 3.641315789473687,
+      "grade_level": "1-2",
+      "id": "cal-12-d1-5",
+      "longest_sentence_words": 10,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 1.468076923076925,
+      "grade_level": "1-2",
+      "id": "cal-12-d2-1",
+      "longest_sentence_words": 10,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": -0.2171428571428553,
+      "grade_level": "1-2",
+      "id": "cal-12-d2-2",
+      "longest_sentence_words": 9,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 5.362142857142857,
+      "grade_level": "1-2",
+      "id": "cal-12-d2-3",
+      "longest_sentence_words": 14,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 2.1095454545454544,
+      "grade_level": "1-2",
+      "id": "cal-12-d2-4",
+      "longest_sentence_words": 8,
+      "sentences": 4,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": -0.23499999999999943,
+      "grade_level": "1-2",
+      "id": "cal-12-d2-5",
+      "longest_sentence_words": 8,
+      "sentences": 3,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 0.6257142857142846,
+      "grade_level": "1-2",
+      "id": "cal-12-d3-1",
+      "longest_sentence_words": 11,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": -0.6989473684210523,
+      "grade_level": "1-2",
+      "id": "cal-12-d3-2",
+      "longest_sentence_words": 7,
+      "sentences": 3,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 0.6999999999999993,
+      "grade_level": "1-2",
+      "id": "cal-12-d3-3",
+      "longest_sentence_words": 12,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 3.899482758620689,
+      "grade_level": "1-2",
+      "id": "cal-12-d3-4",
+      "longest_sentence_words": 16,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 0.5166666666666693,
+      "grade_level": "1-2",
+      "id": "cal-12-d3-5",
+      "longest_sentence_words": 7,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 0.6257142857142846,
+      "grade_level": "1-2",
+      "id": "cal-12-d4-1",
+      "longest_sentence_words": 11,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 1.778157894736843,
+      "grade_level": "1-2",
+      "id": "cal-12-d4-2",
+      "longest_sentence_words": 10,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 2.4700000000000024,
+      "grade_level": "1-2",
+      "id": "cal-12-d4-3",
+      "longest_sentence_words": 12,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 2.3649999999999984,
+      "grade_level": "1-2",
+      "id": "cal-12-d4-4",
+      "longest_sentence_words": 14,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 1.8733333333333313,
+      "grade_level": "1-2",
+      "id": "cal-12-d4-5",
+      "longest_sentence_words": 15,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 1.468076923076925,
+      "grade_level": "1-2",
+      "id": "cal-12-d5-1",
+      "longest_sentence_words": 10,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 2.747173913043479,
+      "grade_level": "1-2",
+      "id": "cal-12-d5-2",
+      "longest_sentence_words": 15,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 4.710000000000004,
+      "grade_level": "1-2",
+      "id": "cal-12-d5-3",
+      "longest_sentence_words": 8,
+      "sentences": 3,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 1.8200000000000003,
+      "grade_level": "1-2",
+      "id": "cal-12-d5-4",
+      "longest_sentence_words": 13,
+      "sentences": 3,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 1.3480000000000025,
+      "grade_level": "1-2",
+      "id": "cal-12-d5-5",
+      "longest_sentence_words": 9,
+      "sentences": 3,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 0.6257142857142846,
+      "grade_level": "3-4",
+      "id": "cal-34-d1-1",
+      "longest_sentence_words": 11,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 0.6999999999999993,
+      "grade_level": "3-4",
+      "id": "cal-34-d1-2",
+      "longest_sentence_words": 10,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 4.790909090909089,
+      "grade_level": "3-4",
+      "id": "cal-34-d1-3",
+      "longest_sentence_words": 11,
+      "sentences": 1,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 0.06750000000000256,
+      "grade_level": "3-4",
+      "id": "cal-34-d1-4",
+      "longest_sentence_words": 10,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 0.7083333333333321,
+      "grade_level": "3-4",
+      "id": "cal-34-d1-5",
+      "longest_sentence_words": 10,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 3.278823529411767,
+      "grade_level": "3-4",
+      "id": "cal-34-d2-1",
+      "longest_sentence_words": 8,
+      "sentences": 3,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 0.6257142857142846,
+      "grade_level": "3-4",
+      "id": "cal-34-d2-2",
+      "longest_sentence_words": 8,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 3.304347826086957,
+      "grade_level": "3-4",
+      "id": "cal-34-d2-3",
+      "longest_sentence_words": 12,
+      "sentences": 3,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": -0.1388888888888875,
+      "grade_level": "3-4",
+      "id": "cal-34-d2-4",
+      "longest_sentence_words": 8,
+      "sentences": 3,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 1.0311111111111124,
+      "grade_level": "3-4",
+      "id": "cal-34-d2-5",
+      "longest_sentence_words": 10,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 0.6999999999999993,
+      "grade_level": "3-4",
+      "id": "cal-34-d3-1",
+      "longest_sentence_words": 12,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 0.04384615384615387,
+      "grade_level": "3-4",
+      "id": "cal-34-d3-2",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 4.823333333333334,
+      "grade_level": "3-4",
+      "id": "cal-34-d3-3",
+      "longest_sentence_words": 12,
+      "sentences": 1,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 4.876315789473686,
+      "grade_level": "3-4",
+      "id": "cal-34-d3-4",
+      "longest_sentence_words": 16,
+      "sentences": 3,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 4.308888888888891,
+      "grade_level": "3-4",
+      "id": "cal-34-d3-5",
+      "longest_sentence_words": 12,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 3.7181818181818187,
+      "grade_level": "3-4",
+      "id": "cal-34-d4-1",
+      "longest_sentence_words": 14,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 1.879999999999999,
+      "grade_level": "3-4",
+      "id": "cal-34-d4-2",
+      "longest_sentence_words": 11,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 4.003076923076925,
+      "grade_level": "3-4",
+      "id": "cal-34-d4-3",
+      "longest_sentence_words": 15,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 0.04384615384615387,
+      "grade_level": "3-4",
+      "id": "cal-34-d4-4",
+      "longest_sentence_words": 12,
+      "sentences": 3,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 4.582307692307694,
+      "grade_level": "3-4",
+      "id": "cal-34-d4-5",
+      "longest_sentence_words": 15,
+      "sentences": 3,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 3.003030303030304,
+      "grade_level": "3-4",
+      "id": "cal-34-d5-1",
+      "longest_sentence_words": 18,
+      "sentences": 3,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 1.85923076923077,
+      "grade_level": "3-4",
+      "id": "cal-34-d5-2",
+      "longest_sentence_words": 13,
+      "sentences": 3,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 0.6928571428571466,
+      "grade_level": "3-4",
+      "id": "cal-34-d5-3",
+      "longest_sentence_words": 12,
+      "sentences": 3,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 2.3114285714285714,
+      "grade_level": "3-4",
+      "id": "cal-34-d5-4",
+      "longest_sentence_words": 8,
+      "sentences": 3,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 4.830000000000002,
+      "grade_level": "3-4",
+      "id": "cal-34-d5-5",
+      "longest_sentence_words": 12,
+      "sentences": 2,
+      "topic": "time.calendar"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 0.8049999999999997,
+      "grade_level": "1-2",
+      "id": "clk-12-d1-1",
+      "longest_sentence_words": 10,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": -0.07789473684210435,
+      "grade_level": "1-2",
+      "id": "clk-12-d1-2",
+      "longest_sentence_words": 7,
+      "sentences": 3,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 1.0311111111111124,
+      "grade_level": "1-2",
+      "id": "clk-12-d1-3",
+      "longest_sentence_words": 11,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": -0.347307692307691,
+      "grade_level": "1-2",
+      "id": "clk-12-d1-4",
+      "longest_sentence_words": 9,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 0.7083333333333321,
+      "grade_level": "1-2",
+      "id": "clk-12-d1-5",
+      "longest_sentence_words": 9,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 1.5425000000000004,
+      "grade_level": "1-2",
+      "id": "clk-12-d2-1",
+      "longest_sentence_words": 9,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 2.9730000000000025,
+      "grade_level": "1-2",
+      "id": "clk-12-d2-2",
+      "longest_sentence_words": 19,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": -0.4666666666666668,
+      "grade_level": "1-2",
+      "id": "clk-12-d2-3",
+      "longest_sentence_words": 8,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 4.075303030303029,
+      "grade_level": "1-2",
+      "id": "clk-12-d2-4",
+      "longest_sentence_words": 19,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": -0.2842857142857138,
+      "grade_level": "1-2",
+      "id": "clk-12-d2-5",
+      "longest_sentence_words": 6,
+      "sentences": 3,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 0.7083333333333321,
+      "grade_level": "1-2",
+      "id": "clk-12-d3-1",
+      "longest_sentence_words": 9,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 3.2162962962962993,
+      "grade_level": "1-2",
+      "id": "clk-12-d3-2",
+      "longest_sentence_words": 15,
+      "sentences": 3,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 0.5004545454545486,
+      "grade_level": "1-2",
+      "id": "clk-12-d3-3",
+      "longest_sentence_words": 7,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 3.1818181818181834,
+      "grade_level": "1-2",
+      "id": "clk-12-d3-4",
+      "longest_sentence_words": 14,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 0.6257142857142846,
+      "grade_level": "1-2",
+      "id": "clk-12-d3-5",
+      "longest_sentence_words": 9,
+      "sentences": 3,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 0.1427272727272726,
+      "grade_level": "1-2",
+      "id": "clk-12-d4-1",
+      "longest_sentence_words": 13,
+      "sentences": 3,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 0.9132352941176478,
+      "grade_level": "1-2",
+      "id": "clk-12-d4-2",
+      "longest_sentence_words": 11,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 4.383571428571429,
+      "grade_level": "1-2",
+      "id": "clk-12-d4-3",
+      "longest_sentence_words": 21,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 1.495000000000001,
+      "grade_level": "1-2",
+      "id": "clk-12-d4-4",
+      "longest_sentence_words": 10,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": -0.19176470588235084,
+      "grade_level": "1-2",
+      "id": "clk-12-d4-5",
+      "longest_sentence_words": 7,
+      "sentences": 3,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 4.418048780487805,
+      "grade_level": "1-2",
+      "id": "clk-12-d5-1",
+      "longest_sentence_words": 23,
+      "sentences": 3,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 2.8633333333333333,
+      "grade_level": "1-2",
+      "id": "clk-12-d5-2",
+      "longest_sentence_words": 16,
+      "sentences": 3,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 2.014482758620691,
+      "grade_level": "1-2",
+      "id": "clk-12-d5-3",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 2.2816666666666663,
+      "grade_level": "1-2",
+      "id": "clk-12-d5-4",
+      "longest_sentence_words": 9,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 0.8760000000000048,
+      "grade_level": "1-2",
+      "id": "clk-12-d5-5",
+      "longest_sentence_words": 9,
+      "sentences": 3,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 0.7083333333333321,
+      "grade_level": "3-4",
+      "id": "clk-34-d1-1",
+      "longest_sentence_words": 9,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 0.37555555555555564,
+      "grade_level": "3-4",
+      "id": "clk-34-d1-2",
+      "longest_sentence_words": 13,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 3.7181818181818187,
+      "grade_level": "3-4",
+      "id": "clk-34-d1-3",
+      "longest_sentence_words": 11,
+      "sentences": 1,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 0.5360526315789471,
+      "grade_level": "3-4",
+      "id": "clk-34-d1-4",
+      "longest_sentence_words": 14,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 4.046428571428571,
+      "grade_level": "3-4",
+      "id": "clk-34-d1-5",
+      "longest_sentence_words": 21,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 1.7652173913043505,
+      "grade_level": "3-4",
+      "id": "clk-34-d2-1",
+      "longest_sentence_words": 10,
+      "sentences": 3,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 0.5800000000000018,
+      "grade_level": "3-4",
+      "id": "clk-34-d2-2",
+      "longest_sentence_words": 8,
+      "sentences": 3,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 1.468076923076925,
+      "grade_level": "3-4",
+      "id": "clk-34-d2-3",
+      "longest_sentence_words": 9,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 2.7716666666666683,
+      "grade_level": "3-4",
+      "id": "clk-34-d2-4",
+      "longest_sentence_words": 14,
+      "sentences": 3,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": -0.27999999999999936,
+      "grade_level": "3-4",
+      "id": "clk-34-d2-5",
+      "longest_sentence_words": 13,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 4.075757575757578,
+      "grade_level": "3-4",
+      "id": "clk-34-d3-1",
+      "longest_sentence_words": 16,
+      "sentences": 3,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 1.2521739130434817,
+      "grade_level": "3-4",
+      "id": "clk-34-d3-2",
+      "longest_sentence_words": 12,
+      "sentences": 3,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 0.6257142857142846,
+      "grade_level": "3-4",
+      "id": "clk-34-d3-3",
+      "longest_sentence_words": 8,
+      "sentences": 3,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 3.6764285714285734,
+      "grade_level": "3-4",
+      "id": "clk-34-d3-4",
+      "longest_sentence_words": 20,
+      "sentences": 4,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 5.041428571428572,
+      "grade_level": "3-4",
+      "id": "clk-34-d3-5",
+      "longest_sentence_words": 21,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 0.5046739130434794,
+      "grade_level": "3-4",
+      "id": "clk-34-d4-1",
+      "longest_sentence_words": 7,
+      "sentences": 4,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 5.364615384615387,
+      "grade_level": "3-4",
+      "id": "clk-34-d4-2",
+      "longest_sentence_words": 16,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": -0.4666666666666668,
+      "grade_level": "3-4",
+      "id": "clk-34-d4-3",
+      "longest_sentence_words": 8,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 2.747173913043479,
+      "grade_level": "3-4",
+      "id": "clk-34-d4-4",
+      "longest_sentence_words": 14,
+      "sentences": 4,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 4.388999999999999,
+      "grade_level": "3-4",
+      "id": "clk-34-d4-5",
+      "longest_sentence_words": 14,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 3.120000000000001,
+      "grade_level": "3-4",
+      "id": "clk-34-d5-1",
+      "longest_sentence_words": 16,
+      "sentences": 3,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 5.33276595744681,
+      "grade_level": "3-4",
+      "id": "clk-34-d5-2",
+      "longest_sentence_words": 18,
+      "sentences": 3,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 2.4700000000000024,
+      "grade_level": "3-4",
+      "id": "clk-34-d5-3",
+      "longest_sentence_words": 14,
+      "sentences": 3,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 5.616470588235295,
+      "grade_level": "3-4",
+      "id": "clk-34-d5-4",
+      "longest_sentence_words": 23,
+      "sentences": 2,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 3.003030303030304,
+      "grade_level": "3-4",
+      "id": "clk-34-d5-5",
+      "longest_sentence_words": 16,
+      "sentences": 3,
+      "topic": "time.clocks"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 1.1357258064516138,
+      "grade_level": "1-2",
+      "id": "enum-12-d1-1",
+      "longest_sentence_words": 8,
+      "sentences": 4,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 0.6257142857142846,
+      "grade_level": "1-2",
+      "id": "enum-12-d1-2",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 7.745217391304351,
+      "grade_level": "1-2",
+      "id": "enum-12-d1-3",
+      "longest_sentence_words": 23,
+      "sentences": 1,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 3.8972727272727283,
+      "grade_level": "1-2",
+      "id": "enum-12-d1-4",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 4.541111111111114,
+      "grade_level": "1-2",
+      "id": "enum-12-d1-5",
+      "longest_sentence_words": 19,
+      "sentences": 2,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 0.5431578947368436,
+      "grade_level": "1-2",
+      "id": "enum-12-d2-1",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 9.503333333333334,
+      "grade_level": "1-2",
+      "id": "enum-12-d2-2",
+      "longest_sentence_words": 24,
+      "sentences": 1,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 4.420000000000002,
+      "grade_level": "1-2",
+      "id": "enum-12-d2-3",
+      "longest_sentence_words": 15,
+      "sentences": 1,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 1.0311111111111124,
+      "grade_level": "1-2",
+      "id": "enum-12-d2-4",
+      "longest_sentence_words": 10,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 3.220769230769232,
+      "grade_level": "1-2",
+      "id": "enum-12-d2-5",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 1.2521739130434817,
+      "grade_level": "1-2",
+      "id": "enum-12-d3-1",
+      "longest_sentence_words": 9,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 4.790909090909089,
+      "grade_level": "1-2",
+      "id": "enum-12-d3-2",
+      "longest_sentence_words": 11,
+      "sentences": 1,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 3.235172413793105,
+      "grade_level": "1-2",
+      "id": "enum-12-d3-3",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 2.37857142857143,
+      "grade_level": "1-2",
+      "id": "enum-12-d3-4",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 4.456923076923079,
+      "grade_level": "1-2",
+      "id": "enum-12-d3-5",
+      "longest_sentence_words": 17,
+      "sentences": 2,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 10.500000000000004,
+      "grade_level": "1-2",
+      "id": "enum-12-d4-1",
+      "longest_sentence_words": 20,
+      "sentences": 1,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 2.280000000000001,
+      "grade_level": "1-2",
+      "id": "enum-12-d4-2",
+      "longest_sentence_words": 10,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 4.790909090909089,
+      "grade_level": "1-2",
+      "id": "enum-12-d4-3",
+      "longest_sentence_words": 11,
+      "sentences": 1,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 1.1142857142857174,
+      "grade_level": "1-2",
+      "id": "enum-12-d4-4",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 2.8245454545454542,
+      "grade_level": "1-2",
+      "id": "enum-12-d4-5",
+      "longest_sentence_words": 10,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 4.790909090909089,
+      "grade_level": "1-2",
+      "id": "enum-12-d5-1",
+      "longest_sentence_words": 11,
+      "sentences": 1,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 3.457142857142859,
+      "grade_level": "1-2",
+      "id": "enum-12-d5-2",
+      "longest_sentence_words": 15,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 3.5546341463414635,
+      "grade_level": "1-2",
+      "id": "enum-12-d5-3",
+      "longest_sentence_words": 17,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 1.8200000000000003,
+      "grade_level": "1-2",
+      "id": "enum-12-d5-4",
+      "longest_sentence_words": 9,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 7.209523809523812,
+      "grade_level": "1-2",
+      "id": "enum-12-d5-5",
+      "longest_sentence_words": 21,
+      "sentences": 1,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 0.5431578947368436,
+      "grade_level": "3-4",
+      "id": "enum-34-d1-1",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 4.331666666666667,
+      "grade_level": "3-4",
+      "id": "enum-34-d1-2",
+      "longest_sentence_words": 15,
+      "sentences": 2,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 10.208000000000002,
+      "grade_level": "3-4",
+      "id": "enum-34-d1-3",
+      "longest_sentence_words": 25,
+      "sentences": 1,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 3.817391304347826,
+      "grade_level": "3-4",
+      "id": "enum-34-d1-4",
+      "longest_sentence_words": 13,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 4.830000000000002,
+      "grade_level": "3-4",
+      "id": "enum-34-d1-5",
+      "longest_sentence_words": 10,
+      "sentences": 1,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 2.658306451612905,
+      "grade_level": "3-4",
+      "id": "enum-34-d2-1",
+      "longest_sentence_words": 8,
+      "sentences": 4,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 3.2162962962962993,
+      "grade_level": "3-4",
+      "id": "enum-34-d2-2",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 3.9170000000000016,
+      "grade_level": "3-4",
+      "id": "enum-34-d2-3",
+      "longest_sentence_words": 14,
+      "sentences": 2,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 3.641315789473687,
+      "grade_level": "3-4",
+      "id": "enum-34-d2-4",
+      "longest_sentence_words": 14,
+      "sentences": 2,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 3.6887500000000024,
+      "grade_level": "3-4",
+      "id": "enum-34-d2-5",
+      "longest_sentence_words": 16,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 7.967368421052633,
+      "grade_level": "3-4",
+      "id": "enum-34-d3-1",
+      "longest_sentence_words": 19,
+      "sentences": 1,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 2.6995689655172406,
+      "grade_level": "3-4",
+      "id": "enum-34-d3-2",
+      "longest_sentence_words": 9,
+      "sentences": 4,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 2.2920000000000016,
+      "grade_level": "3-4",
+      "id": "enum-34-d3-3",
+      "longest_sentence_words": 9,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 4.308888888888891,
+      "grade_level": "3-4",
+      "id": "enum-34-d3-4",
+      "longest_sentence_words": 12,
+      "sentences": 2,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 1.762580645161293,
+      "grade_level": "3-4",
+      "id": "enum-34-d3-5",
+      "longest_sentence_words": 15,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 4.91076923076923,
+      "grade_level": "3-4",
+      "id": "enum-34-d4-1",
+      "longest_sentence_words": 13,
+      "sentences": 1,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 6.726153846153846,
+      "grade_level": "3-4",
+      "id": "enum-34-d4-2",
+      "longest_sentence_words": 20,
+      "sentences": 2,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 2.828275862068967,
+      "grade_level": "3-4",
+      "id": "enum-34-d4-3",
+      "longest_sentence_words": 14,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 2.764000000000003,
+      "grade_level": "3-4",
+      "id": "enum-34-d4-4",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 2.342222222222226,
+      "grade_level": "3-4",
+      "id": "enum-34-d4-5",
+      "longest_sentence_words": 9,
+      "sentences": 2,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 5.863636363636363,
+      "grade_level": "3-4",
+      "id": "enum-34-d5-1",
+      "longest_sentence_words": 11,
+      "sentences": 1,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 5.300161290322581,
+      "grade_level": "3-4",
+      "id": "enum-34-d5-2",
+      "longest_sentence_words": 18,
+      "sentences": 2,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 4.090370370370373,
+      "grade_level": "3-4",
+      "id": "enum-34-d5-3",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 4.330434782608695,
+      "grade_level": "3-4",
+      "id": "enum-34-d5-4",
+      "longest_sentence_words": 12,
+      "sentences": 3,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 9.910000000000004,
+      "grade_level": "3-4",
+      "id": "enum-34-d5-5",
+      "longest_sentence_words": 20,
+      "sentences": 1,
+      "topic": "combinatorics.enumeration"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 0.6257142857142846,
+      "grade_level": "1-2",
+      "id": "gaps-12-d1-1",
+      "longest_sentence_words": 8,
+      "sentences": 2,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 3.1542857142857166,
+      "grade_level": "1-2",
+      "id": "gaps-12-d1-2",
+      "longest_sentence_words": 8,
+      "sentences": 2,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 1.2399999999999984,
+      "grade_level": "1-2",
+      "id": "gaps-12-d1-3",
+      "longest_sentence_words": 6,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 3.11452380952381,
+      "grade_level": "1-2",
+      "id": "gaps-12-d1-4",
+      "longest_sentence_words": 15,
+      "sentences": 2,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 1.2900000000000027,
+      "grade_level": "1-2",
+      "id": "gaps-12-d1-5",
+      "longest_sentence_words": 11,
+      "sentences": 2,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 1.2900000000000027,
+      "grade_level": "1-2",
+      "id": "gaps-12-d2-1",
+      "longest_sentence_words": 12,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 2.3500000000000014,
+      "grade_level": "1-2",
+      "id": "gaps-12-d2-2",
+      "longest_sentence_words": 8,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 1.2966666666666669,
+      "grade_level": "1-2",
+      "id": "gaps-12-d2-3",
+      "longest_sentence_words": 12,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 0.620645161290323,
+      "grade_level": "1-2",
+      "id": "gaps-12-d2-4",
+      "longest_sentence_words": 13,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 3.0202631578947354,
+      "grade_level": "1-2",
+      "id": "gaps-12-d2-5",
+      "longest_sentence_words": 13,
+      "sentences": 2,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 1.5357142857142883,
+      "grade_level": "1-2",
+      "id": "gaps-12-d3-1",
+      "longest_sentence_words": 10,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 5.315000000000001,
+      "grade_level": "1-2",
+      "id": "gaps-12-d3-2",
+      "longest_sentence_words": 16,
+      "sentences": 2,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 1.7652173913043505,
+      "grade_level": "1-2",
+      "id": "gaps-12-d3-3",
+      "longest_sentence_words": 10,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 2.2920000000000016,
+      "grade_level": "1-2",
+      "id": "gaps-12-d3-4",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 2.342222222222226,
+      "grade_level": "1-2",
+      "id": "gaps-12-d3-5",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 4.534259259259262,
+      "grade_level": "1-2",
+      "id": "gaps-12-d4-1",
+      "longest_sentence_words": 16,
+      "sentences": 2,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 0.620645161290323,
+      "grade_level": "1-2",
+      "id": "gaps-12-d4-2",
+      "longest_sentence_words": 13,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 0.7391304347826093,
+      "grade_level": "1-2",
+      "id": "gaps-12-d4-3",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 5.484864864864864,
+      "grade_level": "1-2",
+      "id": "gaps-12-d4-4",
+      "longest_sentence_words": 22,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 1.468148148148149,
+      "grade_level": "1-2",
+      "id": "gaps-12-d4-5",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 2.3114285714285714,
+      "grade_level": "1-2",
+      "id": "gaps-12-d5-1",
+      "longest_sentence_words": 8,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 2.342222222222226,
+      "grade_level": "1-2",
+      "id": "gaps-12-d5-2",
+      "longest_sentence_words": 13,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 1.2177777777777798,
+      "grade_level": "1-2",
+      "id": "gaps-12-d5-3",
+      "longest_sentence_words": 13,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 1.85923076923077,
+      "grade_level": "1-2",
+      "id": "gaps-12-d5-4",
+      "longest_sentence_words": 14,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 1.4342857142857142,
+      "grade_level": "1-2",
+      "id": "gaps-12-d5-5",
+      "longest_sentence_words": 16,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 2.287878787878789,
+      "grade_level": "3-4",
+      "id": "gaps-34-d1-1",
+      "longest_sentence_words": 12,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 2.995588235294118,
+      "grade_level": "3-4",
+      "id": "gaps-34-d1-2",
+      "longest_sentence_words": 12,
+      "sentences": 2,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 5.041428571428572,
+      "grade_level": "3-4",
+      "id": "gaps-34-d1-3",
+      "longest_sentence_words": 14,
+      "sentences": 1,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 0.6928571428571466,
+      "grade_level": "3-4",
+      "id": "gaps-34-d1-4",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 2.791304347826088,
+      "grade_level": "3-4",
+      "id": "gaps-34-d1-5",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 2.3500000000000014,
+      "grade_level": "3-4",
+      "id": "gaps-34-d2-1",
+      "longest_sentence_words": 8,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 2.933513513513514,
+      "grade_level": "3-4",
+      "id": "gaps-34-d2-2",
+      "longest_sentence_words": 16,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 1.2521739130434817,
+      "grade_level": "3-4",
+      "id": "gaps-34-d2-3",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 3.7732608695652203,
+      "grade_level": "3-4",
+      "id": "gaps-34-d2-4",
+      "longest_sentence_words": 18,
+      "sentences": 2,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 4.800238095238097,
+      "grade_level": "3-4",
+      "id": "gaps-34-d2-5",
+      "longest_sentence_words": 11,
+      "sentences": 2,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 3.556250000000002,
+      "grade_level": "3-4",
+      "id": "gaps-34-d3-1",
+      "longest_sentence_words": 20,
+      "sentences": 2,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 4.359999999999999,
+      "grade_level": "3-4",
+      "id": "gaps-34-d3-2",
+      "longest_sentence_words": 20,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 1.4120945945945955,
+      "grade_level": "3-4",
+      "id": "gaps-34-d3-3",
+      "longest_sentence_words": 13,
+      "sentences": 4,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 4.24666666666667,
+      "grade_level": "3-4",
+      "id": "gaps-34-d3-4",
+      "longest_sentence_words": 12,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 3.4333333333333336,
+      "grade_level": "3-4",
+      "id": "gaps-34-d3-5",
+      "longest_sentence_words": 26,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 4.534259259259262,
+      "grade_level": "3-4",
+      "id": "gaps-34-d4-1",
+      "longest_sentence_words": 16,
+      "sentences": 2,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 3.236000000000004,
+      "grade_level": "3-4",
+      "id": "gaps-34-d4-2",
+      "longest_sentence_words": 13,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 3.665806451612905,
+      "grade_level": "3-4",
+      "id": "gaps-34-d4-3",
+      "longest_sentence_words": 16,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 0.6928571428571466,
+      "grade_level": "3-4",
+      "id": "gaps-34-d4-4",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 4.795000000000002,
+      "grade_level": "3-4",
+      "id": "gaps-34-d4-5",
+      "longest_sentence_words": 14,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 3.3608333333333356,
+      "grade_level": "3-4",
+      "id": "gaps-34-d5-1",
+      "longest_sentence_words": 12,
+      "sentences": 4,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 3.5713513513513533,
+      "grade_level": "3-4",
+      "id": "gaps-34-d5-2",
+      "longest_sentence_words": 15,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 3.038951612903226,
+      "grade_level": "3-4",
+      "id": "gaps-34-d5-3",
+      "longest_sentence_words": 14,
+      "sentences": 4,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 3.556250000000002,
+      "grade_level": "3-4",
+      "id": "gaps-34-d5-4",
+      "longest_sentence_words": 20,
+      "sentences": 2,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 4.046451612903226,
+      "grade_level": "3-4",
+      "id": "gaps-34-d5-5",
+      "longest_sentence_words": 12,
+      "sentences": 3,
+      "topic": "counting.gaps"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 5.6765517241379335,
+      "grade_level": "3-4",
+      "id": "kl-34-d1-1",
+      "longest_sentence_words": 12,
+      "sentences": 3,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 1.968,
+      "grade_level": "3-4",
+      "id": "kl-34-d1-2",
+      "longest_sentence_words": 18,
+      "sentences": 3,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 2.2792631578947358,
+      "grade_level": "3-4",
+      "id": "kl-34-d1-3",
+      "longest_sentence_words": 18,
+      "sentences": 3,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 2.2792631578947358,
+      "grade_level": "3-4",
+      "id": "kl-34-d1-4",
+      "longest_sentence_words": 18,
+      "sentences": 3,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 5.077941176470592,
+      "grade_level": "3-4",
+      "id": "kl-34-d1-5",
+      "longest_sentence_words": 14,
+      "sentences": 3,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 3.0032575757575763,
+      "grade_level": "3-4",
+      "id": "kl-34-d2-1",
+      "longest_sentence_words": 13,
+      "sentences": 3,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 2.2851891891891896,
+      "grade_level": "3-4",
+      "id": "kl-34-d2-2",
+      "longest_sentence_words": 17,
+      "sentences": 3,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 2.5347826086956537,
+      "grade_level": "3-4",
+      "id": "kl-34-d2-3",
+      "longest_sentence_words": 28,
+      "sentences": 3,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 2.021739130434785,
+      "grade_level": "3-4",
+      "id": "kl-34-d2-4",
+      "longest_sentence_words": 28,
+      "sentences": 3,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 2.619739130434784,
+      "grade_level": "3-4",
+      "id": "kl-34-d2-5",
+      "longest_sentence_words": 26,
+      "sentences": 3,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 4.572894736842105,
+      "grade_level": "3-4",
+      "id": "kl-34-d3-1",
+      "longest_sentence_words": 18,
+      "sentences": 3,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 3.902347826086956,
+      "grade_level": "3-4",
+      "id": "kl-34-d3-2",
+      "longest_sentence_words": 19,
+      "sentences": 4,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 2.8570232558139566,
+      "grade_level": "3-4",
+      "id": "kl-34-d3-3",
+      "longest_sentence_words": 23,
+      "sentences": 3,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 3.0202631578947354,
+      "grade_level": "3-4",
+      "id": "kl-34-d3-4",
+      "longest_sentence_words": 18,
+      "sentences": 3,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 2.7664285714285732,
+      "grade_level": "3-4",
+      "id": "kl-34-d3-5",
+      "longest_sentence_words": 29,
+      "sentences": 3,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 3.837575757575756,
+      "grade_level": "3-4",
+      "id": "kl-34-d4-1",
+      "longest_sentence_words": 51,
+      "sentences": 4,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 3.6428571428571423,
+      "grade_level": "3-4",
+      "id": "kl-34-d4-2",
+      "longest_sentence_words": 36,
+      "sentences": 3,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 3.954697674418604,
+      "grade_level": "3-4",
+      "id": "kl-34-d4-3",
+      "longest_sentence_words": 16,
+      "sentences": 4,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 2.0199999999999996,
+      "grade_level": "3-4",
+      "id": "kl-34-d4-4",
+      "longest_sentence_words": 24,
+      "sentences": 3,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 4.147272727272728,
+      "grade_level": "3-4",
+      "id": "kl-34-d4-5",
+      "longest_sentence_words": 28,
+      "sentences": 4,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 4.125877551020409,
+      "grade_level": "3-4",
+      "id": "kl-34-d5-1",
+      "longest_sentence_words": 22,
+      "sentences": 4,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 3.447692307692307,
+      "grade_level": "3-4",
+      "id": "kl-34-d5-2",
+      "longest_sentence_words": 19,
+      "sentences": 5,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 2.7360439560439573,
+      "grade_level": "3-4",
+      "id": "kl-34-d5-3",
+      "longest_sentence_words": 39,
+      "sentences": 4,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 2.897142857142857,
+      "grade_level": "3-4",
+      "id": "kl-34-d5-4",
+      "longest_sentence_words": 20,
+      "sentences": 4,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 2.4924675324675327,
+      "grade_level": "3-4",
+      "id": "kl-34-d5-5",
+      "longest_sentence_words": 35,
+      "sentences": 3,
+      "topic": "logic.knights_liars"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 0.5585714285714296,
+      "grade_level": "1-2",
+      "id": "ord-12-d1-1",
+      "longest_sentence_words": 5,
+      "sentences": 3,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 2.4235000000000007,
+      "grade_level": "1-2",
+      "id": "ord-12-d1-2",
+      "longest_sentence_words": 10,
+      "sentences": 4,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 0.7391304347826093,
+      "grade_level": "1-2",
+      "id": "ord-12-d1-3",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 4.191153846153846,
+      "grade_level": "1-2",
+      "id": "ord-12-d1-4",
+      "longest_sentence_words": 9,
+      "sentences": 2,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 1.2521739130434817,
+      "grade_level": "1-2",
+      "id": "ord-12-d1-5",
+      "longest_sentence_words": 9,
+      "sentences": 3,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": -0.05678571428571466,
+      "grade_level": "1-2",
+      "id": "ord-12-d2-1",
+      "longest_sentence_words": 7,
+      "sentences": 4,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 2.9977777777777774,
+      "grade_level": "1-2",
+      "id": "ord-12-d2-2",
+      "longest_sentence_words": 11,
+      "sentences": 2,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 1.0670238095238105,
+      "grade_level": "1-2",
+      "id": "ord-12-d2-3",
+      "longest_sentence_words": 6,
+      "sentences": 4,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 4.269473684210524,
+      "grade_level": "1-2",
+      "id": "ord-12-d2-4",
+      "longest_sentence_words": 12,
+      "sentences": 3,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 2.338796296296298,
+      "grade_level": "1-2",
+      "id": "ord-12-d2-5",
+      "longest_sentence_words": 9,
+      "sentences": 4,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": -0.7238888888888866,
+      "grade_level": "1-2",
+      "id": "ord-12-d3-1",
+      "longest_sentence_words": 6,
+      "sentences": 6,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 2.4063157894736875,
+      "grade_level": "1-2",
+      "id": "ord-12-d3-2",
+      "longest_sentence_words": 9,
+      "sentences": 3,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 3.3547586206896547,
+      "grade_level": "1-2",
+      "id": "ord-12-d3-3",
+      "longest_sentence_words": 8,
+      "sentences": 6,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 0.05452173913043623,
+      "grade_level": "1-2",
+      "id": "ord-12-d3-4",
+      "longest_sentence_words": 11,
+      "sentences": 5,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 2.280000000000001,
+      "grade_level": "1-2",
+      "id": "ord-12-d3-5",
+      "longest_sentence_words": 10,
+      "sentences": 3,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 3.6474782608695655,
+      "grade_level": "1-2",
+      "id": "ord-12-d4-1",
+      "longest_sentence_words": 7,
+      "sentences": 5,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 2.895500000000002,
+      "grade_level": "1-2",
+      "id": "ord-12-d4-2",
+      "longest_sentence_words": 9,
+      "sentences": 4,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 4.090370370370373,
+      "grade_level": "1-2",
+      "id": "ord-12-d4-3",
+      "longest_sentence_words": 13,
+      "sentences": 3,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 0.8760000000000048,
+      "grade_level": "1-2",
+      "id": "ord-12-d4-4",
+      "longest_sentence_words": 11,
+      "sentences": 6,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": -0.6989473684210523,
+      "grade_level": "1-2",
+      "id": "ord-12-d4-5",
+      "longest_sentence_words": 7,
+      "sentences": 3,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": -0.3049999999999997,
+      "grade_level": "1-2",
+      "id": "ord-12-d5-1",
+      "longest_sentence_words": 11,
+      "sentences": 6,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 2.409868421052632,
+      "grade_level": "1-2",
+      "id": "ord-12-d5-2",
+      "longest_sentence_words": 5,
+      "sentences": 4,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 1.245000000000001,
+      "grade_level": "1-2",
+      "id": "ord-12-d5-3",
+      "longest_sentence_words": 14,
+      "sentences": 6,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 0.18100000000000094,
+      "grade_level": "1-2",
+      "id": "ord-12-d5-4",
+      "longest_sentence_words": 9,
+      "sentences": 5,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 0.5355000000000025,
+      "grade_level": "1-2",
+      "id": "ord-12-d5-5",
+      "longest_sentence_words": 7,
+      "sentences": 4,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 0.9382222222222261,
+      "grade_level": "3-4",
+      "id": "ord-34-d1-1",
+      "longest_sentence_words": 7,
+      "sentences": 5,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 3.027368421052632,
+      "grade_level": "3-4",
+      "id": "ord-34-d1-2",
+      "longest_sentence_words": 10,
+      "sentences": 3,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 3.34070512820513,
+      "grade_level": "3-4",
+      "id": "ord-34-d1-3",
+      "longest_sentence_words": 15,
+      "sentences": 4,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 3.7550000000000026,
+      "grade_level": "3-4",
+      "id": "ord-34-d1-4",
+      "longest_sentence_words": 14,
+      "sentences": 3,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 1.1677631578947363,
+      "grade_level": "3-4",
+      "id": "ord-34-d1-5",
+      "longest_sentence_words": 5,
+      "sentences": 4,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 1.879999999999999,
+      "grade_level": "3-4",
+      "id": "ord-34-d2-1",
+      "longest_sentence_words": 12,
+      "sentences": 4,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 3.1822727272727285,
+      "grade_level": "3-4",
+      "id": "ord-34-d2-2",
+      "longest_sentence_words": 7,
+      "sentences": 5,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 2.342222222222226,
+      "grade_level": "3-4",
+      "id": "ord-34-d2-3",
+      "longest_sentence_words": 9,
+      "sentences": 4,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 3.0749090909090917,
+      "grade_level": "3-4",
+      "id": "ord-34-d2-4",
+      "longest_sentence_words": 9,
+      "sentences": 5,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": -0.016390243902437263,
+      "grade_level": "3-4",
+      "id": "ord-34-d2-5",
+      "longest_sentence_words": 12,
+      "sentences": 5,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 0.5497499999999995,
+      "grade_level": "3-4",
+      "id": "ord-34-d3-1",
+      "longest_sentence_words": 11,
+      "sentences": 5,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 3.7616551724137963,
+      "grade_level": "3-4",
+      "id": "ord-34-d3-2",
+      "longest_sentence_words": 9,
+      "sentences": 5,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 2.658306451612905,
+      "grade_level": "3-4",
+      "id": "ord-34-d3-3",
+      "longest_sentence_words": 12,
+      "sentences": 4,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 3.030957446808511,
+      "grade_level": "3-4",
+      "id": "ord-34-d3-4",
+      "longest_sentence_words": 9,
+      "sentences": 6,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 2.985714285714284,
+      "grade_level": "3-4",
+      "id": "ord-34-d3-5",
+      "longest_sentence_words": 12,
+      "sentences": 5,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 1.1722222222222243,
+      "grade_level": "3-4",
+      "id": "ord-34-d4-1",
+      "longest_sentence_words": 9,
+      "sentences": 6,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 6.845403225806454,
+      "grade_level": "3-4",
+      "id": "ord-34-d4-2",
+      "longest_sentence_words": 13,
+      "sentences": 4,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 2.4744285714285716,
+      "grade_level": "3-4",
+      "id": "ord-34-d4-3",
+      "longest_sentence_words": 16,
+      "sentences": 5,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 3.653333333333336,
+      "grade_level": "3-4",
+      "id": "ord-34-d4-4",
+      "longest_sentence_words": 16,
+      "sentences": 3,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 3.9346666666666685,
+      "grade_level": "3-4",
+      "id": "ord-34-d4-5",
+      "longest_sentence_words": 10,
+      "sentences": 5,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 1.7874545454545476,
+      "grade_level": "3-4",
+      "id": "ord-34-d5-1",
+      "longest_sentence_words": 17,
+      "sentences": 5,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 4.999107142857145,
+      "grade_level": "3-4",
+      "id": "ord-34-d5-2",
+      "longest_sentence_words": 6,
+      "sentences": 7,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 4.414941176470592,
+      "grade_level": "3-4",
+      "id": "ord-34-d5-3",
+      "longest_sentence_words": 11,
+      "sentences": 5,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 6.9471428571428575,
+      "grade_level": "3-4",
+      "id": "ord-34-d5-4",
+      "longest_sentence_words": 8,
+      "sentences": 4,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 1.4288095238095266,
+      "grade_level": "3-4",
+      "id": "ord-34-d5-5",
+      "longest_sentence_words": 16,
+      "sentences": 6,
+      "topic": "logic.ordering"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 2.4833333333333343,
+      "grade_level": "1-2",
+      "id": "par-12-d1-1",
+      "longest_sentence_words": 6,
+      "sentences": 1,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": -0.7999999999999989,
+      "grade_level": "1-2",
+      "id": "par-12-d1-2",
+      "longest_sentence_words": 12,
+      "sentences": 3,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 2.2816666666666663,
+      "grade_level": "1-2",
+      "id": "par-12-d1-3",
+      "longest_sentence_words": 8,
+      "sentences": 2,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 1.1722222222222243,
+      "grade_level": "1-2",
+      "id": "par-12-d1-4",
+      "longest_sentence_words": 7,
+      "sentences": 3,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 2.5010000000000012,
+      "grade_level": "1-2",
+      "id": "par-12-d1-5",
+      "longest_sentence_words": 17,
+      "sentences": 2,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 3.650000000000002,
+      "grade_level": "1-2",
+      "id": "par-12-d2-1",
+      "longest_sentence_words": 14,
+      "sentences": 2,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 2.641538461538463,
+      "grade_level": "1-2",
+      "id": "par-12-d2-2",
+      "longest_sentence_words": 21,
+      "sentences": 2,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 2.187692307692309,
+      "grade_level": "1-2",
+      "id": "par-12-d2-3",
+      "longest_sentence_words": 18,
+      "sentences": 2,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 3.6428571428571423,
+      "grade_level": "1-2",
+      "id": "par-12-d2-4",
+      "longest_sentence_words": 18,
+      "sentences": 3,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 0.271428571428574,
+      "grade_level": "1-2",
+      "id": "par-12-d2-5",
+      "longest_sentence_words": 12,
+      "sentences": 3,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 3.4925862068965543,
+      "grade_level": "1-2",
+      "id": "par-12-d3-1",
+      "longest_sentence_words": 18,
+      "sentences": 2,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 0.2260869565217387,
+      "grade_level": "1-2",
+      "id": "par-12-d3-2",
+      "longest_sentence_words": 12,
+      "sentences": 3,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 4.527407407407409,
+      "grade_level": "1-2",
+      "id": "par-12-d3-3",
+      "longest_sentence_words": 14,
+      "sentences": 3,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 3.283461538461541,
+      "grade_level": "1-2",
+      "id": "par-12-d3-4",
+      "longest_sentence_words": 8,
+      "sentences": 2,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 0.9770588235294113,
+      "grade_level": "1-2",
+      "id": "par-12-d3-5",
+      "longest_sentence_words": 24,
+      "sentences": 3,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 0.11000000000000121,
+      "grade_level": "1-2",
+      "id": "par-12-d4-1",
+      "longest_sentence_words": 14,
+      "sentences": 2,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 1.879999999999999,
+      "grade_level": "1-2",
+      "id": "par-12-d4-2",
+      "longest_sentence_words": 13,
+      "sentences": 2,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 4.46857142857143,
+      "grade_level": "1-2",
+      "id": "par-12-d4-3",
+      "longest_sentence_words": 22,
+      "sentences": 3,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 1.957142857142859,
+      "grade_level": "1-2",
+      "id": "par-12-d4-4",
+      "longest_sentence_words": 14,
+      "sentences": 3,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 2.8566666666666656,
+      "grade_level": "1-2",
+      "id": "par-12-d4-5",
+      "longest_sentence_words": 12,
+      "sentences": 1,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 4.7132758620689685,
+      "grade_level": "1-2",
+      "id": "par-12-d5-1",
+      "longest_sentence_words": 22,
+      "sentences": 2,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 3.7181818181818187,
+      "grade_level": "1-2",
+      "id": "par-12-d5-2",
+      "longest_sentence_words": 18,
+      "sentences": 3,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 4.565789473684209,
+      "grade_level": "1-2",
+      "id": "par-12-d5-3",
+      "longest_sentence_words": 21,
+      "sentences": 3,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 4.879999999999999,
+      "grade_level": "1-2",
+      "id": "par-12-d5-4",
+      "longest_sentence_words": 25,
+      "sentences": 3,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 4.322592592592592,
+      "grade_level": "1-2",
+      "id": "par-12-d5-5",
+      "longest_sentence_words": 27,
+      "sentences": 3,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 0.6257142857142846,
+      "grade_level": "3-4",
+      "id": "par-34-d1-1",
+      "longest_sentence_words": 8,
+      "sentences": 3,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 5.041428571428572,
+      "grade_level": "3-4",
+      "id": "par-34-d1-2",
+      "longest_sentence_words": 14,
+      "sentences": 1,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 0.11000000000000121,
+      "grade_level": "3-4",
+      "id": "par-34-d1-3",
+      "longest_sentence_words": 14,
+      "sentences": 2,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 3.653333333333336,
+      "grade_level": "3-4",
+      "id": "par-34-d1-4",
+      "longest_sentence_words": 10,
+      "sentences": 2,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 3.2602173913043515,
+      "grade_level": "3-4",
+      "id": "par-34-d1-5",
+      "longest_sentence_words": 15,
+      "sentences": 2,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": -0.00999999999999801,
+      "grade_level": "3-4",
+      "id": "par-34-d2-1",
+      "longest_sentence_words": 8,
+      "sentences": 3,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 2.37857142857143,
+      "grade_level": "3-4",
+      "id": "par-34-d2-2",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 2.4700000000000024,
+      "grade_level": "3-4",
+      "id": "par-34-d2-3",
+      "longest_sentence_words": 12,
+      "sentences": 2,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 2.421379310344829,
+      "grade_level": "3-4",
+      "id": "par-34-d2-4",
+      "longest_sentence_words": 15,
+      "sentences": 3,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 4.7132758620689685,
+      "grade_level": "3-4",
+      "id": "par-34-d2-5",
+      "longest_sentence_words": 22,
+      "sentences": 2,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 1.468076923076925,
+      "grade_level": "3-4",
+      "id": "par-34-d3-1",
+      "longest_sentence_words": 7,
+      "sentences": 2,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 0.2260869565217387,
+      "grade_level": "3-4",
+      "id": "par-34-d3-2",
+      "longest_sentence_words": 12,
+      "sentences": 3,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 2.0144444444444467,
+      "grade_level": "3-4",
+      "id": "par-34-d3-3",
+      "longest_sentence_words": 12,
+      "sentences": 4,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 1.572727272727274,
+      "grade_level": "3-4",
+      "id": "par-34-d3-4",
+      "longest_sentence_words": 19,
+      "sentences": 3,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 4.238333333333333,
+      "grade_level": "3-4",
+      "id": "par-34-d3-5",
+      "longest_sentence_words": 16,
+      "sentences": 4,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 2.645454545454548,
+      "grade_level": "3-4",
+      "id": "par-34-d4-1",
+      "longest_sentence_words": 13,
+      "sentences": 2,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 2.421379310344829,
+      "grade_level": "3-4",
+      "id": "par-34-d4-2",
+      "longest_sentence_words": 15,
+      "sentences": 3,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 3.0599999999999987,
+      "grade_level": "3-4",
+      "id": "par-34-d4-3",
+      "longest_sentence_words": 17,
+      "sentences": 4,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 5.934545454545457,
+      "grade_level": "3-4",
+      "id": "par-34-d4-4",
+      "longest_sentence_words": 24,
+      "sentences": 3,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 2.109090909090913,
+      "grade_level": "3-4",
+      "id": "par-34-d4-5",
+      "longest_sentence_words": 15,
+      "sentences": 2,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 3.890270270270271,
+      "grade_level": "3-4",
+      "id": "par-34-d5-1",
+      "longest_sentence_words": 18,
+      "sentences": 3,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 5.400000000000002,
+      "grade_level": "3-4",
+      "id": "par-34-d5-2",
+      "longest_sentence_words": 20,
+      "sentences": 2,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 5.120172413793107,
+      "grade_level": "3-4",
+      "id": "par-34-d5-3",
+      "longest_sentence_words": 22,
+      "sentences": 2,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 4.343636363636364,
+      "grade_level": "3-4",
+      "id": "par-34-d5-4",
+      "longest_sentence_words": 23,
+      "sentences": 3,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 3.681000000000001,
+      "grade_level": "3-4",
+      "id": "par-34-d5-5",
+      "longest_sentence_words": 21,
+      "sentences": 5,
+      "topic": "parity.alternation"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 1.8733333333333313,
+      "grade_level": "1-2",
+      "id": "pig-12-d1-1",
+      "longest_sentence_words": 17,
+      "sentences": 3,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 3.059411764705885,
+      "grade_level": "1-2",
+      "id": "pig-12-d1-2",
+      "longest_sentence_words": 15,
+      "sentences": 3,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 3.0599999999999987,
+      "grade_level": "1-2",
+      "id": "pig-12-d1-3",
+      "longest_sentence_words": 14,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 4.003076923076925,
+      "grade_level": "1-2",
+      "id": "pig-12-d1-4",
+      "longest_sentence_words": 16,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 4.91076923076923,
+      "grade_level": "1-2",
+      "id": "pig-12-d1-5",
+      "longest_sentence_words": 16,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 3.899482758620689,
+      "grade_level": "1-2",
+      "id": "pig-12-d2-1",
+      "longest_sentence_words": 19,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 2.641538461538463,
+      "grade_level": "1-2",
+      "id": "pig-12-d2-2",
+      "longest_sentence_words": 16,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 1.468148148148149,
+      "grade_level": "1-2",
+      "id": "pig-12-d2-3",
+      "longest_sentence_words": 15,
+      "sentences": 3,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 3.7439189189189186,
+      "grade_level": "1-2",
+      "id": "pig-12-d2-4",
+      "longest_sentence_words": 19,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 3.6601851851851883,
+      "grade_level": "1-2",
+      "id": "pig-12-d2-5",
+      "longest_sentence_words": 16,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 3.3969354838709656,
+      "grade_level": "1-2",
+      "id": "pig-12-d3-1",
+      "longest_sentence_words": 20,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 2.27189655172414,
+      "grade_level": "1-2",
+      "id": "pig-12-d3-2",
+      "longest_sentence_words": 19,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 3.0599999999999987,
+      "grade_level": "1-2",
+      "id": "pig-12-d3-3",
+      "longest_sentence_words": 14,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 3.899482758620689,
+      "grade_level": "1-2",
+      "id": "pig-12-d3-4",
+      "longest_sentence_words": 18,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 4.003076923076925,
+      "grade_level": "1-2",
+      "id": "pig-12-d3-5",
+      "longest_sentence_words": 13,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 3.240000000000002,
+      "grade_level": "1-2",
+      "id": "pig-12-d4-1",
+      "longest_sentence_words": 19,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 3.881176470588237,
+      "grade_level": "1-2",
+      "id": "pig-12-d4-2",
+      "longest_sentence_words": 19,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 4.097222222222225,
+      "grade_level": "1-2",
+      "id": "pig-12-d4-3",
+      "longest_sentence_words": 18,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 4.420000000000002,
+      "grade_level": "1-2",
+      "id": "pig-12-d4-4",
+      "longest_sentence_words": 19,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 3.7092857142857163,
+      "grade_level": "1-2",
+      "id": "pig-12-d4-5",
+      "longest_sentence_words": 22,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 3.3969354838709656,
+      "grade_level": "1-2",
+      "id": "pig-12-d5-1",
+      "longest_sentence_words": 20,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 3.418000000000003,
+      "grade_level": "1-2",
+      "id": "pig-12-d5-2",
+      "longest_sentence_words": 23,
+      "sentences": 3,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 3.633333333333333,
+      "grade_level": "1-2",
+      "id": "pig-12-d5-3",
+      "longest_sentence_words": 20,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 3.9250000000000007,
+      "grade_level": "1-2",
+      "id": "pig-12-d5-4",
+      "longest_sentence_words": 19,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 2.765000000000004,
+      "grade_level": "1-2",
+      "id": "pig-12-d5-5",
+      "longest_sentence_words": 19,
+      "sentences": 4,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 2.27189655172414,
+      "grade_level": "3-4",
+      "id": "pig-34-d1-1",
+      "longest_sentence_words": 19,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 1.778157894736843,
+      "grade_level": "3-4",
+      "id": "pig-34-d1-2",
+      "longest_sentence_words": 14,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 2.641538461538463,
+      "grade_level": "3-4",
+      "id": "pig-34-d1-3",
+      "longest_sentence_words": 16,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 4.662500000000001,
+      "grade_level": "3-4",
+      "id": "pig-34-d1-4",
+      "longest_sentence_words": 19,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 2.3649999999999984,
+      "grade_level": "3-4",
+      "id": "pig-34-d1-5",
+      "longest_sentence_words": 17,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 3.240000000000002,
+      "grade_level": "3-4",
+      "id": "pig-34-d2-1",
+      "longest_sentence_words": 19,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 1.721086956521738,
+      "grade_level": "3-4",
+      "id": "pig-34-d2-2",
+      "longest_sentence_words": 15,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 3.6601851851851883,
+      "grade_level": "3-4",
+      "id": "pig-34-d2-3",
+      "longest_sentence_words": 16,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 3.899482758620689,
+      "grade_level": "3-4",
+      "id": "pig-34-d2-4",
+      "longest_sentence_words": 19,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 1.405384615384616,
+      "grade_level": "3-4",
+      "id": "pig-34-d2-5",
+      "longest_sentence_words": 12,
+      "sentences": 3,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 3.240000000000002,
+      "grade_level": "3-4",
+      "id": "pig-34-d3-1",
+      "longest_sentence_words": 19,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 2.786111111111115,
+      "grade_level": "3-4",
+      "id": "pig-34-d3-2",
+      "longest_sentence_words": 16,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 3.77758064516129,
+      "grade_level": "3-4",
+      "id": "pig-34-d3-3",
+      "longest_sentence_words": 16,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 4.286304347826089,
+      "grade_level": "3-4",
+      "id": "pig-34-d3-4",
+      "longest_sentence_words": 12,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 3.556250000000002,
+      "grade_level": "3-4",
+      "id": "pig-34-d3-5",
+      "longest_sentence_words": 19,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 3.240000000000002,
+      "grade_level": "3-4",
+      "id": "pig-34-d4-1",
+      "longest_sentence_words": 19,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 5.483157894736845,
+      "grade_level": "3-4",
+      "id": "pig-34-d4-2",
+      "longest_sentence_words": 19,
+      "sentences": 1,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 4.8694186046511625,
+      "grade_level": "3-4",
+      "id": "pig-34-d4-3",
+      "longest_sentence_words": 23,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 1.5357142857142883,
+      "grade_level": "3-4",
+      "id": "pig-34-d4-4",
+      "longest_sentence_words": 16,
+      "sentences": 3,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 3.3969354838709656,
+      "grade_level": "3-4",
+      "id": "pig-34-d4-5",
+      "longest_sentence_words": 20,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 3.9250000000000007,
+      "grade_level": "3-4",
+      "id": "pig-34-d5-1",
+      "longest_sentence_words": 19,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 4.541111111111114,
+      "grade_level": "3-4",
+      "id": "pig-34-d5-2",
+      "longest_sentence_words": 24,
+      "sentences": 2,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 9.147586206896552,
+      "grade_level": "3-4",
+      "id": "pig-34-d5-3",
+      "longest_sentence_words": 29,
+      "sentences": 1,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 3.6540000000000035,
+      "grade_level": "3-4",
+      "id": "pig-34-d5-4",
+      "longest_sentence_words": 23,
+      "sentences": 3,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 2.445714285714285,
+      "grade_level": "3-4",
+      "id": "pig-34-d5-5",
+      "longest_sentence_words": 14,
+      "sentences": 3,
+      "topic": "pigeonhole.basic"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 0.5,
+      "grade_level": "1-2",
+      "id": "tri-12-d1-1",
+      "longest_sentence_words": 19,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 0.5431578947368436,
+      "grade_level": "1-2",
+      "id": "tri-12-d1-2",
+      "longest_sentence_words": 10,
+      "sentences": 3,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": -1.8399999999999999,
+      "grade_level": "1-2",
+      "id": "tri-12-d1-3",
+      "longest_sentence_words": 7,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 0.5800000000000018,
+      "grade_level": "1-2",
+      "id": "tri-12-d1-4",
+      "longest_sentence_words": 11,
+      "sentences": 3,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": -0.6699999999999982,
+      "grade_level": "1-2",
+      "id": "tri-12-d1-5",
+      "longest_sentence_words": 13,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": -1.8399999999999999,
+      "grade_level": "1-2",
+      "id": "tri-12-d2-1",
+      "longest_sentence_words": 7,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 1.0083333333333329,
+      "grade_level": "1-2",
+      "id": "tri-12-d2-2",
+      "longest_sentence_words": 10,
+      "sentences": 4,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 0.8900000000000006,
+      "grade_level": "1-2",
+      "id": "tri-12-d2-3",
+      "longest_sentence_words": 21,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 1.2800000000000011,
+      "grade_level": "1-2",
+      "id": "tri-12-d2-4",
+      "longest_sentence_words": 23,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 0.5166666666666693,
+      "grade_level": "1-2",
+      "id": "tri-12-d2-5",
+      "longest_sentence_words": 10,
+      "sentences": 4,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 0.5,
+      "grade_level": "1-2",
+      "id": "tri-12-d3-1",
+      "longest_sentence_words": 19,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 0.5166666666666693,
+      "grade_level": "1-2",
+      "id": "tri-12-d3-2",
+      "longest_sentence_words": 10,
+      "sentences": 4,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": -1.4499999999999993,
+      "grade_level": "1-2",
+      "id": "tri-12-d3-3",
+      "longest_sentence_words": 9,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 2.375769230769233,
+      "grade_level": "1-2",
+      "id": "tri-12-d3-4",
+      "longest_sentence_words": 9,
+      "sentences": 2,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": -1.4499999999999993,
+      "grade_level": "1-2",
+      "id": "tri-12-d3-5",
+      "longest_sentence_words": 9,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 0.5051190476190506,
+      "grade_level": "1-2",
+      "id": "tri-12-d4-1",
+      "longest_sentence_words": 7,
+      "sentences": 4,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 4.400000000000002,
+      "grade_level": "1-2",
+      "id": "tri-12-d4-2",
+      "longest_sentence_words": 39,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": -1.8399999999999999,
+      "grade_level": "1-2",
+      "id": "tri-12-d4-3",
+      "longest_sentence_words": 7,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 0.5166666666666693,
+      "grade_level": "1-2",
+      "id": "tri-12-d4-4",
+      "longest_sentence_words": 10,
+      "sentences": 4,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 0.8900000000000006,
+      "grade_level": "1-2",
+      "id": "tri-12-d4-5",
+      "longest_sentence_words": 21,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 4.241052631578949,
+      "grade_level": "1-2",
+      "id": "tri-12-d5-1",
+      "longest_sentence_words": 21,
+      "sentences": 2,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 1.85923076923077,
+      "grade_level": "1-2",
+      "id": "tri-12-d5-2",
+      "longest_sentence_words": 15,
+      "sentences": 3,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 0.5,
+      "grade_level": "1-2",
+      "id": "tri-12-d5-3",
+      "longest_sentence_words": 19,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": -0.3012499999999996,
+      "grade_level": "1-2",
+      "id": "tri-12-d5-4",
+      "longest_sentence_words": 15,
+      "sentences": 4,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": -1.4499999999999993,
+      "grade_level": "1-2",
+      "id": "tri-12-d5-5",
+      "longest_sentence_words": 15,
+      "sentences": 2,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": -1.8399999999999999,
+      "grade_level": "3-4",
+      "id": "tri-34-d1-1",
+      "longest_sentence_words": 7,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 1.1642105263157916,
+      "grade_level": "3-4",
+      "id": "tri-34-d1-2",
+      "longest_sentence_words": 10,
+      "sentences": 3,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": -1.4499999999999993,
+      "grade_level": "3-4",
+      "id": "tri-34-d1-3",
+      "longest_sentence_words": 9,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": -1.4499999999999993,
+      "grade_level": "3-4",
+      "id": "tri-34-d1-4",
+      "longest_sentence_words": 9,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": -1.8399999999999999,
+      "grade_level": "3-4",
+      "id": "tri-34-d1-5",
+      "longest_sentence_words": 7,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 0.8900000000000006,
+      "grade_level": "3-4",
+      "id": "tri-34-d2-1",
+      "longest_sentence_words": 21,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 2.0438043478260894,
+      "grade_level": "3-4",
+      "id": "tri-34-d2-2",
+      "longest_sentence_words": 9,
+      "sentences": 4,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": -1.8399999999999999,
+      "grade_level": "3-4",
+      "id": "tri-34-d2-3",
+      "longest_sentence_words": 7,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 0.5,
+      "grade_level": "3-4",
+      "id": "tri-34-d2-4",
+      "longest_sentence_words": 19,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": -1.4499999999999993,
+      "grade_level": "3-4",
+      "id": "tri-34-d2-5",
+      "longest_sentence_words": 9,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 1.0083333333333329,
+      "grade_level": "3-4",
+      "id": "tri-34-d3-1",
+      "longest_sentence_words": 10,
+      "sentences": 4,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 1.8733333333333313,
+      "grade_level": "3-4",
+      "id": "tri-34-d3-2",
+      "longest_sentence_words": 12,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": -1.8399999999999999,
+      "grade_level": "3-4",
+      "id": "tri-34-d3-3",
+      "longest_sentence_words": 7,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 0.7391304347826093,
+      "grade_level": "3-4",
+      "id": "tri-34-d3-4",
+      "longest_sentence_words": 12,
+      "sentences": 3,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 1.6700000000000017,
+      "grade_level": "3-4",
+      "id": "tri-34-d3-5",
+      "longest_sentence_words": 25,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": -2.2299999999999986,
+      "grade_level": "3-4",
+      "id": "tri-34-d4-1",
+      "longest_sentence_words": 5,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 2.375769230769233,
+      "grade_level": "3-4",
+      "id": "tri-34-d4-2",
+      "longest_sentence_words": 12,
+      "sentences": 4,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": -2.2299999999999986,
+      "grade_level": "3-4",
+      "id": "tri-34-d4-3",
+      "longest_sentence_words": 5,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 3.0953846153846136,
+      "grade_level": "3-4",
+      "id": "tri-34-d4-4",
+      "longest_sentence_words": 13,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 1.2006896551724147,
+      "grade_level": "3-4",
+      "id": "tri-34-d4-5",
+      "longest_sentence_words": 18,
+      "sentences": 3,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": -1.4499999999999993,
+      "grade_level": "3-4",
+      "id": "tri-34-d5-1",
+      "longest_sentence_words": 12,
+      "sentences": 3,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 3.800241935483875,
+      "grade_level": "3-4",
+      "id": "tri-34-d5-2",
+      "longest_sentence_words": 17,
+      "sentences": 4,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 2.747173913043479,
+      "grade_level": "3-4",
+      "id": "tri-34-d5-3",
+      "longest_sentence_words": 17,
+      "sentences": 2,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 3.7732608695652203,
+      "grade_level": "3-4",
+      "id": "tri-34-d5-4",
+      "longest_sentence_words": 16,
+      "sentences": 3,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 0.8900000000000006,
+      "grade_level": "3-4",
+      "id": "tri-34-d5-5",
+      "longest_sentence_words": 21,
+      "sentences": 1,
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 6.135810810810813,
+      "grade_level": "3-4",
+      "id": "wp-34-d1-1",
+      "longest_sentence_words": 38,
+      "sentences": 4,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 2.445714285714285,
+      "grade_level": "3-4",
+      "id": "wp-34-d1-2",
+      "longest_sentence_words": 12,
+      "sentences": 3,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 4.075454545454548,
+      "grade_level": "3-4",
+      "id": "wp-34-d1-3",
+      "longest_sentence_words": 20,
+      "sentences": 3,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 3.650000000000002,
+      "grade_level": "3-4",
+      "id": "wp-34-d1-4",
+      "longest_sentence_words": 15,
+      "sentences": 3,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 1,
+      "fk_grade": 2.4700000000000024,
+      "grade_level": "3-4",
+      "id": "wp-34-d1-5",
+      "longest_sentence_words": 13,
+      "sentences": 3,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 6.135810810810813,
+      "grade_level": "3-4",
+      "id": "wp-34-d2-1",
+      "longest_sentence_words": 38,
+      "sentences": 4,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 3.8072727272727285,
+      "grade_level": "3-4",
+      "id": "wp-34-d2-2",
+      "longest_sentence_words": 20,
+      "sentences": 3,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 2.8566666666666656,
+      "grade_level": "3-4",
+      "id": "wp-34-d2-3",
+      "longest_sentence_words": 14,
+      "sentences": 3,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 4.075454545454548,
+      "grade_level": "3-4",
+      "id": "wp-34-d2-4",
+      "longest_sentence_words": 20,
+      "sentences": 3,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 2,
+      "fk_grade": 6.135810810810813,
+      "grade_level": "3-4",
+      "id": "wp-34-d2-5",
+      "longest_sentence_words": 38,
+      "sentences": 4,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 5.1125454545454545,
+      "grade_level": "3-4",
+      "id": "wp-34-d3-1",
+      "longest_sentence_words": 19,
+      "sentences": 5,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 3.8072727272727285,
+      "grade_level": "3-4",
+      "id": "wp-34-d3-2",
+      "longest_sentence_words": 20,
+      "sentences": 3,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 2.614594594594596,
+      "grade_level": "3-4",
+      "id": "wp-34-d3-3",
+      "longest_sentence_words": 14,
+      "sentences": 3,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 6.135810810810813,
+      "grade_level": "3-4",
+      "id": "wp-34-d3-4",
+      "longest_sentence_words": 38,
+      "sentences": 4,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 3,
+      "fk_grade": 6.135810810810813,
+      "grade_level": "3-4",
+      "id": "wp-34-d3-5",
+      "longest_sentence_words": 38,
+      "sentences": 4,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 3.8072727272727285,
+      "grade_level": "3-4",
+      "id": "wp-34-d4-1",
+      "longest_sentence_words": 20,
+      "sentences": 3,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 6.135810810810813,
+      "grade_level": "3-4",
+      "id": "wp-34-d4-2",
+      "longest_sentence_words": 38,
+      "sentences": 4,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 6.229285714285719,
+      "grade_level": "3-4",
+      "id": "wp-34-d4-3",
+      "longest_sentence_words": 36,
+      "sentences": 3,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 4.916724137931034,
+      "grade_level": "3-4",
+      "id": "wp-34-d4-4",
+      "longest_sentence_words": 28,
+      "sentences": 4,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 4,
+      "fk_grade": 2.9113802816901426,
+      "grade_level": "3-4",
+      "id": "wp-34-d4-5",
+      "longest_sentence_words": 34,
+      "sentences": 5,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 4.620000000000001,
+      "grade_level": "3-4",
+      "id": "wp-34-d5-1",
+      "longest_sentence_words": 28,
+      "sentences": 4,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 5.553789473684212,
+      "grade_level": "3-4",
+      "id": "wp-34-d5-2",
+      "longest_sentence_words": 28,
+      "sentences": 5,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 5.771698113207549,
+      "grade_level": "3-4",
+      "id": "wp-34-d5-3",
+      "longest_sentence_words": 32,
+      "sentences": 3,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 3.8072727272727285,
+      "grade_level": "3-4",
+      "id": "wp-34-d5-4",
+      "longest_sentence_words": 20,
+      "sentences": 3,
+      "topic": "algorithms.weighing_pouring"
+    },
+    {
+      "difficulty": 5,
+      "fk_grade": 6.827692307692306,
+      "grade_level": "3-4",
+      "id": "wp-34-d5-5",
+      "longest_sentence_words": 27,
+      "sentences": 3,
+      "topic": "algorithms.weighing_pouring"
+    }
+  ],
+  "source": {
+    "measured_by": "textstat.flesch_kincaid_grade and taskgen.filters.sentences",
+    "note": "Flesch-Kincaid applies to English only (the prototype's D42); the sentence limit to every language. The measurements here do not depend on the student's grade.",
+    "thresholds": {
+      "max_grade_margin": 3,
+      "max_sentence_words": {
+        "1-2": 20,
+        "3-4": 25
+      }
+    }
+  },
+  "summary": {
+    "examples": 450,
+    "fk_grade": {
+      "max": 10.500000000000004,
+      "median": 2.6789377085650727,
+      "min": -2.2299999999999986
+    },
+    "longest_sentence_words": {
+      "max": 51,
+      "median": 13.0,
+      "min": 5
+    }
+  }
+}

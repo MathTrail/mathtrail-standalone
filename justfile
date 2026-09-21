@@ -117,3 +117,39 @@ spike-b port="8082":
     fi
 
     wait "$server_pid" "$tunnel_pid"
+
+# -- T16: golden vectors from the prototype -------------------------------
+
+# Export the prototype's golden vectors into testdata/golden/ (see its export/README.md).
+# Python comes from the uv image and PostgreSQL from the prototype's compose file: nothing
+# is installed into the devcontainer, and both images are pinned by tag and digest.
+golden:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    uv_image="ghcr.io/astral-sh/uv:0.12.13-python3.12-trixie-slim@sha256:87bc72093c0aa93cc962bd7c0498ddf416dad3ce9e1434724e936e02b72afe5d"
+    repo="$(pwd)"
+
+    if [ ! -d prototype/src/taskgen ]; then
+        echo "golden: prototype/ is missing; the export needs the reference copy (CLAUDE.md)." >&2
+        exit 1
+    fi
+
+    echo "==> PostgreSQL"
+    (cd prototype && docker compose up -d --wait)
+
+    echo "==> dependencies, schema, seed profiles, export"
+    docker run --rm --network host \
+        -v "$repo:/repo" -w /repo/prototype --user "$(id -u):$(id -g)" \
+        -e HOME=/tmp -e UV_PROJECT_ENVIRONMENT=/tmp/venv -e UV_CACHE_DIR=/tmp/uvcache \
+        -e DATABASE_URL=postgresql://taskgen:taskgen@127.0.0.1:5432/taskgen \
+        "$uv_image" \
+        bash -lc "uv sync --frozen \
+            && uv run python -m taskgen.apply_schema --force \
+            && uv run python -m taskgen.seed \
+            && uv run python /repo/testdata/golden/export/export_golden.py --out /repo/testdata/golden"
+
+    echo "==> stopping PostgreSQL"
+    (cd prototype && docker compose down)
+
+    echo ""
+    echo "Golden vectors are in testdata/golden/. A second run must produce byte-identical files."

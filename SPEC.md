@@ -596,7 +596,9 @@ The promise that "the tasks do not run out" (PRODUCT 1) is checked from the othe
 
 **The measure** is the one the prototype used, in a form that works without a database: the `question` is lowercased, every non-alphanumeric character becomes a space, each word is padded with two leading spaces and one trailing space, and the set of its three-character substrings is taken — the normalisation of Postgres's `pg_trgm`. Similarity is the Jaccard index of two such sets, and **0.6 or above is a near-duplicate**, as in the prototype.
 
-For the scripts written without spaces (5.5) the same construction on **character bigrams** replaces it, because word trigrams of a text with no word boundaries measure nothing. Bigram sets are smaller and overlap more, so the threshold there is **0.7**. Both numbers are calibrated in T32 against the reference corpus, which is 450 tasks of known pairwise similarity.
+For the scripts written without spaces (5.5) the same construction on **character bigrams** replaces it, because word trigrams of a text with no word boundaries measure nothing. Bigram sets are smaller and overlap more, so the threshold there is **0.7**.
+
+Both numbers are calibrated in T32 against the reference corpus, and the measurement now exists: T16 exported the pairwise similarity of all 450 reference questions (`testdata/golden/trgm_similarity.json`). It says two things worth knowing before trusting the threshold. **207 of the 450 have a nearest neighbour at or above 0.6**, with a median of 0.57 — a corpus of one topic is formulaic, and the weighing-and-pouring questions sit at 0.96 to each other. And the measure compares **sets** of trigrams, so two tasks built from the same vocabulary in a different arrangement are identical to it: `kl-34-d3-3` and `kl-34-d3-5` are different problems with different answers and a similarity of exactly 1.0. Neither is fatal — a duplicate refusal costs one attempt — but 0.6 is an aggressive cut for this kind of text, and T32 has the histogram to move it against.
 
 **What it is compared against:**
 
@@ -1315,3 +1317,8 @@ Added while writing sections 9 to 12:
 22. **Every limit's number is a starting point, not a measurement.** Thirty requests a minute, twenty tasks a day, five failed generations: chosen so that a family never meets them and a runaway meets them within a minute. T64 is the first time any of them sees real load. **For:** T52, T64.
 23. **The two tiers of configuration are a rule someone will want to break.** The first time a number in the second tier needs changing in a hurry — a drawing width after a live run, say — the temptation is to add an environment variable. The answer is a release: the golden vectors pin these numbers, and a knob that can move them can move the product out from under its own tests. **For:** T17, T58.
 24. **`MATHTRAIL_DEV_AUTH` is the only switch that trades safety for convenience**, and it is the only one allowed to exist. Anything similar added later refuses to start under `K_SERVICE` the same way, or it does not go in. **For:** T41.
+
+Added while exporting the golden vectors (T16):
+
+25. **The near-duplicate threshold is measured now, and 0.6 looks aggressive.** Nearly half the reference corpus has a neighbour above it, and the measure cannot tell two tasks apart when they share a vocabulary (5.6). The data is in `testdata/golden/trgm_similarity.json`; the decision is T32's. **For:** T32.
+26. **The prototype's reference corpus is the only calibration set that exists**, and it is grades 1–4 only. The grade 5–6 tasks of T37–T39 arrive later and with them the thresholds may need a second look — a formulaic topic like `percent.basic` will cluster the same way. **For:** T32, T39.
