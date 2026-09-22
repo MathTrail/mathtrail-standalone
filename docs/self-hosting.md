@@ -1,164 +1,108 @@
 # Running your own copy
 
-MathTrail is MIT-licensed and holds nothing of its own: every deployment is one Cloud Run service, one Artifact Registry repository, two secrets and a domain, in a Google Cloud project you control. This page is how the infrastructure is created — what is described in Terraform, what has to be done by hand, and in which order.
+MathTrail is MIT-licensed and holds nothing of its own: every deployment is one Cloud Run service, one Artifact Registry repository, two secrets and a domain, in a Google Cloud project you control. This page is how that gets created — and almost none of it is done by hand. The repository describes the deployment, and a workflow delivers it.
 
 The name is not part of the licence: a copy that is not this project is named differently.
 
+## What is done by hand, ever
+
+Four things, once, because no API can do them:
+
+1. **The bootstrap**, below: the project, the bucket its state lives in and the identity the pipeline signs in as. A pipeline cannot create the door it walks in by.
+2. **The Google consent screen and one OAuth client.** Google has no API for either.
+3. **Two DNS records**, at whatever registrar holds the domain, and one click that makes the deployment identity a verified owner of it.
+4. **The OAuth client's secret**, pasted into the repository's secrets. It is the one value that exists nowhere but the Google console.
+
+Everything else — enabling APIs, the registry and its cleanup, the secrets, the service, the domain mapping, the spend alert, the image and every roll-out after it — happens when a change reaches the main branch, or when the workflow is started by hand from a branch.
+
 ## What you need
 
-- A Google Cloud project with billing attached, and a billing account you may create budgets on.
-- A domain you have verified ownership of, and the ability to add a DNS record to it. The service answers on a host of its own — `mcp.example.com` — while the site lives wherever you publish it.
-- A GitHub repository, if you want deployments to run from it.
-- The development container of this repository: it carries Terraform, gcloud and everything else at the exact versions this configuration is checked against. On arm64 machines gcloud is not in the image, because its archive for that architecture ships no Python interpreter; run the same commands from Google's `google-cloud-cli` container image instead.
+- A Google Cloud project with billing attached, or the right to create one, and a billing account you may create budgets on.
+- A domain, and the ability to add a record to it. The service answers on a host of its own — `mcp.example.com` — while the site lives wherever you publish it.
+- The development container of this repository, or a browser with Cloud Shell: the bootstrap is the only step that needs a shell at all.
 
-## 1. Sign in
+## 1. Say what the deployment is
 
-Everything below runs inside the development container. The sign-in survives rebuilds: the credentials live in a volume of their own.
+Three files in the repository, and nothing about the deployment lives anywhere else:
 
-```bash
-gcloud auth login
-gcloud auth application-default login   # the credentials Terraform reads
-gcloud config set project PROJECT_ID
-```
-
-## 2. Bootstrap what Terraform cannot create
-
-Two APIs have to be on before a configuration that enables APIs can be applied at all, and the bucket that holds the state cannot be described by the configuration whose state it holds.
-
-```bash
-gcloud services enable serviceusage.googleapis.com cloudresourcemanager.googleapis.com
-
-gcloud storage buckets create gs://BUCKET \
-    --location=us-central1 \
-    --uniform-bucket-level-access \
-    --public-access-prevention
-gcloud storage buckets update gs://BUCKET --versioning
-```
-
-Versioning is what lets a state file that was written badly be rolled back to the one before it.
-
-## 3. Point the domain at Cloud Run
-
-Do this before the first apply. A domain mapping is created only for a domain whose ownership is already verified, and its certificate is issued only once the DNS record resolves — so the record goes in first:
-
-```
-mcp.example.com.   CNAME   ghs.googlehosted.com.
-```
-
-Ownership is verified once, for the whole domain, in Google Search Console, with the account you are signed in as.
-
-## 4. Configure
-
-```bash
-cd infra/terraform
-cp terraform.tfvars.example terraform.tfvars   # fill it in
-cp backend.hcl.example backend.hcl             # the bucket from step 2
-terraform init -backend-config=backend.hcl
-```
-
-Neither file is committed: `terraform.tfvars` names one particular deployment, and `backend.hcl` names where its state lives.
-
-## 5. Apply, in two passes
-
-The secrets are created empty — their values never pass through Terraform, and never appear in the state. A revision cannot start before they hold something, so the first apply stops at the secrets:
-
-```bash
-terraform apply \
-    -target=google_secret_manager_secret.seal_key \
-    -target=google_secret_manager_secret.google_client_secret
-
-# 32 random bytes, base64-encoded: the key the tokens and the task answers are sealed with
-head -c 32 /dev/urandom | base64 | tr -d '\n' \
-    | gcloud secrets versions add mathtrail-seal-key --data-file=-
-
-# the client secret of the Google OAuth client this deployment signs in with
-printf '%s' 'CLIENT_SECRET' | gcloud secrets versions add mathtrail-google-client-secret --data-file=-
-
-terraform apply
-```
-
-The full apply creates everything else, including the domain mapping, and waits for the certificate — fifteen minutes is normal, and the DNS record from step 3 is what it is waiting on. If it gives up before the certificate is issued, run `terraform apply` again.
-
-`terraform output` then prints the platform's own address for the service, where images are pushed, the identity a deployment borrows and the provider it presents its token to.
-
-## 6. Leave one entrance
-
-Once the domain answers, withdraw the platform's address, so that there is one way in and one issuer of tokens:
-
-```hcl
-disable_default_url = true
-```
-
-This is a step of its own and not a default, because Cloud Run asks for the domain to be mapped before its own address is withdrawn — and until the certificate exists, that address is the only way to reach anything at all.
-
-A deployment that has no domain of its own leaves both settings alone, sets `create_domain_mapping = false`, and puts the platform's address in `public_host` — which is known only after the first apply, so it takes two.
-
-## 7. The first image
-
-Until an image of this service is deployed, the service answers with Google's placeholder container: the configuration defaults to it so that a fresh project applies cleanly. From then on the deployment owns which image is served and Terraform ignores that one field, so an apply never puts the placeholder back and the `image` variable matters only when a service is created from nothing.
-
-## 8. Deploying
-
-A deployment builds the image of one commit, pushes it to the repository created in step 5, rolls a revision of the service by digest, and then asks the service which commit it is serving. It starts on a push to `main`, or by hand from any branch. It uses no key and no secret: the workflow mints a federated token for itself, and everything it needs to know is six repository variables, each a copy of one output of the configuration that created the deployment target.
-
-| Repository variable | Terraform output |
+| File | What it holds |
 |---|---|
-| `GCP_WORKLOAD_IDENTITY_PROVIDER` | `workload_identity_provider` |
-| `GCP_DEPLOY_SERVICE_ACCOUNT` | `deploy_service_account` |
-| `GCP_IMAGE_REPOSITORY` | `image_repository` |
-| `GCP_SERVICE` | `service_name` |
-| `GCP_REGION` | `region` |
-| `PUBLIC_URL` | `public_url` |
+| `infra/terraform/prod.auto.tfvars` | project, region, host, OAuth client id, repository and its owner id, pool id — everything except the billing account |
+| `infra/terraform/backend.hcl` | the bucket the state lives in |
+| `infra/ci.env` | the two facts a workflow needs before it can sign in — filled from what the bootstrap prints |
 
-Read them with `terraform output` and put them in the repository's settings, under Actions variables — not secrets, because none of them is one. Until the custom domain answers, `PUBLIC_URL` is whatever address the service is actually reachable at, or the last step of every deployment fails.
+None of it is secret: the client id travels in every authorization request, and the federated pool is guarded by a condition on the repository rather than by the secrecy of its name. Changing where this repository deploys is a pull request, which is the point.
 
-The checks are not run again here: they gate the pull request that a merge comes from, so protect `main` and let them do it there. A commit pushed straight to `main` is deployed without them.
-
-The same three steps run from a laptop, which is what an emergency deployment or a first bring-up looks like:
+## 2. Bootstrap, once
 
 ```bash
-image=$(just ci-image-push us-central1-docker.pkg.dev/PROJECT_ID/mathtrail/server)
-just ci-deploy mathtrail us-central1 "$image"
-just ci-smoke https://mcp.example.com
+TF_VAR_billing_account=01ABCD-234567-89EFGH just bootstrap
 ```
 
-Rolling back is a revision, never an apply — Terraform does not know which digest is live, and Cloud Run keeps every revision that ever served:
+Or, with no local tooling at all, paste the contents of `infra/bootstrap.sh` into Cloud Shell. It is safe to run again: every step checks before it creates.
 
-```bash
-gcloud run revisions list --service=mathtrail --region=us-central1
-gcloud run services update-traffic mathtrail --region=us-central1 --to-revisions=REVISION=100
-```
+It creates the project and links billing, enables the handful of APIs without which nothing else can be created, makes the state bucket with versioning, creates the federated pool and its GitHub provider, and creates the identity the infrastructure is applied as — with an enumerated set of roles rather than Owner. It prints two lines for `infra/ci.env`. Commit them.
 
-Running the deployment again at an older commit does the same thing the long way round, and leaves the registry with an image for that commit.
+## 3. The Google sign-in
 
-## 9. The Google sign-in
+The parent signs in with Google, and the service asks Google for exactly two things: a verified identifier, and room for one file of its own in the parent's Drive. It is configured in the Google Cloud console, under **Google Auth Platform**, on its four pages.
 
-The parent signs in with Google, and the service asks Google for exactly two things: a verified identifier, and room for one file of its own in the parent's Drive. None of it is in Terraform — it is configured by hand in the Google Cloud console, under **Google Auth Platform**, on its four pages.
-
-**Branding.** The name people see on the consent screen, a support email, and three links: the home page, the privacy policy and the terms — for this deployment `https://mathtrail.app/en/`, `https://mathtrail.app/en/privacy/` and `https://mathtrail.app/en/terms/`. Add the top private domain of those links, `mathtrail.app`, as an authorized domain: one entry covers both the site on the apex and the service on its subdomain. Its ownership is already verified from step 3.
+**Branding.** The name people see on the consent screen, a support email, and three links: the home page, the privacy policy and the terms — for this deployment `https://mathtrail.app/en/`, `https://mathtrail.app/en/privacy/` and `https://mathtrail.app/en/terms/`. Add the top private domain of those links, `mathtrail.app`, as an authorized domain: one entry covers both the site on the apex and the service on its subdomain.
 
 **Audience.** User type **External**, publishing status **In production**. Not Testing: there a consent expires seven days after it is given and takes the refresh token with it, so every parent would be signed out once a week.
 
 **Data access.** Two scopes and no others: `openid`, which is what makes the identifier verified, and `https://www.googleapis.com/auth/drive.file`, which reaches only the files the app itself created plus anything the parent hands it explicitly. Both are non-sensitive, so publishing needs no app verification at all; brand verification is the separate, lighter process that makes the app's own name and logo appear on the consent screen instead of the project's name.
 
-**Clients.** One client, type **Web application**, with a single authorized redirect URI — `https://<your host>/oauth/callback`, no trailing slash. No authorized JavaScript origins: the sign-in is a redirect the service performs, never a script inside a page. The client id goes into `terraform.tfvars`; the client secret goes into Secret Manager in step 5.
+**Clients.** One client, type **Web application**, with a single authorized redirect URI — `https://<your host>/oauth/callback`, no trailing slash. No authorized JavaScript origins: the sign-in is a redirect the service performs, never a script inside a page. The client id goes into `prod.auto.tfvars`.
 
 Neither the project nor this client is ever recreated. A parent grants `drive.file` to that client in that project, and the grant cannot be moved: a new client sees none of the files parents have already given it, and every child's profile becomes unreachable through the app.
 
-## The first deployment, as a checklist
+## 4. The domain
 
-Once, in this order. Each line points at the section that has the commands.
+1. Verify ownership of the domain in [Search Console](https://search.google.com/search-console), with the TXT record it asks for.
+2. At the registrar: the service's host as a **CNAME** to `ghs.googlehosted.com.`
+3. In Search Console, under the domain's settings, add `mathtrail-tf@<project>.iam.gserviceaccount.com` — the identity the configuration is applied as — as a verified owner. Cloud Run maps a domain only for an owner of it, and that identity is the one creating the mapping; without this the delivery gets as far as the domain and stops.
 
-- [ ] A Google Cloud project with billing attached, and the right to create a budget on that billing account.
-- [ ] [Sign in](#1-sign-in) from inside the container.
-- [ ] [Bootstrap](#2-bootstrap-what-terraform-cannot-create) the two APIs and the state bucket.
-- [ ] [The domain](#3-point-the-domain-at-cloud-run): ownership verified, the CNAME created. Early, because the certificate is issued only once that record resolves, and that can take a day.
-- [ ] [The Google sign-in](#9-the-google-sign-in): the consent screen in production and one Web client. Keep the client id and the client secret.
-- [ ] [Configure](#4-configure) Terraform: `terraform.tfvars` with that client id, `backend.hcl`, `terraform init`.
-- [ ] [Apply in two passes](#5-apply-in-two-passes): the secrets, their values by hand, then everything else.
-- [ ] [The deployment variables](#8-deploying): six repository variables, read with `terraform output`.
-- [ ] The first deployment: a merge to `main`, or the workflow started by hand from a branch.
-- [ ] [Leave one entrance](#6-leave-one-entrance), once the domain answers: `disable_default_url = true`, and apply again.
+Do all three before the first delivery: the certificate is issued only once the record resolves, and that can take a day.
+
+## 5. The two repository secrets
+
+Settings → Secrets and variables → Actions → Secrets:
+
+| Secret | What it is |
+|---|---|
+| `GOOGLE_OAUTH_CLIENT_SECRET` | The OAuth client's secret. Used exactly once, on the first apply of a deployment, to put the first version into Secret Manager; every apply after that leaves it alone. |
+| `TF_VAR_billing_account` | The id of the billing account, of the form `01ABCD-234567-89EFGH`. It is the one fact about the deployment that is not written down beside the others, because it names the account that pays and this repository is public. Terraform reads variables from `TF_VAR_`-prefixed environment variables by itself. |
+
+The bootstrap needs the second one too, so export it there: `TF_VAR_billing_account=01ABCD-234567-89EFGH just bootstrap`.
+
+The key everything is sealed with is in neither list: the pipeline generates 32 random bytes on the first apply and writes them straight into Secret Manager. No person, no state file and no log ever sees that value.
+
+## 6. Deliver
+
+A push to `main` — or the workflow started by hand from any branch — runs three jobs:
+
+1. **The cloud, as described.** `terraform apply`, every time, so the deployment always matches the branch it was cut from. On the very first run this is what creates everything; afterwards it is usually a no-op that takes half a minute.
+2. **The image of this commit.** Built, pushed to the registry with the commit as its tag, and rolled out **by digest** — a tag can be moved afterwards and a digest cannot.
+3. **The check.** `/healthz` is asked which commit it is serving, and the delivery fails unless the answer is the commit that was just built.
+
+A pull request that touches `infra/` gets a `terraform plan` in its summary instead, so what the cloud is about to become is reviewable before the merge.
+
+## 7. Leave one entrance
+
+Once the domain answers, withdraw the platform's own address for the service, so that there is one way in and one issuer of tokens: set `disable_default_url = true` in `prod.auto.tfvars` and merge. It is a step of its own because Cloud Run asks for the domain to be mapped before its own address is withdrawn — and until the certificate exists, that address is the only way to reach anything at all.
+
+A deployment with no domain of its own instead sets `create_domain_mapping = false` and puts the platform's address in `public_host`, which is known only after the first delivery — so it takes two.
+
+## The first delivery, as a checklist
+
+- [ ] `prod.auto.tfvars` and `backend.hcl` filled in, and a project id nobody has taken.
+- [ ] `just bootstrap`, and the two lines it prints committed to `infra/ci.env`.
+- [ ] The consent screen published and a Web client created; its client id in `prod.auto.tfvars`.
+- [ ] The domain verified, its CNAME created, and the deployment identity added as a verified owner.
+- [ ] Both repository secrets: `GOOGLE_OAUTH_CLIENT_SECRET` and `TF_VAR_billing_account`.
+- [ ] Merged to `main`, and all three jobs green.
+- [ ] `disable_default_url = true` merged, once the domain answers.
 
 It is not finished until all four of these say so:
 
@@ -181,14 +125,15 @@ gcloud artifacts repositories describe mathtrail --location=us-central1
 | Variable | Default | What it is |
 |---|---|---|
 | `project_id` | — | The project everything lives in |
-| `billing_account` | — | The account the spend alert is created on |
+| `billing_account` | — | The account the spend alert is created on; comes from `TF_VAR_billing_account`, not from a file |
 | `public_host` | — | The host the service answers on and calls itself |
 | `google_oauth_client_id` | — | The Google OAuth client of the sign-in |
 | `github_repository` | — | `owner/name` of the repository allowed to deploy |
-| `github_owner_id` | — | The numeric id of that owner |
+| `github_owner_id` | — | The numeric id of that owner; the pool's condition is built from it |
+| `workload_identity_pool_id` | `mathtrail-github` | The pool created by the bootstrap, in which a workflow's token is exchanged |
 | `region` | `us-central1` | Has to offer domain mappings and be a first-tier region |
 | `service_name` | `mathtrail` | Names the service, its images, its secrets and its identities |
-| `image` | a placeholder | The image to serve, always by digest |
+| `image` | a placeholder | What a service created from nothing starts with; after that the delivery owns the field |
 | `max_instances` | `3` | The ceiling on instances running at once |
 | `concurrency` | `80` | Requests one instance serves at a time |
 | `cpu`, `memory` | `1`, `512Mi` | Per instance, allocated only while serving |
@@ -203,13 +148,13 @@ gcloud artifacts repositories describe mathtrail --location=us-central1
 | `keep_images` | `5` | Image versions kept whatever their age |
 | `image_max_age` | `30d` | When an older version is deleted |
 
-## What Terraform does not own
+## What nothing in this repository owns
 
-- **The project and its billing.** Both exist before the first apply.
-- **The secret values.** Added by hand, so that no state file ever holds one.
-- **The Google OAuth client and the consent screen.** Created in the Google console; the client id goes into `terraform.tfvars` and the client secret into Secret Manager.
-- **Domain ownership and DNS.** Verified and configured with the registrar.
-- **The image.** Built and deployed by the workflow; the variable here is only what a service created from nothing starts with.
+- **The project's billing.** Linked by the bootstrap, owned by whoever pays.
+- **The values of the secrets.** One is generated by the pipeline and read by nobody; the other is pasted once. Neither is ever in the state.
+- **The Google OAuth client and the consent screen.** No API exists; they are the reason step 3 is done by hand.
+- **Domain ownership and DNS.** At the registrar and in Search Console.
+- **The pool the pipeline signs in through.** Created by the bootstrap, deliberately outside Terraform.
 
 ## What can cost money
 
@@ -220,7 +165,8 @@ The intent is $0, and inside the free allowance it is $0 — but the allowance i
 - **Secret Manager** beyond six active versions or the monthly free accesses. A version is read once per instance start, and the rotation keeps at most three versions live.
 - **Cloud Logging** beyond the free monthly ingestion.
 - **A region that is not first-tier**, where the free allowance does not apply.
-- **A load balancer**, if the domain mapping is ever replaced by one. Domain mappings cost nothing; a forwarding rule is billed by the hour whether anybody visits or not.
+- **Cloud DNS**, if the domain's records are ever moved into it: a managed zone is billed per month whether anybody visits or not. That is why DNS stays at the registrar and those two records are made by hand.
+- **A load balancer**, if the domain mapping is ever replaced by one. Domain mappings cost nothing; a forwarding rule is billed by the hour.
 
 The spend alert warns, it does not stop anything: Google has no switch that halts a project at a number. Treat the first alert as a fault to investigate.
 
@@ -228,7 +174,7 @@ The spend alert warns, it does not stop anything: Google has no switch that halt
 
 ## Rotating the sealing key
 
-Both keys are versions of the same secret. Add the new version, make it the current one, keep the version that was current as the previous one, apply, and only then disable what fell off the end:
+Both keys are versions of the same secret. Add a version, then say in `prod.auto.tfvars` which version seals and which one is still accepted, and merge:
 
 ```bash
 head -c 32 /dev/urandom | base64 | tr -d '\n' \
@@ -240,8 +186,28 @@ seal_key_version          = "3"
 seal_key_previous_version = "2"
 ```
 
-Tokens sealed with the previous key keep working until they expire on their own, so nobody is signed out by a rotation.
+Tokens sealed with the previous key keep working until they expire on their own, so nobody is signed out by a rotation. Only once the deployment is serving with the new version does the version that fell off the end get disabled.
+
+## When the pipeline is not available
+
+Everything the pipeline does is a recipe, so the same delivery runs from a laptop — for an emergency, or to see what a step does:
+
+```bash
+export TF_VAR_billing_account=01ABCD-234567-89EFGH   # as in the repository secret
+gcloud auth application-default login                # the credentials Terraform reads
+just ci-tf-apply                                     # the cloud, as described
+image=$(just ci-image-push "$(terraform -chdir=infra/terraform output -raw image_repository)/server")
+just ci-deploy mathtrail us-central1 "$image"
+just ci-smoke https://mcp.example.com
+```
+
+A rollback is one of these too, and it is a revision rather than an apply — Terraform does not know which digest is live, and Cloud Run keeps every revision that ever served:
+
+```bash
+gcloud run revisions list --service=mathtrail --region=us-central1
+gcloud run services update-traffic mathtrail --region=us-central1 --to-revisions=REVISION=100
+```
 
 ## Removing a deployment
 
-`terraform destroy` removes everything this configuration created, including the secrets and every version in them: copy the sealing key out first if anything sealed with it still matters. The APIs stay enabled, because switching one off breaks whatever else in the project still uses it. The project, the state bucket, the DNS record and the OAuth client were never described here and stay as they are.
+`terraform destroy` removes everything the configuration created, including the secrets and every version in them: copy the sealing key out first if anything sealed with it still matters. The APIs stay enabled, because switching one off breaks whatever else in the project still uses it. The project, the state bucket, the federated pool, the DNS records and the OAuth client were never described here and stay as they are.

@@ -201,6 +201,68 @@ tf-check:
     terraform -chdir={{ TF_DIR }} init -backend=false -input=false
     terraform -chdir={{ TF_DIR }} validate
 
+# Create the project, the bucket of its state and the identity the pipeline uses
+bootstrap:
+    bash infra/bootstrap.sh
+
+# Show what an apply would change, without changing anything
+ci-tf-plan:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    terraform -chdir={{ TF_DIR }} init -backend-config=backend.hcl -input=false
+    terraform -chdir={{ TF_DIR }} plan -input=false -no-color
+
+# Bring the cloud up to what this repository says it should be
+ci-tf-apply:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    tf() { terraform -chdir={{ TF_DIR }} "$@"; }
+
+    tf init -backend-config=backend.hcl -input=false
+
+    # The secrets come first, on their own. A revision cannot start until they
+    # hold something, and what they hold is not described in this repository.
+    tf apply -auto-approve -input=false \
+        -target=google_secret_manager_secret.seal_key \
+        -target=google_secret_manager_secret.google_client_secret
+
+    project=$(tf output -raw project_id)
+    seal_key=$(tf output -raw secret_seal_key)
+    client_secret=$(tf output -raw secret_google_client)
+
+    has_version() {
+        [ -n "$(gcloud secrets versions list "$1" --project="$project" --limit=1 --format='value(name)' 2>/dev/null)" ]
+    }
+
+    # The sealing key is made here and read by nobody: not a person, not the
+    # state, not a log. A key that never existed outside Secret Manager is one
+    # nobody has to be trusted with.
+    if has_version "$seal_key"; then
+        echo "seal key: a version exists, leaving it alone"
+    else
+        echo "seal key: generating the first version"
+        head -c 32 /dev/urandom | base64 | tr -d '\n' \
+            | gcloud secrets versions add "$seal_key" --project="$project" --data-file=- > /dev/null
+    fi
+
+    # This one cannot be generated: it exists only in the Google console, and it
+    # is passed in through the environment for exactly this step.
+    if has_version "$client_secret"; then
+        echo "client secret: a version exists, leaving it alone"
+    elif [ -n "${GOOGLE_OAUTH_CLIENT_SECRET:-}" ]; then
+        echo "client secret: adding the first version"
+        printf '%s' "$GOOGLE_OAUTH_CLIENT_SECRET" \
+            | gcloud secrets versions add "$client_secret" --project="$project" --data-file=- > /dev/null
+    else
+        echo "ci-tf-apply: $client_secret holds no version and GOOGLE_OAUTH_CLIENT_SECRET is not set." >&2
+        echo "The service cannot start without it: take it from the Google OAuth client." >&2
+        exit 1
+    fi
+
+    tf apply -auto-approve -input=false
+    tf output
+
 # -- Container --------------------------------------------------------------
 
 # Publish the image the full checks run inside, and print its exact reference
@@ -347,3 +409,14 @@ golden:
 
     echo ""
     echo "Golden vectors are in testdata/golden/. A second run must produce byte-identical files."
+
+# Print the deployment target, one fact per line, for a caller to read
+ci-tf-outputs:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    tf() { terraform -chdir={{ TF_DIR }} "$@"; }
+    echo "deploy_service_account=$(tf output -raw deploy_service_account)"
+    echo "image_repository=$(tf output -raw image_repository)"
+    echo "service=$(tf output -raw service_name)"
+    echo "region=$(tf output -raw region)"
+    echo "public_url=$(tf output -raw public_url)"

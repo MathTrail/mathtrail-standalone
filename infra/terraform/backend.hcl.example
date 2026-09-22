@@ -1,7 +1,0 @@
-# Copy to backend.hcl and fill in, then: terraform init -backend-config=backend.hcl
-#
-# The bucket is created before the first init; it is not described in this
-# configuration, because a backend cannot create the place it stores state in.
-
-bucket = "mathtrail-tfstate-123456"
-prefix = "mathtrail"

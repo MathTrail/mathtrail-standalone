@@ -44,3 +44,8 @@ crash.*.log
 
 # Working directory of the static analysis scanner.
 .scannerwork/
+
+# The one deployment this repository delivers to is described in the repository,
+# not in somebody's console: these two are committed on purpose.
+!infra/terraform/prod.auto.tfvars
+!infra/terraform/backend.hcl

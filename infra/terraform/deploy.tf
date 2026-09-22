@@ -1,35 +1,11 @@
-# How a deployment gets in. A pool trusts the tokens GitHub issues to one
-# repository, and an identity with just enough rights to push an image and roll
-# a revision borrows them. No service account key exists anywhere, so there is
-# none to leak.
-
-resource "google_iam_workload_identity_pool" "github" {
-  workload_identity_pool_id = "${var.service_name}-github"
-  display_name              = "GitHub Actions"
-  description               = "Tokens GitHub Actions issues to the repository of this service"
-
-  depends_on = [google_project_service.enabled]
-}
-
-resource "google_iam_workload_identity_pool_provider" "github" {
-  workload_identity_pool_id          = google_iam_workload_identity_pool.github.workload_identity_pool_id
-  workload_identity_pool_provider_id = "github"
-  display_name                       = "GitHub Actions"
-
-  # Both halves matter. The name says which repository, and the numeric owner id
-  # says that it is still ours: an account that is renamed or deleted frees its
-  # name for anyone to take, and the number goes with it.
-  attribute_condition = "assertion.repository == \"${var.github_repository}\" && assertion.repository_owner_id == \"${var.github_owner_id}\""
-
-  attribute_mapping = {
-    "google.subject"       = "assertion.sub"
-    "attribute.repository" = "assertion.repository"
-  }
-
-  oidc {
-    issuer_uri = "https://token.actions.githubusercontent.com"
-  }
-}
+# How a deployment gets in: an identity with just enough rights to push an image
+# and roll a revision, borrowed through the tokens GitHub issues to one
+# repository. No service account key exists anywhere, so there is none to leak.
+#
+# The pool those tokens are exchanged in is deliberately not described here. It
+# is what this configuration itself is applied through, and a door cannot be
+# built by whoever walks in by it: the pool, its provider and the identity that
+# runs Terraform are created once, from outside, and named here by id.
 
 resource "google_service_account" "deployer" {
   account_id   = "${var.service_name}-deploy"
@@ -41,7 +17,7 @@ resource "google_service_account" "deployer" {
 resource "google_service_account_iam_member" "deployer_from_github" {
   service_account_id = google_service_account.deployer.name
   role               = "roles/iam.workloadIdentityUser"
-  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${var.github_repository}"
+  member             = "principalSet://iam.googleapis.com/projects/${data.google_project.this.number}/locations/global/workloadIdentityPools/${var.workload_identity_pool_id}/attribute.repository/${var.github_repository}"
 }
 
 # Push an image into the one repository,

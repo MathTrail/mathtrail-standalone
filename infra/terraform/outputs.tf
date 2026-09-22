@@ -36,11 +36,21 @@ output "runtime_service_account" {
 }
 
 output "deploy_service_account" {
-  description = "The identity a deployment borrows."
+  description = "The identity a deployment borrows to push an image and roll a revision."
   value       = google_service_account.deployer.email
 }
 
-output "workload_identity_provider" {
-  description = "The provider a deployment presents its GitHub token to, in the full form the sign-in step expects."
-  value       = google_iam_workload_identity_pool_provider.github.name
+output "project_id" {
+  description = "The project everything lives in, so that a caller does not have to be told twice."
+  value       = var.project_id
+}
+
+output "secret_seal_key" {
+  description = "The secret holding the sealing key. It has to hold a version before a revision can start."
+  value       = google_secret_manager_secret.seal_key.secret_id
+}
+
+output "secret_google_client" {
+  description = "The secret holding the Google client secret, on the same condition."
+  value       = google_secret_manager_secret.google_client_secret.secret_id
 }

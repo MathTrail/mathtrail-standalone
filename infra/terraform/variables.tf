@@ -8,8 +8,13 @@ variable "project_id" {
 }
 
 variable "billing_account" {
-  description = "The billing account the project pays through, as an id of the form 01ABCD-234567-89EFGH. The spend alert is created on it."
+  description = "The billing account the project pays through, as an id of the form 01ABCD-234567-89EFGH. The spend alert is created on it. It is the one fact about this deployment that is not written down beside the others: it names the account that pays, so it arrives from the environment as TF_VAR_billing_account."
   type        = string
+
+  validation {
+    condition     = can(regex("^[0-9A-F]{6}-[0-9A-F]{6}-[0-9A-F]{6}$", var.billing_account))
+    error_message = "billing_account is the id of a billing account, of the form 01ABCD-234567-89EFGH, and it comes from TF_VAR_billing_account."
+  }
 }
 
 variable "region" {
@@ -31,6 +36,13 @@ variable "public_host" {
 variable "google_oauth_client_id" {
   description = "The Google OAuth client the sign-in uses. Not a secret: it travels in every authorization request."
   type        = string
+
+  # A deployment with a placeholder here would come up green and refuse every
+  # sign-in, which is the one failure worth catching before anything is built.
+  validation {
+    condition     = can(regex("^[0-9]+-[a-z0-9]+\\.apps\\.googleusercontent\\.com$", var.google_oauth_client_id))
+    error_message = "google_oauth_client_id is the client id of a Google OAuth client, of the form 123456789012-abc123.apps.googleusercontent.com."
+  }
 }
 
 variable "github_repository" {
@@ -44,13 +56,19 @@ variable "github_repository" {
 }
 
 variable "github_owner_id" {
-  description = "The numeric id of the account or organisation that owns the repository, from https://api.github.com/users/<owner>. A name can be given up and taken by somebody else; a number cannot."
+  description = "The numeric id of the account or organisation that owns the repository, from https://api.github.com/users/<owner>. A name can be given up and taken by somebody else; a number cannot. Nothing here reads it — it is the condition the federated pool is created with — and it lives beside the rest of the deployment's facts so that there is one place to read them from."
   type        = string
 
   validation {
     condition     = can(regex("^[0-9]+$", var.github_owner_id))
     error_message = "github_owner_id is the numeric id, not the name."
   }
+}
+
+variable "workload_identity_pool_id" {
+  description = "The federated pool the repository's tokens are exchanged in. It exists before this configuration is ever applied — it is how the apply itself signs in — so it is named here rather than created."
+  type        = string
+  default     = "mathtrail-github"
 }
 
 variable "service_name" {
