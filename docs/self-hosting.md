@@ -84,7 +84,7 @@ A push to `main` — or the workflow started by hand from any branch — runs th
 
 1. **The cloud, as described.** `terraform apply`, every time, so the deployment always matches the branch it was cut from. On the very first run this is what creates everything; afterwards it is usually a no-op that takes half a minute.
 2. **The image of this commit.** Built, pushed to the registry with the commit as its tag, and rolled out **by digest** — a tag can be moved afterwards and a digest cannot.
-3. **The check.** `/healthz` is asked which commit it is serving, and the delivery fails unless the answer is the commit that was just built.
+3. **The check.** `/health` is asked which commit it is serving, and the delivery fails unless the answer is the commit that was just built.
 
 A pull request that touches `infra/` gets a `terraform plan` in its summary instead, so what the cloud is about to become is reviewable before the merge.
 

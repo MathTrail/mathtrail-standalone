@@ -1078,7 +1078,7 @@ The design and the reasoning are [02-auth](docs/architecture/02-auth.md); this s
 
 | Path | Method | Auth | Cache | Notes |
 |---|---|---|---|---|
-| `/healthz` | GET | none | `no-store` | The only path served on any `Host` |
+| `/health` | GET | none | `no-store` | The only path served on any `Host` |
 | `/mcp` | GET, POST | Bearer | `no-store` | The MCP endpoint, stateless Streamable HTTP over 2026-07-28 |
 | `/.well-known/oauth-protected-resource/mcp` | GET | none | `max-age=3600` | RFC 9728 for the resource `<public-url>/mcp` |
 | `/.well-known/oauth-protected-resource` | GET | none | `max-age=3600` | The same document at the root |
@@ -1096,7 +1096,7 @@ Nothing else exists. There is no admin path, no metrics endpoint — the metrics
 
 | Rule | Value |
 |---|---|
-| **Host** | Only the configured public host is served; anything else gets `404` with an empty body, except `/healthz`. The issuer, the canonical resource and every absolute URL come from `MATHTRAIL_PUBLIC_URL`, never from the request (02-auth) |
+| **Host** | Only the configured public host is served; anything else gets `404` with an empty body, except `/health`. The issuer, the canonical resource and every absolute URL come from `MATHTRAIL_PUBLIC_URL`, never from the request (02-auth) |
 | **Origin** | On `/mcp`, a request carrying an `Origin` that is not the public URL is refused with `403`. The SDK's own DNS-rebinding protection stays on: the service listens on its real domain, unlike the spikes |
 | **CORS** | The `.well-known` documents answer `Access-Control-Allow-Origin: *` — they are public metadata a browser-based client may fetch. Nothing else sends CORS headers, and no endpoint answers a preflight with credentials |
 | **Body size** | 1 MB on `/mcp` (a submitted task with its solver is ~20 KB), 64 KB on the OAuth endpoints, 64 KB on a fetched Client ID Metadata Document |

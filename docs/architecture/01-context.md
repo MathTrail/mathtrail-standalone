@@ -20,7 +20,7 @@ flowchart LR
 
     subgraph svc["MathTrail · one Go binary · Cloud Run · own domain"]
         direction TB
-        router["HTTP router<br/>/healthz, /mcp, /oauth/*"]
+        router["HTTP router<br/>/health, /mcp, /oauth/*"]
         authsrv["Authorization server<br/>OAuth 2.1 + PKCE, CIMD, consent"]
         mcpsrv["MCP server<br/>Streamable HTTP 2026-07-28,<br/>stateless"]
         tools["Tools<br/>profile, progress, next task,<br/>submit task, answer"]
@@ -119,7 +119,7 @@ Platforms outside v1 are deliberately absent from the diagram: Gemini and DeepSe
 
 | Component | Responsibility | PRODUCT | RUN task |
 |---|---|---|---|
-| **HTTP router** | The single entry point of the process: `/healthz`, `/mcp`, the OAuth and `.well-known` endpoints. Timeouts, body size limit, `Origin` check, client address from the last hop of `X-Forwarded-For`, own domain as the issuer | 6, 7, 9.3 | T17, T41, T47 |
+| **HTTP router** | The single entry point of the process: `/health`, `/mcp`, the OAuth and `.well-known` endpoints. Timeouts, body size limit, `Origin` check, client address from the last hop of `X-Forwarded-For`, own domain as the issuer | 6, 7, 9.3 | T17, T41, T47 |
 | **Authorization server** | We are our own OAuth 2.1 authorization server: resource and server metadata, CIMD with SSRF protection and DCR as a fallback, `/authorize` with a consent screen and a CSRF cookie, the Google sign-in, the callback, `/token`, refresh, revoke, and the bearer check on every request | 6, 7, 9.3 | T47–T49 |
 | **MCP server** | The protocol: Streamable HTTP 2026-07-28, stateless, on go-sdk v1.8.0; `tools/list` and `tools/call`; the `ui://` resource with its MIME type and CSP; server `instructions` with their version. The set of supported protocol versions is not narrowed (R02) | 4.1, 4.2, 7, 9.3 | T41, T42 |
 | **Tools** | The five capabilities of PRODUCT 4.1, plus the answer tool the widget calls directly (О-42). Every call is the same shape: read the profile, compute, write it back. Nothing secret and nothing internal ever goes into `structuredContent` (О-39) | 3, 4.1–4.4 | T43–T45 |

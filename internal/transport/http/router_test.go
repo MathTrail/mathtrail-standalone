@@ -27,7 +27,7 @@ func TestMain(m *testing.M) {
 func TestHealthz(t *testing.T) {
 	t.Parallel()
 
-	rec := call(t, http.MethodGet, "/healthz")
+	rec := call(t, http.MethodGet, "/health")
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
@@ -51,7 +51,7 @@ func TestHealthz(t *testing.T) {
 func TestEveryAnswerCarriesARequestID(t *testing.T) {
 	t.Parallel()
 
-	rec := call(t, http.MethodGet, "/healthz")
+	rec := call(t, http.MethodGet, "/health")
 
 	if rec.Header().Get(middleware.RequestIDHeader) == "" {
 		t.Errorf("%s is empty, want an id on every answer", middleware.RequestIDHeader)
@@ -62,7 +62,7 @@ func TestAClientsRequestIDIsKept(t *testing.T) {
 	t.Parallel()
 
 	router := httpserver.NewRouter(httpserver.NewHealthHandler(), zaptest.NewLogger(t))
-	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/healthz", http.NoBody)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/health", http.NoBody)
 	req.Header.Set(middleware.RequestIDHeader, "from-the-caller")
 	rec := httptest.NewRecorder()
 	router.ServeHTTP(rec, req)
@@ -92,7 +92,7 @@ func TestRefusals(t *testing.T) {
 		{
 			name:       "wrong method",
 			method:     http.MethodPost,
-			path:       "/healthz",
+			path:       "/health",
 			wantStatus: http.StatusMethodNotAllowed,
 			wantCode:   apierror.CodeMethodNotAllowed,
 		},
@@ -136,7 +136,7 @@ func call(t *testing.T, method, path string) *httptest.ResponseRecorder {
 func TestA405SaysWhichMethodsWork(t *testing.T) {
 	t.Parallel()
 
-	rec := call(t, http.MethodPost, "/healthz")
+	rec := call(t, http.MethodPost, "/health")
 
 	if rec.Code != http.StatusMethodNotAllowed {
 		t.Fatalf("status = %d, want %d", rec.Code, http.StatusMethodNotAllowed)

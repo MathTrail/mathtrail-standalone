@@ -42,9 +42,9 @@ func TestSuccessfulProbesAreNotLogged(t *testing.T) {
 	t.Parallel()
 
 	logs, router := routerWithObservedLogs(t)
-	router.GET("/healthz", func(c *gin.Context) { c.Status(http.StatusOK) })
+	router.GET("/health", func(c *gin.Context) { c.Status(http.StatusOK) })
 
-	serve(t, router, http.MethodGet, "/healthz")
+	serve(t, router, http.MethodGet, "/health")
 
 	if logs.Len() != 0 {
 		t.Errorf("a successful probe wrote %d lines, want none", logs.Len())
@@ -55,9 +55,9 @@ func TestFailuresAreLoggedWithTheirRequestID(t *testing.T) {
 	t.Parallel()
 
 	logs, router := routerWithObservedLogs(t)
-	router.GET("/healthz", func(c *gin.Context) { c.Status(http.StatusServiceUnavailable) })
+	router.GET("/health", func(c *gin.Context) { c.Status(http.StatusServiceUnavailable) })
 
-	serve(t, router, http.MethodGet, "/healthz")
+	serve(t, router, http.MethodGet, "/health")
 
 	line := onlyLine(t, logs)
 	if line.Level != zapcore.ErrorLevel {

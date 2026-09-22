@@ -31,7 +31,7 @@ One process wears two hats: it is the **authorization server** the host signs in
 | `/oauth/token` | POST | `authorization_code` and `refresh_token` | PKCE / the refresh token |
 | `/oauth/revoke` | POST | RFC 7009; revokes the grant at Google | the token itself |
 | `/mcp` | GET, POST | the protected resource | Bearer |
-| `/healthz` | GET | liveness; the only path served on any `Host` | public |
+| `/health` | GET | liveness; the only path served on any `Host` | public |
 
 Two things are deliberately absent. There is no user-facing account page — we have no accounts, only Google's. And there is no session cookie: the consent cookie remembers an approval, nothing else, and losing it costs one extra screen.
 
@@ -257,7 +257,7 @@ With one scope, no tool can ever answer `insufficient_scope`, so v1 issues no st
 
 T06 left this open too. The issuer, the canonical resource and every absolute URL we emit come from configuration (`MATHTRAIL_PUBLIC_URL`), never from the `Host` header. The T04 spike did the opposite, deriving the issuer per request, for one reason that does not apply in production: a `trycloudflare.com` subdomain is unknown when the process starts.
 
-A Cloud Run service stays reachable at its `run.app` address even when a custom domain is in front of it, so the rule is: `/healthz` answers on any `Host`, because the platform's own probes use that address; every other path answers `404` with an empty body when the `Host` is not our domain, and one counter in the log records it. This is not a security boundary — a token's audience is checked against the configured canonical resource anyway, so a token obtained at the wrong entrance would not be honoured — it is about there being exactly one issuer and one set of metadata. Where Cloud Run's "disable default URL" setting is available, T20 turns the second entrance off at the platform level as well.
+A Cloud Run service stays reachable at its `run.app` address even when a custom domain is in front of it, so the rule is: `/health` answers on any `Host`, because the platform's own probes use that address; every other path answers `404` with an empty body when the `Host` is not our domain, and one counter in the log records it. This is not a security boundary — a token's audience is checked against the configured canonical resource anyway, so a token obtained at the wrong entrance would not be honoured — it is about there being exactly one issuer and one set of metadata. Where Cloud Run's "disable default URL" setting is available, T20 turns the second entrance off at the platform level as well.
 
 ## Where the state lives
 
