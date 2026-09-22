@@ -75,6 +75,23 @@ test:
 build:
     go build -trimpath -ldflags "{{ LDFLAGS }}" -o {{ BINARY }} ./cmd/server
 
+# Build the release artifacts into dist/: the server for every architecture it is
+# published for, and the sums of what was built. The same flags as build, so a
+# binary from a tag and a binary from a laptop differ only in what they were
+# built from.
+release-artifacts:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    rm -rf dist
+    mkdir -p dist
+    for arch in amd64 arm64; do
+        name="mathtrail-server_{{ VERSION }}_linux_${arch}"
+        CGO_ENABLED=0 GOOS=linux GOARCH="$arch" go build \
+            -trimpath -ldflags "{{ LDFLAGS }}" -o "dist/$name" ./cmd/server
+    done
+    cd dist && sha256sum * > SHA256SUMS
+    echo "dist: $(ls | wc -l) files"
+
 # Run the server from source, with logs a person can read
 run:
     MATHTRAIL_LOG_FORMAT=console MATHTRAIL_LOG_LEVEL=debug go run ./cmd/server
