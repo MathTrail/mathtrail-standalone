@@ -4,14 +4,7 @@ Draft answers for the **passing** level of the [OpenSSF Best Practices](https://
 
 Keep this file current when a criterion's answer changes — the badge is re-confirmed rather than earned once.
 
-## Before the form is submitted
-
-| What | Why |
-|---|---|
-| Write `CONTRIBUTING.md` | Two criteria (`contribution`, `contribution_requirements`) ask for a documented contribution process, and the repository has none. It is also the place to say what О-4 already decided: the code is MIT, the name is not. |
-| Enable private vulnerability reporting | `vulnerability_report_private` rests on it, and [`SECURITY.md`](../SECURITY.md) already points there. |
-
-Everything else below is already true.
+Everything below is already true: the form can be filled in one sitting.
 
 ## Basics
 
@@ -19,8 +12,8 @@ Everything else below is already true.
 |---|---|---|
 | `description_good` | Met | [`README.md`](../README.md) — what it is and who it is for, in the first three lines |
 | `interact` | Met | GitHub issues on the repository |
-| `contribution` | **Unmet** | needs `CONTRIBUTING.md` |
-| `contribution_requirements` | **Unmet** | the same file; the standards themselves are written in [`CLAUDE.md`](../CLAUDE.md) |
+| `contribution` | Met | [`CONTRIBUTING.md`](../CONTRIBUTING.md) — how to report, what is welcome, what will be declined |
+| `contribution_requirements` | Met | [`CONTRIBUTING.md`](../CONTRIBUTING.md) "What a change has to satisfy"; the conventions themselves are [`CLAUDE.md`](../CLAUDE.md) |
 | `floss_license`, `license_location` | Met | MIT in [`LICENSE`](../LICENSE), at the top level |
 | `documentation_basics` | Met | `README.md`, [`PRODUCT-V1.md`](../PRODUCT-V1.md), `SPEC.md`, `docs/` |
 | `documentation_interface` | Met | `SPEC.md` sections 7–9: every tool, every endpoint and what each answers |
