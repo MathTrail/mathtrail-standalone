@@ -4,8 +4,6 @@ MathTrail is MIT-licensed and holds nothing of its own: every deployment is one 
 
 The name is not part of the licence: a copy that is not this project is named differently.
 
-> The first version of this page. The sign-in client and the Google consent screen are set up by hand and are described in a later revision, together with the checklist of a first deployment.
-
 ## What you need
 
 - A Google Cloud project with billing attached, and a billing account you may create budgets on.
@@ -132,6 +130,51 @@ gcloud run services update-traffic mathtrail --region=us-central1 --to-revisions
 ```
 
 Running the deployment again at an older commit does the same thing the long way round, and leaves the registry with an image for that commit.
+
+## 9. The Google sign-in
+
+The parent signs in with Google, and the service asks Google for exactly two things: a verified identifier, and room for one file of its own in the parent's Drive. None of it is in Terraform — it is configured by hand in the Google Cloud console, under **Google Auth Platform**, on its four pages.
+
+**Branding.** The name people see on the consent screen, a support email, and three links: the home page, the privacy policy and the terms — for this deployment `https://mathtrail.app/en/`, `https://mathtrail.app/en/privacy/` and `https://mathtrail.app/en/terms/`. Add the top private domain of those links, `mathtrail.app`, as an authorized domain: one entry covers both the site on the apex and the service on its subdomain. Its ownership is already verified from step 3.
+
+**Audience.** User type **External**, publishing status **In production**. Not Testing: there a consent expires seven days after it is given and takes the refresh token with it, so every parent would be signed out once a week.
+
+**Data access.** Two scopes and no others: `openid`, which is what makes the identifier verified, and `https://www.googleapis.com/auth/drive.file`, which reaches only the files the app itself created plus anything the parent hands it explicitly. Both are non-sensitive, so publishing needs no app verification at all; brand verification is the separate, lighter process that makes the app's own name and logo appear on the consent screen instead of the project's name.
+
+**Clients.** One client, type **Web application**, with a single authorized redirect URI — `https://<your host>/oauth/callback`, no trailing slash. No authorized JavaScript origins: the sign-in is a redirect the service performs, never a script inside a page. The client id goes into `terraform.tfvars`; the client secret goes into Secret Manager in step 5.
+
+Neither the project nor this client is ever recreated. A parent grants `drive.file` to that client in that project, and the grant cannot be moved: a new client sees none of the files parents have already given it, and every child's profile becomes unreachable through the app.
+
+## The first deployment, as a checklist
+
+Once, in this order. Each line points at the section that has the commands.
+
+- [ ] A Google Cloud project with billing attached, and the right to create a budget on that billing account.
+- [ ] [Sign in](#1-sign-in) from inside the container.
+- [ ] [Bootstrap](#2-bootstrap-what-terraform-cannot-create) the two APIs and the state bucket.
+- [ ] [The domain](#3-point-the-domain-at-cloud-run): ownership verified, the CNAME created. Early, because the certificate is issued only once that record resolves, and that can take a day.
+- [ ] [The Google sign-in](#9-the-google-sign-in): the consent screen in production and one Web client. Keep the client id and the client secret.
+- [ ] [Configure](#4-configure) Terraform: `terraform.tfvars` with that client id, `backend.hcl`, `terraform init`.
+- [ ] [Apply in two passes](#5-apply-in-two-passes): the secrets, their values by hand, then everything else.
+- [ ] [The deployment variables](#8-deploying): six repository variables, read with `terraform output`.
+- [ ] The first deployment: a merge to `main`, or the workflow started by hand from a branch.
+- [ ] [Leave one entrance](#6-leave-one-entrance), once the domain answers: `disable_default_url = true`, and apply again.
+
+It is not finished until all four of these say so:
+
+```bash
+# the domain answers, and answers as the commit that was deployed
+just ci-smoke https://mcp.example.com
+
+# the same version and commit in the line the service logs as it starts
+gcloud run services logs read mathtrail --region=us-central1 --limit=20
+
+# the spend alert exists and names this project
+gcloud billing budgets list --billing-account=01ABCD-234567-89EFGH
+
+# both cleanup policies are in force, and cleanupPolicyDryRun is false
+gcloud artifacts repositories describe mathtrail --location=us-central1
+```
 
 ## The variables
 
