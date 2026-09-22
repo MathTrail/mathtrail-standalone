@@ -101,15 +101,18 @@ jobs:
       # Signed before anything is published: a release that appears without its
       # signatures is worse than no release at all, so the failure has to happen
       # while there is still nothing to see.
+      #
+      # One bundle per artifact, carrying the signature and the certificate that
+      # says which workflow made it. Verified with:
+      #   cosign verify-blob --bundle <artifact>.sigstore.json \
+      #       --certificate-identity-regexp "^https://github.com/MathTrail/mathtrail-standalone/" \
+      #       --certificate-oidc-issuer https://token.actions.githubusercontent.com <artifact>
       - name: Sign every artifact
         run: |
           set -euo pipefail
           cd dist
           for file in *; do
-              cosign sign-blob --yes \
-                  --output-signature "${file}.sig" \
-                  --output-certificate "${file}.pem" \
-                  "$file"
+              cosign sign-blob --yes --bundle "${file}.sigstore.json" "$file"
           done
           ls -1
 
