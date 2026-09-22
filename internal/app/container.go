@@ -13,6 +13,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/content"
 	"github.com/MathTrail/mathtrail-standalone/internal/config"
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
 	httpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/http"
 )
 
@@ -23,6 +24,7 @@ type Container struct {
 	Config  *config.Config
 	Logger  *zap.Logger
 	Content *content.Content
+	Seal    *seal.KeyRing
 	Router  http.Handler
 
 	// closers run in reverse order of registration, so that a resource is
@@ -52,6 +54,20 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (*Co
 		zap.Int("skills", len(embedded.Skills())),
 		zap.Int("reference_tasks", embedded.ExampleCount()),
 		zap.String("instructions_version", embedded.InstructionsVersion()),
+	)
+
+	// The key ring is built next, and by the same rule: a key that cannot be
+	// read is a service that could issue nothing and open nothing, so it says
+	// so now rather than at the first sign-in.
+	ring, err := seal.NewKeyRing(cfg.SealKeyCurrent, cfg.SealKeyPrevious)
+	if err != nil {
+		c.Close(ctx)
+		return nil, err
+	}
+	c.Seal = ring
+	log.Info("seal keys loaded",
+		zap.String("key_id", ring.CurrentKeyID()),
+		zap.Bool("previous_key", ring.PreviousKeyID() != ""),
 	)
 
 	c.Router = httpserver.NewRouter(httpserver.NewHealthHandler(), log)

@@ -97,9 +97,13 @@ release-artifacts version=VERSION:
     sha256sum * > SHA256SUMS
     echo "dist: $(ls | wc -l) files"
 
-# Run the server from source, with logs a person can read
+# Run the server from source, with logs a person can read. The sealing key is
+# made fresh for the run and kept nowhere: locally there is nothing sealed that
+# has to outlive the process.
 run:
-    MATHTRAIL_LOG_FORMAT=console MATHTRAIL_LOG_LEVEL=debug go run ./cmd/server
+    MATHTRAIL_LOG_FORMAT=console MATHTRAIL_LOG_LEVEL=debug \
+        MATHTRAIL_SEAL_KEY_CURRENT="$(head -c 32 /dev/urandom | base64 | tr -d '\n')" \
+        go run ./cmd/server
 
 # Generate the mocks (mockery, config in .mockery.yaml)
 mocks:
@@ -381,9 +385,11 @@ docker-build tag="mathtrail:dev":
         --build-arg DATE="{{ DATE }}" \
         -t {{ tag }} .
 
-# Build the image and run it on port 8080
+# Build the image and run it on port 8080, with a sealing key made for this run
 docker-run tag="mathtrail:dev": (docker-build tag)
-    docker run --rm -e PORT=8080 -p 8080:8080 {{ tag }}
+    docker run --rm -e PORT=8080 \
+        -e MATHTRAIL_SEAL_KEY_CURRENT="$(head -c 32 /dev/urandom | base64 | tr -d '\n')" \
+        -p 8080:8080 {{ tag }}
 
 # -- Deployment -------------------------------------------------------------
 

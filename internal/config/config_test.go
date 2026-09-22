@@ -1,6 +1,8 @@
 package config_test
 
 import (
+	"bytes"
+	"encoding/base64"
 	"errors"
 	"strings"
 	"testing"
@@ -9,10 +11,25 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/config"
 )
 
+// The sealing keys of these tests: thirty-two bytes the reader only has to
+// recognise as a key, and that nothing here ever seals anything with.
+var (
+	sealKey         = base64.StdEncoding.EncodeToString(bytes.Repeat([]byte("mathtrail"), 4)[:32])
+	previousSealKey = base64.StdEncoding.EncodeToString(bytes.Repeat([]byte("rotated!!"), 4)[:32])
+)
+
+// withSealKey puts the one required secret in front of an environment, so that
+// a case about something else does not have to carry it. A case that is about
+// the key says so again and wins, because the last value of a variable is the
+// one that is read.
+func withSealKey(environ ...string) []string {
+	return append([]string{"MATHTRAIL_SEAL_KEY_CURRENT=" + sealKey}, environ...)
+}
+
 func TestDefaults(t *testing.T) {
 	t.Parallel()
 
-	cfg, err := config.LoadFrom(nil)
+	cfg, err := config.LoadFrom(withSealKey())
 	if err != nil {
 		t.Fatalf("LoadFrom() error = %v, want nil", err)
 	}
@@ -45,6 +62,7 @@ func TestValuesAreRead(t *testing.T) {
 
 	cfg, err := config.LoadFrom([]string{
 		"PORT=9000",
+		"MATHTRAIL_SEAL_KEY_CURRENT=" + sealKey,
 		"MATHTRAIL_PUBLIC_URL=https://mathtrail.example/",
 		"MATHTRAIL_LOG_LEVEL=debug",
 		"MATHTRAIL_LOG_FORMAT=console",
@@ -81,7 +99,7 @@ func TestValuesAreRead(t *testing.T) {
 func TestEmptyValueCountsAsUnset(t *testing.T) {
 	t.Parallel()
 
-	cfg, err := config.LoadFrom([]string{"MATHTRAIL_LOG_LEVEL=", "PORT="})
+	cfg, err := config.LoadFrom(withSealKey("MATHTRAIL_LOG_LEVEL=", "PORT="))
 	if err != nil {
 		t.Fatalf("LoadFrom() error = %v, want nil", err)
 	}
@@ -108,7 +126,7 @@ func TestLoopbackHostsMayUsePlainHTTP(t *testing.T) {
 		t.Run(host, func(t *testing.T) {
 			t.Parallel()
 
-			if _, err := config.LoadFrom([]string{"MATHTRAIL_PUBLIC_URL=" + host}); err != nil {
+			if _, err := config.LoadFrom(withSealKey("MATHTRAIL_PUBLIC_URL=" + host)); err != nil {
 				t.Errorf("LoadFrom(%q) error = %v, want nil", host, err)
 			}
 		})
@@ -122,7 +140,7 @@ func TestLoopbackHostsMayUsePlainHTTP(t *testing.T) {
 		t.Run(host, func(t *testing.T) {
 			t.Parallel()
 
-			if _, err := config.LoadFrom([]string{"MATHTRAIL_PUBLIC_URL=" + host}); err == nil {
+			if _, err := config.LoadFrom(withSealKey("MATHTRAIL_PUBLIC_URL=" + host)); err == nil {
 				t.Errorf("LoadFrom(%q) error = nil, want https to be required", host)
 			}
 		})
@@ -134,12 +152,12 @@ func TestLoopbackHostsMayUsePlainHTTP(t *testing.T) {
 func TestOnlyDeclaredVariablesAreRead(t *testing.T) {
 	t.Parallel()
 
-	cfg, err := config.LoadFrom([]string{
+	cfg, err := config.LoadFrom(withSealKey(
 		"DB_PASSWORD=hunter2",
 		"AWS_SECRET_ACCESS_KEY=secret",
 		"PATH=/usr/bin",
 		"PORT=9200",
-	})
+	))
 	if err != nil {
 		t.Fatalf("LoadFrom() error = %v, want nil", err)
 	}
@@ -170,10 +188,10 @@ func TestDecodeFailuresNameEveryBadVariable(t *testing.T) {
 func TestDeployed(t *testing.T) {
 	t.Parallel()
 
-	cfg, err := config.LoadFrom([]string{
+	cfg, err := config.LoadFrom(withSealKey(
 		"K_SERVICE=mathtrail",
 		"MATHTRAIL_PUBLIC_URL=https://mathtrail.example",
-	})
+	))
 	if err != nil {
 		t.Fatalf("LoadFrom() error = %v, want nil", err)
 	}
@@ -243,6 +261,28 @@ func TestRefusals(t *testing.T) {
 			wantVar: "MATHTRAIL_LOG_FORMAT",
 		},
 		{
+			name:    "the sealing key is not base64",
+			environ: []string{"MATHTRAIL_SEAL_KEY_CURRENT=not base64 at all!"},
+			wantVar: "MATHTRAIL_SEAL_KEY_CURRENT",
+		},
+		{
+			name:    "the sealing key is the wrong length",
+			environ: []string{"MATHTRAIL_SEAL_KEY_CURRENT=" + base64.StdEncoding.EncodeToString(make([]byte, 16))},
+			wantVar: "MATHTRAIL_SEAL_KEY_CURRENT",
+		},
+		{
+			name:    "the previous sealing key is not a key",
+			environ: []string{"MATHTRAIL_SEAL_KEY_PREVIOUS=half a key"},
+			wantVar: "MATHTRAIL_SEAL_KEY_PREVIOUS",
+		},
+		{
+			// A rotation that only looks done: both variables naming one
+			// key means nothing the retired key sealed can still be opened.
+			name:    "both sealing keys are the same key",
+			environ: []string{"MATHTRAIL_SEAL_KEY_PREVIOUS=" + sealKey},
+			wantVar: "MATHTRAIL_SEAL_KEY_PREVIOUS",
+		},
+		{
 			name:    "dev auth is not a boolean",
 			environ: []string{"MATHTRAIL_DEV_AUTH=yes please"},
 			wantVar: "MATHTRAIL_DEV_AUTH",
@@ -274,7 +314,7 @@ func TestRefusals(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := config.LoadFrom(tc.environ)
+			_, err := config.LoadFrom(withSealKey(tc.environ...))
 			if err == nil {
 				t.Fatalf("LoadFrom() error = nil, want an error naming %s", tc.wantVar)
 			}
@@ -293,6 +333,7 @@ func TestRefusals(t *testing.T) {
 func TestLoadReadsTheProcessEnvironment(t *testing.T) {
 	t.Setenv("PORT", "9100")
 	t.Setenv("MATHTRAIL_LOG_LEVEL", "warn")
+	t.Setenv("MATHTRAIL_SEAL_KEY_CURRENT", sealKey)
 
 	cfg, err := config.Load()
 	if err != nil {
@@ -303,5 +344,54 @@ func TestLoadReadsTheProcessEnvironment(t *testing.T) {
 	}
 	if cfg.LogLevel != "warn" {
 		t.Errorf("LogLevel = %q, want %q", cfg.LogLevel, "warn")
+	}
+}
+
+// The one secret with no default. A service handed no sealing key is refused
+// by name: inventing one would work until the first restart and then sign
+// every parent out without ever saying why.
+func TestTheSealingKeyIsRequired(t *testing.T) {
+	t.Parallel()
+
+	_, err := config.LoadFrom(nil)
+	if !errors.Is(err, config.ErrInvalid) {
+		t.Fatalf("LoadFrom() error = %v, want it to wrap ErrInvalid", err)
+	}
+	if !strings.Contains(err.Error(), "MATHTRAIL_SEAL_KEY_CURRENT") {
+		t.Errorf("error = %q, want it to name MATHTRAIL_SEAL_KEY_CURRENT", err)
+	}
+}
+
+// While a key is being rotated the service carries two, and neither variable
+// is read anywhere but here.
+func TestBothSealingKeysAreRead(t *testing.T) {
+	t.Parallel()
+
+	cfg, err := config.LoadFrom(withSealKey("MATHTRAIL_SEAL_KEY_PREVIOUS=" + previousSealKey))
+	if err != nil {
+		t.Fatalf("LoadFrom() error = %v, want nil", err)
+	}
+	if cfg.SealKeyCurrent != sealKey {
+		t.Error("SealKeyCurrent is not the key that was set")
+	}
+	if cfg.SealKeyPrevious != previousSealKey {
+		t.Error("SealKeyPrevious is not the key that was set")
+	}
+}
+
+// A refusal about a key names the variable and nothing else: the value behind
+// it is a secret, and an error message is read in places a secret may not go.
+func TestARefusalNeverCarriesTheSealingKey(t *testing.T) {
+	t.Parallel()
+
+	// Base64 of too few bytes: shaped like a key, and refused like one.
+	nearlyAKey := base64.StdEncoding.EncodeToString([]byte("too short to seal with"))
+
+	_, err := config.LoadFrom([]string{"MATHTRAIL_SEAL_KEY_CURRENT=" + nearlyAKey})
+	if err == nil {
+		t.Fatal("LoadFrom() error = nil, want a refusal")
+	}
+	if strings.Contains(err.Error(), nearlyAKey) {
+		t.Errorf("error = %q, want it to carry nothing of the key", err)
 	}
 }

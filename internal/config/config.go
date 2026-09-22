@@ -23,6 +23,8 @@ import (
 	"time"
 
 	"github.com/spf13/viper"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
 )
 
 // Defaults for every optional variable. They are named constants rather than
@@ -61,6 +63,15 @@ type Config struct {
 	WriteTimeout      time.Duration `mapstructure:"MATHTRAIL_HTTP_WRITE_TIMEOUT"`
 	IdleTimeout       time.Duration `mapstructure:"MATHTRAIL_HTTP_IDLE_TIMEOUT"`
 	ShutdownTimeout   time.Duration `mapstructure:"MATHTRAIL_SHUTDOWN_TIMEOUT"`
+
+	// SealKeyCurrent is the key everything is sealed and unsealed with,
+	// standard base64 of 32 random bytes. It is a secret: it belongs in no log
+	// line and in no error message, and only the identifier derived from it may
+	// be named anywhere.
+	SealKeyCurrent string `mapstructure:"MATHTRAIL_SEAL_KEY_CURRENT"`
+	// SealKeyPrevious is the key from before a rotation, which still opens what
+	// it sealed. Empty outside a rotation, and a secret like the one above.
+	SealKeyPrevious string `mapstructure:"MATHTRAIL_SEAL_KEY_PREVIOUS"`
 
 	// DevAuth replaces the Google sign-in with a stub. It is refused whenever
 	// K_SERVICE is set.
@@ -103,6 +114,8 @@ func LoadFrom(environ []string) (*Config, error) {
 	v.SetDefault("MATHTRAIL_HTTP_WRITE_TIMEOUT", DefaultWriteTimeout)
 	v.SetDefault("MATHTRAIL_HTTP_IDLE_TIMEOUT", DefaultIdleTimeout)
 	v.SetDefault("MATHTRAIL_SHUTDOWN_TIMEOUT", DefaultShutdownTimeout)
+	v.SetDefault("MATHTRAIL_SEAL_KEY_CURRENT", "")
+	v.SetDefault("MATHTRAIL_SEAL_KEY_PREVIOUS", "")
 	v.SetDefault("MATHTRAIL_DEV_AUTH", false)
 	v.SetDefault("K_SERVICE", "")
 
@@ -175,6 +188,10 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("%w: MATHTRAIL_PUBLIC_URL must carry no credentials: %q", ErrInvalid, c.PublicURL)
 	}
 
+	if err := c.validateSealKeys(); err != nil {
+		return err
+	}
+
 	switch c.LogLevel {
 	case "debug", "info", "warn", "error":
 	default:
@@ -208,6 +225,42 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("%w: MATHTRAIL_DEV_AUTH must not be set when K_SERVICE is set", ErrInvalid)
 	}
 
+	return nil
+}
+
+// validateSealKeys refuses a key the service could not seal with, naming the
+// variable that carries it. The key itself never reaches the message: what it
+// says is the shape that is wrong, never the value that is wrong.
+func (c *Config) validateSealKeys() error {
+	// The one secret with no sensible default: a service given no key could
+	// only invent one, and every token it issued would die with the process.
+	if c.SealKeyCurrent == "" {
+		return fmt.Errorf(
+			"%w: MATHTRAIL_SEAL_KEY_CURRENT must be set to %d random bytes in standard base64",
+			ErrInvalid, seal.KeySize)
+	}
+
+	current, err := seal.ParseKey(c.SealKeyCurrent)
+	if err != nil {
+		return fmt.Errorf("%w: MATHTRAIL_SEAL_KEY_CURRENT: %w", ErrInvalid, err)
+	}
+
+	// Outside a rotation there is no previous key, and that is the normal shape.
+	if c.SealKeyPrevious == "" {
+		return nil
+	}
+	previous, err := seal.ParseKey(c.SealKeyPrevious)
+	if err != nil {
+		return fmt.Errorf("%w: MATHTRAIL_SEAL_KEY_PREVIOUS: %w", ErrInvalid, err)
+	}
+
+	// Both variables holding one key is a rotation that only looks done: what
+	// the retired key sealed would stop opening the moment it is deployed.
+	if previous.ID() == current.ID() {
+		return fmt.Errorf(
+			"%w: MATHTRAIL_SEAL_KEY_PREVIOUS holds the same key as MATHTRAIL_SEAL_KEY_CURRENT; a rotation needs two",
+			ErrInvalid)
+	}
 	return nil
 }
 

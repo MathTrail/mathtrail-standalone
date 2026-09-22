@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"errors"
 	"net"
 	"strconv"
@@ -18,6 +20,8 @@ func TestRunStopsWhenContextIsCancelled(t *testing.T) {
 	t.Setenv("PORT", port)
 	t.Setenv("MATHTRAIL_LOG_LEVEL", "error")
 	t.Setenv("MATHTRAIL_SHUTDOWN_TIMEOUT", "2s")
+	t.Setenv("MATHTRAIL_SEAL_KEY_CURRENT",
+		base64.StdEncoding.EncodeToString(bytes.Repeat([]byte("mathtrail"), 4)[:32]))
 
 	ctx, cancel := context.WithCancel(t.Context())
 	stopped := make(chan error, 1)
