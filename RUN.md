@@ -67,7 +67,7 @@
 | [x] | T18 | CI | Claude | T17 |
 | [x] | T19 | Сайт: каркас и публикация | Claude | T15 |
 | [x] | T19a | Политика приватности и условия | Claude, проверяю я | T19 |
-| [ ] | T20 | Terraform | Claude | T17 |
+| [x] | T20 | Terraform | Claude | T17 |
 | [ ] | T21 | Деплой из GitHub Actions | Claude | T18, T20 |
 | [ ] | T22 | Первый деплой | я + Claude | T19a, T21 |
 | [ ] | T23 | Контент в бинарнике | Claude | T16, T17 |

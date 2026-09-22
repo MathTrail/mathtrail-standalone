@@ -29,3 +29,15 @@ node_modules/
 
 # Rendered site: rebuilt by just site, never committed.
 /site/dist/
+
+# Terraform: downloaded providers, state, plans, and the values of one
+# deployment. The provider lock file is committed and is not any of these.
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+*.tfplan
+backend.hcl
+crash.log
+crash.*.log

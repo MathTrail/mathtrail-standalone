@@ -105,6 +105,7 @@ internal/
 content/          catalogs, reference tasks and model instructions, embedded
 site/             the public site: texts per locale, templates, assets
 web/              widget sources
+infra/terraform/  the Google Cloud project as code — not to be confused with internal/infra/
 ```
 
 `mentor-api` groups the same way (`domain/`, `infra/`, `transport/`) and serves HTTP with gin, which we do too — but it puts `repository.go` and `handler.go` inside each domain package, so its domain imports gin and pgx. We keep the grouping and the framework, and drop that part: our domains are computation — ratings, checks, the solver contract — and they stay free of I/O. That is what makes them testable against the golden vectors from T16 with no mocks at all.
@@ -227,7 +228,7 @@ Implementations of the same interface must be interchangeable, and that is worth
 Open the repository in VS Code and choose "Reopen in Container" (`.devcontainer/`). Inside the container:
 
 - **Pinned versions.** No separate versions file: each tool's exact version is an `ARG` default in `.devcontainer/Dockerfile`, repeated as a literal in `.devcontainer/devcontainer.json` where needed.
-  - The Dockerfile has two stages. `toolchain` installs Go, Node.js, just, golangci-lint and mockery; `devcontainer` adds gopls, dlv, cloudflared, the Docker Compose plugin and Claude Code on top, and is the stage the container is built from. The full checks run in the `toolchain` stage, published to GHCR and pinned by digest. Everything is installed straight from the Dockerfile, with no checksum verification beyond what `go install` already does for Go modules.
+  - The Dockerfile has two stages. `toolchain` installs Go, Node.js, just, golangci-lint and mockery; `devcontainer` adds gopls, dlv, cloudflared, the Docker Compose plugin, Terraform, gcloud and Claude Code on top, and is the stage the container is built from. gcloud is installed on x86_64 only, because its archive for arm carries no Python interpreter; there the same commands come from Google's own container image. The full checks run in the `toolchain` stage, published to GHCR and pinned by digest. Everything is installed straight from the Dockerfile, with no checksum verification beyond what `go install` already does for Go modules.
   - Docker (docker-in-docker, Moby engine and buildx) comes from a devcontainer feature pinned in `devcontainer.json` and `devcontainer-lock.json`.
   - To change a version: edit the literal everywhere it appears (Dockerfile, `devcontainer.json` for Docker or the Claude Code extension), rebuild the container.
 - **Container marker.** `MATHTRAIL_DEVCONTAINER=1` is set only inside the container. A session that does not see it is on the host and must stop (see "Devcontainer only").

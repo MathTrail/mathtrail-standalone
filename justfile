@@ -26,6 +26,9 @@ ALLOWED_LICENSES := "MIT,BSD-2-Clause,BSD-3-Clause,Apache-2.0,ISC"
 SITE_BASE := "https://mathtrail.app"
 SITE_DIR := "site/dist"
 
+# Where the cloud this service runs in is described.
+TF_DIR := "infra/terraform"
+
 # The build identity, stamped into the binary at link time. Computed once per
 # run of just, so that a binary and the image built beside it carry the same
 # words.
@@ -181,6 +184,22 @@ site-serve port="8081":
 # Render the site and refuse it if anything about it is wrong
 ci-site: site
     go run ./cmd/sitecheck -base {{ SITE_BASE }} -dir {{ SITE_DIR }}
+
+# -- Infrastructure ---------------------------------------------------------
+
+# Format the Terraform sources in place
+tf-fmt:
+    terraform -chdir={{ TF_DIR }} fmt -recursive
+
+# Refuse Terraform that is misformatted or does not describe a valid configuration
+tf-check:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    terraform -chdir={{ TF_DIR }} fmt -check -recursive
+    # Without a backend and without credentials: this reads the configuration,
+    # it does not go near a deployment.
+    terraform -chdir={{ TF_DIR }} init -backend=false -input=false
+    terraform -chdir={{ TF_DIR }} validate
 
 # -- Container --------------------------------------------------------------
 
