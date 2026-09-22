@@ -41,3 +41,6 @@ node_modules/
 backend.hcl
 crash.log
 crash.*.log
+
+# Working directory of the static analysis scanner.
+.scannerwork/

@@ -1,5 +1,17 @@
 # MathTrail
 
+[![CI](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/ci.yml/badge.svg)](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/ci.yml)
+[![Deploy](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/deploy.yml/badge.svg)](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/deploy.yml)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/MathTrail/mathtrail-standalone)](https://github.com/MathTrail/mathtrail-standalone/blob/main/go.mod)
+[![codecov](https://codecov.io/gh/MathTrail/mathtrail-standalone/branch/main/graph/badge.svg)](https://codecov.io/gh/MathTrail/mathtrail-standalone)
+[![License: MIT](https://img.shields.io/github/license/MathTrail/mathtrail-standalone)](LICENSE)
+
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=MathTrail_mathtrail-standalone&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=MathTrail_mathtrail-standalone)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=MathTrail_mathtrail-standalone&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=MathTrail_mathtrail-standalone)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=MathTrail_mathtrail-standalone&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=MathTrail_mathtrail-standalone)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=MathTrail_mathtrail-standalone&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=MathTrail_mathtrail-standalone)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=MathTrail_mathtrail-standalone&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=MathTrail_mathtrail-standalone)
+
 Free, open-source standalone MathTrail app for LLM applications: an endless stream of checked olympiad-style maths tasks for grades 1–6, in any language, with a diagnosis of the child's mistake and a memory of how they are progressing.
 
 It is neither a homework solver nor a drill of the school syllabus. It turns an adult's own Claude or ChatGPT chat into an adaptive olympiad trainer for a child in grades 1–6.

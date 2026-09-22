@@ -113,6 +113,29 @@ jobs:
           path: coverage.out
           retention-days: 14
 
+  sonar:
+    name: Static analysis
+    needs: test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    # A pull request from a fork is given no secrets, so the analysis cannot run
+    # for it; a check nobody can pass has no business being red.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    # This one stays on the runner: the scanner installs itself here and has no
+    # business inside the environment the code is built in.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The whole history: what makes a line "new" is which commit added it.
+          fetch-depth: 0
+      # The coverage the tests already measured, rather than a second run of them.
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: coverage
+      - uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4 # v8.2.2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
   mocks:
     name: Generated mocks
     needs: toolchain
