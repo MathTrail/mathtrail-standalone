@@ -1,6 +1,7 @@
 package middleware_test
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -89,6 +90,40 @@ func TestAPanicBecomesAnAnswer(t *testing.T) {
 	}
 	if logs.FilterMessage("panic").Len() != 1 {
 		t.Error("the panic was not logged once")
+	}
+}
+
+// Whatever a handler panicked with, the line carries it as text in a field of a
+// known type. An error goes in by its message; anything else by how it prints.
+func TestAPanicIsLoggedAsText(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name      string
+		recovered any
+		want      string
+	}{
+		{name: "an error", recovered: errors.New("the jug is empty"), want: "the jug is empty"},
+		{name: "anything else", recovered: 42, want: "42"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			logs, router := routerWithObservedLogs(t)
+			router.GET("/boom", func(_ *gin.Context) { panic(tc.recovered) })
+
+			serve(t, router, http.MethodGet, "/boom")
+
+			entries := logs.FilterMessage("panic").All()
+			if len(entries) != 1 {
+				t.Fatalf("panic lines = %d, want exactly 1", len(entries))
+			}
+			// field fails the test unless the value is a string, which is the
+			// half of this that matters: a log field has a type on purpose.
+			if got := field(t, &entries[0], "error"); got != tc.want {
+				t.Errorf("error = %q, want %q", got, tc.want)
+			}
+		})
 	}
 }
 

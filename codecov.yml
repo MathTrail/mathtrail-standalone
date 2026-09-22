@@ -1,0 +1,22 @@
+# What Codecov does with the coverage profile the tests upload. The profile
+# itself is produced by the test run; nothing here measures anything.
+
+coverage:
+  status:
+    # The whole repository may not quietly slide downwards. The allowance is
+    # there because a refactor that deletes covered code moves the number a
+    # little through no fault of its own.
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    # New and changed lines are held to a higher standard than the average of
+    # everything written before them: this is the number that decides whether a
+    # change arrives with the tests that prove it.
+    patch:
+      default:
+        target: 90%
+
+comment:
+  layout: "condensed_header, diff, files"
+  require_changes: true

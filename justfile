@@ -17,6 +17,10 @@ GOVULNCHECK := "golang.org/x/vuln/cmd/govulncheck@v1.8.0"
 GITLEAKS := "github.com/zricethezav/gitleaks/v8@v8.30.1"
 GO_LICENSES := "github.com/google/go-licenses/v2@v2.0.1"
 
+# The image the runtime image is scanned with, pinned by tag and digest like every
+# other image this repository runs.
+TRIVY_IMAGE := "aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969"
+
 # What a dependency's license may be: permissive, and compatible with releasing
 # the result under MIT.
 ALLOWED_LICENSES := "MIT,BSD-2-Clause,BSD-3-Clause,Apache-2.0,ISC"
@@ -148,6 +152,19 @@ ci-mocks-check:
 # Fail on a known vulnerability in code the service actually reaches
 ci-vuln:
     go run {{ GOVULNCHECK }} ./...
+
+# Fail on a vulnerability in the image the service is shipped in. Trivy runs from
+# its own image, so nothing about it is installed here, and the same command gives
+# the same verdict on a laptop and in the checks.
+ci-image-scan tag="mathtrail:dev": (docker-build tag)
+    docker run --rm \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        {{ TRIVY_IMAGE }} image \
+        --severity HIGH,CRITICAL \
+        --ignore-unfixed \
+        --exit-code 1 \
+        --no-progress \
+        {{ tag }}
 
 # Fail if anything in the history of the repository looks like a secret
 ci-secrets:

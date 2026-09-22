@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -25,7 +26,7 @@ const panicStackSkip = 3
 func ZapRecovery(logger *zap.Logger) gin.HandlerFunc {
 	return gin.CustomRecoveryWithWriter(nil, func(c *gin.Context, recovered any) {
 		logger.Error("panic",
-			zap.Any("error", recovered), // zap routes an error here to the same field zap.Error would
+			panicField(recovered),
 			zap.String("method", c.Request.Method),
 			zap.String("path", c.Request.URL.Path),
 			zap.String("request_id", RequestIDFrom(c)),
@@ -44,6 +45,16 @@ func ZapRecovery(logger *zap.Logger) gin.HandlerFunc {
 			Message: "an unexpected error occurred",
 		})
 	})
+}
+
+// panicField names what the request panicked with. Whatever was passed to
+// panic is rendered as text rather than as a structure: the line has to say
+// enough to find the fault, and no more of whatever the value was carrying.
+func panicField(recovered any) zap.Field {
+	if err, ok := recovered.(error); ok {
+		return zap.String("error", err.Error())
+	}
+	return zap.String("error", fmt.Sprint(recovered))
 }
 
 // RequestIDFrom returns the request id set by RequestID, or an empty string.

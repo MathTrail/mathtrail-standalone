@@ -1,0 +1,50 @@
+# A public reading of how this repository is run: whether its dependencies are
+# pinned, whether its workflows hand out more permission than they need, whether
+# a branch can be pushed to without review. It measures practices, not code, and
+# it blocks nothing — the badge in the README is the point.
+name: Scorecard
+
+on:
+  schedule:
+    - cron: "41 4 * * 1"
+  push:
+    branches: [main]
+  # A change to what protects a branch changes the answer, so it is worth
+  # measuring again the moment it happens.
+  branch_protection_rule:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Supply-chain practices
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      # Where the findings are written, and what the Security tab reads.
+      security-events: write
+      # The signed proof that these results came from this repository, which is
+      # what lets them be published without a token of ours.
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc # v2.4.4
+        with:
+          results_file: scorecard.sarif
+          results_format: sarif
+          publish_results: true
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: scorecard
+          path: scorecard.sarif
+          retention-days: 14
+
+      - uses: github/codeql-action/upload-sarif@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4.38.1
+        with:
+          sarif_file: scorecard.sarif

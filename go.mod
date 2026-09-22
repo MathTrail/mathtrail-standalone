@@ -5,6 +5,7 @@ go 1.27.1
 require (
 	github.com/gin-gonic/gin v1.12.0
 	github.com/google/uuid v1.6.0
+	github.com/leanovate/gopter v0.2.11
 	github.com/spf13/viper v1.21.0
 	github.com/yuin/goldmark v1.8.6
 	go.uber.org/zap v1.28.0
