@@ -25,30 +25,42 @@ func loadSchemas(src fs.FS) (map[string][]byte, error) {
 	}
 
 	p := &problems{file: schemasDir}
-	found := make([]string, 0, len(entries))
+	found := make(map[string]bool, len(entries))
 	for _, entry := range entries {
-		found = append(found, entry.Name())
+		found[entry.Name()] = true
+		if !slices.Contains(schemaFiles, entry.Name()) {
+			p.addf("%s: the schemas are %v, and this is not one of them", entry.Name(), schemaFiles)
+		}
 	}
-	if expected := slices.Sorted(slices.Values(schemaFiles)); !slices.Equal(slices.Sorted(slices.Values(found)), expected) {
-		p.addf("the schemas are %v, and this directory holds %v", schemaFiles, found)
-		return nil, p.err()
+	for _, name := range schemaFiles {
+		if !found[name] {
+			p.addf("%s: the schema is missing", name)
+		}
+	}
+	// Reading a set that is already wrong would only add the failure of an
+	// absent file to a list that already says what is absent.
+	if err := p.err(); err != nil {
+		return nil, err
 	}
 
 	schemas := make(map[string][]byte, len(schemaFiles))
 	for _, name := range schemaFiles {
 		file := schemasDir + "/" + name
-		var document map[string]json.RawMessage
-		if err := decode(src, file, &document); err != nil {
-			return nil, err
+		raw, err := fs.ReadFile(src, file)
+		if err != nil {
+			return nil, fmt.Errorf("content: read %s: %w", file, err)
 		}
+		var document map[string]json.RawMessage
+		if err := json.Unmarshal(raw, &document); err != nil {
+			return nil, fmt.Errorf("content: parse %s: %w", file, err)
+		}
+		// All three describe an object with fields. A schema built from a root
+		// combinator instead would carry no properties of its own, and this
+		// list would have to grow to let it through.
 		for _, key := range []string{"$schema", "title", "type", "properties"} {
 			if _, ok := document[key]; !ok {
 				p.addf("%s: a schema says %q, and this one does not", name, key)
 			}
-		}
-		raw, err := fs.ReadFile(src, file)
-		if err != nil {
-			return nil, fmt.Errorf("content: read %s: %w", file, err)
 		}
 		schemas[name] = raw
 	}

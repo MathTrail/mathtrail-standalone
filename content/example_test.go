@@ -165,6 +165,30 @@ func TestBrokenReferenceTaskStopsTheService(t *testing.T) {
 			},
 			want: "relation 1 is not a type, a from and a to",
 		},
+		{
+			name: "a relation that starts at something nobody drew",
+			change: func(task *Example) {
+				task.Drawing = "o--o"
+				task.DrawingStructure = &DrawingStructure{
+					Kind:      "number_line",
+					Objects:   []DrawingObject{{ID: "A", Label: "A"}},
+					Relations: []DrawingRelation{{Type: "left_of", From: "Z", To: "A"}},
+				}
+			},
+			want: `relation 1 starts at "Z", which is not drawn`,
+		},
+		{
+			name: "a relation that ends at something nobody drew",
+			change: func(task *Example) {
+				task.Drawing = "o--o"
+				task.DrawingStructure = &DrawingStructure{
+					Kind:      "number_line",
+					Objects:   []DrawingObject{{ID: "A", Label: "A"}},
+					Relations: []DrawingRelation{{Type: "left_of", From: "A", To: "B"}},
+				}
+			},
+			want: `relation 1 ends at "B", which is not drawn`,
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -234,4 +258,40 @@ func TestATaskWithAFieldTheFormatDoesNotHaveStopsTheService(t *testing.T) {
 	src := contentCopy(t)
 	src[gapsFile] = &fstest.MapFile{Data: []byte(`[{"id":"gaps-posts-test","answer":"B"}]`)}
 	wantProblem(t, src, `unknown field "answer"`)
+}
+
+// No reference task carries a drawing yet, and the branch that copies one is
+// the deepest thing in the content: a pointer, two slices and a value behind a
+// pointer of its own.
+func TestCloningATaskCopiesItsDrawing(t *testing.T) {
+	t.Parallel()
+
+	value := 3
+	original := validExample()
+	original.Drawing = "A--B"
+	original.DrawingStructure = &DrawingStructure{
+		Kind:      "number_line",
+		Objects:   []DrawingObject{{ID: "A", Label: "A", Value: &value}},
+		Relations: []DrawingRelation{{Type: "left_of", From: "A", To: "B"}},
+	}
+
+	copied := original.clone()
+	copied.DrawingStructure.Kind = "grid"
+	copied.DrawingStructure.Objects[0].Label = "Z"
+	*copied.DrawingStructure.Objects[0].Value = 7
+	copied.DrawingStructure.Relations[0].Type = "right_of"
+
+	structure := original.DrawingStructure
+	if structure.Kind != "number_line" {
+		t.Errorf("kind = %q, want it untouched at %q", structure.Kind, "number_line")
+	}
+	if got := structure.Objects[0].Label; got != "A" {
+		t.Errorf("label = %q, want it untouched at %q", got, "A")
+	}
+	if got := *structure.Objects[0].Value; got != 3 {
+		t.Errorf("value = %d, want it untouched at %d", got, 3)
+	}
+	if got := structure.Relations[0].Type; got != "left_of" {
+		t.Errorf("relation = %q, want it untouched at %q", got, "left_of")
+	}
 }

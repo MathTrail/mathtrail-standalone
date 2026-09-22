@@ -256,9 +256,40 @@ func TestWhatIsHandedOutIsACopy(t *testing.T) {
 		t.Error("editing the topics handed out changed the catalog")
 	}
 
+	// The levels of a topic are a slice inside a copied value, which is the
+	// kind of sharing a copy of the outer slice does nothing about.
+	levels := c.Topics()[0].GradeLevels
+	levels[0] = "9-10"
+	if again := c.Topics(); again[0].GradeLevels[0] == "9-10" {
+		t.Error("editing the levels of a topic handed out changed the catalog")
+	}
+
+	// A reference task holds its options in a map, and a map is shared however
+	// many times the task around it is copied.
+	example := c.Examples()[0]
+	example.Options["A"] = "edited by a caller"
+	example.Distractors["C"] = content.Distractor{Trap: "off_by_one", Text: "edited by a caller"}
+	if again := c.Examples()[0]; again.Options["A"] == "edited by a caller" {
+		t.Error("editing the options of a reference task handed out changed the content")
+	}
+	if again := c.Examples()[0]; again.Distractors["C"].Text == "edited by a caller" {
+		t.Error("editing the explanations of a reference task handed out changed the content")
+	}
+
 	schema, _ := c.Schema("task.json")
 	schema[0] = ' '
 	if again, _ := c.Schema("task.json"); again[0] == ' ' {
 		t.Error("editing the schema handed out changed the schema")
+	}
+}
+
+// The count is what the startup log reports, and a number that drifts from the
+// tasks behind it is a lie in the one place a deployment is inspected from.
+func TestExampleCountMatchesTheTasks(t *testing.T) {
+	t.Parallel()
+	c := loaded(t)
+
+	if got, want := c.ExampleCount(), len(c.Examples()); got != want {
+		t.Errorf("ExampleCount() = %d, want %d", got, want)
 	}
 }

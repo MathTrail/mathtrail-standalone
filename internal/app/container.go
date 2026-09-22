@@ -50,7 +50,7 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (*Co
 		zap.Int("topics", len(embedded.Topics())),
 		zap.Int("traps", len(embedded.Traps())),
 		zap.Int("skills", len(embedded.Skills())),
-		zap.Int("reference_tasks", len(embedded.Examples())),
+		zap.Int("reference_tasks", embedded.ExampleCount()),
 		zap.String("instructions_version", embedded.InstructionsVersion()),
 	)
 

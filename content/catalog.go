@@ -35,6 +35,15 @@ func (t Topic) HasLevel(level string) bool {
 	return slices.Contains(t.GradeLevels, level)
 }
 
+// clone copies a topic together with the levels inside it, so that what a
+// caller is handed shares no memory with the catalog it came from. Traps and
+// skills need nothing of the kind: they are strings, and a value copy of one is
+// already a copy of all of it.
+func (t Topic) clone() Topic {
+	t.GradeLevels = slices.Clone(t.GradeLevels)
+	return t
+}
+
 // Trap is one entry of the trap catalog: the mistake behind a wrong option.
 // Every wrong option in every task names one, which is what turns a wrong
 // answer into a diagnosis instead of a tick in the wrong column.

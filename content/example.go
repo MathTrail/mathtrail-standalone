@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"maps"
 	"regexp"
 	"slices"
 	"strings"
@@ -249,9 +250,11 @@ func (c exampleCheck) checkDistractors(p *problems, where string, task *Example)
 	}
 }
 
-// checkDrawing checks that a picture and its description arrive together and
-// that the description is well formed. What the picture says is a matter for
-// the checks a submitted task passes; here it only has to be readable as data.
+// checkDrawing checks that a picture and its description arrive together, that
+// the description is well formed, and that it holds together on its own: a
+// relation names objects the same drawing draws. What the picture says about
+// the wording is a matter for the checks a submitted task passes; here it only
+// has to be readable as data.
 func (c exampleCheck) checkDrawing(p *problems, where string, task *Example) {
 	hasDrawing, hasStructure := task.Drawing != "", task.DrawingStructure != nil
 	switch {
@@ -288,6 +291,13 @@ func (c exampleCheck) checkDrawing(p *problems, where string, task *Example) {
 	for i, relation := range structure.Relations {
 		if relation.Type == "" || relation.From == "" || relation.To == "" {
 			p.addf("%s: relation %d is not a type, a from and a to", where, i+1)
+			continue
+		}
+		if !ids[relation.From] {
+			p.addf("%s: relation %d starts at %q, which is not drawn", where, i+1, relation.From)
+		}
+		if !ids[relation.To] {
+			p.addf("%s: relation %d ends at %q, which is not drawn", where, i+1, relation.To)
 		}
 	}
 }
@@ -295,4 +305,28 @@ func (c exampleCheck) checkDrawing(p *problems, where string, task *Example) {
 // isOptionLetter reports whether this names one of the five options.
 func isOptionLetter(letter string) bool {
 	return slices.Contains(optionLetters, letter)
+}
+
+// clone copies a reference task together with everything it points at: the
+// options, the explanations of the wrong ones and the drawing. A task holds
+// maps, and a map is a reference however many times the value around it is
+// copied, so without this a caller could rewrite an option inside the binary's
+// own content for every request that follows.
+func (e *Example) clone() Example {
+	copied := *e
+	copied.Options = maps.Clone(e.Options)
+	copied.Distractors = maps.Clone(e.Distractors)
+	if e.DrawingStructure != nil {
+		structure := *e.DrawingStructure
+		structure.Objects = slices.Clone(structure.Objects)
+		for i, object := range structure.Objects {
+			if object.Value != nil {
+				value := *object.Value
+				structure.Objects[i].Value = &value
+			}
+		}
+		structure.Relations = slices.Clone(structure.Relations)
+		copied.DrawingStructure = &structure
+	}
+	return copied
 }

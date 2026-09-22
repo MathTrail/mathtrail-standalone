@@ -10,7 +10,7 @@ func TestAMissingSchemaStopsTheService(t *testing.T) {
 
 	src := contentCopy(t)
 	delete(src, schemasDir+"/task.json")
-	wantProblem(t, src, "the schemas are")
+	wantProblem(t, src, "task.json: the schema is missing")
 }
 
 // A schema nobody knows about is a format somebody meant to introduce and
@@ -20,7 +20,7 @@ func TestAnUnknownSchemaStopsTheService(t *testing.T) {
 
 	src := contentCopy(t)
 	src[schemasDir+"/profile.json"] = &fstest.MapFile{Data: []byte(`{"type":"object"}`)}
-	wantProblem(t, src, "the schemas are")
+	wantProblem(t, src, "profile.json: the schemas are")
 }
 
 func TestASchemaThatDescribesNothingStopsTheService(t *testing.T) {

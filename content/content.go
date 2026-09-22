@@ -24,9 +24,9 @@ import (
 var files embed.FS
 
 // Content is the checked content of the binary. Nothing in it changes after
-// Load; the slices it hands out are copies, so a caller that sorts or appends
-// to one leaves the next caller's copy alone, and the entries inside them are
-// to be read and not edited.
+// Load, and what it hands out shares no memory with what it holds: a caller may
+// sort, append to or rewrite its copy, down to an option inside a reference
+// task, and the next caller is handed the content as it was built.
 type Content struct {
 	topics   []Topic
 	traps    []Trap
@@ -94,12 +94,21 @@ func load(src fs.FS) (*Content, error) {
 }
 
 // Topics returns the whole topic catalog, in catalog order.
-func (c *Content) Topics() []Topic { return slices.Clone(c.topics) }
+func (c *Content) Topics() []Topic {
+	topics := make([]Topic, 0, len(c.topics))
+	for _, topic := range c.topics {
+		topics = append(topics, topic.clone())
+	}
+	return topics
+}
 
 // Topic returns the topic with this id, and reports whether the catalog has one.
 func (c *Content) Topic(id string) (Topic, bool) {
 	topic, ok := c.topicByID[id]
-	return topic, ok
+	if !ok {
+		return Topic{}, false
+	}
+	return topic.clone(), true
 }
 
 // Traps returns the whole trap catalog, in catalog order.
@@ -122,7 +131,17 @@ func (c *Content) Skill(id string) (Skill, bool) {
 
 // Examples returns every reference task, ordered by file and then by position
 // within it.
-func (c *Content) Examples() []Example { return slices.Clone(c.examples) }
+func (c *Content) Examples() []Example {
+	examples := make([]Example, 0, len(c.examples))
+	for i := range c.examples {
+		examples = append(examples, c.examples[i].clone())
+	}
+	return examples
+}
+
+// ExampleCount is how many reference tasks the binary carries, for a caller
+// that wants the number rather than the tasks.
+func (c *Content) ExampleCount() int { return len(c.examples) }
 
 // Schema returns the JSON schema of one of the formats the model works to,
 // named as its file is: brief.json, task.json or self_check.json.
