@@ -14,6 +14,7 @@
 
 # Build and test output
 bin/
+dist/
 coverage.*
 *.out
 *.test

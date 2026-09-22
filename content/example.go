@@ -275,8 +275,15 @@ func (c exampleCheck) checkDrawing(p *problems, where string, task *Example) {
 	if len(structure.Objects) == 0 {
 		p.addf("%s: the drawing structure names nothing that is drawn", where)
 	}
-	ids := make(map[string]bool, len(structure.Objects))
-	for i, object := range structure.Objects {
+	ids := checkDrawnObjects(p, where, structure.Objects)
+	checkDrawnRelations(p, where, structure.Relations, ids)
+}
+
+// checkDrawnObjects checks what the drawing says it shows and returns the ids it
+// named, for the relations to be measured against.
+func checkDrawnObjects(p *problems, where string, objects []DrawingObject) map[string]bool {
+	ids := make(map[string]bool, len(objects))
+	for i, object := range objects {
 		switch {
 		case object.ID == "":
 			p.addf("%s: drawn object %d has no id", where, i+1)
@@ -288,7 +295,13 @@ func (c exampleCheck) checkDrawing(p *problems, where string, task *Example) {
 			p.addf("%s: drawn object %d has no label to look for in the drawing", where, i+1)
 		}
 	}
-	for i, relation := range structure.Relations {
+	return ids
+}
+
+// checkDrawnRelations checks that every relation is a triple and that both of
+// its ends are objects the same drawing draws.
+func checkDrawnRelations(p *problems, where string, relations []DrawingRelation, ids map[string]bool) {
+	for i, relation := range relations {
 		if relation.Type == "" || relation.From == "" || relation.To == "" {
 			p.addf("%s: relation %d is not a type, a from and a to", where, i+1)
 			continue

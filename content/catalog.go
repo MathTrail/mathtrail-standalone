@@ -80,41 +80,43 @@ func loadTopics(src fs.FS) ([]Topic, error) {
 		return nil, err
 	}
 
-	p := &problems{file: file}
-	if len(topics) == 0 {
-		p.addf("the catalog is empty")
-	}
+	p := catalogProblems(file, len(topics))
 	seen := make(map[string]bool, len(topics))
 	for i, topic := range topics {
-		where := entryName("topic", i, topic.ID)
-		if !topicIDPattern.MatchString(topic.ID) {
-			p.addf("%s: an id is an area and a topic in snake case, separated by a dot", where)
-		} else if seen[topic.ID] {
-			p.addf("%s: the id is used twice", where)
-		}
-		seen[topic.ID] = true
-
-		if topic.Name == "" {
-			p.addf("%s: the name is empty", where)
-		}
-		if topic.Description == "" {
-			p.addf("%s: the description is empty", where)
-		}
-		if len(topic.GradeLevels) == 0 {
-			p.addf("%s: no grade levels, so the topic can never be chosen", where)
-		}
-		levels := make(map[string]bool, len(topic.GradeLevels))
-		for _, level := range topic.GradeLevels {
-			switch {
-			case !isLevel(level):
-				p.addf("%s: grade level %q is not one of %v", where, level, Levels())
-			case levels[level]:
-				p.addf("%s: grade level %q is listed twice", where, level)
-			}
-			levels[level] = true
-		}
+		checkTopic(p, entryName("topic", i, topic.ID), topic, seen)
 	}
 	return topics, p.err()
+}
+
+// checkTopic records everything wrong with one entry of the topic catalog.
+func checkTopic(p *problems, where string, topic Topic, seen map[string]bool) {
+	if !topicIDPattern.MatchString(topic.ID) {
+		p.addf("%s: an id is an area and a topic in snake case, separated by a dot", where)
+	} else if seen[topic.ID] {
+		p.addf("%s: the id is used twice", where)
+	}
+	seen[topic.ID] = true
+
+	if topic.Name == "" {
+		p.addf("%s: the name is empty", where)
+	}
+	if topic.Description == "" {
+		p.addf("%s: the description is empty", where)
+	}
+	if len(topic.GradeLevels) == 0 {
+		p.addf("%s: no grade levels, so the topic can never be chosen", where)
+	}
+
+	levels := make(map[string]bool, len(topic.GradeLevels))
+	for _, level := range topic.GradeLevels {
+		switch {
+		case !isLevel(level):
+			p.addf("%s: grade level %q is not one of %v", where, level, Levels())
+		case levels[level]:
+			p.addf("%s: grade level %q is listed twice", where, level)
+		}
+		levels[level] = true
+	}
 }
 
 // loadTraps reads the trap catalog.
@@ -125,10 +127,7 @@ func loadTraps(src fs.FS) ([]Trap, error) {
 		return nil, err
 	}
 
-	p := &problems{file: file}
-	if len(traps) == 0 {
-		p.addf("the catalog is empty")
-	}
+	p := catalogProblems(file, len(traps))
 	seen := make(map[string]bool, len(traps))
 	for i, trap := range traps {
 		checkEntry(p, entryName("trap", i, trap.ID), trap.ID, trap.Description, seen)
@@ -144,15 +143,23 @@ func loadSkills(src fs.FS) ([]Skill, error) {
 		return nil, err
 	}
 
-	p := &problems{file: file}
-	if len(skills) == 0 {
-		p.addf("the catalog is empty")
-	}
+	p := catalogProblems(file, len(skills))
 	seen := make(map[string]bool, len(skills))
 	for i, skill := range skills {
 		checkEntry(p, entryName("skill", i, skill.ID), skill.ID, skill.Description, seen)
 	}
 	return skills, p.err()
+}
+
+// catalogProblems starts the fault list of one catalog with the fault every
+// catalog can have before a single entry is read: a file that parses and holds
+// nothing at all.
+func catalogProblems(file string, entries int) *problems {
+	p := &problems{file: file}
+	if entries == 0 {
+		p.addf("the catalog is empty")
+	}
+	return p
 }
 
 // checkEntry checks what the trap and skill catalogs have in common: a

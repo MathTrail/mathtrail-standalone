@@ -12,6 +12,7 @@ infra
 testdata
 site
 bin
+dist
 coverage.*
 *.md
 **/node_modules

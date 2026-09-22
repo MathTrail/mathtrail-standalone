@@ -1,0 +1,127 @@
+# What a green main produces: the server built for the architectures it runs on,
+# the sums of what was built, and a signature for each of them. A release here
+# is a record of provenance rather than a delivery — the service is deployed
+# from main continuously — so what matters is that anybody can check that a
+# binary came from this repository, from this workflow, at this commit.
+#
+# Nobody tags anything by hand: the version is the previous one with its patch
+# number raised, and the tag is created with the release. The button exists for
+# the release that deserves a number of its own.
+name: Release
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish, such as v1.0.0. Left empty, the patch number goes up by one."
+        required: false
+
+permissions:
+  contents: read
+
+# Releases queue rather than overlap: the second one has to see the version the
+# first one published before it can work out the next.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  release:
+    name: Build, sign and publish
+    # Only from a commit the checks have already passed on.
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      # Creating the release and uploading what it holds.
+      contents: write
+      # The short-lived identity the signature is made with: no key is stored
+      # anywhere, and the certificate records which workflow signed what.
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The commit the checks ran on, and the whole history with it: the
+          # next version is read from the tags, which a shallow clone lacks.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Work out the version
+        id: version
+        env:
+          REQUESTED: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "${REQUESTED:-}" ]; then
+              version="$REQUESTED"
+          else
+              latest="$(git tag --list 'v[0-9]*' --sort=-v:refname | head -1)"
+              if [ -z "$latest" ]; then
+                  version="v0.1.0"
+              else
+                  IFS=. read -r major minor patch <<<"${latest#v}"
+                  version="v${major}.${minor}.$((patch + 1))"
+              fi
+          fi
+
+          if [[ ! "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "release: $version is not vMAJOR.MINOR.PATCH" >&2
+              exit 1
+          fi
+          if git rev-parse -q --verify "refs/tags/$version" > /dev/null; then
+              echo "release: $version is already released" >&2
+              exit 1
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "releasing $version"
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - uses: ./.github/actions/just
+
+      - run: just release-artifacts "${{ steps.version.outputs.version }}"
+
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+        with:
+          cosign-release: v3.1.3
+
+      # Signed before anything is published: a release that appears without its
+      # signatures is worse than no release at all, so the failure has to happen
+      # while there is still nothing to see.
+      - name: Sign every artifact
+        run: |
+          set -euo pipefail
+          cd dist
+          for file in *; do
+              cosign sign-blob --yes \
+                  --output-signature "${file}.sig" \
+                  --output-certificate "${file}.pem" \
+                  "$file"
+          done
+          ls -1
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+          TARGET: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: |
+          set -euo pipefail
+          gh release create "$VERSION" dist/* \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$TARGET" \
+              --title "$VERSION" \
+              --generate-notes
