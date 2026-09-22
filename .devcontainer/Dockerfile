@@ -1,7 +1,8 @@
 # Development container for MathTrail standalone.
 # Exact versions only: the base image is pinned by digest, every tool below by an ARG default.
-# Kept compatible with the classic builder as well as BuildKit: no heredocs, no RUN --mount,
-# no TARGETARCH (arch is detected at RUN time via dpkg instead).
+# Anything a builder understands: no heredocs, no RUN --mount, no TARGETARCH — architecture is
+# detected at RUN time via dpkg instead. A host that has Docker can build this, and that is the
+# whole requirement.
 #
 # Two stages. `toolchain` holds what it takes to build and check the code, and is the stage
 # the automated checks run inside. `devcontainer` adds what a person needs on top of that and
@@ -20,6 +21,10 @@ ARG JUST_VERSION=1.58.0
 ARG GOLANGCI_LINT_VERSION=2.13.2
 ARG MOCKERY_VERSION=3.8.0
 
+# Every archive comes through one helper, so that every download is retried the same way.
+# --retry-all-errors is the point of it: a transfer that dies partway is not something a plain
+# --retry repeats, and that is exactly the failure a small tunnel MTU produces. The file is
+# renamed only once curl is happy, so a half-written archive is never unpacked as a whole one.
 RUN arch="$(dpkg --print-architecture)"; \
     case "$arch" in \
         amd64) go_arch=amd64; node_arch=x64; gnu_arch=x86_64; mockery_arch=x86_64 ;; \
@@ -27,35 +32,44 @@ RUN arch="$(dpkg --print-architecture)"; \
         *) echo "unsupported architecture: $arch" >&2; exit 1 ;; \
     esac; \
     workdir="$(mktemp -d)"; \
+    fetch() { \
+        local url="$1" out="$2"; \
+        if [[ ! -s "$out" ]]; then \
+            curl -fsSL --proto "=https" --proto-redir "=https" --retry 3 --retry-all-errors \
+                -o "$out.part" "$url"; \
+            mv "$out.part" "$out"; \
+        fi; \
+    }; \
     \
     echo "go ${GO_VERSION}"; \
-    curl -fsSL --retry 3 --proto "=https" --proto-redir "=https" \
-        "https://go.dev/dl/go${GO_VERSION}.linux-${go_arch}.tar.gz" \
-        | tar -C /usr/local -xz; \
+    fetch "https://go.dev/dl/go${GO_VERSION}.linux-${go_arch}.tar.gz" \
+        "$workdir/go-${GO_VERSION}-${go_arch}.tar.gz"; \
+    tar -C /usr/local -xzf "$workdir/go-${GO_VERSION}-${go_arch}.tar.gz"; \
     \
     echo "node ${NODE_VERSION}"; \
     mkdir -p /usr/local/node; \
-    curl -fsSL --retry 3 --proto "=https" --proto-redir "=https" \
-        "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${node_arch}.tar.gz" \
-        | tar -C /usr/local/node --strip-components=1 -xz; \
+    fetch "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${node_arch}.tar.gz" \
+        "$workdir/node-${NODE_VERSION}-${node_arch}.tar.gz"; \
+    tar -C /usr/local/node --strip-components=1 -xzf "$workdir/node-${NODE_VERSION}-${node_arch}.tar.gz"; \
     \
     echo "just ${JUST_VERSION}"; \
-    curl -fsSL --retry 3 --proto "=https" --proto-redir "=https" \
-        "https://github.com/casey/just/releases/download/${JUST_VERSION}/just-${JUST_VERSION}-${gnu_arch}-unknown-linux-musl.tar.gz" \
-        | tar -C "$workdir" -xz just; \
+    fetch "https://github.com/casey/just/releases/download/${JUST_VERSION}/just-${JUST_VERSION}-${gnu_arch}-unknown-linux-musl.tar.gz" \
+        "$workdir/just-${JUST_VERSION}-${gnu_arch}.tar.gz"; \
+    tar -C "$workdir" -xzf "$workdir/just-${JUST_VERSION}-${gnu_arch}.tar.gz" just; \
     install -m 0755 "$workdir/just" /usr/local/bin/just; \
     \
     echo "golangci-lint ${GOLANGCI_LINT_VERSION}"; \
-    curl -fsSL --retry 3 --proto "=https" --proto-redir "=https" \
-        "https://github.com/golangci/golangci-lint/releases/download/v${GOLANGCI_LINT_VERSION}/golangci-lint-${GOLANGCI_LINT_VERSION}-linux-${go_arch}.tar.gz" \
-        | tar -C "$workdir" --strip-components=1 -xz \
-            "golangci-lint-${GOLANGCI_LINT_VERSION}-linux-${go_arch}/golangci-lint"; \
+    fetch "https://github.com/golangci/golangci-lint/releases/download/v${GOLANGCI_LINT_VERSION}/golangci-lint-${GOLANGCI_LINT_VERSION}-linux-${go_arch}.tar.gz" \
+        "$workdir/golangci-lint-${GOLANGCI_LINT_VERSION}-${go_arch}.tar.gz"; \
+    tar -C "$workdir" --strip-components=1 \
+        -xzf "$workdir/golangci-lint-${GOLANGCI_LINT_VERSION}-${go_arch}.tar.gz" \
+        "golangci-lint-${GOLANGCI_LINT_VERSION}-linux-${go_arch}/golangci-lint"; \
     install -m 0755 "$workdir/golangci-lint" /usr/local/bin/golangci-lint; \
     \
     echo "mockery ${MOCKERY_VERSION}"; \
-    curl -fsSL --retry 3 --proto "=https" --proto-redir "=https" \
-        "https://github.com/vektra/mockery/releases/download/v${MOCKERY_VERSION}/mockery_${MOCKERY_VERSION}_Linux_${mockery_arch}.tar.gz" \
-        | tar -C "$workdir" -xz mockery; \
+    fetch "https://github.com/vektra/mockery/releases/download/v${MOCKERY_VERSION}/mockery_${MOCKERY_VERSION}_Linux_${mockery_arch}.tar.gz" \
+        "$workdir/mockery-${MOCKERY_VERSION}-${mockery_arch}.tar.gz"; \
+    tar -C "$workdir" -xzf "$workdir/mockery-${MOCKERY_VERSION}-${mockery_arch}.tar.gz" mockery; \
     install -m 0755 "$workdir/mockery" /usr/local/bin/mockery; \
     \
     rm -rf "$workdir"
@@ -99,32 +113,38 @@ RUN arch="$(dpkg --print-architecture)"; \
         *) echo "unsupported architecture: $arch" >&2; exit 1 ;; \
     esac; \
     workdir="$(mktemp -d)"; \
+    fetch() { \
+        local url="$1" out="$2"; \
+        if [[ ! -s "$out" ]]; then \
+            curl -fsSL --proto "=https" --proto-redir "=https" --retry 3 --retry-all-errors \
+                -o "$out.part" "$url"; \
+            mv "$out.part" "$out"; \
+        fi; \
+    }; \
     \
     echo "cloudflared ${CLOUDFLARED_VERSION}"; \
-    curl -fsSL --retry 3 --proto "=https" --proto-redir "=https" \
-        -o /usr/local/bin/cloudflared \
-        "https://github.com/cloudflare/cloudflared/releases/download/${CLOUDFLARED_VERSION}/cloudflared-linux-${arch}"; \
-    chmod 0755 /usr/local/bin/cloudflared; \
+    fetch "https://github.com/cloudflare/cloudflared/releases/download/${CLOUDFLARED_VERSION}/cloudflared-linux-${arch}" \
+        "$workdir/cloudflared-${CLOUDFLARED_VERSION}-${arch}"; \
+    install -m 0755 "$workdir/cloudflared-${CLOUDFLARED_VERSION}-${arch}" /usr/local/bin/cloudflared; \
     \
     echo "docker compose ${DOCKER_COMPOSE_VERSION}"; \
     install -d -m 0755 /usr/local/lib/docker/cli-plugins; \
-    curl -fsSL --retry 3 --proto "=https" --proto-redir "=https" \
-        -o /usr/local/lib/docker/cli-plugins/docker-compose \
-        "https://github.com/docker/compose/releases/download/v${DOCKER_COMPOSE_VERSION}/docker-compose-linux-${gnu_arch}"; \
-    chmod 0755 /usr/local/lib/docker/cli-plugins/docker-compose; \
+    fetch "https://github.com/docker/compose/releases/download/v${DOCKER_COMPOSE_VERSION}/docker-compose-linux-${gnu_arch}" \
+        "$workdir/docker-compose-${DOCKER_COMPOSE_VERSION}-${gnu_arch}"; \
+    install -m 0755 "$workdir/docker-compose-${DOCKER_COMPOSE_VERSION}-${gnu_arch}" \
+        /usr/local/lib/docker/cli-plugins/docker-compose; \
     \
     echo "terraform ${TERRAFORM_VERSION}"; \
-    curl -fsSL --retry 3 --proto "=https" --proto-redir "=https" \
-        -o "$workdir/terraform.zip" \
-        "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_${arch}.zip"; \
-    unzip -q -d "$workdir" "$workdir/terraform.zip"; \
+    fetch "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_${arch}.zip" \
+        "$workdir/terraform-${TERRAFORM_VERSION}-${arch}.zip"; \
+    unzip -q -d "$workdir" "$workdir/terraform-${TERRAFORM_VERSION}-${arch}.zip"; \
     install -m 0755 "$workdir/terraform" /usr/local/bin/terraform; \
     \
-    if [ "$arch" = "amd64" ]; then \
+    if [[ "$arch" == "amd64" ]]; then \
         echo "gcloud ${GCLOUD_VERSION}"; \
-        curl -fsSL --retry 3 --proto "=https" --proto-redir "=https" \
-            "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-${GCLOUD_VERSION}-linux-x86_64.tar.gz" \
-            | tar -C /usr/local -xz; \
+        fetch "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-${GCLOUD_VERSION}-linux-x86_64.tar.gz" \
+            "$workdir/gcloud-${GCLOUD_VERSION}-x86_64.tar.gz"; \
+        tar -C /usr/local -xzf "$workdir/gcloud-${GCLOUD_VERSION}-x86_64.tar.gz"; \
     else \
         echo "gcloud ${GCLOUD_VERSION}: skipped, no interpreter in the ${arch} archive"; \
     fi; \

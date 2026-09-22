@@ -22,6 +22,12 @@
         }
     },
     "remoteUser": "vscode",
+    // Runs on the host before the container starts: gives it a network whose MTU is the
+    // host's own, so a tunnel on the host does not silently truncate large downloads here.
+    "initializeCommand": "bash .devcontainer/host-network.sh",
+    "runArgs": [
+        "--network=mathtrail-standalone"
+    ],
     "mounts": [
         // Claude Code login and settings survive container rebuilds.
         "source=mathtrail-standalone-claude,target=/home/vscode/.claude,type=volume",
