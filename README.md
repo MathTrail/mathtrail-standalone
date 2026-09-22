@@ -5,6 +5,7 @@
 [![CodeQL](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/codeql.yml/badge.svg)](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/codeql.yml)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/MathTrail/mathtrail-standalone)](https://github.com/MathTrail/mathtrail-standalone/blob/main/go.mod)
 [![codecov](https://codecov.io/gh/MathTrail/mathtrail-standalone/branch/main/graph/badge.svg)](https://codecov.io/gh/MathTrail/mathtrail-standalone)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14761/badge)](https://www.bestpractices.dev/projects/14761)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/MathTrail/mathtrail-standalone/badge)](https://scorecard.dev/viewer/?uri=github.com/MathTrail/mathtrail-standalone)
 [![License: MIT](https://img.shields.io/github/license/MathTrail/mathtrail-standalone)](LICENSE)
 

@@ -1,6 +1,6 @@
-# OpenSSF Best Practices — the answers, ready to be transcribed
+# OpenSSF Best Practices — the answers behind the badge
 
-Draft answers for the **passing** level of the [OpenSSF Best Practices](https://www.bestpractices.dev) questionnaire, one row per criterion, with the evidence a reviewer would look for. Transcribe into the web form; the project URL is `https://github.com/MathTrail/mathtrail-standalone`.
+The answers behind the project's [OpenSSF Best Practices](https://www.bestpractices.dev/projects/14761) badge, one row per criterion, with the evidence a reviewer would look for. The badge is at the **passing** level; the criteria left unanswered belong to silver and gold.
 
 Keep this file current when a criterion's answer changes — the badge is re-confirmed rather than earned once.
 
