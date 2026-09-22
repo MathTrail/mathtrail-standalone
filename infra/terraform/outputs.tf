@@ -16,8 +16,18 @@ output "domain_records" {
 }
 
 output "image_repository" {
-  description = "Where images are pushed; a deployed image is this, a slash, the service name, and a digest."
+  description = "Where images are pushed. The image of the service is this, a slash, and the name of the binary in it."
   value       = "${google_artifact_registry_repository.images.location}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.images.repository_id}"
+}
+
+output "service_name" {
+  description = "The name a deployment names when it rolls a new revision."
+  value       = google_cloud_run_v2_service.service.name
+}
+
+output "region" {
+  description = "The region a deployment names alongside it."
+  value       = google_cloud_run_v2_service.service.location
 }
 
 output "runtime_service_account" {

@@ -238,6 +238,78 @@ docker-build tag="mathtrail:dev":
 docker-run tag="mathtrail:dev": (docker-build tag)
     docker run --rm -e PORT=8080 -p 8080:8080 {{ tag }}
 
+# -- Deployment -------------------------------------------------------------
+
+# Build the runtime image, push it, and print the exact reference it got
+ci-image-push image:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    image="{{ image }}"
+
+    # The tag says which commit an image was built from, so that the registry
+    # can be read by a person. What is deployed is the digest below: a tag can
+    # be moved afterwards and a digest cannot.
+    tag="${image}:{{ COMMIT }}"
+
+    # A push needs a credential helper for that registry, and the registry is
+    # the first component of the image path.
+    gcloud auth configure-docker "${image%%/*}" --quiet >&2
+
+    just docker-build "$tag" >&2
+    docker push "$tag" >&2
+
+    # Read with awk rather than a Go template, whose braces would collide with
+    # the interpolation syntax of this file.
+    digest=$(docker buildx imagetools inspect "$tag" | awk '/^Digest:/ { print $2 }')
+
+    # The one thing on stdout, so that a caller can read it with a substitution.
+    echo "${image}@${digest}"
+
+# Roll a new revision of the service, and wait until it is the one serving
+ci-deploy service region image:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    image="{{ image }}"
+    if [[ "$image" != *@sha256:* ]]; then
+        echo "ci-deploy: an image is deployed by digest, never by tag: $image" >&2
+        exit 1
+    fi
+
+    # The service is created once, with everything around it; a deployment only
+    # ever changes which image it serves.
+    gcloud run services update "{{ service }}" \
+        --region="{{ region }}" \
+        --image="$image" \
+        --quiet
+
+# Refuse a deployment that does not answer, or answers as another build
+ci-smoke url:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    body=""
+    for attempt in $(seq 1 10); do
+        body=$(curl -fsS --max-time 10 "{{ url }}/healthz") && break
+        echo "healthz: no answer yet (attempt ${attempt})" >&2
+        sleep 3
+    done
+
+    if [ -z "$body" ]; then
+        echo "smoke: {{ url }}/healthz never answered" >&2
+        exit 1
+    fi
+
+    # Answering is half of it. The commit in the answer is what says the
+    # revision now serving is the one just built, rather than the one before it.
+    if [[ "$body" != *'"commit":"{{ COMMIT }}"'* ]]; then
+        echo "smoke: {{ url }} is serving another build: $body" >&2
+        exit 1
+    fi
+
+    echo "smoke: {{ url }} answers as {{ COMMIT }}"
+
 
 # -- Golden vectors from the prototype --------------------------------------
 

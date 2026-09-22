@@ -123,6 +123,15 @@ resource "google_cloud_run_v2_service" "service" {
     google_project_service.enabled,
     google_secret_manager_secret_iam_member.runtime,
   ]
+
+  # The deployment owns which image is served, and this configuration owns
+  # everything around it. Without this, the two would take turns: a deployment
+  # would roll a new digest and the next apply would roll it straight back to
+  # whatever the variable says. The variable is what a fresh project starts
+  # with, and after that the field is not ours to set.
+  lifecycle {
+    ignore_changes = [template[0].containers[0].image]
+  }
 }
 
 # Anyone may call it. The hosts arrive with no Google identity, and what decides

@@ -97,9 +97,41 @@ A deployment that has no domain of its own leaves both settings alone, sets `cre
 
 ## 7. The first image
 
-Until an image of this service is deployed, the service answers with Google's placeholder container: the configuration defaults to it so that a fresh project applies cleanly. The first real image is built and deployed by the pipeline.
+Until an image of this service is deployed, the service answers with Google's placeholder container: the configuration defaults to it so that a fresh project applies cleanly. From then on the deployment owns which image is served and Terraform ignores that one field, so an apply never puts the placeholder back and the `image` variable matters only when a service is created from nothing.
 
-Right now this configuration owns the `image` field, so an apply sets the service back to whatever `image` says — pass the digest the pipeline deployed, or the service returns to the placeholder. Which of the two owns that field for good is settled together with the pipeline itself.
+## 8. Deploying
+
+A deployment builds the image of one commit, pushes it to the repository created in step 5, rolls a revision of the service by digest, and then asks the service which commit it is serving. It starts on a push to `main`, or by hand from any branch. It uses no key and no secret: the workflow mints a federated token for itself, and everything it needs to know is six repository variables, each a copy of one output of the configuration that created the deployment target.
+
+| Repository variable | Terraform output |
+|---|---|
+| `GCP_WORKLOAD_IDENTITY_PROVIDER` | `workload_identity_provider` |
+| `GCP_DEPLOY_SERVICE_ACCOUNT` | `deploy_service_account` |
+| `GCP_IMAGE_REPOSITORY` | `image_repository` |
+| `GCP_SERVICE` | `service_name` |
+| `GCP_REGION` | `region` |
+| `PUBLIC_URL` | `public_url` |
+
+Read them with `terraform output` and put them in the repository's settings, under Actions variables — not secrets, because none of them is one. Until the custom domain answers, `PUBLIC_URL` is whatever address the service is actually reachable at, or the last step of every deployment fails.
+
+The checks are not run again here: they gate the pull request that a merge comes from, so protect `main` and let them do it there. A commit pushed straight to `main` is deployed without them.
+
+The same three steps run from a laptop, which is what an emergency deployment or a first bring-up looks like:
+
+```bash
+image=$(just ci-image-push us-central1-docker.pkg.dev/PROJECT_ID/mathtrail/server)
+just ci-deploy mathtrail us-central1 "$image"
+just ci-smoke https://mcp.example.com
+```
+
+Rolling back is a revision, never an apply — Terraform does not know which digest is live, and Cloud Run keeps every revision that ever served:
+
+```bash
+gcloud run revisions list --service=mathtrail --region=us-central1
+gcloud run services update-traffic mathtrail --region=us-central1 --to-revisions=REVISION=100
+```
+
+Running the deployment again at an older commit does the same thing the long way round, and leaves the registry with an image for that commit.
 
 ## The variables
 
@@ -134,7 +166,7 @@ Right now this configuration owns the `image` field, so an apply sets the servic
 - **The secret values.** Added by hand, so that no state file ever holds one.
 - **The Google OAuth client and the consent screen.** Created in the Google console; the client id goes into `terraform.tfvars` and the client secret into Secret Manager.
 - **Domain ownership and DNS.** Verified and configured with the registrar.
-- **The image.** Built and deployed by the pipeline; the variable here is what a fresh project starts with and what a rollback goes back to.
+- **The image.** Built and deployed by the workflow; the variable here is only what a service created from nothing starts with.
 
 ## What can cost money
 

@@ -60,7 +60,7 @@ variable "service_name" {
 }
 
 variable "image" {
-  description = "The container image to serve, by digest. The default is a placeholder that answers until the first image of this service is deployed."
+  description = "The container image a newly created service starts with, by digest. The default is a placeholder that answers until the first image of this service is deployed; from then on the deployment owns which image is served, and changing this variable moves nothing."
   type        = string
   default     = "us-docker.pkg.dev/cloudrun/container/hello@sha256:be0a21e5d7036cc60741cf60ea3b68e169cc2d00f3ad256c94536f32b0a0755c"
 
