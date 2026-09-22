@@ -76,20 +76,25 @@ build:
     go build -trimpath -ldflags "{{ LDFLAGS }}" -o {{ BINARY }} ./cmd/server
 
 # Build the release artifacts into dist/: the server for every architecture it is
-# published for, and the sums of what was built. The same flags as build, so a
-# binary from a tag and a binary from a laptop differ only in what they were
-# built from.
-release-artifacts:
+# published for, and the sums of what was built. The version is a parameter,
+# because a release knows the number it is about to publish before any tag
+# carries it; without one, the same version the rest of the build uses.
+release-artifacts version=VERSION:
     #!/usr/bin/env bash
     set -euo pipefail
+    ldflags="-s -w \
+        -X {{ SYMBOLS }}.Version={{ version }} \
+        -X {{ SYMBOLS }}.Commit={{ COMMIT }} \
+        -X {{ SYMBOLS }}.Date={{ DATE }}"
     rm -rf dist
     mkdir -p dist
     for arch in amd64 arm64; do
-        name="mathtrail-server_{{ VERSION }}_linux_${arch}"
+        name="mathtrail-server_{{ version }}_linux_${arch}"
         CGO_ENABLED=0 GOOS=linux GOARCH="$arch" go build \
-            -trimpath -ldflags "{{ LDFLAGS }}" -o "dist/$name" ./cmd/server
+            -trimpath -ldflags "$ldflags" -o "dist/$name" ./cmd/server
     done
-    cd dist && sha256sum * > SHA256SUMS
+    cd dist
+    sha256sum * > SHA256SUMS
     echo "dist: $(ls | wc -l) files"
 
 # Run the server from source, with logs a person can read
