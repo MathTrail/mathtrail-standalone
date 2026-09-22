@@ -335,6 +335,44 @@ ci-toolchain-image:
     # The one thing on stdout, so that a caller can read it with a substitution.
     echo "{{ TOOLCHAIN_IMAGE }}@${digest}"
 
+# Raise the pinned version of the Claude Code CLI and its editor extension. The
+# version stays exact — this only removes the part where a person edits the same
+# number in two files and misses one. Without an argument, whatever npm calls
+# latest today; the change is printed and committed like any other.
+claude-update version="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    dockerfile=".devcontainer/Dockerfile"
+    devcontainer=".devcontainer/devcontainer.json"
+
+    wanted="{{ version }}"
+    if [ -z "$wanted" ]; then
+        wanted=$(curl -fsSL --proto "=https" --proto-redir "=https" \
+            https://registry.npmjs.org/@anthropic-ai/claude-code/latest \
+        | sed -n 's/.*"version":"\([^"]*\)".*/\1/p')
+    fi
+    if [[ ! "$wanted" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "claude-update: $wanted is not a version" >&2
+        exit 1
+    fi
+
+    current=$(sed -n 's/^ARG CLAUDE_CODE_VERSION=//p' "$dockerfile")
+    if [ "$current" = "$wanted" ]; then
+        echo "claude code $current: already pinned"
+        exit 0
+    fi
+
+    # The CLI and the extension are one version in two files, and a rebuild with
+    # them apart is the failure this recipe exists to prevent.
+    sed -i "s/^ARG CLAUDE_CODE_VERSION=.*/ARG CLAUDE_CODE_VERSION=${wanted}/" "$dockerfile"
+    sed -i "s/\"anthropic.claude-code@[^\"]*\"/\"anthropic.claude-code@${wanted}\"/" "$devcontainer"
+
+    echo "claude code $current -> $wanted"
+    git --no-pager diff -- "$dockerfile" "$devcontainer"
+    echo
+    echo "Rebuild the container for this to take effect: Dev Containers: Rebuild Container."
+
 # Build the runtime image
 docker-build tag="mathtrail:dev":
     docker build \

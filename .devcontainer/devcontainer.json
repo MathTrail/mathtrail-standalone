@@ -51,7 +51,7 @@
             },
             // Exact versions; the Claude Code extension matches CLAUDE_CODE_VERSION.
             "extensions": [
-                "anthropic.claude-code@2.1.273",
+                "anthropic.claude-code@2.1.280",
                 "golang.go@0.56.1",
                 "redhat.vscode-yaml@1.24.0",
                 "nefrob.vscode-just-syntax@0.10.2",
