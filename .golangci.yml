@@ -12,6 +12,7 @@ linters:
     - depguard # the dependency rule, enforced rather than remembered
     - dupl
     - errorlint # %w and errors.Is/As instead of == and %v
+    - forbidigo # the two zap fields that would put a whole struct in a log line
     - gocritic
     - gosec
     - misspell
@@ -58,6 +59,16 @@ linters:
 
     errcheck:
       check-type-assertions: true
+
+    forbidigo:
+      forbid:
+        # A log line is built field by field on purpose. These two take anything
+        # at all and render it, which is how a whole task or a whole profile
+        # reaches a log that may hold no personal data of a child.
+        - pattern: ^zap\.Any$
+          msg: name the field and its type; a log line carries aggregates, never a task, an answer or a profile
+        - pattern: ^zap\.Reflect$
+          msg: name the field and its type; a log line carries aggregates, never a task, an answer or a profile
 
     gocritic:
       enabled-tags:

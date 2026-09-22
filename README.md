@@ -2,8 +2,10 @@
 
 [![CI](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/ci.yml/badge.svg)](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/ci.yml)
 [![Deploy](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/deploy.yml/badge.svg)](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/deploy.yml)
+[![CodeQL](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/codeql.yml/badge.svg)](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/codeql.yml)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/MathTrail/mathtrail-standalone)](https://github.com/MathTrail/mathtrail-standalone/blob/main/go.mod)
 [![codecov](https://codecov.io/gh/MathTrail/mathtrail-standalone/branch/main/graph/badge.svg)](https://codecov.io/gh/MathTrail/mathtrail-standalone)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/MathTrail/mathtrail-standalone/badge)](https://scorecard.dev/viewer/?uri=github.com/MathTrail/mathtrail-standalone)
 [![License: MIT](https://img.shields.io/github/license/MathTrail/mathtrail-standalone)](LICENSE)
 
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=MathTrail_mathtrail-standalone&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=MathTrail_mathtrail-standalone)

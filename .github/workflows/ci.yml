@@ -210,8 +210,9 @@ jobs:
     timeout-minutes: 20
     # This one job stays on the runner: it needs a Docker daemon, and the docker client reaches
     # the development image through a devcontainer feature, which a plain build does not apply.
-    # The image is built and thrown away — nothing leaves the runner.
+    # The image is built, scanned and thrown away — nothing leaves the runner.
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/just
       - run: just docker-build
+      - run: just ci-image-scan
