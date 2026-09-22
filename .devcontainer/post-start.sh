@@ -3,6 +3,6 @@
 set -euo pipefail
 
 # Git hooks live in .githooks/; enable them once the folder exists.
-if [ -d .githooks ]; then
+if [[ -d .githooks ]]; then
     git config core.hooksPath .githooks
 fi

@@ -28,11 +28,27 @@ resource "google_artifact_registry_repository_iam_member" "deployer" {
   member     = "serviceAccount:${google_service_account.deployer.email}"
 }
 
-# roll a revision of the one service,
+# roll a revision of the one service — and only that. The ready-made developer
+# role carries sixty permissions, among them deleting the service and opening a
+# root shell inside a running container; a deployment needs five.
+resource "google_project_iam_custom_role" "deployer" {
+  role_id     = "${replace(var.service_name, "-", "")}Deployer"
+  title       = "Deploys ${var.service_name}"
+  description = "Reads the service and rolls a new revision of it. Nothing else."
+
+  permissions = [
+    "run.services.get",
+    "run.services.update",
+    "run.operations.get",
+    "run.revisions.get",
+    "run.revisions.list",
+  ]
+}
+
 resource "google_cloud_run_v2_service_iam_member" "deployer" {
   location = google_cloud_run_v2_service.service.location
   name     = google_cloud_run_v2_service.service.name
-  role     = "roles/run.developer"
+  role     = google_project_iam_custom_role.deployer.name
   member   = "serviceAccount:${google_service_account.deployer.email}"
 }
 

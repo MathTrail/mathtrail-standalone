@@ -29,25 +29,32 @@ RUN arch="$(dpkg --print-architecture)"; \
     workdir="$(mktemp -d)"; \
     \
     echo "go ${GO_VERSION}"; \
-    curl -fsSL --retry 3 "https://go.dev/dl/go${GO_VERSION}.linux-${go_arch}.tar.gz" | tar -C /usr/local -xz; \
+    curl -fsSL --retry 3 --proto "=https" --proto-redir "=https" \
+        "https://go.dev/dl/go${GO_VERSION}.linux-${go_arch}.tar.gz" \
+        | tar -C /usr/local -xz; \
     \
     echo "node ${NODE_VERSION}"; \
     mkdir -p /usr/local/node; \
-    curl -fsSL --retry 3 "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${node_arch}.tar.gz" \
+    curl -fsSL --retry 3 --proto "=https" --proto-redir "=https" \
+        "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${node_arch}.tar.gz" \
         | tar -C /usr/local/node --strip-components=1 -xz; \
     \
     echo "just ${JUST_VERSION}"; \
-    curl -fsSL --retry 3 "https://github.com/casey/just/releases/download/${JUST_VERSION}/just-${JUST_VERSION}-${gnu_arch}-unknown-linux-musl.tar.gz" \
+    curl -fsSL --retry 3 --proto "=https" --proto-redir "=https" \
+        "https://github.com/casey/just/releases/download/${JUST_VERSION}/just-${JUST_VERSION}-${gnu_arch}-unknown-linux-musl.tar.gz" \
         | tar -C "$workdir" -xz just; \
     install -m 0755 "$workdir/just" /usr/local/bin/just; \
     \
     echo "golangci-lint ${GOLANGCI_LINT_VERSION}"; \
-    curl -fsSL --retry 3 "https://github.com/golangci/golangci-lint/releases/download/v${GOLANGCI_LINT_VERSION}/golangci-lint-${GOLANGCI_LINT_VERSION}-linux-${go_arch}.tar.gz" \
-        | tar -C "$workdir" --strip-components=1 -xz "golangci-lint-${GOLANGCI_LINT_VERSION}-linux-${go_arch}/golangci-lint"; \
+    curl -fsSL --retry 3 --proto "=https" --proto-redir "=https" \
+        "https://github.com/golangci/golangci-lint/releases/download/v${GOLANGCI_LINT_VERSION}/golangci-lint-${GOLANGCI_LINT_VERSION}-linux-${go_arch}.tar.gz" \
+        | tar -C "$workdir" --strip-components=1 -xz \
+            "golangci-lint-${GOLANGCI_LINT_VERSION}-linux-${go_arch}/golangci-lint"; \
     install -m 0755 "$workdir/golangci-lint" /usr/local/bin/golangci-lint; \
     \
     echo "mockery ${MOCKERY_VERSION}"; \
-    curl -fsSL --retry 3 "https://github.com/vektra/mockery/releases/download/v${MOCKERY_VERSION}/mockery_${MOCKERY_VERSION}_Linux_${mockery_arch}.tar.gz" \
+    curl -fsSL --retry 3 --proto "=https" --proto-redir "=https" \
+        "https://github.com/vektra/mockery/releases/download/v${MOCKERY_VERSION}/mockery_${MOCKERY_VERSION}_Linux_${mockery_arch}.tar.gz" \
         | tar -C "$workdir" -xz mockery; \
     install -m 0755 "$workdir/mockery" /usr/local/bin/mockery; \
     \
@@ -77,42 +84,47 @@ ARG CLAUDE_CODE_VERSION=2.1.273
 ARG TERRAFORM_VERSION=1.16.3
 ARG GCLOUD_VERSION=585.0.0
 
+# The tunnel, the compose plugin and the infrastructure tools, in one layer and
+# behind one architecture check. Cloudflared and Terraform name architectures the
+# way dpkg does, so they take $arch directly; only compose needs the GNU spelling.
+#
+# The x86_64 archive of gcloud carries a Python interpreter of its own and runs
+# straight out of the tarball; the arm one expects to find a system Python, which
+# this image deliberately does not have, so there gcloud is left out and the same
+# commands are run from Google's own container image instead.
 RUN arch="$(dpkg --print-architecture)"; \
     case "$arch" in \
-        amd64) go_arch=amd64; gnu_arch=x86_64 ;; \
-        arm64) go_arch=arm64; gnu_arch=aarch64 ;; \
-        *) echo "unsupported architecture: $arch" >&2; exit 1 ;; \
-    esac; \
-    \
-    echo "cloudflared ${CLOUDFLARED_VERSION}"; \
-    curl -fsSL --retry 3 -o /usr/local/bin/cloudflared "https://github.com/cloudflare/cloudflared/releases/download/${CLOUDFLARED_VERSION}/cloudflared-linux-${go_arch}"; \
-    chmod 0755 /usr/local/bin/cloudflared; \
-    \
-    echo "docker compose ${DOCKER_COMPOSE_VERSION}"; \
-    install -d -m 0755 /usr/local/lib/docker/cli-plugins; \
-    curl -fsSL --retry 3 -o /usr/local/lib/docker/cli-plugins/docker-compose "https://github.com/docker/compose/releases/download/v${DOCKER_COMPOSE_VERSION}/docker-compose-linux-${gnu_arch}"; \
-    chmod 0755 /usr/local/lib/docker/cli-plugins/docker-compose
-
-# Infrastructure tooling. The x86_64 archive of gcloud carries a Python interpreter of
-# its own and runs straight out of the tarball; the arm one expects to find a system
-# Python, which this image deliberately does not have, so there gcloud is left out and
-# the same commands are run from Google's own container image instead.
-RUN arch="$(dpkg --print-architecture)"; \
-    case "$arch" in \
-        amd64) tf_arch=amd64 ;; \
-        arm64) tf_arch=arm64 ;; \
+        amd64) gnu_arch=x86_64 ;; \
+        arm64) gnu_arch=aarch64 ;; \
         *) echo "unsupported architecture: $arch" >&2; exit 1 ;; \
     esac; \
     workdir="$(mktemp -d)"; \
     \
+    echo "cloudflared ${CLOUDFLARED_VERSION}"; \
+    curl -fsSL --retry 3 --proto "=https" --proto-redir "=https" \
+        -o /usr/local/bin/cloudflared \
+        "https://github.com/cloudflare/cloudflared/releases/download/${CLOUDFLARED_VERSION}/cloudflared-linux-${arch}"; \
+    chmod 0755 /usr/local/bin/cloudflared; \
+    \
+    echo "docker compose ${DOCKER_COMPOSE_VERSION}"; \
+    install -d -m 0755 /usr/local/lib/docker/cli-plugins; \
+    curl -fsSL --retry 3 --proto "=https" --proto-redir "=https" \
+        -o /usr/local/lib/docker/cli-plugins/docker-compose \
+        "https://github.com/docker/compose/releases/download/v${DOCKER_COMPOSE_VERSION}/docker-compose-linux-${gnu_arch}"; \
+    chmod 0755 /usr/local/lib/docker/cli-plugins/docker-compose; \
+    \
     echo "terraform ${TERRAFORM_VERSION}"; \
-    curl -fsSL --retry 3 -o "$workdir/terraform.zip" "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_${tf_arch}.zip"; \
+    curl -fsSL --retry 3 --proto "=https" --proto-redir "=https" \
+        -o "$workdir/terraform.zip" \
+        "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_${arch}.zip"; \
     unzip -q -d "$workdir" "$workdir/terraform.zip"; \
     install -m 0755 "$workdir/terraform" /usr/local/bin/terraform; \
     \
     if [ "$arch" = "amd64" ]; then \
         echo "gcloud ${GCLOUD_VERSION}"; \
-        curl -fsSL --retry 3 "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-${GCLOUD_VERSION}-linux-x86_64.tar.gz" | tar -C /usr/local -xz; \
+        curl -fsSL --retry 3 --proto "=https" --proto-redir "=https" \
+            "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-${GCLOUD_VERSION}-linux-x86_64.tar.gz" \
+            | tar -C /usr/local -xz; \
     else \
         echo "gcloud ${GCLOUD_VERSION}: skipped, no interpreter in the ${arch} archive"; \
     fi; \
@@ -121,14 +133,25 @@ RUN arch="$(dpkg --print-architecture)"; \
 
 ENV PATH="/usr/local/google-cloud-sdk/bin:${PATH}"
 
-# gopls and dlv are built from source; the Go checksum database verifies the modules.
+# gopls and dlv are built from source; the Go checksum database verifies the
+# modules. Read-only is the default since Go 1.16 and is stated here anyway: an
+# install of a pinned version may not rewrite what it was pinned to.
 RUN echo "gopls ${GOPLS_VERSION}, dlv ${DELVE_VERSION}" \
-    && GOBIN=/usr/local/bin go install "golang.org/x/tools/gopls@v${GOPLS_VERSION}" \
-    && GOBIN=/usr/local/bin go install "github.com/go-delve/delve/cmd/dlv@v${DELVE_VERSION}"
+    && GOBIN=/usr/local/bin go install -mod=readonly "golang.org/x/tools/gopls@v${GOPLS_VERSION}" \
+    && GOBIN=/usr/local/bin go install -mod=readonly "github.com/go-delve/delve/cmd/dlv@v${DELVE_VERSION}"
+
+# From the registry at an exact version, rather than by running an installer
+# script off the network: what arrives is the package that version names, and
+# npm checks the archive against the hash the registry publishes for it. The
+# package's own install step is allowed by name, because that is what puts its
+# native binary in place of the stub it ships with.
+RUN echo "claude code ${CLAUDE_CODE_VERSION}" \
+    && npm install -g --allow-scripts=@anthropic-ai/claude-code \
+        "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
 
 # The config dirs are created here so the named volumes mounted over them inherit
-# vscode ownership.
+# vscode ownership, and the image is left as that user: nothing in it needs root
+# once it is built, and the one thing that does — the docker daemon started by
+# the docker-in-docker feature — asks for root through sudo itself.
 USER vscode
-RUN mkdir -p /home/vscode/.claude /home/vscode/.config/gcloud \
-    && curl -fsSL https://claude.ai/install.sh | bash -s "${CLAUDE_CODE_VERSION}"
-USER root
+RUN mkdir -p /home/vscode/.claude /home/vscode/.config/gcloud

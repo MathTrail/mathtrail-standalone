@@ -35,7 +35,7 @@
 </main>
 <footer>
 <p>{{ .Text.openSource }}</p>
-<nav class="documents">
+<nav class="documents" aria-label="{{ .Text.documents }}">
 {{- range .Documents }}
 <a href="{{ .URL }}">{{ .Label }}</a>
 {{- end }}
