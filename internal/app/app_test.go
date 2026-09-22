@@ -1,7 +1,9 @@
 package app_test
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"errors"
 	"net/http"
 	"runtime"
@@ -12,6 +14,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/internal/app"
 	"github.com/MathTrail/mathtrail-standalone/internal/config"
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
 )
 
 // The server must stop because its context was cancelled — the same way a
@@ -129,6 +132,40 @@ func TestContainerCarriesTheCheckedContent(t *testing.T) {
 	}
 }
 
+// The key ring is built while the container is, so a key the service could not
+// seal with stops the process instead of surfacing at the first sign-in.
+func TestContainerCarriesTheKeyRing(t *testing.T) {
+	t.Parallel()
+
+	ring := newTestContainer(t).Seal
+	if ring == nil {
+		t.Fatal("the container carries no key ring")
+	}
+
+	value, err := ring.Seal(seal.PurposeTaskAnswer, []byte(`{"answer":"C"}`), "OX1sT9")
+	if err != nil {
+		t.Fatalf("Seal() error = %v, want nil", err)
+	}
+	if _, err := ring.Open(seal.PurposeTaskAnswer, value, "OX1sT9"); err != nil {
+		t.Errorf("Open() error = %v, want the ring the container built to be usable", err)
+	}
+}
+
+func TestContainerRefusesAKeyItCannotRead(t *testing.T) {
+	t.Parallel()
+
+	cfg := testConfig()
+	cfg.SealKeyCurrent = "not a key"
+
+	container, err := app.NewContainer(t.Context(), cfg, zaptest.NewLogger(t))
+	if !errors.Is(err, seal.ErrKey) {
+		t.Fatalf("NewContainer() error = %v, want %v", err, seal.ErrKey)
+	}
+	if container != nil {
+		t.Error("NewContainer() returned a container alongside an error, want nothing")
+	}
+}
+
 func newTestContainer(t *testing.T) *app.Container {
 	t.Helper()
 
@@ -151,8 +188,13 @@ func testConfig() *config.Config {
 		WriteTimeout:      config.DefaultWriteTimeout,
 		IdleTimeout:       config.DefaultIdleTimeout,
 		ShutdownTimeout:   time.Second,
+		SealKeyCurrent:    sealKey,
 	}
 }
+
+// sealKey is a key for the tests of the wiring: the container only has to be
+// able to read it, and nothing here seals anything with it.
+var sealKey = base64.StdEncoding.EncodeToString(bytes.Repeat([]byte("mathtrail"), 4)[:32])
 
 func portOf(t *testing.T, addr string) string {
 	t.Helper()

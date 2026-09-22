@@ -93,7 +93,7 @@ ARG CLOUDFLARED_VERSION=2026.9.1
 # ours in /usr/local/lib/docker/cli-plugins takes precedence over the feature's copy.
 ARG DOCKER_COMPOSE_VERSION=5.5.1
 # Claude Code CLI. The VS Code extension in devcontainer.json must have the same version.
-ARG CLAUDE_CODE_VERSION=2.1.273
+ARG CLAUDE_CODE_VERSION=2.1.280
 # The cloud is described in Terraform and signed into with gcloud, both from here.
 ARG TERRAFORM_VERSION=1.16.3
 ARG GCLOUD_VERSION=585.0.0

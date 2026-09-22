@@ -36,8 +36,17 @@ defaults:
 jobs:
   release:
     name: Build, sign and publish
-    # Only from a commit the checks have already passed on.
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    # Only from a commit the checks have already passed on, and only when that
+    # commit is this repository's own. A pull request from a fork runs the checks
+    # here as well, carrying the fork's code, and the branch filter above matches
+    # on the name of the branch it came from — so a fork whose branch is called
+    # main would otherwise have its code built, signed and published under this
+    # repository's identity, with the permissions this job holds.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
