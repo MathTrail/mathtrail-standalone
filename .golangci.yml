@@ -13,6 +13,7 @@ linters:
     - dupl
     - errorlint # %w and errors.Is/As instead of == and %v
     - forbidigo # the two zap fields that would put a whole struct in a log line
+    - gocognit # the same ceiling Sonar holds, checked before a merge rather than after
     - gocritic
     - gosec
     - misspell
@@ -69,6 +70,11 @@ linters:
           msg: name the field and its type; a log line carries aggregates, never a task, an answer or a profile
         - pattern: ^zap\.Reflect$
           msg: name the field and its type; a log line carries aggregates, never a task, an answer or a profile
+
+    gocognit:
+      # A function past this is doing more than one thing, and the next reader
+      # pays for it. The number matches what the static analysis asks for.
+      min-complexity: 15
 
     gocritic:
       enabled-tags:
