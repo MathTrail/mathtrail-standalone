@@ -26,6 +26,9 @@ ALLOWED_LICENSES := "MIT,BSD-2-Clause,BSD-3-Clause,Apache-2.0,ISC"
 SITE_BASE := "https://mathtrail.app"
 SITE_DIR := "site/dist"
 
+# Where the cloud this service runs in is described.
+TF_DIR := "infra/terraform"
+
 # The build identity, stamped into the binary at link time. Computed once per
 # run of just, so that a binary and the image built beside it carry the same
 # words.
@@ -182,6 +185,84 @@ site-serve port="8081":
 ci-site: site
     go run ./cmd/sitecheck -base {{ SITE_BASE }} -dir {{ SITE_DIR }}
 
+# -- Infrastructure ---------------------------------------------------------
+
+# Format the Terraform sources in place
+tf-fmt:
+    terraform -chdir={{ TF_DIR }} fmt -recursive
+
+# Refuse Terraform that is misformatted or does not describe a valid configuration
+tf-check:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    terraform -chdir={{ TF_DIR }} fmt -check -recursive
+    # Without a backend and without credentials: this reads the configuration,
+    # it does not go near a deployment.
+    terraform -chdir={{ TF_DIR }} init -backend=false -input=false
+    terraform -chdir={{ TF_DIR }} validate
+
+# Create the project, the bucket of its state and the identity the pipeline uses
+bootstrap:
+    bash infra/bootstrap.sh
+
+# Show what an apply would change, without changing anything
+ci-tf-plan:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    terraform -chdir={{ TF_DIR }} init -backend-config=backend.hcl -input=false
+    terraform -chdir={{ TF_DIR }} plan -input=false -no-color
+
+# Bring the cloud up to what this repository says it should be
+ci-tf-apply:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    tf() { terraform -chdir={{ TF_DIR }} "$@"; }
+
+    tf init -backend-config=backend.hcl -input=false
+
+    # The secrets come first, on their own. A revision cannot start until they
+    # hold something, and what they hold is not described in this repository.
+    tf apply -auto-approve -input=false \
+        -target=google_secret_manager_secret.seal_key \
+        -target=google_secret_manager_secret.google_client_secret
+
+    project=$(tf output -raw project_id)
+    seal_key=$(tf output -raw secret_seal_key)
+    client_secret=$(tf output -raw secret_google_client)
+
+    has_version() {
+        [ -n "$(gcloud secrets versions list "$1" --project="$project" --limit=1 --format='value(name)' 2>/dev/null)" ]
+    }
+
+    # The sealing key is made here and read by nobody: not a person, not the
+    # state, not a log. A key that never existed outside Secret Manager is one
+    # nobody has to be trusted with.
+    if has_version "$seal_key"; then
+        echo "seal key: a version exists, leaving it alone"
+    else
+        echo "seal key: generating the first version"
+        head -c 32 /dev/urandom | base64 | tr -d '\n' \
+            | gcloud secrets versions add "$seal_key" --project="$project" --data-file=- > /dev/null
+    fi
+
+    # This one cannot be generated: it exists only in the Google console, and it
+    # is passed in through the environment for exactly this step.
+    if has_version "$client_secret"; then
+        echo "client secret: a version exists, leaving it alone"
+    elif [ -n "${GOOGLE_OAUTH_CLIENT_SECRET:-}" ]; then
+        echo "client secret: adding the first version"
+        printf '%s' "$GOOGLE_OAUTH_CLIENT_SECRET" \
+            | gcloud secrets versions add "$client_secret" --project="$project" --data-file=- > /dev/null
+    else
+        echo "ci-tf-apply: $client_secret holds no version and GOOGLE_OAUTH_CLIENT_SECRET is not set." >&2
+        echo "The service cannot start without it: take it from the Google OAuth client." >&2
+        exit 1
+    fi
+
+    tf apply -auto-approve -input=false
+    tf output
+
 # -- Container --------------------------------------------------------------
 
 # Publish the image the full checks run inside, and print its exact reference
@@ -218,6 +299,78 @@ docker-build tag="mathtrail:dev":
 # Build the image and run it on port 8080
 docker-run tag="mathtrail:dev": (docker-build tag)
     docker run --rm -e PORT=8080 -p 8080:8080 {{ tag }}
+
+# -- Deployment -------------------------------------------------------------
+
+# Build the runtime image, push it, and print the exact reference it got
+ci-image-push image:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    image="{{ image }}"
+
+    # The tag says which commit an image was built from, so that the registry
+    # can be read by a person. What is deployed is the digest below: a tag can
+    # be moved afterwards and a digest cannot.
+    tag="${image}:{{ COMMIT }}"
+
+    # A push needs a credential helper for that registry, and the registry is
+    # the first component of the image path.
+    gcloud auth configure-docker "${image%%/*}" --quiet >&2
+
+    just docker-build "$tag" >&2
+    docker push "$tag" >&2
+
+    # Read with awk rather than a Go template, whose braces would collide with
+    # the interpolation syntax of this file.
+    digest=$(docker buildx imagetools inspect "$tag" | awk '/^Digest:/ { print $2 }')
+
+    # The one thing on stdout, so that a caller can read it with a substitution.
+    echo "${image}@${digest}"
+
+# Roll a new revision of the service, and wait until it is the one serving
+ci-deploy service region image:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    image="{{ image }}"
+    if [[ "$image" != *@sha256:* ]]; then
+        echo "ci-deploy: an image is deployed by digest, never by tag: $image" >&2
+        exit 1
+    fi
+
+    # The service is created once, with everything around it; a deployment only
+    # ever changes which image it serves.
+    gcloud run services update "{{ service }}" \
+        --region="{{ region }}" \
+        --image="$image" \
+        --quiet
+
+# Refuse a deployment that does not answer, or answers as another build
+ci-smoke url:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    body=""
+    for attempt in $(seq 1 10); do
+        body=$(curl -fsS --max-time 10 "{{ url }}/healthz") && break
+        echo "healthz: no answer yet (attempt ${attempt})" >&2
+        sleep 3
+    done
+
+    if [ -z "$body" ]; then
+        echo "smoke: {{ url }}/healthz never answered" >&2
+        exit 1
+    fi
+
+    # Answering is half of it. The commit in the answer is what says the
+    # revision now serving is the one just built, rather than the one before it.
+    if [[ "$body" != *'"commit":"{{ COMMIT }}"'* ]]; then
+        echo "smoke: {{ url }} is serving another build: $body" >&2
+        exit 1
+    fi
+
+    echo "smoke: {{ url }} answers as {{ COMMIT }}"
 
 
 # -- Golden vectors from the prototype --------------------------------------
@@ -256,3 +409,14 @@ golden:
 
     echo ""
     echo "Golden vectors are in testdata/golden/. A second run must produce byte-identical files."
+
+# Print the deployment target, one fact per line, for a caller to read
+ci-tf-outputs:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    tf() { terraform -chdir={{ TF_DIR }} "$@"; }
+    echo "deploy_service_account=$(tf output -raw deploy_service_account)"
+    echo "image_repository=$(tf output -raw image_repository)"
+    echo "service=$(tf output -raw service_name)"
+    echo "region=$(tf output -raw region)"
+    echo "public_url=$(tf output -raw public_url)"

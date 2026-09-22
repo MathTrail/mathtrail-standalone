@@ -1,0 +1,34 @@
+name: deployment target
+description: Puts the facts a delivery needs into the environment, read from the files that record them.
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        set -euo pipefail
+
+        target="$GITHUB_WORKSPACE/infra/ci.env"
+        if grep -q REPLACE "$target"; then
+            echo "deployment-target: $target still holds placeholders." >&2
+            echo "Run the bootstrap script and commit the two lines it prints." >&2
+            exit 1
+        fi
+
+        # The two facts a delivery needs before it can sign in, and therefore
+        # before there is any state to read them from. Comments and blank lines
+        # are dropped: the environment file accepts neither.
+        grep -E '^[A-Z][A-Z0-9_]*=' "$target" >> "$GITHUB_ENV"
+
+        # Tool versions live where the tools are installed, as the default of an
+        # ARG, so each is written down once and read from there.
+        dockerfile="$GITHUB_WORKSPACE/.devcontainer/Dockerfile"
+        for arg in TERRAFORM_VERSION GCLOUD_VERSION; do
+            version="$(sed -n "s/^ARG ${arg}=//p" "$dockerfile")"
+            if [ -z "$version" ]; then
+                echo "deployment-target: $dockerfile pins no $arg" >&2
+                exit 1
+            fi
+            echo "${arg}=${version}" >> "$GITHUB_ENV"
+            echo "$arg $version"
+        done

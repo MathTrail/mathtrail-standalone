@@ -73,6 +73,9 @@ ARG CLOUDFLARED_VERSION=2026.9.1
 ARG DOCKER_COMPOSE_VERSION=5.5.1
 # Claude Code CLI. The VS Code extension in devcontainer.json must have the same version.
 ARG CLAUDE_CODE_VERSION=2.1.273
+# The cloud is described in Terraform and signed into with gcloud, both from here.
+ARG TERRAFORM_VERSION=1.16.3
+ARG GCLOUD_VERSION=585.0.0
 
 RUN arch="$(dpkg --print-architecture)"; \
     case "$arch" in \
@@ -90,13 +93,42 @@ RUN arch="$(dpkg --print-architecture)"; \
     curl -fsSL --retry 3 -o /usr/local/lib/docker/cli-plugins/docker-compose "https://github.com/docker/compose/releases/download/v${DOCKER_COMPOSE_VERSION}/docker-compose-linux-${gnu_arch}"; \
     chmod 0755 /usr/local/lib/docker/cli-plugins/docker-compose
 
+# Infrastructure tooling. The x86_64 archive of gcloud carries a Python interpreter of
+# its own and runs straight out of the tarball; the arm one expects to find a system
+# Python, which this image deliberately does not have, so there gcloud is left out and
+# the same commands are run from Google's own container image instead.
+RUN arch="$(dpkg --print-architecture)"; \
+    case "$arch" in \
+        amd64) tf_arch=amd64 ;; \
+        arm64) tf_arch=arm64 ;; \
+        *) echo "unsupported architecture: $arch" >&2; exit 1 ;; \
+    esac; \
+    workdir="$(mktemp -d)"; \
+    \
+    echo "terraform ${TERRAFORM_VERSION}"; \
+    curl -fsSL --retry 3 -o "$workdir/terraform.zip" "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_${tf_arch}.zip"; \
+    unzip -q -d "$workdir" "$workdir/terraform.zip"; \
+    install -m 0755 "$workdir/terraform" /usr/local/bin/terraform; \
+    \
+    if [ "$arch" = "amd64" ]; then \
+        echo "gcloud ${GCLOUD_VERSION}"; \
+        curl -fsSL --retry 3 "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-${GCLOUD_VERSION}-linux-x86_64.tar.gz" | tar -C /usr/local -xz; \
+    else \
+        echo "gcloud ${GCLOUD_VERSION}: skipped, no interpreter in the ${arch} archive"; \
+    fi; \
+    \
+    rm -rf "$workdir"
+
+ENV PATH="/usr/local/google-cloud-sdk/bin:${PATH}"
+
 # gopls and dlv are built from source; the Go checksum database verifies the modules.
 RUN echo "gopls ${GOPLS_VERSION}, dlv ${DELVE_VERSION}" \
     && GOBIN=/usr/local/bin go install "golang.org/x/tools/gopls@v${GOPLS_VERSION}" \
     && GOBIN=/usr/local/bin go install "github.com/go-delve/delve/cmd/dlv@v${DELVE_VERSION}"
 
-# The config dir is created here so the named volume mounted over it inherits vscode ownership.
+# The config dirs are created here so the named volumes mounted over them inherit
+# vscode ownership.
 USER vscode
-RUN mkdir -p /home/vscode/.claude \
+RUN mkdir -p /home/vscode/.claude /home/vscode/.config/gcloud \
     && curl -fsSL https://claude.ai/install.sh | bash -s "${CLAUDE_CODE_VERSION}"
 USER root

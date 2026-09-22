@@ -1,0 +1,135 @@
+# Continuous delivery: brings the cloud up to what this repository describes,
+# then builds the image of this commit and rolls a revision of the service.
+#
+# Every step is a pinned action or a recipe of the justfile, so the same
+# commands work from a laptop; the identity is federated, and the only secret
+# anywhere is the one value that exists nowhere but the Google console.
+name: CD
+
+on:
+  push:
+    branches: [main]
+  # Any other branch is deployed deliberately, by hand, and goes out exactly as
+  # it is checked out.
+  workflow_dispatch:
+  # On a pull request the same configuration is only read, never applied.
+  pull_request:
+    paths:
+      - 'infra/**'
+      - '.github/workflows/deploy.yml'
+      - 'justfile'
+
+permissions:
+  contents: read
+  # The federated token: this, and only this, is what gets into Google Cloud.
+  id-token: write
+
+# One delivery at a time, and never cancelled halfway: a cancelled apply or
+# roll-out leaves a state nobody decided about.
+concurrency:
+  group: cd
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  plan:
+    name: What an apply would change
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/just
+      - uses: ./.github/actions/deployment-target
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_TERRAFORM_SERVICE_ACCOUNT }}
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          # The wrapper turns every terraform call into a step output, which is
+          # noise for a recipe that reads terraform's own stdout.
+          terraform_wrapper: false
+      - name: Plan
+        env:
+          # The one fact about the deployment that is not written down beside
+          # the others: it names the account that pays.
+          TF_VAR_billing_account: ${{ secrets.TF_VAR_billing_account }}
+        run: just ci-tf-plan | tee -a "$GITHUB_STEP_SUMMARY"
+
+  infra:
+    name: The cloud, as described
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    outputs:
+      deploy_service_account: ${{ steps.target.outputs.deploy_service_account }}
+      image_repository: ${{ steps.target.outputs.image_repository }}
+      service: ${{ steps.target.outputs.service }}
+      region: ${{ steps.target.outputs.region }}
+      public_url: ${{ steps.target.outputs.public_url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/just
+      - uses: ./.github/actions/deployment-target
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_TERRAFORM_SERVICE_ACCOUNT }}
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+        with:
+          version: ${{ env.GCLOUD_VERSION }}
+      - name: Apply
+        env:
+          # Used once, on the first apply of a deployment, and ignored on every
+          # apply after it: a secret that already holds a version is left alone.
+          GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+          # The one fact about the deployment that is not written down beside
+          # the others: it names the account that pays.
+          TF_VAR_billing_account: ${{ secrets.TF_VAR_billing_account }}
+        run: just ci-tf-apply
+      - id: target
+        name: Where the image goes
+        run: just ci-tf-outputs >> "$GITHUB_OUTPUT"
+
+  deploy:
+    name: The image of this commit
+    needs: infra
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/just
+      - uses: ./.github/actions/deployment-target
+      # A narrower identity than the one that applied the configuration: it may
+      # push an image and roll a revision, and nothing else.
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ needs.infra.outputs.deploy_service_account }}
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+        with:
+          version: ${{ env.GCLOUD_VERSION }}
+      - id: image
+        name: Publish the image
+        env:
+          REPOSITORY: ${{ needs.infra.outputs.image_repository }}
+        run: echo "reference=$(just ci-image-push "$REPOSITORY/server")" >> "$GITHUB_OUTPUT"
+      - name: Roll out the revision
+        env:
+          SERVICE: ${{ needs.infra.outputs.service }}
+          REGION: ${{ needs.infra.outputs.region }}
+          IMAGE: ${{ steps.image.outputs.reference }}
+        run: just ci-deploy "$SERVICE" "$REGION" "$IMAGE"
+      - name: Check what answers is this commit
+        env:
+          PUBLIC_URL: ${{ needs.infra.outputs.public_url }}
+        run: just ci-smoke "$PUBLIC_URL"

@@ -24,7 +24,9 @@
     "remoteUser": "vscode",
     "mounts": [
         // Claude Code login and settings survive container rebuilds.
-        "source=mathtrail-standalone-claude,target=/home/vscode/.claude,type=volume"
+        "source=mathtrail-standalone-claude,target=/home/vscode/.claude,type=volume",
+        // The Google sign-in survives them too: the credentials Terraform reads live here.
+        "source=mathtrail-standalone-gcloud,target=/home/vscode/.config/gcloud,type=volume"
     ],
     "containerEnv": {
         // Marker checked by Claude sessions (CLAUDE.md, "Devcontainer only").
@@ -47,6 +49,7 @@
                 "golang.go@0.56.1",
                 "redhat.vscode-yaml@1.24.0",
                 "nefrob.vscode-just-syntax@0.10.2",
+                "hashicorp.terraform@2.40.0",
                 "bierner.markdown-mermaid@1.32.1",
                 "eamodio.gitlens@19.2.0",
                 "ms-azuretools.vscode-containers@2.5.1"

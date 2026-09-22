@@ -29,3 +29,23 @@ node_modules/
 
 # Rendered site: rebuilt by just site, never committed.
 /site/dist/
+
+# Terraform: downloaded providers, state, plans, and the values of one
+# deployment. The provider lock file is committed and is not any of these.
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+*.tfplan
+backend.hcl
+crash.log
+crash.*.log
+
+# Working directory of the static analysis scanner.
+.scannerwork/
+
+# The one deployment this repository delivers to is described in the repository,
+# not in somebody's console: these two are committed on purpose.
+!infra/terraform/prod.auto.tfvars
+!infra/terraform/backend.hcl
