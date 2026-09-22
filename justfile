@@ -361,7 +361,9 @@ ci-smoke url:
 
     body=""
     for attempt in $(seq 1 10); do
-        body=$(curl -fsS --max-time 10 "{{ url }}/health") && break
+        # A redirect may not downgrade the connection. The address itself is the
+        # caller's to choose: this also probes a container on localhost.
+        body=$(curl -fsS --max-time 10 --proto-redir "=https" "{{ url }}/health") && break
         echo "health: no answer yet (attempt ${attempt})" >&2
         sleep 3
     done

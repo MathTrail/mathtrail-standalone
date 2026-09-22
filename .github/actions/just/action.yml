@@ -25,7 +25,7 @@ runs:
 
         echo "just $version"
         mkdir -p "$RUNNER_TEMP/bin"
-        curl -fsSL --retry 3 \
+        curl -fsSL --retry 3 --proto "=https" --proto-redir "=https" \
             "https://github.com/casey/just/releases/download/${version}/just-${version}-${arch}-unknown-linux-musl.tar.gz" \
             | tar -C "$RUNNER_TEMP/bin" -xz just
         echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"

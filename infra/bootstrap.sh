@@ -18,12 +18,14 @@ backend="$here/terraform/backend.hcl"
 
 # One value out of an HCL file: the first `name = "value"` it finds.
 hcl_value() {
-    sed -n "s/^[[:space:]]*$1[[:space:]]*=[[:space:]]*\"\([^\"]*\)\".*/\1/p" "$2" | head -1
+    local name="$1" file="$2"
+    sed -n "s/^[[:space:]]*${name}[[:space:]]*=[[:space:]]*\"\([^\"]*\)\".*/\1/p" "$file" | head -1
 }
 
 require() {
-    if [ -z "$2" ] || [[ "$2" == REPLACE* ]]; then
-        echo "bootstrap: $1 is not filled in yet (see ${tfvars##*/} and ${backend##*/})" >&2
+    local name="$1" value="$2"
+    if [[ -z "$value" || "$value" == REPLACE* ]]; then
+        echo "bootstrap: ${name} is not filled in yet (see ${tfvars##*/} and ${backend##*/})" >&2
         exit 1
     fi
 }
@@ -46,7 +48,7 @@ require bucket "$bucket"
 # because that is written down in public. It arrives here the same way it
 # arrives in a delivery.
 billing="${TF_VAR_billing_account:-}"
-if [ -z "$billing" ]; then
+if [[ -z "$billing" ]]; then
     echo "bootstrap: TF_VAR_billing_account is not set." >&2
     echo "It is the id of the billing account to link, of the form 01ABCD-234567-89EFGH." >&2
     exit 1
@@ -117,6 +119,8 @@ fi
 # Enumerated rather than Owner: enough to create everything the configuration
 # describes, and nothing beyond this one project. The pool above is deliberately
 # not among them — what this identity signs in through is not its to change.
+# Roles may be written because the configuration defines one: the deployment
+# identity gets a role of five permissions instead of a ready-made one of sixty.
 echo "==> what it may do"
 for role in \
     roles/serviceusage.serviceUsageAdmin \
@@ -125,6 +129,7 @@ for role in \
     roles/run.admin \
     roles/iam.serviceAccountAdmin \
     roles/iam.serviceAccountUser \
+    roles/iam.roleAdmin \
     roles/browser
 do
     gcloud projects add-iam-policy-binding "$project" \

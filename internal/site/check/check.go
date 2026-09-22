@@ -320,7 +320,9 @@ func checkStylesheets(site fs.FS, files map[string]int64) []Finding {
 		if err != nil {
 			continue
 		}
-		for _, marker := range []string{"http://", "https://", "url(//"} {
+		// These are what is searched for, not what is used: a stylesheet that
+		// names any of them is the finding.
+		for _, marker := range []string{"http://", "https://", "url(//"} { // NOSONAR
 			if !strings.Contains(string(data), marker) {
 				continue
 			}
