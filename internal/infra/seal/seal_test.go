@@ -11,9 +11,12 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
 )
 
-// The purposes, in the order they appear on the wire. Every test that has to
-// cover all of them reads this list, so a purpose added without a test is a
-// list that no longer matches the package.
+// The purposes, in the order they appear on the wire, and the label each one
+// travels under. Both lists are written out by hand: they are what the tests
+// know, held against what the package does rather than read out of it.
+//
+// TestTheTestsKnowEveryPurpose is what keeps them honest — nothing else here
+// would notice a purpose that was added to the package and not to these lines.
 var everyPurpose = []seal.Purpose{
 	seal.PurposeCode,
 	seal.PurposeAccess,
@@ -22,6 +25,16 @@ var everyPurpose = []seal.Purpose{
 	seal.PurposeState,
 	seal.PurposeConsent,
 	seal.PurposeTaskAnswer,
+}
+
+var labelOf = map[seal.Purpose]string{
+	seal.PurposeCode:       "c",
+	seal.PurposeAccess:     "a",
+	seal.PurposeRefresh:    "r",
+	seal.PurposeClient:     "d",
+	seal.PurposeState:      "s",
+	seal.PurposeConsent:    "k",
+	seal.PurposeTaskAnswer: "t",
 }
 
 // keyNamed turns a name into a sealing key: thirty-two bytes that are
@@ -95,16 +108,6 @@ func TestRoundTrip(t *testing.T) {
 func TestEveryPurposeHasItsOwnLabel(t *testing.T) {
 	t.Parallel()
 
-	wantLabel := map[seal.Purpose]string{
-		seal.PurposeCode:       "c",
-		seal.PurposeAccess:     "a",
-		seal.PurposeRefresh:    "r",
-		seal.PurposeClient:     "d",
-		seal.PurposeState:      "s",
-		seal.PurposeConsent:    "k",
-		seal.PurposeTaskAnswer: "t",
-	}
-
 	ring := newRing(t, keyNamed("current"), "")
 	seen := make(map[string]seal.Purpose, len(everyPurpose))
 
@@ -116,8 +119,8 @@ func TestEveryPurposeHasItsOwnLabel(t *testing.T) {
 		if fields[0] != "mt1" {
 			t.Errorf("Seal(%s) version = %q, want %q", purpose, fields[0], "mt1")
 		}
-		if fields[1] != wantLabel[purpose] {
-			t.Errorf("Seal(%s) label = %q, want %q", purpose, fields[1], wantLabel[purpose])
+		if fields[1] != labelOf[purpose] {
+			t.Errorf("Seal(%s) label = %q, want %q", purpose, fields[1], labelOf[purpose])
 		}
 		if fields[2] != ring.CurrentKeyID() {
 			t.Errorf("Seal(%s) key id = %q, want %q", purpose, fields[2], ring.CurrentKeyID())
@@ -126,6 +129,62 @@ func TestEveryPurposeHasItsOwnLabel(t *testing.T) {
 			t.Errorf("Seal(%s) label = %q, which %s already uses", purpose, fields[1], other)
 		}
 		seen[fields[1]] = purpose
+	}
+}
+
+// The closed list, kept closed. Every test that covers all the purposes reads
+// everyPurpose or labelOf, so a purpose added to the package and not to those
+// lines would quietly lose its round trip, its label and its properties —
+// and nothing would say so.
+//
+// What the package actually accepts is therefore read back out of it, one
+// label at a time. The order of the checks in Open is what makes that
+// readable: a label nobody uses is refused as malformed, and a label that is
+// in use gets as far as the purpose or the key. This covers labels of one
+// character, which is every label the format has room for.
+func TestTheTestsKnowEveryPurpose(t *testing.T) {
+	t.Parallel()
+
+	// A key id the ring does not carry, so that a label in use is refused for
+	// the key or the purpose rather than for the shape of the value.
+	const absentKey = "aaaaaa"
+
+	ring := newRing(t, keyNamed("current"), "")
+	if ring.CurrentKeyID() == absentKey {
+		t.Fatalf("the test key is named %q, which the probe assumes nothing is", absentKey)
+	}
+
+	inUse := make(map[string]struct{})
+	for symbol := byte('!'); symbol <= '~'; symbol++ {
+		label := string(symbol)
+		if label == "." {
+			continue // the separator: no field of a sealed value can hold one
+		}
+		_, err := ring.Open(seal.PurposeAccess, "mt1."+label+"."+absentKey+".AAAA")
+		if !errors.Is(err, seal.ErrMalformed) {
+			inUse[label] = struct{}{}
+		}
+	}
+
+	for purpose, label := range labelOf {
+		if _, known := inUse[label]; !known {
+			t.Errorf("the tests give %s the label %q, which the package does not know", purpose, label)
+		}
+		delete(inUse, label)
+	}
+	for label := range inUse {
+		t.Errorf("the package knows the label %q, and no test names a purpose for it", label)
+	}
+
+	// And the two lists the tests keep must name the same purposes as each other.
+	if len(everyPurpose) != len(labelOf) {
+		t.Errorf("everyPurpose names %d purposes and labelOf names %d, want the same set",
+			len(everyPurpose), len(labelOf))
+	}
+	for _, purpose := range everyPurpose {
+		if _, named := labelOf[purpose]; !named {
+			t.Errorf("everyPurpose names %s, and labelOf does not", purpose)
+		}
 	}
 }
 

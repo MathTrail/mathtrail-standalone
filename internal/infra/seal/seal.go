@@ -151,7 +151,15 @@ func (r *KeyRing) Open(purpose Purpose, value string, binding ...string) ([]byte
 // ["ab", "c"] and one bound to ["a", "bc"] would be tied to the same thing,
 // and a user id ending in a digit could be read as a task id starting with one.
 func additionalData(purpose Purpose, keyID string, binding []string) []byte {
-	data := make([]byte, 0, len(purpose)+len(keyID)+2+len(binding)*8)
+	// One byte of length in front of every field, which is what a uvarint costs
+	// for anything shorter than 128 bytes — a purpose, a key id and a binding
+	// are all identifiers, and none of them comes near that.
+	size := len(purpose) + len(keyID) + 2
+	for _, bound := range binding {
+		size += len(bound) + 1
+	}
+
+	data := make([]byte, 0, size)
 	data = appendField(data, string(purpose))
 	data = appendField(data, keyID)
 	for _, bound := range binding {
