@@ -227,7 +227,15 @@ ci-tf-apply:
         -target=google_secret_manager_secret.seal_key \
         -target=google_secret_manager_secret.google_client_secret
 
-    project=$(tf output -raw project_id)
+    # The project is read from the file that names it rather than from an
+    # output: an apply that was given targets refreshes only the outputs those
+    # targets feed, and this one is fed by a variable.
+    project=$(sed -n 's/^[[:space:]]*project_id[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' {{ TF_DIR }}/prod.auto.tfvars | head -1)
+    if [ -z "$project" ]; then
+        echo "ci-tf-apply: {{ TF_DIR }}/prod.auto.tfvars names no project_id." >&2
+        exit 1
+    fi
+
     seal_key=$(tf output -raw secret_seal_key)
     client_secret=$(tf output -raw secret_google_client)
 
