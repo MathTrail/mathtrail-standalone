@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Self-check",
+  "description": "The model's own pass over the task it wrote, handed in together with it. It is one of the reasons a task can be refused, and the only one that can see an ambiguity.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["issues", "option_check", "final_answer"],
+  "properties": {
+    "issues": {
+      "description": "Every defect found, and an empty list when there is none.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "severity", "comment"],
+        "properties": {
+          "type": {
+            "enum": [
+              "ambiguous",
+              "missing_data",
+              "multiple_correct",
+              "no_correct",
+              "too_hard_for_grade",
+              "needs_picture",
+              "factual_error"
+            ]
+          },
+          "severity": {
+            "description": "blocking refuses the task; minor keeps it and the remark is kept with it.",
+            "enum": ["blocking", "minor"]
+          },
+          "comment": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "option_check": {
+      "description": "Why each of the five options is right or wrong, one pass over all of them.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["A", "B", "C", "D", "E"],
+      "properties": {
+        "A": { "type": "string", "minLength": 1 },
+        "B": { "type": "string", "minLength": 1 },
+        "C": { "type": "string", "minLength": 1 },
+        "D": { "type": "string", "minLength": 1 },
+        "E": { "type": "string", "minLength": 1 }
+      }
+    },
+    "final_answer": {
+      "description": "The answer the model arrives at when it solves its own task afresh, or UNSOLVABLE when it cannot be solved as written.",
+      "enum": ["A", "B", "C", "D", "E", "UNSOLVABLE"]
+    }
+  }
+}

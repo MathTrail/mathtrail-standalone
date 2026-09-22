@@ -11,6 +11,7 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/MathTrail/mathtrail-standalone/content"
 	"github.com/MathTrail/mathtrail-standalone/internal/config"
 	httpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/http"
 )
@@ -19,9 +20,10 @@ import (
 // close it again. Today it holds almost nothing; the shape is what matters,
 // because every later part is added to exactly one place.
 type Container struct {
-	Config *config.Config
-	Logger *zap.Logger
-	Router http.Handler
+	Config  *config.Config
+	Logger  *zap.Logger
+	Content *content.Content
+	Router  http.Handler
 
 	// closers run in reverse order of registration, so that a resource is
 	// always closed before whatever it was built from.
@@ -33,8 +35,26 @@ type Container struct {
 // must not leak a connection or a goroutine.
 func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (*Container, error) {
 	c := &Container{Config: cfg, Logger: log}
+
+	// The content is read and checked before anything is served. A catalog that
+	// lost an entry, or a reference task that no longer matches it, is a fault
+	// nobody can repair at runtime, so it stops the process here rather than
+	// reaching a child in the middle of a lesson.
+	embedded, err := content.Load()
+	if err != nil {
+		c.Close(ctx)
+		return nil, err
+	}
+	c.Content = embedded
+	log.Info("content loaded",
+		zap.Int("topics", len(embedded.Topics())),
+		zap.Int("traps", len(embedded.Traps())),
+		zap.Int("skills", len(embedded.Skills())),
+		zap.Int("reference_tasks", len(embedded.Examples())),
+		zap.String("instructions_version", embedded.InstructionsVersion()),
+	)
+
 	c.Router = httpserver.NewRouter(httpserver.NewHealthHandler(), log)
-	_ = ctx // nothing here blocks yet; the signature is the one every later part needs
 	return c, nil
 }
 
