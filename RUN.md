@@ -70,7 +70,7 @@
 | [x] | T20 | Terraform | Claude | T17 |
 | [x] | T21 | Деплой из GitHub Actions | Claude | T18, T20 |
 | [x] | T22 | Первый деплой | я + Claude | T19a, T21 |
-| [ ] | T23 | Контент в бинарнике | Claude | T16, T17 |
+| [x] | T23 | Контент в бинарнике | Claude | T16, T17 |
 | [ ] | T24 | Шифрование `seal` | Claude | T17 |
 | [ ] | T25 | Рейтинги | Claude | T16, T17 |
 | [ ] | T26 | Модель профиля | Claude | T24, T25 |

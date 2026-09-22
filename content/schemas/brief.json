@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Brief",
+  "description": "What task the child is to get now. The deterministic rule writes it, the model may adjust the plot and the traps, and it comes back with the finished task. Ids are checked against the catalogs by the service, not by this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "pedagogical_goal",
+    "target_concept",
+    "difficulty",
+    "setting",
+    "traps_to_use",
+    "excluded_skills",
+    "constraints",
+    "rationale"
+  ],
+  "properties": {
+    "pedagogical_goal": {
+      "description": "Why this task now. The rule decides it and the model never changes it: reinforce works on a weak spot, new_topic moves on to a topic the child has not met.",
+      "enum": ["reinforce", "new_topic"]
+    },
+    "target_concept": {
+      "description": "Topic id from the topic catalog.",
+      "type": "string"
+    },
+    "difficulty": {
+      "description": "Difficulty from 1 to 5 inside the grade level.",
+      "enum": [1, 2, 3, 4, 5]
+    },
+    "setting": {
+      "description": "The plot of the task: one of the child's interests, or the model's own choice when there are none.",
+      "type": "string",
+      "minLength": 1
+    },
+    "traps_to_use": {
+      "description": "Trap ids the wrong options are built from. The rule suggests two; the model may swap them for others from the trap catalog.",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string" }
+    },
+    "excluded_skills": {
+      "description": "Skill ids the task must use nowhere, neither in the wording nor in a trap. Copied from the child's profile and never shortened.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string" }
+    },
+    "constraints": {
+      "description": "Extra requirements on the wording, such as a question of at most three sentences. May be empty.",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "rationale": {
+      "description": "One sentence: what the choice rests on, and the model's reason where it departed from the rule.",
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

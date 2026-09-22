@@ -1,0 +1,187 @@
+package content
+
+import (
+	"fmt"
+	"io/fs"
+	"regexp"
+	"slices"
+)
+
+// The three grade levels. A child has a grade from 1 to 6, and everything else
+// — which topics exist, what a difficulty means, how long a sentence may be,
+// which reference tasks the model is shown — works with the level the grade
+// falls into.
+const (
+	Level12 = "1-2"
+	Level34 = "3-4"
+	Level56 = "5-6"
+)
+
+// Levels returns the three grade levels, from the youngest upwards.
+func Levels() []string { return []string{Level12, Level34, Level56} }
+
+// Topic is one entry of the topic catalog: what a task can be about. The
+// catalog is closed and the model never invents a topic, because two children's
+// histories are comparable only while they name the same things.
+type Topic struct {
+	ID          string   `json:"id"`
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	GradeLevels []string `json:"grade_levels"`
+}
+
+// HasLevel reports whether the topic is offered at this grade level.
+func (t Topic) HasLevel(level string) bool {
+	return slices.Contains(t.GradeLevels, level)
+}
+
+// clone copies a topic together with the levels inside it, so that what a
+// caller is handed shares no memory with the catalog it came from. Traps and
+// skills need nothing of the kind: they are strings, and a value copy of one is
+// already a copy of all of it.
+func (t Topic) clone() Topic {
+	t.GradeLevels = slices.Clone(t.GradeLevels)
+	return t
+}
+
+// Trap is one entry of the trap catalog: the mistake behind a wrong option.
+// Every wrong option in every task names one, which is what turns a wrong
+// answer into a diagnosis instead of a tick in the wrong column.
+type Trap struct {
+	ID          string `json:"id"`
+	Description string `json:"description"`
+}
+
+// Skill is one entry of the skill catalog: something a child may not have met
+// at school yet. A task uses none of what the profile excludes, neither in the
+// wording nor in a trap.
+type Skill struct {
+	ID          string `json:"id"`
+	Description string `json:"description"`
+}
+
+const catalogsDir = "catalogs"
+
+var (
+	// A topic id names an area and a topic inside it, as in logic.ordering. Each
+	// of the two starts with letters, and a digit may follow an underscore.
+	topicIDPattern = regexp.MustCompile(`^[a-z]+(_[a-z0-9]+)*\.[a-z]+(_[a-z0-9]+)*$`)
+	// A trap or skill id is one snake_case name, as in off_by_one.
+	entryIDPattern = regexp.MustCompile(`^[a-z]+(_[a-z0-9]+)*$`)
+)
+
+// loadTopics reads the topic catalog and refuses one that could not be used:
+// an id nothing else could refer to, an entry twice over, a level outside the
+// three that exist.
+func loadTopics(src fs.FS) ([]Topic, error) {
+	file := catalogsDir + "/topics.json"
+	var topics []Topic
+	if err := decode(src, file, &topics); err != nil {
+		return nil, err
+	}
+
+	p := &problems{file: file}
+	if len(topics) == 0 {
+		p.addf("the catalog is empty")
+	}
+	seen := make(map[string]bool, len(topics))
+	for i, topic := range topics {
+		where := entryName("topic", i, topic.ID)
+		if !topicIDPattern.MatchString(topic.ID) {
+			p.addf("%s: an id is an area and a topic in snake case, separated by a dot", where)
+		} else if seen[topic.ID] {
+			p.addf("%s: the id is used twice", where)
+		}
+		seen[topic.ID] = true
+
+		if topic.Name == "" {
+			p.addf("%s: the name is empty", where)
+		}
+		if topic.Description == "" {
+			p.addf("%s: the description is empty", where)
+		}
+		if len(topic.GradeLevels) == 0 {
+			p.addf("%s: no grade levels, so the topic can never be chosen", where)
+		}
+		levels := make(map[string]bool, len(topic.GradeLevels))
+		for _, level := range topic.GradeLevels {
+			switch {
+			case !isLevel(level):
+				p.addf("%s: grade level %q is not one of %v", where, level, Levels())
+			case levels[level]:
+				p.addf("%s: grade level %q is listed twice", where, level)
+			}
+			levels[level] = true
+		}
+	}
+	return topics, p.err()
+}
+
+// loadTraps reads the trap catalog.
+func loadTraps(src fs.FS) ([]Trap, error) {
+	file := catalogsDir + "/traps.json"
+	var traps []Trap
+	if err := decode(src, file, &traps); err != nil {
+		return nil, err
+	}
+
+	p := &problems{file: file}
+	if len(traps) == 0 {
+		p.addf("the catalog is empty")
+	}
+	seen := make(map[string]bool, len(traps))
+	for i, trap := range traps {
+		checkEntry(p, entryName("trap", i, trap.ID), trap.ID, trap.Description, seen)
+	}
+	return traps, p.err()
+}
+
+// loadSkills reads the skill catalog.
+func loadSkills(src fs.FS) ([]Skill, error) {
+	file := catalogsDir + "/skills.json"
+	var skills []Skill
+	if err := decode(src, file, &skills); err != nil {
+		return nil, err
+	}
+
+	p := &problems{file: file}
+	if len(skills) == 0 {
+		p.addf("the catalog is empty")
+	}
+	seen := make(map[string]bool, len(skills))
+	for i, skill := range skills {
+		checkEntry(p, entryName("skill", i, skill.ID), skill.ID, skill.Description, seen)
+	}
+	return skills, p.err()
+}
+
+// checkEntry checks what the trap and skill catalogs have in common: a
+// snake_case id that appears once, and a description a person can read. The
+// description is what the model is shown, so an empty one silently weakens
+// every task built on that entry.
+func checkEntry(p *problems, where, id, description string, seen map[string]bool) {
+	if !entryIDPattern.MatchString(id) {
+		p.addf("%s: an id is one name in snake case", where)
+	} else if seen[id] {
+		p.addf("%s: the id is used twice", where)
+	}
+	seen[id] = true
+
+	if description == "" {
+		p.addf("%s: the description is empty", where)
+	}
+}
+
+// entryName names an entry in a fault the way its reader will look for it: by
+// id where there is one, and by position where the id is what is broken.
+func entryName(kind string, i int, id string) string {
+	if id == "" {
+		return fmt.Sprintf("%s %d", kind, i+1)
+	}
+	return fmt.Sprintf("%s %q", kind, id)
+}
+
+// isLevel reports whether this is one of the three grade levels.
+func isLevel(level string) bool {
+	return level == Level12 || level == Level34 || level == Level56
+}

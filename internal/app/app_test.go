@@ -93,6 +93,11 @@ func TestListenReportsATakenPort(t *testing.T) {
 	if err := first.Listen(t.Context()); err != nil {
 		t.Fatalf("Listen() error = %v, want nil", err)
 	}
+	// Nothing below reads the first server again, and the listener of a server
+	// nothing can reach is closed by the finalizer of its own descriptor as
+	// soon as a collection happens to run. That would hand the port back and
+	// leave the second server binding a free one.
+	defer runtime.KeepAlive(first)
 
 	cfg := testConfig()
 	cfg.Port = portOf(t, first.Addr())
@@ -103,6 +108,24 @@ func TestListenReportsATakenPort(t *testing.T) {
 
 	if err := app.NewServer(container).Listen(t.Context()); err == nil {
 		t.Error("Listen() error = nil, want a refusal on a port that is taken")
+	}
+}
+
+// The content is read and checked while the container is built, so that a
+// catalog or a reference task nobody could use stops the process instead of
+// reaching a child.
+func TestContainerCarriesTheCheckedContent(t *testing.T) {
+	t.Parallel()
+
+	embedded := newTestContainer(t).Content
+	if embedded == nil {
+		t.Fatal("the container carries no content")
+	}
+	if _, ok := embedded.Topic("counting.gaps"); !ok {
+		t.Error("the content carries no topic catalog")
+	}
+	if embedded.InstructionsVersion() == "" {
+		t.Error("the content carries no version of the instructions")
 	}
 }
 

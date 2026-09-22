@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Task",
+  "description": "The task the model hands in. The language is an argument of the call, not a field here. Trap ids, five different options and a distractor for every wrong option are checked by the service, not by this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "core_idea",
+    "design_thought_process",
+    "question",
+    "options",
+    "correct_answer",
+    "hint",
+    "solution",
+    "distractors"
+  ],
+  "properties": {
+    "core_idea": {
+      "description": "The mathematical core before the plot: the idea, and why the answer is what it is.",
+      "type": "string",
+      "minLength": 1
+    },
+    "design_thought_process": {
+      "description": "How the plot and the traps were chosen. Shown to nobody; it makes the reasoning explicit before the task is committed to.",
+      "type": "string",
+      "minLength": 1
+    },
+    "question": {
+      "description": "The wording the child reads, in the language of the chat.",
+      "type": "string",
+      "minLength": 1
+    },
+    "drawing": {
+      "description": "Optional text drawing, lines separated by newlines. It comes together with drawing_structure.",
+      "type": "string",
+      "minLength": 1
+    },
+    "drawing_structure": { "$ref": "#/$defs/drawing_structure" },
+    "options": {
+      "description": "Exactly five options, all different.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["A", "B", "C", "D", "E"],
+      "properties": {
+        "A": { "$ref": "#/$defs/option" },
+        "B": { "$ref": "#/$defs/option" },
+        "C": { "$ref": "#/$defs/option" },
+        "D": { "$ref": "#/$defs/option" },
+        "E": { "$ref": "#/$defs/option" }
+      }
+    },
+    "correct_answer": {
+      "description": "The one correct option.",
+      "enum": ["A", "B", "C", "D", "E"]
+    },
+    "hint": {
+      "description": "One leading question or the first step, given on request before the child answers. It must not give the answer away.",
+      "type": "string",
+      "minLength": 1
+    },
+    "solution": {
+      "description": "Step by step, in the words a tutor would use with a child of that grade. The child sees it after answering.",
+      "type": "string",
+      "minLength": 1
+    },
+    "distractors": {
+      "description": "One entry for each of the four wrong options, and none for the correct one.",
+      "type": "object",
+      "propertyNames": { "enum": ["A", "B", "C", "D", "E"] },
+      "minProperties": 4,
+      "maxProperties": 4,
+      "additionalProperties": { "$ref": "#/$defs/distractor" }
+    }
+  },
+  "dependentRequired": {
+    "drawing": ["drawing_structure"],
+    "drawing_structure": ["drawing"]
+  },
+  "$defs": {
+    "option": {
+      "type": "string",
+      "minLength": 1
+    },
+    "distractor": {
+      "description": "A wrong option: the mistake it comes from, and what the child is told after choosing it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["trap", "text"],
+      "properties": {
+        "trap": {
+          "description": "Trap id from the trap catalog: the mistake that leads to this option.",
+          "type": "string"
+        },
+        "text": {
+          "description": "What the child reads after choosing this option. It names the mistake rather than retelling the solution.",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "drawing_structure": {
+      "description": "The same picture as data, so that the drawing can be compared with the wording without either being understood.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "objects"],
+      "properties": {
+        "kind": {
+          "description": "What is drawn, such as number_line, grid, balance, pouring or clock.",
+          "type": "string",
+          "minLength": 1
+        },
+        "objects": {
+          "description": "What the drawing shows: an id, the label exactly as it appears in the drawing, and a value where the object has one.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "label"],
+            "properties": {
+              "id": { "type": "string", "minLength": 1 },
+              "label": { "type": "string", "minLength": 1 },
+              "value": { "type": "integer" }
+            }
+          }
+        },
+        "relations": {
+          "description": "How the objects stand to each other, as triples such as left_of from A to B.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "from", "to"],
+            "properties": {
+              "type": { "type": "string", "minLength": 1 },
+              "from": { "type": "string", "minLength": 1 },
+              "to": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    }
+  }
+}
