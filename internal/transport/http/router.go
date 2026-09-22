@@ -39,7 +39,9 @@ func NewRouter(health *HealthHandler, logger *zap.Logger) *gin.Engine {
 	router.NoRoute(notFound)
 	router.NoMethod(methodNotAllowed)
 
-	router.GET("/healthz", health.Health)
+	// Not /healthz: the serverless frontend in front of this process answers
+	// that exact path itself, with its own 404, and the request never arrives.
+	router.GET("/health", health.Health)
 
 	return router
 }

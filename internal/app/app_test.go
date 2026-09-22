@@ -44,7 +44,7 @@ func TestServerStopsOnContextCancel(t *testing.T) {
 		t.Fatal("Run() did not return within 5s of the context being cancelled")
 	}
 
-	resp, err := http.Get("http://" + server.Addr() + "/healthz") //nolint:noctx // the request is expected to fail
+	resp, err := http.Get("http://" + server.Addr() + "/health") //nolint:noctx // the request is expected to fail
 	if err == nil {
 		_ = resp.Body.Close()
 		t.Error("the server still answers after shutdown, want a refused connection")
@@ -149,7 +149,7 @@ func waitForHealthz(t *testing.T, addr string) {
 
 	deadline := time.Now().Add(5 * time.Second)
 	for time.Now().Before(deadline) {
-		resp, err := http.Get("http://" + addr + "/healthz") //nolint:noctx // a probe with its own deadline loop
+		resp, err := http.Get("http://" + addr + "/health") //nolint:noctx // a probe with its own deadline loop
 		if err == nil {
 			_ = resp.Body.Close()
 			if resp.StatusCode == http.StatusOK {

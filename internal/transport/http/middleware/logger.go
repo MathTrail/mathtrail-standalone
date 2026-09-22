@@ -30,7 +30,7 @@ var maskedQueryKeys = map[string]struct{}{
 // silentPaths answer a probe rather than a person. Logging every one of them
 // buries the lines that mean something.
 var silentPaths = map[string]struct{}{
-	"/healthz": {},
+	"/health": {},
 }
 
 // ZapLogger logs one line per request: what was asked, what was answered and

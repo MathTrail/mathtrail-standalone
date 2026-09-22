@@ -101,7 +101,7 @@ internal/
   store/          storage interface plus its in-memory and Drive implementations
   transport/
     mcp/          tools, ui:// resources
-    http/         /healthz, OAuth endpoints
+    http/         /health, OAuth endpoints
 content/          catalogs, reference tasks and model instructions, embedded
 site/             the public site: texts per locale, templates, assets
 web/              widget sources

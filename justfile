@@ -361,13 +361,13 @@ ci-smoke url:
 
     body=""
     for attempt in $(seq 1 10); do
-        body=$(curl -fsS --max-time 10 "{{ url }}/healthz") && break
-        echo "healthz: no answer yet (attempt ${attempt})" >&2
+        body=$(curl -fsS --max-time 10 "{{ url }}/health") && break
+        echo "health: no answer yet (attempt ${attempt})" >&2
         sleep 3
     done
 
     if [ -z "$body" ]; then
-        echo "smoke: {{ url }}/healthz never answered" >&2
+        echo "smoke: {{ url }}/health never answered" >&2
         exit 1
     fi
 
