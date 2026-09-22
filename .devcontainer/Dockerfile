@@ -153,19 +153,21 @@ RUN arch="$(dpkg --print-architecture)"; \
 
 ENV PATH="/usr/local/google-cloud-sdk/bin:${PATH}"
 
-# gopls and dlv are built from source; the Go checksum database verifies the
-# modules. Read-only is the default since Go 1.16 and is stated here anyway: an
-# install of a pinned version may not rewrite what it was pinned to.
-RUN echo "gopls ${GOPLS_VERSION}, dlv ${DELVE_VERSION}" \
+# What a person edits and debugs with, in one layer.
+#
+# gopls and dlv are built from source at an exact version, and the Go checksum
+# database verifies what that version pulls in; read-only says that an install
+# may not rewrite what it was pinned to.
+#
+# Claude Code comes from the registry at an exact version, rather than from an
+# installer script run off the network: what arrives is the package that version
+# names, and npm checks the archive against the hash the registry publishes for
+# it. That package's own install step is allowed by name — it is what puts the
+# native binary in place of the stub the package ships with, and without it the
+# CLI starts through a Node wrapper on every invocation.
+RUN echo "gopls ${GOPLS_VERSION}, dlv ${DELVE_VERSION}, claude code ${CLAUDE_CODE_VERSION}" \
     && GOBIN=/usr/local/bin go install -mod=readonly "golang.org/x/tools/gopls@v${GOPLS_VERSION}" \
-    && GOBIN=/usr/local/bin go install -mod=readonly "github.com/go-delve/delve/cmd/dlv@v${DELVE_VERSION}"
-
-# From the registry at an exact version, rather than by running an installer
-# script off the network: what arrives is the package that version names, and
-# npm checks the archive against the hash the registry publishes for it. The
-# package's own install step is allowed by name, because that is what puts its
-# native binary in place of the stub it ships with.
-RUN echo "claude code ${CLAUDE_CODE_VERSION}" \
+    && GOBIN=/usr/local/bin go install -mod=readonly "github.com/go-delve/delve/cmd/dlv@v${DELVE_VERSION}" \
     && npm install -g --allow-scripts=@anthropic-ai/claude-code \
         "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
 
