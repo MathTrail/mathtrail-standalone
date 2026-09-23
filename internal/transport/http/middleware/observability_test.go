@@ -10,12 +10,10 @@ import (
 	"testing"
 
 	"go.opentelemetry.io/otel/attribute"
-	metricnoop "go.opentelemetry.io/otel/metric/noop"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
-	tracenoop "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
@@ -214,7 +212,8 @@ type watchedRouter struct {
 	reader  *sdkmetric.ManualReader
 	logs    *observer.ObservedLogs
 
-	delivered atomic.Int64
+	delivered      atomic.Int64
+	refuseDelivery atomic.Bool
 }
 
 // newWatchedRouter builds it, sampling everything unless a case says otherwise.
@@ -252,6 +251,9 @@ func newWatchedRouter(t *testing.T, sampler ...sdktrace.Sampler) *watchedRouter 
 		// the context it is handed can tell the difference.
 		Flush: func(ctx context.Context) error {
 			w.delivered.Add(1)
+			if w.refuseDelivery.Load() {
+				return errors.New("the collector said no")
+			}
 			return ctx.Err()
 		},
 		ProjectID: "a-project",
@@ -341,40 +343,40 @@ func TestACallerWhoHungUpStillLeavesItsSpans(t *testing.T) {
 	}
 }
 
-// Telemetry that is missing a piece is refused where it is assembled, with the
-// piece named. Each of the three would otherwise fail in a way of its own, and
-// none of them would say what was wrong.
-func TestHalfFilledTelemetryIsRefusedByName(t *testing.T) {
+// A collector that refused the delivery costs a line in the log and nothing
+// else: the response has been written by now, and nobody is waiting on this.
+func TestARefusedDeliveryIsLoggedAndNothingMore(t *testing.T) {
 	t.Parallel()
 
-	complete := httpserver.Observability{
-		Traces: tracenoop.NewTracerProvider(),
-		Meters: metricnoop.NewMeterProvider(),
-		Flush:  func(context.Context) error { return nil },
+	watched := newWatchedRouter(t)
+	watched.refuseDelivery.Store(true)
+	watched.get(t, "/no-such-endpoint")
+
+	if lines := watched.logs.FilterMessage("telemetry_flush_failed").Len(); lines != 1 {
+		t.Errorf("the log holds %d delivery failures, want 1", lines)
 	}
+	if lines := watched.logs.FilterMessage("http_request").Len(); lines != 1 {
+		t.Error("the request was not answered and logged as usual")
+	}
+}
 
-	for _, c := range []struct {
-		name    string
-		missing func(*httpserver.Observability)
-		want    string
-	}{
-		{name: "no tracer", missing: func(o *httpserver.Observability) { o.Traces = nil }, want: "Traces"},
-		{name: "no meter", missing: func(o *httpserver.Observability) { o.Meters = nil }, want: "Meters"},
-		{name: "no delivery", missing: func(o *httpserver.Observability) { o.Flush = nil }, want: "Flush"},
-	} {
-		t.Run(c.name, func(t *testing.T) {
-			t.Parallel()
+// A verb nobody declared is counted as one kind, like an undeclared route:
+// otherwise a stranger invents a series by inventing a word.
+func TestAnUnknownMethodIsCountedAsOther(t *testing.T) {
+	t.Parallel()
 
-			obs := complete
-			c.missing(&obs)
+	watched := newWatchedRouter(t)
 
-			_, err := httpserver.NewRouter(httpserver.NewHealthHandler(), zap.NewNop(), obs)
-			if !errors.Is(err, httpserver.ErrObservability) {
-				t.Fatalf("NewRouter() error = %v, want it to refuse", err)
-			}
-			if !strings.Contains(err.Error(), c.want) {
-				t.Errorf("error = %q, want it to name %q", err, c.want)
-			}
-		})
+	req := httptest.NewRequestWithContext(t.Context(), "BREW", "/no-such-endpoint", http.NoBody)
+	watched.handler.ServeHTTP(httptest.NewRecorder(), req)
+
+	for _, labels := range watched.labels(t, "http_request") {
+		method, found := labels.Value("http.request.method")
+		if !found {
+			t.Fatal("http_request carries no method, want one")
+		}
+		if method.String() != "other" {
+			t.Errorf("http.request.method = %q, want %q", method.String(), "other")
+		}
 	}
 }

@@ -2,6 +2,8 @@ package telemetry
 
 import (
 	"context"
+	"math"
+	"strings"
 	"testing"
 	"time"
 
@@ -98,34 +100,6 @@ func TestTheResourceNamesTheServiceTheBuildAndTheProject(t *testing.T) {
 	}
 }
 
-// A path is put under the collector's root, and a root that is not an address
-// is refused by name rather than posted to.
-func TestOneSignalsPathGoesUnderTheRoot(t *testing.T) {
-	t.Parallel()
-
-	for _, c := range []struct {
-		name    string
-		root    string
-		want    string
-		refused bool
-	}{
-		{name: "a bare host", root: "https://telemetry.example", want: "https://telemetry.example/v1/traces"},
-		{name: "a trailing slash", root: "https://telemetry.example/", want: "https://telemetry.example/v1/traces"},
-		{name: "a port", root: "http://127.0.0.1:4318", want: "http://127.0.0.1:4318/v1/traces"},
-		{name: "not an address", root: "http://[::1", refused: true},
-	} {
-		got, err := signalURL(c.root, tracePath)
-		switch {
-		case c.refused && err == nil:
-			t.Errorf("signalURL(%s) error = nil, want the root named", c.name)
-		case !c.refused && err != nil:
-			t.Errorf("signalURL(%s) error = %v, want nil", c.name, err)
-		case !c.refused && got != c.want:
-			t.Errorf("signalURL(%s) = %q, want %q", c.name, got, c.want)
-		}
-	}
-}
-
 // A delivery carries what changed, except for the two kinds whose change says
 // nothing on its own.
 func TestOnlyWhatCanFallKeepsItsTotal(t *testing.T) {
@@ -164,24 +138,76 @@ func (d *countingDetector) Detect(context.Context) (*resource.Resource, error) {
 	return nil, nil
 }
 
-// An address the exporter could not post to is named, not worked around. Left
-// to itself the exporter keeps its own default and says nothing, so a mistyped
-// address becomes spans that arrive nowhere.
-func TestAnAddressThatIsNotOneIsRefused(t *testing.T) {
+// A step count is a measurement, and a measurement is a signed number. The
+// budget a sandbox is given is far below the ceiling here, so the clamp never
+// fires in a running service; it is what keeps a configuration nobody would
+// write from turning a large number into a negative one.
+func TestAStepCountNeverComesBackNegative(t *testing.T) {
 	t.Parallel()
 
 	for _, c := range []struct {
-		name string
-		root string
+		name  string
+		steps uint64
+		want  int64
 	}{
-		{name: "no scheme", root: "telemetry.example"},
-		{name: "a host and a port, no scheme", root: "localhost:4318"},
-		{name: "a scheme we do not speak", root: "grpc://telemetry.example"},
-		{name: "no host", root: "https:///v1"},
-		{name: "empty", root: ""},
+		{name: "none", steps: 0, want: 0},
+		{name: "an ordinary run", steps: 4321, want: 4321},
+		{name: "past what a measurement can hold", steps: math.MaxUint64, want: math.MaxInt64},
 	} {
-		if _, err := signalURL(c.root, tracePath); err == nil {
-			t.Errorf("signalURL(%s) error = nil, want the address named", c.name)
+		if got := spent(c.steps); got != c.want {
+			t.Errorf("spent(%s) = %d, want %d", c.name, got, c.want)
+		}
+	}
+}
+
+// Asked for no platform in particular, the package reaches for the real one.
+// Building it costs nothing — it is asking it that costs a call.
+func TestThePlatformDefaultsToTheRealOne(t *testing.T) {
+	t.Parallel()
+
+	if platform(&Settings{}) == nil {
+		t.Error("platform() = nil, want the real detector")
+	}
+}
+
+// Both signals' addresses come out of one root, and a root that is not an
+// address is named rather than posted to. Left to itself the exporter keeps
+// its own default and says nothing, so a mistyped address becomes spans that
+// arrive nowhere.
+func TestBothAddressesComeOutOfOneRoot(t *testing.T) {
+	t.Parallel()
+
+	for _, c := range []struct {
+		name    string
+		root    string
+		traces  string
+		refused bool
+	}{
+		{name: "a bare host", root: "https://telemetry.example", traces: "https://telemetry.example/v1/traces"},
+		{name: "a trailing slash", root: "https://telemetry.example/", traces: "https://telemetry.example/v1/traces"},
+		{name: "a port", root: "http://127.0.0.1:4318", traces: "http://127.0.0.1:4318/v1/traces"},
+		{name: "no scheme", root: "telemetry.example", refused: true},
+		{name: "a host and a port, no scheme", root: "localhost:4318", refused: true},
+		{name: "a scheme we do not speak", root: "grpc://telemetry.example", refused: true},
+		{name: "no host", root: "https:///v1", refused: true},
+		{name: "empty", root: "", refused: true},
+		{name: "not an address at all", root: "http://[::1", refused: true},
+	} {
+		traces, metrics, err := endpoints(c.root)
+		switch {
+		case c.refused:
+			if err == nil {
+				t.Errorf("endpoints(%s) error = nil, want the root named", c.name)
+			}
+		case err != nil:
+			t.Errorf("endpoints(%s) error = %v, want nil", c.name, err)
+		default:
+			if traces != c.traces {
+				t.Errorf("endpoints(%s) traces = %q, want %q", c.name, traces, c.traces)
+			}
+			if want := strings.Replace(c.traces, tracePath, metricPath, 1); metrics != want {
+				t.Errorf("endpoints(%s) metrics = %q, want %q", c.name, metrics, want)
+			}
 		}
 	}
 }

@@ -57,11 +57,7 @@ func credentialedClient(ctx context.Context) (*http.Client, error) {
 }
 
 // newTraceExporter posts finished spans to the collector.
-func newTraceExporter(ctx context.Context, settings *Settings, client *http.Client) (*otlptrace.Exporter, error) {
-	endpoint, err := signalURL(settings.Endpoint, tracePath)
-	if err != nil {
-		return nil, err
-	}
+func newTraceExporter(ctx context.Context, settings *Settings, client *http.Client, endpoint string) (*otlptrace.Exporter, error) {
 	exporter, err := otlptracehttp.New(ctx,
 		otlptracehttp.WithEndpointURL(endpoint),
 		otlptracehttp.WithHTTPClient(client),
@@ -77,11 +73,7 @@ func newTraceExporter(ctx context.Context, settings *Settings, client *http.Clie
 // newMetricReader collects the measurements and posts them to the collector on
 // its own clock. Something else has to wake it where a process loses its
 // processor between requests, and that is what an asked-for delivery is for.
-func newMetricReader(ctx context.Context, settings *Settings, client *http.Client) (sdkmetric.Reader, error) {
-	endpoint, err := signalURL(settings.Endpoint, metricPath)
-	if err != nil {
-		return nil, err
-	}
+func newMetricReader(ctx context.Context, settings *Settings, client *http.Client, endpoint string) (sdkmetric.Reader, error) {
 	exporter, err := otlpmetrichttp.New(ctx,
 		otlpmetrichttp.WithEndpointURL(endpoint),
 		otlpmetrichttp.WithHTTPClient(client),
@@ -98,29 +90,25 @@ func newMetricReader(ctx context.Context, settings *Settings, client *http.Clien
 	), nil
 }
 
-// signalURL puts one signal's path under the collector's root, and refuses a
-// root that is not an address.
+// endpoints are the two addresses the signals are posted to, read out of the
+// collector's root once — because it is one address, and checking it twice
+// leaves the second check unable to fail and unable to be tested.
 //
-// The refusal matters more than it looks: handed something it cannot parse,
-// the exporter keeps its own default of localhost and says nothing at all, so
-// a mistyped address becomes spans that leave the process and arrive nowhere,
+// The check matters more than it looks: handed something it cannot parse, the
+// exporter keeps its own default of localhost and says nothing at all, so a
+// mistyped address becomes spans that leave the process and arrive nowhere,
 // with no line anywhere to explain it.
-func signalURL(root, path string) (string, error) {
+func endpoints(root string) (traces, metrics string, err error) {
 	parsed, err := url.Parse(root)
 	switch {
 	case err != nil:
-		return "", fmt.Errorf("telemetry: endpoint %q is not a URL: %w", root, err)
+		return "", "", fmt.Errorf("telemetry: endpoint %q is not a URL: %w", root, err)
 	case parsed.Scheme != "http" && parsed.Scheme != "https":
-		return "", fmt.Errorf("telemetry: endpoint %q must be http or https", root)
+		return "", "", fmt.Errorf("telemetry: endpoint %q must be http or https", root)
 	case parsed.Host == "":
-		return "", fmt.Errorf("telemetry: endpoint %q has no host", root)
+		return "", "", fmt.Errorf("telemetry: endpoint %q has no host", root)
 	}
-
-	joined, err := url.JoinPath(root, path)
-	if err != nil {
-		return "", fmt.Errorf("telemetry: endpoint %q: %w", root, err)
-	}
-	return joined, nil
+	return parsed.JoinPath(tracePath).String(), parsed.JoinPath(metricPath).String(), nil
 }
 
 // deltaTemporality asks each delivery to carry what changed since the last one

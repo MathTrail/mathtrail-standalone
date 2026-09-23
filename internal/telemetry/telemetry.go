@@ -133,11 +133,15 @@ func New(ctx context.Context, settings *Settings, log *zap.Logger) (*Telemetry, 
 		}, nil
 	}
 
-	traceExporter, err := newTraceExporter(ctx, settings, client)
+	traceEndpoint, metricEndpoint, err := endpoints(settings.Endpoint)
 	if err != nil {
 		return nil, err
 	}
-	metricReader, err := newMetricReader(ctx, settings, client)
+	traceExporter, err := newTraceExporter(ctx, settings, client, traceEndpoint)
+	if err != nil {
+		return nil, err
+	}
+	metricReader, err := newMetricReader(ctx, settings, client, metricEndpoint)
 	if err != nil {
 		return nil, err
 	}

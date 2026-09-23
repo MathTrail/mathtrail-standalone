@@ -3,6 +3,7 @@ package telemetry_test
 import (
 	"context"
 	"errors"
+	"net/http"
 	"strings"
 	"testing"
 	"time"
@@ -13,6 +14,9 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
+	"go.opentelemetry.io/otel/trace"
+
+	"go.uber.org/zap/zaptest"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 	"github.com/MathTrail/mathtrail-standalone/internal/telemetry"
@@ -236,5 +240,66 @@ func TestARefusedRunMarksItsSpanFailed(t *testing.T) {
 	}
 	if code := ended[0].Status().Code; code != codes.Error {
 		t.Errorf("span status = %v, want %v", code, codes.Error)
+	}
+}
+
+// Redaction is what keeps out of a trace what the logs are not allowed to
+// carry, and it has to work on whatever put the attribute there rather than on
+// one library's habits.
+func TestAForbiddenAttributeIsBlankedWhoeverSetIt(t *testing.T) {
+	t.Parallel()
+
+	spans := tracetest.NewSpanRecorder()
+	traces := sdktrace.NewTracerProvider(
+		sdktrace.WithSampler(sdktrace.AlwaysSample()),
+		sdktrace.WithSpanProcessor(telemetry.Redactor()),
+		sdktrace.WithSpanProcessor(spans),
+	)
+	t.Cleanup(func() { _ = traces.Shutdown(context.Background()) })
+
+	_, span := traces.Tracer("test").Start(t.Context(), "unit", trace.WithAttributes(
+		attribute.String("client.address", "203.0.113.9"),
+		attribute.String("user_agent.original", "a-browser-nobody-wrote"),
+		attribute.String("http.route", "/kept"),
+	))
+	span.End()
+
+	ended := spans.Ended()
+	if len(ended) != 1 {
+		t.Fatalf("the recorder kept %d spans, want 1", len(ended))
+	}
+
+	for _, attr := range ended[0].Attributes() {
+		switch attr.Key {
+		case "client.address", "user_agent.original":
+			if attr.Value.String() != "redacted" {
+				t.Errorf("%s = %q, want it blanked", attr.Key, attr.Value.String())
+			}
+		case "http.route":
+			if attr.Value.String() != "/kept" {
+				t.Errorf("%s = %q, want it left alone", attr.Key, attr.Value.String())
+			}
+		}
+	}
+}
+
+// An address the exporter could not post to stops the telemetry from being
+// built at all, rather than being worked around quietly.
+func TestAnEndpointThatIsNotAnAddressStopsTheBuild(t *testing.T) {
+	t.Parallel()
+
+	_, err := telemetry.New(t.Context(), &telemetry.Settings{
+		Enabled:    true,
+		Endpoint:   "telemetry.example",
+		ProjectID:  "a-project",
+		HTTPClient: http.DefaultClient,
+		Detector:   stubDetector{},
+	}, zaptest.NewLogger(t))
+
+	if err == nil {
+		t.Fatal("New() error = nil, want the address named")
+	}
+	if !strings.Contains(err.Error(), "telemetry.example") {
+		t.Errorf("error = %q, want it to name the address", err)
 	}
 }

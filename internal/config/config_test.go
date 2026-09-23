@@ -359,6 +359,11 @@ func TestRefusals(t *testing.T) {
 			wantVar: "MATHTRAIL_TELEMETRY_ENDPOINT",
 		},
 		{
+			name:    "the collector is not an address at all",
+			environ: []string{"MATHTRAIL_TELEMETRY_ENDPOINT=http://[::1"},
+			wantVar: "MATHTRAIL_TELEMETRY_ENDPOINT",
+		},
+		{
 			// The whole point of the switch: in a deployment it is refused,
 			// not warned about.
 			name: "dev auth in a deployment",
