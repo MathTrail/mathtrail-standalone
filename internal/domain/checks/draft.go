@@ -94,5 +94,12 @@ var issueTypes = []string{
 	"too_hard_for_grade", "needs_picture", "factual_error",
 }
 
-// severities are how much an issue matters: a blocking one refuses the task.
-var severities = []string{"blocking", "minor"}
+// How much an issue matters: a blocking one refuses the task, and a minor one
+// is counted and let through.
+const (
+	severityBlocking = "blocking"
+	severityMinor    = "minor"
+)
+
+// severities are every severity an issue may have.
+var severities = []string{severityBlocking, severityMinor}

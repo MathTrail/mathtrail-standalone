@@ -33,6 +33,17 @@ const (
 	// too long for the level, or, in English, words and sentences too hard for
 	// the grade.
 	CodeReadability Code = "readability"
+	// CodeSolverError is a solver that did not run to an answer: it does not
+	// parse, has no solve to call, failed, ran out of steps or time, or
+	// returned something that is not a list of option letters.
+	CodeSolverError Code = "solver_error"
+	// CodeSolverDisagrees is a task whose witnesses to its answer disagree: the
+	// solver found no option, more than one, or another than the task names,
+	// or the self-check arrived at another answer or at none.
+	CodeSolverDisagrees Code = "solver_disagrees"
+	// CodeSelfCheckBlocking is a task the model's own self-check found a
+	// blocking issue in.
+	CodeSelfCheckBlocking Code = "self_check_blocking"
 	// CodeNearDuplicate is a question that repeats a task the child has had,
 	// or copies a reference task the model was shown.
 	CodeNearDuplicate Code = "near_duplicate"
