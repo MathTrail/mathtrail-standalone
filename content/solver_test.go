@@ -20,12 +20,9 @@ import (
 // half on its own, so the two cannot drift apart.
 var notYetPorted = []string{
 	"algorithms.weighing_pouring",
-	"arithmetic.tricks",
 	"logic.knights_liars",
 	"parity.alternation",
-	"pigeonhole.basic",
 	"time.calendar",
-	"time.clocks",
 }
 
 // Every reference task claims an answer, and until it carries a solver that is

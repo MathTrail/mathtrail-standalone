@@ -791,6 +791,8 @@ That is worth more than a translation. The 450 solvers then run through exactly 
 
 **Each solver stands alone.** The prototype's files open with helpers shared by all fifty checks in them — `orders`, `unique`, `gaps`, `cuts_for`. A solver is one file with no `load`, so it carries the two or three it uses and no more. That is the same constraint the model writes under, and it is what keeps the bench measuring the real thing; the helpers are short, and a repeated one in fifty independent programs is not the duplication that costs anything, because nobody reads two of them at once.
 
+**The step budget decides the shape, not only the size.** Python's own limits are patience and memory; this sandbox charges every value a helper builds against 6.6, and three ports of the prototype's checks ran out of budget written the way they stood. A search that rebuilds the same list for every candidate answer builds it once and reads the answers off it; a search over the subsets of twenty cards, or over the 32,768 ways six players could have played each other, is replaced by a search over what the question can actually tell apart — the cards grouped into couples, the games kept by how many each player has played. That grouping is not a shortcut past the enumeration: it is the same move the topic already makes when it counts a stock of balls by colour rather than ball by ball, and the answer it computes is still computed rather than assumed. The bench's report is how such a solver is found — the two most expensive in the catalog spend a fifth of the budget, and nothing else comes near a tenth of it.
+
 **What translates how:**
 
 | Python in the prototype | Starlark in v1 | Where it appears |
@@ -799,6 +801,8 @@ That is worth more than a translation. The 450 solvers then run through exactly 
 | `itertools.pairwise(xs)` | `for i in range(len(xs) - 1)` | `counting.gaps` |
 | A string standing in for a sequence, `product("HT", repeat=3)` | Its characters written out, `product(["H", "T"], repeat=3)` | `combinatorics.enumeration`, `parity.alternation` |
 | `itertools.count()` | `while` with an explicit counter | `time.clocks`, `pigeonhole.basic` |
+| `f"{n:02d}"`, and any other width or precision | `%` here takes no flags: pad by hand, `str(n) if n >= 10 else "0" + str(n)` | `time.clocks`, `time.calendar` |
+| `set(text)`, iterating a string | `set(text.elems())` — this language does not iterate a string | `time.clocks` |
 | `math.prod` | `prod` | `arithmetic.tricks` |
 | `collections.deque` with `popleft` | A list plus a head index: `head = 0`, `while head < len(queue)` | `algorithms.weighing_pouring`, `parity.alternation` |
 | `functools.lru_cache` on a recursive function | Bottom-up dynamic programming over a `dict` — recursion is off (6.4) | `algorithms.weighing_pouring` |
