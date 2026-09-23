@@ -534,11 +534,11 @@ A check whose input is missing does not run and is reported as blocked: with no 
 Mechanical, and all of it deterministic:
 
 - the submission matches the schema: every required field present, of the right type, non-empty where a string is expected;
-- exactly five options, `A`–`E`, and all five texts different after trimming;
+- exactly five options, `A`–`E`, and all five texts different after trimming and folding case — "Six" and " six " read the same to a child;
 - `correct_answer` is one of them;
 - `distractors` has exactly the four other letters, no more and no fewer;
 - every `trap` is an id from the catalog; `target_concept` is a topic id; every entry of `excluded_skills` is a skill id;
-- the brief's `target_concept` and `difficulty` match what the open request recorded, unless the model declared an override with a reason (section 3.4);
+- the brief's `target_concept` and `difficulty` match what the open request recorded. A model that wants others declares them with a reason when it asks for the task (section 3.4), and the request records that choice, so the brief handed back has one thing to agree with;
 - `excluded_skills` is the profile's list entire — the model may add to it, never remove;
 - `hint` and `solution` are present and non-empty;
 - the self-check is present with all three of its fields.
@@ -595,18 +595,20 @@ The word limits are the prototype's, measured on 450 reference tasks (its D38), 
 
 The promise that "the tasks do not run out" (PRODUCT 1) is checked from the other side: a new task must not be a near-repeat of one this child has already seen, or of a reference task the model was shown.
 
-**The measure** is the one the prototype used, in a form that works without a database: the `question` is lowercased, every non-alphanumeric character becomes a space, each word is padded with two leading spaces and one trailing space, and the set of its three-character substrings is taken — the normalisation of Postgres's `pg_trgm`. Similarity is the Jaccard index of two such sets, and **0.6 or above is a near-duplicate**, as in the prototype.
+**The measure** is the one the prototype used, in a form that works without a database: the `question` is lowercased, every non-alphanumeric character becomes a space, each word is padded with two leading spaces and one trailing space, and the set of its three-character substrings is taken — the normalisation of Postgres's `pg_trgm`. Similarity is the Jaccard index of two such sets, and **0.7 or above is a near-duplicate** — the prototype used 0.6, and T32 moved it (R56).
 
-For the scripts written without spaces (5.5) the same construction on **character bigrams** replaces it, because word trigrams of a text with no word boundaries measure nothing. Bigram sets are smaller and overlap more, so the threshold there is **0.7**.
+For the scripts written without spaces (5.5) the same construction on **character bigrams** replaces it, because word trigrams of a text with no word boundaries measure nothing: each run of letters and digits padded with one space on either side, and the set of its two-character substrings. Which construction a text gets is decided by its letters counted as two kinds, those of the scripts written without spaces against all the others, so that Japanese — kanji, hiragana and katakana together — is one kind of text. The threshold there is **0.7** too. Bigram sets are smaller and overlap more, which argued for a stricter number while words stood at 0.6; with words at 0.7 it is the same number, reasoned rather than measured, until the acceptance runs in Chinese and Japanese give it a corpus.
 
-Both numbers are calibrated in T32 against the reference corpus, and the measurement now exists: T16 exported the pairwise similarity of all 450 reference questions (`testdata/golden/trgm_similarity.json`). It says two things worth knowing before trusting the threshold. **207 of the 450 have a nearest neighbour at or above 0.6**, with a median of 0.57 — a corpus of one topic is formulaic, and the weighing-and-pouring questions sit at 0.96 to each other. And the measure compares **sets** of trigrams, so two tasks built from the same vocabulary in a different arrangement are identical to it: `kl-34-d3-3` and `kl-34-d3-5` are different problems with different answers and a similarity of exactly 1.0. Neither is fatal — a duplicate refusal costs one attempt — but 0.6 is an aggressive cut for this kind of text, and T32 has the histogram to move it against.
+The word construction reproduces Postgres exactly: the fifteen pairs, the fifty most alike reference pairs and the distribution of every reference question's nearest neighbour all come out as `trgm_similarity.json` has them.
+
+Both numbers are calibrated in T32 against the reference corpus, and the measurement now exists: T16 exported the pairwise similarity of all 450 reference questions (`testdata/golden/trgm_similarity.json`). It says two things worth knowing before trusting the threshold. **207 of the 450 have a nearest neighbour at or above 0.6**, with a median of 0.57 — a corpus of one topic is formulaic, and the weighing-and-pouring questions sit at 0.96 to each other. And the measure compares **sets** of trigrams, so two tasks built from the same vocabulary in a different arrangement are identical to it: `kl-34-d3-3` and `kl-34-d3-5` are different problems with different answers and a similarity of exactly 1.0. Neither is fatal — a duplicate refusal costs one attempt — but 0.6 is an aggressive cut for this kind of text, and T32 has the histogram to move it against. It did: at 0.6 a third of the reference tasks read as copies of another of their own level, and the threshold is now 0.7 — remark 9 has the numbers, R56 the reasons.
 
 **What it is compared against:**
 
 - **The reference tasks** of the same level — their texts are in the binary, so the comparison is exact.
 - **The child's past tasks**, through the fingerprints in the profile (04-profile), which are sketches rather than texts: the profile stores no task text, by design (О-40).
 
-**The fingerprint** is therefore a MinHash sketch of exactly the trigram set above: **64 hash values, one byte each**, so the estimated Jaccard index is the share of the 64 positions that agree. One byte per position adds a collision bias of about (1 − J)/256 — under half a percentage point at the threshold, which a 0.6 cut-off does not notice — and the sampling error of 64 positions is about 0.06, which is why the threshold is not placed near a cliff. Sixty-four bytes per task is 88 characters of base64, and two hundred of them are about 19 KB of the profile.
+**The fingerprint** is therefore a MinHash sketch of exactly the trigram set above: **64 hash values, one byte each**, so the estimated Jaccard index is the share of the 64 positions that agree. One byte per position adds a collision bias of about (1 − J)/256 — under half a percentage point at the threshold, which a 0.7 cut-off does not notice — and the sampling error of 64 positions is about 0.06, which is why the threshold is not placed near a cliff. Sixty-four bytes per task is 88 characters of base64, and two hundred of them are about 19 KB of the profile. Over every pair of reference questions of one level the sketches miss the exact measure by 0.043 on average and 0.25 at worst, and of the 51,025 pairs they decide 60 differently from it at 0.7 — all within 0.15 of 0.7, and 53 of them within 0.1. How a sketch is made is fixed for as long as a profile keeps one (R54).
 
 ## 5.7 What the solver has to show
 
@@ -1342,7 +1344,23 @@ Added while writing sections 4 and 5:
 
 7. **The profile's fingerprint is now decided, and it is bigger than 04-profile assumed.** A MinHash sketch of 64 one-byte values (5.6) is 64 bytes rather than the 32 that document's size table guessed, so its fingerprint line reads about 19 KB instead of 11 and a typical file about 38 KB instead of 30 — still well inside the 64 KB target, and its note 2 anticipated exactly this. **For:** T26, and two numbers to correct in [04-profile](docs/architecture/04-profile.md).
 8. **The character limits for scripts without spaces are set by analogy, not measured.** Twice the word limit is a guess that nobody has tested on a real Chinese or Japanese task. The acceptance runs are where it will show. **For:** T32, T62, T63.
-9. **The near-duplicate thresholds are two numbers, not one.** 0.6 for word trigrams is the prototype's, measured; 0.7 for character bigrams is reasoned from the smaller sets. T32 has 450 reference tasks to calibrate both against before anything ships. **For:** T32.
+9. **The near-duplicate thresholds are two numbers, not one.** 0.6 for word trigrams is the prototype's, measured; 0.7 for character bigrams is reasoned from the smaller sets. T32 has 450 reference tasks to calibrate both against before anything ships. **For:** T32. **Measured in T32, and open.** "Measured" overstates the prototype: its decisions record a measurement for readability (its D38) and none for this threshold, which is a configuration default. What T32 measured is the question a new task is actually asked — how close is it to some reference task of its level — put to the reference tasks themselves, which are good tasks by construction:
+
+   | Topic | Tasks | Same-level neighbour ≥ 0.6 | ≥ 0.7 | ≥ 0.8 | ≥ 0.9 |
+   |---|---|---|---|---|---|
+   | `algorithms.weighing_pouring` | 25 | 21 | 20 | 18 | 14 |
+   | `logic.knights_liars` | 25 | 24 | 23 | 18 | 10 |
+   | `pigeonhole.basic` | 50 | 31 | 22 | 13 | 2 |
+   | `arithmetic.tricks` | 50 | 29 | 18 | 4 | 4 |
+   | `counting.gaps` | 50 | 12 | 7 | 2 | 0 |
+   | `time.clocks` | 50 | 10 | 6 | 2 | 0 |
+   | `combinatorics.enumeration` | 50 | 9 | 8 | 6 | 2 |
+   | `parity.alternation` | 50 | 8 | 7 | 6 | 2 |
+   | `time.calendar` | 50 | 7 | 2 | 0 | 0 |
+   | `logic.ordering` | 50 | 4 | 2 | 0 | 0 |
+   | **all** | **450** | **155 (34 %)** | **115** | **69** | **34** |
+
+   Almost every one of those neighbours is of the same topic. Against the pairs of 5.6 the thresholds read like this: a task given new numbers is 0.85 alike in English and 0.74 in Russian, one word changed 0.94 and 0.77, the same task in a new setting 0.63 and 0.61. So 0.7 is the highest threshold that still catches a change of numbers in an inflected language, and 0.6 is the one that catches a change of setting. The two topics at the top of the table are beyond any threshold: their questions open with the same paragraph of rules, and a set of trigrams cannot tell a paragraph from a problem — `kl-34-d3-3` and `kl-34-d3-5` measure 1.0 and have different answers. Removing each topic's recurring trigrams before comparing took the 155 down to 61 in a trial; it only works where the reference tasks share the chat's language, and it is a different measure from the one described here. **Decided:** the word threshold is 0.7 — the highest that still catches new numbers in Russian — and a task in a new setting is a new task (R56). The two topics of the paragraph of rules are left as they are: whether their models write that paragraph the same way every time is for the acceptance runs to show, and a measure that subtracts it is the answer if they do. The character threshold has no corpus to be measured against at all, and waits for the acceptance runs in Chinese and Japanese (T62, T63).
 10. **Every drawing limit is provisional until T58** and lives in the configuration, not in the code. If the calibration moves the width, the drawing frames of T36b are re-checked against the new number (R09). **For:** T34, T36b, T58.
 11. **`design_thought_process` is written and never read.** It exists to make the model state its plan before committing to it, and the service throws it away — it is not stored, not logged and not shown. If T36 finds the package tight, this is one field whose cost is entirely in the model's output, not ours. **For:** T36.
 
@@ -1370,5 +1388,9 @@ Added while writing sections 9 to 12:
 
 Added while exporting the golden vectors (T16):
 
-25. **The near-duplicate threshold is measured now, and 0.6 looks aggressive.** Nearly half the reference corpus has a neighbour above it, and the measure cannot tell two tasks apart when they share a vocabulary (5.6). The data is in `testdata/golden/trgm_similarity.json`; the decision is T32's. **For:** T32.
+25. **The near-duplicate threshold is measured now, and 0.6 looks aggressive.** Nearly half the reference corpus has a neighbour above it, and the measure cannot tell two tasks apart when they share a vocabulary (5.6). The data is in `testdata/golden/trgm_similarity.json`; the decision is T32's. **For:** T32. **Measured in T32:** the numbers are in remark 9 — a third of the reference tasks have a same-level neighbour at 0.6, and for two topics no threshold helps. The author chose 0.7 for words (R56); the two topics no threshold helps stay open there.
 26. **The prototype's reference corpus is the only calibration set that exists**, and it is grades 1–4 only. The grade 5–6 tasks of T37–T39 arrive later and with them the thresholds may need a second look — a formulaic topic like `percent.basic` will cluster the same way. **For:** T32, T39.
+
+Added while writing the checks (T32):
+
+27. **5.3 and 5.1 disagree about naming an option.** 5.3 says a refusal "names the option and the condition"; 5.1 says no refusal ever quotes an answer letter, because the result reaches the widget. They are the same letters: naming the options whose explanations failed names options that are wrong, and four of them name the fifth. T32 wrote every refusal without a letter — an explanation is "one in `task.distractors`", a path through an option is written with a star — and the test holds every message to that. T32a has to choose between the two sentences, or find a way of pointing at one explanation without its letter, such as its place among the four. **For:** T32a.

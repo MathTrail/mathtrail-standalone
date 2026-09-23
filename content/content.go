@@ -120,6 +120,24 @@ func (c *Content) Trap(id string) (Trap, bool) {
 	return trap, ok
 }
 
+// HasTopic reports whether the topic catalog has this id.
+func (c *Content) HasTopic(id string) bool {
+	_, ok := c.topicByID[id]
+	return ok
+}
+
+// HasTrap reports whether the trap catalog has this id.
+func (c *Content) HasTrap(id string) bool {
+	_, ok := c.trapByID[id]
+	return ok
+}
+
+// HasSkill reports whether the skill catalog has this id.
+func (c *Content) HasSkill(id string) bool {
+	_, ok := c.skillByID[id]
+	return ok
+}
+
 // Skills returns the whole skill catalog, in catalog order.
 func (c *Content) Skills() []Skill { return slices.Clone(c.skills) }
 
