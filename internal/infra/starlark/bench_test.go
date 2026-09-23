@@ -29,8 +29,12 @@ func benchmarkRun(b *testing.B, source string, options solver.Options) {
 		if err != nil {
 			b.Fatalf("Run: %v", err)
 		}
-		if result.Status != solver.StatusOK {
-			b.Fatalf("status: got %q (%s), want %q", result.Status, result.Message, solver.StatusOK)
+		// One letter rather than only a status: a solver that computed the
+		// wrong number would still run to the end, and a benchmark of the
+		// wrong computation is worth nothing.
+		if !result.One() {
+			b.Fatalf("got %q %v (%s), want %q and one letter",
+				result.Status, result.Letters, result.Message, solver.StatusOK)
 		}
 	}
 }
@@ -44,4 +48,18 @@ func BenchmarkLookup(b *testing.B) {
 // BenchmarkSearch is a real one: the breadth-first search over jug states.
 func BenchmarkSearch(b *testing.B) {
 	benchmarkRun(b, pouring, pours)
+}
+
+// BenchmarkOrdering is a brute force of the shape most of them have: every
+// ordering of a handful of things, each one held against the conditions of the
+// task.
+func BenchmarkOrdering(b *testing.B) {
+	const ordering = `def solve(options):
+    count = 0
+    for order in permutations(range(6)):
+        if order[0] < order[1] and order[2] > order[3]:
+            count = count + 1
+    return match(options, count)
+`
+	benchmarkRun(b, ordering, solver.Options{"60", "120", "180", "240", "360"})
 }

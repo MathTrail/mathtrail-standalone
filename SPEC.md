@@ -715,7 +715,7 @@ Starlark is Python-shaped but deliberately smaller, and `syntax.FileOptions` dec
 | `Recursion` | **off** | This is the one we keep closed. A recursive Starlark function recurses on the **Go** stack, and a stack overflow in Go cannot be recovered: it would take the whole instance down, not the request (T28). Search is written iteratively, and the porting table in 6.8 shows the two-line transformation. The field reads backwards — it switches off the *check* rather than the recursion — and the check fires when the recursive call happens rather than when the file is parsed, which is why a recursive solver is `error` and not `bad_source` |
 | `LoadBindsGlobally` | off | Irrelevant: there is no module loader at all, so any `load` fails as `bad_source` |
 
-Beyond the options, what the model must know it does **not** have: imports of any kind, classes, `try`/`except`, `yield`, generators, `lambda` with statements, f-strings (`%` and `.format` are there), `while`-`else`, sorting in place (`sorted()` returns a new list), and any access to time, randomness, the filesystem or the network. Integers are arbitrary precision, `/` produces a float and `//` an integer, and dictionaries iterate in insertion order.
+Beyond the options, what the model must know it does **not** have: imports of any kind, classes, `try`/`except`, `yield`, generators, `lambda` with statements, f-strings (`%` and `.format` are there), `while`-`else`, sorting in place (`sorted()` returns a new list), and any access to time, randomness, the filesystem or the network. Integers are arbitrary precision, `/` produces a float and `//` an integer, and dictionaries iterate in insertion order. One difference is an order rather than an absence: a keyword argument has to come before a `*` unpacking, so `product(repeat=3, *pools)` is written that way round and the Python order is a parse error.
 
 ## 6.5 The helpers
 
@@ -733,11 +733,15 @@ Starlark's universe has `len`, `range`, `min`, `max`, `sorted`, `enumerate`, `zi
 | `is_leap(year)` | bool | |
 | `days_in_month(year, month)` | integer | |
 | `weekday(year, month, day)` | 0–6, Monday is 0 | |
-| `add_days(date, n)` | `(y, m, d)` | Dates are plain three-element tuples; no new type to learn |
-| `days_between(a, b)` | integer | Signed, in days |
+| `add_days(date, days)` | `(y, m, d)` | Dates are plain three-element tuples; no new type to learn |
+| `days_between(a, b)` | integer | Days from the first date to the second, negative when the second is the earlier one |
 | `match(options, value)` | list of letters | 6.5.1 |
 
-**Every helper that builds a list is capped at 1,000,000 elements** and fails with `error` beyond it, and — this is the part that matters — **each element it produces costs one step** from the budget of 6.6. Starlark limits computation but not memory, and allocations inside a built-in are invisible to the interpreter's own accounting (T28); charging the step budget for produced elements puts the one limit we do have in front of the one we do not.
+**Every helper that builds a list is capped at 1,000,000 elements** and fails with `error` beyond it, and — this is the part that matters — **each value it produces costs one step** from the budget of 6.6. Starlark limits computation but not memory, and allocations inside a built-in are invisible to the interpreter's own accounting (T28); charging the step budget for produced values puts the one limit we do have in front of the one we do not.
+
+The two numbers are not the same number. The cap counts the elements of the list a solver ends up holding — a million tuples is already more than any task here could need — and the budget counts the values inside them, because a hundred thousand tuples of twenty is two million values allocated and the length of the list says nothing about that. It is what refuses a product of nineteen pairs, which is half a million tuples and ten million values, while leaving the orderings of nine things well within reach.
+
+The helpers take sequences and a **string is not one**: this language does not iterate a string, and a helper that made an exception would be teaching two rules instead of one. `product("HT", repeat=3)` is refused, and the refusal says to write the characters out as a list (6.8).
 
 There is **no random number generator**, seeded or otherwise. A brute force that samples proves nothing about uniqueness, and a verdict that depends on a seed is a verdict nobody can reproduce from the task alone. Where the prototype's checks sampled — three of the 450 do — the port replaces the sample with the invariant it was demonstrating (6.8).
 
@@ -790,6 +794,7 @@ That is worth more than a translation. The 450 solvers then run through exactly 
 |---|---|---|
 | `itertools.permutations`, `combinations`, `combinations_with_replacement`, `product` | The helpers of the same name | Everywhere |
 | `itertools.pairwise(xs)` | `for i in range(len(xs) - 1)` | `counting.gaps` |
+| A string standing in for a sequence, `product("HT", repeat=3)` | Its characters written out, `product(["H", "T"], repeat=3)` | `combinatorics.enumeration`, `parity.alternation` |
 | `itertools.count()` | `while` with an explicit counter | `time.clocks`, `pigeonhole.basic` |
 | `math.prod` | `prod` | `arithmetic.tricks` |
 | `collections.deque` with `popleft` | A list plus a head index: `head = 0`, `while head < len(queue)` | `algorithms.weighing_pouring`, `parity.alternation` |

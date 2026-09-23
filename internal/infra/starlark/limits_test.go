@@ -298,3 +298,53 @@ func TestASlotIsWorthWaitingForButNotForEver(t *testing.T) {
 		t.Errorf("error: got %v, want it to carry the deadline", err)
 	}
 }
+
+// TestWhatWillNotSayHowLongItIs closes the way round the ceiling this language
+// leaves open. Almost everything that can be walked says how far first, and
+// the characters of a string as codepoints do not — so a list of them would be
+// built out of a string of any size at no charge at all, and with the ceiling
+// looking the other way.
+//
+// The same characters through the view that does say its length are still
+// there: the rule is about being measurable, not about strings.
+func TestWhatWillNotSayHowLongItIs(t *testing.T) {
+	t.Parallel()
+	counts := solver.Options{"1", "2", "3", "4", "5"}
+
+	for _, test := range []struct {
+		name   string
+		source string
+	}{
+		// One path through the built-ins of the language, one through the
+		// helpers: both ask how long a thing is, and both have to refuse the
+		// same answer.
+		{"walked by the language", `def solve(options):
+    return match(options, len(list("ab".codepoints())))
+`},
+		{"walked by a helper", `def solve(options):
+    return match(options, len(permutations("ab".codepoints(), 2)))
+`},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			result := run(t, test.source)
+			if result.Status != solver.StatusError {
+				t.Errorf("status: got %q (%s), want %q", result.Status, result.Message, solver.StatusError)
+			}
+			if !strings.Contains(result.Message, "will not say how long it is") {
+				t.Errorf("message: got %q, want it to say what cannot be measured", result.Message)
+			}
+		})
+	}
+
+	measured, err := sandbox(t, limits()).Run(t.Context(), `def solve(options):
+    return match(options, len(list("ab".elems())))
+`, counts)
+	if err != nil {
+		t.Fatalf("Run: got error %v, want none", err)
+	}
+	if measured.Status != solver.StatusOK || !equal(measured.Letters, []string{"B"}) {
+		t.Errorf("got %q %v (%s), want ok and [B]",
+			measured.Status, measured.Letters, measured.Message)
+	}
+}
