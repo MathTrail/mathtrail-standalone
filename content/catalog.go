@@ -20,6 +20,27 @@ const (
 // Levels returns the three grade levels, from the youngest upwards.
 func Levels() []string { return []string{Level12, Level34, Level56} }
 
+// LevelOf is the grade level a school year falls into: 1 and 2 make the
+// youngest, 3 and 4 the middle, 5 and 6 the oldest. Everything the catalogs
+// hold is keyed by the level rather than by the year, because what changes
+// between year 1 and year 2 is not which topics exist.
+//
+// A year outside 1 to 6 has no level, and the caller is told so rather than
+// handed the nearest one: a profile that names such a year is a profile
+// nothing can be chosen for.
+func LevelOf(grade int) (string, bool) {
+	switch grade {
+	case 1, 2:
+		return Level12, true
+	case 3, 4:
+		return Level34, true
+	case 5, 6:
+		return Level56, true
+	default:
+		return "", false
+	}
+}
+
 // Topic is one entry of the topic catalog: what a task can be about. The
 // catalog is closed and the model never invents a topic, because two children's
 // histories are comparable only while they name the same things.
