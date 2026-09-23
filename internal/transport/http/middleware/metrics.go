@@ -66,6 +66,15 @@ func Metrics(meters metric.MeterProvider) (gin.HandlerFunc, error) {
 	}
 
 	return func(c *gin.Context) {
+		// A probe is left out whole, failed ones included. Counting only the
+		// failures would leave "requests answered" meaning something nobody
+		// could state in a sentence, and a probe that fails is already a line
+		// in the log and a signal the platform has of its own.
+		if isProbe(c.Request.URL.Path) {
+			c.Next()
+			return
+		}
+
 		started := time.Now()
 
 		c.Next()

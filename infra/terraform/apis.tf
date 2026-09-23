@@ -18,8 +18,16 @@ locals {
     "iam.googleapis.com",
     "sts.googleapis.com",
     "iamcredentials.googleapis.com",
-    # Where the service sends its own traces and measurements.
+    # Where the service sends its own traces and measurements — and the two
+    # that decide whether any of it is kept. The telemetry endpoint only
+    # accepts the data; a project without Cloud Trace has no bucket for a span
+    # to land in, and one without Cloud Monitoring refuses every measurement
+    # outright. Both refusals are silent from the service's side: it reports
+    # them once and carries on serving, which is exactly why they are easy to
+    # miss and named here.
     "telemetry.googleapis.com",
+    "cloudtrace.googleapis.com",
+    "monitoring.googleapis.com",
     # The spend alert.
     "billingbudgets.googleapis.com",
   ]
