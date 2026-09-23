@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -28,8 +29,8 @@ func (t Time) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON reads RFC 3339 and keeps it as the file keeps it.
 func (t *Time) UnmarshalJSON(raw []byte) error {
-	text, err := unquote(raw)
-	if err != nil {
+	var text string
+	if err := json.Unmarshal(raw, &text); err != nil {
 		return fmt.Errorf("profile: a moment is a string: %w", err)
 	}
 	moment, err := time.Parse(timeLayout, text)
@@ -61,8 +62,8 @@ func (d Date) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON reads a plain calendar date.
 func (d *Date) UnmarshalJSON(raw []byte) error {
-	text, err := unquote(raw)
-	if err != nil {
+	var text string
+	if err := json.Unmarshal(raw, &text); err != nil {
 		return fmt.Errorf("profile: a day is a string: %w", err)
 	}
 	day, err := time.Parse(dateLayout, text)
@@ -71,14 +72,4 @@ func (d *Date) UnmarshalJSON(raw []byte) error {
 	}
 	*d = Date{day}
 	return nil
-}
-
-// unquote reads a JSON string without pulling in a decoder for one value. The
-// days and moments of this file have no escapes in them, and anything that
-// does have one is not a day or a moment.
-func unquote(raw []byte) (string, error) {
-	if len(raw) < 2 || raw[0] != '"' || raw[len(raw)-1] != '"' {
-		return "", fmt.Errorf("%s is not a quoted string", raw)
-	}
-	return string(raw[1 : len(raw)-1]), nil
 }

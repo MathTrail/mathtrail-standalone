@@ -282,10 +282,10 @@ func TestWhatCountsTowardMastering(t *testing.T) {
 func TestACorrectAnswerEndsTheRunOfFailures(t *testing.T) {
 	t.Parallel()
 
-	p := parseFixture(t, "masha")
-	if p.Ratings.ConsecutiveFailures == 0 {
-		t.Fatal("the fixture is not in a run of failures, so the case proves nothing")
-	}
+	p := parseFixture(t, "dima")
+	// The run is set here rather than taken from a fixture: what this test is
+	// about is that a correct answer ends one, and it should say so itself.
+	p.Ratings.ConsecutiveFailures = 2
 
 	id := answering(t, p, "time.clocks", 3)
 	if _, err := p.Record(profile.Answered{TaskID: id, Correct: true, At: issued.Add(time.Minute)}); err != nil {

@@ -266,3 +266,44 @@ func f2t(f *testing.F) *testing.T {
 	f.Helper()
 	return &testing.T{}
 }
+
+// A day and a moment are JSON strings, and JSON lets any character of a
+// string be written the long way. Nothing this service writes does that, but
+// the file sits in the parent's Drive where anything at all may have written
+// it, and a day spelled the long way is still that day.
+//
+// The decoder hands a custom reader the value exactly as it was written,
+// escapes and all, so a reader that trimmed the quotes by hand would give back
+// the backslashes and call the whole profile broken.
+func TestADayMayBeWrittenWithEscapes(t *testing.T) {
+	t.Parallel()
+
+	// A backslash and the letters that follow it, spelled out as bytes. A Go
+	// source file has escapes of its own, and this test is worth nothing if one
+	// of them quietly turns the sequence back into the dash it stands for.
+	dash := string([]byte{92, 'u', '0', '0', '2', 'd'})
+
+	plain := readFixture(t, "dima")
+	escaped := bytes.ReplaceAll(plain, []byte(`"2026-09-03"`), []byte(`"2026`+dash+`09`+dash+`03"`))
+	if bytes.Equal(escaped, plain) {
+		t.Fatal("the fixture does not carry the day this test rewrites")
+	}
+
+	read, err := profile.Parse(escaped)
+	if err != nil {
+		t.Fatalf("Parse() error = %v, want a day written the long way to be read", err)
+	}
+	if got := read.Daily.Date.Format("2006-01-02"); got != "2026-09-03" {
+		t.Errorf("the day read as %s, want 2026-09-03", got)
+	}
+
+	// And it is written back the short way, because that is the one spelling
+	// this service uses.
+	written, err := profile.Marshal(read)
+	if err != nil {
+		t.Fatalf("Marshal() error = %v, want nil", err)
+	}
+	if !bytes.Equal(written, plain) {
+		t.Error("a file read with escapes was not written back in the spelling this service uses")
+	}
+}
