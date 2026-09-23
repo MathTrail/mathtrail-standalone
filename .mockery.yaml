@@ -1,7 +1,13 @@
 # Mocks are generated into a mocks/ folder next to the interface and committed;
 #
 # Every interface lives in the package that provides it, so this file lists
-# those packages as they appear. It is empty until the first interface does.
+# those packages as they appear. It is empty while every interface here is pure
+# computation, which a test runs for real rather than imitates.
+#
+# The first entry is expected to be the storage: the profile lives in the
+# parent's Drive, and a test of what a tool does when a write lost the revision
+# race or the grant was taken back has to make that happen rather than wait for
+# it.
 all: false
 template: mockery
 dir: "{{.InterfaceDir}}/mocks"
