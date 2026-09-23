@@ -14,7 +14,7 @@ import (
 func benchmarkRun(b *testing.B, source string, options solver.Options) {
 	b.Helper()
 	runner, err := starlark.New(starlark.Limits{
-		Steps:       10_000_000,
+		Steps:       25_000_000,
 		Timeout:     2 * time.Second,
 		Concurrency: 4,
 	})

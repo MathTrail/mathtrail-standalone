@@ -12,22 +12,9 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark"
 )
 
-// notYetPorted are the topics whose reference tasks still carry no solver.
-//
-// It shrinks with every batch and is empty once the last one lands, at which
-// point this variable goes away with it. A topic is removed from here in the
-// same change that gives its tasks their solvers — the bench refuses either
-// half on its own, so the two cannot drift apart.
-var notYetPorted = []string{
-	"algorithms.weighing_pouring",
-	"logic.knights_liars",
-	"parity.alternation",
-	"time.calendar",
-}
-
 // Every reference task claims an answer, and until it carries a solver that is
 // all the claim is: a letter somebody typed. This is the bench that turns it
-// into something proved.
+// into something proved, and a task with no solver fails it.
 //
 // It runs each solver the way a submitted one is run — the same sandbox, the
 // same dialect and helpers, the same two runs under rotated labels, and the
@@ -55,26 +42,11 @@ func TestEveryReferenceTaskProvesItsOwnAnswer(t *testing.T) {
 	var spent costs
 	for _, task := range embedded.Examples() {
 		t.Run(task.ID, func(t *testing.T) {
-			if slices.Contains(notYetPorted, task.Topic) {
-				refuseSolver(t, &task)
-				return
-			}
 			spent.add(task.ID, prove(t, sandbox, &task))
 		})
 	}
 
 	spent.report(t)
-}
-
-// refuseSolver is the other half of the list of topics not yet ported. Without
-// it a topic could be ported and left named there, and the bench would quietly
-// stop checking the very tasks that had just gained solvers.
-func refuseSolver(t *testing.T, task *content.Example) {
-	t.Helper()
-
-	if task.Solver != "" {
-		t.Errorf("%s has a solver, but %s is still listed as not yet ported", task.ID, task.Topic)
-	}
 }
 
 // prove runs one task's solver the way a submitted one is run, and holds it to
@@ -83,7 +55,7 @@ func prove(t *testing.T, sandbox solver.Runner, task *content.Example) solver.Ag
 	t.Helper()
 
 	if task.Solver == "" {
-		t.Fatalf("%s carries no solver, and %s is not listed as not yet ported", task.ID, task.Topic)
+		t.Fatalf("%s carries no solver: it belongs in examples/solvers/%s.star", task.ID, task.ID)
 	}
 
 	agreement, err := solver.Verdict(t.Context(), sandbox, task.Solver, optionsOf(t, task))
@@ -153,10 +125,6 @@ func (c *costs) add(id string, agreement solver.Agreement) {
 func (c *costs) report(t *testing.T) {
 	t.Helper()
 
-	if c.runs == 0 {
-		t.Log("no solver ran: every topic is still listed as not yet ported")
-		return
-	}
 	t.Logf("%d runs; most steps %d (%s) of %d allowed; longest %v (%s) of %v allowed; %d at or past a tenth of the budget%s",
 		c.runs,
 		c.mostSteps, c.stepsBy, uint64(config.DefaultSolverSteps),

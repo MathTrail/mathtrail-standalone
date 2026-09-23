@@ -147,7 +147,7 @@ Reference tasks are few-shot examples: they show the model the shape, the style 
 }
 ```
 
-The solver is not one of these fields. It is a file of its own, `content/examples/solvers/<id>.star`, named after the task it proves, and the loader attaches it as the task is read — so a program is stored as a program: indented, syntax-highlighted, and changed a line at a time rather than as one escaped string several hundred characters wide. The two halves are held together from both ends: a file naming no task is refused at load, and a task of a ported topic with no file is refused by the bench (6.8).
+The solver is not one of these fields. It is a file of its own, `content/examples/solvers/<id>.star`, named after the task it proves, and the loader attaches it as the task is read — so a program is stored as a program: indented, syntax-highlighted, and changed a line at a time rather than as one escaped string several hundred characters wide. The two halves are held together from both ends: a file naming no task is refused at load, and a task with no file is refused by the bench (6.8).
 
 | Field | Required | Notes |
 |---|---|---|
@@ -740,7 +740,7 @@ Starlark's universe has `len`, `range`, `min`, `max`, `sorted`, `enumerate`, `zi
 
 **Every helper that builds a list is capped at 1,000,000 elements** and fails with `error` beyond it, and — this is the part that matters — **each value it produces costs one step** from the budget of 6.6. Starlark limits computation but not memory, and allocations inside a built-in are invisible to the interpreter's own accounting (T28); charging the step budget for produced values puts the one limit we do have in front of the one we do not.
 
-The two numbers are not the same number. The cap counts the elements of the list a solver ends up holding — a million tuples is already more than any task here could need — and the budget counts the values inside them, because a hundred thousand tuples of twenty is two million values allocated and the length of the list says nothing about that. It is what refuses a product of nineteen pairs, which is half a million tuples and ten million values, while leaving the orderings of nine things well within reach.
+The two numbers are not the same number. The cap counts the elements of the list a solver ends up holding — a million tuples is already more than any task here could need — and the budget counts the values inside them, because a hundred thousand tuples of twenty is two million values allocated and the length of the list says nothing about that. At the ceiling of 6.6 it lets a run hold two products of nineteen pairs — half a million tuples and ten million values each, 381 MiB between them, measured — and refuses the third, while leaving the orderings of nine things well within reach.
 
 The helpers take sequences and a **string is not one**: this language does not iterate a string, and a helper that made an exception would be teaching two rules instead of one. `product("HT", repeat=3)` is refused, and the refusal says to write the characters out as a list (6.8).
 
@@ -760,20 +760,20 @@ A well-formed task yields exactly one letter. Two letters mean two options say t
 
 | Limit | v1 | Enforced by |
 |---|---|---|
-| Steps | 10,000,000 | `thread.SetMaxExecutionSteps`; the interpreter tests the counter on every instruction |
+| Steps | 25,000,000 | `thread.SetMaxExecutionSteps`; the interpreter tests the counter on every instruction |
 | Wall clock | 2 seconds per run | A context timeout whose expiry calls `thread.Cancel`, which is safe from another goroutine |
-| Memory | no direct limit | Bounded indirectly: everything predeclared charges steps per element and caps each call at 1,000,000 |
+| Memory | no direct limit | Bounded indirectly: everything predeclared charges steps per element and caps each call at 1,000,000. Measured at the ceiling above, one run can hold about 380 MiB that way, and a loop of appends about 330 |
 | Source size | 8 KB | Checked before parsing; a solver longer than that is a transcription, not a brute force |
 | Result | 5 letters | 6.2 |
 | Concurrent runs | 4 per instance | A solver holds a core for up to two seconds, and a Cloud Run instance has few |
 
 Both runs of 6.2 share none of these budgets: each gets its own.
 
-The numbers are configuration (section 11), and T29's bench over 450 reference solvers is what calibrates them: it reports the step count of every solver, and the limit should sit an order of magnitude above the worst of them. For scale, a search over eight permuted items is about 400,000 steps and a breadth-first search over a thousand states about 50,000.
+The numbers are configuration (section 11), and T29's bench over 450 reference solvers is what calibrates them: it reports the step count of every solver, and the limit should sit an order of magnitude above the worst of them. For scale, a search over eight permuted items is about 400,000 steps and a breadth-first search over a thousand states about 50,000. The bench measured the worst of the 450 at 2,081,362 steps, which is what moved the ceiling from 10,000,000 to 25,000,000 (R53); the time limit kept its margin of fifty, and the memory the higher ceiling lets through is in the table above.
 
 The cancellation has one known gap, and it is the reason everything predeclared caps itself: the interpreter notices a cancellation between instructions, so a built-in halfway through building a huge list finishes building it first. The cap is therefore checked and the steps charged before the call does any work, and it covers the language's own sequence builders as well as our helpers — `list`, `tuple`, `sorted`, `set`, `dict`, `reversed`, `zip`, `enumerate`, `min`, `max`, `any` and `all` are predeclared again with the cap on them, because `list(range(1000000000))` is a billion values built inside one call that neither limit is watching.
 
-What a cap cannot reach is an operator. `[0] * 100000000` allocates through the language's own `*`, where there is no name to stand in front of, and starlark-go's guard on it stops at 2³⁰ elements, which is more memory than an instance has: a solver written that way takes the instance down rather than the request. There is no power operator in this language, which closes the other half of the same hole, and nothing else turns something small into something huge in one step. The fix, if the gap ever bites, is a solver in a process of its own with a memory limit on it — a change of shape rather than a setting, and not one v1 pays for.
+What a cap cannot reach is an operator. `[0] * 100000000` allocates through the language's own `*`, where there is no name to stand in front of, and starlark-go's guard on it stops at 2³⁰ elements, which is more memory than an instance has: a solver written that way takes the instance down rather than the request. There is no power operator in this language, which closes the other half of the same hole, and nothing else turns something small into something huge in one step — but a step repeated does it: `xs = xs + xs` twenty-four times is sixteen million elements in under three hundred steps, 480 MiB measured, and `s = s + s` does the same to a string. No step ceiling notices, whatever it is set to. The fix, if the gap ever bites, is a solver in a process of its own with a memory limit on it — a change of shape rather than a setting, and not one v1 pays for.
 
 ## 6.7 What the guide for the model says
 
@@ -787,11 +787,11 @@ The prototype proved every reference answer with a Python function that returned
 
 That is worth more than a translation. The 450 solvers then run through exactly the pipeline a submitted task runs through — the same dialect, the same helpers, the same limits, the same two runs — so they become the regression suite of the sandbox itself, and a change to any limit is tested against 450 real programs before it reaches a child.
 
-**The bench** (T29a) loads every reference task, runs its solver twice as 6.2 requires, and fails if the verdict is not exactly the task's `correct_answer`. It reports the step count and the duration of each, which is what calibrates 6.6. It carries the list of topics not yet ported and checks it from both sides — a task of a ported topic must have a solver, and a task of an unported one must not — so that the list cannot outlive the porting it describes.
+**The bench** (T29a) loads every reference task, runs its solver twice as 6.2 requires, and fails if the verdict is not exactly the task's `correct_answer`. It reports the step count and the duration of each, which is what calibrates 6.6. Every reference task must carry a solver: one that has none fails the bench by name.
 
 **Each solver stands alone.** The prototype's files open with helpers shared by all fifty checks in them — `orders`, `unique`, `gaps`, `cuts_for`. A solver is one file with no `load`, so it carries the two or three it uses and no more. That is the same constraint the model writes under, and it is what keeps the bench measuring the real thing; the helpers are short, and a repeated one in fifty independent programs is not the duplication that costs anything, because nobody reads two of them at once.
 
-**The step budget decides the shape, not only the size.** Python's own limits are patience and memory; this sandbox charges every value a helper builds against 6.6, and three ports of the prototype's checks ran out of budget written the way they stood. A search that rebuilds the same list for every candidate answer builds it once and reads the answers off it; a search over the subsets of twenty cards, or over the 32,768 ways six players could have played each other, is replaced by a search over what the question can actually tell apart — the cards grouped into couples, the games kept by how many each player has played. That grouping is not a shortcut past the enumeration: it is the same move the topic already makes when it counts a stock of balls by colour rather than ball by ball, and the answer it computes is still computed rather than assumed. The bench's report is how such a solver is found — the two most expensive in the catalog spend a fifth of the budget, and nothing else comes near a tenth of it.
+**The step budget decides the shape, not only the size.** Python's own limits are patience and memory; this sandbox charges every value a helper builds against 6.6, and three ports of the prototype's checks ran out of budget written the way they stood. A search that rebuilds the same list for every candidate answer builds it once and reads the answers off it; a search over the subsets of twenty cards, or over the 32,768 ways six players could have played each other, is replaced by a search over what the question can actually tell apart — the cards grouped into couples, the games kept by how many each player has played. That grouping is not a shortcut past the enumeration: it is the same move the topic already makes when it counts a stock of balls by colour rather than ball by ball, and the answer it computes is still computed rather than assumed. The bench's report is how such a solver is found — the most expensive in the catalog spends a twelfth of the budget, the next one half as much, and nothing else comes near.
 
 **What translates how:**
 
@@ -808,10 +808,15 @@ That is worth more than a translation. The 450 solvers then run through exactly 
 | `functools.lru_cache` on a recursive function | Bottom-up dynamic programming over a `dict` — recursion is off (6.4) | `algorithms.weighing_pouring` |
 | `fractions.Fraction` | Exact integers: multiply through by the denominators, or compare `a/b` with `c/d` as `a*d` against `c*b` | `arithmetic.tricks`, `algorithms.weighing_pouring` |
 | `datetime.date`, `timedelta`, `calendar.monthrange` | `add_days`, `days_between`, `days_in_month`, `weekday`, `is_leap` on `(y, m, d)` tuples | `time.calendar` |
+| `xs.count(x)` on a list | `len([y for y in xs if y == x])` — a list here has no `count`; a string does, and a list does have `index` | `time.calendar`, `parity.alternation` |
+| A dict changed inside `for key in the_dict` | Loop over the keys from somewhere else, `for key in range(…)` — changing a dict while walking it is an error here | `parity.alternation` |
+| A variable called `load` | Any other name: `load` is a keyword of the language, and the parser refuses it before anything runs | `algorithms.weighing_pouring` |
 | `random.Random(seed)` sampling many runs | Rewritten as the invariant it was demonstrating, or as an exhaustive search over the smaller equivalent state space | `parity.alternation`, three checks |
 | `assert` | `fail("…")` | Wherever the prototype's shared `unique()` guarded that the clues pin down one answer. There is no `load`, so it is written out in the solver that needs it: collect the answers the clues allow into a set, and `fail` unless there is exactly one. `logic.ordering` above all |
 
 The `random` row is the only one that is not mechanical, and it is the one worth being strict about. Those three checks ran twenty thousand random games to show that the parity of the result never changes; the parity is the mathematical content of the task, and a solver that computes it directly is both shorter and an actual proof. If a reference task turns out to have no such rewrite, the task is replaced rather than the rule bent — sampling is not brute force.
+
+All three had one, and all three became the invariant rather than a search: the sum that summing two numbers never changes (`par-12-d5-3`), the parity that taking a difference never changes (`par-34-d4-3`), and the one piece every break of a chocolate bar adds (`par-34-d5-5`). The exhaustive search over every way of breaking the 4 by 6 bar was tried first and ran out of the step budget — the multisets of pieces are far more than the question needs — which is the paragraph above about the budget deciding the shape, met once more. Each solver states its invariant in a comment, and where the invariant alone must single out one option, it refuses when it does not.
 
 **The batches**, 150 checks each, ordered so that the hardest constructs arrive last, when the helpers and the bench have been exercised:
 
@@ -1215,7 +1220,7 @@ Where section 5.4 says the drawing limits are "configuration, not constants in t
 | `MATHTRAIL_RATE_INSTANCE_PER_MIN` | no | 200 | no | Limits |
 | `MATHTRAIL_DAILY_TASKS` | no | 20 | no | Limits |
 | `MATHTRAIL_DAILY_FAILED` | no | 5 | no | Limits |
-| `MATHTRAIL_SOLVER_STEPS` | no | 10000000 | no | The sandbox (6.6) |
+| `MATHTRAIL_SOLVER_STEPS` | no | 25000000 | no | The sandbox (6.6) |
 | `MATHTRAIL_SOLVER_TIMEOUT` | no | 2s | no | The sandbox |
 | `MATHTRAIL_SOLVER_CONCURRENCY` | no | 4 | no | The sandbox |
 | `MATHTRAIL_DRIVE_TIMEOUT` | no | 10s | no | Every Drive call |
@@ -1343,10 +1348,10 @@ Added while writing sections 4 and 5:
 
 Added while writing section 6:
 
-12. **The permuted second run is new; the prototype had nothing like it.** It costs one more execution of a program that has already finished and it catches a solver that returns a hard-coded letter. If T29's bench finds a legitimate solver that cannot survive it, the answer is to drop the second run rather than to weaken the first. **For:** T28, T29.
-13. **Three of the 450 checks sample with a seeded RNG and have no mechanical port.** They demonstrate an invariant over twenty thousand random games; the port computes the invariant. If one of them resists, that reference task is replaced rather than the no-randomness rule bent. **For:** T31.
+12. **The permuted second run is new; the prototype had nothing like it.** It costs one more execution of a program that has already finished and it catches a solver that returns a hard-coded letter. If T29's bench finds a legitimate solver that cannot survive it, the answer is to drop the second run rather than to weaken the first. **For:** T28, T29. **Measured in T29a–T31:** all 450 reference solvers survive it, so the second run stays.
+13. **Three of the 450 checks sample with a seeded RNG and have no mechanical port.** They demonstrate an invariant over twenty thousand random games; the port computes the invariant. If one of them resists, that reference task is replaced rather than the no-randomness rule bent. **For:** T31. **Done in T31:** none resisted, and no task was replaced (6.8).
 14. **Charging steps for elements produced inside a helper is the only bound on memory we have**, and it writes to `Thread.Steps`, a field the SDK documents as "incremented by the interpreter". It works — the limit is tested on every instruction — but it is a use the library does not promise. If a future version makes the counter read-only, the sandbox needs a counter of its own. **For:** T28.
-15. **The step and time limits are guesses until measured.** 10,000,000 steps and 2 seconds are an order of magnitude above what the four ports in 6.9 need, but the real distribution is the 450 solvers, and only T29 will have it. **For:** T29, and the configuration in section 11.
+15. **The step and time limits are guesses until measured.** 10,000,000 steps and 2 seconds are an order of magnitude above what the four ports in 6.9 need, but the real distribution is the 450 solvers, and only T29 will have it. **For:** T29, and the configuration in section 11. **Measured in T31, and settled:** the costliest reference solver takes 2,081,362 steps (`pig-34-d4-2`) and the slowest run about 35 ms against 2 seconds. By the rule of 6.6 the step ceiling would be some 21 million, 10 million was under five times the worst, and three of the prototype's checks transcribed as they stood did not fit it at all (6.8). The ceiling is now 25,000,000 and the time limit is unchanged (R53). What stays open is memory, which the step ceiling bounds only for what the helpers build (6.6): a higher ceiling lets more of it through, and a step repeated goes around it entirely. **For:** the tools that first run a submitted solver (T41–T45).
 
 Added while writing sections 7 and 8:
 
