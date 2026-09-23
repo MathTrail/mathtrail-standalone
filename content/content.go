@@ -143,6 +143,69 @@ func (c *Content) Examples() []Example {
 // that wants the number rather than the tasks.
 func (c *Content) ExampleCount() int { return len(c.examples) }
 
+// TopicsAt lists the topics a child of this grade can be given, in catalog
+// order. A grade the levels do not cover has no topics: the caller is told
+// nothing rather than something wrong.
+func (c *Content) TopicsAt(grade int) []string {
+	level, known := LevelOf(grade)
+	if !known {
+		return nil
+	}
+
+	ids := make([]string, 0, len(c.topics))
+	for _, topic := range c.topics {
+		if topic.HasLevel(level) {
+			ids = append(ids, topic.ID)
+		}
+	}
+	return ids
+}
+
+// TrapIDs lists the whole trap catalog in catalog order. It is the order two
+// traps are told apart by when nothing else separates them, which is what
+// keeps a choice made over them from depending on the order a map happened to
+// be walked in.
+func (c *Content) TrapIDs() []string {
+	ids := make([]string, 0, len(c.traps))
+	for _, trap := range c.traps {
+		ids = append(ids, trap.ID)
+	}
+	return ids
+}
+
+// ExampleTraps lists the traps of the reference tasks of one topic at one
+// grade, the most frequent first and ties broken by catalog order.
+//
+// The reference tasks already carry a trap on every wrong option, so what a
+// topic's usual mistakes are is a count over them rather than a list anybody
+// has to keep up to date beside the catalog.
+func (c *Content) ExampleTraps(topic string, grade int) []string {
+	level, known := LevelOf(grade)
+	if !known {
+		return nil
+	}
+
+	seen := map[string]int{}
+	for i := range c.examples {
+		task := &c.examples[i]
+		if task.Topic != topic || task.GradeLevel != level {
+			continue
+		}
+		for _, distractor := range task.Distractors {
+			seen[distractor.Trap]++
+		}
+	}
+
+	ids := make([]string, 0, len(seen))
+	for _, trap := range c.traps { // catalog order, which settles every tie
+		if seen[trap.ID] > 0 {
+			ids = append(ids, trap.ID)
+		}
+	}
+	slices.SortStableFunc(ids, func(a, b string) int { return seen[b] - seen[a] })
+	return ids
+}
+
 // Schema returns the JSON schema of one of the formats the model works to,
 // named as its file is: brief.json, task.json or self_check.json.
 func (c *Content) Schema(name string) ([]byte, bool) {

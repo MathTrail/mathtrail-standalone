@@ -1,6 +1,10 @@
 package profile
 
-import _ "embed"
+import (
+	// The blank import is what makes the embed directive below work: it
+	// compiles the package in, and nothing here calls it by name.
+	_ "embed"
+)
 
 // schema describes the file for whoever is not this package: a person reading
 // it in Drive, or a tool that has to make sense of an exported profile. It is
