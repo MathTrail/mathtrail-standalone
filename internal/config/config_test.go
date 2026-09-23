@@ -334,6 +334,36 @@ func TestRefusals(t *testing.T) {
 			wantVar: "MATHTRAIL_SOLVER_CONCURRENCY",
 		},
 		{
+			name:    "telemetry is neither auto, on nor off",
+			environ: []string{"MATHTRAIL_TELEMETRY=maybe"},
+			wantVar: "MATHTRAIL_TELEMETRY",
+		},
+		{
+			name:    "the sample ratio is above one",
+			environ: []string{"MATHTRAIL_TELEMETRY_SAMPLE_RATIO=1.5"},
+			wantVar: "MATHTRAIL_TELEMETRY_SAMPLE_RATIO",
+		},
+		{
+			name:    "the sample ratio is negative",
+			environ: []string{"MATHTRAIL_TELEMETRY_SAMPLE_RATIO=-0.1"},
+			wantVar: "MATHTRAIL_TELEMETRY_SAMPLE_RATIO",
+		},
+		{
+			name:    "the collector is not https",
+			environ: []string{"MATHTRAIL_TELEMETRY_ENDPOINT=http://telemetry.example"},
+			wantVar: "MATHTRAIL_TELEMETRY_ENDPOINT",
+		},
+		{
+			name:    "the collector has no host",
+			environ: []string{"MATHTRAIL_TELEMETRY_ENDPOINT=https:///v1"},
+			wantVar: "MATHTRAIL_TELEMETRY_ENDPOINT",
+		},
+		{
+			name:    "the collector is not an address at all",
+			environ: []string{"MATHTRAIL_TELEMETRY_ENDPOINT=http://[::1"},
+			wantVar: "MATHTRAIL_TELEMETRY_ENDPOINT",
+		},
+		{
 			// The whole point of the switch: in a deployment it is refused,
 			// not warned about.
 			name: "dev auth in a deployment",
@@ -429,5 +459,72 @@ func TestARefusalNeverCarriesTheSealingKey(t *testing.T) {
 	}
 	if strings.Contains(err.Error(), nearlyAKey) {
 		t.Errorf("error = %q, want it to carry nothing of the key", err)
+	}
+}
+
+// Telemetry is configured by four variables, and all four have a setting that
+// works without one being given.
+func TestTelemetryDefaults(t *testing.T) {
+	t.Parallel()
+
+	cfg, err := config.LoadFrom(withSealKey())
+	if err != nil {
+		t.Fatalf("LoadFrom() error = %v, want nil", err)
+	}
+
+	if cfg.Telemetry != config.DefaultTelemetry {
+		t.Errorf("Telemetry = %q, want %q", cfg.Telemetry, config.DefaultTelemetry)
+	}
+	if cfg.TelemetryEndpoint != config.DefaultTelemetryEndpoint {
+		t.Errorf("TelemetryEndpoint = %q, want %q", cfg.TelemetryEndpoint, config.DefaultTelemetryEndpoint)
+	}
+	if cfg.TelemetrySampleRatio != config.DefaultTelemetrySampleRatio {
+		t.Errorf("TelemetrySampleRatio = %v, want %v", cfg.TelemetrySampleRatio, config.DefaultTelemetrySampleRatio)
+	}
+	if cfg.GCPProjectID != "" {
+		t.Errorf("GCPProjectID = %q, want empty", cfg.GCPProjectID)
+	}
+}
+
+// The switch says where telemetry is exported. Its usual setting asks the one
+// question that distinguishes the two places this runs: a deployment is
+// watched, a developer's machine is not.
+func TestTelemetryFollowsTheDeployment(t *testing.T) {
+	t.Parallel()
+
+	deployed := []string{
+		"K_SERVICE=mathtrail",
+		"MATHTRAIL_PUBLIC_URL=https://mathtrail.example",
+	}
+
+	for _, c := range []struct {
+		name    string
+		environ []string
+		want    bool
+	}{
+		{name: "auto on a developer's machine", want: false},
+		{name: "auto in a deployment", environ: deployed, want: true},
+		{
+			name:    "off in a deployment",
+			environ: append([]string{"MATHTRAIL_TELEMETRY=off"}, deployed...),
+			want:    false,
+		},
+		{
+			name:    "on off a deployment",
+			environ: []string{"MATHTRAIL_TELEMETRY=on"},
+			want:    true,
+		},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
+			cfg, err := config.LoadFrom(withSealKey(c.environ...))
+			if err != nil {
+				t.Fatalf("LoadFrom() error = %v, want nil", err)
+			}
+			if got := cfg.TelemetryEnabled(); got != c.want {
+				t.Errorf("TelemetryEnabled() = %v, want %v", got, c.want)
+			}
+		})
 	}
 }

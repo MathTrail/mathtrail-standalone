@@ -1,6 +1,7 @@
 package httpserver_test
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -8,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	metricnoop "go.opentelemetry.io/otel/metric/noop"
+	tracenoop "go.opentelemetry.io/otel/trace/noop"
 
 	"go.uber.org/zap/zaptest"
 
@@ -61,7 +64,7 @@ func TestEveryAnswerCarriesARequestID(t *testing.T) {
 func TestAClientsRequestIDIsKept(t *testing.T) {
 	t.Parallel()
 
-	router := httpserver.NewRouter(httpserver.NewHealthHandler(), zaptest.NewLogger(t))
+	router := newRouter(t)
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/health", http.NoBody)
 	req.Header.Set(middleware.RequestIDHeader, "from-the-caller")
 	rec := httptest.NewRecorder()
@@ -124,7 +127,7 @@ func TestRefusals(t *testing.T) {
 func call(t *testing.T, method, path string) *httptest.ResponseRecorder {
 	t.Helper()
 
-	router := httpserver.NewRouter(httpserver.NewHealthHandler(), zaptest.NewLogger(t))
+	router := newRouter(t)
 	req := httptest.NewRequestWithContext(t.Context(), method, path, http.NoBody)
 	rec := httptest.NewRecorder()
 	router.ServeHTTP(rec, req)
@@ -144,4 +147,21 @@ func TestA405SaysWhichMethodsWork(t *testing.T) {
 	if got := rec.Header().Get("Allow"); got != http.MethodGet {
 		t.Errorf("Allow = %q, want %q", got, http.MethodGet)
 	}
+}
+
+// newRouter builds the router with telemetry that keeps nothing. These cases
+// are about routing, and providers that recorded what they were given would
+// only add noise to them.
+func newRouter(t *testing.T) http.Handler {
+	t.Helper()
+
+	router, err := httpserver.NewRouter(httpserver.NewHealthHandler(), zaptest.NewLogger(t), httpserver.Observability{
+		Traces: tracenoop.NewTracerProvider(),
+		Meters: metricnoop.NewMeterProvider(),
+		Flush:  func(context.Context) error { return nil },
+	})
+	if err != nil {
+		t.Fatalf("NewRouter() error = %v, want nil", err)
+	}
+	return router
 }

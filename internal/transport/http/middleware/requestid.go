@@ -2,6 +2,10 @@
 package middleware
 
 import (
+	"strconv"
+	"sync/atomic"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -13,6 +17,10 @@ const (
 	// RequestIDKey is the gin context key holding the request id.
 	RequestIDKey = "request_id"
 )
+
+// requestsSeen is what keeps two fallback identifiers apart when the source
+// of randomness has stopped answering.
+var requestsSeen atomic.Uint64
 
 // maxRequestIDLength bounds what a client may dictate: an id is a correlation
 // handle, and an unbounded one is a way to write anything into a log line.
@@ -59,9 +67,23 @@ func usableRequestID(id string) bool {
 
 // newRequestID prefers a version 7 identifier, whose leading bits are a
 // timestamp, so that ids sort by the order the requests arrived.
+//
+// A second kind of identifier would be no use as a fallback: every version
+// asks the same source of randomness, so they fail together, and the one that
+// takes no error panics instead of saying so. What follows a failure is the
+// clock and a counter — a correlation handle is not a secret, and two lines
+// only have to be told apart.
 func newRequestID() string {
 	if v7, err := uuid.NewV7(); err == nil {
 		return v7.String()
 	}
-	return uuid.New().String()
+	return fallbackRequestID()
+}
+
+// fallbackRequestID is what a request is correlated by when there is no
+// randomness to be had. The clock puts ids in the order they were handed out,
+// and the counter keeps two within the same nanosecond apart.
+func fallbackRequestID() string {
+	return strconv.FormatInt(time.Now().UnixNano(), 36) + "-" +
+		strconv.FormatUint(requestsSeen.Add(1), 36)
 }

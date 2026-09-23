@@ -11,12 +11,14 @@ import (
 	"syscall"
 
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/app"
 	"github.com/MathTrail/mathtrail-standalone/internal/config"
 	"github.com/MathTrail/mathtrail-standalone/internal/logger"
+	"github.com/MathTrail/mathtrail-standalone/internal/telemetry"
 	"github.com/MathTrail/mathtrail-standalone/internal/version"
 )
 
@@ -52,6 +54,10 @@ func run(ctx context.Context) error {
 	// The web framework keeps its mode in a package variable, so it belongs
 	// where the process is set up rather than inside whatever builds a router.
 	gin.SetMode(gin.ReleaseMode)
+
+	// One handler reports every delivery the telemetry SDK could not make, for
+	// the whole binary, and it is a package variable for the same reason.
+	otel.SetErrorHandler(telemetry.ErrorHandler(log))
 
 	container, err := app.NewContainer(ctx, cfg, log)
 	if err != nil {

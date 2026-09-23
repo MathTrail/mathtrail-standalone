@@ -7,6 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/telemetry"
 )
 
 // maskedQueryKeys are the query parameters whose values never reach a log.
@@ -36,9 +38,17 @@ var silentPaths = map[string]struct{}{
 // ZapLogger logs one line per request: what was asked, what was answered and
 // how long it took. Successful probes are skipped; anything that failed is
 // always logged.
-func ZapLogger(logger *zap.Logger) gin.HandlerFunc {
+//
+// The line also names the trace it belongs to, so that a reader who found it
+// in a console can open the request it describes and see what the service did
+// inside. That is all the project identifier is for here.
+func ZapLogger(logger *zap.Logger, projectID string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
+		// Read before the handlers run, all three together: what was asked is
+		// a fact about the request, and by the time the answer exists the
+		// request may have been replaced by something downstream.
+		method := c.Request.Method
 		path := c.Request.URL.Path
 		query := c.Request.URL.RawQuery
 
@@ -55,7 +65,7 @@ func ZapLogger(logger *zap.Logger) gin.HandlerFunc {
 
 		fields := []zap.Field{
 			zap.Int("status", status),
-			zap.String("method", c.Request.Method),
+			zap.String("method", method),
 			zap.String("path", path),
 			zap.Duration("duration", time.Since(start)),
 			zap.Int("body_size", bodySize),
@@ -67,6 +77,7 @@ func ZapLogger(logger *zap.Logger) gin.HandlerFunc {
 		if errs := c.Errors.ByType(gin.ErrorTypePrivate); len(errs) > 0 {
 			fields = append(fields, zap.String("error", errs.String()))
 		}
+		fields = append(fields, telemetry.LogFields(c.Request.Context(), projectID)...)
 
 		switch {
 		case status >= 500:
@@ -79,13 +90,17 @@ func ZapLogger(logger *zap.Logger) gin.HandlerFunc {
 	}
 }
 
-// maskQuery keeps the shape of a query string and drops the secrets in it. A
+// maskQuery drops the secrets in a query string and keeps the rest. A
 // query that cannot be parsed is dropped whole rather than guessed at.
 //
 // It always parses, and deliberately has no shortcut for queries that look
 // free of secrets: a parameter name may be percent-encoded, so "%63ode=abc"
 // carries a code that no search of the raw text finds. Parsing is the only
 // reading of a query that agrees with the one the handlers get.
+//
+// What comes back is therefore not the string that arrived: the parameters are
+// sorted by name and encoded again. What is kept is which of them were there
+// and what they carried, which is what the line is read for.
 func maskQuery(raw string) string {
 	values, err := url.ParseQuery(raw)
 	if err != nil {
