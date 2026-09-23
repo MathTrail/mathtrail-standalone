@@ -1,6 +1,7 @@
 package content
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -12,10 +13,21 @@ const (
 )
 
 // withExamples puts one file of reference tasks in place of the real one, so
-// that a test is looking at the tasks it wrote and nothing else.
+// that a test is looking at the tasks it wrote and nothing else. The solvers of
+// the tasks it replaces go with them: they prove answers to questions that are
+// no longer there.
 func withExamples(t *testing.T, src fstest.MapFS, file string, tasks ...Example) {
 	t.Helper()
 
+	var replaced []Example
+	if existing, there := src[file]; there {
+		if err := json.Unmarshal(existing.Data, &replaced); err != nil {
+			t.Fatalf("read the reference tasks of %s: %v", file, err)
+		}
+	}
+	for i := range replaced {
+		delete(src, solverFile(replaced[i].ID))
+	}
 	src[file] = asFile(t, tasks)
 }
 

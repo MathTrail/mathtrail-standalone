@@ -21,9 +21,7 @@ import (
 var notYetPorted = []string{
 	"algorithms.weighing_pouring",
 	"arithmetic.tricks",
-	"counting.gaps",
 	"logic.knights_liars",
-	"logic.ordering",
 	"parity.alternation",
 	"pigeonhole.basic",
 	"time.calendar",

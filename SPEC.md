@@ -789,6 +789,8 @@ That is worth more than a translation. The 450 solvers then run through exactly 
 
 **The bench** (T29a) loads every reference task, runs its solver twice as 6.2 requires, and fails if the verdict is not exactly the task's `correct_answer`. It reports the step count and the duration of each, which is what calibrates 6.6. It carries the list of topics not yet ported and checks it from both sides — a task of a ported topic must have a solver, and a task of an unported one must not — so that the list cannot outlive the porting it describes.
 
+**Each solver stands alone.** The prototype's files open with helpers shared by all fifty checks in them — `orders`, `unique`, `gaps`, `cuts_for`. A solver is one file with no `load`, so it carries the two or three it uses and no more. That is the same constraint the model writes under, and it is what keeps the bench measuring the real thing; the helpers are short, and a repeated one in fifty independent programs is not the duplication that costs anything, because nobody reads two of them at once.
+
 **What translates how:**
 
 | Python in the prototype | Starlark in v1 | Where it appears |
@@ -803,7 +805,7 @@ That is worth more than a translation. The 450 solvers then run through exactly 
 | `fractions.Fraction` | Exact integers: multiply through by the denominators, or compare `a/b` with `c/d` as `a*d` against `c*b` | `arithmetic.tricks`, `algorithms.weighing_pouring` |
 | `datetime.date`, `timedelta`, `calendar.monthrange` | `add_days`, `days_between`, `days_in_month`, `weekday`, `is_leap` on `(y, m, d)` tuples | `time.calendar` |
 | `random.Random(seed)` sampling many runs | Rewritten as the invariant it was demonstrating, or as an exhaustive search over the smaller equivalent state space | `parity.alternation`, three checks |
-| `assert` | `fail("…")` | The `only()` guard |
+| `assert` | `fail("…")` | Wherever the prototype's shared `unique()` guarded that the clues pin down one answer. There is no `load`, so it is written out in the solver that needs it: collect the answers the clues allow into a set, and `fail` unless there is exactly one. `logic.ordering` above all |
 
 The `random` row is the only one that is not mechanical, and it is the one worth being strict about. Those three checks ran twenty thousand random games to show that the parity of the result never changes; the parity is the mathematical content of the task, and a solver that computes it directly is both shorter and an actual proof. If a reference task turns out to have no such rewrite, the task is replaced rather than the rule bent — sampling is not brute force.
 
