@@ -73,10 +73,12 @@ func (r *KeyRing) Seal(purpose Purpose, plaintext []byte, binding ...string) (st
 		return "", fmt.Errorf("%w: %q is not a purpose", ErrPurpose, purpose)
 	}
 
-	// The nonce is written first and the ciphertext appended to it, so one
-	// allocation carries both and the reader gets them in the order Open needs.
-	nonce := make([]byte, chacha20poly1305.NonceSizeX,
-		chacha20poly1305.NonceSizeX+len(plaintext)+chacha20poly1305.Overhead)
+	// The nonce goes first and the ciphertext is appended to it, so the reader
+	// gets them in the order Open needs. How much room that takes is left to
+	// the append rather than worked out here: a capacity is a length added to
+	// two constants, arithmetic on a length can overflow, and an allocation
+	// sized by it is worth more care than the one allocation it saves.
+	nonce := make([]byte, chacha20poly1305.NonceSizeX)
 	if _, err := rand.Read(nonce); err != nil {
 		return "", fmt.Errorf("seal: read a nonce: %w", err)
 	}

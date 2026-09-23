@@ -2,6 +2,7 @@ package profile
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -51,6 +52,11 @@ const (
 	MaxDifficulty = 5
 )
 
+// isNumber reports whether a level is one. A level that is not — the result
+// of a division nobody meant — cannot be written to the file at all, and the
+// encoder that refuses it names JSON rather than the field it came from.
+func isNumber(level float64) bool { return !math.IsNaN(level) && !math.IsInf(level, 0) }
+
 // optionLetters are the letters the options are keyed by.
 const optionLetters = "ABCDE"
 
@@ -75,6 +81,9 @@ func (p *Profile) Validate() error {
 	}
 	if p.Ratings.Answers < 0 || p.Ratings.ConsecutiveFailures < 0 {
 		return fmt.Errorf("%w: ratings count answers, and a count is never negative", ErrInvalid)
+	}
+	if !isNumber(p.Ratings.Theta) {
+		return fmt.Errorf("%w: ratings.theta is %v, and a level is a number", ErrInvalid, p.Ratings.Theta)
 	}
 	if err := validateTopics(p.Topics); err != nil {
 		return err
@@ -140,6 +149,8 @@ func validateTopics(topics map[string]Topic) error {
 			return fmt.Errorf("%w: topics has an entry with no id", ErrInvalid)
 		case topic.Answers < 0 || topic.Correct < 0 || topic.TopStreak < 0 || topic.WrongStreak < 0:
 			return fmt.Errorf("%w: topics[%s] counts answers, and a count is never negative", ErrInvalid, id)
+		case !isNumber(topic.Delta):
+			return fmt.Errorf("%w: topics[%s].delta is %v, and a level is a number", ErrInvalid, id, topic.Delta)
 		case topic.Correct > topic.Answers:
 			return fmt.Errorf("%w: topics[%s] has %d correct out of %d answers",
 				ErrInvalid, id, topic.Correct, topic.Answers)

@@ -118,3 +118,19 @@ func TestTheProductShipsTheChainItHas(t *testing.T) {
 			len(migrations), Version)
 	}
 }
+
+// A step that leaves the document in a state nobody can write out stops the
+// read, rather than producing a file that cannot be read back.
+func TestAMigrationThatBreaksTheDocumentStopsTheRead(t *testing.T) {
+	t.Parallel()
+
+	_, err := parse(olderProfile(t), map[int]migration{
+		0: func(document map[string]json.RawMessage) error {
+			document["student"] = json.RawMessage(`{"pseudonym":`)
+			return nil
+		},
+	})
+	if !errors.Is(err, ErrMalformed) {
+		t.Fatalf("parse() error = %v, want %v", err, ErrMalformed)
+	}
+}

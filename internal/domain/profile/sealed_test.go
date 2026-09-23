@@ -181,3 +181,58 @@ func TestASealedValueOfAnotherShapeIsRefused(t *testing.T) {
 		t.Errorf("OpenTask() error = %v, want %v", err, profile.ErrSealed)
 	}
 }
+
+// refusingSealer is a sealer that will not: the one thing this package can do
+// about that is say so and leave the profile as it was.
+type refusingSealer struct{ err error }
+
+func (s refusingSealer) Seal([]byte, ...string) (string, error) { return "", s.err }
+
+func (s refusingSealer) Open(string, ...string) ([]byte, error) { return nil, s.err }
+
+func TestASealerThatRefusesLeavesTheTaskAlone(t *testing.T) {
+	t.Parallel()
+
+	p := parseFixture(t, "dima")
+	answering(t, p, "counting.gaps", 3)
+	was := p.CurrentTask.Sealed
+	refused := refusingSealer{err: errors.New("no key today")}
+
+	err := p.SealTask(refused, secret())
+	if err == nil {
+		t.Fatal("SealTask() error = nil, want the refusal to be passed on")
+	}
+	if !strings.Contains(err.Error(), "no key today") {
+		t.Errorf("SealTask() said %q, want it to carry what the sealer said", err)
+	}
+	if p.CurrentTask.Sealed != was {
+		t.Error("a refused sealing still changed the task")
+	}
+
+	if _, err := p.OpenTask(refused); !errors.Is(err, profile.ErrSealed) {
+		t.Errorf("OpenTask() error = %v, want %v", err, profile.ErrSealed)
+	}
+}
+
+// Something opened, and it was not a task's secret. It is refused exactly as a
+// retired key is, because the answer is the same either way: this task can no
+// longer be checked.
+func TestSomethingElseSealedInItsPlaceIsRefused(t *testing.T) {
+	t.Parallel()
+
+	p := parseFixture(t, "dima")
+	answering(t, p, "counting.gaps", 3)
+	sealer := newSealer(t)
+
+	for _, plaintext := range []string{`[1,2,3]`, `"a string"`, `{"answer":5}`, `not json at all`} {
+		value, err := sealer.Seal([]byte(plaintext), p.StudentID, p.CurrentTask.ID)
+		if err != nil {
+			t.Fatalf("seal %q: %v", plaintext, err)
+		}
+		p.CurrentTask.Sealed = value
+
+		if _, err := p.OpenTask(sealer); !errors.Is(err, profile.ErrSealed) {
+			t.Errorf("OpenTask() on %q error = %v, want %v", plaintext, err, profile.ErrSealed)
+		}
+	}
+}

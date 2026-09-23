@@ -3,6 +3,7 @@ package profile_test
 import (
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 	"testing"
 	"time"
@@ -152,6 +153,65 @@ func TestEveryLimitIsRefusedByName(t *testing.T) {
 			breakIt: func(p *profile.Profile) { p.Daily.Date = profile.Date{} },
 			wantSay: "daily",
 		},
+		{
+			name:    "no moment the profile was made at",
+			breakIt: func(p *profile.Profile) { p.CreatedAt = profile.Time{} },
+			wantSay: "created_at",
+		},
+		{
+			name:    "a level that is not a number",
+			breakIt: func(p *profile.Profile) { p.Ratings.Theta = math.NaN() },
+			wantSay: "ratings.theta",
+		},
+		{
+			name: "a topic level that is not a number",
+			breakIt: func(p *profile.Profile) {
+				topic := p.Topics["counting.gaps"]
+				topic.Delta = math.Inf(1)
+				p.Topics["counting.gaps"] = topic
+			},
+			wantSay: "topics[counting.gaps].delta",
+		},
+		{
+			name: "a topic with no id",
+			breakIt: func(p *profile.Profile) {
+				p.Topics[""] = profile.Topic{Traps: map[string]int{}}
+			},
+			wantSay: "topics has an entry with no id",
+		},
+		{
+			name: "a topic with a negative count",
+			breakIt: func(p *profile.Profile) {
+				topic := p.Topics["counting.gaps"]
+				topic.WrongStreak = -1
+				p.Topics["counting.gaps"] = topic
+			},
+			wantSay: "topics[counting.gaps] counts answers",
+		},
+		{
+			name: "a trap counted no times at all",
+			breakIt: func(p *profile.Profile) {
+				topic := p.Topics["counting.gaps"]
+				topic.Traps["never_happened"] = 0
+				p.Topics["counting.gaps"] = topic
+			},
+			wantSay: "topics[counting.gaps].traps",
+		},
+		{
+			name:    "an answer that names no task",
+			breakIt: func(p *profile.Profile) { p.Recent[0].TaskID = "" },
+			wantSay: "recent[0] names no task",
+		},
+		{
+			name:    "an answer with no moment",
+			breakIt: func(p *profile.Profile) { p.Recent[0].AnsweredAt = profile.Time{} },
+			wantSay: "recent[0] has no answered_at",
+		},
+		{
+			name:    "a daily counter below zero",
+			breakIt: func(p *profile.Profile) { p.Daily.Accepted = -1 },
+			wantSay: "daily counts tasks",
+		},
 	}
 
 	for _, tc := range cases {
@@ -187,6 +247,9 @@ func TestATaskInFlightIsRefusedWhenItIsNotWhole(t *testing.T) {
 		"current_task offers": func(t *profile.CurrentTask) { delete(t.Options, "E") },
 		"issued_at":           func(t *profile.CurrentTask) { t.IssuedAt = profile.Time{} },
 		"difficulty":          func(t *profile.CurrentTask) { t.Difficulty = 0 },
+		// Five options, and one of them says nothing: a child cannot pick it,
+		// and the count alone would not notice.
+		"options has nothing": func(t *profile.CurrentTask) { t.Options["C"] = "" },
 	}
 
 	for wantSay, breakIt := range cases {
@@ -235,6 +298,7 @@ func TestAnOpenRequestIsRefusedWhenItIsNotWhole(t *testing.T) {
 
 	cases := map[string]func(r *profile.OpenRequest){
 		"open_request has no id":              func(r *profile.OpenRequest) { r.ID = "" },
+		"open_request.brief.difficulty":       func(r *profile.OpenRequest) { r.Brief.Difficulty = 0 },
 		"open_request.attempts":               func(r *profile.OpenRequest) { r.Attempts = profile.MaxAttempts + 1 },
 		"open_request.tutor_mode":             func(r *profile.OpenRequest) { r.TutorMode = "guesswork" },
 		"open_request.brief names no topic":   func(r *profile.OpenRequest) { r.Brief.TargetConcept = "" },
