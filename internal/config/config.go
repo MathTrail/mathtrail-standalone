@@ -27,6 +27,18 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
 )
 
+// The three settings of the telemetry switch. A deployment is watched and a
+// developer's machine is not, so the usual answer is "whichever this is"; the
+// other two are for the times that is wrong.
+const (
+	// TelemetryAuto exports when the process is running as a deployed service.
+	TelemetryAuto = "auto"
+	// TelemetryOn exports wherever the process runs.
+	TelemetryOn = "on"
+	// TelemetryOff exports nowhere.
+	TelemetryOff = "off"
+)
+
 // Defaults for every optional variable. They are named constants rather than
 // literals in Load so that the documentation and the code cannot drift.
 const (
@@ -42,6 +54,10 @@ const (
 	DefaultSolverSteps       = 10_000_000
 	DefaultSolverTimeout     = 2 * time.Second
 	DefaultSolverConcurrency = 4
+
+	DefaultTelemetry            = TelemetryAuto
+	DefaultTelemetryEndpoint    = "https://telemetry.googleapis.com"
+	DefaultTelemetrySampleRatio = 0.1
 )
 
 // ErrInvalid is returned by Load and Validate; callers branch on it with
@@ -76,6 +92,19 @@ type Config struct {
 	// SolverConcurrency is how many solvers may run at once in this process.
 	SolverConcurrency int `mapstructure:"MATHTRAIL_SOLVER_CONCURRENCY"`
 
+	// Telemetry is TelemetryAuto, TelemetryOn or TelemetryOff: whether traces
+	// and metrics leave the process at all.
+	Telemetry string `mapstructure:"MATHTRAIL_TELEMETRY"`
+	// TelemetryEndpoint is the root URL of the collector they are sent to.
+	TelemetryEndpoint string `mapstructure:"MATHTRAIL_TELEMETRY_ENDPOINT"`
+	// TelemetrySampleRatio is the share of traces kept when a request arrives
+	// with no sampling decision of its own.
+	TelemetrySampleRatio float64 `mapstructure:"MATHTRAIL_TELEMETRY_SAMPLE_RATIO"`
+
+	// GCPProjectID names the Google Cloud project the telemetry is filed
+	// under. The collector learns it from nowhere else.
+	GCPProjectID string `mapstructure:"MATHTRAIL_GCP_PROJECT_ID"`
+
 	// SealKeyCurrent is the key everything is sealed and unsealed with,
 	// standard base64 of 32 random bytes. It is a secret: it belongs in no log
 	// line and in no error message, and only the identifier derived from it may
@@ -97,6 +126,18 @@ type Config struct {
 
 // Deployed reports whether the process is running as a deployed service.
 func (c *Config) Deployed() bool { return c.Service != "" }
+
+// TelemetryEnabled reports whether traces and metrics leave the process.
+func (c *Config) TelemetryEnabled() bool {
+	switch c.Telemetry {
+	case TelemetryOn:
+		return true
+	case TelemetryOff:
+		return false
+	default:
+		return c.Deployed()
+	}
+}
 
 // Origin is the public URL as a bare scheme and host, without a trailing slash.
 func (c *Config) Origin() string { return strings.TrimSuffix(c.PublicURL, "/") }
@@ -129,6 +170,10 @@ func LoadFrom(environ []string) (*Config, error) {
 	v.SetDefault("MATHTRAIL_SOLVER_STEPS", DefaultSolverSteps)
 	v.SetDefault("MATHTRAIL_SOLVER_TIMEOUT", DefaultSolverTimeout)
 	v.SetDefault("MATHTRAIL_SOLVER_CONCURRENCY", DefaultSolverConcurrency)
+	v.SetDefault("MATHTRAIL_TELEMETRY", DefaultTelemetry)
+	v.SetDefault("MATHTRAIL_TELEMETRY_ENDPOINT", DefaultTelemetryEndpoint)
+	v.SetDefault("MATHTRAIL_TELEMETRY_SAMPLE_RATIO", DefaultTelemetrySampleRatio)
+	v.SetDefault("MATHTRAIL_GCP_PROJECT_ID", "")
 	v.SetDefault("MATHTRAIL_SEAL_KEY_CURRENT", "")
 	v.SetDefault("MATHTRAIL_SEAL_KEY_PREVIOUS", "")
 	v.SetDefault("MATHTRAIL_DEV_AUTH", false)
@@ -219,6 +264,10 @@ func (c *Config) Validate() error {
 	}
 
 	if err := c.validateSolver(); err != nil {
+		return err
+	}
+
+	if err := c.validateTelemetry(); err != nil {
 		return err
 	}
 
@@ -321,4 +370,46 @@ func isLoopback(host string) bool {
 		return ip.IsLoopback()
 	}
 	return false
+}
+
+// validateTelemetry refuses a value that is not one of the settings, naming
+// the variable behind it. Whether anything can actually be exported is a
+// question for the deployment, and it is answered by exporting nothing rather
+// than by refusing to start.
+func (c *Config) validateTelemetry() error {
+	switch c.Telemetry {
+	case TelemetryAuto, TelemetryOn, TelemetryOff:
+	default:
+		return fmt.Errorf("%w: MATHTRAIL_TELEMETRY must be %s, %s or %s, got %q",
+			ErrInvalid, TelemetryAuto, TelemetryOn, TelemetryOff, c.Telemetry)
+	}
+
+	if c.TelemetrySampleRatio < 0 || c.TelemetrySampleRatio > 1 {
+		return fmt.Errorf("%w: MATHTRAIL_TELEMETRY_SAMPLE_RATIO must be a share from 0 to 1, got %v",
+			ErrInvalid, c.TelemetrySampleRatio)
+	}
+
+	if err := c.validateTelemetryEndpoint(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// validateTelemetryEndpoint refuses an address the exporter could not post to.
+// It carries a scheme and a host and nothing else, because each signal's own
+// path is put under it.
+func (c *Config) validateTelemetryEndpoint() error {
+	parsed, err := url.Parse(c.TelemetryEndpoint)
+	switch {
+	case err != nil:
+		return fmt.Errorf("%w: MATHTRAIL_TELEMETRY_ENDPOINT is not a URL: %q", ErrInvalid, c.TelemetryEndpoint)
+	case parsed.Host == "":
+		return fmt.Errorf("%w: MATHTRAIL_TELEMETRY_ENDPOINT has no host: %q", ErrInvalid, c.TelemetryEndpoint)
+	case parsed.Scheme != "https" && !isLoopback(parsed.Hostname()):
+		// Telemetry carries no secret, but it does carry a credential in every
+		// request, and a credential travels over https or not at all.
+		return fmt.Errorf("%w: MATHTRAIL_TELEMETRY_ENDPOINT must use https outside localhost: %q",
+			ErrInvalid, c.TelemetryEndpoint)
+	}
+	return nil
 }

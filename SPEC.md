@@ -1215,6 +1215,10 @@ Where section 5.4 says the drawing limits are "configuration, not constants in t
 | `MATHTRAIL_REQUEST_WINDOW` | no | 15m | no | When an open request counts as abandoned (03-flows) |
 | `MATHTRAIL_LOG_LEVEL` | no | info | no | Logging |
 | `MATHTRAIL_LOG_FORMAT` | no | json | no | Logging: json for a collector, console to read by eye |
+| `MATHTRAIL_TELEMETRY` | no | auto | no | Traces and metrics: `auto` exports from a deployment, `on` exports anywhere, `off` nowhere (12.5) |
+| `MATHTRAIL_TELEMETRY_ENDPOINT` | no | https://telemetry.googleapis.com | no | The collector they are posted to (12.5) |
+| `MATHTRAIL_TELEMETRY_SAMPLE_RATIO` | no | 0.1 | no | The share of traces kept when a request carries no decision of its own (12.5) |
+| `MATHTRAIL_GCP_PROJECT_ID` | when telemetry is exported | empty | no | The project the telemetry is filed under. Without it nothing is exported, and the service still starts (12.5) |
 | `MATHTRAIL_HTTP_READ_HEADER_TIMEOUT` | no | 5s | no | The HTTP server (9.2) |
 | `MATHTRAIL_HTTP_READ_TIMEOUT` | no | 30s | no | The HTTP server (9.2) |
 | `MATHTRAIL_HTTP_WRITE_TIMEOUT` | no | 60s | no | The HTTP server (9.2) |
@@ -1273,7 +1277,23 @@ This pass added four that matter operationally: `solver_run.steps`, which is wha
 
 T60 is where the log is audited against this section, line by line, and T64 is where the numbers first come from real load.
 
-## 12.5 Coverage of PRODUCT 6
+## 12.5 Traces and metrics
+
+A second layer, above the lines and not instead of them. Everything section 12.4 counts is still counted from the log, without a backend and without a query language. What a trace adds is the shape one line cannot hold: which call happened inside which request, in what order, and how long each part took.
+
+**Where it goes.** Spans and measurements are posted as OTLP over HTTP to `https://telemetry.googleapis.com`, which is the platform's own standard endpoint; each signal's path — `/v1/traces`, `/v1/metrics` — is put under that root. The requests are signed with the credentials the platform issues the service, and they name the project they belong to in two places: a `gcp.project_id` attribute on the resource, which is what decides where the data is filed, and a quota header, which is what decides who is charged for filing it. A service that has been given no project exports nothing and says so once at startup; it does not refuse to start, because a build can be rolled before the configuration that names the project reaches it.
+
+**Who is sending.** One resource per process: the service's own name and the build it came from, and — only when something is being exported — the region, the revision and the instance underneath, asked of the platform's metadata service. A platform that answers partly costs the spans an attribute and nothing else.
+
+**How much is kept.** The sampler is parent-based. The frontend in front of this service traces incoming requests itself and puts its decision in the request, so our spans join that trace and obey that decision; a request that arrives without one is kept at the configured share, a tenth by default. That share is a backstop for traffic that reached the process another way, not the usual path.
+
+**When it is sent.** A deployed instance loses its processor once a response has been returned, so anything held in memory after that may never leave. A sampled request therefore delivers its spans before it is finished, with a deadline of 200 ms: a trace is worth less than the answer, and a collector that has stopped responding must never be what a child waits for. Measurements ride the same delivery but at most once a minute, because each one costs bytes whether or not anything changed, and they are delivered as deltas — what changed since the last one — rather than as running totals.
+
+**The metrics.** `http_request`, a count of requests, and `http_request_duration`, their time; `solver_run_steps`, what one run of the sandbox spent of its budget. Their labels are closed dictionaries — a route template rather than a path, a method from a known list, a status code, a solver status — because a label that can take any value turns one series into thousands, and thousands of series is what a free allowance is not.
+
+**What never reaches a span.** Everything 12.3 keeps out of a log, and two more that an off-the-shelf HTTP instrumentation would add by itself: the address the request came from and the client it was sent with. They are replaced before the span is recorded. The answer is the sharpest case: a run of the sandbox reports its status and what it spent, never the options it arrived at.
+
+## 12.6 Coverage of PRODUCT 6
 
 | Requirement | Where |
 |---|---|

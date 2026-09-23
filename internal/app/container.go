@@ -16,19 +16,22 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark"
+	"github.com/MathTrail/mathtrail-standalone/internal/telemetry"
 	httpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/http"
+	"github.com/MathTrail/mathtrail-standalone/internal/version"
 )
 
 // Container holds everything the process needs while it runs, and knows how to
 // close it again. Today it holds almost nothing; the shape is what matters,
 // because every later part is added to exactly one place.
 type Container struct {
-	Config  *config.Config
-	Logger  *zap.Logger
-	Content *content.Content
-	Seal    *seal.KeyRing
-	Solver  solver.Runner
-	Router  http.Handler
+	Config    *config.Config
+	Logger    *zap.Logger
+	Content   *content.Content
+	Seal      *seal.KeyRing
+	Telemetry *telemetry.Telemetry
+	Solver    solver.Runner
+	Router    http.Handler
 
 	// closers run in reverse order of registration, so that a resource is
 	// always closed before whatever it was built from.
@@ -72,6 +75,25 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (*Co
 		zap.String("key_id", ring.CurrentKeyID()),
 		zap.Bool("previous_key", ring.PreviousKeyID() != ""),
 	)
+
+	// Traces and metrics come before anything worth tracing, and they are
+	// built whether or not they are exported: everything below records spans
+	// without knowing which of the two it is. This is also the first thing
+	// with something to release, so it is the first closer registered and the
+	// last one run.
+	tel, err := telemetry.New(ctx, &telemetry.Settings{
+		Enabled:     cfg.TelemetryEnabled(),
+		Endpoint:    cfg.TelemetryEndpoint,
+		SampleRatio: cfg.TelemetrySampleRatio,
+		ProjectID:   cfg.GCPProjectID,
+		Version:     version.Version,
+	}, log)
+	if err != nil {
+		c.Close(ctx)
+		return nil, err
+	}
+	c.Telemetry = tel
+	c.closers = append(c.closers, tel.Shutdown)
 
 	// The sandbox is built once and shared. Its vocabulary is the same for
 	// every run, and its slots belong to the process: they are what keeps a

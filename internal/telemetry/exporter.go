@@ -1,0 +1,119 @@
+package telemetry
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"net/url"
+
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
+)
+
+// The paths the two signals are posted to. The protocol puts them under the
+// collector's root, and the exporter is told the whole address rather than
+// left to assemble one.
+const (
+	tracePath  = "/v1/traces"
+	metricPath = "/v1/metrics"
+)
+
+// quotaProjectHeader names the project whose quota a request is counted
+// against. Credentials alone do not say it, and a request that names no
+// project is refused.
+const quotaProjectHeader = "X-Goog-User-Project"
+
+// exportScopes are what the credentials are asked for: permission to append
+// spans and to write measurements, and nothing else the same credentials could
+// otherwise reach.
+var exportScopes = []string{
+	"https://www.googleapis.com/auth/trace.append",
+	"https://www.googleapis.com/auth/monitoring.write",
+}
+
+// credentialedClient signs every export with the credentials of the machine
+// the process runs on. There is no key to carry: a deployment is issued
+// short-lived tokens by the platform it runs on, and a developer's machine
+// usually has none at all, which is why the caller treats a failure here as
+// "nothing to export" rather than as a reason not to start.
+func credentialedClient(ctx context.Context) (*http.Client, error) {
+	source, err := google.DefaultTokenSource(ctx, exportScopes...)
+	if err != nil {
+		return nil, fmt.Errorf("telemetry: application default credentials: %w", err)
+	}
+	return oauth2.NewClient(ctx, source), nil
+}
+
+// newTraceExporter posts finished spans to the collector.
+func newTraceExporter(ctx context.Context, settings *Settings, client *http.Client) (*otlptrace.Exporter, error) {
+	endpoint, err := signalURL(settings.Endpoint, tracePath)
+	if err != nil {
+		return nil, err
+	}
+	exporter, err := otlptracehttp.New(ctx,
+		otlptracehttp.WithEndpointURL(endpoint),
+		otlptracehttp.WithHTTPClient(client),
+		otlptracehttp.WithHeaders(map[string]string{quotaProjectHeader: settings.ProjectID}),
+		otlptracehttp.WithTimeout(exportTimeout),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("telemetry: trace exporter: %w", err)
+	}
+	return exporter, nil
+}
+
+// newMetricReader collects the measurements and posts them to the collector on
+// its own clock. Something else has to wake it where a process loses its
+// processor between requests, and that is what an asked-for delivery is for.
+func newMetricReader(settings *Settings, client *http.Client) (sdkmetric.Reader, error) {
+	endpoint, err := signalURL(settings.Endpoint, metricPath)
+	if err != nil {
+		return nil, err
+	}
+	exporter, err := otlpmetrichttp.New(context.Background(),
+		otlpmetrichttp.WithEndpointURL(endpoint),
+		otlpmetrichttp.WithHTTPClient(client),
+		otlpmetrichttp.WithHeaders(map[string]string{quotaProjectHeader: settings.ProjectID}),
+		otlpmetrichttp.WithTimeout(exportTimeout),
+		otlpmetrichttp.WithTemporalitySelector(deltaTemporality),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("telemetry: metric exporter: %w", err)
+	}
+	return sdkmetric.NewPeriodicReader(exporter,
+		sdkmetric.WithInterval(MetricInterval),
+		sdkmetric.WithTimeout(exportTimeout),
+	), nil
+}
+
+// signalURL puts one signal's path under the collector's root.
+func signalURL(root, path string) (string, error) {
+	joined, err := url.JoinPath(root, path)
+	if err != nil {
+		return "", fmt.Errorf("telemetry: endpoint %q: %w", root, err)
+	}
+	return joined, nil
+}
+
+// deltaTemporality asks each delivery to carry what changed since the last one
+// rather than a running total. A total has to be held in memory for the life
+// of the process and resent whole every time; a change is what the collector
+// stores anyway.
+//
+// The two kinds that can go down are the exception: the difference between two
+// readings of a value that falls says nothing on its own, so they keep their
+// totals.
+func deltaTemporality(kind sdkmetric.InstrumentKind) metricdata.Temporality {
+	switch kind {
+	case sdkmetric.InstrumentKindUpDownCounter, sdkmetric.InstrumentKindObservableUpDownCounter:
+		return metricdata.CumulativeTemporality
+	default:
+		return metricdata.DeltaTemporality
+	}
+}

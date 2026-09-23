@@ -8,12 +8,27 @@ locals {
 # The service keeps no state and calls no Google API of its own — the child's
 # profile is read with the parent's own credentials, not with this identity — so
 # it exists in order to be able to do as little as possible. It reads two
-# secrets; that is all it is ever granted.
+# secrets and writes its own telemetry; that is all it is ever granted.
 resource "google_service_account" "runtime" {
   account_id   = "${var.service_name}-run"
   display_name = "Runtime identity of the ${var.service_name} service"
 
   depends_on = [google_project_service.enabled]
+}
+
+# What it is granted beyond those secrets: the right to send traces and
+# measurements about itself, and the right to have them counted against this
+# project rather than against nothing. Neither reads anything back, and neither
+# reaches a child's data.
+resource "google_project_iam_member" "runtime_telemetry" {
+  for_each = toset([
+    "roles/telemetry.writer",
+    "roles/serviceusage.serviceUsageConsumer",
+  ])
+
+  project = var.project_id
+  role    = each.value
+  member  = "serviceAccount:${google_service_account.runtime.email}"
 }
 
 resource "google_cloud_run_v2_service" "service" {
@@ -66,6 +81,13 @@ resource "google_cloud_run_v2_service" "service" {
       env {
         name  = "MATHTRAIL_GOOGLE_CLIENT_ID"
         value = var.google_oauth_client_id
+      }
+
+      # Which project the telemetry belongs to. The collector reads it out of
+      # the data and files data that names no project nowhere at all.
+      env {
+        name  = "MATHTRAIL_GCP_PROJECT_ID"
+        value = var.project_id
       }
 
       env {

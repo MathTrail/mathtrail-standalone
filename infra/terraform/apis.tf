@@ -18,6 +18,8 @@ locals {
     "iam.googleapis.com",
     "sts.googleapis.com",
     "iamcredentials.googleapis.com",
+    # Where the service sends its own traces and measurements.
+    "telemetry.googleapis.com",
     # The spend alert.
     "billingbudgets.googleapis.com",
   ]

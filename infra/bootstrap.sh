@@ -119,8 +119,10 @@ fi
 # Enumerated rather than Owner: enough to create everything the configuration
 # describes, and nothing beyond this one project. The pool above is deliberately
 # not among them — what this identity signs in through is not its to change.
-# Roles may be written because the configuration defines one: the deployment
-# identity gets a role of five permissions instead of a ready-made one of sixty.
+# Roles may be written, and granted on the project itself, because the
+# configuration defines both: the deployment identity gets a role of five
+# permissions instead of a ready-made one of sixty, and the runtime identity
+# gets the two that let it send telemetry about itself.
 echo "==> what it may do"
 for role in \
     roles/serviceusage.serviceUsageAdmin \
@@ -130,6 +132,7 @@ for role in \
     roles/iam.serviceAccountAdmin \
     roles/iam.serviceAccountUser \
     roles/iam.roleAdmin \
+    roles/resourcemanager.projectIamAdmin \
     roles/browser
 do
     gcloud projects add-iam-policy-binding "$project" \
