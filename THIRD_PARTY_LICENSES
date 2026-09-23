@@ -32,6 +32,7 @@ MIT           github.com/subosito/gotenv                     https://github.com/
 MIT           github.com/ugorji/go/codec                     https://github.com/ugorji/go/blob/codec/v1.3.1/codec/LICENSE
 MIT           github.com/yuin/goldmark                       https://github.com/yuin/goldmark/blob/v1.8.6/LICENSE
 Apache-2.0    go.mongodb.org/mongo-driver/v2                 https://github.com/mongodb/mongo-go-driver/blob/v2.5.0/LICENSE
+BSD-3-Clause  go.starlark.net                                https://github.com/google/starlark-go/blob/89a6a09411d5/LICENSE
 MIT           go.uber.org/multierr                           https://github.com/uber-go/multierr/blob/v1.10.0/LICENSE.txt
 MIT           go.uber.org/zap                                https://github.com/uber-go/zap/blob/v1.28.0/LICENSE
 MIT           go.yaml.in/yaml/v3                             https://github.com/yaml/go-yaml/blob/v3.0.4/LICENSE
@@ -40,4 +41,4 @@ BSD-3-Clause  golang.org/x/net                               https://cs.opensour
 BSD-3-Clause  golang.org/x/sync/errgroup                     https://cs.opensource.google/go/x/sync/+/v0.23.0:LICENSE
 BSD-3-Clause  golang.org/x/sys                               https://cs.opensource.google/go/x/sys/+/v0.48.0:LICENSE
 BSD-3-Clause  golang.org/x/text                              https://cs.opensource.google/go/x/text/+/v0.42.0:LICENSE
-BSD-3-Clause  google.golang.org/protobuf                     https://github.com/protocolbuffers/protobuf-go/blob/v1.36.10/LICENSE
+BSD-3-Clause  google.golang.org/protobuf                     https://github.com/protocolbuffers/protobuf-go/blob/v1.36.11/LICENSE

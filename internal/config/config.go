@@ -38,6 +38,10 @@ const (
 	DefaultWriteTimeout      = 60 * time.Second
 	DefaultIdleTimeout       = 120 * time.Second
 	DefaultShutdownTimeout   = 10 * time.Second
+
+	DefaultSolverSteps       = 10_000_000
+	DefaultSolverTimeout     = 2 * time.Second
+	DefaultSolverConcurrency = 4
 )
 
 // ErrInvalid is returned by Load and Validate; callers branch on it with
@@ -63,6 +67,14 @@ type Config struct {
 	WriteTimeout      time.Duration `mapstructure:"MATHTRAIL_HTTP_WRITE_TIMEOUT"`
 	IdleTimeout       time.Duration `mapstructure:"MATHTRAIL_HTTP_IDLE_TIMEOUT"`
 	ShutdownTimeout   time.Duration `mapstructure:"MATHTRAIL_SHUTDOWN_TIMEOUT"`
+
+	// SolverSteps is how many instructions one run of a solver may execute
+	// before it is stopped.
+	SolverSteps uint64 `mapstructure:"MATHTRAIL_SOLVER_STEPS"`
+	// SolverTimeout is the wall clock of one run of a solver.
+	SolverTimeout time.Duration `mapstructure:"MATHTRAIL_SOLVER_TIMEOUT"`
+	// SolverConcurrency is how many solvers may run at once in this process.
+	SolverConcurrency int `mapstructure:"MATHTRAIL_SOLVER_CONCURRENCY"`
 
 	// SealKeyCurrent is the key everything is sealed and unsealed with,
 	// standard base64 of 32 random bytes. It is a secret: it belongs in no log
@@ -114,6 +126,9 @@ func LoadFrom(environ []string) (*Config, error) {
 	v.SetDefault("MATHTRAIL_HTTP_WRITE_TIMEOUT", DefaultWriteTimeout)
 	v.SetDefault("MATHTRAIL_HTTP_IDLE_TIMEOUT", DefaultIdleTimeout)
 	v.SetDefault("MATHTRAIL_SHUTDOWN_TIMEOUT", DefaultShutdownTimeout)
+	v.SetDefault("MATHTRAIL_SOLVER_STEPS", DefaultSolverSteps)
+	v.SetDefault("MATHTRAIL_SOLVER_TIMEOUT", DefaultSolverTimeout)
+	v.SetDefault("MATHTRAIL_SOLVER_CONCURRENCY", DefaultSolverConcurrency)
 	v.SetDefault("MATHTRAIL_SEAL_KEY_CURRENT", "")
 	v.SetDefault("MATHTRAIL_SEAL_KEY_PREVIOUS", "")
 	v.SetDefault("MATHTRAIL_DEV_AUTH", false)
@@ -167,25 +182,8 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("%w: PORT must be a number from 1 to 65535, got %q", ErrInvalid, c.Port)
 	}
 
-	if c.PublicURL == "" {
-		return fmt.Errorf("%w: MATHTRAIL_PUBLIC_URL must be set when K_SERVICE is set", ErrInvalid)
-	}
-	parsed, err := url.Parse(c.PublicURL)
-	switch {
-	case err != nil:
-		return fmt.Errorf("%w: MATHTRAIL_PUBLIC_URL is not a URL: %q", ErrInvalid, c.PublicURL)
-	case parsed.Host == "":
-		return fmt.Errorf("%w: MATHTRAIL_PUBLIC_URL has no host: %q", ErrInvalid, c.PublicURL)
-	case parsed.Scheme != "https" && !isLoopback(parsed.Hostname()):
-		// The issuer, the redirect URI and the canonical resource must be
-		// https everywhere except a developer's own machine.
-		return fmt.Errorf("%w: MATHTRAIL_PUBLIC_URL must use https outside localhost: %q", ErrInvalid, c.PublicURL)
-	case parsed.Path != "" && parsed.Path != "/":
-		return fmt.Errorf("%w: MATHTRAIL_PUBLIC_URL must have no path: %q", ErrInvalid, c.PublicURL)
-	case parsed.RawQuery != "" || parsed.Fragment != "":
-		return fmt.Errorf("%w: MATHTRAIL_PUBLIC_URL must have no query and no fragment: %q", ErrInvalid, c.PublicURL)
-	case parsed.User != nil:
-		return fmt.Errorf("%w: MATHTRAIL_PUBLIC_URL must carry no credentials: %q", ErrInvalid, c.PublicURL)
+	if err := c.validatePublicURL(); err != nil {
+		return err
 	}
 
 	if err := c.validateSealKeys(); err != nil {
@@ -213,10 +211,15 @@ func (c *Config) Validate() error {
 		{"MATHTRAIL_HTTP_WRITE_TIMEOUT", c.WriteTimeout},
 		{"MATHTRAIL_HTTP_IDLE_TIMEOUT", c.IdleTimeout},
 		{"MATHTRAIL_SHUTDOWN_TIMEOUT", c.ShutdownTimeout},
+		{"MATHTRAIL_SOLVER_TIMEOUT", c.SolverTimeout},
 	} {
 		if timeout.value <= 0 {
 			return fmt.Errorf("%w: %s must be a positive duration, got %v", ErrInvalid, timeout.name, timeout.value)
 		}
+	}
+
+	if err := c.validateSolver(); err != nil {
+		return err
 	}
 
 	// The one switch that trades safety for convenience, and the one place it
@@ -225,6 +228,49 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("%w: MATHTRAIL_DEV_AUTH must not be set when K_SERVICE is set", ErrInvalid)
 	}
 
+	return nil
+}
+
+// validatePublicURL refuses an address the service could not be itself at. The
+// issuer, the redirect URI and the canonical resource are all built from it, so
+// anything it carries beyond a scheme and a host ends up inside a token that
+// somebody else has to match exactly.
+func (c *Config) validatePublicURL() error {
+	if c.PublicURL == "" {
+		return fmt.Errorf("%w: MATHTRAIL_PUBLIC_URL must be set when K_SERVICE is set", ErrInvalid)
+	}
+	parsed, err := url.Parse(c.PublicURL)
+	switch {
+	case err != nil:
+		return fmt.Errorf("%w: MATHTRAIL_PUBLIC_URL is not a URL: %q", ErrInvalid, c.PublicURL)
+	case parsed.Host == "":
+		return fmt.Errorf("%w: MATHTRAIL_PUBLIC_URL has no host: %q", ErrInvalid, c.PublicURL)
+	case parsed.Scheme != "https" && !isLoopback(parsed.Hostname()):
+		// The issuer, the redirect URI and the canonical resource must be
+		// https everywhere except a developer's own machine.
+		return fmt.Errorf("%w: MATHTRAIL_PUBLIC_URL must use https outside localhost: %q", ErrInvalid, c.PublicURL)
+	case parsed.Path != "" && parsed.Path != "/":
+		return fmt.Errorf("%w: MATHTRAIL_PUBLIC_URL must have no path: %q", ErrInvalid, c.PublicURL)
+	case parsed.RawQuery != "" || parsed.Fragment != "":
+		return fmt.Errorf("%w: MATHTRAIL_PUBLIC_URL must have no query and no fragment: %q", ErrInvalid, c.PublicURL)
+	case parsed.User != nil:
+		return fmt.Errorf("%w: MATHTRAIL_PUBLIC_URL must carry no credentials: %q", ErrInvalid, c.PublicURL)
+	}
+
+	return nil
+}
+
+// validateSolver refuses limits nothing could run under: a solver with no
+// budget would either run for ever or not at all, and a sandbox with no slots
+// would hold every run it was given for ever.
+func (c *Config) validateSolver() error {
+	if c.SolverSteps == 0 {
+		return fmt.Errorf("%w: MATHTRAIL_SOLVER_STEPS must be at least 1", ErrInvalid)
+	}
+	if c.SolverConcurrency < 1 {
+		return fmt.Errorf("%w: MATHTRAIL_SOLVER_CONCURRENCY must be at least 1, got %d",
+			ErrInvalid, c.SolverConcurrency)
+	}
 	return nil
 }
 

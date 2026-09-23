@@ -189,6 +189,9 @@ func testConfig() *config.Config {
 		IdleTimeout:       config.DefaultIdleTimeout,
 		ShutdownTimeout:   time.Second,
 		SealKeyCurrent:    sealKey,
+		SolverSteps:       config.DefaultSolverSteps,
+		SolverTimeout:     config.DefaultSolverTimeout,
+		SolverConcurrency: config.DefaultSolverConcurrency,
 	}
 }
 

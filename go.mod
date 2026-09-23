@@ -8,6 +8,7 @@ require (
 	github.com/leanovate/gopter v0.2.11
 	github.com/spf13/viper v1.21.0
 	github.com/yuin/goldmark v1.8.6
+	go.starlark.net v0.0.0-20260908191801-89a6a09411d5
 	go.uber.org/zap v1.28.0
 	golang.org/x/crypto v0.57.0
 	golang.org/x/net v0.59.0
@@ -51,5 +52,5 @@ require (
 	golang.org/x/arch v0.22.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
-	google.golang.org/protobuf v1.36.10 // indirect
+	google.golang.org/protobuf v1.36.11 // indirect
 )
