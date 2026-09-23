@@ -155,23 +155,3 @@ func explanationsFor(traps []string) string {
 func explanation(format string, args ...any) Problem {
 	return Problem{Code: CodeDistractorExplanations, Message: fmt.Sprintf(format, args...)}
 }
-
-// quantity is a count and its unit, in words that stay right for one.
-func quantity(count int, unit string) string {
-	if count == 1 {
-		return "1 " + strings.TrimSuffix(unit, "s")
-	}
-	return fmt.Sprintf("%d %s", count, unit)
-}
-
-// listed quotes ids and joins them the way a sentence lists things.
-func listed(ids []string) string {
-	quoted := make([]string, len(ids))
-	for i, id := range ids {
-		quoted[i] = fmt.Sprintf("%q", id)
-	}
-	if len(quoted) < 2 {
-		return strings.Join(quoted, "")
-	}
-	return strings.Join(quoted[:len(quoted)-1], ", ") + " and " + quoted[len(quoted)-1]
-}

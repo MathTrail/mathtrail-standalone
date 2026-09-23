@@ -469,7 +469,7 @@ The model draws, following the rules in the instructions (О-11); the service ch
 - draw only when the wording genuinely needs it, and never to decorate;
 - a number line, a grid, a balance, a pouring diagram, a clock face — the recurring subjects have ready frames in the package (О-44), and a frame is a starting point, not an obligation;
 - keep it inside the limits of 5.4: they are what a phone can show;
-- label the objects the question names, with the same labels, in the same alphabet;
+- label the objects the question names, with the same labels, in the same alphabet, and name them in the wording with Latin capitals — point A, segment AB, triangle ABC — which is what the check reads (5.4);
 - no colour, no trailing spaces, no decoration characters outside the allowed set.
 
 **`drawing_structure`** — the same picture as data, so the service can compare it with the wording without understanding either:
@@ -562,20 +562,22 @@ Anything cleverer — "is this explanation meaningful?" — needs a judgement th
 
 ## 5.4 The drawing: format and match
 
-Applies only when `drawing` is present. **Every limit here is conservative until T58 calibrates it on real widgets** (О-11а); they are configuration, not constants in the code.
+Applies only when `drawing` is present. **Every limit here is conservative until T58 calibrates it on real widgets** (О-11а). They are set in one place, `checks.DefaultDrawingLimits`, and the check is handed them rather than reading them, so a calibration can try others (11.1).
 
 **Format** — `drawing_format`:
 
 | Limit | Value until T58 | Why |
 |---|---|---|
-| Width | **30 screen cells** | T03 rendered 30 cells legibly on a phone card 353 px wide, with no horizontal scrolling. A cell is one East Asian *narrow* character; a wide one counts as two |
+| Width | **30 screen cells** | T03 rendered 30 cells legibly on a phone card 353 px wide, with no horizontal scrolling. A cell is one East Asian *narrow* character; a wide one counts as two, and an ambiguous one — most of box drawing, block elements, arrows and shapes — as one, the way monospaced fonts outside East Asia draw it (R60) |
 | Height | **12 lines** | Fits a card without pushing the buttons off a phone screen |
 | Allowed characters | ASCII U+0020–U+007E, box drawing U+2500–U+257F, block elements U+2580–U+259F, geometric shapes U+25A0–U+25FF, arrows U+2190–U+21FF, plus `\n` | Everything a frame needs and nothing that renders differently from font to font |
-| Forbidden outright | control characters other than `\n`, tab, bidi controls (U+200E, U+200F, U+202A–U+202E, U+2066–U+2069), zero-width characters (U+200B–U+200D, U+FEFF), non-breaking and typographic spaces (U+00A0, U+2000–U+200A, U+3000), combining marks | They make the drawing look different to the checker and to the child, which is the whole attack surface of a text picture |
+| Forbidden outright | control characters other than `\n`, tab, bidi controls (every character with the Bidi_Control property: U+061C, U+200E, U+200F, U+202A–U+202E, U+2066–U+2069), other invisible format characters (category Cf, the zero-width U+200B–U+200D and U+FEFF among them), spaces other than U+0020 (category Zs: U+00A0, U+2000–U+200A, U+202F, U+205F, U+3000), combining marks (category M) | They make the drawing look different to the checker and to the child, which is the whole attack surface of a text picture |
 | Runs of spaces | at most 20 in a row | A drawing held together by a long run of spaces falls apart in any proportional fallback font |
 | Trailing whitespace | none | It survives no round trip and breaks alignment |
 
-**Match** — `drawing_mismatch`: every label the wording names must be an object in `drawing_structure`, and every label in `drawing_structure` must appear in the `drawing` text. A label is a token the wording marks as one — a single Latin capital, a digit or a short quoted name. What the check cannot do is decide whether the picture *means* what the wording says; that is the self-check's job, and О-37 deliberately gave it no code of its own.
+A newline at the very end of a drawing closes its last line rather than opening another. Each rule a drawing breaks is one refusal, naming the lines it breaks it on — the first five, and how many more — and, for the characters, their code points, the only name an invisible character has.
+
+**Match** — `drawing_mismatch`: every label in `drawing_structure` must appear in the `drawing` text as a whole, with no letter or digit joined to it — "A" is not found in "BAR", nor "1" in "12" — and every label the wording names must be an object in `drawing_structure`. What the wording names is read conservatively, because a refusal for a label that was never one costs the child an attempt (R59). A label there is a Latin capital standing apart from any word, not joined to it by a letter, a digit, an apostrophe or a hyphen ("T-shirt", "O'Neil"). A lone capital is a label except at the start of a sentence, of a quotation or after a colon, where it may be the English "A"; except the English "I"; and except straight after a number, where it is a unit ("a 3 L jug", "30 °C"). Capitals written together — the AB of a segment, the ABC of a triangle — are a label each when most of their letters are labels the structure declares, and a word in capitals otherwise ("NOT"). Numbers and quotations are not read: over the 450 reference questions, 351 hold a number, 110 hold a lone capital — nearly always the article "A" — and all 21 short quotations are speech, while under this rule a single question names labels, the X, Y and Z of a locker code. A refusal names the labels themselves: they are the wording's own words and say nothing about which option is right. What the check cannot do is decide whether the picture *means* what the wording says; that is the self-check's job, and О-37 deliberately gave it no code of its own.
 
 ## 5.5 Readability, across writing systems
 
@@ -1219,7 +1221,7 @@ Two instances can both let a task through at the same moment, and the daily coun
 - **Environment variables** carry deployment facts, secrets and the operational ceilings someone might need to move without a release. They are read in `internal/config` and nowhere else, by Viper, which holds each variable's name, default and type in one declaration (R18); the defaults are named constants, and `Validate()` names the offending variable. No file and no remote source is registered: a deployment is configured by its environment and by nothing else.
 - **Named constants in the binary** carry the product's own numbers: the rating constants, the readability thresholds, the duplicate thresholds, the drawing limits, the solver limits, the window sizes and the package budget. Changing one of these changes what the product *is*, and the golden vectors (T16) pin them, so it is a code change with tests rather than a deploy-time knob.
 
-Where section 5.4 says the drawing limits are "configuration, not constants in the code", it means this second tier: one named place, not literals scattered through the checks. They are calibrated in T58 and they ship with the binary.
+The drawing limits of section 5.4 are this second tier: one named place, `checks.DefaultDrawingLimits`, not literals scattered through the checks. They are calibrated in T58 and they ship with the binary.
 
 ## 11.2 The environment
 
@@ -1375,7 +1377,7 @@ Added while writing sections 4 and 5:
    | **all** | **450** | **155 (34 %)** | **115** | **69** | **34** |
 
    Almost every one of those neighbours is of the same topic. Against the pairs of 5.6 the thresholds read like this: a task given new numbers is 0.85 alike in English and 0.74 in Russian, one word changed 0.94 and 0.77, the same task in a new setting 0.63 and 0.61. So 0.7 is the highest threshold that still catches a change of numbers in an inflected language, and 0.6 is the one that catches a change of setting. The two topics at the top of the table are beyond any threshold: their questions open with the same paragraph of rules, and a set of trigrams cannot tell a paragraph from a problem — `kl-34-d3-3` and `kl-34-d3-5` measure 1.0 and have different answers. Removing each topic's recurring trigrams before comparing took the 155 down to 61 in a trial; it only works where the reference tasks share the chat's language, and it is a different measure from the one described here. **Decided:** the word threshold is 0.7 — the highest that still catches new numbers in Russian — and a task in a new setting is a new task (R56). The two topics of the paragraph of rules are left as they are: whether their models write that paragraph the same way every time is for the acceptance runs to show, and a measure that subtracts it is the answer if they do. The character threshold has no corpus to be measured against at all, and waits for the acceptance runs in Chinese and Japanese (T62, T63).
-10. **Every drawing limit is provisional until T58** and lives in the configuration, not in the code. If the calibration moves the width, the drawing frames of T36b are re-checked against the new number (R09). **For:** T34, T36b, T58.
+10. **Every drawing limit is provisional until T58** and lives in one place, `checks.DefaultDrawingLimits`, not scattered through the checks (11.1). If the calibration moves the width, the drawing frames of T36b are re-checked against the new number (R09). The calibration also checks what the width assumes: that the widgets' fonts draw box drawing one cell wide (R60). **For:** T34, T36b, T58.
 11. **`design_thought_process` is written and never read.** It exists to make the model state its plan before committing to it, and the service throws it away — it is not stored, not logged and not shown. If T36 finds the package tight, this is one field whose cost is entirely in the model's output, not ours. **For:** T36.
 
 Added while writing section 6:

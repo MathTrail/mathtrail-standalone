@@ -23,6 +23,12 @@ const (
 	// cannot tell a child what went wrong: a copy of another, of the solution
 	// or the hint, of the catalog, or too short to say anything.
 	CodeDistractorExplanations Code = "distractor_explanations"
+	// CodeDrawingFormat is a drawing a phone would not show as it was drawn:
+	// too wide, too tall, or made of characters that fonts draw differently.
+	CodeDrawingFormat Code = "drawing_format"
+	// CodeDrawingMismatch is a drawing that does not show what its structure
+	// declares, or a structure that leaves out a label the wording names.
+	CodeDrawingMismatch Code = "drawing_mismatch"
 	// CodeReadability is a question a child of the grade cannot read: a sentence
 	// too long for the level, or, in English, words and sentences too hard for
 	// the grade.
