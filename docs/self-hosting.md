@@ -8,7 +8,7 @@ The name is not part of the licence: a copy that is not this project is named di
 
 Four things, once, because no API can do them:
 
-1. **The bootstrap**, below: the project, the bucket its state lives in and the identity the pipeline signs in as. A pipeline cannot create the door it walks in by.
+1. **The bootstrap**, below: the project, the bucket its state lives in and the identity the pipeline signs in as. A pipeline cannot create the door it walks in by. Once — and again on the day that identity needs a right it was not given, which is its own section further down.
 2. **The Google consent screen and one OAuth client.** Google has no API for either.
 3. **Two DNS records**, at whatever registrar holds the domain, and one click that makes the deployment identity a verified owner of it.
 4. **The OAuth client's secret**, pasted into the repository's secrets. It is the one value that exists nowhere but the Google console.
@@ -164,6 +164,8 @@ The intent is $0, and inside the free allowance it is $0 — but the allowance i
 - **Artifact Registry** beyond half a gigabyte of images. The cleanup policies keep the repository small; a deployment that pushes many images a day should check that they are working.
 - **Secret Manager** beyond six active versions or the monthly free accesses. A version is read once per instance start, and the rotation keeps at most three versions live.
 - **Cloud Logging** beyond the free monthly ingestion.
+- **Cloud Trace** beyond 2.5 million spans a month. The platform's own traces of incoming requests are not billed at all; these are the spans the service adds inside them, and the sampler is what keeps their number a fraction of the requests.
+- **Cloud Monitoring** beyond 150 MiB a month of ingested metrics of our own. The platform's own metrics of the service are free; ours are the three of section 12.5 of the spec. What passes that allowance is not traffic but series, and a series is created by every new combination of labels — which is why every label here is drawn from a closed list and no label ever carries anything a caller chose. One label holding a user or a task identifier would pass it in a week.
 - **A region that is not first-tier**, where the free allowance does not apply.
 - **Cloud DNS**, if the domain's records are ever moved into it: a managed zone is billed per month whether anybody visits or not. That is why DNS stays at the registrar and those two records are made by hand.
 - **A load balancer**, if the domain mapping is ever replaced by one. Domain mappings cost nothing; a forwarding rule is billed by the hour.
@@ -171,6 +173,41 @@ The intent is $0, and inside the free allowance it is $0 — but the allowance i
 The spend alert warns, it does not stop anything: Google has no switch that halts a project at a number. Treat the first alert as a fault to investigate.
 
 **A caveat about the domain mapping.** Google labels Cloud Run domain mappings a preview feature and says they are not production-ready, citing latency. They are the only way to put a custom domain in front of Cloud Run without paying for a load balancer, which is why they are used here, and the alternative — a global external Application Load Balancer — is a monthly bill rather than a free tier.
+
+## When the bootstrap changes
+
+The bootstrap grants the identity that applies the configuration an enumerated set of roles, and that set grows with what the configuration describes. A deployment created before it grew does not learn of it: the script ran once, and nothing runs it again.
+
+What that looks like is a delivery that fails at the first job, on something it had never done before — `terraform apply` refused with a 403 on a resource that is new in this change. Because the image is rolled out only after the cloud is brought up to date, nothing is deployed at all until it is fixed, and because a pull request only reads the configuration, the checks on it were green.
+
+Run the bootstrap again. It is safe: every step checks before it creates, and the grants are idempotent.
+
+```bash
+TF_VAR_billing_account=01ABCD-234567-89EFGH just bootstrap
+```
+
+Then start the delivery again — from the branch, by hand, or by merging the next thing. Nothing was created halfway, so there is nothing to undo.
+
+**The one that exists today.** The service sends its own traces and metrics, which needs two roles on the runtime identity — and those are the first bindings this configuration makes on the project itself, which the applying identity was not previously allowed to make. A deployment older than that change needs the single grant below, or the bootstrap above:
+
+```bash
+gcloud projects add-iam-policy-binding PROJECT_ID \
+  --member="serviceAccount:mathtrail-tf@PROJECT_ID.iam.gserviceaccount.com" \
+  --role=roles/resourcemanager.projectIamAdmin --condition=None
+```
+
+That the runtime identity ended up with what it needed is one command to confirm:
+
+```bash
+gcloud projects get-iam-policy PROJECT_ID \
+  --flatten="bindings[].members" \
+  --filter="bindings.members:mathtrail-run@PROJECT_ID.iam.gserviceaccount.com" \
+  --format="value(bindings.role)"
+```
+
+It should name `roles/telemetry.writer` and `roles/serviceusage.serviceUsageConsumer`, and nothing else. The runtime identity's one other right — reading the two secrets — is granted on those secrets rather than on the project, so it does not appear here and its absence from this list is not a fault.
+
+None of this is billed: granting a role and enabling an API cost nothing.
 
 ## Rotating the sealing key
 

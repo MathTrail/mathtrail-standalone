@@ -155,6 +155,9 @@ func New(ctx context.Context, settings *Settings, log *zap.Logger) (*Telemetry, 
 			// already decided for every request that reached it; the ratio is
 			// the backstop for a request that arrived without a decision.
 			sdktrace.WithSampler(sdktrace.ParentBased(sdktrace.TraceIDRatioBased(settings.SampleRatio))),
+			// Before the batcher, so that nothing forbidden is ever queued for
+			// sending rather than removed on the way out.
+			sdktrace.WithSpanProcessor(Redactor()),
 			sdktrace.WithBatcher(traceExporter, sdktrace.WithExportTimeout(exportTimeout)),
 		),
 		metrics: sdkmetric.NewMeterProvider(

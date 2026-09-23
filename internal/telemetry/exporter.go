@@ -43,6 +43,12 @@ var exportScopes = []string{
 // usually has none at all, which is why the caller treats a failure here as
 // "nothing to export" rather than as a reason not to start.
 func credentialedClient(ctx context.Context) (*http.Client, error) {
+	// Detached from whatever is starting the process. A token source keeps the
+	// context it was built with and refreshes through it, so a source built
+	// from the context that ends at shutdown would be unable to sign the last
+	// delivery — the one carrying everything the process had not sent yet.
+	ctx = context.WithoutCancel(ctx)
+
 	source, err := google.DefaultTokenSource(ctx, exportScopes...)
 	if err != nil {
 		return nil, fmt.Errorf("telemetry: application default credentials: %w", err)
@@ -92,8 +98,24 @@ func newMetricReader(ctx context.Context, settings *Settings, client *http.Clien
 	), nil
 }
 
-// signalURL puts one signal's path under the collector's root.
+// signalURL puts one signal's path under the collector's root, and refuses a
+// root that is not an address.
+//
+// The refusal matters more than it looks: handed something it cannot parse,
+// the exporter keeps its own default of localhost and says nothing at all, so
+// a mistyped address becomes spans that leave the process and arrive nowhere,
+// with no line anywhere to explain it.
 func signalURL(root, path string) (string, error) {
+	parsed, err := url.Parse(root)
+	switch {
+	case err != nil:
+		return "", fmt.Errorf("telemetry: endpoint %q is not a URL: %w", root, err)
+	case parsed.Scheme != "http" && parsed.Scheme != "https":
+		return "", fmt.Errorf("telemetry: endpoint %q must be http or https", root)
+	case parsed.Host == "":
+		return "", fmt.Errorf("telemetry: endpoint %q has no host", root)
+	}
+
 	joined, err := url.JoinPath(root, path)
 	if err != nil {
 		return "", fmt.Errorf("telemetry: endpoint %q: %w", root, err)

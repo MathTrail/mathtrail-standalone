@@ -163,3 +163,25 @@ func (d *countingDetector) Detect(context.Context) (*resource.Resource, error) {
 	d.calls++
 	return nil, nil
 }
+
+// An address the exporter could not post to is named, not worked around. Left
+// to itself the exporter keeps its own default and says nothing, so a mistyped
+// address becomes spans that arrive nowhere.
+func TestAnAddressThatIsNotOneIsRefused(t *testing.T) {
+	t.Parallel()
+
+	for _, c := range []struct {
+		name string
+		root string
+	}{
+		{name: "no scheme", root: "telemetry.example"},
+		{name: "a host and a port, no scheme", root: "localhost:4318"},
+		{name: "a scheme we do not speak", root: "grpc://telemetry.example"},
+		{name: "no host", root: "https:///v1"},
+		{name: "empty", root: ""},
+	} {
+		if _, err := signalURL(c.root, tracePath); err == nil {
+			t.Errorf("signalURL(%s) error = nil, want the address named", c.name)
+		}
+	}
+}

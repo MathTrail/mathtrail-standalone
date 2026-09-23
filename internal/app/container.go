@@ -107,14 +107,31 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (*Co
 		c.Close(ctx)
 		return nil, err
 	}
-	c.Solver = sandbox
+	// Wrapped rather than instrumented in place: what is worth recording is
+	// the whole of a run's result, and the interpreter stays free of anything
+	// that watches it.
+	observed, err := telemetry.ObserveSolver(sandbox, tel.TracerProvider(), tel.MeterProvider())
+	if err != nil {
+		c.Close(ctx)
+		return nil, err
+	}
+	c.Solver = observed
 	log.Info("solver sandbox built",
 		zap.Uint64("steps", cfg.SolverSteps),
 		zap.Duration("timeout", cfg.SolverTimeout),
 		zap.Int("concurrency", cfg.SolverConcurrency),
 	)
 
-	c.Router = httpserver.NewRouter(httpserver.NewHealthHandler(), log)
+	c.Router, err = httpserver.NewRouter(httpserver.NewHealthHandler(), log, httpserver.Observability{
+		Traces:    tel.TracerProvider(),
+		Meters:    tel.MeterProvider(),
+		Flush:     tel.ForceFlush,
+		ProjectID: cfg.GCPProjectID,
+	})
+	if err != nil {
+		c.Close(ctx)
+		return nil, err
+	}
 	return c, nil
 }
 

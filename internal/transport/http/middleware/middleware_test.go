@@ -141,7 +141,7 @@ func routerWithObservedLogs(t *testing.T) (*observer.ObservedLogs, *gin.Engine) 
 	router := gin.New()
 	router.Use(middleware.RequestID())
 	router.Use(middleware.ZapRecovery(logger))
-	router.Use(middleware.ZapLogger(logger))
+	router.Use(middleware.ZapLogger(logger, ""))
 	return logs, router
 }
 
@@ -323,11 +323,15 @@ func echoedRequestID(t *testing.T, sent string) string {
 	return rec.Header().Get(middleware.RequestIDHeader)
 }
 
+// usableLooking mirrors the rule the middleware applies, by bytes as it does:
+// the package keeps that rule unexported, and a test that walked the string
+// differently would agree with it only by accident.
 func usableLooking(id string) bool {
 	if id == "" {
 		return false
 	}
-	for _, r := range id {
+	for i := range len(id) {
+		r := id[i]
 		switch {
 		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9':
 		case r == '-', r == '_', r == '.', r == ':':
@@ -336,4 +340,32 @@ func usableLooking(id string) bool {
 		}
 	}
 	return true
+}
+
+// panickingFunction is named so that the stack the recovery logs can be held
+// to starting at the code that panicked rather than at the machinery that
+// caught it.
+func panickingFunction() { panic("boom") }
+
+// The number of frames the recovery drops is tuned to the framework beneath
+// it, and a framework that changes would move it silently. This is what makes
+// that change loud.
+func TestThePanicStackStartsAtTheCodeThatPanicked(t *testing.T) {
+	t.Parallel()
+
+	logs, router := routerWithObservedLogs(t)
+	router.GET("/boom", func(_ *gin.Context) { panickingFunction() })
+
+	serve(t, router, http.MethodGet, "/boom")
+
+	entries := logs.FilterMessage("panic").All()
+	if len(entries) != 1 {
+		t.Fatalf("panic lines = %d, want exactly 1", len(entries))
+	}
+
+	stack := field(t, &entries[0], "stack")
+	first, _, _ := strings.Cut(stack, "\n")
+	if !strings.Contains(first, "panickingFunction") {
+		t.Errorf("the stack starts at %q, want the function that panicked; whole stack:\n%s", first, stack)
+	}
 }

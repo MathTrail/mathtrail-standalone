@@ -2,14 +2,56 @@
 package httpserver
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/apierror"
 	"github.com/MathTrail/mathtrail-standalone/internal/transport/http/middleware"
 )
+
+// Observability is what the router needs in order to say what it did: where
+// to record a span, where to count, what to call when a request's spans are
+// ready to send, and which project a log line's trace belongs to.
+//
+// It is a value rather than a dependency on the telemetry itself, because a
+// test of the routing has no use for any of it and can hand over providers
+// that record into memory.
+type Observability struct {
+	Traces    trace.TracerProvider
+	Meters    metric.MeterProvider
+	Flush     func(context.Context) error
+	ProjectID string
+}
+
+// ErrObservability is returned when the router is given telemetry it could not
+// use; callers branch on it with errors.Is.
+var ErrObservability = errors.New("http: observability")
+
+// validate refuses a half-filled set, naming what is missing.
+//
+// Each of the three fails differently and none of them says why: a missing
+// tracer is silently replaced by one that records nothing, a missing meter
+// stops the process here, and a missing delivery waits to stop it on the first
+// request whose trace is kept. One refusal at startup is worth more than three
+// ways to find out later.
+func (o Observability) validate() error {
+	switch {
+	case o.Traces == nil:
+		return fmt.Errorf("%w: Traces must be set", ErrObservability)
+	case o.Meters == nil:
+		return fmt.Errorf("%w: Meters must be set", ErrObservability)
+	case o.Flush == nil:
+		return fmt.Errorf("%w: Flush must be set", ErrObservability)
+	}
+	return nil
+}
 
 // NewRouter wires the middleware and the routes.
 //
@@ -21,7 +63,11 @@ import (
 // The framework's mode is a setting of the process, not of a router, so it is
 // chosen where the process starts and never here: a constructor that reaches
 // for a global changes what every other router in the same binary does.
-func NewRouter(health *HealthHandler, logger *zap.Logger) *gin.Engine {
+func NewRouter(health *HealthHandler, logger *zap.Logger, obs Observability) (*gin.Engine, error) {
+	if err := obs.validate(); err != nil {
+		return nil, err
+	}
+
 	router := gin.New()
 
 	// A known path asked with the wrong method answers 405 rather than 404:
@@ -29,12 +75,21 @@ func NewRouter(health *HealthHandler, logger *zap.Logger) *gin.Engine {
 	// methods that would have worked is added by the framework.
 	router.HandleMethodNotAllowed = true
 
+	metrics, err := middleware.Metrics(obs.Meters)
+	if err != nil {
+		return nil, err
+	}
+
 	// Order matters: an id first so that everything downstream can log it,
-	// recovery next so that it catches panics from the handlers below, and the
-	// request log last so that it sees the status recovery produced.
+	// recovery next so that it catches panics from the handlers below, tracing
+	// after that so that everything below happens inside a span, and the
+	// counting and the request log last so that both see the status recovery
+	// produced.
 	router.Use(middleware.RequestID())
 	router.Use(middleware.ZapRecovery(logger))
-	router.Use(middleware.ZapLogger(logger))
+	router.Use(middleware.Tracing(obs.Traces, obs.Flush, logger)...)
+	router.Use(metrics)
+	router.Use(middleware.ZapLogger(logger, obs.ProjectID))
 
 	router.NoRoute(notFound)
 	router.NoMethod(methodNotAllowed)
@@ -43,7 +98,7 @@ func NewRouter(health *HealthHandler, logger *zap.Logger) *gin.Engine {
 	// that exact path itself, with its own 404, and the request never arrives.
 	router.GET("/health", health.Health)
 
-	return router
+	return router, nil
 }
 
 func notFound(c *gin.Context) {
