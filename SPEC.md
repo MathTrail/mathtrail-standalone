@@ -694,9 +694,9 @@ Everything in this table is `solver_error`, and the model is told which line of 
 
 | Status | When |
 |---|---|
-| `bad_source` | the source does not parse, or uses something the dialect forbids — `load`, a recursive function, a construct removed from Starlark |
+| `bad_source` | the source does not parse, or uses something the dialect forbids — `load`, a construct removed from Starlark |
 | `no_entry_point` | no `solve`, or it is not a function, or it does not take exactly one argument |
-| `error` | the program failed while running: `fail()`, an index or type error, a helper's cap exceeded |
+| `error` | the program failed while running: `fail()`, an index or type error, a helper's cap exceeded, a recursive call |
 | `timeout` | the step limit or the wall-clock limit tripped (6.6) |
 | `bad_output` | the result is not a list or tuple, or holds something other than distinct single letters `A`–`E` |
 
@@ -712,7 +712,7 @@ Starlark is Python-shaped but deliberately smaller, and `syntax.FileOptions` dec
 | `While` | **on** | A breadth-first search needs a loop whose length is not known in advance. Iterating a list while appending to it is an error in Starlark, so without `while` every search has to be written as a bounded `for`, which models get wrong |
 | `TopLevelControl` | **on** | Models write scripts, not modules; an `if` or a `for` at the top level should not be a parse error when the program is otherwise correct |
 | `GlobalReassign` | **on** | Reassigning a top-level name is ordinary Python and forbidding it buys nothing here |
-| `Recursion` | **off** | This is the one we keep closed. A recursive Starlark function recurses on the **Go** stack, and a stack overflow in Go cannot be recovered: it would take the whole instance down, not the request (T28). Search is written iteratively, and the porting table in 6.8 shows the two-line transformation |
+| `Recursion` | **off** | This is the one we keep closed. A recursive Starlark function recurses on the **Go** stack, and a stack overflow in Go cannot be recovered: it would take the whole instance down, not the request (T28). Search is written iteratively, and the porting table in 6.8 shows the two-line transformation. The field reads backwards — it switches off the *check* rather than the recursion — and the check fires when the recursive call happens rather than when the file is parsed, which is why a recursive solver is `error` and not `bad_source` |
 | `LoadBindsGlobally` | off | Irrelevant: there is no module loader at all, so any `load` fails as `bad_source` |
 
 Beyond the options, what the model must know it does **not** have: imports of any kind, classes, `try`/`except`, `yield`, generators, `lambda` with statements, f-strings (`%` and `.format` are there), `while`-`else`, sorting in place (`sorted()` returns a new list), and any access to time, randomness, the filesystem or the network. Integers are arbitrary precision, `/` produces a float and `//` an integer, and dictionaries iterate in insertion order.
@@ -757,7 +757,7 @@ A well-formed task yields exactly one letter. Two letters mean two options say t
 |---|---|---|
 | Steps | 10,000,000 | `thread.SetMaxExecutionSteps`; the interpreter tests the counter on every instruction |
 | Wall clock | 2 seconds per run | A context timeout whose expiry calls `thread.Cancel`, which is safe from another goroutine |
-| Memory | no direct limit | Bounded indirectly: helpers charge steps per element and cap each call at 1,000,000 |
+| Memory | no direct limit | Bounded indirectly: everything predeclared charges steps per element and caps each call at 1,000,000 |
 | Source size | 8 KB | Checked before parsing; a solver longer than that is a transcription, not a brute force |
 | Result | 5 letters | 6.2 |
 | Concurrent runs | 4 per instance | A solver holds a core for up to two seconds, and a Cloud Run instance has few |
@@ -766,7 +766,9 @@ Both runs of 6.2 share none of these budgets: each gets its own.
 
 The numbers are configuration (section 11), and T29's bench over 450 reference solvers is what calibrates them: it reports the step count of every solver, and the limit should sit an order of magnitude above the worst of them. For scale, a search over eight permuted items is about 400,000 steps and a breadth-first search over a thousand states about 50,000.
 
-The cancellation has one known gap, and it is the reason the helpers cap themselves: the interpreter notices a cancellation between instructions, so a built-in that is halfway through building a huge list will finish building it first.
+The cancellation has one known gap, and it is the reason everything predeclared caps itself: the interpreter notices a cancellation between instructions, so a built-in halfway through building a huge list finishes building it first. The cap is therefore checked and the steps charged before the call does any work, and it covers the language's own sequence builders as well as our helpers — `list`, `tuple`, `sorted`, `set`, `dict`, `reversed`, `zip`, `enumerate`, `min`, `max`, `any` and `all` are predeclared again with the cap on them, because `list(range(1000000000))` is a billion values built inside one call that neither limit is watching.
+
+What a cap cannot reach is an operator. `[0] * 100000000` allocates through the language's own `*`, where there is no name to stand in front of, and starlark-go's guard on it stops at 2³⁰ elements, which is more memory than an instance has: a solver written that way takes the instance down rather than the request. There is no power operator in this language, which closes the other half of the same hole, and nothing else turns something small into something huge in one step. The fix, if the gap ever bites, is a solver in a process of its own with a memory limit on it — a change of shape rather than a setting, and not one v1 pays for.
 
 ## 6.7 What the guide for the model says
 

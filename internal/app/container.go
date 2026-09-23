@@ -13,7 +13,9 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/content"
 	"github.com/MathTrail/mathtrail-standalone/internal/config"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark"
 	httpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/http"
 )
 
@@ -25,6 +27,7 @@ type Container struct {
 	Logger  *zap.Logger
 	Content *content.Content
 	Seal    *seal.KeyRing
+	Solver  solver.Runner
 	Router  http.Handler
 
 	// closers run in reverse order of registration, so that a resource is
@@ -68,6 +71,25 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (*Co
 	log.Info("seal keys loaded",
 		zap.String("key_id", ring.CurrentKeyID()),
 		zap.Bool("previous_key", ring.PreviousKeyID() != ""),
+	)
+
+	// The sandbox is built once and shared. Its vocabulary is the same for
+	// every run, and its slots belong to the process: they are what keeps a
+	// handful of solvers from taking every core the instance has.
+	sandbox, err := starlark.New(starlark.Limits{
+		Steps:       cfg.SolverSteps,
+		Timeout:     cfg.SolverTimeout,
+		Concurrency: cfg.SolverConcurrency,
+	})
+	if err != nil {
+		c.Close(ctx)
+		return nil, err
+	}
+	c.Solver = sandbox
+	log.Info("solver sandbox built",
+		zap.Uint64("steps", cfg.SolverSteps),
+		zap.Duration("timeout", cfg.SolverTimeout),
+		zap.Int("concurrency", cfg.SolverConcurrency),
 	)
 
 	c.Router = httpserver.NewRouter(httpserver.NewHealthHandler(), log)

@@ -55,6 +55,15 @@ func TestDefaults(t *testing.T) {
 	if cfg.DevAuth || cfg.Deployed() {
 		t.Errorf("DevAuth = %v, Deployed() = %v, want both false", cfg.DevAuth, cfg.Deployed())
 	}
+	if cfg.SolverSteps != config.DefaultSolverSteps {
+		t.Errorf("SolverSteps = %d, want %d", cfg.SolverSteps, uint64(config.DefaultSolverSteps))
+	}
+	if cfg.SolverTimeout != config.DefaultSolverTimeout {
+		t.Errorf("SolverTimeout = %v, want %v", cfg.SolverTimeout, config.DefaultSolverTimeout)
+	}
+	if cfg.SolverConcurrency != config.DefaultSolverConcurrency {
+		t.Errorf("SolverConcurrency = %d, want %d", cfg.SolverConcurrency, config.DefaultSolverConcurrency)
+	}
 }
 
 func TestValuesAreRead(t *testing.T) {
@@ -69,6 +78,9 @@ func TestValuesAreRead(t *testing.T) {
 		"MATHTRAIL_HTTP_READ_TIMEOUT=45s",
 		"MATHTRAIL_SHUTDOWN_TIMEOUT=2m",
 		"MATHTRAIL_DEV_AUTH=true",
+		"MATHTRAIL_SOLVER_STEPS=250000",
+		"MATHTRAIL_SOLVER_TIMEOUT=500ms",
+		"MATHTRAIL_SOLVER_CONCURRENCY=2",
 	})
 	if err != nil {
 		t.Fatalf("LoadFrom() error = %v, want nil", err)
@@ -91,6 +103,15 @@ func TestValuesAreRead(t *testing.T) {
 	}
 	if !cfg.DevAuth {
 		t.Error("DevAuth = false, want true")
+	}
+	if cfg.SolverSteps != 250_000 {
+		t.Errorf("SolverSteps = %d, want %d", cfg.SolverSteps, 250_000)
+	}
+	if cfg.SolverTimeout != 500*time.Millisecond {
+		t.Errorf("SolverTimeout = %v, want %v", cfg.SolverTimeout, 500*time.Millisecond)
+	}
+	if cfg.SolverConcurrency != 2 {
+		t.Errorf("SolverConcurrency = %d, want 2", cfg.SolverConcurrency)
 	}
 }
 
@@ -296,6 +317,21 @@ func TestRefusals(t *testing.T) {
 			name:    "a timeout is zero",
 			environ: []string{"MATHTRAIL_SHUTDOWN_TIMEOUT=0s"},
 			wantVar: "MATHTRAIL_SHUTDOWN_TIMEOUT",
+		},
+		{
+			name:    "a solver with no steps to spend",
+			environ: []string{"MATHTRAIL_SOLVER_STEPS=0"},
+			wantVar: "MATHTRAIL_SOLVER_STEPS",
+		},
+		{
+			name:    "a solver with no clock",
+			environ: []string{"MATHTRAIL_SOLVER_TIMEOUT=0s"},
+			wantVar: "MATHTRAIL_SOLVER_TIMEOUT",
+		},
+		{
+			name:    "a sandbox with no slots",
+			environ: []string{"MATHTRAIL_SOLVER_CONCURRENCY=0"},
+			wantVar: "MATHTRAIL_SOLVER_CONCURRENCY",
 		},
 		{
 			// The whole point of the switch: in a deployment it is refused,
