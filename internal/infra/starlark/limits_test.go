@@ -109,6 +109,10 @@ func TestASequenceTooLongToWalk(t *testing.T) {
 		"max(range(1000000000))",
 		"1 if any(range(1000000000)) else 0",
 		"1 if all(range(1000000000)) else 0",
+		// The same sequence handed over by name rather than by position: some
+		// of these built-ins take it either way, and the cap has to weigh a
+		// keyword argument exactly as it weighs a positional one.
+		"len(sorted(iterable=range(1000000000)))",
 	} {
 		t.Run(source, func(t *testing.T) {
 			t.Parallel()
@@ -241,6 +245,31 @@ func TestACallerThatGoesAwayMidRun(t *testing.T) {
 	}
 }
 
+// TestACallerWhoseTimeRanOut is the same thing arriving as a deadline rather
+// than as a cancellation, and it is the ordinary case: a request carries a
+// budget of its own, and when that budget is shorter than the sandbox's own
+// clock it is the one that ends the run. What comes back then is the sandbox
+// saying it could not finish — not a verdict, and above all not a verdict
+// blamed on a limit of ours that never fired.
+func TestACallerWhoseTimeRanOut(t *testing.T) {
+	t.Parallel()
+	runner := sandbox(t, starlark.Limits{Steps: 1 << 62, Timeout: time.Minute, Concurrency: 1})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	defer cancel()
+
+	result, err := runner.Run(ctx, forever, options)
+	if err == nil {
+		t.Fatalf("Run: got %q (%s), want the run reported as stopped", result.Status, result.Message)
+	}
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Errorf("error: got %v, want it to carry the caller's deadline", err)
+	}
+	if strings.Contains(err.Error(), "1m0s") {
+		t.Errorf("error: got %v, want nothing said about a limit that never fired", err)
+	}
+}
+
 // TestASlotIsWorthWaitingForButNotForEver holds the queue to the caller's own
 // deadline: a request that will not be answered in time should not be holding
 // a place in the queue when its time runs out.
@@ -248,12 +277,15 @@ func TestASlotIsWorthWaitingForButNotForEver(t *testing.T) {
 	t.Parallel()
 	runner := sandbox(t, starlark.Limits{Steps: 1 << 62, Timeout: time.Second, Concurrency: 1})
 
-	// The blocker takes the only slot and holds it for its whole clock. It
-	// needs a moment to get there: parsing three lines, and nothing more.
+	// The blocker takes the only slot and holds it for its whole clock, and
+	// what stands between the call and the slot is parsing three lines. The
+	// head start is that, a thousand times over; there is no way to watch a
+	// slot being taken from outside, and adding one to the sandbox for the
+	// sake of a test would be the test writing the code.
 	go func() {
 		_, _ = runner.Run(context.Background(), forever, options)
 	}()
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(250 * time.Millisecond)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()

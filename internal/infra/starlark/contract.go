@@ -48,26 +48,29 @@ func solveOf(globals starlark.StringDict) (solve *starlark.Function, problem str
 // lettersOf reads what the program returned, or says what is wrong with it.
 // The letters come back sorted, so that two runs of one program can be
 // compared without the order of a return statement mattering.
+//
+// What came back is measured where it lies and never copied out first: a
+// program that returned a million elements would otherwise have a million
+// copied before anything looked at how many there were.
 func lettersOf(returned starlark.Value) (letters []string, problem string) {
-	var items []starlark.Value
-	switch sequence := returned.(type) {
+	var sequence starlark.Indexable
+	switch typed := returned.(type) {
 	case *starlark.List:
-		items = make([]starlark.Value, 0, sequence.Len())
-		for i := range sequence.Len() {
-			items = append(items, sequence.Index(i))
-		}
+		sequence = typed
 	case starlark.Tuple:
-		items = sequence
+		sequence = typed
 	default:
 		return nil, fmt.Sprintf("%s returned a %s rather than a list of letters", entryPoint, returned.Type())
 	}
 
-	if len(items) > solver.Count {
-		return nil, fmt.Sprintf("%s returned %d letters and a task has %d options", entryPoint, len(items), solver.Count)
+	if sequence.Len() > solver.Count {
+		return nil, fmt.Sprintf("%s returned %d letters and a task has %d options",
+			entryPoint, sequence.Len(), solver.Count)
 	}
 
-	letters = make([]string, 0, len(items))
-	for _, item := range items {
+	letters = make([]string, 0, sequence.Len())
+	for i := range sequence.Len() {
+		item := sequence.Index(i)
 		letter, isString := item.(starlark.String)
 		if !isString || solver.Place(string(letter)) < 0 {
 			return nil, fmt.Sprintf("%s is not one of the option letters", textOf(item))

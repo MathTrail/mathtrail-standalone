@@ -83,9 +83,12 @@ func New(limits Limits) (solver.Runner, error) {
 	}, nil
 }
 
-// Run executes one program once and reports what became of it. The error is
-// for the sandbox failing to run anything at all; everything the program did
-// itself comes back as a status.
+// Run executes one program once and reports what became of it.
+//
+// The error is for the run not happening: no slot came free in the time
+// allowed, or whoever asked for it stopped waiting. Everything the program
+// itself did comes back as a status, because that is a fact about the solver
+// rather than about this service.
 func (s *sandbox) Run(ctx context.Context, source string, options solver.Options) (solver.Result, error) {
 	// Whoever asked has gone: nothing here is worth starting, and the slot
 	// below is worth leaving to a caller who is still waiting for an answer.
@@ -147,7 +150,7 @@ func (s *sandbox) run(ctx context.Context, source string, options solver.Options
 
 	globals, err := program.Init(thread, s.predeclared)
 	if err != nil {
-		return s.failed(runCtx, thread, err, started)
+		return s.failed(ctx, runCtx, thread, err, started)
 	}
 
 	solve, problem := solveOf(globals)
@@ -157,7 +160,7 @@ func (s *sandbox) run(ctx context.Context, source string, options solver.Options
 
 	returned, err := starlark.Call(thread, solve, starlark.Tuple{arguments}, nil)
 	if err != nil {
-		return s.failed(runCtx, thread, err, started)
+		return s.failed(ctx, runCtx, thread, err, started)
 	}
 
 	letters, problem := lettersOf(returned)

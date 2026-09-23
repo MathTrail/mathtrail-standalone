@@ -60,16 +60,17 @@ func bounded(name string, steps uint64) (*starlark.Builtin, error) {
 		thread *starlark.Thread, _ *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple,
 	) (starlark.Value, error) {
 		for _, argument := range args {
-			length := starlark.Len(argument)
-			if length < 0 {
-				continue // a number, a function, anything with no length to bound
+			if err := charge(thread, steps, starlark.Len(argument)); err != nil {
+				return nil, fmt.Errorf("%s: %w", name, err)
 			}
-			if length > maxElements {
-				return nil, fmt.Errorf("%s of %d elements, and %d is the most that will be walked at once",
-					name, length, maxElements)
-			}
-			if err := charge(thread, steps, length); err != nil {
-				return nil, err
+		}
+		// A keyword argument is a pair of name and value, and the value is
+		// weighed like any other: some of these built-ins take their sequence
+		// by name as readily as by position, and a cap that looked only at the
+		// position would be one anybody could walk around by typing the name.
+		for _, pair := range kwargs {
+			if err := charge(thread, steps, starlark.Len(pair[1])); err != nil {
+				return nil, fmt.Errorf("%s: %w", name, err)
 			}
 		}
 		return inner.CallInternal(thread, args, kwargs)
@@ -81,13 +82,21 @@ func bounded(name string, steps uint64) (*starlark.Builtin, error) {
 // the sentence the model gets is written there.
 var errTooManySteps = errors.New("too many steps")
 
-// charge puts the elements a built-in is about to walk onto the step budget.
-// The interpreter would notice the overrun between its own instructions, but
-// only once the work was done and the memory for it taken, so the charge comes
-// first and the work does not happen at all.
+// charge answers the whole question about a sequence a built-in is holding:
+// whether it may be walked at all, and what walking it costs the step budget.
+//
+// Both halves live here rather than at the call sites. They are one question,
+// and a caller that remembered the price but forgot the ceiling would leave a
+// hole nobody reading it would see. The charge comes before the work, because
+// the interpreter would notice the overrun only once the memory had been
+// taken. A value with no length of its own — a number, a function — costs
+// nothing and passes.
 func charge(thread *starlark.Thread, steps uint64, elements int) error {
 	if elements <= 0 {
 		return nil
+	}
+	if elements > maxElements {
+		return fmt.Errorf("%d elements, and %d is the most that will be walked at once", elements, maxElements)
 	}
 	thread.Steps += uint64(elements)
 	if thread.Steps >= steps {

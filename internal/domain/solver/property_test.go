@@ -34,20 +34,45 @@ func (h hardCoded) Run(_ context.Context, _ string, _ solver.Options) (solver.Re
 	return solver.Result{Status: solver.StatusOK, Letters: []string{h.letter}}, nil
 }
 
-// genOptions builds five option texts no two of which mean the same number,
-// which is what a well-formed task offers. The gaps are generated rather than
-// the numbers, so that the five stay in order and stay distinct however the
-// library shrinks them.
+// genOptions builds five option texts no two of which mean the same thing,
+// which is what a well-formed task offers, and writes them the way tasks write
+// them: plainly, with a decimal point, padded, negative, and with a unit —
+// which is not a number at all and is compared as words.
+//
+// One number per option carries both how far it sits from the one before it
+// and how it is written, so the whole generator stays a single slice the
+// library can shrink as one. The gaps are what is generated rather than the
+// numbers, so the five stay distinct through any shrinking; the renderings
+// keep them distinct too, because a negative is never a positive and a text
+// carrying a unit is never a number.
 func genOptions() gopter.Gen {
-	return gen.SliceOfN(solver.Count, gen.IntRange(1, 40)).Map(func(gaps []int) solver.Options {
+	const forms = 5
+	return gen.SliceOfN(solver.Count, gen.IntRange(0, 40*forms-1)).Map(func(seeds []int) solver.Options {
 		var options solver.Options
 		running := 0
-		for place, gap := range gaps {
-			running += gap
-			options[place] = strconv.Itoa(running)
+		for place, seed := range seeds {
+			running += seed/forms + 1
+			options[place] = written(running, seed%forms)
 		}
 		return options
 	})
+}
+
+// written is one number as an option might carry it.
+func written(number, form int) string {
+	text := strconv.Itoa(number)
+	switch form {
+	case 1:
+		return text + ".0"
+	case 2:
+		return "  " + text + "  "
+	case 3:
+		return "-" + text
+	case 4:
+		return text + " apples"
+	default:
+		return text
+	}
 }
 
 func genPlace() gopter.Gen { return gen.IntRange(0, solver.Count-1) }

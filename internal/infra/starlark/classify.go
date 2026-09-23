@@ -20,16 +20,24 @@ import (
 // count and cancels the thread exactly as the clock does — and the sentence it
 // builds out of that belongs to the library, which may reword it; a counter
 // and a deadline may not be reworded.
-func (s *sandbox) failed(ctx context.Context, thread *starlark.Thread, err error, started time.Time) (solver.Result, error) {
+//
+// The two contexts are told apart on purpose. The caller's own time running
+// out is not a verdict about the solver, and a run that stopped because the
+// caller's deadline was the shorter one must not be reported against a limit
+// of ours that never fired.
+func (s *sandbox) failed(
+	caller, own context.Context, thread *starlark.Thread, err error, started time.Time,
+) (solver.Result, error) {
 	switch {
-	case errors.Is(ctx.Err(), context.DeadlineExceeded):
+	case caller.Err() != nil:
+		// Whoever asked for the run has gone, cancelled or out of time of
+		// their own: the solver did nothing wrong, and there is nobody left to
+		// tell about it either way.
+		return solver.Result{}, fmt.Errorf("starlark: run stopped: %w", caller.Err())
+
+	case errors.Is(own.Err(), context.DeadlineExceeded):
 		return spent(solver.StatusTimeout, nil,
 			fmt.Sprintf("the solver ran longer than %s", s.limits.Timeout), thread, started), nil
-
-	case ctx.Err() != nil:
-		// Whoever asked for the run has gone: the solver did nothing wrong,
-		// and there is nobody left to tell about it either way.
-		return solver.Result{}, fmt.Errorf("starlark: run stopped: %w", ctx.Err())
 
 	case thread.ExecutionSteps() >= s.limits.Steps:
 		return spent(solver.StatusTimeout, nil,

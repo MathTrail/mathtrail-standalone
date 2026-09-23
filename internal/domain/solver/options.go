@@ -6,25 +6,29 @@ import (
 	"strings"
 )
 
+// letters label the options, in order. A string rather than an array of five,
+// because Go has no constant array and a package-level variable of them would
+// be one anybody in this package could write to; the labels of the options are
+// nobody's to change.
+const letters = "ABCDE"
+
 // Count is how many options a task offers.
-const Count = 5
+const Count = len(letters)
 
-// letters label the options, in order. They are not exported as a variable
-// because a package-level array is writable by whoever imports it, and the
-// labels of the options are not somebody else's to change.
-var letters = [Count]string{"A", "B", "C", "D", "E"}
+// Letter is the label of the option in that place, counting from zero. A slice
+// of the constant rather than a conversion of the byte at it: the slice is a
+// second view of bytes that already exist, where the conversion would copy one
+// onto the heap every time a letter was named.
+func Letter(place int) string { return letters[place : place+1] }
 
-// Letter is the label of the option in that place, counting from zero.
-func Letter(place int) string { return letters[place] }
-
-// Place is where a label stands, or -1 when it labels nothing.
+// Place is where a label stands, or -1 when it labels nothing. The length is
+// read first: without it a longer string would be found at the place its first
+// letter stands.
 func Place(letter string) int {
-	for place, label := range letters {
-		if label == letter {
-			return place
-		}
+	if len(letter) != 1 {
+		return -1
 	}
-	return -1
+	return strings.IndexByte(letters, letter[0])
 }
 
 // Options are the option texts of one task, in the order of the labels.
@@ -55,7 +59,7 @@ func Relabelled(letter string) string {
 	if place < 0 {
 		return ""
 	}
-	return letters[(place+relabel)%Count]
+	return Letter((place + relabel) % Count)
 }
 
 // Match is the letters whose option text means the same as a computed value.
@@ -65,11 +69,11 @@ func Relabelled(letter string) string {
 // them is the most valuable answer this check gives — the computed answer is
 // not among the options at all.
 func (o *Options) Match(value string) []string {
-	matched := []string{}
+	matched := make([]string, 0, Count)
 	wanted := number(value)
 	for place, text := range o {
 		if same(text, value, wanted) {
-			matched = append(matched, letters[place])
+			matched = append(matched, Letter(place))
 		}
 	}
 	return matched

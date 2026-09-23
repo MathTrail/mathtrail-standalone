@@ -10,8 +10,9 @@ import (
 //
 // It is declared here, by the side that needs it: the rule below is about what
 // two runs mean together, and it has no business knowing what an interpreter
-// is. The error is for the runner's own failures — it could not start at all —
-// while everything the program itself did comes back as a status.
+// is. The error is for the runner's own failures — it could not start, or
+// whoever asked stopped waiting — while everything the program itself did
+// comes back as a status.
 type Runner interface {
 	Run(ctx context.Context, source string, options Options) (Result, error)
 }
