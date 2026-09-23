@@ -162,10 +162,13 @@ func TestRun(t *testing.T) {
 			contains: "called recursively",
 		},
 		{
-			name:     "a loop with no end",
-			source:   "def solve(options):\n    while True:\n        pass\n    return []\n",
-			status:   solver.StatusTimeout,
-			contains: "steps",
+			// Which of the two limits ends it depends on how fast the machine
+			// is: the same ten million steps take a fraction of the clock on
+			// one and more than all of it on another. Both are a timeout, and
+			// which one says so is settled where each is tested on its own.
+			name:   "a loop with no end",
+			source: "def solve(options):\n    while True:\n        pass\n    return []\n",
+			status: solver.StatusTimeout,
 		},
 		{
 			name:    "a float is written out in full",
@@ -272,4 +275,18 @@ func equal(got, want []string) bool {
 		}
 	}
 	return true
+}
+
+// repr runs one expression and gives back what the language prints for it.
+//
+// The program fails on purpose: a solver can hand back nothing but letters,
+// and a refusal is the one thing that carries a text of its own. It is how a
+// test says what a helper returned rather than only whether it liked it.
+func repr(t *testing.T, expression string) string {
+	t.Helper()
+	result := run(t, "def solve(options):\n    fail(str("+expression+"))\n")
+	if result.Status != solver.StatusError {
+		t.Fatalf("%s: got %q (%s), want the value itself", expression, result.Status, result.Message)
+	}
+	return strings.TrimPrefix(result.Message, "fail: ")
 }
