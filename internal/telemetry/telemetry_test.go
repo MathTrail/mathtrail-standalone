@@ -2,6 +2,7 @@ package telemetry_test
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -90,6 +91,9 @@ func TestARefusingCollectorDoesNotStopTheService(t *testing.T) {
 	_, after := tel.TracerProvider().Tracer("test").Start(t.Context(), "after")
 	after.End()
 
+	// Without the detachment the shutdown would be handed a context the test
+	// framework has already cancelled, and would deliver nothing; the second
+	// is what keeps a shutdown that hangs from hanging the test.
 	closing, cancelClosing := context.WithTimeout(context.WithoutCancel(t.Context()), time.Second)
 	defer cancelClosing()
 	_ = tel.Shutdown(closing)
@@ -191,7 +195,7 @@ func newTelemetry(t *testing.T, c *collector, settings *telemetry.Settings) *tel
 		t.Fatalf("New() error = %v, want nil", err)
 	}
 	t.Cleanup(func() {
-		closing, cancel := context.WithTimeout(context.WithoutCancel(context.Background()), time.Second)
+		closing, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 		_ = tel.Shutdown(closing)
 	})
@@ -203,7 +207,7 @@ func newTelemetry(t *testing.T, c *collector, settings *telemetry.Settings) *tel
 type request struct {
 	path   string
 	header http.Header
-	size   int
+	size   int64
 }
 
 // collector stands in for the one a deployment posts to.
@@ -220,15 +224,7 @@ func newCollector(t *testing.T, status int) *collector {
 
 	c := &collector{status: status}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body := make([]byte, 1)
-		size := 0
-		for {
-			n, err := r.Body.Read(body)
-			size += n
-			if err != nil {
-				break
-			}
-		}
+		size, _ := io.Copy(io.Discard, r.Body)
 
 		c.mu.Lock()
 		c.seen = append(c.seen, request{path: r.URL.Path, header: r.Header.Clone(), size: size})
@@ -309,4 +305,70 @@ func signedClient(t *testing.T) *http.Client {
 
 	return oauth2.NewClient(t.Context(),
 		oauth2.StaticTokenSource(&oauth2.Token{AccessToken: testToken, TokenType: "Bearer"}))
+}
+
+// A collector that never answers must not become the thing a child waits for.
+// The delivery carries its own deadline, so a caller that passed none still
+// gets its goroutine back long before the exporter's own five seconds.
+func TestADeliveryBoundsItselfWhenTheCallerDidNot(t *testing.T) {
+	tel := newTelemetry(t, newSlowCollector(t), &telemetry.Settings{SampleRatio: 1})
+
+	_, span := tel.TracerProvider().Tracer("test").Start(t.Context(), "unit")
+	span.End()
+
+	started := time.Now()
+	//nolint:usetesting // the point of the case is a caller that brought no deadline
+	err := tel.ForceFlush(context.Background())
+	took := time.Since(started)
+
+	if err == nil {
+		t.Error("ForceFlush() error = nil, want the deadline reported")
+	}
+	if took > time.Second {
+		t.Errorf("ForceFlush() took %v, want it bounded by %v", took, telemetry.FlushTimeout)
+	}
+}
+
+// A caller who has already run out of time is told so rather than made to wait
+// again: the deadline the delivery adds is a ceiling, never a floor.
+func TestADeliveryObeysACallerWithNoTimeLeft(t *testing.T) {
+	tel := newTelemetry(t, newSlowCollector(t), &telemetry.Settings{SampleRatio: 1})
+
+	_, span := tel.TracerProvider().Tracer("test").Start(t.Context(), "unit")
+	span.End()
+
+	spent, cancel := context.WithCancel(t.Context())
+	cancel()
+
+	started := time.Now()
+	if err := tel.ForceFlush(spent); err == nil {
+		t.Error("ForceFlush() error = nil, want the cancellation reported")
+	}
+	if took := time.Since(started); took > telemetry.FlushTimeout {
+		t.Errorf("ForceFlush() took %v, want it to return at once", took)
+	}
+}
+
+// newSlowCollector answers later than a delivery is allowed to wait. That is
+// the failure a deadline exists for: not a refusal, which comes back at once,
+// but a collector that holds the connection open.
+//
+// It does answer in the end, and it gives up the moment the caller has: a
+// collector that never answered would leave the exporter retrying into a
+// closing test for as long as its own retry budget allows.
+func newSlowCollector(t *testing.T) *collector {
+	t.Helper()
+
+	c := &collector{status: http.StatusOK}
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-time.After(4 * telemetry.FlushTimeout):
+		case <-r.Context().Done():
+		}
+		w.WriteHeader(c.status)
+	}))
+	t.Cleanup(server.Close)
+
+	c.url = server.URL
+	return c
 }

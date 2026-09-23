@@ -2,6 +2,7 @@ package telemetry
 
 import (
 	"context"
+	"time"
 
 	"go.opentelemetry.io/contrib/detectors/gcp"
 	"go.opentelemetry.io/otel/attribute"
@@ -14,6 +15,13 @@ import (
 // not part of any convention: the collector reads this one attribute to decide
 // where a span belongs, and a span without it belongs nowhere.
 const projectIDKey = "gcp.project_id"
+
+// detectTimeout bounds the one blocking call this package makes at startup.
+// The platform answers its own metadata service in milliseconds, and a service
+// that does not answer at all must cost a few attributes rather than the
+// start: nothing below waits for it, and a process that never finishes
+// starting is a deployment that never rolls.
+const detectTimeout = 2 * time.Second
 
 // newResource describes who is sending the data: this service, this build, and
 // — when there is somewhere to send it — the region, the revision and the
@@ -37,6 +45,12 @@ func newResource(ctx context.Context, exporting bool, settings *Settings, log *z
 	}
 	if exporting {
 		options = append(options, resource.WithDetectors(platform(settings)))
+
+		// The only part of this that leaves the process, so the only part that
+		// needs a clock of its own.
+		bounded, cancel := context.WithTimeout(ctx, detectTimeout)
+		defer cancel()
+		ctx = bounded
 	}
 
 	res, err := resource.New(ctx, options...)

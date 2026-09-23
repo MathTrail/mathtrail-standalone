@@ -22,7 +22,10 @@ func TestMeasurementsComeDueOnceAnInterval(t *testing.T) {
 	tel := &Telemetry{}
 	start := time.Now()
 
-	for _, c := range []struct {
+	// Steps, not cases: each answer depends on the ones before it, because
+	// booking a delivery is what moves the interval on. Running these in any
+	// other order, or apart from each other, would test something else.
+	steps := []struct {
 		name string
 		at   time.Time
 		want bool
@@ -31,9 +34,10 @@ func TestMeasurementsComeDueOnceAnInterval(t *testing.T) {
 		{"straight after", start, false},
 		{"a moment short of the interval", start.Add(MetricInterval - time.Nanosecond), false},
 		{"the interval, exactly", start.Add(MetricInterval), true},
-	} {
-		if got := tel.metricsDue(c.at); got != c.want {
-			t.Errorf("metricsDue(%s) = %v, want %v", c.name, got, c.want)
+	}
+	for _, step := range steps {
+		if got := tel.metricsDue(step.at); got != step.want {
+			t.Errorf("metricsDue(%s) = %v, want %v", step.name, got, step.want)
 		}
 	}
 }
@@ -44,7 +48,7 @@ func TestAFailedDeliveryIsLoggedAsAnError(t *testing.T) {
 	t.Parallel()
 
 	recorded, logs := observer.New(zapcore.DebugLevel)
-	errorHandler(zap.New(recorded)).Handle(context.DeadlineExceeded)
+	ErrorHandler(zap.New(recorded)).Handle(context.DeadlineExceeded)
 
 	lines := logs.All()
 	if len(lines) != 1 {

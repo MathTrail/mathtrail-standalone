@@ -108,11 +108,6 @@ type Telemetry struct {
 // left behind: a service must start and answer children whether or not anybody
 // is watching it.
 func New(ctx context.Context, settings *Settings, log *zap.Logger) (*Telemetry, error) {
-	// The one global this package sets. Without it the SDK reports a failed
-	// delivery through the standard library's logger, which writes a line no
-	// collector of ours can read and no field of ours can be found in.
-	otel.SetErrorHandler(errorHandler(log))
-
 	client, err := exportClient(ctx, settings)
 	if err != nil {
 		// The credentials are the one part of this that belongs to the
@@ -142,7 +137,7 @@ func New(ctx context.Context, settings *Settings, log *zap.Logger) (*Telemetry, 
 	if err != nil {
 		return nil, err
 	}
-	metricReader, err := newMetricReader(settings, client)
+	metricReader, err := newMetricReader(ctx, settings, client)
 	if err != nil {
 		return nil, err
 	}
@@ -205,9 +200,16 @@ func (t *Telemetry) ForceFlush(ctx context.Context) error {
 	if !t.enabled {
 		return nil
 	}
-	err := t.traces.ForceFlush(ctx)
+
+	// Its own deadline, and never one longer than the caller already has:
+	// whoever is waiting for an answer must not end up waiting for a
+	// collector. WithTimeout keeps the earlier of the two.
+	ctx, cancel := context.WithTimeout(ctx, FlushTimeout)
+	defer cancel()
+
+	err := from("traces", t.traces.ForceFlush(ctx))
 	if t.metricsDue(time.Now()) {
-		err = errors.Join(err, t.metrics.ForceFlush(ctx))
+		err = errors.Join(err, from("metrics", t.metrics.ForceFlush(ctx)))
 	}
 	if err != nil {
 		return fmt.Errorf("telemetry: flush: %w", err)
@@ -220,11 +222,24 @@ func (t *Telemetry) Shutdown(ctx context.Context) error {
 	if !t.enabled {
 		return nil
 	}
-	err := errors.Join(t.traces.Shutdown(ctx), t.metrics.Shutdown(ctx))
+	err := errors.Join(
+		from("traces", t.traces.Shutdown(ctx)),
+		from("metrics", t.metrics.Shutdown(ctx)),
+	)
 	if err != nil {
 		return fmt.Errorf("telemetry: shutdown: %w", err)
 	}
 	return nil
+}
+
+// from names which of the two providers an error came from. Both are offered
+// the same call and either may refuse it, and "the flush failed" without the
+// half that failed is a line nobody can act on.
+func from(signal string, err error) error {
+	if err == nil {
+		return nil
+	}
+	return fmt.Errorf("%s: %w", signal, err)
 }
 
 // metricsDue reports whether enough time has passed to deliver measurements
@@ -240,9 +255,16 @@ func (t *Telemetry) metricsDue(now time.Time) bool {
 	return true
 }
 
-// errorHandler sends what the SDK could not deliver to the service's own log,
-// as one line with a named cause.
-func errorHandler(log *zap.Logger) otel.ErrorHandler {
+// ErrorHandler sends what the SDK could not deliver to the service's own log,
+// as one line with a named cause. Without it a failed delivery is reported
+// through the standard library's logger, which writes a line no collector of
+// ours can read and no field of ours can be found in.
+//
+// It is handed back rather than installed, because there is one such handler
+// for the whole binary: that makes it a setting of the process, and a
+// constructor that reached for it would change what every other part of the
+// same binary reports.
+func ErrorHandler(log *zap.Logger) otel.ErrorHandler {
 	return otel.ErrorHandlerFunc(func(err error) {
 		log.Error("telemetry_export_failed", zap.Error(err))
 	})

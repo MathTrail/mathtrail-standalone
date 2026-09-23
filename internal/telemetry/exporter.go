@@ -71,12 +71,12 @@ func newTraceExporter(ctx context.Context, settings *Settings, client *http.Clie
 // newMetricReader collects the measurements and posts them to the collector on
 // its own clock. Something else has to wake it where a process loses its
 // processor between requests, and that is what an asked-for delivery is for.
-func newMetricReader(settings *Settings, client *http.Client) (sdkmetric.Reader, error) {
+func newMetricReader(ctx context.Context, settings *Settings, client *http.Client) (sdkmetric.Reader, error) {
 	endpoint, err := signalURL(settings.Endpoint, metricPath)
 	if err != nil {
 		return nil, err
 	}
-	exporter, err := otlpmetrichttp.New(context.Background(),
+	exporter, err := otlpmetrichttp.New(ctx,
 		otlpmetrichttp.WithEndpointURL(endpoint),
 		otlpmetrichttp.WithHTTPClient(client),
 		otlpmetrichttp.WithHeaders(map[string]string{quotaProjectHeader: settings.ProjectID}),
