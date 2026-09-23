@@ -32,7 +32,10 @@
         // Claude Code login and settings survive container rebuilds.
         "source=mathtrail-standalone-claude,target=/home/vscode/.claude,type=volume",
         // The Google sign-in survives them too: the credentials Terraform reads live here.
-        "source=mathtrail-standalone-gcloud,target=/home/vscode/.config/gcloud,type=volume"
+        "source=mathtrail-standalone-gcloud,target=/home/vscode/.config/gcloud,type=volume",
+        // And the GitHub one, so that `gh auth login` is answered once rather than once
+        // per rebuild.
+        "source=mathtrail-standalone-gh,target=/home/vscode/.config/gh,type=volume"
     ],
     "containerEnv": {
         // Marker checked by Claude sessions (CLAUDE.md, "Devcontainer only").

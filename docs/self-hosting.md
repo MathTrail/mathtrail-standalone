@@ -6,13 +6,12 @@ The name is not part of the licence: a copy that is not this project is named di
 
 ## What is done by hand, ever
 
-Five things, once, because no API this repository uses can do them:
+Four things, once, because no API can do them:
 
 1. **The bootstrap**, below: the project, the bucket its state lives in and the identity the pipeline signs in as. A pipeline cannot create the door it walks in by. Once — and again on the day that identity needs a right it was not given, which is its own section further down.
 2. **The Google consent screen and one OAuth client.** Google has no API for either.
 3. **Two DNS records**, at whatever registrar holds the domain, and one click that makes the deployment identity a verified owner of it.
 4. **The OAuth client's secret**, pasted into the repository's secrets. It is the one value that exists nowhere but the Google console.
-5. **Storage for the traces**, once the service is deployed: in **Trace Explorer**, a banner says trace storage is not initialized, and its **Enable** button creates the observability bucket named `_Trace`. Nothing else creates it — spans from Cloud Run deliberately do not, `gcloud` cannot, and the Terraform provider has no resource for it; the only other way is the Observability API directly (`POST https://observability.googleapis.com/v1/projects/PROJECT_ID/locations/LOCATION/buckets?bucketId=_Trace`, which needs `roles/observability.editor`). Until it exists the endpoint accepts every span and stores none, and nothing anywhere says so. Enabling it back-fills the last hour, so the spans sent while it was missing are not lost.
 
 Everything else — enabling APIs, the registry and its cleanup, the secrets, the service, the domain mapping, the spend alert, the image and every roll-out after it — happens when a change reaches the main branch, or when the workflow is started by hand from a branch.
 
@@ -89,6 +88,8 @@ A push to `main` — or the workflow started by hand from any branch — runs th
 
 A pull request that touches `infra/` gets a `terraform plan` in its summary instead, so what the cloud is about to become is reviewable before the merge.
 
+**Give the telemetry twenty minutes.** On a project that has never received traces or metrics, enabling the APIs is all it takes, but the storage behind them is provisioned after the first data arrives rather than before. Until that finishes, reading a trace answers `_Trace bucket not found in project …` and the metrics are nowhere in Monitoring — which reads like a permanent fault and is not one. Nothing needs clicking; the service will have reported no error, because none of it failed.
+
 ## 7. Leave one entrance
 
 Once the domain answers, withdraw the platform's own address for the service, so that there is one way in and one issuer of tokens: set `disable_default_url = true` in `prod.auto.tfvars` and merge. It is a step of its own because Cloud Run asks for the domain to be mapped before its own address is withdrawn — and until the certificate exists, that address is the only way to reach anything at all.
@@ -101,7 +102,6 @@ A deployment with no domain of its own instead sets `create_domain_mapping = fal
 - [ ] `just bootstrap`, and the two lines it prints committed to `infra/ci.env`.
 - [ ] The consent screen published and a Web client created; its client id in `prod.auto.tfvars`.
 - [ ] The domain verified, its CNAME created, and the deployment identity added as a verified owner.
-- [ ] Trace storage enabled from the banner in Trace Explorer, after the first delivery.
 - [ ] Both repository secrets: `GOOGLE_OAUTH_CLIENT_SECRET` and `TF_VAR_billing_account`.
 - [ ] Merged to `main`, and all three jobs green.
 - [ ] `disable_default_url = true` merged, once the domain answers.
