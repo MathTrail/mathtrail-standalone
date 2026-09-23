@@ -1,0 +1,115 @@
+{
+  "app_version": "0.0.0-fixture",
+  "created_at": "2026-09-01T18:00:00Z",
+  "current_task": null,
+  "daily": {
+    "accepted": 0,
+    "date": "2026-09-03",
+    "failed": 0
+  },
+  "open_request": null,
+  "ratings": {
+    "answers": 3,
+    "consecutive_failures": 0,
+    "theta": -0.06546486877618624
+  },
+  "recent": [
+    {
+      "answered_at": "2026-09-01T18:00:00Z",
+      "confused": false,
+      "correct": true,
+      "difficulty": 2,
+      "hint_used": false,
+      "pace": "slow",
+      "task_id": "tsk_dima_01",
+      "topic": "logic.ordering"
+    },
+    {
+      "answered_at": "2026-09-02T18:00:00Z",
+      "chosen": "A",
+      "confused": false,
+      "correct": false,
+      "difficulty": 2,
+      "hint_used": false,
+      "pace": "slow",
+      "task_id": "tsk_dima_02",
+      "topic": "counting.gaps",
+      "trap": "off_by_one"
+    },
+    {
+      "answered_at": "2026-09-03T18:00:00Z",
+      "confused": false,
+      "correct": true,
+      "difficulty": 2,
+      "hint_used": true,
+      "pace": "normal",
+      "task_id": "tsk_dima_03",
+      "topic": "arithmetic.tricks"
+    }
+  ],
+  "revision": 4,
+  "schema_version": 1,
+  "student": {
+    "excluded_skills": [
+      "multiplication",
+      "division",
+      "division_with_remainder",
+      "fractions",
+      "order_of_operations",
+      "numbers_above_20",
+      "numbers_above_100",
+      "numbers_above_1000",
+      "hours_minutes",
+      "unit_conversion"
+    ],
+    "grade": 1,
+    "interests": [
+      "cats",
+      "trains"
+    ],
+    "notes": "Reads slowly and loses track in questions longer than two sentences. Counts on fingers and gets lost with numbers above 20. Gives up quickly when the question looks long.",
+    "pseudonym": "Dima",
+    "ui_language": null
+  },
+  "student_id": "4e3c1cef-407f-0b20-e7d7-8eb707b11bdd",
+  "task_fingerprints": [
+    "ACaspJzO2G2_jyKc316iwoXEnehYOth98PetQieSf31rNryRauCJoZZQqEpRj5Anl9My3q7WUoArSaH_kddUvg",
+    "tTl74XcLQxTN7RGoo-Nf_60ycTtEwG7LObMx6thG4okSDOQiZcU69SoyIix9dSS-EFdLbRakTXgBWgz2YZ8k-w",
+    "ZVZ9bPTznyCGZxU62jlkwS9qbMBYU5BOVsghLl9I2xvFSTB0V9pdf3UUg9HjnvDLPKFTmyKmWnJbiDAGM2ILHQ"
+  ],
+  "topics": {
+    "arithmetic.tricks": {
+      "answers": 1,
+      "correct": 1,
+      "delta": 0.09300599330296233,
+      "last_issued": "2026-09-03",
+      "mastered_since": null,
+      "top_streak": 0,
+      "traps": {},
+      "wrong_streak": 0
+    },
+    "counting.gaps": {
+      "answers": 1,
+      "correct": 0,
+      "delta": -0.31661899016313716,
+      "last_issued": "2026-09-02",
+      "mastered_since": null,
+      "top_streak": 0,
+      "traps": {
+        "off_by_one": 1
+      },
+      "wrong_streak": 1
+    },
+    "logic.ordering": {
+      "answers": 1,
+      "correct": 1,
+      "delta": 0.08606125483839842,
+      "last_issued": "2026-09-01",
+      "mastered_since": null,
+      "top_streak": 0,
+      "traps": {},
+      "wrong_streak": 0
+    }
+  },
+  "updated_at": "2026-09-03T18:00:00Z"
+}

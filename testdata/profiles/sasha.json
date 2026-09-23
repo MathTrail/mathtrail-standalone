@@ -1,0 +1,34 @@
+{
+  "app_version": "0.0.0-fixture",
+  "created_at": "2026-09-01T18:00:00Z",
+  "current_task": null,
+  "daily": {
+    "accepted": 0,
+    "date": "2026-09-01",
+    "failed": 0
+  },
+  "open_request": null,
+  "ratings": {
+    "answers": 0,
+    "consecutive_failures": 0,
+    "theta": 0
+  },
+  "recent": [],
+  "revision": 1,
+  "schema_version": 1,
+  "student": {
+    "excluded_skills": [],
+    "grade": 4,
+    "interests": [
+      "music",
+      "ocean animals"
+    ],
+    "notes": "",
+    "pseudonym": "Sasha",
+    "ui_language": null
+  },
+  "student_id": "dc97f314-beeb-bbed-d515-e3cc2ba9f855",
+  "task_fingerprints": [],
+  "topics": {},
+  "updated_at": "2026-09-01T18:00:00Z"
+}

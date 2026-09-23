@@ -1,0 +1,125 @@
+{
+  "app_version": "0.0.0-fixture",
+  "created_at": "2026-09-01T18:00:00Z",
+  "current_task": {
+    "difficulty": 3,
+    "fingerprint": "Uy8Dhd0mXYfbZbFzyR4IsYlHdPHCFA0bEUGyOI_QUsmEm1MvabSGomfcfnLRVf3IuHF5YR0puyLju28XlmzRzg",
+    "hint": "Try listing the orders one by one, starting with the shortest.",
+    "id": "tsk_masha_open",
+    "instructions_version": "357968db0310",
+    "issued_at": "2026-09-04T18:00:00Z",
+    "language": "en-US",
+    "options": {
+      "A": "2",
+      "B": "4",
+      "C": "6",
+      "D": "8",
+      "E": "12"
+    },
+    "sealed": "mt1.t.kQ7fWx.dGhpcyBpcyB3aGVyZSB0aGUgc2VhbGVkIGFuc3dlciBnb2VzIHRoaXMgaXMgd2hlcmUgdGhlIHNlYWxlZCBhbnN3ZXIgZ29lcyB0aGlzIGlzIHdoZXJlIHRoZSBzZWFsZWQgYW5zd2VyIGdvZXMg",
+    "topic": "combinatorics.enumeration",
+    "wording": "Three friends take turns feeding the cat. Each turn is taken by exactly one of them, and nobody takes two turns in a row. In how many different orders can the three turns be taken?"
+  },
+  "daily": {
+    "accepted": 0,
+    "date": "2026-09-03",
+    "failed": 0
+  },
+  "open_request": null,
+  "ratings": {
+    "answers": 3,
+    "consecutive_failures": 2,
+    "theta": -0.21347413487262834
+  },
+  "recent": [
+    {
+      "answered_at": "2026-09-01T18:00:00Z",
+      "confused": false,
+      "correct": true,
+      "difficulty": 2,
+      "hint_used": false,
+      "pace": "fast",
+      "task_id": "tsk_masha_01",
+      "topic": "logic.knights_liars"
+    },
+    {
+      "answered_at": "2026-09-02T18:00:00Z",
+      "chosen": "B",
+      "confused": false,
+      "correct": false,
+      "difficulty": 3,
+      "hint_used": true,
+      "pace": "slow",
+      "task_id": "tsk_masha_02",
+      "topic": "combinatorics.enumeration",
+      "trap": "missed_case"
+    },
+    {
+      "answered_at": "2026-09-03T18:00:00Z",
+      "confused": false,
+      "correct": false,
+      "difficulty": 2,
+      "hint_used": false,
+      "pace": "slow",
+      "task_id": "tsk_masha_03",
+      "topic": "time.clocks"
+    }
+  ],
+  "revision": 4,
+  "schema_version": 1,
+  "student": {
+    "excluded_skills": [
+      "division_with_remainder",
+      "fractions"
+    ],
+    "grade": 3,
+    "interests": [
+      "space",
+      "robots"
+    ],
+    "notes": "Doesn't read long questions to the end and loses interest. Off-by-one when counting gaps. Misses the word \"not\" in the question.",
+    "pseudonym": "Masha",
+    "ui_language": null
+  },
+  "student_id": "aa336e3a-41a8-9607-2ac9-a4d225134d07",
+  "task_fingerprints": [
+    "pOnHqEi4GIqurJ_ahR9ErONmN3dk7aYT1M7oK_QKx1zXaa-nNyXsVPilCyb6_5GvVF2iThZH5E7tb5VjETEWkw",
+    "fn0EPR45oIyfQPs-3aSY6nihYH6n93M63K8islbCn25-4LVDJ1t1JVkQdT8-L-y3-cNJ3asOL3RrM8MCHpmFUA",
+    "dgnqw4v_6YNU3yWMUhPOJeqyUyBOJ1kIjw1txQ_baa-4dofLlSBGeHzSR1PMPrNh5r3eu81ug9I77-vWPCtIAw"
+  ],
+  "topics": {
+    "combinatorics.enumeration": {
+      "answers": 1,
+      "correct": 0,
+      "delta": -0.24344191911179713,
+      "last_issued": "2026-09-02",
+      "mastered_since": null,
+      "top_streak": 0,
+      "traps": {
+        "missed_case": 1
+      },
+      "wrong_streak": 1
+    },
+    "logic.knights_liars": {
+      "answers": 1,
+      "correct": 1,
+      "delta": 0.08606125483839842,
+      "last_issued": "2026-09-01",
+      "mastered_since": "2026-09-01",
+      "top_streak": 3,
+      "traps": {},
+      "wrong_streak": 0
+    },
+    "time.clocks": {
+      "answers": 1,
+      "correct": 0,
+      "delta": -0.3092760855915665,
+      "last_issued": "2026-09-03",
+      "mastered_since": null,
+      "top_streak": 0,
+      "traps": {},
+      "wrong_streak": 1
+    }
+  },
+  "updated_at": "2026-09-03T18:00:00Z"
+}

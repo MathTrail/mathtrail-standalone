@@ -1,0 +1,169 @@
+{
+  "app_version": "0.0.0-fixture",
+  "created_at": "2026-09-01T18:00:00Z",
+  "current_task": null,
+  "daily": {
+    "accepted": 0,
+    "date": "2026-09-06",
+    "failed": 0
+  },
+  "open_request": null,
+  "ratings": {
+    "answers": 6,
+    "consecutive_failures": 0,
+    "theta": 0.2926919993952727
+  },
+  "recent": [
+    {
+      "answered_at": "2026-09-01T18:00:00Z",
+      "confused": false,
+      "correct": true,
+      "difficulty": 3,
+      "hint_used": false,
+      "pace": "fast",
+      "task_id": "tsk_petya_01",
+      "topic": "logic.ordering"
+    },
+    {
+      "answered_at": "2026-09-02T18:00:00Z",
+      "confused": false,
+      "correct": true,
+      "difficulty": 3,
+      "hint_used": false,
+      "pace": "normal",
+      "task_id": "tsk_petya_02",
+      "topic": "counting.gaps"
+    },
+    {
+      "answered_at": "2026-09-03T18:00:00Z",
+      "confused": false,
+      "correct": true,
+      "difficulty": 4,
+      "hint_used": false,
+      "pace": "normal",
+      "task_id": "tsk_petya_03",
+      "topic": "arithmetic.tricks"
+    },
+    {
+      "answered_at": "2026-09-04T18:00:00Z",
+      "chosen": "D",
+      "confused": false,
+      "correct": false,
+      "difficulty": 4,
+      "hint_used": false,
+      "pace": "fast",
+      "task_id": "tsk_petya_04",
+      "topic": "combinatorics.enumeration",
+      "trap": "stopped_early"
+    },
+    {
+      "answered_at": "2026-09-05T18:00:00Z",
+      "confused": false,
+      "correct": true,
+      "difficulty": 3,
+      "hint_used": false,
+      "pace": "normal",
+      "task_id": "tsk_petya_05",
+      "topic": "logic.knights_liars"
+    },
+    {
+      "answered_at": "2026-09-06T18:00:00Z",
+      "confused": false,
+      "correct": true,
+      "difficulty": 3,
+      "hint_used": false,
+      "pace": "fast",
+      "task_id": "tsk_petya_06",
+      "topic": "pigeonhole.basic"
+    }
+  ],
+  "revision": 7,
+  "schema_version": 1,
+  "student": {
+    "excluded_skills": [
+      "numbers_above_1000"
+    ],
+    "grade": 3,
+    "interests": [
+      "football",
+      "dinosaurs"
+    ],
+    "notes": "Solves quickly and likes tricky logic questions. Sometimes stops at an intermediate result and picks it as the answer.",
+    "pseudonym": "Petya",
+    "ui_language": null
+  },
+  "student_id": "c6b4f52c-f3f3-d4e5-7c05-e53c9dc3fe1b",
+  "task_fingerprints": [
+    "EXuZJg8kH3vW3cxheihPDnvTTk1sb3an-BFtOBFVKYOTGCYotPRL1HDtuh14WDs8DrZJJb2eaTESKEV5CG5r6w",
+    "0-pp1eTfazXd6sw4BsChWXihK8YsFRg2BOlHW0rSwdfVPwSWRjz9TdrRkUZ_iY60CdLsHNcN1xM7wAfzFdt1WA",
+    "s53YwNW24-Hq2Aub-xM81floiL5aDFItwlhSYrIjsS5pnqPfE9zkVd0bOIoteAItf8is3E2hIivZa2eAtc-wxg",
+    "4xD2x-30tB--LoWlmaXkUsukcD8JWQwGeDfhQscUv3GphEGvAl_hr01bmqFtEQKG1Op3tTBt6RH0-qW7dESHLg",
+    "CT0w6LZ6X7j-TmhDN_aqIXrhc8_pvYV9egQkAQJFgHFQtRqUVi20FaNGzPZ7mJdehYY3rQoFaqayBp3OJ5GrRg",
+    "B6xOB4eX05WWduxm9fl4d8A53R0d7t8C6iXlalVYBTjMWQeT51cy8aS2Ew3iTmTMDEGR9VAgJv4Q-GbUu7VPvA"
+  ],
+  "topics": {
+    "arithmetic.tricks": {
+      "answers": 1,
+      "correct": 1,
+      "delta": 0.22397027199566946,
+      "last_issued": "2026-09-03",
+      "mastered_since": "2026-09-03",
+      "top_streak": 3,
+      "traps": {},
+      "wrong_streak": 0
+    },
+    "combinatorics.enumeration": {
+      "answers": 1,
+      "correct": 0,
+      "delta": -0.18300820829017922,
+      "last_issued": "2026-09-04",
+      "mastered_since": null,
+      "top_streak": 0,
+      "traps": {
+        "stopped_early": 1
+      },
+      "wrong_streak": 1
+    },
+    "counting.gaps": {
+      "answers": 1,
+      "correct": 1,
+      "delta": 0.1536034111502138,
+      "last_issued": "2026-09-02",
+      "mastered_since": "2026-09-02",
+      "top_streak": 3,
+      "traps": {},
+      "wrong_streak": 0
+    },
+    "logic.knights_liars": {
+      "answers": 1,
+      "correct": 1,
+      "delta": 0.1460054232248357,
+      "last_issued": "2026-09-05",
+      "mastered_since": null,
+      "top_streak": 0,
+      "traps": {},
+      "wrong_streak": 0
+    },
+    "logic.ordering": {
+      "answers": 1,
+      "correct": 1,
+      "delta": 0.15999999999999998,
+      "last_issued": "2026-09-01",
+      "mastered_since": "2026-09-01",
+      "top_streak": 3,
+      "traps": {},
+      "wrong_streak": 0
+    },
+    "pigeonhole.basic": {
+      "answers": 1,
+      "correct": 1,
+      "delta": 0.14119010502250867,
+      "last_issued": "2026-09-06",
+      "mastered_since": null,
+      "top_streak": 0,
+      "traps": {},
+      "wrong_streak": 0
+    }
+  },
+  "updated_at": "2026-09-06T18:00:00Z"
+}

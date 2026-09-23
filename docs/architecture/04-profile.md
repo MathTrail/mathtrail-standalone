@@ -20,8 +20,8 @@ flowchart LR
 
     subgraph file["profile.json, in the parent's Drive"]
         direction TB
-        svc["service<br/>schema_version, child_id, revision, dates, app version"]
-        kid["child<br/>pseudonym, grade, interests, constraints, notes, language"]
+        svc["service<br/>schema_version, student_id, revision, dates, app version"]
+        kid["student<br/>pseudonym, grade, interests, constraints, notes, language"]
         rat["ratings<br/>θ, answers, consecutive failures"]
         top["per-topic summary<br/>δ, counters, last issued, traps, mastery"]
         rec["recent<br/>the last 20 answers"]
@@ -68,12 +68,12 @@ A solid arrow writes, a dashed arrow reads. Every write also touches the service
 | Field | Type | Written by | Why |
 |---|---|---|---|
 | `schema_version` | integer | every write | Which shape this file has — see "Versions and migrations" |
-| `child_id` | UUID string | created once | A permanent identifier so the profile can be moved to the paid edition, and it goes into the export (О-41) |
+| `student_id` | UUID string | created once | A permanent identifier so the profile can be moved to the paid edition, and it goes into the export (О-41) |
 | `created_at`, `updated_at` | RFC 3339 UTC | every write | When the profile was made and last changed |
 | `revision` | integer | every write | Incremented on every write; T10 pairs it with Drive's own revision id to catch two tabs writing at once |
 | `app_version` | string | every write | The build that last wrote the file, for reading a broken file later |
 
-### The child
+### The student
 
 | Field | Type | Limit | Why |
 |---|---|---|---|
@@ -110,6 +110,7 @@ One entry per topic the child has ever been given, keyed by the catalog's topic 
 | `answers`, `correct` | integers | The `n` of the step, and the success count the progress screen shows |
 | `last_issued` | date | "The topic not seen for the longest" in the rule; absent means never issued, which the rule puts first. Written when a task is **accepted**, not when the rule picks the topic — a generation that never produced anything must not push its topic away |
 | `top_streak` | integer | Correct answers in a row at the upper edge of the corridor with no hint — the automatic mastery criterion (О-32). T11 sets the length and the reset |
+| `wrong_streak` | integer | Wrong answers in a row in this topic, which is what mastery is lost by. It is counted rather than read back out of `recent` for the same reason `top_streak` is: the window is pruned, and a run that has to be exact cannot be read from something that forgets |
 | `mastered_since` | date or null | Set when `top_streak` reaches the criterion; the progress screen reads it |
 | `traps` | map of trap id → count | How often this child fell for each trap in this topic. The rule picks the two most frequent (prototype 5.7), and the progress screen draws the map of misconceptions from the same numbers (T57a) |
 
@@ -197,11 +198,11 @@ The check for this task is that the prototype's rule (its SPEC 5.7) can be compu
 |---|---|
 | A failure to consolidate? | `ratings.consecutive_failures` |
 | Which topic to consolidate | the last entry of `recent` — never empty while `consecutive_failures` is above zero |
-| Otherwise: an unmastered topic of this grade, unseen for the longest, never-issued ones first | `topics[*].mastered_since`, `topics[*].last_issued`, `child.grade`, and the topic catalog in the binary |
+| Otherwise: an unmastered topic of this grade, unseen for the longest, never-issued ones first | `topics[*].mastered_since`, `topics[*].last_issued`, `student.grade`, and the topic catalog in the binary |
 | The recommended difficulty, from the corridor | `ratings.theta`, `ratings.answers`, `topics[t].delta`, `topics[t].answers` |
-| The setting, rotated through the interests | `child.interests` and **`ratings.answers`** |
+| The setting, rotated through the interests | `student.interests` and **`ratings.answers`** |
 | The two traps | `topics[t].traps`, topped up from the reference tasks of that topic in the binary |
-| The prohibitions carried into the brief | `child.excluded_skills` |
+| The prohibitions carried into the brief | `student.excluded_skills` |
 
 One substitution is worth naming. The prototype rotates the setting by the number of history entries; with a bounded window that number would start repeating as soon as entries are dropped, and the rule would stop being deterministic in the way D40 promises. The total answer count does the same job and never goes backwards.
 
@@ -241,15 +242,6 @@ What grows without a bound of its own is the per-topic summary, which gains an e
 ```json
 {
   "app_version": "1.0.0+7c2f1ab",
-  "child": {
-    "excluded_skills": ["division_with_remainder"],
-    "grade": 3,
-    "interests": ["space", "dinosaurs", "football"],
-    "notes": "Reads slowly and re-reads the question twice. Loves anything about planets. Gets discouraged by long wordings.",
-    "pseudonym": "Otter",
-    "ui_language": null
-  },
-  "child_id": "f1c0e6e2-2d1a-4a19-9a8f-0f0b6b2f9a31",
   "created_at": "2026-06-02T18:04:11Z",
   "current_task": {
     "difficulty": 3,
@@ -307,6 +299,15 @@ What grows without a bound of its own is the per-topic summary, which gains an e
   ],
   "revision": 41,
   "schema_version": 1,
+  "student": {
+    "excluded_skills": ["division_with_remainder"],
+    "grade": 3,
+    "interests": ["space", "dinosaurs", "football"],
+    "notes": "Reads slowly and re-reads the question twice. Loves anything about planets. Gets discouraged by long wordings.",
+    "pseudonym": "Otter",
+    "ui_language": null
+  },
+  "student_id": "f1c0e6e2-2d1a-4a19-9a8f-0f0b6b2f9a31",
   "task_fingerprints": [
     "Ab3kR9wQ2eT7yU1iO5pA8sD4fG6hJ0kL3zX7cV9bN2m",
     "Qw8eR2tY6uI0oP4aS7dF1gH5jK9lZ3xC6vB8nM2mQ4w"
@@ -321,7 +322,8 @@ What grows without a bound of its own is the per-topic summary, which gains an e
       "top_streak": 5,
       "traps": {
         "off_by_one": 1
-      }
+      },
+      "wrong_streak": 0
     },
     "combinatorics.enumeration": {
       "answers": 9,
@@ -333,7 +335,8 @@ What grows without a bound of its own is the per-topic summary, which gains an e
       "traps": {
         "double_count": 1,
         "missed_case": 3
-      }
+      },
+      "wrong_streak": 1
     },
     "logic.truth_tellers": {
       "answers": 6,
@@ -344,7 +347,8 @@ What grows without a bound of its own is the per-topic summary, which gains an e
       "top_streak": 1,
       "traps": {
         "negation_slip": 2
-      }
+      },
+      "wrong_streak": 0
     }
   },
   "updated_at": "2026-09-20T19:12:40Z"

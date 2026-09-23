@@ -540,3 +540,32 @@ func FuzzOpen(f *testing.F) {
 		}
 	})
 }
+
+// A ring with its purpose already chosen is the same ring: what it seals, the
+// ring opens under that purpose, and what another purpose sealed it refuses.
+func TestARingWithOnePurpose(t *testing.T) {
+	t.Parallel()
+
+	ring := newRing(t, keyNamed("current"), "")
+	answers := ring.For(seal.PurposeTaskAnswer)
+
+	value, err := answers.Seal([]byte(`{"answer":"C"}`), "OX1sT9", "task-7")
+	if err != nil {
+		t.Fatalf("Seal() error = %v, want nil", err)
+	}
+	opened, err := answers.Open(value, "OX1sT9", "task-7")
+	if err != nil {
+		t.Fatalf("Open() error = %v, want nil", err)
+	}
+	if string(opened) != `{"answer":"C"}` {
+		t.Errorf("Open() = %q, want what was sealed", opened)
+	}
+
+	// The purpose is the one it was bound to, and nothing else opens it.
+	if _, err := ring.Open(seal.PurposeAccess, value, "OX1sT9", "task-7"); !errors.Is(err, seal.ErrPurpose) {
+		t.Errorf("Open() as another purpose error = %v, want %v", err, seal.ErrPurpose)
+	}
+	if _, err := answers.Open(value, "Zk4pQ2", "task-7"); !errors.Is(err, seal.ErrIntegrity) {
+		t.Errorf("Open() with another binding error = %v, want %v", err, seal.ErrIntegrity)
+	}
+}

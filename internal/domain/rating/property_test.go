@@ -118,11 +118,10 @@ func TestTheCorridorHoldsItsProperties(t *testing.T) {
 	properties.Property("it recommends the difficulty nearest the middle, ties to the easier", prop.ForAll(
 		func(level float64) bool {
 			corridor := rating.NewCorridor(level)
-			const middle = (0.70 + 0.85) / 2
 
 			best, distance := 0, math.Inf(1)
 			for difficulty := 1; difficulty <= rating.Difficulties; difficulty++ {
-				if from := math.Abs(corridor.Probability(difficulty) - middle); from < distance {
+				if from := math.Abs(corridor.Probability(difficulty) - rating.CorridorMiddle); from < distance {
 					best, distance = difficulty, from
 				}
 			}

@@ -13,8 +13,10 @@ const (
 	corridorLow  = 0.70
 	corridorHigh = 0.85
 
-	// corridorMiddle is what the recommendation aims at.
-	corridorMiddle = (corridorLow + corridorHigh) / 2
+	// CorridorMiddle is what the recommendation aims at, and the line an
+	// answer has to be at or below to count toward mastering a topic: at the
+	// middle of the band or harder, and not the easy half of it.
+	CorridorMiddle = (corridorLow + corridorHigh) / 2
 )
 
 // Fit says where the recommended difficulty landed against the corridor. It is
@@ -80,7 +82,7 @@ func NewCorridor(level float64) Corridor {
 		// Ties go to the easier level: two difficulties equally far from the
 		// middle mean the child is between them, and the lower one is the one
 		// that can be finished.
-		if from := math.Abs(probability - corridorMiddle); from < best {
+		if from := math.Abs(probability - CorridorMiddle); from < best {
 			corridor.Recommended, best = difficulty, from
 		}
 	}
