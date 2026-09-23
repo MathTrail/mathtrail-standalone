@@ -56,6 +56,12 @@
             "extensions": [
                 "anthropic.claude-code@2.1.280",
                 "golang.go@0.56.1",
+                // Python is an extension pack: its members are listed too, so that none of them
+                // arrives at a floating version.
+                "ms-python.python@2026.7.2026092301",
+                "ms-python.vscode-pylance@2026.3.105",
+                "ms-python.debugpy@2026.7.12571011",
+                "ms-python.vscode-python-envs@1.37.2026092301",
                 "redhat.vscode-yaml@1.24.0",
                 "nefrob.vscode-just-syntax@0.10.2",
                 "hashicorp.terraform@2.40.0",

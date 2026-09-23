@@ -143,10 +143,11 @@ Reference tasks are few-shot examples: they show the model the shape, the style 
     "B": { "trap": "off_by_one", "text": "…" },
     "C": { "trap": "missed_case", "text": "…" },
     "E": { "trap": "ignored_condition", "text": "…" }
-  },
-  "solver": "…"
+  }
 }
 ```
+
+The solver is not one of these fields. It is a file of its own, `content/examples/solvers/<id>.star`, named after the task it proves, and the loader attaches it as the task is read — so a program is stored as a program: indented, syntax-highlighted, and changed a line at a time rather than as one escaped string several hundred characters wide. The two halves are held together from both ends: a file naming no task is refused at load, and a task of a ported topic with no file is refused by the bench (6.8).
 
 | Field | Required | Notes |
 |---|---|---|
@@ -159,7 +160,7 @@ Reference tasks are few-shot examples: they show the model the shape, the style 
 | `hint` | new tasks only | A nudge that does not give the answer away. The 450 ported tasks have none; the format the model must produce always does |
 | `solution` | yes | Short, step by step |
 | `distractors` | yes | One entry per wrong option: a trap id from the catalog and the text the child sees after answering |
-| `solver` | yes, after T29–T31 | The Starlark program that brute-forces this very task. It makes every example re-checkable on the bench, and it is not what goes into the package — the model is shown the generalised templates of `content/solvers/` instead (R08) |
+| the solver | yes, after T29–T31 | A file beside the tasks, not a field: `content/examples/solvers/<id>.star`. The Starlark program that brute-forces this very task. It makes every example re-checkable on the bench, and it is not what goes into the package — the model is shown the generalised templates of `content/solvers/` instead (R08) |
 
 **Nobody else's wording, anywhere.** The ideas come from open sources; the text is ours (the prototype's D23 and research/12). Ideas are not protected by copyright, wordings are.
 
@@ -782,11 +783,11 @@ The solver templates of `content/solvers/` (R08, О-43) carry the same shape per
 
 ## 6.8 Porting the prototype's 450 checks
 
-The prototype proved every reference answer with a Python function that returned the answer as a value; a test then required that exactly one option matched it and that the option was the task's `correct_answer` (`tests/example_checks/`). v1 keeps the idea and changes the shape: **the check becomes the reference task's own solver**, written to the contract of 6.2 and stored in its `solver` field (1.5).
+The prototype proved every reference answer with a Python function that returned the answer as a value; a test then required that exactly one option matched it and that the option was the task's `correct_answer` (`tests/example_checks/`). v1 keeps the idea and changes the shape: **the check becomes the reference task's own solver**, written to the contract of 6.2 and stored beside the task as `content/examples/solvers/<id>.star` (1.5).
 
 That is worth more than a translation. The 450 solvers then run through exactly the pipeline a submitted task runs through — the same dialect, the same helpers, the same limits, the same two runs — so they become the regression suite of the sandbox itself, and a change to any limit is tested against 450 real programs before it reaches a child.
 
-**The bench** (T29) loads every reference task, runs its solver twice as 6.2 requires, and fails if the verdict is not exactly the task's `correct_answer`. It reports the step count and the duration of each, which is what calibrates 6.6.
+**The bench** (T29a) loads every reference task, runs its solver twice as 6.2 requires, and fails if the verdict is not exactly the task's `correct_answer`. It reports the step count and the duration of each, which is what calibrates 6.6. It carries the list of topics not yet ported and checks it from both sides — a task of a ported topic must have a solver, and a task of an unported one must not — so that the list cannot outlive the porting it describes.
 
 **What translates how:**
 
@@ -810,7 +811,7 @@ The `random` row is the only one that is not mechanical, and it is the one worth
 
 | Batch | Task | Topics | Checks | First meets |
 |---|---|---|---|---|
-| 1 | T29 | The bench itself, `combinatorics.enumeration`, `logic.ordering`, `counting.gaps` | 150 | the four combinatorial helpers, `pairwise` |
+| 1 | T29a, T29b | The bench itself, `combinatorics.enumeration`, `logic.ordering`, `counting.gaps` | 150 | the four combinatorial helpers, `pairwise` |
 | 2 | T30 | `arithmetic.tricks`, `pigeonhole.basic`, `time.clocks` | 150 | `prod`, `Fraction`, `count` |
 | 3 | T31 | `parity.alternation`, `time.calendar`, `logic.knights_liars`, `algorithms.weighing_pouring` | 150 | `deque`, `lru_cache`, the calendar helpers, `random` |
 

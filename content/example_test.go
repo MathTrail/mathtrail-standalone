@@ -1,6 +1,7 @@
 package content
 
 import (
+	"strings"
 	"testing"
 	"testing/fstest"
 )
@@ -294,4 +295,81 @@ func TestCloningATaskCopiesItsDrawing(t *testing.T) {
 	if got := structure.Relations[0].Type; got != "left_of" {
 		t.Errorf("relation = %q, want it untouched at %q", got, "left_of")
 	}
+}
+
+// solverFile is where the program that proves one task's answer lives.
+func solverFile(id string) string {
+	return examplesDir + "/" + solversDir + "/" + id + solverSuffix
+}
+
+func TestATaskIsGivenTheSolverStoredBesideIt(t *testing.T) {
+	t.Parallel()
+
+	src := contentCopy(t)
+	withExamples(t, src, gapsFile, validExample())
+	src[solverFile("gaps-posts-test")] = &fstest.MapFile{
+		Data: []byte("def solve(options):\n    return match(options, 3)\n"),
+	}
+
+	loaded, err := load(src)
+	if err != nil {
+		t.Fatalf("load: %v", err)
+	}
+	for _, task := range loaded.Examples() {
+		if task.ID != "gaps-posts-test" {
+			continue
+		}
+		if want := "match(options, 3)"; !strings.Contains(task.Solver, want) {
+			t.Fatalf("solver = %q, want one containing %q", task.Solver, want)
+		}
+		return
+	}
+	t.Fatal("the task was not loaded at all")
+}
+
+// A solver naming no task is how a rename half-done looks: the program is still
+// there, and nothing would ever run it again.
+func TestASolverBelongingToNoTaskStopsTheService(t *testing.T) {
+	t.Parallel()
+
+	src := contentCopy(t)
+	src[solverFile("gaps-posts-renamed")] = &fstest.MapFile{Data: []byte("def solve(options):\n    return []\n")}
+	wantProblem(t, src, `no reference task is called "gaps-posts-renamed"`)
+}
+
+func TestAnEmptySolverStopsTheService(t *testing.T) {
+	t.Parallel()
+
+	src := contentCopy(t)
+	withExamples(t, src, gapsFile, validExample())
+	src[solverFile("gaps-posts-test")] = &fstest.MapFile{Data: []byte("\n   \n")}
+	wantProblem(t, src, "gaps-posts-test.star: the solver is empty")
+}
+
+func TestASolverNotNamedAfterATaskStopsTheService(t *testing.T) {
+	t.Parallel()
+
+	src := contentCopy(t)
+	src[examplesDir+"/"+solversDir+"/notes.txt"] = &fstest.MapFile{Data: []byte("a note\n")}
+	wantProblem(t, src, "notes.txt: a solver is named after its task and ends in .star")
+}
+
+func TestSolversInDirectoriesOfTheirOwnStopTheService(t *testing.T) {
+	t.Parallel()
+
+	src := contentCopy(t)
+	src[examplesDir+"/"+solversDir+"/counting.gaps/gaps-posts-test.star"] = &fstest.MapFile{
+		Data: []byte("def solve(options):\n    return []\n"),
+	}
+	wantProblem(t, src, "counting.gaps: a solver is a file, not a directory")
+}
+
+// The program used to be a field of the task, and a copy left there would be a
+// second source of truth that nothing reads.
+func TestASolverWrittenIntoTheTaskStopsTheService(t *testing.T) {
+	t.Parallel()
+
+	src := contentCopy(t)
+	src[gapsFile] = &fstest.MapFile{Data: []byte(`[{"id":"gaps-posts-test","solver":"def solve(options):\n    return []\n"}]`)}
+	wantProblem(t, src, `unknown field "solver"`)
 }

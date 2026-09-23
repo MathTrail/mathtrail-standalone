@@ -105,6 +105,24 @@ run:
         MATHTRAIL_SEAL_KEY_CURRENT="$(head -c 32 /dev/urandom | base64 | tr -d '\n')" \
         go run ./cmd/server
 
+# Show one reference task beside the solver that proves its answer
+solver id:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    task=$(jq -r --arg id '{{ id }}' '
+        .[] | select(.id == $id)
+        | "\(.id)   answer: \(.correct_answer)   \(.topic), grade \(.grade_level), difficulty \(.difficulty)\n",
+          .question, "",
+          (.options | to_entries | sort_by(.key) | map("  \(.key)  \(.value)") | join("\n"))
+    ' content/examples/*.json)
+    if [ -z "$task" ]; then
+        echo "no reference task with id {{ id }}" >&2
+        exit 1
+    fi
+    printf '%s\n\n' "$task"
+    program="content/examples/solvers/{{ id }}.star"
+    if [ -f "$program" ]; then cat "$program"; else echo "(no solver yet)"; fi
+
 # Generate the mocks (mockery, config in .mockery.yaml)
 mocks:
     #!/usr/bin/env bash
