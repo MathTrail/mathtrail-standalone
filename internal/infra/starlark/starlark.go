@@ -135,10 +135,11 @@ func (s *sandbox) run(ctx context.Context, source string, options solver.Options
 
 	thread := &starlark.Thread{
 		Name: entryPoint,
-		// What a solver prints is read by nobody: the result is the answer,
-		// and the output of a program written elsewhere has no place in this
-		// service's own stream.
-		Print: func(*starlark.Thread, string) {},
+		Print: func(*starlark.Thread, string) {
+			// Deliberately nothing. What a solver prints is read by nobody:
+			// the result is the answer, and the output of a program written
+			// elsewhere has no place in this service's own stream.
+		},
 	}
 	thread.SetMaxExecutionSteps(s.limits.Steps)
 	// Cancel is the one method safe to call from another goroutine, and the
