@@ -501,11 +501,11 @@
       },
       "C": {
         "trap": "wrong_parity",
-        "text": "Every amount you can make is even, and 3 is odd."
+        "text": "More steps do not help: every step leaves 0, 2, 4 or 6 litres in a jug, never 3."
       },
       "D": {
         "trap": "wrong_parity",
-        "text": "Every amount you can make is even, and 3 is odd."
+        "text": "Even after 6 steps each jug holds an even number of litres, and 3 is odd."
       }
     }
   },

@@ -6,32 +6,6 @@ import (
 	"unicode"
 )
 
-// spaceless are the scripts written without spaces between words. A text in
-// them is measured in characters rather than words: by the readability check
-// for its sentences, and by the duplicate check for its bigrams.
-var spaceless = []*unicode.RangeTable{
-	unicode.Han, unicode.Hiragana, unicode.Katakana,
-	unicode.Thai, unicode.Lao, unicode.Khmer, unicode.Myanmar, unicode.Tibetan,
-}
-
-// Spaceless says whether most of the letters of a text belong to the scripts
-// written without spaces. The two kinds of script are counted against each
-// other rather than script by script, so that Japanese — kanji, hiragana and
-// katakana together — is one kind of text however its letters divide.
-func Spaceless(text string) bool {
-	var letters, without int
-	for _, r := range text {
-		if !unicode.IsLetter(r) {
-			continue
-		}
-		letters++
-		if unicode.In(r, spaceless...) {
-			without++
-		}
-	}
-	return 2*without > letters
-}
-
 // shingles is the set a question is compared by, sorted and without repeats,
 // which is what makes the overlap of two of them one pass over both.
 type shingles []string

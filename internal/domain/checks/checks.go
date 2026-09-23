@@ -19,6 +19,10 @@ const (
 	// CodeBadStructure is a submission out of the format, or one that does
 	// not agree with what the open request asked for.
 	CodeBadStructure Code = "bad_structure"
+	// CodeDistractorExplanations is an explanation behind a wrong option that
+	// cannot tell a child what went wrong: a copy of another, of the solution
+	// or the hint, of the catalog, or too short to say anything.
+	CodeDistractorExplanations Code = "distractor_explanations"
 	// CodeNearDuplicate is a question that repeats a task the child has had,
 	// or copies a reference task the model was shown.
 	CodeNearDuplicate Code = "near_duplicate"

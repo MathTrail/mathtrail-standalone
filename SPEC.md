@@ -552,9 +552,13 @@ Four conditions, all deterministic, no judgement of meaning (О-46, R10). For ea
 1. the four texts are pairwise different;
 2. a text is neither equal to nor a prefix of the `solution` or the `hint`;
 3. a text is not the catalog's description of its own trap, repeated verbatim;
-4. a text is at least **6 words** long, or **12 characters** for a writing system counted in characters (5.5).
+4. a text is at least **3 words** long, or **6 characters** for a writing system counted in characters (5.5).
 
-Anything cleverer — "is this explanation meaningful?" — needs a judgement the service cannot make without an LLM call it is not allowed to make, and a wrong guess costs the child another attempt (О-46). The refusal names the option and the condition.
+Texts are compared as they read: lowercased, with punctuation and spacing ignored, so that "You missed one pair!" and "you missed one pair." are the same text. A prefix is taken word for word — "Four" does not begin "Fourteen ships" — and character for character in the scripts written without spaces. Words are the runs of letters and digits, so a text of punctuation alone is no words long. An explanation with no text at all is the structure check's to report (5.2), not this one's.
+
+The minimum is the length below which nothing can be said, not the length the product wants: the reference tasks say what went wrong in as few as three words — "Monday is today." — and a check stricter than the examples would teach the model to fail it. The instructions (T36) ask for more — an explanation of about six words that names the child's mistake — and the check refuses only what falls short of saying anything. Every reference task passes this check, and a test holds them to it.
+
+Anything cleverer — "is this explanation meaningful?" — needs a judgement the service cannot make without an LLM call it is not allowed to make, and a wrong guess costs the child another attempt (О-46). The refusal names the condition and points at the explanation by its **trap**, never by its option's letter: the letters of the explanations that failed would name wrong options, and four of them the right one (5.1). The trap is the model's own choice and enough to find the text; where two explanations share a trap, the model checks both.
 
 ## 5.4 The drawing: format and match
 
@@ -1393,4 +1397,4 @@ Added while exporting the golden vectors (T16):
 
 Added while writing the checks (T32):
 
-27. **5.3 and 5.1 disagree about naming an option.** 5.3 says a refusal "names the option and the condition"; 5.1 says no refusal ever quotes an answer letter, because the result reaches the widget. They are the same letters: naming the options whose explanations failed names options that are wrong, and four of them name the fifth. T32 wrote every refusal without a letter — an explanation is "one in `task.distractors`", a path through an option is written with a star — and the test holds every message to that. T32a has to choose between the two sentences, or find a way of pointing at one explanation without its letter, such as its place among the four. **For:** T32a.
+27. **5.3 and 5.1 disagree about naming an option.** 5.3 says a refusal "names the option and the condition"; 5.1 says no refusal ever quotes an answer letter, because the result reaches the widget. They are the same letters: naming the options whose explanations failed names options that are wrong, and four of them name the fifth. T32 wrote every refusal without a letter — an explanation is "one in `task.distractors`", a path through an option is written with a star — and the test holds every message to that. T32a has to choose between the two sentences, or find a way of pointing at one explanation without its letter, such as its place among the four. **For:** T32a. **Decided in T32a:** by the trap (5.3, R57).

@@ -13,16 +13,34 @@ import (
 
 // catalog is a catalog written out in the test, so that what the checks are
 // measured against is in one place and small enough to read.
-type catalog struct{ topics, traps, skills []string }
+type catalog struct {
+	topics, skills []string
+	traps          map[string]string // id to description
+}
 
 func (c catalog) HasTopic(id string) bool { return slices.Contains(c.topics, id) }
-func (c catalog) HasTrap(id string) bool  { return slices.Contains(c.traps, id) }
 func (c catalog) HasSkill(id string) bool { return slices.Contains(c.skills, id) }
+
+func (c catalog) HasTrap(id string) bool {
+	_, known := c.traps[id]
+	return known
+}
+
+func (c catalog) TrapDescription(id string) (string, bool) {
+	description, known := c.traps[id]
+	return description, known
+}
 
 var testCatalog = catalog{
 	topics: []string{"combinatorics.enumeration", "counting.gaps"},
-	traps:  []string{"number_from_text", "missed_case", "wrong_operation", "double_count", "off_by_one"},
 	skills: []string{"division_with_remainder", "fractions"},
+	traps: map[string]string{
+		"number_from_text": "Takes a number from the question as the answer.",
+		"missed_case":      "Leaves out one of the cases.",
+		"wrong_operation":  "Uses the wrong operation.",
+		"double_count":     "Counts the same thing twice.",
+		"off_by_one":       "Off by one when counting gaps.",
+	},
 }
 
 // asked is the brief the request was opened with.

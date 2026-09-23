@@ -132,6 +132,13 @@ func (c *Content) HasTrap(id string) bool {
 	return ok
 }
 
+// TrapDescription is how the trap catalog describes a trap, and whether it has
+// one by this id.
+func (c *Content) TrapDescription(id string) (string, bool) {
+	trap, ok := c.trapByID[id]
+	return trap.Description, ok
+}
+
 // HasSkill reports whether the skill catalog has this id.
 func (c *Content) HasSkill(id string) bool {
 	_, ok := c.skillByID[id]

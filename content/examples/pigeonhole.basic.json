@@ -391,7 +391,7 @@
     "distractors": {
       "A": {
         "trap": "best_case_not_worst",
-        "text": "2 socks can be one white and one black."
+        "text": "With 2 socks you could be unlucky: one white and one black."
       },
       "B": {
         "trap": "wrong_operation",
@@ -667,7 +667,7 @@
       },
       "B": {
         "trap": "stopped_early",
-        "text": "6 children can be 2 for each colour."
+        "text": "With 6 children each colour can have just 2, so one more child is needed."
       },
       "C": {
         "trap": "wrong_operation",
@@ -807,7 +807,7 @@
       },
       "C": {
         "trap": "off_by_one",
-        "text": "4 balls can be one of each colour."
+        "text": "With 4 balls you can still have one of each colour, so one more is needed."
       },
       "E": {
         "trap": "number_from_text",
@@ -867,7 +867,7 @@
     "distractors": {
       "A": {
         "trap": "best_case_not_worst",
-        "text": "2 socks can be one black and one white."
+        "text": "With 2 socks you could be unlucky: one black and one white."
       },
       "B": {
         "trap": "answered_other_question",
@@ -973,7 +973,7 @@
       },
       "C": {
         "trap": "off_by_one",
-        "text": "4 pencils can be one of each colour."
+        "text": "With 4 pencils you can still have one of each colour, so one more is needed."
       },
       "D": {
         "trap": "wrong_operation",
@@ -1347,7 +1347,7 @@
       },
       "B": {
         "trap": "off_by_one",
-        "text": "3 balls can be red, green and white."
+        "text": "With 3 balls you can still have one of each colour, so one more is needed."
       },
       "C": {
         "trap": "answered_other_question",
