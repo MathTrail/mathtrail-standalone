@@ -1,0 +1,137 @@
+{
+  "app_version": "0.0.0-fixture",
+  "created_at": "2026-09-01T18:00:00Z",
+  "current_task": null,
+  "daily": {
+    "accepted": 0,
+    "date": "2026-09-05",
+    "failed": 0
+  },
+  "open_request": null,
+  "ratings": {
+    "answers": 5,
+    "consecutive_failures": 0,
+    "theta": -0.07786841696849543
+  },
+  "recent": [
+    {
+      "answered_at": "2026-09-01T18:00:00Z",
+      "chosen": "C",
+      "confused": false,
+      "correct": false,
+      "difficulty": 2,
+      "hint_used": false,
+      "pace": "normal",
+      "task_id": "tsk_olya_01",
+      "topic": "time.calendar",
+      "trap": "answered_other_question"
+    },
+    {
+      "answered_at": "2026-09-02T18:00:00Z",
+      "confused": false,
+      "correct": true,
+      "difficulty": 2,
+      "hint_used": false,
+      "pace": "normal",
+      "task_id": "tsk_olya_02",
+      "topic": "counting.gaps"
+    },
+    {
+      "answered_at": "2026-09-03T18:00:00Z",
+      "confused": false,
+      "correct": true,
+      "difficulty": 3,
+      "hint_used": false,
+      "pace": "normal",
+      "task_id": "tsk_olya_03",
+      "topic": "counting.gaps"
+    },
+    {
+      "answered_at": "2026-09-04T18:00:00Z",
+      "chosen": "E",
+      "confused": false,
+      "correct": false,
+      "difficulty": 2,
+      "hint_used": false,
+      "pace": "slow",
+      "task_id": "tsk_olya_04",
+      "topic": "combinatorics.enumeration",
+      "trap": "double_count"
+    },
+    {
+      "answered_at": "2026-09-05T18:00:00Z",
+      "confused": false,
+      "correct": true,
+      "difficulty": 4,
+      "hint_used": false,
+      "pace": "fast",
+      "task_id": "tsk_olya_05",
+      "topic": "counting.gaps"
+    }
+  ],
+  "revision": 6,
+  "schema_version": 1,
+  "student": {
+    "excluded_skills": [
+      "division",
+      "division_with_remainder",
+      "fractions",
+      "numbers_above_100",
+      "numbers_above_1000",
+      "unit_conversion"
+    ],
+    "grade": 2,
+    "interests": [
+      "horses",
+      "drawing"
+    ],
+    "notes": "Careful and accurate when counting objects and gaps. Unsure when a question needs several steps. Answers a different question when the question is long.",
+    "pseudonym": "Olya",
+    "ui_language": null
+  },
+  "student_id": "4aa5e4e4-6c98-f79f-b3fd-8fdfca1fef13",
+  "task_fingerprints": [
+    "XDi-mEMli9u6Bl6o0Ept-zBvZJi0WpF3I9o3AQnbd4TGtUdyP20j0rSCjIKVPJaihVROybH5kcFsicpXXhUfEg",
+    "JBJhTEdzQG_VM4p4GPOmRhZDexQkpGKwCxhY6g2iUVB_CMhvLxNn-MCFJElD4cmK0ZkuvAVQxZxTGzO5bPBxcw",
+    "sodxjI6xQM-wKqhXrqSibKJW_3W0wX8QAwhCYadJEgbHUfhE2ZpP8QD7YtHNnf5eweAxwfoRqCaffXeInRHK8Q",
+    "I7tgOrmqQBnjabg44OqB7MUnr14djhT6en6jgHN2Myso0N_v42E8BmxcJDTItbhLRSHcUBch48P0wHwk1fyxbg",
+    "yVGXZZVDg6Pf7kYUl1-M0et210CSZz2QwsU3iVW6AstBmXaCLaWYCm8b0-IrfB0KBFyzmR_au8kZB3W81eoMRw"
+  ],
+  "topics": {
+    "combinatorics.enumeration": {
+      "answers": 1,
+      "correct": 0,
+      "delta": -0.31153654334439723,
+      "last_issued": "2026-09-04",
+      "mastered_since": null,
+      "top_streak": 0,
+      "traps": {
+        "double_count": 1
+      },
+      "wrong_streak": 1
+    },
+    "counting.gaps": {
+      "answers": 3,
+      "correct": 3,
+      "delta": 0.4580177708129306,
+      "last_issued": "2026-09-05",
+      "mastered_since": "2026-09-05",
+      "top_streak": 3,
+      "traps": {},
+      "wrong_streak": 0
+    },
+    "time.calendar": {
+      "answers": 1,
+      "correct": 0,
+      "delta": -0.3139387451616016,
+      "last_issued": "2026-09-01",
+      "mastered_since": null,
+      "top_streak": 0,
+      "traps": {
+        "answered_other_question": 1
+      },
+      "wrong_streak": 1
+    }
+  },
+  "updated_at": "2026-09-05T18:00:00Z"
+}

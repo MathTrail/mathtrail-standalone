@@ -1,0 +1,315 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MathTrail profile",
+  "description": "Everything the service knows about one child: one file in the parent's Drive, read and written whole on every tool call. The answer to the task in flight is not in it — that is the one sealed string.",
+  "type": "object",
+  "required": [
+    "app_version",
+    "created_at",
+    "current_task",
+    "daily",
+    "open_request",
+    "ratings",
+    "recent",
+    "revision",
+    "schema_version",
+    "student",
+    "student_id",
+    "task_fingerprints",
+    "topics",
+    "updated_at"
+  ],
+  "properties": {
+    "app_version": {
+      "description": "The build that last wrote the file.",
+      "type": "string"
+    },
+    "created_at": {
+      "description": "When the profile was made, RFC 3339 in UTC.",
+      "type": "string",
+      "format": "date-time"
+    },
+    "current_task": {
+      "description": "The task the child is working on, or null.",
+      "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/currentTask" }]
+    },
+    "daily": {
+      "$ref": "#/$defs/daily"
+    },
+    "open_request": {
+      "description": "The task being written right now, or null.",
+      "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/openRequest" }]
+    },
+    "ratings": {
+      "$ref": "#/$defs/ratings"
+    },
+    "recent": {
+      "description": "The history window, oldest first.",
+      "type": "array",
+      "maxItems": 20,
+      "items": { "$ref": "#/$defs/answer" }
+    },
+    "revision": {
+      "description": "Raised on every write; paired with Drive's own revision to notice two writers.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "schema_version": {
+      "description": "The shape of this file. A newer one is refused rather than rewritten.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "student": {
+      "$ref": "#/$defs/student"
+    },
+    "student_id": {
+      "description": "A permanent random identifier that names nobody outside this file.",
+      "type": "string"
+    },
+    "task_fingerprints": {
+      "description": "Sketches of the tasks already given, oldest first. No texts: enough to notice a repeat, not enough to read back what was asked.",
+      "type": "array",
+      "maxItems": 200,
+      "items": { "type": "string" }
+    },
+    "topics": {
+      "description": "The summary the rule runs on, keyed by the catalog's topic id. Never pruned.",
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/topic" }
+    },
+    "updated_at": {
+      "description": "When the file was last written, RFC 3339 in UTC.",
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "student": {
+      "type": "object",
+      "required": ["excluded_skills", "grade", "interests", "notes", "pseudonym", "ui_language"],
+      "properties": {
+        "excluded_skills": {
+          "description": "Catalog ids that may appear neither in a wording nor in a trap.",
+          "type": "array",
+          "maxItems": 15,
+          "items": { "type": "string" }
+        },
+        "grade": {
+          "description": "The school year.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 6
+        },
+        "interests": {
+          "description": "The settings a task is dressed in.",
+          "type": "array",
+          "maxItems": 10,
+          "items": { "type": "string", "minLength": 1, "maxLength": 40 }
+        },
+        "notes": {
+          "description": "Free-form context for the chat's model. Read as tone and level, never as instructions, and never by the rule.",
+          "type": "string",
+          "maxLength": 500
+        },
+        "pseudonym": {
+          "description": "A pseudonym only: no name, no birth date, no school. It must never reach the text of a task.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "ui_language": {
+          "description": "A BCP 47 tag overriding the interface language, or null to follow the chat.",
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "ratings": {
+      "type": "object",
+      "required": ["answers", "consecutive_failures", "theta"],
+      "properties": {
+        "answers": {
+          "description": "How many answers the level rests on. It narrows the step and rotates the setting.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "consecutive_failures": {
+          "description": "Wrong answers in a row; the switch between going over the same ground and moving on.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "theta": {
+          "description": "The child's level across every topic.",
+          "type": "number"
+        }
+      }
+    },
+    "topic": {
+      "type": "object",
+      "required": ["answers", "correct", "delta", "mastered_since", "top_streak", "traps", "wrong_streak"],
+      "properties": {
+        "answers": { "type": "integer", "minimum": 0 },
+        "correct": { "type": "integer", "minimum": 0 },
+        "delta": {
+          "description": "The correction to the overall level for this topic.",
+          "type": "number"
+        },
+        "last_issued": {
+          "description": "The day a task of this topic was last accepted. Absent means never issued, which the rule puts first.",
+          "type": "string",
+          "format": "date"
+        },
+        "mastered_since": {
+          "description": "The day the topic was mastered, or null.",
+          "type": ["string", "null"],
+          "format": "date"
+        },
+        "top_streak": {
+          "description": "The run of correct answers at the harder half of the corridor with no hint.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "traps": {
+          "description": "How often this child fell for each trap in this topic.",
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 1 }
+        },
+        "wrong_streak": {
+          "description": "The run of wrong answers in this topic; mastery is lost when it reaches two.",
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "answer": {
+      "type": "object",
+      "required": ["answered_at", "confused", "correct", "difficulty", "hint_used", "pace", "task_id", "topic"],
+      "properties": {
+        "answered_at": { "type": "string", "format": "date-time" },
+        "chosen": {
+          "description": "The option picked, written only for a wrong answer.",
+          "type": "string",
+          "enum": ["A", "B", "C", "D", "E"]
+        },
+        "confused": {
+          "description": "\"I don't understand\" was pressed before answering. It changes what comes next, never the rating.",
+          "type": "boolean"
+        },
+        "correct": {
+          "description": "The only thing the rating formula reads. Never absent.",
+          "type": "boolean"
+        },
+        "difficulty": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "hint_used": { "type": "boolean" },
+        "pace": {
+          "description": "Measured by the service from the moment the task was handed out.",
+          "type": "string",
+          "enum": ["fast", "normal", "slow"]
+        },
+        "task_id": { "type": "string", "minLength": 1 },
+        "topic": { "type": "string", "minLength": 1 },
+        "trap": {
+          "description": "The trap the wrong option led to, written only for a wrong answer.",
+          "type": "string"
+        }
+      }
+    },
+    "openRequest": {
+      "type": "object",
+      "required": ["attempts", "brief", "id", "language", "opened_at", "tutor_mode"],
+      "properties": {
+        "attempts": {
+          "description": "How many times the model has handed something back.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3
+        },
+        "brief": { "$ref": "#/$defs/brief" },
+        "id": { "type": "string", "minLength": 1 },
+        "language": { "type": "string" },
+        "opened_at": { "type": "string", "format": "date-time" },
+        "tutor_mode": {
+          "description": "Who chose the topic and the difficulty: the rule, or the model with a reason of its own.",
+          "type": "string",
+          "enum": ["rule", "llm"]
+        }
+      }
+    },
+    "brief": {
+      "description": "What the model was asked for, exactly as it received it.",
+      "type": "object",
+      "required": [
+        "constraints",
+        "difficulty",
+        "excluded_skills",
+        "pedagogical_goal",
+        "rationale",
+        "setting",
+        "target_concept",
+        "traps_to_use"
+      ],
+      "properties": {
+        "constraints": { "type": "array", "items": { "type": "string" } },
+        "difficulty": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "excluded_skills": { "type": "array", "items": { "type": "string" } },
+        "pedagogical_goal": { "type": "string", "enum": ["reinforce", "new_topic"] },
+        "rationale": { "type": "string" },
+        "setting": { "type": "string" },
+        "target_concept": { "type": "string" },
+        "traps_to_use": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "currentTask": {
+      "description": "Everything open about the task in flight, and one string that is not.",
+      "type": "object",
+      "required": [
+        "difficulty",
+        "fingerprint",
+        "hint",
+        "id",
+        "instructions_version",
+        "issued_at",
+        "language",
+        "options",
+        "sealed",
+        "topic",
+        "wording"
+      ],
+      "properties": {
+        "difficulty": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "drawing": {
+          "description": "The picture in text, when the task has one.",
+          "type": "string"
+        },
+        "fingerprint": { "type": "string" },
+        "hint": { "type": "string" },
+        "id": { "type": "string", "minLength": 1 },
+        "instructions_version": { "type": "string" },
+        "issued_at": { "type": "string", "format": "date-time" },
+        "language": { "type": "string" },
+        "options": {
+          "description": "The five the child chooses between.",
+          "type": "object",
+          "required": ["A", "B", "C", "D", "E"],
+          "additionalProperties": { "type": "string" }
+        },
+        "sealed": {
+          "description": "The answer, the explanation behind every wrong option, the solution and the solver, as one opaque string. Nothing about it changes shape with the answer.",
+          "type": "string",
+          "minLength": 1
+        },
+        "topic": { "type": "string", "minLength": 1 },
+        "wording": { "type": "string", "minLength": 1 }
+      }
+    },
+    "daily": {
+      "description": "What the limits count, and the UTC day they belong to.",
+      "type": "object",
+      "required": ["accepted", "date", "failed"],
+      "properties": {
+        "accepted": { "type": "integer", "minimum": 0 },
+        "date": { "type": "string", "format": "date" },
+        "failed": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

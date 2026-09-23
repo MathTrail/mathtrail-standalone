@@ -139,3 +139,26 @@ func (r *KeyRing) key(id string) (Key, bool) {
 		return Key{}, false
 	}
 }
+
+// PurposeRing is the ring with one purpose already chosen. A caller that only
+// ever protects one kind of value takes one of these and stops carrying the
+// purpose to every call — and stops being able to pass the wrong one.
+type PurposeRing struct {
+	ring    *KeyRing
+	purpose Purpose
+}
+
+// For binds a purpose to the ring.
+func (r *KeyRing) For(purpose Purpose) PurposeRing {
+	return PurposeRing{ring: r, purpose: purpose}
+}
+
+// Seal protects a value under the chosen purpose.
+func (p PurposeRing) Seal(plaintext []byte, binding ...string) (string, error) {
+	return p.ring.Seal(p.purpose, plaintext, binding...)
+}
+
+// Open reads one back.
+func (p PurposeRing) Open(value string, binding ...string) ([]byte, error) {
+	return p.ring.Open(p.purpose, value, binding...)
+}
