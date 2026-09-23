@@ -23,6 +23,10 @@ const (
 	// cannot tell a child what went wrong: a copy of another, of the solution
 	// or the hint, of the catalog, or too short to say anything.
 	CodeDistractorExplanations Code = "distractor_explanations"
+	// CodeReadability is a question a child of the grade cannot read: a sentence
+	// too long for the level, or, in English, words and sentences too hard for
+	// the grade.
+	CodeReadability Code = "readability"
 	// CodeNearDuplicate is a question that repeats a task the child has had,
 	// or copies a reference task the model was shown.
 	CodeNearDuplicate Code = "near_duplicate"

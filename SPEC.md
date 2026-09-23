@@ -554,7 +554,7 @@ Four conditions, all deterministic, no judgement of meaning (О-46, R10). For ea
 3. a text is not the catalog's description of its own trap, repeated verbatim;
 4. a text is at least **3 words** long, or **6 characters** for a writing system counted in characters (5.5).
 
-Texts are compared as they read: lowercased, with punctuation and spacing ignored, so that "You missed one pair!" and "you missed one pair." are the same text. A prefix is taken word for word — "Four" does not begin "Fourteen ships" — and character for character in the scripts written without spaces. Words are the runs of letters and digits, so a text of punctuation alone is no words long. An explanation with no text at all is the structure check's to report (5.2), not this one's.
+Texts are compared as they read: lowercased, with punctuation and spacing ignored, so that "You missed one pair!" and "you missed one pair." are the same text. A prefix is taken word for word — "Four" does not begin "Fourteen ships" — and character for character in the scripts written without spaces. Words are counted as the readability check counts them (5.5), so a text of punctuation alone is no words long. An explanation with no text at all is the structure check's to report (5.2), not this one's.
 
 The minimum is the length below which nothing can be said, not the length the product wants: the reference tasks say what went wrong in as few as three words — "Monday is today." — and a check stricter than the examples would teach the model to fail it. The instructions (T36) ask for more — an explanation of about six words that names the child's mistake — and the check refuses only what falls short of saying anything. Every reference task passes this check, and a test holds them to it.
 
@@ -585,6 +585,10 @@ Measured on the `question` only. Two checks, and which of them applies depends o
 
 The unit depends on the script of the text: **words** where words are separated by spaces, **characters** for the scripts written without them — Han, Hiragana, Katakana, Thai, Lao, Khmer, Myanmar, Tibetan. The script is decided by which of them most of the letters belong to.
 
+A **word** is what whitespace separates, as a child reads it: "5-litre" is one word, and so are the `+`, `=` and `-` of "2 + 3 - 1 = 4", which are said aloud. A token of punctuation alone is not a word — the "?" that French sets apart with a space, a dash, a guillemet, the ellipsis of "1 + 3 + ... + 99" — except the hyphen-minus standing alone, which in a task is the minus sign. A **character** is a letter, a digit or a mark; punctuation is not counted. The explanation check (5.3) counts with the same two definitions.
+
+The split differs from the prototype's in one place: it ended a sentence only at a mark followed directly by whitespace, so "Ann says: 'Ben is a liar.' Ben says: …" was one sentence to it and is two here. Twenty-four reference tasks — the knights and liars, who quote each other — are split more finely for that, and none of them measures longer.
+
 | Level | Longest sentence, words | Longest sentence, characters |
 |---|---|---|
 | `1-2` | 20 | 40 |
@@ -594,6 +598,12 @@ The unit depends on the script of the text: **words** where words are separated 
 The word limits are the prototype's, measured on 450 reference tasks (its D38), and extended to `5-6` in 1.1. The character limits are set at twice the word limit by analogy, because nobody has measured them: if an acceptance run in Chinese or Japanese (T62, T63) shows them biting, they move.
 
 **Flesch–Kincaid**, English only: the grade index of the `question` must be at most the child's grade + 3. It applies when the task's language tag has the primary subtag `en`, and to nothing else — the formula counts syllables in English (the prototype's D38 and D42). The margin of +3 is measured: at +1 only 48 % of the grade 1–2 reference tasks passed for a first-grader, and the index is noisy on texts this short.
+
+The margin was measured with the prototype's library (`textstat` 0.7.13), so its counting is kept: words are what is left when punctuation is removed without leaving a gap — "5-litre" is one word, "o'clock" is "oclock" — except the apostrophe of a contraction; sentences are the stretches its own pattern finds, one of two words or fewer not counting. Both come out exactly as the library's on all 450 reference questions. The **syllables** cannot: the library looked each word up in the CMU pronouncing dictionary and hyphenated the rest, and this service carries neither. They are estimated by rule — vowel groups, a y after the first letter counting as a vowel, the silent e of "make" and of "jumped" and "makes", the l or r said as a syllable of its own in "table", "metre", "apples" and "litres", and the i-a of "liar" and i-o of "lion" said apart except in -cial, -tion, -sion and -xion.
+
+**The tolerance** the estimate is held to, against the prototype's own numbers for the 450 reference questions: the grade misses by at most 0.25 on average and leans by at most 0.15 either way; the verdict at each grade of a question's level agrees in at least 97 of 100 of the 900 cases; and the share of tasks passing at each grade moves by at most four points. Measured: 0.205, +0.096, 97.7 %, and at most 3.5 points (79.5 % of the grades 1–2 tasks pass for a first-grader, against the prototype's 83 %). Most of what is left over is the dictionary's rather than the language's — Russian names the dictionary did not have counted as one syllable, "drawer" as one and "hour" as two — and is not chased.
+
+Measured on the reference tasks, the whole check — sentences and Flesch–Kincaid together — passes 76 % of the grades 1–2 tasks for a first-grader, 87 % for a second-grader, 91 % and 92 % of the grades 3–4 tasks for grades 3 and 4. The limits are per grade and the reference tasks per level, so a first-grader is asked for simpler wording than a quarter of the examples the model is shown; that is the prototype's calibration (its D38), kept as it was.
 
 ## 5.6 Near-duplicates
 

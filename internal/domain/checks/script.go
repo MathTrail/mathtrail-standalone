@@ -32,9 +32,10 @@ func Spaceless(text string) bool {
 	return 2*without > letters
 }
 
-// lengthOf is how long a text is, in the unit its script calls for — its words,
-// or its letters and digits — and which unit that was. Punctuation and spacing
-// count for nothing in either, so a text is as long as what it says.
+// lengthOf is how long a text is, in the unit its script calls for, and which
+// unit that was. Where words are separated by spaces, they are counted as a
+// child reads them; where they are not, the letters and digits are, and the
+// punctuation between them is not.
 func lengthOf(text string) (count int, unit string) {
 	if Spaceless(text) {
 		for _, r := range text {
@@ -44,8 +45,20 @@ func lengthOf(text string) (count int, unit string) {
 		}
 		return count, "characters"
 	}
-	return len(strings.FieldsFunc(text, boundary)), "words"
+	for _, token := range strings.Fields(text) {
+		if strings.IndexFunc(token, readAloud) >= 0 {
+			count++
+		}
+	}
+	return count, "words"
 }
+
+// readAloud says whether a character is read out, which is what makes a token
+// between spaces a word: "5-litre" is one word, and so are the "+", "=" and
+// "-" of "2 + 3 - 1 = 4". Punctuation alone is not — the "?" French sets apart
+// with a space, a dash, a guillemet — except the hyphen-minus, which standing
+// alone in a task is the minus sign.
+func readAloud(r rune) bool { return !unicode.IsPunct(r) || r == '-' }
 
 // reading is a text as two texts are compared by what they say: lowercased,
 // and everything that is neither a letter, a digit nor a mark reduced to a

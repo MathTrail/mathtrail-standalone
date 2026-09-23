@@ -40,6 +40,25 @@ type measuredPair struct {
 func readCorpus(t *testing.T) corpus {
 	t.Helper()
 
+	questions := readReferenceQuestions(t)
+	sets := make([]shingles, len(questions))
+	for i, question := range questions {
+		sets[i] = shinglesOf(question.Question)
+	}
+	pairs := make([]measuredPair, 0, len(questions)*(len(questions)-1)/2)
+	for a := range questions {
+		for b := a + 1; b < len(questions); b++ {
+			pairs = append(pairs, measuredPair{a: a, b: b, similarity: sets[a].jaccard(sets[b])})
+		}
+	}
+	return corpus{questions: questions, sets: sets, pairs: pairs}
+}
+
+// readReferenceQuestions reads every reference question from its file, in the
+// order of their ids.
+func readReferenceQuestions(t *testing.T) []referenceQuestion {
+	t.Helper()
+
 	files, err := filepath.Glob(filepath.Join("..", "..", "..", "content", "examples", "*.json"))
 	if err != nil || len(files) == 0 {
 		t.Fatalf("find the reference tasks: %v (%d files)", err, len(files))
@@ -57,18 +76,7 @@ func readCorpus(t *testing.T) corpus {
 		questions = append(questions, tasks...)
 	}
 	slices.SortFunc(questions, func(x, y referenceQuestion) int { return cmp.Compare(x.ID, y.ID) })
-
-	sets := make([]shingles, len(questions))
-	for i, question := range questions {
-		sets[i] = shinglesOf(question.Question)
-	}
-	pairs := make([]measuredPair, 0, len(questions)*(len(questions)-1)/2)
-	for a := range questions {
-		for b := a + 1; b < len(questions); b++ {
-			pairs = append(pairs, measuredPair{a: a, b: b, similarity: sets[a].jaccard(sets[b])})
-		}
-	}
-	return corpus{questions: questions, sets: sets, pairs: pairs}
+	return questions
 }
 
 // goldenCorpus is what Postgres's similarity() said about the reference
