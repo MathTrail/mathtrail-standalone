@@ -89,6 +89,11 @@ ARG GOPLS_VERSION=0.23.0
 ARG DELVE_VERSION=1.27.2
 # Tunnel for live runs against chat hosts.
 ARG CLOUDFLARED_VERSION=2026.9.1
+# The GitHub CLI. Two things about a change live only on github.com and are
+# invisible from inside a container otherwise: the alerts of the code scan,
+# which every task is supposed to close before starting the next one, and
+# whether the delivery that carried the change actually ran.
+ARG GH_VERSION=2.101.0
 # Docker Compose plugin. Installed by us because the docker-in-docker feature cannot pin it;
 # ours in /usr/local/lib/docker/cli-plugins takes precedence over the feature's copy.
 ARG DOCKER_COMPOSE_VERSION=5.5.1
@@ -98,9 +103,10 @@ ARG CLAUDE_CODE_VERSION=2.1.280
 ARG TERRAFORM_VERSION=1.16.3
 ARG GCLOUD_VERSION=585.0.0
 
-# The tunnel, the compose plugin and the infrastructure tools, in one layer and
-# behind one architecture check. Cloudflared and Terraform name architectures the
-# way dpkg does, so they take $arch directly; only compose needs the GNU spelling.
+# The tunnel, the GitHub CLI, the compose plugin and the infrastructure tools, in one
+# layer and behind one architecture check. Cloudflared, gh and Terraform name
+# architectures the way dpkg does, so they take $arch directly; only compose needs the
+# GNU spelling.
 #
 # The x86_64 archive of gcloud carries a Python interpreter of its own and runs
 # straight out of the tarball; the arm one expects to find a system Python, which
@@ -126,6 +132,14 @@ RUN arch="$(dpkg --print-architecture)"; \
     fetch "https://github.com/cloudflare/cloudflared/releases/download/${CLOUDFLARED_VERSION}/cloudflared-linux-${arch}" \
         "$workdir/cloudflared-${CLOUDFLARED_VERSION}-${arch}"; \
     install -m 0755 "$workdir/cloudflared-${CLOUDFLARED_VERSION}-${arch}" /usr/local/bin/cloudflared; \
+    \
+    echo "gh ${GH_VERSION}"; \
+    fetch "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_${arch}.tar.gz" \
+        "$workdir/gh-${GH_VERSION}-${arch}.tar.gz"; \
+    tar -C "$workdir" --strip-components=2 \
+        -xzf "$workdir/gh-${GH_VERSION}-${arch}.tar.gz" \
+        "gh_${GH_VERSION}_linux_${arch}/bin/gh"; \
+    install -m 0755 "$workdir/gh" /usr/local/bin/gh; \
     \
     echo "docker compose ${DOCKER_COMPOSE_VERSION}"; \
     install -d -m 0755 /usr/local/lib/docker/cli-plugins; \
@@ -176,4 +190,4 @@ RUN echo "gopls ${GOPLS_VERSION}, dlv ${DELVE_VERSION}, claude code ${CLAUDE_COD
 # once it is built, and the one thing that does — the docker daemon started by
 # the docker-in-docker feature — asks for root through sudo itself.
 USER vscode
-RUN mkdir -p /home/vscode/.claude /home/vscode/.config/gcloud
+RUN mkdir -p /home/vscode/.claude /home/vscode/.config/gcloud /home/vscode/.config/gh

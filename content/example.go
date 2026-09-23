@@ -35,7 +35,13 @@ type Example struct {
 	Distractors map[string]Distractor `json:"distractors"`
 	// Solver is the Starlark program that brute-forces this very task, which is
 	// what makes the example re-checkable rather than merely plausible.
-	Solver string `json:"solver,omitempty"`
+	//
+	// It is read from a file of its own beside the tasks rather than from this
+	// one, so that a program is stored as a program: readable, diffable a line
+	// at a time, and written without escaping every newline. The field is
+	// therefore not part of the task's JSON — a `solver` written there is
+	// ignored, which is why it is refused outright.
+	Solver string `json:"-"`
 }
 
 // Distractor is one wrong option: the mistake it comes from, and what the child
@@ -71,6 +77,8 @@ type DrawingRelation struct {
 const (
 	examplesDir        = "examples"
 	examplesSuffix     = ".json"
+	solversDir         = "solvers"
+	solverSuffix       = ".star"
 	minDifficulty      = 1
 	maxDifficulty      = 5
 	distractorsPerTask = 4
@@ -84,9 +92,10 @@ var optionLetters = []string{"A", "B", "C", "D", "E"}
 var exampleIDPattern = regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*$`)
 
 // loadExamples reads every file of reference tasks, one file per topic named
-// after it, and refuses a task that could not be used as an example: one whose
-// options a child could not tell apart, one whose trap is in no catalog, one
-// offered at a level its topic is not taught at.
+// after it, gives each task the solver stored beside it, and refuses a task that
+// could not be used as an example: one whose options a child could not tell
+// apart, one whose trap is in no catalog, one offered at a level its topic is
+// not taught at.
 func loadExamples(src fs.FS, topics map[string]Topic, traps map[string]Trap) ([]Example, error) {
 	entries, err := fs.ReadDir(src, examplesDir)
 	if err != nil {
@@ -99,40 +108,110 @@ func loadExamples(src fs.FS, topics map[string]Topic, traps map[string]Trap) ([]
 		seen   = make(map[string]bool)
 	)
 	for _, entry := range entries {
-		file := examplesDir + "/" + entry.Name()
-		p := &problems{file: file}
-
-		topic, named := strings.CutSuffix(entry.Name(), examplesSuffix)
-		switch {
-		case entry.IsDir():
-			p.addf("reference tasks live in files, one per topic, not in directories")
-		case !named:
-			p.addf("a file of reference tasks is named after its topic and ends in %s", examplesSuffix)
-		default:
-			if _, known := topics[topic]; !known {
-				p.addf("%q is not a topic in the catalog, so no task here can be used", topic)
-			}
-		}
-		if err := p.err(); err != nil {
-			faults = append(faults, err)
-			continue
+		if entry.IsDir() && entry.Name() == solversDir {
+			continue // the solvers of these tasks, attached once every task is read
 		}
 
-		var tasks []Example
-		if err := decode(src, file, &tasks); err != nil {
-			faults = append(faults, err)
-			continue
-		}
-		check := exampleCheck{topic: topic, topics: topics, traps: traps, seen: seen}
-		for i := range tasks {
-			check.run(p, i, &tasks[i])
-		}
-		if err := p.err(); err != nil {
+		tasks, err := loadTopicExamples(src, entry, topics, traps, seen)
+		if err != nil {
 			faults = append(faults, err)
 		}
 		all = append(all, tasks...)
 	}
+
+	if err := attachSolvers(src, all); err != nil {
+		faults = append(faults, err)
+	}
 	return all, errors.Join(faults...)
+}
+
+// loadTopicExamples reads the reference tasks of one topic from the file named
+// after it, and reports everything wrong with them at once. Tasks that were read
+// are returned even when some of them are faulty, so that an id taken by a
+// broken task is still an id the next file cannot take.
+func loadTopicExamples(
+	src fs.FS,
+	entry fs.DirEntry,
+	topics map[string]Topic,
+	traps map[string]Trap,
+	seen map[string]bool,
+) ([]Example, error) {
+	file := examplesDir + "/" + entry.Name()
+	p := &problems{file: file}
+
+	topic, named := strings.CutSuffix(entry.Name(), examplesSuffix)
+	switch {
+	case entry.IsDir():
+		p.addf("reference tasks live in files, one per topic, not in directories")
+	case !named:
+		p.addf("a file of reference tasks is named after its topic and ends in %s", examplesSuffix)
+	default:
+		if _, known := topics[topic]; !known {
+			p.addf("%q is not a topic in the catalog, so no task here can be used", topic)
+		}
+	}
+	if err := p.err(); err != nil {
+		return nil, err
+	}
+
+	var tasks []Example
+	if err := decode(src, file, &tasks); err != nil {
+		return nil, err
+	}
+	check := exampleCheck{topic: topic, topics: topics, traps: traps, seen: seen}
+	for i := range tasks {
+		check.run(p, i, &tasks[i])
+	}
+	return tasks, p.err()
+}
+
+// attachSolvers gives each reference task the Starlark program that brute-forces
+// it, read from the file named after the task.
+//
+// The two halves hold each other together from both ends. A task whose file is
+// missing simply has no solver, and the bench that runs them all refuses that; a
+// file belonging to no task is refused here, because nothing would ever run it
+// and nobody would notice.
+func attachSolvers(src fs.FS, tasks []Example) error {
+	dir := examplesDir + "/" + solversDir
+	entries, err := fs.ReadDir(src, dir)
+	if err != nil {
+		return fmt.Errorf("content: read %s: %w", dir, err)
+	}
+
+	byID := make(map[string]*Example, len(tasks))
+	for i := range tasks {
+		byID[tasks[i].ID] = &tasks[i]
+	}
+
+	p := &problems{file: dir}
+	for _, entry := range entries {
+		id, named := strings.CutSuffix(entry.Name(), solverSuffix)
+		switch {
+		case entry.IsDir():
+			p.addf("%s: a solver is a file, not a directory", entry.Name())
+			continue
+		case !named:
+			p.addf("%s: a solver is named after its task and ends in %s", entry.Name(), solverSuffix)
+			continue
+		}
+
+		task, known := byID[id]
+		if !known {
+			p.addf("%s: no reference task is called %q, so this solver would never run", entry.Name(), id)
+			continue
+		}
+		program, err := fs.ReadFile(src, dir+"/"+entry.Name())
+		if err != nil {
+			return fmt.Errorf("content: read %s/%s: %w", dir, entry.Name(), err)
+		}
+		if strings.TrimSpace(string(program)) == "" {
+			p.addf("%s: the solver is empty", entry.Name())
+			continue
+		}
+		task.Solver = string(program)
+	}
+	return p.err()
 }
 
 // exampleCheck is what one reference task is measured against: the topic of the

@@ -539,7 +539,7 @@
       },
       "D": {
         "trap": "ignored_condition",
-        "text": "The pattern repeats every 3 beads."
+        "text": "The pattern is fixed, so the colour of any bead can be worked out."
       }
     }
   },
@@ -947,7 +947,7 @@
       },
       "E": {
         "trap": "ignored_condition",
-        "text": "The pattern repeats every 3 beads."
+        "text": "The beads follow a fixed pattern, so the colour of the 50th bead can be found."
       }
     }
   },
@@ -1015,7 +1015,7 @@
       },
       "E": {
         "trap": "ignored_condition",
-        "text": "The colours repeat every 4 times."
+        "text": "The colours follow a fixed order, so the 30th one can be worked out."
       }
     }
   },

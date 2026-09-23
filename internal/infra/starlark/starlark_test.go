@@ -15,7 +15,7 @@ var options = solver.Options{"4", "5", "6", "8", "12"}
 
 // limits are what a run gets unless a test is about a limit itself.
 func limits() starlark.Limits {
-	return starlark.Limits{Steps: 10_000_000, Timeout: 2 * time.Second, Concurrency: 4}
+	return starlark.Limits{Steps: 25_000_000, Timeout: 2 * time.Second, Concurrency: 4}
 }
 
 func sandbox(t *testing.T, limits starlark.Limits) solver.Runner {
@@ -163,7 +163,7 @@ func TestRun(t *testing.T) {
 		},
 		{
 			// Which of the two limits ends it depends on how fast the machine
-			// is: the same ten million steps take a fraction of the clock on
+			// is: the same twenty-five million steps take a fraction of the clock on
 			// one and more than all of it on another. Both are a timeout, and
 			// which one says so is settled where each is tested on its own.
 			name:   "a loop with no end",

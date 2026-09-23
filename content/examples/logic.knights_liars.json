@@ -29,7 +29,7 @@
       },
       "E": {
         "trap": "trusted_statement",
-        "text": "Both can say it: a knight truthfully, a liar falsely."
+        "text": "'I am not a liar' means the same as 'I am a knight', so both a knight and a liar can say it."
       }
     }
   },
@@ -395,7 +395,7 @@
       },
       "C": {
         "trap": "off_by_one",
-        "text": "Knights and liars take turns around the table, so there are as many knights as liars."
+        "text": "With only 1 knight, some liar would have a liar on the left and would be telling the truth."
       },
       "D": {
         "trap": "off_by_one",
@@ -735,7 +735,7 @@
       },
       "B": {
         "trap": "off_by_one",
-        "text": "Knights and liars take turns, and 12 is even: there are 6 of each."
+        "text": "7 knights would put two knights in a row, but a knight always stands right after a liar."
       },
       "C": {
         "trap": "number_from_text",

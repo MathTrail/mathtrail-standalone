@@ -21,7 +21,7 @@ const solverScope = "github.com/MathTrail/mathtrail-standalone/internal/domain/s
 // question the numbers have to answer is how close the walks come to the
 // ceiling — so the buckets thin out at the bottom and crowd towards it.
 var stepBuckets = []float64{
-	1_000, 10_000, 100_000, 500_000, 1_000_000, 2_500_000, 5_000_000, 10_000_000,
+	1_000, 10_000, 100_000, 500_000, 1_000_000, 2_500_000, 5_000_000, 10_000_000, 25_000_000,
 }
 
 // observedSolver reports what each run cost, and passes the run through

@@ -1,6 +1,9 @@
 package content
 
 import (
+	"encoding/json"
+	"io/fs"
+	"strings"
 	"testing"
 	"testing/fstest"
 )
@@ -11,10 +14,21 @@ const (
 )
 
 // withExamples puts one file of reference tasks in place of the real one, so
-// that a test is looking at the tasks it wrote and nothing else.
+// that a test is looking at the tasks it wrote and nothing else. The solvers of
+// the tasks it replaces go with them: they prove answers to questions that are
+// no longer there.
 func withExamples(t *testing.T, src fstest.MapFS, file string, tasks ...Example) {
 	t.Helper()
 
+	var replaced []Example
+	if existing, there := src[file]; there {
+		if err := json.Unmarshal(existing.Data, &replaced); err != nil {
+			t.Fatalf("read the reference tasks of %s: %v", file, err)
+		}
+	}
+	for i := range replaced {
+		delete(src, solverFile(replaced[i].ID))
+	}
 	src[file] = asFile(t, tasks)
 }
 
@@ -294,4 +308,153 @@ func TestCloningATaskCopiesItsDrawing(t *testing.T) {
 	if got := structure.Relations[0].Type; got != "left_of" {
 		t.Errorf("relation = %q, want it untouched at %q", got, "left_of")
 	}
+}
+
+// The reference tasks sit in one file per topic, beside the directory of their
+// solvers. Anything else there is a mistake nobody would otherwise notice: tasks
+// in a directory of their own, or in a file that is never read as tasks.
+func TestSomethingElseAmongTheReferenceTasksStopsTheService(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name, file, want string
+	}{
+		{"tasks in a directory of their own", examplesDir + "/counting/counting.gaps.json",
+			"reference tasks live in files, one per topic, not in directories"},
+		{"a file that is not a topic's", examplesDir + "/notes.md",
+			"a file of reference tasks is named after its topic and ends in .json"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			src := contentCopy(t)
+			src[tc.file] = &fstest.MapFile{Data: []byte("[]\n")}
+			wantProblem(t, src, tc.want)
+		})
+	}
+}
+
+// solverFile is where the program that proves one task's answer lives.
+func solverFile(id string) string {
+	return examplesDir + "/" + solversDir + "/" + id + solverSuffix
+}
+
+func TestATaskIsGivenTheSolverStoredBesideIt(t *testing.T) {
+	t.Parallel()
+
+	src := contentCopy(t)
+	withExamples(t, src, gapsFile, validExample())
+	src[solverFile("gaps-posts-test")] = &fstest.MapFile{
+		Data: []byte("def solve(options):\n    return match(options, 3)\n"),
+	}
+
+	loaded, err := load(src)
+	if err != nil {
+		t.Fatalf("load: %v", err)
+	}
+	for _, task := range loaded.Examples() {
+		if task.ID != "gaps-posts-test" {
+			continue
+		}
+		if want := "match(options, 3)"; !strings.Contains(task.Solver, want) {
+			t.Fatalf("solver = %q, want one containing %q", task.Solver, want)
+		}
+		return
+	}
+	t.Fatal("the task was not loaded at all")
+}
+
+// A solver naming no task is how a rename half-done looks: the program is still
+// there, and nothing would ever run it again.
+func TestASolverBelongingToNoTaskStopsTheService(t *testing.T) {
+	t.Parallel()
+
+	src := contentCopy(t)
+	src[solverFile("gaps-posts-renamed")] = &fstest.MapFile{Data: []byte("def solve(options):\n    return []\n")}
+	wantProblem(t, src, `no reference task is called "gaps-posts-renamed"`)
+}
+
+func TestAnEmptySolverStopsTheService(t *testing.T) {
+	t.Parallel()
+
+	src := contentCopy(t)
+	withExamples(t, src, gapsFile, validExample())
+	src[solverFile("gaps-posts-test")] = &fstest.MapFile{Data: []byte("\n   \n")}
+	wantProblem(t, src, "gaps-posts-test.star: the solver is empty")
+}
+
+func TestASolverNotNamedAfterATaskStopsTheService(t *testing.T) {
+	t.Parallel()
+
+	src := contentCopy(t)
+	src[examplesDir+"/"+solversDir+"/notes.txt"] = &fstest.MapFile{Data: []byte("a note\n")}
+	wantProblem(t, src, "notes.txt: a solver is named after its task and ends in .star")
+}
+
+func TestSolversInDirectoriesOfTheirOwnStopTheService(t *testing.T) {
+	t.Parallel()
+
+	src := contentCopy(t)
+	src[examplesDir+"/"+solversDir+"/counting.gaps/gaps-posts-test.star"] = &fstest.MapFile{
+		Data: []byte("def solve(options):\n    return []\n"),
+	}
+	wantProblem(t, src, "counting.gaps: a solver is a file, not a directory")
+}
+
+// The solvers are part of the content: without their directory no reference task
+// can prove its answer, and a binary like that is not one to serve from.
+func TestContentWithoutItsSolversStopsTheService(t *testing.T) {
+	t.Parallel()
+
+	src := contentCopy(t)
+	for name := range src {
+		if strings.HasPrefix(name, examplesDir+"/"+solversDir+"/") {
+			delete(src, name)
+		}
+	}
+	wantProblem(t, src, "content: read "+examplesDir+"/"+solversDir)
+}
+
+// unreadable is the content with one file that is listed and cannot be read, as
+// a file the process has no permission for would be — the one failure a copy
+// in memory cannot show by itself.
+type unreadable struct {
+	fstest.MapFS
+	name string
+}
+
+func (u unreadable) Open(name string) (fs.File, error) {
+	if name == u.name {
+		return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrPermission}
+	}
+	return u.MapFS.Open(name)
+}
+
+func (u unreadable) ReadFile(name string) ([]byte, error) {
+	if name == u.name {
+		return nil, &fs.PathError{Op: "read", Path: name, Err: fs.ErrPermission}
+	}
+	return u.MapFS.ReadFile(name)
+}
+
+// A solver that is there and cannot be read stops the service, rather than
+// leaving its task without the program that proves it.
+func TestASolverThatCannotBeReadStopsTheService(t *testing.T) {
+	t.Parallel()
+
+	src := contentCopy(t)
+	withExamples(t, src, gapsFile, validExample())
+	src[solverFile("gaps-posts-test")] = &fstest.MapFile{Data: []byte("def solve(options):\n    return []\n")}
+	wantProblem(t, unreadable{MapFS: src, name: solverFile("gaps-posts-test")},
+		"content: read "+solverFile("gaps-posts-test"))
+}
+
+// The program used to be a field of the task, and a copy left there would be a
+// second source of truth that nothing reads.
+func TestASolverWrittenIntoTheTaskStopsTheService(t *testing.T) {
+	t.Parallel()
+
+	src := contentCopy(t)
+	src[gapsFile] = &fstest.MapFile{Data: []byte(`[{"id":"gaps-posts-test","solver":"def solve(options):\n    return []\n"}]`)}
+	wantProblem(t, src, `unknown field "solver"`)
 }

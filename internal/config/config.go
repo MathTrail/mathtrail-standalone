@@ -51,7 +51,7 @@ const (
 	DefaultIdleTimeout       = 120 * time.Second
 	DefaultShutdownTimeout   = 10 * time.Second
 
-	DefaultSolverSteps       = 10_000_000
+	DefaultSolverSteps       = 25_000_000
 	DefaultSolverTimeout     = 2 * time.Second
 	DefaultSolverConcurrency = 4
 

@@ -1,10 +1,13 @@
 package logger
 
 import (
+	"bytes"
 	"encoding/json"
+	"strings"
 	"testing"
 	"time"
 
+	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -127,5 +130,49 @@ func TestConfigurationDecisions(t *testing.T) {
 				t.Errorf("ErrorOutputPaths = %v, want [stderr]", cfg.ErrorOutputPaths)
 			}
 		})
+	}
+}
+
+// A request carries its own path into a log line, and the code scan is right
+// that this is user input reaching a log. What it cannot see is the thing that
+// makes it harmless: the encoder.
+//
+// The attack a scanner has in mind is a caller ending the line they are in and
+// starting one of their own — a path of "/x\n{severity: ERROR, …}" becoming a
+// second entry that nobody wrote. A JSON encoder escapes the newline, so the
+// forgery stays inside the string it arrived in, and the fields it tried to
+// forge keep the values this service gave them.
+//
+// This is the test that holds the encoder to that. Swap it for one that does
+// not escape and the alert stops being theoretical.
+func TestAFieldCannotForgeASecondLine(t *testing.T) {
+	t.Parallel()
+
+	var written bytes.Buffer
+	log := zap.New(zapcore.NewCore(
+		zapcore.NewJSONEncoder(cloudRunEncoderConfig()),
+		zapcore.AddSync(&written),
+		zapcore.DebugLevel,
+	))
+
+	forged := "/x\n{\"severity\":\"ERROR\",\"message\":\"a line nobody wrote\"}"
+	log.Info("http_request", zap.String("path", forged))
+
+	if extra := strings.Count(strings.TrimRight(written.String(), "\n"), "\n"); extra != 0 {
+		t.Errorf("the log holds %d lines, want exactly one", extra+1)
+	}
+
+	var entry map[string]any
+	if err := json.Unmarshal(written.Bytes(), &entry); err != nil {
+		t.Fatalf("what was written is not one JSON object: %v", err)
+	}
+	if entry["path"] != forged {
+		t.Errorf("path = %q, want it kept whole and escaped", entry["path"])
+	}
+	if entry["message"] != "http_request" {
+		t.Errorf("message = %q, want the forgery unable to replace it", entry["message"])
+	}
+	if entry["severity"] != "INFO" {
+		t.Errorf("severity = %q, want the forgery unable to raise it", entry["severity"])
 	}
 }

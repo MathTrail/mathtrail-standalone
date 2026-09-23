@@ -1,0 +1,23 @@
+PAIR = {
+    (True, True): "Both are knights",
+    (False, False): "Both are liars",
+    (True, False): "Ann is a knight, Ben is a liar",
+    (False, True): "Ann is a liar, Ben is a knight",
+}
+
+def verdict(answers):
+    # Every way of being knights and liars that fits what was said gives one
+    # answer; when they give different ones, the words do not settle it.
+    if len(answers) == 0:
+        fail("no mix of knights and liars can say all of this")
+    return list(answers)[0] if len(answers) == 1 else "It is impossible to tell"
+
+def solve(options):
+    answers = set()
+    for ann, ben in product([True, False], repeat=2):
+        ann_says = 2 + 2 == 5  # '2 + 2 = 5.'
+        ben_says = ann  # 'Ann is a knight.'
+        # A knight's words are true and a liar's are false.
+        if ann_says == ann and ben_says == ben:
+            answers.add(PAIR[(ann, ben)])
+    return match(options, verdict(answers))

@@ -76,7 +76,7 @@ func TestAFailedProgramIsNotAFailedSpan(t *testing.T) {
 
 	watched, spans, _ := observedRunner(t, &fakeRunner{result: solver.Result{
 		Status: solver.StatusTimeout,
-		Steps:  10_000_000,
+		Steps:  25_000_000,
 	}})
 
 	if _, err := watched.Run(t.Context(), "while True: pass", solver.Options{}); err != nil {

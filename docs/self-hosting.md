@@ -88,6 +88,8 @@ A push to `main` — or the workflow started by hand from any branch — runs th
 
 A pull request that touches `infra/` gets a `terraform plan` in its summary instead, so what the cloud is about to become is reviewable before the merge.
 
+**Give the telemetry twenty minutes.** On a project that has never received traces or metrics, enabling the APIs is all it takes, but the storage behind them is provisioned after the first data arrives rather than before. Until that finishes, reading a trace answers `_Trace bucket not found in project …` and the metrics are nowhere in Monitoring — which reads like a permanent fault and is not one. Nothing needs clicking; the service will have reported no error, because none of it failed.
+
 ## 7. Leave one entrance
 
 Once the domain answers, withdraw the platform's own address for the service, so that there is one way in and one issuer of tokens: set `disable_default_url = true` in `prod.auto.tfvars` and merge. It is a step of its own because Cloud Run asks for the domain to be mapped before its own address is withdrawn — and until the certificate exists, that address is the only way to reach anything at all.

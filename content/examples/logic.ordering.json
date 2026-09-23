@@ -569,7 +569,7 @@
       },
       "D": {
         "trap": "reversed_relation",
-        "text": "Nora is the oldest."
+        "text": "You picked the oldest girl, and the question asks for the youngest."
       },
       "E": {
         "trap": "stopped_early",

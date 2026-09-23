@@ -143,10 +143,11 @@ Reference tasks are few-shot examples: they show the model the shape, the style 
     "B": { "trap": "off_by_one", "text": "…" },
     "C": { "trap": "missed_case", "text": "…" },
     "E": { "trap": "ignored_condition", "text": "…" }
-  },
-  "solver": "…"
+  }
 }
 ```
+
+The solver is not one of these fields. It is a file of its own, `content/examples/solvers/<id>.star`, named after the task it proves, and the loader attaches it as the task is read — so a program is stored as a program: indented, syntax-highlighted, and changed a line at a time rather than as one escaped string several hundred characters wide. The two halves are held together from both ends: a file naming no task is refused at load, and a task with no file is refused by the bench (6.8).
 
 | Field | Required | Notes |
 |---|---|---|
@@ -159,7 +160,7 @@ Reference tasks are few-shot examples: they show the model the shape, the style 
 | `hint` | new tasks only | A nudge that does not give the answer away. The 450 ported tasks have none; the format the model must produce always does |
 | `solution` | yes | Short, step by step |
 | `distractors` | yes | One entry per wrong option: a trap id from the catalog and the text the child sees after answering |
-| `solver` | yes, after T29–T31 | The Starlark program that brute-forces this very task. It makes every example re-checkable on the bench, and it is not what goes into the package — the model is shown the generalised templates of `content/solvers/` instead (R08) |
+| the solver | yes, after T29–T31 | A file beside the tasks, not a field: `content/examples/solvers/<id>.star`. The Starlark program that brute-forces this very task. It makes every example re-checkable on the bench, and it is not what goes into the package — the model is shown the generalised templates of `content/solvers/` instead (R08) |
 
 **Nobody else's wording, anywhere.** The ideas come from open sources; the text is ours (the prototype's D23 and research/12). Ideas are not protected by copyright, wordings are.
 
@@ -468,7 +469,7 @@ The model draws, following the rules in the instructions (О-11); the service ch
 - draw only when the wording genuinely needs it, and never to decorate;
 - a number line, a grid, a balance, a pouring diagram, a clock face — the recurring subjects have ready frames in the package (О-44), and a frame is a starting point, not an obligation;
 - keep it inside the limits of 5.4: they are what a phone can show;
-- label the objects the question names, with the same labels, in the same alphabet;
+- label the objects the question names, with the same labels, in the same alphabet, and name them in the wording with Latin capitals — point A, segment AB, triangle ABC — which is what the check reads (5.4);
 - no colour, no trailing spaces, no decoration characters outside the allowed set.
 
 **`drawing_structure`** — the same picture as data, so the service can compare it with the wording without understanding either:
@@ -533,11 +534,11 @@ A check whose input is missing does not run and is reported as blocked: with no 
 Mechanical, and all of it deterministic:
 
 - the submission matches the schema: every required field present, of the right type, non-empty where a string is expected;
-- exactly five options, `A`–`E`, and all five texts different after trimming;
+- exactly five options, `A`–`E`, and all five texts different after trimming and folding case — "Six" and " six " read the same to a child;
 - `correct_answer` is one of them;
 - `distractors` has exactly the four other letters, no more and no fewer;
 - every `trap` is an id from the catalog; `target_concept` is a topic id; every entry of `excluded_skills` is a skill id;
-- the brief's `target_concept` and `difficulty` match what the open request recorded, unless the model declared an override with a reason (section 3.4);
+- the brief's `target_concept` and `difficulty` match what the open request recorded. A model that wants others declares them with a reason when it asks for the task (section 3.4), and the request records that choice, so the brief handed back has one thing to agree with;
 - `excluded_skills` is the profile's list entire — the model may add to it, never remove;
 - `hint` and `solution` are present and non-empty;
 - the self-check is present with all three of its fields.
@@ -551,26 +552,32 @@ Four conditions, all deterministic, no judgement of meaning (О-46, R10). For ea
 1. the four texts are pairwise different;
 2. a text is neither equal to nor a prefix of the `solution` or the `hint`;
 3. a text is not the catalog's description of its own trap, repeated verbatim;
-4. a text is at least **6 words** long, or **12 characters** for a writing system counted in characters (5.5).
+4. a text is at least **3 words** long, or **6 characters** for a writing system counted in characters (5.5).
 
-Anything cleverer — "is this explanation meaningful?" — needs a judgement the service cannot make without an LLM call it is not allowed to make, and a wrong guess costs the child another attempt (О-46). The refusal names the option and the condition.
+Texts are compared as they read: lowercased, with punctuation and spacing ignored, so that "You missed one pair!" and "you missed one pair." are the same text. A prefix is taken word for word — "Four" does not begin "Fourteen ships" — and character for character in the scripts written without spaces. Words are counted as the readability check counts them (5.5), so a text of punctuation alone is no words long. An explanation with no text at all is the structure check's to report (5.2), not this one's.
+
+The minimum is the length below which nothing can be said, not the length the product wants: the reference tasks say what went wrong in as few as three words — "Monday is today." — and a check stricter than the examples would teach the model to fail it. The instructions (T36) ask for more — an explanation of about six words that names the child's mistake — and the check refuses only what falls short of saying anything. Every reference task passes this check, and a test holds them to it.
+
+Anything cleverer — "is this explanation meaningful?" — needs a judgement the service cannot make without an LLM call it is not allowed to make, and a wrong guess costs the child another attempt (О-46). The refusal names the condition and points at the explanation by its **trap**, never by its option's letter: the letters of the explanations that failed would name wrong options, and four of them the right one (5.1). The trap is the model's own choice and enough to find the text; where two explanations share a trap, the model checks both.
 
 ## 5.4 The drawing: format and match
 
-Applies only when `drawing` is present. **Every limit here is conservative until T58 calibrates it on real widgets** (О-11а); they are configuration, not constants in the code.
+Applies only when `drawing` is present. **Every limit here is conservative until T58 calibrates it on real widgets** (О-11а). They are set in one place, `checks.DefaultDrawingLimits`, and the check is handed them rather than reading them, so a calibration can try others (11.1).
 
 **Format** — `drawing_format`:
 
 | Limit | Value until T58 | Why |
 |---|---|---|
-| Width | **30 screen cells** | T03 rendered 30 cells legibly on a phone card 353 px wide, with no horizontal scrolling. A cell is one East Asian *narrow* character; a wide one counts as two |
+| Width | **30 screen cells** | T03 rendered 30 cells legibly on a phone card 353 px wide, with no horizontal scrolling. A cell is one East Asian *narrow* character; a wide one counts as two, and an ambiguous one — most of box drawing, block elements, arrows and shapes — as one, the way monospaced fonts outside East Asia draw it (R60) |
 | Height | **12 lines** | Fits a card without pushing the buttons off a phone screen |
 | Allowed characters | ASCII U+0020–U+007E, box drawing U+2500–U+257F, block elements U+2580–U+259F, geometric shapes U+25A0–U+25FF, arrows U+2190–U+21FF, plus `\n` | Everything a frame needs and nothing that renders differently from font to font |
-| Forbidden outright | control characters other than `\n`, tab, bidi controls (U+200E, U+200F, U+202A–U+202E, U+2066–U+2069), zero-width characters (U+200B–U+200D, U+FEFF), non-breaking and typographic spaces (U+00A0, U+2000–U+200A, U+3000), combining marks | They make the drawing look different to the checker and to the child, which is the whole attack surface of a text picture |
+| Forbidden outright | control characters other than `\n`, tab, bidi controls (every character with the Bidi_Control property: U+061C, U+200E, U+200F, U+202A–U+202E, U+2066–U+2069), other invisible format characters (category Cf, the zero-width U+200B–U+200D and U+FEFF among them), spaces other than U+0020 (category Zs: U+00A0, U+2000–U+200A, U+202F, U+205F, U+3000), combining marks (category M) | They make the drawing look different to the checker and to the child, which is the whole attack surface of a text picture |
 | Runs of spaces | at most 20 in a row | A drawing held together by a long run of spaces falls apart in any proportional fallback font |
 | Trailing whitespace | none | It survives no round trip and breaks alignment |
 
-**Match** — `drawing_mismatch`: every label the wording names must be an object in `drawing_structure`, and every label in `drawing_structure` must appear in the `drawing` text. A label is a token the wording marks as one — a single Latin capital, a digit or a short quoted name. What the check cannot do is decide whether the picture *means* what the wording says; that is the self-check's job, and О-37 deliberately gave it no code of its own.
+A newline at the very end of a drawing closes its last line rather than opening another. Each rule a drawing breaks is one refusal, naming the lines it breaks it on — the first five, and how many more — and, for the characters, their code points, the only name an invisible character has.
+
+**Match** — `drawing_mismatch`: every label in `drawing_structure` must appear in the `drawing` text as a whole, with no letter or digit joined to it — "A" is not found in "BAR", nor "1" in "12" — and every label the wording names must be an object in `drawing_structure`. What the wording names is read conservatively, because a refusal for a label that was never one costs the child an attempt (R59). A label there is a Latin capital standing apart from any word, not joined to it by a letter, a digit, an apostrophe or a hyphen ("T-shirt", "O'Neil"). A lone capital is a label except at the start of a sentence, of a quotation or after a colon, where it may be the English "A"; except the English "I"; and except straight after a number, where it is a unit ("a 3 L jug", "30 °C"). Capitals written together — the AB of a segment, the ABC of a triangle — are a label each when most of their letters are labels the structure declares, and a word in capitals otherwise ("NOT"). Numbers and quotations are not read: over the 450 reference questions, 351 hold a number, 110 hold a lone capital — nearly always the article "A" — and all 21 short quotations are speech, while under this rule a single question names labels, the X, Y and Z of a locker code. A refusal names the labels themselves: they are the wording's own words and say nothing about which option is right. What the check cannot do is decide whether the picture *means* what the wording says; that is the self-check's job, and О-37 deliberately gave it no code of its own.
 
 ## 5.5 Readability, across writing systems
 
@@ -579,6 +586,10 @@ Measured on the `question` only. Two checks, and which of them applies depends o
 **The longest sentence**, in every language. Sentences are split on a sentence-ending mark followed by optional closing quotes or brackets and then whitespace or the end of the text; for scripts whose punctuation is not followed by a space, the mark alone ends the sentence. The marks: `.` `!` `?` `…` `。` `！` `？` `؟` `۔` `।` `॥` `።` `፨`.
 
 The unit depends on the script of the text: **words** where words are separated by spaces, **characters** for the scripts written without them — Han, Hiragana, Katakana, Thai, Lao, Khmer, Myanmar, Tibetan. The script is decided by which of them most of the letters belong to.
+
+A **word** is what whitespace separates, as a child reads it: "5-litre" is one word, and so are the `+`, `=` and `-` of "2 + 3 - 1 = 4", which are said aloud. A token of punctuation alone is not a word — the "?" that French sets apart with a space, a dash, a guillemet, the ellipsis of "1 + 3 + ... + 99" — except the hyphen-minus standing alone, which in a task is the minus sign. A **character** is a letter, a digit or a mark; punctuation is not counted. The explanation check (5.3) counts with the same two definitions.
+
+The split differs from the prototype's in one place: it ended a sentence only at a mark followed directly by whitespace, so "Ann says: 'Ben is a liar.' Ben says: …" was one sentence to it and is two here. Twenty-four reference tasks — the knights and liars, who quote each other — are split more finely for that, and none of them measures longer.
 
 | Level | Longest sentence, words | Longest sentence, characters |
 |---|---|---|
@@ -590,22 +601,30 @@ The word limits are the prototype's, measured on 450 reference tasks (its D38), 
 
 **Flesch–Kincaid**, English only: the grade index of the `question` must be at most the child's grade + 3. It applies when the task's language tag has the primary subtag `en`, and to nothing else — the formula counts syllables in English (the prototype's D38 and D42). The margin of +3 is measured: at +1 only 48 % of the grade 1–2 reference tasks passed for a first-grader, and the index is noisy on texts this short.
 
+The margin was measured with the prototype's library (`textstat` 0.7.13), so its counting is kept: words are the pieces between whitespace that hold a letter, a digit or an underscore — the library took the punctuation out before it split, which never joins two pieces or splits one, so "5-litre" and "o'clock" are one word each and a dash standing alone is none; sentences are the stretches its own pattern finds, one of two words or fewer not counting. Both come out exactly as the library's on all 450 reference questions. The **syllables** cannot: the library looked each word up in the CMU pronouncing dictionary and hyphenated the rest, and this service carries neither. They are estimated by rule — vowel groups, a y after the first letter counting as a vowel, the silent e of "make" and of "jumped" and "makes", the l or r said as a syllable of its own in "table", "metre", "apples" and "litres", and the i-a of "liar" and i-o of "lion" said apart except in -cial, -tion, -sion and -xion. The few English words spelled with accents are read by what the accent says: an accented vowel is still a vowel, a diaeresis says it apart from the vowel before it ("naïve", "coöperate", "Zoë"), and an accented e is never silent ("café", "résumés") — whether the accent is written into its letter or after it as a mark of its own. An acute accent after a vowel is not taken to split the two: it does in French ("Chloé") and not in Irish ("Seán").
+
+**The tolerance** the estimate is held to, against the prototype's own numbers for the 450 reference questions: the grade misses by at most 0.25 on average and leans by at most 0.15 either way; the verdict at each grade of a question's level agrees in at least 97 of 100 of the 900 cases; and the share of tasks passing at each grade moves by at most four points. Measured: 0.205, +0.096, 97.7 %, and at most 3.5 points (79.5 % of the grades 1–2 tasks pass for a first-grader, against the prototype's 83 %). Most of what is left over is the dictionary's rather than the language's — Russian names the dictionary did not have counted as one syllable, "drawer" as one and "hour" as two — and is not chased.
+
+Measured on the reference tasks, the whole check — sentences and Flesch–Kincaid together — passes 76 % of the grades 1–2 tasks for a first-grader, 87 % for a second-grader, 91 % and 92 % of the grades 3–4 tasks for grades 3 and 4. The limits are per grade and the reference tasks per level, so a first-grader is asked for simpler wording than a quarter of the examples the model is shown; that is the prototype's calibration (its D38), kept as it was.
+
 ## 5.6 Near-duplicates
 
 The promise that "the tasks do not run out" (PRODUCT 1) is checked from the other side: a new task must not be a near-repeat of one this child has already seen, or of a reference task the model was shown.
 
-**The measure** is the one the prototype used, in a form that works without a database: the `question` is lowercased, every non-alphanumeric character becomes a space, each word is padded with two leading spaces and one trailing space, and the set of its three-character substrings is taken — the normalisation of Postgres's `pg_trgm`. Similarity is the Jaccard index of two such sets, and **0.6 or above is a near-duplicate**, as in the prototype.
+**The measure** is the one the prototype used, in a form that works without a database: the `question` is lowercased, every non-alphanumeric character becomes a space, each word is padded with two leading spaces and one trailing space, and the set of its three-character substrings is taken — the normalisation of Postgres's `pg_trgm`. Similarity is the Jaccard index of two such sets, and **0.7 or above is a near-duplicate** — the prototype used 0.6, and T32 moved it (R56).
 
-For the scripts written without spaces (5.5) the same construction on **character bigrams** replaces it, because word trigrams of a text with no word boundaries measure nothing. Bigram sets are smaller and overlap more, so the threshold there is **0.7**.
+For the scripts written without spaces (5.5) the same construction on **character bigrams** replaces it, because word trigrams of a text with no word boundaries measure nothing: each run of letters and digits padded with one space on either side, and the set of its two-character substrings. Which construction a text gets is decided by its letters counted as two kinds, those of the scripts written without spaces against all the others, so that Japanese — kanji, hiragana and katakana together — is one kind of text. The threshold there is **0.7** too. Bigram sets are smaller and overlap more, which argued for a stricter number while words stood at 0.6; with words at 0.7 it is the same number, reasoned rather than measured, until the acceptance runs in Chinese and Japanese give it a corpus.
 
-Both numbers are calibrated in T32 against the reference corpus, and the measurement now exists: T16 exported the pairwise similarity of all 450 reference questions (`testdata/golden/trgm_similarity.json`). It says two things worth knowing before trusting the threshold. **207 of the 450 have a nearest neighbour at or above 0.6**, with a median of 0.57 — a corpus of one topic is formulaic, and the weighing-and-pouring questions sit at 0.96 to each other. And the measure compares **sets** of trigrams, so two tasks built from the same vocabulary in a different arrangement are identical to it: `kl-34-d3-3` and `kl-34-d3-5` are different problems with different answers and a similarity of exactly 1.0. Neither is fatal — a duplicate refusal costs one attempt — but 0.6 is an aggressive cut for this kind of text, and T32 has the histogram to move it against.
+The word construction reproduces Postgres exactly: the fifteen pairs, the fifty most alike reference pairs and the distribution of every reference question's nearest neighbour all come out as `trgm_similarity.json` has them.
+
+Both numbers are calibrated in T32 against the reference corpus, and the measurement now exists: T16 exported the pairwise similarity of all 450 reference questions (`testdata/golden/trgm_similarity.json`). It says two things worth knowing before trusting the threshold. **207 of the 450 have a nearest neighbour at or above 0.6**, with a median of 0.57 — a corpus of one topic is formulaic, and the weighing-and-pouring questions sit at 0.96 to each other. And the measure compares **sets** of trigrams, so two tasks built from the same vocabulary in a different arrangement are identical to it: `kl-34-d3-3` and `kl-34-d3-5` are different problems with different answers and a similarity of exactly 1.0. Neither is fatal — a duplicate refusal costs one attempt — but 0.6 is an aggressive cut for this kind of text, and T32 has the histogram to move it against. It did: at 0.6 a third of the reference tasks read as copies of another of their own level, and the threshold is now 0.7 — remark 9 has the numbers, R56 the reasons.
 
 **What it is compared against:**
 
 - **The reference tasks** of the same level — their texts are in the binary, so the comparison is exact.
 - **The child's past tasks**, through the fingerprints in the profile (04-profile), which are sketches rather than texts: the profile stores no task text, by design (О-40).
 
-**The fingerprint** is therefore a MinHash sketch of exactly the trigram set above: **64 hash values, one byte each**, so the estimated Jaccard index is the share of the 64 positions that agree. One byte per position adds a collision bias of about (1 − J)/256 — under half a percentage point at the threshold, which a 0.6 cut-off does not notice — and the sampling error of 64 positions is about 0.06, which is why the threshold is not placed near a cliff. Sixty-four bytes per task is 88 characters of base64, and two hundred of them are about 19 KB of the profile.
+**The fingerprint** is therefore a MinHash sketch of exactly the trigram set above: **64 hash values, one byte each**, so the estimated Jaccard index is the share of the 64 positions that agree. One byte per position adds a collision bias of about (1 − J)/256 — under half a percentage point at the threshold, which a 0.7 cut-off does not notice — and the sampling error of 64 positions is about 0.06, which is why the threshold is not placed near a cliff. Sixty-four bytes per task is 88 characters of base64, and two hundred of them are about 19 KB of the profile. Over every pair of reference questions of one level the sketches miss the exact measure by 0.043 on average and 0.25 at worst, and of the 51,025 pairs they decide 60 differently from it at 0.7 — all within 0.15 of 0.7, and 53 of them within 0.1. How a sketch is made is fixed for as long as a profile keeps one (R54).
 
 ## 5.7 What the solver has to show
 
@@ -739,7 +758,7 @@ Starlark's universe has `len`, `range`, `min`, `max`, `sorted`, `enumerate`, `zi
 
 **Every helper that builds a list is capped at 1,000,000 elements** and fails with `error` beyond it, and — this is the part that matters — **each value it produces costs one step** from the budget of 6.6. Starlark limits computation but not memory, and allocations inside a built-in are invisible to the interpreter's own accounting (T28); charging the step budget for produced values puts the one limit we do have in front of the one we do not.
 
-The two numbers are not the same number. The cap counts the elements of the list a solver ends up holding — a million tuples is already more than any task here could need — and the budget counts the values inside them, because a hundred thousand tuples of twenty is two million values allocated and the length of the list says nothing about that. It is what refuses a product of nineteen pairs, which is half a million tuples and ten million values, while leaving the orderings of nine things well within reach.
+The two numbers are not the same number. The cap counts the elements of the list a solver ends up holding — a million tuples is already more than any task here could need — and the budget counts the values inside them, because a hundred thousand tuples of twenty is two million values allocated and the length of the list says nothing about that. At the ceiling of 6.6 it lets a run hold two products of nineteen pairs — half a million tuples and ten million values each, 381 MiB between them, measured — and refuses the third, while leaving the orderings of nine things well within reach.
 
 The helpers take sequences and a **string is not one**: this language does not iterate a string, and a helper that made an exception would be teaching two rules instead of one. `product("HT", repeat=3)` is refused, and the refusal says to write the characters out as a list (6.8).
 
@@ -759,20 +778,20 @@ A well-formed task yields exactly one letter. Two letters mean two options say t
 
 | Limit | v1 | Enforced by |
 |---|---|---|
-| Steps | 10,000,000 | `thread.SetMaxExecutionSteps`; the interpreter tests the counter on every instruction |
+| Steps | 25,000,000 | `thread.SetMaxExecutionSteps`; the interpreter tests the counter on every instruction |
 | Wall clock | 2 seconds per run | A context timeout whose expiry calls `thread.Cancel`, which is safe from another goroutine |
-| Memory | no direct limit | Bounded indirectly: everything predeclared charges steps per element and caps each call at 1,000,000 |
+| Memory | no direct limit | Bounded indirectly: everything predeclared charges steps per element and caps each call at 1,000,000. Measured at the ceiling above, one run can hold about 380 MiB that way, and a loop of appends about 330 |
 | Source size | 8 KB | Checked before parsing; a solver longer than that is a transcription, not a brute force |
 | Result | 5 letters | 6.2 |
 | Concurrent runs | 4 per instance | A solver holds a core for up to two seconds, and a Cloud Run instance has few |
 
 Both runs of 6.2 share none of these budgets: each gets its own.
 
-The numbers are configuration (section 11), and T29's bench over 450 reference solvers is what calibrates them: it reports the step count of every solver, and the limit should sit an order of magnitude above the worst of them. For scale, a search over eight permuted items is about 400,000 steps and a breadth-first search over a thousand states about 50,000.
+The numbers are configuration (section 11), and T29's bench over 450 reference solvers is what calibrates them: it reports the step count of every solver, and the limit should sit an order of magnitude above the worst of them. For scale, a search over eight permuted items is about 400,000 steps and a breadth-first search over a thousand states about 50,000. The bench measured the worst of the 450 at 2,081,362 steps, which is what moved the ceiling from 10,000,000 to 25,000,000 (R53); the time limit kept its margin of fifty, and the memory the higher ceiling lets through is in the table above.
 
 The cancellation has one known gap, and it is the reason everything predeclared caps itself: the interpreter notices a cancellation between instructions, so a built-in halfway through building a huge list finishes building it first. The cap is therefore checked and the steps charged before the call does any work, and it covers the language's own sequence builders as well as our helpers — `list`, `tuple`, `sorted`, `set`, `dict`, `reversed`, `zip`, `enumerate`, `min`, `max`, `any` and `all` are predeclared again with the cap on them, because `list(range(1000000000))` is a billion values built inside one call that neither limit is watching.
 
-What a cap cannot reach is an operator. `[0] * 100000000` allocates through the language's own `*`, where there is no name to stand in front of, and starlark-go's guard on it stops at 2³⁰ elements, which is more memory than an instance has: a solver written that way takes the instance down rather than the request. There is no power operator in this language, which closes the other half of the same hole, and nothing else turns something small into something huge in one step. The fix, if the gap ever bites, is a solver in a process of its own with a memory limit on it — a change of shape rather than a setting, and not one v1 pays for.
+What a cap cannot reach is an operator. `[0] * 100000000` allocates through the language's own `*`, where there is no name to stand in front of, and starlark-go's guard on it stops at 2³⁰ elements, which is more memory than an instance has: a solver written that way takes the instance down rather than the request. There is no power operator in this language, which closes the other half of the same hole, and nothing else turns something small into something huge in one step — but a step repeated does it: `xs = xs + xs` twenty-four times is sixteen million elements in under three hundred steps, 480 MiB measured, and `s = s + s` does the same to a string. No step ceiling notices, whatever it is set to. The fix, if the gap ever bites, is a solver in a process of its own with a memory limit on it — a change of shape rather than a setting, and not one v1 pays for.
 
 ## 6.7 What the guide for the model says
 
@@ -782,11 +801,15 @@ The solver templates of `content/solvers/` (R08, О-43) carry the same shape per
 
 ## 6.8 Porting the prototype's 450 checks
 
-The prototype proved every reference answer with a Python function that returned the answer as a value; a test then required that exactly one option matched it and that the option was the task's `correct_answer` (`tests/example_checks/`). v1 keeps the idea and changes the shape: **the check becomes the reference task's own solver**, written to the contract of 6.2 and stored in its `solver` field (1.5).
+The prototype proved every reference answer with a Python function that returned the answer as a value; a test then required that exactly one option matched it and that the option was the task's `correct_answer` (`tests/example_checks/`). v1 keeps the idea and changes the shape: **the check becomes the reference task's own solver**, written to the contract of 6.2 and stored beside the task as `content/examples/solvers/<id>.star` (1.5).
 
 That is worth more than a translation. The 450 solvers then run through exactly the pipeline a submitted task runs through — the same dialect, the same helpers, the same limits, the same two runs — so they become the regression suite of the sandbox itself, and a change to any limit is tested against 450 real programs before it reaches a child.
 
-**The bench** (T29) loads every reference task, runs its solver twice as 6.2 requires, and fails if the verdict is not exactly the task's `correct_answer`. It reports the step count and the duration of each, which is what calibrates 6.6.
+**The bench** (T29a) loads every reference task, runs its solver twice as 6.2 requires, and fails if the verdict is not exactly the task's `correct_answer`. It reports the step count and the duration of each, which is what calibrates 6.6. Every reference task must carry a solver: one that has none fails the bench by name.
+
+**Each solver stands alone.** The prototype's files open with helpers shared by all fifty checks in them — `orders`, `unique`, `gaps`, `cuts_for`. A solver is one file with no `load`, so it carries the two or three it uses and no more. That is the same constraint the model writes under, and it is what keeps the bench measuring the real thing; the helpers are short, and a repeated one in fifty independent programs is not the duplication that costs anything, because nobody reads two of them at once.
+
+**The step budget decides the shape, not only the size.** Python's own limits are patience and memory; this sandbox charges every value a helper builds against 6.6, and three ports of the prototype's checks ran out of budget written the way they stood. A search that rebuilds the same list for every candidate answer builds it once and reads the answers off it; a search over the subsets of twenty cards, or over the 32,768 ways six players could have played each other, is replaced by a search over what the question can actually tell apart — the cards grouped into couples, the games kept by how many each player has played. That grouping is not a shortcut past the enumeration: it is the same move the topic already makes when it counts a stock of balls by colour rather than ball by ball, and the answer it computes is still computed rather than assumed. The bench's report is how such a solver is found — the most expensive in the catalog spends a twelfth of the budget, the next one half as much, and nothing else comes near.
 
 **What translates how:**
 
@@ -796,21 +819,28 @@ That is worth more than a translation. The 450 solvers then run through exactly 
 | `itertools.pairwise(xs)` | `for i in range(len(xs) - 1)` | `counting.gaps` |
 | A string standing in for a sequence, `product("HT", repeat=3)` | Its characters written out, `product(["H", "T"], repeat=3)` | `combinatorics.enumeration`, `parity.alternation` |
 | `itertools.count()` | `while` with an explicit counter | `time.clocks`, `pigeonhole.basic` |
+| `f"{n:02d}"`, and any other width or precision | `%` here takes no flags: pad by hand, `str(n) if n >= 10 else "0" + str(n)` | `time.clocks`, `time.calendar` |
+| `set(text)`, iterating a string | `set(text.elems())` — this language does not iterate a string | `time.clocks` |
 | `math.prod` | `prod` | `arithmetic.tricks` |
 | `collections.deque` with `popleft` | A list plus a head index: `head = 0`, `while head < len(queue)` | `algorithms.weighing_pouring`, `parity.alternation` |
 | `functools.lru_cache` on a recursive function | Bottom-up dynamic programming over a `dict` — recursion is off (6.4) | `algorithms.weighing_pouring` |
 | `fractions.Fraction` | Exact integers: multiply through by the denominators, or compare `a/b` with `c/d` as `a*d` against `c*b` | `arithmetic.tricks`, `algorithms.weighing_pouring` |
 | `datetime.date`, `timedelta`, `calendar.monthrange` | `add_days`, `days_between`, `days_in_month`, `weekday`, `is_leap` on `(y, m, d)` tuples | `time.calendar` |
+| `xs.count(x)` on a list | `len([y for y in xs if y == x])` — a list here has no `count`; a string does, and a list does have `index` | `time.calendar`, `parity.alternation` |
+| A dict changed inside `for key in the_dict` | Loop over the keys from somewhere else, `for key in range(…)` — changing a dict while walking it is an error here | `parity.alternation` |
+| A variable called `load` | Any other name: `load` is a keyword of the language, and the parser refuses it before anything runs | `algorithms.weighing_pouring` |
 | `random.Random(seed)` sampling many runs | Rewritten as the invariant it was demonstrating, or as an exhaustive search over the smaller equivalent state space | `parity.alternation`, three checks |
-| `assert` | `fail("…")` | The `only()` guard |
+| `assert` | `fail("…")` | Wherever the prototype's shared `unique()` guarded that the clues pin down one answer. There is no `load`, so it is written out in the solver that needs it: collect the answers the clues allow into a set, and `fail` unless there is exactly one. `logic.ordering` above all |
 
 The `random` row is the only one that is not mechanical, and it is the one worth being strict about. Those three checks ran twenty thousand random games to show that the parity of the result never changes; the parity is the mathematical content of the task, and a solver that computes it directly is both shorter and an actual proof. If a reference task turns out to have no such rewrite, the task is replaced rather than the rule bent — sampling is not brute force.
+
+All three had one, and all three became the invariant rather than a search: the sum that summing two numbers never changes (`par-12-d5-3`), the parity that taking a difference never changes (`par-34-d4-3`), and the one piece every break of a chocolate bar adds (`par-34-d5-5`). The exhaustive search over every way of breaking the 4 by 6 bar was tried first and ran out of the step budget — the multisets of pieces are far more than the question needs — which is the paragraph above about the budget deciding the shape, met once more. Each solver states its invariant in a comment, and where the invariant alone must single out one option, it refuses when it does not.
 
 **The batches**, 150 checks each, ordered so that the hardest constructs arrive last, when the helpers and the bench have been exercised:
 
 | Batch | Task | Topics | Checks | First meets |
 |---|---|---|---|---|
-| 1 | T29 | The bench itself, `combinatorics.enumeration`, `logic.ordering`, `counting.gaps` | 150 | the four combinatorial helpers, `pairwise` |
+| 1 | T29a, T29b | The bench itself, `combinatorics.enumeration`, `logic.ordering`, `counting.gaps` | 150 | the four combinatorial helpers, `pairwise` |
 | 2 | T30 | `arithmetic.tricks`, `pigeonhole.basic`, `time.clocks` | 150 | `prod`, `Fraction`, `count` |
 | 3 | T31 | `parity.alternation`, `time.calendar`, `logic.knights_liars`, `algorithms.weighing_pouring` | 150 | `deque`, `lru_cache`, the calendar helpers, `random` |
 
@@ -1191,7 +1221,7 @@ Two instances can both let a task through at the same moment, and the daily coun
 - **Environment variables** carry deployment facts, secrets and the operational ceilings someone might need to move without a release. They are read in `internal/config` and nowhere else, by Viper, which holds each variable's name, default and type in one declaration (R18); the defaults are named constants, and `Validate()` names the offending variable. No file and no remote source is registered: a deployment is configured by its environment and by nothing else.
 - **Named constants in the binary** carry the product's own numbers: the rating constants, the readability thresholds, the duplicate thresholds, the drawing limits, the solver limits, the window sizes and the package budget. Changing one of these changes what the product *is*, and the golden vectors (T16) pin them, so it is a code change with tests rather than a deploy-time knob.
 
-Where section 5.4 says the drawing limits are "configuration, not constants in the code", it means this second tier: one named place, not literals scattered through the checks. They are calibrated in T58 and they ship with the binary.
+The drawing limits of section 5.4 are this second tier: one named place, `checks.DefaultDrawingLimits`, not literals scattered through the checks. They are calibrated in T58 and they ship with the binary.
 
 ## 11.2 The environment
 
@@ -1208,7 +1238,7 @@ Where section 5.4 says the drawing limits are "configuration, not constants in t
 | `MATHTRAIL_RATE_INSTANCE_PER_MIN` | no | 200 | no | Limits |
 | `MATHTRAIL_DAILY_TASKS` | no | 20 | no | Limits |
 | `MATHTRAIL_DAILY_FAILED` | no | 5 | no | Limits |
-| `MATHTRAIL_SOLVER_STEPS` | no | 10000000 | no | The sandbox (6.6) |
+| `MATHTRAIL_SOLVER_STEPS` | no | 25000000 | no | The sandbox (6.6) |
 | `MATHTRAIL_SOLVER_TIMEOUT` | no | 2s | no | The sandbox |
 | `MATHTRAIL_SOLVER_CONCURRENCY` | no | 4 | no | The sandbox |
 | `MATHTRAIL_DRIVE_TIMEOUT` | no | 10s | no | Every Drive call |
@@ -1330,16 +1360,32 @@ Added while writing sections 4 and 5:
 
 7. **The profile's fingerprint is now decided, and it is bigger than 04-profile assumed.** A MinHash sketch of 64 one-byte values (5.6) is 64 bytes rather than the 32 that document's size table guessed, so its fingerprint line reads about 19 KB instead of 11 and a typical file about 38 KB instead of 30 — still well inside the 64 KB target, and its note 2 anticipated exactly this. **For:** T26, and two numbers to correct in [04-profile](docs/architecture/04-profile.md).
 8. **The character limits for scripts without spaces are set by analogy, not measured.** Twice the word limit is a guess that nobody has tested on a real Chinese or Japanese task. The acceptance runs are where it will show. **For:** T32, T62, T63.
-9. **The near-duplicate thresholds are two numbers, not one.** 0.6 for word trigrams is the prototype's, measured; 0.7 for character bigrams is reasoned from the smaller sets. T32 has 450 reference tasks to calibrate both against before anything ships. **For:** T32.
-10. **Every drawing limit is provisional until T58** and lives in the configuration, not in the code. If the calibration moves the width, the drawing frames of T36b are re-checked against the new number (R09). **For:** T34, T36b, T58.
+9. **The near-duplicate thresholds are two numbers, not one.** 0.6 for word trigrams is the prototype's, measured; 0.7 for character bigrams is reasoned from the smaller sets. T32 has 450 reference tasks to calibrate both against before anything ships. **For:** T32. **Measured in T32, and open.** "Measured" overstates the prototype: its decisions record a measurement for readability (its D38) and none for this threshold, which is a configuration default. What T32 measured is the question a new task is actually asked — how close is it to some reference task of its level — put to the reference tasks themselves, which are good tasks by construction:
+
+   | Topic | Tasks | Same-level neighbour ≥ 0.6 | ≥ 0.7 | ≥ 0.8 | ≥ 0.9 |
+   |---|---|---|---|---|---|
+   | `algorithms.weighing_pouring` | 25 | 21 | 20 | 18 | 14 |
+   | `logic.knights_liars` | 25 | 24 | 23 | 18 | 10 |
+   | `pigeonhole.basic` | 50 | 31 | 22 | 13 | 2 |
+   | `arithmetic.tricks` | 50 | 29 | 18 | 4 | 4 |
+   | `counting.gaps` | 50 | 12 | 7 | 2 | 0 |
+   | `time.clocks` | 50 | 10 | 6 | 2 | 0 |
+   | `combinatorics.enumeration` | 50 | 9 | 8 | 6 | 2 |
+   | `parity.alternation` | 50 | 8 | 7 | 6 | 2 |
+   | `time.calendar` | 50 | 7 | 2 | 0 | 0 |
+   | `logic.ordering` | 50 | 4 | 2 | 0 | 0 |
+   | **all** | **450** | **155 (34 %)** | **115** | **69** | **34** |
+
+   Almost every one of those neighbours is of the same topic. Against the pairs of 5.6 the thresholds read like this: a task given new numbers is 0.85 alike in English and 0.74 in Russian, one word changed 0.94 and 0.77, the same task in a new setting 0.63 and 0.61. So 0.7 is the highest threshold that still catches a change of numbers in an inflected language, and 0.6 is the one that catches a change of setting. The two topics at the top of the table are beyond any threshold: their questions open with the same paragraph of rules, and a set of trigrams cannot tell a paragraph from a problem — `kl-34-d3-3` and `kl-34-d3-5` measure 1.0 and have different answers. Removing each topic's recurring trigrams before comparing took the 155 down to 61 in a trial; it only works where the reference tasks share the chat's language, and it is a different measure from the one described here. **Decided:** the word threshold is 0.7 — the highest that still catches new numbers in Russian — and a task in a new setting is a new task (R56). The two topics of the paragraph of rules are left as they are: whether their models write that paragraph the same way every time is for the acceptance runs to show, and a measure that subtracts it is the answer if they do. The character threshold has no corpus to be measured against at all, and waits for the acceptance runs in Chinese and Japanese (T62, T63).
+10. **Every drawing limit is provisional until T58** and lives in one place, `checks.DefaultDrawingLimits`, not scattered through the checks (11.1). If the calibration moves the width, the drawing frames of T36b are re-checked against the new number (R09). The calibration also checks what the width assumes: that the widgets' fonts draw box drawing one cell wide (R60). **For:** T34, T36b, T58.
 11. **`design_thought_process` is written and never read.** It exists to make the model state its plan before committing to it, and the service throws it away — it is not stored, not logged and not shown. If T36 finds the package tight, this is one field whose cost is entirely in the model's output, not ours. **For:** T36.
 
 Added while writing section 6:
 
-12. **The permuted second run is new; the prototype had nothing like it.** It costs one more execution of a program that has already finished and it catches a solver that returns a hard-coded letter. If T29's bench finds a legitimate solver that cannot survive it, the answer is to drop the second run rather than to weaken the first. **For:** T28, T29.
-13. **Three of the 450 checks sample with a seeded RNG and have no mechanical port.** They demonstrate an invariant over twenty thousand random games; the port computes the invariant. If one of them resists, that reference task is replaced rather than the no-randomness rule bent. **For:** T31.
+12. **The permuted second run is new; the prototype had nothing like it.** It costs one more execution of a program that has already finished and it catches a solver that returns a hard-coded letter. If T29's bench finds a legitimate solver that cannot survive it, the answer is to drop the second run rather than to weaken the first. **For:** T28, T29. **Measured in T29a–T31:** all 450 reference solvers survive it, so the second run stays.
+13. **Three of the 450 checks sample with a seeded RNG and have no mechanical port.** They demonstrate an invariant over twenty thousand random games; the port computes the invariant. If one of them resists, that reference task is replaced rather than the no-randomness rule bent. **For:** T31. **Done in T31:** none resisted, and no task was replaced (6.8).
 14. **Charging steps for elements produced inside a helper is the only bound on memory we have**, and it writes to `Thread.Steps`, a field the SDK documents as "incremented by the interpreter". It works — the limit is tested on every instruction — but it is a use the library does not promise. If a future version makes the counter read-only, the sandbox needs a counter of its own. **For:** T28.
-15. **The step and time limits are guesses until measured.** 10,000,000 steps and 2 seconds are an order of magnitude above what the four ports in 6.9 need, but the real distribution is the 450 solvers, and only T29 will have it. **For:** T29, and the configuration in section 11.
+15. **The step and time limits are guesses until measured.** 10,000,000 steps and 2 seconds are an order of magnitude above what the four ports in 6.9 need, but the real distribution is the 450 solvers, and only T29 will have it. **For:** T29, and the configuration in section 11. **Measured in T31, and settled:** the costliest reference solver takes 2,081,362 steps (`pig-34-d4-2`) and the slowest run about 35 ms against 2 seconds. By the rule of 6.6 the step ceiling would be some 21 million, 10 million was under five times the worst, and three of the prototype's checks transcribed as they stood did not fit it at all (6.8). The ceiling is now 25,000,000 and the time limit is unchanged (R53). What stays open is memory, which the step ceiling bounds only for what the helpers build (6.6): a higher ceiling lets more of it through, and a step repeated goes around it entirely. **For:** the tools that first run a submitted solver (T41–T45).
 
 Added while writing sections 7 and 8:
 
@@ -1358,5 +1404,9 @@ Added while writing sections 9 to 12:
 
 Added while exporting the golden vectors (T16):
 
-25. **The near-duplicate threshold is measured now, and 0.6 looks aggressive.** Nearly half the reference corpus has a neighbour above it, and the measure cannot tell two tasks apart when they share a vocabulary (5.6). The data is in `testdata/golden/trgm_similarity.json`; the decision is T32's. **For:** T32.
+25. **The near-duplicate threshold is measured now, and 0.6 looks aggressive.** Nearly half the reference corpus has a neighbour above it, and the measure cannot tell two tasks apart when they share a vocabulary (5.6). The data is in `testdata/golden/trgm_similarity.json`; the decision is T32's. **For:** T32. **Measured in T32:** the numbers are in remark 9 — a third of the reference tasks have a same-level neighbour at 0.6, and for two topics no threshold helps. The author chose 0.7 for words (R56); the two topics no threshold helps stay open there.
 26. **The prototype's reference corpus is the only calibration set that exists**, and it is grades 1–4 only. The grade 5–6 tasks of T37–T39 arrive later and with them the thresholds may need a second look — a formulaic topic like `percent.basic` will cluster the same way. **For:** T32, T39.
+
+Added while writing the checks (T32):
+
+27. **5.3 and 5.1 disagree about naming an option.** 5.3 says a refusal "names the option and the condition"; 5.1 says no refusal ever quotes an answer letter, because the result reaches the widget. They are the same letters: naming the options whose explanations failed names options that are wrong, and four of them name the fifth. T32 wrote every refusal without a letter — an explanation is "one in `task.distractors`", a path through an option is written with a star — and the test holds every message to that. T32a has to choose between the two sentences, or find a way of pointing at one explanation without its letter, such as its place among the four. **For:** T32a. **Decided in T32a:** by the trap (5.3, R57).

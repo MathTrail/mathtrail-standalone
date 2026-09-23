@@ -1,0 +1,14 @@
+def at(clock_time):
+    parts = clock_time.split(":")
+    return int(parts[0]) * 60 + int(parts[1])
+
+def show(total):
+    total = total % (24 * 60)
+    minutes = total % 60
+    return "%d:%s" % (total // 60, str(minutes) if minutes >= 10 else "0" + str(minutes))
+
+def solve(options):
+    # The fast clock is seven minutes ahead of the real time, and the slow one
+    # is five minutes behind it.
+    real = at("10:02") - 7
+    return match(options, show(real - 5))

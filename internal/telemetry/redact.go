@@ -20,6 +20,11 @@ const redactedValue = "redacted"
 // again, under a retention of its own — so an address that was never written
 // down in one place must not appear in the other. The last two are here before
 // anything sets them: a query string is where a sign-in carries its codes.
+//
+// The peer's port is deliberately not on the list, though it sits beside an
+// address that is. On its own an ephemeral source port names nobody, and it is
+// a number rather than a string: blanking it would change what the attribute
+// is in order to hide what it never said.
 var redactedKeys = map[attribute.Key]struct{}{
 	"client.address":       {},
 	"network.peer.address": {},
