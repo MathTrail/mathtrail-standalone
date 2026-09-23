@@ -2,6 +2,7 @@ package content
 
 import (
 	"encoding/json"
+	"io/fs"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -309,6 +310,30 @@ func TestCloningATaskCopiesItsDrawing(t *testing.T) {
 	}
 }
 
+// The reference tasks sit in one file per topic, beside the directory of their
+// solvers. Anything else there is a mistake nobody would otherwise notice: tasks
+// in a directory of their own, or in a file that is never read as tasks.
+func TestSomethingElseAmongTheReferenceTasksStopsTheService(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name, file, want string
+	}{
+		{"tasks in a directory of their own", examplesDir + "/counting/counting.gaps.json",
+			"reference tasks live in files, one per topic, not in directories"},
+		{"a file that is not a topic's", examplesDir + "/notes.md",
+			"a file of reference tasks is named after its topic and ends in .json"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			src := contentCopy(t)
+			src[tc.file] = &fstest.MapFile{Data: []byte("[]\n")}
+			wantProblem(t, src, tc.want)
+		})
+	}
+}
+
 // solverFile is where the program that proves one task's answer lives.
 func solverFile(id string) string {
 	return examplesDir + "/" + solversDir + "/" + id + solverSuffix
@@ -374,6 +399,54 @@ func TestSolversInDirectoriesOfTheirOwnStopTheService(t *testing.T) {
 		Data: []byte("def solve(options):\n    return []\n"),
 	}
 	wantProblem(t, src, "counting.gaps: a solver is a file, not a directory")
+}
+
+// The solvers are part of the content: without their directory no reference task
+// can prove its answer, and a binary like that is not one to serve from.
+func TestContentWithoutItsSolversStopsTheService(t *testing.T) {
+	t.Parallel()
+
+	src := contentCopy(t)
+	for name := range src {
+		if strings.HasPrefix(name, examplesDir+"/"+solversDir+"/") {
+			delete(src, name)
+		}
+	}
+	wantProblem(t, src, "content: read "+examplesDir+"/"+solversDir)
+}
+
+// unreadable is the content with one file that is listed and cannot be read, as
+// a file the process has no permission for would be — the one failure a copy
+// in memory cannot show by itself.
+type unreadable struct {
+	fstest.MapFS
+	name string
+}
+
+func (u unreadable) Open(name string) (fs.File, error) {
+	if name == u.name {
+		return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrPermission}
+	}
+	return u.MapFS.Open(name)
+}
+
+func (u unreadable) ReadFile(name string) ([]byte, error) {
+	if name == u.name {
+		return nil, &fs.PathError{Op: "read", Path: name, Err: fs.ErrPermission}
+	}
+	return u.MapFS.ReadFile(name)
+}
+
+// A solver that is there and cannot be read stops the service, rather than
+// leaving its task without the program that proves it.
+func TestASolverThatCannotBeReadStopsTheService(t *testing.T) {
+	t.Parallel()
+
+	src := contentCopy(t)
+	withExamples(t, src, gapsFile, validExample())
+	src[solverFile("gaps-posts-test")] = &fstest.MapFile{Data: []byte("def solve(options):\n    return []\n")}
+	wantProblem(t, unreadable{MapFS: src, name: solverFile("gaps-posts-test")},
+		"content: read "+solverFile("gaps-posts-test"))
 }
 
 // The program used to be a field of the task, and a copy left there would be a
