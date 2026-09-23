@@ -87,7 +87,7 @@ func TestAFailedProgramIsNotAFailedSpan(t *testing.T) {
 	if len(ended) != 1 {
 		t.Fatalf("the recorder kept %d spans, want 1", len(ended))
 	}
-	if code := ended[0].Status().Code; code == codes.Error {
+	if ended[0].Status().Code == codes.Error {
 		t.Error("the span is marked failed, want a solver's own failure to be an attribute")
 	}
 }

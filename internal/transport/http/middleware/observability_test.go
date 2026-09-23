@@ -355,7 +355,7 @@ func TestARefusedDeliveryIsLoggedAndNothingMore(t *testing.T) {
 	if lines := watched.logs.FilterMessage("telemetry_flush_failed").Len(); lines != 1 {
 		t.Errorf("the log holds %d delivery failures, want 1", lines)
 	}
-	if lines := watched.logs.FilterMessage("http_request").Len(); lines != 1 {
+	if watched.logs.FilterMessage("http_request").Len() != 1 {
 		t.Error("the request was not answered and logged as usual")
 	}
 }
@@ -377,6 +377,27 @@ func TestAnUnknownMethodIsCountedAsOther(t *testing.T) {
 		}
 		if method.String() != "other" {
 			t.Errorf("http.request.method = %q, want %q", method.String(), "other")
+		}
+	}
+}
+
+// A probe is left out of the counters as it is left out of the traces and the
+// log. The platform asks for one constantly, and counted, they would make
+// "requests answered" a measure of how often it checked rather than of how
+// much the service was used.
+func TestAProbeIsNotCounted(t *testing.T) {
+	t.Parallel()
+
+	watched := newWatchedRouter(t)
+	watched.get(t, "/health")
+
+	var collected metricdata.ResourceMetrics
+	if err := watched.reader.Collect(t.Context(), &collected); err != nil {
+		t.Fatalf("Collect() error = %v, want nil", err)
+	}
+	for _, scope := range collected.ScopeMetrics {
+		for _, recorded := range scope.Metrics {
+			t.Errorf("a probe was recorded under %q, want nothing counted", recorded.Name)
 		}
 	}
 }

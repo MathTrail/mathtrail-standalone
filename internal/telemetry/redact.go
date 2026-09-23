@@ -58,15 +58,17 @@ func (redactor) OnStart(_ context.Context, span sdktrace.ReadWriteSpan) {
 	}
 }
 
-// OnEnd does nothing, and cannot: a processor is handed a finished span for
-// reading only, so an attribute added after the span started cannot be blanked
-// here or anywhere else.
-//
-// That leaves one gap, and it is worth naming. Everything set after a span
-// starts is set by this service's own code, which is chosen rather than
-// filtered — and the guard test reads spans that have already ended, so
-// anything a library starts adding later is caught there rather than shipped.
-func (redactor) OnEnd(sdktrace.ReadOnlySpan) {}
+// OnEnd is where redaction cannot happen, and the gap that leaves is worth
+// naming rather than hiding.
+func (redactor) OnEnd(sdktrace.ReadOnlySpan) {
+	// Deliberately nothing. A processor is handed a finished span for reading
+	// only, so an attribute added after the span started cannot be blanked
+	// here or anywhere else. What that leaves open is whatever is set between
+	// a start and an end — which today is this service's own code, chosen
+	// rather than filtered. The guard test reads spans that have already
+	// ended, so a library that starts adding one later is caught there rather
+	// than shipped.
+}
 
 // Shutdown releases nothing, because this holds nothing.
 func (redactor) Shutdown(context.Context) error { return nil }

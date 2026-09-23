@@ -29,12 +29,6 @@ var maskedQueryKeys = map[string]struct{}{
 	"token":         {},
 }
 
-// silentPaths answer a probe rather than a person. Logging every one of them
-// buries the lines that mean something.
-var silentPaths = map[string]struct{}{
-	"/health": {},
-}
-
 // ZapLogger logs one line per request: what was asked, what was answered and
 // how long it took. Successful probes are skipped; anything that failed is
 // always logged.
@@ -55,7 +49,7 @@ func ZapLogger(logger *zap.Logger, projectID string) gin.HandlerFunc {
 		c.Next()
 
 		status := c.Writer.Status()
-		if _, silent := silentPaths[path]; silent && status < 400 {
+		if isProbe(path) && status < 400 {
 			return
 		}
 
