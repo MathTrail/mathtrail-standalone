@@ -117,7 +117,7 @@ func TestTheWidthIsCountedInScreenCells(t *testing.T) {
 			t.Parallel()
 
 			problems := checks.DrawingFormat(test.line, checks.DefaultDrawingLimits())
-			if tooWide := mentions(problems, "wider than 30 cells"); tooWide != test.tooWide {
+			if mentions(problems, "wider than 30 cells") != test.tooWide {
 				t.Errorf("DrawingFormat() = %v, want too wide %v", problems, test.tooWide)
 			}
 		})

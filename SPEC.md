@@ -509,7 +509,7 @@ The self-check is weaker than an independent reviewer would be — the model is 
 
 ## 5.1 The order, and what the model is told
 
-The checks run in the order below. It is chosen so that nothing expensive runs before the cheap thing that would have rejected the task anyway, and — the rule of 05-storage — so that everything not needing the profile happens before the profile is read:
+The checks report in the order below, cheapest first. They run in two halves, by the rule of 05-storage that nothing slow happens between reading the profile and writing it: the solver's two runs — the one slow part, which needs nothing from the profile — happen before the profile is read (`checks.Reviewer.Examine`), and every check, the solver's verdict among them, is judged after it (`Judge`), which is arithmetic (R61):
 
 | # | Check | Code | Needs |
 |---|---|---|---|
@@ -525,7 +525,7 @@ The checks run in the order below. It is chosen so that nothing expensive runs b
 
 **Every failed check is reported at once**, so the model can fix everything in one more attempt; the **first failure in this order is the primary code**, the one that goes into the log and the one the state machine counts (03-flows). This is the prototype's rule and its reason holds: with a median generation of 69 seconds, a second attempt that fixes one thing and trips over the next is a minute of a child's patience spent for nothing.
 
-A check whose input is missing does not run and is reported as blocked: with no `options` there is nothing for the solver to decide, and saying "the solver failed" would send the model hunting in the wrong place.
+A check whose input is missing does not run and is reported as not checked, with what it needs: with no `options` there is nothing for the solver to decide, and saying "the solver failed" would send the model hunting in the wrong place. A fault of the structure blocks only what it breaks. Five options missing one leave the solver nothing to run on; a brief asking for another topic leaves the task itself whole, and everything else about it is checked in the same attempt (R61).
 
 **No refusal ever quotes an answer letter or an option's text.** `submit_task` draws a card (03-flows), and everything in its result reaches the widget; the model holds its own draft and needs no quoting to fix it.
 
@@ -630,16 +630,16 @@ Both numbers are calibrated in T32 against the reference corpus, and the measure
 
 The model submits a Starlark program that brute-forces its own task and prints the list of correct options. The contract, the sandbox and its limits are section 6 (T13). Two codes come out of it:
 
-- `solver_error` — the program did not run to a usable answer: it crashed, exceeded its step or time limit, or printed something that is not a list of option letters. The model is told which of those happened and what the limit was, in one short line; the interpreter's own message is not passed through.
+- `solver_error` — the program did not run to a usable answer: it crashed, exceeded its step or time limit, or printed something that is not a list of option letters. The model is told which of those happened and what the limit was, in one short line; neither the interpreter's own message nor anything the program said is passed through, because either can quote an option (R62). Each way a run fails has a sentence of the service's own, and a limit is named by the sandbox's sentence, which is built from the limit alone.
 - `solver_disagrees` — the program ran and disagreed: it found no correct option, or more than one, or exactly one that is not `correct_answer`. **The same code covers the self-check** disagreeing: `final_answer` different from `correct_answer`, or `UNSOLVABLE`. The model is told which of the three verdicts disagreed, without the letters being quoted (5.1).
 
 Two independent witnesses to the same answer is the strongest guarantee the service has, and it is the reason a topic that cannot be brute-forced does not enter the catalog (1.2).
 
 ## 5.8 The self-check's verdict
 
-`self_check_blocking` — the self-check contains an issue with `severity: blocking`. The issue's own `comment` goes back to the model: it wrote it, and handing it back is what makes a self-check worth asking for.
+`self_check_blocking` — the self-check contains an issue with `severity: blocking`. The issue is pointed at by its place and its type — `self_check.issues.1 (ambiguous) is blocking` — and its `comment` is not handed back: the model wrote it and still has it, and a comment can name an option, which no refusal does (5.1, R62).
 
-A `minor` issue does not reject the task. The prototype kept minor issues for manual review; v1 stores no task text (О-38, О-40), so a minor issue is counted in the aggregate log by its `type` and its text is discarded.
+A `minor` issue does not reject the task. The prototype kept minor issues for manual review; v1 stores no task text (О-38, О-40), so a minor issue is counted in the aggregate log by its `type` and its text is discarded. A type the format does not have is not counted: it is the model's own words, and the structure check refuses it.
 
 ## 5.9 The refusal codes, in one table
 
@@ -1283,7 +1283,7 @@ Every line that belongs to one MCP request carries the same `request_id`; every 
 | `http_request` | Every HTTP request, once, unless it is a probe that succeeded | status, method, path, masked query, duration, body size |
 | `tool_call` | Every MCP tool call, once, at the boundary | tool, outcome, status, duration_ms |
 | `task_requested` | `next_task` opened or returned a request | topic, level, difficulty, goal, tutor_mode, already_open |
-| `task_submitted` | Every `submit_task` | attempt, outcome, primary code, every failed check, duration_ms, solver_steps, solver_ms |
+| `task_submitted` | Every `submit_task` | attempt, outcome, primary code, every failed check, the types of the self-check's minor issues, duration_ms, solver_steps, solver_ms |
 | `task_accepted` | A task became current | topic, level, difficulty, attempts, seconds since the request opened, instructions_version |
 | `answer_recorded` | `submit_answer` recorded an answer | topic, difficulty, correct, trap, hint_used, confused, pace |
 | `limit_hit` | Any ceiling of section 10 | which ceiling, the counter's value |

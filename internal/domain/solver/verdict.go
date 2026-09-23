@@ -75,8 +75,9 @@ func Verdict(ctx context.Context, runner Runner, source string, options Options)
 }
 
 // Explain is one sentence about what stands between these runs and a verdict,
-// empty when they agreed. It is written for the model that has to fix the
-// program, so it says what happened rather than what to do about it.
+// empty when they agreed. It names the letters the runs arrived at, which is
+// what a person reading a run needs and what the model is never shown: a
+// sentence that named them would name the answer.
 func (a Agreement) Explain() string {
 	if a.Agreed() {
 		return ""

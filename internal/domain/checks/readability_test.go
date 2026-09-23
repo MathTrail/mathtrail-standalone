@@ -46,7 +46,7 @@ func TestTheLongestSentenceIsHeldToTheLevel(t *testing.T) {
 			t.Parallel()
 
 			problems := checks.Readability(test.question, "ru", test.grade)
-			if refused := len(problems) > 0; refused != test.refused {
+			if (len(problems) > 0) != test.refused {
 				t.Fatalf("Readability() = %v, want refused %v", problems, test.refused)
 			}
 			for _, problem := range problems {
@@ -85,7 +85,7 @@ func TestSentencesEndWhereTheirMarksSay(t *testing.T) {
 			t.Parallel()
 
 			problems := checks.Readability(test.question, test.language, test.grade)
-			if refused := len(problems) > 0; refused != test.refused {
+			if (len(problems) > 0) != test.refused {
 				t.Fatalf("Readability() = %v, want refused %v", problems, test.refused)
 			}
 		})
@@ -129,7 +129,7 @@ func TestFleschKincaidAppliesToEnglishAlone(t *testing.T) {
 			t.Parallel()
 
 			problems := checks.Readability(hard, test.language, 1)
-			if refused := mentions(problems, "Flesch–Kincaid"); refused != test.refused {
+			if mentions(problems, "Flesch–Kincaid") != test.refused {
 				t.Fatalf("Readability(%q) = %v, want a Flesch–Kincaid refusal %v", test.language, problems, test.refused)
 			}
 		})

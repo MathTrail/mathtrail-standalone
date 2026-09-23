@@ -45,8 +45,11 @@ type Result struct {
 	// and without repeats. An empty list with a status of ok is an answer
 	// rather than a failure: it says no option fits, which is worth knowing.
 	Letters []string
-	// Message is one sentence the model can act on, empty when the run
-	// succeeded. Nothing of the interpreter's own reaches it.
+	// Message is one sentence about what went wrong, empty when the run
+	// succeeded: which limit tripped, or the first thing the program or the
+	// interpreter said, without the trace beneath it. What the program said
+	// can quote an option, so a sentence for the model is built from the
+	// status rather than from this.
 	Message string
 	// Steps is what the run cost the step budget.
 	Steps uint64

@@ -13,6 +13,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/content"
 	"github.com/MathTrail/mathtrail-standalone/internal/config"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark"
@@ -31,6 +32,7 @@ type Container struct {
 	Seal      *seal.KeyRing
 	Telemetry *telemetry.Telemetry
 	Solver    solver.Runner
+	Reviewer  checks.Reviewer
 	Router    http.Handler
 
 	// closers run in reverse order of registration, so that a resource is
@@ -121,6 +123,11 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (*Co
 		zap.Duration("timeout", cfg.SolverTimeout),
 		zap.Int("concurrency", cfg.SolverConcurrency),
 	)
+
+	// A task is reviewed against the content above and run in the sandbox
+	// above, the observed one, so that its solver's runs are recorded like
+	// any other.
+	c.Reviewer = checks.NewReviewer(embedded, c.Solver, checks.DefaultDrawingLimits())
 
 	c.Router, err = httpserver.NewRouter(httpserver.NewHealthHandler(), log, httpserver.Observability{
 		Traces:    tel.TracerProvider(),

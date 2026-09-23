@@ -17,10 +17,10 @@ const (
 	minimumCharacters = 6
 )
 
-// TrapDescriptions is what the explanation check has to know about the trap
+// TrapDescriber is what the explanation check has to know about the trap
 // catalog. It is declared here, by the side that needs it, and it speaks in
 // identifiers.
-type TrapDescriptions interface {
+type TrapDescriber interface {
 	// TrapDescription is how the catalog describes a trap, and whether it has
 	// one by this id.
 	TrapDescription(id string) (string, bool)
@@ -41,7 +41,7 @@ type TrapDescriptions interface {
 // explanation is pointed at by its trap, never by its option's letter: the
 // letters of the explanations name the wrong options, and so the right one.
 // An explanation with no text at all is the structure check's to report.
-func Explanations(draft Draft, traps TrapDescriptions) []Problem {
+func Explanations(draft Draft, traps TrapDescriber) []Problem {
 	if draft.Task == nil {
 		return nil
 	}
@@ -80,7 +80,7 @@ func sameTexts(task *Task) []Problem {
 
 // checkExplanation checks one explanation on its own: that it is not the way
 // to the answer, not the catalog's words, and long enough to say something.
-func checkExplanation(task *Task, distractor Distractor, traps TrapDescriptions) []Problem {
+func checkExplanation(task *Task, distractor Distractor, traps TrapDescriber) []Problem {
 	which := explanationFor(distractor.Trap)
 
 	var problems []Problem

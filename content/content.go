@@ -231,6 +231,24 @@ func (c *Content) ExampleTraps(topic string, grade int) []string {
 	return ids
 }
 
+// ReferenceQuestions are the questions of the reference tasks at the level a
+// child of this grade is taught: what a new task for that child must not
+// copy. A grade the levels do not cover has none.
+func (c *Content) ReferenceQuestions(grade int) []string {
+	level, known := LevelOf(grade)
+	if !known {
+		return nil
+	}
+
+	var questions []string
+	for i := range c.examples {
+		if c.examples[i].GradeLevel == level {
+			questions = append(questions, c.examples[i].Question)
+		}
+	}
+	return questions
+}
+
 // Schema returns the JSON schema of one of the formats the model works to,
 // named as its file is: brief.json, task.json or self_check.json.
 func (c *Content) Schema(name string) ([]byte, bool) {
