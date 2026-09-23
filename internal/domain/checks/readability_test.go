@@ -58,7 +58,9 @@ func TestTheLongestSentenceIsHeldToTheLevel(t *testing.T) {
 	}
 }
 
-// Sentences end where SPEC 5.5 says, in every script a task may be written in.
+// A sentence ends at a mark that ends one, and at any closing quote or bracket
+// after it — where a space follows, or at once in the scripts written without
+// spaces — in every script a task may be written in.
 func TestSentencesEndWhereTheirMarksSay(t *testing.T) {
 	t.Parallel()
 

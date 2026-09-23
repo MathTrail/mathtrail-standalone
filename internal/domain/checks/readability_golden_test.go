@@ -10,7 +10,7 @@ import (
 )
 
 // goldenReadability is what the prototype measured of its 450 reference
-// questions, with its own code (T16): the Flesch–Kincaid grade its library
+// questions, with its own code: the Flesch–Kincaid grade its library
 // gave each, and the sentences its splitter found.
 type goldenReadability struct {
 	Examples []struct {
@@ -84,7 +84,7 @@ func TestTheFormulaCountsWordsAndSentencesAsThePrototype(t *testing.T) {
 // questions the grade misses the prototype's by at most a quarter on average
 // and leans neither way by more than a sixth, the verdict for each grade of a
 // task's level agrees at least 97 times in 100, and the share of tasks passing
-// at each grade moves by at most four points (SPEC 5.5).
+// at each grade moves by at most four points.
 func TestFleschKincaidStaysWithinItsTolerance(t *testing.T) {
 	t.Parallel()
 
@@ -153,7 +153,7 @@ func passed(verdict bool) int {
 // longest sentence has as many tokens between spaces as the prototype counted,
 // and as many words less only the tokens of punctuation alone — an ellipsis in
 // "1 + 3 + ... + 99", which the prototype counted and a child does not read.
-// SPEC 5.5 splits in one place the prototype did not, after a mark and its
+// The check splits in one place the prototype did not, after a mark and its
 // closing quote — "Ann says: 'Ben is a liar.' Ben says: …" — and there it
 // only ever finds more sentences, and never a longer one.
 func TestSentencesAreMeasuredAsThePrototypeMeasuredThem(t *testing.T) {
@@ -175,7 +175,7 @@ func TestSentencesAreMeasuredAsThePrototypeMeasuredThem(t *testing.T) {
 		case words > tokens:
 			t.Errorf("%s: %d words in a sentence of %d tokens", reference.id, words, tokens)
 		case !sameSplit && !closesAfterAMark(reference.question):
-			t.Errorf("%s: %d sentences, the prototype found %d, and nothing in it is where SPEC 5.5 splits differently",
+			t.Errorf("%s: %d sentences, the prototype found %d, and it has no mark with a closing quote after it, the one place the two split differently",
 				reference.id, len(found), reference.sentences)
 		case !sameSplit && (len(found) < reference.sentences || tokens > reference.longest):
 			t.Errorf("%s: %d sentences and the longest %d tokens, against the prototype's %d and %d",
@@ -185,7 +185,7 @@ func TestSentencesAreMeasuredAsThePrototypeMeasuredThem(t *testing.T) {
 }
 
 // closesAfterAMark says whether a text has a sentence-ending mark followed by a
-// closing quote or bracket and then a space — the one place SPEC 5.5 ends a
+// closing quote or bracket and then a space — the one place the check ends a
 // sentence and the prototype did not.
 func closesAfterAMark(text string) bool {
 	runes := []rune(text)

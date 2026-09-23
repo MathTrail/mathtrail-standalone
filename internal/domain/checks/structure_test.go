@@ -130,9 +130,10 @@ var prototypeBreakages = []breakage{
 	}, "an explanation with no text"},
 }
 
-// specBreakages are the rest of SPEC 5.2: the brief agrees with the request,
-// the ids exist, and every part is complete.
-var specBreakages = []breakage{
+// formatBreakages break the rest of the format, beyond what the prototype's
+// tests did: the brief agrees with the request, the ids exist, and every part
+// is complete.
+var formatBreakages = []breakage{
 	{"a goal the format does not have", func(d *checks.Draft) { d.Brief.PedagogicalGoal = "revise" }, "brief.pedagogical_goal"},
 	{"a topic nobody has", func(d *checks.Draft) { d.Brief.TargetConcept = "geometry.spheres" }, "not a topic in the catalog"},
 	{"a topic the request was not for", func(d *checks.Draft) { d.Brief.TargetConcept = "counting.gaps" }, "not the topic this task was asked for"},
@@ -201,7 +202,7 @@ var specBreakages = []breakage{
 func TestABrokenDraftIsRefusedByName(t *testing.T) {
 	t.Parallel()
 
-	for _, test := range slices.Concat(prototypeBreakages, specBreakages) {
+	for _, test := range slices.Concat(prototypeBreakages, formatBreakages) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -231,7 +232,7 @@ func TestNoRefusalQuotesAnOption(t *testing.T) {
 	t.Parallel()
 
 	options := slices.Collect(maps.Values(validDraft().Task.Options))
-	for _, test := range slices.Concat(prototypeBreakages, specBreakages) {
+	for _, test := range slices.Concat(prototypeBreakages, formatBreakages) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 

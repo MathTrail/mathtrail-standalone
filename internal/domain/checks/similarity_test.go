@@ -11,9 +11,8 @@ import (
 )
 
 // goldenPairs are the prototype's own measurements: pairs of questions and
-// what Postgres's similarity() said of them, exported by the prototype's code
-// (T16). They are the reference the measure is held to, so no test rewrites
-// them.
+// what Postgres's similarity() said of them, exported by the prototype's code.
+// They are the reference the measure is held to, so no test rewrites them.
 type goldenPairs struct {
 	Pairs []struct {
 		Name       string  `json:"name"`

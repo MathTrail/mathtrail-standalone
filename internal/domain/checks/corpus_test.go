@@ -80,7 +80,7 @@ func readReferenceQuestions(t *testing.T) []referenceQuestion {
 }
 
 // goldenCorpus is what Postgres's similarity() said about the reference
-// questions themselves, exported by the prototype's own code (T16): the fifty
+// questions themselves, exported by the prototype's own code: the fifty
 // most alike pairs, and how close each question's nearest neighbour is.
 type goldenCorpus struct {
 	TopPairs []struct {
@@ -186,10 +186,11 @@ func checkNearest(t *testing.T, golden goldenCorpus, references corpus) {
 }
 
 // The profile keeps a sketch of each past task instead of its text, so a
-// repeat is judged on an estimate. SPEC 5.6 puts its sampling error at about
-// 0.06; measured over every pair of reference questions of one level, the
-// estimate has to stay inside that, and where it decides differently from the
-// exact measure it has to be a pair sitting on the threshold anyway.
+// repeat is judged on an estimate, and its 64 positions sample the measure
+// with an error of about 0.06. Measured over every pair of reference questions
+// of one level, the estimate has to stay inside that, and where it decides
+// differently from the exact measure it has to be a pair sitting on the
+// threshold anyway.
 func TestTheSketchEstimatesTheMeasureWithinItsError(t *testing.T) {
 	t.Parallel()
 
