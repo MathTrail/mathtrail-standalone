@@ -26,7 +26,9 @@ type instructionFile struct {
 
 // loadInstructions reads every file of instructions and refuses an empty one: a
 // file that says nothing still changes the version, which would leave two
-// different versions meaning the same thing.
+// different versions meaning the same thing. A set without the guide is refused
+// as well: every package carries it, and a package without it would leave the
+// model to guess how a task is written and handed in.
 func loadInstructions(src fs.FS) ([]instructionFile, error) {
 	entries, err := fs.ReadDir(src, instructionsDir)
 	if err != nil {
@@ -52,6 +54,9 @@ func loadInstructions(src fs.FS) ([]instructionFile, error) {
 	}
 	if len(instructions) == 0 {
 		p.addf("there are no instructions for the model")
+	}
+	if !slices.ContainsFunc(entries, func(entry fs.DirEntry) bool { return entry.Name() == guideName }) {
+		p.addf("%s: the file is missing, and every package carries it", guideName)
 	}
 	return instructions, p.err()
 }

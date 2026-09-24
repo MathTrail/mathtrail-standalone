@@ -387,7 +387,7 @@ The chat's model writes the task; the service makes no LLM calls of its own (PRO
 
 ## 4.1 The package for the model
 
-Returned by `next_task`, never rendered as a card (03-flows), and assembled fresh for each request:
+Returned by `next_task`, never rendered as a card (03-flows), and assembled fresh for each request by `content.Package`, as one JSON object with a member for each part below (R63):
 
 | Part | What it is | Size |
 |---|---|---|
@@ -395,17 +395,16 @@ Returned by `next_task`, never rendered as a card (03-flows), and assembled fres
 | The corridor | The recommended difficulty, its marker, and the corridor as a β interval (2.3) | small |
 | The topic | Its id, name and description from the catalog | small |
 | The traps | The whole catalog of 20, with descriptions — the two in the brief are a recommendation, and the model needs the others to choose an alternative that fits its plot | ~2 KB |
-| The prohibitions | The description of every skill in `excluded_skills` | ~0.5 KB |
-| The child's context | Grade, interests, and the free-form notes, capped at 500 characters (О-31), the notes inside a delimited block introduced as information rather than instructions — 4.1.2. The pseudonym is **not** repeated here — it has no business in a task, and the package is the one place it is easy to leave out | ≤ 0.8 KB |
-| Three reference tasks | 4.1.1 | ~3.6 KB |
+| The prohibitions | The description of every skill in `excluded_skills` | ~0.1 KB a skill, 1.4 KB at the profile's limit of fifteen |
+| The child's context | Grade, interests, and the free-form notes, capped at 500 characters (О-31), the notes inside a delimited block introduced as information rather than instructions — 4.1.2. The pseudonym is **not** repeated here — it has no business in a task, and the package is the one place it is easy to leave out | ~1 KB at the profile's limits in Latin letters, up to 3.7 KB in characters of four bytes |
+| Three reference tasks | 4.1.1, each without its id, level and solver: the solver is not shown (1.5) | ~3.6 KB |
 | Solver templates | One or two for this topic from `content/solvers/`, marked as samples one may depart from (О-43, R08) | ~2 KB |
 | Drawing frames | The frames for this topic from `content/drawings/`, if it has any (О-44, R09) | ~1 KB |
-| The formats | The fields the model must return, 4.3–4.5, as prose plus one worked example | ~2 KB |
+| The guide | One page, `content/instructions/task_writing.md`: how the task is written, the notes framed as information (4.1.2), the fields to hand back with one worked example that itself passes every check, the page about the solver (6.7), the rules of the drawing (4.4) and the self-check's checklist (4.5) | ~7 KB |
 | The limits | The readability limits for the level (1.1) and the drawing limits (5.4) | small |
-| The self-check checklist | 4.5 | ~0.7 KB |
 | The instructions version | The hash that every log line about this task will carry (О-21) | small |
 
-**The budget is 16 KB.** A typical package is around 13 KB, which is a few thousand tokens of the chat's own context — a cost the family pays out of their message limit, so it is kept deliberately small. If a package would exceed the budget, parts are dropped in this order: the third reference task, the second solver template, the drawing frames beyond the first. The brief, the catalogs, the formats and the checklist are never dropped.
+**The budget is 16 KB.** A typical package is about 12.5 KB, which is a few thousand tokens of the chat's own context — a cost the family pays out of their message limit, so it is kept deliberately small. For a child at every limit the profile sets (04-profile) — notes of 500 characters, ten interests of forty, fifteen excluded skills — written in Latin letters, a package is 14.0 KB on average and never over the budget, on every topic, grade, difficulty and turn of the reference tasks. If a package would exceed the budget, parts are dropped in this order: the third reference task, the second solver template, the drawing frames beyond the first. The brief, the catalogs and the guide are never dropped. **A package still over the budget after these drops is sent as it is** (R63): what is left is what a task cannot be written without, and only the parent's own words carry a package that far. The same limits written in wider characters reach 16.4 KB in Cyrillic, 17.3 KB in Chinese or Japanese and 18.2 KB in characters of four bytes, and 20.1 KB in the characters JSON has to escape, which nobody types by accident.
 
 On a repeat attempt the package is not sent again: `submit_task` answers with the refusal codes, and the model already has everything else in its context (03-flows).
 
@@ -1353,7 +1352,7 @@ Collected while writing this part; none of them changes a product decision.
 2. **The seven new topics are `5-6` only.** `number.divisibility` and `logic.sets` would work at `3-4` too, but that would mean another 18 reference tasks and another review. **For:** a later edition.
 3. **`geometry.grid` is the one topic that can fail its entry exam.** О-30 planned for that; T37 is where it is decided, and the replacement is chosen from the same list with no new decision round.
 4. **The prototype's reference tasks have no `hint`.** The format the model must produce always does, and the new `5-6` tasks will. Backfilling hints into the 450 ported examples is optional work nobody is scheduled to do. **For:** T23, T36.
-5. **The `excluded_skills` cap in 04-profile reads "15 (the catalog's size)".** The catalog is 25 now, so the cap is the catalog's size, not the literal 15. **For:** T26.
+5. **The `excluded_skills` cap in 04-profile reads "15 (the catalog's size)".** The catalog is 25 now, so the cap is the catalog's size, not the literal 15. **For:** T26. **Measured with the package (T36.1):** at 25 the budget test of 4.1 fails — 8 of the 2,550 packages of a child at every limit, written in Latin letters, go over by up to 224 bytes — so raising the cap is also a decision about the budget.
 6. **The rank boundaries are defined here** because they are rating arithmetic, and T57 only draws them. If SPEC section 8 turns out to be a better home, move them there rather than duplicating them. **For:** T14, T57.
 
 Added while writing sections 4 and 5:
@@ -1410,3 +1409,12 @@ Added while exporting the golden vectors (T16):
 Added while writing the checks (T32):
 
 27. **5.3 and 5.1 disagree about naming an option.** 5.3 says a refusal "names the option and the condition"; 5.1 says no refusal ever quotes an answer letter, because the result reaches the widget. They are the same letters: naming the options whose explanations failed names options that are wrong, and four of them name the fifth. T32 wrote every refusal without a letter — an explanation is "one in `task.distractors`", a path through an option is written with a star — and the test holds every message to that. T32a has to choose between the two sentences, or find a way of pointing at one explanation without its letter, such as its place among the four. **For:** T32a. **Decided in T32a:** by the trap (5.3, R57).
+
+Added while writing the instructions for the model (T36.2):
+
+28. **Whether the server's instructions reach the model has not been seen.** T03 did not look at whether Claude or ChatGPT put the server's `instructions` in front of the model. The rules that must hold whatever the host — the answer stays hidden until the child has answered, an answer is recorded before anything is explained, the state of the task is read from a tool before it is spoken about — are therefore also said where the model cannot miss them: in the tools' descriptions and in their results. **For:** T41 and T43–T45, which write those; T46 and T62–T63, which see what the model actually reads.
+
+Added in the review of the package for the model (T36.1):
+
+29. **The model's reason for a choice of its own has no limit yet.** `next_task` puts the model's `reason` into the brief's `rationale` (3.4), and the brief travels in the package whole. Nothing caps its length, so neither the budget of 4.1 nor its test can count it. T43 gives `reason` a limit in the tool's input schema, and the budget test counts the longest rationale that limit allows. **For:** T43.
+30. **A profile with no excluded skills must say so with `[]`.** The rule copies `student.excluded_skills` into the brief as it stands, so a profile holding `null` there gives a brief holding `null`. The model, told to hand the brief back as it received it, hands back `null`, and the structure check (5.2) refuses a missing list — an attempt lost on every task. Either the profile is written with an empty list, or the rule turns `null` into one. **For:** T41, T43.

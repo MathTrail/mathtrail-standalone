@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"regexp"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/MathTrail/mathtrail-standalone/content"
@@ -226,6 +227,37 @@ func TestInstructionsAreInTheBinary(t *testing.T) {
 	}
 	if _, ok := c.Instruction("play_session.md"); ok {
 		t.Error("Instruction(play_session.md) found a file this service does not ship")
+	}
+}
+
+// tools are the six tools the server offers, named as the server names them.
+var tools = []string{"get_profile", "save_profile", "get_progress", "next_task", "submit_task", "submit_answer"}
+
+// The instructions the server hands the model walk it through every tool it
+// offers, each by the name the server gives it. A host may put its own prefix
+// before that name, and nothing in them depends on its being absent.
+func TestTheServerInstructionsNameEveryTool(t *testing.T) {
+	t.Parallel()
+
+	text, _ := loaded(t).Instruction("mcp_instructions.md")
+	for _, tool := range tools {
+		if !strings.Contains(text, "`"+tool+"`") {
+			t.Errorf("the server instructions never name %s", tool)
+		}
+	}
+}
+
+// Nothing of the prototype's instructions comes back with them: no tool takes a
+// student id, since the profile is the one the token belongs to, and the
+// prototype's own tools are gone.
+func TestTheServerInstructionsNameNothingThePrototypeHad(t *testing.T) {
+	t.Parallel()
+
+	text, _ := loaded(t).Instruction("mcp_instructions.md")
+	for _, gone := range []string{"student_id", "get_next_task", "get_student_profile", "solver_code", "taskgen"} {
+		if strings.Contains(text, gone) {
+			t.Errorf("the server instructions still name %s", gone)
+		}
 	}
 }
 
