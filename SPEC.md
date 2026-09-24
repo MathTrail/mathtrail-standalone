@@ -1427,7 +1427,7 @@ Added in the review of the package for the model (T36.1):
 
 Added with the solver templates (T36a):
 
-31. **The seven topics of `5-6` have no solver templates yet.** A template is generalised from the solver of a reference task, and those topics have no reference tasks until T37; a package for one of them carries an empty list. The test that every topic with reference tasks has a template turns red the day their tasks arrive, so T37 writes the templates together with the tasks. **For:** T37. **Since T37.1** `geometry.grid` has its two, and the other six follow in T37.2–T37.4.
+31. **The seven topics of `5-6` have no solver templates yet.** A template is generalised from the solver of a reference task, and those topics have no reference tasks until T37; a package for one of them carries an empty list. The test that every topic with reference tasks has a template turns red the day their tasks arrive, so T37 writes the templates together with the tasks. **For:** T37. **Since T37.1** `geometry.grid` has its two, **since T37.2** `games.strategy` and `logic.sets` have theirs, and the other four follow in T37.3–T37.4.
 32. **The near-duplicate check compares a task with the reference tasks of its own level, and a template crosses levels.** Every template keeps the numbers and the plot of a grade 1–4 task and is shown at every level, so a grade 5–6 task that copied a template's numbers would be compared with nothing it came from. The same is already true of the `3-4` reference tasks a `5-6` package borrows (4.1.1). Whether models copy either is for the acceptance runs to show; comparing against the reference tasks shown rather than those of the level is the fix if they do. **For:** T62, T63.
 
 Added with the drawing frames (T36b):
