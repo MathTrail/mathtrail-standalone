@@ -92,3 +92,11 @@ func TestAStrayFileAmongTheInstructionsStopsTheService(t *testing.T) {
 	src[instructionsDir+"/notes.txt"] = &fstest.MapFile{Data: []byte("a note to self")}
 	wantProblem(t, src, "notes.txt: the instructions are files ending in .md")
 }
+
+func TestInstructionsWithoutTheGuideStopTheService(t *testing.T) {
+	t.Parallel()
+
+	src := contentCopy(t)
+	delete(src, instructionsDir+"/"+guideName)
+	wantProblem(t, src, guideName+": the file is missing")
+}

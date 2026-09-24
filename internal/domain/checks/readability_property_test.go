@@ -13,8 +13,11 @@ import (
 
 // The properties here name what measuring a question has to hold for any
 // text, not only for the reference tasks. Splitting it into sentences loses
-// nothing and doubles nothing, and a sentence added never makes the longest
-// one shorter — the check could otherwise be passed by writing more. An accent
+// nothing and doubles nothing, and a sentence added after a finished one never
+// makes the longest one shorter — the check could otherwise be passed by
+// writing more. Words added to a sentence left unfinished are another matter:
+// they can change whether it is counted in characters or in words, by the
+// letters it then holds, and a count in words is the smaller. An accent
 // never takes a syllable away: it tells how a letter is said, and never makes
 // a vowel something else.
 
@@ -63,9 +66,10 @@ func TestSplittingHoldsItsProperties(t *testing.T) {
 		first,
 	))
 
-	properties.Property("a sentence added never makes the longest one shorter", prop.ForAll(
+	properties.Property("a sentence added after a finished one never makes the longest one shorter", prop.ForAll(
 		func(text, more string) bool {
-			return longestOf(text+" "+more) >= longestOf(text)
+			finished := text + "."
+			return longestOf(finished+" "+more) >= longestOf(finished)
 		},
 		first, second,
 	))

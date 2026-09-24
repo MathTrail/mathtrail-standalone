@@ -32,9 +32,10 @@ const gradeMargin = 3
 func Readability(question, language string, grade int) []Problem {
 	var problems []Problem
 
-	allowed, characters := limitsAt(grade)
+	limits := ReadabilityLimitsFor(grade)
+	allowed := limits.SentenceWords
 	if Spaceless(question) {
-		allowed = characters
+		allowed = limits.SentenceCharacters
 	}
 	for i, sentence := range sentences(question) {
 		length, unit := lengthOf(sentence)
@@ -46,7 +47,7 @@ func Readability(question, language string, grade int) []Problem {
 	}
 
 	if english(language) {
-		if index, most := fleschKincaid(question), grade+gradeMargin; index > float64(most) {
+		if index, most := fleschKincaid(question), limits.FleschKincaid; index > float64(most) {
 			problems = append(problems, Problem{Code: CodeReadability, Message: fmt.Sprintf(
 				"task.question reads at grade %.1f by Flesch–Kincaid, and a child in grade %d is given at most "+
 					"grade %d; use shorter words and shorter sentences", index, grade, most)})
@@ -55,12 +56,30 @@ func Readability(question, language string, grade int) []Problem {
 	return problems
 }
 
-// limitsAt is the longest sentence a child of this grade is given, in words and
-// in characters. A grade outside one to six is held to the nearest level:
+// ReadabilityLimits are what the question of a task for a child of one grade
+// is held to.
+type ReadabilityLimits struct {
+	// SentenceWords is the longest a sentence may be where words are separated
+	// by spaces.
+	SentenceWords int
+	// SentenceCharacters is the longest a sentence may be where they are not.
+	SentenceCharacters int
+	// FleschKincaid is the highest Flesch–Kincaid grade a question in English
+	// may read at.
+	FleschKincaid int
+}
+
+// ReadabilityLimitsFor are the limits a question for a child of this grade is
+// held to, in one place for the check and for whoever tells the model them. A
+// grade outside one to six is held to the sentences of the nearest level:
 // letting a sentence through for want of a limit would be the worse mistake.
-func limitsAt(grade int) (words, characters int) {
+func ReadabilityLimitsFor(grade int) ReadabilityLimits {
 	level := sentenceLimits[(min(max(grade, 1), 6)-1)/2]
-	return level.words, level.characters
+	return ReadabilityLimits{
+		SentenceWords:      level.words,
+		SentenceCharacters: level.characters,
+		FleschKincaid:      grade + gradeMargin,
+	}
 }
 
 // english says whether a language tag's primary subtag is English: "en",
