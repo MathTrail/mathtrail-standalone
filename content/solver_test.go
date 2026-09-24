@@ -20,8 +20,8 @@ import (
 // same dialect and helpers, the same two runs under rotated labels, and the
 // limits the deployed service uses. That makes the reference tasks the
 // regression suite of the sandbox as well: a limit moved by a hand that did not
-// mean to move it is caught here, against four hundred and fifty real programs,
-// rather than by a child.
+// mean to move it is caught here, against hundreds of real programs, rather
+// than by a child.
 func TestEveryReferenceTaskProvesItsOwnAnswer(t *testing.T) {
 	t.Parallel()
 

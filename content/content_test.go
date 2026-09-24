@@ -195,6 +195,55 @@ func TestEveryCellOfGradesOneToFourHasFiveTasks(t *testing.T) {
 	}
 }
 
+// Grades 5–6 carry nine reference tasks for a topic, three at each of the
+// middle difficulties: the rule aims at the middle of the corridor, and a
+// request for difficulty 1 or 5 is shown the nearest of them, labelled with its
+// own difficulty. The tasks arrive topic by topic, so a topic with none yet is
+// named rather than refused.
+func TestEveryTopicOfGradesFiveAndSixHasThreeTasksAtEachMiddleDifficulty(t *testing.T) {
+	t.Parallel()
+	c := loaded(t)
+
+	count := tasksByTopicAndDifficulty(c, content.Level56)
+	var waiting []string
+	for _, topic := range c.Topics() {
+		tasks, written := count[topic.ID]
+		if !written {
+			waiting = append(waiting, topic.ID)
+			continue
+		}
+		for difficulty := 1; difficulty <= 5; difficulty++ {
+			want := 0
+			if difficulty >= 2 && difficulty <= 4 {
+				want = 3
+			}
+			if got := tasks[difficulty]; got != want {
+				t.Errorf("%s at %s, difficulty %d: got %d reference tasks, want %d",
+					topic.ID, content.Level56, difficulty, got, want)
+			}
+		}
+	}
+	t.Logf("no reference tasks at %s yet: %v", content.Level56, waiting)
+}
+
+// tasksByTopicAndDifficulty counts the reference tasks of one level, by topic
+// and then by difficulty. A topic with none at the level is not in it.
+func tasksByTopicAndDifficulty(c *content.Content, level string) map[string]map[int]int {
+	count := map[string]map[int]int{}
+	examples := c.Examples()
+	for i := range examples {
+		example := &examples[i]
+		if example.GradeLevel != level {
+			continue
+		}
+		if count[example.Topic] == nil {
+			count[example.Topic] = map[int]int{}
+		}
+		count[example.Topic][example.Difficulty]++
+	}
+	return count
+}
+
 func TestSchemasAreInTheBinary(t *testing.T) {
 	t.Parallel()
 	c := loaded(t)

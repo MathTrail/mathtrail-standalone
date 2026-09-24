@@ -84,6 +84,34 @@ func TestEveryDrawingFrameFilledForAReferenceTaskPassesTheDrawingChecks(t *testi
 	}
 }
 
+// Every reference task that carries a drawing carries one the checks accept,
+// against its own question: the model is shown these drawings beside the
+// frames, and a drawing that failed a check would teach it to fail. A
+// reference task is a filled drawing, so it leaves no place for a number
+// unfilled.
+func TestEveryReferenceDrawingPassesTheDrawingChecks(t *testing.T) {
+	t.Parallel()
+
+	drawn := 0
+	for _, task := range loaded(t).Examples() {
+		if task.Drawing == "" {
+			continue
+		}
+		drawn++
+		t.Run(task.ID, func(t *testing.T) {
+			t.Parallel()
+
+			if strings.Contains(task.Drawing, "#") {
+				t.Errorf("the drawing leaves a place for a number unfilled:\n%s", task.Drawing)
+			}
+			holdsToTheDrawingChecks(t, task.Question, task.Drawing, structureOf(task.DrawingStructure))
+		})
+	}
+	if drawn == 0 {
+		t.Fatal("no reference task carries a drawing, so nothing here was tested")
+	}
+}
+
 // Every filled drawing fills a frame the content has, so that a frame renamed
 // or taken out leaves nothing behind that no test reads.
 func TestEveryFilledDrawingFillsAFrame(t *testing.T) {

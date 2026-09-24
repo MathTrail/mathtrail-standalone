@@ -277,9 +277,8 @@ func TestATaskWithAFieldTheFormatDoesNotHaveStopsTheService(t *testing.T) {
 	wantProblem(t, src, `unknown field "answer"`)
 }
 
-// No reference task carries a drawing yet, and the branch that copies one is
-// the deepest thing in the content: a pointer, two slices and a value behind a
-// pointer of its own.
+// The branch that copies a drawing is the deepest thing in a reference task: a
+// pointer, two slices and a value behind a pointer of its own.
 func TestCloningATaskCopiesItsDrawing(t *testing.T) {
 	t.Parallel()
 

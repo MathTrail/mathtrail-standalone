@@ -2,6 +2,7 @@ package content_test
 
 import (
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/MathTrail/mathtrail-standalone/content"
@@ -93,4 +94,57 @@ func TestEveryReferenceTaskExplainsItsWrongOptions(t *testing.T) {
 			t.Errorf("%s: %s", example.ID, problem.Message)
 		}
 	}
+}
+
+// The reference tasks of grades 5–6 were written for this service, so they
+// are held to what a task the model writes is held to wherever it applies to
+// them: a hint, and sentences a child of grade 5 can read — the youngest the
+// level is shown to, and so the strictest limits it has.
+func TestEveryTaskOfGradesFiveAndSixIsWrittenAsATaskMustBe(t *testing.T) {
+	t.Parallel()
+
+	checked := 0
+	for _, example := range loaded(t).Examples() {
+		if example.GradeLevel != content.Level56 {
+			continue
+		}
+		checked++
+		if strings.TrimSpace(example.Hint) == "" {
+			t.Errorf("%s: got no hint, want one, as every task the model writes has", example.ID)
+		}
+		for _, problem := range checks.Readability(example.Question, "en", 5) {
+			t.Errorf("%s: %s", example.ID, problem.Message)
+		}
+	}
+	if checked == 0 {
+		t.Fatal("no reference task of grades 5–6, so nothing here was tested")
+	}
+}
+
+// No two reference tasks of grades 5–6 read as copies of each other. A new task
+// is held to the same measure against the reference tasks of its child's
+// level, so a pair of reference tasks that close would mean a model following
+// either one is refused as copying the other.
+func TestNoTwoTasksOfGradesFiveAndSixAreNearDuplicates(t *testing.T) {
+	t.Parallel()
+
+	var tasks []content.Example
+	for _, example := range loaded(t).Examples() {
+		if example.GradeLevel == content.Level56 {
+			tasks = append(tasks, example)
+		}
+	}
+	closest, between := 0.0, ""
+	for i := range tasks {
+		for j := i + 1; j < len(tasks); j++ {
+			similarity := checks.Similarity(tasks[i].Question, tasks[j].Question)
+			if similarity >= checks.Threshold {
+				t.Errorf("%s and %s: similarity %.2f, want below %.2f", tasks[i].ID, tasks[j].ID, similarity, checks.Threshold)
+			}
+			if similarity > closest {
+				closest, between = similarity, tasks[i].ID+" and "+tasks[j].ID
+			}
+		}
+	}
+	t.Logf("the closest pair of %d tasks: %s, at %.2f", len(tasks), between, closest)
 }
