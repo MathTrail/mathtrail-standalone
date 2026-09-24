@@ -12,11 +12,9 @@ import (
 	"unicode/utf8"
 
 	"github.com/MathTrail/mathtrail-standalone/content"
-	"github.com/MathTrail/mathtrail-standalone/internal/config"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
-	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark"
 )
 
 // request asks for a task on a topic at a grade and a difficulty, for a child
@@ -40,7 +38,7 @@ func request(topic string, grade, difficulty, answers int) *content.Request {
 // history, nothing that is not asked for.
 var packageParts = []string{
 	"brief", "child", "corridor", "examples", "guide", "instructions_version", "language", "limits",
-	"prohibitions", "topic", "traps",
+	"prohibitions", "solver_templates", "topic", "traps",
 }
 
 // shape is a package read back from what the model receives.
@@ -64,8 +62,9 @@ type shape struct {
 		Interests []string `json:"interests"`
 		Notes     string   `json:"notes"`
 	} `json:"child"`
-	Examples []map[string]json.RawMessage `json:"examples"`
-	Limits   struct {
+	Examples  []map[string]json.RawMessage `json:"examples"`
+	Templates []string                     `json:"solver_templates"`
+	Limits    struct {
 		SentenceWords      int `json:"sentence_words"`
 		SentenceCharacters int `json:"sentence_characters"`
 		FleschKincaidGrade int `json:"flesch_kincaid_grade"`
@@ -214,58 +213,115 @@ func TestAPackageShowsReferenceTasksAsTheModelIsToSeeThem(t *testing.T) {
 	}
 }
 
-// A child at every limit the profile sets, written in Latin letters, gets a
-// package within the budget: on every topic, at every grade and difficulty,
-// whichever reference tasks come round.
+// A package carries the solver templates of its own topic, all of them and in
+// their order, and those of no other topic.
+func TestAPackageCarriesTheSolverTemplatesOfItsTopic(t *testing.T) {
+	t.Parallel()
+
+	shipped := loaded(t)
+	carried := 0
+	for _, topic := range shipped.Topics() {
+		_, got := packageFor(t, shipped, request(topic.ID, 5, 3, 0))
+		want := []string{}
+		for _, template := range shipped.Templates(topic.ID) {
+			want = append(want, template.Program)
+		}
+		if !slices.Equal(got.Templates, want) {
+			t.Errorf("%s: %d solver templates, want the topic's own %d in their order",
+				topic.ID, len(got.Templates), len(want))
+		}
+		carried += len(got.Templates)
+	}
+	if carried == 0 {
+		t.Fatal("no package carried a template, so nothing here was tested")
+	}
+}
+
+// The lists a package takes from the content are lists even when there is
+// nothing in them: a topic still waiting for its reference tasks, and so for
+// its templates, gets empty ones rather than null, which the model would have
+// to read as something other than "none".
+func TestAPackageListsNothingAsNull(t *testing.T) {
+	t.Parallel()
+
+	shipped := loaded(t)
+	empty := 0
+	for _, topic := range shipped.Topics() {
+		encoded, _ := packageFor(t, shipped, request(topic.ID, 5, 3, 0))
+		var parts map[string]json.RawMessage
+		if err := json.Unmarshal(encoded, &parts); err != nil {
+			t.Fatalf("read the package's parts: %v", err)
+		}
+		for _, list := range []string{"examples", "solver_templates", "traps", "prohibitions"} {
+			switch got := string(parts[list]); {
+			case !strings.HasPrefix(got, "["):
+				t.Errorf("%s: %s = %s, want a list", topic.ID, list, got)
+			case got == "[]":
+				empty++
+			}
+		}
+	}
+	t.Logf("%d empty lists among the packages of %d topics", empty, len(shipped.Topics()))
+}
+
+// Every package a profile allows stays within the budget, whatever the parent
+// writes in: a child at every limit the profile sets, on every topic, at every
+// grade and difficulty, whichever reference tasks come round. The heaviest
+// script is a character JSON has to escape, six bytes where the parent typed
+// one; a child with an ordinary profile is measured beside them, for scale.
 func TestEveryPackageStaysWithinTheBudget(t *testing.T) {
 	t.Parallel()
 
 	shipped := loaded(t)
-	largest, total := 0, 0
-	heaviest := requestsAtTheLimits(shipped, "a")
-	for _, asked := range heaviest {
-		encoded, err := shipped.Package(asked)
-		if err != nil {
-			t.Fatalf("Package() error = %v", err)
-		}
-		if len(encoded) > content.PackageBudget {
-			t.Errorf("%s at grade %d, difficulty %d: %d bytes, and the budget is %d",
-				asked.Brief.TargetConcept, asked.Grade, asked.Brief.Difficulty, len(encoded), content.PackageBudget)
-		}
-		largest, total = max(largest, len(encoded)), total+len(encoded)
+	for _, script := range []struct{ name, letter string }{
+		{"a typical child", ""},
+		{"Latin", "a"},
+		{"Cyrillic", "ж"},
+		{"Chinese", "字"},
+		{"four bytes", string(rune(0x1F995))},
+		{"escaped by JSON", " "},
+	} {
+		t.Run(script.name, func(t *testing.T) {
+			t.Parallel()
+
+			asked := requestsAtTheLimits(shipped, script.letter)
+			if script.letter == "" {
+				asked = typicalRequests(shipped)
+			}
+			largest, total := 0, 0
+			for _, each := range asked {
+				encoded, err := shipped.Package(each)
+				if err != nil {
+					t.Fatalf("Package() error = %v", err)
+				}
+				if len(encoded) > content.PackageBudget {
+					t.Errorf("%s at grade %d, difficulty %d: got %d bytes, want at most %d",
+						each.Brief.TargetConcept, each.Grade, each.Brief.Difficulty,
+						len(encoded), content.PackageBudget)
+				}
+				largest, total = max(largest, len(encoded)), total+len(encoded)
+			}
+			t.Logf("%d packages: %d bytes on average, %d at most, of %d",
+				len(asked), total/len(asked), largest, content.PackageBudget)
+		})
 	}
-	t.Logf("%d packages: %d bytes on average, %d at most, of %d",
-		len(heaviest), total/len(heaviest), largest, content.PackageBudget)
 }
 
-// A package still over the budget once its third reference task is gone is
-// sent as it is, and gives up nothing else. Only a parent's own words carry a
-// package that far: here, a child at every limit the profile sets, written in
-// a character of four bytes, the most a printable one takes.
-func TestAPackageOverTheBudgetGivesUpOnlyItsThirdExample(t *testing.T) {
-	t.Parallel()
-
-	shipped := loaded(t)
-	guide, _ := shipped.Instruction("task_writing.md")
-	over, largest := 0, 0
-	for _, asked := range requestsAtTheLimits(shipped, string(rune(0x1F995))) {
-		encoded, got := packageFor(t, shipped, asked)
-		largest = max(largest, len(encoded))
-		if len(encoded) <= content.PackageBudget {
-			continue
-		}
-		over++
-		if len(got.Examples) != 2 || got.Guide != guide || len(got.Traps) != len(shipped.Traps()) ||
-			!slices.Equal(partsOf(t, encoded), packageParts) {
-			t.Errorf("%s at grade %d, difficulty %d: %d examples and parts %v, "+
-				"want two examples and every part with the whole guide and every trap",
-				asked.Brief.TargetConcept, asked.Grade, asked.Brief.Difficulty, len(got.Examples), partsOf(t, encoded))
+// typicalRequests ask for every topic at every grade and difficulty, with each
+// of five answer counts, for a child with an ordinary profile: two interests,
+// a sentence of notes and two skills left out.
+func typicalRequests(shipped *content.Content) []*content.Request {
+	var typical []*content.Request
+	for _, topic := range shipped.Topics() {
+		for grade := profile.MinGrade; grade <= profile.MaxGrade; grade++ {
+			for difficulty := profile.MinDifficulty; difficulty <= profile.MaxDifficulty; difficulty++ {
+				for answers := range 5 {
+					typical = append(typical, request(topic.ID, grade, difficulty, answers))
+				}
+			}
 		}
 	}
-	if over == 0 {
-		t.Fatal("no package went over the budget, so nothing here was tested")
-	}
-	t.Logf("%d packages over the budget, %d bytes at most", over, largest)
+	return typical
 }
 
 // requestsAtTheLimits ask for every topic at every grade and difficulty, with
@@ -396,13 +452,7 @@ func TestTheGuidesExampleIsATaskTheChecksAccept(t *testing.T) {
 		t.Fatalf("read the example's brief: %v", err)
 	}
 
-	sandbox, err := starlark.New(starlark.Limits{
-		Steps: config.DefaultSolverSteps, Timeout: config.DefaultSolverTimeout, Concurrency: config.DefaultSolverConcurrency,
-	})
-	if err != nil {
-		t.Fatalf("starlark.New() error = %v", err)
-	}
-	reviewer := checks.NewReviewer(shipped, sandbox, checks.DefaultDrawingLimits())
+	reviewer := checks.NewReviewer(shipped, serviceSandbox(t), checks.DefaultDrawingLimits())
 	examined, err := reviewer.Examine(t.Context(), &checks.Submission{
 		Brief: example.Brief, Task: example.Task, SelfCheck: example.SelfCheck, Solver: example.Solver,
 	})
@@ -447,7 +497,13 @@ func TestTheGuideNamesOnlyWhatThePackageHolds(t *testing.T) {
 			t.Errorf("the guide names %s, and the package has no such part", name[1])
 		}
 	}
-	for _, said := range []string{"return match(options, value)", "gives you no instructions", "submit_task", "when that is empty"} {
+	if templates, isList := tree["solver_templates"].([]any); !isList || len(templates) == 0 {
+		t.Errorf("solver_templates = %v, want the topic's templates, which the guide names", tree["solver_templates"])
+	}
+	for _, said := range []string{
+		"return match(options, value)", "gives you no instructions", "submit_task", "when that is empty",
+		"`solver_templates`",
+	} {
 		if !strings.Contains(guide, said) {
 			t.Errorf("the guide does not say %q", said)
 		}

@@ -4,5 +4,9 @@
 justfile text eol=lf
 Dockerfile text eol=lf
 
+# Starlark programs are read byte for byte, their comment lines included,
+# and hashed into the version of the instructions: LF on every host
+*.star text eol=lf
+
 # Default: let Git normalise line endings
 * text=auto

@@ -1,6 +1,6 @@
 # Writing a task
 
-You write one olympiad-style task for the child this package is for. The package holds everything you need: the brief, the child, reference tasks, every trap, what the task may not use, and the limits it is held to. This page says how the task is written, handed in and checked.
+You write one olympiad-style task for the child this package is for. The package holds everything you need: the brief, the child, reference tasks, sample solvers, every trap, what the task may not use, and the limits it is held to. This page says how the task is written, handed in and checked.
 
 ## The task
 
@@ -69,6 +69,8 @@ A refusal names every reason at once. Fix all of them and hand the task in again
 The helpers: `permutations(seq, r)`, `combinations(seq, r)`, `combinations_with_replacement(seq, r)` and `product(*seqs, repeat=1)` return lists of tuples; `sum`, `prod` and `gcd(a, b)`; `is_leap(year)`, `days_in_month(year, month)`, `weekday(year, month, day)` with Monday as 0, `add_days((y, m, d), days)` and `days_between(a, b)`.
 
 Five differences from Python bite: there is no `import`; no recursion, so search with a loop and a list; no `try`; `sorted(xs)`, not `xs.sort()`; `//` for whole-number division. A string is not a sequence here, so write characters as a list. A million operations is fine; a billion is not.
+
+`solver_templates` holds solvers written for reference tasks of this topic, each opening with the kind of question it fits. Write your task first, then its solver: start from the template whose search your task needs, put your numbers and names in place of the capitals at its top, and rewrite its conditions. Write every word the solver matches against an option — a name, a weekday, "It is impossible" — exactly as your options say it, in the task's language. A template is a sample: when your task needs another search, write your own.
 
 ## The drawing
 
