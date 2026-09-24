@@ -61,7 +61,7 @@
   },
   {
     "id": "part_whole_swap",
-    "description": "Swapped the part and the whole: answered with the part when the whole was asked for, or the other way round."
+    "description": "Swapped the part and the whole, either way: answered with one when the other was asked for, or took a fraction of one as if it were a fraction of the other; a percentage of the wrong quantity is percent_wrong_base instead."
   },
   {
     "id": "ratio_total_confusion",

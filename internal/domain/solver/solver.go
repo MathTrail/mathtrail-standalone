@@ -25,6 +25,11 @@ const (
 	// StatusBadSource means the source does not parse, or asks for something
 	// the dialect does not have.
 	StatusBadSource Status = "bad_source"
+	// StatusBadFormat means the program stopped at a string it formats with %
+	// in a way Starlark cannot fill: a stray %, a width or a precision, or a
+	// number of values the string does not ask for. A string like that which
+	// the run never reaches stops nothing, and is no reason to refuse.
+	StatusBadFormat Status = "bad_format"
 	// StatusNoEntryPoint means there is no solve to call, or what is called
 	// solve cannot be called with the options.
 	StatusNoEntryPoint Status = "no_entry_point"

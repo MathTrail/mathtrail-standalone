@@ -45,10 +45,11 @@ The level governs four things: which topics exist, what "difficulty 3" means, th
 
 ## 1.2 The topic catalog
 
-A topic is chosen **from the catalog**; the model never invents one, or histories from different children stop being comparable. Two rules decide what may be in it:
+A topic is chosen **from the catalog**; the model never invents one, or histories from different children stop being comparable. One rule decides what may be in it:
 
-1. **Words only.** The task must be statable in words, with no picture and no spatial imagination.
-2. **Brute-forceable.** A short program must be able to enumerate the possibilities and confirm that exactly one option is correct. This is what the solver check rests on (section 6), and it is not negotiable: a topic that cannot be checked by enumeration does not enter the catalog.
+**Brute-forceable.** A short program must be able to enumerate the possibilities and confirm that exactly one option is correct. This is what the solver check rests on (section 6), and it is not negotiable: a topic that cannot be checked by enumeration does not enter the catalog.
+
+A task that has a picture in it carries a text drawing (4.4, R68, R69).
 
 ### The ten topics of grades 1–4, extended to 5–6
 
@@ -94,7 +95,7 @@ A trap is the mistake behind a wrong option. The fourteen of the prototype carry
 | Added id | Description | Mostly used in |
 |---|---|---|
 | `percent_wrong_base` | Took the percentage of the wrong quantity — of the new price instead of the old one | `percent.basic`, `ratio.sharing` |
-| `part_whole_swap` | Swapped the part and the whole: answered with the part when asked for the whole, or the other way round | `fractions.parts`, `percent.basic` |
+| `part_whole_swap` | Swapped the part and the whole, either way: answered with one when the other was asked for, or took a fraction of one as if it were a fraction of the other; a percentage of the wrong quantity is `percent_wrong_base` instead | `fractions.parts`, `percent.basic` |
 | `ratio_total_confusion` | Treated a share of a ratio as a share of the total, or added the ratio parts wrongly | `ratio.sharing` |
 | `remainder_vs_quotient` | Gave the quotient where the remainder was asked, or the other way round | `number.divisibility` |
 | `area_perimeter_swap` | Counted the perimeter where the area was asked, or the other way round | `geometry.grid` |
@@ -154,10 +155,10 @@ The solver is not one of these fields. It is a file of its own, `content/example
 | `id` | yes | `<topic abbreviation>-<level>-d<difficulty>-<number>`, unique across the content |
 | `topic`, `grade_level`, `difficulty` | yes | Ids from the catalogs; difficulty 1–5 inside the level |
 | `question` | yes | English. The model writes in the chat's language; the examples set the idea and the structure, not the language |
-| `drawing`, `drawing_structure` | no | A text drawing and its structural description, where the topic needs one — mostly `geometry.grid`. The format is section 4, the frames are T36b |
+| `drawing`, `drawing_structure` | no | A text drawing and its structural description, wherever the task has a picture in it (R68). The format is section 4, the frames are T36b |
 | `options` | yes | Exactly five, all different |
 | `correct_answer` | yes | Exactly one letter |
-| `hint` | new tasks only | A nudge that does not give the answer away. The 450 ported tasks have none; the format the model must produce always does |
+| `hint` | new tasks only | A nudge that does not give the answer away. The 450 ported tasks have none; the format the model must produce always does, and so does every task of `5-6` (1.6) |
 | `solution` | yes | Short, step by step |
 | `distractors` | yes | One entry per wrong option: a trap id from the catalog and the text the child sees after answering |
 | the solver | yes, after T29–T31 | A file beside the tasks, not a field: `content/examples/solvers/<id>.star`. The Starlark program that brute-forces this very task. It makes every example re-checkable on the bench, and it is not what goes into the package — the model is shown the generalised templates of `content/solvers/` instead (R08) |
@@ -178,7 +179,9 @@ Why nine rather than the prototype's twenty-five per pair. The package hands the
 | 2 | T38 | Five extended topics: `logic.ordering`, `logic.knights_liars`, `combinatorics.enumeration`, `counting.gaps`, `time.clocks` | 45 |
 | 3 | T39 | Five extended topics: `time.calendar`, `pigeonhole.basic`, `parity.alternation`, `arithmetic.tricks`, `algorithms.weighing_pouring` | 45 |
 
-Three batches, so no T39a is needed. The first batch is the largest on purpose: it is the one that settles whether the new topics survive contact with a solver, `geometry.grid` above all.
+Three batches, so no T39a is needed. The first batch is the largest on purpose: it is the one that settles whether the new topics survive contact with a solver, `geometry.grid` above all. It is written in four parts, T37.1 to T37.4, each reviewed on its own; `geometry.grid` goes first.
+
+**What a task of `5-6` is held to.** These tasks are written for this service, so they pass what a task the model writes must pass wherever it applies to a reference task (R67): the bench proves each answer and the explanations pass 5.3, as for every reference task; and beyond that each has a hint, its question reads within the limits of grade 5 — the strictest of the level (5.5) — no two of them are near-duplicates by the threshold of 5.6, a drawing passes both drawing checks against its own question (5.4), and each topic has exactly three at each of difficulties 2, 3 and 4. Their wrong options are labelled with the rule in mind: a child new to a topic is given the two traps most frequent among its reference tasks (3.2), so those two are the mistakes most typical of the topic. A grid topic names its cells the same way in its question and its drawing — rows A, B, C… from the top, columns 1, 2, 3… from the left, a cell as B2.
 
 **Which three examples go into the package.** For the brief's topic and level: three tasks of the requested difficulty; if there are fewer, top up from the nearest difficulty, then from the next nearest; if the topic has nothing at that level, from the level below. Which three, when there are more than three, rotates by the child's answer count, so a child asking for the same topic twice does not see the same examples (the prototype's D43).
 
@@ -404,7 +407,7 @@ Returned by `next_task`, never rendered as a card (03-flows), and assembled fres
 | The limits | The readability limits for the level (1.1) and the drawing limits (5.4) | small |
 | The instructions version | The hash of the instructions, the solver templates and the drawing frames, which every log line about this task will carry (О-21, R64, R66) | small |
 
-**The budget is 64 KB, and nothing is dropped to meet it** (R65). It is a ceiling against a package growing unnoticed, not a target: a package is a few thousand tokens of the chat's own context, paid for out of the family's message limit, but that context only gets cheaper, and a sample solver or a reference task left out of a rare profile's package would buy a few hundred tokens with the quality of the task. With the solver templates and the drawing frames in, a child with an ordinary profile — two interests, a sentence of notes, two skills left out — gets 14.6 KB on average across the catalog and 19.0 KB at most. For a child at every limit the profile sets (04-profile) — notes of 500 characters, ten interests of forty, fifteen excluded skills — a package is 16.9 KB on average in Latin letters and 21.2 KB at most; the same limits reach 22.2 KB in Cyrillic, 23.1 KB in Chinese or Japanese, 24.0 KB in characters of four bytes and 25.8 KB in the characters JSON has to escape, six bytes for every one typed. A test holds every one of those packages — every topic, grade, difficulty and turn of the reference tasks — to the budget. The one part it cannot count is the model's own reason for a choice, which travels in the brief's `rationale` and has no limit until T43 gives it one (remark 29).
+**The budget is 64 KB, and nothing is dropped to meet it** (R65). It is a ceiling against a package growing unnoticed, not a target: a package is a few thousand tokens of the chat's own context, paid for out of the family's message limit, but that context only gets cheaper, and a sample solver or a reference task left out of a rare profile's package would buy a few hundred tokens with the quality of the task. With the solver templates, the drawing frames and the drawings of the reference tasks in, a child with an ordinary profile — two interests, a sentence of notes, two skills left out — gets 18.1 KB on average across the catalog and 24.6 KB at most. For a child at every limit the profile sets (04-profile) — notes of 500 characters, ten interests of forty, fifteen excluded skills — a package is 20.4 KB on average in Latin letters and 27.0 KB at most; the same limits reach 27.9 KB in Cyrillic, 28.9 KB in Chinese or Japanese, 29.8 KB in characters of four bytes and 31.7 KB in the characters JSON has to escape, six bytes for every one typed. A test holds every one of those packages — every topic, grade, difficulty and turn of the reference tasks — to the budget. The one part it cannot count is the model's own reason for a choice, which travels in the brief's `rationale` and has no limit until T43 gives it one (remark 29).
 
 On a repeat attempt the package is not sent again: `submit_task` answers with the refusal codes, and the model already has everything else in its context (03-flows).
 
@@ -465,8 +468,11 @@ The model draws, following the rules in the instructions (О-11); the service ch
 
 **`drawing`** — a block of monospaced text, lines separated by `\n`. The rules the model is given:
 
-- draw only when the wording genuinely needs it, and never to decorate;
-- a number line, a grid, a balance, a pouring diagram, a clock face — the recurring subjects have ready frames in the package (О-44), and a frame is a starting point, not an obligation;
+- draw when a child solving the task would draw it (R68, R69): where things stand — cells of a grid, a row, a ring, a number line, rows of seats; parts of a whole — bars of equal parts for a ratio, a fraction or a percentage; groups that overlap — two boxes sharing a region;
+- do not draw when the task is about numbers alone — a remainder, digits, a price after a change, a pile in a game — nor when the picture would give the answer away or take the task's key step, nor when it would only repeat the words;
+- bars show the parts the question names: when a number the question gives belongs to a part the child has to work out first — the rest of a whole, what is left after a step — tying the two together is the key step, and the task does not draw;
+- the wording carries every fact the task needs, and the drawing shows what the wording gives and adds nothing: the solver and the self-check work from the wording, and the drawing check reads only the labels;
+- a number line, a grid, a balance, a pouring diagram, a clock face, bars, a ring, two overlapping groups — the recurring subjects have ready frames in the package (О-44), and a frame is a starting point, not an obligation;
 - keep it inside the limits of 5.4: they are what a phone can show;
 - label the objects the question names, with the same labels, in the same alphabet, and name them in the wording with Latin capitals — point A, segment AB, triangle ABC — which is what the check reads (5.4);
 - the child sees the drawing before answering, so it shows what the question gives and nothing the question asks for, and marks the unknown with `?`;
@@ -488,9 +494,9 @@ The model draws, following the rules in the instructions (О-11); the service ch
 }
 ```
 
-`kind` is free text naming the subject (`number_line`, `row`, `grid`, `timetable`, `balance`, `pouring`, `clock`); `objects` carry an id, the label as it appears in the drawing, and an optional value; `relations` are triples. The service reads only the labels (5.4); `kind` and `relations` are there for the model's own discipline and for the frames, and no check depends on them beyond their presence being well-formed.
+`kind` is free text naming the subject (`number_line`, `row`, `rows`, `grid`, `timetable`, `balance`, `pouring`, `clock`, `bars`, `ring`, `venn`); `objects` carry an id, the label as it appears in the drawing, and an optional value; `relations` are triples. The service reads only the labels (5.4); `kind` and `relations` are there for the model's own discipline and for the frames, and no check depends on them beyond their presence being well-formed.
 
-**The frames** (О-44, R09, R66) are eight, one file each in `content/drawings/`: a number line, a row of objects with the gaps between them, a 3 by 3 and a 4 by 4 grid, a timetable, a balance, containers for pouring, and a clock face. Each names the topics whose packages carry it and says what it is for and how it is filled. A frame is no task's drawing: a number goes where it has a run of `#`, one character to each `#` and right-aligned, a minus sign included; its labels are Latin capitals to keep or rename, set apart from every `#` by something that is neither a letter nor a digit, so that a filled number never runs into one; and its structure holds no values. It uses none of the characters in the allowed set that some platforms draw as a colour emoji two cells wide (remark 33). Every frame passes both drawing checks at the default limits as it stands, with its labels and its structure agreeing both ways; and so does every frame filled with what the question of a reference task of one of its topics gives — no reference task carries a drawing of its own. Those filled drawings are fixtures in `content/testdata/drawings/`, and the model is not shown them.
+**The frames** (О-44, R09, R66) are eleven, one file each in `content/drawings/`: a number line, a row of objects with the gaps between them, a 3 by 3 and a 4 by 4 grid, a timetable, a balance, containers for pouring, a clock face, bars split into equal parts, places in a ring, and two groups that overlap. Each names the topics whose packages carry it and says what it is for and how it is filled. A frame is no task's drawing: a number goes where it has a run of `#`, one character to each `#` and right-aligned, a minus sign included, and a frame whose numbers can outgrow their places says in its purpose where a longer one goes; its labels are Latin capitals to keep or rename, set apart from every `#` by something that is neither a letter nor a digit, so that a filled number never runs into one; and its structure holds no values. It uses none of the characters in the allowed set that some platforms draw as a colour emoji two cells wide (remark 33). Every frame passes both drawing checks at the default limits as it stands, with its labels and its structure agreeing both ways; and so does every frame filled with what the question of a reference task of one of its topics gives, whether or not that task has a drawing of its own. Those filled drawings are fixtures in `content/testdata/drawings/`, and the model is not shown them. The drawings reference tasks carry — grids, bars, rings, rows of seats, overlapping groups — are a different thing: they are part of the tasks, shown with them, and held to the same two checks (1.6).
 
 ## 4.5 The self-check
 
@@ -717,6 +723,7 @@ Everything in this table is `solver_error`, and the model is told which line of 
 | Status | When |
 |---|---|
 | `bad_source` | the source does not parse, or uses something the dialect forbids — `load`, a construct removed from Starlark |
+| `bad_format` | the run stopped at a string the program formats with `%` that Starlark cannot fill — a stray `%`, a width or a precision, a number of values the string does not ask for, a key with no dictionary to find it in (R71) |
 | `no_entry_point` | no `solve`, or it is not a function, or it does not take exactly one argument |
 | `error` | the program failed while running: `fail()`, an index or type error, a helper's cap exceeded, a recursive call |
 | `timeout` | the step limit or the wall-clock limit tripped (6.6) |
@@ -737,7 +744,7 @@ Starlark is Python-shaped but deliberately smaller, and `syntax.FileOptions` dec
 | `Recursion` | **off** | This is the one we keep closed. A recursive Starlark function recurses on the **Go** stack, and a stack overflow in Go cannot be recovered: it would take the whole instance down, not the request (T28). Search is written iteratively, and the porting table in 6.8 shows the two-line transformation. The field reads backwards — it switches off the *check* rather than the recursion — and the check fires when the recursive call happens rather than when the file is parsed, which is why a recursive solver is `error` and not `bad_source` |
 | `LoadBindsGlobally` | off | Irrelevant: there is no module loader at all, so any `load` fails as `bad_source` |
 
-Beyond the options, what the model must know it does **not** have: imports of any kind, classes, `try`/`except`, `yield`, generators, `lambda` with statements, f-strings (`%` and `.format` are there), `while`-`else`, sorting in place (`sorted()` returns a new list), and any access to time, randomness, the filesystem or the network. Integers are arbitrary precision, `/` produces a float and `//` an integer, and dictionaries iterate in insertion order. One difference is an order rather than an absence: a keyword argument has to come before a `*` unpacking, so `product(repeat=3, *pools)` is written that way round and the Python order is a parse error.
+Beyond the options, what the model must know it does **not** have: imports of any kind, classes, `try`/`except`, `yield`, generators, `lambda` with statements, f-strings (`%` and `.format` are there, and `%` takes one letter after it — no flags, no width, no precision), `while`-`else`, sorting in place (`sorted()` returns a new list), and any access to time, randomness, the filesystem or the network. Integers are arbitrary precision, `/` produces a float and `//` an integer, and dictionaries iterate in insertion order. One difference is an order rather than an absence: a keyword argument has to come before a `*` unpacking, so `product(repeat=3, *pools)` is written that way round and the Python order is a parse error.
 
 ## 6.5 The helpers
 
@@ -798,7 +805,7 @@ What a cap cannot reach is an operator. `[0] * 100000000` allocates through the 
 
 ## 6.7 What the guide for the model says
 
-The generation package (4.1) carries a page about the solver, and it is short on purpose. It states the contract of 6.2 with one worked example; it lists the helpers of 6.5 as a table; it names the five differences from Python that actually bite — no imports, no recursion, no `try`, `sorted()` not `.sort()`, `//` for integer division; it gives the step and time limits as "roughly a million operations is fine, a billion is not"; and it ends with the one instruction that prevents most failures: **compute the answer, then return `match(options, value)` — do not write the letter yourself.**
+The generation package (4.1) carries a page about the solver, and it is short on purpose. It states the contract of 6.2 with one worked example; it lists the helpers of 6.5 as a table; it names the six differences from Python that actually bite — no imports, no recursion, no `try`, `sorted()` not `.sort()`, `//` for integer division, and a `%` with one letter after it and a percent sign written `%%`; it gives the step and time limits as "roughly a million operations is fine, a billion is not"; and it ends with the one instruction that prevents most failures: **compute the answer, then return `match(options, value)` — do not write the letter yourself.**
 
 The solver templates of `content/solvers/<topic>/` (R08, R64, О-43) carry the same shape per topic: one or two for every topic that has reference tasks, each the solver of one of them, generalised. A template opens with the kind of question it fits and the idea of its search, names the task it came from on a line of its own — `# From reference task ord-34-d2-2.` — and keeps that task's numbers and names in capitals at its top. The capitals are the places a model puts its own, and every word the solver matches against an option — a weekday, "It is impossible to tell" — is one of them, because the task is written in the chat's language and `match` compares text as it stands. Keeping the source task's numbers is what lets the bench run every template on that task and require its answer (6.8), so a template is a correct program to start from rather than a plausible one. The guide asks for the task first and the solver second, and for a search of the model's own whenever its task needs another. What the guide must not do is turn into a Starlark tutorial: a model that needs one is not going to write a correct brute force either.
 
@@ -1016,7 +1023,7 @@ One resource, six screens, and the payload says which — `structuredContent.scr
 | `first_run` | `get_profile` when there is no file | What the app is, and what the parent has to fill in |
 | `profile` | `get_profile`, `save_profile` | Pseudonym, grade, interests, constraints; editing |
 | `progress` | `get_progress` | The rating per topic with its rank (О-48, R12), mastered topics, recent answers, the misconception map, the recommendation |
-| `task` | `submit_task` when it accepts | Wording, drawing, `A`–`E`, Hint, I don't understand, Next task |
+| `task` | `submit_task` when it accepts | Wording, drawing, the five options as buttons with their texts and no letters (R70), Hint, I don't understand, Next task |
 | `waiting` | `submit_task` when it refuses, and locally after "Next task" | "Preparing the next task…", a warm-up, and after 120 seconds the deadline message (03-flows) |
 | `result` | Locally, after `submit_answer` returns to the widget | Right or wrong, the trap behind the chosen option, the solution, Next task |
 
@@ -1354,7 +1361,7 @@ Collected while writing this part; none of them changes a product decision.
 
 1. **Nine reference tasks per topic at `5-6`, not twenty-five.** It is a deliberate asymmetry with grades 1–4 and the reason is the review cost of hand-written content. If T62 shows the model doing noticeably worse at difficulties 1 and 5 at that level, a fourth batch adds the missing anchors. **For:** T37–T39, T62.
 2. **The seven new topics are `5-6` only.** `number.divisibility` and `logic.sets` would work at `3-4` too, but that would mean another 18 reference tasks and another review. **For:** a later edition.
-3. **`geometry.grid` is the one topic that can fail its entry exam.** О-30 planned for that; T37 is where it is decided, and the replacement is chosen from the same list with no new decision round.
+3. **`geometry.grid` is the one topic that can fail its entry exam.** О-30 planned for that; T37 is where it is decided, and the replacement is chosen from the same list with no new decision round. **Passed in T37.1:** nine tasks whose solvers count cell sides, enumerate placements and split cells into pieces joined by sides, each a search rather than a formula, with no visual counting among them.
 4. **The prototype's reference tasks have no `hint`.** The format the model must produce always does, and the new `5-6` tasks will. Backfilling hints into the 450 ported examples is optional work nobody is scheduled to do. **For:** T23, T36.
 5. **The `excluded_skills` cap in 04-profile reads "15 (the catalog's size)".** The catalog is 25 now, so the cap is the catalog's size, not the literal 15. **For:** T26. **Measured with the package (T36.1):** at 25 the budget test of 4.1 fails — 8 of the 2,550 packages of a child at every limit, written in Latin letters, go over by up to 224 bytes — so raising the cap is also a decision about the budget. **No longer, since T36a:** at 64 KB (R65) ten more excluded skills add about a kilobyte to a package that is under 25 KB at every limit, so the cap is a question for the profile alone.
 6. **The rank boundaries are defined here** because they are rating arithmetic, and T57 only draws them. If SPEC section 8 turns out to be a better home, move them there rather than duplicating them. **For:** T14, T57.
@@ -1425,7 +1432,7 @@ Added in the review of the package for the model (T36.1):
 
 Added with the solver templates (T36a):
 
-31. **The seven topics of `5-6` have no solver templates yet.** A template is generalised from the solver of a reference task, and those topics have no reference tasks until T37; a package for one of them carries an empty list. The test that every topic with reference tasks has a template turns red the day their tasks arrive, so T37 writes the templates together with the tasks. **For:** T37.
+31. **The seven topics of `5-6` have no solver templates yet.** A template is generalised from the solver of a reference task, and those topics have no reference tasks until T37; a package for one of them carries an empty list. The test that every topic with reference tasks has a template turns red the day their tasks arrive, so T37 writes the templates together with the tasks. **For:** T37. **Done in T37.4:** each of the seven has its templates — `geometry.grid` since T37.1, `games.strategy` and `logic.sets` since T37.2, `fractions.parts` and `percent.basic` since T37.3, and `ratio.sharing` and `number.divisibility` since T37.4; the test now asks a template of every topic.
 32. **The near-duplicate check compares a task with the reference tasks of its own level, and a template crosses levels.** Every template keeps the numbers and the plot of a grade 1–4 task and is shown at every level, so a grade 5–6 task that copied a template's numbers would be compared with nothing it came from. The same is already true of the `3-4` reference tasks a `5-6` package borrows (4.1.1). Whether models copy either is for the acceptance runs to show; comparing against the reference tasks shown rather than those of the level is the fix if they do. **For:** T62, T63.
 
 Added with the drawing frames (T36b):

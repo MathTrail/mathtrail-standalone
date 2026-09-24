@@ -1,0 +1,383 @@
+[
+  {
+    "id": "sets-56-d2-1",
+    "topic": "logic.sets",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "A class has 25 pupils. 15 of them are in the football club (F), 12 are in the chess club (C), and 5 are in both clubs. How many pupils are in neither club?",
+    "drawing": "┌─────────────────── 25 ──┐\n│     F 15                │\n│ ┌──────────┐            │\n│ │      ┌───┼─────┐      │\n│ │      │  5│     │   ?  │\n│ └──────┼───┘     │      │\n│        └─────────┘ C 12 │\n└─────────────────────────┘",
+    "drawing_structure": {
+      "kind": "venn",
+      "objects": [
+        {"id": "F", "label": "F", "value": 15},
+        {"id": "C", "label": "C", "value": 12}
+      ],
+      "relations": [
+        {"type": "overlap", "from": "F", "to": "C"}
+      ]
+    },
+    "options": {
+      "A": "22",
+      "B": "5",
+      "C": "3",
+      "D": "8",
+      "E": "13"
+    },
+    "correct_answer": "C",
+    "hint": "Count the pupils who are in at least one club. Is anybody counted twice?",
+    "solution": "Adding 15 and 12 counts the 5 pupils in both clubs twice, so 15 + 12 - 5 = 22 pupils are in at least one club. That leaves 25 - 22 = 3 pupils in neither.",
+    "distractors": {
+      "A": {
+        "trap": "answered_other_question",
+        "text": "22 is how many pupils are in at least one club."
+      },
+      "B": {
+        "trap": "number_from_text",
+        "text": "5 is how many are in both clubs, copied from the question."
+      },
+      "D": {
+        "trap": "double_count",
+        "text": "The 5 pupils in both clubs were taken away twice, so 17 seemed to be in a club instead of 22."
+      },
+      "E": {
+        "trap": "missed_case",
+        "text": "Only the chess players were taken away; the footballers who do not play chess were left in."
+      }
+    }
+  },
+  {
+    "id": "sets-56-d2-2",
+    "topic": "logic.sets",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "Every child in a group likes apples, pears or both. 18 of the children like apples (A), 14 like pears (P), and 7 like both fruits. How many children are in the group?",
+    "drawing": "┌───────────────────  ? ──┐\n│     A 18                │\n│ ┌──────────┐            │\n│ │      ┌───┼─────┐      │\n│ │      │  7│     │   0  │\n│ └──────┼───┘     │      │\n│        └─────────┘ P 14 │\n└─────────────────────────┘",
+    "drawing_structure": {
+      "kind": "venn",
+      "objects": [
+        {"id": "A", "label": "A", "value": 18},
+        {"id": "P", "label": "P", "value": 14}
+      ],
+      "relations": [
+        {"type": "overlap", "from": "A", "to": "P"}
+      ]
+    },
+    "options": {
+      "A": "25",
+      "B": "32",
+      "C": "11",
+      "D": "7",
+      "E": "39"
+    },
+    "correct_answer": "A",
+    "hint": "Which children were counted with the apples and again with the pears?",
+    "solution": "18 + 14 = 32 counts the 7 children who like both fruits twice. Taking them away once gives 32 - 7 = 25 children.",
+    "distractors": {
+      "B": {
+        "trap": "double_count",
+        "text": "32 counts each child who likes both fruits twice, once with each fruit."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "11 is how many like apples but not pears."
+      },
+      "D": {
+        "trap": "number_from_text",
+        "text": "7 is the number who like both fruits, copied from the question."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "39 adds the 7 who like both instead of taking them away."
+      }
+    }
+  },
+  {
+    "id": "sets-56-d2-3",
+    "topic": "logic.sets",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "A class of 30 children had a free afternoon, and each child went to at least one of two places: the museum (M) or the zoo (Z). 20 children went to the museum and 16 went to the zoo. How many went to both places?",
+    "drawing": "┌─────────────────── 30 ──┐\n│     M 20                │\n│ ┌──────────┐            │\n│ │      ┌───┼─────┐      │\n│ │      │  ?│     │   0  │\n│ └──────┼───┘     │      │\n│        └─────────┘ Z 16 │\n└─────────────────────────┘",
+    "drawing_structure": {
+      "kind": "venn",
+      "objects": [
+        {"id": "M", "label": "M", "value": 20},
+        {"id": "Z", "label": "Z", "value": 16}
+      ],
+      "relations": [
+        {"type": "overlap", "from": "M", "to": "Z"}
+      ]
+    },
+    "options": {
+      "A": "36",
+      "B": "4",
+      "C": "10",
+      "D": "16",
+      "E": "6"
+    },
+    "correct_answer": "E",
+    "hint": "What does adding the two visits give you, and why is it more than 30?",
+    "solution": "Adding the visits gives 20 + 16 = 36, but there are only 30 children. The 36 - 30 = 6 extra visits belong to children who went to both places.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "36 is where the adding stops; the 30 children still had to be taken away from it."
+      },
+      "B": {
+        "trap": "wrong_operation",
+        "text": "4 is the museum group minus the zoo group, which says nothing about the overlap."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "10 children went only to the zoo, not to both places."
+      },
+      "D": {
+        "trap": "number_from_text",
+        "text": "16 is the zoo group, copied from the question."
+      }
+    }
+  },
+  {
+    "id": "sets-56-d3-1",
+    "topic": "logic.sets",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "In a group of 20 children, 12 have a dog (D) and 10 have a cat (C). What is the smallest number of children who could have both a dog and a cat?",
+    "drawing": "┌─────────────────── 20 ──┐\n│     D 12                │\n│ ┌──────────┐            │\n│ │      ┌───┼─────┐      │\n│ │      │  ?│     │      │\n│ └──────┼───┘     │      │\n│        └─────────┘ C 10 │\n└─────────────────────────┘",
+    "drawing_structure": {
+      "kind": "venn",
+      "objects": [
+        {"id": "D", "label": "D", "value": 12},
+        {"id": "C", "label": "C", "value": 10}
+      ],
+      "relations": [
+        {"type": "overlap", "from": "D", "to": "C"}
+      ]
+    },
+    "options": {
+      "A": "0",
+      "B": "2",
+      "C": "10",
+      "D": "22",
+      "E": "8"
+    },
+    "correct_answer": "B",
+    "hint": "Try to keep the dog owners and the cat owners apart. How many children would you need for that?",
+    "solution": "Keeping the two groups apart would need 12 + 10 = 22 children, but there are only 20. So at least 22 - 20 = 2 children have both, and 2 is possible: 10 with only a dog, 8 with only a cat and 2 with both.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "0 forgets there are only 20 children, too few for 12 and 10 to stay apart."
+      },
+      "C": {
+        "trap": "reversed_relation",
+        "text": "10 is the largest number who could have both, not the smallest."
+      },
+      "D": {
+        "trap": "double_count",
+        "text": "22 adds the dog and cat owners, so a child with both pets is counted twice and the sum is more than the whole group."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "8 is the number of children with no dog, not with both pets."
+      }
+    }
+  },
+  {
+    "id": "sets-56-d3-2",
+    "topic": "logic.sets",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "There are 30 pupils in a class. 18 of them like maths (M) and 21 like art (A). At most how many pupils could like neither subject?",
+    "drawing": "┌─────────────────── 30 ──┐\n│     M 18                │\n│ ┌──────────┐            │\n│ │      ┌───┼─────┐      │\n│ │      │   │     │   ?  │\n│ └──────┼───┘     │      │\n│        └─────────┘ A 21 │\n└─────────────────────────┘",
+    "drawing_structure": {
+      "kind": "venn",
+      "objects": [
+        {"id": "M", "label": "M", "value": 18},
+        {"id": "A", "label": "A", "value": 21}
+      ],
+      "relations": [
+        {"type": "overlap", "from": "M", "to": "A"}
+      ]
+    },
+    "options": {
+      "A": "0",
+      "B": "12",
+      "C": "39",
+      "D": "9",
+      "E": "21"
+    },
+    "correct_answer": "D",
+    "hint": "When are the most pupils left out of both groups: when the groups overlap a little, or a lot?",
+    "solution": "The fewest pupils like at least one subject when all 18 maths fans also like art. Then only the 21 art fans like anything, and 30 - 21 = 9 like neither. With less overlap, more pupils like something, so 9 is the most.",
+    "distractors": {
+      "A": {
+        "trap": "reversed_relation",
+        "text": "0 is the fewest who could like neither, not the most."
+      },
+      "B": {
+        "trap": "missed_case",
+        "text": "12 = 30 - 18 takes away only the maths fans, and 3 of those 12 still like art."
+      },
+      "C": {
+        "trap": "double_count",
+        "text": "39 adds the two groups, which counts every pupil who likes both subjects twice."
+      },
+      "E": {
+        "trap": "number_from_text",
+        "text": "21 is the number of art fans, copied from the question."
+      }
+    }
+  },
+  {
+    "id": "sets-56-d3-3",
+    "topic": "logic.sets",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "Each of the 40 pupils in a year learns English, German or both. 28 pupils learn English and 19 learn German. How many learn exactly one of the two languages?",
+    "options": {
+      "A": "40",
+      "B": "47",
+      "C": "33",
+      "D": "7",
+      "E": "12"
+    },
+    "correct_answer": "C",
+    "hint": "First find how many pupils learn both languages.",
+    "solution": "28 + 19 = 47 is 7 more than the 40 pupils, so 7 learn both. Then 28 - 7 = 21 learn only English and 19 - 7 = 12 learn only German, which makes 21 + 12 = 33.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "40 counts every pupil, the 7 who learn both languages as well."
+      },
+      "B": {
+        "trap": "double_count",
+        "text": "47 is 28 + 19, which counts the pupils who learn both languages twice."
+      },
+      "D": {
+        "trap": "answered_other_question",
+        "text": "7 pupils learn both languages, not exactly one."
+      },
+      "E": {
+        "trap": "missed_case",
+        "text": "12 learn only German; the 21 who learn only English were missed."
+      }
+    }
+  },
+  {
+    "id": "sets-56-d4-1",
+    "topic": "logic.sets",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "There are 32 pupils in Year 6. 15 sing in the choir, 13 act in the drama group and 12 paint in the art group. 5 are in both choir and drama, 4 in both choir and art, and 3 in both drama and art. These numbers include the 2 pupils who are in all three groups. How many pupils are in none of the groups?",
+    "options": {
+      "A": "4",
+      "B": "6",
+      "C": "9",
+      "D": "0",
+      "E": "2"
+    },
+    "correct_answer": "E",
+    "hint": "Add the three groups, then deal with the pupils counted more than once. How many times is a pupil in all three groups counted by the end?",
+    "solution": "15 + 13 + 12 = 40 counts each pupil in two groups twice, so take away 5 + 4 + 3 = 12. A pupil in all three groups was counted three times and taken away three times, so add the 2 back: 40 - 12 + 2 = 30 pupils are in some group. That leaves 32 - 30 = 2.",
+    "distractors": {
+      "A": {
+        "trap": "missed_case",
+        "text": "4 forgets to add back the 2 pupils in all three groups, who were taken away with every pair."
+      },
+      "B": {
+        "trap": "double_count",
+        "text": "6 takes the 2 pupils in all three groups away once more, as if the pairs had not counted them."
+      },
+      "C": {
+        "trap": "stopped_early",
+        "text": "9 uses only the choir and drama: 32 - (15 + 13 - 5) = 9. The art group was never counted."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "0 assumes every pupil is in some group, but the question never says so."
+      }
+    }
+  },
+  {
+    "id": "sets-56-d4-2",
+    "topic": "logic.sets",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "A team has 10 pupils. 7 of them can swim, 8 can skate and 9 can ride a bike. At least how many pupils on the team must be able to do all three?",
+    "options": {
+      "A": "4",
+      "B": "7",
+      "C": "5",
+      "D": "0",
+      "E": "24"
+    },
+    "correct_answer": "A",
+    "hint": "Count the pupils who cannot do each thing. How many of them can there be at most?",
+    "solution": "3 pupils cannot swim, 2 cannot skate and 1 cannot ride a bike. Even if these are all different pupils, only 3 + 2 + 1 = 6 miss something. The other 10 - 6 = 4 can do all three, and 4 is possible when the six are all different.",
+    "distractors": {
+      "B": {
+        "trap": "reversed_relation",
+        "text": "7 is the most who could do all three, not the fewest."
+      },
+      "C": {
+        "trap": "stopped_early",
+        "text": "5 = 7 + 8 - 10 is the fewest who can both swim and skate; the bike riders were never brought in."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "0 forgets there are only 10 pupils, so the three groups have to overlap."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "24 adds the three groups, which gives more than the 10 pupils."
+      }
+    }
+  },
+  {
+    "id": "sets-56-d4-3",
+    "topic": "logic.sets",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "A year has 50 pupils. 32 of them read comics (C) and 25 read magazines (M). Twice as many pupils read both as read neither. How many pupils read neither?",
+    "drawing": "┌─────────────────── 50 ──┐\n│     C 32                │\n│ ┌──────────┐            │\n│ │      ┌───┼─────┐      │\n│ │      │   │     │   ?  │\n│ └──────┼───┘     │      │\n│        └─────────┘ M 25 │\n└─────────────────────────┘",
+    "drawing_structure": {
+      "kind": "venn",
+      "objects": [
+        {"id": "C", "label": "C", "value": 32},
+        {"id": "M", "label": "M", "value": 25}
+      ],
+      "relations": [
+        {"type": "overlap", "from": "C", "to": "M"}
+      ]
+    },
+    "options": {
+      "A": "14",
+      "B": "7",
+      "C": "18",
+      "D": "25",
+      "E": "57"
+    },
+    "correct_answer": "B",
+    "hint": "Try a number for those who read neither, and check whether the total comes out as 50.",
+    "solution": "If n pupils read neither, then 2n read both, and 32 + 25 - 2n = 57 - 2n read at least one. Together 57 - 2n + n = 57 - n makes 50, so n = 7. Check: 14 read both, 43 read at least one, and 43 + 7 = 50.",
+    "distractors": {
+      "A": {
+        "trap": "answered_other_question",
+        "text": "14 pupils read both, not neither."
+      },
+      "C": {
+        "trap": "missed_case",
+        "text": "18 = 50 - 32 counts everyone who skips comics, but some of them read magazines."
+      },
+      "D": {
+        "trap": "number_from_text",
+        "text": "25 is the number of magazine readers, copied from the question."
+      },
+      "E": {
+        "trap": "double_count",
+        "text": "57 adds the two groups, so the pupils who read both are counted twice."
+      }
+    }
+  }
+]

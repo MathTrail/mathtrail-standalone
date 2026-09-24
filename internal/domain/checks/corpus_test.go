@@ -23,8 +23,8 @@ type referenceQuestion struct {
 	Question   string `json:"question"`
 }
 
-// corpus is every reference question in the order of their ids, each cut into
-// shingles once, and every pair of them measured.
+// corpus is the reference questions of some levels in the order of their ids,
+// each cut into shingles once, and every pair of them measured.
 type corpus struct {
 	questions []referenceQuestion
 	sets      []shingles
@@ -37,10 +37,23 @@ type measuredPair struct {
 	similarity float64
 }
 
-func readCorpus(t *testing.T) corpus {
+// prototypeLevels are the levels of the prototype's own reference tasks, the
+// corpus Postgres measured. Tasks written since were never measured there, and
+// a comparison that counted them would be comparing two different corpora.
+var prototypeLevels = []string{"1-2", "3-4"}
+
+// readCorpus is the reference questions of these levels, or of every level
+// when none is named. The questions are chosen before any pair is made, so
+// that the pairs between two chosen levels are all there.
+func readCorpus(t *testing.T, levels ...string) corpus {
 	t.Helper()
 
 	questions := readReferenceQuestions(t)
+	if len(levels) > 0 {
+		questions = slices.DeleteFunc(questions, func(question referenceQuestion) bool {
+			return !slices.Contains(levels, question.GradeLevel)
+		})
+	}
 	sets := make([]shingles, len(questions))
 	for i, question := range questions {
 		sets[i] = shinglesOf(question.Question)
@@ -111,14 +124,14 @@ func readGoldenCorpus(t *testing.T) goldenCorpus {
 }
 
 // The measure is the one the prototype's threshold was chosen with, so it has
-// to say what Postgres said about all 450 reference questions, not only about
-// the fifteen pairs picked for the unit test: the fifty most alike pairs, and
-// the whole distribution of nearest neighbours.
+// to say what Postgres said about the prototype's 450 reference questions, not
+// only about the fifteen pairs picked for the unit test: the fifty most alike
+// pairs, and the whole distribution of nearest neighbours.
 func TestTheReferenceCorpusMeasuresAsPostgresMeasuredIt(t *testing.T) {
 	t.Parallel()
 
 	golden := readGoldenCorpus(t)
-	references := readCorpus(t)
+	references := readCorpus(t, prototypeLevels...)
 
 	t.Run("the fifty most alike pairs", func(t *testing.T) {
 		t.Parallel()

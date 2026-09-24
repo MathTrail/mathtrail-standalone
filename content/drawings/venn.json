@@ -1,0 +1,24 @@
+{
+  "purpose": "Two groups that overlap, inside a box for everyone the question counts. Each group is a box, with its Latin capital and the size the question gives next to it, outside the box: A ## here. Write the number of everyone over the ## in the top border, the count in both groups over the ## where the boxes overlap, and the count in neither over the ## outside both boxes, each right-aligned; write ? for the one the question asks about. Leave out a number the question does not give: its place stays blank, and in the top border the line runs through it. When everyone is in at least one group, the count in neither is 0. A number longer than its place takes the space or ─ just after it, or the space just before it where a line follows straight after, so that it never runs into a label and every line keeps its length.",
+  "topics": ["logic.sets"],
+  "drawing": [
+    "┌─────────────────── ## ──┐",
+    "│     A ##                │",
+    "│ ┌──────────┐            │",
+    "│ │      ┌───┼─────┐      │",
+    "│ │      │ ##│     │  ##  │",
+    "│ └──────┼───┘     │      │",
+    "│        └─────────┘ B ## │",
+    "└─────────────────────────┘"
+  ],
+  "drawing_structure": {
+    "kind": "venn",
+    "objects": [
+      {"id": "A", "label": "A"},
+      {"id": "B", "label": "B"}
+    ],
+    "relations": [
+      {"type": "overlap", "from": "A", "to": "B"}
+    ]
+  }
+}

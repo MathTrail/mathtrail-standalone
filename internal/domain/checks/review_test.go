@@ -367,6 +367,7 @@ func TestEachWayASolverFailsIsToldApart(t *testing.T) {
 		want    string
 	}{
 		{solver.StatusBadSource, "got string literal \"six pairs\"", "does not parse"},
+		{solver.StatusBadFormat, "line 3: a string formatted with % has \"% \", which Starlark cannot fill", "formats a string with %"},
 		{solver.StatusNoEntryPoint, "solve is a string rather than a function", "defines no solve to call"},
 		{solver.StatusError, "fail: the answer is C", "failed while it ran"},
 		{solver.StatusBadOutput, "solve returned C twice", "something other than a list of distinct option letters"},

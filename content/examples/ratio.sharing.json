@@ -1,0 +1,365 @@
+[
+  {
+    "id": "ratio-56-d2-1",
+    "topic": "ratio.sharing",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "A recipe for 6 people uses 9 eggs. How many eggs does the same recipe need for 20 people?",
+    "options": {
+      "A": "23",
+      "B": "180",
+      "C": "30",
+      "D": "3",
+      "E": "27"
+    },
+    "correct_answer": "C",
+    "hint": "How many eggs do 2 people need?",
+    "solution": "6 people need 9 eggs, so 2 people need 3 eggs. 20 people are 10 times 2 people, so they need 10 × 3 = 30 eggs.",
+    "distractors": {
+      "A": {
+        "trap": "wrong_operation",
+        "text": "23 adds 14 eggs for the 14 extra people, but the eggs grow in step with the people, not by the same number."
+      },
+      "B": {
+        "trap": "wrong_operation",
+        "text": "180 multiplies 9 by 20 and never divides by 6: the 9 eggs feed 6 people, not one."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "3 eggs is what 2 people need, and there are 20 people."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "27 feeds 18 people with three recipes and leaves out the last 2 people."
+      }
+    }
+  },
+  {
+    "id": "ratio-56-d2-2",
+    "topic": "ratio.sharing",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "Two boxes, A and B, hold 56 shells between them. For every 3 shells in box A, there are 4 in box B. How many shells are in box A?",
+    "drawing": "A │▒▒│▒▒│▒▒│\nB │▒▒│▒▒│▒▒│▒▒│\nA + B = 56\nA = ?",
+    "drawing_structure": {
+      "kind": "bars",
+      "objects": [
+        {"id": "A", "label": "A", "value": 3},
+        {"id": "B", "label": "B", "value": 4}
+      ],
+      "relations": [
+        {"type": "ratio", "from": "A", "to": "B"}
+      ]
+    },
+    "options": {
+      "A": "42",
+      "B": "24",
+      "C": "32",
+      "D": "8",
+      "E": "28"
+    },
+    "correct_answer": "B",
+    "hint": "How many equal parts do the 56 shells make altogether?",
+    "solution": "Box A has 3 parts and box B has 4, so the 56 shells make 7 equal parts of 8 shells each. Box A holds 3 × 8 = 24 shells.",
+    "distractors": {
+      "A": {
+        "trap": "ratio_total_confusion",
+        "text": "42 takes box A as three quarters of all the shells, but 3 to 4 means 3 parts out of 7."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "32 is the number of shells in box B."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "8 shells is one part, and box A has 3 parts."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "28 shares the shells equally and forgets the 3 to 4."
+      }
+    }
+  },
+  {
+    "id": "ratio-56-d2-3",
+    "topic": "ratio.sharing",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "In a fish tank, there are 3 gold fish (G) for every 5 silver fish (S), and every fish is gold or silver. There are 20 silver fish. How many fish are in the tank?",
+    "drawing": "G │▒▒│▒▒│▒▒│\nS │▒▒│▒▒│▒▒│▒▒│▒▒│\nS = 20\nG + S = ?",
+    "drawing_structure": {
+      "kind": "bars",
+      "objects": [
+        {"id": "G", "label": "G", "value": 3},
+        {"id": "S", "label": "S", "value": 5}
+      ],
+      "relations": [
+        {"type": "ratio", "from": "G", "to": "S"}
+      ]
+    },
+    "options": {
+      "A": "50",
+      "B": "38",
+      "C": "12",
+      "D": "20",
+      "E": "32"
+    },
+    "correct_answer": "E",
+    "hint": "How many groups of 5 silver fish are there?",
+    "solution": "20 silver fish make 4 groups of 5, so there are 4 groups of 3 gold fish, which is 12. Altogether there are 20 + 12 = 32 fish.",
+    "distractors": {
+      "A": {
+        "trap": "ratio_total_confusion",
+        "text": "50 takes 3 of every 5 fish to be gold, but it is 3 gold for every 5 silver, 8 fish in each group."
+      },
+      "B": {
+        "trap": "wrong_operation",
+        "text": "38 makes the gold fish 2 fewer than the silver ones, 18, but the ratio grows with the groups."
+      },
+      "C": {
+        "trap": "part_whole_swap",
+        "text": "12 is only the gold fish; the silver ones are in the tank too."
+      },
+      "D": {
+        "trap": "number_from_text",
+        "text": "20 is the number of silver fish, copied from the question."
+      }
+    }
+  },
+  {
+    "id": "ratio-56-d3-1",
+    "topic": "ratio.sharing",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "Three baskets, A, B and C, hold 90 walnuts in the ratio 3 : 5 : 7. How many more walnuts are in basket C than in basket A?",
+    "drawing": "A │▒▒│▒▒│▒▒│\nB │▒▒│▒▒│▒▒│▒▒│▒▒│\nC │▒▒│▒▒│▒▒│▒▒│▒▒│▒▒│▒▒│\nA + B + C = 90\nC - A = ?",
+    "drawing_structure": {
+      "kind": "bars",
+      "objects": [
+        {"id": "A", "label": "A", "value": 3},
+        {"id": "B", "label": "B", "value": 5},
+        {"id": "C", "label": "C", "value": 7}
+      ],
+      "relations": [
+        {"type": "ratio", "from": "A", "to": "B"},
+        {"type": "ratio", "from": "B", "to": "C"}
+      ]
+    },
+    "options": {
+      "A": "24",
+      "B": "36",
+      "C": "42",
+      "D": "4",
+      "E": "12"
+    },
+    "correct_answer": "A",
+    "hint": "How many equal parts are there in all three baskets together?",
+    "solution": "There are 3 + 5 + 7 = 15 equal parts, so each part is 90 ÷ 15 = 6 walnuts. Basket C has 7 - 3 = 4 parts more than basket A, which is 4 × 6 = 24 walnuts.",
+    "distractors": {
+      "B": {
+        "trap": "ratio_total_confusion",
+        "text": "36 counts only the parts of A and C, 10 in all, so a part seems to be 9 walnuts; there are 15 parts."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "42 is how many walnuts are in basket C, not how many more than in A."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "4 is the difference in parts, and each part is 6 walnuts."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "12 is how many more are in B than in A, or in C than in B."
+      }
+    }
+  },
+  {
+    "id": "ratio-56-d3-2",
+    "topic": "ratio.sharing",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "Two gear wheels turn together: each time a tooth of the big wheel moves past, one tooth of the small wheel moves past too. The big wheel has 21 teeth and the small wheel has 7. How many turns does the small wheel make while the big wheel makes 6 turns?",
+    "options": {
+      "A": "2",
+      "B": "126",
+      "C": "6",
+      "D": "18",
+      "E": "9"
+    },
+    "correct_answer": "D",
+    "hint": "How many teeth move past while the big wheel turns 6 times?",
+    "solution": "6 turns of the big wheel move 6 × 21 = 126 teeth past. The small wheel turns once for every 7 teeth, so it makes 126 ÷ 7 = 18 turns.",
+    "distractors": {
+      "A": {
+        "trap": "reversed_relation",
+        "text": "2 has the small wheel turning more slowly, but a wheel with fewer teeth turns faster."
+      },
+      "B": {
+        "trap": "stopped_early",
+        "text": "126 is the number of teeth that move past, not the turns of the small wheel."
+      },
+      "C": {
+        "trap": "number_from_text",
+        "text": "6 is the number of turns of the big wheel, copied from the question; the small wheel turns more often."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "9 reads three times as many teeth as three more turns: 6 + 3."
+      }
+    }
+  },
+  {
+    "id": "ratio-56-d3-3",
+    "topic": "ratio.sharing",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "A dough is made of flour and sugar only, in the ratio 5 : 2 by weight. A baker has 1000 g of flour and 300 g of sugar and makes as much dough as she can. How many grams of flour are left over?",
+    "options": {
+      "A": "550",
+      "B": "250",
+      "C": "700",
+      "D": "0",
+      "E": "1050"
+    },
+    "correct_answer": "B",
+    "hint": "Which runs out first, the flour or the sugar?",
+    "solution": "300 g of sugar is 2 parts, so a part is 150 g and the dough takes 5 × 150 = 750 g of flour. All the flour would need 400 g of sugar, which she does not have. So 1000 - 750 = 250 g of flour are left over.",
+    "distractors": {
+      "A": {
+        "trap": "ratio_total_confusion",
+        "text": "550 takes the sugar as 2/5 of the dough, but it is 2 parts out of 7."
+      },
+      "C": {
+        "trap": "wrong_operation",
+        "text": "700 is 1000 - 300, which takes the sugar away from the flour."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "0 uses all the flour, but that would need 400 g of sugar, and there are only 300 g."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "1050 g is the dough she makes, not the flour left over."
+      }
+    }
+  },
+  {
+    "id": "ratio-56-d4-1",
+    "topic": "ratio.sharing",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "A flower stall sells only roses (R), tulips (T) and daisies (D). It has 2 roses for every 3 tulips, and 4 tulips for every 5 daisies. There are 30 daisies. How many flowers does the stall have?",
+    "drawing": "R │▒▒▒│▒▒▒│\nT │▒▒▒│▒▒▒│▒▒▒│\n\nT │▒▒│▒▒│▒▒│▒▒│\nD │▒▒│▒▒│▒▒│▒▒│▒▒│\nD = 30\nR + T + D = ?",
+    "drawing_structure": {
+      "kind": "bars",
+      "objects": [
+        {"id": "R", "label": "R"},
+        {"id": "T", "label": "T"},
+        {"id": "D", "label": "D"}
+      ],
+      "relations": [
+        {"type": "ratio", "from": "R", "to": "T"},
+        {"type": "ratio", "from": "T", "to": "D"}
+      ]
+    },
+    "options": {
+      "A": "60",
+      "B": "66",
+      "C": "87",
+      "D": "54",
+      "E": "70"
+    },
+    "correct_answer": "E",
+    "hint": "Find the tulips first, then the roses.",
+    "solution": "30 daisies make 6 groups of 5, so there are 6 × 4 = 24 tulips. 24 tulips make 8 groups of 3, so there are 8 × 2 = 16 roses. Altogether there are 30 + 24 + 16 = 70 flowers.",
+    "distractors": {
+      "A": {
+        "trap": "ratio_total_confusion",
+        "text": "60 joins the ratios into 2 : 3 : 5, but the 3 tulips and the 4 tulips belong to different groups."
+      },
+      "B": {
+        "trap": "ratio_total_confusion",
+        "text": "66 joins the ratios into 2 : 4 : 5, but 2 roses go with 3 tulips, not with 4."
+      },
+      "C": {
+        "trap": "wrong_operation",
+        "text": "87 counts one flower fewer each time, 30, 29 and 28, as if for every meant one fewer."
+      },
+      "D": {
+        "trap": "part_whole_swap",
+        "text": "54 counts the tulips and the daisies and leaves out the roses."
+      }
+    }
+  },
+  {
+    "id": "ratio-56-d4-2",
+    "topic": "ratio.sharing",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "Two shepherds share their bread with a hunter: one shepherd has 5 loaves and the other has 3. The three of them eat all 8 loaves in equal shares. The hunter pays 8 coins, and each shepherd is paid for the bread he gave the hunter, at the same price. How many coins should the shepherd with 5 loaves get?",
+    "options": {
+      "A": "5",
+      "B": "4",
+      "C": "7",
+      "D": "1",
+      "E": "3"
+    },
+    "correct_answer": "C",
+    "hint": "Cut every loaf into 3 equal pieces. How many pieces does each person eat?",
+    "solution": "Cut every loaf into 3 pieces: that makes 24 pieces, 8 for each person. The first shepherd had 15 pieces and ate 8, so he gave the hunter 7. The second had 9, ate 8 and gave 1. So the 8 coins go 7 and 1, and the shepherd with 5 loaves gets 7.",
+    "distractors": {
+      "A": {
+        "trap": "part_whole_swap",
+        "text": "5 shares the coins like the loaves, 5 to 3, but he also ate some of his own bread: he gave the hunter 7 of the 8 pieces."
+      },
+      "B": {
+        "trap": "ignored_condition",
+        "text": "4 shares the coins equally, but the two shepherds did not give the hunter the same amount of bread."
+      },
+      "D": {
+        "trap": "answered_other_question",
+        "text": "1 coin is what the shepherd with 3 loaves gets."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "3 coins is the price of one whole loaf, not what the shepherd is owed."
+      }
+    }
+  },
+  {
+    "id": "ratio-56-d4-3",
+    "topic": "ratio.sharing",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "Bag A has 1 red bead for every 2 blue beads. Bag B holds twice as many beads as bag A, with 3 red beads for every 1 blue bead. All the beads are tipped into one box. What is the ratio of red beads to blue beads in the box?",
+    "options": {
+      "A": "11 : 7",
+      "B": "4 : 3",
+      "C": "7 : 11",
+      "D": "11 : 18",
+      "E": "3 : 1"
+    },
+    "correct_answer": "A",
+    "hint": "Choose a size for bag A, such as 12 beads, and count.",
+    "solution": "Take 12 beads in bag A: 4 red and 8 blue. Bag B then has 24 beads: 18 red and 6 blue. The box has 22 red and 14 blue beads, and 22 : 14 = 11 : 7.",
+    "distractors": {
+      "B": {
+        "trap": "ratio_total_confusion",
+        "text": "4 : 3 adds the two ratios part by part, 1 + 3 and 2 + 1, but the bags hold different numbers of beads."
+      },
+      "C": {
+        "trap": "reversed_relation",
+        "text": "7 : 11 gives blue to red, the other way round."
+      },
+      "D": {
+        "trap": "part_whole_swap",
+        "text": "11 : 18 compares the red beads with all the beads, not with the blue ones."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "3 : 1 is bag B alone, but the beads of bag A are in the box too."
+      }
+    }
+  }
+]

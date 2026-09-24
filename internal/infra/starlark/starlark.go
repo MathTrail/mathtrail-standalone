@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"go.starlark.net/starlark"
+	"go.starlark.net/syntax"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
@@ -96,11 +97,9 @@ func (s *sandbox) Run(ctx context.Context, source string, options solver.Options
 		return solver.Result{}, fmt.Errorf("starlark: %w", err)
 	}
 
-	// Before the parser, because the parser would hold the whole of it in
-	// memory first.
-	if len(source) > MaxSource {
-		return refused(solver.StatusBadSource,
-			fmt.Sprintf("the solver is longer than %d KB", MaxSource/1024)), nil
+	// Before waiting for a slot, which a program too long to read never needs.
+	if refusal := oversized(source); refusal != "" {
+		return refused(refusal), nil
 	}
 
 	select {
@@ -115,14 +114,9 @@ func (s *sandbox) Run(ctx context.Context, source string, options solver.Options
 
 // run is one program from source to letters, once a slot is held.
 func (s *sandbox) run(ctx context.Context, source string, options solver.Options) (solver.Result, error) {
-	_, program, err := starlark.SourceProgramOptions(dialect, programName, source, s.predeclared.Has)
-	if err != nil {
-		return refused(solver.StatusBadSource, readable(err)), nil
-	}
-	// There is no module loader to bind anything from, so a program that asks
-	// for one is asking for a language this is not.
-	if program.NumLoads() > 0 {
-		return refused(solver.StatusBadSource, "load is not available: a solver is one file that stands on its own"), nil
+	file, program, refusal := compile(programName, source, s.predeclared.Has)
+	if refusal != "" {
+		return refused(refusal), nil
 	}
 
 	arguments, err := argumentsOf(options)
@@ -151,7 +145,7 @@ func (s *sandbox) run(ctx context.Context, source string, options solver.Options
 
 	globals, err := program.Init(thread, s.predeclared)
 	if err != nil {
-		return s.failed(ctx, runCtx, thread, err, started)
+		return s.failed(ctx, runCtx, thread, file, err, started)
 	}
 
 	solve, problem := solveOf(globals)
@@ -161,7 +155,7 @@ func (s *sandbox) run(ctx context.Context, source string, options solver.Options
 
 	returned, err := starlark.Call(thread, solve, starlark.Tuple{arguments}, nil)
 	if err != nil {
-		return s.failed(ctx, runCtx, thread, err, started)
+		return s.failed(ctx, runCtx, thread, file, err, started)
 	}
 
 	letters, problem := lettersOf(returned)
@@ -171,9 +165,44 @@ func (s *sandbox) run(ctx context.Context, source string, options solver.Options
 	return spent(solver.StatusOK, letters, "", thread, started), nil
 }
 
-// refused is a result of a program that never began to run.
-func refused(status solver.Status, message string) solver.Result {
-	return solver.Result{Status: status, Message: message}
+// compile reads a program the way every run reads it: no longer than a solver
+// may be, parsed in the dialect, its names bound against the vocabulary, and
+// no module asked for. What stops it is said in the sentence a refusal
+// carries, or nothing when it reads.
+func compile(name, source string, isPredeclared func(string) bool) (*syntax.File, *starlark.Program, string) {
+	if refusal := oversized(source); refusal != "" {
+		return nil, nil, refusal
+	}
+	file, err := parse(name, source)
+	if err != nil {
+		return nil, nil, readable(errors.Unwrap(err))
+	}
+	program, err := starlark.FileProgram(file, isPredeclared)
+	if err != nil {
+		return nil, nil, readable(err)
+	}
+	// There is no module loader to bind anything from, so a program that asks
+	// for one is asking for a language this is not.
+	if program.NumLoads() > 0 {
+		return nil, nil, "load is not available: a solver is one file that stands on its own"
+	}
+	return file, program, ""
+}
+
+// oversized says why a source is too long to read, or nothing when it is not.
+// It is measured before the parser, which would hold the whole of it in memory
+// first.
+func oversized(source string) string {
+	if len(source) > MaxSource {
+		return fmt.Sprintf("the solver is longer than %d KB", MaxSource/1024)
+	}
+	return ""
+}
+
+// refused is the result of a program that never began to run: its source is
+// refused, and the message says why.
+func refused(message string) solver.Result {
+	return solver.Result{Status: solver.StatusBadSource, Message: message}
 }
 
 // spent is a result of a program that did, with what it cost.

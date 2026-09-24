@@ -7,10 +7,14 @@ import (
 	"errors"
 	"net/http"
 	"runtime"
+	"slices"
 	"testing"
 	"time"
 
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest"
+	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/app"
 	"github.com/MathTrail/mathtrail-standalone/internal/config"
@@ -84,6 +88,37 @@ func TestAddrIsSafeWhileTheServerStarts(t *testing.T) {
 		}
 	case <-time.After(5 * time.Second):
 		t.Fatal("Run() did not return within 5s of the context being cancelled")
+	}
+}
+
+// Run returns only once the goroutine it serves on has finished, with every line
+// of its own log written: a line written after it returned would land in a
+// test that has already ended, or in a process that is already on its way out.
+func TestRunLogsEverythingBeforeItReturns(t *testing.T) {
+	t.Parallel()
+
+	core, logs := observer.New(zapcore.InfoLevel)
+	container := newTestContainer(t)
+	container.Logger = zap.New(core)
+	server := app.NewServer(container)
+	if err := server.Listen(t.Context()); err != nil {
+		t.Fatalf("Listen() error = %v, want nil", err)
+	}
+
+	// Cancelled before Run starts, so it turns to shutting down at once: the
+	// moment a goroutine of its own is most likely still to be on its way.
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+	if err := server.Run(ctx); err != nil {
+		t.Fatalf("Run() error = %v, want nil", err)
+	}
+
+	var logged []string
+	for _, entry := range logs.All() {
+		logged = append(logged, entry.Message)
+	}
+	if want := []string{"listening", "shutdown requested", "stopped"}; !slices.Equal(logged, want) {
+		t.Errorf("logged by the time Run returned: %q, want %q", logged, want)
 	}
 }
 

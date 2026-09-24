@@ -111,6 +111,42 @@ func TestTheTrapsOfATopicsReferenceTasks(t *testing.T) {
 	}
 }
 
+// A child new to a topic of grades 5–6 is given the two traps most frequent
+// among its reference tasks, and those tasks are labelled so that the two are
+// the mistakes most typical of the topic. The pairs are pinned here, because
+// one relabelled wrong option can tip a count, and a tie goes to the catalog's
+// order, in which the traps added for these grades come last: a pair changes
+// only when someone means it to. A topic whose tasks of 5–6 arrive names its
+// pair here.
+func TestANewChildOfGradesFiveAndSixIsGivenTheTopicsOwnTraps(t *testing.T) {
+	t.Parallel()
+
+	c := loaded(t)
+	pinned := map[string][]string{
+		"geometry.grid":       {"double_count", "missed_case"},
+		"games.strategy":      {"ignored_condition", "first_move_assumed"},
+		"logic.sets":          {"double_count", "answered_other_question"},
+		"fractions.parts":     {"part_whole_swap", "answered_other_question"},
+		"percent.basic":       {"percent_wrong_base", "part_whole_swap"},
+		"ratio.sharing":       {"ratio_total_confusion", "wrong_operation"},
+		"number.divisibility": {"remainder_vs_quotient", "off_by_one"},
+	}
+	for _, topic := range c.Topics() {
+		want, isPinned := pinned[topic.ID]
+		hasTasks := len(trapCounts(c, topic.ID, content.Level56)) > 0
+		switch {
+		case hasTasks && !isPinned:
+			t.Errorf("%s has reference tasks of 5-6 and no pair of traps pinned here", topic.ID)
+		case !hasTasks && isPinned:
+			t.Errorf("%s has %v pinned here and no reference tasks of 5-6", topic.ID, want)
+		case hasTasks:
+			if got := c.ExampleTraps(topic.ID, 5); len(got) < 2 || !slices.Equal(got[:2], want) {
+				t.Errorf("a child new to %s is given %v first, want %v", topic.ID, got[:min(2, len(got))], want)
+			}
+		}
+	}
+}
+
 // trapCounts is how often each trap appears among the reference tasks of one
 // topic at one level, counted the long way round.
 func trapCounts(c *content.Content, topic, level string) map[string]int {

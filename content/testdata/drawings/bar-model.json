@@ -1,0 +1,19 @@
+{
+  "from": "ratio-56-d2-2",
+  "drawing": [
+    "A │▒▒│▒▒│▒▒│",
+    "B │▒▒│▒▒│▒▒│▒▒│",
+    "A + B = 56",
+    "A = ?"
+  ],
+  "drawing_structure": {
+    "kind": "bars",
+    "objects": [
+      {"id": "A", "label": "A", "value": 3},
+      {"id": "B", "label": "B", "value": 4}
+    ],
+    "relations": [
+      {"type": "ratio", "from": "A", "to": "B"}
+    ]
+  }
+}

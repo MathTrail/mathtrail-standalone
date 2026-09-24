@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"go.starlark.net/starlark"
+	"go.starlark.net/syntax"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
@@ -26,7 +27,7 @@ import (
 // caller's deadline was the shorter one must not be reported against a limit
 // of ours that never fired.
 func (s *sandbox) failed(
-	caller, own context.Context, thread *starlark.Thread, err error, started time.Time,
+	caller, own context.Context, thread *starlark.Thread, file *syntax.File, err error, started time.Time,
 ) (solver.Result, error) {
 	switch {
 	case caller.Err() != nil:
@@ -48,8 +49,19 @@ func (s *sandbox) failed(
 	// range, a type that does not fit, a cap of the vocabulary, a recursive
 	// call. The message is the model's own; the backtrace beneath it is the
 	// interpreter's, and it stays here.
+	//
+	// One of them the model is told apart, because it breaks a rule of the
+	// dialect it can fix at once: a run that stopped at a string it formats
+	// with % in a way Starlark cannot fill. Where the run stopped is read from
+	// the call stack and matched against the source, not from the sentence
+	// the library wrote about it.
 	var failure *starlark.EvalError
 	if errors.As(err, &failure) {
+		if len(failure.CallStack) > 0 {
+			if problem := unfillableFormatAt(file, failure.CallStack.At(0).Pos); problem != "" {
+				return spent(solver.StatusBadFormat, nil, problem, thread, started), nil
+			}
+		}
 		return spent(solver.StatusError, nil, failure.Msg, thread, started), nil
 	}
 	return spent(solver.StatusError, nil, readable(err), thread, started), nil

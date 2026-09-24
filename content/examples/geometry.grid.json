@@ -1,0 +1,286 @@
+[
+  {
+    "id": "grid-56-d2-1",
+    "topic": "geometry.grid",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "Nina covers four cells of a 3 by 3 grid with square tiles: A1, B1, C1 and C2. Rows are A to C from the top, columns 1 to 3 from the left. Each tile has sides of 1 cm. What is the perimeter of her shape in centimetres?",
+    "drawing": "    1   2   3\n  ┌───┬───┬───┐\nA │███│   │   │\n  ├───┼───┼───┤\nB │███│   │   │\n  ├───┼───┼───┤\nC │███│███│   │\n  └───┴───┴───┘",
+    "drawing_structure": {
+      "kind": "grid",
+      "objects": [
+        {"id": "A", "label": "A"},
+        {"id": "B", "label": "B"},
+        {"id": "C", "label": "C"},
+        {"id": "1", "label": "1"},
+        {"id": "2", "label": "2"},
+        {"id": "3", "label": "3"}
+      ],
+      "relations": [
+        {"type": "filled", "from": "A", "to": "1"},
+        {"type": "filled", "from": "B", "to": "1"},
+        {"type": "filled", "from": "C", "to": "1"},
+        {"type": "filled", "from": "C", "to": "2"}
+      ]
+    },
+    "options": {"A": "8", "B": "16", "C": "10", "D": "4", "E": "5"},
+    "correct_answer": "C",
+    "hint": "Walk around the shape and count every tile side on the outside.",
+    "solution": "Four tiles have 16 sides in all. Three pairs of tiles touch, and each touching pair hides 2 sides. 16 - 6 = 10 cm.",
+    "distractors": {
+      "A": {"trap": "missed_case", "text": "8 misses the two sides in the inner corner of the shape."},
+      "B": {"trap": "double_count", "text": "16 also counts the sides where two tiles touch, which are inside."},
+      "D": {"trap": "area_perimeter_swap", "text": "4 is how many tiles there are, the area, not the way round."},
+      "E": {"trap": "stopped_early", "text": "5 is only the height plus the width; go all the way round."}
+    }
+  },
+  {
+    "id": "grid-56-d2-2",
+    "topic": "geometry.grid",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "A mosaic is a square of 3 by 3 tiles, each 1 cm by 1 cm. The artist takes away the four corner tiles. What area do the tiles that are left cover, in square centimetres?",
+    "options": {"A": "9", "B": "4", "C": "12", "D": "5", "E": "6"},
+    "correct_answer": "D",
+    "hint": "How many tiles were there before any were taken away?",
+    "solution": "The square has 3 × 3 = 9 tiles. Taking away 4 corners leaves 9 - 4 = 5 tiles, so they cover 5 square centimetres.",
+    "distractors": {
+      "A": {"trap": "ignored_condition", "text": "9 is the whole square before the corners go."},
+      "B": {"trap": "answered_other_question", "text": "4 is the number of tiles the artist took away."},
+      "C": {"trap": "area_perimeter_swap", "text": "12 is the length around the shape, its perimeter."},
+      "E": {"trap": "double_count", "text": "6 counts the centre tile twice, once in each line."}
+    }
+  },
+  {
+    "id": "grid-56-d2-3",
+    "topic": "geometry.grid",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "A garden is a 4 by 4 grid of square beds, with rows A to D and columns 1 to 4. Roses grow in beds B2, B3, C2 and C3. How many other beds share a whole side with a rose bed?",
+    "drawing": "    1   2   3   4\n  ┌───┬───┬───┬───┐\nA │   │   │   │   │\n  ├───┼───┼───┼───┤\nB │   │███│███│   │\n  ├───┼───┼───┼───┤\nC │   │███│███│   │\n  ├───┼───┼───┼───┤\nD │   │   │   │   │\n  └───┴───┴───┴───┘",
+    "drawing_structure": {
+      "kind": "grid",
+      "objects": [
+        {"id": "A", "label": "A"},
+        {"id": "B", "label": "B"},
+        {"id": "C", "label": "C"},
+        {"id": "D", "label": "D"},
+        {"id": "1", "label": "1"},
+        {"id": "2", "label": "2"},
+        {"id": "3", "label": "3"},
+        {"id": "4", "label": "4"}
+      ],
+      "relations": [
+        {"type": "filled", "from": "B", "to": "2"},
+        {"type": "filled", "from": "B", "to": "3"},
+        {"type": "filled", "from": "C", "to": "2"},
+        {"type": "filled", "from": "C", "to": "3"}
+      ]
+    },
+    "options": {"A": "6", "B": "8", "C": "12", "D": "4", "E": "16"},
+    "correct_answer": "B",
+    "hint": "Look at each side of the rose square: which beds touch it there?",
+    "solution": "Two beds touch each of the four sides of the rose square: A2 and A3 above, D2 and D3 below, B1 and C1 on the left, B4 and C4 on the right. That makes 8 beds.",
+    "distractors": {
+      "A": {"trap": "missed_case", "text": "6 leaves out the two beds along one side."},
+      "C": {"trap": "ignored_condition", "text": "12 adds the corner beds, which only touch at a point."},
+      "D": {"trap": "answered_other_question", "text": "4 is the number of rose beds themselves."},
+      "E": {"trap": "double_count", "text": "16 gives every rose bed four neighbours, rose beds among them."}
+    }
+  },
+  {
+    "id": "grid-56-d3-1",
+    "topic": "geometry.grid",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "A playground is marked on a grid of squares with sides of 1 m. It takes up seven squares: A1, B1, C1, C2, C3, B3 and A3, where A to C are the rows from the top. How many metres of fence go all the way round it?",
+    "drawing": "    1   2   3\n  ┌───┬───┬───┐\nA │███│   │███│\n  ├───┼───┼───┤\nB │███│   │███│\n  ├───┼───┼───┤\nC │███│███│███│\n  └───┴───┴───┘",
+    "drawing_structure": {
+      "kind": "grid",
+      "objects": [
+        {"id": "A", "label": "A"},
+        {"id": "B", "label": "B"},
+        {"id": "C", "label": "C"},
+        {"id": "1", "label": "1"},
+        {"id": "2", "label": "2"},
+        {"id": "3", "label": "3"}
+      ],
+      "relations": [
+        {"type": "filled", "from": "A", "to": "1"},
+        {"type": "filled", "from": "A", "to": "3"},
+        {"type": "filled", "from": "B", "to": "1"},
+        {"type": "filled", "from": "B", "to": "3"},
+        {"type": "filled", "from": "C", "to": "1"},
+        {"type": "filled", "from": "C", "to": "2"},
+        {"type": "filled", "from": "C", "to": "3"}
+      ]
+    },
+    "options": {"A": "12", "B": "15", "C": "7", "D": "28", "E": "16"},
+    "correct_answer": "E",
+    "hint": "Does the fence also have to run down into the gap in the middle?",
+    "solution": "Seven squares have 28 sides. Six pairs of squares touch, and each pair hides 2 sides. 28 - 12 = 16 metres of fence.",
+    "distractors": {
+      "A": {"trap": "answered_other_question", "text": "12 fences the whole 3 by 3 square, not this shape."},
+      "B": {"trap": "missed_case", "text": "15 misses the piece of fence along the bottom of the gap."},
+      "C": {"trap": "area_perimeter_swap", "text": "7 is how many squares it takes up, its area."},
+      "D": {"trap": "double_count", "text": "28 counts the sides where squares touch each other."}
+    }
+  },
+  {
+    "id": "grid-56-d3-2",
+    "topic": "geometry.grid",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "In a board game, a domino covers two squares of a 3 by 3 board that share a side. Rows are A to C from the top, columns 1 to 3 from the left. Two placements are different if they cover different squares. In how many ways can the domino be placed?",
+    "drawing": "    1   2   3\n  ┌───┬───┬───┐\nA │   │   │   │\n  ├───┼───┼───┤\nB │   │   │   │\n  ├───┼───┼───┤\nC │   │   │   │\n  └───┴───┴───┘",
+    "drawing_structure": {
+      "kind": "grid",
+      "objects": [
+        {"id": "A", "label": "A"},
+        {"id": "B", "label": "B"},
+        {"id": "C", "label": "C"},
+        {"id": "1", "label": "1"},
+        {"id": "2", "label": "2"},
+        {"id": "3", "label": "3"}
+      ]
+    },
+    "options": {"A": "12", "B": "24", "C": "9", "D": "6", "E": "18"},
+    "correct_answer": "A",
+    "hint": "Count the places for a domino lying across first, then for one standing up.",
+    "solution": "Lying across, each row has 2 places, so 3 rows give 6. Standing up, each column has 2 places, so 3 columns give 6. In all, 6 + 6 = 12 ways.",
+    "distractors": {
+      "B": {"trap": "double_count", "text": "24 counts each placement once from each of its two squares."},
+      "C": {"trap": "answered_other_question", "text": "9 is the number of squares on the board."},
+      "D": {"trap": "missed_case", "text": "6 forgets the dominoes that stand up."},
+      "E": {"trap": "ignored_condition", "text": "18 lets a domino stick out over the edge of the board."}
+    }
+  },
+  {
+    "id": "grid-56-d3-3",
+    "topic": "geometry.grid",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "A square cake is cut into 3 by 3 equal square pieces with sides of 2 cm. Rows are A to C from the top, columns 1 to 3 from the left. Oleg eats one corner piece. What is the perimeter of the cake that is left, in centimetres?",
+    "drawing": "    1   2   3\n  ┌───┬───┬───┐\nA │   │███│███│\n  ├───┼───┼───┤\nB │███│███│███│\n  ├───┼───┼───┤\nC │███│███│███│\n  └───┴───┴───┘",
+    "drawing_structure": {
+      "kind": "grid",
+      "objects": [
+        {"id": "A", "label": "A"},
+        {"id": "B", "label": "B"},
+        {"id": "C", "label": "C"},
+        {"id": "1", "label": "1"},
+        {"id": "2", "label": "2"},
+        {"id": "3", "label": "3"}
+      ],
+      "relations": [
+        {"type": "filled", "from": "A", "to": "2"},
+        {"type": "filled", "from": "A", "to": "3"},
+        {"type": "filled", "from": "B", "to": "1"},
+        {"type": "filled", "from": "B", "to": "2"},
+        {"type": "filled", "from": "B", "to": "3"},
+        {"type": "filled", "from": "C", "to": "1"},
+        {"type": "filled", "from": "C", "to": "2"},
+        {"type": "filled", "from": "C", "to": "3"}
+      ]
+    },
+    "options": {"A": "22", "B": "24", "C": "20", "D": "28", "E": "32"},
+    "correct_answer": "B",
+    "hint": "Which sides of the cake does the eaten piece take away, and which new sides appear?",
+    "solution": "The whole cake is 6 cm long on each side, so its perimeter is 4 × 6 = 24 cm. The eaten piece takes away two outer sides of 2 cm, and two of its inner sides of 2 cm become outer instead. The perimeter stays 24 cm.",
+    "distractors": {
+      "A": {"trap": "wrong_operation", "text": "22 takes one side of the piece away from 24."},
+      "C": {"trap": "stopped_early", "text": "20 takes away the two lost sides but forgets the two new ones."},
+      "D": {"trap": "missed_case", "text": "28 adds the two new sides but keeps the two lost ones."},
+      "E": {"trap": "area_perimeter_swap", "text": "32 square centimetres is the area of the cake left."}
+    }
+  },
+  {
+    "id": "grid-56-d4-1",
+    "topic": "geometry.grid",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "A chocolate bar has 2 rows of 3 squares. Rows are A and B from the top, columns 1 to 3 from the left. Kim and Lev break it along the lines into two pieces of 3 squares each, and each piece must hold together by whole sides. Two ways are different if they split the squares differently. How many ways are there?",
+    "drawing": "    1   2   3\n  ┌───┬───┬───┐\nA │   │   │   │\n  ├───┼───┼───┤\nB │   │   │   │\n  └───┴───┴───┘",
+    "drawing_structure": {
+      "kind": "grid",
+      "objects": [
+        {"id": "A", "label": "A"},
+        {"id": "B", "label": "B"},
+        {"id": "1", "label": "1"},
+        {"id": "2", "label": "2"},
+        {"id": "3", "label": "3"}
+      ],
+      "relations": [
+        {"type": "above", "from": "A", "to": "B"},
+        {"type": "left_of", "from": "1", "to": "2"},
+        {"type": "left_of", "from": "2", "to": "3"}
+      ]
+    },
+    "options": {"A": "7", "B": "2", "C": "1", "D": "3", "E": "6"},
+    "correct_answer": "D",
+    "hint": "After the straight break, look for pieces shaped like a corner.",
+    "solution": "A straight break gives the two rows of 3. A corner-shaped piece works too: the left column with the next top square, or the left column with the next bottom square, and the other 3 squares hold together each time. That makes 3 ways.",
+    "distractors": {
+      "A": {"trap": "ignored_condition", "text": "7 includes splits where the second piece falls apart."},
+      "B": {"trap": "missed_case", "text": "2 misses one of the two corner-shaped splits."},
+      "C": {"trap": "stopped_early", "text": "1 stops at the straight break; corner pieces work too."},
+      "E": {"trap": "double_count", "text": "6 counts each split twice, once for each piece."}
+    }
+  },
+  {
+    "id": "grid-56-d4-2",
+    "topic": "geometry.grid",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "A square pond fills the middle of a 3 by 3 grid, and the other 8 squares are paving slabs. Rows are A to C from the top, columns 1 to 3 from the left. Two gardeners share the slabs, 4 each, and each gardener's slabs have to stay joined by whole sides. Splits count as different when the groups of slabs are different. How many splits are possible?",
+    "drawing": "    1   2   3\n  ┌───┬───┬───┐\nA │███│███│███│\n  ├───┼───┼───┤\nB │███│   │███│\n  ├───┼───┼───┤\nC │███│███│███│\n  └───┴───┴───┘",
+    "drawing_structure": {
+      "kind": "grid",
+      "objects": [
+        {"id": "A", "label": "A"},
+        {"id": "B", "label": "B"},
+        {"id": "C", "label": "C"},
+        {"id": "1", "label": "1"},
+        {"id": "2", "label": "2"},
+        {"id": "3", "label": "3"}
+      ],
+      "relations": [
+        {"type": "filled", "from": "A", "to": "1"},
+        {"type": "filled", "from": "A", "to": "2"},
+        {"type": "filled", "from": "A", "to": "3"},
+        {"type": "filled", "from": "B", "to": "1"},
+        {"type": "filled", "from": "B", "to": "3"},
+        {"type": "filled", "from": "C", "to": "1"},
+        {"type": "filled", "from": "C", "to": "2"},
+        {"type": "filled", "from": "C", "to": "3"}
+      ]
+    },
+    "options": {"A": "4", "B": "8", "C": "28", "D": "1", "E": "2"},
+    "correct_answer": "A",
+    "hint": "The slabs make a ring around the pond. What must a group of 4 joined slabs look like?",
+    "solution": "The 8 slabs form a ring, so 4 slabs that stay joined are 4 in a row around it, and so are the other 4. The ring has 8 such runs of 4, and each split uses two of them: 8 ÷ 2 = 4 splits.",
+    "distractors": {
+      "B": {"trap": "double_count", "text": "8 counts each split twice, once for each gardener."},
+      "C": {"trap": "ignored_condition", "text": "28 cuts the ring in any two places and forgets the 4 each."},
+      "D": {"trap": "stopped_early", "text": "1 stops after the first split; turn it around the ring."},
+      "E": {"trap": "missed_case", "text": "2 finds the splits across the rows but not across the columns."}
+    }
+  },
+  {
+    "id": "grid-56-d4-3",
+    "topic": "geometry.grid",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "Pasha lays 4 square tiles with sides of 1 cm on a table to make one shape, each tile touching another along a whole side. What is the largest perimeter the shape can have, in centimetres?",
+    "options": {"A": "16", "B": "8", "C": "10", "D": "12", "E": "4"},
+    "correct_answer": "C",
+    "hint": "Each time two tiles share a side, how much of the perimeter disappears?",
+    "solution": "Four tiles have 16 cm of sides. Each shared side hides 2 cm. One shape of 4 tiles needs at least 3 shared sides, so the most is 16 - 6 = 10 cm, as a straight line of 4 tiles has.",
+    "distractors": {
+      "A": {"trap": "double_count", "text": "16 counts the sides where tiles touch each other."},
+      "B": {"trap": "reversed_relation", "text": "8 is the smallest perimeter, the 2 by 2 square."},
+      "D": {"trap": "ignored_condition", "text": "12 is two pairs lying apart, not one shape."},
+      "E": {"trap": "area_perimeter_swap", "text": "4 is the area in square centimetres."}
+    }
+  }
+]

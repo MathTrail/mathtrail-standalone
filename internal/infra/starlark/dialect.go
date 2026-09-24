@@ -1,6 +1,10 @@
 package starlark
 
-import "go.starlark.net/syntax"
+import (
+	"fmt"
+
+	"go.starlark.net/syntax"
+)
 
 // dialect is how much of Python this Starlark is allowed to be.
 //
@@ -29,4 +33,15 @@ var dialect = &syntax.FileOptions{
 	GlobalReassign:    true,
 	Recursion:         false,
 	LoadBindsGlobally: false,
+}
+
+// parse reads a program in the dialect a solver runs in, without binding its
+// names or running it. A program is read the way a run reads it by compile,
+// which begins here.
+func parse(name, source string) (*syntax.File, error) {
+	file, err := dialect.Parse(name, source, 0)
+	if err != nil {
+		return nil, fmt.Errorf("starlark: parse %s: %w", name, err)
+	}
+	return file, nil
 }

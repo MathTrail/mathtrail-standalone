@@ -102,7 +102,7 @@ sequenceDiagram
             Note over MT: the task becomes the current one, the answer and the trap texts<br/>go into the sealed block, the request closes, the daily counter goes up,<br/>the fingerprint is kept for the duplicate check
             MT->>D: write the profile
             MT-->>M: accepted, plus the task exactly as the child will see it
-            MT-->>W: task card — wording, drawing, A–E, Hint
+            MT-->>W: task card — wording, drawing, five answer buttons, Hint
         end
     end
 ```
@@ -295,7 +295,7 @@ Two rules about the wording of all of them: they are written for a model that ha
 | 3.1 The parent connects the app, signs in, grants storage | 02-auth; scenario 1 |
 | 3.1 The profile is created: pseudonym, grade, interests, constraints | Scenario 1, `save_profile` |
 | 3.1 The child sees a waiting screen while the first task is written | Scenario 1's last step, "The waiting screen and Next task" |
-| 3.2 The card: wording, drawing, A–E, Hint, I don't understand, Next task | Scenario 2's last step; scenario 3 for the three buttons |
+| 3.2 The card: wording, drawing, five answer buttons without letters (R70), Hint, I don't understand, Next task | Scenario 2's last step; scenario 3 for the three buttons |
 | 3.3 Pressing a button records the answer before any explanation | Scenario 3, and the paragraph under it |
 | 3.3 Correct — brief praise; wrong — the trap first, then the solution | Scenario 3 and 4: the payload of `submit_answer` is the same in both modes |
 | 3.3 "I don't understand" — a simpler explanation | Scenario 3, the last two steps |

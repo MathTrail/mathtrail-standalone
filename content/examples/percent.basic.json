@@ -1,0 +1,317 @@
+[
+  {
+    "id": "pct-56-d2-1",
+    "topic": "percent.basic",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "A bag holds 6 green marbles and 14 yellow marbles. Tom puts 5 more green marbles into the bag. What percentage of the marbles in the bag are green now?",
+    "options": {
+      "A": "55%",
+      "B": "30%",
+      "C": "56%",
+      "D": "44%",
+      "E": "5%"
+    },
+    "correct_answer": "D",
+    "hint": "How many marbles are in the bag now, and how many of them are green?",
+    "solution": "Now there are 6 + 5 = 11 green marbles among 20 + 5 = 25 marbles. 11 out of 25 is the same as 44 out of 100, so 44% are green.",
+    "distractors": {
+      "A": {
+        "trap": "percent_wrong_base",
+        "text": "55% compares the 11 green marbles with the 20 marbles there were before, not with the 25 in the bag now."
+      },
+      "B": {
+        "trap": "ignored_condition",
+        "text": "30% leaves out the 5 marbles Tom added: it is the green share before, 6 out of 20."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "56% is the share of yellow marbles now."
+      },
+      "E": {
+        "trap": "number_from_text",
+        "text": "5 is the number of marbles Tom added, not a percentage."
+      }
+    }
+  },
+  {
+    "id": "pct-56-d2-2",
+    "topic": "percent.basic",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "At a party, 60% of the guests chose vanilla ice cream and 30% chose chocolate. The other 3 guests chose strawberry. How many guests were at the party?",
+    "options": {
+      "A": "18",
+      "B": "30",
+      "C": "27",
+      "D": "3",
+      "E": "10"
+    },
+    "correct_answer": "B",
+    "hint": "What percentage of the guests chose strawberry?",
+    "solution": "Vanilla and chocolate make 60% + 30% = 90%, so the 3 strawberry guests are the other 10%. If 10% is 3 guests, then 100% is 30 guests.",
+    "distractors": {
+      "A": {
+        "trap": "part_whole_swap",
+        "text": "18 is the guests who chose vanilla, only part of the party."
+      },
+      "C": {
+        "trap": "part_whole_swap",
+        "text": "27 is the guests who chose vanilla or chocolate; the 3 strawberry guests were at the party too."
+      },
+      "D": {
+        "trap": "number_from_text",
+        "text": "3 is the number of strawberry guests, copied from the question."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "10 is the strawberry share in per cent, not a number of guests; 10% is 3 guests."
+      }
+    }
+  },
+  {
+    "id": "pct-56-d2-3",
+    "topic": "percent.basic",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "A board game costs 200 coins. Its price goes up by 10%. A week later, the new price goes down by 10%. What does the game cost now?",
+    "options": {
+      "A": "200",
+      "B": "220",
+      "C": "242",
+      "D": "180",
+      "E": "198"
+    },
+    "correct_answer": "E",
+    "hint": "The second 10% is taken of which price?",
+    "solution": "10% of 200 is 20, so the price goes up to 220. 10% of 220 is 22, so it goes down to 220 - 22 = 198 coins.",
+    "distractors": {
+      "A": {
+        "trap": "percent_wrong_base",
+        "text": "200 takes the fall as 10% of the old price, 20 coins, but it is 10% of 220, which is 22 coins."
+      },
+      "B": {
+        "trap": "stopped_early",
+        "text": "220 is the price after it went up; the fall a week later still has to come."
+      },
+      "C": {
+        "trap": "reversed_relation",
+        "text": "242 raises the price a second time, but the second change was a fall."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "180 takes 10% off the old price and forgets that the price first went up."
+      }
+    }
+  },
+  {
+    "id": "pct-56-d3-1",
+    "topic": "percent.basic",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "After a 20% discount, a jacket costs 60 coins. What was its price before the discount?",
+    "options": {
+      "A": "75",
+      "B": "72",
+      "C": "80",
+      "D": "48",
+      "E": "15"
+    },
+    "correct_answer": "A",
+    "hint": "What percentage of the old price does the jacket cost now?",
+    "solution": "After the discount the jacket costs 80% of its old price. 80% is four lots of 20%, so 20% is 60 ÷ 4 = 15 coins, and the old price is 5 × 15 = 75 coins.",
+    "distractors": {
+      "B": {
+        "trap": "percent_wrong_base",
+        "text": "72 adds 20% of the new price, 12 coins, but the discount was 20% of the old price."
+      },
+      "C": {
+        "trap": "wrong_operation",
+        "text": "80 adds 20 coins for the 20%, instead of splitting 60 into four parts of 20% each."
+      },
+      "D": {
+        "trap": "reversed_relation",
+        "text": "48 takes a second 20% off, but the question goes back to the price before the discount."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "15 coins is the size of the discount, not the old price."
+      }
+    }
+  },
+  {
+    "id": "pct-56-d3-2",
+    "topic": "percent.basic",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "On a farm, 60% of the birds are hens, and 25% of the hens are brown. What percentage of all the birds on the farm are brown hens?",
+    "options": {
+      "A": "25%",
+      "B": "60%",
+      "C": "15%",
+      "D": "85%",
+      "E": "35%"
+    },
+    "correct_answer": "C",
+    "hint": "Imagine the farm has 100 birds. How many of them are hens?",
+    "solution": "Take 100 birds: 60 of them are hens. A quarter of 60 is 15, so 15 of the 100 birds are brown hens, which is 15%.",
+    "distractors": {
+      "A": {
+        "trap": "percent_wrong_base",
+        "text": "25% is the brown share of the hens, not of all the birds."
+      },
+      "B": {
+        "trap": "part_whole_swap",
+        "text": "60% is all the hens, and only some of them are brown."
+      },
+      "D": {
+        "trap": "wrong_operation",
+        "text": "85% adds 60% and 25%, but the 25% is a part of the 60%, not extra birds."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "35% takes 25% away from 60%, but the brown hens are a quarter of the hens, not what is left of them."
+      }
+    }
+  },
+  {
+    "id": "pct-56-d3-3",
+    "topic": "percent.basic",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "Lena has 15 more stickers than Max, and that is 25% more than Max has. By what percentage does Max have fewer stickers than Lena?",
+    "options": {
+      "A": "25%",
+      "B": "15%",
+      "C": "80%",
+      "D": "20%",
+      "E": "125%"
+    },
+    "correct_answer": "D",
+    "hint": "How many stickers does Max have, and how many does Lena have?",
+    "solution": "15 stickers are 25% of Max's stickers, so Max has 4 × 15 = 60 and Lena has 75. Max has 15 fewer, and 15 out of 75 is 20%.",
+    "distractors": {
+      "A": {
+        "trap": "percent_wrong_base",
+        "text": "25% compares the 15 stickers with Max's 60, but here they have to be compared with Lena's 75."
+      },
+      "B": {
+        "trap": "number_from_text",
+        "text": "15 is the number of extra stickers, not a percentage."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "80% is how much Max has compared with Lena, not how much less."
+      },
+      "E": {
+        "trap": "reversed_relation",
+        "text": "125% compares Lena's stickers with Max's, the other way round."
+      }
+    }
+  },
+  {
+    "id": "pct-56-d4-1",
+    "topic": "percent.basic",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "In a basket, 25% of the apples are red. After 6 red apples are eaten, 10% of the apples left are red. How many apples were in the basket at first?",
+    "options": {
+      "A": "40",
+      "B": "36",
+      "C": "9",
+      "D": "27",
+      "E": "24"
+    },
+    "correct_answer": "B",
+    "hint": "The apples that are not red stay in the basket. What share of it are they before and after?",
+    "solution": "The apples that are not red stay. At first there are 3 of them for every red apple, and later 9 for every red apple. So the red apples go from a third of the others to a ninth of them, and the 6 eaten apples are 2/9 of the others. That makes 27 other apples and 9 red ones: 36 apples at first.",
+    "distractors": {
+      "A": {
+        "trap": "percent_wrong_base",
+        "text": "40 takes the drop from 25% to 10% as 15% of the first basket, but the 10% is of a smaller basket."
+      },
+      "C": {
+        "trap": "part_whole_swap",
+        "text": "9 is the red apples at first, only part of the basket."
+      },
+      "D": {
+        "trap": "part_whole_swap",
+        "text": "27 is the apples that are not red; the red ones were in the basket too."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "24 takes the 6 eaten apples as all of the red 25%, but 3 red apples are still left."
+      }
+    }
+  },
+  {
+    "id": "pct-56-d4-2",
+    "topic": "percent.basic",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "20% of Mia's stamps is the same number of stamps as 30% of Sam's. Together they have 200 stamps. How many stamps does Mia have?",
+    "options": {
+      "A": "40",
+      "B": "80",
+      "C": "100",
+      "D": "24",
+      "E": "120"
+    },
+    "correct_answer": "E",
+    "hint": "Who has more stamps, Mia or Sam? Try a few ways of splitting 200.",
+    "solution": "20% is 2 tenths and 30% is 3 tenths, so 2 tenths of Mia's stamps equal 3 tenths of Sam's. That means Mia has 3 stamps for every 2 of Sam's, and 200 splits as 120 and 80. Check: 20% of 120 is 24, and 30% of 80 is 24.",
+    "distractors": {
+      "A": {
+        "trap": "percent_wrong_base",
+        "text": "40 is 20% of all 200 stamps, not the number of Mia's stamps."
+      },
+      "B": {
+        "trap": "answered_other_question",
+        "text": "80 is how many stamps Sam has."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "100 splits the stamps equally, but then 20% and 30% of them would not be the same number."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "24 is the equal number, 20% of Mia's stamps; her whole collection is five times that."
+      }
+    }
+  },
+  {
+    "id": "pct-56-d4-3",
+    "topic": "percent.basic",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "A bus carries fewer than 40 passengers, and exactly 35% of the passengers are children. How many adults are on the bus?",
+    "options": {
+      "A": "13",
+      "B": "20",
+      "C": "7",
+      "D": "26",
+      "E": "35"
+    },
+    "correct_answer": "A",
+    "hint": "For which numbers of passengers is 35% of them a whole number?",
+    "solution": "35% is 7 twentieths, so the number of passengers must divide by 20. Fewer than 40 leaves only 20 passengers: 7 children and 13 adults.",
+    "distractors": {
+      "B": {
+        "trap": "part_whole_swap",
+        "text": "20 is all the passengers, children as well as adults."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "7 is the number of children on the bus."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "26 comes from a bus of 40 passengers, but the bus carries fewer than 40."
+      },
+      "E": {
+        "trap": "number_from_text",
+        "text": "35 is the children's percentage, not a number of people."
+      }
+    }
+  }
+]

@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -79,6 +78,10 @@ func (s *Server) Addr() string {
 // Run serves until ctx is cancelled, then shuts down gracefully. Shutdown is
 // driven by the context rather than by a signal handler of its own, so that
 // every part of the process stops for the same reason at the same moment.
+//
+// It returns only once the goroutine it serves on has finished, so every line
+// Run itself logs is written by then. A request still being handled when the
+// shutdown deadline passes is cut off rather than waited for.
 func (s *Server) Run(ctx context.Context) error {
 	if err := s.Listen(ctx); err != nil {
 		return err
@@ -88,16 +91,15 @@ func (s *Server) Run(ctx context.Context) error {
 	listener := s.listener
 	s.mu.RUnlock()
 
-	failed := make(chan error, 1)
-	go func() {
-		s.logger.Info("listening", zap.String("addr", listener.Addr().String()))
-		if err := s.http.Serve(listener); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			failed <- err
-		}
-	}()
+	// The port is bound already, so this is true before serving starts, and
+	// written here it cannot land after Run has returned.
+	s.logger.Info("listening", zap.String("addr", listener.Addr().String()))
+	served := make(chan error, 1)
+	go func() { served <- s.http.Serve(listener) }()
 
 	select {
-	case err := <-failed:
+	case err := <-served:
+		// Nothing had asked it to stop, so whatever it returned is a failure.
 		return fmt.Errorf("app: serve: %w", err)
 	case <-ctx.Done():
 		s.logger.Info("shutdown requested")
@@ -108,8 +110,14 @@ func (s *Server) Run(ctx context.Context) error {
 	shutdown, cancel := context.WithTimeout(context.WithoutCancel(ctx), s.shutdownTimeout)
 	defer cancel()
 
-	if err := s.http.Shutdown(shutdown); err != nil {
+	err := s.http.Shutdown(shutdown)
+	if err != nil {
 		_ = s.http.Close() // the deadline passed: drop what is left rather than hang
+	}
+	// Shutdown and Close both make Serve return, even one that had not begun
+	// yet, so this wait is short.
+	<-served
+	if err != nil {
 		return fmt.Errorf("app: graceful shutdown: %w", err)
 	}
 
