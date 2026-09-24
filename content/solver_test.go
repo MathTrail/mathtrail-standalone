@@ -3,6 +3,7 @@ package content_test
 import (
 	"fmt"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -69,6 +70,83 @@ func TestEverySolverTemplateProvesTheTaskItWasWrittenFor(t *testing.T) {
 	}
 
 	spent.report(t)
+}
+
+// A template is where a model starts a solver of its own, and a slip made while
+// filling one in has to stop the program rather than quietly prove the answer
+// of another task. The template of what remains after shares knows the two
+// things a share is taken of, and that a whole cannot give away more than
+// itself.
+func TestTheTemplateOfWhatRemainsStopsOnASlipInFillingItIn(t *testing.T) {
+	t.Parallel()
+
+	embedded := loaded(t)
+	sandbox := serviceSandbox(t)
+	template := templateNamed(t, embedded, "fractions.parts", "what-is-left")
+	source := exampleNamed(t, embedded, template.Source)
+
+	for _, test := range []struct{ name, steps, says string }{
+		{"a share of something it does not know", `STEPS = [(1, 2, "rest"), (1, 4, "Rest")]`, `not of "Rest"`},
+		{"shares that give away more than the whole", `STEPS = [(1, 2, "whole"), (2, 3, "whole")]`, "more than the whole"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			program := withLine(t, template.Program, "STEPS = ", test.steps)
+			result, err := sandbox.Run(t.Context(), program, optionsOf(t, &source))
+			if err != nil {
+				t.Fatalf("Run() error = %v, want the run to happen", err)
+			}
+			if result.Status != solver.StatusError || !strings.Contains(result.Message, test.says) {
+				t.Errorf("Run() = %s %q, want %s saying %q", result.Status, result.Message, solver.StatusError, test.says)
+			}
+		})
+	}
+}
+
+// templateNamed is one solver template of a topic, found by its name.
+func templateNamed(t *testing.T, embedded *content.Content, topic, name string) content.Template {
+	t.Helper()
+
+	for _, template := range embedded.Templates(topic) {
+		if template.Name == name {
+			return template
+		}
+	}
+	t.Fatalf("%s has no template named %s", topic, name)
+	return content.Template{}
+}
+
+// exampleNamed is the reference task with this id.
+func exampleNamed(t *testing.T, embedded *content.Content, id string) content.Example {
+	t.Helper()
+
+	examples := embedded.Examples()
+	for i := range examples {
+		if examples[i].ID == id {
+			return examples[i]
+		}
+	}
+	t.Fatalf("no reference task has the id %s", id)
+	return content.Example{}
+}
+
+// withLine is a program with its one line that starts with prefix replaced.
+func withLine(t *testing.T, program, prefix, line string) string {
+	t.Helper()
+
+	lines := strings.Split(program, "\n")
+	found := 0
+	for i := range lines {
+		if strings.HasPrefix(lines[i], prefix) {
+			lines[i] = line
+			found++
+		}
+	}
+	if found != 1 {
+		t.Fatalf("the program has %d lines starting with %q, want one", found, prefix)
+	}
+	return strings.Join(lines, "\n")
 }
 
 // A template is generalised from the solver of a reference task and never

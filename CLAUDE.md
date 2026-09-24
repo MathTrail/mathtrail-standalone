@@ -49,8 +49,15 @@ Project context lives in these files, not in chat history.
 
 - The author runs tasks one at a time: «Выполни задачу Txx из RUN.md». Do only that task; do not touch files that belong to other tasks unless the task says so.
 - Before starting, read the RUN.md task and the PRODUCT-V1 / SPEC sections it cites. If the task contradicts them or something is missing, stop and ask. Do not silently fill gaps; record them as open questions (PRODUCT-V1 12.2, next free О-number) or in the "Замечания" section of the document being written.
+- Before calling any change done — code, config, docs or content — run `/code-review high` on it. Skip it only when the author asks, for that change alone, and say in the report that it did not run.
+  - Run it once the change is written and its checks — `just ci-lint`, `just ci-test`, whatever else the task names — are green.
+  - It reads the working tree plus the branch's commits — those not yet pushed, or all since `main` without an upstream — but not untracked files. Mark new files with `git add -N` for the review and unmark them with `git reset -- <file>` afterwards: the mark makes `git stash` fail. Pass no path — a path is reviewed instead of the diff, not beside it.
+  - Verify each finding against the repository before acting on it; do not use `--fix`. Fix a real defect your uncommitted work introduced, wherever it shows up, with a test that fails without the fix when the defect is in code. A defect your work did not introduce — in an earlier commit, in code your work does not touch, or in another session's uncommitted work in the same tree — goes to the report as open.
+  - Drop a wrong finding with a one-line reason, and one that re-proposes a rejected alternative with no new evidence by naming the decision. A finding that questions PRODUCT-V1, SPEC or a decision for a reason that holds goes to the author as a question.
+  - If anything was fixed, run the checks and the review once more. That second round is the last: its findings are handled the same way, and its fixes get the checks but no third review. The report says what was fixed, what was dropped and why, and what is left open.
+  - `/code-review ultra` is billed and started only by the author; this rule does not cover it.
 - When done, mark the task in the RUN.md summary table: `[ ]` → `[x]`.
-- Finish with a short report in Russian: what was done, which files, how to check it (commands), what is still open.
+- Finish with a short report in Russian: what was done, which files, how to check it (commands), what the review found, what is still open.
 - Do not commit: the author commits after review.
 - Live runs in Claude or ChatGPT spend the author's subscription limits, and cloud actions may cost money. Say so and wait for confirmation before starting one.
 - Do not re-propose alternatives rejected in PRODUCT-V1, `docs/decisions.md` or the prototype decision log without new evidence. If a decision has to change, ask the author and update the log.

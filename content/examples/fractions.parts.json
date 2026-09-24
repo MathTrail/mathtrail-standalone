@@ -1,0 +1,317 @@
+[
+  {
+    "id": "frac-56-d2-1",
+    "topic": "fractions.parts",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "Two thirds of a number is 24. What is three quarters of the same number?",
+    "options": {
+      "A": "18",
+      "B": "36",
+      "C": "27",
+      "D": "16",
+      "E": "9"
+    },
+    "correct_answer": "C",
+    "hint": "First find the whole number. How much is one third of it?",
+    "solution": "Two thirds are 24, so one third is 12 and the whole number is 36. One quarter of 36 is 9, so three quarters are 27.",
+    "distractors": {
+      "A": {
+        "trap": "part_whole_swap",
+        "text": "18 is three quarters of 24, as if 24 were the whole number. It is only two thirds of it."
+      },
+      "B": {
+        "trap": "stopped_early",
+        "text": "36 is the whole number, found on the way; the question asks for three quarters of it."
+      },
+      "D": {
+        "trap": "wrong_operation",
+        "text": "16 takes two thirds of 24, but 24 already is the two thirds, so the number is bigger than 24, not smaller."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "9 is one quarter of the number; three quarters are three times as much."
+      }
+    }
+  },
+  {
+    "id": "frac-56-d2-2",
+    "topic": "fractions.parts",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "A pack holds 24 crayons. Ben takes a quarter of the pack, and Lucy takes a third of the whole pack. How many crayons are left in the pack?",
+    "options": {
+      "A": "10",
+      "B": "14",
+      "C": "12",
+      "D": "18",
+      "E": "17"
+    },
+    "correct_answer": "A",
+    "hint": "Work out each child's share of the full pack before taking anything away.",
+    "solution": "A quarter of 24 is 6 and a third of 24 is 8. Together they take 6 + 8 = 14 crayons, so 24 - 14 = 10 are left.",
+    "distractors": {
+      "B": {
+        "trap": "answered_other_question",
+        "text": "14 is how many crayons Ben and Lucy take, not how many are left."
+      },
+      "C": {
+        "trap": "part_whole_swap",
+        "text": "12 takes Lucy's third from the 18 crayons Ben left, but she takes a third of the whole pack."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "18 takes away only Ben's quarter; Lucy's crayons still have to come out."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "17 is 24 - 4 - 3: the 4 and the 3 of a quarter and a third were taken away as crayons instead of dividing 24 by them."
+      }
+    }
+  },
+  {
+    "id": "frac-56-d2-3",
+    "topic": "fractions.parts",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "Tom writes the fractions 1/12, 2/12, 3/12 and so on, up to 12/12. How many of them are bigger than 1/3 but smaller than 3/4?",
+    "options": {
+      "A": "6",
+      "B": "5",
+      "C": "2",
+      "D": "8",
+      "E": "4"
+    },
+    "correct_answer": "E",
+    "hint": "How many twelfths make one third, and how many make three quarters?",
+    "solution": "A third of 12 is 4, so 1/3 is 4/12, and three quarters of 12 is 9, so 3/4 is 9/12. Between them lie 5/12, 6/12, 7/12 and 8/12, which makes 4 fractions.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "6 also counts 4/12 and 9/12, but they are equal to 1/3 and 3/4, not bigger or smaller."
+      },
+      "B": {
+        "trap": "off_by_one",
+        "text": "5 is 9 - 4, which counts one of the two ends as well."
+      },
+      "C": {
+        "trap": "missed_case",
+        "text": "2 counts only 5/12 and 7/12. 6/12 and 8/12 count too, even though they can be written as 1/2 and 2/3."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "8 keeps only one of the two limits: 1/12 to 8/12 are all smaller than 3/4, but the first four are not bigger than 1/3."
+      }
+    }
+  },
+  {
+    "id": "frac-56-d3-1",
+    "topic": "fractions.parts",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "Oleg spends half of his coins on a book. Then he spends a quarter of the coins he has left on a pen. Now he has 30 coins. How many coins did he have at first?",
+    "options": {
+      "A": "40",
+      "B": "80",
+      "C": "120",
+      "D": "50",
+      "E": "60"
+    },
+    "correct_answer": "B",
+    "hint": "Work backwards. The 30 coins are what part of the coins he had after the book?",
+    "solution": "After the pen he keeps three quarters of what he had, and that is 30 coins. So a quarter is 10, and he had 40 coins after the book. Those 40 are half of his coins, so at first he had 80.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "40 is what he had after buying the book; the half he spent on it still has to be added back."
+      },
+      "C": {
+        "trap": "part_whole_swap",
+        "text": "120 takes the pen's quarter of all his coins, but it was a quarter of the coins he had left."
+      },
+      "D": {
+        "trap": "answered_other_question",
+        "text": "50 is how many coins he spent on the book and the pen together."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "60 only doubles the 30 and forgets the pen, which he bought after the book."
+      }
+    }
+  },
+  {
+    "id": "frac-56-d3-2",
+    "topic": "fractions.parts",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "A jug full of juice weighs 1500 g, jug and juice together. When only 1/3 of the juice is left in it, the jug weighs 700 g. How many grams of juice does the full jug hold?",
+    "options": {
+      "A": "300",
+      "B": "800",
+      "C": "1500",
+      "D": "1200",
+      "E": "400"
+    },
+    "correct_answer": "D",
+    "hint": "What does the difference between 1500 g and 700 g weigh?",
+    "solution": "The difference, 1500 - 700 = 800 g, is the juice that was drunk, and that is 2/3 of the juice. So 1/3 of the juice weighs 400 g, and all of it weighs 1200 g.",
+    "distractors": {
+      "A": {
+        "trap": "answered_other_question",
+        "text": "300 g is the empty jug, not the juice."
+      },
+      "B": {
+        "trap": "stopped_early",
+        "text": "800 g is only the two thirds that were drunk; one more third is still in the jug."
+      },
+      "C": {
+        "trap": "part_whole_swap",
+        "text": "1500 g is the jug and the juice together, and the jug itself is part of that weight."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "400 g is the juice still left in the jug, a third of all the juice."
+      }
+    }
+  },
+  {
+    "id": "frac-56-d3-3",
+    "topic": "fractions.parts",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "In a car park, 5/8 of the cars are red and the rest are blue. There are 6 more red cars than blue cars. How many cars are in the car park?",
+    "options": {
+      "A": "24",
+      "B": "15",
+      "C": "9",
+      "D": "16",
+      "E": "6"
+    },
+    "correct_answer": "A",
+    "hint": "What fraction of the cars are blue, and how big is the gap between the two fractions?",
+    "solution": "The blue cars are 3/8 of all the cars, so there are 5/8 - 3/8 = 2/8 of the cars more red ones. That 2/8 is 6 cars, so 1/8 is 3 cars, and there are 8 × 3 = 24 cars: 15 red and 9 blue.",
+    "distractors": {
+      "B": {
+        "trap": "part_whole_swap",
+        "text": "15 is the number of red cars, only part of the car park."
+      },
+      "C": {
+        "trap": "part_whole_swap",
+        "text": "9 is the number of blue cars, not all the cars."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "16 takes the 6 as the number of blue cars, but 6 is how many more red cars there are."
+      },
+      "E": {
+        "trap": "number_from_text",
+        "text": "6 is the gap between the red and the blue cars, copied from the question."
+      }
+    }
+  },
+  {
+    "id": "frac-56-d4-1",
+    "topic": "fractions.parts",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "In a library, 2/5 of the books are novels. Half of the novels and 1/6 of the other books have hard covers. What fraction of all the books have hard covers?",
+    "options": {
+      "A": "2/3",
+      "B": "1/5",
+      "C": "3/10",
+      "D": "7/10",
+      "E": "1/12"
+    },
+    "correct_answer": "C",
+    "hint": "Pick a number of books that splits into fifths and into sixths, and count.",
+    "solution": "Take 30 books: 12 are novels and 18 are other books. Half of the novels is 6 and a sixth of the others is 3, so 9 of the 30 books have hard covers, which is 9/30 = 3/10.",
+    "distractors": {
+      "A": {
+        "trap": "part_whole_swap",
+        "text": "2/3 adds 1/2 and 1/6, but those are shares of the novels and of the other books, not of the whole library."
+      },
+      "B": {
+        "trap": "missed_case",
+        "text": "1/5 counts only the hard-cover novels and leaves out the other books."
+      },
+      "D": {
+        "trap": "answered_other_question",
+        "text": "7/10 is the share of books with soft covers."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "1/12 multiplies 1/2 by 1/6, but the two groups of hard-cover books have to be added."
+      }
+    }
+  },
+  {
+    "id": "frac-56-d4-2",
+    "topic": "fractions.parts",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "A box holds more than 20 but fewer than 40 sweets. Exactly 1/3 of them are toffees and exactly 3/8 are mints, and the rest are chocolates. How many chocolates are in the box?",
+    "options": {
+      "A": "24",
+      "B": "17",
+      "C": "It cannot be worked out",
+      "D": "7/24",
+      "E": "7"
+    },
+    "correct_answer": "E",
+    "hint": "For which numbers of sweets are a third and three eighths both whole numbers?",
+    "solution": "A third and three eighths of the sweets must both be whole, so their number divides by 3 and by 8, that is, by 24. Between 20 and 40 only 24 does. Then there are 8 toffees and 9 mints, which leaves 24 - 8 - 9 = 7 chocolates.",
+    "distractors": {
+      "A": {
+        "trap": "part_whole_swap",
+        "text": "24 is the whole box; the chocolates are only part of it."
+      },
+      "B": {
+        "trap": "answered_other_question",
+        "text": "17 is the toffees and the mints together, not the chocolates."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "The limits 20 and 40 settle it: only a box of 24 lets a third and three eighths both be whole."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "7/24 is the share of chocolates; the question asks how many there are."
+      }
+    }
+  },
+  {
+    "id": "frac-56-d4-3",
+    "topic": "fractions.parts",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "Five friends share a pizza. The first eats half of it. Then each of the others in turn eats part of what is left: the second 1/3 of it, the third 1/4, the fourth 1/5 and the fifth 1/6. What fraction of the pizza is left?",
+    "options": {
+      "A": "1/5",
+      "B": "1/6",
+      "C": "5/6",
+      "D": "Nothing is left",
+      "E": "1/30"
+    },
+    "correct_answer": "B",
+    "hint": "After the first friend, half of the pizza is left. How much is left after the second?",
+    "solution": "Cut the pizza into 60 equal slices. The first eats 30 and leaves 30. The second eats 10 and leaves 20, the third eats 5 and leaves 15, the fourth eats 3 and leaves 12, and the fifth eats 2 and leaves 10. So 10 of the 60 slices are left, which is 1/6.",
+    "distractors": {
+      "A": {
+        "trap": "off_by_one",
+        "text": "1/5 is what is left after only four friends; the fifth still eats 1/6 of that, which leaves 1/6 of the pizza."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "5/6 is the part of the pizza the friends ate, not the part that is left."
+      },
+      "D": {
+        "trap": "part_whole_swap",
+        "text": "Taking every share of the whole pizza, 1/2 + 1/3 + 1/4 + 1/5 + 1/6 is more than 1. But each share is of what is left, so some pizza always remains."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "1/30 is how much of the pizza the fifth friend eats, not how much is left."
+      }
+    }
+  }
+]
