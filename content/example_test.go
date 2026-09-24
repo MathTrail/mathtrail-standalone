@@ -15,8 +15,9 @@ const (
 
 // withExamples puts one file of reference tasks in place of the real one, so
 // that a test is looking at the tasks it wrote and nothing else. The solvers of
-// the tasks it replaces go with them: they prove answers to questions that are
-// no longer there.
+// the tasks it replaces go with them, and so do the solver templates of the
+// topic, which were generalised from those solvers: all of them prove answers
+// to questions that are no longer there.
 func withExamples(t *testing.T, src fstest.MapFS, file string, tasks ...Example) {
 	t.Helper()
 
@@ -29,6 +30,8 @@ func withExamples(t *testing.T, src fstest.MapFS, file string, tasks ...Example)
 	for i := range replaced {
 		delete(src, solverFile(replaced[i].ID))
 	}
+	topic := strings.TrimSuffix(strings.TrimPrefix(file, examplesDir+"/"), examplesSuffix)
+	withTemplates(src, topic, nil)
 	src[file] = asFile(t, tasks)
 }
 
@@ -415,9 +418,9 @@ func TestContentWithoutItsSolversStopsTheService(t *testing.T) {
 	wantProblem(t, src, "content: read "+examplesDir+"/"+solversDir)
 }
 
-// unreadable is the content with one file that is listed and cannot be read, as
-// a file the process has no permission for would be — the one failure a copy
-// in memory cannot show by itself.
+// unreadable is the content with one file or directory that is listed and
+// cannot be read, as one the process has no permission for would be — the one
+// failure a copy in memory cannot show by itself.
 type unreadable struct {
 	fstest.MapFS
 	name string
@@ -435,6 +438,13 @@ func (u unreadable) ReadFile(name string) ([]byte, error) {
 		return nil, &fs.PathError{Op: "read", Path: name, Err: fs.ErrPermission}
 	}
 	return u.MapFS.ReadFile(name)
+}
+
+func (u unreadable) ReadDir(name string) ([]fs.DirEntry, error) {
+	if name == u.name {
+		return nil, &fs.PathError{Op: "readdir", Path: name, Err: fs.ErrPermission}
+	}
+	return u.MapFS.ReadDir(name)
 }
 
 // A solver that is there and cannot be read stops the service, rather than

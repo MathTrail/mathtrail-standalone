@@ -25,19 +25,8 @@ import (
 func TestEveryReferenceTaskProvesItsOwnAnswer(t *testing.T) {
 	t.Parallel()
 
-	embedded, err := content.Load()
-	if err != nil {
-		t.Fatalf("Load() error = %v, want nil", err)
-	}
-
-	sandbox, err := starlark.New(starlark.Limits{
-		Steps:       config.DefaultSolverSteps,
-		Timeout:     config.DefaultSolverTimeout,
-		Concurrency: config.DefaultSolverConcurrency,
-	})
-	if err != nil {
-		t.Fatalf("New() error = %v, want nil", err)
-	}
+	embedded := loaded(t)
+	sandbox := serviceSandbox(t)
 
 	var spent costs
 	for _, task := range embedded.Examples() {
@@ -47,6 +36,82 @@ func TestEveryReferenceTaskProvesItsOwnAnswer(t *testing.T) {
 	}
 
 	spent.report(t)
+}
+
+// A solver template is shown to the model as a program to start its own from,
+// so it has to be a correct one, not merely a plausible one. Each still holds
+// the numbers of the reference task it was generalised from, and is run on
+// that task the way a submitted solver is run — the same sandbox, the same two
+// runs, the limits the service uses — and has to prove that task's answer.
+func TestEverySolverTemplateProvesTheTaskItWasWrittenFor(t *testing.T) {
+	t.Parallel()
+
+	embedded := loaded(t)
+	sandbox := serviceSandbox(t)
+	tasks := make(map[string]content.Example, embedded.ExampleCount())
+	for _, task := range embedded.Examples() {
+		tasks[task.ID] = task
+	}
+
+	var spent costs
+	for _, topic := range embedded.Topics() {
+		for _, template := range embedded.Templates(topic.ID) {
+			name := topic.ID + "/" + template.Name
+			t.Run(name, func(t *testing.T) {
+				task := tasks[template.Source]
+				task.Solver = template.Program
+				spent.add(name, prove(t, sandbox, &task))
+			})
+		}
+	}
+	if spent.runs == 0 {
+		t.Fatal("no template ran, so nothing here was tested")
+	}
+
+	spent.report(t)
+}
+
+// A template is generalised from the solver of a reference task and never
+// written from nothing, so every topic with reference tasks has at least one,
+// and a topic still waiting for its reference tasks has none, for want of a
+// solver to generalise from. The test names those, so that the absence is
+// stated rather than merely allowed.
+func TestEveryTopicWithReferenceTasksHasASolverTemplate(t *testing.T) {
+	t.Parallel()
+
+	embedded := loaded(t)
+	tasks := map[string]int{}
+	for _, task := range embedded.Examples() {
+		tasks[task.Topic]++
+	}
+
+	var waiting []string
+	for _, topic := range embedded.Topics() {
+		switch {
+		case tasks[topic.ID] == 0:
+			waiting = append(waiting, topic.ID)
+		case len(embedded.Templates(topic.ID)) == 0:
+			t.Errorf("%s: got no solver template for its %d reference tasks, "+
+				"want one generalised from their solvers, in solvers/%s/", topic.ID, tasks[topic.ID], topic.ID)
+		}
+	}
+	t.Logf("no template, having no reference task to generalise one from: %v", waiting)
+}
+
+// serviceSandbox is the sandbox a submitted solver runs in, with the limits
+// the deployed service uses.
+func serviceSandbox(t *testing.T) solver.Runner {
+	t.Helper()
+
+	sandbox, err := starlark.New(starlark.Limits{
+		Steps:       config.DefaultSolverSteps,
+		Timeout:     config.DefaultSolverTimeout,
+		Concurrency: config.DefaultSolverConcurrency,
+	})
+	if err != nil {
+		t.Fatalf("starlark.New() error = %v, want nil", err)
+	}
+	return sandbox
 }
 
 // prove runs one task's solver the way a submitted one is run, and holds it to

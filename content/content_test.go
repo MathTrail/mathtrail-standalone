@@ -313,6 +313,12 @@ func TestWhatIsHandedOutIsACopy(t *testing.T) {
 	if again, _ := c.Schema("task.json"); again[0] == ' ' {
 		t.Error("editing the schema handed out changed the schema")
 	}
+
+	templates := c.Templates("logic.ordering")
+	templates[0].Program = "edited by a caller"
+	if again := c.Templates("logic.ordering"); again[0].Program == "edited by a caller" {
+		t.Error("editing a solver template handed out changed the content")
+	}
 }
 
 // The count is what the startup log reports, and a number that drifts from the

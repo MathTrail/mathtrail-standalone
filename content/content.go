@@ -1,7 +1,7 @@
 // Package content holds everything the service ships that is not code: the
 // closed catalogs of topics, traps and skills, the reference tasks the model is
-// shown, the JSON schemas of what it has to hand back, and the instructions it
-// works from.
+// shown, the sample solvers it starts its own from, the JSON schemas of what it
+// has to hand back, and the instructions it works from.
 //
 // All of it is compiled into the binary, so a running service cannot drift from
 // the content it was built with, and Load checks the whole set once at startup.
@@ -20,7 +20,7 @@ import (
 	"strings"
 )
 
-//go:embed catalogs examples instructions schemas
+//go:embed catalogs examples instructions schemas solvers
 var files embed.FS
 
 // Content is the checked content of the binary. Nothing in it changes after
@@ -28,10 +28,11 @@ var files embed.FS
 // sort, append to or rewrite its copy, down to an option inside a reference
 // task, and the next caller is handed the content as it was built.
 type Content struct {
-	topics   []Topic
-	traps    []Trap
-	skills   []Skill
-	examples []Example
+	topics    []Topic
+	traps     []Trap
+	skills    []Skill
+	examples  []Example
+	templates map[string][]Template
 
 	topicByID map[string]Topic
 	trapByID  map[string]Trap
@@ -76,6 +77,9 @@ func load(src fs.FS) (*Content, error) {
 	if c.examples, err = loadExamples(src, c.topicByID, c.trapByID); err != nil {
 		return nil, err
 	}
+	if c.templates, err = loadTemplates(src, c.topicByID, c.examples); err != nil {
+		return nil, err
+	}
 	if c.schemas, err = loadSchemas(src); err != nil {
 		return nil, err
 	}
@@ -88,7 +92,7 @@ func load(src fs.FS) (*Content, error) {
 	for _, file := range instructions {
 		c.instructions[file.name] = file.text
 	}
-	c.instructionsVersion = instructionsVersion(instructions)
+	c.instructionsVersion = instructionsVersion(slices.Concat(instructions, versioned(c.templates)))
 
 	return c, nil
 }
@@ -263,9 +267,11 @@ func (c *Content) Instruction(name string) (string, bool) {
 	return text, ok
 }
 
-// InstructionsVersion identifies the instructions this binary carries. Every log
-// line about a generated task holds it, so that months later it is still clear
-// which wording produced which task.
+// InstructionsVersion identifies what this binary tells the model about
+// writing a task: the instructions, and the solver templates it is shown
+// beside them. Every log line about a generated task holds it, so that months
+// later it is still clear which wording, and which sample program, produced
+// which task.
 func (c *Content) InstructionsVersion() string { return c.instructionsVersion }
 
 // index keys entries by their id, for the lookups the checks and the package

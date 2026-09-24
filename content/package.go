@@ -15,10 +15,13 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
-// PackageBudget is the most a package may weigh as the model receives it. It
-// is paid out of the family's own message allowance, a few thousand tokens of
-// the chat's context each time, so it is kept small.
-const PackageBudget = 16 * 1024
+// PackageBudget is the most a package may weigh as the model receives it. It is
+// a ceiling against a package growing unnoticed, not a target to fill: the
+// heaviest package a profile allows — a child at every limit, written in the
+// characters JSON takes the most bytes to carry — is well under half of it. A
+// test holds every such package to it, so nothing is ever left out of a
+// package to make it fit.
+const PackageBudget = 64 * 1024
 
 // examplesPerPackage is how many reference tasks a package shows.
 const examplesPerPackage = 3
@@ -50,8 +53,9 @@ type Request struct {
 
 // Package is everything the model is handed to write one task from, as the
 // JSON it receives: the brief, the corridor, the topic, every trap, what the
-// task may not use, the child, three reference tasks, the limits it is held
-// to, the page on how to write it and the version of that page.
+// task may not use, the child, three reference tasks, the solver templates of
+// the topic, the limits it is held to, the page on how to write it and the
+// version of what it is told.
 //
 // There is no pseudonym in it, because the request has none to give: a task
 // has no use for the child's name, and the package is the one place it is easy
@@ -59,12 +63,6 @@ type Request struct {
 // the guide introduces as information about the child and not as
 // instructions; being a string of JSON, they cannot close themselves off and
 // speak as anything else.
-//
-// A package heavier than the budget shows two reference tasks instead of
-// three. One still heavier after that is sent as it is: what is left is what
-// a task cannot be written without — the brief, the catalogs, the guide and
-// two reference tasks — and only a parent's own words, at the limits of the
-// profile and in a script of wide characters, carry a package that far.
 //
 // A request naming a topic or a skill the catalogs do not have makes no
 // package: its description would be empty, and no task written to it could
@@ -74,15 +72,7 @@ func (c *Content) Package(request *Request) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	encoded, err := encode(&contents)
-	if err != nil {
-		return nil, err
-	}
-	if len(encoded) > PackageBudget && len(contents.Examples) == examplesPerPackage {
-		contents.Examples = contents.Examples[:examplesPerPackage-1]
-		return encode(&contents)
-	}
-	return encoded, nil
+	return encode(&contents)
 }
 
 // packageContents is a package as it is encoded, part by part. It borrows
@@ -98,6 +88,7 @@ type packageContents struct {
 	Prohibitions        []Skill          `json:"prohibitions"`
 	Child               packageChild     `json:"child"`
 	Examples            []packageExample `json:"examples"`
+	Templates           []string         `json:"solver_templates"`
 	Limits              packageLimits    `json:"limits"`
 	Guide               string           `json:"guide"`
 	InstructionsVersion string           `json:"instructions_version"`
@@ -185,10 +176,12 @@ func (c *Content) contentsFor(request *Request) (packageContents, error) {
 			FleschKincaidGrade: readable.FleschKincaid,
 			Drawing:            drawingLimits{Width: drawn.Width, Height: drawn.Height, SpaceRun: drawn.SpaceRun},
 		},
+		Templates:           c.templatePrograms(topic.ID),
 		Guide:               c.instructions[guideName],
 		InstructionsVersion: c.instructionsVersion,
 	}
 	examples := c.examplesFor(request.Brief.TargetConcept, request.Grade, request.Brief.Difficulty, request.Answers)
+	contents.Examples = make([]packageExample, 0, len(examples)) // a topic with none is shown an empty list, not null
 	for i := range examples {
 		task := &examples[i]
 		contents.Examples = append(contents.Examples, packageExample{
