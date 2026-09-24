@@ -112,6 +112,78 @@ func TestEveryReferenceDrawingPassesTheDrawingChecks(t *testing.T) {
 	}
 }
 
+// The two-groups frame lets a place stay blank, with the top border drawn
+// through where the number of everyone would be, and lets a number outgrow its
+// place by taking the character beside it. Filled at both extremes it still
+// passes the drawing checks: no fill its purpose allows may leave a run of
+// spaces longer than the limit or a label joined to a number.
+func TestTheTwoGroupsFrameFilledAtItsExtremesPassesTheDrawingChecks(t *testing.T) {
+	t.Parallel()
+
+	frames := loaded(t).Frames()
+	var venn *content.Frame
+	for i := range frames {
+		if frames[i].Name == "venn" {
+			venn = &frames[i]
+		}
+	}
+	if venn == nil {
+		t.Fatal("the content has no frame called venn")
+	}
+	for _, test := range []struct {
+		name string
+		fill func(t *testing.T, line string) string
+	}{
+		{"every place blank", blankPlaces},
+		{"every number of three digits", widePlaces},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			lines := strings.Split(venn.Drawing, "\n")
+			for i := range lines {
+				lines[i] = test.fill(t, lines[i])
+			}
+			holdsToTheDrawingChecks(t, "", strings.Join(lines, "\n"), structureOf(venn.Structure))
+		})
+	}
+}
+
+// blankPlaces leaves every place for a number in a line blank, and draws a
+// border through a place that sits in one.
+func blankPlaces(_ *testing.T, line string) string {
+	if strings.HasPrefix(line, "┌") {
+		return strings.ReplaceAll(line, " ## ", "────")
+	}
+	return strings.ReplaceAll(line, "##", "  ")
+}
+
+// widePlaces writes 100 in every place for a number in a line, taking the
+// space or ─ just after the place, or the character just before it where a
+// line follows straight after, as the frame tells a longer number to.
+func widePlaces(t *testing.T, line string) string {
+	t.Helper()
+
+	runes := []rune(line)
+	for i := 0; i+1 < len(runes); i++ {
+		if runes[i] != '#' || runes[i+1] != '#' {
+			continue
+		}
+		var start int
+		switch {
+		case i+2 < len(runes) && (runes[i+2] == ' ' || runes[i+2] == '─'):
+			start = i
+		case i > 0 && runes[i-1] == ' ':
+			start = i - 1
+		default:
+			t.Fatalf("a place in %q has no space or ─ after it and no space before it to grow into", line)
+		}
+		copy(runes[start:start+3], []rune("100"))
+		i = start + 2
+	}
+	return string(runes)
+}
+
 // Every filled drawing fills a frame the content has, so that a frame renamed
 // or taken out leaves nothing behind that no test reads.
 func TestEveryFilledDrawingFillsAFrame(t *testing.T) {

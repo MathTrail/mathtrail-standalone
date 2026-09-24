@@ -27,7 +27,7 @@ func checkLetters(t *testing.T, letters []string) {
 
 // FuzzRun feeds the sandbox what it is actually given: a source written
 // somewhere else, by something that was never held to a grammar. Whatever
-// arrives, a run answers with one of the six statuses and the process carries
+// arrives, a run answers with one of the seven statuses and the process carries
 // on — a panic here would take down the request handler around it.
 func FuzzRun(f *testing.F) {
 	for _, seed := range []string{
@@ -65,7 +65,7 @@ func FuzzRun(f *testing.F) {
 		switch result.Status {
 		case solver.StatusOK:
 			checkLetters(t, result.Letters)
-		case solver.StatusBadSource, solver.StatusNoEntryPoint,
+		case solver.StatusBadSource, solver.StatusNoEntryPoint, solver.StatusBadFormat,
 			solver.StatusError, solver.StatusTimeout, solver.StatusBadOutput:
 			if result.Message == "" {
 				t.Fatalf("status %q: got no message, want a sentence for the model", result.Status)

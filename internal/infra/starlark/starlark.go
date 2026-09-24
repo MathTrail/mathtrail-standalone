@@ -154,7 +154,7 @@ func (s *sandbox) run(ctx context.Context, source string, options solver.Options
 
 	globals, err := program.Init(thread, s.predeclared)
 	if err != nil {
-		return s.failed(ctx, runCtx, thread, err, started)
+		return s.failed(ctx, runCtx, thread, file, err, started)
 	}
 
 	solve, problem := solveOf(globals)
@@ -164,7 +164,7 @@ func (s *sandbox) run(ctx context.Context, source string, options solver.Options
 
 	returned, err := starlark.Call(thread, solve, starlark.Tuple{arguments}, nil)
 	if err != nil {
-		return s.failed(ctx, runCtx, thread, err, started)
+		return s.failed(ctx, runCtx, thread, file, err, started)
 	}
 
 	letters, problem := lettersOf(returned)

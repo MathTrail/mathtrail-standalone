@@ -158,7 +158,7 @@ The acceptance check for this task: every requirement in sections 4–7 belongs 
 | 4.1 The model may change topic or difficulty only with a reason | Tools, Rule |
 | 4.2 The five screens and the waiting screen | Widget |
 | 4.2 The answer and the solution never reach the card before the child answers | Tools, Sealing, Widget |
-| 4.2 An A–E button calls the tool directly (О-42) | Widget, MCP server, Tools |
+| 4.2 An answer button calls the tool directly (О-42) | Widget, MCP server, Tools |
 | 4.2 Phone first: from 320 px, large buttons, no horizontal scrolling | Widget |
 | 4.2 One embedded file, CSP with no third-party domains | Widget, MCP server |
 | 4.2 Any interface language: dictionaries by key, BCP 47 tags, the host's language, an override in the profile, fallback to the language without a region and then to English | Widget, Storage |

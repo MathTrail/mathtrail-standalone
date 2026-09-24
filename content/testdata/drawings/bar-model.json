@@ -1,16 +1,19 @@
 {
-  "from": "ratio-56-d2-3",
+  "from": "ratio-56-d2-2",
   "drawing": [
-    "S │▒▒│▒▒│▒▒│",
-    "P │▒▒│▒▒│▒▒│▒▒│▒▒│",
-    "P = 20",
-    "S + P = ?"
+    "A │▒▒│▒▒│▒▒│",
+    "B │▒▒│▒▒│▒▒│▒▒│",
+    "A + B = 56",
+    "A = ?"
   ],
   "drawing_structure": {
     "kind": "bars",
     "objects": [
-      {"id": "S", "label": "S", "value": 3},
-      {"id": "P", "label": "P", "value": 5}
+      {"id": "A", "label": "A", "value": 3},
+      {"id": "B", "label": "B", "value": 4}
+    ],
+    "relations": [
+      {"type": "ratio", "from": "A", "to": "B"}
     ]
   }
 }

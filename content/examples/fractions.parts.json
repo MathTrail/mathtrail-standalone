@@ -4,7 +4,14 @@
     "topic": "fractions.parts",
     "grade_level": "5-6",
     "difficulty": 2,
-    "question": "Two thirds of a number is 24. What is three quarters of the same number?",
+    "question": "Two thirds of a number N is 24. What is three quarters of N?",
+    "drawing": "N │▒▒▒│▒▒▒│   │\n  └──24───┘\nN │▒▒│▒▒│▒▒│  │\n  └── ? ───┘",
+    "drawing_structure": {
+      "kind": "bars",
+      "objects": [
+        {"id": "N", "label": "N"}
+      ]
+    },
     "options": {
       "A": "18",
       "B": "36",

@@ -85,7 +85,18 @@
     "topic": "ratio.sharing",
     "grade_level": "5-6",
     "difficulty": 2,
-    "question": "In a fish tank, there are 3 striped fish for every 5 spotted fish, and every fish is striped or spotted. There are 20 spotted fish. How many fish are in the tank?",
+    "question": "In a fish tank, there are 3 gold fish (G) for every 5 silver fish (S), and every fish is gold or silver. There are 20 silver fish. How many fish are in the tank?",
+    "drawing": "G │▒▒│▒▒│▒▒│\nS │▒▒│▒▒│▒▒│▒▒│▒▒│\nS = 20\nG + S = ?",
+    "drawing_structure": {
+      "kind": "bars",
+      "objects": [
+        {"id": "G", "label": "G", "value": 3},
+        {"id": "S", "label": "S", "value": 5}
+      ],
+      "relations": [
+        {"type": "ratio", "from": "G", "to": "S"}
+      ]
+    },
     "options": {
       "A": "50",
       "B": "38",
@@ -94,24 +105,24 @@
       "E": "32"
     },
     "correct_answer": "E",
-    "hint": "How many groups of 5 spotted fish are there?",
-    "solution": "20 spotted fish make 4 groups of 5, so there are 4 groups of 3 striped fish, which is 12. Altogether there are 20 + 12 = 32 fish.",
+    "hint": "How many groups of 5 silver fish are there?",
+    "solution": "20 silver fish make 4 groups of 5, so there are 4 groups of 3 gold fish, which is 12. Altogether there are 20 + 12 = 32 fish.",
     "distractors": {
       "A": {
         "trap": "ratio_total_confusion",
-        "text": "50 takes 3 of every 5 fish to be striped, but it is 3 striped for every 5 spotted, 8 fish in each group."
+        "text": "50 takes 3 of every 5 fish to be gold, but it is 3 gold for every 5 silver, 8 fish in each group."
       },
       "B": {
         "trap": "wrong_operation",
-        "text": "38 makes the striped fish 2 fewer than the spotted ones, 18, but the ratio grows with the groups."
+        "text": "38 makes the gold fish 2 fewer than the silver ones, 18, but the ratio grows with the groups."
       },
       "C": {
         "trap": "part_whole_swap",
-        "text": "12 is only the striped fish; the spotted ones are in the tank too."
+        "text": "12 is only the gold fish; the silver ones are in the tank too."
       },
       "D": {
         "trap": "number_from_text",
-        "text": "20 is the number of spotted fish, copied from the question."
+        "text": "20 is the number of silver fish, copied from the question."
       }
     }
   },
@@ -238,7 +249,20 @@
     "topic": "ratio.sharing",
     "grade_level": "5-6",
     "difficulty": 4,
-    "question": "A flower stall sells only roses, tulips and daisies. It has 2 roses for every 3 tulips, and 4 tulips for every 5 daisies. There are 30 daisies. How many flowers does the stall have?",
+    "question": "A flower stall sells only roses (R), tulips (T) and daisies (D). It has 2 roses for every 3 tulips, and 4 tulips for every 5 daisies. There are 30 daisies. How many flowers does the stall have?",
+    "drawing": "R │▒▒▒│▒▒▒│\nT │▒▒▒│▒▒▒│▒▒▒│\n\nT │▒▒│▒▒│▒▒│▒▒│\nD │▒▒│▒▒│▒▒│▒▒│▒▒│\nD = 30\nR + T + D = ?",
+    "drawing_structure": {
+      "kind": "bars",
+      "objects": [
+        {"id": "R", "label": "R"},
+        {"id": "T", "label": "T"},
+        {"id": "D", "label": "D"}
+      ],
+      "relations": [
+        {"type": "ratio", "from": "R", "to": "T"},
+        {"type": "ratio", "from": "T", "to": "D"}
+      ]
+    },
     "options": {
       "A": "60",
       "B": "66",

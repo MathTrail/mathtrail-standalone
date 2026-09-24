@@ -9,6 +9,8 @@ import "github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 var runFailures = map[solver.Status]string{
 	solver.StatusBadSource: "the solver does not parse, or asks for something the dialect does not have; " +
 		"keep to the dialect the instructions describe",
+	solver.StatusBadFormat: "the solver formats a string with % that Starlark cannot fill; write a percent sign as %%, " +
+		"follow every other % with one letter, such as d or s, with no width or precision, and give each one value",
 	solver.StatusNoEntryPoint: "the solver defines no solve to call; it needs one function, solve, " +
 		"that takes the options and nothing else",
 	solver.StatusError: "the solver failed while it ran; walk it through the task's own options " +

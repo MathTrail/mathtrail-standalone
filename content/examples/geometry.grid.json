@@ -131,7 +131,19 @@
     "topic": "geometry.grid",
     "grade_level": "5-6",
     "difficulty": 3,
-    "question": "In a board game, a domino covers two squares of a 3 by 3 board that share a side. Two placements are different if they cover different squares. In how many ways can the domino be placed?",
+    "question": "In a board game, a domino covers two squares of a 3 by 3 board that share a side. Rows are A to C from the top, columns 1 to 3 from the left. Two placements are different if they cover different squares. In how many ways can the domino be placed?",
+    "drawing": "    1   2   3\n  ┌───┬───┬───┐\nA │   │   │   │\n  ├───┼───┼───┤\nB │   │   │   │\n  ├───┼───┼───┤\nC │   │   │   │\n  └───┴───┴───┘",
+    "drawing_structure": {
+      "kind": "grid",
+      "objects": [
+        {"id": "A", "label": "A"},
+        {"id": "B", "label": "B"},
+        {"id": "C", "label": "C"},
+        {"id": "1", "label": "1"},
+        {"id": "2", "label": "2"},
+        {"id": "3", "label": "3"}
+      ]
+    },
     "options": {"A": "12", "B": "24", "C": "9", "D": "6", "E": "18"},
     "correct_answer": "A",
     "hint": "Count the places for a domino lying across first, then for one standing up.",
@@ -148,7 +160,7 @@
     "topic": "geometry.grid",
     "grade_level": "5-6",
     "difficulty": 3,
-    "question": "A square cake is cut into 3 by 3 equal square pieces with sides of 2 cm. Oleg eats one corner piece. What is the perimeter of the cake that is left, in centimetres?",
+    "question": "A square cake is cut into 3 by 3 equal square pieces with sides of 2 cm. Rows are A to C from the top, columns 1 to 3 from the left. Oleg eats one corner piece. What is the perimeter of the cake that is left, in centimetres?",
     "drawing": "    1   2   3\n  ┌───┬───┬───┐\nA │   │███│███│\n  ├───┼───┼───┤\nB │███│███│███│\n  ├───┼───┼───┤\nC │███│███│███│\n  └───┴───┴───┘",
     "drawing_structure": {
       "kind": "grid",
@@ -187,7 +199,7 @@
     "topic": "geometry.grid",
     "grade_level": "5-6",
     "difficulty": 4,
-    "question": "A chocolate bar has 2 rows of 3 squares. Kim and Lev break it along the lines into two pieces of 3 squares each, and each piece must hold together by whole sides. Two ways are different if they split the squares differently. How many ways are there?",
+    "question": "A chocolate bar has 2 rows of 3 squares. Rows are A and B from the top, columns 1 to 3 from the left. Kim and Lev break it along the lines into two pieces of 3 squares each, and each piece must hold together by whole sides. Two ways are different if they split the squares differently. How many ways are there?",
     "drawing": "    1   2   3\n  ┌───┬───┬───┐\nA │   │   │   │\n  ├───┼───┼───┤\nB │   │   │   │\n  └───┴───┴───┘",
     "drawing_structure": {
       "kind": "grid",
@@ -220,7 +232,7 @@
     "topic": "geometry.grid",
     "grade_level": "5-6",
     "difficulty": 4,
-    "question": "A square pond fills the middle of a 3 by 3 grid, and the other 8 squares are paving slabs. Two gardeners share the slabs, 4 each, and each gardener's slabs have to stay joined by whole sides. Splits count as different when the groups of slabs are different. How many splits are possible?",
+    "question": "A square pond fills the middle of a 3 by 3 grid, and the other 8 squares are paving slabs. Rows are A to C from the top, columns 1 to 3 from the left. Two gardeners share the slabs, 4 each, and each gardener's slabs have to stay joined by whole sides. Splits count as different when the groups of slabs are different. How many splits are possible?",
     "drawing": "    1   2   3\n  ┌───┬───┬───┐\nA │███│███│███│\n  ├───┼───┼───┤\nB │███│   │███│\n  ├───┼───┼───┤\nC │███│███│███│\n  └───┴───┴───┘",
     "drawing_structure": {
       "kind": "grid",

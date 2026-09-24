@@ -1,7 +1,7 @@
 def solve(options):
-    spotted = 20
-    # 3 striped for every 5 spotted, and every fish is one or the other.
-    striped = [s for s in range(0, 1001) if s * 5 == spotted * 3]
-    if len(striped) != 1:
-        fail("%d numbers of striped fish keep the ratio" % len(striped))
-    return match(options, spotted + striped[0])
+    silver = 20
+    # 3 gold for every 5 silver, and every fish is one or the other.
+    gold = [g for g in range(0, 1001) if g * 5 == silver * 3]
+    if len(gold) != 1:
+        fail("%d numbers of gold fish keep the ratio" % len(gold))
+    return match(options, silver + gold[0])

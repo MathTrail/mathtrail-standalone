@@ -101,6 +101,10 @@ func TestATemplateStopsOnASlipInFillingItIn(t *testing.T) {
 			"conditions that no split meets", "logic.sets", "two-groups",
 			"    return True", "    return False", "no split fits",
 		},
+		{
+			"conditions that no split of three groups meets", "logic.sets", "three-groups",
+			"    return True", "    return False", "no split fits",
+		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
@@ -156,6 +160,22 @@ func TestATemplateFilledAsItsCommentsSayProvesTheAnswer(t *testing.T) {
 				{"    return True", "    return neither == 0 and both == 5"},
 				{"                    found.append(both)", "                    found.append(second)"},
 			}, "13",
+		},
+		{
+			"a school of three hundred with every pair given", "logic.sets", "three-groups",
+			[][2]string{
+				{"TOTAL = ", "TOTAL = 300"},
+				{"GROUPS = ", "GROUPS = (210, 180, 150)"},
+				{"PAIRS = ", "PAIRS = (105, 90, 75)"},
+			}, "15",
+		},
+		{
+			"a pair the question asks about, with those in all three given", "logic.sets", "three-groups",
+			[][2]string{
+				{"PAIRS = ", "PAIRS = (5, 6, None)"},
+				{"ALL_THREE = ", "ALL_THREE = 4"},
+				{"                        found.append(", "                        found.append(in_bc)"},
+			}, "7",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
