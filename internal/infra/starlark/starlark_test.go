@@ -96,6 +96,12 @@ func TestRun(t *testing.T) {
 			contains: "got import",
 		},
 		{
+			name:     "a name the program never defines",
+			source:   "def solve(options):\n    return match(options, answer)\n",
+			status:   solver.StatusBadSource,
+			contains: "undefined: answer",
+		},
+		{
 			name:     "a load",
 			source:   "load('helpers.star', 'helper')\n\ndef solve(options):\n    return []\n",
 			status:   solver.StatusBadSource,

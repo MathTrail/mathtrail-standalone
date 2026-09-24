@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"slices"
 	"strings"
-	"unicode"
 	"unicode/utf8"
 
 	"go.starlark.net/resolve"
@@ -19,26 +18,43 @@ const conversions = "sdioxXeEfFgGcr"
 // always give one value, never a tuple.
 var scalarBuiltins = []string{"len", "str", "int", "sum", "abs"}
 
-// UnfillableFormat says what stops Starlark filling a string the program
-// formats with %, anywhere in it and whether or not a run would reach it, or
-// nothing when it can fill every one the source shows. A program others start
-// from has to be clean throughout: a stray % in a fail() written for the case
-// that should never happen breaks that message exactly when it is needed.
+// UnfillableFormat says what stops Starlark filling a string a program formats
+// with %, anywhere in it and whether or not a run would reach it, or nothing
+// when it can fill every one the source shows. A program others start from has
+// to be clean throughout: a stray % in a fail() written for the case that
+// should never happen breaks that message exactly when it is needed.
+//
+// The source is read exactly as a run reads it, so that a local that shadows a
+// constant, or a function of the program's own named after a built-in, is told
+// apart here just as a run tells it apart. The error is for a program a run
+// would refuse before it began.
 //
 // A run is never refused over this. A stray % the run does not reach stops
 // nothing, and a program that proves its answer is not turned away for it; a
 // run is told only about the format it stopped at.
 //
 // Only what the source shows is read: a string written where it is formatted,
-// or one kept in a constant at the top of the program. A format built while
-// the program runs is left to the run.
-func UnfillableFormat(file *syntax.File) string {
+// or one a name holds throughout the program. A format built while the program
+// runs is left to the run.
+func UnfillableFormat(name, source string) (string, error) {
+	// Reading needs the vocabulary's names alone, and a name does not depend on
+	// the budget its helper charges.
+	declared, err := vocabulary(1)
+	if err != nil {
+		return "", err
+	}
+	// Read under the name a run gives every program, which a refusal leaves out
+	// of its sentence: the error names the program once, by its own name.
+	file, _, refusal := compile(programName, source, declared.Has)
+	if refusal != "" {
+		return "", fmt.Errorf("starlark: read %s: %s", name, refusal)
+	}
 	for _, use := range formatsIn(file) {
 		if problem := formatProblem(use); problem != "" {
-			return use.described(problem)
+			return use.described(problem), nil
 		}
 	}
-	return ""
+	return "", nil
 }
 
 // unfillableFormatAt says what stops Starlark filling the string the program
@@ -75,9 +91,9 @@ func (use formatUse) described(problem string) string {
 }
 
 // formatsIn is every string a program formats with %: a literal written where
-// it is used, or one kept in a constant, a top-level name in capitals. An
-// augmented %= is left to the run: the string it formats is whatever its name
-// holds by then.
+// it is used, or one a name holds throughout the program. An augmented %= is
+// left to the run: the string it formats is whatever its name holds by then.
+// The program has to be one the interpreter has bound the names of.
 func formatsIn(file *syntax.File) []formatUse {
 	constants := constantStrings(file)
 	var found []formatUse
@@ -94,38 +110,81 @@ func formatsIn(file *syntax.File) []formatUse {
 	return found
 }
 
-// constantStrings are the strings a program keeps in constants, as in
-// FROM_ONE = "%d from the row of %d". Only names in capitals count: a lower
-// case name may be a local that shadows it.
+// constantStrings are the strings a program keeps in names at its top level,
+// as in FROM_ONE = "%d from the row of %d": a name bound there once, by a
+// plain =, to a string written out. A name bound more than once — assigned
+// again, made longer with +=, a loop's variable, a function — holds different
+// things at different points of a run, so it holds no one string. Which
+// bindings are the top-level name is the interpreter's call: a local of the
+// same name, inside a function, is another name.
 func constantStrings(file *syntax.File) map[string]string {
+	texts, bindings := map[string]string{}, map[string]int{}
+	syntax.Walk(file, func(node syntax.Node) bool {
+		switch node := node.(type) {
+		case *syntax.DefStmt:
+			countGlobal(node.Name, bindings)
+		case *syntax.ForStmt:
+			countGlobal(node.Vars, bindings)
+		case *syntax.AssignStmt:
+			countGlobal(node.LHS, bindings)
+			if name, isName := unwrapped(node.LHS).(*syntax.Ident); isName && node.Op == syntax.EQ && global(name) {
+				if text, isString := stringOf(unwrapped(node.RHS), nil); isString {
+					texts[name.Name] = text
+				}
+			}
+		}
+		return true
+	})
+
 	constants := map[string]string{}
-	for _, statement := range file.Stmts {
-		assign, isAssign := statement.(*syntax.AssignStmt)
-		if !isAssign || assign.Op != syntax.EQ {
-			continue
-		}
-		ident, isIdent := assign.LHS.(*syntax.Ident)
-		if !isIdent || strings.ToUpper(ident.Name) != ident.Name || !strings.ContainsFunc(ident.Name, unicode.IsLetter) {
-			continue
-		}
-		if text, isString := stringOf(unwrapped(assign.RHS), nil); isString {
-			constants[ident.Name] = text
+	for name, text := range texts {
+		if bindings[name] == 1 {
+			constants[name] = text
 		}
 	}
 	return constants
 }
 
-// stringOf is the text of a string literal, or of a constant holding one. In a
-// program the interpreter has resolved, a name is the constant only where it
-// is bound at the top level: a local of the same name holds a string of its
-// own, which the source does not show.
+// countGlobal counts each top-level name an assignment, a loop or a function
+// binds: the name itself, or every name of a tuple or a list it unpacks into.
+// An element or a field assigned to binds no name.
+func countGlobal(target syntax.Expr, bindings map[string]int) {
+	switch target := target.(type) {
+	case *syntax.Ident:
+		if global(target) {
+			bindings[target.Name]++
+		}
+	case *syntax.ParenExpr:
+		countGlobal(target.X, bindings)
+	case *syntax.TupleExpr:
+		for _, element := range target.List {
+			countGlobal(element, bindings)
+		}
+	case *syntax.ListExpr:
+		for _, element := range target.List {
+			countGlobal(element, bindings)
+		}
+	}
+}
+
+// global says whether the interpreter has bound a name at the top level of the
+// program, rather than inside a function.
+func global(name *syntax.Ident) bool {
+	bound, isBound := name.Binding.(*resolve.Binding)
+	return isBound && bound.Scope == resolve.Global
+}
+
+// stringOf is the text of a string literal, or of the string a name holds
+// throughout the program. A name counts only where it is the top-level one: a
+// local of the same name holds a string of its own, which the source does not
+// show.
 func stringOf(expr syntax.Expr, constants map[string]string) (string, bool) {
 	switch expr := expr.(type) {
 	case *syntax.Literal:
 		text, isString := expr.Value.(string)
 		return text, isString && expr.Token == syntax.STRING
 	case *syntax.Ident:
-		if bound, isResolved := expr.Binding.(*resolve.Binding); isResolved && bound.Scope != resolve.Global {
+		if !global(expr) {
 			return "", false
 		}
 		text, isConstant := constants[expr.Name]
@@ -134,12 +193,12 @@ func stringOf(expr syntax.Expr, constants map[string]string) (string, bool) {
 	return "", false
 }
 
-// builtIn says whether a name calls the built-in it is named after: in a
-// program the interpreter has resolved, only when the program has not bound
-// a function of its own to that name.
+// builtIn says whether a name calls the built-in it is named after, as the
+// interpreter has bound it, rather than a function the program binds to that
+// name itself.
 func builtIn(name *syntax.Ident) bool {
-	bound, isResolved := name.Binding.(*resolve.Binding)
-	return !isResolved || bound.Scope == resolve.Predeclared || bound.Scope == resolve.Universal
+	bound, isBound := name.Binding.(*resolve.Binding)
+	return isBound && (bound.Scope == resolve.Predeclared || bound.Scope == resolve.Universal)
 }
 
 // unwrapped is an expression without the brackets around it.

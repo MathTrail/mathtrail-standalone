@@ -14,7 +14,7 @@ import (
 // message, and exactly when the message was needed. A template is copied by
 // the model, mistakes and all. Every string the shipped programs format with %
 // has to be one Starlark can fill, whether a run of it reaches that string or
-// not, and whether it is written where it is used or kept in a constant at the
+// not, and whether it is written where it is used or kept in a name at the
 // top of the program.
 func TestEveryFormatInTheProgramsIsOneStarlarkCanFill(t *testing.T) {
 	t.Parallel()
@@ -35,11 +35,11 @@ func TestEveryFormatInTheProgramsIsOneStarlarkCanFill(t *testing.T) {
 	}
 
 	for _, name := range slices.Sorted(maps.Keys(programs)) {
-		file, err := starlark.Parse(name, programs[name])
+		problem, err := starlark.UnfillableFormat(name, programs[name])
 		if err != nil {
-			t.Fatalf("parse %s: %v", name, err)
+			t.Fatalf("read %s: %v", name, err)
 		}
-		if problem := starlark.UnfillableFormat(file); problem != "" {
+		if problem != "" {
 			t.Errorf("%s: %s, want every format one Starlark can fill with the values it is given", name, problem)
 		}
 	}

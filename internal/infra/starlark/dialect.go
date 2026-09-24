@@ -35,10 +35,10 @@ var dialect = &syntax.FileOptions{
 	LoadBindsGlobally: false,
 }
 
-// Parse reads a program in the dialect a solver runs in, without running it.
-// The sandbox reads every solver through it, so whatever else inspects a
-// program reads it exactly as the sandbox does.
-func Parse(name, source string) (*syntax.File, error) {
+// parse reads a program in the dialect a solver runs in, without binding its
+// names or running it. A program is read the way a run reads it by compile,
+// which begins here.
+func parse(name, source string) (*syntax.File, error) {
 	file, err := dialect.Parse(name, source, 0)
 	if err != nil {
 		return nil, fmt.Errorf("starlark: parse %s: %w", name, err)
