@@ -130,6 +130,8 @@ func TestANewChildOfGradesFiveAndSixIsGivenTheTopicsOwnTraps(t *testing.T) {
 		"percent.basic":       {"percent_wrong_base", "part_whole_swap"},
 		"ratio.sharing":       {"ratio_total_confusion", "wrong_operation"},
 		"number.divisibility": {"remainder_vs_quotient", "off_by_one"},
+		"logic.ordering":      {"ignored_condition", "reversed_relation"},
+		"logic.knights_liars": {"trusted_statement", "ignored_condition"},
 	}
 	for _, topic := range c.Topics() {
 		want, isPinned := pinned[topic.ID]

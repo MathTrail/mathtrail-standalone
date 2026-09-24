@@ -848,5 +848,320 @@
         "text": "If all were knights, Ann's words 'Ben is a liar' would be false."
       }
     }
+  },
+  {
+    "id": "kl-56-d2-1",
+    "topic": "logic.knights_liars",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "On an island, knights always tell the truth and liars always lie. Every islander is a knight or a liar. Ada says: 'Ben is a liar.' Ben says: 'Cal is a knight.' Cal says: 'Ada and I are both knights or both liars.' Which of the three tell the truth?",
+    "options": {
+      "A": "Ben and Cal",
+      "B": "Only Ada",
+      "C": "Ada and Cal",
+      "D": "Nobody",
+      "E": "It is impossible to tell"
+    },
+    "correct_answer": "B",
+    "hint": "What does Ben's sentence tell you about Ben and Cal together?",
+    "solution": "If Ben is a knight, Cal is a knight, and if Ben is a liar, Cal is a liar too, so Ben and Cal are alike. If both were knights, Ada's words 'Ben is a liar' would be false and Ada a liar, and then Cal's words would be false although Cal is a knight. So Ben and Cal are both liars. Then Ada's words are true and she is a knight, and Cal's words are false, as a liar's must be. Only Ada is a knight.",
+    "distractors": {
+      "A": {
+        "trap": "trusted_statement",
+        "text": "Believing Ben makes Cal a knight, but then Ada is a liar and Cal's words about Ada and himself are false."
+      },
+      "C": {
+        "trap": "trusted_statement",
+        "text": "If Ada and Cal were knights, Ben would be a liar, and yet his words 'Cal is a knight' would be true."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "If all three lied, Cal's words would be true: Ada and Cal would both be liars."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "Only one mix of knights and liars fits all three sentences."
+      }
+    }
+  },
+  {
+    "id": "kl-56-d2-2",
+    "topic": "logic.knights_liars",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "On an island, knights always tell the truth and liars always lie. Every islander is a knight or a liar. Fay says: 'At least one of us three is a liar.' Gus says: 'Fay is a liar.' Hal says: 'Gus is a liar.' Who among them lies?",
+    "options": {
+      "A": "Only Fay",
+      "B": "Fay and Hal",
+      "C": "Nobody",
+      "D": "Gus and Hal",
+      "E": "Only Gus"
+    },
+    "correct_answer": "E",
+    "hint": "Could Fay be a liar? What would her words mean then?",
+    "solution": "If Fay were a liar, her words would be false, and nobody of the three would be a liar, not even Fay. So Fay is a knight and her words are true. Gus calls her a liar, so Gus is a liar. Hal calls Gus a liar, which is true, so Hal is a knight. Only Gus is a liar, and there is indeed at least one.",
+    "distractors": {
+      "A": {
+        "trap": "trusted_statement",
+        "text": "Believing Gus makes Fay a liar, but then her words 'at least one of us three is a liar' would be true."
+      },
+      "B": {
+        "trap": "trusted_statement",
+        "text": "Believing Gus makes Fay and Hal liars, but a lying Fay could not say that one of them lies."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "If nobody lied, Fay's words that at least one of them is a liar would be false."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "If Gus and Hal were both liars, Hal's words 'Gus is a liar' would be true."
+      }
+    }
+  },
+  {
+    "id": "kl-56-d2-3",
+    "topic": "logic.knights_liars",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "On an island, knights always tell the truth and liars always lie. Every islander is a knight or a liar. Ivy says: 'Exactly one of Jay and Kit is a knight.' Jay says: 'Ivy is a knight.' Kit says: 'Ivy is a knight.' How many knights are among the three?",
+    "options": {
+      "A": "2",
+      "B": "3",
+      "C": "0",
+      "D": "1",
+      "E": "It is impossible to tell"
+    },
+    "correct_answer": "C",
+    "hint": "Jay and Kit say the same thing. What does that tell you about the two of them?",
+    "solution": "Jay and Kit say the same thing, so they are both knights or both liars: never exactly one knight between them. So Ivy's words are false and Ivy is a liar. Then 'Ivy is a knight' is false, and Jay and Kit are liars too. There are 0 knights.",
+    "distractors": {
+      "A": {
+        "trap": "trusted_statement",
+        "text": "Believing Ivy gives one knight between Jay and Kit, but the two say the same thing, so they are alike."
+      },
+      "B": {
+        "trap": "trusted_statement",
+        "text": "Believing Jay and Kit makes Ivy a knight, and then only one of Jay and Kit could be a knight, not both."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "One knight is impossible: if it were Ivy, the words of Jay and Kit would be true, and if it were Jay or Kit, the other says the same words and would be a knight too."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "Only one mix fits: all three lie."
+      }
+    }
+  },
+  {
+    "id": "kl-56-d3-1",
+    "topic": "logic.knights_liars",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "On an island, knights always tell the truth and liars always lie. Every islander is a knight or a liar. Lou says: 'If you asked Meg, she would say that Ned is a liar.' Meg says: 'Ned is a knight.' Ned says: 'Lou is a liar.' Who is lying?",
+    "options": {
+      "A": "Only Ned",
+      "B": "Only Meg",
+      "C": "Only Lou",
+      "D": "Nobody",
+      "E": "It is impossible to tell"
+    },
+    "correct_answer": "C",
+    "hint": "Meg has already said what she thinks of Ned. Would she say something else if you asked her?",
+    "solution": "Meg has already spoken about Ned: she says Ned is a knight. A knight gives the same true answer every time, and a liar the same false one, so Meg would never say that Ned is a liar. Lou's words are false, and Lou is a liar. Then Ned's words 'Lou is a liar' are true, so Ned is a knight, and Meg's words 'Ned is a knight' are true, so Meg is a knight too. Only Lou lies.",
+    "distractors": {
+      "A": {
+        "trap": "trusted_statement",
+        "text": "Believing Lou makes Ned a liar, but Meg calls Ned a knight and would not answer differently if asked."
+      },
+      "B": {
+        "trap": "trusted_statement",
+        "text": "Believing Lou makes Meg's words about Ned a lie, but if only Meg lied, Ned would be a knight and her words 'Ned is a knight' would be true."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "If nobody lied, Ned's words 'Lou is a liar' would be false."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "Lou's words are false whatever Meg is, and then Ned and Meg follow."
+      }
+    }
+  },
+  {
+    "id": "kl-56-d3-2",
+    "topic": "logic.knights_liars",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "On an island, knights always tell the truth and liars always lie. Every islander is a knight or a liar. Seven islanders stand in a line, one behind another. Each of them says: 'In front of me there are more liars than knights.' The first in the line has nobody in front. How many knights are in the line?",
+    "options": {
+      "A": "4",
+      "B": "3",
+      "C": "7",
+      "D": "0",
+      "E": "1"
+    },
+    "correct_answer": "B",
+    "hint": "Start with the first in the line. Are the words true when nobody stands in front?",
+    "solution": "The first has nobody in front, and 0 liars are not more than 0 knights, so the first is a liar. The second has one liar and no knights in front and tells the truth. The third has one of each in front and lies. The fourth has two liars and one knight in front and tells the truth. It goes on like this: liars stand 1st, 3rd, 5th and 7th, and knights 2nd, 4th and 6th. There are 3 knights.",
+    "distractors": {
+      "A": {
+        "trap": "answered_other_question",
+        "text": "4 is the number of liars: the 1st, 3rd, 5th and 7th."
+      },
+      "C": {
+        "trap": "trusted_statement",
+        "text": "Not everyone can be right: with nobody in front, the first one's words are false."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "The second has one liar and no knights in front, so the second one's words are true."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "The pattern goes on past the second in the line: the 4th and the 6th are knights too."
+      }
+    }
+  },
+  {
+    "id": "kl-56-d3-3",
+    "topic": "logic.knights_liars",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "On an island, knights always tell the truth and liars always lie. Every islander is a knight or a liar. Olly says: 'Rex and I are both knights or both liars.' Pam says: 'One of Olly and Sue is a knight and the other is a liar.' Rex says: 'At least one of Pam and Sue is a knight.' Sue says: 'Exactly three of us four are knights.' Who is certainly a knight?",
+    "options": {
+      "A": "Olly, Rex and Sue",
+      "B": "Rex and Sue",
+      "C": "It is impossible to tell",
+      "D": "All four",
+      "E": "Only Rex"
+    },
+    "correct_answer": "B",
+    "hint": "Whatever Olly is, what can you say about Rex? Then try Sue as a liar.",
+    "solution": "If Olly is a knight, Rex is like him, a knight. If Olly lies, Rex is not like him, so again Rex is a knight. So Rex's words are true: Pam or Sue is a knight. If Sue lied, Pam would be a knight, and Pam's words would make Olly a knight: three knights, just as Sue said, so Sue would be telling the truth. So Sue is a knight, and there are exactly three knights. Olly and Pam are one knight and one liar, and either can be which. Only Rex and Sue are certainly knights.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "That is one mix that fits, but Pam, Rex and Sue as knights fits too, so Olly is not certain."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "Not everyone can be told, but Rex and Sue are knights in every mix that fits."
+      },
+      "D": {
+        "trap": "trusted_statement",
+        "text": "Believing everyone fails: Pam says Olly and Sue are one knight and one liar."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "Rex is certainly a knight, and so is Sue: a lying Sue would leave exactly three knights and make her words true."
+      }
+    }
+  },
+  {
+    "id": "kl-56-d4-1",
+    "topic": "logic.knights_liars",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "On an island, knights always tell the truth and liars always lie. Every islander is a knight or a liar. A traveller asked four islanders: 'How many knights are there among you four?' The first answered 1, the second 2, and the third and the fourth both answered 3. At least one of the four is a knight. How many knights are there among them?",
+    "options": {
+      "A": "3",
+      "B": "4",
+      "C": "0",
+      "D": "It is impossible to tell",
+      "E": "1"
+    },
+    "correct_answer": "E",
+    "hint": "All the knights give the same true answer. How many islanders gave each answer?",
+    "solution": "Every knight gives the true number and no liar does, so the number of knights equals the number of islanders who gave it. One islander answered 1, one answered 2 and two answered 3. Only 1 fits: one knight, who answered 1. Nobody answered 0, which would fit too, but at least one of the four is a knight.",
+    "distractors": {
+      "A": {
+        "trap": "trusted_statement",
+        "text": "Believing the two who agree gives 3 knights, but then three islanders would have answered 3."
+      },
+      "B": {
+        "trap": "trusted_statement",
+        "text": "Four knights would all give the same answer, 4, and the answers differ."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "0 fits the answers, but at least one of the four is a knight."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "Checking each possible number of knights leaves only one."
+      }
+    }
+  },
+  {
+    "id": "kl-56-d4-2",
+    "topic": "logic.knights_liars",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "On an island, knights always tell the truth and liars always lie. Every islander is a knight or a liar. Tom says: 'Uma is lying.' Uma says: 'Val is lying.' Val says: 'Tom and Uma are both lying.' Wes says: 'Exactly one of Tom, Uma and Val is telling the truth.' Who are the knights among the four?",
+    "options": {
+      "A": "Tom and Val",
+      "B": "Only Uma",
+      "C": "Uma and Wes",
+      "D": "Uma and Val",
+      "E": "Nobody"
+    },
+    "correct_answer": "C",
+    "hint": "Suppose Val tells the truth. What does that say about Tom and Uma, and does it hold together?",
+    "solution": "If Val told the truth, Tom and Uma would both be lying. But Tom says Uma is lying, so Tom would be telling the truth. So Val is lying. Then Uma's words 'Val is lying' are true, and Uma is a knight. Tom calls Uma a liar, so Tom is lying. Of Tom, Uma and Val only Uma tells the truth, so Wes is right and a knight. The knights are Uma and Wes.",
+    "distractors": {
+      "A": {
+        "trap": "trusted_statement",
+        "text": "Believing Tom makes Uma a liar and Val a knight, but Val's words say Tom is lying."
+      },
+      "B": {
+        "trap": "stopped_early",
+        "text": "Wes is a knight too: exactly one of Tom, Uma and Val tells the truth, as he says."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "Uma says Val is lying, so if Uma is a knight, Val is a liar."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "If all four lied, Tom's words 'Uma is lying' would be true."
+      }
+    }
+  },
+  {
+    "id": "kl-56-d4-3",
+    "topic": "logic.knights_liars",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "On an island, knights always tell the truth and liars always lie. Every islander is a knight or a liar. Eight islanders have dinner round a table, so everyone sits between two neighbours. All eight say: 'At least one of my neighbours is a liar.' How many knights can there be at most?",
+    "options": {
+      "A": "5",
+      "B": "4",
+      "C": "8",
+      "D": "6",
+      "E": "3"
+    },
+    "correct_answer": "A",
+    "hint": "Who can sit next to a liar? And how many knights can one liar sit beside?",
+    "solution": "A liar's words are false, so both neighbours of a liar are knights. A knight's words are true, so every knight has a liar next to them. One liar sits next to only two people, so two liars are beside at most four knights, and six knights are too many. With three liars, five knights fit: knight, knight, liar, knight, knight, liar, knight, liar, round the table.",
+    "distractors": {
+      "B": {
+        "trap": "stopped_early",
+        "text": "Knights and liars taking turns works, but some knights can sit side by side, and 5 fit."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "With no liars at all, every knight's words would be false."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "Two liars sit beside at most four knights, so two of six knights would have no liar next to them."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "3 is the number of liars at the best table, not the number of knights."
+      }
+    }
   }
 ]
