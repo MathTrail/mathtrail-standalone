@@ -73,32 +73,104 @@ func TestEverySolverTemplateProvesTheTaskItWasWrittenFor(t *testing.T) {
 }
 
 // A template is where a model starts a solver of its own, and a slip made while
-// filling one in has to stop the program rather than quietly prove the answer
-// of another task. The template of what remains after shares knows the two
-// things a share is taken of, and that a whole cannot give away more than
-// itself.
-func TestTheTemplateOfWhatRemainsStopsOnASlipInFillingItIn(t *testing.T) {
+// filling one in has to stop the program with a message that names it, rather
+// than quietly prove the answer of another task or stop with an error nobody
+// can read. Each case makes one slip in one template, run on the options of the
+// task the template came from.
+func TestATemplateStopsOnASlipInFillingItIn(t *testing.T) {
 	t.Parallel()
 
 	embedded := loaded(t)
 	sandbox := serviceSandbox(t)
-	template := templateNamed(t, embedded, "fractions.parts", "what-is-left")
-	source := exampleNamed(t, embedded, template.Source)
-
-	for _, test := range []struct{ name, steps, says string }{
-		{"a share of something it does not know", `STEPS = [(1, 2, "rest"), (1, 4, "Rest")]`, `not of "Rest"`},
-		{"shares that give away more than the whole", `STEPS = [(1, 2, "whole"), (2, 3, "whole")]`, "more than the whole"},
+	for _, test := range []struct {
+		name, topic, template, prefix, line, says string
+	}{
+		{
+			"a share of something it does not know", "fractions.parts", "what-is-left",
+			"STEPS = ", `STEPS = [(1, 2, "rest"), (1, 4, "Rest")]`, `not of "Rest"`,
+		},
+		{
+			"shares that give away more than the whole", "fractions.parts", "what-is-left",
+			"STEPS = ", `STEPS = [(1, 2, "whole"), (2, 3, "whole")]`, "more than the whole",
+		},
+		{
+			"a first piece as big as the grid", "geometry.grid", "pieces",
+			"PIECE = ", "PIECE = 6", "a first piece of 1 to 5 cells",
+		},
+		{
+			"conditions that no split meets", "logic.sets", "two-groups",
+			"    return True", "    return False", "no split fits",
+		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			program := withLine(t, template.Program, "STEPS = ", test.steps)
+			template := templateNamed(t, embedded, test.topic, test.template)
+			source := exampleNamed(t, embedded, template.Source)
+			program := withLine(t, template.Program, test.prefix, test.line)
 			result, err := sandbox.Run(t.Context(), program, optionsOf(t, &source))
 			if err != nil {
 				t.Fatalf("Run() error = %v, want the run to happen", err)
 			}
 			if result.Status != solver.StatusError || !strings.Contains(result.Message, test.says) {
 				t.Errorf("Run() = %s %q, want %s saying %q", result.Status, result.Message, solver.StatusError, test.says)
+			}
+		})
+	}
+}
+
+// The model fills a template for tasks it was not written for, so a template
+// has to hold for the kinds of task its comments promise, not only for its
+// own. Each case fills one the way its comments say, for a task unlike the one
+// it came from, and runs it on options whose first is the right answer.
+func TestATemplateFilledAsItsCommentsSayProvesTheAnswer(t *testing.T) {
+	t.Parallel()
+
+	embedded := loaded(t)
+	sandbox := serviceSandbox(t)
+	for _, test := range []struct {
+		name, topic, template string
+		lines                 [][2]string
+		want                  string
+	}{
+		{
+			"two pieces of different sizes", "geometry.grid", "pieces",
+			[][2]string{{"PIECE = ", "PIECE = 2"}}, "6",
+		},
+		{
+			"how many first moves win", "games.strategy", "one-pile",
+			[][2]string{
+				{"PILE = ", "PILE = 5"},
+				{"TAKES = ", "TAKES = [1, 3]"},
+				{"    return match(options, the_move(first))", "    return match(options, len(first))"},
+			}, "2",
+		},
+		{
+			"a year group of a hundred and fifty", "logic.sets", "two-groups",
+			[][2]string{{"TOTAL = ", "TOTAL = 150"}, {"FIRST = ", "FIRST = 90"}, {"SECOND = ", "SECOND = 80"}}, "20",
+		},
+		{
+			"a group whose size the question leaves out", "logic.sets", "two-groups",
+			[][2]string{
+				{"SECOND = ", "SECOND = None"},
+				{"    return True", "    return neither == 0 and both == 5"},
+				{"                    found.append(both)", "                    found.append(second)"},
+			}, "13",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			program := templateNamed(t, embedded, test.topic, test.template).Program
+			for _, line := range test.lines {
+				program = withLine(t, program, line[0], line[1])
+			}
+			result, err := sandbox.Run(t.Context(), program, solver.Options{test.want, "1", "3", "4", "5"})
+			if err != nil {
+				t.Fatalf("Run() error = %v, want the run to happen", err)
+			}
+			if !result.One() || result.Letters[0] != "A" {
+				t.Errorf("Run() = %s %v %q, want A, the option saying %s", result.Status, result.Letters, result.Message, test.want)
 			}
 		})
 	}

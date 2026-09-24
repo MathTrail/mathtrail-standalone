@@ -99,8 +99,7 @@ func (s *sandbox) Run(ctx context.Context, source string, options solver.Options
 	// Before the parser, because the parser would hold the whole of it in
 	// memory first.
 	if len(source) > MaxSource {
-		return refused(solver.StatusBadSource,
-			fmt.Sprintf("the solver is longer than %d KB", MaxSource/1024)), nil
+		return refused(fmt.Sprintf("the solver is longer than %d KB", MaxSource/1024)), nil
 	}
 
 	select {
@@ -115,14 +114,18 @@ func (s *sandbox) Run(ctx context.Context, source string, options solver.Options
 
 // run is one program from source to letters, once a slot is held.
 func (s *sandbox) run(ctx context.Context, source string, options solver.Options) (solver.Result, error) {
-	_, program, err := starlark.SourceProgramOptions(dialect, programName, source, s.predeclared.Has)
+	file, err := Parse(programName, source)
 	if err != nil {
-		return refused(solver.StatusBadSource, readable(err)), nil
+		return refused(readable(errors.Unwrap(err))), nil
+	}
+	program, err := starlark.FileProgram(file, s.predeclared.Has)
+	if err != nil {
+		return refused(readable(err)), nil
 	}
 	// There is no module loader to bind anything from, so a program that asks
 	// for one is asking for a language this is not.
 	if program.NumLoads() > 0 {
-		return refused(solver.StatusBadSource, "load is not available: a solver is one file that stands on its own"), nil
+		return refused("load is not available: a solver is one file that stands on its own"), nil
 	}
 
 	arguments, err := argumentsOf(options)
@@ -171,9 +174,10 @@ func (s *sandbox) run(ctx context.Context, source string, options solver.Options
 	return spent(solver.StatusOK, letters, "", thread, started), nil
 }
 
-// refused is a result of a program that never began to run.
-func refused(status solver.Status, message string) solver.Result {
-	return solver.Result{Status: status, Message: message}
+// refused is the result of a program that never began to run: its source is
+// refused, and the message says why.
+func refused(message string) solver.Result {
+	return solver.Result{Status: solver.StatusBadSource, Message: message}
 }
 
 // spent is a result of a program that did, with what it cost.
