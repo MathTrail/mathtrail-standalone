@@ -123,11 +123,13 @@ func TestANewChildOfGradesFiveAndSixIsGivenTheTopicsOwnTraps(t *testing.T) {
 
 	c := loaded(t)
 	pinned := map[string][]string{
-		"geometry.grid":   {"double_count", "missed_case"},
-		"games.strategy":  {"ignored_condition", "first_move_assumed"},
-		"logic.sets":      {"double_count", "answered_other_question"},
-		"fractions.parts": {"part_whole_swap", "answered_other_question"},
-		"percent.basic":   {"percent_wrong_base", "part_whole_swap"},
+		"geometry.grid":       {"double_count", "missed_case"},
+		"games.strategy":      {"ignored_condition", "first_move_assumed"},
+		"logic.sets":          {"double_count", "answered_other_question"},
+		"fractions.parts":     {"part_whole_swap", "answered_other_question"},
+		"percent.basic":       {"percent_wrong_base", "part_whole_swap"},
+		"ratio.sharing":       {"ratio_total_confusion", "wrong_operation"},
+		"number.divisibility": {"remainder_vs_quotient", "off_by_one"},
 	}
 	for _, topic := range c.Topics() {
 		want, isPinned := pinned[topic.ID]

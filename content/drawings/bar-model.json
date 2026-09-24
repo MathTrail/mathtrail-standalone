@@ -1,0 +1,19 @@
+{
+  "purpose": "Quantities as bars of equal parts, for a total shared in a ratio or a share of a whole: one bar for each quantity the question names, labelled with its Latin capital, one ▒▒ cell for each part. Write the total or another amount the question gives over its ###, right-aligned, and write the amount the question asks for as ?, as in A = ?. Add or remove parts and bars without changing a part's width.",
+  "topics": ["ratio.sharing", "fractions.parts", "percent.basic"],
+  "drawing": [
+    "A │▒▒│▒▒│▒▒│",
+    "B │▒▒│▒▒│▒▒│▒▒│▒▒│",
+    "A + B = ###"
+  ],
+  "drawing_structure": {
+    "kind": "bars",
+    "objects": [
+      {"id": "A", "label": "A"},
+      {"id": "B", "label": "B"}
+    ],
+    "relations": [
+      {"type": "ratio", "from": "A", "to": "B"}
+    ]
+  }
+}

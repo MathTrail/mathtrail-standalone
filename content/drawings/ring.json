@@ -1,0 +1,19 @@
+{
+  "purpose": "Places in a ring, such as stations on a loop line, seats round a table or children in a circle, taken in the order the arrows go, with the first place coming again after the last. Write each place's number over its ##, right-aligned, mark the place the question starts from with a capital label and ▼ over it, as S here. The place the question asks for is one of those drawn, so it stays unmarked. Add or remove places along the sides without changing the spacing: up to 8 places fit along the top and the bottom and 3 down each side, 22 in all.",
+  "topics": ["number.divisibility"],
+  "drawing": [
+    " S",
+    " ▼",
+    "##→##→##→##",
+    " ↑        ↓",
+    "##       ##",
+    " ↑        ↓",
+    "##←##←##←##"
+  ],
+  "drawing_structure": {
+    "kind": "ring",
+    "objects": [
+      {"id": "S", "label": "S"}
+    ]
+  }
+}

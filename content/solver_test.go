@@ -104,6 +104,52 @@ func TestTheTemplateOfWhatRemainsStopsOnASlipInFillingItIn(t *testing.T) {
 	}
 }
 
+// The search template trusts the largest number it found only when its search
+// went on at least as far again past it, since a larger one could lie beyond
+// where the search stops; a limit the question sets itself is an answer like
+// any other. Filled for the task of the most nuts, whose answer is 80.
+func TestTheSearchTemplateTellsTheQuestionsLimitFromWhereItStops(t *testing.T) {
+	t.Parallel()
+
+	embedded := loaded(t)
+	sandbox := serviceSandbox(t)
+	template := templateNamed(t, embedded, "number.divisibility", "search")
+	task := exampleNamed(t, embedded, "div-56-d4-1")
+
+	filled := template.Program
+	for _, line := range [][2]string{
+		{"SMALLEST = ", "SMALLEST = 1"},
+		{"    return all(", "    return n // 9 == n % 9"},
+		{"    return match(options, found[0])", "    return match(options, largest(found))"},
+	} {
+		filled = withLine(t, filled, line[0], line[1])
+	}
+
+	for _, test := range []struct {
+		name, largest, capped string
+		refused               bool
+	}{
+		{"a limit the question sets", "LARGEST = 80", "CAPPED = False", false},
+		{"a search that stops at the answer", "LARGEST = 80", "CAPPED = True", true},
+		{"a search that stops short of the answer", "LARGEST = 55", "CAPPED = True", true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			program := withLine(t, withLine(t, filled, "LARGEST = ", test.largest), "CAPPED = ", test.capped)
+			result, err := sandbox.Run(t.Context(), program, optionsOf(t, &task))
+			switch {
+			case err != nil:
+				t.Fatalf("Run() error = %v, want the run to happen", err)
+			case test.refused && (result.Status != solver.StatusError || !strings.Contains(result.Message, "where the search stops")):
+				t.Errorf("Run() = %s %v %q, want %s saying the search stopped too soon", result.Status, result.Letters, result.Message, solver.StatusError)
+			case !test.refused && (!result.One() || result.Letters[0] != task.CorrectAnswer):
+				t.Errorf("Run() = %s %v %q, want %s", result.Status, result.Letters, result.Message, task.CorrectAnswer)
+			}
+		})
+	}
+}
+
 // templateNamed is one solver template of a topic, found by its name.
 func templateNamed(t *testing.T, embedded *content.Content, topic, name string) content.Template {
 	t.Helper()
@@ -150,30 +196,19 @@ func withLine(t *testing.T, program, prefix, line string) string {
 }
 
 // A template is generalised from the solver of a reference task and never
-// written from nothing, so every topic with reference tasks has at least one,
-// and a topic still waiting for its reference tasks has none, for want of a
-// solver to generalise from. The test names those, so that the absence is
-// stated rather than merely allowed.
-func TestEveryTopicWithReferenceTasksHasASolverTemplate(t *testing.T) {
+// written from nothing. Every topic has its reference tasks, so every topic
+// has at least one template: a package without one would leave the model to
+// write its solver from nothing.
+func TestEveryTopicHasASolverTemplate(t *testing.T) {
 	t.Parallel()
 
 	embedded := loaded(t)
-	tasks := map[string]int{}
-	for _, task := range embedded.Examples() {
-		tasks[task.Topic]++
-	}
-
-	var waiting []string
 	for _, topic := range embedded.Topics() {
-		switch {
-		case tasks[topic.ID] == 0:
-			waiting = append(waiting, topic.ID)
-		case len(embedded.Templates(topic.ID)) == 0:
-			t.Errorf("%s: got no solver template for its %d reference tasks, "+
-				"want one generalised from their solvers, in solvers/%s/", topic.ID, tasks[topic.ID], topic.ID)
+		if len(embedded.Templates(topic.ID)) == 0 {
+			t.Errorf("%s: got no solver template, want one generalised from the solvers of its "+
+				"reference tasks, in solvers/%s/", topic.ID, topic.ID)
 		}
 	}
-	t.Logf("no template, having no reference task to generalise one from: %v", waiting)
 }
 
 // serviceSandbox is the sandbox a submitted solver runs in, with the limits

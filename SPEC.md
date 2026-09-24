@@ -45,10 +45,11 @@ The level governs four things: which topics exist, what "difficulty 3" means, th
 
 ## 1.2 The topic catalog
 
-A topic is chosen **from the catalog**; the model never invents one, or histories from different children stop being comparable. Two rules decide what may be in it:
+A topic is chosen **from the catalog**; the model never invents one, or histories from different children stop being comparable. One rule decides what may be in it:
 
-1. **Words only.** The task must be statable in words, with no picture and no spatial imagination.
-2. **Brute-forceable.** A short program must be able to enumerate the possibilities and confirm that exactly one option is correct. This is what the solver check rests on (section 6), and it is not negotiable: a topic that cannot be checked by enumeration does not enter the catalog.
+**Brute-forceable.** A short program must be able to enumerate the possibilities and confirm that exactly one option is correct. This is what the solver check rests on (section 6), and it is not negotiable: a topic that cannot be checked by enumeration does not enter the catalog.
+
+A task that has a picture in it carries a text drawing (4.4, R68).
 
 ### The ten topics of grades 1–4, extended to 5–6
 
@@ -154,7 +155,7 @@ The solver is not one of these fields. It is a file of its own, `content/example
 | `id` | yes | `<topic abbreviation>-<level>-d<difficulty>-<number>`, unique across the content |
 | `topic`, `grade_level`, `difficulty` | yes | Ids from the catalogs; difficulty 1–5 inside the level |
 | `question` | yes | English. The model writes in the chat's language; the examples set the idea and the structure, not the language |
-| `drawing`, `drawing_structure` | no | A text drawing and its structural description, where the topic needs one — mostly `geometry.grid`. The format is section 4, the frames are T36b |
+| `drawing`, `drawing_structure` | no | A text drawing and its structural description, wherever the task has a picture in it (R68). The format is section 4, the frames are T36b |
 | `options` | yes | Exactly five, all different |
 | `correct_answer` | yes | Exactly one letter |
 | `hint` | new tasks only | A nudge that does not give the answer away. The 450 ported tasks have none; the format the model must produce always does, and so does every task of `5-6` (1.6) |
@@ -180,7 +181,7 @@ Why nine rather than the prototype's twenty-five per pair. The package hands the
 
 Three batches, so no T39a is needed. The first batch is the largest on purpose: it is the one that settles whether the new topics survive contact with a solver, `geometry.grid` above all. It is written in four parts, T37.1 to T37.4, each reviewed on its own; `geometry.grid` goes first.
 
-**What a task of `5-6` is held to.** These tasks are written for this service, so they pass what a task the model writes must pass wherever it applies to a reference task (R67): the bench proves each answer and the explanations pass 5.3, as for every reference task; and beyond that each has a hint, its question reads within the limits of grade 5 — the strictest of the level (5.5) — no two of them are near-duplicates by the threshold of 5.6, a drawing passes both drawing checks against its own question (5.4), and each topic has exactly three at each of difficulties 2, 3 and 4. Their wrong options are labelled with the rule in mind: a child new to a topic is given the two traps most frequent among its reference tasks (3.2), so those two are the mistakes most typical of the topic. A grid topic names its cells in words — rows A, B, C… from the top, columns 1, 2, 3… from the left, a cell as B2 — so its tasks can be solved without their drawings.
+**What a task of `5-6` is held to.** These tasks are written for this service, so they pass what a task the model writes must pass wherever it applies to a reference task (R67): the bench proves each answer and the explanations pass 5.3, as for every reference task; and beyond that each has a hint, its question reads within the limits of grade 5 — the strictest of the level (5.5) — no two of them are near-duplicates by the threshold of 5.6, a drawing passes both drawing checks against its own question (5.4), and each topic has exactly three at each of difficulties 2, 3 and 4. Their wrong options are labelled with the rule in mind: a child new to a topic is given the two traps most frequent among its reference tasks (3.2), so those two are the mistakes most typical of the topic. A grid topic names its cells the same way in its question and its drawing — rows A, B, C… from the top, columns 1, 2, 3… from the left, a cell as B2.
 
 **Which three examples go into the package.** For the brief's topic and level: three tasks of the requested difficulty; if there are fewer, top up from the nearest difficulty, then from the next nearest; if the topic has nothing at that level, from the level below. Which three, when there are more than three, rotates by the child's answer count, so a child asking for the same topic twice does not see the same examples (the prototype's D43).
 
@@ -467,8 +468,8 @@ The model draws, following the rules in the instructions (О-11); the service ch
 
 **`drawing`** — a block of monospaced text, lines separated by `\n`. The rules the model is given:
 
-- draw only when the wording genuinely needs it, and never to decorate;
-- a number line, a grid, a balance, a pouring diagram, a clock face — the recurring subjects have ready frames in the package (О-44), and a frame is a starting point, not an obligation;
+- draw whenever the task has a picture in it — a grid, a number line, places in a ring, the bars of a ratio — and never to decorate (R68);
+- a number line, a grid, a balance, a pouring diagram, a clock face, bars, a ring — the recurring subjects have ready frames in the package (О-44), and a frame is a starting point, not an obligation;
 - keep it inside the limits of 5.4: they are what a phone can show;
 - label the objects the question names, with the same labels, in the same alphabet, and name them in the wording with Latin capitals — point A, segment AB, triangle ABC — which is what the check reads (5.4);
 - the child sees the drawing before answering, so it shows what the question gives and nothing the question asks for, and marks the unknown with `?`;
@@ -490,9 +491,9 @@ The model draws, following the rules in the instructions (О-11); the service ch
 }
 ```
 
-`kind` is free text naming the subject (`number_line`, `row`, `grid`, `timetable`, `balance`, `pouring`, `clock`); `objects` carry an id, the label as it appears in the drawing, and an optional value; `relations` are triples. The service reads only the labels (5.4); `kind` and `relations` are there for the model's own discipline and for the frames, and no check depends on them beyond their presence being well-formed.
+`kind` is free text naming the subject (`number_line`, `row`, `grid`, `timetable`, `balance`, `pouring`, `clock`, `bars`, `ring`); `objects` carry an id, the label as it appears in the drawing, and an optional value; `relations` are triples. The service reads only the labels (5.4); `kind` and `relations` are there for the model's own discipline and for the frames, and no check depends on them beyond their presence being well-formed.
 
-**The frames** (О-44, R09, R66) are eight, one file each in `content/drawings/`: a number line, a row of objects with the gaps between them, a 3 by 3 and a 4 by 4 grid, a timetable, a balance, containers for pouring, and a clock face. Each names the topics whose packages carry it and says what it is for and how it is filled. A frame is no task's drawing: a number goes where it has a run of `#`, one character to each `#` and right-aligned, a minus sign included; its labels are Latin capitals to keep or rename, set apart from every `#` by something that is neither a letter nor a digit, so that a filled number never runs into one; and its structure holds no values. It uses none of the characters in the allowed set that some platforms draw as a colour emoji two cells wide (remark 33). Every frame passes both drawing checks at the default limits as it stands, with its labels and its structure agreeing both ways; and so does every frame filled with what the question of a reference task of one of its topics gives, whether or not that task has a drawing of its own. Those filled drawings are fixtures in `content/testdata/drawings/`, and the model is not shown them. The drawings the reference tasks of `geometry.grid` carry are a different thing: they are part of the tasks, shown with them, and held to the same two checks (1.6).
+**The frames** (О-44, R09, R66) are ten, one file each in `content/drawings/`: a number line, a row of objects with the gaps between them, a 3 by 3 and a 4 by 4 grid, a timetable, a balance, containers for pouring, a clock face, bars split into equal parts, and places in a ring. Each names the topics whose packages carry it and says what it is for and how it is filled. A frame is no task's drawing: a number goes where it has a run of `#`, one character to each `#` and right-aligned, a minus sign included; its labels are Latin capitals to keep or rename, set apart from every `#` by something that is neither a letter nor a digit, so that a filled number never runs into one; and its structure holds no values. It uses none of the characters in the allowed set that some platforms draw as a colour emoji two cells wide (remark 33). Every frame passes both drawing checks at the default limits as it stands, with its labels and its structure agreeing both ways; and so does every frame filled with what the question of a reference task of one of its topics gives, whether or not that task has a drawing of its own. Those filled drawings are fixtures in `content/testdata/drawings/`, and the model is not shown them. The drawings reference tasks carry — the grids of `geometry.grid`, the bars of `ratio.sharing`, the ring of `number.divisibility` — are a different thing: they are part of the tasks, shown with them, and held to the same two checks (1.6).
 
 ## 4.5 The self-check
 
@@ -1427,7 +1428,7 @@ Added in the review of the package for the model (T36.1):
 
 Added with the solver templates (T36a):
 
-31. **The seven topics of `5-6` have no solver templates yet.** A template is generalised from the solver of a reference task, and those topics have no reference tasks until T37; a package for one of them carries an empty list. The test that every topic with reference tasks has a template turns red the day their tasks arrive, so T37 writes the templates together with the tasks. **For:** T37. **Since T37.1** `geometry.grid` has its two, **since T37.2** `games.strategy` and `logic.sets` have theirs, **since T37.3** `fractions.parts` and `percent.basic` have theirs, and the other two follow in T37.4.
+31. **The seven topics of `5-6` have no solver templates yet.** A template is generalised from the solver of a reference task, and those topics have no reference tasks until T37; a package for one of them carries an empty list. The test that every topic with reference tasks has a template turns red the day their tasks arrive, so T37 writes the templates together with the tasks. **For:** T37. **Done in T37.4:** each of the seven has its templates — `geometry.grid` since T37.1, `games.strategy` and `logic.sets` since T37.2, `fractions.parts` and `percent.basic` since T37.3, and `ratio.sharing` and `number.divisibility` since T37.4; the test now asks a template of every topic.
 32. **The near-duplicate check compares a task with the reference tasks of its own level, and a template crosses levels.** Every template keeps the numbers and the plot of a grade 1–4 task and is shown at every level, so a grade 5–6 task that copied a template's numbers would be compared with nothing it came from. The same is already true of the `3-4` reference tasks a `5-6` package borrows (4.1.1). Whether models copy either is for the acceptance runs to show; comparing against the reference tasks shown rather than those of the level is the fix if they do. **For:** T62, T63.
 
 Added with the drawing frames (T36b):

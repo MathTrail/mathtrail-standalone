@@ -1,0 +1,16 @@
+{
+  "from": "ratio-56-d2-3",
+  "drawing": [
+    "S │▒▒│▒▒│▒▒│",
+    "P │▒▒│▒▒│▒▒│▒▒│▒▒│",
+    "P = 20",
+    "S + P = ?"
+  ],
+  "drawing_structure": {
+    "kind": "bars",
+    "objects": [
+      {"id": "S", "label": "S", "value": 3},
+      {"id": "P", "label": "P", "value": 5}
+    ]
+  }
+}

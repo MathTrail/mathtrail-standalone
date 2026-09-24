@@ -1,0 +1,324 @@
+[
+  {
+    "id": "div-56-d2-1",
+    "topic": "number.divisibility",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "Kim reads a book from page 40 to page 100, and both of those pages count. Every page whose number can be divided by 4 with nothing left over has a picture. How many pages with pictures does Kim read?",
+    "options": {
+      "A": "15",
+      "B": "17",
+      "C": "25",
+      "D": "16",
+      "E": "61"
+    },
+    "correct_answer": "D",
+    "hint": "Which is the first page with a picture, and which is the last?",
+    "solution": "The pages with pictures are 40, 44, 48 and so on up to 100, that is 4 × 10 up to 4 × 25. That makes 25 - 10 + 1 = 16 pages.",
+    "distractors": {
+      "A": {
+        "trap": "off_by_one",
+        "text": "15 is (100 - 40) ÷ 4, which counts the gaps between the pages with pictures, one fewer than the pages."
+      },
+      "B": {
+        "trap": "off_by_one",
+        "text": "17 adds a page at each end, but pages 40 and 100 are already among the 16."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "25 counts the pages with pictures from page 1, but Kim starts at page 40."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "61 is how many pages Kim reads, not how many have pictures."
+      }
+    }
+  },
+  {
+    "id": "div-56-d2-2",
+    "topic": "number.divisibility",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "When Tom divides his number by 7, the answer is 12 with 5 left over. What is Tom's number?",
+    "options": {
+      "A": "89",
+      "B": "47",
+      "C": "84",
+      "D": "17",
+      "E": "79"
+    },
+    "correct_answer": "A",
+    "hint": "How many is 12 groups of 7, and what is left over?",
+    "solution": "12 groups of 7 make 84, and 5 more are left over, so the number is 84 + 5 = 89.",
+    "distractors": {
+      "B": {
+        "trap": "remainder_vs_quotient",
+        "text": "47 swaps the answer and what is left over: it is 5 groups of 7 and 12 more."
+      },
+      "C": {
+        "trap": "stopped_early",
+        "text": "84 is only the 12 groups of 7; the 5 left over belong to the number too."
+      },
+      "D": {
+        "trap": "wrong_operation",
+        "text": "17 adds 12 and 5, but 12 is how many groups of 7 there are."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "79 takes the 5 left over away instead of adding it."
+      }
+    }
+  },
+  {
+    "id": "div-56-d2-3",
+    "topic": "number.divisibility",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "A loop railway has 20 stations, numbered 1 to 20 in the order the train goes, and after station 20 comes station 1 again. The train starts at station 1, marked S, and moves on to the next station 47 times. At which station is it now?",
+    "drawing": " S\n ▼\n 1→ 2→ 3→ 4→ 5→ 6→ 7\n ↑                 ↓\n20                 8\n ↑                 ↓\n19                 9\n ↑                 ↓\n18                10\n ↑                 ↓\n17←16←15←14←13←12←11",
+    "drawing_structure": {
+      "kind": "ring",
+      "objects": [
+        {"id": "S", "label": "S", "value": 1}
+      ]
+    },
+    "options": {
+      "A": "2",
+      "B": "7",
+      "C": "8",
+      "D": "48",
+      "E": "14"
+    },
+    "correct_answer": "C",
+    "hint": "How many moves take the train once round the loop?",
+    "solution": "Every 20 moves take the train round the loop and back to station 1. 47 = 2 × 20 + 7, so after two full rounds it moves on 7 more stations, from station 1 to station 8.",
+    "distractors": {
+      "A": {
+        "trap": "remainder_vs_quotient",
+        "text": "2 is how many full rounds the train makes, not the station where it stops."
+      },
+      "B": {
+        "trap": "off_by_one",
+        "text": "7 is how many moves are left after the full rounds, counted as if the train started before station 1."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "48 counts on past 20 as if the line did not loop; there is no station 48."
+      },
+      "E": {
+        "trap": "reversed_relation",
+        "text": "14 is where the train would be if it went round the loop the other way."
+      }
+    }
+  },
+  {
+    "id": "div-56-d3-1",
+    "topic": "number.divisibility",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "The seats in a hall are numbered row by row, with 18 seats in each row. Row 1 has seats 1 to 18, row 2 has seats 19 to 36, and so on. In which row is seat 97?",
+    "options": {
+      "A": "5",
+      "B": "7",
+      "C": "18",
+      "D": "90",
+      "E": "6"
+    },
+    "correct_answer": "E",
+    "hint": "How many full rows come before seat 97?",
+    "solution": "97 = 5 × 18 + 7, so 5 full rows end at seat 90, and seat 97 is the 7th seat of the next row, row 6.",
+    "distractors": {
+      "A": {
+        "trap": "off_by_one",
+        "text": "5 counts only the full rows before seat 97, and the seat itself is in the next row."
+      },
+      "B": {
+        "trap": "remainder_vs_quotient",
+        "text": "7 is where seat 97 is within its row, what is left over after the full rows."
+      },
+      "C": {
+        "trap": "number_from_text",
+        "text": "18 is the number of seats in a row, copied from the question."
+      },
+      "D": {
+        "trap": "answered_other_question",
+        "text": "90 is the number of the last seat in row 5, not the number of a row."
+      }
+    }
+  },
+  {
+    "id": "div-56-d3-2",
+    "topic": "number.divisibility",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "When the lemons in a crate are counted out in twos, threes, fours, fives or sixes, one lemon is always left over. There is more than one lemon. What is the smallest number of lemons the crate can hold?",
+    "options": {
+      "A": "60",
+      "B": "61",
+      "C": "721",
+      "D": "31",
+      "E": "121"
+    },
+    "correct_answer": "B",
+    "hint": "What would the smallest number be if nothing were left over?",
+    "solution": "Without the lemon left over, the number would divide by 2, 3, 4, 5 and 6. The smallest such number is 60: it is 4 × 3 × 5, and it divides by 2 and 6 as well. With one lemon more, the crate holds 61.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "60 divides by all of them with nothing left over, but one lemon should always be left."
+      },
+      "C": {
+        "trap": "wrong_operation",
+        "text": "721 multiplies 2 × 3 × 4 × 5 × 6 and adds 1, but a much smaller number divides by all of them."
+      },
+      "D": {
+        "trap": "missed_case",
+        "text": "31 works for twos, threes, fives and sixes, but counted out in fours it leaves 3."
+      },
+      "E": {
+        "trap": "missed_case",
+        "text": "121 leaves one over each time too, but 61 is a smaller number of lemons that works."
+      }
+    }
+  },
+  {
+    "id": "div-56-d3-3",
+    "topic": "number.divisibility",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "What is the remainder when 5 555 555 is divided by 9?",
+    "options": {
+      "A": "617283",
+      "B": "3",
+      "C": "35",
+      "D": "8",
+      "E": "5"
+    },
+    "correct_answer": "D",
+    "hint": "What remainder does the sum of the digits leave when it is divided by 9?",
+    "solution": "A number leaves the same remainder when divided by 9 as the sum of its digits does. Here that sum is 7 × 5 = 35, and 35 = 3 × 9 + 8, so the remainder is 8.",
+    "distractors": {
+      "A": {
+        "trap": "remainder_vs_quotient",
+        "text": "617283 is how many times 9 goes into the number, but the question asks what is left over."
+      },
+      "B": {
+        "trap": "remainder_vs_quotient",
+        "text": "3 is how many nines fit into 35, not what is left over."
+      },
+      "C": {
+        "trap": "stopped_early",
+        "text": "35 is the sum of the digits, and it still has to be divided by 9."
+      },
+      "E": {
+        "trap": "number_from_text",
+        "text": "5 is the last digit, which tells the remainder for 10, not for 9."
+      }
+    }
+  },
+  {
+    "id": "div-56-d4-1",
+    "topic": "number.divisibility",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "Some nuts are shared among 9 squirrels. Each squirrel gets the same number of nuts, as many as possible, and the nuts left over are exactly as many as each squirrel got. What is the largest number of nuts there could be?",
+    "options": {
+      "A": "80",
+      "B": "90",
+      "C": "72",
+      "D": "8",
+      "E": "89"
+    },
+    "correct_answer": "A",
+    "hint": "What is the largest number of nuts that can be left over when they are shared among 9?",
+    "solution": "When the nuts are shared among 9 as far as they go, at most 8 are left over: 9 more would give each squirrel one more. So each squirrel gets at most 8 and 8 are left over, which makes 9 × 8 + 8 = 80 nuts.",
+    "distractors": {
+      "B": {
+        "trap": "off_by_one",
+        "text": "90 leaves 9 nuts over, but then each squirrel could get one more."
+      },
+      "C": {
+        "trap": "stopped_early",
+        "text": "72 is the nuts the squirrels get; the 8 left over are nuts too."
+      },
+      "D": {
+        "trap": "answered_other_question",
+        "text": "8 is how many nuts each squirrel gets, not how many nuts there are."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "89 gives each squirrel 9 and leaves 8, but the nuts left over must equal each share."
+      }
+    }
+  },
+  {
+    "id": "div-56-d4-2",
+    "topic": "number.divisibility",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "In a darts game, each dart scores either 3 points or 8 points, and a player can throw as many darts as she likes. What is the largest total that cannot be scored?",
+    "options": {
+      "A": "10",
+      "B": "16",
+      "C": "13",
+      "D": "24",
+      "E": "1"
+    },
+    "correct_answer": "C",
+    "hint": "Which totals from 1 to 20 can be scored?",
+    "solution": "The totals 14, 15 and 16 can be scored (8 + 3 + 3, 3 + 3 + 3 + 3 + 3 and 8 + 8), and adding threes to them reaches every larger total. Below them, 1, 2, 4, 5, 7, 10 and 13 cannot be scored, so the largest is 13.",
+    "distractors": {
+      "A": {
+        "trap": "missed_case",
+        "text": "10 cannot be scored either, but 13 is bigger and cannot be scored too."
+      },
+      "B": {
+        "trap": "missed_case",
+        "text": "16 can be scored with two darts: 8 + 8."
+      },
+      "D": {
+        "trap": "wrong_operation",
+        "text": "24 multiplies 3 by 8, and 24 = 8 + 8 + 8 can be scored."
+      },
+      "E": {
+        "trap": "reversed_relation",
+        "text": "1 is the smallest total that cannot be scored, not the largest."
+      }
+    }
+  },
+  {
+    "id": "div-56-d4-3",
+    "topic": "number.divisibility",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "A number leaves a remainder of 22 when it is divided by 24. What remainder does the same number leave when it is divided by 3?",
+    "options": {
+      "A": "7",
+      "B": "22",
+      "C": "0",
+      "D": "2",
+      "E": "1"
+    },
+    "correct_answer": "E",
+    "hint": "What remainder does a multiple of 24 leave when it is divided by 3?",
+    "solution": "The number is a multiple of 24 plus 22. Every multiple of 24 divides by 3, and 22 = 7 × 3 + 1, so the number leaves a remainder of 1.",
+    "distractors": {
+      "A": {
+        "trap": "remainder_vs_quotient",
+        "text": "7 is how many threes fit into 22, not what is left over."
+      },
+      "B": {
+        "trap": "number_from_text",
+        "text": "22 is the remainder for 24, and a remainder when dividing by 3 is always less than 3."
+      },
+      "C": {
+        "trap": "stopped_early",
+        "text": "0 notices that 24 divides by 3 but forgets the 22 left over."
+      },
+      "D": {
+        "trap": "answered_other_question",
+        "text": "2 is how much the number is short of the next multiple of 24."
+      }
+    }
+  }
+]
