@@ -319,6 +319,16 @@ func TestWhatIsHandedOutIsACopy(t *testing.T) {
 	if again := c.Templates("logic.ordering"); again[0].Program == "edited by a caller" {
 		t.Error("editing a solver template handed out changed the content")
 	}
+
+	// A frame holds its topics and its structure behind references, like a
+	// reference task holds its options.
+	frames := c.Frames()
+	frames[0].Topics[0] = "edited.by.a.caller"
+	frames[0].Structure.Objects[0].Label = "edited by a caller"
+	if again := c.Frames()[0]; again.Topics[0] == "edited.by.a.caller" ||
+		again.Structure.Objects[0].Label == "edited by a caller" {
+		t.Error("editing a drawing frame handed out changed the content")
+	}
 }
 
 // The count is what the startup log reports, and a number that drifts from the

@@ -1,0 +1,15 @@
+{
+  "from": "par-34-d3-4",
+  "drawing": [
+    "             A",
+    "             ▼",
+    "─┼───┼───┼───┼───┼───┼───┼─→",
+    "-9  -6  -3   0   3   6   9"
+  ],
+  "drawing_structure": {
+    "kind": "number_line",
+    "objects": [
+      {"id": "A", "label": "A", "value": 0}
+    ]
+  }
+}

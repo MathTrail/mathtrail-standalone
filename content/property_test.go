@@ -143,6 +143,34 @@ func genExampleSeed() gopter.Gen {
 	}).Map(func(seed exampleSeed) *exampleSeed { return &seed })
 }
 
+// frame assembles a drawing frame from the same raw material: topics in a list
+// and a structure whose object keeps its value behind a pointer, which is
+// everything a copy of a frame has to carry over.
+func (s *exampleSeed) frame() Frame {
+	value := s.Value
+	return Frame{
+		Name:    "posts",
+		Purpose: s.Question,
+		Topics:  []string{s.Kind, s.Label},
+		Drawing: "A--B",
+		Structure: &DrawingStructure{
+			Kind:      s.Kind,
+			Objects:   []DrawingObject{{ID: "A", Label: s.Label, Value: &value}},
+			Relations: []DrawingRelation{{Type: s.Relation, From: "A", To: "B"}},
+		},
+	}
+}
+
+// editFrame rewrites every part of a frame that a caller could reach through a
+// reference rather than through a copy.
+func editFrame(frame *Frame) {
+	frame.Topics[0] = "edited by a caller"
+	frame.Structure.Kind = "edited by a caller"
+	frame.Structure.Objects[0].Label = "edited by a caller"
+	*frame.Structure.Objects[0].Value = 999
+	frame.Structure.Relations[0].Type = "edited by a caller"
+}
+
 // editEverythingMutable rewrites every part of a task that a caller could reach
 // through a reference rather than through a copy.
 func editEverythingMutable(task *Example) {
@@ -178,6 +206,24 @@ func TestCopiesHoldTheirProperties(t *testing.T) {
 			copied := task.clone()
 			editEverythingMutable(&copied)
 			return reflect.DeepEqual(task, witness)
+		},
+		genExampleSeed(),
+	))
+
+	properties.Property("a copy of a frame is equal to the frame", prop.ForAll(
+		func(seed *exampleSeed) bool {
+			frame := seed.frame()
+			return reflect.DeepEqual(frame.clone(), frame)
+		},
+		genExampleSeed(),
+	))
+
+	properties.Property("editing a copy of a frame leaves the frame it came from untouched", prop.ForAll(
+		func(seed *exampleSeed) bool {
+			frame, witness := seed.frame(), seed.frame()
+			copied := frame.clone()
+			editFrame(&copied)
+			return reflect.DeepEqual(frame, witness)
 		},
 		genExampleSeed(),
 	))

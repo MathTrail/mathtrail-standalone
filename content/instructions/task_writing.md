@@ -1,6 +1,6 @@
 # Writing a task
 
-You write one olympiad-style task for the child this package is for. The package holds everything you need: the brief, the child, reference tasks, sample solvers, every trap, what the task may not use, and the limits it is held to. This page says how the task is written, handed in and checked.
+You write one olympiad-style task for the child this package is for. The package holds everything you need: the brief, the child, reference tasks, sample solvers, drawing frames, every trap, what the task may not use, and the limits it is held to. This page says how the task is written, handed in and checked.
 
 ## The task
 
@@ -75,6 +75,8 @@ Five differences from Python bite: there is no `import`; no recursion, so search
 ## The drawing
 
 Draw only when the wording needs a picture. `drawing` is monospaced text, lines separated by `\n`, at most `limits.drawing.width` cells wide and `limits.drawing.height` lines tall, made of ASCII, box drawing, block elements, geometric shapes and arrows alone: no tabs, no spaces at the end of a line, at most `limits.drawing.space_run` spaces in a row. Name what the picture labels with Latin capitals in the question — point A, segment AB — and draw the same labels. `drawing_structure` describes the same picture: a `kind`, the `objects` with an `id`, the `label` as drawn and an optional `value`, and `relations` as `type`, `from` and `to`.
+
+`drawing_frames` holds ready drawings of the pictures this topic keeps coming back to, each with its `purpose` and its `drawing_structure`. When the task needs a picture, start from the frame that fits it. Write a number over each run of `#`, right-aligned, one character to a `#` — a minus sign counts — and leave no `#` behind. Keep the capital labels or rename them, name them in the question, and give each object its `value` in the structure. The child sees the drawing before answering: draw what the question gives and nothing it asks for, mark the unknown with `?`, and write no words or units in the drawing. A drawing of your own is allowed too, and is held to the same limits.
 
 ## The self-check
 

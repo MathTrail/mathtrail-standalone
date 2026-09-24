@@ -1,0 +1,37 @@
+{
+  "purpose": "A 4 by 4 square grid, rows A to D and columns 1 to 4, so that the question can name a cell as C3. Fill a cell with █ or put a capital label in it; a figure smaller than the grid leaves the other cells empty.",
+  "topics": ["geometry.grid", "combinatorics.enumeration"],
+  "drawing": [
+    "    1   2   3   4",
+    "  ┌───┬───┬───┬───┐",
+    "A │   │   │   │   │",
+    "  ├───┼───┼───┼───┤",
+    "B │   │   │   │   │",
+    "  ├───┼───┼───┼───┤",
+    "C │   │   │   │   │",
+    "  ├───┼───┼───┼───┤",
+    "D │   │   │   │   │",
+    "  └───┴───┴───┴───┘"
+  ],
+  "drawing_structure": {
+    "kind": "grid",
+    "objects": [
+      {"id": "A", "label": "A"},
+      {"id": "B", "label": "B"},
+      {"id": "C", "label": "C"},
+      {"id": "D", "label": "D"},
+      {"id": "1", "label": "1"},
+      {"id": "2", "label": "2"},
+      {"id": "3", "label": "3"},
+      {"id": "4", "label": "4"}
+    ],
+    "relations": [
+      {"type": "above", "from": "A", "to": "B"},
+      {"type": "above", "from": "B", "to": "C"},
+      {"type": "above", "from": "C", "to": "D"},
+      {"type": "left_of", "from": "1", "to": "2"},
+      {"type": "left_of", "from": "2", "to": "3"},
+      {"type": "left_of", "from": "3", "to": "4"}
+    ]
+  }
+}

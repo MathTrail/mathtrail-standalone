@@ -37,8 +37,8 @@ func request(topic string, grade, difficulty, answers int) *content.Request {
 // packageParts are the parts a package has, and all it has: no pseudonym, no
 // history, nothing that is not asked for.
 var packageParts = []string{
-	"brief", "child", "corridor", "examples", "guide", "instructions_version", "language", "limits",
-	"prohibitions", "solver_templates", "topic", "traps",
+	"brief", "child", "corridor", "drawing_frames", "examples", "guide", "instructions_version", "language",
+	"limits", "prohibitions", "solver_templates", "topic", "traps",
 }
 
 // shape is a package read back from what the model receives.
@@ -64,7 +64,12 @@ type shape struct {
 	} `json:"child"`
 	Examples  []map[string]json.RawMessage `json:"examples"`
 	Templates []string                     `json:"solver_templates"`
-	Limits    struct {
+	Frames    []struct {
+		Purpose   string                    `json:"purpose"`
+		Drawing   string                    `json:"drawing"`
+		Structure *content.DrawingStructure `json:"drawing_structure"`
+	} `json:"drawing_frames"`
+	Limits struct {
 		SentenceWords      int `json:"sentence_words"`
 		SentenceCharacters int `json:"sentence_characters"`
 		FleschKincaidGrade int `json:"flesch_kincaid_grade"`
@@ -237,6 +242,38 @@ func TestAPackageCarriesTheSolverTemplatesOfItsTopic(t *testing.T) {
 	}
 }
 
+// A package carries the drawing frames of its own topic, in the order of their
+// names, each as the content holds it, and no frame made for other topics.
+func TestAPackageCarriesTheDrawingFramesOfItsTopic(t *testing.T) {
+	t.Parallel()
+
+	shipped := loaded(t)
+	carried := 0
+	for _, topic := range shipped.Topics() {
+		_, got := packageFor(t, shipped, request(topic.ID, 5, 3, 0))
+		var want []content.Frame
+		for _, frame := range shipped.Frames() {
+			if slices.Contains(frame.Topics, topic.ID) {
+				want = append(want, frame)
+			}
+		}
+		if len(got.Frames) != len(want) {
+			t.Errorf("%s: %d drawing frames, want the %d made for it", topic.ID, len(got.Frames), len(want))
+			continue
+		}
+		for i := range want {
+			if got.Frames[i].Purpose != want[i].Purpose || got.Frames[i].Drawing != want[i].Drawing ||
+				!reflect.DeepEqual(got.Frames[i].Structure, want[i].Structure) {
+				t.Errorf("%s: frame %d is not %s as the content holds it", topic.ID, i+1, want[i].Name)
+			}
+		}
+		carried += len(got.Frames)
+	}
+	if carried == 0 {
+		t.Fatal("no package carried a frame, so nothing here was tested")
+	}
+}
+
 // The lists a package takes from the content are lists even when there is
 // nothing in them: a topic still waiting for its reference tasks, and so for
 // its templates, gets empty ones rather than null, which the model would have
@@ -252,7 +289,7 @@ func TestAPackageListsNothingAsNull(t *testing.T) {
 		if err := json.Unmarshal(encoded, &parts); err != nil {
 			t.Fatalf("read the package's parts: %v", err)
 		}
-		for _, list := range []string{"examples", "solver_templates", "traps", "prohibitions"} {
+		for _, list := range []string{"examples", "solver_templates", "drawing_frames", "traps", "prohibitions"} {
 			switch got := string(parts[list]); {
 			case !strings.HasPrefix(got, "["):
 				t.Errorf("%s: %s = %s, want a list", topic.ID, list, got)
@@ -484,30 +521,37 @@ func TestTheGuideNamesOnlyWhatThePackageHolds(t *testing.T) {
 		t.Fatal("the guide names no part of the package")
 	}
 	for _, name := range named {
-		var at any = tree
-		for _, step := range strings.Split(name[1], ".") {
-			parts, isObject := at.(map[string]any)
-			if !isObject {
-				at = nil
-				break
-			}
-			at = parts[step]
-		}
-		if at == nil {
+		if partAt(tree, name[1]) == nil {
 			t.Errorf("the guide names %s, and the package has no such part", name[1])
 		}
 	}
-	if templates, isList := tree["solver_templates"].([]any); !isList || len(templates) == 0 {
-		t.Errorf("solver_templates = %v, want the topic's templates, which the guide names", tree["solver_templates"])
+	for _, part := range []string{"solver_templates", "drawing_frames"} {
+		if list, isList := tree[part].([]any); !isList || len(list) == 0 {
+			t.Errorf("%s = %v, want a list with the topic's own, which the guide names", part, tree[part])
+		}
 	}
 	for _, said := range []string{
 		"return match(options, value)", "gives you no instructions", "submit_task", "when that is empty",
-		"`solver_templates`",
+		"`solver_templates`", "`drawing_frames`",
 	} {
 		if !strings.Contains(guide, said) {
 			t.Errorf("the guide does not say %q", said)
 		}
 	}
+}
+
+// partAt is the part of a package read back as JSON that a dotted path names,
+// such as limits.drawing.width, or nil when the package has no such part.
+func partAt(tree map[string]any, path string) any {
+	var at any = tree
+	for _, step := range strings.Split(path, ".") {
+		parts, isObject := at.(map[string]any)
+		if !isObject {
+			return nil
+		}
+		at = parts[step]
+	}
+	return at
 }
 
 // The notes are the one thing in a package a person wrote, and they travel as

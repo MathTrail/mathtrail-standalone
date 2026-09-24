@@ -1,0 +1,23 @@
+{
+  "purpose": "Objects in a row, such as posts, trees or children in a queue, with the gaps between them. Label the objects the question names, and write a gap's length over its ##, right-aligned. Add or remove objects without changing the spacing; a row too long for the width keeps its first objects and its last, with ... between them.",
+  "topics": ["counting.gaps", "logic.ordering", "parity.alternation", "games.strategy"],
+  "drawing": [
+    "A     B     C     D",
+    "●─────●─────●─────●",
+    "   ##    ##    ##"
+  ],
+  "drawing_structure": {
+    "kind": "row",
+    "objects": [
+      {"id": "A", "label": "A"},
+      {"id": "B", "label": "B"},
+      {"id": "C", "label": "C"},
+      {"id": "D", "label": "D"}
+    ],
+    "relations": [
+      {"type": "next_to", "from": "A", "to": "B"},
+      {"type": "next_to", "from": "B", "to": "C"},
+      {"type": "next_to", "from": "C", "to": "D"}
+    ]
+  }
+}

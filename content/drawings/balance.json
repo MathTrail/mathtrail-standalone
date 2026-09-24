@@ -1,0 +1,19 @@
+{
+  "purpose": "A balance with pans A and B. Write what lies on each pan over its ## places: a weight, or ? for a load the question asks about; clear a place nothing else fills. To show that a pan is heavier, draw its box one line lower and the other box one line higher.",
+  "topics": ["algorithms.weighing_pouring"],
+  "drawing": [
+    "           ▲",
+    "   ┌───────┴───────┐",
+    " ┌─┴───┐       ┌───┴─┐",
+    " │## ##│       │## ##│",
+    " └─────┘       └─────┘",
+    "    A             B"
+  ],
+  "drawing_structure": {
+    "kind": "balance",
+    "objects": [
+      {"id": "A", "label": "A"},
+      {"id": "B", "label": "B"}
+    ]
+  }
+}

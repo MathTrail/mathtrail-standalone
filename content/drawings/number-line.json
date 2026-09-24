@@ -1,0 +1,20 @@
+{
+  "purpose": "A number line: evenly spaced ticks, a number under each, and the points the question names above them. Write each tick's number over the ## below it, right-aligned; a minus sign takes a place too. Put a point's label and its ▼ over its tick. Add or remove ticks without changing the spacing, and draw only the points the question gives.",
+  "topics": ["counting.gaps", "parity.alternation"],
+  "drawing": [
+    "     A           B",
+    "     ▼           ▼",
+    "─┼───┼───┼───┼───┼───┼───┼─→",
+    "##  ##  ##  ##  ##  ##  ##"
+  ],
+  "drawing_structure": {
+    "kind": "number_line",
+    "objects": [
+      {"id": "A", "label": "A"},
+      {"id": "B", "label": "B"}
+    ],
+    "relations": [
+      {"type": "left_of", "from": "A", "to": "B"}
+    ]
+  }
+}

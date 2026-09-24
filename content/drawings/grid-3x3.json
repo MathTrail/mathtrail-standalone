@@ -1,0 +1,31 @@
+{
+  "purpose": "A 3 by 3 square grid, rows A to C and columns 1 to 3, so that the question can name a cell as B2. Fill a cell with █ or put a capital label in it. A path along the lines starts and ends at corners: put a label beside each of those corners.",
+  "topics": ["geometry.grid", "combinatorics.enumeration"],
+  "drawing": [
+    "    1   2   3",
+    "  ┌───┬───┬───┐",
+    "A │   │   │   │",
+    "  ├───┼───┼───┤",
+    "B │   │   │   │",
+    "  ├───┼───┼───┤",
+    "C │   │   │   │",
+    "  └───┴───┴───┘"
+  ],
+  "drawing_structure": {
+    "kind": "grid",
+    "objects": [
+      {"id": "A", "label": "A"},
+      {"id": "B", "label": "B"},
+      {"id": "C", "label": "C"},
+      {"id": "1", "label": "1"},
+      {"id": "2", "label": "2"},
+      {"id": "3", "label": "3"}
+    ],
+    "relations": [
+      {"type": "above", "from": "A", "to": "B"},
+      {"type": "above", "from": "B", "to": "C"},
+      {"type": "left_of", "from": "1", "to": "2"},
+      {"type": "left_of", "from": "2", "to": "3"}
+    ]
+  }
+}
