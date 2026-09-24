@@ -1,0 +1,15 @@
+{
+  "from": "gaps-34-d1-1",
+  "drawing": [
+    "A                 B",
+    "●─────●─────● ... ●",
+    "    5     5"
+  ],
+  "drawing_structure": {
+    "kind": "row",
+    "objects": [
+      {"id": "A", "label": "A"},
+      {"id": "B", "label": "B"}
+    ]
+  }
+}

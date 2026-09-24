@@ -1,0 +1,18 @@
+{
+  "purpose": "A timetable: a row for each train, lesson or event, labelled A, B and so on, with a time in each cell; the question says what the columns mean, such as when each one starts and when it ends. Write each time over its ##:##, right-aligned, and ??:?? where the question asks for the time. Add a row for each further event.",
+  "topics": ["time.clocks", "time.calendar"],
+  "drawing": [
+    "┌───┬───────┬───────┐",
+    "│ A │ ##:## │ ##:## │",
+    "├───┼───────┼───────┤",
+    "│ B │ ##:## │ ##:## │",
+    "└───┴───────┴───────┘"
+  ],
+  "drawing_structure": {
+    "kind": "timetable",
+    "objects": [
+      {"id": "A", "label": "A"},
+      {"id": "B", "label": "B"}
+    ]
+  }
+}

@@ -346,8 +346,13 @@ func (c exampleCheck) checkDrawing(p *problems, where string, task *Example) {
 	case !hasStructure:
 		return
 	}
+	checkDrawingStructure(p, where, task.DrawingStructure)
+}
 
-	structure := task.DrawingStructure
+// checkDrawingStructure checks that a drawing's structure can be read as data:
+// it says what is drawn, names at least one object, gives every object an id
+// and a label, and relates only objects it names.
+func checkDrawingStructure(p *problems, where string, structure *DrawingStructure) {
 	if structure.Kind == "" {
 		p.addf("%s: the drawing structure does not say what is drawn", where)
 	}
@@ -408,17 +413,25 @@ func (e *Example) clone() Example {
 	copied := *e
 	copied.Options = maps.Clone(e.Options)
 	copied.Distractors = maps.Clone(e.Distractors)
-	if e.DrawingStructure != nil {
-		structure := *e.DrawingStructure
-		structure.Objects = slices.Clone(structure.Objects)
-		for i, object := range structure.Objects {
-			if object.Value != nil {
-				value := *object.Value
-				structure.Objects[i].Value = &value
-			}
-		}
-		structure.Relations = slices.Clone(structure.Relations)
-		copied.DrawingStructure = &structure
-	}
+	copied.DrawingStructure = e.DrawingStructure.clone()
 	return copied
+}
+
+// clone copies a drawing's structure together with its objects, their values
+// and its relations, so that nothing in the copy reaches back into the content
+// it came from. A structure that is not there copies as none.
+func (s *DrawingStructure) clone() *DrawingStructure {
+	if s == nil {
+		return nil
+	}
+	copied := *s
+	copied.Objects = slices.Clone(s.Objects)
+	for i, object := range copied.Objects {
+		if object.Value != nil {
+			value := *object.Value
+			copied.Objects[i].Value = &value
+		}
+	}
+	copied.Relations = slices.Clone(s.Relations)
+	return &copied
 }

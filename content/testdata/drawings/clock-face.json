@@ -1,0 +1,19 @@
+{
+  "from": "clk-12-d1-1",
+  "drawing": [
+    "        12",
+    "    11   M   1",
+    "  10     │     2",
+    " 9       ●       3",
+    "  8       ╲     4",
+    "    7      H  5",
+    "         6"
+  ],
+  "drawing_structure": {
+    "kind": "clock",
+    "objects": [
+      {"id": "H", "label": "H", "value": 4},
+      {"id": "M", "label": "M", "value": 12}
+    ]
+  }
+}

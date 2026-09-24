@@ -104,7 +104,7 @@ func loadTopicTemplates(src fs.FS, p *problems, topic string, topicOf map[string
 	for _, entry := range entries {
 		where := topic + "/" + entry.Name()
 		name, named := strings.CutSuffix(entry.Name(), solverSuffix)
-		if entry.IsDir() || !named || !exampleIDPattern.MatchString(name) {
+		if entry.IsDir() || !named || !fileNamePattern.MatchString(name) {
 			p.addf("%s: a template is a file named in lowercase words joined by dashes, ending in %s",
 				where, solverSuffix)
 			continue

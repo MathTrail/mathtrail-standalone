@@ -53,9 +53,9 @@ type Request struct {
 
 // Package is everything the model is handed to write one task from, as the
 // JSON it receives: the brief, the corridor, the topic, every trap, what the
-// task may not use, the child, three reference tasks, the solver templates of
-// the topic, the limits it is held to, the page on how to write it and the
-// version of what it is told.
+// task may not use, the child, three reference tasks, the solver templates and
+// the drawing frames of the topic, the limits it is held to, the page on how
+// to write it and the version of what it is told.
 //
 // There is no pseudonym in it, because the request has none to give: a task
 // has no use for the child's name, and the package is the one place it is easy
@@ -89,6 +89,7 @@ type packageContents struct {
 	Child               packageChild     `json:"child"`
 	Examples            []packageExample `json:"examples"`
 	Templates           []string         `json:"solver_templates"`
+	Frames              []packageFrame   `json:"drawing_frames"`
 	Limits              packageLimits    `json:"limits"`
 	Guide               string           `json:"guide"`
 	InstructionsVersion string           `json:"instructions_version"`
@@ -134,6 +135,14 @@ type packageExample struct {
 	Distractors      map[string]Distractor `json:"distractors"`
 }
 
+// packageFrame is a drawing frame as the model is shown it: what it is for and
+// how it is filled, the drawing, and the structure that describes it.
+type packageFrame struct {
+	Purpose   string            `json:"purpose"`
+	Drawing   string            `json:"drawing"`
+	Structure *DrawingStructure `json:"drawing_structure"`
+}
+
 // packageLimits are what the task is held to when it is handed in.
 type packageLimits struct {
 	SentenceWords      int           `json:"sentence_words"`
@@ -177,6 +186,7 @@ func (c *Content) contentsFor(request *Request) (packageContents, error) {
 			Drawing:            drawingLimits{Width: drawn.Width, Height: drawn.Height, SpaceRun: drawn.SpaceRun},
 		},
 		Templates:           c.templatePrograms(topic.ID),
+		Frames:              c.framesFor(topic.ID),
 		Guide:               c.instructions[guideName],
 		InstructionsVersion: c.instructionsVersion,
 	}

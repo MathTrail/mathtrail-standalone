@@ -1,7 +1,8 @@
 // Package content holds everything the service ships that is not code: the
 // closed catalogs of topics, traps and skills, the reference tasks the model is
-// shown, the sample solvers it starts its own from, the JSON schemas of what it
-// has to hand back, and the instructions it works from.
+// shown, the sample solvers it starts its own from, the frames its drawings
+// start from, the JSON schemas of what it has to hand back, and the
+// instructions it works from.
 //
 // All of it is compiled into the binary, so a running service cannot drift from
 // the content it was built with, and Load checks the whole set once at startup.
@@ -16,11 +17,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
+	"regexp"
 	"slices"
 	"strings"
 )
 
-//go:embed catalogs examples instructions schemas solvers
+//go:embed catalogs drawings examples instructions schemas solvers
 var files embed.FS
 
 // Content is the checked content of the binary. Nothing in it changes after
@@ -33,6 +35,7 @@ type Content struct {
 	skills    []Skill
 	examples  []Example
 	templates map[string][]Template
+	frames    []Frame
 
 	topicByID map[string]Topic
 	trapByID  map[string]Trap
@@ -80,6 +83,10 @@ func load(src fs.FS) (*Content, error) {
 	if c.templates, err = loadTemplates(src, c.topicByID, c.examples); err != nil {
 		return nil, err
 	}
+	var frameFiles []instructionFile
+	if c.frames, frameFiles, err = loadFrames(src, c.topicByID); err != nil {
+		return nil, err
+	}
 	if c.schemas, err = loadSchemas(src); err != nil {
 		return nil, err
 	}
@@ -92,7 +99,7 @@ func load(src fs.FS) (*Content, error) {
 	for _, file := range instructions {
 		c.instructions[file.name] = file.text
 	}
-	c.instructionsVersion = instructionsVersion(slices.Concat(instructions, versioned(c.templates)))
+	c.instructionsVersion = instructionsVersion(slices.Concat(instructions, versioned(c.templates), frameFiles))
 
 	return c, nil
 }
@@ -268,11 +275,17 @@ func (c *Content) Instruction(name string) (string, bool) {
 }
 
 // InstructionsVersion identifies what this binary tells the model about
-// writing a task: the instructions, and the solver templates it is shown
-// beside them. Every log line about a generated task holds it, so that months
-// later it is still clear which wording, and which sample program, produced
-// which task.
+// writing a task: the instructions, and the solver templates and drawing
+// frames it is shown beside them. Every log line about a generated task holds
+// it, so that months later it is still clear which wording, which sample
+// program and which frame produced which task.
 func (c *Content) InstructionsVersion() string { return c.instructionsVersion }
+
+// fileNamePattern is how a solver template or a drawing frame is named:
+// lowercase words and numbers joined by dashes, as in round-table or grid-3x3.
+// It reads like the id of a reference task and is a rule of its own all the
+// same, so that either can change without the other.
+var fileNamePattern = regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*$`)
 
 // index keys entries by their id, for the lookups the checks and the package
 // builder do far more often than they iterate.
@@ -292,6 +305,11 @@ func decode(src fs.FS, name string, target any) error {
 	if err != nil {
 		return fmt.Errorf("content: read %s: %w", name, err)
 	}
+	return decodeBytes(name, raw, target)
+}
+
+// decodeBytes reads a file already in hand, by the same strict rules.
+func decodeBytes(name string, raw []byte, target any) error {
 	dec := json.NewDecoder(bytes.NewReader(raw))
 	dec.DisallowUnknownFields()
 	if err := dec.Decode(target); err != nil {

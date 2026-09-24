@@ -1,0 +1,22 @@
+{
+  "purpose": "Containers A, B and C, such as a bucket and two jugs. Write how much each holds now over the ## inside it, and how much it can hold over the ## under it. Leave out a container the task does not have, or add another alongside.",
+  "topics": ["algorithms.weighing_pouring"],
+  "drawing": [
+    "  A       B       C",
+    "│   │   │   │   │   │",
+    "│## │   │## │   │## │",
+    "└───┘   └───┘   └───┘",
+    " ##      ##      ##"
+  ],
+  "drawing_structure": {
+    "kind": "pouring",
+    "objects": [
+      {"id": "A", "label": "A"},
+      {"id": "B", "label": "B"},
+      {"id": "C", "label": "C"}
+    ],
+    "relations": [
+      {"type": "pours_into", "from": "A", "to": "B"}
+    ]
+  }
+}
