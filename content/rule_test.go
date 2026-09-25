@@ -134,6 +134,7 @@ func TestANewChildOfGradesFiveAndSixIsGivenTheTopicsOwnTraps(t *testing.T) {
 		"logic.knights_liars":       {"trusted_statement", "ignored_condition"},
 		"combinatorics.enumeration": {"ignored_condition", "missed_case"},
 		"counting.gaps":             {"off_by_one", "wrong_operation"},
+		"time.clocks":               {"ignored_condition", "stopped_early"},
 	}
 	for _, topic := range c.Topics() {
 		want, isPinned := pinned[topic.ID]
