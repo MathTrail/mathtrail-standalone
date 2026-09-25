@@ -1,6 +1,7 @@
 package tutor
 
 import (
+	"cmp"
 	"slices"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
@@ -12,14 +13,33 @@ import (
 //
 // A child who has never met the topic has no mistakes of their own yet, and
 // the task still needs wrong options worth offering — that is what the second
-// source is for.
+// source is for, the reference tasks of the child's own grade first and then
+// of the grades nearest it, until there are enough. A topic with no reference
+// tasks anywhere takes the catalog's first traps, because a brief that names
+// none is one the model hands back and the checks refuse.
 func traps(p *profile.Profile, topic string, catalog Catalog) []string {
 	chosen := ownTraps(p, topic, catalog)
 	if len(chosen) > Traps {
 		chosen = chosen[:Traps]
 	}
 
-	for _, trap := range catalog.ExampleTraps(topic, p.Student.Grade) {
+	for _, grade := range gradesNearest(p.Student.Grade) {
+		if len(chosen) == Traps {
+			return chosen
+		}
+		chosen = topUp(chosen, catalog.ExampleTraps(topic, grade))
+	}
+	if len(chosen) == 0 {
+		ids := catalog.TrapIDs()
+		chosen = ids[:min(Traps, len(ids))]
+	}
+	return chosen
+}
+
+// topUp adds the traps chosen does not name yet, in their order, while a brief
+// has room for them.
+func topUp(chosen, more []string) []string {
+	for _, trap := range more {
 		if len(chosen) == Traps {
 			break
 		}
@@ -29,6 +49,19 @@ func traps(p *profile.Profile, topic string, catalog Catalog) []string {
 	}
 	return chosen
 }
+
+// gradesNearest is a grade and then the grades on either side of it, the
+// nearest first.
+func gradesNearest(grade int) []int {
+	grades := []int{grade}
+	for distance := 1; distance < maxGradeDistance; distance++ {
+		grades = append(grades, grade-distance, grade+distance)
+	}
+	return grades
+}
+
+// maxGradeDistance is further than any two school years are apart.
+const maxGradeDistance = 12
 
 // ownTraps are the traps this child has fallen for in this topic, the most
 // frequent first.
@@ -51,6 +84,6 @@ func ownTraps(p *profile.Profile, topic string, catalog Catalog) []string {
 			ordered = append(ordered, trap)
 		}
 	}
-	slices.SortStableFunc(ordered, func(a, b string) int { return counts[b] - counts[a] })
+	slices.SortStableFunc(ordered, func(a, b string) int { return cmp.Compare(counts[b], counts[a]) })
 	return ordered
 }

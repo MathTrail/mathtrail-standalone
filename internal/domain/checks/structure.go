@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
 
 // Catalog is what the structure check has to know about the catalogs the
@@ -24,6 +25,8 @@ type Catalog interface {
 // Structure checks a draft against the format and against the brief the open
 // request was opened with: the task is the one that was asked for, the ids it
 // names exist, and nothing the child's profile excludes was quietly dropped.
+// The brief of the request, asked, is never nil: it is what the brief handed
+// back is held against.
 //
 // A part the draft could not read is not checked; Decode has already said why.
 func Structure(draft Draft, asked *profile.Brief, catalog Catalog) []Problem {
@@ -64,8 +67,9 @@ func checkBrief(brief, asked *profile.Brief, catalog Catalog) []Problem {
 	}
 
 	switch {
-	case brief.Difficulty < 1 || brief.Difficulty > 5:
-		problems = append(problems, structural("brief.difficulty must be a whole number from 1 to 5"))
+	case brief.Difficulty < profile.MinDifficulty || brief.Difficulty > profile.MaxDifficulty:
+		problems = append(problems, structural("brief.difficulty must be a whole number from %d to %d",
+			profile.MinDifficulty, profile.MaxDifficulty))
 	case brief.Difficulty != asked.Difficulty:
 		problems = append(problems, structural("brief.difficulty is not the difficulty this task was asked for; "+
 			"a different difficulty is chosen when asking for the task, not when handing it in"))
@@ -97,7 +101,7 @@ func checkBrief(brief, asked *profile.Brief, catalog Catalog) []Problem {
 		problems = append(problems, structural("brief.constraints is missing; an empty list says there are none"))
 	}
 	for i, constraint := range brief.Constraints {
-		if strings.TrimSpace(constraint) == "" {
+		if solver.Blank(constraint) {
 			problems = append(problems, structural("brief.constraints.%d is empty", i))
 		}
 	}
@@ -138,8 +142,9 @@ func checkTask(task *Task, catalog Catalog) []Problem {
 }
 
 // checkOptions checks that the child is offered five answers they can tell
-// apart, with exactly one of them marked correct. Two options that differ only
-// in spaces or letter case read the same to a child.
+// apart, with exactly one of them marked correct. Two options are one answer
+// when the solver would take them for one, which is also when a child reads
+// them as one.
 func checkOptions(task *Task) []Problem {
 	var problems []Problem
 	if !sameKeys(task.Options, optionKeys) {
@@ -147,27 +152,29 @@ func checkOptions(task *Task) []Problem {
 			"under the five keys of the format"))
 	}
 
-	texts := make(map[string]bool, len(task.Options))
+	said := make(map[string]bool, len(task.Options))
 	var empty, repeated int
 	for _, text := range task.Options {
-		folded := strings.ToLower(strings.TrimSpace(text))
+		key := solver.Key(text)
 		switch {
-		case folded == "":
+		case solver.Blank(text):
 			empty++
-		case texts[folded]:
+		case said[key]:
 			repeated++
 		}
-		texts[folded] = true
+		said[key] = true
 	}
 	if empty > 0 {
 		problems = append(problems, structural("task.options has %s", several(empty, "an empty option", "empty options")))
 	}
 	if repeated > 0 {
-		problems = append(problems, structural("task.options has %s once spaces and letter case are ignored",
-			several(repeated, "an option that reads the same as another", "options that read the same as others")))
+		problems = append(problems, structural("task.options has %s: the same number, or the same words once "+
+			"letter case, the width of the gaps between them, the width of the characters themselves and "+
+			"characters that take no room are set aside",
+			several(repeated, "an option that says the same as another", "options that say the same as others")))
 	}
 
-	if !slices.Contains(optionKeys, task.CorrectAnswer) {
+	if solver.Place(task.CorrectAnswer) < 0 {
 		problems = append(problems, structural("task.correct_answer must be one of the five option keys"))
 	}
 	return problems
@@ -181,7 +188,7 @@ func checkDistractors(task *Task, catalog Catalog) []Problem {
 	switch {
 	case task.Distractors == nil:
 		problems = append(problems, structural("task.distractors is missing"))
-	case !slices.Contains(optionKeys, task.CorrectAnswer):
+	case solver.Place(task.CorrectAnswer) < 0:
 		// Which options are the wrong ones is not known; the correct answer's
 		// own refusal comes first.
 	case !sameKeys(task.Distractors, wrongKeys(task.CorrectAnswer)):
@@ -195,7 +202,7 @@ func checkDistractors(task *Task, catalog Catalog) []Problem {
 	var untold, unnamed int
 	unknown := map[string]bool{}
 	for _, distractor := range task.Distractors {
-		if strings.TrimSpace(distractor.Text) == "" {
+		if solver.Blank(distractor.Text) {
 			untold++
 		}
 		switch {
@@ -278,7 +285,7 @@ func checkSelfCheck(check *SelfCheck) []Problem {
 			problems = append(problems, structural("self_check.issues.%d has severity %q, and the format's are %s",
 				i, issue.Severity, strings.Join(severities, " and ")))
 		}
-		if strings.TrimSpace(issue.Comment) == "" {
+		if solver.Blank(issue.Comment) {
 			problems = append(problems, structural("self_check.issues.%d has no comment", i))
 		}
 	}
@@ -289,7 +296,7 @@ func checkSelfCheck(check *SelfCheck) []Problem {
 	}
 	empty := 0
 	for _, reason := range check.OptionCheck {
-		if strings.TrimSpace(reason) == "" {
+		if solver.Blank(reason) {
 			empty++
 		}
 	}
@@ -297,7 +304,7 @@ func checkSelfCheck(check *SelfCheck) []Problem {
 		problems = append(problems, structural("self_check.option_check has %s", several(empty, "an empty entry", "empty entries")))
 	}
 
-	if !slices.Contains(optionKeys, check.FinalAnswer) && check.FinalAnswer != unsolvable {
+	if solver.Place(check.FinalAnswer) < 0 && check.FinalAnswer != unsolvable {
 		problems = append(problems, structural("self_check.final_answer must be one of the five option keys, or %s",
 			unsolvable))
 	}
@@ -306,7 +313,7 @@ func checkSelfCheck(check *SelfCheck) []Problem {
 
 // required reports a text the format requires and the draft left empty.
 func required(field, text string) []Problem {
-	if strings.TrimSpace(text) == "" {
+	if solver.Blank(text) {
 		return []Problem{structural("%s is missing or empty", field)}
 	}
 	return nil

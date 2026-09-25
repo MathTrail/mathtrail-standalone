@@ -126,7 +126,10 @@ func FuzzReview(f *testing.F) {
 		if err != nil {
 			t.Fatalf("Examine() error = %v with a sandbox that never fails", err)
 		}
-		outcome := reviewer.Judge(examined, checks.Against{Asked: asked(), Language: language, Grade: grade})
+		outcome, err := reviewer.Judge(examined, checks.Against{Asked: asked(), Language: language, Grade: grade})
+		if err != nil {
+			t.Fatalf("Judge() error = %v for what Examine returned, against an open request", err)
+		}
 		keepsItsRules(t, &outcome)
 	})
 }

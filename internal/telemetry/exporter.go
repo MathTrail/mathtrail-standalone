@@ -62,7 +62,6 @@ func newTraceExporter(ctx context.Context, settings *Settings, client *http.Clie
 		otlptracehttp.WithEndpointURL(endpoint),
 		otlptracehttp.WithHTTPClient(client),
 		otlptracehttp.WithHeaders(map[string]string{quotaProjectHeader: settings.ProjectID}),
-		otlptracehttp.WithTimeout(exportTimeout),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("telemetry: trace exporter: %w", err)
@@ -78,7 +77,6 @@ func newMetricReader(ctx context.Context, settings *Settings, client *http.Clien
 		otlpmetrichttp.WithEndpointURL(endpoint),
 		otlpmetrichttp.WithHTTPClient(client),
 		otlpmetrichttp.WithHeaders(map[string]string{quotaProjectHeader: settings.ProjectID}),
-		otlpmetrichttp.WithTimeout(exportTimeout),
 		otlpmetrichttp.WithTemporalitySelector(deltaTemporality),
 	)
 	if err != nil {
@@ -90,25 +88,10 @@ func newMetricReader(ctx context.Context, settings *Settings, client *http.Clien
 	), nil
 }
 
-// endpoints are the two addresses the signals are posted to, read out of the
-// collector's root once — because it is one address, and checking it twice
-// leaves the second check unable to fail and unable to be tested.
-//
-// The check matters more than it looks: handed something it cannot parse, the
-// exporter keeps its own default of localhost and says nothing at all, so a
-// mistyped address becomes spans that leave the process and arrive nowhere,
-// with no line anywhere to explain it.
-func endpoints(root string) (traces, metrics string, err error) {
-	parsed, err := url.Parse(root)
-	switch {
-	case err != nil:
-		return "", "", fmt.Errorf("telemetry: endpoint %q is not a URL: %w", root, err)
-	case parsed.Scheme != "http" && parsed.Scheme != "https":
-		return "", "", fmt.Errorf("telemetry: endpoint %q must be http or https", root)
-	case parsed.Host == "":
-		return "", "", fmt.Errorf("telemetry: endpoint %q has no host", root)
-	}
-	return parsed.JoinPath(tracePath).String(), parsed.JoinPath(metricPath).String(), nil
+// endpoints are the two addresses the signals are posted to, each under the
+// collector's root.
+func endpoints(root *url.URL) (traces, metrics string) {
+	return root.JoinPath(tracePath).String(), root.JoinPath(metricPath).String()
 }
 
 // deltaTemporality asks each delivery to carry what changed since the last one

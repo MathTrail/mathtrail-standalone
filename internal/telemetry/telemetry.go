@@ -6,11 +6,11 @@
 // which call happened inside which request, and how long each part of it took.
 //
 // Two facts about the runtime decide most of the design. The platform traces
-// incoming requests itself and puts a sampling decision in the request, so our
-// spans join that trace rather than starting one; and it takes the processor
-// away once a response has been returned, so anything still held in memory
-// after that may never be sent. Hence a parent-based sampler and a delivery
-// that happens while the request is still being answered.
+// incoming requests itself and says so in the request, so our spans join that
+// trace rather than starting one; and it takes the processor away once a
+// response has been returned, so anything still held in memory after that may
+// never be sent. Hence spans that join the trace a request arrived in, and a
+// delivery that happens while the request is still being answered.
 //
 // The providers are built whether or not anything is exported. Instrumented
 // code is written once and asks no questions: off a deployment the same spans
@@ -32,6 +32,8 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/telemetry/collector"
 )
 
 const (
@@ -52,8 +54,11 @@ const (
 	// does not change fast enough to be worth more of them.
 	MetricInterval = time.Minute
 
-	// exportTimeout bounds one attempt to deliver a batch in the background,
-	// where no request is waiting and only the next attempt is delayed.
+	// exportTimeout bounds a delivery made in the background, retries and
+	// all, where no request is waiting and only the next delivery is delayed.
+	// The processors that make the deliveries carry it: the exporters' own
+	// timeout applies only to a client they build themselves, and they are
+	// handed one.
 	exportTimeout = 5 * time.Second
 )
 
@@ -64,11 +69,12 @@ type Settings struct {
 	Enabled bool
 
 	// Endpoint is the root URL of the collector. Each signal's own path is
-	// appended to it, so it carries a scheme and a host and nothing else.
+	// appended to it, so it carries a scheme, a host and at most a path to put
+	// them under, as collector.Root holds it to.
 	Endpoint string
 
-	// SampleRatio is the share of traces kept when a request arrives with no
-	// sampling decision of its own. A request that carries one is obeyed.
+	// SampleRatio is the share of traces kept, whatever decision a request
+	// arrives with.
 	SampleRatio float64
 
 	// ProjectID names the Google Cloud project the data belongs to. It travels
@@ -115,11 +121,9 @@ func New(ctx context.Context, settings *Settings, log *zap.Logger) (*Telemetry, 
 		// them is still a service.
 		log.Warn("telemetry export unavailable", zap.Error(err))
 	}
-	exporting := client != nil
 
-	res := newResource(ctx, exporting, settings, log)
-
-	if !exporting {
+	if client == nil {
+		res := newResource(ctx, false, settings, log)
 		log.Info("telemetry built", zap.Bool("export", false))
 		return &Telemetry{
 			traces: sdktrace.NewTracerProvider(
@@ -133,10 +137,19 @@ func New(ctx context.Context, settings *Settings, log *zap.Logger) (*Telemetry, 
 		}, nil
 	}
 
-	traceEndpoint, metricEndpoint, err := endpoints(settings.Endpoint)
+	// The address before the platform: it is checked without leaving the
+	// process, and a start that is going to fail on it should not first wait
+	// for the platform to describe itself. And it is checked at all because,
+	// handed something it cannot parse, the exporter keeps its own default of
+	// localhost and says nothing, so a mistyped address would become spans that
+	// leave the process and arrive nowhere.
+	root, err := collector.Root(settings.Endpoint)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("telemetry: read the collector's address: %w", err)
 	}
+	traceEndpoint, metricEndpoint := endpoints(root)
+	res := newResource(ctx, true, settings, log)
+
 	traceExporter, err := newTraceExporter(ctx, settings, client, traceEndpoint)
 	if err != nil {
 		return nil, err
@@ -155,14 +168,11 @@ func New(ctx context.Context, settings *Settings, log *zap.Logger) (*Telemetry, 
 		enabled: true,
 		traces: sdktrace.NewTracerProvider(
 			sdktrace.WithResource(res),
-			// Parent-based, because the platform in front of this process has
-			// already decided for every request that reached it; the ratio is
-			// the backstop for a request that arrived without a decision.
-			sdktrace.WithSampler(sdktrace.ParentBased(sdktrace.TraceIDRatioBased(settings.SampleRatio))),
+			sdktrace.WithSampler(sampler(settings.SampleRatio)),
 			// Before the batcher, so that nothing forbidden is ever queued for
 			// sending rather than removed on the way out.
 			sdktrace.WithSpanProcessor(Redactor()),
-			sdktrace.WithBatcher(traceExporter, sdktrace.WithExportTimeout(exportTimeout)),
+			sdktrace.WithBatcher(withoutStatusText(traceExporter), sdktrace.WithExportTimeout(exportTimeout)),
 		),
 		metrics: sdkmetric.NewMeterProvider(
 			sdkmetric.WithResource(res),
@@ -197,14 +207,22 @@ func (t *Telemetry) MeterProvider() metric.MeterProvider { return t.metrics }
 
 // ForceFlush delivers what is held in memory, now. It is meant to be called
 // while a request is still being answered, because after that the processor
-// may be gone.
+// may be gone — and by every request, because a request is the only time a
+// deployed instance has a processor at all.
 //
-// Spans are always offered, because a request that has just finished is
-// exactly what is waiting to be sent. Measurements are offered only once an
-// interval has passed: every delivery costs bytes whether or not anything
-// changed.
-func (t *Telemetry) ForceFlush(ctx context.Context) error {
+// Spans are sent when the request asking kept its trace: a request that has
+// just finished is exactly what is waiting to be sent, and one that kept none
+// would only wait behind another's delivery. Measurements are sent once an
+// interval has passed, whichever request asks: they belong to no one request,
+// and waiting for one whose trace was kept would leave a quiet instance's
+// numbers in memory for hours. Every delivery costs bytes whether or not
+// anything changed, which is what the interval is for.
+func (t *Telemetry) ForceFlush(ctx context.Context, spans bool) error {
 	if !t.enabled {
+		return nil
+	}
+	measurements := t.metricsDue(time.Now())
+	if !spans && !measurements {
 		return nil
 	}
 
@@ -214,11 +232,21 @@ func (t *Telemetry) ForceFlush(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, FlushTimeout)
 	defer cancel()
 
-	err := from("traces", t.traces.ForceFlush(ctx))
-	if t.metricsDue(time.Now()) {
-		err = errors.Join(err, from("metrics", t.metrics.ForceFlush(ctx)))
+	// Side by side rather than one after the other, so that each has the
+	// whole deadline. The first delivery of a new instance spends most of it
+	// on the connection, and measurements queued behind it would miss theirs
+	// — and a delivery that misses its deadline loses what it carried.
+	var measured, sent error
+	var delivering sync.WaitGroup
+	if measurements {
+		delivering.Go(func() { measured = from("metrics", t.metrics.ForceFlush(ctx)) })
 	}
-	if err != nil {
+	if spans {
+		sent = from("traces", t.traces.ForceFlush(ctx))
+	}
+	delivering.Wait()
+
+	if err := errors.Join(sent, measured); err != nil {
 		return fmt.Errorf("telemetry: flush: %w", err)
 	}
 	return nil
@@ -262,10 +290,15 @@ func (t *Telemetry) metricsDue(now time.Time) bool {
 	return true
 }
 
-// ErrorHandler sends what the SDK could not deliver to the service's own log,
-// as one line with a named cause. Without it a failed delivery is reported
-// through the standard library's logger, which writes a line no collector of
-// ours can read and no field of ours can be found in.
+// ErrorHandler sends what the SDK reports going wrong to the service's own
+// log, as one line with a named cause. Without it the report goes through the
+// standard library's logger, which writes a line no collector of ours can read
+// and no field of ours can be found in.
+//
+// Most of what arrives is a delivery that failed, but not all of it: the SDK
+// reports a resource it could not merge or a setting of its own it could not
+// read the same way. So the line is named for the telemetry rather than for
+// the delivery, and the cause says which it was.
 //
 // It is handed back rather than installed, because there is one such handler
 // for the whole binary: that makes it a setting of the process, and a
@@ -273,6 +306,21 @@ func (t *Telemetry) metricsDue(now time.Time) bool {
 // same binary reports.
 func ErrorHandler(log *zap.Logger) otel.ErrorHandler {
 	return otel.ErrorHandlerFunc(func(err error) {
-		log.Error("telemetry_export_failed", zap.Error(err))
+		log.Error("telemetry_failed", zap.Error(err))
 	})
+}
+
+// sampler keeps a trace at the configured share, whatever the request it
+// arrived in says about it. That decision is not the platform's alone: a
+// client sets it in the header too, and one asking for every request to be
+// traced would be choosing what this service spends on traces and how long
+// its callers wait for deliveries. A span of our own follows its parent, so a
+// trace is kept or dropped whole, and the share is read off the trace's own
+// identifier, so every process a trace passes through decides it alike.
+func sampler(ratio float64) sdktrace.Sampler {
+	share := sdktrace.TraceIDRatioBased(ratio)
+	return sdktrace.ParentBased(share,
+		sdktrace.WithRemoteParentSampled(share),
+		sdktrace.WithRemoteParentNotSampled(share),
+	)
 }

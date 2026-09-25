@@ -42,7 +42,7 @@ Technical shape:
 - `docs/architecture/` — Mermaid diagrams (phase 1). `docs/live/` — reports of live runs in real chat hosts.
 - [docs/prototype/](docs/prototype/README.md) — frozen copies of the prototype SPEC, its decision log D01–D45 and research. Prototype decisions are cited as "D43 of the prototype".
 - `prototype/` — a full local copy of the prototype repository (code, data, schemas, prompts, tests, diagrams); see "Reference copies" below.
-- `research/` — the research program for two papers: its plan [research/RUN.md](research/RUN.md) (tasks S00–S76, in Russian), evidence, literature, experiments and paper sources, and a Go module of its own. It never changes the product's code or behaviour; it touches the repository's tooling only where its plan says so.
+- `research/` — the research program for a paper about the product: its plan [research/RUN.md](research/RUN.md) (tasks S00–S66, in Russian), evidence, literature, experiments and paper sources, and a Go module of its own. It never changes the product's code or behaviour; it touches the repository's tooling only where its plan says so.
 
 Project context lives in these files, not in chat history.
 
@@ -50,7 +50,7 @@ Project context lives in these files, not in chat history.
 
 - The author runs tasks one at a time: «Выполни задачу Txx из RUN.md». Do only that task; do not touch files that belong to other tasks unless the task says so.
 - Before starting, read the RUN.md task and the PRODUCT-V1 / SPEC sections it cites. If the task contradicts them or something is missing, stop and ask. Do not silently fill gaps; record them as open questions (PRODUCT-V1 12.2, next free О-number) or in the "Замечания" section of the document being written.
-- Research tasks (S00–S76) are run, checked and marked in `research/RUN.md`, under that file's rules; the bullets here that name RUN.md mean the product's plan. They have an autonomous mode, which the author turns on and off in that file. While it is on, they run one after another without waiting for review, and their checks and reviews follow that file. A gap or contradiction there does not stop the work: the executor resolves it, records the decision with its reason, and leaves for the author only the questions that file lists as critical.
+- Research tasks (S00–S66) are run, checked and marked in `research/RUN.md`, under that file's rules; the bullets here that name RUN.md mean the product's plan. They have an autonomous mode, which the author turns on and off in that file. While it is on, they run one after another without waiting for review, and their checks and reviews follow that file. A gap or contradiction there does not stop the work: the executor resolves it, records the decision with its reason, and leaves for the author only the questions that file lists as critical.
 - Before calling any change done — code, config, docs or content — run `/code-review high` on it. Skip it only when the author asks, for that change alone, and say in the report that it did not run.
   - Run it once the change is written and its checks — `just ci-lint`, `just ci-test`, whatever else the task names — are green.
   - It reads the working tree plus the branch's commits — those not yet pushed, or all since `main` without an upstream — but not untracked files. Mark new files with `git add -N` for the review and unmark them with `git reset -- <file>` afterwards: the mark makes `git stash` fail. Pass no path — a path is reviewed instead of the diff, not beside it.
@@ -80,6 +80,7 @@ Project context lives in these files, not in chat history.
   no checksum verification.
 - **Language: English everywhere.** Code, every comment in code and config files (Go, TS, SQL, YAML, HCL, Dockerfile, justfile, `.env.example`, …), model instructions and content in `content/`, locale keys, and every project document — PRODUCT-V1, SPEC, everything under `docs/`, `CLAUDE.md` and `README.md`.
   - RUN.md and research/RUN.md are in Russian: they are the author's working plans of the tasks.
+  - The paper draft under `research/` has a Russian copy beside it, `draft.ru.md`, for the author to read. The English file is the source and the one a venue receives; the copy follows it in the same change.
   - Reports to the author in chat are in Russian.
   - The frozen prototype copies under `docs/prototype/` stay in Russian as they were written: they are a historical record, cited but never rewritten.
   - Tasks for the child are written by the chat's model in the chat language.
@@ -101,8 +102,10 @@ Checked against `reference/mentor-api/`, the platform's reference service. Where
 cmd/server/main.go
 cmd/sitegen/ sitecheck/   the public site: renders it, and refuses a broken one
 internal/
+  apierror/       the shape of an HTTP error answer, as the platform's other services have it
   app/            DI container, HTTP server
   config/ logger/ version/
+  telemetry/      traces and metrics: their providers, their export, what they may carry
   domain/         pure logic — no I/O, no SDKs, no transport
     rating/ tutor/ checks/ solver/ profile/
   infra/          everything that talks to the outside world

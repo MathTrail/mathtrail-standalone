@@ -1,6 +1,7 @@
 package starlark
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -49,7 +50,7 @@ func vocabulary(steps uint64) (starlark.StringDict, error) {
 		"weekday":                       starlark.NewBuiltin("weekday", weekday),
 		"add_days":                      starlark.NewBuiltin("add_days", addDays),
 		"days_between":                  starlark.NewBuiltin("days_between", daysBetween),
-		"match":                         starlark.NewBuiltin("match", match),
+		"match":                         match(steps),
 	}
 	for _, name := range walkers {
 		capped, err := bounded(name, steps)
@@ -128,6 +129,21 @@ func lengthOf(value starlark.Value) (int, error) {
 	return 0, nil
 }
 
+// runContext is where a run keeps its own context on the thread it runs on.
+const runContext = "run context"
+
+// clockOf is the context of the run a thread belongs to, which says when the
+// run has been told to stop. The interpreter asks only between its own
+// instructions, so a helper that works for long inside one of them asks it as
+// it goes, and is no harder to stop than the loop it stands for. A thread no
+// run belongs to is never stopped.
+func clockOf(thread *starlark.Thread) context.Context {
+	if ctx, isContext := thread.Local(runContext).(context.Context); isContext {
+		return ctx
+	}
+	return context.Background()
+}
+
 // errTooManySteps stops a built-in whose work the budget cannot pay for. The
 // model never reads it: what tripped is worked out from the budget itself, and
 // the sentence the model gets is written there.
@@ -149,16 +165,18 @@ var errTooManySteps = errors.New("too many steps")
 // how many values sit inside each element, and it is what the budget is
 // charged for, because a hundred thousand tuples of twenty is two million
 // values allocated and the length of the list says nothing about it. A flat
-// sequence has a width of one.
+// sequence has a width of one. Both ceilings hold even when nothing will be
+// built, because a caller may lay out room for a tuple before it learns that
+// there is none to fill.
 func charge(thread *starlark.Thread, steps uint64, count, width int) error {
-	if count <= 0 || width <= 0 {
-		return nil
-	}
 	if count > maxElements {
 		return fmt.Errorf("%d elements, and %d is the most that will be walked at once", count, maxElements)
 	}
 	if width > maxElements {
 		return fmt.Errorf("a tuple of %d values, and %d is the most that will be walked at once", width, maxElements)
+	}
+	if count <= 0 || width <= 0 {
+		return nil
 	}
 	thread.Steps += uint64(count) * uint64(width)
 	if thread.Steps >= steps {
@@ -205,35 +223,62 @@ func elementsOf(thread *starlark.Thread, steps uint64, name string, value starla
 // options say which letter that is. A solver that writes the letter itself
 // passes the first run of a program and fails the second.
 //
-// It is the one thing here that walks nothing: five options and five
-// comparisons cost the budget less than the call that reaches them.
-func match(_ *starlark.Thread, _ *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
-	var given, value starlark.Value
-	if err := starlark.UnpackPositionalArgs("match", args, kwargs, 2, &given, &value); err != nil {
-		return nil, err
-	}
+// Matching folds every text it reads, which is work in proportion to the
+// text's length inside one call, and a solver builds a text of any length in
+// one step. So each text is paid for a step a byte before any of it is folded,
+// under the same ceiling as a sequence: a text that could stand on a card is
+// nowhere near it.
+func match(steps uint64) *starlark.Builtin {
+	return starlark.NewBuiltin("match", func(
+		thread *starlark.Thread, _ *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple,
+	) (starlark.Value, error) {
+		var given, value starlark.Value
+		if err := starlark.UnpackPositionalArgs("match", args, kwargs, 2, &given, &value); err != nil {
+			return nil, err
+		}
+		options, err := optionsIn(given)
+		if err != nil {
+			return nil, err
+		}
+		computed := textOf(value)
+		for _, text := range append([]string{computed}, options[:]...) {
+			// Refused in its own words before it is charged: a text is not a
+			// sequence to walk, and a model told it was would look for one.
+			if len(text) > maxElements {
+				return nil, fmt.Errorf("match: a text of %d bytes, and %d is the longest that will be compared", len(text), maxElements)
+			}
+			if err := charge(thread, steps, len(text), 1); err != nil {
+				return nil, fmt.Errorf("match: %w", err)
+			}
+		}
+
+		matched := options.Match(computed)
+		letters := make([]starlark.Value, len(matched))
+		for i, letter := range matched {
+			letters[i] = starlark.String(letter)
+		}
+		return starlark.NewList(letters), nil
+	})
+}
+
+// optionsIn reads the options back out of the dictionary a solver handed over,
+// which has to be the one it was given: every letter, each with its text.
+func optionsIn(given starlark.Value) (solver.Options, error) {
+	var options solver.Options
 	dict, isDict := given.(*starlark.Dict)
 	if !isDict {
-		return nil, fmt.Errorf("match takes the options it was given, not a %s", given.Type())
+		return options, fmt.Errorf("match takes the options it was given, not a %s", given.Type())
 	}
-
-	var options solver.Options
 	for place := range solver.Count {
 		letter := solver.Letter(place)
 		text, found, err := dict.Get(starlark.String(letter))
 		if err != nil {
-			return nil, fmt.Errorf("match: read option %s: %w", letter, err)
+			return options, fmt.Errorf("match: read option %s: %w", letter, err)
 		}
 		if !found {
-			return nil, fmt.Errorf("match takes the options it was given, and %s is not among these", letter)
+			return options, fmt.Errorf("match takes the options it was given, and %s is not among these", letter)
 		}
 		options[place] = textOf(text)
 	}
-
-	matched := options.Match(textOf(value))
-	letters := make([]starlark.Value, len(matched))
-	for i, letter := range matched {
-		letters[i] = starlark.String(letter)
-	}
-	return starlark.NewList(letters), nil
+	return options, nil
 }

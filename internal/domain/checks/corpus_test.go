@@ -56,7 +56,7 @@ func readCorpus(t *testing.T, levels ...string) corpus {
 	}
 	sets := make([]shingles, len(questions))
 	for i, question := range questions {
-		sets[i] = shinglesOf(question.Question)
+		sets[i] = shinglesOf(question.Question, unitFor(question.Question, ""))
 	}
 	pairs := make([]measuredPair, 0, len(questions)*(len(questions)-1)/2)
 	for a := range questions {
@@ -199,8 +199,8 @@ func checkNearest(t *testing.T, golden goldenCorpus, references corpus) {
 }
 
 // The profile keeps a sketch of each past task instead of its text, so a
-// repeat is judged on an estimate, and its 64 positions sample the measure
-// with an error of about 0.06. Measured over every pair of reference questions
+// repeat is judged on an estimate, and its 192 positions sample the measure
+// with an error of about 0.03. Measured over every pair of reference questions
 // of one level, the estimate has to stay inside that, and where it decides
 // differently from the exact measure it has to be a pair sitting on the
 // threshold anyway.
@@ -220,23 +220,23 @@ func TestTheSketchEstimatesTheMeasureWithinItsError(t *testing.T) {
 		if first.GradeLevel != second.GradeLevel {
 			continue
 		}
-		estimate := resemblance(sketches[pair.a], sketches[pair.b])
+		estimate := resemblance(&sketches[pair.a], &sketches[pair.b])
 		miss := estimate - pair.similarity
 		compared++
 		squares += miss * miss
 
-		if math.Abs(miss) > 0.3 {
+		if math.Abs(miss) > 0.15 {
 			t.Errorf("%s and %s are %.3f alike, and their sketches say %.3f",
 				first.ID, second.ID, pair.similarity, estimate)
 		}
 		if (estimate >= Threshold) != (pair.similarity >= Threshold) &&
-			math.Abs(pair.similarity-Threshold) > 0.15 {
+			math.Abs(pair.similarity-Threshold) > 0.1 {
 			t.Errorf("%s and %s are %.3f alike, and their sketches decide otherwise at %.3f",
 				first.ID, second.ID, pair.similarity, estimate)
 		}
 	}
-	if spread := math.Sqrt(squares / float64(compared)); spread > 0.06 {
-		t.Errorf("over %d pairs the sketches miss by %.4f on average, want at most 0.06", compared, spread)
+	if spread := math.Sqrt(squares / float64(compared)); spread > 0.035 {
+		t.Errorf("over %d pairs the sketches miss by %.4f on average, want at most 0.035", compared, spread)
 	}
 }
 

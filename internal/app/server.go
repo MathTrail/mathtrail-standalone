@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -13,9 +14,11 @@ import (
 
 // Server is the HTTP server and its graceful shutdown.
 type Server struct {
-	http            *http.Server
-	logger          *zap.Logger
-	shutdownTimeout time.Duration
+	http   *http.Server
+	logger *zap.Logger
+	// drainTimeout is how long a shutdown waits for the requests in flight:
+	// the server's share of the way out, not the whole of it.
+	drainTimeout time.Duration
 
 	// mu guards listener: Run binds it on one goroutine while Addr may be
 	// read from another, which is how a caller finds out which port the
@@ -27,8 +30,8 @@ type Server struct {
 // NewServer builds the server from a wired container.
 func NewServer(c *Container) *Server {
 	return &Server{
-		logger:          c.Logger,
-		shutdownTimeout: c.Config.ShutdownTimeout,
+		logger:       c.Logger,
+		drainTimeout: c.Config.DrainTimeout(),
 		http: &http.Server{
 			// Empty host, so the server listens on every interface. The
 			// configuration guarantees a bare port number, and JoinHostPort is
@@ -81,7 +84,10 @@ func (s *Server) Addr() string {
 //
 // It returns only once the goroutine it serves on has finished, so every line
 // Run itself logs is written by then. A request still being handled when the
-// shutdown deadline passes is cut off rather than waited for.
+// drain's share of the way out is spent is cut off rather than waited for, and
+// that is still the stop that was asked for: the line saying so is a warning,
+// and Run returns no error. A failure is what nobody asked for — a server that
+// stopped serving on its own.
 func (s *Server) Run(ctx context.Context) error {
 	if err := s.Listen(ctx); err != nil {
 		return err
@@ -105,22 +111,28 @@ func (s *Server) Run(ctx context.Context) error {
 		s.logger.Info("shutdown requested")
 	}
 
-	// A fresh context, so the shutdown deadline starts now rather than at the
-	// moment the signal arrived and cancelled the parent.
-	shutdown, cancel := context.WithTimeout(context.WithoutCancel(ctx), s.shutdownTimeout)
+	// A fresh context, so the drain's deadline starts now rather than at the
+	// moment the signal arrived and cancelled the parent. It is the drain's
+	// share of the way out: whoever closes what the server ran on needs the
+	// rest before the platform stops the process.
+	shutdown, cancel := context.WithTimeout(context.WithoutCancel(ctx), s.drainTimeout)
 	defer cancel()
 
-	err := s.http.Shutdown(shutdown)
-	if err != nil {
+	drained := s.http.Shutdown(shutdown)
+	if drained != nil {
 		_ = s.http.Close() // the deadline passed: drop what is left rather than hang
 	}
 	// Shutdown and Close both make Serve return, even one that had not begun
 	// yet, so this wait is short.
 	<-served
-	if err != nil {
-		return fmt.Errorf("app: graceful shutdown: %w", err)
-	}
 
+	switch {
+	case errors.Is(drained, context.DeadlineExceeded):
+		s.logger.Warn("stopped", zap.Bool("cut_short", true))
+		return nil
+	case drained != nil:
+		return fmt.Errorf("app: graceful shutdown: %w", drained)
+	}
 	s.logger.Info("stopped")
 	return nil
 }

@@ -11,43 +11,59 @@ package logger
 
 import (
 	"fmt"
-	"os"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-// New builds a logger for the given level and format. Format "json" is for a
-// deployed service, "console" for a terminal. An unknown level falls back to
-// info rather than failing: a mistyped level must not stop a service from
-// starting, and the fallback is visible in the first line it writes.
-func New(level, format string) *zap.Logger {
-	built, err := newConfig(level, format).Build()
+// New builds a logger for the given level and format: "json" for a deployed
+// service, "console" for a terminal. A level or a format it does not know is
+// refused, and so is a logger that cannot be built: a service whose log goes
+// nowhere, or somewhere other than it was asked to, is one nobody can see.
+func New(level, format string) (*zap.Logger, error) {
+	cfg, err := newConfig(level, format)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "logger: build failed: %v\n", err)
-		return zap.NewNop()
+		return nil, err
 	}
-	return built
+	built, err := cfg.Build()
+	if err != nil {
+		return nil, fmt.Errorf("logger: build: %w", err)
+	}
+	return built, nil
 }
 
-// newConfig assembles what New builds from. It is its own function because two
-// of its settings are decisions rather than defaults, and a test reads them
-// here rather than inferring them from output.
-func newConfig(level, format string) zap.Config {
-	var parsed zapcore.Level
-	if parsed.UnmarshalText([]byte(level)) != nil {
-		parsed = zapcore.InfoLevel
+// newConfig assembles what New builds from. It is its own function because
+// several of its settings are decisions rather than defaults, and a test reads
+// them here rather than inferring them from output.
+func newConfig(level, format string) (zap.Config, error) {
+	parsed, err := zapcore.ParseLevel(level)
+	if err != nil {
+		return zap.Config{}, fmt.Errorf("logger: level: %w", err)
 	}
 
 	var cfg zap.Config
-	if format == "console" {
-		cfg = zap.NewDevelopmentConfig()
-		cfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	} else {
+	switch format {
+	case "json":
 		cfg = zap.NewProductionConfig()
 		cfg.EncoderConfig = cloudRunEncoderConfig()
+	case "console":
+		cfg = zap.NewDevelopmentConfig()
+		cfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	default:
+		return zap.Config{}, fmt.Errorf("logger: format %q, want json or console", format)
 	}
 	cfg.Level = zap.NewAtomicLevelAt(parsed)
+
+	// The format decides how a line looks and nothing else. zap's own
+	// development mode would make a terminal behave differently too — a
+	// DPanic that panics, stacks from warnings on.
+	cfg.Development = false
+
+	// No stack of zap's own. It would be the stack of whoever wrote the line
+	// — for a request that failed, the middleware that logs it — beside a
+	// panic's own stack of the code that panicked, and on every line of an
+	// error that is described by its fields.
+	cfg.DisableStacktrace = true
 
 	// No sampling. By default zap keeps the first hundred repeats of a message
 	// each second and drops most of the rest, and our messages are on purpose
@@ -63,7 +79,7 @@ func newConfig(level, format string) zap.Config {
 	cfg.OutputPaths = []string{"stdout"}
 	cfg.ErrorOutputPaths = []string{"stderr"}
 
-	return cfg
+	return cfg, nil
 }
 
 // cloudRunEncoderConfig renames zap's keys to the ones a log collector picks

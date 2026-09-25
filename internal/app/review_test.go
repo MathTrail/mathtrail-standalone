@@ -62,7 +62,10 @@ func TestTheContainersReviewerAcceptsAGoodTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Examine() error = %v, want nil", err)
 	}
-	outcome := reviewer.Judge(examined, checks.Against{Asked: brief, Language: "en", Grade: 3})
+	outcome, err := reviewer.Judge(examined, checks.Against{Asked: brief, Language: "en", Grade: 3})
+	if err != nil {
+		t.Fatalf("Judge() error = %v, want nil", err)
+	}
 
 	if !outcome.Accepted() {
 		t.Fatalf("problems %v and unchecked %v, want the task accepted", outcome.Problems, outcome.Unchecked)

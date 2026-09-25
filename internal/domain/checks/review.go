@@ -3,6 +3,7 @@ package checks
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -33,7 +34,8 @@ type Submission struct {
 // Against is what a task is judged against beside itself, all of it kept in
 // the profile: the request the task answers and the child it is for.
 type Against struct {
-	// Asked is the brief the open request recorded.
+	// Asked is the brief the open request recorded, and a task is not judged
+	// without it: nothing else shows that it is the task that was asked for.
 	Asked *profile.Brief
 	// Language is what the task is written in, as the request recorded it.
 	Language string
@@ -46,7 +48,10 @@ type Against struct {
 // Examined is a submission read and its solver run: the half of a review that
 // takes time and needs nothing from the profile.
 type Examined struct {
-	draft Draft
+	// finished says Examine got to the end: any other value of this type has
+	// nothing in it to judge.
+	finished bool
+	draft    Draft
 	// read is what reading the submission refused.
 	read []Problem
 	// answer is what the runs of the solver came to, and nil when there were
@@ -68,8 +73,11 @@ type Reviewer interface {
 	// sandbox's own failure rather than the task's, and it costs the model no
 	// attempt.
 	Examine(ctx context.Context, submission *Submission) (Examined, error)
-	// Judge runs every check, in the order their refusals are reported.
-	Judge(examined Examined, against Against) Outcome
+	// Judge runs every check, in the order their refusals are reported. The
+	// error says there was nothing to judge — a submission Examine did not
+	// finish, or no brief of an open request to hold it against — which, like
+	// the error of Examine, is the service's fault rather than the task's.
+	Judge(examined Examined, against Against) (Outcome, error)
 }
 
 // reviewer holds what every review needs beside the submission.
@@ -87,7 +95,7 @@ func NewReviewer(content Content, runner solver.Runner, limits DrawingLimits) Re
 
 func (r *reviewer) Examine(ctx context.Context, submission *Submission) (Examined, error) {
 	draft, read := Decode(submission.Brief, submission.Task, submission.SelfCheck)
-	examined := Examined{draft: draft, read: read}
+	examined := Examined{finished: true, draft: draft, read: read}
 
 	options, complete := optionsOf(draft.Task)
 	if !complete {
@@ -105,12 +113,18 @@ func (r *reviewer) Examine(ctx context.Context, submission *Submission) (Examine
 // told what failed. A check whose input is missing does not run, and is noted
 // instead of passed: the model learns it has still to pass it, and a refusal
 // about a fault that is not there would send it looking in the wrong place.
-func (r *reviewer) Judge(examined Examined, against Against) Outcome {
+func (r *reviewer) Judge(examined Examined, against Against) (Outcome, error) {
+	switch {
+	case !examined.finished:
+		return Outcome{}, errors.New("checks: judge: the submission was not examined")
+	case against.Asked == nil:
+		return Outcome{}, errors.New("checks: judge: no brief of an open request to hold the task against")
+	}
 	draft, task := examined.draft, examined.draft.Task
 
 	var found findings
 	found.add(slices.Concat(examined.read, Structure(draft, against.Asked, r.content)), "")
-	found.add(r.explanations(draft))
+	found.add(r.explanations(draft, against))
 	found.add(r.drawingFormat(task), "")
 	found.add(r.drawingMatch(task))
 	found.add(r.readability(task, against))
@@ -124,11 +138,12 @@ func (r *reviewer) Judge(examined Examined, against Against) Outcome {
 		Problems:    found.problems,
 		Unchecked:   found.unchecked,
 		MinorIssues: minorIssues(draft.SelfCheck),
+		judged:      true,
 	}
 	if examined.answer != nil {
 		outcome.runs = examined.answer.Runs
 	}
-	return outcome
+	return outcome, nil
 }
 
 // findings are what the checks of one review found, in the order they ran.
@@ -146,11 +161,11 @@ func (f *findings) add(problems []Problem, unchecked string) {
 }
 
 // explanations checks the explanations behind the wrong options.
-func (r *reviewer) explanations(draft Draft) (problems []Problem, unchecked string) {
+func (r *reviewer) explanations(draft Draft, against Against) (problems []Problem, unchecked string) {
 	if draft.Task == nil {
 		return nil, "the explanations behind the wrong options were not checked: that needs a task that can be read"
 	}
-	return Explanations(draft, r.content), ""
+	return Explanations(draft, against.Language, r.content), ""
 }
 
 // drawingFormat checks the format of the drawing, when the task has one: a
@@ -175,7 +190,7 @@ func (r *reviewer) drawingMatch(task *Task) (problems []Problem, unchecked strin
 
 // readability checks that a child of the grade can read the question.
 func (r *reviewer) readability(task *Task, against Against) (problems []Problem, unchecked string) {
-	if task == nil || strings.TrimSpace(task.Question) == "" {
+	if task == nil || solver.Blank(task.Question) {
 		return nil, "readability was not checked: that needs task.question"
 	}
 	return Readability(task.Question, against.Language, against.Grade), ""
@@ -184,10 +199,10 @@ func (r *reviewer) readability(task *Task, against Against) (problems []Problem,
 // nearDuplicates checks that the question copies no reference task of the
 // child's level and repeats none of the child's own.
 func (r *reviewer) nearDuplicates(task *Task, against Against) (problems []Problem, unchecked string) {
-	if task == nil || strings.TrimSpace(task.Question) == "" {
+	if task == nil || solver.Blank(task.Question) {
 		return nil, "the question was not compared with earlier tasks: that needs task.question"
 	}
-	return NearDuplicate(task.Question, r.content.ReferenceQuestions(against.Grade), against.Fingerprints), ""
+	return NearDuplicate(task.Question, against.Language, r.content.ReferenceQuestions(against.Grade), against.Fingerprints), ""
 }
 
 // optionsOf are a task's five options as a solver takes them, and whether all
@@ -200,7 +215,7 @@ func optionsOf(task *Task) (solver.Options, bool) {
 	}
 	for place := range solver.Count {
 		text := task.Options[solver.Letter(place)]
-		if strings.TrimSpace(text) == "" {
+		if solver.Blank(text) {
 			return options, false
 		}
 		options[place] = text

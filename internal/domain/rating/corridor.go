@@ -32,6 +32,9 @@ const (
 	FitTooHard Fit = "too_hard"
 	// FitTooEasy means the nearest difficulty is easier than the corridor.
 	FitTooEasy Fit = "too_easy"
+	// FitUnknown means the level is no number, so nothing can be said of where
+	// any difficulty stands; the middle one stands in for it.
+	FitUnknown Fit = "unknown"
 )
 
 // Corridor is the band of difficulty a child should be working in, and the
@@ -69,8 +72,11 @@ func NewCorridor(level float64) Corridor {
 	}
 
 	// The distance from the middle of the band that the best difficulty so far
-	// stands at. Nothing has been chosen yet, so everything beats it.
+	// stands at. Nothing has been chosen yet, so everything beats it. A level
+	// that is no number leaves every distance unordered, and the middle
+	// difficulty stands for it rather than none.
 	best := math.Inf(1)
+	corridor.Recommended = middleDifficulty
 
 	for difficulty := 1; difficulty <= Difficulties; difficulty++ {
 		probability := Probability(level, Beta(difficulty))
@@ -79,15 +85,20 @@ func NewCorridor(level float64) Corridor {
 		if corridorLow <= probability && probability <= corridorHigh {
 			corridor.Inside = append(corridor.Inside, difficulty)
 		}
-		// Ties go to the easier level: two difficulties equally far from the
-		// middle mean the child is between them, and the lower one is the one
-		// that can be finished.
-		if from := math.Abs(probability - CorridorMiddle); from < best {
+		// Ties go toward the corridor. Two difficulties equally far from the
+		// middle on either side of it mean the child is between them, and the
+		// easier is the one that can be finished. Every difficulty at the same
+		// chance means the curve has run flat: at the floor the easiest is the
+		// nearest to the corridor, and at the top the hardest is.
+		from := math.Abs(probability - CorridorMiddle)
+		if from < best || from == best && probability > CorridorMiddle {
 			corridor.Recommended, best = difficulty, from
 		}
 	}
 
 	switch recommended := corridor.Probability(corridor.Recommended); {
+	case math.IsNaN(recommended):
+		corridor.Fit = FitUnknown
 	case recommended < corridorLow:
 		corridor.Fit = FitTooHard
 	case recommended > corridorHigh:

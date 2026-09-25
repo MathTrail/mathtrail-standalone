@@ -1,6 +1,7 @@
 package telemetry_test
 
 import (
+	"bytes"
 	"context"
 	"io"
 	"net/http"
@@ -9,8 +10,10 @@ import (
 	"testing"
 	"time"
 
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap/zaptest"
 	"golang.org/x/oauth2"
 
@@ -29,7 +32,7 @@ func TestSpansReachTheCollector(t *testing.T) {
 	_, span := tel.TracerProvider().Tracer("test").Start(t.Context(), "unit")
 	span.End()
 
-	if err := tel.ForceFlush(t.Context()); err != nil {
+	if err := tel.ForceFlush(t.Context(), true); err != nil {
 		t.Fatalf("ForceFlush() error = %v, want nil", err)
 	}
 
@@ -43,8 +46,35 @@ func TestSpansReachTheCollector(t *testing.T) {
 	if project := got[0].header.Get("X-Goog-User-Project"); project != "a-project" {
 		t.Errorf("X-Goog-User-Project = %q, want %q", project, "a-project")
 	}
-	if got[0].size == 0 {
+	if len(got[0].body) == 0 {
 		t.Error("the collector was sent an empty body, want the encoded span")
+	}
+}
+
+// What leaves the process says whether a span failed and not why. The text of
+// a status is whatever errors the request collected, and a failed write names
+// the address at the other end of the connection.
+func TestTheTextOfAStatusNeverLeavesTheProcess(t *testing.T) {
+	collector := newCollector(t, http.StatusOK)
+	tel := newTelemetry(t, collector, &telemetry.Settings{SampleRatio: 1})
+
+	_, span := tel.TracerProvider().Tracer("test").Start(t.Context(), "a-request-that-failed")
+	span.SetStatus(codes.Error, "write tcp 10.0.0.2:8080->203.0.113.9:51234: write: broken pipe")
+	span.End()
+
+	if err := tel.ForceFlush(t.Context(), true); err != nil {
+		t.Fatalf("ForceFlush() error = %v, want nil", err)
+	}
+
+	got := collector.takenAt("/v1/traces")
+	if len(got) != 1 {
+		t.Fatalf("collector saw %d span deliveries, want 1", len(got))
+	}
+	if !bytes.Contains(got[0].body, []byte("a-request-that-failed")) {
+		t.Fatal("the delivery does not carry the span, want it there to look inside")
+	}
+	if bytes.Contains(got[0].body, []byte("203.0.113.9")) {
+		t.Error("the delivery carries the address the status named, want the status without its text")
 	}
 }
 
@@ -61,13 +91,72 @@ func TestMeasurementsAreNotDeliveredTwiceInAnInterval(t *testing.T) {
 
 	for range 3 {
 		counter.Add(t.Context(), 1)
-		if err := tel.ForceFlush(t.Context()); err != nil {
+		if err := tel.ForceFlush(t.Context(), true); err != nil {
 			t.Fatalf("ForceFlush() error = %v, want nil", err)
 		}
 	}
 
 	if deliveries := len(collector.takenAt("/v1/metrics")); deliveries != 1 {
 		t.Errorf("the collector saw %d metric deliveries, want 1 within one interval", deliveries)
+	}
+}
+
+// A request whose trace was not kept still carries the measurements when they
+// are due, and only them: on a quiet instance that is the only request there
+// is, and its own spans are not there to send.
+func TestARequestWhoseTraceWasNotKeptSendsTheMeasurements(t *testing.T) {
+	collector := newCollector(t, http.StatusOK)
+	tel := newTelemetry(t, collector, &telemetry.Settings{SampleRatio: 1})
+
+	_, span := tel.TracerProvider().Tracer("test").Start(t.Context(), "another-request")
+	span.End()
+	counter, err := tel.MeterProvider().Meter("test").Int64Counter("unit_total")
+	if err != nil {
+		t.Fatalf("Int64Counter() error = %v, want nil", err)
+	}
+	counter.Add(t.Context(), 1)
+
+	if err := tel.ForceFlush(t.Context(), false); err != nil {
+		t.Fatalf("ForceFlush() error = %v, want nil", err)
+	}
+	if got := len(collector.takenAt("/v1/metrics")); got != 1 {
+		t.Errorf("the collector saw %d metric deliveries, want 1", got)
+	}
+	if got := len(collector.takenAt("/v1/traces")); got != 0 {
+		t.Errorf("the collector saw %d span deliveries, want none from a request that kept no trace", got)
+	}
+}
+
+// What a request says about its trace does not decide whether it is kept: a
+// client can say it, and one that asked for every request would choose what
+// the service spends. The share decides, for a request marked kept and for
+// one marked dropped alike.
+func TestAClientDoesNotChooseWhatIsTraced(t *testing.T) {
+	for _, c := range []struct {
+		name  string
+		ratio float64
+		flags trace.TraceFlags
+		want  bool
+	}{
+		{name: "marked kept, a share of none", ratio: 0, flags: trace.FlagsSampled, want: false},
+		{name: "marked dropped, a share of all", ratio: 1, flags: 0, want: true},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			tel := newTelemetry(t, newCollector(t, http.StatusOK), &telemetry.Settings{SampleRatio: c.ratio})
+
+			arrived := trace.ContextWithRemoteSpanContext(t.Context(), trace.NewSpanContext(trace.SpanContextConfig{
+				TraceID:    trace.TraceID{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+				SpanID:     trace.SpanID{1, 2, 3, 4, 5, 6, 7, 8},
+				TraceFlags: c.flags,
+				Remote:     true,
+			}))
+			_, span := tel.TracerProvider().Tracer("test").Start(arrived, "request")
+			defer span.End()
+
+			if got := span.SpanContext().IsSampled(); got != c.want {
+				t.Errorf("sampled = %v, want %v", got, c.want)
+			}
+		})
 	}
 }
 
@@ -82,7 +171,7 @@ func TestARefusingCollectorDoesNotStopTheService(t *testing.T) {
 
 	ctx, cancel := context.WithTimeout(t.Context(), telemetry.FlushTimeout)
 	defer cancel()
-	if err := tel.ForceFlush(ctx); err == nil {
+	if err := tel.ForceFlush(ctx, true); err == nil {
 		t.Error("ForceFlush() error = nil, want the refusal reported")
 	}
 
@@ -118,7 +207,7 @@ func TestSwitchedOffNothingLeavesTheProcess(t *testing.T) {
 
 	_, span := tel.TracerProvider().Tracer("test").Start(t.Context(), "unit")
 	span.End()
-	if err := tel.ForceFlush(t.Context()); err != nil {
+	if err := tel.ForceFlush(t.Context(), true); err != nil {
 		t.Fatalf("ForceFlush() error = %v, want nil", err)
 	}
 	if err := tel.Shutdown(t.Context()); err != nil {
@@ -149,7 +238,7 @@ func TestMissingCredentialsLeaveTheServiceRunning(t *testing.T) {
 
 	_, span := tel.TracerProvider().Tracer("test").Start(t.Context(), "unit")
 	span.End()
-	if err := tel.ForceFlush(t.Context()); err != nil {
+	if err := tel.ForceFlush(t.Context(), true); err != nil {
 		t.Fatalf("ForceFlush() error = %v, want nil", err)
 	}
 	if seen := collector.taken(); len(seen) != 0 {
@@ -168,7 +257,7 @@ func TestAFailingDetectorDoesNotStopTheStart(t *testing.T) {
 
 	_, span := tel.TracerProvider().Tracer("test").Start(t.Context(), "unit")
 	span.End()
-	if err := tel.ForceFlush(t.Context()); err != nil {
+	if err := tel.ForceFlush(t.Context(), true); err != nil {
 		t.Fatalf("ForceFlush() error = %v, want nil", err)
 	}
 	if len(collector.takenAt("/v1/traces")) != 1 {
@@ -202,12 +291,13 @@ func newTelemetry(t *testing.T, c *collector, settings *telemetry.Settings) *tel
 	return tel
 }
 
-// request is what the collector saw, without its body: the bytes are protobuf
-// and what matters here is that they arrived.
+// request is what the collector saw. The body is protobuf, and the cases here
+// ask only whether it arrived and whether a text is in it: protobuf writes a
+// string as its own bytes.
 type request struct {
 	path   string
 	header http.Header
-	size   int64
+	body   []byte
 }
 
 // collector stands in for the one a deployment posts to.
@@ -224,10 +314,10 @@ func newCollector(t *testing.T, status int) *collector {
 
 	c := &collector{status: status}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		size, _ := io.Copy(io.Discard, r.Body)
+		body, _ := io.ReadAll(r.Body)
 
 		c.mu.Lock()
-		c.seen = append(c.seen, request{path: r.URL.Path, header: r.Header.Clone(), size: size})
+		c.seen = append(c.seen, request{path: r.URL.Path, header: r.Header.Clone(), body: body})
 		c.mu.Unlock()
 
 		w.WriteHeader(c.status)
@@ -289,7 +379,7 @@ func TestWithoutAProjectNothingLeavesTheProcess(t *testing.T) {
 
 	_, span := tel.TracerProvider().Tracer("test").Start(t.Context(), "unit")
 	span.End()
-	if err := tel.ForceFlush(t.Context()); err != nil {
+	if err := tel.ForceFlush(t.Context(), true); err != nil {
 		t.Fatalf("ForceFlush() error = %v, want nil", err)
 	}
 	if seen := collector.taken(); len(seen) != 0 {
@@ -318,7 +408,7 @@ func TestADeliveryBoundsItselfWhenTheCallerDidNot(t *testing.T) {
 
 	started := time.Now()
 	//nolint:usetesting // the point of the case is a caller that brought no deadline
-	err := tel.ForceFlush(context.Background())
+	err := tel.ForceFlush(context.Background(), true)
 	took := time.Since(started)
 
 	if err == nil {
@@ -341,7 +431,7 @@ func TestADeliveryObeysACallerWithNoTimeLeft(t *testing.T) {
 	cancel()
 
 	started := time.Now()
-	if err := tel.ForceFlush(spent); err == nil {
+	if err := tel.ForceFlush(spent, true); err == nil {
 		t.Error("ForceFlush() error = nil, want the cancellation reported")
 	}
 	if took := time.Since(started); took > telemetry.FlushTimeout {

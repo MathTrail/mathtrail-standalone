@@ -17,8 +17,9 @@ import (
 )
 
 // Observability is what the router needs in order to say what it did: where
-// to record a span, where to count, what to call when a request's spans are
-// ready to send, and which project a log line's trace belongs to.
+// to record a span, where to count, what to call to deliver what a request
+// leaves behind — its spans when its trace was kept, and the measurements when
+// they are due — and which project a log line's trace belongs to.
 //
 // It is a value rather than a dependency on the telemetry itself, because a
 // test of the routing has no use for any of it and can hand over providers
@@ -26,7 +27,7 @@ import (
 type Observability struct {
 	Traces    trace.TracerProvider
 	Meters    metric.MeterProvider
-	Flush     func(context.Context) error
+	Flush     func(ctx context.Context, spans bool) error
 	ProjectID string
 }
 
@@ -38,9 +39,9 @@ var ErrObservability = errors.New("http: observability")
 //
 // Each of the three fails differently and none of them says why: a missing
 // tracer is silently replaced by one that records nothing, a missing meter
-// stops the process here, and a missing delivery waits to stop it on the first
-// request whose trace is kept. One refusal at startup is worth more than three
-// ways to find out later.
+// stops the process here, and a missing delivery panics after every request,
+// which the delivery recovers and turns into a line of its own each time. One
+// refusal at startup is worth more than three ways to find out later.
 func (o Observability) validate() error {
 	switch {
 	case o.Traces == nil:
@@ -80,23 +81,28 @@ func NewRouter(health *HealthHandler, logger *zap.Logger, obs Observability) (*g
 		return nil, err
 	}
 
-	// Order matters: an id first so that everything downstream can log it,
-	// recovery next so that it catches panics from the handlers below, tracing
-	// after that so that everything below happens inside a span, and the
-	// counting and the request log last so that both see the status recovery
-	// produced.
+	// Order matters. A panic unwinds through every handler it passes without
+	// running what they do after the request, so the recovery that answers a
+	// handler's panic stands last, next to the handlers, below the ones that
+	// count, log and deliver: they then see the answer it made of the panic like
+	// any other answer. Above them all stands a last resort for a panic of their
+	// own. Between the two: an id, so that everything after it can log it, and
+	// tracing, so that everything after it happens inside a span.
+	router.Use(middleware.LastResort(logger))
 	router.Use(middleware.RequestID())
-	router.Use(middleware.ZapRecovery(logger))
 	router.Use(middleware.Tracing(obs.Traces, obs.Flush, logger)...)
 	router.Use(metrics)
 	router.Use(middleware.ZapLogger(logger, obs.ProjectID))
+	router.Use(middleware.ZapRecovery())
 
 	router.NoRoute(notFound)
 	router.NoMethod(methodNotAllowed)
 
 	// Not /healthz: the serverless frontend in front of this process answers
 	// that exact path itself, with its own 404, and the request never arrives.
+	// HEAD is answered too, since a probe may ask with it.
 	router.GET("/health", health.Health)
+	router.HEAD("/health", health.Health)
 
 	return router, nil
 }

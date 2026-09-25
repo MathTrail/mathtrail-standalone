@@ -26,7 +26,7 @@ func TestHalfFilledTelemetryIsRefusedByName(t *testing.T) {
 	complete := httpserver.Observability{
 		Traces: tracenoop.NewTracerProvider(),
 		Meters: metricnoop.NewMeterProvider(),
-		Flush:  func(context.Context) error { return nil },
+		Flush:  func(context.Context, bool) error { return nil },
 	}
 
 	for _, c := range []struct {

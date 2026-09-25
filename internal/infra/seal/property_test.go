@@ -124,15 +124,15 @@ func TestKeysHoldTheirProperties(t *testing.T) {
 
 	properties.Property("any bytes of the right length are a key, and name themselves", prop.ForAll(
 		func(secret []byte) bool {
-			key, err := seal.ParseKey(base64.StdEncoding.EncodeToString(secret))
-			if err != nil || len(key.ID()) != 6 {
+			key, err := seal.NewKeyRing(base64.StdEncoding.EncodeToString(secret), "")
+			if err != nil || len(key.CurrentKeyID()) != 6 {
 				return false
 			}
-			if strings.ContainsFunc(key.ID(), func(r rune) bool { return !strings.ContainsRune(alphabet, r) }) {
+			if strings.ContainsFunc(key.CurrentKeyID(), func(r rune) bool { return !strings.ContainsRune(alphabet, r) }) {
 				return false
 			}
-			again, err := seal.ParseKey(base64.StdEncoding.EncodeToString(secret))
-			return err == nil && again.ID() == key.ID()
+			again, err := seal.NewKeyRing(base64.StdEncoding.EncodeToString(secret), "")
+			return err == nil && again.CurrentKeyID() == key.CurrentKeyID()
 		},
 		gen.SliceOfN(seal.KeySize, gen.UInt8()),
 	))
@@ -142,7 +142,7 @@ func TestKeysHoldTheirProperties(t *testing.T) {
 			if length == seal.KeySize {
 				return true
 			}
-			_, err := seal.ParseKey(base64.StdEncoding.EncodeToString(make([]byte, length)))
+			_, err := seal.NewKeyRing(base64.StdEncoding.EncodeToString(make([]byte, length)), "")
 			return errors.Is(err, seal.ErrKey)
 		},
 		gen.IntRange(0, 2*seal.KeySize),

@@ -118,8 +118,12 @@ func nearly(t *testing.T, got, want, allowed float64, what string) {
 func TestTheReferenceSequenceReplays(t *testing.T) {
 	t.Parallel()
 
+	steps := loadGolden(t).ConfigExample.Steps
+	if len(steps) == 0 {
+		t.Fatal("the reference sequence has no steps, want the example the prototype printed")
+	}
 	state := rating.State{}
-	for _, step := range loadGolden(t).ConfigExample.Steps {
+	for _, step := range steps {
 		t.Run(fmt.Sprintf("step %d", step.Step), func(t *testing.T) {
 			nearly(t, state.Theta, step.ThetaBefore, tolerance, "the overall level before")
 			nearly(t, state.Delta, step.DeltaBefore, tolerance, "the topic before")

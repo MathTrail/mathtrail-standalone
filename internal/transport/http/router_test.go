@@ -27,7 +27,16 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func TestHealthz(t *testing.T) {
+// A probe that asks with HEAD is told the service is up.
+func TestHealthAnswersHead(t *testing.T) {
+	t.Parallel()
+
+	if rec := call(t, http.MethodHead, "/health"); rec.Code != http.StatusOK {
+		t.Errorf("HEAD /health status = %d, want %d", rec.Code, http.StatusOK)
+	}
+}
+
+func TestHealth(t *testing.T) {
 	t.Parallel()
 
 	rec := call(t, http.MethodGet, "/health")
@@ -144,8 +153,8 @@ func TestA405SaysWhichMethodsWork(t *testing.T) {
 	if rec.Code != http.StatusMethodNotAllowed {
 		t.Fatalf("status = %d, want %d", rec.Code, http.StatusMethodNotAllowed)
 	}
-	if got := rec.Header().Get("Allow"); got != http.MethodGet {
-		t.Errorf("Allow = %q, want %q", got, http.MethodGet)
+	if got, want := rec.Header().Get("Allow"), "GET, HEAD"; got != want {
+		t.Errorf("Allow = %q, want %q", got, want)
 	}
 }
 
@@ -158,7 +167,7 @@ func newRouter(t *testing.T) http.Handler {
 	router, err := httpserver.NewRouter(httpserver.NewHealthHandler(), zaptest.NewLogger(t), httpserver.Observability{
 		Traces: tracenoop.NewTracerProvider(),
 		Meters: metricnoop.NewMeterProvider(),
-		Flush:  func(context.Context) error { return nil },
+		Flush:  func(context.Context, bool) error { return nil },
 	})
 	if err != nil {
 		t.Fatalf("NewRouter() error = %v, want nil", err)

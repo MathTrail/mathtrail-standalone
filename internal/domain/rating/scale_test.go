@@ -2,6 +2,7 @@ package rating_test
 
 import (
 	"fmt"
+	"math"
 	"testing"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
@@ -76,4 +77,22 @@ func TestARankIsOneCorridorWide(t *testing.T) {
 	inPoints := rating.Elo(width) - rating.Elo(0)
 
 	nearly(t, inPoints, 166, 0.5, "the width of a rank in rating points")
+}
+
+// A rating past what four bytes of a whole number hold is shown at that limit,
+// and ranked as the highest or the lowest it is, and one that is no number as
+// the rating a child starts at, rather than either turned into whatever the
+// machine makes of it.
+func TestARatingPastAnyLimitIsShownAtIt(t *testing.T) {
+	t.Parallel()
+
+	if got := rating.Shown(1e30); got != math.MaxInt32 || rating.Rank(1e30) != 5 {
+		t.Errorf("Shown(1e30) = %d at rank %d, want %d at rank 5", got, rating.Rank(1e30), math.MaxInt32)
+	}
+	if got := rating.Shown(-1e30); got != math.MinInt32 || rating.Rank(-1e30) != 1 {
+		t.Errorf("Shown(-1e30) = %d at rank %d, want %d at rank 1", got, rating.Rank(-1e30), math.MinInt32)
+	}
+	if got := rating.Shown(math.NaN()); got != 1500 {
+		t.Errorf("Shown(NaN) = %d, want 1500, the rating a child starts at", got)
+	}
 }

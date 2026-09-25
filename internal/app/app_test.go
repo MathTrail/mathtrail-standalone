@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"net"
 	"net/http"
 	"runtime"
 	"slices"
@@ -44,7 +45,7 @@ func TestServerStopsOnContextCancel(t *testing.T) {
 
 	select {
 	case err := <-stopped:
-		if err != nil && !errors.Is(err, context.Canceled) {
+		if err != nil {
 			t.Fatalf("Run() error = %v, want nil", err)
 		}
 	case <-time.After(5 * time.Second):
@@ -122,6 +123,69 @@ func TestRunLogsEverythingBeforeItReturns(t *testing.T) {
 	}
 }
 
+// A request that never finishes holds the server for the drain's share of the
+// way out and no longer: the close that follows has to fit in the rest before
+// the platform stops the process.
+func TestTheDrainLeavesTheCloseItsShare(t *testing.T) {
+	t.Parallel()
+
+	cfg := testConfig()
+	cfg.ShutdownTimeout = 4 * time.Second
+	container := containerFrom(t, cfg)
+	core, logs := observer.New(zapcore.InfoLevel)
+	container.Logger = zap.New(core)
+
+	entered, released := make(chan struct{}), make(chan struct{})
+	t.Cleanup(func() { close(released) })
+	container.Router = http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
+		close(entered)
+		<-released
+	})
+	server := app.NewServer(container)
+	if err := server.Listen(t.Context()); err != nil {
+		t.Fatalf("Listen() error = %v, want nil", err)
+	}
+
+	ctx, cancel := context.WithCancel(t.Context())
+	stopped := make(chan error, 1)
+	go func() { stopped <- server.Run(ctx) }()
+	go func() {
+		resp, err := http.Get("http://" + server.Addr() + "/stuck") //nolint:noctx // cut off by the shutdown
+		if err == nil {
+			_ = resp.Body.Close()
+		}
+	}()
+	<-entered
+
+	started := time.Now()
+	cancel()
+	select {
+	case err := <-stopped:
+		// The stop was asked for and it happened: the request it cut off is a
+		// warning, not a failure of the process.
+		if err != nil {
+			t.Errorf("Run() error = %v, want nil", err)
+		}
+		if warned := logs.FilterMessage("stopped").FilterField(zap.Bool("cut_short", true)).All(); len(warned) != 1 ||
+			warned[0].Level != zapcore.WarnLevel {
+			t.Errorf("stop lines = %v, want one warning that the drain was cut short", warned)
+		}
+	case <-time.After(2 * cfg.ShutdownTimeout):
+		t.Fatalf("Run() did not return within %v of the context being cancelled", 2*cfg.ShutdownTimeout)
+	}
+
+	// Each line halfway to its neighbour, so that the drain is told apart from
+	// the close's quarter below it and from the whole way out above it, a
+	// second away and half a second away.
+	elapsed := time.Since(started)
+	if least := (cfg.CloseTimeout() + cfg.DrainTimeout()) / 2; elapsed < least {
+		t.Errorf("the drain took %v, want it to wait out its share of %v", elapsed, cfg.DrainTimeout())
+	}
+	if most := (cfg.DrainTimeout() + cfg.ShutdownTimeout) / 2; elapsed >= most {
+		t.Errorf("the drain took %v, want it done within its share of %v", elapsed, cfg.DrainTimeout())
+	}
+}
+
 // A port that is already taken is reported when the server binds it, not
 // swallowed by the goroutine that serves on it.
 func TestListenReportsATakenPort(t *testing.T) {
@@ -139,12 +203,7 @@ func TestListenReportsATakenPort(t *testing.T) {
 
 	cfg := testConfig()
 	cfg.Port = portOf(t, first.Addr())
-	container, err := app.NewContainer(t.Context(), cfg, zaptest.NewLogger(t))
-	if err != nil {
-		t.Fatalf("NewContainer() error = %v, want nil", err)
-	}
-
-	if err := app.NewServer(container).Listen(t.Context()); err == nil {
+	if err := app.NewServer(containerFrom(t, cfg)).Listen(t.Context()); err == nil {
 		t.Error("Listen() error = nil, want a refusal on a port that is taken")
 	}
 }
@@ -204,7 +263,15 @@ func TestContainerRefusesAKeyItCannotRead(t *testing.T) {
 func newTestContainer(t *testing.T) *app.Container {
 	t.Helper()
 
-	container, err := app.NewContainer(t.Context(), testConfig(), zaptest.NewLogger(t))
+	return containerFrom(t, testConfig())
+}
+
+// containerFrom builds a container from a configuration a case has changed,
+// and closes it when the case is over.
+func containerFrom(t *testing.T, cfg *config.Config) *app.Container {
+	t.Helper()
+
+	container, err := app.NewContainer(t.Context(), cfg, zaptest.NewLogger(t))
 	if err != nil {
 		t.Fatalf("NewContainer() error = %v, want nil", err)
 	}
@@ -237,14 +304,11 @@ var sealKey = base64.StdEncoding.EncodeToString(bytes.Repeat([]byte("mathtrail")
 func portOf(t *testing.T, addr string) string {
 	t.Helper()
 
-	index := len(addr) - 1
-	for index >= 0 && addr[index] != ':' {
-		index--
+	_, port, err := net.SplitHostPort(addr)
+	if err != nil {
+		t.Fatalf("address %q has no port: %v", addr, err)
 	}
-	if index < 0 {
-		t.Fatalf("address %q has no port", addr)
-	}
-	return addr[index+1:]
+	return port
 }
 
 func waitForHealthz(t *testing.T, addr string) {

@@ -30,13 +30,17 @@ func TestAFormatStarlarkCannotFillIsFound(t *testing.T) {
 		{"values known only when it runs", formatUse{text: "%d from the row of %d", values: -1}, false},
 		{"a key and values that are no dictionary", formatUse{text: "%(share)d", values: 1}, true},
 		{"a key among conversions of the next value", formatUse{text: "%X%()X", values: 0}, true},
+		{"a key, then a value by its place", formatUse{text: "%(share)d of %d", values: -1}, true},
+		{"a number by its place beside a key", formatUse{text: "%d and %(share)d", values: -1}, true},
+		{"two values by their places beside a key", formatUse{text: "%s, %s and %(share)d", values: -1}, true},
+		{"the dictionary itself, then a key", formatUse{text: "%s holds %(share)d", values: -1}, false},
 		{"as many values as conversions", formatUse{text: "%d : %d", values: 2}, false},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
 			problem := formatProblem(test.use)
-			if refused := problem != ""; refused != test.refused {
+			if (problem != "") != test.refused {
 				t.Errorf("formatProblem(%q, %d values) = %q, want refused %v", test.use.text, test.use.values, problem, test.refused)
 			}
 		})
@@ -49,12 +53,13 @@ func TestAFormatStarlarkCannotFillIsFound(t *testing.T) {
 // would not make would blame a run's failure on a format that did not cause
 // it. A format with a key is filled from a dictionary, so the values are
 // sometimes one that has every key, the way a name holding a dictionary is
-// given, and then only the refusals are held to the interpreter: the check
-// does not count values it cannot see.
+// given, and then the check does not count values it cannot see: its refusals
+// are held to the interpreter, and so is what it lets through with a key in it,
+// since only a dictionary fills a key and this one fills every key there is.
 func FuzzTheFormatCheckAgreesWithStarlark(f *testing.F) {
 	for _, seed := range []string{
 		"%d", "a rise of 10% on %d", "%d%%", "%3d", "%.1f", "%", "%(share)d", "%(share)%", "%(share",
-		"%d : %d", "", "%c", "%%%", "%é", "%%(share)d",
+		"%d : %d", "", "%c", "%%%", "%é", "%%(share)d", "%(share)s of %s", "%s holds %(share)d", "%d and %(share)d",
 	} {
 		f.Add(seed, uint8(1))
 		f.Add(seed, uint8(4))
@@ -78,6 +83,8 @@ func FuzzTheFormatCheckAgreesWithStarlark(f *testing.F) {
 			t.Fatalf("formatProblem(%q, %d values) = %q, and Starlark fills it", text, values, problem)
 		case problem == "" && err != nil && values >= 0:
 			t.Fatalf("formatProblem(%q, %d values) lets it through, and Starlark refuses it: %v", text, values, err)
+		case problem == "" && err != nil && values < 0 && keyed(text):
+			t.Fatalf("formatProblem(%q, a dictionary) lets it through, and Starlark refuses it: %v", text, err)
 		}
 	})
 }
@@ -105,4 +112,23 @@ func TestAProblemWithAKeyLeavesTheKeyOut(t *testing.T) {
 	if problem == "" || strings.Contains(problem, "the answer is 36") {
 		t.Errorf("formatProblem() = %q, want a refusal that leaves the key out", problem)
 	}
+}
+
+// keyed says whether a format names a value by a key anywhere, which is when
+// only a dictionary can fill it.
+func keyed(text string) bool {
+	for i := 0; i < len(text); i++ {
+		if text[i] != '%' {
+			continue
+		}
+		end, kind, problem := conversionAt(text, i)
+		if problem != "" {
+			return false
+		}
+		if kind == keyedConversion {
+			return true
+		}
+		i = end
+	}
+	return false
 }

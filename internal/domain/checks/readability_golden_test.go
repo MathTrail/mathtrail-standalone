@@ -164,8 +164,7 @@ func TestSentencesAreMeasuredAsThePrototypeMeasuredThem(t *testing.T) {
 		tokens, words := 0, 0
 		for _, sentence := range found {
 			tokens = max(tokens, len(strings.Fields(sentence)))
-			length, _ := lengthOf(sentence)
-			words = max(words, length)
+			words = max(words, lengthIn(sentence, unitWords))
 		}
 
 		sameSplit := len(found) == reference.sentences

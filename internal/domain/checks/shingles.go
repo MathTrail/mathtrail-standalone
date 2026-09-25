@@ -10,11 +10,11 @@ import (
 // which is what makes the overlap of two of them one pass over both.
 type shingles []string
 
-// shinglesOf is the set of a question, of the kind its script calls for: word
-// trigrams where words are separated by spaces, character bigrams where they
-// are not. Word trigrams of a text with no word boundaries measure nothing.
-func shinglesOf(text string) shingles {
-	if Spaceless(text) {
+// shinglesOf is the set of a question, of the kind its unit calls for: word
+// trigrams where words are counted, character bigrams where characters are.
+// Word trigrams of a text with no word boundaries measure nothing.
+func shinglesOf(text, unit string) shingles {
+	if unit == unitCharacters {
 		return ngrams(text, 1, 2)
 	}
 	return ngrams(text, 2, 3)
@@ -72,5 +72,5 @@ func (a shingles) jaccard(b shingles) float64 {
 // script calls for, so two texts of different kinds share nothing — which is
 // the right answer for a question in Chinese against one in English.
 func Similarity(a, b string) float64 {
-	return shinglesOf(a).jaccard(shinglesOf(b))
+	return shinglesOf(a, unitFor(a, "")).jaccard(shinglesOf(b, unitFor(b, "")))
 }

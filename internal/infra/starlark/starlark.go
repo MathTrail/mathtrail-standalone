@@ -10,8 +10,11 @@
 // Two limits do the stopping: a budget of interpreter steps and a wall clock.
 // Neither is a limit on memory, which the interpreter does not account for at
 // all, so everything predeclared here refuses a sequence past a cap of its own
-// and charges the step budget for what it walks. What that still leaves open
-// is written down beside it.
+// and charges the step budget for what it walks. What that still leaves open is
+// the language itself: its operators and the methods of its values — a list
+// times a number, extend, union, += with a range — build a sequence of any
+// length in a single step, past both limits, and only a limit on the memory of
+// the whole process could stop them.
 package starlark
 
 import (
@@ -137,9 +140,11 @@ func (s *sandbox) run(ctx context.Context, source string, options solver.Options
 	}
 	thread.SetMaxExecutionSteps(s.limits.Steps)
 	// Cancel is the one method safe to call from another goroutine, and the
-	// interpreter looks for it between instructions.
+	// interpreter looks for it between instructions; a helper that works for
+	// long inside one of them reads the run's own context instead.
 	stop := context.AfterFunc(runCtx, func() { thread.Cancel("the time limit") })
 	defer stop()
+	thread.SetLocal(runContext, runCtx)
 
 	started := time.Now()
 

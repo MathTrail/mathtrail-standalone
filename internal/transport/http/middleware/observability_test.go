@@ -9,11 +9,16 @@ import (
 	"sync/atomic"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	metricnoop "go.opentelemetry.io/otel/metric/noop"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
+	"go.opentelemetry.io/otel/trace"
+	tracenoop "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
@@ -94,6 +99,138 @@ func TestTheAddressAndTheAgentAreBlankedRatherThanDropped(t *testing.T) {
 	}
 }
 
+// A panic is an answer like any other to what counts, logs and delivers: the
+// request is logged once with the 500 it got, counted under that status, and
+// its trace is delivered with its span marked as failed. A panic that unwound
+// past them on its way to being caught would leave the request in none of the
+// three.
+func TestAPanicIsLoggedCountedAndDelivered(t *testing.T) {
+	t.Parallel()
+
+	watched := newWatchedRouter(t)
+	engine, isEngine := watched.handler.(*gin.Engine)
+	if !isEngine {
+		t.Fatalf("the router is a %T, want a *gin.Engine", watched.handler)
+	}
+	engine.GET("/boom", func(*gin.Context) { panic("boom") })
+
+	watched.get(t, "/boom")
+
+	lines := watched.logs.FilterMessage("http_request").All()
+	if len(lines) != 1 || lines[0].ContextMap()["status"] != int64(http.StatusInternalServerError) {
+		t.Errorf("http_request lines = %v, want one, of status 500", lines)
+	}
+	counted := false
+	for _, labels := range watched.labels(t, "http_request") {
+		if status, found := labels.Value("http.response.status_code"); found && status.AsInt64() == http.StatusInternalServerError {
+			counted = true
+		}
+	}
+	if !counted {
+		t.Error("the request was not counted under status 500")
+	}
+	if watched.flushes() != 1 {
+		t.Errorf("deliveries = %d, want 1", watched.flushes())
+	}
+	if spans := watched.spans.Ended(); len(spans) != 1 || spans[0].Status().Code != codes.Error {
+		t.Errorf("ended spans = %v, want one marked as failed", spans)
+	}
+}
+
+// A request a handler asked to drop is passed on to the server as the abort it
+// is, and what it recorded is still delivered on the way: the spans of a
+// request that went wrong are the ones worth reading. A delivery that panics
+// on the way costs its line and leaves the abort as it was.
+func TestAnAbortedRequestStillDeliversItsSpans(t *testing.T) {
+	t.Parallel()
+
+	for name, burning := range map[string]bool{
+		"a delivery that works":  false,
+		"a delivery that panics": true,
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			watched := newWatchedRouter(t)
+			watched.panicDelivery.Store(burning)
+			engine, isEngine := watched.handler.(*gin.Engine)
+			if !isEngine {
+				t.Fatalf("the router is a %T, want a *gin.Engine", watched.handler)
+			}
+			engine.GET("/abort", func(*gin.Context) { panic(http.ErrAbortHandler) })
+
+			if passed := servedPanic(t, engine, "/abort"); passed != http.ErrAbortHandler { //nolint:errorlint // the server compares it by identity
+				t.Errorf("the server got %v, want %v", passed, http.ErrAbortHandler)
+			}
+			if watched.flushes() != 1 {
+				t.Errorf("deliveries = %d, want 1", watched.flushes())
+			}
+			if lines := watched.logs.FilterMessage("panic").All(); len(lines) != 0 {
+				t.Errorf("panic lines = %v, want none: a request dropped on purpose is no fault", lines)
+			}
+		})
+	}
+}
+
+// A delivery that panics costs a line and not the request: the answer stands,
+// and the panic is written by its kind alone.
+func TestADeliveryThatPanicsCostsALine(t *testing.T) {
+	t.Parallel()
+
+	watched := newWatchedRouter(t)
+	watched.panicDelivery.Store(true)
+	watched.get(t, "/no-such-endpoint")
+
+	lines := watched.logs.FilterMessage("telemetry_flush_panicked").All()
+	if len(lines) != 1 || lines[0].ContextMap()["panic"] != "a value of type string" {
+		t.Errorf("delivery lines = %v, want one naming the kind of the panic alone", lines)
+	}
+	if requests := watched.logs.FilterMessage("http_request").All(); len(requests) != 1 ||
+		requests[0].ContextMap()["status"] != int64(http.StatusNotFound) {
+		t.Errorf("request lines = %v, want the answer the request got, a 404", requests)
+	}
+}
+
+// burningTracers hand out a tracer that panics as a span is opened: a panic in
+// the middleware itself, above the recovery next to the handlers.
+type burningTracers struct{ tracenoop.TracerProvider }
+
+func (burningTracers) Tracer(string, ...trace.TracerOption) trace.Tracer { return burningTracer{} }
+
+type burningTracer struct{ tracenoop.Tracer }
+
+func (burningTracer) Start(context.Context, string, ...trace.SpanStartOption) (context.Context, trace.Span) {
+	panic("the tracer is on fire")
+}
+
+// A panic in the middleware itself is caught by the last resort the router puts
+// above everything: written once, by its kind alone, and answered, instead of
+// reaching the server with its value.
+func TestAPanicInTheMiddlewareIsCaughtByTheLastResort(t *testing.T) {
+	t.Parallel()
+
+	recorded, logs := observer.New(zapcore.DebugLevel)
+	router, err := httpserver.NewRouter(httpserver.NewHealthHandler(), zap.New(recorded), httpserver.Observability{
+		Traces: burningTracers{},
+		Meters: metricnoop.NewMeterProvider(),
+		Flush:  func(context.Context, bool) error { return nil },
+	})
+	if err != nil {
+		t.Fatalf("NewRouter() error = %v, want nil", err)
+	}
+
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/no-such-endpoint", http.NoBody))
+
+	lines := logs.FilterMessage("panic").All()
+	if len(lines) != 1 || lines[0].ContextMap()["panic"] != "a value of type string" {
+		t.Errorf("panic lines = %v, want one naming the kind of the panic alone", lines)
+	}
+	if recorder.Code != http.StatusInternalServerError {
+		t.Errorf("status = %d, want %d", recorder.Code, http.StatusInternalServerError)
+	}
+}
+
 // A path nobody declared is counted as one kind. Counting it as itself would
 // let a stranger invent a new series with every request, and the allowance
 // these are measured against is bytes.
@@ -137,9 +274,10 @@ func TestMeasurementsCarryNothingACallerChose(t *testing.T) {
 	}
 }
 
-// A request whose trace is thrown away has nothing to deliver, and a deployed
-// instance pays for every attempt.
-func TestADeliveryHappensOnlyForASampledRequest(t *testing.T) {
+// A request whose trace is thrown away has no spans to deliver, and waiting on
+// another's would cost it time for nothing; but it still offers what is due,
+// so that measurements do not wait for a request whose trace is kept.
+func TestSpansAreDeliveredOnlyForASampledRequest(t *testing.T) {
 	t.Parallel()
 
 	for _, c := range []struct {
@@ -157,7 +295,12 @@ func TestADeliveryHappensOnlyForASampledRequest(t *testing.T) {
 			watched.get(t, "/no-such-endpoint")
 
 			if got := watched.flushes(); got != c.want {
-				t.Errorf("the telemetry was asked to deliver %d times, want %d", got, c.want)
+				t.Errorf("the telemetry was asked for spans %d times, want %d", got, c.want)
+			}
+			// Whatever became of the trace, the request offers the rest: the
+			// measurements leave with whichever request finds them due.
+			if got := watched.offers(); got != 1 {
+				t.Errorf("the request offered %d deliveries, want 1", got)
 			}
 		})
 	}
@@ -190,12 +333,12 @@ func TestTheRequestLineNamesItsTrace(t *testing.T) {
 	}
 
 	fields := lines[0].ContextMap()
-	trace, found := fields["logging.googleapis.com/trace"].(string)
+	named, found := fields["logging.googleapis.com/trace"].(string)
 	if !found {
 		t.Fatal("the line names no trace, want one")
 	}
-	if !strings.HasPrefix(trace, "projects/a-project/traces/") {
-		t.Errorf("trace = %q, want it under the project", trace)
+	if !strings.HasPrefix(named, "projects/a-project/traces/") {
+		t.Errorf("trace = %q, want it under the project", named)
 	}
 	if _, found := fields["logging.googleapis.com/spanId"]; !found {
 		t.Error("the line names no span, want one")
@@ -213,7 +356,9 @@ type watchedRouter struct {
 	logs    *observer.ObservedLogs
 
 	delivered      atomic.Int64
+	offered        atomic.Int64
 	refuseDelivery atomic.Bool
+	panicDelivery  atomic.Bool
 }
 
 // newWatchedRouter builds it, sampling everything unless a case says otherwise.
@@ -249,8 +394,14 @@ func newWatchedRouter(t *testing.T, sampler ...sdktrace.Sampler) *watchedRouter 
 		Meters: meters,
 		// Reports what the context it was handed says, so that a case about
 		// the context it is handed can tell the difference.
-		Flush: func(ctx context.Context) error {
-			w.delivered.Add(1)
+		Flush: func(ctx context.Context, spans bool) error {
+			w.offered.Add(1)
+			if spans {
+				w.delivered.Add(1)
+			}
+			if w.panicDelivery.Load() {
+				panic("the collector is on fire")
+			}
 			if w.refuseDelivery.Load() {
 				return errors.New("the collector said no")
 			}
@@ -275,8 +426,11 @@ func (w *watchedRouter) get(t *testing.T, target string) {
 	w.handler.ServeHTTP(httptest.NewRecorder(), req)
 }
 
-// flushes is how many times the request chain asked for a delivery.
+// flushes is how many times the request chain asked for spans to be delivered.
 func (w *watchedRouter) flushes() int { return int(w.delivered.Load()) }
+
+// offers is how many times it offered a delivery at all, spans or not.
+func (w *watchedRouter) offers() int { return int(w.offered.Load()) }
 
 // labels are the label sets one metric was recorded under.
 func (w *watchedRouter) labels(t *testing.T, name string) []attribute.Set {

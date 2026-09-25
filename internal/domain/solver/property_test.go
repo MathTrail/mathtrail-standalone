@@ -3,6 +3,7 @@ package solver_test
 import (
 	"context"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/leanovate/gopter"
@@ -138,6 +139,28 @@ func TestTheTwoRunsHoldTheirProperties(t *testing.T) {
 			return len(matched) == 1 && matched[0] == solver.Letter(place)
 		},
 		genOptions(), genPlace(),
+	))
+
+	properties.TestingRun(t)
+}
+
+// Two options are one answer when they have one key, so a key has to settle a
+// text at once and to see through exactly what a card does not show.
+func TestAKeyHoldsItsProperties(t *testing.T) {
+	t.Parallel()
+
+	properties := gopter.NewProperties(nil)
+
+	properties.Property("a key is its own key", prop.ForAll(
+		func(text string) bool { return solver.Key(solver.Key(text)) == solver.Key(text) },
+		gen.AnyString(),
+	))
+
+	properties.Property("letter case and the width of the gaps between words make no other key", prop.ForAll(
+		func(words []string) bool {
+			return solver.Key(strings.ToUpper(strings.Join(words, " \u00a0 "))) == solver.Key(strings.Join(words, " "))
+		},
+		gen.SliceOf(gen.AlphaString()),
 	))
 
 	properties.TestingRun(t)

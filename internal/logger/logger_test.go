@@ -3,6 +3,7 @@ package logger
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -66,16 +67,20 @@ func TestSeverityNames(t *testing.T) {
 	t.Parallel()
 
 	cases := map[zapcore.Level]string{
-		zapcore.DebugLevel: "DEBUG",
-		zapcore.InfoLevel:  "INFO",
-		zapcore.WarnLevel:  "WARNING",
-		zapcore.ErrorLevel: "ERROR",
-		zapcore.PanicLevel: "CRITICAL",
-		zapcore.FatalLevel: "EMERGENCY",
+		zapcore.DebugLevel:  "DEBUG",
+		zapcore.InfoLevel:   "INFO",
+		zapcore.WarnLevel:   "WARNING",
+		zapcore.ErrorLevel:  "ERROR",
+		zapcore.DPanicLevel: "CRITICAL",
+		zapcore.PanicLevel:  "CRITICAL",
+		zapcore.FatalLevel:  "EMERGENCY",
+		// A level the scale has no name for is written as the collector's own
+		// word for "not said", rather than as nothing.
+		zapcore.Level(42): "DEFAULT",
 	}
 
 	for level, want := range cases {
-		t.Run(want, func(t *testing.T) {
+		t.Run(level.String(), func(t *testing.T) {
 			t.Parallel()
 			encoder := zapcore.NewJSONEncoder(cloudRunEncoderConfig())
 			buf, err := encoder.EncodeEntry(zapcore.Entry{Level: level, Message: "x"}, nil)
@@ -93,23 +98,40 @@ func TestSeverityNames(t *testing.T) {
 	}
 }
 
-// A level nobody recognises must not stop the service: it falls back to info.
-func TestNewFallsBackToInfo(t *testing.T) {
+// A level or a format the logger does not know is refused rather than guessed
+// at: a service whose log goes somewhere other than it was asked to is one
+// nobody can see.
+func TestNewRefusesWhatItDoesNotKnow(t *testing.T) {
 	t.Parallel()
 
-	log := New("loud", "json")
-	if log == nil {
-		t.Fatal("New() = nil, want a logger")
-	}
-	if !log.Core().Enabled(zapcore.InfoLevel) {
-		t.Error("info is disabled, want it enabled after an unknown level")
-	}
-	if log.Core().Enabled(zapcore.DebugLevel) {
-		t.Error("debug is enabled, want info as the fallback level")
+	for _, c := range []struct{ level, format string }{
+		{level: "loud", format: "json"},
+		{level: "info", format: "yaml"},
+		{level: "info", format: ""},
+	} {
+		if log, err := New(c.level, c.format); err == nil {
+			t.Errorf("New(%q, %q) = %v, want a refusal", c.level, c.format, log)
+		}
 	}
 }
 
-// Two settings of the configuration are decisions, not defaults, and both are
+// The level asked for is the level written: info and nothing below it.
+func TestNewWritesTheLevelAskedFor(t *testing.T) {
+	t.Parallel()
+
+	log, err := New("info", "json")
+	if err != nil {
+		t.Fatalf("New() error = %v, want nil", err)
+	}
+	if !log.Core().Enabled(zapcore.InfoLevel) {
+		t.Error("info is disabled, want it enabled")
+	}
+	if log.Core().Enabled(zapcore.DebugLevel) {
+		t.Error("debug is enabled, want nothing below info")
+	}
+}
+
+// Several settings of the configuration are decisions, not defaults, and all are
 // easy to lose to a future refactor that starts from zap's own constructors.
 func TestConfigurationDecisions(t *testing.T) {
 	t.Parallel()
@@ -118,33 +140,44 @@ func TestConfigurationDecisions(t *testing.T) {
 		t.Run(format, func(t *testing.T) {
 			t.Parallel()
 
-			cfg := newConfig("info", format)
+			cfg, err := newConfig("info", format)
+			if err != nil {
+				t.Fatalf("newConfig() error = %v, want nil", err)
+			}
 
-			if cfg.Sampling != nil {
-				t.Error("sampling is on, want it off: the counts are taken from these lines")
-			}
-			if len(cfg.OutputPaths) != 1 || cfg.OutputPaths[0] != "stdout" {
-				t.Errorf("OutputPaths = %v, want [stdout]", cfg.OutputPaths)
-			}
-			if len(cfg.ErrorOutputPaths) != 1 || cfg.ErrorOutputPaths[0] != "stderr" {
-				t.Errorf("ErrorOutputPaths = %v, want [stderr]", cfg.ErrorOutputPaths)
+			for _, decision := range []struct {
+				name string
+				got  any
+				want any
+			}{
+				// The counts are taken from these lines.
+				{name: "sampling off", got: cfg.Sampling == nil, want: true},
+				// The only stacks are the ones the service writes.
+				{name: "zap's own stacks switched off", got: cfg.DisableStacktrace, want: true},
+				// The format changes nothing but the format.
+				{name: "development mode", got: cfg.Development, want: false},
+				{name: "output", got: fmt.Sprint(cfg.OutputPaths), want: "[stdout]"},
+				{name: "the logger's own failures", got: fmt.Sprint(cfg.ErrorOutputPaths), want: "[stderr]"},
+			} {
+				if decision.got != decision.want {
+					t.Errorf("%s = %v, want %v", decision.name, decision.got, decision.want)
+				}
 			}
 		})
 	}
 }
 
-// A request carries its own path into a log line, and the code scan is right
-// that this is user input reaching a log. What it cannot see is the thing that
-// makes it harmless: the encoder.
+// A field can never end the line it is in. A request carries its own path into
+// a log line, and the encoder is what keeps that harmless.
 //
-// The attack a scanner has in mind is a caller ending the line they are in and
-// starting one of their own — a path of "/x\n{severity: ERROR, …}" becoming a
-// second entry that nobody wrote. A JSON encoder escapes the newline, so the
-// forgery stays inside the string it arrived in, and the fields it tried to
-// forge keep the values this service gave them.
+// The attack is a caller ending the line they are in and starting one of their
+// own — a path of "/x\n{severity: ERROR, …}" becoming a second entry that
+// nobody wrote. A JSON encoder escapes the newline, so the forgery stays inside
+// the string it arrived in, and the fields it tried to forge keep the values
+// this service gave them.
 //
-// This is the test that holds the encoder to that. Swap it for one that does
-// not escape and the alert stops being theoretical.
+// This is the test that holds the encoder to that: swap it for one that does
+// not escape and it goes red.
 func TestAFieldCannotForgeASecondLine(t *testing.T) {
 	t.Parallel()
 

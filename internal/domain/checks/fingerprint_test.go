@@ -21,40 +21,40 @@ func TestAFingerprintIsTheSameAsEverStored(t *testing.T) {
 	}{
 		{
 			"Four spaceships dock in pairs. How many different pairs can they make?",
-			"cEpEOM5/PodUbTQwjQI2RwjWZTJ4vjbl6lIXlbXUdU3LHILXhD51wXaU/HJgkIACR5XiCBcbdwJCu48XWTRJxg==",
+			"Ckjv501A0meGUo5lonVUXbwnTlFkwgACdSh7civ3lJZ8RtVctc3wgARnMBYRI7PFnNrFsMk8pUi+ob5MMoKsNL6d6QpIEzL3ZwVXxko3zOcq9+vjcv2a9leTAFNPEpWh",
 		},
 		{
 			"小明有三个苹果。",
-			"T/rZi7S23yOMz0yzAeAYxg1ngcnagmnzl8qJBzkKMfa8Bz2KN2vFa3VBUqwOCgtKL6/TTQeLy4T358gF0o/bNA==",
+			"+ptG88/DEIbXGaKTepeaFsfae1tRLOq6/z17tHeFL7RYnxn9rZUApPFj972FcIsDuB+i7S3eEFYQna5E0BzAsjR5tpqoyWX30wT9uJuV/OWBXldQ9y78XA+PydOJAfAo",
 		},
 	} {
-		if got := checks.Fingerprint(test.question); got != test.want {
+		if got := checks.Fingerprint(test.question, ""); got != test.want {
 			t.Errorf("Fingerprint(%q) = %s, want %s", test.question, got, test.want)
 		}
 	}
 }
 
-// Sixty-four bytes, written as 88 characters of base64: the size the profile
+// Ninety-six bytes, written as 128 characters of base64: the size the profile
 // budget counts on, two hundred of them to a file.
-func TestAFingerprintIsSixtyFourBytes(t *testing.T) {
+func TestAFingerprintIsNinetySixBytes(t *testing.T) {
 	t.Parallel()
 
-	fingerprint := checks.Fingerprint("Four spaceships dock in pairs. How many different pairs can they make?")
-	if len(fingerprint) != 88 {
-		t.Errorf("len = %d, want 88", len(fingerprint))
+	fingerprint := checks.Fingerprint("Four spaceships dock in pairs. How many different pairs can they make?", "")
+	if len(fingerprint) != 128 {
+		t.Errorf("len = %d, want 128", len(fingerprint))
 	}
 	raw, err := base64.StdEncoding.DecodeString(fingerprint)
 	if err != nil {
 		t.Fatalf("decode %q: %v", fingerprint, err)
 	}
-	if len(raw) != 64 {
-		t.Errorf("%d bytes, want 64", len(raw))
+	if len(raw) != 96 {
+		t.Errorf("%d bytes, want 96", len(raw))
 	}
 }
 
-// The share of positions at which two sketches agree estimates the similarity
-// of the two questions — that is the whole contract of the sketch. On the
-// prototype's measured pairs, sixty-four positions land within 0.2 of it.
+// The positions at which two sketches agree estimate the similarity of the two
+// questions — that is the whole contract of the sketch. On the prototype's
+// measured pairs, a hundred and ninety-two positions land within 0.12 of it.
 func TestAgreeingPositionsEstimateTheSimilarity(t *testing.T) {
 	t.Parallel()
 
@@ -66,15 +66,18 @@ func TestAgreeingPositionsEstimateTheSimilarity(t *testing.T) {
 		t.Run(pair.Name, func(t *testing.T) {
 			t.Parallel()
 
-			estimate := agreement(t, checks.Fingerprint(pair.A), checks.Fingerprint(pair.B))
-			if diff := estimate - pair.Similarity; diff > 0.2 || diff < -0.2 {
-				t.Errorf("the sketches agree at %.3f of positions, and the questions are %.3f alike", estimate, pair.Similarity)
+			estimate := agreement(t, checks.Fingerprint(pair.A, ""), checks.Fingerprint(pair.B, ""))
+			if diff := estimate - pair.Similarity; diff > 0.12 || diff < -0.12 {
+				t.Errorf("the sketches estimate %.3f, and the questions are %.3f alike", estimate, pair.Similarity)
 			}
 		})
 	}
 }
 
-// agreement is the share of positions at which two fingerprints agree.
+// agreement is the similarity two fingerprints estimate, read the way the
+// profile stores them: four bits a position, two positions to a byte, the
+// first in the high half. The share of positions that agree is taken back by
+// the one in sixteen that agree by chance.
 func agreement(t *testing.T, a, b string) float64 {
 	t.Helper()
 
@@ -88,9 +91,14 @@ func agreement(t *testing.T, a, b string) float64 {
 	}
 	same := 0
 	for i := range first {
-		if first[i] == second[i] {
+		if first[i]>>4 == second[i]>>4 {
+			same++
+		}
+		if first[i]&0x0f == second[i]&0x0f {
 			same++
 		}
 	}
-	return float64(same) / float64(len(first))
+	const chance = 1.0 / 16
+	share := float64(same) / float64(2*len(first))
+	return max(0, (share-chance)/(1-chance))
 }

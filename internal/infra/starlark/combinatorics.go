@@ -124,12 +124,7 @@ func product(steps uint64) *starlark.Builtin {
 		if err := charge(thread, steps, count, width); err != nil {
 			return nil, fmt.Errorf("%s: %w", name, err)
 		}
-
-		pools := make([][]starlark.Value, 0, width)
-		for range repeat {
-			pools = append(pools, given...)
-		}
-		return starlark.NewList(crossings(pools, count)), nil
+		return starlark.NewList(crossings(given, repeat, count)), nil
 	})
 }
 
@@ -218,12 +213,18 @@ func choicesWithRepeats(pool []starlark.Value, width, count int) []starlark.Valu
 	}
 }
 
-// crossings is one element from each pool, every way round: a row of counters
-// with the last one moving fastest, running to the end of its pool, going back
-// to the start and moving the one before it.
-func crossings(pools [][]starlark.Value, count int) []starlark.Value {
+// crossings is one element from each pool, the pools given repeat times over,
+// every way round: a row of counters with the last one moving fastest, running
+// to the end of its pool, going back to the start and moving the one before it.
+// Nothing is laid out for a product that holds no tuple at all, however wide
+// its tuples would have been.
+func crossings(given [][]starlark.Value, repeat, count int) []starlark.Value {
 	if count == 0 {
 		return nil
+	}
+	pools := make([][]starlark.Value, 0, len(given)*repeat)
+	for range repeat {
+		pools = append(pools, given...)
 	}
 	tuples := make([]starlark.Value, 0, count)
 	places := make([]int, len(pools))

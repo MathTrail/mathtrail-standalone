@@ -87,3 +87,13 @@ func fallbackRequestID() string {
 	return strconv.FormatInt(time.Now().UnixNano(), 36) + "-" +
 		strconv.FormatUint(requestsSeen.Add(1), 36)
 }
+
+// RequestIDFrom returns the request id set by RequestID, or an empty string.
+func RequestIDFrom(c *gin.Context) string {
+	if value, ok := c.Get(RequestIDKey); ok {
+		if id, ok := value.(string); ok {
+			return id
+		}
+	}
+	return ""
+}

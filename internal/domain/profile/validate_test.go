@@ -135,6 +135,11 @@ func TestEveryLimitIsRefusedByName(t *testing.T) {
 			wantSay: "recent[1].chosen",
 		},
 		{
+			name:    "an answer that picked two options at once",
+			breakIt: func(p *profile.Profile) { p.Recent[1].Chosen = "BC" },
+			wantSay: "recent[1].chosen",
+		},
+		{
 			// A right answer has no mistake to name, and naming one would put
 			// a trap of the lesson in flight where it does not belong.
 			name:    "a correct answer that still names a trap",
@@ -249,7 +254,10 @@ func TestATaskInFlightIsRefusedWhenItIsNotWhole(t *testing.T) {
 		"difficulty":          func(t *profile.CurrentTask) { t.Difficulty = 0 },
 		// Five options, and one of them says nothing: a child cannot pick it,
 		// and the count alone would not notice.
-		"options has nothing": func(t *profile.CurrentTask) { t.Options["C"] = "" },
+		"options shows nothing": func(t *profile.CurrentTask) { t.Options["C"] = "" },
+		// Nor can the child pick one that shows nothing on the card, however
+		// many characters it is made of.
+		"options shows nothing under \"D\"": func(t *profile.CurrentTask) { t.Options["D"] = " \u200b " },
 	}
 
 	for wantSay, breakIt := range cases {

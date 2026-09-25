@@ -23,8 +23,8 @@ import (
 )
 
 // Container holds everything the process needs while it runs, and knows how to
-// close it again. Today it holds almost nothing; the shape is what matters,
-// because every later part is added to exactly one place.
+// close it again. Every part is built in one place, NewContainer, and released
+// in one, Close.
 type Container struct {
 	Config    *config.Config
 	Logger    *zap.Logger
@@ -43,8 +43,19 @@ type Container struct {
 // NewContainer builds everything. If construction fails halfway, whatever was
 // already built is closed before the error is returned: a half-built container
 // must not leak a connection or a goroutine.
-func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (*Container, error) {
+func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *Container, err error) {
 	c := &Container{Config: cfg, Logger: log}
+	defer func() {
+		if err == nil {
+			return
+		}
+		// Detached, with the time a close is given: construction may have
+		// failed because its context ended, and a close handed that context
+		// would give up before it began.
+		closing, cancel := context.WithTimeout(context.WithoutCancel(ctx), cfg.CloseTimeout())
+		defer cancel()
+		c.Close(closing)
+	}()
 
 	// The content is read and checked before anything is served. A catalog that
 	// lost an entry, or a reference task that no longer matches it, is a fault
@@ -52,7 +63,6 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (*Co
 	// reaching a child in the middle of a lesson.
 	embedded, err := content.Load()
 	if err != nil {
-		c.Close(ctx)
 		return nil, err
 	}
 	c.Content = embedded
@@ -69,7 +79,6 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (*Co
 	// so now rather than at the first sign-in.
 	ring, err := seal.NewKeyRing(cfg.SealKeyCurrent, cfg.SealKeyPrevious)
 	if err != nil {
-		c.Close(ctx)
 		return nil, err
 	}
 	c.Seal = ring
@@ -91,7 +100,6 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (*Co
 		Version:     version.Version,
 	}, log)
 	if err != nil {
-		c.Close(ctx)
 		return nil, err
 	}
 	c.Telemetry = tel
@@ -106,7 +114,6 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (*Co
 		Concurrency: cfg.SolverConcurrency,
 	})
 	if err != nil {
-		c.Close(ctx)
 		return nil, err
 	}
 	// Wrapped rather than instrumented in place: what is worth recording is
@@ -114,7 +121,6 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (*Co
 	// that watches it.
 	observed, err := telemetry.ObserveSolver(sandbox, tel.TracerProvider(), tel.MeterProvider())
 	if err != nil {
-		c.Close(ctx)
 		return nil, err
 	}
 	c.Solver = observed
@@ -136,7 +142,6 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (*Co
 		ProjectID: cfg.GCPProjectID,
 	})
 	if err != nil {
-		c.Close(ctx)
 		return nil, err
 	}
 	return c, nil

@@ -57,6 +57,29 @@ func TestTheStepBudgetStopsALoop(t *testing.T) {
 	}
 }
 
+// A product of a hundred thousand numbers costs the budget a hundred thousand
+// steps and minutes of work as its digits grow. It is one call, and the clock
+// stops it as it would stop the loop the call stands for, rather than waiting
+// for the call to end.
+func TestTheClockStopsAProductAsItGrows(t *testing.T) {
+	t.Parallel()
+	runner := sandbox(t, starlark.Limits{Steps: 1 << 62, Timeout: 100 * time.Millisecond, Concurrency: 1})
+
+	started := time.Now()
+	result, err := runner.Run(t.Context(),
+		"def solve(options):\n    prod(range(1, 100001))\n    return match(options, 6)\n", options)
+	elapsed := time.Since(started)
+	if err != nil {
+		t.Fatalf("Run: got error %v, want none", err)
+	}
+	if result.Status != solver.StatusTimeout {
+		t.Errorf("status: got %q (%s), want %q", result.Status, result.Message, solver.StatusTimeout)
+	}
+	if elapsed > 2*time.Second {
+		t.Errorf("elapsed: got %v, want the product stopped soon after 100ms", elapsed)
+	}
+}
+
 func TestTheClockStopsWhatTheBudgetWouldNot(t *testing.T) {
 	t.Parallel()
 	// A budget no loop can spend in the time given, so that what stops the
@@ -152,6 +175,51 @@ func TestABuiltinCannotSpendWhatIsLeft(t *testing.T) {
 	}
 	if result.Duration > 100*time.Millisecond {
 		t.Errorf("duration: got %v, want the refusal before the list was built", result.Duration)
+	}
+}
+
+// Matching folds the texts it compares inside one call, and a solver builds a
+// text of any length in one step, so a text is paid for before it is folded.
+// Past the ceiling it is refused at once; under it, a loop of matches runs
+// into the budget of steps long before the clock — which here is two seconds,
+// so that a loop nobody charges for is stopped by the clock and says so.
+func TestAMatchIsPaidForByTheTextsItReads(t *testing.T) {
+	t.Parallel()
+	for _, test := range []struct {
+		name    string
+		source  string
+		status  solver.Status
+		message string
+	}{
+		{
+			name:    "a text past the ceiling",
+			source:  "def solve(options):\n    return match(options, \"é\" * 1000000)\n",
+			status:  solver.StatusError,
+			message: "the longest that will be compared",
+		},
+		{
+			name: "a loop over a text under it",
+			source: "def solve(options):\n    text = \"é\" * 300000\n" +
+				"    for _ in range(1000):\n        match(options, text)\n    return match(options, 6)\n",
+			status:  solver.StatusTimeout,
+			message: "more than 1000000 steps",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			runner := sandbox(t, starlark.Limits{Steps: 1_000_000, Timeout: 2 * time.Second, Concurrency: 1})
+
+			result, err := runner.Run(context.Background(), test.source, options)
+			if err != nil {
+				t.Fatalf("Run: got error %v, want none", err)
+			}
+			if result.Status != test.status {
+				t.Errorf("status: got %q (%s), want %q", result.Status, result.Message, test.status)
+			}
+			if !strings.Contains(result.Message, test.message) {
+				t.Errorf("message: got %q, want it to say %q", result.Message, test.message)
+			}
+		})
 	}
 }
 

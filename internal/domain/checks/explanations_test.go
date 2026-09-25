@@ -3,6 +3,7 @@ package checks_test
 import (
 	"maps"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/leanovate/gopter"
@@ -15,7 +16,7 @@ import (
 func TestWellExplainedWrongOptionsPass(t *testing.T) {
 	t.Parallel()
 
-	if problems := checks.Explanations(validDraft(), testCatalog); len(problems) != 0 {
+	if problems := checks.Explanations(validDraft(), "", testCatalog); len(problems) != 0 {
 		t.Fatalf("Explanations() = %v, want none", problems)
 	}
 }
@@ -85,7 +86,7 @@ func TestAPoorExplanationIsRefusedByItsTrap(t *testing.T) {
 
 			draft := validDraft()
 			test.change(&draft)
-			problems := checks.Explanations(draft, testCatalog)
+			problems := checks.Explanations(draft, "", testCatalog)
 			if !mentions(problems, test.want) {
 				t.Fatalf("Explanations() = %v, want a problem mentioning %q", problems, test.want)
 			}
@@ -134,7 +135,7 @@ func TestWhatTheConditionsDoNotForbidPasses(t *testing.T) {
 
 			draft := validDraft()
 			test.change(&draft)
-			if problems := checks.Explanations(draft, testCatalog); len(problems) != 0 {
+			if problems := checks.Explanations(draft, "", testCatalog); len(problems) != 0 {
 				t.Fatalf("Explanations() = %v, want none", problems)
 			}
 		})
@@ -153,7 +154,7 @@ func TestNoExplanationRefusalQuotesAnOption(t *testing.T) {
 
 			draft := validDraft()
 			test.change(&draft)
-			for _, problem := range checks.Explanations(draft, testCatalog) {
+			for _, problem := range checks.Explanations(draft, "", testCatalog) {
 				if quoted := quotedOption(problem.Message, options); quoted != "" {
 					t.Errorf("%q quotes %q", problem.Message, quoted)
 				}
@@ -165,7 +166,7 @@ func TestNoExplanationRefusalQuotesAnOption(t *testing.T) {
 func TestAnUnreadTaskIsNotCheckedAgain(t *testing.T) {
 	t.Parallel()
 
-	if problems := checks.Explanations(checks.Draft{}, testCatalog); len(problems) != 0 {
+	if problems := checks.Explanations(checks.Draft{}, "", testCatalog); len(problems) != 0 {
 		t.Fatalf("Explanations(empty draft) = %v, want none", problems)
 	}
 }
@@ -204,7 +205,7 @@ func verdict(explained []checks.Distractor, shift int) []string {
 		draft.Task.Distractors[wrong[(i+shift)%len(wrong)]] = distractor
 	}
 	var messages []string
-	for _, problem := range checks.Explanations(draft, testCatalog) {
+	for _, problem := range checks.Explanations(draft, "", testCatalog) {
 		messages = append(messages, problem.Message)
 	}
 	slices.Sort(messages)
@@ -227,10 +228,38 @@ func FuzzExplanations(f *testing.F) {
 			"D": {Trap: "wrong_operation", Text: third},
 			"E": {Trap: "double_count", Text: fourth},
 		}
-		for _, problem := range checks.Explanations(draft, testCatalog) {
+		for _, problem := range checks.Explanations(draft, "", testCatalog) {
 			if problem.Code != checks.CodeDistractorExplanations || problem.Message == "" {
 				t.Fatalf("problem = %+v, want a message under %q", problem, checks.CodeDistractorExplanations)
 			}
 		}
 	})
+}
+
+// An explanation's length is counted in the unit of the task's language, as the
+// question's is. A Chinese explanation that names its children in Latin
+// letters has more of those than Chinese ones, and counted by its letters it
+// would be one word, too short to say anything; in Chinese it is eleven
+// characters and says enough.
+func TestAnExplanationIsCountedInTheUnitOfItsLanguage(t *testing.T) {
+	t.Parallel()
+
+	draft := validDraft()
+	draft.Task.Distractors["B"] = checks.Distractor{Trap: "missed_case", Text: "Tom把Mary算漏了"}
+
+	for _, test := range []struct {
+		language string
+		refused  bool
+	}{
+		{language: "zh", refused: false},
+		{language: "", refused: true},
+	} {
+		tooShort := false
+		for _, problem := range checks.Explanations(draft, test.language, testCatalog) {
+			tooShort = tooShort || strings.Contains(problem.Message, "it takes at least")
+		}
+		if tooShort != test.refused {
+			t.Errorf("Explanations(language %q) refuses it as too short: %v, want %v", test.language, tooShort, test.refused)
+		}
+	}
 }

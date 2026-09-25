@@ -8,6 +8,9 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
 
 // Example is one reference task. Reference tasks are what the model is shown
@@ -79,14 +82,8 @@ const (
 	examplesSuffix     = ".json"
 	solversDir         = "solvers"
 	solverSuffix       = ".star"
-	minDifficulty      = 1
-	maxDifficulty      = 5
 	distractorsPerTask = 4
 )
-
-// optionLetters are the five options every task offers, in the order a child
-// reads them.
-var optionLetters = []string{"A", "B", "C", "D", "E"}
 
 // A reference task id is lowercase and dash-separated, as in ord-12-d1-1.
 var exampleIDPattern = regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*$`)
@@ -237,13 +234,13 @@ func (c exampleCheck) run(p *problems, i int, task *Example) {
 
 	c.checkPlacement(p, where, task)
 
-	if task.Difficulty < minDifficulty || task.Difficulty > maxDifficulty {
-		p.addf("%s: difficulty %d is outside %d-%d", where, task.Difficulty, minDifficulty, maxDifficulty)
+	if task.Difficulty < profile.MinDifficulty || task.Difficulty > profile.MaxDifficulty {
+		p.addf("%s: difficulty %d is outside %d-%d", where, task.Difficulty, profile.MinDifficulty, profile.MaxDifficulty)
 	}
-	if task.Question == "" {
+	if solver.Blank(task.Question) {
 		p.addf("%s: the question is empty", where)
 	}
-	if task.Solution == "" {
+	if solver.Blank(task.Solution) {
 		p.addf("%s: the solution is empty", where)
 	}
 
@@ -273,29 +270,30 @@ func (c exampleCheck) checkPlacement(p *problems, where string, task *Example) {
 // checkOptions checks that the child is offered five answers they can tell
 // apart, with exactly one of them marked correct.
 func (c exampleCheck) checkOptions(p *problems, where string, task *Example) {
-	if len(task.Options) != len(optionLetters) {
-		p.addf("%s: %d options, and a task offers exactly %v", where, len(task.Options), optionLetters)
+	if len(task.Options) != solver.Count {
+		p.addf("%s: %d options, and a task offers exactly %v", where, len(task.Options), solver.Letters())
 	}
-	texts := make(map[string]string, len(task.Options))
-	for _, letter := range optionLetters {
+	firstSaying := make(map[string]string, solver.Count)
+	for _, letter := range solver.Letters() {
 		text, ok := task.Options[letter]
 		switch {
 		case !ok:
 			p.addf("%s: option %s is missing", where, letter)
 			continue
-		case strings.TrimSpace(text) == "":
+		case solver.Blank(text):
 			p.addf("%s: option %s is empty", where, letter)
 			continue
 		}
-		same := strings.ToLower(strings.TrimSpace(text))
-		if first, repeated := texts[same]; repeated {
-			p.addf("%s: options %s and %s read the same", where, first, letter)
+		key := solver.Key(text)
+		if first, repeated := firstSaying[key]; repeated {
+			p.addf("%s: options %s and %s say the same", where, first, letter)
+			continue
 		}
-		texts[same] = letter
+		firstSaying[key] = letter
 	}
 
-	if !isOptionLetter(task.CorrectAnswer) {
-		p.addf("%s: the correct answer is %q, and it is one of %v", where, task.CorrectAnswer, optionLetters)
+	if solver.Place(task.CorrectAnswer) < 0 {
+		p.addf("%s: the correct answer is %q, want one of %v", where, task.CorrectAnswer, solver.Letters())
 	}
 }
 
@@ -308,7 +306,7 @@ func (c exampleCheck) checkDistractors(p *problems, where string, task *Example)
 		p.addf("%s: %d explanations of wrong options, and every task has %d",
 			where, len(task.Distractors), distractorsPerTask)
 	}
-	for _, letter := range optionLetters {
+	for _, letter := range solver.Letters() {
 		distractor, ok := task.Distractors[letter]
 		if letter == task.CorrectAnswer {
 			if ok {
@@ -323,7 +321,7 @@ func (c exampleCheck) checkDistractors(p *problems, where string, task *Example)
 		if _, known := c.traps[distractor.Trap]; !known {
 			p.addf("%s: option %s names trap %q, which is not in the catalog", where, letter, distractor.Trap)
 		}
-		if strings.TrimSpace(distractor.Text) == "" {
+		if solver.Blank(distractor.Text) {
 			p.addf("%s: option %s explains nothing", where, letter)
 		}
 	}
@@ -397,11 +395,6 @@ func checkDrawnRelations(p *problems, where string, relations []DrawingRelation,
 			p.addf("%s: relation %d ends at %q, which is not drawn", where, i+1, relation.To)
 		}
 	}
-}
-
-// isOptionLetter reports whether this names one of the five options.
-func isOptionLetter(letter string) bool {
-	return slices.Contains(optionLetters, letter)
 }
 
 // clone copies a reference task together with everything it points at: the

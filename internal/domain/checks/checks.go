@@ -10,7 +10,11 @@
 // holds its own draft: it needs to be told what to fix, not shown it.
 package checks
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
+)
 
 // Code is a reason a submission is refused, as the model and the log see it.
 type Code string
@@ -66,5 +70,6 @@ func structural(format string, args ...any) Problem {
 }
 
 // optionKeys are the five keys a task's options are held under, in the order a
-// child reads them.
-var optionKeys = []string{"A", "B", "C", "D", "E"}
+// child reads them: the letters the solver labels the options with, so that
+// the format and the solver cannot come to disagree about them.
+var optionKeys = solver.Letters()

@@ -47,20 +47,31 @@ func fold(
 	if err != nil {
 		return nil, err
 	}
-	return accumulate(name, operation, start, elements)
+	return accumulate(thread, name, operation, start, elements)
 }
 
 // accumulate is the walk itself, over numbers and nothing else. The language
 // would happily join two strings with the same operator, and a sum that
 // returned a sentence would be a puzzle rather than an answer.
+//
+// The budget is charged for the elements, but whole numbers grow as they are
+// multiplied, and a product of a hundred thousand of them is minutes of work
+// the step count never sees. So the walk looks at the clock as it goes, as the
+// interpreter does between the steps of the loop this call stands for.
 func accumulate(
-	name string, operation syntax.Token, start starlark.Value, elements []starlark.Value,
+	thread *starlark.Thread, name string, operation syntax.Token, start starlark.Value, elements []starlark.Value,
 ) (starlark.Value, error) {
 	total := start
 	if err := mustBeNumber(name, total); err != nil {
 		return nil, err
 	}
-	for _, element := range elements {
+	clock := clockOf(thread)
+	for i, element := range elements {
+		if i%clockEvery == 0 {
+			if err := clock.Err(); err != nil {
+				return nil, fmt.Errorf("%s: %w", name, err)
+			}
+		}
 		if err := mustBeNumber(name, element); err != nil {
 			return nil, err
 		}
@@ -72,6 +83,11 @@ func accumulate(
 	}
 	return total, nil
 }
+
+// clockEvery is how many elements the walk takes between two looks at the
+// clock: a look takes a lock, and a sum of small numbers needs none, while a
+// product of huge ones is stopped a few multiplications after its time is up.
+const clockEvery = 32
 
 // gcd is the greatest common divisor of two whole numbers, and it is the
 // building block of exact fractions: a solver comparing a over b with c over d

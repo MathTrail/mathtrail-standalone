@@ -222,7 +222,7 @@ func (c *Content) prohibitionsFor(ids []string) ([]Skill, error) {
 func corridorOf(corridor *rating.Corridor) packageCorridor {
 	chances := make(map[string]float64, len(corridor.Probabilities))
 	for i, chance := range corridor.Probabilities {
-		chances[strconv.Itoa(i+1)] = math.Round(chance*100) / 100
+		chances[strconv.Itoa(profile.MinDifficulty+i)] = math.Round(chance*100) / 100
 	}
 	return packageCorridor{
 		RecommendedDifficulty: corridor.Recommended, Fit: corridor.Fit,

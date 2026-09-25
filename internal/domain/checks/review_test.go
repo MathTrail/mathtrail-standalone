@@ -81,9 +81,13 @@ func (s *scenario) review(t *testing.T) checks.Outcome {
 	if err != nil {
 		t.Fatalf("Examine() error = %v", err)
 	}
-	return reviewer.Judge(examined, checks.Against{
+	outcome, err := reviewer.Judge(examined, checks.Against{
 		Asked: asked(), Language: s.language, Grade: s.grade, Fingerprints: s.fingerprints,
 	})
+	if err != nil {
+		t.Fatalf("Judge() error = %v", err)
+	}
+	return outcome
 }
 
 // submissionOf is a draft as the JSON a model would send.
@@ -142,6 +146,41 @@ func TestAGoodTaskIsAccepted(t *testing.T) {
 	}
 }
 
+// A task is judged only when there is something to judge: a submission
+// Examine finished, and the brief of the request it answers. Without either
+// the review is the service's failure, not the task's, and it accepts nothing —
+// the empty value Examine returns beside a failure of the sandbox has passed no
+// check at all.
+func TestNothingIsJudgedWithoutItsInput(t *testing.T) {
+	t.Parallel()
+
+	reviewer := checks.NewReviewer(shipped{catalog: testCatalog}, &working{value: "six pairs"},
+		checks.DefaultDrawingLimits())
+	examined, err := reviewer.Examine(t.Context(), submissionOf(t, validDraft()))
+	if err != nil {
+		t.Fatalf("Examine() error = %v", err)
+	}
+
+	for _, test := range []struct {
+		name     string
+		examined checks.Examined
+		against  checks.Against
+	}{
+		{"a submission never examined", checks.Examined{}, checks.Against{Asked: asked(), Language: "en", Grade: 4}},
+		{"no request to hold it against", examined, checks.Against{Language: "en", Grade: 4}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			outcome, err := reviewer.Judge(test.examined, test.against)
+			if err == nil || outcome.Accepted() || outcome.Event().Outcome != "" {
+				t.Errorf("Judge() = accepted %v, event %+v, error %v, want an error, nothing accepted and nothing logged",
+					outcome.Accepted(), outcome.Event(), err)
+			}
+		})
+	}
+}
+
 // refusals are the prototype's refusals, one reason each, and the ones this
 // service added: each breaks one thing about a task that passes, and is
 // refused for that thing alone.
@@ -179,7 +218,7 @@ var refusals = []struct {
 	{"a copy of a reference task", func(s *scenario) { s.references = []string{s.draft.Task.Question} },
 		checks.CodeNearDuplicate, "near-copy of one of the reference tasks"},
 	{"a repeat of a task the child has had", func(s *scenario) {
-		s.fingerprints = []string{checks.Fingerprint(s.draft.Task.Question)}
+		s.fingerprints = []string{checks.Fingerprint(s.draft.Task.Question, "")}
 	}, checks.CodeNearDuplicate, "already been given"},
 }
 
@@ -281,6 +320,24 @@ func TestAStructuralFaultBlocksOnlyWhatItBroke(t *testing.T) {
 	want := []checks.Code{checks.CodeBadStructure, checks.CodeReadability, checks.CodeSolverError}
 	if codes := codesOf(&outcome); !slices.Equal(codes, want) || crash.runs != 1 {
 		t.Errorf("another topic: codes = %v after %d runs, want %v after one", codes, crash.runs, want)
+	}
+}
+
+// An option that shows nothing on a card is no option to run a solver on: it
+// is refused as empty, and the solver is not run over it.
+func TestABlankOptionIsNoOptionToRunTheSolverOn(t *testing.T) {
+	t.Parallel()
+
+	crash := &scripted{result: solver.Result{Status: solver.StatusError, Message: "never run"}}
+	blank := accepted()
+	blank.runner = crash
+	blank.draft.Task.Options["E"] = "\u200b"
+	outcome := blank.review(t)
+
+	if crash.runs != 0 || !slices.ContainsFunc(outcome.Unchecked, func(note string) bool {
+		return strings.Contains(note, "the solver was not run")
+	}) {
+		t.Errorf("the solver ran %d times, unchecked %v, want it not run and said so", crash.runs, outcome.Unchecked)
 	}
 }
 
@@ -512,7 +569,7 @@ func TestReasonsGroupTheProblemsByCheck(t *testing.T) {
 
 	copied := accepted()
 	copied.references = []string{copied.draft.Task.Question}
-	copied.fingerprints = []string{checks.Fingerprint(copied.draft.Task.Question)}
+	copied.fingerprints = []string{checks.Fingerprint(copied.draft.Task.Question, "")}
 	outcome := copied.review(t)
 
 	reasons := outcome.Reasons()
@@ -522,7 +579,8 @@ func TestReasonsGroupTheProblemsByCheck(t *testing.T) {
 }
 
 // Each code is one reason however its problems are spread through the list,
-// so that the log names every failed check once.
+// so that the log, which names the failed checks by their reasons, names every
+// one of them once.
 func TestEachCodeIsOneReasonWhereverItsProblemsStand(t *testing.T) {
 	t.Parallel()
 
@@ -539,9 +597,6 @@ func TestEachCodeIsOneReasonWhereverItsProblemsStand(t *testing.T) {
 		return a.Code == b.Code && slices.Equal(a.Messages, b.Messages)
 	}) {
 		t.Errorf("Reasons() = %+v, want %+v", got, want)
-	}
-	if failed := outcome.Event().Failed; !slices.Equal(failed, []checks.Code{checks.CodeBadStructure, checks.CodeReadability}) {
-		t.Errorf("Event().Failed = %v, want each code once, in the order it first appears", failed)
 	}
 }
 

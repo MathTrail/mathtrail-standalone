@@ -22,12 +22,15 @@ type Outcome struct {
 	MinorIssues []string
 	// runs are the runs of the solver, kept for what they cost.
 	runs []solver.Result
+	// judged says the checks were run: only then can anything be accepted.
+	judged bool
 }
 
 // Accepted says whether the task passed every check there is. A check goes
 // unrun only for want of an input the format requires, so a task with a check
-// left unrun always has a problem of its format too.
-func (o *Outcome) Accepted() bool { return len(o.Problems) == 0 }
+// left unrun always has a problem of its format too. Only what Judge returned
+// can be accepted: any other outcome, the empty one among them, passed nothing.
+func (o *Outcome) Accepted() bool { return o.judged && len(o.Problems) == 0 }
 
 // Primary is the code of the first check that failed: the one an attempt is
 // counted by and the log is read by. It is empty when nothing failed.
@@ -85,8 +88,13 @@ type Submitted struct {
 	SolverTime time.Duration
 }
 
-// Event is what the log keeps of this review.
+// Event is what the log keeps of this review. An outcome Judge did not return
+// was no review at all, and it gives an empty event rather than a rejection
+// that would be counted against a task nobody looked at.
 func (o *Outcome) Event() Submitted {
+	if !o.judged {
+		return Submitted{}
+	}
 	event := Submitted{Outcome: outcomeAccepted, Primary: o.Primary(), MinorIssues: slices.Clone(o.MinorIssues)}
 	if !o.Accepted() {
 		event.Outcome = outcomeRejected
