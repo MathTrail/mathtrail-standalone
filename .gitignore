@@ -8,6 +8,7 @@
 /PRODUCT-V1.md
 /docs/prototype/
 /docs/reconciliation.md
+/research/
 
 # Secrets
 .env
@@ -26,9 +27,9 @@ coverage.*
 go.work
 go.work.sum
 
-# Local snapshots of files that live outside git, kept by the research program:
-# a record for this machine, not evidence anyone else can check
-/research/archive/
+# The research program: its plan, evidence, experiments and paper drafts are
+# kept on this machine and out of the repository.
+/research/
 
 # Node modules of the widget build (web/)
 node_modules/
