@@ -1,22 +1,22 @@
-ROWS = 4
-COLUMNS = 6
+ROWS = 5
+COLUMNS = 8
 
 def split_off(piece):
-    # Break a single row, or else a single square, off the piece.
+    # Tear a single row, or else a single stamp, off the piece.
     rows, columns = piece
     if rows > 1:
         return [(1, columns), (rows - 1, columns)]
     return [(1, 1), (1, columns - 1)]
 
 def halve(piece):
-    # Break the piece as near its middle as the grooves allow, across its longer side.
+    # Tear the piece as near its middle as the lines of holes allow, across its longer side.
     rows, columns = piece
     if rows >= columns:
         return [(rows // 2, columns), (rows - rows // 2, columns)]
     return [(rows, columns // 2), (rows, columns - columns // 2)]
 
-def breaks(split):
-    # Break one piece at a time until every piece is a single square.
+def tears(split):
+    # Tear one piece at a time until every piece is a single stamp.
     pieces = [(ROWS, COLUMNS)]  # each piece as its rows and columns
     count = 0
     while any([rows * columns > 1 for rows, columns in pieces]):
@@ -27,8 +27,8 @@ def breaks(split):
     return count
 
 def solve(options):
-    # Two very different orders of breaking have to need the same number of breaks.
-    counts = set([breaks(split_off), breaks(halve)])
+    # Two very different orders of tearing have to need the same number of tears.
+    counts = set([tears(split_off), tears(halve)])
     if len(counts) != 1:
-        fail("the orders need %d different numbers of breaks" % len(counts))
+        fail("the orders need %d different numbers of tears" % len(counts))
     return match(options, list(counts)[0])

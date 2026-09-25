@@ -848,5 +848,320 @@
         "text": "Piles of 6 kg and 3 kg can be made, and 6 + 3 = 9."
       }
     }
+  },
+  {
+    "id": "wp-56-d2-1",
+    "topic": "algorithms.weighing_pouring",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "A gardener has three empty buckets that hold 3, 5 and 8 litres, and a tap. In one step she fills a bucket from the tap or pours from one bucket into another. A pouring stops when one bucket is empty or the other is full. What is the smallest number of steps after which the 8-litre bucket holds exactly 2 litres?",
+    "options": {
+      "A": "3",
+      "B": "2",
+      "C": "6",
+      "D": "8",
+      "E": "4"
+    },
+    "correct_answer": "A",
+    "hint": "What amounts can you measure with the 3-litre and the 5-litre bucket alone?",
+    "solution": "Fill the 5-litre bucket and pour it into the 3-litre one: 2 litres stay in the 5-litre bucket. Pour them into the 8-litre bucket. That is 3 steps. Two steps are not enough: after two steps the only way to have 2 litres is in the 5-litre bucket, not yet in the 8-litre one.",
+    "distractors": {
+      "B": {
+        "trap": "ignored_condition",
+        "text": "2 steps give 2 litres, but in the 5-litre bucket; the question wants them in the 8-litre bucket."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "6 is how many litres would have to leave a full 8-litre bucket, not a number of steps."
+      },
+      "D": {
+        "trap": "number_from_text",
+        "text": "8 is the size of the big bucket, copied from the question."
+      },
+      "E": {
+        "trap": "missed_case",
+        "text": "Starting by filling the 8-litre bucket takes 4 steps; starting with the 5-litre bucket takes only 3."
+      }
+    }
+  },
+  {
+    "id": "wp-56-d2-2",
+    "topic": "algorithms.weighing_pouring",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "A post office has four parcels that look alike, but no two of them weigh the same. The clerk has a balance without weights that compares two parcels at a time. What is the smallest number of weighings that is sure to find the heaviest parcel?",
+    "options": {
+      "A": "4",
+      "B": "12",
+      "C": "3",
+      "D": "6",
+      "E": "2"
+    },
+    "correct_answer": "C",
+    "hint": "After each weighing, how many parcels can you be sure are not the heaviest?",
+    "solution": "A parcel is ruled out only once it has been the lighter one in a weighing, and each weighing rules out just one parcel. The three parcels that are not the heaviest need three weighings. Three are enough: weigh two parcels, then the heavier one against the next parcel, and so on.",
+    "distractors": {
+      "A": {
+        "trap": "off_by_one",
+        "text": "The heaviest parcel never has to lose a weighing, so only the other three need one each."
+      },
+      "B": {
+        "trap": "wrong_operation",
+        "text": "12 counts every pair twice, once from each side, and even every pair once is more than needed."
+      },
+      "D": {
+        "trap": "missed_case",
+        "text": "6 weighs every pair, but a parcel that has been lighter once need not be weighed again."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "After 2 weighings two parcels may still not have been the lighter one, and one more weighing is needed between them."
+      }
+    }
+  },
+  {
+    "id": "wp-56-d2-3",
+    "topic": "algorithms.weighing_pouring",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "A toy balance has room for at most two marbles on each pan. One of 12 marbles is a fake that is lighter than the others, which all weigh the same. What is the smallest number of weighings that is sure to find the fake marble?",
+    "options": {
+      "A": "3",
+      "B": "1",
+      "C": "6",
+      "D": "2",
+      "E": "4"
+    },
+    "correct_answer": "E",
+    "hint": "What does one weighing of two marbles against two tell you, whichever way it goes?",
+    "solution": "Weigh two marbles against two. If a pan rises, the fake is one of its two marbles, and one more weighing of one against the other finds it. If the pans balance, those four are real. In the worst case the first two weighings balance, the third shows which pair of the last four holds the fake, and a fourth tells those two apart: 4 weighings. Three are not enough: after two weighings that balance, 4 marbles are still suspect, and one weighing has only 3 results.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "3 would do with four marbles on each pan, but this balance holds only two."
+      },
+      "B": {
+        "trap": "best_case_not_worst",
+        "text": "One weighing finds the fake only by luck."
+      },
+      "C": {
+        "trap": "missed_case",
+        "text": "6 weighs one marble against one; two against two clears four marbles at a time."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "After 2 weighings that balance, 4 marbles are still suspect."
+      }
+    }
+  },
+  {
+    "id": "wp-56-d3-1",
+    "topic": "algorithms.weighing_pouring",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "A cook has a 4-litre pot and a 7-litre pot, both empty, and a tap. Each step fills a pot from the tap or pours water from one pot into the other until that pot is empty or the other is full. No water may ever go down the sink. What is the smallest number of steps after which a pot holds exactly 6 litres?",
+    "options": {
+      "A": "6",
+      "B": "It is impossible",
+      "C": "4",
+      "D": "14",
+      "E": "7"
+    },
+    "correct_answer": "B",
+    "hint": "Write down how much each pot holds after every step. Do new amounts keep coming?",
+    "solution": "Water can come from the tap or move between the pots, but it never leaves them. Starting from two empty pots, only these states can be reached, as litres in the 4-litre pot and in the 7-litre pot: 0 and 0, 4 and 0, 0 and 7, 4 and 7, 4 and 3, 0 and 4, 4 and 4, and 1 and 7. None of them has 6 litres in a pot, so it cannot be done.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "The 6-step way pours water down the sink once, which is not allowed here."
+      },
+      "C": {
+        "trap": "wrong_operation",
+        "text": "Two steps leave 3 litres in the big pot, but doing them again needs the small pot emptied, so 4 steps do not give 6."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "The 14-step way keeps pouring the 4-litre pot into the 7-litre one and empties the big pot whenever it is full, down the sink."
+      },
+      "E": {
+        "trap": "number_from_text",
+        "text": "7 is the size of the big pot, copied from the question."
+      }
+    }
+  },
+  {
+    "id": "wp-56-d3-2",
+    "topic": "algorithms.weighing_pouring",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "Two of four coins are fake. The fakes are lighter than the real coins, which all weigh the same. How many weighings on a balance without weights are needed, at the least, to be sure which two coins are fake?",
+    "options": {
+      "A": "1",
+      "B": "3",
+      "C": "6",
+      "D": "2",
+      "E": "4"
+    },
+    "correct_answer": "D",
+    "hint": "Weigh one coin against another. What can each result tell you?",
+    "solution": "Weigh coin 1 against coin 2. If coin 1 is lighter, it is fake; weigh coin 3 against coin 4, and the lighter of them is the other fake, or, if they balance, both are real and the other fake is coin 2, which can happen only when the two fakes weigh differently. If coins 1 and 2 balance, they are both real or both fake, and weighing coin 1 against coin 3 shows which. So 2 weighings always do. One is not enough: there are 6 possible pairs of fakes, and a weighing has only 3 results.",
+    "distractors": {
+      "A": {
+        "trap": "best_case_not_worst",
+        "text": "Two coins against two can show both fakes at once, but only if they happen to lie on the same pan."
+      },
+      "B": {
+        "trap": "missed_case",
+        "text": "3 finds one fake first and then looks for the other, but the first weighing already tells something about both."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "6 is the number of possible pairs of fakes, not the number of weighings."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "4 counts two weighings for each fake, as if the fakes had to be found one after the other."
+      }
+    }
+  },
+  {
+    "id": "wp-56-d3-3",
+    "topic": "algorithms.weighing_pouring",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "Among nine rings that look alike, one is fake and lighter than the others, which all weigh the same. Kim puts 4 rings on each pan of a balance for her first weighing. Counting that one, what is the smallest number of weighings that is now sure to find the fake ring?",
+    "options": {
+      "A": "3",
+      "B": "2",
+      "C": "8",
+      "D": "1",
+      "E": "4"
+    },
+    "correct_answer": "A",
+    "hint": "What does Kim know if the pans balance, and what if one pan rises?",
+    "solution": "If the pans balance, the ninth ring is the fake, and Kim is done. If a pan rises, the fake is one of its 4 rings, and one weighing cannot pick one ring out of 4, because it has only 3 results. Two more weighings do: 2 rings against 2, then 1 against 1. So Kim needs 3 weighings in all.",
+    "distractors": {
+      "B": {
+        "trap": "ignored_condition",
+        "text": "2 weighings would do after putting 3 rings on each pan, but Kim started with 4."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "8 is how many rings lie on the pans in the first weighing."
+      },
+      "D": {
+        "trap": "best_case_not_worst",
+        "text": "If the pans balance, one weighing is enough, but they may not balance."
+      },
+      "E": {
+        "trap": "missed_case",
+        "text": "4 checks the four lighter rings one at a time against a real ring; weighing them against each other is faster."
+      }
+    }
+  },
+  {
+    "id": "wp-56-d4-1",
+    "topic": "algorithms.weighing_pouring",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "Four stones look alike, but each has a different weight. A balance compares two stones at a time. What is the smallest number of weighings that is sure to put all four stones in order from the lightest to the heaviest?",
+    "options": {
+      "A": "3",
+      "B": "24",
+      "C": "5",
+      "D": "6",
+      "E": "4"
+    },
+    "correct_answer": "C",
+    "hint": "In how many different orders can four stones lie from the lightest to the heaviest?",
+    "solution": "Four stones can lie in 4 × 3 × 2 × 1 = 24 orders. Each weighing has 2 results, so 4 weighings have at most 2 × 2 × 2 × 2 = 16 results, fewer than 24: four cannot always tell the order. Five can. Call the stones K, L, M and N. Weigh K against L and M against N, then the two heavier ones against each other; say this shows that K is lighter than L, L than N, and M than N. Now N is the heaviest. Weigh M against L: if M is heavier, the order is K, L, M, N; if not, one more weighing of M against K places it.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "3 weighings can find the heaviest stone, but not the order of the other three."
+      },
+      "B": {
+        "trap": "answered_other_question",
+        "text": "24 is the number of possible orders, not the number of weighings."
+      },
+      "D": {
+        "trap": "missed_case",
+        "text": "6 weighs every pair, but part of the order follows from the rest: a stone lighter than a lighter one needs no weighing against the heavier."
+      },
+      "E": {
+        "trap": "number_from_text",
+        "text": "4 is the number of stones; four weighings give at most 16 results, fewer than the 24 orders."
+      }
+    }
+  },
+  {
+    "id": "wp-56-d4-2",
+    "topic": "algorithms.weighing_pouring",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "A 12-litre churn is full of milk. Next to it stand two empty jugs of 7 and 5 litres. In each step, milk is poured from one of the three into another, until the one poured from is empty or the one poured into is full. What is the smallest number of steps that leaves exactly 4 litres in one of them?",
+    "options": {
+      "A": "7",
+      "B": "6",
+      "C": "2",
+      "D": "5",
+      "E": "4"
+    },
+    "correct_answer": "B",
+    "hint": "Keep a table of how much each container holds after every step, and try the two ways of starting.",
+    "solution": "Write the litres in the churn, the 7-litre jug and the 5-litre jug. One shortest way: (12, 0, 0), (5, 7, 0), (5, 2, 5), (10, 2, 0), (10, 0, 2), (3, 7, 2), (3, 4, 5). After 6 steps the 7-litre jug holds 4 litres. Starting with the 5-litre jug takes 7 steps, and no way gives 4 litres in fewer than 6.",
+    "distractors": {
+      "A": {
+        "trap": "missed_case",
+        "text": "Pouring first into the 5-litre jug takes 7 steps; pouring first into the 7-litre jug takes 6."
+      },
+      "C": {
+        "trap": "stopped_early",
+        "text": "After 2 steps the 7-litre jug holds 2 litres, not yet 4."
+      },
+      "D": {
+        "trap": "off_by_one",
+        "text": "5 does not count the first pouring out of the churn, but it is a step too."
+      },
+      "E": {
+        "trap": "number_from_text",
+        "text": "4 is the amount asked for, copied from the question."
+      }
+    }
+  },
+  {
+    "id": "wp-56-d4-3",
+    "topic": "algorithms.weighing_pouring",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "Ten machines make bolts. Nine of them make bolts of 10 g each, but one machine is faulty and makes bolts of 11 g. You may take any number of bolts from each machine and weigh them all together, once, on a scale that shows the weight. What is the smallest number of bolts you must take to be sure of finding the faulty machine?",
+    "options": {
+      "A": "55",
+      "B": "10",
+      "C": "1",
+      "D": "45",
+      "E": "9"
+    },
+    "correct_answer": "D",
+    "hint": "How can the weight show which machine made the heavier bolts?",
+    "solution": "Take a different number of bolts from each machine. Each bolt from the faulty machine adds 1 g to the weight, so the extra grams tell how many bolts came from it, and so which machine it is. Two machines that gave the same number of bolts could not be told apart. The ten smallest different numbers are 0, 1, 2, ..., 9, which add up to 45: take no bolts from one machine, 1 from the next, and so on. If nothing is extra, the machine that gave no bolts is the faulty one.",
+    "distractors": {
+      "A": {
+        "trap": "missed_case",
+        "text": "55 takes 1 to 10 bolts, but one machine may give none: if nothing is extra, that one is faulty."
+      },
+      "B": {
+        "trap": "ignored_condition",
+        "text": "One bolt from each machine always weighs 101 g, whichever machine is faulty."
+      },
+      "C": {
+        "trap": "best_case_not_worst",
+        "text": "One bolt could come from the faulty machine by luck, but it need not."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "One bolt from each of nine machines only tells whether the tenth machine is the faulty one."
+      }
+    }
   }
 ]

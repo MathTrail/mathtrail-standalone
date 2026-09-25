@@ -6,7 +6,8 @@
 
 CAPACITIES = (3, 5)  # litres each jug holds
 START = (0, 0)  # litres in each jug at first
-TAP = True  # whether a jug may be filled from a tap and emptied onto the ground
+FILL = True  # whether a jug may be filled from a tap
+EMPTY = True  # whether a jug may be emptied onto the ground
 IMPOSSIBLE = "It is impossible"  # as the option writes it
 
 def reached(state):
@@ -16,8 +17,9 @@ def following(state):
     # Every state one step away.
     after = []
     for i in range(len(CAPACITIES)):
-        if TAP:
+        if FILL:
             after.append(state[:i] + (CAPACITIES[i],) + state[i + 1:])
+        if EMPTY:
             after.append(state[:i] + (0,) + state[i + 1:])
         for j in range(len(CAPACITIES)):
             if i != j:

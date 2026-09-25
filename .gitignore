@@ -21,9 +21,14 @@ coverage.*
 *.exe
 *.prof
 
-# Go workspace files: this repository is one module
+# Go workspace files: the product is one module, and the research module under
+# research/ builds on its own, without a workspace
 go.work
 go.work.sum
+
+# Local snapshots of files that live outside git, kept by the research program:
+# a record for this machine, not evidence anyone else can check
+/research/archive/
 
 # Node modules of the widget build (web/)
 node_modules/

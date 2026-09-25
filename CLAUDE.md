@@ -42,6 +42,7 @@ Technical shape:
 - `docs/architecture/` — Mermaid diagrams (phase 1). `docs/live/` — reports of live runs in real chat hosts.
 - [docs/prototype/](docs/prototype/README.md) — frozen copies of the prototype SPEC, its decision log D01–D45 and research. Prototype decisions are cited as "D43 of the prototype".
 - `prototype/` — a full local copy of the prototype repository (code, data, schemas, prompts, tests, diagrams); see "Reference copies" below.
+- `research/` — the research program for two papers: its plan [research/RUN.md](research/RUN.md) (tasks S00–S76, in Russian), evidence, literature, experiments and paper sources, and a Go module of its own. It never changes the product's code or behaviour; it touches the repository's tooling only where its plan says so.
 
 Project context lives in these files, not in chat history.
 
@@ -49,7 +50,7 @@ Project context lives in these files, not in chat history.
 
 - The author runs tasks one at a time: «Выполни задачу Txx из RUN.md». Do only that task; do not touch files that belong to other tasks unless the task says so.
 - Before starting, read the RUN.md task and the PRODUCT-V1 / SPEC sections it cites. If the task contradicts them or something is missing, stop and ask. Do not silently fill gaps; record them as open questions (PRODUCT-V1 12.2, next free О-number) or in the "Замечания" section of the document being written.
-- The research tasks of `research/RUN.md` have an autonomous mode, which the author turns on and off in that file. While it is on, they run one after another without waiting for review, and their checks and reviews follow that file. A gap or contradiction there does not stop the work: the executor resolves it, records the decision with its reason, and leaves for the author only the questions that file lists as critical.
+- Research tasks (S00–S76) are run, checked and marked in `research/RUN.md`, under that file's rules; the bullets here that name RUN.md mean the product's plan. They have an autonomous mode, which the author turns on and off in that file. While it is on, they run one after another without waiting for review, and their checks and reviews follow that file. A gap or contradiction there does not stop the work: the executor resolves it, records the decision with its reason, and leaves for the author only the questions that file lists as critical.
 - Before calling any change done — code, config, docs or content — run `/code-review high` on it. Skip it only when the author asks, for that change alone, and say in the report that it did not run.
   - Run it once the change is written and its checks — `just ci-lint`, `just ci-test`, whatever else the task names — are green.
   - It reads the working tree plus the branch's commits — those not yet pushed, or all since `main` without an upstream — but not untracked files. Mark new files with `git add -N` for the review and unmark them with `git reset -- <file>` afterwards: the mark makes `git stash` fail. Pass no path — a path is reviewed instead of the diff, not beside it.
@@ -78,7 +79,7 @@ Project context lives in these files, not in chat history.
   `.devcontainer/Dockerfile`, as a literal in `devcontainer.json`. No separate versions file,
   no checksum verification.
 - **Language: English everywhere.** Code, every comment in code and config files (Go, TS, SQL, YAML, HCL, Dockerfile, justfile, `.env.example`, …), model instructions and content in `content/`, locale keys, and every project document — PRODUCT-V1, SPEC, everything under `docs/`, `CLAUDE.md` and `README.md`.
-  - RUN.md is in Russian: it is the author's working plan of the tasks.
+  - RUN.md and research/RUN.md are in Russian: they are the author's working plans of the tasks.
   - Reports to the author in chat are in Russian.
   - The frozen prototype copies under `docs/prototype/` stay in Russian as they were written: they are a historical record, cited but never rewritten.
   - Tasks for the child are written by the chat's model in the chat language.
@@ -115,6 +116,7 @@ content/          catalogs, reference tasks and model instructions, embedded
 site/             the public site: texts per locale, templates, assets
 web/              widget sources
 infra/terraform/  the Google Cloud project as code — not to be confused with internal/infra/
+research/         the research program: a separate Go module that imports the product, never the reverse
 ```
 
 `mentor-api` groups the same way (`domain/`, `infra/`, `transport/`) and serves HTTP with gin, which we do too — but it puts `repository.go` and `handler.go` inside each domain package, so its domain imports gin and pgx. We keep the grouping and the framework, and drop that part: our domains are computation — ratings, checks, the solver contract — and they stay free of I/O. That is what makes them testable against the golden vectors from T16 with no mocks at all.
@@ -254,4 +256,4 @@ Inside the container:
 - **Git hooks.** `.githooks/pre-commit` is enabled by `post-start` through `core.hooksPath`. It runs formatting, a build and the tests — enough to catch what is embarrassing, while the linter, the race detector, `govulncheck` and `gitleaks` wait for CI. Where no Go toolchain is reachable — a Git client outside the container, for instance — it says so and skips those checks instead of blocking the commit: CI runs them again and is what gates a merge.
 - **The runtime image.** `just docker-build` builds it and `just docker-run` starts it on port 8080. Both base images are pinned by tag and digest in the `Dockerfile`: a Go builder and a distroless static runtime that has no shell and runs as a non-root user.
 - **Anything that is not Go runs in a container too.** `just golden` exports the prototype's vectors using the pinned `uv` image and the prototype's own PostgreSQL compose file, so no Python and no database is ever installed into the devcontainer (`testdata/golden/export/README.md`).
-- **Build context.** The devcontainer image is built with the repository root as context; `.dockerignore` keeps `.git`, `.env`, `prototype/`, `reference/`, `docs/`, `testdata/` and `node_modules` out of it and out of the runtime image.
+- **Build context.** The devcontainer image is built with the repository root as context; `.dockerignore` keeps `.git`, `.env`, `prototype/`, `reference/`, `docs/`, `testdata/`, `research/` and `node_modules` out of it and out of the runtime image.
