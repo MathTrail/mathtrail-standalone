@@ -135,6 +135,10 @@ func TestANewChildOfGradesFiveAndSixIsGivenTheTopicsOwnTraps(t *testing.T) {
 		"combinatorics.enumeration": {"ignored_condition", "missed_case"},
 		"counting.gaps":             {"off_by_one", "wrong_operation"},
 		"time.clocks":               {"ignored_condition", "stopped_early"},
+		"time.calendar":             {"ignored_condition", "answered_other_question"},
+		"arithmetic.tricks":         {"stopped_early", "wrong_operation"},
+		"pigeonhole.basic":          {"best_case_not_worst", "off_by_one"},
+		"parity.alternation":        {"wrong_parity", "ignored_condition"},
 	}
 	for _, topic := range c.Topics() {
 		want, isPinned := pinned[topic.ID]

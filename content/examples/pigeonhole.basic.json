@@ -1698,5 +1698,320 @@
         "text": "0 and 5 games cannot both happen, so 6 teams share only 5 possible numbers."
       }
     }
+  },
+  {
+    "id": "pig-56-d2-1",
+    "topic": "pigeonhole.basic",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "A die has the numbers 1 to 6 on its faces. How many times must you roll it to be sure that some number comes up three times?",
+    "options": {
+      "A": "13",
+      "B": "12",
+      "C": "7",
+      "D": "3",
+      "E": "18"
+    },
+    "correct_answer": "A",
+    "hint": "What is the unluckiest way the rolls could go?",
+    "solution": "Each roll shows one of 6 numbers. You could be unlucky and roll every number twice: 12 rolls with no number three times. The next roll must show a number that has already come up twice, so 13 rolls are enough.",
+    "distractors": {
+      "B": {
+        "trap": "off_by_one",
+        "text": "In 12 rolls every number could come up exactly twice, and none three times."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "7 rolls make sure that some number comes up twice, not three times."
+      },
+      "D": {
+        "trap": "best_case_not_worst",
+        "text": "Three rolls could show the same number by luck, but they need not."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "18 multiplies 3 by 6, but the unluckiest 12 rolls show every number twice, and the 13th already makes three."
+      }
+    }
+  },
+  {
+    "id": "pig-56-d2-2",
+    "topic": "pigeonhole.basic",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "A drawer holds socks of 3 colours, and each colour comes in 2 sizes, many of each kind, all mixed up. In the dark, how many socks must you take to be sure of 2 socks of the same colour and the same size?",
+    "options": {
+      "A": "2",
+      "B": "6",
+      "C": "7",
+      "D": "4",
+      "E": "12"
+    },
+    "correct_answer": "C",
+    "hint": "How many different kinds of sock are there, if a kind means one colour and one size?",
+    "solution": "One colour and one size make a kind of sock, and there are 3 × 2 = 6 kinds. You could be unlucky and take one sock of each kind: 6 socks with no two alike. The 7th sock must match one of them in both colour and size.",
+    "distractors": {
+      "A": {
+        "trap": "best_case_not_worst",
+        "text": "Two socks could match by luck, but they need not."
+      },
+      "B": {
+        "trap": "off_by_one",
+        "text": "6 socks could be one of each of the 6 kinds, with no two alike."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "4 socks make sure of 2 of the same colour, but those two may still differ in size."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "12 takes two socks of every kind, but after one sock of each kind the next one already makes a pair."
+      }
+    }
+  },
+  {
+    "id": "pig-56-d2-3",
+    "topic": "pigeonhole.basic",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "Each of 50 pupils got a mark from 1 to 5 in maths and a mark from 1 to 5 in reading. At least how many pupils must have got exactly the same pair of marks?",
+    "options": {
+      "A": "10",
+      "B": "1",
+      "C": "25",
+      "D": "5",
+      "E": "2"
+    },
+    "correct_answer": "E",
+    "hint": "How many different pairs of marks are there? Could every pair belong to one pupil only?",
+    "solution": "A pair is a maths mark and a reading mark, so there are 5 × 5 = 25 different pairs. 50 pupils are more than 25, so at least two pupils share a pair. And two is all that is sure: two pupils on each of the 25 pairs make exactly 50.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "10 shares the 50 pupils among the 5 maths marks only, but a pair is a maths mark and a reading mark."
+      },
+      "B": {
+        "trap": "best_case_not_worst",
+        "text": "1 hopes that every pupil got a different pair, but there are only 25 pairs for 50 pupils."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "25 is the number of different pairs of marks, not how many pupils share one."
+      },
+      "D": {
+        "trap": "wrong_operation",
+        "text": "5 shares the 50 pupils among 5 + 5 marks, but a pair takes one mark in each subject, so there are 5 × 5 pairs."
+      }
+    }
+  },
+  {
+    "id": "pig-56-d3-1",
+    "topic": "pigeonhole.basic",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "A purse holds 1 coin of 50 cents, 2 coins of 20 cents and 9 coins of 10 cents. Without looking, how many coins must you take out to be sure of 3 coins of the same value?",
+    "options": {
+      "A": "9",
+      "B": "6",
+      "C": "7",
+      "D": "5",
+      "E": "3"
+    },
+    "correct_answer": "B",
+    "hint": "In the unluckiest case, how many coins can you take without having three of the same value?",
+    "solution": "The unluckiest way is to take the only 50-cent coin, both 20-cent coins and two 10-cent coins: 5 coins with no three of the same value. The next coin can only be a 10-cent coin, and it makes three of them. So 6 coins are enough.",
+    "distractors": {
+      "A": {
+        "trap": "number_from_text",
+        "text": "9 is the number of 10-cent coins, copied from the question."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "7 counts on taking two coins of each value first, but there is only one 50-cent coin to take."
+      },
+      "D": {
+        "trap": "off_by_one",
+        "text": "5 coins could be the 50-cent coin, both 20-cent coins and two 10-cent coins, with no three alike."
+      },
+      "E": {
+        "trap": "best_case_not_worst",
+        "text": "Three coins could all be 10-cent coins by luck, but they need not."
+      }
+    }
+  },
+  {
+    "id": "pig-56-d3-2",
+    "topic": "pigeonhole.basic",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "Every pupil in a group writes a two-digit number and adds up its two digits. How many pupils must the group have to be sure that two of them get the same sum?",
+    "options": {
+      "A": "18",
+      "B": "11",
+      "C": "2",
+      "D": "19",
+      "E": "20"
+    },
+    "correct_answer": "D",
+    "hint": "What sums can the two digits of a two-digit number add up to?",
+    "solution": "The digits of a two-digit number add up to at least 1, as in 10, and at most 18, as in 99, and every sum in between comes up too. So there are 18 different sums. 18 pupils could all get different sums, but with 19 pupils two of them must get the same one.",
+    "distractors": {
+      "A": {
+        "trap": "off_by_one",
+        "text": "18 pupils could all get different sums, one for each sum from 1 to 18."
+      },
+      "B": {
+        "trap": "answered_other_question",
+        "text": "11 makes sure that two numbers end in the same digit, not that their digits add up to the same sum."
+      },
+      "C": {
+        "trap": "best_case_not_worst",
+        "text": "Two pupils could get the same sum by luck, but they need not."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "20 also counts a sum of 0, but the digits of a two-digit number never add up to 0."
+      }
+    }
+  },
+  {
+    "id": "pig-56-d3-3",
+    "topic": "pigeonhole.basic",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "How many pupils must a school have to be sure that two of them were born in the same month and on the same day of the week?",
+    "options": {
+      "A": "85",
+      "B": "2",
+      "C": "20",
+      "D": "13",
+      "E": "84"
+    },
+    "correct_answer": "A",
+    "hint": "How many different pairs of a month and a day of the week are there?",
+    "solution": "A month and a day of the week make 12 × 7 = 84 different pairs. 84 pupils could all have different pairs, but with 85 pupils two of them must share one.",
+    "distractors": {
+      "B": {
+        "trap": "best_case_not_worst",
+        "text": "Two pupils could share a month and a day by luck, but they need not."
+      },
+      "C": {
+        "trap": "wrong_operation",
+        "text": "20 adds the 12 months and the 7 days, but every month goes with every day, so there are 12 × 7 pairs."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "13 makes sure of two pupils born in the same month, but not also on the same day of the week."
+      },
+      "E": {
+        "trap": "off_by_one",
+        "text": "84 pupils could all have different pairs of a month and a day of the week."
+      }
+    }
+  },
+  {
+    "id": "pig-56-d4-1",
+    "topic": "pigeonhole.basic",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "Every pupil was born in one of the four seasons, and every pupil is a boy or a girl. How many pupils must a group have to be sure that 3 of them were born in the same season and are all boys or all girls?",
+    "options": {
+      "A": "3",
+      "B": "24",
+      "C": "9",
+      "D": "17",
+      "E": "16"
+    },
+    "correct_answer": "D",
+    "hint": "How many kinds of pupil does the question tell apart?",
+    "solution": "A season together with boy or girl makes 4 × 2 = 8 kinds of pupil. A group can have two pupils of each kind, 16 pupils, with no three alike. With 17 pupils one kind must have 3.",
+    "distractors": {
+      "A": {
+        "trap": "best_case_not_worst",
+        "text": "Three pupils could be of one kind by luck, but they need not."
+      },
+      "B": {
+        "trap": "wrong_operation",
+        "text": "24 multiplies 3 by the 8 kinds, but two of each kind are 16 pupils, and the 17th already makes three."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "9 makes sure of two pupils of the same kind, but the question asks for three."
+      },
+      "E": {
+        "trap": "off_by_one",
+        "text": "16 pupils could be exactly two of each of the 8 kinds, with no three alike."
+      }
+    }
+  },
+  {
+    "id": "pig-56-d4-2",
+    "topic": "pigeonhole.basic",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "How many whole numbers must you choose to be sure that three of them have a sum that can be divided by 3?",
+    "options": {
+      "A": "7",
+      "B": "5",
+      "C": "3",
+      "D": "9",
+      "E": "4"
+    },
+    "correct_answer": "B",
+    "hint": "Look only at the remainder each number leaves when it is divided by 3.",
+    "solution": "Only the remainders when dividing by 3 matter: 0, 1 or 2. Three numbers work if their remainders are all the same or all different. Four numbers can fail, as 3, 6, 1 and 4 do. With five numbers, either some remainder comes up three times or all three remainders come up, and either way three of the numbers have a sum that divides by 3.",
+    "distractors": {
+      "A": {
+        "trap": "missed_case",
+        "text": "7 waits for three numbers with the same remainder, but three numbers with three different remainders also work."
+      },
+      "C": {
+        "trap": "best_case_not_worst",
+        "text": "Three numbers could have such a sum by luck, but they need not."
+      },
+      "D": {
+        "trap": "wrong_operation",
+        "text": "9 multiplies 3 by 3, but 5 numbers are already enough."
+      },
+      "E": {
+        "trap": "off_by_one",
+        "text": "4 is not enough: of 3, 6, 1 and 4, no three have a sum that divides by 3."
+      }
+    }
+  },
+  {
+    "id": "pig-56-d4-3",
+    "topic": "pigeonhole.basic",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "You choose different numbers from 1 to 10. How many must you choose to be sure that one of them divides another?",
+    "options": {
+      "A": "10",
+      "B": "5",
+      "C": "7",
+      "D": "2",
+      "E": "6"
+    },
+    "correct_answer": "E",
+    "hint": "Try to choose as many numbers as you can with no one dividing another.",
+    "solution": "The five numbers 6, 7, 8, 9 and 10 have no one dividing another, so 5 are not enough. Now sort the numbers into five groups: 1, 2, 4 and 8; 3 and 6; 5 and 10; 7; 9. In each group every number divides the bigger ones, so two chosen numbers from one group always work. Six numbers must put two into one group, so 6 are enough.",
+    "distractors": {
+      "A": {
+        "trap": "answered_other_question",
+        "text": "10 is how many numbers there are to choose from; 6 are already enough."
+      },
+      "B": {
+        "trap": "off_by_one",
+        "text": "5 is not enough: 6, 7, 8, 9 and 10 have no one dividing another."
+      },
+      "C": {
+        "trap": "missed_case",
+        "text": "7 misses that 1 divides every number: with 1 in a group of its own there are six groups, but 1 belongs with 2, 4 and 8."
+      },
+      "D": {
+        "trap": "best_case_not_worst",
+        "text": "Two numbers such as 2 and 4 work by luck, but 2 and 3 do not."
+      }
+    }
   }
 ]

@@ -1698,5 +1698,320 @@
         "text": "3840 is only the top part; you still have to divide."
       }
     }
+  },
+  {
+    "id": "tri-56-d2-1",
+    "topic": "arithmetic.tricks",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "What is 1 + 11 + 111 + 1111 + 11111?",
+    "options": {
+      "A": "12345",
+      "B": "55555",
+      "C": "15",
+      "D": "54321",
+      "E": "11111"
+    },
+    "correct_answer": "A",
+    "hint": "Add the numbers column by column, starting with the units. How many ones are there in each column?",
+    "solution": "The units column has five 1s, the tens column four, the hundreds three, the thousands two and the ten thousands one. No column reaches 10, so nothing is carried, and the sum is 12345.",
+    "distractors": {
+      "B": {
+        "trap": "ignored_condition",
+        "text": "55555 takes all five numbers to be 11111, but most of them are shorter."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "15 is how many digits 1 there are in all, not the sum."
+      },
+      "D": {
+        "trap": "reversed_relation",
+        "text": "54321 writes the column totals in the wrong order: the units column has the most ones, so 5 is the last digit."
+      },
+      "E": {
+        "trap": "number_from_text",
+        "text": "11111 is the largest number in the sum, copied from the question."
+      }
+    }
+  },
+  {
+    "id": "tri-56-d2-2",
+    "topic": "arithmetic.tricks",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "Tom thought of a number. He multiplied it by 3, added 7, divided the result by 2 and took 4 away. He got 10. What number did Tom think of?",
+    "options": {
+      "A": "21",
+      "B": "28",
+      "C": "7",
+      "D": "0",
+      "E": "37"
+    },
+    "correct_answer": "C",
+    "hint": "Go back from 10 and undo the steps, the last one first. What undoes each step?",
+    "solution": "Undo the steps from the last one: 10 + 4 = 14, 14 × 2 = 28, 28 − 7 = 21 and 21 ÷ 3 = 7. Check: 7 × 3 = 21, 21 + 7 = 28, 28 ÷ 2 = 14 and 14 − 4 = 10.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "21 is 3 times the number; the multiplication still has to be undone."
+      },
+      "B": {
+        "trap": "stopped_early",
+        "text": "28 is the number before it was halved; two more steps are still to be undone."
+      },
+      "D": {
+        "trap": "wrong_operation",
+        "text": "0 undoes the halving by halving again, but halving is undone by doubling."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "37 does Tom's first two steps, × 3 and + 7, to his result instead of undoing his steps from the last one."
+      }
+    }
+  },
+  {
+    "id": "tri-56-d2-3",
+    "topic": "arithmetic.tricks",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "Work out 2 × 4 × 8 × 125 × 25 × 5 in a clever order.",
+    "options": {
+      "A": "100000",
+      "B": "1000000",
+      "C": "10000000",
+      "D": "169",
+      "E": "10000"
+    },
+    "correct_answer": "B",
+    "hint": "Which of the numbers make 10, 100 or 1000 together?",
+    "solution": "Pair the numbers up: 2 × 5 = 10, 4 × 25 = 100 and 8 × 125 = 1000. So the product is 10 × 100 × 1000 = 1000000.",
+    "distractors": {
+      "A": {
+        "trap": "off_by_one",
+        "text": "100000 has one zero too few: 10 × 100 × 1000 has six zeros."
+      },
+      "C": {
+        "trap": "off_by_one",
+        "text": "10000000 has one zero too many: 10 × 100 × 1000 has six zeros."
+      },
+      "D": {
+        "trap": "wrong_operation",
+        "text": "169 adds the numbers instead of multiplying them."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "10000 pairs 2 with 5 and 8 with 125 but leaves out 4 × 25 = 100."
+      }
+    }
+  },
+  {
+    "id": "tri-56-d3-1",
+    "topic": "arithmetic.tricks",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "Think of any number. Add 5. Double the result. Take 4 away. Halve the result. Finally, take away the number you thought of. What do you get?",
+    "options": {
+      "A": "5",
+      "B": "3 more than the number thought of",
+      "C": "It depends on the number",
+      "D": "3",
+      "E": "7"
+    },
+    "correct_answer": "D",
+    "hint": "Try two different numbers. Then follow the steps with a box standing for the number.",
+    "solution": "Let a box stand for the number. Adding 5 gives the box and 5, doubling gives two boxes and 10, taking 4 away leaves two boxes and 6, halving gives one box and 3, and taking away the box leaves 3, whatever the number was.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "5 leaves out the step 'take 4 away'."
+      },
+      "B": {
+        "trap": "stopped_early",
+        "text": "That is the result before the last step; taking away the number leaves 3."
+      },
+      "C": {
+        "trap": "stopped_early",
+        "text": "Following the steps to the end shows that the number is taken away again, so every number gives the same result."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "7 adds 4 instead of taking it away."
+      }
+    }
+  },
+  {
+    "id": "tri-56-d3-2",
+    "topic": "arithmetic.tricks",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "Anya thought of a number. She added half of the number to it, and then she added 5. She got 50. What number did Anya think of?",
+    "options": {
+      "A": "45",
+      "B": "15",
+      "C": "30",
+      "D": "90",
+      "E": "22.5"
+    },
+    "correct_answer": "C",
+    "hint": "Take the 5 away first. The number and its half together make how many halves of the number?",
+    "solution": "Without the 5, the number and its half make 45. That is three halves of the number, so one half is 45 ÷ 3 = 15, and the number is 30. Check: 30 + 15 + 5 = 50.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "45 is the number and its half together; the number is two thirds of it."
+      },
+      "B": {
+        "trap": "answered_other_question",
+        "text": "15 is half of the number, not the number."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "90 leaves out the number itself and makes half of the number equal to 45."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "22.5 halves 45, but 45 is three halves of the number, not two."
+      }
+    }
+  },
+  {
+    "id": "tri-56-d3-3",
+    "topic": "arithmetic.tricks",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "XY is a two-digit number with tens digit X and units digit Y, and YX is the number with its two digits swapped. XY + YX = 99 and XY − YX = 45. What is the number XY?",
+    "options": {
+      "A": "27",
+      "B": "99",
+      "C": "45",
+      "D": "54",
+      "E": "72"
+    },
+    "correct_answer": "E",
+    "hint": "What do XY + YX and XY − YX tell you about the digits X and Y?",
+    "solution": "XY + YX is 11 times the sum X + Y, so X + Y = 9. XY − YX is 9 times the difference X − Y, so X − Y = 5. So X = 7 and Y = 2, and XY is 72. Check: 72 + 27 = 99 and 72 − 27 = 45.",
+    "distractors": {
+      "A": {
+        "trap": "reversed_relation",
+        "text": "27 is YX, the smaller number; XY − YX = 45 makes XY the larger one."
+      },
+      "B": {
+        "trap": "number_from_text",
+        "text": "99 is the sum of the two numbers, copied from the question."
+      },
+      "C": {
+        "trap": "number_from_text",
+        "text": "45 is the difference of the two numbers, copied from the question."
+      },
+      "D": {
+        "trap": "wrong_operation",
+        "text": "54 takes the difference away from the sum, 99 − 45, which gives twice YX, not XY."
+      }
+    }
+  },
+  {
+    "id": "tri-56-d4-1",
+    "topic": "arithmetic.tricks",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "What is the sum of all the digits of all the numbers from 1 to 100?",
+    "options": {
+      "A": "900",
+      "B": "451",
+      "C": "1000",
+      "D": "5050",
+      "E": "901"
+    },
+    "correct_answer": "E",
+    "hint": "Look at the units digits of the numbers from 1 to 99 on their own, then at their tens digits.",
+    "solution": "From 1 to 99 each digit from 1 to 9 is a units digit 10 times and a tens digit 10 times, which gives 45 × 10 = 450 twice: 900. The number 100 adds 1 + 0 + 0 = 1, so the sum is 901.",
+    "distractors": {
+      "A": {
+        "trap": "missed_case",
+        "text": "900 leaves out the number 100, whose digits add up to 1."
+      },
+      "B": {
+        "trap": "missed_case",
+        "text": "451 counts the units digits and the 1 of 100 but leaves out the tens digits."
+      },
+      "C": {
+        "trap": "wrong_operation",
+        "text": "1000 adds 100 itself instead of its digits, 1 + 0 + 0."
+      },
+      "D": {
+        "trap": "answered_other_question",
+        "text": "5050 is the sum of the numbers from 1 to 100, not of their digits."
+      }
+    }
+  },
+  {
+    "id": "tri-56-d4-2",
+    "topic": "arithmetic.tricks",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "In XYZ + XYZ + XYZ = ZZZ, each letter stands for a digit, and different letters stand for different digits. What number is XYZ?",
+    "options": {
+      "A": "185",
+      "B": "259",
+      "C": "555",
+      "D": "5",
+      "E": "37"
+    },
+    "correct_answer": "A",
+    "hint": "Three times XYZ is one of 111, 222, …, 999. Divide each of them by 3. Which result can be XYZ?",
+    "solution": "XYZ + XYZ + XYZ is 3 × XYZ, and ZZZ is Z × 111 = Z × 3 × 37. So XYZ = 37 × Z, and it must end in the digit Z. Of 37, 74, 111, 148, 185, 222, 259, 296 and 333, only 185 ends in its own Z, 5. Check: 185 × 3 = 555.",
+    "distractors": {
+      "B": {
+        "trap": "ignored_condition",
+        "text": "259 is 777 ÷ 3, but it ends in 9, not in 7, so it cannot be XYZ."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "555 is ZZZ, the sum, not XYZ."
+      },
+      "D": {
+        "trap": "answered_other_question",
+        "text": "5 is the digit Z, not the number XYZ."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "37 is what XYZ is a multiple of; it still has to be multiplied by the right digit Z."
+      }
+    }
+  },
+  {
+    "id": "tri-56-d4-3",
+    "topic": "arithmetic.tricks",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "A traveller went into three shops, one after another. In each shop he spent half of the coins he had and then 2 coins more. After the third shop he had no coins left. How many coins did he have at first?",
+    "options": {
+      "A": "12",
+      "B": "28",
+      "C": "4",
+      "D": "14",
+      "E": "60"
+    },
+    "correct_answer": "B",
+    "hint": "Start from the end. Before the last 2 coins in the third shop, how many did he have? And before he spent half?",
+    "solution": "Go backwards. After the third shop he had 0, so before its last 2 coins he had 2, and before spending half he had 4. Before the second shop he had (4 + 2) × 2 = 12, and before the first (12 + 2) × 2 = 28. Check: 28 → 14 − 2 = 12 → 6 − 2 = 4 → 2 − 2 = 0.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "12 is what he had before the second shop; the first shop is still to be undone."
+      },
+      "C": {
+        "trap": "stopped_early",
+        "text": "4 is what he had before the third shop only."
+      },
+      "D": {
+        "trap": "wrong_operation",
+        "text": "14 doubles first and adds the 2 coins after, but going backwards the 2 coins come back before the doubling."
+      },
+      "E": {
+        "trap": "off_by_one",
+        "text": "60 undoes one shop too many: there were three shops, not four."
+      }
+    }
   }
 ]
