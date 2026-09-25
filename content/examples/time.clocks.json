@@ -1698,5 +1698,320 @@
         "text": "A slow watch is behind, so it shows less than 8:00."
       }
     }
+  },
+  {
+    "id": "clk-56-d2-1",
+    "topic": "time.clocks",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "A night guard's shift starts at 22:40 and ends at 7:10. During the shift he takes two breaks of 25 minutes each. How long does he work?",
+    "options": {
+      "A": "8 hours 30 minutes",
+      "B": "14 hours 40 minutes",
+      "C": "7 hours 40 minutes",
+      "D": "9 hours 20 minutes",
+      "E": "8 hours 20 minutes"
+    },
+    "correct_answer": "C",
+    "hint": "How long is it from 22:40 to midnight, and from midnight to 7:10?",
+    "solution": "From 22:40 to midnight is 1 hour 20 minutes, and from midnight to 7:10 the next morning is 7 hours 10 minutes, so the shift lasts 8 hours 30 minutes. The two breaks take 50 minutes, which leaves 7 hours 40 minutes of work.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "8 hours 30 minutes is the whole shift; the two breaks of 25 minutes still come off it."
+      },
+      "B": {
+        "trap": "reversed_relation",
+        "text": "14 hours 40 minutes counts the day from 7:10 to 22:40 and takes the breaks off it, but the shift runs through the night, from 22:40 to 7:10."
+      },
+      "D": {
+        "trap": "wrong_operation",
+        "text": "9 hours 20 minutes adds the breaks to the shift instead of taking them away."
+      },
+      "E": {
+        "trap": "time_unit_mixup",
+        "text": "8 hours 20 minutes counts 100 minutes in an hour: from 22:40 to midnight is 1 hour 20 minutes, not 1 hour 60 minutes."
+      }
+    }
+  },
+  {
+    "id": "clk-56-d2-2",
+    "topic": "time.clocks",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "On Tuesday at 20:30 Moscow time, Nina phones her grandfather in Vladivostok, where the clocks show 7 hours more than in Moscow. They talk for 45 minutes. What day and time is it in Vladivostok when the call ends?",
+    "options": {
+      "A": "4:15 on Tuesday",
+      "B": "21:15 on Tuesday",
+      "C": "3:30 on Wednesday",
+      "D": "4:15 on Wednesday",
+      "E": "14:15 on Tuesday"
+    },
+    "correct_answer": "D",
+    "hint": "When does the call end in Moscow? Then move the clock 7 hours on. Does it pass midnight?",
+    "solution": "The call ends at 21:15 on Tuesday, Moscow time. Vladivostok's clocks show 7 hours more, and 21:15 plus 7 hours passes midnight: it is 4:15 on Wednesday there.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "Adding 7 hours to 21:15 passes midnight, so in Vladivostok it is already Wednesday."
+      },
+      "B": {
+        "trap": "stopped_early",
+        "text": "21:15 is when the call ends in Moscow; the clocks in Vladivostok show 7 hours more."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "3:30 is when the call starts in Vladivostok; they talk for 45 minutes more."
+      },
+      "E": {
+        "trap": "reversed_relation",
+        "text": "14:15 takes the 7 hours away, but the clocks in Vladivostok show more than in Moscow, not less."
+      }
+    }
+  },
+  {
+    "id": "clk-56-d2-3",
+    "topic": "time.clocks",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "A plane takes off at 10:00 local time and flies for 3 hours. In the city where it lands, the clocks show 4 hours less than where it took off. What is the local time when it lands?",
+    "options": {
+      "A": "13:00",
+      "B": "9:00",
+      "C": "17:00",
+      "D": "6:00",
+      "E": "3:00"
+    },
+    "correct_answer": "B",
+    "hint": "What time is it where the plane took off when it lands? What do the clocks in the other city show at that moment?",
+    "solution": "The plane lands 3 hours after take-off, at 13:00 by the clocks of the city it left. The clocks where it lands show 4 hours less: 9:00. So it lands at a local time earlier than the time it took off.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "13:00 is the time in the city it left; where it lands, the clocks show 4 hours less."
+      },
+      "C": {
+        "trap": "reversed_relation",
+        "text": "17:00 adds the 4 hours, but the clocks where it lands show less, not more."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "6:00 turns 10:00 into the other city's time but leaves out the 3 hours of flying."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "3:00 takes the 3 hours of flying away instead of adding them."
+      }
+    }
+  },
+  {
+    "id": "clk-56-d3-1",
+    "topic": "time.clocks",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "Train A leaves at 22:35 and arrives at 6:10. Train B leaves at 23:50 and arrives at 7:05. Which trip is longer, and by how many minutes?",
+    "options": {
+      "A": "Train B, by 20 minutes",
+      "B": "Train A, by 20 minutes",
+      "C": "Train B, by 55 minutes",
+      "D": "Train A, by 75 minutes",
+      "E": "Train A, by 7 hours 35 minutes"
+    },
+    "correct_answer": "B",
+    "hint": "Work out each trip on its own: count up to midnight, then on from midnight.",
+    "solution": "Train A travels 1 hour 25 minutes up to midnight and 6 hours 10 minutes after it, 7 hours 35 minutes in all. Train B travels 10 minutes up to midnight and 7 hours 5 minutes after it, 7 hours 15 minutes in all. Train A's trip is 20 minutes longer.",
+    "distractors": {
+      "A": {
+        "trap": "reversed_relation",
+        "text": "The difference is 20 minutes, but it is train A's trip that is longer: 7 hours 35 minutes against 7 hours 15 minutes."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "55 minutes is the gap between the arrival times only; train B also leaves 75 minutes later."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "75 minutes is the gap between the departure times only; train B also arrives 55 minutes later."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "7 hours 35 minutes is how long train A's trip takes, a step on the way; the question asks how much longer it is than train B's."
+      }
+    }
+  },
+  {
+    "id": "clk-56-d3-2",
+    "topic": "time.clocks",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "A ship leaves port P at 8:00 local time on Monday. It reaches port Q at 20:00 local time on Tuesday. The clocks in Q show 5 hours more than the clocks in P. How many hours does the voyage last?",
+    "options": {
+      "A": "36",
+      "B": "31",
+      "C": "41",
+      "D": "7",
+      "E": "15"
+    },
+    "correct_answer": "B",
+    "hint": "What time is it in P when the ship reaches Q?",
+    "solution": "When it is 20:00 on Tuesday in Q, the clocks in P show 5 hours less: 15:00 on Tuesday. From 8:00 on Monday to 8:00 on Tuesday is 24 hours, and on to 15:00 is 7 more: 31 hours.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "36 hours reads both times as if they were on the same clocks, but the clocks in Q show 5 hours more."
+      },
+      "C": {
+        "trap": "reversed_relation",
+        "text": "41 hours treats the clocks in Q as 5 hours behind those in P, but they show 5 hours more."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "7 hours is from 8:00 to 15:00 on one day, but the ship arrives on Tuesday, a day after it left."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "15:00 is the time in P when the ship arrives, a step on the way; the voyage lasts from 8:00 on Monday to that moment."
+      }
+    }
+  },
+  {
+    "id": "clk-56-d3-3",
+    "topic": "time.clocks",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "In winter, when it is noon in London, it is 15:00 in Moscow. When it is 15:00 in Moscow, it is 20:00 in Beijing. It is 1:00 on Saturday in Beijing. What day and time is it in London?",
+    "options": {
+      "A": "17:00 on Saturday",
+      "B": "9:00 on Saturday",
+      "C": "20:00 on Friday",
+      "D": "17:00 on Friday",
+      "E": "23:00 on Friday"
+    },
+    "correct_answer": "D",
+    "hint": "How many hours ahead of London is Beijing? Going back past midnight changes the day.",
+    "solution": "Moscow is 3 hours ahead of London, and Beijing is 5 hours ahead of Moscow, so Beijing is 8 hours ahead of London. 8 hours before 1:00 on Saturday is 17:00 on Friday.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "Going 8 hours back from 1:00 on Saturday passes midnight into Friday."
+      },
+      "B": {
+        "trap": "reversed_relation",
+        "text": "9:00 adds the 8 hours, but the clocks in London show less than in Beijing."
+      },
+      "C": {
+        "trap": "stopped_early",
+        "text": "20:00 on Friday is the time in Moscow; London is 3 hours further back."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "23:00 takes away 5 − 3 = 2 hours, but the two differences add up to 8 hours."
+      }
+    }
+  },
+  {
+    "id": "clk-56-d4-1",
+    "topic": "time.clocks",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "A plane flies from Alpha to Beta. It takes off at 10:00 Alpha time and lands at 15:00 Beta time. On the way back it takes off at 17:00 Beta time and lands at 18:00 Alpha time. All of this happens on one day, and both flights take the same time. By how many hours are Beta's clocks ahead of Alpha's, or behind them?",
+    "options": {
+      "A": "2 hours behind",
+      "B": "5 hours ahead",
+      "C": "2 hours ahead",
+      "D": "3 hours ahead",
+      "E": "4 hours ahead"
+    },
+    "correct_answer": "C",
+    "hint": "By the clocks, the flight there seems to take 5 hours and the flight back 1 hour. What makes the same flight look longer one way?",
+    "solution": "By the clocks, the flight there seems to take 5 hours and the flight back 1 hour. The real flight time is the same both ways; the difference between the clocks is added to it on the way there and taken away on the way back. So each flight takes (5 + 1) ÷ 2 = 3 hours, and Beta's clocks are 5 − 3 = 2 hours ahead.",
+    "distractors": {
+      "A": {
+        "trap": "reversed_relation",
+        "text": "If Beta's clocks were behind, the flight there would seem shorter than the flight back, not longer."
+      },
+      "B": {
+        "trap": "ignored_condition",
+        "text": "5 hours is how long the flight there seems by the clocks; the flight itself takes time too."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "3 hours is how long each flight takes, a step on the way; the difference between the clocks is 5 − 3 hours."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "4 hours is the gap between 5 hours and 1 hour; the difference between the clocks is half of it."
+      }
+    }
+  },
+  {
+    "id": "clk-56-d4-2",
+    "topic": "time.clocks",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "Lena sets her watch right at 8:00 at home. The watch gains 5 minutes in every hour of real time. She flies to a city whose clocks show 3 hours more than at home. When she lands later that day, her watch shows 21:00. What is the local time in that city?",
+    "options": {
+      "A": "0:00",
+      "B": "17:00",
+      "C": "23:00",
+      "D": "20:00",
+      "E": "22:55"
+    },
+    "correct_answer": "C",
+    "hint": "Her watch counted 13 hours. How many real hours is that, if the watch goes on 65 minutes in each real hour?",
+    "solution": "The watch moved on 13 hours, which is 780 minutes. In each real hour it moves 65 minutes, so 780 ÷ 65 = 12 real hours passed, and the time at home is 20:00. The clocks in the city show 3 hours more: 23:00.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "0:00 believes the watch, but it gains 5 minutes every hour."
+      },
+      "B": {
+        "trap": "reversed_relation",
+        "text": "17:00 takes the 3 hours away, but the city's clocks show more than at home."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "20:00 is the time at home; the city's clocks show 3 hours more."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "22:55 takes off 5 minutes for each of the 13 hours the watch counted, but the watch gains 5 minutes in each of the 12 real hours."
+      }
+    }
+  },
+  {
+    "id": "clk-56-d4-3",
+    "topic": "time.clocks",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "At noon Sam sets two clocks with hands to the right time. One clock gains 2 minutes every hour, and the other loses 3 minutes every hour. After how many days will the two clocks first show the same time again?",
+    "options": {
+      "A": "12 days",
+      "B": "6 days",
+      "C": "30 days",
+      "D": "15 days",
+      "E": "144 days"
+    },
+    "correct_answer": "B",
+    "hint": "By how many minutes do the clocks drift apart each hour? How big must the gap be for two clocks with hands to show the same time?",
+    "solution": "Each hour the two clocks move 2 + 3 = 5 minutes further apart. Clocks with hands show the same time again when the gap is a whole 12 hours, which is 720 minutes. That takes 720 ÷ 5 = 144 hours, which is 6 days.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "12 days waits for a gap of 24 hours, but clocks with hands show the same time again after a gap of 12 hours."
+      },
+      "C": {
+        "trap": "wrong_operation",
+        "text": "30 days takes the 2 minutes away from the 3, but one clock runs fast and the other slow, so the gap grows by 5 minutes an hour."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "15 days is when the fast clock alone shows the right time again; the slow clock drifts too."
+      },
+      "E": {
+        "trap": "time_unit_mixup",
+        "text": "144 is the number of hours it takes, not the number of days."
+      }
+    }
   }
 ]

@@ -1698,5 +1698,337 @@
         "text": "You multiplied 3 by 3 by 3. Count choices for each place: 3, 3, 2, 1."
       }
     }
+  },
+  {
+    "id": "enum-56-d2-1",
+    "topic": "combinatorics.enumeration",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "A café makes sandwiches from white or brown bread, with one of three fillings: cheese, ham or egg. A sandwich also gets one of two sauces, or no sauce at all. How many different sandwiches can the café make?",
+    "options": {
+      "A": "12",
+      "B": "18",
+      "C": "8",
+      "D": "13",
+      "E": "6"
+    },
+    "correct_answer": "B",
+    "hint": "Choose the bread, then the filling, then what goes on top. How many choices are there at each step?",
+    "solution": "There are 2 breads and 3 fillings, so 2 × 3 = 6 ways to choose them. Each of those gets one of 3 choices for the sauce: the first sauce, the second or none. That makes 6 × 3 = 18 sandwiches.",
+    "distractors": {
+      "A": {
+        "trap": "missed_case",
+        "text": "12 leaves out the sandwiches with no sauce: 2 × 3 × 2."
+      },
+      "C": {
+        "trap": "wrong_operation",
+        "text": "8 adds the choices, 2 + 3 + 3, but every bread goes with every filling and every choice of sauce."
+      },
+      "D": {
+        "trap": "missed_case",
+        "text": "13 counts only one sandwich without sauce, but there is one for every bread and filling: 6 of them."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "6 counts the bread and the filling only; each of those sandwiches still gets one of 3 choices for the sauce."
+      }
+    }
+  },
+  {
+    "id": "enum-56-d2-2",
+    "topic": "combinatorics.enumeration",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "A set of dominoes uses the numbers 0 to 4. Each tile shows two numbers, such as 1–3 or 4–4, and no two tiles show the same two numbers. The set has every possible tile. How many tiles are there?",
+    "options": {
+      "A": "25",
+      "B": "10",
+      "C": "15",
+      "D": "20",
+      "E": "5"
+    },
+    "correct_answer": "C",
+    "hint": "List the tiles that have a 0, then the new ones that have a 1, and so on, without writing any tile twice.",
+    "solution": "The tiles with a 0 are 0–0 to 0–4: 5 tiles. The new tiles with a 1 are 1–1 to 1–4: 4 more, as 0–1 is already there. Then come 3 new tiles with a 2, 2 with a 3 and 1 with a 4: 5 + 4 + 3 + 2 + 1 = 15.",
+    "distractors": {
+      "A": {
+        "trap": "double_count",
+        "text": "25 counts 1–3 and 3–1 as two tiles, but they are the same tile."
+      },
+      "B": {
+        "trap": "missed_case",
+        "text": "10 leaves out the five doubles, from 0–0 to 4–4."
+      },
+      "D": {
+        "trap": "double_count",
+        "text": "20 counts every tile with two different numbers twice, once in each order, and leaves out the doubles."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "5 counts only the tiles that have a 0."
+      }
+    }
+  },
+  {
+    "id": "enum-56-d2-3",
+    "topic": "combinatorics.enumeration",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "Maya rolls a red die and a blue die. Each die shows a number from 1 to 6. In how many ways can the two dice show a total of 8? Red 2 with blue 6 is a different way from red 6 with blue 2.",
+    "options": {
+      "A": "3",
+      "B": "6",
+      "C": "36",
+      "D": "5",
+      "E": "4"
+    },
+    "correct_answer": "D",
+    "hint": "Go through what the red die can show, from 1 to 6. What must the blue die show each time?",
+    "solution": "Red 1 would need blue 7, which cannot be. Red 2, 3, 4, 5 and 6 need blue 6, 5, 4, 3 and 2. That is 5 ways.",
+    "distractors": {
+      "A": {
+        "trap": "missed_case",
+        "text": "3 counts 2 and 6 once, but red 2 with blue 6 and red 6 with blue 2 are two ways, and so are 3 and 5."
+      },
+      "B": {
+        "trap": "double_count",
+        "text": "6 counts red 4 with blue 4 twice; it is one way."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "36 is how many ways the two dice can fall in all, not how many make 8."
+      },
+      "E": {
+        "trap": "missed_case",
+        "text": "4 leaves out red 4 with blue 4."
+      }
+    }
+  },
+  {
+    "id": "enum-56-d3-1",
+    "topic": "combinatorics.enumeration",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "Three roads lead from a village to a town, and two roads lead from the town to a city. Lena travels from the village to the city and back to the village, through the town both ways. She never uses the same road twice. How many different trips can she make?",
+    "options": {
+      "A": "36",
+      "B": "12",
+      "C": "30",
+      "D": "6",
+      "E": "8"
+    },
+    "correct_answer": "B",
+    "hint": "Count the ways there first. Then, for the way back, how many roads are still unused on each part?",
+    "solution": "Going there, she takes one of 3 roads and one of 2 roads: 3 × 2 = 6 ways. Coming back, 1 of the 2 roads between the city and the town and 2 of the 3 roads between the town and the village are still unused: 1 × 2 = 2 ways. So there are 6 × 2 = 12 trips.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "36 lets her use a road twice: 6 ways there and 6 ways back."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "30 only stops her coming back along exactly the same two roads, but she may not use either of them again."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "6 counts the ways there; each of them has 2 ways back."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "8 adds the 6 ways there and the 2 ways back, but every way there goes with every way back."
+      }
+    }
+  },
+  {
+    "id": "enum-56-d3-2",
+    "topic": "combinatorics.enumeration",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "Four boards of a fence stand in a row. Each board is painted red, white or blue. Boards next to each other must have different colours, and the first board may not be red. In how many ways can the fence be painted?",
+    "options": {
+      "A": "16",
+      "B": "24",
+      "C": "54",
+      "D": "8",
+      "E": "81"
+    },
+    "correct_answer": "A",
+    "hint": "How many colours can the first board have? And how many can each next board have?",
+    "solution": "The first board is white or blue: 2 ways. Each next board may be any colour except the colour of the board before it: 2 ways each. So there are 2 × 2 × 2 × 2 = 16 ways.",
+    "distractors": {
+      "B": {
+        "trap": "ignored_condition",
+        "text": "24 lets the first board be red too: 3 × 2 × 2 × 2."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "54 lets boards next to each other have the same colour: 2 × 3 × 3 × 3."
+      },
+      "D": {
+        "trap": "wrong_operation",
+        "text": "8 adds the choices, 2 + 2 + 2 + 2, but every board's choice goes with every choice of the others."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "81 ignores both rules: 3 × 3 × 3 × 3."
+      }
+    }
+  },
+  {
+    "id": "enum-56-d3-3",
+    "topic": "combinatorics.enumeration",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "A robot walks on a board of 4 by 4 squares from square A1 to square D4. Rows are A to D from the top, columns 1 to 4 from the left. Each step takes it to the next square to the right or the next square down. Square B2 is blocked. How many different routes can the robot take?",
+    "drawing": "    1   2   3   4\n  ┌───┬───┬───┬───┐\nA │   │   │   │   │\n  ├───┼───┼───┼───┤\nB │   │███│   │   │\n  ├───┼───┼───┼───┤\nC │   │   │   │   │\n  ├───┼───┼───┼───┤\nD │   │   │   │   │\n  └───┴───┴───┴───┘",
+    "drawing_structure": {
+      "kind": "grid",
+      "objects": [
+        {"id": "A", "label": "A"},
+        {"id": "B", "label": "B"},
+        {"id": "C", "label": "C"},
+        {"id": "D", "label": "D"},
+        {"id": "1", "label": "1"},
+        {"id": "2", "label": "2"},
+        {"id": "3", "label": "3"},
+        {"id": "4", "label": "4"}
+      ],
+      "relations": [
+        {"type": "filled", "from": "B", "to": "2"}
+      ]
+    },
+    "options": {
+      "A": "20",
+      "B": "8",
+      "C": "12",
+      "D": "4",
+      "E": "6"
+    },
+    "correct_answer": "B",
+    "hint": "How many routes reach each square? A square can be reached only from the square above it or the square to its left.",
+    "solution": "Count the routes to each square. Every square in row A and in column 1 is reached in 1 way, and B2 in none, as it is blocked. Every other square gets the routes of the square above it plus those of the square to its left: B3 gets 1, B4 2, C2 1, C3 2, C4 4, D2 2, D3 4 and D4 8.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "20 counts every route, including the 12 that pass through the blocked square B2."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "12 is the number of routes through B2, the ones the robot cannot take."
+      },
+      "D": {
+        "trap": "missed_case",
+        "text": "4 counts only the routes that go round B2 on one side; as many go round it on the other side."
+      },
+      "E": {
+        "trap": "missed_case",
+        "text": "6 leaves out the two routes along the edges: along row A and down column 4, or down column 1 and along row D."
+      }
+    }
+  },
+  {
+    "id": "enum-56-d4-1",
+    "topic": "combinatorics.enumeration",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "Tom writes three-digit numbers using only the digits 0, 1, 2, 3 and 4. In each number the three digits are all different. How many of the numbers he can write are even?",
+    "options": {
+      "A": "36",
+      "B": "48",
+      "C": "18",
+      "D": "30",
+      "E": "12"
+    },
+    "correct_answer": "D",
+    "hint": "A number that ends in 0 and one that ends in 2 or 4 are counted differently. Why?",
+    "solution": "An even number ends in 0, 2 or 4. Ending in 0: the first digit is 1, 2, 3 or 4 and the middle digit any of the 3 left, so 4 × 3 = 12 numbers. Ending in 2: the first digit cannot be 0 or 2, so it is 1, 3 or 4, and the middle digit is any of the 3 left, so 3 × 3 = 9. Ending in 4 also gives 9. In all 12 + 9 + 9 = 30.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "36 lets a number start with 0, but then it has only two digits."
+      },
+      "B": {
+        "trap": "ignored_condition",
+        "text": "48 counts all three-digit numbers with different digits, the odd ones too."
+      },
+      "C": {
+        "trap": "missed_case",
+        "text": "18 leaves out the 12 numbers that end in 0."
+      },
+      "E": {
+        "trap": "missed_case",
+        "text": "12 counts only the numbers that end in 0; those ending in 2 or 4 are even too."
+      }
+    }
+  },
+  {
+    "id": "enum-56-d4-2",
+    "topic": "combinatorics.enumeration",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "Five friends sit on a bench in a row: Nora, Owen, Pia, Raj and Sam. Nora wants to sit next to Owen, and Sam does not want to sit at either end. In how many ways can the five sit?",
+    "options": {
+      "A": "48",
+      "B": "72",
+      "C": "24",
+      "D": "12",
+      "E": "8"
+    },
+    "correct_answer": "C",
+    "hint": "Put Sam in each seat that is not at an end, one at a time. Where can Nora and Owen sit then?",
+    "solution": "Sam sits in seat 2, 3 or 4. With Sam in seat 2, Nora and Owen take seats 3 and 4 or 4 and 5; with Sam in seat 3, seats 1 and 2 or 4 and 5; with Sam in seat 4, seats 1 and 2 or 2 and 3. So the pair has 2 places, it can sit in 2 orders, and Pia and Raj take the last two seats in 2 orders: 2 × 2 × 2 = 8 ways for each of Sam's seats, and 3 × 8 = 24 in all.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "48 lets Sam sit at an end."
+      },
+      "B": {
+        "trap": "ignored_condition",
+        "text": "72 does not keep Nora next to Owen."
+      },
+      "D": {
+        "trap": "missed_case",
+        "text": "12 seats Nora and Owen in one order only; Owen can sit on Nora's left or on her right."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "8 is the number of ways with Sam in one seat; he has three seats to choose from."
+      }
+    }
+  },
+  {
+    "id": "enum-56-d4-3",
+    "topic": "combinatorics.enumeration",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "A teacher picks 3 of 6 pupils for a quiz team: Ella, Finn, Gia, Hugo, Ivy and Jack. Gia must be in the team, and Ella and Finn refuse to be in it together. How many different teams can the teacher pick?",
+    "options": {
+      "A": "10",
+      "B": "16",
+      "C": "18",
+      "D": "8",
+      "E": "9"
+    },
+    "correct_answer": "E",
+    "hint": "Gia is already in. How many ways are there to pick the other two, and which of those pairs is not allowed?",
+    "solution": "Gia is in, so the teacher picks 2 of the other 5 pupils. There are 10 such pairs: Ella with Finn, Hugo, Ivy or Jack; Finn with Hugo, Ivy or Jack; Hugo with Ivy or Jack; and Ivy with Jack. Only Ella with Finn is not allowed, so 9 teams are left.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "10 still counts the team with Ella and Finn together."
+      },
+      "B": {
+        "trap": "ignored_condition",
+        "text": "16 counts the teams without Gia too, but she must be in every team."
+      },
+      "C": {
+        "trap": "double_count",
+        "text": "18 counts every pair twice, as if Hugo then Ivy were a different team from Ivy then Hugo."
+      },
+      "D": {
+        "trap": "double_count",
+        "text": "8 takes away the team with Ella and Finn twice, but it is one team."
+      }
+    }
   }
 ]

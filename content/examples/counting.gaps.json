@@ -1698,5 +1698,320 @@
         "text": "Where two tables touch, those sides are no longer free."
       }
     }
+  },
+  {
+    "id": "gaps-56-d2-1",
+    "topic": "counting.gaps",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "A rectangular cake is cut straight through, from edge to edge, 3 times along its length and 4 times across. How many pieces are there?",
+    "options": {
+      "A": "12",
+      "B": "7",
+      "C": "20",
+      "D": "9",
+      "E": "30"
+    },
+    "correct_answer": "C",
+    "hint": "How many strips do the 3 cuts along the length make? Into how many pieces do the 4 cuts across split each strip?",
+    "solution": "3 cuts along the length make 4 strips. 4 cuts across split every strip into 5 pieces. So there are 4 × 5 = 20 pieces.",
+    "distractors": {
+      "A": {
+        "trap": "off_by_one",
+        "text": "12 multiplies the numbers of cuts, but 3 cuts make 4 strips and 4 cuts make 5 pieces of each."
+      },
+      "B": {
+        "trap": "wrong_operation",
+        "text": "7 adds the cuts, but each cut across goes through every strip."
+      },
+      "D": {
+        "trap": "wrong_operation",
+        "text": "9 adds the 4 strips and the 5 pieces of a strip, but every one of the 4 strips is cut into 5."
+      },
+      "E": {
+        "trap": "off_by_one",
+        "text": "30 takes one piece too many each way: 3 cuts make 4 strips, not 5, and 4 cuts make 5 pieces, not 6."
+      }
+    }
+  },
+  {
+    "id": "gaps-56-d2-2",
+    "topic": "counting.gaps",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "An orchard is a rectangle 20 metres wide and 30 metres long. Apple trees grow in straight rows 5 metres apart, and in every row the trees are 5 metres apart. There are trees along all four edges, one in each corner. How many trees are there?",
+    "options": {
+      "A": "24",
+      "B": "35",
+      "C": "20",
+      "D": "48",
+      "E": "12"
+    },
+    "correct_answer": "B",
+    "hint": "How many trees stand along the 20-metre side? And along the 30-metre side?",
+    "solution": "Along the 20-metre side the trees stand at 0, 5, 10, 15 and 20 metres: 5 trees. Along the 30-metre side there are 7. The trees fill 5 rows of 7, so there are 5 × 7 = 35.",
+    "distractors": {
+      "A": {
+        "trap": "off_by_one",
+        "text": "24 multiplies the gaps, 4 and 6, but each side has one tree more than gaps."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "20 counts only the trees along the four edges; the rows inside have trees too."
+      },
+      "D": {
+        "trap": "off_by_one",
+        "text": "48 adds one tree too many each way: 6 and 8 instead of 5 and 7."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "12 adds the 5 and the 7, but the trees fill 5 rows of 7."
+      }
+    }
+  },
+  {
+    "id": "gaps-56-d2-3",
+    "topic": "counting.gaps",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "Children stand in a circle at equal distances from each other. They are numbered in turn, 1, 2, 3 and so on, all the way round. Child number 6 stands exactly opposite child number 17. How many children are in the circle?",
+    "options": {
+      "A": "24",
+      "B": "20",
+      "C": "23",
+      "D": "11",
+      "E": "22"
+    },
+    "correct_answer": "E",
+    "hint": "How many steps from one child to the next lead from child 6 to child 17? That is half of the circle.",
+    "solution": "From child 6 to child 17 there are 11 steps from one child to the next, and that is half of the way round. The whole circle is 22 steps, and in a circle there are as many children as steps: 22.",
+    "distractors": {
+      "A": {
+        "trap": "off_by_one",
+        "text": "24 doubles the 12 children from number 6 to number 17, but half of the circle is the 11 steps between them."
+      },
+      "B": {
+        "trap": "off_by_one",
+        "text": "20 doubles the 10 children standing between them, but half of the circle is 11 steps."
+      },
+      "C": {
+        "trap": "wrong_operation",
+        "text": "23 adds the two numbers, 6 + 17, which says nothing about the size of the circle."
+      },
+      "D": {
+        "trap": "answered_other_question",
+        "text": "11 is half of the circle, the steps from child 6 to child 17."
+      }
+    }
+  },
+  {
+    "id": "gaps-56-d3-1",
+    "topic": "counting.gaps",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "A bar of chocolate has 4 rows of 6 squares. You break it along its grooves into single squares. Each break splits one piece into two. How many breaks are needed?",
+    "options": {
+      "A": "23",
+      "B": "24",
+      "C": "15",
+      "D": "10",
+      "E": "8"
+    },
+    "correct_answer": "A",
+    "hint": "Each break turns one piece into two. How many pieces are there at the start, and how many at the end?",
+    "solution": "At the start there is 1 piece, and at the end there are 4 × 6 = 24 squares. Each break adds exactly one piece, so it takes 24 − 1 = 23 breaks, in whatever order they are made.",
+    "distractors": {
+      "B": {
+        "trap": "off_by_one",
+        "text": "24 is the number of squares; the bar starts as one piece, so it takes one break fewer."
+      },
+      "C": {
+        "trap": "wrong_operation",
+        "text": "15 multiplies the grooves, 3 × 5, as if each place where two grooves cross were a break."
+      },
+      "D": {
+        "trap": "wrong_operation",
+        "text": "10 adds the rows and the squares in a row, 4 + 6."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "8 breaks along each groove once, which would need several pieces broken at one go, but each break splits one piece into two."
+      }
+    }
+  },
+  {
+    "id": "gaps-56-d3-2",
+    "topic": "counting.gaps",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "A window has 3 rows of 4 square panes. A wooden strip as long as one pane runs along each side of each pane, and two panes next to each other share the strip between them. How many strips are there, counting those around the edge of the window?",
+    "options": {
+      "A": "48",
+      "B": "24",
+      "C": "31",
+      "D": "17",
+      "E": "12"
+    },
+    "correct_answer": "C",
+    "hint": "Count the strips lying across and the strips standing upright separately.",
+    "solution": "The strips lying across form 4 lines, one above each row and one below the last row, with 4 strips in each line: 16. The upright strips form 5 lines, with 3 strips in each: 15. Together 16 + 15 = 31.",
+    "distractors": {
+      "A": {
+        "trap": "double_count",
+        "text": "48 gives each pane its own 4 strips, but two panes next to each other share one."
+      },
+      "B": {
+        "trap": "off_by_one",
+        "text": "24 takes one line too few each way: 3 lines across and 4 upright."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "17 counts only the strips between panes, not those around the edge of the window."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "12 is the number of panes."
+      }
+    }
+  },
+  {
+    "id": "gaps-56-d3-3",
+    "topic": "counting.gaps",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "Two round running tracks touch at one point, like the figure 8. The small track is 60 metres round and the big one is 100 metres round. Flags stand every 10 metres along both tracks, and one flag stands at the point where they touch. How many flags are there?",
+    "options": {
+      "A": "16",
+      "B": "18",
+      "C": "17",
+      "D": "15",
+      "E": "10"
+    },
+    "correct_answer": "D",
+    "hint": "On a closed track, are there more flags or more gaps between them? Which flag belongs to both tracks?",
+    "solution": "On a closed track there are as many flags as gaps: 60 ÷ 10 = 6 on the small track and 100 ÷ 10 = 10 on the big one. The flag where the tracks touch is on both, so it is counted once: 6 + 10 − 1 = 15.",
+    "distractors": {
+      "A": {
+        "trap": "double_count",
+        "text": "16 counts the flag at the touching point twice, once for each track."
+      },
+      "B": {
+        "trap": "off_by_one",
+        "text": "18 gives each track one flag more, as if it were a straight line with a flag at both ends: 7 + 11."
+      },
+      "C": {
+        "trap": "off_by_one",
+        "text": "17 treats each track as a straight line with a flag at both ends, 7 + 11, and then takes away the shared flag."
+      },
+      "E": {
+        "trap": "number_from_text",
+        "text": "10 is the distance between flags, copied from the question."
+      }
+    }
+  },
+  {
+    "id": "gaps-56-d4-1",
+    "topic": "counting.gaps",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "A circular path is 360 metres round. Lamps stand along it every 15 metres. They are replaced by new lamps every 40 metres, and the first new lamp stands where an old one stood. Where a new lamp stands at the place of an old one, it uses the old lamp's hole; everywhere else a new hole is dug. How many new holes are dug?",
+    "options": {
+      "A": "9",
+      "B": "15",
+      "C": "6",
+      "D": "7",
+      "E": "3"
+    },
+    "correct_answer": "C",
+    "hint": "At which places along the path do an old lamp and a new lamp stand together?",
+    "solution": "Measured round the path from the first new lamp, the old lamps stood at every multiple of 15 metres. The new lamps stand at 0, 40, 80 and so on up to 320 metres: 360 ÷ 40 = 9 lamps, as many as gaps on a closed path. A new lamp is at an old lamp's place when its distance is a multiple of 15 as well: at 0, 120 and 240 metres. The other 9 − 3 = 6 new lamps need new holes.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "9 gives every new lamp a new hole, but 3 of them stand at old lamps' places and use old holes."
+      },
+      "B": {
+        "trap": "wrong_operation",
+        "text": "15 takes the 9 new lamps away from the 24 old ones, which says nothing about which places are shared."
+      },
+      "D": {
+        "trap": "off_by_one",
+        "text": "7 counts 10 new lamps, as if the path were straight with a lamp at both ends; on a closed path 360 metres is the same place as 0, so there are 9."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "3 is the number of old holes that are used again."
+      }
+    }
+  },
+  {
+    "id": "gaps-56-d4-2",
+    "topic": "counting.gaps",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "A square garden is 12 metres on each side. Its fence has a post every 3 metres, one in each corner. Two straight fences cross the garden through its middle, one parallel to each side, and split it into four square beds. They have a post every 3 metres too. Where fences meet, one post serves both. How many posts are there?",
+    "options": {
+      "A": "16",
+      "B": "25",
+      "C": "26",
+      "D": "21",
+      "E": "22"
+    },
+    "correct_answer": "D",
+    "hint": "Count the posts on the outer fence first. Which posts of the two inner fences are new?",
+    "solution": "The outer fence is 48 metres round, so it has 48 ÷ 3 = 16 posts. Each inner fence is 12 metres long with 5 posts, and its two end posts are on the outer fence. The first inner fence adds 3 posts. The second adds 2, because its middle post is where the two inner fences cross, and that post is already there. In all 16 + 3 + 2 = 21 posts.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "16 counts the outer fence only; the two fences inside have posts too."
+      },
+      "B": {
+        "trap": "ignored_condition",
+        "text": "25 puts a post at every point 3 metres apart, inside the beds too, but posts stand only on fences."
+      },
+      "C": {
+        "trap": "double_count",
+        "text": "26 adds all 5 posts of each inner fence, but their end posts are on the outer fence already, and the middle post is one post for both."
+      },
+      "E": {
+        "trap": "double_count",
+        "text": "22 counts the post in the middle twice, once for each inner fence."
+      }
+    }
+  },
+  {
+    "id": "gaps-56-d4-3",
+    "topic": "counting.gaps",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "30 lamps stand round the edge of a rectangular ice rink, with a lamp in each corner. Each short side has 6 lamps, counting its corners. How many lamps does each long side have, counting its corners?",
+    "options": {
+      "A": "9",
+      "B": "11",
+      "C": "7",
+      "D": "15",
+      "E": "22"
+    },
+    "correct_answer": "B",
+    "hint": "Each corner lamp belongs to two sides. How many lamps are counted twice if you add up the lamps of all four sides?",
+    "solution": "Adding up the lamps of the four sides counts each of the 4 corner lamps twice, so the four sides together hold 30 + 4 = 34. The two short sides hold 6 + 6 = 12 of these, which leaves 34 − 12 = 22 for the two long sides: 11 each.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "9 leaves out the long side's corner lamps: the 18 lamps left after both short sides stand between the corners of the long sides."
+      },
+      "C": {
+        "trap": "wrong_operation",
+        "text": "7 takes the 4 corner lamps away from 30 instead of adding them back: (26 − 12) ÷ 2."
+      },
+      "D": {
+        "trap": "answered_other_question",
+        "text": "15 is half of all the lamps, not the lamps of one long side."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "22 is the number of lamps on both long sides together, counting their corners."
+      }
+    }
   }
 ]

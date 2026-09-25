@@ -1698,5 +1698,334 @@
         "text": "Yellow is next to green, but on the other side: 1st from the left."
       }
     }
+  },
+  {
+    "id": "ord-56-d2-1",
+    "topic": "logic.ordering",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "Five friends compared their heights. Max is shorter than Lily. Paul is taller than Lily. Rita is taller than Olga but shorter than Max. The friends line up from the shortest to the tallest. Who stands second?",
+    "options": {
+      "A": "Lily",
+      "B": "Rita",
+      "C": "Max",
+      "D": "Olga",
+      "E": "Paul"
+    },
+    "correct_answer": "B",
+    "hint": "Link the comparisons into one chain. Who is taller than whom?",
+    "solution": "Paul is taller than Lily, and Lily is taller than Max. Rita is shorter than Max but taller than Olga. So from the shortest the line is Olga, Rita, Max, Lily, Paul, and Rita stands second.",
+    "distractors": {
+      "A": {
+        "trap": "reversed_relation",
+        "text": "Lily is second from the tallest end; the line starts from the shortest."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "Max would be second only if Rita were taller than him, but Rita is shorter than Max."
+      },
+      "D": {
+        "trap": "off_by_one",
+        "text": "Olga is the shortest, so she stands first, not second."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "Paul is the tallest, at the far end of the line."
+      }
+    }
+  },
+  {
+    "id": "ord-56-d2-2",
+    "topic": "logic.ordering",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "Seven children stand in a queue. Nina is fourth from the front. There are exactly two children between Nina and Owen. Pablo stands right in front of Owen. In which place from the front does Pablo stand?",
+    "options": {
+      "A": "5th",
+      "B": "7th",
+      "C": "6th",
+      "D": "2nd",
+      "E": "4th"
+    },
+    "correct_answer": "C",
+    "hint": "Where can Owen stand with exactly two children between him and Nina? Which of those places leaves room for Pablo?",
+    "solution": "Nina is 4th, so with two children between them Owen is 1st or 7th. Nobody can stand in front of the 1st, so Owen is 7th, and Pablo, right in front of him, is 6th.",
+    "distractors": {
+      "A": {
+        "trap": "off_by_one",
+        "text": "Putting Owen in the 6th place, two places behind Nina, leaves only one child between them."
+      },
+      "B": {
+        "trap": "answered_other_question",
+        "text": "7th is Owen's place; Pablo stands right in front of him."
+      },
+      "D": {
+        "trap": "reversed_relation",
+        "text": "Pablo is 2nd from the back of the queue, not from the front."
+      },
+      "E": {
+        "trap": "number_from_text",
+        "text": "4th is Nina's place, copied from the question."
+      }
+    }
+  },
+  {
+    "id": "ord-56-d2-3",
+    "topic": "logic.ordering",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "Five stalls stand in a row at a fair, numbered 1 to 5 from the gate. They sell toys, candy, cakes, popcorn and juice. The toy stall (T) is number 4. The candy stall is right next to the cake stall. The cake stall is further from the gate than the popcorn stall. What number is the popcorn stall?",
+    "drawing": "                  T\n●─────●─────●─────●─────●",
+    "drawing_structure": {
+      "kind": "row",
+      "objects": [
+        {"id": "T", "label": "T"}
+      ]
+    },
+    "options": {
+      "A": "1",
+      "B": "5",
+      "C": "2",
+      "D": "4",
+      "E": "It is impossible to tell"
+    },
+    "correct_answer": "A",
+    "hint": "The candy stall and the cake stall stand side by side. Which two free stalls next to each other are left for them?",
+    "solution": "Stall 4 sells toys, so the candy and cake stalls are 1 and 2, or 2 and 3. The cakes are further from the gate than the popcorn, so they are not at 1, and with the cakes at 2 and the candy at 1 no stall nearer the gate is left for the popcorn. So the candy and the cakes take 2 and 3. The only free stall nearer the gate than the cakes is 1: the popcorn is at 1, and the juice at 5.",
+    "distractors": {
+      "B": {
+        "trap": "reversed_relation",
+        "text": "At 5 the popcorn would be further from the gate than the cakes; it is the cakes that are further."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "2 fits only if the candy stall need not stand next to the cake stall."
+      },
+      "D": {
+        "trap": "number_from_text",
+        "text": "4 is the toy stall's number, given in the question."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "Without the clue about the popcorn it could be at 1, 3 or 5, but that clue leaves only 1."
+      }
+    }
+  },
+  {
+    "id": "ord-56-d3-1",
+    "topic": "logic.ordering",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "Six girls swam a race: Lara, Maya, Nell, Olive, Paula and Rosa. Olive finished after Maya. Rosa and Nell both finished before Maya. Paula finished after Olive, but not right after her. Who finished fifth?",
+    "options": {
+      "A": "Paula",
+      "B": "Olive",
+      "C": "Lara",
+      "D": "It is impossible to tell",
+      "E": "Rosa"
+    },
+    "correct_answer": "C",
+    "hint": "How many girls finished before Maya at the least? Then look for room for Olive and Paula.",
+    "solution": "Rosa and Nell finished before Maya, so Maya is at least 3rd. Olive finished after Maya, and Paula after Olive with someone between them, so Paula is at least three places after Maya. With six places, Maya is 3rd, Olive 4th and Paula 6th, and the 5th place is left for Lara. Rosa and Nell can be 1st and 2nd either way round, but the 5th is Lara in both orders.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_not",
+        "text": "Paula finished after Olive but not right after her, so she cannot be 5th."
+      },
+      "B": {
+        "trap": "off_by_one",
+        "text": "Olive is 4th, right after Maya."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "Rosa and Nell can swap places, but the 5th place is the same in both orders."
+      },
+      "E": {
+        "trap": "reversed_relation",
+        "text": "Rosa finished 1st or 2nd; only counting from the last place makes 2nd into 5th."
+      }
+    }
+  },
+  {
+    "id": "ord-56-d3-2",
+    "topic": "logic.ordering",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "There are five sisters: Amy, Beth, Cleo, Dora and Gwen. Amy is older than exactly one of the others. Beth is younger than exactly one of the others. Cleo is older than Amy but younger than Gwen. Who is the eldest?",
+    "options": {
+      "A": "Cleo",
+      "B": "Beth",
+      "C": "Gwen",
+      "D": "Dora",
+      "E": "It is impossible to tell"
+    },
+    "correct_answer": "C",
+    "hint": "Line the sisters up from the eldest to the youngest. Which places do Amy and Beth take?",
+    "solution": "Only one sister is younger than Amy, so Amy is 4th from the eldest. Only one sister is older than Beth, so Beth is 2nd. That leaves places 1, 3 and 5. Cleo is older than Amy and Gwen is older than Cleo, so Gwen is 1st, Cleo 3rd and Dora 5th. Gwen is the eldest.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "Cleo is younger than Gwen, so she cannot be the eldest."
+      },
+      "B": {
+        "trap": "off_by_one",
+        "text": "Exactly one sister is older than Beth, so Beth is second, not first."
+      },
+      "D": {
+        "trap": "reversed_relation",
+        "text": "Dora is the youngest; reading the order upside down makes her the eldest."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "Amy and Beth fix two places, and Cleo's two comparisons fix the other three."
+      }
+    }
+  },
+  {
+    "id": "ord-56-d3-3",
+    "topic": "logic.ordering",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "Five friends stand in a row for a photo: Alice, Ben, Dev, Ella and Kira. Alice (A) stands first on the left. Kira and Dev do not stand next to each other. Dev and Ella do not stand next to each other either. Kira stands somewhere to the left of Dev. Who stands last on the right?",
+    "drawing": "A\n●─────●─────●─────●─────●",
+    "drawing_structure": {
+      "kind": "row",
+      "objects": [
+        {"id": "A", "label": "A"}
+      ]
+    },
+    "options": {
+      "A": "Kira",
+      "B": "Ella",
+      "C": "Ben",
+      "D": "Dev",
+      "E": "It is impossible to tell"
+    },
+    "correct_answer": "D",
+    "hint": "Who can stand next to Dev at all? Think about where Dev can stand if he has only one possible neighbour.",
+    "solution": "Dev may not stand next to Kira or Ella. Alice could be next to him only if Dev were 2nd, but then Kira, who is to his left, would have to be 1st, where Alice is. So Dev's only possible neighbour is Ben, and Dev must stand at an end. The left end is Alice's, so Dev is last.",
+    "distractors": {
+      "A": {
+        "trap": "reversed_relation",
+        "text": "Kira could be last only if she stood to the right of Dev; she stands to his left."
+      },
+      "B": {
+        "trap": "ignored_condition",
+        "text": "With Ella last, Dev would have to stand next to Kira, and those two do not stand together."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "With Ben last, Dev would have to stand next to Kira or Ella."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "Without Alice at the left end, several friends could be last; with her there, only Dev can."
+      }
+    }
+  },
+  {
+    "id": "ord-56-d4-1",
+    "topic": "logic.ordering",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "Seven bikes stand in a rack with slots numbered 1 to 7 from the left. Hana's bike is in slot 3. There are exactly three bikes between Ivo's bike and Jon's bike. Kai's bike is right next to Jon's, on its right. Lea's bike is to the right of Hana's but to the left of Ivo's. The other two bikes belong to Max and Ned. In which slot is Ivo's bike?",
+    "options": {
+      "A": "1",
+      "B": "6",
+      "C": "4",
+      "D": "It is impossible to tell",
+      "E": "5"
+    },
+    "correct_answer": "E",
+    "hint": "List the pairs of slots with exactly three slots between them. Which pairs survive the other clues?",
+    "solution": "Two slots with exactly three bikes between them are 4 apart: 1 and 5, 2 and 6, or 3 and 7. Slot 3 is Hana's, so 3 and 7 are out. Lea is to the right of Hana and to the left of Ivo, so Ivo is at 5 or further right. That leaves Ivo at 5 with Jon at 1, or Ivo at 6 with Jon at 2. With Jon at 2, Kai would be at 3, which is Hana's slot. So Jon is at 1, Kai at 2, Lea at 4 and Ivo at 5.",
+    "distractors": {
+      "A": {
+        "trap": "reversed_relation",
+        "text": "Reading each left in the clues as right, and each right as left, puts Ivo's bike in slot 1, but Lea's bike stands to the left of Ivo's."
+      },
+      "B": {
+        "trap": "ignored_condition",
+        "text": "With Ivo at 6, Jon is at 2 and Kai's bike, right next to Jon's, would be in Hana's slot 3."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "4 is the slot of Lea's bike."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "Only one of the pairs of slots survives every clue, so Ivo's slot is known."
+      }
+    }
+  },
+  {
+    "id": "ord-56-d4-2",
+    "topic": "logic.ordering",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "Tess, Ugo, Vera and Walt took the first four places in a quiz. Afterwards three of them spoke. Tess said: 'I was first, and Ugo was second.' Ugo said: 'I was first, and Tess was third.' Vera said: 'I was second, and Walt was first.' Walt said nothing. Each of the three said one true thing and one false thing. Who won the quiz?",
+    "options": {
+      "A": "Tess",
+      "B": "Walt",
+      "C": "Ugo",
+      "D": "Vera",
+      "E": "It is impossible to tell"
+    },
+    "correct_answer": "B",
+    "hint": "Suppose Tess really was first. What does that make true or false in what Ugo said?",
+    "solution": "If Tess were first, Ugo's 'I was first' would be false, so his 'Tess was third' would have to be true, which cannot be. So Tess was not first, and her other half is true: Ugo was second. Then Ugo's 'I was first' is false, so Tess was third. Vera was not second, as Ugo was, so her other half is true: Walt was first. Walt won, Ugo was second, Tess third and Vera fourth.",
+    "distractors": {
+      "A": {
+        "trap": "trusted_statement",
+        "text": "Believing Tess's 'I was first' makes both halves of what Ugo said false."
+      },
+      "C": {
+        "trap": "trusted_statement",
+        "text": "Believing Ugo's 'I was first' makes both halves of what Tess said false."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "If Vera won, both halves of what she said would be false: she was not second, and Walt was not first."
+      },
+      "E": {
+        "trap": "stopped_early",
+        "text": "Trying Tess first leads to a contradiction, and from there every place follows."
+      }
+    }
+  },
+  {
+    "id": "ord-56-d4-3",
+    "topic": "logic.ordering",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "Six children perform one after another at a school concert: Abby, Bob, Cora, Dean, Emma and Finn. Emma performs first or third. Finn performs just before or just after Emma. Bob performs after Cora. Dean performs second or last. There is exactly one act between Abby's act and Bob's. Who performs third?",
+    "options": {
+      "A": "Abby",
+      "B": "Bob",
+      "C": "Emma",
+      "D": "Cora",
+      "E": "Dean"
+    },
+    "correct_answer": "A",
+    "hint": "Try Emma third. Where can Finn and Dean go then, and is there room for Abby and Bob?",
+    "solution": "If Emma were third, Finn would be second or fourth, and Dean second or last. In each case the three places left for Abby, Bob and Cora have no two with exactly one act between them. So Emma is first, Finn second and Dean last. Abby and Bob take places 3 and 5, and as Bob performs after Cora, Bob is 5th, Cora 4th and Abby 3rd.",
+    "distractors": {
+      "B": {
+        "trap": "reversed_relation",
+        "text": "Bob is third only if Cora performs after him, but Bob performs after Cora."
+      },
+      "C": {
+        "trap": "stopped_early",
+        "text": "With Emma third, no two free places have exactly one act between them for Abby and Bob."
+      },
+      "D": {
+        "trap": "ignored_condition",
+        "text": "Cora can be third only if Abby and Bob have no act, or more than one, between them."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "Dean performs second or last, never third."
+      }
+    }
   }
 ]
