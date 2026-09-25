@@ -1698,5 +1698,320 @@
         "text": "366 is the number of days."
       }
     }
+  },
+  {
+    "id": "cal-56-d2-1",
+    "topic": "time.calendar",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "1 March 2027 is a Monday. The year 2028 is a leap year, with 29 days in February. What day of the week is 1 March 2028?",
+    "options": {
+      "A": "Tuesday",
+      "B": "Wednesday",
+      "C": "Monday",
+      "D": "Thursday",
+      "E": "Saturday"
+    },
+    "correct_answer": "B",
+    "hint": "How many days are there from 1 March 2027 to 1 March 2028? Which February lies in between?",
+    "solution": "From 1 March 2027 to 1 March 2028 the calendar passes February 2028, which has 29 days, so the year in between has 366 days. 366 days are 52 weeks and 2 days, so the weekday moves 2 days on: from Monday to Wednesday.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "Tuesday moves the day on by 1, as 365 days would, but the February in between, February 2028, has 29 days."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "Monday takes a year to be whole weeks, but 366 days are 52 weeks and 2 days."
+      },
+      "D": {
+        "trap": "off_by_one",
+        "text": "Thursday moves the day on by 3, one day too many: 366 days move it by 2."
+      },
+      "E": {
+        "trap": "reversed_relation",
+        "text": "Saturday moves the day 2 days back instead of 2 days on."
+      }
+    }
+  },
+  {
+    "id": "cal-56-d2-2",
+    "topic": "time.calendar",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "2028 is a leap year: its February has 29 days. What is the date 100 days after 1 January 2028?",
+    "options": {
+      "A": "10 April 2028",
+      "B": "11 April 2028",
+      "C": "9 April 2028",
+      "D": "1 April 2028",
+      "E": "23 September 2027"
+    },
+    "correct_answer": "A",
+    "hint": "Count the days left in January, then February and March. How many of the 100 days are still left after that?",
+    "solution": "After 1 January there are 30 more days in January, then 29 in February and 31 in March: 30 + 29 + 31 = 90 days, which brings us to 31 March. The 10 days left lead to 10 April 2028.",
+    "distractors": {
+      "B": {
+        "trap": "ignored_condition",
+        "text": "11 April counts February with 28 days, but in 2028 it has 29."
+      },
+      "C": {
+        "trap": "off_by_one",
+        "text": "9 April counts 1 January itself as the first of the 100 days."
+      },
+      "D": {
+        "trap": "stopped_early",
+        "text": "1 April stops after the whole months, but after 31 March 10 of the 100 days are still to come."
+      },
+      "E": {
+        "trap": "reversed_relation",
+        "text": "23 September 2027 is 100 days before 1 January 2028, not after it."
+      }
+    }
+  },
+  {
+    "id": "cal-56-d2-3",
+    "topic": "time.calendar",
+    "grade_level": "5-6",
+    "difficulty": 2,
+    "question": "In four years Anya will be 3 times as old as she was eight years ago. How old is Anya now?",
+    "options": {
+      "A": "18",
+      "B": "6",
+      "C": "14",
+      "D": "10",
+      "E": "12"
+    },
+    "correct_answer": "C",
+    "hint": "From eight years ago to four years from now is 12 years. By how much does her age grow in that time, compared with her age eight years ago?",
+    "solution": "In four years she will be 3 times her age of eight years ago, so in those 12 years her age grows by twice her age of eight years ago. So eight years ago she was 12 ÷ 2 = 6, and now, 8 years later, she is 14.",
+    "distractors": {
+      "A": {
+        "trap": "answered_other_question",
+        "text": "18 is Anya's age in four years, not now."
+      },
+      "B": {
+        "trap": "answered_other_question",
+        "text": "6 is Anya's age eight years ago, not now."
+      },
+      "D": {
+        "trap": "reversed_relation",
+        "text": "10 mixes up the gaps: it takes four years ago and eight years ahead, not eight years ago and four years ahead."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "12 divides the 12 years by 3, but going from an age to 3 times that age adds twice the age, so divide by 2."
+      }
+    }
+  },
+  {
+    "id": "cal-56-d3-1",
+    "topic": "time.calendar",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "Ten years ago, Mum was 4 times as old as her son. In ten years, she will be twice as old as he will be. How old is the son now?",
+    "options": {
+      "A": "50",
+      "B": "10",
+      "C": "30",
+      "D": "5",
+      "E": "20"
+    },
+    "correct_answer": "E",
+    "hint": "The difference between their ages never changes. What was it ten years ago, and what will it be in ten years, compared with the son's age then?",
+    "solution": "Ten years ago Mum was 4 times the son's age then, so the difference between their ages was 3 times his age then. In ten years she will be twice his age, so the difference will equal his age then. The difference stays the same: 3 × (the son's age − 10) = the son's age + 10. So the son is 20 now, and Mum is 50.",
+    "distractors": {
+      "A": {
+        "trap": "answered_other_question",
+        "text": "50 is Mum's age now, not her son's."
+      },
+      "B": {
+        "trap": "answered_other_question",
+        "text": "10 is the son's age ten years ago, not now."
+      },
+      "C": {
+        "trap": "stopped_early",
+        "text": "30 is the difference between their ages, a step on the way; it equals the son's age in ten years, so he is 20 now."
+      },
+      "D": {
+        "trap": "wrong_operation",
+        "text": "5 multiplies only the son's age by 4, not the 10 years: 4 times his age less 10 is 4 times his age less 40."
+      }
+    }
+  },
+  {
+    "id": "cal-56-d3-2",
+    "topic": "time.calendar",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "A year is a leap year when it can be divided by 4. But a year ending in 00 is a leap year only when it can be divided by 400. How many leap years are there from 1896 to 1912, counting both of these years?",
+    "options": {
+      "A": "5",
+      "B": "4",
+      "C": "3",
+      "D": "2",
+      "E": "16"
+    },
+    "correct_answer": "B",
+    "hint": "List the years from 1896 to 1912 that can be divided by 4. Which of them ends in 00?",
+    "solution": "The years that can be divided by 4 are 1896, 1900, 1904, 1908 and 1912. 1900 ends in 00 and cannot be divided by 400, so it is not a leap year. That leaves 4 leap years: 1896, 1904, 1908 and 1912.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "5 counts 1900, but a year ending in 00 is a leap year only when it can be divided by 400."
+      },
+      "C": {
+        "trap": "off_by_one",
+        "text": "3 leaves out one end, but both 1896 and 1912 are counted."
+      },
+      "D": {
+        "trap": "off_by_one",
+        "text": "2 leaves out both ends, 1896 and 1912."
+      },
+      "E": {
+        "trap": "wrong_operation",
+        "text": "16 is 1912 − 1896, the number of years between the two, not a count of leap years."
+      }
+    }
+  },
+  {
+    "id": "cal-56-d3-3",
+    "topic": "time.calendar",
+    "grade_level": "5-6",
+    "difficulty": 3,
+    "question": "Grandpa, Dad and the son are 110 years old together. When the son was born, Dad was 26 and Grandpa was 51. How old is the son now?",
+    "options": {
+      "A": "33",
+      "B": "11",
+      "C": "37",
+      "D": "62",
+      "E": "28"
+    },
+    "correct_answer": "B",
+    "hint": "If the son is some age now, how old are Dad and Grandpa? All three ages add up to 110.",
+    "solution": "Dad is always 26 years older than the son, and Grandpa 51 years older. Without those extra years the three ages would add up to 110 − 26 − 51 = 33, which is three times the son's age. So the son is 33 ÷ 3 = 11, Dad is 37 and Grandpa is 62.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "33 is three times the son's age; it still has to be divided by 3."
+      },
+      "C": {
+        "trap": "answered_other_question",
+        "text": "37 is Dad's age now."
+      },
+      "D": {
+        "trap": "answered_other_question",
+        "text": "62 is Grandpa's age now."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "28 leaves out Grandpa's 51 extra years: 110 − 26 = 84, and 84 ÷ 3 = 28."
+      }
+    }
+  },
+  {
+    "id": "cal-56-d4-1",
+    "topic": "time.calendar",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "A family has a mother, a father and two children. Now their four ages add up to 73 years. Five years ago their ages added up to 54 years. How old is the younger child now?",
+    "options": {
+      "A": "19",
+      "B": "1",
+      "C": "5",
+      "D": "4",
+      "E": "15"
+    },
+    "correct_answer": "D",
+    "hint": "By how much does the sum of four ages grow in five years? Compare that with how much this sum grew.",
+    "solution": "In five years everybody who is alive grows 5 years older. If all four had been alive five years ago, the sum would have grown by 4 × 5 = 20, from 53 to 73. It grew by 19, one year less, so the younger child had not been born yet. The other three grew by 15 years together, and the younger child's age makes up the rest: 19 − 15 = 4.",
+    "distractors": {
+      "A": {
+        "trap": "stopped_early",
+        "text": "19 is how much the sum grew in five years; 15 of it is the other three growing older."
+      },
+      "B": {
+        "trap": "stopped_early",
+        "text": "1 is how much less the sum grew than it would have with all four alive, a step on the way."
+      },
+      "C": {
+        "trap": "ignored_condition",
+        "text": "5 would mean the child was born exactly five years ago, but then the sum would have grown by 20, not 19."
+      },
+      "E": {
+        "trap": "answered_other_question",
+        "text": "15 is how much the three older people grew together, not the younger child's age."
+      }
+    }
+  },
+  {
+    "id": "cal-56-d4-2",
+    "topic": "time.calendar",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "5 June 2026 is a Friday. In which year after 2026 will 5 June next be a Friday?",
+    "options": {
+      "A": "2033",
+      "B": "2032",
+      "C": "2037",
+      "D": "2054",
+      "E": "2020"
+    },
+    "correct_answer": "C",
+    "hint": "By how many days does 5 June move on from one year to the next? When does the February in between have 29 days?",
+    "solution": "5 June moves 1 day on from one year to the next, or 2 days when the February in between has 29 days, as in 2028, 2032 and 2036. Friday in 2026 becomes Saturday in 2027, Monday in 2028, then Tuesday, Wednesday and Thursday in 2031, Saturday in 2032, then Sunday, Monday and Tuesday in 2035, Thursday in 2036 and Friday in 2037.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "2033 moves the day by 1 every year, but in 2028 and 2032 it moves by 2."
+      },
+      "B": {
+        "trap": "off_by_one",
+        "text": "2032 adds each extra day one year late: 29 February 2028 lies between 5 June 2027 and 5 June 2028, not after them."
+      },
+      "D": {
+        "trap": "answered_other_question",
+        "text": "5 June 2054 is a Friday too, when the whole calendar comes round again after 28 years, but 2037 comes first."
+      },
+      "E": {
+        "trap": "reversed_relation",
+        "text": "2020 is the last year before 2026 with 5 June on a Friday; the question asks for the next one."
+      }
+    }
+  },
+  {
+    "id": "cal-56-d4-3",
+    "topic": "time.calendar",
+    "grade_level": "5-6",
+    "difficulty": 4,
+    "question": "Anya was born on Monday, 4 March 2024. On which day of the week is her 10th birthday, 4 March 2034?",
+    "options": {
+      "A": "Thursday",
+      "B": "Friday",
+      "C": "Sunday",
+      "D": "Saturday",
+      "E": "Monday"
+    },
+    "correct_answer": "D",
+    "hint": "How many 29 Februaries come between 4 March 2024 and 4 March 2034?",
+    "solution": "Ten years are 3650 days, plus one day for each 29 February in between. 29 February 2024 came before Anya was born, so only 2028 and 2032 count: 3652 days. 3652 days are 521 weeks and 5 days, so the weekday moves 5 days on, from Monday to Saturday.",
+    "distractors": {
+      "A": {
+        "trap": "ignored_condition",
+        "text": "Thursday leaves out the 29 Februaries: 3650 days move the day by only 3."
+      },
+      "B": {
+        "trap": "missed_case",
+        "text": "Friday counts only one of the two 29 Februaries, in 2028 and 2032."
+      },
+      "C": {
+        "trap": "off_by_one",
+        "text": "Sunday also counts 29 February 2024, but that came before Anya was born."
+      },
+      "E": {
+        "trap": "ignored_condition",
+        "text": "Monday takes the ten years to be whole weeks, but 3652 days leave 5 days over."
+      }
+    }
   }
 ]
