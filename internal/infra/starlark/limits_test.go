@@ -207,7 +207,10 @@ func TestAMatchIsPaidForByTheTextsItReads(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			runner := sandbox(t, starlark.Limits{Steps: 1_000_000, Timeout: 2 * time.Second, Concurrency: 1})
+			// What these cases read is the step budget, so the clock is set far
+			// beyond it: on a slow machine under the race detector two seconds
+			// ran out before a million steps did.
+			runner := sandbox(t, starlark.Limits{Steps: 1_000_000, Timeout: time.Minute, Concurrency: 1})
 
 			result, err := runner.Run(context.Background(), test.source, options)
 			if err != nil {
