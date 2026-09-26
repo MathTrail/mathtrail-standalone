@@ -559,6 +559,7 @@ func TestAnEndpointThatCouldNotBeServedIsNotBuilt(t *testing.T) {
 			SignIn:              mcpserver.DevSignIn,
 			Traces:              tracenoop.NewTracerProvider(),
 			Logger:              zap.NewNop(),
+			Widget:              page,
 		}
 	}
 	withoutSignIn := settings()
@@ -571,6 +572,8 @@ func TestAnEndpointThatCouldNotBeServedIsNotBuilt(t *testing.T) {
 	withoutInstructions.Instructions = ""
 	withoutVersion := settings()
 	withoutVersion.InstructionsVersion = ""
+	withoutWidget := settings()
+	withoutWidget.Widget = ""
 	echo := tools()[0]
 	loose := mcpserver.Define(mcpserver.Spec{Name: "loose", Title: "Loose"},
 		func(context.Context, store.Account, string) (mcpserver.Reply[sayOut], error) {
@@ -593,6 +596,7 @@ func TestAnEndpointThatCouldNotBeServedIsNotBuilt(t *testing.T) {
 		{name: "no logger", settings: withoutLogger, want: "Logger"},
 		{name: "no instructions", settings: withoutInstructions, want: "Instructions"},
 		{name: "no version of the instructions", settings: withoutVersion, want: "InstructionsVersion"},
+		{name: "no widget", settings: withoutWidget, want: "Widget"},
 		{name: "two tools of one name", settings: settings(), tools: []mcpserver.Tool{echo, echo}, want: `"echo"`},
 		{name: "a name no tool can have", settings: settings(), tools: []mcpserver.Tool{misnamed}, want: `"next task"`},
 		{name: "arguments that are not an object", settings: settings(), tools: []mcpserver.Tool{loose}, want: `"loose"`},

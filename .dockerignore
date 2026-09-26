@@ -1,5 +1,6 @@
 # Build context filter for images built from the repository root.
-# The image needs the Go sources and nothing else.
+# The image needs the Go sources and the widget's, and nothing else. A widget
+# built on this machine stays out too: the image builds its own.
 .git
 .github
 .vscode
@@ -18,3 +19,5 @@ dist
 coverage.*
 *.md
 **/node_modules
+internal/widget/widget.html
+web/coverage

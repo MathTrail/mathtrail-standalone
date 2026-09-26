@@ -21,6 +21,7 @@ import (
 	httpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/http"
 	mcpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/mcp"
 	"github.com/MathTrail/mathtrail-standalone/internal/version"
+	"github.com/MathTrail/mathtrail-standalone/internal/widget"
 )
 
 // Container holds everything the process needs while it runs, and knows how to
@@ -151,6 +152,7 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 		Traces:              tel.TracerProvider(),
 		Logger:              log,
 		ProjectID:           cfg.GCPProjectID,
+		Widget:              widget.Page(),
 	})
 	if err != nil {
 		return nil, err

@@ -113,9 +113,38 @@ jobs:
           path: coverage.out
           retention-days: 14
 
+  widget:
+    name: Widget
+    needs: toolchain
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    container:
+      image: ${{ needs.toolchain.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: just ci-web
+      # The report names its files from the repository's root, where both of its
+      # readers look for them.
+      - name: Send the widget's coverage to Codecov
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: web/coverage/lcov.info
+          slug: MathTrail/mathtrail-standalone
+          fail_ci_if_error: false
+      - name: Keep the widget's coverage
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage-widget
+          path: web/coverage/lcov.info
+          retention-days: 14
+
   sonar:
     name: Static analysis
-    needs: test
+    needs: [test, widget]
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     # A pull request from a fork is given no secrets, so the analysis cannot run
@@ -132,6 +161,10 @@ jobs:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: coverage
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: coverage-widget
+          path: web/coverage
       - uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4 # v8.2.2
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -210,9 +243,11 @@ jobs:
     timeout-minutes: 20
     # This one job stays on the runner: it needs a Docker daemon, and the docker client reaches
     # the development image through a devcontainer feature, which a plain build does not apply.
-    # The image is built, scanned and thrown away — nothing leaves the runner.
+    # The image is built, asked for its widget, scanned and thrown away — nothing leaves the
+    # runner. One run of just builds it once for both checks: a second run would stamp another
+    # build date into it and build it again. Each recipe is given its tag, since a recipe that
+    # takes one would read the next recipe's name as its tag.
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/just
-      - run: just docker-build
-      - run: just ci-image-scan
+      - run: just ci-image-widget mathtrail:dev ci-image-scan mathtrail:dev

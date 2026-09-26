@@ -51,6 +51,7 @@ func FuzzToolArguments(f *testing.F) {
 			SignIn:              mcpserver.DevSignIn,
 			Traces:              tracenoop.NewTracerProvider(),
 			Logger:              zap.New(core),
+			Widget:              page,
 		}, tools()[0])
 		if err != nil {
 			t.Fatalf("NewHandler() error = %v, want nil", err)

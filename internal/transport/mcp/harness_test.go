@@ -50,6 +50,8 @@ const (
 	projectID           = "a-project"
 	instructionsVersion = "0123456789ab"
 	instructions        = "You coach one child through short maths tasks."
+	// page stands in for the widget every card is drawn by.
+	page = "<!doctype html><title>the widget</title>"
 )
 
 // sayIn is what the tools of these cases take.
@@ -85,7 +87,7 @@ func tools() []mcpserver.Tool {
 	return []mcpserver.Tool{
 		mcpserver.Define(mcpserver.Spec{
 			Name: "echo", Title: "Echo", Description: "Says back what it was given.",
-			ReadOnly: true, Idempotent: true,
+			ReadOnly: true, Idempotent: true, DrawsCard: true,
 		}, func(ctx context.Context, account store.Account, in sayIn) (mcpserver.Reply[sayOut], error) {
 			// Whatever a tool does is recorded inside the tool's own span.
 			_, work := trace.SpanFromContext(ctx).TracerProvider().Tracer("test").Start(ctx, "work")
@@ -162,6 +164,7 @@ func serve(t *testing.T, signIn mcpserver.SignIn) *harness {
 		Traces:              traces,
 		Logger:              log,
 		ProjectID:           projectID,
+		Widget:              page,
 	}, tools()...)
 	if err != nil {
 		t.Fatalf("NewHandler() error = %v, want nil", err)

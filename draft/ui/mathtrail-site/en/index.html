@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MathTrail — olympiad maths in your chat</title>
+<meta name="description" content="Checked olympiad-style maths tasks for grades 1–6 in your own Claude or ChatGPT chat, with a diagnosis of every mistake. Free and open source.">
+<meta name="color-scheme" content="light dark">
+<link rel="canonical" href="https://[DOMAIN]/en/">
+<link rel="alternate" hreflang="en" href="https://[DOMAIN]/en/">
+<link rel="alternate" hreflang="ru" href="https://[DOMAIN]/ru/">
+<link rel="alternate" hreflang="x-default" href="https://[DOMAIN]/en/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MathTrail">
+<meta property="og:title" content="MathTrail — olympiad maths in your chat">
+<meta property="og:description" content="Checked olympiad-style maths tasks for grades 1–6 in your own Claude or ChatGPT chat, with a diagnosis of every mistake. Free and open source.">
+<meta property="og:url" content="https://[DOMAIN]/en/">
+<meta property="og:locale" content="en_US">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/mathtrail.css">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+<div class="s-site">
+<header class="s-nav">
+<div class="s-wrap s-nav-inner">
+  <a class="s-brand" href="#top" aria-label="MathTrail"><svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true" style="display:block;flex-shrink:0"><circle cx="16" cy="16" r="16" fill="var(--mark-fill)"></circle><path d="M8.5 21.5L13.5 16.5L17 19L22.5 12.5" fill="none" stroke="var(--mark-ink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="23" cy="12" r="2.6" fill="var(--mark-ink)"></circle></svg><span class="s-brand-name">MathTrail</span></a>
+  <nav class="s-navlinks" aria-label="Sections">
+<a class="s-navlink" href="#lesson">How it works</a>
+<a class="s-navlink" href="#connect">Connect</a>
+<a class="s-navlink" href="#data">Your data</a>
+<a class="s-navlink" href="#faq">FAQ</a>
+  </nav>
+  <div class="s-nav-tools">
+    <div class="s-seg" role="group" aria-label="Language">
+<a href="../en/" hreflang="en" lang="en" aria-current="page">EN</a>
+<a href="../ru/" hreflang="ru" lang="ru">RU</a>
+    </div>
+    <a class="s-btn s-btn-primary s-btn-sm" href="#connect">Add to Claude</a>
+  </div>
+</div>
+</header>
+<main>
+<section class="s-wrap s-hero" id="top">
+<div class="s-hero-copy">
+  <p class="s-eyebrow">Free · Open source · Grades 1–6</p>
+  <h1 class="s-h1">Olympiad maths, in the chat you already use.</h1>
+  <p class="s-lead">An endless stream of checked olympiad-style maths tasks for grades 1–6, in any language, with a diagnosis of the child's mistake and a memory of how they are progressing.</p>
+  <div class="s-ctas">
+    <a class="s-btn s-btn-primary" href="#connect">Add to Claude</a>
+    <a class="s-btn s-btn-ghost" href="#lesson">See a lesson</a>
+  </div>
+  <p class="s-note">Works in Claude today, including the free plan. In ChatGPT once it is listed in the app directory.</p>
+</div>
+<div class="s-hero-demo">
+<div class="s-frame ">
+  <div class="s-frame-head"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="display: block; flex-shrink: 0"><path d="M2.5 4.2c0-.9.8-1.7 1.7-1.7h7.6c.9 0 1.7.8 1.7 1.7v5.1c0 .9-.8 1.7-1.7 1.7H6.5L3.8 13.3v-2.3h0c-.7-.1-1.3-.8-1.3-1.6V4.2z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Your chat</span></div>
+  <div class="s-frame-scroll" data-scene="task">
+    <div class="s-frame-body">
+      <div class="s-bubble-row"><p class="s-bubble" data-bubble>A new task, please</p></div>
+      <div class="mt-demo" id="en-demo-hero" data-scene="task"><div class="mt mt-widget" dir="ltr"><button type="button" class="mt-bar"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" class="mt-icon"><circle cx="12" cy="12" r="12" fill="var(--avatar-fill)"></circle><circle cx="12" cy="9.5" r="3.6" fill="var(--avatar-ink)"></circle><path d="M5 19.6c1.3-3.2 3.9-4.8 7-4.8s5.7 1.6 7 4.8" fill="var(--avatar-ink)"></path></svg><span class="mt-bar-name">Comet</span><span class="mt-bar-action">Profile &amp; progress</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon mt-chevron"><path d="M6 4l4 4-4 4" stroke-width="1.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></button><article aria-label="Task"><header class="mt-head"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" class="mt-icon"><circle cx="16" cy="16" r="16" fill="var(--mark-fill)"></circle><path d="M8.5 21.5L13.5 16.5L17 19L22.5 12.5" fill="none" stroke="var(--mark-ink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="23" cy="12" r="2.6" fill="var(--mark-ink)"></circle></svg><div class="mt-head-text"><div class="mt-head-line"><span class="mt-name">MathTrail</span><span class="mt-meta">just now</span></div><span class="mt-badge">Olympiad coach · Grade 3</span></div><button type="button" class="mt-icon-btn mt-icon-btn-44" aria-label="More options" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><circle cx="3" cy="8" r="1.5" fill="currentColor"></circle><circle cx="8" cy="8" r="1.5" fill="currentColor"></circle><circle cx="13" cy="8" r="1.5" fill="currentColor"></circle></svg></button></header><div class="mt-body"><p class="mt-task-text">A fence is 12 meters long. Posts stand every 3 meters, including both ends. How many posts are there?</p><pre dir="ltr" class="mt-diagram">|--3--|--3--|--3--|--3--|</pre><fieldset class="mt-options"><legend>Pick one answer</legend><div class="mt-options-list"><label class="mt-option" data-state="default"><input type="radio" name="mt-answer" class="mt-vh" value="A"/><span class="mt-option-letter">A</span><span class="mt-option-value">3</span></label><label class="mt-option" data-state="default"><input type="radio" name="mt-answer" class="mt-vh" value="B"/><span class="mt-option-letter">B</span><span class="mt-option-value">4</span></label><label class="mt-option" data-state="default"><input type="radio" name="mt-answer" class="mt-vh" value="C"/><span class="mt-option-letter">C</span><span class="mt-option-value">5</span></label><label class="mt-option" data-state="default"><input type="radio" name="mt-answer" class="mt-vh" value="D"/><span class="mt-option-letter">D</span><span class="mt-option-value">6</span></label><label class="mt-option" data-state="default"><input type="radio" name="mt-answer" class="mt-vh" value="E"/><span class="mt-option-letter">E</span><span class="mt-option-value">12</span></label></div></fieldset></div></article><div class="mt-foot"><div class="mt-field"><label for=":en-demo-hero-Rc:" class="mt-vh">Ask a question about the task</label><input id=":en-demo-hero-Rc:" type="text" placeholder="Ask a question about the task…" value=""/><button type="button" class="mt-icon-btn" aria-label="Send" disabled=""><svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><path d="M3 8h9.5M8.5 4l4 4-4 4" stroke-width="1.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></div><div class="mt-btns"><button type="button" class="mt-btn">I don&#x27;t know</button><button type="button" class="mt-btn" aria-expanded="false">Hint</button><button type="button" class="mt-btn">Another task</button></div></div></div></div>
+    </div>
+  </div>
+</div>
+<p class="s-caption">The real widget. Pick an answer, open the hint, ask a question.</p>
+</div>
+</section>
+<section class="s-wrap s-section s-rule" id="why">
+<div class="s-sechead">
+  <h2 class="s-h2">Why not just ask the chat?</h2>
+  <p class="s-lead s-measure">Ask a chat model for “an olympiad task for grade 2” and it will cheerfully hand you a task with no solution, with two correct options, or with the arithmetic wrong. MathTrail leaves the writing to the model and puts a program behind it.</p>
+</div>
+<div class="s-grid3">
+<div class="s-pillar">
+  <span class="s-num">01</span>
+  <h3 class="s-h3">Tasks do not run out.</h3>
+  <p class="s-body">Every task is written for the child's topic, difficulty, interests and yesterday's mistake, in the language of the chat — not drawn from a fixed bank in one language.</p>
+</div>
+<div class="s-pillar">
+  <span class="s-num">02</span>
+  <h3 class="s-h3">A program checks the model.</h3>
+  <p class="s-body">A task reaches the child only after it passes the checks: exactly one correct option, the answer reproduced by a brute-force solver, readability for the grade, no near-duplicate of an earlier task, a well-formed text drawing.</p>
+</div>
+<div class="s-pillar">
+  <span class="s-num">03</span>
+  <h3 class="s-h3">A wrong answer is a diagnosis.</h3>
+  <p class="s-body">Every wrong option is tied to a named trap — off-by-one in gaps, a missed case while enumerating, double counting — and the explanation starts from how the child reasoned, not from the right answer.</p>
+</div>
+</div>
+</section>
+<section class="s-wrap s-section s-lesson" id="lesson">
+<div class="s-lesson-copy">
+<div class="s-sechead s-sechead-left">
+  <p class="s-eyebrow">How a lesson goes</p>
+  <h2 class="s-h2">One task at a time, in your own chat.</h2>
+  <p class="s-lead">You sit alongside; your child taps. The card on the right is the widget’s real design, and it changes as you scroll.</p>
+</div>
+<article class="s-beat" data-beat="generating">
+  <span class="s-num">1</span>
+  <h3 class="s-h3 s-h3-lg">Ask for a task</h3>
+  <p class="s-body s-measure">Type “a new task, please”. MathTrail picks the topic and the difficulty, the chat writes the task, and a program checks every answer before your child sees it. It takes about a minute.</p>
+  <div class="s-beat-demo s-only-narrow"><div class="s-frame s-frame-inline">
+  <div class="s-frame-head"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="display: block; flex-shrink: 0"><path d="M2.5 4.2c0-.9.8-1.7 1.7-1.7h7.6c.9 0 1.7.8 1.7 1.7v5.1c0 .9-.8 1.7-1.7 1.7H6.5L3.8 13.3v-2.3h0c-.7-.1-1.3-.8-1.3-1.6V4.2z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Your chat</span></div>
+  <div class="s-frame-scroll" data-scene="generating">
+    <div class="s-frame-body">
+      <div class="s-bubble-row"><p class="s-bubble" data-bubble>A new task, please</p></div>
+      <div class="mt-demo" id="en-demo-generating" data-scene="generating"><div class="mt mt-widget" dir="ltr"><button type="button" class="mt-bar"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" class="mt-icon"><circle cx="12" cy="12" r="12" fill="var(--avatar-fill)"></circle><circle cx="12" cy="9.5" r="3.6" fill="var(--avatar-ink)"></circle><path d="M5 19.6c1.3-3.2 3.9-4.8 7-4.8s5.7 1.6 7 4.8" fill="var(--avatar-ink)"></path></svg><span class="mt-bar-name">Comet</span><span class="mt-bar-action">Profile &amp; progress</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon mt-chevron"><path d="M6 4l4 4-4 4" stroke-width="1.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></button><article aria-label="Task"><header class="mt-head"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" class="mt-icon"><circle cx="16" cy="16" r="16" fill="var(--mark-fill)"></circle><path d="M8.5 21.5L13.5 16.5L17 19L22.5 12.5" fill="none" stroke="var(--mark-ink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="23" cy="12" r="2.6" fill="var(--mark-ink)"></circle></svg><div class="mt-head-text"><div class="mt-head-line"><span class="mt-name">MathTrail</span><span class="mt-meta">just now</span></div><span class="mt-badge">Olympiad coach · Grade 3</span></div><button type="button" class="mt-icon-btn mt-icon-btn-44" aria-label="More options" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><circle cx="3" cy="8" r="1.5" fill="currentColor"></circle><circle cx="8" cy="8" r="1.5" fill="currentColor"></circle><circle cx="13" cy="8" r="1.5" fill="currentColor"></circle></svg></button></header><div class="mt-body" style="gap:12px"><div class="mt-gen"><p class="mt-gen-title">Preparing the next task…</p><ol aria-live="polite"><li data-status="done"><span class="mt-gen-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" class="mt-icon"><circle cx="10" cy="10" r="10" fill="var(--ink-strong)"></circle><path d="M6 10.2l2.6 2.6L14 7.4" stroke="var(--surface)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span class="mt-gen-label"><span class="mt-vh">Done: </span>Picked topic and difficulty</span></li><li data-status="done"><span class="mt-gen-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" class="mt-icon"><circle cx="10" cy="10" r="10" fill="var(--ink-strong)"></circle><path d="M6 10.2l2.6 2.6L14 7.4" stroke="var(--surface)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span class="mt-gen-label"><span class="mt-vh">Done: </span>Writing the task</span></li><li data-status="active"><span class="mt-gen-icon"><span style="color:var(--ink-strong);display:flex"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" class="mt-icon mt-spin"><circle cx="10" cy="10" r="8" stroke="var(--track)" stroke-width="2.5"></circle><path d="M10 2a8 8 0 0 1 8 8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></path></svg></span></span><span class="mt-gen-label"><span class="mt-vh">In progress: </span>Checking every answer<span class="mt-gen-detail"> (120 cases, exactly 1 correct)</span></span></li><li data-status="waiting"><span class="mt-gen-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" class="mt-icon"><circle cx="10" cy="10" r="8.5" stroke="var(--track)" stroke-width="1.5"></circle></svg></span><span class="mt-gen-label"><span class="mt-vh">Waiting: </span>Checking readability for grade 3</span></li><li data-status="waiting"><span class="mt-gen-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" class="mt-icon"><circle cx="10" cy="10" r="8.5" stroke="var(--track)" stroke-width="1.5"></circle></svg></span><span class="mt-gen-label"><span class="mt-vh">Waiting: </span>Ready</span></li></ol></div></div></article><div class="mt-foot"><div class="mt-field" data-disabled="true"><label for=":en-demo-generating-Rc:" class="mt-vh">Ask a question about the task</label><input id=":en-demo-generating-Rc:" type="text" placeholder="Ask a question about the task…" disabled="" value=""/><button type="button" class="mt-icon-btn" aria-label="Send" disabled=""><svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><path d="M3 8h9.5M8.5 4l4 4-4 4" stroke-width="1.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></div><div class="mt-btns"><button type="button" class="mt-btn" disabled="">I don&#x27;t know</button><button type="button" class="mt-btn" disabled="" aria-expanded="false">Hint</button><button type="button" class="mt-btn" disabled="">Another task</button></div></div></div></div>
+    </div>
+  </div>
+</div></div>
+</article>
+<article class="s-beat" data-beat="selected">
+  <span class="s-num">2</span>
+  <h3 class="s-h3 s-h3-lg">Answer with a button</h3>
+  <p class="s-body s-measure">Five options, A to E. A tap records the answer straight away — before any explanation, so nothing can talk it into being right.</p>
+  <div class="s-beat-demo s-only-narrow"><div class="s-frame s-frame-inline">
+  <div class="s-frame-head"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="display: block; flex-shrink: 0"><path d="M2.5 4.2c0-.9.8-1.7 1.7-1.7h7.6c.9 0 1.7.8 1.7 1.7v5.1c0 .9-.8 1.7-1.7 1.7H6.5L3.8 13.3v-2.3h0c-.7-.1-1.3-.8-1.3-1.6V4.2z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Your chat</span></div>
+  <div class="s-frame-scroll" data-scene="selected">
+    <div class="s-frame-body">
+      <div class="s-bubble-row"><p class="s-bubble" data-bubble>A new task, please</p></div>
+      <div class="mt-demo" id="en-demo-selected" data-scene="selected"><div class="mt mt-widget" dir="ltr"><button type="button" class="mt-bar"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" class="mt-icon"><circle cx="12" cy="12" r="12" fill="var(--avatar-fill)"></circle><circle cx="12" cy="9.5" r="3.6" fill="var(--avatar-ink)"></circle><path d="M5 19.6c1.3-3.2 3.9-4.8 7-4.8s5.7 1.6 7 4.8" fill="var(--avatar-ink)"></path></svg><span class="mt-bar-name">Comet</span><span class="mt-bar-action">Profile &amp; progress</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon mt-chevron"><path d="M6 4l4 4-4 4" stroke-width="1.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></button><article aria-label="Task"><header class="mt-head"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" class="mt-icon"><circle cx="16" cy="16" r="16" fill="var(--mark-fill)"></circle><path d="M8.5 21.5L13.5 16.5L17 19L22.5 12.5" fill="none" stroke="var(--mark-ink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="23" cy="12" r="2.6" fill="var(--mark-ink)"></circle></svg><div class="mt-head-text"><div class="mt-head-line"><span class="mt-name">MathTrail</span><span class="mt-meta">just now</span></div><span class="mt-badge">Olympiad coach · Grade 3</span></div><button type="button" class="mt-icon-btn mt-icon-btn-44" aria-label="More options" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><circle cx="3" cy="8" r="1.5" fill="currentColor"></circle><circle cx="8" cy="8" r="1.5" fill="currentColor"></circle><circle cx="13" cy="8" r="1.5" fill="currentColor"></circle></svg></button></header><div class="mt-body"><p class="mt-task-text">A fence is 12 meters long. Posts stand every 3 meters, including both ends. How many posts are there?</p><pre dir="ltr" class="mt-diagram">|--3--|--3--|--3--|--3--|</pre><fieldset class="mt-options"><legend>Pick one answer</legend><div class="mt-options-list"><label class="mt-option" data-state="default"><input type="radio" name="mt-answer" class="mt-vh" value="A"/><span class="mt-option-letter">A</span><span class="mt-option-value">3</span></label><label class="mt-option" data-state="selected"><input type="radio" name="mt-answer" class="mt-vh" checked="" value="B"/><span class="mt-option-letter">B</span><span class="mt-option-value">4</span><span class="mt-option-status"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true" class="mt-icon mt-spin"><circle cx="10" cy="10" r="8" stroke="var(--accent-tint)" stroke-width="2.5"></circle><path d="M10 2a8 8 0 0 1 8 8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></path></svg>Checking…</span></label><label class="mt-option" data-state="default"><input type="radio" name="mt-answer" class="mt-vh" value="C"/><span class="mt-option-letter">C</span><span class="mt-option-value">5</span></label><label class="mt-option" data-state="default"><input type="radio" name="mt-answer" class="mt-vh" value="D"/><span class="mt-option-letter">D</span><span class="mt-option-value">6</span></label><label class="mt-option" data-state="default"><input type="radio" name="mt-answer" class="mt-vh" value="E"/><span class="mt-option-letter">E</span><span class="mt-option-value">12</span></label></div></fieldset></div></article><div class="mt-foot"><div class="mt-field"><label for=":en-demo-selected-Rc:" class="mt-vh">Ask a question about the task</label><input id=":en-demo-selected-Rc:" type="text" placeholder="Ask a question about the task…" value=""/><button type="button" class="mt-icon-btn" aria-label="Send" disabled=""><svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><path d="M3 8h9.5M8.5 4l4 4-4 4" stroke-width="1.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></div><div class="mt-btns"><button type="button" class="mt-btn">I don&#x27;t know</button><button type="button" class="mt-btn" aria-expanded="false">Hint</button><button type="button" class="mt-btn">Another task</button></div></div></div></div>
+    </div>
+  </div>
+</div></div>
+</article>
+<article class="s-beat s-beat-sub" data-beat="hint">
+  <span class="s-num s-num-sub" aria-hidden="true"></span>
+  <h3 class="s-h3 s-h3-lg">Stuck? A hint, not the answer</h3>
+  <p class="s-body s-measure">The hint points to a way in — draw a smaller fence — and the answer stays hidden until your child commits to one.</p>
+  <div class="s-beat-demo s-only-narrow"><div class="s-frame s-frame-inline">
+  <div class="s-frame-head"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="display: block; flex-shrink: 0"><path d="M2.5 4.2c0-.9.8-1.7 1.7-1.7h7.6c.9 0 1.7.8 1.7 1.7v5.1c0 .9-.8 1.7-1.7 1.7H6.5L3.8 13.3v-2.3h0c-.7-.1-1.3-.8-1.3-1.6V4.2z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Your chat</span></div>
+  <div class="s-frame-scroll" data-scene="hint">
+    <div class="s-frame-body">
+      <div class="s-bubble-row"><p class="s-bubble" data-bubble>A new task, please</p></div>
+      <div class="mt-demo" id="en-demo-hint" data-scene="hint"><div class="mt mt-widget" dir="ltr"><button type="button" class="mt-bar"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" class="mt-icon"><circle cx="12" cy="12" r="12" fill="var(--avatar-fill)"></circle><circle cx="12" cy="9.5" r="3.6" fill="var(--avatar-ink)"></circle><path d="M5 19.6c1.3-3.2 3.9-4.8 7-4.8s5.7 1.6 7 4.8" fill="var(--avatar-ink)"></path></svg><span class="mt-bar-name">Comet</span><span class="mt-bar-action">Profile &amp; progress</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon mt-chevron"><path d="M6 4l4 4-4 4" stroke-width="1.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></button><article aria-label="Task"><header class="mt-head"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" class="mt-icon"><circle cx="16" cy="16" r="16" fill="var(--mark-fill)"></circle><path d="M8.5 21.5L13.5 16.5L17 19L22.5 12.5" fill="none" stroke="var(--mark-ink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="23" cy="12" r="2.6" fill="var(--mark-ink)"></circle></svg><div class="mt-head-text"><div class="mt-head-line"><span class="mt-name">MathTrail</span><span class="mt-meta">just now</span></div><span class="mt-badge">Olympiad coach · Grade 3</span></div><button type="button" class="mt-icon-btn mt-icon-btn-44" aria-label="More options" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><circle cx="3" cy="8" r="1.5" fill="currentColor"></circle><circle cx="8" cy="8" r="1.5" fill="currentColor"></circle><circle cx="13" cy="8" r="1.5" fill="currentColor"></circle></svg></button></header><div class="mt-body"><p class="mt-task-text">A fence is 12 meters long. Posts stand every 3 meters, including both ends. How many posts are there?</p><pre dir="ltr" class="mt-diagram">|--3--|--3--|--3--|--3--|</pre><aside class="mt-note mt-note-hint"><div class="mt-note-label"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.6 8.2c.4.3.6.7.6 1.1v.2h4v-.2c0-.4.2-.8.6-1.1A4.5 4.5 0 0 0 8 1.5z" stroke-width="1.4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Hint</span></div><p>Try a smaller fence first: 6 meters long, with a post every 3 meters. Draw it and count the posts.</p></aside><fieldset class="mt-options"><legend>Pick one answer</legend><div class="mt-options-list"><label class="mt-option" data-state="default"><input type="radio" name="mt-answer" class="mt-vh" value="A"/><span class="mt-option-letter">A</span><span class="mt-option-value">3</span></label><label class="mt-option" data-state="default"><input type="radio" name="mt-answer" class="mt-vh" value="B"/><span class="mt-option-letter">B</span><span class="mt-option-value">4</span></label><label class="mt-option" data-state="default"><input type="radio" name="mt-answer" class="mt-vh" value="C"/><span class="mt-option-letter">C</span><span class="mt-option-value">5</span></label><label class="mt-option" data-state="default"><input type="radio" name="mt-answer" class="mt-vh" value="D"/><span class="mt-option-letter">D</span><span class="mt-option-value">6</span></label><label class="mt-option" data-state="default"><input type="radio" name="mt-answer" class="mt-vh" value="E"/><span class="mt-option-letter">E</span><span class="mt-option-value">12</span></label></div></fieldset></div></article><div class="mt-foot"><div class="mt-field"><label for=":en-demo-hint-Rc:" class="mt-vh">Ask a question about the task</label><input id=":en-demo-hint-Rc:" type="text" placeholder="Ask a question about the task…" value=""/><button type="button" class="mt-icon-btn" aria-label="Send" disabled=""><svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><path d="M3 8h9.5M8.5 4l4 4-4 4" stroke-width="1.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></div><div class="mt-btns"><button type="button" class="mt-btn">I don&#x27;t know</button><button type="button" class="mt-btn" aria-expanded="true">Hide hint</button><button type="button" class="mt-btn">Another task</button></div></div></div></div>
+    </div>
+  </div>
+</div></div>
+</article>
+<article class="s-beat" data-beat="wrong">
+  <span class="s-num">3</span>
+  <h3 class="s-h3 s-h3-lg">A wrong answer becomes a lesson</h3>
+  <p class="s-body s-measure">Each wrong option hides a known trap. The reply names it from your child’s side — “counted the gaps instead of the posts” — then walks through the solution.</p>
+  <div class="s-beat-demo s-only-narrow"><div class="s-frame s-frame-inline">
+  <div class="s-frame-head"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="display: block; flex-shrink: 0"><path d="M2.5 4.2c0-.9.8-1.7 1.7-1.7h7.6c.9 0 1.7.8 1.7 1.7v5.1c0 .9-.8 1.7-1.7 1.7H6.5L3.8 13.3v-2.3h0c-.7-.1-1.3-.8-1.3-1.6V4.2z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Your chat</span></div>
+  <div class="s-frame-scroll" data-scene="wrong">
+    <div class="s-frame-body">
+      <div class="s-bubble-row"><p class="s-bubble" data-bubble>A new task, please</p></div>
+      <div class="mt-demo" id="en-demo-wrong" data-scene="wrong"><div class="mt mt-widget" dir="ltr"><button type="button" class="mt-bar"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" class="mt-icon"><circle cx="12" cy="12" r="12" fill="var(--avatar-fill)"></circle><circle cx="12" cy="9.5" r="3.6" fill="var(--avatar-ink)"></circle><path d="M5 19.6c1.3-3.2 3.9-4.8 7-4.8s5.7 1.6 7 4.8" fill="var(--avatar-ink)"></path></svg><span class="mt-bar-name">Comet</span><span class="mt-bar-action">Profile &amp; progress</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon mt-chevron"><path d="M6 4l4 4-4 4" stroke-width="1.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></button><article aria-label="Task"><header class="mt-head"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" class="mt-icon"><circle cx="16" cy="16" r="16" fill="var(--mark-fill)"></circle><path d="M8.5 21.5L13.5 16.5L17 19L22.5 12.5" fill="none" stroke="var(--mark-ink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="23" cy="12" r="2.6" fill="var(--mark-ink)"></circle></svg><div class="mt-head-text"><div class="mt-head-line"><span class="mt-name">MathTrail</span><span class="mt-meta">just now</span></div><span class="mt-badge">Olympiad coach · Grade 3</span></div><button type="button" class="mt-icon-btn mt-icon-btn-44" aria-label="More options" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><circle cx="3" cy="8" r="1.5" fill="currentColor"></circle><circle cx="8" cy="8" r="1.5" fill="currentColor"></circle><circle cx="13" cy="8" r="1.5" fill="currentColor"></circle></svg></button></header><div class="mt-body"><p class="mt-task-text">A fence is 12 meters long. Posts stand every 3 meters, including both ends. How many posts are there?</p><pre dir="ltr" class="mt-diagram">|--3--|--3--|--3--|--3--|</pre><fieldset class="mt-options" disabled=""><legend>Answers</legend><div class="mt-options-list"><label class="mt-option" data-state="muted"><input type="radio" name="mt-answer" class="mt-vh" disabled="" value="A"/><span class="mt-option-letter">A</span><span class="mt-option-value">3</span></label><label class="mt-option" data-state="wrong"><input type="radio" name="mt-answer" class="mt-vh" disabled="" checked="" value="B"/><span class="mt-option-letter">B</span><span class="mt-option-value">4</span><span class="mt-option-status"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7" stroke-width="2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg>Your answer</span></label><label class="mt-option" data-state="correct"><input type="radio" name="mt-answer" class="mt-vh" disabled="" value="C"/><span class="mt-option-letter">C</span><span class="mt-option-value">5</span><span class="mt-option-status"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><path d="M3.5 8.5l3 3 6-7" stroke-width="2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg>Correct answer</span></label><label class="mt-option" data-state="muted"><input type="radio" name="mt-answer" class="mt-vh" disabled="" value="D"/><span class="mt-option-letter">D</span><span class="mt-option-value">6</span></label><label class="mt-option" data-state="muted"><input type="radio" name="mt-answer" class="mt-vh" disabled="" value="E"/><span class="mt-option-letter">E</span><span class="mt-option-value">12</span></label></div></fieldset></div></article><section class="mt-replies" aria-label="Replies" aria-live="polite"><article class="mt-reply"><header class="mt-head mt-head-compact"><svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true" class="mt-icon"><circle cx="16" cy="16" r="16" fill="var(--mark-fill)"></circle><path d="M8.5 21.5L13.5 16.5L17 19L22.5 12.5" fill="none" stroke="var(--mark-ink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="23" cy="12" r="2.6" fill="var(--mark-ink)"></circle></svg><div class="mt-head-text"><span class="mt-name">MathTrail</span><span class="mt-meta">just now</span></div><button type="button" class="mt-icon-btn mt-icon-btn-44" aria-label="More options" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><circle cx="3" cy="8" r="1.5" fill="currentColor"></circle><circle cx="8" cy="8" r="1.5" fill="currentColor"></circle><circle cx="13" cy="8" r="1.5" fill="currentColor"></circle></svg></button></header><div class="mt-reply-body"><p class="mt-verdict-line"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" class="mt-icon"><circle cx="10" cy="10" r="10" fill="var(--wrong)"></circle><path d="M7 7l6 6M13 7l-6 6" stroke="var(--on-signal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Not quite — it&#x27;s 5, not 4.</span></p><div class="mt-note mt-note-trap"><div class="mt-note-label"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><path d="M8 2.2L14.3 13.3H1.7L8 2.2zM8 6.5v3M8 11.4v.1" stroke-width="1.4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>The trap</span></div><p>Counted the gaps instead of the posts.</p></div><div class="mt-steps"><h3 class="mt-section-label">Solution</h3><ol><li><span class="mt-step-num">1</span><span>12 ÷ 3 = 4 gaps.</span></li><li><span class="mt-step-num">2</span><span>A straight fence with posts at both ends has one more post than gaps.</span></li><li><span class="mt-step-num">3</span><span>4 + 1 = 5 posts.</span></li></ol></div></div></article></section><div class="mt-foot"><div class="mt-field"><label for=":en-demo-wrong-Rc:" class="mt-vh">Ask a question about the task</label><input id=":en-demo-wrong-Rc:" type="text" placeholder="Ask a question about the task…" value=""/><button type="button" class="mt-icon-btn" aria-label="Send" disabled=""><svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><path d="M3 8h9.5M8.5 4l4 4-4 4" stroke-width="1.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></div><div class="mt-btns"><button type="button" class="mt-btn mt-btn-primary">Another task</button></div></div></div></div>
+    </div>
+  </div>
+</div></div>
+</article>
+<article class="s-beat s-beat-sub" data-beat="question">
+  <span class="s-num s-num-sub" aria-hidden="true"></span>
+  <h3 class="s-h3 s-h3-lg">Ask why, in their own words</h3>
+  <p class="s-body s-measure">“Why isn’t it 6?” goes right under the task, and the chat answers about this very task.</p>
+  <div class="s-beat-demo s-only-narrow"><div class="s-frame s-frame-inline">
+  <div class="s-frame-head"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="display: block; flex-shrink: 0"><path d="M2.5 4.2c0-.9.8-1.7 1.7-1.7h7.6c.9 0 1.7.8 1.7 1.7v5.1c0 .9-.8 1.7-1.7 1.7H6.5L3.8 13.3v-2.3h0c-.7-.1-1.3-.8-1.3-1.6V4.2z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Your chat</span></div>
+  <div class="s-frame-scroll" data-scene="question">
+    <div class="s-frame-body">
+      <div class="s-bubble-row"><p class="s-bubble" data-bubble>A new task, please</p></div>
+      <div class="mt-demo" id="en-demo-question" data-scene="question"><div class="mt mt-widget" dir="ltr"><button type="button" class="mt-bar"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" class="mt-icon"><circle cx="12" cy="12" r="12" fill="var(--avatar-fill)"></circle><circle cx="12" cy="9.5" r="3.6" fill="var(--avatar-ink)"></circle><path d="M5 19.6c1.3-3.2 3.9-4.8 7-4.8s5.7 1.6 7 4.8" fill="var(--avatar-ink)"></path></svg><span class="mt-bar-name">Comet</span><span class="mt-bar-action">Profile &amp; progress</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon mt-chevron"><path d="M6 4l4 4-4 4" stroke-width="1.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></button><article aria-label="Task"><header class="mt-head"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" class="mt-icon"><circle cx="16" cy="16" r="16" fill="var(--mark-fill)"></circle><path d="M8.5 21.5L13.5 16.5L17 19L22.5 12.5" fill="none" stroke="var(--mark-ink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="23" cy="12" r="2.6" fill="var(--mark-ink)"></circle></svg><div class="mt-head-text"><div class="mt-head-line"><span class="mt-name">MathTrail</span><span class="mt-meta">just now</span></div><span class="mt-badge">Olympiad coach · Grade 3</span></div><button type="button" class="mt-icon-btn mt-icon-btn-44" aria-label="More options" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><circle cx="3" cy="8" r="1.5" fill="currentColor"></circle><circle cx="8" cy="8" r="1.5" fill="currentColor"></circle><circle cx="13" cy="8" r="1.5" fill="currentColor"></circle></svg></button></header><div class="mt-body"><p class="mt-task-text">A fence is 12 meters long. Posts stand every 3 meters, including both ends. How many posts are there?</p><pre dir="ltr" class="mt-diagram">|--3--|--3--|--3--|--3--|</pre><fieldset class="mt-options"><legend>Pick one answer</legend><div class="mt-options-list"><label class="mt-option" data-state="default"><input type="radio" name="mt-answer" class="mt-vh" value="A"/><span class="mt-option-letter">A</span><span class="mt-option-value">3</span></label><label class="mt-option" data-state="default"><input type="radio" name="mt-answer" class="mt-vh" value="B"/><span class="mt-option-letter">B</span><span class="mt-option-value">4</span></label><label class="mt-option" data-state="default"><input type="radio" name="mt-answer" class="mt-vh" value="C"/><span class="mt-option-letter">C</span><span class="mt-option-value">5</span></label><label class="mt-option" data-state="default"><input type="radio" name="mt-answer" class="mt-vh" value="D"/><span class="mt-option-letter">D</span><span class="mt-option-value">6</span></label><label class="mt-option" data-state="default"><input type="radio" name="mt-answer" class="mt-vh" value="E"/><span class="mt-option-letter">E</span><span class="mt-option-value">12</span></label></div></fieldset></div></article><section class="mt-replies" aria-label="Replies" aria-live="polite"><article class="mt-reply"><header class="mt-head mt-head-compact"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" class="mt-icon"><circle cx="12" cy="12" r="12" fill="var(--avatar-fill)"></circle><circle cx="12" cy="9.5" r="3.6" fill="var(--avatar-ink)"></circle><path d="M5 19.6c1.3-3.2 3.9-4.8 7-4.8s5.7 1.6 7 4.8" fill="var(--avatar-ink)"></path></svg><div class="mt-head-text"><span class="mt-name">You</span><span class="mt-meta">just now</span></div><button type="button" class="mt-icon-btn mt-icon-btn-44" aria-label="More options" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><circle cx="3" cy="8" r="1.5" fill="currentColor"></circle><circle cx="8" cy="8" r="1.5" fill="currentColor"></circle><circle cx="13" cy="8" r="1.5" fill="currentColor"></circle></svg></button></header><div class="mt-reply-body"><p class="mt-reply-lead">why isn&#x27;t it 6?</p></div></article><article class="mt-reply"><header class="mt-head mt-head-compact"><svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true" class="mt-icon"><circle cx="16" cy="16" r="16" fill="var(--mark-fill)"></circle><path d="M8.5 21.5L13.5 16.5L17 19L22.5 12.5" fill="none" stroke="var(--mark-ink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="23" cy="12" r="2.6" fill="var(--mark-ink)"></circle></svg><div class="mt-head-text"><span class="mt-name">MathTrail</span><span class="mt-meta">just now</span></div><button type="button" class="mt-icon-btn mt-icon-btn-44" aria-label="More options" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><circle cx="3" cy="8" r="1.5" fill="currentColor"></circle><circle cx="8" cy="8" r="1.5" fill="currentColor"></circle><circle cx="13" cy="8" r="1.5" fill="currentColor"></circle></svg></button></header><div class="mt-reply-body mt-reply-body-tight"><p>Good question! Let&#x27;s check 6.</p><p>6 posts, 3 meters apart, have 5 gaps between them: 5 × 3 = 15 meters. But our fence is only 12 meters long.</p><p>Try drawing the fence with a post at 0, 3, 6… meters, and count them.</p></div></article></section><div class="mt-foot"><div class="mt-field"><label for=":en-demo-question-Rc:" class="mt-vh">Ask a question about the task</label><input id=":en-demo-question-Rc:" type="text" placeholder="Ask a question about the task…" value=""/><button type="button" class="mt-icon-btn" aria-label="Send" disabled=""><svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><path d="M3 8h9.5M8.5 4l4 4-4 4" stroke-width="1.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></div><div class="mt-btns"><button type="button" class="mt-btn">I don&#x27;t know</button><button type="button" class="mt-btn" aria-expanded="false">Hint</button><button type="button" class="mt-btn">Another task</button></div></div></div></div>
+    </div>
+  </div>
+</div></div>
+</article>
+<article class="s-beat" data-beat="progress">
+  <span class="s-num">4</span>
+  <h3 class="s-h3 s-h3-lg">Progress you can read</h3>
+  <p class="s-body s-measure">A rating for every topic, what is mastered, recent answers, the mistakes that keep coming back — and one topic to practise next.</p>
+  <div class="s-beat-demo s-only-narrow"><div class="s-frame s-frame-inline">
+  <div class="s-frame-head"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="display: block; flex-shrink: 0"><path d="M2.5 4.2c0-.9.8-1.7 1.7-1.7h7.6c.9 0 1.7.8 1.7 1.7v5.1c0 .9-.8 1.7-1.7 1.7H6.5L3.8 13.3v-2.3h0c-.7-.1-1.3-.8-1.3-1.6V4.2z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Your chat</span></div>
+  <div class="s-frame-scroll" data-scene="progress">
+    <div class="s-frame-body">
+      <div class="s-bubble-row"><p class="s-bubble" data-bubble>How is Comet doing?</p></div>
+      <div class="mt-demo" id="en-demo-progress" data-scene="progress"><div class="mt mt-widget" dir="ltr"><button type="button" class="mt-bar mt-bar-back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon mt-chevron"><path d="M10 4l-4 4 4 4" stroke-width="1.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Back to task</span></button><article aria-label="Profile and progress"><header class="mt-head"><svg width="32" height="32" viewBox="0 0 24 24" aria-hidden="true" class="mt-icon"><circle cx="12" cy="12" r="12" fill="var(--avatar-fill)"></circle><circle cx="12" cy="9.5" r="3.6" fill="var(--avatar-ink)"></circle><path d="M5 19.6c1.3-3.2 3.9-4.8 7-4.8s5.7 1.6 7 4.8" fill="var(--avatar-ink)"></path></svg><div class="mt-head-text"><div class="mt-head-line"><span class="mt-name">Comet</span></div><span class="mt-badge">Grade 3</span></div><button type="button" class="mt-icon-btn mt-icon-btn-44" aria-label="More options" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><circle cx="3" cy="8" r="1.5" fill="currentColor"></circle><circle cx="8" cy="8" r="1.5" fill="currentColor"></circle><circle cx="13" cy="8" r="1.5" fill="currentColor"></circle></svg></button></header><div class="mt-progress"><section class="mt-rating" aria-label="Overall rating"><span class="mt-rating-rank">Rank 3 of 5</span><div class="mt-rating-line"><span class="mt-rating-num">1573</span><span class="mt-meta">overall rating</span></div><div class="mt-pips" aria-hidden="true"><span class="mt-pip" data-on="true"></span><span class="mt-pip" data-on="true"></span><span class="mt-pip" data-on="true"></span><span class="mt-pip" data-on="false"></span><span class="mt-pip" data-on="false"></span></div></section><div class="mt-note mt-note-plain"><div class="mt-note-label"><span>Next up</span></div><p>Enumeration again, at the same level</p></div><section class="mt-list"><h3 class="mt-section-label">Topics</h3><ul><li class="mt-row"><span class="mt-row-label">Enumeration</span><span class="mt-row-spacer"></span><span class="mt-row-value">1627</span></li><li class="mt-row"><span class="mt-row-label">Ordering</span><span class="mt-row-spacer"></span><span class="mt-status mt-status-correct"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><path d="M3.5 8.5l3 3 6-7" stroke-width="2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg>Mastered</span><span class="mt-row-value">1712</span></li><li class="mt-row"><span class="mt-row-label">Gaps and boundaries</span><span class="mt-row-spacer"></span><span class="mt-row-value">1588</span></li><li class="mt-row"><span class="mt-row-label">Parity and alternation</span><span class="mt-row-spacer"></span><span class="mt-row-value">1541</span></li></ul></section><section class="mt-list"><h3 class="mt-section-label">Recent answers</h3><ul><li class="mt-row"><span class="mt-row-label">Enumeration</span><span class="mt-row-spacer"></span><span class="mt-status mt-status-wrong"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7" stroke-width="2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg>Wrong</span></li><li class="mt-row"><span class="mt-row-label">Gaps and boundaries</span><span class="mt-row-spacer"></span><span class="mt-status mt-status-correct"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><path d="M3.5 8.5l3 3 6-7" stroke-width="2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg>Right</span></li><li class="mt-row"><span class="mt-row-label">Ordering</span><span class="mt-row-spacer"></span><span class="mt-status mt-status-correct"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><path d="M3.5 8.5l3 3 6-7" stroke-width="2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg>Right</span></li></ul></section><section class="mt-list"><h3 class="mt-section-label">Mistakes that repeat</h3><ul><li class="mt-row mt-row-bar"><div class="mt-row-bar-top"><span class="mt-row-label">Missed a case while listing</span><span class="mt-row-spacer"></span><span class="mt-row-count">3 times</span></div><div class="mt-bar-track" aria-hidden="true"><div class="mt-bar-fill" style="width:100%"></div></div></li><li class="mt-row mt-row-bar"><div class="mt-row-bar-top"><span class="mt-row-label">Counted the same thing twice</span><span class="mt-row-spacer"></span><span class="mt-row-count">1 time</span></div><div class="mt-bar-track" aria-hidden="true"><div class="mt-bar-fill" style="width:33%"></div></div></li></ul></section><section class="mt-fields"><h3 class="mt-section-label">Profile · for the parent</h3><dl><div><dt>Grade</dt><dd>3</dd></div><div><dt>Interests</dt><dd>Space, animals, football</dd></div><div><dt>Not at school yet</dt><dd>Division with remainder</dd></div></dl><div class="mt-fields-actions"><button type="button" class="mt-btn">Edit profile</button></div></section></div></article></div></div>
+    </div>
+  </div>
+</div></div>
+</article>
+</div>
+<div class="s-lesson-demo s-only-wide" aria-hidden="false">
+  <div class="s-sticky">
+<div class="s-frame ">
+  <div class="s-frame-head"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="display: block; flex-shrink: 0"><path d="M2.5 4.2c0-.9.8-1.7 1.7-1.7h7.6c.9 0 1.7.8 1.7 1.7v5.1c0 .9-.8 1.7-1.7 1.7H6.5L3.8 13.3v-2.3h0c-.7-.1-1.3-.8-1.3-1.6V4.2z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Your chat</span></div>
+  <div class="s-frame-scroll" data-scene="generating" data-sticky>
+    <div class="s-frame-body">
+      <div class="s-bubble-row"><p class="s-bubble" data-bubble>A new task, please</p></div>
+      <div class="mt-demo" id="en-demo-sticky" data-scene="generating"><div class="mt mt-widget" dir="ltr"><button type="button" class="mt-bar"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" class="mt-icon"><circle cx="12" cy="12" r="12" fill="var(--avatar-fill)"></circle><circle cx="12" cy="9.5" r="3.6" fill="var(--avatar-ink)"></circle><path d="M5 19.6c1.3-3.2 3.9-4.8 7-4.8s5.7 1.6 7 4.8" fill="var(--avatar-ink)"></path></svg><span class="mt-bar-name">Comet</span><span class="mt-bar-action">Profile &amp; progress</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon mt-chevron"><path d="M6 4l4 4-4 4" stroke-width="1.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></button><article aria-label="Task"><header class="mt-head"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" class="mt-icon"><circle cx="16" cy="16" r="16" fill="var(--mark-fill)"></circle><path d="M8.5 21.5L13.5 16.5L17 19L22.5 12.5" fill="none" stroke="var(--mark-ink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="23" cy="12" r="2.6" fill="var(--mark-ink)"></circle></svg><div class="mt-head-text"><div class="mt-head-line"><span class="mt-name">MathTrail</span><span class="mt-meta">just now</span></div><span class="mt-badge">Olympiad coach · Grade 3</span></div><button type="button" class="mt-icon-btn mt-icon-btn-44" aria-label="More options" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><circle cx="3" cy="8" r="1.5" fill="currentColor"></circle><circle cx="8" cy="8" r="1.5" fill="currentColor"></circle><circle cx="13" cy="8" r="1.5" fill="currentColor"></circle></svg></button></header><div class="mt-body" style="gap:12px"><div class="mt-gen"><p class="mt-gen-title">Preparing the next task…</p><ol aria-live="polite"><li data-status="done"><span class="mt-gen-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" class="mt-icon"><circle cx="10" cy="10" r="10" fill="var(--ink-strong)"></circle><path d="M6 10.2l2.6 2.6L14 7.4" stroke="var(--surface)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span class="mt-gen-label"><span class="mt-vh">Done: </span>Picked topic and difficulty</span></li><li data-status="done"><span class="mt-gen-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" class="mt-icon"><circle cx="10" cy="10" r="10" fill="var(--ink-strong)"></circle><path d="M6 10.2l2.6 2.6L14 7.4" stroke="var(--surface)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span class="mt-gen-label"><span class="mt-vh">Done: </span>Writing the task</span></li><li data-status="active"><span class="mt-gen-icon"><span style="color:var(--ink-strong);display:flex"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" class="mt-icon mt-spin"><circle cx="10" cy="10" r="8" stroke="var(--track)" stroke-width="2.5"></circle><path d="M10 2a8 8 0 0 1 8 8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></path></svg></span></span><span class="mt-gen-label"><span class="mt-vh">In progress: </span>Checking every answer<span class="mt-gen-detail"> (120 cases, exactly 1 correct)</span></span></li><li data-status="waiting"><span class="mt-gen-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" class="mt-icon"><circle cx="10" cy="10" r="8.5" stroke="var(--track)" stroke-width="1.5"></circle></svg></span><span class="mt-gen-label"><span class="mt-vh">Waiting: </span>Checking readability for grade 3</span></li><li data-status="waiting"><span class="mt-gen-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" class="mt-icon"><circle cx="10" cy="10" r="8.5" stroke="var(--track)" stroke-width="1.5"></circle></svg></span><span class="mt-gen-label"><span class="mt-vh">Waiting: </span>Ready</span></li></ol></div></div></article><div class="mt-foot"><div class="mt-field" data-disabled="true"><label for=":en-demo-sticky-Rc:" class="mt-vh">Ask a question about the task</label><input id=":en-demo-sticky-Rc:" type="text" placeholder="Ask a question about the task…" disabled="" value=""/><button type="button" class="mt-icon-btn" aria-label="Send" disabled=""><svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="mt-icon"><path d="M3 8h9.5M8.5 4l4 4-4 4" stroke-width="1.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></div><div class="mt-btns"><button type="button" class="mt-btn" disabled="">I don&#x27;t know</button><button type="button" class="mt-btn" disabled="" aria-expanded="false">Hint</button><button type="button" class="mt-btn" disabled="">Another task</button></div></div></div></div>
+    </div>
+  </div>
+</div>
+  </div>
+</div>
+</section>
+<section class="s-wrap s-section" id="connect">
+<div class="s-sechead">
+  <p class="s-eyebrow">Connect</p>
+  <h2 class="s-h2">Two minutes to the first task.</h2>
+</div>
+<div class="s-connect">
+  <div class="s-card">
+    <div class="s-card-head"><h3 class="s-h3 s-h3-lg">Claude</h3><span class="s-pill s-pill-ok">Works now · free plan too</span></div>
+    <ol class="s-steps">
+<li><span class="s-stepnum">1</span><div class="s-stepbody"><p>In Claude, open <b>Customize → Connectors</b>.</p></div></li>
+<li><span class="s-stepnum">2</span><div class="s-stepbody"><p>Press <b>+</b> and choose <b>Add custom connector</b>.</p></div></li>
+<li><span class="s-stepnum">3</span><div class="s-stepbody"><p>Paste the address:</p><div class="s-address"><code>https://[DOMAIN]/mcp</code><button type="button" class="s-copy" data-copy="https://[DOMAIN]/mcp" data-copied="Copied" hidden><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="display: block; flex-shrink: 0"><path d="M5.5 5.5V3.2c0-.4.3-.7.7-.7h6.6c.4 0 .7.3.7.7v6.6c0 .4-.3.7-.7.7h-2.3M3.2 5.5h6.6c.4 0 .7.3.7.7v6.6c0 .4-.3.7-.7.7H3.2c-.4 0-.7-.3-.7-.7V6.2c0-.4.3-.7.7-.7z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Copy</span></button></div></div></li>
+<li><span class="s-stepnum">4</span><div class="s-stepbody"><p>Press <b>Add</b>, then <b>Connect</b>, and sign in with Google. MathTrail asks to keep one file in your Google Drive — your child’s profile.</p></div></li>
+<li><span class="s-stepnum">5</span><div class="s-stepbody"><p>In a chat, press <b>+ → Connectors</b>, switch MathTrail on and say: “Let’s do a MathTrail task.”</p></div></li>
+    </ol>
+    <p class="s-note">The free plan allows one custom connector.</p>
+  </div>
+  <div class="s-card s-card-muted">
+    <div class="s-card-head"><h3 class="s-h3 s-h3-lg">ChatGPT</h3><span class="s-pill">After directory review</span></div>
+    <p class="s-body">Free ChatGPT accounts add apps only from the app directory. As soon as MathTrail is listed there, find it by name, connect it and sign in with Google.</p>
+  </div>
+</div>
+<p class="s-needs">You need a Claude or ChatGPT account and a Google account. Your child needs neither.</p>
+</section>
+<section class="s-wrap s-section s-rule" id="parent">
+<div class="s-sechead">
+  <p class="s-eyebrow">For the parent</p>
+  <h2 class="s-h2">You stay in charge.</h2>
+</div>
+<div class="s-grid3 s-phases">
+<div class="s-phase">
+  <p class="s-phase-label">Before</p>
+  <h3 class="s-h3">Set up a profile</h3>
+  <p class="s-body">A made-up name, the grade, interests to set the stories in, and what school hasn’t covered yet — say, division with remainder.</p>
+</div>
+<div class="s-phase">
+  <p class="s-phase-label">During</p>
+  <h3 class="s-h3">Sit alongside</h3>
+  <p class="s-body">You run the lesson: read the task aloud, ask a leading question, or ask the chat for one. A daily limit on new tasks keeps the free service free for everyone.</p>
+</div>
+<div class="s-phase">
+  <p class="s-phase-label">After</p>
+  <h3 class="s-h3">Read the progress</h3>
+  <p class="s-body">Ratings by topic, mastered topics, recent answers and the mistakes that repeat — the same screen your child sees.</p>
+</div>
+</div>
+<p class="s-aside s-measure">One thing we don’t hide: the chat’s tool-call log shows each task together with its answer, because the model wrote it. The card your child sees reveals the answer only after they answer.</p>
+</section>
+<section class="s-wrap s-section s-rule" id="data">
+<div class="s-split">
+  <div class="s-sechead s-sechead-left">
+    <p class="s-eyebrow">Your child’s data</p>
+    <h2 class="s-h2">It stays with you.</h2>
+  </div>
+  <ul class="s-points">
+<li><p class="s-body"><strong>A file in your Google Drive.</strong> The profile, the ratings and the current task live in one file in a visible folder of your Drive. You can open it, and Drive keeps its history.</p></li>
+<li><p class="s-body"><strong>We keep nothing.</strong> The service stores nothing between requests — no profiles, no tasks, no answers. Its logs hold counts, never text or names.</p></li>
+<li><p class="s-body"><strong>A pseudonym, not a name.</strong> No real name, birth date or school. The pseudonym never goes into a task.</p></li>
+<li><p class="s-body"><strong>What the chat sees.</strong> The chat’s model writes the tasks, so it receives the task brief and your notes on your child’s level and tone.</p></li>
+<li><p class="s-body"><strong>Leave any time.</strong> Export the profile, delete the file, or disconnect MathTrail in your chat’s settings and remove its access in your Google account.</p></li>
+  </ul>
+</div>
+</section>
+<section class="s-wrap s-section s-rule" id="honest">
+<div class="s-split">
+  <div class="s-sechead s-sechead-left">
+    <p class="s-eyebrow">Honestly</p>
+    <h2 class="s-h2">What we don’t promise.</h2>
+  </div>
+  <ul class="s-points">
+<li><p class="s-body">“Checked” means checked by a program: one correct option, the answer reproduced, readable for the grade, no repeats, a tidy drawing. Whether the wording, the drawing and the solution agree in meaning is left to the model’s own self-check — so now and then a task can be off. Press “Another task”.</p></li>
+<li><p class="s-body">No pictures. Drawings are made of text characters, so the topics are the ones that work in words: logic, counting, arithmetic with a twist, strategies and games.</p></li>
+<li><p class="s-body">Grades 1–6, olympiad style, no proofs.</p></li>
+  </ul>
+</div>
+<div class="s-facts">
+<div class="s-fact"><p class="s-fact-label">Price</p><p class="s-fact-value">Free, forever.</p></div>
+<div class="s-fact"><p class="s-fact-label">You need</p><p class="s-fact-value">A Claude or ChatGPT account and a Google account.</p></div>
+<div class="s-fact"><p class="s-fact-label">Code</p><p class="s-fact-value">Open, under the MIT License.</p></div>
+</div>
+</section>
+<section class="s-sunk" id="faq"><div class="s-wrap s-section">
+<div class="s-split">
+  <div class="s-sechead s-sechead-left">
+    <h2 class="s-h2">Questions parents ask</h2>
+  </div>
+  <div class="s-faq">
+<details class="s-qa">
+  <summary><span>Who is the user — me or my child?</span><svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="display: block; flex-shrink: 0"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path></svg></summary>
+  <p class="s-body">You. MathTrail is used by an adult — a parent or a tutor — in their own chat account (Claude is for 18+, ChatGPT for 13+). Your child solves tasks next to you or with your permission.</p>
+</details>
+<details class="s-qa">
+  <summary><span>Does my child need an account?</span><svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="display: block; flex-shrink: 0"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path></svg></summary>
+  <p class="s-body">No. Only you sign in, with Google. The free version has one child per account.</p>
+</details>
+<details class="s-qa">
+  <summary><span>Which languages does it speak?</span><svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="display: block; flex-shrink: 0"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path></svg></summary>
+  <p class="s-body">Tasks come in the language of your chat — any language. Buttons and labels are translated into 22 languages and fall back to the nearest one, or English.</p>
+</details>
+<details class="s-qa">
+  <summary><span>Why is this better than just asking the chat?</span><svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="display: block; flex-shrink: 0"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path></svg></summary>
+  <p class="s-body">The chat still writes the task, but a program decides whether it reaches your child: exactly one correct answer, a solution reproduced by trying every case, the right reading level for the grade, no repeats.</p>
+</details>
+<details class="s-qa">
+  <summary><span>What if a task looks wrong?</span><svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="display: block; flex-shrink: 0"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path></svg></summary>
+  <p class="s-body">Press “Another task” — the next one is checked from scratch. If it keeps happening, tell us on GitHub.</p>
+</details>
+<details class="s-qa">
+  <summary><span>How many tasks a day?</span><svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="display: block; flex-shrink: 0"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path></svg></summary>
+  <p class="s-body">Enough for a lesson. Each account has a daily limit on new tasks, so the free service stays free for everyone.</p>
+</details>
+  </div>
+</div>
+</div></section>
+<section class="s-wrap s-section">
+<div class="s-final">
+  <h2 class="s-h1 s-final-h">Start with one task.</h2>
+  <p class="s-lead">Add MathTrail to Claude — it takes about two minutes.</p>
+  <div class="s-ctas s-ctas-center">
+    <a class="s-btn s-btn-primary" href="#connect">Add to Claude</a>
+    <a class="s-btn s-btn-ghost" href="https://github.com/MathTrail/mathtrail-standalone">View the code on GitHub<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="display: block; flex-shrink: 0"><path d="M5 11L11 5M6 5h5v5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path></svg></a>
+  </div>
+</div>
+</section>
+</main>
+<footer class="s-wrap s-footer">
+<div class="s-foot">
+  <a class="s-brand" href="#top" aria-label="MathTrail"><svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true" style="display:block;flex-shrink:0"><circle cx="16" cy="16" r="16" fill="var(--mark-fill)"></circle><path d="M8.5 21.5L13.5 16.5L17 19L22.5 12.5" fill="none" stroke="var(--mark-ink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="23" cy="12" r="2.6" fill="var(--mark-ink)"></circle></svg><span class="s-brand-name s-brand-sm">MathTrail</span></a>
+  <nav class="s-footlinks" aria-label="Footer">
+<a class="s-footlink" href="privacy/">Privacy policy</a>
+<a class="s-footlink" href="terms/">Terms of use</a>
+<a class="s-footlink" href="https://github.com/MathTrail/mathtrail-standalone">GitHub</a>
+<a class="s-footlink" href="mailto:[CONTACT EMAIL]">[CONTACT EMAIL]</a>
+  </nav>
+</div>
+<p class="s-legal s-measure">The code and the content are released under the MIT License. It grants no rights to the name “MathTrail”: if you run a fork publicly, please give it a different name.</p>
+</footer>
+</div>
+<script type="application/json" id="mt-data">{"strings": {}, "task": {"text": "A fence is 12 meters long. Posts stand every 3 meters, including both ends. How many posts are there?", "diagram": "|--3--|--3--|--3--|--3--|", "options": [{"letter": "A", "value": "3"}, {"letter": "B", "value": "4"}, {"letter": "C", "value": "5"}, {"letter": "D", "value": "6"}, {"letter": "E", "value": "12"}], "correct": "C", "hint": "Try a smaller fence first: 6 meters long, with a post every 3 meters. Draw it and count the posts.", "traps": {"A": "Gave the distance between posts, not the number of posts.", "B": "Counted the gaps instead of the posts.", "D": "Counted one end twice.", "E": "Gave the length of the fence in meters."}, "right": "Correct! 5 posts.", "rightDetail": "You remembered the posts at both ends.", "solution": ["12 ÷ 3 = 4 gaps.", "A straight fence with posts at both ends has one more post than gaps.", "4 + 1 = 5 posts."], "question": "why isn't it 6?", "answer": ["Good question! Let's check 6.", "6 posts, 3 meters apart, have 5 gaps between them: 5 × 3 = 15 meters. But our fence is only 12 meters long.", "Try drawing the fence with a post at 0, 3, 6… meters, and count them."]}, "child": {"name": "Comet", "badge": "Olympiad coach · Grade 3", "grade": "Grade 3"}, "progress": {"rank": 3, "total": 5, "rating": "1573", "next": "Enumeration again, at the same level", "topics": [{"label": "Enumeration", "value": "1627"}, {"label": "Ordering", "value": "1712", "status": {"tone": "correct", "label": "Mastered"}}, {"label": "Gaps and boundaries", "value": "1588"}, {"label": "Parity and alternation", "value": "1541"}], "recent": [{"label": "Enumeration", "status": {"tone": "wrong", "label": "Wrong"}}, {"label": "Gaps and boundaries", "status": {"tone": "correct", "label": "Right"}}, {"label": "Ordering", "status": {"tone": "correct", "label": "Right"}}], "mistakes": [{"label": "Missed a case while listing", "count": "3 times", "bar": 100}, {"label": "Counted the same thing twice", "count": "1 time", "bar": 33}], "fields": [{"term": "Grade", "value": "3"}, {"term": "Interests", "value": "Space, animals, football"}, {"term": "Not at school yet", "value": "Division with remainder"}]}, "gen": ["Picked topic and difficulty", "Writing the task", "Checking every answer", "Checking readability for grade 3", "Ready"], "genDetail": "(120 cases, exactly 1 correct)", "bubble": "A new task, please", "bubbleProgress": "How is Comet doing?"}</script>
+<script src="../assets/vendor/react.production.min.js"></script>
+<script src="../assets/vendor/react-dom.production.min.js"></script>
+<script src="../assets/mathtrail.js"></script>
+<script src="../assets/site.js"></script>
+</body>
+</html>

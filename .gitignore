@@ -34,6 +34,11 @@ go.work.sum
 # Node modules of the widget build (web/)
 node_modules/
 
+# The widget as the web build leaves it, and the coverage of its tests: both
+# are rebuilt, never committed. The placeholder beside the widget is committed.
+/internal/widget/widget.html
+/web/coverage/
+
 # Rendered site: rebuilt by just site, never committed.
 /site/dist/
 

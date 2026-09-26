@@ -1,0 +1,30 @@
+{
+	"name": "mathtrail-web",
+	"private": true,
+	"license": "MIT",
+	"type": "module",
+	"scripts": {
+		"build:widget": "vite build --config vite.config.widget.ts",
+		"check": "biome ci .",
+		"fmt": "biome check --write .",
+		"typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
+		"test": "vitest run"
+	},
+	"dependencies": {
+		"@modelcontextprotocol/client": "2.0.0",
+		"@modelcontextprotocol/core": "2.0.0",
+		"@modelcontextprotocol/ext-apps": "2.0.0",
+		"preact": "10.29.8",
+		"zod": "4.6.5"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.5.14",
+		"@types/node": "24.19.0",
+		"@vitest/coverage-v8": "5.0.2",
+		"happy-dom": "20.14.5",
+		"typescript": "7.0.2",
+		"vite": "8.3.1",
+		"vite-plugin-singlefile": "2.3.3",
+		"vitest": "5.0.2"
+	}
+}
