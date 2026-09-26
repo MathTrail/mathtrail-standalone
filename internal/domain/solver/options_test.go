@@ -210,7 +210,7 @@ func TestTwoTextsAreOneAnswerWhenTheyHaveOneKey(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			if got := solver.Key(test.a) == solver.Key(test.b); got != test.same {
+			if (solver.Key(test.a) == solver.Key(test.b)) != test.same {
 				t.Errorf("Key(%+q) = %+q and Key(%+q) = %+q, want one key %v",
 					test.a, solver.Key(test.a), test.b, solver.Key(test.b), test.same)
 			}
@@ -257,7 +257,7 @@ func TestAKeyReadsATextAsACardShowsIt(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			if got := solver.Key(test.a) == solver.Key(test.b); got != test.same {
+			if (solver.Key(test.a) == solver.Key(test.b)) != test.same {
 				t.Errorf("Key(%+q) = %+q, Key(%+q) = %+q, want alike %v",
 					test.a, solver.Key(test.a), test.b, solver.Key(test.b), test.same)
 			}

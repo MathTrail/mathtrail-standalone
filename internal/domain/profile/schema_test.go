@@ -326,7 +326,7 @@ func hasKey(object map[string]any, key string) bool {
 func branchFor(value any, choice []any) map[string]any {
 	for _, branch := range choice {
 		described, _ := branch.(map[string]any)
-		if isNull := described["type"] == "null"; isNull == (value == nil) {
+		if (described["type"] == "null") == (value == nil) {
 			return described
 		}
 	}

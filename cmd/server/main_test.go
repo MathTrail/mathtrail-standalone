@@ -173,7 +173,7 @@ func TestAStopDuringTheStartIsNoFailure(t *testing.T) {
 			core, logs := observer.New(zapcore.DebugLevel)
 			err := startupFailed(tc.ctx, zap.New(core), tc.err)
 
-			if failed := errors.Is(err, errLogged); failed != tc.failed {
+			if errors.Is(err, errLogged) != tc.failed {
 				t.Errorf("startupFailed() = %v, want a failure: %v", err, tc.failed)
 			}
 			if lines := logs.FilterLevelExact(zapcore.ErrorLevel).Len(); lines != tc.errorLines {

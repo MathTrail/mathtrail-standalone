@@ -37,7 +37,7 @@ func TestARootIsHeldToTheRule(t *testing.T) {
 			t.Parallel()
 
 			root, err := collector.Root(c.raw)
-			if refused := err != nil; refused != c.refused {
+			if (err != nil) != c.refused {
 				t.Fatalf("Root(%q) error = %v, want refused: %v", c.raw, err, c.refused)
 			}
 			if !c.refused && root.String() != c.raw {
