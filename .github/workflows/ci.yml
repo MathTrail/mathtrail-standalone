@@ -147,9 +147,6 @@ jobs:
     needs: [test, widget]
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    # A pull request from a fork is given no secrets, so the analysis cannot run
-    # for it; a check nobody can pass has no business being red.
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     # This one stays on the runner: the scanner installs itself here and has no
     # business inside the environment the code is built in.
     steps:
@@ -165,7 +162,15 @@ jobs:
         with:
           name: coverage-widget
           path: web/coverage
+      # A pull request's run has the token only when it was given the secret:
+      # not one from a fork, nor one Dependabot starts while the token is not
+      # among the secrets kept for Dependabot. Such a run is not analysed, since
+      # a check nobody can pass has no business being red, and what it changes
+      # is analysed once it reaches main — where a missing token is a failure.
+      - id: token
+        run: echo "present=${{ secrets.SONAR_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
       - uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4 # v8.2.2
+        if: steps.token.outputs.present == 'true' || github.event_name != 'pull_request'
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 

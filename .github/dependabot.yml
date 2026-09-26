@@ -24,8 +24,24 @@ updates:
       day: monday
     open-pull-requests-limit: 5
     groups:
+      # What the widget speaks to its host: the library it is written against
+      # and the client and core that library runs on. Their version updates
+      # arrive together, in a pull request of their own, so that a change to the
+      # protocol is never one line among the tools' bumps. Major versions come
+      # in the same pull request: a major version of the library is likely to
+      # need one of its client and core, and a pull request of this group is
+      # read before it is merged whatever it moves.
+      mcp-packages:
+        patterns:
+          - "@modelcontextprotocol/ext-apps"
+          - "@modelcontextprotocol/client"
+          - "@modelcontextprotocol/core"
       npm-packages:
         patterns: ["*"]
+        exclude-patterns:
+          - "@modelcontextprotocol/ext-apps"
+          - "@modelcontextprotocol/client"
+          - "@modelcontextprotocol/core"
         update-types: [minor, patch]
     ignore:
       # The types of Node's own modules follow the major version of the Node
