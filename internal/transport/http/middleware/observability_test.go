@@ -243,7 +243,7 @@ func TestAPanicInTheMiddlewareIsCaughtByTheLastResort(t *testing.T) {
 	}
 	// The headers every answer carries are set above the middleware that
 	// panicked, so the last resort's answer has them too.
-	if got := recorder.Header().Get("Strict-Transport-Security"); got == "" {
+	if recorder.Header().Get("Strict-Transport-Security") == "" {
 		t.Error("Strict-Transport-Security is missing from the last resort's answer, want it on every answer")
 	}
 }

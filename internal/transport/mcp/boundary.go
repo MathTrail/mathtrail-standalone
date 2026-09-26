@@ -113,23 +113,20 @@ func (b *boundary) panicFields(ctx context.Context, method string, recovered any
 // toolCall runs one tool call inside a span of its own and leaves one line
 // saying how it ended.
 func (b *boundary) toolCall(ctx context.Context, method string, req *mcp.CallToolRequest, next mcp.MethodHandler) (result mcp.Result, err error) {
-	call := b.begin(ctx, req)
+	spanned, call := b.begin(ctx, req)
 	defer func() {
 		if recovered := recover(); recovered != nil {
 			result, err = call.panicked(recovered), nil
 		}
-		b.finish(call, result, err)
+		b.finish(spanned, call, result, err)
 	}()
 
-	result, err = next(call.ctx, method, req)
+	result, err = next(spanned, method, req)
 	return settle(result, err)
 }
 
 // observedCall is what the boundary knows about one tool call while it runs.
 type observedCall struct {
-	// ctx carries the call's span, so that whatever the tool does is recorded
-	// inside it.
-	ctx      context.Context
 	span     trace.Span
 	start    time.Time
 	tool     string
@@ -139,7 +136,8 @@ type observedCall struct {
 	panic    []zap.Field
 }
 
-// begin opens the call's span as a child of the request's.
+// begin opens the call's span as a child of the request's, and returns the
+// context that carries it, so that whatever the tool does is recorded inside it.
 //
 // The protocol lets a client send a trace context of its own inside the call,
 // and the conventions for tracing it suggest taking that as the parent. It is
@@ -151,7 +149,7 @@ type observedCall struct {
 // Every value is a word from a closed list, so neither half carries anything a
 // caller wrote — which matters for the second half, since the filter that
 // blanks a caller's details from a trace reads a span only as it starts.
-func (b *boundary) begin(ctx context.Context, req *mcp.CallToolRequest) *observedCall {
+func (b *boundary) begin(ctx context.Context, req *mcp.CallToolRequest) (context.Context, *observedCall) {
 	tool := b.toolLabel(toolName(req))
 	protocol := protocolLabel(req.ProtocolVersion())
 	spanned, span := b.tracer.Start(ctx, "tools/call "+tool,
@@ -166,7 +164,6 @@ func (b *boundary) begin(ctx context.Context, req *mcp.CallToolRequest) *observe
 	)
 
 	call := &observedCall{
-		ctx:      spanned,
 		span:     span,
 		start:    time.Now(),
 		tool:     tool,
@@ -176,7 +173,7 @@ func (b *boundary) begin(ctx context.Context, req *mcp.CallToolRequest) *observe
 	if account, signedIn := accountFrom(ctx); signedIn {
 		call.user = account.ID
 	}
-	return call
+	return spanned, call
 }
 
 // panicked answers a call whose handling panicked, as a failure of ours, and
@@ -187,8 +184,9 @@ func (c *observedCall) panicked(recovered any) mcp.Result {
 	return failed(&failure{kind: kindPanic, sentence: sentenceInternal})
 }
 
-// finish closes the call's span and writes its line.
-func (b *boundary) finish(call *observedCall, result mcp.Result, err error) {
+// finish closes the call's span and writes its line. The context is the one
+// begin returned, the one that carries the call's span.
+func (b *boundary) finish(ctx context.Context, call *observedCall, result mcp.Result, err error) {
 	ended := judge(result, err)
 
 	call.span.SetAttributes(attribute.String("mathtrail.tool.outcome", ended.outcome))
@@ -207,7 +205,7 @@ func (b *boundary) finish(call *observedCall, result mcp.Result, err error) {
 	}
 	call.span.End()
 
-	fields := b.callFields(call, ended)
+	fields := b.callFields(ctx, call, ended)
 	switch ended.outcome {
 	case outcomeFailed:
 		b.logger.Error("tool_call", fields...)
@@ -220,7 +218,7 @@ func (b *boundary) finish(call *observedCall, result mcp.Result, err error) {
 
 // callFields are the fields of a tool call's line. Each is a closed word, a
 // number or an identifier this service made; nothing the caller wrote.
-func (b *boundary) callFields(call *observedCall, ended verdict) []zap.Field {
+func (b *boundary) callFields(ctx context.Context, call *observedCall, ended verdict) []zap.Field {
 	fields := []zap.Field{
 		zap.String("tool", call.tool),
 		zap.String("outcome", ended.outcome),
@@ -228,7 +226,7 @@ func (b *boundary) callFields(call *observedCall, ended verdict) []zap.Field {
 		zap.String("instructions_version", b.instructionsVersion),
 		zap.String("protocol_version", call.protocol),
 		zap.String("client", call.client),
-		zap.String("request_id", logger.RequestID(call.ctx)),
+		zap.String("request_id", logger.RequestID(ctx)),
 	}
 	if ended.status != "" {
 		fields = append(fields, zap.String("status", ended.status))
@@ -240,7 +238,7 @@ func (b *boundary) callFields(call *observedCall, ended verdict) []zap.Field {
 		fields = append(fields, zap.String("user", call.user))
 	}
 	fields = append(fields, call.panic...)
-	return append(fields, telemetry.LogFields(call.ctx, b.projectID)...)
+	return append(fields, telemetry.LogFields(ctx, b.projectID)...)
 }
 
 // verdict is how a call ended.

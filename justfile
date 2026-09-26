@@ -38,6 +38,11 @@ TRIVY_IMAGE := "aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7
 # What a dependency's license may be: permissive, and compatible with releasing
 # the result under MIT.
 ALLOWED_LICENSES := "MIT,BSD-2-Clause,BSD-3-Clause,Apache-2.0,ISC"
+# The npm packages allowed a license outside that list, as name=license. Each is
+# a tool that builds the widget and ends up in nothing that is shipped, and it is
+# allowed only while it stays a development dependency. lightningcss, under
+# MPL-2.0, is the CSS minifier the widget's bundler cannot be installed without.
+NPM_LICENSE_EXCEPTIONS := "lightningcss=MPL-2.0"
 
 # The origin the site is published on. Every absolute address on the site, and
 # the CNAME that claims the domain, are built from this one value.
@@ -85,15 +90,15 @@ lint:
 test:
     go test ./... -count=1
 
-# Build the server binary into bin/
-build:
+# Build the server binary into bin/, with the widget built into it
+build: web-build
     go build -trimpath -ldflags "{{ LDFLAGS }}" -o {{ BINARY }} ./cmd/server
 
-# Build the release artifacts into dist/: the server for every architecture it is
-# published for, and the sums of what was built. The version is a parameter,
-# because a release knows the number it is about to publish before any tag
-# carries it; without one, the same version the rest of the build uses.
-release-artifacts version=VERSION:
+# The version is a parameter, because a release knows the number it is about to
+# publish before any tag carries it; without one, the same version the rest of
+# the build uses. The widget is built first, so that every binary carries it.
+# Build the release artifacts into dist/: the server for every architecture, and the sums of what was built
+release-artifacts version=VERSION: (web-build version)
     #!/usr/bin/env bash
     set -euo pipefail
     ldflags="-s -w \
@@ -114,9 +119,10 @@ release-artifacts version=VERSION:
 # The sealing key is made fresh for the run and kept nowhere: locally there is
 # nothing sealed that has to outlive the process. The development sign-in lets
 # every request to the MCP endpoint in as one account, which is what a client
-# on this machine needs before any real sign-in exists.
+# on this machine needs before any real sign-in exists. The widget is built
+# first, so that a card drawn from this server is the widget of these sources.
 # Run the server from source, with logs a person can read and the development sign-in
-run:
+run: web-build
     MATHTRAIL_LOG_FORMAT=console MATHTRAIL_LOG_LEVEL=debug MATHTRAIL_DEV_AUTH=true \
         MATHTRAIL_SEAL_KEY_CURRENT="$(head -c 32 /dev/urandom | base64 | tr -d '\n')" \
         go run ./cmd/server
@@ -171,9 +177,9 @@ licenses:
     # died halfway would otherwise leave the repository claiming fewer
     # dependencies than it ships.
     printf '%s\n' "$list" > THIRD_PARTY_LICENSES
-    echo "THIRD_PARTY_LICENSES: $(grep -c 'https://' THIRD_PARTY_LICENSES) modules."
+    echo "THIRD_PARTY_LICENSES: $(grep -c 'https://' THIRD_PARTY_LICENSES) entries."
 
-# The license list as the dependency graph reports it right now
+# The license list as the dependency graphs report it right now
 _license-list:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -181,17 +187,72 @@ _license-list:
     Third-party licenses
     ====================
 
+    MathTrail itself is MIT; see LICENSE. Rewrite this file with: just licenses
+
     The Go modules below are linked into the programs this repository builds.
     Each line is a license, the module it covers, and the text of that license
-    at the exact version in go.mod. MathTrail itself is MIT; see LICENSE.
-
-    Rewrite this file with: just licenses
+    at the exact version in go.mod.
 
     HEADER
     # The report goes to stdout and the progress of the scan to stderr, which is
     # noise here. The columns are license, module, license text.
     go run {{ GO_LICENSES }} report ./... --ignore {{ MODULE }} 2>/dev/null \
         | awk -F, '{ printf "%-13s %-46s %s\n", $3, $1, $2 }'
+    cat <<'WIDGET'
+
+    The npm packages below are what the widget the server embeds is built from:
+    every package its lockfile needs outside development. Each line is a
+    license, the package at the exact version in web/package-lock.json, and the
+    page of that version in the npm registry.
+
+    WIDGET
+    node web/scripts/licenses.ts list
+
+# -- Widget -----------------------------------------------------------------
+
+# Nothing is installed while the installed packages are newer than the lockfile,
+# so that a build does not pay for an install it does not need.
+# Install the widget's packages as its lockfile pins them, when they are missing or stale
+[working-directory('web')]
+web-install:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ ! node_modules/.package-lock.json -nt package-lock.json ]; then
+        npm ci --no-audit --no-fund
+    fi
+
+# The widget tells a host its name and the version of the build it came with.
+# The page it leaves is checked at once, and an old one is removed first, so
+# that a build which wrote nothing cannot pass on the last one: the page must
+# name the handshake a host starts a widget with, which the placeholder beside
+# it does not.
+# Build the widget into the page the server embeds
+[working-directory('web')]
+web-build version=VERSION: web-install
+    #!/usr/bin/env bash
+    set -euo pipefail
+    page=../internal/widget/widget.html
+    rm -f "$page"
+    VITE_VERSION="{{ version }}" npm run --silent build:widget
+    if ! grep -q "ui/initialize" "$page"; then
+        echo "web-build: $page is not a widget a host can start" >&2
+        exit 1
+    fi
+
+# Format the widget's sources in place
+[working-directory('web')]
+web-fmt: web-install
+    npm run --silent fmt
+
+# Fail if a widget source needs formatting or breaks a lint rule
+[working-directory('web')]
+web-lint: web-install
+    npm run --silent check
+
+# Run the widget's tests
+[working-directory('web')]
+web-test: web-install
+    npm run --silent test
 
 # -- The full checks --------------------------------------------------------
 
@@ -203,6 +264,13 @@ ci-lint: fmt-check
 ci-test:
     go test ./... -race -count=1 -coverprofile=coverage.out -covermode=atomic
     go tool cover -func=coverage.out | tail -1
+
+# The widget's formatting and lint, its types, its tests with their coverage, and a build
+[working-directory('web')]
+ci-web: web-build
+    npm run --silent check
+    npm run --silent typecheck
+    npm run --silent test -- --coverage
 
 # Fail if the committed mocks are not what mockery generates
 ci-mocks-check:
@@ -222,9 +290,13 @@ ci-mocks-check:
         exit 1
     fi
 
-# Fail on a known vulnerability in code the service actually reaches
+# govulncheck reports only what the code can reach. npm has no such analysis, so
+# every package the widget is built from is held to the advisories, at high and
+# above; the tools that only build it are not, since none of them is shipped.
+# Fail on a known vulnerability in code the service reaches or a package the widget is built from
 ci-vuln:
     go run {{ GOVULNCHECK }} ./...
+    npm audit --prefix web --omit=dev --audit-level=high
 
 # Fail on a vulnerability in the image the service is shipped in. Trivy runs from
 # its own image, so nothing about it is installed here, and the same command gives
@@ -238,6 +310,58 @@ ci-image-scan tag="mathtrail:dev": (docker-build tag)
         --exit-code 1 \
         --no-progress \
         {{ tag }}
+
+# The image is started the way a developer's machine starts it — with the
+# development sign-in, which a deployment refuses, and a key made for the run —
+# and asked for the widget the way a host asks. The page arrives inside a JSON
+# answer that escapes its markup, so it is known by bare words: the placeholder
+# names itself, and a built widget names the handshake it opens.
+# Fail if the image serves the placeholder, or anything else, in place of the widget
+ci-image-widget tag="mathtrail:dev": (docker-build tag)
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # Removed when the check ends rather than when the server does, so that a
+    # server which stopped at once still has its logs to show.
+    container=$(docker run -d -p 127.0.0.1::8080 -e PORT=8080 \
+        -e MATHTRAIL_DEV_AUTH=true \
+        -e MATHTRAIL_SEAL_KEY_CURRENT="$(head -c 32 /dev/urandom | base64 | tr -d '\n')" \
+        {{ tag }})
+    trap 'docker rm -f "$container" > /dev/null' EXIT
+    address=""
+    for attempt in $(seq 1 20); do
+        # A container that has stopped publishes no port.
+        address=$(docker port "$container" 8080/tcp 2> /dev/null | head -1) || true
+        if [ -n "$address" ] && curl -fsS --max-time 2 "http://${address}/health" > /dev/null 2>&1; then
+            break
+        fi
+        address=""
+        echo "health: no answer yet (attempt ${attempt})" >&2
+        sleep 0.5
+    done
+    if [ -z "$address" ]; then
+        echo "ci-image-widget: {{ tag }} never answered its health check" >&2
+        docker logs "$container" >&2
+        exit 1
+    fi
+    # The container knows itself as localhost:8080, the one host it serves.
+    if ! answer=$(curl -fsS --max-time 10 -X POST "http://${address}/mcp" \
+        -H 'Host: localhost:8080' \
+        -H 'Content-Type: application/json' \
+        -H 'Accept: application/json, text/event-stream' \
+        -d '{"jsonrpc":"2.0","id":1,"method":"resources/read","params":{"uri":"ui://mathtrail/app.html"}}'); then
+        echo "ci-image-widget: {{ tag }} did not answer a read of the widget" >&2
+        docker logs "$container" >&2
+        exit 1
+    fi
+    if [[ "$answer" == *widget-placeholder* ]]; then
+        echo "ci-image-widget: {{ tag }} serves the placeholder: no widget was built into it" >&2
+        exit 1
+    fi
+    if [[ "$answer" != *ui/initialize* ]]; then
+        echo "ci-image-widget: {{ tag }} serves a page that is not the widget" >&2
+        exit 1
+    fi
+    echo "ci-image-widget: {{ tag }} serves the widget"
 
 # Fail if anything in the history of the repository looks like a secret
 ci-secrets:
@@ -253,6 +377,7 @@ ci-licenses:
     #!/usr/bin/env bash
     set -euo pipefail
     go run {{ GO_LICENSES }} check ./... --allowed_licenses={{ ALLOWED_LICENSES }}
+    node web/scripts/licenses.ts check --allowed {{ ALLOWED_LICENSES }} --except {{ NPM_LICENSE_EXCEPTIONS }}
     # The list is built first and compared second: a report that failed to run
     # would otherwise look exactly like a list somebody forgot to update.
     list=$(just _license-list)
@@ -456,7 +581,7 @@ ci-image-push image:
     # the first component of the image path.
     gcloud auth configure-docker "${image%%/*}" --quiet >&2
 
-    just docker-build "$tag" >&2
+    just ci-image-widget "$tag" >&2
     docker push "$tag" >&2
 
     # Read with awk rather than a Go template, whose braces would collide with

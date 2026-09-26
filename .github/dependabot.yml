@@ -16,8 +16,29 @@ updates:
         patterns: ["*"]
         update-types: [minor, patch]
 
+  # The packages the widget is built from, and the tools it is built with.
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      npm-packages:
+        patterns: ["*"]
+        update-types: [minor, patch]
+    ignore:
+      # The types of Node's own modules follow the major version of the Node
+      # the scripts run on, which moves only by hand.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+
+  # The workflows, and the actions of this repository that use actions of
+  # their own.
   - package-ecosystem: github-actions
-    directory: /
+    directories:
+      - /
+      - /.github/actions/*
     schedule:
       interval: weekly
       day: monday
@@ -32,3 +53,13 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    ignore:
+      # The widget is built by the Node its tests run on, which the development
+      # image installs from an ARG that no update here touches. So a new Node
+      # version, however small, comes in by hand and in both places at once;
+      # only a fresh digest of the same version is proposed here.
+      - dependency-name: node
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"

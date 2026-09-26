@@ -1,0 +1,22 @@
+/* The card takes the host's light or dark theme once the host names it, and
+   the browser's own colours follow the scheme; until then the device's
+   preference decides. */
+:root {
+	color-scheme: light dark;
+}
+
+body {
+	margin: 0;
+	font-family: system-ui, sans-serif;
+}
+
+/* A payload wraps rather than scrolls sideways, however narrow the card. */
+.stub {
+	margin: 0;
+	padding: 12px;
+	font:
+		12px / 1.4 ui-monospace,
+		monospace;
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}

@@ -1,6 +1,24 @@
-# Exact versions only: both images are pinned by tag and digest.
+# Exact versions only: every image is pinned by tag and digest.
 # The builder's Go version is the one the tests run on, so the shipped binary is
-# built by the same toolchain that proved it works.
+# built by the same toolchain that proved it works; the widget's Node version is
+# the one its tests run on, and moves with it.
+
+# The widget comes first: the Go build embeds the one page it leaves.
+FROM node:24.21.0-trixie-slim@sha256:b64fccfbcd1ae10d11b969a868b50e1c2530a7054813d5cdea04ac3bce551697 AS widget
+
+WORKDIR /src/web
+
+# The packages first, exactly as the lockfile pins them, so that this layer
+# survives a change to the widget's sources. No package runs an install step of
+# its own: the .npmrc beside the lockfile says so.
+COPY web/package.json web/package-lock.json web/.npmrc ./
+RUN npm ci --no-audit --no-fund
+
+COPY web/ ./
+
+# The widget tells a host the build it came with.
+ARG VERSION=dev
+RUN VITE_VERSION="${VERSION}" npm run --silent build:widget
 
 FROM golang:1.27.1-trixie@sha256:433790e515d27dc6003e847e644cc0af956985cf315c1c58a3b73ee2dd305183 AS build
 
@@ -12,6 +30,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
+COPY --from=widget /src/internal/widget/widget.html internal/widget/widget.html
 
 # The build identity comes in as arguments rather than being read from git:
 # the build context has no .git, and a version the image guesses is worse than

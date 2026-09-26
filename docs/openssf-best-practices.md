@@ -67,14 +67,14 @@ Everything below is already true: the form can be filled in one sitting.
 | `crypto_password_storage` | N/A | there are no passwords: sign-in is Google's, and no credential of a user is ever stored |
 | `crypto_random` | Met | `crypto/rand` |
 | `delivery_mitm`, `delivery_unsigned` | Met | HTTPS everywhere; release artifacts signed with keyless cosign (R40); every base image pinned by digest, every action by commit |
-| `vulnerabilities_fixed_60_days`, `vulnerabilities_critical_fixed` | Met | `govulncheck` and a Trivy scan of the runtime image fail the checks; Dependabot proposes the bumps weekly |
+| `vulnerabilities_fixed_60_days`, `vulnerabilities_critical_fixed` | Met | `govulncheck`, `npm audit` over the packages the widget is built from, and a Trivy scan of the runtime image fail the checks (R85); Dependabot proposes the bumps weekly |
 | `no_leaked_credentials` | Met | `gitleaks` over the entire history on every pull request; secrets live in Secret Manager and reach the service through its environment |
 
 ## Analysis
 
 | Criterion | Answer | Evidence |
 |---|---|---|
-| `static_analysis` | Met | `golangci-lint`, CodeQL with the `security-extended` queries, SonarCloud |
+| `static_analysis` | Met | `golangci-lint` for Go and Biome for the widget, CodeQL with the `security-extended` queries over both, SonarCloud |
 | `static_analysis_common_vulnerabilities` | Met | `gosec` in the linter and CodeQL's data-flow queries |
 | `static_analysis_fixed` | Met | R35 |
 | `static_analysis_often` | Met | every pull request, plus CodeQL weekly |

@@ -32,6 +32,9 @@ type Spec struct {
 	// Idempotent says a repeated call with the same arguments changes nothing
 	// the first one did not.
 	Idempotent bool
+	// DrawsCard says a host draws the tool's result as a card, with the
+	// widget. Which screen the card shows is for the payload to say.
+	DrawsCard bool
 }
 
 // Handler does one tool's work for one call, for the account the call acts
@@ -81,8 +84,19 @@ func (d definition[In, Out]) add(server *mcp.Server) (err error) {
 // beyond it, so neither hint is left to its default of true. Every tool also
 // says it wants the one scope a token grants, where a host that reads such a
 // declaration looks for it.
+//
+// A tool that draws a card names the widget's page twice: under the key hosts
+// read now, and under the flat key earlier hosts read, as the library's own
+// helper for such tools writes both.
 func (d definition[In, Out]) tool() *mcp.Tool {
 	no := false
+	meta := mcp.Meta{
+		"securitySchemes": []map[string]any{{"type": "oauth2", "scopes": []string{Scope}}},
+	}
+	if d.spec.DrawsCard {
+		meta["ui"] = map[string]any{"resourceUri": WidgetURI}
+		meta["ui/resourceUri"] = WidgetURI
+	}
 	return &mcp.Tool{
 		Name:        d.spec.Name,
 		Title:       d.spec.Title,
@@ -94,9 +108,7 @@ func (d definition[In, Out]) tool() *mcp.Tool {
 			DestructiveHint: &no,
 			OpenWorldHint:   &no,
 		},
-		Meta: mcp.Meta{
-			"securitySchemes": []map[string]any{{"type": "oauth2", "scopes": []string{Scope}}},
-		},
+		Meta: meta,
 	}
 }
 

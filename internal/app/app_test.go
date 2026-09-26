@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"net"
 	"net/http"
@@ -22,6 +23,8 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/app"
 	"github.com/MathTrail/mathtrail-standalone/internal/config"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
+	mcpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/mcp"
+	"github.com/MathTrail/mathtrail-standalone/internal/widget"
 )
 
 // The server must stop because its context was cancelled — the same way a
@@ -284,6 +287,64 @@ func TestContainerServesTheEndpointToSomebodySignedInOnly(t *testing.T) {
 			}
 		})
 	}
+}
+
+// The container serves the widget the binary carries — the build, or the
+// placeholder where none ran — as the page every card is drawn by.
+func TestContainerServesTheWidgetItCarries(t *testing.T) {
+	t.Parallel()
+
+	cfg := testConfig()
+	cfg.DevAuth = true
+	container := containerFrom(t, cfg)
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/mcp", strings.NewReader(
+		`{"jsonrpc":"2.0","id":1,"method":"resources/read","params":{"uri":"`+mcpserver.WidgetURI+`"}}`))
+	req.Host = "localhost" // the configured public URL's host
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json, text/event-stream")
+	rec := httptest.NewRecorder()
+	container.Router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d; body = %s", rec.Code, http.StatusOK, rec.Body.String())
+	}
+	var answer struct {
+		Result struct {
+			Contents []struct {
+				Text string `json:"text"`
+			} `json:"contents"`
+		} `json:"result"`
+	}
+	if err := json.Unmarshal(jsonRPCMessage(t, rec), &answer); err != nil {
+		t.Fatalf("the answer's message is not JSON: %v; body = %s", err, rec.Body.String())
+	}
+	contents := answer.Result.Contents
+	if len(contents) != 1 {
+		t.Fatalf("contents = %d, want the page alone", len(contents))
+	}
+	if got, want := contents[0].Text, widget.Page(); got != want {
+		t.Errorf("page served = %d bytes starting %q, want the %d bytes the binary carries, starting %q",
+			len(got), got[:min(len(got), 40)], len(want), want[:min(len(want), 40)])
+	}
+}
+
+// jsonRPCMessage is the message an answer of the MCP endpoint carries, whether
+// it came as a JSON body or as the data of the one event of a stream.
+func jsonRPCMessage(t *testing.T, rec *httptest.ResponseRecorder) []byte {
+	t.Helper()
+
+	body := rec.Body.Bytes()
+	if !strings.HasPrefix(rec.Header().Get("Content-Type"), "text/event-stream") {
+		return body
+	}
+	for line := range strings.SplitSeq(string(body), "\n") {
+		if data, isData := strings.CutPrefix(line, "data: "); isData {
+			return []byte(data)
+		}
+	}
+	t.Fatalf("the stream carries no message; body = %s", body)
+	return nil
 }
 
 func TestContainerRefusesAKeyItCannotRead(t *testing.T) {

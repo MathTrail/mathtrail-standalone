@@ -41,6 +41,9 @@ type Settings struct {
 	Logger *zap.Logger
 	// ProjectID names the project a line's trace is filed under.
 	ProjectID string
+	// Widget is the page every card is drawn by, served to a host as the
+	// widget's resource.
+	Widget string
 }
 
 // ErrSettings is returned when the endpoint is given settings it cannot be
@@ -66,6 +69,10 @@ func (s *Settings) validate() error {
 		// Every call's line and span name the wording the model had read; an
 		// empty version would leave no call tied to one.
 		return fmt.Errorf("%w: InstructionsVersion must be set", ErrSettings)
+	case s.Widget == "":
+		// A tool that draws a card would point the host at a page it cannot
+		// have, and the host would draw an empty frame for the child.
+		return fmt.Errorf("%w: Widget must be set", ErrSettings)
 	}
 	return nil
 }
@@ -94,10 +101,16 @@ func NewHandler(settings *Settings, tools ...Tool) (http.Handler, error) {
 			// Declared rather than left to the default, which also advertises
 			// logging: a feature the protocol has deprecated and this service
 			// never offered. Tools are declared even while there are none, so
-			// that a client asking for the list is told it is empty.
-			Capabilities: &mcp.ServerCapabilities{Tools: &mcp.ToolCapabilities{}},
+			// that a client asking for the list is told it is empty. Neither
+			// list is said to change: a server that keeps nothing between
+			// requests has nobody to tell.
+			Capabilities: &mcp.ServerCapabilities{
+				Tools:     &mcp.ToolCapabilities{},
+				Resources: &mcp.ResourceCapabilities{},
+			},
 		},
 	)
+	addWidget(server, settings.Widget)
 
 	names := make(map[string]struct{}, len(tools))
 	for _, tool := range tools {

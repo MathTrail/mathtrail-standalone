@@ -106,6 +106,7 @@ internal/
   app/            DI container, HTTP server
   config/ logger/ version/
   telemetry/      traces and metrics: their providers, their export, what they may carry
+  widget/         the widget page as the web build left it, embedded; a placeholder until a build runs
   domain/         pure logic — no I/O, no SDKs, no transport
     rating/ tutor/ checks/ solver/ profile/
   infra/          everything that talks to the outside world
@@ -117,7 +118,7 @@ internal/
     http/         /health, OAuth endpoints
 content/          catalogs, reference tasks and model instructions, embedded
 site/             the public site: texts per locale, templates, assets
-web/              widget sources
+web/              widget sources, built into internal/widget/
 infra/terraform/  the Google Cloud project as code — not to be confused with internal/infra/
 research/         the research program: a separate Go module that imports the product, never the reverse
 ```
@@ -225,7 +226,8 @@ Implementations of the same interface must be interchangeable, and that is worth
 ### Tooling and images
 
 - `gofmt -s`, plus `golangci-lint` with a committed `.golangci.yml` and a pinned version. (`mentor-api` has no lint config checked in — this is one of the gaps we close.)
-- A pre-commit hook in `.githooks/`, enabled by `post-start`; `govulncheck` and `gitleaks` in CI.
+- The widget in `web/`: Biome formats and lints it (`biome.json`), TypeScript checks its types and compiles nothing, Vitest runs its tests in happy-dom, and Vite builds it into one page (R84). Its tests talk to the library's own host, `AppBridge`, rather than to a mock of it.
+- A pre-commit hook in `.githooks/`, enabled by `post-start`; `govulncheck`, `npm audit` and `gitleaks` in CI.
 - The justfile is the entry point for everything; `ci-*` recipes are what CI calls — same recipe names as `mentor-api` (`fmt`, `fmt-check`, `build`, `test`, `mocks`, `ci-lint`, `ci-test`, `ci-mocks-check`).
 - Multi-stage Dockerfile, minimal non-root runtime image pinned by digest, `CGO_ENABLED=0`, `-trimpath`.
 
@@ -255,8 +257,8 @@ Inside the container:
 - **Container marker.** `MATHTRAIL_DEVCONTAINER=1` is set only inside the container. A session that does not see it is on the host and must stop (see "Devcontainer only").
 - **Claude Code.** Its config lives in the `mathtrail-standalone-claude` volume, so the login survives rebuilds. Auto-update is off; the version is pinned.
 - **`gh`.** What a change looks like on github.com is otherwise invisible from in here, and two parts of it are asked for by name: the alerts of the code scan, which a task closes before the next one starts, and whether the delivery that carried the change ran. `gh auth login` is answered once — the credentials live in the `mathtrail-standalone-gh` volume, like the other two logins.
-- **Just recipes.** `just --list` shows all of them. The everyday ones are `just fmt`, `just test`, `just lint`, `just build` and `just run` — the last with the development sign-in, so that `just inspect` (MCP Inspector's web client) and `just inspect-cli` (the same from the terminal) can talk to its MCP endpoint; the two that must be green before a task is done are **`just ci-lint`** and **`just ci-test`** (race detector and coverage), and they are what CI runs.
+- **Just recipes.** `just --list` shows all of them. The everyday ones are `just fmt`, `just test`, `just lint`, `just build` and `just run` — the last with the development sign-in, so that `just inspect` (MCP Inspector's web client) and `just inspect-cli` (the same from the terminal) can talk to its MCP endpoint; the two that must be green before a task is done are **`just ci-lint`** and **`just ci-test`** (race detector and coverage), and they are what CI runs. A change to `web/` must also pass **`just ci-web`** — the widget's formatting and lint, its types, its tests and a build; `just web-build` builds the widget alone, and `just build` and `just run` build it first.
 - **Git hooks.** `.githooks/pre-commit` is enabled by `post-start` through `core.hooksPath`. It runs formatting, a build and the tests — enough to catch what is embarrassing, while the linter, the race detector, `govulncheck` and `gitleaks` wait for CI. Where no Go toolchain is reachable — a Git client outside the container, for instance — it says so and skips those checks instead of blocking the commit: CI runs them again and is what gates a merge.
-- **The runtime image.** `just docker-build` builds it and `just docker-run` starts it on port 8080. Both base images are pinned by tag and digest in the `Dockerfile`: a Go builder and a distroless static runtime that has no shell and runs as a non-root user.
-- **Anything that is not Go runs in a container too.** `just golden` exports the prototype's vectors using the pinned `uv` image and the prototype's own PostgreSQL compose file, so no Python and no database is ever installed into the devcontainer (`testdata/golden/export/README.md`). `just inspect` runs MCP Inspector the same way, from its published image pinned by digest, so none of its npm packages is installed or left to float.
-- **Build context.** The devcontainer image is built with the repository root as context; `.dockerignore` keeps `.git`, `.env`, `prototype/`, `reference/`, `docs/`, `testdata/`, `research/` and `node_modules` out of it and out of the runtime image.
+- **The runtime image.** `just docker-build` builds it and `just docker-run` starts it on port 8080. Every image in the `Dockerfile` is pinned by tag and digest: a Node stage that builds the widget, a Go builder that embeds it, and a distroless static runtime that has no shell and runs as a non-root user.
+- **Anything that is not Go runs in a container too.** `just golden` exports the prototype's vectors using the pinned `uv` image and the prototype's own PostgreSQL compose file, so no Python and no database is ever installed into the devcontainer (`testdata/golden/export/README.md`). `just inspect` runs MCP Inspector the same way, from its published image pinned by digest, so none of its npm packages is installed or left to float. The widget's own packages are the exception, because they are part of the build: they are installed into `web/node_modules` from its lockfile, by the Node the image pins, and none of them runs an install step.
+- **Build context.** The devcontainer image is built with the repository root as context; `.dockerignore` keeps `.git`, `.env`, `prototype/`, `reference/`, `docs/`, `testdata/`, `research/`, `node_modules`, the widget built on this machine and its coverage out of it and out of the runtime image; the widget's sources stay in, and the image builds the widget itself.

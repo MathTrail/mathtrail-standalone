@@ -244,7 +244,7 @@ func TestAPathWithASlashAddedIsNotAnotherName(t *testing.T) {
 		if got := rec.Header().Get("Location"); got != "" {
 			t.Errorf("%s %s: redirected to %q, want no redirect", tc.method, tc.path, got)
 		}
-		if got := rec.Header().Get("Strict-Transport-Security"); got == "" {
+		if rec.Header().Get("Strict-Transport-Security") == "" {
 			t.Errorf("%s %s: the answer carries no Strict-Transport-Security, want every rule in place", tc.method, tc.path)
 		}
 	}
