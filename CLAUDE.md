@@ -72,7 +72,7 @@ Project context lives in these files, not in chat history.
   - Docker images and devcontainer features: exact tag plus digest;
   - Go and its modules: exact versions in `go.mod`; starlark-go has no tags, so it is pinned by pseudo-version;
   - npm dependencies: exact versions plus a lockfile;
-  - tools and VS Code extensions: exact versions;
+  - tools and VS Code extensions: exact versions. The one exception: on arm64, SonarQube for IDE downloads a Java runtime of its own, at whatever version is current, because the image installs no Java (R81);
   - GitHub Actions: pinned by commit SHA.
 
   Each tool's exact version is pinned directly where it is installed — as an `ARG` in
