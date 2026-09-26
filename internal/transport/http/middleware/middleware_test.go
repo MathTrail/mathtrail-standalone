@@ -654,25 +654,24 @@ func TestOnlyAUsableRequestIDIsKept(t *testing.T) {
 	}
 }
 
-// A request the id middleware never saw has no id, and nothing else kept under
-// its key is taken for one.
+// A request the id middleware never saw has no id, and neither has a context
+// with no request at all.
 func TestNoIDIsReadWhereNoneWasSet(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []struct {
-		name string
-		kept any
+		name    string
+		request *http.Request
 	}{
-		{name: "nothing kept", kept: nil},
-		{name: "something that is no id", kept: 42},
+		{name: "no request", request: nil},
+		{name: "a request the middleware never saw",
+			request: httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/x", http.NoBody)},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
 			c, _ := gin.CreateTestContext(httptest.NewRecorder())
-			if tc.kept != nil {
-				c.Set(middleware.RequestIDKey, tc.kept)
-			}
+			c.Request = tc.request
 			if id := middleware.RequestIDFrom(c); id != "" {
 				t.Errorf("RequestIDFrom() = %q, want no id", id)
 			}

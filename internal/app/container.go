@@ -19,6 +19,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark"
 	"github.com/MathTrail/mathtrail-standalone/internal/telemetry"
 	httpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/http"
+	mcpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/mcp"
 	"github.com/MathTrail/mathtrail-standalone/internal/version"
 )
 
@@ -135,7 +136,30 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 	// any other.
 	c.Reviewer = checks.NewReviewer(embedded, c.Solver, checks.DefaultDrawingLimits())
 
-	c.Router, err = httpserver.NewRouter(httpserver.NewHealthHandler(), log, httpserver.Observability{
+	// The MCP endpoint lets nobody in: this build can issue no token. The
+	// development sign-in lets everybody in as one account, and the
+	// configuration refuses it on a deployment.
+	signIn := mcpserver.NobodySignsIn
+	if cfg.DevAuth {
+		signIn = mcpserver.DevSignIn
+	}
+	endpoint, err := mcpserver.NewHandler(&mcpserver.Settings{
+		Instructions:        embedded.ServerInstructions(),
+		InstructionsVersion: embedded.InstructionsVersion(),
+		Version:             version.Version,
+		SignIn:              signIn,
+		Traces:              tel.TracerProvider(),
+		Logger:              log,
+		ProjectID:           cfg.GCPProjectID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	c.Router, err = httpserver.NewRouter(cfg.PublicURL, httpserver.Endpoints{
+		Health: httpserver.NewHealthHandler(),
+		MCP:    endpoint,
+	}, log, httpserver.Observability{
 		Traces:    tel.TracerProvider(),
 		Meters:    tel.MeterProvider(),
 		Flush:     tel.ForceFlush,

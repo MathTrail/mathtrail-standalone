@@ -222,7 +222,7 @@ func TestAPanicInTheMiddlewareIsCaughtByTheLastResort(t *testing.T) {
 	t.Parallel()
 
 	recorded, logs := observer.New(zapcore.DebugLevel)
-	router, err := httpserver.NewRouter(httpserver.NewHealthHandler(), zap.New(recorded), httpserver.Observability{
+	router, err := httpserver.NewRouter(publicURL, endpoints(), zap.New(recorded), httpserver.Observability{
 		Traces: burningTracers{},
 		Meters: metricnoop.NewMeterProvider(),
 		Flush:  func(context.Context, bool) error { return nil },
@@ -240,6 +240,11 @@ func TestAPanicInTheMiddlewareIsCaughtByTheLastResort(t *testing.T) {
 	}
 	if recorder.Code != http.StatusInternalServerError {
 		t.Errorf("status = %d, want %d", recorder.Code, http.StatusInternalServerError)
+	}
+	// The headers every answer carries are set above the middleware that
+	// panicked, so the last resort's answer has them too.
+	if got := recorder.Header().Get("Strict-Transport-Security"); got == "" {
+		t.Error("Strict-Transport-Security is missing from the last resort's answer, want it on every answer")
 	}
 }
 
@@ -454,7 +459,7 @@ func newWatchedRouter(t *testing.T, sampler ...sdktrace.Sampler) *watchedRouter 
 	meters := sdkmetric.NewMeterProvider(sdkmetric.WithReader(w.reader))
 	t.Cleanup(func() { _ = meters.Shutdown(context.Background()) })
 
-	router, err := httpserver.NewRouter(httpserver.NewHealthHandler(), zap.New(recorded), httpserver.Observability{
+	router, err := httpserver.NewRouter(publicURL, endpoints(), zap.New(recorded), httpserver.Observability{
 		Traces: traces,
 		Meters: meters,
 		// Reports what the context it was handed says, so that a case about
@@ -625,5 +630,18 @@ func TestAProbeIsNotCounted(t *testing.T) {
 		for _, recorded := range scope.Metrics {
 			t.Errorf("a probe was recorded under %q, want nothing counted", recorded.Name)
 		}
+	}
+}
+
+// publicURL is the address the router under test serves. Its host is the one a
+// test request carries when it names none.
+const publicURL = "http://example.com"
+
+// endpoints are the router's handlers. Nothing here asks the MCP endpoint
+// anything, so it stands in with a handler that answers nothing.
+func endpoints() httpserver.Endpoints {
+	return httpserver.Endpoints{
+		Health: httpserver.NewHealthHandler(),
+		MCP:    http.NotFoundHandler(),
 	}
 }

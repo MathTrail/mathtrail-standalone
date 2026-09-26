@@ -17,6 +17,20 @@ GOVULNCHECK := "golang.org/x/vuln/cmd/govulncheck@v1.8.0"
 GITLEAKS := "github.com/zricethezav/gitleaks/v8@v8.30.1"
 GO_LICENSES := "github.com/google/go-licenses/v2@v2.0.1"
 
+# The client the MCP endpoint is explored with while it runs locally: MCP
+# Inspector, from the image its project publishes, pinned by tag and digest so
+# that every package inside it is the one that was checked, and nothing of it is
+# installed here.
+INSPECTOR_IMAGE := "ghcr.io/modelcontextprotocol/inspector:2.7.0@sha256:ae22e300c9fc6f4088b490d78fa8079f139642de632cd9ad40f7d9a3d50b8fd8"
+# Where a local server started with `just run` serves the endpoint.
+LOCAL_MCP := "http://localhost:8080/mcp"
+# The Inspector shares this environment's network, so that it reaches the local
+# server at its own address, and it listens on the loopback alone rather than on
+# every interface its image asks for. Secrets it would keep — the tokens of a
+# sign-in, once there is one — stay in its memory, and it opens no browser,
+# since there is none in here.
+INSPECTOR_RUN := "docker run --rm --init --network host -e HOST=127.0.0.1 -e MCP_INSPECTOR_SECRET_STORE=memory -e MCP_AUTO_OPEN_ENABLED=false " + INSPECTOR_IMAGE
+
 # The image the runtime image is scanned with, pinned by tag and digest like every
 # other image this repository runs.
 TRIVY_IMAGE := "aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969"
@@ -97,13 +111,28 @@ release-artifacts version=VERSION:
     sha256sum * > SHA256SUMS
     echo "dist: $(ls | wc -l) files"
 
-# Run the server from source, with logs a person can read. The sealing key is
-# made fresh for the run and kept nowhere: locally there is nothing sealed that
-# has to outlive the process.
+# The sealing key is made fresh for the run and kept nowhere: locally there is
+# nothing sealed that has to outlive the process. The development sign-in lets
+# every request to the MCP endpoint in as one account, which is what a client
+# on this machine needs before any real sign-in exists.
+# Run the server from source, with logs a person can read and the development sign-in
 run:
-    MATHTRAIL_LOG_FORMAT=console MATHTRAIL_LOG_LEVEL=debug \
+    MATHTRAIL_LOG_FORMAT=console MATHTRAIL_LOG_LEVEL=debug MATHTRAIL_DEV_AUTH=true \
         MATHTRAIL_SEAL_KEY_CURRENT="$(head -c 32 /dev/urandom | base64 | tr -d '\n')" \
         go run ./cmd/server
+
+# The web client opens on port 6274 and shows the whole traffic.
+# Explore the MCP endpoint of a server started with `just run` in MCP Inspector
+inspect *args:
+    {{ INSPECTOR_RUN }} --server-url {{ LOCAL_MCP }} --transport http {{ args }}
+
+# One method at a time, such as `just inspect-cli --method tools/list`, or
+# `--method tools/call --tool-name <name> --tool-arg key=value`. Left alone the
+# client picks the protocol version itself; `--protocol-era modern` makes it
+# speak the newest one and `--protocol-era legacy` an older one.
+# Ask the MCP endpoint of a server started with `just run` from the terminal
+inspect-cli *args:
+    {{ INSPECTOR_RUN }} --cli --server-url {{ LOCAL_MCP }} --transport http {{ args }}
 
 # Show one reference task beside the solver that proves its answer
 solver id:
@@ -481,7 +510,15 @@ ci-smoke url:
         exit 1
     fi
 
-    echo "smoke: {{ url }} answers as {{ COMMIT }}"
+    # The MCP endpoint is there, and it lets nobody in without signing in.
+    status=$(curl -sS --max-time 10 --proto-redir "=https" -o /dev/null -w '%{http_code}' \
+        -X POST -H 'Content-Type: application/json' -d '{}' "{{ url }}/mcp")
+    if [ "$status" != "401" ]; then
+        echo "smoke: {{ url }}/mcp answered $status to a request nobody signed in, want 401" >&2
+        exit 1
+    fi
+
+    echo "smoke: {{ url }} answers as {{ COMMIT }}, and its MCP endpoint wants a sign-in"
 
 
 # -- Golden vectors from the prototype --------------------------------------

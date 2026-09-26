@@ -100,3 +100,11 @@ func TestInstructionsWithoutTheGuideStopTheService(t *testing.T) {
 	delete(src, instructionsDir+"/"+guideName)
 	wantProblem(t, src, guideName+": the file is missing")
 }
+
+func TestInstructionsWithoutTheServerInstructionsStopTheService(t *testing.T) {
+	t.Parallel()
+
+	src := contentCopy(t)
+	delete(src, instructionsDir+"/"+serverInstructionsName)
+	wantProblem(t, src, serverInstructionsName+": the file is missing")
+}

@@ -1059,6 +1059,8 @@ A refusal is not a failure. The two are answered differently:
 
 The wording rules are the same for both, and they are not stylistic: no internal error text, no stack, no Drive message passed through (CLAUDE.md, "Errors"); no answer letter and no option text in anything `submit_task` returns, because that result draws a card (5.1); and every message names what to do next — fix this field, ask again tomorrow, ask for a new task.
 
+Both are made in one place. A tool hands back either an answer — a refusal is one, marked by its `status` — or an error, and the frame every call passes through turns an error into a failure: one sentence chosen by the error's kind from a single table, never the error's own text, which is whatever the code that made it had in hand. The protocol library would otherwise send that text as it is. An error nobody named is told in the general sentence, and so is a panic, a payload that does not fit the tool's own output schema, and anything else that goes wrong below the frame. A tool that needs a sentence of its own adds a cause and its sentence to the table (R83). What the library refuses before any tool runs — arguments that do not fit the tool's input schema — reaches the model in the library's words, which describe the model's own input (remark 36).
+
 ## 7.5 Which language, and who decides
 
 Three languages travel through the system and they come from three different places. Confusing them is the easiest way to show a child the wrong thing.
@@ -1203,7 +1205,7 @@ The design and the reasoning are [02-auth](docs/architecture/02-auth.md); this s
 | Path | Method | Auth | Cache | Notes |
 |---|---|---|---|---|
 | `/health` | GET | none | `no-store` | The only path served on any `Host` |
-| `/mcp` | GET, POST | Bearer | `no-store` | The MCP endpoint, stateless Streamable HTTP over 2026-07-28 |
+| `/mcp` | GET, POST | Bearer | `no-store, no-transform` | The MCP endpoint, stateless Streamable HTTP over 2026-07-28. A GET is answered 405 by the protocol itself: without sessions there is no stream to open |
 | `/.well-known/oauth-protected-resource/mcp` | GET | none | `max-age=3600` | RFC 9728 for the resource `<public-url>/mcp` |
 | `/.well-known/oauth-protected-resource` | GET | none | `max-age=3600` | The same document at the root |
 | `/.well-known/oauth-authorization-server` | GET | none | `max-age=3600` | RFC 8414 |
@@ -1214,18 +1216,18 @@ The design and the reasoning are [02-auth](docs/architecture/02-auth.md); this s
 | `/oauth/token` | POST | PKCE or the refresh token | `no-store` | `authorization_code` and `refresh_token` |
 | `/oauth/revoke` | POST | the token itself | `no-store` | RFC 7009; revokes the grant at Google |
 
-Nothing else exists. There is no admin path, no metrics endpoint — the metrics are the logs (section 12) — and no page a child could land on.
+Nothing else exists. There is no admin path, no metrics endpoint — the metrics are the logs (section 12) — and no page a child could land on. A path with a slash added or taken away is not another name for one of these: it is an unknown path, answered with every rule of 9.2 in place rather than redirected by the router past them.
 
 ## 9.2 The rules that apply to every request
 
 | Rule | Value |
 |---|---|
-| **Host** | Only the configured public host is served; anything else gets `404` with an empty body, except `/health`. The issuer, the canonical resource and every absolute URL come from `MATHTRAIL_PUBLIC_URL`, never from the request (02-auth) |
-| **Origin** | On `/mcp`, a request carrying an `Origin` that is not the public URL is refused with `403`. The SDK's own DNS-rebinding protection stays on: the service listens on its real domain, unlike the spikes |
+| **Host** | Only the configured public host is served, compared without regard to case or to a port that is the default of its scheme; anything else gets `404` with an empty body, except `/health`. The issuer, the canonical resource and every absolute URL come from `MATHTRAIL_PUBLIC_URL`, never from the request (02-auth) |
+| **Origin** | On `/mcp`, a request carrying an `Origin` that is not the public URL's origin is refused with `403` and an empty body. A request with no `Origin` is not a browser's — a chat host's own client sends none — and passes. The SDK's own DNS-rebinding protection stays on: the service listens on its real domain, unlike the spikes |
 | **CORS** | The `.well-known` documents answer `Access-Control-Allow-Origin: *` — they are public metadata a browser-based client may fetch. Nothing else sends CORS headers, and no endpoint answers a preflight with credentials |
-| **Body size** | 1 MB on `/mcp` (a submitted task with its solver is ~20 KB), 64 KB on the OAuth endpoints, 64 KB on a fetched Client ID Metadata Document |
+| **Body size** | 1 MB on `/mcp` (a submitted task with its solver is ~20 KB), refused by the protocol library itself with `413`; 64 KB on the OAuth endpoints, 64 KB on a fetched Client ID Metadata Document |
 | **Timeouts** | Read header 5 s, read 30 s, write 60 s, idle 120 s; the way out of a stop is 9 s — three quarters to drain the requests in flight, a quarter to close what the service ran on (R74). Outbound: Google token and revocation 10 s, Drive 10 s per call, CIMD 10 s with one retry |
-| **Headers on every response** | `Strict-Transport-Security: max-age=31536000`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `Cache-Control` as the table above |
+| **Headers on every response** | `Strict-Transport-Security: max-age=31536000`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, set before anything else runs so that a refusal carries them too; `Cache-Control` as the table above. The protocol library puts `no-cache, no-transform` on every answer of `/mcp`, and `no-cache` still lets a cache keep a copy of an answer that carries a child's profile, so the endpoint replaces it with `no-store` as the headers leave, keeping `no-transform` for a streamed answer |
 | **Headers on server-rendered pages** | Plus `Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'` and `Content-Language` |
 | **The client's address** | The **last** entry of `X-Forwarded-For` — the hop the platform appended. Anything a client sends arrives before it and is therefore untrusted. Cloud Run's container contract does not document the header, so T53 confirms it on the deployed service before the per-IP limit is trusted |
 | **Method and content type** | Every endpoint answers only the methods in 9.1; `/oauth/token`, `/oauth/register` and `/oauth/revoke` require `application/x-www-form-urlencoded` or `application/json` as their RFCs say |
@@ -1256,6 +1258,12 @@ The lifetimes and formats of 02-auth, gathered:
 Until phase 5 the service runs with a development sign-in stub so that the tools can be exercised without Google (RUN T41). It is a single environment variable, and it carries its own refusal: **when `K_SERVICE` is set — which Cloud Run always sets — a service configured with the dev stub refuses to start.** Not a warning, not a log line: the process exits with a message naming the variable.
 
 The same rule covers anything else that trades safety for convenience later: the switch is an environment variable, the refusal is at startup, and the check is `K_SERVICE`, because that is the one signal a developer cannot accidentally reproduce on a laptop.
+
+What the stub does and what the service does without it (R82):
+
+- **With the stub** every request to `/mcp` acts for one account, `dev`, whether it carries a credential or not. A chat host's custom connector with no sign-in of its own sends none, and a live check through a tunnel to a developer's machine has to work with it. `just run` switches the stub on.
+- **Without it**, and until the real sign-in exists, every request to `/mcp` is refused with `401` and `WWW-Authenticate: Bearer scope="mcp"` — the refusal a client meets later for a missing or expired token, from the same library code. A deployment therefore answers nothing at `/mcp` but that refusal, and its smoke check after every delivery asks for exactly that.
+- **Either way** the signed-in account reaches the tools through the request's context and from there as an argument: the context is only the bridge between the HTTP layer, where a request is signed in, and the protocol library, which calls the tools.
 
 ---
 
@@ -1362,13 +1370,16 @@ Structured JSON on stdout, one object per line, with the keys Cloud Run reads: `
 
 Every line that belongs to one MCP request carries the same `request_id`; every line that belongs to a signed-in user carries `user` — the derived identifier of 02-auth, never Google's `sub`. A line may carry `instructions_version` when the event concerns a generated task (О-21).
 
+The request's own line, `http_request`, is the exception to `user`: it is written by the HTTP layer, which never learns who signed in, because the sign-in is decided inside the MCP endpoint. The lines a signed-in request leaves are tied to it by the `request_id` they share. Carrying the account back up through a writable note in the context would be machinery for one field. If the per-user rate limit ever needs the account in the HTTP layer, the question is reopened there (T52).
+
 ## 12.2 The events
 
 | Event | When | Fields beside the common ones |
 |---|---|---|
 | `startup`, `shutdown` | Process lifecycle | version, revision, the content's version; a `shutdown` that came before the service was up says `started: false` (R77) |
 | `http_request` | Every HTTP request, once, unless it is a probe that succeeded | status, the method from a known list, the route as declared rather than the path (R76), the query's parameters the sign-in defines, each held to its protocol's words, and a count of the others (R73), duration, body size; when there are any, the errors the request collected, each by its kind, and what it panicked with |
-| `tool_call` | Every MCP tool call, once, at the boundary | tool, outcome, status, duration_ms |
+| `tool_call` | Every MCP tool call, once, at the protocol boundary — a call the protocol refused before any tool ran included | tool (a name the service defines, or `other`), outcome (`ok`; `refused`, an answer carrying a refusal's `status`; `failed`, a failure of ours; `invalid`, refused by the protocol before any tool ran), status (a refusal's: `rejected`, `limited`, `stale`), error (why it failed or was invalid: `internal`, `timeout`, `not_signed_in`, `panic`, `arguments`, `protocol`), duration_ms, instructions_version, protocol_version (one the library speaks, or `other`), client (the chat host: `claude`, `chatgpt`, `inspector`, `other`, `unknown` — never the name a client gave itself); for a panic, what it panicked with and where, by the rule of `http_request`. Error level for `failed`, warning for `invalid` |
+| `mcp_panic` | A request to the endpoint panicked outside a tool — in the library, or in the boundary's own work around a tool call. It is answered as an internal error, and the process goes on | the method (one the protocol defines, or `other`), the user when one signed in, and the panic as above |
 | `task_requested` | `next_task` opened or returned a request | topic, level, difficulty, goal, tutor_mode, already_open |
 | `task_submitted` | Every `submit_task` | attempt, outcome, primary code, every failed check, the types of the self-check's minor issues, duration_ms, solver_steps, solver_ms |
 | `task_accepted` | A task became current | topic, level, difficulty, attempts, seconds since the request opened, instructions_version |
@@ -1411,6 +1422,10 @@ That deadline has a price, and it is paid rather than hidden: a delivery that mi
 **The metrics.** `http_request`, a count of requests, and `http_request_duration`, their time; `solver_run_steps`, what one run of the sandbox spent of its budget. A probe is counted in none of them and traced in neither, the same way the log leaves a successful one out: the platform asks for one constantly, and counted, they would make "requests answered" a measure of how often it checked rather than of how much the service was used. Unlike the log, which keeps a probe that failed, the measurements leave every probe out — counting only the failures would leave the number meaning something nobody could state in a sentence. Their labels are closed dictionaries — a route template rather than a path, a method from a known list, a status code, a solver status — because a label that can take any value turns one series into thousands, and thousands of series is what a free allowance is not.
 
 **What never reaches a span.** Everything 12.3 keeps out of a log, and two more that an off-the-shelf HTTP instrumentation would add by itself: the address the request came from and the client it was sent with. They are replaced before the span is recorded. So is the text of a span's status, which the instrumentation fills with whatever errors the request collected, a failed write naming both ends of the connection among them: it is written as the span ends, where no processor can reach it, so the exporter is handed every span without it, and the code of the status alone says whether the request failed. The answer is the sharpest case: a run of the sandbox reports its status and what it spent, never the options it arrived at.
+
+**A tool call.** Every call is a span of its own, `tools/call <tool>`, of the server kind, opened as a child of the request's span. One request is then one tree: the request, the call inside it, and whatever the tool does inside the call — a run of the sandbox, a call to Drive. The OpenTelemetry conventions for MCP suggest a different parent: the trace context a client may send inside the call's `_meta`. That parent is not taken, for two reasons. The tree would break, and a client that asked for every call to be traced would be deciding what this service keeps, which the sampling above leaves to the service (R83).
+
+The attributes follow those conventions where they name something: `mcp.method.name`, `gen_ai.operation.name` (`execute_tool`), `gen_ai.tool.name` and `mcp.protocol.version`. The service adds its own: the instructions version, the outcome, a refusal's status, and, as `error.type`, why a call failed or was invalid. Every value comes from a closed list. The call's duration is the span's own. Only a failure of ours marks the span as failed, with a fixed description. A refusal is an answer, and a call the protocol refused is the caller's mistake. An error is never recorded on the span as an event, since events reach the exporter as they are. The call's line names the call's span, not the request's, so that a reader who found the line opens the call.
 
 ## 12.6 Coverage of PRODUCT 6
 
@@ -1480,14 +1495,14 @@ Added while writing sections 7 and 8:
 17. **The host tells the widget the family's timezone.** `timeZone` in the app context, IANA format. v1 keeps its daily counters on a UTC day and displays nothing from them, so there is nothing to do — but the open question in 03-flows now has a cheap answer whenever it is wanted. **For:** T52, T57.
 18. **Every dictionary lives in the one HTML file**, because the widget has no network by design. Twenty-two locales are around 50 KB before compression. If the bundle outgrows its budget the escape is to inline one locale per `resources/read`, not to open the CSP. **For:** T42, T54, T59.
 19. **The list of 22 languages is a starting point, not a promise** (О-14а). It is chosen by speakers and plausibility, and a locale outside it lands on its language or on English by the ordinary lookup. **For:** T59.
-20. **`securitySchemes` is still an unverified placement.** T04 put it in `_meta` because the draft's top-level field does not exist on the SDK's `Tool`, and no host has been seen reading either form. **For:** T41, and a live check in T63.
+20. **`securitySchemes` is still an unverified placement.** T04 put it in `_meta` because the draft's top-level field does not exist on the SDK's `Tool`, and no host has been seen reading either form. **For:** T41, and a live check in T63. **Answered in T41:** the `Tool` of the SDK has no such field in v1.8.0 either, so every tool carries it in `_meta`, `[{"type":"oauth2","scopes":["mcp"]}]`, put there by the one function that defines a tool. Whether a host reads it is still the live check of T63.
 
 Added while writing sections 9 to 12:
 
 21. **The client's address rests on an undocumented platform behaviour.** Taking the last entry of `X-Forwarded-For` is right if the platform appends its own hop, and Cloud Run's container contract does not mention the header at all. Until T53 confirms it on the deployed service, the per-IP limit is a guess about a header. **For:** T52, T53.
 22. **Every limit's number is a starting point, not a measurement.** Thirty requests a minute, twenty tasks a day, five failed generations: chosen so that a family never meets them and a runaway meets them within a minute. T64 is the first time any of them sees real load. **For:** T52, T64.
 23. **The two tiers of configuration are a rule someone will want to break.** The first time a number in the second tier needs changing in a hurry — a drawing width after a live run, say — the temptation is to add an environment variable. The answer is a release: the golden vectors pin these numbers, and a knob that can move them can move the product out from under its own tests. **For:** T17, T58.
-24. **`MATHTRAIL_DEV_AUTH` is the only switch that trades safety for convenience**, and it is the only one allowed to exist. Anything similar added later refuses to start under `K_SERVICE` the same way, or it does not go in. **For:** T41.
+24. **`MATHTRAIL_DEV_AUTH` is the only switch that trades safety for convenience**, and it is the only one allowed to exist. Anything similar added later refuses to start under `K_SERVICE` the same way, or it does not go in. **For:** T41. **Done in T41:** 9.4 now says what the stub does and what the service does without it.
 
 Added while exporting the golden vectors (T16):
 
@@ -1500,12 +1515,12 @@ Added while writing the checks (T32):
 
 Added while writing the instructions for the model (T36.2):
 
-28. **Whether the server's instructions reach the model has not been seen.** T03 did not look at whether Claude or ChatGPT put the server's `instructions` in front of the model. The rules that must hold whatever the host — the answer stays hidden until the child has answered, an answer is recorded before anything is explained, the state of the task is read from a tool before it is spoken about — are therefore also said where the model cannot miss them: in the tools' descriptions and in their results. **For:** T41 and T43–T45, which write those; T46 and T62–T63, which see what the model actually reads.
+28. **Whether the server's instructions reach the model has not been seen.** T03 did not look at whether Claude or ChatGPT put the server's `instructions` in front of the model. The rules that must hold whatever the host — the answer stays hidden until the child has answered, an answer is recorded before anything is explained, the state of the task is read from a tool before it is spoken about — are therefore also said where the model cannot miss them: in the tools' descriptions and in their results. **For:** T41 and T43–T45, which write those; T46 and T62–T63, which see what the model actually reads. **Since T41** the endpoint hands the instructions to every model that connects, in `server/discover` and `initialize` alike, and the content refuses to load without them. Whether a host puts them in front of the model is still for T46 and T62–T63 to see.
 
 Added in the review of the package for the model (T36.1):
 
 29. **The model's reason for a choice of its own has no limit yet.** `next_task` puts the model's `reason` into the brief's `rationale` (3.4), and the brief travels in the package whole. Nothing caps its length, so neither the budget of 4.1 nor its test can count it. T43 gives `reason` a limit in the tool's input schema, and the budget test counts the longest rationale that limit allows. **For:** T43.
-30. **A profile with no excluded skills must say so with `[]`.** The rule copies `student.excluded_skills` into the brief as it stands, so a profile holding `null` there gives a brief holding `null`. The model, told to hand the brief back as it received it, hands back `null`, and the structure check (5.2) refuses a missing list — an attempt lost on every task. Either the profile is written with an empty list, or the rule turns `null` into one. **For:** T41, T43.
+30. **A profile with no excluded skills must say so with `[]`.** The rule copies `student.excluded_skills` into the brief as it stands, so a profile holding `null` there gives a brief holding `null`. The model, told to hand the brief back as it received it, hands back `null`, and the structure check (5.2) refuses a missing list — an attempt lost on every task. Either the profile is written with an empty list, or the rule turns `null` into one. **For:** T41, T43. **Not for T41:** the endpoint has no say in what a profile holds, so this stays with T43, whose `save_profile` writes the profile.
 
 Added with the solver templates (T36a):
 
@@ -1520,3 +1535,8 @@ Added with the ladder (T39b.1):
 
 34. **The shift of 2.5 between levels is a guess.** It makes the two hardest difficulties of a level overlap the two easiest of the next (2.1), which is what one would expect of neighbouring school years, and nothing has measured it. If children who do well at difficulty 5 of `1-2` then fail difficulty 2 of `3-4` — or find it a warm-up — the shift is wrong in that direction, and every θ written since carries it: a new shift moves the points and, with them, what each stored θ means. **For:** T62–T64.
 35. **The spread of the trial series, one level shift, is a simulation's number.** The simulation of R79 runs the rule, the ratings and the profile on children who answer exactly by the formula of 2.1; real children answer otherwise. Too wide a spread throws a correctly graded child about during the first five tasks, too narrow a one leaves a child the grade misplaced where it put them. The acceptance runs are the first real children to look at: how far the series moves a child whose grade was right, and how often a child still fails four tasks in a row after it. **For:** T62–T64.
+
+Added with the MCP endpoint (T41):
+
+36. **The library's refusal of arguments reaches the model in its own words.** When a call's arguments do not fit the tool's input schema, the library answers before any tool runs, with a message of its own — `validating "arguments": …`, or a decoding error that names a Go type. The message describes the model's own input and names the field, which is what the model needs to fix it, so it is kept, and it is never logged. What is left to check is that such a message never quotes a value the model wrote, in a tool that draws a card: `submit_task` above all, whose arguments are the task itself. **For:** T43, T44, with their schemas.
+37. **The library's DNS-rebinding check trusts the address a connection arrived on.** It refuses a request whose `Host` is not a loopback name when the connection's local address is a loopback one. On Cloud Run the container is reached on an interface of its own, so the check should never fire; if the platform ever delivered over loopback, every call would get `403 Forbidden: invalid Host header`. A deployment answers `/mcp` with nothing but `401` until the real sign-in, and the sign-in stands in front of the library, so the check is not reached on the deployed service before then. **For:** T53, the first signed-in call on the deployed service. The same check is why a tunnel to a developer's machine has to rewrite `Host` to `localhost:8080` (T42).

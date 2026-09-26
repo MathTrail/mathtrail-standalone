@@ -289,7 +289,7 @@ var tools = []string{"get_profile", "save_profile", "get_progress", "next_task",
 func TestTheServerInstructionsNameEveryTool(t *testing.T) {
 	t.Parallel()
 
-	text, _ := loaded(t).Instruction("mcp_instructions.md")
+	text := loaded(t).ServerInstructions()
 	for _, tool := range tools {
 		if !strings.Contains(text, "`"+tool+"`") {
 			t.Errorf("the server instructions never name %s", tool)
@@ -303,7 +303,7 @@ func TestTheServerInstructionsNameEveryTool(t *testing.T) {
 func TestTheServerInstructionsNameNothingThePrototypeHad(t *testing.T) {
 	t.Parallel()
 
-	text, _ := loaded(t).Instruction("mcp_instructions.md")
+	text := loaded(t).ServerInstructions()
 	for _, gone := range []string{"student_id", "get_next_task", "get_student_profile", "solver_code", "taskgen"} {
 		if strings.Contains(text, gone) {
 			t.Errorf("the server instructions still name %s", gone)

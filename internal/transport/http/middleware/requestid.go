@@ -8,15 +8,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/logger"
 )
 
-const (
-	// RequestIDHeader is the header a request is correlated by.
-	RequestIDHeader = "X-Request-ID"
-
-	// RequestIDKey is the gin context key holding the request id.
-	RequestIDKey = "request_id"
-)
+// RequestIDHeader is the header a request is correlated by.
+const RequestIDHeader = "X-Request-ID"
 
 // requestsSeen is what keeps two fallback identifiers apart when the source
 // of randomness has stopped answering.
@@ -29,13 +26,17 @@ const maxRequestIDLength = 64
 // RequestID gives every request an id and echoes it back. A client that sends
 // a usable one keeps it, so that a trace through somebody else's logs and a
 // trace through ours use the same word; anything else is replaced.
+//
+// The id is kept in the request's context, the one place both the handlers of
+// this framework and a handler that knows nothing of it — the MCP endpoint is
+// one — can read it from, so that every line of the request carries one id.
 func RequestID() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.GetHeader(RequestIDHeader)
 		if !usableRequestID(id) {
 			id = newRequestID()
 		}
-		c.Set(RequestIDKey, id)
+		c.Request = c.Request.WithContext(logger.WithRequestID(c.Request.Context(), id))
 		c.Header(RequestIDHeader, id)
 		c.Next()
 	}
@@ -90,10 +91,8 @@ func fallbackRequestID() string {
 
 // RequestIDFrom returns the request id set by RequestID, or an empty string.
 func RequestIDFrom(c *gin.Context) string {
-	if value, ok := c.Get(RequestIDKey); ok {
-		if id, ok := value.(string); ok {
-			return id
-		}
+	if c.Request == nil {
+		return ""
 	}
-	return ""
+	return logger.RequestID(c.Request.Context())
 }
