@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
 
@@ -17,9 +18,9 @@ import (
 type Content interface {
 	Catalog
 	TrapDescriber
-	// ReferenceQuestions are the questions of the reference tasks at the level
-	// a child of this grade is taught.
-	ReferenceQuestions(grade int) []string
+	// ReferenceQuestions are the questions of the reference tasks of this
+	// level.
+	ReferenceQuestions(level rating.GradeLevel) []string
 }
 
 // Submission is a task as it is handed in: its three parts as the JSON they
@@ -32,15 +33,16 @@ type Submission struct {
 }
 
 // Against is what a task is judged against beside itself, all of it kept in
-// the profile: the request the task answers and the child it is for.
+// the profile: the request the task answers and the tasks the child has had.
+// The child's grade is not among it: a task is held to the level its brief
+// asked for, whoever it is for.
 type Against struct {
 	// Asked is the brief the open request recorded, and a task is not judged
-	// without it: nothing else shows that it is the task that was asked for.
+	// without it: nothing else shows that it is the task that was asked for,
+	// and its level is what the wording is read against.
 	Asked *profile.Brief
 	// Language is what the task is written in, as the request recorded it.
 	Language string
-	// Grade is the child's school year.
-	Grade int
 	// Fingerprints are the sketches of the tasks the child has had.
 	Fingerprints []string
 }
@@ -188,21 +190,22 @@ func (r *reviewer) drawingMatch(task *Task) (problems []Problem, unchecked strin
 	return DrawingMatch(task.Question, task.Drawing, task.DrawingStructure), ""
 }
 
-// readability checks that a child of the grade can read the question.
+// readability checks that the question reads as a task of the level asked for.
 func (r *reviewer) readability(task *Task, against Against) (problems []Problem, unchecked string) {
 	if task == nil || solver.Blank(task.Question) {
 		return nil, "readability was not checked: that needs task.question"
 	}
-	return Readability(task.Question, against.Language, against.Grade), ""
+	return Readability(task.Question, against.Language, against.Asked.GradeLevel), ""
 }
 
 // nearDuplicates checks that the question copies no reference task of the
-// child's level and repeats none of the child's own.
+// level asked for and repeats none of the child's own.
 func (r *reviewer) nearDuplicates(task *Task, against Against) (problems []Problem, unchecked string) {
 	if task == nil || solver.Blank(task.Question) {
 		return nil, "the question was not compared with earlier tasks: that needs task.question"
 	}
-	return NearDuplicate(task.Question, against.Language, r.content.ReferenceQuestions(against.Grade), against.Fingerprints), ""
+	references := r.content.ReferenceQuestions(against.Asked.GradeLevel)
+	return NearDuplicate(task.Question, against.Language, references, against.Fingerprints), ""
 }
 
 // optionsOf are a task's five options as a solver takes them, and whether all

@@ -1,19 +1,32 @@
 package profile
 
+import "github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
+
 // Ratings is where the child stands across every topic.
 type Ratings struct {
 	// Answers is how many answers the level rests on. It narrows the step
 	// every new answer may move the level by, and it is also what the setting
 	// rotation counts: a number that never goes backwards, unlike the length
-	// of a window that is pruned.
+	// of a window that is pruned. While it is below the length of the trial
+	// series, the child is in it.
 	Answers int `json:"answers"`
 	// ConsecutiveFailures is how many wrong answers came in a row. It is the
 	// switch between going over the same ground again and moving on. A task
 	// the child skipped leaves it alone: there was no answer to learn from.
 	ConsecutiveFailures int `json:"consecutive_failures"`
-	// Theta is the level itself.
+	// Start is where the child began on the ladder: the shift of the level of
+	// the grade the profile was made with. It is written once and never moves
+	// — a grade changed later is a label — and the trial series estimates the
+	// level from it.
+	Start float64 `json:"start"`
+	// Theta is the level itself: a place on the one ladder of every grade.
 	Theta float64 `json:"theta"`
 }
+
+// InTrial reports whether the child is still in the trial series, where the
+// level is estimated from all the answers so far at once rather than moved by
+// one answer at a time. The next answer is then one of the series.
+func (r Ratings) InTrial() bool { return r.Answers < rating.TrialAnswers }
 
 // Topic is the summary of one topic the child has met. It is what lets the
 // history window stay short: everything the rule needs about the past is
@@ -31,9 +44,14 @@ type Topic struct {
 	// when a task is accepted rather than when the topic is chosen: a
 	// generation that produced nothing must not push its topic away.
 	LastIssued Date `json:"last_issued,omitzero"`
+	// MasteredLevel is the level of the task whose answer earned mastery, set
+	// and cleared together with MasteredSince. A topic counts as mastered only
+	// while its tasks come from this level or below: mastered among the tasks
+	// of grades 1–2 says nothing about those of grades 3–4.
+	MasteredLevel *rating.GradeLevel `json:"mastered_level"`
 	// MasteredSince is the day the topic was mastered, or null. A mastered
-	// topic steps out of the rotation until every topic of the grade has been
-	// mastered.
+	// topic steps out of the rotation until every topic within the child's
+	// reach has been mastered.
 	MasteredSince *Date `json:"mastered_since"`
 	// TopStreak is the run of correct answers at the harder half of the
 	// corridor with no hint — the run that earns mastery.
@@ -78,8 +96,13 @@ type Answer struct {
 	// "I don't understand" is a button that asks for a simpler explanation,
 	// not a third kind of answer.
 	Correct bool `json:"correct"`
-	// Difficulty is the level of the task that was answered.
+	// Difficulty is the difficulty of the task that was answered, inside its
+	// level.
 	Difficulty int `json:"difficulty"`
+	// GradeLevel is the level the task was written for. With the difficulty
+	// it is where the task stood on the ladder, which the trial series reads
+	// back to weigh every one of its answers again.
+	GradeLevel rating.GradeLevel `json:"grade_level"`
 	// HintUsed records that the hint was opened.
 	HintUsed bool `json:"hint_used"`
 	// Pace is how long it took.
@@ -91,4 +114,9 @@ type Answer struct {
 	Topic string `json:"topic"`
 	// Trap is the trap the wrong option led to.
 	Trap string `json:"trap,omitempty"`
+}
+
+// point is where the answered task stood on the ladder.
+func (a *Answer) point() rating.Point {
+	return rating.Point{GradeLevel: a.GradeLevel, Difficulty: a.Difficulty}
 }

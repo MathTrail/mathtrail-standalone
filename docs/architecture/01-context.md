@@ -171,7 +171,7 @@ The acceptance check for this task: every requirement in sections 4–7 belongs 
 | 4.3 Explanations are distinguishable and do not retell the solution, the hint or the catalog (О-46) | Checks |
 | 4.3 A Starlark solver finds exactly one correct option, under limits and with no network | Solver |
 | 4.3 The model's self-check against a checklist | Content (the checklist), Checks (its presence and structure), the host model |
-| 4.3 Readability for the grade | Checks |
+| 4.3 Readability for the task's level | Checks |
 | 4.3 No near-duplicate among the child's earlier tasks and the reference tasks | Checks, Storage (fingerprints) |
 | 4.3 Text drawing: format, checked by the program | Checks |
 | 4.3 Text drawing: meaning by the model's self-check, structure by comparison (О-37) | Checks, Content, the host model |

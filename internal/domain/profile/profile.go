@@ -23,6 +23,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
 // Version is the shape this package reads and writes. It is raised when a
@@ -76,9 +78,10 @@ type Profile struct {
 }
 
 // New starts a profile for a child. Everything that has to be decided once —
-// the identifier and the day it was made — is decided here, and everything
-// else starts empty: a child who has answered nothing has a level of zero,
-// which is exactly what the ratings say about them.
+// the identifier, the day it was made and where on the ladder the child
+// starts — is decided here, and everything else starts empty. The start is the
+// one thing the grade decides: the child begins at the level their grade falls
+// into, and from there only answers move them.
 //
 //nolint:gocritic // hugeParam: a student is taken by value on purpose, so that a profile cannot be handed a struct somebody else still holds a pointer to
 func New(student Student, appVersion string, now time.Time) *Profile {
@@ -88,6 +91,7 @@ func New(student Student, appVersion string, now time.Time) *Profile {
 		StudentID:        uuid.NewString(),
 		CreatedAt:        At(now),
 		Daily:            Daily{Date: DateOf(now)},
+		Ratings:          Ratings{Start: rating.Start(student.Grade), Theta: rating.Start(student.Grade)},
 		Recent:           []Answer{},
 		Revision:         1,
 		SchemaVersion:    Version,

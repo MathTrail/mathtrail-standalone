@@ -31,17 +31,17 @@ Every section is written. The architecture diagrams behind them are in [docs/arc
 
 ## 1.1 The three grade levels
 
-A child has a **grade** from 1 to 6; everything else works with the **level** the grade falls into.
+A child has a **grade** from 1 to 6, and a task has a **level** — the band of grades it is written for — and a difficulty inside that level. The grade decides one thing: where the child starts on the ladder the levels make (2.1). After that it is a label the parent may change at any time, and nothing moves with it (О-56, R79).
 
 | Level | Grades | Longest sentence | Flesch–Kincaid (English only) | Reference tasks |
 |---|---|---|---|---|
-| `1-2` | 1, 2 | 20 words | grade + 3 | from the prototype |
-| `3-4` | 3, 4 | 25 words | grade + 3 | from the prototype |
-| `5-6` | 5, 6 | **30 words** | grade + 3 | written in T37–T39 |
+| `1-2` | 1, 2 | 20 words | 4 | from the prototype |
+| `3-4` | 3, 4 | 25 words | 6 | from the prototype |
+| `5-6` | 5, 6 | **30 words** | 8 | written in T37–T39 |
 
-The sentence limits for `1-2` and `3-4` are the prototype's D38, measured on its 450 reference tasks; `5-6` continues the series, as О-30 requires. The Flesch–Kincaid margin of +3 is D38's and applies to English tasks only (the prototype's D42). The checks themselves are section 5.
+The sentence limits for `1-2` and `3-4` are the prototype's D38, measured on its 450 reference tasks; `5-6` continues the series, as О-30 requires. The Flesch–Kincaid margin of +3 is D38's and applies to English tasks only (the prototype's D42); it is counted from the youngest grade of the level, because a task is written for a level and not for one child's grade. The checks themselves are section 5.
 
-The level governs four things: which topics exist, what "difficulty 3" means, the readability limits above, and which reference tasks the model is shown. **Difficulty is a level from 1 to 5 inside the level** — a difficulty-3 task for grades 1–2 and one for grades 5–6 are different tasks (the prototype's D36).
+The level of a task governs four things: which topics exist there, what "difficulty 3" means, the readability limits above, and which reference tasks the model is shown. **Difficulty is a level from 1 to 5 inside the level** — a difficulty-3 task for grades 1–2 and one for grades 5–6 are different tasks (the prototype's D36). The fifteen pairs of a level and a difficulty stand on one ladder, where the hardest tasks of a level overlap the easiest of the next (2.1), and a child moves along it by their answers: down when the tasks are too hard, up when they are easy, whatever their grade.
 
 ## 1.2 The topic catalog
 
@@ -197,12 +197,24 @@ The child's level and the task's difficulty live on one scale — a Rasch model 
 
 | Symbol | Meaning | Where it lives |
 |---|---|---|
-| θ | The child's overall level | `ratings.theta` (04-profile) |
+| θ | The child's overall level: a place on the ladder below | `ratings.theta` (04-profile) |
 | δ_topic | The correction for one topic; 0 for a topic never met, so a new topic starts from the overall level | `topics[t].delta` |
-| β | The difficulty of the task: **β = difficulty − 3**, so 1 → −2 and 5 → +2 | Derived, not stored |
+| β | The place of the task on the ladder: **β = the shift of its level + (difficulty − 3)** | Derived, not stored |
 | 0.2 | The guessing floor: five options and no penalty for a wrong answer | Constant |
 
-A fresh profile, θ = 0 and δ = 0, therefore expects:
+**The ladder.** A task is a level and a difficulty from 1 to 5 inside it, and all fifteen of them stand on the scale θ is measured on:
+
+| Level | Shift | d = 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|---|
+| `1-2` | 0 | −2 | −1 | 0 | +1 | +2 |
+| `3-4` | 2.5 | +0.5 | +1.5 | +2.5 | +3.5 | +4.5 |
+| `5-6` | 5 | +3 | +4 | +5 | +6 | +7 |
+
+Each level stands 2.5 above the one before it, so the two hardest difficulties of a level overlap the two easiest of the next and no two points coincide: difficulty 5 of `1-2` falls between difficulties 2 and 3 of `3-4`. The shift of `1-2` is zero, so every number of the prototype, the examples of 2.6 and 2.7 and the golden vectors stay as they are. 2.5 is a guess with no data behind it, and the live runs revisit it (remark 34).
+
+**The start.** A child begins at θ₀, the shift of the level their grade falls into: 0 for grades 1–2, 2.5 for grades 3–4, 5 for grades 5–6. It is written into `ratings.start` when the profile is created, and θ starts there. The grade decides nothing else: changed later, it moves neither θ, nor θ₀, nor the trial series of 2.2.1 (О-56).
+
+A child at the start of their level, θ = θ₀ and δ = 0, therefore expects, at the five difficulties of that level:
 
 | difficulty | 1 | 2 | 3 | 4 | 5 |
 |---|---|---|---|---|---|
@@ -229,13 +241,34 @@ The two K₀ differ for a reason the prototype measured (its D37): with one K₀
 
 **Only correctness enters the formula** (О-33). The hint, the pace, "I don't understand" and the run of failures are recorded (04-profile) and change what is chosen next (section 3) — never the rating, which stays an honest estimate of what the child knows. The pace tag itself is computed by the server from the time between handing the task out and the answer: `fast` under 60 seconds, `slow` over 180, `normal` in between, as in the prototype; T15 confirms the numbers in the configuration.
 
+### 2.2.1 The trial series
+
+The start is a guess about where a child stands, made from the grade the parent entered, and the step above is built for a rating that is roughly right already: a child placed a level too high would fail task after task while it walked down, with a step narrowing as it went. So the first **five** answers are a **trial series**, and while `ratings.answers` is below five:
+
+- each task is on a topic the child has not met while one is within reach, and a failure is not worked over again (3.2);
+- after every answer θ is set to the **most likely level given the start and every trial answer at once** — the θ that maximises
+
+  **L(θ) = −(θ − θ₀)² / (2σ₀²) + Σᵢ [ Sᵢ · ln P(θ − βᵢ) + (1 − Sᵢ) · ln(1 − P(θ − βᵢ)) ]**, with P(x) = 0.2 + 0.8 · σ(x),
+
+  a normal prior centred on the start times the chance of each answer given; its spread is **σ₀ = 2.5**, one level shift, so that five answers can move a child a level either way;
+- the corrections of the topics do not move: a trial answer says where the child stands, not what they know of one topic. Everything else about the answer is written as usual — the topic's `answers` and `correct`, its traps, the runs mastery is counted by, the window;
+- the fifth answer is the last of the series. From the sixth on, θ and δ move by the step above, with n counting the trial answers too.
+
+Every estimate is made from all the trial answers so far, not from the previous estimate, so an answer can move θ further than the step ever would and an early slip is weighed again at every later answer. The trial answers are read from the window of recent answers, which keeps each one's level and difficulty and is never shorter than five (04-profile). With no answers the estimate is θ₀.
+
+**How it is computed.** At the maximum the pull of the prior, (θ − θ₀) / σ₀², equals the pull of the answers, and no answer pulls harder than 1: a wrong one by σ(θ − β), a right one by 0.8 · σ(1 − σ) / (0.2 + 0.8 · σ), which is never more than 0.382. So after n answers the maximum lies within n · σ₀² of θ₀ — 31.25 at five. L is evaluated on a grid of step 0.05 across that interval, and the best cell is halved on the sign of L′ until it no longer narrows. A grid rather than Newton's method from θ₀, because L can have two peaks: five right answers at difficulty 5 of `5-6` from a start at 0 put one near 0.1 and a higher one near 7.7, and a method that climbs from the start stops at the lower.
+
+The spread is a simulation's number rather than an argument — R79 has the runs — and the live runs revisit it (remark 35).
+
 ## 2.3 The corridor and the recommended difficulty
 
 The **corridor** is the range of difficulties where the probability of a correct answer is P ∈ [0.70, 0.85]. Math Garden keeps success near 0.75 and the "85 % rule" gives the upper bound (the prototype's research/06).
 
-On the β scale the corridor is the interval **[θ + δ − 1.4663, θ + δ − 0.5108]**, which is 0.9555 wide — narrower than the gap of 1.0 between difficulty levels. So **the corridor holds at most one level, and sometimes none**, and after every wrong answer it slides toward easier tasks, whether or not the recommended level moves with it.
+On the β scale the corridor is the interval **[θ + δ − 1.4663, θ + δ − 0.5108]**, which is 0.9555 wide — narrower than the gap of 1.0 between two difficulties of a level. So **the corridor holds at most one difficulty of a level, and sometimes none**; where two levels overlap on the ladder their points stand 0.5 apart, and the corridor can hold two of them. After every wrong answer it slides toward easier tasks, whether or not the recommended point moves with it.
 
-The **recommended difficulty** is therefore defined without needing the corridor to be non-empty: the level from 1 to 5 whose P is closest to the middle of the corridor, **0.775**, carrying a marker of where it landed — `inside`, `harder than the corridor` (P < 0.70) or `easier than the corridor` (P > 0.85).
+The **recommended point** is therefore defined without needing the corridor to be non-empty. It is chosen among **the points of the topic** — every difficulty of every level the topic is taught at (1.2), up to fifteen — and it is the one whose P is closest to the middle of the corridor, **0.775**, the easier of two equally close; it carries a marker of where it landed — `inside`, `harder than the corridor` (P < 0.70) or `easier than the corridor` (P > 0.85). Its level and difficulty are what a brief asks for (section 3), and "the recommended difficulty" below means the difficulty of that point.
+
+A topic is **within reach** when its easiest point — difficulty 1 of the lowest level it is taught at — has P ≥ 0.70 at θ + δ: when that point is in the corridor or easier than it. A topic taught from `1-2` is within reach down to θ + δ = −1.4892; `logic.knights_liars`, taught from `3-4`, from 1.0108; and a topic of `5-6` alone from 3.5108. A higher level never closes a topic that was open. The rule sets only topics within reach (3.2).
 
 ## 2.4 The chess scale and the ranks
 
@@ -245,7 +278,9 @@ What the child is shown is not θ but a chess-style number (PRODUCT 4.5):
 
 Applied to θ it gives the overall rating; applied to θ + δ_topic, the rating for a topic. It is displayed rounded to a whole number.
 
-Above the number comes a rank: five steps, named by dictionary keys and translated in T59 (О-48, R12). The step width is one corridor — 0.9555 on the θ scale, **166 rating points** — centred on the starting 1500, so that moving up a rank means roughly "tasks a whole corridor harder than before are now in reach":
+There is one scale for every child: the number is a place on the ladder of grades 1–6, not a distance from where the child began. A child of grades 1–2 starts at 1500, one of grades 3–4 at 1934 and one of grades 5–6 at 2369 (О-56).
+
+Above the number comes a rank: **eleven steps**, named by dictionary keys and translated in T59 (О-48, R12, R79). The step width is one corridor — 0.9555 on the θ scale, **166 rating points** — counted from 1500, so that moving up a rank means roughly "tasks a whole corridor harder than before are now in reach", and eleven of them cover the whole ladder: a child for whom difficulty 1 of `1-2` is just right, at P = 0.775, stands at 1316, in the first, and one for whom difficulty 5 of `5-6` is, at 2879, in the last.
 
 | Rank | Overall rating R |
 |---|---|
@@ -253,9 +288,17 @@ Above the number comes a rank: five steps, named by dictionary keys and translat
 | 2 | 1334 – 1499 |
 | 3 | 1500 – 1665 |
 | 4 | 1666 – 1831 |
-| 5 | 1832 and above |
+| 5 | 1832 – 1997 |
+| 6 | 1998 – 2163 |
+| 7 | 2164 – 2329 |
+| 8 | 2330 – 2495 |
+| 9 | 2496 – 2661 |
+| 10 | 2662 – 2827 |
+| 11 | 2828 and above |
 
-The rank is computed when it is drawn and is not stored (R12).
+The starts fall in ranks 3, 5 and 8. The rank is computed when it is drawn and is not stored (R12).
+
+**During the trial series neither is shown.** The series of 2.2.1 has not found the child's place yet, and a number that jumps by hundreds between two answers would say the opposite; what is shown instead is how many of its five tasks are done (7.3). The first rating a child sees is the one the series ends on.
 
 ## 2.5 When a topic counts as mastered
 
@@ -265,13 +308,17 @@ The rank is computed when it is drawn and is not stored (R12).
 
 Each part earns its place: P ≤ 0.775 means "the harder half of the corridor or harder", so easy tasks cannot add up to mastery; the hint would make the run measure the hint instead of the child; five answers keep a lucky start from mastering a topic on the third task; three in a row is short enough to be reachable and long enough to rule out guessing, which is worth 0.2 per attempt.
 
-The run is `topics[t].top_streak` in the profile: it grows on an answer meeting all the conditions, resets to zero on a wrong answer, and stays put on a correct but easy or hinted answer.
+The run is `topics[t].top_streak` in the profile: it grows on an answer meeting all the conditions, resets to zero on a wrong answer and once it completes, and stays put on a correct but easy or hinted answer.
 
 **Mastery is lost** after **two consecutive wrong answers** in that topic: `mastered_since` is cleared and the topic returns to the rotation. One wrong answer is a slip and does not undo anything.
 
-A mastered topic is skipped when the rule looks for something new, until every topic of the level is mastered — after which all of them are back in the rotation (section 3).
+**Mastery is held at a level.** Beside the day, the profile keeps the level of the task whose answer completed the run, `topics[t].mastered_level`. The topic counts as mastered only while its recommended point (2.3) stays at that level or below: once the child's level in the topic moves the recommended point up a level, the topic is back in the rotation — mastered at `1-2` says nothing about the tasks of `3-4`. A run completed there masters it again, at the higher level, with a new day; a run completed at the level it is mastered at or below adds nothing, and mastery never moves down. A run is spent once it completes — `top_streak` starts again from zero — whether it earns mastery or finds the topic mastered already, so mastering at the next level takes a run of its own there rather than one answer added to a run of the tasks below. Losing mastery clears both fields, at whatever level it was held.
+
+A mastered topic is skipped when the rule looks for something new, until every topic within reach is mastered — after which all of them are back in the rotation (section 3).
 
 ## 2.6 Worked example 1: a new child, ten answers
+
+This is the arithmetic of the step of 2.2, run from θ = 0 on tasks of `1-2`, whose β is their difficulty − 3. It is not how a new child's first lesson goes: a child who really begins here spends the first five answers in the trial series of 2.2.1, where δ does not move — example 2.9 is that lesson.
 
 Two topics, A = `combinatorics.enumeration` and B = `parity.alternation`, starting from an empty profile. θ and δ are the values **before** the answer, θ′ and δ′ the values after; the corridor column is the β interval after the update, and "next d" is what the rule would ask for next in that topic.
 
@@ -296,7 +343,7 @@ After the tenth answer: θ = 0.3271, an overall rating of **1557**; topic A sits
 
 ## 2.7 Worked example 2: three failures in a row
 
-A settled child — θ = 0.9 over 20 answers, topic A at δ = 0.3 over 8 answers — gets difficulty 3 three times and fails all three. This is the path the rule takes after a failure (section 3), and it shows the corridor sliding.
+A settled child — θ = 0.9 over 20 answers, topic A at δ = 0.3 over 8 answers — gets difficulty 3 of `1-2` three times and fails all three. This is the path the rule takes after a failure (section 3), and it shows the corridor sliding. The next point is the same whether it is sought among the difficulties of `1-2` or over the whole ladder, and so is every next point of 2.6.
 
 | # | d | β | θ | δ | P | S | θ′ | δ′ | corridor in β | next d |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -305,11 +352,29 @@ A settled child — θ = 0.9 over 20 answers, topic A at δ = 0.3 over 8 answers
 | 3 | 3 | +0 | 0.7437 | −0.1442 | 0.7164 | 0 | 0.6755 | −0.3353 | −1.13 … −0.17 | **2** (P 0.83, inside) |
 | 4 | 2 | −1 | 0.6755 | −0.3353 | 0.8340 | 1 | 0.6910 | −0.2924 | −1.07 … −0.11 | 2 (P 0.84, inside) |
 
-The corridor moves toward easier tasks after **every** failure — its β interval slides from [−0.58, 0.37] to [−1.13, −0.17] — while the recommended level, which can only be a whole number, holds at 3 for two failures and drops to 2 on the third. That is the intended behaviour and worth knowing before anyone reports it as a bug: one slip does not change what the child is offered, a run of them does.
+The corridor moves toward easier tasks after **every** failure — its β interval slides from [−0.58, 0.37] to [−1.13, −0.17] — while the recommended difficulty, which can only be a whole number, holds at 3 for two failures and drops to 2 on the third. That is the intended behaviour and worth knowing before anyone reports it as a bug: one slip does not change what the child is offered, a run of them does.
 
 ## 2.8 What T25 must reproduce
 
-Both tables are the test vectors for the ratings package. The implementation computes in `float64` and must match the four decimals printed here to within 1e-4, and the ratings rounded to whole numbers exactly. The inputs are fully specified: the constants of 2.1 and 2.2, β = difficulty − 3, and the step sequences above. The golden files carried over from the prototype (T16) are a separate, larger set; these two examples exist so that a failure can be read by eye.
+Both tables are the test vectors for the ratings package. The implementation computes in `float64` and must match the four decimals printed here to within 1e-4, and the ratings rounded to whole numbers exactly. The inputs are fully specified: the constants of 2.1 and 2.2, β = difficulty − 3 on the level `1-2`, and the step sequences above. The golden files carried over from the prototype (T16) are a separate, larger set; these two examples exist so that a failure can be read by eye. The trial series of 2.9 is the third vector, held to the same four decimals since T39b.2.
+
+## 2.9 Worked example 3: the trial series
+
+A child of grade 3 starts at θ₀ = 2.5 and stands in fact about a level lower. The rule takes a new topic each time — the first one within reach in catalog order that the child has not met (3.2) — at the point its corridor recommends, and the answers come wrong, right, wrong, right, right. θ is the estimate before the answer and θ′ the estimate of 2.2.1 after it, from all the trial answers so far; δ is 0 throughout, since no topic has been met before and none moves during the series.
+
+| # | topic | level, d | β | θ | P | S | θ′ | shown |
+|---|---|---|---|---|---|---|---|---|
+| 1 | `logic.ordering` | `3-4`, 2 | +1.5 | 2.5000 | 0.7848 | 0 | 0.6407 | 1 of 5 |
+| 2 | `combinatorics.enumeration` | `1-2`, 3 | 0.0 | 0.6407 | 0.7239 | 1 | 1.1189 | 2 of 5 |
+| 3 | `logic.knights_liars` | `3-4`, 1 | +0.5 | 1.1189 | 0.7200 | 0 | 0.2536 | 3 of 5 |
+| 4 | `counting.gaps` | `1-2`, 2 | −1.0 | 0.2536 | 0.8223 | 1 | 0.4532 | 4 of 5 |
+| 5 | `time.clocks` | `1-2`, 2 | −1.0 | 0.4532 | 0.8484 | 1 | 0.6039 | 5 of 5 |
+
+After the series θ = 0.6039, a rating of **1605** in rank 3 — below the start of grades 3–4 and above that of grades 1–2 — and it is the first rating the child is shown. The sixth answer moves θ by the step of 2.2, with n = 5.
+
+Read down the table. One wrong answer at P = 0.78 takes the estimate from the start of grades 3–4 to 0.64, and the second task is difficulty 3 of `1-2` rather than difficulty 2 of `3-4`. `logic.knights_liars`, taught only from `3-4`, is out of reach at 0.6407 — its easiest point, difficulty 1 of `3-4`, stands at P = 0.6281 — so the rule passes over it for the second task and takes it for the third, once a right answer has lifted the estimate to 1.1189, where that point stands at 0.7200. Every estimate weighs all the answers so far: after the third — two wrong, one right — it is 0.2536, below where the first wrong answer alone had put it.
+
+**Step 1 by hand.** One answer, wrong, at β = 1.5. At the maximum the two pulls of 2.2.1 balance: (θ − 2.5) / 6.25 = −σ(θ − 1.5). At θ = 0.6407 the left side is −0.2975, and σ(0.6407 − 1.5) = σ(−0.8593) = 0.2975. **Step 2** adds a right answer at β = 0: (θ − 2.5) / 6.25 = −σ(θ − 1.5) + 0.8 · σ(θ)(1 − σ(θ)) / (0.2 + 0.8 · σ(θ)), and at θ = 1.1189 both sides are −0.2210.
 
 ---
 
@@ -325,7 +390,8 @@ It is deterministic by design (the prototype's D40): the same profile always pro
 |---|---|
 | `pedagogical_goal` | `reinforce` or `new_topic` — 3.2 |
 | `target_concept` | A topic id from the catalog — 3.2 |
-| `difficulty` | 1–5, the recommended difficulty for that topic (2.3) |
+| `grade_level` | The level of the recommended point for that topic (2.3) |
+| `difficulty` | 1–5, the difficulty of that point: the recommended difficulty |
 | `setting` | One of the child's interests, rotated — 3.2 |
 | `traps_to_use` | Two trap ids — 3.2 |
 | `excluded_skills` | Copied from the profile, all of them |
@@ -334,22 +400,27 @@ It is deterministic by design (the prototype's D40): the same profile always pro
 
 `motivate`, the prototype's third goal, is gone (О-34): the corridor already keeps tasks within reach, and a goal the rule never issued was dead weight in every test. The prototype's `profile_fields_used` is gone too — it existed to measure which profile fields mattered, and with a deterministic rule and aggregate-only logs (О-16) it has no reader.
 
+The child's grade is not in the table, and the rule never reads it: the grade has set where the child started (2.1), and from there the ratings say where they stand.
+
 ## 3.2 The algorithm
+
+**The topics within reach.** Every topic of the catalog whose easiest point is within reach of the child (2.3), in catalog order. A child below every topic of the catalog — possible only after a run of failures from the very bottom of the ladder — is given instead the topics whose easiest point is the easiest the catalog has: those taught from `1-2`, where the ladder starts and nothing easier exists.
 
 **Goal and topic.**
 
-1. If `ratings.consecutive_failures` > 0 **and `recent` is not empty** → the goal is `reinforce` and the topic is **the topic of the last entry in `recent`** — the one just failed. The window is never pruned below five entries precisely so that this holds (04-profile); the emptiness check is there anyway, because a profile restored from an older revision or edited by hand can arrive in any shape, and a rule that panics on its own input is a bug rather than a guarantee. An empty window falls through to step 2.
-2. Otherwise the goal is `new_topic` and the topic is chosen among the topics of the child's **level** that are **not mastered**: those never handed out come first, in catalog order; then the one whose `topics[t].last_issued` is the oldest.
-3. If every topic of the level is mastered, the same choice runs over all of them.
+1. **In the trial series** (2.2.1) a failure is not worked over: the goal is `new_topic`, and the topic is chosen as in step 3, where the topics never handed out come first — so each trial task has a topic of its own while one is within reach.
+2. Otherwise, if `ratings.consecutive_failures` > 0 **and `recent` is not empty** and **the topic of the last entry in `recent` is within reach** → the goal is `reinforce` and the topic is that one — the one just failed. The window is never pruned below five entries precisely so that this holds (04-profile); the emptiness check is there anyway, because a profile restored from an older revision or edited by hand can arrive in any shape, and a rule that panics on its own input is a bug rather than a guarantee. An empty window, or a failed topic that the failures themselves have taken out of reach, falls through to step 3: a topic out of reach would only be failed again.
+3. Otherwise the goal is `new_topic` and the topic is chosen among the topics within reach that are **not mastered** at their recommended level (2.5): those never handed out come first, in catalog order; then the one whose `topics[t].last_issued` is the oldest.
+4. If every topic within reach is mastered, the same choice runs over all of them.
 
-**Difficulty.** The recommended difficulty for that topic (2.3), with its marker. A topic never met has δ = 0, so the child's overall level decides — a cold start that is right far more often than a fixed "start at 3".
+**Level and difficulty.** The recommended point for that topic (2.3), with its marker: its level is the brief's `grade_level` and its difficulty the brief's `difficulty`. A topic never met has δ = 0, so the child's overall level decides — a cold start that is right far more often than a fixed "start at 3".
 
 **Setting.** The interests are walked in a circle: `interests[ratings.answers mod len(interests)]`. The prototype rotated by the number of history rows; with a bounded window (О-40) that number would start repeating, and the rule would quietly stop being deterministic, so the total answer count takes its place. No interests, no setting: the model picks one.
 
 **Traps.** Two ids, in this order:
 
 1. The child's most frequent traps in this topic, from `topics[t].traps`, most frequent first and ties broken by catalog order.
-2. If fewer than two, top up with the most frequent traps of the reference tasks of that topic and level — the 450 examples and their successors carry trap labels already, so no separate list has to be kept in step (the prototype's D40).
+2. If fewer than two, top up with the most frequent traps of the reference tasks of that topic at the brief's level, then at the levels nearest it, the lower first — the 450 examples and their successors carry trap labels already, so no separate list has to be kept in step (the prototype's D40).
 
 **Constraints and prohibitions.** `excluded_skills` is copied whole from the profile. The child's free-form notes (О-31) do not enter the brief: they travel in the package as context for the model's tone and level, and the rule never reads them.
 
@@ -361,12 +432,15 @@ It is deterministic by design (the prototype's D40): the same profile always pro
 | Reads the whole history | Reads the window and the per-topic summary | О-40 and the file size budget (04-profile) |
 | Three goals, including `motivate` | Two | О-34 |
 | Two grade levels | Three | О-12 |
+| The grade picks the topics and what a difficulty means | The grade picks only the start; the tasks stand on one ladder, and the trial series finds the child's place on it | О-56 |
 | Setting rotates by the number of history rows | By the total answer count | The window makes the row count non-monotonic |
 | `profile_fields_used` in the brief | Dropped | No reader left |
 
 ## 3.4 When the model chooses instead
 
-The model may ask for a different topic or difficulty, and must give a reason (PRODUCT 4.1, the prototype's D43). It passes `topic`, `difficulty` and `reason` to `next_task`; the examples, the traps and the corridor all follow **its** choice, `rationale` keeps both its reason and the rule's suggestion, and `open_request.tutor_mode` becomes `llm` instead of `rule` (04-profile).
+The model may ask for a different topic, level or difficulty, and must give a reason (PRODUCT 4.1, the prototype's D43). It passes `topic`, `grade_level`, `difficulty` and `reason` to `next_task`; the examples, the traps and the corridor all follow **its** choice, `rationale` keeps both its reason and the rule's suggestion, and `open_request.tutor_mode` becomes `llm` instead of `rule` (04-profile).
+
+It may ask for any topic of the catalog, at any level that topic is taught at, whether or not it is within reach: the reason is what makes an exception. What it leaves out, the corridor of the topic fills in — a topic alone is set at its recommended point, a level alone at the recommended difficulty of that level, a difficulty alone at the level of the recommended point. A topic the catalog does not have, or a level the topic is not taught at, is refused: no reference task, trap or limit could stand on it.
 
 **The goal stays the rule's** (the prototype's D44). A brief may therefore read `reinforce` on a topic the child has never practised: that records "a failure just happened and the child asked for something else", which is a fact about the child, not a defect. The goal describes the child's situation; `tutor_mode` records who chose the topic.
 
@@ -374,9 +448,9 @@ When the model sets a difficulty of its own, that difficulty is used as given �
 
 ## 3.5 The rule on the example profile
 
-Running the rule on the profile printed in 04-profile: `consecutive_failures` is 1, so the goal is `reinforce` and the topic is the one from the last entry of the window, `combinatorics.enumeration` — the task just failed.
+Running the rule on the profile printed in 04-profile: 57 answers put the child long past the trial series, and `consecutive_failures` is 1, so the goal is `reinforce` and the topic is the one from the last entry of the window, `combinatorics.enumeration` — the task just failed, and a topic taught from `1-2`, within reach of anybody standing this high.
 
-That topic stands at θ + δ = 0.42 + 0.31 = 0.73, which puts the corridor at β ∈ [−0.74, 0.22] and the five levels at P = 0.9510, 0.8795, 0.7398, 0.5463 and 0.3754. The nearest to 0.775 is **difficulty 3**, at P = 0.7398, inside the corridor; difficulty 2 at 0.8795 is easier than the corridor. So the child is offered the same difficulty they have just failed — the corridor has already slid toward easier tasks, but not yet far enough to cross a level, exactly as 2.7 describes. A second failure would move it.
+That topic stands at θ + δ = 2.92 + 0.31 = 3.23, which puts the corridor at β ∈ [1.76, 2.72]. Two of the topic's fifteen points fall inside it: difficulty 5 of `1-2`, β = 2, at P = 0.8191, and difficulty 3 of `3-4`, β = 2.5, at P = 0.7398; difficulty 2 of `3-4` at 0.8795 is easier than the corridor and difficulty 1 of `5-6` at 0.6458 harder. The nearest to 0.775 is **difficulty 3 of `3-4`**, at P = 0.7398, inside the corridor. So the child is offered the same point they have just failed — the corridor has already slid toward easier tasks, but not yet far enough to cross a point, exactly as 2.7 describes. A second failure would move it, to difficulty 5 of `1-2`.
 
 The setting is `interests[57 mod 3]` = `interests[0]` = `space`. The traps are the child's most frequent in that topic: `missed_case`, seen three times, then `double_count`, seen once. The prohibitions are `division_with_remainder`. The rationale names the failure and the topic.
 
@@ -395,19 +469,19 @@ Returned by `next_task`, never rendered as a card (03-flows), and assembled fres
 | Part | What it is | Size |
 |---|---|---|
 | The brief | 4.2, built by the rule or adjusted by the model (section 3) | ~0.6 KB |
-| The corridor | The recommended difficulty, its marker, and the corridor as a β interval (2.3) | small |
+| The corridor | The recommended point — its level and difficulty — with its marker, the corridor as a β interval, and the chance of a correct answer at every point of the topic (2.3) | ~0.9 KB for a topic of three levels |
 | The topic | Its id, name and description from the catalog | small |
 | The traps | The whole catalog of 20, with descriptions — the two in the brief are a recommendation, and the model needs the others to choose an alternative that fits its plot | ~2 KB |
 | The prohibitions | The description of every skill in `excluded_skills` | ~0.1 KB a skill, 1.4 KB at the profile's limit of fifteen |
-| The child's context | Grade, interests, and the free-form notes, capped at 500 characters (О-31), the notes inside a delimited block introduced as information rather than instructions — 4.1.2. The pseudonym is **not** repeated here — it has no business in a task, and the package is the one place it is easy to leave out | ~1 KB at the profile's limits in Latin letters, up to 3.7 KB in characters of four bytes and 5.5 KB in the characters JSON has to escape |
+| The child's context | Grade — the child's age, for the words and the plot, which moves neither the level nor the limits (О-56) —, interests, and the free-form notes, capped at 500 characters (О-31), the notes inside a delimited block introduced as information rather than instructions — 4.1.2. The pseudonym is **not** repeated here — it has no business in a task, and the package is the one place it is easy to leave out | ~1 KB at the profile's limits in Latin letters, up to 3.7 KB in characters of four bytes and 5.5 KB in the characters JSON has to escape |
 | Three reference tasks | 4.1.1, each without its id, level and solver: the solver is not shown (1.5) | ~3.6 KB |
 | Solver templates | One or two for this topic from `content/solvers/<topic>/`, each the solver of one of its reference tasks generalised (6.7), marked as samples one may depart from (О-43, R08, R64). A topic with no reference tasks has none yet, and the part is an empty list | 1–2.5 KB |
 | Drawing frames | The frames of `content/drawings/` made for this topic, each a drawing with `#` where a number goes and Latin capitals for its labels, what it is for and how it is filled, and its structure (4.4, О-44, R09, R66). A topic without frames gets an empty list | 0.6–2 KB |
 | The guide | One page, `content/instructions/task_writing.md`: how the task is written, the notes framed as information (4.1.2), the fields to hand back with one worked example that itself passes every check, the page about the solver (6.7), the rules of the drawing (4.4) and the self-check's checklist (4.5) | ~7.5 KB |
-| The limits | The readability limits for the level (1.1) and the drawing limits (5.4) | small |
+| The limits | The readability limits of the brief's level (1.1) and the drawing limits (5.4) | small |
 | The instructions version | The hash of the instructions, the solver templates and the drawing frames, which every log line about this task will carry (О-21, R64, R66) | small |
 
-**The budget is 64 KB, and nothing is dropped to meet it** (R65). It is a ceiling against a package growing unnoticed, not a target: a package is a few thousand tokens of the chat's own context, paid for out of the family's message limit, but that context only gets cheaper, and a sample solver or a reference task left out of a rare profile's package would buy a few hundred tokens with the quality of the task. With the solver templates, the drawing frames and the drawings of the reference tasks in, a child with an ordinary profile — two interests, a sentence of notes, two skills left out — gets 18.1 KB on average across the catalog and 24.6 KB at most. For a child at every limit the profile sets (04-profile) — notes of 500 characters, ten interests of forty, fifteen excluded skills — a package is 20.4 KB on average in Latin letters and 27.0 KB at most; the same limits reach 27.9 KB in Cyrillic, 28.9 KB in Chinese or Japanese, 29.8 KB in characters of four bytes and 31.7 KB in the characters JSON has to escape, six bytes for every one typed. A test holds every one of those packages — every topic, grade, difficulty and turn of the reference tasks — to the budget. The one part it cannot count is the model's own reason for a choice, which travels in the brief's `rationale` and has no limit until T43 gives it one (remark 29).
+**The budget is 64 KB, and nothing is dropped to meet it** (R65). It is a ceiling against a package growing unnoticed, not a target: a package is a few thousand tokens of the chat's own context, paid for out of the family's message limit, but that context only gets cheaper, and a sample solver or a reference task left out of a rare profile's package would buy a few hundred tokens with the quality of the task. With the solver templates, the drawing frames and the drawings of the reference tasks in, a child with an ordinary profile — two interests, a sentence of notes, two skills left out — gets 19.7 KB on average across the catalog and 25.3 KB at most. For a child at every limit the profile sets (04-profile) — notes of 500 characters, ten interests of forty, fifteen excluded skills — a package is 22.0 KB on average in Latin letters and 27.6 KB at most; the same limits reach 28.5 KB in Cyrillic, 29.4 KB in Chinese or Japanese, 30.3 KB in characters of four bytes and 32.2 KB in the characters JSON has to escape, six bytes for every one typed. A test holds every one of those packages — every topic at every level it is taught at, every difficulty and turn of the reference tasks, each with the chances of all fifteen points — to the budget. The one part it cannot count is the model's own reason for a choice, which travels in the brief's `rationale` and has no limit until T43 gives it one (remark 29).
 
 On a repeat attempt the package is not sent again: `submit_task` answers with the refusal codes, and the model already has everything else in its context (03-flows).
 
@@ -435,7 +509,8 @@ Built by the rule (section 3) and handed back by the model with `submit_task`, w
 |---|---|---|
 | `pedagogical_goal` | `reinforce` \| `new_topic` | The rule's, never the model's (the prototype's D44, О-34) |
 | `target_concept` | topic id | From the catalog |
-| `difficulty` | 1–5 | Inside the level |
+| `grade_level` | `1-2` \| `3-4` \| `5-6` | The level of the task on the ladder (2.1): the level of the rule's recommended point, or the model's choice (3.4) |
+| `difficulty` | 1–5 | Inside that level |
 | `setting` | string | The plot: one of the child's interests, or the model's own if there are none |
 | `traps_to_use` | array of trap ids | Two from the rule; the model may swap them for others from the catalog |
 | `excluded_skills` | array of skill ids | Copied from the profile and never reduced |
@@ -504,7 +579,7 @@ Before handing in, the model checks its own task against an explicit checklist a
 
 | Field | Type | Notes |
 |---|---|---|
-| `issues` | array of `{type, severity, comment}` | `type`: `ambiguous`, `missing_data`, `multiple_correct`, `no_correct`, `too_hard_for_grade`, `needs_picture`, `factual_error`. `severity`: `blocking` or `minor` |
+| `issues` | array of `{type, severity, comment}` | `type`: `ambiguous`, `missing_data`, `multiple_correct`, `no_correct`, `too_hard_for_grade`, `needs_picture`, `factual_error`. `severity`: `blocking` or `minor`. `too_hard_for_grade` means too hard for the level of the brief — the task is written for a level, not for the child's grade — and keeps its name |
 | `option_check` | object `A`–`E` | Why each option is right or wrong — the model's own pass over all five |
 | `final_answer` | `A`–`E` or `UNSOLVABLE` | The answer the model arrives at when it solves its own task afresh |
 
@@ -526,7 +601,7 @@ The checks report in the order below, cheapest first. They run in two halves, by
 | 2 | The explanations behind the wrong options | `distractor_explanations` | the submission alone |
 | 3 | The drawing's format | `drawing_format` | the submission alone |
 | 4 | The drawing against the wording | `drawing_mismatch` | the submission alone |
-| 5 | Readability | `readability` | the submission and the grade |
+| 5 | Readability | `readability` | the submission and the brief's level |
 | 6 | The solver runs | `solver_error` | the Starlark sandbox |
 | 7 | The solver and the self-check agree with the answer | `solver_disagrees` | the sandbox's result |
 | 8 | The self-check has no blocking issue | `self_check_blocking` | the submission alone |
@@ -547,7 +622,7 @@ Mechanical, and all of it deterministic:
 - `correct_answer` is one of them;
 - `distractors` has exactly the four other letters, no more and no fewer;
 - every `trap` is an id from the catalog; `target_concept` is a topic id; every entry of `excluded_skills` is a skill id;
-- the brief's `target_concept` and `difficulty` match what the open request recorded. A model that wants others declares them with a reason when it asks for the task (section 3.4), and the request records that choice, so the brief handed back has one thing to agree with;
+- the brief's `target_concept`, `grade_level` and `difficulty` match what the open request recorded. A model that wants others declares them with a reason when it asks for the task (section 3.4), and the request records that choice, so the brief handed back has one thing to agree with;
 - `excluded_skills` is the profile's list entire — the model may add to it, never remove;
 - `hint` and `solution` are present and non-empty;
 - the self-check is present with all three of its fields.
@@ -608,13 +683,13 @@ The split differs from the prototype's in one place: it ended a sentence only at
 
 The word limits are the prototype's, measured on 450 reference tasks (its D38), and extended to `5-6` in 1.1. The character limits are set at twice the word limit by analogy, because nobody has measured them: if an acceptance run in Chinese or Japanese (T62, T63) shows them biting, they move.
 
-**Flesch–Kincaid**, English only: the grade index of the `question` must be at most the child's grade + 3. It applies when the task's language tag has the primary subtag `en`, and to nothing else — the formula counts syllables in English (the prototype's D38 and D42). The margin of +3 is measured: at +1 only 48 % of the grade 1–2 reference tasks passed for a first-grader, and the index is noisy on texts this short.
+**Flesch–Kincaid**, English only: the grade index of the `question` must be at most the youngest grade of the task's level + 3 — 4 for `1-2`, 6 for `3-4`, 8 for `5-6`. It applies when the task's language tag has the primary subtag `en`, and to nothing else — the formula counts syllables in English (the prototype's D38 and D42). The margin of +3 is measured: at +1 only 48 % of the grade 1–2 reference tasks passed for a first-grader, and the index is noisy on texts this short.
 
 The margin was measured with the prototype's library (`textstat` 0.7.13), so its counting is kept: words are the pieces between whitespace that hold a letter, a digit or an underscore — the library took the punctuation out before it split, which never joins two pieces or splits one, so "5-litre" and "o'clock" are one word each and a dash standing alone is none; sentences are the stretches its own pattern finds, one of two words or fewer not counting. Both come out exactly as the library's on all 450 reference questions. The **syllables** cannot: the library looked each word up in the CMU pronouncing dictionary and hyphenated the rest, and this service carries neither. They are estimated by rule — vowel groups, a y after the first letter counting as a vowel, the silent e of "make" and of "jumped" and "makes", the l or r said as a syllable of its own in "table", "metre", "apples" and "litres", and the i-a of "liar" and i-o of "lion" said apart except in -cial, -tion, -sion and -xion. The few English words spelled with accents are read by what the accent says: an accented vowel is still a vowel, a diaeresis says it apart from the vowel before it ("naïve", "coöperate", "Zoë"), and an accented e is never silent ("café", "résumés") — whether the accent is written into its letter or after it as a mark of its own. An acute accent after a vowel is not taken to split the two: it does in French ("Chloé") and not in Irish ("Seán").
 
 **The tolerance** the estimate is held to, against the prototype's own numbers for the 450 reference questions: the grade misses by at most 0.25 on average and leans by at most 0.15 either way; the verdict at each grade of a question's level agrees in at least 97 of 100 of the 900 cases; and the share of tasks passing at each grade moves by at most four points. Measured: 0.205, +0.096, 97.7 %, and at most 3.5 points (79.5 % of the grades 1–2 tasks pass for a first-grader, against the prototype's 83 %). Most of what is left over is the dictionary's rather than the language's — Russian names the dictionary did not have counted as one syllable, "drawer" as one and "hour" as two — and is not chased.
 
-Measured on the reference tasks, the whole check — sentences and Flesch–Kincaid together — passes 76 % of the grades 1–2 tasks for a first-grader, 87 % for a second-grader, 91 % and 92 % of the grades 3–4 tasks for grades 3 and 4. The limits are per grade and the reference tasks per level, so a first-grader is asked for simpler wording than a quarter of the examples the model is shown; that is the prototype's calibration (its D38), kept as it was.
+Both limits belong to the task's level — the brief's `grade_level` — and not to the child: a task is written for a level, and the child who meets it may be in any grade (О-56). Measured on the reference tasks, the whole check — sentences and Flesch–Kincaid together — passes 76 % of the grades 1–2 tasks and 91 % of the grades 3–4 tasks at the limits of their levels; it passed 87 % and 92 % at the limits of grades 2 and 4, which a task no longer gets for being meant for an older child. So a task of `1-2` is asked for simpler wording than a quarter of the examples the model is shown — the prototype's calibration for a first-grader (its D38), now held for every task of the level.
 
 ## 5.6 Near-duplicates
 
@@ -630,7 +705,7 @@ Both numbers are calibrated in T32 against the reference corpus, and the measure
 
 **What it is compared against:**
 
-- **The reference tasks** of the same level — their texts are in the binary, so the comparison is exact.
+- **The reference tasks** of the task's level, the brief's `grade_level` — their texts are in the binary, so the comparison is exact.
 - **The child's past tasks**, through the fingerprints in the profile (04-profile), which are sketches rather than texts: the profile stores no task text, by design (О-40).
 
 **The fingerprint** is therefore a MinHash sketch of exactly the trigram set above: **192 hash values, four bits each**, two to a byte. Two positions agree as often as the smallest element under their hash is one both sets hold — the Jaccard index — and, where it is not, one time in sixteen by chance; the estimate is the share of positions that agree with that chance taken back out, (share − 1/16) / (15/16). Its sampling error is about 0.03, where sixty-four one-byte positions erred by about 0.06 and let the same task given new numbers in Russian — 0.74 alike against a threshold of 0.7 — slip under it about one time in five. Ninety-six bytes a task is 128 characters of base64, and two hundred of them are about 27 KB of the profile. Over every pair of reference questions of one level (62,653 pairs) the sketches miss the exact measure by 0.031 on average and 0.139 at worst, and they decide 33 pairs differently from it at 0.7, all within 0.1 of it; of the 47 pairs between 0.72 and 0.78 they let 2 through, and of the 128 between 0.58 and 0.66 — a task in a new setting — they flag 4. How a sketch is made is fixed for as long as a profile keeps one (R54).
@@ -953,8 +1028,8 @@ Each tool carries the MCP annotations of the table plus `destructiveHint: false`
 | Tool | Arguments |
 |---|---|
 | `get_profile`, `get_progress` | none |
-| `save_profile` | `pseudonym`, `grade`, `interests`, `excluded_skills`, `notes`, `ui_language` — all optional, at least one present; `pseudonym` and `grade` required when there is no profile yet. Caps and types are 04-profile |
-| `next_task` | `language` (BCP 47, required); `topic`, `difficulty`, `reason` — optional, and `reason` is required when either of the other two is present (section 3.4) |
+| `save_profile` | `pseudonym`, `grade`, `interests`, `excluded_skills`, `notes`, `ui_language` — all optional, at least one present; `pseudonym` and `grade` required when there is no profile yet. Caps and types are 04-profile. The grade sets where the child starts when the profile is created (2.1); changed later it is a label — the ratings, the start and the trial series stay as they are (О-56) |
+| `next_task` | `language` (BCP 47, required); `topic`, `grade_level`, `difficulty`, `reason` — optional, and `reason` is required when any of the first three is present (section 3.4) |
 | `submit_task` | `request_id`, `brief`, `task`, `solver`, `self_check`, `language` — sections 4.2–4.5 and 6.2 |
 | `submit_answer` | `task_id`, `answer` (`A`–`E`), `hint_used`, `confused` — the two flags default to false (03-flows) |
 
@@ -972,6 +1047,8 @@ Two fields appear in the `structuredContent` of every tool:
 - **`last_answer`** — the outcome of the last recorded answer, or null. One line, and it is the compensating control for a lost `ui/update-model-context` (03-flows): a model that missed the widget's message still learns from its next call that the child has answered, and what happened.
 
 `next_task` adds one more: **`already_open`** — true when the request was already open, with its age in seconds, so an impatient second ask does not become a second generation racing the first (03-flows).
+
+**During the trial series** (2.2.1) the child has no rating yet, only a series under way. `get_progress` then carries **`trial`** — `{"answered": N, "of": 5}` — in place of the ratings: no overall rating, no rating in a topic and no rank, while the mastered topics, the recent answers and the misconception map are shown as usual. `submit_answer` to a trial answer carries `trial` with that answer counted, in place of the topic's rating before and after; the fifth answer carries 5 of 5 and closes the series, and every result after it shows ratings. Outside the series `trial` is null. The `content` of both says the same in words: how many of the five first tasks are done, and that the rating comes after them.
 
 ## 7.4 Errors, refusals and the words they use
 
@@ -1022,10 +1099,10 @@ One resource, six screens, and the payload says which — `structuredContent.scr
 |---|---|---|
 | `first_run` | `get_profile` when there is no file | What the app is, and what the parent has to fill in |
 | `profile` | `get_profile`, `save_profile` | Pseudonym, grade, interests, constraints; editing |
-| `progress` | `get_progress` | The rating per topic with its rank (О-48, R12), mastered topics, recent answers, the misconception map, the recommendation |
+| `progress` | `get_progress` | The rating per topic with its rank (О-48, R12) — during the trial series, how many of its five tasks are done instead (7.3) — mastered topics, recent answers, the misconception map, the recommendation |
 | `task` | `submit_task` when it accepts | Wording, drawing, the five options as buttons with their texts and no letters (R70), Hint, I don't understand, Next task |
 | `waiting` | `submit_task` when it refuses, and locally after "Next task" | "Preparing the next task…", a warm-up, and after 120 seconds the deadline message (03-flows) |
-| `result` | Locally, after `submit_answer` returns to the widget | Right or wrong, the trap behind the chosen option, the solution, Next task |
+| `result` | Locally, after `submit_answer` returns to the widget | Right or wrong, the trap behind the chosen option, the solution, the rating in the topic before and after — during the trial series, N of 5 instead (7.3) — Next task |
 
 `result` and `waiting` are the two screens no tool result draws directly: the card the child is already looking at turns itself over. That is why `submit_answer` carries no `ui.resourceUri` (03-flows).
 
@@ -1110,7 +1187,7 @@ The acceptance check for this part: each scenario of PRODUCT 3 has tools, a scre
 | 2. The task | `next_task`, `submit_task` | `waiting` → `task` | The wording, the drawing and the options `A`–`E` are read out; the hint on request |
 | 3. The answer | `submit_answer` | `task` → `result` | The child types a letter, the model calls the tool and explains from the trap it returns |
 | 4. The next task | `sendMessage` → `next_task`, `submit_task` | `result` → `waiting` → `task` | The child or the adult asks in words |
-| 5. Progress | `get_progress` | `progress` | Ratings, ranks, mastered topics and the recommendation as a short list |
+| 5. Progress | `get_progress` | `progress` | Ratings, ranks, mastered topics and the recommendation as a short list; during the trial series, how many of its five tasks are done instead of the ratings |
 | 6. The profile | `get_profile`, `save_profile` | `profile` | The same fields, read out and changed by asking |
 
 Every row's text column is the `content` of the same result that draws the screen — one payload, two renderings (7.3).
@@ -1295,7 +1372,7 @@ Every line that belongs to one MCP request carries the same `request_id`; every 
 | `task_requested` | `next_task` opened or returned a request | topic, level, difficulty, goal, tutor_mode, already_open |
 | `task_submitted` | Every `submit_task` | attempt, outcome, primary code, every failed check, the types of the self-check's minor issues, duration_ms, solver_steps, solver_ms |
 | `task_accepted` | A task became current | topic, level, difficulty, attempts, seconds since the request opened, instructions_version |
-| `answer_recorded` | `submit_answer` recorded an answer | topic, difficulty, correct, trap, hint_used, confused, pace |
+| `answer_recorded` | `submit_answer` recorded an answer | topic, level, difficulty, correct, trap, hint_used, confused, pace |
 | `limit_hit` | Any ceiling of section 10 | which ceiling, the counter's value |
 | `auth_*` | authorize, consent, callback, token, refresh, revoke, reject | client_id, registration (cimd or dcr), redirect host, resource, requested and granted scope, kid, outcome, reason |
 | `cimd_fetch` | A Client ID Metadata Document was fetched | host, cached, duration_ms, outcome |
@@ -1438,3 +1515,8 @@ Added with the solver templates (T36a):
 Added with the drawing frames (T36b):
 
 33. **The allowed set holds characters some platforms draw as colour emoji.** In the arrows and the geometric shapes, ↔ ↕ ↖ ↗ ↘ ↙ ↩ ↪ ▪ ▫ ▶ ◀ ◻ ◼ ◽ ◾ are also emoji, and a phone may draw one as a coloured picture two cells wide where the format check counts one, which shifts the rest of its line. The frames keep away from them, and a test holds them to it; a model's own drawing may still use one and pass. Whether the check should refuse them is for the live run on real widgets to show. **For:** T58.
+
+Added with the ladder (T39b.1):
+
+34. **The shift of 2.5 between levels is a guess.** It makes the two hardest difficulties of a level overlap the two easiest of the next (2.1), which is what one would expect of neighbouring school years, and nothing has measured it. If children who do well at difficulty 5 of `1-2` then fail difficulty 2 of `3-4` — or find it a warm-up — the shift is wrong in that direction, and every θ written since carries it: a new shift moves the points and, with them, what each stored θ means. **For:** T62–T64.
+35. **The spread of the trial series, one level shift, is a simulation's number.** The simulation of R79 runs the rule, the ratings and the profile on children who answer exactly by the formula of 2.1; real children answer otherwise. Too wide a spread throws a correctly graded child about during the first five tasks, too narrow a one leaves a child the grade misplaced where it put them. The acceptance runs are the first real children to look at: how far the series moves a child whose grade was right, and how often a child still fails four tasks in a row after it. **For:** T62–T64.

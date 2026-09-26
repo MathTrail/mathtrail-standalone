@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
 
@@ -20,7 +21,7 @@ type shipped struct {
 	references []string
 }
 
-func (s shipped) ReferenceQuestions(int) []string { return s.references }
+func (s shipped) ReferenceQuestions(rating.GradeLevel) []string { return s.references }
 
 // working is a solver that works its answer out: it finds the option saying
 // what it computed, wherever the letters put it, the way a solver ending in
@@ -60,14 +61,19 @@ type scenario struct {
 	runner       solver.Runner
 	references   []string
 	fingerprints []string
-	grade        int
 	language     string
 }
 
 // accepted is the well-formed draft of the structure tests with a solver that
 // finds its answer: a task that passes every check.
 func accepted() scenario {
-	return scenario{draft: validDraft(), runner: &working{value: "six pairs"}, grade: 4, language: "en"}
+	return scenario{draft: validDraft(), runner: &working{value: "six pairs"}, language: "en"}
+}
+
+// askedFor has the request opened for a task of this level, and the draft hand
+// its brief back as it was received.
+func (s *scenario) askedFor(level rating.GradeLevel) {
+	s.draft.Brief.GradeLevel = level
 }
 
 // review hands the scenario's draft in as the JSON a model would send, and
@@ -81,8 +87,12 @@ func (s *scenario) review(t *testing.T) checks.Outcome {
 	if err != nil {
 		t.Fatalf("Examine() error = %v", err)
 	}
+	request := asked()
+	if s.draft.Brief != nil {
+		request.GradeLevel = s.draft.Brief.GradeLevel
+	}
 	outcome, err := reviewer.Judge(examined, checks.Against{
-		Asked: asked(), Language: s.language, Grade: s.grade, Fingerprints: s.fingerprints,
+		Asked: request, Language: s.language, Fingerprints: s.fingerprints,
 	})
 	if err != nil {
 		t.Fatalf("Judge() error = %v", err)
@@ -117,7 +127,7 @@ func codesOf(outcome *checks.Outcome) []checks.Code {
 	return codes
 }
 
-// longSentence is one sentence of twenty-four words, too long for a child of
+// longSentence is one sentence of twenty-four words, too long for a task of
 // grades one and two.
 const longSentence = " The ships fly past the moon and the stars and the comets and the planets " +
 	"and the rockets and the satellites and home again."
@@ -166,8 +176,8 @@ func TestNothingIsJudgedWithoutItsInput(t *testing.T) {
 		examined checks.Examined
 		against  checks.Against
 	}{
-		{"a submission never examined", checks.Examined{}, checks.Against{Asked: asked(), Language: "en", Grade: 4}},
-		{"no request to hold it against", examined, checks.Against{Language: "en", Grade: 4}},
+		{"a submission never examined", checks.Examined{}, checks.Against{Asked: asked(), Language: "en"}},
+		{"no request to hold it against", examined, checks.Against{Language: "en"}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
@@ -201,7 +211,10 @@ var refusals = []struct {
 		checks.CodeDrawingFormat, "spaces at the end of line 1"},
 	{"a drawing without a label it declares", func(s *scenario) { draw(s, "P───Q", "P", "Q", "R") },
 		checks.CodeDrawingMismatch, `does not show "R"`},
-	{"a sentence too long for the grade", func(s *scenario) { s.draft.Task.Question += longSentence; s.grade = 1 },
+	{"a sentence too long for the level", func(s *scenario) {
+		s.draft.Task.Question += longSentence
+		s.askedFor(rating.Grades12)
+	},
 		checks.CodeReadability, "sentence 3 of task.question is 24 words long"},
 	{"a solver that crashes", func(s *scenario) {
 		s.runner = &scripted{result: solver.Result{Status: solver.StatusError, Message: "fail: six pairs is C"}}
@@ -315,7 +328,7 @@ func TestAStructuralFaultBlocksOnlyWhatItBroke(t *testing.T) {
 	elsewhere.runner = crash
 	elsewhere.draft.Brief.TargetConcept = "counting.gaps"
 	elsewhere.draft.Task.Question += longSentence
-	elsewhere.grade = 1
+	elsewhere.askedFor(rating.Grades12)
 	outcome = elsewhere.review(t)
 	want := []checks.Code{checks.CodeBadStructure, checks.CodeReadability, checks.CodeSolverError}
 	if codes := codesOf(&outcome); !slices.Equal(codes, want) || crash.runs != 1 {
@@ -536,7 +549,7 @@ func TestATaskInRussianIsNotHeldToFleschKincaid(t *testing.T) {
 	t.Parallel()
 
 	hard := accepted()
-	hard.grade = 1
+	hard.askedFor(rating.Grades12)
 	hard.draft.Task.Question = "Every afternoon seven classmates exchange colourful postcards. Each classmate " +
 		"sends exactly one postcard to every other classmate. How many postcards are delivered altogether?"
 

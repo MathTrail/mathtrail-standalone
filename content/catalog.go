@@ -5,54 +5,28 @@ import (
 	"io/fs"
 	"regexp"
 	"slices"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
-// The three grade levels. A child has a grade from 1 to 6, and everything else
-// — which topics exist, what a difficulty means, how long a sentence may be,
-// which reference tasks the model is shown — works with the level the grade
-// falls into.
-const (
-	Level12 = "1-2"
-	Level34 = "3-4"
-	Level56 = "5-6"
-)
-
-// Levels returns the three grade levels, from the youngest upwards.
-func Levels() []string { return []string{Level12, Level34, Level56} }
-
-// LevelOf is the grade level a school year falls into: 1 and 2 make the
-// youngest, 3 and 4 the middle, 5 and 6 the oldest. Everything the catalogs
-// hold is keyed by the level rather than by the year, because what changes
-// between year 1 and year 2 is not which topics exist.
+// Topic is one entry of the topic catalog: what a task can be about, and the
+// grade levels it is taught at. The catalog is closed and the model never
+// invents a topic, because two children's histories are comparable only while
+// they name the same things.
 //
-// A year outside 1 to 6 has no level, and the caller is told so rather than
-// handed the nearest one: a profile that names such a year is a profile
-// nothing can be chosen for.
-func LevelOf(grade int) (string, bool) {
-	switch grade {
-	case 1, 2:
-		return Level12, true
-	case 3, 4:
-		return Level34, true
-	case 5, 6:
-		return Level56, true
-	default:
-		return "", false
-	}
-}
-
-// Topic is one entry of the topic catalog: what a task can be about. The
-// catalog is closed and the model never invents a topic, because two children's
-// histories are comparable only while they name the same things.
+// Everything the catalogs hold is keyed by the level a task is written for
+// rather than by a school year: what changes between year 1 and year 2 is not
+// which topics exist, and a child of any grade may be set the tasks of any
+// level their answers lead them to.
 type Topic struct {
-	ID          string   `json:"id"`
-	Name        string   `json:"name"`
-	Description string   `json:"description"`
-	GradeLevels []string `json:"grade_levels"`
+	ID          string              `json:"id"`
+	Name        string              `json:"name"`
+	Description string              `json:"description"`
+	GradeLevels []rating.GradeLevel `json:"grade_levels"`
 }
 
 // HasLevel reports whether the topic is offered at this grade level.
-func (t Topic) HasLevel(level string) bool {
+func (t Topic) HasLevel(level rating.GradeLevel) bool {
 	return slices.Contains(t.GradeLevels, level)
 }
 
@@ -128,11 +102,11 @@ func checkTopic(p *problems, where string, topic Topic, seen map[string]bool) {
 		p.addf("%s: no grade levels, so the topic can never be chosen", where)
 	}
 
-	levels := make(map[string]bool, len(topic.GradeLevels))
+	levels := make(map[rating.GradeLevel]bool, len(topic.GradeLevels))
 	for _, level := range topic.GradeLevels {
 		switch {
-		case !isLevel(level):
-			p.addf("%s: grade level %q is not one of %v", where, level, Levels())
+		case !level.Known():
+			p.addf("%s: grade level %q is not one of %v", where, level, rating.GradeLevels())
 		case levels[level]:
 			p.addf("%s: grade level %q is listed twice", where, level)
 		}
@@ -207,9 +181,4 @@ func entryName(kind string, i int, id string) string {
 		return fmt.Sprintf("%s %d", kind, i+1)
 	}
 	return fmt.Sprintf("%s %q", kind, id)
-}
-
-// isLevel reports whether this is one of the three grade levels.
-func isLevel(level string) bool {
-	return level == Level12 || level == Level34 || level == Level56
 }

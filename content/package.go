@@ -8,7 +8,6 @@ import (
 	"maps"
 	"math"
 	"slices"
-	"strconv"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
@@ -18,7 +17,7 @@ import (
 // PackageBudget is the most a package may weigh as the model receives it. It is
 // a ceiling against a package growing unnoticed, not a target to fill: the
 // heaviest package a profile allows — a child at every limit, written in the
-// characters JSON takes the most bytes to carry — is well under half of it. A
+// characters JSON takes the most bytes to carry — is about half of it. A
 // test holds every such package to it, so nothing is ever left out of a
 // package to make it fit.
 const PackageBudget = 64 * 1024
@@ -31,15 +30,19 @@ const examplesPerPackage = 3
 const guideName = "task_writing.md"
 
 // Request is what a package is built from: the brief the task is to be
-// written to, the corridor its difficulty came from and the child it is for.
+// written to, the corridor its level and difficulty came from and the child it
+// is for.
 type Request struct {
 	// Language is the language the task is to be written in.
 	Language string
-	// Brief is what the task is to be.
+	// Brief is what the task is to be. Its level decides the reference tasks
+	// the model is shown and the limits the task is held to.
 	Brief profile.Brief
 	// Corridor is where the child's chances lie on the brief's topic.
 	Corridor rating.Corridor
-	// Grade is the child's school year.
+	// Grade is the child's school year. The model is told it as the child's
+	// age, for the words and the plot, and it decides nothing else: the task
+	// is of the level the brief names, whatever the grade.
 	Grade int
 	// Interests are what the child likes: the settings tasks are dressed in.
 	Interests []string
@@ -64,9 +67,9 @@ type Request struct {
 // instructions; being a string of JSON, they cannot close themselves off and
 // speak as anything else.
 //
-// A request naming a topic or a skill the catalogs do not have makes no
-// package: its description would be empty, and no task written to it could
-// pass the checks.
+// A request naming a topic or a skill the catalogs do not have, or a level the
+// topic is not taught at, makes no package: its description would be empty,
+// and no task written to it could pass the checks.
 func (c *Content) Package(request *Request) ([]byte, error) {
 	contents, err := c.contentsFor(request)
 	if err != nil {
@@ -95,14 +98,24 @@ type packageContents struct {
 	InstructionsVersion string           `json:"instructions_version"`
 }
 
-// packageCorridor is the difficulty the rule recommends for the child on this
-// topic, and the chances behind it.
+// packageCorridor is the point of the ladder the rule recommends for the child
+// on this topic, and the chances behind it: the chance of a correct answer at
+// every point the topic can be set at, so that a model stepping away from the
+// recommendation sees how far it steps.
 type packageCorridor struct {
-	RecommendedDifficulty int                `json:"recommended_difficulty"`
-	Fit                   rating.Fit         `json:"fit"`
-	BetaMin               float64            `json:"beta_min"`
-	BetaMax               float64            `json:"beta_max"`
-	SuccessChance         map[string]float64 `json:"success_chance_by_difficulty"`
+	RecommendedGradeLevel rating.GradeLevel `json:"recommended_grade_level"`
+	RecommendedDifficulty int               `json:"recommended_difficulty"`
+	Fit                   rating.Fit        `json:"fit"`
+	BetaMin               float64           `json:"beta_min"`
+	BetaMax               float64           `json:"beta_max"`
+	SuccessChances        []packageChance   `json:"success_chances"`
+}
+
+// packageChance is the chance of a correct answer at one point of the topic.
+type packageChance struct {
+	GradeLevel rating.GradeLevel `json:"grade_level"`
+	Difficulty int               `json:"difficulty"`
+	Chance     float64           `json:"chance"`
 }
 
 // packageTopic is the topic of the brief, as the catalog describes it.
@@ -112,8 +125,8 @@ type packageTopic struct {
 	Description string `json:"description"`
 }
 
-// packageChild is what the task may be pitched at: the school year, the
-// interests and the parent's notes.
+// packageChild is what the wording may be pitched at: the school year, as the
+// child's age, the interests and the parent's notes.
 type packageChild struct {
 	Grade     int      `json:"grade"`
 	Interests []string `json:"interests"`
@@ -165,11 +178,15 @@ func (c *Content) contentsFor(request *Request) (packageContents, error) {
 		return packageContents{}, fmt.Errorf("content: build the package: no topic %q in the catalog",
 			request.Brief.TargetConcept)
 	}
+	level := request.Brief.GradeLevel
+	if !topic.HasLevel(level) {
+		return packageContents{}, fmt.Errorf("content: build the package: %s is not taught at level %q", topic.ID, level)
+	}
 	prohibitions, err := c.prohibitionsFor(request.Brief.ExcludedSkills)
 	if err != nil {
 		return packageContents{}, err
 	}
-	readable, drawn := checks.ReadabilityLimitsFor(request.Grade), checks.DefaultDrawingLimits()
+	readable, drawn := checks.ReadabilityLimitsFor(level), checks.DefaultDrawingLimits()
 
 	contents := packageContents{
 		Language:     request.Language,
@@ -190,7 +207,7 @@ func (c *Content) contentsFor(request *Request) (packageContents, error) {
 		Guide:               c.instructions[guideName],
 		InstructionsVersion: c.instructionsVersion,
 	}
-	examples := c.examplesFor(request.Brief.TargetConcept, request.Grade, request.Brief.Difficulty, request.Answers)
+	examples := c.examplesFor(request.Brief.TargetConcept, level, request.Brief.Difficulty, request.Answers)
 	contents.Examples = make([]packageExample, 0, len(examples)) // a topic with none is shown an empty list, not null
 	for i := range examples {
 		task := &examples[i]
@@ -217,27 +234,36 @@ func (c *Content) prohibitionsFor(ids []string) ([]Skill, error) {
 	return prohibitions, nil
 }
 
-// corridorOf is the corridor as a package states it, its chances to two
-// places: the model reads which way to lean, not the fourth decimal.
+// corridorOf is the corridor as a package states it, its numbers to two
+// places: the model reads which way to lean, not the fourth decimal. The
+// chances are listed the easiest point first, and the list is never null.
 func corridorOf(corridor *rating.Corridor) packageCorridor {
-	chances := make(map[string]float64, len(corridor.Probabilities))
-	for i, chance := range corridor.Probabilities {
-		chances[strconv.Itoa(profile.MinDifficulty+i)] = math.Round(chance*100) / 100
+	chances := make([]packageChance, 0, len(corridor.Chances))
+	for _, chance := range corridor.Chances {
+		chances = append(chances, packageChance{
+			GradeLevel: chance.GradeLevel, Difficulty: chance.Difficulty, Chance: twoPlaces(chance.Probability),
+		})
 	}
 	return packageCorridor{
-		RecommendedDifficulty: corridor.Recommended, Fit: corridor.Fit,
-		BetaMin: math.Round(corridor.BetaMin*100) / 100, BetaMax: math.Round(corridor.BetaMax*100) / 100,
-		SuccessChance: chances,
+		RecommendedGradeLevel: corridor.Recommended.GradeLevel,
+		RecommendedDifficulty: corridor.Recommended.Difficulty,
+		Fit:                   corridor.Fit,
+		BetaMin:               twoPlaces(corridor.BetaMin),
+		BetaMax:               twoPlaces(corridor.BetaMax),
+		SuccessChances:        chances,
 	}
 }
 
-// examplesFor are the reference tasks a package shows for a topic at a child's
-// grade: those of the requested difficulty first, then of the nearest, then of
-// the next nearest, taken from the child's level — or, where the topic has
-// nothing at that level, from the level below. Within one difficulty the
-// tasks take turns by the child's answer count.
-func (c *Content) examplesFor(topic string, grade, difficulty, answers int) []Example {
-	for level, known := LevelOf(grade); known; level, known = levelBelow(level) {
+// twoPlaces is a number rounded to two decimal places.
+func twoPlaces(x float64) float64 { return math.Round(x*100) / 100 }
+
+// examplesFor are the reference tasks a package shows for a topic at a level:
+// those of the requested difficulty first, then of the nearest, then of the
+// next nearest, taken from that level — or, where the topic has nothing at
+// that level, from the level below. Within one difficulty the tasks take turns
+// by the child's answer count.
+func (c *Content) examplesFor(topic string, level rating.GradeLevel, difficulty, answers int) []Example {
+	for known := level.Known(); known; level, known = levelBelow(level) {
 		var pool []Example
 		for i := range c.examples {
 			if c.examples[i].Topic == topic && c.examples[i].GradeLevel == level {
@@ -282,8 +308,8 @@ func nearest(pool []Example, difficulty, answers int) []Example {
 func distance(a, b int) int { return max(a-b, b-a) }
 
 // levelBelow is the level before this one, if there is one.
-func levelBelow(level string) (string, bool) {
-	levels := Levels()
+func levelBelow(level rating.GradeLevel) (rating.GradeLevel, bool) {
+	levels := rating.GradeLevels()
 	if at := slices.Index(levels, level); at > 0 {
 		return levels[at-1], true
 	}

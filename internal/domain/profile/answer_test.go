@@ -13,16 +13,25 @@ import (
 // issued is when the task in flight of the fixtures was handed out.
 var issued = time.Date(2026, 9, 4, 18, 0, 0, 0, time.UTC)
 
-// answering puts a task of this topic and difficulty in flight, so that a test
-// can answer it. It is the shape a task has when it reaches the child, with
-// nothing of the answer in it.
+// answering puts a task of this topic and difficulty in flight, at the level of
+// the child's own grade, so that a test can answer it. It is the shape a task
+// has when it reaches the child, with nothing of the answer in it.
 func answering(t *testing.T, p *profile.Profile, topic string, difficulty int) string {
 	t.Helper()
 
-	id := fmt.Sprintf("tsk_%s_%d", topic, difficulty)
+	level, _ := rating.GradeLevelOf(p.Student.Grade)
+	return answeringAt(t, p, topic, rating.Point{GradeLevel: level, Difficulty: difficulty})
+}
+
+// answeringAt puts a task of this topic in flight at this point of the ladder.
+func answeringAt(t *testing.T, p *profile.Profile, topic string, point rating.Point) string {
+	t.Helper()
+
+	id := fmt.Sprintf("tsk_%s_%s_%d", topic, point.GradeLevel, point.Difficulty)
 	p.CurrentTask = &profile.CurrentTask{
-		Difficulty:          difficulty,
+		Difficulty:          point.Difficulty,
 		Fingerprint:         "sketch",
+		GradeLevel:          point.GradeLevel,
 		Hint:                "Count them one at a time.",
 		ID:                  id,
 		InstructionsVersion: "357968db0310",
@@ -38,10 +47,15 @@ func answering(t *testing.T, p *profile.Profile, topic string, difficulty int) s
 
 // One answer, and everything it moves. This is the whole of what a lesson
 // leaves behind, and the test reads like the list a person would check by hand.
+// The child is past the trial series, so the answer moves both levels by a
+// step.
 func TestAnAnswerMovesEverythingItShould(t *testing.T) {
 	t.Parallel()
 
-	p := parseFixture(t, "dima")
+	p := parseFixture(t, "olya")
+	if p.Ratings.InTrial() {
+		t.Fatalf("the fixture is in the trial series with %d answers, and the case needs it over", p.Ratings.Answers)
+	}
 	const topic = "counting.gaps"
 	before, beforeTopic := p.Ratings, p.Topics[topic]
 	id := answering(t, p, topic, 3)

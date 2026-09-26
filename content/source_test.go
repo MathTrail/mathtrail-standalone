@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 	"testing/fstest"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
 // contentCopy returns the content of the binary as a set of files a test can
@@ -65,7 +67,7 @@ func validExample() Example {
 	return Example{
 		ID:         "gaps-posts-test",
 		Topic:      "counting.gaps",
-		GradeLevel: Level12,
+		GradeLevel: rating.Grades12,
 		Difficulty: 3,
 		Question:   "A fence has 4 posts in a row, 1 metre apart. How long is the fence?",
 		Options: map[string]string{

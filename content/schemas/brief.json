@@ -7,6 +7,7 @@
   "required": [
     "pedagogical_goal",
     "target_concept",
+    "grade_level",
     "difficulty",
     "setting",
     "traps_to_use",
@@ -22,6 +23,10 @@
     "target_concept": {
       "description": "Topic id from the topic catalog.",
       "type": "string"
+    },
+    "grade_level": {
+      "description": "The level the task is written for, on the one ladder of tasks for grades 1 to 6: the rule's recommended point for this child, or the model's own choice made when asking for the task. It decides the reference tasks shown and the readability limits; the child's grade does not.",
+      "enum": ["1-2", "3-4", "5-6"]
     },
     "difficulty": {
       "description": "Difficulty from 1 to 5 inside the grade level.",

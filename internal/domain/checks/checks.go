@@ -33,9 +33,9 @@ const (
 	// CodeDrawingMismatch is a drawing that does not show what its structure
 	// declares, or a structure that leaves out a label the wording names.
 	CodeDrawingMismatch Code = "drawing_mismatch"
-	// CodeReadability is a question a child of the grade cannot read: a sentence
-	// too long for the level, or, in English, words and sentences too hard for
-	// the grade.
+	// CodeReadability is a question that does not read as a task of its level
+	// should: a sentence too long for the level, or, in English, words and
+	// sentences too hard for it.
 	CodeReadability Code = "readability"
 	// CodeSolverError is a solver that did not run to an answer: it does not
 	// parse, has no solve to call, failed, ran out of steps or time, or

@@ -13,6 +13,7 @@ import (
 	"github.com/leanovate/gopter/gen"
 	"github.com/leanovate/gopter/prop"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
 
@@ -101,7 +102,7 @@ func (s *exampleSeed) build() Example {
 	task := Example{
 		ID:            "gaps-posts-test",
 		Topic:         "counting.gaps",
-		GradeLevel:    Level12,
+		GradeLevel:    rating.Grades12,
 		Difficulty:    3,
 		Question:      s.Question,
 		Options:       map[string]string{},
@@ -231,7 +232,7 @@ func TestCopiesHoldTheirProperties(t *testing.T) {
 	))
 
 	properties.Property("editing the levels of a copied topic leaves the topic untouched", prop.ForAll(
-		func(id string, levels []string) bool {
+		func(id string, levels []rating.GradeLevel) bool {
 			if len(levels) == 0 {
 				return true
 			}
@@ -241,7 +242,7 @@ func TestCopiesHoldTheirProperties(t *testing.T) {
 			return reflect.DeepEqual(topic.GradeLevels, levels)
 		},
 		gen.AnyString(),
-		gen.SliceOf(gen.AnyString()),
+		gen.SliceOf(gen.AnyString().Map(func(level string) rating.GradeLevel { return rating.GradeLevel(level) })),
 	))
 
 	properties.TestingRun(t)

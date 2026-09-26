@@ -6,15 +6,16 @@ import (
 	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/tutor"
 )
 
 // The worked example of the specification, run against the real catalogs of
 // the binary. Every number in it was arrived at by hand from the profile
 // printed in the architecture document, so a failure here is readable without
-// a debugger: the topic just failed, the difficulty the corridor recommends
-// for it, the setting the rotation lands on, and the two mistakes this child
-// keeps making in that topic.
+// a debugger: the topic just failed, the point of the ladder the corridor
+// recommends for it, the setting the rotation lands on, and the two mistakes
+// this child keeps making in that topic.
 func TestTheWorkedExampleOfTheSpecification(t *testing.T) {
 	t.Parallel()
 
@@ -26,7 +27,7 @@ func TestTheWorkedExampleOfTheSpecification(t *testing.T) {
 		Pseudonym:      "Otter",
 	}, "1.0.0", answered)
 
-	p.Ratings = profile.Ratings{Answers: 57, ConsecutiveFailures: 1, Theta: 0.42}
+	p.Ratings = profile.Ratings{Answers: 57, ConsecutiveFailures: 1, Start: 2.5, Theta: 2.92}
 	p.Topics = map[string]profile.Topic{
 		"combinatorics.enumeration": {
 			Answers: 9, Correct: 7, Delta: 0.31,
@@ -42,6 +43,7 @@ func TestTheWorkedExampleOfTheSpecification(t *testing.T) {
 	p.Recent = []profile.Answer{{
 		AnsweredAt: profile.At(answered),
 		Difficulty: 3,
+		GradeLevel: rating.Grades34,
 		Pace:       profile.PaceSlow,
 		TaskID:     "tsk_01J9Z2A1B7",
 		Topic:      "combinatorics.enumeration",
@@ -63,12 +65,13 @@ func TestTheWorkedExampleOfTheSpecification(t *testing.T) {
 		t.Errorf("topic = %q, want the one just failed", got.TargetConcept)
 	}
 
-	// The child stands at 0.42 + 0.31 = 0.73 in that topic, which puts
-	// difficulty 3 nearest the middle of the corridor and inside it — the same
-	// level they have just failed, because the corridor has slid but not yet
-	// far enough to cross a level.
-	if got.Difficulty != 3 {
-		t.Errorf("difficulty = %d, want 3", got.Difficulty)
+	// The child stands at 2.92 + 0.31 = 3.23 in that topic, which puts
+	// difficulty 3 of grades 3–4 nearest the middle of the corridor and inside
+	// it — difficulty 5 of grades 1–2 is inside too, further from the middle.
+	// It is the same task they have just failed, because the corridor has slid
+	// but not yet far enough to cross a point.
+	if got.Difficulty != 3 || got.GradeLevel != rating.Grades34 {
+		t.Errorf("difficulty %d of %s, want difficulty 3 of %s", got.Difficulty, got.GradeLevel, rating.Grades34)
 	}
 
 	// Fifty-seven answers over three interests lands on the first.

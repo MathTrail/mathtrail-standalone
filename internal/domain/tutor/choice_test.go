@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/tutor"
 )
 
@@ -48,17 +49,8 @@ func TestTheModelMayChooseTheTopic(t *testing.T) {
 func TestTheGoalStaysTheRules(t *testing.T) {
 	t.Parallel()
 
-	p := child(t)
-	p.Ratings.ConsecutiveFailures = 1
-	p.Recent = []profile.Answer{{
-		AnsweredAt: profile.At(day),
-		Difficulty: 3,
-		Pace:       profile.PaceNormal,
-		TaskID:     "tsk_1",
-		Topic:      "counting.gaps",
-		Chosen:     "A",
-		Trap:       "off_by_one",
-	}}
+	p := settled(t)
+	failedAt(p, "counting.gaps", 1)
 
 	got, _, err := tutor.Next(p, threeTopics(), tutor.Choice{Topic: "time.clocks", Reason: "something lighter"})
 	if err != nil {
@@ -75,21 +67,22 @@ func TestTheGoalStaysTheRules(t *testing.T) {
 
 // A difficulty of the model's own is used as given: the corridor is a
 // recommendation, and a deliberate step outside it is what a tutor sometimes
-// does.
+// does. Named alone, it stays at the level the corridor recommends.
 func TestTheModelMayStepOutsideTheCorridor(t *testing.T) {
 	t.Parallel()
 
 	p := child(t)
-	recommended := brief(t, p, threeTopics()).Difficulty
+	recommended := brief(t, p, threeTopics())
 
 	got, mode, err := tutor.Next(p, threeTopics(), tutor.Choice{Difficulty: 5, Reason: "a stretch on purpose"})
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
-	if got.Difficulty != 5 {
-		t.Errorf("difficulty = %d, want the model's 5", got.Difficulty)
+	if got.Difficulty != 5 || got.GradeLevel != recommended.GradeLevel {
+		t.Errorf("difficulty %d of %s, want the model's 5 at the recommended level %s",
+			got.Difficulty, got.GradeLevel, recommended.GradeLevel)
 	}
-	if recommended == 5 {
+	if recommended.Difficulty == 5 {
 		t.Fatal("the rule already recommends 5, so this case proves nothing")
 	}
 	if mode != profile.TutorLLM {
@@ -101,24 +94,69 @@ func TestTheModelMayStepOutsideTheCorridor(t *testing.T) {
 	}
 }
 
+// A level named alone is set at the difficulty its corridor recommends there:
+// the model decided the level, and the ratings still say how hard a task of it
+// the child can take.
+func TestTheModelMayChooseTheLevel(t *testing.T) {
+	t.Parallel()
+
+	got, mode, err := tutor.Next(child(t), threeTopics(),
+		tutor.Choice{GradeLevel: rating.Grades34, Reason: "the child is bored"})
+	if err != nil {
+		t.Fatalf("Next() error = %v, want nil", err)
+	}
+	if got.GradeLevel != rating.Grades34 || got.Difficulty != 1 || mode != profile.TutorLLM {
+		t.Errorf("difficulty %d of %s by %q, want difficulty 1 of %s by the model",
+			got.Difficulty, got.GradeLevel, mode, rating.Grades34)
+	}
+	if !strings.Contains(got.Rationale, "That is difficulty 1 of grades 3-4") {
+		t.Errorf("rationale = %q, want it to say which task the level came to", got.Rationale)
+	}
+}
+
+// Any topic of the catalog may be asked for, within reach or not: the model's
+// reason is what makes the exception, and the topic is set at its easiest
+// point when that is the nearest to the corridor.
+func TestTheModelMayChooseATopicOutOfReach(t *testing.T) {
+	t.Parallel()
+
+	got, mode, err := tutor.Next(child(t), withAnOlderTopic(),
+		tutor.Choice{Topic: "percent.basic", Reason: "the child asked for percentages"})
+	if err != nil {
+		t.Fatalf("Next() error = %v, want nil", err)
+	}
+	if got.TargetConcept != "percent.basic" || got.GradeLevel != rating.Grades56 || got.Difficulty != 1 ||
+		mode != profile.TutorLLM {
+		t.Errorf("brief = %s at difficulty %d of %s by %q, want percent.basic at its easiest point, by the model",
+			got.TargetConcept, got.Difficulty, got.GradeLevel, mode)
+	}
+}
+
 // What cannot be built is refused rather than half-built: a topic the catalog
-// does not have leaves the examples, the traps and the corridor standing on
-// nothing.
+// does not have, or a level the topic is not taught at, leaves the examples,
+// the traps and the limits standing on nothing.
 func TestAChoiceNoBriefCanBeBuiltFromIsRefused(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []struct {
-		name   string
-		choice tutor.Choice
+		name    string
+		catalog catalog
+		choice  tutor.Choice
 	}{
-		{name: "a topic nobody has", choice: tutor.Choice{Topic: "astrophysics.blackholes"}},
-		{name: "a difficulty below the scale", choice: tutor.Choice{Difficulty: 0 - 1}},
-		{name: "a difficulty above the scale", choice: tutor.Choice{Difficulty: 6}},
+		{name: "a topic nobody has", catalog: threeTopics(), choice: tutor.Choice{Topic: "astrophysics.blackholes"}},
+		{name: "a level there is not", catalog: threeTopics(), choice: tutor.Choice{GradeLevel: "7-8"}},
+		{
+			name:    "a level the topic is not taught at",
+			catalog: withAnOlderTopic(),
+			choice:  tutor.Choice{Topic: "percent.basic", GradeLevel: rating.Grades12},
+		},
+		{name: "a difficulty below the scale", catalog: threeTopics(), choice: tutor.Choice{Difficulty: 0 - 1}},
+		{name: "a difficulty above the scale", catalog: threeTopics(), choice: tutor.Choice{Difficulty: 6}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, mode, err := tutor.Next(child(t), threeTopics(), tc.choice)
+			got, mode, err := tutor.Next(child(t), tc.catalog, tc.choice)
 			if err == nil {
 				t.Fatalf("Next() error = nil, want a refusal; brief = %+v", got)
 			}
@@ -147,26 +185,26 @@ func TestAskingForWhatTheRuleSaidIsStillTheModelChoosing(t *testing.T) {
 }
 
 // When the model sets another topic, the rationale still gives the rule's own
-// account: the difficulty the rule would have set for the topic it suggested,
-// not the one the model's topic is given. The two are compared afterwards, and
-// a rule's account taken from the model's topic would leave nothing to compare.
+// account: the point the rule would have set for the topic it suggested, not
+// the one the model's topic is given. The two are compared afterwards, and a
+// rule's account taken from the model's topic would leave nothing to compare.
 func TestTheRulesAccountIsOfItsOwnTopic(t *testing.T) {
 	t.Parallel()
 
 	p := child(t)
-	p.Topics["counting.gaps"] = profile.Topic{Delta: -1.5}
-	p.Topics["time.clocks"] = profile.Topic{Delta: 1.5}
+	p.Topics["counting.gaps"] = profile.Topic{Delta: -1}
+	p.Topics["time.clocks"] = profile.Topic{Delta: 2}
 
 	got, _, err := tutor.Next(p, threeTopics(), tutor.Choice{Topic: "time.clocks", Reason: "clocks today"})
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
-	if got.Difficulty != 4 || !strings.Contains(got.Rationale, "counting.gaps") ||
-		!strings.Contains(got.Rationale, "Difficulty 1 is") ||
-		!strings.Contains(got.Rationale, "Difficulty 4 is the one its corridor recommends") {
-		t.Errorf("difficulty %d, rationale %q, want 4 for the model's topic, said where it came from, "+
-			"and the rule's own 1 for counting.gaps",
-			got.Difficulty, got.Rationale)
+	if got.Difficulty != 4 || got.GradeLevel != rating.Grades12 || !strings.Contains(got.Rationale, "counting.gaps") ||
+		!strings.Contains(got.Rationale, "Difficulty 1 of grades 1-2 is") ||
+		!strings.Contains(got.Rationale, "That is difficulty 4 of grades 1-2") {
+		t.Errorf("difficulty %d of %s, rationale %q, want difficulty 4 of 1-2 for the model's topic, said where "+
+			"it came from, and the rule's own difficulty 1 for counting.gaps",
+			got.Difficulty, got.GradeLevel, got.Rationale)
 	}
 }
 

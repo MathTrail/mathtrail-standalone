@@ -22,8 +22,8 @@ flowchart LR
         direction TB
         svc["service<br/>schema_version, student_id, revision, dates, app version"]
         kid["student<br/>pseudonym, grade, interests, constraints, notes, language"]
-        rat["ratings<br/>θ, answers, consecutive failures"]
-        top["per-topic summary<br/>δ, counters, last issued, traps, mastery"]
+        rat["ratings<br/>θ, the start, answers, consecutive failures"]
+        top["per-topic summary<br/>δ, counters, last issued, traps, mastery and its level"]
         rec["recent<br/>the last 20 answers"]
         fpr["fingerprints<br/>up to 200 sketches, no texts"]
         req["open request<br/>id, brief, attempts, tutor mode"]
@@ -59,7 +59,7 @@ A solid arrow writes, a dashed arrow reads. Every write also touches the service
 - **Nothing that identifies the parent.** No email, no Google `sub`, not even the derived identifier the limits use (02-auth): the file is found with the parent's own Drive token, so it never needs to name them. The child's UUID is random and means nothing outside this file.
 - **No rank.** The five-step rank is computed from the rating when it is shown (R12, О-48).
 - **No "solved today" for display.** The rhythm of practice is not shown at all (R13, О-49). The daily counters below exist only to enforce the limits and never reach a screen.
-- **No β per task.** Each task is solved by one child and never reused, so its difficulty is derived from the task's level when the answer is recorded and is not stored (PRODUCT 4.5).
+- **No β per task.** Each task is solved by one child and never reused, so its place on the ladder is derived from the task's level and difficulty when the answer is recorded and is not stored (PRODUCT 4.5, SPEC 2.1).
 
 ## The schema, block by block
 
@@ -78,7 +78,7 @@ A solid arrow writes, a dashed arrow reads. Every write also touches the service
 | Field | Type | Limit | Why |
 |---|---|---|---|
 | `pseudonym` | string | 32 characters, no control characters, any script | A pseudonym only — no name, birth date or school (PRODUCT 5). It must never reach the task text, which stays a rule of the instructions with no programmatic check (О-36) |
-| `grade` | integer 1–6 | — | The level the catalogs and the readability thresholds are chosen by |
+| `grade` | integer 1–6 | — | Where the child starts: the grade sets `ratings.start` when the profile is created, and nothing else (SPEC 2.1). Changed later it is a label — the ratings, the start and the trial series stay as they are, and the tasks follow the ratings rather than the grade (О-56). The package still tells the model the grade, as the child's age |
 | `interests` | array of strings | 10 items, 40 characters each | The settings the rule rotates through |
 | `excluded_skills` | array of catalog ids | 15 (the catalog's size) | What must appear neither in the wording nor in a trap |
 | `notes` | string | **500 characters** | Free-form context about the child, passed to the chat's model as tone and level (О-31). It is in every generation package, so the cap is a size budget as much as a privacy one; it never affects the rule. It is also the one field in this file written by a person and read by a model — see below |
@@ -96,8 +96,9 @@ The decision is R16. The residual risk is worth naming: a determined parent can 
 
 | Field | Type | Why |
 |---|---|---|
-| `ratings.theta` | number | θ, the child's level (PRODUCT 4.5) |
-| `ratings.answers` | integer | How many answers went into θ: the `n` of the decaying step, and — see below — the counter the interest rotation uses |
+| `ratings.theta` | number | θ, the child's level: a place on the one ladder of grades 1–6 (PRODUCT 4.5, SPEC 2.1) |
+| `ratings.start` | number | θ₀, where the child started: the shift of the level of the grade the profile was created with — 0, 2.5 or 5. Written once and never moved, a change of grade included; the trial series estimates θ from it (SPEC 2.2.1) |
+| `ratings.answers` | integer | How many answers went into θ: the `n` of the decaying step, and — see below — the counter the interest rotation uses. While it is below five the child is in the trial series |
 | `ratings.consecutive_failures` | integer | Wrong answers in a row; the rule's switch between consolidating and moving on. A skipped task leaves it alone: there was no answer to learn from |
 
 ### The per-topic summary
@@ -112,6 +113,7 @@ One entry per topic the child has ever been given, keyed by the catalog's topic 
 | `top_streak` | integer | Correct answers in a row at the upper edge of the corridor with no hint — the automatic mastery criterion (О-32). T11 sets the length and the reset |
 | `wrong_streak` | integer | Wrong answers in a row in this topic, which is what mastery is lost by. It is counted rather than read back out of `recent` for the same reason `top_streak` is: the window is pruned, and a run that has to be exact cannot be read from something that forgets |
 | `mastered_since` | date or null | Set when `top_streak` reaches the criterion; the progress screen reads it |
+| `mastered_level` | level or null | The level of the task whose answer completed the run — `1-2`, `3-4` or `5-6` — set and cleared together with `mastered_since`. A topic counts as mastered only while its recommended point stays at this level or below, so mastery at `1-2` does not keep a topic out of the rotation once its tasks come from `3-4`; a run completed at a higher level moves mastery up to it, and nothing moves it down (SPEC 2.5) |
 | `traps` | map of trap id → count | How often this child fell for each trap in this topic. The rule picks the two most frequent (prototype 5.7), and the progress screen draws the map of misconceptions from the same numbers (T57a) |
 
 ### The history window
@@ -121,7 +123,7 @@ One entry per topic the child has ever been given, keyed by the catalog's topic 
 | Field | Type | Why |
 |---|---|---|
 | `task_id` | string | Ties an entry to the fingerprint and to the log line |
-| `topic`, `difficulty` | id, 1–5 | What was asked |
+| `topic`, `grade_level`, `difficulty` | id, level, 1–5 | What was asked, and where it stood on the ladder: the trial series reads the level and the difficulty back to estimate θ (SPEC 2.2.1) |
 | `answered_at` | RFC 3339 UTC | When |
 | `correct` | boolean | The only thing the rating formula reads (О-33) |
 | `chosen`, `trap` | letter, trap id | Only on a wrong answer: which option and the trap behind it |
@@ -147,7 +149,7 @@ Two hundred is ten days of heavy use at twenty tasks a day. Beyond that a child 
 | `attempts` | integer 0–3 | The counter the model cannot forget its way around |
 | `tutor_mode` | `rule` or `llm` | Whether the model kept the rule's topic and difficulty or chose its own with a reason — the comparison the prototype's D43 set up |
 | `language` | BCP 47 tag | The language of the chat, so the task is written in it (О-14) |
-| `brief` | object | The brief exactly as the model received it: goal, topic, difficulty, setting, traps, constraints, excluded skills (prototype 5.1, minus `motivate`, removed by О-34) |
+| `brief` | object | The brief exactly as the model received it: goal, topic, level, difficulty, setting, traps, constraints, excluded skills (prototype 5.1, minus `motivate`, removed by О-34) |
 
 ### The current task
 
@@ -157,7 +159,7 @@ Two hundred is ten days of heavy use at twenty tasks a day. Beyond that a child 
 |---|---|---|
 | `id` | open | `submit_answer` is keyed by it: the answer is recorded once (03-flows) |
 | `issued_at` | open | The pace is measured from here |
-| `topic`, `difficulty`, `language` | open | The history entry and the rating update are built from them |
+| `topic`, `grade_level`, `difficulty`, `language` | open | The history entry and the rating update are built from them |
 | `instructions_version` | open | Which version of the instructions produced this task, so the result's log line can carry it (О-21) |
 | `fingerprint` | open | Added to `task_fingerprints` when the task is accepted |
 | `wording`, `drawing`, `options`, `hint` | open | Exactly what the card shows and what the model was given back |
@@ -196,13 +198,17 @@ The check for this task is that the prototype's rule (its SPEC 5.7) can be compu
 
 | Step of the rule | Read from |
 |---|---|
+| In the trial series? Then no failure is consolidated | `ratings.answers`, below five |
 | A failure to consolidate? | `ratings.consecutive_failures` |
-| Which topic to consolidate | the last entry of `recent` — never empty while `consecutive_failures` is above zero |
-| Otherwise: an unmastered topic of this grade, unseen for the longest, never-issued ones first | `topics[*].mastered_since`, `topics[*].last_issued`, `student.grade`, and the topic catalog in the binary |
-| The recommended difficulty, from the corridor | `ratings.theta`, `ratings.answers`, `topics[t].delta`, `topics[t].answers` |
+| Which topic to consolidate | the last entry of `recent` — never empty while `consecutive_failures` is above zero — if that topic is within reach |
+| Which topics are within reach | `ratings.theta`, `topics[*].delta`, and the levels each topic is taught at, from the topic catalog in the binary |
+| Otherwise: a topic within reach, unmastered at its recommended level, unseen for the longest, never-issued ones first | `topics[*].mastered_since`, `topics[*].mastered_level`, `topics[*].last_issued`, and the topic catalog in the binary |
+| The recommended point — level and difficulty — from the corridor | `ratings.theta`, `ratings.answers`, `topics[t].delta`, `topics[t].answers`, and the levels of the topic |
 | The setting, rotated through the interests | `student.interests` and **`ratings.answers`** |
-| The two traps | `topics[t].traps`, topped up from the reference tasks of that topic in the binary |
+| The two traps | `topics[t].traps`, topped up from the reference tasks of that topic and level in the binary |
 | The prohibitions carried into the brief | `student.excluded_skills` |
+
+The rule never reads `student.grade`: the grade has done its work in `ratings.start`, and from there the ratings say where the child stands (SPEC 3.1). The trial series needs one thing more, and not of the rule: the estimate after each trial answer reads the level, the difficulty and the outcome of every earlier one from `recent` (SPEC 2.2.1), which is why the window is never pruned below five — the length of the series.
 
 One substitution is worth naming. The prototype rotates the setting by the number of history entries; with a bounded window that number would start repeating as soon as entries are dropped, and the rule would stop being deterministic in the way D40 promises. The total answer count does the same job and never goes backwards.
 
@@ -234,6 +240,7 @@ What grows without a bound of its own is the per-topic summary, which gains an e
 - **Reading an older version** runs the migration chain in memory — pure functions, one per step, each with its golden file in `testdata/` (T26). The next write stores the current version.
 - **Reading a newer version** is refused: the instance does not touch the file and tells the model that the profile was saved by a newer version of the service and to try again shortly. This is not hypothetical — two revisions are live during every Cloud Run rollout, and an old instance rewriting a new file would quietly drop whatever it did not understand.
 - **Adding an optional field** is not a version bump. Removing one, renaming one, or changing what one means is.
+- **The ladder did not raise the version.** One ladder for grades 1–6 (О-56) added `ratings.start`, `grade_level` in the brief, the current task and every answer of the window, and `mastered_level` beside `mastered_since`, all of them required, and changed what θ means — a place on the ladder rather than a level within the grade. All of that is still version 1 because no file of version 1 had been written by the service when it changed: the tools that write one arrive in T43 and the storage in T50. From the first written file on, a change of that kind is a version and a migration.
 - **The sealed block carries its own version** inside the ciphertext and is migrated or dropped on its own: a task in flight is worth less than a profile.
 - Unknown fields at the current version are ignored on read and are not written back — forward compatibility is the refusal above, not a bag of leftovers.
 
@@ -246,6 +253,7 @@ What grows without a bound of its own is the per-topic summary, which gains an e
   "current_task": {
     "difficulty": 3,
     "fingerprint": "Zr8k1Qe7wq2YvN0hJ5tBb3xS9dP6mLcA4uKfR1oGiE0",
+    "grade_level": "3-4",
     "hint": "Try listing the crews one by one, starting with the youngest cadet.",
     "id": "tsk_01J9Z2K7Q4",
     "instructions_version": "8f21c04",
@@ -271,13 +279,15 @@ What grows without a bound of its own is the per-topic summary, which gains an e
   "ratings": {
     "answers": 57,
     "consecutive_failures": 1,
-    "theta": 0.42
+    "start": 2.5,
+    "theta": 2.92
   },
   "recent": [
     {
       "answered_at": "2026-09-20T18:44:02Z",
       "correct": true,
       "difficulty": 3,
+      "grade_level": "3-4",
       "hint_used": false,
       "confused": false,
       "pace": "normal",
@@ -290,6 +300,7 @@ What grows without a bound of its own is the per-topic summary, which gains an e
       "confused": false,
       "correct": false,
       "difficulty": 3,
+      "grade_level": "3-4",
       "hint_used": true,
       "pace": "slow",
       "task_id": "tsk_01J9Z2A1B7",
@@ -318,6 +329,7 @@ What grows without a bound of its own is the per-topic summary, which gains an e
       "correct": 11,
       "delta": 0.55,
       "last_issued": "2026-09-14",
+      "mastered_level": "3-4",
       "mastered_since": "2026-09-14",
       "top_streak": 5,
       "traps": {
@@ -330,6 +342,7 @@ What grows without a bound of its own is the per-topic summary, which gains an e
       "correct": 7,
       "delta": 0.31,
       "last_issued": "2026-09-20",
+      "mastered_level": null,
       "mastered_since": null,
       "top_streak": 0,
       "traps": {
@@ -343,6 +356,7 @@ What grows without a bound of its own is the per-topic summary, which gains an e
       "correct": 4,
       "delta": -0.18,
       "last_issued": "2026-09-20",
+      "mastered_level": null,
       "mastered_since": null,
       "top_streak": 1,
       "traps": {

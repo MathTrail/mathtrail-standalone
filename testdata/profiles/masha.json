@@ -4,6 +4,7 @@
   "current_task": {
     "difficulty": 3,
     "fingerprint": "Uy8Dhd0mXYfbZbFzyR4IsYlHdPHCFA0bEUGyOI_QUsmEm1MvabSGomfcfnLRVf3IuHF5YR0puyLju28XlmzRzg",
+    "grade_level": "3-4",
     "hint": "Try listing the orders one by one, starting with the shortest.",
     "id": "tsk_masha_open",
     "instructions_version": "357968db0310",
@@ -29,7 +30,8 @@
   "ratings": {
     "answers": 3,
     "consecutive_failures": 2,
-    "theta": -0.21347413487262834
+    "start": 2.5,
+    "theta": 2.2865258651273717
   },
   "recent": [
     {
@@ -37,6 +39,7 @@
       "confused": false,
       "correct": true,
       "difficulty": 2,
+      "grade_level": "3-4",
       "hint_used": false,
       "pace": "fast",
       "task_id": "tsk_masha_01",
@@ -48,6 +51,7 @@
       "confused": false,
       "correct": false,
       "difficulty": 3,
+      "grade_level": "3-4",
       "hint_used": true,
       "pace": "slow",
       "task_id": "tsk_masha_02",
@@ -59,6 +63,7 @@
       "confused": false,
       "correct": false,
       "difficulty": 2,
+      "grade_level": "3-4",
       "hint_used": false,
       "pace": "slow",
       "task_id": "tsk_masha_03",
@@ -93,6 +98,7 @@
       "correct": 0,
       "delta": -0.24344191911179713,
       "last_issued": "2026-09-02",
+      "mastered_level": null,
       "mastered_since": null,
       "top_streak": 0,
       "traps": {
@@ -105,6 +111,7 @@
       "correct": 1,
       "delta": 0.08606125483839842,
       "last_issued": "2026-09-01",
+      "mastered_level": "3-4",
       "mastered_since": "2026-09-01",
       "top_streak": 3,
       "traps": {},
@@ -115,6 +122,7 @@
       "correct": 0,
       "delta": -0.3092760855915665,
       "last_issued": "2026-09-03",
+      "mastered_level": null,
       "mastered_since": null,
       "top_streak": 0,
       "traps": {},

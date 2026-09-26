@@ -69,8 +69,10 @@ type Answered struct {
 // Recorded is what one answer changed, for whoever has to say so: the result
 // the child is shown and the line written to the log.
 type Recorded struct {
-	// Topic is what was answered, and Difficulty the level of the task.
+	// Topic is what was answered, GradeLevel the level the task was written
+	// for and Difficulty its difficulty inside that level.
 	Topic      string
+	GradeLevel rating.GradeLevel
 	Difficulty int
 	// Probability is the chance of a correct answer as it stood when the task
 	// was handed out.
@@ -79,6 +81,10 @@ type Recorded struct {
 	// before the answer and after it.
 	LevelBefore float64
 	LevelAfter  float64
+	// Trial is which answer of the trial series this was, from 1, or zero when
+	// the series was already over. While it runs there is no rating to show,
+	// only how many of its answers are in.
+	Trial int
 	// Pace is how long the answer took.
 	Pace Pace
 	// Mastered is set when this answer earned mastery of the topic, and
@@ -87,11 +93,15 @@ type Recorded struct {
 	Unmastered bool
 }
 
-// Record applies an answer to the profile: it moves the two levels, adds to
-// the summary of the topic, puts the answer at the end of the history window,
-// and takes the task out of flight. The task itself is not read here — what
-// the answer was worth comes from the levels and the difficulty, which is all
-// the formula has ever read.
+// Record applies an answer to the profile: it moves the level, adds to the
+// summary of the topic, puts the answer at the end of the history window, and
+// takes the task out of flight. The task itself is not read here — what the
+// answer was worth comes from the levels and where the task stood on the
+// ladder, which is all the formula has ever read.
+//
+// An answer of the trial series moves the level differently from every answer
+// after it: the level is estimated afresh from the start and all the answers
+// of the series at once, and the correction of the topic stays where it is.
 //
 // The caller is left with a profile to write, and nothing else to remember.
 //
@@ -116,7 +126,20 @@ func (p *Profile) Record(answer Answered) (Recorded, error) {
 		Answers:      p.Ratings.Answers,
 		TopicAnswers: topic.Answers,
 	}
-	moved := rating.Update(before, rating.Beta(task.Difficulty), answer.Correct)
+	point := rating.Point{GradeLevel: task.GradeLevel, Difficulty: task.Difficulty}
+
+	var (
+		trial       int
+		moved       rating.State
+		probability float64
+	)
+	if p.Ratings.InTrial() {
+		trial = max(p.Ratings.Answers, 0) + 1
+		moved, probability = p.place(before, point, answer.Correct)
+	} else {
+		updated := rating.Update(before, point.Beta(), answer.Correct)
+		moved, probability = updated.State, updated.Probability
+	}
 
 	p.Ratings.Theta, p.Ratings.Answers = moved.Theta, moved.Answers
 	topic.Delta, topic.Answers = moved.Delta, moved.TopicAnswers
@@ -137,13 +160,15 @@ func (p *Profile) Record(answer Answered) (Recorded, error) {
 
 	recorded := Recorded{
 		Topic:       task.Topic,
+		GradeLevel:  task.GradeLevel,
 		Difficulty:  task.Difficulty,
-		Probability: moved.Probability,
+		Probability: probability,
 		LevelBefore: before.Level(),
 		LevelAfter:  moved.Level(),
+		Trial:       trial,
 		Pace:        paceOf(task.IssuedAt.Time, answer.At),
 	}
-	recorded.Mastered, recorded.Unmastered = topic.master(moved.Probability, &answer)
+	recorded.Mastered, recorded.Unmastered = topic.master(probability, task.GradeLevel, &answer)
 	p.Topics[task.Topic] = topic
 
 	p.remember(&Answer{
@@ -152,6 +177,7 @@ func (p *Profile) Record(answer Answered) (Recorded, error) {
 		Confused:   answer.Confused,
 		Correct:    answer.Correct,
 		Difficulty: task.Difficulty,
+		GradeLevel: task.GradeLevel,
 		HintUsed:   answer.HintUsed,
 		Pace:       recorded.Pace,
 		TaskID:     task.ID,
@@ -165,6 +191,35 @@ func (p *Profile) Record(answer Answered) (Recorded, error) {
 	return recorded, nil
 }
 
+// place is an answer of the trial series: the level estimated afresh from the
+// start and every answer of the series so far, this one included, while the
+// correction of the topic stays where it is — a trial answer says where the
+// child stands, not what they know of one topic. The counts move as they
+// always do, and the chance is the one the task was handed out at.
+func (p *Profile) place(before rating.State, point rating.Point, correct bool) (moved rating.State, probability float64) {
+	answers := append(p.trialSoFar(), rating.Answer{Point: point, Correct: correct})
+	return rating.State{
+		Theta:        rating.Estimate(p.Ratings.Start, answers),
+		Delta:        before.Delta,
+		Answers:      before.Answers + 1,
+		TopicAnswers: before.TopicAnswers + 1,
+	}, rating.Probability(before.Level(), point.Beta())
+}
+
+// trialSoFar are the answers of the trial series already given: the last
+// entries of the window, as many as the answers the level rests on. The window
+// is never pruned below the length of the series, so while the series runs it
+// holds every one of them. A window edited by hand into holding fewer is read
+// as it stands, and the answers it no longer shows are not weighed.
+func (p *Profile) trialSoFar() []rating.Answer {
+	count := min(max(p.Ratings.Answers, 0), len(p.Recent))
+	answers := make([]rating.Answer, 0, count+1)
+	for i := len(p.Recent) - count; i < len(p.Recent); i++ {
+		answers = append(answers, rating.Answer{Point: p.Recent[i].point(), Correct: p.Recent[i].Correct})
+	}
+	return answers
+}
+
 // master moves the two runs this topic keeps and reports whether the answer
 // earned mastery or lost it.
 //
@@ -172,7 +227,15 @@ func (p *Profile) Record(answer Answered) (Recorded, error) {
 // the middle of the corridor or harder, and unaided. A correct answer to an
 // easy task leaves the run where it is rather than adding to it — it is not
 // evidence against the child, and it is not evidence for them either.
-func (t *Topic) master(probability float64, answer *Answered) (mastered, unmastered bool) {
+//
+// Mastery is held at the level of the task that completed the run, and a run
+// completed on a task of a higher level masters the topic again, there: once
+// the child's tasks in a topic come from the level above, the topic is back
+// in the rotation until they master it at that level too. A run is spent once
+// it completes, whether it earns mastery or finds the topic mastered already,
+// so mastering the topic at a higher level takes a run of its own rather than
+// one answer added to a run of the tasks below.
+func (t *Topic) master(probability float64, level rating.GradeLevel, answer *Answered) (mastered, unmastered bool) {
 	switch {
 	case !answer.Correct:
 		t.TopStreak = 0
@@ -185,15 +248,25 @@ func (t *Topic) master(probability float64, answer *Answered) (mastered, unmaste
 	}
 
 	switch {
-	case t.MasteredSince == nil && t.Answers >= MasteryAnswers && t.TopStreak >= MasteryStreak:
-		since := DateOf(answer.At)
-		t.MasteredSince = &since
-		return true, false
 	case t.MasteredSince != nil && t.WrongStreak >= MasteryLostAfter:
-		t.MasteredSince = nil
+		t.MasteredSince, t.MasteredLevel = nil, nil
 		return false, true
+	case t.Answers >= MasteryAnswers && t.TopStreak >= MasteryStreak:
+		t.TopStreak = 0
+		if t.masteredAtOrAbove(level) {
+			return false, false
+		}
+		since := DateOf(answer.At)
+		t.MasteredSince, t.MasteredLevel = &since, &level
+		return true, false
 	}
 	return false, false
+}
+
+// masteredAtOrAbove reports whether the topic is mastered at this level or at
+// a higher one, which a run completed at this level adds nothing to.
+func (t *Topic) masteredAtOrAbove(level rating.GradeLevel) bool {
+	return t.MasteredSince != nil && t.MasteredLevel != nil && t.MasteredLevel.Shift() >= level.Shift()
 }
 
 // remember puts an answer at the end of the window and drops the oldest when

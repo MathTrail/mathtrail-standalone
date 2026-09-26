@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 	"testing/fstest"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
 const (
@@ -263,7 +265,7 @@ func TestATaskAtALevelItsTopicIsNotTaughtAtStopsTheService(t *testing.T) {
 	task := validExample()
 	task.ID = "knights-12-d3-1"
 	task.Topic = "logic.knights_liars"
-	task.GradeLevel = Level12
+	task.GradeLevel = rating.Grades12
 
 	src := contentCopy(t)
 	withExamples(t, src, knightFile, task)

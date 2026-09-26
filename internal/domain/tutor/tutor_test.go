@@ -1,27 +1,43 @@
 package tutor_test
 
 import (
+	"reflect"
 	"slices"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/tutor"
 )
 
 // The catalog of these tests is written out here rather than taken from the
-// binary: three topics and four traps are enough to say what the rule does,
-// and a test that leans on four hundred reference tasks says it less clearly.
+// binary: three topics, four traps and the traps of their reference tasks are
+// enough to say what the rule does, and a test that leans on six hundred
+// reference tasks says it less clearly. A topic is taught at every level
+// unless levels says otherwise.
 type catalog struct {
 	topics   []string
+	levels   map[string][]rating.GradeLevel
 	traps    []string
 	examples map[string][]string
 }
 
-func (c catalog) TopicsAt(int) []string                     { return c.topics }
-func (c catalog) TrapIDs() []string                         { return c.traps }
-func (c catalog) ExampleTraps(topic string, _ int) []string { return c.examples[topic] }
+func (c catalog) TopicIDs() []string { return c.topics }
+func (c catalog) TrapIDs() []string  { return c.traps }
+
+func (c catalog) LevelsOf(topic string) []rating.GradeLevel {
+	if levels, set := c.levels[topic]; set {
+		return levels
+	}
+	if slices.Contains(c.topics, topic) {
+		return rating.GradeLevels()
+	}
+	return nil
+}
+
+func (c catalog) ExampleTraps(topic string, _ rating.GradeLevel) []string { return c.examples[topic] }
 
 func threeTopics() catalog {
 	return catalog{
@@ -35,10 +51,21 @@ func threeTopics() catalog {
 	}
 }
 
+// withAnOlderTopic is the three topics behind one taught at grades 5–6 alone,
+// first in catalog order, so that the rule reaches it before any other when it
+// is within reach at all.
+func withAnOlderTopic() catalog {
+	c := threeTopics()
+	c.topics = append([]string{"percent.basic"}, c.topics...)
+	c.levels = map[string][]rating.GradeLevel{"percent.basic": {rating.Grades56}}
+	c.examples["percent.basic"] = []string{"wrong_operation", "missed_case"}
+	return c
+}
+
 var day = time.Date(2026, 9, 1, 12, 0, 0, 0, time.UTC)
 
 // child is a profile to take apart: a grade, two interests, and nothing
-// answered yet.
+// answered yet, so the child is at the start of the trial series.
 func child(t *testing.T) *profile.Profile {
 	t.Helper()
 
@@ -47,6 +74,16 @@ func child(t *testing.T) *profile.Profile {
 		Interests: []string{"cats", "trains"},
 		Pseudonym: "Otter",
 	}, "0.0.0-test", day)
+}
+
+// settled is a child past the trial series, at the same level: the rule works
+// over a failure again only once the series is over.
+func settled(t *testing.T) *profile.Profile {
+	t.Helper()
+
+	p := child(t)
+	p.Ratings.Answers = rating.TrialAnswers
+	return p
 }
 
 // issued marks a topic as given on a day, with counts that make it a topic the
@@ -62,7 +99,33 @@ func issued(p *profile.Profile, topic string, on time.Time, answers int) {
 	p.Topics[topic] = summary
 }
 
-func brief(t *testing.T, p *profile.Profile, c catalog) profile.Brief {
+// mastered marks a topic mastered at a level.
+func mastered(p *profile.Profile, topic string, level rating.GradeLevel) {
+	summary := p.Topics[topic]
+	since := profile.DateOf(day)
+	summary.MasteredSince, summary.MasteredLevel = &since, &level
+	if summary.Traps == nil {
+		summary.Traps = map[string]int{}
+	}
+	p.Topics[topic] = summary
+}
+
+// failedAt leaves the window ending with a failure in this topic.
+func failedAt(p *profile.Profile, topic string, failures int) {
+	p.Ratings.ConsecutiveFailures = failures
+	p.Recent = []profile.Answer{{
+		AnsweredAt: profile.At(day),
+		Difficulty: 3,
+		GradeLevel: rating.Grades12,
+		Pace:       profile.PaceNormal,
+		TaskID:     "tsk_1",
+		Topic:      topic,
+		Chosen:     "A",
+		Trap:       "wrong_operation",
+	}}
+}
+
+func brief(t *testing.T, p *profile.Profile, c tutor.Catalog) profile.Brief {
 	t.Helper()
 
 	built, mode, err := tutor.Next(p, c, tutor.Choice{})
@@ -115,19 +178,34 @@ func TestNeverGivenBeatsGivenLongAgo(t *testing.T) {
 	}
 }
 
-// A mastered topic steps out of the rotation.
+// A topic mastered where its tasks now come from steps out of the rotation.
 func TestAMasteredTopicIsSkipped(t *testing.T) {
 	t.Parallel()
 
 	p := child(t)
-	mastered := profile.DateOf(day)
-	summary := p.Topics["counting.gaps"]
-	summary.MasteredSince = &mastered
-	summary.Traps = map[string]int{}
-	p.Topics["counting.gaps"] = summary
+	mastered(p, "counting.gaps", rating.Grades12)
 
 	if got := brief(t, p, threeTopics()); got.TargetConcept != "logic.ordering" {
 		t.Errorf("topic = %q, want the mastered one to be skipped", got.TargetConcept)
+	}
+}
+
+// Mastery is held at a level. A topic mastered among the tasks of grades 1–2
+// is back in the rotation once the child's tasks in it come from grades 3–4:
+// it has never been met there.
+func TestAMasteredTopicComesBackWhenItsTasksMoveUp(t *testing.T) {
+	t.Parallel()
+
+	p := child(t)
+	mastered(p, "counting.gaps", rating.Grades12)
+	summary := p.Topics["counting.gaps"]
+	summary.Delta = 2.5 // a child far past the tasks of grades 1–2 in this topic
+	p.Topics["counting.gaps"] = summary
+
+	got := brief(t, p, threeTopics())
+	if got.TargetConcept != "counting.gaps" || got.GradeLevel != rating.Grades34 {
+		t.Errorf("brief = %s at %s, want the topic back, its tasks now of %s",
+			got.TargetConcept, got.GradeLevel, rating.Grades34)
 	}
 }
 
@@ -137,12 +215,10 @@ func TestEverythingMasteredBringsItAllBack(t *testing.T) {
 	t.Parallel()
 
 	p := child(t)
-	mastered := profile.DateOf(day)
 	for i, topic := range threeTopics().topics {
+		mastered(p, topic, rating.Grades12)
 		summary := p.Topics[topic]
-		summary.MasteredSince = &mastered
 		summary.LastIssued = profile.DateOf(day.AddDate(0, 0, -i))
-		summary.Traps = map[string]int{}
 		p.Topics[topic] = summary
 	}
 
@@ -152,22 +228,13 @@ func TestEverythingMasteredBringsItAllBack(t *testing.T) {
 	}
 }
 
-// After a failure the child works the same ground again.
+// After a failure the child works the same ground again, once the trial
+// series is over.
 func TestAFailureIsWorkedOverAgain(t *testing.T) {
 	t.Parallel()
 
-	p := child(t)
-	p.Ratings.ConsecutiveFailures = 2
-	p.Recent = []profile.Answer{{
-		AnsweredAt: profile.At(day),
-		Correct:    false,
-		Difficulty: 3,
-		Pace:       profile.PaceNormal,
-		TaskID:     "tsk_1",
-		Topic:      "time.clocks",
-		Chosen:     "A",
-		Trap:       "wrong_operation",
-	}}
+	p := settled(t)
+	failedAt(p, "time.clocks", 2)
 	issued(p, "time.clocks", day, 0)
 
 	got := brief(t, p, threeTopics())
@@ -182,13 +249,32 @@ func TestAFailureIsWorkedOverAgain(t *testing.T) {
 	}
 }
 
+// The trial series is finding where the child stands: it moves to a topic of
+// its own each time and does not go over a failure again.
+func TestTheTrialSeriesDoesNotWorkOverAFailure(t *testing.T) {
+	t.Parallel()
+
+	p := child(t)
+	failedAt(p, "counting.gaps", 1)
+	p.Ratings.Answers = 1
+	issued(p, "counting.gaps", day, 0)
+
+	got := brief(t, p, threeTopics())
+	if got.PedagogicalGoal != profile.GoalNewTopic || got.TargetConcept != "logic.ordering" {
+		t.Errorf("brief = %s, %s, want the next topic never given", got.PedagogicalGoal, got.TargetConcept)
+	}
+	if !strings.Contains(got.Rationale, "trial series, task 2 of 5") {
+		t.Errorf("rationale = %q, want it to say the trial series is running", got.Rationale)
+	}
+}
+
 // A profile can arrive with a run of failures and nothing in the window —
 // restored from an older revision, or edited by hand. The rule reads the
 // window rather than trusting it, and falls through to a new topic.
 func TestAFailureWithNothingInTheWindow(t *testing.T) {
 	t.Parallel()
 
-	p := child(t)
+	p := settled(t)
 	p.Ratings.ConsecutiveFailures = 3
 
 	got := brief(t, p, threeTopics())
@@ -197,6 +283,108 @@ func TestAFailureWithNothingInTheWindow(t *testing.T) {
 	}
 	if got.TargetConcept != "counting.gaps" {
 		t.Errorf("topic = %q, want the first of the catalog", got.TargetConcept)
+	}
+}
+
+// A failure on a topic now out of reach — the failures themselves moved it
+// there, or the topic left the catalog — is not worked over again: the task
+// would be failed again, and a run of failures that waits for an accepted task
+// would never end. Something new within reach is set instead, and the
+// rationale says why.
+func TestAFailureOnATopicOutOfReachIsNotWorkedOver(t *testing.T) {
+	t.Parallel()
+
+	for _, failed := range []string{"percent.basic", "time.calendar"} {
+		p := settled(t)
+		failedAt(p, failed, 2)
+
+		got, _, err := tutor.Next(p, withAnOlderTopic(), tutor.Choice{})
+		if err != nil {
+			t.Fatalf("Next() error = %v, want nil", err)
+		}
+		if got.TargetConcept == failed || got.PedagogicalGoal != profile.GoalNewTopic {
+			t.Errorf("brief = %s, %s, want a new topic within reach", got.TargetConcept, got.PedagogicalGoal)
+		}
+		if !strings.Contains(got.Rationale, failed+", which is out of reach now") {
+			t.Errorf("rationale = %q, want it to say why the failure was not worked over", got.Rationale)
+		}
+	}
+}
+
+// A topic whose easiest task the child would mostly fail is not set, however
+// early it stands in the catalog; the rule moves on to one within reach.
+func TestATopicOutOfReachIsNotSet(t *testing.T) {
+	t.Parallel()
+
+	got := brief(t, child(t), withAnOlderTopic())
+	if got.TargetConcept != "counting.gaps" {
+		t.Errorf("topic = %q, want the first topic within reach", got.TargetConcept)
+	}
+}
+
+// The same topic comes within reach as the child grows: its easiest task is in
+// the corridor once the child stands high enough, and the rule sets it at the
+// point the corridor recommends.
+func TestATopicComesInReachAsTheChildGrows(t *testing.T) {
+	t.Parallel()
+
+	p := child(t)
+	p.Ratings.Theta = 3.6
+
+	got := brief(t, p, withAnOlderTopic())
+	if got.TargetConcept != "percent.basic" || got.GradeLevel != rating.Grades56 || got.Difficulty != 1 {
+		t.Errorf("brief = %s at difficulty %d of %s, want percent.basic at its easiest point",
+			got.TargetConcept, got.Difficulty, got.GradeLevel)
+	}
+}
+
+// A child below every topic of the catalog is still given a task: the easiest
+// the catalog has, from the topics the ladder starts with.
+func TestAChildBelowTheLadderIsGivenItsBottom(t *testing.T) {
+	t.Parallel()
+
+	p := child(t)
+	p.Ratings.Theta = -5
+
+	got := brief(t, p, withAnOlderTopic())
+	if got.TargetConcept != "counting.gaps" || got.GradeLevel != rating.Grades12 || got.Difficulty != 1 {
+		t.Errorf("brief = %s at difficulty %d of %s, want the first topic of grades 1-2 at its easiest",
+			got.TargetConcept, got.Difficulty, got.GradeLevel)
+	}
+}
+
+// The brief asks for the point the corridor recommends among all the topic's
+// points, whatever the child's grade: a child of grade 3 a little above the
+// start is nearer the middle of the corridor at difficulty 5 of grades 1–2
+// than at difficulty 2 of their own.
+func TestTheBriefAsksForTheRecommendedPoint(t *testing.T) {
+	t.Parallel()
+
+	p := settled(t)
+	p.Student.Grade = 3
+	p.Ratings.Theta = 2.79
+
+	got := brief(t, p, threeTopics())
+	if got.GradeLevel != rating.Grades12 || got.Difficulty != 5 {
+		t.Errorf("brief asks for difficulty %d of %s, want difficulty 5 of %s",
+			got.Difficulty, got.GradeLevel, rating.Grades12)
+	}
+}
+
+// The grade is never read: two children at the same place, one of grade 1 and
+// one of grade 6, are given the same brief.
+func TestTheGradeIsNeverRead(t *testing.T) {
+	t.Parallel()
+
+	young, old := settled(t), settled(t)
+	young.Student.Grade, old.Student.Grade = 1, 6
+	for _, p := range []*profile.Profile{young, old} {
+		p.Ratings.Theta = 1.2
+		failedAt(p, "logic.ordering", 1)
+	}
+
+	if a, b := brief(t, young, threeTopics()), brief(t, old, threeTopics()); !reflect.DeepEqual(a, b) {
+		t.Errorf("grade 1 is given %+v and grade 6 %+v, want the same brief", a, b)
 	}
 }
 
@@ -255,7 +443,7 @@ type askedCatalog struct {
 	asked *int
 }
 
-func (c askedCatalog) ExampleTraps(string, int) []string {
+func (c askedCatalog) ExampleTraps(string, rating.GradeLevel) []string {
 	*c.asked++
 	return nil
 }
@@ -336,14 +524,17 @@ func TestTheProhibitionsAreCarriedOver(t *testing.T) {
 	}
 }
 
-// A grade the catalogs do not cover is a child nothing can be chosen for, and
-// the rule says so instead of handing back an empty brief.
-func TestAGradeWithNoTopicsIsRefused(t *testing.T) {
+// A catalog with no topic taught anywhere is one nothing can be chosen from,
+// and the rule says so instead of handing back an empty brief.
+func TestACatalogWithNoTopicIsRefused(t *testing.T) {
 	t.Parallel()
 
-	p := child(t)
-	if _, _, err := tutor.Next(p, catalog{}, tutor.Choice{}); err == nil {
-		t.Error("Next() error = nil, want a refusal when the grade has no topics")
+	nowhere := threeTopics()
+	nowhere.levels = map[string][]rating.GradeLevel{"counting.gaps": nil, "logic.ordering": nil, "time.clocks": nil}
+	for _, c := range []catalog{{}, nowhere} {
+		if _, _, err := tutor.Next(child(t), c, tutor.Choice{}); err == nil {
+			t.Error("Next() error = nil, want a refusal when no topic is taught at any level")
+		}
 	}
 }
 
@@ -366,37 +557,10 @@ func TestACountBelowZeroStillGetsASetting(t *testing.T) {
 	}
 }
 
-// A failure on a topic the child's grade no longer takes — the grade changed,
-// or the topic left the catalog — is not worked over again: no task could be
-// written for it, and a run of failures that waits for an accepted task would
-// never end. Something new of the grade is set instead, and the rationale says
-// why.
-func TestAFailureOnATopicNoLongerTakenIsNotWorkedOver(t *testing.T) {
-	t.Parallel()
-
-	p := child(t)
-	p.Ratings.ConsecutiveFailures = 2
-	p.Recent = []profile.Answer{{
-		AnsweredAt: profile.At(day), Difficulty: 3, Pace: profile.PaceNormal,
-		TaskID: "tsk_1", Topic: "time.calendar", Chosen: "A", Trap: "off_by_one",
-	}}
-
-	got, _, err := tutor.Next(p, threeTopics(), tutor.Choice{})
-	if err != nil {
-		t.Fatalf("Next() error = %v, want nil", err)
-	}
-	if !slices.Contains(threeTopics().topics, got.TargetConcept) || got.PedagogicalGoal != profile.GoalNewTopic {
-		t.Errorf("brief = %s, %s, want a new topic of this grade", got.TargetConcept, got.PedagogicalGoal)
-	}
-	if !strings.Contains(got.Rationale, "time.calendar, which is not a topic of this grade") {
-		t.Errorf("rationale = %q, want it to say why the failure was not worked over", got.Rationale)
-	}
-}
-
 // A brief carries empty lists rather than none: the model hands it back as it
 // received it, and a list left out is refused where an empty one says there
-// is nothing in it. A topic with no reference tasks at the child's level, met
-// for the first time, still names traps: the catalog's own stand in.
+// is nothing in it. A topic with no reference tasks, met for the first time,
+// still names traps: the catalog's own stand in.
 func TestABriefNeverLeavesAListOut(t *testing.T) {
 	t.Parallel()
 
@@ -412,51 +576,78 @@ func TestABriefNeverLeavesAListOut(t *testing.T) {
 	}
 }
 
-// With every topic of the grade mastered, the rotation takes all of them back,
+// With every topic within reach mastered, the rotation takes all of them back,
 // and the rationale says so rather than calling one of them unmastered.
 func TestWithEveryTopicMasteredTheRationaleSaysSo(t *testing.T) {
 	t.Parallel()
 
 	p := child(t)
-	mastered := profile.DateOf(day)
 	for _, topic := range threeTopics().topics {
-		p.Topics[topic] = profile.Topic{MasteredSince: &mastered}
+		mastered(p, topic, rating.Grades12)
 	}
 
 	got, _, err := tutor.Next(p, threeTopics(), tutor.Choice{})
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
-	if !strings.Contains(got.Rationale, "every topic of this grade is mastered") {
+	if !strings.Contains(got.Rationale, "every topic within reach is mastered") {
 		t.Errorf("rationale = %q, want it to say every topic is mastered", got.Rationale)
 	}
 }
 
-// gradedCatalog is a catalog whose reference tasks differ by grade, which is
+// levelCatalog is a catalog whose reference tasks differ by level, which is
 // what a topic taught at more than one level looks like.
-type gradedCatalog struct {
+type levelCatalog struct {
 	catalog
-	byGrade map[int][]string
+	byLevel map[rating.GradeLevel][]string
 }
 
-func (c gradedCatalog) ExampleTraps(_ string, grade int) []string { return c.byGrade[grade] }
+func (c levelCatalog) ExampleTraps(_ string, level rating.GradeLevel) []string {
+	return c.byLevel[level]
+}
 
-// A topic with no reference tasks at the child's grade borrows the traps of
-// the grades nearest it, the nearest first, until the brief names as many as
-// it should — before the catalog's first traps, which may have nothing to do
-// with the topic.
-func TestATopicWithoutTasksAtTheGradeBorrowsTheNearest(t *testing.T) {
+// A topic with no reference tasks at the level of the brief borrows the traps
+// of the levels nearest it, the nearest first, until the brief names as many
+// as it should — before the catalog's first traps, which may have nothing to
+// do with the topic.
+func TestATopicWithoutTasksAtItsLevelBorrowsTheNearest(t *testing.T) {
 	t.Parallel()
 
-	topics := gradedCatalog{
+	topics := levelCatalog{
 		catalog: threeTopics(),
-		byGrade: map[int][]string{1: {"reversed_relation"}, 4: {"wrong_operation", "off_by_one"}},
+		byLevel: map[rating.GradeLevel][]string{
+			rating.Grades34: {"reversed_relation"},
+			rating.Grades56: {"wrong_operation", "off_by_one"},
+		},
 	}
 	got, _, err := tutor.Next(child(t), topics, tutor.Choice{})
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
+	if got.GradeLevel != rating.Grades12 {
+		t.Fatalf("the brief is of %s, and the case needs it of %s", got.GradeLevel, rating.Grades12)
+	}
 	if want := []string{"reversed_relation", "wrong_operation"}; !slices.Equal(got.TrapsToUse, want) {
-		t.Errorf("traps = %v, want the nearest grades', nearest first: %v", got.TrapsToUse, want)
+		t.Errorf("traps = %v, want the nearest levels', nearest first: %v", got.TrapsToUse, want)
+	}
+}
+
+// The trial series takes a topic never given while one is within reach, and
+// when every one of them has been given — tasks handed out and never answered
+// count too — it takes the one given longest ago. The rationale says which,
+// and promises no new topic it has not set.
+func TestATrialTaskSaysWhatItRestedOn(t *testing.T) {
+	t.Parallel()
+
+	p := child(t)
+	p.Ratings.Answers = 1
+	issued(p, "counting.gaps", day.AddDate(0, 0, -3), 0)
+	issued(p, "logic.ordering", day.AddDate(0, 0, -2), 0)
+	issued(p, "time.clocks", day.AddDate(0, 0, -1), 0)
+
+	got := brief(t, p, threeTopics())
+	want := "Rule: trial series, task 2 of 5; counting.gaps is the unmastered topic within reach given longest ago, so new_topic."
+	if !strings.HasPrefix(got.Rationale, want) {
+		t.Errorf("rationale = %q, want it to begin %q", got.Rationale, want)
 	}
 }

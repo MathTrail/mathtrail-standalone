@@ -5,64 +5,48 @@ import (
 	"testing"
 
 	"github.com/MathTrail/mathtrail-standalone/content"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/tutor"
 )
 
-// What the rule that chooses a child's next task asks of the catalogs: which
-// topics a child of this grade can be given, how two traps are told apart when
-// nothing else separates them, and what usually goes wrong in a topic.
+// What the rule that chooses a child's next task asks of the catalogs: every
+// topic in catalog order, the levels each is taught at, how two traps are told
+// apart when nothing else separates them, and what usually goes wrong in a
+// topic at a level.
 //
-// These three answers cross into a package that knows nothing about levels or
-// reference tasks, so they are checked here, where both are in hand.
+// These answers cross into a package that knows nothing about reference
+// tasks, so they are checked here, where the tasks are in hand.
 
-// The years a child can be in, and what they are grouped into.
-func TestEveryGradeHasItsLevel(t *testing.T) {
-	t.Parallel()
+// The rule is written against the catalogs the binary ships, and the content
+// is what answers it.
+var _ tutor.Catalog = (*content.Content)(nil)
 
-	for grade, want := range map[int]string{
-		1: content.Level12, 2: content.Level12,
-		3: content.Level34, 4: content.Level34,
-		5: content.Level56, 6: content.Level56,
-	} {
-		got, known := content.LevelOf(grade)
-		if !known || got != want {
-			t.Errorf("LevelOf(%d) = %q, %v, want %q", grade, got, known, want)
-		}
-	}
-
-	// A year outside school is told apart rather than rounded to the nearest.
-	for _, grade := range []int{0, -1, 7, 100} {
-		if got, known := content.LevelOf(grade); known {
-			t.Errorf("LevelOf(%d) = %q, want no level at all", grade, got)
-		}
-	}
-}
-
-func TestTheTopicsOfAGrade(t *testing.T) {
+// Every topic, in the catalog's own order, and the levels each is taught at as
+// the catalog lists them. A topic nobody has is taught nowhere.
+func TestTheTopicsAndTheLevelsTheyAreTaughtAt(t *testing.T) {
 	t.Parallel()
 
 	c := loaded(t)
-	for _, grade := range []int{1, 3, 5} {
-		level, _ := content.LevelOf(grade)
-		got := c.TopicsAt(grade)
-		if len(got) == 0 {
-			t.Fatalf("grade %d has no topics", grade)
-		}
-
-		// Catalog order, and every one of them offered at this level.
-		var inOrder []string
-		for _, topic := range c.Topics() {
-			if topic.HasLevel(level) {
-				inOrder = append(inOrder, topic.ID)
-			}
-		}
-		if !slices.Equal(got, inOrder) {
-			t.Errorf("TopicsAt(%d) = %v, want the catalog's own order %v", grade, got, inOrder)
+	var inOrder []string
+	for _, topic := range c.Topics() {
+		inOrder = append(inOrder, topic.ID)
+		if got := c.LevelsOf(topic.ID); !slices.Equal(got, topic.GradeLevels) {
+			t.Errorf("LevelsOf(%s) = %v, want %v", topic.ID, got, topic.GradeLevels)
 		}
 	}
+	if got := c.TopicIDs(); !slices.Equal(got, inOrder) {
+		t.Errorf("TopicIDs() = %v, want the catalog's own order %v", got, inOrder)
+	}
+	if got := c.LevelsOf("astrophysics.blackholes"); len(got) != 0 {
+		t.Errorf("LevelsOf() on a topic nobody has = %v, want none", got)
+	}
 
-	// A grade nobody is in has no topics rather than all of them.
-	if got := c.TopicsAt(9); len(got) != 0 {
-		t.Errorf("TopicsAt(9) = %v, want nothing", got)
+	// What is handed out is a copy: a caller that rewrites it rewrites nothing
+	// the next caller sees.
+	levels := c.LevelsOf("logic.ordering")
+	levels[0] = "9-10"
+	if again := c.LevelsOf("logic.ordering"); again[0] == "9-10" {
+		t.Error("LevelsOf() handed out the catalog's own list")
 	}
 }
 
@@ -81,17 +65,16 @@ func TestTheTrapsInCatalogOrder(t *testing.T) {
 	}
 }
 
-// What the reference tasks of a topic are usually built around, most frequent
-// first. It is a count over the tasks themselves rather than a list kept
-// beside the catalog, so it cannot fall out of date.
+// What the reference tasks of a topic are usually built around, at one level,
+// most frequent first. It is a count over the tasks themselves rather than a
+// list kept beside the catalog, so it cannot fall out of date.
 func TestTheTrapsOfATopicsReferenceTasks(t *testing.T) {
 	t.Parallel()
 
 	c := loaded(t)
-	const topic, grade = "counting.gaps", 1
-	level, _ := content.LevelOf(grade)
+	const topic, level = "counting.gaps", rating.Grades12
 
-	got := c.ExampleTraps(topic, grade)
+	got := c.ExampleTraps(topic, level)
 	if len(got) == 0 {
 		t.Fatalf("%s has no traps among its reference tasks", topic)
 	}
@@ -102,12 +85,12 @@ func TestTheTrapsOfATopicsReferenceTasks(t *testing.T) {
 	}
 	checkByFrequency(t, got, counts)
 
-	// A topic nobody has, and a grade nobody is in, name nothing.
-	if got := c.ExampleTraps("astrophysics.blackholes", grade); len(got) != 0 {
+	// A topic nobody has, and a level there is not, name nothing.
+	if got := c.ExampleTraps("astrophysics.blackholes", level); len(got) != 0 {
 		t.Errorf("ExampleTraps() on a topic nobody has = %v, want nothing", got)
 	}
-	if got := c.ExampleTraps(topic, 9); len(got) != 0 {
-		t.Errorf("ExampleTraps() at a grade nobody is in = %v, want nothing", got)
+	if got := c.ExampleTraps(topic, "9-10"); len(got) != 0 {
+		t.Errorf("ExampleTraps() at a level there is not = %v, want nothing", got)
 	}
 }
 
@@ -143,14 +126,14 @@ func TestANewChildOfGradesFiveAndSixIsGivenTheTopicsOwnTraps(t *testing.T) {
 	}
 	for _, topic := range c.Topics() {
 		want, isPinned := pinned[topic.ID]
-		hasTasks := len(trapCounts(c, topic.ID, content.Level56)) > 0
+		hasTasks := len(trapCounts(c, topic.ID, rating.Grades56)) > 0
 		switch {
 		case hasTasks && !isPinned:
 			t.Errorf("%s has reference tasks of 5-6 and no pair of traps pinned here", topic.ID)
 		case !hasTasks && isPinned:
 			t.Errorf("%s has %v pinned here and no reference tasks of 5-6", topic.ID, want)
 		case hasTasks:
-			if got := c.ExampleTraps(topic.ID, 5); len(got) < 2 || !slices.Equal(got[:2], want) {
+			if got := c.ExampleTraps(topic.ID, rating.Grades56); len(got) < 2 || !slices.Equal(got[:2], want) {
 				t.Errorf("a child new to %s is given %v first, want %v", topic.ID, got[:min(2, len(got))], want)
 			}
 		}
@@ -159,7 +142,7 @@ func TestANewChildOfGradesFiveAndSixIsGivenTheTopicsOwnTraps(t *testing.T) {
 
 // trapCounts is how often each trap appears among the reference tasks of one
 // topic at one level, counted the long way round.
-func trapCounts(c *content.Content, topic, level string) map[string]int {
+func trapCounts(c *content.Content, topic string, level rating.GradeLevel) map[string]int {
 	counts := map[string]int{}
 	examples := c.Examples()
 	for i := range examples {

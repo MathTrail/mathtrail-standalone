@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/MathTrail/mathtrail-standalone/content"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
 // The catalogs are closed lists: adding to one is a change to the spec and to
@@ -129,8 +130,8 @@ func TestEveryTopicIsOfferedToTheOldestChildren(t *testing.T) {
 	t.Parallel()
 
 	for _, topic := range loaded(t).Topics() {
-		if !topic.HasLevel(content.Level56) {
-			t.Errorf("topic %s is offered at %v, want %s among them", topic.ID, topic.GradeLevels, content.Level56)
+		if !topic.HasLevel(rating.Grades56) {
+			t.Errorf("topic %s is offered at %v, want %s among them", topic.ID, topic.GradeLevels, rating.Grades56)
 		}
 	}
 }
@@ -170,7 +171,7 @@ func TestEveryCellOfGradesOneToFourHasFiveTasks(t *testing.T) {
 
 	type cell struct {
 		topic      string
-		level      string
+		level      rating.GradeLevel
 		difficulty int
 	}
 	count := map[cell]int{}
@@ -180,7 +181,7 @@ func TestEveryCellOfGradesOneToFourHasFiveTasks(t *testing.T) {
 
 	const want = 5
 	for _, topic := range c.Topics() {
-		for _, level := range []string{content.Level12, content.Level34} {
+		for _, level := range []rating.GradeLevel{rating.Grades12, rating.Grades34} {
 			if !topic.HasLevel(level) {
 				continue
 			}
@@ -204,7 +205,7 @@ func TestEveryTopicOfGradesFiveAndSixHasThreeTasksAtEachMiddleDifficulty(t *test
 	t.Parallel()
 	c := loaded(t)
 
-	count := tasksByTopicAndDifficulty(c, content.Level56)
+	count := tasksByTopicAndDifficulty(c, rating.Grades56)
 	var waiting []string
 	for _, topic := range c.Topics() {
 		tasks, written := count[topic.ID]
@@ -219,16 +220,16 @@ func TestEveryTopicOfGradesFiveAndSixHasThreeTasksAtEachMiddleDifficulty(t *test
 			}
 			if got := tasks[difficulty]; got != want {
 				t.Errorf("%s at %s, difficulty %d: got %d reference tasks, want %d",
-					topic.ID, content.Level56, difficulty, got, want)
+					topic.ID, rating.Grades56, difficulty, got, want)
 			}
 		}
 	}
-	t.Logf("no reference tasks at %s yet: %v", content.Level56, waiting)
+	t.Logf("no reference tasks at %s yet: %v", rating.Grades56, waiting)
 }
 
 // tasksByTopicAndDifficulty counts the reference tasks of one level, by topic
 // and then by difficulty. A topic with none at the level is not in it.
-func tasksByTopicAndDifficulty(c *content.Content, level string) map[string]map[int]int {
+func tasksByTopicAndDifficulty(c *content.Content, level rating.GradeLevel) map[string]map[int]int {
 	count := map[string]map[int]int{}
 	examples := c.Examples()
 	for i := range examples {

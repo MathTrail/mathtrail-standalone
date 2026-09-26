@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
 
@@ -19,11 +20,11 @@ import (
 // the language of the chat, because what they carry is the structure and not
 // the wording.
 type Example struct {
-	ID         string `json:"id"`
-	Topic      string `json:"topic"`
-	GradeLevel string `json:"grade_level"`
-	Difficulty int    `json:"difficulty"`
-	Question   string `json:"question"`
+	ID         string            `json:"id"`
+	Topic      string            `json:"topic"`
+	GradeLevel rating.GradeLevel `json:"grade_level"`
+	Difficulty int               `json:"difficulty"`
+	Question   string            `json:"question"`
 	// Drawing and DrawingStructure are set only where the topic needs a
 	// picture, and they are set together: a drawing with no structure cannot be
 	// checked against the wording.
