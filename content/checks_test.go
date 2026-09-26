@@ -90,7 +90,7 @@ func TestEveryReferenceTaskExplainsItsWrongOptions(t *testing.T) {
 			Hint:        example.Hint,
 			Distractors: distractors,
 		}}
-		for _, problem := range checks.Explanations(draft, embedded) {
+		for _, problem := range checks.Explanations(draft, "en", embedded) {
 			t.Errorf("%s: %s", example.ID, problem.Message)
 		}
 	}

@@ -143,6 +143,9 @@ func TestLoopbackHostsMayUsePlainHTTP(t *testing.T) {
 		"http://127.0.1.1:8080",
 		"http://[::1]:8080",
 		"http://app.localhost:8080",
+		"http://LOCALHOST:8080",
+		"http://localhost.:8080",
+		"http://App.LocalHost.:8080",
 	} {
 		t.Run(host, func(t *testing.T) {
 			t.Parallel()
@@ -244,6 +247,17 @@ func TestRefusals(t *testing.T) {
 		{
 			name:    "public url is missing in a deployment",
 			environ: []string{"K_SERVICE=mathtrail"},
+			wantVar: "MATHTRAIL_PUBLIC_URL",
+		},
+		{
+			name:    "public url is not a url",
+			environ: []string{"MATHTRAIL_PUBLIC_URL=https://mathtrail.example:eighty"},
+			wantVar: "MATHTRAIL_PUBLIC_URL",
+		},
+		{
+			// Nothing but the host is missing, so no other rule refuses it.
+			name:    "public url has no host",
+			environ: []string{"MATHTRAIL_PUBLIC_URL=https://"},
 			wantVar: "MATHTRAIL_PUBLIC_URL",
 		},
 		{
@@ -364,6 +378,27 @@ func TestRefusals(t *testing.T) {
 			wantVar: "MATHTRAIL_TELEMETRY_ENDPOINT",
 		},
 		{
+			name:    "a way out shorter than a second",
+			environ: []string{"MATHTRAIL_SHUTDOWN_TIMEOUT=500ms"},
+			wantVar: "MATHTRAIL_SHUTDOWN_TIMEOUT",
+		},
+		{
+			name:    "the collector names a user",
+			environ: []string{"MATHTRAIL_TELEMETRY_ENDPOINT=https://someone:hunter2@telemetry.example"},
+			wantVar: "MATHTRAIL_TELEMETRY_ENDPOINT",
+		},
+		{
+			name:    "the collector carries a query",
+			environ: []string{"MATHTRAIL_TELEMETRY_ENDPOINT=https://telemetry.example?key=value"},
+			wantVar: "MATHTRAIL_TELEMETRY_ENDPOINT",
+		},
+		{
+			// This machine is let off https, not off the exporter's own rule.
+			name:    "the collector on this machine speaks no protocol the exporter does",
+			environ: []string{"MATHTRAIL_TELEMETRY_ENDPOINT=ftp://localhost:4318"},
+			wantVar: "MATHTRAIL_TELEMETRY_ENDPOINT",
+		},
+		{
 			// The whole point of the switch: in a deployment it is refused,
 			// not warned about.
 			name: "dev auth in a deployment",
@@ -373,6 +408,17 @@ func TestRefusals(t *testing.T) {
 				"MATHTRAIL_PUBLIC_URL=https://mathtrail.example",
 			},
 			wantVar: "MATHTRAIL_DEV_AUTH",
+		},
+		{
+			// A line a person reads at a terminal is not one a collector can
+			// trust: it escapes nothing a request carries.
+			name: "the console format in a deployment",
+			environ: []string{
+				"MATHTRAIL_LOG_FORMAT=console",
+				"K_SERVICE=mathtrail",
+				"MATHTRAIL_PUBLIC_URL=https://mathtrail.example",
+			},
+			wantVar: "MATHTRAIL_LOG_FORMAT",
 		},
 	}
 
@@ -442,6 +488,22 @@ func TestBothSealingKeysAreRead(t *testing.T) {
 	}
 	if cfg.SealKeyPrevious != previousSealKey {
 		t.Error("SealKeyPrevious is not the key that was set")
+	}
+}
+
+// A previous key of whitespace alone is no previous key, as the key ring reads
+// it: a secret emptied at the end of a rotation arrives as a lone newline, and
+// a service that refused to start over it would be down for nothing.
+func TestAPreviousKeyOfWhitespaceIsNone(t *testing.T) {
+	t.Parallel()
+
+	for name, previous := range map[string]string{"a lone newline": "\n", "spaces": "   "} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			if _, err := config.LoadFrom(withSealKey("MATHTRAIL_SEAL_KEY_PREVIOUS=" + previous)); err != nil {
+				t.Errorf("LoadFrom(previous key %q) error = %v, want nil", previous, err)
+			}
+		})
 	}
 }
 
@@ -524,6 +586,27 @@ func TestTelemetryFollowsTheDeployment(t *testing.T) {
 			}
 			if got := cfg.TelemetryEnabled(); got != c.want {
 				t.Errorf("TelemetryEnabled() = %v, want %v", got, c.want)
+			}
+		})
+	}
+}
+
+// The drain and the close share the way out rather than take it each: the
+// two together are the whole of it, and the close always keeps a share for
+// the last delivery of what the service recorded.
+func TestTheWayOutIsSharedRatherThanTakenTwice(t *testing.T) {
+	t.Parallel()
+
+	for _, budget := range []time.Duration{time.Second, config.DefaultShutdownTimeout, 7 * time.Second} {
+		t.Run(budget.String(), func(t *testing.T) {
+			t.Parallel()
+
+			cfg := &config.Config{ShutdownTimeout: budget}
+			if got := cfg.DrainTimeout() + cfg.CloseTimeout(); got != budget {
+				t.Errorf("drain + close = %v, want the whole way out, %v", got, budget)
+			}
+			if cfg.CloseTimeout() != budget/4 {
+				t.Errorf("close = %v, want the quarter of %v the drain leaves it", cfg.CloseTimeout(), budget)
 			}
 		})
 	}

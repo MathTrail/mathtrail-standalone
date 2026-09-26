@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
 
 // What a child of average level meets at each difficulty. This table is the
@@ -169,5 +170,35 @@ func TestAnAnswerCountsItself(t *testing.T) {
 	}
 	if next.KTheta >= result.KTheta {
 		t.Error("the step did not narrow when the state was carried forward")
+	}
+}
+
+// A count below zero is no count at all: the step is the widest there is, and
+// a correct answer still raises the level. A profile never passes validation
+// with one, and nothing here should turn it into a level without end.
+func TestACountBelowZeroIsNone(t *testing.T) {
+	t.Parallel()
+
+	fresh := rating.Update(rating.State{}, 0, true)
+	for _, answers := range []int{-20, -40} {
+		t.Run(fmt.Sprintf("%d answers", answers), func(t *testing.T) {
+			t.Parallel()
+			result := rating.Update(rating.State{Answers: answers, TopicAnswers: answers}, 0, true)
+			if result.KTheta != fresh.KTheta || result.KDelta != fresh.KDelta || result.Theta <= 0 {
+				t.Errorf("Update() = steps %v and %v and level %v, want the steps of no answers and a level raised",
+					result.KTheta, result.KDelta, result.Theta)
+			}
+		})
+	}
+}
+
+// The guessing floor is one option in however many a task offers. The rating
+// does not depend on the package that says how many, and this is what keeps
+// the two from drifting apart.
+func TestTheGuessingFloorIsOneOptionOfAll(t *testing.T) {
+	t.Parallel()
+
+	if want := 1 / float64(solver.Count); rating.Guess != want {
+		t.Errorf("Guess = %v, want %v, one option of the %d a task offers", rating.Guess, want, solver.Count)
 	}
 }

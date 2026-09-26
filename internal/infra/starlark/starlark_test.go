@@ -195,6 +195,18 @@ func TestRun(t *testing.T) {
 			contains: "B is not among these",
 		},
 		{
+			name:     "a match with nothing to look up",
+			source:   "def solve(options):\n    return match(options)\n",
+			status:   solver.StatusError,
+			contains: "match: got 1 arguments, want 2",
+		},
+		{
+			name:     "a match with its arguments named",
+			source:   "def solve(options):\n    return match(options = options, value = 6)\n",
+			status:   solver.StatusError,
+			contains: "match: unexpected keyword arguments",
+		},
+		{
 			name:    "an empty sequence costs nothing",
 			source:  "def solve(options):\n    return match(options, len(list([])) + 6)\n",
 			status:  solver.StatusOK,

@@ -1879,33 +1879,33 @@
     "topic": "pigeonhole.basic",
     "grade_level": "5-6",
     "difficulty": 3,
-    "question": "How many pupils must a school have to be sure that two of them were born in the same month and on the same day of the week?",
+    "question": "Tom writes different whole numbers on the board, one after another. How many numbers must he write to be sure that two of them differ by 7, by 14 or by some other number of the 7 times table?",
     "options": {
-      "A": "85",
+      "A": "8",
       "B": "2",
-      "C": "20",
-      "D": "13",
-      "E": "84"
+      "C": "14",
+      "D": "7",
+      "E": "It can never be certain"
     },
     "correct_answer": "A",
-    "hint": "How many different pairs of a month and a day of the week are there?",
-    "solution": "A month and a day of the week make 12 × 7 = 84 different pairs. 84 pupils could all have different pairs, but with 85 pupils two of them must share one.",
+    "hint": "Try pairs such as 3 and 17, or 5 and 26. What do they have in common when you divide them by 7?",
+    "solution": "Two numbers differ by a number of the 7 times table exactly when they leave the same remainder on division by 7. There are only 7 remainders: 0, 1, 2, 3, 4, 5 and 6. Seven numbers, such as 1 to 7, can all leave different remainders, but with 8 numbers two of them must leave the same one, so they differ by a number of the 7 times table.",
     "distractors": {
       "B": {
         "trap": "best_case_not_worst",
-        "text": "Two pupils could share a month and a day by luck, but they need not."
+        "text": "Two numbers could differ by 7 or 14 by luck, but they need not."
       },
       "C": {
         "trap": "wrong_operation",
-        "text": "20 adds the 12 months and the 7 days, but every month goes with every day, so there are 12 × 7 pairs."
+        "text": "14 takes two numbers for each of the 7 remainders, but after one of each the next number already repeats one."
       },
       "D": {
-        "trap": "ignored_condition",
-        "text": "13 makes sure of two pupils born in the same month, but not also on the same day of the week."
+        "trap": "off_by_one",
+        "text": "7 numbers, such as 1 to 7, can all leave different remainders, so no two of them differ by 7, 14 or more."
       },
       "E": {
-        "trap": "off_by_one",
-        "text": "84 pupils could all have different pairs of a month and a day of the week."
+        "trap": "ignored_condition",
+        "text": "Numbers can avoid a difference of exactly 7 for ever, but a difference of 14, 21 and so on counts too."
       }
     }
   },

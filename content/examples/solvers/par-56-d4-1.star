@@ -1,5 +1,5 @@
 START = (0, 1, 2)  # frogs P, Q and R
-CANDIDATES = [(0, 2, 4), (0, 4, 5), (1, 2, 5), (0, 1, 3), (1, 3, 5)]  # as the options list them
+CANDIDATES = [(0, 4, 5), (0, 5, 4), (0, 2, 4), (1, 3, 4), (2, 1, 3)]  # the points of P, Q and R, as the options list them
 WIDE = 12  # the search keeps every frog between -WIDE and WIDE
 
 def places_reached(loose):
@@ -28,15 +28,15 @@ def places_reached(loose):
                 if moved not in seen:
                     seen.add(moved)
                     queue.append(moved)
-    return set([tuple(sorted(frogs)) for frogs in queue])
+    return set(queue)
 
 def solve(options):
     # The answer must not depend on how the jumps are read.
     strict, loose = places_reached(False), places_reached(True)
-    strict = [places for places in CANDIDATES if places in strict]
-    loose = [places for places in CANDIDATES if places in loose]
+    strict = [points for points in CANDIDATES if points in strict]
+    loose = [points for points in CANDIDATES if points in loose]
     if strict != loose:
         fail("the strict and the loose search disagree: %s against %s" % (strict, loose))
     if len(strict) != 1:
         fail("%d of the options can be reached" % len(strict))
-    return match(options, "%d, %d and %d" % strict[0])
+    return match(options, "P at %d, Q at %d, R at %d" % strict[0])

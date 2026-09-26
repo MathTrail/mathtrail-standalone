@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"go.opentelemetry.io/otel/metric"
 	metricnoop "go.opentelemetry.io/otel/metric/noop"
 	tracenoop "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
@@ -26,7 +27,7 @@ func TestHalfFilledTelemetryIsRefusedByName(t *testing.T) {
 	complete := httpserver.Observability{
 		Traces: tracenoop.NewTracerProvider(),
 		Meters: metricnoop.NewMeterProvider(),
-		Flush:  func(context.Context) error { return nil },
+		Flush:  func(context.Context, bool) error { return nil },
 	}
 
 	for _, c := range []struct {
@@ -53,4 +54,34 @@ func TestHalfFilledTelemetryIsRefusedByName(t *testing.T) {
 			}
 		})
 	}
+}
+
+// A meter that is there and cannot make what the router counts with stops the
+// router where it is assembled, rather than leaving a service that counts
+// nothing and says so to nobody.
+func TestAMeterThatCannotCountStopsTheRouter(t *testing.T) {
+	t.Parallel()
+
+	_, err := httpserver.NewRouter(httpserver.NewHealthHandler(), zap.NewNop(), httpserver.Observability{
+		Traces: tracenoop.NewTracerProvider(),
+		Meters: refusingMeters{},
+		Flush:  func(context.Context, bool) error { return nil },
+	})
+	if !errors.Is(err, errMeterRefused) {
+		t.Errorf("NewRouter() error = %v, want the meter's refusal passed on", err)
+	}
+}
+
+// errMeterRefused is what a refusing meter answers.
+var errMeterRefused = errors.New("the meter refuses")
+
+// refusingMeters hand out a meter that makes no counter.
+type refusingMeters struct{ metricnoop.MeterProvider }
+
+func (refusingMeters) Meter(string, ...metric.MeterOption) metric.Meter { return refusingMeter{} }
+
+type refusingMeter struct{ metricnoop.Meter }
+
+func (refusingMeter) Int64Counter(string, ...metric.Int64CounterOption) (metric.Int64Counter, error) {
+	return nil, errMeterRefused
 }

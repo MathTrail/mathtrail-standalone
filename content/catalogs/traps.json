@@ -5,7 +5,7 @@
   },
   {
     "id": "missed_case",
-    "description": "Missed an option while enumerating."
+    "description": "Missed an option while enumerating: a case left out, or a shorter way than the one found."
   },
   {
     "id": "double_count",

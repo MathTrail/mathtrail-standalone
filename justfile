@@ -531,3 +531,12 @@ ci-tf-outputs:
     echo "service=$(tf output -raw service_name)"
     echo "region=$(tf output -raw region)"
     echo "public_url=$(tf output -raw public_url)"
+
+# -- Research ----------------------------------------------------------------
+
+# The recipes live in research/justfile. The arguments reach it exactly as
+# given, without passing through the shell a second time.
+[doc('A recipe of the research module: `just research` lists them')]
+[positional-arguments]
+research *ARGS:
+    @{{ quote(just_executable()) }} --justfile research/justfile --working-directory research "$@"

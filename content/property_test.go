@@ -12,6 +12,8 @@ import (
 	"github.com/leanovate/gopter"
 	"github.com/leanovate/gopter/gen"
 	"github.com/leanovate/gopter/prop"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
 
 // The properties here name what has to hold for every input rather than for the
@@ -107,7 +109,7 @@ func (s *exampleSeed) build() Example {
 		Solution:      s.Question,
 		Distractors:   map[string]Distractor{},
 	}
-	for i, letter := range optionLetters {
+	for i, letter := range solver.Letters() {
 		task.Options[letter] = s.Options[i]
 		if letter == task.CorrectAnswer {
 			continue
@@ -132,9 +134,9 @@ func (s *exampleSeed) build() Example {
 func genExampleSeed() gopter.Gen {
 	return gen.Struct(reflect.TypeOf(exampleSeed{}), map[string]gopter.Gen{
 		"Question": gen.AnyString(),
-		"Options":  gen.SliceOfN(len(optionLetters), gen.AnyString()),
-		"Traps":    gen.SliceOfN(len(optionLetters), gen.AnyString()),
-		"Texts":    gen.SliceOfN(len(optionLetters), gen.AnyString()),
+		"Options":  gen.SliceOfN(solver.Count, gen.AnyString()),
+		"Traps":    gen.SliceOfN(solver.Count, gen.AnyString()),
+		"Texts":    gen.SliceOfN(solver.Count, gen.AnyString()),
 		"Kind":     gen.AnyString(),
 		"Label":    gen.AnyString(),
 		"Relation": gen.AnyString(),

@@ -5,6 +5,8 @@ import (
 	"maps"
 	"slices"
 	"strings"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
 
 // The shortest an explanation may be, in the unit its script is counted in.
@@ -40,8 +42,10 @@ type TrapDescriber interface {
 // Texts are compared as they read — case, punctuation and spacing aside. An
 // explanation is pointed at by its trap, never by its option's letter: the
 // letters of the explanations name the wrong options, and so the right one.
-// An explanation with no text at all is the structure check's to report.
-func Explanations(draft Draft, traps TrapDescriber) []Problem {
+// An explanation with no text at all is the structure check's to report. Its
+// length is counted in the unit the language of the task calls for, as the
+// question's is.
+func Explanations(draft Draft, language string, traps TrapDescriber) []Problem {
 	if draft.Task == nil {
 		return nil
 	}
@@ -49,10 +53,10 @@ func Explanations(draft Draft, traps TrapDescriber) []Problem {
 	problems := sameTexts(task)
 	for _, key := range slices.Sorted(maps.Keys(task.Distractors)) {
 		distractor := task.Distractors[key]
-		if strings.TrimSpace(distractor.Text) == "" {
+		if solver.Blank(distractor.Text) {
 			continue
 		}
-		problems = append(problems, checkExplanation(task, distractor, traps)...)
+		problems = append(problems, checkExplanation(task, distractor, language, traps)...)
 	}
 	return distinct(problems)
 }
@@ -80,7 +84,7 @@ func sameTexts(task *Task) []Problem {
 
 // checkExplanation checks one explanation on its own: that it is not the way
 // to the answer, not the catalog's words, and long enough to say something.
-func checkExplanation(task *Task, distractor Distractor, traps TrapDescriber) []Problem {
+func checkExplanation(task *Task, distractor Distractor, language string, traps TrapDescriber) []Problem {
 	which := explanationFor(distractor.Trap)
 
 	var problems []Problem
@@ -99,9 +103,10 @@ func checkExplanation(task *Task, distractor Distractor, traps TrapDescriber) []
 			"what went wrong in this task", which))
 	}
 
-	count, unit := lengthOf(distractor.Text)
+	unit := unitFor(distractor.Text, language)
+	count := lengthIn(distractor.Text, unit)
 	minimum := minimumWords
-	if unit == "characters" {
+	if unit == unitCharacters {
 		minimum = minimumCharacters
 	}
 	if count < minimum {

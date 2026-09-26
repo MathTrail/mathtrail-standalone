@@ -1774,25 +1774,25 @@
     "topic": "parity.alternation",
     "grade_level": "5-6",
     "difficulty": 2,
-    "question": "The sum of 20 whole numbers is odd. How many of these numbers can be even?",
+    "question": "The sum of 20 whole numbers is odd, and more than half of the numbers are even. How many of the numbers can be even?",
     "options": {
-      "A": "10",
-      "B": "8",
+      "A": "12",
+      "B": "7",
       "C": "20",
-      "D": "12",
-      "E": "7"
+      "D": "16",
+      "E": "13"
     },
     "correct_answer": "E",
     "hint": "Which numbers decide whether a sum is odd: the even ones or the odd ones?",
-    "solution": "Even numbers do not change whether a sum is odd or even, so the sum is odd exactly when it has an odd count of odd numbers. With 7 even numbers, the other 13 are odd, and 13 is odd, so the sum can be odd. With 8, 10, 12 or 20 even numbers, there are 12, 10, 8 or 0 odd ones, an even count, and the sum is even.",
+    "solution": "Even numbers do not change whether a sum is odd or even, so the sum is odd exactly when it has an odd count of odd numbers. With 13 even numbers, the other 7 are odd, and 7 is odd, so the sum can be odd, and 13 is more than half of 20. With 12, 16 or 20 even numbers, there are 8, 4 or 0 odd ones, an even count, and the sum is even. And 7 even numbers are not more than half.",
     "distractors": {
       "A": {
         "trap": "wrong_parity",
-        "text": "With 10 even numbers, 10 are odd, and 10 odd numbers add up to an even number."
+        "text": "With 12 even numbers, 8 are odd, and 8 odd numbers add up to an even number."
       },
       "B": {
-        "trap": "wrong_parity",
-        "text": "With 8 even numbers, 12 are odd, and 12 odd numbers add up to an even number."
+        "trap": "ignored_condition",
+        "text": "7 even numbers make an odd sum possible, but 7 is not more than half of 20."
       },
       "C": {
         "trap": "wrong_parity",
@@ -1800,7 +1800,7 @@
       },
       "D": {
         "trap": "wrong_parity",
-        "text": "With 12 even numbers, 8 are odd, and 8 odd numbers add up to an even number."
+        "text": "With 16 even numbers, 4 are odd, and 4 odd numbers add up to an even number."
       }
     }
   },
@@ -1914,7 +1914,7 @@
     "topic": "parity.alternation",
     "grade_level": "5-6",
     "difficulty": 4,
-    "question": "Three frogs sit on a number line: frog P at 0, frog Q at 1 and frog R at 2. In each move one frog jumps over another frog and lands as far on the other side as it was before, like a jump from 1 over 2 to 3. Which of these can be the frogs' places after some moves?",
+    "question": "Three frogs sit on a number line: frog P at 0, frog Q at 1 and frog R at 2. In each move one frog jumps over another frog and lands as far on the other side as it was before, like a jump from 1 over 2 to 3. After some moves, where can the frogs be?",
     "drawing": " P   Q   R\n ▼   ▼   ▼\n─┼───┼───┼───┼───┼───┼───┼─→\n 0   1   2   3   4   5   6",
     "drawing_structure": {
       "kind": "number_line",
@@ -1929,31 +1929,31 @@
       ]
     },
     "options": {
-      "A": "0, 2 and 4",
-      "B": "0, 4 and 5",
-      "C": "1, 2 and 5",
-      "D": "0, 1 and 3",
-      "E": "1, 3 and 5"
+      "A": "P at 0, Q at 4, R at 5",
+      "B": "P at 0, Q at 5, R at 4",
+      "C": "P at 0, Q at 2, R at 4",
+      "D": "P at 1, Q at 3, R at 4",
+      "E": "P at 2, Q at 1, R at 3"
     },
     "correct_answer": "B",
     "hint": "Follow one frog: what do all the points it lands on have in common?",
-    "solution": "A jumping frog moves twice the distance between it and the frog it jumps over, and twice a whole number is even. So each frog stays on even points or on odd points, as it started: P and R always sit on even points, and Q on odd ones. The places are always two even numbers and one odd one, and of the options only 0, 4 and 5 are. They can be reached: Q jumps over R to 3, R jumps over Q to 4, and Q jumps over R to 5.",
+    "solution": "A jumping frog moves twice the distance between it and the frog it jumps over, and twice a whole number is even. So each frog stays on even points or on odd points, as it started: P and R always sit on even points, and Q on odd ones. Of the options, only P at 0, Q at 5 and R at 4 keeps to this. It can be reached: Q jumps over R to 3, R jumps over Q to 4, and Q jumps over R to 5.",
     "distractors": {
       "A": {
         "trap": "wrong_parity",
-        "text": "P and R stay on even points and Q on odd ones, but 0, 2 and 4 are all even."
+        "text": "Q always stays on an odd point and R on an even one, but here Q is at 4 and R at 5."
       },
       "C": {
         "trap": "wrong_parity",
-        "text": "P and R stay on even points and Q on odd ones, but 1 and 5 are both odd."
+        "text": "Q always stays on an odd point, but here Q is at 2."
       },
       "D": {
         "trap": "wrong_parity",
-        "text": "P and R stay on even points and Q on odd ones, but 1 and 3 are both odd."
+        "text": "P always stays on an even point, but here P is at 1."
       },
       "E": {
         "trap": "wrong_parity",
-        "text": "P and R stay on even points and Q on odd ones, but 1, 3 and 5 are all odd."
+        "text": "R always stays on an even point, but here R is at 3."
       }
     }
   },

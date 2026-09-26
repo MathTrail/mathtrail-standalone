@@ -234,8 +234,13 @@ func valuesIn(expr syntax.Expr) int {
 // is given, or nothing when it can: every % has to begin %%, a conversion, or
 // a key in brackets and then a conversion, and where the number of values is
 // known there have to be as many as there are conversions and no key at all.
+//
+// A format with a key is filled from a dictionary, and a conversion of the
+// next value is then handed the dictionary itself. That works once, as the
+// first conversion of all, and only for one that writes a value out whole —
+// %s or %r; anywhere else no value can fill it.
 func formatProblem(use formatUse) string {
-	positional, keyed := 0, false
+	converted, positional, keyed, wholeFirst := 0, 0, false, true
 	for i := 0; i < len(use.text); i++ {
 		if use.text[i] != '%' {
 			continue
@@ -246,18 +251,23 @@ func formatProblem(use formatUse) string {
 		}
 		switch kind {
 		case positionalConversion:
+			wholeFirst = wholeFirst && converted == 0 && strings.ContainsRune("sr", rune(use.text[end]))
 			positional++
+			converted++
 		case keyedConversion:
 			keyed = true
+			converted++
 		}
 		i = end
 	}
-	if keyed && use.values >= 0 {
+	switch {
+	case keyed && use.values >= 0:
 		// Values that can be counted are a tuple, a number or a string, and a
 		// key can be looked up only in a dictionary.
 		return "names a value by a key, and is given no dictionary to find it in"
-	}
-	if !keyed && use.values >= 0 && use.values != positional {
+	case keyed && positional > 0 && !wholeFirst:
+		return "names values by keys, and asks for a value by its place too, which a dictionary cannot give"
+	case !keyed && use.values >= 0 && use.values != positional:
 		return fmt.Sprintf("asks for %d values and is given %d", positional, use.values)
 	}
 	return ""

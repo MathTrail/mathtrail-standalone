@@ -86,6 +86,7 @@ func TestCombinatoricsRefusals(t *testing.T) {
 		{"a tuple wider than will be built", `product([1], repeat=2000000)`, "repeat"},
 		{"a tuple wider than will be built, the long way", `product(repeat=2000, *[[1]] * 1000)`, "a tuple of 2000000 values"},
 		{"a product of a pair a hundred times over", `product([0, 1], repeat=100)`, "elements"},
+		{"a tuple wider than will be built, out of nothing", `product([], [], repeat=600000)`, "a tuple of 1200000 values"},
 		{"an r that is not a number", `combinations([1, 2], "two")`, "r must be a whole number"},
 		{"an r wider than will be built", `combinations([1], 2000000)`, "a tuple of 2000000 values"},
 	} {

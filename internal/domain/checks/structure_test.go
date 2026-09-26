@@ -110,8 +110,8 @@ type breakage struct {
 // prototypeBreakages are the twelve of the prototype's tests/test_filters.py,
 // on the same task, broken the same way.
 var prototypeBreakages = []breakage{
-	{"same after strip", func(d *checks.Draft) { d.Task.Options["B"] = " six pairs " }, "reads the same as another"},
-	{"same ignoring case", func(d *checks.Draft) { d.Task.Options["A"] = "SIX PAIRS" }, "reads the same as another"},
+	{"same after strip", func(d *checks.Draft) { d.Task.Options["B"] = " six pairs " }, "says the same as another"},
+	{"same ignoring case", func(d *checks.Draft) { d.Task.Options["A"] = "SIX PAIRS" }, "says the same as another"},
 	{"empty option", func(d *checks.Draft) { d.Task.Options["E"] = "  " }, "task.options has an empty option"},
 	{"four options", func(d *checks.Draft) { delete(d.Task.Options, "E") }, "exactly five options"},
 	{"unknown correct letter", func(d *checks.Draft) { d.Task.CorrectAnswer = "F" }, "task.correct_answer"},
@@ -152,7 +152,23 @@ var formatBreakages = []breakage{
 	}, `names "juggling", which is not a skill`},
 	{"constraints left out", func(d *checks.Draft) { d.Brief.Constraints = nil }, "brief.constraints is missing"},
 	{"an empty constraint", func(d *checks.Draft) { d.Brief.Constraints = []string{"short", " "} }, "brief.constraints.1 is empty"},
+	{"an option that shows nothing", func(d *checks.Draft) { d.Task.Options["E"] = "\u200c\u200b" },
+		"task.options has an empty option"},
+	{"options that are one number written two ways", func(d *checks.Draft) {
+		d.Task.Options["B"], d.Task.Options["D"] = "6", "6.0"
+	}, "says the same as another"},
+	{"options apart only by the spaces between words", func(d *checks.Draft) { d.Task.Options["B"] = "six  pairs" },
+		"says the same as another"},
+	{"options apart only by a no-break space", func(d *checks.Draft) { d.Task.Options["B"] = "six\u00a0pairs" },
+		"says the same as another"},
+	{"options apart only by a character that takes no room", func(d *checks.Draft) {
+		d.Task.Options["B"] = "six\u200b pairs"
+	}, "says the same as another"},
+	{"options apart only by how an accent is put together", func(d *checks.Draft) {
+		d.Task.Options["A"], d.Task.Options["B"] = "six caf\u00e9s", "six cafe\u0301s"
+	}, "says the same as another"},
 	{"no question", func(d *checks.Draft) { d.Task.Question = "" }, "task.question"},
+	{"a question that shows nothing", func(d *checks.Draft) { d.Task.Question = "\u200b\u2060" }, "task.question"},
 	{"no core idea", func(d *checks.Draft) { d.Task.CoreIdea = "" }, "task.core_idea"},
 	{"no design thought", func(d *checks.Draft) { d.Task.DesignThoughtProcess = "" }, "task.design_thought_process"},
 	{"no solution", func(d *checks.Draft) { d.Task.Solution = "\n" }, "task.solution"},

@@ -1,8 +1,11 @@
 package checks
 
 import (
+	"slices"
 	"strings"
 	"unicode"
+
+	"golang.org/x/text/language"
 )
 
 // spaceless are the scripts written without spaces between words. A text in
@@ -32,25 +35,98 @@ func Spaceless(text string) bool {
 	return 2*without > letters
 }
 
-// lengthOf is how long a text is, in the unit its script calls for, and which
-// unit that was. Where words are separated by spaces, they are counted as a
-// child reads them; where they are not, the letters and digits are, and the
-// punctuation between them is not.
-func lengthOf(text string) (count int, unit string) {
+// The units a length is counted in.
+const (
+	unitWords      = "words"
+	unitCharacters = "characters"
+)
+
+// spacelessScripts are the scripts written without spaces between words, by the
+// codes a language tag names them with.
+var spacelessScripts = []string{"Hans", "Hant", "Hani", "Jpan", "Hira", "Kana", "Thai", "Laoo", "Khmr", "Mymr", "Tibt"}
+
+// unitFor is the unit a text of a task is counted in. The language the task was
+// asked for in decides it when there is one — by the script that language is
+// written in — because the task is written in it: a Chinese question naming
+// its points A, B and C, or its children Tom and Mary, is still read a
+// character at a time, and an English one quoting a Chinese sign is still read
+// a word at a time. Only a task that came with no language is judged by its
+// letters.
+func unitFor(text, tag string) string {
+	if script, named := scriptOf(tag); named {
+		if slices.Contains(spacelessScripts, script) {
+			return unitCharacters
+		}
+		return unitWords
+	}
 	if Spaceless(text) {
+		return unitCharacters
+	}
+	return unitWords
+}
+
+// noWritingSystem are the codes a tag may carry in place of a script that name
+// none in particular: a script not known, several in common use, one inherited
+// from the letter before, none written at all, and notations of symbols and
+// mathematics.
+var noWritingSystem = []string{"Zzzz", "Zyyy", "Zinh", "Zxxx", "Zsym", "Zsye", "Zmth"}
+
+// scriptOf is the script a task's language is written in: the one its tag
+// names, or the one its language — or failing that its place — is most likely
+// written in: Chinese in Han whether the tag says zh, cmn, yue or lzh, and so
+// is a language not determined in China. A tag names no script when it is no
+// tag, when it names nothing at all — "und", or private words alone — and when
+// no script can be told from what it does name, or only one of the codes that
+// stand in for none.
+//
+// Whether a tag names anything is read from what it says, before anything is
+// inferred: asked for the language of "und", the tag library answers English,
+// its likeliest guess, and a Chinese task tagged "und" would be read a word at
+// a time.
+func scriptOf(tag string) (string, bool) {
+	parsed, err := language.Parse(tag)
+	if err != nil {
+		return "", false
+	}
+	base, named, region := parsed.Raw()
+	if base.String() == "und" && named.String() == "Zzzz" && region.String() == "ZZ" {
+		return "", false
+	}
+	if script, _ := parsed.Script(); !slices.Contains(noWritingSystem, script.String()) {
+		return script.String(), true
+	}
+	return "", false
+}
+
+// primarySubtag is the language a tag names, lowercased: "zh" of "zh-Hant-TW",
+// "en" of "EN_us", and nothing of an empty tag.
+func primarySubtag(tag string) string {
+	primary, _, _ := strings.Cut(strings.ToLower(strings.TrimSpace(tag)), "-")
+	primary, _, _ = strings.Cut(primary, "_")
+	return primary
+}
+
+// lengthIn is how long a text is in a unit. Words are counted as a child reads
+// them; characters are the letters and digits. A mark rides on the letter it
+// is written over — the vowels and tones of Thai, Lao, Khmer, Myanmar and
+// Tibetan are marks — and counting it too would make a syllable three
+// characters long where a child reads one. Punctuation is not counted either.
+func lengthIn(text, unit string) int {
+	count := 0
+	if unit == unitCharacters {
 		for _, r := range text {
-			if !boundary(r) {
+			if unicode.IsLetter(r) || unicode.IsDigit(r) {
 				count++
 			}
 		}
-		return count, "characters"
+		return count
 	}
 	for _, token := range strings.Fields(text) {
 		if strings.IndexFunc(token, readAloud) >= 0 {
 			count++
 		}
 	}
-	return count, "words"
+	return count
 }
 
 // readAloud says whether a character is read out, which is what makes a token

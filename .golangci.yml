@@ -16,6 +16,7 @@ linters:
     - gocognit # the same ceiling Sonar holds, checked before a merge rather than after
     - gocritic
     - gosec
+    - interfacebloat # a wide interface is a type doing several jobs
     - misspell
     - nakedret
     - noctx # every request that blocks carries a context
@@ -100,6 +101,11 @@ linters:
       enable-all: true
       disable:
         - fieldalignment # readability of a struct beats a few bytes of padding
+
+    interfacebloat:
+      # Past five methods an interface usually describes a type that does
+      # several jobs, and the fix is to split it rather than to raise this.
+      max: 5
 
     revive:
       rules:

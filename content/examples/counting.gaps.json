@@ -1809,33 +1809,33 @@
     "topic": "counting.gaps",
     "grade_level": "5-6",
     "difficulty": 3,
-    "question": "A bar of chocolate has 4 rows of 6 squares. You break it along its grooves into single squares. Each break splits one piece into two. How many breaks are needed?",
+    "question": "A sheet of stamps has 5 rows of 8 stamps. You tear it along the lines of holes into single stamps. Each tear splits one piece into two. How many tears are needed?",
     "options": {
-      "A": "23",
-      "B": "24",
-      "C": "15",
-      "D": "10",
-      "E": "8"
+      "A": "39",
+      "B": "40",
+      "C": "28",
+      "D": "13",
+      "E": "11"
     },
     "correct_answer": "A",
-    "hint": "Each break turns one piece into two. How many pieces are there at the start, and how many at the end?",
-    "solution": "At the start there is 1 piece, and at the end there are 4 × 6 = 24 squares. Each break adds exactly one piece, so it takes 24 − 1 = 23 breaks, in whatever order they are made.",
+    "hint": "Each tear turns one piece into two. How many pieces are there at the start, and how many at the end?",
+    "solution": "At the start there is 1 piece, and at the end there are 5 × 8 = 40 stamps. Each tear adds exactly one piece, so it takes 40 − 1 = 39 tears, in whatever order they are made.",
     "distractors": {
       "B": {
         "trap": "off_by_one",
-        "text": "24 is the number of squares; the bar starts as one piece, so it takes one break fewer."
+        "text": "40 is the number of stamps; the sheet starts as one piece, so it takes one tear fewer."
       },
       "C": {
         "trap": "wrong_operation",
-        "text": "15 multiplies the grooves, 3 × 5, as if each place where two grooves cross were a break."
+        "text": "28 multiplies the lines of holes, 4 × 7, as if each place where two lines cross were a tear."
       },
       "D": {
         "trap": "wrong_operation",
-        "text": "10 adds the rows and the squares in a row, 4 + 6."
+        "text": "13 adds the rows and the stamps in a row, 5 + 8."
       },
       "E": {
         "trap": "ignored_condition",
-        "text": "8 breaks along each groove once, which would need several pieces broken at one go, but each break splits one piece into two."
+        "text": "11 tears along each line once, which would need several pieces torn at one go, but each tear splits one piece into two."
       }
     }
   },

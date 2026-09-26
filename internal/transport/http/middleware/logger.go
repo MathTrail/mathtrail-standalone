@@ -1,8 +1,9 @@
 package middleware
 
 import (
-	"net/url"
-	"strings"
+	"errors"
+	"fmt"
+	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -11,27 +12,13 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/telemetry"
 )
 
-// maskedQueryKeys are the query parameters whose values never reach a log.
-// The sign-in carries codes, tokens and verifiers in query strings, and a log
-// line is the one place they must not end up. Compared without case.
-var maskedQueryKeys = map[string]struct{}{
-	"access_token":  {},
-	"authorization": {},
-	"client_secret": {},
-	"code":          {},
-	"code_verifier": {},
-	"id_token":      {},
-	"key":           {},
-	"password":      {},
-	"refresh_token": {},
-	"secret":        {},
-	"state":         {},
-	"token":         {},
-}
-
 // ZapLogger logs one line per request: what was asked, what was answered and
 // how long it took. Successful probes are skipped; anything that failed is
 // always logged.
+//
+// What was asked is the route the request matched and its method, each from a
+// set this service wrote down, and never the path or the verb as a caller wrote
+// them: those are the caller's own words, and a log line carries none.
 //
 // The line also names the trace it belongs to, so that a reader who found it
 // in a console can open the request it describes and see what the service did
@@ -41,15 +28,20 @@ func ZapLogger(logger *zap.Logger, projectID string) gin.HandlerFunc {
 		start := time.Now()
 		// Read before the handlers run, all three together: what was asked is
 		// a fact about the request, and by the time the answer exists the
-		// request may have been replaced by something downstream.
-		method := c.Request.Method
-		path := c.Request.URL.Path
+		// request may have been replaced by something downstream. The route
+		// is the framework's, and known before the first handler runs.
+		verb := method(c)
+		matched := route(c)
 		query := c.Request.URL.RawQuery
 
 		c.Next()
 
+		// A panic is always written, and as an error, whatever status the answer
+		// had got to: a handler can panic after it began a 200, and a probe can
+		// panic too.
 		status := c.Writer.Status()
-		if isProbe(path) && status < 400 {
+		panicFields, panicked := panicOf(c)
+		if isProbe(c) && status < 400 && !panicked {
 			return
 		}
 
@@ -59,22 +51,21 @@ func ZapLogger(logger *zap.Logger, projectID string) gin.HandlerFunc {
 
 		fields := []zap.Field{
 			zap.Int("status", status),
-			zap.String("method", method),
-			zap.String("path", path),
+			zap.String("method", verb),
+			zap.String("route", matched),
 			zap.Duration("duration", time.Since(start)),
 			zap.Int("body_size", bodySize),
 			zap.String("request_id", RequestIDFrom(c)),
 		}
-		if query != "" {
-			fields = append(fields, zap.String("query", maskQuery(query)))
-		}
+		fields = append(fields, queryFields(query)...)
 		if errs := c.Errors.ByType(gin.ErrorTypePrivate); len(errs) > 0 {
-			fields = append(fields, zap.String("error", errs.String()))
+			fields = append(fields, errorsField(errs))
 		}
+		fields = append(fields, panicFields...)
 		fields = append(fields, telemetry.LogFields(c.Request.Context(), projectID)...)
 
 		switch {
-		case status >= 500:
+		case panicked || status >= 500:
 			logger.Error("http_request", fields...)
 		case status >= 400:
 			logger.Warn("http_request", fields...)
@@ -84,29 +75,32 @@ func ZapLogger(logger *zap.Logger, projectID string) gin.HandlerFunc {
 	}
 }
 
-// maskQuery drops the secrets in a query string and keeps the rest. A
-// query that cannot be parsed is dropped whole rather than guessed at.
-//
-// It always parses, and deliberately has no shortcut for queries that look
-// free of secrets: a parameter name may be percent-encoded, so "%63ode=abc"
-// carries a code that no search of the raw text finds. Parsing is the only
-// reading of a query that agrees with the one the handlers get.
-//
-// What comes back is therefore not the string that arrived: the parameters are
-// sorted by name and encoded again. What is kept is which of them were there
-// and what they carried, which is what the line is read for.
-func maskQuery(raw string) string {
-	values, err := url.ParseQuery(raw)
-	if err != nil {
-		return "unparsable"
-	}
-	for key, list := range values {
-		if _, masked := maskedQueryKeys[strings.ToLower(key)]; !masked {
-			continue
-		}
-		for i := range list {
-			list[i] = "masked"
+// errorsField says what the errors a request collected were, and not what they
+// said. The text of an error is whatever the code that made it had in hand: a
+// write that failed names both ends of the connection, the address of whoever
+// was at the other end among them. A fault of the system is given in the
+// system's own words, which name the fault and nothing else, and anything else
+// by its type — the same rule a panic is written by.
+func errorsField(errs []*gin.Error) zap.Field {
+	kinds := make([]string, len(errs))
+	for i, collected := range errs {
+		var fault syscall.Errno
+		if errors.As(collected.Err, &fault) {
+			kinds[i] = fault.Error()
+		} else {
+			kinds[i] = fmt.Sprintf("an error of type %T", collected.Err)
 		}
 	}
-	return values.Encode()
+	return zap.Strings("errors", kinds)
+}
+
+// panicOf is what the request panicked with, as the recovery wrote it down,
+// and whether it panicked at all.
+func panicOf(c *gin.Context) ([]zap.Field, bool) {
+	recorded, found := c.Get(panicKey{})
+	if !found {
+		return nil, false
+	}
+	fields, isFields := recorded.([]zap.Field)
+	return fields, isFields
 }

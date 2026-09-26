@@ -2,10 +2,14 @@ package middleware_test
 
 import (
 	"errors"
+	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"strings"
+	"syscall"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -16,19 +20,24 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/transport/http/middleware"
 )
 
-// The sign-in carries codes and tokens in query strings, and a log line is the
-// one place they must not end up.
+// The sign-in carries codes and tokens in query strings, and a provider adds
+// an email address and the domain of a school; a log line keeps the values of
+// the parameters it may carry and masks every other.
 func TestSecretsInTheQueryAreMasked(t *testing.T) {
 	t.Parallel()
 
 	logs, router := routerWithObservedLogs(t)
 	router.GET("/oauth/callback", func(c *gin.Context) { c.Status(http.StatusBadRequest) })
 
-	serve(t, router, http.MethodGet, "/oauth/callback?code=secret-code&state=secret-state&error=access_denied")
+	serve(t, router, http.MethodGet, "/oauth/callback?code=secret-code&state=secret-state&error=access_denied"+
+		"&login_hint=parent%40example.com&hd=school.example&anything=else")
 
 	line := onlyLine(t, logs)
 	query := field(t, line, "query")
-	for _, secret := range []string{"secret-code", "secret-state"} {
+	if others := line.ContextMap()["query_others"]; others != int64(5) {
+		t.Errorf("query_others = %v, want the five parameters that were not written counted", others)
+	}
+	for _, secret := range []string{"secret-code", "secret-state", "parent", "school.example", "else"} {
 		if strings.Contains(query, secret) {
 			t.Errorf("query = %q, want %q masked", query, secret)
 		}
@@ -88,40 +97,50 @@ func TestAPanicBecomesAnAnswer(t *testing.T) {
 	if rec.Body.String() != "" && strings.Contains(rec.Body.String(), "boom") {
 		t.Errorf("body = %s, want the panic's text kept out of the answer", rec.Body.String())
 	}
-	if logs.FilterMessage("panic").Len() != 1 {
-		t.Error("the panic was not logged once")
+	if line := panickedLine(t, logs); line.Level != zapcore.ErrorLevel {
+		t.Errorf("level = %v, want %v for a panic", line.Level, zapcore.ErrorLevel)
 	}
 }
 
-// Whatever a handler panicked with, the line carries it as text in a field of a
-// known type. An error goes in by its message; anything else by how it prints.
+// Whatever a handler panicked with, the line says what kind of fault it was, as
+// text in a field of a known type, and none of what the value carried: a value
+// a handler panics with may hold a task or a profile. A fault of the runtime
+// is told in the runtime's own words, which hold no data.
 func TestAPanicIsLoggedAsText(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []struct {
-		name      string
-		recovered any
-		want      string
+		name  string
+		panic func()
+		want  string
 	}{
-		{name: "an error", recovered: errors.New("the jug is empty"), want: "the jug is empty"},
-		{name: "anything else", recovered: 42, want: "42"},
+		{name: "an error", panic: func() { panic(errors.New("the jug is empty")) },
+			want: "a value of type *errors.errorString"},
+		{name: "anything else", panic: func() { panic(42) }, want: "a value of type int"},
+		{name: "a fault of the runtime", panic: func() { fill(nil, 1) },
+			want: "runtime error: index out of range [1] with length 0"},
+		{name: "a fault of the runtime, wrapped", panic: func() {
+			panic(fmt.Errorf("while filling %q: %w", "the jug of the task", runtimeFault()))
+		}, want: "runtime error: index out of range [1] with length 0"},
+		{name: "a value that calls itself a fault of the runtime", panic: func() { panic(impostor{}) },
+			want: "a value of type middleware_test.impostor"},
+		{name: "a fault of the runtime behind a pointer", panic: func() { countOf("six") },
+			want: "interface conversion: interface {} is string, not int"},
+		{name: "a value behind a pointer that calls itself a fault of the runtime", panic: func() { panic(&impostor{}) },
+			want: "a value of type *middleware_test.impostor"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
 			logs, router := routerWithObservedLogs(t)
-			router.GET("/boom", func(_ *gin.Context) { panic(tc.recovered) })
+			router.GET("/boom", func(_ *gin.Context) { tc.panic() })
 
 			serve(t, router, http.MethodGet, "/boom")
 
-			entries := logs.FilterMessage("panic").All()
-			if len(entries) != 1 {
-				t.Fatalf("panic lines = %d, want exactly 1", len(entries))
-			}
 			// field fails the test unless the value is a string, which is the
 			// half of this that matters: a log field has a type on purpose.
-			if got := field(t, &entries[0], "error"); got != tc.want {
-				t.Errorf("error = %q, want %q", got, tc.want)
+			if got := field(t, panickedLine(t, logs), "panic"); got != tc.want {
+				t.Errorf("panic = %q, want %q", got, tc.want)
 			}
 		})
 	}
@@ -139,11 +158,61 @@ func routerWithObservedLogs(t *testing.T) (*observer.ObservedLogs, *gin.Engine) 
 	logger := zap.New(core)
 
 	router := gin.New()
+	router.Use(middleware.LastResort(logger))
 	router.Use(middleware.RequestID())
-	router.Use(middleware.ZapRecovery(logger))
 	router.Use(middleware.ZapLogger(logger, ""))
+	router.Use(middleware.ZapRecovery())
 	return logs, router
 }
+
+// panickedLine is the one line a panicked request is logged in: its request
+// line, carrying what it panicked with, and no second line beside it.
+func panickedLine(t *testing.T, logs *observer.ObservedLogs) *observer.LoggedEntry {
+	t.Helper()
+
+	if others := logs.FilterMessage("panic").Len(); others != 0 {
+		t.Errorf("panic lines = %d beside the request line, want none", others)
+	}
+	line := onlyLine(t, logs)
+	if _, found := line.ContextMap()["panic"]; !found {
+		t.Fatalf("the request line says nothing of the panic: %v", line.ContextMap())
+	}
+	return line
+}
+
+// fill writes into a list of jugs, and indexes past the end of one too short:
+// a fault of the runtime that no analysis of the code can see coming.
+func fill(jugs []int, at int) { jugs[at] = 1 }
+
+// keep puts a value in a set by the value itself, which the runtime refuses from
+// inside its own map code when the value cannot be hashed.
+func keep(set map[any]bool, value any) { set[value] = true }
+
+// countOf reads an answer as a count, which the runtime refuses when it is not
+// one — with the one fault it raises behind a pointer.
+func countOf(answer any) int {
+	return answer.(int) //nolint:errcheck // the refusal is the fault under test
+}
+
+// runtimeFault is the fault fill makes of a list too short, caught as a value.
+func runtimeFault() error {
+	var fault error
+	func() {
+		defer func() {
+			if recovered, isError := recover().(error); isError {
+				fault = recovered
+			}
+		}()
+		fill(nil, 1)
+	}()
+	return fault
+}
+
+// impostor is a value that calls itself a fault of the runtime, and is not one.
+type impostor struct{}
+
+func (impostor) Error() string { return "the answer is 36" }
+func (impostor) RuntimeError() {}
 
 func serve(t *testing.T, router *gin.Engine, method, target string) *httptest.ResponseRecorder {
 	t.Helper()
@@ -180,20 +249,242 @@ func field(t *testing.T, line *observer.LoggedEntry, key string) string {
 
 // A parameter name may be percent-encoded, so a search of the raw query text
 // finds nothing while the handler — and anything else that parses — sees a
-// secret. This is the test that stops a shortcut being added to maskQuery.
+// secret. This is the test that stops a shortcut being added to queryFields.
 func TestPercentEncodedSecretNamesAreMasked(t *testing.T) {
 	t.Parallel()
 
 	logs, router := routerWithObservedLogs(t)
 	router.GET("/oauth/callback", func(c *gin.Context) { c.Status(http.StatusBadRequest) })
 
-	serve(t, router, http.MethodGet, "/oauth/callback?%63ode=super-secret&%73tate=also-secret")
+	serve(t, router, http.MethodGet, "/oauth/callback?%63ode=super-secret&%73tate=also-secret&%73cope=mcp")
 
-	query := field(t, onlyLine(t, logs), "query")
+	line := onlyLine(t, logs)
+	query := field(t, line, "query")
 	for _, secret := range []string{"super-secret", "also-secret"} {
 		if strings.Contains(query, secret) {
 			t.Errorf("query = %q, want %q masked even with an encoded parameter name", query, secret)
 		}
+	}
+	if query != "scope=mcp" || line.ContextMap()["query_others"] != int64(2) {
+		t.Errorf("query = %q and %v others, want the scope read through its encoding and two others counted",
+			query, line.ContextMap()["query_others"])
+	}
+}
+
+// An address past what a client ever names itself by is masked: it is
+// something else, and a line is kept within what a log keeps.
+func TestAValueTooLongIsMasked(t *testing.T) {
+	t.Parallel()
+
+	logs, router := routerWithObservedLogs(t)
+	router.GET("/authorize", func(c *gin.Context) { c.Status(http.StatusBadRequest) })
+
+	serve(t, router, http.MethodGet, "/authorize?redirect_uri=https://"+strings.Repeat("a", 300)+".example/&scope=mcp")
+
+	if query := field(t, onlyLine(t, logs), "query"); query != "redirect_uri=masked&scope=mcp" {
+		t.Errorf("query = %q, want the long address masked and the scope kept", query)
+	}
+}
+
+// A parameter the log may carry is written as its protocol's words and nothing
+// else: a value is chosen by whoever sends it, and one a caller made up — an
+// email address in an error, a child's name in a scope — is written as
+// "other", once, however much of it there was.
+func TestAValueOutsideItsProtocolIsWrittenAsOther(t *testing.T) {
+	t.Parallel()
+
+	logs, router := routerWithObservedLogs(t)
+	router.GET("/oauth/callback", func(c *gin.Context) { c.Status(http.StatusBadRequest) })
+
+	serve(t, router, http.MethodGet, "/oauth/callback?error=alice.smith%40school.example"+
+		"&scope=Masha+Ivanova+mcp+openid+mcp&prompt=consent&code_challenge_method=S256&response_type=code")
+
+	query := field(t, onlyLine(t, logs), "query")
+	if want := "code_challenge_method=S256&error=other&prompt=consent&response_type=code&scope=other+mcp+openid"; query != want {
+		t.Errorf("query = %q, want %q", query, want)
+	}
+	for _, told := range []string{"alice", "school", "Masha", "Ivanova"} {
+		if strings.Contains(query, told) {
+			t.Errorf("query = %q, want %q kept out of it", query, told)
+		}
+	}
+}
+
+// The errors a request collected are written by what they were, not by what
+// they said: a write that failed names both ends of the connection, and an
+// error of the service's own can carry whatever its code had in hand.
+func TestACollectedErrorIsLoggedByItsKind(t *testing.T) {
+	t.Parallel()
+
+	logs, router := routerWithObservedLogs(t)
+	router.GET("/written", func(c *gin.Context) {
+		_ = c.Error(&net.OpError{
+			Op:     "write",
+			Net:    "tcp",
+			Source: &net.TCPAddr{IP: net.IPv4(10, 0, 0, 2), Port: 8080},
+			Addr:   &net.TCPAddr{IP: net.IPv4(203, 0, 113, 9), Port: 51234},
+			Err:    os.NewSyscallError("write", syscall.EPIPE),
+		})
+		_ = c.Error(errors.New("drive: save the profile of Otter"))
+		c.Status(http.StatusOK)
+	})
+
+	serve(t, router, http.MethodGet, "/written")
+
+	line := onlyLine(t, logs).ContextMap()
+	want := []any{"broken pipe", "an error of type *errors.errorString"}
+	if got, isList := line["errors"].([]any); !isList || fmt.Sprint(got) != fmt.Sprint(want) {
+		t.Errorf("errors = %v, want %v", line["errors"], want)
+	}
+	for _, kept := range []string{"203.0.113.9", "Otter"} {
+		if strings.Contains(fmt.Sprint(line), kept) {
+			t.Errorf("the line carries %q, want the errors by their kind alone: %v", kept, line)
+		}
+	}
+}
+
+// An address a client names itself by is written as its scheme and host, which
+// say which client it is, and nothing else: its path, query, fragment and user
+// are the client's own words, and an email address or a name fits in any of
+// them.
+func TestAnAddressIsLoggedWithoutWhatCanBeHiddenInIt(t *testing.T) {
+	t.Parallel()
+
+	logs, router := routerWithObservedLogs(t)
+	router.GET("/authorize", func(c *gin.Context) { c.Status(http.StatusBadRequest) })
+
+	serve(t, router, http.MethodGet, "/authorize?client_id="+
+		url.QueryEscape("https://parent:secret@client.example/callback/maria-ivanova?user=parent@example.com#frag")+
+		"&redirect_uri=not-an-address")
+
+	query := field(t, onlyLine(t, logs), "query")
+	want := "client_id=" + url.QueryEscape("https://client.example") + "&redirect_uri=masked"
+	if query != want {
+		t.Errorf("query = %q, want %q", query, want)
+	}
+}
+
+// A panic in the middleware itself, above the recovery next to the handlers,
+// is caught by the last resort: logged once, by its kind alone, and answered.
+func TestAPanicAboveTheRecoveryIsCaughtByTheLastResort(t *testing.T) {
+	t.Parallel()
+
+	core, logs := observer.New(zapcore.DebugLevel)
+	router := gin.New()
+	router.Use(middleware.LastResort(zap.New(core)))
+	router.Use(middleware.RequestID())
+	router.Use(func(c *gin.Context) {
+		c.Next()
+		panic(errors.New("the answer is 36"))
+	})
+	router.Use(middleware.ZapRecovery())
+	router.GET("/fine", func(c *gin.Context) { c.Status(http.StatusNoContent) })
+
+	serve(t, router, http.MethodGet, "/fine")
+
+	entries := logs.FilterMessage("panic").All()
+	if len(entries) != 1 {
+		t.Fatalf("panic lines = %d, want exactly 1", len(entries))
+	}
+	if got := field(t, &entries[0], "panic"); got != "a value of type *errors.errorString" {
+		t.Errorf("panic = %q, want its type alone", got)
+	}
+	if field(t, &entries[0], "request_id") == "" {
+		t.Error("request_id is empty, want the id the request carried")
+	}
+}
+
+// Both lines that name a request — its own line, and the last resort's when
+// the middleware above the recovery panicked — name it by the route it matched
+// and by a method from the known ones, never by what the caller wrote: a path
+// carries identifiers, a path nothing matched is text the caller chose, and a
+// verb can be any word at all.
+func TestALineNamesTheRouteAndNotThePath(t *testing.T) {
+	t.Parallel()
+
+	for _, kind := range []struct {
+		name string
+		line func(t *testing.T, method, target string) *observer.LoggedEntry
+	}{
+		{name: "the request's own line", line: requestLine},
+		{name: "the last resort's line", line: lastResortLine},
+	} {
+		for _, tc := range []struct {
+			name, method, target, route, verb string
+		}{
+			{"a route with a name in it", http.MethodGet, "/tasks/masha-ivanova", "/tasks/:id", http.MethodGet},
+			{"a path nothing matched", http.MethodPost,
+				(&url.URL{Path: "/x\n{\"severity\":\"ERROR\",\"message\":\"masha ivanova\"}"}).EscapedPath(),
+				"other", http.MethodPost},
+			{"a verb nobody defined", "MASHA", "/tasks/42", "other", "other"},
+		} {
+			t.Run(kind.name+", "+tc.name, func(t *testing.T) {
+				t.Parallel()
+
+				line := kind.line(t, tc.method, tc.target)
+				if got := field(t, line, "route"); got != tc.route {
+					t.Errorf("route = %q, want %q", got, tc.route)
+				}
+				if got := field(t, line, "method"); got != tc.verb {
+					t.Errorf("method = %q, want %q", got, tc.verb)
+				}
+				if written := strings.ToLower(fmt.Sprint(line.ContextMap())); strings.Contains(written, "masha") {
+					t.Errorf("the line carries what the caller wrote: %v", line.ContextMap())
+				}
+			})
+		}
+	}
+}
+
+// requestLine serves one request through the request log and gives back its
+// line.
+func requestLine(t *testing.T, method, target string) *observer.LoggedEntry {
+	t.Helper()
+
+	logs, router := routerWithObservedLogs(t)
+	router.GET("/tasks/:id", func(c *gin.Context) { c.Status(http.StatusNoContent) })
+	serve(t, router, method, target)
+	return onlyLine(t, logs)
+}
+
+// lastResortLine serves one request through middleware that panics above the
+// recovery, and gives back the line the last resort wrote.
+func lastResortLine(t *testing.T, method, target string) *observer.LoggedEntry {
+	t.Helper()
+
+	core, logs := observer.New(zapcore.DebugLevel)
+	router := gin.New()
+	router.Use(middleware.LastResort(zap.New(core)))
+	router.Use(func(*gin.Context) { panic("the middleware is on fire") })
+	router.GET("/tasks/:id", func(c *gin.Context) { c.Status(http.StatusNoContent) })
+	serve(t, router, method, target)
+
+	entries := logs.FilterMessage("panic").All()
+	if len(entries) != 1 {
+		t.Fatalf("panic lines = %d, want exactly 1", len(entries))
+	}
+	return &entries[0]
+}
+
+// A query that cannot be parsed is not read at all rather than guessed at: the
+// line says there was one, and nothing of what it held.
+func TestAnUnparsableQueryIsNotRead(t *testing.T) {
+	t.Parallel()
+
+	logs, router := routerWithObservedLogs(t)
+	router.GET("/oauth/callback", func(c *gin.Context) { c.Status(http.StatusBadRequest) })
+
+	serve(t, router, http.MethodGet, "/oauth/callback?code=secret-code&state=%zz")
+
+	line := onlyLine(t, logs)
+	if query := field(t, line, "query"); query != "unparsable" {
+		t.Errorf("query = %q, want %q", query, "unparsable")
+	}
+	if others, counted := line.ContextMap()["query_others"]; counted {
+		t.Errorf("query_others = %v, want nothing counted of a query that was not read", others)
+	}
+	if strings.Contains(fmt.Sprint(line.ContextMap()), "secret-code") {
+		t.Errorf("the line carries the code: %v", line.ContextMap())
 	}
 }
 
@@ -234,29 +525,84 @@ func TestAPanicAfterTheAnswerHasStartedDoesNotWriteTwice(t *testing.T) {
 	if strings.Contains(rec.Body.String(), "INTERNAL_ERROR") {
 		t.Errorf("body = %s, want no second answer appended to the first", rec.Body.String())
 	}
-	if logs.FilterMessage("panic").Len() != 1 {
-		t.Error("the panic was not logged once")
+	if line := panickedLine(t, logs); line.Level != zapcore.ErrorLevel {
+		t.Errorf("level = %v, want %v for a panic, whatever the answer had got to", line.Level, zapcore.ErrorLevel)
 	}
 }
 
-// net/http documents ErrAbortHandler as the way to drop a request silently,
-// and the framework aborts on it without calling our recovery at all. This
-// test is what notices if that ever changes and a silent abort starts being
-// answered with 500.
-func TestASilentAbortIsNotTreatedAsAPanic(t *testing.T) {
+// A probe that answers is not worth a line, and a probe that panicked is.
+func TestAPanickedProbeIsLogged(t *testing.T) {
 	t.Parallel()
 
 	logs, router := routerWithObservedLogs(t)
-	router.GET("/abort", func(_ *gin.Context) { panic(http.ErrAbortHandler) })
+	router.GET("/health", func(c *gin.Context) {
+		c.Status(http.StatusOK)
+		c.Writer.WriteHeaderNow()
+		panic("boom")
+	})
 
-	rec := serve(t, router, http.MethodGet, "/abort")
+	serve(t, router, http.MethodGet, "/health")
 
-	if logs.FilterMessage("panic").Len() != 0 {
-		t.Error("a silent abort was logged as a panic")
+	if line := panickedLine(t, logs); line.Level != zapcore.ErrorLevel {
+		t.Errorf("level = %v, want %v", line.Level, zapcore.ErrorLevel)
 	}
-	if strings.Contains(rec.Body.String(), "INTERNAL_ERROR") {
-		t.Errorf("body = %s, want no answer to a request that asked for none", rec.Body.String())
+}
+
+// net/http documents ErrAbortHandler as the way to drop a request silently.
+// It is passed on to the server bare, however it was wrapped, past everything
+// that counts and logs: a request that asked for no answer is neither a panic
+// nor an answer of 200.
+func TestASilentAbortIsPassedOnToTheServer(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name  string
+		abort error
+	}{
+		{"an abort", http.ErrAbortHandler},
+		{"an abort wrapped on the way", fmt.Errorf("proxy: %w", http.ErrAbortHandler)},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			logs, router := routerWithObservedLogs(t)
+			router.GET("/abort", func(_ *gin.Context) { panic(tc.abort) })
+
+			if passed := servedPanic(t, router, "/abort"); passed != http.ErrAbortHandler { //nolint:errorlint // the server compares it by identity
+				t.Errorf("the server was handed %v, want %v", passed, http.ErrAbortHandler)
+			}
+			if lines := logs.Len(); lines != 0 {
+				t.Errorf("log lines = %d: %v, want none for a request that asked for no answer", lines, logs.All())
+			}
+		})
 	}
+}
+
+// servedPanic serves one request, and returns what panicked out of the router
+// to the server, if anything did.
+func servedPanic(t *testing.T, router *gin.Engine, target string) (passed any) {
+	t.Helper()
+
+	defer func() { passed = recover() }()
+	serve(t, router, http.MethodGet, target)
+	return nil
+}
+
+// A connection that died under the service's own call — to Drive, to the
+// sign-in's provider — is a fault of the request, not the client hanging up:
+// the client is still there, and it is answered and the fault written down.
+func TestAConnectionOfOurOwnGoneIsAFault(t *testing.T) {
+	t.Parallel()
+
+	logs, router := routerWithObservedLogs(t)
+	router.GET("/drive", func(_ *gin.Context) {
+		panic(&net.OpError{Op: "read", Err: os.NewSyscallError("read", syscall.ECONNRESET)})
+	})
+
+	if rec := serve(t, router, http.MethodGet, "/drive"); rec.Code != http.StatusInternalServerError {
+		t.Errorf("status = %d, want %d", rec.Code, http.StatusInternalServerError)
+	}
+	panickedLine(t, logs)
 }
 
 // An id the client dictates is echoed back and written into every line about
@@ -308,6 +654,32 @@ func TestOnlyAUsableRequestIDIsKept(t *testing.T) {
 	}
 }
 
+// A request the id middleware never saw has no id, and nothing else kept under
+// its key is taken for one.
+func TestNoIDIsReadWhereNoneWasSet(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name string
+		kept any
+	}{
+		{name: "nothing kept", kept: nil},
+		{name: "something that is no id", kept: 42},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			c, _ := gin.CreateTestContext(httptest.NewRecorder())
+			if tc.kept != nil {
+				c.Set(middleware.RequestIDKey, tc.kept)
+			}
+			if id := middleware.RequestIDFrom(c); id != "" {
+				t.Errorf("RequestIDFrom() = %q, want no id", id)
+			}
+		})
+	}
+}
+
 func echoedRequestID(t *testing.T, sent string) string {
 	t.Helper()
 
@@ -347,25 +719,33 @@ func usableLooking(id string) bool {
 // caught it.
 func panickingFunction() { panic("boom") }
 
-// The number of frames the recovery drops is tuned to the framework beneath
-// it, and a framework that changes would move it silently. This is what makes
-// that change loud.
+// The stack starts at the code that panicked, whether it panicked by name or
+// the runtime raised the fault, with neither the recovery nor the runtime's
+// own frames above it: the first line a reader sees is the line that failed.
 func TestThePanicStackStartsAtTheCodeThatPanicked(t *testing.T) {
 	t.Parallel()
 
-	logs, router := routerWithObservedLogs(t)
-	router.GET("/boom", func(_ *gin.Context) { panickingFunction() })
+	for _, tc := range []struct {
+		name, want string
+		panic      func()
+	}{
+		{"a panic by name", "panickingFunction", panickingFunction},
+		{"a fault of the runtime", "middleware_test.fill", func() { fill(nil, 1) }},
+		{"a fault inside the runtime's own packages", "middleware_test.keep", func() { keep(map[any]bool{}, []int{1}) }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	serve(t, router, http.MethodGet, "/boom")
+			logs, router := routerWithObservedLogs(t)
+			router.GET("/boom", func(_ *gin.Context) { tc.panic() })
 
-	entries := logs.FilterMessage("panic").All()
-	if len(entries) != 1 {
-		t.Fatalf("panic lines = %d, want exactly 1", len(entries))
-	}
+			serve(t, router, http.MethodGet, "/boom")
 
-	stack := field(t, &entries[0], "stack")
-	first, _, _ := strings.Cut(stack, "\n")
-	if !strings.Contains(first, "panickingFunction") {
-		t.Errorf("the stack starts at %q, want the function that panicked; whole stack:\n%s", first, stack)
+			stack := field(t, panickedLine(t, logs), "stack")
+			first, _, _ := strings.Cut(stack, "\n")
+			if !strings.Contains(first, tc.want) {
+				t.Errorf("the stack starts at %q, want %s; whole stack:\n%s", first, tc.want, stack)
+			}
+		})
 	}
 }

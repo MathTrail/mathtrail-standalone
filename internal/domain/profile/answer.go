@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
 
 // The refusals of Record. An answer that arrives for a task nobody is working
@@ -15,6 +16,8 @@ import (
 var (
 	// ErrNoTask means there is no task in flight to answer.
 	ErrNoTask = errors.New("profile: no task in flight")
+	// ErrNoSuchOption means the answer names an option the task does not have.
+	ErrNoSuchOption = errors.New("profile: the answer names no option of the task")
 	// ErrOtherTask means the answer is for a task other than the one in
 	// flight — an answer sent twice, or one that arrived after the child
 	// moved on.
@@ -100,6 +103,10 @@ func (p *Profile) Record(answer Answered) (Recorded, error) {
 		return Recorded{}, ErrNoTask
 	case task.ID != answer.TaskID:
 		return Recorded{}, fmt.Errorf("%w: %s is in flight", ErrOtherTask, task.ID)
+	case answer.Chosen != "" && solver.Place(answer.Chosen) < 0:
+		// Refused before anything moves: the history keeps the letter, and a
+		// profile holding one that names no option could not be written back.
+		return Recorded{}, fmt.Errorf("%w: %q", ErrNoSuchOption, answer.Chosen)
 	}
 
 	topic := p.Topics[task.Topic]

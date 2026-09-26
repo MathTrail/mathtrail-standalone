@@ -496,7 +496,10 @@ func TestTheGuidesExampleIsATaskTheChecksAccept(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Examine() error = %v", err)
 	}
-	outcome := reviewer.Judge(examined, checks.Against{Asked: &brief, Language: example.Language, Grade: 3})
+	outcome, err := reviewer.Judge(examined, checks.Against{Asked: &brief, Language: example.Language, Grade: 3})
+	if err != nil {
+		t.Fatalf("Judge() error = %v", err)
+	}
 	if !outcome.Accepted() {
 		t.Errorf("the guide's example is refused: %v, unchecked %v", outcome.Problems, outcome.Unchecked)
 	}

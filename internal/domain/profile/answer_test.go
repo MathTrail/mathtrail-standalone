@@ -295,3 +295,31 @@ func TestACorrectAnswerEndsTheRunOfFailures(t *testing.T) {
 		t.Errorf("consecutive_failures = %d, want a correct answer to end the run", p.Ratings.ConsecutiveFailures)
 	}
 }
+
+// An answer that names no option of the task is refused before anything moves:
+// the history keeps the letter of a wrong answer, and a profile holding one
+// that names no option could never be written back.
+func TestAnAnswerNamingNoOptionIsRefused(t *testing.T) {
+	t.Parallel()
+
+	for _, chosen := range []string{"BC", "b", "F", " A"} {
+		t.Run(chosen, func(t *testing.T) {
+			t.Parallel()
+
+			p := parseFixture(t, "dima")
+			id := answering(t, p, "counting.gaps", 3)
+			before := p.Ratings
+
+			_, err := p.Record(profile.Answered{TaskID: id, Chosen: chosen, At: issued.Add(time.Minute)})
+			if !errors.Is(err, profile.ErrNoSuchOption) {
+				t.Errorf("Record() error = %v, want %v", err, profile.ErrNoSuchOption)
+			}
+			if p.CurrentTask == nil || p.Ratings != before {
+				t.Error("Record() moved the profile, want it left as it was")
+			}
+			if _, err := profile.Marshal(p); err != nil {
+				t.Errorf("Marshal() after the refusal error = %v, want the profile still writable", err)
+			}
+		})
+	}
+}

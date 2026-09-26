@@ -56,7 +56,7 @@ func (a Agreement) Failed() *Result {
 func Verdict(ctx context.Context, runner Runner, source string, options Options) (Agreement, error) {
 	first, err := runner.Run(ctx, source, options)
 	if err != nil {
-		return Agreement{}, err
+		return Agreement{}, fmt.Errorf("solver: run as handed in: %w", err)
 	}
 	if !first.One() {
 		return Agreement{Runs: []Result{first}}, nil
@@ -64,7 +64,7 @@ func Verdict(ctx context.Context, runner Runner, source string, options Options)
 
 	second, err := runner.Run(ctx, source, options.Rotated())
 	if err != nil {
-		return Agreement{}, err
+		return Agreement{}, fmt.Errorf("solver: run with the labels shifted: %w", err)
 	}
 
 	agreement := Agreement{Runs: []Result{first, second}}

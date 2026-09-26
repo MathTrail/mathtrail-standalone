@@ -102,8 +102,10 @@ func (r *KeyRing) Open(purpose Purpose, value string, binding ...string) ([]byte
 		return nil, fmt.Errorf("%w: %q is not a purpose", ErrPurpose, purpose)
 	}
 
-	fields := strings.Split(value, envelopeSeparator)
-	if len(fields) != envelopeFields || fields[0] != envelopeVersion {
+	// One more piece than a sealed value has is enough to know it has too many,
+	// and a value of a million dots is not split into a million strings first.
+	fields := strings.SplitN(value, envelopeSeparator, envelopeFields+1)
+	if len(fields) != envelopeFields || fields[0] != envelopeVersion || fields[2] == "" {
 		return nil, ErrMalformed
 	}
 	label, keyID, payload := fields[1], fields[2], fields[3]

@@ -33,8 +33,8 @@ func TestANewQuestionIsNoDuplicate(t *testing.T) {
 	t.Parallel()
 
 	references := []string{clock, spaceships}
-	past := []string{checks.Fingerprint(clock), checks.Fingerprint(spaceships)}
-	if problems := checks.NearDuplicate(robots, references, past); len(problems) != 0 {
+	past := []string{checks.Fingerprint(clock, ""), checks.Fingerprint(spaceships, "")}
+	if problems := checks.NearDuplicate(robots, "", references, past); len(problems) != 0 {
 		t.Fatalf("NearDuplicate() = %v, want none", problems)
 	}
 }
@@ -42,7 +42,7 @@ func TestANewQuestionIsNoDuplicate(t *testing.T) {
 func TestACopyOfAReferenceTaskIsRefused(t *testing.T) {
 	t.Parallel()
 
-	problems := checks.NearDuplicate(sevenShips, []string{clock, spaceships}, nil)
+	problems := checks.NearDuplicate(sevenShips, "", []string{clock, spaceships}, nil)
 	if len(problems) != 1 || problems[0].Code != checks.CodeNearDuplicate || !mentions(problems, "reference tasks") {
 		t.Fatalf("NearDuplicate() = %v, want one near_duplicate about the reference tasks", problems)
 	}
@@ -53,7 +53,7 @@ func TestACopyOfAReferenceTaskIsRefused(t *testing.T) {
 func TestNewNumbersInRussianAreStillACopy(t *testing.T) {
 	t.Parallel()
 
-	if problems := checks.NearDuplicate(sevenShipsRussian, []string{ships}, nil); len(problems) != 1 {
+	if problems := checks.NearDuplicate(sevenShipsRussian, "", []string{ships}, nil); len(problems) != 1 {
 		t.Fatalf("NearDuplicate() = %v, want the same task with new numbers refused", problems)
 	}
 }
@@ -63,8 +63,8 @@ func TestNewNumbersInRussianAreStillACopy(t *testing.T) {
 func TestARepeatOfAPastTaskIsRefused(t *testing.T) {
 	t.Parallel()
 
-	past := []string{checks.Fingerprint(clock), checks.Fingerprint(spaceships)}
-	problems := checks.NearDuplicate(spaceships, nil, past)
+	past := []string{checks.Fingerprint(clock, ""), checks.Fingerprint(spaceships, "")}
+	problems := checks.NearDuplicate(spaceships, "", nil, past)
 	if len(problems) != 1 || problems[0].Code != checks.CodeNearDuplicate || !mentions(problems, "already been given") {
 		t.Fatalf("NearDuplicate() = %v, want one near_duplicate about a past task", problems)
 	}
@@ -76,8 +76,8 @@ func TestEachSourceIsReportedOnce(t *testing.T) {
 	t.Parallel()
 
 	references := []string{spaceships, spaceships, kittens}
-	past := []string{checks.Fingerprint(spaceships), checks.Fingerprint(spaceships)}
-	if problems := checks.NearDuplicate(spaceships, references, past); len(problems) != 2 {
+	past := []string{checks.Fingerprint(spaceships, ""), checks.Fingerprint(spaceships, "")}
+	if problems := checks.NearDuplicate(spaceships, "", references, past); len(problems) != 2 {
 		t.Fatalf("NearDuplicate() = %v, want exactly one problem per source", problems)
 	}
 }
@@ -88,7 +88,7 @@ func TestEachSourceIsReportedOnce(t *testing.T) {
 func TestTheSameTaskInANewSettingIsNotACopy(t *testing.T) {
 	t.Parallel()
 
-	if problems := checks.NearDuplicate(kittens, []string{spaceships}, []string{checks.Fingerprint(spaceships)}); len(problems) != 0 {
+	if problems := checks.NearDuplicate(kittens, "", []string{spaceships}, []string{checks.Fingerprint(spaceships, "")}); len(problems) != 0 {
 		t.Fatalf("NearDuplicate() = %v, want none", problems)
 	}
 }
@@ -99,10 +99,10 @@ func TestTheSameTaskInANewSettingIsNotACopy(t *testing.T) {
 func TestAQuestionWithoutSpacesIsComparedInCharacters(t *testing.T) {
 	t.Parallel()
 
-	if problems := checks.NearDuplicate(peaches, []string{pears}, nil); len(problems) != 1 {
+	if problems := checks.NearDuplicate(peaches, "", []string{pears}, nil); len(problems) != 1 {
 		t.Errorf("NearDuplicate() = %v, want the near-copy refused", problems)
 	}
-	if problems := checks.NearDuplicate(bigPeaches, []string{pears}, nil); len(problems) != 0 {
+	if problems := checks.NearDuplicate(bigPeaches, "", []string{pears}, nil); len(problems) != 0 {
 		t.Errorf("NearDuplicate() = %v, want none under the threshold", problems)
 	}
 }
@@ -113,10 +113,10 @@ func TestADamagedFingerprintIsSkipped(t *testing.T) {
 	t.Parallel()
 
 	damaged := []string{"", "not base64 at all!", base64.StdEncoding.EncodeToString([]byte("too short"))}
-	if problems := checks.NearDuplicate(spaceships, nil, damaged); len(problems) != 0 {
+	if problems := checks.NearDuplicate(spaceships, "", nil, damaged); len(problems) != 0 {
 		t.Fatalf("NearDuplicate() = %v, want none", problems)
 	}
-	problems := checks.NearDuplicate(spaceships, nil, append(damaged, checks.Fingerprint(spaceships)))
+	problems := checks.NearDuplicate(spaceships, "", nil, append(damaged, checks.Fingerprint(spaceships, "")))
 	if len(problems) != 1 {
 		t.Fatalf("NearDuplicate() = %v, want the readable fingerprint still compared", problems)
 	}
@@ -127,9 +127,27 @@ func TestADamagedFingerprintIsSkipped(t *testing.T) {
 func TestADuplicateRefusalQuotesNoOption(t *testing.T) {
 	t.Parallel()
 
-	for _, problem := range checks.NearDuplicate(spaceships, []string{spaceships}, []string{checks.Fingerprint(spaceships)}) {
+	for _, problem := range checks.NearDuplicate(spaceships, "", []string{spaceships}, []string{checks.Fingerprint(spaceships, "")}) {
 		if letter.MatchString(problem.Message) {
 			t.Errorf("%q quotes an option's letter", problem.Message)
 		}
+	}
+}
+
+// A Chinese question that names its children Tom and Mary has more Latin
+// letters than Chinese ones, and cut into words it hides a repeat: the same
+// task given new numbers is 0.63 alike word by word and 0.85 character by
+// character. The language of the task decides how it is cut — for the past
+// tasks the profile keeps and for the reference tasks alike.
+func TestARepeatInChineseWithLatinNamesIsCaught(t *testing.T) {
+	t.Parallel()
+
+	first := "Tom和Mary有12个苹果，Tom比Mary多4个，Tom有几个？"
+	again := "Tom和Mary有14个苹果，Tom比Mary多2个，Tom有几个？"
+	if problems := checks.NearDuplicate(again, "zh", nil, []string{checks.Fingerprint(first, "zh")}); len(problems) != 1 {
+		t.Errorf("NearDuplicate(against a past task) = %v, want the repeat refused", problems)
+	}
+	if problems := checks.NearDuplicate(again, "zh", []string{first}, nil); len(problems) != 1 {
+		t.Errorf("NearDuplicate(against a reference task) = %v, want the copy refused", problems)
 	}
 }

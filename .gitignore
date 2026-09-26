@@ -8,6 +8,7 @@
 /PRODUCT-V1.md
 /docs/prototype/
 /docs/reconciliation.md
+/research/
 
 # Secrets
 .env
@@ -21,9 +22,14 @@ coverage.*
 *.exe
 *.prof
 
-# Go workspace files: this repository is one module
+# Go workspace files: the product is one module, and the research module under
+# research/ builds on its own, without a workspace
 go.work
 go.work.sum
+
+# The research program: its plan, evidence, experiments and paper drafts are
+# kept on this machine and out of the repository.
+/research/
 
 # Node modules of the widget build (web/)
 node_modules/

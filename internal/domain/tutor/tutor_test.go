@@ -248,6 +248,45 @@ func TestTheChildsOwnMistakesComeFirst(t *testing.T) {
 	}
 }
 
+// askedCatalog has no reference tasks, and counts how often it was asked for
+// their traps.
+type askedCatalog struct {
+	catalog
+	asked *int
+}
+
+func (c askedCatalog) ExampleTraps(string, int) []string {
+	*c.asked++
+	return nil
+}
+
+// A brief the child's own mistakes fill asks the reference tasks for nothing:
+// they stand in for the mistakes a child has not made yet, and there are none
+// to stand in for.
+func TestOwnMistakesEnoughAskTheExamplesForNothing(t *testing.T) {
+	t.Parallel()
+
+	p := child(t)
+	issued(p, "counting.gaps", day.AddDate(0, 0, -9), 4)
+	issued(p, "logic.ordering", day, 1)
+	issued(p, "time.clocks", day, 1)
+	summary := p.Topics["counting.gaps"]
+	summary.Traps = map[string]int{"missed_case": 3, "off_by_one": 2}
+	p.Topics["counting.gaps"] = summary
+
+	asked := 0
+	got, _, err := tutor.Next(p, askedCatalog{catalog: threeTopics(), asked: &asked}, tutor.Choice{})
+	if err != nil {
+		t.Fatalf("Next() error = %v, want nil", err)
+	}
+	if want := []string{"missed_case", "off_by_one"}; !slices.Equal(got.TrapsToUse, want) {
+		t.Errorf("traps = %v, want %v", got.TrapsToUse, want)
+	}
+	if asked != 0 {
+		t.Errorf("the reference tasks were asked %d times, want none", asked)
+	}
+}
+
 // One mistake of the child's own, and the second comes from the reference
 // tasks of that topic — without repeating the first.
 func TestOneOwnMistakeIsToppedUpFromTheExamples(t *testing.T) {
@@ -324,5 +363,100 @@ func TestACountBelowZeroStillGetsASetting(t *testing.T) {
 			t.Errorf("after %d answers the setting is %q, want one of %v",
 				answers, got.Setting, p.Student.Interests)
 		}
+	}
+}
+
+// A failure on a topic the child's grade no longer takes — the grade changed,
+// or the topic left the catalog — is not worked over again: no task could be
+// written for it, and a run of failures that waits for an accepted task would
+// never end. Something new of the grade is set instead, and the rationale says
+// why.
+func TestAFailureOnATopicNoLongerTakenIsNotWorkedOver(t *testing.T) {
+	t.Parallel()
+
+	p := child(t)
+	p.Ratings.ConsecutiveFailures = 2
+	p.Recent = []profile.Answer{{
+		AnsweredAt: profile.At(day), Difficulty: 3, Pace: profile.PaceNormal,
+		TaskID: "tsk_1", Topic: "time.calendar", Chosen: "A", Trap: "off_by_one",
+	}}
+
+	got, _, err := tutor.Next(p, threeTopics(), tutor.Choice{})
+	if err != nil {
+		t.Fatalf("Next() error = %v, want nil", err)
+	}
+	if !slices.Contains(threeTopics().topics, got.TargetConcept) || got.PedagogicalGoal != profile.GoalNewTopic {
+		t.Errorf("brief = %s, %s, want a new topic of this grade", got.TargetConcept, got.PedagogicalGoal)
+	}
+	if !strings.Contains(got.Rationale, "time.calendar, which is not a topic of this grade") {
+		t.Errorf("rationale = %q, want it to say why the failure was not worked over", got.Rationale)
+	}
+}
+
+// A brief carries empty lists rather than none: the model hands it back as it
+// received it, and a list left out is refused where an empty one says there
+// is nothing in it. A topic with no reference tasks at the child's level, met
+// for the first time, still names traps: the catalog's own stand in.
+func TestABriefNeverLeavesAListOut(t *testing.T) {
+	t.Parallel()
+
+	topics := threeTopics()
+	delete(topics.examples, "counting.gaps")
+	got, _, err := tutor.Next(child(t), topics, tutor.Choice{})
+	if err != nil {
+		t.Fatalf("Next() error = %v, want nil", err)
+	}
+	if got.ExcludedSkills == nil || got.Constraints == nil || len(got.TrapsToUse) == 0 {
+		t.Errorf("brief = excluded %#v, constraints %#v, traps %#v, want every list present and traps named",
+			got.ExcludedSkills, got.Constraints, got.TrapsToUse)
+	}
+}
+
+// With every topic of the grade mastered, the rotation takes all of them back,
+// and the rationale says so rather than calling one of them unmastered.
+func TestWithEveryTopicMasteredTheRationaleSaysSo(t *testing.T) {
+	t.Parallel()
+
+	p := child(t)
+	mastered := profile.DateOf(day)
+	for _, topic := range threeTopics().topics {
+		p.Topics[topic] = profile.Topic{MasteredSince: &mastered}
+	}
+
+	got, _, err := tutor.Next(p, threeTopics(), tutor.Choice{})
+	if err != nil {
+		t.Fatalf("Next() error = %v, want nil", err)
+	}
+	if !strings.Contains(got.Rationale, "every topic of this grade is mastered") {
+		t.Errorf("rationale = %q, want it to say every topic is mastered", got.Rationale)
+	}
+}
+
+// gradedCatalog is a catalog whose reference tasks differ by grade, which is
+// what a topic taught at more than one level looks like.
+type gradedCatalog struct {
+	catalog
+	byGrade map[int][]string
+}
+
+func (c gradedCatalog) ExampleTraps(_ string, grade int) []string { return c.byGrade[grade] }
+
+// A topic with no reference tasks at the child's grade borrows the traps of
+// the grades nearest it, the nearest first, until the brief names as many as
+// it should — before the catalog's first traps, which may have nothing to do
+// with the topic.
+func TestATopicWithoutTasksAtTheGradeBorrowsTheNearest(t *testing.T) {
+	t.Parallel()
+
+	topics := gradedCatalog{
+		catalog: threeTopics(),
+		byGrade: map[int][]string{1: {"reversed_relation"}, 4: {"wrong_operation", "off_by_one"}},
+	}
+	got, _, err := tutor.Next(child(t), topics, tutor.Choice{})
+	if err != nil {
+		t.Fatalf("Next() error = %v, want nil", err)
+	}
+	if want := []string{"reversed_relation", "wrong_operation"}; !slices.Equal(got.TrapsToUse, want) {
+		t.Errorf("traps = %v, want the nearest grades', nearest first: %v", got.TrapsToUse, want)
 	}
 }

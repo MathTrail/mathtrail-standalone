@@ -47,8 +47,7 @@ func withoutSpaces(text string) string {
 func longestOf(text string) int {
 	longest := 0
 	for _, sentence := range sentences(text) {
-		length, _ := lengthOf(sentence)
-		longest = max(longest, length)
+		longest = max(longest, lengthIn(sentence, unitFor(sentence, "")))
 	}
 	return longest
 }

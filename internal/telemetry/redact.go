@@ -14,23 +14,28 @@ const redactedValue = "redacted"
 
 // redactedKeys are the attributes whose values never leave this process.
 //
-// The first three are what off-the-shelf HTTP instrumentation adds by itself:
-// who the request came from, by which hop, and what it was sent with. The
-// service's own log carries none of that, and a trace is stored somewhere else
-// again, under a retention of its own — so an address that was never written
-// down in one place must not appear in the other. The last two are here before
-// anything sets them: a query string is where a sign-in carries its codes.
+// The first five are what off-the-shelf HTTP instrumentation adds by itself:
+// who the request came from, by which hop, and what it was sent with, and the
+// path and the verb exactly as the caller wrote them. The service's own log
+// carries none of that — it names a request by the route it matched — and a
+// trace is stored somewhere else again, under a retention of its own, so what
+// was never written down in one place must not appear in the other. The route
+// and a method from the known ones stay on the span, as they are in the log.
+// The last two are here before anything sets them: a query string is where a
+// sign-in carries its codes.
 //
 // The peer's port is deliberately not on the list, though it sits beside an
 // address that is. On its own an ephemeral source port names nobody, and it is
 // a number rather than a string: blanking it would change what the attribute
 // is in order to hide what it never said.
 var redactedKeys = map[attribute.Key]struct{}{
-	"client.address":       {},
-	"network.peer.address": {},
-	"user_agent.original":  {},
-	"url.query":            {},
-	"url.full":             {},
+	"client.address":               {},
+	"network.peer.address":         {},
+	"user_agent.original":          {},
+	"url.path":                     {},
+	"http.request.method_original": {},
+	"url.query":                    {},
+	"url.full":                     {},
 }
 
 // redactor blanks those attributes on every span, as it starts.
@@ -68,11 +73,12 @@ func (redactor) OnStart(_ context.Context, span sdktrace.ReadWriteSpan) {
 func (redactor) OnEnd(sdktrace.ReadOnlySpan) {
 	// Deliberately nothing. A processor is handed a finished span for reading
 	// only, so an attribute added after the span started cannot be blanked
-	// here or anywhere else. What that leaves open is whatever is set between
-	// a start and an end — which today is this service's own code, chosen
-	// rather than filtered. The guard test reads spans that have already
-	// ended, so a library that starts adding one later is caught there rather
-	// than shipped.
+	// here. What that leaves open is whatever is set between a start and an
+	// end — which today is this service's own code, chosen rather than
+	// filtered, and the text of a span's status, which the exporter is handed
+	// without (withoutStatusText). The guard test reads spans that have
+	// already ended, so a library that starts adding an attribute later is
+	// caught there rather than shipped.
 }
 
 // Shutdown releases nothing, because this holds nothing.
@@ -80,3 +86,37 @@ func (redactor) Shutdown(context.Context) error { return nil }
 
 // ForceFlush delivers nothing, because this keeps nothing.
 func (redactor) ForceFlush(context.Context) error { return nil }
+
+// withoutStatusText hands the exporter every span with the text of its status
+// taken off and its code kept.
+//
+// The text is written as a span ends, after any processor could change it,
+// and it is not ours to choose: the web framework's instrumentation fills it
+// with the errors the request collected, and a failed write among them names
+// both ends of the connection — the address of whoever was at the other end.
+// The exporter is the last place anything can be done about it, so it is done
+// there. The code still says whether the request failed, which is what a trace
+// is read for; what failed is in the request's own line in the log.
+func withoutStatusText(exporter sdktrace.SpanExporter) sdktrace.SpanExporter {
+	return statusless{exporter}
+}
+
+// statusless is an exporter that sees spans through bareStatus.
+type statusless struct{ sdktrace.SpanExporter }
+
+// ExportSpans passes the spans on, each without the text of its status.
+func (e statusless) ExportSpans(ctx context.Context, spans []sdktrace.ReadOnlySpan) error {
+	bare := make([]sdktrace.ReadOnlySpan, len(spans))
+	for i, span := range spans {
+		bare[i] = bareStatus{span}
+	}
+	return e.SpanExporter.ExportSpans(ctx, bare)
+}
+
+// bareStatus is a span whose status says whether it failed and not why.
+type bareStatus struct{ sdktrace.ReadOnlySpan }
+
+// Status is the span's status without its text.
+func (s bareStatus) Status() sdktrace.Status {
+	return sdktrace.Status{Code: s.ReadOnlySpan.Status().Code}
+}

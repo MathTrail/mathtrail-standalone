@@ -220,9 +220,9 @@ func TestASealedValueShowsNothing(t *testing.T) {
 	}
 }
 
-// Every way a value can fail to open, and the refusal each one gets. The
-// refusals are what T47 onwards branch on, so they are checked by identity
-// rather than by message.
+// Every way a value can fail to open, and the refusal each one gets. Callers
+// branch on the refusals, so they are checked by identity rather than by
+// message.
 func TestOpenRefuses(t *testing.T) {
 	t.Parallel()
 
@@ -271,7 +271,7 @@ func TestOpenRefuses(t *testing.T) {
 		{name: "sealed for another purpose", value: sealValue(t, ring, seal.PurposeRefresh, "x", binding...), binding: binding, want: seal.ErrPurpose},
 
 		{name: "a key nobody has", value: withField(2, "aaaaaa"), binding: binding, want: seal.ErrUnknownKey},
-		{name: "an empty key id", value: withField(2, ""), binding: binding, want: seal.ErrUnknownKey},
+		{name: "an empty key id", value: withField(2, ""), binding: binding, want: seal.ErrMalformed},
 
 		{name: "a changed byte", value: withChangedByte(), binding: binding, want: seal.ErrIntegrity},
 		{name: "another binding", value: value, binding: []string{"OX1sT9", "task-8"}, want: seal.ErrIntegrity},
@@ -367,41 +367,41 @@ func TestRotation(t *testing.T) {
 func TestKeyIDComesFromTheKey(t *testing.T) {
 	t.Parallel()
 
-	first, err := seal.ParseKey(keyNamed("first"))
+	first, err := seal.NewKeyRing(keyNamed("first"), "")
 	if err != nil {
-		t.Fatalf("ParseKey() error = %v, want nil", err)
+		t.Fatalf("NewKeyRing() error = %v, want nil", err)
 	}
-	again, err := seal.ParseKey(keyNamed("first"))
+	again, err := seal.NewKeyRing(keyNamed("first"), "")
 	if err != nil {
-		t.Fatalf("ParseKey() error = %v, want nil", err)
+		t.Fatalf("NewKeyRing() error = %v, want nil", err)
 	}
-	second, err := seal.ParseKey(keyNamed("second"))
+	second, err := seal.NewKeyRing(keyNamed("second"), "")
 	if err != nil {
-		t.Fatalf("ParseKey() error = %v, want nil", err)
+		t.Fatalf("NewKeyRing() error = %v, want nil", err)
 	}
 
-	if first.ID() != again.ID() {
-		t.Errorf("one key has two identifiers: %q and %q", first.ID(), again.ID())
+	if first.CurrentKeyID() != again.CurrentKeyID() {
+		t.Errorf("one key has two identifiers: %q and %q", first.CurrentKeyID(), again.CurrentKeyID())
 	}
-	if first.ID() == second.ID() {
-		t.Errorf("two keys share the identifier %q", first.ID())
+	if first.CurrentKeyID() == second.CurrentKeyID() {
+		t.Errorf("two keys share the identifier %q", first.CurrentKeyID())
 	}
 
 	const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
-	if len(first.ID()) != 6 {
-		t.Errorf("ID() = %q, want six characters", first.ID())
+	if len(first.CurrentKeyID()) != 6 {
+		t.Errorf("CurrentKeyID() = %q, want six characters", first.CurrentKeyID())
 	}
-	if strings.ContainsFunc(first.ID(), func(r rune) bool { return !strings.ContainsRune(alphabet, r) }) {
-		t.Errorf("ID() = %q, want base64url characters only", first.ID())
+	if strings.ContainsFunc(first.CurrentKeyID(), func(r rune) bool { return !strings.ContainsRune(alphabet, r) }) {
+		t.Errorf("CurrentKeyID() = %q, want base64url characters only", first.CurrentKeyID())
 	}
 
 	// Whitespace around a secret read out of a file is not part of the key.
-	padded, err := seal.ParseKey("  " + keyNamed("first") + "\n")
+	padded, err := seal.NewKeyRing("  "+keyNamed("first")+"\n", "")
 	if err != nil {
-		t.Fatalf("ParseKey() error = %v, want the surrounding whitespace to be ignored", err)
+		t.Fatalf("NewKeyRing() error = %v, want the surrounding whitespace to be ignored", err)
 	}
-	if padded.ID() != first.ID() {
-		t.Errorf("ID() = %q, want %q", padded.ID(), first.ID())
+	if padded.CurrentKeyID() != first.CurrentKeyID() {
+		t.Errorf("CurrentKeyID() = %q, want %q", padded.CurrentKeyID(), first.CurrentKeyID())
 	}
 }
 
@@ -428,9 +428,6 @@ func TestKeysThatAreNotKeys(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			if _, err := seal.ParseKey(tc.encoded); !errors.Is(err, seal.ErrKey) {
-				t.Errorf("ParseKey() error = %v, want %v", err, seal.ErrKey)
-			}
 			if _, err := seal.NewKeyRing(tc.encoded, ""); !errors.Is(err, seal.ErrKey) {
 				t.Errorf("NewKeyRing(current) error = %v, want %v", err, seal.ErrKey)
 			}
@@ -463,18 +460,59 @@ func TestAPreviousKeyIsOptional(t *testing.T) {
 	}
 }
 
+// A ring of one key twice is a rotation that only looks done, and it is
+// refused; a key that is not one is refused with the name of the one it was,
+// so that whoever reads the refusal knows which of the two secrets to fix.
+func TestARingIsTwoKeysOrOne(t *testing.T) {
+	t.Parallel()
+
+	for _, test := range []struct {
+		name, current, previous string
+		which                   error
+	}{
+		{"a current key that is not one", "half a key", "", seal.ErrCurrentKey},
+		{"a previous key that is not one", keyNamed("current"), "half a key", seal.ErrPreviousKey},
+		{"one key twice", keyNamed("current"), keyNamed("current"), seal.ErrPreviousKey},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			if _, err := seal.NewKeyRing(test.current, test.previous); !errors.Is(err, seal.ErrKey) || !errors.Is(err, test.which) {
+				t.Errorf("NewKeyRing() error = %v, want %v about %v", err, seal.ErrKey, test.which)
+			}
+		})
+	}
+}
+
+// The zero ring holds no key, and a value that names no key — the one thing
+// a zero ring could mistake for its own — is malformed rather than opened.
+func TestAZeroRingOpensNothing(t *testing.T) {
+	t.Parallel()
+
+	value := sealValue(t, newRing(t, keyNamed("current"), ""), seal.PurposeAccess, "x")
+	fields := strings.Split(value, ".")
+	fields[2] = ""
+
+	var zero seal.KeyRing
+	if _, err := zero.Open(seal.PurposeAccess, strings.Join(fields, ".")); !errors.Is(err, seal.ErrMalformed) {
+		t.Errorf("Open(a value naming no key) error = %v, want %v", err, seal.ErrMalformed)
+	}
+	if _, err := zero.Open(seal.PurposeAccess, value); !errors.Is(err, seal.ErrUnknownKey) {
+		t.Errorf("Open(a value of another ring) error = %v, want %v", err, seal.ErrUnknownKey)
+	}
+}
+
 // No refusal, anywhere, may repeat the key it was handed.
 func TestARefusalNeverCarriesTheKey(t *testing.T) {
 	t.Parallel()
 
 	tooLong := base64.StdEncoding.EncodeToString([]byte("a secret nobody may read back out of an error"))
 
-	_, err := seal.ParseKey(tooLong)
+	_, err := seal.NewKeyRing(tooLong, "")
 	if err == nil {
-		t.Fatal("ParseKey() error = nil, want a refusal")
+		t.Fatal("NewKeyRing() error = nil, want a refusal")
 	}
 	if strings.Contains(err.Error(), tooLong) || strings.Contains(err.Error(), "secret") {
-		t.Errorf("ParseKey() error = %q, want it to carry nothing of the key", err)
+		t.Errorf("NewKeyRing() error = %q, want it to carry nothing of the key", err)
 	}
 }
 

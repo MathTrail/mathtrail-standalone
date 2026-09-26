@@ -31,7 +31,7 @@ const (
 type Brief struct {
 	// Constraints are the limits on the wording.
 	Constraints []string `json:"constraints"`
-	// Difficulty is the level asked for, 1 to 5.
+	// Difficulty is the level asked for, from MinDifficulty to MaxDifficulty.
 	Difficulty int `json:"difficulty"`
 	// ExcludedSkills is what may appear neither in the wording nor in a trap.
 	ExcludedSkills []string `json:"excluded_skills"`
@@ -73,7 +73,7 @@ type OpenRequest struct {
 // the solution and the solver are sealed together, because four explanations
 // in the open would name the four wrong options and hand over the fifth.
 type CurrentTask struct {
-	// Difficulty is the level of the task, 1 to 5.
+	// Difficulty is the level of the task, from MinDifficulty to MaxDifficulty.
 	Difficulty int `json:"difficulty"`
 	// Drawing is the picture in text, when the task has one.
 	Drawing string `json:"drawing,omitempty"`
@@ -92,7 +92,7 @@ type CurrentTask struct {
 	IssuedAt Time `json:"issued_at"`
 	// Language is what the task is written in.
 	Language string `json:"language"`
-	// Options are the five the child chooses between, keyed by letter.
+	// Options are the ones the child chooses between, keyed by letter.
 	Options map[string]string `json:"options"`
 	// Sealed is everything that would give the answer away, as one opaque
 	// string. Nothing about it changes shape with the answer: its length says

@@ -3,14 +3,20 @@ package telemetry
 import (
 	"context"
 	"math"
+	"net/http"
+	"net/url"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
@@ -44,8 +50,9 @@ func TestMeasurementsComeDueOnceAnInterval(t *testing.T) {
 	}
 }
 
-// What the SDK could not deliver goes to the service's own log, at the one
-// level that says a person should look.
+// What the SDK reports going wrong goes to the service's own log, at the one
+// level that says a person should look, under a name that does not claim every
+// report is a failed delivery.
 func TestAFailedDeliveryIsLoggedAsAnError(t *testing.T) {
 	t.Parallel()
 
@@ -59,8 +66,8 @@ func TestAFailedDeliveryIsLoggedAsAnError(t *testing.T) {
 	if lines[0].Level != zapcore.ErrorLevel {
 		t.Errorf("level = %v, want %v", lines[0].Level, zapcore.ErrorLevel)
 	}
-	if lines[0].Message != "telemetry_export_failed" {
-		t.Errorf("message = %q, want %q", lines[0].Message, "telemetry_export_failed")
+	if lines[0].Message != "telemetry_failed" {
+		t.Errorf("message = %q, want %q", lines[0].Message, "telemetry_failed")
 	}
 }
 
@@ -170,44 +177,158 @@ func TestThePlatformDefaultsToTheRealOne(t *testing.T) {
 	}
 }
 
-// Both signals' addresses come out of one root, and a root that is not an
-// address is named rather than posted to. Left to itself the exporter keeps
-// its own default and says nothing, so a mistyped address becomes spans that
-// arrive nowhere.
+// Both signals' addresses come out of one root, each under whatever path the
+// root carries.
 func TestBothAddressesComeOutOfOneRoot(t *testing.T) {
 	t.Parallel()
 
 	for _, c := range []struct {
-		name    string
-		root    string
-		traces  string
-		refused bool
+		name   string
+		root   string
+		traces string
 	}{
 		{name: "a bare host", root: "https://telemetry.example", traces: "https://telemetry.example/v1/traces"},
 		{name: "a trailing slash", root: "https://telemetry.example/", traces: "https://telemetry.example/v1/traces"},
 		{name: "a port", root: "http://127.0.0.1:4318", traces: "http://127.0.0.1:4318/v1/traces"},
-		{name: "no scheme", root: "telemetry.example", refused: true},
-		{name: "a host and a port, no scheme", root: "localhost:4318", refused: true},
-		{name: "a scheme we do not speak", root: "grpc://telemetry.example", refused: true},
-		{name: "no host", root: "https:///v1", refused: true},
-		{name: "empty", root: "", refused: true},
-		{name: "not an address at all", root: "http://[::1", refused: true},
+		{name: "a prefix", root: "https://telemetry.example/otlp", traces: "https://telemetry.example/otlp/v1/traces"},
 	} {
-		traces, metrics, err := endpoints(c.root)
-		switch {
-		case c.refused:
-			if err == nil {
-				t.Errorf("endpoints(%s) error = nil, want the root named", c.name)
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
+			root, err := url.Parse(c.root)
+			if err != nil {
+				t.Fatalf("url.Parse(%q) error = %v, want nil", c.root, err)
 			}
-		case err != nil:
-			t.Errorf("endpoints(%s) error = %v, want nil", c.name, err)
-		default:
-			if traces != c.traces {
-				t.Errorf("endpoints(%s) traces = %q, want %q", c.name, traces, c.traces)
+			traces, metrics := endpoints(root)
+			wantMetrics := strings.Replace(c.traces, tracePath, metricPath, 1)
+			if traces != c.traces || metrics != wantMetrics {
+				t.Errorf("endpoints(%q) = %q, %q, want %q, %q", c.root, traces, metrics, c.traces, wantMetrics)
 			}
-			if want := strings.Replace(c.traces, tracePath, metricPath, 1); metrics != want {
-				t.Errorf("endpoints(%s) metrics = %q, want %q", c.name, metrics, want)
-			}
-		}
+		})
+	}
+}
+
+// A start that is going to fail on its address does not first ask the
+// platform to describe itself: that is a call that can take seconds, and it
+// would be spent on a service that is not going to run.
+func TestARefusedAddressAsksThePlatformNothing(t *testing.T) {
+	t.Parallel()
+
+	asked := &countingDetector{}
+	_, err := New(t.Context(), &Settings{
+		Enabled:    true,
+		Endpoint:   "telemetry.example",
+		ProjectID:  "a-project",
+		HTTPClient: http.DefaultClient,
+		Detector:   asked,
+	}, zap.NewNop())
+	if err == nil {
+		t.Fatal("New() error = nil, want the address refused")
+	}
+	if asked.calls != 0 {
+		t.Errorf("the platform was asked %d times, want none", asked.calls)
+	}
+}
+
+// Spans and measurements are delivered side by side, each with the whole
+// deadline. Each exporter below waits to see the other one start, so queued
+// one behind the other the first waits out the deadline and the second finds
+// it spent.
+func TestSpansAndMeasurementsAreDeliveredSideBySide(t *testing.T) {
+	t.Parallel()
+
+	spansStarted, measurementsStarted := make(chan struct{}), make(chan struct{})
+	traces := sdktrace.NewTracerProvider(sdktrace.WithBatcher(&waitingSpans{
+		waiting: waiting{started: spansStarted, other: measurementsStarted},
+	}))
+	metrics := sdkmetric.NewMeterProvider(sdkmetric.WithReader(sdkmetric.NewPeriodicReader(&waitingMeasurements{
+		waiting: waiting{started: measurementsStarted, other: spansStarted},
+	})))
+	t.Cleanup(func() {
+		_ = traces.Shutdown(context.Background())
+		_ = metrics.Shutdown(context.Background())
+	})
+	tel := &Telemetry{traces: traces, metrics: metrics, enabled: true}
+
+	_, span := traces.Tracer("test").Start(t.Context(), "request")
+	span.End()
+	requests, err := metrics.Meter("test").Int64Counter("requests")
+	if err != nil {
+		t.Fatalf("Int64Counter() error = %v, want nil", err)
+	}
+	requests.Add(t.Context(), 1)
+
+	if err := tel.ForceFlush(t.Context(), true); err != nil {
+		t.Errorf("ForceFlush() error = %v, want nil: one delivery waited for the other", err)
+	}
+}
+
+// waiting is an exporter's half of a meeting: it says it has started, and
+// waits until the other half has too, or the deadline passes.
+type waiting struct {
+	once    sync.Once
+	started chan struct{}
+	other   chan struct{}
+}
+
+func (w *waiting) meet(ctx context.Context) error {
+	w.once.Do(func() { close(w.started) })
+	select {
+	case <-w.other:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+// waitingSpans is a span exporter that delivers by meeting the other one.
+type waitingSpans struct{ waiting }
+
+func (e *waitingSpans) ExportSpans(ctx context.Context, _ []sdktrace.ReadOnlySpan) error {
+	return e.meet(ctx)
+}
+
+func (*waitingSpans) Shutdown(context.Context) error { return nil }
+
+// waitingMeasurements is a metric exporter that delivers by meeting the other
+// one.
+type waitingMeasurements struct{ waiting }
+
+func (*waitingMeasurements) Temporality(kind sdkmetric.InstrumentKind) metricdata.Temporality {
+	return deltaTemporality(kind)
+}
+
+func (*waitingMeasurements) Aggregation(kind sdkmetric.InstrumentKind) sdkmetric.Aggregation {
+	return sdkmetric.DefaultAggregationSelector(kind)
+}
+
+func (e *waitingMeasurements) Export(ctx context.Context, _ *metricdata.ResourceMetrics) error {
+	return e.meet(ctx)
+}
+
+func (*waitingMeasurements) ForceFlush(context.Context) error { return nil }
+
+func (*waitingMeasurements) Shutdown(context.Context) error { return nil }
+
+// What the exporter is handed says whether a span failed and not why: the
+// text of a status is whatever errors the request collected, and a failed
+// write names the address at the other end of it.
+func TestTheExporterNeverSeesTheTextOfAStatus(t *testing.T) {
+	t.Parallel()
+
+	exported := tracetest.NewInMemoryExporter()
+	traces := sdktrace.NewTracerProvider(sdktrace.WithSyncer(withoutStatusText(exported)))
+	t.Cleanup(func() { _ = traces.Shutdown(context.Background()) })
+
+	_, span := traces.Tracer("test").Start(t.Context(), "request")
+	span.SetStatus(codes.Error, "write tcp 10.0.0.2:8080->203.0.113.9:51234: write: broken pipe")
+	span.End()
+
+	spans := exported.GetSpans()
+	if len(spans) != 1 {
+		t.Fatalf("the exporter was handed %d spans, want 1", len(spans))
+	}
+	if status := spans[0].Status; status.Code != codes.Error || status.Description != "" {
+		t.Errorf("status = %+v, want the failure without its text", status)
 	}
 }

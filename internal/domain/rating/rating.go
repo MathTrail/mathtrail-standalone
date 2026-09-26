@@ -122,8 +122,9 @@ func Update(s State, beta float64, correct bool) Result {
 
 // step is how far one answer may move a level: wide at first, so that a new
 // child's rating finds its place within a handful of answers, and narrower
-// afterwards, so that a rating resting on fifty answers stays where it is.
-func step(k0 float64, answers int) float64 { return k0 / (1 + decay*float64(answers)) }
+// afterwards, so that a rating resting on fifty answers stays where it is. A
+// count below zero is no count at all, rather than a step without end.
+func step(k0 float64, answers int) float64 { return k0 / (1 + decay*float64(max(answers, 0))) }
 
 func sigmoid(x float64) float64 { return 1 / (1 + math.Exp(-x)) }
 

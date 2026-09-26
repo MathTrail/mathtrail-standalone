@@ -76,7 +76,27 @@ func TestBrokenReferenceTaskStopsTheService(t *testing.T) {
 		{
 			name:   "two options a child could not tell apart",
 			change: func(task *Example) { task.Options["E"] = " 3 METRES " },
-			want:   "options B and E read the same",
+			want:   "options B and E say the same",
+		},
+		{
+			name:   "one number written two ways",
+			change: func(task *Example) { task.Options["D"], task.Options["E"] = "6", "6.0" },
+			want:   "options D and E say the same",
+		},
+		{
+			name:   "an option that shows nothing",
+			change: func(task *Example) { task.Options["E"] = "\u200b" },
+			want:   "option E is empty",
+		},
+		{
+			name:   "a question that shows nothing",
+			change: func(task *Example) { task.Question = "\u2060" },
+			want:   "the question is empty",
+		},
+		{
+			name:   "an explanation that shows nothing",
+			change: func(task *Example) { task.Distractors["A"] = Distractor{Trap: "off_by_one", Text: "\u200b"} },
+			want:   "option A explains nothing",
 		},
 		{
 			name:   "an option that is missing",

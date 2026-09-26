@@ -31,37 +31,40 @@ const (
 // Neither it nor anything wrapping it ever carries the key itself.
 var ErrKey = errors.New("seal: invalid key")
 
-// Key is one version of the sealing key. The bytes handed to ParseKey are
-// never kept: what a Key holds is the identifier derived from them and one
-// AEAD per purpose, so the key material itself cannot be read back out, logged
-// or passed on.
-type Key struct {
+// ErrCurrentKey and ErrPreviousKey say which of the two keys of a ring a
+// refusal of NewKeyRing is about. They come wrapped in ErrKey, beside it.
+var (
+	ErrCurrentKey  = errors.New("the current key")
+	ErrPreviousKey = errors.New("the previous key")
+)
+
+// sealingKey is one version of the sealing key. The bytes it was read from are
+// never kept: what it holds is the identifier derived from them and one AEAD
+// per purpose, so the key material itself cannot be read back out, logged or
+// passed on. The identifier is the first characters of the key's own digest,
+// which is why a key and its id can never be configured apart; it is public —
+// every sealed value carries it — and says nothing about the key.
+type sealingKey struct {
 	id   string
 	aead map[Purpose]cipher.AEAD
 }
 
-// ID is the identifier of this key: the first characters of the key's own
-// digest, which is why a key and its id can never be configured apart. It is
-// public — every sealed value carries it — and it says nothing about the key.
-func (k Key) ID() string { return k.id }
-
-// ParseKey reads a key from the base64 a deployment carries, and derives
-// everything that is used in its place.
-//
-// The encoding is standard base64 of exactly KeySize random bytes; surrounding
-// whitespace is ignored, because a secret read out of a file arrives with a
-// newline on the end.
-func ParseKey(encoded string) (Key, error) {
+// readKey reads a key from the base64 a deployment carries, and derives
+// everything that is used in its place. The encoding is standard base64 of
+// exactly KeySize random bytes; surrounding whitespace is ignored, because a
+// secret read out of a file arrives with a newline on the end. What went wrong
+// is said without the name of the refusal, which the caller puts first.
+func readKey(encoded string) (sealingKey, error) {
 	secret, err := base64.StdEncoding.Strict().DecodeString(strings.TrimSpace(encoded))
 	if err != nil {
-		return Key{}, fmt.Errorf("%w: not base64", ErrKey)
+		return sealingKey{}, errors.New("not base64")
 	}
 	if len(secret) != KeySize {
-		return Key{}, fmt.Errorf("%w: %d bytes, want %d", ErrKey, len(secret), KeySize)
+		return sealingKey{}, fmt.Errorf("%d bytes, want %d", len(secret), KeySize)
 	}
 
 	digest := sha256.Sum256(secret)
-	key := Key{
+	key := sealingKey{
 		id:   base64.RawURLEncoding.EncodeToString(digest[:])[:keyIDLength],
 		aead: make(map[Purpose]cipher.AEAD, len(labels)),
 	}
@@ -72,11 +75,11 @@ func ParseKey(encoded string) (Key, error) {
 	for purpose := range labels {
 		subkey, err := hkdf.Key(sha256.New, secret, nil, subkeyInfo+string(purpose), KeySize)
 		if err != nil {
-			return Key{}, fmt.Errorf("%w: derive the %s subkey: %w", ErrKey, purpose, err)
+			return sealingKey{}, fmt.Errorf("derive the %s subkey: %w", purpose, err)
 		}
 		aead, err := chacha20poly1305.NewX(subkey)
 		if err != nil {
-			return Key{}, fmt.Errorf("%w: %s: %w", ErrKey, purpose, err)
+			return sealingKey{}, fmt.Errorf("%s: %w", purpose, err)
 		}
 		key.aead[purpose] = aead
 	}
@@ -88,18 +91,23 @@ func ParseKey(encoded string) (Key, error) {
 // previous one, which only opens. A value sealed before the rotation therefore
 // keeps working until it expires on its own, and everything issued from now on
 // is sealed with the current key.
+//
+// A ring is made by NewKeyRing. The zero KeyRing holds no key: it opens
+// nothing, and sealing with it is a mistake of the caller's.
 type KeyRing struct {
-	current  Key
-	previous *Key
+	current  sealingKey
+	previous *sealingKey
 }
 
 // NewKeyRing builds the ring from the two encoded keys a deployment carries.
-// An empty previous key means there is none, which is the shape outside a
-// rotation.
+// A previous key of nothing but whitespace means there is none, which is the
+// shape outside a rotation. The same key twice is refused: it is a rotation
+// that only looks done, and what the retired key sealed would stop opening the
+// moment it was deployed.
 func NewKeyRing(current, previous string) (*KeyRing, error) {
-	currentKey, err := ParseKey(current)
+	currentKey, err := readKey(current)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %w: %w", ErrKey, ErrCurrentKey, err)
 	}
 
 	ring := &KeyRing{current: currentKey}
@@ -107,9 +115,12 @@ func NewKeyRing(current, previous string) (*KeyRing, error) {
 		return ring, nil
 	}
 
-	previousKey, err := ParseKey(previous)
+	previousKey, err := readKey(previous)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %w: %w", ErrKey, ErrPreviousKey, err)
+	}
+	if previousKey.id == currentKey.id {
+		return nil, fmt.Errorf("%w: %w is the current one, and a rotation needs two", ErrKey, ErrPreviousKey)
 	}
 	ring.previous = &previousKey
 	return ring, nil
@@ -129,14 +140,14 @@ func (r *KeyRing) PreviousKeyID() string {
 
 // key finds the key a sealed value names, and reports whether the ring still
 // carries it.
-func (r *KeyRing) key(id string) (Key, bool) {
+func (r *KeyRing) key(id string) (sealingKey, bool) {
 	switch {
 	case id == r.current.id:
 		return r.current, true
 	case r.previous != nil && id == r.previous.id:
 		return *r.previous, true
 	default:
-		return Key{}, false
+		return sealingKey{}, false
 	}
 }
 

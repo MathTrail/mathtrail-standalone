@@ -145,3 +145,46 @@ func TestAskingForWhatTheRuleSaidIsStillTheModelChoosing(t *testing.T) {
 		t.Errorf("mode = %q, want %q", mode, profile.TutorLLM)
 	}
 }
+
+// When the model sets another topic, the rationale still gives the rule's own
+// account: the difficulty the rule would have set for the topic it suggested,
+// not the one the model's topic is given. The two are compared afterwards, and
+// a rule's account taken from the model's topic would leave nothing to compare.
+func TestTheRulesAccountIsOfItsOwnTopic(t *testing.T) {
+	t.Parallel()
+
+	p := child(t)
+	p.Topics["counting.gaps"] = profile.Topic{Delta: -1.5}
+	p.Topics["time.clocks"] = profile.Topic{Delta: 1.5}
+
+	got, _, err := tutor.Next(p, threeTopics(), tutor.Choice{Topic: "time.clocks", Reason: "clocks today"})
+	if err != nil {
+		t.Fatalf("Next() error = %v, want nil", err)
+	}
+	if got.Difficulty != 4 || !strings.Contains(got.Rationale, "counting.gaps") ||
+		!strings.Contains(got.Rationale, "Difficulty 1 is") ||
+		!strings.Contains(got.Rationale, "Difficulty 4 is the one its corridor recommends") {
+		t.Errorf("difficulty %d, rationale %q, want 4 for the model's topic, said where it came from, "+
+			"and the rule's own 1 for counting.gaps",
+			got.Difficulty, got.Rationale)
+	}
+}
+
+// The model's reason is one sentence of the rationale, ended once: with its own
+// mark when it wrote one, and with a full stop when it did not.
+func TestTheModelsReasonIsEndedOnce(t *testing.T) {
+	t.Parallel()
+
+	for _, reason := range []string{
+		"clocks today", "The child asked for clocks.", "Clocks again?", "他需要复习时钟。", "  ",
+	} {
+		got, _, err := tutor.Next(child(t), threeTopics(), tutor.Choice{Topic: "time.clocks", Reason: reason})
+		if err != nil {
+			t.Fatalf("Next() error = %v, want nil", err)
+		}
+		if strings.Contains(got.Rationale, "..") || strings.Contains(got.Rationale, "?.") ||
+			strings.Contains(got.Rationale, "。.") || strings.Contains(got.Rationale, ": .") {
+			t.Errorf("rationale %q, want every sentence of it ended once", got.Rationale)
+		}
+	}
+}

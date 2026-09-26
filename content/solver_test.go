@@ -177,6 +177,14 @@ func TestATemplateFilledAsItsCommentsSayProvesTheAnswer(t *testing.T) {
 				{"                        found.append(", "                        found.append(in_bc)"},
 			}, "7",
 		},
+		{
+			"a tap and no water poured away", "algorithms.weighing_pouring", "pouring",
+			[][2]string{
+				{"CAPACITIES = ", "CAPACITIES = (4, 7)"},
+				{"EMPTY = ", "EMPTY = False"},
+				{"    return 2 in state", "    return 6 in state"},
+			}, "It is impossible",
+		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()

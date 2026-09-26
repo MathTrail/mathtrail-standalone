@@ -6,6 +6,9 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
 
 // The caps of the file, counted in characters rather than bytes: a pseudonym
@@ -42,23 +45,19 @@ const (
 	// MaxAttempts is how many times the model may hand back a task that does
 	// not pass the checks.
 	MaxAttempts = 3
-	// Options is how many answers a task offers.
-	Options = 5
 )
 
-// MinDifficulty and MaxDifficulty bound a task's level.
+// MinDifficulty and MaxDifficulty bound a task's level: from the first of the
+// difficulties the rating puts on its scale to the last, and no others.
 const (
 	MinDifficulty = 1
-	MaxDifficulty = 5
+	MaxDifficulty = rating.Difficulties
 )
 
 // isNumber reports whether a level is one. A level that is not — the result
 // of a division nobody meant — cannot be written to the file at all, and the
 // encoder that refuses it names JSON rather than the field it came from.
 func isNumber(level float64) bool { return !math.IsNaN(level) && !math.IsInf(level, 0) }
-
-// optionLetters are the letters the options are keyed by.
-const optionLetters = "ABCDE"
 
 // Validate reports the first thing about a profile this service could not
 // work with, naming the field and the limit it broke.
@@ -180,8 +179,9 @@ func validateRecent(recent []Answer) error {
 				ErrInvalid, i, answer.Difficulty, MinDifficulty, MaxDifficulty)
 		case answer.Pace != PaceFast && answer.Pace != PaceNormal && answer.Pace != PaceSlow:
 			return fmt.Errorf("%w: recent[%d].pace is %q, want fast, normal or slow", ErrInvalid, i, answer.Pace)
-		case answer.Chosen != "" && !strings.Contains(optionLetters, answer.Chosen):
-			return fmt.Errorf("%w: recent[%d].chosen is %q, want one of %s", ErrInvalid, i, answer.Chosen, optionLetters)
+		case answer.Chosen != "" && solver.Place(answer.Chosen) < 0:
+			return fmt.Errorf("%w: recent[%d].chosen is %q, want one of %s",
+				ErrInvalid, i, answer.Chosen, strings.Join(solver.Letters(), ", "))
 		case answer.Correct && (answer.Chosen != "" || answer.Trap != ""):
 			// A correct answer has no mistake to name, and naming one would
 			// put a trap of the current lesson where it does not belong.
@@ -205,12 +205,12 @@ func (t *CurrentTask) validate() error {
 	case t.Difficulty < MinDifficulty || t.Difficulty > MaxDifficulty:
 		return fmt.Errorf("%w: current_task.difficulty is %d, the levels are %d to %d",
 			ErrInvalid, t.Difficulty, MinDifficulty, MaxDifficulty)
-	case len(t.Options) != Options:
-		return fmt.Errorf("%w: current_task offers %d options, want %d", ErrInvalid, len(t.Options), Options)
+	case len(t.Options) != solver.Count:
+		return fmt.Errorf("%w: current_task offers %d options, want %d", ErrInvalid, len(t.Options), solver.Count)
 	}
-	for _, letter := range optionLetters {
-		if t.Options[string(letter)] == "" {
-			return fmt.Errorf("%w: current_task.options has nothing under %q", ErrInvalid, string(letter))
+	for place := range solver.Count {
+		if letter := solver.Letter(place); solver.Blank(t.Options[letter]) {
+			return fmt.Errorf("%w: current_task.options shows nothing under %q", ErrInvalid, letter)
 		}
 	}
 	return nil

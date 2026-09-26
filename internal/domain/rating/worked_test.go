@@ -153,7 +153,11 @@ func TestThreeFailuresInARow(t *testing.T) {
 
 	theta, delta, answers, topicAnswers := 0.9, 0.3, settled, inTopic
 	for number, row := range table {
-		t.Run(fmt.Sprintf("failure %d", number+1), func(t *testing.T) {
+		outcome := "wrong"
+		if row.correct {
+			outcome = "right"
+		}
+		t.Run(fmt.Sprintf("answer %d, %s", number+1, outcome), func(t *testing.T) {
 			nearly(t, theta, row.theta, tolerance, "the overall level before")
 			nearly(t, delta, row.delta, tolerance, "the topic before")
 
@@ -170,6 +174,7 @@ func TestThreeFailuresInARow(t *testing.T) {
 			if corridor.Recommended != row.next {
 				t.Errorf("the next difficulty = %d, want %d", corridor.Recommended, row.next)
 			}
+			nearly(t, corridor.Probability(corridor.Recommended), row.nextChance, printed, "the chance at it")
 
 			theta, delta = result.Theta, result.Delta
 			answers, topicAnswers = result.Answers, result.TopicAnswers

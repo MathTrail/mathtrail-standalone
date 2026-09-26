@@ -73,7 +73,7 @@ func TestTheMeasureHoldsItsProperties(t *testing.T) {
 	properties.Property("a question copies itself and repeats itself", prop.ForAll(
 		func(words []string) bool {
 			question := strings.Join(words, " ")
-			return len(checks.NearDuplicate(question, []string{question}, []string{checks.Fingerprint(question)})) == 2
+			return len(checks.NearDuplicate(question, "", []string{question}, []string{checks.Fingerprint(question, "")})) == 2
 		},
 		genWords(),
 	))

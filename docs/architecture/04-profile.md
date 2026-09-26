@@ -215,11 +215,11 @@ Pretty-printed JSON with sorted keys, not a compact line: the parent can open th
 | Service and child | 0.6 KB | 1.5 KB |
 | Ratings and the per-topic summary, 30 topics | 8 KB | 14 KB |
 | `recent`, 20 entries | 4 KB | 5 KB |
-| `task_fingerprints`, 200 entries | 19 KB | 21 KB |
+| `task_fingerprints`, 200 entries | 27 KB | 29 KB |
 | The open request | 0 or 1.5 KB | 2 KB |
 | The current task, open part | 2 KB | 4 KB |
 | The current task, sealed block | 4 KB | 8 KB |
-| **Total** | **≈ 38 KB** | **≈ 56 KB** |
+| **Total** | **≈ 46 KB** | **≈ 64 KB** |
 
 The soft target is 64 KB and the hard cap 256 KB. The caps that keep it there are the ones above — 500 characters of notes, 20 recent answers, 200 fingerprints, 30-odd topics — and they are enforced on every write, not checked afterwards. If a file still approaches the hard cap, it is pruned in this order, and the order is the point: **fingerprints first** (a rarer repeat), **then the history window** (a shorter "recent answers" list), and **never** the per-topic summary or the current task, because those are what the rule and the lesson run on.
 

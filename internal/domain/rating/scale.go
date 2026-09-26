@@ -20,8 +20,16 @@ const (
 func Elo(level float64) float64 { return eloBase + eloScale*level }
 
 // Shown is the rating as a reader sees it, which is the whole number the
-// ranks are drawn against.
-func Shown(elo float64) int { return int(math.Round(elo)) }
+// ranks are drawn against. A rating past what a whole number of four bytes
+// holds is shown at that limit, and one that is no number at all as the rating
+// a child starts at, rather than either turned into whatever the machine makes
+// of it.
+func Shown(elo float64) int {
+	if math.IsNaN(elo) {
+		return eloBase
+	}
+	return int(min(max(math.Round(elo), math.MinInt32), math.MaxInt32))
+}
 
 // Rank is the step drawn above the rating, from 1 to 5. It is worked out
 // wherever it is drawn and stored nowhere: a stored rank is one more thing

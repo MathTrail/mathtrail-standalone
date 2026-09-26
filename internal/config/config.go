@@ -25,6 +25,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
+	"github.com/MathTrail/mathtrail-standalone/internal/telemetry/collector"
 )
 
 // The three settings of the telemetry switch. A deployment is watched and a
@@ -49,7 +50,7 @@ const (
 	DefaultReadTimeout       = 30 * time.Second
 	DefaultWriteTimeout      = 60 * time.Second
 	DefaultIdleTimeout       = 120 * time.Second
-	DefaultShutdownTimeout   = 10 * time.Second
+	DefaultShutdownTimeout   = 9 * time.Second
 
 	DefaultSolverSteps       = 25_000_000
 	DefaultSolverTimeout     = 2 * time.Second
@@ -59,6 +60,11 @@ const (
 	DefaultTelemetryEndpoint    = "https://telemetry.googleapis.com"
 	DefaultTelemetrySampleRatio = 0.1
 )
+
+// MinShutdownTimeout is the shortest way out a service may be given: the close
+// after the drain has a quarter of it, and a quarter of less is no time to
+// deliver anything in.
+const MinShutdownTimeout = time.Second
 
 // ErrInvalid is returned by Load and Validate; callers branch on it with
 // errors.Is.
@@ -82,7 +88,12 @@ type Config struct {
 	ReadTimeout       time.Duration `mapstructure:"MATHTRAIL_HTTP_READ_TIMEOUT"`
 	WriteTimeout      time.Duration `mapstructure:"MATHTRAIL_HTTP_WRITE_TIMEOUT"`
 	IdleTimeout       time.Duration `mapstructure:"MATHTRAIL_HTTP_IDLE_TIMEOUT"`
-	ShutdownTimeout   time.Duration `mapstructure:"MATHTRAIL_SHUTDOWN_TIMEOUT"`
+	// ShutdownTimeout is the whole way out once a stop is asked for: the
+	// server's drain and the close after it together. The platform stops the
+	// process ten seconds after asking it to, and time spent past that is not
+	// spent at all, so the default stops a second short of it: the signal takes
+	// a moment to arrive, and the last lines are written after the close.
+	ShutdownTimeout time.Duration `mapstructure:"MATHTRAIL_SHUTDOWN_TIMEOUT"`
 
 	// SolverSteps is how many instructions one run of a solver may execute
 	// before it is stopped.
@@ -97,8 +108,8 @@ type Config struct {
 	Telemetry string `mapstructure:"MATHTRAIL_TELEMETRY"`
 	// TelemetryEndpoint is the root URL of the collector they are sent to.
 	TelemetryEndpoint string `mapstructure:"MATHTRAIL_TELEMETRY_ENDPOINT"`
-	// TelemetrySampleRatio is the share of traces kept when a request arrives
-	// with no sampling decision of its own.
+	// TelemetrySampleRatio is the share of traces kept, whatever a request
+	// arrives saying about its own.
 	TelemetrySampleRatio float64 `mapstructure:"MATHTRAIL_TELEMETRY_SAMPLE_RATIO"`
 
 	// GCPProjectID names the Google Cloud project the telemetry is filed
@@ -138,6 +149,19 @@ func (c *Config) TelemetryEnabled() bool {
 		return c.Deployed()
 	}
 }
+
+// DrainTimeout is the part of the way out the server waits for the requests
+// still in flight: three quarters of it.
+//
+// The drain and the close after it share one budget rather than take one
+// each, in fixed shares, so that a slow request cannot eat the time the
+// telemetry's last delivery needs.
+func (c *Config) DrainTimeout() time.Duration { return c.ShutdownTimeout - c.CloseTimeout() }
+
+// CloseTimeout is the part of the way out kept for closing what the service ran
+// on, once the server has drained or a start has failed halfway: a quarter of
+// it.
+func (c *Config) CloseTimeout() time.Duration { return c.ShutdownTimeout / 4 }
 
 // Origin is the public URL as a bare scheme and host, without a trailing slash.
 func (c *Config) Origin() string { return strings.TrimSuffix(c.PublicURL, "/") }
@@ -246,21 +270,15 @@ func (c *Config) Validate() error {
 	default:
 		return fmt.Errorf("%w: MATHTRAIL_LOG_FORMAT must be json or console, got %q", ErrInvalid, c.LogFormat)
 	}
+	// The console format is for a person at a terminal. It escapes nothing, so a
+	// newline a request carries would start a line of its own, and a collector
+	// reads no severity out of it: a deployment writes JSON.
+	if c.LogFormat == "console" && c.Deployed() {
+		return fmt.Errorf("%w: MATHTRAIL_LOG_FORMAT must be json when K_SERVICE is set", ErrInvalid)
+	}
 
-	for _, timeout := range []struct {
-		name  string
-		value time.Duration
-	}{
-		{"MATHTRAIL_HTTP_READ_HEADER_TIMEOUT", c.ReadHeaderTimeout},
-		{"MATHTRAIL_HTTP_READ_TIMEOUT", c.ReadTimeout},
-		{"MATHTRAIL_HTTP_WRITE_TIMEOUT", c.WriteTimeout},
-		{"MATHTRAIL_HTTP_IDLE_TIMEOUT", c.IdleTimeout},
-		{"MATHTRAIL_SHUTDOWN_TIMEOUT", c.ShutdownTimeout},
-		{"MATHTRAIL_SOLVER_TIMEOUT", c.SolverTimeout},
-	} {
-		if timeout.value <= 0 {
-			return fmt.Errorf("%w: %s must be a positive duration, got %v", ErrInvalid, timeout.name, timeout.value)
-		}
+	if err := c.validateTimeouts(); err != nil {
+		return err
 	}
 
 	if err := c.validateSolver(); err != nil {
@@ -328,48 +346,69 @@ func (c *Config) validateSolver() error {
 // says is the shape that is wrong, never the value that is wrong.
 func (c *Config) validateSealKeys() error {
 	// The one secret with no sensible default: a service given no key could
-	// only invent one, and every token it issued would die with the process.
-	if c.SealKeyCurrent == "" {
+	// only invent one, and every token it issued would die with the process. A
+	// key is read with the whitespace around it ignored, since a secret read out
+	// of a file arrives with a newline on the end, and a value of whitespace
+	// alone is no key.
+	if strings.TrimSpace(c.SealKeyCurrent) == "" {
 		return fmt.Errorf(
 			"%w: MATHTRAIL_SEAL_KEY_CURRENT must be set to %d random bytes in standard base64",
 			ErrInvalid, seal.KeySize)
 	}
 
-	current, err := seal.ParseKey(c.SealKeyCurrent)
-	if err != nil {
-		return fmt.Errorf("%w: MATHTRAIL_SEAL_KEY_CURRENT: %w", ErrInvalid, err)
-	}
-
-	// Outside a rotation there is no previous key, and that is the normal shape.
-	if c.SealKeyPrevious == "" {
-		return nil
-	}
-	previous, err := seal.ParseKey(c.SealKeyPrevious)
-	if err != nil {
-		return fmt.Errorf("%w: MATHTRAIL_SEAL_KEY_PREVIOUS: %w", ErrInvalid, err)
-	}
-
-	// Both variables holding one key is a rotation that only looks done: what
-	// the retired key sealed would stop opening the moment it is deployed.
-	if previous.ID() == current.ID() {
-		return fmt.Errorf(
-			"%w: MATHTRAIL_SEAL_KEY_PREVIOUS holds the same key as MATHTRAIL_SEAL_KEY_CURRENT; a rotation needs two",
-			ErrInvalid)
+	// What makes the two a ring the service can seal with — each a key, and not
+	// the same key twice — is the ring's own to say, and it says which of the
+	// two it refused.
+	if _, err := seal.NewKeyRing(c.SealKeyCurrent, c.SealKeyPrevious); err != nil {
+		variable := "MATHTRAIL_SEAL_KEY_CURRENT"
+		if errors.Is(err, seal.ErrPreviousKey) {
+			variable = "MATHTRAIL_SEAL_KEY_PREVIOUS"
+		}
+		return fmt.Errorf("%w: %s: %w", ErrInvalid, variable, err)
 	}
 	return nil
 }
 
 // isLoopback reports whether a host can only mean this machine. The whole of
 // 127.0.0.0/8 is loopback, not just its first address, and every name under
-// .localhost is reserved for it.
+// .localhost is reserved for it. A name is read as the name system reads it:
+// without regard to case, and the same with or without the dot that ends a
+// fully qualified one.
 func isLoopback(host string) bool {
-	if host == "localhost" || strings.HasSuffix(host, ".localhost") {
+	name := strings.TrimSuffix(strings.ToLower(host), ".")
+	if name == "localhost" || strings.HasSuffix(name, ".localhost") {
 		return true
 	}
 	if ip := net.ParseIP(host); ip != nil {
 		return ip.IsLoopback()
 	}
 	return false
+}
+
+// validateTimeouts refuses a duration nothing could run under, naming its
+// variable: every one has to be positive, and the way out long enough to be
+// shared.
+func (c *Config) validateTimeouts() error {
+	for _, timeout := range []struct {
+		name  string
+		value time.Duration
+	}{
+		{"MATHTRAIL_HTTP_READ_HEADER_TIMEOUT", c.ReadHeaderTimeout},
+		{"MATHTRAIL_HTTP_READ_TIMEOUT", c.ReadTimeout},
+		{"MATHTRAIL_HTTP_WRITE_TIMEOUT", c.WriteTimeout},
+		{"MATHTRAIL_HTTP_IDLE_TIMEOUT", c.IdleTimeout},
+		{"MATHTRAIL_SHUTDOWN_TIMEOUT", c.ShutdownTimeout},
+		{"MATHTRAIL_SOLVER_TIMEOUT", c.SolverTimeout},
+	} {
+		if timeout.value <= 0 {
+			return fmt.Errorf("%w: %s must be a positive duration, got %v", ErrInvalid, timeout.name, timeout.value)
+		}
+	}
+	if c.ShutdownTimeout < MinShutdownTimeout {
+		return fmt.Errorf("%w: MATHTRAIL_SHUTDOWN_TIMEOUT must be at least %v, got %v",
+			ErrInvalid, MinShutdownTimeout, c.ShutdownTimeout)
+	}
+	return nil
 }
 
 // validateTelemetry refuses a value that is not one of the settings, naming
@@ -395,19 +434,17 @@ func (c *Config) validateTelemetry() error {
 	return nil
 }
 
-// validateTelemetryEndpoint refuses an address the exporter could not post to.
-// It carries a scheme and a host and nothing else, because each signal's own
-// path is put under it.
+// validateTelemetryEndpoint refuses an address the exporter could not post to,
+// by the exporter's own rule for one, and an address that would carry the
+// exporter's credential in the clear.
 func (c *Config) validateTelemetryEndpoint() error {
-	parsed, err := url.Parse(c.TelemetryEndpoint)
-	switch {
-	case err != nil:
-		return fmt.Errorf("%w: MATHTRAIL_TELEMETRY_ENDPOINT is not a URL: %q", ErrInvalid, c.TelemetryEndpoint)
-	case parsed.Host == "":
-		return fmt.Errorf("%w: MATHTRAIL_TELEMETRY_ENDPOINT has no host: %q", ErrInvalid, c.TelemetryEndpoint)
-	case parsed.Scheme != "https" && !isLoopback(parsed.Hostname()):
-		// Telemetry carries no secret, but it does carry a credential in every
-		// request, and a credential travels over https or not at all.
+	root, err := collector.Root(c.TelemetryEndpoint)
+	if err != nil {
+		return fmt.Errorf("%w: MATHTRAIL_TELEMETRY_ENDPOINT: %w", ErrInvalid, err)
+	}
+	// Telemetry carries no secret, but it does carry a credential in every
+	// request, and a credential travels over https or not at all.
+	if root.Scheme != "https" && !isLoopback(root.Hostname()) {
 		return fmt.Errorf("%w: MATHTRAIL_TELEMETRY_ENDPOINT must use https outside localhost: %q",
 			ErrInvalid, c.TelemetryEndpoint)
 	}

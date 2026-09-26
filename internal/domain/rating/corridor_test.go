@@ -1,6 +1,7 @@
 package rating_test
 
 import (
+	"math"
 	"testing"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
@@ -143,19 +144,20 @@ func TestTheChancesAreReadByDifficulty(t *testing.T) {
 }
 
 // Two difficulties can be exactly as far from the middle of the band as each
-// other, and then the easier one is handed out: a child standing between two
-// levels can finish the lower one, and a task that is finished teaches more
-// than one that is abandoned.
+// other, and then the one toward the corridor is handed out. Between two real
+// difficulties that is the easier one: a child standing between two levels can
+// finish the lower one, and a task that is finished teaches more than one that
+// is abandoned. When the curve has run flat, it is the one nearest the band.
 //
-// The tie is shown at a level no child reaches, because that is where it can
+// The tie is shown at levels no child reaches, because that is where it can
 // be shown exactly: far below every task the chance is the guessing floor at
-// all five difficulties, so all five are equally far from the middle. Between
-// two real difficulties the same rule decides, and there the two distances are
-// never equal to the last bit of a float.
-func TestATieGoesToTheEasierDifficulty(t *testing.T) {
+// all five difficulties, and far above it is certainty at all five, so all five
+// are equally far from the middle. Between two real difficulties the two
+// distances are never equal to the last bit of a float.
+func TestATieGoesTowardTheCorridor(t *testing.T) {
 	t.Parallel()
 
-	for _, level := range []float64{-1000, 1000} {
+	for level, want := range map[float64]int{-1000: 1, 1000: rating.Difficulties} {
 		corridor := rating.NewCorridor(level)
 
 		first := corridor.Probability(1)
@@ -165,9 +167,25 @@ func TestATieGoesToTheEasierDifficulty(t *testing.T) {
 					level, difficulty, corridor.Probability(difficulty), first)
 			}
 		}
-		if corridor.Recommended != 1 {
-			t.Errorf("at level %v every difficulty is equally far from the middle and %d was recommended, want 1",
-				level, corridor.Recommended)
+		if corridor.Recommended != want {
+			t.Errorf("at level %v every difficulty is equally far from the middle and %d was recommended, want %d",
+				level, corridor.Recommended, want)
 		}
+	}
+}
+
+// A level that is no number is a state no profile passes validation with, and
+// a corridor built from one still recommends a difficulty there is, rather than
+// none a caller could index by — and says it cannot tell where that stands,
+// rather than that it is inside.
+func TestALevelThatIsNoNumberStillRecommendsADifficulty(t *testing.T) {
+	t.Parallel()
+
+	corridor := rating.NewCorridor(math.NaN())
+	if corridor.Recommended < 1 || corridor.Recommended > rating.Difficulties {
+		t.Fatalf("Recommended = %d, want a difficulty from 1 to %d", corridor.Recommended, rating.Difficulties)
+	}
+	if corridor.Fit != rating.FitUnknown {
+		t.Errorf("Fit = %q, want %q", corridor.Fit, rating.FitUnknown)
 	}
 }

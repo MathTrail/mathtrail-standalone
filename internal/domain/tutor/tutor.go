@@ -78,17 +78,22 @@ func Next(p *profile.Profile, catalog Catalog, choice Choice) (profile.Brief, pr
 		return profile.Brief{}, "", err
 	}
 
-	corridor := rating.NewCorridor(levelIn(p, topic))
+	// The difficulty is the corridor's of the topic set; the rationale keeps
+	// the rule's own account, of the topic it suggested, whatever was set.
 	if difficulty == 0 {
-		difficulty = corridor.Recommended
+		difficulty = rating.NewCorridor(levelIn(p, topic)).Recommended
 	}
+	ruled := rating.NewCorridor(levelIn(p, suggested))
 
 	return profile.Brief{
-		Constraints:     []string{},
-		Difficulty:      difficulty,
-		ExcludedSkills:  slices.Clone(p.Student.ExcludedSkills),
+		Constraints: []string{},
+		Difficulty:  difficulty,
+		// An empty list rather than none: the model hands the brief back as it
+		// received it, and a list left out is refused where an empty one says
+		// there are no skills to keep out.
+		ExcludedSkills:  append([]string{}, p.Student.ExcludedSkills...),
 		PedagogicalGoal: goal,
-		Rationale:       rationale(goal, because, &corridor, choice),
+		Rationale:       rationale(goal, because, &ruled, choice, difficulty),
 		Setting:         setting(p),
 		TargetConcept:   topic,
 		TrapsToUse:      traps(p, topic, catalog),
@@ -98,19 +103,30 @@ func Next(p *profile.Profile, catalog Catalog, choice Choice) (profile.Brief, pr
 // choose picks the topic and the goal, and says in words what the choice
 // rested on.
 func choose(p *profile.Profile, available []string) (topic string, goal profile.Goal, because string) {
-	// A failure is worked over again, on the topic it happened in. The window
-	// is read rather than trusted: a profile restored from an older revision
-	// can arrive with nothing in it, and a rule that panics on its own input
-	// is a defect rather than a guarantee.
-	if p.Ratings.ConsecutiveFailures > 0 && len(p.Recent) > 0 {
-		failed := p.Recent[len(p.Recent)-1].Topic
-		return failed, profile.GoalReinforce, failureBehind(p.Ratings.ConsecutiveFailures, failed)
+	// A failure is worked over again, on the topic it happened in — while that
+	// topic is still one of the child's grade. The window is read rather than
+	// trusted: a profile restored from an older revision can arrive with
+	// nothing in it, and a grade changed since, or a topic withdrawn from the
+	// catalog, leaves a failure on a topic no task can now be written for. A
+	// rule that kept asking for one would refuse every task the model wrote,
+	// and the run it waited to end could never end.
+	now := "no failure now"
+	if p.Ratings.ConsecutiveFailures > 0 {
+		now = "a failure the window no longer shows"
+		if len(p.Recent) > 0 {
+			failed := p.Recent[len(p.Recent)-1].Topic
+			if slices.Contains(available, failed) {
+				return failed, profile.GoalReinforce, failureBehind(p.Ratings.ConsecutiveFailures, failed)
+			}
+			now = fmt.Sprintf("a failure in %s, which is not a topic of this grade", failed)
+		}
 	}
 
 	// Otherwise something new: a topic of this grade that is not mastered,
 	// the ones never given first and then the one unseen for the longest.
 	candidates := unmastered(p, available)
-	if len(candidates) == 0 {
+	allMastered := len(candidates) == 0
+	if allMastered {
 		// Every topic of the grade is mastered, so all of them come back into
 		// the rotation rather than the child being left with nothing.
 		candidates = available
@@ -118,10 +134,14 @@ func choose(p *profile.Profile, available []string) (topic string, goal profile.
 
 	topic = oldest(p, candidates)
 	when := "never given yet"
-	if _, given := p.Topics[topic]; given && !p.Topics[topic].LastIssued.IsZero() {
+	if !p.Topics[topic].LastIssued.IsZero() {
 		when = "given longest ago"
 	}
-	return topic, profile.GoalNewTopic, fmt.Sprintf("no failure now; %s is the unmastered topic %s", topic, when)
+	if allMastered {
+		return topic, profile.GoalNewTopic,
+			fmt.Sprintf("%s; every topic of this grade is mastered, and %s is the one %s", now, topic, when)
+	}
+	return topic, profile.GoalNewTopic, fmt.Sprintf("%s; %s is the unmastered topic %s", now, topic, when)
 }
 
 // unmastered keeps the topics the child has still to master, in catalog order.
