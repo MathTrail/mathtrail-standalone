@@ -88,7 +88,24 @@ func TestEverySentenceIsCountedInTheUnitOfItsLanguage(t *testing.T) {
 			"sentence 1 of task.question is 50 characters long"},
 		{"a question with no language, decided by its letters", characters(40) + characters(40) + words(21), "",
 			"sentence 3 of task.question is 41 characters long"},
-		{"a tag that names no language, decided by its letters", characters(40) + characters(40) + words(21), "Chinese",
+		{"a word that is no tag, decided by its letters", characters(40) + characters(40) + words(21), "Chinese",
+			"sentence 3 of task.question is 41 characters long"},
+		// A private tag is well formed and names nothing, whatever it spells:
+		// letters of Chinese are read as Chinese, and words as words.
+		{"a tag that names no language, decided by its letters", characters(40) + characters(40) + words(21), "x-zh",
+			"sentence 3 of task.question is 41 characters long"},
+		{"a tag that names no language, over a question in words", strings.Repeat("apples ", 10) + "apples.", "x-zh",
+			""},
+		// "und" says the language is not known, not that it is English.
+		{"the language not determined, decided by its letters", characters(40) + characters(40) + words(21), "und",
+			"sentence 3 of task.question is 41 characters long"},
+		{"a tag that names only its script", strings.Repeat("Tom给Mary一个苹果，", 4) + "谁多？", "und-Hans",
+			"sentence 1 of task.question is 50 characters long"},
+		{"a tag that names only its place", strings.Repeat("Tom给Mary一个苹果，", 4) + "谁多？", "und-CN",
+			"sentence 1 of task.question is 50 characters long"},
+		{"several languages at once, decided by the letters", characters(40) + characters(40) + words(21), "mul",
+			"sentence 3 of task.question is 41 characters long"},
+		{"a script code that names none, decided by the letters", characters(40) + characters(40) + words(21), "und-Zyyy",
 			"sentence 3 of task.question is 41 characters long"},
 	} {
 		t.Run(test.name, func(t *testing.T) {

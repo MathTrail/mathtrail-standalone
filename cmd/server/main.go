@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"syscall"
@@ -31,15 +32,22 @@ func main() {
 	stop()
 
 	// The exit is the last statement of the process on purpose: os.Exit runs
-	// no deferred call, so nothing may be left to one after this point. A
-	// failure the log has recorded is not printed again; one from before there
-	// was a log has nowhere else to go.
-	if err != nil {
-		if !errors.Is(err, errLogged) {
-			fmt.Fprintf(os.Stderr, "mathtrail: %v\n", err)
-		}
-		os.Exit(1)
+	// no deferred call, so nothing may be left to one after this point.
+	os.Exit(exitCode(os.Stderr, err))
+}
+
+// exitCode is the code the process exits with once run has returned err, and
+// it prints the one failure nobody else will have: a failure the log has
+// recorded is not printed again, and one from before there was a log has
+// nowhere else to go.
+func exitCode(stderr io.Writer, err error) int {
+	if err == nil {
+		return 0
 	}
+	if !errors.Is(err, errLogged) {
+		fmt.Fprintf(stderr, "mathtrail: %v\n", err)
+	}
+	return 1
 }
 
 // signalled is a context that ends when a stop is asked for, by either of the
@@ -62,6 +70,19 @@ var errLogged = errors.New("logged")
 func logged(log *zap.Logger, moment string, err error) error {
 	log.Error(moment, zap.Error(err))
 	return fmt.Errorf("%w: %s: %w", errLogged, moment, err)
+}
+
+// startupFailed is what run returns when the service could not be built. A
+// build cut short by the stop that was asked for is that stop, not a failure:
+// a platform may take an instance away while it is still starting, and doing
+// so is no fault of the instance. Anything else is a failure, and is written
+// down as one.
+func startupFailed(ctx context.Context, log *zap.Logger, err error) error {
+	if ctx.Err() != nil && errors.Is(err, context.Canceled) {
+		log.Info("shutdown", zap.Bool("started", false))
+		return nil
+	}
+	return logged(log, "startup", err)
 }
 
 // run starts the service, serves until ctx is cancelled and closes it again.
@@ -91,7 +112,7 @@ func run(ctx context.Context) error {
 
 	container, err := app.NewContainer(ctx, cfg, log)
 	if err != nil {
-		return logged(log, "startup", err)
+		return startupFailed(ctx, log, err)
 	}
 	// Deferred, so that the container is closed on every way out of here. It
 	// gets the share of the way out the server's drain always leaves it.

@@ -167,8 +167,9 @@ func TestConfigurationDecisions(t *testing.T) {
 	}
 }
 
-// A field can never end the line it is in. A request carries its own path into
-// a log line, and the encoder is what keeps that harmless.
+// A field can never end the line it is in, whatever it carries. The code that
+// writes each field keeps a caller's words out of it as far as it knows how,
+// and the encoder is what keeps anything that still gets through harmless.
 //
 // The attack is a caller ending the line they are in and starting one of their
 // own — a path of "/x\n{severity: ERROR, …}" becoming a second entry that

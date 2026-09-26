@@ -44,15 +44,16 @@ func ZapRecovery() gin.HandlerFunc {
 
 // LastResort catches what ZapRecovery cannot: a panic in the middleware above
 // it, whose request never reaches the request log. It writes the line itself,
-// and answers and passes an abort on as ZapRecovery does.
+// naming the request as the request log does, and answers and passes an abort
+// on as ZapRecovery does.
 func LastResort(logger *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		recovering(c, func(recovered any) {
 			logger.Error("panic",
 				panicField(recovered),
 				panicStack(),
-				zap.String("method", c.Request.Method),
-				zap.String("path", c.Request.URL.Path),
+				zap.String("method", method(c)),
+				zap.String("route", route(c)),
 				zap.String("request_id", RequestIDFrom(c)),
 			)
 		})

@@ -14,23 +14,28 @@ const redactedValue = "redacted"
 
 // redactedKeys are the attributes whose values never leave this process.
 //
-// The first three are what off-the-shelf HTTP instrumentation adds by itself:
-// who the request came from, by which hop, and what it was sent with. The
-// service's own log carries none of that, and a trace is stored somewhere else
-// again, under a retention of its own — so an address that was never written
-// down in one place must not appear in the other. The last two are here before
-// anything sets them: a query string is where a sign-in carries its codes.
+// The first five are what off-the-shelf HTTP instrumentation adds by itself:
+// who the request came from, by which hop, and what it was sent with, and the
+// path and the verb exactly as the caller wrote them. The service's own log
+// carries none of that — it names a request by the route it matched — and a
+// trace is stored somewhere else again, under a retention of its own, so what
+// was never written down in one place must not appear in the other. The route
+// and a method from the known ones stay on the span, as they are in the log.
+// The last two are here before anything sets them: a query string is where a
+// sign-in carries its codes.
 //
 // The peer's port is deliberately not on the list, though it sits beside an
 // address that is. On its own an ephemeral source port names nobody, and it is
 // a number rather than a string: blanking it would change what the attribute
 // is in order to hide what it never said.
 var redactedKeys = map[attribute.Key]struct{}{
-	"client.address":       {},
-	"network.peer.address": {},
-	"user_agent.original":  {},
-	"url.query":            {},
-	"url.full":             {},
+	"client.address":               {},
+	"network.peer.address":         {},
+	"user_agent.original":          {},
+	"url.path":                     {},
+	"http.request.method_original": {},
+	"url.query":                    {},
+	"url.full":                     {},
 }
 
 // redactor blanks those attributes on every span, as it starts.

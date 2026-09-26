@@ -40,7 +40,7 @@ func holdToWords(t *testing.T, query string) {
 			continue
 		}
 		for _, word := range strings.Fields(strings.Join(values, " ")) {
-			if word != otherWord && !slices.Contains(kind.words, word) {
+			if word != otherLabel && !slices.Contains(kind.words, word) {
 				t.Errorf("%s was written holding %q, which is not a word of its protocol", name, word)
 			}
 		}

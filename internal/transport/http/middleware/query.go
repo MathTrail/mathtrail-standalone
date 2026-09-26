@@ -22,10 +22,6 @@ type queryValue struct {
 	list bool
 }
 
-// otherWord stands in a log line for whatever a parameter held beyond its
-// protocol's words: that something was there, and nothing of what it was.
-const otherWord = "other"
-
 // loggedQueryKeys are the query parameters a log line may carry: the ones the
 // sign-in and its protocols define, which name a mechanism rather than a
 // person, a secret or a place. Every other parameter is counted rather than
@@ -147,7 +143,7 @@ func wordOf(words []string, word string) string {
 	if slices.Contains(words, word) {
 		return word
 	}
-	return otherWord
+	return otherLabel
 }
 
 // addressOnly is an address as its scheme and its host, which say which client

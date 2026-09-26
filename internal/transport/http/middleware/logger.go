@@ -16,6 +16,10 @@ import (
 // how long it took. Successful probes are skipped; anything that failed is
 // always logged.
 //
+// What was asked is the route the request matched and its method, each from a
+// set this service wrote down, and never the path or the verb as a caller wrote
+// them: those are the caller's own words, and a log line carries none.
+//
 // The line also names the trace it belongs to, so that a reader who found it
 // in a console can open the request it describes and see what the service did
 // inside. That is all the project identifier is for here.
@@ -24,9 +28,10 @@ func ZapLogger(logger *zap.Logger, projectID string) gin.HandlerFunc {
 		start := time.Now()
 		// Read before the handlers run, all three together: what was asked is
 		// a fact about the request, and by the time the answer exists the
-		// request may have been replaced by something downstream.
-		method := c.Request.Method
-		path := c.Request.URL.Path
+		// request may have been replaced by something downstream. The route
+		// is the framework's, and known before the first handler runs.
+		verb := method(c)
+		matched := route(c)
 		query := c.Request.URL.RawQuery
 
 		c.Next()
@@ -36,7 +41,7 @@ func ZapLogger(logger *zap.Logger, projectID string) gin.HandlerFunc {
 		// panic too.
 		status := c.Writer.Status()
 		panicFields, panicked := panicOf(c)
-		if isProbe(path) && status < 400 && !panicked {
+		if isProbe(c) && status < 400 && !panicked {
 			return
 		}
 
@@ -46,8 +51,8 @@ func ZapLogger(logger *zap.Logger, projectID string) gin.HandlerFunc {
 
 		fields := []zap.Field{
 			zap.Int("status", status),
-			zap.String("method", method),
-			zap.String("path", path),
+			zap.String("method", verb),
+			zap.String("route", matched),
 			zap.Duration("duration", time.Since(start)),
 			zap.Int("body_size", bodySize),
 			zap.String("request_id", RequestIDFrom(c)),

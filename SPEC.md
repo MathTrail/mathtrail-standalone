@@ -1289,8 +1289,8 @@ Every line that belongs to one MCP request carries the same `request_id`; every 
 
 | Event | When | Fields beside the common ones |
 |---|---|---|
-| `startup`, `shutdown` | Process lifecycle | version, revision, the content's version |
-| `http_request` | Every HTTP request, once, unless it is a probe that succeeded | status, method, path, the query's parameters the sign-in defines, each held to its protocol's words, and a count of the others (R73), duration, body size; when there are any, the errors the request collected, each by its kind, and what it panicked with |
+| `startup`, `shutdown` | Process lifecycle | version, revision, the content's version; a `shutdown` that came before the service was up says `started: false` (R77) |
+| `http_request` | Every HTTP request, once, unless it is a probe that succeeded | status, the method from a known list, the route as declared rather than the path (R76), the query's parameters the sign-in defines, each held to its protocol's words, and a count of the others (R73), duration, body size; when there are any, the errors the request collected, each by its kind, and what it panicked with |
 | `tool_call` | Every MCP tool call, once, at the boundary | tool, outcome, status, duration_ms |
 | `task_requested` | `next_task` opened or returned a request | topic, level, difficulty, goal, tutor_mode, already_open |
 | `task_submitted` | Every `submit_task` | attempt, outcome, primary code, every failed check, the types of the self-check's minor issues, duration_ms, solver_steps, solver_ms |

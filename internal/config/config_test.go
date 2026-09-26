@@ -250,6 +250,17 @@ func TestRefusals(t *testing.T) {
 			wantVar: "MATHTRAIL_PUBLIC_URL",
 		},
 		{
+			name:    "public url is not a url",
+			environ: []string{"MATHTRAIL_PUBLIC_URL=https://mathtrail.example:eighty"},
+			wantVar: "MATHTRAIL_PUBLIC_URL",
+		},
+		{
+			// Nothing but the host is missing, so no other rule refuses it.
+			name:    "public url has no host",
+			environ: []string{"MATHTRAIL_PUBLIC_URL=https://"},
+			wantVar: "MATHTRAIL_PUBLIC_URL",
+		},
+		{
 			name:    "public url is not https",
 			environ: []string{"MATHTRAIL_PUBLIC_URL=http://mathtrail.example"},
 			wantVar: "MATHTRAIL_PUBLIC_URL",

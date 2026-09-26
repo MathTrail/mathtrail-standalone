@@ -3,6 +3,7 @@ package telemetry_test
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -78,26 +79,51 @@ func TestTheTextOfAStatusNeverLeavesTheProcess(t *testing.T) {
 	}
 }
 
-// Measurements go to their own path, and only once an interval has passed:
-// every delivery costs bytes whether or not anything changed.
+// Measurements go to their own path, and only once an interval has passed,
+// whichever requests ask for them: every delivery costs bytes whether or not
+// anything changed. A request that kept no trace, asking before then, finds
+// nothing due and sends nothing at all.
 func TestMeasurementsAreNotDeliveredTwiceInAnInterval(t *testing.T) {
-	collector := newCollector(t, http.StatusOK)
-	tel := newTelemetry(t, collector, &telemetry.Settings{SampleRatio: 0})
+	for _, c := range []struct {
+		name  string
+		spans bool
+	}{
+		{name: "asked for by requests that kept their trace", spans: true},
+		{name: "asked for by requests that kept none", spans: false},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
+			collector := newCollector(t, http.StatusOK)
+			tel := newTelemetry(t, collector, &telemetry.Settings{SampleRatio: 0})
+
+			askForDeliveryThreeTimes(t, tel, c.spans)
+
+			if deliveries := len(collector.takenAt("/v1/metrics")); deliveries != 1 {
+				t.Errorf("the collector saw %d metric deliveries, want 1 within one interval", deliveries)
+			}
+			if seen := len(collector.taken()); seen != 1 {
+				t.Errorf("the collector saw %d deliveries, want the measurements once and nothing else", seen)
+			}
+		})
+	}
+}
+
+// askForDeliveryThreeTimes is three requests in a row, each counting one thing
+// and asking for a delivery on its way out, as a request with a kept trace or
+// without one does.
+func askForDeliveryThreeTimes(t *testing.T, tel *telemetry.Telemetry, spans bool) {
+	t.Helper()
 
 	counter, err := tel.MeterProvider().Meter("test").Int64Counter("unit_total")
 	if err != nil {
 		t.Fatalf("Int64Counter() error = %v, want nil", err)
 	}
-
 	for range 3 {
 		counter.Add(t.Context(), 1)
-		if err := tel.ForceFlush(t.Context(), true); err != nil {
+		if err := tel.ForceFlush(t.Context(), spans); err != nil {
 			t.Fatalf("ForceFlush() error = %v, want nil", err)
 		}
-	}
-
-	if deliveries := len(collector.takenAt("/v1/metrics")); deliveries != 1 {
-		t.Errorf("the collector saw %d metric deliveries, want 1 within one interval", deliveries)
 	}
 }
 
@@ -124,6 +150,33 @@ func TestARequestWhoseTraceWasNotKeptSendsTheMeasurements(t *testing.T) {
 	}
 	if got := len(collector.takenAt("/v1/traces")); got != 0 {
 		t.Errorf("the collector saw %d span deliveries, want none from a request that kept no trace", got)
+	}
+}
+
+// A start that was told to stop before the exporters were built is refused,
+// not half built: the exporters are started with the start's own context, and
+// what they refuse, New refuses, rather than handing back telemetry with
+// nothing behind it to send.
+func TestAStartAlreadyToldToStopIsRefused(t *testing.T) {
+	t.Parallel()
+
+	collector := newCollector(t, http.StatusOK)
+	stopped, stop := context.WithCancel(t.Context())
+	stop()
+
+	tel, err := telemetry.New(stopped, &telemetry.Settings{
+		Enabled:     true,
+		Endpoint:    collector.url,
+		SampleRatio: 1,
+		HTTPClient:  signedClient(t),
+		ProjectID:   "a-project",
+		Detector:    stubDetector{},
+	}, zaptest.NewLogger(t))
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("New() = %v, %v; want the stop it was told reported", tel, err)
+	}
+	if seen := collector.taken(); len(seen) != 0 {
+		t.Errorf("the collector saw %d requests, want none from a start that did not happen", len(seen))
 	}
 }
 

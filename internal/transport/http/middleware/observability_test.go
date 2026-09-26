@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/metric"
 	metricnoop "go.opentelemetry.io/otel/metric/noop"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
@@ -25,6 +26,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/internal/telemetry"
 	httpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/http"
+	"github.com/MathTrail/mathtrail-standalone/internal/transport/http/middleware"
 )
 
 // What a caller reveals about itself just by asking. None of it may end up in
@@ -35,25 +37,33 @@ const (
 	peerAddress    = "192.0.2.1"
 	callerAgent    = "a-browser-nobody-wrote"
 	callerPassword = "hunter2"
+	callerName     = "masha-ivanova"
+	callerVerb     = "MASHA"
 )
 
 // These build the real router, because the order these handlers run in is
 // what half of them are for, and that order is the router's to decide.
 
 // The guard. Nothing a request carried about who sent it, and nothing a child
-// or a task could be recognised by, may appear in a span's attributes.
+// or a task could be recognised by, may appear in a span's name or attributes —
+// the path and the verb as the caller wrote them included.
 func TestASpanCarriesNothingThatIdentifiesTheCaller(t *testing.T) {
 	t.Parallel()
 
 	watched := newWatchedRouter(t)
-	watched.get(t, "/no-such-endpoint?token="+callerPassword)
+	watched.do(t, callerVerb, "/children/"+callerName+"?token="+callerPassword)
 
 	spans := watched.spans.Ended()
 	if len(spans) != 1 {
 		t.Fatalf("the recorder kept %d spans, want 1", len(spans))
 	}
 
-	forbidden := []string{callerAddress, peerAddress, callerAgent, callerPassword}
+	forbidden := []string{callerAddress, peerAddress, callerAgent, callerPassword, callerName, callerVerb}
+	for _, secret := range forbidden {
+		if strings.Contains(spans[0].Name(), secret) {
+			t.Errorf("span name = %q, want it to carry no %q", spans[0].Name(), secret)
+		}
+	}
 	for _, attr := range spans[0].Attributes() {
 		value := attr.Value.String()
 		for _, secret := range forbidden {
@@ -64,14 +74,14 @@ func TestASpanCarriesNothingThatIdentifiesTheCaller(t *testing.T) {
 	}
 }
 
-// The three attributes an off-the-shelf instrumentation adds by itself keep
-// their keys and lose their values, so that a reader can see that something
-// was deliberately left out rather than never recorded.
-func TestTheAddressAndTheAgentAreBlankedRatherThanDropped(t *testing.T) {
+// What an off-the-shelf instrumentation adds by itself about the caller keeps
+// its key and loses its value, so that a reader can see that something was
+// deliberately left out rather than never recorded.
+func TestWhatTheCallerSentIsBlankedRatherThanDropped(t *testing.T) {
 	t.Parallel()
 
 	watched := newWatchedRouter(t)
-	watched.get(t, "/no-such-endpoint")
+	watched.do(t, callerVerb, "/no-such-endpoint")
 
 	spans := watched.spans.Ended()
 	if len(spans) != 1 {
@@ -79,9 +89,11 @@ func TestTheAddressAndTheAgentAreBlankedRatherThanDropped(t *testing.T) {
 	}
 
 	blanked := map[string]bool{
-		"client.address":       false,
-		"network.peer.address": false,
-		"user_agent.original":  false,
+		"client.address":               false,
+		"network.peer.address":         false,
+		"user_agent.original":          false,
+		"url.path":                     false,
+		"http.request.method_original": false,
 	}
 	for _, attr := range spans[0].Attributes() {
 		if _, watchedKey := blanked[string(attr.Key)]; !watchedKey {
@@ -229,6 +241,59 @@ func TestAPanicInTheMiddlewareIsCaughtByTheLastResort(t *testing.T) {
 	if recorder.Code != http.StatusInternalServerError {
 		t.Errorf("status = %d, want %d", recorder.Code, http.StatusInternalServerError)
 	}
+}
+
+// A meter that cannot make one of the two instruments stops the counting
+// before any request is served, and the refusal names the instrument: a
+// service that counted nothing would say so to nobody.
+func TestAnInstrumentThatCannotBeMadeIsNamed(t *testing.T) {
+	t.Parallel()
+
+	for _, refused := range []string{"http_request", "http_request_duration"} {
+		t.Run(refused, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := middleware.Metrics(refusingMeters{refused: refused})
+			if !errors.Is(err, errMeterRefused) || !strings.Contains(err.Error(), refused+": ") {
+				t.Errorf("Metrics() error = %v, want the refusal of %s passed on under its name", err, refused)
+			}
+		})
+	}
+}
+
+// errMeterRefused is what a refusing meter answers.
+var errMeterRefused = errors.New("the meter refuses")
+
+// refusingMeters hand out a meter that refuses to make the one instrument a
+// case names, and makes every other as a meter that records nothing does.
+type refusingMeters struct {
+	metricnoop.MeterProvider
+	refused string
+}
+
+func (m refusingMeters) Meter(string, ...metric.MeterOption) metric.Meter {
+	return refusingMeter{refused: m.refused}
+}
+
+type refusingMeter struct {
+	metricnoop.Meter
+	refused string
+}
+
+func (m refusingMeter) Int64Counter(name string, options ...metric.Int64CounterOption) (metric.Int64Counter, error) {
+	if name == m.refused {
+		return nil, errMeterRefused
+	}
+	return m.Meter.Int64Counter(name, options...)
+}
+
+func (m refusingMeter) Float64Histogram(
+	name string, options ...metric.Float64HistogramOption,
+) (metric.Float64Histogram, error) {
+	if name == m.refused {
+		return nil, errMeterRefused
+	}
+	return m.Meter.Float64Histogram(name, options...)
 }
 
 // A path nobody declared is counted as one kind. Counting it as itself would
@@ -419,8 +484,15 @@ func newWatchedRouter(t *testing.T, sampler ...sdktrace.Sampler) *watchedRouter 
 // get asks for one path, the way a caller behind a proxy would.
 func (w *watchedRouter) get(t *testing.T, target string) {
 	t.Helper()
+	w.do(t, http.MethodGet, target)
+}
 
-	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, http.NoBody)
+// do asks for one path with any method at all, the way a caller behind a proxy
+// would.
+func (w *watchedRouter) do(t *testing.T, method, target string) {
+	t.Helper()
+
+	req := httptest.NewRequestWithContext(t.Context(), method, target, http.NoBody)
 	req.Header.Set("X-Forwarded-For", callerAddress)
 	req.Header.Set("User-Agent", callerAgent)
 	w.handler.ServeHTTP(httptest.NewRecorder(), req)

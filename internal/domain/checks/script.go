@@ -65,20 +65,37 @@ func unitFor(text, tag string) string {
 	return unitWords
 }
 
+// noWritingSystem are the codes a tag may carry in place of a script that name
+// none in particular: a script not known, several in common use, one inherited
+// from the letter before, none written at all, and notations of symbols and
+// mathematics.
+var noWritingSystem = []string{"Zzzz", "Zyyy", "Zinh", "Zxxx", "Zsym", "Zsye", "Zmth"}
+
 // scriptOf is the script a task's language is written in: the one its tag
-// names, or the one its language is most likely written in — Chinese in Han
-// whether the tag says zh, cmn, yue or lzh. A tag that is no tag, or names no
-// language, names no script either.
+// names, or the one its language — or failing that its place — is most likely
+// written in: Chinese in Han whether the tag says zh, cmn, yue or lzh, and so
+// is a language not determined in China. A tag names no script when it is no
+// tag, when it names nothing at all — "und", or private words alone — and when
+// no script can be told from what it does name, or only one of the codes that
+// stand in for none.
+//
+// Whether a tag names anything is read from what it says, before anything is
+// inferred: asked for the language of "und", the tag library answers English,
+// its likeliest guess, and a Chinese task tagged "und" would be read a word at
+// a time.
 func scriptOf(tag string) (string, bool) {
 	parsed, err := language.Parse(tag)
 	if err != nil {
 		return "", false
 	}
-	if base, confidence := parsed.Base(); confidence == language.No || base.String() == "und" {
+	base, named, region := parsed.Raw()
+	if base.String() == "und" && named.String() == "Zzzz" && region.String() == "ZZ" {
 		return "", false
 	}
-	script, _ := parsed.Script()
-	return script.String(), true
+	if script, _ := parsed.Script(); !slices.Contains(noWritingSystem, script.String()) {
+		return script.String(), true
+	}
+	return "", false
 }
 
 // primarySubtag is the language a tag names, lowercased: "zh" of "zh-Hant-TW",

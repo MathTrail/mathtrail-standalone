@@ -109,5 +109,5 @@ func rememberSampling() gin.HandlerFunc {
 // worthATrace keeps the probes out. They arrive constantly, they say the same
 // thing every time, and a trace of one is a span nobody will ever open.
 func worthATrace(c *gin.Context) bool {
-	return !isProbe(c.Request.URL.Path)
+	return !isProbe(c)
 }
