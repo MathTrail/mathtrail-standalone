@@ -9,6 +9,8 @@ import (
 	"github.com/leanovate/gopter"
 	"github.com/leanovate/gopter/gen"
 	"github.com/leanovate/gopter/prop"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
 // cell is a pool of reference tasks with so many at each difficulty, each
@@ -62,32 +64,32 @@ func TestTheExamplesAreTheNearestToTheDifficulty(t *testing.T) {
 	}
 }
 
-// A topic with nothing at the child's level is shown the level below; one
-// with nothing at or below it, and a grade no level holds, are shown nothing.
+// A topic with nothing at the level of the brief is shown the level below; one
+// with nothing at or below it, and a level there is not, are shown nothing.
 func TestTheLevelBelowStandsInForAnEmptyOne(t *testing.T) {
 	t.Parallel()
 
 	c := &Content{examples: []Example{
-		{ID: "t-12", Topic: "t", GradeLevel: Level12, Difficulty: 3},
-		{ID: "t-34", Topic: "t", GradeLevel: Level34, Difficulty: 3},
-		{ID: "u-56", Topic: "u", GradeLevel: Level56, Difficulty: 3},
+		{ID: "t-12", Topic: "t", GradeLevel: rating.Grades12, Difficulty: 3},
+		{ID: "t-34", Topic: "t", GradeLevel: rating.Grades34, Difficulty: 3},
+		{ID: "u-56", Topic: "u", GradeLevel: rating.Grades56, Difficulty: 3},
 	}}
 	for _, test := range []struct {
 		name  string
 		topic string
-		grade int
+		level rating.GradeLevel
 		want  []string
 	}{
-		{"the child's own level", "t", 3, []string{"t-34"}},
-		{"the level below, and only the one below", "t", 5, []string{"t-34"}},
-		{"nothing at or below the level", "u", 1, nil},
-		{"a grade no level holds", "t", 9, nil},
+		{"the level of the brief", "t", rating.Grades34, []string{"t-34"}},
+		{"the level below, and only the one below", "t", rating.Grades56, []string{"t-34"}},
+		{"nothing at or below the level", "u", rating.Grades12, nil},
+		{"a level there is not", "t", "9-10", nil},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			if got := idsOf(c.examplesFor(test.topic, test.grade, 3, 0)); !slices.Equal(got, test.want) {
-				t.Errorf("examplesFor(%q, grade %d) = %v, want %v", test.topic, test.grade, got, test.want)
+			if got := idsOf(c.examplesFor(test.topic, test.level, 3, 0)); !slices.Equal(got, test.want) {
+				t.Errorf("examplesFor(%q, %s) = %v, want %v", test.topic, test.level, got, test.want)
 			}
 		})
 	}

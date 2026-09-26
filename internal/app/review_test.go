@@ -6,6 +6,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
 // raceSolver proves the answer to the race below the way a model is asked to:
@@ -28,7 +29,8 @@ func TestTheContainersReviewerAcceptsAGoodTask(t *testing.T) {
 	t.Parallel()
 
 	brief := &profile.Brief{
-		PedagogicalGoal: profile.GoalNewTopic, TargetConcept: "logic.ordering", Difficulty: 2, Setting: "sport",
+		PedagogicalGoal: profile.GoalNewTopic, TargetConcept: "logic.ordering", GradeLevel: rating.Grades12,
+		Difficulty: 2, Setting: "sport",
 		TrapsToUse:     []string{"reversed_relation", "stopped_early"},
 		ExcludedSkills: []string{}, Constraints: []string{}, Rationale: "A topic the child has not met yet.",
 	}
@@ -62,7 +64,7 @@ func TestTheContainersReviewerAcceptsAGoodTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Examine() error = %v, want nil", err)
 	}
-	outcome, err := reviewer.Judge(examined, checks.Against{Asked: brief, Language: "en", Grade: 3})
+	outcome, err := reviewer.Judge(examined, checks.Against{Asked: brief, Language: "en"})
 	if err != nil {
 		t.Fatalf("Judge() error = %v, want nil", err)
 	}

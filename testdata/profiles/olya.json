@@ -11,6 +11,7 @@
   "ratings": {
     "answers": 5,
     "consecutive_failures": 0,
+    "start": 0,
     "theta": -0.07786841696849543
   },
   "recent": [
@@ -20,6 +21,7 @@
       "confused": false,
       "correct": false,
       "difficulty": 2,
+      "grade_level": "1-2",
       "hint_used": false,
       "pace": "normal",
       "task_id": "tsk_olya_01",
@@ -31,6 +33,7 @@
       "confused": false,
       "correct": true,
       "difficulty": 2,
+      "grade_level": "1-2",
       "hint_used": false,
       "pace": "normal",
       "task_id": "tsk_olya_02",
@@ -41,6 +44,7 @@
       "confused": false,
       "correct": true,
       "difficulty": 3,
+      "grade_level": "1-2",
       "hint_used": false,
       "pace": "normal",
       "task_id": "tsk_olya_03",
@@ -52,6 +56,7 @@
       "confused": false,
       "correct": false,
       "difficulty": 2,
+      "grade_level": "1-2",
       "hint_used": false,
       "pace": "slow",
       "task_id": "tsk_olya_04",
@@ -63,6 +68,7 @@
       "confused": false,
       "correct": true,
       "difficulty": 4,
+      "grade_level": "1-2",
       "hint_used": false,
       "pace": "fast",
       "task_id": "tsk_olya_05",
@@ -103,6 +109,7 @@
       "correct": 0,
       "delta": -0.31153654334439723,
       "last_issued": "2026-09-04",
+      "mastered_level": null,
       "mastered_since": null,
       "top_streak": 0,
       "traps": {
@@ -115,6 +122,7 @@
       "correct": 3,
       "delta": 0.4580177708129306,
       "last_issued": "2026-09-05",
+      "mastered_level": "1-2",
       "mastered_since": "2026-09-05",
       "top_streak": 3,
       "traps": {},
@@ -125,6 +133,7 @@
       "correct": 0,
       "delta": -0.3139387451616016,
       "last_issued": "2026-09-01",
+      "mastered_level": null,
       "mastered_since": null,
       "top_streak": 0,
       "traps": {

@@ -92,7 +92,7 @@ sequenceDiagram
         Note over M: the model writes the task, the Starlark solver and its self-check
         M->>MT: submit_task with the request id
         MT->>D: read the profile
-        Note over MT: structure · the explanations behind the wrong options · the solver runs ·<br/>the self-check · readability for the grade · near-duplicates · the drawing
+        Note over MT: structure · the explanations behind the wrong options · the solver runs ·<br/>the self-check · readability for the level · near-duplicates · the drawing
         alt something failed
             Note over MT: the attempt counter goes up
             MT->>D: write the profile
@@ -278,7 +278,7 @@ Every failed check comes back at once, so the model can fix everything in one mo
 | `solver_error` | the Starlark program crashed, ran past its step or time limit, or printed something other than a list of letters | one short safe line and the limit it hit — never the interpreter's internals (О-8) | yes |
 | `solver_disagrees` | the solver, or the model's own self-check, produced a different answer than the one submitted | that the three do not agree, and which of them disagrees — without quoting a letter, because a refusal draws a card | yes |
 | `self_check_blocking` | the self-check contains a blocking remark | the remark the model itself wrote, handed back | yes |
-| `readability` | the longest sentence is over the threshold for the grade, or the Flesch–Kincaid index is too high (English only) | the measured value and the threshold for that grade | yes |
+| `readability` | the longest sentence is over the threshold for the task's level, or the Flesch–Kincaid index is too high (English only) | the measured value and the threshold for that level | yes |
 | `near_duplicate` | too close to a task this child has already seen or to a reference task | that it is a near-repeat and what to change — never the matching text, which the profile does not keep anyway (О-40) | yes |
 | `drawing_format` | width, number of lines, characters or prohibitions (О-11а, О-37) | which limit was exceeded | yes |
 | `drawing_mismatch` | the labels in the wording and in the structural description disagree (О-37) | which labels do not match | yes |

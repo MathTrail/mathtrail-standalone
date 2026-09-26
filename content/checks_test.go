@@ -7,6 +7,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/content"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
 // The checks read the catalogs through interfaces of their own, and the content
@@ -17,26 +18,25 @@ var (
 	_ checks.Content       = (*content.Content)(nil)
 )
 
-// A new task is compared with the reference tasks of its child's level, and
-// with no others: the questions handed out for a grade are exactly those of
-// the level it belongs to, and a grade outside the levels gets none.
-func TestTheReferenceQuestionsAreThoseOfTheGradesLevel(t *testing.T) {
+// A new task is compared with the reference tasks of its own level, and with
+// no others: the questions handed out for a level are exactly those of its
+// reference tasks, and a level there is not gets none.
+func TestTheReferenceQuestionsAreThoseOfTheLevel(t *testing.T) {
 	t.Parallel()
 
 	shipped := loaded(t)
-	perLevel := map[string][]string{}
+	perLevel := map[rating.GradeLevel][]string{}
 	for _, task := range shipped.Examples() {
 		perLevel[task.GradeLevel] = append(perLevel[task.GradeLevel], task.Question)
 	}
-	for grade := 1; grade <= 6; grade++ {
-		level, _ := content.LevelOf(grade)
-		if got, want := shipped.ReferenceQuestions(grade), perLevel[level]; !slices.Equal(got, want) {
-			t.Errorf("ReferenceQuestions(%d) = %d questions, want the %d of level %s", grade, len(got), len(want), level)
+	for _, level := range rating.GradeLevels() {
+		if got, want := shipped.ReferenceQuestions(level), perLevel[level]; !slices.Equal(got, want) || len(want) == 0 {
+			t.Errorf("ReferenceQuestions(%s) = %d questions, want the %d of the level", level, len(got), len(want))
 		}
 	}
-	for _, grade := range []int{0, 7} {
-		if got := shipped.ReferenceQuestions(grade); len(got) != 0 {
-			t.Errorf("ReferenceQuestions(%d) = %d questions, want none", grade, len(got))
+	for _, level := range []rating.GradeLevel{"", "7-8"} {
+		if got := shipped.ReferenceQuestions(level); len(got) != 0 {
+			t.Errorf("ReferenceQuestions(%q) = %d questions, want none", level, len(got))
 		}
 	}
 }
@@ -105,14 +105,14 @@ func TestEveryTaskOfGradesFiveAndSixIsWrittenAsATaskMustBe(t *testing.T) {
 
 	checked := 0
 	for _, example := range loaded(t).Examples() {
-		if example.GradeLevel != content.Level56 {
+		if example.GradeLevel != rating.Grades56 {
 			continue
 		}
 		checked++
 		if strings.TrimSpace(example.Hint) == "" {
 			t.Errorf("%s: got no hint, want one, as every task the model writes has", example.ID)
 		}
-		for _, problem := range checks.Readability(example.Question, "en", 5) {
+		for _, problem := range checks.Readability(example.Question, "en", rating.Grades56) {
 			t.Errorf("%s: %s", example.ID, problem.Message)
 		}
 	}
@@ -130,7 +130,7 @@ func TestNoTwoTasksOfGradesFiveAndSixAreNearDuplicates(t *testing.T) {
 
 	var tasks []content.Example
 	for _, example := range loaded(t).Examples() {
-		if example.GradeLevel == content.Level56 {
+		if example.GradeLevel == rating.Grades56 {
 			tasks = append(tasks, example)
 		}
 	}

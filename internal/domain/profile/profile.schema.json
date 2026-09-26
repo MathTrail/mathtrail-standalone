@@ -84,6 +84,11 @@
     }
   },
   "$defs": {
+    "gradeLevel": {
+      "description": "The level a task is written for: a band of two school years, and one stretch of the ladder every task stands on.",
+      "type": "string",
+      "enum": ["1-2", "3-4", "5-6"]
+    },
     "student": {
       "type": "object",
       "required": ["excluded_skills", "grade", "interests", "notes", "pseudonym", "ui_language"],
@@ -95,7 +100,7 @@
           "items": { "type": "string" }
         },
         "grade": {
-          "description": "The school year.",
+          "description": "The school year. It sets where the child starts when the profile is made, and is a label after that.",
           "type": "integer",
           "minimum": 1,
           "maximum": 6
@@ -125,7 +130,7 @@
     },
     "ratings": {
       "type": "object",
-      "required": ["answers", "consecutive_failures", "theta"],
+      "required": ["answers", "consecutive_failures", "start", "theta"],
       "properties": {
         "answers": {
           "description": "How many answers the level rests on. It narrows the step and rotates the setting.",
@@ -137,15 +142,19 @@
           "type": "integer",
           "minimum": 0
         },
+        "start": {
+          "description": "Where the child began on the ladder: the shift of the level of the grade the profile was made with. Written once and never moved; a grade changed later is a label.",
+          "type": "number"
+        },
         "theta": {
-          "description": "The child's level across every topic.",
+          "description": "The child's level across every topic: a place on the one ladder of grades 1 to 6.",
           "type": "number"
         }
       }
     },
     "topic": {
       "type": "object",
-      "required": ["answers", "correct", "delta", "mastered_since", "top_streak", "traps", "wrong_streak"],
+      "required": ["answers", "correct", "delta", "mastered_level", "mastered_since", "top_streak", "traps", "wrong_streak"],
       "properties": {
         "answers": { "type": "integer", "minimum": 0 },
         "correct": { "type": "integer", "minimum": 0 },
@@ -157,6 +166,10 @@
           "description": "The day a task of this topic was last accepted. Absent means never issued, which the rule puts first.",
           "type": "string",
           "format": "date"
+        },
+        "mastered_level": {
+          "description": "The level of the task whose answer earned mastery, or null; set and cleared together with mastered_since. The topic counts as mastered only while its tasks come from this level or below.",
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/gradeLevel" }]
         },
         "mastered_since": {
           "description": "The day the topic was mastered, or null.",
@@ -182,7 +195,7 @@
     },
     "answer": {
       "type": "object",
-      "required": ["answered_at", "confused", "correct", "difficulty", "hint_used", "pace", "task_id", "topic"],
+      "required": ["answered_at", "confused", "correct", "difficulty", "grade_level", "hint_used", "pace", "task_id", "topic"],
       "properties": {
         "answered_at": { "type": "string", "format": "date-time" },
         "chosen": {
@@ -199,6 +212,7 @@
           "type": "boolean"
         },
         "difficulty": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "grade_level": { "$ref": "#/$defs/gradeLevel" },
         "hint_used": { "type": "boolean" },
         "pace": {
           "description": "Measured by the service from the moment the task was handed out.",
@@ -241,6 +255,7 @@
         "constraints",
         "difficulty",
         "excluded_skills",
+        "grade_level",
         "pedagogical_goal",
         "rationale",
         "setting",
@@ -251,6 +266,7 @@
         "constraints": { "type": "array", "items": { "type": "string" } },
         "difficulty": { "type": "integer", "minimum": 1, "maximum": 5 },
         "excluded_skills": { "type": "array", "items": { "type": "string" } },
+        "grade_level": { "$ref": "#/$defs/gradeLevel" },
         "pedagogical_goal": { "type": "string", "enum": ["reinforce", "new_topic"] },
         "rationale": { "type": "string" },
         "setting": { "type": "string" },
@@ -264,6 +280,7 @@
       "required": [
         "difficulty",
         "fingerprint",
+        "grade_level",
         "hint",
         "id",
         "instructions_version",
@@ -281,6 +298,7 @@
           "type": "string"
         },
         "fingerprint": { "type": "string" },
+        "grade_level": { "$ref": "#/$defs/gradeLevel" },
         "hint": { "type": "string" },
         "id": { "type": "string", "minLength": 1 },
         "instructions_version": { "type": "string" },

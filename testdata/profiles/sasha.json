@@ -11,7 +11,8 @@
   "ratings": {
     "answers": 0,
     "consecutive_failures": 0,
-    "theta": 0
+    "start": 2.5,
+    "theta": 2.5
   },
   "recent": [],
   "revision": 1,

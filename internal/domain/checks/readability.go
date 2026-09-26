@@ -4,38 +4,43 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
-// The longest sentence a child of each level is given, in words where words
-// are separated by spaces and in characters where they are not. The word
-// limits are the prototype's, measured on its reference tasks; the character
-// limits are twice them by analogy, because nobody has measured them.
-var sentenceLimits = [...]struct{ words, characters int }{
-	{words: 20, characters: 40}, // grades 1–2
-	{words: 25, characters: 50}, // grades 3–4
-	{words: 30, characters: 60}, // grades 5–6
+// The longest sentence a task of each level may have, in words where words are
+// separated by spaces and in characters where they are not. The word limits
+// are the prototype's, measured on its reference tasks; the character limits
+// are twice them by analogy, because nobody has measured them.
+var sentenceLimits = map[rating.GradeLevel]struct{ words, characters int }{
+	rating.Grades12: {words: 20, characters: 40},
+	rating.Grades34: {words: 25, characters: 50},
+	rating.Grades56: {words: 30, characters: 60},
 }
 
-// gradeMargin is how many grades above the child's the Flesch–Kincaid index of
-// an English question may reach: at one, fewer than half the reference tasks
-// for grades 1–2 passed for a first-grader, and the index is noisy on texts
-// this short.
+// gradeMargin is how many grades above the youngest of a level the
+// Flesch–Kincaid index of an English question of that level may reach: at one,
+// fewer than half the reference tasks for grades 1–2 passed for a first-grader,
+// and the index is noisy on texts this short.
 const gradeMargin = 3
 
-// Readability checks that a child of this grade can read the question: that no
-// sentence of it is longer than the child's level allows, and — for a question
+// Readability checks that the question reads as a task of its level should:
+// that no sentence of it is longer than the level allows, and — for a question
 // in English, and only then — that its Flesch–Kincaid grade is no more than
-// three above the child's. The language of the task decides the unit — the
-// script of the whole question, when the task came with none — and every
-// sentence is counted and held to the limit in that one unit: a Chinese
-// sentence naming its points in Latin letters is still Chinese.
+// three above the youngest grade of the level. The level is the task's, not the
+// child's: a task is written for a level, and the child it is set to may be in
+// any grade. The language of the task decides the unit — the script of the
+// whole question, when the task came with none — and every sentence is counted
+// and held to the limit in that one unit: a Chinese sentence naming its points
+// in Latin letters is still Chinese.
 //
 // Every sentence that is too long is named by its place, so that the model can
 // find each without being shown the draft back.
-func Readability(question, language string, grade int) []Problem {
+func Readability(question, language string, level rating.GradeLevel) []Problem {
 	var problems []Problem
 
-	limits := ReadabilityLimitsFor(grade)
+	level = heldTo(level)
+	limits := ReadabilityLimitsFor(level)
 	unit, allowed := unitFor(question, language), limits.SentenceWords
 	if unit == unitCharacters {
 		allowed = limits.SentenceCharacters
@@ -43,23 +48,22 @@ func Readability(question, language string, grade int) []Problem {
 	for i, sentence := range sentences(question) {
 		if length := lengthIn(sentence, unit); length > allowed {
 			problems = append(problems, Problem{Code: CodeReadability, Message: fmt.Sprintf(
-				"sentence %d of task.question is %s long, and a child in grade %d reads sentences of at most %d %s; "+
-					"split it or say it in fewer words", i+1, quantity(length, unit), grade, allowed, unit)})
+				"sentence %d of task.question is %s long, and a task of grades %s has sentences of at most %d %s; "+
+					"split it or say it in fewer words", i+1, quantity(length, unit), level, allowed, unit)})
 		}
 	}
 
 	if english(language) {
 		if index, most := fleschKincaid(question), limits.FleschKincaid; index > float64(most) {
 			problems = append(problems, Problem{Code: CodeReadability, Message: fmt.Sprintf(
-				"task.question reads at grade %.1f by Flesch–Kincaid, and a child in grade %d is given at most "+
-					"grade %d; use shorter words and shorter sentences", index, grade, most)})
+				"task.question reads at grade %.1f by Flesch–Kincaid, and a task of grades %s reads at grade %d "+
+					"at most; use shorter words and shorter sentences", index, level, most)})
 		}
 	}
 	return problems
 }
 
-// ReadabilityLimits are what the question of a task for a child of one grade
-// is held to.
+// ReadabilityLimits are what the question of a task of one level is held to.
 type ReadabilityLimits struct {
 	// SentenceWords is the longest a sentence may be where words are separated
 	// by spaces.
@@ -71,17 +75,26 @@ type ReadabilityLimits struct {
 	FleschKincaid int
 }
 
-// ReadabilityLimitsFor are the limits a question for a child of this grade is
-// held to, in one place for the check and for whoever tells the model them. A
-// grade outside one to six is held to the sentences of the nearest level:
-// letting a sentence through for want of a limit would be the worse mistake.
-func ReadabilityLimitsFor(grade int) ReadabilityLimits {
-	level := sentenceLimits[(min(max(grade, 1), 6)-1)/2]
+// ReadabilityLimitsFor are the limits a question of a task of this level is
+// held to, in one place for the check and for whoever tells the model them.
+func ReadabilityLimitsFor(level rating.GradeLevel) ReadabilityLimits {
+	level = heldTo(level)
+	sentence := sentenceLimits[level]
 	return ReadabilityLimits{
-		SentenceWords:      level.words,
-		SentenceCharacters: level.characters,
-		FleschKincaid:      grade + gradeMargin,
+		SentenceWords:      sentence.words,
+		SentenceCharacters: sentence.characters,
+		FleschKincaid:      level.FirstGrade() + gradeMargin,
 	}
+}
+
+// heldTo is the level a question is held to: its own, or the youngest for a
+// level that is none of the three — letting a sentence through for want of a
+// limit would be the worse mistake.
+func heldTo(level rating.GradeLevel) rating.GradeLevel {
+	if level.Known() {
+		return level
+	}
+	return rating.Grades12
 }
 
 // english says whether a language tag's primary subtag is English: "en",

@@ -57,17 +57,17 @@ func replay(t *testing.T, table []step) (theta float64, answers int, topics map[
 			nearly(t, topic.delta, row.delta, tolerance, "the topic before")
 
 			state := rating.State{Theta: theta, Delta: topic.delta, Answers: answers, TopicAnswers: topic.answers}
-			result := rating.Update(state, rating.Beta(row.difficulty), row.correct)
+			result := rating.Update(state, youngest(row.difficulty).Beta(), row.correct)
 
 			nearly(t, result.Probability, row.probability, tolerance, "the chance of a correct answer")
 			nearly(t, result.Theta, row.thetaAfter, tolerance, "the overall level after")
 			nearly(t, result.Delta, row.deltaAfter, tolerance, "the topic after")
 
-			corridor := rating.NewCorridor(result.Level())
+			corridor := rating.NewCorridor(result.Level(), rating.Points(rating.Grades12))
 			nearly(t, corridor.BetaMin, row.betaMin, printed, "the hard end of the corridor")
 			nearly(t, corridor.BetaMax, row.betaMax, printed, "the easy end of the corridor")
-			if corridor.Recommended != row.next {
-				t.Errorf("the next difficulty = %d, want %d", corridor.Recommended, row.next)
+			if corridor.Recommended != youngest(row.next) {
+				t.Errorf("the next point = %+v, want difficulty %d of %s", corridor.Recommended, row.next, rating.Grades12)
 			}
 			nearly(t, corridor.Probability(corridor.Recommended), row.nextChance, printed, "the chance at it")
 			if corridor.Fit != rating.FitInside {
@@ -162,17 +162,17 @@ func TestThreeFailuresInARow(t *testing.T) {
 			nearly(t, delta, row.delta, tolerance, "the topic before")
 
 			state := rating.State{Theta: theta, Delta: delta, Answers: answers, TopicAnswers: topicAnswers}
-			result := rating.Update(state, rating.Beta(row.difficulty), row.correct)
+			result := rating.Update(state, youngest(row.difficulty).Beta(), row.correct)
 
 			nearly(t, result.Probability, row.probability, tolerance, "the chance of a correct answer")
 			nearly(t, result.Theta, row.thetaAfter, tolerance, "the overall level after")
 			nearly(t, result.Delta, row.deltaAfter, tolerance, "the topic after")
 
-			corridor := rating.NewCorridor(result.Level())
+			corridor := rating.NewCorridor(result.Level(), rating.Points(rating.Grades12))
 			nearly(t, corridor.BetaMin, row.betaMin, printed, "the hard end of the corridor")
 			nearly(t, corridor.BetaMax, row.betaMax, printed, "the easy end of the corridor")
-			if corridor.Recommended != row.next {
-				t.Errorf("the next difficulty = %d, want %d", corridor.Recommended, row.next)
+			if corridor.Recommended != youngest(row.next) {
+				t.Errorf("the next point = %+v, want difficulty %d of %s", corridor.Recommended, row.next, rating.Grades12)
 			}
 			nearly(t, corridor.Probability(corridor.Recommended), row.nextChance, printed, "the chance at it")
 

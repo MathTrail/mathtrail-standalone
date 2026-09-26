@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
 // Every limit of the file, one case each, and every refusal has to name the
@@ -203,9 +204,49 @@ func TestEveryLimitIsRefusedByName(t *testing.T) {
 			wantSay: "topics[counting.gaps].traps",
 		},
 		{
+			name: "a topic mastered on a day and at no level",
+			breakIt: func(p *profile.Profile) {
+				topic := p.Topics["counting.gaps"]
+				since := profile.DateOf(time.Date(2026, 9, 2, 0, 0, 0, 0, time.UTC))
+				topic.MasteredSince = &since
+				p.Topics["counting.gaps"] = topic
+			},
+			wantSay: "topics[counting.gaps] has mastered_since and mastered_level apart",
+		},
+		{
+			name: "a topic mastered at a level and on no day",
+			breakIt: func(p *profile.Profile) {
+				topic := p.Topics["counting.gaps"]
+				level := rating.Grades12
+				topic.MasteredLevel = &level
+				p.Topics["counting.gaps"] = topic
+			},
+			wantSay: "topics[counting.gaps] has mastered_since and mastered_level apart",
+		},
+		{
+			name: "a topic mastered at a level there is not",
+			breakIt: func(p *profile.Profile) {
+				topic := p.Topics["counting.gaps"]
+				since, level := profile.DateOf(time.Date(2026, 9, 2, 0, 0, 0, 0, time.UTC)), rating.GradeLevel("7-8")
+				topic.MasteredSince, topic.MasteredLevel = &since, &level
+				p.Topics["counting.gaps"] = topic
+			},
+			wantSay: "topics[counting.gaps].mastered_level",
+		},
+		{
+			name:    "a start that is no number",
+			breakIt: func(p *profile.Profile) { p.Ratings.Start = math.Inf(1) },
+			wantSay: "ratings.start",
+		},
+		{
 			name:    "an answer that names no task",
 			breakIt: func(p *profile.Profile) { p.Recent[0].TaskID = "" },
 			wantSay: "recent[0] names no task",
+		},
+		{
+			name:    "an answer at no level",
+			breakIt: func(p *profile.Profile) { p.Recent[0].GradeLevel = "" },
+			wantSay: "recent[0].grade_level",
 		},
 		{
 			name:    "an answer with no moment",
@@ -252,6 +293,7 @@ func TestATaskInFlightIsRefusedWhenItIsNotWhole(t *testing.T) {
 		"current_task offers": func(t *profile.CurrentTask) { delete(t.Options, "E") },
 		"issued_at":           func(t *profile.CurrentTask) { t.IssuedAt = profile.Time{} },
 		"difficulty":          func(t *profile.CurrentTask) { t.Difficulty = 0 },
+		"grade_level":         func(t *profile.CurrentTask) { t.GradeLevel = "5-7" },
 		// Five options, and one of them says nothing: a child cannot pick it,
 		// and the count alone would not notice.
 		"options shows nothing": func(t *profile.CurrentTask) { t.Options["C"] = "" },
@@ -293,6 +335,7 @@ func TestAnOpenRequestIsRefusedWhenItIsNotWhole(t *testing.T) {
 		TutorMode: profile.TutorRule,
 		Brief: profile.Brief{
 			Difficulty:      3,
+			GradeLevel:      rating.Grades12,
 			PedagogicalGoal: profile.GoalNewTopic,
 			TargetConcept:   "counting.gaps",
 		},
@@ -307,6 +350,7 @@ func TestAnOpenRequestIsRefusedWhenItIsNotWhole(t *testing.T) {
 	cases := map[string]func(r *profile.OpenRequest){
 		"open_request has no id":              func(r *profile.OpenRequest) { r.ID = "" },
 		"open_request.brief.difficulty":       func(r *profile.OpenRequest) { r.Brief.Difficulty = 0 },
+		"open_request.brief.grade_level":      func(r *profile.OpenRequest) { r.Brief.GradeLevel = "" },
 		"open_request.attempts":               func(r *profile.OpenRequest) { r.Attempts = profile.MaxAttempts + 1 },
 		"open_request.tutor_mode":             func(r *profile.OpenRequest) { r.TutorMode = "guesswork" },
 		"open_request.brief names no topic":   func(r *profile.OpenRequest) { r.Brief.TargetConcept = "" },

@@ -1,6 +1,10 @@
 package profile
 
-import "time"
+import (
+	"time"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
+)
 
 // Goal is why this task is being set now. The rule decides it and the model
 // never changes it.
@@ -31,10 +35,14 @@ const (
 type Brief struct {
 	// Constraints are the limits on the wording.
 	Constraints []string `json:"constraints"`
-	// Difficulty is the level asked for, from MinDifficulty to MaxDifficulty.
+	// Difficulty is the difficulty asked for inside the level, from
+	// MinDifficulty to MaxDifficulty.
 	Difficulty int `json:"difficulty"`
 	// ExcludedSkills is what may appear neither in the wording nor in a trap.
 	ExcludedSkills []string `json:"excluded_skills"`
+	// GradeLevel is the level the task is to be written for: where on the
+	// ladder the child stands in this topic, whatever their grade.
+	GradeLevel rating.GradeLevel `json:"grade_level"`
 	// PedagogicalGoal is why this task now.
 	PedagogicalGoal Goal `json:"pedagogical_goal"`
 	// Rationale is the rule's own account of the choice, in words.
@@ -73,13 +81,18 @@ type OpenRequest struct {
 // the solution and the solver are sealed together, because four explanations
 // in the open would name the four wrong options and hand over the fifth.
 type CurrentTask struct {
-	// Difficulty is the level of the task, from MinDifficulty to MaxDifficulty.
+	// Difficulty is the difficulty of the task inside its level, from
+	// MinDifficulty to MaxDifficulty.
 	Difficulty int `json:"difficulty"`
 	// Drawing is the picture in text, when the task has one.
 	Drawing string `json:"drawing,omitempty"`
 	// Fingerprint is the sketch that joins the list of past tasks once this
 	// one is accepted.
 	Fingerprint string `json:"fingerprint"`
+	// GradeLevel is the level the task was written for. With the difficulty it
+	// is where the task stands on the ladder, which the answer is measured
+	// against.
+	GradeLevel rating.GradeLevel `json:"grade_level"`
 	// Hint is the nudge the child may ask for.
 	Hint string `json:"hint"`
 	// ID keys the answer: it is recorded once, against this task.

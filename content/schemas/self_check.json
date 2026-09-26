@@ -15,6 +15,7 @@
         "required": ["type", "severity", "comment"],
         "properties": {
           "type": {
+            "description": "What kind of defect. too_hard_for_grade means harder than the level of the brief, not than the child's grade; the id keeps its name.",
             "enum": [
               "ambiguous",
               "missing_data",

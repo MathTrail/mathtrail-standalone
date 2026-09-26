@@ -9,6 +9,7 @@ import (
 	"github.com/leanovate/gopter/prop"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
 
@@ -52,7 +53,8 @@ var faults = []struct {
 // broken is a task that passes, with the faults the bits of mask choose.
 func broken(mask int) scenario {
 	f := faulty{scenario: accepted()}
-	f.grade, f.language = 1, "ru"
+	f.askedFor(rating.Grades12)
+	f.language = "ru"
 	for i, fault := range faults {
 		if mask&(1<<i) != 0 {
 			fault.apply(&f)
@@ -104,21 +106,21 @@ func TestTheReviewHoldsItsProperties(t *testing.T) {
 }
 
 // A submission comes from the chat's model and is untrusted in every part:
-// whatever its JSON and its program hold, and whatever grade and language it
-// is judged against, the review ends in an outcome that keeps its own rules —
+// whatever its JSON and its program hold, and whatever level and language it
+// is judged against — one of the three or none of them — the review ends in an outcome that keeps its own rules —
 // codes it knows, in the order the checks run, the first one counted, a task
 // accepted only when it failed nothing, and a check left unrun only for a task
 // out of the format.
 func FuzzReview(f *testing.F) {
 	good := validDraft()
-	f.Add([]byte(jsonOf(f, good.Brief)), []byte(jsonOf(f, good.Task)), []byte(jsonOf(f, good.SelfCheck)), program, 4, "en")
-	f.Add([]byte("null"), []byte(`{"options":{"A":"x"},"question":" "}`), []byte("{"), "", 0, "")
+	f.Add([]byte(jsonOf(f, good.Brief)), []byte(jsonOf(f, good.Task)), []byte(jsonOf(f, good.SelfCheck)), program, "3-4", "en")
+	f.Add([]byte("null"), []byte(`{"options":{"A":"x"},"question":" "}`), []byte("{"), "", "", "")
 	f.Add([]byte(`[]`), []byte(`{"question":"P is left of R.","drawing":"P───Q \n","drawing_structure":`+
 		`{"kind":"line","objects":[{"id":"R","label":"R"}]}}`),
 		[]byte(`{"issues":[{"type":"ambiguous","severity":"blocking","comment":"C"}],"final_answer":"B"}`),
-		"x", 99, "en-GB")
+		"x", "9-10", "en-GB")
 
-	f.Fuzz(func(t *testing.T, brief, task, selfCheck []byte, source string, grade int, language string) {
+	f.Fuzz(func(t *testing.T, brief, task, selfCheck []byte, source, level, language string) {
 		reviewer := checks.NewReviewer(shipped{catalog: testCatalog, references: []string{good.Task.Question}},
 			&working{value: "six pairs"}, checks.DefaultDrawingLimits())
 		examined, err := reviewer.Examine(t.Context(),
@@ -126,7 +128,9 @@ func FuzzReview(f *testing.F) {
 		if err != nil {
 			t.Fatalf("Examine() error = %v with a sandbox that never fails", err)
 		}
-		outcome, err := reviewer.Judge(examined, checks.Against{Asked: asked(), Language: language, Grade: grade})
+		request := asked()
+		request.GradeLevel = rating.GradeLevel(level)
+		outcome, err := reviewer.Judge(examined, checks.Against{Asked: request, Language: language})
 		if err != nil {
 			t.Fatalf("Judge() error = %v for what Examine returned, against an open request", err)
 		}

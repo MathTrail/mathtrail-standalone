@@ -20,6 +20,8 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
 //go:embed catalogs drawings examples instructions schemas solvers
@@ -179,22 +181,20 @@ func (c *Content) Examples() []Example {
 // that wants the number rather than the tasks.
 func (c *Content) ExampleCount() int { return len(c.examples) }
 
-// TopicsAt lists the topics a child of this grade can be given, in catalog
-// order. A grade the levels do not cover has no topics: the caller is told
-// nothing rather than something wrong.
-func (c *Content) TopicsAt(grade int) []string {
-	level, known := LevelOf(grade)
-	if !known {
-		return nil
-	}
-
+// TopicIDs lists the whole topic catalog, in catalog order: the order two
+// topics are told apart by when nothing else separates them.
+func (c *Content) TopicIDs() []string {
 	ids := make([]string, 0, len(c.topics))
 	for _, topic := range c.topics {
-		if topic.HasLevel(level) {
-			ids = append(ids, topic.ID)
-		}
+		ids = append(ids, topic.ID)
 	}
 	return ids
+}
+
+// LevelsOf lists the grade levels a topic is taught at, as the catalog lists
+// them. A topic the catalog does not have is taught at none.
+func (c *Content) LevelsOf(topic string) []rating.GradeLevel {
+	return slices.Clone(c.topicByID[topic].GradeLevels)
 }
 
 // TrapIDs lists the whole trap catalog in catalog order. It is the order two
@@ -210,17 +210,12 @@ func (c *Content) TrapIDs() []string {
 }
 
 // ExampleTraps lists the traps of the reference tasks of one topic at one
-// grade, the most frequent first and ties broken by catalog order.
+// level, the most frequent first and ties broken by catalog order.
 //
 // The reference tasks already carry a trap on every wrong option, so what a
 // topic's usual mistakes are is a count over them rather than a list anybody
 // has to keep up to date beside the catalog.
-func (c *Content) ExampleTraps(topic string, grade int) []string {
-	level, known := LevelOf(grade)
-	if !known {
-		return nil
-	}
-
+func (c *Content) ExampleTraps(topic string, level rating.GradeLevel) []string {
 	seen := map[string]int{}
 	for i := range c.examples {
 		task := &c.examples[i]
@@ -242,15 +237,9 @@ func (c *Content) ExampleTraps(topic string, grade int) []string {
 	return ids
 }
 
-// ReferenceQuestions are the questions of the reference tasks at the level a
-// child of this grade is taught: what a new task for that child must not
-// copy. A grade the levels do not cover has none.
-func (c *Content) ReferenceQuestions(grade int) []string {
-	level, known := LevelOf(grade)
-	if !known {
-		return nil
-	}
-
+// ReferenceQuestions are the questions of the reference tasks of one level:
+// what a new task of that level must not copy. A level there is not has none.
+func (c *Content) ReferenceQuestions(level rating.GradeLevel) []string {
 	var questions []string
 	for i := range c.examples {
 		if c.examples[i].GradeLevel == level {

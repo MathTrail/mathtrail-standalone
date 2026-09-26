@@ -9,6 +9,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/content"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/tutor"
 )
 
@@ -21,7 +22,42 @@ import (
 //
 // The file names what v1 changed, and the vectors do not cover it: the goal
 // "motivate" is gone, the setting rotates by a different count, and grades 5-6
-// exist. Everything checked below is what did not change.
+// exist. Everything checked below is what did not change, except where the
+// ladder parts from the prototype on purpose: those students are named in
+// departures, each with the brief v1 gives instead and why.
+
+// departures are the reference briefs v1 departs from on purpose, as the
+// fields that change and why. The prototype had no trial series and no ladder:
+// a failure was always worked over, and a child was only ever set the tasks of
+// their own grade.
+var departures = map[string]struct {
+	change func(*goldenBrief)
+	why    string
+}{
+	"masha": {
+		change: func(b *goldenBrief) {
+			b.Goal, b.Topic, b.Difficulty = "new_topic", "logic.ordering", 2
+			b.Traps = []string{"ignored_condition", "reversed_relation"}
+		},
+		why: "three answers in, she is still in her trial series, which moves to a topic she has not met " +
+			"rather than going over the one she failed",
+	},
+	"petya": {
+		change: func(b *goldenBrief) {
+			b.Difficulty = 5
+			b.Traps = []string{"wrong_operation", "time_unit_mixup"}
+		},
+		why: "on the one ladder, difficulty 5 of grades 1-2 is nearer the middle of his corridor than " +
+			"difficulty 2 of grades 3-4, and the reference tasks of that level lead with a mixed-up unit",
+	},
+}
+
+// levels are the levels of the briefs the five get on the ladder: the
+// prototype's briefs name none, because its levels were the children's grades.
+var levels = map[string]rating.GradeLevel{
+	"dima": rating.Grades12, "masha": rating.Grades34, "olya": rating.Grades12,
+	"petya": rating.Grades12, "sasha": rating.Grades34,
+}
 
 // goldenBrief is as much of a reference brief as v1 still promises to match.
 type goldenBrief struct {
@@ -96,7 +132,15 @@ func TestTheRuleReproducesTheReferenceBriefs(t *testing.T) {
 			if mode != profile.TutorRule {
 				t.Errorf("mode = %q, want %q", mode, profile.TutorRule)
 			}
-			checkBrief(t, &got, &want.Brief)
+			if got.GradeLevel != levels[want.Student] {
+				t.Errorf("level = %q, want %q", got.GradeLevel, levels[want.Student])
+			}
+			expected := want.Brief
+			if departure, departs := departures[want.Student]; departs {
+				t.Logf("departs from the reference on purpose: %s", departure.why)
+				departure.change(&expected)
+			}
+			checkBrief(t, &got, &expected)
 		})
 	}
 }

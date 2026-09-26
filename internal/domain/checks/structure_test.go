@@ -9,6 +9,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
 // catalog is a catalog written out in the test, so that what the checks are
@@ -48,6 +49,7 @@ func asked() *profile.Brief {
 	return &profile.Brief{
 		PedagogicalGoal: profile.GoalReinforce,
 		TargetConcept:   "combinatorics.enumeration",
+		GradeLevel:      rating.Grades34,
 		Difficulty:      3,
 		Setting:         "space",
 		TrapsToUse:      []string{"missed_case", "double_count"},
@@ -139,6 +141,9 @@ var formatBreakages = []breakage{
 	{"a topic the request was not for", func(d *checks.Draft) { d.Brief.TargetConcept = "counting.gaps" }, "not the topic this task was asked for"},
 	{"a difficulty off the scale", func(d *checks.Draft) { d.Brief.Difficulty = 6 }, "from 1 to 5"},
 	{"a difficulty the request was not for", func(d *checks.Draft) { d.Brief.Difficulty = 4 }, "not the difficulty this task was asked for"},
+	{"no level", func(d *checks.Draft) { d.Brief.GradeLevel = "" }, `brief.grade_level must be one of "1-2", "3-4" or "5-6"`},
+	{"a level there is not", func(d *checks.Draft) { d.Brief.GradeLevel = "7-8" }, "brief.grade_level must be one of"},
+	{"a level the request was not for", func(d *checks.Draft) { d.Brief.GradeLevel = rating.Grades12 }, "not the level this task was asked for"},
 	{"no setting", func(d *checks.Draft) { d.Brief.Setting = " " }, "brief.setting"},
 	{"no rationale", func(d *checks.Draft) { d.Brief.Rationale = "" }, "brief.rationale"},
 	{"traps left out", func(d *checks.Draft) { d.Brief.TrapsToUse = nil }, "brief.traps_to_use is missing"},

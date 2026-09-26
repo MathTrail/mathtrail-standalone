@@ -8,9 +8,9 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
 
-// What a child of average level meets at each difficulty. This table is the
-// one a reader checks the scale against: difficulty 3 is an even chance, and
-// the two levels either side of it are the stretch and the warm-up.
+// What a child meets at each difficulty of the level they start in. This table
+// is the one a reader checks the scale against: difficulty 3 is an even chance,
+// and the two difficulties either side of it are the stretch and the warm-up.
 func TestTheChanceAtEachDifficulty(t *testing.T) {
 	t.Parallel()
 
@@ -24,19 +24,20 @@ func TestTheChanceAtEachDifficulty(t *testing.T) {
 		t.Run(fmt.Sprintf("difficulty %d", difficulty), func(t *testing.T) {
 			t.Parallel()
 
-			got := rating.Probability(0, rating.Beta(difficulty))
+			got := rating.Probability(0, youngest(difficulty).Beta())
 			nearly(t, got, want, tolerance, "the chance for a child who has answered nothing")
 		})
 	}
 }
 
-// Difficulty 3 sits at zero, and the five levels are one apart.
+// Difficulty 3 of the youngest level sits at zero, and its five difficulties
+// are one apart.
 func TestDifficultyOnTheLevelScale(t *testing.T) {
 	t.Parallel()
 
 	for difficulty, want := range map[int]float64{1: -2, 2: -1, 3: 0, 4: 1, 5: 2} {
-		if got := rating.Beta(difficulty); got != want {
-			t.Errorf("Beta(%d) = %v, want %v", difficulty, got, want)
+		if got := youngest(difficulty).Beta(); got != want {
+			t.Errorf("β of difficulty %d of the youngest level = %v, want %v", difficulty, got, want)
 		}
 	}
 }
@@ -57,10 +58,10 @@ func TestAnAnswerMovesTheLevelsByHowSurprisingItWas(t *testing.T) {
 	t.Parallel()
 
 	state := rating.State{}
-	easy, hard := rating.Beta(1), rating.Beta(5)
+	easy, hard := youngest(1).Beta(), youngest(5).Beta()
 
-	correct := rating.Update(state, rating.Beta(3), true)
-	wrong := rating.Update(state, rating.Beta(3), false)
+	correct := rating.Update(state, youngest(3).Beta(), true)
+	wrong := rating.Update(state, youngest(3).Beta(), false)
 	if correct.Theta <= state.Theta {
 		t.Errorf("a correct answer left the level at %v, want it higher than %v", correct.Theta, state.Theta)
 	}
@@ -84,7 +85,7 @@ func TestAnAnswerMovesTheLevelsByHowSurprisingItWas(t *testing.T) {
 func TestTheTopicMovesFasterThanTheLevelBehindIt(t *testing.T) {
 	t.Parallel()
 
-	first := rating.Update(rating.State{}, rating.Beta(3), true)
+	first := rating.Update(rating.State{}, youngest(3).Beta(), true)
 	if first.KDelta <= first.KTheta {
 		t.Errorf("the topic moved by %v and the overall level by %v, want the topic to move further",
 			first.KDelta, first.KTheta)
@@ -93,7 +94,7 @@ func TestTheTopicMovesFasterThanTheLevelBehindIt(t *testing.T) {
 	// A topic never met starts from the overall level, so the first answer in
 	// it is measured against what the child can do generally.
 	settled := rating.State{Theta: 0.8, Answers: 30}
-	nearly(t, rating.Update(settled, rating.Beta(3), true).Probability,
+	nearly(t, rating.Update(settled, youngest(3).Beta(), true).Probability,
 		rating.Probability(0.8, 0), tolerance, "the chance in a topic never met")
 }
 
@@ -104,7 +105,7 @@ func TestTheStepNarrowsWithEveryAnswer(t *testing.T) {
 
 	previous := 0.0
 	for answers := 0; answers < 40; answers++ {
-		step := rating.Update(rating.State{Answers: answers, TopicAnswers: answers}, rating.Beta(3), true)
+		step := rating.Update(rating.State{Answers: answers, TopicAnswers: answers}, youngest(3).Beta(), true)
 		if step.KTheta <= 0 || step.KDelta <= 0 {
 			t.Fatalf("after %d answers the steps were %v and %v, want both above zero",
 				answers, step.KTheta, step.KDelta)
@@ -118,8 +119,8 @@ func TestTheStepNarrowsWithEveryAnswer(t *testing.T) {
 
 	// The counts are read apart: a child on their fiftieth answer meeting a
 	// new topic moves that topic as far as a beginner would.
-	mixed := rating.Update(rating.State{Answers: 50, TopicAnswers: 0}, rating.Beta(3), true)
-	fresh := rating.Update(rating.State{}, rating.Beta(3), true)
+	mixed := rating.Update(rating.State{Answers: 50, TopicAnswers: 0}, youngest(3).Beta(), true)
+	fresh := rating.Update(rating.State{}, youngest(3).Beta(), true)
 	nearly(t, mixed.KDelta, fresh.KDelta, tolerance, "the step in a topic never met")
 	if mixed.KTheta >= fresh.KTheta {
 		t.Error("fifty answers left the overall level moving as fast as on the first")
@@ -134,7 +135,7 @@ func TestTheLevelInATopic(t *testing.T) {
 	state := rating.State{Theta: 0.4, Delta: -0.1}
 	nearly(t, state.Level(), 0.3, tolerance, "the level in the topic")
 
-	result := rating.Update(state, rating.Beta(3), true)
+	result := rating.Update(state, youngest(3).Beta(), true)
 	nearly(t, result.Level(), result.Theta+result.Delta, tolerance, "the level after the answer")
 }
 
@@ -145,7 +146,7 @@ func TestAnAnswerCountsItself(t *testing.T) {
 	t.Parallel()
 
 	state := rating.State{Theta: 0.2, Delta: -0.1, Answers: 7, TopicAnswers: 3}
-	result := rating.Update(state, rating.Beta(3), true)
+	result := rating.Update(state, youngest(3).Beta(), true)
 
 	if result.Answers != 8 {
 		t.Errorf("answers = %d, want 8", result.Answers)
@@ -156,14 +157,14 @@ func TestAnAnswerCountsItself(t *testing.T) {
 
 	// The first answer in a second topic advances the child's total and that
 	// topic's own count, and says nothing about the first topic.
-	elsewhere := rating.Update(rating.State{Theta: result.Theta, Answers: result.Answers}, rating.Beta(3), true)
+	elsewhere := rating.Update(rating.State{Theta: result.Theta, Answers: result.Answers}, youngest(3).Beta(), true)
 	if elsewhere.Answers != 9 || elsewhere.TopicAnswers != 1 {
 		t.Errorf("a first answer in a new topic left %d answers and %d in the topic, want 9 and 1",
 			elsewhere.Answers, elsewhere.TopicAnswers)
 	}
 
 	// And what comes back is a state, so the next answer is given it as it is.
-	next := rating.Update(result.State, rating.Beta(3), true)
+	next := rating.Update(result.State, youngest(3).Beta(), true)
 	if next.Answers != 9 || next.TopicAnswers != 5 {
 		t.Errorf("the next answer left %d answers and %d in the topic, want 9 and 5",
 			next.Answers, next.TopicAnswers)

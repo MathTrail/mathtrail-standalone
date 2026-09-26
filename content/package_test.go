@@ -3,6 +3,7 @@ package content_test
 import (
 	"cmp"
 	"encoding/json"
+	"fmt"
 	"math"
 	"reflect"
 	"regexp"
@@ -17,18 +18,21 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
-// request asks for a task on a topic at a grade and a difficulty, for a child
-// with interests, notes and prohibitions: everything a package can carry.
-func request(topic string, grade, difficulty, answers int) *content.Request {
+// request asks for a task on a topic at a level and a difficulty, for a child
+// of the youngest grade of that level with interests, notes and prohibitions:
+// everything a package can carry. The corridor is worked out over the whole
+// ladder, the most points a topic can have.
+func request(topic string, level rating.GradeLevel, difficulty, answers int) *content.Request {
 	return &content.Request{
-		Language: "en", Grade: grade, Answers: answers,
+		Language: "en", Grade: level.FirstGrade(), Answers: answers,
 		Brief: profile.Brief{
-			PedagogicalGoal: profile.GoalNewTopic, TargetConcept: topic, Difficulty: difficulty, Setting: "space",
+			PedagogicalGoal: profile.GoalNewTopic, TargetConcept: topic, GradeLevel: level, Difficulty: difficulty,
+			Setting:        "space",
 			TrapsToUse:     []string{"missed_case", "double_count"},
 			ExcludedSkills: []string{"division_with_remainder", "fractions"}, Constraints: []string{},
 			Rationale: "The topic the child has practised least lately, at the difficulty the corridor recommends.",
 		},
-		Corridor:  rating.NewCorridor(0.3),
+		Corridor:  rating.NewCorridor(0.3, rating.Points(rating.GradeLevels()...)),
 		Interests: []string{"space", "football"},
 		Notes:     "Loves puzzles about animals and tires after three tasks.",
 	}
@@ -46,9 +50,14 @@ type shape struct {
 	Language string        `json:"language"`
 	Brief    profile.Brief `json:"brief"`
 	Corridor struct {
-		RecommendedDifficulty int                `json:"recommended_difficulty"`
-		Fit                   rating.Fit         `json:"fit"`
-		SuccessChance         map[string]float64 `json:"success_chance_by_difficulty"`
+		RecommendedGradeLevel rating.GradeLevel `json:"recommended_grade_level"`
+		RecommendedDifficulty int               `json:"recommended_difficulty"`
+		Fit                   rating.Fit        `json:"fit"`
+		SuccessChances        []struct {
+			GradeLevel rating.GradeLevel `json:"grade_level"`
+			Difficulty int               `json:"difficulty"`
+			Chance     float64           `json:"chance"`
+		} `json:"success_chances"`
 	} `json:"corridor"`
 	Topic struct {
 		ID          string `json:"id"`
@@ -117,7 +126,7 @@ func TestAPackageCarriesEveryPart(t *testing.T) {
 	t.Parallel()
 
 	shipped := loaded(t)
-	asked := request("counting.gaps", 2, 3, 0)
+	asked := request("counting.gaps", rating.Grades12, 3, 0)
 	encoded, got := packageFor(t, shipped, asked)
 
 	if parts := partsOf(t, encoded); !slices.Equal(parts, packageParts) {
@@ -126,9 +135,15 @@ func TestAPackageCarriesEveryPart(t *testing.T) {
 	if got.Language != "en" || !reflect.DeepEqual(got.Brief, asked.Brief) {
 		t.Errorf("language %q, brief %+v, want the request's", got.Language, got.Brief)
 	}
-	if got.Corridor.RecommendedDifficulty != asked.Corridor.Recommended || got.Corridor.Fit != asked.Corridor.Fit ||
-		len(got.Corridor.SuccessChance) != 5 {
-		t.Errorf("corridor = %+v, want the request's, with a chance for each of the five difficulties", got.Corridor)
+	if got.Corridor.RecommendedGradeLevel != asked.Corridor.Recommended.GradeLevel ||
+		got.Corridor.RecommendedDifficulty != asked.Corridor.Recommended.Difficulty || got.Corridor.Fit != asked.Corridor.Fit ||
+		len(got.Corridor.SuccessChances) != len(asked.Corridor.Chances) {
+		t.Errorf("corridor = %+v, want the request's, with a chance for each of its points", got.Corridor)
+	}
+	for i, chance := range got.Corridor.SuccessChances {
+		if want := asked.Corridor.Chances[i]; chance.GradeLevel != want.GradeLevel || chance.Difficulty != want.Difficulty {
+			t.Errorf("chance %d is of %+v, want the corridor's points in their order, %+v", i, chance, want.Point)
+		}
 	}
 	if topic, _ := shipped.Topic("counting.gaps"); got.Topic.ID != topic.ID || got.Topic.Name != topic.Name ||
 		got.Topic.Description != topic.Description {
@@ -142,7 +157,7 @@ func TestAPackageCarriesTheCatalogsTheTaskIsWrittenAgainst(t *testing.T) {
 	t.Parallel()
 
 	shipped := loaded(t)
-	asked := request("counting.gaps", 2, 3, 0)
+	asked := request("counting.gaps", rating.Grades12, 3, 0)
 	_, got := packageFor(t, shipped, asked)
 
 	if !reflect.DeepEqual(got.Traps, shipped.Traps()) {
@@ -165,14 +180,14 @@ func TestAPackageCarriesTheChildAndWhatTheTaskIsHeldTo(t *testing.T) {
 	t.Parallel()
 
 	shipped := loaded(t)
-	asked := request("counting.gaps", 2, 3, 0)
+	asked := request("counting.gaps", rating.Grades12, 3, 0)
 	_, got := packageFor(t, shipped, asked)
 
-	if got.Child.Grade != 2 || !slices.Equal(got.Child.Interests, asked.Interests) || got.Child.Notes != asked.Notes {
+	if got.Child.Grade != asked.Grade || !slices.Equal(got.Child.Interests, asked.Interests) || got.Child.Notes != asked.Notes {
 		t.Errorf("child = %+v, want the request's grade, interests and notes", got.Child)
 	}
 
-	readable, drawn := checks.ReadabilityLimitsFor(2), checks.DefaultDrawingLimits()
+	readable, drawn := checks.ReadabilityLimitsFor(asked.Brief.GradeLevel), checks.DefaultDrawingLimits()
 	if got.Limits.SentenceWords != readable.SentenceWords || got.Limits.SentenceCharacters != readable.SentenceCharacters ||
 		got.Limits.FleschKincaidGrade != readable.FleschKincaid || got.Limits.Drawing.Width != drawn.Width ||
 		got.Limits.Drawing.Height != drawn.Height || got.Limits.Drawing.SpaceRun != drawn.SpaceRun {
@@ -186,19 +201,79 @@ func TestAPackageCarriesTheChildAndWhatTheTaskIsHeldTo(t *testing.T) {
 	}
 }
 
-// The reference tasks a package shows are the topic's own at the child's level
-// and the requested difficulty, and they come as a model is to see them:
+// A package is of the task's level, whoever the child: a first-grader set a
+// task of grades 3–4 is given the limits and the reference tasks of 3–4, and a
+// sixth-grader set a task of grades 1–2 those of 1–2. The grade reaches the
+// model as the child's age, and moves neither.
+func TestAPackageIsOfTheTasksLevelWhateverTheGrade(t *testing.T) {
+	t.Parallel()
+
+	shipped := loaded(t)
+	for _, tc := range []struct {
+		name  string
+		grade int
+		level rating.GradeLevel
+	}{
+		{"a first-grader on a task of grades 3-4", 1, rating.Grades34},
+		{"a sixth-grader on a task of grades 1-2", 6, rating.Grades12},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			asked := request("counting.gaps", tc.level, 3, 0)
+			asked.Grade = tc.grade
+			_, got := packageFor(t, shipped, asked)
+
+			if got.Child.Grade != tc.grade {
+				t.Errorf("child.grade = %d, want the child's own %d", got.Child.Grade, tc.grade)
+			}
+			readable := checks.ReadabilityLimitsFor(tc.level)
+			if got.Limits.SentenceWords != readable.SentenceWords || got.Limits.FleschKincaidGrade != readable.FleschKincaid {
+				t.Errorf("limits = %+v, want those of %s", got.Limits, tc.level)
+			}
+
+			showsTasksOf(t, shipped, got.Examples, "counting.gaps", tc.level)
+		})
+	}
+}
+
+// showsTasksOf fails unless a package shows reference tasks, and every one of
+// them is a task of this topic at this level.
+func showsTasksOf(t *testing.T, shipped *content.Content, examples []map[string]json.RawMessage,
+	topic string, level rating.GradeLevel) {
+	t.Helper()
+
+	var questions []string
+	tasks := shipped.Examples()
+	for i := range tasks {
+		if tasks[i].Topic == topic && tasks[i].GradeLevel == level {
+			questions = append(questions, tasks[i].Question)
+		}
+	}
+	if len(examples) == 0 {
+		t.Fatal("the package shows no reference tasks")
+	}
+	for _, example := range examples {
+		var question string
+		if err := json.Unmarshal(example["question"], &question); err != nil || !slices.Contains(questions, question) {
+			t.Errorf("an example with question %q, want one of the tasks of %s at %s", question, topic, level)
+		}
+	}
+}
+
+// The reference tasks a package shows are the topic's own at the level of the
+// brief and the requested difficulty, and they come as a model is to see them:
 // without the id, the topic and the level the package already names, and
 // without the solver the model is not shown.
 func TestAPackageShowsReferenceTasksAsTheModelIsToSeeThem(t *testing.T) {
 	t.Parallel()
 
 	shipped := loaded(t)
-	_, got := packageFor(t, shipped, request("counting.gaps", 2, 3, 0))
+	_, got := packageFor(t, shipped, request("counting.gaps", rating.Grades12, 3, 0))
 
 	var questions []string
 	for _, task := range shipped.Examples() {
-		if task.Topic == "counting.gaps" && task.GradeLevel == content.Level12 && task.Difficulty == 3 {
+		if task.Topic == "counting.gaps" && task.GradeLevel == rating.Grades12 && task.Difficulty == 3 {
 			questions = append(questions, task.Question)
 		}
 	}
@@ -226,7 +301,7 @@ func TestAPackageCarriesTheSolverTemplatesOfItsTopic(t *testing.T) {
 	shipped := loaded(t)
 	carried := 0
 	for _, topic := range shipped.Topics() {
-		_, got := packageFor(t, shipped, request(topic.ID, 5, 3, 0))
+		_, got := packageFor(t, shipped, request(topic.ID, rating.Grades56, 3, 0))
 		want := []string{}
 		for _, template := range shipped.Templates(topic.ID) {
 			want = append(want, template.Program)
@@ -250,7 +325,7 @@ func TestAPackageCarriesTheDrawingFramesOfItsTopic(t *testing.T) {
 	shipped := loaded(t)
 	carried := 0
 	for _, topic := range shipped.Topics() {
-		_, got := packageFor(t, shipped, request(topic.ID, 5, 3, 0))
+		_, got := packageFor(t, shipped, request(topic.ID, rating.Grades56, 3, 0))
 		var want []content.Frame
 		for _, frame := range shipped.Frames() {
 			if slices.Contains(frame.Topics, topic.ID) {
@@ -284,7 +359,7 @@ func TestAPackageListsNothingAsNull(t *testing.T) {
 	shipped := loaded(t)
 	empty := 0
 	for _, topic := range shipped.Topics() {
-		encoded, _ := packageFor(t, shipped, request(topic.ID, 5, 3, 0))
+		encoded, _ := packageFor(t, shipped, request(topic.ID, rating.Grades56, 3, 0))
 		var parts map[string]json.RawMessage
 		if err := json.Unmarshal(encoded, &parts); err != nil {
 			t.Fatalf("read the package's parts: %v", err)
@@ -303,7 +378,8 @@ func TestAPackageListsNothingAsNull(t *testing.T) {
 
 // Every package a profile allows stays within the budget, whatever the parent
 // writes in: a child at every limit the profile sets, on every topic, at every
-// grade and difficulty, whichever reference tasks come round. The heaviest
+// level it is taught at and every difficulty, whichever reference tasks come
+// round. The heaviest
 // script is a character JSON has to escape, six bytes where the parent typed
 // one; a child with an ordinary profile is measured beside them, for scale.
 func TestEveryPackageStaysWithinTheBudget(t *testing.T) {
@@ -332,8 +408,8 @@ func TestEveryPackageStaysWithinTheBudget(t *testing.T) {
 					t.Fatalf("Package() error = %v", err)
 				}
 				if len(encoded) > content.PackageBudget {
-					t.Errorf("%s at grade %d, difficulty %d: got %d bytes, want at most %d",
-						each.Brief.TargetConcept, each.Grade, each.Brief.Difficulty,
+					t.Errorf("%s at difficulty %d of %s: got %d bytes, want at most %d",
+						each.Brief.TargetConcept, each.Brief.Difficulty, each.Brief.GradeLevel,
 						len(encoded), content.PackageBudget)
 				}
 				largest, total = max(largest, len(encoded)), total+len(encoded)
@@ -344,16 +420,16 @@ func TestEveryPackageStaysWithinTheBudget(t *testing.T) {
 	}
 }
 
-// typicalRequests ask for every topic at every grade and difficulty, with each
-// of five answer counts, for a child with an ordinary profile: two interests,
-// a sentence of notes and two skills left out.
+// typicalRequests ask for every topic at every level it is taught at and every
+// difficulty, with each of five answer counts, for a child with an ordinary
+// profile: two interests, a sentence of notes and two skills left out.
 func typicalRequests(shipped *content.Content) []*content.Request {
 	var typical []*content.Request
 	for _, topic := range shipped.Topics() {
-		for grade := profile.MinGrade; grade <= profile.MaxGrade; grade++ {
+		for _, level := range topic.GradeLevels {
 			for difficulty := profile.MinDifficulty; difficulty <= profile.MaxDifficulty; difficulty++ {
 				for answers := range 5 {
-					typical = append(typical, request(topic.ID, grade, difficulty, answers))
+					typical = append(typical, request(topic.ID, level, difficulty, answers))
 				}
 			}
 		}
@@ -361,8 +437,8 @@ func typicalRequests(shipped *content.Content) []*content.Request {
 	return typical
 }
 
-// requestsAtTheLimits ask for every topic at every grade and difficulty, with
-// each of five answer counts, for a child at every limit the profile sets: the
+// requestsAtTheLimits ask for every topic at every level it is taught at and
+// every difficulty, with each of five answer counts, for a child at every limit the profile sets: the
 // longest notes, as many interests as it holds, each as long as it may be and
 // one of them the setting, and as many excluded skills as it allows, the
 // longest-described of them. The child's own text is one letter repeated, so
@@ -383,10 +459,10 @@ func requestsAtTheLimits(shipped *content.Content, letter string) []*content.Req
 
 	var heaviest []*content.Request
 	for _, topic := range shipped.Topics() {
-		for grade := profile.MinGrade; grade <= profile.MaxGrade; grade++ {
+		for _, level := range topic.GradeLevels {
 			for difficulty := profile.MinDifficulty; difficulty <= profile.MaxDifficulty; difficulty++ {
 				for answers := range 5 {
-					asked := request(topic.ID, grade, difficulty, answers)
+					asked := request(topic.ID, level, difficulty, answers)
 					asked.Notes = strings.Repeat(letter, profile.MaxNotes)
 					asked.Interests = interests
 					asked.Brief.Setting = interests[0]
@@ -401,7 +477,8 @@ func requestsAtTheLimits(shipped *content.Content, letter string) []*content.Req
 
 // A request the package cannot be built from makes no package at all, rather
 // than one the model cannot read or cannot write a task to: a topic or a skill
-// the catalogs do not have, which would reach the model undescribed, and a
+// the catalogs do not have, which would reach the model undescribed, a level
+// the topic is not taught at, which has no reference tasks and no limits, and a
 // corridor that is not a number, which a damaged profile could hold.
 func TestARequestThePackageCannotBeBuiltFromMakesNoPackage(t *testing.T) {
 	t.Parallel()
@@ -417,6 +494,12 @@ func TestARequestThePackageCannotBeBuiltFromMakesNoPackage(t *testing.T) {
 		{"a skill the catalog does not have", func(asked *content.Request) {
 			asked.Brief.ExcludedSkills = append(asked.Brief.ExcludedSkills, "calculus")
 		}},
+		{"a level the topic is not taught at", func(asked *content.Request) {
+			asked.Brief.TargetConcept = "percent.basic"
+		}},
+		{"a level there is not", func(asked *content.Request) {
+			asked.Brief.GradeLevel = "7-8"
+		}},
 		{"a corridor that is not a number", func(asked *content.Request) {
 			asked.Corridor.BetaMin = math.NaN()
 		}},
@@ -424,7 +507,7 @@ func TestARequestThePackageCannotBeBuiltFromMakesNoPackage(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			asked := request("counting.gaps", 2, 3, 0)
+			asked := request("counting.gaps", rating.Grades12, 3, 0)
 			test.spoil(asked)
 			if encoded, err := shipped.Package(asked); err == nil {
 				t.Errorf("Package() = %d bytes and no error, want an error", len(encoded))
@@ -438,12 +521,14 @@ func TestARequestThePackageCannotBeBuiltFromMakesNoPackage(t *testing.T) {
 func TestTheCorridorIsStatedToTwoPlaces(t *testing.T) {
 	t.Parallel()
 
-	encoded, _ := packageFor(t, loaded(t), request("counting.gaps", 2, 3, 0))
+	encoded, _ := packageFor(t, loaded(t), request("counting.gaps", rating.Grades12, 3, 0))
 	var read struct {
 		Corridor struct {
-			BetaMin json.RawMessage            `json:"beta_min"`
-			BetaMax json.RawMessage            `json:"beta_max"`
-			Chances map[string]json.RawMessage `json:"success_chance_by_difficulty"`
+			BetaMin json.RawMessage `json:"beta_min"`
+			BetaMax json.RawMessage `json:"beta_max"`
+			Chances []struct {
+				Chance json.RawMessage `json:"chance"`
+			} `json:"success_chances"`
 		} `json:"corridor"`
 	}
 	if err := json.Unmarshal(encoded, &read); err != nil {
@@ -451,8 +536,8 @@ func TestTheCorridorIsStatedToTwoPlaces(t *testing.T) {
 	}
 
 	numbers := map[string]json.RawMessage{"beta_min": read.Corridor.BetaMin, "beta_max": read.Corridor.BetaMax}
-	for difficulty, chance := range read.Corridor.Chances {
-		numbers["success_chance_by_difficulty."+difficulty] = chance
+	for i, chance := range read.Corridor.Chances {
+		numbers[fmt.Sprintf("success_chances.%d.chance", i)] = chance.Chance
 	}
 	twoPlaces := regexp.MustCompile(`^-?\d+(\.\d{1,2})?$`)
 	for name, number := range numbers {
@@ -496,7 +581,7 @@ func TestTheGuidesExampleIsATaskTheChecksAccept(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Examine() error = %v", err)
 	}
-	outcome, err := reviewer.Judge(examined, checks.Against{Asked: &brief, Language: example.Language, Grade: 3})
+	outcome, err := reviewer.Judge(examined, checks.Against{Asked: &brief, Language: example.Language})
 	if err != nil {
 		t.Fatalf("Judge() error = %v", err)
 	}
@@ -512,7 +597,7 @@ func TestTheGuideNamesOnlyWhatThePackageHolds(t *testing.T) {
 	t.Parallel()
 
 	shipped := loaded(t)
-	encoded, _ := packageFor(t, shipped, request("counting.gaps", 2, 3, 0))
+	encoded, _ := packageFor(t, shipped, request("counting.gaps", rating.Grades12, 3, 0))
 	var tree map[string]any
 	if err := json.Unmarshal(encoded, &tree); err != nil {
 		t.Fatalf("read the package: %v", err)
@@ -571,7 +656,7 @@ func FuzzPackageNotes(f *testing.F) {
 	f.Add("\xff\xfe")
 
 	f.Fuzz(func(t *testing.T, notes string) {
-		asked := request("counting.gaps", 2, 3, 0)
+		asked := request("counting.gaps", rating.Grades12, 3, 0)
 		asked.Notes = notes
 		encoded, err := shipped.Package(asked)
 		if err != nil {

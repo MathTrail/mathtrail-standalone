@@ -15,8 +15,8 @@ import (
 // sentence.
 var fitText = map[rating.Fit]string{
 	rating.FitInside:  "inside the corridor",
-	rating.FitTooHard: "the closest to the corridor, which holds no level; a little too hard",
-	rating.FitTooEasy: "the closest to the corridor, which holds no level; a little too easy",
+	rating.FitTooHard: "the closest to the corridor, which holds no task of the topic; a little too hard",
+	rating.FitTooEasy: "the closest to the corridor, which holds no task of the topic; a little too easy",
 	rating.FitUnknown: "the middle one, standing in for a level that could not be read",
 }
 
@@ -32,19 +32,23 @@ func failureBehind(failures int, topic string) string {
 // rationale is the one sentence the brief carries about why it says what it
 // says. When the model chose instead, it keeps both accounts: what the model
 // asked for and what the rule would have done, so that the two can be told
-// apart afterwards rather than guessed at. A topic the model chose without a
-// difficulty takes the one its own corridor recommends, which the rule's
-// account, being of another topic, does not name — so it is said here.
-func rationale(goal profile.Goal, because string, corridor *rating.Corridor, choice Choice, difficulty int) string {
-	rule := fmt.Sprintf("Rule: %s, so %s. Difficulty %d is %s.",
-		because, goal, corridor.Recommended, fitText[corridor.Fit])
+// apart afterwards rather than guessed at. Where the model named a topic or a
+// level and left the rest to the corridor, the task it gets is one the rule's
+// account, being of another topic or level, does not name — so it is said
+// here.
+func rationale(goal profile.Goal, because string, corridor *rating.Corridor, choice *Choice, point rating.Point) string {
+	rule := fmt.Sprintf("Rule: %s, so %s. Difficulty %d of grades %s is %s.",
+		because, goal, corridor.Recommended.Difficulty, corridor.Recommended.GradeLevel, fitText[corridor.Fit])
 	if !choice.made() {
 		return rule
 	}
 
-	asked := make([]string, 0, 2)
+	asked := make([]string, 0, 3)
 	if choice.Topic != "" {
 		asked = append(asked, "topic "+choice.Topic)
+	}
+	if choice.GradeLevel != "" {
+		asked = append(asked, fmt.Sprintf("grades %s", choice.GradeLevel))
 	}
 	if choice.Difficulty != 0 {
 		asked = append(asked, fmt.Sprintf("difficulty %d", choice.Difficulty))
@@ -55,8 +59,10 @@ func rationale(goal profile.Goal, because string, corridor *rating.Corridor, cho
 		said = "no reason given"
 	}
 	told := ended(fmt.Sprintf("Model asked for %s: %s", strings.Join(asked, " and "), said))
-	if choice.Topic != "" && choice.Difficulty == 0 {
-		told += fmt.Sprintf(" Difficulty %d is the one its corridor recommends.", difficulty)
+	filledIn := choice.GradeLevel == "" || choice.Difficulty == 0
+	if filledIn && (choice.Topic != "" || choice.GradeLevel != "") {
+		told += fmt.Sprintf(" That is difficulty %d of grades %s, its corridor filling in the rest.",
+			point.Difficulty, point.GradeLevel)
 	}
 	return told + " " + rule
 }

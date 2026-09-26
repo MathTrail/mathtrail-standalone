@@ -47,8 +47,9 @@ const (
 	MaxAttempts = 3
 )
 
-// MinDifficulty and MaxDifficulty bound a task's level: from the first of the
-// difficulties the rating puts on its scale to the last, and no others.
+// MinDifficulty and MaxDifficulty bound a task's difficulty inside its level:
+// from the first of the difficulties the rating puts on its ladder to the
+// last, and no others.
 const (
 	MinDifficulty = 1
 	MaxDifficulty = rating.Difficulties
@@ -83,6 +84,9 @@ func (p *Profile) Validate() error {
 	}
 	if !isNumber(p.Ratings.Theta) {
 		return fmt.Errorf("%w: ratings.theta is %v, and a level is a number", ErrInvalid, p.Ratings.Theta)
+	}
+	if !isNumber(p.Ratings.Start) {
+		return fmt.Errorf("%w: ratings.start is %v, and a level is a number", ErrInvalid, p.Ratings.Start)
 	}
 	if err := validateTopics(p.Topics); err != nil {
 		return err
@@ -153,6 +157,12 @@ func validateTopics(topics map[string]Topic) error {
 		case topic.Correct > topic.Answers:
 			return fmt.Errorf("%w: topics[%s] has %d correct out of %d answers",
 				ErrInvalid, id, topic.Correct, topic.Answers)
+		case (topic.MasteredSince == nil) != (topic.MasteredLevel == nil):
+			return fmt.Errorf("%w: topics[%s] has mastered_since and mastered_level apart; a topic is mastered on a day and at a level, or not at all",
+				ErrInvalid, id)
+		case topic.MasteredLevel != nil && !topic.MasteredLevel.Known():
+			return fmt.Errorf("%w: topics[%s].mastered_level is %q, want one of %v",
+				ErrInvalid, id, *topic.MasteredLevel, rating.GradeLevels())
 		}
 		for trap, times := range topic.Traps {
 			if trap == "" || times < 1 {
@@ -175,8 +185,11 @@ func validateRecent(recent []Answer) error {
 		case answer.AnsweredAt.IsZero():
 			return fmt.Errorf("%w: recent[%d] has no answered_at", ErrInvalid, i)
 		case answer.Difficulty < MinDifficulty || answer.Difficulty > MaxDifficulty:
-			return fmt.Errorf("%w: recent[%d].difficulty is %d, the levels are %d to %d",
+			return fmt.Errorf("%w: recent[%d].difficulty is %d, the difficulties are %d to %d",
 				ErrInvalid, i, answer.Difficulty, MinDifficulty, MaxDifficulty)
+		case !answer.GradeLevel.Known():
+			return fmt.Errorf("%w: recent[%d].grade_level is %q, want one of %v",
+				ErrInvalid, i, answer.GradeLevel, rating.GradeLevels())
 		case answer.Pace != PaceFast && answer.Pace != PaceNormal && answer.Pace != PaceSlow:
 			return fmt.Errorf("%w: recent[%d].pace is %q, want fast, normal or slow", ErrInvalid, i, answer.Pace)
 		case answer.Chosen != "" && solver.Place(answer.Chosen) < 0:
@@ -203,8 +216,11 @@ func (t *CurrentTask) validate() error {
 	case t.IssuedAt.IsZero():
 		return fmt.Errorf("%w: current_task has no issued_at, and the pace is measured from it", ErrInvalid)
 	case t.Difficulty < MinDifficulty || t.Difficulty > MaxDifficulty:
-		return fmt.Errorf("%w: current_task.difficulty is %d, the levels are %d to %d",
+		return fmt.Errorf("%w: current_task.difficulty is %d, the difficulties are %d to %d",
 			ErrInvalid, t.Difficulty, MinDifficulty, MaxDifficulty)
+	case !t.GradeLevel.Known():
+		return fmt.Errorf("%w: current_task.grade_level is %q, want one of %v",
+			ErrInvalid, t.GradeLevel, rating.GradeLevels())
 	case len(t.Options) != solver.Count:
 		return fmt.Errorf("%w: current_task offers %d options, want %d", ErrInvalid, len(t.Options), solver.Count)
 	}
@@ -232,8 +248,11 @@ func (r *OpenRequest) validate() error {
 	case r.Brief.TargetConcept == "":
 		return fmt.Errorf("%w: open_request.brief names no topic", ErrInvalid)
 	case r.Brief.Difficulty < MinDifficulty || r.Brief.Difficulty > MaxDifficulty:
-		return fmt.Errorf("%w: open_request.brief.difficulty is %d, the levels are %d to %d",
+		return fmt.Errorf("%w: open_request.brief.difficulty is %d, the difficulties are %d to %d",
 			ErrInvalid, r.Brief.Difficulty, MinDifficulty, MaxDifficulty)
+	case !r.Brief.GradeLevel.Known():
+		return fmt.Errorf("%w: open_request.brief.grade_level is %q, want one of %v",
+			ErrInvalid, r.Brief.GradeLevel, rating.GradeLevels())
 	case r.Brief.PedagogicalGoal != GoalReinforce && r.Brief.PedagogicalGoal != GoalNewTopic:
 		return fmt.Errorf("%w: open_request.brief.pedagogical_goal is %q, want reinforce or new_topic",
 			ErrInvalid, r.Brief.PedagogicalGoal)

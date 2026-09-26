@@ -9,12 +9,21 @@
 // loaded: a caller hands in the numbers it holds and is handed back the
 // numbers that replace them.
 //
+// A task is a grade level and a difficulty inside it, and the fifteen of them
+// stand on that one line as a ladder. The levels overlap, so a child who finds
+// the tasks of their grade too hard has easier ones to go down to, and one who
+// finds them easy has harder ones above; the grade decides only where a child
+// starts on it.
+//
 // Every rating moves the same way: by the distance between what was expected
 // and what happened, narrowed as answers accumulate so that a settled rating
-// is not thrown by one bad day. Only correctness enters that formula. A hint,
-// a slow answer, a run of failures — all of it is recorded elsewhere and
-// changes what the child is asked next, never what the rating says the child
-// knows.
+// is not thrown by one bad day. The first answers are the exception. The start
+// is only a guess made from the grade, so until there are enough answers the
+// level is estimated from all of them at once, and a child placed too high
+// meets easier tasks straight away rather than after a run of failures. Only
+// correctness enters either. A hint, a slow answer, a run of failures — all of
+// it is recorded elsewhere and changes what the child is asked next, never
+// what the rating says the child knows.
 //
 // A task's difficulty is never updated. A task is written for one child and
 // handed out once, so there is no second child whose answer could sharpen the
@@ -39,8 +48,9 @@ const (
 	// decay narrows every step as answers accumulate: k0 / (1 + decay·n).
 	decay = 0.05
 
-	// middleDifficulty is the difficulty that sits at zero on the scale, so
-	// that a child of average level meets it as an even chance.
+	// middleDifficulty is the difficulty a level is centred on: at the
+	// youngest level it sits at zero on the scale, so that a child starting
+	// there meets it as an even chance.
 	middleDifficulty = 3
 )
 
@@ -50,11 +60,6 @@ const (
 func Probability(level, beta float64) float64 {
 	return Guess + (1-Guess)*sigmoid(level-beta)
 }
-
-// Beta is a task's difficulty on the level scale: difficulty 3 sits at zero,
-// so 1 becomes −2 and 5 becomes +2. Difficulty runs from 1 to 5, and the
-// checks that accept a task are what hold it there.
-func Beta(difficulty int) float64 { return float64(difficulty - middleDifficulty) }
 
 // State is what a child's ratings say before an answer: the level overall, the
 // correction for the topic this task belongs to, and how many answers each of

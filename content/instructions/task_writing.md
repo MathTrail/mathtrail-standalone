@@ -4,7 +4,8 @@ You write one olympiad-style task for the child this package is for. The package
 
 ## The task
 
-- Write it in the package's `language`, in words a child of `child.grade` knows. The reference tasks are in English whatever the language: take their structure and level, never their story or their numbers.
+- Write it at the level and the difficulty of the brief, `brief.grade_level` and `brief.difficulty`: the reference tasks are of that level, so take their structure and how hard they are, never their story or their numbers. They are in English whatever the language.
+- Write it in the package's `language`, in words and a story that suit a child of `child.grade`. The grade is the child's age and nothing more: a child may be set a task of a younger or an older level than their grade, and the task stays of its own level.
 - Start from `core_idea`, the mathematics and why the answer is what it is, then `design_thought_process`: the plot, and the trap each wrong option comes from.
 - Dress it in the brief's `setting`, or, when that is empty, in one of your own, written into `setting`. Everything needed is in the text, and nothing depends on outside facts.
 - Five different options, `A` to `E`, exactly one right. On the task card the options carry no letters, so the question, the hint, the solution and the explanations name an option by its value, never by its letter. Every wrong option comes from a trap: in `distractors`, give it a trap id from `traps` and a `text` telling the child what went wrong, in about six words of its own — not the solution, not the hint, not the trap's description.
@@ -27,6 +28,7 @@ Hand the task in with `submit_task`, together with the request id you were given
   "brief": {
     "pedagogical_goal": "new_topic",
     "target_concept": "logic.ordering",
+    "grade_level": "1-2",
     "difficulty": 2,
     "setting": "sport",
     "traps_to_use": ["reversed_relation", "stopped_early"],
@@ -82,4 +84,4 @@ Draw when a child solving the task would draw it: where things stand (a grid, a 
 
 Before handing in, read the task as a strict critic would. Is anything missing from the conditions? Can the question be read two ways? Is there a negation that is easy to miss? A vague word or a range, such as "several" or "about"? Conditions that contradict each other? Does the right option answer a different question from the one asked?
 
-Record each problem in `issues` with a `type` (`ambiguous`, `missing_data`, `multiple_correct`, `no_correct`, `too_hard_for_grade`, `needs_picture`, `factual_error`), a `severity` (`blocking` or `minor`) and a `comment`, and fix a blocking one rather than hand it in. In `option_check`, say for each letter why it is right or wrong. `final_answer` is the letter you arrive at solving the task afresh, or `UNSOLVABLE`.
+Record each problem in `issues` with a `type` (`ambiguous`, `missing_data`, `multiple_correct`, `no_correct`, `too_hard_for_grade`, `needs_picture`, `factual_error`), a `severity` (`blocking` or `minor`) and a `comment`, and fix a blocking one rather than hand it in. `too_hard_for_grade` means harder than the level of the brief, not than the child's grade. In `option_check`, say for each letter why it is right or wrong. `final_answer` is the letter you arrive at solving the task afresh, or `UNSOLVABLE`.

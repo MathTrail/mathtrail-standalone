@@ -17,6 +17,11 @@ import (
 // here ever writes to them: a test that can rewrite its own answer key proves
 // nothing.
 //
+// The prototype had no ladder: a difficulty meant the same thing at every
+// grade. Its numbers are therefore the numbers of the youngest level, whose
+// shift is zero, and every corridor below is worked out over that level's five
+// points.
+//
 // One part of the file is deliberately not replayed. Its doc_example runs
 // three answers with one step size for both levels — what the prototype used
 // before the two were separated — and the file carries config_example for the
@@ -127,13 +132,13 @@ func TestTheReferenceSequenceReplays(t *testing.T) {
 		t.Run(fmt.Sprintf("step %d", step.Step), func(t *testing.T) {
 			nearly(t, state.Theta, step.ThetaBefore, tolerance, "the overall level before")
 			nearly(t, state.Delta, step.DeltaBefore, tolerance, "the topic before")
-			nearly(t, rating.Beta(step.Difficulty), step.BetaBefore, tolerance, "the difficulty")
+			nearly(t, youngest(step.Difficulty).Beta(), step.BetaBefore, tolerance, "the difficulty")
 
 			// The reference has a third outcome, "I don't understand", which
 			// this service does not: that is a button asking for a simpler
 			// explanation, recorded beside the answer rather than instead of
 			// it. It scored zero there, exactly as a wrong answer does here.
-			result := rating.Update(state, rating.Beta(step.Difficulty), step.Correct != nil && *step.Correct)
+			result := rating.Update(state, youngest(step.Difficulty).Beta(), step.Correct != nil && *step.Correct)
 
 			nearly(t, result.Probability, step.Probability, tolerance, "the chance of a correct answer")
 			nearly(t, result.KTheta, step.KStudent, tolerance, "how far the overall level could move")
@@ -170,7 +175,7 @@ func TestTheReferenceCorridorsAgree(t *testing.T) {
 func checkCorridor(t *testing.T, want *goldenCorridor) {
 	t.Helper()
 
-	got := rating.NewCorridor(want.Level)
+	got := rating.NewCorridor(want.Level, rating.Points(rating.Grades12))
 
 	nearly(t, got.BetaMin, want.BetaMin, tolerance, "the hard end of the corridor")
 	nearly(t, got.BetaMax, want.BetaMax, tolerance, "the easy end of the corridor")
@@ -178,13 +183,13 @@ func checkCorridor(t *testing.T, want *goldenCorridor) {
 
 	for difficulty := 1; difficulty <= rating.Difficulties; difficulty++ {
 		key := strconv.Itoa(difficulty)
-		nearly(t, got.Probability(difficulty), want.Probabilities[key], tolerance,
+		nearly(t, got.Probability(youngest(difficulty)), want.Probabilities[key], tolerance,
 			"the chance at difficulty "+key)
 	}
 
-	sameDifficulties(t, got.Inside, want.Inside)
-	if got.Recommended != want.Recommended {
-		t.Errorf("recommended difficulty = %d, want %d", got.Recommended, want.Recommended)
+	sameDifficulties(t, difficultiesOf(t, got.Inside), want.Inside)
+	if got.Recommended != youngest(want.Recommended) {
+		t.Errorf("recommended point = %+v, want difficulty %d of %s", got.Recommended, want.Recommended, rating.Grades12)
 	}
 	if string(got.Fit) != want.Fit {
 		t.Errorf("fit = %q, want %q", got.Fit, want.Fit)

@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"testing"
 	"testing/fstest"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
 const (
@@ -169,14 +171,14 @@ func TestCatalogThatIsNotAListStopsTheService(t *testing.T) {
 func TestTopicKnowsWhichLevelsItIsOfferedAt(t *testing.T) {
 	t.Parallel()
 
-	topic := Topic{ID: "logic.ordering", GradeLevels: []string{Level12, Level34}}
+	topic := Topic{ID: "logic.ordering", GradeLevels: []rating.GradeLevel{rating.Grades12, rating.Grades34}}
 	for _, tc := range []struct {
-		level string
+		level rating.GradeLevel
 		want  bool
 	}{
-		{Level12, true},
-		{Level34, true},
-		{Level56, false},
+		{rating.Grades12, true},
+		{rating.Grades34, true},
+		{rating.Grades56, false},
 		{"", false},
 	} {
 		if got := topic.HasLevel(tc.level); got != tc.want {

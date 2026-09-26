@@ -2,6 +2,7 @@ package profile_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"slices"
 	"strings"
@@ -236,4 +237,98 @@ func sameLetters(t *testing.T, where string, list any) {
 	if !isList || !slices.Equal(letters, solver.Letters()) {
 		t.Errorf("%s lists %v, want the letters %v", where, list, solver.Letters())
 	}
+}
+
+// Every fixture holds to the schema: every field the schema requires is there,
+// at every depth, and every value the schema lists the choices of is one of
+// them. The fixtures are what the tests of the whole service stand on, so a
+// fixture missing a field the file must carry would let a test pass on a file
+// no service writes.
+func TestEveryFixtureHoldsToTheSchema(t *testing.T) {
+	t.Parallel()
+
+	var schema map[string]any
+	if err := json.Unmarshal(profile.Schema(), &schema); err != nil {
+		t.Fatalf("the schema is not a JSON document: %v", err)
+	}
+	defs, _ := schema["$defs"].(map[string]any)
+
+	for _, student := range students {
+		t.Run(student, func(t *testing.T) {
+			t.Parallel()
+
+			var fixture any
+			if err := json.Unmarshal(readFixture(t, student), &fixture); err != nil {
+				t.Fatalf("the fixture is not a JSON document: %v", err)
+			}
+			holds(t, student, fixture, schema, defs)
+		})
+	}
+}
+
+// holds fails the test for every place a value breaks what its piece of the
+// schema requires and lists.
+func holds(t *testing.T, path string, value any, schema, defs map[string]any) {
+	t.Helper()
+
+	if ref, isRef := schema["$ref"].(string); isRef {
+		schema, _ = defs[strings.TrimPrefix(ref, "#/$defs/")].(map[string]any)
+	}
+	if choice, isChoice := schema["oneOf"].([]any); isChoice {
+		schema = branchFor(value, choice)
+		holds(t, path, value, schema, defs)
+		return
+	}
+	if choices, listed := schema["enum"].([]any); listed && !slices.Contains(choices, value) {
+		t.Errorf("%s is %v, want one of %v", path, value, choices)
+	}
+
+	switch value := value.(type) {
+	case map[string]any:
+		holdsObject(t, path, value, schema, defs)
+	case []any:
+		items, _ := schema["items"].(map[string]any)
+		for i, item := range value {
+			holds(t, fmt.Sprintf("%s[%d]", path, i), item, items, defs)
+		}
+	}
+}
+
+// holdsObject is holds for an object: the fields its piece of the schema
+// requires are there, and each field it has holds to its own piece.
+func holdsObject(t *testing.T, path string, object, schema, defs map[string]any) {
+	t.Helper()
+
+	required, _ := schema["required"].([]any)
+	for _, name := range required {
+		if key, _ := name.(string); !hasKey(object, key) {
+			t.Errorf("%s has no %s, which the schema requires", path, name)
+		}
+	}
+	properties, _ := schema["properties"].(map[string]any)
+	additional, _ := schema["additionalProperties"].(map[string]any)
+	for name, below := range object {
+		if described, isDescribed := properties[name].(map[string]any); isDescribed {
+			holds(t, path+"."+name, below, described, defs)
+		} else if additional != nil {
+			holds(t, path+"."+name, below, additional, defs)
+		}
+	}
+}
+
+// hasKey reports whether an object names this key at all, even as null.
+func hasKey(object map[string]any, key string) bool {
+	_, present := object[key]
+	return present
+}
+
+// branchFor is the branch of a "this or null" choice a value is held to.
+func branchFor(value any, choice []any) map[string]any {
+	for _, branch := range choice {
+		described, _ := branch.(map[string]any)
+		if isNull := described["type"] == "null"; isNull == (value == nil) {
+			return described
+		}
+	}
+	return map[string]any{}
 }

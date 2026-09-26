@@ -11,6 +11,7 @@
   "ratings": {
     "answers": 3,
     "consecutive_failures": 0,
+    "start": 0,
     "theta": -0.06546486877618624
   },
   "recent": [
@@ -19,6 +20,7 @@
       "confused": false,
       "correct": true,
       "difficulty": 2,
+      "grade_level": "1-2",
       "hint_used": false,
       "pace": "slow",
       "task_id": "tsk_dima_01",
@@ -30,6 +32,7 @@
       "confused": false,
       "correct": false,
       "difficulty": 2,
+      "grade_level": "1-2",
       "hint_used": false,
       "pace": "slow",
       "task_id": "tsk_dima_02",
@@ -41,6 +44,7 @@
       "confused": false,
       "correct": true,
       "difficulty": 2,
+      "grade_level": "1-2",
       "hint_used": true,
       "pace": "normal",
       "task_id": "tsk_dima_03",
@@ -83,6 +87,7 @@
       "correct": 1,
       "delta": 0.09300599330296233,
       "last_issued": "2026-09-03",
+      "mastered_level": null,
       "mastered_since": null,
       "top_streak": 0,
       "traps": {},
@@ -93,6 +98,7 @@
       "correct": 0,
       "delta": -0.31661899016313716,
       "last_issued": "2026-09-02",
+      "mastered_level": null,
       "mastered_since": null,
       "top_streak": 0,
       "traps": {
@@ -105,6 +111,7 @@
       "correct": 1,
       "delta": 0.08606125483839842,
       "last_issued": "2026-09-01",
+      "mastered_level": null,
       "mastered_since": null,
       "top_streak": 0,
       "traps": {},

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
 // The five fixtures are the prototype's own seed profiles, carried into this
@@ -81,6 +82,13 @@ type replayedRatings struct {
 // The ratings in the fixtures against the ones the prototype exported. This is
 // the check that the conversion did not quietly invent a number: the same
 // answers, replayed by two implementations, have to end in the same place.
+//
+// The prototype had no ladder, and every child of it started from zero at their
+// own grade. The fixtures stand on the ladder, so a child of grades 3–4 is
+// where the prototype put them plus the shift of that level: the same answers,
+// on tasks of the child's own level, moved by the same steps. They are the
+// prototype's replay carried onto the ladder, not what this service would make
+// of the same answers — it would have spent the first five on its trial series.
 func TestTheFixturesCarryTheReferenceRatings(t *testing.T) {
 	t.Parallel()
 
@@ -102,7 +110,9 @@ func TestTheFixturesCarryTheReferenceRatings(t *testing.T) {
 		t.Run(want.Student, func(t *testing.T) {
 			t.Parallel()
 
-			checkRatings(t, parseFixture(t, want.Student), want)
+			p := parseFixture(t, want.Student)
+			want.Theta += rating.Start(p.Student.Grade)
+			checkRatings(t, p, want)
 		})
 	}
 }

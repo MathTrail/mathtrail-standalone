@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
 
@@ -43,9 +44,9 @@ func Structure(draft Draft, asked *profile.Brief, catalog Catalog) []Problem {
 	return problems
 }
 
-// checkBrief checks the brief handed back. The topic and the difficulty are
-// the ones the request recorded: a model that wants others asks for them when
-// it asks for the task, and the request then records its choice.
+// checkBrief checks the brief handed back. The topic, the level and the
+// difficulty are the ones the request recorded: a model that wants others asks
+// for them when it asks for the task, and the request then records its choice.
 func checkBrief(brief, asked *profile.Brief, catalog Catalog) []Problem {
 	var problems []Problem
 
@@ -64,6 +65,14 @@ func checkBrief(brief, asked *profile.Brief, catalog Catalog) []Problem {
 	case brief.TargetConcept != asked.TargetConcept:
 		problems = append(problems, structural("brief.target_concept is not the topic this task was asked for; "+
 			"a different topic is chosen when asking for the task, not when handing it in"))
+	}
+
+	switch {
+	case !brief.GradeLevel.Known():
+		problems = append(problems, structural("brief.grade_level must be one of %s", quotedLevels()))
+	case brief.GradeLevel != asked.GradeLevel:
+		problems = append(problems, structural("brief.grade_level is not the level this task was asked for; "+
+			"a different level is chosen when asking for the task, not when handing it in"))
 	}
 
 	switch {
@@ -340,4 +349,15 @@ func several(count int, one, many string) string {
 		return one
 	}
 	return fmt.Sprintf("%d %s", count, many)
+}
+
+// quotedLevels are the three levels as a refusal names them: "1-2", "3-4" or
+// "5-6".
+func quotedLevels() string {
+	levels := rating.GradeLevels()
+	quoted := make([]string, 0, len(levels))
+	for _, level := range levels {
+		quoted = append(quoted, fmt.Sprintf("%q", level))
+	}
+	return strings.Join(quoted[:len(quoted)-1], ", ") + " or " + quoted[len(quoted)-1]
 }
