@@ -164,7 +164,7 @@ func TestA405SaysWhichMethodsWork(t *testing.T) {
 func newRouter(t *testing.T) http.Handler {
 	t.Helper()
 
-	router, err := httpserver.NewRouter(httpserver.NewHealthHandler(), zaptest.NewLogger(t), httpserver.Observability{
+	router, err := httpserver.NewRouter(publicURL, endpoints(), zaptest.NewLogger(t), httpserver.Observability{
 		Traces: tracenoop.NewTracerProvider(),
 		Meters: metricnoop.NewMeterProvider(),
 		Flush:  func(context.Context, bool) error { return nil },
@@ -174,3 +174,26 @@ func newRouter(t *testing.T) http.Handler {
 	}
 	return router
 }
+
+// publicURL is the address the router under test serves. Its host is the one a
+// test request carries when it names none.
+const publicURL = "http://example.com"
+
+// reached is what the stand-in MCP endpoint answers, so that a case can tell a
+// request that got through to it from one refused on the way.
+const reached = "reached the endpoint"
+
+// endpoints are the router's handlers, with a stand-in for the MCP endpoint:
+// what the endpoint itself does is for its own package to test, and what the
+// router does in front of it is for this one.
+func endpoints() httpserver.Endpoints {
+	return httpserver.Endpoints{
+		Health: httpserver.NewHealthHandler(),
+		MCP: http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			_, _ = w.Write([]byte(reached))
+		}),
+	}
+}
+
+// noDelivery is a delivery of telemetry that sends nothing and never fails.
+func noDelivery(context.Context, bool) error { return nil }

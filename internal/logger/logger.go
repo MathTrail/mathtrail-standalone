@@ -1,4 +1,6 @@
-// Package logger builds the one logger the service uses.
+// Package logger builds the one logger the service uses, and holds the rules
+// for two things a line carries wherever it is written: the id of the request
+// it belongs to, and what a panic was.
 //
 // The JSON encoder writes severity, message and time, which is what a log
 // collector reads without being configured for us. It is the only reason this

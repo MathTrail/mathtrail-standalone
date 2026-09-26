@@ -45,7 +45,7 @@ func TestHalfFilledTelemetryIsRefusedByName(t *testing.T) {
 			obs := complete
 			c.missing(&obs)
 
-			_, err := httpserver.NewRouter(httpserver.NewHealthHandler(), zap.NewNop(), obs)
+			_, err := httpserver.NewRouter(publicURL, endpoints(), zap.NewNop(), obs)
 			if !errors.Is(err, httpserver.ErrObservability) {
 				t.Fatalf("NewRouter() error = %v, want it to refuse", err)
 			}
@@ -62,7 +62,7 @@ func TestHalfFilledTelemetryIsRefusedByName(t *testing.T) {
 func TestAMeterThatCannotCountStopsTheRouter(t *testing.T) {
 	t.Parallel()
 
-	_, err := httpserver.NewRouter(httpserver.NewHealthHandler(), zap.NewNop(), httpserver.Observability{
+	_, err := httpserver.NewRouter(publicURL, endpoints(), zap.NewNop(), httpserver.Observability{
 		Traces: tracenoop.NewTracerProvider(),
 		Meters: refusingMeters{},
 		Flush:  func(context.Context, bool) error { return nil },

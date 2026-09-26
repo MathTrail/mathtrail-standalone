@@ -263,6 +263,11 @@ func (c *Content) Instruction(name string) (string, bool) {
 	return text, ok
 }
 
+// ServerInstructions are what the MCP endpoint tells every model about the
+// service as it connects: the child, the profile, the order of a lesson and the
+// answer that stays hidden.
+func (c *Content) ServerInstructions() string { return c.instructions[serverInstructionsName] }
+
 // InstructionsVersion identifies what this binary tells the model about
 // writing a task: the instructions, and the solver templates and drawing
 // frames it is shown beside them. Every log line about a generated task holds

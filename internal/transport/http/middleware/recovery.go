@@ -2,25 +2,19 @@ package middleware
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
-	"reflect"
-	"runtime"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/apierror"
+	"github.com/MathTrail/mathtrail-standalone/internal/logger"
 )
 
 // panicKey holds, for the length of one request, what the request panicked
 // with and where, so that the request's own line in the log says it. It is a
 // type of its own, so that nothing else a request carries can be taken for it.
 type panicKey struct{}
-
-// maxStackDepth is how many frames of a panicked request's stack are read.
-const maxStackDepth = 64
 
 // ZapRecovery turns a panic of a handler into a plain JSON answer. One request
 // must not take the process down: another child is in the middle of a task on
@@ -37,7 +31,7 @@ const maxStackDepth = 64
 func ZapRecovery() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		recovering(c, func(recovered any) {
-			c.Set(panicKey{}, []zap.Field{panicField(recovered), panicStack()})
+			c.Set(panicKey{}, []zap.Field{logger.PanicValue(recovered), logger.PanicStack()})
 		})
 	}
 }
@@ -46,12 +40,12 @@ func ZapRecovery() gin.HandlerFunc {
 // it, whose request never reaches the request log. It writes the line itself,
 // naming the request as the request log does, and answers and passes an abort
 // on as ZapRecovery does.
-func LastResort(logger *zap.Logger) gin.HandlerFunc {
+func LastResort(log *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		recovering(c, func(recovered any) {
-			logger.Error("panic",
-				panicField(recovered),
-				panicStack(),
+			log.Error("panic",
+				logger.PanicValue(recovered),
+				logger.PanicStack(),
 				zap.String("method", method(c)),
 				zap.String("route", route(c)),
 				zap.String("request_id", RequestIDFrom(c)),
@@ -86,35 +80,6 @@ func aborted(recovered any) bool {
 	return isError && errors.Is(err, http.ErrAbortHandler)
 }
 
-// panicStack is the stack of the request that panicked, from the code that
-// panicked down. What stands above that code is left off: the recovery that
-// caught the panic, and the runtime's own frames — one for a panic called by
-// name, a few more for a fault the runtime raised itself — so that the first
-// line a reader sees is the line that failed.
-func panicStack() zap.Field {
-	callers := make([]uintptr, maxStackDepth)
-	frames := runtime.CallersFrames(callers[:runtime.Callers(1, callers)])
-
-	var stack strings.Builder
-	panicking, reached := false, false
-	for {
-		frame, more := frames.Next()
-		switch {
-		case reached:
-		case frame.Function == "runtime.gopanic":
-			panicking = true
-		case panicking && !strings.HasPrefix(frame.Function, "runtime."):
-			reached = true
-		}
-		if reached {
-			fmt.Fprintf(&stack, "%s\n\t%s:%d\n", frame.Function, frame.File, frame.Line)
-		}
-		if !more {
-			return zap.String("stack", stack.String())
-		}
-	}
-}
-
 // answerPanic answers a request that panicked. A handler that panicked halfway
 // through its answer has already sent a status and headers, and writing a
 // second one corrupts what the client is reading: all that is left then is to
@@ -128,29 +93,4 @@ func answerPanic(c *gin.Context) {
 		Code:    apierror.CodeInternal,
 		Message: "an unexpected error occurred",
 	})
-}
-
-// panicField names what the request panicked with, and none of what it
-// carried. A fault of the runtime is put in the runtime's own words, found
-// inside whatever wrapped it, because those words hold types and numbers and
-// no data. Anything else a handler panicked with is a value of ours or a
-// library's, which may hold a task, an answer or a profile, so only its type is
-// written: the stack beside it shows where it came from.
-func panicField(recovered any) zap.Field {
-	var fault runtime.Error
-	if err, isError := recovered.(error); isError && errors.As(err, &fault) && ofTheRuntime(fault) {
-		return zap.String("panic", fault.Error())
-	}
-	return zap.String("panic", fmt.Sprintf("a value of type %T", recovered))
-}
-
-// ofTheRuntime says whether a fault was made by the Go runtime itself. Any type
-// can call itself a runtime error by having the method, and one that is not
-// the runtime's may say anything at all.
-func ofTheRuntime(fault runtime.Error) bool {
-	kind := reflect.TypeOf(fault)
-	for kind.Kind() == reflect.Pointer {
-		kind = kind.Elem()
-	}
-	return kind.PkgPath() == "runtime"
 }

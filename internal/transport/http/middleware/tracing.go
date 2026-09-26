@@ -10,6 +10,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/logger"
 	"github.com/MathTrail/mathtrail-standalone/internal/telemetry"
 )
 
@@ -38,9 +39,9 @@ const sampledKey = "trace_sampled"
 // Every request offers a delivery, and says whether its trace was kept: its
 // spans are sent only then, and the measurements whenever they are due, which
 // is how a quiet instance whose requests keep no trace still sends them.
-func Tracing(tracers trace.TracerProvider, flush func(context.Context, bool) error, logger *zap.Logger) gin.HandlersChain {
+func Tracing(tracers trace.TracerProvider, flush func(context.Context, bool) error, log *zap.Logger) gin.HandlersChain {
 	return gin.HandlersChain{
-		deliver(flush, logger),
+		deliver(flush, log),
 		otelgin.Middleware(telemetry.ServiceName,
 			otelgin.WithTracerProvider(tracers),
 			// The standard header and nothing else. Baggage would carry
@@ -64,24 +65,24 @@ func Tracing(tracers trace.TracerProvider, flush func(context.Context, bool) err
 // up to the deadline the delivery brings. It happens here all the same,
 // because once the answer is sent the instance may have no processor left to
 // send anything with.
-func deliver(flush func(context.Context, bool) error, logger *zap.Logger) gin.HandlerFunc {
+func deliver(flush func(context.Context, bool) error, log *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Deferred, so that a request dropped on the way out — the abort a
 		// handler asked for, passed through here to the server — still sends
 		// what it recorded: its spans are the ones worth reading.
-		defer deliverDue(c, flush, logger)
+		defer deliverDue(c, flush, log)
 		c.Next()
 	}
 }
 
 // deliverDue asks for what is due: the request's spans when its trace is kept,
 // and whatever else the telemetry holds that is due to leave.
-func deliverDue(c *gin.Context, flush func(context.Context, bool) error, logger *zap.Logger) {
+func deliverDue(c *gin.Context, flush func(context.Context, bool) error, log *zap.Logger) {
 	// A delivery that panics costs a line, not the request: its answer is
 	// written, and a request dropped on the way out stays dropped.
 	defer func() {
 		if recovered := recover(); recovered != nil {
-			logger.Error("telemetry_flush_panicked", panicField(recovered), zap.String("request_id", RequestIDFrom(c)))
+			log.Error("telemetry_flush_panicked", logger.PanicValue(recovered), zap.String("request_id", RequestIDFrom(c)))
 		}
 	}()
 	// Detached from the request on purpose. A caller that hung up has cancelled
@@ -90,7 +91,7 @@ func deliverDue(c *gin.Context, flush func(context.Context, bool) error, logger 
 	// a batch that failed to send is dropped rather than kept for the next
 	// attempt. The delivery brings its own deadline.
 	if err := flush(context.WithoutCancel(c.Request.Context()), c.GetBool(sampledKey)); err != nil {
-		logger.Warn("telemetry_flush_failed",
+		log.Warn("telemetry_flush_failed",
 			zap.Error(err),
 			zap.String("request_id", RequestIDFrom(c)),
 		)

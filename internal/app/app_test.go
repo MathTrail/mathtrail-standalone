@@ -7,8 +7,10 @@ import (
 	"errors"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"runtime"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -244,6 +246,43 @@ func TestContainerCarriesTheKeyRing(t *testing.T) {
 	}
 	if _, err := ring.Open(seal.PurposeTaskAnswer, value, "OX1sT9"); err != nil {
 		t.Errorf("Open() error = %v, want the ring the container built to be usable", err)
+	}
+}
+
+// The container serves the MCP endpoint behind its sign-in: with the
+// development sign-in switched on a client is answered, and without it — the
+// way a deployment always runs — nobody is let in.
+func TestContainerServesTheEndpointToSomebodySignedInOnly(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name    string
+		devAuth bool
+		want    int
+	}{
+		{name: "development sign-in", devAuth: true, want: http.StatusOK},
+		{name: "no sign-in", devAuth: false, want: http.StatusUnauthorized},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			cfg := testConfig()
+			cfg.DevAuth = tc.devAuth
+			container := containerFrom(t, cfg)
+
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/mcp",
+				strings.NewReader(`{"jsonrpc":"2.0","id":1,"method":"tools/list"}`))
+			req.Host = "localhost" // the configured public URL's host
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Accept", "application/json, text/event-stream")
+			rec := httptest.NewRecorder()
+			container.Router.ServeHTTP(rec, req)
+
+			if rec.Code != tc.want {
+				t.Errorf("status = %d, want %d; body = %s", rec.Code, tc.want, rec.Body.String())
+			}
+		})
 	}
 }
 
