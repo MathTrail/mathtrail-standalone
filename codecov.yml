@@ -17,6 +17,13 @@ coverage:
       default:
         target: 90%
 
+# The contract every store is held to is test code that lives in a package
+# rather than a test file, because a test file cannot be shared between
+# packages. Like any test it measures rather than being measured: the lines
+# that report a failure never run while the stores keep the contract.
+ignore:
+  - "internal/store/storetest"
+
 comment:
   layout: "condensed_header, diff, files"
   require_changes: true
