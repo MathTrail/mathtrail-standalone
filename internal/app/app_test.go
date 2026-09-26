@@ -179,10 +179,12 @@ func TestTheDrainLeavesTheCloseItsShare(t *testing.T) {
 	// second away and half a second away.
 	elapsed := time.Since(started)
 	if least := (cfg.CloseTimeout() + cfg.DrainTimeout()) / 2; elapsed < least {
-		t.Errorf("the drain took %v, want it to wait out its share of %v", elapsed, cfg.DrainTimeout())
+		t.Errorf("the drain took %v, want at least %v: it waits out its share of %v",
+			elapsed, least, cfg.DrainTimeout())
 	}
 	if most := (cfg.DrainTimeout() + cfg.ShutdownTimeout) / 2; elapsed >= most {
-		t.Errorf("the drain took %v, want it done within its share of %v", elapsed, cfg.DrainTimeout())
+		t.Errorf("the drain took %v, want less than %v: it is done within its share of %v",
+			elapsed, most, cfg.DrainTimeout())
 	}
 }
 

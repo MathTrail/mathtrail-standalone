@@ -3,6 +3,7 @@
 .git
 .github
 .vscode
+.sonarlint
 .env
 .devcontainer
 prototype
