@@ -24,6 +24,18 @@ GO_LICENSES := "github.com/google/go-licenses/v2@v2.0.1"
 INSPECTOR_IMAGE := "ghcr.io/modelcontextprotocol/inspector:2.7.0@sha256:ae22e300c9fc6f4088b490d78fa8079f139642de632cd9ad40f7d9a3d50b8fd8"
 # Where a local server started with `just run` serves the endpoint.
 LOCAL_MCP := "http://localhost:8080/mcp"
+# Where a live run of the lesson is held: a folder outside the repository, so
+# that the chat's model finds none of its files — no project instructions, no
+# code, no reference task with its answer. The server's log of the run is kept
+# there too.
+PLAY_DIR := env("MATHTRAIL_PLAY_DIR", home_directory() / "mathtrail-play")
+# The model a live run writes its tasks with, by its id rather than by an alias
+# that moves on to a newer model, so that runs compare; MATHTRAIL_PLAY_MODEL
+# names another.
+PLAY_MODEL := env("MATHTRAIL_PLAY_MODEL", "claude-sonnet-5")
+# The lesson's tools as a chat's model calls them. The one only a card calls is
+# not among them.
+PLAY_TOOLS := "mcp__mathtrail__get_profile mcp__mathtrail__save_profile mcp__mathtrail__get_progress mcp__mathtrail__next_task mcp__mathtrail__submit_task mcp__mathtrail__submit_answer"
 # The Inspector shares this environment's network, so that it reaches the local
 # server at its own address, and it listens on the loopback alone rather than on
 # every interface its image asks for. Secrets it would keep — the tokens of a
@@ -139,6 +151,35 @@ inspect *args:
 # Ask the MCP endpoint of a server started with `just run` from the terminal
 inspect-cli *args:
     {{ INSPECTOR_RUN }} --cli --server-url {{ LOCAL_MCP }} --transport http {{ args }}
+
+# The server keeps its profiles in memory, so every start is a first sign-in:
+# a live run starts it anew for each scenario. Each start writes a log of its
+# own, JSON lines named by the time it started, so that the journal of one
+# child is read from one file.
+# Run the server for a live run of the lesson: the development sign-in, a new child, JSON lines into a log of its own
+play-server:
+    mkdir -p "{{ PLAY_DIR }}"
+    MATHTRAIL_LOG_FORMAT=json MATHTRAIL_DEV_AUTH=true \
+        MATHTRAIL_SEAL_KEY_CURRENT="$(head -c 32 /dev/urandom | base64 | tr -d '\n')" \
+        go run ./cmd/server > "{{ PLAY_DIR }}/server-$(date -u +%Y%m%dT%H%M%SZ).jsonl"
+
+# The chat is Claude Code in the run's folder, connected through its .mcp.json
+# to the server of `just play-server` and to nothing else. It has none of its
+# own tools — no files, no shell, no web — and the lesson's tools need no
+# permission; testdata/live/session.md tells it this is a lesson, not a coding
+# session. Arguments go to claude as they are: `just play` opens the chat, and
+# `just play -p --resume <session>` sends it the message on standard input.
+# Hold a lesson with the server of `just play-server`, as a chat in Claude Code that draws no cards
+[positional-arguments]
+play *args:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mkdir -p "{{ PLAY_DIR }}"
+    printf '{"mcpServers": {"mathtrail": {"type": "http", "url": "%s"}}}\n' "{{ LOCAL_MCP }}" > "{{ PLAY_DIR }}/.mcp.json"
+    session="$(cat "{{ justfile_directory() }}/testdata/live/session.md")"
+    cd "{{ PLAY_DIR }}"
+    exec claude --model "{{ PLAY_MODEL }}" --strict-mcp-config --mcp-config .mcp.json --tools "" \
+        --allowedTools "{{ PLAY_TOOLS }}" --append-system-prompt "$session" "$@"
 
 # Show one reference task beside the solver that proves its answer
 solver id:

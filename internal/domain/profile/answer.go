@@ -318,7 +318,9 @@ func (p *Profile) place(before rating.State, point rating.Point, correct bool) (
 func (p *Profile) trialSoFar() []rating.Answer {
 	given := p.answers()
 	count := min(max(p.Ratings.Answers, 0), len(given))
-	answers := make([]rating.Answer, 0, count+1)
+	// Only an answer of the series asks for them, so they and the answer on its
+	// way never outnumber the series.
+	answers := make([]rating.Answer, 0, rating.TrialAnswers)
 	for i := len(given) - count; i < len(given); i++ {
 		answers = append(answers, rating.Answer{Point: given[i].point(), Correct: given[i].Correct})
 	}

@@ -359,20 +359,52 @@ func TestContainerServesTheToolsOfTheLesson(t *testing.T) {
 		t.Errorf("tools = %v, want %v", names, want)
 	}
 
-	for tool, arguments := range map[string]string{"get_profile": `{}`, "next_task": `{"language":"en"}`} {
-		var answered struct {
-			Result struct {
-				StructuredContent struct {
-					Screen string `json:"screen"`
-				} `json:"structuredContent"`
-			} `json:"result"`
-		}
-		askEndpoint(t, container, `{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"`+tool+
-			`","arguments":`+arguments+`}}`, &answered)
-		if got := answered.Result.StructuredContent.Screen; got != "first_run" {
-			t.Errorf("%s shows %q, want first_run: nothing is kept yet", tool, got)
+	// Nothing is kept yet: the profile shows the first sign-in on its screen,
+	// and a task asked for says there is no profile to write one for, in the
+	// words alone it answers in.
+	for _, call := range []struct {
+		tool, arguments string
+		inWords         bool
+	}{
+		{tool: "get_profile", arguments: `{}`},
+		{tool: "next_task", arguments: `{"language":"en"}`, inWords: true},
+	} {
+		payload, words := callTool(t, container, call.tool, call.arguments)
+		switch {
+		case call.inWords && (payload != nil || !strings.Contains(words, "There is no profile yet")):
+			t.Errorf("%s answers with the payload %+v and says %q, want the first sign-in in words alone",
+				call.tool, payload, words)
+		case !call.inWords && (payload == nil || payload.Screen != "first_run"):
+			t.Errorf("%s shows %+v, want the first_run screen: nothing is kept yet", call.tool, payload)
 		}
 	}
+}
+
+// screenPayload is as much of a tool's payload as says which screen a card
+// draws.
+type screenPayload struct {
+	Screen string `json:"screen"`
+}
+
+// callTool calls a tool through the container's MCP endpoint, and reads its
+// payload, nil when it has none, and the first block of its words.
+func callTool(t *testing.T, container *app.Container, tool, arguments string) (payload *screenPayload, words string) {
+	t.Helper()
+
+	var answered struct {
+		Result struct {
+			Content []struct {
+				Text string `json:"text"`
+			} `json:"content"`
+			StructuredContent *screenPayload `json:"structuredContent"`
+		} `json:"result"`
+	}
+	askEndpoint(t, container, `{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"`+tool+
+		`","arguments":`+arguments+`}}`, &answered)
+	if len(answered.Result.Content) > 0 {
+		words = answered.Result.Content[0].Text
+	}
+	return answered.Result.StructuredContent, words
 }
 
 // askEndpoint sends one message to the container's MCP endpoint, as a client

@@ -1,0 +1,104 @@
+[
+  {
+    "id": "first-lesson",
+    "from": "the prototype's masha and sasha",
+    "language": "ru",
+    "why": "A new child from the first sign-in through most of the trial series: two misses in a row, after which the series offers easier tasks; \"I don't know\" as an answer; the hint; the progress while the series runs.",
+    "profile": { "pseudonym": "Лиса", "grade": 3, "interests": ["космос", "футбол"], "excluded_skills": [] },
+    "steps": [
+      { "say": "Здравствуйте! Хочу позаниматься математикой с ребёнком. Третий класс, зовём Лиса, любит космос и футбол." },
+      { "say": "Давай задачу!" },
+      { "answer": "wrong", "say": "{letter}" },
+      { "say": "Давай следующую." },
+      { "answer": "wrong", "say": "Наверное, {letter}" },
+      { "say": "Ещё одну, пожалуйста." },
+      { "say": "Не знаю." },
+      { "say": "Давай следующую." },
+      { "say": "Можно подсказку?" },
+      { "answer": "right", "say": "{letter}!" },
+      { "say": "Как у меня дела?" }
+    ],
+    "watch": [
+      "the model creates the profile with the pseudonym and the grade, and asks for no real name",
+      "no answer letter, solution or explanation appears before the child has answered",
+      "every answer is recorded before anything is explained, and a wrong one is explained starting from the trap's text",
+      "after two misses in a row the third task stands lower on the ladder than the first",
+      "\"Не знаю\" is recorded as ?: answer_recorded with confused true, correct false and no trap, and the solution is gone through",
+      "the hint is given only when asked for, and the answer after it is recorded with hint_used",
+      "the progress speaks of the trial series, 4 of 5, and names no rating",
+      "the Russian wording does not show whether the child is a boy or a girl"
+    ]
+  },
+  {
+    "id": "first-grader",
+    "from": "the prototype's dima",
+    "language": "ru",
+    "why": "A first-grader who has not met multiplication, division or numbers above 20: the tasks keep to what the child knows, in short sentences, and an answer after more than three minutes is recorded as slow.",
+    "profile": {
+      "pseudonym": "Ёжик",
+      "grade": 1,
+      "interests": ["машинки"],
+      "excluded_skills": ["multiplication", "division", "division_with_remainder", "numbers_above_20"]
+    },
+    "steps": [
+      { "say": "Привет! Ребёнок в первом классе, зовём Ёжик, любит машинки. Умножать и делить ещё не умеет, числа знает только до двадцати." },
+      { "say": "Дай задачку." },
+      { "wait_seconds": 200, "answer": "right", "say": "{letter}" },
+      { "say": "Ещё задачку!" },
+      { "answer": "right", "say": "{letter}" }
+    ],
+    "watch": [
+      "the model passes the skills the child has not met as catalog ids: multiplication, division, division_with_remainder, numbers_above_20",
+      "neither task multiplies, divides or names a number above 20",
+      "the sentences stay short, as the readability check for grades 1–2 holds them",
+      "the first answer, after more than three minutes, is recorded with pace slow"
+    ]
+  },
+  {
+    "id": "own-choice",
+    "from": "the prototype's olya",
+    "language": "ru",
+    "why": "The child asks for a harder task: the model sets a difficulty or a level of its own, with a reason, and the request is recorded as the model's choice. The same answer is sent twice, and a task is left for another before it is answered.",
+    "profile": { "pseudonym": "Сова", "grade": 2, "interests": ["динозавры"], "excluded_skills": [] },
+    "steps": [
+      { "say": "Добрый день. Ребёнок во втором классе, зовём Сова, любит динозавров. Давайте позанимаемся." },
+      { "say": "Дай задачу!" },
+      { "answer": "right", "say": "{letter}" },
+      { "say": "Это было легко. Хочу задачу потруднее!" },
+      { "answer": "right", "say": "{letter}" },
+      { "say": "Мой ответ {letter}, запиши его!" },
+      { "say": "Давай другую задачу." },
+      { "say": "Нет, эта не нравится, дай другую." },
+      { "answer": "right", "say": "{letter}" }
+    ],
+    "watch": [
+      "the harder task is asked for with a difficulty or a level of the model's own and a reason: task_requested with tutor_mode llm",
+      "the answer sent again changes nothing: one answer_recorded for the task, and the model says it was recorded already",
+      "the task left for another before its answer is recorded as skipped: one task_skipped"
+    ]
+  },
+  {
+    "id": "english",
+    "from": "the prototype's petya",
+    "language": "en",
+    "why": "A lesson in English: the tasks are written in English and read out in words, a wrong answer is explained from its trap, and the progress is told in English.",
+    "profile": { "pseudonym": "Comet", "grade": 4, "interests": ["trains"], "excluded_skills": [] },
+    "steps": [
+      { "say": "Hi! I'd like my child to practise some maths. Grade 4, we call them Comet, and they love trains." },
+      { "say": "Give me a task, please." },
+      { "answer": "wrong", "say": "{letter}" },
+      { "say": "Another one!" },
+      { "answer": "right", "say": "It's {letter}" },
+      { "say": "One more, please." },
+      { "say": "I don't know." },
+      { "say": "How am I doing?" }
+    ],
+    "watch": [
+      "next_task is called with language en, and every task is in English",
+      "an English task passes the readability check of its level, at the first attempt or after a readability refusal",
+      "the wrong answer is explained starting from the trap's text",
+      "\"I don't know\" is recorded as ?",
+      "the progress is told in English and speaks of the trial series"
+    ]
+  }
+]

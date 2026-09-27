@@ -134,25 +134,41 @@ func racer(t *testing.T, excluded ...string) store.Storage {
 func askForTheRace(t *testing.T, session *mcp.ClientSession, kept store.Storage) *profile.OpenRequest {
 	t.Helper()
 
-	asked := payloadOf[requestPayload](t, call(t, session, "next_task", raceChoice))
+	asked := leadOf(wantWordsAlone(t, call(t, session, "next_task", raceChoice)))
 	p, _ := loadKept(t, kept)
-	if p.OpenRequest == nil || p.OpenRequest.ID != asked.RequestID {
-		t.Fatalf("next_task opened %q and the profile holds %+v, want the one request", asked.RequestID, p.OpenRequest)
+	if p.OpenRequest == nil || !strings.Contains(asked, "Request "+p.OpenRequest.ID+" is open") {
+		t.Fatalf("next_task said %q and the profile holds %+v, want the one request", asked, p.OpenRequest)
 	}
 	return p.OpenRequest
 }
 
-// requestPayload is what next_task hands back.
-type requestPayload struct {
+// refusedRequestPayload is what next_task hands back when it opens no request:
+// the one result of the tool with a payload.
+type refusedRequestPayload struct {
 	Screen   string `json:"screen"`
 	Status   string `json:"status"`
 	Code     string `json:"code"`
 	Problems []struct {
 		Field string `json:"field"`
 	} `json:"problems"`
-	RequestID   string `json:"request_id"`
-	AlreadyOpen bool   `json:"already_open"`
-	AgeSeconds  int    `json:"age_seconds"`
+}
+
+// wantWordsAlone holds a result of next_task to carrying no payload, and is its
+// words. What the tool says is for the model alone, and a host that shows the
+// model a payload in place of the words would show it nothing to write from.
+func wantWordsAlone(t *testing.T, result *mcp.CallToolResult) string {
+	t.Helper()
+
+	if result.IsError || result.StructuredContent != nil {
+		t.Fatalf("next_task = %+v, %s, want words alone", result.StructuredContent, textOf(t, result))
+	}
+	return textOf(t, result)
+}
+
+// leadOf is the words of next_task before the package they carry.
+func leadOf(text string) string {
+	lead, _, _ := strings.Cut(text, "\n\nPackage:\n")
+	return lead
 }
 
 // handedInPayload is what submit_task hands a card.
@@ -231,17 +247,14 @@ func TestATaskGoesFromTheRuleToTheChildsCard(t *testing.T) {
 func wantRequestOpened(t *testing.T, asked *mcp.CallToolResult, kept store.Storage) *profile.OpenRequest {
 	t.Helper()
 
-	request := payloadOf[requestPayload](t, asked)
-	if request.Screen != "waiting" || !strings.HasPrefix(request.RequestID, "req_") || request.AlreadyOpen {
-		t.Errorf("next_task = %+v, want a new request and the waiting screen", request)
-	}
+	lead := leadOf(wantWordsAlone(t, asked))
 	var brief profile.Brief
 	if err := json.Unmarshal(packageIn(t, textOf(t, asked))["brief"], &brief); err != nil || brief.TargetConcept != "logic.ordering" {
 		t.Errorf("the package carries the brief %+v (%v), want the race's topic", brief, err)
 	}
 	p, _ := loadKept(t, kept)
 	open := p.OpenRequest
-	if open == nil || open.ID != request.RequestID || open.Language != "en" || open.Attempts != 0 ||
+	if open == nil || !strings.Contains(lead, "Request "+open.ID+" is open") || open.Language != "en" || open.Attempts != 0 ||
 		open.TutorMode != profile.TutorLLM || open.Brief.Difficulty != 2 {
 		t.Fatalf("the request is %+v, want the model's choice in English with no attempt spent", open)
 	}
@@ -548,13 +561,13 @@ func TestAskingAgainGivesTheSameRequest(t *testing.T) {
 
 	moving.advance(30 * time.Second)
 	again := call(t, session, "next_task", map[string]any{"language": "ru", "topic": "time.clocks", "reason": "clocks"})
-	payload := payloadOf[requestPayload](t, again)
-	if payload.RequestID != first.ID || !payload.AlreadyOpen || payload.AgeSeconds != 30 {
-		t.Errorf("next_task again = %+v, want %s already open for 30 seconds", payload, first.ID)
-	}
-	text := textOf(t, again)
-	if !strings.Contains(text, "already being written") || !strings.Contains(text, "not applied") {
-		t.Errorf("the words are %q, want them to say the task is being written and the choice was not applied", text)
+	text := wantWordsAlone(t, again)
+	if lead := leadOf(text); !strings.Contains(lead, "Request "+first.ID+" is already open, since 30 seconds ago") ||
+		!strings.Contains(lead, "If you have written its task, hand it in") ||
+		!strings.Contains(lead, "If you have not, a turn cut short say, the task is yours to write") ||
+		!strings.Contains(lead, "not applied") {
+		t.Errorf("the words are %q, want the request open for 30 seconds, its task asked for if written and the model's "+
+			"to write if not, and the choice not applied", lead)
 	}
 	packageIn(t, text)
 	if p, now := loadKept(t, kept); now != revision || p.OpenRequest.Brief.TargetConcept != "logic.ordering" {
@@ -567,8 +580,9 @@ func TestAskingAgainGivesTheSameRequest(t *testing.T) {
 	}
 
 	moving.advance(config.DefaultRequestWindow)
-	if later := payloadOf[requestPayload](t, call(t, session, "next_task", raceChoice)); later.RequestID == first.ID || later.AlreadyOpen {
-		t.Errorf("next_task past the window = %+v, want a new request", later)
+	if later := leadOf(wantWordsAlone(t, call(t, session, "next_task", raceChoice))); strings.Contains(later, first.ID) ||
+		strings.Contains(later, "already open") {
+		t.Errorf("next_task past the window says %q, want a new request", later)
 	}
 
 	h.settle()
@@ -616,7 +630,7 @@ func TestArgumentsNoRequestCanBeOpenedFromAreRefused(t *testing.T) {
 			_, session := lesson(t, kept)
 			_, revision := loadKept(t, kept)
 
-			got := payloadOf[requestPayload](t, call(t, session, "next_task", tc.arguments))
+			got := payloadOf[refusedRequestPayload](t, call(t, session, "next_task", tc.arguments))
 			fields := make([]string, 0, len(got.Problems))
 			for _, problem := range got.Problems {
 				fields = append(fields, problem.Field)
@@ -792,11 +806,12 @@ func TestWithNoProfileThereIsNoTask(t *testing.T) {
 	kept := memory.New()
 	_, session := lesson(t, kept)
 
-	asked := payloadOf[requestPayload](t, call(t, session, "next_task", raceChoice))
+	asked := wantWordsAlone(t, call(t, session, "next_task", raceChoice))
 	handed := payloadOf[handedInPayload](t, call(t, session, "submit_task",
 		raceOn(&profile.OpenRequest{ID: "req_nobody"})))
-	if asked.Screen != "first_run" || handed.Screen != "first_run" || handed.Code != "stale_request" {
-		t.Errorf("next_task = %+v and submit_task = %+v, want both on the first sign-in", asked, handed)
+	if !strings.HasPrefix(asked, "No task can be asked for yet. There is no profile yet.") || handed.Screen != "first_run" ||
+		handed.Code != "stale_request" {
+		t.Errorf("next_task says %q and submit_task = %+v, want both to point at the first sign-in", asked, handed)
 	}
 	if _, _, err := kept.Load(t.Context(), devAccount); !errors.Is(err, store.ErrNotFound) {
 		t.Errorf("Load() error = %v, want still no profile", err)
@@ -821,8 +836,12 @@ func TestNextTaskStatesWhatItTakes(t *testing.T) {
 	tool := listed.Tools[at]
 	loaded, _ := shipped()
 	for _, topic := range loaded.Topics() {
-		if !strings.Contains(tool.Description, "- "+topic.ID+": ") {
-			t.Errorf("the description of next_task does not name the topic %s", topic.ID)
+		levels := make([]string, 0, len(topic.GradeLevels))
+		for _, level := range topic.GradeLevels {
+			levels = append(levels, string(level))
+		}
+		if line := "- " + topic.ID + " (" + strings.Join(levels, ", ") + ")"; !strings.Contains(tool.Description, line) {
+			t.Errorf("the description of next_task does not name the topic %s with its levels, %q", topic.ID, line)
 		}
 	}
 	schema, err := json.Marshal(tool.InputSchema)
@@ -930,8 +949,9 @@ func TestARequestWithNoAttemptLeftIsNotAskedAgain(t *testing.T) {
 	spent := askForTheRace(t, session, kept)
 	spendEveryAttempt(t, kept)
 
-	if again := payloadOf[requestPayload](t, call(t, session, "next_task", raceChoice)); again.AlreadyOpen || again.RequestID == spent.ID {
-		t.Errorf("next_task = %+v, want a new request in place of %s", again, spent.ID)
+	if again := leadOf(wantWordsAlone(t, call(t, session, "next_task", raceChoice))); strings.Contains(again, "already open") ||
+		strings.Contains(again, spent.ID) {
+		t.Errorf("next_task says %q, want a new request in place of %s", again, spent.ID)
 	}
 }
 

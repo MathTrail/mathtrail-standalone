@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"unicode/utf16"
 
 	"github.com/MathTrail/mathtrail-standalone/content"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
@@ -308,6 +309,33 @@ func TestTheServerInstructionsNameEveryTool(t *testing.T) {
 		if !strings.Contains(text, "`"+tool+"`") {
 			t.Errorf("the server instructions never name %s", tool)
 		}
+	}
+}
+
+// hostKeeps is as much of a server's instructions as a host is known to pass on
+// to the model: Claude Code keeps the first 2,048 characters, counted as
+// JavaScript counts them, and cuts the rest.
+const hostKeeps = 2048
+
+// A host that cuts the instructions keeps their beginning. What must hold in
+// every lesson therefore stands first, in a section of its own, and ends within
+// what such a host keeps; the sections after it say how, and a host may lose
+// them.
+func TestWhatAlwaysHoldsIsKeptByAHostThatCuts(t *testing.T) {
+	t.Parallel()
+
+	text := loaded(t).ServerInstructions()
+	first := strings.Index(text, "\n## ")
+	if first < 0 || !strings.HasPrefix(text[first+1:], "## Always\n") {
+		t.Fatal(`the first section of the server instructions is not "## Always"`)
+	}
+	end := len(text)
+	if next := strings.Index(text[first+1:], "\n## "); next >= 0 {
+		end = first + 1 + next
+	}
+	if kept := len(utf16.Encode([]rune(text[:end]))); kept > hostKeeps {
+		t.Errorf(`the server instructions up to the end of "## Always" are %d characters long, and a host may keep only the first %d`,
+			kept, hostKeeps)
 	}
 }
 
