@@ -34,10 +34,11 @@ type Student struct {
 	UILanguage *string `json:"ui_language"`
 }
 
-// Problem is one field of the child's details that breaks a rule: the field,
-// named as the file names it, and the rule. The rule never repeats what the
-// field holds. The details are the parent's own words, and a refusal that
-// carried them would carry them into every place a refusal goes.
+// Problem is one field that breaks a rule — of the child's details, or of what
+// the model asked a task to be: the field, named as the file and the tools name
+// it, and the rule. The rule never repeats what the field holds. The details
+// are the parent's own words and a choice is the model's, and a refusal that
+// carried either would carry it into every place a refusal goes.
 type Problem struct {
 	// Field is the field, as the file and the tool that writes it name it.
 	Field string
@@ -120,8 +121,8 @@ func languageRule(language *string) string {
 	case *language == "":
 		return "is null to follow the chat's language, never an empty text"
 	}
-	if count := utf8.RuneCountInString(*language); count > MaxUILanguage {
-		return fmt.Sprintf("must be at most %d characters, not %d", MaxUILanguage, count)
+	if count := utf8.RuneCountInString(*language); count > MaxLanguageTag {
+		return fmt.Sprintf("must be at most %d characters, not %d", MaxLanguageTag, count)
 	}
 	return ""
 }

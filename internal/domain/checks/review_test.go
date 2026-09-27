@@ -191,6 +191,34 @@ func TestNothingIsJudgedWithoutItsInput(t *testing.T) {
 	}
 }
 
+// The runs of the solver are handed out as a log line keeps them — how each
+// ended, what it spent and how long it took — both of them, in order, and none
+// when there were not five options to run on.
+func TestTheRunsOfTheSolverAreHandedOutByWhatTheyCost(t *testing.T) {
+	t.Parallel()
+
+	reviewer := checks.NewReviewer(shipped{catalog: testCatalog}, &working{value: "six pairs"},
+		checks.DefaultDrawingLimits())
+	examined, err := reviewer.Examine(t.Context(), submissionOf(t, validDraft()))
+	if err != nil {
+		t.Fatalf("Examine() error = %v", err)
+	}
+	want := checks.Run{Status: solver.StatusOK, Steps: 1000, Duration: time.Millisecond}
+	if got := examined.Runs(); len(got) != 2 || got[0] != want || got[1] != want {
+		t.Errorf("Runs() = %+v, want two runs of %+v", got, want)
+	}
+
+	short := validDraft()
+	delete(short.Task.Options, "E")
+	examined, err = reviewer.Examine(t.Context(), submissionOf(t, short))
+	if err != nil {
+		t.Fatalf("Examine() error = %v", err)
+	}
+	if got := examined.Runs(); len(got) != 0 {
+		t.Errorf("Runs() = %+v with four options, want none", got)
+	}
+}
+
 // refusals are the prototype's refusals, one reason each, and the ones this
 // service added: each breaks one thing about a task that passes, and is
 // refused for that thing alone.

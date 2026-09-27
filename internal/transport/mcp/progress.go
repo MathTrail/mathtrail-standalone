@@ -42,20 +42,25 @@ type standingOut struct {
 	Ranks  int `json:"ranks"`
 }
 
-// topicOut is one topic the child has answered. Its rating is a plain number,
-// null while the trial series runs, and it has no rank of its own.
+// topicOut is one topic the child has answered or skipped a task of. Its
+// rating is a plain number, null while the trial series runs and before its
+// first answer, and it has no rank of its own. The skipped tasks are for the
+// parent to see.
 type topicOut struct {
 	Topic    string `json:"topic"`
 	Rating   *int   `json:"rating"`
 	Answers  int    `json:"answers"`
 	Correct  int    `json:"correct"`
 	Mastered bool   `json:"mastered"`
+	Skipped  int    `json:"skipped"`
 }
 
-// recentOut is one of the latest answers.
+// recentOut is one of the latest entries: an answer, or a task left without
+// one, which is marked skipped and says nothing of right or wrong.
 type recentOut struct {
 	Topic      string `json:"topic"`
-	Correct    bool   `json:"correct"`
+	Correct    *bool  `json:"correct"`
+	Skipped    bool   `json:"skipped"`
 	AnsweredAt string `json:"answered_at"`
 }
 
@@ -136,19 +141,21 @@ func topicsOf(topics []progress.Topic) []topicOut {
 			Answers:  topic.Answers,
 			Correct:  topic.Correct,
 			Mastered: topic.Mastered,
+			Skipped:  topic.Skipped,
 		})
 	}
 	return out
 }
 
-func recentOf(answers []profile.Answer) []recentOut {
-	out := make([]recentOut, 0, len(answers))
-	for i := range answers {
-		out = append(out, recentOut{
-			Topic:      answers[i].Topic,
-			Correct:    answers[i].Correct,
-			AnsweredAt: moment(answers[i].AnsweredAt),
-		})
+func recentOf(entries []profile.Answer) []recentOut {
+	out := make([]recentOut, 0, len(entries))
+	for i := range entries {
+		entry := recentOut{Topic: entries[i].Topic, Skipped: entries[i].Skipped, AnsweredAt: moment(entries[i].AnsweredAt)}
+		if !entries[i].Skipped {
+			correct := entries[i].Correct
+			entry.Correct = &correct
+		}
+		out = append(out, entry)
 	}
 	return out
 }
@@ -171,7 +178,7 @@ func (s *Service) progressText(p *profile.Profile, summary *progress.Summary) st
 }
 
 // topicsText names every topic met and what it is, with its rating once there
-// is one.
+// is one, and the tasks of it the child left without an answer.
 func (s *Service) topicsText(topics []progress.Topic) string {
 	if len(topics) == 0 {
 		return "No topic has been answered yet."
@@ -185,19 +192,36 @@ func (s *Service) topicsText(topics []progress.Topic) string {
 		if topic.Mastered {
 			part += ", mastered"
 		}
+		if topic.Skipped > 0 {
+			part += fmt.Sprintf(", %d skipped", topic.Skipped)
+		}
 		parts = append(parts, part)
 	}
 	return "Topics: " + strings.Join(parts, "; ") + "."
 }
 
-// recentText names the latest few answers, the latest first.
-func (s *Service) recentText(answers []profile.Answer) string {
-	if len(answers) == 0 {
-		return ""
+// recentText names the latest few answers, the latest first, and how many of
+// the tasks the window holds were left without one. The skips are counted
+// apart, so that a run of them never hides how the answers went, and against
+// the tasks they are counted among, so that a few old ones are not read as a
+// habit of today.
+func (s *Service) recentText(entries []profile.Answer) string {
+	answers := make([]string, 0, textAnswers)
+	skipped := 0
+	for i := range entries {
+		switch {
+		case entries[i].Skipped:
+			skipped++
+		case len(answers) < textAnswers:
+			answers = append(answers, s.topicName(entries[i].Topic)+" "+howItWent(entries[i].Correct))
+		}
 	}
-	parts := make([]string, 0, textAnswers)
-	for i := range answers[:min(len(answers), textAnswers)] {
-		parts = append(parts, s.topicName(answers[i].Topic)+" "+howItWent(answers[i].Correct))
+	latest := ""
+	if len(answers) > 0 {
+		latest = "Latest answers, the latest first: " + strings.Join(answers, ", ") + "."
 	}
-	return "Latest answers, the latest first: " + strings.Join(parts, ", ") + "."
+	if skipped == 0 {
+		return latest
+	}
+	return joined(latest, fmt.Sprintf("Of the last %d tasks, %d were left without an answer.", len(entries), skipped))
 }

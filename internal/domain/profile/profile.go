@@ -118,12 +118,15 @@ func (p *Profile) LevelIn(topic string) float64 {
 // LastAnswer is the answer the child gave last, and whether there has been one
 // at all. It is what every tool's result tells the model about, so that a
 // model that missed the card's own message learns from its next call that the
-// child has answered.
+// child has answered, and it is where the rule looks for the topic of a
+// failure. A task left without an answer is not an answer, and is passed over.
 func (p *Profile) LastAnswer() (Answer, bool) {
-	if len(p.Recent) == 0 {
-		return Answer{}, false
+	for i := len(p.Recent) - 1; i >= 0; i-- {
+		if !p.Recent[i].Skipped {
+			return p.Recent[i], true
+		}
 	}
-	return p.Recent[len(p.Recent)-1], true
+	return Answer{}, false
 }
 
 // Touch records that the file is being written: the revision moves on and the

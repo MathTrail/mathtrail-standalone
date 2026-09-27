@@ -10,12 +10,14 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 	"unicode/utf8"
 
 	"github.com/MathTrail/mathtrail-standalone/content"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/tutor"
 )
 
 // request asks for a task on a topic at a level and a difficulty, for a child
@@ -377,11 +379,12 @@ func TestAPackageListsNothingAsNull(t *testing.T) {
 }
 
 // Every package a profile allows stays within the budget, whatever the parent
-// writes in: a child at every limit the profile sets, on every topic, at every
-// level it is taught at and every difficulty, whichever reference tasks come
-// round. The heaviest
-// script is a character JSON has to escape, six bytes where the parent typed
-// one; a child with an ordinary profile is measured beside them, for scale.
+// writes in and whatever reason the model gives: a child at every limit the
+// profile sets, on every topic, at every level it is taught at and every
+// difficulty, whichever reference tasks come round, each asked for by the
+// model with the longest reason it may give. The heaviest script is a
+// character JSON has to escape, six bytes where the parent typed one; a child
+// with an ordinary profile is measured beside them, for scale.
 func TestEveryPackageStaysWithinTheBudget(t *testing.T) {
 	t.Parallel()
 
@@ -397,9 +400,9 @@ func TestEveryPackageStaysWithinTheBudget(t *testing.T) {
 		t.Run(script.name, func(t *testing.T) {
 			t.Parallel()
 
-			asked := requestsAtTheLimits(shipped, script.letter)
-			if script.letter == "" {
-				asked = typicalRequests(shipped)
+			asked := typicalRequests(shipped)
+			if script.letter != "" {
+				asked = requestsAtTheLimits(t, shipped, script.letter)
 			}
 			largest, total := 0, 0
 			for _, each := range asked {
@@ -438,12 +441,16 @@ func typicalRequests(shipped *content.Content) []*content.Request {
 }
 
 // requestsAtTheLimits ask for every topic at every level it is taught at and
-// every difficulty, with each of five answer counts, for a child at every limit the profile sets: the
-// longest notes, as many interests as it holds, each as long as it may be and
-// one of them the setting, and as many excluded skills as it allows, the
-// longest-described of them. The child's own text is one letter repeated, so
-// that a wider letter makes a heavier child.
-func requestsAtTheLimits(shipped *content.Content, letter string) []*content.Request {
+// every difficulty, with each of five answer counts, for a child at every
+// limit the profile sets: the longest notes, as many interests as it holds,
+// each as long as it may be and one of them the setting, and as many excluded
+// skills as it allows, the longest-described of them. Each is the model's own
+// choice, made with the longest reason the rule takes. The child's own text
+// and the model's reason are one letter repeated, so that a wider letter makes
+// a heavier package.
+func requestsAtTheLimits(t *testing.T, shipped *content.Content, letter string) []*content.Request {
+	t.Helper()
+
 	skills := shipped.Skills()
 	slices.SortFunc(skills, func(a, b content.Skill) int {
 		return cmp.Compare(len(b.ID)+len(b.Description), len(a.ID)+len(a.Description))
@@ -461,18 +468,40 @@ func requestsAtTheLimits(shipped *content.Content, letter string) []*content.Req
 	for _, topic := range shipped.Topics() {
 		for _, level := range topic.GradeLevels {
 			for difficulty := profile.MinDifficulty; difficulty <= profile.MaxDifficulty; difficulty++ {
+				rationale := longestRationale(t, shipped, topic.ID, rating.Point{GradeLevel: level, Difficulty: difficulty}, letter)
 				for answers := range 5 {
 					asked := request(topic.ID, level, difficulty, answers)
 					asked.Notes = strings.Repeat(letter, profile.MaxNotes)
 					asked.Interests = interests
 					asked.Brief.Setting = interests[0]
 					asked.Brief.ExcludedSkills = excluded
+					asked.Brief.Rationale = rationale
 					heaviest = append(heaviest, asked)
 				}
 			}
 		}
 	}
 	return heaviest
+}
+
+// longestRationale is what the rule writes about a brief the model chose all
+// of — its topic, its level and its difficulty — with a reason as long as the
+// rule takes, in this letter. The reason starts and ends with a letter every
+// script can trim nothing from, so that a letter the rule reads as a space
+// still makes a reason of full length.
+func longestRationale(t *testing.T, shipped *content.Content, topic string, at rating.Point, letter string) string {
+	t.Helper()
+
+	child := profile.New(profile.Student{Grade: at.GradeLevel.FirstGrade(), Pseudonym: "Otter"}, "0.0.0-test", time.Now())
+	reason := "a" + strings.Repeat(letter, tutor.MaxReason-2) + "a"
+	chosen, _, err := tutor.Next(child, shipped, tutor.Choice{
+		Topic: topic, GradeLevel: at.GradeLevel, Difficulty: at.Difficulty, Reason: reason,
+	})
+	if err != nil {
+		t.Fatalf("Next() error = %v, want the model's choice of %s at difficulty %d of %s built",
+			err, topic, at.Difficulty, at.GradeLevel)
+	}
+	return chosen.Rationale
 }
 
 // A request the package cannot be built from makes no package at all, rather

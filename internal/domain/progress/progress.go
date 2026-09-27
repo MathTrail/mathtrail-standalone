@@ -1,7 +1,7 @@
 // Package progress is where a child stands, as the child and the parent are
 // shown it: the overall rating and the rank above it, the rating of each topic
-// the child has met, what is mastered, the latest answers, and what the rule
-// would set next.
+// the child has met, what is mastered, the latest answers and the tasks left
+// without one, and what the rule would set next.
 //
 // It is worked out from the profile every time it is asked for and kept
 // nowhere, so it cannot disagree with the file it came from. While the trial
@@ -25,9 +25,11 @@ type Summary struct {
 	// Overall is the child's rating on the one ladder of grades 1 to 6, with
 	// the rank drawn above it, or nil while the trial series runs.
 	Overall *Standing
-	// Topics are the topics the child has answered, in catalog order.
+	// Topics are the topics the child has answered or skipped a task of, in
+	// catalog order.
 	Topics []Topic
-	// Recent are the answers of the history window, the latest first.
+	// Recent are the entries of the history window, the latest first: the
+	// answers, and the tasks skipped between them where they were skipped.
 	Recent []profile.Answer
 	// Next is what the rule would set next.
 	Next Recommendation
@@ -53,8 +55,10 @@ type Topic struct {
 	// business, in the reader's language.
 	ID string
 	// Rating is the child's rating in the topic, or nil while the trial series
-	// runs. A topic has no rank of its own: the one rank there is stands above
-	// the overall rating, which is a number a child can remember and climb.
+	// runs, and for a topic with no answer yet, whose rating would only be the
+	// overall one again. A topic has no rank of its own: the one rank there is
+	// stands above the overall rating, which is a number a child can remember
+	// and climb.
 	Rating *int
 	// Answers and Correct are how many answers the topic rests on, and how
 	// many of them were right.
@@ -63,6 +67,9 @@ type Topic struct {
 	// Mastered says the topic is mastered at the level its tasks now come
 	// from.
 	Mastered bool
+	// Skipped is how many of its tasks were left without an answer. It is for
+	// the parent, who can see from it that hard tasks are being leafed past.
+	Skipped int
 }
 
 // Recommendation is what the rule would set next: the topic, the point of the
@@ -118,14 +125,14 @@ func Recommend(p *profile.Profile, catalog tutor.Catalog) (Recommendation, error
 	}, nil
 }
 
-// topics are the topics the child has answered, in catalog order. A topic
-// given but never answered has nothing to show yet: its rating would only be
-// the overall one again. A topic no longer in the catalog is not shown at all.
+// topics are the topics the child has answered or skipped a task of, in
+// catalog order. A topic given but neither answered nor skipped has nothing to
+// show yet. A topic no longer in the catalog is not shown at all.
 func topics(p *profile.Profile, catalog tutor.Catalog) []Topic {
 	listed := []Topic{}
 	for _, id := range catalog.TopicIDs() {
 		summary := p.Topics[id]
-		if summary.Answers == 0 {
+		if summary.Answers == 0 && summary.Skipped == 0 {
 			continue
 		}
 		topic := Topic{
@@ -133,8 +140,9 @@ func topics(p *profile.Profile, catalog tutor.Catalog) []Topic {
 			Answers:  summary.Answers,
 			Correct:  summary.Correct,
 			Mastered: tutor.Mastered(p, catalog, id),
+			Skipped:  summary.Skipped,
 		}
-		if !p.Ratings.InTrial() {
+		if !p.Ratings.InTrial() && summary.Answers > 0 {
 			shown := rating.Shown(rating.Elo(p.LevelIn(id)))
 			topic.Rating = &shown
 		}

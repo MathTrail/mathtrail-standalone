@@ -33,15 +33,17 @@ const (
 	// MaxNotes is how much free-form context the parent may write. It is a
 	// size budget as much as a privacy one: every generation carries it.
 	MaxNotes = 500
-	// MaxUILanguage is how long a language tag may be: the length every reader of
-	// a BCP 47 tag is asked to hold, and longer than any language a card is
-	// shown in needs.
-	MaxUILanguage = 35
-	// MaxRecent is how many answers the history window holds.
+	// MaxLanguageTag is how long a language tag may be, the cards' and a
+	// task's alike: the length every reader of a BCP 47 tag is asked to hold,
+	// and longer than any language a child is taught in needs.
+	MaxLanguageTag = 35
+	// MaxRecent is how many entries the history window holds, answers and
+	// skipped tasks together.
 	MaxRecent = 20
-	// MinRecent is how far that window may ever be pruned: the rule reads the
-	// end of it after a failure, and an empty one would leave it nothing to
-	// work on.
+	// MinRecent is how many of the latest answers the window keeps, whatever
+	// else it has to let go of: the rule reads the last answer after a failure
+	// and the trial series reads its answers back, and a run of skipped tasks
+	// must not push them out.
 	MinRecent = 5
 	// MaxFingerprints is how many past tasks are remembered as sketches.
 	MaxFingerprints = 200
@@ -122,7 +124,7 @@ func validateTopics(topics map[string]Topic) error {
 		switch {
 		case id == "":
 			return fmt.Errorf("%w: topics has an entry with no id", ErrInvalid)
-		case topic.Answers < 0 || topic.Correct < 0 || topic.TopStreak < 0 || topic.WrongStreak < 0:
+		case topic.Answers < 0 || topic.Correct < 0 || topic.Skipped < 0 || topic.TopStreak < 0 || topic.WrongStreak < 0:
 			return fmt.Errorf("%w: topics[%s] counts answers, and a count is never negative", ErrInvalid, id)
 		case !isNumber(topic.Delta):
 			return fmt.Errorf("%w: topics[%s].delta is %v, and a level is a number", ErrInvalid, id, topic.Delta)
@@ -147,31 +149,53 @@ func validateTopics(topics map[string]Topic) error {
 
 func validateRecent(recent []Answer) error {
 	if len(recent) > MaxRecent {
-		return fmt.Errorf("%w: recent holds %d answers, the window is %d", ErrInvalid, len(recent), MaxRecent)
+		return fmt.Errorf("%w: recent holds %d entries, the window is %d", ErrInvalid, len(recent), MaxRecent)
 	}
 	for i := range recent {
-		answer := &recent[i]
-		switch {
-		case answer.TaskID == "" || answer.Topic == "":
-			return fmt.Errorf("%w: recent[%d] names no task or no topic", ErrInvalid, i)
-		case answer.AnsweredAt.IsZero():
-			return fmt.Errorf("%w: recent[%d] has no answered_at", ErrInvalid, i)
-		case answer.Difficulty < MinDifficulty || answer.Difficulty > MaxDifficulty:
-			return fmt.Errorf("%w: recent[%d].difficulty is %d, the difficulties are %d to %d",
-				ErrInvalid, i, answer.Difficulty, MinDifficulty, MaxDifficulty)
-		case !answer.GradeLevel.Known():
-			return fmt.Errorf("%w: recent[%d].grade_level is %q, want one of %v",
-				ErrInvalid, i, answer.GradeLevel, rating.GradeLevels())
-		case answer.Pace != PaceFast && answer.Pace != PaceNormal && answer.Pace != PaceSlow:
-			return fmt.Errorf("%w: recent[%d].pace is %q, want fast, normal or slow", ErrInvalid, i, answer.Pace)
-		case answer.Chosen != "" && solver.Place(answer.Chosen) < 0:
-			return fmt.Errorf("%w: recent[%d].chosen is %q, want one of %s",
-				ErrInvalid, i, answer.Chosen, strings.Join(solver.Letters(), ", "))
-		case answer.Correct && (answer.Chosen != "" || answer.Trap != ""):
-			// A correct answer has no mistake to name, and naming one would
-			// put a trap of the current lesson where it does not belong.
-			return fmt.Errorf("%w: recent[%d] is correct and still names a chosen option or a trap", ErrInvalid, i)
+		if err := recent[i].validate(i); err != nil {
+			return err
 		}
+	}
+	return nil
+}
+
+// validate checks one entry of the window, the i-th: where the task stood and
+// when, and then the outcome — which an answer has and a skipped task does not.
+func (a *Answer) validate(i int) error {
+	switch {
+	case a.TaskID == "" || a.Topic == "":
+		return fmt.Errorf("%w: recent[%d] names no task or no topic", ErrInvalid, i)
+	case a.AnsweredAt.IsZero():
+		return fmt.Errorf("%w: recent[%d] has no answered_at", ErrInvalid, i)
+	case a.Difficulty < MinDifficulty || a.Difficulty > MaxDifficulty:
+		return fmt.Errorf("%w: recent[%d].difficulty is %d, the difficulties are %d to %d",
+			ErrInvalid, i, a.Difficulty, MinDifficulty, MaxDifficulty)
+	case !a.GradeLevel.Known():
+		return fmt.Errorf("%w: recent[%d].grade_level is %q, want one of %v",
+			ErrInvalid, i, a.GradeLevel, rating.GradeLevels())
+	case a.Skipped:
+		return a.validateSkipped(i)
+	case a.Pace != PaceFast && a.Pace != PaceNormal && a.Pace != PaceSlow:
+		return fmt.Errorf("%w: recent[%d].pace is %q, want fast, normal or slow", ErrInvalid, i, a.Pace)
+	case a.Chosen != "" && solver.Place(a.Chosen) < 0:
+		return fmt.Errorf("%w: recent[%d].chosen is %q, want one of %s",
+			ErrInvalid, i, a.Chosen, strings.Join(solver.Letters(), ", "))
+	case a.Correct && (a.Chosen != "" || a.Trap != ""):
+		// A correct answer has no mistake to name, and naming one would put a
+		// trap of the current lesson where it does not belong.
+		return fmt.Errorf("%w: recent[%d] is correct and still names a chosen option or a trap", ErrInvalid, i)
+	}
+	return nil
+}
+
+// validateSkipped checks that a skipped task carries no outcome: there was no
+// answer, so there is nothing right or wrong about it, no option chosen, no
+// hint opened and no time taken. A file saying otherwise would be read by the
+// progress screen as an answer the child never gave.
+func (a *Answer) validateSkipped(i int) error {
+	if a.Correct || a.Chosen != "" || a.Trap != "" || a.HintUsed || a.Confused || a.Pace != "" {
+		return fmt.Errorf("%w: recent[%d] is a skipped task and still carries an outcome, which a task left without an answer does not have",
+			ErrInvalid, i)
 	}
 	return nil
 }
@@ -183,6 +207,8 @@ func (t *CurrentTask) validate() error {
 	switch {
 	case t.ID == "" || t.Topic == "" || t.Wording == "":
 		return fmt.Errorf("%w: current_task needs an id, a topic and a wording", ErrInvalid)
+	case t.Language == "":
+		return fmt.Errorf("%w: current_task has no language, and it is written in one", ErrInvalid)
 	case t.Sealed == "":
 		return fmt.Errorf("%w: current_task.sealed is empty; a task with nothing sealed has its answer in the open", ErrInvalid)
 	case t.IssuedAt.IsZero():
@@ -211,6 +237,8 @@ func (r *OpenRequest) validate() error {
 	switch {
 	case r.ID == "":
 		return fmt.Errorf("%w: open_request has no id", ErrInvalid)
+	case r.Language == "":
+		return fmt.Errorf("%w: open_request has no language, and the task is to be written in it", ErrInvalid)
 	case r.OpenedAt.IsZero():
 		return fmt.Errorf("%w: open_request has no opened_at, and the window is measured from it", ErrInvalid)
 	case r.Attempts < 0 || r.Attempts > MaxAttempts:

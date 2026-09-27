@@ -6,85 +6,22 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 	"slices"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	tracenoop "go.opentelemetry.io/otel/trace/noop"
+	"go.uber.org/zap"
 
-	"github.com/MathTrail/mathtrail-standalone/content"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 	"github.com/MathTrail/mathtrail-standalone/internal/store/memory"
 	mcpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/mcp"
 )
-
-// The tools of the profile are served here as the service serves them: over a
-// store in memory, to the development account, with the content the binary
-// carries. The fixtures are the prototype's seed profiles: Masha and Sasha are
-// in the trial series, Olya is past it.
-
-// shipped is the content the binary carries, read once for every case.
-var shipped = sync.OnceValues(content.Load)
-
-// lessonDay is when every profile of these cases is written.
-var lessonDay = time.Date(2026, 9, 27, 18, 0, 0, 0, time.UTC)
-
-// devAccount is whom the development sign-in signs every call in as.
-var devAccount = store.NewAccount(mcpserver.DevAccount, "")
-
-// lesson serves the tools of the profile over kept, and connects a client.
-func lesson(t *testing.T, kept store.Storage) (*harness, *mcp.ClientSession) {
-	t.Helper()
-
-	loaded, err := shipped()
-	if err != nil {
-		t.Fatalf("load the content: %v", err)
-	}
-	service, err := mcpserver.NewService(kept, loaded, func() time.Time { return lessonDay }, "test")
-	if err != nil {
-		t.Fatalf("NewService() error = %v", err)
-	}
-	h := serveTools(t, mcpserver.DevSignIn, service.ProfileTools()...)
-	session := h.connect(t, "")
-	return h, session
-}
-
-// keptWith is a store holding one fixture as the development account's
-// profile.
-func keptWith(t *testing.T, student string) store.Storage {
-	t.Helper()
-
-	raw, err := os.ReadFile(filepath.Join("..", "..", "..", "testdata", "profiles", student+".json"))
-	if err != nil {
-		t.Fatalf("read the fixture of %s: %v", student, err)
-	}
-	p, err := profile.Parse(raw)
-	if err != nil {
-		t.Fatalf("parse the fixture of %s: %v", student, err)
-	}
-	kept := memory.New()
-	if _, err := kept.Create(context.Background(), devAccount, p); err != nil {
-		t.Fatalf("keep the fixture of %s: %v", student, err)
-	}
-	return kept
-}
-
-// loadKept is the development account's profile as the store holds it now.
-func loadKept(t *testing.T, kept store.Storage) (*profile.Profile, store.Revision) {
-	t.Helper()
-
-	p, revision, err := kept.Load(context.Background(), devAccount)
-	if err != nil {
-		t.Fatalf("Load() error = %v, want the profile", err)
-	}
-	return p, revision
-}
 
 // profilePayload is what the tools of the profile hand a card, as a card reads
 // it.
@@ -151,35 +88,12 @@ type trialPayload struct {
 	Of       int `json:"of"`
 }
 
-// payloadOf is a result's payload, read into what a case expects of it.
-func payloadOf[T any](t *testing.T, result *mcp.CallToolResult) T {
-	t.Helper()
-
-	var payload T
-	if err := json.Unmarshal(rawPayload(t, result), &payload); err != nil {
-		t.Fatalf("the payload does not read: %v", err)
-	}
-	return payload
-}
-
-// rawPayload is a result's payload as it went over the wire.
-func rawPayload(t *testing.T, result *mcp.CallToolResult) []byte {
-	t.Helper()
-
-	if result.IsError {
-		t.Fatalf("the call failed: %s", textOf(t, result))
-	}
-	raw, err := json.Marshal(result.StructuredContent)
-	if err != nil {
-		t.Fatalf("the payload does not encode: %v", err)
-	}
-	return raw
-}
-
-// A host lists the four tools as they are meant: three that draw a card, under
-// both keys a host reads, and one that only a card calls, kept from the model
-// and drawing nothing.
-func TestTheToolsOfTheProfileAreListedAsTheyAreMeant(t *testing.T) {
+// A host lists the six tools of the lesson as they are meant: four that draw a
+// card, under both keys a host reads; one that only a card calls, kept from the
+// model and drawing nothing; and the one that asks for a task, which draws
+// nothing either, since what it hands over is for the model alone. Handing a
+// task in is the one call that is not the same twice: each spends an attempt.
+func TestTheToolsOfTheLessonAreListedAsTheyAreMeant(t *testing.T) {
 	t.Parallel()
 
 	_, session := lesson(t, memory.New())
@@ -191,15 +105,17 @@ func TestTheToolsOfTheProfileAreListedAsTheyAreMeant(t *testing.T) {
 	for _, tool := range listed.Tools {
 		byName[tool.Name] = tool
 	}
-	if len(byName) != 4 {
-		t.Errorf("%d tools are listed, want the four of the profile", len(byName))
+	if len(byName) != 6 {
+		t.Errorf("%d tools are listed, want the six of the lesson", len(byName))
 	}
 
 	for _, want := range []listing{
-		{name: "get_profile", readOnly: true, drawsCard: true},
-		{name: "save_profile", drawsCard: true},
-		{name: "get_progress", readOnly: true, drawsCard: true},
-		{name: "read_progress", readOnly: true, widgetOnly: true},
+		{name: "get_profile", readOnly: true, idempotent: true, drawsCard: true},
+		{name: "save_profile", idempotent: true, drawsCard: true},
+		{name: "get_progress", readOnly: true, idempotent: true, drawsCard: true},
+		{name: "read_progress", readOnly: true, idempotent: true, widgetOnly: true},
+		{name: "next_task", idempotent: true},
+		{name: "submit_task", drawsCard: true},
 	} {
 		t.Run(want.name, func(t *testing.T) {
 			t.Parallel()
@@ -217,6 +133,7 @@ func TestTheToolsOfTheProfileAreListedAsTheyAreMeant(t *testing.T) {
 type listing struct {
 	name       string
 	readOnly   bool
+	idempotent bool
 	drawsCard  bool
 	widgetOnly bool
 }
@@ -226,9 +143,10 @@ type listing struct {
 func wantListedAs(t *testing.T, tool *mcp.Tool, want listing) {
 	t.Helper()
 
-	if hints := tool.Annotations; hints == nil || hints.ReadOnlyHint != want.readOnly || !hints.IdempotentHint {
-		t.Errorf("annotations = %+v, want read-only %v and idempotent", hints, want.readOnly)
+	if hints := tool.Annotations; hints == nil || hints.ReadOnlyHint != want.readOnly || hints.IdempotentHint != want.idempotent {
+		t.Errorf("annotations = %+v, want read-only %v and idempotent %v", hints, want.readOnly, want.idempotent)
 	}
+
 	if tool.OutputSchema == nil {
 		t.Error("no output schema, want one a host can check a result against")
 	}
@@ -239,7 +157,7 @@ func wantListedAs(t *testing.T, tool *mcp.Tool, want listing) {
 	}
 	visibility, _ := json.Marshal(ui["visibility"])
 	if hidden := string(visibility) == `["app"]`; hidden != want.widgetOnly {
-		t.Errorf("_meta.ui.visibility = %s, want it kept from the model: %v", visibility, want.widgetOnly)
+		t.Errorf("_meta.ui.visibility = %s, kept from the model: %v, want %v", visibility, hidden, want.widgetOnly)
 	}
 }
 
@@ -665,6 +583,10 @@ func TestAStoreThatFailsIsToldInOurWords(t *testing.T) {
 	}
 	wantOurSentence(t, call(t, session, "save_profile", map[string]any{"grade": 2}),
 		"Something went wrong inside MathTrail.")
+	wantOurSentence(t, call(t, session, "next_task", map[string]any{"language": "en"}),
+		"Something went wrong inside MathTrail.")
+	wantOurSentence(t, call(t, session, "submit_task", raceOn(openRace(t))),
+		"Something went wrong inside MathTrail.")
 	h.settle()
 	wantFailed(t, h, "get_profile", "internal")
 
@@ -688,9 +610,24 @@ func TestASaveThatLostToAnotherWriteIsToldSo(t *testing.T) {
 	h, session := lesson(t, conflicted{keptWith(t, "masha")})
 	result := call(t, session, "save_profile", map[string]any{"grade": 4})
 	wantOurSentence(t, result, "The child's profile was changed somewhere else at the same moment")
+	wantOurSentence(t, call(t, session, "next_task", map[string]any{"language": "en"}),
+		"The child's profile was changed somewhere else at the same moment")
 
 	h.settle()
 	wantFailed(t, h, "save_profile", "conflict")
+
+	// A task handed in writes the profile whichever way its review goes, and
+	// a review whose outcome was not kept is not counted in the log either.
+	for _, handedIn := range []func(*profile.OpenRequest) map[string]any{raceOn, broken} {
+		asked := fuzzProfile(t)
+		h, session := lesson(t, conflicted{keptAsIs(t, asked)})
+		wantOurSentence(t, call(t, session, "submit_task", handedIn(asked.OpenRequest)),
+			"The child's profile was changed somewhere else at the same moment")
+		h.settle()
+		if counted := len(linesOf(h, "task_submitted")); counted != 0 {
+			t.Errorf("task_submitted lines = %d for a review that was not kept, want none", counted)
+		}
+	}
 }
 
 // Nothing a parent typed about the child reaches a span or a line: not the
@@ -726,29 +663,59 @@ func TestNothingTheParentTypedReachesASpanOrALine(t *testing.T) {
 func TestAServiceWithAPartMissingIsNotBuilt(t *testing.T) {
 	t.Parallel()
 
-	loaded, err := shipped()
-	if err != nil {
-		t.Fatalf("load the content: %v", err)
+	if _, err := mcpserver.NewService(allParts(t)); err != nil {
+		t.Fatalf("NewService() with every part error = %v, want nil", err)
 	}
-	clock := func() time.Time { return lessonDay }
+	if _, err := mcpserver.NewService(nil); !errors.Is(err, mcpserver.ErrSettings) {
+		t.Errorf("NewService(nil) error = %v, want it refused", err)
+	}
 	for _, tc := range []struct {
-		name    string
-		kept    store.Storage
-		shipped *content.Content
-		now     func() time.Time
-		version string
+		name string
+		drop func(*mcpserver.Parts)
 	}{
-		{"no store", nil, loaded, clock, "test"},
-		{"no content", memory.New(), nil, clock, "test"},
-		{"no clock", memory.New(), loaded, nil, "test"},
-		{"no version", memory.New(), loaded, clock, ""},
+		{"no store", func(p *mcpserver.Parts) { p.Store = nil }},
+		{"no content", func(p *mcpserver.Parts) { p.Content = nil }},
+		{"no checks", func(p *mcpserver.Parts) { p.Reviewer = nil }},
+		{"no seal", func(p *mcpserver.Parts) { p.Sealer = nil }},
+		{"no window", func(p *mcpserver.Parts) { p.Window = 0 }},
+		{"no clock", func(p *mcpserver.Parts) { p.Now = nil }},
+		{"no version", func(p *mcpserver.Parts) { p.Version = "" }},
+		{"no logger", func(p *mcpserver.Parts) { p.Logger = nil }},
+		{"no traces", func(p *mcpserver.Parts) { p.Traces = nil }},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			if _, err := mcpserver.NewService(tc.kept, tc.shipped, tc.now, tc.version); !errors.Is(err, mcpserver.ErrSettings) {
+			parts := allParts(t)
+			tc.drop(parts)
+			if _, err := mcpserver.NewService(parts); !errors.Is(err, mcpserver.ErrSettings) {
 				t.Errorf("NewService() error = %v, want it refused", err)
 			}
 		})
+	}
+}
+
+// allParts are every part the tools of the lesson are built from.
+func allParts(t *testing.T) *mcpserver.Parts {
+	t.Helper()
+
+	loaded, err := shipped()
+	if err != nil {
+		t.Fatalf("load the content: %v", err)
+	}
+	runner, err := sandbox()
+	if err != nil {
+		t.Fatalf("build the sandbox: %v", err)
+	}
+	return &mcpserver.Parts{
+		Store:    memory.New(),
+		Content:  loaded,
+		Reviewer: checks.NewReviewer(loaded, runner, checks.DefaultDrawingLimits()),
+		Sealer:   sealer(t),
+		Window:   time.Minute,
+		Now:      func() time.Time { return lessonDay },
+		Version:  "test",
+		Logger:   zap.NewNop(),
+		Traces:   tracenoop.NewTracerProvider(),
 	}
 }

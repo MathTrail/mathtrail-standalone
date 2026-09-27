@@ -329,10 +329,10 @@ func TestContainerServesTheWidgetItCarries(t *testing.T) {
 	}
 }
 
-// The container serves the tools of the profile over the store it built: a
-// development account sees the four of them, and a first call finds no profile
-// yet.
-func TestContainerServesTheToolsOfTheProfile(t *testing.T) {
+// The container serves the tools of the lesson over the store it built: a
+// development account sees the six of them, a first call finds no profile yet,
+// and no task can be asked for without one.
+func TestContainerServesTheToolsOfTheLesson(t *testing.T) {
 	t.Parallel()
 
 	cfg := testConfig()
@@ -352,21 +352,24 @@ func TestContainerServesTheToolsOfTheProfile(t *testing.T) {
 		names = append(names, tool.Name)
 	}
 	slices.Sort(names)
-	if want := []string{"get_profile", "get_progress", "read_progress", "save_profile"}; !slices.Equal(names, want) {
+	want := []string{"get_profile", "get_progress", "next_task", "read_progress", "save_profile", "submit_task"}
+	if !slices.Equal(names, want) {
 		t.Errorf("tools = %v, want %v", names, want)
 	}
 
-	var profiled struct {
-		Result struct {
-			StructuredContent struct {
-				Screen string `json:"screen"`
-			} `json:"structuredContent"`
-		} `json:"result"`
-	}
-	askEndpoint(t, container,
-		`{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get_profile","arguments":{}}}`, &profiled)
-	if got := profiled.Result.StructuredContent.Screen; got != "first_run" {
-		t.Errorf("get_profile shows %q, want first_run: nothing is kept yet", got)
+	for tool, arguments := range map[string]string{"get_profile": `{}`, "next_task": `{"language":"en"}`} {
+		var answered struct {
+			Result struct {
+				StructuredContent struct {
+					Screen string `json:"screen"`
+				} `json:"structuredContent"`
+			} `json:"result"`
+		}
+		askEndpoint(t, container, `{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"`+tool+
+			`","arguments":`+arguments+`}}`, &answered)
+		if got := answered.Result.StructuredContent.Screen; got != "first_run" {
+			t.Errorf("%s shows %q, want first_run: nothing is kept yet", tool, got)
+		}
 	}
 }
 
@@ -457,6 +460,7 @@ func testConfig() *config.Config {
 		SolverSteps:       config.DefaultSolverSteps,
 		SolverTimeout:     config.DefaultSolverTimeout,
 		SolverConcurrency: config.DefaultSolverConcurrency,
+		RequestWindow:     config.DefaultRequestWindow,
 	}
 }
 

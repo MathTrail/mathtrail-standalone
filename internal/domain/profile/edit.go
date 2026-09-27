@@ -61,13 +61,13 @@ func (p *Profile) Change(e *Edit, known func(skill string) bool, appVersion stri
 func (s *Student) edited(e *Edit, known func(skill string) bool) (Student, []Problem) {
 	next := s.copied()
 	if e.Pseudonym != nil {
-		next.Pseudonym = typed(*e.Pseudonym)
+		next.Pseudonym = Typed(*e.Pseudonym)
 	}
 	if e.Grade != nil {
 		next.Grade = *e.Grade
 	}
 	if e.Notes != nil {
-		next.Notes = typed(*e.Notes)
+		next.Notes = Typed(*e.Notes)
 	}
 	if e.Interests != nil {
 		next.Interests = typedList(e.Interests)
@@ -104,10 +104,14 @@ func (s *Student) editLanguage(given *string) []Problem {
 	if given == nil {
 		return nil
 	}
-	tag, rule := languageTag(*given)
-	s.UILanguage = tag
-	if rule != "" {
+	tag, rule := LanguageTag(*given)
+	switch {
+	case rule != "":
 		return []Problem{{Field: "ui_language", Rule: rule}}
+	case tag == "":
+		s.UILanguage = nil
+	default:
+		s.UILanguage = &tag
 	}
 	return nil
 }
@@ -151,19 +155,21 @@ func sameLanguage(a, b *string) bool {
 	return *a == *b
 }
 
-// typed is a text as the parent meant it: a space of any kind — a tab, a line
-// or paragraph break, a space of another width — reads as a plain one, any
-// other control character is dropped, and so is a character that shows
-// nothing at all or makes a text show in an order other than the one it is
-// kept in. Nothing but the words is kept at either end, so a name made of
+// Typed is a text as the one who typed it meant it: a space of any kind — a
+// tab, a line or paragraph break, a space of another width — reads as a plain
+// one, any other control character is dropped, and so is a character that
+// shows nothing at all or makes a text show in an order other than the one it
+// is kept in. Nothing but the words is kept at either end, so a name made of
 // nothing anybody can see is no name.
 //
-// The notes are the text this matters for: the one thing a person writes and a
-// model reads. They reach the model as a string of JSON, which nothing inside
-// it can end, introduced as information about the child. The joiners that some
+// The parent's notes are the text this matters for most: the one thing a
+// person writes and a model reads. They reach the model as a string of JSON,
+// which nothing inside it can end, introduced as information about the child.
+// The reason a model gives for a choice of its own is read the same way, since
+// it is kept in the file and handed back with the brief. The joiners that some
 // scripts and emoji are written with stay, since without them the words are
 // not the words.
-func typed(text string) string {
+func Typed(text string) string {
 	cleaned := strings.Map(func(r rune) rune {
 		switch {
 		case unicode.IsSpace(r):
@@ -202,7 +208,7 @@ func typedList(texts []string) []string { return distinct(typedEach(texts)) }
 func typedEach(texts []string) []string {
 	cleaned := make([]string, 0, len(texts))
 	for _, text := range texts {
-		cleaned = append(cleaned, typed(text))
+		cleaned = append(cleaned, Typed(text))
 	}
 	return cleaned
 }
@@ -242,24 +248,25 @@ var notLanguages = []language.Base{
 	language.MustParseBase("mis"),
 }
 
-// languageTag reads the language the cards are to be shown in: a BCP 47 tag in
-// its canonical spelling, so that pt-br and pt-BR are one language, or none at
-// all, which makes the cards follow the chat's. The tag has to name its
-// language outright: "und-US" only guesses one from a country, and a private
-// tag names none.
-func languageTag(text string) (canonical *string, rule string) {
+// LanguageTag reads a language as the service keeps one: a BCP 47 tag, in its
+// canonical spelling, so that pt-br and pt-BR are one language. The tag has to
+// name its language outright: "und-US" only guesses one from a country, and a
+// private tag names none. What it returns is the tag, or the rule the text
+// broke, in words that never repeat the text. An empty text is no tag and
+// breaks no rule here: what "none" means — the chat's language for the cards,
+// a missing argument for a task — is the caller's to say.
+func LanguageTag(text string) (tag, rule string) {
 	text = strings.TrimSpace(text)
 	if text == "" {
-		return nil, ""
+		return "", ""
 	}
-	if count := utf8.RuneCountInString(text); count > MaxUILanguage {
-		return nil, fmt.Sprintf("must be at most %d characters, not %d", MaxUILanguage, count)
+	if count := utf8.RuneCountInString(text); count > MaxLanguageTag {
+		return "", fmt.Sprintf("must be at most %d characters, not %d", MaxLanguageTag, count)
 	}
-	tag, err := language.Parse(text)
-	base, confidence := tag.Base()
+	parsed, err := language.Parse(text)
+	base, confidence := parsed.Base()
 	if err != nil || confidence != language.Exact || slices.Contains(notLanguages, base) {
-		return nil, "must be a BCP 47 language tag, such as en, ru or pt-BR, or empty to follow the chat's language"
+		return "", "must be a BCP 47 tag that names a language, such as en, ru or pt-BR"
 	}
-	spelled := tag.String()
-	return &spelled, ""
+	return parsed.String(), ""
 }

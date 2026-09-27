@@ -44,7 +44,7 @@
       "$ref": "#/$defs/ratings"
     },
     "recent": {
-      "description": "The history window, oldest first.",
+      "description": "The history window, oldest first: answers and skipped tasks together. When an entry has to go, the oldest goes, unless it is one of the five latest answers, and then the oldest skipped task goes instead.",
       "type": "array",
       "maxItems": 20,
       "items": { "$ref": "#/$defs/answer" }
@@ -177,6 +177,11 @@
           "type": ["string", "null"],
           "format": "date"
         },
+        "skipped": {
+          "description": "Tasks of this topic left without an answer when another was asked for. Nothing that computes reads it; the progress screen shows it to the parent. Absent means none.",
+          "type": "integer",
+          "minimum": 0
+        },
         "top_streak": {
           "description": "The run of correct answers at the harder half of the corridor with no hint.",
           "type": "integer",
@@ -195,10 +200,15 @@
       }
     },
     "answer": {
+      "description": "An answer the child gave, or a task left without one when another was asked for. A skipped task says where it stood and when it was left, and carries no outcome at all.",
       "type": "object",
-      "required": ["answered_at", "confused", "correct", "difficulty", "grade_level", "hint_used", "pace", "task_id", "topic"],
+      "required": ["answered_at", "difficulty", "grade_level", "task_id", "topic"],
       "properties": {
-        "answered_at": { "type": "string", "format": "date-time" },
+        "answered_at": {
+          "description": "When the answer arrived, or when the task was left.",
+          "type": "string",
+          "format": "date-time"
+        },
         "chosen": {
           "description": "The option picked, written only for a wrong answer.",
           "type": "string",
@@ -209,7 +219,7 @@
           "type": "boolean"
         },
         "correct": {
-          "description": "The only thing the rating formula reads. Never absent.",
+          "description": "The only thing the rating formula reads. Never absent from an answer.",
           "type": "boolean"
         },
         "difficulty": { "type": "integer", "minimum": 1, "maximum": 5 },
@@ -220,13 +230,32 @@
           "type": "string",
           "enum": ["fast", "normal", "slow"]
         },
+        "skipped": {
+          "description": "The task was left without an answer when a new one was asked for. Nothing that learns from answers reads the entry; the progress screen shows it. Absent on an answer.",
+          "type": "boolean",
+          "const": true
+        },
         "task_id": { "type": "string", "minLength": 1 },
         "topic": { "type": "string", "minLength": 1 },
         "trap": {
           "description": "The trap the wrong option led to, written only for a wrong answer.",
           "type": "string"
         }
-      }
+      },
+      "if": { "required": ["skipped"] },
+      "then": {
+        "not": {
+          "anyOf": [
+            { "required": ["chosen"] },
+            { "required": ["confused"] },
+            { "required": ["correct"] },
+            { "required": ["hint_used"] },
+            { "required": ["pace"] },
+            { "required": ["trap"] }
+          ]
+        }
+      },
+      "else": { "required": ["confused", "correct", "hint_used", "pace"] }
     },
     "openRequest": {
       "type": "object",

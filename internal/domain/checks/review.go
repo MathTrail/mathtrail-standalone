@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
@@ -59,6 +60,28 @@ type Examined struct {
 	// answer is what the runs of the solver came to, and nil when there were
 	// not five options to run it on.
 	answer *solver.Agreement
+}
+
+// Run is one run of the solver as a log line may keep it: how it ended, what
+// it spent of its budget and how long it took. What it arrived at is not here,
+// because that is the answer.
+type Run struct {
+	Status   solver.Status
+	Steps    uint64
+	Duration time.Duration
+}
+
+// Runs are the runs of the solver this submission took, in the order they
+// happened, and none when there were not five options to run it on.
+func (e Examined) Runs() []Run {
+	if e.answer == nil {
+		return nil
+	}
+	runs := make([]Run, 0, len(e.answer.Runs))
+	for _, run := range e.answer.Runs {
+		runs = append(runs, Run{Status: run.Status, Steps: run.Steps, Duration: run.Duration})
+	}
+	return runs
 }
 
 // Reviewer decides whether a task can be given to a child: accepted, or every

@@ -12,6 +12,9 @@ import (
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/tutor"
 	mcpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/mcp"
 )
 
@@ -75,4 +78,119 @@ func FuzzToolArguments(f *testing.F) {
 			t.Errorf("outcome = %v for arguments %q, want ok or invalid", outcome, arguments)
 		}
 	})
+}
+
+// fuzzRequest is the request every case of the fuzzing below hands its task in
+// against, so that a task written well gets all the way through.
+const fuzzRequest = "req_fuzz"
+
+// The arguments of the tools of a task are written by the chat's model as much
+// as any, and the whole way runs behind them: the rule, the package, the
+// checks, the sandbox, the seal and the store. Whatever arrives is answered —
+// a task asked for or handed in, a refusal, or arguments that do not fit — and
+// never as a failure of ours.
+func FuzzTaskArguments(f *testing.F) {
+	race, err := json.Marshal(raceOn(openRace(f)))
+	if err != nil {
+		f.Fatalf("the race does not encode: %v", err)
+	}
+	for _, seed := range []struct {
+		tool      uint8
+		arguments string
+	}{
+		{0, `{"language":"en"}`},
+		{0, `{"language":"en","topic":"logic.ordering","grade_level":"1-2","difficulty":2,"reason":"a race"}`},
+		{0, `{"language":"","topic":"nowhere","difficulty":-7}`},
+		{0, `{"language":"zh-Hant-TW","grade_level":"5-6","reason":"` + strings.Repeat("\u202e", 400) + `"}`},
+		{1, string(race)},
+		{1, strings.Replace(string(race), `"correct_answer":"C"`, `"correct_answer":"A"`, 1)},
+		{1, `{"request_id":"req_fuzz","brief":"a string","task":[1,2],"solver":"","self_check":null}`},
+		{1, `{"request_id":"req_fuzz","brief":{},"task":{"options":{"A":1}},"solver":"def solve(options): return","self_check":{}}`},
+		{1, `{}`},
+	} {
+		f.Add(seed.tool, seed.arguments)
+	}
+
+	f.Fuzz(func(t *testing.T, pick uint8, arguments string) {
+		if !json.Valid([]byte(arguments)) {
+			quoted, err := json.Marshal(arguments)
+			if err != nil {
+				t.Fatalf("quoting the arguments: %v", err)
+			}
+			arguments = string(quoted)
+		}
+		tool := []string{"next_task", "submit_task"}[pick%2]
+
+		if line := callOnARace(t, tool, arguments); line["outcome"] == "failed" {
+			t.Errorf("%s(%q) failed as ours: %v", tool, arguments, line)
+		}
+	})
+}
+
+// callOnARace makes one call of a tool of a task, for a child with the race
+// asked for, through an endpoint of its own over a store of its own, and is the
+// line the call left.
+func callOnARace(t *testing.T, tool, arguments string) map[string]any {
+	t.Helper()
+
+	core, logs := observer.New(zapcore.DebugLevel)
+	parts := allParts(t)
+	parts.Store, parts.Logger = keptAsIs(t, fuzzProfile(t)), zap.New(core)
+	service, err := mcpserver.NewService(parts)
+	if err != nil {
+		t.Fatalf("NewService() error = %v", err)
+	}
+	endpoint, err := mcpserver.NewHandler(&mcpserver.Settings{
+		Instructions:        instructions,
+		InstructionsVersion: instructionsVersion,
+		SignIn:              mcpserver.DevSignIn,
+		Traces:              tracenoop.NewTracerProvider(),
+		Logger:              zap.New(core),
+		Widget:              page,
+	}, service.TaskTools()...)
+	if err != nil {
+		t.Fatalf("NewHandler() error = %v, want nil", err)
+	}
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/mcp",
+		strings.NewReader(legacyCall(tool, arguments)))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json, text/event-stream")
+	rec := httptest.NewRecorder()
+	endpoint.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d for %s(%q), want the call answered", rec.Code, tool, arguments)
+	}
+	lines := logs.FilterMessage("tool_call").All()
+	if len(lines) != 1 {
+		t.Fatalf("tool_call lines = %d for %s(%q), want 1", len(lines), tool, arguments)
+	}
+	return lines[0].ContextMap()
+}
+
+// fuzzProfile is a child of grade 2 with the race asked for, under the request
+// the fuzzing hands its tasks in against.
+func fuzzProfile(t testing.TB) *profile.Profile {
+	t.Helper()
+
+	p := profile.New(profile.Student{Grade: 2, Pseudonym: "Otter", Interests: []string{"sport"}}, "test", lessonDay)
+	loaded, err := shipped()
+	if err != nil {
+		t.Fatalf("load the content: %v", err)
+	}
+	brief, mode, err := tutor.Next(p, loaded, tutor.Choice{
+		Topic: "logic.ordering", GradeLevel: rating.Grades12, Difficulty: 2, Reason: "The child asked for a race.",
+	})
+	if err != nil {
+		t.Fatalf("Next() error = %v", err)
+	}
+	p.Ask(&brief, mode, "en", lessonDay).ID = fuzzRequest
+	return p
+}
+
+// openRace is the request the fuzzing hands its tasks in against.
+func openRace(t testing.TB) *profile.OpenRequest {
+	t.Helper()
+	return fuzzProfile(t).OpenRequest
 }

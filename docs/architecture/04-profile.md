@@ -149,7 +149,7 @@ Two hundred is ten days of heavy use at twenty tasks a day. Beyond that a child 
 | Field | Type | Why |
 |---|---|---|
 | `id` | string | `submit_task` must carry it; anything else is `stale_request` |
-| `opened_at` | RFC 3339 UTC | The abandonment window, ~15 minutes (T15) |
+| `opened_at` | RFC 3339 UTC | The abandonment window: 15 minutes by default, `MATHTRAIL_REQUEST_WINDOW` (SPEC 11.2) |
 | `attempts` | integer 0–3 | The counter the model cannot forget its way around |
 | `tutor_mode` | `rule` or `llm` | Whether the model kept the rule's topic and difficulty or chose its own with a reason — the comparison the prototype's D43 set up |
 | `language` | BCP 47 tag | The language of the chat, so the task is written in it (О-14) |

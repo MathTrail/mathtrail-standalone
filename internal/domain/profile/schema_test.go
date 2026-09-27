@@ -2,11 +2,12 @@ package profile_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"slices"
 	"strings"
 	"testing"
+
+	"github.com/google/jsonschema-go/jsonschema"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
@@ -225,7 +226,7 @@ func TestTheSchemaStatesTheCapsOfTheDetails(t *testing.T) {
 		{"interests.items.maxLength", interestItems["maxLength"], profile.MaxInterest},
 		{"notes.maxLength", details["notes"]["maxLength"], profile.MaxNotes},
 		{"pseudonym.maxLength", details["pseudonym"]["maxLength"], profile.MaxPseudonym},
-		{"ui_language.maxLength", details["ui_language"]["maxLength"], profile.MaxUILanguage},
+		{"ui_language.maxLength", details["ui_language"]["maxLength"], profile.MaxLanguageTag},
 	} {
 		if tc.got != float64(tc.want) {
 			t.Errorf("the schema states %s as %v, want %d", tc.where, tc.got, tc.want)
@@ -278,96 +279,98 @@ func sameLetters(t *testing.T, where string, list any) {
 	}
 }
 
-// Every fixture holds to the schema: every field the schema requires is there,
-// at every depth, and every value the schema lists the choices of is one of
-// them. The fixtures are what the tests of the whole service stand on, so a
-// fixture missing a field the file must carry would let a test pass on a file
-// no service writes.
+// Every fixture holds to the schema. The fixtures are what the tests of the
+// whole service stand on, so a fixture breaking what the file must be would
+// let a test pass on a file no service writes.
 func TestEveryFixtureHoldsToTheSchema(t *testing.T) {
 	t.Parallel()
-
-	var schema map[string]any
-	if err := json.Unmarshal(profile.Schema(), &schema); err != nil {
-		t.Fatalf("the schema is not a JSON document: %v", err)
-	}
-	defs, _ := schema["$defs"].(map[string]any)
 
 	for _, student := range students {
 		t.Run(student, func(t *testing.T) {
 			t.Parallel()
 
-			var fixture any
-			if err := json.Unmarshal(readFixture(t, student), &fixture); err != nil {
-				t.Fatalf("the fixture is not a JSON document: %v", err)
+			if err := againstTheSchema(t, readFixture(t, student)); err != nil {
+				t.Errorf("the fixture breaks the schema: %v", err)
 			}
-			holds(t, student, fixture, schema, defs)
 		})
 	}
 }
 
-// holds fails the test for every place a value breaks what its piece of the
-// schema requires and lists.
-func holds(t *testing.T, path string, value any, schema, defs map[string]any) {
+// The schema tells a skipped task from an answer by the fields the file holds:
+// an answer has its outcome, and a skipped task has none of it. Either one
+// written the other way breaks the schema, and each one as this package writes
+// it keeps to it. The service reads a little more than the schema allows — an
+// outcome field of false on a skip, or an answer's false left out, decodes the
+// same — and writes it back in the schema's shape.
+func TestTheSchemaTellsASkippedTaskFromAnAnswer(t *testing.T) {
+	t.Parallel()
+
+	where := `"answered_at": "2026-09-20T18:00:00Z", "difficulty": 2, "grade_level": "1-2", "task_id": "tsk_1", "topic": "logic.ordering"`
+	outcome := `"confused": false, "correct": true, "hint_used": false, "pace": "fast"`
+	for _, tc := range []struct {
+		name  string
+		entry string
+		holds bool
+	}{
+		{"an answer", "{" + where + ", " + outcome + "}", true},
+		{"a skipped task", "{" + where + `, "skipped": true}`, true},
+		{"an answer with no outcome", "{" + where + "}", false},
+		{"an answer with no correct", "{" + where + `, "confused": false, "hint_used": false, "pace": "fast"}`, false},
+		{"a skipped task with an outcome", "{" + where + `, "skipped": true, ` + outcome + "}", false},
+		{"a skipped task with a pace", "{" + where + `, "skipped": true, "pace": "slow"}`, false},
+		{"a skipped task with a trap", "{" + where + `, "skipped": true, "trap": "missed_case"}`, false},
+		{"an entry saying it was not skipped", "{" + where + `, "skipped": false, ` + outcome + "}", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			file := withWindow(t, parseFixture(t, "dima"), tc.entry)
+			if err := againstTheSchema(t, file); (err == nil) != tc.holds {
+				t.Errorf("the schema says %v about %s, want it to hold: %v", err, tc.entry, tc.holds)
+			}
+		})
+	}
+}
+
+// withWindow is a profile as the file holds it, with one entry for its whole
+// window.
+func withWindow(t *testing.T, p *profile.Profile, entry string) []byte {
 	t.Helper()
 
-	if ref, isRef := schema["$ref"].(string); isRef {
-		schema, _ = defs[strings.TrimPrefix(ref, "#/$defs/")].(map[string]any)
+	written, err := profile.Marshal(p)
+	if err != nil {
+		t.Fatalf("Marshal() error = %v, want nil", err)
 	}
-	if choice, isChoice := schema["oneOf"].([]any); isChoice {
-		schema = branchFor(value, choice)
-		holds(t, path, value, schema, defs)
-		return
+	var file map[string]json.RawMessage
+	if unread := json.Unmarshal(written, &file); unread != nil {
+		t.Fatalf("the file is not a JSON object: %v", unread)
 	}
-	if choices, listed := schema["enum"].([]any); listed && !slices.Contains(choices, value) {
-		t.Errorf("%s is %v, want one of %v", path, value, choices)
+	file["recent"] = json.RawMessage("[" + entry + "]")
+	edited, err := json.Marshal(file)
+	if err != nil {
+		t.Fatalf("json.Marshal() error = %v, want nil", err)
 	}
-
-	switch value := value.(type) {
-	case map[string]any:
-		holdsObject(t, path, value, schema, defs)
-	case []any:
-		items, _ := schema["items"].(map[string]any)
-		for i, item := range value {
-			holds(t, fmt.Sprintf("%s[%d]", path, i), item, items, defs)
-		}
-	}
+	return edited
 }
 
-// holdsObject is holds for an object: the fields its piece of the schema
-// requires are there, and each field it has holds to its own piece.
-func holdsObject(t *testing.T, path string, object, schema, defs map[string]any) {
+// againstTheSchema holds a file to the schema, read the way any reader of JSON
+// Schema reads it: by the library the protocol already brings, which knows
+// every keyword the schema uses — the condition that tells a skipped task from
+// an answer among them.
+func againstTheSchema(t *testing.T, file []byte) error {
 	t.Helper()
 
-	required, _ := schema["required"].([]any)
-	for _, name := range required {
-		if key, _ := name.(string); !hasKey(object, key) {
-			t.Errorf("%s has no %s, which the schema requires", path, name)
-		}
+	var schema jsonschema.Schema
+	if err := json.Unmarshal(profile.Schema(), &schema); err != nil {
+		t.Fatalf("the schema is not one: %v", err)
 	}
-	properties, _ := schema["properties"].(map[string]any)
-	additional, _ := schema["additionalProperties"].(map[string]any)
-	for name, below := range object {
-		if described, isDescribed := properties[name].(map[string]any); isDescribed {
-			holds(t, path+"."+name, below, described, defs)
-		} else if additional != nil {
-			holds(t, path+"."+name, below, additional, defs)
-		}
+	resolved, err := schema.Resolve(nil)
+	if err != nil {
+		t.Fatalf("Resolve() error = %v, want a schema that resolves", err)
 	}
-}
-
-// hasKey reports whether an object names this key at all, even as null.
-func hasKey(object map[string]any, key string) bool {
-	_, present := object[key]
-	return present
-}
-
-// branchFor is the branch of a "this or null" choice a value is held to.
-func branchFor(value any, choice []any) map[string]any {
-	for _, branch := range choice {
-		described, _ := branch.(map[string]any)
-		if (described["type"] == "null") == (value == nil) {
-			return described
-		}
+	var document any
+	if err := json.Unmarshal(file, &document); err != nil {
+		t.Fatalf("the file is not a JSON document: %v", err)
 	}
-	return map[string]any{}
+	return resolved.Validate(document)
 }

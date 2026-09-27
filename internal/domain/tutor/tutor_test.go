@@ -286,6 +286,31 @@ func TestAFailureWithNothingInTheWindow(t *testing.T) {
 	}
 }
 
+// A task skipped after a failure is no answer, and the failure stays where it
+// was: it is worked over on the topic of the last answer, not of the task the
+// child left. A window of skipped tasks alone shows no failure to work over.
+func TestASkipDoesNotMoveTheFailure(t *testing.T) {
+	t.Parallel()
+
+	skipped := profile.Answer{
+		AnsweredAt: profile.At(day.Add(time.Hour)), Difficulty: 2, GradeLevel: rating.Grades12,
+		Skipped: true, TaskID: "tsk_2", Topic: "counting.gaps",
+	}
+
+	p := settled(t)
+	failedAt(p, "time.clocks", 2)
+	issued(p, "time.clocks", day, 0)
+	p.Recent = append(p.Recent, skipped)
+	if got := brief(t, p, threeTopics()); got.PedagogicalGoal != profile.GoalReinforce || got.TargetConcept != "time.clocks" {
+		t.Errorf("brief = %s on %s, want the failure in time.clocks worked over", got.PedagogicalGoal, got.TargetConcept)
+	}
+
+	p.Recent = []profile.Answer{skipped}
+	if got := brief(t, p, threeTopics()); got.PedagogicalGoal != profile.GoalNewTopic {
+		t.Errorf("goal = %q with only a skipped task in the window, want a new topic", got.PedagogicalGoal)
+	}
+}
+
 // A failure on a topic now out of reach — the failures themselves moved it
 // there, or the topic left the catalog — is not worked over again: the task
 // would be failed again, and a run of failures that waits for an accepted task
