@@ -194,6 +194,45 @@ func TestTheSchemaStatesTheLimitsValidateHolds(t *testing.T) {
 	}
 }
 
+// The caps the schema tells a reader of the child's details are the caps the
+// details are held to. The skills were once capped at fifteen in both, and the
+// catalog grew past it with neither noticing.
+func TestTheSchemaStatesTheCapsOfTheDetails(t *testing.T) {
+	t.Parallel()
+
+	var document struct {
+		Defs struct {
+			Student struct {
+				Properties map[string]map[string]any `json:"properties"`
+			} `json:"student"`
+		} `json:"$defs"`
+	}
+	if err := json.Unmarshal(profile.Schema(), &document); err != nil {
+		t.Fatalf("the schema is not a JSON document: %v", err)
+	}
+	details := document.Defs.Student.Properties
+	interestItems, _ := details["interests"]["items"].(map[string]any)
+
+	for _, tc := range []struct {
+		where string
+		got   any
+		want  int
+	}{
+		{"excluded_skills.maxItems", details["excluded_skills"]["maxItems"], profile.MaxExcludedSkills},
+		{"grade.minimum", details["grade"]["minimum"], profile.MinGrade},
+		{"grade.maximum", details["grade"]["maximum"], profile.MaxGrade},
+		{"interests.maxItems", details["interests"]["maxItems"], profile.MaxInterests},
+		{"interests.items.maxLength", interestItems["maxLength"], profile.MaxInterest},
+		{"notes.maxLength", details["notes"]["maxLength"], profile.MaxNotes},
+		{"pseudonym.maxLength", details["pseudonym"]["maxLength"], profile.MaxPseudonym},
+		{"ui_language.maxLength", details["ui_language"]["maxLength"], profile.MaxUILanguage},
+	} {
+		if tc.got != float64(tc.want) {
+			t.Errorf("the schema states %s as %v, want %d", tc.where, tc.got, tc.want)
+		}
+	}
+}
+
 // walkSchema calls visit with every named property of a schema, at any depth.
 func walkSchema(node any, visit func(name string, node map[string]any)) {
 	switch node := node.(type) {

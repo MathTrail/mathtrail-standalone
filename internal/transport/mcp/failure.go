@@ -3,6 +3,8 @@ package mcpserver
 import (
 	"context"
 	"errors"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/store"
 )
 
 // The kinds of failure a line can name. They are the only words a failure is
@@ -12,6 +14,7 @@ const (
 	kindTimeout     = "timeout"
 	kindNotSignedIn = "not_signed_in"
 	kindPanic       = "panic"
+	kindConflict    = "conflict"
 )
 
 // sentenceInternal is what the model is told when something of ours failed
@@ -40,6 +43,14 @@ var failures = []struct {
 		cause:    context.DeadlineExceeded,
 		kind:     kindTimeout,
 		sentence: "MathTrail took too long to answer. Try the same request again in a moment.",
+	},
+	{
+		// Somebody else wrote the profile between this call's read and its
+		// write — another tab, another device. Nothing was written, and the
+		// same call made again starts from what they wrote.
+		cause:    store.ErrConflict,
+		kind:     kindConflict,
+		sentence: "The child's profile was changed somewhere else at the same moment, so nothing was saved. Make the same call again.",
 	},
 }
 

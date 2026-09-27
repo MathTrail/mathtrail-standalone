@@ -35,6 +35,11 @@ type Spec struct {
 	// DrawsCard says a host draws the tool's result as a card, with the
 	// widget. Which screen the card shows is for the payload to say.
 	DrawsCard bool
+	// WidgetOnly hides the tool from the model: only a card calls it, for a
+	// screen of its own, and the model has another tool for the same thing.
+	// Such a tool draws no card, since the card that called it is the one
+	// showing what it answers.
+	WidgetOnly bool
 }
 
 // Handler does one tool's work for one call, for the account the call acts
@@ -69,6 +74,10 @@ func (d definition[In, Out]) name() string { return d.spec.Name }
 // a schema from; that is a mistake in the tool's definition, and it is told as
 // a refusal to build the endpoint rather than as a crash.
 func (d definition[In, Out]) add(server *mcp.Server) (err error) {
+	if d.spec.WidgetOnly && d.spec.DrawsCard {
+		// A host would draw a second card under the one that asked.
+		return fmt.Errorf("%w: tool %q is for a card alone and cannot draw one", ErrSettings, d.spec.Name)
+	}
 	defer func() {
 		if recovered := recover(); recovered != nil {
 			err = fmt.Errorf("%w: tool %q cannot be defined: %v", ErrSettings, d.spec.Name, recovered)
@@ -87,15 +96,23 @@ func (d definition[In, Out]) add(server *mcp.Server) (err error) {
 //
 // A tool that draws a card names the widget's page twice: under the key hosts
 // read now, and under the flat key earlier hosts read, as the library's own
-// helper for such tools writes both.
+// helper for such tools writes both. A tool for a card alone says who may see
+// it, which a host reads as keeping it from the model.
 func (d definition[In, Out]) tool() *mcp.Tool {
 	no := false
 	meta := mcp.Meta{
 		"securitySchemes": []map[string]any{{"type": "oauth2", "scopes": []string{Scope}}},
 	}
+	ui := map[string]any{}
 	if d.spec.DrawsCard {
-		meta["ui"] = map[string]any{"resourceUri": WidgetURI}
+		ui["resourceUri"] = WidgetURI
 		meta["ui/resourceUri"] = WidgetURI
+	}
+	if d.spec.WidgetOnly {
+		ui["visibility"] = []string{"app"}
+	}
+	if len(ui) > 0 {
+		meta["ui"] = ui
 	}
 	return &mcp.Tool{
 		Name:        d.spec.Name,

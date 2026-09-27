@@ -68,6 +68,22 @@ func TestANewProfileIsUsableAtOnce(t *testing.T) {
 	}
 }
 
+// The level in a topic is the level overall with the topic's own correction,
+// and a topic never met is the level overall: the rule sets tasks from it and
+// the progress shows ratings from it, so both read this one sum.
+func TestTheLevelInATopicIsTheLevelWithItsCorrection(t *testing.T) {
+	t.Parallel()
+
+	p := parseFixture(t, "masha")
+	met := p.Topics["combinatorics.enumeration"]
+	if got, want := p.LevelIn("combinatorics.enumeration"), p.Ratings.Theta+met.Delta; got != want {
+		t.Errorf("LevelIn(a topic met) = %v, want %v", got, want)
+	}
+	if got := p.LevelIn("geometry.grid"); got != p.Ratings.Theta {
+		t.Errorf("LevelIn(a topic never met) = %v, want the level overall, %v", got, p.Ratings.Theta)
+	}
+}
+
 // Two children are two children, whatever they are called.
 func TestEveryProfileGetsItsOwnIdentifier(t *testing.T) {
 	t.Parallel()

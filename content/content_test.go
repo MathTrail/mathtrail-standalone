@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/MathTrail/mathtrail-standalone/content"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
@@ -123,6 +124,18 @@ func TestCatalogsAreTheClosedLists(t *testing.T) {
 	}
 	if !slices.Equal(got, wantSkills) {
 		t.Errorf("skills:\ngot  %v\nwant %v", got, wantSkills)
+	}
+}
+
+// A parent may leave every skill of the catalog out of the tasks, and no more:
+// the cap of the profile is the size of the catalog. A catalog that grows
+// without the cap would leave some child's skills unsayable.
+func TestAProfileMayLeaveOutEverySkillOfTheCatalog(t *testing.T) {
+	t.Parallel()
+
+	if got := len(loaded(t).Skills()); got != profile.MaxExcludedSkills {
+		t.Errorf("the catalog has %d skills and a profile may leave out %d, want the two the same",
+			got, profile.MaxExcludedSkills)
 	}
 }
 
@@ -280,7 +293,8 @@ func TestInstructionsAreInTheBinary(t *testing.T) {
 	}
 }
 
-// tools are the six tools the server offers, named as the server names them.
+// tools are the tools the model sees, named as the server names them. A tool
+// only a card calls is not among them: the model is never told of it.
 var tools = []string{"get_profile", "save_profile", "get_progress", "next_task", "submit_task", "submit_answer"}
 
 // The instructions the server hands the model walk it through every tool it

@@ -109,7 +109,7 @@ internal/
   telemetry/      traces and metrics: their providers, their export, what they may carry
   widget/         the widget page as the web build left it, embedded; a placeholder until a build runs
   domain/         pure logic — no I/O, no SDKs, no transport
-    rating/ tutor/ checks/ solver/ profile/
+    rating/ tutor/ checks/ solver/ profile/ progress/
   infra/          everything that talks to the outside world
     drive/ starlark/ seal/
   site/           render/ turns the site's sources into files, check/ judges them

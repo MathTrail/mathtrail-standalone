@@ -135,10 +135,17 @@ type harness struct {
 	logs   *observer.ObservedLogs
 }
 
-// serve starts the endpoint with the sign-in a case chooses. Every span is
-// kept, through the same filter the service installs, and every line is kept
-// as the logger received it.
+// serve starts the endpoint with the sign-in a case chooses, serving the tools
+// made for these cases.
 func serve(t *testing.T, signIn mcpserver.SignIn) *harness {
+	t.Helper()
+	return serveTools(t, signIn, tools()...)
+}
+
+// serveTools starts the endpoint with the sign-in and the tools a case
+// chooses. Every span is kept, through the same filter the service installs,
+// and every line is kept as the logger received it.
+func serveTools(t *testing.T, signIn mcpserver.SignIn, served ...mcpserver.Tool) *harness {
 	t.Helper()
 
 	h := &harness{spans: tracetest.NewSpanRecorder()}
@@ -165,7 +172,7 @@ func serve(t *testing.T, signIn mcpserver.SignIn) *harness {
 		Logger:              log,
 		ProjectID:           projectID,
 		Widget:              page,
-	}, tools()...)
+	}, served...)
 	if err != nil {
 		t.Fatalf("NewHandler() error = %v, want nil", err)
 	}

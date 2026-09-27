@@ -8,6 +8,7 @@ package app
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -17,6 +18,8 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark"
+	"github.com/MathTrail/mathtrail-standalone/internal/store"
+	"github.com/MathTrail/mathtrail-standalone/internal/store/memory"
 	"github.com/MathTrail/mathtrail-standalone/internal/telemetry"
 	httpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/http"
 	mcpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/mcp"
@@ -35,6 +38,7 @@ type Container struct {
 	Telemetry *telemetry.Telemetry
 	Solver    solver.Runner
 	Reviewer  checks.Reviewer
+	Store     store.Storage
 	Router    http.Handler
 
 	// closers run in reverse order of registration, so that a resource is
@@ -137,12 +141,21 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 	// any other.
 	c.Reviewer = checks.NewReviewer(embedded, c.Solver, checks.DefaultDrawingLimits())
 
+	// Profiles are kept in the memory of the process until the parent's own
+	// Drive can hold them. Only the development sign-in reaches a tool yet, so
+	// nothing a real family wrote is kept here, or lost with the process.
+	c.Store = memory.New()
+
 	// The MCP endpoint lets nobody in: this build can issue no token. The
 	// development sign-in lets everybody in as one account, and the
 	// configuration refuses it on a deployment.
 	signIn := mcpserver.NobodySignsIn
 	if cfg.DevAuth {
 		signIn = mcpserver.DevSignIn
+	}
+	lesson, err := mcpserver.NewService(c.Store, embedded, time.Now, version.Version)
+	if err != nil {
+		return nil, err
 	}
 	endpoint, err := mcpserver.NewHandler(&mcpserver.Settings{
 		Instructions:        embedded.ServerInstructions(),
@@ -153,7 +166,7 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 		Logger:              log,
 		ProjectID:           cfg.GCPProjectID,
 		Widget:              widget.Page(),
-	})
+	}, lesson.ProfileTools()...)
 	if err != nil {
 		return nil, err
 	}
