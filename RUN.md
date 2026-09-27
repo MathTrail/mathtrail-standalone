@@ -127,7 +127,7 @@
 | [x] | T43 | Инструменты профиля и прогресса | я + Claude | — | T39b.5, T40, T41, T42 |
 | [x] | T44 | Выдача и приём задачи | Claude | да | T36.1, T43 |
 | [x] | T45 | Ответ ребёнка | Claude | — | T26a, T44 |
-| [ ] | T46 | Локальный прогон в Claude Code | я + Claude | — | T45 |
+| [x] | T46 | Локальный прогон в Claude Code | я + Claude | — | T45 |
 | [ ] | T47 | OAuth: метаданные и клиенты | Claude | да | T24, T41 |
 | [ ] | T48 | OAuth: authorize, согласие, callback | Claude | да | T47 |
 | [ ] | T49 | OAuth: token, refresh, revoke, bearer | Claude | — | T48 |

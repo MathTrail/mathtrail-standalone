@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"unicode/utf16"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	tracenoop "go.opentelemetry.io/otel/trace/noop"
@@ -91,11 +92,12 @@ type trialPayload struct {
 // A host lists the seven tools of the lesson as they are meant: four that draw
 // a card, under both keys a host reads; one that only a card calls, kept from
 // the model and drawing nothing; the one that asks for a task, which draws
-// nothing either, since what it hands over is for the model alone; and the one
+// nothing either and declares no payload, since what it hands over is for the
+// model alone and travels in its words; and the one
 // that records an answer, which the card calls as well as the model and which
 // draws nothing, since the card that sent the answer turns to its result.
 // Handing a task in is the one call that is not the same twice: each spends
-// an attempt.
+// an attempt. Every description is short enough to reach the model whole.
 func TestTheToolsOfTheLessonAreListedAsTheyAreMeant(t *testing.T) {
 	t.Parallel()
 
@@ -117,7 +119,7 @@ func TestTheToolsOfTheLessonAreListedAsTheyAreMeant(t *testing.T) {
 		{name: "save_profile", idempotent: true, drawsCard: true},
 		{name: "get_progress", readOnly: true, idempotent: true, drawsCard: true},
 		{name: "read_progress", readOnly: true, idempotent: true, widgetOnly: true},
-		{name: "next_task", idempotent: true},
+		{name: "next_task", idempotent: true, wordsOnly: true},
 		{name: "submit_task", drawsCard: true},
 		{name: "submit_answer", idempotent: true},
 	} {
@@ -133,26 +135,38 @@ func TestTheToolsOfTheLessonAreListedAsTheyAreMeant(t *testing.T) {
 	}
 }
 
-// listing is how a tool is meant to be listed.
+// listing is how a tool is meant to be listed. wordsOnly marks the tool that
+// answers the model in words alone, and so declares no payload to check.
 type listing struct {
 	name       string
 	readOnly   bool
 	idempotent bool
 	drawsCard  bool
 	widgetOnly bool
+	wordsOnly  bool
 }
 
+// hostKeeps is as much of a tool's description as a host is known to pass on to
+// the model: Claude Code keeps the first 2,048 characters, counted as
+// JavaScript counts them, and cuts the rest.
+const hostKeeps = 2048
+
 // wantListedAs holds a listed tool to its listing: its hints, its output
-// schema, whether a host draws a card for it and whether the model sees it.
+// schema, whether a host draws a card for it and whether the model sees it —
+// and its description, which reaches the model whole.
 func wantListedAs(t *testing.T, tool *mcp.Tool, want listing) {
 	t.Helper()
 
+	if length := len(utf16.Encode([]rune(tool.Description))); length > hostKeeps {
+		t.Errorf("the description is %d characters long, and a host may keep only the first %d of it", length, hostKeeps)
+	}
 	if hints := tool.Annotations; hints == nil || hints.ReadOnlyHint != want.readOnly || hints.IdempotentHint != want.idempotent {
 		t.Errorf("annotations = %+v, want read-only %v and idempotent %v", hints, want.readOnly, want.idempotent)
 	}
 
-	if tool.OutputSchema == nil {
-		t.Error("no output schema, want one a host can check a result against")
+	if hasSchema := tool.OutputSchema != nil; hasSchema == want.wordsOnly {
+		t.Errorf("an output schema: %v, want one a host can check a result against unless the tool answers in words alone: %v",
+			hasSchema, !want.wordsOnly)
 	}
 	ui, _ := tool.Meta["ui"].(map[string]any)
 	drawn := ui["resourceUri"] == mcpserver.WidgetURI && tool.Meta["ui/resourceUri"] == mcpserver.WidgetURI

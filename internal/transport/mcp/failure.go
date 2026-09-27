@@ -65,7 +65,7 @@ var failures = []struct {
 		// the lost seal it wraps.
 		cause:    errToldNoMore,
 		kind:     kindSealed,
-		sentence: "This task was answered already and the answer is recorded, but it can no longer be told again, so the task was taken off the card. Read last_answer in the result of the next tool you call, and ask for a new task with next_task when the child wants another.",
+		sentence: "This task was answered already and the answer is recorded, but it can no longer be told again, so the task was taken off the card. Read the last recorded answer in the result of the next tool you call, and ask for a new task with next_task when the child wants another.",
 	},
 	{
 		// The task's answer is sealed under a key that has since been

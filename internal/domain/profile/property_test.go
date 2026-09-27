@@ -183,7 +183,7 @@ func TestAnAnswerHoldsItsProperties(t *testing.T) {
 			want := recorded
 			want.Probability, want.Pace, want.Mastered, want.Unmastered, want.Again = 0, "", false, false, true
 			for _, choice := range again {
-				if told := give(t, p, id, choice, issued.Add(time.Hour)); told != want {
+				if give(t, p, id, choice, issued.Add(time.Hour)) != want {
 					return false
 				}
 			}

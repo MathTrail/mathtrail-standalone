@@ -77,14 +77,3 @@ All development happens in the devcontainer; nothing but Docker and VS Code is n
 4. `just docker-build` and `just docker-run` build and start the runtime image; `curl localhost:8080/health` answers from it.
 
 Every pull request runs the same `ci-*` recipes on GitHub Actions — formatting and lint, the tests under the race detector, the generated mocks, the widget's checks — together with a vulnerability scan, a secret scan, the dependency licenses and a build of the runtime image, which must serve the built widget.
-
-## Documents
-
-- [docs/](docs/) — architecture diagrams, the implementation decision log and reports of live runs.
-- [CLAUDE.md](CLAUDE.md) — working rules for Claude Code in this repository.
-
-## License and trademark
-
-The code and the bundled content (catalogs, reference tasks, model instructions) are released under the [MIT License](LICENSE). The dependencies linked into the binary and the packages the widget is built from, with the licenses they carry, are listed in [THIRD_PARTY_LICENSES](THIRD_PARTY_LICENSES).
-
-The MIT License does not grant any rights to the name "MathTrail" or its logos. If you fork this project and run it publicly, please give your version a different name.

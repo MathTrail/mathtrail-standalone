@@ -618,8 +618,9 @@ func TestAnAnsweredTaskIsNotSkippedByTheNextAsk(t *testing.T) {
 	window := len(loadedOf(t, kept).Recent)
 
 	asked := call(t, session, "next_task", map[string]any{"language": "en"})
-	if text := textOf(t, asked); strings.Contains(text, "recorded as skipped") {
-		t.Errorf("next_task says %q, want no skip of a task that was answered", text)
+	if text := textOf(t, asked); strings.Contains(text, "recorded as skipped") ||
+		!strings.Contains(text, "The last recorded answer, to task "+p.CurrentTask.ID) {
+		t.Errorf("next_task says %q, want no skip of a task that was answered, and its answer named", leadOf(text))
 	}
 	if after := loadedOf(t, kept); after.CurrentTask != nil || len(after.Recent) != window {
 		t.Errorf("the card holds %+v and the window %d entries, want the task gone and nothing added",
@@ -856,6 +857,8 @@ func TestATaskThatCannotBeCheckedIsTakenOffByAWriteThatMayLose(t *testing.T) {
 // A task answered and then left with a seal that no longer opens — the key
 // retired between the answer and the same answer sent again — is told that its
 // answer counts: only telling it again is gone, and the task leaves the card.
+// The model is sent to the last recorded answer, which every next result tells,
+// in its words when it has no payload.
 func TestAnAnswerRecordedBeforeTheSealWasLostStillCounts(t *testing.T) {
 	t.Parallel()
 
@@ -867,8 +870,11 @@ func TestAnAnswerRecordedBeforeTheSealWasLostStillCounts(t *testing.T) {
 	kept := keptAsIs(t, p)
 	h, session := lesson(t, kept)
 
-	wantOurSentence(t, answerIt(t, session, p.CurrentTask.ID, "C", false),
-		"This task was answered already and the answer is recorded")
+	told := answerIt(t, session, p.CurrentTask.ID, "C", false)
+	wantOurSentence(t, told, "This task was answered already and the answer is recorded")
+	if words := textOf(t, told); !strings.Contains(words, "Read the last recorded answer in the result of the next tool") {
+		t.Errorf("the words are %q, want the model sent to the last recorded answer, which every result tells", words)
+	}
 	if after := loadedOf(t, kept); after.CurrentTask != nil || len(after.Recent) != len(p.Recent) {
 		t.Errorf("the card holds %+v and the window %d entries, want the task gone and its answer kept",
 			after.CurrentTask, len(after.Recent))

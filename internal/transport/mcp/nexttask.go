@@ -52,19 +52,19 @@ func (in *nextTaskIn) differsFrom(request *profile.OpenRequest) bool {
 	return choice.Made() || choice.Reason != "" || (rule == "" && language != "" && language != request.Language)
 }
 
-// requestOut is what next_task hands back beside the package, which travels in
-// the words alone: the request a task is to be handed in against, and whether
-// it was open already — or, when none could be opened, which argument broke
-// which rule.
-type requestOut struct {
-	Screen      string       `json:"screen"`
-	Status      string       `json:"status,omitempty"`
-	Code        string       `json:"code,omitempty"`
-	Problems    []problemOut `json:"problems,omitempty"`
-	LastAnswer  *answerLine  `json:"last_answer"`
-	RequestID   string       `json:"request_id,omitempty"`
-	AlreadyOpen bool         `json:"already_open"`
-	AgeSeconds  int          `json:"age_seconds"`
+// requestRefusedOut is what next_task hands back when no request can be opened:
+// which argument broke which rule. It is the one result of the tool that has a
+// payload, because its status is what marks it a refusal. Every other result
+// is words alone: the package is written for the model and travels in the
+// words, and a host that shows the model a result's payload in place of its
+// words would otherwise hand it a request with nothing to write the task from.
+// No card is drawn from next_task, so a payload would have no other reader.
+type requestRefusedOut struct {
+	Screen     string       `json:"screen"`
+	Status     string       `json:"status"`
+	Code       string       `json:"code"`
+	Problems   []problemOut `json:"problems"`
+	LastAnswer *answerLine  `json:"last_answer"`
 }
 
 func (s *Service) nextTaskTool() Tool {
@@ -74,18 +74,21 @@ func (s *Service) nextTaskTool() Tool {
 		Description: "Asks for the child's next task and returns the package to write it from: the brief — the " +
 			"topic, the level and the difficulty the rule sets — with reference tasks, the page on how to write and " +
 			"hand in a task, and the request id to hand it in with. Always pass language, the language of the chat. " +
-			"If a task is already being written, the same request comes back, marked already open: hand in the task " +
-			"for it rather than writing a second. A task on the child's card with no answer yet is recorded as " +
-			"skipped, so ask for a new one only when the child wants another. To set a topic, a level or a " +
-			"difficulty other than the rule's, pass it with a short reason. Never put the child's name in a task." +
-			"\n\nTopics, by id, with what each is and the levels it is taught at:\n" + s.topicList(),
+			"Called again before the task of the open request is handed in, it hands back that request with its " +
+			"package: hand in the task you wrote for it, or write it now, rather than asking again. A task on the " +
+			"child's card with no answer yet is recorded as skipped, so ask for a new one only when the child wants " +
+			"another. To set a topic, a level or a difficulty other than the rule's, pass it with a short reason. " +
+			"Never put the child's name in a task." +
+			"\n\nTopics, by id, with the levels each is taught at:\n" + s.topicList(),
 		Idempotent: true,
 	}, s.nextTask)
 }
 
 // topicList is the topic catalog as the model needs it to choose a topic of
-// its own: the id, what the topic is and the levels it is taught at, a line
-// each.
+// its own: the id and the levels it is taught at, a line each. What a topic is
+// stays out, since the ids say it well enough: with it the list would push the
+// description past what a host may keep of one, and the topics at its end would
+// be the ones lost. The package describes the topic a task is written on.
 func (s *Service) topicList() string {
 	var lines strings.Builder
 	for _, topic := range s.content.Topics() {
@@ -93,25 +96,22 @@ func (s *Service) topicList() string {
 		for _, level := range topic.GradeLevels {
 			levels = append(levels, string(level))
 		}
-		fmt.Fprintf(&lines, "- %s: %s (%s)\n",
-			topic.ID, strings.TrimSuffix(topic.Description, "."), strings.Join(levels, ", "))
+		fmt.Fprintf(&lines, "- %s (%s)\n", topic.ID, strings.Join(levels, ", "))
 	}
 	return strings.TrimSuffix(lines.String(), "\n")
 }
 
 // nextTask opens a request for a task and hands the model what to write it
-// from — or hands back the request already open, while a task is still being
-// written for it.
-func (s *Service) nextTask(ctx context.Context, account store.Account, in nextTaskIn) (Reply[requestOut], error) {
+// from — or hands back the request already open, while the task for it is
+// still to be handed in. Everything it says is in the words; only a refusal
+// has a payload.
+func (s *Service) nextTask(ctx context.Context, account store.Account, in nextTaskIn) (Reply[any], error) {
 	p, revision, err := s.store.Load(ctx, account)
 	switch {
 	case errors.Is(err, store.ErrNotFound):
-		return Reply[requestOut]{
-			Text:    "No task can be asked for yet. " + firstRunText,
-			Payload: requestOut{Screen: screenFirstRun},
-		}, nil
+		return Reply[any]{Text: "No task can be asked for yet. " + firstRunText}, nil
 	case err != nil:
-		return Reply[requestOut]{}, fmt.Errorf("mcp: read the profile: %w", err)
+		return Reply[any]{}, fmt.Errorf("mcp: read the profile: %w", err)
 	}
 
 	now := s.now()
@@ -126,7 +126,7 @@ func (s *Service) nextTask(ctx context.Context, account store.Account, in nextTa
 	case errors.As(err, &refused):
 		problems = append(problems, refused.Problems...)
 	case err != nil:
-		return Reply[requestOut]{}, fmt.Errorf("mcp: choose the task: %w", err)
+		return Reply[any]{}, fmt.Errorf("mcp: choose the task: %w", err)
 	}
 	if len(problems) > 0 {
 		return argumentsRefused(p, problems), nil
@@ -136,11 +136,11 @@ func (s *Service) nextTask(ctx context.Context, account store.Account, in nextTa
 	request := p.Ask(&brief, mode, language, now)
 	pack, err := s.packageFor(p, request)
 	if err != nil {
-		return Reply[requestOut]{}, err
+		return Reply[any]{}, err
 	}
 	p.Touch(s.version, now)
 	if _, err := s.store.Save(ctx, account, p, revision); err != nil {
-		return Reply[requestOut]{}, fmt.Errorf("mcp: save the profile: %w", err)
+		return Reply[any]{}, fmt.Errorf("mcp: save the profile: %w", err)
 	}
 
 	lead := ""
@@ -149,50 +149,47 @@ func (s *Service) nextTask(ctx context.Context, account store.Account, in nextTa
 		lead = fmt.Sprintf("Task %s, left on the child's card without an answer, is recorded as skipped.", skipped.TaskID)
 	}
 	s.events.write(ctx, account, eventTaskRequested, requestFields(request, false)...)
-	return Reply[requestOut]{
+	return Reply[any]{
 		Text: joined(lead, fmt.Sprintf("Request %s is open. Write one task in %s to the package below, and hand it "+
-			"in with submit_task and request_id %s.", request.ID, request.Language, request.ID)) + packageText(pack),
-		Payload: requestOut{Screen: screenWaiting, LastAnswer: lastAnswerOf(p), RequestID: request.ID},
+			"in with submit_task and request_id %s.", request.ID, request.Language, request.ID),
+			s.lastAnswerText(p)) + packageText(pack),
 	}, nil
 }
 
-// stillOpen hands back the request already open, as it was: a task is being
-// written for it, and a second task written beside it would race the first for
-// the same three attempts. The package comes again, whole, for a model that
-// has lost it. Nothing is written.
-func (s *Service) stillOpen(ctx context.Context, account store.Account, p *profile.Profile, now time.Time, ignored bool) (Reply[requestOut], error) {
+// stillOpen hands back the request already open, as it was: its task is still
+// to be handed in, and a second task written beside it would race the first
+// for the same three attempts. So the words ask for the task written for it
+// first, and only then offer the package, which comes again, whole, for a model
+// that has not written the task or has lost what to write it from. Nothing is
+// written.
+func (s *Service) stillOpen(ctx context.Context, account store.Account, p *profile.Profile, now time.Time, ignored bool) (Reply[any], error) {
 	request := p.OpenRequest
 	pack, err := s.packageFor(p, request)
 	if err != nil {
-		return Reply[requestOut]{}, err
+		return Reply[any]{}, err
 	}
 	s.events.write(ctx, account, eventTaskRequested, requestFields(request, true)...)
 
 	age := max(0, int(now.Sub(request.OpenedAt.Time)/time.Second))
-	lead := fmt.Sprintf("A task is already being written for request %s, opened %d seconds ago, in %s. If you have "+
-		"written it, hand it in with submit_task and request_id %s; do not start a second one.",
-		request.ID, age, request.Language, request.ID)
+	lead := fmt.Sprintf("Request %s is already open, since %d seconds ago, in %s. If you have written its task, "+
+		"hand it in with submit_task and request_id %s. If you have not, a turn cut short say, the task is yours "+
+		"to write, to the package below. Do not ask for another.", request.ID, age, request.Language, request.ID)
 	if ignored {
 		lead += " The arguments of this call were not applied: the request keeps what it was opened with."
 	}
-	return Reply[requestOut]{
-		Text: lead + packageText(pack),
-		Payload: requestOut{
-			Screen: screenWaiting, LastAnswer: lastAnswerOf(p), RequestID: request.ID, AlreadyOpen: true, AgeSeconds: age,
-		},
-	}, nil
+	return Reply[any]{Text: joined(lead, s.lastAnswerText(p)) + packageText(pack)}, nil
 }
 
 // argumentsRefused is a call no request can be opened from, told argument by
 // argument. Nothing is written.
-func argumentsRefused(p *profile.Profile, problems []profile.Problem) Reply[requestOut] {
-	payload := requestOut{Screen: screenWaiting, Status: statusRejected, Code: codeInvalidArguments, LastAnswer: lastAnswerOf(p)}
+func argumentsRefused(p *profile.Profile, problems []profile.Problem) Reply[any] {
+	payload := requestRefusedOut{Screen: screenWaiting, Status: statusRejected, Code: codeInvalidArguments, LastAnswer: lastAnswerOf(p)}
 	lines := make([]string, 0, len(problems))
 	for _, problem := range problems {
 		payload.Problems = append(payload.Problems, problemOut{Field: problem.Field, Rule: problem.Rule})
 		lines = append(lines, problem.String())
 	}
-	return Reply[requestOut]{
+	return Reply[any]{
 		Text:    "No task was asked for. Fix these arguments and call next_task again: " + strings.Join(lines, "; ") + ".",
 		Payload: payload,
 	}
