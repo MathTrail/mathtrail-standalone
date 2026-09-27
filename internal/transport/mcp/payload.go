@@ -17,6 +17,20 @@ const (
 	screenFirstRun = "first_run"
 	screenProfile  = "profile"
 	screenProgress = "progress"
+	screenTask     = "task"
+	screenWaiting  = "waiting"
+)
+
+// The statuses a refusal gives itself at the top of its payload: what the model
+// can act on, and what marks an answer as a refusal wherever it is read.
+const (
+	// statusRejected is a call refused for what it asked: arguments that break
+	// a rule, a task that failed its checks.
+	statusRejected = "rejected"
+	// statusLimited is a call refused by a limit of the day or the minute.
+	statusLimited = "limited"
+	// statusStale is a task handed in for a request that is not open.
+	statusStale = "stale"
 )
 
 // noArguments is what a tool that reads takes: nothing. The schema made of it

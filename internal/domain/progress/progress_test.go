@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"slices"
 	"testing"
+	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/content"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
@@ -257,6 +258,35 @@ func TestTheLatestAnswerComesFirst(t *testing.T) {
 	summary.Recent[0].TaskID = "changed"
 	if p.Recent[len(p.Recent)-1].TaskID == "changed" {
 		t.Error("changing the summary changed the profile's window")
+	}
+}
+
+// A skipped task is shown to the parent where it was skipped, among the latest
+// answers, and counted in its topic. A topic whose only tasks were skipped is
+// listed for the count, with no rating: without an answer its rating would
+// only be the overall one again.
+func TestTheSkippedTasksAreShownToTheParent(t *testing.T) {
+	t.Parallel()
+
+	catalog := embedded(t)
+	p := fixture(t, "olya")
+	skippedOn := "geometry.grid"
+	if p.Topics[skippedOn].Answers != 0 || p.Topics[skippedOn].Skipped != 0 {
+		t.Fatalf("Olya has met %s already, and this needs a topic she has not", skippedOn)
+	}
+	p.CurrentTask = &profile.CurrentTask{ID: "tsk_left", Topic: skippedOn, GradeLevel: rating.Grades34, Difficulty: 2}
+	p.Skip(time.Date(2026, 9, 6, 9, 0, 0, 0, time.UTC))
+
+	summary := summaryOf(t, p, catalog)
+	if latest := summary.Recent[0]; !latest.Skipped || latest.TaskID != "tsk_left" {
+		t.Errorf("the latest entry is %+v, want the skipped task", latest)
+	}
+	at := slices.IndexFunc(summary.Topics, func(topic progress.Topic) bool { return topic.ID == skippedOn })
+	if at < 0 {
+		t.Fatalf("topics = %+v, want %s listed for its skipped task", summary.Topics, skippedOn)
+	}
+	if topic := summary.Topics[at]; topic.Skipped != 1 || topic.Answers != 0 || topic.Rating != nil || topic.Mastered {
+		t.Errorf("%s shows %+v, want one skipped task, no answer and no rating", skippedOn, topic)
 	}
 }
 

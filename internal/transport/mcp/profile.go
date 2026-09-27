@@ -197,7 +197,7 @@ func (s *Service) refusal(p *profile.Profile, problems []profile.Problem) (Reply
 		reply.Payload.Problems = append(reply.Payload.Problems, problemOut{Field: problem.Field, Rule: problem.Rule})
 		lines = append(lines, problem.String())
 	}
-	reply.Payload.Status, reply.Payload.Code = "rejected", codeInvalidProfile
+	reply.Payload.Status, reply.Payload.Code = statusRejected, codeInvalidProfile
 	reply.Text = "Nothing was saved. Fix these fields and call save_profile again: " + strings.Join(lines, "; ") + "."
 	return reply, nil
 }

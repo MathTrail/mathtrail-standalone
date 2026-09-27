@@ -3,6 +3,7 @@ package profile
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
@@ -207,17 +208,25 @@ func (p *Profile) place(before rating.State, point rating.Point, correct bool) (
 }
 
 // trialSoFar are the answers of the trial series already given: the last
-// entries of the window, as many as the answers the level rests on. The window
-// is never pruned below the length of the series, so while the series runs it
-// holds every one of them. A window edited by hand into holding fewer is read
-// as it stands, and the answers it no longer shows are not weighed.
+// answers of the window, as many as the answers the level rests on, with the
+// skipped tasks between them passed over. The window always keeps as many of
+// the latest answers as the series is long, so while the series runs it holds
+// every one of them. A window edited by hand into holding fewer is read as it
+// stands, and the answers it no longer shows are not weighed.
 func (p *Profile) trialSoFar() []rating.Answer {
-	count := min(max(p.Ratings.Answers, 0), len(p.Recent))
+	given := p.answers()
+	count := min(max(p.Ratings.Answers, 0), len(given))
 	answers := make([]rating.Answer, 0, count+1)
-	for i := len(p.Recent) - count; i < len(p.Recent); i++ {
-		answers = append(answers, rating.Answer{Point: p.Recent[i].point(), Correct: p.Recent[i].Correct})
+	for i := len(given) - count; i < len(given); i++ {
+		answers = append(answers, rating.Answer{Point: given[i].point(), Correct: given[i].Correct})
 	}
 	return answers
+}
+
+// answers are the entries of the window that are answers, oldest first: the
+// window without its skipped tasks.
+func (p *Profile) answers() []Answer {
+	return slices.DeleteFunc(slices.Clone(p.Recent), func(entry Answer) bool { return entry.Skipped })
 }
 
 // master moves the two runs this topic keeps and reports whether the answer
@@ -269,14 +278,41 @@ func (t *Topic) masteredAtOrAbove(level rating.GradeLevel) bool {
 	return t.MasteredSince != nil && t.MasteredLevel != nil && t.MasteredLevel.Shift() >= level.Shift()
 }
 
-// remember puts an answer at the end of the window and drops the oldest when
-// the window is full. Nothing is lost by that: everything the rule reads about
-// an answer this old has already been added into the summary of its topic.
-func (p *Profile) remember(answer *Answer) {
-	p.Recent = append(p.Recent, *answer)
-	if len(p.Recent) > MaxRecent {
-		p.Recent = append([]Answer{}, p.Recent[len(p.Recent)-MaxRecent:]...)
+// remember puts an entry at the end of the window and, while the window is
+// over full, lets one go. Nothing is lost by that: everything the rule reads
+// about an entry this old has already been added into the summary of its
+// topic.
+func (p *Profile) remember(entry *Answer) {
+	p.Recent = append(p.Recent, *entry)
+	for len(p.Recent) > MaxRecent {
+		gone := leaving(p.Recent)
+		p.Recent = slices.Delete(p.Recent, gone, gone+1)
 	}
+}
+
+// leaving is the place of the entry a full window lets go of: the oldest —
+// unless it is one of the latest answers the window keeps, and then the oldest
+// skipped task instead. The rule and the trial series read those answers back,
+// and a run of skipped tasks must not push them out; a skipped task, new or
+// old, is only ever pushed out by another entry.
+func leaving(window []Answer) int {
+	if window[0].Skipped || answersAfter(window, 0) >= MinRecent {
+		return 0
+	}
+	// A full window whose oldest answer is one of the latest holds more
+	// skipped tasks than answers, so there is always one to let go.
+	return slices.IndexFunc(window, func(entry Answer) bool { return entry.Skipped })
+}
+
+// answersAfter counts the answers that came after the entry at this place.
+func answersAfter(window []Answer, place int) int {
+	count := 0
+	for i := place + 1; i < len(window); i++ {
+		if !window[i].Skipped {
+			count++
+		}
+	}
+	return count
 }
 
 // paceOf is how long the child took, measured from the moment the task was

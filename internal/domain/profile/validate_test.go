@@ -258,6 +258,22 @@ func TestEveryLimitIsRefusedByName(t *testing.T) {
 			breakIt: func(p *profile.Profile) { p.Daily.Accepted = -1 },
 			wantSay: "daily counts tasks",
 		},
+		{
+			// The entry keeps the outcome it had as an answer, which a task
+			// left without one cannot have.
+			name:    "a skipped task with an outcome",
+			breakIt: func(p *profile.Profile) { p.Recent[0].Skipped = true },
+			wantSay: "recent[0] is a skipped task",
+		},
+		{
+			name: "a topic skipped fewer than no times",
+			breakIt: func(p *profile.Profile) {
+				topic := p.Topics["counting.gaps"]
+				topic.Skipped = -1
+				p.Topics["counting.gaps"] = topic
+			},
+			wantSay: "topics[counting.gaps] counts answers",
+		},
 	}
 
 	for _, tc := range cases {
@@ -288,12 +304,13 @@ func TestATaskInFlightIsRefusedWhenItIsNotWhole(t *testing.T) {
 	t.Parallel()
 
 	cases := map[string]func(t *profile.CurrentTask){
-		"current_task.sealed": func(t *profile.CurrentTask) { t.Sealed = "" },
-		"current_task needs":  func(t *profile.CurrentTask) { t.Wording = "" },
-		"current_task offers": func(t *profile.CurrentTask) { delete(t.Options, "E") },
-		"issued_at":           func(t *profile.CurrentTask) { t.IssuedAt = profile.Time{} },
-		"difficulty":          func(t *profile.CurrentTask) { t.Difficulty = 0 },
-		"grade_level":         func(t *profile.CurrentTask) { t.GradeLevel = "5-7" },
+		"current_task.sealed":          func(t *profile.CurrentTask) { t.Sealed = "" },
+		"current_task needs":           func(t *profile.CurrentTask) { t.Wording = "" },
+		"current_task has no language": func(t *profile.CurrentTask) { t.Language = "" },
+		"current_task offers":          func(t *profile.CurrentTask) { delete(t.Options, "E") },
+		"issued_at":                    func(t *profile.CurrentTask) { t.IssuedAt = profile.Time{} },
+		"difficulty":                   func(t *profile.CurrentTask) { t.Difficulty = 0 },
+		"grade_level":                  func(t *profile.CurrentTask) { t.GradeLevel = "5-7" },
 		// Five options, and one of them says nothing: a child cannot pick it,
 		// and the count alone would not notice.
 		"options shows nothing": func(t *profile.CurrentTask) { t.Options["C"] = "" },
@@ -356,6 +373,7 @@ func TestAnOpenRequestIsRefusedWhenItIsNotWhole(t *testing.T) {
 		"open_request.brief names no topic":   func(r *profile.OpenRequest) { r.Brief.TargetConcept = "" },
 		"open_request.brief.pedagogical_goal": func(r *profile.OpenRequest) { r.Brief.PedagogicalGoal = "whatever" },
 		"open_request has no opened_at":       func(r *profile.OpenRequest) { r.OpenedAt = profile.Time{} },
+		"open_request has no language":        func(r *profile.OpenRequest) { r.Language = "" },
 	}
 
 	for wantSay, breakIt := range cases {

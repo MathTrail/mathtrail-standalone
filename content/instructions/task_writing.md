@@ -24,7 +24,6 @@ Hand the task in with `submit_task`, together with the request id you were given
 
 ```json
 {
-  "language": "en",
   "brief": {
     "pedagogical_goal": "new_topic",
     "target_concept": "logic.ordering",

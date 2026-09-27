@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"slices"
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/jsonrpc"
@@ -98,16 +99,15 @@ func (b *boundary) wrap(next mcp.MethodHandler) mcp.MethodHandler {
 // are read from the deferred function that recovered, while the panic is still
 // on the stack.
 func (b *boundary) panicFields(ctx context.Context, method string, recovered any) []zap.Field {
-	fields := []zap.Field{
+	user := ""
+	if account, signedIn := accountFrom(ctx); signedIn {
+		user = account.ID
+	}
+	return slices.Concat([]zap.Field{
 		logger.PanicValue(recovered),
 		logger.PanicStack(),
 		zap.String("method", methodLabel(method)),
-		zap.String("request_id", logger.RequestID(ctx)),
-	}
-	if account, signedIn := accountFrom(ctx); signedIn {
-		fields = append(fields, zap.String("user", account.ID))
-	}
-	return append(fields, telemetry.LogFields(ctx, b.projectID)...)
+	}, callerFields(ctx, user, b.projectID))
 }
 
 // toolCall runs one tool call inside a span of its own and leaves one line
@@ -226,7 +226,6 @@ func (b *boundary) callFields(ctx context.Context, call *observedCall, ended ver
 		zap.String("instructions_version", b.instructionsVersion),
 		zap.String("protocol_version", call.protocol),
 		zap.String("client", call.client),
-		zap.String("request_id", logger.RequestID(ctx)),
 	}
 	if ended.status != "" {
 		fields = append(fields, zap.String("status", ended.status))
@@ -234,11 +233,19 @@ func (b *boundary) callFields(ctx context.Context, call *observedCall, ended ver
 	if ended.kind != "" {
 		fields = append(fields, zap.String("error", ended.kind))
 	}
-	if call.user != "" {
-		fields = append(fields, zap.String("user", call.user))
+	return slices.Concat(fields, call.panic, callerFields(ctx, call.user, b.projectID))
+}
+
+// callerFields are what every line about a call carries beside its own: the
+// request it belongs to, the account when one signed in, and the trace the
+// line can be opened in. Every line is built with them, so that the lines of
+// one call always join up.
+func callerFields(ctx context.Context, user, projectID string) []zap.Field {
+	fields := []zap.Field{zap.String("request_id", logger.RequestID(ctx))}
+	if user != "" {
+		fields = append(fields, zap.String("user", user))
 	}
-	fields = append(fields, call.panic...)
-	return append(fields, telemetry.LogFields(ctx, b.projectID)...)
+	return append(fields, telemetry.LogFields(ctx, projectID)...)
 }
 
 // verdict is how a call ended.
@@ -295,7 +302,7 @@ func refusal(result *mcp.CallToolResult) (string, bool) {
 		return "", false
 	}
 	switch top.Status {
-	case "rejected", "limited", "stale":
+	case statusRejected, statusLimited, statusStale:
 		return top.Status, true
 	}
 	return "", false

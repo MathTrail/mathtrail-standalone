@@ -8,6 +8,7 @@ package app
 import (
 	"context"
 	"net/http"
+	"slices"
 	"time"
 
 	"go.uber.org/zap"
@@ -146,6 +147,10 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 	// nothing a real family wrote is kept here, or lost with the process.
 	c.Store = memory.New()
 
+	// The tools of the lesson seal a task's answer under the key ring above,
+	// with the purpose that keeps an answer apart from everything else it
+	// seals.
+	//
 	// The MCP endpoint lets nobody in: this build can issue no token. The
 	// development sign-in lets everybody in as one account, and the
 	// configuration refuses it on a deployment.
@@ -153,7 +158,18 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 	if cfg.DevAuth {
 		signIn = mcpserver.DevSignIn
 	}
-	lesson, err := mcpserver.NewService(c.Store, embedded, time.Now, version.Version)
+	lesson, err := mcpserver.NewService(&mcpserver.Parts{
+		Store:     c.Store,
+		Content:   embedded,
+		Reviewer:  c.Reviewer,
+		Sealer:    ring.For(seal.PurposeTaskAnswer),
+		Window:    cfg.RequestWindow,
+		Now:       time.Now,
+		Version:   version.Version,
+		Logger:    log,
+		Traces:    tel.TracerProvider(),
+		ProjectID: cfg.GCPProjectID,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +182,7 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 		Logger:              log,
 		ProjectID:           cfg.GCPProjectID,
 		Widget:              widget.Page(),
-	}, lesson.ProfileTools()...)
+	}, slices.Concat(lesson.ProfileTools(), lesson.TaskTools())...)
 	if err != nil {
 		return nil, err
 	}

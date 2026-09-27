@@ -133,6 +133,10 @@ type harness struct {
 	server *httptest.Server
 	spans  *tracetest.SpanRecorder
 	logs   *observer.ObservedLogs
+	// traces and log are what the endpoint records with, for the tools of a
+	// case that record inside the calls they serve.
+	traces trace.TracerProvider
+	log    *zap.Logger
 }
 
 // serve starts the endpoint with the sign-in a case chooses, serving the tools
@@ -143,9 +147,20 @@ func serve(t *testing.T, signIn mcpserver.SignIn) *harness {
 }
 
 // serveTools starts the endpoint with the sign-in and the tools a case
-// chooses. Every span is kept, through the same filter the service installs,
-// and every line is kept as the logger received it.
+// chooses.
 func serveTools(t *testing.T, signIn mcpserver.SignIn, served ...mcpserver.Tool) *harness {
+	t.Helper()
+
+	h := newHarness(t)
+	h.start(t, signIn, served...)
+	return h
+}
+
+// newHarness is a harness that records and serves nothing yet, so that the
+// tools of a case can be built to record into it. Every span is kept, through
+// the same filter the service installs, and every line is kept as the logger
+// received it.
+func newHarness(t *testing.T) *harness {
 	t.Helper()
 
 	h := &harness{spans: tracetest.NewSpanRecorder()}
@@ -155,10 +170,17 @@ func serveTools(t *testing.T, signIn mcpserver.SignIn, served ...mcpserver.Tool)
 		sdktrace.WithSpanProcessor(h.spans),
 	)
 	t.Cleanup(func() { _ = traces.Shutdown(context.Background()) })
+	h.traces = traces
 
 	core, logs := observer.New(zapcore.DebugLevel)
 	h.logs = logs
-	log := zap.New(core)
+	h.log = zap.New(core)
+	return h
+}
+
+// start serves the endpoint with the sign-in and the tools a case chooses.
+func (h *harness) start(t *testing.T, signIn mcpserver.SignIn, served ...mcpserver.Tool) {
+	t.Helper()
 
 	// The address is known once the listener is, and the router is built for
 	// the address it is served at.
@@ -168,8 +190,8 @@ func serveTools(t *testing.T, signIn mcpserver.SignIn, served ...mcpserver.Tool)
 		InstructionsVersion: instructionsVersion,
 		Version:             "test",
 		SignIn:              signIn,
-		Traces:              traces,
-		Logger:              log,
+		Traces:              h.traces,
+		Logger:              h.log,
 		ProjectID:           projectID,
 		Widget:              page,
 	}, served...)
@@ -179,8 +201,8 @@ func serveTools(t *testing.T, signIn mcpserver.SignIn, served ...mcpserver.Tool)
 	router, err := httpserver.NewRouter("http://"+h.server.Listener.Addr().String(), httpserver.Endpoints{
 		Health: httpserver.NewHealthHandler(),
 		MCP:    endpoint,
-	}, log, httpserver.Observability{
-		Traces:    traces,
+	}, h.log, httpserver.Observability{
+		Traces:    h.traces,
 		Meters:    metricnoop.NewMeterProvider(),
 		Flush:     func(context.Context, bool) error { return nil },
 		ProjectID: projectID,
@@ -191,7 +213,6 @@ func serveTools(t *testing.T, signIn mcpserver.SignIn, served ...mcpserver.Tool)
 	h.server.Config.Handler = router
 	h.server.Start()
 	t.Cleanup(h.server.Close)
-	return h
 }
 
 // connect is a client of the protocol, speaking the version a case chooses —

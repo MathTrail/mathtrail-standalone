@@ -64,6 +64,9 @@ func TestDefaults(t *testing.T) {
 	if cfg.SolverConcurrency != config.DefaultSolverConcurrency {
 		t.Errorf("SolverConcurrency = %d, want %d", cfg.SolverConcurrency, config.DefaultSolverConcurrency)
 	}
+	if cfg.RequestWindow != config.DefaultRequestWindow {
+		t.Errorf("RequestWindow = %v, want %v", cfg.RequestWindow, config.DefaultRequestWindow)
+	}
 }
 
 func TestValuesAreRead(t *testing.T) {
@@ -81,6 +84,7 @@ func TestValuesAreRead(t *testing.T) {
 		"MATHTRAIL_SOLVER_STEPS=250000",
 		"MATHTRAIL_SOLVER_TIMEOUT=500ms",
 		"MATHTRAIL_SOLVER_CONCURRENCY=2",
+		"MATHTRAIL_REQUEST_WINDOW=20m",
 	})
 	if err != nil {
 		t.Fatalf("LoadFrom() error = %v, want nil", err)
@@ -112,6 +116,9 @@ func TestValuesAreRead(t *testing.T) {
 	}
 	if cfg.SolverConcurrency != 2 {
 		t.Errorf("SolverConcurrency = %d, want 2", cfg.SolverConcurrency)
+	}
+	if cfg.RequestWindow != 20*time.Minute {
+		t.Errorf("RequestWindow = %v, want %v", cfg.RequestWindow, 20*time.Minute)
 	}
 }
 
@@ -346,6 +353,13 @@ func TestRefusals(t *testing.T) {
 			name:    "a sandbox with no slots",
 			environ: []string{"MATHTRAIL_SOLVER_CONCURRENCY=0"},
 			wantVar: "MATHTRAIL_SOLVER_CONCURRENCY",
+		},
+		{
+			// Shorter than a model takes to write a task: every task handed
+			// in would be for a request that is over.
+			name:    "a request waited for less than a minute",
+			environ: []string{"MATHTRAIL_REQUEST_WINDOW=30s"},
+			wantVar: "MATHTRAIL_REQUEST_WINDOW",
 		},
 		{
 			name:    "telemetry is neither auto, on nor off",

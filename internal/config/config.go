@@ -56,6 +56,8 @@ const (
 	DefaultSolverTimeout     = 2 * time.Second
 	DefaultSolverConcurrency = 4
 
+	DefaultRequestWindow = 15 * time.Minute
+
 	DefaultTelemetry            = TelemetryAuto
 	DefaultTelemetryEndpoint    = "https://telemetry.googleapis.com"
 	DefaultTelemetrySampleRatio = 0.1
@@ -65,6 +67,11 @@ const (
 // after the drain has a quarter of it, and a quarter of less is no time to
 // deliver anything in.
 const MinShutdownTimeout = time.Second
+
+// MinRequestWindow is the shortest a task being written may be waited for: a
+// model takes about a minute to write one, and a window shorter than that
+// would turn every task it hands in into one for a request that is over.
+const MinRequestWindow = time.Minute
 
 // ErrInvalid is returned by Load and Validate; callers branch on it with
 // errors.Is.
@@ -102,6 +109,11 @@ type Config struct {
 	SolverTimeout time.Duration `mapstructure:"MATHTRAIL_SOLVER_TIMEOUT"`
 	// SolverConcurrency is how many solvers may run at once in this process.
 	SolverConcurrency int `mapstructure:"MATHTRAIL_SOLVER_CONCURRENCY"`
+
+	// RequestWindow is how long a task being written is waited for. A request
+	// older than this counts as abandoned: the next ask opens a new one, and a
+	// task handed in for it is refused as one for a request that is over.
+	RequestWindow time.Duration `mapstructure:"MATHTRAIL_REQUEST_WINDOW"`
 
 	// Telemetry is TelemetryAuto, TelemetryOn or TelemetryOff: whether traces
 	// and metrics leave the process at all.
@@ -194,6 +206,7 @@ func LoadFrom(environ []string) (*Config, error) {
 	v.SetDefault("MATHTRAIL_SOLVER_STEPS", DefaultSolverSteps)
 	v.SetDefault("MATHTRAIL_SOLVER_TIMEOUT", DefaultSolverTimeout)
 	v.SetDefault("MATHTRAIL_SOLVER_CONCURRENCY", DefaultSolverConcurrency)
+	v.SetDefault("MATHTRAIL_REQUEST_WINDOW", DefaultRequestWindow)
 	v.SetDefault("MATHTRAIL_TELEMETRY", DefaultTelemetry)
 	v.SetDefault("MATHTRAIL_TELEMETRY_ENDPOINT", DefaultTelemetryEndpoint)
 	v.SetDefault("MATHTRAIL_TELEMETRY_SAMPLE_RATIO", DefaultTelemetrySampleRatio)
@@ -399,6 +412,7 @@ func (c *Config) validateTimeouts() error {
 		{"MATHTRAIL_HTTP_IDLE_TIMEOUT", c.IdleTimeout},
 		{"MATHTRAIL_SHUTDOWN_TIMEOUT", c.ShutdownTimeout},
 		{"MATHTRAIL_SOLVER_TIMEOUT", c.SolverTimeout},
+		{"MATHTRAIL_REQUEST_WINDOW", c.RequestWindow},
 	} {
 		if timeout.value <= 0 {
 			return fmt.Errorf("%w: %s must be a positive duration, got %v", ErrInvalid, timeout.name, timeout.value)
@@ -407,6 +421,10 @@ func (c *Config) validateTimeouts() error {
 	if c.ShutdownTimeout < MinShutdownTimeout {
 		return fmt.Errorf("%w: MATHTRAIL_SHUTDOWN_TIMEOUT must be at least %v, got %v",
 			ErrInvalid, MinShutdownTimeout, c.ShutdownTimeout)
+	}
+	if c.RequestWindow < MinRequestWindow {
+		return fmt.Errorf("%w: MATHTRAIL_REQUEST_WINDOW must be at least %v, got %v",
+			ErrInvalid, MinRequestWindow, c.RequestWindow)
 	}
 	return nil
 }

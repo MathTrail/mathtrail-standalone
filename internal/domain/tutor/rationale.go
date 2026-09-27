@@ -39,7 +39,7 @@ func failureBehind(failures int, topic string) string {
 func rationale(goal profile.Goal, because string, corridor *rating.Corridor, choice *Choice, point rating.Point) string {
 	rule := fmt.Sprintf("Rule: %s, so %s. Difficulty %d of grades %s is %s.",
 		because, goal, corridor.Recommended.Difficulty, corridor.Recommended.GradeLevel, fitText[corridor.Fit])
-	if !choice.made() {
+	if !choice.Made() {
 		return rule
 	}
 
@@ -54,11 +54,7 @@ func rationale(goal profile.Goal, because string, corridor *rating.Corridor, cho
 		asked = append(asked, fmt.Sprintf("difficulty %d", choice.Difficulty))
 	}
 
-	said := strings.TrimSpace(choice.Reason)
-	if said == "" {
-		said = "no reason given"
-	}
-	told := ended(fmt.Sprintf("Model asked for %s: %s", strings.Join(asked, " and "), said))
+	told := ended(fmt.Sprintf("Model asked for %s: %s", strings.Join(asked, " and "), profile.Typed(choice.Reason)))
 	filledIn := choice.GradeLevel == "" || choice.Difficulty == 0
 	if filledIn && (choice.Topic != "" || choice.GradeLevel != "") {
 		told += fmt.Sprintf(" That is difficulty %d of grades %s, its corridor filling in the rest.",

@@ -1,6 +1,10 @@
 package profile
 
-import "github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
+import (
+	"encoding/json"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
+)
 
 // Ratings is where the child stands across every topic.
 type Ratings struct {
@@ -53,6 +57,10 @@ type Topic struct {
 	// topic steps out of the rotation until every topic within the child's
 	// reach has been mastered.
 	MasteredSince *Date `json:"mastered_since"`
+	// Skipped is how many tasks of this topic were left without an answer when
+	// another was asked for. Nothing that computes reads it: it is for the
+	// parent, who can see from it that hard tasks are being leafed past.
+	Skipped int `json:"skipped,omitzero"`
 	// TopStreak is the run of correct answers at the harder half of the
 	// corridor with no hint — the run that earns mastery.
 	TopStreak int `json:"top_streak"`
@@ -80,9 +88,10 @@ const (
 	PaceSlow Pace = "slow"
 )
 
-// Answer is one entry of the history window.
+// Answer is one entry of the history window: an answer the child gave, or a
+// task they left without one when they asked for another.
 type Answer struct {
-	// AnsweredAt is when the answer arrived.
+	// AnsweredAt is when the answer arrived, or when the task was left.
 	AnsweredAt Time `json:"answered_at"`
 	// Chosen is the option the child picked, and Trap the trap behind it.
 	// Both are written only for a wrong answer: on a right one there is no
@@ -92,9 +101,9 @@ type Answer struct {
 	// answering. Like HintUsed it changes what comes next and never the
 	// rating.
 	Confused bool `json:"confused"`
-	// Correct is the only thing the rating formula reads. It is never absent:
-	// "I don't understand" is a button that asks for a simpler explanation,
-	// not a third kind of answer.
+	// Correct is the only thing the rating formula reads. It is never absent
+	// from an answer: "I don't understand" is a button that asks for a simpler
+	// explanation, not a third kind of answer.
 	Correct bool `json:"correct"`
 	// Difficulty is the difficulty of the task that was answered, inside its
 	// level.
@@ -107,6 +116,12 @@ type Answer struct {
 	HintUsed bool `json:"hint_used"`
 	// Pace is how long it took.
 	Pace Pace `json:"pace"`
+	// Skipped marks a task left without an answer. Such an entry has no
+	// outcome, and nothing that learns from answers reads it — the rating,
+	// the trial series, the runs of a topic, the rule's last answer: there was
+	// no answer to learn from. Only the progress screen shows it, so that a
+	// parent can see hard tasks being leafed past.
+	Skipped bool `json:"skipped,omitzero"`
 	// TaskID ties this entry to the fingerprint of the task and to the line
 	// about it in the log.
 	TaskID string `json:"task_id"`
@@ -114,6 +129,39 @@ type Answer struct {
 	Topic string `json:"topic"`
 	// Trap is the trap the wrong option led to.
 	Trap string `json:"trap,omitempty"`
+}
+
+// skippedEntry is a skipped task as the file holds it: where the task stood
+// and when it was left, and not one field of an outcome.
+type skippedEntry struct {
+	AnsweredAt Time              `json:"answered_at"`
+	Difficulty int               `json:"difficulty"`
+	GradeLevel rating.GradeLevel `json:"grade_level"`
+	Skipped    bool              `json:"skipped"`
+	TaskID     string            `json:"task_id"`
+	Topic      string            `json:"topic"`
+}
+
+// MarshalJSON writes an answer as the file holds it, and a skipped task
+// without the fields of an outcome it never had: a "correct": false there
+// would read as a wrong answer to whoever opens the file.
+//
+//nolint:gocritic // hugeParam: a value receiver, so that an entry is written the same way whether the encoder reaches it through a pointer or not
+func (a Answer) MarshalJSON() ([]byte, error) {
+	if !a.Skipped {
+		// The same fields without this method, or the encoder would come
+		// straight back here.
+		type answered Answer
+		return json.Marshal(answered(a))
+	}
+	return json.Marshal(skippedEntry{
+		AnsweredAt: a.AnsweredAt,
+		Difficulty: a.Difficulty,
+		GradeLevel: a.GradeLevel,
+		Skipped:    true,
+		TaskID:     a.TaskID,
+		Topic:      a.Topic,
+	})
 }
 
 // point is where the answered task stood on the ladder.
