@@ -15,6 +15,7 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/config"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/tutor"
@@ -980,5 +981,70 @@ func TestTheProgressCountsTheSkipsApart(t *testing.T) {
 	if !strings.Contains(text, "Latest answers, the latest first: Clocks wrong,") ||
 		!strings.Contains(text, "Of the last 9 tasks, 6 were left without an answer.") {
 		t.Errorf("the words are %q, want the answers named and the six skips counted apart", text)
+	}
+}
+
+// unjudging is a review whose second half cannot run, which the real reviewer
+// does only when handed nothing to judge.
+type unjudging struct{ checks.Reviewer }
+
+func (unjudging) Judge(checks.Examined, checks.Against) (checks.Outcome, error) {
+	return checks.Outcome{}, errors.New("nothing to judge")
+}
+
+// A review that cannot be judged is the service's failure: the model is told in
+// our words, and nothing is spent or written.
+func TestAReviewThatCannotBeJudgedSpendsNothing(t *testing.T) {
+	t.Parallel()
+
+	asked := fuzzProfile(t)
+	kept := keptAsIs(t, asked)
+	h := newHarness(t)
+	parts := allParts(t)
+	parts.Store, parts.Reviewer, parts.Logger, parts.Traces = kept, unjudging{parts.Reviewer}, h.log, h.traces
+	service, err := mcpserver.NewService(parts)
+	if err != nil {
+		t.Fatalf("NewService() error = %v", err)
+	}
+	h.start(t, mcpserver.DevSignIn, service.TaskTools()...)
+	session := h.connect(t, "")
+	_, revision := loadKept(t, kept)
+
+	wantOurSentence(t, call(t, session, "submit_task", raceOn(asked.OpenRequest)), "Something went wrong inside MathTrail.")
+	if p, now := loadKept(t, kept); now != revision || p.OpenRequest.Attempts != 0 {
+		t.Errorf("the profile is at revision %s with %d attempts, want it untouched", now, p.OpenRequest.Attempts)
+	}
+	h.settle()
+	if judged := h.spanNamed(t, "judge_task"); judged.Status().Description != "the task could not be judged" {
+		t.Errorf("judge_task status = %q, want it marked failed", judged.Status().Description)
+	}
+}
+
+// A request no package can be built for — its topic, or a skill the child has
+// not met, gone from the catalog in a file edited by hand — is the service's
+// failure, and nothing is written, whether the request is new or open already.
+func TestARequestNoPackageCanBeBuiltForWritesNothing(t *testing.T) {
+	t.Parallel()
+
+	gone := fuzzProfile(t)
+	gone.OpenRequest.Brief.TargetConcept = "gone.topic"
+	unknown := profile.New(profile.Student{
+		Grade: 2, Pseudonym: "Otter", ExcludedSkills: []string{"gone_skill"},
+	}, "test", lessonDay)
+
+	for name, p := range map[string]*profile.Profile{"an open request": gone, "a new request": unknown} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			kept := keptAsIs(t, p)
+			_, session := lesson(t, kept)
+			_, revision := loadKept(t, kept)
+
+			wantOurSentence(t, call(t, session, "next_task", map[string]any{"language": "en"}),
+				"Something went wrong inside MathTrail.")
+			if _, now := loadKept(t, kept); now != revision {
+				t.Error("the profile was written, want nothing written")
+			}
+		})
 	}
 }

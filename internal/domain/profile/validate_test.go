@@ -78,6 +78,14 @@ func TestEveryLimitIsRefusedByName(t *testing.T) {
 			wantSay: "student.ui_language",
 		},
 		{
+			name: "a language past the limit",
+			breakIt: func(p *profile.Profile) {
+				long := strings.Repeat("x", profile.MaxLanguageTag+1)
+				p.Student.UILanguage = &long
+			},
+			wantSay: "student.ui_language",
+		},
+		{
 			name:    "a level from another shape of the file",
 			breakIt: func(p *profile.Profile) { p.SchemaVersion = profile.Version + 1 },
 			wantSay: "schema_version",
