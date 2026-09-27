@@ -96,7 +96,7 @@
         "excluded_skills": {
           "description": "Catalog ids that may appear neither in a wording nor in a trap.",
           "type": "array",
-          "maxItems": 15,
+          "maxItems": 25,
           "items": { "type": "string" }
         },
         "grade": {
@@ -124,7 +124,8 @@
         },
         "ui_language": {
           "description": "A BCP 47 tag overriding the interface language, or null to follow the chat.",
-          "type": ["string", "null"]
+          "type": ["string", "null"],
+          "maxLength": 35
         }
       }
     },

@@ -239,7 +239,7 @@ The two K₀ differ for a reason the prototype measured (its D37): with one K₀
 
 **β is not updated in v1.** The prototype kept a bank and re-used tasks, so a task's difficulty was worth refining. Here every task is written for one child and never handed out again (PRODUCT 4.4), so β is computed from the task's difficulty and discarded. The paid edition, calibrating across many children, is where the third update belongs (PRODUCT 4.5).
 
-**Only correctness enters the formula** (О-33). The hint, the pace, "I don't understand" and the run of failures are recorded (04-profile) and change what is chosen next (section 3) — never the rating, which stays an honest estimate of what the child knows. The pace tag itself is computed by the server from the time between handing the task out and the answer: `fast` under 60 seconds, `slow` over 180, `normal` in between, as in the prototype; T15 confirms the numbers in the configuration.
+**Only correctness enters the formula** (О-33). The hint, the pace and the run of failures are recorded (04-profile) and change what is chosen next (section 3) — never the rating, which stays an honest estimate of what the child knows. "I don't know" is an answer and counts as a wrong one: the card has shown the solution, and a child who has seen it has not solved the task (R93). The pace tag itself is computed by the server from the time between handing the task out and the answer: `fast` under 60 seconds, `slow` over 180, `normal` in between, as in the prototype; T15 confirms the numbers in the configuration.
 
 ### 2.2.1 The trial series
 
@@ -254,7 +254,7 @@ The start is a guess about where a child stands, made from the grade the parent 
 - the corrections of the topics do not move: a trial answer says where the child stands, not what they know of one topic. Everything else about the answer is written as usual — the topic's `answers` and `correct`, its traps, the runs mastery is counted by, the window;
 - the fifth answer is the last of the series. From the sixth on, θ and δ move by the step above, with n counting the trial answers too.
 
-Every estimate is made from all the trial answers so far, not from the previous estimate, so an answer can move θ further than the step ever would and an early slip is weighed again at every later answer. The trial answers are read from the window of recent answers, which keeps each one's level and difficulty and is never shorter than five (04-profile). With no answers the estimate is θ₀.
+Every estimate is made from all the trial answers so far, not from the previous estimate, so an answer can move θ further than the step ever would and an early slip is weighed again at every later answer. The trial answers are read from the window of recent answers, which keeps each one's level and difficulty and is never shorter than five (04-profile); a skipped entry is not an answer and is passed over, and the window never lets a skip push out one of the five latest answers, so the trial answers stay in it (R98). With no answers the estimate is θ₀.
 
 **How it is computed.** At the maximum the pull of the prior, (θ − θ₀) / σ₀², equals the pull of the answers, and no answer pulls harder than 1: a wrong one by σ(θ − β), a right one by 0.8 · σ(1 − σ) / (0.2 + 0.8 · σ), which is never more than 0.382. So after n answers the maximum lies within n · σ₀² of θ₀ — 31.25 at five. L is evaluated on a grid of step 0.05 across that interval, and the best cell is halved on the sign of L′ until it no longer narrows. A grid rather than Newton's method from θ₀, because L can have two peaks: five right answers at difficulty 5 of `5-6` from a start at 0 put one near 0.1 and a higher one near 7.7, and a method that climbs from the start stops at the lower.
 
@@ -409,7 +409,7 @@ The child's grade is not in the table, and the rule never reads it: the grade ha
 **Goal and topic.**
 
 1. **In the trial series** (2.2.1) a failure is not worked over: the goal is `new_topic`, and the topic is chosen as in step 3, where the topics never handed out come first — so each trial task has a topic of its own while one is within reach.
-2. Otherwise, if `ratings.consecutive_failures` > 0 **and `recent` is not empty** and **the topic of the last entry in `recent` is within reach** → the goal is `reinforce` and the topic is that one — the one just failed. The window is never pruned below five entries precisely so that this holds (04-profile); the emptiness check is there anyway, because a profile restored from an older revision or edited by hand can arrive in any shape, and a rule that panics on its own input is a bug rather than a guarantee. An empty window, or a failed topic that the failures themselves have taken out of reach, falls through to step 3: a topic out of reach would only be failed again.
+2. Otherwise, if `ratings.consecutive_failures` > 0 **and `recent` is not empty** and **the topic of the last answered entry in `recent` is within reach** → the goal is `reinforce` and the topic is that one — the one just failed. A skipped entry is not an answer and is passed over (R98): a task skipped after a failure does not become the topic to work over. The window is never pruned below five entries precisely so that this holds (04-profile); the emptiness check is there anyway, because a profile restored from an older revision or edited by hand can arrive in any shape, and a rule that panics on its own input is a bug rather than a guarantee. An empty window, or a failed topic that the failures themselves have taken out of reach, falls through to step 3: a topic out of reach would only be failed again.
 3. Otherwise the goal is `new_topic` and the topic is chosen among the topics within reach that are **not mastered** at their recommended level (2.5): those never handed out come first, in catalog order; then the one whose `topics[t].last_issued` is the oldest.
 4. If every topic within reach is mastered, the same choice runs over all of them.
 
@@ -472,7 +472,7 @@ Returned by `next_task`, never rendered as a card (03-flows), and assembled fres
 | The corridor | The recommended point — its level and difficulty — with its marker, the corridor as a β interval, and the chance of a correct answer at every point of the topic (2.3) | ~0.9 KB for a topic of three levels |
 | The topic | Its id, name and description from the catalog | small |
 | The traps | The whole catalog of 20, with descriptions — the two in the brief are a recommendation, and the model needs the others to choose an alternative that fits its plot | ~2 KB |
-| The prohibitions | The description of every skill in `excluded_skills` | ~0.1 KB a skill, 1.4 KB at the profile's limit of fifteen |
+| The prohibitions | The description of every skill in `excluded_skills` | ~0.1 KB a skill, 2.0 KB at the profile's limit of twenty-five, the whole catalog |
 | The child's context | Grade — the child's age, for the words and the plot, which moves neither the level nor the limits (О-56) —, interests, and the free-form notes, capped at 500 characters (О-31), the notes inside a delimited block introduced as information rather than instructions — 4.1.2. The pseudonym is **not** repeated here — it has no business in a task, and the package is the one place it is easy to leave out | ~1 KB at the profile's limits in Latin letters, up to 3.7 KB in characters of four bytes and 5.5 KB in the characters JSON has to escape |
 | Three reference tasks | 4.1.1, each without its id, level and solver: the solver is not shown (1.5) | ~3.6 KB |
 | Solver templates | One or two for this topic from `content/solvers/<topic>/`, each the solver of one of its reference tasks generalised (6.7), marked as samples one may depart from (О-43, R08, R64). A topic with no reference tasks has none yet, and the part is an empty list | 1–2.5 KB |
@@ -481,7 +481,7 @@ Returned by `next_task`, never rendered as a card (03-flows), and assembled fres
 | The limits | The readability limits of the brief's level (1.1) and the drawing limits (5.4) | small |
 | The instructions version | The hash of the instructions, the solver templates and the drawing frames, which every log line about this task will carry (О-21, R64, R66) | small |
 
-**The budget is 64 KB, and nothing is dropped to meet it** (R65). It is a ceiling against a package growing unnoticed, not a target: a package is a few thousand tokens of the chat's own context, paid for out of the family's message limit, but that context only gets cheaper, and a sample solver or a reference task left out of a rare profile's package would buy a few hundred tokens with the quality of the task. With the solver templates, the drawing frames and the drawings of the reference tasks in, a child with an ordinary profile — two interests, a sentence of notes, two skills left out — gets 19.7 KB on average across the catalog and 25.3 KB at most. For a child at every limit the profile sets (04-profile) — notes of 500 characters, ten interests of forty, fifteen excluded skills — a package is 22.0 KB on average in Latin letters and 27.6 KB at most; the same limits reach 28.5 KB in Cyrillic, 29.4 KB in Chinese or Japanese, 30.3 KB in characters of four bytes and 32.2 KB in the characters JSON has to escape, six bytes for every one typed. A test holds every one of those packages — every topic at every level it is taught at, every difficulty and turn of the reference tasks, each with the chances of all fifteen points — to the budget. The one part it cannot count is the model's own reason for a choice, which travels in the brief's `rationale` and has no limit until T43 gives it one (remark 29).
+**The budget is 64 KB, and nothing is dropped to meet it** (R65). It is a ceiling against a package growing unnoticed, not a target: a package is a few thousand tokens of the chat's own context, paid for out of the family's message limit, but that context only gets cheaper, and a sample solver or a reference task left out of a rare profile's package would buy a few hundred tokens with the quality of the task. With the solver templates, the drawing frames and the drawings of the reference tasks in, a child with an ordinary profile — two interests, a sentence of notes, two skills left out — gets 19.7 KB on average across the catalog and 25.3 KB at most. For a child at every limit the profile sets (04-profile) — notes of 500 characters, ten interests of forty, all twenty-five skills excluded — a package is 22.7 KB on average in Latin letters and 28.3 KB at most; the same limits reach 29.2 KB in Cyrillic, 30.1 KB in Chinese or Japanese, 31.0 KB in characters of four bytes and 32.9 KB in the characters JSON has to escape, six bytes for every one typed. A test holds every one of those packages — every topic at every level it is taught at, every difficulty and turn of the reference tasks, each with the chances of all fifteen points — to the budget. The one part it cannot count is the model's own reason for a choice, which travels in the brief's `rationale` and has no limit until T44 gives it one (remark 29).
 
 On a repeat attempt the package is not sent again: `submit_task` answers with the refusal codes, and the model already has everything else in its context (03-flows).
 
@@ -743,6 +743,7 @@ Every code the prototype had, plus what v1 added. Nothing was dropped.
 | `stale_request` | new — the flow, not the task (03-flows) | no |
 | `attempts_exhausted` | new — the flow (03-flows) | closes the request |
 | `limit_reached` | new — the flow (03-flows) | no |
+| `invalid_profile` | new — the profile, not the task: `save_profile` names every field that broke a rule of 04-profile, and the rule, never what the field held (R99) | no — there is no attempt to spend |
 
 One prototype behaviour is deliberately **not** carried over: a separate path for "the model got its own answer wrong". It was already folded into `solver_disagrees` there, and it stays folded here.
 
@@ -1004,18 +1005,19 @@ Four ports, four shapes: a one-liner, a comprehension over a helper, an iterativ
 
 The contract between the server, the chat's model and the widget. The flows these tools appear in are [03-flows](docs/architecture/03-flows.md); this section fixes their names, their arguments and the shape of what they return. The JSON schemas themselves are written in T23.
 
-## 7.1 The six tools
+## 7.1 The tools
 
 | Tool | What it does | Called by | Draws a card | `readOnly` | `idempotent` |
 |---|---|---|---|---|---|
 | `get_profile` | The child's profile, or the fact that there is none yet, plus the rule's recommendation | the model | yes | yes | yes |
 | `save_profile` | Creates the profile or changes the fields the parent owns | the model | yes | no | yes |
-| `get_progress` | Ratings and ranks per topic, mastered topics, recent answers, the misconception map | the model | yes | yes | yes |
+| `get_progress` | The overall rating with its rank and the rating of each topic (R95), mastered topics, recent answers, the misconception map, and the profile's fields the progress screen shows — `pseudonym`, `grade`, `interests`, `excluded_skills` and `ui_language`, under the names `save_profile` takes (R91). The free-form `notes` stay out: the screen does not show them, and a free text written about the child has no reason to reach a card | the model | yes | yes | yes |
+| `read_progress` | The same payload as `get_progress`, for the widget's own screen: the widget calls it from the line at the top of a task card (R97) | the **widget** only — `ui.visibility: ["app"]` | **no** | yes | yes |
 | `next_task` | Opens a request and returns the package to write a task from | the model | **no** | no | yes, within the window |
 | `submit_task` | Takes the written task through the checks and hands it to the child | the model | yes | no | **no** — each call spends an attempt |
 | `submit_answer` | Records the child's answer once, updates the ratings, returns the diagnosis | the **widget**, or the model in text mode | **no** | no | yes |
 
-Six tools for the five capabilities of PRODUCT 4.1: the profile is split into reading and writing so that reading can be annotated read-only and a host can treat it accordingly.
+The tools cover the five capabilities of PRODUCT 4.1: the profile is split into reading and writing so that reading can be annotated read-only and a host can treat it accordingly, and the progress is read by two tools that return one payload — `get_progress` for the model, which draws a card, and `read_progress` for the widget, which draws none, so that a card which opens the progress inside itself never makes a host draw a second one under it (R97).
 
 **Names are final**, and nothing else depends on them being exact: the host prefixes them with the connector's name (`MathTrail:get_profile` in Claude), so every instruction describes a tool by what it does and never by a literal name (R07).
 
@@ -1027,11 +1029,11 @@ Each tool carries the MCP annotations of the table plus `destructiveHint: false`
 
 | Tool | Arguments |
 |---|---|
-| `get_profile`, `get_progress` | none |
-| `save_profile` | `pseudonym`, `grade`, `interests`, `excluded_skills`, `notes`, `ui_language` — all optional, at least one present; `pseudonym` and `grade` required when there is no profile yet. Caps and types are 04-profile. The grade sets where the child starts when the profile is created (2.1); changed later it is a label — the ratings, the start and the trial series stay as they are (О-56) |
+| `get_profile`, `get_progress`, `read_progress` | none |
+| `save_profile` | `pseudonym`, `grade`, `interests`, `excluded_skills`, `notes`, `ui_language` — all optional; `pseudonym` and `grade` required when there is no profile yet. A field left out stays as it is; a list given replaces the one kept, and an empty list clears it; an empty `notes` clears the notes, and an empty `ui_language` makes the cards follow the chat's language again. The skills are ids of the catalog (1.4), which the tool's description lists. A call that asks for what the profile already says writes nothing (R99). Caps and types are 04-profile, checked by the tool in its own words rather than in the input schema (remark 36). The grade sets where the child starts when the profile is created (2.1); changed later it is a label — the ratings, the start and the trial series stay as they are (О-56) |
 | `next_task` | `language` (BCP 47, required); `topic`, `grade_level`, `difficulty`, `reason` — optional, and `reason` is required when any of the first three is present (section 3.4) |
 | `submit_task` | `request_id`, `brief`, `task`, `solver`, `self_check`, `language` — sections 4.2–4.5 and 6.2 |
-| `submit_answer` | `task_id`, `answer` (`A`–`E`), `hint_used`, `confused` — the two flags default to false (03-flows) |
+| `submit_answer` | `task_id`, `answer` — `A`–`E`, or `?` for "I don't know", which is recorded as a wrong answer with `confused` set and no trap (R93) — and `hint_used`, false by default (03-flows) |
 
 ## 7.3 What comes out
 
@@ -1039,12 +1041,18 @@ Every result has three parts, and the rule of 03-flows governs all of them: **th
 
 - **`content`** — text. This is the whole lesson when no widget is rendered (О-10): the task read out, the result explained, the progress described. It is written for a model to relay, in the task's own language where the text is for the child, and in English where it is for the model.
 - **`structuredContent`** — the widget's payload, and the same data in machine form for the model. It never contains the answer, the trap texts or the solution before the child has answered (PRODUCT 4.4, criterion 11.3), and it never contains the generation package — which is why `next_task` draws no card at all.
-- **`_meta`** — `ui.resourceUri` on the four tools that draw a card, with the flat `ui/resourceUri` beside it for hosts older than the nested key, as the library's own helper writes both (R87), and `securitySchemes` declaring oauth2 with the scope `mcp` on all six. `ui.visibility` is left unset everywhere, which means the default: both the model and the app may call. Setting it to `["model"]` on the five tools the widget never calls was considered and rejected — the only benefit is defence in depth against our own widget, and a host that mis-reads the list would break text mode, which is the product's fallback rather than a nicety.
+- **`_meta`** — `ui.resourceUri` on the four tools that draw a card, with the flat `ui/resourceUri` beside it for hosts older than the nested key, as the library's own helper writes both (R87), and `securitySchemes` declaring oauth2 with the scope `mcp` on every tool. `ui.visibility` is left unset on every tool but one, which means the default: both the model and the app may call. That one, `read_progress`, carries `["app"]`: the model has `get_progress` for the same data, and a tool it could also call would be a second way to draw nothing (R97). Setting `["model"]` on the four tools the widget never calls — `get_profile`, `save_profile`, `next_task`, `submit_task` — was considered and rejected; the widget calls `submit_answer` itself, and a list that left it out would break the card. The only benefit of the restriction is defence in depth against our own widget, and a host that mis-reads the list would break text mode, which is the product's fallback rather than a nicety.
 
 Two fields appear in the `structuredContent` of every tool:
 
 - **`screen`** — which widget screen this payload is for (8.2). The widget never has to guess from the shape of the data.
-- **`last_answer`** — the outcome of the last recorded answer, or null. One line, and it is the compensating control for a lost `ui/update-model-context` (03-flows): a model that missed the widget's message still learns from its next call that the child has answered, and what happened.
+- **`last_answer`** — the outcome of the last recorded answer, `{"task_id", "topic", "correct", "answered_at"}`, or null. One line, and it is the compensating control for a lost `ui/update-model-context` (03-flows): a model that missed the widget's message still learns from its next call that the child has answered, and what happened.
+
+`submit_task` adds **`child`** — `{"pseudonym": …, "grade": …}` — to every result, accepted or refused: the task card's top line and badge read it, and so do the waiting screen a refusal draws and its `{grade}`. It sits beside the task, never inside its text, and costs no call: the tool has already read the profile (R96).
+
+`get_progress` and `read_progress` carry the skipped tasks (R98): each topic's `skipped` count, and the entries of the recent answers that were skipped rather than answered, marked `skipped` and carrying no outcome.
+
+`get_profile`, `save_profile`, `get_progress` and `read_progress` carry **`recommendation`** — `{"topic", "grade_level", "difficulty", "goal"}`, what the rule would set next (3.2), or null with no profile. The rest of the brief — the plot, the traps, the rule's reasoning — reaches the model with `next_task` alone. The two tools of the profile carry the parent's notes, so that the model can read back what the parent wrote; no screen draws them, and the progress does not carry them (7.1, R99).
 
 `next_task` adds one more: **`already_open`** — true when the request was already open, with its age in seconds, so an impatient second ask does not become a second generation racing the first (03-flows).
 
@@ -1101,25 +1109,29 @@ One resource, six screens, and the payload says which — `structuredContent.scr
 | `screen` | Drawn by | Shows |
 |---|---|---|
 | `first_run` | `get_profile` when there is no file | What the app is, and what the parent has to fill in |
-| `profile` | `get_profile`, `save_profile` | Pseudonym, grade, interests, constraints; editing |
-| `progress` | `get_progress` | The rating per topic with its rank (О-48, R12) — during the trial series, how many of its five tasks are done instead (7.3) — mastered topics, recent answers, the misconception map, the recommendation |
-| `task` | `submit_task` when it accepts | Wording, drawing, the five options as buttons with their texts and no letters (R70), Hint, I don't understand, Next task |
-| `waiting` | `submit_task` when it refuses, and locally after "Next task" | "Preparing the next task…", a warm-up, and after 120 seconds the deadline message (03-flows) |
-| `result` | Locally, after `submit_answer` returns to the widget | Right or wrong, the trap behind the chosen option, the solution, the rating in the topic before and after — during the trial series, N of 5 instead (7.3) — Next task |
+| `profile` | `get_profile`, `save_profile` | Pseudonym, grade, interests, constraints. Editing is asked for in the chat — "Edit profile" sends a message and the model saves the change (R91) |
+| `progress` | `get_progress`, and the widget itself from the line at the top of a card with `read_progress` (R91, R97) | The overall rating with its rank above it, and each topic's rating as a plain number with no rank of its own (О-48, R95) — during the trial series, how many of its five tasks are done instead (7.3) — mastered topics, recent answers with the skipped tasks among them and how many were skipped (R98), the misconception map, the recommendation; below them the profile for the parent — the fields 7.1 names — with "Edit profile" (R91) |
+| `task` | `submit_task` when it accepts | At the top, the child's pseudonym and "Profile & progress", and the grade as a badge, both from `child` (R96); wording, drawing, the five options as buttons with their letters and texts (R90); the field "Ask a question about the task"; I don't know, Hint, Another task |
+| `waiting` | `submit_task` when it refuses, and locally after "Another task" | "Preparing the next task…" as a list of the steps a task usually takes, moving on a timer and claiming no numbers (R92), the warm-up of О-26, and after 120 seconds the deadline message (03-flows) |
+| `result` | Locally, after `submit_answer` returns to the widget | Below the task, which stays with its options marked — the child's answer and the correct one: right or wrong, the trap behind the chosen option, the solution, the rating in the topic before and after — during the trial series, N of 5 instead (7.3) — Another task. After "I don't know", the solution with no right-or-wrong line — but the rating before and after, since it counts as a wrong answer (R93) |
 
 `result` and `waiting` are the two screens no tool result draws directly: the card the child is already looking at turns itself over. That is why `submit_answer` carries no `ui.resourceUri` (03-flows).
+
+`progress` is drawn by `get_progress`, which carries `ui.resourceUri`, and is also reached inside a task card from its top line, which reads the same payload with `read_progress`; "Back to task" returns to the card as it was (R91). A progress card the model's own `get_progress` drew has no task behind it, so it has no top line at all: nothing to go back to, and the progress is already open.
 
 ## 8.3 What the widget does
 
 | Action | How |
 |---|---|
-| Record an answer | `callServerTool("submit_answer", …)` — the result comes back to the widget, and the card turns to `result` |
+| Record an answer | `callServerTool("submit_answer", …)` — the result comes back to the widget, and the card turns to `result`. "I don't know" is recorded the same way, with `answer: "?"` (R93) |
+| Show the progress | `callServerTool("read_progress")`, from the line at the top of the card; it only reads, and its payload — the same as `get_progress`'s — carries the profile's fields the progress screen shows, so one call draws the whole screen (R91). It carries no `ui.resourceUri` and is hidden from the model, so no host has a card to draw for it (R97) |
 | Ask for the next task | `sendMessage` (`ui/message`) — only the model can write a task |
-| Ask for a simpler explanation | `sendMessage`, when "I don't understand" is pressed after answering |
+| Ask a question about the task | `sendMessage` with the child's words; the model answers in the chat under the card, and the card keeps a note that the question was sent (R91). Asked before the child has answered, the question gets help but never the answer: the model's instructions keep the answer back until the child has answered, whatever the child asks |
+| Edit the profile | `sendMessage` asking for it; the model changes the profile with `save_profile` (R91) |
 | Tell the model what happened | `updateModelContext` after an answer — one line, no conversation turn spent |
 | Fit its card | `sendSizeChanged` when the content's height changes |
 
-It calls nothing else. No `requestDisplayMode` — a task card is an inline card. No `openLink`, no `downloadFile`. The hint needs no call at all: it arrives with the task and is revealed locally, and the fact that it was opened travels with the answer (03-flows).
+It calls no other tool: the answer is the one thing it writes, and the rest it only reads. No `requestDisplayMode` — a task card is an inline card. No `openLink`, no `downloadFile`. The hint needs no call at all: it arrives with the task and is revealed locally, and the fact that it was opened travels with the answer (03-flows).
 
 `sendMessage` and `updateModelContext` were confirmed in T03 only as far as "the call returns"; both have compensating controls and neither is load-bearing for correctness (03-flows).
 
@@ -1188,12 +1200,47 @@ The acceptance check for this part: each scenario of PRODUCT 3 has tools, a scre
 |---|---|---|---|
 | 1. First sign-in | `get_profile`, `save_profile` | `first_run` → `profile` → `waiting` | The model asks for the pseudonym, grade, interests and constraints in the chat and reads the saved profile back |
 | 2. The task | `next_task`, `submit_task` | `waiting` → `task` | The wording, the drawing and the options `A`–`E` are read out; the hint on request |
-| 3. The answer | `submit_answer` | `task` → `result` | The child types a letter, the model calls the tool and explains from the trap it returns |
+| 3. The answer | `submit_answer` | `task` → `result` | The child types a letter, the model calls the tool and explains from the trap it returns; a child who says they don't know is recorded with `?`, a wrong answer, and gets the solution (R93) |
 | 4. The next task | `sendMessage` → `next_task`, `submit_task` | `result` → `waiting` → `task` | The child or the adult asks in words |
-| 5. Progress | `get_progress` | `progress` | Ratings, ranks, mastered topics and the recommendation as a short list; during the trial series, how many of its five tasks are done instead of the ratings |
+| 5. Progress | `get_progress`, called by the model, or `read_progress`, called by the widget from a task card (R91, R97) | `progress` | The overall rating with its rank, the ratings of the topics, mastered topics, the skipped tasks and the recommendation as a short list; during the trial series, how many of its five tasks are done instead of the ratings |
 | 6. The profile | `get_profile`, `save_profile` | `profile` | The same fields, read out and changed by asking |
 
 Every row's text column is the `content` of the same result that draws the screen — one payload, two renderings (7.3).
+
+## 8.12 The design
+
+The widget and the site are drawn in `draft/ui/mathtrail-site/`, a static export the author approved (R89). It opens in a browser with no build: `en/index.html` is the home page, and its demo cards — the main one at the top and the scenes `generating`, `selected`, `hint`, `wrong`, `question` and `progress` beside the lesson's steps — are the widget's real components. What the export fixes, the product builds from rather than near.
+
+**The tokens** — `assets/tokens.css`, ported once to `internal/widget/tokens.css` (R94). Colours for the light and the dark theme, chosen by `data-theme` on the document — which is what the widget's bridge sets from the host's theme — and by `prefers-color-scheme` when nothing sets it; spacing from 4 to 120 px; radii; the card's widths, 360 px narrow and 640 px wide; a tap target of 44 px and an option at least 48 px high; system font stacks only, since the widget loads nothing (8.1). One file, shared by the widget, the site and the consent screen the service renders.
+
+**The two themes side by side** — `themes.png`, beside the export, shows one task card in the light and the dark theme, to make plain what changes between them: the surface, the borders, the text and the accent. It illustrates and does not decide; where it differs from the export, the export wins. Its options have no letters, which the card shows (R90), and there are four of them where a task has five; its header names the task's topic, which the card's header does not — its badge carries the grade, not the topic; and its radio list with a Submit button, its counter and its palette are none of the export's components or colours.
+
+**The components** — `assets/mathtrail.js` and `mathtrail.css`, every class under the `mt-` prefix. They are ported to Preact one by one, keeping their names, their classes and their states:
+
+| Component | What it is |
+|---|---|
+| `TaskWidget` | The whole card and its screens; `WidgetApp` in `web/` |
+| `ThreadBar` | The line at the top: the child's pseudonym and "Profile & progress", or "Back to task" |
+| `MessageHeader`, `Badge`, `Mark`, `Avatar` | Who speaks — MathTrail or the child — with the grade as a badge |
+| `OptionList`, `OptionRow` | The five answers as radio buttons with their letters (R90), in the states default, selected (checking), correct, wrong and muted |
+| `Diagram` | The text drawing, `<pre dir="ltr">` (8.8) |
+| `Note` | A plain, hint or trap note |
+| `Verdict`, `SolutionSteps`, `ReplyCard` | The result, told below the task |
+| `ReplyField` | The field "Ask a question about the task" |
+| `GeneratingSteps` | The waiting screen's list of steps |
+| `RatingSummary`, `StatList`, `StatusMark`, `ProfileFields` | The progress: the rating with its rank, lists with values, right and wrong marks and bars, the profile's fields |
+| `Button`, `Icon` | Buttons and inline stroke icons coloured by `currentColor` |
+
+**The words** — `DEFAULT_STRINGS` in `mathtrail.js` is the first list of the dictionary's strings, each given a key in the dot notation of 8.6 (`profileAction` becomes `task.profile_action`), with its placeholders (`{correct}`, `{picked}`, `{rank}`, `{total}`); the Russian page carries their Russian wording. Two groups of words live outside that list and join the dictionary too: the waiting screen's steps, `DEFAULT_GEN`, and the grade's label — each with the grade as `{grade}`, never a number written into the string, since the draft's "grade 3" is one child's. Three of the list's keys serve the demo alone and stay out: `demoReply`, which answers inside the card as no host lets a card do (R91); `more`, the label of a button that opens nothing (remark 40); and `time`, "just now", since a card in a chat has no time of its own to show.
+
+**Where the product departs from the picture.** The export runs without a host, so some of what it shows no host allows, and the host wins:
+
+- a question asked in the card is answered in the chat under it, not inside the card, and the card keeps a note that it was sent (R91); the site's demo answers inside the card and says it is an illustration;
+- the waiting screen's steps carry no numbers — no "120 cases" — and move on a timer (R92);
+- the demo marks an answer after a fixed pause; the widget marks it when `submit_answer` returns;
+- React 18 in `assets/vendor/` is how the export runs; the widget is Preact (О-13), and the site is built by the same toolchain (T66).
+
+**What the export does not draw**, and is drawn with its components and in its style before the author sees it: the first sign-in, the trial series (N of 5), the rating in the topic before and after an answer, the daily limit, three failed attempts, and the widget in a language written right to left.
 
 ---
 
@@ -1385,6 +1432,7 @@ The request's own line, `http_request`, is the exception to `user`: it is writte
 | `task_submitted` | Every `submit_task` | attempt, outcome, primary code, every failed check, the types of the self-check's minor issues, duration_ms, solver_steps, solver_ms |
 | `task_accepted` | A task became current | topic, level, difficulty, attempts, seconds since the request opened, instructions_version |
 | `answer_recorded` | `submit_answer` recorded an answer | topic, level, difficulty, correct, trap, hint_used, confused, pace |
+| `task_skipped` | `next_task` recorded the current task as skipped (R98) | topic, level, difficulty |
 | `limit_hit` | Any ceiling of section 10 | which ceiling, the counter's value |
 | `auth_*` | authorize, consent, callback, token, refresh, revoke, reject | client_id, registration (cimd or dcr), redirect host, resource, requested and granted scope, kid, outcome, reason |
 | `cimd_fetch` | A Client ID Metadata Document was fetched | host, cached, duration_ms, outcome |
@@ -1456,7 +1504,7 @@ Collected while writing this part; none of them changes a product decision.
 2. **The seven new topics are `5-6` only.** `number.divisibility` and `logic.sets` would work at `3-4` too, but that would mean another 18 reference tasks and another review. **For:** a later edition.
 3. **`geometry.grid` is the one topic that can fail its entry exam.** О-30 planned for that; T37 is where it is decided, and the replacement is chosen from the same list with no new decision round. **Passed in T37.1:** nine tasks whose solvers count cell sides, enumerate placements and split cells into pieces joined by sides, each a search rather than a formula, with no visual counting among them.
 4. **The prototype's reference tasks have no `hint`.** The format the model must produce always does, and the new `5-6` tasks will. Backfilling hints into the 450 ported examples is optional work nobody is scheduled to do. **For:** T23, T36.
-5. **The `excluded_skills` cap in 04-profile reads "15 (the catalog's size)".** The catalog is 25 now, so the cap is the catalog's size, not the literal 15. **For:** T26. **Measured with the package (T36.1):** at 25 the budget test of 4.1 fails — 8 of the 2,550 packages of a child at every limit, written in Latin letters, go over by up to 224 bytes — so raising the cap is also a decision about the budget. **No longer, since T36a:** at 64 KB (R65) ten more excluded skills add about a kilobyte to a package that is under 25 KB at every limit, so the cap is a question for the profile alone.
+5. **The `excluded_skills` cap in 04-profile reads "15 (the catalog's size)".** The catalog is 25 now, so the cap is the catalog's size, not the literal 15. **For:** T26. **Measured with the package (T36.1):** at 25 the budget test of 4.1 fails — 8 of the 2,550 packages of a child at every limit, written in Latin letters, go over by up to 224 bytes — so raising the cap is also a decision about the budget. **No longer, since T36a:** at 64 KB (R65) ten more excluded skills add about a kilobyte to a package that is under 25 KB at every limit, so the cap is a question for the profile alone. **Settled in T43:** the cap is 25, the size of the catalog, and a test of the content holds the two to one number; the budget of 4.1 is measured at it (R99).
 6. **The rank boundaries are defined here** because they are rating arithmetic, and T57 only draws them. If SPEC section 8 turns out to be a better home, move them there rather than duplicating them. **For:** T14, T57.
 
 Added while writing sections 4 and 5:
@@ -1492,7 +1540,7 @@ Added while writing section 6:
 
 Added while writing sections 7 and 8:
 
-16. **Tool visibility is left at the default, both model and app.** Restricting the five tools the widget never calls to `["model"]` is defence in depth against our own code, and a host that mis-read the list would break text mode. Worth one live check in T62 that all six tools reach the model. **For:** T41, T62.
+16. **Tool visibility is left at the default, both model and app, on every tool but `read_progress`.** Restricting the four tools the widget never calls to `["model"]` is defence in depth against our own code, and a host that mis-read the list would break text mode. `read_progress` is `["app"]` (R97), and a host that ignored the field would only show the model a second way to read the progress. Worth one live check in T62 and T63 that every other tool reaches the model and `read_progress` does not. **For:** T41, T62.
 17. **The host tells the widget the family's timezone.** `timeZone` in the app context, IANA format. v1 keeps its daily counters on a UTC day and displays nothing from them, so there is nothing to do — but the open question in 03-flows now has a cheap answer whenever it is wanted. **For:** T52, T57.
 18. **Every dictionary lives in the one HTML file**, because the widget has no network by design. Twenty-two locales are around 50 KB before compression. If the bundle outgrows its budget the escape is to inline one locale per `resources/read`, not to open the CSP. **For:** T42, T54, T59.
 19. **The list of 22 languages is a starting point, not a promise** (О-14а). It is chosen by speakers and plausibility, and a locale outside it lands on its language or on English by the ordinary lookup. **For:** T59.
@@ -1516,12 +1564,12 @@ Added while writing the checks (T32):
 
 Added while writing the instructions for the model (T36.2):
 
-28. **Whether the server's instructions reach the model has not been seen.** T03 did not look at whether Claude or ChatGPT put the server's `instructions` in front of the model. The rules that must hold whatever the host — the answer stays hidden until the child has answered, an answer is recorded before anything is explained, the state of the task is read from a tool before it is spoken about — are therefore also said where the model cannot miss them: in the tools' descriptions and in their results. **For:** T41 and T43–T45, which write those; T46 and T62–T63, which see what the model actually reads. **Since T41** the endpoint hands the instructions to every model that connects, in `server/discover` and `initialize` alike, and the content refuses to load without them. Whether a host puts them in front of the model is still for T46 and T62–T63 to see.
+28. **Whether the server's instructions reach the model has not been seen.** T03 did not look at whether Claude or ChatGPT put the server's `instructions` in front of the model. The rules that must hold whatever the host — the answer stays hidden until the child has answered, an answer is recorded before anything is explained, the state of the task is read from a tool before it is spoken about — are therefore also said where the model cannot miss them: in the tools' descriptions and in their results. **For:** T41 and T43–T45, which write those; T46 and T62–T63, which see what the model actually reads. **Since T41** the endpoint hands the instructions to every model that connects, in `server/discover` and `initialize` alike, and the content refuses to load without them. Whether a host puts them in front of the model is still for T46 and T62–T63 to see. **Since T43** the descriptions of the profile's tools say them too: a pseudonym only, never a real name, and `last_answer` read before anything is said about the task.
 
 Added in the review of the package for the model (T36.1):
 
-29. **The model's reason for a choice of its own has no limit yet.** `next_task` puts the model's `reason` into the brief's `rationale` (3.4), and the brief travels in the package whole. Nothing caps its length, so neither the budget of 4.1 nor its test can count it. T43 gives `reason` a limit in the tool's input schema, and the budget test counts the longest rationale that limit allows. **For:** T43.
-30. **A profile with no excluded skills must say so with `[]`.** The rule copies `student.excluded_skills` into the brief as it stands, so a profile holding `null` there gives a brief holding `null`. The model, told to hand the brief back as it received it, hands back `null`, and the structure check (5.2) refuses a missing list — an attempt lost on every task. Either the profile is written with an empty list, or the rule turns `null` into one. **For:** T41, T43. **Not for T41:** the endpoint has no say in what a profile holds, so this stays with T43, whose `save_profile` writes the profile.
+29. **The model's reason for a choice of its own has no limit yet.** `next_task` puts the model's `reason` into the brief's `rationale` (3.4), and the brief travels in the package whole. Nothing caps its length, so neither the budget of 4.1 nor its test can count it. T44 gives `reason` a limit in the tool's input schema, and the budget test counts the longest rationale that limit allows. **For:** T44, which defines `next_task` — the remark first named T43, whose tools take no `reason`.
+30. **A profile with no excluded skills must say so with `[]`.** The rule copies `student.excluded_skills` into the brief as it stands, so a profile holding `null` there gives a brief holding `null`. The model, told to hand the brief back as it received it, hands back `null`, and the structure check (5.2) refuses a missing list — an attempt lost on every task. Either the profile is written with an empty list, or the rule turns `null` into one. **For:** T41, T43. **Not for T41:** the endpoint has no say in what a profile holds, so this stays with T43, whose `save_profile` writes the profile. **Settled in T43:** both hold — a profile is made and edited with empty lists, never null, and the rule copies the skills into a list of its own, so a `null` a parent typed into the file by hand still reaches the model as `[]`.
 
 Added with the solver templates (T36a):
 
@@ -1539,9 +1587,15 @@ Added with the ladder (T39b.1):
 
 Added with the MCP endpoint (T41):
 
-36. **The library's refusal of arguments reaches the model in its own words.** When a call's arguments do not fit the tool's input schema, the library answers before any tool runs, with a message of its own — `validating "arguments": …`, or a decoding error that names a Go type. The message describes the model's own input and names the field, which is what the model needs to fix it, so it is kept, and it is never logged. What is left to check is that such a message never quotes a value the model wrote, in a tool that draws a card: `submit_task` above all, whose arguments are the task itself. **For:** T43, T44, with their schemas.
+36. **The library's refusal of arguments reaches the model in its own words.** When a call's arguments do not fit the tool's input schema, the library answers before any tool runs, with a message of its own — `validating "arguments": …`, or a decoding error that names a Go type. The message describes the model's own input and names the field, which is what the model needs to fix it, so it is kept, and it is never logged. What is left to check is that such a message never quotes a value the model wrote, in a tool that draws a card: `submit_task` above all, whose arguments are the task itself. **For:** T43, T44, with their schemas. **Done for T43:** `save_profile` keeps its limits out of the input schema and checks them itself, naming the field and the rule and never the value. What the library still refuses is a value of the wrong type — a grade sent as text, a list sent as a string — and its message quotes that value; it is the parent's own detail, not an answer, so it is kept. What is left is T44.
 37. **The library's DNS-rebinding check trusts the address a connection arrived on.** It refuses a request whose `Host` is not a loopback name when the connection's local address is a loopback one. On Cloud Run the container is reached on an interface of its own, so the check should never fire; if the platform ever delivered over loopback, every call would get `403 Forbidden: invalid Host header`. A deployment answers `/mcp` with nothing but `401` until the real sign-in, and the sign-in stands in front of the library, so the check is not reached on the deployed service before then. **For:** T53, the first signed-in call on the deployed service. The same check is why a tunnel to a developer's machine has to rewrite `Host` to `localhost:8080` (T43, where the live check of the widget moved: T42 has no tool that draws a card).
 
 Added with the widget build (T42):
 
 38. **A host may keep the widget's page by its address.** The widget is served at one fixed address, `ui://mathtrail/app.html` (8.1), whatever build it came from. ChatGPT's guide for app servers asks for the identifier to be versioned whenever the HTML, the script or the styles change in a way that could break a copy it keeps, and Claude has not been seen either way. Until the screens exist the page is a stub that shows any payload, so nothing breaks yet; from the first screen on, a host that kept last release's page would draw this release's payload with last release's widget. Versioning the address — a hash of the page in it, written into both the resource and the tools that draw a card — would change 8.1 and is the author's to decide. **For:** T55, which brings the first screen; T62 and T63, which can see what each host keeps.
+
+Added with the design (R89):
+
+40. **The card's header has a "More options" button that opens nothing.** The export draws a `⋯` button on every message header, with a menu nobody has described. Until something belongs in it — reporting a bad task, perhaps — the widget leaves it out rather than showing a button that does nothing. **For:** T55.
+41. **The letters on the buttons meet the letters in the drawings again.** R90 brings back what R70 had ended: a drawing that labels its points `A`–`E` above buttons marked with the same letters. The live runs are where a child's confusion would show. **For:** T58, T62.
+42. **A tool's schemas say "or null" in a form some clients misread.** The protocol library derives every schema from the Go type, and writes a field that may be null — an argument left out, a payload's `last_answer`, `trial` or `overall`, every list — as `"type": ["null", …]`. That is valid JSON Schema, but MCP Inspector 2.7 warns that several MCP clients read `type` as a single string and either reject the tool or drop the constraint; it counts 44 such places across the four tools of T43, and offers `anyOf` with one type in each branch instead. Whether Claude and ChatGPT are among those clients is not written anywhere; the live runs are where it shows. If one of them is, the frame rewrites the derived schemas into the `anyOf` form in one place, for every tool. **Claude is not among them** (T43's live run, 2026-09-27, Claude on the web with Claude Haiku 4.5 answering): it added the connector, listed the tools and called `get_profile`, `save_profile` twice — with arguments of that form — and `get_progress` over 2026-07-28, every call answered and every card drawn. **For:** T63, where ChatGPT shows whether it is.

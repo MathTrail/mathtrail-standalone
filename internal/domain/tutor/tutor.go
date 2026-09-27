@@ -119,7 +119,7 @@ func withinReach(p *profile.Profile, catalog Catalog) []string {
 			continue
 		}
 		easiest := points[0]
-		if rating.InReach(levelIn(p, topic), easiest) {
+		if rating.InReach(p.LevelIn(topic), easiest) {
 			open = append(open, topic)
 		}
 		switch beta := easiest.Beta(); {
@@ -191,18 +191,19 @@ func choose(p *profile.Profile, catalog Catalog, open []string) (topic string, g
 func unmastered(p *profile.Profile, catalog Catalog, open []string) []string {
 	kept := make([]string, 0, len(open))
 	for _, topic := range open {
-		if !masteredWhereItStands(p, catalog, topic) {
+		if !Mastered(p, catalog, topic) {
 			kept = append(kept, topic)
 		}
 	}
 	return kept
 }
 
-// masteredWhereItStands reports whether a topic counts as mastered for the
-// child now: mastered at the level its recommended point comes from, or at a
-// higher one. Mastery at a lower level says nothing about the tasks the child
-// would be set there now, so such a topic is back in the rotation.
-func masteredWhereItStands(p *profile.Profile, catalog Catalog, topic string) bool {
+// Mastered reports whether a topic counts as mastered for the child now:
+// mastered at the level its recommended point comes from, or at a higher one.
+// Mastery at a lower level says nothing about the tasks the child would be set
+// there now, so such a topic is back in the rotation — and a screen that said
+// "mastered" about it would be saying something the rule no longer believes.
+func Mastered(p *profile.Profile, catalog Catalog, topic string) bool {
 	summary := p.Topics[topic]
 	if summary.MasteredSince == nil || summary.MasteredLevel == nil {
 		return false
@@ -277,7 +278,7 @@ func apply(p *profile.Profile, catalog Catalog, choice *Choice, suggested string
 		point = corridorIn(p, catalog, topic).Recommended
 	}
 	if choice.GradeLevel != "" {
-		point = rating.NewCorridor(levelIn(p, topic), rating.Points(choice.GradeLevel)).Recommended
+		point = rating.NewCorridor(p.LevelIn(topic), rating.Points(choice.GradeLevel)).Recommended
 	}
 	if choice.Difficulty != 0 {
 		point.Difficulty = choice.Difficulty
@@ -294,15 +295,7 @@ func pointsOf(catalog Catalog, topic string) []rating.Point {
 // corridorIn is where the child's chances lie in one topic, over the points
 // the topic can be set at.
 func corridorIn(p *profile.Profile, catalog Catalog, topic string) rating.Corridor {
-	return rating.NewCorridor(levelIn(p, topic), pointsOf(catalog, topic))
-}
-
-// levelIn is where the child stands in one topic: their level overall with the
-// topic's own correction. A topic never met has no correction, so what decides
-// is what the child can do generally — a cold start that is right far more
-// often than beginning everybody at the middle.
-func levelIn(p *profile.Profile, topic string) float64 {
-	return p.Ratings.Theta + p.Topics[topic].Delta
+	return rating.NewCorridor(p.LevelIn(topic), pointsOf(catalog, topic))
 }
 
 // setting is what the task is dressed in: the interests taken in turn, by the

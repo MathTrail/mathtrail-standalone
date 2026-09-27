@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"math"
 	"strings"
-	"unicode"
-	"unicode/utf8"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
@@ -29,11 +27,16 @@ const (
 	// MaxInterest is how long one of them may be.
 	MaxInterest = 40
 	// MaxExcludedSkills is the size of the skill catalog: excluding more than
-	// all of them is not a profile anybody could be taught from.
-	MaxExcludedSkills = 15
+	// all of them is not a profile anybody could be taught from. A test of the
+	// content holds the two to the same number.
+	MaxExcludedSkills = 25
 	// MaxNotes is how much free-form context the parent may write. It is a
 	// size budget as much as a privacy one: every generation carries it.
 	MaxNotes = 500
+	// MaxUILanguage is how long a language tag may be: the length every reader of
+	// a BCP 47 tag is asked to hold, and longer than any language a card is
+	// shown in needs.
+	MaxUILanguage = 35
 	// MaxRecent is how many answers the history window holds.
 	MaxRecent = 20
 	// MinRecent is how far that window may ever be pruned: the rule reads the
@@ -108,39 +111,8 @@ func (p *Profile) Validate() error {
 }
 
 func (s *Student) validate() error {
-	switch count := utf8.RuneCountInString(s.Pseudonym); {
-	case count == 0:
-		return fmt.Errorf("%w: student.pseudonym is empty", ErrInvalid)
-	case count > MaxPseudonym:
-		return fmt.Errorf("%w: student.pseudonym is %d characters, the limit is %d",
-			ErrInvalid, count, MaxPseudonym)
-	case strings.ContainsFunc(s.Pseudonym, unicode.IsControl):
-		return fmt.Errorf("%w: student.pseudonym carries a control character", ErrInvalid)
-	}
-
-	if s.Grade < MinGrade || s.Grade > MaxGrade {
-		return fmt.Errorf("%w: student.grade is %d, the grades are %d to %d",
-			ErrInvalid, s.Grade, MinGrade, MaxGrade)
-	}
-	if len(s.Interests) > MaxInterests {
-		return fmt.Errorf("%w: student.interests holds %d, the limit is %d",
-			ErrInvalid, len(s.Interests), MaxInterests)
-	}
-	for _, interest := range s.Interests {
-		if count := utf8.RuneCountInString(interest); count == 0 || count > MaxInterest {
-			return fmt.Errorf("%w: student.interests has one of %d characters, the limit is 1 to %d",
-				ErrInvalid, count, MaxInterest)
-		}
-	}
-	if len(s.ExcludedSkills) > MaxExcludedSkills {
-		return fmt.Errorf("%w: student.excluded_skills holds %d, the limit is %d",
-			ErrInvalid, len(s.ExcludedSkills), MaxExcludedSkills)
-	}
-	if count := utf8.RuneCountInString(s.Notes); count > MaxNotes {
-		return fmt.Errorf("%w: student.notes is %d characters, the limit is %d", ErrInvalid, count, MaxNotes)
-	}
-	if s.UILanguage != nil && *s.UILanguage == "" {
-		return fmt.Errorf("%w: student.ui_language is an empty string; a profile that follows the chat says null", ErrInvalid)
+	if found := s.problems(); len(found) > 0 {
+		return fmt.Errorf("%w: student.%s", ErrInvalid, found[0])
 	}
 	return nil
 }

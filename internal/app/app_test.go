@@ -329,6 +329,67 @@ func TestContainerServesTheWidgetItCarries(t *testing.T) {
 	}
 }
 
+// The container serves the tools of the profile over the store it built: a
+// development account sees the four of them, and a first call finds no profile
+// yet.
+func TestContainerServesTheToolsOfTheProfile(t *testing.T) {
+	t.Parallel()
+
+	cfg := testConfig()
+	cfg.DevAuth = true
+	container := containerFrom(t, cfg)
+
+	var listed struct {
+		Result struct {
+			Tools []struct {
+				Name string `json:"name"`
+			} `json:"tools"`
+		} `json:"result"`
+	}
+	askEndpoint(t, container, `{"jsonrpc":"2.0","id":1,"method":"tools/list"}`, &listed)
+	var names []string
+	for _, tool := range listed.Result.Tools {
+		names = append(names, tool.Name)
+	}
+	slices.Sort(names)
+	if want := []string{"get_profile", "get_progress", "read_progress", "save_profile"}; !slices.Equal(names, want) {
+		t.Errorf("tools = %v, want %v", names, want)
+	}
+
+	var profiled struct {
+		Result struct {
+			StructuredContent struct {
+				Screen string `json:"screen"`
+			} `json:"structuredContent"`
+		} `json:"result"`
+	}
+	askEndpoint(t, container,
+		`{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get_profile","arguments":{}}}`, &profiled)
+	if got := profiled.Result.StructuredContent.Screen; got != "first_run" {
+		t.Errorf("get_profile shows %q, want first_run: nothing is kept yet", got)
+	}
+}
+
+// askEndpoint sends one message to the container's MCP endpoint, as a client
+// of the protocol's older versions would, and reads the answer into answer.
+func askEndpoint(t *testing.T, container *app.Container, message string, answer any) {
+	t.Helper()
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/mcp", strings.NewReader(message))
+	req.Host = "localhost" // the configured public URL's host
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json, text/event-stream")
+	rec := httptest.NewRecorder()
+	container.Router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d; body = %s", rec.Code, http.StatusOK, rec.Body.String())
+	}
+	if err := json.Unmarshal(jsonRPCMessage(t, rec), answer); err != nil {
+		t.Fatalf("the answer's message is not JSON: %v; body = %s", err, rec.Body.String())
+	}
+}
+
 // jsonRPCMessage is the message an answer of the MCP endpoint carries, whether
 // it came as a JSON body or as the data of the one event of a stream.
 func jsonRPCMessage(t *testing.T, rec *httptest.ResponseRecorder) []byte {

@@ -10,9 +10,10 @@ WORKDIR /src/web
 
 # The packages first, exactly as the lockfile pins them, so that this layer
 # survives a change to the widget's sources. No package runs an install step of
-# its own: the .npmrc beside the lockfile says so.
+# its own: the .npmrc beside the lockfile says so, and the install says it again
+# where the step is read.
 COPY web/package.json web/package-lock.json web/.npmrc ./
-RUN npm ci --no-audit --no-fund
+RUN npm ci --ignore-scripts --no-audit --no-fund
 
 COPY web/ ./
 

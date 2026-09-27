@@ -32,11 +32,12 @@ Which screen a card shows is decided by the payload, not by the tool: `get_profi
 | `get_profile` | the model | yes — profile, or first sign-in when there is no file | 1 | 0 | always |
 | `save_profile` | the model | yes — profile | 1 | 1 | the fields fail validation |
 | `get_progress` | the model | yes — progress | 1 | 0 | always |
+| `read_progress` | the widget only, from the line at the top of a card (R91, R97) | **no** — the card that called it turns to its progress | 1 | 0 | always |
 | `next_task` | the model | **no** | 1 | 1 | a limit was hit, or the same open request is returned again |
 | `submit_task` | the model | yes — the task card when accepted, the waiting screen when it refuses | 1 | 1 | the request id is stale |
 | `submit_answer` | the **widget**, or the model in text mode | **no** — the card turns itself over | 1 | 1 | this task was already answered |
 
-One full task costs three reads and three writes — `next_task`, `submit_task`, `submit_answer` — and one more pair for each rejected attempt. Everything between the read and the write is pure computation: the rule, the checks, the Starlark solver and the ratings never touch the network (01-context).
+One full task costs three reads and three writes — `next_task`, `submit_task`, `submit_answer` — and one more pair for each rejected attempt. Opening the progress from a card costs one read more. Everything between the read and the write is pure computation: the rule, the checks, the Starlark solver and the ratings never touch the network (01-context).
 
 ## Scenario 1. First sign-in
 
@@ -131,9 +132,10 @@ sequenceDiagram
     MT-->>W: right or wrong, the correct letter, the trap behind C,<br/>the solution step by step, the rating before and after
     Note over W: the result screen — the child gets the full diagnosis<br/>even if the model never says another word
     W->>M: ui/update-model-context — one line about what just happened
-    K->>W: I do not understand
-    W->>M: ui/message — ask for a simpler explanation
-    M-->>K: a simpler explanation in the chat
+    K->>W: types a question in the card's field — "why isn't it 6?"
+    W->>M: ui/message — the child's words (R91)
+    M-->>K: the answer in the chat, under the card
+    Note over K,W: "I don't know" instead of an answer goes the same way as C:<br/>submit_answer with "?", a wrong answer with no trap (R93)
 ```
 
 **The button records before anything is explained.** The order in the diagram is the requirement: the press calls the tool, the tool writes the profile, and only then is anything said to anybody. Nothing about the recording depends on the model noticing (О-42) — and it must not, because the two mechanisms that tell the model what happened, `ui/message` and `ui/update-model-context`, were only confirmed in T03 as far as "the call returns without an error"; that they land in the conversation has not been seen with human eyes yet. If both silently do nothing, the child still gets the result screen, the ratings are still updated, and the model catches up on its next call, because every tool result carries the outcome of the last answer.
@@ -142,7 +144,7 @@ sequenceDiagram
 
 The obvious alternative is worse: having the widget send a chat message after every answer would keep the model in step by construction, and would spend a turn of the conversation each time. On a free tier those turns are the scarce resource this whole design protects (PRODUCT 6), and a button that costs none of them is the point of О-42.
 
-**"Hint" and "I don't understand" cost nothing extra.** The hint is part of the task the model submitted, so the widget already has it and reveals it with no call at all; that it was opened travels with the answer. "I don't understand" pressed before answering travels the same way. Pressed after the answer, it is simply a request to the model for a simpler explanation and is not recorded — the lesson is over by then, and О-33 only needs these flags for choosing the next step.
+**"Hint" costs nothing extra, and "I don't know" is an answer.** The hint is part of the task the model submitted, so the widget already has it and reveals it with no call at all; that it was opened travels with the answer. "I don't know", pressed before answering, shows the solution, so it is recorded like any answer — `submit_answer` with `?`, a wrong answer for the rating, with no trap (R93). The card's question field sends the child's words to the chat, before the answer or after; the model answers there, and nothing is recorded (R91). Before the answer it helps without giving the answer away, as its instructions require for anything said about an open task; after it, the field is how the child asks why.
 
 ## Scenario 4. The same lesson as text
 
@@ -189,6 +191,12 @@ sequenceDiagram
     MT-->>W: progress screen
     Note over MT: one read, no write
 
+    A->>W: "Profile & progress" on a task card
+    W->>MT: read_progress — the widget's own tool, which draws no card (R97)
+    MT->>D: read the profile
+    MT-->>W: the same progress, with the profile's fields
+    Note over W: drawn in the same card, "Back to task" returns to it — the model is not asked
+
     A->>M: he has moved up to grade 3
     M->>MT: save_profile with the changed fields
     MT->>D: read the profile
@@ -200,11 +208,11 @@ sequenceDiagram
 
 Neither tool ever returns the current task's answer, even though both read the file that holds it: the sealed block is opened in exactly one place, `submit_answer`, and only after the answer is recorded.
 
-## The waiting screen and "Next task"
+## The waiting screen and "Another task"
 
-The child presses "Next task" — on the result screen, or on the task card itself, where PRODUCT 4.2 also puts it. Three things then happen, in this order:
+The child presses "Another task" — on the result screen, or on the task card itself, where PRODUCT 4.2 also puts it. Three things then happen, in this order:
 
-1. **The card turns to the waiting screen immediately**, with the status "Preparing the next task…" and a small warm-up if it drags on (О-26). This is local: no call, no wait, and nothing for the child to stare at.
+1. **The card turns to the waiting screen immediately**, with "Preparing the next task…" as a list of the steps a task usually takes, moving on a timer and claiming no numbers, since the card cannot see the work (R92), and a small warm-up if it drags on (О-26). This is local: no call, no wait, and nothing for the child to stare at.
 2. **The press reaches the model** through `ui/message`, because generating a task is the model's job and only the model can start it. This is the one step with no fallback inside the product: if a host does not deliver widget messages, the adult types "next task" in the chat and everything else is identical. T03 got as far as "the call succeeds"; T46 and T62–T63 are where it is confirmed for real.
 3. **The model calls `next_task`**, writes the task, calls `submit_task`, and the new card appears in the feed below.
 
@@ -236,7 +244,7 @@ stateDiagram-v2
 Two transitions are worth their own sentence:
 
 - **`requested → none` after three attempts.** The child is handed nothing, the model says so and may ask for a new task, and the daily counter of accepted tasks is untouched — a refused attempt is not a generation (О-35). The counter of failed generations goes up instead, and it is what stops the loop ("The daily counters"). Three is the prototype's limit and its reasoning holds: after two pointed corrections a model usually cycles through the same broken variants, and a refusal is itself a signal about which topics and traps it stumbles on.
-- **`issued → requested`, skipping an unanswered task.** PRODUCT 4.2 puts "Next task" on the task card, so the child may walk away from a task they do not want. The skipped task leaves no trace in the ratings — there is no answer to learn from (О-33) — but its fingerprint stays in the profile, so it will not come back as a near-duplicate. The generation it cost is not refunded: it was an accepted task.
+- **`issued → requested`, skipping an unanswered task.** PRODUCT 4.2 puts "Another task" on the task card, so the child may walk away from a task they do not want. The skipped task leaves no trace in the ratings — there is no answer to learn from (О-33) — but it is recorded: `next_task`, asked for a new task while this one has no answer, writes it into the history as skipped — whether or not a new task ever arrives — and the progress screen shows it, so leafing past hard tasks is something the parent can see (R98). Its fingerprint stays in the profile too, so it will not come back as a near-duplicate. The generation it cost is not refunded: it was an accepted task.
 
 ## Doing nothing twice
 
@@ -294,12 +302,12 @@ Two rules about the wording of all of them: they are written for a model that ha
 |---|---|
 | 3.1 The parent connects the app, signs in, grants storage | 02-auth; scenario 1 |
 | 3.1 The profile is created: pseudonym, grade, interests, constraints | Scenario 1, `save_profile` |
-| 3.1 The child sees a waiting screen while the first task is written | Scenario 1's last step, "The waiting screen and Next task" |
-| 3.2 The card: wording, drawing, five answer buttons without letters (R70), Hint, I don't understand, Next task | Scenario 2's last step; scenario 3 for the three buttons |
+| 3.1 The child sees a waiting screen while the first task is written | Scenario 1's last step, "The waiting screen and Another task" |
+| 3.2 The card: wording, drawing, five answer buttons with their letters (R90), I don't know, Hint, Another task, a question field | Scenario 2's last step; scenario 3 for the three buttons |
 | 3.3 Pressing a button records the answer before any explanation | Scenario 3, and the paragraph under it |
 | 3.3 Correct — brief praise; wrong — the trap first, then the solution | Scenario 3 and 4: the payload of `submit_answer` is the same in both modes |
-| 3.3 "I don't understand" — a simpler explanation | Scenario 3, the last two steps |
-| 3.4 The next task at the press of a button, with a waiting screen | "The waiting screen and Next task" |
+| 3.3 "I don't know", and a question about the task answered in the chat (R91, R93) | Scenario 3, the last two steps |
+| 3.4 The next task at the press of a button, with a waiting screen | "The waiting screen and Another task" |
 | 3.5 Progress: ratings, ranks, mastered topics, recent answers, one topic to practise | Scenario 5 |
 | 3.6 The profile: the parent views and edits | Scenario 5 |
 | 4.3 The brief comes from the rule; the model may override it with a reason | Scenario 2, `next_task` and `tutor_mode` |
@@ -310,7 +318,7 @@ Two rules about the wording of all of them: they are written for a model that ha
 | 4.4 One current task, kept until it is answered | The state machine; `submit_answer` is keyed by the task id |
 | 4.4 The answer is sealed and appears nowhere before the answer | "One payload, two readers"; scenarios 2, 3 and 5 |
 | 4.4 The tool-call log is outside the threat model (О-27) | The paragraph under scenario 2 |
-| 4.4 The waiting screen and the warm-up (О-26) | "The waiting screen and Next task" |
+| 4.4 The waiting screen and the warm-up (О-26) | "The waiting screen and Another task" |
 | 6 Every tool's Drive reads and writes are known | "The tools, and what each costs in Drive" |
 | 6 The daily limit and the request rate | "The daily counters"; `limit_reached` |
 | 6 The free tiers' message budget | Scenario 3: a button press spends no model turn |
@@ -321,10 +329,10 @@ Found while drawing the flows. None changes a product decision, so none becomes 
 
 1. **Two host mechanisms are still only half-verified.** `ui/message` and `ui/update-model-context` returned successfully in T03 but were never seen landing in a conversation. Nothing depends on them for correctness — the answer is recorded by the tool — but each needs a compensating control that has to be built rather than assumed: a deadline on the waiting screen for a lost `ui/message`, and the rule never to speak about the current task from memory for a lost `ui/update-model-context`. Both are specified above. **For:** T46 and T62–T63, which must watch for both in the transcript; T56 and T36, which build the two controls.
 2. **`submit_answer` renders no card of its own.** In a widget host where the child types the letter in the chat instead of pressing a button, the task card therefore keeps showing the task while the model explains in words. The alternative — giving the tool its own widget — risks two cards for one press, which T03 never tested ("several widgets in one turn" is still `?` in its matrix). **For:** T55 and T56, and worth one live check in T62.
-3. **The waiting card cannot dismiss itself, so it has a deadline instead.** Polling would cost a Drive read each time, so after 120 seconds the card stops looking busy and points at the chat ("The waiting screen and Next task"). The number is a requirement of the flow; what the card looks like when it fires is **for:** T56.
+3. **The waiting card cannot dismiss itself, so it has a deadline instead.** Polling would cost a Drive read each time, so after 120 seconds the card stops looking busy and points at the chat ("The waiting screen and Another task"). The number is a requirement of the flow; what the card looks like when it fires is **for:** T56.
 4. **The day of the daily counters is a UTC day.** It costs less than it looks: the product shows no rhythm of practice at all (R13, О-49), so an early rollover makes a limit looser for one evening and never stricter. If exactness is wanted, the widget knows the browser's timezone and could pass it. **For:** T09 and T52.
 5. **The abandonment window for an open request is a number nobody has fixed yet** — around fifteen minutes fits a 69-second median and three attempts. **For:** T15, confirmed in T52.
-6. **Skipping an unanswered task is allowed** because PRODUCT 4.2 puts "Next task" on the task card. It costs a generation and leaves no rating trace. **For:** T15, to carry into SPEC explicitly.
+6. **Skipping an unanswered task is allowed** because PRODUCT 4.2 puts "Another task" on the task card. It costs a generation and leaves no rating trace. **For:** T15, to carry into SPEC explicitly.
 7. **Every tool result carries the outcome of the last recorded answer** — one line, so a model that missed the widget's message does not congratulate a child on a task they got wrong. It is what makes the rule of scenario 3 — read the state back before speaking about it — cost a single call. **For:** T14, in the output schemas, and T36 for the rule itself.
 8. **A tool cannot decide per call whether it draws a card.** The host takes `_meta.ui.resourceUri` from the tool definition, so `submit_task` draws one even when it refuses — which is why refusals are written to name no answer letter, and why the widget has to render sensibly from a payload that carries no task. **For:** T14 and T55–T56; worth confirming in T62 that Claude does not also draw a card for a call the widget itself made.
 9. **`next_task` has to be able to say "already under way".** The repeat of an open request carries a flag and the request's age, so an impatient second ask does not become a second generation racing the first for the same three attempts. **For:** T14, in the output schema, and T44.

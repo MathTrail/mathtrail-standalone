@@ -57,7 +57,7 @@ flowchart LR
     model -. "text mode, where widgets do not render" .-> kid
     adult -. "Google sign-in and consent screen in a browser" .-> authsrv
     model -- "tool calls over HTTPS" --> router
-    appsrt -- "the child's answer, called straight from the widget" --> router
+    appsrt -- "the child's answer and the progress, called straight from the widget" --> router
     mcpsrv -- "ui:// · resources/read" --> appsrt
     authsrv -. "fetches the client document" .-> cimd
 
@@ -122,8 +122,8 @@ Platforms outside v1 are deliberately absent from the diagram: Gemini and DeepSe
 | **HTTP router** | The single entry point of the process: `/health`, `/mcp`, the OAuth and `.well-known` endpoints. Timeouts, body size limit, `Origin` check, client address from the last hop of `X-Forwarded-For`, own domain as the issuer | 6, 7, 9.3 | T17, T41, T47 |
 | **Authorization server** | We are our own OAuth 2.1 authorization server: resource and server metadata, CIMD with SSRF protection and DCR as a fallback, `/authorize` with a consent screen and a CSRF cookie, the Google sign-in, the callback, `/token`, refresh, revoke, and the bearer check on every request | 6, 7, 9.3 | T47–T49 |
 | **MCP server** | The protocol: Streamable HTTP 2026-07-28, stateless, on go-sdk v1.8.0; `tools/list` and `tools/call`; the `ui://` resource with its MIME type and CSP; server `instructions` with their version. The set of supported protocol versions is not narrowed (R02) | 4.1, 4.2, 7, 9.3 | T41, T42 |
-| **Tools** | The five capabilities of PRODUCT 4.1, plus the answer tool the widget calls directly (О-42). Every call is the same shape: read the profile, compute, write it back. Nothing secret and nothing internal ever goes into `structuredContent` (О-39) | 3, 4.1–4.4 | T43–T45 |
-| **Rule** | The deterministic choice of a brief: after a failure, consolidate the same topic; otherwise a new topic not seen for a while; difficulty from the 70–85 % corridor. The hint, the pace, "I don't understand" and consecutive failures change nothing but this (О-33) | 4.3, 4.5 | T27 |
+| **Tools** | The five capabilities of PRODUCT 4.1, plus the answer tool the widget calls directly (О-42); the widget also reads the progress itself (R91). Every call is the same shape: read the profile, compute, write it back. Nothing secret and nothing internal ever goes into `structuredContent` (О-39) | 3, 4.1–4.4 | T43–T45 |
+| **Rule** | The deterministic choice of a brief: after a failure, consolidate the same topic; otherwise a new topic not seen for a while; difficulty from the 70–85 % corridor. The hint, the pace and consecutive failures change nothing but this (О-33); "I don't know" is a wrong answer (R93) | 4.3, 4.5 | T27 |
 | **Ratings** | P = 0.2 + 0.8·σ(θ + δ − β), Elo updates with a decaying step, the corridor and the recommended β, the chess scale and the rank boundaries, the criterion for a mastered topic (О-32, О-48) | 4.5 | T25 |
 | **Checks** | The pipeline a submitted task passes: structure and five distinct options, a trap and an explanation behind every wrong one, explanations distinguishable from each other (R10), readability for the grade, near-duplicates, the format of the text drawing and the match between its structural description and the wording (О-37) | 4.3 | T32–T35 |
 | **Solver** | The Starlark sandbox: the model's program brute-forces the options and confirms that exactly one of them is correct. Step and time limits, no network, no files (О-8) | 4.3, 7 | T28 |
@@ -185,7 +185,7 @@ The acceptance check for this task: every requirement in sections 4–7 belongs 
 | 4.4 The waiting screen and the warm-up (О-26) | Widget |
 | 4.5 P = 0.2 + 0.8·σ(θ + δ − β), Elo updates, the 0.70–0.85 corridor | Ratings |
 | 4.5 The chess scale and a rank above the number (О-48) | Ratings, Widget |
-| 4.5 Hint, pace, "I don't understand" and consecutive failures do not change the rating (О-33) | Ratings, Rule |
+| 4.5 Hint, pace and consecutive failures do not change the rating (О-33); "I don't know" counts as a wrong answer (R93) | Ratings, Rule |
 | 4.5 A mastered topic is decided automatically and deterministically (О-32) | Ratings |
 | 4.5 β is barely calibrated in v1 | Ratings |
 | 4.6 Catalogs, reference tasks, schemas, templates, frames and instructions embedded in the binary | Content |

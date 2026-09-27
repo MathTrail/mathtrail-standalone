@@ -83,8 +83,13 @@ type Profile struct {
 // one thing the grade decides: the child begins at the level their grade falls
 // into, and from there only answers move them.
 //
+// A list the details leave out is written as an empty one, never as null: the
+// rule copies the excluded skills into every brief as they stand, and a model
+// handed null gives null back where a list is required.
+//
 //nolint:gocritic // hugeParam: a student is taken by value on purpose, so that a profile cannot be handed a struct somebody else still holds a pointer to
 func New(student Student, appVersion string, now time.Time) *Profile {
+	student = student.copied()
 	return &Profile{
 		AppVersion:       appVersion,
 		Student:          student,
@@ -99,6 +104,26 @@ func New(student Student, appVersion string, now time.Time) *Profile {
 		Topics:           map[string]Topic{},
 		UpdatedAt:        At(now),
 	}
+}
+
+// LevelIn is where the child stands in one topic: their level overall with the
+// topic's own correction. A topic never met has no correction, so what decides
+// is what the child can do generally — a cold start that is right far more
+// often than beginning everybody at the middle. The rule sets tasks from it and
+// the progress shows a topic's rating from it, so the two cannot disagree.
+func (p *Profile) LevelIn(topic string) float64 {
+	return rating.State{Theta: p.Ratings.Theta, Delta: p.Topics[topic].Delta}.Level()
+}
+
+// LastAnswer is the answer the child gave last, and whether there has been one
+// at all. It is what every tool's result tells the model about, so that a
+// model that missed the card's own message learns from its next call that the
+// child has answered.
+func (p *Profile) LastAnswer() (Answer, bool) {
+	if len(p.Recent) == 0 {
+		return Answer{}, false
+	}
+	return p.Recent[len(p.Recent)-1], true
 }
 
 // Touch records that the file is being written: the revision moves on and the

@@ -21,3 +21,4 @@ coverage.*
 **/node_modules
 internal/widget/widget.html
 web/coverage
+draft

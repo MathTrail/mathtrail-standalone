@@ -583,6 +583,12 @@ func TestAnEndpointThatCouldNotBeServedIsNotBuilt(t *testing.T) {
 		func(context.Context, store.Account, sayIn) (mcpserver.Reply[sayOut], error) {
 			return mcpserver.Reply[sayOut]{}, nil
 		})
+	// A tool for a card alone that drew a card of its own would put a second
+	// card under the one that asked.
+	twice := mcpserver.Define(mcpserver.Spec{Name: "twice", Title: "Twice", WidgetOnly: true, DrawsCard: true},
+		func(context.Context, store.Account, sayIn) (mcpserver.Reply[sayOut], error) {
+			return mcpserver.Reply[sayOut]{}, nil
+		})
 
 	cases := []struct {
 		name     string
@@ -600,6 +606,7 @@ func TestAnEndpointThatCouldNotBeServedIsNotBuilt(t *testing.T) {
 		{name: "two tools of one name", settings: settings(), tools: []mcpserver.Tool{echo, echo}, want: `"echo"`},
 		{name: "a name no tool can have", settings: settings(), tools: []mcpserver.Tool{misnamed}, want: `"next task"`},
 		{name: "arguments that are not an object", settings: settings(), tools: []mcpserver.Tool{loose}, want: `"loose"`},
+		{name: "a tool for a card that draws one", settings: settings(), tools: []mcpserver.Tool{twice}, want: `"twice"`},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
