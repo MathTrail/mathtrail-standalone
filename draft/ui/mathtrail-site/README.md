@@ -18,6 +18,7 @@ assets/tokens.css         design tokens (light, dark, and dark by prefers-color-
 assets/mathtrail.css|.js  the widget components (window.MathTrail) from the design system
 assets/site.css|.js       the page's layout and behaviour
 assets/vendor/            React 18.3.1 and ReactDOM 18.3.1 (MIT)
+themes.png                one card in the light and the dark theme side by side: how the themes differ, not what the card holds
 ```
 
 ## How it behaves

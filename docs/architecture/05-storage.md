@@ -58,7 +58,7 @@ Every tool call is read → compute → write (03-flows). The cost in HTTP calls
 
 | Tool | Cold instance | File id already cached |
 |---|---|---|
-| `get_profile`, `get_progress` | 2 — `files.list`, `files.get(alt=media)` | 1 — `files.get(alt=media)` |
+| `get_profile`, `get_progress`, `read_progress` | 2 — `files.list`, `files.get(alt=media)` | 1 — `files.get(alt=media)` |
 | `save_profile`, `next_task`, `submit_task`, `submit_answer` | 3 — list, get, `files.update` | 2 — get, update |
 | First sign-in, no file yet | 3–4 — list (miss), the bin check, the folder, `files.create` multipart | — |
 | A pinned write — every fiftieth, or the first of a day | +2 — `revisions.list`, release the oldest pin | same |
