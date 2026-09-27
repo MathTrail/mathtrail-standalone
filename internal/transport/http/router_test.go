@@ -183,16 +183,32 @@ const publicURL = "http://example.com"
 // request that got through to it from one refused on the way.
 const reached = "reached the endpoint"
 
-// endpoints are the router's handlers, with a stand-in for the MCP endpoint:
-// what the endpoint itself does is for its own package to test, and what the
-// router does in front of it is for this one.
+// endpoints are the router's handlers, with stand-ins for the MCP endpoint and
+// the sign-in: what each does is for its own package to test, and what the
+// router does in front of them is for this one.
 func endpoints() httpserver.Endpoints {
 	return httpserver.Endpoints{
-		Health: httpserver.NewHealthHandler(),
-		MCP: http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			_, _ = w.Write([]byte(reached))
-		}),
+		Health:           httpserver.NewHealthHandler(),
+		MCP:              standIn(reached),
+		ResourceMetadata: standIn(reachedResourceMetadata),
+		ServerMetadata:   standIn(reachedServerMetadata),
+		Register:         standIn(reachedRegister),
 	}
+}
+
+// What each stand-in for the sign-in answers.
+const (
+	reachedResourceMetadata = "reached the resource's metadata"
+	reachedServerMetadata   = "reached the server's metadata"
+	reachedRegister         = "reached the registration"
+)
+
+// standIn is a handler that answers with the words given, so that a case can
+// tell which handler a request reached.
+func standIn(words string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(words))
+	})
 }
 
 // noDelivery is a delivery of telemetry that sends nothing and never fails.

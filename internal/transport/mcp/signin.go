@@ -56,13 +56,15 @@ func DevSignIn(next http.Handler) http.Handler {
 }
 
 // NobodySignsIn lets no request in. It answers every one the way a request
-// without a valid token is answered — 401, and a challenge naming the scope a
-// token would need — so that the endpoint refuses in the shape a client
-// expects of it, while no token can yet be issued at all.
-func NobodySignsIn(next http.Handler) http.Handler {
+// without a valid token is answered — 401, and a challenge naming where the
+// resource's metadata is, which is where a client begins a sign-in, and the
+// scope a token would need — so that the endpoint refuses in the shape a
+// client expects of it, while no token can yet be issued at all.
+func NobodySignsIn(resourceMetadataURL string) SignIn {
 	return auth.RequireBearerToken(refuseEveryToken, &auth.RequireBearerTokenOptions{
-		Scopes: []string{Scope},
-	})(next)
+		ResourceMetadataURL: resourceMetadataURL,
+		Scopes:              []string{Scope},
+	})
 }
 
 // refuseEveryToken is the verdict on any token while nothing can issue one.

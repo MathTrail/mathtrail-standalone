@@ -289,6 +289,67 @@ func TestContainerServesTheEndpointToSomebodySignedInOnly(t *testing.T) {
 	}
 }
 
+// A client the endpoint refuses is led to the sign-in, and every step of the
+// way is served under the service's own name: the refusal names the resource's
+// metadata, that document names the endpoint as the resource and the service
+// as its authorization server, whose metadata names a registration endpoint
+// that registers.
+func TestContainerLeadsARefusedClientToTheSignIn(t *testing.T) {
+	t.Parallel()
+
+	container := containerFrom(t, testConfig())
+	refused := serveOne(t, container, http.MethodPost, "/mcp", `{"jsonrpc":"2.0","id":1,"method":"tools/list"}`)
+	metadata := "http://localhost/.well-known/oauth-protected-resource/mcp"
+	if got, want := refused.Header().Get("WWW-Authenticate"), `Bearer resource_metadata="`+metadata+`", scope="mcp"`; got != want {
+		t.Fatalf("WWW-Authenticate = %q, want %q", got, want)
+	}
+
+	var resource struct {
+		Resource             string   `json:"resource"`
+		AuthorizationServers []string `json:"authorization_servers"`
+	}
+	decodeAnswer(t, serveOne(t, container, http.MethodGet, strings.TrimPrefix(metadata, "http://localhost"), ""), &resource)
+	if resource.Resource != "http://localhost/mcp" || !slices.Equal(resource.AuthorizationServers, []string{"http://localhost"}) {
+		t.Fatalf("the resource's metadata is %+v, want the endpoint and the service", resource)
+	}
+
+	var server struct {
+		RegistrationEndpoint string `json:"registration_endpoint"`
+	}
+	decodeAnswer(t, serveOne(t, container, http.MethodGet, "/.well-known/oauth-authorization-server", ""), &server)
+	registered := serveOne(t, container, http.MethodPost, strings.TrimPrefix(server.RegistrationEndpoint, "http://localhost"),
+		`{"redirect_uris":["https://claude.ai/api/mcp/auth_callback"],"client_name":"Claude"}`)
+	if registered.Code != http.StatusCreated || !strings.Contains(registered.Body.String(), `"client_id":"mt1.d.`) {
+		t.Errorf("a registration at %s: status %d, body %s; want a client registered", server.RegistrationEndpoint,
+			registered.Code, registered.Body.String())
+	}
+}
+
+// serveOne sends the container one request under its own name.
+func serveOne(t *testing.T, container *app.Container, method, path, body string) *httptest.ResponseRecorder {
+	t.Helper()
+
+	req := httptest.NewRequestWithContext(t.Context(), method, path, strings.NewReader(body))
+	req.Host = "localhost" // the configured public URL's host
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json, text/event-stream")
+	rec := httptest.NewRecorder()
+	container.Router.ServeHTTP(rec, req)
+	return rec
+}
+
+// decodeAnswer reads a JSON answer, which has to be a 200.
+func decodeAnswer(t *testing.T, rec *httptest.ResponseRecorder, into any) {
+	t.Helper()
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d; body = %s", rec.Code, http.StatusOK, rec.Body.String())
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), into); err != nil {
+		t.Fatalf("the answer is not JSON: %v; body = %s", err, rec.Body.String())
+	}
+}
+
 // The container serves the widget the binary carries — the build, or the
 // placeholder where none ran — as the page every card is drawn by.
 func TestContainerServesTheWidgetItCarries(t *testing.T) {
