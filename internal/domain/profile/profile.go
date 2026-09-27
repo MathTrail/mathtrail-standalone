@@ -42,8 +42,7 @@ type Profile struct {
 	AppVersion string `json:"app_version"`
 	// CreatedAt is when the profile was made.
 	CreatedAt Time `json:"created_at"`
-	// CurrentTask is the task the child is working on, or nil when there is
-	// none.
+	// CurrentTask is the task on the child's card, or nil when there is none.
 	CurrentTask *CurrentTask `json:"current_task"`
 	// Daily counts what has to be counted across every instance of the
 	// service, which is why it is in the file rather than in memory.
@@ -124,6 +123,19 @@ func (p *Profile) LastAnswer() (Answer, bool) {
 	for i := len(p.Recent) - 1; i >= 0; i-- {
 		if !p.Recent[i].Skipped {
 			return p.Recent[i], true
+		}
+	}
+	return Answer{}, false
+}
+
+// AnswerTo is the answer the window keeps for a task, and whether it keeps one:
+// what a late answer to a task that has left the card is told was recorded for
+// it. A task skipped has no answer, and one the window has let go of is no
+// longer known.
+func (p *Profile) AnswerTo(taskID string) (Answer, bool) {
+	for i := len(p.Recent) - 1; i >= 0; i-- {
+		if entry := p.Recent[i]; entry.TaskID == taskID && !entry.Skipped {
+			return entry, true
 		}
 	}
 	return Answer{}, false

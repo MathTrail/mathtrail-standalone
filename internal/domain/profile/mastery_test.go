@@ -42,16 +42,18 @@ func answerEasy(t *testing.T, p *profile.Profile, number int, correct bool) prof
 func answerAt(t *testing.T, p *profile.Profile, point rating.Point, number int, correct, hint bool) profile.Recorded {
 	t.Helper()
 
-	answeringAt(t, p, masteredTopic, point)
-	p.CurrentTask.ID = fmt.Sprintf("tsk_%02d", number)
+	id := answeringAs(t, p, fmt.Sprintf("tsk_%02d", number), masteredTopic, point)
+	choice := wrongLetter
+	if correct {
+		choice = rightLetter
+	}
 
 	recorded, err := p.Record(profile.Answered{
-		TaskID:   p.CurrentTask.ID,
-		Correct:  correct,
+		TaskID:   id,
+		Choice:   choice,
 		HintUsed: hint,
-		Trap:     "off_by_one",
 		At:       issued.Add(time.Duration(number) * time.Hour),
-	})
+	}, newSealer(t))
 	if err != nil {
 		t.Fatalf("Record() error = %v, want nil", err)
 	}

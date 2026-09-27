@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
@@ -12,18 +13,24 @@ import (
 
 // The refusals of Record. An answer that arrives for a task nobody is working
 // on is not a fault of the service, and the two cases read differently to
-// whoever hears about them: one child answered twice, the other answered
-// something that has already been replaced.
+// whoever hears about them: there is no task on the card at all, or the
+// answer is for a task that is no longer there.
 var (
-	// ErrNoTask means there is no task in flight to answer.
-	ErrNoTask = errors.New("profile: no task in flight")
-	// ErrNoSuchOption means the answer names an option the task does not have.
+	// ErrNoTask means there is no task on the card to answer.
+	ErrNoTask = errors.New("profile: no task on the card")
+	// ErrNoSuchOption means the answer is neither a letter of the options nor
+	// "I don't know".
 	ErrNoSuchOption = errors.New("profile: the answer names no option of the task")
-	// ErrOtherTask means the answer is for a task other than the one in
-	// flight — an answer sent twice, or one that arrived after the child
-	// moved on.
+	// ErrOtherTask means the answer is for a task other than the one on the
+	// card: one skipped, one left behind by the next, or one never given.
 	ErrOtherTask = errors.New("profile: the answer is for another task")
 )
+
+// DontKnow is the answer "I don't know". The card shows the solution for it,
+// so it is an answer, and a wrong one: a child who has seen the solution has
+// not solved the task. It chose no option and took no trap, so neither is
+// written, and the map of the child's mistakes does not count it.
+const DontKnow = "?"
 
 // How long an answer may take before it is called something other than
 // normal. The service measures this itself, from the moment it handed the task
@@ -47,37 +54,59 @@ const (
 	MasteryLostAfter = 2
 )
 
-// Answered is one answer as it reaches the service.
+// Answered is one answer as it reaches the service: the task it is for, what
+// the child chose — a letter of the options, or DontKnow — whether they opened
+// the hint first, and when it arrived. Whether it was right is not among it:
+// that is for the sealed part of the task to say.
 type Answered struct {
-	// TaskID says what is being answered. It has to be the task in flight.
-	TaskID string
-	// Chosen is the option the child picked.
-	Chosen string
-	// Correct says whether that was the right one. It is the only thing the
-	// rating formula reads.
-	Correct bool
-	// Trap is the mistake the chosen option leads to, known only for a wrong
-	// answer and taken from the sealed part of the task.
-	Trap string
-	// HintUsed and Confused are what the child reached for before answering.
-	// They change what comes next and never the rating.
+	TaskID   string
+	Choice   string
 	HintUsed bool
-	Confused bool
-	// At is when the answer arrived.
-	At time.Time
+	At       time.Time
 }
 
-// Recorded is what one answer changed, for whoever has to say so: the result
-// the child is shown and the line written to the log.
+// Given is the answer a task was given, kept with the task while it stays on
+// the card. An answer sent twice — from a second tab, after a reply lost on its
+// way, or by the model recording what the card already did — is told what was
+// recorded rather than recorded again, and this, with the seal that stays with
+// the task, is what tells it word for word.
+type Given struct {
+	// Choice is what the child chose: a letter of the options, or DontKnow.
+	Choice string `json:"choice"`
+	// HintUsed records that the hint was opened first.
+	HintUsed bool `json:"hint_used"`
+	// LevelAfter and LevelBefore are where the child stood in the task's topic
+	// after the answer and before it.
+	LevelAfter  float64 `json:"level_after"`
+	LevelBefore float64 `json:"level_before"`
+	// Trial is which answer of the trial series this was, from 1, or zero when
+	// the series was already over.
+	Trial int `json:"trial"`
+}
+
+// Recorded is an answer as it was recorded, for whoever has to say so: the
+// result the child is shown, the words the model relays and the line written
+// to the log.
 type Recorded struct {
 	// Topic is what was answered, GradeLevel the level the task was written
 	// for and Difficulty its difficulty inside that level.
 	Topic      string
 	GradeLevel rating.GradeLevel
 	Difficulty int
-	// Probability is the chance of a correct answer as it stood when the task
-	// was handed out.
-	Probability float64
+	// Choice is what the child chose: a letter of the options, or DontKnow.
+	Choice string
+	// Correct says whether that was the right option. DontKnow never is.
+	Correct bool
+	// Right is the letter of the right option.
+	Right string
+	// Trap is the mistake a wrong letter leads to, with what the child is told
+	// about it. It is empty for a right answer, and for DontKnow, which took
+	// no trap.
+	Trap Distractor
+	// Solution is the worked answer the child is shown.
+	Solution string
+	// HintUsed records that the hint was opened first.
+	HintUsed bool
 	// LevelBefore and LevelAfter are where the child stood in this topic
 	// before the answer and after it.
 	LevelBefore float64
@@ -86,40 +115,85 @@ type Recorded struct {
 	// the series was already over. While it runs there is no rating to show,
 	// only how many of its answers are in.
 	Trial int
-	// Pace is how long the answer took.
-	Pace Pace
+	// Probability is the chance of a correct answer as it stood when the task
+	// was handed out, and Pace is how long the answer took.
+	Probability float64
+	Pace        Pace
 	// Mastered is set when this answer earned mastery of the topic, and
 	// Unmastered when it lost it. Both cannot be true of one answer.
 	Mastered   bool
 	Unmastered bool
+	// Again marks an answer recorded by an earlier call and only told again
+	// now. Nothing moved, and what only recording it knew — the chance, the
+	// pace, whether mastery was won or lost — is not told again.
+	Again bool
 }
 
-// Record applies an answer to the profile: it moves the level, adds to the
-// summary of the topic, puts the answer at the end of the history window, and
-// takes the task out of flight. The task itself is not read here — what the
-// answer was worth comes from the levels and where the task stood on the
-// ladder, which is all the formula has ever read.
+// ChoiceOf reads an answer as the child or the model typed it: a letter of the
+// options in either case, or DontKnow, with any space around it dropped. What
+// it returns is the choice, or the rule the text broke, in words that never
+// repeat the text.
+func ChoiceOf(text string) (choice, rule string) {
+	choice = strings.ToUpper(strings.TrimSpace(text))
+	if !choosable(choice) {
+		letters := solver.Letters()
+		return "", fmt.Sprintf("must be one of the letters %s to %s, or %s when the child does not know",
+			letters[0], letters[len(letters)-1], DontKnow)
+	}
+	return choice, ""
+}
+
+// choosable reports whether a choice is one the child can make: a letter of
+// the options, as it labels them, or DontKnow.
+func choosable(choice string) bool { return choice == DontKnow || solver.Place(choice) >= 0 }
+
+// Record takes the child's answer to the task on the card, once. The sealed
+// part of the task says whether it was right and, for a wrong letter, the trap
+// behind it; then the level moves, the summary of the topic adds it up, the
+// answer goes to the end of the history window, and the task keeps what it
+// was given. An answer to a task that has one already moves nothing: it is told
+// what was recorded, whatever it chose itself.
 //
 // An answer of the trial series moves the level differently from every answer
 // after it: the level is estimated afresh from the start and all the answers
 // of the series at once, and the correction of the topic stays where it is.
 //
-// The caller is left with a profile to write, and nothing else to remember.
+// Nothing moves when the seal cannot be opened: a task whose answer cannot be
+// read cannot be checked either.
 //
-//nolint:gocritic // hugeParam: an answer is handed over by value, because it describes something that already happened and this must not look like a struct Record fills in
-func (p *Profile) Record(answer Answered) (Recorded, error) {
+// The caller is left with a profile to write when the answer was recorded now,
+// and with nothing to write when it was only told again.
+func (p *Profile) Record(answer Answered, sealer Sealer) (Recorded, error) {
 	task := p.CurrentTask
 	switch {
 	case task == nil:
 		return Recorded{}, ErrNoTask
 	case task.ID != answer.TaskID:
-		return Recorded{}, fmt.Errorf("%w: %s is in flight", ErrOtherTask, task.ID)
-	case answer.Chosen != "" && solver.Place(answer.Chosen) < 0:
-		// Refused before anything moves: the history keeps the letter, and a
-		// profile holding one that names no option could not be written back.
-		return Recorded{}, fmt.Errorf("%w: %q", ErrNoSuchOption, answer.Chosen)
+		return Recorded{}, fmt.Errorf("%w: %s is on the card", ErrOtherTask, task.ID)
+	case !choosable(answer.Choice):
+		// Refused before anything moves: the history keeps the letter of a
+		// wrong answer, and a profile holding one that names no option could
+		// not be written back.
+		return Recorded{}, ErrNoSuchOption
 	}
 
+	secret, err := p.OpenTask(sealer)
+	if err != nil {
+		return Recorded{}, err
+	}
+	if task.Answered != nil {
+		told := toldOf(task, &secret)
+		told.Again = true
+		return told, nil
+	}
+	return p.apply(task, &answer, &secret), nil
+}
+
+// apply records an answer the task has not had before and keeps it with the
+// task. Only correctness moves the level; the hint is written beside the
+// answer and changes what comes next through the runs of the topic.
+func (p *Profile) apply(task *CurrentTask, answer *Answered, secret *TaskSecret) Recorded {
+	correct, trap := judge(answer.Choice, secret)
 	topic := p.Topics[task.Topic]
 	before := rating.State{
 		Theta:        p.Ratings.Theta,
@@ -136,60 +210,88 @@ func (p *Profile) Record(answer Answered) (Recorded, error) {
 	)
 	if p.Ratings.InTrial() {
 		trial = max(p.Ratings.Answers, 0) + 1
-		moved, probability = p.place(before, point, answer.Correct)
+		moved, probability = p.place(before, point, correct)
 	} else {
-		updated := rating.Update(before, point.Beta(), answer.Correct)
+		updated := rating.Update(before, point.Beta(), correct)
 		moved, probability = updated.State, updated.Probability
 	}
 
 	p.Ratings.Theta, p.Ratings.Answers = moved.Theta, moved.Answers
 	topic.Delta, topic.Answers = moved.Delta, moved.TopicAnswers
-	if answer.Correct {
+	if correct {
 		p.Ratings.ConsecutiveFailures = 0
+		topic.Correct++
 	} else {
 		p.Ratings.ConsecutiveFailures++
-		if answer.Trap != "" {
+		if trap.Trap != "" {
 			if topic.Traps == nil {
 				topic.Traps = map[string]int{}
 			}
-			topic.Traps[answer.Trap]++
+			topic.Traps[trap.Trap]++
 		}
 	}
-	if answer.Correct {
-		topic.Correct++
-	}
 
-	recorded := Recorded{
-		Topic:       task.Topic,
-		GradeLevel:  task.GradeLevel,
-		Difficulty:  task.Difficulty,
-		Probability: probability,
-		LevelBefore: before.Level(),
+	task.Answered = &Given{
+		Choice:      answer.Choice,
+		HintUsed:    answer.HintUsed,
 		LevelAfter:  moved.Level(),
+		LevelBefore: before.Level(),
 		Trial:       trial,
-		Pace:        paceOf(task.IssuedAt.Time, answer.At),
 	}
-	recorded.Mastered, recorded.Unmastered = topic.master(probability, task.GradeLevel, &answer)
-	p.Topics[task.Topic] = topic
+	recorded := toldOf(task, secret)
+	recorded.Probability = probability
+	recorded.Pace = paceOf(task.IssuedAt.Time, answer.At)
+	recorded.Mastered, recorded.Unmastered = topic.master(probability, task.GradeLevel, correct, answer)
+	p.putTopic(task.Topic, &topic)
 
 	p.remember(&Answer{
 		AnsweredAt: At(answer.At),
-		Chosen:     wrongOnly(answer.Chosen, answer.Correct),
-		Confused:   answer.Confused,
-		Correct:    answer.Correct,
+		Chosen:     chosenOf(answer.Choice, correct),
+		Confused:   answer.Choice == DontKnow,
+		Correct:    correct,
 		Difficulty: task.Difficulty,
 		GradeLevel: task.GradeLevel,
 		HintUsed:   answer.HintUsed,
 		Pace:       recorded.Pace,
 		TaskID:     task.ID,
 		Topic:      task.Topic,
-		Trap:       wrongOnly(answer.Trap, answer.Correct),
+		Trap:       trap.Trap,
 	})
+	return recorded
+}
 
-	// The lesson is over: the task in flight is what the next answer would be
-	// measured against, and there is no next answer to this one.
-	p.CurrentTask = nil
-	return recorded, nil
+// toldOf is the answer a task was given, told from what the task keeps of it
+// and from its seal. Recording an answer and telling it again both end here,
+// which is what makes the second telling the same as the first.
+func toldOf(task *CurrentTask, secret *TaskSecret) Recorded {
+	given := task.Answered
+	correct, trap := judge(given.Choice, secret)
+	return Recorded{
+		Topic:       task.Topic,
+		GradeLevel:  task.GradeLevel,
+		Difficulty:  task.Difficulty,
+		Choice:      given.Choice,
+		Correct:     correct,
+		Right:       secret.Answer,
+		Trap:        trap,
+		Solution:    secret.Solution,
+		HintUsed:    given.HintUsed,
+		LevelBefore: given.LevelBefore,
+		LevelAfter:  given.LevelAfter,
+		Trial:       given.Trial,
+	}
+}
+
+// judge says whether a choice is the right option and, for a wrong letter, the
+// trap it leads to. DontKnow is never right and took no trap.
+func judge(choice string, secret *TaskSecret) (correct bool, trap Distractor) {
+	switch choice {
+	case DontKnow:
+		return false, Distractor{}
+	case secret.Answer:
+		return true, Distractor{}
+	}
+	return false, secret.Distractors[choice]
 }
 
 // place is an answer of the trial series: the level estimated afresh from the
@@ -244,9 +346,9 @@ func (p *Profile) answers() []Answer {
 // it completes, whether it earns mastery or finds the topic mastered already,
 // so mastering the topic at a higher level takes a run of its own rather than
 // one answer added to a run of the tasks below.
-func (t *Topic) master(probability float64, level rating.GradeLevel, answer *Answered) (mastered, unmastered bool) {
+func (t *Topic) master(probability float64, level rating.GradeLevel, correct bool, answer *Answered) (mastered, unmastered bool) {
 	switch {
-	case !answer.Correct:
+	case !correct:
 		t.TopStreak = 0
 		t.WrongStreak++
 	case probability <= rating.CorridorMiddle && !answer.HintUsed:
@@ -332,12 +434,13 @@ func paceOf(issued, answered time.Time) Pace {
 	}
 }
 
-// wrongOnly keeps what only a wrong answer carries. A right answer has no
-// mistake to name, and naming one would put a trap of the lesson just finished
-// where the file says there is none.
-func wrongOnly(value string, correct bool) string {
-	if correct {
+// chosenOf is the option a wrong answer chose, and nothing for a right answer
+// or for DontKnow: a right answer has no mistake to name — naming one would put
+// a trap of the lesson just finished where the file says there is none — and
+// "I don't know" chose no option at all.
+func chosenOf(choice string, correct bool) string {
+	if correct || choice == DontKnow {
 		return ""
 	}
-	return value
+	return choice
 }

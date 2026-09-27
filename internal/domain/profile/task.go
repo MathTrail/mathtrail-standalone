@@ -76,11 +76,18 @@ type OpenRequest struct {
 	TutorMode TutorMode `json:"tutor_mode"`
 }
 
-// CurrentTask is the task the child is working on. Everything in it is open
-// except one string: the answer, the explanation behind every wrong option,
-// the solution and the solver are sealed together, because four explanations
-// in the open would name the four wrong options and hand over the fifth.
+// CurrentTask is the task on the child's card. Everything in it is open except
+// one string: the answer, the explanation behind every wrong option, the
+// solution and the solver are sealed together, because four explanations in
+// the open would name the four wrong options and hand over the fifth.
+//
+// It stays on the card after it is answered, with the answer it was given,
+// until the next task is asked for: the same answer sent again is told what
+// was recorded, and telling it takes the seal, which leaves with the task.
 type CurrentTask struct {
+	// Answered is the answer the task was given, or nil while the child is
+	// still working on it.
+	Answered *Given `json:"answered,omitempty"`
 	// Difficulty is the difficulty of the task inside its level, from
 	// MinDifficulty to MaxDifficulty.
 	Difficulty int `json:"difficulty"`
@@ -95,7 +102,8 @@ type CurrentTask struct {
 	GradeLevel rating.GradeLevel `json:"grade_level"`
 	// Hint is the nudge the child may ask for.
 	Hint string `json:"hint"`
-	// ID keys the answer: it is recorded once, against this task.
+	// ID keys the answer: it is recorded once, against this task, and the
+	// seal is tied to it.
 	ID string `json:"id"`
 	// InstructionsVersion is which version of the instructions produced the
 	// task, so the line logged about the result can carry it.
@@ -109,13 +117,23 @@ type CurrentTask struct {
 	Options map[string]string `json:"options"`
 	// Sealed is everything that would give the answer away, as one opaque
 	// string. Nothing about it changes shape with the answer: its length says
-	// nothing, and it is opened in exactly one place, after the child has
-	// answered.
+	// nothing, and it is opened only by an answer to this task.
 	Sealed string `json:"sealed"`
 	// Topic is the catalog id of what is being asked.
 	Topic string `json:"topic"`
 	// Wording is the question as the child reads it.
 	Wording string `json:"wording"`
+}
+
+// InFlight is the task the child is still working on, or nil: none is on the
+// card, or the one there has had its answer. Whatever would leave a task
+// behind asks this, because only an unanswered task is left behind — an
+// answered one already has its answer in the window.
+func (p *Profile) InFlight() *CurrentTask {
+	if p.CurrentTask == nil || p.CurrentTask.Answered != nil {
+		return nil
+	}
+	return p.CurrentTask
 }
 
 // Daily is what the limits count, and the day they are counting. It is in the

@@ -27,7 +27,7 @@ flowchart LR
         rec["recent<br/>the last 20 answers and skips"]
         fpr["fingerprints<br/>up to 200 sketches, no texts"]
         req["open request<br/>id, brief, attempts, tutor mode"]
-        cur["current task<br/>open part plus one sealed block"]
+        cur["current task<br/>open part, the answer once given,<br/>and one sealed block"]
         day["daily counters<br/>accepted and failed, UTC date"]
     end
 
@@ -157,10 +157,11 @@ Two hundred is ten days of heavy use at twenty tasks a day. Beyond that a child 
 
 ### The current task
 
-`current_task`, or null when there is none. The open part is everything the child may see; the sealed block is everything that gives the answer away.
+`current_task`, or null when there is none. The open part is everything the child may see; the sealed block is everything that gives the answer away. Once answered, the task stays on the card with the answer it was given until the next task is asked for, and then it leaves with nothing more recorded: its answer is in the window already (R101).
 
 | Field | Where | Why |
 |---|---|---|
+| `answered` | open, absent until the answer | The answer the task was given: `choice` — the letter or `?` —, `hint_used`, `level_before` and `level_after`, the level in the topic before and after, and `trial`, which answer of the trial series it was or 0. It is what the same answer sent again is told from — by a second tab, after a reply lost on its way, by the model after the card — word for word and with nothing written (03-flows); the right option, the trap and the solution come from opening the seal again |
 | `id` | open | `submit_answer` is keyed by it: the answer is recorded once (03-flows) |
 | `issued_at` | open | The pace is measured from here |
 | `topic`, `grade_level`, `difficulty`, `language` | open | The history entry and the rating update are built from them |
@@ -169,7 +170,7 @@ Two hundred is ten days of heavy use at twenty tasks a day. Beyond that a child 
 | `wording`, `drawing`, `options`, `hint` | open | Exactly what the card shows and what the model was given back |
 | `sealed` | sealed | `mt1.t.<kid>.<ciphertext>` — the answer, the trap id and the explanation behind each wrong option, the solution and the solver program |
 
-The sealed block's plaintext is JSON with a version of its own, sealed under the `task-answer` purpose of the key ring (02-auth). It is opened in exactly one place: inside `submit_answer`, after the answer has been recorded. If it cannot be opened — the key that sealed it has been retired, which takes two rotation periods — the tool says the task can no longer be checked and clears it, and the child is given a new one (02-auth).
+The sealed block's plaintext is JSON with a version of its own, sealed under the `task-answer` purpose of the key ring (02-auth). It is opened in exactly one place: inside `submit_answer`, when the child's answer arrives and again when the same answer is sent twice — never before the child has answered. If it cannot be opened — the key that sealed it has been retired, which takes two rotation periods — the tool says the task can no longer be checked and takes it off the card, recording nothing about it — it was neither an answer nor a skip — and the child is given a new one (02-auth).
 
 The solver program is kept although it is never run again: it is the record that this task was actually verified, and it could not live in the open part in any case.
 
@@ -191,7 +192,7 @@ The acceptance question for this task is whether someone holding the file can wo
 - The **trap ids** of the current task are sealed for the same reason. The trap ids in the per-topic summary and in `recent` are about tasks already answered, and reveal nothing about this one.
 - The **brief** in the open request names the traps the task was asked to use, which is a hint about the subject, not about which option is correct.
 - The **solution** and the **solver** are sealed.
-- The **history entry** with `chosen` and `trap` is written when the answer is recorded, by which time the answer is no longer a secret.
+- The **history entry** with `chosen` and `trap` is written when the answer is recorded, by which time the answer is no longer a secret — and so is `current_task.answered`, whose `choice` is the right option's letter when the answer was right.
 - Nothing in the open part changes shape depending on the answer: five options, one hint, one drawing, whatever the correct letter is. The sealed block is one opaque string, so its length says nothing that matters.
 
 One limitation stays, and it is deliberate (О-27): the adult who reads the host's own tool-call log sees the task the model submitted, answer included. That is outside the threat model and is described in the privacy policy (T19). The sealing protects against automated reading and against the same task being handed out twice — not against a parent who goes looking.
@@ -245,7 +246,8 @@ What grows without a bound of its own is the per-topic summary, which gains an e
 - **Reading a newer version** is refused: the instance does not touch the file and tells the model that the profile was saved by a newer version of the service and to try again shortly. This is not hypothetical — two revisions are live during every Cloud Run rollout, and an old instance rewriting a new file would quietly drop whatever it did not understand.
 - **Adding an optional field** is not a version bump. Removing one, renaming one, or changing what one means is.
 - **The ladder did not raise the version.** One ladder for grades 1–6 (О-56) added `ratings.start`, `grade_level` in the brief, the current task and every answer of the window, and `mastered_level` beside `mastered_since`, all of them required, and changed what θ means — a place on the ladder rather than a level within the grade. All of that is still version 1 because no file of version 1 had been written by the service when it changed: the tools that write one arrive in T43 and the storage in T50. From the first written file on, a change of that kind is a version and a migration.
-- **The sealed block carries its own version** inside the ciphertext and is migrated or dropped on its own: a task in flight is worth less than a profile.
+- **The answer a task keeps did not raise the version either.** `current_task.answered` is optional, and a file without it reads as before. An older build reads past it, and asked for the next task it would record the answered task as skipped as well; that can happen only once a file outlives a build, which is T50's, so the question waits there (SPEC remark 44, R101).
+- **The sealed block carries its own version** inside the ciphertext and is migrated or dropped on its own: a task on the card is worth less than a profile.
 - Unknown fields at the current version are ignored on read and are not written back — forward compatibility is the refusal above, not a bag of leftovers.
 
 ## An example

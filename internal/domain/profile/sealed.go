@@ -6,14 +6,14 @@ import (
 	"fmt"
 )
 
-// ErrSealed means the sealed part of the task in flight cannot be read: the
+// ErrSealed means the sealed part of the task on the card cannot be read: the
 // key that sealed it has been retired, or it was sealed under a shape this
 // build does not know. A task is worth less than a profile, so the answer is
 // to tell the child this one can no longer be checked and give them another.
 var ErrSealed = errors.New("profile: the sealed part of the task cannot be read")
 
 // SecretVersion is the shape of the sealed part. It moves on its own: what is
-// sealed lives as long as one task, and a task in flight is not worth a
+// sealed lives as long as one task, and a task on the card is not worth a
 // migration.
 const SecretVersion = 1
 
@@ -57,7 +57,7 @@ type TaskSecret struct {
 	Version int `json:"version"`
 }
 
-// SealTask puts the part of the task in flight that gives its answer away
+// SealTask puts the part of the task on the card that gives its answer away
 // beyond reach, tied to this child and this task.
 func (p *Profile) SealTask(sealer Sealer, secret TaskSecret) error {
 	if p.CurrentTask == nil {
@@ -77,8 +77,10 @@ func (p *Profile) SealTask(sealer Sealer, secret TaskSecret) error {
 	return nil
 }
 
-// OpenTask reads that part back. It is opened in one place and at one moment:
-// after the child has answered, when the answer is no longer a secret.
+// OpenTask reads that part back. Only an answer to the task opens it — the
+// first, which it judges, and any sent again, which it is told to — so it is
+// never read before the child has answered, while the answer is still a
+// secret.
 func (p *Profile) OpenTask(sealer Sealer) (TaskSecret, error) {
 	if p.CurrentTask == nil {
 		return TaskSecret{}, ErrNoTask

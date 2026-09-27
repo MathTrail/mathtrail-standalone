@@ -63,3 +63,23 @@ func methodLabel(method string) string {
 	}
 	return other
 }
+
+// trapLabel is a trap of the catalog, or other. The trap of an answer comes
+// from a task the checks accepted, so it is one of the catalog's; what reaches
+// a span or a line is held to the list all the same.
+func (s *Service) trapLabel(id string) string {
+	if s.content.HasTrap(id) {
+		return id
+	}
+	return other
+}
+
+// topicLabel is a topic of the catalog, or other. The topic of an answer is
+// read from the profile, which a person can edit, and a line names only topics
+// the catalog has.
+func (s *Service) topicLabel(id string) string {
+	if s.content.HasTopic(id) {
+		return id
+	}
+	return other
+}

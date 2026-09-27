@@ -94,16 +94,16 @@ type Answer struct {
 	// AnsweredAt is when the answer arrived, or when the task was left.
 	AnsweredAt Time `json:"answered_at"`
 	// Chosen is the option the child picked, and Trap the trap behind it.
-	// Both are written only for a wrong answer: on a right one there is no
-	// mistake to name.
+	// Both are written only for a wrong letter: a right answer has no mistake
+	// to name, and "I don't know" chose no option.
 	Chosen string `json:"chosen,omitempty"`
-	// Confused records that "I don't understand" was pressed before
-	// answering. Like HintUsed it changes what comes next and never the
-	// rating.
+	// Confused records that the answer was "I don't know". The card showed
+	// the solution for it, so it is a wrong answer, and one that chose no
+	// option and took no trap: an entry that says so beside a right answer, a
+	// chosen option or a trap is refused.
 	Confused bool `json:"confused"`
 	// Correct is the only thing the rating formula reads. It is never absent
-	// from an answer: "I don't understand" is a button that asks for a simpler
-	// explanation, not a third kind of answer.
+	// from an answer: "I don't know" is a wrong answer, not a third kind.
 	Correct bool `json:"correct"`
 	// Difficulty is the difficulty of the task that was answered, inside its
 	// level.

@@ -211,7 +211,7 @@ Everything below is opaque to the client: a purpose tag, a key id and one AEAD c
 | The request context, our `state` towards Google `mt1.s.` | client id, redirect URI, the host's own `state`, `code_challenge` and method, resource, scope, our PKCE verifier and nonce for Google, the hash of the cookie nonce, issued-at | purpose `state` | 10 min | the URL at Google, and the parent's browser |
 | CSRF cookie `mt_csrf` | 32 random bytes, nothing else | not sealed — it is compared by hash | 10 min | the parent's browser, HttpOnly Secure SameSite=Lax, path `/oauth` |
 | Consent cookie `mt_consent` `mt1.k.` | the fingerprints of approved clients, `SHA-256(client_id + redirect_uri)`, and when each was approved | purpose `consent` | 180 days | the parent's browser, HttpOnly Secure SameSite=Lax, path `/oauth` |
-| The sealed block of the current task | the answer, the trap texts, the solution, the solver code (О-25) | purpose `task-answer` | until the task is answered or the key that sealed it is retired | the profile file in the parent's Drive (T09) |
+| The sealed block of the current task | the answer, the trap texts, the solution, the solver code (О-25) | purpose `task-answer` | until the next task is asked for — an answered task keeps it, to tell its answer again when the same answer is sent twice — or the key that sealed it is retired | the profile file in the parent's Drive (T09) |
 | Google's own tokens | — | — | Google's rules: a refresh token dies after six months unused, on a revocation, or past the 100-token ceiling | only inside the rows above; never on our side |
 
 The lifetimes in one place, with the reason each was chosen:

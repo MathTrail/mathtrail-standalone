@@ -32,7 +32,7 @@ DOC_EXAMPLE_K0 = 0.4
 DOC_EXAMPLE_STEPS = (
     {"difficulty": 2, "correct": True},
     {"difficulty": 3, "correct": False},
-    {"difficulty": 3, "correct": None},  # "?", the prototype's third outcome; v1 has no such answer
+    {"difficulty": 3, "correct": None},  # "?", worth S = 0 as a wrong answer, as "I don't know" is in v1
 )
 
 # Pairs for pg_trgm similarity(): the shapes a near-duplicate check meets, in Latin and in Cyrillic.

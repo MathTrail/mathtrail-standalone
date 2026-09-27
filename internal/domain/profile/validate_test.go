@@ -274,6 +274,29 @@ func TestEveryLimitIsRefusedByName(t *testing.T) {
 			wantSay: "recent[0] is a skipped task",
 		},
 		{
+			// "I don't know" showed the solution instead of taking a choice,
+			// so it is never the right answer.
+			name:    "I don't know that was right",
+			breakIt: func(p *profile.Profile) { p.Recent[0].Correct, p.Recent[0].Confused = true, true },
+			wantSay: `recent[0] is "I don't know"`,
+		},
+		{
+			name: "I don't know that chose an option",
+			breakIt: func(p *profile.Profile) {
+				p.Recent[0].Correct, p.Recent[0].Confused, p.Recent[0].Chosen = false, true, "B"
+			},
+			wantSay: `recent[0] is "I don't know"`,
+		},
+		{
+			// Nor did it take a trap, which the map of the child's mistakes
+			// would count.
+			name: "I don't know that fell for a trap",
+			breakIt: func(p *profile.Profile) {
+				p.Recent[0].Correct, p.Recent[0].Confused, p.Recent[0].Trap = false, true, "off_by_one"
+			},
+			wantSay: `recent[0] is "I don't know"`,
+		},
+		{
 			name: "a topic skipped fewer than no times",
 			breakIt: func(p *profile.Profile) {
 				topic := p.Topics["counting.gaps"]
@@ -336,6 +359,43 @@ func TestATaskInFlightIsRefusedWhenItIsNotWhole(t *testing.T) {
 				t.Fatal("the fixture carries no task in flight")
 			}
 			breakIt(p.CurrentTask)
+
+			err := p.Validate()
+			if !errors.Is(err, profile.ErrInvalid) {
+				t.Fatalf("Validate() error = %v, want %v", err, profile.ErrInvalid)
+			}
+			if !strings.Contains(err.Error(), wantSay) {
+				t.Errorf("Validate() said %q, want it to name %s", err, wantSay)
+			}
+		})
+	}
+}
+
+// The answer a task keeps is what it tells again, so it has to be an answer
+// the child could give, at places on the ladder, in the trial series or after
+// it.
+func TestTheAnswerATaskKeepsIsRefusedWhenItIsNotOne(t *testing.T) {
+	t.Parallel()
+
+	cases := map[string]func(g *profile.Given){
+		"current_task.answered.choice is \"F\"":        func(g *profile.Given) { g.Choice = "F" },
+		"current_task.answered.choice is \"\"":         func(g *profile.Given) { g.Choice = "" },
+		"current_task.answered holds a level":          func(g *profile.Given) { g.LevelBefore = math.NaN() },
+		"current_task.answered holds a level that is":  func(g *profile.Given) { g.LevelAfter = math.Inf(1) },
+		"current_task.answered.trial is 6":             func(g *profile.Given) { g.Trial = rating.TrialAnswers + 1 },
+		"current_task.answered.trial is -1, and the t": func(g *profile.Given) { g.Trial = -1 },
+	}
+
+	for wantSay, breakIt := range cases {
+		t.Run(wantSay, func(t *testing.T) {
+			t.Parallel()
+
+			p := parseFixture(t, "masha")
+			p.CurrentTask.Answered = &profile.Given{Choice: profile.DontKnow, LevelAfter: 1.5, LevelBefore: 2.5, Trial: 4}
+			if err := p.Validate(); err != nil {
+				t.Fatalf("Validate() error = %v before the answer was broken, want nil", err)
+			}
+			breakIt(p.CurrentTask.Answered)
 
 			err := p.Validate()
 			if !errors.Is(err, profile.ErrInvalid) {

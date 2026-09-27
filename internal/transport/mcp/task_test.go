@@ -450,6 +450,12 @@ func TestATaskForNoOpenRequestSpendsNothing(t *testing.T) {
 			call(t, session, "submit_task", race)
 			return race
 		}, "task"},
+		{"a request whose task was answered", func(t *testing.T, session *mcp.ClientSession, kept store.Storage, _ *clock) map[string]any {
+			race := raceOn(askForTheRace(t, session, kept))
+			card := wantOnTheCard(t, call(t, session, "submit_task", race))
+			call(t, session, "submit_answer", map[string]any{"task_id": card.Task.ID, "answer": "C"})
+			return race
+		}, "waiting"},
 		{"a request past its window", func(t *testing.T, session *mcp.ClientSession, kept store.Storage, moving *clock) map[string]any {
 			race := raceOn(askForTheRace(t, session, kept))
 			moving.advance(config.DefaultRequestWindow)
@@ -955,6 +961,38 @@ func TestATaskHandedOutOverAnotherSkipsIt(t *testing.T) {
 	h.settle()
 	if skipped := linesOf(h, "task_skipped"); len(skipped) != 1 || skipped[0].ContextMap()["topic"] != "time.clocks" {
 		t.Errorf("task_skipped lines = %d, want one about time.clocks", len(skipped))
+	}
+}
+
+// A task handed out over one that has had its answer — a file edited by hand
+// holding an open request beside it — replaces it with nothing recorded: its
+// answer is in the window already, and it was never left.
+func TestATaskHandedOutOverAnAnsweredOneSkipsNothing(t *testing.T) {
+	t.Parallel()
+
+	on := raceOnTheCard(t, 0)
+	if _, err := on.Record(profile.Answered{TaskID: on.CurrentTask.ID, Choice: "C", At: lessonDay}, sealer(t)); err != nil {
+		t.Fatalf("Record() error = %v, want the race answered", err)
+	}
+	asked := fuzzProfile(t).OpenRequest.Brief
+	request := on.Ask(&asked, profile.TutorLLM, "en", lessonDay)
+	kept := keptAsIs(t, on)
+	h, session := lesson(t, kept)
+	window := len(on.Recent)
+
+	task := raceTask(raceDistractors())
+	task["question"] = "Ann, Ben and Kim ran a race. Kim finished after Ben. Ann finished last. Who won?"
+	race := raceOn(request)
+	race["task"] = task
+	if card := payloadOf[handedInPayload](t, call(t, session, "submit_task", race)); card.Screen != "task" {
+		t.Fatalf("submit_task = %+v, want the new race handed out", card)
+	}
+	if p, _ := loadKept(t, kept); len(p.Recent) != window {
+		t.Errorf("the window holds %d entries, want %d: nothing recorded of the answered task", len(p.Recent), window)
+	}
+	h.settle()
+	if skipped := linesOf(h, "task_skipped"); len(skipped) != 0 {
+		t.Errorf("task_skipped lines = %d, want none", len(skipped))
 	}
 }
 

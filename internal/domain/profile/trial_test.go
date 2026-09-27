@@ -23,25 +23,16 @@ func newChild(t *testing.T, grade int) *profile.Profile {
 	return profile.New(profile.Student{Grade: grade, Pseudonym: "Otter"}, "0.0.0-test", issued)
 }
 
-// answer puts a task at this point in flight and answers it.
+// answer puts a task at this point on the card and answers it.
 func answer(t *testing.T, p *profile.Profile, number int, topic string, point rating.Point, correct bool) profile.Recorded {
 	t.Helper()
 
-	answeringAt(t, p, topic, point)
-	p.CurrentTask.ID = fmt.Sprintf("tsk_%02d", number)
-	given := profile.Answered{
-		TaskID:  p.CurrentTask.ID,
-		Correct: correct,
-		At:      issued.Add(time.Duration(number) * time.Hour),
+	id := answeringAs(t, p, fmt.Sprintf("tsk_%02d", number), topic, point)
+	choice := wrongLetter
+	if correct {
+		choice = rightLetter
 	}
-	if !correct {
-		given.Chosen, given.Trap = "B", "off_by_one"
-	}
-	recorded, err := p.Record(given)
-	if err != nil {
-		t.Fatalf("Record() error = %v, want nil", err)
-	}
-	return recorded
+	return give(t, p, id, choice, issued.Add(time.Duration(number)*time.Hour))
 }
 
 // trialAnswer is one answer of a series as a test writes it down.
