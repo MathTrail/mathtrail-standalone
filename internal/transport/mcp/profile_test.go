@@ -88,11 +88,14 @@ type trialPayload struct {
 	Of       int `json:"of"`
 }
 
-// A host lists the six tools of the lesson as they are meant: four that draw a
-// card, under both keys a host reads; one that only a card calls, kept from the
-// model and drawing nothing; and the one that asks for a task, which draws
-// nothing either, since what it hands over is for the model alone. Handing a
-// task in is the one call that is not the same twice: each spends an attempt.
+// A host lists the seven tools of the lesson as they are meant: four that draw
+// a card, under both keys a host reads; one that only a card calls, kept from
+// the model and drawing nothing; the one that asks for a task, which draws
+// nothing either, since what it hands over is for the model alone; and the one
+// that records an answer, which the card calls as well as the model and which
+// draws nothing, since the card that sent the answer turns to its result.
+// Handing a task in is the one call that is not the same twice: each spends
+// an attempt.
 func TestTheToolsOfTheLessonAreListedAsTheyAreMeant(t *testing.T) {
 	t.Parallel()
 
@@ -105,8 +108,8 @@ func TestTheToolsOfTheLessonAreListedAsTheyAreMeant(t *testing.T) {
 	for _, tool := range listed.Tools {
 		byName[tool.Name] = tool
 	}
-	if len(byName) != 6 {
-		t.Errorf("%d tools are listed, want the six of the lesson", len(byName))
+	if len(byName) != 7 {
+		t.Errorf("%d tools are listed, want the seven of the lesson", len(byName))
 	}
 
 	for _, want := range []listing{
@@ -116,6 +119,7 @@ func TestTheToolsOfTheLessonAreListedAsTheyAreMeant(t *testing.T) {
 		{name: "read_progress", readOnly: true, idempotent: true, widgetOnly: true},
 		{name: "next_task", idempotent: true},
 		{name: "submit_task", drawsCard: true},
+		{name: "submit_answer", idempotent: true},
 	} {
 		t.Run(want.name, func(t *testing.T) {
 			t.Parallel()

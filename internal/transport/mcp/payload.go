@@ -17,6 +17,7 @@ const (
 	screenFirstRun = "first_run"
 	screenProfile  = "profile"
 	screenProgress = "progress"
+	screenResult   = "result"
 	screenTask     = "task"
 	screenWaiting  = "waiting"
 )
@@ -29,7 +30,8 @@ const (
 	statusRejected = "rejected"
 	// statusLimited is a call refused by a limit of the day or the minute.
 	statusLimited = "limited"
-	// statusStale is a task handed in for a request that is not open.
+	// statusStale is a call about something no longer there: a task handed in
+	// for a request that is not open, or an answer to a task not on the card.
 	statusStale = "stale"
 )
 

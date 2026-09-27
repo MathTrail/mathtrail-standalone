@@ -60,7 +60,8 @@ The prototype is not v1, and three of these numbers are history rather than a sp
 - **β updates.** `ratings.json` carries `beta_after` because the prototype updated task difficulty. v1 does not: every task is written for one child and never reused (SPEC 2.2).
 - **The goal `motivate`.** It appears nowhere in `rule_briefs.json` as it happens, but the prototype could produce it; v1 has two goals (О-34, SPEC 3.1).
 - **The setting rotation.** The prototype rotates the interests by the number of history rows; v1 rotates by the total answer count, because a bounded history window would make the row count go backwards (SPEC 3.2).
-- **The third answer.** The prototype's `"?"` is an answer worth S = 0; in v1 "I don't understand" is a flag beside an answer, not an answer (SPEC 2.2, 04-profile).
+
+The prototype's third answer, `"?"`, is taken as it stands: it is worth S = 0 there, and v1's "I don't know" is a wrong answer too (R93, SPEC 2.2). Only the record differs — the prototype wrote `correct: null`, v1 writes a wrong answer marked `confused`, with no option chosen and no trap (04-profile) — and the vectors do not read the record.
 
 Everything else — the P formula, the K decay, the corridor, the chess scale, the readability measurements, the similarity measure, the choice of topic, difficulty and traps — is the same in v1, which is why it is worth being checked against.
 

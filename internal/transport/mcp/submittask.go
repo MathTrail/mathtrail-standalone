@@ -222,13 +222,15 @@ func (s *Service) judge(ctx context.Context, examined checks.Examined, against c
 // stale is a task handed in for no request that is open — one that was
 // accepted already, ran out of attempts, was replaced or waited too long — or
 // for another request than the open one. Nothing is judged, spent or written.
-// The card shows the task the child has, when there is one: a task handed in
-// twice, the answer to the first gone astray, must not turn the card the child
-// is working on into a wait.
+// The card shows the task the child is working on, when there is one: a task
+// handed in twice, the answer to the first gone astray, must not turn the card
+// the child is working on into a wait. A task that has had its answer is done
+// with, and the card waits for the next.
 func (s *Service) stale(p *profile.Profile) Reply[handedInOut] {
 	lead := "The request_id is not the open request's: that request was accepted already, ran out of attempts, " +
 		"was replaced by a newer one or waited too long. Nothing was checked or spent."
-	if p.CurrentTask == nil {
+	task := p.InFlight()
+	if task == nil {
 		return Reply[handedInOut]{
 			Text: lead + " Ask for a new task with next_task.",
 			Payload: handedInOut{
@@ -237,8 +239,8 @@ func (s *Service) stale(p *profile.Profile) Reply[handedInOut] {
 			},
 		}
 	}
-	reply := onTheCard(p, p.CurrentTask, fmt.Sprintf("%s Task %s is on the child's card: wait for the child's "+
-		"answer, and ask for a new task only when the child wants another.", lead, p.CurrentTask.ID))
+	reply := onTheCard(p, task, fmt.Sprintf("%s Task %s is on the child's card: wait for the child's "+
+		"answer, and ask for a new task only when the child wants another.", lead, task.ID))
 	reply.Payload.Status, reply.Payload.Code = statusStale, codeStaleRequest
 	return reply
 }
@@ -307,7 +309,7 @@ func (s *Service) refuse(ctx context.Context, done *reviewed) (Reply[handedInOut
 // closed.
 func (s *Service) hand(ctx context.Context, done *reviewed, program string) (Reply[handedInOut], error) {
 	p, task := done.profile, done.outcome.Draft.Task
-	request, left := *p.OpenRequest, p.CurrentTask
+	request, left := *p.OpenRequest, p.InFlight()
 	issued, err := p.Issue(&profile.Written{
 		Wording:             task.Question,
 		Drawing:             task.Drawing,

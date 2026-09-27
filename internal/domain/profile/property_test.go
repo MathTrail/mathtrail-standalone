@@ -3,8 +3,10 @@ package profile_test
 import (
 	"bytes"
 	"encoding/json"
+	"maps"
 	"strings"
 	"testing"
+	"time"
 	"unicode"
 
 	"github.com/leanovate/gopter"
@@ -12,6 +14,7 @@ import (
 	"github.com/leanovate/gopter/prop"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
 // The properties here name what has to hold for every child rather than for
@@ -148,4 +151,70 @@ func asWritten(text string) []byte {
 		return nil
 	}
 	return bytes.TrimRight(out.Bytes(), "\n")
+}
+
+// An answer moves the child once. Sent again any number of times, whatever
+// those say, the profile stays exactly as the first left it, and every later
+// telling is the first one told again. And "I don't know" is a wrong answer
+// that took no trap: whatever the child and wherever the task stood, it moves
+// the levels and the runs exactly as a wrong letter does, and the map of the
+// child's mistakes does not count it.
+func TestAnAnswerHoldsItsProperties(t *testing.T) {
+	t.Parallel()
+
+	properties := gopter.NewProperties(nil)
+	children := gen.OneConstOf("dima", "masha", "olya", "petya", "sasha")
+	choices := gen.OneConstOf("A", "B", "C", "D", "E", profile.DontKnow)
+	levels := gen.OneConstOf(rating.Grades12, rating.Grades34, rating.Grades56)
+	difficulties := gen.IntRange(profile.MinDifficulty, profile.MaxDifficulty)
+	const topic = "counting.gaps"
+
+	properties.Property("an answer is recorded once, whatever is sent again", prop.ForAll(
+		func(child, first string, again []string, level rating.GradeLevel, difficulty int) bool {
+			p := parseFixture(t, child)
+			id := answeringAt(t, p, topic, rating.Point{GradeLevel: level, Difficulty: difficulty})
+			recorded := give(t, p, id, first, issued.Add(time.Minute))
+			before, err := profile.Marshal(p)
+			if err != nil {
+				return false
+			}
+
+			// Told again is told without what only recording knew.
+			want := recorded
+			want.Probability, want.Pace, want.Mastered, want.Unmastered, want.Again = 0, "", false, false, true
+			for _, choice := range again {
+				if told := give(t, p, id, choice, issued.Add(time.Hour)); told != want {
+					return false
+				}
+			}
+			after, err := profile.Marshal(p)
+			return err == nil && bytes.Equal(before, after)
+		},
+		children, choices, gen.SliceOfN(3, choices), levels, difficulties,
+	))
+
+	properties.Property("I don't know moves the child as a wrong letter does, and counts no trap", prop.ForAll(
+		func(child string, level rating.GradeLevel, difficulty int, hint bool) bool {
+			unsure, mistaken := parseFixture(t, child), parseFixture(t, child)
+			traps := maps.Clone(unsure.Topics[topic].Traps)
+			point := rating.Point{GradeLevel: level, Difficulty: difficulty}
+			for p, choice := range map[*profile.Profile]string{unsure: profile.DontKnow, mistaken: wrongLetter} {
+				id := answeringAt(t, p, topic, point)
+				if _, err := p.Record(profile.Answered{TaskID: id, Choice: choice, HintUsed: hint, At: issued.Add(time.Minute)},
+					newSealer(t)); err != nil {
+					return false
+				}
+			}
+
+			doubtful, wrong := unsure.Topics[topic], mistaken.Topics[topic]
+			last := unsure.Recent[len(unsure.Recent)-1]
+			return unsure.Ratings == mistaken.Ratings && doubtful.Delta == wrong.Delta &&
+				doubtful.TopStreak == wrong.TopStreak && doubtful.WrongStreak == wrong.WrongStreak &&
+				maps.Equal(doubtful.Traps, traps) && wrong.Traps[wrongTrap] == traps[wrongTrap]+1 &&
+				last.Confused && !last.Correct && last.Chosen == "" && last.Trap == ""
+		},
+		children, levels, difficulties, gen.Bool(),
+	))
+
+	properties.TestingRun(t)
 }

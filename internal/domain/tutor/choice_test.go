@@ -371,7 +371,7 @@ func FuzzChoice(f *testing.F) {
 				got.Difficulty, got.GradeLevel, got.TargetConcept)
 		}
 		if chose := topic != "" || level != "" || difficulty != 0; (mode == profile.TutorLLM) != chose {
-			t.Fatalf("mode = %q for %+v, want the model's exactly when it chose", mode, choice)
+			t.Fatalf("mode = %q for %+v, which chose: %v, want the model's exactly when it chose", mode, choice, chose)
 		}
 	})
 }

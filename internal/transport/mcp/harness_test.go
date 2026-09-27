@@ -13,7 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	metricnoop "go.opentelemetry.io/otel/metric/noop"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"go.opentelemetry.io/otel/trace"
@@ -130,12 +130,14 @@ func tools() []mcpserver.Tool {
 // harness is the endpoint behind the real router on a real listener, with
 // everything it records kept in memory.
 type harness struct {
-	server *httptest.Server
-	spans  *tracetest.SpanRecorder
-	logs   *observer.ObservedLogs
-	// traces and log are what the endpoint records with, for the tools of a
-	// case that record inside the calls they serve.
+	server  *httptest.Server
+	spans   *tracetest.SpanRecorder
+	logs    *observer.ObservedLogs
+	metrics *sdkmetric.ManualReader
+	// traces, meters and log are what the endpoint records with, for the
+	// tools of a case that record inside the calls they serve.
 	traces trace.TracerProvider
+	meters *sdkmetric.MeterProvider
 	log    *zap.Logger
 }
 
@@ -158,12 +160,12 @@ func serveTools(t *testing.T, signIn mcpserver.SignIn, served ...mcpserver.Tool)
 
 // newHarness is a harness that records and serves nothing yet, so that the
 // tools of a case can be built to record into it. Every span is kept, through
-// the same filter the service installs, and every line is kept as the logger
-// received it.
+// the same filter the service installs, every line is kept as the logger
+// received it, and every measurement waits until a case reads it.
 func newHarness(t *testing.T) *harness {
 	t.Helper()
 
-	h := &harness{spans: tracetest.NewSpanRecorder()}
+	h := &harness{spans: tracetest.NewSpanRecorder(), metrics: sdkmetric.NewManualReader()}
 	traces := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 		sdktrace.WithSpanProcessor(telemetry.Redactor()),
@@ -171,6 +173,8 @@ func newHarness(t *testing.T) *harness {
 	)
 	t.Cleanup(func() { _ = traces.Shutdown(context.Background()) })
 	h.traces = traces
+	h.meters = sdkmetric.NewMeterProvider(sdkmetric.WithReader(h.metrics))
+	t.Cleanup(func() { _ = h.meters.Shutdown(context.Background()) })
 
 	core, logs := observer.New(zapcore.DebugLevel)
 	h.logs = logs
@@ -203,7 +207,7 @@ func (h *harness) start(t *testing.T, signIn mcpserver.SignIn, served ...mcpserv
 		MCP:    endpoint,
 	}, h.log, httpserver.Observability{
 		Traces:    h.traces,
-		Meters:    metricnoop.NewMeterProvider(),
+		Meters:    h.meters,
 		Flush:     func(context.Context, bool) error { return nil },
 		ProjectID: projectID,
 	})

@@ -16,7 +16,7 @@ The rule everything else follows from:
 
 Three consequences, and they decide the shape of the flows:
 
-1. **The answer is in no payload at all** until the child has answered. Not in `content`, not in `structuredContent`, not in `_meta`. It sits in the sealed block in the profile (О-25) and is unsealed inside `submit_answer` — after the answer has been recorded (PRODUCT 4.4, criterion 11.3).
+1. **The answer is in no payload at all** until the child has answered. Not in `content`, not in `structuredContent`, not in `_meta`. It sits in the sealed block in the profile (О-25) and is unsealed inside `submit_answer` — once the child has answered, and again for the same answer sent twice (PRODUCT 4.4, criterion 11.3).
 2. **`next_task` carries no widget.** Its payload is the generation package: three reference tasks with their answers, the trap catalog, templates and frames. A card rendered from that result would put reference answers inside the iframe the child is looking at, which О-26 forbids — so the tool that returns the package renders nothing.
 3. **`submit_answer` carries no widget either**, for a different reason: the result screen is a state of the task card the child is already looking at, not a second card. The child presses a button and the same card turns over.
 4. **A refusal from `submit_task` names no answer letter and quotes no option.** Whether a card is drawn is a property of the *tool*, not of the individual result — the host reads `_meta.ui.resourceUri` from the tool definition (`getToolUiResourceUri(tool)` in the library) — so `submit_task` draws a card on every call, refusals included. The model already holds its own draft and does not need the letters quoted back to fix it, and this way consequence 1 stays free of exceptions.
@@ -206,7 +206,7 @@ sequenceDiagram
     MT-->>W: profile screen
 ```
 
-Neither tool ever returns the current task's answer, even though both read the file that holds it: the sealed block is opened in exactly one place, `submit_answer`, and only after the answer is recorded.
+Neither tool ever returns the current task's answer, even though both read the file that holds it: the sealed block is opened in exactly one place, `submit_answer`, and only once the child has answered.
 
 ## The waiting screen and "Another task"
 
@@ -238,7 +238,8 @@ stateDiagram-v2
     issued --> answered: submit_answer — recorded once
     issued --> requested: next_task while unanswered — the child moves on
     answered --> answered: submit_answer again — the same result, nothing changes
-    answered --> none: the outcome goes into the history and the card shows it
+    answered --> requested: next_task — the answered task leaves the card, nothing more recorded
+    issued --> none: submit_answer finds the seal unreadable — the task leaves the card, nothing recorded
 ```
 
 Two transitions are worth their own sentence:
@@ -255,7 +256,7 @@ The service keeps no memory between calls, so every "only once" rule is a field 
 | The model calls `next_task` twice for the same request | While an open request is younger than the abandonment window, `next_task` returns **the same** request id and the same brief instead of opening a second one, and writes nothing. The repeat also says so: it carries that the request is already open and how many seconds ago it started, and asks for the task already written rather than a second one |
 | An attempt is submitted against an old request | `submit_task` carries the request id; anything but the open one — and the open one once it has waited past the abandonment window — is `stale_request`, and no attempt is spent. When the child already has a task, the card that refusal draws shows it: a task handed in twice, the answer to the first gone astray, must not turn the card the child is working on into a wait |
 | A fourth attempt | The counter lives in the open request, not in the model's memory, so it survives a restart, another instance and a forgetful model |
-| The same task is answered twice — the child presses a button and the model also calls the tool | `submit_answer` is keyed by the task id: the first call records, any later one returns the same recorded result and writes nothing. Ratings move once |
+| The same task is answered twice — the child presses a button and the model also calls the tool | `submit_answer` is keyed by the task id: the first call records, any later one returns the same recorded result and writes nothing. Ratings move once. The task keeps the answer it was given until the next task is asked for, which is how a later call can tell the same result again (04-profile, R101) |
 | Two tabs or two devices answer at once | The same key, plus the revision check on the write (T10, T51): the loser retries, sees the answer already recorded, and returns it |
 | The same task text comes back later | The fingerprints of past tasks are kept in the profile and the near-duplicate check runs inside `submit_task` (T32); the profile holds fingerprints, not texts (О-40) |
 

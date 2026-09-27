@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	metricnoop "go.opentelemetry.io/otel/metric/noop"
 
 	"github.com/MathTrail/mathtrail-standalone/content"
 	"github.com/MathTrail/mathtrail-standalone/internal/config"
@@ -98,7 +97,7 @@ func lessonWith(t *testing.T, kept store.Storage, moving *clock, runner solver.R
 	}
 
 	h := newHarness(t)
-	observed, err := telemetry.ObserveSolver(runner, h.traces, metricnoop.NewMeterProvider())
+	observed, err := telemetry.ObserveSolver(runner, h.traces, h.meters)
 	if err != nil {
 		t.Fatalf("ObserveSolver() error = %v", err)
 	}
@@ -124,7 +123,7 @@ func lessonWith(t *testing.T, kept store.Storage, moving *clock, runner solver.R
 
 // sealer is the seal of these cases: a key ring made from a key of their own,
 // the same every time, so that a case can open what a tool sealed.
-func sealer(t *testing.T) profile.Sealer {
+func sealer(t testing.TB) profile.Sealer {
 	t.Helper()
 
 	key := sha256.Sum256([]byte("the key of these cases"))

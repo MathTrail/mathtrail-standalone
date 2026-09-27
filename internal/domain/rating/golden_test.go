@@ -134,10 +134,10 @@ func TestTheReferenceSequenceReplays(t *testing.T) {
 			nearly(t, state.Delta, step.DeltaBefore, tolerance, "the topic before")
 			nearly(t, youngest(step.Difficulty).Beta(), step.BetaBefore, tolerance, "the difficulty")
 
-			// The reference has a third outcome, "I don't understand", which
-			// this service does not: that is a button asking for a simpler
-			// explanation, recorded beside the answer rather than instead of
-			// it. It scored zero there, exactly as a wrong answer does here.
+			// The reference's third outcome, "?", scored zero there, and it
+			// scores zero here too: "I don't know" is a wrong answer. Only its
+			// record differs — a wrong answer marked as such here, not a third
+			// outcome — and the formula reads nothing but right or wrong.
 			result := rating.Update(state, youngest(step.Difficulty).Beta(), step.Correct != nil && *step.Correct)
 
 			nearly(t, result.Probability, step.Probability, tolerance, "the chance of a correct answer")

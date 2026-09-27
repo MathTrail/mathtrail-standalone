@@ -184,6 +184,12 @@ func (a *Answer) validate(i int) error {
 		// A correct answer has no mistake to name, and naming one would put a
 		// trap of the current lesson where it does not belong.
 		return fmt.Errorf("%w: recent[%d] is correct and still names a chosen option or a trap", ErrInvalid, i)
+	case a.Confused && (a.Correct || a.Chosen != "" || a.Trap != ""):
+		// "I don't know" showed the solution instead of taking a choice: it is
+		// never right, it chose no option, and the map of the child's mistakes
+		// must not count a trap it never fell for.
+		return fmt.Errorf("%w: recent[%d] is \"I don't know\" and still says it was right, or names a chosen option or a trap",
+			ErrInvalid, i)
 	}
 	return nil
 }
@@ -226,6 +232,25 @@ func (t *CurrentTask) validate() error {
 		if letter := solver.Letter(place); solver.Blank(t.Options[letter]) {
 			return fmt.Errorf("%w: current_task.options shows nothing under %q", ErrInvalid, letter)
 		}
+	}
+	return t.Answered.validate()
+}
+
+// validate checks the answer a task keeps: what it tells again has to be an
+// answer the child could give, and where the child stood has to be a place on
+// the ladder.
+func (g *Given) validate() error {
+	switch {
+	case g == nil:
+		return nil
+	case !choosable(g.Choice):
+		return fmt.Errorf("%w: current_task.answered.choice is %q, want one of %s or %s",
+			ErrInvalid, g.Choice, strings.Join(solver.Letters(), ", "), DontKnow)
+	case !isNumber(g.LevelBefore) || !isNumber(g.LevelAfter):
+		return fmt.Errorf("%w: current_task.answered holds a level that is not a number", ErrInvalid)
+	case g.Trial < 0 || g.Trial > rating.TrialAnswers:
+		return fmt.Errorf("%w: current_task.answered.trial is %d, and the trial series has %d answers",
+			ErrInvalid, g.Trial, rating.TrialAnswers)
 	}
 	return nil
 }

@@ -77,17 +77,18 @@ type Written struct {
 }
 
 // Issue hands the task written for the open request to the child. It becomes
-// the task in flight, standing where the request asked, with everything that
+// the task on the card, standing where the request asked, with everything that
 // gives its answer away sealed; the request is closed. The task's fingerprint
 // joins those of the tasks already given, the oldest leaving when there are
 // too many, the topic records the day, and the day's count of accepted tasks —
 // the unit of the daily limit — goes up.
 //
-// A task still in flight — which only a file edited by hand holds beside an
-// open request, since asking for a task skips the one before it — is recorded
-// as skipped: it leaves flight without an answer, like any other.
+// A task still on the card — which only a file edited by hand holds beside an
+// open request, since asking for a task takes the one before it off the card —
+// is replaced: when it has no answer it is recorded as skipped, like any other
+// task left without one, and when it has one there is nothing left to record.
 //
-// Nothing changes if the task cannot be sealed: a task in flight with its
+// Nothing changes if the task cannot be sealed: a task on the card with its
 // answer in the open is worse than none.
 func (p *Profile) Issue(written *Written, secret TaskSecret, sealer Sealer, now time.Time) (*CurrentTask, error) {
 	request := p.OpenRequest
@@ -95,7 +96,7 @@ func (p *Profile) Issue(written *Written, secret TaskSecret, sealer Sealer, now 
 		return nil, ErrNoRequest
 	}
 
-	flying := p.CurrentTask
+	previous, flying := p.CurrentTask, p.InFlight()
 	p.CurrentTask = &CurrentTask{
 		Difficulty:          request.Brief.Difficulty,
 		Drawing:             written.Drawing,
@@ -111,7 +112,7 @@ func (p *Profile) Issue(written *Written, secret TaskSecret, sealer Sealer, now 
 		Wording:             written.Wording,
 	}
 	if err := p.SealTask(sealer, secret); err != nil {
-		p.CurrentTask = flying
+		p.CurrentTask = previous
 		return nil, err
 	}
 
@@ -130,23 +131,33 @@ func (p *Profile) Issue(written *Written, secret TaskSecret, sealer Sealer, now 
 	return p.CurrentTask, nil
 }
 
-// Skip records that the task in flight was left without an answer: the child
-// asked for another. The task goes into the window as skipped, at this
-// moment, and into the count of its topic, and it leaves flight — nobody is
-// waiting for its answer any more. Nothing that learns from answers reads the
-// entry, and nothing else about the child moves: there was no answer to learn
-// from. It reports the entry, and false when no task was in flight.
+// Skip takes the task off the card: the child asked for another. A task left
+// without an answer goes into the window as skipped, at this moment, and into
+// the count of its topic — nobody is waiting for its answer any more. Nothing
+// that learns from answers reads the entry, and nothing else about the child
+// moves: there was no answer to learn from. A task that has had its answer
+// leaves with nothing recorded, since its answer is in the window already. It
+// reports the entry, and false when no task was waiting for an answer.
 //
 // The task's fingerprint stays among those of the tasks given, so the task
 // does not come back; the generation it cost stays counted, since the task did
 // reach the child.
 func (p *Profile) Skip(now time.Time) (Answer, bool) {
-	task := p.CurrentTask
+	task := p.InFlight()
+	p.CurrentTask = nil
 	if task == nil {
 		return Answer{}, false
 	}
-	p.CurrentTask = nil
 	return p.leave(task, now), true
+}
+
+// DiscardTask takes the task off the card and records nothing about it. It is
+// for a task whose seal can no longer be opened — the key that sealed it has
+// been retired — which cannot be checked, so it cannot be answered; and a skip
+// would tell the parent the child leafed past a task the service lost. The
+// task's fingerprint and the generation it cost stay, as they do for a skip.
+func (p *Profile) DiscardTask() {
+	p.CurrentTask = nil
 }
 
 // leave records a task as left without an answer, at this moment: an entry of

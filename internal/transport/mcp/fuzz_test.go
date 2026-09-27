@@ -121,21 +121,21 @@ func FuzzTaskArguments(f *testing.F) {
 		}
 		tool := []string{"next_task", "submit_task"}[pick%2]
 
-		if line := callOnARace(t, tool, arguments); line["outcome"] == "failed" {
+		if line := callOn(t, fuzzProfile(t), tool, arguments); line["outcome"] == "failed" {
 			t.Errorf("%s(%q) failed as ours: %v", tool, arguments, line)
 		}
 	})
 }
 
-// callOnARace makes one call of a tool of a task, for a child with the race
-// asked for, through an endpoint of its own over a store of its own, and is the
-// line the call left.
-func callOnARace(t *testing.T, tool, arguments string) map[string]any {
+// callOn makes one call of a tool of a task, for the child of this profile,
+// through an endpoint of its own over a store of its own, and is the line the
+// call left.
+func callOn(t *testing.T, p *profile.Profile, tool, arguments string) map[string]any {
 	t.Helper()
 
 	core, logs := observer.New(zapcore.DebugLevel)
 	parts := allParts(t)
-	parts.Store, parts.Logger = keptAsIs(t, fuzzProfile(t)), zap.New(core)
+	parts.Store, parts.Logger = keptAsIs(t, p), zap.New(core)
 	service, err := mcpserver.NewService(parts)
 	if err != nil {
 		t.Fatalf("NewService() error = %v", err)
@@ -193,4 +193,45 @@ func fuzzProfile(t testing.TB) *profile.Profile {
 func openRace(t testing.TB) *profile.OpenRequest {
 	t.Helper()
 	return fuzzProfile(t).OpenRequest
+}
+
+// fuzzTask stands in the arguments of the fuzzing below for the id of the task
+// on the card, which is new every time a task is handed out.
+const fuzzTask = "tsk_fuzz"
+
+// The arguments of an answer are written by the chat's model, and by a card a
+// host stands between: whatever arrives is answered — recorded, told again,
+// refused as a task not on the card or as no answer at all — and never as a
+// failure of ours.
+func FuzzAnswerArguments(f *testing.F) {
+	for _, seed := range []string{
+		`{"task_id":"` + fuzzTask + `","answer":"C"}`,
+		`{"task_id":"` + fuzzTask + `","answer":" a ","hint_used":true}`,
+		`{"task_id":"` + fuzzTask + `","answer":"?"}`,
+		`{"task_id":"` + fuzzTask + `","answer":"` + "\u202e" + `C"}`,
+		`{"task_id":"` + fuzzTask + `","answer":"CC","hint_used":"yes"}`,
+		`{"task_id":"tsk_another","answer":"B"}`,
+		`{"task_id":"","answer":""}`,
+		`{"answer":"C"}`,
+		`{"task_id":7,"answer":["C"]}`,
+		`{}`,
+	} {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, arguments string) {
+		if !json.Valid([]byte(arguments)) {
+			quoted, err := json.Marshal(arguments)
+			if err != nil {
+				t.Fatalf("quoting the arguments: %v", err)
+			}
+			arguments = string(quoted)
+		}
+		p := raceOnTheCard(t, rating.TrialAnswers)
+		arguments = strings.ReplaceAll(arguments, fuzzTask, p.CurrentTask.ID)
+
+		if line := callOn(t, p, "submit_answer", arguments); line["outcome"] == "failed" {
+			t.Errorf("submit_answer(%q) failed as ours: %v", arguments, line)
+		}
+	})
 }

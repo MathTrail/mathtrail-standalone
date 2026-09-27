@@ -10,6 +10,7 @@ import (
 	"github.com/google/jsonschema-go/jsonschema"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
 
@@ -373,4 +374,121 @@ func againstTheSchema(t *testing.T, file []byte) error {
 		t.Fatalf("the file is not a JSON document: %v", err)
 	}
 	return resolved.Validate(document)
+}
+
+// "I don't know" is a wrong answer that chose nothing: the schema holds an
+// entry marked confused to no right answer, no chosen option and no trap, as
+// the service writes it, and a wrong letter keeps both.
+func TestTheSchemaHoldsIDontKnowToAWrongAnswerThatChoseNothing(t *testing.T) {
+	t.Parallel()
+
+	where := `"answered_at": "2026-09-20T18:00:00Z", "difficulty": 2, "grade_level": "1-2", "task_id": "tsk_1", "topic": "logic.ordering"`
+	for _, tc := range []struct {
+		name    string
+		outcome string
+		holds   bool
+	}{
+		{"I don't know", `"confused": true, "correct": false, "hint_used": true, "pace": "slow"`, true},
+		{"a wrong letter", `"chosen": "B", "confused": false, "correct": false, "hint_used": false, "pace": "fast", "trap": "missed_case"`, true},
+		{"I don't know that was right", `"confused": true, "correct": true, "hint_used": false, "pace": "fast"`, false},
+		{"I don't know that chose an option", `"chosen": "B", "confused": true, "correct": false, "hint_used": false, "pace": "fast"`, false},
+		{"I don't know that fell for a trap", `"confused": true, "correct": false, "hint_used": false, "pace": "fast", "trap": "missed_case"`, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			entry := "{" + where + ", " + tc.outcome + "}"
+			file := withWindow(t, parseFixture(t, "dima"), entry)
+			if err := againstTheSchema(t, file); (err == nil) != tc.holds {
+				t.Errorf("the schema says %v about %s, want it to hold: %v", err, entry, tc.holds)
+			}
+		})
+	}
+}
+
+// The answer a task keeps is described as the service writes it, and nothing
+// that is not an answer the child could give holds to it.
+func TestTheSchemaDescribesTheAnswerATaskKeeps(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name     string
+		answered string
+		holds    bool
+	}{
+		{"a letter", `{"choice": "B", "hint_used": false, "level_after": 2.1, "level_before": 2.5, "trial": 0}`, true},
+		{"I don't know", `{"choice": "?", "hint_used": true, "level_after": 2.1, "level_before": 2.5, "trial": 4}`, true},
+		{"a letter no option has", `{"choice": "F", "hint_used": false, "level_after": 2.1, "level_before": 2.5, "trial": 0}`, false},
+		{"a trial past the series", `{"choice": "B", "hint_used": false, "level_after": 2.1, "level_before": 2.5, "trial": 6}`, false},
+		{"no level before", `{"choice": "B", "hint_used": false, "level_after": 2.1, "trial": 0}`, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			file := withAnswered(t, parseFixture(t, "masha"), tc.answered)
+			if err := againstTheSchema(t, file); (err == nil) != tc.holds {
+				t.Errorf("the schema says %v about %s, want it to hold: %v", err, tc.answered, tc.holds)
+			}
+		})
+	}
+}
+
+// The choices the schema names for the answer a task keeps are the choices a
+// child has: the letters of the options, then "I don't know"; and the trial
+// series is as long as the rating says it is.
+func TestTheSchemaStatesTheChoicesOfAnAnswer(t *testing.T) {
+	t.Parallel()
+
+	var document struct {
+		Defs struct {
+			Given struct {
+				Properties map[string]map[string]any `json:"properties"`
+			} `json:"given"`
+		} `json:"$defs"`
+	}
+	if err := json.Unmarshal(profile.Schema(), &document); err != nil {
+		t.Fatalf("the schema is not a JSON document: %v", err)
+	}
+	given := document.Defs.Given.Properties
+
+	listed, _ := given["choice"]["enum"].([]any)
+	want := make([]any, 0, solver.Count+1)
+	for _, letter := range solver.Letters() {
+		want = append(want, letter)
+	}
+	want = append(want, profile.DontKnow)
+	if !reflect.DeepEqual(listed, want) {
+		t.Errorf("the schema lists the choices %v, want %v", listed, want)
+	}
+	if got := given["trial"]["maximum"]; got != float64(rating.TrialAnswers) {
+		t.Errorf("the schema says a trial answer is at most number %v, want %d", got, rating.TrialAnswers)
+	}
+}
+
+// withAnswered is a profile as the file holds it, with its task on the card
+// keeping this answer.
+func withAnswered(t *testing.T, p *profile.Profile, answered string) []byte {
+	t.Helper()
+
+	written, err := profile.Marshal(p)
+	if err != nil {
+		t.Fatalf("Marshal() error = %v, want nil", err)
+	}
+	var file map[string]json.RawMessage
+	if unread := json.Unmarshal(written, &file); unread != nil {
+		t.Fatalf("the file is not a JSON object: %v", unread)
+	}
+	var task map[string]json.RawMessage
+	if unread := json.Unmarshal(file["current_task"], &task); unread != nil || task == nil {
+		t.Fatalf("the file holds no task on the card: %v", unread)
+	}
+	task["answered"] = json.RawMessage(answered)
+	if file["current_task"], err = json.Marshal(task); err != nil {
+		t.Fatalf("json.Marshal() error = %v, want nil", err)
+	}
+	edited, err := json.Marshal(file)
+	if err != nil {
+		t.Fatalf("json.Marshal() error = %v, want nil", err)
+	}
+	return edited
 }

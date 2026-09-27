@@ -329,10 +329,7 @@ func TestASkippedTaskIsNoAnswerOfTheTrialSeries(t *testing.T) {
 
 	next := rating.Point{GradeLevel: rating.Grades34, Difficulty: 2}
 	for _, p := range []*profile.Profile{skipping, dropping} {
-		id := answeringAt(t, p, "time.clocks", next)
-		if _, err := p.Record(profile.Answered{TaskID: id, Correct: true, At: asked.Add(time.Minute)}); err != nil {
-			t.Fatalf("Record() error = %v, want nil", err)
-		}
+		give(t, p, answeringAt(t, p, "time.clocks", next), rightLetter, asked.Add(time.Minute))
 	}
 
 	if skipping.Ratings != dropping.Ratings {
@@ -340,13 +337,21 @@ func TestASkippedTaskIsNoAnswerOfTheTrialSeries(t *testing.T) {
 	}
 }
 
-// Everything the lesson writes on the way from a request to a skipped task is
-// a file the schema describes and this package reads back.
+// Everything the lesson writes on the way from a request to an answer, and
+// from the next request to a skipped task, is a file the schema describes and
+// this package reads back.
 func TestEveryStepOfTheLessonWritesAFileTheSchemaDescribes(t *testing.T) {
 	t.Parallel()
 
 	p := parseFixture(t, "dima")
 	brief := briefOn("counting.gaps")
+	answer := func(choice string) func() error {
+		return func() error {
+			_, err := p.Record(profile.Answered{TaskID: p.CurrentTask.ID, Choice: choice, At: asked.Add(time.Minute)},
+				newSealer(t))
+			return err
+		}
+	}
 	steps := []struct {
 		name string
 		take func() error
@@ -354,6 +359,16 @@ func TestEveryStepOfTheLessonWritesAFileTheSchemaDescribes(t *testing.T) {
 		{"a request", func() error { p.Ask(&brief, profile.TutorRule, "en", asked); return nil }},
 		{"a refusal", func() error { _, err := p.Refuse(asked); return err }},
 		{"a task handed out", func() error { _, err := p.Issue(written(), secret(), newSealer(t), asked); return err }},
+		{"I don't know", answer(profile.DontKnow)},
+		{"the answer sent again", answer(wrongLetter)},
+		{"the next request", func() error { p.Skip(asked.Add(time.Hour)); p.Ask(&brief, profile.TutorRule, "en", asked); return nil }},
+		{"the next task handed out", func() error { _, err := p.Issue(written(), secret(), newSealer(t), asked); return err }},
+		{"a wrong answer", answer(wrongLetter)},
+		{"the task after it handed out", func() error {
+			p.Ask(&brief, profile.TutorRule, "en", asked)
+			_, err := p.Issue(written(), secret(), newSealer(t), asked)
+			return err
+		}},
 		{"a task skipped", func() error { p.Skip(asked.Add(time.Minute)); return nil }},
 	}
 	for _, step := range steps {
@@ -416,5 +431,67 @@ func TestATaskStillInFlightIsSkippedByTheOneHandedOut(t *testing.T) {
 	if p.CurrentTask != issued || !last.Skipped || last.TaskID != left.ID || p.Topics[left.Topic].Skipped != 1 {
 		t.Errorf("the window ends with %+v and the task in flight is %s, want %s skipped and the new task in flight",
 			last, p.CurrentTask.ID, left.ID)
+	}
+}
+
+// A task that has had its answer is no skipped task. Asking for the next one
+// takes it off the card with nothing recorded, and handing out the next one
+// over it — which only a file edited by hand holds beside an open request —
+// replaces it the same way: its answer is in the window already.
+func TestAnAnsweredTaskLeavesTheCardWithNothingRecorded(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name  string
+		leave func(t *testing.T, p *profile.Profile)
+	}{
+		{"asked for the next", func(_ *testing.T, p *profile.Profile) {
+			if _, skipped := p.Skip(asked.Add(time.Hour)); skipped || p.CurrentTask != nil {
+				t.Errorf("Skip() skipped %v and left %+v on the card, want the answered task gone and no skip",
+					skipped, p.CurrentTask)
+			}
+		}},
+		{"replaced by the next", func(t *testing.T, p *profile.Profile) {
+			brief := briefOn("counting.gaps")
+			p.Ask(&brief, profile.TutorRule, "en", asked)
+			if _, err := p.Issue(written(), secret(), newSealer(t), asked.Add(time.Hour)); err != nil {
+				t.Fatalf("Issue() error = %v, want nil", err)
+			}
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			p := parseFixture(t, "olya")
+			give(t, p, answering(t, p, "time.clocks", 3), wrongLetter, asked.Add(time.Minute))
+			window, skipped := len(p.Recent), p.Topics["time.clocks"].Skipped
+
+			tc.leave(t, p)
+			if len(p.Recent) != window || p.Topics["time.clocks"].Skipped != skipped {
+				t.Errorf("the window holds %d entries and the topic %d skips, want %d and %d as after the answer",
+					len(p.Recent), p.Topics["time.clocks"].Skipped, window, skipped)
+			}
+		})
+	}
+}
+
+// The answer the window keeps for a task is found by the task's id — what a
+// late answer to a task that has left the card is told was recorded — and a
+// task skipped, or never given, has none.
+func TestTheAnswerToATaskIsFoundInTheWindow(t *testing.T) {
+	t.Parallel()
+
+	p := parseFixture(t, "masha")
+	last, _ := p.LastAnswer()
+	if got, found := p.AnswerTo(last.TaskID); !found || got != last {
+		t.Errorf("AnswerTo(%s) = %+v, %v, want the last answer", last.TaskID, got, found)
+	}
+
+	skipped, _ := p.Skip(asked)
+	if got, found := p.AnswerTo(skipped.TaskID); found {
+		t.Errorf("AnswerTo(%s) = %+v, want no answer to a task that was skipped", skipped.TaskID, got)
+	}
+	if got, found := p.AnswerTo("tsk_never_given"); found {
+		t.Errorf("AnswerTo() = %+v, want no answer to a task never given", got)
 	}
 }

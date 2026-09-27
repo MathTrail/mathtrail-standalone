@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 )
 
@@ -15,6 +16,7 @@ const (
 	kindNotSignedIn = "not_signed_in"
 	kindPanic       = "panic"
 	kindConflict    = "conflict"
+	kindSealed      = "sealed"
 )
 
 // sentenceInternal is what the model is told when something of ours failed
@@ -26,6 +28,11 @@ const sentenceInternal = "Something went wrong inside MathTrail. " +
 // sign-in in front of the endpoint makes it impossible; the tool frame checks
 // anyway, because the alternative is a tool acting for nobody.
 var errNotSignedIn = errors.New("mcp: no account signed in")
+
+// errToldNoMore is an answer sent again for a task whose seal can no longer be
+// opened. The answer was recorded before the seal was lost and counts; only
+// telling it again is gone.
+var errToldNoMore = errors.New("mcp: the answer is recorded and can no longer be told again")
 
 // failures are the causes a model is told about in words of their own, looked
 // for in this order. Every sentence says what to do next.
@@ -51,6 +58,22 @@ var failures = []struct {
 		cause:    store.ErrConflict,
 		kind:     kindConflict,
 		sentence: "The child's profile was changed somewhere else at the same moment, so nothing was saved. Make the same call again.",
+	},
+	{
+		// The seal was lost after the answer was recorded: the answer counts,
+		// and the model must not tell the child otherwise. Looked for before
+		// the lost seal it wraps.
+		cause:    errToldNoMore,
+		kind:     kindSealed,
+		sentence: "This task was answered already and the answer is recorded, but it can no longer be told again, so the task was taken off the card. Read last_answer in the result of the next tool you call, and ask for a new task with next_task when the child wants another.",
+	},
+	{
+		// The task's answer is sealed under a key that has since been
+		// retired: it cannot be checked, so it was taken off the card, and
+		// the child is owed another.
+		cause:    profile.ErrSealed,
+		kind:     kindSealed,
+		sentence: "This task can no longer be checked, so no answer was recorded and it was taken off the card. Tell the child, and ask for a new task with next_task.",
 	},
 }
 

@@ -3,8 +3,6 @@ package profile_test
 import (
 	"testing"
 	"time"
-
-	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 )
 
 // The daily counters are in the file because every instance of the service has
@@ -50,10 +48,7 @@ func TestAnAnswerDoesNotTouchTheDailyCounters(t *testing.T) {
 	p.CountAccepted(issued)
 	before := p.Daily
 
-	id := answering(t, p, "counting.gaps", 3)
-	if _, err := p.Record(profile.Answered{TaskID: id, Correct: true, At: issued.Add(time.Minute)}); err != nil {
-		t.Fatalf("Record() error = %v, want nil", err)
-	}
+	give(t, p, answering(t, p, "counting.gaps", 3), rightLetter, issued.Add(time.Minute))
 	if p.Daily != before {
 		t.Errorf("the counters moved to %+v on an answer, want %+v", p.Daily, before)
 	}

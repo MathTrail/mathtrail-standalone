@@ -352,7 +352,9 @@ func TestContainerServesTheToolsOfTheLesson(t *testing.T) {
 		names = append(names, tool.Name)
 	}
 	slices.Sort(names)
-	want := []string{"get_profile", "get_progress", "next_task", "read_progress", "save_profile", "submit_task"}
+	want := []string{
+		"get_profile", "get_progress", "next_task", "read_progress", "save_profile", "submit_answer", "submit_task",
+	}
 	if !slices.Equal(names, want) {
 		t.Errorf("tools = %v, want %v", names, want)
 	}

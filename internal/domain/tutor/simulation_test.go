@@ -1,9 +1,12 @@
 package tutor_test
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"math"
 	"math/rand/v2"
+	"sync"
 	"testing"
 	"time"
 
@@ -11,6 +14,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/tutor"
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
 )
 
 // The rule, the ratings and the profile together, with no model: simulated
@@ -189,12 +193,23 @@ func answerOne(t *testing.T, catalog tutor.Catalog, p *profile.Profile, number i
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
+	sealer, err := taskSeal()
+	if err != nil {
+		t.Fatalf("build the seal: %v", err)
+	}
 	id := fmt.Sprintf("tsk_%02d", number)
 	p.CurrentTask = &profile.CurrentTask{
 		Difficulty: brief.Difficulty, Fingerprint: "sketch", GradeLevel: brief.GradeLevel, Hint: "hint",
 		ID: id, InstructionsVersion: "v", IssuedAt: profile.At(now), Language: "en",
 		Options: map[string]string{"A": "1", "B": "2", "C": "3", "D": "4", "E": "5"},
-		Sealed:  "sealed", Topic: brief.TargetConcept, Wording: "a task",
+		Topic:   brief.TargetConcept, Wording: "a task",
+	}
+	if err := p.SealTask(sealer, profile.TaskSecret{
+		Answer:      "C",
+		Distractors: map[string]profile.Distractor{"B": {Trap: brief.TrapsToUse[0], Text: "a slip"}},
+		Solution:    "the solution",
+	}); err != nil {
+		t.Fatalf("SealTask() error = %v, want nil", err)
 	}
 	summary := p.Topics[brief.TargetConcept]
 	summary.LastIssued = profile.DateOf(now)
@@ -205,12 +220,24 @@ func answerOne(t *testing.T, catalog tutor.Catalog, p *profile.Profile, number i
 
 	point := rating.Point{GradeLevel: brief.GradeLevel, Difficulty: brief.Difficulty}
 	correct := random.Float64() < rating.Probability(truth, point.Beta())
-	answer := profile.Answered{TaskID: id, Correct: correct, At: now.Add(2 * time.Minute)}
+	choice := "C"
 	if !correct {
-		answer.Chosen, answer.Trap = "B", brief.TrapsToUse[0]
+		choice = "B"
 	}
-	if _, err := p.Record(answer); err != nil {
+	if _, err := p.Record(profile.Answered{TaskID: id, Choice: choice, At: now.Add(2 * time.Minute)}, sealer); err != nil {
 		t.Fatalf("Record() error = %v, want nil", err)
 	}
 	return correct
 }
+
+// taskSeal is what the simulated tasks are sealed with: a real seal, made from
+// a key of the simulation's own, since every answer is judged by what its task
+// sealed, as every child's is.
+var taskSeal = sync.OnceValues(func() (profile.Sealer, error) {
+	key := sha256.Sum256([]byte("the key of the simulation"))
+	ring, err := seal.NewKeyRing(base64.StdEncoding.EncodeToString(key[:]), "")
+	if err != nil {
+		return nil, err
+	}
+	return ring.For(seal.PurposeTaskAnswer), nil
+})
