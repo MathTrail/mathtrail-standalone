@@ -321,6 +321,26 @@ func TestASignInWithoutTheDriveSaysWhy(t *testing.T) {
 	}
 }
 
+// The grant Google gave without the Drive is left as it is. Ending it at
+// Google would end every grant of the parent's at this service, the chats
+// they have already connected included, for a sign-in they only declined.
+func TestAGrantWithoutTheDriveIsLeftAtGoogle(t *testing.T) {
+	t.Parallel()
+
+	h := newSignIn(t)
+	parent := h.browser(t)
+	back := h.google.Allow(h.toGoogle(parent, h.register(hostRedirect, hostName)))
+	h.google.Misbehave(&googletest.Answer{Scope: "openid"})
+
+	if answer := answerAt(t, parent.get(back)); answer.Get("error") != "access_denied" {
+		t.Errorf("the host was sent %v, want access_denied", answer)
+	}
+	if got := h.google.Revocations(); len(got) != 0 {
+		t.Errorf("Google was asked to end the grant with %q, want the grant left alone", got)
+	}
+	endedAs(t, h, "denied", "no_drive", false)
+}
+
 // Where no Google sign-in is configured, the consent screen is still shown,
 // and allowing stops at a page that says signing in is not set up; nothing is
 // remembered of the approval.

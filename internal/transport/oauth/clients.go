@@ -21,6 +21,9 @@ const (
 	// registrationDCR is a client that registered here, and carries its
 	// registration sealed in its identifier.
 	registrationDCR = "dcr"
+	// registrationUnknown is an identifier that is neither: no address, and
+	// no registration of this server's.
+	registrationUnknown = "unknown"
 )
 
 // Client is a client a parent may be signed in for.
@@ -71,11 +74,35 @@ type clients struct {
 // string nobody issued, one changed since, a value sealed for another purpose
 // or for another issuer, one sealed under a key long retired — is no client.
 func (c *clients) resolve(ctx context.Context, clientID string) (*Client, error) {
-	const addressScheme = "https:"
-	if len(clientID) >= len(addressScheme) && strings.EqualFold(clientID[:len(addressScheme)], addressScheme) {
+	if isDocumentAddress(clientID) {
 		return c.fromDocument(ctx, clientID)
 	}
 	return c.fromRegistration(clientID)
+}
+
+// kindOf is how a client that presented an identifier is known, in the closed
+// words of a line, without fetching anything: by its own document when the
+// identifier is an address, as registered here when it opens as a
+// registration of this server's, unknown when it is neither, and nothing
+// when it gave none.
+func (c *clients) kindOf(clientID string) string {
+	switch {
+	case clientID == "":
+		return ""
+	case isDocumentAddress(clientID):
+		return registrationCIMD
+	}
+	if _, err := c.fromRegistration(clientID); err != nil {
+		return registrationUnknown
+	}
+	return registrationDCR
+}
+
+// isDocumentAddress reports whether a client identifier is the address of the
+// client's own document: an HTTPS address, its scheme in any case.
+func isDocumentAddress(clientID string) bool {
+	const addressScheme = "https:"
+	return len(clientID) >= len(addressScheme) && strings.EqualFold(clientID[:len(addressScheme)], addressScheme)
 }
 
 // register seals a registration into the identifier the client is given,

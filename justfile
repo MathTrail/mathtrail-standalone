@@ -130,12 +130,25 @@ release-artifacts version=VERSION: (web-build version)
 
 # The sealing key is made fresh for the run and kept nowhere: locally there is
 # nothing sealed that has to outlive the process. The development sign-in lets
-# every request to the MCP endpoint in as one account, which is what a client
-# on this machine needs before any real sign-in exists. The widget is built
-# first, so that a card drawn from this server is the widget of these sources.
+# every request to the MCP endpoint in as one account, so that a client on this
+# machine needs no Google account. The widget is built first, so that a card
+# drawn from this server is the widget of these sources.
 # Run the server from source, with logs a person can read and the development sign-in
 run: web-build
     MATHTRAIL_LOG_FORMAT=console MATHTRAIL_LOG_LEVEL=debug MATHTRAIL_DEV_AUTH=true \
+        MATHTRAIL_SEAL_KEY_CURRENT="$(head -c 32 /dev/urandom | base64 | tr -d '\n')" \
+        go run ./cmd/server
+
+# The same server with the real sign-in: a client is sent through the consent
+# screen and Google, and the MCP endpoint lets in only the tokens it issued.
+# The Google client is the one MATHTRAIL_GOOGLE_CLIENT_ID and
+# MATHTRAIL_GOOGLE_CLIENT_SECRET name, and Google has to know
+# http://localhost:8080/oauth/callback as one of its redirect URIs. Tokens die
+# with the process, as the key they are sealed with does.
+# Run the server from source with the Google sign-in, for a client that signs in for real
+run-signin: web-build
+    : "${MATHTRAIL_GOOGLE_CLIENT_ID:?set it and MATHTRAIL_GOOGLE_CLIENT_SECRET to a Google client that knows http://localhost:8080/oauth/callback}"
+    MATHTRAIL_LOG_FORMAT=console MATHTRAIL_LOG_LEVEL=debug \
         MATHTRAIL_SEAL_KEY_CURRENT="$(head -c 32 /dev/urandom | base64 | tr -d '\n')" \
         go run ./cmd/server
 
@@ -147,8 +160,12 @@ inspect *args:
 # One method at a time, such as `just inspect-cli --method tools/list`, or
 # `--method tools/call --tool-name <name> --tool-arg key=value`. Left alone the
 # client picks the protocol version itself; `--protocol-era modern` makes it
-# speak the newest one and `--protocol-era legacy` an older one.
-# Ask the MCP endpoint of a server started with `just run` from the terminal
+# speak the newest one and `--protocol-era legacy` an older one. Against a
+# server with the real sign-in, the client signs in first: it prints the
+# address to open in a browser, and waits for the browser to come back to
+# 127.0.0.1:6276, which that browser has to reach. It keeps the tokens in its
+# memory, so every call signs in anew.
+# Ask the MCP endpoint of a server started with `just run` or `just run-signin` from the terminal
 inspect-cli *args:
     {{ INSPECTOR_RUN }} --cli --server-url {{ LOCAL_MCP }} --transport http {{ args }}
 

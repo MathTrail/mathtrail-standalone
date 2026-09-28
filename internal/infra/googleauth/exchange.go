@@ -21,7 +21,7 @@ func (g *google) Exchange(ctx context.Context, code, verifier, nonce string) (Gr
 	token, err := g.oauth.Exchange(context.WithValue(ctx, oauth2.HTTPClient, g.client), code,
 		oauth2.VerifierOption(verifier))
 	if err != nil {
-		return Grant{}, refusalOf(err)
+		return Grant{}, refusalOf(err, ErrCodeRefused)
 	}
 	// The lifetime is counted on this clock from the moment the answer came,
 	// as Google counts it from the moment it gave it.
@@ -69,13 +69,14 @@ func (g *google) identity(ctx context.Context, token *oauth2.Token, nonce string
 	return verified.Subject, nil
 }
 
-// refusalOf is what a failed exchange means. Google failing, or asking for a
-// pause, is Google not answering, as is anything that is no answer at all. A
-// refusal of the client is the service's own client refused. Any other refusal
-// is Google's verdict on the code. What Google explained in its own words is
-// left out, since nobody but a developer could use it and the error code says
-// what happened.
-func refusalOf(err error) error {
+// refusalOf is what a failed call to the token endpoint means. Google failing,
+// or asking for a pause, is Google not answering, as is anything that is no
+// answer at all. A refusal of the client is the service's own client refused.
+// Any other refusal is Google's verdict on what the call was made with — the
+// code, or the refresh token — and is the verdict given. What Google explained
+// in its own words is left out, since nobody but a developer could use it and
+// the error code says what happened.
+func refusalOf(err, verdict error) error {
 	var refused *oauth2.RetrieveError
 	if !errors.As(err, &refused) {
 		return fmt.Errorf("%w: %w", ErrUnavailable, err)
@@ -90,8 +91,8 @@ func refusalOf(err error) error {
 	case status == http.StatusUnauthorized, refused.ErrorCode == "invalid_client", refused.ErrorCode == "unauthorized_client":
 		return fmt.Errorf("%w: status %d", ErrClient, status)
 	case refused.ErrorCode == "":
-		return ErrCodeRefused
+		return verdict
 	default:
-		return fmt.Errorf("%w: %s", ErrCodeRefused, refused.ErrorCode)
+		return fmt.Errorf("%w: %s", verdict, refused.ErrorCode)
 	}
 }

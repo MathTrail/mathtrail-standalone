@@ -1,14 +1,20 @@
 package oauthserver
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"slices"
 	"testing"
+	"time"
 
 	"github.com/leanovate/gopter"
 	"github.com/leanovate/gopter/gen"
 	"github.com/leanovate/gopter/prop"
+	"go.uber.org/zap"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth"
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
 )
 
 // genRedirect produces an address a sign-in may send the parent back to.
@@ -77,6 +83,122 @@ func TestRegistrationsHoldTheirProperties(t *testing.T) {
 			return errors.Is(err, errUnknownClient)
 		},
 		genRegistration(), gen.AnyString().SuchThat(func(other string) bool { return other != testIssuer }),
+	))
+
+	properties.TestingRun(t)
+}
+
+// renewingGoogle renews a grant with an access token good for as long as a
+// case says, from the moment the case says it is.
+type renewingGoogle struct {
+	googleStandIn
+	now      time.Time
+	lifetime time.Duration
+}
+
+func (g renewingGoogle) Refresh(_ context.Context, refreshToken string) (googleauth.Renewal, error) {
+	return googleauth.Renewal{AccessToken: "a-renewed-access-token", Expiry: g.now.Add(g.lifetime), RefreshToken: refreshToken}, nil
+}
+
+// issuingAt is the part of a server that issues a host's tokens, at testDay,
+// over the ring given and with the Google given.
+func issuingAt(ring *seal.KeyRing, google googleauth.SignIn) *tokens {
+	return &tokens{
+		issuer: testIssuer, resource: testIssuer + "/mcp", scope: "mcp",
+		clients: &clients{registrations: ring.For(seal.PurposeClient), issuer: testIssuer},
+		codes:   ring.For(seal.PurposeCode), access: ring.For(seal.PurposeAccess), refresh: ring.For(seal.PurposeRefresh),
+		google: google, events: &signInLog{logger: zap.NewNop()}, now: func() time.Time { return testDay },
+	}
+}
+
+// aSession is a session of a parent who signed in some time before testDay,
+// holding a Google access token with some time left at testDay.
+func aSession(user, client string, signedInAgo, googleLeft time.Duration) *session {
+	return &session{
+		user: user, client: client, resource: testIssuer + "/mcp", scope: "mcp",
+		signedInAt: testDay.Add(-signedInAgo),
+		google: googleGrant{
+			accessToken: "an-access-token", accessExpiry: testDay.Add(googleLeft), refreshToken: "a-refresh-token",
+		},
+	}
+}
+
+func TestIssuedTokensEndInTime(t *testing.T) {
+	t.Parallel()
+
+	ring := ringOf(t, 'k')
+	now := testDay.Unix()
+	properties := gopter.NewProperties(nil)
+
+	properties.Property("an access token ends within fifteen minutes, and a minute before the Google token inside it", prop.ForAll(
+		func(googleLeft, renewedFor int64) bool {
+			grants := issuingAt(ring, renewingGoogle{now: testDay, lifetime: time.Duration(renewedFor) * time.Second})
+			given, err := grants.issue(t.Context(), aSession("a-user", "a-client", 0, time.Duration(googleLeft)*time.Second))
+			if err != nil {
+				return errors.Is(err, errShortGrant)
+			}
+			var access accessGrant
+			if grants.openAs(grants.access, given.access, &access) != nil {
+				return false
+			}
+			return access.ExpiresAt > now && access.ExpiresAt <= now+int64(accessLifetime/time.Second) &&
+				access.ExpiresAt <= access.GoogleAccessExpiry-int64(googleMargin/time.Second) &&
+				given.expiresIn == access.ExpiresAt-now
+		},
+		gen.Int64Range(-600, 1200), gen.Int64Range(0, 600),
+	))
+
+	properties.Property("no token outlives the ninety days of its sign-in, and a refresh token lasts thirty at most", prop.ForAll(
+		func(signedInAgo int64) bool {
+			grants := issuingAt(ring, googleStandIn{})
+			signedIn := time.Duration(signedInAgo) * time.Second
+			sessionEnd := testDay.Add(-signedIn).Unix() + int64(sessionLifetime/time.Second)
+			given, err := grants.issue(t.Context(), aSession("a-user", "a-client", signedIn, time.Hour))
+			if err != nil {
+				return errors.Is(err, errSessionEnded) && sessionEnd <= now
+			}
+			var access accessGrant
+			var refresh refreshGrant
+			if grants.openAs(grants.access, given.access, &access) != nil || grants.openAs(grants.refresh, given.refresh, &refresh) != nil {
+				return false
+			}
+			return access.ExpiresAt <= sessionEnd && refresh.ExpiresAt <= sessionEnd &&
+				refresh.ExpiresAt <= now+int64(refreshLifetime/time.Second)
+		},
+		gen.Int64Range(0, 100*24*3600),
+	))
+
+	properties.TestingRun(t)
+}
+
+func TestIssuedTokensCarryTheirSession(t *testing.T) {
+	t.Parallel()
+
+	ring := ringOf(t, 'k')
+	properties := gopter.NewProperties(nil)
+
+	properties.Property("the tokens handed out carry the session they were issued for", prop.ForAll(
+		func(user, client string, signedInAgo int64) bool {
+			grants := issuingAt(ring, googleStandIn{})
+			issuedFor := aSession(user, client, time.Duration(signedInAgo)*time.Second, time.Hour)
+			given, err := grants.issue(t.Context(), issuedFor)
+			if err != nil {
+				return false
+			}
+			var access accessGrant
+			var refresh refreshGrant
+			if grants.openAs(grants.access, given.access, &access) != nil || grants.openAs(grants.refresh, given.refresh, &refresh) != nil {
+				return false
+			}
+			carried := sessionOf(&refresh)
+			return access.User == user && access.Client == client && access.GoogleAccessToken == issuedFor.google.accessToken &&
+				carried.user == user && carried.client == client && carried.resource == issuedFor.resource &&
+				carried.scope == issuedFor.scope && carried.signedInAt.Equal(issuedFor.signedInAt) &&
+				carried.google.accessToken == issuedFor.google.accessToken &&
+				carried.google.accessExpiry.Equal(issuedFor.google.accessExpiry) &&
+				carried.google.refreshToken == issuedFor.google.refreshToken
+		},
+		gen.RegexMatch(`[A-Za-z0-9_-]{16}`), gen.RegexMatch(`[A-Za-z0-9_-]{43}`), gen.Int64Range(0, 80*24*3600),
 	))
 
 	properties.TestingRun(t)

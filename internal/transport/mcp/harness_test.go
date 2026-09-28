@@ -212,6 +212,8 @@ func (h *harness) start(t *testing.T, signIn mcpserver.SignIn, served ...mcpserv
 		Authorize:        http.NotFoundHandler(),
 		Consent:          http.NotFoundHandler(),
 		Callback:         http.NotFoundHandler(),
+		Token:            http.NotFoundHandler(),
+		Revoke:           http.NotFoundHandler(),
 	}, h.log, httpserver.Observability{
 		Traces:    h.traces,
 		Meters:    h.meters,

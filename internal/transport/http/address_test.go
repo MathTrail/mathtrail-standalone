@@ -190,6 +190,10 @@ func TestARouterWithSomethingMissingIsRefused(t *testing.T) {
 	withoutConsent.Consent = nil
 	withoutCallback := endpoints()
 	withoutCallback.Callback = nil
+	withoutToken := endpoints()
+	withoutToken.Token = nil
+	withoutRevoke := endpoints()
+	withoutRevoke.Revoke = nil
 
 	cases := []struct {
 		name      string
@@ -207,6 +211,8 @@ func TestARouterWithSomethingMissingIsRefused(t *testing.T) {
 		{name: "no authorization", publicURL: publicURL, endpoints: withoutAuthorize, want: "Authorize"},
 		{name: "no consent", publicURL: publicURL, endpoints: withoutConsent, want: "Consent"},
 		{name: "no callback", publicURL: publicURL, endpoints: withoutCallback, want: "Callback"},
+		{name: "no token endpoint", publicURL: publicURL, endpoints: withoutToken, want: "Token"},
+		{name: "no revocation", publicURL: publicURL, endpoints: withoutRevoke, want: "Revoke"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

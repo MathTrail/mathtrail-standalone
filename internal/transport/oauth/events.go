@@ -22,6 +22,10 @@ const (
 	eventAuthConsent   = "auth_consent"
 	eventAuthCallback  = "auth_callback"
 	eventAuthReject    = "auth_reject"
+	eventAuthToken     = "auth_token"
+	eventAuthRefresh   = "auth_refresh"
+	eventAuthRevoke    = "auth_revoke"
+	eventAuthBearer    = "auth_bearer"
 )
 
 // signInLog writes a line for each step of a sign-in, from fields named one by
@@ -101,11 +105,42 @@ func (l *signInLog) consented(ctx context.Context, request *flight, outcome stri
 	l.write(ctx, eventAuthConsent, append(fields, zap.String("outcome", outcome))...)
 }
 
-// calledBack leaves the line of a sign-in's end, with what went wrong when
-// something did: a warning when Google failed it, an error when this server
-// did.
+// calledBack leaves the line of a sign-in's end.
 func (l *signInLog) calledBack(ctx context.Context, request *flight, end *ending) {
-	fields := requestFields(request)
+	l.ended(ctx, eventAuthCallback, requestFields(request), end)
+}
+
+// granted leaves the line of a request at the token endpoint — the code
+// grant's as auth_token, the refresh grant's as auth_refresh: how the client
+// is known, whether it named the resource, and how the request ended.
+func (l *signInLog) granted(ctx context.Context, event, registration string, form url.Values, end *ending) {
+	l.ended(ctx, event, []zap.Field{
+		zap.String("registration", registration),
+		zap.String("resource", resourceWord(form)),
+	}, end)
+}
+
+// revoked leaves the line of a revocation: how the client is known, which kind
+// of token it presented when the token was one of this server's, and how the
+// revocation ended.
+func (l *signInLog) revoked(ctx context.Context, registration, kind string, end *ending) {
+	fields := []zap.Field{zap.String("registration", registration)}
+	if kind != "" {
+		fields = append(fields, zap.String("token", kind))
+	}
+	l.ended(ctx, eventAuthRevoke, fields, end)
+}
+
+// bearerRefused leaves the line of an access token that signs nobody in, and
+// why.
+func (l *signInLog) bearerRefused(ctx context.Context, reason string) {
+	l.write(ctx, eventAuthBearer, zap.String("outcome", "refused"), zap.String("reason", reason))
+}
+
+// ended writes the line of a step that came to its end, with what went wrong
+// when something did: an error when the fault is this server's own, a warning
+// when something else failed the step, and a plain line otherwise.
+func (l *signInLog) ended(ctx context.Context, event string, fields []zap.Field, end *ending) {
 	fields = append(fields, zap.String("outcome", end.outcome))
 	if end.reason != "" {
 		fields = append(fields, zap.String("reason", end.reason))
@@ -119,11 +154,11 @@ func (l *signInLog) calledBack(ctx context.Context, request *flight, end *ending
 	fields = slices.Concat(fields, callerFields(ctx, l.projectID))
 	switch {
 	case end.ours:
-		l.logger.Error(eventAuthCallback, fields...)
+		l.logger.Error(event, fields...)
 	case end.outcome == "failed":
-		l.logger.Warn(eventAuthCallback, fields...)
+		l.logger.Warn(event, fields...)
 	default:
-		l.logger.Info(eventAuthCallback, fields...)
+		l.logger.Info(event, fields...)
 	}
 }
 

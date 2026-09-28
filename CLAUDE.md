@@ -113,7 +113,7 @@ internal/
   infra/          everything that talks to the outside world
     drive/ starlark/ seal/
     cimd/         fetches a client's metadata document, reaching public addresses only
-    googleauth/   signs a parent in with Google and proves who it was; googletest/ stands in for Google in tests
+    googleauth/   signs a parent in with Google and proves who it was, renews the grant and ends it; googletest/ stands in for Google in tests
   site/           render/ turns the site's sources into files, check/ judges them
   store/          storage interface plus its in-memory and Drive implementations
   transport/

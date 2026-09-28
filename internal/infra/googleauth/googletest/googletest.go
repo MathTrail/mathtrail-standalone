@@ -1,7 +1,8 @@
 // Package googletest stands in for Google's sign-in, as far as the service can
 // see it: a token endpoint that holds a code to the request it was issued
-// for, the keys its ID tokens are signed with, and a parent who allows or
-// declines what a request asks for.
+// for and renews the grant it gave, the keys its ID tokens are signed with,
+// the endpoint that ends a grant, and a parent who allows or declines what a
+// request asks for.
 //
 // It is test code that lives in a package rather than a test file, because
 // the tests of more than one package sign a parent in, and a test file cannot
@@ -17,6 +18,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"slices"
 	"strconv"
 	"sync"
 	"testing"
@@ -37,6 +39,11 @@ const (
 	Subject      = "110169484474386276334"
 	AccessToken  = "ya29.an-access-token"
 	RefreshToken = "1//a-refresh-token"
+	// RenewedAccessToken is the access token a renewal gives.
+	RenewedAccessToken = "ya29.a-renewed-access-token"
+	// RotatedRefreshToken is the refresh token a renewal gives in place of
+	// the one it was asked with, when the answer says to rotate it.
+	RotatedRefreshToken = "1//a-rotated-refresh-token"
 	// ExpiresIn is how many seconds an access token is good for.
 	ExpiresIn = 3599
 )
@@ -62,19 +69,28 @@ func newKey() *rsa.PrivateKey {
 // StrangersKey is a key this Google never published.
 func StrangersKey() *rsa.PrivateKey { return strangersKey() }
 
-// Answer is how this Google answers an exchange, which a case changes to make
-// it misbehave in one way. The zero Answer is Google behaving.
+// Answer is how this Google answers, which a case changes to make it misbehave
+// in one way. The zero Answer is Google behaving.
 type Answer struct {
-	// Status and ErrorCode answer with a refusal instead.
+	// Status and ErrorCode answer an exchange or a renewal with a refusal
+	// instead.
 	Status    int
 	ErrorCode string
 	// Scope is the scope granted in place of the one asked for.
 	Scope string
+	// Lifetime is how many seconds an access token is good for, in place of
+	// ExpiresIn.
+	Lifetime int
 	// NoRefresh, NoIDToken and NoLifetime leave the refresh token, the ID
 	// token or the access token's lifetime out.
 	NoRefresh  bool
 	NoIDToken  bool
 	NoLifetime bool
+	// Rotate answers a renewal with another refresh token.
+	Rotate bool
+	// RevokeStatus and RevokeError answer a revocation with a refusal instead.
+	RevokeStatus int
+	RevokeError  string
 	// NoSubject leaves out of the ID token who signed in.
 	NoSubject bool
 	// SignedBy and KeyID sign the ID token with another key, under a name.
@@ -94,15 +110,20 @@ type asked struct {
 	challenge, nonce, redirectURI, scope string
 }
 
-// Server is the stand-in for Google.
+// Server is the stand-in for Google. It gives one grant, whose tokens are the
+// constants above, and a revocation ends it until the next exchange gives it
+// again.
 type Server struct {
 	*httptest.Server
 	t   testing.TB
 	now func() time.Time
 
-	mu     sync.Mutex
-	codes  map[string]asked
-	answer Answer
+	mu          sync.Mutex
+	codes       map[string]asked
+	answer      Answer
+	ended       bool
+	renewals    int
+	revocations []string
 }
 
 // New starts a stand-in for Google, whose ID tokens are dated by the clock
@@ -114,6 +135,7 @@ func New(t testing.TB, now func() time.Time) *Server {
 	routes := http.NewServeMux()
 	routes.HandleFunc("POST /token", google.token)
 	routes.HandleFunc("GET /keys", google.keys)
+	routes.HandleFunc("POST /revoke", google.revoke)
 	google.Server = httptest.NewServer(routes)
 	t.Cleanup(google.Close)
 	return google
@@ -126,7 +148,24 @@ func (g *Server) Endpoints() googleauth.Endpoints {
 		Auth:   g.URL + "/auth",
 		Token:  g.URL + "/token",
 		Keys:   g.URL + "/keys",
+		Revoke: g.URL + "/revoke",
 	}
+}
+
+// Renewals is how many renewals this Google has answered with an access
+// token.
+func (g *Server) Renewals() int {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	return g.renewals
+}
+
+// Revocations are the tokens this Google was asked to end a grant with, in
+// the order it was asked.
+func (g *Server) Revocations() []string {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	return slices.Clone(g.revocations)
 }
 
 // Allow is the parent allowing the sign-in an address asks for: Google issues
@@ -179,26 +218,42 @@ func (g *Server) read(address string) url.Values {
 func (g *Server) token(w http.ResponseWriter, r *http.Request) {
 	g.mu.Lock()
 	how := g.answer
-	request, issued := g.codes[r.PostFormValue("code")]
 	g.mu.Unlock()
 
 	switch {
 	case how.Status != 0:
 		writeJSON(w, how.Status, map[string]string{"error": how.ErrorCode})
-		return
-	case r.PostFormValue("grant_type") != "authorization_code",
-		r.PostFormValue("client_id") != ClientID, r.PostFormValue("client_secret") != ClientSecret:
+	case r.PostFormValue("client_id") != ClientID, r.PostFormValue("client_secret") != ClientSecret:
 		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "invalid_client"})
-		return
-	case !issued, r.PostFormValue("redirect_uri") != request.redirectURI,
-		ChallengeOf(r.PostFormValue("code_verifier")) != request.challenge:
+	case r.PostFormValue("grant_type") == "authorization_code":
+		g.exchange(w, r, &how)
+	case r.PostFormValue("grant_type") == "refresh_token":
+		g.renew(w, r, &how)
+	default:
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "unsupported_grant_type"})
+	}
+}
+
+// exchange answers a code with the grant: a code this Google issued, for the
+// address it was issued for and the verifier of its challenge. The grant it
+// gives is a new one, whatever ended the last.
+func (g *Server) exchange(w http.ResponseWriter, r *http.Request, how *Answer) {
+	g.mu.Lock()
+	request, issued := g.codes[r.PostFormValue("code")]
+	g.mu.Unlock()
+
+	if !issued || r.PostFormValue("redirect_uri") != request.redirectURI ||
+		ChallengeOf(r.PostFormValue("code_verifier")) != request.challenge {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid_grant"})
 		return
 	}
+	g.mu.Lock()
+	g.ended = false
+	g.mu.Unlock()
 
 	body := map[string]any{
 		"access_token": AccessToken,
-		"expires_in":   ExpiresIn,
+		"expires_in":   lifetime(how),
 		"token_type":   "Bearer",
 		"scope":        request.scope,
 	}
@@ -212,9 +267,70 @@ func (g *Server) token(w http.ResponseWriter, r *http.Request) {
 		delete(body, "expires_in")
 	}
 	if !how.NoIDToken {
-		body["id_token"] = g.idToken(request, &how)
+		body["id_token"] = g.idToken(request, how)
 	}
 	writeJSON(w, http.StatusOK, body)
+}
+
+// renew answers a refresh token of the grant, while the grant lasts, with a
+// new access token — and, when the answer says to rotate, a new refresh token.
+func (g *Server) renew(w http.ResponseWriter, r *http.Request, how *Answer) {
+	token := r.PostFormValue("refresh_token")
+	g.mu.Lock()
+	honoured := !g.ended && (token == RefreshToken || token == RotatedRefreshToken)
+	if honoured {
+		g.renewals++
+	}
+	g.mu.Unlock()
+
+	if !honoured {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid_grant"})
+		return
+	}
+	body := map[string]any{
+		"access_token": RenewedAccessToken,
+		"expires_in":   lifetime(how),
+		"token_type":   "Bearer",
+		"scope":        googleauth.ScopeOpenID + " " + googleauth.ScopeDriveFile,
+	}
+	if how.Rotate {
+		body["refresh_token"] = RotatedRefreshToken
+	}
+	if how.NoLifetime {
+		delete(body, "expires_in")
+	}
+	writeJSON(w, http.StatusOK, body)
+}
+
+// revoke ends the grant, given any token of it. A token of a grant already
+// ended, or of none, is refused as Google refuses it.
+func (g *Server) revoke(w http.ResponseWriter, r *http.Request) {
+	token := r.PostFormValue("token")
+	g.mu.Lock()
+	how := g.answer
+	g.revocations = append(g.revocations, token)
+	ofTheGrant := !g.ended && slices.Contains([]string{AccessToken, RenewedAccessToken, RefreshToken, RotatedRefreshToken}, token)
+	if how.RevokeStatus == 0 && ofTheGrant {
+		g.ended = true
+	}
+	g.mu.Unlock()
+
+	switch {
+	case how.RevokeStatus != 0:
+		writeJSON(w, how.RevokeStatus, map[string]string{"error": how.RevokeError})
+	case !ofTheGrant:
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid_token"})
+	default:
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+// lifetime is how many seconds an access token of the answer is good for.
+func lifetime(how *Answer) int {
+	if how.Lifetime > 0 {
+		return how.Lifetime
+	}
+	return ExpiresIn
 }
 
 // idToken is the ID token of a sign-in: this Google's, for the service's

@@ -74,6 +74,10 @@ type Endpoints struct {
 	Consent http.Handler
 	// Callback answers Google's redirect at the end of a sign-in.
 	Callback http.Handler
+	// Token issues a host's tokens.
+	Token http.Handler
+	// Revoke ends a host's grant.
+	Revoke http.Handler
 }
 
 // ErrEndpoints is returned when the router is given an address or endpoints it
@@ -100,6 +104,10 @@ func (e *Endpoints) validate() error {
 		return fmt.Errorf("%w: Consent must be set", ErrEndpoints)
 	case e.Callback == nil:
 		return fmt.Errorf("%w: Callback must be set", ErrEndpoints)
+	case e.Token == nil:
+		return fmt.Errorf("%w: Token must be set", ErrEndpoints)
+	case e.Revoke == nil:
+		return fmt.Errorf("%w: Revoke must be set", ErrEndpoints)
 	}
 	return nil
 }
@@ -198,6 +206,12 @@ func NewRouter(publicURL string, endpoints *Endpoints, logger *zap.Logger, obs O
 	router.GET("/oauth/authorize", gin.WrapH(endpoints.Authorize))
 	router.POST("/oauth/consent", gin.WrapH(endpoints.Consent))
 	router.GET("/oauth/callback", gin.WrapH(endpoints.Callback))
+
+	// What the host does with a finished sign-in, from its own server: it
+	// trades the code for its tokens and renews them, and ends the grant when
+	// the parent disconnects.
+	router.POST("/oauth/token", gin.WrapH(endpoints.Token))
+	router.POST("/oauth/revoke", gin.WrapH(endpoints.Revoke))
 
 	return router, nil
 }
