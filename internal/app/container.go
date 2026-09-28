@@ -11,6 +11,7 @@ import (
 	"slices"
 	"time"
 
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 
 	"github.com/MathTrail/mathtrail-standalone/content"
@@ -18,10 +19,12 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/cimd"
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/drive"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
+	drivestore "github.com/MathTrail/mathtrail-standalone/internal/store/drive"
 	"github.com/MathTrail/mathtrail-standalone/internal/store/memory"
 	"github.com/MathTrail/mathtrail-standalone/internal/telemetry"
 	httpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/http"
@@ -145,27 +148,15 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 	// any other.
 	c.Reviewer = checks.NewReviewer(embedded, c.Solver, checks.DefaultDrawingLimits())
 
-	// Profiles are kept in the memory of the process until the parent's own
-	// Drive can hold them: what a family that signed in writes is lost with
-	// the process, and one instance knows nothing of what another kept.
-	c.Store = memory.New()
+	c.Store, err = profileStore(cfg, log, tel.TracerProvider())
+	if err != nil {
+		return nil, err
+	}
+	log.Info("profile store", zap.Bool("in_drive", !cfg.DevAuth))
 
-	// A parent signs in with Google, through the service's own client there,
-	// and comes back to the authorization server's callback. A machine with no
-	// client configured has no sign-in: the configuration refuses that on a
-	// deployment.
-	var google googleauth.SignIn
-	if cfg.GoogleSignIn() {
-		google, err = googleauth.New(&googleauth.Settings{
-			ClientID:     cfg.GoogleClientID,
-			ClientSecret: cfg.GoogleClientSecret,
-			RedirectURL:  cfg.Origin() + oauthserver.CallbackPath,
-			Endpoints:    googleauth.Accounts,
-			Now:          time.Now,
-		})
-		if err != nil {
-			return nil, err
-		}
+	google, err := googleSignIn(cfg)
+	if err != nil {
+		return nil, err
 	}
 	log.Info("google sign-in", zap.Bool("configured", google != nil))
 
@@ -250,6 +241,45 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 		return nil, err
 	}
 	return c, nil
+}
+
+// googleSignIn is how a parent signs in with Google: through the service's own
+// client there, coming back to the authorization server's callback. A machine
+// with no client configured has no sign-in, and nil is what it gets; the
+// configuration refuses that on a deployment.
+func googleSignIn(cfg *config.Config) (googleauth.SignIn, error) {
+	if !cfg.GoogleSignIn() {
+		return nil, nil
+	}
+	return googleauth.New(&googleauth.Settings{
+		ClientID:     cfg.GoogleClientID,
+		ClientSecret: cfg.GoogleClientSecret,
+		RedirectURL:  cfg.Origin() + oauthserver.CallbackPath,
+		Endpoints:    googleauth.Accounts,
+		Now:          time.Now,
+	})
+}
+
+// profileStore is where the profiles are kept. A profile lives in the Drive of
+// the parent who signed in, reached with the Google token their sign-in
+// carries. The development sign-in carries none, so under it profiles are kept
+// in the memory of the process: what is written there is lost with it, and one
+// instance knows nothing of what another kept. The configuration refuses that
+// sign-in on a deployment.
+func profileStore(cfg *config.Config, log *zap.Logger, traces trace.TracerProvider) (store.Storage, error) {
+	if cfg.DevAuth {
+		return memory.New(), nil
+	}
+	files, err := drive.NewFiles(&drive.Settings{Root: drive.Google, Timeout: cfg.DriveTimeout})
+	if err != nil {
+		return nil, err
+	}
+	return drivestore.New(&drivestore.Settings{
+		Files:     files,
+		Logger:    log,
+		Traces:    traces,
+		ProjectID: cfg.GCPProjectID,
+	})
 }
 
 // Close releases everything in reverse order of construction. It logs each

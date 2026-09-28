@@ -73,6 +73,9 @@ func TestDefaults(t *testing.T) {
 	if cfg.RequestWindow != config.DefaultRequestWindow {
 		t.Errorf("RequestWindow = %v, want %v", cfg.RequestWindow, config.DefaultRequestWindow)
 	}
+	if cfg.DriveTimeout != config.DefaultDriveTimeout {
+		t.Errorf("DriveTimeout = %v, want %v", cfg.DriveTimeout, config.DefaultDriveTimeout)
+	}
 }
 
 func TestValuesAreRead(t *testing.T) {
@@ -91,6 +94,7 @@ func TestValuesAreRead(t *testing.T) {
 		"MATHTRAIL_SOLVER_TIMEOUT=500ms",
 		"MATHTRAIL_SOLVER_CONCURRENCY=2",
 		"MATHTRAIL_REQUEST_WINDOW=20m",
+		"MATHTRAIL_DRIVE_TIMEOUT=3s",
 	})
 	if err != nil {
 		t.Fatalf("LoadFrom() error = %v, want nil", err)
@@ -125,6 +129,9 @@ func TestValuesAreRead(t *testing.T) {
 	}
 	if cfg.RequestWindow != 20*time.Minute {
 		t.Errorf("RequestWindow = %v, want %v", cfg.RequestWindow, 20*time.Minute)
+	}
+	if cfg.DriveTimeout != 3*time.Second {
+		t.Errorf("DriveTimeout = %v, want %v", cfg.DriveTimeout, 3*time.Second)
 	}
 }
 
@@ -366,6 +373,11 @@ func TestRefusals(t *testing.T) {
 			name:    "a request waited for less than a minute",
 			environ: []string{"MATHTRAIL_REQUEST_WINDOW=30s"},
 			wantVar: "MATHTRAIL_REQUEST_WINDOW",
+		},
+		{
+			name:    "a call to Drive with no time to take",
+			environ: []string{"MATHTRAIL_DRIVE_TIMEOUT=0s"},
+			wantVar: "MATHTRAIL_DRIVE_TIMEOUT",
 		},
 		{
 			name:    "telemetry is neither auto, on nor off",

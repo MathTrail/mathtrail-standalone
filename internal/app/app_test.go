@@ -22,7 +22,9 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/internal/app"
 	"github.com/MathTrail/mathtrail-standalone/internal/config"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
+	"github.com/MathTrail/mathtrail-standalone/internal/store"
 	mcpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/mcp"
 	"github.com/MathTrail/mathtrail-standalone/internal/widget"
 )
@@ -286,6 +288,36 @@ func TestContainerServesTheEndpointToSomebodySignedInOnly(t *testing.T) {
 				t.Errorf("status = %d, want %d; body = %s", rec.Code, tc.want, rec.Body.String())
 			}
 		})
+	}
+}
+
+// Profiles are kept where the sign-in can reach them. Under the development
+// sign-in, whose account carries no Google token, they stay in the memory of
+// the process, where nobody could open them. Under the real one they go to the
+// parent's Drive, which an account without a token cannot reach: it is
+// refused before anything is asked of anyone, and not told that it has no
+// profile.
+func TestContainerKeepsProfilesWhereTheSignInReaches(t *testing.T) {
+	t.Parallel()
+
+	dev := testConfig()
+	dev.DevAuth = true
+	inMemory := containerFrom(t, dev).Store
+	devAccount := store.NewAccount(mcpserver.DevAccount, "")
+	p := profile.New(profile.Student{ExcludedSkills: []string{}, Grade: 3, Interests: []string{"space"}, Pseudonym: "Mia"},
+		"app_test", time.Now())
+	if _, err := inMemory.Create(t.Context(), devAccount, p); err != nil {
+		t.Fatalf("Create() under the development sign-in error = %v, want nil", err)
+	}
+	if location, err := inMemory.Export(t.Context(), devAccount); err != nil || location != (store.Location{}) {
+		t.Errorf("Export() under the development sign-in = %+v, %v, want the memory's zero location", location, err)
+	}
+
+	inDrive := containerFrom(t, testConfig()).Store
+	_, _, err := inDrive.Load(t.Context(), store.NewAccount("a-parent", ""))
+	if err == nil || errors.Is(err, store.ErrNotFound) {
+		t.Errorf("Load() for an account without a token under the real sign-in: error = %v, want a refusal that is not %v",
+			err, store.ErrNotFound)
 	}
 }
 
@@ -556,6 +588,7 @@ func testConfig() *config.Config {
 		SolverTimeout:     config.DefaultSolverTimeout,
 		SolverConcurrency: config.DefaultSolverConcurrency,
 		RequestWindow:     config.DefaultRequestWindow,
+		DriveTimeout:      config.DefaultDriveTimeout,
 		SiteURL:           config.DefaultSiteURL,
 	}
 }

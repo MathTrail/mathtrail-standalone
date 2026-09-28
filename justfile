@@ -131,8 +131,9 @@ release-artifacts version=VERSION: (web-build version)
 # The sealing key is made fresh for the run and kept nowhere: locally there is
 # nothing sealed that has to outlive the process. The development sign-in lets
 # every request to the MCP endpoint in as one account, so that a client on this
-# machine needs no Google account. The widget is built first, so that a card
-# drawn from this server is the widget of these sources.
+# machine needs no Google account, and keeps its profile in the memory of the
+# process, since it has no Drive to keep it in. The widget is built first, so
+# that a card drawn from this server is the widget of these sources.
 # Run the server from source, with logs a person can read and the development sign-in
 run: web-build
     MATHTRAIL_LOG_FORMAT=console MATHTRAIL_LOG_LEVEL=debug MATHTRAIL_DEV_AUTH=true \
@@ -144,7 +145,8 @@ run: web-build
 # The Google client is the one MATHTRAIL_GOOGLE_CLIENT_ID and
 # MATHTRAIL_GOOGLE_CLIENT_SECRET name, and Google has to know
 # http://localhost:8080/oauth/callback as one of its redirect URIs. Tokens die
-# with the process, as the key they are sealed with does.
+# with the process, as the key they are sealed with does. The profile does not:
+# as on a deployment, it is a file in the Drive of whoever signs in.
 # Run the server from source with the Google sign-in, for a client that signs in for real
 run-signin: web-build
     : "${MATHTRAIL_GOOGLE_CLIENT_ID:?set it and MATHTRAIL_GOOGLE_CLIENT_SECRET to a Google client that knows http://localhost:8080/oauth/callback}"
