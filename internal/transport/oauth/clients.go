@@ -11,7 +11,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/cimd"
-	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
 )
 
 // How a client is known, as a sign-in's lines name it.
@@ -49,10 +48,17 @@ func (c *Client) Redirects(uri string) bool {
 // may be signed in for. It wraps why.
 var errUnknownClient = errors.New("oauth: unknown client")
 
+// sealer seals a registration into the identifier a client is given, and
+// opens it again: the key ring, with the purpose of client registrations.
+type sealer interface {
+	Seal(plaintext []byte, binding ...string) (string, error)
+	Open(value string, binding ...string) ([]byte, error)
+}
+
 // clients turns an identifier into the client it stands for, and seals a
 // registration into the identifier a client is given.
 type clients struct {
-	registrations seal.PurposeRing
+	registrations sealer
 	issuer        string
 	documents     cimd.Fetcher
 	events        *signInLog
@@ -65,7 +71,8 @@ type clients struct {
 // string nobody issued, one changed since, a value sealed for another purpose
 // or for another issuer, one sealed under a key long retired — is no client.
 func (c *clients) resolve(ctx context.Context, clientID string) (*Client, error) {
-	if len(clientID) >= len("https:") && strings.EqualFold(clientID[:len("https:")], "https:") {
+	const addressScheme = "https:"
+	if len(clientID) >= len(addressScheme) && strings.EqualFold(clientID[:len(addressScheme)], addressScheme) {
 		return c.fromDocument(ctx, clientID)
 	}
 	return c.fromRegistration(clientID)

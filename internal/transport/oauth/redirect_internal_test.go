@@ -25,6 +25,7 @@ func TestOnlyAnAddressAParentMayBeSentToIsRedirectable(t *testing.T) {
 		{"HTTPS://a.example/cb", true},
 
 		{"http://a.example/cb", false},
+		{"ftp://a.example/cb", false},
 		{"http://localhost.a.example/cb", false},
 		{"http://127.0.0.2/cb", false},
 		{"https://a.example/cb#part", false},

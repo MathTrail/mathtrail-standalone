@@ -37,6 +37,7 @@ func TestOnlyAClientAddressIsFetched(t *testing.T) {
 		{"no host", "https:///meta", false},
 		{"opaque", "https:meta", false},
 		{"not an address", "a client", false},
+		{"an address that does not parse", "https://[::1/meta", false},
 		{"nothing", "", false},
 		{"too long", "https://client.example.com/" + strings.Repeat("a", maxClientURL), false},
 	} {

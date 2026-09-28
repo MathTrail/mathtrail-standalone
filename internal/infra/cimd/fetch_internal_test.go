@@ -407,3 +407,74 @@ func TestAnAddressThatNeverAnswersLeavesTheNextItsTurn(t *testing.T) {
 		t.Errorf("Fetch() error = %v, want the document from the address that answers", err)
 	}
 }
+
+// A name that cannot be reached for now — no answer from the resolver, no
+// address, or no address that takes the connection — is unreachable, and it
+// is tried once more, since the next lookup or dial may find it.
+func TestANameThatCannotBeReachedIsTriedAgain(t *testing.T) {
+	t.Parallel()
+
+	refused := func(context.Context, string, string) (net.Conn, error) {
+		return nil, errors.New("connection refused")
+	}
+	for _, tc := range []struct {
+		name    string
+		resolve func(context.Context, string) ([]netip.Addr, error)
+		dial    func(context.Context, string, string) (net.Conn, error)
+	}{
+		{"the resolver fails", func(context.Context, string) ([]netip.Addr, error) {
+			return nil, errors.New("no such host")
+		}, refused},
+		{"the name stands for nothing", func(context.Context, string) ([]netip.Addr, error) {
+			return nil, nil
+		}, refused},
+		{"no address takes the connection", func(context.Context, string) ([]netip.Addr, error) {
+			return []netip.Addr{netip.MustParseAddr("192.0.2.1"), netip.MustParseAddr("192.0.2.2")}, nil
+		}, refused},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			var lookups atomic.Int32
+			fetcher := newFetcher(reach{
+				resolve: func(ctx context.Context, host string) ([]netip.Addr, error) {
+					lookups.Add(1)
+					return tc.resolve(ctx, host)
+				},
+				allowed: public,
+				dial:    tc.dial,
+			}, time.Second, (&clock{at: someDay}).now)
+
+			if _, err := fetcher.Fetch(t.Context(), clientAt); !errors.Is(err, ErrUnreachable) {
+				t.Errorf("Fetch() error = %v, want ErrUnreachable", err)
+			}
+			if got := lookups.Load(); got != 2 {
+				t.Errorf("%d lookups, want 2: the first attempt and one more", got)
+			}
+		})
+	}
+}
+
+// A server that breaks the document off halfway has sent no document, and it
+// is asked once more.
+func TestADocumentBrokenOffIsTriedAgain(t *testing.T) {
+	t.Parallel()
+
+	server := newFakeClient(t, func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Length", "1000")
+		_, _ = w.Write([]byte(`{"client_id":`))
+		if hijacker, ok := w.(http.Hijacker); ok {
+			if conn, _, err := hijacker.Hijack(); err == nil {
+				_ = conn.Close()
+			}
+		}
+	})
+	fetcher, _ := fetcherFor(t, server, publicOrLoopback, time.Second, loopback)
+
+	if _, err := fetcher.Fetch(t.Context(), server.at(t, "client.example.com", "/meta")); !errors.Is(err, ErrUnreachable) {
+		t.Errorf("Fetch() error = %v, want ErrUnreachable", err)
+	}
+	if got := server.requests.Load(); got != 2 {
+		t.Errorf("%d requests reached the client, want 2", got)
+	}
+}
