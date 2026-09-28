@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -35,13 +36,21 @@ func readerEndingIn(left time.Duration) mcpserver.TokenReader {
 	}
 }
 
-// bearing is a client that sends every request with the token given.
-type bearing struct{ token string }
+// bearing is a client that sends every request with the token given, and,
+// given a counter, counts every answer in which the service gave up.
+type bearing struct {
+	token  string
+	failed *atomic.Int32
+}
 
 func (b bearing) RoundTrip(r *http.Request) (*http.Response, error) {
 	r = r.Clone(r.Context())
 	r.Header.Set("Authorization", "Bearer "+b.token)
-	return http.DefaultTransport.RoundTrip(r)
+	resp, err := http.DefaultTransport.RoundTrip(r)
+	if err == nil && b.failed != nil && resp.StatusCode >= http.StatusInternalServerError {
+		b.failed.Add(1)
+	}
+	return resp, err
 }
 
 // connectWith is a client of the protocol that signs its every request with a
@@ -54,11 +63,18 @@ func (h *harness) connectWith(t *testing.T, token string) (*mcp.ClientSession, e
 // connectAs is connectWith, for a client that gives itself the name given.
 func (h *harness) connectAs(t *testing.T, name, token string) (*mcp.ClientSession, error) {
 	t.Helper()
+	return h.connectThrough(t, name, bearing{token: token})
+}
+
+// connectThrough is a client that gives itself the name given and sends every
+// request through the transport given.
+func (h *harness) connectThrough(t *testing.T, name string, through http.RoundTripper) (*mcp.ClientSession, error) {
+	t.Helper()
 
 	client := mcp.NewClient(&mcp.Implementation{Name: name, Version: "1.0.0"}, nil)
 	session, err := client.Connect(t.Context(), &mcp.StreamableClientTransport{
 		Endpoint:             h.server.URL + "/mcp",
-		HTTPClient:           &http.Client{Transport: bearing{token: token}},
+		HTTPClient:           &http.Client{Transport: through},
 		DisableStandaloneSSE: true,
 		MaxRetries:           -1,
 	}, nil)

@@ -10,6 +10,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark"
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark/starlarktest"
 )
 
 // forever is a program the budgets have to stop, because nothing else will.
@@ -32,7 +33,7 @@ func TestSourceLongerThanTheLimit(t *testing.T) {
 func TestTheStepBudgetStopsALoop(t *testing.T) {
 	t.Parallel()
 	const budget = 200_000
-	runner := sandbox(t, starlark.Limits{Steps: budget, Timeout: time.Minute, Concurrency: 1})
+	runner := sandbox(t, starlark.Limits{Steps: budget, Timeout: time.Minute, Concurrency: 1, Wait: time.Minute})
 
 	// The clock is set far out of reach, and the message is read rather than
 	// the status: both limits end a run the same way, and this test is about
@@ -63,7 +64,7 @@ func TestTheStepBudgetStopsALoop(t *testing.T) {
 // for the call to end.
 func TestTheClockStopsAProductAsItGrows(t *testing.T) {
 	t.Parallel()
-	runner := sandbox(t, starlark.Limits{Steps: 1 << 62, Timeout: 100 * time.Millisecond, Concurrency: 1})
+	runner := sandbox(t, starlark.Limits{Steps: 1 << 62, Timeout: 100 * time.Millisecond, Concurrency: 1, Wait: time.Minute})
 
 	started := time.Now()
 	result, err := runner.Run(t.Context(),
@@ -84,7 +85,7 @@ func TestTheClockStopsWhatTheBudgetWouldNot(t *testing.T) {
 	t.Parallel()
 	// A budget no loop can spend in the time given, so that what stops the
 	// program is the clock and only the clock.
-	runner := sandbox(t, starlark.Limits{Steps: 1 << 62, Timeout: 50 * time.Millisecond, Concurrency: 1})
+	runner := sandbox(t, starlark.Limits{Steps: 1 << 62, Timeout: 50 * time.Millisecond, Concurrency: 1, Wait: time.Minute})
 
 	started := time.Now()
 	result, err := runner.Run(context.Background(), forever, options)
@@ -159,7 +160,7 @@ func TestASequenceTooLongToWalk(t *testing.T) {
 func TestABuiltinCannotSpendWhatIsLeft(t *testing.T) {
 	t.Parallel()
 	const budget = 10_000
-	runner := sandbox(t, starlark.Limits{Steps: budget, Timeout: time.Minute, Concurrency: 1})
+	runner := sandbox(t, starlark.Limits{Steps: budget, Timeout: time.Minute, Concurrency: 1, Wait: time.Minute})
 
 	// A hundred thousand elements: well under the cap, well over the budget.
 	source := "def solve(options):\n    return match(options, len(list(range(100000))))\n"
@@ -210,7 +211,7 @@ func TestAMatchIsPaidForByTheTextsItReads(t *testing.T) {
 			// What these cases read is the step budget, so the clock is set far
 			// beyond it: on a slow machine under the race detector two seconds
 			// ran out before a million steps did.
-			runner := sandbox(t, starlark.Limits{Steps: 1_000_000, Timeout: time.Minute, Concurrency: 1})
+			runner := sandbox(t, starlark.Limits{Steps: 1_000_000, Timeout: time.Minute, Concurrency: 1, Wait: time.Minute})
 
 			result, err := runner.Run(context.Background(), test.source, options)
 			if err != nil {
@@ -232,7 +233,7 @@ func TestAMatchIsPaidForByTheTextsItReads(t *testing.T) {
 func TestOnlySoManyRunsAtOnce(t *testing.T) {
 	t.Parallel()
 	const spell = 100 * time.Millisecond
-	runner := sandbox(t, starlark.Limits{Steps: 1 << 62, Timeout: spell, Concurrency: 1})
+	runner := sandbox(t, starlark.Limits{Steps: 1 << 62, Timeout: spell, Concurrency: 1, Wait: time.Minute})
 
 	var waiting sync.WaitGroup
 	started := time.Now()
@@ -256,7 +257,7 @@ func TestOnlySoManyRunsAtOnce(t *testing.T) {
 // a slot would run exactly as many programs as it has slots and then stop.
 func TestSlotsComeBack(t *testing.T) {
 	t.Parallel()
-	runner := sandbox(t, starlark.Limits{Steps: 1_000_000, Timeout: time.Minute, Concurrency: 1})
+	runner := sandbox(t, starlark.Limits{Steps: 1_000_000, Timeout: time.Minute, Concurrency: 1, Wait: time.Minute})
 
 	for i := range 4 {
 		result, err := runner.Run(context.Background(), "def solve(options):\n    return match(options, 6)\n", options)
@@ -298,7 +299,7 @@ func TestTheCapIsWhereItSays(t *testing.T) {
 // finish rather than a verdict about the solver.
 func TestACallerThatGoesAwayMidRun(t *testing.T) {
 	t.Parallel()
-	runner := sandbox(t, starlark.Limits{Steps: 1 << 62, Timeout: time.Minute, Concurrency: 1})
+	runner := sandbox(t, starlark.Limits{Steps: 1 << 62, Timeout: time.Minute, Concurrency: 1, Wait: time.Minute})
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
@@ -324,7 +325,7 @@ func TestACallerThatGoesAwayMidRun(t *testing.T) {
 // blamed on a limit of ours that never fired.
 func TestACallerWhoseTimeRanOut(t *testing.T) {
 	t.Parallel()
-	runner := sandbox(t, starlark.Limits{Steps: 1 << 62, Timeout: time.Minute, Concurrency: 1})
+	runner := sandbox(t, starlark.Limits{Steps: 1 << 62, Timeout: time.Minute, Concurrency: 1, Wait: time.Minute})
 
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
@@ -346,7 +347,7 @@ func TestACallerWhoseTimeRanOut(t *testing.T) {
 // a place in the queue when its time runs out.
 func TestASlotIsWorthWaitingForButNotForEver(t *testing.T) {
 	t.Parallel()
-	runner := sandbox(t, starlark.Limits{Steps: 1 << 62, Timeout: time.Second, Concurrency: 1})
+	runner := sandbox(t, starlark.Limits{Steps: 1 << 62, Timeout: time.Second, Concurrency: 1, Wait: time.Minute})
 
 	// The blocker takes the only slot and holds it for its whole clock, and
 	// what stands between the call and the slot is parsing three lines. The
@@ -367,6 +368,86 @@ func TestASlotIsWorthWaitingForButNotForEver(t *testing.T) {
 	}
 	if !errors.Is(err, context.DeadlineExceeded) {
 		t.Errorf("error: got %v, want it to carry the deadline", err)
+	}
+}
+
+// TestARunThatFindsNoSlotIsRefusedAfterItsWait bounds the queue in time: a run
+// that finds every slot taken waits for one no longer than it may, and is then
+// told the sandbox was busy — not held until a slot comes free, and not
+// blamed on a clock of its own that never started.
+func TestARunThatFindsNoSlotIsRefusedAfterItsWait(t *testing.T) {
+	t.Parallel()
+	const wait = 100 * time.Millisecond
+	runner := sandbox(t, starlark.Limits{Steps: 1 << 62, Timeout: 2 * time.Second, Concurrency: 1, Wait: wait})
+
+	go func() {
+		_, _ = runner.Run(context.Background(), forever, options)
+	}()
+	starlarktest.EverySlotTaken(t, runner)
+
+	started := time.Now()
+	result, err := runner.Run(context.Background(), forever, options)
+	elapsed := time.Since(started)
+	if err == nil {
+		t.Fatalf("Run: got %q (%s), want the run refused for want of a slot", result.Status, result.Message)
+	}
+	if !errors.Is(err, solver.ErrBusy) {
+		t.Errorf("error: got %v, want it to say every slot stayed taken", err)
+	}
+	if elapsed < wait {
+		t.Errorf("refused after %v, want it to wait %v for a slot first", elapsed, wait)
+	}
+	if elapsed >= time.Second {
+		t.Errorf("refused after %v, want it refused long before the run holding the slot ends at 2s", elapsed)
+	}
+}
+
+// TestTheWaitIsForASlotNotForTheRun keeps the two clocks apart: the wait ends
+// when a slot is taken, and a run that took one at once is stopped by its own
+// clock, however much shorter the wait is.
+func TestTheWaitIsForASlotNotForTheRun(t *testing.T) {
+	t.Parallel()
+	runner := sandbox(t, starlark.Limits{
+		Steps: 1 << 62, Timeout: 300 * time.Millisecond, Concurrency: 1, Wait: 50 * time.Millisecond,
+	})
+
+	result, err := runner.Run(context.Background(), forever, options)
+	if err != nil {
+		t.Fatalf("Run: got error %v, want the run to happen", err)
+	}
+	if result.Status != solver.StatusTimeout {
+		t.Errorf("status: got %q (%s), want %q", result.Status, result.Message, solver.StatusTimeout)
+	}
+	if !strings.Contains(result.Message, "300ms") {
+		t.Errorf("message: got %q, want it to name the run's own clock", result.Message)
+	}
+}
+
+// TestARefusedRunHoldsNoSlot: a run turned away for want of a slot leaves none
+// behind, or every refusal would shrink the sandbox by one.
+func TestARefusedRunHoldsNoSlot(t *testing.T) {
+	t.Parallel()
+	runner := sandbox(t, starlark.Limits{
+		Steps: 1 << 62, Timeout: time.Second, Concurrency: 1, Wait: 20 * time.Millisecond,
+	})
+
+	blocked := make(chan struct{})
+	go func() {
+		defer close(blocked)
+		_, _ = runner.Run(context.Background(), forever, options)
+	}()
+	starlarktest.EverySlotTaken(t, runner)
+	if _, err := runner.Run(context.Background(), forever, options); !errors.Is(err, solver.ErrBusy) {
+		t.Fatalf("Run while the slot is taken: got error %v, want it refused as busy", err)
+	}
+	<-blocked
+
+	result, err := runner.Run(context.Background(), "def solve(options):\n    return match(options, 6)\n", options)
+	if err != nil {
+		t.Fatalf("Run once the slot is free: got error %v, want the run to happen", err)
+	}
+	if result.Status != solver.StatusOK {
+		t.Errorf("status: got %q (%s), want %q", result.Status, result.Message, solver.StatusOK)
 	}
 }
 

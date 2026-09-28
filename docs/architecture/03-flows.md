@@ -297,6 +297,8 @@ Every failed check comes back at once, so the model can fix everything in one mo
 
 The request rate has no code here. A call past a pace is held back before any tool runs, and is told in one sentence marked as an error: wait a moment, then make the same call again (SPEC 7.4, R121).
 
+Neither has a sandbox with no slot free. A task whose solver finds every slot taken for as long as a run may wait is never checked, so it is told in one sentence of its own, marked as an error: the task was not checked, no attempt was spent, hand it in again in a moment (SPEC 6.6, 7.4, R122).
+
 Two rules about the wording of all of them: they are written for a model that has to act on them, so they name the field and the fix rather than the internal error (CLAUDE.md, "Errors"); and none of them is ever rendered as a card, so nothing in them reaches the child directly.
 
 ## Coverage of PRODUCT 3 and 4.3–4.4

@@ -3,6 +3,8 @@ package mcpserver
 import (
 	"context"
 	"net/http"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/auth"
@@ -13,9 +15,15 @@ import (
 // Scope is the one scope a token for the endpoint grants.
 const Scope = "mcp"
 
-// DevAccount is the identifier of the one account the development sign-in
-// signs every request in as.
+// DevAccount is the identifier of the account the development sign-in signs a
+// request in as when its credential names nobody, and the start of the
+// identifier of every account a credential names.
 const DevAccount = "dev"
+
+// devName is what a credential of the development sign-in may name: a short
+// word of letters, digits, dots, dashes and underscores, which is safe to key a
+// pace and a profile by and to write into a line as it stands.
+var devName = regexp.MustCompile(`^[A-Za-z0-9._-]{1,64}$`)
 
 // SignIn decides whose account a request to the endpoint acts for. It hands
 // the request on with that account in its context, or answers it with a
@@ -43,17 +51,34 @@ func accountFrom(ctx context.Context) (store.Account, bool) {
 	return account, signedIn
 }
 
-// DevSignIn signs every request in as the development account, whether it
-// carries a credential or not: a client that cannot send one, such as a chat
-// host's custom connector without a sign-in of its own, is let in too. It
-// exists so that the tools can be used on a developer's machine before any
+// DevSignIn signs a request in without a real sign-in, and refuses none. A
+// request whose bearer credential is a name acts for an account of that name,
+// so that several children can be told apart on one machine: each keeps a
+// profile and a pace of its own. Any other request acts for the development
+// account — one with no credential, such as a chat host's custom connector
+// without a sign-in of its own sends, and one whose credential names nobody,
+// such as a token a client kept from a server with the real sign-in at the
+// same address, which would otherwise leave that client locked out.
+//
+// It exists so that the tools can be used on a developer's machine before any
 // real sign-in does, and the configuration refuses to start a deployed
 // service with it.
 func DevSignIn(next http.Handler) http.Handler {
-	account := store.NewAccount(DevAccount, "", time.Time{})
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		account := accountNamedBy(r.Header.Get("Authorization"))
 		next.ServeHTTP(w, r.WithContext(withAccount(r.Context(), account)))
 	})
+}
+
+// accountNamedBy is the account a credential of the development sign-in
+// names: dev-<name> for a bearer credential that is a name, and the
+// development account for anything else.
+func accountNamedBy(credential string) store.Account {
+	scheme, name, found := strings.Cut(credential, " ")
+	if found && strings.EqualFold(scheme, "Bearer") && devName.MatchString(name) {
+		return store.NewAccount(DevAccount+"-"+name, "", time.Time{})
+	}
+	return store.NewAccount(DevAccount, "", time.Time{})
 }
 
 // TokenReader reads the access token a request carries: the account it signs

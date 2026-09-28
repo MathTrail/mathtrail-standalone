@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 )
 
@@ -13,6 +14,7 @@ import (
 const (
 	kindInternal    = "internal"
 	kindTimeout     = "timeout"
+	kindBusy        = "busy"
 	kindNotSignedIn = "not_signed_in"
 	kindPanic       = "panic"
 	kindConflict    = "conflict"
@@ -61,6 +63,14 @@ var failures = []struct {
 		cause:    context.DeadlineExceeded,
 		kind:     kindTimeout,
 		sentence: "MathTrail took too long to answer. Try the same request again in a moment.",
+	},
+	{
+		// Every place a solver runs in stayed taken for as long as a run may
+		// wait for one. The task was never checked, so handing it in again
+		// once the rush has passed is all it takes.
+		cause:    solver.ErrBusy,
+		kind:     kindBusy,
+		sentence: "MathTrail is checking too many tasks right now, so this task was not checked and no attempt was spent. Hand in the same task again with submit_task in a moment.",
 	},
 	{
 		// Somebody else wrote the profile between this call's read and its

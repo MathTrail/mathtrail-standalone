@@ -56,6 +56,11 @@ type Limits struct {
 	// Concurrency is how many runs may be in flight at once. A solver holds a
 	// core for as long as its clock allows, and an instance has few.
 	Concurrency int
+	// Wait is how long a run waits for one of those slots to come free. It
+	// bounds the queue in time rather than in length: a burst of short runs
+	// passes through it, and a run that would only be answered after the one
+	// asking has given up is refused while an answer can still be heard.
+	Wait time.Duration
 }
 
 // sandbox is a place to run solvers: the limits, the slots and the vocabulary
@@ -75,6 +80,8 @@ func New(limits Limits) (solver.Runner, error) {
 		return nil, errors.New("starlark: timeout must be a positive duration")
 	case limits.Concurrency < 1:
 		return nil, errors.New("starlark: concurrency must be at least one")
+	case limits.Wait <= 0:
+		return nil, errors.New("starlark: wait must be a positive duration")
 	}
 	declared, err := vocabulary(limits.Steps)
 	if err != nil {
@@ -89,10 +96,10 @@ func New(limits Limits) (solver.Runner, error) {
 
 // Run executes one program once and reports what became of it.
 //
-// The error is for the run not happening: no slot came free in the time
-// allowed, or whoever asked for it stopped waiting. Everything the program
-// itself did comes back as a status, because that is a fact about the solver
-// rather than about this service.
+// The error is for the run not happening: no slot came free in the time a run
+// may wait for one, which is solver.ErrBusy, or whoever asked for it stopped
+// waiting. Everything the program itself did comes back as a status, because
+// that is a fact about the solver rather than about this service.
 func (s *sandbox) Run(ctx context.Context, source string, options solver.Options) (solver.Result, error) {
 	// Whoever asked has gone: nothing here is worth starting, and the slot
 	// below is worth leaving to a caller who is still waiting for an answer.
@@ -105,14 +112,27 @@ func (s *sandbox) Run(ctx context.Context, source string, options solver.Options
 		return refused(refusal), nil
 	}
 
-	select {
-	case s.slots <- struct{}{}:
-	case <-ctx.Done():
-		return solver.Result{}, fmt.Errorf("starlark: wait for a free slot: %w", ctx.Err())
+	if err := s.take(ctx); err != nil {
+		return solver.Result{}, err
 	}
 	defer func() { <-s.slots }()
 
 	return s.run(ctx, source, options)
+}
+
+// take holds a slot for one run: a free one at once, otherwise the first to
+// come free within the wait. A run that is refused holds none.
+func (s *sandbox) take(ctx context.Context) error {
+	wait := time.NewTimer(s.limits.Wait)
+	defer wait.Stop()
+	select {
+	case s.slots <- struct{}{}:
+		return nil
+	case <-wait.C:
+		return fmt.Errorf("starlark: wait for a free slot: %w", solver.ErrBusy)
+	case <-ctx.Done():
+		return fmt.Errorf("starlark: wait for a free slot: %w", ctx.Err())
+	}
 }
 
 // run is one program from source to letters, once a slot is held.

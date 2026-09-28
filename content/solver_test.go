@@ -312,7 +312,9 @@ func TestEveryTopicHasASolverTemplate(t *testing.T) {
 }
 
 // serviceSandbox is the sandbox a submitted solver runs in, with the limits
-// the deployed service uses.
+// the deployed service uses — all but the wait for a slot. These cases put
+// runs on one sandbox many at a time, and how long a queue of them may stand
+// is not what any of them is about.
 func serviceSandbox(t *testing.T) solver.Runner {
 	t.Helper()
 
@@ -320,6 +322,7 @@ func serviceSandbox(t *testing.T) solver.Runner {
 		Steps:       config.DefaultSolverSteps,
 		Timeout:     config.DefaultSolverTimeout,
 		Concurrency: config.DefaultSolverConcurrency,
+		Wait:        time.Minute,
 	})
 	if err != nil {
 		t.Fatalf("starlark.New() error = %v, want nil", err)

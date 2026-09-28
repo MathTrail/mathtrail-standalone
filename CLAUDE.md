@@ -112,7 +112,8 @@ internal/
   domain/         pure logic — no I/O, no SDKs, no transport
     rating/ tutor/ checks/ solver/ profile/ progress/
   infra/          everything that talks to the outside world
-    starlark/ seal/
+    seal/
+    starlark/     runs the solver the model wrote, within its limits; starlarktest/ watches its slots in tests
     drive/        reaches the files in a parent's Drive, one request per call; drivetest/ stands in for Drive in tests
     cimd/         fetches a client's metadata document, reaching public addresses only
     googleauth/   signs a parent in with Google and proves who it was, renews the grant and ends it; googletest/ stands in for Google in tests

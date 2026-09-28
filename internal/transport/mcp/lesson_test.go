@@ -38,12 +38,15 @@ import (
 var shipped = sync.OnceValues(content.Load)
 
 // sandbox is the sandbox the solvers of these cases run in: the service's own,
-// with the limits a deployment starts with, built once.
+// with the limits a deployment starts with but for the wait for a slot, built
+// once. Every case of the package shares it, many at a time, and how long a
+// queue of their runs may stand is not what any of them is about.
 var sandbox = sync.OnceValues(func() (solver.Runner, error) {
 	return starlark.New(starlark.Limits{
 		Steps:       config.DefaultSolverSteps,
 		Timeout:     config.DefaultSolverTimeout,
 		Concurrency: config.DefaultSolverConcurrency,
+		Wait:        time.Minute,
 	})
 })
 

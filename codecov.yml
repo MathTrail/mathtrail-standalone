@@ -28,6 +28,7 @@ ignore:
   - "internal/infra/googleauth/googletest"
   - "internal/infra/drive/drivetest"
   - "internal/ratelimit/ratelimittest"
+  - "internal/infra/starlark/starlarktest"
 
 comment:
   layout: "condensed_header, diff, files"

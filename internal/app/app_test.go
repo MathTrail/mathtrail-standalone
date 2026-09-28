@@ -589,6 +589,7 @@ func testConfig() *config.Config {
 		SolverSteps:        config.DefaultSolverSteps,
 		SolverTimeout:      config.DefaultSolverTimeout,
 		SolverConcurrency:  config.DefaultSolverConcurrency,
+		SolverWait:         config.DefaultSolverWait,
 		RequestWindow:      config.DefaultRequestWindow,
 		RateUserPerMin:     config.DefaultRateUserPerMin,
 		RateIPPerMin:       config.DefaultRateIPPerMin,

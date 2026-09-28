@@ -51,6 +51,7 @@ func FuzzRun(f *testing.F) {
 		Steps:       100_000,
 		Timeout:     200 * time.Millisecond,
 		Concurrency: 2,
+		Wait:        time.Minute,
 	})
 	if err != nil {
 		f.Fatalf("New: %v", err)

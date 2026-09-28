@@ -71,6 +71,9 @@ func TestDefaults(t *testing.T) {
 	if cfg.SolverConcurrency != config.DefaultSolverConcurrency {
 		t.Errorf("SolverConcurrency = %d, want %d", cfg.SolverConcurrency, config.DefaultSolverConcurrency)
 	}
+	if cfg.SolverWait != config.DefaultSolverWait {
+		t.Errorf("SolverWait = %v, want %v", cfg.SolverWait, config.DefaultSolverWait)
+	}
 	if cfg.RequestWindow != config.DefaultRequestWindow {
 		t.Errorf("RequestWindow = %v, want %v", cfg.RequestWindow, config.DefaultRequestWindow)
 	}
@@ -119,6 +122,7 @@ func TestValuesAreRead(t *testing.T) {
 		"MATHTRAIL_SOLVER_STEPS=250000",
 		"MATHTRAIL_SOLVER_TIMEOUT=500ms",
 		"MATHTRAIL_SOLVER_CONCURRENCY=2",
+		"MATHTRAIL_SOLVER_WAIT=750ms",
 		"MATHTRAIL_REQUEST_WINDOW=20m",
 		"MATHTRAIL_DRIVE_TIMEOUT=3s",
 		"MATHTRAIL_RATE_USER_PER_MIN=31",
@@ -157,6 +161,9 @@ func TestValuesAreRead(t *testing.T) {
 	}
 	if cfg.SolverConcurrency != 2 {
 		t.Errorf("SolverConcurrency = %d, want 2", cfg.SolverConcurrency)
+	}
+	if cfg.SolverWait != 750*time.Millisecond {
+		t.Errorf("SolverWait = %v, want %v", cfg.SolverWait, 750*time.Millisecond)
 	}
 	if cfg.RequestWindow != 20*time.Minute {
 		t.Errorf("RequestWindow = %v, want %v", cfg.RequestWindow, 20*time.Minute)
@@ -401,6 +408,13 @@ func TestRefusals(t *testing.T) {
 			name:    "a sandbox with no slots",
 			environ: []string{"MATHTRAIL_SOLVER_CONCURRENCY=0"},
 			wantVar: "MATHTRAIL_SOLVER_CONCURRENCY",
+		},
+		{
+			// Every run that found the slots taken would be turned away at
+			// once, however soon one came free.
+			name:    "a run that may wait for no slot at all",
+			environ: []string{"MATHTRAIL_SOLVER_WAIT=0s"},
+			wantVar: "MATHTRAIL_SOLVER_WAIT",
 		},
 		{
 			// Shorter than a model takes to write a task: every task handed

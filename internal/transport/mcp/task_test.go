@@ -519,32 +519,52 @@ func wantStaleSpendingNothing(t *testing.T, h *harness, session *mcp.ClientSessi
 	}
 }
 
-// brokenSandbox is a sandbox that cannot run anything at all, which the real
-// one cannot be made to be on demand.
-type brokenSandbox struct{}
+// failingSandbox is a sandbox whose every run fails the way the case gives,
+// which the real one cannot be made to do on demand.
+type failingSandbox struct{ err error }
 
-func (brokenSandbox) Run(context.Context, string, solver.Options) (solver.Result, error) {
-	return solver.Result{}, errors.New("the sandbox is gone")
+func (s failingSandbox) Run(context.Context, string, solver.Options) (solver.Result, error) {
+	return solver.Result{}, s.err
 }
 
-// A sandbox that cannot run is the service's failure, not the task's: the
-// model is told in the service's own words, and no attempt is spent.
-func TestASandboxThatFailsSpendsNoAttempt(t *testing.T) {
+// A sandbox that cannot run a task is the service's failure, not the task's:
+// the model is told in the service's own words — in the words of its own when
+// every slot stayed taken, which say to hand the same task in again — and no
+// attempt is spent.
+func TestASandboxThatCannotRunSpendsNoAttempt(t *testing.T) {
 	t.Parallel()
 
-	kept := racer(t)
-	h, session := lessonWith(t, kept, &clock{at: lessonDay}, brokenSandbox{})
-	request := askForTheRace(t, session, kept)
-	_, revision := loadKept(t, kept)
+	for _, test := range []struct {
+		name, sentence, kind string
+		err                  error
+	}{
+		{
+			name: "a sandbox that is gone", err: errors.New("the sandbox is gone"),
+			sentence: "Something went wrong inside MathTrail.", kind: "internal",
+		},
+		{
+			name: "a sandbox whose every slot stayed taken", err: fmt.Errorf("starlark: wait for a free slot: %w", solver.ErrBusy),
+			sentence: "MathTrail is checking too many tasks right now", kind: "busy",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
 
-	result := call(t, session, "submit_task", raceOn(request))
-	wantOurSentence(t, result, "Something went wrong inside MathTrail.")
-	if p, now := loadKept(t, kept); now != revision || p.OpenRequest.Attempts != 0 {
-		t.Errorf("the profile is at revision %s with %d attempts spent, want it untouched", now, p.OpenRequest.Attempts)
+			kept := racer(t)
+			h, session := lessonWith(t, kept, &clock{at: lessonDay}, failingSandbox{err: test.err})
+			request := askForTheRace(t, session, kept)
+			_, revision := loadKept(t, kept)
+
+			result := call(t, session, "submit_task", raceOn(request))
+			wantOurSentence(t, result, test.sentence)
+			if p, now := loadKept(t, kept); now != revision || p.OpenRequest.Attempts != 0 {
+				t.Errorf("the profile is at revision %s with %d attempts spent, want it untouched", now, p.OpenRequest.Attempts)
+			}
+
+			h.settle()
+			wantFailed(t, h, "submit_task", test.kind)
+		})
 	}
-
-	h.settle()
-	wantFailed(t, h, "submit_task", "internal")
 }
 
 // Asked again while a task is being written, next_task hands back the same
