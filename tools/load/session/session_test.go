@@ -305,6 +305,60 @@ func TestOnlyRequestsTheServiceAnsweredAreCounted(t *testing.T) {
 	}
 }
 
+// A fetch is told by its status: served, held back by a pace, a status the
+// service should not give — a redirect among them, which is not followed — or
+// nobody there to answer. It goes to the host the service knows itself by,
+// from the address given, signed in by nobody, and counts once answered.
+func TestAFetchIsToldByItsStatus(t *testing.T) {
+	t.Parallel()
+
+	var mu sync.Mutex
+	var seen []string
+	mux := http.NewServeMux()
+	mux.HandleFunc("/document", func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		seen = append(seen, r.Host+" from "+r.Header.Get("X-Forwarded-For")+" as "+r.Header.Get("Authorization"))
+		mu.Unlock()
+		_, _ = io.WriteString(w, "{}")
+	})
+	mux.HandleFunc("/paced", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusTooManyRequests) })
+	mux.HandleFunc("/down", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusServiceUnavailable) })
+	mux.HandleFunc("/moved", func(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, "/document", http.StatusFound) })
+	answering := httptest.NewServer(mux)
+	defer answering.Close()
+	gone := httptest.NewServer(http.NotFoundHandler())
+	gone.Close()
+
+	for _, test := range []struct {
+		target        session.Target
+		path, want    string
+		wantRequests  int
+		answeredByWho string
+	}{
+		{session.Target{URL: answering.URL, Host: "localhost:8080"}, "/document", "ok", 1, "a service that serves it"},
+		{session.Target{URL: answering.URL}, "/paced", "limited:paced", 1, "a pace"},
+		{session.Target{URL: answering.URL}, "/down", "http:503", 1, "a service that is down"},
+		{session.Target{URL: answering.URL}, "/moved", "http:302", 1, "a redirect, not followed"},
+		{session.Target{URL: gone.URL}, "/document", "no_answer:refused", 0, "nobody"},
+	} {
+		t.Run(test.answeredByWho, func(t *testing.T) {
+			service := session.Open(test.target, 5*time.Second)
+			defer service.Close()
+
+			answer := service.Fetch(t.Context(), test.path, "203.0.113.7")
+			if answer.Kind.String() != test.want || service.Requests() != test.wantRequests {
+				t.Errorf("Fetch(%q) = %q (%v) after %d requests, want %q after %d",
+					test.path, answer.Kind, answer.Err, service.Requests(), test.want, test.wantRequests)
+			}
+		})
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	if len(seen) != 1 || seen[0] != "localhost:8080 from 203.0.113.7 as " {
+		t.Errorf("the document was asked for as %q, want once, of localhost:8080 from 203.0.113.7 and signed in by nobody", seen)
+	}
+}
+
 // A handshake the library finished at an older version, after the service
 // refused the newest, is not a session of the service's: the call is told as
 // such, and nothing is called through it.
