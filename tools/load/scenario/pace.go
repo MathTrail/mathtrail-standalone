@@ -2,13 +2,20 @@ package scenario
 
 import (
 	"context"
+	"math"
 	"sync"
 	"time"
 
 	vegeta "github.com/tsenart/vegeta/v12/lib"
 
+	"github.com/MathTrail/mathtrail-standalone/tools/load/report"
 	"github.com/MathTrail/mathtrail-standalone/tools/load/session"
 )
+
+// inFlight is the most calls an attack keeps in flight at once. Past it, the
+// service is answering too slowly for more calls to say anything new, and the
+// tool would only be spending itself.
+const inFlight = 256
 
 // hit is one call the runner sent: when it was due to go out, and what came
 // back.
@@ -65,6 +72,26 @@ func attack(ctx context.Context, pacer vegeta.Pacer, over time.Duration, inFligh
 	}
 	flying.Wait()
 	return hits, unsent
+}
+
+// callsOf are the hits of an attack as the report counts them, each from the
+// moment it was due.
+func callsOf(hits []hit) []report.Call {
+	calls := make([]report.Call, len(hits))
+	for i := range hits {
+		calls[i] = report.CallOf(&hits[i].answer, hits[i].due)
+	}
+	return calls
+}
+
+// every is the pace of calls sent at the rate given, in calls a second.
+func every(rate float64) vegeta.Pacer {
+	return steady(time.Duration(math.Round(float64(time.Second) / rate)))
+}
+
+// steady is the pace of one call every interval given.
+func steady(interval time.Duration) vegeta.Pacer {
+	return vegeta.ConstantPacer{Freq: 1, Per: interval}
 }
 
 // pauseUntil waits for the moment given, and says whether the run may go on.

@@ -30,6 +30,34 @@ func TestALessonTheServiceAnswersEndsClean(t *testing.T) {
 	}
 }
 
+// An attack named on the command line hands in the variants named there, each
+// followed by its recovery, and ends clean against a service that takes it.
+func TestAnAttackRunsTheVariantsItIsGiven(t *testing.T) {
+	t.Parallel()
+
+	target := servicetest.Start(t,
+		"MATHTRAIL_SOLVER_STEPS=200000", "MATHTRAIL_SOLVER_TIMEOUT=300ms", "MATHTRAIL_RATE_USER_PER_MIN=600")
+	var stdout, stderr strings.Builder
+	code := run(t.Context(), []string{
+		"-scenario", "adversarial", "-url", target.URL, "-host", target.Host, "-variants", "loop, product",
+		"-rate", "5", "-duration", "500ms", "-children", "1", "-steps", "200000",
+	}, &stdout, &stderr)
+
+	if code != exitClean {
+		t.Fatalf("exit code = %d, want %d; stderr: %s; stdout: %s", code, exitClean, stderr.String(), stdout.String())
+	}
+	var headings []string
+	for line := range strings.Lines(stdout.String()) {
+		if heading, found := strings.CutPrefix(line, "# Load: "); found {
+			headings = append(headings, strings.TrimSpace(heading))
+		}
+	}
+	want := []string{"adversarial: loop", "adversarial: loop: recovery", "adversarial: product", "adversarial: product: recovery"}
+	if strings.Join(headings, "; ") != strings.Join(want, "; ") {
+		t.Errorf("the report has the runs %q, want %q", headings, want)
+	}
+}
+
 // A lesson the service holds back ends as a run that found something, with
 // the report that says what.
 func TestALessonTheServiceHoldsBackEndsHard(t *testing.T) {
@@ -64,10 +92,17 @@ func TestWhatCannotRunIsNotRun(t *testing.T) {
 		{"no service", []string{"-scenario", "lesson"}, "-url"},
 		{"more tasks than written", []string{"-scenario", "lesson", "-url", "http://localhost:8080", "-tasks", "9"}, "tasks"},
 		{"a memory with no unit", []string{"-scenario", "lesson", "-url", "http://localhost:8080", "-memory", "512"}, "unit"},
-		{"a flag nobody declared", []string{"-scenario", "lesson", "-url", "http://localhost:8080", "-rate", "5"}, "rate"},
+		{"a flag nobody declared", []string{"-scenario", "lesson", "-url", "http://localhost:8080", "-speed", "5"}, "speed"},
 		{"no processor", []string{"-scenario", "lesson", "-url", "http://localhost:8080", "-cpus", "0"}, "-cpus"},
 		{"a processor that is not a number", []string{"-scenario", "lesson", "-url", "http://localhost:8080", "-cpus", "NaN"}, "-cpus"},
 		{"a memory that is not a number", []string{"-scenario", "lesson", "-url", "http://localhost:8080", "-memory", "NaNm"}, "not a size"},
+		{"an option the lesson does not read", []string{"-scenario", "lesson", "-url", "http://localhost:8080", "-steps", "1000"}, "lesson reads no -steps"},
+		{"an option saturation does not read", []string{"-scenario", "saturation", "-url", "http://localhost:8080", "-variants", "pairs"}, "saturation reads no -variants"},
+		{"no rate", []string{"-scenario", "saturation", "-url", "http://localhost:8080", "-rate", "0"}, "rate"},
+		{"an attack of no time", []string{"-scenario", "saturation", "-url", "http://localhost:8080", "-duration", "0s"}, "no attack"},
+		{"no child", []string{"-scenario", "saturation", "-url", "http://localhost:8080", "-children", "0"}, "children"},
+		{"a ceiling no solver is sized to", []string{"-scenario", "adversarial", "-url", "http://localhost:8080", "-steps", "1000"}, "steps"},
+		{"a variant nobody wrote", []string{"-scenario", "adversarial", "-url", "http://localhost:8080", "-variants", "pairs,sleep"}, "sleep"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()

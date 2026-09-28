@@ -105,3 +105,20 @@ func TestARunAskedToStopStops(t *testing.T) {
 		t.Errorf("the run sent %d calls over %v, want it stopped after a tenth of a second", len(hits), took)
 	}
 }
+
+// A rate of calls a second is one call every so long, whatever the rate: a
+// slow one of a call every few seconds, as the quiet ones keep, among them.
+func TestARateIsOneCallEveryInterval(t *testing.T) {
+	t.Parallel()
+
+	for rate, want := range map[float64]time.Duration{
+		3:    333333333 * time.Nanosecond,
+		0.2:  5 * time.Second,
+		1000: time.Millisecond,
+	} {
+		wait, stop := every(rate).Pace(0, 0)
+		if wait != want || stop {
+			t.Errorf("every(%v) waits %v for its first call, stop %v; want %v", rate, wait, stop, want)
+		}
+	}
+}

@@ -2,30 +2,76 @@ package scenario_test
 
 import (
 	"context"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
 	"net/url"
+	"slices"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/MathTrail/mathtrail-standalone/tools/load/lesson"
 	"github.com/MathTrail/mathtrail-standalone/tools/load/report"
 	"github.com/MathTrail/mathtrail-standalone/tools/load/scenario"
 	"github.com/MathTrail/mathtrail-standalone/tools/load/servicetest"
 	"github.com/MathTrail/mathtrail-standalone/tools/load/session"
 )
 
+// optionsOf are the options of the scenario named, as a case starts from them.
+func optionsOf(t *testing.T, name string) scenario.Options {
+	t.Helper()
+
+	o, err := scenario.Defaults(name)
+	if err != nil {
+		t.Fatalf("Defaults(%q) error = %v", name, err)
+	}
+	return o
+}
+
 // lessonAtOnce is a lesson with no pause between its steps.
 func lessonAtOnce(t *testing.T) scenario.Options {
 	t.Helper()
 
-	o, err := scenario.Defaults(scenario.Lesson)
-	if err != nil {
-		t.Fatalf("Defaults(%q) error = %v", scenario.Lesson, err)
-	}
+	o := optionsOf(t, scenario.Lesson)
 	o.Pace = 0
 	return o
+}
+
+// runs runs the options against the target, and is what the run came to.
+func runs(ctx context.Context, t *testing.T, o *scenario.Options, target session.Target) []report.Run {
+	t.Helper()
+
+	came, err := scenario.Run(ctx, o, target)
+	if err != nil {
+		t.Fatalf("Run(%s) error = %v", o.Scenario, err)
+	}
+	return came
+}
+
+// one is the one run a scenario came to.
+func one(t *testing.T, came []report.Run) *report.Run {
+	t.Helper()
+
+	if len(came) != 1 {
+		t.Fatalf("the scenario came to %d runs, want one", len(came))
+	}
+	return &came[0]
+}
+
+// inFront is the service at the target behind what the case puts in front of
+// it.
+func inFront(t *testing.T, target session.Target, front func(next http.Handler) http.Handler) session.Target {
+	t.Helper()
+
+	backend, err := url.Parse(target.URL)
+	if err != nil {
+		t.Fatalf("url.Parse(%q) error = %v", target.URL, err)
+	}
+	server := httptest.NewServer(front(httputil.NewSingleHostReverseProxy(backend)))
+	t.Cleanup(server.Close)
+	return session.Target{URL: server.URL, Host: target.Host}
 }
 
 // A lesson against the service walks one child through every task: each asked
@@ -38,10 +84,7 @@ func TestALessonIsAcceptedTaskByTask(t *testing.T) {
 	// Walked without a pause, a lesson is faster than an account's pace allows.
 	target := servicetest.Start(t, "MATHTRAIL_RATE_USER_PER_MIN=600")
 	o := lessonAtOnce(t)
-	run, err := scenario.Run(t.Context(), o, target)
-	if err != nil {
-		t.Fatalf("Run() error = %v", err)
-	}
+	run := one(t, runs(t.Context(), t, &o, target))
 
 	if run.Units != o.Tasks {
 		t.Errorf("%d tasks accepted, want all %d", run.Units, o.Tasks)
@@ -67,10 +110,8 @@ func TestALessonTheServiceHoldsBackFailsTheRun(t *testing.T) {
 	t.Parallel()
 
 	target := servicetest.Start(t, "MATHTRAIL_RATE_USER_PER_MIN=3")
-	run, err := scenario.Run(t.Context(), lessonAtOnce(t), target)
-	if err != nil {
-		t.Fatalf("Run() error = %v", err)
-	}
+	o := lessonAtOnce(t)
+	run := one(t, runs(t.Context(), t, &o, target))
 
 	hards := run.Verdict()
 	if len(hards) == 0 || !strings.Contains(hards[len(hards)-1].What, session.Paced.String()) {
@@ -87,21 +128,55 @@ func TestAScenarioNobodyWroteHasNoDefaults(t *testing.T) {
 	}
 }
 
+// Every scenario there is starts from options a run can keep to, and reads
+// some of the options the command line sets and nothing else.
+func TestEveryScenarioStartsFromOptionsItCanKeepTo(t *testing.T) {
+	t.Parallel()
+
+	set := []string{"tasks", "pace", "timeout", "rate", "duration", "children", "variants", "steps"}
+	for _, name := range scenario.Names() {
+		o := optionsOf(t, name)
+		if err := o.Check(); err != nil || o.Lasts() <= 0 {
+			t.Errorf("Defaults(%q) = %+v, lasting %v, and Check() = %v; want options a run keeps to", name, o, o.Lasts(), err)
+		}
+		reads := scenario.Reads(name)
+		if len(reads) == 0 || slices.ContainsFunc(reads, func(option string) bool { return !slices.Contains(set, option) }) {
+			t.Errorf("Reads(%q) = %q, want some of %q and nothing else", name, reads, set)
+		}
+	}
+}
+
 // Options no run could keep to are refused before anything is sent.
 func TestOptionsNoRunCouldKeepToAreRefused(t *testing.T) {
 	t.Parallel()
 
-	for name, spoil := range map[string]func(*scenario.Options){
-		"no task":                  func(o *scenario.Options) { o.Tasks = 0 },
-		"more tasks than written":  func(o *scenario.Options) { o.Tasks = 6 },
-		"a pause that goes back":   func(o *scenario.Options) { o.Pace = -time.Second },
-		"a call that may not last": func(o *scenario.Options) { o.Timeout = 0 },
+	for _, test := range []struct {
+		name, scenario string
+		spoil          func(*scenario.Options)
+	}{
+		{"no task", scenario.Lesson, func(o *scenario.Options) { o.Tasks = 0 }},
+		{"more tasks than written", scenario.Lesson, func(o *scenario.Options) { o.Tasks = 6 }},
+		{"a pause that goes back", scenario.Lesson, func(o *scenario.Options) { o.Pace = -time.Second }},
+		{"quiet addresses that never fetch", scenario.Limits, func(o *scenario.Options) { o.QuietEvery = 0 }},
+		{"an attack over before a quiet fetch", scenario.Limits, func(o *scenario.Options) { o.Duration = o.QuietEvery }},
+		{"a call that may not last", scenario.Lesson, func(o *scenario.Options) { o.Timeout = 0 }},
+		{"no rate", scenario.Saturation, func(o *scenario.Options) { o.Rate = 0 }},
+		{"a rate that is no number", scenario.Saturation, func(o *scenario.Options) { o.Rate = math.NaN() }},
+		{"a flood", scenario.Saturation, func(o *scenario.Options) { o.Rate = 1001 }},
+		{"a rate too slow to call", scenario.Saturation, func(o *scenario.Options) { o.Rate = 1e-12 }},
+		{"an attack of no time", scenario.Saturation, func(o *scenario.Options) { o.Duration = 0 }},
+		{"an attack over before its first call", scenario.Saturation, func(o *scenario.Options) { o.Duration = 300 * time.Millisecond }},
+		{"no child", scenario.Saturation, func(o *scenario.Options) { o.Children = 0 }},
+		{"a crowd", scenario.Saturation, func(o *scenario.Options) { o.Children = 1001 }},
+		{"a ceiling no solver is sized to", scenario.Adversarial, func(o *scenario.Options) { o.Steps = lesson.MinSteps - 1 }},
+		{"no variant", scenario.Adversarial, func(o *scenario.Options) { o.Variants = nil }},
+		{"a variant nobody wrote", scenario.Adversarial, func(o *scenario.Options) { o.Variants = []string{lesson.Pairs, "sleep"} }},
 	} {
-		t.Run(name, func(t *testing.T) {
+		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			o := lessonAtOnce(t)
-			spoil(&o)
+			o := optionsOf(t, test.scenario)
+			test.spoil(&o)
 			if err := o.Check(); err == nil {
 				t.Errorf("Check(%+v) = nil, want the options refused", o)
 			}
@@ -121,10 +196,7 @@ func TestARunAskedToStopIsThePartThatRan(t *testing.T) {
 	ctx, cancel := context.WithTimeout(t.Context(), 1500*time.Millisecond)
 	defer cancel()
 
-	run, err := scenario.Run(ctx, o, target)
-	if err != nil {
-		t.Fatalf("Run() error = %v, want the part that ran", err)
-	}
+	run := one(t, runs(ctx, t, &o, target))
 	if !run.Stopped || len(run.Calls) == 0 || run.Units == o.Tasks || len(run.Broken) != 0 {
 		t.Errorf("Run() = stopped %v with %d calls, %d tasks accepted and expectations %q, "+
 			"want a stopped run of the part that ran, held to no expectation",
@@ -137,30 +209,22 @@ func TestARunAskedToStopIsThePartThatRan(t *testing.T) {
 func TestATaskAcceptedJustBeforeTheRunStopsCounts(t *testing.T) {
 	t.Parallel()
 
-	service := servicetest.Start(t, "MATHTRAIL_RATE_USER_PER_MIN=600")
-	backend, err := url.Parse(service.URL)
-	if err != nil {
-		t.Fatalf("url.Parse(%q) error = %v", service.URL, err)
-	}
 	ctx, stop := context.WithCancel(t.Context())
 	defer stop()
-	proxy := httputil.NewSingleHostReverseProxy(backend)
-	front := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		proxy.ServeHTTP(w, r)
-		if r.Header.Get("Mcp-Name") == "submit_task" {
-			// Well after the answer is back, and well before the pause after it
-			// is over.
-			time.AfterFunc(300*time.Millisecond, stop)
-		}
-	}))
-	defer front.Close()
+	target := inFront(t, servicetest.Start(t, "MATHTRAIL_RATE_USER_PER_MIN=600"), func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			next.ServeHTTP(w, r)
+			if r.Header.Get("Mcp-Name") == "submit_task" {
+				// Well after the answer is back, and well before the pause after
+				// it is over.
+				time.AfterFunc(300*time.Millisecond, stop)
+			}
+		})
+	})
 	o := lessonAtOnce(t)
 	o.Pace = time.Second
 
-	run, err := scenario.Run(ctx, o, session.Target{URL: front.URL, Host: service.Host})
-	if err != nil {
-		t.Fatalf("Run() error = %v, want the part that ran", err)
-	}
+	run := one(t, runs(ctx, t, &o, target))
 	if !run.Stopped || run.Units != 1 {
 		t.Errorf("Run() = stopped %v with %d tasks accepted, want a stopped run that counts the one accepted",
 			run.Stopped, run.Units)
