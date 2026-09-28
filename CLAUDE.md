@@ -107,17 +107,18 @@ internal/
   app/            DI container, HTTP server
   config/ logger/ version/
   telemetry/      traces and metrics: their providers, their export, what they may carry
-  widget/         the widget page as the web build left it, embedded; a placeholder until a build runs
+  widget/         the widget page as the web build left it, embedded, and the design tokens; a placeholder until a build runs
   domain/         pure logic — no I/O, no SDKs, no transport
     rating/ tutor/ checks/ solver/ profile/ progress/
   infra/          everything that talks to the outside world
     drive/ starlark/ seal/
     cimd/         fetches a client's metadata document, reaching public addresses only
+    googleauth/   signs a parent in with Google and proves who it was; googletest/ stands in for Google in tests
   site/           render/ turns the site's sources into files, check/ judges them
   store/          storage interface plus its in-memory and Drive implementations
   transport/
     mcp/          tools, ui:// resources
-    oauth/        the authorization server: its metadata, its clients, its endpoints
+    oauth/        the authorization server: its metadata, its clients, its endpoints, the sign-in's pages
     http/         /health, and the router every endpoint is mounted on
 content/          catalogs, reference tasks and model instructions, embedded
 site/             the public site: texts per locale, templates, assets

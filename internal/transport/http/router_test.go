@@ -186,13 +186,16 @@ const reached = "reached the endpoint"
 // endpoints are the router's handlers, with stand-ins for the MCP endpoint and
 // the sign-in: what each does is for its own package to test, and what the
 // router does in front of them is for this one.
-func endpoints() httpserver.Endpoints {
-	return httpserver.Endpoints{
+func endpoints() *httpserver.Endpoints {
+	return &httpserver.Endpoints{
 		Health:           httpserver.NewHealthHandler(),
 		MCP:              standIn(reached),
 		ResourceMetadata: standIn(reachedResourceMetadata),
 		ServerMetadata:   standIn(reachedServerMetadata),
 		Register:         standIn(reachedRegister),
+		Authorize:        standIn(reachedAuthorize),
+		Consent:          standIn(reachedConsent),
+		Callback:         standIn(reachedCallback),
 	}
 }
 
@@ -201,6 +204,9 @@ const (
 	reachedResourceMetadata = "reached the resource's metadata"
 	reachedServerMetadata   = "reached the server's metadata"
 	reachedRegister         = "reached the registration"
+	reachedAuthorize        = "reached the authorization request"
+	reachedConsent          = "reached the consent screen's answer"
+	reachedCallback         = "reached Google's answer"
 )
 
 // standIn is a handler that answers with the words given, so that a case can

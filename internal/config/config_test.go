@@ -26,6 +26,12 @@ func withSealKey(environ ...string) []string {
 	return append([]string{"MATHTRAIL_SEAL_KEY_CURRENT=" + sealKey}, environ...)
 }
 
+// googleClient is the Google client a deployment has to be given.
+var googleClient = []string{
+	"MATHTRAIL_GOOGLE_CLIENT_ID=mathtrail.apps.googleusercontent.com",
+	"MATHTRAIL_GOOGLE_CLIENT_SECRET=a-secret-for-tests",
+}
+
 func TestDefaults(t *testing.T) {
 	t.Parallel()
 
@@ -219,10 +225,10 @@ func TestDecodeFailuresNameEveryBadVariable(t *testing.T) {
 func TestDeployed(t *testing.T) {
 	t.Parallel()
 
-	cfg, err := config.LoadFrom(withSealKey(
+	cfg, err := config.LoadFrom(withSealKey(append([]string{
 		"K_SERVICE=mathtrail",
 		"MATHTRAIL_PUBLIC_URL=https://mathtrail.example",
-	))
+	}, googleClient...)...))
 	if err != nil {
 		t.Fatalf("LoadFrom() error = %v, want nil", err)
 	}
@@ -413,6 +419,59 @@ func TestRefusals(t *testing.T) {
 			wantVar: "MATHTRAIL_TELEMETRY_ENDPOINT",
 		},
 		{
+			name:    "a deployment with no Google client",
+			environ: []string{"K_SERVICE=mathtrail", "MATHTRAIL_PUBLIC_URL=https://mathtrail.example"},
+			wantVar: "MATHTRAIL_GOOGLE_CLIENT_ID",
+		},
+		{
+			name: "a deployment with a Google client and no secret",
+			environ: []string{
+				"K_SERVICE=mathtrail",
+				"MATHTRAIL_PUBLIC_URL=https://mathtrail.example",
+				"MATHTRAIL_GOOGLE_CLIENT_ID=mathtrail.apps.googleusercontent.com",
+			},
+			wantVar: "MATHTRAIL_GOOGLE_CLIENT_SECRET",
+		},
+		{
+			name:    "a Google client without its secret",
+			environ: []string{"MATHTRAIL_GOOGLE_CLIENT_ID=mathtrail.apps.googleusercontent.com"},
+			wantVar: "MATHTRAIL_GOOGLE_CLIENT_SECRET",
+		},
+		{
+			name:    "a secret of no Google client",
+			environ: []string{"MATHTRAIL_GOOGLE_CLIENT_SECRET=a-secret-for-tests"},
+			wantVar: "MATHTRAIL_GOOGLE_CLIENT_ID",
+		},
+		{
+			name:    "the site is not https",
+			environ: []string{"MATHTRAIL_SITE_URL=http://mathtrail.example"},
+			wantVar: "MATHTRAIL_SITE_URL",
+		},
+		{
+			name:    "the site has a path",
+			environ: []string{"MATHTRAIL_SITE_URL=https://mathtrail.example/en/"},
+			wantVar: "MATHTRAIL_SITE_URL",
+		},
+		{
+			name: "a deployment linking to a site on this machine",
+			environ: append([]string{
+				"K_SERVICE=mathtrail",
+				"MATHTRAIL_PUBLIC_URL=https://mathtrail.example",
+				"MATHTRAIL_SITE_URL=http://localhost:8000",
+			}, googleClient...),
+			wantVar: "MATHTRAIL_SITE_URL",
+		},
+		{
+			name:    "the site with an empty query",
+			environ: []string{"MATHTRAIL_SITE_URL=https://mathtrail.example?"},
+			wantVar: "MATHTRAIL_SITE_URL",
+		},
+		{
+			name:    "the public url with an empty fragment",
+			environ: []string{"MATHTRAIL_PUBLIC_URL=https://mathtrail.example#"},
+			wantVar: "MATHTRAIL_PUBLIC_URL",
+		},
+		{
 			// The whole point of the switch: in a deployment it is refused,
 			// not warned about.
 			name: "dev auth in a deployment",
@@ -568,10 +627,10 @@ func TestTelemetryDefaults(t *testing.T) {
 func TestTelemetryFollowsTheDeployment(t *testing.T) {
 	t.Parallel()
 
-	deployed := []string{
+	deployed := append([]string{
 		"K_SERVICE=mathtrail",
 		"MATHTRAIL_PUBLIC_URL=https://mathtrail.example",
-	}
+	}, googleClient...)
 
 	for _, c := range []struct {
 		name    string
@@ -623,5 +682,39 @@ func TestTheWayOutIsSharedRatherThanTakenTwice(t *testing.T) {
 				t.Errorf("close = %v, want the quarter of %v the drain leaves it", cfg.CloseTimeout(), budget)
 			}
 		})
+	}
+}
+
+// The Google client is read with the white space a secret read out of a file
+// arrives with taken off, since Google would refuse a client that carried it;
+// the site has an address of its own when none is given.
+func TestTheSignInIsRead(t *testing.T) {
+	t.Parallel()
+
+	cfg, err := config.LoadFrom(withSealKey(
+		"MATHTRAIL_GOOGLE_CLIENT_ID=mathtrail.apps.googleusercontent.com\n",
+		"MATHTRAIL_GOOGLE_CLIENT_SECRET=a-secret-for-tests\n",
+	))
+	if err != nil {
+		t.Fatalf("LoadFrom() error = %v, want nil", err)
+	}
+	if cfg.GoogleClientID != "mathtrail.apps.googleusercontent.com" || cfg.GoogleClientSecret != "a-secret-for-tests" {
+		t.Errorf("GoogleClientID = %q and a secret of %d bytes, want both without their newlines",
+			cfg.GoogleClientID, len(cfg.GoogleClientSecret))
+	}
+	if !cfg.GoogleSignIn() {
+		t.Error("GoogleSignIn() = false, want true with a client configured")
+	}
+	if cfg.Site() != config.DefaultSiteURL {
+		t.Errorf("Site() = %q, want %q", cfg.Site(), config.DefaultSiteURL)
+	}
+
+	cfg, err = config.LoadFrom(withSealKey("MATHTRAIL_SITE_URL=https://mathtrail.example/"))
+	if err != nil {
+		t.Fatalf("LoadFrom() error = %v, want nil", err)
+	}
+	if cfg.GoogleSignIn() || cfg.Site() != "https://mathtrail.example" {
+		t.Errorf("GoogleSignIn() = %v, Site() = %q; want no client and the site without its slash",
+			cfg.GoogleSignIn(), cfg.Site())
 	}
 }

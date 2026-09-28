@@ -1,0 +1,11 @@
+{{- define "phrase" -}}
+{{- range . -}}
+{{- if .Link -}}
+<a href="{{ .Link }}" target="_blank" rel="noopener noreferrer">{{ .Text }}</a>
+{{- else if .Strong -}}
+<strong><bdi>{{ .Text }}</bdi></strong>
+{{- else -}}
+{{ .Text }}
+{{- end -}}
+{{- end -}}
+{{- end -}}

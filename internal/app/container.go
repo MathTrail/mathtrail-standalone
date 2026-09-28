@@ -18,6 +18,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/cimd"
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
@@ -149,6 +150,25 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 	// nothing a real family wrote is kept here, or lost with the process.
 	c.Store = memory.New()
 
+	// A parent signs in with Google, through the service's own client there,
+	// and comes back to the authorization server's callback. A machine with no
+	// client configured has no sign-in: the configuration refuses that on a
+	// deployment.
+	var google googleauth.SignIn
+	if cfg.GoogleSignIn() {
+		google, err = googleauth.New(&googleauth.Settings{
+			ClientID:     cfg.GoogleClientID,
+			ClientSecret: cfg.GoogleClientSecret,
+			RedirectURL:  cfg.Origin() + oauthserver.CallbackPath,
+			Endpoints:    googleauth.Accounts,
+			Now:          time.Now,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+	log.Info("google sign-in", zap.Bool("configured", google != nil))
+
 	// The authorization server seals what it issues under the same key ring,
 	// each kind under a purpose of its own, and reads the documents clients
 	// name themselves by through a fetcher that reaches public addresses only.
@@ -159,6 +179,8 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 		Documents: cimd.NewFetcher(),
 		Logger:    log,
 		ProjectID: cfg.GCPProjectID,
+		Google:    google,
+		SiteURL:   cfg.Site(),
 		Now:       time.Now,
 	})
 	if err != nil {
@@ -206,12 +228,15 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 		return nil, err
 	}
 
-	c.Router, err = httpserver.NewRouter(cfg.PublicURL, httpserver.Endpoints{
+	c.Router, err = httpserver.NewRouter(cfg.PublicURL, &httpserver.Endpoints{
 		Health:           httpserver.NewHealthHandler(),
 		MCP:              endpoint,
 		ResourceMetadata: signInServer.ResourceMetadata,
 		ServerMetadata:   signInServer.ServerMetadata,
 		Register:         signInServer.Register,
+		Authorize:        signInServer.Authorize,
+		Consent:          signInServer.Consent,
+		Callback:         signInServer.Callback,
 	}, log, httpserver.Observability{
 		Traces:    tel.TracerProvider(),
 		Meters:    tel.MeterProvider(),

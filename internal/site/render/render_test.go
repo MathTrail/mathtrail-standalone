@@ -7,6 +7,7 @@ import (
 	"testing/fstest"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/site/render"
+	"github.com/MathTrail/mathtrail-standalone/internal/widget"
 )
 
 const pageTemplate = `<html lang="{{ .Lang }}" dir="{{ .Dir }}">` +
@@ -72,6 +73,7 @@ func TestBuildWritesEveryFileAHostNeeds(t *testing.T) {
 		".nojekyll",
 		"CNAME",
 		"assets/style.css",
+		"assets/tokens.css",
 		"en/index.html",
 		"en/privacy/index.html",
 		"index.html",
@@ -233,6 +235,13 @@ func TestBuildRefusesWhatItCannotPublishCorrectly(t *testing.T) {
 			},
 			wantErr: `locale "ru" holds no text`,
 		},
+		{
+			name: "an asset of the site's own may not take the place of the design tokens",
+			mutate: func(fsys fstest.MapFS, _ *render.Options) {
+				fsys["assets/tokens.css"] = &fstest.MapFile{Data: []byte(":root{}")}
+			},
+			wantErr: "assets/tokens.css would be written twice",
+		},
 	}
 
 	for _, tt := range tests {
@@ -250,5 +259,15 @@ func TestBuildRefusesWhatItCannotPublishCorrectly(t *testing.T) {
 				t.Errorf("Build() error = %q, want one containing %q", err, tt.wantErr)
 			}
 		})
+	}
+}
+
+// The design tokens are served beside the site's own assets, as they are kept.
+func TestBuildServesTheDesignTokens(t *testing.T) {
+	t.Parallel()
+
+	got := build(t, source(), options())
+	if got["assets/tokens.css"] != widget.Tokens() {
+		t.Errorf("assets/tokens.css = %q, want the design tokens as they are kept", got["assets/tokens.css"])
 	}
 }

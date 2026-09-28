@@ -8,6 +8,10 @@
 // so that mistaking one sealed value for another is not something a caller can
 // do by accident.
 //
+// The identifier a signed-in account is known by is derived here too, under a
+// subkey of its own: it is the one other thing made from the key, and the key
+// stays in this package.
+//
 // A sealed value reads mt1.<purpose>.<key id>.<base64url>. It is opaque to
 // whoever holds it and carries no claims anyone else can read. What protects
 // it is XChaCha20-Poly1305 under a subkey belonging to its purpose alone, with

@@ -59,7 +59,7 @@ func TestADocumentIsTheClientsOnlyWhenItKeepsTheRules(t *testing.T) {
 
 			document, err := parseDocument([]byte(tc.body), clientAt)
 			if read := err == nil; read != tc.read {
-				t.Fatalf("parseDocument() = %+v, %v; want it read: %v", document, err, tc.read)
+				t.Fatalf("parseDocument() = %+v, %v; read: %v, want %v", document, err, read, tc.read)
 			}
 			if err != nil && !errors.Is(err, ErrDocument) {
 				t.Errorf("parseDocument() error = %v, want ErrDocument", err)

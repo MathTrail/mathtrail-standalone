@@ -639,12 +639,15 @@ const publicURL = "http://example.com"
 
 // endpoints are the router's handlers. Nothing here asks the MCP endpoint or
 // the sign-in anything, so they stand in with handlers that answer nothing.
-func endpoints() httpserver.Endpoints {
-	return httpserver.Endpoints{
+func endpoints() *httpserver.Endpoints {
+	return &httpserver.Endpoints{
 		Health:           httpserver.NewHealthHandler(),
 		MCP:              http.NotFoundHandler(),
 		ResourceMetadata: http.NotFoundHandler(),
 		ServerMetadata:   http.NotFoundHandler(),
 		Register:         http.NotFoundHandler(),
+		Authorize:        http.NotFoundHandler(),
+		Consent:          http.NotFoundHandler(),
+		Callback:         http.NotFoundHandler(),
 	}
 }

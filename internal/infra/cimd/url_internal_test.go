@@ -46,7 +46,7 @@ func TestOnlyAClientAddressIsFetched(t *testing.T) {
 
 			err := clientURL(tc.clientID)
 			if fetched := err == nil; fetched != tc.fetched {
-				t.Errorf("clientURL(%q) = %v, want it fetched: %v", tc.clientID, err, tc.fetched)
+				t.Errorf("clientURL(%q) = %v; fetched: %v, want %v", tc.clientID, err, fetched, tc.fetched)
 			}
 			if err != nil && !errors.Is(err, ErrClientURL) {
 				t.Errorf("clientURL(%q) = %v, want ErrClientURL", tc.clientID, err)

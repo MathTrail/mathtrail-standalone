@@ -184,11 +184,17 @@ func TestARouterWithSomethingMissingIsRefused(t *testing.T) {
 	withoutServerMetadata.ServerMetadata = nil
 	withoutRegister := endpoints()
 	withoutRegister.Register = nil
+	withoutAuthorize := endpoints()
+	withoutAuthorize.Authorize = nil
+	withoutConsent := endpoints()
+	withoutConsent.Consent = nil
+	withoutCallback := endpoints()
+	withoutCallback.Callback = nil
 
 	cases := []struct {
 		name      string
 		publicURL string
-		endpoints httpserver.Endpoints
+		endpoints *httpserver.Endpoints
 		want      string
 	}{
 		{name: "no host", publicURL: "not a url", endpoints: endpoints(), want: "public URL has no host"},
@@ -198,6 +204,9 @@ func TestARouterWithSomethingMissingIsRefused(t *testing.T) {
 		{name: "no resource metadata", publicURL: publicURL, endpoints: withoutResourceMetadata, want: "ResourceMetadata"},
 		{name: "no server metadata", publicURL: publicURL, endpoints: withoutServerMetadata, want: "ServerMetadata"},
 		{name: "no registration", publicURL: publicURL, endpoints: withoutRegister, want: "Register"},
+		{name: "no authorization", publicURL: publicURL, endpoints: withoutAuthorize, want: "Authorize"},
+		{name: "no consent", publicURL: publicURL, endpoints: withoutConsent, want: "Consent"},
+		{name: "no callback", publicURL: publicURL, endpoints: withoutCallback, want: "Callback"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

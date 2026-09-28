@@ -23,6 +23,9 @@ import (
 // issuer is the address the server under test is.
 const issuer = "https://mcp.example"
 
+// site is the site the pages under test link to.
+const site = "https://site.example"
+
 // someDay is when these cases happen.
 var someDay = time.Date(2026, 9, 27, 12, 0, 0, 0, time.UTC)
 
@@ -56,6 +59,7 @@ func settings(t *testing.T) (*oauthserver.Settings, *observer.ObservedLogs) {
 		Seal:      keyRing(t),
 		Documents: noDocuments{},
 		Logger:    zap.New(core),
+		SiteURL:   site,
 		Now:       func() time.Time { return someDay },
 	}, logs
 }
@@ -113,6 +117,10 @@ func TestAServerWithSomethingMissingIsRefused(t *testing.T) {
 		{"an issuer with a path", func(s *oauthserver.Settings) { s.PublicURL = issuer + "/tenant" }, "PublicURL"},
 		{"an issuer with a trailing slash", func(s *oauthserver.Settings) { s.PublicURL = issuer + "/" }, "PublicURL"},
 		{"an issuer with a query", func(s *oauthserver.Settings) { s.PublicURL = issuer + "?a=b" }, "PublicURL"},
+		{"an issuer with an empty query", func(s *oauthserver.Settings) { s.PublicURL = issuer + "?" }, "PublicURL"},
+		{"a site with an empty fragment", func(s *oauthserver.Settings) { s.SiteURL = site + "#" }, "SiteURL"},
+		{"no site", func(s *oauthserver.Settings) { s.SiteURL = "" }, "SiteURL"},
+		{"a site with a path", func(s *oauthserver.Settings) { s.SiteURL = site + "/en/" }, "SiteURL"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()

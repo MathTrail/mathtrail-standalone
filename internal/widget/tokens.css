@@ -1,0 +1,147 @@
+/* The design tokens: the colours of the light and the dark theme, the spacing,
+   the radii, the sizes of a card and of what a finger presses, and the font
+   stacks. A theme is chosen by data-theme on the document, and by the viewer's
+   own preference when nothing sets it. */
+:root, [data-theme="light"] {
+  --surface: #ffffff;
+  --band: #f8f7f4;
+  --code: #f6f5f1;
+  --border: #e3e0da;
+  --border-strong: #cfcbc3;
+  --text: #1f1e1b;
+  --text-muted: #6b6862;
+  --hover: #f1efea;
+  --accent: #2f5bd6;
+  --accent-fill: #2f5bd6;
+  --accent-tint: #eef2fc;
+  --on-accent: #ffffff;
+  --correct: #11643a;
+  --correct-tint: #eaf5ee;
+  --wrong: #c2412a;
+  --wrong-tint: #fcefeb;
+  --trap-border: #f1d0c7;
+  --on-signal: #ffffff;
+  --hint-tint: #fbf6e7;
+  --hint-border: #ebdfbc;
+  --hint-text: #5b4a17;
+  --letter-fill: #f8f7f4;
+  --letter-border: #d6d2ca;
+  --letter-text: #3d3a35;
+  --badge-text: #57534b;
+  --pressed-fill: #ebe8e1;
+  --pressed-border: #b9b4ab;
+  --ink-strong: #3d3a35;
+  --track: #d8d4cc;
+  --avatar-fill: #ebe5da;
+  --avatar-ink: #6f685c;
+  --mark-fill: #23211d;
+  --mark-ink: #f3eee4;
+  --page: #f5f4ef;
+  --page-sunk: #ebe9e2;
+  --shadow-frame: 0 1px 2px rgba(31,30,27,0.06), 0 16px 40px rgba(31,30,27,0.10);
+}
+[data-theme="dark"] {
+  --surface: #1d1c1a;
+  --band: #252421;
+  --code: #272623;
+  --border: #3b3935;
+  --border-strong: #4d4a44;
+  --text: #edebe6;
+  --text-muted: #a8a49c;
+  --hover: #2d2c29;
+  --accent: #8ea8ff;
+  --accent-fill: #3d64d8;
+  --accent-tint: #1f2a47;
+  --on-accent: #ffffff;
+  --correct: #6fd39a;
+  --correct-tint: #17301f;
+  --wrong: #ff9a85;
+  --wrong-tint: #3a1f1a;
+  --trap-border: #6b3a30;
+  --on-signal: #161512;
+  --hint-tint: #2e2918;
+  --hint-border: #4d4426;
+  --hint-text: #e8d7a0;
+  --letter-fill: #2a2926;
+  --letter-border: #4d4a44;
+  --letter-text: #dcd8d0;
+  --badge-text: #c4c0b8;
+  --pressed-fill: #34322e;
+  --pressed-border: #6b675f;
+  --ink-strong: #dcd8d0;
+  --track: #4d4a44;
+  --avatar-fill: #3a3731;
+  --avatar-ink: #c9c2b4;
+  --mark-fill: #f3eee4;
+  --mark-ink: #23211d;
+  --page: #141312;
+  --page-sunk: #1b1a18;
+  --shadow-frame: 0 1px 2px rgba(0,0,0,0.5), 0 16px 40px rgba(0,0,0,0.45);
+}
+:root {
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-44: 44px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-64: 64px;
+  --space-120: 120px;
+  --radius-widget: 10px;
+  --radius-card: 8px;
+  --radius-control: 6px;
+  --radius-pill: 999px;
+  --radius-round: 50%;
+  --radius-frame: 20px;
+  --widget-narrow: 360px;
+  --widget-wide: 640px;
+  --tap-target: 44px;
+  --option-min: 48px;
+  --site-max: 1200px;
+  --measure: 65ch;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, "Noto Sans", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --font-serif: ui-serif, "New York", "Iowan Old Style", Charter, Georgia, "Noto Serif", serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+  --surface: #1d1c1a;
+  --band: #252421;
+  --code: #272623;
+  --border: #3b3935;
+  --border-strong: #4d4a44;
+  --text: #edebe6;
+  --text-muted: #a8a49c;
+  --hover: #2d2c29;
+  --accent: #8ea8ff;
+  --accent-fill: #3d64d8;
+  --accent-tint: #1f2a47;
+  --on-accent: #ffffff;
+  --correct: #6fd39a;
+  --correct-tint: #17301f;
+  --wrong: #ff9a85;
+  --wrong-tint: #3a1f1a;
+  --trap-border: #6b3a30;
+  --on-signal: #161512;
+  --hint-tint: #2e2918;
+  --hint-border: #4d4426;
+  --hint-text: #e8d7a0;
+  --letter-fill: #2a2926;
+  --letter-border: #4d4a44;
+  --letter-text: #dcd8d0;
+  --badge-text: #c4c0b8;
+  --pressed-fill: #34322e;
+  --pressed-border: #6b675f;
+  --ink-strong: #dcd8d0;
+  --track: #4d4a44;
+  --avatar-fill: #3a3731;
+  --avatar-ink: #c9c2b4;
+  --mark-fill: #f3eee4;
+  --mark-ink: #23211d;
+  --page: #141312;
+  --page-sunk: #1b1a18;
+  --shadow-frame: 0 1px 2px rgba(0,0,0,0.5), 0 16px 40px rgba(0,0,0,0.45);
+}
+}

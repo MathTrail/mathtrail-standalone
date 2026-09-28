@@ -556,6 +556,7 @@ func testConfig() *config.Config {
 		SolverTimeout:     config.DefaultSolverTimeout,
 		SolverConcurrency: config.DefaultSolverConcurrency,
 		RequestWindow:     config.DefaultRequestWindow,
+		SiteURL:           config.DefaultSiteURL,
 	}
 }
 

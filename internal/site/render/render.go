@@ -1,5 +1,6 @@
 // Package render turns the site's sources — Markdown texts, HTML templates and
-// static assets — into the exact set of files a static host serves.
+// static assets — together with the design tokens into the exact set of files
+// a static host serves.
 //
 // Nothing here touches the filesystem: the sources arrive as an [fs.FS] and the
 // result comes back as bytes, so a test renders the whole site in memory.
@@ -16,6 +17,8 @@ import (
 	"strings"
 
 	"github.com/yuin/goldmark"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/widget"
 )
 
 // Options are the choices a build cannot derive from the sources.
@@ -50,6 +53,11 @@ const (
 	// indexPage is the page name that becomes a locale's own front page rather
 	// than a directory beneath it.
 	indexPage = "index"
+
+	// designAsset is where the design tokens are served. They are kept in one
+	// file for everything drawn in the design, outside the site's sources, so
+	// that no copy of them can drift from another.
+	designAsset = "assets/tokens.css"
 )
 
 // Build renders the site below source into the files a host serves. The result
@@ -103,9 +111,13 @@ func Build(source fs.FS, opt Options) ([]File, error) {
 		return nil, err
 	}
 	files = append(files, assets...)
+	files = append(files, File{Path: designAsset, Data: []byte(widget.Tokens())})
 	files = append(files, metadataFiles(pages, opt, origin)...)
 
 	sort.Slice(files, func(i, j int) bool { return files[i].Path < files[j].Path })
+	if twice := givenTwice(files); twice != "" {
+		return nil, fmt.Errorf("render: %s would be written twice", twice)
+	}
 	return files, nil
 }
 
@@ -472,4 +484,16 @@ func sitemap(pages pageSet, opt Options) []byte {
 
 	out.WriteString("</urlset>\n")
 	return out.Bytes()
+}
+
+// givenTwice is a path two of the sorted files would be written to, or
+// nothing when every file has a path of its own: one of the two would
+// silently take the other's place.
+func givenTwice(sorted []File) string {
+	for i := 1; i < len(sorted); i++ {
+		if sorted[i].Path == sorted[i-1].Path {
+			return sorted[i].Path
+		}
+	}
+	return ""
 }
