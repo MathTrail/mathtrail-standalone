@@ -25,7 +25,7 @@ The screens below come from the approved design of the widget, the one the widge
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screens/task-dark.png">
-  <img src="docs/screens/task-light.png" width="360" alt="A chat with the message 'A new task, please' and, under it, the MathTrail card. The top line reads Comet, the child's pseudonym, and Profile & progress. The card is signed MathTrail, Olympiad coach, Grade 3. The task: a fence is 12 meters long, posts stand every 3 meters, including both ends; how many posts are there? Below it, a text drawing of the fence, then five options, A 3, B 4, C 5, D 6 and E 12. At the bottom, a field to ask a question about the task and three buttons: I don't know, Hint and Another task.">
+  <img src="docs/screens/task-light.png" width="428" alt="A chat with the message 'A new task, please' and, under it, the MathTrail card. The top line reads Comet, the child's pseudonym, and Profile & progress. The card is signed MathTrail, Olympiad coach, Grade 3. The task: a fence is 12 meters long, posts stand every 3 meters, including both ends; how many posts are there? Below it, a text drawing of the fence, then five options, A 3, B 4, C 5, D 6 and E 12. At the bottom, a field to ask a question about the task and three buttons: I don't know, Hint and Another task.">
 </picture>
 
 A child asks in the chat for a new task, and it arrives as a card:
@@ -39,7 +39,7 @@ A child asks in the chat for a new task, and it arrives as a card:
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screens/wrong-dark.png">
-  <img src="docs/screens/wrong-light.png" width="360" alt="The same card after the child picked B, 4. Option B is framed in red and marked Your answer; option C, 5, is framed in green and marked Correct answer. Under the options, MathTrail says: Not quite, it's 5, not 4. A red note titled The trap reads: Counted the gaps instead of the posts. A solution follows in three steps: 12 divided by 3 is 4 gaps; a straight fence with posts at both ends has one more post than gaps; 4 plus 1 is 5 posts. At the bottom, the question field and a button, Another task.">
+  <img src="docs/screens/wrong-light.png" width="428" alt="The same card after the child picked B, 4. Option B is framed in red and marked Your answer; option C, 5, is framed in green and marked Correct answer. Under the options, MathTrail says: Not quite, it's 5, not 4. A red note titled The trap reads: Counted the gaps instead of the posts. A solution follows in three steps: 12 divided by 3 is 4 gaps; a straight fence with posts at both ends has one more post than gaps; 4 plus 1 is 5 posts. At the bottom, the question field and a button, Another task.">
 </picture>
 
 A tap records the answer at once, before any explanation, so nothing in the chat can talk it into being right. Every wrong option was written with a named trap behind it, and the card shows the trap the child fell into — here, counting the gaps instead of the posts — then the solution. The model explains in the chat starting from that trap, not from the right answer, and the child's rating in the topic moves.
@@ -48,7 +48,7 @@ A tap records the answer at once, before any explanation, so nothing in the chat
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screens/progress-dark.png">
-  <img src="docs/screens/progress-light.png" width="360" alt="The progress screen after the message 'How is Comet doing?'. The top line reads Back to task. Under Comet, Grade 3: Rank 3, an overall rating of 1573 with a bar of rank steps, and Next up: Enumeration again, at the same level. Topics with their ratings: Enumeration 1627, Ordering 1712 marked Mastered, Gaps and boundaries 1588, Parity and alternation 1541. Recent answers: Enumeration wrong, Gaps and boundaries right, Ordering right. Mistakes that repeat: Missed a case while listing, 3 times; Counted the same thing twice, 1 time. The profile for the parent: grade 3, interests space, animals and football, not at school yet division with remainder, and an Edit profile button.">
+  <img src="docs/screens/progress-light.png" width="428" alt="The progress screen after the message 'How is Comet doing?'. The top line reads Back to task. Under Comet, Grade 3: Rank 3, an overall rating of 1573 with a bar of rank steps, and Next up: Enumeration again, at the same level. Topics with their ratings: Enumeration 1627, Ordering 1712 marked Mastered, Gaps and boundaries 1588, Parity and alternation 1541. Recent answers: Enumeration wrong, Gaps and boundaries right, Ordering right. Mistakes that repeat: Missed a case while listing, 3 times; Counted the same thing twice, 1 time. The profile for the parent: grade 3, interests space, animals and football, not at school yet division with remainder, and an Edit profile button.">
 </picture>
 
 The same screen opens from the card's top line or when the child or the parent asks in the chat. It shows a chess-style rating with its rank, what comes next, the rating of every topic and the ones mastered, the recent answers, the traps that keep coming back, and the profile. All of it is one JSON file in the parent's own Google Drive.
