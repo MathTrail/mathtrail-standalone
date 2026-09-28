@@ -25,6 +25,9 @@ type memoryStore struct {
 	// lands.
 	mu    sync.Mutex
 	files map[string]file
+	// setAside holds the files each account started over from, the earliest
+	// first: set aside rather than deleted, as every store keeps them.
+	setAside map[string][][]byte
 	// writes counts every write the store has taken and numbers the revision
 	// of each. A number is never handed out twice, so a revision that was
 	// current once cannot come to match a later state.
@@ -46,7 +49,7 @@ var errNoOne = errors.New("an account that names no one")
 
 // New builds a store that holds nothing yet.
 func New() store.Storage {
-	return &memoryStore{files: map[string]file{}}
+	return &memoryStore{files: map[string]file{}, setAside: map[string][][]byte{}}
 }
 
 // ready is what every operation needs before it looks at anything: a context
@@ -128,6 +131,28 @@ func (m *memoryStore) Export(ctx context.Context, account store.Account) (store.
 	}
 	// Nothing outside the process can open what it keeps.
 	return store.Location{}, nil
+}
+
+func (m *memoryStore) StartOver(ctx context.Context, account store.Account, p *profile.Profile) (store.Revision, error) {
+	if err := ready(ctx, account); err != nil {
+		return "", fmt.Errorf("memory: start over: %w", err)
+	}
+	raw, err := profile.Marshal(p)
+	if err != nil {
+		return "", fmt.Errorf("memory: start over: %w", err)
+	}
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if kept, found := m.files[account.ID]; found {
+		// A file some build can read — this one, or a newer — is a profile,
+		// and a profile is never replaced.
+		if _, err := store.Parse(kept.raw); !errors.Is(err, store.ErrCorrupted) {
+			return "", fmt.Errorf("memory: start over: %w: the profile can be read", store.ErrConflict)
+		}
+		m.setAside[account.ID] = append(m.setAside[account.ID], kept.raw)
+	}
+	return m.put(account, raw, p.Revision), nil
 }
 
 // find is the account's file, when it has one.

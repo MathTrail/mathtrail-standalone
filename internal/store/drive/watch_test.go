@@ -31,13 +31,16 @@ func TestEveryCallIsASpanAndALine(t *testing.T) {
 	f.spans.Reset()
 	f.logs.TakeAll()
 	cold := f.instance(t, 5*time.Second)
-	f.fake.Fail(drivetest.Download, http.StatusServiceUnavailable, "backendError")
+	failEveryTry(f.fake, drivetest.Download, http.StatusServiceUnavailable, "backendError")
 
 	ctx, caller := f.traces.Tracer("drivestore_test").Start(t.Context(), "tools/call get_profile")
 	_, _, err := cold.Load(ctx, mia)
 	caller.End()
 	if !errors.Is(err, drive.ErrUnavailable) {
 		t.Fatalf("Load() error = %v, want %v", err, drive.ErrUnavailable)
+	}
+	if waited := f.waits.taken(); len(waited) != tries-1 {
+		t.Errorf("the download that failed waited %v before its tries, want %d pauses", waited, tries-1)
 	}
 
 	var calls []sdktrace.ReadOnlySpan
@@ -50,9 +53,10 @@ func TestEveryCallIsASpanAndALine(t *testing.T) {
 		name, outcome string
 		failed        bool
 		level         zapcore.Level
+		retries       int64
 	}{
-		{"drive list", "ok", false, zapcore.InfoLevel},
-		{"drive download", "unavailable", true, zapcore.WarnLevel},
+		{"drive list", "ok", false, zapcore.InfoLevel, 0},
+		{"drive download", "unavailable", true, zapcore.WarnLevel, tries - 1},
 	}
 	if len(calls) != len(want) {
 		t.Fatalf("spans of the calls = %d, want %d", len(calls), len(want))
@@ -86,8 +90,8 @@ func TestEveryCallIsASpanAndALine(t *testing.T) {
 			t.Errorf("line = op %v, outcome %v, want %s, %s", fields["op"], fields["outcome"], op, call.outcome)
 		case fields["user"] != mia.ID:
 			t.Errorf("line of %s names user %v, want %q", op, fields["user"], mia.ID)
-		case fields["retries"] != int64(0):
-			t.Errorf("line of %s says %v retries, want 0", op, fields["retries"])
+		case fields["retries"] != call.retries:
+			t.Errorf("line of %s says %v retries, want %d", op, fields["retries"], call.retries)
 		case fields["logging.googleapis.com/spanId"] != span.SpanContext().SpanID().String():
 			t.Errorf("line of %s names span %v, want the span of its call", op, fields["logging.googleapis.com/spanId"])
 		}

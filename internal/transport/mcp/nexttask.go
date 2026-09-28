@@ -106,6 +106,12 @@ func (s *Service) topicList() string {
 // still to be handed in. Everything it says is in the words; only a refusal
 // has a payload.
 func (s *Service) nextTask(ctx context.Context, account store.Account, in nextTaskIn) (Reply[any], error) {
+	return afresh(ctx, func() (Reply[any], error) { return s.openRequest(ctx, account, in) })
+}
+
+// openRequest is one read of the profile and the write of the request it
+// opens, or the request already open.
+func (s *Service) openRequest(ctx context.Context, account store.Account, in nextTaskIn) (Reply[any], error) {
 	p, revision, err := s.store.Load(ctx, account)
 	switch {
 	case errors.Is(err, store.ErrNotFound):

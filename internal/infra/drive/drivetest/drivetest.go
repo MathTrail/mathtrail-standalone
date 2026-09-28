@@ -6,10 +6,11 @@
 // answering it the way Drive might not.
 //
 // A test puts into a Drive what a parent or another build would have left
-// there, reads back what the service wrote, and can have the next call of a
-// kind refused, or left unanswered until the caller gives up. Every call is
-// counted by its kind, so that what a piece of the service costs in calls can
-// be held to a number.
+// there — a file's history among it — reads back what the service wrote, and
+// can have the next call of a kind refused, held until the test lets it go, or
+// left unanswered until the caller gives up, and the next downloads of a file
+// answered with what it held before. Every call is counted by its kind, so
+// that what a piece of the service costs in calls can be held to a number.
 //
 // It is test code that lives in a package rather than a test file, because the
 // tests of more than one package reach a parent's Drive, and a test file cannot
@@ -17,6 +18,7 @@
 package drivetest
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/json"
 	"net/http"
@@ -26,16 +28,22 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/drive"
 )
 
 // The kinds of call, one for each request the service makes. They are what
 // the stand-in counts, and what a test names to have the next call refused.
 const (
-	List     = "list"
-	Get      = "get"
-	Download = "download"
-	Create   = "create"
-	Update   = "update"
+	List             = "list"
+	Get              = "get"
+	Download         = "download"
+	Create           = "create"
+	Update           = "update"
+	ListRevisions    = "revisions"
+	DownloadRevision = "revision"
+	KeepRevision     = "keep"
+	DeleteRevision   = "delete"
 )
 
 // File is a file in a parent's Drive, as a test puts it there and reads it
@@ -47,13 +55,27 @@ type File struct {
 	Parents       []string
 	AppProperties map[string]string
 	// Content is what the file holds; a folder holds nothing.
-	Content      []byte
+	Content []byte
+	// Revisions are the states of the content Drive keeps, the earliest
+	// first; the last is the content now. A file that is not a folder has one
+	// at least: a file put with none is given one of its content, and a file
+	// put with some holds what the last of them holds.
+	Revisions    []Revision
 	ModifiedTime time.Time
 	Trashed      bool
 	// Own marks a file the parent made themselves. Under drive.file the
 	// service is never shown it: no search finds it, and asking for it by its
 	// ID is answered as if there were no such file.
 	Own bool
+}
+
+// Revision is one state of a file's content, as Drive keeps it: purged in
+// time unless it is kept forever, and its content given out only if it is.
+type Revision struct {
+	ID           string
+	ModifiedTime time.Time
+	KeepForever  bool
+	Content      []byte
 }
 
 // Calls counts the calls of each kind the stand-in was asked.
@@ -65,6 +87,8 @@ type fault struct {
 	reason string
 	// stall leaves the call without an answer until its caller gives up.
 	stall bool
+	// gate holds the call until it is closed, and then serves it.
+	gate chan struct{}
 }
 
 // Drive is the stand-in: one server, and a Drive behind it for every token.
@@ -79,6 +103,9 @@ type Drive struct {
 	revoked map[string]bool
 	calls   Calls
 	faults  map[string][]fault
+	// lagging counts the downloads of a file still to be answered with what
+	// it held before its last change, by the token and the file.
+	lagging map[[2]string]int
 	// clock is when the latest change was made. Every change moves it on by
 	// a second, so that the most recently modified file is never a tie.
 	clock time.Time
@@ -94,6 +121,7 @@ func New(t testing.TB) *Drive {
 		revoked: map[string]bool{},
 		calls:   Calls{},
 		faults:  map[string][]fault{},
+		lagging: map[[2]string]int{},
 		clock:   time.Date(2026, time.September, 28, 10, 0, 0, 0, time.UTC),
 	}
 	mux := http.NewServeMux()
@@ -108,6 +136,11 @@ func New(t testing.TB) *Drive {
 	mux.HandleFunc("POST /drive/v3/files", d.serve(Create, d.createEmpty))
 	mux.HandleFunc("POST /upload/drive/v3/files", d.serve(Create, d.createFile))
 	mux.HandleFunc("PATCH /upload/drive/v3/files/{id}", d.serve(Update, d.update))
+	mux.HandleFunc("PATCH /drive/v3/files/{id}", d.serve(Update, d.rename))
+	mux.HandleFunc("GET /drive/v3/files/{id}/revisions", d.serve(ListRevisions, d.listRevisions))
+	mux.HandleFunc("GET /drive/v3/files/{id}/revisions/{revision}", d.serve(DownloadRevision, d.downloadRevision))
+	mux.HandleFunc("PATCH /drive/v3/files/{id}/revisions/{revision}", d.serve(KeepRevision, d.keepRevision))
+	mux.HandleFunc("DELETE /drive/v3/files/{id}/revisions/{revision}", d.serve(DeleteRevision, d.deleteRevision))
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		d.malformed(w, "%s %s is not a request the service makes", r.Method, r.URL.Path)
 	})
@@ -162,9 +195,31 @@ func (d *Drive) Stall(kind string) {
 	d.faults[kind] = append(d.faults[kind], fault{stall: true})
 }
 
+// Hold keeps the next call of a kind waiting — counted, and not yet served —
+// until the test lets it go, or its caller gives up on it. Letting it go
+// serves it as Drive would.
+func (d *Drive) Hold(kind string) (letGo func()) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	gate := make(chan struct{})
+	d.faults[kind] = append(d.faults[kind], fault{gate: gate})
+	var once sync.Once
+	return func() { once.Do(func() { close(gate) }) }
+}
+
+// Lag answers the next downloads of a file with what it held before its last
+// change, as a Drive that has not yet caught up with a write would, as many
+// times as asked.
+func (d *Drive) Lag(token, id string, downloads int) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	d.lagging[[2]string{token, id}] = downloads
+}
+
 // Put keeps a file in the Drive a token reaches, as a parent or something
 // other than this service would have left it, and answers its ID. A file with
-// no ID is given one, and one with no time of change is changed now.
+// no ID is given one, and one with no time of change is changed now; so is
+// each of its revisions.
 func (d *Drive) Put(token string, file *File) string {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -173,9 +228,18 @@ func (d *Drive) Put(token string, file *File) string {
 	if kept.ID == "" {
 		kept.ID = rand.Text()
 	}
+	for i := range kept.Revisions {
+		if kept.Revisions[i].ID == "" {
+			kept.Revisions[i].ID = rand.Text()
+		}
+		if kept.Revisions[i].ModifiedTime.IsZero() {
+			kept.Revisions[i].ModifiedTime = d.tick()
+		}
+	}
 	if kept.ModifiedTime.IsZero() {
 		kept.ModifiedTime = d.tick()
 	}
+	kept.settleHistory()
 	d.drives[token] = append(d.drives[token], kept)
 	return kept.ID
 }
@@ -195,8 +259,9 @@ func (d *Drive) Files(token string) []*File {
 }
 
 // Edit changes a file the way a parent would in Drive itself: renamed, moved,
-// put in the bin, rewritten. The file is changed now, unless the change says
-// when.
+// put in the bin, rewritten — which leaves a revision of the new content — or
+// its history reshaped, as Drive purging it would. The file is changed now,
+// unless the change says when.
 func (d *Drive) Edit(token, id string, change func(*File)) {
 	d.t.Helper()
 	d.mu.Lock()
@@ -213,6 +278,20 @@ func (d *Drive) Edit(token, id string, change func(*File)) {
 	if edited.ModifiedTime.IsZero() {
 		edited.ModifiedTime = d.tick()
 	}
+	switch {
+	case !slices.EqualFunc(edited.Revisions, file.Revisions, sameRevision):
+		// The history was reshaped: the content is what it now ends with.
+		for i := range edited.Revisions {
+			if edited.Revisions[i].ID == "" {
+				edited.Revisions[i].ID = rand.Text()
+			}
+		}
+	case !bytes.Equal(edited.Content, file.Content):
+		edited.Revisions = append(edited.Revisions, Revision{
+			ID: rand.Text(), ModifiedTime: edited.ModifiedTime, Content: slices.Clone(edited.Content),
+		})
+	}
+	edited.settleHistory()
 	*file = *edited
 }
 
@@ -242,6 +321,14 @@ func (d *Drive) serve(kind string, serve handler) http.HandlerFunc {
 		}
 		d.mu.Unlock()
 
+		if planned != nil && planned.gate != nil {
+			select {
+			case <-planned.gate:
+				planned = nil
+			case <-r.Context().Done():
+				return
+			}
+		}
 		switch {
 		case !signed || token == "" || revoked:
 			refuse(w, http.StatusUnauthorized, "authError", "Invalid Credentials")
@@ -301,7 +388,33 @@ func (f *File) copied() *File {
 			file.AppProperties[key] = value
 		}
 	}
+	file.Revisions = make([]Revision, 0, len(f.Revisions))
+	for _, revision := range f.Revisions {
+		revision.Content = slices.Clone(revision.Content)
+		file.Revisions = append(file.Revisions, revision)
+	}
 	return &file
+}
+
+// settleHistory holds a file to its history: a folder has none, a file with
+// none is given one of its content, and a file holds what its last revision
+// does.
+func (f *File) settleHistory() {
+	switch {
+	case f.MimeType == drive.FolderType:
+		f.Revisions = nil
+	case len(f.Revisions) == 0:
+		f.Revisions = []Revision{{ID: rand.Text(), ModifiedTime: f.ModifiedTime, Content: slices.Clone(f.Content)}}
+	default:
+		f.Content = slices.Clone(f.Revisions[len(f.Revisions)-1].Content)
+	}
+}
+
+// sameRevision reports whether two revisions are the same state, kept the
+// same way.
+func sameRevision(a, b Revision) bool {
+	return a.ID == b.ID && a.KeepForever == b.KeepForever && a.ModifiedTime.Equal(b.ModifiedTime) &&
+		bytes.Equal(a.Content, b.Content)
 }
 
 // refuse answers a call the way Drive refuses one: a status, and the reason

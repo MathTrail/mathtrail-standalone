@@ -22,8 +22,8 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 )
 
-// Harness is a store under test, and the one thing a case needs to reach it
-// from outside the service.
+// Harness is a store under test, and what a case needs to reach it from
+// outside the service.
 type Harness struct {
 	// Storage is the store under test. It holds nothing yet.
 	Storage store.Storage
@@ -32,6 +32,13 @@ type Harness struct {
 	// hand, a newer build, a write cut short. The account need not have a
 	// profile yet.
 	Plant func(t *testing.T, account store.Account, raw []byte)
+	// SetAside reads back every file the account started over from, the
+	// earliest first, byte for byte as the store keeps them.
+	SetAside func(t *testing.T, account store.Account) [][]byte
+	// Revoke takes back the account's access to where its profile is kept,
+	// the way the parent would. A store that keeps profiles itself has no
+	// access to take back, and leaves it nil.
+	Revoke func(t *testing.T, account store.Account)
 }
 
 // Run holds a store to the contract. newHarness is called once for every case,
@@ -59,6 +66,10 @@ func Run(t *testing.T, newHarness func(t *testing.T) Harness) {
 		{"an account with a profile can be told where it is", anAccountWithAProfileCanBeToldWhereItIs},
 		{"a finished context stops every operation", aFinishedContextStopsEveryOperation},
 		{"saves racing from one revision leave one whole profile", savesRacingFromOneRevisionLeaveOneWholeProfile},
+		{"a profile nothing can read is started over, and set aside", aProfileNothingCanReadIsStartedOver},
+		{"a profile that can be read is not started over", aReadableProfileIsNotStartedOver},
+		{"an account with nothing to set aside starts over from nothing", anAccountWithNothingToSetAsideStartsOver},
+		{"access taken back reaches nothing", accessTakenBackReachesNothing},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			t.Parallel()
@@ -74,7 +85,7 @@ var moment = time.Date(2026, time.September, 26, 9, 30, 0, 0, time.UTC)
 // someone is an account named for a case. The name goes into both the
 // identifier and the token, so two accounts never share either.
 func someone(name string) store.Account {
-	return store.NewAccount("account-"+name, "token-"+name)
+	return store.NewAccount("account-"+name, "token-"+name, time.Time{})
 }
 
 // child is a profile as the first sign-in makes it. Every field a parent types
@@ -270,10 +281,7 @@ func aProfileNotMovedOnByOneWriteIsRefused(t *testing.T, h Harness) {
 	twice, _ := load(t, h, mia)
 	twice.Touch("storetest", moment)
 	twice.Touch("storetest", moment)
-	branchedOn := []error{
-		store.ErrNotFound, store.ErrConflict, store.ErrCorrupted, store.ErrAccessRevoked,
-		profile.ErrInvalid, profile.ErrNewer,
-	}
+	branchedOn := slices.Concat(refusals, []error{profile.ErrInvalid, profile.ErrNewer})
 	for how, q := range map[string]*profile.Profile{"not touched": untouched, "touched twice": twice} {
 		_, err := h.Storage.Save(t.Context(), mia, q, created)
 		if err == nil {
@@ -331,6 +339,14 @@ func aProfileThatBreaksItsRulesIsNotWritten(t *testing.T, h Harness) {
 			_, err := h.Storage.Save(t.Context(), mia, nameless, created)
 			return err
 		}},
+		{"started over for an account with none", func() error {
+			_, err := h.Storage.StartOver(t.Context(), leo, child(""))
+			return err
+		}},
+		{"started over in place of a profile", func() error {
+			_, err := h.Storage.StartOver(t.Context(), mia, child(""))
+			return err
+		}},
 	} {
 		if err := attempt.write(); !errors.Is(err, profile.ErrInvalid) {
 			t.Errorf("a profile with no pseudonym %s: error = %v, want %v", attempt.aimed, err, profile.ErrInvalid)
@@ -354,7 +370,7 @@ func anAccountThatNamesNoOneReachesNoProfile(t *testing.T, h Harness) {
 	want := fileOf(t, p)
 	created := create(t, h, mia, p)
 	current, _ := load(t, h, mia)
-	nameless := store.NewAccount("", mia.Token())
+	nameless := store.NewAccount("", mia.Token(), time.Time{})
 
 	if _, err := h.Storage.Create(t.Context(), nameless, child("Nobody")); err == nil {
 		t.Error("Create() for an account that names no one: error = nil, want a refusal")
@@ -367,6 +383,9 @@ func anAccountThatNamesNoOneReachesNoProfile(t *testing.T, h Harness) {
 	}
 	if _, err := h.Storage.Export(t.Context(), nameless); err == nil {
 		t.Error("Export() for an account that names no one: error = nil, want a refusal")
+	}
+	if _, err := h.Storage.StartOver(t.Context(), nameless, child("Nobody")); err == nil {
+		t.Error("StartOver() for an account that names no one: error = nil, want a refusal")
 	}
 	holds(t, h, mia, want)
 }
@@ -500,6 +519,8 @@ func aFinishedContextStopsEveryOperation(t *testing.T, h Harness) {
 	wantFinished(t, "Save", err)
 	_, err = h.Storage.Export(finished, mia)
 	wantFinished(t, "Export", err)
+	_, err = h.Storage.StartOver(finished, leo, child("Leo"))
+	wantFinished(t, "StartOver", err)
 
 	hasNone(t, h, leo)
 	holds(t, h, mia, want)
@@ -566,5 +587,136 @@ func savesRacingFromOneRevisionLeaveOneWholeProfile(t *testing.T, h Harness) {
 	final := fileOf(t, got)
 	if !slices.ContainsFunc(files, func(racer []byte) bool { return bytes.Equal(racer, final) }) {
 		t.Errorf("after the race the store holds\n%s\nwhich no racer wrote", final)
+	}
+}
+
+// refusals are every refusal of a store a caller branches on.
+var refusals = []error{
+	store.ErrNotFound, store.ErrConflict, store.ErrCorrupted, store.ErrAccessRevoked, store.ErrAccessExpired,
+	store.ErrInBin, store.ErrBehind, store.ErrRestored, store.ErrStorageFull, store.ErrUnavailable,
+}
+
+// setAside checks that the account started over from exactly the files given,
+// byte for byte, the earliest first.
+func setAside(t *testing.T, h Harness, account store.Account, want ...[]byte) {
+	t.Helper()
+
+	got := h.SetAside(t, account)
+	if !slices.EqualFunc(got, want, bytes.Equal) {
+		t.Errorf("the files %v started over from are\n%q\nwant\n%q", account, got, want)
+	}
+}
+
+// A profile nothing can read is replaced by a new one when the parent asks,
+// and the file it replaces is set aside rather than deleted. The new profile
+// is then the one read and written, and a second ask finds nothing to start
+// over from: the profile it would replace reads.
+func aProfileNothingCanReadIsStartedOver(t *testing.T, h Harness) {
+	mia := someone("mia")
+	damaged := []byte(`{"schema_version": 1, "student": {"pseud`)
+	h.Plant(t, mia, damaged)
+	if _, _, err := h.Storage.Load(t.Context(), mia); !errors.Is(err, store.ErrCorrupted) {
+		t.Fatalf("Load() of a damaged file error = %v, want %v", err, store.ErrCorrupted)
+	}
+
+	fresh := child("Mia again")
+	want := fileOf(t, fresh)
+	started, err := h.Storage.StartOver(t.Context(), mia, fresh)
+	if err != nil {
+		t.Fatalf("StartOver() error = %v, want nil", err)
+	}
+	got, revision := load(t, h, mia)
+	if file := fileOf(t, got); !bytes.Equal(file, want) {
+		t.Errorf("Load() after StartOver() =\n%s\nwant the new profile:\n%s", file, want)
+	}
+	if revision != started {
+		t.Errorf("Load() revision = %q, want %q, the one StartOver answered", revision, started)
+	}
+	setAside(t, h, mia, damaged)
+
+	if _, err := h.Storage.StartOver(t.Context(), mia, child("Mia a third time")); !errors.Is(err, store.ErrConflict) {
+		t.Errorf("StartOver() over the new profile error = %v, want %v", err, store.ErrConflict)
+	}
+	holds(t, h, mia, want)
+	setAside(t, h, mia, damaged)
+
+	moved := renamed(got, "Mia the brave")
+	if _, err := h.Storage.Save(t.Context(), mia, moved, started); err != nil {
+		t.Errorf("Save() of the new profile error = %v, want nil", err)
+	}
+}
+
+// A profile some build can read — this one, or a newer — is never replaced:
+// what the parent was told when they asked to start over no longer holds, and
+// nothing is set aside.
+func aReadableProfileIsNotStartedOver(t *testing.T, h Harness) {
+	mia, leo := someone("mia"), someone("leo")
+	p := child("Mia")
+	want := fileOf(t, p)
+	create(t, h, mia, p)
+	newer := fmt.Appendf(nil, `{"schema_version": %d}`, profile.Version+1)
+	h.Plant(t, leo, newer)
+
+	for _, account := range []store.Account{mia, leo} {
+		if _, err := h.Storage.StartOver(t.Context(), account, child("A new start")); !errors.Is(err, store.ErrConflict) {
+			t.Errorf("StartOver(%v) over a readable profile error = %v, want %v", account, err, store.ErrConflict)
+		}
+		setAside(t, h, account)
+	}
+	holds(t, h, mia, want)
+	if _, _, err := h.Storage.Load(t.Context(), leo); !errors.Is(err, profile.ErrNewer) {
+		t.Errorf("Load() of the newer build's file after StartOver() error = %v, want %v", err, profile.ErrNewer)
+	}
+}
+
+// An account with nothing to set aside — the bin emptied, say — starts over
+// from nothing: the new profile is its first.
+func anAccountWithNothingToSetAsideStartsOver(t *testing.T, h Harness) {
+	mia := someone("mia")
+	p := child("Mia")
+	want := fileOf(t, p)
+
+	started, err := h.Storage.StartOver(t.Context(), mia, p)
+	if err != nil {
+		t.Fatalf("StartOver() error = %v, want nil", err)
+	}
+	_, revision := load(t, h, mia)
+	if revision != started {
+		t.Errorf("Load() revision = %q, want %q, the one StartOver answered", revision, started)
+	}
+	holds(t, h, mia, want)
+	setAside(t, h, mia)
+}
+
+// Once the parent takes the service's access back, nothing of the profile is
+// reached: every operation says so, in the refusal a new sign-in answers.
+func accessTakenBackReachesNothing(t *testing.T, h Harness) {
+	if h.Revoke == nil {
+		t.Skip("the store keeps profiles itself: there is no access to take back")
+	}
+	mia := someone("mia")
+	create(t, h, mia, child("Mia"))
+	p, read := load(t, h, mia)
+	h.Revoke(t, mia)
+
+	_, _, err := h.Storage.Load(t.Context(), mia)
+	wantRevoked(t, "Load", err)
+	_, err = h.Storage.Save(t.Context(), mia, renamed(p, "Mia the brave"), read)
+	wantRevoked(t, "Save", err)
+	_, err = h.Storage.Create(t.Context(), mia, child("A second Mia"))
+	wantRevoked(t, "Create", err)
+	_, err = h.Storage.Export(t.Context(), mia)
+	wantRevoked(t, "Export", err)
+	_, err = h.Storage.StartOver(t.Context(), mia, child("A new start"))
+	wantRevoked(t, "StartOver", err)
+}
+
+// wantRevoked checks that an operation was refused because the access to the
+// profile was taken back.
+func wantRevoked(t *testing.T, operation string, err error) {
+	t.Helper()
+
+	if !errors.Is(err, store.ErrAccessRevoked) {
+		t.Errorf("%s() with the access taken back: error = %v, want %v", operation, err, store.ErrAccessRevoked)
 	}
 }

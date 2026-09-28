@@ -97,6 +97,12 @@ func (s *Service) submitAnswerTool() Tool {
 // to the model, which explains it in words. An answer sent again for the same
 // task is told what was recorded, and nothing is written.
 func (s *Service) submitAnswer(ctx context.Context, account store.Account, in submitAnswerIn) (Reply[answeredOut], error) {
+	return afresh(ctx, func() (Reply[answeredOut], error) { return s.answer(ctx, account, in) })
+}
+
+// answer is one read of the profile and the write of the answer recorded in
+// it, or what was recorded already.
+func (s *Service) answer(ctx context.Context, account store.Account, in submitAnswerIn) (Reply[answeredOut], error) {
 	p, revision, err := s.store.Load(ctx, account)
 	switch {
 	case errors.Is(err, store.ErrNotFound):

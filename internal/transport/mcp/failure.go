@@ -17,6 +17,17 @@ const (
 	kindPanic       = "panic"
 	kindConflict    = "conflict"
 	kindSealed      = "sealed"
+	// The kinds of what happened to the parent's Drive, or to the profile's
+	// file in it.
+	kindRevoked     = "revoked"
+	kindExpired     = "expired"
+	kindStorageFull = "storage_full"
+	kindUnavailable = "drive_unavailable"
+	kindCorrupted   = "corrupted"
+	kindInBin       = "in_bin"
+	kindBehind      = "behind"
+	kindRestored    = "restored"
+	kindNewer       = "newer"
 )
 
 // sentenceInternal is what the model is told when something of ours failed
@@ -75,6 +86,71 @@ var failures = []struct {
 		kind:     kindSealed,
 		sentence: "This task can no longer be checked, so no answer was recorded and it was taken off the card. Tell the child, and ask for a new task with next_task.",
 	},
+	{
+		// The parent took the service's access to their Drive back. Only a
+		// new sign-in mends it; the result also carries the challenge a host
+		// that reads one signs in again with.
+		cause:    store.ErrAccessRevoked,
+		kind:     kindRevoked,
+		sentence: "MathTrail can no longer reach the child's profile: the access to the adult's Google Drive was taken back, so nothing was read or saved. Ask the adult to connect MathTrail again and to let it use Google Drive, then make the same call again.",
+	},
+	{
+		// The Google access the call carried ends before a call to Drive
+		// could finish. Renewed access mends it, which the host asks for.
+		cause:    store.ErrAccessExpired,
+		kind:     kindExpired,
+		sentence: "MathTrail's access to the adult's Google Drive has to be renewed, so nothing was read or saved. Make the same call again; if it keeps failing, ask the adult to connect MathTrail again.",
+	},
+	{
+		// The one failure where the child did something and it did not stick.
+		cause:    store.ErrStorageFull,
+		kind:     kindStorageFull,
+		sentence: "The adult's Google Drive is full, so nothing was saved: if the child has just answered, that answer was not recorded. Ask the adult to free up space in Google Drive, then make the same call again.",
+	},
+	{
+		cause:    store.ErrUnavailable,
+		kind:     kindUnavailable,
+		sentence: "Google Drive is not answering at the moment, so nothing was saved. Make the same call again in a minute; if it keeps failing, tell the adult that Google Drive is having trouble.",
+	},
+	{
+		// The file cannot be read, and was not put back: no earlier state of
+		// it reads, or it is a profile that breaks a rule, which is never
+		// rolled back on the service's say. The two ways out are the parent's.
+		cause:    store.ErrCorrupted,
+		kind:     kindCorrupted,
+		sentence: "The child's profile file in the adult's Google Drive cannot be read, so nothing was done. Tell the adult. They can restore an earlier version of the file from its version history in Google Drive and then make the same call again, or start a new profile: call save_profile with start_over set to true, a pseudonym and the grade. The file that cannot be read is kept in Drive, not deleted.",
+	},
+	{
+		cause:    store.ErrInBin,
+		kind:     kindInBin,
+		sentence: "The child's profile file is in the adult's Google Drive bin, so nothing was done. Ask the adult to restore it from the bin in Google Drive, then make the same call again. If they would rather start a new profile, call save_profile with start_over set to true, a pseudonym and the grade: the file in the bin is kept, not deleted.",
+	},
+	{
+		cause:    store.ErrBehind,
+		kind:     kindBehind,
+		sentence: "The child's profile is still being saved in Google Drive, so nothing was done. Make the same call again in a moment.",
+	},
+	{
+		// The call found the file damaged and put it back to a state that
+		// reads: that is all it did, and the parent should hear of it.
+		cause:    store.ErrRestored,
+		kind:     kindRestored,
+		sentence: "The child's profile file in the adult's Google Drive was damaged, so MathTrail put it back to its latest earlier version that can be read; anything saved after that version is lost. Tell the adult what happened, then make the same call again.",
+	},
+	{
+		// A rollout under way: the newer build writes a shape this one does
+		// not read, and waiting is what helps.
+		cause:    profile.ErrNewer,
+		kind:     kindNewer,
+		sentence: "The child's profile was last saved by a newer version of MathTrail than the one answering now, so nothing was done. Make the same call again in a few minutes.",
+	},
+}
+
+// signInAgain is whether a failure is mended by the parent signing in again,
+// or by the host renewing its tokens: a host that reads a challenge in the
+// result is handed one.
+func signInAgain(kind string) bool {
+	return kind == kindRevoked || kind == kindExpired
 }
 
 // failure is a tool call that could not do its work, as it is told to the

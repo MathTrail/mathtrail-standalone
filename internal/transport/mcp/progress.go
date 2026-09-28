@@ -94,6 +94,11 @@ func (s *Service) readProgressTool() Tool {
 // progress is the one answer of both progress tools: they differ in who calls
 // them and in whether a host draws a card, never in what they say.
 func (s *Service) progress(ctx context.Context, account store.Account, _ noArguments) (Reply[progressOut], error) {
+	return afresh(ctx, func() (Reply[progressOut], error) { return s.readProgress(ctx, account) })
+}
+
+// readProgress is one read of the profile, and the progress it holds.
+func (s *Service) readProgress(ctx context.Context, account store.Account) (Reply[progressOut], error) {
 	p, _, err := s.store.Load(ctx, account)
 	switch {
 	case errors.Is(err, store.ErrNotFound):

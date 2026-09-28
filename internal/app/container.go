@@ -270,12 +270,19 @@ func profileStore(cfg *config.Config, log *zap.Logger, traces trace.TracerProvid
 	if cfg.DevAuth {
 		return memory.New(), nil
 	}
-	files, err := drive.NewFiles(&drive.Settings{Root: drive.Google, Timeout: cfg.DriveTimeout})
+	calls := &drive.Settings{Root: drive.Google, Timeout: cfg.DriveTimeout}
+	files, err := drive.NewFiles(calls)
+	if err != nil {
+		return nil, err
+	}
+	revisions, err := drive.NewRevisions(calls)
 	if err != nil {
 		return nil, err
 	}
 	return drivestore.New(&drivestore.Settings{
 		Files:     files,
+		Revisions: revisions,
+		Timeout:   cfg.DriveTimeout,
 		Logger:    log,
 		Traces:    traces,
 		ProjectID: cfg.GCPProjectID,

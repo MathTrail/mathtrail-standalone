@@ -14,17 +14,27 @@ var fileFields = map[string]bool{
 	"appProperties": true, "modifiedTime": true, "webViewLink": true, "trashed": true,
 }
 
+// revisionFields are the fields of a revision the stand-in knows how to
+// answer with.
+var revisionFields = map[string]bool{"kind": true, "id": true, "modifiedTime": true, "keepForever": true}
+
 // fileSelection reads the fields a call asks of one file: a list such as
 // id,name. A field the stand-in does not know is refused, as Drive refuses a
 // field it does not have.
 func fileSelection(fields string) ([]string, error) {
+	return fileSelectionOf(fields, fileFields)
+}
+
+// fileSelectionOf reads the fields a call asks of one resource, out of the
+// ones known.
+func fileSelectionOf(fields string, known map[string]bool) ([]string, error) {
 	if fields == "" {
 		return defaultFields, nil
 	}
 	selected := strings.Split(fields, ",")
 	for _, field := range selected {
-		if !fileFields[field] {
-			return nil, fmt.Errorf("%q is no field of a file the stand-in answers with", field)
+		if !known[field] {
+			return nil, fmt.Errorf("%q is no field the stand-in answers with here", field)
 		}
 	}
 	return selected, nil
@@ -33,14 +43,27 @@ func fileSelection(fields string) ([]string, error) {
 // listSelection reads the fields a search asks of each file it finds, in the
 // form files(id,name), which may be followed by nextPageToken.
 func listSelection(fields string) ([]string, error) {
+	return listSelectionOf(fields, "files", fileFields)
+}
+
+// revisionListSelection reads the fields a list of revisions asks of each, in
+// the form revisions(id,keepForever), which may be followed by nextPageToken.
+func revisionListSelection(fields string) ([]string, error) {
+	return listSelectionOf(fields, "revisions", revisionFields)
+}
+
+// listSelectionOf reads the fields a list asks of each thing it lists, in the
+// form of the list's name with the fields in brackets.
+func listSelectionOf(fields, list string, known map[string]bool) ([]string, error) {
 	if fields == "" {
 		return defaultFields, nil
 	}
-	inner, rest, found := strings.Cut(strings.TrimPrefix(fields, "files("), ")")
-	if !found || !strings.HasPrefix(fields, "files(") || (rest != "" && rest != ",nextPageToken") {
-		return nil, fmt.Errorf("%q does not ask for files(…)", fields)
+	open := list + "("
+	inner, rest, found := strings.Cut(strings.TrimPrefix(fields, open), ")")
+	if !found || !strings.HasPrefix(fields, open) || (rest != "" && rest != ",nextPageToken") {
+		return nil, fmt.Errorf("%q does not ask for %s(…)", fields, list)
 	}
-	return fileSelection(inner)
+	return fileSelectionOf(inner, known)
 }
 
 // pick is a file as Drive answers with it: the fields asked for, and the ones

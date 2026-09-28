@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"runtime"
 	"slices"
 	"strings"
@@ -303,18 +304,18 @@ func TestContainerKeepsProfilesWhereTheSignInReaches(t *testing.T) {
 	dev := testConfig()
 	dev.DevAuth = true
 	inMemory := containerFrom(t, dev).Store
-	devAccount := store.NewAccount(mcpserver.DevAccount, "")
+	devAccount := store.NewAccount(mcpserver.DevAccount, "", time.Time{})
 	p := profile.New(profile.Student{ExcludedSkills: []string{}, Grade: 3, Interests: []string{"space"}, Pseudonym: "Mia"},
 		"app_test", time.Now())
 	if _, err := inMemory.Create(t.Context(), devAccount, p); err != nil {
 		t.Fatalf("Create() under the development sign-in error = %v, want nil", err)
 	}
-	if location, err := inMemory.Export(t.Context(), devAccount); err != nil || location != (store.Location{}) {
+	if location, err := inMemory.Export(t.Context(), devAccount); err != nil || !reflect.DeepEqual(location, store.Location{}) {
 		t.Errorf("Export() under the development sign-in = %+v, %v, want the memory's zero location", location, err)
 	}
 
 	inDrive := containerFrom(t, testConfig()).Store
-	_, _, err := inDrive.Load(t.Context(), store.NewAccount("a-parent", ""))
+	_, _, err := inDrive.Load(t.Context(), store.NewAccount("a-parent", "", time.Time{}))
 	if err == nil || errors.Is(err, store.ErrNotFound) {
 		t.Errorf("Load() for an account without a token under the real sign-in: error = %v, want a refusal that is not %v",
 			err, store.ErrNotFound)

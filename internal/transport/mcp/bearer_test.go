@@ -31,7 +31,7 @@ func readerEndingIn(left time.Duration) mcpserver.TokenReader {
 		if token != vouchedToken {
 			return store.Account{}, time.Time{}, errors.New(whyRefused)
 		}
-		return store.NewAccount(vouchedUser, "a-google-access-token"), time.Now().Add(left), nil
+		return store.NewAccount(vouchedUser, "a-google-access-token", time.Time{}), time.Now().Add(left), nil
 	}
 }
 
@@ -48,8 +48,14 @@ func (b bearing) RoundTrip(r *http.Request) (*http.Response, error) {
 // token.
 func (h *harness) connectWith(t *testing.T, token string) (*mcp.ClientSession, error) {
 	t.Helper()
+	return h.connectAs(t, "claude-code", token)
+}
 
-	client := mcp.NewClient(&mcp.Implementation{Name: "claude-code", Version: "1.0.0"}, nil)
+// connectAs is connectWith, for a client that gives itself the name given.
+func (h *harness) connectAs(t *testing.T, name, token string) (*mcp.ClientSession, error) {
+	t.Helper()
+
+	client := mcp.NewClient(&mcp.Implementation{Name: name, Version: "1.0.0"}, nil)
 	session, err := client.Connect(t.Context(), &mcp.StreamableClientTransport{
 		Endpoint:             h.server.URL + "/mcp",
 		HTTPClient:           &http.Client{Transport: bearing{token: token}},

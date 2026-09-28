@@ -31,6 +31,23 @@ type profileOut struct {
 	Profile        *detailsOut        `json:"profile"`
 	Trial          *trialOut          `json:"trial"`
 	Recommendation *recommendationOut `json:"recommendation"`
+	Location       *locationOut       `json:"location,omitempty"`
+}
+
+// locationOut is where the adult finds the child's profile for themselves:
+// the file is the export, and there is no other. Files beside it that hold a
+// profile too are named, for the adult to look at and delete.
+type locationOut struct {
+	Folder string         `json:"folder"`
+	File   string         `json:"file"`
+	Link   string         `json:"link"`
+	Others []elsewhereOut `json:"others"`
+}
+
+// elsewhereOut is another file that holds a profile.
+type elsewhereOut struct {
+	File string `json:"file"`
+	Link string `json:"link"`
 }
 
 // detailsOut are the child's details as the progress carries them, and the
@@ -58,6 +75,7 @@ type saveProfileIn struct {
 	ExcludedSkills []string `json:"excluded_skills,omitempty" jsonschema:"ids of skills the child has not met at school yet, from the list in this tool's description. The list replaces the one kept; an empty list clears it"`
 	Notes          *string  `json:"notes,omitempty" jsonschema:"what the adult wants known about the child, for pitching the words, at most 500 characters. An empty text clears it"`
 	UILanguage     *string  `json:"ui_language,omitempty" jsonschema:"the language of the cards as a BCP 47 tag, such as en, ru or pt-BR. An empty text makes the cards follow the chat's language"`
+	StartOver      bool     `json:"start_over,omitempty" jsonschema:"true only when a result said the profile file cannot be read or is in the Google Drive bin, and the adult asked for a new profile instead. The old file is set aside, not deleted, and a new profile starts from the pseudonym and grade given. A profile that can be read is never started over"`
 }
 
 // edit is the change the arguments ask for.
@@ -111,7 +129,14 @@ func (s *Service) skillList() string {
 	return strings.TrimSuffix(lines.String(), "\n")
 }
 
+// getProfile reads the child's profile, and says where the adult finds it for
+// themselves.
 func (s *Service) getProfile(ctx context.Context, account store.Account, _ noArguments) (Reply[profileOut], error) {
+	return afresh(ctx, func() (Reply[profileOut], error) { return s.readProfile(ctx, account) })
+}
+
+// readProfile is one read of the profile, and of where it is kept.
+func (s *Service) readProfile(ctx context.Context, account store.Account) (Reply[profileOut], error) {
 	p, _, err := s.store.Load(ctx, account)
 	switch {
 	case errors.Is(err, store.ErrNotFound):
@@ -119,20 +144,45 @@ func (s *Service) getProfile(ctx context.Context, account store.Account, _ noArg
 	case err != nil:
 		return Reply[profileOut]{}, fmt.Errorf("mcp: read the profile: %w", err)
 	}
-	return s.profileReply(p, "")
+	location, err := s.store.Export(ctx, account)
+	if err != nil {
+		return Reply[profileOut]{}, fmt.Errorf("mcp: find the profile: %w", err)
+	}
+	reply, err := s.profileReply(p, "")
+	if err != nil {
+		return Reply[profileOut]{}, err
+	}
+	reply.Payload.Location = locationOf(&location)
+	reply.Text = joined(reply.Text, locationText(&location))
+	return reply, nil
 }
 
 // saveProfile creates the profile when there is none and changes it when
-// there is. Nothing is written when the details break a rule, and nothing when
-// they already say what the call asks for.
+// there is, and starts it over when the adult asks for that in place of one
+// nothing can read. Nothing is written when the details break a rule, and
+// nothing when they already say what the call asks for.
+//
+//nolint:gocritic // hugeParam: the frame hands every handler its arguments by value
 func (s *Service) saveProfile(ctx context.Context, account store.Account, in saveProfileIn) (Reply[profileOut], error) {
+	return afresh(ctx, func() (Reply[profileOut], error) { return s.writeProfile(ctx, account, &in) })
+}
+
+// writeProfile is one read of the profile and the write the arguments ask of
+// what it finds.
+func (s *Service) writeProfile(ctx context.Context, account store.Account, in *saveProfileIn) (Reply[profileOut], error) {
 	edit := in.edit()
 	p, revision, err := s.store.Load(ctx, account)
 	switch {
 	case errors.Is(err, store.ErrNotFound):
 		return s.createProfile(ctx, account, &edit)
+	case in.StartOver && (errors.Is(err, store.ErrCorrupted) || errors.Is(err, store.ErrInBin)):
+		return s.startOver(ctx, account, &edit)
 	case err != nil:
 		return Reply[profileOut]{}, fmt.Errorf("mcp: read the profile: %w", err)
+	case in.StartOver:
+		// What the adult was told no longer holds — the file was mended, or put
+		// back from the bin — and a profile that reads is never replaced.
+		return s.profileReply(p, "The profile can be read, so it was not started over, and nothing was saved.")
 	}
 
 	changed, problems := p.Change(&edit, s.content.HasSkill, s.version, s.now())
@@ -160,6 +210,58 @@ func (s *Service) createProfile(ctx context.Context, account store.Account, edit
 		return Reply[profileOut]{}, fmt.Errorf("mcp: create the profile: %w", err)
 	}
 	return s.profileReply(p, "The profile is created.")
+}
+
+// startOver makes a new profile in place of one nothing can read, or one in
+// the bin, as the adult asked: the child starts again from the grade given,
+// and the old file is set aside rather than deleted.
+func (s *Service) startOver(ctx context.Context, account store.Account, edit *profile.Edit) (Reply[profileOut], error) {
+	student, problems := profile.NewStudent(edit, s.content.HasSkill)
+	if len(problems) > 0 {
+		return s.refusal(nil, problems)
+	}
+	p := profile.New(student, s.version, s.now())
+	if _, err := s.store.StartOver(ctx, account, p); err != nil {
+		return Reply[profileOut]{}, fmt.Errorf("mcp: start the profile over: %w", err)
+	}
+	return s.profileReply(p, "A new profile is started. The old file was not deleted: it stays in Google Drive, "+
+		"renamed as set aside.")
+}
+
+// locationOf is where the profile is, as the payload carries it, or nothing
+// when it is kept nowhere a person could open it.
+func locationOf(location *store.Location) *locationOut {
+	if location.File == "" {
+		return nil
+	}
+	out := &locationOut{Folder: location.Folder, File: location.File, Link: location.Link, Others: []elsewhereOut{}}
+	for _, other := range location.Others {
+		out.Others = append(out.Others, elsewhereOut(other))
+	}
+	return out
+}
+
+// locationText is where the profile is, in words: the file is the export.
+func locationText(location *store.Location) string {
+	if location.File == "" {
+		return ""
+	}
+	where := "as the file " + quoted(location.File)
+	if location.Folder != "" {
+		where += " in the folder " + quoted(location.Folder)
+	}
+	text := fmt.Sprintf("The profile is kept in the adult's Google Drive %s: %s. That file is the export: "+
+		"the adult can open, download or copy it like any other file.", where, location.Link)
+	if len(location.Others) == 0 {
+		return text
+	}
+	others := make([]string, 0, len(location.Others))
+	for _, other := range location.Others {
+		others = append(others, quoted(other.File)+" ("+other.Link+")")
+	}
+	return text + " Other files in the adult's Drive hold a profile too: " + strings.Join(others, ", ") +
+		". MathTrail reads and writes only the newest, the one above, and never merges them; " +
+		"the adult can delete the others."
 }
 
 // profileReply is a profile as the two tools of the profile hand it back.

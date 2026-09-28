@@ -11,6 +11,10 @@ import (
 // to.
 const other = "other"
 
+// familyChatGPT is the family of the chat host that starts its sign-in from a
+// challenge in a failed result, and not from a 401 in the middle of a call.
+const familyChatGPT = "chatgpt"
+
 // supportedVersions are the protocol versions the library speaks, newest first.
 var supportedVersions = mcp.SupportedProtocolVersions()
 
@@ -44,7 +48,7 @@ func clientFamily(info *mcp.Implementation) string {
 	case strings.Contains(name, "claude"), strings.Contains(name, "anthropic"):
 		return "claude"
 	case strings.Contains(name, "chatgpt"), strings.Contains(name, "openai"):
-		return "chatgpt"
+		return familyChatGPT
 	case strings.Contains(name, "inspector"):
 		return "inspector"
 	}

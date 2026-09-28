@@ -28,3 +28,21 @@ func Plant(t *testing.T, s store.Storage, account store.Account, raw []byte) {
 	defer m.mu.Unlock()
 	m.put(account, bytes.Clone(raw), counter)
 }
+
+// SetAside is every file the account started over from, the earliest first,
+// as the store keeps them.
+func SetAside(t *testing.T, s store.Storage, account store.Account) [][]byte {
+	t.Helper()
+
+	m, ok := s.(*memoryStore)
+	if !ok {
+		t.Fatalf("SetAside() was handed a %T, want a store this package built", s)
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	kept := make([][]byte, 0, len(m.setAside[account.ID]))
+	for _, raw := range m.setAside[account.ID] {
+		kept = append(kept, bytes.Clone(raw))
+	}
+	return kept
+}

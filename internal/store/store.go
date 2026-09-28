@@ -19,6 +19,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 )
@@ -32,13 +33,40 @@ var (
 	// from: it moved on after it was read, or it exists where a new one was to
 	// be created. Nothing was written, and the caller reads again.
 	ErrConflict = errors.New("store: the stored profile is not the one expected")
-	// ErrCorrupted means there is a file and it cannot be read as a profile.
-	// A file written by a newer build of the service is not corrupted: it is
-	// refused with profile.ErrNewer instead, because waiting is what helps.
+	// ErrCorrupted means there is a file and it cannot be read as a profile:
+	// one that is no profile at all and has no earlier state that reads, or a
+	// profile that breaks a rule, which is never rolled back since a newer
+	// build or the parent may have written it. A file written by a newer
+	// build of the service at a newer version is not corrupted: it is refused
+	// with profile.ErrNewer instead, because waiting is what helps.
 	ErrCorrupted = errors.New("store: the profile cannot be read")
 	// ErrAccessRevoked means the account no longer lets the service reach the
-	// profile: the parent took the permission back.
+	// profile: the parent took the permission back. Signing in again is what
+	// helps.
 	ErrAccessRevoked = errors.New("store: access to the profile was taken back")
+	// ErrAccessExpired means the account's access ends before the store could
+	// be sure of finishing, so nothing was asked of it. Renewed access is what
+	// helps.
+	ErrAccessExpired = errors.New("store: access to the profile ends too soon")
+	// ErrInBin means the profile's file is in the bin of the place it is kept.
+	// Nothing reads or writes it there: the parent restores it, or asks for a
+	// new start.
+	ErrInBin = errors.New("store: the profile is in the bin")
+	// ErrBehind means the store answered with a state older than one this
+	// instance wrote itself, and went on doing so when asked again. Nothing
+	// was done, and the call is made again in a moment.
+	ErrBehind = errors.New("store: the profile read is behind one already written")
+	// ErrRestored means the file was damaged and has been put back to its last
+	// state that reads. Nothing else was done: the caller says so, since what
+	// came after that state is gone, and reads again.
+	ErrRestored = errors.New("store: the profile was damaged and has been restored")
+	// ErrStorageFull means there is no room left where the profile is kept, so
+	// nothing was written.
+	ErrStorageFull = errors.New("store: no room left for the profile")
+	// ErrUnavailable means the place the profile is kept did not answer, or
+	// asked for a pause, and went on doing so for as long as a call can wait.
+	// Nothing was written.
+	ErrUnavailable = errors.New("store: the profile could not be reached")
 )
 
 // Storage keeps one profile per account.
@@ -50,11 +78,16 @@ var (
 type Storage interface {
 	// Load reads the account's profile and the revision it was read at.
 	// ErrNotFound means the account has none, ErrCorrupted that it has a file
-	// nothing can read, and profile.ErrNewer that a newer build wrote it.
+	// nothing can read, and profile.ErrNewer that a newer build wrote it. A
+	// store that keeps a file's history may also answer ErrRestored, having
+	// put a damaged file back to its last readable state, or ErrConflict,
+	// having found it changed while it did; and one that keeps a bin,
+	// ErrInBin.
 	Load(ctx context.Context, account Account) (*profile.Profile, Revision, error)
 	// Create keeps the first profile of an account. An account that has one
 	// already, readable or not, answers ErrConflict and keeps what it has: a
-	// profile is never replaced by a new one the parent did not ask for.
+	// profile is never replaced by a new one the parent did not ask for. One
+	// whose profile is in the bin, in a store that keeps one, answers ErrInBin.
 	Create(ctx context.Context, account Account, p *profile.Profile) (Revision, error)
 	// Save writes the profile over the revision it was computed from, and
 	// answers the revision it wrote. ErrConflict means the stored profile has
@@ -70,6 +103,17 @@ type Storage interface {
 	// themselves. The file is the export: there is no second copy of it, and
 	// no format of its own.
 	Export(ctx context.Context, account Account) (Location, error)
+	// StartOver keeps a new profile in place of one nothing can read, which
+	// the parent asked to start again from. The file it replaces is set aside
+	// rather than deleted — it is still there to be found, and no read of the
+	// profile ever takes it for one again — and so is a profile file in the
+	// bin. An account with nothing to set aside is given the new profile as a
+	// first one.
+	//
+	// A profile that can be read is never replaced: StartOver answers
+	// ErrConflict and changes nothing, since what the parent was told no
+	// longer holds, and reading again says what does.
+	StartOver(ctx context.Context, account Account, p *profile.Profile) (Revision, error)
 }
 
 // Account is whose profile a call is about. Two accounts are the same account
@@ -89,12 +133,18 @@ type Account struct {
 	_ [0]func()
 }
 
-// key is what reaches the place an account's profile is kept.
-type key struct{ token string }
+// key is what reaches the place an account's profile is kept, and until when
+// it does.
+type key struct {
+	token string
+	ends  time.Time
+}
 
-// NewAccount is the account with this identifier, reached with this token.
-func NewAccount(id, token string) Account {
-	return Account{ID: id, key: &key{token: token}}
+// NewAccount is the account with this identifier, reached with this token
+// until the moment it ends. A token that does not end — or no token at all —
+// is given the zero time.
+func NewAccount(id, token string, ends time.Time) Account {
+	return Account{ID: id, key: &key{token: token, ends: ends}}
 }
 
 // Token opens the place the profile is kept when that place is the account's
@@ -105,6 +155,16 @@ func (a Account) Token() string {
 		return ""
 	}
 	return a.key.token
+}
+
+// Ends is when the token stops opening the place the profile is kept, or the
+// zero time when it does not end. A store that reaches that place with it
+// starts nothing it could not finish by then.
+func (a Account) Ends() time.Time {
+	if a.key == nil {
+		return time.Time{}
+	}
+	return a.key.ends
 }
 
 // Format writes the account as its identifier, in whatever verb and with
@@ -125,6 +185,20 @@ type Revision string
 type Location struct {
 	// Folder is the name of the folder the file is in.
 	Folder string
+	// File is the name of the file.
+	File string
+	// Link opens the file for whoever is signed in to the account.
+	Link string
+	// Others are files beside it that carry a profile too — an old one
+	// restored from the bin, say. The store reads and writes the one above,
+	// the one changed last, and never merges two: these are for the parent to
+	// look at and delete.
+	Others []Elsewhere
+}
+
+// Elsewhere is another file that carries a profile, as its owner would look
+// for it.
+type Elsewhere struct {
 	// File is the name of the file.
 	File string
 	// Link opens the file for whoever is signed in to the account.

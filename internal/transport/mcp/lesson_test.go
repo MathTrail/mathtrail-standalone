@@ -52,7 +52,7 @@ var sandbox = sync.OnceValues(func() (solver.Runner, error) {
 var lessonDay = time.Date(2026, 9, 27, 18, 0, 0, 0, time.UTC)
 
 // devAccount is whom the development sign-in signs every call in as.
-var devAccount = store.NewAccount(mcpserver.DevAccount, "")
+var devAccount = store.NewAccount(mcpserver.DevAccount, "", time.Time{})
 
 // clock is a clock a case moves on by hand.
 type clock struct {

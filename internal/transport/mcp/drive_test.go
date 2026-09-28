@@ -18,31 +18,56 @@ import (
 // The parent the tools act for in these cases, as the sign-in of bearer_test
 // vouches for them: their account, reached with the Google token of their
 // Drive.
-var parent = store.NewAccount(vouchedUser, "a-google-access-token")
+var parent = store.NewAccount(vouchedUser, googleToken, time.Time{})
+
+// overDrive is an instance of the service over a store of its own in the
+// stand-in Drive: a client connected to its tools, the store, and the clock
+// its tools write the profile by.
+type overDrive struct {
+	session *mcp.ClientSession
+	kept    store.Storage
+	moving  *clock
+	h       *harness
+}
 
 // instanceOverDrive serves the tools of the lesson over a store of its own in
 // the stand-in Drive — another instance of the service, which remembers
 // nothing yet — to the parent signed in with the token the reader vouches for.
-func instanceOverDrive(t *testing.T, fake *drivetest.Drive) (*mcp.ClientSession, store.Storage) {
+func instanceOverDrive(t *testing.T, fake *drivetest.Drive) *overDrive {
+	t.Helper()
+	return instanceOverDriveReading(t, fake, readerEndingIn(time.Hour))
+}
+
+// instanceOverDriveReading is instanceOverDrive, signing the parent in with
+// the reader given.
+func instanceOverDriveReading(t *testing.T, fake *drivetest.Drive, reader mcpserver.TokenReader) *overDrive {
 	t.Helper()
 
-	files, err := drive.NewFiles(&drive.Settings{Root: fake.Root(), Timeout: 5 * time.Second})
+	settings := &drive.Settings{Root: fake.Root(), Timeout: 5 * time.Second}
+	files, err := drive.NewFiles(settings)
 	if err != nil {
 		t.Fatalf("NewFiles() error = %v, want nil", err)
 	}
+	revisions, err := drive.NewRevisions(settings)
+	if err != nil {
+		t.Fatalf("NewRevisions() error = %v, want nil", err)
+	}
 	h := newHarness(t)
-	kept, err := drivestore.New(&drivestore.Settings{Files: files, Logger: h.log, Traces: h.traces, ProjectID: projectID})
+	kept, err := drivestore.New(&drivestore.Settings{
+		Files: files, Revisions: revisions, Timeout: 5 * time.Second, Logger: h.log, Traces: h.traces, ProjectID: projectID,
+	})
 	if err != nil {
 		t.Fatalf("drivestore.New() error = %v, want nil", err)
 	}
-	service := lessonService(t, h, kept, &clock{at: lessonDay}, nil)
-	h.start(t, mcpserver.BearerSignIn(readerEndingIn(time.Hour), metadata),
+	moving := &clock{at: lessonDay}
+	service := lessonService(t, h, kept, moving, nil)
+	h.start(t, mcpserver.BearerSignIn(reader, metadata),
 		slices.Concat(service.ProfileTools(), service.TaskTools())...)
 	session, err := h.connectWith(t, vouchedToken)
 	if err != nil {
 		t.Fatalf("connectWith() error = %v, want nil", err)
 	}
-	return session, kept
+	return &overDrive{session: session, kept: kept, moving: moving, h: h}
 }
 
 // costOf calls a tool, holds it to having answered, and is what the call cost
@@ -61,20 +86,28 @@ func costOf(t *testing.T, fake *drivetest.Drive, session *mcp.ClientSession, too
 // found the parent's file and on one that remembers it: a read is one call
 // once the file is known, and a write reads the file, reads it once more to be
 // sure nothing changed it in between, and writes it. A whole task — asked for,
-// handed in, answered — is nine calls on a warm instance.
+// handed in, answered — is nine calls on a warm instance. The profile's own
+// tool also says where the file is, which takes a search and the folder's
+// name.
 func TestEveryToolStaysWithinItsDriveBudget(t *testing.T) {
 	t.Parallel()
 
 	fake := drivetest.New(t)
-	session, kept := instanceOverDrive(t, fake)
+	warm := instanceOverDrive(t, fake)
+	session := warm.session
 	read := drivetest.Calls{"download": 1}
 	write := drivetest.Calls{"download": 2, "update": 1}
+	located := drivetest.Calls{"download": 1, "list": 1, "get": 1}
 
-	// The first profile: the search that finds none, the search the creation
+	// No profile yet: the search that finds none, and the search of the bin.
+	if got, want := costOf(t, fake, session, "get_profile", map[string]any{}), (drivetest.Calls{"list": 2}); !maps.Equal(got, want) {
+		t.Errorf("get_profile with no profile cost %v, want %v", got, want)
+	}
+	// The first profile: the two searches of the read, the two the creation
 	// makes sure with, the search for the folder, the folder and the file.
 	if got, want := costOf(t, fake, session, "save_profile", map[string]any{
 		"pseudonym": "Otter", "grade": 2, "interests": []string{"sport"},
-	}), (drivetest.Calls{"list": 3, "create": 2}); !maps.Equal(got, want) {
+	}), (drivetest.Calls{"list": 5, "create": 2}); !maps.Equal(got, want) {
 		t.Errorf("save_profile making the first profile cost %v, want %v", got, want)
 	}
 
@@ -83,7 +116,7 @@ func TestEveryToolStaysWithinItsDriveBudget(t *testing.T) {
 		args any
 		want drivetest.Calls
 	}{
-		{"get_profile", map[string]any{}, read},
+		{"get_profile", map[string]any{}, located},
 		{"get_progress", map[string]any{}, read},
 		{"read_progress", map[string]any{}, read},
 		{"save_profile", map[string]any{"interests": []string{"sport", "space"}}, write},
@@ -97,14 +130,14 @@ func TestEveryToolStaysWithinItsDriveBudget(t *testing.T) {
 		}
 	}
 
-	p, _, err := kept.Load(t.Context(), parent)
+	p, _, err := warm.kept.Load(t.Context(), parent)
 	if err != nil || p.OpenRequest == nil {
 		t.Fatalf("Load() = %v, %v, want the request next_task opened", p, err)
 	}
 	if got := costOf(t, fake, session, "submit_task", raceOn(p.OpenRequest)); !maps.Equal(got, write) {
 		t.Errorf("submit_task on a warm instance cost %v, want %v", got, write)
 	}
-	if p, _, err = kept.Load(t.Context(), parent); err != nil || p.CurrentTask == nil {
+	if p, _, err = warm.kept.Load(t.Context(), parent); err != nil || p.CurrentTask == nil {
 		t.Fatalf("Load() = %v, %v, want the task submit_task accepted", p, err)
 	}
 	answer := map[string]any{"task_id": p.CurrentTask.ID, "answer": "C"}
@@ -115,15 +148,38 @@ func TestEveryToolStaysWithinItsDriveBudget(t *testing.T) {
 	if got := costOf(t, fake, session, "submit_answer", answer); !maps.Equal(got, read) {
 		t.Errorf("submit_answer given again cost %v, want %v", got, read)
 	}
+}
 
-	// Another instance searches for the file once, and then knows it.
-	cold, _ := instanceOverDrive(t, fake)
-	if got, want := costOf(t, fake, cold, "get_profile", map[string]any{}), (drivetest.Calls{"list": 1, "download": 1}); !maps.Equal(got, want) {
-		t.Errorf("get_profile on a cold instance cost %v, want %v", got, want)
+// An instance that has not yet found the parent's file searches for it once,
+// and then knows it; and the first write of a day keeps its revision forever
+// in the same upload, reading the history to count what is kept.
+func TestAColdInstanceSearchesOnceAndADayKeepsItsFirstWrite(t *testing.T) {
+	t.Parallel()
+
+	fake := drivetest.New(t)
+	first := instanceOverDrive(t, fake)
+	if result := call(t, first.session, "save_profile", map[string]any{"pseudonym": "Otter", "grade": 2}); result.IsError {
+		t.Fatalf("save_profile failed: %s", textOf(t, result))
 	}
-	colder, _ := instanceOverDrive(t, fake)
-	if got, want := costOf(t, fake, colder, "save_profile", map[string]any{"interests": []string{"sport"}}),
-		(drivetest.Calls{"list": 1, "download": 2, "update": 1}); !maps.Equal(got, want) {
-		t.Errorf("save_profile on a cold instance cost %v, want %v", got, want)
+
+	for _, step := range []struct {
+		tool string
+		args any
+		want drivetest.Calls
+	}{
+		{"get_progress", map[string]any{}, drivetest.Calls{"list": 1, "download": 1}},
+		{"get_profile", map[string]any{}, drivetest.Calls{"list": 2, "download": 1, "get": 1}},
+		{"save_profile", map[string]any{"interests": []string{"space"}}, drivetest.Calls{"list": 1, "download": 2, "update": 1}},
+	} {
+		cold := instanceOverDrive(t, fake)
+		if got := costOf(t, fake, cold.session, step.tool, step.args); !maps.Equal(got, step.want) {
+			t.Errorf("%s on a cold instance cost %v, want %v", step.tool, got, step.want)
+		}
+	}
+
+	first.moving.advance(24 * time.Hour)
+	if got, want := costOf(t, fake, first.session, "save_profile", map[string]any{"interests": []string{"sport"}}),
+		(drivetest.Calls{"download": 2, "update": 1, "revisions": 1}); !maps.Equal(got, want) {
+		t.Errorf("the first save_profile of a day cost %v, want %v", got, want)
 	}
 }
