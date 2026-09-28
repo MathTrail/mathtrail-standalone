@@ -16,6 +16,8 @@
 # Build and test output
 bin/
 dist/
+# The load tool's binary, when it is built where it lives
+tools/load/load
 coverage.*
 *.out
 *.test

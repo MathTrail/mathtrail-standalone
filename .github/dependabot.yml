@@ -16,6 +16,17 @@ updates:
         patterns: ["*"]
         update-types: [minor, patch]
 
+  # The load tool's one dependency of its own. Everything else it builds with
+  # comes from the service, at the service's versions, and moves with it.
+  - package-ecosystem: gomod
+    directory: /tools/load
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    allow:
+      - dependency-name: github.com/tsenart/vegeta/v12
+
   # The packages the widget is built from, and the tools it is built with.
   - package-ecosystem: npm
     directory: /web
