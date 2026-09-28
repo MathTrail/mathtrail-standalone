@@ -4,6 +4,7 @@ import (
 	"errors"
 	"slices"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -52,6 +53,62 @@ func TestAGrantIsRenewedWithItsRefreshToken(t *testing.T) {
 	}
 	if renewal != want {
 		t.Errorf("Refresh() = %+v, want %+v", renewal, want)
+	}
+}
+
+// clock is a clock a case moves on, from another goroutine too.
+type clock struct {
+	mu  sync.Mutex
+	now time.Time
+}
+
+func (c *clock) read() time.Time {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.now
+}
+
+func (c *clock) advance(by time.Duration) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.now = c.now.Add(by)
+}
+
+// An access token's life is counted from the moment it was asked for, at the
+// exchange and at a renewal alike. Google counts it from the moment it gave
+// the token, which comes after, so a grant is never taken to last longer than
+// it does — however long the answer took to arrive.
+func TestAnAccessTokensLifeIsCountedFromTheRequest(t *testing.T) {
+	t.Parallel()
+
+	google := newGoogle(t)
+	moving := &clock{now: someDay}
+	// Every answer takes half a minute on its way back.
+	google.Misbehave(&googletest.Answer{Meanwhile: func() { moving.advance(30 * time.Second) }})
+	asked := settings(google)
+	asked.Now = moving.read
+	signIn, err := googleauth.New(asked)
+	if err != nil {
+		t.Fatalf("New() error = %v, want nil", err)
+	}
+
+	sent := moving.read()
+	code := codeIn(t, google.Allow(signIn.AuthURL(state, verifier, nonce)))
+	grant, err := signIn.Exchange(t.Context(), code, verifier, nonce)
+	if err != nil {
+		t.Fatalf("Exchange() error = %v, want the grant", err)
+	}
+	if want := sent.Add(googletest.ExpiresIn * time.Second); !grant.Expiry.Equal(want) {
+		t.Errorf("Exchange() expiry = %v, want %v, counted from the request", grant.Expiry, want)
+	}
+
+	sent = moving.read()
+	renewal, err := signIn.Refresh(t.Context(), googletest.RefreshToken)
+	if err != nil {
+		t.Fatalf("Refresh() error = %v, want a new access token", err)
+	}
+	if want := sent.Add(googletest.ExpiresIn * time.Second); !renewal.Expiry.Equal(want) {
+		t.Errorf("Refresh() expiry = %v, want %v, counted from the request", renewal.Expiry, want)
 	}
 }
 

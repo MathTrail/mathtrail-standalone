@@ -18,17 +18,19 @@ func (g *google) Exchange(ctx context.Context, code, verifier, nonce string) (Gr
 	ctx, cancel := context.WithTimeout(ctx, callTimeout)
 	defer cancel()
 
+	// The lifetime is counted on this clock from the moment the request is
+	// sent. Google counts it from the moment it gave the token, which comes
+	// after, so a grant is never taken to last longer than it does.
+	sent := g.now()
 	token, err := g.oauth.Exchange(context.WithValue(ctx, oauth2.HTTPClient, g.client), code,
 		oauth2.VerifierOption(verifier))
 	if err != nil {
 		return Grant{}, refusalOf(err, ErrCodeRefused)
 	}
-	// The lifetime is counted on this clock from the moment the answer came,
-	// as Google counts it from the moment it gave it.
 	if token.ExpiresIn <= 0 {
 		return Grant{}, fmt.Errorf("%w: an access token with no lifetime", ErrUnavailable)
 	}
-	expiry := g.now().Add(time.Duration(token.ExpiresIn) * time.Second)
+	expiry := sent.Add(time.Duration(token.ExpiresIn) * time.Second)
 
 	subject, err := g.identity(ctx, token, nonce)
 	if err != nil {

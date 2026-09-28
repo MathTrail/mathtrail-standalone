@@ -131,7 +131,7 @@
 | [x] | T47 | OAuth: метаданные и клиенты | Claude | да | T24, T41 |
 | [x] | T48 | OAuth: authorize, согласие, callback | Claude | да | T47 |
 | [x] | T49 | OAuth: token, refresh, revoke, bearer | Claude | — | T48 |
-| [ ] | T50 | Хранилище в Drive: основа | Claude | да | T40, T49 |
+| [x] | T50 | Хранилище в Drive: основа | Claude | да | T40, T49 |
 | [ ] | T51 | Хранилище в Drive: конфликты и сбои | Claude | да | T50 |
 | [ ] | T52 | Лимиты | Claude | — | T44, T51 |
 | [ ] | T52a | Нагрузка: программа и сценарии | Claude | да | T45, T52 |

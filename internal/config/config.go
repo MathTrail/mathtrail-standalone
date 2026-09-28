@@ -58,6 +58,8 @@ const (
 
 	DefaultRequestWindow = 15 * time.Minute
 
+	DefaultDriveTimeout = 10 * time.Second
+
 	DefaultSiteURL = "https://mathtrail.app"
 
 	DefaultTelemetry            = TelemetryAuto
@@ -116,6 +118,9 @@ type Config struct {
 	// older than this counts as abandoned: the next ask opens a new one, and a
 	// task handed in for it is refused as one for a request that is over.
 	RequestWindow time.Duration `mapstructure:"MATHTRAIL_REQUEST_WINDOW"`
+
+	// DriveTimeout is how long one call to a parent's Drive may take.
+	DriveTimeout time.Duration `mapstructure:"MATHTRAIL_DRIVE_TIMEOUT"`
 
 	// Telemetry is TelemetryAuto, TelemetryOn or TelemetryOff: whether traces
 	// and metrics leave the process at all.
@@ -229,6 +234,7 @@ func LoadFrom(environ []string) (*Config, error) {
 	v.SetDefault("MATHTRAIL_SOLVER_TIMEOUT", DefaultSolverTimeout)
 	v.SetDefault("MATHTRAIL_SOLVER_CONCURRENCY", DefaultSolverConcurrency)
 	v.SetDefault("MATHTRAIL_REQUEST_WINDOW", DefaultRequestWindow)
+	v.SetDefault("MATHTRAIL_DRIVE_TIMEOUT", DefaultDriveTimeout)
 	v.SetDefault("MATHTRAIL_TELEMETRY", DefaultTelemetry)
 	v.SetDefault("MATHTRAIL_TELEMETRY_ENDPOINT", DefaultTelemetryEndpoint)
 	v.SetDefault("MATHTRAIL_TELEMETRY_SAMPLE_RATIO", DefaultTelemetrySampleRatio)
@@ -485,6 +491,7 @@ func (c *Config) validateTimeouts() error {
 		{"MATHTRAIL_SHUTDOWN_TIMEOUT", c.ShutdownTimeout},
 		{"MATHTRAIL_SOLVER_TIMEOUT", c.SolverTimeout},
 		{"MATHTRAIL_REQUEST_WINDOW", c.RequestWindow},
+		{"MATHTRAIL_DRIVE_TIMEOUT", c.DriveTimeout},
 	} {
 		if timeout.value <= 0 {
 			return fmt.Errorf("%w: %s must be a positive duration, got %v", ErrInvalid, timeout.name, timeout.value)

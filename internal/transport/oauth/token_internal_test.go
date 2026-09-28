@@ -242,8 +242,8 @@ func TestATokenRequestIsASmallForm(t *testing.T) {
 	}
 }
 
-// An access token ends a minute before the Google token inside it, when that
-// comes sooner than its fifteen minutes.
+// An access token ends three minutes before the Google token inside it, when
+// that comes sooner than its fifteen minutes.
 func TestAnAccessTokenEndsBeforeTheGoogleTokenInsideIt(t *testing.T) {
 	t.Parallel()
 
@@ -252,11 +252,11 @@ func TestAnAccessTokenEndsBeforeTheGoogleTokenInsideIt(t *testing.T) {
 	h.google.Misbehave(&googletest.Answer{Lifetime: 600})
 	answer := h.exchange(t, h.signedInCode(t, client), client, nil)
 
-	if answer.status != http.StatusOK || answer.fields["expires_in"] != 540.0 {
-		t.Fatalf("POST /oauth/token = %d %v, want an access token good for 540 seconds", answer.status, answer.fields)
+	if answer.status != http.StatusOK || answer.fields["expires_in"] != 420.0 {
+		t.Fatalf("POST /oauth/token = %d %v, want an access token good for 420 seconds", answer.status, answer.fields)
 	}
-	if access := h.openedAccess(t, answer.field("access_token")); access.ExpiresAt != testDay.Add(9*time.Minute).Unix() {
-		t.Errorf("the access token ends at %d, want %d", access.ExpiresAt, testDay.Add(9*time.Minute).Unix())
+	if access := h.openedAccess(t, answer.field("access_token")); access.ExpiresAt != testDay.Add(7*time.Minute).Unix() {
+		t.Errorf("the access token ends at %d, want %d", access.ExpiresAt, testDay.Add(7*time.Minute).Unix())
 	}
 }
 

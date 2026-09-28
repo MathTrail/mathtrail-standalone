@@ -111,11 +111,12 @@ internal/
   domain/         pure logic — no I/O, no SDKs, no transport
     rating/ tutor/ checks/ solver/ profile/ progress/
   infra/          everything that talks to the outside world
-    drive/ starlark/ seal/
+    starlark/ seal/
+    drive/        reaches the files in a parent's Drive, one request per call; drivetest/ stands in for Drive in tests
     cimd/         fetches a client's metadata document, reaching public addresses only
     googleauth/   signs a parent in with Google and proves who it was, renews the grant and ends it; googletest/ stands in for Google in tests
   site/           render/ turns the site's sources into files, check/ judges them
-  store/          storage interface plus its in-memory and Drive implementations
+  store/          storage interface plus its in-memory and Drive implementations (memory/, and drive/ as package drivestore); storetest/ holds both to one contract
   transport/
     mcp/          tools, ui:// resources
     oauth/        the authorization server: its metadata, its clients, its endpoints, the sign-in's pages

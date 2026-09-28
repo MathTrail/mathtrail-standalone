@@ -23,7 +23,7 @@ Read on 2026-09-20 from the Drive API v3 documentation, not from memory:
 | Marker | `appProperties: {"mathtrail": "profile", "schema": "1"}` | How the file is found |
 | Folder marker | `appProperties: {"mathtrail": "folder"}` | How the folder is found when a new file has to be created |
 
-Under `drive.file` we can only ever see files this app created, so the marker search is narrow by construction and cannot match a file of the parent's own — the documentation does not spell this out for `files.list`, so T50 asserts it against the fake Drive and T53 confirms it on a real account.
+Under `drive.file` we can only ever see files this app created, so the marker search is narrow by construction and cannot match a file of the parent's own. The search guide says so for `files.list` as well — under `drive.file` it returns only the files the app can access (read on 2026-09-28) — and T50 holds the store to it against the stand-in Drive: a file of the parent's own, named and placed like the profile, is never taken for it. T53 confirms it on a real account.
 
 **The marker is the identity, not the path.** The parent may rename the file, drag it out of our folder, or tidy it into a folder of their own, and the next search still finds it. The folder is a courtesy to whoever opens Drive, not something the service depends on; if it is missing when a file has to be created, it is created again.
 
@@ -54,22 +54,23 @@ Two files match only after an unusual sequence — the file was trashed, a new o
 
 ## One read, one write, nothing slow in between
 
-Every tool call is read → compute → write (03-flows). The cost in HTTP calls:
+Every tool call is read → compute → write (03-flows). The cost in HTTP calls, as T50 built it and its budget test holds every tool to:
 
 | Tool | Cold instance | File id already cached |
 |---|---|---|
 | `get_profile`, `get_progress`, `read_progress` | 2 — `files.list`, `files.get(alt=media)` | 1 — `files.get(alt=media)` |
-| `save_profile`, `next_task`, `submit_task`, `submit_answer` | 3 — list, get, `files.update` | 2 — get, update |
-| First sign-in, no file yet | 3–4 — list (miss), the bin check, the folder, `files.create` multipart | — |
+| `save_profile`, `next_task`, `submit_task`, `submit_answer` | 4 — list, get, get again, `files.update` | 3 — get, get again, update |
+| A call that writes nothing — a request already open, an answer told again, an edit that changes nothing | as a read | as a read |
+| First sign-in, no file yet | 5 — list (miss); then list, the search for the folder, the folder, `files.create` multipart; 4 when the folder is there | — |
 | A pinned write — every fiftieth, or the first of a day | +2 — `revisions.list`, release the oldest pin | same |
 
-A whole task — `next_task`, `submit_task`, `submit_answer` — costs six Drive calls on a warm instance. Every response asks for a narrow `fields` list, so nothing but the few fields we use crosses the wire.
+The second get is the check "Two tabs" below turns on: a write reads the file once more and compares it with what it was computed from, because Drive has no conditional write (R116). A whole task — `next_task`, `submit_task`, `submit_answer` — costs nine Drive calls on a warm instance. Every response asks for a narrow `fields` list, so nothing but the few fields we use crosses the wire. The bin is not looked at on the way: a file in it is not found, and what the tools say about it is T51's.
 
 The file id is cached in the instance's memory, keyed by the user identifier from 02-auth. It is a cache in the strict sense: a stale id produces a `404`, which falls back to the search. Nothing durable is keyed by that identifier, which 02-auth requires.
 
 **A read straight after a write may arrive early.** Drive does not promise that the next read sees the revision just written, and the lesson makes exactly that call pattern: the widget records an answer and the model asks for the next task a second later. So the cache holds one more thing beside the file id — **the `revision` this instance last wrote**. If a read comes back with a lower `revision` than that, the instance reads once more after about 250 ms; if the second read is still behind, it proceeds from **its own** last written state, which cannot be older than what Drive is serving. The case is logged, because a stale read that happens often would mean something else is wrong.
 
-This is per instance and makes no promise across them: a second instance reading an early copy sees what Drive gives it. That is the same window the two-tab race lives in, and the same four measures cover it.
+This is per instance and makes no promise across them: a second instance reading an early copy sees what Drive gives it. That is the same window the two-tab race lives in, and the same five measures cover it.
 
 **The rule that matters more than the budget: nothing slow may happen between the read and the write.** Every check that does not need the profile — the structure, the Starlark solver, the readability, the drawing — runs *before* the profile is read; only the near-duplicate check needs it, and it is a comparison against fingerprints already in hand. The read-modify-write window is therefore microseconds of pure computation rather than the second or more a solver can take. This is not a micro-optimisation: with no conditional write, that window *is* the race, and shrinking it is most of the protection we can buy.
 
@@ -97,11 +98,12 @@ sequenceDiagram
 What the service does about it, in order of how much it buys:
 
 1. **It shrinks the window** to the duration of one upload, as above.
-2. **Every operation is idempotent and re-appliable.** The open request is keyed by its id, the answer by the task id, and each is a pure function of the state it reads (03-flows). So a retry is safe, and — importantly — a retry recomputes from the *fresh* state instead of replaying a stale byte image.
-3. **A failed or suspicious write is retried by re-reading and re-applying**, up to three times with jittered backoff, never by uploading the same bytes again.
-4. **Losses are self-healing.** A lost answer leaves the task current, so the child's next press records it. A lost open request makes `submit_task` answer `stale_request`, and the model asks for a task again. A lost profile edit is one edit the parent can make again — and in each case the overwritten state is still in Drive's revision history.
+2. **It looks before it writes.** A save reads the file once more and compares it, byte for byte by a digest, with the state it was computed from; when they differ, nothing is written and the save is refused as a conflict. A change made in between — another tab, another instance, the parent editing the file by hand — is never written over from here. It costs one call per write (R116).
+3. **Every operation is idempotent and re-appliable.** The open request is keyed by its id, the answer by the task id, and each is a pure function of the state it reads (03-flows). So a retry is safe, and — importantly — a retry recomputes from the *fresh* state instead of replaying a stale byte image.
+4. **A failed or suspicious write is retried by re-reading and re-applying**, up to three times with jittered backoff, never by uploading the same bytes again.
+5. **Losses are self-healing.** A lost answer leaves the task current, so the child's next press records it. A lost open request makes `submit_task` answer `stale_request`, and the model asks for a task again. A lost profile edit is one edit the parent can make again — and in each case the overwritten state is still in Drive's revision history.
 
-**The window that remains** is one round trip wide: two uploads that overlap between the moment each is sent and the moment Drive commits it. Nothing in the API lets us detect that after the fact — the head revision simply holds whichever arrived last, and we cannot ask Drive "was the revision before mine the one I read?" without walking the revision list on every write, which costs a call per write to catch an event that needs two people acting inside the same few hundred milliseconds. So it is accepted, written down here, and covered by the four points above rather than prevented. T51 tests it explicitly, with two writes racing against a fake Drive.
+**The window that remains** is one round trip wide: two uploads that overlap between the moment each is sent and the moment Drive commits it. Nothing in the API lets us detect that after the fact — the head revision simply holds whichever arrived last, and we cannot ask Drive "was the revision before mine the one I read?" without walking the revision list on every write, which costs a call per write to catch an event that needs two people acting inside the same few hundred milliseconds. So it is accepted, written down here, and covered by the five points above rather than prevented. T51 tests it explicitly, with two writes racing against a fake Drive.
 
 ## When the file is damaged
 
@@ -153,7 +155,7 @@ The export is the file. It is JSON, it is in the parent's own Drive, in a folder
 | Requirement | Where |
 |---|---|
 | 5 A JSON file in a visible folder, `drive.file` (О-5) | "The layout" |
-| 5 Protection against simultaneous writes from two tabs | "Two tabs", all four measures and the remaining window |
+| 5 Protection against simultaneous writes from two tabs | "Two tabs", all five measures and the remaining window |
 | 5 A comprehensible recovery from a corrupted file | "When the file is damaged" |
 | 5 Profile export | "Export" |
 | 5 Defined behaviour if the parent revokes access or deletes the file | "When the file is gone", "When Drive says no" |
@@ -173,5 +175,8 @@ The export is the file. It is JSON, it is in the parent's own Drive, in a folder
 3. **Pinning every fiftieth revision is a number, not a law**, and it now has a calendar trigger beside it so that a missed multiple cannot cost a whole history. Both follow from three writes per task and Drive's hundred-revision purge; if the write count per task changes, they change with it. **For:** T51.
 4. **`storageQuotaExceeded` deserves its own message and its own test**: it is the only failure where the child acted and the result was not saved. **For:** T51, and the wording in T15.
 5. **Two profile files is a state we report but never merge.** If it turns out to happen in practice, merging deserves a decision rather than an improvisation. **For:** T51, and a live check in T62.
-6. **The `schema` in `appProperties` is a convenience copy.** It must be written on every update that changes the schema version, or it will drift from the file. **For:** T50.
+6. **The `schema` in `appProperties` is a convenience copy.** It must be written on every update that changes the schema version, or it will drift from the file. **For:** T50. **Done in T50:** every write carries it, whatever it said before, and names no other property, so the marker stays as Drive keeps it — Drive sets the properties an update names and keeps the others (R116).
 7. **Drive's consistency after a write is assumed, not documented.** The guard above — remember the revision just written, re-read once, then trust our own copy — is written against the possibility, not against a measurement. T51 fakes an early read in a test, and T53 is the first place a real one could show up. **For:** T51, T53.
+8. **Drive downloads an earlier revision only once it is kept forever.** "You can only download blob file content revisions marked as 'Keep Forever'" (the guide to managing revisions, read on 2026-09-28). "When the file is damaged" reads the four newest revisions and the newest pinned one; the four newest are not pinned, so as written that recovery reaches the pinned one alone, or has to pin a revision before it reads it — a write per revision, against the ceiling of 200. The recovery window of R17 is to be decided again against this. **For:** T51.
+9. **A file in the bin is still read by its ID.** Drive answers a file that is in the bin as it answers any other, so an instance that remembers the file's ID goes on reading and writing it after the parent has put it in the bin, and only a search — which leaves out what is in the bin — sees that it is gone. Two instances can then disagree: one that remembers the file goes on with it, while one that searches finds no profile, and a `save_profile` there makes a second file beside the one in the bin — the child's answers go to whichever file the instance a call lands on knows. What the bin means for the profile is T51's to decide, and this is part of it: a remembered file has to be held to the bin before it is trusted, at a price in calls the budget above will have to show. **For:** T51.
+10. **Which refusals mean the access is gone.** T50 takes Drive's `401` alone for access taken back, the answer Drive's guide gives for credentials to renew or authorize again. Drive also answers `403` with `insufficientPermissions`, `appNotAuthorizedToFile` or `insufficientFilePermissions` — per file, or per scope — and T50 passes them on as a refusal of no kind of the store's. Whether any of them means the parent's grant is gone, and is to be told as a new sign-in, is T51's, with T53 to show which answer a real revocation gives. **For:** T51, T53.

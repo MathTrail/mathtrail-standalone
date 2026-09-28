@@ -25,6 +25,8 @@ func (g *google) Refresh(ctx context.Context, refreshToken string) (Renewal, err
 	ctx, cancel := context.WithTimeout(ctx, callTimeout)
 	defer cancel()
 
+	// Counted from the moment the request is sent, as the exchange counts it.
+	sent := g.now()
 	// A token that holds no access token is renewed at once.
 	source := g.oauth.TokenSource(context.WithValue(ctx, oauth2.HTTPClient, g.client),
 		&oauth2.Token{RefreshToken: refreshToken})
@@ -32,14 +34,12 @@ func (g *google) Refresh(ctx context.Context, refreshToken string) (Renewal, err
 	if err != nil {
 		return Renewal{}, refusalOf(err, ErrGrantEnded)
 	}
-	// Counted on this clock from the moment the answer came, as the exchange
-	// counts it.
 	if token.ExpiresIn <= 0 {
 		return Renewal{}, fmt.Errorf("%w: an access token with no lifetime", ErrUnavailable)
 	}
 	return Renewal{
 		AccessToken:  token.AccessToken,
-		Expiry:       g.now().Add(time.Duration(token.ExpiresIn) * time.Second),
+		Expiry:       sent.Add(time.Duration(token.ExpiresIn) * time.Second),
 		RefreshToken: token.RefreshToken,
 	}, nil
 }

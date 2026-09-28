@@ -86,6 +86,19 @@ func lesson(t *testing.T, kept store.Storage) (*harness, *mcp.ClientSession) {
 func lessonWith(t *testing.T, kept store.Storage, moving *clock, runner solver.Runner) (*harness, *mcp.ClientSession) {
 	t.Helper()
 
+	h := newHarness(t)
+	service := lessonService(t, h, kept, moving, runner)
+	h.start(t, mcpserver.DevSignIn, slices.Concat(service.ProfileTools(), service.TaskTools())...)
+	session := h.connect(t, "")
+	return h, session
+}
+
+// lessonService is the tools of the lesson over kept, recording into the
+// harness, on a clock the case moves, and in a sandbox of the case's own when
+// it hands one in rather than nil.
+func lessonService(t *testing.T, h *harness, kept store.Storage, moving *clock, runner solver.Runner) *mcpserver.Service {
+	t.Helper()
+
 	loaded, err := shipped()
 	if err != nil {
 		t.Fatalf("load the content: %v", err)
@@ -96,7 +109,6 @@ func lessonWith(t *testing.T, kept store.Storage, moving *clock, runner solver.R
 		}
 	}
 
-	h := newHarness(t)
 	observed, err := telemetry.ObserveSolver(runner, h.traces, h.meters)
 	if err != nil {
 		t.Fatalf("ObserveSolver() error = %v", err)
@@ -116,9 +128,7 @@ func lessonWith(t *testing.T, kept store.Storage, moving *clock, runner solver.R
 	if err != nil {
 		t.Fatalf("NewService() error = %v", err)
 	}
-	h.start(t, mcpserver.DevSignIn, slices.Concat(service.ProfileTools(), service.TaskTools())...)
-	session := h.connect(t, "")
-	return h, session
+	return service
 }
 
 // sealer is the seal of these cases: a key ring made from a key of their own,

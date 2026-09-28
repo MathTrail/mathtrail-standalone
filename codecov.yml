@@ -17,14 +17,15 @@ coverage:
       default:
         target: 90%
 
-# The contract every store is held to, and the stand-in for Google's sign-in,
-# are test code that lives in a package rather than a test file, because a
-# test file cannot be shared between packages. Like any test it measures rather
-# than being measured: the lines that report a failure never run while the
-# code under test behaves.
+# The contract every store is held to, and the stand-ins for Google's sign-in
+# and for Google Drive, are test code that lives in a package rather than a
+# test file, because a test file cannot be shared between packages. Like any
+# test it measures rather than being measured: the lines that report a failure
+# never run while the code under test behaves.
 ignore:
   - "internal/store/storetest"
   - "internal/infra/googleauth/googletest"
+  - "internal/infra/drive/drivetest"
 
 comment:
   layout: "condensed_header, diff, files"

@@ -27,14 +27,28 @@ const (
 	// signed in, however often its tokens are renewed. Nothing records which
 	// refresh tokens were used, so this is what bounds a stolen one.
 	sessionLifetime = 90 * 24 * time.Hour
+	// requestSpan is the longest a tool goes on calling Drive after its request
+	// is let in: at most six calls, each given the ten seconds a call to Drive
+	// has — a first profile after a file gone from under the memory — or five
+	// beside two runs of a solver of two seconds each. A request cut off, or
+	// answered late, does not stop the tool, so its own work is the bound; a
+	// call to Drive given longer, more calls, or a wait for a solver's slot
+	// move it.
+	requestSpan = 60 * time.Second
 	// googleMargin is how long before the Google access token inside it an
-	// access token ends, so that a host never holds one whose Drive access
-	// has ended first.
-	googleMargin = 60 * time.Second
+	// access token ends, so that a request it lets in reaches Drive with a
+	// Google token that has not ended. The resource takes a token for
+	// clockSkew past its end; the clock that checks it may run clockSkew
+	// behind the one that issued it; and the tool then goes on calling Drive
+	// for requestSpan. Less than that, and the last requests of a token meet
+	// an ended Google token, which Drive answers as it answers access taken
+	// back.
+	googleMargin = 2*clockSkew + requestSpan
 	// googleRenewal is how little may be left of the Google access token a
-	// host's tokens are issued with before Google is asked for a new one, so
-	// that a host is never handed an access token good for two minutes.
-	googleRenewal = 5 * time.Minute
+	// host's tokens are issued with before Google is asked for a new one: the
+	// margin above and four minutes more, so that an access token is good for
+	// four minutes at least whenever Google's own lasts seven.
+	googleRenewal = googleMargin + 4*time.Minute
 )
 
 // session is a sign-in as the host's tokens carry it from one to the next:
