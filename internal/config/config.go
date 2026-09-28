@@ -6,10 +6,9 @@
 // platform's other services — which keeps the names, the defaults and the
 // types of a growing table in one declaration.
 //
-// Only the variables the service actually uses today are here. The ones the
-// sign-in, the limits and the solver will need arrive with the code that
-// consumes them, because a required variable with no reader is a deployment
-// that fails for no reason.
+// Only the variables the service actually uses are here. A variable arrives
+// with the code that consumes it, because a required variable with no reader
+// is a deployment that fails for no reason.
 package config
 
 import (
@@ -57,6 +56,12 @@ const (
 	DefaultSolverConcurrency = 4
 
 	DefaultRequestWindow = 15 * time.Minute
+
+	DefaultRateUserPerMin     = 30
+	DefaultRateIPPerMin       = 20
+	DefaultRateInstancePerMin = 200
+	DefaultDailyTasks         = 20
+	DefaultDailyFailed        = 5
 
 	DefaultDriveTimeout = 10 * time.Second
 
@@ -118,6 +123,22 @@ type Config struct {
 	// older than this counts as abandoned: the next ask opens a new one, and a
 	// task handed in for it is refused as one for a request that is over.
 	RequestWindow time.Duration `mapstructure:"MATHTRAIL_REQUEST_WINDOW"`
+
+	// RateUserPerMin is how many requests a signed-in account may send the
+	// MCP endpoint of one instance in a minute.
+	RateUserPerMin int `mapstructure:"MATHTRAIL_RATE_USER_PER_MIN"`
+	// RateIPPerMin is how many requests one address may send the sign-in's
+	// endpoints and documents of one instance in a minute.
+	RateIPPerMin int `mapstructure:"MATHTRAIL_RATE_IP_PER_MIN"`
+	// RateInstancePerMin is how many requests one instance takes in a minute
+	// from everybody together: a fuse against something gone wrong, not a
+	// share of anybody's.
+	RateInstancePerMin int `mapstructure:"MATHTRAIL_RATE_INSTANCE_PER_MIN"`
+	// DailyTasks is how many tasks a child may be given in a day.
+	DailyTasks int `mapstructure:"MATHTRAIL_DAILY_TASKS"`
+	// DailyFailed is how many requests of a day may end with the model out of
+	// attempts before no more are opened that day.
+	DailyFailed int `mapstructure:"MATHTRAIL_DAILY_FAILED"`
 
 	// DriveTimeout is how long one call to a parent's Drive may take.
 	DriveTimeout time.Duration `mapstructure:"MATHTRAIL_DRIVE_TIMEOUT"`
@@ -234,6 +255,11 @@ func LoadFrom(environ []string) (*Config, error) {
 	v.SetDefault("MATHTRAIL_SOLVER_TIMEOUT", DefaultSolverTimeout)
 	v.SetDefault("MATHTRAIL_SOLVER_CONCURRENCY", DefaultSolverConcurrency)
 	v.SetDefault("MATHTRAIL_REQUEST_WINDOW", DefaultRequestWindow)
+	v.SetDefault("MATHTRAIL_RATE_USER_PER_MIN", DefaultRateUserPerMin)
+	v.SetDefault("MATHTRAIL_RATE_IP_PER_MIN", DefaultRateIPPerMin)
+	v.SetDefault("MATHTRAIL_RATE_INSTANCE_PER_MIN", DefaultRateInstancePerMin)
+	v.SetDefault("MATHTRAIL_DAILY_TASKS", DefaultDailyTasks)
+	v.SetDefault("MATHTRAIL_DAILY_FAILED", DefaultDailyFailed)
 	v.SetDefault("MATHTRAIL_DRIVE_TIMEOUT", DefaultDriveTimeout)
 	v.SetDefault("MATHTRAIL_TELEMETRY", DefaultTelemetry)
 	v.SetDefault("MATHTRAIL_TELEMETRY_ENDPOINT", DefaultTelemetryEndpoint)
@@ -334,6 +360,10 @@ func (c *Config) Validate() error {
 		return err
 	}
 
+	if err := c.validateLimits(); err != nil {
+		return err
+	}
+
 	if err := c.validateTelemetry(); err != nil {
 		return err
 	}
@@ -428,6 +458,27 @@ func (c *Config) validateSolver() error {
 	if c.SolverConcurrency < 1 {
 		return fmt.Errorf("%w: MATHTRAIL_SOLVER_CONCURRENCY must be at least 1, got %d",
 			ErrInvalid, c.SolverConcurrency)
+	}
+	return nil
+}
+
+// validateLimits refuses a ceiling nobody could get under, naming its
+// variable: a pace of no request a minute would refuse every request, and a
+// day of no task would refuse every lesson.
+func (c *Config) validateLimits() error {
+	for _, ceiling := range []struct {
+		name  string
+		value int
+	}{
+		{"MATHTRAIL_RATE_USER_PER_MIN", c.RateUserPerMin},
+		{"MATHTRAIL_RATE_IP_PER_MIN", c.RateIPPerMin},
+		{"MATHTRAIL_RATE_INSTANCE_PER_MIN", c.RateInstancePerMin},
+		{"MATHTRAIL_DAILY_TASKS", c.DailyTasks},
+		{"MATHTRAIL_DAILY_FAILED", c.DailyFailed},
+	} {
+		if ceiling.value < 1 {
+			return fmt.Errorf("%w: %s must be at least 1, got %d", ErrInvalid, ceiling.name, ceiling.value)
+		}
 	}
 	return nil
 }

@@ -14,6 +14,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/apierror"
+	"github.com/MathTrail/mathtrail-standalone/internal/ratelimit"
 	"github.com/MathTrail/mathtrail-standalone/internal/transport/http/middleware"
 )
 
@@ -78,6 +79,9 @@ type Endpoints struct {
 	Token http.Handler
 	// Revoke ends a host's grant.
 	Revoke http.Handler
+	// Busy is the page a parent's browser is shown when their address, or
+	// the sign-in as a whole, is past its pace.
+	Busy http.Handler
 }
 
 // ErrEndpoints is returned when the router is given an address or endpoints it
@@ -108,6 +112,43 @@ func (e *Endpoints) validate() error {
 		return fmt.Errorf("%w: Token must be set", ErrEndpoints)
 	case e.Revoke == nil:
 		return fmt.Errorf("%w: Revoke must be set", ErrEndpoints)
+	case e.Busy == nil:
+		return fmt.Errorf("%w: Busy must be set", ErrEndpoints)
+	}
+	return nil
+}
+
+// Limits are the paces a request is held to before anybody has signed in: the
+// one each address is let in at, and the one the sign-in of the instance takes
+// requests at from everybody together. A request to the MCP endpoint is held
+// to paces of its own inside the endpoint instead, where the account is known
+// and a refusal can be put in words the model reads.
+type Limits struct {
+	// PerAddress counts the requests of each address apart.
+	PerAddress ratelimit.Limiter
+	// Instance counts together the requests of everybody that start work.
+	Instance ratelimit.Limiter
+}
+
+// The paces a request is held to before anybody signs in, as the line of one
+// reached names it.
+const (
+	limitAddress  = "ip_rate"
+	limitInstance = "instance_rate"
+)
+
+// ErrLimits is returned when the router is given no pace to hold a request
+// to; callers branch on it with errors.Is.
+var ErrLimits = errors.New("http: limits")
+
+// validate refuses a missing pace, naming it: the sign-in's endpoints would
+// otherwise be open to anybody at any pace.
+func (l Limits) validate() error {
+	switch {
+	case l.PerAddress == nil:
+		return fmt.Errorf("%w: PerAddress must be set", ErrLimits)
+	case l.Instance == nil:
+		return fmt.Errorf("%w: Instance must be set", ErrLimits)
 	}
 	return nil
 }
@@ -122,8 +163,11 @@ func (e *Endpoints) validate() error {
 // The framework's mode is a setting of the process, not of a router, so it is
 // chosen where the process starts and never here: a constructor that reaches
 // for a global changes what every other router in the same binary does.
-func NewRouter(publicURL string, endpoints *Endpoints, logger *zap.Logger, obs Observability) (*gin.Engine, error) {
+func NewRouter(publicURL string, endpoints *Endpoints, limits Limits, logger *zap.Logger, obs Observability) (*gin.Engine, error) {
 	if err := endpoints.validate(); err != nil {
+		return nil, err
+	}
+	if err := limits.validate(); err != nil {
 		return nil, err
 	}
 	if err := obs.validate(); err != nil {
@@ -192,26 +236,40 @@ func NewRouter(publicURL string, endpoints *Endpoints, logger *zap.Logger, obs O
 		gin.WrapH(endpoints.MCP),
 	)
 
-	// The sign-in. The resource's metadata is served under the resource's own
-	// path, where the refusal of the endpoint points, and not at the root: a
-	// document there would describe the host, which is not the resource. The
-	// authorization server's issuer has no path, so its metadata sits at the
-	// one place a client asks.
-	router.GET("/.well-known/oauth-protected-resource/mcp", gin.WrapH(endpoints.ResourceMetadata))
-	router.GET("/.well-known/oauth-authorization-server", gin.WrapH(endpoints.ServerMetadata))
-	router.POST("/oauth/register", gin.WrapH(endpoints.Register))
+	// The sign-in and its documents answer anybody, before anybody has signed
+	// in, so every address is held to a pace of its own there. What starts
+	// work — a client's document fetched, a code traded at Google — is held to
+	// the pace the sign-in takes from everybody too; the documents cost
+	// nothing to answer, and are not. Nothing else is held to either: the
+	// probe is the platform's, a path nobody declared costs nothing to
+	// refuse, and the MCP endpoint holds each account to its own pace inside.
+	address := ratelimit.Ceiling{Name: limitAddress, Limiter: limits.PerAddress}
+	instance := ratelimit.Ceiling{Name: limitInstance, Limiter: limits.Instance}
+
+	// The resource's metadata is served under the resource's own path, where
+	// the refusal of the endpoint points, and not at the root: a document there
+	// would describe the host, which is not the resource. The authorization
+	// server's issuer has no path, so its metadata sits at the one place a
+	// client asks.
+	documents := router.Group("", middleware.Limit(logger, obs.ProjectID, middleware.TooMany, address))
+	documents.GET("/.well-known/oauth-protected-resource/mcp", gin.WrapH(endpoints.ResourceMetadata))
+	documents.GET("/.well-known/oauth-authorization-server", gin.WrapH(endpoints.ServerMetadata))
 
 	// The parent's way through a sign-in, in their browser: the request a
-	// host sends them with, the consent screen's answer, and Google's.
-	router.GET("/oauth/authorize", gin.WrapH(endpoints.Authorize))
-	router.POST("/oauth/consent", gin.WrapH(endpoints.Consent))
-	router.GET("/oauth/callback", gin.WrapH(endpoints.Callback))
+	// host sends them with, the consent screen's answer, and Google's. A
+	// refusal there is a page in the parent's language.
+	browser := router.Group("", middleware.Limit(logger, obs.ProjectID, middleware.Page(endpoints.Busy), address, instance))
+	browser.GET("/oauth/authorize", gin.WrapH(endpoints.Authorize))
+	browser.POST("/oauth/consent", gin.WrapH(endpoints.Consent))
+	browser.GET("/oauth/callback", gin.WrapH(endpoints.Callback))
 
-	// What the host does with a finished sign-in, from its own server: it
-	// trades the code for its tokens and renews them, and ends the grant when
-	// the parent disconnects.
-	router.POST("/oauth/token", gin.WrapH(endpoints.Token))
-	router.POST("/oauth/revoke", gin.WrapH(endpoints.Revoke))
+	// What the host does from its own server: it registers, trades the code
+	// for its tokens and renews them, and ends the grant when the parent
+	// disconnects.
+	hosts := router.Group("", middleware.Limit(logger, obs.ProjectID, middleware.TooMany, address, instance))
+	hosts.POST("/oauth/register", gin.WrapH(endpoints.Register))
+	hosts.POST("/oauth/token", gin.WrapH(endpoints.Token))
+	hosts.POST("/oauth/revoke", gin.WrapH(endpoints.Revoke))
 
 	return router, nil
 }

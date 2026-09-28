@@ -7,6 +7,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"slices"
 	"time"
@@ -23,6 +24,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark"
+	"github.com/MathTrail/mathtrail-standalone/internal/ratelimit"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 	drivestore "github.com/MathTrail/mathtrail-standalone/internal/store/drive"
 	"github.com/MathTrail/mathtrail-standalone/internal/store/memory"
@@ -191,12 +193,26 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 	if cfg.DevAuth {
 		signIn = mcpserver.DevSignIn
 	}
+	// Each account, each address before a sign-in, and the instance as a whole
+	// are held to a pace of their own; a child's day, to the tasks it holds.
+	paces, err := newPaces(cfg)
+	if err != nil {
+		return nil, err
+	}
+	log.Info("limits set",
+		zap.Int("user_per_min", cfg.RateUserPerMin),
+		zap.Int("ip_per_min", cfg.RateIPPerMin),
+		zap.Int("instance_per_min", cfg.RateInstancePerMin),
+		zap.Int("daily_tasks", cfg.DailyTasks),
+		zap.Int("daily_failed", cfg.DailyFailed),
+	)
 	lesson, err := mcpserver.NewService(&mcpserver.Parts{
 		Store:     c.Store,
 		Content:   embedded,
 		Reviewer:  c.Reviewer,
 		Sealer:    ring.For(seal.PurposeTaskAnswer),
 		Window:    cfg.RequestWindow,
+		Daily:     mcpserver.Daily{Tasks: cfg.DailyTasks, Failed: cfg.DailyFailed},
 		Now:       time.Now,
 		Version:   version.Version,
 		Logger:    log,
@@ -211,6 +227,7 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 		InstructionsVersion: embedded.InstructionsVersion(),
 		Version:             version.Version,
 		SignIn:              signIn,
+		Limits:              mcpserver.Limits{PerAccount: paces.perAccount, Instance: paces.lessons},
 		Traces:              tel.TracerProvider(),
 		Logger:              log,
 		ProjectID:           cfg.GCPProjectID,
@@ -231,7 +248,8 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 		Callback:         signInServer.Callback,
 		Token:            signInServer.Token,
 		Revoke:           signInServer.Revoke,
-	}, log, httpserver.Observability{
+		Busy:             signInServer.Busy,
+	}, httpserver.Limits{PerAddress: paces.perAddress, Instance: paces.signIn}, log, httpserver.Observability{
 		Traces:    tel.TracerProvider(),
 		Meters:    tel.MeterProvider(),
 		Flush:     tel.ForceFlush,
@@ -241,6 +259,33 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 		return nil, err
 	}
 	return c, nil
+}
+
+// paces are the paces requests are let in at, each counted in this instance's
+// memory alone: every signed-in account's apart, every address's apart before
+// anybody signs in, and the instance's at each of its two doors — the
+// sign-in, which anybody reaches, and the lessons, which only a signed-in
+// account does. The doors keep apart, so that a flood at the sign-in never
+// holds back a child in the middle of a lesson.
+type paces struct {
+	perAccount ratelimit.Limiter
+	perAddress ratelimit.Limiter
+	signIn     ratelimit.Limiter
+	lessons    ratelimit.Limiter
+}
+
+// newPaces builds the paces from the numbers configured. Each is built whether
+// or not one before it failed, so that a refusal names every number nothing
+// could be let in at.
+func newPaces(cfg *config.Config) (*paces, error) {
+	perAccount, accountErr := ratelimit.New(ratelimit.Settings{PerMinute: cfg.RateUserPerMin, Keys: ratelimit.MaxKeys, Now: time.Now})
+	perAddress, addressErr := ratelimit.New(ratelimit.Settings{PerMinute: cfg.RateIPPerMin, Keys: ratelimit.MaxKeys, Now: time.Now})
+	signIn, signInErr := ratelimit.NewShared(cfg.RateInstancePerMin, time.Now)
+	lessons, lessonsErr := ratelimit.NewShared(cfg.RateInstancePerMin, time.Now)
+	if err := errors.Join(accountErr, addressErr, signInErr, lessonsErr); err != nil {
+		return nil, err
+	}
+	return &paces{perAccount: perAccount, perAddress: perAddress, signIn: signIn, lessons: lessons}, nil
 }
 
 // googleSignIn is how a parent signs in with Google: through the service's own

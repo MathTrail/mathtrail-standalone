@@ -167,14 +167,22 @@ func (p *Profile) CountFailed(now time.Time) {
 	p.Daily.Failed++
 }
 
+// Today is what the counters hold for the day now falls on: the counters as
+// they stand when they are that day's, and nothing counted when they are
+// another day's. A limit reads the counters through it, so that yesterday's
+// tasks never hold back today's.
+func (d *Daily) Today(now time.Time) Daily {
+	today := DateOf(now)
+	if d.Date.Equal(today.Time) {
+		return *d
+	}
+	return Daily{Date: today}
+}
+
 // startDay moves the counters onto the day they are about to count, clearing
 // them when the day has moved on. It is called by whatever raises a counter
 // rather than left to the caller: a counter raised without the day looked at
 // is a limit that never resets.
 func (d *Daily) startDay(now time.Time) {
-	today := DateOf(now)
-	if d.Date.Equal(today.Time) {
-		return
-	}
-	*d = Daily{Date: today}
+	*d = d.Today(now)
 }

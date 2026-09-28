@@ -25,6 +25,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/config"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
+	"github.com/MathTrail/mathtrail-standalone/internal/ratelimit"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 	mcpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/mcp"
 	"github.com/MathTrail/mathtrail-standalone/internal/widget"
@@ -575,22 +576,27 @@ func containerFrom(t *testing.T, cfg *config.Config) *app.Container {
 
 func testConfig() *config.Config {
 	return &config.Config{
-		Port:              "0", // the kernel picks a free one
-		PublicURL:         "http://localhost",
-		LogLevel:          "debug",
-		LogFormat:         "console",
-		ReadHeaderTimeout: config.DefaultReadHeaderTimeout,
-		ReadTimeout:       config.DefaultReadTimeout,
-		WriteTimeout:      config.DefaultWriteTimeout,
-		IdleTimeout:       config.DefaultIdleTimeout,
-		ShutdownTimeout:   time.Second,
-		SealKeyCurrent:    sealKey,
-		SolverSteps:       config.DefaultSolverSteps,
-		SolverTimeout:     config.DefaultSolverTimeout,
-		SolverConcurrency: config.DefaultSolverConcurrency,
-		RequestWindow:     config.DefaultRequestWindow,
-		DriveTimeout:      config.DefaultDriveTimeout,
-		SiteURL:           config.DefaultSiteURL,
+		Port:               "0", // the kernel picks a free one
+		PublicURL:          "http://localhost",
+		LogLevel:           "debug",
+		LogFormat:          "console",
+		ReadHeaderTimeout:  config.DefaultReadHeaderTimeout,
+		ReadTimeout:        config.DefaultReadTimeout,
+		WriteTimeout:       config.DefaultWriteTimeout,
+		IdleTimeout:        config.DefaultIdleTimeout,
+		ShutdownTimeout:    time.Second,
+		SealKeyCurrent:     sealKey,
+		SolverSteps:        config.DefaultSolverSteps,
+		SolverTimeout:      config.DefaultSolverTimeout,
+		SolverConcurrency:  config.DefaultSolverConcurrency,
+		RequestWindow:      config.DefaultRequestWindow,
+		RateUserPerMin:     config.DefaultRateUserPerMin,
+		RateIPPerMin:       config.DefaultRateIPPerMin,
+		RateInstancePerMin: config.DefaultRateInstancePerMin,
+		DailyTasks:         config.DefaultDailyTasks,
+		DailyFailed:        config.DefaultDailyFailed,
+		DriveTimeout:       config.DefaultDriveTimeout,
+		SiteURL:            config.DefaultSiteURL,
 	}
 }
 
@@ -623,4 +629,44 @@ func waitForHealthz(t *testing.T, addr string) {
 		time.Sleep(10 * time.Millisecond)
 	}
 	t.Fatalf("no healthy answer from %s within 5s", addr)
+}
+
+// The instance keeps a pace at each of its two doors apart: a flood at the
+// sign-in, which anybody reaches, spends nothing of the pace the lessons are
+// held to, so a child in the middle of one is not held back by it.
+func TestAFloodAtTheSignInDoesNotHoldBackTheLessons(t *testing.T) {
+	t.Parallel()
+
+	cfg := testConfig()
+	cfg.DevAuth = true
+	cfg.RateInstancePerMin = 3
+	container := containerFrom(t, cfg)
+
+	serveOne(t, container, http.MethodPost, "/oauth/register", `{}`)
+	if flooded := serveOne(t, container, http.MethodPost, "/oauth/register", `{}`); flooded.Code != http.StatusTooManyRequests {
+		t.Fatalf("the sign-in past its pace: status = %d, want %d", flooded.Code, http.StatusTooManyRequests)
+	}
+	lesson := serveOne(t, container, http.MethodPost, "/mcp", `{"jsonrpc":"2.0","id":1,"method":"tools/list"}`)
+	if lesson.Code != http.StatusOK || strings.Contains(lesson.Body.String(), "too many requests") {
+		t.Errorf("a lesson after the flood at the sign-in: status %d, body %s, want it answered", lesson.Code, lesson.Body.String())
+	}
+}
+
+// A pace nothing could be let in at stops the container where it is built,
+// whichever pace it is.
+func TestContainerRefusesAPaceNothingCouldBeLetInAt(t *testing.T) {
+	t.Parallel()
+
+	for name, spoil := range map[string]func(*config.Config){
+		"an account's":   func(cfg *config.Config) { cfg.RateUserPerMin = 0 },
+		"an address's":   func(cfg *config.Config) { cfg.RateIPPerMin = 0 },
+		"the instance's": func(cfg *config.Config) { cfg.RateInstancePerMin = 0 },
+	} {
+		cfg := testConfig()
+		spoil(cfg)
+		container, err := app.NewContainer(t.Context(), cfg, zaptest.NewLogger(t))
+		if !errors.Is(err, ratelimit.ErrSettings) || container != nil {
+			t.Errorf("%s pace of none: NewContainer() = %v, %v, want no container and ErrSettings", name, container, err)
+		}
+	}
 }

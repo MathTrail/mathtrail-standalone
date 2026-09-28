@@ -3,6 +3,7 @@ package oauthserver
 import (
 	"encoding/json"
 	"flag"
+	"html"
 	"io/fs"
 	"maps"
 	"net/http"
@@ -88,7 +89,7 @@ func wordsAskedFor(t *testing.T) []string {
 			asked = append(asked, found[1])
 		}
 	}
-	for _, stopped := range []stop{stoppedRequest, stoppedClient, stoppedRedirect, stoppedExpired, stoppedCookie, stoppedUnconfigured, stoppedFailed} {
+	for _, stopped := range []stop{stoppedRequest, stoppedClient, stoppedRedirect, stoppedExpired, stoppedCookie, stoppedUnconfigured, stoppedFailed, stoppedBusy} {
 		asked = append(asked, "refusal."+stopped.page+".heading", "refusal."+stopped.page+".text")
 	}
 	return append(asked, "consent.heading", "consent.return", "consent.legal", "consent.terms", "consent.privacy", "refusal.code")
@@ -393,4 +394,35 @@ func TestPagesThatCannotBeReadStopTheService(t *testing.T) {
 			t.Errorf("newPages() error = %v, want nil", err)
 		}
 	})
+}
+
+// A parent's browser past the sign-in's pace is shown a page of its own, in
+// the parent's language: 429, what happened and what to do, and kept by no
+// cache.
+func TestABrowserPastThePaceIsShownAPageInItsLanguage(t *testing.T) {
+	t.Parallel()
+
+	for _, lang := range []string{"en", "ru"} {
+		answer := httptest.NewRecorder()
+		request := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/oauth/authorize", http.NoBody)
+		request.Header.Set("Accept-Language", lang)
+		pagesOf(t).busy(answer, request)
+
+		if answer.Code != http.StatusTooManyRequests {
+			t.Errorf("in %s: status = %d, want %d", lang, answer.Code, http.StatusTooManyRequests)
+		}
+		if got := answer.Header().Get("Content-Language"); got != lang {
+			t.Errorf("in %s: Content-Language = %q, want %q", lang, got, lang)
+		}
+		if got := answer.Header().Get("Cache-Control"); got != "no-store" {
+			t.Errorf("in %s: Cache-Control = %q, want no-store", lang, got)
+		}
+		words := wordsIn(t, lang)
+		body := answer.Body.String()
+		for _, key := range []string{"refusal.busy.heading", "refusal.busy.text"} {
+			if !strings.Contains(body, html.EscapeString(words[key])) {
+				t.Errorf("in %s: the page does not say %q", lang, words[key])
+			}
+		}
+	}
 }

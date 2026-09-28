@@ -15,6 +15,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/cimd"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth/googletest"
+	"github.com/MathTrail/mathtrail-standalone/internal/ratelimit/ratelimittest"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 	mcpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/mcp"
 )
@@ -42,6 +43,7 @@ func (h *signIn) serveResource(t *testing.T) {
 		InstructionsVersion: "test",
 		Version:             "test",
 		SignIn:              mcpserver.BearerSignIn(h.server.Account, h.server.ResourceMetadataURL),
+		Limits:              mcpserver.Limits{PerAccount: ratelimittest.Roomy(t), Instance: ratelimittest.Roomy(t)},
 		Traces:              tracenoop.NewTracerProvider(),
 		Logger:              zap.NewNop(),
 		Widget:              "<!doctype html><title>the widget</title>",

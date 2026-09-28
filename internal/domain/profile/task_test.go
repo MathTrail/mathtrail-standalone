@@ -3,6 +3,8 @@ package profile_test
 import (
 	"testing"
 	"time"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 )
 
 // The daily counters are in the file because every instance of the service has
@@ -36,6 +38,30 @@ func TestTheDailyCountersBelongToADay(t *testing.T) {
 	}
 	if err := p.Validate(); err != nil {
 		t.Errorf("Validate() error = %v, want a profile that can be written", err)
+	}
+}
+
+// A limit reads the counters of the day it is asked on: the day's own as they
+// stand, and nothing counted for a day the counters do not belong to — the
+// counters themselves left as the file holds them.
+func TestTheCountersOfTodayAreTodaysAlone(t *testing.T) {
+	t.Parallel()
+
+	p := parseFixture(t, "dima")
+	day := time.Date(2026, 9, 20, 9, 0, 0, 0, time.UTC)
+	p.CountAccepted(day)
+	p.CountFailed(day)
+	kept := p.Daily
+
+	if got := p.Daily.Today(day.Add(14 * time.Hour)); got != kept {
+		t.Errorf("Today() later that day = %+v, want the day's own %+v", got, kept)
+	}
+	next := day.AddDate(0, 0, 1)
+	if got, want := p.Daily.Today(next), (profile.Daily{Date: profile.DateOf(next)}); got != want {
+		t.Errorf("Today() the next day = %+v, want nothing counted yet, %+v", got, want)
+	}
+	if p.Daily != kept {
+		t.Errorf("the counters became %+v by being read, want them as they were, %+v", p.Daily, kept)
 	}
 }
 
