@@ -2,6 +2,7 @@ package check_test
 
 import (
 	"os"
+	"strings"
 	"testing"
 	"testing/fstest"
 
@@ -41,5 +42,31 @@ func TestTheSiteInThisRepositoryIsPublishable(t *testing.T) {
 	}
 	for _, finding := range findings {
 		t.Errorf("the site is not publishable: %s", finding)
+	}
+}
+
+// Every page of the site loads the design tokens before its own stylesheet,
+// which reads its colours, spaces and fonts from them.
+func TestEveryPageLoadsTheDesignTokensFirst(t *testing.T) {
+	t.Parallel()
+
+	files, err := render.Build(os.DirFS("../../../site"), render.Options{
+		BaseURL:         "https://example.test",
+		SiteName:        "MathTrail",
+		ReferenceLocale: "en",
+	})
+	if err != nil {
+		t.Fatalf("Build() error = %v, want no error", err)
+	}
+	for _, file := range files {
+		if !strings.HasSuffix(file.Path, ".html") {
+			continue
+		}
+		page := string(file.Data)
+		tokens := strings.Index(page, `<link rel="stylesheet" href="/assets/tokens.css">`)
+		style := strings.Index(page, `<link rel="stylesheet" href="/assets/style.css">`)
+		if tokens < 0 || style < 0 || tokens > style {
+			t.Errorf("%s loads the tokens at %d and its stylesheet at %d, want the tokens first", file.Path, tokens, style)
+		}
 	}
 }

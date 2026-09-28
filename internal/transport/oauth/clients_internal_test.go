@@ -22,6 +22,9 @@ import (
 // testIssuer is the address the server under test is.
 const testIssuer = "https://mcp.example"
 
+// testSite is the site the pages under test link to.
+const testSite = "https://site.example"
+
 // testDay is when these cases happen.
 var testDay = time.Date(2026, 9, 27, 12, 0, 0, 0, time.UTC)
 
@@ -61,6 +64,7 @@ func knownClients(t testing.TB, ring *seal.KeyRing, fetcher cimd.Fetcher) (*clie
 		Seal:      ring,
 		Documents: fetcher,
 		Logger:    zap.New(core),
+		SiteURL:   testSite,
 		Now:       func() time.Time { return testDay },
 	})
 	if err != nil {

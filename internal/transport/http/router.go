@@ -68,6 +68,12 @@ type Endpoints struct {
 	ServerMetadata http.Handler
 	// Register registers an OAuth client.
 	Register http.Handler
+	// Authorize answers an authorization request in the parent's browser.
+	Authorize http.Handler
+	// Consent answers the consent screen.
+	Consent http.Handler
+	// Callback answers Google's redirect at the end of a sign-in.
+	Callback http.Handler
 }
 
 // ErrEndpoints is returned when the router is given an address or endpoints it
@@ -76,7 +82,7 @@ var ErrEndpoints = errors.New("http: endpoints")
 
 // validate refuses a missing handler, naming it, rather than mounting a route
 // that panics on its first request.
-func (e Endpoints) validate() error {
+func (e *Endpoints) validate() error {
 	switch {
 	case e.Health == nil:
 		return fmt.Errorf("%w: Health must be set", ErrEndpoints)
@@ -88,6 +94,12 @@ func (e Endpoints) validate() error {
 		return fmt.Errorf("%w: ServerMetadata must be set", ErrEndpoints)
 	case e.Register == nil:
 		return fmt.Errorf("%w: Register must be set", ErrEndpoints)
+	case e.Authorize == nil:
+		return fmt.Errorf("%w: Authorize must be set", ErrEndpoints)
+	case e.Consent == nil:
+		return fmt.Errorf("%w: Consent must be set", ErrEndpoints)
+	case e.Callback == nil:
+		return fmt.Errorf("%w: Callback must be set", ErrEndpoints)
 	}
 	return nil
 }
@@ -102,7 +114,7 @@ func (e Endpoints) validate() error {
 // The framework's mode is a setting of the process, not of a router, so it is
 // chosen where the process starts and never here: a constructor that reaches
 // for a global changes what every other router in the same binary does.
-func NewRouter(publicURL string, endpoints Endpoints, logger *zap.Logger, obs Observability) (*gin.Engine, error) {
+func NewRouter(publicURL string, endpoints *Endpoints, logger *zap.Logger, obs Observability) (*gin.Engine, error) {
 	if err := endpoints.validate(); err != nil {
 		return nil, err
 	}
@@ -180,6 +192,12 @@ func NewRouter(publicURL string, endpoints Endpoints, logger *zap.Logger, obs Ob
 	router.GET("/.well-known/oauth-protected-resource/mcp", gin.WrapH(endpoints.ResourceMetadata))
 	router.GET("/.well-known/oauth-authorization-server", gin.WrapH(endpoints.ServerMetadata))
 	router.POST("/oauth/register", gin.WrapH(endpoints.Register))
+
+	// The parent's way through a sign-in, in their browser: the request a
+	// host sends them with, the consent screen's answer, and Google's.
+	router.GET("/oauth/authorize", gin.WrapH(endpoints.Authorize))
+	router.POST("/oauth/consent", gin.WrapH(endpoints.Consent))
+	router.GET("/oauth/callback", gin.WrapH(endpoints.Callback))
 
 	return router, nil
 }

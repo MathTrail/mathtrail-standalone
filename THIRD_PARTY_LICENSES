@@ -11,10 +11,13 @@ Apache-2.0    cloud.google.com/go/compute/metadata           https://github.com/
 Apache-2.0    github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp https://github.com/GoogleCloudPlatform/opentelemetry-operations-go/blob/detectors/gcp/v1.36.0/detectors/gcp/LICENSE
 MIT           github.com/cenkalti/backoff/v5                 https://github.com/cenkalti/backoff/blob/v5.0.3/LICENSE
 MIT           github.com/cespare/xxhash/v2                   https://github.com/cespare/xxhash/blob/v2.3.0/LICENSE.txt
+Apache-2.0    github.com/coreos/go-oidc/v3/oidc              https://github.com/coreos/go-oidc/blob/v3.21.0/LICENSE
 BSD-3-Clause  github.com/fsnotify/fsnotify                   https://github.com/fsnotify/fsnotify/blob/v1.9.0/LICENSE
 MIT           github.com/gabriel-vasile/mimetype             https://github.com/gabriel-vasile/mimetype/blob/v1.4.15/LICENSE
 MIT           github.com/gin-contrib/sse                     https://github.com/gin-contrib/sse/blob/v1.1.1/LICENSE
 MIT           github.com/gin-gonic/gin                       https://github.com/gin-gonic/gin/blob/v1.12.0/LICENSE
+Apache-2.0    github.com/go-jose/go-jose/v4                  https://github.com/go-jose/go-jose/blob/v4.1.5/LICENSE
+BSD-3-Clause  github.com/go-jose/go-jose/v4/json             https://github.com/go-jose/go-jose/blob/v4.1.5/json/LICENSE
 Apache-2.0    github.com/go-logr/logr                        https://github.com/go-logr/logr/blob/v1.4.4/LICENSE
 Apache-2.0    github.com/go-logr/stdr                        https://github.com/go-logr/stdr/blob/v1.2.2/LICENSE
 MIT           github.com/go-playground/locales               https://github.com/go-playground/locales/blob/v0.14.1/LICENSE

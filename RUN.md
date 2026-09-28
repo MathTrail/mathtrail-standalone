@@ -129,7 +129,7 @@
 | [x] | T45 | Ответ ребёнка | Claude | — | T26a, T44 |
 | [x] | T46 | Локальный прогон в Claude Code | я + Claude | — | T45 |
 | [x] | T47 | OAuth: метаданные и клиенты | Claude | да | T24, T41 |
-| [ ] | T48 | OAuth: authorize, согласие, callback | Claude | да | T47 |
+| [x] | T48 | OAuth: authorize, согласие, callback | Claude | да | T47 |
 | [ ] | T49 | OAuth: token, refresh, revoke, bearer | Claude | — | T48 |
 | [ ] | T50 | Хранилище в Drive: основа | Claude | да | T40, T49 |
 | [ ] | T51 | Хранилище в Drive: конфликты и сбои | Claude | да | T50 |

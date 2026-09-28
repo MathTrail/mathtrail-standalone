@@ -39,14 +39,16 @@ var (
 )
 
 // sealingKey is one version of the sealing key. The bytes it was read from are
-// never kept: what it holds is the identifier derived from them and one AEAD
-// per purpose, so the key material itself cannot be read back out, logged or
-// passed on. The identifier is the first characters of the key's own digest,
-// which is why a key and its id can never be configured apart; it is public —
-// every sealed value carries it — and says nothing about the key.
+// never kept: what it holds is the identifier derived from them, one AEAD per
+// purpose and the subkey user identifiers are derived with, so the key
+// material itself cannot be read back out, logged or passed on. The identifier
+// is the first characters of the key's own digest, which is why a key and its
+// id can never be configured apart; it is public — every sealed value carries
+// it — and says nothing about the key.
 type sealingKey struct {
-	id   string
-	aead map[Purpose]cipher.AEAD
+	id     string
+	aead   map[Purpose]cipher.AEAD
+	userID []byte
 }
 
 // readKey reads a key from the base64 a deployment carries, and derives
@@ -63,15 +65,20 @@ func readKey(encoded string) (sealingKey, error) {
 		return sealingKey{}, fmt.Errorf("%d bytes, want %d", len(secret), KeySize)
 	}
 
-	digest := sha256.Sum256(secret)
-	key := sealingKey{
-		id:   base64.RawURLEncoding.EncodeToString(digest[:])[:keyIDLength],
-		aead: make(map[Purpose]cipher.AEAD, len(labels)),
-	}
-
-	// Every subkey is derived once, when the process starts. A purpose that
+	// Every subkey is derived once, when the process starts. A subkey that
 	// could not be derived is a key that would fail at the worst possible
 	// moment instead, so all of them are made here or none is.
+	userID, err := hkdf.Key(sha256.New, secret, nil, userIDInfo, KeySize)
+	if err != nil {
+		return sealingKey{}, fmt.Errorf("derive the subkey of user identifiers: %w", err)
+	}
+	digest := sha256.Sum256(secret)
+	key := sealingKey{
+		id:     base64.RawURLEncoding.EncodeToString(digest[:])[:keyIDLength],
+		aead:   make(map[Purpose]cipher.AEAD, len(labels)),
+		userID: userID,
+	}
+
 	for purpose := range labels {
 		subkey, err := hkdf.Key(sha256.New, secret, nil, subkeyInfo+string(purpose), KeySize)
 		if err != nil {

@@ -58,6 +58,8 @@ const (
 
 	DefaultRequestWindow = 15 * time.Minute
 
+	DefaultSiteURL = "https://mathtrail.app"
+
 	DefaultTelemetry            = TelemetryAuto
 	DefaultTelemetryEndpoint    = "https://telemetry.googleapis.com"
 	DefaultTelemetrySampleRatio = 0.1
@@ -137,6 +139,18 @@ type Config struct {
 	// it sealed. Empty outside a rotation, and a secret like the one above.
 	SealKeyPrevious string `mapstructure:"MATHTRAIL_SEAL_KEY_PREVIOUS"`
 
+	// GoogleClientID is the service's OAuth client at Google, which a parent
+	// signs in with. Required in a deployment; a developer's machine may go
+	// without, and a sign-in there stops at a page that says so.
+	GoogleClientID string `mapstructure:"MATHTRAIL_GOOGLE_CLIENT_ID"`
+	// GoogleClientSecret is that client's secret. It belongs in no log line
+	// and in no error message.
+	GoogleClientSecret string `mapstructure:"MATHTRAIL_GOOGLE_CLIENT_SECRET"`
+
+	// SiteURL is the site's address, where the consent screen links the terms
+	// and the privacy policy.
+	SiteURL string `mapstructure:"MATHTRAIL_SITE_URL"`
+
 	// DevAuth replaces the Google sign-in with a stub. It is refused whenever
 	// K_SERVICE is set.
 	DevAuth bool `mapstructure:"MATHTRAIL_DEV_AUTH"`
@@ -178,6 +192,14 @@ func (c *Config) CloseTimeout() time.Duration { return c.ShutdownTimeout / 4 }
 // Origin is the public URL as a bare scheme and host, without a trailing slash.
 func (c *Config) Origin() string { return strings.TrimSuffix(c.PublicURL, "/") }
 
+// Site is the site's address as a bare scheme and host, without a trailing
+// slash.
+func (c *Config) Site() string { return strings.TrimSuffix(c.SiteURL, "/") }
+
+// GoogleSignIn reports whether a Google client is configured, which is what a
+// parent signs in with.
+func (c *Config) GoogleSignIn() bool { return c.GoogleClientID != "" }
+
 // Load reads the process environment.
 func Load() (*Config, error) { return LoadFrom(os.Environ()) }
 
@@ -213,6 +235,9 @@ func LoadFrom(environ []string) (*Config, error) {
 	v.SetDefault("MATHTRAIL_GCP_PROJECT_ID", "")
 	v.SetDefault("MATHTRAIL_SEAL_KEY_CURRENT", "")
 	v.SetDefault("MATHTRAIL_SEAL_KEY_PREVIOUS", "")
+	v.SetDefault("MATHTRAIL_GOOGLE_CLIENT_ID", "")
+	v.SetDefault("MATHTRAIL_GOOGLE_CLIENT_SECRET", "")
+	v.SetDefault("MATHTRAIL_SITE_URL", DefaultSiteURL)
 	v.SetDefault("MATHTRAIL_DEV_AUTH", false)
 	v.SetDefault("K_SERVICE", "")
 
@@ -250,6 +275,11 @@ func LoadFrom(environ []string) (*Config, error) {
 	if cfg.PublicURL == "" && !cfg.Deployed() {
 		cfg.PublicURL = "http://localhost:" + cfg.Port
 	}
+
+	// A secret read out of a file arrives with a newline on the end, and Google
+	// would refuse a client whose name or secret carried one.
+	cfg.GoogleClientID = strings.TrimSpace(cfg.GoogleClientID)
+	cfg.GoogleClientSecret = strings.TrimSpace(cfg.GoogleClientSecret)
 
 	if err := cfg.Validate(); err != nil {
 		return nil, err
@@ -308,7 +338,10 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("%w: MATHTRAIL_DEV_AUTH must not be set when K_SERVICE is set", ErrInvalid)
 	}
 
-	return nil
+	if err := c.validateGoogle(); err != nil {
+		return err
+	}
+	return c.validateSiteURL()
 }
 
 // validatePublicURL refuses an address the service could not be itself at. The
@@ -319,24 +352,63 @@ func (c *Config) validatePublicURL() error {
 	if c.PublicURL == "" {
 		return fmt.Errorf("%w: MATHTRAIL_PUBLIC_URL must be set when K_SERVICE is set", ErrInvalid)
 	}
-	parsed, err := url.Parse(c.PublicURL)
+	// The issuer, the redirect URI and the canonical resource must be https
+	// everywhere except a developer's own machine.
+	return validateOrigin("MATHTRAIL_PUBLIC_URL", c.PublicURL)
+}
+
+// validateOrigin refuses an address that is not a scheme and a host alone,
+// over https — or over plain http on a developer's own machine — naming the
+// variable that carries it.
+func validateOrigin(variable, address string) error {
+	parsed, err := url.Parse(address)
 	switch {
 	case err != nil:
-		return fmt.Errorf("%w: MATHTRAIL_PUBLIC_URL is not a URL: %q", ErrInvalid, c.PublicURL)
+		return fmt.Errorf("%w: %s is not a URL: %q", ErrInvalid, variable, address)
 	case parsed.Host == "":
-		return fmt.Errorf("%w: MATHTRAIL_PUBLIC_URL has no host: %q", ErrInvalid, c.PublicURL)
+		return fmt.Errorf("%w: %s has no host: %q", ErrInvalid, variable, address)
 	case parsed.Scheme != "https" && !isLoopback(parsed.Hostname()):
-		// The issuer, the redirect URI and the canonical resource must be
-		// https everywhere except a developer's own machine.
-		return fmt.Errorf("%w: MATHTRAIL_PUBLIC_URL must use https outside localhost: %q", ErrInvalid, c.PublicURL)
+		return fmt.Errorf("%w: %s must use https outside localhost: %q", ErrInvalid, variable, address)
 	case parsed.Path != "" && parsed.Path != "/":
-		return fmt.Errorf("%w: MATHTRAIL_PUBLIC_URL must have no path: %q", ErrInvalid, c.PublicURL)
-	case parsed.RawQuery != "" || parsed.Fragment != "":
-		return fmt.Errorf("%w: MATHTRAIL_PUBLIC_URL must have no query and no fragment: %q", ErrInvalid, c.PublicURL)
+		return fmt.Errorf("%w: %s must have no path: %q", ErrInvalid, variable, address)
+	case strings.ContainsAny(address, "?#"):
+		// Even an empty query or fragment: an address with the mark and
+		// nothing after it is another string for whoever compares it.
+		return fmt.Errorf("%w: %s must have no query and no fragment: %q", ErrInvalid, variable, address)
 	case parsed.User != nil:
-		return fmt.Errorf("%w: MATHTRAIL_PUBLIC_URL must carry no credentials: %q", ErrInvalid, c.PublicURL)
+		return fmt.Errorf("%w: %s must carry no credentials: %q", ErrInvalid, variable, address)
 	}
+	return nil
+}
 
+// validateSiteURL refuses a site the consent screen could not link a parent
+// to. A deployment links every parent there, so a site on a developer's own
+// machine is refused on one, as plain http is everywhere else.
+func (c *Config) validateSiteURL() error {
+	if err := validateOrigin("MATHTRAIL_SITE_URL", c.SiteURL); err != nil {
+		return err
+	}
+	if c.Deployed() && !strings.HasPrefix(strings.ToLower(c.SiteURL), "https://") {
+		return fmt.Errorf("%w: MATHTRAIL_SITE_URL must use https when K_SERVICE is set: %q", ErrInvalid, c.SiteURL)
+	}
+	return nil
+}
+
+// validateGoogle refuses a Google client the service could sign nobody in
+// with. A deployment needs one. A developer's machine may go without, and its
+// sign-in then stops at a page that says so. Half a client is refused
+// everywhere: it is a secret that never arrived, and it would fail at the
+// first parent rather than at the start.
+func (c *Config) validateGoogle() error {
+	client, secret := c.GoogleClientID != "", c.GoogleClientSecret != ""
+	switch {
+	case c.Deployed() && !client:
+		return fmt.Errorf("%w: MATHTRAIL_GOOGLE_CLIENT_ID must be set when K_SERVICE is set", ErrInvalid)
+	case client && !secret:
+		return fmt.Errorf("%w: MATHTRAIL_GOOGLE_CLIENT_SECRET must be set with MATHTRAIL_GOOGLE_CLIENT_ID", ErrInvalid)
+	case secret && !client:
+		return fmt.Errorf("%w: MATHTRAIL_GOOGLE_CLIENT_ID must be set with MATHTRAIL_GOOGLE_CLIENT_SECRET", ErrInvalid)
+	}
 	return nil
 }
 

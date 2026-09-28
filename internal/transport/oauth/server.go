@@ -5,9 +5,12 @@
 // database is kept by somebody else. A client that names itself by an HTTPS
 // address keeps its own record, in the document at that address. A client
 // that registered here carries its record sealed inside the identifier it was
-// given. This package serves the metadata a host discovers the server by and
-// the registration endpoint, and turns a client identifier into the client it
-// stands for.
+// given. A sign-in under way travels sealed with the parent — in the consent
+// screen's form, and in the state Google carries back — and the browser holds
+// the cookie that ties it to them and the one that remembers whom they
+// approved. This package serves the metadata a host discovers the server by,
+// the registration endpoint, and the parent's way through a sign-in: the
+// authorization request, the consent screen and Google's answer.
 package oauthserver
 
 import (
@@ -15,11 +18,13 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/cimd"
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
 )
 
@@ -38,7 +43,15 @@ type Settings struct {
 	Logger *zap.Logger
 	// ProjectID is the project the traces a line points to belong to.
 	ProjectID string
-	// Now is the clock a registration is dated by and a fetch is timed by.
+	// Google is the sign-in a parent is sent on to. Nil where no Google client
+	// is configured — a developer's machine — and a sign-in then stops at a
+	// page that says so.
+	Google googleauth.SignIn
+	// SiteURL is the site the consent screen links the terms and the privacy
+	// policy on: a scheme and a host, with no path and no trailing slash.
+	SiteURL string
+	// Now is the clock everything the server issues is dated by, and a fetch
+	// is timed by.
 	Now func() time.Time
 }
 
@@ -61,14 +74,20 @@ func (s *Settings) validate() error {
 	case s.Now == nil:
 		return fmt.Errorf("%w: Now must be set", ErrSettings)
 	}
-	issuer, err := url.Parse(s.PublicURL)
-	switch {
-	case err != nil, issuer.Scheme == "", issuer.Host == "":
-		return fmt.Errorf("%w: PublicURL must be an address", ErrSettings)
-	case issuer.Path != "", issuer.RawQuery != "", issuer.Fragment != "", issuer.User != nil:
+	if !isOrigin(s.PublicURL) {
 		return fmt.Errorf("%w: PublicURL must be a scheme and a host alone", ErrSettings)
 	}
+	if !isOrigin(s.SiteURL) {
+		return fmt.Errorf("%w: SiteURL must be a scheme and a host alone", ErrSettings)
+	}
 	return nil
+}
+
+// isOrigin reports whether an address is a scheme and a host, and nothing else.
+func isOrigin(address string) bool {
+	parsed, err := url.Parse(address)
+	return err == nil && parsed.Scheme != "" && parsed.Host != "" && parsed.Path == "" &&
+		!strings.ContainsAny(address, "?#") && parsed.User == nil
 }
 
 // Server is the authorization server as the router mounts it: the documents a
@@ -82,11 +101,19 @@ type Server struct {
 	ServerMetadata http.Handler
 	// Register registers a client (RFC 7591).
 	Register http.Handler
+	// Authorize answers an authorization request (RFC 6749 4.1.1) with the
+	// consent screen, or on to Google.
+	Authorize http.Handler
+	// Consent answers the consent screen.
+	Consent http.Handler
+	// Callback answers Google's redirect with the code the client exchanges.
+	Callback http.Handler
 	// ResourceMetadataURL is the address of the resource's metadata, which a
 	// refusal of the resource names.
 	ResourceMetadataURL string
 
 	clients *clients
+	flow    *flow
 }
 
 // New builds the authorization server, or refuses settings it could not work
@@ -108,11 +135,33 @@ func New(settings *Settings) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
+	screens, err := newPages(pageFiles, settings.SiteURL)
+	if err != nil {
+		return nil, err
+	}
+	signIn := &flow{
+		issuer:   issuer,
+		resource: issuer + resourcePath,
+		scope:    settings.Scope,
+		clients:  known,
+		flights:  settings.Seal.For(seal.PurposeState),
+		consents: settings.Seal.For(seal.PurposeConsent),
+		codes:    settings.Seal.For(seal.PurposeCode),
+		userID:   settings.Seal.UserID,
+		google:   settings.Google,
+		pages:    screens,
+		events:   events,
+		now:      settings.Now,
+	}
 	return &Server{
 		ResourceMetadata:    resourceMetadataHandler(issuer, settings.Scope),
 		ServerMetadata:      serverMetadata,
 		Register:            &registrar{clients: known, events: events, now: settings.Now},
+		Authorize:           http.HandlerFunc(signIn.authorize),
+		Consent:             http.HandlerFunc(signIn.consent),
+		Callback:            http.HandlerFunc(signIn.callback),
 		ResourceMetadataURL: issuer + resourceMetadataPath,
 		clients:             known,
+		flow:                signIn,
 	}, nil
 }

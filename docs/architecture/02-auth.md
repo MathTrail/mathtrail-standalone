@@ -108,7 +108,7 @@ sequenceDiagram
     Note over MT: unseal the state · SHA-256 of the cookie equals the hash inside it ·<br/>drop the cookie
     MT->>G: POST /token: Google's code, our verifier, our client secret
     G-->>MT: access_token, refresh_token, id_token
-    Note over MT: verify the ID token against the cached JWKS: iss, aud, exp, nonce<br/>user_id = HMAC(k_userid, sub) — the sub itself goes no further
+    Note over MT: verify the ID token against the cached JWKS: iss, aud, exp, nonce ·<br/>drive.file among the granted scopes<br/>user_id = HMAC(k_userid, sub) — the sub itself goes no further
     MT-->>P: 302 to redirect_uri with code=mt1.c.KID.SEALED,<br/>the host's own state, and iss=https://mathtrail.example
     P->>H: the browser hands the code back to the host
 
@@ -118,7 +118,7 @@ sequenceDiagram
     H->>MT: POST /mcp with the Bearer token
 ```
 
-**Why the consent page exists.** We proxy a sign-in to a third party, which is the textbook confused-deputy setup: without a screen of our own, a stranger's client could ride on a browser that is already signed in to Google and never be seen by the parent. So a client the browser has not approved gets one page before Google is involved at all, and the page names the client and the **hostname of its redirect URI** — the specification asks for the hostname specifically, because a client name is only a string the client chose for itself. A `localhost`-only redirect URI gets an extra warning line: the metadata document cannot prove who is listening on a loopback port.
+**Why the consent page exists.** We proxy a sign-in to a third party, which is the textbook confused-deputy setup: without a screen of our own, a stranger's client could ride on a browser that is already signed in to Google and never be seen by the parent. So a client the browser has not approved gets one page before Google is involved at all, and the page names the client and the **hostname of its redirect URI** — the specification asks for the hostname specifically, because a client name is only a string the client chose for itself. A `localhost`-only redirect URI gets an extra warning line: the metadata document cannot prove who is listening on a loopback port. The page loads nothing and cannot be framed, and its form may be sent to this server and on to the two places it leads: Google, and the client when the parent declines (SPEC 9.2). The host is shown in its ASCII form, the one a browser goes to, so that a name spelled with a lookalike letter of another script cannot pass for a familiar one; the client's name is shown without controls and without the invisible marks that reorder or hide text, and both are isolated from the text around them.
 
 **Why `prompt=consent` on every sign-in.** Google returns a refresh token only on the first authorization, and a stateless service has nowhere to keep one from last time. Sending `prompt=consent` makes every sign-in yield its own refresh token. The costs are honest and worth writing down: the parent sees Google's permission screen on every connection, and the account's 100-refresh-token ceiling means that after a hundred sign-ins the oldest grant dies without a warning. Both belong in the privacy policy and the first-sign-in description (T19).
 
@@ -132,9 +132,11 @@ sequenceDiagram
 4. `resource`, if present, is our canonical URI `https://mathtrail.example/mcp`, compared as `oauthex.MatchesResource` does it — byte-equal apart from a trailing slash. A mismatch is `invalid_target`. If the client sent none, we record our own canonical URI and log it: T04 showed Claude always sends it, and ChatGPT has not been watched yet.
 5. `scope` is empty or `mcp`; anything else is `invalid_scope`.
 
+A parameter given twice is refused as `invalid_request` — at a page before the redirect URI is matched, at the client after — and the host's `state` is at most 1,024 characters, since it rides inside our own `state` to Google (SPEC 9.3).
+
 Whatever is recorded in step 4 becomes the audience of the tokens issued from this request, and is what the bearer check compares against on every later call — that is the whole of the `resource` → `aud` binding RFC 8707 asks for, and the reason a token issued for somebody else's server cannot be spent on ours.
 
-**Errors.** Until the redirect URI has been matched exactly, nothing is redirected anywhere: a bad `client_id` or a bad `redirect_uri` renders an error page. After it matches, errors go back to the client as an OAuth error response with `state` and `iss`, including the parent declining at Google, which comes back as `access_denied`.
+**Errors.** Until the redirect URI has been matched exactly, nothing is redirected anywhere: a bad `client_id` or a bad `redirect_uri` renders an error page. After it matches, errors go back to the client as an OAuth error response with `state` and `iss`, including the parent declining at Google, which comes back as `access_denied`. A parent who unticks the Drive permission on Google's screen has not allowed the sign-in either, and the client hears `access_denied` with a description that says why (R110, SPEC remark 52). A request or an answer that cannot be tied to this browser — no cookie, another cookie, a `state` this server did not seal, or one past its ten minutes — renders a page as well: the redirect URI inside it is not to be trusted to be this parent's.
 
 ### 3. Calling tools, and refreshing
 
@@ -203,13 +205,13 @@ Everything below is opaque to the client: a purpose tag, a key id and one AEAD c
 
 | What | What is inside | Sealed with | Lives for | Where it is kept |
 |---|---|---|---|---|
-| Authorization code `mt1.c.` | user id, Google refresh token, Google access token and its expiry, client id, exact redirect URI, `code_challenge`, resource, scope, issued-at, random id | purpose `code` | 60 s | in the redirect URL, then in the host's memory |
+| Authorization code `mt1.c.` | user id, Google refresh token, Google access token and its expiry, the digest of the client id, exact redirect URI, `code_challenge`, resource, scope, issued-at — no random id, and the client by its digest (SPEC remark 54) | purpose `code` | 60 s | in the redirect URL, then in the host's memory |
 | Access token `mt1.a.` | user id, client id, resource (the audience), scope, Google access token and its expiry, issued-at, expiry | purpose `access` | 15 min, and never past the Google token inside it minus 60 s | the host's token store |
 | Refresh token `mt1.r.` | user id, client id, resource, scope, Google refresh token, Google access token and its expiry, the original sign-in time, issued-at, expiry | purpose `refresh` | 30 days sliding, at most 90 days from the original sign-in | the host's token store |
 | DCR registration, the `client_id` itself `mt1.d.` | redirect URIs, client name, created-at | purpose `client` | as long as the key that sealed it is still loaded | the host's client store |
-| The request context, our `state` towards Google `mt1.s.` | client id, redirect URI, the host's own `state`, `code_challenge` and method, resource, scope, our PKCE verifier and nonce for Google, the hash of the cookie nonce, issued-at | purpose `state` | 10 min | the URL at Google, and the parent's browser |
+| The request context, our `state` towards Google `mt1.s.` | the digest of the client id and how the client is known, redirect URI, the host's own `state`, `code_challenge`, resource, scope, our PKCE verifier and nonce for Google, the hash of the cookie nonce, issued-at | purpose `state` | 10 min | the URL at Google, and the parent's browser |
 | CSRF cookie `mt_csrf` | 32 random bytes, nothing else | not sealed — it is compared by hash | 10 min | the parent's browser, HttpOnly Secure SameSite=Lax, path `/oauth` |
-| Consent cookie `mt_consent` `mt1.k.` | the fingerprints of approved clients, `SHA-256(client_id + redirect_uri)`, and when each was approved | purpose `consent` | 180 days | the parent's browser, HttpOnly Secure SameSite=Lax, path `/oauth` |
+| Consent cookie `mt_consent` `mt1.k.` | the fingerprints of the newest 20 approved clients, `SHA-256(client_id + redirect_uri)` with each part's length in front, and when each was approved | purpose `consent` | 180 days | the parent's browser, HttpOnly Secure SameSite=Lax, path `/oauth` |
 | The sealed block of the current task | the answer, the trap texts, the solution, the solver code (О-25) | purpose `task-answer` | until the next task is asked for — an answered task keeps it, to tell its answer again when the same answer is sent twice — or the key that sealed it is retired | the profile file in the parent's Drive (T09) |
 | Google's own tokens | — | — | Google's rules: a refresh token dies after six months unused, on a revocation, or past the 100-token ceiling | only inside the rows above; never on our side |
 

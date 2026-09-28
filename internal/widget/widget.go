@@ -1,6 +1,9 @@
 // Package widget holds the page every card in a chat is drawn by: the widget
 // as the web build left it. Where no build has run — a fresh checkout, the
 // tests — a placeholder page stands in, and says so to whoever opens it.
+//
+// It holds the design tokens too, the one stylesheet of colours, spacing and
+// type everything the service shows is drawn with.
 package widget
 
 import (
@@ -19,10 +22,19 @@ const (
 //go:embed *.html
 var pages embed.FS
 
+//go:embed tokens.css
+var tokens string
+
 // Page is the widget: the page the build left when there is one, and the
 // placeholder when there is not.
 func Page() string {
 	return page(pages)
+}
+
+// Tokens is the stylesheet of the design tokens: custom properties alone,
+// for the light and the dark theme, which a page's own styles read.
+func Tokens() string {
+	return tokens
 }
 
 // page reads the built page from files when it is there, and the placeholder

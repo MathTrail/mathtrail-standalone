@@ -24,14 +24,20 @@ func TestTheSignInIsServedAtItsOwnPaths(t *testing.T) {
 		{http.MethodGet, "example.com", "/.well-known/oauth-protected-resource/mcp", http.StatusOK, reachedResourceMetadata},
 		{http.MethodGet, "example.com", "/.well-known/oauth-authorization-server", http.StatusOK, reachedServerMetadata},
 		{http.MethodPost, "example.com", "/oauth/register", http.StatusOK, reachedRegister},
+		{http.MethodGet, "example.com", "/oauth/authorize", http.StatusOK, reachedAuthorize},
+		{http.MethodPost, "example.com", "/oauth/consent", http.StatusOK, reachedConsent},
+		{http.MethodGet, "example.com", "/oauth/callback", http.StatusOK, reachedCallback},
 
 		{http.MethodGet, "service-abc.a.run.app", "/.well-known/oauth-protected-resource/mcp", http.StatusNotFound, ""},
 		{http.MethodGet, "service-abc.a.run.app", "/.well-known/oauth-authorization-server", http.StatusNotFound, ""},
 		{http.MethodPost, "service-abc.a.run.app", "/oauth/register", http.StatusNotFound, ""},
+		{http.MethodGet, "service-abc.a.run.app", "/oauth/authorize", http.StatusNotFound, ""},
+		{http.MethodGet, "service-abc.a.run.app", "/oauth/callback", http.StatusNotFound, ""},
 		{http.MethodGet, "example.com", "/.well-known/oauth-authorization-server/", http.StatusNotFound, ""},
 		{http.MethodGet, "example.com", "/.well-known/oauth-protected-resource", http.StatusNotFound, ""},
 		{http.MethodGet, "example.com", "/.well-known/openid-configuration", http.StatusNotFound, ""},
-		{http.MethodGet, "example.com", "/oauth/authorize", http.StatusNotFound, ""},
+		{http.MethodGet, "example.com", "/oauth/authorize/", http.StatusNotFound, ""},
+		{http.MethodGet, "example.com", "/oauth/token", http.StatusNotFound, ""},
 	} {
 		t.Run(tc.method+" "+tc.host+tc.path, func(t *testing.T) {
 			t.Parallel()
@@ -63,6 +69,9 @@ func TestASignInPathSaysWhichMethodItTakes(t *testing.T) {
 		{http.MethodPost, "/.well-known/oauth-protected-resource/mcp", "GET"},
 		{http.MethodPost, "/.well-known/oauth-authorization-server", "GET"},
 		{http.MethodGet, "/oauth/register", "POST"},
+		{http.MethodPost, "/oauth/authorize", "GET"},
+		{http.MethodGet, "/oauth/consent", "POST"},
+		{http.MethodPost, "/oauth/callback", "GET"},
 	} {
 		rec := call(t, tc.method, tc.path)
 		if rec.Code != http.StatusMethodNotAllowed {

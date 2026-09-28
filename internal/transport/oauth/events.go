@@ -16,8 +16,12 @@ import (
 
 // The events of a sign-in, as the lines about them are named.
 const (
-	eventCIMDFetch    = "cimd_fetch"
-	eventAuthRegister = "auth_register"
+	eventCIMDFetch     = "cimd_fetch"
+	eventAuthRegister  = "auth_register"
+	eventAuthAuthorize = "auth_authorize"
+	eventAuthConsent   = "auth_consent"
+	eventAuthCallback  = "auth_callback"
+	eventAuthReject    = "auth_reject"
 )
 
 // signInLog writes a line for each step of a sign-in, from fields named one by
@@ -76,6 +80,70 @@ func (l *signInLog) registrationFailed(ctx context.Context, err error) {
 	)...)
 }
 
+// authorized leaves the line of an authorization request answered: with the
+// consent screen, on to Google, or back to the client refused, and why.
+func (l *signInLog) authorized(ctx context.Context, request *flight, query url.Values, outcome, reason string) {
+	fields := requestFields(request)
+	fields = append(fields,
+		zap.String("resource", resourceWord(query)),
+		zap.String("scope", scopeWord(query, request.Scope)),
+		zap.String("outcome", outcome),
+	)
+	if reason != "" {
+		fields = append(fields, zap.String("reason", reason))
+	}
+	l.write(ctx, eventAuthAuthorize, fields...)
+}
+
+// consented leaves the line of the parent's answer on the consent screen.
+func (l *signInLog) consented(ctx context.Context, request *flight, outcome string) {
+	fields := requestFields(request)
+	l.write(ctx, eventAuthConsent, append(fields, zap.String("outcome", outcome))...)
+}
+
+// calledBack leaves the line of a sign-in's end, with what went wrong when
+// something did: a warning when Google failed it, an error when this server
+// did.
+func (l *signInLog) calledBack(ctx context.Context, request *flight, end *ending) {
+	fields := requestFields(request)
+	fields = append(fields, zap.String("outcome", end.outcome))
+	if end.reason != "" {
+		fields = append(fields, zap.String("reason", end.reason))
+	}
+	if end.user != "" {
+		fields = append(fields, zap.String("user", end.user))
+	}
+	if end.cause != nil {
+		fields = append(fields, zap.Error(end.cause))
+	}
+	fields = slices.Concat(fields, callerFields(ctx, l.projectID))
+	switch {
+	case end.ours:
+		l.logger.Error(eventAuthCallback, fields...)
+	case end.outcome == "failed":
+		l.logger.Warn(eventAuthCallback, fields...)
+	default:
+		l.logger.Info(eventAuthCallback, fields...)
+	}
+}
+
+// rejected leaves the line of a step of a sign-in stopped at a page, and why:
+// an error, telling what failed, when the page could not be drawn either.
+func (l *signInLog) rejected(ctx context.Context, step, reason string, err error) {
+	fields := []zap.Field{zap.String("step", step), zap.String("reason", reason)}
+	if err != nil {
+		l.logger.Error(eventAuthReject, slices.Concat(fields, []zap.Field{zap.Error(err)}, callerFields(ctx, l.projectID))...)
+		return
+	}
+	l.write(ctx, eventAuthReject, fields...)
+}
+
+// failed leaves the line of a step of a sign-in this server failed: an error,
+// since it is ours.
+func (l *signInLog) failed(ctx context.Context, step string, err error) {
+	l.rejected(ctx, step, "internal", err)
+}
+
 func (l *signInLog) write(ctx context.Context, event string, fields ...zap.Field) {
 	l.logger.Info(event, slices.Concat(fields, callerFields(ctx, l.projectID))...)
 }
@@ -109,12 +177,11 @@ func fetchOutcome(err error) string {
 	}
 }
 
-// hostOf is the host of an address, for a line that names where a client is
-// or where it sends the parent back to, and nothing else of it.
-func hostOf(uri string) string {
-	address, err := url.Parse(uri)
-	if err != nil {
-		return ""
+// requestFields are what every line of a sign-in under way says of it: how
+// the client is known, and the host the parent goes back to.
+func requestFields(request *flight) []zap.Field {
+	return []zap.Field{
+		zap.String("registration", request.Registration),
+		zap.String("redirect_host", hostOf(request.RedirectURI)),
 	}
-	return address.Hostname()
 }
