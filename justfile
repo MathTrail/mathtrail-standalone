@@ -56,6 +56,12 @@ ALLOWED_LICENSES := "MIT,BSD-2-Clause,BSD-3-Clause,Apache-2.0,ISC"
 # MPL-2.0, is the CSS minifier the widget's bundler cannot be installed without.
 NPM_LICENSE_EXCEPTIONS := "lightningcss=MPL-2.0"
 
+# The Go template that prints the module a package of the load tool's build
+# comes from, and its version, when that module is neither the tool nor the
+# service it is built against. It sits in a variable so that its braces never
+# meet the interpolation of this file.
+LOAD_MODULE_OF := '{{with .Module}}{{if not .Main}}{{if not .Replace}}{{.Path}} {{.Version}}{{end}}{{end}}{{end}}'
+
 # The origin the site is published on. Every absolute address on the site, and
 # the CNAME that claims the domain, are built from this one value.
 SITE_BASE := "https://mathtrail.app"
@@ -768,6 +774,73 @@ ci-tf-outputs:
     echo "service=$(tf output -raw service_name)"
     echo "region=$(tf output -raw region)"
     echo "public_url=$(tf output -raw public_url)"
+
+# -- Load --------------------------------------------------------------------
+
+# The load tool is a Go module of its own under tools/load, so that what it
+# builds with stays out of the service's dependencies and out of the license
+# file the service ships. It imports the service, so its go.mod follows the
+# service's: a change to the service's go.mod is followed by `just load-tidy`.
+
+# The children of a run sign in through the development sign-in, so the
+# service is one `just run` started. Arguments go to the tool as they are. The
+# tool is built and then run, rather than run through the go command, which
+# answers every failing exit with 1: its own exit is 0 for a clean run, 1 for
+# one that found something, and 2 for one that could not run.
+# Run a scenario of the load tool against a running service, such as `just load lesson -url http://localhost:8080`
+[positional-arguments]
+[working-directory('tools/load')]
+load scenario *args:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    scenario="$1"
+    shift
+    go build -o bin/load .
+    exec bin/load -scenario "$scenario" "$@"
+
+# The load tool's tests, with the race detector
+[working-directory('tools/load')]
+load-test:
+    go test ./... -race -count=1
+
+# A module the tool builds with and the service also uses is held to the
+# version the service's own build selects: the tool would otherwise run the
+# service against code the service does not ship with. Only the modules that
+# give the tool's build a package are compared — the service's module graph
+# names older versions of modules neither build takes a package from.
+# The load tool's formatting, lint, licenses, known vulnerabilities, and the versions it shares with the service
+[working-directory('tools/load')]
+load-lint:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if ! go mod tidy -diff > /dev/null; then
+        echo "load-lint: tools/load/go.mod or go.sum is not what the code asks for: run just load-tidy" >&2
+        exit 1
+    fi
+    unformatted=$(gofmt -s -l .)
+    if [ -n "$unformatted" ]; then
+        echo "These files need gofmt -s; run just fmt:" >&2
+        echo "$unformatted" >&2
+        exit 1
+    fi
+    golangci-lint run ./...
+    # The tool's own code and the service's are this repository's, under its
+    # own license; what is checked is everything else the tool links.
+    go run {{ GO_LICENSES }} check ./... --allowed_licenses={{ ALLOWED_LICENSES }} --ignore {{ MODULE }}
+    go run {{ GOVULNCHECK }} ./...
+    tool=$(go list -deps -test -f '{{ LOAD_MODULE_OF }}' ./... | LC_ALL=C sort -u)
+    service=$(cd ../.. && go list -m all | LC_ALL=C sort -u)
+    apart=$(LC_ALL=C join <(printf '%s\n' "$tool") <(printf '%s\n' "$service") | awk '$2 != $3')
+    if [ -n "$apart" ]; then
+        echo "load-lint: the tool builds with other versions than the service (module, the tool's, the service's):" >&2
+        echo "$apart" >&2
+        exit 1
+    fi
+
+# Bring the load tool's go.mod and go.sum to what its code asks for, as a change to the service's go.mod calls for
+[working-directory('tools/load')]
+load-tidy:
+    go mod tidy
 
 # -- Research ----------------------------------------------------------------
 
