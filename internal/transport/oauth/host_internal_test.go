@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/auth"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -110,10 +111,10 @@ func TestAHostSignsInRenewsAndSignsInAgain(t *testing.T) {
 
 			h := newSignInNow(t)
 			h.serveResource(t)
-			// Google's access tokens end within a minute and ten seconds, so
-			// that every token the host holds ends ten seconds after it is
-			// issued and each call renews it.
-			h.google.Misbehave(&googletest.Answer{Lifetime: 70})
+			// Google's access tokens end ten seconds past the margin an access
+			// token keeps before them, so that every token the host holds ends
+			// ten seconds after it is issued and each call renews it.
+			h.google.Misbehave(&googletest.Answer{Lifetime: int(googleMargin/time.Second) + 10})
 			signIns := 0
 			session, tokens := h.connectHost(t, tc.registration, &signIns)
 

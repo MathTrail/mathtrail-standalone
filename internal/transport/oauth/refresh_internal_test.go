@@ -19,7 +19,7 @@ const day = 24 * time.Hour
 
 // A refresh token is worth new tokens for the same sign-in, and a new refresh
 // token in its place, lasting thirty days from now. Google is not asked for
-// anything while the Google token inside has more than five minutes left.
+// anything while the Google token inside has more than seven minutes left.
 func TestARefreshTokenIsWorthNewTokens(t *testing.T) {
 	t.Parallel()
 
@@ -54,9 +54,9 @@ func TestARefreshTokenIsWorthNewTokens(t *testing.T) {
 	noLineCarries(t, h, googletest.AccessToken, googletest.RefreshToken, googletest.Subject, refresh, answer.field("access_token"), answer.field("refresh_token"))
 }
 
-// The Google token inside a host's tokens is renewed at Google when under five
+// The Google token inside a host's tokens is renewed at Google when under seven
 // minutes of it are left, and not before: a host is never handed an access
-// token good for two minutes.
+// token good for less than four minutes.
 func TestAGoogleTokenWithLittleLeftIsRenewedFirst(t *testing.T) {
 	t.Parallel()
 
@@ -66,8 +66,8 @@ func TestAGoogleTokenWithLittleLeftIsRenewedFirst(t *testing.T) {
 		renewals int
 		google   string
 	}{
-		{"five minutes and a second left", 5*time.Minute + time.Second, 0, googletest.AccessToken},
-		{"four minutes left", 4 * time.Minute, 1, googletest.RenewedAccessToken},
+		{"seven minutes and a second left", 7*time.Minute + time.Second, 0, googletest.AccessToken},
+		{"a second short of seven minutes left", 7*time.Minute - time.Second, 1, googletest.RenewedAccessToken},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()

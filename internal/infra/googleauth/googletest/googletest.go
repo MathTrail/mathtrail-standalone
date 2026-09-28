@@ -102,6 +102,10 @@ type Answer struct {
 	Nonce    string
 	// ExpiresAt is when the ID token stops being good.
 	ExpiresAt time.Time
+	// Meanwhile runs while a token request is at this Google, before it is
+	// answered: whatever a case needs to happen on the way, such as time
+	// passing.
+	Meanwhile func()
 }
 
 // asked is what a sign-in asked Google for, as this Google keeps it for the
@@ -219,6 +223,9 @@ func (g *Server) token(w http.ResponseWriter, r *http.Request) {
 	g.mu.Lock()
 	how := g.answer
 	g.mu.Unlock()
+	if how.Meanwhile != nil {
+		how.Meanwhile()
+	}
 
 	switch {
 	case how.Status != 0:

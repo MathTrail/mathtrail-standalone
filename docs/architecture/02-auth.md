@@ -157,7 +157,7 @@ sequenceDiagram
     Note over H: T04: Claude refreshes on expires_in, ahead of time —<br/>in three live runs not one request arrived with an expired token
     H->>MT: POST /oauth/token, grant_type=refresh_token
     Note over MT: unseal · the client matches · within the sliding 30 days<br/>and within 90 days of the original sign-in
-    alt the Google access token inside has less than 5 minutes left
+    alt the Google access token inside has less than 7 minutes left
         MT->>G: POST /token, grant_type=refresh_token
         G-->>MT: a fresh Google access token
     end
@@ -166,7 +166,7 @@ sequenceDiagram
 
 The Google access token rides inside our access token; the Google **refresh** token does not — it lives only in our code and our refresh token. That is the one asymmetry worth remembering: a stolen access token buys minutes of Drive access to a single file, and no way to renew it.
 
-**What `/token` checks.** Every client is public and names itself with `client_id` in the form; one that tries to prove itself in an `Authorization` header is answered `401 invalid_client` with a `Basic` challenge, and may then send the same request with the identifier in the body. A code is good for its minute, to the client whose digest it carries, with the verifier its challenge was made from; `redirect_uri` and `resource` may be left out — OAuth 2.1 drops the first — and when given are to be the code's own. A refresh token is good until its own end, to its client, for no scope beyond its own and for its resource; the new tokens keep its whole scope. Either grant answers a new access token and a new refresh token, neither of which outlives the ninety days of the sign-in, and the Google token inside is renewed first when less than five minutes of it are left. A grant Google renews no more is `invalid_grant` — the host drops its tokens, is refused at the resource and signs the parent in again, which is what the protocol library's own client does; Google not answering is `503`, which the host may try again after (R113).
+**What `/token` checks.** Every client is public and names itself with `client_id` in the form; one that tries to prove itself in an `Authorization` header is answered `401 invalid_client` with a `Basic` challenge, and may then send the same request with the identifier in the body. A code is good for its minute, to the client whose digest it carries, with the verifier its challenge was made from; `redirect_uri` and `resource` may be left out — OAuth 2.1 drops the first — and when given are to be the code's own. A refresh token is good until its own end, to its client, for no scope beyond its own and for its resource; the new tokens keep its whole scope. Either grant answers a new access token and a new refresh token, neither of which outlives the ninety days of the sign-in, and the Google token inside is renewed first when less than seven minutes of it are left (R117). A grant Google renews no more is `invalid_grant` — the host drops its tokens, is refused at the resource and signs the parent in again, which is what the protocol library's own client does; Google not answering is `503`, which the host may try again after (R113).
 
 **What the resource checks.** The protocol library's `RequireBearerToken` asks our reader about every token: sealed by us, for ourselves, as an access token, not past its end with a minute of skew, for our canonical resource by `oauthex.MatchesResource`, granting `mcp`. The library holds the token to its end again by its own clock with the same minute. A refused token leaves an `auth_bearer` line saying why, and the refusal itself says nothing about it (R112).
 
@@ -212,7 +212,7 @@ Everything below is opaque to the client: a purpose tag, a key id and one AEAD c
 | What | What is inside | Sealed with | Lives for | Where it is kept |
 |---|---|---|---|---|
 | Authorization code `mt1.c.` | user id, Google refresh token, Google access token and its expiry, the digest of the client id, exact redirect URI, `code_challenge`, resource, scope, issued-at — no random id, and the client by its digest (SPEC remark 54) | purpose `code` | 60 s | in the redirect URL, then in the host's memory |
-| Access token `mt1.a.` | user id, client id, resource (the audience), scope, Google access token and its expiry, issued-at, expiry | purpose `access` | 15 min, and never past the Google token inside it minus 60 s | the host's token store |
+| Access token `mt1.a.` | user id, client id, resource (the audience), scope, Google access token and its expiry, issued-at, expiry | purpose `access` | 15 min, and never past the Google token inside it minus 3 min — the resource's minute of allowance, a minute of clocks, and a minute of the tool calling Drive; the Google token's life is counted from the moment it was asked for (R117) | the host's token store |
 | Refresh token `mt1.r.` | user id, client id, resource, scope, Google refresh token, Google access token and its expiry, the original sign-in time, issued-at, expiry | purpose `refresh` | 30 days sliding, at most 90 days from the original sign-in | the host's token store |
 | DCR registration, the `client_id` itself `mt1.d.` | redirect URIs, client name, created-at | purpose `client` | as long as the key that sealed it is still loaded | the host's client store |
 | The request context, our `state` towards Google `mt1.s.` | the digest of the client id and how the client is known, redirect URI, the host's own `state`, `code_challenge`, resource, scope, our PKCE verifier and nonce for Google, the hash of the cookie nonce, issued-at | purpose `state` | 10 min | the URL at Google, and the parent's browser |
@@ -227,7 +227,7 @@ The lifetimes in one place, with the reason each was chosen:
 |---|---|---|
 | Authorization code | 60 s | a stateless server cannot mark a code as used, so the window is made small instead |
 | Access token | 15 min | short enough that a stolen token is a small loss, long enough that refreshes are rare; re-sealing one costs no call to Google |
-| Google access token refreshed early | under 5 min left | so the host is never handed a token that expires in two minutes |
+| Google access token refreshed early | under 7 min left | the 3 minutes of margin and 4 more, so an access token is good for four minutes at least whenever Google's own lasts seven (R117) |
 | Refresh token, sliding | 30 days | a connector in weekly use never has to sign in again |
 | Refresh token, absolute | 90 days from the sign-in | without reuse detection this is the only ceiling on a stolen refresh chain; it also matches the key rotation period |
 | The request context and its cookie | 10 min | the length of one sign-in, including Google's own screens |

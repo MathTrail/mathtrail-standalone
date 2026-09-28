@@ -2,6 +2,7 @@ package drivestore_test
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"errors"
 	"maps"
@@ -434,23 +435,47 @@ func TestDrivesRefusalsAreToldInTheStoresWords(t *testing.T) {
 		// spoil makes the next read of the profile go wrong.
 		spoil func(t *testing.T, f *fixture)
 		want  error
+		// timeout is the time a call to Drive is given, when a case needs one
+		// shorter than the time any honest call takes.
+		timeout time.Duration
 	}{
-		{"access taken back", func(_ *testing.T, f *fixture) { f.fake.Revoke(miaToken) }, store.ErrAccessRevoked},
-		{"a file too large for any profile", func(t *testing.T, f *fixture) {
-			plant(t, f.fake, miaToken, bytes.Repeat([]byte(" "), 1<<20+1))
-		}, store.ErrCorrupted},
-		{"a pause Drive asks for", func(_ *testing.T, f *fixture) {
-			f.fake.Fail(drivetest.Download, http.StatusTooManyRequests, "rateLimitExceeded")
-		}, drive.ErrRateLimited},
-		{"a failure of Drive's", func(_ *testing.T, f *fixture) {
-			f.fake.Fail(drivetest.Download, http.StatusServiceUnavailable, "backendError")
-		}, drive.ErrUnavailable},
-		{"a call that takes too long", func(_ *testing.T, f *fixture) { f.fake.Stall(drivetest.Download) }, context.DeadlineExceeded},
+		{
+			name:  "access taken back",
+			spoil: func(_ *testing.T, f *fixture) { f.fake.Revoke(miaToken) },
+			want:  store.ErrAccessRevoked,
+		},
+		{
+			name: "a file too large for any profile",
+			spoil: func(t *testing.T, f *fixture) {
+				plant(t, f.fake, miaToken, bytes.Repeat([]byte(" "), 1<<20+1))
+			},
+			want: store.ErrCorrupted,
+		},
+		{
+			name: "a pause Drive asks for",
+			spoil: func(_ *testing.T, f *fixture) {
+				f.fake.Fail(drivetest.Download, http.StatusTooManyRequests, "rateLimitExceeded")
+			},
+			want: drive.ErrRateLimited,
+		},
+		{
+			name: "a failure of Drive's",
+			spoil: func(_ *testing.T, f *fixture) {
+				f.fake.Fail(drivetest.Download, http.StatusServiceUnavailable, "backendError")
+			},
+			want: drive.ErrUnavailable,
+		},
+		{
+			name:    "a call that takes too long",
+			spoil:   func(_ *testing.T, f *fixture) { f.fake.Stall(drivetest.Download) },
+			want:    context.DeadlineExceeded,
+			timeout: 200 * time.Millisecond,
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			f := newFixture(t, 200*time.Millisecond)
+			f := newFixture(t, cmp.Or(tc.timeout, 5*time.Second))
 			f.create(t, mia, child("Mia"))
 			tc.spoil(t, f)
 

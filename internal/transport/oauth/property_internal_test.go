@@ -130,7 +130,12 @@ func TestIssuedTokensEndInTime(t *testing.T) {
 	now := testDay.Unix()
 	properties := gopter.NewProperties(nil)
 
-	properties.Property("an access token ends within fifteen minutes, and a minute before the Google token inside it", prop.ForAll(
+	// The resource takes a token for a skew past its end, by a clock that may
+	// run a skew behind the one that issued it, and the tool it lets in goes on
+	// calling Drive for a request's span. All of that fits before the Google
+	// token inside ends, or Drive answers the last requests of a token as it
+	// answers access taken back.
+	properties.Property("an access token ends within fifteen minutes, and early enough that a request it lets in reaches Drive before the Google token inside it ends", prop.ForAll(
 		func(googleLeft, renewedFor int64) bool {
 			grants := issuingAt(ring, renewingGoogle{now: testDay, lifetime: time.Duration(renewedFor) * time.Second})
 			given, err := grants.issue(t.Context(), aSession("a-user", "a-client", 0, time.Duration(googleLeft)*time.Second))
@@ -142,7 +147,7 @@ func TestIssuedTokensEndInTime(t *testing.T) {
 				return false
 			}
 			return access.ExpiresAt > now && access.ExpiresAt <= now+int64(accessLifetime/time.Second) &&
-				access.ExpiresAt <= access.GoogleAccessExpiry-int64(googleMargin/time.Second) &&
+				access.ExpiresAt+int64((2*clockSkew+requestSpan)/time.Second) <= access.GoogleAccessExpiry &&
 				given.expiresIn == access.ExpiresAt-now
 		},
 		gen.Int64Range(-600, 1200), gen.Int64Range(0, 600),
