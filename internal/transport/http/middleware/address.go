@@ -96,11 +96,7 @@ func addressOf(text string) (string, bool) {
 	if address.Is4() {
 		return address.String(), true
 	}
-	network, err := address.Prefix(64)
-	if err != nil {
-		return "", false
-	}
-	return network.String(), true
+	return netip.PrefixFrom(address, 64).Masked().String(), true
 }
 
 // comparableHost is a host written the way two names for it are compared: in

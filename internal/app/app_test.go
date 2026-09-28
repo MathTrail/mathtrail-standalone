@@ -25,6 +25,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/config"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
+	"github.com/MathTrail/mathtrail-standalone/internal/ratelimit"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 	mcpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/mcp"
 	"github.com/MathTrail/mathtrail-standalone/internal/widget"
@@ -648,5 +649,24 @@ func TestAFloodAtTheSignInDoesNotHoldBackTheLessons(t *testing.T) {
 	lesson := serveOne(t, container, http.MethodPost, "/mcp", `{"jsonrpc":"2.0","id":1,"method":"tools/list"}`)
 	if lesson.Code != http.StatusOK || strings.Contains(lesson.Body.String(), "too many requests") {
 		t.Errorf("a lesson after the flood at the sign-in: status %d, body %s, want it answered", lesson.Code, lesson.Body.String())
+	}
+}
+
+// A pace nothing could be let in at stops the container where it is built,
+// whichever pace it is.
+func TestContainerRefusesAPaceNothingCouldBeLetInAt(t *testing.T) {
+	t.Parallel()
+
+	for name, spoil := range map[string]func(*config.Config){
+		"an account's":   func(cfg *config.Config) { cfg.RateUserPerMin = 0 },
+		"an address's":   func(cfg *config.Config) { cfg.RateIPPerMin = 0 },
+		"the instance's": func(cfg *config.Config) { cfg.RateInstancePerMin = 0 },
+	} {
+		cfg := testConfig()
+		spoil(cfg)
+		container, err := app.NewContainer(t.Context(), cfg, zaptest.NewLogger(t))
+		if !errors.Is(err, ratelimit.ErrSettings) || container != nil {
+			t.Errorf("%s pace of none: NewContainer() = %v, %v, want no container and ErrSettings", name, container, err)
+		}
 	}
 }

@@ -7,6 +7,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"slices"
 	"time"
@@ -273,21 +274,15 @@ type paces struct {
 	lessons    ratelimit.Limiter
 }
 
+// newPaces builds the paces from the numbers configured. Each is built whether
+// or not one before it failed, so that a refusal names every number nothing
+// could be let in at.
 func newPaces(cfg *config.Config) (*paces, error) {
-	perAccount, err := ratelimit.New(ratelimit.Settings{PerMinute: cfg.RateUserPerMin, Keys: ratelimit.MaxKeys, Now: time.Now})
-	if err != nil {
-		return nil, err
-	}
-	perAddress, err := ratelimit.New(ratelimit.Settings{PerMinute: cfg.RateIPPerMin, Keys: ratelimit.MaxKeys, Now: time.Now})
-	if err != nil {
-		return nil, err
-	}
-	signIn, err := ratelimit.NewShared(cfg.RateInstancePerMin, time.Now)
-	if err != nil {
-		return nil, err
-	}
-	lessons, err := ratelimit.NewShared(cfg.RateInstancePerMin, time.Now)
-	if err != nil {
+	perAccount, accountErr := ratelimit.New(ratelimit.Settings{PerMinute: cfg.RateUserPerMin, Keys: ratelimit.MaxKeys, Now: time.Now})
+	perAddress, addressErr := ratelimit.New(ratelimit.Settings{PerMinute: cfg.RateIPPerMin, Keys: ratelimit.MaxKeys, Now: time.Now})
+	signIn, signInErr := ratelimit.NewShared(cfg.RateInstancePerMin, time.Now)
+	lessons, lessonsErr := ratelimit.NewShared(cfg.RateInstancePerMin, time.Now)
+	if err := errors.Join(accountErr, addressErr, signInErr, lessonsErr); err != nil {
 		return nil, err
 	}
 	return &paces{perAccount: perAccount, perAddress: perAddress, signIn: signIn, lessons: lessons}, nil
