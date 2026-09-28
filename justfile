@@ -130,8 +130,9 @@ release-artifacts version=VERSION: (web-build version)
 
 # The sealing key is made fresh for the run and kept nowhere: locally there is
 # nothing sealed that has to outlive the process. The development sign-in lets
-# every request to the MCP endpoint in as one account, so that a client on this
-# machine needs no Google account, and keeps its profile in the memory of the
+# every request to the MCP endpoint in — as the account a bearer name names, or
+# as one development account when it names none — so that a client on this
+# machine needs no Google account, and keeps each profile in the memory of the
 # process, since it has no Drive to keep it in. The widget is built first, so
 # that a card drawn from this server is the widget of these sources.
 # Run the server from source, with logs a person can read and the development sign-in

@@ -113,7 +113,7 @@ func TestTheWidthOfATupleIsPaidFor(t *testing.T) {
 	// ten thousand two hundred and forty values.
 	const wide = "def solve(options):\n    return match(options, len(product(*[[0, 1]] * 10)))\n"
 
-	roomy := sandbox(t, starlark.Limits{Steps: 20_000, Timeout: time.Minute, Concurrency: 1})
+	roomy := sandbox(t, starlark.Limits{Steps: 20_000, Timeout: time.Minute, Concurrency: 1, Wait: time.Minute})
 	result, err := roomy.Run(t.Context(), wide, options)
 	if err != nil {
 		t.Fatalf("Run: got error %v, want none", err)
@@ -122,7 +122,7 @@ func TestTheWidthOfATupleIsPaidFor(t *testing.T) {
 		t.Errorf("with room: got %q (%s), want %q", result.Status, result.Message, solver.StatusOK)
 	}
 
-	tight := sandbox(t, starlark.Limits{Steps: 5_000, Timeout: time.Minute, Concurrency: 1})
+	tight := sandbox(t, starlark.Limits{Steps: 5_000, Timeout: time.Minute, Concurrency: 1, Wait: time.Minute})
 	result, err = tight.Run(t.Context(), wide, options)
 	if err != nil {
 		t.Fatalf("Run: got error %v, want none", err)

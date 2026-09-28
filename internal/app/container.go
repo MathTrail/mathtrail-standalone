@@ -127,6 +127,7 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 		Steps:       cfg.SolverSteps,
 		Timeout:     cfg.SolverTimeout,
 		Concurrency: cfg.SolverConcurrency,
+		Wait:        cfg.SolverWait,
 	})
 	if err != nil {
 		return nil, err
@@ -143,6 +144,7 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 		zap.Uint64("steps", cfg.SolverSteps),
 		zap.Duration("timeout", cfg.SolverTimeout),
 		zap.Int("concurrency", cfg.SolverConcurrency),
+		zap.Duration("wait", cfg.SolverWait),
 	)
 
 	// A task is reviewed against the content above and run in the sandbox
@@ -187,8 +189,10 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 	// The MCP endpoint lets a request in with an access token the
 	// authorization server issued, as the account the token signs in, and
 	// refuses any other by naming the resource's metadata, where a client
-	// begins a sign-in. The development sign-in lets everybody in as one
-	// account instead, and the configuration refuses it on a deployment.
+	// begins a sign-in. The development sign-in refuses nobody instead: a
+	// request whose bearer credential is a name acts for an account of that
+	// name, and any other for one development account. The configuration
+	// refuses it on a deployment.
 	signIn := mcpserver.BearerSignIn(signInServer.Account, signInServer.ResourceMetadataURL)
 	if cfg.DevAuth {
 		signIn = mcpserver.DevSignIn

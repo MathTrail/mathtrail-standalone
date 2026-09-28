@@ -15,7 +15,7 @@ var options = solver.Options{"4", "5", "6", "8", "12"}
 
 // limits are what a run gets unless a test is about a limit itself.
 func limits() starlark.Limits {
-	return starlark.Limits{Steps: 25_000_000, Timeout: 2 * time.Second, Concurrency: 4}
+	return starlark.Limits{Steps: 25_000_000, Timeout: 2 * time.Second, Concurrency: 4, Wait: time.Minute}
 }
 
 func sandbox(t *testing.T, limits starlark.Limits) solver.Runner {
@@ -43,9 +43,10 @@ func TestNewRefusesLimitsNothingCouldRunUnder(t *testing.T) {
 		name   string
 		limits starlark.Limits
 	}{
-		{"no steps", starlark.Limits{Steps: 0, Timeout: time.Second, Concurrency: 1}},
-		{"no clock", starlark.Limits{Steps: 1, Timeout: 0, Concurrency: 1}},
-		{"no slots", starlark.Limits{Steps: 1, Timeout: time.Second, Concurrency: 0}},
+		{"no steps", starlark.Limits{Steps: 0, Timeout: time.Second, Concurrency: 1, Wait: time.Second}},
+		{"no clock", starlark.Limits{Steps: 1, Timeout: 0, Concurrency: 1, Wait: time.Second}},
+		{"no slots", starlark.Limits{Steps: 1, Timeout: time.Second, Concurrency: 0, Wait: time.Second}},
+		{"no wait", starlark.Limits{Steps: 1, Timeout: time.Second, Concurrency: 1, Wait: 0}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()

@@ -17,6 +17,7 @@ func benchmarkRun(b *testing.B, source string, options solver.Options) {
 		Steps:       25_000_000,
 		Timeout:     2 * time.Second,
 		Concurrency: 4,
+		Wait:        time.Minute,
 	})
 	if err != nil {
 		b.Fatalf("New: %v", err)

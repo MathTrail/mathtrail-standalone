@@ -2,6 +2,7 @@ package solver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -10,12 +11,18 @@ import (
 //
 // It is declared here, by the side that needs it: the rule below is about what
 // two runs mean together, and it has no business knowing what an interpreter
-// is. The error is for the runner's own failures — it could not start, or
+// is. The error is for the runner's own failures — it could not start, no
+// place to run came free in the time a run may wait for one (ErrBusy), or
 // whoever asked stopped waiting — while everything the program itself did
 // comes back as a status.
 type Runner interface {
 	Run(ctx context.Context, source string, options Options) (Result, error)
 }
+
+// ErrBusy is a run that never started: every place a program runs in stayed
+// taken for as long as a run may wait for one. It says nothing about the
+// program, and the same program handed in a moment later may run at once.
+var ErrBusy = errors.New("solver: every slot stayed taken")
 
 // Agreement is what the runs of one program came to.
 type Agreement struct {

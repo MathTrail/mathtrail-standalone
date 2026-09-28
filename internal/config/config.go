@@ -54,6 +54,7 @@ const (
 	DefaultSolverSteps       = 25_000_000
 	DefaultSolverTimeout     = 2 * time.Second
 	DefaultSolverConcurrency = 4
+	DefaultSolverWait        = 3 * time.Second
 
 	DefaultRequestWindow = 15 * time.Minute
 
@@ -118,6 +119,10 @@ type Config struct {
 	SolverTimeout time.Duration `mapstructure:"MATHTRAIL_SOLVER_TIMEOUT"`
 	// SolverConcurrency is how many solvers may run at once in this process.
 	SolverConcurrency int `mapstructure:"MATHTRAIL_SOLVER_CONCURRENCY"`
+	// SolverWait is how long a run of a solver waits for one of those places to
+	// come free. A task whose run finds none in that time is not checked, and
+	// spends no attempt.
+	SolverWait time.Duration `mapstructure:"MATHTRAIL_SOLVER_WAIT"`
 
 	// RequestWindow is how long a task being written is waited for. A request
 	// older than this counts as abandoned: the next ask opens a new one, and a
@@ -254,6 +259,7 @@ func LoadFrom(environ []string) (*Config, error) {
 	v.SetDefault("MATHTRAIL_SOLVER_STEPS", DefaultSolverSteps)
 	v.SetDefault("MATHTRAIL_SOLVER_TIMEOUT", DefaultSolverTimeout)
 	v.SetDefault("MATHTRAIL_SOLVER_CONCURRENCY", DefaultSolverConcurrency)
+	v.SetDefault("MATHTRAIL_SOLVER_WAIT", DefaultSolverWait)
 	v.SetDefault("MATHTRAIL_REQUEST_WINDOW", DefaultRequestWindow)
 	v.SetDefault("MATHTRAIL_RATE_USER_PER_MIN", DefaultRateUserPerMin)
 	v.SetDefault("MATHTRAIL_RATE_IP_PER_MIN", DefaultRateIPPerMin)
@@ -541,6 +547,7 @@ func (c *Config) validateTimeouts() error {
 		{"MATHTRAIL_HTTP_IDLE_TIMEOUT", c.IdleTimeout},
 		{"MATHTRAIL_SHUTDOWN_TIMEOUT", c.ShutdownTimeout},
 		{"MATHTRAIL_SOLVER_TIMEOUT", c.SolverTimeout},
+		{"MATHTRAIL_SOLVER_WAIT", c.SolverWait},
 		{"MATHTRAIL_REQUEST_WINDOW", c.RequestWindow},
 		{"MATHTRAIL_DRIVE_TIMEOUT", c.DriveTimeout},
 	} {
