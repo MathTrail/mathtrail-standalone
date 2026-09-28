@@ -63,10 +63,12 @@ func (s *Settings) validate() error {
 // mend, and says so in the operation's own words.
 var (
 	// ErrNotFound means Drive has no such file, or none the service may see:
-	// it was deleted for good, or it is the parent's own.
+	// it was deleted for good, it is the parent's own, or it is one the
+	// service may no longer reach.
 	ErrNotFound = errors.New("drive: no such file")
-	// ErrUnauthorized means Drive did not take the token: the parent took the
-	// access back, or the token has ended.
+	// ErrUnauthorized means Drive did not take the token, or took it and found
+	// that it grants nothing of Drive: the parent took the access back, or
+	// the token has ended.
 	ErrUnauthorized = errors.New("drive: the token was not accepted")
 	// ErrRateLimited means Drive asked for a pause: too many calls for this
 	// parent, or for the service.
@@ -78,6 +80,9 @@ var (
 	ErrUnavailable = errors.New("drive: Drive did not answer")
 	// ErrTooLarge means a file holds more than the caller would read of it.
 	ErrTooLarge = errors.New("drive: the file is larger than asked for")
+	// ErrNotKept means Drive gives no content of an earlier revision that is
+	// not kept forever.
+	ErrNotKept = errors.New("drive: the revision is not kept forever")
 )
 
 // File is what the service knows of a file in Drive: as much of it as a call
@@ -100,18 +105,23 @@ type File struct {
 	ModifiedTime time.Time `json:"modifiedTime,omitzero"`
 	// WebViewLink opens the file in a browser, for whoever may see it.
 	WebViewLink string `json:"webViewLink,omitempty"`
+	// Trashed says the file is in the bin. The parent puts it there, and
+	// nothing the service writes takes it out.
+	Trashed bool `json:"trashed,omitempty"`
 }
 
 // Query is a search for the files that carry one property of the service's
-// own with one value, and are not in the bin.
+// own with one value: those outside the bin, or those in it.
 type Query struct {
 	Key   string
 	Value string
+	// InBin looks in the bin, and only there.
+	InBin bool
 }
 
 // String is the query in Drive's own search language.
 func (q Query) String() string {
-	return fmt.Sprintf("appProperties has { key='%s' and value='%s' } and trashed = false", quoted(q.Key), quoted(q.Value))
+	return fmt.Sprintf("appProperties has { key='%s' and value='%s' } and trashed = %t", quoted(q.Key), quoted(q.Value), q.InBin)
 }
 
 // quoted escapes a value for a string of Drive's search language, which
@@ -134,8 +144,52 @@ type Files interface {
 	// Create makes a file of the metadata given, holding the content when
 	// there is any; a folder is made with none. It answers the new file's ID.
 	Create(ctx context.Context, token string, meta *File, content []byte) (File, error)
-	// Update replaces what a file holds with content, and sets the
-	// properties meta names while keeping the others. It answers the file's
-	// ID.
-	Update(ctx context.Context, token, id string, meta *File, content []byte) (File, error)
+	// Update makes the change to a file, and answers the file as it is
+	// afterwards: its ID, whether it is in the bin, and its properties.
+	Update(ctx context.Context, token, id string, change *Change) (File, error)
+}
+
+// Change is what an update does to a file.
+type Change struct {
+	// Meta holds what the update sets: the name, the type, and the properties
+	// it names, the others kept as they are.
+	Meta *File
+	// Content replaces what the file holds, when there is any. A change with
+	// none sets the metadata alone and makes no revision.
+	Content []byte
+	// Keep marks the revision the content makes to be kept forever: Drive
+	// never purges it, and gives what it held once it is no longer the file's
+	// content. A revision kept forever cannot be let go again, only deleted.
+	Keep bool
+}
+
+// Revision is one state of a file's content that Drive keeps: the file's
+// content as one upload left it.
+type Revision struct {
+	// ID is how Drive names the revision, among the file's.
+	ID string `json:"id"`
+	// ModifiedTime is when the content was uploaded.
+	ModifiedTime time.Time `json:"modifiedTime"`
+	// KeepForever says Drive never purges the revision. Drive purges one that
+	// is not after about thirty days, or sooner when a file has a hundred
+	// such, and gives the content of only those kept forever.
+	KeepForever bool `json:"keepForever"`
+}
+
+// Revisions are the calls the service makes to the history of a file in a
+// parent's Drive. Each method is one request to Drive, made with the parent's
+// token.
+type Revisions interface {
+	// List reads every revision of a file Drive keeps, in no order Drive
+	// promises.
+	List(ctx context.Context, token, file string) ([]Revision, error)
+	// Download reads what a revision held, and refuses one that holds more
+	// than limit bytes with ErrTooLarge and one not kept forever with
+	// ErrNotKept.
+	Download(ctx context.Context, token, file, revision string, limit int64) ([]byte, error)
+	// Keep marks a revision to be kept forever.
+	Keep(ctx context.Context, token, file, revision string) error
+	// Delete removes a revision for good: the one way to let go of a
+	// revision kept forever.
+	Delete(ctx context.Context, token, file, revision string) error
 }

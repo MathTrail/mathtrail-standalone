@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"slices"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -126,10 +127,15 @@ func TestAFileIsMadeFoundReadAndRewritten(t *testing.T) {
 		t.Errorf("Download() = %s, want what was made", content)
 	}
 
-	if _, err = files.Update(ctx, token, made.ID, &drive.File{
-		MimeType: "application/json", AppProperties: map[string]string{"schema": "2"},
-	}, []byte(`{"second": true}`)); err != nil {
+	changed, err := files.Update(ctx, token, made.ID, &drive.Change{
+		Meta:    &drive.File{MimeType: "application/json", AppProperties: map[string]string{"schema": "2"}},
+		Content: []byte(`{"second": true}`),
+	})
+	if err != nil {
 		t.Fatalf("Update() error = %v, want nil", err)
+	}
+	if changed.ID != made.ID || changed.Trashed || changed.AppProperties["app"] != "profile" {
+		t.Errorf("Update() = %+v, want the file as it is now: out of the bin and still marked", changed)
 	}
 	kept := fileIn(t, fake, token, made.ID)
 	if string(kept.Content) != `{"second": true}` {
@@ -210,7 +216,7 @@ func TestDrivesRefusalsAreToldApart(t *testing.T) {
 
 	sentinels := []error{
 		drive.ErrNotFound, drive.ErrUnauthorized, drive.ErrRateLimited,
-		drive.ErrStorageFull, drive.ErrUnavailable, drive.ErrTooLarge,
+		drive.ErrStorageFull, drive.ErrUnavailable, drive.ErrTooLarge, drive.ErrNotKept,
 	}
 	for _, tc := range []struct {
 		name   string
@@ -227,7 +233,12 @@ func TestDrivesRefusalsAreToldApart(t *testing.T) {
 		{"a full Drive", http.StatusForbidden, "storageQuotaExceeded", drive.ErrStorageFull},
 		{"a failure of Drive's", http.StatusInternalServerError, "backendError", drive.ErrUnavailable},
 		{"Drive not there", http.StatusServiceUnavailable, "backendError", drive.ErrUnavailable},
-		{"a file the parent keeps from the app", http.StatusForbidden, "appNotAuthorizedToFile", nil},
+		{"a token that grants nothing of Drive", http.StatusForbidden, "insufficientPermissions", drive.ErrUnauthorized},
+		{"a file the parent keeps from the app", http.StatusForbidden, "appNotAuthorizedToFile", drive.ErrNotFound},
+		{"a file the parent may not change", http.StatusForbidden, "insufficientFilePermissions", drive.ErrNotFound},
+		{"a revision not kept forever", http.StatusForbidden, "download_restricted_for_revision", drive.ErrNotKept},
+		{"a revision not kept forever, in the other spelling", http.StatusForbidden, "downloadRestrictedForRevision", drive.ErrNotKept},
+		{"a refusal Drive gives no word of ours for", http.StatusForbidden, "domainPolicy", nil},
 		{"a request Drive cannot read", http.StatusBadRequest, "badRequest", nil},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -341,7 +352,7 @@ func TestContentOfNoNamedKindIsNotSent(t *testing.T) {
 	if _, err := files.Create(t.Context(), token, &drive.File{Name: "file.json"}, []byte("{}")); err == nil {
 		t.Error("Create() of content of no named kind: error = nil, want a refusal")
 	}
-	if _, err := files.Update(t.Context(), token, id, &drive.File{}, []byte("{}")); err == nil {
+	if _, err := files.Update(t.Context(), token, id, &drive.Change{Meta: &drive.File{}, Content: []byte("{}")}); err == nil {
 		t.Error("Update() with content of no named kind: error = nil, want a refusal")
 	}
 	if calls := fake.Calls(); len(calls) != 0 {
@@ -416,7 +427,7 @@ func TestAFileIsAlwaysNamed(t *testing.T) {
 		"List":   second(files.List(ctx, token, marked)),
 		"Get":    second(files.Get(ctx, token, "a-file")),
 		"Create": second(files.Create(ctx, token, meta, []byte("{}"))),
-		"Update": second(files.Update(ctx, token, "a-file", meta, []byte("{}"))),
+		"Update": second(files.Update(ctx, token, "a-file", &drive.Change{Meta: meta, Content: []byte("{}")})),
 	} {
 		if !errors.Is(err, drive.ErrUnavailable) {
 			t.Errorf("%s() answered with no ID: error = %v, want %v", call, err, drive.ErrUnavailable)
@@ -427,7 +438,7 @@ func TestAFileIsAlwaysNamed(t *testing.T) {
 	for call, err := range map[string]error{
 		"Get":      second(named.Get(ctx, token, "")),
 		"Download": second(named.Download(ctx, token, "", 1<<10)),
-		"Update":   second(named.Update(ctx, token, "", meta, []byte("{}"))),
+		"Update":   second(named.Update(ctx, token, "", &drive.Change{Meta: meta, Content: []byte("{}")})),
 	} {
 		if err == nil {
 			t.Errorf("%s() of no file: error = nil, want a refusal", call)
@@ -489,4 +500,104 @@ func fileIn(t *testing.T, fake *drivetest.Drive, token, id string) *drivetest.Fi
 	}
 	t.Fatalf("the Drive holds no file %q", id)
 	return nil
+}
+
+// A search in the bin finds the marked files that are in it, and none that
+// are not; the query says which it is in Drive's own words.
+func TestASearchInTheBinFindsWhatIsInIt(t *testing.T) {
+	t.Parallel()
+
+	inBin := drive.Query{Key: "app", Value: "profile", InBin: true}
+	if got, want := inBin.String(), `appProperties has { key='app' and value='profile' } and trashed = true`; got != want {
+		t.Errorf("Query.String() = %s, want %s", got, want)
+	}
+
+	fake, files := standIn(t)
+	marker := map[string]string{"app": "profile"}
+	fake.Put(token, &drivetest.File{Name: "kept", AppProperties: marker})
+	binned := fake.Put(token, &drivetest.File{Name: "in the bin", AppProperties: marker, Trashed: true})
+	found, err := files.List(t.Context(), token, inBin)
+	if err != nil {
+		t.Fatalf("List() in the bin error = %v, want nil", err)
+	}
+	if len(found) != 1 || found[0].ID != binned {
+		t.Errorf("List() in the bin found %v, want the one file in it", found)
+	}
+}
+
+// A change of metadata alone renames a file and sets its properties, and
+// leaves what it holds, and its history, as they were.
+func TestAChangeOfMetadataAloneLeavesTheContent(t *testing.T) {
+	t.Parallel()
+
+	fake, files := standIn(t)
+	id := fake.Put(token, &drivetest.File{
+		Name: "file.json", MimeType: "application/json", AppProperties: map[string]string{"app": "profile"},
+		Content: []byte(`{"kept": true}`),
+	})
+
+	changed, err := files.Update(t.Context(), token, id, &drive.Change{
+		Meta: &drive.File{Name: "file set aside.json", AppProperties: map[string]string{"app": "set-aside"}},
+	})
+	if err != nil {
+		t.Fatalf("Update() of metadata alone error = %v, want nil", err)
+	}
+	if changed.AppProperties["app"] != "set-aside" {
+		t.Errorf("Update() answered properties %v, want the ones set", changed.AppProperties)
+	}
+	kept := fileIn(t, fake, token, id)
+	switch {
+	case kept.Name != "file set aside.json":
+		t.Errorf("after Update() the file is called %q, want the new name", kept.Name)
+	case string(kept.Content) != `{"kept": true}`:
+		t.Errorf("after Update() the file holds %s, want what it held", kept.Content)
+	case len(kept.Revisions) != 1:
+		t.Errorf("after Update() the file has %d revisions, want the one it had", len(kept.Revisions))
+	}
+}
+
+// An upload asked to keep its revision forever leaves one kept forever, and
+// one not asked leaves one Drive may purge. A file in the bin says so in the
+// answer.
+func TestAnUploadKeepsItsRevisionWhenAsked(t *testing.T) {
+	t.Parallel()
+
+	fake, files := standIn(t)
+	id := fake.Put(token, &drivetest.File{MimeType: "application/json", Content: []byte("{}"), Trashed: true})
+	for _, keep := range []bool{true, false} {
+		changed, err := files.Update(t.Context(), token, id, &drive.Change{
+			Meta: &drive.File{MimeType: "application/json"}, Content: []byte(`{"kept": ` + strconv.FormatBool(keep) + `}`), Keep: keep,
+		})
+		if err != nil {
+			t.Fatalf("Update() error = %v, want nil", err)
+		}
+		if !changed.Trashed {
+			t.Error("Update() of a file in the bin answered it out of it, want it said")
+		}
+		history := fileIn(t, fake, token, id).Revisions
+		if got := history[len(history)-1].KeepForever; got != keep {
+			t.Errorf("an upload asked to keep %t left a revision kept forever: %t", keep, got)
+		}
+	}
+}
+
+// A change that sets nothing, or asks to keep a revision it does not make, is
+// refused before anything is sent.
+func TestAChangeThatMakesNoSenseIsNotSent(t *testing.T) {
+	t.Parallel()
+
+	fake, files := standIn(t)
+	id := fake.Put(token, &drivetest.File{MimeType: "application/json", Content: []byte("{}")})
+	for name, change := range map[string]*drive.Change{
+		"no change":                      nil,
+		"no metadata":                    {Content: []byte("{}")},
+		"a revision kept with no upload": {Meta: &drive.File{Name: "renamed.json"}, Keep: true},
+	} {
+		if _, err := files.Update(t.Context(), token, id, change); err == nil {
+			t.Errorf("Update() with %s: error = nil, want a refusal", name)
+		}
+	}
+	if calls := fake.Calls(); len(calls) != 0 {
+		t.Errorf("refused changes cost %v, want no call", calls)
+	}
 }

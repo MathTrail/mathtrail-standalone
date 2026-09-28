@@ -50,7 +50,7 @@ func accountFrom(ctx context.Context) (store.Account, bool) {
 // real sign-in does, and the configuration refuses to start a deployed
 // service with it.
 func DevSignIn(next http.Handler) http.Handler {
-	account := store.NewAccount(DevAccount, "")
+	account := store.NewAccount(DevAccount, "", time.Time{})
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		next.ServeHTTP(w, r.WithContext(withAccount(r.Context(), account)))
 	})
@@ -77,7 +77,10 @@ const accountExtra = "account"
 // or with a token the reader does not vouch for — is answered the way a
 // client expects of a service that wants a token: 401, and a challenge naming
 // where the resource's metadata is, which is where a client begins a sign-in,
-// and the scope a token needs.
+// and the scope a token needs. A request it lets in carries the same
+// challenge, and why a token no longer does, for a call that finds the
+// parent's Google access gone: the call raises it, and the answer is a 401 of
+// the same kind.
 //
 // The check is the protocol library's own, and the reader is what it asks.
 func BearerSignIn(read TokenReader, resourceMetadataURL string) SignIn {
@@ -100,13 +103,16 @@ func BearerSignIn(read TokenReader, resourceMetadataURL string) SignIn {
 		Scopes:              []string{Scope},
 		ClockSkew:           tokenClockSkew,
 	})
+	header := signInChallenge(resourceMetadataURL)
 	return func(next http.Handler) http.Handler {
 		return require(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// The library let the request in with what verify said of its
 			// token, the account among it.
 			if info := auth.TokenInfoFromContext(r.Context()); info != nil {
 				if account, signedIn := info.Extra[accountExtra].(store.Account); signedIn {
-					r = r.WithContext(withAccount(r.Context(), account))
+					asked := &challenge{header: header}
+					r = r.WithContext(withChallenge(withAccount(r.Context(), account), asked))
+					w = &challenging{ResponseWriter: w, challenge: asked}
 				}
 			}
 			next.ServeHTTP(w, r)

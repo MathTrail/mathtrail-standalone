@@ -121,8 +121,39 @@ func (b *boundary) toolCall(ctx context.Context, method string, req *mcp.CallToo
 		b.finish(spanned, call, result, err)
 	}()
 
-	result, err = next(spanned, method, req)
-	return settle(result, err)
+	result, err = settle(next(spanned, method, req))
+	return askedToSignIn(ctx, result, call.client), err
+}
+
+// askedToSignIn asks the host to sign the parent in again when a call failed
+// on the parent's Google access, the way the host asks for it. ChatGPT starts
+// its sign-in from the challenge in a failed result, and answers a 401 in the
+// middle of a call with words alone; the other hosts start theirs from a 401
+// with the challenge, as the protocol's authorization has it, and read nothing
+// in the result. So the result carries the challenge for every host, and the
+// request is answered 401 for all but ChatGPT. Any other result, and one of a
+// call no sign-in gave a challenge to, is left as it is.
+func askedToSignIn(ctx context.Context, result mcp.Result, client string) mcp.Result {
+	failed, isAnswer := result.(*mcp.CallToolResult)
+	if !isAnswer || failed == nil || !failed.IsError {
+		return result
+	}
+	var ours *failure
+	if !errors.As(failed.GetError(), &ours) || !signInAgain(ours.kind) {
+		return result
+	}
+	asked, given := challengeFrom(ctx)
+	if !given {
+		return result
+	}
+	if failed.Meta == nil {
+		failed.Meta = mcp.Meta{}
+	}
+	failed.Meta["mcp/www_authenticate"] = []string{asked.header}
+	if client != familyChatGPT {
+		asked.raise()
+	}
+	return failed
 }
 
 // observedCall is what the boundary knows about one tool call while it runs.

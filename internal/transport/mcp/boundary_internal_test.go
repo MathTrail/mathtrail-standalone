@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/jsonrpc"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -42,7 +43,7 @@ func TestAPanicOfAnotherMethodIsAnInternalError(t *testing.T) {
 		panic("the resource of masha-ivanova")
 	})
 
-	ctx := withAccount(t.Context(), store.NewAccount(DevAccount, ""))
+	ctx := withAccount(t.Context(), store.NewAccount(DevAccount, "", time.Time{}))
 	result, err := handler(ctx, "resources/read", &mcp.ReadResourceRequest{})
 
 	wantInternalError(t, result, err)

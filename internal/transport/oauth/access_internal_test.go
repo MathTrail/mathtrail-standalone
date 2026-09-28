@@ -21,7 +21,7 @@ import (
 
 // An access token signs a request to the resource in as the account the
 // parent signed in as, reached with the Google access token it carries, until
-// it ends.
+// it ends — and the Google token until its own end.
 func TestAnAccessTokenSignsItsAccountIn(t *testing.T) {
 	t.Parallel()
 
@@ -38,6 +38,11 @@ func TestAnAccessTokenSignsItsAccountIn(t *testing.T) {
 	}
 	if account.Token() != googletest.AccessToken {
 		t.Errorf("the account is reached with %q, want Google's access token", account.Token())
+	}
+	// The Google token's end travels with it, so that the store starts no
+	// call to Drive it would not last through.
+	if want := testDay.Add(googletest.ExpiresIn * time.Second); !account.Ends().Equal(want) {
+		t.Errorf("the account's Google token ends at %v, want %v", account.Ends(), want)
 	}
 	if want := testDay.Add(15 * time.Minute); !ends.Equal(want) {
 		t.Errorf("Account() ends at %v, want %v", ends, want)

@@ -1,6 +1,7 @@
 package memory_test
 
 import (
+	"reflect"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -22,6 +23,10 @@ func TestTheStoreInMemoryKeepsTheContract(t *testing.T) {
 			Plant: func(t *testing.T, account store.Account, raw []byte) {
 				t.Helper()
 				memory.Plant(t, s, account, raw)
+			},
+			SetAside: func(t *testing.T, account store.Account) [][]byte {
+				t.Helper()
+				return memory.SetAside(t, s, account)
 			},
 		}
 	})
@@ -78,7 +83,7 @@ func TestAProfileInMemoryIsNowhereAPersonCouldOpen(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Export() error = %v, want nil", err)
 	}
-	if location != (store.Location{}) {
+	if !reflect.DeepEqual(location, store.Location{}) {
 		t.Errorf("Export() = %+v, want the zero location", location)
 	}
 }

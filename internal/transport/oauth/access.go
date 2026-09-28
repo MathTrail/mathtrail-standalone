@@ -22,7 +22,8 @@ var errNoAccount = errors.New("oauth: the token signs nobody in")
 // itself, as an access token; it has not ended, a minute of disagreement
 // between clocks allowed; its audience is this resource, compared as the
 // protocol compares a resource; and it grants this server's scope. The account
-// is reached with the Google access token the token carries.
+// is reached with the Google access token the token carries, until the moment
+// that token ends, so that nothing is asked of Drive that would outlive it.
 //
 // Anything else signs nobody in, and its line says why — a key retired since,
 // or no token of this server's at all — while the refusal the client hears
@@ -46,5 +47,5 @@ func (t *tokens) account(ctx context.Context, token string) (store.Account, time
 		t.events.bearerRefused(ctx, reason)
 		return store.Account{}, time.Time{}, fmt.Errorf("%w: %s", errNoAccount, reason)
 	}
-	return store.NewAccount(grant.User, grant.GoogleAccessToken), time.Unix(grant.ExpiresAt, 0), nil
+	return store.NewAccount(grant.User, grant.GoogleAccessToken, time.Unix(grant.GoogleAccessExpiry, 0)), time.Unix(grant.ExpiresAt, 0), nil
 }

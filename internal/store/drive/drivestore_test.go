@@ -7,8 +7,10 @@ import (
 	"errors"
 	"maps"
 	"net/http"
+	"reflect"
 	"slices"
 	"strconv"
+	"sync"
 	"testing"
 	"time"
 
@@ -46,7 +48,7 @@ var (
 // The parent whose Drive the cases reach, and their account.
 const miaToken = "ya29.the-token-of-mias-parent"
 
-var mia = store.NewAccount("account-mia", miaToken)
+var mia = store.NewAccount("account-mia", miaToken, time.Time{})
 
 // moment is when every profile of these cases is made and moved on.
 var moment = time.Date(2026, time.September, 28, 9, 30, 0, 0, time.UTC)
@@ -80,7 +82,8 @@ func fileOf(t *testing.T, p *profile.Profile) []byte {
 }
 
 // fixture is a stand-in Drive, a store over it, and everything the store
-// records, kept in memory.
+// records, kept in memory. The store's clock moves only when a case moves it,
+// and its waits are written down rather than waited.
 type fixture struct {
 	fake    *drivetest.Drive
 	storage store.Storage
@@ -88,6 +91,8 @@ type fixture struct {
 	traces  *sdktrace.TracerProvider
 	logs    *observer.ObservedLogs
 	log     *zap.Logger
+	clock   *clock
+	waits   *waits
 }
 
 // newFixture is a store over an empty Drive, whose calls are given the time
@@ -95,7 +100,7 @@ type fixture struct {
 func newFixture(t *testing.T, timeout time.Duration) *fixture {
 	t.Helper()
 
-	f := &fixture{fake: drivetest.New(t), spans: tracetest.NewSpanRecorder()}
+	f := &fixture{fake: drivetest.New(t), spans: tracetest.NewSpanRecorder(), clock: &clock{at: moment}, waits: &waits{}}
 	f.traces = sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()), sdktrace.WithSpanProcessor(f.spans))
 	t.Cleanup(func() { _ = f.traces.Shutdown(context.Background()) })
 	core, logs := observer.New(zapcore.DebugLevel)
@@ -110,15 +115,87 @@ func newFixture(t *testing.T, timeout time.Duration) *fixture {
 func (f *fixture) instance(t *testing.T, timeout time.Duration) store.Storage {
 	t.Helper()
 
-	files, err := drive.NewFiles(&drive.Settings{Root: f.fake.Root(), Timeout: timeout})
+	settings := &drive.Settings{Root: f.fake.Root(), Timeout: timeout}
+	files, err := drive.NewFiles(settings)
 	if err != nil {
 		t.Fatalf("NewFiles() error = %v, want nil", err)
 	}
-	s, err := drivestore.New(&drivestore.Settings{Files: files, Logger: f.log, Traces: f.traces, ProjectID: "a-project"})
+	revisions, err := drive.NewRevisions(settings)
+	if err != nil {
+		t.Fatalf("NewRevisions() error = %v, want nil", err)
+	}
+	s, err := drivestore.New(&drivestore.Settings{
+		Files: files, Revisions: revisions, Timeout: timeout, Logger: f.log, Traces: f.traces, ProjectID: "a-project",
+		Now: f.clock.now, Sleep: f.waits.wait,
+	})
 	if err != nil {
 		t.Fatalf("New() error = %v, want nil", err)
 	}
 	return s
+}
+
+// clock is a clock a case moves on by hand, from any goroutine.
+type clock struct {
+	mu sync.Mutex
+	at time.Time
+}
+
+func (c *clock) now() time.Time {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.at
+}
+
+func (c *clock) advance(by time.Duration) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.at = c.at.Add(by)
+}
+
+// waits writes down every wait the store asks for, and waits for none of
+// them, unless the context has ended.
+type waits struct {
+	mu    sync.Mutex
+	asked []time.Duration
+}
+
+func (w *waits) wait(ctx context.Context, d time.Duration) error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.asked = append(w.asked, d)
+	return ctx.Err()
+}
+
+// taken is every wait the store asked for since the last time it was read.
+func (w *waits) taken() []time.Duration {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	asked := w.asked
+	w.asked = nil
+	return asked
+}
+
+// tries is how many times a call Drive keeps refusing is made: once, and once
+// more after each pause.
+const tries = 3
+
+// failEveryTry has Drive refuse every try of the next call of a kind.
+func failEveryTry(fake *drivetest.Drive, kind string, status int, reason string) {
+	for range tries {
+		fake.Fail(kind, status, reason)
+	}
+}
+
+// setAside is the content of every file of the Drive a token reaches that was
+// set aside, in the order the files were made.
+func setAside(fake *drivetest.Drive, token string) [][]byte {
+	var aside [][]byte
+	for _, file := range fake.Files(token) {
+		if file.AppProperties["mathtrail"] == "set-aside" {
+			aside = append(aside, file.Content)
+		}
+	}
+	return aside
 }
 
 // create keeps a first profile for the account, and ends the case if it
@@ -178,6 +255,14 @@ func TestTheStoreInDriveKeepsTheContract(t *testing.T) {
 				t.Helper()
 				plant(t, f.fake, account.Token(), raw)
 			},
+			SetAside: func(t *testing.T, account store.Account) [][]byte {
+				t.Helper()
+				return setAside(f.fake, account.Token())
+			},
+			Revoke: func(t *testing.T, account store.Account) {
+				t.Helper()
+				f.fake.Revoke(account.Token())
+			},
 		}
 	})
 }
@@ -213,8 +298,8 @@ func TestAFirstSignInMakesTheFolderAndTheFileInIt(t *testing.T) {
 	case !bytes.Equal(file.Content, want):
 		t.Errorf("file content =\n%s\nwant the profile as it was created:\n%s", file.Content, want)
 	}
-	if calls := f.fake.Calls(); !maps.Equal(calls, drivetest.Calls{"list": 2, "create": 2}) {
-		t.Errorf("a first profile cost %v, want a search for it, a search for the folder and two creations", calls)
+	if calls := f.fake.Calls(); !maps.Equal(calls, drivetest.Calls{"list": 3, "create": 2}) {
+		t.Errorf("a first profile cost %v, want a search for it, one of the bin, a search for the folder and two creations", calls)
 	}
 
 	loaded, revision, err := f.instance(t, 5*time.Second).Load(t.Context(), mia)
@@ -243,8 +328,8 @@ func TestAFolderFoundByItsMarkerIsUsedAgain(t *testing.T) {
 	if got := f.profileFile(t, miaToken).Parents; !slices.Equal(got, []string{folder}) {
 		t.Errorf("the profile is in %v, want the folder found by its marker", got)
 	}
-	if calls := f.fake.Calls(); !maps.Equal(calls, drivetest.Calls{"list": 2, "create": 1}) {
-		t.Errorf("a first profile in a found folder cost %v, want two searches and one creation", calls)
+	if calls := f.fake.Calls(); !maps.Equal(calls, drivetest.Calls{"list": 3, "create": 1}) {
+		t.Errorf("a first profile in a found folder cost %v, want three searches and one creation", calls)
 	}
 }
 
@@ -404,7 +489,7 @@ func TestAnAccountWithNoTokenReachesNothing(t *testing.T) {
 		t.Fatalf("Load() error = %v, want nil", err)
 	}
 	f.fake.ResetCalls()
-	tokenless := store.NewAccount(mia.ID, "")
+	tokenless := store.NewAccount(mia.ID, "", time.Time{})
 
 	if _, err := f.storage.Create(t.Context(), tokenless, child("Mia")); err == nil {
 		t.Error("Create() for an account with no token: error = nil, want a refusal")
@@ -418,6 +503,9 @@ func TestAnAccountWithNoTokenReachesNothing(t *testing.T) {
 	if _, err := f.storage.Export(t.Context(), tokenless); err == nil {
 		t.Error("Export() for an account with no token: error = nil, want a refusal")
 	}
+	if _, err := f.storage.StartOver(t.Context(), tokenless, child("Mia")); err == nil {
+		t.Error("StartOver() for an account with no token: error = nil, want a refusal")
+	}
 	if calls := f.fake.Calls(); len(calls) != 0 {
 		t.Errorf("an account with no token cost %v, want no call at all", calls)
 	}
@@ -429,7 +517,10 @@ func TestAnAccountWithNoTokenReachesNothing(t *testing.T) {
 func TestDrivesRefusalsAreToldInTheStoresWords(t *testing.T) {
 	t.Parallel()
 
-	refusals := []error{store.ErrNotFound, store.ErrConflict, store.ErrCorrupted, store.ErrAccessRevoked}
+	refusals := []error{
+		store.ErrNotFound, store.ErrConflict, store.ErrCorrupted, store.ErrAccessRevoked, store.ErrAccessExpired,
+		store.ErrInBin, store.ErrBehind, store.ErrRestored, store.ErrStorageFull, store.ErrUnavailable,
+	}
 	for _, tc := range []struct {
 		name string
 		// spoil makes the next read of the profile go wrong.
@@ -445,25 +536,33 @@ func TestDrivesRefusalsAreToldInTheStoresWords(t *testing.T) {
 			want:  store.ErrAccessRevoked,
 		},
 		{
-			name: "a file too large for any profile",
+			name: "a file too large for any profile, with nothing to put it back from",
 			spoil: func(t *testing.T, f *fixture) {
-				plant(t, f.fake, miaToken, bytes.Repeat([]byte(" "), 1<<20+1))
+				plant(t, f.fake, miaToken, oversized)
+				f.fake.Purge(miaToken, f.profileFile(t, miaToken).ID)
 			},
 			want: store.ErrCorrupted,
 		},
 		{
-			name: "a pause Drive asks for",
+			name: "a pause Drive asks for, and goes on asking for",
 			spoil: func(_ *testing.T, f *fixture) {
-				f.fake.Fail(drivetest.Download, http.StatusTooManyRequests, "rateLimitExceeded")
+				failEveryTry(f.fake, drivetest.Download, http.StatusTooManyRequests, "rateLimitExceeded")
 			},
-			want: drive.ErrRateLimited,
+			want: store.ErrUnavailable,
 		},
 		{
-			name: "a failure of Drive's",
+			name: "a failure of Drive's that goes on",
 			spoil: func(_ *testing.T, f *fixture) {
-				f.fake.Fail(drivetest.Download, http.StatusServiceUnavailable, "backendError")
+				failEveryTry(f.fake, drivetest.Download, http.StatusServiceUnavailable, "backendError")
 			},
-			want: drive.ErrUnavailable,
+			want: store.ErrUnavailable,
+		},
+		{
+			name: "a token that grants nothing of Drive",
+			spoil: func(_ *testing.T, f *fixture) {
+				f.fake.Fail(drivetest.Download, http.StatusForbidden, "insufficientPermissions")
+			},
+			want: store.ErrAccessRevoked,
 		},
 		{
 			name:    "a call that takes too long",
@@ -518,10 +617,10 @@ func TestASearchThatFailedIsNotAProfileMissing(t *testing.T) {
 			return err
 		},
 	} {
-		f.fake.Fail(drivetest.List, http.StatusServiceUnavailable, "backendError")
+		failEveryTry(f.fake, drivetest.List, http.StatusServiceUnavailable, "backendError")
 		err := try()
-		if !errors.Is(err, drive.ErrUnavailable) || errors.Is(err, store.ErrNotFound) {
-			t.Errorf("%s() while the search fails: error = %v, want %v and not %v", name, err, drive.ErrUnavailable, store.ErrNotFound)
+		if !errors.Is(err, store.ErrUnavailable) || errors.Is(err, store.ErrNotFound) {
+			t.Errorf("%s() while the search fails: error = %v, want %v and not %v", name, err, store.ErrUnavailable, store.ErrNotFound)
 		}
 	}
 	f.profileFile(t, miaToken)
@@ -568,8 +667,8 @@ func TestAFullDriveRefusesTheWrite(t *testing.T) {
 	f.fake.Fail(drivetest.Update, http.StatusForbidden, "storageQuotaExceeded")
 
 	_, err = f.storage.Save(t.Context(), mia, moved(p, "Mia the brave"), read)
-	if !errors.Is(err, drive.ErrStorageFull) {
-		t.Errorf("Save() error = %v, want %v", err, drive.ErrStorageFull)
+	if !errors.Is(err, store.ErrStorageFull) {
+		t.Errorf("Save() error = %v, want %v", err, store.ErrStorageFull)
 	}
 	for _, refusal := range []error{store.ErrNotFound, store.ErrConflict, store.ErrCorrupted, store.ErrAccessRevoked} {
 		if errors.Is(err, refusal) {
@@ -579,10 +678,10 @@ func TestAFullDriveRefusesTheWrite(t *testing.T) {
 
 	// A first profile in a full Drive has no room either: the folder it would
 	// go into is refused, and the profile with it.
-	leo := store.NewAccount("account-leo", "ya29.the-token-of-leos-parent")
+	leo := store.NewAccount("account-leo", "ya29.the-token-of-leos-parent", time.Time{})
 	f.fake.Fail(drivetest.Create, http.StatusForbidden, "storageQuotaExceeded")
-	if _, err := f.storage.Create(t.Context(), leo, child("Leo")); !errors.Is(err, drive.ErrStorageFull) {
-		t.Errorf("Create() in a full Drive error = %v, want %v", err, drive.ErrStorageFull)
+	if _, err := f.storage.Create(t.Context(), leo, child("Leo")); !errors.Is(err, store.ErrStorageFull) {
+		t.Errorf("Create() in a full Drive error = %v, want %v", err, store.ErrStorageFull)
 	}
 	if files := f.fake.Files(leo.Token()); len(files) != 0 {
 		t.Errorf("a full Drive holds %d files after a refused first profile, want none", len(files))
@@ -627,7 +726,7 @@ func TestTheProfileIsExportedAsWhereItIs(t *testing.T) {
 		t.Fatalf("Export() error = %v, want nil", err)
 	}
 	want := store.Location{Folder: folderName, File: fileName, Link: drivetest.WebViewLink(file.ID)}
-	if location != want {
+	if !reflect.DeepEqual(location, want) {
 		t.Errorf("Export() = %+v, want %+v", location, want)
 	}
 
@@ -638,7 +737,7 @@ func TestTheProfileIsExportedAsWhereItIs(t *testing.T) {
 		t.Fatalf("Export() from a folder of the parent's own error = %v, want nil", err)
 	}
 	want.Folder = ""
-	if location != want {
+	if !reflect.DeepEqual(location, want) {
 		t.Errorf("Export() from a folder of the parent's own = %+v, want %+v", location, want)
 	}
 }
@@ -650,7 +749,13 @@ func TestAStoreMissingAPartIsNotBuilt(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewFiles() error = %v, want nil", err)
 	}
-	whole := drivestore.Settings{Files: files, Logger: zap.NewNop(), Traces: sdktrace.NewTracerProvider()}
+	revisions, err := drive.NewRevisions(&drive.Settings{Root: drive.Google, Timeout: time.Second})
+	if err != nil {
+		t.Fatalf("NewRevisions() error = %v, want nil", err)
+	}
+	whole := drivestore.Settings{
+		Files: files, Revisions: revisions, Timeout: time.Second, Logger: zap.NewNop(), Traces: sdktrace.NewTracerProvider(),
+	}
 	if _, err := drivestore.New(&whole); err != nil {
 		t.Fatalf("New() with every part error = %v, want nil", err)
 	}
@@ -658,9 +763,11 @@ func TestAStoreMissingAPartIsNotBuilt(t *testing.T) {
 		t.Errorf("New(nil) error = %v, want %v", err, drivestore.ErrSettings)
 	}
 	for name, remove := range map[string]func(*drivestore.Settings){
-		"the calls": func(s *drivestore.Settings) { s.Files = nil },
-		"a logger":  func(s *drivestore.Settings) { s.Logger = nil },
-		"traces":    func(s *drivestore.Settings) { s.Traces = nil },
+		"the calls":         func(s *drivestore.Settings) { s.Files = nil },
+		"the history":       func(s *drivestore.Settings) { s.Revisions = nil },
+		"a time for a call": func(s *drivestore.Settings) { s.Timeout = 0 },
+		"a logger":          func(s *drivestore.Settings) { s.Logger = nil },
+		"traces":            func(s *drivestore.Settings) { s.Traces = nil },
 	} {
 		settings := whole
 		remove(&settings)

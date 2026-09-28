@@ -149,8 +149,12 @@ func quotedEach(texts []string) []string {
 	return quotes
 }
 
-// firstRunText is what the model is told when there is no profile yet.
-const firstRunText = "There is no profile yet. Ask the adult for a pseudonym — never the child's real name — " +
+// firstRunText is what the model is told when there is no profile. The
+// service keeps nothing of its own, so it cannot tell a first sign-in from a
+// profile deleted for good or kept in another Google account, and says all
+// three.
+const firstRunText = "There is no profile yet. If the adult made one before, it has been deleted for good, " +
+	"or they signed in with another Google account. Ask the adult for a pseudonym — never the child's real name — " +
 	"and the school grade from 1 to 6. Interests, skills the child has not met at school yet, " +
 	"notes about the child and the language of the cards are optional. Then create the profile with save_profile."
 

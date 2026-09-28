@@ -31,9 +31,10 @@ const (
 // The fields each call asks Drive for. Whatever else a file carries stays
 // with Drive.
 const (
-	listFields = "files(id,name,parents,modifiedTime,webViewLink)"
-	getFields  = "id,name"
-	madeFields = "id"
+	listFields    = "files(id,name,parents,modifiedTime,webViewLink)"
+	getFields     = "id,name"
+	madeFields    = "id"
+	changedFields = "id,trashed,appProperties"
 )
 
 // files makes each call as one request of its own, with its own deadline.
@@ -45,6 +46,11 @@ type files struct {
 
 // NewFiles builds the calls, or refuses settings they could not be made with.
 func NewFiles(settings *Settings) (Files, error) {
+	return newFiles(settings)
+}
+
+// newFiles builds the calls every interface of the package is made with.
+func newFiles(settings *Settings) (*files, error) {
 	if settings == nil {
 		return nil, fmt.Errorf("%w: the calls need their settings", ErrSettings)
 	}
@@ -123,8 +129,15 @@ func (f *files) Download(ctx context.Context, token, id string, limit int64) ([]
 		op:      "download",
 		method:  http.MethodGet,
 		address: f.file(id) + "?alt=media",
-	}, func(body io.Reader) error {
-		// One byte past the limit is enough to know the file is past it.
+	}, limited(limit, &content))
+	return content, err
+}
+
+// limited reads content of at most limit bytes into what a call answers with,
+// and refuses more with ErrTooLarge.
+func limited(limit int64, into *[]byte) func(io.Reader) error {
+	return func(body io.Reader) error {
+		// One byte past the limit is enough to know the content is past it.
 		read, err := io.ReadAll(io.LimitReader(body, limit+1))
 		switch {
 		case err != nil:
@@ -132,10 +145,9 @@ func (f *files) Download(ctx context.Context, token, id string, limit int64) ([]
 		case int64(len(read)) > limit:
 			return ErrTooLarge
 		}
-		content = read
+		*into = read
 		return nil
-	})
-	return content, err
+	}
 }
 
 func (f *files) Create(ctx context.Context, token string, meta *File, content []byte) (File, error) {
@@ -162,20 +174,37 @@ func (f *files) Create(ctx context.Context, token string, meta *File, content []
 	return file, err
 }
 
-func (f *files) Update(ctx context.Context, token, id string, meta *File, content []byte) (File, error) {
-	if id == "" {
+func (f *files) Update(ctx context.Context, token, id string, change *Change) (File, error) {
+	switch {
+	case id == "":
 		return File{}, fmt.Errorf("drive: update: %w", errNoFile)
+	case change == nil || change.Meta == nil:
+		return File{}, errors.New("drive: update: the change sets nothing")
+	case change.Keep && change.Content == nil:
+		return File{}, errors.New("drive: update: a change with no content makes no revision to keep")
 	}
-	updated := request{
-		op:      "update",
-		method:  http.MethodPatch,
-		address: f.root + "/upload/drive/v3/files/" + url.PathEscape(id) + "?" + uploaded(),
+	query := url.Values{"fields": {changedFields}}
+	updated := request{op: "update", method: http.MethodPatch}
+	var err error
+	if change.Content == nil {
+		// Metadata alone goes to the address of the file, and makes no
+		// revision.
+		updated.address = f.file(id) + "?" + query.Encode()
+		updated.contentType = jsonType
+		updated.body, err = json.Marshal(change.Meta)
+	} else {
+		query.Set("uploadType", "multipart")
+		if change.Keep {
+			query.Set("keepRevisionForever", "true")
+		}
+		updated.address = f.root + "/upload/drive/v3/files/" + url.PathEscape(id) + "?" + query.Encode()
+		err = updated.carry(change.Meta, change.Content)
 	}
-	if err := updated.carry(meta, content); err != nil {
+	if err != nil {
 		return File{}, fmt.Errorf("drive: update: %w", err)
 	}
 	var file File
-	err := f.send(ctx, token, &updated, decodedFile(&file))
+	err = f.send(ctx, token, &updated, decodedFile(&file))
 	return file, err
 }
 

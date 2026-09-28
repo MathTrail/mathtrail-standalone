@@ -151,7 +151,12 @@ func (s *Service) submitTask(ctx context.Context, account store.Account, in subm
 			zap.Int64("duration_ms", run.Duration.Milliseconds()),
 		)
 	}
+	return afresh(ctx, func() (Reply[handedInOut], error) { return s.review(ctx, account, &in, examined, started) })
+}
 
+// review is one read of the profile, the judgement of the examined task
+// against what it holds, and the write of how the review went.
+func (s *Service) review(ctx context.Context, account store.Account, in *submitTaskIn, examined checks.Examined, started time.Time) (Reply[handedInOut], error) {
 	p, revision, err := s.store.Load(ctx, account)
 	switch {
 	case errors.Is(err, store.ErrNotFound):

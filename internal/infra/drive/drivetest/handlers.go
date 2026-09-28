@@ -109,6 +109,11 @@ func (d *Drive) download(w http.ResponseWriter, r *http.Request, token string) {
 	var file *File
 	if found := d.visible(token, id); found != nil {
 		file = found.copied()
+		// A Drive behind a write answers with what the file held before it.
+		if lag := [2]string{token, id}; d.lagging[lag] > 0 && len(file.Revisions) > 1 {
+			d.lagging[lag]--
+			file.Content = file.Revisions[len(file.Revisions)-2].Content
+		}
 	}
 	d.mu.Unlock()
 
@@ -184,6 +189,7 @@ func (d *Drive) make(w http.ResponseWriter, token string, meta metadata, content
 			file.AppProperties[key] = *value
 		}
 	}
+	file.settleHistory()
 	d.drives[token] = append(d.drives[token], file)
 	answer := file.pick(fields)
 	d.mu.Unlock()
@@ -191,11 +197,69 @@ func (d *Drive) make(w http.ResponseWriter, token string, meta metadata, content
 	writeJSON(w, http.StatusOK, answer)
 }
 
-// update replaces what a file holds and sets the properties the metadata
+// update replaces what a file holds, which leaves a revision of it — kept
+// forever when the call asks for that — and sets the properties the metadata
 // names, keeping the others and taking off the ones set to null. The folder a
 // file is in is not changed this way.
 func (d *Drive) update(w http.ResponseWriter, r *http.Request, token string) {
 	fields, meta, content, err := readUpload(r)
+	if err != nil {
+		d.malformed(w, "%v", err)
+		return
+	}
+	keep, err := keepRevisionForever(r.URL.Query().Get("keepRevisionForever"))
+	if err != nil {
+		d.malformed(w, "keepRevisionForever: %v", err)
+		return
+	}
+	if meta.Parents != nil {
+		refuse(w, http.StatusForbidden, "fieldNotWritable", "The resource body includes fields which are not directly writable.")
+		return
+	}
+	id := r.PathValue("id")
+	d.mu.Lock()
+	file := d.visible(token, id)
+	switch {
+	case file == nil:
+		d.mu.Unlock()
+		notFound(w, id)
+		return
+	case keep && file.kept() >= maxKept:
+		d.mu.Unlock()
+		refuseKeeping(w)
+		return
+	}
+	file.change(&meta)
+	file.Content = content
+	file.ModifiedTime = d.tick()
+	file.Revisions = append(file.Revisions, Revision{
+		ID: rand.Text(), ModifiedTime: file.ModifiedTime, KeepForever: keep, Content: slices.Clone(content),
+	})
+	file.purge()
+	answer := file.pick(fields)
+	d.mu.Unlock()
+
+	writeJSON(w, http.StatusOK, answer)
+}
+
+// rename sets the metadata of a file alone — its name, its type, the
+// properties it names — and leaves what it holds, and its history, as they
+// are.
+func (d *Drive) rename(w http.ResponseWriter, r *http.Request, token string) {
+	fields, err := fileSelection(r.URL.Query().Get("fields"))
+	if err != nil {
+		d.malformed(w, "fields: %v", err)
+		return
+	}
+	if r.URL.Query().Has("uploadType") || r.URL.Query().Has("keepRevisionForever") {
+		d.malformed(w, "a change of metadata alone uploads nothing, and makes no revision to keep")
+		return
+	}
+	if !isJSON(r.Header.Get("Content-Type")) {
+		d.malformed(w, "the metadata of a file is JSON, got %q", r.Header.Get("Content-Type"))
+		return
+	}
+	meta, err := readMetadata(r.Body)
 	if err != nil {
 		d.malformed(w, "%v", err)
 		return
@@ -212,28 +276,45 @@ func (d *Drive) update(w http.ResponseWriter, r *http.Request, token string) {
 		notFound(w, id)
 		return
 	}
-	if meta.Name != "" {
-		file.Name = meta.Name
-	}
-	if meta.MimeType != "" {
-		file.MimeType = meta.MimeType
-	}
-	if file.AppProperties == nil {
-		file.AppProperties = map[string]string{}
-	}
-	for key, value := range meta.AppProperties {
-		if value == nil {
-			delete(file.AppProperties, key)
-		} else {
-			file.AppProperties[key] = *value
-		}
-	}
-	file.Content = content
+	file.change(&meta)
 	file.ModifiedTime = d.tick()
 	answer := file.pick(fields)
 	d.mu.Unlock()
 
 	writeJSON(w, http.StatusOK, answer)
+}
+
+// change sets what the metadata of a change names: the name and the type when
+// it gives them, and each property it names, one set to null taken off.
+func (f *File) change(meta *metadata) {
+	if meta.Name != "" {
+		f.Name = meta.Name
+	}
+	if meta.MimeType != "" {
+		f.MimeType = meta.MimeType
+	}
+	if f.AppProperties == nil {
+		f.AppProperties = map[string]string{}
+	}
+	for key, value := range meta.AppProperties {
+		if value == nil {
+			delete(f.AppProperties, key)
+		} else {
+			f.AppProperties[key] = *value
+		}
+	}
+}
+
+// keepRevisionForever reads whether an upload asks for its revision to be
+// kept forever.
+func keepRevisionForever(given string) (bool, error) {
+	switch given {
+	case "", "false":
+		return false, nil
+	case "true":
+		return true, nil
+	}
+	return false, fmt.Errorf("%q is neither true nor false", given)
 }
 
 // readUpload reads an upload the way Drive takes one: multipart/related of a
