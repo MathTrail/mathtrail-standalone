@@ -176,3 +176,73 @@ func TestAClientGoogleRefusesIsAFailureOfOurs(t *testing.T) {
 		t.Errorf("auth_callback lines = %v, want one error: our client was refused", lines)
 	}
 }
+
+// A page that cannot be drawn is a failure of the server's own: the parent
+// gets a bare error rather than half a page, and the line of it is an error.
+func TestAPageThatCannotBeDrawnIsAFailureOfOurs(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name   string
+		ask    func(h *signIn, parent *browser) reply
+		step   string
+		reason string
+		told   []string
+	}{
+		{"the consent screen", func(h *signIn, parent *browser) reply {
+			return parent.get(h.authorizeURL(h.register(hostRedirect, hostName), nil))
+		}, stepAuthorize, "internal", []string{"draw the page"}},
+		{"the page a sign-in stops at", func(h *signIn, parent *browser) reply {
+			return parent.get(h.served.URL + CallbackPath + "?state=not-a-request")
+		}, stepCallback, "unknown_request", []string{"draw the page"}},
+		{"the page of a failure of ours", func(h *signIn, parent *browser) reply {
+			h.server.flow.flights = brokenSealer{}
+			return parent.get(h.authorizeURL(h.register(hostRedirect, hostName), nil))
+		}, stepAuthorize, "internal", []string{"sealing failed", "draw the page"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			h := newSignIn(t)
+			h.server.flow.pages = pagesThatCannotBeDrawn(t)
+
+			failed := tc.ask(h, h.browser(t))
+			if failed.status != http.StatusInternalServerError || strings.Contains(failed.body, "<") {
+				t.Errorf("status = %d, body %q; want 500 and no part of a page", failed.status, failed.body)
+			}
+			oneErrorTelling(t, h, tc.step, tc.reason, tc.told...)
+		})
+	}
+}
+
+// pagesThatCannotBeDrawn are pages that read, and fail whenever one is drawn.
+func pagesThatCannotBeDrawn(t *testing.T) *pages {
+	t.Helper()
+
+	broken, err := newPages(pageFilesWith(t, map[string]string{
+		"pages/consent.html": "{{ .NoSuchField }}",
+		"pages/refusal.html": "{{ .NoSuchField }}",
+	}), testSite)
+	if err != nil {
+		t.Fatalf("newPages() error = %v, want pages that parse", err)
+	}
+	return broken
+}
+
+// oneErrorTelling fails unless a step left exactly one line, an error, for
+// the reason given and telling every cause given.
+func oneErrorTelling(t *testing.T, h *signIn, step, reason string, causes ...string) {
+	t.Helper()
+
+	lines := h.logs.FilterMessage(eventAuthReject).All()
+	if len(lines) != 1 || lines[0].Level != zapcore.ErrorLevel ||
+		lines[0].ContextMap()["step"] != step || lines[0].ContextMap()["reason"] != reason {
+		t.Fatalf("auth_reject lines = %v, want one error at %s for %s", lines, step, reason)
+	}
+	said, _ := lines[0].ContextMap()["error"].(string)
+	for _, cause := range causes {
+		if !strings.Contains(said, cause) {
+			t.Errorf("the error line says %q, want it to tell %q", said, cause)
+		}
+	}
+}

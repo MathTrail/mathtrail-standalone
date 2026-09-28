@@ -19,6 +19,40 @@ Free, open-source standalone MathTrail app for LLM applications: an endless stre
 
 It is neither a homework solver nor a drill of the school syllabus. It turns an adult's own Claude or ChatGPT chat into an adaptive olympiad trainer for a child in grades 1–6.
 
+## What a lesson looks like
+
+The screens below come from the approved design of the widget, the one the widget in `web/` is being built to. They follow the viewer's light or dark theme. The fence task, its options and its traps are an example.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screens/task-dark.png">
+  <img src="docs/screens/task-light.png" width="360" alt="A chat with the message 'A new task, please' and, under it, the MathTrail card. The top line reads Comet, the child's pseudonym, and Profile & progress. The card is signed MathTrail, Olympiad coach, Grade 3. The task: a fence is 12 meters long, posts stand every 3 meters, including both ends; how many posts are there? Below it, a text drawing of the fence, then five options, A 3, B 4, C 5, D 6 and E 12. At the bottom, a field to ask a question about the task and three buttons: I don't know, Hint and Another task.">
+</picture>
+
+A child asks in the chat for a new task, and it arrives as a card:
+
+- **The task.** The chat's model wrote it, and the service let it through only after its checks. The drawing is plain text, laid out left to right in any language.
+- **Five options, A to E.** The answer is not in the card: it is sealed in the parent's Drive until the child picks one.
+- **Help that stays the child's own.** Hint shows a leading question or a first step, which the model wrote with the task. I don't know counts as a wrong answer and shows the solution. Another task skips this one. A question typed into the field goes to the chat, and the model answers it under the card.
+- **The top line.** It shows the child's pseudonym, never a real name, and opens the progress screen.
+
+### After a wrong answer
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screens/wrong-dark.png">
+  <img src="docs/screens/wrong-light.png" width="360" alt="The same card after the child picked B, 4. Option B is framed in red and marked Your answer; option C, 5, is framed in green and marked Correct answer. Under the options, MathTrail says: Not quite, it's 5, not 4. A red note titled The trap reads: Counted the gaps instead of the posts. A solution follows in three steps: 12 divided by 3 is 4 gaps; a straight fence with posts at both ends has one more post than gaps; 4 plus 1 is 5 posts. At the bottom, the question field and a button, Another task.">
+</picture>
+
+A tap records the answer at once, before any explanation, so nothing in the chat can talk it into being right. Every wrong option was written with a named trap behind it, and the card shows the trap the child fell into — here, counting the gaps instead of the posts — then the solution. The model explains in the chat starting from that trap, not from the right answer, and the child's rating in the topic moves.
+
+### Progress, for the child and the parent
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screens/progress-dark.png">
+  <img src="docs/screens/progress-light.png" width="360" alt="The progress screen after the message 'How is Comet doing?'. The top line reads Back to task. Under Comet, Grade 3: Rank 3, an overall rating of 1573 with a bar of rank steps, and Next up: Enumeration again, at the same level. Topics with their ratings: Enumeration 1627, Ordering 1712 marked Mastered, Gaps and boundaries 1588, Parity and alternation 1541. Recent answers: Enumeration wrong, Gaps and boundaries right, Ordering right. Mistakes that repeat: Missed a case while listing, 3 times; Counted the same thing twice, 1 time. The profile for the parent: grade 3, interests space, animals and football, not at school yet division with remainder, and an Edit profile button.">
+</picture>
+
+The same screen opens from the card's top line or when the child or the parent asks in the chat. It shows a chess-style rating with its rank, what comes next, the rating of every topic and the ones mastered, the recent answers, the traps that keep coming back, and the profile. All of it is one JSON file in the parent's own Google Drive.
+
 ## How it works
 
 MathTrail connects to Claude or ChatGPT as an app over the [Model Context Protocol](https://modelcontextprotocol.io), and draws its screens with the [MCP Apps extension](https://modelcontextprotocol.io/extensions/apps/overview). A parent (or tutor) adds it to their own chat, and the child solves tasks there:
@@ -66,14 +100,3 @@ Ask a chat model for "an olympiad task for grade 2" and it will cheerfully hand 
 - **A wrong answer is a diagnosis.** Every wrong option is tied to a named trap — off-by-one in gaps, a missed case while enumerating, double counting — and the explanation starts from how the child reasoned, not from the right answer.
 
 "Checked" means exactly what the program checks. Whether the wording, the drawing and the solution agree in meaning is checked by the model's own self-check, so this is not a promise of a flawless task every time.
-
-## Development
-
-All development happens in the devcontainer; nothing but Docker and VS Code is needed on the host.
-
-1. Install Docker and VS Code with the Dev Containers extension.
-2. Open the repository and choose "Reopen in Container". The first build downloads the pinned toolchain and takes a few minutes.
-3. `just --list` shows the available recipes. The usual ones are `just run` to start the service, `just inspect` to explore its MCP endpoint with MCP Inspector while it runs, `just test` while writing code, and `just ci-lint` with `just ci-test` before calling anything done — plus `just ci-web` when the widget in `web/` changed. `just run` and `just build` build the widget first; without a build the server carries a placeholder page in its place.
-4. `just docker-build` and `just docker-run` build and start the runtime image; `curl localhost:8080/health` answers from it.
-
-Every pull request runs the same `ci-*` recipes on GitHub Actions — formatting and lint, the tests under the race detector, the generated mocks, the widget's checks — together with a vulnerability scan, a secret scan, the dependency licenses and a build of the runtime image, which must serve the built widget.

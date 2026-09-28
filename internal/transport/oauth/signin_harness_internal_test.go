@@ -301,7 +301,7 @@ func answerAt(t *testing.T, back reply) url.Values {
 		t.Fatalf("Location %q does not parse: %v", back.location, err)
 	}
 	if got := address.Scheme + "://" + address.Host + address.Path; got != hostRedirect {
-		t.Fatalf("Location = %q, want the host's %q", back.location, hostRedirect)
+		t.Fatalf("Location = %q leads to %q, want the host's %q", back.location, got, hostRedirect)
 	}
 	return address.Query()
 }

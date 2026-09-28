@@ -135,7 +135,7 @@ func New(settings *Settings) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	screens, err := newPages(settings.SiteURL)
+	screens, err := newPages(pageFiles, settings.SiteURL)
 	if err != nil {
 		return nil, err
 	}

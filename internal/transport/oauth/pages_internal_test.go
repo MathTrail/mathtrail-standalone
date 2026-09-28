@@ -13,6 +13,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"testing/fstest"
 )
 
 // update rewrites the snapshots of the pages from what the pages draw now. The
@@ -24,7 +25,7 @@ var update = flag.Bool("update", false, "rewrite the snapshots of the sign-in's 
 func pagesOf(t *testing.T) *pages {
 	t.Helper()
 
-	screens, err := newPages(testSite)
+	screens, err := newPages(pageFiles, testSite)
 	if err != nil {
 		t.Fatalf("newPages() error = %v, want nil", err)
 	}
@@ -158,6 +159,9 @@ func TestAPolicyNamesOnlyTheOriginsItCan(t *testing.T) {
 		"http://localhost:6274/oauth/callback":                 "http://localhost:6274",
 		"https://пример.рф/callback":                           "https://xn--e1afmkfd.xn--p1ai",
 		"https://Claude.AI/api/mcp/auth_callback":              "https://claude.ai",
+		"https://login-.example.com/cb":                        "",
+		"https://a..b.example/cb":                              "",
+		"https://login-.opena%C4%B0.com/cb":                    "",
 		"http://[::1]:33418/callback":                          "",
 		"https://a;sandbox.example/cb":                         "",
 		"https://a_b.example/cb":                               "",
@@ -322,4 +326,71 @@ func matchesSnapshot(t *testing.T, name, drawn string) {
 	if drawn != string(kept) {
 		t.Errorf("%s is drawn otherwise than its snapshot; run with -update and review the diff\ngot:\n%s", name, drawn)
 	}
+}
+
+// pageFilesWith are the embedded pages with some of their files replaced and
+// some left out.
+func pageFilesWith(t *testing.T, replaced map[string]string, dropped ...string) fstest.MapFS {
+	t.Helper()
+
+	files := fstest.MapFS{}
+	err := fs.WalkDir(pageFiles, "pages", func(name string, entry fs.DirEntry, err error) error {
+		if err != nil || entry.IsDir() {
+			return err
+		}
+		data, err := fs.ReadFile(pageFiles, name)
+		files[name] = &fstest.MapFile{Data: data}
+		return err
+	})
+	if err != nil {
+		t.Fatalf("reading the embedded pages: %v", err)
+	}
+	for name, data := range replaced {
+		files[name] = &fstest.MapFile{Data: []byte(data)}
+	}
+	for _, name := range dropped {
+		delete(files, name)
+	}
+	return files
+}
+
+// Pages that cannot be read, or words that do not say the same things in
+// every language, stop the service before it serves a sign-in.
+func TestPagesThatCannotBeReadStopTheService(t *testing.T) {
+	t.Parallel()
+
+	// The English words with one key taken out, whatever the file's layout.
+	lacking := wordsIn(t, "en")
+	delete(lacking, "consent.allow")
+	lackingJSON, err := json.Marshal(lacking)
+	if err != nil {
+		t.Fatalf("encoding the words: %v", err)
+	}
+	for _, tc := range []struct {
+		name     string
+		replaced map[string]string
+		dropped  []string
+	}{
+		{name: "no consent screen", dropped: []string{"pages/consent.html"}},
+		{name: "a refusal that does not parse", replaced: map[string]string{"pages/refusal.html": "{{ if }}"}},
+		{name: "no stylesheet", dropped: []string{"pages/pages.css"}},
+		{name: "no Russian words", dropped: []string{"pages/ru.json"}},
+		{name: "Russian words that are no words", replaced: map[string]string{"pages/ru.json": "[]"}},
+		{name: "Russian words with a key missing", replaced: map[string]string{"pages/ru.json": string(lackingJSON)}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			if _, err := newPages(pageFilesWith(t, tc.replaced, tc.dropped...), testSite); err == nil {
+				t.Error("newPages() error = nil, want the pages refused")
+			}
+		})
+	}
+	t.Run("the pages as they are embedded", func(t *testing.T) {
+		t.Parallel()
+
+		if _, err := newPages(pageFilesWith(t, nil), testSite); err != nil {
+			t.Errorf("newPages() error = %v, want nil", err)
+		}
+	})
 }

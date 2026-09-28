@@ -11,11 +11,9 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
-	"strconv"
 	"strings"
 	"unicode"
 
-	"golang.org/x/net/idna"
 	"golang.org/x/text/language"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/widget"
@@ -52,19 +50,19 @@ type pages struct {
 	site    string
 }
 
-// newPages reads the pages, their stylesheet and their words, and refuses
-// words that differ in what they say between two languages: a key one
-// language lacks would be a blank on a page in it.
-func newPages(site string) (*pages, error) {
-	consent, err := template.ParseFS(pageFiles, "pages/consent.html", "pages/phrase.html")
+// newPages reads the pages, their stylesheet and their words from the files
+// given, and refuses words that differ in what they say between two
+// languages: a key one language lacks would be a blank on a page in it.
+func newPages(files fs.FS, site string) (*pages, error) {
+	consent, err := template.ParseFS(files, "pages/consent.html", "pages/phrase.html")
 	if err != nil {
 		return nil, fmt.Errorf("oauth: read the consent page: %w", err)
 	}
-	refusal, err := template.ParseFS(pageFiles, "pages/refusal.html", "pages/phrase.html")
+	refusal, err := template.ParseFS(files, "pages/refusal.html", "pages/phrase.html")
 	if err != nil {
 		return nil, fmt.Errorf("oauth: read the refusal page: %w", err)
 	}
-	style, err := fs.ReadFile(pageFiles, "pages/pages.css")
+	style, err := fs.ReadFile(files, "pages/pages.css")
 	if err != nil {
 		return nil, fmt.Errorf("oauth: read the pages' stylesheet: %w", err)
 	}
@@ -72,7 +70,7 @@ func newPages(site string) (*pages, error) {
 	words := make(map[string]map[string]string, len(pageLanguages))
 	for _, tag := range pageLanguages {
 		lang := tag.String()
-		raw, err := fs.ReadFile(pageFiles, "pages/"+lang+".json")
+		raw, err := fs.ReadFile(files, "pages/"+lang+".json")
 		if err != nil {
 			return nil, fmt.Errorf("oauth: read the words in %s: %w", lang, err)
 		}
@@ -149,7 +147,7 @@ type consentView struct {
 func (p *pages) showConsent(w http.ResponseWriter, r *http.Request, screen consentScreen) error {
 	lang := p.languageOf(r)
 	words := p.words[lang]
-	host := shownHost(hostOf(screen.redirectURI))
+	host := hostOf(screen.redirectURI)
 	client := shownName(screen.client)
 	if client == "" {
 		client = host
@@ -160,26 +158,13 @@ func (p *pages) showConsent(w http.ResponseWriter, r *http.Request, screen conse
 		Words:    words,
 		Heading:  phrase(words["consent.heading"], map[string]fragment{"client": {Text: client, Strong: true}}),
 		Return:   phrase(words["consent.return"], map[string]fragment{"host": {Text: host, Strong: true}}),
-		Loopback: loopbackHost(hostOf(screen.redirectURI)),
+		Loopback: loopbackHost(host),
 		Legal: phrase(words["consent.legal"], map[string]fragment{
 			"terms":   {Text: words["consent.terms"], Link: p.site + "/" + lang + "/terms/"},
 			"privacy": {Text: words["consent.privacy"], Link: p.site + "/" + lang + "/privacy/"},
 		}),
 		Request: screen.request,
 	}, screen.google, screen.redirectURI)
-}
-
-// shownHost is a host as the consent screen names it: in ASCII, the form a
-// browser goes to, so that a name in another script cannot pass for a
-// familiar one — a Cyrillic letter that looks like a Latin one is spelled out
-// as what it is. A host with no ASCII form is shown with its other characters
-// escaped.
-func shownHost(host string) string {
-	if ascii, err := idna.Lookup.ToASCII(host); err == nil {
-		return ascii
-	}
-	quoted := strconv.QuoteToASCII(host)
-	return quoted[1 : len(quoted)-1]
 }
 
 // shownName is a client's name as the consent screen shows it: without the
@@ -279,19 +264,21 @@ func pagePolicy(formTargets []string) string {
 
 // policySource is the origin of an address as a policy names it, or nothing
 // when the address has none a policy can name. A policy names a host in ASCII
-// letters, digits, dots and hyphens: a name in another script is named by its
-// ASCII form, which is the form a browser compares, and anything else — an
-// IPv6 address, a character that would end the directive — has no name there.
+// letters, digits, dots and hyphens: a name in another script is named as IDNA
+// spells it, the form a browser looks up, and a host IDNA does not spell — an
+// IPv6 address, a character that would end the directive, an empty label —
+// has no name there.
 func policySource(address string) string {
 	parsed, err := url.Parse(address)
-	if err != nil || (parsed.Scheme != "https" && parsed.Scheme != "http") || parsed.Hostname() == "" {
+	if err != nil || (parsed.Scheme != "https" && parsed.Scheme != "http") {
 		return ""
 	}
-	host, err := idna.Lookup.ToASCII(parsed.Hostname())
+	host, spelled := asciiHost(parsed.Hostname())
 	plain := !strings.ContainsFunc(host, func(c rune) bool {
-		return (c < 'a' || c > 'z') && (c < 'A' || c > 'Z') && (c < '0' || c > '9') && c != '.' && c != '-'
+		return (c < 'a' || c > 'z') && (c < '0' || c > '9') && c != '.' && c != '-'
 	})
-	if err != nil || !plain {
+	emptyLabel := strings.HasPrefix(host, ".") || strings.Contains(host, "..")
+	if !spelled || host == "" || !plain || emptyLabel {
 		return ""
 	}
 	if port := parsed.Port(); port != "" {

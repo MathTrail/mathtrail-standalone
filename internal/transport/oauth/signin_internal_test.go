@@ -424,3 +424,25 @@ func endedAs(t *testing.T, h *signIn, outcome, reason string, told bool) {
 		t.Errorf("auth_callback line = %v, want what went wrong told: %v", lines[0], told)
 	}
 }
+
+// A host that carries a mark to turn text around is written escaped, on the
+// consent screen and in the line alike, so that neither reads otherwise than
+// it was sent.
+func TestAHostThatTurnsTextAroundIsWrittenEscaped(t *testing.T) {
+	t.Parallel()
+
+	const turning = "https://a%E2%80%AEb.example/cb"
+	escaped := "a" + string(rune(92)) + "u202eb.example"
+	h := newSignIn(t)
+	screen := h.browser(t).get(h.authorizeURL(h.register(turning, hostName), url.Values{"redirect_uri": {turning}}))
+
+	if screen.status != http.StatusOK || !strings.Contains(screen.body, "<bdi>"+escaped+"</bdi>") {
+		t.Errorf("GET /oauth/authorize = %d, want the consent screen naming the host as %s", screen.status, escaped)
+	}
+	if strings.ContainsRune(screen.body, rune(0x202E)) {
+		t.Error("the consent screen carries the mark that turns text around")
+	}
+	if lines := h.lines(eventAuthAuthorize); len(lines) != 1 || lines[0]["redirect_host"] != escaped {
+		t.Errorf("auth_authorize lines = %v, want the host written as %s", lines, escaped)
+	}
+}

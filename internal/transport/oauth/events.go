@@ -127,18 +127,21 @@ func (l *signInLog) calledBack(ctx context.Context, request *flight, end *ending
 	}
 }
 
-// rejected leaves the line of a step of a sign-in stopped at a page, and why.
-func (l *signInLog) rejected(ctx context.Context, step, reason string) {
-	l.write(ctx, eventAuthReject, zap.String("step", step), zap.String("reason", reason))
+// rejected leaves the line of a step of a sign-in stopped at a page, and why:
+// an error, telling what failed, when the page could not be drawn either.
+func (l *signInLog) rejected(ctx context.Context, step, reason string, err error) {
+	fields := []zap.Field{zap.String("step", step), zap.String("reason", reason)}
+	if err != nil {
+		l.logger.Error(eventAuthReject, slices.Concat(fields, []zap.Field{zap.Error(err)}, callerFields(ctx, l.projectID))...)
+		return
+	}
+	l.write(ctx, eventAuthReject, fields...)
 }
 
 // failed leaves the line of a step of a sign-in this server failed: an error,
 // since it is ours.
 func (l *signInLog) failed(ctx context.Context, step string, err error) {
-	l.logger.Error(eventAuthReject, slices.Concat(
-		[]zap.Field{zap.String("step", step), zap.String("reason", "internal"), zap.Error(err)},
-		callerFields(ctx, l.projectID),
-	)...)
+	l.rejected(ctx, step, "internal", err)
 }
 
 func (l *signInLog) write(ctx context.Context, event string, fields ...zap.Field) {
@@ -181,14 +184,4 @@ func requestFields(request *flight) []zap.Field {
 		zap.String("registration", request.Registration),
 		zap.String("redirect_host", hostOf(request.RedirectURI)),
 	}
-}
-
-// hostOf is the host of an address, for a line that names where a client is
-// or where it sends the parent back to, and nothing else of it.
-func hostOf(uri string) string {
-	address, err := url.Parse(uri)
-	if err != nil {
-		return ""
-	}
-	return address.Hostname()
 }
