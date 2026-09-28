@@ -24,11 +24,13 @@ import (
 	"math"
 	"os"
 	"os/signal"
+	"slices"
 	"strconv"
 	"strings"
 	"syscall"
 	"time"
 
+	"github.com/MathTrail/mathtrail-standalone/tools/load/lesson"
 	"github.com/MathTrail/mathtrail-standalone/tools/load/report"
 	"github.com/MathTrail/mathtrail-standalone/tools/load/scenario"
 	"github.com/MathTrail/mathtrail-standalone/tools/load/session"
@@ -56,9 +58,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	name := flags.String("scenario", "", "the scenario to run: "+strings.Join(scenario.Names(), ", "))
 	address := flags.String("url", "", "where the service is reached, such as http://localhost:8080")
 	host := flags.String("host", "", "the host the service knows itself by, when the URL names it otherwise")
-	tasks := flags.Int("tasks", 0, "how many tasks a lesson asks for, when not the scenario's own")
-	pace := flags.Duration("pace", 0, "the pause before every step of a lesson, when not the scenario's own")
-	timeout := flags.Duration("timeout", 0, "how long one call may take, when not the scenario's own")
+	given := declareOptions(flags)
 	cpus := flags.Float64("cpus", 1, "the vCPUs an instance is billed for")
 	memory := flags.String("memory", "512m", "the memory an instance is billed for, as docker writes it: 512m, 1g")
 	if err := flags.Parse(args); err != nil {
@@ -69,17 +69,9 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	if err != nil {
 		return cannot(stderr, err)
 	}
-	// Only what was asked for changes: every other option is the scenario's.
-	flags.Visit(func(f *flag.Flag) {
-		switch f.Name {
-		case "tasks":
-			options.Tasks = *tasks
-		case "pace":
-			options.Pace = *pace
-		case "timeout":
-			options.Timeout = *timeout
-		}
-	})
+	if unread := given.change(flags, &options); len(unread) > 0 {
+		return cannot(stderr, fmt.Errorf("%s reads no %s", options.Scenario, strings.Join(unread, ", ")))
+	}
 	if *address == "" {
 		return cannot(stderr, errors.New("-url names no service: where is it reached?"))
 	}
@@ -94,23 +86,88 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		return cannot(stderr, err)
 	}
 
-	fmt.Fprintf(stderr, "load: %s against %s, about %s at a pause of %s\n",
-		options.Scenario, *address, time.Duration(options.Steps())*options.Pace, options.Pace)
-	result, err := scenario.Run(ctx, options, session.Target{URL: *address, Host: *host})
+	fmt.Fprintf(stderr, "load: %s against %s, about %s\n", options.Scenario, *address, options.Lasts())
+	runs, err := scenario.Run(ctx, &options, session.Target{URL: *address, Host: *host})
 	if err != nil {
 		return cannot(stderr, err)
 	}
-	hards, err := report.Write(stdout, []report.Run{result}, report.Instance{VCPU: *cpus, GiB: gib})
+	hards, err := report.Write(stdout, runs, report.Instance{VCPU: *cpus, GiB: gib})
 	switch {
 	case err != nil:
 		return cannot(stderr, err)
-	case result.Stopped:
+	case slices.ContainsFunc(runs, func(r report.Run) bool { return r.Stopped }):
 		// What ran is reported, but a run cut short proves nothing either way.
 		return cannot(stderr, errors.New("the run was stopped before its end; the report is of the part that ran"))
 	case len(hards) > 0:
 		return exitHard
 	}
 	return exitClean
+}
+
+// optionFlags are the flags that change the options of a scenario, each left
+// as the scenario has it unless given.
+type optionFlags struct {
+	tasks, children         *int
+	pace, timeout, duration *time.Duration
+	rate                    *float64
+	variants                *string
+	steps                   *uint64
+}
+
+// declareOptions declares the flags that change the options of a scenario.
+func declareOptions(flags *flag.FlagSet) *optionFlags {
+	return &optionFlags{
+		tasks: flags.Int("tasks", 0, "how many tasks a lesson asks for, when not the scenario's own"),
+		pace:  flags.Duration("pace", 0, "the pause before every step of a lesson, when not the scenario's own"),
+		timeout: flags.Duration("timeout", 0, "how long one call may take, and the service to come back after an "+
+			"attack, when not the scenario's own"),
+		rate: flags.Float64("rate", 0, "how many calls a second an attack sends: hand-ins, or the calls of the "+
+			"greedy child and address of limits, each; when not the scenario's own"),
+		duration: flags.Duration("duration", 0, "how long an attack goes on, each variant's in adversarial, when "+
+			"not the scenario's own"),
+		children: flags.Int("children", 0, "how many children share an attack's hand-ins, or walk lessons beside "+
+			"the greedy child of limits, when not the scenario's own"),
+		variants: flags.String("variants", "", "the costly solvers adversarial hands in, one after another, of "+
+			strings.Join(lesson.Costly(), ", ")+"; when not the scenario's own"),
+		steps: flags.Uint64("steps", 0, "the step ceiling of the service, which the costly solvers are sized to, "+
+			"when not the scenario's own"),
+	}
+}
+
+// change changes the options the flags given on the command line name, and
+// only those: every other is the scenario's. It is the flags among them the
+// scenario does not read, which are refused rather than left be, so that
+// nobody takes a run for one it was not.
+func (f *optionFlags) change(flags *flag.FlagSet, options *scenario.Options) (unread []string) {
+	flags.Visit(func(given *flag.Flag) {
+		switch given.Name {
+		case "tasks":
+			options.Tasks = *f.tasks
+		case "pace":
+			options.Pace = *f.pace
+		case "timeout":
+			options.Timeout = *f.timeout
+		case "rate":
+			options.Rate = *f.rate
+		case "duration":
+			options.Duration = *f.duration
+		case "children":
+			options.Children = *f.children
+		case "variants":
+			options.Variants = strings.Split(*f.variants, ",")
+			for i := range options.Variants {
+				options.Variants[i] = strings.TrimSpace(options.Variants[i])
+			}
+		case "steps":
+			options.Steps = *f.steps
+		default:
+			return
+		}
+		if !slices.Contains(scenario.Reads(options.Scenario), given.Name) {
+			unread = append(unread, "-"+given.Name)
+		}
+	})
+	return unread
 }
 
 // cannot says why the command could not run, and is the exit code that says

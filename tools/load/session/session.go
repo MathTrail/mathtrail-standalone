@@ -1,7 +1,10 @@
 // Package session reaches the MathTrail service the way a chat host does:
 // through the protocol library's own client, one session for each child of a
 // run, every call with a deadline of its own and every answer told apart by
-// what it says. Nothing here writes a message of the protocol by hand.
+// what it says. Nothing here writes a message of the protocol by hand. What is
+// asked of the service outside the protocol — the documents a client reads
+// before it signs in, the probe the platform sends — is fetched the way those
+// are, and told apart by its status.
 package session
 
 import (
@@ -9,6 +12,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"sync"
@@ -43,6 +47,9 @@ type Service struct {
 	pool     *http.Transport
 	timeout  time.Duration
 	requests atomic.Int64
+	// fetching is how a document is fetched: through the same pool, to the
+	// same host, signed in by nobody.
+	fetching *http.Client
 }
 
 // Requests is how many requests the children of the run have sent the
@@ -65,7 +72,46 @@ func Open(target Target, timeout time.Duration) *Service {
 	// the pool as a whole keeps as many as that host may.
 	pool.MaxIdleConnsPerHost = 1024
 	pool.MaxIdleConns = pool.MaxIdleConnsPerHost
-	return &Service{target: target, pool: pool, timeout: timeout}
+	s := &Service{target: target, pool: pool, timeout: timeout}
+	s.fetching = &http.Client{
+		Transport: signing{host: target.Host, next: pool, sent: &s.requests},
+		// The service serves every path under its one name and sends nobody
+		// elsewhere, so a redirect is told as the status it is rather than
+		// followed.
+		CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
+	}
+	return s
+}
+
+// Fetch asks the service for a path of its own outside the protocol — a
+// document a client reads before it signs in, or the probe — from the address
+// given: the one the platform in front of the service would write last into
+// X-Forwarded-For, or the tool's own when there is none. What came back is
+// told by its status: served, held back by a pace, or a status the service
+// should not give.
+func (s *Service) Fetch(ctx context.Context, path, from string) Answer {
+	ctx, cancel := context.WithTimeout(ctx, s.timeout)
+	defer cancel()
+
+	answer := Answer{Tool: path, Started: time.Now()}
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, strings.TrimSuffix(s.target.URL, "/")+path, http.NoBody)
+	if err == nil {
+		if from != "" {
+			request.Header.Set("X-Forwarded-For", from)
+		}
+		var response *http.Response
+		response, err = s.fetching.Do(request)
+		if err == nil {
+			answer.Status = response.StatusCode
+			// Read to its end, so that the connection goes back to the pool.
+			_, err = io.Copy(io.Discard, response.Body)
+			_ = response.Body.Close()
+		}
+	}
+	answer.Ended = time.Now()
+	answer.Err = err
+	answer.Kind = kindOfStatus(answer.Status, err)
+	return answer
 }
 
 // Close lets go of the connections the children of a run left open.
@@ -290,9 +336,9 @@ func (f fellBack) Error() string {
 	return fmt.Sprintf("session: the handshake ended at %q, not at %q", f.version, Protocol)
 }
 
-// signing sends every request of a child signed in by their name, to the host
-// the service knows itself by, counts it, and keeps the worst status a call's
-// requests got back.
+// signing sends every request of a child signed in by their name — or of
+// nobody, when there is no name — to the host the service knows itself by,
+// counts it, and keeps the worst status a call's requests got back.
 type signing struct {
 	name, host string
 	next       http.RoundTripper
@@ -301,7 +347,9 @@ type signing struct {
 
 func (s signing) RoundTrip(r *http.Request) (*http.Response, error) {
 	r = r.Clone(r.Context())
-	r.Header.Set("Authorization", "Bearer "+s.name)
+	if s.name != "" {
+		r.Header.Set("Authorization", "Bearer "+s.name)
+	}
 	if s.host != "" {
 		r.Host = s.host
 	}
