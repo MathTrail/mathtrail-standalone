@@ -176,45 +176,6 @@ func TestTheNewestProtocolIsSpokenAndOlderOnesAreAnswered(t *testing.T) {
 	})
 }
 
-// Without the development sign-in nobody is let in, and the refusal is the
-// one a client expects of a service that wants a token: 401, and a challenge
-// naming where the resource's metadata is and the scope. No tool runs.
-func TestNobodyIsLetInWithoutTheDevelopmentSignIn(t *testing.T) {
-	t.Parallel()
-
-	const metadata = "https://mcp.example/.well-known/oauth-protected-resource/mcp"
-	h := serve(t, mcpserver.NobodySignsIn(metadata))
-	for _, credential := range []string{"", "Bearer a-token-nothing-issued"} {
-		header := http.Header{}
-		if credential != "" {
-			header.Set("Authorization", credential)
-		}
-		resp := h.post(t, legacyCall("echo", `{"say":"hello"}`), header)
-
-		if resp.status != http.StatusUnauthorized {
-			t.Errorf("with credential %q: status = %d, want %d", credential, resp.status, http.StatusUnauthorized)
-		}
-		if got, want := resp.header.Get("WWW-Authenticate"), `Bearer resource_metadata="`+metadata+`", scope="mcp"`; got != want {
-			t.Errorf("with credential %q: WWW-Authenticate = %q, want %q", credential, got, want)
-		}
-		if got, want := resp.header.Get("Cache-Control"), "no-store, no-transform"; got != want {
-			t.Errorf("with credential %q: Cache-Control = %q, want %q", credential, got, want)
-		}
-	}
-
-	client := mcp.NewClient(&mcp.Implementation{Name: "claude-code", Version: "1.0.0"}, nil)
-	if _, err := client.Connect(t.Context(), &mcp.StreamableClientTransport{
-		Endpoint: h.server.URL + "/mcp", DisableStandaloneSSE: true, MaxRetries: -1,
-	}, nil); err == nil {
-		t.Error("Connect() error = nil, want the client refused")
-	}
-
-	h.settle()
-	if lines := h.toolLines(); len(lines) != 0 {
-		t.Errorf("tool_call lines = %d, want none: no tool may run for nobody", len(lines))
-	}
-}
-
 // A tool that could not do its work is told to the model in one sentence of
 // ours, never in the words of what went wrong, which may name a child or a
 // file. The line and the span say it failed and why, by a word from a list.

@@ -3,7 +3,6 @@ package oauthserver
 import (
 	"crypto/rand"
 	"crypto/sha256"
-	"crypto/subtle"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
@@ -103,7 +102,7 @@ func fromThisBrowser(r *http.Request, request *flight) bool {
 	if err != nil {
 		return false
 	}
-	return subtle.ConstantTimeCompare([]byte(digestOf(cookie.Value)), []byte(request.Cookie)) == 1
+	return sameDigest(digestOf(cookie.Value), request.Cookie)
 }
 
 // setCSRFCookie gives the browser the cookie a sign-in is tied to. Lax is what

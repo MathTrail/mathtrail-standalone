@@ -146,8 +146,8 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 	c.Reviewer = checks.NewReviewer(embedded, c.Solver, checks.DefaultDrawingLimits())
 
 	// Profiles are kept in the memory of the process until the parent's own
-	// Drive can hold them. Only the development sign-in reaches a tool yet, so
-	// nothing a real family wrote is kept here, or lost with the process.
+	// Drive can hold them: what a family that signed in writes is lost with
+	// the process, and one instance knows nothing of what another kept.
 	c.Store = memory.New()
 
 	// A parent signs in with Google, through the service's own client there,
@@ -191,11 +191,12 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 	// with the purpose that keeps an answer apart from everything else it
 	// seals.
 	//
-	// The MCP endpoint lets nobody in: this build can issue no token yet. Its
-	// refusal names the resource's metadata, where a client begins a sign-in.
-	// The development sign-in lets everybody in as one account, and the
-	// configuration refuses it on a deployment.
-	signIn := mcpserver.NobodySignsIn(signInServer.ResourceMetadataURL)
+	// The MCP endpoint lets a request in with an access token the
+	// authorization server issued, as the account the token signs in, and
+	// refuses any other by naming the resource's metadata, where a client
+	// begins a sign-in. The development sign-in lets everybody in as one
+	// account instead, and the configuration refuses it on a deployment.
+	signIn := mcpserver.BearerSignIn(signInServer.Account, signInServer.ResourceMetadataURL)
 	if cfg.DevAuth {
 		signIn = mcpserver.DevSignIn
 	}
@@ -237,6 +238,8 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 		Authorize:        signInServer.Authorize,
 		Consent:          signInServer.Consent,
 		Callback:         signInServer.Callback,
+		Token:            signInServer.Token,
+		Revoke:           signInServer.Revoke,
 	}, log, httpserver.Observability{
 		Traces:    tel.TracerProvider(),
 		Meters:    tel.MeterProvider(),

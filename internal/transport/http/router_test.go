@@ -196,6 +196,8 @@ func endpoints() *httpserver.Endpoints {
 		Authorize:        standIn(reachedAuthorize),
 		Consent:          standIn(reachedConsent),
 		Callback:         standIn(reachedCallback),
+		Token:            standIn(reachedToken),
+		Revoke:           standIn(reachedRevoke),
 	}
 }
 
@@ -207,6 +209,8 @@ const (
 	reachedAuthorize        = "reached the authorization request"
 	reachedConsent          = "reached the consent screen's answer"
 	reachedCallback         = "reached Google's answer"
+	reachedToken            = "reached the token endpoint"
+	reachedRevoke           = "reached the revocation"
 )
 
 // standIn is a handler that answers with the words given, so that a case can

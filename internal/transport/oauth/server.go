@@ -8,12 +8,16 @@
 // given. A sign-in under way travels sealed with the parent — in the consent
 // screen's form, and in the state Google carries back — and the browser holds
 // the cookie that ties it to them and the one that remembers whom they
-// approved. This package serves the metadata a host discovers the server by,
-// the registration endpoint, and the parent's way through a sign-in: the
-// authorization request, the consent screen and Google's answer.
+// approved. A finished sign-in is carried, sealed, by the tokens the host
+// holds. This package serves the metadata a host discovers the server by, the
+// registration endpoint, the parent's way through a sign-in — the
+// authorization request, the consent screen and Google's answer — and the
+// host's tokens: their issue and renewal, the end of the grant they carry, and
+// the check of the access token every request to the resource comes with.
 package oauthserver
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -26,6 +30,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/cimd"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
+	"github.com/MathTrail/mathtrail-standalone/internal/store"
 )
 
 // Settings are what the authorization server is built from.
@@ -90,9 +95,10 @@ func isOrigin(address string) bool {
 		!strings.ContainsAny(address, "?#") && parsed.User == nil
 }
 
-// Server is the authorization server as the router mounts it: the documents a
-// host discovers it by, its endpoints, and where a refusal of the resource
-// sends a host to begin.
+// Server is the authorization server as the router and the resource use it:
+// the documents a host discovers it by, its endpoints, the reader of the
+// access tokens requests to the resource carry, and where a refusal of the
+// resource sends a host to begin.
 type Server struct {
 	// ResourceMetadata serves the protected resource's metadata (RFC 9728),
 	// at the address derived from the resource's own path.
@@ -108,12 +114,22 @@ type Server struct {
 	Consent http.Handler
 	// Callback answers Google's redirect with the code the client exchanges.
 	Callback http.Handler
+	// Token issues a host's tokens, for a code or a refresh token
+	// (RFC 6749 4.1.3 and 6).
+	Token http.Handler
+	// Revoke ends a host's grant (RFC 7009).
+	Revoke http.Handler
+	// Account reads the access token a request to the resource carries: the
+	// account it signs the request in as, and when the token ends. A token
+	// that signs nobody in is an error.
+	Account func(ctx context.Context, token string) (store.Account, time.Time, error)
 	// ResourceMetadataURL is the address of the resource's metadata, which a
 	// refusal of the resource names.
 	ResourceMetadataURL string
 
 	clients *clients
 	flow    *flow
+	tokens  *tokens
 }
 
 // New builds the authorization server, or refuses settings it could not work
@@ -153,6 +169,18 @@ func New(settings *Settings) (*Server, error) {
 		events:   events,
 		now:      settings.Now,
 	}
+	grants := &tokens{
+		issuer:   issuer,
+		resource: issuer + resourcePath,
+		scope:    settings.Scope,
+		clients:  known,
+		codes:    settings.Seal.For(seal.PurposeCode),
+		access:   settings.Seal.For(seal.PurposeAccess),
+		refresh:  settings.Seal.For(seal.PurposeRefresh),
+		google:   settings.Google,
+		events:   events,
+		now:      settings.Now,
+	}
 	return &Server{
 		ResourceMetadata:    resourceMetadataHandler(issuer, settings.Scope),
 		ServerMetadata:      serverMetadata,
@@ -160,8 +188,12 @@ func New(settings *Settings) (*Server, error) {
 		Authorize:           http.HandlerFunc(signIn.authorize),
 		Consent:             http.HandlerFunc(signIn.consent),
 		Callback:            http.HandlerFunc(signIn.callback),
+		Token:               http.HandlerFunc(grants.serveToken),
+		Revoke:              http.HandlerFunc(grants.serveRevoke),
+		Account:             grants.account,
 		ResourceMetadataURL: issuer + resourceMetadataPath,
 		clients:             known,
 		flow:                signIn,
+		tokens:              grants,
 	}, nil
 }

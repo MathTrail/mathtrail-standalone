@@ -240,6 +240,7 @@ func TestASignInWithSomethingMissingIsRefused(t *testing.T) {
 		{"no secret", func(s *googleauth.Settings) { s.ClientSecret = "" }, "ClientSecret"},
 		{"no way back", func(s *googleauth.Settings) { s.RedirectURL = "" }, "RedirectURL"},
 		{"no keys", func(s *googleauth.Settings) { s.Endpoints.Keys = "" }, "Endpoints"},
+		{"no way to end a grant", func(s *googleauth.Settings) { s.Endpoints.Revoke = "" }, "Endpoints"},
 		{"no clock", func(s *googleauth.Settings) { s.Now = nil }, "Now"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

@@ -8,6 +8,9 @@
 // been checked against the keys Google publishes: the token arrives over a
 // connection the service opened itself, and the signature is what makes it
 // Google's word rather than whatever answered there.
+//
+// After the sign-in the grant is renewed with its refresh token, for as long
+// as Google honours it, and revoked when the parent disconnects.
 package googleauth
 
 import (
@@ -30,7 +33,8 @@ const (
 
 const (
 	// callTimeout is how long one call to Google may take: an exchange of a
-	// code, or a fetch of the keys its ID tokens are signed with.
+	// code, a renewal, a revocation, or a fetch of the keys its ID tokens are
+	// signed with.
 	callTimeout = 10 * time.Second
 	// clockSkew is how far Google's clock and this one may disagree about
 	// when an ID token stops being good.
@@ -47,6 +51,8 @@ type Endpoints struct {
 	Token string
 	// Keys is where the keys its ID tokens are signed with are published.
 	Keys string
+	// Revoke is where a grant is ended.
+	Revoke string
 }
 
 // Accounts are Google's own endpoints, as its discovery document at
@@ -56,6 +62,7 @@ var Accounts = Endpoints{ //nolint:gosec // Google's published endpoints, not a 
 	Auth:   "https://accounts.google.com/o/oauth2/v2/auth",
 	Token:  "https://oauth2.googleapis.com/token",
 	Keys:   "https://www.googleapis.com/oauth2/v3/certs",
+	Revoke: "https://oauth2.googleapis.com/revoke",
 }
 
 // Settings are what the sign-in is built from.
@@ -88,8 +95,9 @@ func (s *Settings) validate() error {
 		return fmt.Errorf("%w: ClientSecret must be set", ErrSettings)
 	case s.RedirectURL == "":
 		return fmt.Errorf("%w: RedirectURL must be set", ErrSettings)
-	case s.Endpoints.Issuer == "", s.Endpoints.Auth == "", s.Endpoints.Token == "", s.Endpoints.Keys == "":
-		return fmt.Errorf("%w: Endpoints must name all four", ErrSettings)
+	case s.Endpoints.Issuer == "", s.Endpoints.Auth == "", s.Endpoints.Token == "", s.Endpoints.Keys == "",
+		s.Endpoints.Revoke == "":
+		return fmt.Errorf("%w: Endpoints must name all five", ErrSettings)
 	case s.Now == nil:
 		return fmt.Errorf("%w: Now must be set", ErrSettings)
 	}
@@ -97,8 +105,9 @@ func (s *Settings) validate() error {
 }
 
 // SignIn is a parent's sign-in at Google, as the authorization server walks
-// through it: where to send the browser, and what the code it comes back with
-// is worth.
+// through it: where to send the browser, what the code it comes back with is
+// worth, and — for as long as the grant lasts — a new access token, and the
+// grant's end.
 type SignIn interface {
 	// AuthURL is the address the parent's browser is sent to. The state
 	// comes back unchanged with the browser; the verifier's challenge and
@@ -109,6 +118,13 @@ type SignIn interface {
 	// with an ID token that is Google's, for this client, still good, and
 	// carrying the nonce.
 	Exchange(ctx context.Context, code, verifier, nonce string) (Grant, error)
+	// Refresh asks Google for a new access token with the grant's refresh
+	// token.
+	Refresh(ctx context.Context, refreshToken string) (Renewal, error)
+	// Revoke ends a grant at Google, given any token of it: Google ends the
+	// whole grant, the refresh token and every access token alike. A token
+	// Google no longer honours ends nothing, and says so with ErrNotHonoured.
+	Revoke(ctx context.Context, token string) error
 }
 
 // Grant is what a parent's sign-in at Google gave the service.
@@ -128,8 +144,20 @@ type Grant struct {
 	Scopes []string
 }
 
-// The refusals of Exchange. Every one of them is checked with errors.Is, and
-// none of them carries a token or anything Google said in its own words.
+// Renewal is what Google gave for a grant's refresh token.
+type Renewal struct {
+	// AccessToken is what Drive is called with, until Expiry.
+	AccessToken string
+	// Expiry is when the access token stops being good.
+	Expiry time.Time
+	// RefreshToken is the refresh token the grant goes on with: the one it
+	// was renewed with, unless Google gave another in its place.
+	RefreshToken string
+}
+
+// The refusals of the sign-in's calls to Google. Every one of them is checked
+// with errors.Is, and none of them carries a token or anything Google said in
+// its own words.
 var (
 	// ErrCodeRefused means Google refused the code: it expired, it was used
 	// already, or it was not issued for this client and this verifier.
@@ -149,14 +177,25 @@ var (
 	// ErrNoRefresh means the grant carries no refresh token, without which
 	// the sign-in would end with its first access token.
 	ErrNoRefresh = errors.New("googleauth: no refresh token")
+	// ErrGrantEnded means Google no longer honours the grant's refresh token:
+	// the parent took the access back, the grant went unused for months, or
+	// it fell past the number of refresh tokens Google keeps for a client.
+	// Only a new sign-in gives another.
+	ErrGrantEnded = errors.New("googleauth: the grant has ended")
+	// ErrNotHonoured means Google no longer honours the token a grant was to
+	// be ended with: the grant has ended already, or the token has — an access
+	// token past its hour, a refresh token Google gave another in place of.
+	// Nothing was ended with it.
+	ErrNotHonoured = errors.New("googleauth: Google no longer honours the token")
 )
 
 // google is the sign-in at a provider with Google's endpoints.
 type google struct {
-	oauth    *oauth2.Config
-	verifier *oidc.IDTokenVerifier
-	client   *http.Client
-	now      func() time.Time
+	oauth     *oauth2.Config
+	verifier  *oidc.IDTokenVerifier
+	client    *http.Client
+	revokeURL string
+	now       func() time.Time
 }
 
 // New builds the sign-in, or refuses settings it could not work with. The
@@ -189,8 +228,9 @@ func New(settings *Settings) (SignIn, error) {
 			// two may disagree by.
 			Now: func() time.Time { return settings.Now().Add(-clockSkew) },
 		}),
-		client: client,
-		now:    settings.Now,
+		client:    client,
+		revokeURL: endpoints.Revoke,
+		now:       settings.Now,
 	}, nil
 }
 

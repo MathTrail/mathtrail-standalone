@@ -9,8 +9,7 @@ import (
 // The sign-in's documents and its endpoint are served under the service's own
 // name alone, each at its one path: the resource's metadata under the path of
 // the resource and not at the root, nothing under a name that is not the
-// service's, and nothing at a path the sign-in does not have — the ones that
-// arrive later among them.
+// service's, and nothing at a path the sign-in does not have.
 func TestTheSignInIsServedAtItsOwnPaths(t *testing.T) {
 	t.Parallel()
 
@@ -27,17 +26,22 @@ func TestTheSignInIsServedAtItsOwnPaths(t *testing.T) {
 		{http.MethodGet, "example.com", "/oauth/authorize", http.StatusOK, reachedAuthorize},
 		{http.MethodPost, "example.com", "/oauth/consent", http.StatusOK, reachedConsent},
 		{http.MethodGet, "example.com", "/oauth/callback", http.StatusOK, reachedCallback},
+		{http.MethodPost, "example.com", "/oauth/token", http.StatusOK, reachedToken},
+		{http.MethodPost, "example.com", "/oauth/revoke", http.StatusOK, reachedRevoke},
 
 		{http.MethodGet, "service-abc.a.run.app", "/.well-known/oauth-protected-resource/mcp", http.StatusNotFound, ""},
 		{http.MethodGet, "service-abc.a.run.app", "/.well-known/oauth-authorization-server", http.StatusNotFound, ""},
 		{http.MethodPost, "service-abc.a.run.app", "/oauth/register", http.StatusNotFound, ""},
 		{http.MethodGet, "service-abc.a.run.app", "/oauth/authorize", http.StatusNotFound, ""},
 		{http.MethodGet, "service-abc.a.run.app", "/oauth/callback", http.StatusNotFound, ""},
+		{http.MethodPost, "service-abc.a.run.app", "/oauth/token", http.StatusNotFound, ""},
+		{http.MethodPost, "service-abc.a.run.app", "/oauth/revoke", http.StatusNotFound, ""},
 		{http.MethodGet, "example.com", "/.well-known/oauth-authorization-server/", http.StatusNotFound, ""},
 		{http.MethodGet, "example.com", "/.well-known/oauth-protected-resource", http.StatusNotFound, ""},
 		{http.MethodGet, "example.com", "/.well-known/openid-configuration", http.StatusNotFound, ""},
 		{http.MethodGet, "example.com", "/oauth/authorize/", http.StatusNotFound, ""},
-		{http.MethodGet, "example.com", "/oauth/token", http.StatusNotFound, ""},
+		{http.MethodPost, "example.com", "/oauth/token/", http.StatusNotFound, ""},
+		{http.MethodPost, "example.com", "/oauth/introspect", http.StatusNotFound, ""},
 	} {
 		t.Run(tc.method+" "+tc.host+tc.path, func(t *testing.T) {
 			t.Parallel()
@@ -72,6 +76,8 @@ func TestASignInPathSaysWhichMethodItTakes(t *testing.T) {
 		{http.MethodPost, "/oauth/authorize", "GET"},
 		{http.MethodGet, "/oauth/consent", "POST"},
 		{http.MethodPost, "/oauth/callback", "GET"},
+		{http.MethodGet, "/oauth/token", "POST"},
+		{http.MethodGet, "/oauth/revoke", "POST"},
 	} {
 		rec := call(t, tc.method, tc.path)
 		if rec.Code != http.StatusMethodNotAllowed {

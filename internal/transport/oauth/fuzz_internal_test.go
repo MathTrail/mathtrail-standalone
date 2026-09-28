@@ -128,6 +128,15 @@ func (googleStandIn) Exchange(_ context.Context, code, _, _ string) (googleauth.
 	}, nil
 }
 
+func (googleStandIn) Refresh(_ context.Context, refreshToken string) (googleauth.Renewal, error) {
+	if refreshToken != "a-refresh-token" {
+		return googleauth.Renewal{}, googleauth.ErrGrantEnded
+	}
+	return googleauth.Renewal{AccessToken: "a-renewed-access-token", Expiry: testDay.Add(time.Hour), RefreshToken: refreshToken}, nil
+}
+
+func (googleStandIn) Revoke(context.Context, string) error { return nil }
+
 // fuzzedServer is a server with one registered client, whose sign-in goes to
 // the stand-in for Google.
 func fuzzedServer(f *testing.F) (server *Server, clientID string) {
@@ -243,6 +252,126 @@ func FuzzCallback(f *testing.F) {
 		leadsOnlyWhereItMay(t, answer, query)
 		if strings.HasPrefix(answer.Header().Get("Location"), "https://accounts.example/") {
 			t.Errorf("the callback for %q sends the parent to Google again", query)
+		}
+	})
+}
+
+// fuzzedVerifier is the verifier the code of the fuzzed server was asked for
+// with.
+const fuzzedVerifier = "a-verifier-of-forty-three-characters-or-more-0"
+
+// heldByTheFuzzedHost is what the one client of the fuzzed server holds: a
+// code of a finished sign-in, and a refresh token.
+func heldByTheFuzzedHost(f *testing.F, server *Server, clientID string) (code, refresh string) {
+	f.Helper()
+
+	code, err := server.flow.issueCode(&flight{
+		Client: digestOf(clientID), Registration: registrationDCR, RedirectURI: fuzzedRedirect,
+		Challenge: challengeOf(fuzzedVerifier), Resource: testIssuer + "/mcp", Scope: "mcp",
+	}, &googleauth.Grant{AccessToken: "an-access-token", RefreshToken: "a-refresh-token", Expiry: testDay.Add(time.Hour)}, "a-user")
+	if err != nil {
+		f.Fatalf("issueCode() error = %v, want nil", err)
+	}
+	refresh, err = server.tokens.sealAs(server.tokens.refresh, &refreshGrant{
+		User: "a-user", Client: digestOf(clientID), Resource: testIssuer + "/mcp", Scope: "mcp", SignedInAt: testDay.Unix(),
+		GoogleAccessToken: "an-access-token", GoogleAccessExpiry: testDay.Add(time.Hour).Unix(),
+		GoogleRefreshToken: "a-refresh-token", IssuedAt: testDay.Unix(), ExpiresAt: testDay.Add(30 * 24 * time.Hour).Unix(),
+	})
+	if err != nil {
+		f.Fatalf("sealAs() error = %v, want nil", err)
+	}
+	return code, refresh
+}
+
+// posted is the answer of a handler to a form posted to it.
+func posted(t *testing.T, handler http.Handler, path, body string) *httptest.ResponseRecorder {
+	t.Helper()
+
+	request := httptest.NewRequestWithContext(t.Context(), http.MethodPost, path, strings.NewReader(body))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	answer := httptest.NewRecorder()
+	handler.ServeHTTP(answer, request)
+	return answer
+}
+
+// isRefusal reports whether an answer is a refusal in the protocol's words:
+// a JSON body with an error code.
+func isRefusal(answer *httptest.ResponseRecorder) bool {
+	var refused oauthError
+	return json.Unmarshal(answer.Body.Bytes(), &refused) == nil && refused.Code != ""
+}
+
+// Whatever a host posts for tokens, it is given tokens or refused in the
+// protocol's words — never a failure of the server's — and an access token it
+// is given signs its account in.
+func FuzzToken(f *testing.F) {
+	server, clientID := fuzzedServer(f)
+	code, refresh := heldByTheFuzzedHost(f, server, clientID)
+	for _, seed := range []string{
+		url.Values{"grant_type": {"authorization_code"}, "code": {code}, "code_verifier": {fuzzedVerifier}, "client_id": {clientID}}.Encode(),
+		url.Values{"grant_type": {"refresh_token"}, "refresh_token": {refresh}, "client_id": {clientID}, "scope": {"mcp"}}.Encode(),
+		url.Values{"grant_type": {"refresh_token"}, "refresh_token": {code}, "client_id": {clientID}}.Encode(),
+		"grant_type=authorization_code&code=mt1.c.x.y&code_verifier=v&client_id=c&resource=a&resource=b",
+		"grant_type=password",
+		"%zz",
+		"",
+	} {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, body string) {
+		answer := posted(t, server.Token, "/oauth/token", body)
+		switch answer.Code {
+		case http.StatusOK:
+		case http.StatusBadRequest, http.StatusUnauthorized, http.StatusRequestEntityTooLarge:
+			if !isRefusal(answer) {
+				t.Errorf("the refusal of %q is %q, want an error in the protocol's words", body, answer.Body)
+			}
+			return
+		default:
+			t.Fatalf("status = %d for %q, want tokens or a refusal", answer.Code, body)
+		}
+		var given tokenAnswer
+		if err := json.Unmarshal(answer.Body.Bytes(), &given); err != nil {
+			t.Fatalf("the tokens for %q are not JSON: %v", body, err)
+		}
+		if _, _, err := server.Account(t.Context(), given.AccessToken); err != nil {
+			t.Errorf("the access token given for %q signs nobody in: %v", body, err)
+		}
+	})
+}
+
+// Whatever a host posts to end its grant, it is answered as the protocol has
+// it — ended, or refused in its words — and never with a failure of the
+// server's.
+func FuzzRevoke(f *testing.F) {
+	server, clientID := fuzzedServer(f)
+	code, refresh := heldByTheFuzzedHost(f, server, clientID)
+	for _, seed := range []string{
+		url.Values{"token": {refresh}, "client_id": {clientID}, "token_type_hint": {"refresh_token"}}.Encode(),
+		url.Values{"token": {refresh}, "client_id": {"another-client"}}.Encode(),
+		url.Values{"token": {code}, "client_id": {clientID}}.Encode(),
+		"token=not-a-token&client_id=c",
+		"token=a&token=b",
+		"%zz",
+		"",
+	} {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, body string) {
+		answer := posted(t, server.Revoke, "/oauth/revoke", body)
+		switch answer.Code {
+		case http.StatusOK:
+			if answer.Body.Len() != 0 {
+				t.Errorf("the answer to %q is %q, want nothing more than 200", body, answer.Body)
+			}
+		case http.StatusBadRequest, http.StatusUnauthorized, http.StatusRequestEntityTooLarge:
+			if !isRefusal(answer) {
+				t.Errorf("the refusal of %q is %q, want an error in the protocol's words", body, answer.Body)
+			}
+		default:
+			t.Fatalf("status = %d for %q, want 200 or a refusal", answer.Code, body)
 		}
 	})
 }

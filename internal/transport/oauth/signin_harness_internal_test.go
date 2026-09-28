@@ -54,35 +54,48 @@ func (c *clock) advance(by time.Duration) {
 // signIn is a server under test, served over TLS as a browser reaches it, with
 // Google standing in and the lines it leaves kept.
 type signIn struct {
-	t      *testing.T
-	server *Server
-	served *httptest.Server
-	google *googletest.Server
-	ring   *seal.KeyRing
-	clock  *clock
-	logs   *observer.ObservedLogs
+	t         *testing.T
+	server    *Server
+	served    *httptest.Server
+	routes    *http.ServeMux
+	google    *googletest.Server
+	ring      *seal.KeyRing
+	clock     *clock
+	documents *documents
+	logs      *observer.ObservedLogs
 }
 
 // newSignIn builds a server whose sign-in goes to a stand-in for Google.
 func newSignIn(t *testing.T) *signIn {
 	t.Helper()
-	return build(t, true)
+	return build(t, true, testDay)
 }
 
 // newSignInWithoutGoogle builds a server with no Google sign-in configured.
 func newSignInWithoutGoogle(t *testing.T) *signIn {
 	t.Helper()
-	return build(t, false)
+	return build(t, false, testDay)
 }
 
-func build(t *testing.T, withGoogle bool) *signIn {
+// newSignInNow builds a server whose clock starts at the real time: the check
+// of a token at the resource is the protocol library's too, and the library
+// judges a token by the real clock.
+func newSignInNow(t *testing.T) *signIn {
+	t.Helper()
+	return build(t, true, time.Now())
+}
+
+func build(t *testing.T, withGoogle bool, start time.Time) *signIn {
 	t.Helper()
 
 	routes := http.NewServeMux()
 	served := httptest.NewTLSServer(routes)
 	t.Cleanup(served.Close)
 
-	h := &signIn{t: t, served: served, ring: ringOf(t, 'k'), clock: &clock{now: testDay}}
+	h := &signIn{
+		t: t, served: served, routes: routes, ring: ringOf(t, 'k'), clock: &clock{now: start},
+		documents: &documents{err: cimd.ErrUnreachable},
+	}
 	h.google = googletest.New(t, h.clock.Now)
 	core, logs := observer.New(zapcore.DebugLevel)
 	h.logs = logs
@@ -91,7 +104,7 @@ func build(t *testing.T, withGoogle bool) *signIn {
 		PublicURL: served.URL,
 		Scope:     "mcp",
 		Seal:      h.ring,
-		Documents: &documents{err: cimd.ErrUnreachable},
+		Documents: h.documents,
 		Logger:    zap.New(core),
 		SiteURL:   testSite,
 		Now:       h.clock.Now,
@@ -118,6 +131,10 @@ func build(t *testing.T, withGoogle bool) *signIn {
 	routes.Handle("GET /oauth/authorize", server.Authorize)
 	routes.Handle("POST /oauth/consent", server.Consent)
 	routes.Handle("GET /oauth/callback", server.Callback)
+	routes.Handle("POST /oauth/token", server.Token)
+	routes.Handle("POST /oauth/revoke", server.Revoke)
+	routes.Handle("GET /.well-known/oauth-protected-resource/mcp", server.ResourceMetadata)
+	routes.Handle("GET /.well-known/oauth-authorization-server", server.ServerMetadata)
 	return h
 }
 
@@ -267,8 +284,15 @@ func requestOn(t *testing.T, screen reply) string {
 // toConsent takes a parent from the host's request to the consent screen.
 func (h *signIn) toConsent(parent *browser, clientID string) (screen reply, request string) {
 	h.t.Helper()
+	return h.toConsentAt(parent, h.authorizeURL(clientID, nil))
+}
 
-	screen = parent.get(h.authorizeURL(clientID, nil))
+// toConsentAt takes a parent from the address a host sent them to to the
+// consent screen.
+func (h *signIn) toConsentAt(parent *browser, address string) (screen reply, request string) {
+	h.t.Helper()
+
+	screen = parent.get(address)
 	if screen.status != http.StatusOK {
 		h.t.Fatalf("GET /oauth/authorize status = %d, want the consent screen; body %q", screen.status, screen.body)
 	}
@@ -279,8 +303,15 @@ func (h *signIn) toConsent(parent *browser, clientID string) (screen reply, requ
 // on to Google, and is the address they are sent to there.
 func (h *signIn) toGoogle(parent *browser, clientID string) string {
 	h.t.Helper()
+	return h.toGoogleAt(parent, h.authorizeURL(clientID, nil))
+}
 
-	_, request := h.toConsent(parent, clientID)
+// toGoogleAt takes a parent from the address a host sent them to through the
+// consent screen on to Google, and is the address they are sent to there.
+func (h *signIn) toGoogleAt(parent *browser, address string) string {
+	h.t.Helper()
+
+	_, request := h.toConsentAt(parent, address)
 	allowed := parent.post(h.served.URL+"/oauth/consent", url.Values{"request": {request}, "decision": {"allow"}})
 	if allowed.status != http.StatusSeeOther || !strings.HasPrefix(allowed.location, h.google.URL+"/auth?") {
 		h.t.Fatalf("POST /oauth/consent = %d to %q, want 303 to Google", allowed.status, allowed.location)

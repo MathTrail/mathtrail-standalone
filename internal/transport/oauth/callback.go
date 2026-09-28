@@ -10,8 +10,8 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth"
 )
 
-// ending is how a sign-in Google answered came to its end, as its line tells
-// it: the outcome, why, whom the parent signed in as when they did, what went
+// ending is how a step of a sign-in came to its end, as its line tells it: the
+// outcome, why, whom the parent signed in as when that is known, what went
 // wrong when something did, and whether the fault is this server's own.
 type ending struct {
 	outcome string
@@ -71,6 +71,9 @@ func (f *flow) finish(ctx context.Context, request *flight, query url.Values) (u
 		return exchangeFailed(err)
 	}
 	if !slices.Contains(grant.Scopes, googleauth.ScopeDriveFile) {
+		// The grant is left as Google gave it. Ending it at Google would end
+		// every grant of the parent's at this service, the chats they have
+		// already connected included, for a sign-in they only declined.
 		return refused("access_denied",
 				"MathTrail needs to keep its own file in the parent's Google Drive: sign in again and allow it"),
 			ending{outcome: "denied", reason: "no_drive"}
