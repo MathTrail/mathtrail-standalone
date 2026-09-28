@@ -61,6 +61,13 @@ type Endpoints struct {
 	Health *HealthHandler
 	// MCP is the MCP endpoint as it is served, its sign-in included.
 	MCP http.Handler
+	// ResourceMetadata serves the metadata of the protected resource, the MCP
+	// endpoint: the document a client begins a sign-in from.
+	ResourceMetadata http.Handler
+	// ServerMetadata serves the metadata of the authorization server.
+	ServerMetadata http.Handler
+	// Register registers an OAuth client.
+	Register http.Handler
 }
 
 // ErrEndpoints is returned when the router is given an address or endpoints it
@@ -75,6 +82,12 @@ func (e Endpoints) validate() error {
 		return fmt.Errorf("%w: Health must be set", ErrEndpoints)
 	case e.MCP == nil:
 		return fmt.Errorf("%w: MCP must be set", ErrEndpoints)
+	case e.ResourceMetadata == nil:
+		return fmt.Errorf("%w: ResourceMetadata must be set", ErrEndpoints)
+	case e.ServerMetadata == nil:
+		return fmt.Errorf("%w: ServerMetadata must be set", ErrEndpoints)
+	case e.Register == nil:
+		return fmt.Errorf("%w: Register must be set", ErrEndpoints)
 	}
 	return nil
 }
@@ -82,10 +95,9 @@ func (e Endpoints) validate() error {
 // NewRouter wires the middleware and the routes.
 //
 // The public URL is the service's own address: only its host is served, and
-// only its origin may call the MCP endpoint from a browser. The OAuth
-// endpoints and the metadata documents arrive with the code that serves them,
-// and they are mounted here too, so that the whole surface of the service can
-// be read in one function.
+// only its origin may call the MCP endpoint from a browser. The sign-in's
+// endpoints and metadata documents are mounted here too, so that the whole
+// surface of the service can be read in one function.
 //
 // The framework's mode is a setting of the process, not of a router, so it is
 // chosen where the process starts and never here: a constructor that reaches
@@ -159,6 +171,15 @@ func NewRouter(publicURL string, endpoints Endpoints, logger *zap.Logger, obs Ob
 		middleware.Origin(public),
 		gin.WrapH(endpoints.MCP),
 	)
+
+	// The sign-in. The resource's metadata is served under the resource's own
+	// path, where the refusal of the endpoint points, and not at the root: a
+	// document there would describe the host, which is not the resource. The
+	// authorization server's issuer has no path, so its metadata sits at the
+	// one place a client asks.
+	router.GET("/.well-known/oauth-protected-resource/mcp", gin.WrapH(endpoints.ResourceMetadata))
+	router.GET("/.well-known/oauth-authorization-server", gin.WrapH(endpoints.ServerMetadata))
+	router.POST("/oauth/register", gin.WrapH(endpoints.Register))
 
 	return router, nil
 }

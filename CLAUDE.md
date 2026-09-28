@@ -112,11 +112,13 @@ internal/
     rating/ tutor/ checks/ solver/ profile/ progress/
   infra/          everything that talks to the outside world
     drive/ starlark/ seal/
+    cimd/         fetches a client's metadata document, reaching public addresses only
   site/           render/ turns the site's sources into files, check/ judges them
   store/          storage interface plus its in-memory and Drive implementations
   transport/
     mcp/          tools, ui:// resources
-    http/         /health, OAuth endpoints
+    oauth/        the authorization server: its metadata, its clients, its endpoints
+    http/         /health, and the router every endpoint is mounted on
 content/          catalogs, reference tasks and model instructions, embedded
 site/             the public site: texts per locale, templates, assets
 web/              widget sources, built into internal/widget/

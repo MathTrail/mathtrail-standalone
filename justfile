@@ -676,15 +676,29 @@ ci-smoke url:
         exit 1
     fi
 
-    # The MCP endpoint is there, and it lets nobody in without signing in.
-    status=$(curl -sS --max-time 10 --proto-redir "=https" -o /dev/null -w '%{http_code}' \
+    # The MCP endpoint is there, and it lets nobody in without signing in. Its
+    # refusal names the document a client begins a sign-in from.
+    headers=$(curl -sS --max-time 10 --proto-redir "=https" -o /dev/null -D - \
         -X POST -H 'Content-Type: application/json' -d '{}' "{{ url }}/mcp")
+    status=$(printf '%s\n' "$headers" | awk 'NR == 1 { print $2 }')
     if [ "$status" != "401" ]; then
         echo "smoke: {{ url }}/mcp answered $status to a request nobody signed in, want 401" >&2
         exit 1
     fi
+    metadata="{{ url }}/.well-known/oauth-protected-resource/mcp"
+    if ! printf '%s\n' "$headers" | grep -qiF "resource_metadata=\"$metadata\""; then
+        echo "smoke: the refusal of {{ url }}/mcp does not name $metadata" >&2
+        exit 1
+    fi
 
-    echo "smoke: {{ url }} answers as {{ COMMIT }}, and its MCP endpoint wants a sign-in"
+    # That document is served, and it is the endpoint's.
+    document=$(curl -fsS --max-time 10 --proto-redir "=https" "$metadata")
+    if [[ "$document" != *"\"resource\":\"{{ url }}/mcp\""* ]]; then
+        echo "smoke: $metadata does not describe {{ url }}/mcp: $document" >&2
+        exit 1
+    fi
+
+    echo "smoke: {{ url }} answers as {{ COMMIT }}, and its MCP endpoint wants a sign-in and says where it begins"
 
 
 # -- Golden vectors from the prototype --------------------------------------

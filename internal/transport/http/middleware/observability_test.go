@@ -637,11 +637,14 @@ func TestAProbeIsNotCounted(t *testing.T) {
 // test request carries when it names none.
 const publicURL = "http://example.com"
 
-// endpoints are the router's handlers. Nothing here asks the MCP endpoint
-// anything, so it stands in with a handler that answers nothing.
+// endpoints are the router's handlers. Nothing here asks the MCP endpoint or
+// the sign-in anything, so they stand in with handlers that answer nothing.
 func endpoints() httpserver.Endpoints {
 	return httpserver.Endpoints{
-		Health: httpserver.NewHealthHandler(),
-		MCP:    http.NotFoundHandler(),
+		Health:           httpserver.NewHealthHandler(),
+		MCP:              http.NotFoundHandler(),
+		ResourceMetadata: http.NotFoundHandler(),
+		ServerMetadata:   http.NotFoundHandler(),
+		Register:         http.NotFoundHandler(),
 	}
 }

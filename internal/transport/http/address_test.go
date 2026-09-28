@@ -178,6 +178,12 @@ func TestARouterWithSomethingMissingIsRefused(t *testing.T) {
 	withoutMCP.MCP = nil
 	withoutHealth := endpoints()
 	withoutHealth.Health = nil
+	withoutResourceMetadata := endpoints()
+	withoutResourceMetadata.ResourceMetadata = nil
+	withoutServerMetadata := endpoints()
+	withoutServerMetadata.ServerMetadata = nil
+	withoutRegister := endpoints()
+	withoutRegister.Register = nil
 
 	cases := []struct {
 		name      string
@@ -189,6 +195,9 @@ func TestARouterWithSomethingMissingIsRefused(t *testing.T) {
 		{name: "not an address", publicURL: "http://[::1", endpoints: endpoints(), want: "public URL is not an address"},
 		{name: "no MCP endpoint", publicURL: publicURL, endpoints: withoutMCP, want: "MCP"},
 		{name: "no probe", publicURL: publicURL, endpoints: withoutHealth, want: "Health"},
+		{name: "no resource metadata", publicURL: publicURL, endpoints: withoutResourceMetadata, want: "ResourceMetadata"},
+		{name: "no server metadata", publicURL: publicURL, endpoints: withoutServerMetadata, want: "ServerMetadata"},
+		{name: "no registration", publicURL: publicURL, endpoints: withoutRegister, want: "Register"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

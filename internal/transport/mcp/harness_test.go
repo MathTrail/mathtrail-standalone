@@ -202,9 +202,13 @@ func (h *harness) start(t *testing.T, signIn mcpserver.SignIn, served ...mcpserv
 	if err != nil {
 		t.Fatalf("NewHandler() error = %v, want nil", err)
 	}
+	// The sign-in has no part in these cases: its paths answer nothing.
 	router, err := httpserver.NewRouter("http://"+h.server.Listener.Addr().String(), httpserver.Endpoints{
-		Health: httpserver.NewHealthHandler(),
-		MCP:    endpoint,
+		Health:           httpserver.NewHealthHandler(),
+		MCP:              endpoint,
+		ResourceMetadata: http.NotFoundHandler(),
+		ServerMetadata:   http.NotFoundHandler(),
+		Register:         http.NotFoundHandler(),
 	}, h.log, httpserver.Observability{
 		Traces:    h.traces,
 		Meters:    h.meters,

@@ -22,7 +22,6 @@ One process wears two hats: it is the **authorization server** the host signs in
 | Path | Method | What it does | Auth |
 |---|---|---|---|
 | `/.well-known/oauth-protected-resource/mcp` | GET | RFC 9728 metadata for the resource `https://mathtrail.example/mcp` — the path-suffixed form a client tries first | public |
-| `/.well-known/oauth-protected-resource` | GET | the same document at the root — the fallback in the client's probing order | public |
 | `/.well-known/oauth-authorization-server` | GET | RFC 8414 metadata; the issuer has no path component, so this one URL is enough | public |
 | `/oauth/register` | POST | RFC 7591 registration, kept as the fallback for a host without CIMD (R03); stateless — the record is sealed into the `client_id` itself | public |
 | `/oauth/authorize` | GET | validates the client, the redirect URI, PKCE, `resource` and `scope`; shows the consent screen or goes straight on to Google | the parent's browser |
@@ -62,9 +61,9 @@ sequenceDiagram
     end
 ```
 
-The 401 challenge carries `resource_metadata` and `scope`, so a host never has to guess either. We serve the well-known documents as well, because the specification requires a client to be able to fall back to probing them.
+The 401 challenge carries `resource_metadata` and `scope`, so a host never has to guess either. We serve the resource's metadata at its well-known address as well, the first place a client probes when a challenge names none. The root, where the probing ends, is left empty: RFC 9728 would have a document there describe the host itself, which is not the resource (R106).
 
-A DCR `client_id` is the registration: unsealing it yields the redirect URIs and the client name. Nothing is stored, and there is nothing to garbage-collect. If the key ring has moved on so far that the identifier no longer unseals, the answer is `invalid_client` and the host registers again — one unauthenticated POST.
+A DCR `client_id` is the registration: unsealing it yields the redirect URIs and the client name. Nothing is stored, and there is nothing to garbage-collect. If the key ring has moved on so far that the identifier no longer unseals, the answer is `invalid_client` and the host registers again — one unauthenticated POST. The registration is bound to the issuer as well as sealed, so an identifier opens at the server that issued it and nowhere else. It names one to five redirect URIs, each one a sign-in may use, and a name short enough to show; whatever the client asks for, it is registered as a public client for the code and refresh grants, and the answer says so (SPEC 9.3, R106).
 
 We accept **public clients only**: `token_endpoint_auth_methods_supported` is `["none"]`, and we issue no client secrets. A client document that declares `private_key_jwt` is still accepted, and still treated as public; our metadata says plainly what we support. T04 also found that Claude's document lists a `grant_types` entry we do not implement (`urn:ietf:params:oauth:grant-type:jwt-bearer`) — an extra grant in a document is not a reason to reject the client, only a reason for `/oauth/token` to answer `unsupported_grant_type` if it is ever used.
 
@@ -328,6 +327,6 @@ Found while designing the flow. None of them changes a product decision, so none
 3. **Revoking is a full disconnect.** Google revokes the whole grant, not one token, so disconnecting the connector in one host also disconnects the other. A stateless server has no better option — its own tokens cannot be invalidated. **For:** T15 and T19.
 4. **The absolute 90-day session ceiling cannot be observed in an acceptance run** — it is a unit test in T49, or nobody will ever notice it is wrong.
 5. **Nothing durable may be keyed by the derived user identifier.** It changes at the first sign-in after a key rotation. In particular the Drive file lookup in T10 must be keyed by the file's own `appProperties`, not by this. **For:** T09, T10.
-6. **The `jwks_uri` quirk from T04 is still open.** `oauthex.AuthServerMeta` serialises the field as an empty string rather than omitting it; RFC 8414 does not require it for opaque tokens. Harmless as far as anyone has seen, but it has not been verified in ChatGPT. **For:** T47, and re-checked in T63.
+6. **The `jwks_uri` quirk from T04 is still open.** `oauthex.AuthServerMeta` serialises the field as an empty string rather than omitting it; RFC 8414 does not require it for opaque tokens. Harmless as far as anyone has seen, but it has not been verified in ChatGPT. **For:** T47, and re-checked in T63. **Answered in T47:** the server's metadata is written with a type of its own that leaves the field out, and the library's own client reads it (SPEC remark 47, R106); what ChatGPT makes of it is still for T63.
 7. **The consent screen is a security requirement, not a courtesy.** PRODUCT 6 lists PKCE, short-lived tokens and a check on every request, and says nothing about consent; the MCP specification requires it of any server that proxies a sign-in to a third party. **For:** T15, which should carry it into SPEC as a requirement rather than a detail of the implementation.
 8. **Two of T06's open notes are closed here:** one key ring with separate purposes rather than two keys (its note 3), and configuration rather than the `Host` header as the source of the issuer, with `404` on any other host (its note 4).

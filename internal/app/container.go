@@ -17,6 +17,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/config"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/cimd"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
@@ -24,6 +25,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/telemetry"
 	httpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/http"
 	mcpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/mcp"
+	oauthserver "github.com/MathTrail/mathtrail-standalone/internal/transport/oauth"
 	"github.com/MathTrail/mathtrail-standalone/internal/version"
 	"github.com/MathTrail/mathtrail-standalone/internal/widget"
 )
@@ -147,14 +149,31 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 	// nothing a real family wrote is kept here, or lost with the process.
 	c.Store = memory.New()
 
+	// The authorization server seals what it issues under the same key ring,
+	// each kind under a purpose of its own, and reads the documents clients
+	// name themselves by through a fetcher that reaches public addresses only.
+	signInServer, err := oauthserver.New(&oauthserver.Settings{
+		PublicURL: cfg.Origin(),
+		Scope:     mcpserver.Scope,
+		Seal:      ring,
+		Documents: cimd.NewFetcher(),
+		Logger:    log,
+		ProjectID: cfg.GCPProjectID,
+		Now:       time.Now,
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	// The tools of the lesson seal a task's answer under the key ring above,
 	// with the purpose that keeps an answer apart from everything else it
 	// seals.
 	//
-	// The MCP endpoint lets nobody in: this build can issue no token. The
-	// development sign-in lets everybody in as one account, and the
+	// The MCP endpoint lets nobody in: this build can issue no token yet. Its
+	// refusal names the resource's metadata, where a client begins a sign-in.
+	// The development sign-in lets everybody in as one account, and the
 	// configuration refuses it on a deployment.
-	signIn := mcpserver.NobodySignsIn
+	signIn := mcpserver.NobodySignsIn(signInServer.ResourceMetadataURL)
 	if cfg.DevAuth {
 		signIn = mcpserver.DevSignIn
 	}
@@ -188,8 +207,11 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 	}
 
 	c.Router, err = httpserver.NewRouter(cfg.PublicURL, httpserver.Endpoints{
-		Health: httpserver.NewHealthHandler(),
-		MCP:    endpoint,
+		Health:           httpserver.NewHealthHandler(),
+		MCP:              endpoint,
+		ResourceMetadata: signInServer.ResourceMetadata,
+		ServerMetadata:   signInServer.ServerMetadata,
+		Register:         signInServer.Register,
 	}, log, httpserver.Observability{
 		Traces:    tel.TracerProvider(),
 		Meters:    tel.MeterProvider(),

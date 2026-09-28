@@ -178,11 +178,12 @@ func TestTheNewestProtocolIsSpokenAndOlderOnesAreAnswered(t *testing.T) {
 
 // Without the development sign-in nobody is let in, and the refusal is the
 // one a client expects of a service that wants a token: 401, and a challenge
-// naming the scope. No tool runs.
+// naming where the resource's metadata is and the scope. No tool runs.
 func TestNobodyIsLetInWithoutTheDevelopmentSignIn(t *testing.T) {
 	t.Parallel()
 
-	h := serve(t, mcpserver.NobodySignsIn)
+	const metadata = "https://mcp.example/.well-known/oauth-protected-resource/mcp"
+	h := serve(t, mcpserver.NobodySignsIn(metadata))
 	for _, credential := range []string{"", "Bearer a-token-nothing-issued"} {
 		header := http.Header{}
 		if credential != "" {
@@ -193,7 +194,7 @@ func TestNobodyIsLetInWithoutTheDevelopmentSignIn(t *testing.T) {
 		if resp.status != http.StatusUnauthorized {
 			t.Errorf("with credential %q: status = %d, want %d", credential, resp.status, http.StatusUnauthorized)
 		}
-		if got, want := resp.header.Get("WWW-Authenticate"), `Bearer scope="mcp"`; got != want {
+		if got, want := resp.header.Get("WWW-Authenticate"), `Bearer resource_metadata="`+metadata+`", scope="mcp"`; got != want {
 			t.Errorf("with credential %q: WWW-Authenticate = %q, want %q", credential, got, want)
 		}
 		if got, want := resp.header.Get("Cache-Control"), "no-store, no-transform"; got != want {
