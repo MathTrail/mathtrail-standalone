@@ -24,6 +24,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/ratelimit/ratelimittest"
 	"github.com/MathTrail/mathtrail-standalone/internal/telemetry"
 	httpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/http"
 	"github.com/MathTrail/mathtrail-standalone/internal/transport/http/middleware"
@@ -222,7 +223,7 @@ func TestAPanicInTheMiddlewareIsCaughtByTheLastResort(t *testing.T) {
 	t.Parallel()
 
 	recorded, logs := observer.New(zapcore.DebugLevel)
-	router, err := httpserver.NewRouter(publicURL, endpoints(), zap.New(recorded), httpserver.Observability{
+	router, err := httpserver.NewRouter(publicURL, endpoints(), roomy(t), zap.New(recorded), httpserver.Observability{
 		Traces: burningTracers{},
 		Meters: metricnoop.NewMeterProvider(),
 		Flush:  func(context.Context, bool) error { return nil },
@@ -459,7 +460,7 @@ func newWatchedRouter(t *testing.T, sampler ...sdktrace.Sampler) *watchedRouter 
 	meters := sdkmetric.NewMeterProvider(sdkmetric.WithReader(w.reader))
 	t.Cleanup(func() { _ = meters.Shutdown(context.Background()) })
 
-	router, err := httpserver.NewRouter(publicURL, endpoints(), zap.New(recorded), httpserver.Observability{
+	router, err := httpserver.NewRouter(publicURL, endpoints(), roomy(t), zap.New(recorded), httpserver.Observability{
 		Traces: traces,
 		Meters: meters,
 		// Reports what the context it was handed says, so that a case about
@@ -651,5 +652,13 @@ func endpoints() *httpserver.Endpoints {
 		Callback:         http.NotFoundHandler(),
 		Token:            http.NotFoundHandler(),
 		Revoke:           http.NotFoundHandler(),
+		Busy:             http.NotFoundHandler(),
 	}
+}
+
+// roomy are paces no case here comes near: what the router records is the
+// matter here, and the paces have cases of their own.
+func roomy(t testing.TB) httpserver.Limits {
+	t.Helper()
+	return httpserver.Limits{PerAddress: ratelimittest.Roomy(t), Instance: ratelimittest.Roomy(t)}
 }

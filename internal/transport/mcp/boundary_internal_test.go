@@ -19,16 +19,20 @@ import (
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/ratelimit/ratelimittest"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 )
 
 // observedBoundary is a boundary that writes its lines where a case can read
 // them, and records no spans.
-func observedBoundary(traces trace.TracerProvider) (*boundary, *observer.ObservedLogs) {
+func observedBoundary(t *testing.T, traces trace.TracerProvider) (*boundary, *observer.ObservedLogs) {
+	t.Helper()
+
 	core, logs := observer.New(zapcore.DebugLevel)
 	return newBoundary(&Settings{
 		Traces: traces,
 		Logger: zap.New(core),
+		Limits: Limits{PerAccount: ratelimittest.Roomy(t), Instance: ratelimittest.Roomy(t)},
 	}, map[string]struct{}{}), logs
 }
 
@@ -38,7 +42,7 @@ func observedBoundary(traces trace.TracerProvider) (*boundary, *observer.Observe
 func TestAPanicOfAnotherMethodIsAnInternalError(t *testing.T) {
 	t.Parallel()
 
-	b, logs := observedBoundary(tracenoop.NewTracerProvider())
+	b, logs := observedBoundary(t, tracenoop.NewTracerProvider())
 	handler := b.wrap(func(context.Context, string, mcp.Request) (mcp.Result, error) {
 		panic("the resource of masha-ivanova")
 	})
@@ -59,7 +63,7 @@ func TestAPanicOfAnotherMethodIsAnInternalError(t *testing.T) {
 func TestAPanicAroundAToolCallIsAnInternalError(t *testing.T) {
 	t.Parallel()
 
-	b, logs := observedBoundary(burningTracers{})
+	b, logs := observedBoundary(t, burningTracers{})
 	handler := b.wrap(func(context.Context, string, mcp.Request) (mcp.Result, error) {
 		t.Error("the tool ran, want the call stopped where the boundary failed")
 		return nil, nil
@@ -107,7 +111,7 @@ func TestAnotherMethodsAnswerIsPassedOnAsItIs(t *testing.T) {
 		fmt.Errorf("reading: %w", protocol),
 		errors.New("failed to decode cursor: illegal base64 data at input byte 4"),
 	} {
-		b, logs := observedBoundary(tracenoop.NewTracerProvider())
+		b, logs := observedBoundary(t, tracenoop.NewTracerProvider())
 		handler := b.wrap(func(context.Context, string, mcp.Request) (mcp.Result, error) {
 			return nil, sent
 		})
@@ -186,7 +190,7 @@ func TestHowACallEndedIsReadFromWhatIsSent(t *testing.T) {
 func TestACallWithoutParametersNamesNoTool(t *testing.T) {
 	t.Parallel()
 
-	b, _ := observedBoundary(tracenoop.NewTracerProvider())
+	b, _ := observedBoundary(t, tracenoop.NewTracerProvider())
 	if got := b.toolLabel(toolName(&mcp.CallToolRequest{})); got != other {
 		t.Errorf("tool = %q, want %q", got, other)
 	}
@@ -232,5 +236,29 @@ func TestAProtocolErrorIsSentInItsOwnWords(t *testing.T) {
 
 	if result != nil || !errors.Is(err, wire) || err.Error() != wire.Error() {
 		t.Errorf("settle() = %v, %v, want the protocol's own error and nothing else", result, err)
+	}
+}
+
+// A notification is not held to the paces: it asks for no answer, so a
+// refusal would only lose it without a word. It spends nothing of an account's
+// pace, and the next request finds the pace whole.
+func TestANotificationSpendsNothingOfThePace(t *testing.T) {
+	t.Parallel()
+
+	b, _ := observedBoundary(t, tracenoop.NewTracerProvider())
+	b.ceilings = Limits{PerAccount: ratelimittest.Keyed(t, 3), Instance: ratelimittest.Roomy(t)}.ceilings()
+	handler := b.wrap(func(context.Context, string, mcp.Request) (mcp.Result, error) { return nil, nil })
+	ctx := withAccount(t.Context(), store.NewAccount(DevAccount, "", time.Time{}))
+
+	for _, notification := range []string{"notifications/initialized", "notifications/cancelled"} {
+		if _, err := handler(ctx, notification, &mcp.InitializedRequest{}); err != nil {
+			t.Errorf("%s: error = %v, want it passed on", notification, err)
+		}
+	}
+	if _, err := handler(ctx, "tools/list", &mcp.ListToolsRequest{}); err != nil {
+		t.Errorf("the list after the notifications: error = %v, want the pace whole", err)
+	}
+	if _, err := handler(ctx, "tools/list", &mcp.ListToolsRequest{}); err == nil {
+		t.Error("the list after that: error = nil, want the pace of one request spent")
 	}
 }

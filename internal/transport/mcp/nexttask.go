@@ -16,9 +16,15 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 )
 
-// codeInvalidArguments is the refusal of arguments no request can be opened
-// from. It spends nothing: no request was opened.
-const codeInvalidArguments = "invalid_arguments"
+// The refusals of next_task. Neither spends anything: no request was opened.
+const (
+	// codeInvalidArguments is the refusal of arguments no request can be
+	// opened from.
+	codeInvalidArguments = "invalid_arguments"
+	// codeLimitReached is the refusal of a day that has no room for another
+	// task.
+	codeLimitReached = "limit_reached"
+)
 
 // nextTaskIn is what next_task takes: the language the task is to be written
 // in, and what the model wants instead of what the rule sets, with its reason.
@@ -53,17 +59,18 @@ func (in *nextTaskIn) differsFrom(request *profile.OpenRequest) bool {
 }
 
 // requestRefusedOut is what next_task hands back when no request can be opened:
-// which argument broke which rule. It is the one result of the tool that has a
-// payload, because its status is what marks it a refusal. Every other result
-// is words alone: the package is written for the model and travels in the
-// words, and a host that shows the model a result's payload in place of its
-// words would otherwise hand it a request with nothing to write the task from.
-// No card is drawn from next_task, so a payload would have no other reader.
+// which argument broke which rule, or that the day has no room for a task. It
+// is the one result of the tool that has a payload, because its status is what
+// marks it a refusal. Every other result is words alone: the package is written
+// for the model and travels in the words, and a host that shows the model a
+// result's payload in place of its words would otherwise hand it a request
+// with nothing to write the task from. No card is drawn from next_task, so a
+// payload would have no other reader.
 type requestRefusedOut struct {
 	Screen     string       `json:"screen"`
 	Status     string       `json:"status"`
 	Code       string       `json:"code"`
-	Problems   []problemOut `json:"problems"`
+	Problems   []problemOut `json:"problems,omitempty"`
 	LastAnswer *answerLine  `json:"last_answer"`
 }
 
@@ -123,6 +130,10 @@ func (s *Service) openRequest(ctx context.Context, account store.Account, in nex
 	now := s.now()
 	if open := p.OpenRequest; open != nil && open.Awaited(s.window, now) {
 		return s.stillOpen(ctx, account, p, now, in.differsFrom(open))
+	}
+	if limit, count, reached := s.daily.reached(p.Daily.Today(now)); reached {
+		limitHit(ctx, s.events.logger, s.events.projectID, account.ID, limit, zap.Int("count", count))
+		return s.dayIsFull(p), nil
 	}
 
 	language, problems := languageOf(in.Language)
@@ -184,6 +195,21 @@ func (s *Service) stillOpen(ctx context.Context, account store.Account, p *profi
 		lead += " The arguments of this call were not applied: the request keeps what it was opened with."
 	}
 	return Reply[any]{Text: joined(lead, s.lastAnswerText(p)) + packageText(pack)}, nil
+}
+
+// dayIsFull is a call the day has no room for. Nothing is asked for and nothing
+// written, and the model is told what the child is to hear: that the new tasks
+// are over for today, when there will be more, and what the child can do
+// meanwhile. Which ceiling it was stays in the line, since what the child hears
+// is the same either way.
+func (s *Service) dayIsFull(p *profile.Profile) Reply[any] {
+	return Reply[any]{
+		Text: joined("No task was asked for: there are no more new tasks for the child today. Tell the child so, "+
+			"in the language of the chat: there are no more new tasks today, and there will be more tomorrow; "+
+			"meanwhile they can look at their progress, or go back over the last task.",
+			s.lastAnswerText(p)),
+		Payload: requestRefusedOut{Screen: screenWaiting, Status: statusLimited, Code: codeLimitReached, LastAnswer: lastAnswerOf(p)},
+	}
 }
 
 // argumentsRefused is a call no request can be opened from, told argument by

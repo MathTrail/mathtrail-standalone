@@ -21,6 +21,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/ratelimit/ratelimittest"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 	"github.com/MathTrail/mathtrail-standalone/internal/telemetry"
 	httpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/http"
@@ -139,6 +140,9 @@ type harness struct {
 	traces trace.TracerProvider
 	meters *sdkmetric.MeterProvider
 	log    *zap.Logger
+	// limits are the paces the endpoint holds every message to: none a case
+	// comes near, unless the case is about them.
+	limits mcpserver.Limits
 }
 
 // serve starts the endpoint with the sign-in a case chooses, serving the tools
@@ -165,7 +169,7 @@ func serveTools(t *testing.T, signIn mcpserver.SignIn, served ...mcpserver.Tool)
 func newHarness(t *testing.T) *harness {
 	t.Helper()
 
-	h := &harness{spans: tracetest.NewSpanRecorder(), metrics: sdkmetric.NewManualReader()}
+	h := &harness{spans: tracetest.NewSpanRecorder(), metrics: sdkmetric.NewManualReader(), limits: roomyLimits(t)}
 	traces := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 		sdktrace.WithSpanProcessor(telemetry.Redactor()),
@@ -194,6 +198,7 @@ func (h *harness) start(t *testing.T, signIn mcpserver.SignIn, served ...mcpserv
 		InstructionsVersion: instructionsVersion,
 		Version:             "test",
 		SignIn:              signIn,
+		Limits:              h.limits,
 		Traces:              h.traces,
 		Logger:              h.log,
 		ProjectID:           projectID,
@@ -214,7 +219,8 @@ func (h *harness) start(t *testing.T, signIn mcpserver.SignIn, served ...mcpserv
 		Callback:         http.NotFoundHandler(),
 		Token:            http.NotFoundHandler(),
 		Revoke:           http.NotFoundHandler(),
-	}, h.log, httpserver.Observability{
+		Busy:             http.NotFoundHandler(),
+	}, roomyAddresses(t), h.log, httpserver.Observability{
 		Traces:    h.traces,
 		Meters:    h.meters,
 		Flush:     func(context.Context, bool) error { return nil },
@@ -388,4 +394,24 @@ func field(t *testing.T, line *observer.LoggedEntry, key string) string {
 // legacyCall is a tool call as a client of an older protocol sends it.
 func legacyCall(tool, args string) string {
 	return `{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"` + tool + `","arguments":` + args + `}}`
+}
+
+// pacesOf are the paces of an account and of the instance, so many messages a
+// minute each, on a clock that stands still.
+func pacesOf(t testing.TB, perAccount, instance int) mcpserver.Limits {
+	t.Helper()
+	return mcpserver.Limits{PerAccount: ratelimittest.Keyed(t, perAccount), Instance: ratelimittest.Shared(t, instance)}
+}
+
+// roomyLimits are paces no case comes near.
+func roomyLimits(t testing.TB) mcpserver.Limits {
+	t.Helper()
+	return mcpserver.Limits{PerAccount: ratelimittest.Roomy(t), Instance: ratelimittest.Roomy(t)}
+}
+
+// roomyAddresses are the router's paces, which no case here comes near: the
+// sign-in has no part in these cases.
+func roomyAddresses(t testing.TB) httpserver.Limits {
+	t.Helper()
+	return httpserver.Limits{PerAddress: ratelimittest.Roomy(t), Instance: ratelimittest.Roomy(t)}
 }

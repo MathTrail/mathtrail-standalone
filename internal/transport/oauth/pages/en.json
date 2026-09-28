@@ -23,5 +23,7 @@
   "refusal.unconfigured.heading": "Signing in is not set up here",
   "refusal.unconfigured.text": "This copy of MathTrail has no Google sign-in configured, so nobody can sign in to it.",
   "refusal.failed.heading": "Something went wrong on our side",
-  "refusal.failed.text": "The sign-in could not be finished. Wait a minute, go back to the app and connect again."
+  "refusal.failed.text": "The sign-in could not be finished. Wait a minute, go back to the app and connect again.",
+  "refusal.busy.heading": "Too many sign-ins at once",
+  "refusal.busy.text": "More requests came from your network in a short time than MathTrail takes. Wait a minute, go back to the app and connect again."
 }

@@ -204,6 +204,7 @@ var (
 	stoppedCookie       = stop{http.StatusBadRequest, "cookie", "invalid_request"}
 	stoppedUnconfigured = stop{http.StatusServiceUnavailable, "unconfigured", "temporarily_unavailable"}
 	stoppedFailed       = stop{http.StatusInternalServerError, "failed", "server_error"}
+	stoppedBusy         = stop{http.StatusTooManyRequests, "busy", "temporarily_unavailable"}
 )
 
 // refusalView is a page a sign-in stops at, as its template reads it.
@@ -227,6 +228,14 @@ func (p *pages) showRefusal(w http.ResponseWriter, r *http.Request, how stop) er
 		Text:    words["refusal."+how.page+".text"],
 		Code:    phrase(words["refusal.code"], map[string]fragment{"code": {Text: how.code, Strong: true}}),
 	})
+}
+
+// busy is the page a parent's browser is shown when a sign-in is past its
+// pace: too many requests from their network, so wait a minute and connect
+// again. A page that could not be drawn has answered 500 already, which the
+// request's own line records.
+func (p *pages) busy(w http.ResponseWriter, r *http.Request) {
+	_ = p.showRefusal(w, r, stoppedBusy)
 }
 
 // write answers with a page, drawn whole before anything is sent, so that a

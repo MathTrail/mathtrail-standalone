@@ -16,15 +16,16 @@ import (
 // Service is what the tools of the lesson work with: where the child's profile
 // is kept, the content the service ships, the checks a written task passes and
 // the seal its answer is kept under, how long a task being written is waited
-// for, and the clock and the build that stamp every profile they write. Every
-// tool reads the profile, computes and writes it back through these and
-// nothing else.
+// for and how many tasks a day holds, and the clock and the build that stamp
+// every profile they write. Every tool reads the profile, computes and writes
+// it back through these and nothing else.
 type Service struct {
 	store    store.Storage
 	content  *content.Content
 	reviewer checks.Reviewer
 	sealer   profile.Sealer
 	window   time.Duration
+	daily    Daily
 	now      func() time.Time
 	version  string
 	events   *lessonLog
@@ -46,6 +47,8 @@ type Parts struct {
 	// Window is how long a task being written is waited for before its request
 	// counts as abandoned.
 	Window time.Duration
+	// Daily are the ceilings of a child's day, past which no task is asked for.
+	Daily Daily
 	// Now is the clock every write is stamped with.
 	Now func() time.Time
 	// Version is the build that writes the profile.
@@ -76,6 +79,8 @@ func NewService(parts *Parts) (*Service, error) {
 		return nil, fmt.Errorf("%w: the tools need a seal for the answers", ErrSettings)
 	case parts.Window <= 0:
 		return nil, fmt.Errorf("%w: the tools need a window to wait for a task in", ErrSettings)
+	case parts.Daily.Tasks < 1, parts.Daily.Failed < 1:
+		return nil, fmt.Errorf("%w: the tools need a day with room for a task", ErrSettings)
 	case parts.Now == nil:
 		return nil, fmt.Errorf("%w: the tools need a clock", ErrSettings)
 	case parts.Version == "":
@@ -91,6 +96,7 @@ func NewService(parts *Parts) (*Service, error) {
 		reviewer: parts.Reviewer,
 		sealer:   parts.Sealer,
 		window:   parts.Window,
+		daily:    parts.Daily,
 		now:      parts.Now,
 		version:  parts.Version,
 		events: &lessonLog{

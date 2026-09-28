@@ -15,6 +15,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/logger"
+	"github.com/MathTrail/mathtrail-standalone/internal/ratelimit"
 	"github.com/MathTrail/mathtrail-standalone/internal/telemetry"
 )
 
@@ -59,6 +60,7 @@ type boundary struct {
 	projectID           string
 	instructionsVersion string
 	tools               map[string]struct{}
+	ceilings            []ratelimit.Ceiling
 }
 
 func newBoundary(s *Settings, tools map[string]struct{}) *boundary {
@@ -68,6 +70,7 @@ func newBoundary(s *Settings, tools map[string]struct{}) *boundary {
 		projectID:           s.ProjectID,
 		instructionsVersion: s.InstructionsVersion,
 		tools:               tools,
+		ceilings:            s.Limits.ceilings(),
 	}
 }
 
@@ -77,9 +80,11 @@ func newBoundary(s *Settings, tools map[string]struct{}) *boundary {
 // library answers it with: every such request is the library's own to handle,
 // and its errors describe the request — a cursor that does not decode, a
 // method nobody offers — in the protocol's terms. What the boundary adds to
-// every request is the last word on a panic: one below, in the library, or in
-// the boundary's own work around a tool call, is answered as an internal error
-// and written as a line, rather than ending the process.
+// every request is the pace it is let in at — one past its account's pace, or
+// the instance's, is refused before anything is done for it — and the last
+// word on a panic: one below, in the library, or in the boundary's own work
+// around a tool call, is answered as an internal error and written as a line,
+// rather than ending the process.
 func (b *boundary) wrap(next mcp.MethodHandler) mcp.MethodHandler {
 	return func(ctx context.Context, method string, req mcp.Request) (result mcp.Result, err error) {
 		defer func() {
@@ -90,6 +95,10 @@ func (b *boundary) wrap(next mcp.MethodHandler) mcp.MethodHandler {
 		}()
 		if call, isCall := req.(*mcp.CallToolRequest); isCall {
 			return b.toolCall(ctx, method, call, next)
+		}
+		account, _ := accountFrom(ctx)
+		if counted(method) && !b.admitted(ctx, account.ID) {
+			return nil, tooManyMessages()
 		}
 		return next(ctx, method, req)
 	}
@@ -121,6 +130,9 @@ func (b *boundary) toolCall(ctx context.Context, method string, req *mcp.CallToo
 		b.finish(spanned, call, result, err)
 	}()
 
+	if !b.admitted(spanned, call.user) {
+		return heldBackCall(), nil
+	}
 	result, err = settle(next(spanned, method, req))
 	return askedToSignIn(ctx, result, call.client), err
 }
@@ -307,6 +319,12 @@ func judge(result mcp.Result, err error) verdict {
 		var ours *failure
 		if errors.As(answered.GetError(), &ours) {
 			return verdict{outcome: outcomeFailed, kind: ours.kind}
+		}
+		// A call a pace held back, told the way a failure is but no failure:
+		// nothing went wrong, and the model's part is to wait.
+		var held heldBack
+		if errors.As(answered.GetError(), &held) {
+			return verdict{outcome: outcomeRefused, status: statusLimited}
 		}
 		// The library refused the arguments before any tool saw them.
 		return verdict{outcome: outcomeInvalid, kind: kindArguments}

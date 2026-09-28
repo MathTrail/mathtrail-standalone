@@ -3,6 +3,7 @@ package middleware
 import (
 	"net"
 	"net/http"
+	"net/netip"
 	"net/url"
 	"strings"
 
@@ -51,6 +52,55 @@ func sameOrigin(origin string, public *url.URL) bool {
 	}
 	return strings.EqualFold(parsed.Scheme, public.Scheme) &&
 		comparableHost(parsed.Host) == comparableHost(public.Host)
+}
+
+// clientAddress is who a request is counted as, before anybody has signed in:
+// the address it came from, as the platform saw it.
+//
+// That is the last entry of X-Forwarded-For, the hop the platform appends;
+// anything a client wrote into the header stands before it, so whatever a
+// client claims there is never read. A request that reached the process with
+// no such header — on a developer's machine, with no platform in front — is
+// counted by the address of its connection. An entry that is no address names
+// nobody, and the connection's address stands in for it.
+//
+// An IPv6 address is counted by its /64, the network one household is given:
+// counted whole, a single household could spend a fresh allowance on every
+// address it has.
+func clientAddress(r *http.Request) string {
+	if forwarded := r.Header.Values("X-Forwarded-For"); len(forwarded) > 0 {
+		hops := forwarded[len(forwarded)-1]
+		if address, readable := addressOf(hops[strings.LastIndexByte(hops, ',')+1:]); readable {
+			return address
+		}
+	}
+	if address, readable := addressOf(r.RemoteAddr); readable {
+		return address
+	}
+	return r.RemoteAddr
+}
+
+// addressOf reads one address, with a port after it or none, as the key it is
+// counted by.
+func addressOf(text string) (string, bool) {
+	text = strings.TrimSpace(text)
+	address, err := netip.ParseAddr(text)
+	if err != nil {
+		withPort, portErr := netip.ParseAddrPort(text)
+		if portErr != nil {
+			return "", false
+		}
+		address = withPort.Addr()
+	}
+	address = address.Unmap().WithZone("")
+	if address.Is4() {
+		return address.String(), true
+	}
+	network, err := address.Prefix(64)
+	if err != nil {
+		return "", false
+	}
+	return network.String(), true
 }
 
 // comparableHost is a host written the way two names for it are compared: in

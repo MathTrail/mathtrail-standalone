@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"errors"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -78,6 +79,31 @@ func TestDefaults(t *testing.T) {
 	}
 }
 
+// The limits start from the numbers a family should never meet and a runaway
+// meets within a minute.
+func TestTheLimitsStartFromTheirDefaults(t *testing.T) {
+	t.Parallel()
+
+	cfg, err := config.LoadFrom(withSealKey())
+	if err != nil {
+		t.Fatalf("LoadFrom() error = %v, want nil", err)
+	}
+	for _, ceiling := range []struct {
+		name      string
+		got, want int
+	}{
+		{"RateUserPerMin", cfg.RateUserPerMin, config.DefaultRateUserPerMin},
+		{"RateIPPerMin", cfg.RateIPPerMin, config.DefaultRateIPPerMin},
+		{"RateInstancePerMin", cfg.RateInstancePerMin, config.DefaultRateInstancePerMin},
+		{"DailyTasks", cfg.DailyTasks, config.DefaultDailyTasks},
+		{"DailyFailed", cfg.DailyFailed, config.DefaultDailyFailed},
+	} {
+		if ceiling.got != ceiling.want {
+			t.Errorf("%s = %d, want %d", ceiling.name, ceiling.got, ceiling.want)
+		}
+	}
+}
+
 func TestValuesAreRead(t *testing.T) {
 	t.Parallel()
 
@@ -95,6 +121,11 @@ func TestValuesAreRead(t *testing.T) {
 		"MATHTRAIL_SOLVER_CONCURRENCY=2",
 		"MATHTRAIL_REQUEST_WINDOW=20m",
 		"MATHTRAIL_DRIVE_TIMEOUT=3s",
+		"MATHTRAIL_RATE_USER_PER_MIN=31",
+		"MATHTRAIL_RATE_IP_PER_MIN=21",
+		"MATHTRAIL_RATE_INSTANCE_PER_MIN=201",
+		"MATHTRAIL_DAILY_TASKS=21",
+		"MATHTRAIL_DAILY_FAILED=6",
 	})
 	if err != nil {
 		t.Fatalf("LoadFrom() error = %v, want nil", err)
@@ -132,6 +163,10 @@ func TestValuesAreRead(t *testing.T) {
 	}
 	if cfg.DriveTimeout != 3*time.Second {
 		t.Errorf("DriveTimeout = %v, want %v", cfg.DriveTimeout, 3*time.Second)
+	}
+	limits := []int{cfg.RateUserPerMin, cfg.RateIPPerMin, cfg.RateInstancePerMin, cfg.DailyTasks, cfg.DailyFailed}
+	if want := []int{31, 21, 201, 21, 6}; !slices.Equal(limits, want) {
+		t.Errorf("the limits = %v, want %v, as the environment set them", limits, want)
 	}
 }
 
@@ -373,6 +408,31 @@ func TestRefusals(t *testing.T) {
 			name:    "a request waited for less than a minute",
 			environ: []string{"MATHTRAIL_REQUEST_WINDOW=30s"},
 			wantVar: "MATHTRAIL_REQUEST_WINDOW",
+		},
+		{
+			name:    "a pace no account could keep to",
+			environ: []string{"MATHTRAIL_RATE_USER_PER_MIN=0"},
+			wantVar: "MATHTRAIL_RATE_USER_PER_MIN",
+		},
+		{
+			name:    "a pace no address could keep to",
+			environ: []string{"MATHTRAIL_RATE_IP_PER_MIN=-1"},
+			wantVar: "MATHTRAIL_RATE_IP_PER_MIN",
+		},
+		{
+			name:    "an instance that takes nothing",
+			environ: []string{"MATHTRAIL_RATE_INSTANCE_PER_MIN=0"},
+			wantVar: "MATHTRAIL_RATE_INSTANCE_PER_MIN",
+		},
+		{
+			name:    "a day of no task",
+			environ: []string{"MATHTRAIL_DAILY_TASKS=0"},
+			wantVar: "MATHTRAIL_DAILY_TASKS",
+		},
+		{
+			name:    "a day with no room for a failed request",
+			environ: []string{"MATHTRAIL_DAILY_FAILED=0"},
+			wantVar: "MATHTRAIL_DAILY_FAILED",
 		},
 		{
 			name:    "a call to Drive with no time to take",

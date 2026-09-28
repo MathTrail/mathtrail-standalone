@@ -106,6 +106,7 @@ internal/
   apierror/       the shape of an HTTP error answer, as the platform's other services have it
   app/            DI container, HTTP server
   config/ logger/ version/
+  ratelimit/      the pace requests are let in at, counted in the instance's own memory; ratelimittest/ holds paces for tests
   telemetry/      traces and metrics: their providers, their export, what they may carry
   widget/         the widget page as the web build left it, embedded, and the design tokens; a placeholder until a build runs
   domain/         pure logic — no I/O, no SDKs, no transport

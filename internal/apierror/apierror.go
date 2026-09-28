@@ -27,4 +27,7 @@ const (
 	// CodeMethodNotAllowed answers a path asked with a method it does not
 	// take: a 405, with the methods it does take in its Allow header.
 	CodeMethodNotAllowed = "METHOD_NOT_ALLOWED"
+	// CodeTooManyRequests answers a request past the pace it is let in at: a
+	// 429, with when to ask again in its Retry-After header.
+	CodeTooManyRequests = "TOO_MANY_REQUESTS"
 )

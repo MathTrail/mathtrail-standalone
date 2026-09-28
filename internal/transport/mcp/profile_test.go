@@ -16,6 +16,7 @@ import (
 	tracenoop "go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/config"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
@@ -696,6 +697,8 @@ func TestAServiceWithAPartMissingIsNotBuilt(t *testing.T) {
 		{"no checks", func(p *mcpserver.Parts) { p.Reviewer = nil }},
 		{"no seal", func(p *mcpserver.Parts) { p.Sealer = nil }},
 		{"no window", func(p *mcpserver.Parts) { p.Window = 0 }},
+		{"no task in a day", func(p *mcpserver.Parts) { p.Daily.Tasks = 0 }},
+		{"no failure in a day", func(p *mcpserver.Parts) { p.Daily.Failed = 0 }},
 		{"no clock", func(p *mcpserver.Parts) { p.Now = nil }},
 		{"no version", func(p *mcpserver.Parts) { p.Version = "" }},
 		{"no logger", func(p *mcpserver.Parts) { p.Logger = nil }},
@@ -731,6 +734,7 @@ func allParts(t *testing.T) *mcpserver.Parts {
 		Reviewer: checks.NewReviewer(loaded, runner, checks.DefaultDrawingLimits()),
 		Sealer:   sealer(t),
 		Window:   time.Minute,
+		Daily:    mcpserver.Daily{Tasks: config.DefaultDailyTasks, Failed: config.DefaultDailyFailed},
 		Now:      func() time.Time { return lessonDay },
 		Version:  "test",
 		Logger:   zap.NewNop(),

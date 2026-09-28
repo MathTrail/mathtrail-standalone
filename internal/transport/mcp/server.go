@@ -35,6 +35,8 @@ type Settings struct {
 	Version string
 	// SignIn decides whose account a request acts for, or refuses it.
 	SignIn SignIn
+	// Limits are the paces every message of a signed-in account is held to.
+	Limits Limits
 	// Traces records a span for every tool call.
 	Traces trace.TracerProvider
 	// Logger writes the line every tool call leaves.
@@ -59,6 +61,9 @@ func (s *Settings) validate() error {
 		return fmt.Errorf("%w: settings must be given", ErrSettings)
 	case s.SignIn == nil:
 		return fmt.Errorf("%w: SignIn must be set", ErrSettings)
+	case s.Limits.PerAccount == nil, s.Limits.Instance == nil:
+		// An account in a runaway would be served at any pace it liked.
+		return fmt.Errorf("%w: Limits must hold both paces", ErrSettings)
 	case s.Traces == nil:
 		return fmt.Errorf("%w: Traces must be set", ErrSettings)
 	case s.Logger == nil:

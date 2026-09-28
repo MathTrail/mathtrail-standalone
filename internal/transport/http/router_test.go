@@ -164,7 +164,7 @@ func TestA405SaysWhichMethodsWork(t *testing.T) {
 func newRouter(t *testing.T) http.Handler {
 	t.Helper()
 
-	router, err := httpserver.NewRouter(publicURL, endpoints(), zaptest.NewLogger(t), httpserver.Observability{
+	router, err := httpserver.NewRouter(publicURL, endpoints(), roomy(t), zaptest.NewLogger(t), httpserver.Observability{
 		Traces: tracenoop.NewTracerProvider(),
 		Meters: metricnoop.NewMeterProvider(),
 		Flush:  func(context.Context, bool) error { return nil },
@@ -198,6 +198,7 @@ func endpoints() *httpserver.Endpoints {
 		Callback:         standIn(reachedCallback),
 		Token:            standIn(reachedToken),
 		Revoke:           standIn(reachedRevoke),
+		Busy:             busyPage,
 	}
 }
 
@@ -211,6 +212,7 @@ const (
 	reachedCallback         = "reached Google's answer"
 	reachedToken            = "reached the token endpoint"
 	reachedRevoke           = "reached the revocation"
+	reachedBusy             = "reached the busy page"
 )
 
 // standIn is a handler that answers with the words given, so that a case can
@@ -223,3 +225,10 @@ func standIn(words string) http.Handler {
 
 // noDelivery is a delivery of telemetry that sends nothing and never fails.
 func noDelivery(context.Context, bool) error { return nil }
+
+// busyPage stands in for the page a parent's browser is shown past a pace: it
+// answers as that page does, 429, and says which it is.
+var busyPage = http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	w.WriteHeader(http.StatusTooManyRequests)
+	_, _ = w.Write([]byte(reachedBusy))
+})

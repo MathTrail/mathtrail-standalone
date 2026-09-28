@@ -119,6 +119,9 @@ type Server struct {
 	Token http.Handler
 	// Revoke ends a host's grant (RFC 7009).
 	Revoke http.Handler
+	// Busy is the page a parent's browser is shown when the sign-in is past
+	// its pace, in the parent's language.
+	Busy http.Handler
 	// Account reads the access token a request to the resource carries: the
 	// account it signs the request in as, and when the token ends. A token
 	// that signs nobody in is an error.
@@ -190,6 +193,7 @@ func New(settings *Settings) (*Server, error) {
 		Callback:            http.HandlerFunc(signIn.callback),
 		Token:               http.HandlerFunc(grants.serveToken),
 		Revoke:              http.HandlerFunc(grants.serveRevoke),
+		Busy:                http.HandlerFunc(screens.busy),
 		Account:             grants.account,
 		ResourceMetadataURL: issuer + resourceMetadataPath,
 		clients:             known,

@@ -194,6 +194,8 @@ func TestARouterWithSomethingMissingIsRefused(t *testing.T) {
 	withoutToken.Token = nil
 	withoutRevoke := endpoints()
 	withoutRevoke.Revoke = nil
+	withoutBusy := endpoints()
+	withoutBusy.Busy = nil
 
 	cases := []struct {
 		name      string
@@ -213,12 +215,13 @@ func TestARouterWithSomethingMissingIsRefused(t *testing.T) {
 		{name: "no callback", publicURL: publicURL, endpoints: withoutCallback, want: "Callback"},
 		{name: "no token endpoint", publicURL: publicURL, endpoints: withoutToken, want: "Token"},
 		{name: "no revocation", publicURL: publicURL, endpoints: withoutRevoke, want: "Revoke"},
+		{name: "no busy page", publicURL: publicURL, endpoints: withoutBusy, want: "Busy"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := httpserver.NewRouter(tc.publicURL, tc.endpoints, zap.NewNop(), httpserver.Observability{
+			_, err := httpserver.NewRouter(tc.publicURL, tc.endpoints, roomy(t), zap.NewNop(), httpserver.Observability{
 				Traces: tracenoop.NewTracerProvider(),
 				Meters: metricnoop.NewMeterProvider(),
 				Flush:  noDelivery,

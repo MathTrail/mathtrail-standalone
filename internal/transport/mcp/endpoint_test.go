@@ -519,6 +519,7 @@ func TestAnEndpointThatCouldNotBeServedIsNotBuilt(t *testing.T) {
 			Instructions:        instructions,
 			InstructionsVersion: instructionsVersion,
 			SignIn:              mcpserver.DevSignIn,
+			Limits:              roomyLimits(t),
 			Traces:              tracenoop.NewTracerProvider(),
 			Logger:              zap.NewNop(),
 			Widget:              page,
@@ -526,6 +527,10 @@ func TestAnEndpointThatCouldNotBeServedIsNotBuilt(t *testing.T) {
 	}
 	withoutSignIn := settings()
 	withoutSignIn.SignIn = nil
+	withoutAccountsPace := settings()
+	withoutAccountsPace.Limits.PerAccount = nil
+	withoutInstancesPace := settings()
+	withoutInstancesPace.Limits.Instance = nil
 	withoutTraces := settings()
 	withoutTraces.Traces = nil
 	withoutLogger := settings()
@@ -560,6 +565,8 @@ func TestAnEndpointThatCouldNotBeServedIsNotBuilt(t *testing.T) {
 	}{
 		{name: "no settings", settings: nil, want: "settings"},
 		{name: "no sign-in", settings: withoutSignIn, want: "SignIn"},
+		{name: "no pace of an account", settings: withoutAccountsPace, want: "Limits"},
+		{name: "no pace of the instance", settings: withoutInstancesPace, want: "Limits"},
 		{name: "no tracer", settings: withoutTraces, want: "Traces"},
 		{name: "no logger", settings: withoutLogger, want: "Logger"},
 		{name: "no instructions", settings: withoutInstructions, want: "Instructions"},
