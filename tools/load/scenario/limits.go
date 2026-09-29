@@ -28,15 +28,18 @@ const document = "/.well-known/oauth-authorization-server"
 // reads as the address only when nothing stands in front of it: behind the
 // platform, which writes the tool's own address after it, every address of a
 // run is that one, and the quiet ones are held back with the greedy.
-func runLimits(ctx context.Context, o *Options, target session.Target) []report.Run {
-	var group sync.WaitGroup
-	var runs [4]report.Run
-	group.Go(func() { runs[0] = greedyChild(ctx, o, target) })
-	group.Go(func() { runs[1] = otherChildren(ctx, o, target) })
-	group.Go(func() { runs[2] = greedyAddress(ctx, o, target) })
-	group.Go(func() { runs[3] = quietAddresses(ctx, o, target) })
-	group.Wait()
-	return recovered(ctx, o, target, Limits, runs[:]...)
+func runLimits(ctx context.Context, o *Options, launch Launch) ([]report.Run, error) {
+	return served(ctx, launch, Limits, func(up *Launched) []report.Run {
+		target := up.Target
+		var group sync.WaitGroup
+		var runs [4]report.Run
+		group.Go(func() { runs[0] = greedyChild(ctx, o, target) })
+		group.Go(func() { runs[1] = otherChildren(ctx, o, target) })
+		group.Go(func() { runs[2] = greedyAddress(ctx, o, target) })
+		group.Go(func() { runs[3] = quietAddresses(ctx, o, target) })
+		group.Wait()
+		return recovered(ctx, o, up, Limits, runs[:]...)
+	})
 }
 
 // greedyChild reads its profile at the rate of the options, past the pace of

@@ -18,14 +18,16 @@ var student = lesson.Student{Pseudonym: "Otter", Grade: 2}
 
 // runLesson walks one child through a lesson, and holds it to what a lesson
 // should come to.
-func runLesson(ctx context.Context, o *Options, target session.Target) []report.Run {
-	service := session.Open(target, o.Timeout)
-	defer service.Close()
+func runLesson(ctx context.Context, o *Options, launch Launch) ([]report.Run, error) {
+	return served(ctx, launch, Lesson, func(up *Launched) []report.Run {
+		service := session.Open(up.Target, o.Timeout)
+		defer service.Close()
 
-	run := walkLesson(ctx, o, service, "lesson-"+stamp())
-	run.Requests = service.Requests()
-	run.Broken = lessonExpected(&run, o.Tasks)
-	return []report.Run{run}
+		run := walkLesson(ctx, o, service, "lesson-"+stamp())
+		run.Requests = service.Requests()
+		run.Broken = lessonExpected(&run, o.Tasks)
+		return []report.Run{run}
+	})
 }
 
 // lessonLasts is about how long a lesson of the options takes.

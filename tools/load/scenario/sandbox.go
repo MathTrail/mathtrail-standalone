@@ -18,22 +18,32 @@ const examined = "examined hand-in"
 // looks at whether the service came back. A hand-in that finds every slot
 // taken for as long as it may wait is turned away as busy: that is the
 // service keeping its answers in time, not failing.
-func runSaturation(ctx context.Context, o *Options, target session.Target) []report.Run {
-	return recovered(ctx, o, target, Saturation, handIns(ctx, o, target, Saturation, lesson.Loop))
+func runSaturation(ctx context.Context, o *Options, launch Launch) ([]report.Run, error) {
+	return served(ctx, launch, Saturation, func(up *Launched) []report.Run {
+		return recovered(ctx, o, up, Saturation, handIns(ctx, o, up.Target, Saturation, lesson.Loop))
+	})
 }
 
 // runAdversarial hands in each costly solver of the options in turn, each
-// followed by a look at whether the service came back from it.
-func runAdversarial(ctx context.Context, o *Options, target session.Target) []report.Run {
+// followed by a look at whether the service came back from it, and each to a
+// service launched for it: one variant that ends its instance leaves the next
+// a fresh one, when the run starts its own.
+func runAdversarial(ctx context.Context, o *Options, launch Launch) ([]report.Run, error) {
 	runs := make([]report.Run, 0, 2*len(o.Variants))
 	for _, variant := range o.Variants {
 		if ctx.Err() != nil {
 			break
 		}
 		name := Adversarial + ": " + variant
-		runs = append(runs, recovered(ctx, o, target, name, handIns(ctx, o, target, name, variant))...)
+		came, err := served(ctx, launch, name, func(up *Launched) []report.Run {
+			return recovered(ctx, o, up, name, handIns(ctx, o, up.Target, name, variant))
+		})
+		runs = append(runs, came...)
+		if err != nil {
+			return runs, err
+		}
 	}
-	return runs
+	return runs, nil
 }
 
 // handIns hands in the costly solver named at the rate of the options, for as

@@ -89,7 +89,16 @@ func TestWhatCannotRunIsNotRun(t *testing.T) {
 	}{
 		{"a scenario nobody wrote", []string{"-scenario", "stampede", "-url", "http://localhost:8080"}, "lesson"},
 		{"no scenario at all", []string{"-url", "http://localhost:8080"}, "no scenario"},
-		{"no service", []string{"-scenario", "lesson"}, "-url"},
+		{"no service", []string{"-scenario", "lesson"}, "-image or -url names no service"},
+		{"two services", []string{"-scenario", "lesson", "-url", "http://localhost:8080", "-image", "mathtrail:dev"}, "two services"},
+		{"a cold run against a service it did not start", []string{"-scenario", "cold", "-url", "http://localhost:8080"}, "starts the service itself"},
+		{"a variable for a service it does not start", []string{"-scenario", "lesson", "-url", "http://localhost:8080", "-env", "A=b"}, "-env and -memory-ceiling"},
+		{"a ceiling for a service it does not start", []string{"-scenario", "lesson", "-url", "http://localhost:8080", "-memory-ceiling", "400m"}, "-env and -memory-ceiling"},
+		{"a variable every instance has its own of", []string{"-scenario", "lesson", "-image", "mathtrail:dev", "-env", "PORT=9090"}, "PORT"},
+		{"a variable with no value", []string{"-scenario", "lesson", "-image", "mathtrail:dev", "-env", "MATHTRAIL_LOG_LEVEL"}, "NAME=VALUE"},
+		{"a ceiling with no unit", []string{"-scenario", "lesson", "-image", "mathtrail:dev", "-memory-ceiling", "400"}, `-memory-ceiling "400" has no unit`},
+		{"a host for an instance of its own", []string{"-scenario", "lesson", "-image", "mathtrail:dev", "-host", "a.example"}, "-host"},
+		{"a ceiling the instance is killed before", []string{"-scenario", "lesson", "-image", "mathtrail:dev", "-memory-ceiling", "1g"}, "could never be passed"},
 		{"more tasks than written", []string{"-scenario", "lesson", "-url", "http://localhost:8080", "-tasks", "9"}, "tasks"},
 		{"a memory with no unit", []string{"-scenario", "lesson", "-url", "http://localhost:8080", "-memory", "512"}, "unit"},
 		{"a flag nobody declared", []string{"-scenario", "lesson", "-url", "http://localhost:8080", "-speed", "5"}, "speed"},
@@ -126,12 +135,12 @@ func TestAMemoryIsReadAsDockerWritesIt(t *testing.T) {
 	t.Parallel()
 
 	for size, want := range map[string]float64{"512m": 0.5, "1g": 1, "1024M": 1, "2G": 2, "524288k": 0.5} {
-		if got, err := gibibytes(size); err != nil || got != want {
+		if got, err := gibibytes("-memory", size); err != nil || got != want {
 			t.Errorf("gibibytes(%q) = %v, %v, want %v", size, got, err, want)
 		}
 	}
 	for _, size := range []string{"", "512", "m", "-1g", "0m", "one g", "5\u212a", "NaNm", "Infg"} {
-		if got, err := gibibytes(size); err == nil {
+		if got, err := gibibytes("-memory", size); err == nil {
 			t.Errorf("gibibytes(%q) = %v, want an error", size, got)
 		}
 	}

@@ -43,7 +43,7 @@ func lessonAtOnce(t *testing.T) scenario.Options {
 func runs(ctx context.Context, t *testing.T, o *scenario.Options, target session.Target) []report.Run {
 	t.Helper()
 
-	came, err := scenario.Run(ctx, o, target)
+	came, err := scenario.Run(ctx, o, scenario.At(target))
 	if err != nil {
 		t.Fatalf("Run(%s) error = %v", o.Scenario, err)
 	}

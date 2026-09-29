@@ -16,7 +16,6 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/config"
 	"github.com/MathTrail/mathtrail-standalone/tools/load/lesson"
 	"github.com/MathTrail/mathtrail-standalone/tools/load/report"
-	"github.com/MathTrail/mathtrail-standalone/tools/load/session"
 )
 
 // Options are what a run of a scenario is asked to do. A scenario reads the
@@ -75,6 +74,8 @@ const (
 	Limits = "limits"
 	// Adversarial is the costliest solvers the rules of the sandbox allow.
 	Adversarial = "adversarial"
+	// Cold is the service started again and again.
+	Cold = "cold"
 )
 
 // The bounds of the options.
@@ -87,15 +88,17 @@ const (
 )
 
 // scenario is what a scenario starts from and which of the options it reads,
-// what it does to the service — which comes to one run, or to one for each
-// thing it does at once or in turn — about how long that takes, and what it
-// refuses of the options besides what every scenario refuses, if anything.
+// what it does to the services it launches — which comes to one run, or to
+// one for each thing it does at once or in turn — about how long that takes,
+// what it refuses of the options besides what every scenario refuses, and
+// whether it has to start every service it runs against itself.
 type scenario struct {
 	defaults func() Options
 	reads    []string
-	run      func(context.Context, *Options, session.Target) []report.Run
+	run      func(context.Context, *Options, Launch) ([]report.Run, error)
 	lasts    func(*Options) time.Duration
 	check    func(*Options) error
+	starts   bool
 }
 
 // scenarios are the scenarios there are, by name.
@@ -156,6 +159,15 @@ var scenarios = map[string]scenario{
 			return time.Duration(len(o.Variants)) * o.Duration
 		},
 	},
+	Cold: {
+		// A start is measured from the moment it is asked for, so every one
+		// needs a service the run starts itself.
+		defaults: func() Options { return common(Cold) },
+		reads:    []string{readsTimeout},
+		run:      runCold,
+		lasts:    func(*Options) time.Duration { return starts * startLasts },
+		starts:   true,
+	},
 }
 
 // common are the options every scenario starts from.
@@ -181,6 +193,10 @@ func Names() []string { return slices.Sorted(maps.Keys(scenarios)) }
 // Reads are the options the scenario named reads, by the names of the flags
 // that set them: an option it does not read is one it would leave be.
 func Reads(name string) []string { return slices.Clone(scenarios[name].reads) }
+
+// Starts says whether the scenario named starts every service it runs against
+// itself: it cannot be run against a service somebody else started.
+func Starts(name string) bool { return scenarios[name].starts }
 
 // Defaults are the options of the scenario named, before any is changed.
 func Defaults(name string) (Options, error) {
@@ -236,13 +252,14 @@ func (o *Options) Lasts() time.Duration {
 	return known.lasts(o)
 }
 
-// Run runs the scenario of the options against the service at the target,
-// and is what it came to: one run, or one for each thing the scenario does at
-// once or in turn. A run the scenario was asked to stop in the middle of is
-// the part that ran, marked as stopped, and is held to no expectation: it did
-// not get to meet them. A run that ended before is what it was. The error is
-// for a scenario that could not start at all.
-func Run(ctx context.Context, o *Options, target session.Target) ([]report.Run, error) {
+// Run runs the scenario of the options against the services the launch
+// brings up, and is what it came to: one run, or one for each thing the
+// scenario does at once or in turn. A run the scenario was asked to stop in
+// the middle of is the part that ran, marked as stopped, and is held to no
+// expectation: it did not get to meet them. A run that ended before is what
+// it was. The error is for a scenario that could not go on: a service that
+// could not be brought up, for one, with the runs that came before it.
+func Run(ctx context.Context, o *Options, launch Launch) ([]report.Run, error) {
 	known, found := scenarios[o.Scenario]
 	if !found {
 		return nil, fmt.Errorf("scenario: no scenario %q", o.Scenario)
@@ -251,13 +268,13 @@ func Run(ctx context.Context, o *Options, target session.Target) ([]report.Run, 
 		return nil, err
 	}
 
-	runs := known.run(ctx, o, target)
+	runs, err := known.run(ctx, o, launch)
 	for i := range runs {
 		if runs[i].Stopped {
 			runs[i].Broken = nil
 		}
 	}
-	return runs, nil
+	return runs, err
 }
 
 // finish ends a run: when it ended, and whether it was asked to stop before
