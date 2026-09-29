@@ -575,3 +575,34 @@ func TestOnlyAnAnswerRecordedHereIsToldAgain(t *testing.T) {
 		})
 	}
 }
+
+// sealsNoMore opens what the ring sealed and seals nothing new: a key ring
+// that has lost the key it seals with.
+type sealsNoMore struct{ profile.Sealer }
+
+func (sealsNoMore) Seal([]byte, ...string) (string, error) {
+	return "", errors.New("no key to seal with")
+}
+
+// An answer the task cannot be sealed again with is not recorded: it could
+// never be told again. Nothing moves — not the rating, not the window, not the
+// task — and the same answer sent once the sealing works is recorded as the
+// first.
+func TestAnAnswerTheTaskCannotBeSealedWithMovesNothing(t *testing.T) {
+	t.Parallel()
+
+	p := parseFixture(t, "olya")
+	id := answering(t, p, "counting.gaps", 3)
+	ratings, window, sealed := p.Ratings, len(p.Recent), p.CurrentTask.Sealed
+
+	answer := profile.Answered{TaskID: id, Choice: rightLetter, At: issued.Add(time.Minute)}
+	if _, err := p.Record(answer, sealsNoMore{newSealer(t)}); err == nil {
+		t.Fatal("Record() error = nil, want the sealing's failure")
+	}
+	if p.Ratings != ratings || len(p.Recent) != window || p.CurrentTask.Answered != nil || p.CurrentTask.Sealed != sealed {
+		t.Error("an answer the task could not be sealed with moved the profile")
+	}
+	if recorded := give(t, p, id, rightLetter, issued.Add(2*time.Minute)); recorded.Again || !recorded.Correct {
+		t.Errorf("the answer sent again = %+v, want it recorded, and right", recorded)
+	}
+}

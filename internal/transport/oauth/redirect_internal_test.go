@@ -83,6 +83,8 @@ func TestAnAddressOnTheParentsComputerIsKnownAsOne(t *testing.T) {
 		{"https://0177.0.0.1/cb", true},
 		{"https://0.0.0.0/cb", true},
 		{"https://0/cb", true},
+		{"https://0x/cb", true},
+		{"https://127.0x.0.1/cb", true},
 		{"https://[::]/cb", true},
 		{"https://" + wide("localhost") + "/cb", true},
 		{"https://" + wide("127") + ".0.0.1/cb", true},

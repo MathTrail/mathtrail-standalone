@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -401,5 +403,42 @@ func (s countStep) check(t *testing.T, p *profile.Profile) {
 	read.Touch("next", issued.Add(time.Hour))
 	if _, err := profile.Marshal(read); err != nil {
 		t.Errorf("a profile read at %d could not be written after a step: %v", s.count, err)
+	}
+}
+
+// A file of a newer version is refused with the version it names and the
+// moment it says it was last written — or none, when it says none this build
+// reads — for whoever decides whether a rollout could explain it.
+func TestAFileOfANewerVersionSaysWhenItWasWritten(t *testing.T) {
+	t.Parallel()
+
+	written := time.Date(2026, time.September, 29, 11, 45, 0, 0, time.UTC)
+	newer := profile.Version + 1
+	for _, test := range []struct {
+		name string
+		raw  string
+		want time.Time
+	}{
+		{"a moment", fmt.Sprintf(`{"schema_version": %d, "updated_at": %q}`, newer, written.Format(time.RFC3339)), written},
+		{"no moment", fmt.Sprintf(`{"schema_version": %d}`, newer), time.Time{}},
+		{"a moment that is a number", fmt.Sprintf(`{"schema_version": %d, "updated_at": 5}`, newer), time.Time{}},
+		{"a moment in no form this build reads", fmt.Sprintf(`{"schema_version": %d, "updated_at": "yesterday"}`, newer), time.Time{}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := profile.Parse([]byte(test.raw))
+			var refused *profile.NewerError
+			if !errors.As(err, &refused) || !errors.Is(err, profile.ErrNewer) {
+				t.Fatalf("Parse() error = %v, want a NewerError that is %v", err, profile.ErrNewer)
+			}
+			if refused.Version != newer || !refused.WrittenAt.Equal(test.want) {
+				t.Errorf("Parse() refused version %d written at %v, want %d written at %v",
+					refused.Version, refused.WrittenAt, newer, test.want)
+			}
+			if said := err.Error(); !strings.Contains(said, strconv.Itoa(newer)) || !strings.Contains(said, strconv.Itoa(profile.Version)) {
+				t.Errorf("the refusal says %q, want both versions named", said)
+			}
+		})
 	}
 }
