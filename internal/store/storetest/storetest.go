@@ -39,6 +39,8 @@ type Harness struct {
 	// the way the parent would. A store that keeps profiles itself has no
 	// access to take back, and leaves it nil.
 	Revoke func(t *testing.T, account store.Account)
+	// Now is the clock the store judges a file of a newer version by.
+	Now func() time.Time
 }
 
 // Run holds a store to the contract. newHarness is called once for every case,
@@ -68,6 +70,8 @@ func Run(t *testing.T, newHarness func(t *testing.T) Harness) {
 		{"saves racing from one revision leave one whole profile", savesRacingFromOneRevisionLeaveOneWholeProfile},
 		{"a profile nothing can read is started over, and set aside", aProfileNothingCanReadIsStartedOver},
 		{"a profile that can be read is not started over", aReadableProfileIsNotStartedOver},
+		{"a file of a newer build is set aside by a new start", aFileOfANewerBuildIsSetAsideByANewStart},
+		{"a newer build's file is waited for only while a rollout could be under way", aNewerFileIsWaitedForOnlyWhileARolloutCouldBe},
 		{"an account with nothing to set aside starts over from nothing", anAccountWithNothingToSetAsideStartsOver},
 		{"access taken back reaches nothing", accessTakenBackReachesNothing},
 	} {
@@ -470,7 +474,7 @@ func aDamagedFileIsReportedAsDamage(t *testing.T, h Harness) {
 // as newer and never as damage, and nothing is put in its place.
 func aFileFromANewerBuildIsNotDamage(t *testing.T, h Harness) {
 	mia := someone("mia")
-	h.Plant(t, mia, fmt.Appendf(nil, `{"schema_version": %d}`, profile.Version+1))
+	h.Plant(t, mia, NewerFile(h.Now()))
 
 	p, _, err := h.Storage.Load(t.Context(), mia)
 	if !errors.Is(err, profile.ErrNewer) {
@@ -593,7 +597,7 @@ func savesRacingFromOneRevisionLeaveOneWholeProfile(t *testing.T, h Harness) {
 // refusals are every refusal of a store a caller branches on.
 var refusals = []error{
 	store.ErrNotFound, store.ErrConflict, store.ErrCorrupted, store.ErrAccessRevoked, store.ErrAccessExpired,
-	store.ErrInBin, store.ErrBehind, store.ErrRestored, store.ErrStorageFull, store.ErrUnavailable,
+	store.ErrInBin, store.ErrBehind, store.ErrRestored, store.ErrStorageFull, store.ErrUnavailable, store.ErrUnsupported,
 }
 
 // setAside checks that the account started over from exactly the files given,
@@ -646,27 +650,70 @@ func aProfileNothingCanReadIsStartedOver(t *testing.T, h Harness) {
 	}
 }
 
-// A profile some build can read — this one, or a newer — is never replaced:
-// what the parent was told when they asked to start over no longer holds, and
-// nothing is set aside.
+// A profile this build can read is never replaced: what the parent was told
+// when they asked to start over no longer holds, and nothing is set aside.
 func aReadableProfileIsNotStartedOver(t *testing.T, h Harness) {
-	mia, leo := someone("mia"), someone("leo")
+	mia := someone("mia")
 	p := child("Mia")
 	want := fileOf(t, p)
 	create(t, h, mia, p)
-	newer := fmt.Appendf(nil, `{"schema_version": %d}`, profile.Version+1)
+
+	if _, err := h.Storage.StartOver(t.Context(), mia, child("A new start")); !errors.Is(err, store.ErrConflict) {
+		t.Errorf("StartOver() over a readable profile error = %v, want %v", err, store.ErrConflict)
+	}
+	setAside(t, h, mia)
+	holds(t, h, mia, want)
+}
+
+// A file of a newer build is started over from when the adult asks, however
+// recently it was written: it is set aside, whole, for that build to be read
+// by, and the new profile takes its place.
+func aFileOfANewerBuildIsSetAsideByANewStart(t *testing.T, h Harness) {
+	leo := someone("leo")
+	newer := NewerFile(h.Now())
 	h.Plant(t, leo, newer)
 
-	for _, account := range []store.Account{mia, leo} {
-		if _, err := h.Storage.StartOver(t.Context(), account, child("A new start")); !errors.Is(err, store.ErrConflict) {
-			t.Errorf("StartOver(%v) over a readable profile error = %v, want %v", account, err, store.ErrConflict)
+	p := child("A new start")
+	if _, err := h.Storage.StartOver(t.Context(), leo, p); err != nil {
+		t.Fatalf("StartOver() over a newer build's file error = %v, want nil", err)
+	}
+	setAside(t, h, leo, newer)
+	holds(t, h, leo, fileOf(t, p))
+}
+
+// A newer build's file is waited for while it could be a rollout under way:
+// written within its window, on either side of now. Written longer ago or
+// later than that, or saying nothing of when, it is a file edited by hand or
+// left by a version since withdrawn, and it is refused as unsupported, which
+// is still newer to whoever asks.
+func aNewerFileIsWaitedForOnlyWhileARolloutCouldBe(t *testing.T, h Harness) {
+	now := h.Now()
+	for i, tc := range []struct {
+		name      string
+		file      []byte
+		supported bool
+	}{
+		{"written just now", NewerFile(now), true},
+		{"written most of a rollout ago", NewerFile(now.Add(-store.RolloutWindow + time.Minute)), true},
+		{"written longer ago than that", NewerFile(now.Add(-store.RolloutWindow - time.Minute)), false},
+		{"written later than a clock could be ahead", NewerFile(now.Add(store.RolloutWindow + time.Minute)), false},
+		{"saying nothing of when", fmt.Appendf(nil, `{"schema_version": %d}`, profile.Version+1), false},
+		{"saying when in no form this build reads", fmt.Appendf(nil, `{"schema_version": %d, "updated_at": 5}`, profile.Version+1), false},
+	} {
+		account := someone(fmt.Sprintf("newer-%d", i))
+		h.Plant(t, account, tc.file)
+		_, _, err := h.Storage.Load(t.Context(), account)
+		if !errors.Is(err, profile.ErrNewer) || errors.Is(err, store.ErrUnsupported) == tc.supported {
+			t.Errorf("%s: Load() error = %v, want newer, and unsupported: %v", tc.name, err, !tc.supported)
 		}
-		setAside(t, h, account)
 	}
-	holds(t, h, mia, want)
-	if _, _, err := h.Storage.Load(t.Context(), leo); !errors.Is(err, profile.ErrNewer) {
-		t.Errorf("Load() of the newer build's file after StartOver() error = %v, want %v", err, profile.ErrNewer)
-	}
+}
+
+// NewerFile is a profile file a newer build wrote at a moment: the version
+// past this build's, and the moment it was written, which is all a store reads
+// of it.
+func NewerFile(at time.Time) []byte {
+	return fmt.Appendf(nil, `{"schema_version": %d, "updated_at": %q}`, profile.Version+1, at.UTC().Format(time.RFC3339))
 }
 
 // An account with nothing to set aside — the bin emptied, say — starts over

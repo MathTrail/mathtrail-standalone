@@ -172,6 +172,45 @@ func TestACodeIsRefusedToAnybodyElse(t *testing.T) {
 	}
 }
 
+// A code is worth tokens only with a verifier of the shape RFC 7636 gives
+// one — 43 to 128 letters, digits and -._~ — even when the code's challenge
+// was made from another.
+func TestAVerifierIsOfTheShapeTheRulesGiveIt(t *testing.T) {
+	t.Parallel()
+
+	allowed := "AZaz09-._~"
+	for _, tc := range []struct {
+		name     string
+		verifier string
+		taken    bool
+	}{
+		{"the shortest", strings.Repeat(allowed, 5)[:shortestVerifier], true},
+		{"the longest", strings.Repeat(allowed, 13)[:longestVerifier], true},
+		{"one character short", strings.Repeat("v", shortestVerifier-1), false},
+		{"one character long", strings.Repeat("v", longestVerifier+1), false},
+		{"a character the rules leave out", strings.Repeat("v", shortestVerifier) + "+", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			h := newSignIn(t)
+			client := h.register(hostRedirect, hostName)
+			parent := h.browser(t)
+			asked := h.authorizeURL(client, url.Values{"code_challenge": {googletest.ChallengeOf(tc.verifier)}})
+			code := answerAt(t, parent.get(h.google.Allow(h.toGoogleAt(parent, asked)))).Get("code")
+
+			answer := h.exchange(t, code, client, url.Values{"code_verifier": {tc.verifier}})
+			if !tc.taken {
+				wantRefused(t, h, &answer, http.StatusBadRequest, "invalid_request", eventAuthToken, "invalid_pkce")
+				return
+			}
+			if answer.status != http.StatusOK {
+				t.Errorf("POST /oauth/token = %d %v, want the host's tokens", answer.status, answer.fields)
+			}
+		})
+	}
+}
+
 // changing is a change of one parameter of a request.
 func changing(name, value string) func(*signIn) url.Values {
 	return func(*signIn) url.Values { return url.Values{name: {value}} }

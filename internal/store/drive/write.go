@@ -96,20 +96,20 @@ func (s *driveStore) Save(ctx context.Context, account store.Account, p *profile
 			p.Revision, read.counter+1)
 	}
 
-	// Drive keeps whatever is uploaded last, so the file is read once more
-	// and held to what the profile was computed from. A change made since —
-	// another tab, another instance, the parent by hand — is not written over.
-	current, err := parent.download(ctx, id)
+	current, err := s.unchanged(ctx, parent, account, id, read)
 	if err != nil {
-		return "", fmt.Errorf("drivestore: save: %w", s.refused(parent, id, err))
-	}
-	if digestOf(current) != read.digest {
-		s.watch.conflict(ctx, account, read.counter, counterOf(current), conflictChanged)
-		return "", fmt.Errorf("drivestore: save: %w: the file changed after it was read", store.ErrConflict)
+		return "", fmt.Errorf("drivestore: save: %w", err)
 	}
 	keep := firstOfTheDay(current, p)
 	if keep {
+		// Making room takes calls of its own, and another write may land in
+		// the meantime; the file is held to what the profile was computed
+		// from once more, so that between the last look and the write there
+		// is one upload again.
 		s.roomForOne(ctx, parent, id)
+		if _, err := s.unchanged(ctx, parent, account, id, read); err != nil {
+			return "", fmt.Errorf("drivestore: save: %w", err)
+		}
 	}
 	if err := s.upload(ctx, parent, id, p, raw, keep); err != nil {
 		return "", fmt.Errorf("drivestore: save: %w", err)
@@ -219,6 +219,22 @@ func counterOf(raw []byte) int {
 		return 0
 	}
 	return held.Revision
+}
+
+// unchanged reads the file once more and holds it to what the profile was
+// computed from, and is what the file holds. Drive keeps whatever is uploaded
+// last, so a change made since — another tab, another instance, the parent by
+// hand — is a conflict, and is not written over.
+func (s *driveStore) unchanged(ctx context.Context, parent parentsDrive, account store.Account, id string, read revision) ([]byte, error) {
+	current, err := parent.download(ctx, id)
+	if err != nil {
+		return nil, s.refused(parent, id, err)
+	}
+	if digestOf(current) != read.digest {
+		s.watch.conflict(ctx, account, read.counter, counterOf(current), conflictChanged)
+		return nil, fmt.Errorf("%w: the file changed after it was read", store.ErrConflict)
+	}
+	return current, nil
 }
 
 // roomForOne makes room for one more revision of the file kept forever, by

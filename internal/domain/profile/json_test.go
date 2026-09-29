@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 )
@@ -241,9 +244,14 @@ func FuzzParse(f *testing.F) {
 				t.Fatal("Parse() returned nothing and no error")
 			}
 			// Anything that parses is a profile this service could work with,
-			// which means it can be written back out again.
+			// which means it can be written back out again — and written again
+			// after the next step has moved it on.
 			if _, wrote := profile.Marshal(p); wrote != nil {
 				t.Errorf("a profile that parsed could not be written: %v", wrote)
+			}
+			p.Touch("next", issued)
+			if _, wrote := profile.Marshal(p); wrote != nil {
+				t.Errorf("a profile that parsed could not be written after a step: %v", wrote)
 			}
 			return
 		}
@@ -305,5 +313,132 @@ func TestADayMayBeWrittenWithEscapes(t *testing.T) {
 	}
 	if !bytes.Equal(written, plain) {
 		t.Error("a file read with escapes was not written back in the spelling this service uses")
+	}
+}
+
+// No profile is written larger than a store reads back: one that would be is
+// refused before any of it is kept, since a store that could not read its own
+// write would take the file for damage.
+func TestAProfileLargerThanAStoreReadsIsNotWritten(t *testing.T) {
+	t.Parallel()
+
+	p := parseFixture(t, "olya")
+	answering(t, p, "counting.gaps", 3)
+	p.CurrentTask.Wording = strings.Repeat("a", profile.MaxSize)
+
+	if raw, err := profile.Marshal(p); !errors.Is(err, profile.ErrInvalid) {
+		t.Errorf("Marshal() = %d bytes, %v; want %v", len(raw), err, profile.ErrInvalid)
+	}
+}
+
+// Every count is held far below where one more would stop being a number,
+// and a file is read only with room in every count for one more: whatever the
+// next step adds can then be written. A profile at the most is still written,
+// and read no more; one past it is neither.
+func TestACountLeavesRoomForOneMore(t *testing.T) {
+	t.Parallel()
+
+	const most = 1 << 30
+	for _, tc := range []struct {
+		name string
+		set  func(p *profile.Profile, count int)
+	}{
+		{"the revision", func(p *profile.Profile, count int) { p.Revision = count }},
+		{"the answers", func(p *profile.Profile, count int) { p.Ratings.Answers = count }},
+		{"the failures in a row", func(p *profile.Profile, count int) { p.Ratings.ConsecutiveFailures = count }},
+		{"the day's tasks", func(p *profile.Profile, count int) { p.Daily.Failed = count }},
+		{"a topic's answers", func(p *profile.Profile, count int) {
+			topic := p.Topics["counting.gaps"]
+			topic.Answers = count
+			p.Topics["counting.gaps"] = topic
+		}},
+		{"a trap fallen for", func(p *profile.Profile, count int) {
+			topic := p.Topics["counting.gaps"]
+			topic.Traps = map[string]int{"off_by_one": count}
+			p.Topics["counting.gaps"] = topic
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			for _, step := range []countStep{
+				{most - 1, true, true},
+				{most, true, false},
+				{most + 1, false, false},
+			} {
+				p := parseFixture(t, "olya")
+				tc.set(p, step.count)
+				step.check(t, p)
+			}
+		})
+	}
+}
+
+// countStep is a count a profile is given, and whether the profile is then
+// written, and read back.
+type countStep struct {
+	count          int
+	written, reads bool
+}
+
+// check holds a profile given the step's count to what the step says of it,
+// and a profile that is read back to being written again after the next step.
+func (s countStep) check(t *testing.T, p *profile.Profile) {
+	t.Helper()
+
+	raw, err := profile.Marshal(p)
+	if written := err == nil; written != s.written {
+		t.Errorf("Marshal() at %d: %v; written: %v, want %v", s.count, err, written, s.written)
+	}
+	if err != nil {
+		return
+	}
+	read, err := profile.Parse(raw)
+	if reads := err == nil; reads != s.reads {
+		t.Errorf("Parse() at %d: %v; read: %v, want %v", s.count, err, reads, s.reads)
+	}
+	if err != nil {
+		return
+	}
+	read.Touch("next", issued.Add(time.Hour))
+	if _, err := profile.Marshal(read); err != nil {
+		t.Errorf("a profile read at %d could not be written after a step: %v", s.count, err)
+	}
+}
+
+// A file of a newer version is refused with the version it names and the
+// moment it says it was last written — or none, when it says none this build
+// reads — for whoever decides whether a rollout could explain it.
+func TestAFileOfANewerVersionSaysWhenItWasWritten(t *testing.T) {
+	t.Parallel()
+
+	written := time.Date(2026, time.September, 29, 11, 45, 0, 0, time.UTC)
+	newer := profile.Version + 1
+	for _, test := range []struct {
+		name string
+		raw  string
+		want time.Time
+	}{
+		{"a moment", fmt.Sprintf(`{"schema_version": %d, "updated_at": %q}`, newer, written.Format(time.RFC3339)), written},
+		{"no moment", fmt.Sprintf(`{"schema_version": %d}`, newer), time.Time{}},
+		{"a moment that is a number", fmt.Sprintf(`{"schema_version": %d, "updated_at": 5}`, newer), time.Time{}},
+		{"a moment in no form this build reads", fmt.Sprintf(`{"schema_version": %d, "updated_at": "yesterday"}`, newer), time.Time{}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := profile.Parse([]byte(test.raw))
+			var refused *profile.NewerError
+			if !errors.As(err, &refused) || !errors.Is(err, profile.ErrNewer) {
+				t.Fatalf("Parse() error = %v, want a NewerError that is %v", err, profile.ErrNewer)
+			}
+			if refused.Version != newer || !refused.WrittenAt.Equal(test.want) {
+				t.Errorf("Parse() refused version %d written at %v, want %d written at %v",
+					refused.Version, refused.WrittenAt, newer, test.want)
+			}
+			if said := err.Error(); !strings.Contains(said, strconv.Itoa(newer)) || !strings.Contains(said, strconv.Itoa(profile.Version)) {
+				t.Errorf("the refusal says %q, want both versions named", said)
+			}
+		})
 	}
 }

@@ -159,7 +159,10 @@ func choosable(choice string) bool { return choice == DontKnow || solver.Place(c
 // of the series at once, and the correction of the topic stays where it is.
 //
 // Nothing moves when the seal cannot be opened: a task whose answer cannot be
-// read cannot be checked either.
+// read cannot be checked either. An answer recorded now seals the task again
+// against the letter it was given, which is what lets it be told again — and
+// only it: a task the file says was answered, which was never answered here,
+// does not open.
 //
 // The caller is left with a profile to write when the answer was recorded now,
 // and with nothing to write when it was only told again.
@@ -186,7 +189,13 @@ func (p *Profile) Record(answer Answered, sealer Sealer) (Recorded, error) {
 		told.Again = true
 		return told, nil
 	}
-	return p.apply(task, &answer, &secret), nil
+	resealed, err := sealSecret(sealer, secret, answeredBinding(p.StudentID, task.ID, answer.Choice))
+	if err != nil {
+		return Recorded{}, err
+	}
+	recorded := p.apply(task, &answer, &secret)
+	task.Sealed = resealed
+	return recorded, nil
 }
 
 // apply records an answer the task has not had before and keeps it with the

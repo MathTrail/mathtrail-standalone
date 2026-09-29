@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
+	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
@@ -117,4 +119,47 @@ func FuzzParse(f *testing.F) {
 			t.Errorf("Parse() error = %v, want exactly one of %v and %v", err, store.ErrCorrupted, profile.ErrNewer)
 		}
 	})
+}
+
+// At a moment, a file of a newer build is newer while a rollout could explain
+// it — written within the window of that moment, on either side — and
+// unsupported beside it otherwise, or when it gives no moment this build
+// reads. A profile this build reads, and damage, are what Parse makes them.
+func TestParseAtTellsARolloutFromAFileNoRolloutExplains(t *testing.T) {
+	t.Parallel()
+
+	now := time.Date(2026, time.September, 29, 12, 0, 0, 0, time.UTC)
+	newerAt := func(updatedAt string) []byte {
+		return fmt.Appendf(nil, `{"schema_version": %d, "updated_at": %s}`, profile.Version+1, updatedAt)
+	}
+	moment := func(at time.Time) string { return strconv.Quote(at.Format(time.RFC3339)) }
+	for _, test := range []struct {
+		name                          string
+		raw                           []byte
+		newer, unsupported, corrupted bool
+	}{
+		{"this build's profile", fixture(t, "dima"), false, false, false},
+		{"damage", []byte("{"), false, false, true},
+		{"a newer file written now", newerAt(moment(now)), true, false, false},
+		{"one written as long ago as a rollout takes", newerAt(moment(now.Add(-store.RolloutWindow))), true, false, false},
+		{"one dated as far ahead as a clock could run", newerAt(moment(now.Add(store.RolloutWindow))), true, false, false},
+		{"one written a second longer ago", newerAt(moment(now.Add(-store.RolloutWindow - time.Second))), true, true, false},
+		{"one dated a second further ahead", newerAt(moment(now.Add(store.RolloutWindow + time.Second))), true, true, false},
+		{"one that gives no moment", fmt.Appendf(nil, `{"schema_version": %d}`, profile.Version+1), true, true, false},
+		{"one that gives a moment in no form this build reads", newerAt(`"yesterday"`), true, true, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			p, err := store.ParseAt(test.raw, now)
+			if errors.Is(err, profile.ErrNewer) != test.newer || errors.Is(err, store.ErrUnsupported) != test.unsupported ||
+				errors.Is(err, store.ErrCorrupted) != test.corrupted {
+				t.Errorf("ParseAt() error = %v, want newer: %v, unsupported: %v, corrupted: %v",
+					err, test.newer, test.unsupported, test.corrupted)
+			}
+			if (p == nil) == (err == nil) {
+				t.Errorf("ParseAt() = %v, %v; want a profile or a refusal, and never both", p, err)
+			}
+		})
+	}
 }

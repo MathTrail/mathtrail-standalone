@@ -139,26 +139,27 @@ type consentView struct {
 }
 
 // showConsent draws the consent screen. It names the client as the client
-// names itself, and the host the parent goes back to, which is what says who
-// the client is: a name is only a string the client chose. A host on the
-// parent's own computer gets a warning, since nothing proves which program
+// names itself, and the address the parent goes back to, which is what says
+// who the client is: a name is only a string the client chose. An address on
+// the parent's own computer gets a warning, since nothing proves which program
 // listens there. The form may be sent to this server alone, and what it leads
 // to — Google, or the client, when the parent declines — is let through too.
 func (p *pages) showConsent(w http.ResponseWriter, r *http.Request, screen consentScreen) error {
 	lang := p.languageOf(r)
 	words := p.words[lang]
-	host := hostOf(screen.redirectURI)
 	client := shownName(screen.client)
 	if client == "" {
-		client = host
+		client = hostOf(screen.redirectURI)
 	}
 	return p.write(w, http.StatusOK, lang, p.consent, consentView{
-		Lang:     lang,
-		Style:    p.style,
-		Words:    words,
-		Heading:  phrase(words["consent.heading"], map[string]fragment{"client": {Text: client, Strong: true}}),
-		Return:   phrase(words["consent.return"], map[string]fragment{"host": {Text: host, Strong: true}}),
-		Loopback: loopbackHost(host),
+		Lang:    lang,
+		Style:   p.style,
+		Words:   words,
+		Heading: phrase(words["consent.heading"], map[string]fragment{"client": {Text: client, Strong: true}}),
+		Return: phrase(words["consent.return"], map[string]fragment{
+			"address": {Text: shownAddress(screen.redirectURI), Strong: true},
+		}),
+		Loopback: toThisComputer(screen.redirectURI),
 		Legal: phrase(words["consent.legal"], map[string]fragment{
 			"terms":   {Text: words["consent.terms"], Link: p.site + "/" + lang + "/terms/"},
 			"privacy": {Text: words["consent.privacy"], Link: p.site + "/" + lang + "/privacy/"},
@@ -167,16 +168,78 @@ func (p *pages) showConsent(w http.ResponseWriter, r *http.Request, screen conse
 	}, screen.google, screen.redirectURI)
 }
 
+// mostMarks is how many marks may stack on one letter of a client's name as
+// the consent screen shows it: enough for the letters of the scripts people
+// write, and too few to pile up over the lines around the name.
+const mostMarks = 3
+
 // shownName is a client's name as the consent screen shows it: without the
 // characters a reader cannot see — controls, and the marks that reorder,
-// join or hide text — which would let a name read otherwise than it was sent.
+// join or hide text — which would let a name read otherwise than it was sent,
+// and with no more than a few marks stacked on any letter, which would let it
+// spill over the words around it.
 func shownName(name string) string {
-	return strings.Map(func(c rune) rune {
-		if unicode.In(c, unicode.Cc, unicode.Cf) {
-			return -1
+	var shown strings.Builder
+	stacked := 0
+	for _, c := range name {
+		switch {
+		case unicode.In(c, unicode.Cc, unicode.Cf):
+			continue
+		case unicode.In(c, unicode.Mn, unicode.Me):
+			stacked++
+			if stacked > mostMarks {
+				continue
+			}
+		default:
+			stacked = 0
 		}
-		return c
-	}, name)
+		shown.WriteRune(c)
+	}
+	return shown.String()
+}
+
+// maxShownAddress is how much of the address the parent goes back to the
+// consent screen shows: its host whole, and as much of its path as the rest
+// of a line holds.
+const maxShownAddress = 80
+
+// shownAddress is the address the parent goes back to as the consent screen
+// shows it: its host as hostOf spells it, with its port when it names one,
+// and its path in ASCII, anything else escaped, shortened past what a line
+// holds. The host says who the client is; the path says where on a host that
+// serves many, since a page anybody may publish there is not the host's own.
+func shownAddress(uri string) string {
+	address, err := url.Parse(uri)
+	if err != nil {
+		return ""
+	}
+	host := hostOf(uri)
+	if strings.Contains(host, ":") {
+		host = "[" + host + "]"
+	}
+	if port := address.Port(); port != "" {
+		host += ":" + port
+	}
+	// A host longer than the line still leaves its path a third of one.
+	return host + shortened(address.EscapedPath(), max(maxShownAddress-len(host), maxShownAddress/3))
+}
+
+// shortened is a path in the room given, cut in its middle with an ellipsis
+// when it is longer: its start and its end both show, since either may be
+// what tells two pages of one host apart. Neither cut falls inside an escape.
+func shortened(path string, room int) string {
+	if len(path) <= room {
+		return path
+	}
+	kept := max(room-1, 2)
+	head, tail := kept/2, len(path)-(kept-kept/2)
+	if escape := strings.LastIndexByte(path[:head], '%'); escape >= 0 && escape > head-3 {
+		head = escape
+	}
+	if escape := strings.LastIndexByte(path[:tail], '%'); escape >= 0 && escape > tail-3 {
+		tail = min(escape+3, len(path))
+	}
+	return path[:head] + "…" + path[tail:]
 }
 
 // stop is a sign-in stopped at a page of its own rather than sent back to the

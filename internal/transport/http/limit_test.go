@@ -225,8 +225,8 @@ func TestOnlyTheSignInIsHeldToThePaceOfAnAddress(t *testing.T) {
 	}
 
 	p := newPacedRouter(t, paces(t, 3, 3))
-	p.ask(t, http.MethodPost, "/oauth/token", "203.0.113.7")
-	p.ask(t, http.MethodPost, "/oauth/token", "203.0.113.7")
+	p.ask(t, http.MethodPost, "/oauth/register", "203.0.113.7")
+	p.ask(t, http.MethodPost, "/oauth/register", "203.0.113.7")
 	for _, route := range []struct{ method, path string }{
 		{http.MethodGet, "/health"},
 		{http.MethodPost, "/mcp"},
@@ -235,6 +235,24 @@ func TestOnlyTheSignInIsHeldToThePaceOfAnAddress(t *testing.T) {
 		if rec := p.ask(t, route.method, route.path, "203.0.113.7"); rec.Code == http.StatusTooManyRequests {
 			t.Errorf("%s %s after the sign-in's pace was spent: status = %d, want it not held to that pace", route.method, route.path, rec.Code)
 		}
+	}
+}
+
+// The token endpoint is where a lesson renews its access, every few minutes, so
+// a flood that has spent the pace the sign-in takes from everybody does not hold
+// it back: it answers any address that has spent nothing of its own, while a
+// registration from the same address is refused by the instance.
+func TestARenewalIsNotHeldToTheSignInsPace(t *testing.T) {
+	t.Parallel()
+
+	p := newPacedRouter(t, paces(t, 1<<20, 3))
+	p.ask(t, http.MethodPost, "/oauth/register", "203.0.113.7")
+
+	if rec := p.ask(t, http.MethodPost, "/oauth/token", "198.51.100.4"); rec.Code == http.StatusTooManyRequests {
+		t.Errorf("a renewal past the sign-in's pace: status = %d, want it answered", rec.Code)
+	}
+	if rec := p.ask(t, http.MethodPost, "/oauth/register", "198.51.100.4"); rec.Code != http.StatusTooManyRequests {
+		t.Errorf("a registration past the sign-in's pace: status = %d, want %d", rec.Code, http.StatusTooManyRequests)
 	}
 }
 
@@ -302,7 +320,7 @@ func TestTheDocumentsAreNotHeldToTheSignInsPace(t *testing.T) {
 	t.Parallel()
 
 	p := newPacedRouter(t, paces(t, 1<<20, 3))
-	p.ask(t, http.MethodPost, "/oauth/token", "203.0.113.7")
+	p.ask(t, http.MethodPost, "/oauth/register", "203.0.113.7")
 
 	if rec := p.ask(t, http.MethodGet, "/.well-known/oauth-authorization-server", "198.51.100.4"); rec.Body.String() != reachedServerMetadata {
 		t.Errorf("a document past the sign-in's pace: status %d, body %q, want it read", rec.Code, rec.Body.String())

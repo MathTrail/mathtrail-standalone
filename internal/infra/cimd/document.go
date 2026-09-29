@@ -18,12 +18,19 @@ type Document struct {
 	RedirectURIs []string
 }
 
+// mostRedirectURIs is how many addresses a document may list for a sign-in to
+// send the parent back to. The clients known list one to a few. A document is
+// kept in memory once read, and a list of thousands of short addresses fits
+// in its size while each of them costs more to hold than it took to send.
+const mostRedirectURIs = 32
+
 // parseDocument reads a client's metadata document by the rules every such
 // document keeps. It is a JSON object that names itself by the address it was
 // fetched from, exactly; it says what the client is called and where a sign-in
-// may send the parent back to; and it carries no shared secret, since nothing
-// could have been shared with a client nobody registered — neither a secret of
-// its own nor a way of signing in to the token endpoint that needs one.
+// may send the parent back to, in no more addresses than a client needs; and
+// it carries no shared secret, since nothing could have been shared with a
+// client nobody registered — neither a secret of its own nor a way of signing
+// in to the token endpoint that needs one.
 func parseDocument(body []byte, clientID string) (Document, error) {
 	var fields struct {
 		ClientID                string          `json:"client_id"`
@@ -43,6 +50,8 @@ func parseDocument(body []byte, clientID string) (Document, error) {
 		return Document{}, fmt.Errorf("%w: it has no client_name", ErrDocument)
 	case len(fields.RedirectURIs) == 0:
 		return Document{}, fmt.Errorf("%w: it lists no redirect_uris", ErrDocument)
+	case len(fields.RedirectURIs) > mostRedirectURIs:
+		return Document{}, fmt.Errorf("%w: it lists more than %d redirect_uris", ErrDocument, mostRedirectURIs)
 	case given(fields.ClientSecret) || given(fields.ClientSecretExpiresAt):
 		return Document{}, fmt.Errorf("%w: it carries a client secret", ErrDocument)
 	case strings.Contains(strings.ToLower(fields.TokenEndpointAuthMethod), "secret"):

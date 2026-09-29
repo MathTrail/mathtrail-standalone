@@ -21,7 +21,7 @@ const probeAgain = 250 * time.Millisecond
 // the probe answers, and then a child new to the service walks a lesson of one
 // task through it without a pause, all within as long as a call may take. A
 // service that never came back, or came back unable to give a lesson, fails
-// the run.
+// the run — and one whose instance ended is not waited for.
 //
 // A lesson a pace held back is walked again, by another new child and after
 // twice the pause each time: a pace shedding what is left of the attack is the
@@ -31,20 +31,24 @@ const probeAgain = 250 * time.Millisecond
 // requests are every one it sent, as the platform bills them; and the run
 // begins when the service was first asked, so that its length is how long
 // coming back took.
-func recovery(ctx context.Context, o *Options, target session.Target, after string) report.Run {
-	service := session.Open(target, o.Timeout)
+func recovery(ctx context.Context, o *Options, up *Launched, after string) report.Run {
+	service := session.Open(up.Target, o.Timeout)
 	defer service.Close()
 	name := after + ": recovery"
 	began := time.Now()
 	until := began.Add(o.Timeout)
 
-	probed, alive := comeBack(ctx, service, until)
+	probed, ended := comeBack(ctx, service, up, until)
 	asked := report.CallOf(&probed, probed.Started)
-	if !alive {
+	if probed.Kind != session.Answered {
+		why := fmt.Sprintf("it did not answer within %v", o.Timeout)
+		if ended {
+			why = "its instance ended"
+		}
 		run := report.Run{
 			Scenario: name, Unit: "accepted task", Began: began,
 			Calls: []report.Call{asked}, Requests: service.Requests(),
-			Broken: []string{fmt.Sprintf("the service did not come back within %v: its probe answered %s", o.Timeout, probed.Kind)},
+			Broken: []string{fmt.Sprintf("the service did not come back: %s; its probe answered %s", why, probed.Kind)},
 		}
 		finish(ctx, &run)
 		return run
@@ -68,24 +72,27 @@ func recovery(ctx context.Context, o *Options, target session.Target, after stri
 // recovered is the runs of an attack followed by the look at whether the
 // service came back from it — unless the run was asked to stop, when the
 // attack is not over for anything to come back from.
-func recovered(ctx context.Context, o *Options, target session.Target, after string, attack ...report.Run) []report.Run {
+func recovered(ctx context.Context, o *Options, up *Launched, after string, attack ...report.Run) []report.Run {
 	if ctx.Err() != nil {
 		return attack
 	}
-	return append(attack, recovery(ctx, o, target, after))
+	return append(attack, recovery(ctx, o, up, after))
 }
 
-// comeBack asks the probe until it answers or the moment given has come, and
-// is the last answer it gave and whether that was an answer: a service may
-// take a moment to come back from an attack, and only the answer it settled
-// on says whether it did.
-func comeBack(ctx context.Context, service *session.Service, until time.Time) (session.Answer, bool) {
+// comeBack asks the probe of the service until it answers, until its instance
+// is known to have ended, or until the moment given has come, and is the last
+// answer it gave, and whether the instance had ended: a service may take a
+// moment to come back from an attack, and only the answer it settled on says
+// whether it did.
+func comeBack(ctx context.Context, service *session.Service, up *Launched, until time.Time) (answer session.Answer, ended bool) {
 	for {
-		answer := service.Fetch(ctx, probe, "")
-		if answer.Kind == session.Answered {
+		answer = service.Fetch(ctx, probe, "")
+		switch {
+		case answer.Kind == session.Answered:
+			return answer, false
+		case up.ended():
 			return answer, true
-		}
-		if time.Now().Add(probeAgain).After(until) || !pause(ctx, probeAgain) {
+		case time.Now().Add(probeAgain).After(until) || !pause(ctx, probeAgain):
 			return answer, false
 		}
 	}

@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"reflect"
 	"runtime"
+	"runtime/debug"
 	"slices"
 	"strings"
 	"testing"
@@ -237,6 +238,38 @@ func TestContainerCarriesTheCheckedContent(t *testing.T) {
 	}
 }
 
+// The line that says the sandbox is built says too what the instance gave the
+// runtime: the processors it schedules on, and the soft limit on its heap, so
+// that the log of a deployment shows whether the size it was given arrived.
+//
+// Not parallel: the soft limit belongs to the whole process. It is set here as
+// the environment of a deployment sets it, and put back before any test that
+// runs in parallel starts.
+func TestContainerSaysWhatTheInstanceGaveTheRuntime(t *testing.T) {
+	const told = 921 << 20
+	before := debug.SetMemoryLimit(told)
+	t.Cleanup(func() { debug.SetMemoryLimit(before) })
+
+	core, logs := observer.New(zapcore.InfoLevel)
+	container, err := app.NewContainer(t.Context(), testConfig(), zap.New(core))
+	if err != nil {
+		t.Fatalf("NewContainer() error = %v, want nil", err)
+	}
+	t.Cleanup(func() { container.Close(context.Background()) })
+
+	built := logs.FilterMessage("solver sandbox built").All()
+	if len(built) != 1 {
+		t.Fatalf("got %d lines saying the sandbox was built, want 1", len(built))
+	}
+	fields := built[0].ContextMap()
+	if got, want := fields["gomaxprocs"], int64(runtime.GOMAXPROCS(0)); got != want {
+		t.Errorf("gomaxprocs: got %v, want %v", got, want)
+	}
+	if got := fields["memory_limit"]; got != int64(told) {
+		t.Errorf("memory_limit: got %v, want %d", got, int64(told))
+	}
+}
+
 // The key ring is built while the container is, so a key the service could not
 // seal with stops the process instead of surfacing at the first sign-in.
 func TestContainerCarriesTheKeyRing(t *testing.T) {
@@ -367,6 +400,19 @@ func serveOne(t *testing.T, container *app.Container, method, path, body string)
 	req.Host = "localhost" // the configured public URL's host
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json, text/event-stream")
+	rec := httptest.NewRecorder()
+	container.Router.ServeHTTP(rec, req)
+	return rec
+}
+
+// serveForm posts a form to the container's router, as a host's server posts
+// to the sign-in's endpoints.
+func serveForm(t *testing.T, container *app.Container, path, form string) *httptest.ResponseRecorder {
+	t.Helper()
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, path, strings.NewReader(form))
+	req.Host = "localhost" // the configured public URL's host
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	rec := httptest.NewRecorder()
 	container.Router.ServeHTTP(rec, req)
 	return rec
@@ -594,6 +640,7 @@ func testConfig() *config.Config {
 		RateUserPerMin:     config.DefaultRateUserPerMin,
 		RateIPPerMin:       config.DefaultRateIPPerMin,
 		RateInstancePerMin: config.DefaultRateInstancePerMin,
+		RateRenewalPerMin:  config.DefaultRateRenewalPerMin,
 		DailyTasks:         config.DefaultDailyTasks,
 		DailyFailed:        config.DefaultDailyFailed,
 		DriveTimeout:       config.DefaultDriveTimeout,
@@ -650,6 +697,14 @@ func TestAFloodAtTheSignInDoesNotHoldBackTheLessons(t *testing.T) {
 	lesson := serveOne(t, container, http.MethodPost, "/mcp", `{"jsonrpc":"2.0","id":1,"method":"tools/list"}`)
 	if lesson.Code != http.StatusOK || strings.Contains(lesson.Body.String(), "too many requests") {
 		t.Errorf("a lesson after the flood at the sign-in: status %d, body %s, want it answered", lesson.Code, lesson.Body.String())
+	}
+	// A lesson renews its access at the sign-in's token endpoint every few
+	// minutes, so the flood must not hold that back either. This renewal is
+	// refused for what it carries, which is the endpoint's own answer, not the
+	// instance's pace.
+	renewal := serveForm(t, container, "/oauth/token", "grant_type=refresh_token&refresh_token=spent&client_id=https://client.example/c")
+	if renewal.Code == http.StatusTooManyRequests {
+		t.Errorf("a renewal after the flood at the sign-in: status %d, want it answered by the endpoint", renewal.Code)
 	}
 }
 

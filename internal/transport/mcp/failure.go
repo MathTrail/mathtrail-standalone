@@ -30,6 +30,7 @@ const (
 	kindBehind      = "behind"
 	kindRestored    = "restored"
 	kindNewer       = "newer"
+	kindUnsupported = "unsupported"
 )
 
 // sentenceInternal is what the model is told when something of ours failed
@@ -146,6 +147,15 @@ var failures = []struct {
 		cause:    store.ErrRestored,
 		kind:     kindRestored,
 		sentence: "The child's profile file in the adult's Google Drive was damaged, so MathTrail put it back to its latest earlier version that can be read; anything saved after that version is lost. Tell the adult what happened, then make the same call again.",
+	},
+	{
+		// A newer build's file that no rollout explains: edited by hand, or
+		// left by a version since withdrawn. Waiting will not help; a new start
+		// will, and it keeps the file. Looked for before the rollout below,
+		// which it is a case of.
+		cause:    store.ErrUnsupported,
+		kind:     kindUnsupported,
+		sentence: "The child's profile file in the adult's Google Drive was saved by a version of MathTrail this one cannot read, and has stayed that way for too long to be an update in progress, so nothing was done. Tell the adult. They can restore an earlier version of the file from its version history in Google Drive and then make the same call again, or start a new profile: call save_profile with start_over set to true, a pseudonym and the grade. The old file is kept in Drive, set aside, not deleted.",
 	},
 	{
 		// A rollout under way: the newer build writes a shape this one does

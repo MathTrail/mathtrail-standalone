@@ -37,6 +37,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/drive"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 )
@@ -66,10 +67,10 @@ func setAsideName(day time.Time) string {
 	return "mathtrail-profile set aside " + day.UTC().Format(time.DateOnly) + ".json"
 }
 
-// maxFile is the most of a file that is read as a profile. A profile is kept
-// under 256 KB; four times that leaves room for a file edited by hand, and
+// maxFile is the most of a file that is read as a profile: the most a profile
+// is ever written as, so that whatever the store writes it reads back. It
 // keeps a file that is no profile at all out of memory.
-const maxFile = 1 << 20
+const maxFile = profile.MaxSize
 
 // Settings are what the store is built from.
 type Settings struct {

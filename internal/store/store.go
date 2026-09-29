@@ -38,7 +38,8 @@ var (
 	// profile that breaks a rule, which is never rolled back since a newer
 	// build or the parent may have written it. A file written by a newer
 	// build of the service at a newer version is not corrupted: it is refused
-	// with profile.ErrNewer instead, because waiting is what helps.
+	// with profile.ErrNewer instead — and ErrUnsupported beside it once no
+	// rollout could explain it (RolloutWindow).
 	ErrCorrupted = errors.New("store: the profile cannot be read")
 	// ErrAccessRevoked means the account no longer lets the service reach the
 	// profile: the parent took the permission back. Signing in again is what
@@ -63,6 +64,12 @@ var (
 	// ErrStorageFull means there is no room left where the profile is kept, so
 	// nothing was written.
 	ErrStorageFull = errors.New("store: no room left for the profile")
+	// ErrUnsupported means the profile was written by a newer version of the
+	// service, and not within the time a rollout takes: the file was edited by
+	// hand, or the newer version was withdrawn, and waiting will not help.
+	// Nothing reads or writes it; a new start sets it aside. It wraps the
+	// refusal profile.ErrNewer as well.
+	ErrUnsupported = errors.New("store: the profile was written by a version this one cannot read")
 	// ErrUnavailable means the place the profile is kept did not answer, or
 	// asked for a pause, and went on doing so for as long as a call can wait.
 	// Nothing was written.
@@ -78,7 +85,8 @@ var (
 type Storage interface {
 	// Load reads the account's profile and the revision it was read at.
 	// ErrNotFound means the account has none, ErrCorrupted that it has a file
-	// nothing can read, and profile.ErrNewer that a newer build wrote it. A
+	// nothing can read, and profile.ErrNewer that a newer build wrote it —
+	// with ErrUnsupported beside it once no rollout could explain it. A
 	// store that keeps a file's history may also answer ErrRestored, having
 	// put a damaged file back to its last readable state, or ErrConflict,
 	// having found it changed while it did; and one that keeps a bin,
@@ -103,14 +111,15 @@ type Storage interface {
 	// themselves. The file is the export: there is no second copy of it, and
 	// no format of its own.
 	Export(ctx context.Context, account Account) (Location, error)
-	// StartOver keeps a new profile in place of one nothing can read, which
-	// the parent asked to start again from. The file it replaces is set aside
+	// StartOver keeps a new profile in place of one this build cannot read —
+	// damaged, or of a newer build — which the parent asked to start again
+	// from. The file it replaces is set aside
 	// rather than deleted — it is still there to be found, and no read of the
 	// profile ever takes it for one again — and so is a profile file in the
 	// bin. An account with nothing to set aside is given the new profile as a
 	// first one.
 	//
-	// A profile that can be read is never replaced: StartOver answers
+	// A profile this build can read is never replaced: StartOver answers
 	// ErrConflict and changes nothing, since what the parent was told no
 	// longer holds, and reading again says what does.
 	StartOver(ctx context.Context, account Account, p *profile.Profile) (Revision, error)

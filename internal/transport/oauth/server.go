@@ -30,6 +30,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/cimd"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
+	"github.com/MathTrail/mathtrail-standalone/internal/ratelimit"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 )
 
@@ -52,6 +53,11 @@ type Settings struct {
 	// is configured — a developer's machine — and a sign-in then stops at a
 	// page that says so.
 	Google googleauth.SignIn
+	// Renewals is the pace each account's grant is renewed at Google at,
+	// keyed by the account: a refresh token stays good to its own end, and an
+	// old one carries a Google token past its end, so every use of it would
+	// otherwise be a call to Google.
+	Renewals ratelimit.Limiter
 	// SiteURL is the site the consent screen links the terms and the privacy
 	// policy on: a scheme and a host, with no path and no trailing slash.
 	SiteURL string
@@ -76,6 +82,8 @@ func (s *Settings) validate() error {
 		return fmt.Errorf("%w: Documents must be set", ErrSettings)
 	case s.Logger == nil:
 		return fmt.Errorf("%w: Logger must be set", ErrSettings)
+	case s.Renewals == nil:
+		return fmt.Errorf("%w: Renewals must be set", ErrSettings)
 	case s.Now == nil:
 		return fmt.Errorf("%w: Now must be set", ErrSettings)
 	}
@@ -181,6 +189,7 @@ func New(settings *Settings) (*Server, error) {
 		access:   settings.Seal.For(seal.PurposeAccess),
 		refresh:  settings.Seal.For(seal.PurposeRefresh),
 		google:   settings.Google,
+		renewals: settings.Renewals,
 		events:   events,
 		now:      settings.Now,
 	}

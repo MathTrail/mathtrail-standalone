@@ -27,10 +27,17 @@ const (
 	// Pairs spends it on pairs, the tuples that hold the most memory for every
 	// step they cost.
 	Pairs = "pairs"
+	// Sets spends it on sets, the tables a helper builds, which hold far more
+	// for every element than a list of the same elements.
+	Sets = "sets"
 	// Product spends it multiplying: a hundred thousand steps, and far more
 	// work than a clock of the sandbox allows, since the numbers grow as they
 	// are multiplied. Only the clock stops it.
 	Product = "product"
+	// Dicts spends it writing dictionaries in a loop: memory the language
+	// takes by itself, a step for every dictionary whatever the dictionary
+	// takes, and which no price of the sandbox reaches.
+	Dicts = "dicts"
 )
 
 // MinSteps is the smallest step ceiling the costly solvers are sized for.
@@ -57,6 +64,8 @@ const (
 const (
 	loopTurn   = 10
 	appendTurn = 11
+	// dictTurn is a turn of a comprehension that writes one dictionary.
+	dictTurn = 9
 	// callTurn is a turn of the loop that calls a helper, beside what the
 	// helper charges.
 	callTurn = 14
@@ -95,21 +104,47 @@ var costly = []struct {
 	{Pairs, func(steps uint64) string {
 		return heldWork(fill(steps, widestPairs, pairs), "product(range(size), range(size))")
 	}},
+	{Sets, func(steps uint64) string {
+		return heldWork(fill(steps, maxElements, sets), "set(range(size))")
+	}},
 	{Product, func(uint64) string { return "    prod(range(1, 100001))\n" }},
+	{Dicts, func(steps uint64) string {
+		return fmt.Sprintf("    held = [{} for i in range(%d)]\n", steps/100*aim/dictTurn)
+	}},
 }
 
 // What one call of a helper costs the budget, by the size it is called on:
-// the elements it walks and the values it builds, and the turn of the loop
-// that calls it.
+// the elements it walks, the sequences it opens and the bytes it builds, and
+// the turn of the loop that calls it.
 func summed(size uint64) uint64 { return size + callTurn }
 
-// tuples is a product of the two values repeated width times: the two
-// elements walked, and every value of every tuple.
-func tuples(width uint64) uint64 { return 2 + width<<width + callTurn }
+// tuples is a product of the two values repeated width times: the one
+// sequence opened and its two elements walked, and the tuples built.
+func tuples(width uint64) uint64 {
+	return opened(1) + 2 + built(tuplesOf(1<<width, width)) + callTurn
+}
 
-// pairs is a product of a range with itself: both ranges walked, and two
-// values for every pair.
-func pairs(size uint64) uint64 { return 2*size + 2*size*size + callTurn }
+// pairs is a product of a range with itself: both ranges opened and walked,
+// and a pair built for every two elements.
+func pairs(size uint64) uint64 {
+	return opened(2) + 2*size + built(tuplesOf(size*size, 2)) + callTurn
+}
+
+// sets is a set of a range: the range walked, and a table built with an entry
+// for every element.
+func sets(size uint64) uint64 { return size + built(512+256*size) + callTurn }
+
+// The price of the sandbox, as the solvers are sized to it: what a helper
+// builds costs a step for every sixteen bytes, with a quarter on top.
+func built(bytes uint64) uint64 { return (5*bytes + 63) / 64 }
+
+// tuplesOf is what a list of count tuples of width values takes: the list, and
+// for every tuple its place, its header and its values.
+func tuplesOf(count, width uint64) uint64 { return 32 + count*(40+16*width) }
+
+// opened is what a helper pays for the sequences it is handed, before it
+// reads any of them.
+func opened(sequences uint64) uint64 { return built(64 * sequences) }
 
 // Costly are the names of the costly solvers.
 func Costly() []string {

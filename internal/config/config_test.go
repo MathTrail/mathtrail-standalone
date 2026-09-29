@@ -98,6 +98,7 @@ func TestTheLimitsStartFromTheirDefaults(t *testing.T) {
 		{"RateUserPerMin", cfg.RateUserPerMin, config.DefaultRateUserPerMin},
 		{"RateIPPerMin", cfg.RateIPPerMin, config.DefaultRateIPPerMin},
 		{"RateInstancePerMin", cfg.RateInstancePerMin, config.DefaultRateInstancePerMin},
+		{"RateRenewalPerMin", cfg.RateRenewalPerMin, config.DefaultRateRenewalPerMin},
 		{"DailyTasks", cfg.DailyTasks, config.DefaultDailyTasks},
 		{"DailyFailed", cfg.DailyFailed, config.DefaultDailyFailed},
 	} {
@@ -128,6 +129,7 @@ func TestValuesAreRead(t *testing.T) {
 		"MATHTRAIL_RATE_USER_PER_MIN=31",
 		"MATHTRAIL_RATE_IP_PER_MIN=21",
 		"MATHTRAIL_RATE_INSTANCE_PER_MIN=201",
+		"MATHTRAIL_RATE_RENEWAL_PER_MIN=13",
 		"MATHTRAIL_DAILY_TASKS=21",
 		"MATHTRAIL_DAILY_FAILED=6",
 	})
@@ -171,8 +173,8 @@ func TestValuesAreRead(t *testing.T) {
 	if cfg.DriveTimeout != 3*time.Second {
 		t.Errorf("DriveTimeout = %v, want %v", cfg.DriveTimeout, 3*time.Second)
 	}
-	limits := []int{cfg.RateUserPerMin, cfg.RateIPPerMin, cfg.RateInstancePerMin, cfg.DailyTasks, cfg.DailyFailed}
-	if want := []int{31, 21, 201, 21, 6}; !slices.Equal(limits, want) {
+	limits := []int{cfg.RateUserPerMin, cfg.RateIPPerMin, cfg.RateInstancePerMin, cfg.RateRenewalPerMin, cfg.DailyTasks, cfg.DailyFailed}
+	if want := []int{31, 21, 201, 13, 21, 6}; !slices.Equal(limits, want) {
 		t.Errorf("the limits = %v, want %v, as the environment set them", limits, want)
 	}
 }
@@ -437,6 +439,11 @@ func TestRefusals(t *testing.T) {
 			name:    "an instance that takes nothing",
 			environ: []string{"MATHTRAIL_RATE_INSTANCE_PER_MIN=0"},
 			wantVar: "MATHTRAIL_RATE_INSTANCE_PER_MIN",
+		},
+		{
+			name:    "a grant never renewed at Google",
+			environ: []string{"MATHTRAIL_RATE_RENEWAL_PER_MIN=0"},
+			wantVar: "MATHTRAIL_RATE_RENEWAL_PER_MIN",
 		},
 		{
 			name:    "a day of no task",

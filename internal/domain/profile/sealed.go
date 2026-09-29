@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -23,7 +24,9 @@ const SecretVersion = 1
 //
 // The binding is what the value belongs to, and opening it again requires the
 // same binding: without that, one child's sealed answer would open in another
-// child's profile.
+// child's profile. The binding is made of what the profile itself says, so it
+// holds against a value moved from one file to another, not against a file
+// edited to say what another one says.
 type Sealer interface {
 	Seal(plaintext []byte, binding ...string) (string, error)
 	Open(value string, binding ...string) ([]byte, error)
@@ -58,29 +61,44 @@ type TaskSecret struct {
 }
 
 // SealTask puts the part of the task on the card that gives its answer away
-// beyond reach, tied to this child and this task.
+// beyond reach, tied to this child and this task, as it stands: unanswered,
+// or answered with the letter it was given.
 func (p *Profile) SealTask(sealer Sealer, secret TaskSecret) error {
 	if p.CurrentTask == nil {
 		return ErrNoTask
 	}
-	secret.Version = SecretVersion
-
-	plaintext, err := json.Marshal(secret)
+	value, err := sealSecret(sealer, secret, p.binding())
 	if err != nil {
-		return fmt.Errorf("profile: seal the task: %w", err)
+		return err
 	}
-	sealed, err := sealer.Seal(plaintext, p.binding()...)
-	if err != nil {
-		return fmt.Errorf("profile: seal the task: %w", err)
-	}
-	p.CurrentTask.Sealed = sealed
+	p.CurrentTask.Sealed = value
 	return nil
+}
+
+// sealSecret is a task's secret sealed against a binding.
+func sealSecret(sealer Sealer, secret TaskSecret, binding []string) (string, error) {
+	secret.Version = SecretVersion
+	var plaintext bytes.Buffer
+	encoder := json.NewEncoder(&plaintext)
+	// Escaped for a web page, every <, > and & would take six bytes, and the
+	// sealed value a third more again; nothing sealed is ever put in a page,
+	// and the file carries the value whole.
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(secret); err != nil {
+		return "", fmt.Errorf("profile: seal the task: %w", err)
+	}
+	value, err := sealer.Seal(plaintext.Bytes(), binding...)
+	if err != nil {
+		return "", fmt.Errorf("profile: seal the task: %w", err)
+	}
+	return value, nil
 }
 
 // OpenTask reads that part back. Only an answer to the task opens it — the
 // first, which it judges, and any sent again, which it is told to — so it is
 // never read before the child has answered, while the answer is still a
-// secret.
+// secret. It opens against the task as it stands, so a task the file claims
+// was answered opens only if its answer was recorded here, with that letter.
 func (p *Profile) OpenTask(sealer Sealer) (TaskSecret, error) {
 	if p.CurrentTask == nil {
 		return TaskSecret{}, ErrNoTask
@@ -104,9 +122,25 @@ func (p *Profile) OpenTask(sealer Sealer) (TaskSecret, error) {
 	return secret, nil
 }
 
-// binding is what a sealed task belongs to: this child, and this task of
-// theirs. Moved to another profile or set against another task, it stops
-// opening.
+// answeredMark sets the binding of an answered task apart from that of one
+// still waiting for its answer, whatever the letter.
+const answeredMark = "answered"
+
+// binding is what a sealed task belongs to: this child, this task of theirs,
+// and — once it is answered — the letter it was answered with. Moved to
+// another profile or set against another task, it stops opening; and a task
+// marked answered in the file by anybody but this service stops opening too,
+// so that telling an answer again never tells it before the child has given
+// one.
 func (p *Profile) binding() []string {
-	return []string{p.StudentID, p.CurrentTask.ID}
+	task := p.CurrentTask
+	if task.Answered == nil {
+		return []string{p.StudentID, task.ID}
+	}
+	return answeredBinding(p.StudentID, task.ID, task.Answered.Choice)
+}
+
+// answeredBinding is the binding of a task answered with a letter.
+func answeredBinding(studentID, taskID, choice string) []string {
+	return []string{studentID, taskID, answeredMark, choice}
 }

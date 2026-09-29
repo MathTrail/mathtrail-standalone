@@ -15,6 +15,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/cimd"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth"
+	"github.com/MathTrail/mathtrail-standalone/internal/ratelimit/ratelimittest"
 )
 
 // Whatever a registration sends, it is either registered or refused in the
@@ -148,6 +149,7 @@ func fuzzedServer(f *testing.F) (server *Server, clientID string) {
 		Seal:      ringOf(f, 'k'),
 		Documents: &documents{err: cimd.ErrUnreachable},
 		Logger:    zap.NewNop(),
+		Renewals:  ratelimittest.Roomy(f),
 		Google:    googleStandIn{},
 		SiteURL:   testSite,
 		Now:       func() time.Time { return testDay },
