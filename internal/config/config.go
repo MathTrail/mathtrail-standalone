@@ -61,6 +61,7 @@ const (
 	DefaultRateUserPerMin     = 30
 	DefaultRateIPPerMin       = 20
 	DefaultRateInstancePerMin = 200
+	DefaultRateRenewalPerMin  = 12
 	DefaultDailyTasks         = 20
 	DefaultDailyFailed        = 5
 
@@ -143,6 +144,11 @@ type Config struct {
 	// from everybody together: a fuse against something gone wrong, not a
 	// share of anybody's.
 	RateInstancePerMin int `mapstructure:"MATHTRAIL_RATE_INSTANCE_PER_MIN"`
+	// RateRenewalPerMin is how many times in a minute one account's grant may
+	// be renewed at Google through one instance. A grant needs one renewal
+	// about every hour; the pace is what keeps an old refresh token, used over
+	// and over, from having the service call Google every time.
+	RateRenewalPerMin int `mapstructure:"MATHTRAIL_RATE_RENEWAL_PER_MIN"`
 	// DailyTasks is how many tasks a child may be given in a day.
 	DailyTasks int `mapstructure:"MATHTRAIL_DAILY_TASKS"`
 	// DailyFailed is how many requests of a day may end with the model out of
@@ -268,6 +274,7 @@ func LoadFrom(environ []string) (*Config, error) {
 	v.SetDefault("MATHTRAIL_RATE_USER_PER_MIN", DefaultRateUserPerMin)
 	v.SetDefault("MATHTRAIL_RATE_IP_PER_MIN", DefaultRateIPPerMin)
 	v.SetDefault("MATHTRAIL_RATE_INSTANCE_PER_MIN", DefaultRateInstancePerMin)
+	v.SetDefault("MATHTRAIL_RATE_RENEWAL_PER_MIN", DefaultRateRenewalPerMin)
 	v.SetDefault("MATHTRAIL_DAILY_TASKS", DefaultDailyTasks)
 	v.SetDefault("MATHTRAIL_DAILY_FAILED", DefaultDailyFailed)
 	v.SetDefault("MATHTRAIL_DRIVE_TIMEOUT", DefaultDriveTimeout)
@@ -483,6 +490,7 @@ func (c *Config) validateLimits() error {
 		{"MATHTRAIL_RATE_USER_PER_MIN", c.RateUserPerMin},
 		{"MATHTRAIL_RATE_IP_PER_MIN", c.RateIPPerMin},
 		{"MATHTRAIL_RATE_INSTANCE_PER_MIN", c.RateInstancePerMin},
+		{"MATHTRAIL_RATE_RENEWAL_PER_MIN", c.RateRenewalPerMin},
 		{"MATHTRAIL_DAILY_TASKS", c.DailyTasks},
 		{"MATHTRAIL_DAILY_FAILED", c.DailyFailed},
 	} {

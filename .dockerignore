@@ -7,8 +7,6 @@
 .sonarlint
 .env
 .devcontainer
-prototype
-reference
 docs
 infra
 testdata

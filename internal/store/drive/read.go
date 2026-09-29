@@ -24,17 +24,17 @@ func (s *driveStore) Load(ctx context.Context, account store.Account) (*profile.
 	if err != nil {
 		return nil, "", fmt.Errorf("drivestore: load: %w", err)
 	}
-	p, err := store.Parse(read.raw)
-	if errors.Is(err, store.ErrCorrupted) && read.remembered {
+	p, err := store.ParseAt(read.raw, s.now())
+	if (errors.Is(err, store.ErrCorrupted) || errors.Is(err, profile.ErrNewer)) && read.remembered {
 		// The file this instance remembers may have been set aside by
-		// another since, its damage and all, with a new profile started in
-		// its place: damage is never mended in a file before the marker says
-		// it is still the profile.
+		// another since — damaged, or of a newer build — with a new profile
+		// started in its place: damage is never mended, nor a file told
+		// unreadable, before the marker says it is still the profile.
 		s.ids.forget(account.ID, read.id)
 		if read, err = s.searchAndRead(ctx, parent); err != nil {
 			return nil, "", fmt.Errorf("drivestore: load: %w", err)
 		}
-		p, err = store.Parse(read.raw)
+		p, err = store.ParseAt(read.raw, s.now())
 	}
 	switch {
 	case errors.Is(err, store.ErrCorrupted) && (read.oversized || errors.Is(err, profile.ErrMalformed)):
@@ -139,7 +139,7 @@ func (s *driveStore) caughtUp(ctx context.Context, parent parentsDrive, read fil
 	if err != nil {
 		return nil, fileRead{}, s.refused(parent, read.id, err)
 	}
-	p, err := store.Parse(raw)
+	p, err := store.ParseAt(raw, s.now())
 	if err != nil {
 		return nil, fileRead{}, err
 	}

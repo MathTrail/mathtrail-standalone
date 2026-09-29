@@ -29,7 +29,8 @@ const (
 // The checks run in an order that matters. Until the client is known and the
 // address it gave is one it registered, nothing is sent anywhere: a page says
 // what is wrong, since an address nobody vouched for is the one place a
-// refusal must not lead. From then on the client hears of it at that address.
+// refusal must not lead. From then on the client hears of it at that address
+// — once the parent has approved it there in this browser.
 func (f *flow) authorize(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 
@@ -54,11 +55,27 @@ func (f *flow) authorize(w http.ResponseWriter, r *http.Request) {
 
 	request, refusal := f.requestOf(query, client)
 	if refusal != nil {
-		f.events.authorized(r.Context(), request, query, "refused", refusal.reason)
-		f.sendBack(w, r, refusal.status, request, refused(refusal.code, refusal.description))
+		f.refuse(w, r, request, query, refusal)
 		return
 	}
 	f.begin(w, r, client, request, query)
+}
+
+// refuse answers a request from a known client, at an address it registered,
+// that this server cannot give what it asks for. The client hears why at that
+// address when this browser's parent has approved it there before, or when
+// the address is on the parent's own computer, which sends nobody anywhere
+// else; otherwise the refusal stops at a page too. Anybody may register a
+// client with an address of their own choosing, and a refusal sent there at
+// once — before the parent has seen a screen of this server's — would make a
+// link to this server a way to send a parent anywhere.
+func (f *flow) refuse(w http.ResponseWriter, r *http.Request, request *flight, query url.Values, refusal *refusal) {
+	if !f.approved(r, request) && !toThisComputer(request.RedirectURI) {
+		f.stopAt(w, r, stepAuthorize, stop{http.StatusBadRequest, "request", refusal.code}, refusal.reason)
+		return
+	}
+	f.events.authorized(r.Context(), request, query, "refused", refusal.reason)
+	f.sendBack(w, r, refusal.status, request, refused(refusal.code, refusal.description))
 }
 
 // checkResponse holds a request to what this server answers: a code, with a

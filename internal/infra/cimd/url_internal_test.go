@@ -18,7 +18,7 @@ func TestOnlyAClientAddressIsFetched(t *testing.T) {
 		fetched  bool
 	}{
 		{"claude's own", "https://claude.ai/oauth/mcp-oauth-client-metadata", true},
-		{"with a port", "https://client.example.com:8443/meta.json", true},
+		{"https's own port", "https://client.example.com:443/meta.json", true},
 		{"with a query", "https://client.example.com/meta?v=2", true},
 		{"a literal address", "https://192.0.2.1/meta", true},
 
@@ -34,6 +34,8 @@ func TestOnlyAClientAddressIsFetched(t *testing.T) {
 		{"one dot", "https://client.example.com/./meta", false},
 		{"dots in escapes", "https://client.example.com/%2e%2e/meta", false},
 		{"an escaped slash around dots", "https://client.example.com/a%2F..%2Fmeta", false},
+		{"another port", "https://client.example.com:8443/meta.json", false},
+		{"a port written longer", "https://client.example.com:0443/meta.json", false},
 		{"no host", "https:///meta", false},
 		{"opaque", "https:meta", false},
 		{"not an address", "a client", false},
@@ -80,6 +82,8 @@ func FuzzClientURL(f *testing.F) {
 			t.Fatalf("clientURL(%q) = nil for something that does not parse: %v", clientID, err)
 		case address.Scheme != "https", address.Hostname() == "", address.User != nil:
 			t.Errorf("clientURL(%q) = nil for scheme %q, host %q, user %v", clientID, address.Scheme, address.Hostname(), address.User)
+		case address.Port() != "" && address.Port() != "443":
+			t.Errorf("clientURL(%q) = nil for port %q", clientID, address.Port())
 		case strings.Contains(clientID, "#"), address.Path == "", address.Path == "/", walksThePath(address.Path):
 			t.Errorf("clientURL(%q) = nil for a fragment or a path %q", clientID, address.Path)
 		case len(clientID) > maxClientURL:

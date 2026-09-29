@@ -405,6 +405,19 @@ func serveOne(t *testing.T, container *app.Container, method, path, body string)
 	return rec
 }
 
+// serveForm posts a form to the container's router, as a host's server posts
+// to the sign-in's endpoints.
+func serveForm(t *testing.T, container *app.Container, path, form string) *httptest.ResponseRecorder {
+	t.Helper()
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, path, strings.NewReader(form))
+	req.Host = "localhost" // the configured public URL's host
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rec := httptest.NewRecorder()
+	container.Router.ServeHTTP(rec, req)
+	return rec
+}
+
 // decodeAnswer reads a JSON answer, which has to be a 200.
 func decodeAnswer(t *testing.T, rec *httptest.ResponseRecorder, into any) {
 	t.Helper()
@@ -627,6 +640,7 @@ func testConfig() *config.Config {
 		RateUserPerMin:     config.DefaultRateUserPerMin,
 		RateIPPerMin:       config.DefaultRateIPPerMin,
 		RateInstancePerMin: config.DefaultRateInstancePerMin,
+		RateRenewalPerMin:  config.DefaultRateRenewalPerMin,
 		DailyTasks:         config.DefaultDailyTasks,
 		DailyFailed:        config.DefaultDailyFailed,
 		DriveTimeout:       config.DefaultDriveTimeout,
@@ -683,6 +697,14 @@ func TestAFloodAtTheSignInDoesNotHoldBackTheLessons(t *testing.T) {
 	lesson := serveOne(t, container, http.MethodPost, "/mcp", `{"jsonrpc":"2.0","id":1,"method":"tools/list"}`)
 	if lesson.Code != http.StatusOK || strings.Contains(lesson.Body.String(), "too many requests") {
 		t.Errorf("a lesson after the flood at the sign-in: status %d, body %s, want it answered", lesson.Code, lesson.Body.String())
+	}
+	// A lesson renews its access at the sign-in's token endpoint every few
+	// minutes, so the flood must not hold that back either. This renewal is
+	// refused for what it carries, which is the endpoint's own answer, not the
+	// instance's pace.
+	renewal := serveForm(t, container, "/oauth/token", "grant_type=refresh_token&refresh_token=spent&client_id=https://client.example/c")
+	if renewal.Code == http.StatusTooManyRequests {
+		t.Errorf("a renewal after the flood at the sign-in: status %d, want it answered by the endpoint", renewal.Code)
 	}
 }
 

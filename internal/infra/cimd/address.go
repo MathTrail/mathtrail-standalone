@@ -51,19 +51,37 @@ func public(addr netip.Addr) bool {
 	return true
 }
 
+// mostAddresses is how many of the addresses a name stands for are dialled.
+// The name a client publishes its document under stands for a few, and the
+// resolver puts first the ones this machine can reach; dialling more would
+// only let a stranger's name have the service knock on one address after
+// another of the name's choosing.
+const mostAddresses = 4
+
 // guardedDial connects to a name only through addresses that were checked. It
 // resolves the name itself and refuses the whole name when any of its
 // addresses is not allowed: a name that stands for a public address and a
-// private one is not a public name. Then it dials those addresses, never the
-// name, so that no second lookup can put another address in their place.
+// private one is not a public name. Then it dials the first few of those
+// addresses, never the name, so that no second lookup can put another address
+// in their place.
 //
-// Each address is dialled in an equal share of the time an attempt has, so
-// that one that never answers — an IPv6 route that swallows every packet, say
-// — leaves the ones after it their turn. The share is set here because the
-// request's own deadline does not reach a dial: the HTTP client lets a dial
-// outlive its request, so that a later one may use the connection.
+// Everything it starts is over within the time an attempt has, counted from
+// the moment it is called: the lookup, each dial, and — through the deadline
+// the connection is given — the handshake and whatever is read and written
+// after it. The request's own deadline reaches none of these: the HTTP client
+// lets a dial outlive its request, so that a later one may use the
+// connection, and a server that takes the connection and never says a word
+// would otherwise hold it, and a goroutine with it, for as long as it liked.
+//
+// Each address is dialled in an equal share of the time that is left, so that
+// one that never answers — an IPv6 route that swallows every packet, say —
+// leaves the ones after it their turn.
 func (r reach) guardedDial(within time.Duration) func(ctx context.Context, network, address string) (net.Conn, error) {
 	return func(ctx context.Context, network, address string) (net.Conn, error) {
+		deadline := time.Now().Add(within)
+		ctx, cancel := context.WithDeadline(ctx, deadline)
+		defer cancel()
+
 		host, port, err := net.SplitHostPort(address)
 		if err != nil {
 			return nil, fmt.Errorf("cimd: split the address: %w", err)
@@ -72,15 +90,21 @@ func (r reach) guardedDial(within time.Duration) func(ctx context.Context, netwo
 		if err != nil {
 			return nil, err
 		}
+		addrs = addrs[:min(len(addrs), mostAddresses)]
 
-		share := within / time.Duration(len(addrs))
 		failures := make([]error, 0, len(addrs))
-		for _, addr := range addrs {
+		for i, addr := range addrs {
+			share := time.Until(deadline) / time.Duration(len(addrs)-i)
 			conn, err := r.dialWithin(ctx, network, net.JoinHostPort(addr.Unmap().String(), port), share)
-			if err == nil {
-				return conn, nil
+			if err != nil {
+				failures = append(failures, err)
+				continue
 			}
-			failures = append(failures, err)
+			if err := conn.SetDeadline(deadline); err != nil {
+				_ = conn.Close()
+				return nil, fmt.Errorf("cimd: bound the connection: %w", err)
+			}
+			return conn, nil
 		}
 		return nil, errors.Join(failures...)
 	}

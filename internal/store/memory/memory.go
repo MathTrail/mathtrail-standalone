@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
@@ -28,6 +29,8 @@ type memoryStore struct {
 	// setAside holds the files each account started over from, the earliest
 	// first: set aside rather than deleted, as every store keeps them.
 	setAside map[string][][]byte
+	// now is the clock a file of a newer version is judged by.
+	now func() time.Time
 	// writes counts every write the store has taken and numbers the revision
 	// of each. A number is never handed out twice, so a revision that was
 	// current once cannot come to match a later state.
@@ -49,7 +52,7 @@ var errNoOne = errors.New("an account that names no one")
 
 // New builds a store that holds nothing yet.
 func New() store.Storage {
-	return &memoryStore{files: map[string]file{}, setAside: map[string][][]byte{}}
+	return &memoryStore{files: map[string]file{}, setAside: map[string][][]byte{}, now: time.Now}
 }
 
 // ready is what every operation needs before it looks at anything: a context
@@ -74,7 +77,7 @@ func (m *memoryStore) Load(ctx context.Context, account store.Account) (*profile
 	}
 	// Read outside the lock: the bytes of a file are never changed once kept,
 	// only replaced.
-	p, err := store.Parse(kept.raw)
+	p, err := store.ParseAt(kept.raw, m.now())
 	if err != nil {
 		return nil, "", fmt.Errorf("memory: load: %w", err)
 	}
@@ -145,9 +148,9 @@ func (m *memoryStore) StartOver(ctx context.Context, account store.Account, p *p
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if kept, found := m.files[account.ID]; found {
-		// A file some build can read — this one, or a newer — is a profile,
-		// and a profile is never replaced.
-		if _, err := store.Parse(kept.raw); !errors.Is(err, store.ErrCorrupted) {
+		// A file this build can read is a profile, and a profile is never
+		// replaced; one of a newer build is set aside for it.
+		if _, err := store.Parse(kept.raw); err == nil {
 			return "", fmt.Errorf("memory: start over: %w: the profile can be read", store.ErrConflict)
 		}
 		m.setAside[account.ID] = append(m.setAside[account.ID], kept.raw)

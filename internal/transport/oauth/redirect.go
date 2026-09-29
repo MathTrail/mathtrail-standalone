@@ -1,6 +1,7 @@
 package oauthserver
 
 import (
+	"net/netip"
 	"net/url"
 	"strconv"
 	"strings"
@@ -29,15 +30,92 @@ func redirectable(uri string) bool {
 	case "https":
 		return true
 	case "http":
-		return loopbackHost(address.Hostname())
+		return plainLoopback(address.Hostname())
 	}
 	return false
 }
 
-// loopbackHost reports whether a host is the computer the browser runs on. A
-// name is compared without regard to case, as names are.
-func loopbackHost(host string) bool {
+// plainLoopback reports whether a host is one a sign-in may send the parent
+// back to over plain http: the parent's own computer, by one of the three
+// names a client listening there gives it — localhost, in any case, as names
+// are compared, 127.0.0.1 or ::1.
+func plainLoopback(host string) bool {
 	return strings.EqualFold(host, "localhost") || host == "127.0.0.1" || host == "::1"
+}
+
+// toThisComputer reports whether an address sends the parent back to the
+// computer their browser runs on, however the address names it: as written,
+// or as IDNA spells it for a browser to look up, which reads a name or an
+// address in full-width letters and digits as the one in ASCII.
+func toThisComputer(uri string) bool {
+	address, err := url.Parse(uri)
+	if err != nil {
+		return false
+	}
+	host := address.Hostname()
+	spelled, isSpelled := asciiHost(host)
+	return loopbackHost(host) || isSpelled && loopbackHost(spelled)
+}
+
+// loopbackHost reports whether a host is the computer the browser runs on: an
+// address of the loopback, or the unspecified one that reaches the same
+// computer, however it is written — a browser reads 127.1 and 2130706433 as
+// 127.0.0.1 — or the name localhost or a name under it, which a browser
+// answers with the loopback itself, in any case and with or without the dot
+// that ends a name.
+func loopbackHost(host string) bool {
+	if addr, isAddress := addressOf(host); isAddress {
+		addr = addr.Unmap()
+		return addr.IsLoopback() || addr.IsUnspecified()
+	}
+	name := strings.ToLower(strings.TrimSuffix(host, "."))
+	return name == "localhost" || strings.HasSuffix(name, ".localhost")
+}
+
+// addressOf is the address a browser reads a host as, when it reads it as one:
+// IPv6 as written, and IPv4 in any form a browser takes — one to four
+// numbers, each in decimal, in octal behind a 0 or in hexadecimal behind 0x,
+// the last filling the bytes the ones before it leave.
+func addressOf(host string) (netip.Addr, bool) {
+	if strings.Contains(host, ":") {
+		addr, err := netip.ParseAddr(host)
+		return addr, err == nil
+	}
+	parts := strings.Split(strings.TrimSuffix(host, "."), ".")
+	if len(parts) > 4 {
+		return netip.Addr{}, false
+	}
+	var address uint64
+	for i, part := range parts {
+		number, isNumber := ipv4Number(part)
+		last := i == len(parts)-1
+		switch {
+		case !isNumber, !last && number > 255, last && number >= 1<<(8*(5-len(parts))):
+			return netip.Addr{}, false
+		case last:
+			address += number
+		default:
+			address += number << (8 * (3 - i))
+		}
+	}
+	return netip.AddrFrom4([4]byte{byte(address >> 24), byte(address >> 16), byte(address >> 8), byte(address)}), true
+}
+
+// ipv4Number reads one part of an IPv4 address as a browser does: decimal, or
+// octal behind a 0, or hexadecimal behind 0x, where 0x alone is zero.
+func ipv4Number(part string) (uint64, bool) {
+	base := 10
+	switch {
+	case len(part) >= 2 && (part[:2] == "0x" || part[:2] == "0X"):
+		part, base = part[2:], 16
+		if part == "" {
+			return 0, true
+		}
+	case len(part) >= 2 && part[0] == '0':
+		part, base = part[1:], 8
+	}
+	number, err := strconv.ParseUint(part, base, 32)
+	return number, err == nil
 }
 
 // asciiHost is a host name spelled as IDNA spells it for a browser to look

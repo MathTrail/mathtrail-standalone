@@ -1,8 +1,13 @@
 package cimd
 
 import (
+	"context"
+	"errors"
+	"net"
 	"net/netip"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/leanovate/gopter"
 	"github.com/leanovate/gopter/gen"
@@ -138,4 +143,67 @@ func anyOf(values []string) []interface{} {
 		out = append(out, value)
 	}
 	return out
+}
+
+// An address the HTTP client hands the dial without a port is refused before
+// its name is looked up: nothing about it is known to be a client's.
+func TestAnAddressWithNoPortIsNotLookedUp(t *testing.T) {
+	t.Parallel()
+
+	var lookups atomic.Int32
+	dial := reach{
+		resolve: func(context.Context, string) ([]netip.Addr, error) {
+			lookups.Add(1)
+			return []netip.Addr{netip.MustParseAddr("192.0.2.1")}, nil
+		},
+		allowed: public,
+		dial:    (&net.Dialer{}).DialContext,
+	}.guardedDial(time.Second)
+
+	if conn, err := dial(t.Context(), "tcp", "client.example.com"); conn != nil || err == nil {
+		t.Errorf("guardedDial() = %v, %v; want a refusal", conn, err)
+	}
+	if got := lookups.Load(); got != 0 {
+		t.Errorf("%d lookups, want none", got)
+	}
+}
+
+// A connection that will not take the deadline of its attempt is not used: it
+// would be a connection nothing bounds, which is what the deadline is for. It
+// is closed, and the dial refused.
+func TestAConnectionThatWillNotTakeItsDeadlineIsClosed(t *testing.T) {
+	t.Parallel()
+
+	ours, theirs := net.Pipe()
+	t.Cleanup(func() { _ = theirs.Close() })
+	stubborn := &unbounded{Conn: ours}
+	dial := reach{
+		resolve: func(context.Context, string) ([]netip.Addr, error) {
+			return []netip.Addr{netip.MustParseAddr("192.0.2.1")}, nil
+		},
+		allowed: public,
+		dial:    func(context.Context, string, string) (net.Conn, error) { return stubborn, nil },
+	}.guardedDial(time.Second)
+
+	conn, err := dial(t.Context(), "tcp", "client.example.com:443")
+	if conn != nil || err == nil {
+		t.Errorf("guardedDial() = %v, %v; want a refusal", conn, err)
+	}
+	if !stubborn.closed.Load() {
+		t.Error("the connection that would not take its deadline was left open")
+	}
+}
+
+// unbounded is a connection that will not take a deadline, and says whether it
+// was closed.
+type unbounded struct {
+	net.Conn
+	closed atomic.Bool
+}
+
+func (*unbounded) SetDeadline(time.Time) error { return errors.New("no deadline taken") }
+
+func (c *unbounded) Close() error {
+	c.closed.Store(true)
+	return c.Conn.Close()
 }

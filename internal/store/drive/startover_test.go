@@ -12,6 +12,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/drive/drivetest"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
+	"github.com/MathTrail/mathtrail-standalone/internal/store/storetest"
 )
 
 // setAsideFile is the one file of the account's Drive that was set aside, or
@@ -116,6 +117,28 @@ func TestAnInstanceThatRemembersTheFileSetAsideReadsTheNewProfile(t *testing.T) 
 	}
 	if aside := f.setAsideFile(t, miaToken); !bytes.Equal(aside.Content, damage) {
 		t.Errorf("the file set aside holds %s, want the damage it held", aside.Content)
+	}
+}
+
+// An instance that remembers a newer build's file another has set aside
+// searches again, as it does for a damaged one, and reads the new profile
+// rather than telling the set-aside file to wait.
+func TestAnInstanceThatRemembersANewerFileSetAsideReadsTheNewProfile(t *testing.T) {
+	t.Parallel()
+
+	f := newFixture(t, 5*time.Second)
+	f.create(t, mia, child("Mia"))
+	other := f.instance(t, 5*time.Second)
+	f.loaded(t, other, mia)
+	plant(t, f.fake, miaToken, storetest.NewerFile(moment))
+	fresh := child("Mia anew")
+	if _, err := f.storage.StartOver(t.Context(), mia, fresh); err != nil {
+		t.Fatalf("StartOver() over a newer build's file error = %v, want nil", err)
+	}
+
+	got, _ := f.loaded(t, other, mia)
+	if file := fileOf(t, got); !bytes.Equal(file, fileOf(t, fresh)) {
+		t.Errorf("Load() by the instance that remembered the newer file =\n%s\nwant the new profile", file)
 	}
 }
 
@@ -281,15 +304,36 @@ func TestAFileTooLargeIsStartedOver(t *testing.T) {
 	}
 }
 
-// A file beside the damaged profile that reads is a profile too: a new start
-// sets the damage aside and leaves it as it is, for the parent to find.
+// A file beside the damaged profile that some build reads — this one, or a
+// newer — is a profile too: a new start sets the damage aside and leaves it as
+// it is, for the parent to find.
 func TestANewStartLeavesAReadableFileBesideTheDamage(t *testing.T) {
 	t.Parallel()
+
+	for _, tc := range []struct {
+		name  string
+		older []byte
+	}{
+		{"this build's", fileOf(t, child("Mia restored from the bin"))},
+		{"a newer build's", storetest.NewerFile(moment)},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			newStartBeside(t, tc.older)
+		})
+	}
+}
+
+// newStartBeside starts over from a damaged profile with an older file that
+// reads beside it, and holds the older file to being left a profile.
+func newStartBeside(t *testing.T, content []byte) {
+	t.Helper()
 
 	f := newFixture(t, 5*time.Second)
 	older := f.fake.Put(miaToken, &drivetest.File{
 		Name: "mathtrail-profile (1).json", MimeType: fileType, AppProperties: maps.Clone(profileMarker),
-		Content: fileOf(t, child("Mia restored from the bin")), ModifiedTime: moment.Add(-24 * time.Hour),
+		Content: content, ModifiedTime: moment.Add(-24 * time.Hour),
 	})
 	f.fake.Put(miaToken, &drivetest.File{
 		Name: fileName, MimeType: fileType, AppProperties: maps.Clone(profileMarker), Content: damage,

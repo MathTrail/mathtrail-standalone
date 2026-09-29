@@ -12,6 +12,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth/googletest"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
+	"github.com/MathTrail/mathtrail-standalone/internal/ratelimit/ratelimittest"
 )
 
 // day is a day, as the lifetimes of a sign-in count them.
@@ -347,4 +348,35 @@ func TestARefreshRefusedForItsHeaderIsARefreshInItsLine(t *testing.T) {
 		http.Header{"Authorization": {"Basic " + base64.StdEncoding.EncodeToString([]byte(url.QueryEscape(client)+":"))}})
 
 	wantRefused(t, h, &answer, http.StatusUnauthorized, "invalid_client", eventAuthRefresh, "invalid_client")
+}
+
+// An old refresh token used over and over renews the grant at Google each
+// time, since the Google token it carries has ended; the account's pace of
+// renewals holds that back. Past the pace a renewal is refused as a pause the
+// host waits out, Google is not called, and the pace reached leaves one line,
+// which names the account by its user identifier alone.
+func TestRenewalsAtGoogleAreHeldToTheAccountsPace(t *testing.T) {
+	t.Parallel()
+
+	h := newSignIn(t)
+	h.server.tokens.renewals = ratelimittest.Keyed(t, 1)
+	client := h.register(hostRedirect, hostName)
+	_, refresh := h.tokensFor(t, client)
+	h.clock.advance(time.Hour)
+
+	if first := h.renew(t, refresh, client, nil); first.status != http.StatusOK {
+		t.Fatalf("the first renewal: POST /oauth/token = %d %v, want new tokens", first.status, first.fields)
+	}
+	again := h.renew(t, refresh, client, nil)
+	wantRefused(t, h, &again, http.StatusServiceUnavailable, "temporarily_unavailable", eventAuthRefresh, "renewal_rate")
+	if got := again.header.Get("Retry-After"); got != "60" {
+		t.Errorf("Retry-After = %q, want the minute a renewal of this pace takes to come back", got)
+	}
+	if got := h.google.Renewals(); got != 1 {
+		t.Errorf("Google renewed the grant %d times, want 1", got)
+	}
+	user := h.ring.UserID("google-sub:" + googletest.Subject)
+	if lines := h.lines(eventLimitHit); len(lines) != 1 || lines[0]["limit"] != limitRenewals || lines[0]["user"] != user {
+		t.Errorf("limit_hit lines = %v, want one naming %s and the user %s", lines, limitRenewals, user)
+	}
 }

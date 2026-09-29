@@ -13,6 +13,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/drive/drivetest"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
+	"github.com/MathTrail/mathtrail-standalone/internal/store/storetest"
 	mcpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/mcp"
 )
 
@@ -320,4 +321,43 @@ func TestANewStartTheStoreCouldNotMakeIsToldSo(t *testing.T) {
 	wantOurSentence(t, call(t, session, "save_profile", startOver("Otter", 2)), "Google Drive is not answering at the moment")
 	h.settle()
 	wantFailed(t, h, "save_profile", "drive_unavailable")
+}
+
+// A file a newer version wrote is waited for while an update in progress could
+// explain it, and once none could, it is told as a version this one cannot
+// read, with the new start offered. The adult may start over from it either
+// way, and it is set aside, whole.
+func TestAFileOfANewerVersionIsWaitedForThenStartedOverFrom(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name       string
+		writtenAgo time.Duration
+		told       string
+	}{
+		{"written a moment ago", time.Minute, "saved by a newer version of MathTrail"},
+		{"written a day ago", 24 * time.Hour, "for too long to be an update in progress"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			fake := drivetest.New(t)
+			newer := storetest.NewerFile(time.Now().Add(-tc.writtenAgo))
+			fake.Put(googleToken, &drivetest.File{
+				Name: "mathtrail-profile.json", MimeType: "application/json", AppProperties: maps.Clone(profileMarker), Content: newer,
+			})
+			d := instanceOverDrive(t, fake)
+
+			if text := textOf(t, call(t, d.session, "get_profile", map[string]any{})); !strings.Contains(text, tc.told) {
+				t.Errorf("get_profile over the newer file = %q, want it told as %q", text, tc.told)
+			}
+			started := call(t, d.session, "save_profile", startOver("Otter", 2))
+			if text := textOf(t, started); started.IsError || !strings.HasPrefix(text, "A new profile is started.") {
+				t.Fatalf("save_profile with start_over = %q, want a new profile started", text)
+			}
+			if aside := setAsideIn(fake); len(aside) != 1 || !bytes.Equal(aside[0], newer) {
+				t.Errorf("the files set aside hold %q, want the newer file as it was", aside)
+			}
+		})
+	}
 }

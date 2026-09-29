@@ -143,5 +143,5 @@ func NewHandler(settings *Settings, tools ...Tool) (http.Handler, error) {
 			MaxRequestBodyBytes: maxRequestBody,
 		},
 	)
-	return neverStored(settings.SignIn(protocol)), nil
+	return neverStored(settings.SignIn(oneMessage(protocol))), nil
 }

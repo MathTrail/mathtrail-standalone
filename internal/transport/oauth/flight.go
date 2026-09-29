@@ -20,11 +20,14 @@ const (
 	// Google, may disagree.
 	clockSkew = 60 * time.Second
 
-	// csrfCookie ties a sign-in to the browser that began it.
-	csrfCookie = "mt_csrf"
-	// cookiePath is where the sign-in's cookies are sent: its own endpoints,
-	// and nowhere else.
-	cookiePath = "/oauth"
+	// csrfCookie ties a sign-in to the browser that began it. Its name
+	// carries the prefix a browser keeps for a cookie this host set itself,
+	// over https and for the whole host: no other site — not even one under
+	// the same domain — can then set a cookie of that name in its place.
+	csrfCookie = "__Host-mt_csrf"
+	// cookiePath is where the sign-in's cookies are sent: the whole host, the
+	// one path the prefix allows.
+	cookiePath = "/"
 	// cookieBytes is how many random bytes the cookie is made of.
 	cookieBytes = 32
 )

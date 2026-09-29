@@ -5,15 +5,19 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"errors"
+	"fmt"
+	"math"
 	"net/http"
 	"net/url"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/oauthex"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth"
+	"github.com/MathTrail/mathtrail-standalone/internal/ratelimit"
 )
 
 // tokens issues the tokens a host holds for a sign-in, renews them, ends the
@@ -29,6 +33,7 @@ type tokens struct {
 	access   sealer
 	refresh  sealer
 	google   googleauth.SignIn
+	renewals ratelimit.Limiter
 	events   *signInLog
 	now      func() time.Time
 }
@@ -81,6 +86,9 @@ func (t *tokens) serveToken(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		failure, end := failureOf(err)
 		end.user = s.user
+		if paced := new(*renewalPaced); errors.As(err, paced) {
+			w.Header().Set("Retry-After", strconv.Itoa(max(1, int(math.Ceil((*paced).after.Seconds())))))
+		}
 		t.events.granted(r.Context(), event, registration, form, &end)
 		writeRefusal(w, t.issuer, failure)
 		return
@@ -102,9 +110,13 @@ func (t *tokens) serveToken(w http.ResponseWriter, r *http.Request) {
 // it was asked for.
 func (t *tokens) sessionOfCode(form url.Values) (*session, *refusal) {
 	clientID, verifier := form.Get("client_id"), form.Get("code_verifier")
-	if form.Get("code") == "" || clientID == "" || verifier == "" {
+	switch {
+	case form.Get("code") == "" || clientID == "" || verifier == "":
 		return nil, &refusal{http.StatusBadRequest, "invalid_request",
 			"code, code_verifier and client_id are required", "invalid_request"}
+	case !isVerifier(verifier):
+		return nil, &refusal{http.StatusBadRequest, "invalid_request",
+			fmt.Sprintf("code_verifier is %d to %d letters, digits and -._~", shortestVerifier, longestVerifier), "invalid_pkce"}
 	}
 	var code grantCode
 	if err := t.openAs(t.codes, form.Get("code"), &code); err != nil {
@@ -183,6 +195,10 @@ func failureOf(err error) (*refusal, ending) {
 	case errors.Is(err, googleauth.ErrGrantEnded):
 		return invalidGrant("the parent's access at Google has ended: sign in again", "grant_ended"),
 			ending{outcome: "refused", reason: "grant_ended"}
+	case errors.As(err, new(*renewalPaced)):
+		return &refusal{http.StatusServiceUnavailable, "temporarily_unavailable",
+				"this sign-in was renewed at Google too often in a short time: try again after the time Retry-After gives", "renewal_rate"},
+			ending{outcome: "refused", reason: "renewal_rate"}
 	case googleUnavailable(err):
 		return &refusal{http.StatusServiceUnavailable, "temporarily_unavailable",
 				"Google did not answer: try again later", "google_unavailable"},
@@ -228,6 +244,35 @@ func otherResource(resource string) *refusal {
 func within(asked, granted string) bool {
 	given := strings.Fields(granted)
 	return !slices.ContainsFunc(strings.Fields(asked), func(word string) bool { return !slices.Contains(given, word) })
+}
+
+// The lengths a verifier may be (RFC 7636 4.1).
+const (
+	shortestVerifier = 43
+	longestVerifier  = 128
+)
+
+// isVerifier reports whether a value is a verifier as RFC 7636 makes one:
+// letters, digits and the four marks of an address that need no escape, and
+// long enough to be no guess. A host whose verifier is shorter has only
+// itself to blame when its code is stolen, but it is told rather than given
+// tokens on the strength of it.
+func isVerifier(value string) bool {
+	if len(value) < shortestVerifier || len(value) > longestVerifier {
+		return false
+	}
+	for _, c := range value {
+		if !unreserved(c) {
+			return false
+		}
+	}
+	return true
+}
+
+// unreserved reports whether a character is one an address carries without an
+// escape: a letter, a digit, or one of - . _ ~ (RFC 3986 2.3).
+func unreserved(c rune) bool {
+	return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || '0' <= c && c <= '9' || strings.ContainsRune("-._~", c)
 }
 
 // challengeOf is the S256 challenge of a verifier (RFC 7636 4.2).

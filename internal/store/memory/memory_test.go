@@ -28,6 +28,7 @@ func TestTheStoreInMemoryKeepsTheContract(t *testing.T) {
 				t.Helper()
 				return memory.SetAside(t, s, account)
 			},
+			Now: time.Now,
 		}
 	})
 }

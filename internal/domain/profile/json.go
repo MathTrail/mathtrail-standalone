@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 )
 
 // The refusals of Parse. A caller branches on them with errors.Is, because
@@ -36,6 +37,34 @@ const indent = "  "
 // leftovers carried along for ever.
 func Parse(raw []byte) (*Profile, error) { return parse(raw, migrations) }
 
+// NewerError is a file a later version of the service wrote: which version,
+// and when the file says it was last written. A rollout is over in minutes, so
+// the moment is what tells a rollout under way from a file edited by hand or
+// a newer version withdrawn. It is zero when the file does not say, in a form
+// this build reads. It is ErrNewer to errors.Is.
+type NewerError struct {
+	Version   int
+	WrittenAt time.Time
+}
+
+// Error says which version wrote the file, and which this build reads.
+func (e *NewerError) Error() string {
+	return fmt.Sprintf("%s: version %d, this service reads %d", ErrNewer, e.Version, Version)
+}
+
+// Is makes a newer file ErrNewer to errors.Is.
+func (e *NewerError) Is(target error) bool { return target == ErrNewer }
+
+// writtenAt is the moment an updated_at says, or zero when it says none this
+// build reads.
+func writtenAt(raw json.RawMessage) time.Time {
+	var at Time
+	if len(raw) == 0 || json.Unmarshal(raw, &at) != nil {
+		return time.Time{}
+	}
+	return at.Time
+}
+
 // parse is Parse with the chain of migrations handed in, so that a test can
 // walk a chain this shape of the file has never needed without reaching into
 // a variable every other test is reading at the same time.
@@ -44,7 +73,8 @@ func parse(raw []byte, chain map[int]migration) (*Profile, error) {
 	// alone: deciding whether this shape can be read at all comes before
 	// reading it into this shape.
 	var header struct {
-		SchemaVersion *int `json:"schema_version"`
+		SchemaVersion *int            `json:"schema_version"`
+		UpdatedAt     json.RawMessage `json:"updated_at"`
 	}
 	if err := json.Unmarshal(raw, &header); err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrMalformed, err)
@@ -54,7 +84,7 @@ func parse(raw []byte, chain map[int]migration) (*Profile, error) {
 	}
 	switch version := *header.SchemaVersion; {
 	case version > Version:
-		return nil, fmt.Errorf("%w: version %d, this service reads %d", ErrNewer, version, Version)
+		return nil, &NewerError{Version: version, WrittenAt: writtenAt(header.UpdatedAt)}
 	case version < Version:
 		migrated, err := migrate(raw, version, chain)
 		if err != nil {
@@ -67,11 +97,20 @@ func parse(raw []byte, chain map[int]migration) (*Profile, error) {
 	if err := json.Unmarshal(raw, &p); err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrMalformed, err)
 	}
-	if err := p.Validate(); err != nil {
+	// A file is read only with room in every count for one more, so that
+	// whatever the next step adds can be written: a count at the most, set
+	// there by hand, would otherwise make every write after it fail.
+	if err := p.validate(mostCount - 1); err != nil {
 		return nil, err
 	}
 	return &p, nil
 }
+
+// MaxSize is the most a profile may be as a file. A store reads no more than
+// this back, so none is ever written larger: a file the store could not read
+// again would be taken for damage and rolled back. The caps keep a profile far
+// below it, which leaves room for a file edited by hand.
+const MaxSize = 1 << 20
 
 // Marshal writes the profile as the file it is: indented, with the keys of
 // every object in order, and with nothing escaped that a person would then
@@ -91,6 +130,9 @@ func Marshal(p *Profile) ([]byte, error) {
 
 	if err := encoder.Encode(p); err != nil {
 		return nil, fmt.Errorf("profile: write: %w", err)
+	}
+	if out.Len() > MaxSize {
+		return nil, fmt.Errorf("%w: the file would be %d bytes, and a profile is at most %d", ErrInvalid, out.Len(), MaxSize)
 	}
 	return out.Bytes(), nil
 }

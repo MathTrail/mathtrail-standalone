@@ -15,6 +15,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
+	"github.com/MathTrail/mathtrail-standalone/internal/ratelimit/ratelimittest"
 )
 
 // genRedirect produces an address a sign-in may send the parent back to.
@@ -102,12 +103,15 @@ func (g renewingGoogle) Refresh(_ context.Context, refreshToken string) (googlea
 
 // issuingAt is the part of a server that issues a host's tokens, at testDay,
 // over the ring given and with the Google given.
-func issuingAt(ring *seal.KeyRing, google googleauth.SignIn) *tokens {
+func issuingAt(t testing.TB, ring *seal.KeyRing, google googleauth.SignIn) *tokens {
+	t.Helper()
+
 	return &tokens{
 		issuer: testIssuer, resource: testIssuer + "/mcp", scope: "mcp",
 		clients: &clients{registrations: ring.For(seal.PurposeClient), issuer: testIssuer},
 		codes:   ring.For(seal.PurposeCode), access: ring.For(seal.PurposeAccess), refresh: ring.For(seal.PurposeRefresh),
-		google: google, events: &signInLog{logger: zap.NewNop()}, now: func() time.Time { return testDay },
+		google: google, renewals: ratelimittest.Roomy(t), events: &signInLog{logger: zap.NewNop()},
+		now: func() time.Time { return testDay },
 	}
 }
 
@@ -137,7 +141,7 @@ func TestIssuedTokensEndInTime(t *testing.T) {
 	// answers access taken back.
 	properties.Property("an access token ends within fifteen minutes, and early enough that a request it lets in reaches Drive before the Google token inside it ends", prop.ForAll(
 		func(googleLeft, renewedFor int64) bool {
-			grants := issuingAt(ring, renewingGoogle{now: testDay, lifetime: time.Duration(renewedFor) * time.Second})
+			grants := issuingAt(t, ring, renewingGoogle{now: testDay, lifetime: time.Duration(renewedFor) * time.Second})
 			given, err := grants.issue(t.Context(), aSession("a-user", "a-client", 0, time.Duration(googleLeft)*time.Second))
 			if err != nil {
 				return errors.Is(err, errShortGrant)
@@ -155,7 +159,7 @@ func TestIssuedTokensEndInTime(t *testing.T) {
 
 	properties.Property("no token outlives the ninety days of its sign-in, and a refresh token lasts thirty at most", prop.ForAll(
 		func(signedInAgo int64) bool {
-			grants := issuingAt(ring, googleStandIn{})
+			grants := issuingAt(t, ring, googleStandIn{})
 			signedIn := time.Duration(signedInAgo) * time.Second
 			sessionEnd := testDay.Add(-signedIn).Unix() + int64(sessionLifetime/time.Second)
 			given, err := grants.issue(t.Context(), aSession("a-user", "a-client", signedIn, time.Hour))
@@ -184,7 +188,7 @@ func TestIssuedTokensCarryTheirSession(t *testing.T) {
 
 	properties.Property("the tokens handed out carry the session they were issued for", prop.ForAll(
 		func(user, client string, signedInAgo int64) bool {
-			grants := issuingAt(ring, googleStandIn{})
+			grants := issuingAt(t, ring, googleStandIn{})
 			issuedFor := aSession(user, client, time.Duration(signedInAgo)*time.Second, time.Hour)
 			given, err := grants.issue(t.Context(), issuedFor)
 			if err != nil {

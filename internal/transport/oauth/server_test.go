@@ -17,6 +17,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/cimd"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
+	"github.com/MathTrail/mathtrail-standalone/internal/ratelimit/ratelimittest"
 	oauthserver "github.com/MathTrail/mathtrail-standalone/internal/transport/oauth"
 )
 
@@ -59,6 +60,7 @@ func settings(t *testing.T) (*oauthserver.Settings, *observer.ObservedLogs) {
 		Seal:      keyRing(t),
 		Documents: noDocuments{},
 		Logger:    zap.New(core),
+		Renewals:  ratelimittest.Roomy(t),
 		SiteURL:   site,
 		Now:       func() time.Time { return someDay },
 	}, logs
@@ -112,6 +114,7 @@ func TestAServerWithSomethingMissingIsRefused(t *testing.T) {
 		{"no key ring", func(s *oauthserver.Settings) { s.Seal = nil }, "Seal"},
 		{"no documents", func(s *oauthserver.Settings) { s.Documents = nil }, "Documents"},
 		{"no logger", func(s *oauthserver.Settings) { s.Logger = nil }, "Logger"},
+		{"no pace of renewals", func(s *oauthserver.Settings) { s.Renewals = nil }, "Renewals"},
 		{"no clock", func(s *oauthserver.Settings) { s.Now = nil }, "Now"},
 		{"no issuer", func(s *oauthserver.Settings) { s.PublicURL = "" }, "PublicURL"},
 		{"an issuer with a path", func(s *oauthserver.Settings) { s.PublicURL = issuer + "/tenant" }, "PublicURL"},

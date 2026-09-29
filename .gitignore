@@ -1,9 +1,3 @@
-# Reference copies of other repositories: read-only material, never committed.
-/reference/
-
-# Local copy of the prototype repository: reference material only, never committed.
-/prototype/
-
 # Planning documents: reference material for the author, deleted once no longer needed.
 /PRODUCT-V1.md
 /docs/prototype/

@@ -17,6 +17,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth/googletest"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
+	"github.com/MathTrail/mathtrail-standalone/internal/ratelimit/ratelimittest"
 )
 
 // An access token signs a request to the resource in as the account the
@@ -205,7 +206,7 @@ func (h *signIn) serverUnder(t *testing.T, current, previous string) *Server {
 	}
 	server, err := New(&Settings{
 		PublicURL: h.served.URL, Scope: "mcp", Seal: ringOfKeys(t, current, previous), Documents: h.documents,
-		Logger: zap.NewNop(), Google: google, SiteURL: testSite, Now: h.clock.Now,
+		Logger: zap.NewNop(), Renewals: ratelimittest.Roomy(t), Google: google, SiteURL: testSite, Now: h.clock.Now,
 	})
 	if err != nil {
 		t.Fatalf("New() error = %v, want nil", err)

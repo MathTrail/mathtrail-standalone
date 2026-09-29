@@ -2,6 +2,7 @@ package cimd
 
 import (
 	"errors"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -17,6 +18,16 @@ func claudeLike(clientID string) string {
 		`"redirect_uris":["https://claude.ai/api/mcp/auth_callback"],` +
 		`"grant_types":["authorization_code","refresh_token","urn:ietf:params:oauth:grant-type:jwt-bearer"],` +
 		`"response_types":["code"],"token_endpoint_auth_method":"none"}`
+}
+
+// listing is a document of the client's that lists as many addresses to send
+// the parent back to as asked.
+func listing(redirects int) string {
+	uris := make([]string, redirects)
+	for i := range uris {
+		uris[i] = `"https://a.example/cb` + strconv.Itoa(i) + `"`
+	}
+	return `{"client_id":"` + clientAt + `","client_name":"A","redirect_uris":[` + strings.Join(uris, ",") + `]}`
 }
 
 // A document is read as the client's only when it keeps every rule a client
@@ -35,6 +46,7 @@ func TestADocumentIsTheClientsOnlyWhenItKeepsTheRules(t *testing.T) {
 		{"an empty secret", `{"client_id":"` + clientAt + `","client_name":"A","redirect_uris":["https://a.example/cb"],"client_secret":""}`, false},
 		{"signed in with a key", `{"client_id":"` + clientAt + `","client_name":"A","redirect_uris":["https://a.example/cb"],` +
 			`"token_endpoint_auth_method":"private_key_jwt","jwks_uri":"https://a.example/jwks"}`, true},
+		{"as many redirects as a client may list", listing(mostRedirectURIs), true},
 
 		{"another client's", claudeLike("https://client.example.com/oauth/other"), false},
 		{"a client named in another case", claudeLike(strings.ToUpper(clientAt)), false},
@@ -42,6 +54,7 @@ func TestADocumentIsTheClientsOnlyWhenItKeepsTheRules(t *testing.T) {
 		{"a blank name", `{"client_id":"` + clientAt + `","client_name":" ","redirect_uris":["https://a.example/cb"]}`, false},
 		{"no redirect", `{"client_id":"` + clientAt + `","client_name":"A"}`, false},
 		{"an empty redirect list", `{"client_id":"` + clientAt + `","client_name":"A","redirect_uris":[]}`, false},
+		{"more redirects than a client may list", listing(mostRedirectURIs + 1), false},
 		{"a redirect that is not a string", `{"client_id":"` + clientAt + `","client_name":"A","redirect_uris":[1]}`, false},
 		{"a secret", `{"client_id":"` + clientAt + `","client_name":"A","redirect_uris":["https://a.example/cb"],"client_secret":"s"}`, false},
 		{"a secret's end", `{"client_id":"` + clientAt + `","client_name":"A","redirect_uris":["https://a.example/cb"],"client_secret_expires_at":0}`, false},
@@ -103,7 +116,8 @@ func FuzzDocument(f *testing.F) {
 		if err != nil {
 			return
 		}
-		if document.ClientID != clientAt || strings.TrimSpace(document.ClientName) == "" || len(document.RedirectURIs) == 0 {
+		if document.ClientID != clientAt || strings.TrimSpace(document.ClientName) == "" ||
+			len(document.RedirectURIs) == 0 || len(document.RedirectURIs) > mostRedirectURIs {
 			t.Errorf("parseDocument(%q) = %+v, want it refused", body, document)
 		}
 	})
