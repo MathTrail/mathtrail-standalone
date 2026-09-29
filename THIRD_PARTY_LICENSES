@@ -93,7 +93,7 @@ page of that version in the npm registry.
 
 MIT           @modelcontextprotocol/client@2.1.0             https://www.npmjs.com/package/@modelcontextprotocol/client/v/2.1.0
 MIT           @modelcontextprotocol/core@2.1.0               https://www.npmjs.com/package/@modelcontextprotocol/core/v/2.1.0
-MIT           @modelcontextprotocol/ext-apps@2.0.0           https://www.npmjs.com/package/@modelcontextprotocol/ext-apps/v/2.0.0
+MIT           @modelcontextprotocol/ext-apps@2.0.3           https://www.npmjs.com/package/@modelcontextprotocol/ext-apps/v/2.0.3
 MIT           @standard-schema/spec@1.1.0                    https://www.npmjs.com/package/@standard-schema/spec/v/1.1.0
 MIT           cross-spawn@7.0.6                              https://www.npmjs.com/package/cross-spawn/v/7.0.6
 MIT           eventsource-parser@3.1.1                       https://www.npmjs.com/package/eventsource-parser/v/3.1.1
