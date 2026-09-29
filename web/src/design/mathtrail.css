@@ -1,0 +1,671 @@
+/* The components of the approved design. Every colour, radius and family is
+   a token, defined once for the widget, the site and the pages the service
+   renders. Sides are logical — start and end, block and inline — so that a
+   language written right to left mirrors the card without a rule of its own;
+   the one physical side is the drawing's, which never mirrors. */
+.mt,
+.mt * {
+	box-sizing: border-box;
+}
+.mt {
+	font-family: var(--font-sans);
+	color: var(--text);
+	-webkit-font-smoothing: antialiased;
+}
+.mt button,
+.mt input {
+	font-family: inherit;
+}
+.mt-vh {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+	border: 0;
+}
+.mt button:focus-visible,
+.mt a:focus-visible,
+.mt-diagram:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
+/* What takes the focus only to be read from — a result, a note — shows no
+   ring: it is not a control. */
+.mt [tabindex="-1"]:focus {
+	outline: none;
+}
+.mt-icon {
+	display: block;
+	flex-shrink: 0;
+}
+@keyframes mt-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+.mt-spin {
+	animation: mt-spin 0.9s linear infinite;
+	transform-origin: 50% 50%;
+}
+@media (prefers-reduced-motion: reduce) {
+	.mt-spin {
+		animation: none;
+	}
+}
+
+/* Widget card */
+.mt-widget {
+	border: 1px solid var(--border);
+	border-radius: var(--radius-widget);
+	overflow: hidden;
+	background: var(--surface);
+	color: var(--text);
+	width: 100%;
+}
+
+/* Buttons. A hover colour is kept to what a pointer can hover: on a touch
+   screen it would stay on after the tap. */
+.mt-btn {
+	height: 44px;
+	padding-inline: 14px;
+	border: 1px solid var(--border-strong);
+	border-radius: var(--radius-control);
+	background: var(--band);
+	color: var(--text);
+	font-size: 14px;
+	line-height: 20px;
+	font-weight: 500;
+	white-space: nowrap;
+	cursor: pointer;
+}
+.mt-btn[aria-expanded="true"] {
+	background: var(--pressed-fill);
+	border-color: var(--pressed-border);
+}
+.mt-btn:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+/* A button locked for the moment an answer is checked looks as it did: the
+   moment is short, and a card that dimmed for it would flicker. */
+.mt-btn[aria-disabled="true"] {
+	cursor: default;
+}
+.mt-btn-primary {
+	padding-inline: 16px;
+	border-color: var(--accent-fill);
+	background: var(--accent-fill);
+	color: var(--on-accent);
+	font-weight: 600;
+}
+.mt-btns {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+@media (hover: hover) {
+	.mt-btn:hover:not(:disabled, [aria-disabled="true"]) {
+		background: var(--hover);
+	}
+	.mt-btn-primary:hover:not(:disabled, [aria-disabled="true"]) {
+		background: var(--accent-fill);
+		filter: brightness(1.08);
+	}
+}
+
+/* Options */
+.mt-options {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	min-width: 0;
+}
+.mt-options legend {
+	padding: 0;
+	padding-block-end: 8px;
+	font-size: 13px;
+	line-height: 18px;
+	font-weight: 600;
+	color: var(--text-muted);
+}
+.mt-options-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.mt-option {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	min-height: 48px;
+	margin: 0;
+	padding-block: 8px;
+	padding-inline: 10px 12px;
+	border-radius: var(--radius-card);
+	position: relative;
+	cursor: pointer;
+	border: 1px solid var(--border);
+	background: var(--surface);
+	text-align: start;
+	width: 100%;
+	font: inherit;
+	color: inherit;
+}
+.mt-option[aria-disabled="true"] {
+	cursor: default;
+}
+@media (hover: hover) {
+	.mt-option[data-state="default"]:not([aria-disabled="true"]):hover {
+		border-color: var(--border-strong);
+		background: var(--hover);
+	}
+}
+.mt-option-letter {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	flex-shrink: 0;
+	border: 1px solid var(--letter-border);
+	border-radius: var(--radius-control);
+	background: var(--letter-fill);
+	font-size: 13px;
+	line-height: 16px;
+	font-weight: 600;
+	color: var(--letter-text);
+}
+/* An option's text wraps anywhere rather than push the card wider: a long
+   number has no place to break. */
+.mt-option-value {
+	flex-grow: 1;
+	min-width: 0;
+	overflow-wrap: anywhere;
+	font-size: 16px;
+	line-height: 22px;
+	font-weight: 500;
+	color: var(--text);
+}
+.mt-option-status {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	flex-shrink: 0;
+	font-size: 13px;
+	line-height: 18px;
+	font-weight: 600;
+	white-space: nowrap;
+}
+.mt-option[data-state="selected"] {
+	border-color: var(--accent);
+	background: var(--accent-tint);
+	box-shadow: inset 0 0 0 1px var(--accent);
+}
+.mt-option[data-state="selected"] .mt-option-letter {
+	border-color: var(--accent-fill);
+	background: var(--accent-fill);
+	color: var(--on-accent);
+}
+.mt-option[data-state="selected"] .mt-option-status {
+	color: var(--accent);
+}
+.mt-option[data-state="correct"] {
+	cursor: default;
+	border-color: var(--correct);
+	background: var(--correct-tint);
+	box-shadow: inset 0 0 0 1px var(--correct);
+}
+.mt-option[data-state="correct"] .mt-option-letter {
+	border-color: var(--correct);
+	background: var(--correct);
+	color: var(--on-signal);
+}
+.mt-option[data-state="correct"] .mt-option-status {
+	color: var(--correct);
+}
+.mt-option[data-state="wrong"] {
+	cursor: default;
+	border-color: var(--wrong);
+	background: var(--wrong-tint);
+	box-shadow: inset 0 0 0 1px var(--wrong);
+}
+.mt-option[data-state="wrong"] .mt-option-letter {
+	border-color: var(--wrong);
+	background: var(--wrong);
+	color: var(--on-signal);
+}
+.mt-option[data-state="wrong"] .mt-option-status {
+	color: var(--wrong);
+}
+.mt-option[data-state="muted"] {
+	cursor: default;
+}
+.mt-option[data-state="muted"] .mt-option-letter {
+	border-color: var(--border);
+	background: var(--surface);
+	color: var(--text-muted);
+}
+.mt-option[data-state="muted"] .mt-option-value {
+	color: var(--text-muted);
+}
+
+/* Reply field */
+.mt-field {
+	display: flex;
+	align-items: center;
+	height: 44px;
+	border: 1px solid var(--border-strong);
+	border-radius: var(--radius-control);
+	background: var(--surface);
+	padding-inline-start: 12px;
+}
+.mt-field:focus-within {
+	border-color: var(--accent);
+	box-shadow: 0 0 0 1px var(--accent);
+}
+.mt-field[data-disabled="true"] {
+	opacity: 0.5;
+}
+.mt-field input {
+	flex-grow: 1;
+	min-width: 0;
+	height: 40px;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	font-size: 15px;
+	color: var(--text);
+	outline: none;
+}
+.mt-field input::placeholder {
+	color: var(--text-muted);
+	opacity: 1;
+}
+.mt-icon-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 42px;
+	flex-shrink: 0;
+	padding: 0;
+	border: 0;
+	border-radius: var(--radius-control);
+	background: transparent;
+	color: var(--text-muted);
+	cursor: pointer;
+}
+.mt-icon-btn:disabled {
+	cursor: default;
+}
+@media (hover: hover) {
+	.mt-icon-btn:hover:not(:disabled) {
+		background: var(--hover);
+	}
+}
+
+/* Thread bar. A long pseudonym gives way to the way to the progress, ending
+   in an ellipsis. */
+.mt-bar {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	min-height: 44px;
+	padding-block: 6px;
+	padding-inline: 12px 10px;
+	border: 0;
+	border-block-end: 1px solid var(--border);
+	background: var(--surface);
+	color: var(--text);
+	text-align: start;
+	cursor: pointer;
+}
+@media (hover: hover) {
+	.mt-bar:hover {
+		background: var(--hover);
+	}
+}
+.mt-bar-back {
+	gap: 6px;
+	padding-inline: 10px 12px;
+	font-size: 14px;
+	line-height: 20px;
+	font-weight: 500;
+}
+.mt-bar-name {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: 14px;
+	line-height: 20px;
+	font-weight: 600;
+	white-space: nowrap;
+}
+.mt-bar-action {
+	margin-inline-start: auto;
+	font-size: 13px;
+	line-height: 18px;
+	font-weight: 500;
+	color: var(--text-muted);
+	white-space: nowrap;
+}
+.mt-bar .mt-chevron {
+	color: var(--text-muted);
+}
+[dir="rtl"] .mt-chevron {
+	transform: scaleX(-1);
+}
+
+/* Message header */
+.mt-head {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-height: 56px;
+	padding-block: 6px;
+	padding-inline: 12px;
+	background: var(--band);
+	border-block-end: 1px solid var(--border);
+}
+.mt-head-compact {
+	min-height: 52px;
+	padding-block: 4px;
+}
+.mt-head-text {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
+	flex-grow: 1;
+	min-width: 0;
+}
+.mt-head-line {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	column-gap: 8px;
+	row-gap: 2px;
+	max-width: 100%;
+}
+.mt-head-wide .mt-head-text {
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+	column-gap: 8px;
+}
+.mt-head-compact .mt-head-text {
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+	column-gap: 8px;
+	row-gap: 2px;
+}
+.mt-name {
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: 14px;
+	line-height: 20px;
+	font-weight: 600;
+	color: var(--text);
+	white-space: nowrap;
+}
+.mt-meta {
+	font-size: 13px;
+	line-height: 18px;
+	color: var(--text-muted);
+	white-space: nowrap;
+}
+
+/* Badge */
+.mt-badge {
+	display: inline-block;
+	max-width: 100%;
+	height: 20px;
+	padding-inline: 8px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	border: 1px solid var(--border-strong);
+	border-radius: var(--radius-pill);
+	font-size: 12px;
+	line-height: 18px;
+	font-weight: 500;
+	color: var(--badge-text);
+	white-space: nowrap;
+}
+
+/* Body blocks */
+.mt-body {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 16px;
+}
+.mt-wide .mt-body {
+	padding: 20px;
+}
+.mt-task-text {
+	margin: 0;
+	font-size: 16px;
+	line-height: 24px;
+	color: var(--text);
+	overflow-wrap: break-word;
+	text-wrap: pretty;
+}
+/* The drawing is always laid out left to right, so its alignment is the one
+   physical side in the card. */
+.mt-diagram {
+	margin: 0;
+	padding: 10px 12px;
+	background: var(--code);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-control);
+	font-family: var(--font-mono);
+	font-size: 14px;
+	line-height: 20px;
+	color: var(--text);
+	overflow-x: auto;
+	white-space: pre;
+	text-align: left;
+}
+
+/* Notes */
+.mt-note {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 10px 12px;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-control);
+	background: var(--band);
+	margin: 0;
+}
+.mt-note-label {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 13px;
+	line-height: 18px;
+	font-weight: 600;
+	color: var(--text-muted);
+}
+.mt-note p {
+	margin: 0;
+	font-size: 15px;
+	line-height: 22px;
+	color: var(--text);
+	overflow-wrap: break-word;
+}
+.mt-note-hint {
+	border-color: var(--hint-border);
+	background: var(--hint-tint);
+}
+.mt-note-hint .mt-note-label {
+	color: var(--hint-text);
+}
+.mt-note-trap {
+	border-color: var(--trap-border);
+	background: var(--wrong-tint);
+}
+.mt-note-trap .mt-note-label {
+	color: var(--wrong);
+}
+.mt-note-plain {
+	gap: 2px;
+}
+
+/* Verdict */
+.mt-verdict-line {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	margin: 0;
+	font-size: 16px;
+	line-height: 24px;
+	font-weight: 600;
+	color: var(--text);
+	overflow-wrap: break-word;
+}
+.mt-verdict-line .mt-icon {
+	margin-block-start: 2px;
+}
+
+/* Solution steps */
+.mt-steps {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.mt-section-label {
+	margin: 0;
+	font-size: 13px;
+	line-height: 18px;
+	font-weight: 600;
+	color: var(--text-muted);
+}
+.mt-steps ol {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.mt-steps li {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	font-size: 15px;
+	line-height: 22px;
+	color: var(--text);
+	overflow-wrap: break-word;
+}
+.mt-step-num {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	flex-shrink: 0;
+	border: 1px solid var(--border-strong);
+	border-radius: var(--radius-pill);
+	background: var(--band);
+	font-size: 12px;
+	line-height: 16px;
+	font-weight: 600;
+	color: var(--letter-text);
+}
+
+/* Replies. The list is on the page before anything is in it, so that a screen
+   reader hears each reply as it arrives; empty, it takes no room. */
+.mt-replies {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 12px;
+	border-block-start: 1px solid var(--border);
+}
+.mt-replies:empty {
+	padding: 0;
+	border-block-start: 0;
+}
+.mt-wide .mt-replies {
+	padding: 16px;
+}
+.mt-wide .mt-replies:empty {
+	padding: 0;
+}
+.mt-reply {
+	margin-inline-start: 16px;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-card);
+	overflow: hidden;
+	background: var(--surface);
+}
+.mt-wide .mt-reply {
+	margin-inline-start: 44px;
+}
+.mt-reply-body {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 12px;
+}
+.mt-wide .mt-reply-body {
+	padding: 16px;
+}
+.mt-reply-body > p {
+	margin: 0;
+	font-size: 15px;
+	line-height: 22px;
+	color: var(--text);
+	overflow-wrap: break-word;
+}
+.mt-reply-body > p.mt-reply-lead {
+	font-size: 16px;
+	line-height: 24px;
+}
+
+/* Footer */
+.mt-foot {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 12px;
+	border-block-start: 1px solid var(--border);
+}
+.mt-wide .mt-foot {
+	padding: 16px;
+}
+
+/* Waiting: the title the waiting screen opens with. */
+.mt-gen {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+.mt-gen-title {
+	margin: 0;
+	font-size: 15px;
+	line-height: 22px;
+	font-weight: 600;
+	color: var(--text);
+}
+
+/* Right to left: scripts written that way sit taller on their lines. */
+.mt-rtl {
+	line-height: normal;
+}
+.mt-rtl .mt-task-text {
+	line-height: 26px;
+}
+.mt-rtl .mt-reply-body > p,
+.mt-rtl .mt-steps li,
+.mt-rtl .mt-note p {
+	line-height: 24px;
+}

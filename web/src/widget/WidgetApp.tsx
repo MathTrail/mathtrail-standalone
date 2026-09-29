@@ -1,7 +1,9 @@
 import { useEffect, useLayoutEffect, useMemo, useState } from "preact/hooks";
 import type { Words } from "../i18n/words";
-import type { Bridge } from "./bridge";
+import type { Bridge, Host } from "./bridge";
+import { readHandedTask } from "./payload";
 import { StubCard } from "./StubCard";
+import { TaskCard } from "./TaskCard";
 import { cardWords, type Key, languageChosenIn, WordsContext } from "./words";
 
 /**
@@ -9,7 +11,7 @@ import { cardWords, type Key, languageChosenIn, WordsContext } from "./words";
  * language the parent chose for the cards or, when they chose none, of the
  * host's. Until the first result arrives it draws nothing.
  */
-export function WidgetApp({ bridge }: { bridge: Bridge }) {
+export function WidgetApp({ bridge, host }: { bridge: Bridge; host: Host }) {
 	const result = useBridge(bridge, latestResult);
 	const hostLocale = useBridge(bridge, localeOfHost);
 	const words = useMemo(
@@ -22,9 +24,20 @@ export function WidgetApp({ bridge }: { bridge: Bridge }) {
 	}
 	return (
 		<WordsContext.Provider value={words}>
-			<StubCard payload={result.structuredContent} />
+			<Screen payload={result.structuredContent} host={host} />
 		</WordsContext.Provider>
 	);
+}
+
+// Screen is the screen a payload draws. A task handed to the child draws its
+// card, a new card for each task; a screen not drawn yet shows its payload as
+// it arrived.
+function Screen({ payload, host }: { payload: unknown; host: Host }) {
+	const handed = useMemo(() => readHandedTask(payload), [payload]);
+	if (handed === undefined) {
+		return <StubCard payload={payload} />;
+	}
+	return <TaskCard key={handed.task.id} handed={handed} host={host} />;
 }
 
 const latestResult = (bridge: Bridge) => bridge.result();

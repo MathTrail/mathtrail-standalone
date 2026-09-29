@@ -1178,10 +1178,10 @@ One resource, six screens, and the payload says which — `structuredContent.scr
 |---|---|
 | Record an answer | `callServerTool("submit_answer", …)` — the result comes back to the widget, and the card turns to `result`. "I don't know" is recorded the same way, with `answer: "?"` (R93) |
 | Show the progress | `callServerTool("read_progress")`, from the line at the top of the card; it only reads, and its payload — the same as `get_progress`'s — carries the profile's fields the progress screen shows, so one call draws the whole screen (R91). It carries no `ui.resourceUri` and is hidden from the model, so no host has a card to draw for it (R97) |
-| Ask for the next task | `sendMessage` (`ui/message`) — only the model can write a task |
+| Ask for the next task | `sendMessage` (`ui/message`) — only the model can write a task. The card turns to the waiting screen at once and then sends the button's own label, in the card's language, as the child's message (R131) |
 | Ask a question about the task | `sendMessage` with the child's words; the model answers in the chat under the card, and the card keeps a note that the question was sent (R91). Asked before the child has answered, the question gets help but never the answer: the model's instructions keep the answer back until the child has answered, whatever the child asks |
 | Edit the profile | `sendMessage` asking for it; the model changes the profile with `save_profile` (R91) |
-| Tell the model what happened | `updateModelContext` after an answer — one line, no conversation turn spent |
+| Tell the model what happened | `updateModelContext` after an answer — one line, no conversation turn spent: which task, which choice, whether it was right and the right option (R131) |
 | Fit its card | `sendSizeChanged` when the content's height changes |
 
 It calls no other tool: the answer is the one thing it writes, and the rest it only reads. No `requestDisplayMode` — a task card is an inline card. No `openLink`, no `downloadFile`. The hint needs no call at all: it arrives with the task and is revealed locally, and the fact that it was opened travels with the answer (03-flows).
@@ -1197,13 +1197,13 @@ The app context arrives at startup and again on every change (`ui/notifications/
 | `locale` | The dictionary (8.6) | `en-US` on web and phone |
 | `theme` | Light or dark | `dark` on web, `light` on the phone — it follows the device, not the account |
 | `displayMode` | Layout; `inline` is the only one v1 designs for | `inline` |
-| `containerDimensions` | The layout's width | 736 px on web, 353 px on the phone |
-| `safeAreaInsets` | Padding under a notch | All zeros for an inline card |
-| `styles` | The host's own CSS variables, so the card looks native | `light-dark(…)` variables |
+| `containerDimensions` | Nothing: the card measures its own width, which is the container's, and takes the wide layout from 640 px (R131) | 736 px on web, 353 px on the phone |
+| `safeAreaInsets` | The page's padding — the screen's own sides, not mirrored for a language written right to left (R131) | All zeros for an inline card |
+| `styles` | Nothing: the approved design's palette and fonts decide (R89), and the host decides only light or dark (R131) | `light-dark(…)` variables |
 | `timeZone` | Nothing yet — see below | IANA format |
 | `toolInfo` | Debugging only: the whole tool definition, `_meta` included | — |
 
-The layout works from **320 px** and never scrolls horizontally (PRODUCT 4.2); 353 px is what a real phone gave us, so the margin is thin and is tested rather than assumed.
+The layout works from **320 px** and never scrolls horizontally (PRODUCT 4.2); 353 px is what a real phone gave us, so the margin is thin and is tested rather than assumed. The `platform` the host names is not read either: the card follows its own width, and keeps hover colours to pointers that can hover (R131).
 
 `timeZone` is the field that answers an open question from 03-flows: the daily counters roll over at a UTC midnight because the server has no idea where the family is, and the host has been telling the widget all along. v1 keeps UTC — the counters are cost ceilings and nothing is displayed from them (R13) — but if that ever changes, the timezone does not need asking for.
 
@@ -1217,7 +1217,7 @@ The one thing text mode must never do is improvise the missing pieces: the answe
 
 Strings are never baked into a component; they are looked up by key (PRODUCT 4.2).
 
-- **Format** — one flat JSON object per locale, `web/locales/<tag>.json`, the file named by its tag as `Intl.Locale` writes it (`pt`, `zh-Hans`). Keys are in dot notation, the first word the screen or the speaker the words belong to (`task.hint`, `result.wrong`, `waiting.step.readability`, `rank.3`). Placeholders are named in lowercase letters: `{count}`, `{grade}`, `{topic}`. A number put into one is written the way the language writes numbers, through `Intl.NumberFormat`.
+- **Format** — one flat JSON object per locale, `web/locales/<tag>.json`, the file named by its tag as `Intl.Locale` writes it (`pt`, `zh-Hans`). Keys are in dot notation, the first word the screen or the speaker the words belong to (`task.hint`, `result.wrong`, `waiting.step.readability`, `rank.3`). Placeholders are named in lowercase letters: `{count}`, `{grade}`, `{topic}`. A number put into one is written the way the language writes numbers, through `Intl.NumberFormat` — a rating alone with no separator between its thousands, 1573, as chess writes one, in the language's digits (R131).
 - **Plurals** — `Intl.PluralRules` with the CLDR categories, so a key that varies by number is a small object naming exactly the categories its language has — `{"one": "…", "few": "…", "many": "…", "other": "…"}` in Russian, `{"one": "…", "other": "…"}` in English — and the text is chosen by the placeholder `{count}`. Dates, when a screen shows one, go through `Intl.DateTimeFormat`. No i18n library, no ICU parser: the platform has all three.
 - **Where they live** — inside the single HTML file, all of them. The widget has no network (8.1), so a dictionary it does not already hold is a dictionary it can never fetch. At roughly 2.5 KB of JSON per locale, twenty-odd locales are around 50 KB before compression, which the budget of one embedded file absorbs. If that stops being true, the escape is to inline one locale per resource read rather than to give the widget a network.
 - **Lookup** — the languages wanted, most wanted first: the one the parent chose for the cards, when a payload carries it, then the host's `locale` (7.5). Each is tried with its full tag (`pt-BR`), then shorter (`pt`), then with the script its language is usually written in, so that the `zh-CN` a host sends finds `zh-Hans` — but never cut past its script, so that `zh-TW` is not given the simplified characters a bare `zh` stands for. The first dictionary found is spoken, and `en` when there is none. A language no tag names is never tried: a host in Kazakh gets English, not Russian, however many who read the one read the other, and an undetermined `und-RU` gets English too (R129). A missing key falls back the same way — the dictionary's shorter tag in its script, then `en` — and, in a development build and in the widget's tests, fails loudly; so does a placeholder left empty, and a plural key given no count.
@@ -1232,9 +1232,9 @@ The list is a starting point chosen by number of speakers and by where a parent 
 
 ## 8.8 Right to left
 
-`ar`, `fa` and `ur` are written right to left, so the widget sets `dir="rtl"` on the document for them and lays out with logical CSS properties — `margin-inline-start`, `padding-inline-end`, `text-align: start` — rather than left and right. The direction is read from the script the dictionary's tag names or its language is usually written in — Arabic, Hebrew, Thaana and the other scripts written right to left — not from a list of languages, so a dictionary added later is laid out right with no code. With it the document gets `lang`, the dictionary's tag, so that a screen reader reads the card in the language its words are in (R129).
+`ar`, `fa` and `ur` are written right to left, so the widget sets `dir="rtl"` on the document for them and lays out with logical CSS properties — `margin-inline-start`, `padding-inline-end`, `text-align: start` — rather than left and right. The direction is read from the script the dictionary's tag names or its language is usually written in — Arabic, Hebrew, Thaana and the other scripts written right to left — not from a list of languages, so a dictionary added later is laid out right with no code. With it the document gets `lang`, the dictionary's tag, so that a screen reader reads the card in the language its words are in (R129). The task's own words — its question, options, hint, trap and solution — are in the language the task was written in, and carry that tag and its direction themselves (R131).
 
-One exception matters more than the rest: **the text drawing is always laid out left to right**, inside a `<pre dir="ltr">`. A monospace picture of a number line or a balance is a grid of characters whose meaning is positional; mirroring it turns a correct drawing into a wrong one. The wording around it is mirrored, the picture is not.
+One exception matters more than the rest: **the text drawing is always laid out left to right**, inside a `<pre dir="ltr">`. A monospace picture of a number line or a balance is a grid of characters whose meaning is positional; mirroring it turns a correct drawing into a wrong one. The wording around it is mirrored, the picture is not. A drawing wider than the card is never wrapped or shrunk: it scrolls sideways inside its own frame, which the keyboard can reach, while the page itself never scrolls sideways (R131).
 
 ## 8.9 Server-rendered pages
 
@@ -1275,8 +1275,8 @@ The widget and the site are drawn in `draft/ui/mathtrail-site/`, a static export
 |---|---|
 | `TaskWidget` | The whole card and its screens; `WidgetApp` in `web/` |
 | `ThreadBar` | The line at the top: the child's pseudonym and "Profile & progress", or "Back to task" |
-| `MessageHeader`, `Badge`, `Mark`, `Avatar` | Who speaks — MathTrail or the child — with the grade as a badge |
-| `OptionList`, `OptionRow` | The five answers as radio buttons with their letters (R90), in the states default, selected (checking), correct, wrong and muted |
+| `MessageHeader`, `Badge`, `Mark`, `Avatar` | Who speaks — MathTrail or the child — with the grade as a badge; no `⋯` button, and the end padding that made room for it is the start's (remark 40) |
+| `OptionList`, `OptionRow` | The five answers as buttons with their letters (R90), in the states default, selected (checking), correct, wrong and muted — buttons rather than the export's radio inputs, whose arrow keys would give an answer by moving through them (R131) |
 | `Diagram` | The text drawing, `<pre dir="ltr">` (8.8) |
 | `Note` | A plain, hint or trap note |
 | `Verdict`, `SolutionSteps`, `ReplyCard` | The result, told below the task |
@@ -1292,9 +1292,10 @@ The widget and the site are drawn in `draft/ui/mathtrail-site/`, a static export
 - a question asked in the card is answered in the chat under it, not inside the card, and the card keeps a note that it was sent (R91); the site's demo answers inside the card and says it is an illustration;
 - the waiting screen's steps carry no numbers — no "120 cases" — and move on a timer (R92);
 - the demo marks an answer after a fixed pause; the widget marks it when `submit_answer` returns;
+- the export's solution is a list of steps; a task's is one text, and the card numbers its sentences (R132);
 - React 18 in `assets/vendor/` is how the export runs; the widget is Preact (О-13), and the site is built by the same toolchain (T66).
 
-**What the export does not draw**, and is drawn with its components and in its style before the author sees it: the first sign-in, the trial series (N of 5), the rating in the topic before and after an answer, the daily limit, three failed attempts, and the widget in a language written right to left.
+**What the export does not draw**, and is drawn with its components and in its style before the author sees it: the first sign-in, the trial series (N of 5), the rating in the topic before and after an answer, the daily limit, three failed attempts, and the widget in a language written right to left. The rating in the topic before and after an answer, and the trial series in its place, are drawn with T55 as a plain note under the solution (R131).
 
 ---
 
@@ -1695,11 +1696,11 @@ Added with the MCP endpoint (T41):
 
 Added with the widget build (T42):
 
-38. **A host may keep the widget's page by its address.** The widget is served at one fixed address, `ui://mathtrail/app.html` (8.1), whatever build it came from. ChatGPT's guide for app servers asks for the identifier to be versioned whenever the HTML, the script or the styles change in a way that could break a copy it keeps, and Claude has not been seen either way. Until the screens exist the page is a stub that shows any payload, so nothing breaks yet; from the first screen on, a host that kept last release's page would draw this release's payload with last release's widget. Versioning the address — a hash of the page in it, written into both the resource and the tools that draw a card — would change 8.1 and is the author's to decide. **For:** T55, which brings the first screen; T62 and T63, which can see what each host keeps.
+38. **A host may keep the widget's page by its address.** The widget is served at one fixed address, `ui://mathtrail/app.html` (8.1), whatever build it came from. ChatGPT's guide for app servers asks for the identifier to be versioned whenever the HTML, the script or the styles change in a way that could break a copy it keeps, and Claude has not been seen either way. Until the screens exist the page is a stub that shows any payload, so nothing breaks yet; from the first screen on, a host that kept last release's page would draw this release's payload with last release's widget. Versioning the address — a hash of the page in it, written into both the resource and the tools that draw a card — would change 8.1 and is the author's to decide. **For:** T55, which brings the first screen; T62 and T63, which can see what each host keeps. **Seen in T55:** the first screen reads its payload strictly, so a page kept from an earlier release shows a payload it cannot read as it arrived — never an answer, which no payload carries. The author left versioning the address to what T62 and T63 see each host keep (R131).
 
 Added with the design (R89):
 
-40. **The card's header has a "More options" button that opens nothing.** The export draws a `⋯` button on every message header, with a menu nobody has described. Until something belongs in it — reporting a bad task, perhaps — the widget leaves it out rather than showing a button that does nothing. **For:** T55.
+40. **The card's header has a "More options" button that opens nothing.** The export draws a `⋯` button on every message header, with a menu nobody has described. Until something belongs in it — reporting a bad task, perhaps — the widget leaves it out rather than showing a button that does nothing. **For:** T55. **Answered in T55:** the header draws no `⋯` button, and the end padding that made room for it is now the start's.
 41. **The letters on the buttons meet the letters in the drawings again.** R90 brings back what R70 had ended: a drawing that labels its points `A`–`E` above buttons marked with the same letters. The live runs are where a child's confusion would show. **For:** T58, T62.
 42. **A tool's schemas say "or null" in a form some clients misread.** The protocol library derives every schema from the Go type, and writes a field that may be null — an argument left out, a payload's `last_answer`, `trial` or `overall`, every list — as `"type": ["null", …]`. That is valid JSON Schema, but MCP Inspector 2.7 warns that several MCP clients read `type` as a single string and either reject the tool or drop the constraint; it counts 44 such places across the four tools of T43, and offers `anyOf` with one type in each branch instead. Whether Claude and ChatGPT are among those clients is not written anywhere; the live runs are where it shows. If one of them is, the frame rewrites the derived schemas into the `anyOf` form in one place, for every tool. **Claude is not among them** (T43's live run, 2026-09-27, Claude on the web with Claude Haiku 4.5 answering): it added the connector, listed the tools and called `get_profile`, `save_profile` twice — with arguments of that form — and `get_progress` over 2026-07-28, every call answered and every card drawn. **For:** T63, where ChatGPT shows whether it is.
 

@@ -25,6 +25,11 @@ test("the widget builds into one page that loads nothing from outside it", async
 		expect(page).not.toMatch(/<script\b[^>]*\bsrc=/);
 		expect(page).not.toMatch(/<link\b[^>]*\bhref=/);
 		expect(page).toContain("ui/initialize");
+		// The design's tokens and components are inside the page too, and no
+		// stylesheet is left to be fetched from anywhere.
+		expect(page).toContain("--surface:");
+		expect(page).toContain(".mt-option");
+		expect(page).not.toContain("@import");
 	} finally {
 		await rm(out, { recursive: true, force: true });
 	}

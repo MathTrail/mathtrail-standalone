@@ -8,7 +8,7 @@ const dictionaries = new Map<string, Dictionary>([
 		"en",
 		{
 			greeting: "Hello, {name}",
-			rating: "Rating {rating}",
+			distance: "Distance {metres} m",
 			times: { one: "{count} time", other: "{count} times" },
 			english: "Only in English",
 		},
@@ -17,7 +17,7 @@ const dictionaries = new Map<string, Dictionary>([
 		"pt",
 		{
 			greeting: "Olá, {name}",
-			rating: "Classificação {rating}",
+			distance: "Distância {metres} m",
 			times: {
 				one: "{count} vez",
 				many: "{count} de vezes",
@@ -37,7 +37,7 @@ const dictionaries = new Map<string, Dictionary>([
 			},
 		},
 	],
-	["de", { rating: "Wertung {rating}" }],
+	["de", { distance: "Entfernung {metres} m" }],
 	["fr", { greeting: "Bonjour, {name}" }],
 	["ar", { greeting: "مرحبا {name}" }],
 ]);
@@ -54,12 +54,12 @@ describe("words", () => {
 	});
 
 	test("write a number the way their language writes it", () => {
-		expect(openWords("de", dictionaries).text("rating", { rating: 1573 })).toBe(
-			"Wertung 1.573",
-		);
-		expect(openWords("en", dictionaries).text("rating", { rating: 1573 })).toBe(
-			"Rating 1,573",
-		);
+		expect(
+			openWords("de", dictionaries).text("distance", { metres: 1573 }),
+		).toBe("Entfernung 1.573 m");
+		expect(
+			openWords("en", dictionaries).text("distance", { metres: 1573 }),
+		).toBe("Distance 1,573 m");
 	});
 
 	test.each([

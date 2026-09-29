@@ -1,4 +1,4 @@
-import type { Transport } from "@modelcontextprotocol/client";
+import type { CallToolResult, Transport } from "@modelcontextprotocol/client";
 import {
 	App,
 	type AppEventMap,
@@ -34,8 +34,36 @@ export type Bridge = {
 	connect(transport?: Transport): Promise<void>;
 };
 
+/**
+ * Host is what a card asks of the chat host it is drawn in: to call one of
+ * the service's tools, to put the child's words in the chat, and to tell the
+ * model what happened on the card.
+ */
+export type Host = {
+	/**
+	 * callTool calls the service's tool name with args, through the host. The
+	 * tool's own failure comes back as a result that says so; a call that never
+	 * reached the tool, or whose answer never came back, rejects.
+	 */
+	callTool(
+		name: string,
+		args: Record<string, unknown>,
+	): Promise<CallToolResult>;
+	/**
+	 * sendMessage puts text in the chat as the child's message, which the model
+	 * answers. It rejects when the host refuses the message or it is lost.
+	 */
+	sendMessage(text: string): Promise<void>;
+	/**
+	 * tellModel gives the model a line to read with the next message in the
+	 * chat, spending no turn of the conversation. Each line replaces the one
+	 * before.
+	 */
+	tellModel(text: string): Promise<void>;
+};
+
 /** openBridge opens the widget's bridge to its host, ready to connect. */
-export function openBridge(): Bridge {
+export function openBridge(): Bridge & Host {
 	// autoResize is written out because the library only assumes it when no
 	// options are passed at all: without it the card never tells the host its
 	// height. strict makes a misuse — a call before the handshake, a one-time
@@ -64,6 +92,7 @@ export function openBridge(): Bridge {
 	// into the context by the time this runs.
 	app.addEventListener("hostcontextchanged", (changed) => {
 		followTheme(changed);
+		followInsets(changed);
 		if (changed.locale !== undefined) {
 			notify();
 		}
@@ -81,8 +110,22 @@ export function openBridge(): Bridge {
 		async connect(transport) {
 			await app.connect(transport);
 			followTheme(app.getHostContext());
+			followInsets(app.getHostContext());
 			// The handshake brings the host's first context, its locale among it.
 			notify();
+		},
+		callTool: (name, args) => app.callServerTool({ name, arguments: args }),
+		async sendMessage(text) {
+			const answer = await app.sendMessage({
+				role: "user",
+				content: [{ type: "text", text }],
+			});
+			if (answer.isError === true) {
+				throw new Error("widget: the host did not take the message");
+			}
+		},
+		async tellModel(text) {
+			await app.updateModelContext({ content: [{ type: "text", text }] });
 		},
 	};
 }
@@ -92,5 +135,22 @@ export function openBridge(): Bridge {
 function followTheme(context: McpUiHostContext | undefined): void {
 	if (context?.theme !== undefined) {
 		applyDocumentTheme(context.theme);
+	}
+}
+
+// followInsets gives the page the room the host keeps at each edge of the
+// screen, as the custom properties --safe-area-top, -right, -bottom and -left
+// the page's padding reads. A change of context names them only when they
+// changed.
+function followInsets(context: McpUiHostContext | undefined): void {
+	const insets = context?.safeAreaInsets;
+	if (insets === undefined) {
+		return;
+	}
+	for (const side of ["top", "right", "bottom", "left"] as const) {
+		document.documentElement.style.setProperty(
+			`--safe-area-${side}`,
+			`${insets[side]}px`,
+		);
 	}
 }

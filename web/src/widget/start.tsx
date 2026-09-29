@@ -12,6 +12,6 @@ export async function start(
 	transport?: Transport,
 ): Promise<void> {
 	const bridge = openBridge();
-	render(<WidgetApp bridge={bridge} />, root);
+	render(<WidgetApp bridge={bridge} host={bridge} />, root);
 	await bridge.connect(transport);
 }
