@@ -9,11 +9,17 @@ import {
 	fenceInRussian,
 	fenceSolution,
 	fenceSolutionInRussian,
+	firstRun,
+	firstRunRefused,
+	inTrial,
 	limited,
 	longTexts,
+	profileRead,
+	profileRefused,
 	progress,
 	refused,
 	staleAnswer,
+	standing,
 } from "../widget/testing/lesson";
 
 /** Language is a language the preview shows the card in. */
@@ -164,6 +170,35 @@ export function scenesIn(language: Language): Scene[] {
 			payload: { ...exhausted, child: handed.child },
 		},
 		{ name: "limit reached", payload: limited },
+		{ name: "progress, the model's card", payload: standing },
+		{ name: "progress in the trial series", payload: inTrial },
+		{ name: "progress, long texts", payload: longProgress },
+		{
+			name: "profile",
+			payload: {
+				...profileRead,
+				profile: { ...profileRead.profile, ui_language: "pt-BR" },
+			},
+		},
+		{ name: "profile, a change refused", payload: profileRefused },
+		{ name: "first sign-in", payload: firstRun },
+		{
+			name: "first sign-in, ticked and asked",
+			payload: firstRun,
+			play: askForProfile,
+		},
+		{ name: "first sign-in, a profile refused", payload: firstRunRefused },
+		{ name: "a card it cannot show", payload: { screen: "result" } },
+		{
+			name: "progress, right to left (layout only)",
+			payload: standing,
+			play: rightToLeft,
+		},
+		{
+			name: "first sign-in, right to left (layout only)",
+			payload: firstRun,
+			play: rightToLeft,
+		},
 		{ name: "long texts", payload: longTexts },
 		{
 			name: "room kept at the edges",
@@ -225,4 +260,59 @@ function topLine(card: Document) {
 function rightToLeft(card: Document) {
 	card.documentElement.dir = "rtl";
 	card.querySelector(".mt-widget")?.classList.add("mt-rtl");
+}
+
+// longProgress is the progress at every limit a card has to fit at its
+// narrowest: a pseudonym as long as a profile allows, every topic of the
+// catalog met, and as many interests, as long, as a profile holds.
+const longProgress = {
+	...standing,
+	profile: {
+		...standing.profile,
+		pseudonym: "SuperCometTheGreatExplorer2026XY",
+		interests: Array.from({ length: 10 }, (_, at) =>
+			`${at + 1} a long interest of forty characters!`.slice(0, 40),
+		),
+		excluded_skills: [
+			"division_with_remainder",
+			"fractions_arithmetic",
+			"order_of_operations",
+		],
+	},
+	overall: { rating: 2879, rank: 11, ranks: 11 },
+	topics: [
+		"logic.ordering",
+		"logic.knights_liars",
+		"combinatorics.enumeration",
+		"counting.gaps",
+		"time.clocks",
+		"time.calendar",
+		"pigeonhole.basic",
+		"parity.alternation",
+		"arithmetic.tricks",
+		"algorithms.weighing_pouring",
+		"fractions.parts",
+		"percent.basic",
+		"ratio.sharing",
+		"geometry.grid",
+		"number.divisibility",
+		"logic.sets",
+		"games.strategy",
+	].map((topic, at) => ({
+		topic,
+		rating: 2400 + at * 31,
+		answers: 5,
+		correct: 4,
+		mastered: at % 3 === 0,
+		skipped: at % 5 === 0 ? 2 : 0,
+	})),
+};
+
+// askForProfile ticks the adult's statement and asks for the profile.
+function askForProfile(card: Document) {
+	card.querySelector<HTMLElement>(".mt-check span")?.click();
+	// The button is switched on once the card has taken the tick in.
+	setTimeout(() => {
+		card.querySelector<HTMLElement>(".mt-btn-primary")?.click();
+	});
 }

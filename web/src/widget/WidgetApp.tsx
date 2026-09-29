@@ -1,9 +1,12 @@
 import { useEffect, useLayoutEffect, useMemo, useState } from "preact/hooks";
 import type { Words } from "../i18n/words";
 import type { Bridge, Host } from "./bridge";
-import { readHandedTask, readWaiting } from "./payload";
-import { StubCard } from "./StubCard";
+import { FirstRunCard } from "./FirstRunScreen";
+import { ProfileCard } from "./ProfileScreen";
+import { ProgressCard } from "./ProgressScreen";
+import { readScreen } from "./payload";
 import { TaskCard } from "./TaskCard";
+import { UnreadableCard } from "./UnreadableCard";
 import { WaitingCard } from "./WaitingCard";
 import { cardWords, type Key, languageChosenIn, WordsContext } from "./words";
 
@@ -30,23 +33,36 @@ export function WidgetApp({ bridge, host }: { bridge: Bridge; host: Host }) {
 	);
 }
 
-// Screen is the screen a payload draws. A task handed to the child draws its
-// card, a new card for each task; a wait for the next task draws the waiting
-// card, a new wait for each payload that asks for one; a screen not drawn yet
-// shows its payload as it arrived.
+// Screen is the card a payload draws: a task handed to the child, a new card
+// for each task; a wait for the next task, a new wait for each payload that
+// asks for one; the progress, the profile or the first sign-in. A payload that
+// names none of them, or does not read as the one it names, draws a card that
+// says so.
 function Screen({ payload, host }: { payload: unknown; host: Host }) {
-	const handed = useMemo(() => readHandedTask(payload), [payload]);
-	const waiting = useMemo(() => readWaiting(payload), [payload]);
-	// A payload told again is the same wait; another one — the next refusal,
-	// say — starts the card afresh.
+	const shown = useMemo(() => readScreen(payload), [payload]);
+	// A payload told again is the same card; another one — the next refusal of
+	// a task, say — starts the card afresh.
 	const said = useMemo(() => JSON.stringify(payload ?? null), [payload]);
-	if (handed !== undefined) {
-		return <TaskCard key={handed.task.id} handed={handed} host={host} />;
+	switch (shown?.screen) {
+		case "task":
+			return (
+				<TaskCard
+					key={shown.handed.task.id}
+					handed={shown.handed}
+					host={host}
+				/>
+			);
+		case "waiting":
+			return <WaitingCard key={said} waiting={shown.waiting} host={host} />;
+		case "progress":
+			return <ProgressCard key={said} report={shown.report} host={host} />;
+		case "profile":
+			return <ProfileCard key={said} profile={shown.profile} host={host} />;
+		case "first_run":
+			return <FirstRunCard key={said} firstRun={shown.firstRun} host={host} />;
+		case undefined:
+			return <UnreadableCard />;
 	}
-	if (waiting !== undefined) {
-		return <WaitingCard key={said} waiting={waiting} host={host} />;
-	}
-	return <StubCard payload={payload} />;
 }
 
 const latestResult = (bridge: Bridge) => bridge.result();

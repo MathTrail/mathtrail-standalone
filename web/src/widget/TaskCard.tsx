@@ -11,7 +11,8 @@ import {
 import { ReplyCard } from "../design/thread";
 import { directionOf } from "../i18n/lookup";
 import type { Host } from "./bridge";
-import { CardFrame, CardHeader } from "./CardFrame";
+import { CardFrame } from "./CardFrame";
+import { CardHeader } from "./CardRoot";
 import { useFocusKeptOnTheCard } from "./focus";
 import { LessonButtons, QuestionField } from "./LessonFoot";
 import {
@@ -339,8 +340,8 @@ function questionMeta(
 		case "sending":
 			return undefined;
 		case "sent":
-			return text("task.sent");
+			return text("chat.sent");
 		case "lost":
-			return text("task.not_sent");
+			return text("chat.not_sent");
 	}
 }

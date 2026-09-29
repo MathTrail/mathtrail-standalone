@@ -655,6 +655,201 @@
 	padding: 16px;
 }
 
+/* Progress: the rating with the rank above it, lists of topics and answers,
+   and the profile's fields. */
+.mt-progress {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	padding: 16px;
+}
+.mt-wide .mt-progress {
+	padding: 20px;
+}
+.mt-rating {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+.mt-rating-rank {
+	font-size: 13px;
+	line-height: 18px;
+	font-weight: 600;
+	color: var(--text-muted);
+	overflow-wrap: break-word;
+}
+.mt-rating-line {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	column-gap: 8px;
+}
+.mt-rating-num {
+	font-size: 32px;
+	line-height: 38px;
+	font-weight: 600;
+	color: var(--text);
+	font-variant-numeric: tabular-nums;
+}
+.mt-pips {
+	display: flex;
+	gap: 4px;
+	padding-block-start: 2px;
+}
+.mt-pip {
+	flex-grow: 1;
+	height: 6px;
+	border-radius: 3px;
+	background: var(--border);
+}
+.mt-pip[data-on="true"] {
+	background: var(--ink-strong);
+}
+.mt-list {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+.mt-list ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+}
+.mt-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-height: 40px;
+	padding-block: 8px;
+	border-block-end: 1px solid var(--border);
+}
+.mt-row:last-child {
+	border-block-end: 0;
+}
+.mt-row-label {
+	min-width: 0;
+	font-size: 15px;
+	line-height: 22px;
+	color: var(--text);
+	overflow-wrap: break-word;
+}
+.mt-row-spacer {
+	flex-grow: 1;
+}
+.mt-row-value {
+	font-size: 15px;
+	line-height: 22px;
+	font-weight: 600;
+	color: var(--text);
+	font-variant-numeric: tabular-nums;
+}
+.mt-list-note {
+	margin: 0;
+	padding-block-start: 6px;
+	font-size: 13px;
+	line-height: 18px;
+	color: var(--text-muted);
+}
+.mt-status {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	flex-shrink: 0;
+	font-size: 13px;
+	line-height: 18px;
+	font-weight: 600;
+	white-space: nowrap;
+}
+.mt-status-correct {
+	color: var(--correct);
+}
+.mt-status-wrong {
+	color: var(--wrong);
+}
+.mt-status-skipped {
+	color: var(--text-muted);
+}
+.mt-fields {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.mt-fields dl {
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+.mt-fields dl > div {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+.mt-fields dt {
+	font-size: 13px;
+	line-height: 18px;
+	color: var(--text-muted);
+}
+.mt-fields dd {
+	margin: 0;
+	font-size: 15px;
+	line-height: 22px;
+	color: var(--text);
+	overflow-wrap: break-word;
+}
+.mt-fields dd.mt-field-note {
+	font-size: 13px;
+	line-height: 18px;
+	color: var(--text-muted);
+}
+.mt-fields-actions {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 6px;
+	padding-block-start: 4px;
+}
+/* What became of something asked of the chat: said under the button that
+   asked, from a place on the page before there is anything to say. */
+.mt-action-note {
+	margin: 0;
+	font-size: 13px;
+	line-height: 18px;
+	color: var(--text-muted);
+}
+/* The opening words of a card that is not a task's. */
+.mt-lead {
+	margin: 0;
+	font-size: 16px;
+	line-height: 24px;
+	color: var(--text);
+	overflow-wrap: break-word;
+}
+.mt-check {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-height: 44px;
+	font-size: 15px;
+	line-height: 22px;
+	color: var(--text);
+	cursor: pointer;
+}
+.mt-check input {
+	flex-shrink: 0;
+	width: 20px;
+	height: 20px;
+	margin: 0;
+	accent-color: var(--accent-fill);
+	cursor: pointer;
+}
+.mt-check input:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
+
 /* Waiting: the course a task takes, step by step under its title. */
 .mt-gen {
 	display: flex;
@@ -722,13 +917,17 @@
 .mt-rtl {
 	line-height: normal;
 }
-.mt-rtl .mt-task-text {
+.mt-rtl .mt-task-text,
+.mt-rtl .mt-lead {
 	line-height: 26px;
 }
 .mt-rtl .mt-reply-body > p,
 .mt-rtl .mt-steps li,
 .mt-rtl .mt-note p,
 .mt-rtl .mt-gen li,
-.mt-rtl .mt-verdict-detail {
+.mt-rtl .mt-verdict-detail,
+.mt-rtl .mt-row-label,
+.mt-rtl .mt-fields dd:not(.mt-field-note),
+.mt-rtl .mt-check {
 	line-height: 24px;
 }

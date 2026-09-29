@@ -2,7 +2,16 @@ import { render } from "preact";
 import { act } from "preact/test-utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { Bridge, Host, ToolResult } from "./bridge";
-import { exhausted, fence, limited, refused } from "./testing/lesson";
+import {
+	exhausted,
+	fence,
+	firstRun,
+	firstRunRefused,
+	limited,
+	profileRead,
+	refused,
+	standing,
+} from "./testing/lesson";
 import { WidgetApp } from "./WidgetApp";
 
 // idleHost is a host the card asks nothing of in these tests.
@@ -47,6 +56,13 @@ function heldBridge(hostLocale?: string) {
 
 let root: HTMLElement;
 
+// unreadable is what a card says of a payload it cannot draw.
+const unreadable =
+	"This card can't be shown here. The chat says the same in words.";
+
+// nameShown is the name at the head of the child's card.
+const nameShown = () => root.querySelector(".mt-head .mt-name")?.textContent;
+
 beforeEach(() => {
 	root = document.createElement("div");
 });
@@ -69,38 +85,55 @@ describe("the card", () => {
 		expect(root.innerHTML).toBe("");
 	});
 
-	test("shows the payload of the latest result", () => {
+	test("draws the latest result", () => {
 		const { bridge, deliver } = heldBridge();
 		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
 
-		act(() => deliver({ screen: "profile", revision: 1 }));
-		expect(root.textContent).toContain('"revision": 1');
+		act(() => deliver(standing));
+		expect(nameShown()).toBe("Comet");
 
-		act(() => deliver({ screen: "profile", revision: 2 }));
-		expect(root.textContent).toContain('"revision": 2');
-		expect(root.textContent).not.toContain('"revision": 1');
+		act(() =>
+			deliver({
+				...standing,
+				profile: { ...standing.profile, pseudonym: "Otter" },
+			}),
+		);
+		expect(nameShown()).toBe("Otter");
+		expect(root.textContent).not.toContain("Comet");
 	});
 
-	test("shows a result that arrived before it was drawn", () => {
+	test("draws a result that arrived before it was drawn", () => {
 		const { bridge, deliver } = heldBridge();
-		deliver({ screen: "progress" });
+		deliver(standing);
 
 		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
 
-		expect(root.textContent).toContain('"screen": "progress"');
+		expect(nameShown()).toBe("Comet");
 	});
 
-	test("shows a result that arrived between drawing and listening", async () => {
+	test("draws a result that arrived between drawing and listening", async () => {
 		const { bridge, deliver } = heldBridge();
 
 		// Drawn outside act, the card has not subscribed yet when the result
 		// comes: its effects run after the frame is painted.
 		render(<WidgetApp bridge={bridge} host={idleHost} />, root);
-		deliver({ screen: "result" });
+		deliver(standing);
 
-		await vi.waitFor(() =>
-			expect(root.textContent).toContain('"screen": "result"'),
-		);
+		await vi.waitFor(() => expect(nameShown()).toBe("Comet"));
+	});
+
+	test.each([
+		["the progress", standing, ".mt-rating-num"],
+		["the profile", profileRead, ".mt-fields"],
+		["the first sign-in", firstRun, ".mt-check"],
+	])("draws %s as its card", (_, payload, drawnPart) => {
+		const { bridge, deliver } = heldBridge();
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
+
+		act(() => deliver(payload));
+
+		expect(root.querySelector(drawnPart)).not.toBeNull();
+		expect(root.textContent).not.toContain(unreadable);
 	});
 
 	test("draws a task handed out as the task's card", () => {
@@ -157,36 +190,70 @@ describe("the card", () => {
 		}
 	});
 
-	test("shows a wait's payload as it arrived when it does not say whose card it is", () => {
-		const { bridge, deliver } = heldBridge();
+	test("starts a card afresh for each payload, and keeps it for the same one told again", () => {
+		const { bridge, deliver, changeLocale } = heldBridge();
+		// A label passes a press on to its box only on the page.
+		document.body.append(root);
 		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
+		act(() => deliver(firstRun));
+		// ticked says whether the card took the adult's tick in: its button is
+		// switched on by it.
+		const ticked = () =>
+			!root.querySelector<HTMLButtonElement>(".mt-btn-primary")?.disabled;
+		act(() => {
+			root.querySelector<HTMLElement>(".mt-check span")?.click();
+		});
+		expect(ticked()).toBe(true);
 
-		act(() => deliver({ ...refused, child: null }));
+		act(() => changeLocale("en-GB"));
+		act(() => deliver({ ...firstRun }));
+		expect(ticked()).toBe(true);
 
-		expect(root.querySelector(".mt-gen")).toBeNull();
-		expect(root.textContent).toContain('"attempts_left": 2');
+		act(() => deliver(firstRunRefused));
+		expect(ticked()).toBe(false);
+		root.remove();
 	});
 
-	test("shows a task's payload as it arrived when it does not read as a task", () => {
+	test.each([
+		["the progress", standing],
+		["the profile", profileRead],
+	])("starts %s afresh for each payload", async (_, payload) => {
+		const { bridge, deliver } = heldBridge();
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
+		act(() => deliver(payload));
+		const note = () => root.querySelector(".mt-action-note")?.textContent;
+		act(() => {
+			root.querySelector<HTMLElement>(".mt-fields-actions button")?.click();
+		});
+		// The card says the ask did not reach the chat, in the card's language.
+		await vi.waitFor(() => expect(note()).not.toBe(""));
+
+		act(() => deliver({ ...payload, last_answer: null, told: "again" }));
+
+		expect(note()).toBe("");
+		vi.restoreAllMocks();
+	});
+
+	test.each([
+		["a wait that does not say whose card it is", { ...refused, child: null }],
+		[
+			"a task that does not read as one",
+			{ ...fence, task: { ...fence.task, options: { A: "3" } } },
+		],
+		["a result, which no tool draws a card for", { screen: "result" }],
+		["a screen nobody names", { text: "<img src=x onerror=alert(1)>" }],
+	])("says it cannot show %s, and shows nothing of it", (_, payload) => {
 		const { bridge, deliver } = heldBridge();
 		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
 
-		act(() =>
-			deliver({ ...fence, task: { ...fence.task, options: { A: "3" } } }),
+		act(() => deliver(payload));
+
+		expect(root.querySelector(".mt-verdict-line")?.textContent).toBe(
+			unreadable,
 		);
-
-		expect(root.querySelector(".mt-option")).toBeNull();
-		expect(root.textContent).toContain('"options"');
-	});
-
-	test("keeps markup inside a payload as text", () => {
-		const { bridge, deliver } = heldBridge();
-		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
-
-		act(() => deliver({ text: "<img src=x onerror=alert(1)>" }));
-
-		expect(root.querySelector("img")).toBeNull();
-		expect(root.textContent).toContain("<img src=x onerror=alert(1)>");
+		expect(root.querySelector(".mt-option, .mt-gen, img")).toBeNull();
+		expect(root.textContent).not.toContain("attempts_left");
 	});
 });
 

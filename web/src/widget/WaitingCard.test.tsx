@@ -1,15 +1,14 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
-import { render } from "preact";
 import { act } from "preact/test-utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import english from "../../locales/en.json";
-import { start } from "./start";
 import {
-	deliver,
-	listenAsHost,
-	openTestHost,
-	type ToolCall,
-} from "./testing/host";
+	buttonIn,
+	drawCard as drawOnHost,
+	press,
+	takeDown,
+} from "./testing/card";
+import type { ToolCall } from "./testing/host";
 import { exhausted, fence, limited, progress, refused } from "./testing/lesson";
 import { warmUps } from "./waiting";
 
@@ -23,12 +22,9 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-	act(() => render(null, root));
-	root.remove();
+	takeDown(root);
 	vi.useRealTimers();
 	vi.restoreAllMocks();
-	document.documentElement.removeAttribute("lang");
-	document.documentElement.removeAttribute("dir");
 });
 
 // service answers the widget's calls as the service would: the progress read.
@@ -42,16 +38,9 @@ async function drawCard(
 	payload: object,
 	options: { refuseMessages?: boolean } = {},
 ) {
-	const { host, widgetSide } = await openTestHost();
-	const heard = listenAsHost(host, service, options);
-	root = document.createElement("div");
-	document.body.append(root);
-	await start(root, widgetSide);
-	await deliver(host, payload);
-	await vi.waitFor(() =>
-		expect(root.querySelector(".mt-widget")).not.toBeNull(),
-	);
-	return heard;
+	const drawn = await drawOnHost(payload, { tools: service, ...options });
+	root = drawn.root;
+	return drawn.heard;
 }
 
 // wait lets seconds of the wait pass.
@@ -61,23 +50,7 @@ function wait(seconds: number): void {
 	});
 }
 
-function button(label: string): HTMLButtonElement {
-	const found = [...root.querySelectorAll<HTMLButtonElement>("button")].find(
-		(candidate) =>
-			!candidate.closest("[hidden]") && candidate.textContent === label,
-	);
-	if (found === undefined) {
-		throw new Error(`the card has no button ${label}`);
-	}
-	return found;
-}
-
-function press(element: HTMLElement): void {
-	act(() => {
-		element.focus();
-		element.click();
-	});
-}
+const button = (label: string) => buttonIn(root, label);
 
 const text = (selector: string) => root.querySelector(selector)?.textContent;
 const statuses = () =>
@@ -300,9 +273,7 @@ describe("a card waiting for the next task", () => {
 		const heard = await drawCard(refused);
 
 		press(button("Comet Profile & progress"));
-		await vi.waitFor(() =>
-			expect(text(".mt-progress")).toContain('"screen": "progress"'),
-		);
+		await vi.waitFor(() => expect(text(".mt-rating-num")).toBe("1573"));
 		wait(35);
 		// A card with no task leads back to what it shows.
 		press(button("Back"));
