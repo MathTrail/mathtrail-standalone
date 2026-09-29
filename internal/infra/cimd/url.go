@@ -17,6 +17,11 @@ const maxClientURL = 1024
 // what it shows — no credentials, no fragment, no segment that stays where it
 // is or walks the path back up. A query is allowed: the rules advise against
 // one without forbidding it.
+//
+// The rules allow a port as well; only the one https has of its own is taken
+// here. The document is served where every web page is, and any other port
+// would let a stranger's identifier point the service at whatever else a
+// public address runs.
 func clientURL(clientID string) error {
 	if len(clientID) > maxClientURL {
 		return fmt.Errorf("%w: longer than %d characters", ErrClientURL, maxClientURL)
@@ -29,6 +34,8 @@ func clientURL(clientID string) error {
 		return fmt.Errorf("%w: not https", ErrClientURL)
 	case address.Hostname() == "":
 		return fmt.Errorf("%w: no host", ErrClientURL)
+	case address.Port() != "" && address.Port() != "443":
+		return fmt.Errorf("%w: a port other than https's own", ErrClientURL)
 	case address.User != nil:
 		return fmt.Errorf("%w: carries credentials", ErrClientURL)
 	case address.Fragment != "" || strings.Contains(clientID, "#"):

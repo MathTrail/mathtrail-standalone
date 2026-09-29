@@ -1,7 +1,7 @@
 {
   "consent.title": "Sign in to MathTrail",
   "consent.heading": "Connect {client} to MathTrail?",
-  "consent.return": "After you sign in, you will be sent back to {host}.",
+  "consent.return": "After you sign in, you will be sent back to {address}.",
   "consent.loopback": "That address is on this computer. MathTrail cannot check which app is waiting there: continue only if you started it yourself.",
   "consent.google": "Google will then ask you to sign in and to let MathTrail keep one file of its own in your Google Drive, where your child's progress is saved. MathTrail sees no other file there.",
   "consent.allow": "Allow",

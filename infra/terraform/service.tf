@@ -3,6 +3,19 @@
 
 locals {
   public_url = "https://${var.public_host}"
+
+  # The memory of an instance in MiB, whichever unit it was written in.
+  memory_mib = tonumber(regex("^[0-9]+", var.memory)) * (endswith(var.memory, "Gi") ? 1024 : 1)
+
+  # The processors of an instance as a whole number, whichever way they were
+  # written.
+  vcpus = endswith(var.cpu, "m") ? tonumber(trimsuffix(var.cpu, "m")) / 1000 : tonumber(var.cpu)
+
+  # The step ceiling the memory of an instance was measured at, which is also
+  # the binary's own default; the solvers run to it unless the settings move
+  # it, and what a solver keeps grows with it.
+  measured_steps = 25000000
+  solver_steps   = tonumber(lookup(var.settings, "MATHTRAIL_SOLVER_STEPS", tostring(local.measured_steps)))
 }
 
 # The service keeps no state and calls no Google API of its own — the child's
@@ -90,6 +103,23 @@ resource "google_cloud_run_v2_service" "service" {
         value = var.project_id
       }
 
+      # What the size of the instance decides inside it. The sandbox runs one
+      # solver for every vCPU, since the clock of a solver is wall time and two
+      # sharing a processor would each spend it on the other's work. The
+      # runtime is told nine tenths of the memory as the heap its collector
+      # keeps under, and the rest is left to what the runtime holds beside the
+      # heap: without it, garbage a run has let go of can outgrow the instance
+      # before the collector looks.
+      env {
+        name  = "MATHTRAIL_SOLVER_CONCURRENCY"
+        value = tostring(local.vcpus)
+      }
+
+      env {
+        name  = "GOMEMLIMIT"
+        value = "${floor(local.memory_mib * 9 / 10)}MiB"
+      }
+
       env {
         name = "MATHTRAIL_GOOGLE_CLIENT_SECRET"
 
@@ -153,6 +183,16 @@ resource "google_cloud_run_v2_service" "service" {
   # with, and after that the field is not ours to set.
   lifecycle {
     ignore_changes = [template[0].containers[0].image]
+
+    # A run keeps at most sixteen bytes a step of what the built-ins of a
+    # solver build — 381 MiB at 25,000,000 steps — and the collector may need
+    # as much again before it catches up; with the service itself beside them,
+    # that is a GiB for every solver at once at that ceiling, as measured, and
+    # more in proportion to a higher one.
+    precondition {
+      condition     = local.memory_mib >= ceil(1024 * local.vcpus * local.solver_steps / local.measured_steps)
+      error_message = "An instance needs 1Gi of memory for every vCPU at the step ceiling of 25,000,000, and more in proportion to a higher one: it runs a solver on each vCPU, and a solver keeps up to sixteen bytes a step."
+    }
   }
 }
 

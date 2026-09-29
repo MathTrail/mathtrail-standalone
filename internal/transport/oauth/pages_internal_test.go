@@ -200,9 +200,11 @@ func consentFor(t *testing.T, client, redirectURI, lang string) *httptest.Respon
 }
 
 // The consent screen names the client as it names itself, escaped like any
-// other text and without what a reader cannot see, and the host the parent
-// goes back to, spelled as a browser goes there; an address on the parent's
-// own computer is warned about, since nothing proves who listens there.
+// other text and without what a reader cannot see or what would spill over
+// the lines around it, and the address the parent goes back to — its host
+// spelled as a browser goes there, and its path in ASCII, cut short past a
+// line; an address on the parent's own computer is warned about, since
+// nothing proves who listens there.
 func TestTheConsentScreenSaysWhoAndWhere(t *testing.T) {
 	t.Parallel()
 
@@ -210,6 +212,9 @@ func TestTheConsentScreenSaysWhoAndWhere(t *testing.T) {
 	// name with a mark that turns the text after it around and one that
 	// hides a character.
 	cyrillic, reversing, hidden := string(rune(0x0441)), string(rune(0x202E)), string(rune(0x200B))
+	// Marks that stack on a letter: an acute accent, and the circumflex and
+	// the dot below a Vietnamese e carries at once.
+	acute, circumflex, dotBelow := string(rune(0x0301)), string(rune(0x0302)), string(rune(0x0323))
 	for _, tc := range []struct {
 		name        string
 		client      string
@@ -218,19 +223,39 @@ func TestTheConsentScreenSaysWhoAndWhere(t *testing.T) {
 		hides       []string
 	}{
 		{"a host over https", "Claude", "https://claude.ai/api/mcp/auth_callback",
-			[]string{"<bdi>Claude</bdi>", "<bdi>claude.ai</bdi>"}, []string{`class="auth-warning"`}},
+			[]string{"<bdi>Claude</bdi>", "<bdi>claude.ai/api/mcp/auth_callback</bdi>"}, []string{`class="auth-warning"`}},
 		{"a name that is markup", "<script>alert(1)</script>", "https://claude.ai/cb",
 			[]string{"&lt;script&gt;alert(1)&lt;/script&gt;"}, []string{"<script>"}},
 		{"no name", "", "https://chatgpt.com/connector/oauth/abc",
 			[]string{"<bdi>chatgpt.com</bdi></strong> to MathTrail"}, nil},
 		{"a program on this computer", "Inspector", "http://localhost:6274/oauth/callback",
-			[]string{`class="auth-warning"`, "<bdi>localhost</bdi>"}, nil},
+			[]string{`class="auth-warning"`, "<bdi>localhost:6274/oauth/callback</bdi>"}, nil},
+		{"a program on this computer by another name", "Dev", "https://app.localhost./cb",
+			[]string{`class="auth-warning"`}, nil},
 		{"a host that passes for another", "Claude", "https://" + cyrillic + "laude.ai/cb",
-			[]string{"<bdi>xn--laude-0ye.ai</bdi>"}, []string{cyrillic}},
+			[]string{"<bdi>xn--laude-0ye.ai/cb</bdi>"}, []string{cyrillic}},
 		{"a name that hides what it says", "Cla" + hidden + "ude" + reversing + " Pro", "https://claude.ai/cb",
 			[]string{"<bdi>Claude Pro</bdi>"}, []string{reversing, hidden}},
 		{"a host no browser can spell", "Native", "http://[::1]:33418/cb",
-			[]string{"<bdi>::1</bdi>"}, nil},
+			[]string{"<bdi>[::1]:33418/cb</bdi>", `class="auth-warning"`}, nil},
+		{"where on a host that serves many", "Script", "https://script.google.com/macros/s/AKfycbx/exec",
+			[]string{"<bdi>script.google.com/macros/s/AKfycbx/exec</bdi>"}, nil},
+		{"a path in another script, and one that turns text around", "Claude",
+			"https://claude.ai/" + cyrillic + "/a%E2%80%AEb",
+			[]string{"<bdi>claude.ai/%D1%81/a%E2%80%AEb</bdi>"}, []string{cyrillic, reversing}},
+		{"a path longer than a line, its start and its end kept", "Long",
+			"https://host.example/start-" + strings.Repeat("a", 200) + "-end",
+			[]string{"<bdi>host.example/start-" + strings.Repeat("a", 26) + "…" + strings.Repeat("a", 30) + "-end</bdi>"},
+			[]string{strings.Repeat("a", 31)}},
+		{"a path of escapes, cut between them", "Turning", "https://claude.ai/" + strings.Repeat("%E2%80%AE", 20),
+			[]string{"<bdi>claude.ai/" + strings.Repeat("%E2%80%AE", 3) + "%E2%80…%80%AE" + strings.Repeat("%E2%80%AE", 3) + "</bdi>"}, nil},
+		{"a host longer than a line, its path kept", "Long",
+			"https://" + strings.Repeat("h", 90) + ".example/cb",
+			[]string{"<bdi>" + strings.Repeat("h", 90) + ".example/cb</bdi>"}, nil},
+		{"a name that piles marks on a letter", "Z" + strings.Repeat(acute, 40) + "oe", "https://claude.ai/cb",
+			[]string{"<bdi>Z" + strings.Repeat(acute, mostMarks) + "oe</bdi>"}, []string{strings.Repeat(acute, mostMarks+1)}},
+		{"a name whose letters carry their marks", "Vie" + circumflex + dotBelow + "t", "https://claude.ai/cb",
+			[]string{"<bdi>Vie" + circumflex + dotBelow + "t</bdi>"}, nil},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -276,7 +301,7 @@ func TestAPageIsServedAsTheServicesOwn(t *testing.T) {
 			t.Errorf("the page has no %q", want)
 		}
 	}
-	for _, slot := range []string{"{client}", "{host}", "{terms}", "{privacy}"} {
+	for _, slot := range []string{"{client}", "{address}", "{terms}", "{privacy}"} {
 		if strings.Contains(body, slot) {
 			t.Errorf("the page shows the slot %s unfilled", slot)
 		}

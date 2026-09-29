@@ -5,6 +5,7 @@ import (
 	"maps"
 	"slices"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
@@ -134,9 +135,22 @@ func catalogIDs(field, kind string, ids []string, known func(string) bool) []Pro
 	return problems
 }
 
+// The longest each text of a task the child reads may be, in characters. Each
+// is several times the longest of the reference tasks: past it, a text is no
+// longer one a child reads on a card, and it would swell the file the task is
+// kept in, which is read back whole on every call.
+const (
+	longestQuestion    = 1500
+	longestOption      = 200
+	longestHint        = 500
+	longestSolution    = 2000
+	longestExplanation = 500
+)
+
 // checkTask checks the task itself: every text the child or the model relies
-// on is there, the child is offered five answers they can tell apart, and
-// every wrong one, and only a wrong one, carries the mistake it comes from.
+// on is there and no longer than a card holds, the child is offered five
+// answers they can tell apart, and every wrong one, and only a wrong one,
+// carries the mistake it comes from.
 func checkTask(task *Task, catalog Catalog) []Problem {
 	var problems []Problem
 	problems = append(problems, required("task.core_idea", task.CoreIdea)...)
@@ -144,6 +158,9 @@ func checkTask(task *Task, catalog Catalog) []Problem {
 	problems = append(problems, required("task.question", task.Question)...)
 	problems = append(problems, required("task.hint", task.Hint)...)
 	problems = append(problems, required("task.solution", task.Solution)...)
+	problems = append(problems, bounded("task.question", task.Question, longestQuestion)...)
+	problems = append(problems, bounded("task.hint", task.Hint, longestHint)...)
+	problems = append(problems, bounded("task.solution", task.Solution, longestSolution)...)
 	problems = append(problems, checkOptions(task)...)
 	problems = append(problems, checkDistractors(task, catalog)...)
 	problems = append(problems, checkDrawing(task)...)
@@ -162,7 +179,7 @@ func checkOptions(task *Task) []Problem {
 	}
 
 	said := make(map[string]bool, len(task.Options))
-	var empty, repeated int
+	var empty, repeated, long int
 	for _, text := range task.Options {
 		key := solver.Key(text)
 		switch {
@@ -171,10 +188,17 @@ func checkOptions(task *Task) []Problem {
 		case said[key]:
 			repeated++
 		}
+		if utf8.RuneCountInString(text) > longestOption {
+			long++
+		}
 		said[key] = true
 	}
 	if empty > 0 {
 		problems = append(problems, structural("task.options has %s", several(empty, "an empty option", "empty options")))
+	}
+	if long > 0 {
+		problems = append(problems, structural("task.options has %s; an option is at most %d characters",
+			several(long, "an option longer than a card holds", "options longer than a card holds"), longestOption))
 	}
 	if repeated > 0 {
 		problems = append(problems, structural("task.options has %s: the same number, or the same words once "+
@@ -208,11 +232,14 @@ func checkDistractors(task *Task, catalog Catalog) []Problem {
 	// The entries are keyed by an option's letter and cannot be pointed at, so
 	// what is wrong with them is counted; a trap nobody has is named once,
 	// however many explanations name it.
-	var untold, unnamed int
+	var untold, unnamed, long int
 	unknown := map[string]bool{}
 	for _, distractor := range task.Distractors {
 		if solver.Blank(distractor.Text) {
 			untold++
+		}
+		if utf8.RuneCountInString(distractor.Text) > longestExplanation {
+			long++
 		}
 		switch {
 		case distractor.Trap == "":
@@ -231,6 +258,11 @@ func checkDistractors(task *Task, catalog Catalog) []Problem {
 	if unnamed > 0 {
 		problems = append(problems, structural("task.distractors has %s",
 			several(unnamed, "an explanation that names no trap", "explanations that name no trap")))
+	}
+	if long > 0 {
+		problems = append(problems, structural("task.distractors has %s; an explanation is at most %d characters",
+			several(long, "an explanation longer than a card holds", "explanations longer than a card holds"),
+			longestExplanation))
 	}
 	return problems
 }
@@ -324,6 +356,14 @@ func checkSelfCheck(check *SelfCheck) []Problem {
 func required(field, text string) []Problem {
 	if solver.Blank(text) {
 		return []Problem{structural("%s is missing or empty", field)}
+	}
+	return nil
+}
+
+// bounded reports a text longer than a card holds.
+func bounded(field, text string, longest int) []Problem {
+	if length := utf8.RuneCountInString(text); length > longest {
+		return []Problem{structural("%s is %d characters long, and it is at most %d", field, length, longest)}
 	}
 	return nil
 }

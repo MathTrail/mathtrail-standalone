@@ -25,8 +25,8 @@ func TestAParentSignsInFromTheHostToTheCode(t *testing.T) {
 	if !strings.Contains(policy, "form-action 'self' "+h.google.URL+" https://host.example;") {
 		t.Errorf("the consent screen's policy = %q, want its form let on to Google and to the host alone", policy)
 	}
-	if parent.cookie("/oauth/consent", csrfCookie) == "" || parent.cookie("/", csrfCookie) != "" {
-		t.Error("the browser holds no sign-in cookie for /oauth, or holds one beyond it")
+	if parent.cookie("/oauth/consent", csrfCookie) == "" {
+		t.Error("the browser holds no sign-in cookie")
 	}
 
 	allowed := parent.post(h.served.URL+"/oauth/consent", url.Values{"request": {request}, "decision": {"allow"}})
@@ -135,6 +135,26 @@ func TestAnApprovedHostGoesStraightToGoogle(t *testing.T) {
 	elsewhere := h.register("https://elsewhere.example/cb", hostName)
 	if other := parent.get(h.authorizeURL(elsewhere, url.Values{"redirect_uri": {"https://elsewhere.example/cb"}})); other.status != http.StatusOK {
 		t.Errorf("another address back: status = %d, want the consent screen", other.status)
+	}
+}
+
+// A host that sends the parent back to their own computer is asked about every
+// time: nothing proves which program waits there, so allowing it is not
+// remembered, and the next request goes to the consent screen again.
+func TestAnAddressOnTheParentsComputerIsAskedAboutEveryTime(t *testing.T) {
+	t.Parallel()
+
+	const here = "http://127.0.0.1:33418/cb"
+	h := newSignIn(t)
+	asked := h.authorizeURL(h.register(here, hostName), url.Values{"redirect_uri": {here}})
+	parent := h.browser(t)
+	h.toGoogleAt(parent, asked)
+
+	if parent.cookie("/oauth/authorize", consentCookie) != "" {
+		t.Error("allowing a host on the parent's computer was remembered")
+	}
+	if again := parent.get(asked); again.status != http.StatusOK {
+		t.Errorf("GET /oauth/authorize again = %d to %q, want the consent screen", again.status, again.location)
 	}
 }
 
@@ -380,10 +400,12 @@ func respelled(address, name string, rewrite func(string) string) string {
 	return parsed.String()
 }
 
-// The sign-in's cookies are sent over HTTPS alone, to its own endpoints alone,
-// never read by a page's script, and never on a request another site makes
-// but a top-level visit: the one that ties a sign-in to its browser lasts the
-// ten minutes of a sign-in, and the one that remembers approvals half a year.
+// The sign-in's cookies are sent over HTTPS alone, to this host alone — their
+// names carry the prefix a browser holds to that, which asks for the whole
+// host as their path — never read by a page's script, and never on a request
+// another site makes but a top-level visit: the one that ties a sign-in to its
+// browser lasts the ten minutes of a sign-in, and the one that remembers
+// approvals half a year.
 func TestTheSignInsCookiesStayWithIt(t *testing.T) {
 	t.Parallel()
 
@@ -401,15 +423,15 @@ func TestTheSignInsCookiesStayWithIt(t *testing.T) {
 		{allowed, consentCookie, int(approvalLifetime / time.Second)},
 	} {
 		cookie := setCookie(t, tc.answer, tc.name)
-		if !cookie.Secure || !cookie.HttpOnly || cookie.SameSite != http.SameSiteLaxMode || cookie.Path != cookiePath ||
-			cookie.Domain != "" || cookie.MaxAge != tc.maxAge {
-			t.Errorf("%s = %+v, want Secure, HttpOnly, SameSite=Lax, Path=%s, no domain, Max-Age=%d",
-				tc.name, cookie, cookiePath, tc.maxAge)
+		if !strings.HasPrefix(cookie.Name, "__Host-") || !cookie.Secure || !cookie.HttpOnly ||
+			cookie.SameSite != http.SameSiteLaxMode || cookie.Path != "/" || cookie.Domain != "" || cookie.MaxAge != tc.maxAge {
+			t.Errorf("%s = %+v, want the __Host- prefix, Secure, HttpOnly, SameSite=Lax, Path=/, no domain, Max-Age=%d",
+				tc.name, cookie, tc.maxAge)
 		}
 	}
 
 	back := parent.get(h.google.Allow(allowed.location))
-	if dropped := setCookie(t, back, csrfCookie); dropped.MaxAge >= 0 || dropped.Path != cookiePath {
+	if dropped := setCookie(t, back, csrfCookie); dropped.MaxAge >= 0 || dropped.Path != "/" {
 		t.Errorf("%s at the end of the sign-in = %+v, want it taken back", csrfCookie, dropped)
 	}
 }
@@ -456,7 +478,7 @@ func TestAHostThatTurnsTextAroundIsWrittenEscaped(t *testing.T) {
 	h := newSignIn(t)
 	screen := h.browser(t).get(h.authorizeURL(h.register(turning, hostName), url.Values{"redirect_uri": {turning}}))
 
-	if screen.status != http.StatusOK || !strings.Contains(screen.body, "<bdi>"+escaped+"</bdi>") {
+	if screen.status != http.StatusOK || !strings.Contains(screen.body, "<bdi>"+escaped+"/cb</bdi>") {
 		t.Errorf("GET /oauth/authorize = %d, want the consent screen naming the host as %s", screen.status, escaped)
 	}
 	if strings.ContainsRune(screen.body, rune(0x202E)) {

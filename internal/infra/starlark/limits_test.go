@@ -179,6 +179,38 @@ func TestABuiltinCannotSpendWhatIsLeft(t *testing.T) {
 	}
 }
 
+// TestASetIsPaidForByWhatItHolds: a table takes far more than a list of the
+// same elements — its buckets, and room to spare for the ones still to come —
+// and the price says so, at some twenty steps an element against a list's two.
+// A budget that one set fits in has no room for a second, where two lists of
+// the same numbers would still fit several times over.
+func TestASetIsPaidForByWhatItHolds(t *testing.T) {
+	t.Parallel()
+	for _, test := range []struct {
+		name   string
+		source string
+		status solver.Status
+	}{
+		{"one set", "def solve(options):\n    held = set(range(40000))\n    return match(options, 6)\n", solver.StatusOK},
+		{"two sets", "def solve(options):\n    held = [set(range(40000)), set(range(40000))]\n    return match(options, 6)\n",
+			solver.StatusTimeout},
+		{"two lists", "def solve(options):\n    held = [list(range(40000)), list(range(40000))]\n    return match(options, 6)\n",
+			solver.StatusOK},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			runner := sandbox(t, starlark.Limits{Steps: 1_000_000, Timeout: time.Minute, Concurrency: 1, Wait: time.Minute})
+			result, err := runner.Run(t.Context(), test.source, options)
+			if err != nil {
+				t.Fatalf("Run: got error %v, want none", err)
+			}
+			if result.Status != test.status {
+				t.Errorf("status: got %q (%s), want %q", result.Status, result.Message, test.status)
+			}
+		})
+	}
+}
+
 // Matching folds the texts it compares inside one call, and a solver builds a
 // text of any length in one step, so a text is paid for before it is folded.
 // Past the ceiling it is refused at once; under it, a loop of matches runs

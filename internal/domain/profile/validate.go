@@ -52,6 +52,12 @@ const (
 	MaxAttempts = 3
 )
 
+// mostCount is the most any count in the file may be — the revision, the
+// answers, the streaks, the day's tasks: far past what the lessons of a
+// childhood add up to, and far enough below where a number stops counting
+// that one more always fits.
+const mostCount = 1 << 30
+
 // MinDifficulty and MaxDifficulty bound a task's difficulty inside its level:
 // from the first of the difficulties the rating puts on its ladder to the
 // last, and no others.
@@ -67,20 +73,15 @@ func isNumber(level float64) bool { return !math.IsNaN(level) && !math.IsInf(lev
 
 // Validate reports the first thing about a profile this service could not
 // work with, naming the field and the limit it broke.
-func (p *Profile) Validate() error {
-	if p.SchemaVersion != Version {
-		return fmt.Errorf("%w: schema_version is %d, this service reads %d", ErrInvalid, p.SchemaVersion, Version)
-	}
-	if p.StudentID == "" {
-		return fmt.Errorf("%w: student_id is empty", ErrInvalid)
-	}
-	if p.CreatedAt.IsZero() || p.UpdatedAt.IsZero() {
-		return fmt.Errorf("%w: created_at and updated_at are both required", ErrInvalid)
-	}
-	if p.Revision < 1 {
-		return fmt.Errorf("%w: revision is %d, want 1 or more", ErrInvalid, p.Revision)
-	}
+func (p *Profile) Validate() error { return p.validate(mostCount) }
 
+// validate is Validate with the most a count may be handed in: a profile is
+// written with its counts up to mostCount, and read with room in each for one
+// more.
+func (p *Profile) validate(most int) error {
+	if err := p.validateHeader(); err != nil {
+		return err
+	}
 	if err := p.Student.validate(); err != nil {
 		return err
 	}
@@ -109,7 +110,59 @@ func (p *Profile) Validate() error {
 	if err := p.OpenRequest.validate(); err != nil {
 		return err
 	}
-	return p.Daily.validate()
+	if err := p.Daily.validate(); err != nil {
+		return err
+	}
+	return p.countsUpTo(most)
+}
+
+// validateHeader checks what the file says of itself: its shape, whose it is,
+// when it was made and last changed, and that it has been written.
+func (p *Profile) validateHeader() error {
+	switch {
+	case p.SchemaVersion != Version:
+		return fmt.Errorf("%w: schema_version is %d, this service reads %d", ErrInvalid, p.SchemaVersion, Version)
+	case p.StudentID == "":
+		return fmt.Errorf("%w: student_id is empty", ErrInvalid)
+	case p.CreatedAt.IsZero() || p.UpdatedAt.IsZero():
+		return fmt.Errorf("%w: created_at and updated_at are both required", ErrInvalid)
+	case p.Revision < 1:
+		return fmt.Errorf("%w: revision is %d, want 1 or more", ErrInvalid, p.Revision)
+	}
+	return nil
+}
+
+// countsUpTo reports a count of the profile past the most given. A step of a
+// lesson moves each count by one at most, so a profile read with every count
+// below the most can always be written after it.
+func (p *Profile) countsUpTo(most int) error {
+	past := func(counts ...int) bool {
+		for _, count := range counts {
+			if count > most {
+				return true
+			}
+		}
+		return false
+	}
+	switch {
+	case past(p.Revision):
+		return fmt.Errorf("%w: revision is past %d", ErrInvalid, most)
+	case past(p.Ratings.Answers, p.Ratings.ConsecutiveFailures):
+		return fmt.Errorf("%w: ratings count past %d", ErrInvalid, most)
+	case past(p.Daily.Accepted, p.Daily.Failed):
+		return fmt.Errorf("%w: daily counts past %d", ErrInvalid, most)
+	}
+	for _, topic := range p.Topics {
+		if past(topic.Answers, topic.Correct, topic.Skipped, topic.TopStreak, topic.WrongStreak) {
+			return fmt.Errorf("%w: a topic counts past %d", ErrInvalid, most)
+		}
+		for _, times := range topic.Traps {
+			if past(times) {
+				return fmt.Errorf("%w: a topic counts a trap past %d", ErrInvalid, most)
+			}
+		}
+	}
+	return nil
 }
 
 func (s *Student) validate() error {

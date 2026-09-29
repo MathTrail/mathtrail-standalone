@@ -11,7 +11,9 @@ import (
 
 const (
 	// consentCookie remembers which clients a browser's parent has approved.
-	consentCookie = "mt_consent"
+	// Its name carries the same prefix as the sign-in's own cookie, for the
+	// same reason.
+	consentCookie = "__Host-mt_consent"
 	// approvalLifetime is how long an approval is remembered: approving the
 	// same host in the same browser twice a year is no burden.
 	approvalLifetime = 180 * 24 * time.Hour
@@ -57,16 +59,34 @@ func (f *flow) approvals(r *http.Request) []approval {
 	})
 }
 
+// mayRemember reports whether an approval of a request may be remembered, and
+// taken as given the next time. It may not when the request sends the parent
+// back to their own computer: nothing proves which program listens there, and
+// any program on the computer could start a sign-in in the client's name and
+// wait at that address — with the approval remembered, it would be handed a
+// sign-in the parent never saw.
+func mayRemember(request *flight) bool {
+	return !toThisComputer(request.RedirectURI)
+}
+
 // approved reports whether the browser's parent has approved this request's
-// client, sending the parent back to this request's address.
+// client, sending the parent back to this request's address, in a way that
+// may be taken as given.
 func (f *flow) approved(r *http.Request, request *flight) bool {
+	if !mayRemember(request) {
+		return false
+	}
 	wanted := fingerprint(request)
 	return slices.ContainsFunc(f.approvals(r), func(a approval) bool { return a.Fingerprint == wanted })
 }
 
 // approve adds the request's client to the approvals the browser holds, as
-// the newest, and keeps the newest ones the cookie has room for.
+// the newest, and keeps the newest ones the cookie has room for. An approval
+// that may not be remembered is not added.
 func (f *flow) approve(w http.ResponseWriter, r *http.Request, request *flight) error {
+	if !mayRemember(request) {
+		return nil
+	}
 	added := fingerprint(request)
 	held := slices.DeleteFunc(f.approvals(r), func(a approval) bool { return a.Fingerprint == added })
 	held = append(held, approval{Fingerprint: added, ApprovedAt: f.now().Unix()})

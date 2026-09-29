@@ -17,6 +17,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/cimd"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
+	"github.com/MathTrail/mathtrail-standalone/internal/ratelimit/ratelimittest"
 )
 
 // testIssuer is the address the server under test is.
@@ -64,6 +65,7 @@ func knownClients(t testing.TB, ring *seal.KeyRing, fetcher cimd.Fetcher) (*clie
 		Seal:      ring,
 		Documents: fetcher,
 		Logger:    zap.New(core),
+		Renewals:  ratelimittest.Roomy(t),
 		SiteURL:   testSite,
 		Now:       func() time.Time { return testDay },
 	})

@@ -8,7 +8,10 @@ package app
 import (
 	"context"
 	"errors"
+	"math"
 	"net/http"
+	"runtime"
+	"runtime/debug"
 	"slices"
 	"time"
 
@@ -145,6 +148,11 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 		zap.Duration("timeout", cfg.SolverTimeout),
 		zap.Int("concurrency", cfg.SolverConcurrency),
 		zap.Duration("wait", cfg.SolverWait),
+		// What the instance gave the runtime, beside the slots it was given:
+		// the processors it schedules on and the soft limit its collector
+		// keeps the heap under, so that a deployment shows what it got.
+		zap.Int("gomaxprocs", runtime.GOMAXPROCS(0)),
+		zap.Int64("memory_limit", softMemoryLimit()),
 	)
 
 	// A task is reviewed against the content above and run in the sandbox
@@ -164,6 +172,14 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 	}
 	log.Info("google sign-in", zap.Bool("configured", google != nil))
 
+	// Each account, each address before a sign-in, the instance as a whole and
+	// each account's renewals at Google are held to a pace of their own; a
+	// child's day, to the tasks it holds.
+	paces, err := newPaces(cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	// The authorization server seals what it issues under the same key ring,
 	// each kind under a purpose of its own, and reads the documents clients
 	// name themselves by through a fetcher that reaches public addresses only.
@@ -175,6 +191,7 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 		Logger:    log,
 		ProjectID: cfg.GCPProjectID,
 		Google:    google,
+		Renewals:  paces.renewals,
 		SiteURL:   cfg.Site(),
 		Now:       time.Now,
 	})
@@ -197,16 +214,11 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 	if cfg.DevAuth {
 		signIn = mcpserver.DevSignIn
 	}
-	// Each account, each address before a sign-in, and the instance as a whole
-	// are held to a pace of their own; a child's day, to the tasks it holds.
-	paces, err := newPaces(cfg)
-	if err != nil {
-		return nil, err
-	}
 	log.Info("limits set",
 		zap.Int("user_per_min", cfg.RateUserPerMin),
 		zap.Int("ip_per_min", cfg.RateIPPerMin),
 		zap.Int("instance_per_min", cfg.RateInstancePerMin),
+		zap.Int("renewal_per_min", cfg.RateRenewalPerMin),
 		zap.Int("daily_tasks", cfg.DailyTasks),
 		zap.Int("daily_failed", cfg.DailyFailed),
 	)
@@ -270,12 +282,15 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 // anybody signs in, and the instance's at each of its two doors — the
 // sign-in, which anybody reaches, and the lessons, which only a signed-in
 // account does. The doors keep apart, so that a flood at the sign-in never
-// holds back a child in the middle of a lesson.
+// holds back a child in the middle of a lesson. Beside them, every account's
+// renewals at Google are counted apart: not requests let in, but calls to
+// Google the sign-in makes for an account.
 type paces struct {
 	perAccount ratelimit.Limiter
 	perAddress ratelimit.Limiter
 	signIn     ratelimit.Limiter
 	lessons    ratelimit.Limiter
+	renewals   ratelimit.Limiter
 }
 
 // newPaces builds the paces from the numbers configured. Each is built whether
@@ -286,10 +301,11 @@ func newPaces(cfg *config.Config) (*paces, error) {
 	perAddress, addressErr := ratelimit.New(ratelimit.Settings{PerMinute: cfg.RateIPPerMin, Keys: ratelimit.MaxKeys, Now: time.Now})
 	signIn, signInErr := ratelimit.NewShared(cfg.RateInstancePerMin, time.Now)
 	lessons, lessonsErr := ratelimit.NewShared(cfg.RateInstancePerMin, time.Now)
-	if err := errors.Join(accountErr, addressErr, signInErr, lessonsErr); err != nil {
+	renewals, renewalsErr := ratelimit.New(ratelimit.Settings{PerMinute: cfg.RateRenewalPerMin, Keys: ratelimit.MaxKeys, Now: time.Now})
+	if err := errors.Join(accountErr, addressErr, signInErr, lessonsErr, renewalsErr); err != nil {
 		return nil, err
 	}
-	return &paces{perAccount: perAccount, perAddress: perAddress, signIn: signIn, lessons: lessons}, nil
+	return &paces{perAccount: perAccount, perAddress: perAddress, signIn: signIn, lessons: lessons, renewals: renewals}, nil
 }
 
 // googleSignIn is how a parent signs in with Google: through the service's own
@@ -336,6 +352,15 @@ func profileStore(cfg *config.Config, log *zap.Logger, traces trace.TracerProvid
 		Traces:    traces,
 		ProjectID: cfg.GCPProjectID,
 	})
+}
+
+// softMemoryLimit is the soft limit the runtime's collector keeps the heap under,
+// as GOMEMLIMIT set it, or nothing when it was not set.
+func softMemoryLimit() int64 {
+	if limit := debug.SetMemoryLimit(-1); limit != math.MaxInt64 {
+		return limit
+	}
+	return 0
 }
 
 // Close releases everything in reverse order of construction. It logs each

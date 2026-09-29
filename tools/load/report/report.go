@@ -66,6 +66,13 @@ type Run struct {
 	// Stopped is a run asked to stop before its end: its numbers are of the
 	// part that ran.
 	Stopped bool
+	// Spent is what the instance spent while the run went on, when anything
+	// measured it.
+	Spent *Spent
+	// Lives are the lives of the instances that ended with the run.
+	Lives []Life
+	// Starts are the starts a cold run measured.
+	Starts []Start
 }
 
 // Instance is what the platform gives an instance, and bills for.
@@ -166,13 +173,18 @@ type Hard struct {
 }
 
 // Verdict is the facts that fail the run, most frequent first: every answer
-// the service should never give, and everything the scenario expected and did
-// not see.
+// the service should never give, everything an instance of it should never
+// go through, and everything the scenario expected and did not see.
 func (r *Run) Verdict() []Hard {
 	counts := map[string]int{}
 	for i := range r.Calls {
 		if hard(r.Calls[i].Kind) {
 			counts[r.Calls[i].Kind.String()]++
+		}
+	}
+	for i := range r.Lives {
+		for what, count := range r.Lives[i].facts() {
+			counts[what] += count
 		}
 	}
 	hards := make([]Hard, 0, len(counts)+len(r.Broken))
@@ -248,7 +260,10 @@ func (r *Run) write(page *strings.Builder, hards []Hard, instance Instance) {
 	fmt.Fprintf(page, ", %d requests, %d sessions opened again.\n\n", r.Requests, r.Reconnects)
 
 	r.writeKinds(page)
+	r.writeStarts(page)
 	r.writeCost(page, instance)
+	r.writeSpent(page)
+	r.writeLives(page)
 }
 
 // cell is a text as a cell of a Markdown table, or an item of a list, can hold
@@ -272,8 +287,12 @@ func (r *Run) writeKinds(page *strings.Builder) {
 }
 
 // writeCost writes what one unit of the run's work cost as the platform bills
-// it, and how many a month the free tier holds.
+// it, and how many a month the free tier holds. A run whose work comes in no
+// unit, such as the starts of a cold run, has no cost of one to tell.
 func (r *Run) writeCost(page *strings.Builder, instance Instance) {
+	if r.Unit == "" {
+		return
+	}
 	cost, done := r.Cost(instance)
 	if !done {
 		fmt.Fprintf(page, "No %s was done, so there is no cost of one to tell.\n\n", r.Unit)

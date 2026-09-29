@@ -138,14 +138,14 @@ gcloud artifacts repositories describe mathtrail --location=us-central1
 | `image` | a placeholder | What a service created from nothing starts with; after that the delivery owns the field |
 | `max_instances` | `3` | The ceiling on instances running at once |
 | `concurrency` | `80` | Requests one instance serves at a time |
-| `cpu`, `memory` | `1`, `512Mi` | Per instance, allocated only while serving |
+| `cpu`, `memory` | `1`, `1Gi` | Per instance, allocated only while serving. `cpu` is whole vCPUs — `1`, `2`, or `1000m`, `2000m` — and the sandbox runs a solver on each; `memory` is at least `1Gi` for every vCPU at the default step ceiling, and more in proportion to a higher one set in `settings`; nine tenths of it is the Go runtime's soft limit (`GOMEMLIMIT`) |
 | `request_timeout` | `60s` | Before the platform cuts a request off |
 | `disable_default_url` | `false` | Whether the platform's own address stops resolving; turned on once the domain answers |
 | `create_domain_mapping` | `true` | Whether `public_host` is mapped onto the service |
 | `seal_key_version` | `1` | The secret version the service seals with |
 | `seal_key_previous_version` | empty | The version still accepted while a key is being rotated |
 | `google_client_secret_version` | `1` | The secret version the sign-in authenticates with |
-| `settings` | `{}` | Extra environment variables — ceilings and timeouts, never a secret |
+| `settings` | `{}` | Extra environment variables — ceilings and timeouts, never a secret. The solver slots and `GOMEMLIMIT` follow `cpu` and `memory`, and are refused here |
 | `budget_amount`, `budget_currency` | `1`, `USD` | Where the spend alert fires |
 | `keep_images` | `5` | Image versions kept whatever their age |
 | `image_max_age` | `30d` | When an older version is deleted |

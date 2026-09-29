@@ -47,6 +47,11 @@ INSPECTOR_RUN := "docker run --rm --init --network host -e HOST=127.0.0.1 -e MCP
 # other image this repository runs.
 TRIVY_IMAGE := "aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969"
 
+# The prototype the golden vectors are the numbers of: its public repository, at the
+# commit the copy they were first exported from matched byte for byte.
+PROTOTYPE_REPOSITORY := "https://github.com/MathTrail/llm-taskgen-prototype"
+PROTOTYPE_COMMIT := "02638353482e25d6213120ba10caea3467a0437a"
+
 # What a dependency's license may be: permissive, and compatible with releasing
 # the result under MIT.
 ALLOWED_LICENSES := "MIT,BSD-2-Clause,BSD-3-Clause,Apache-2.0,ISC"
@@ -61,6 +66,11 @@ NPM_LICENSE_EXCEPTIONS := "lightningcss=MPL-2.0"
 # service it is built against. It sits in a variable so that its braces never
 # meet the interpolation of this file.
 LOAD_MODULE_OF := '{{with .Module}}{{if not .Main}}{{if not .Replace}}{{.Path}} {{.Version}}{{end}}{{end}}{{end}}'
+
+# The Go template that prints how the Docker daemon keeps its containers'
+# cgroups, and on what kernel: they decide whether the load tool can measure
+# an instance at all. It sits in a variable for the same reason.
+DOCKER_CGROUPS := '{{.CgroupVersion}} {{.CgroupDriver}}, kernel {{.KernelVersion}}'
 
 # The origin the site is published on. Every absolute address on the site, and
 # the CNAME that claims the domain, are built from this one value.
@@ -729,30 +739,46 @@ ci-smoke url:
 
 # -- Golden vectors from the prototype --------------------------------------
 
-# Export the prototype's golden vectors into testdata/golden/ (see its export/README.md).
-# Python comes from the uv image and PostgreSQL from the prototype's compose file, both
-# pinned by tag and digest, so neither has to be installed anywhere.
+# The export runs the prototype's own code, from a clone of PROTOTYPE_COMMIT made for
+# the run and removed after it. Python comes from the uv image and PostgreSQL from the
+# prototype's compose file, both pinned by tag and digest, so neither has to be
+# installed anywhere; the database starts empty and is removed with its volume.
+# Export the prototype's golden vectors into testdata/golden/ (see its export/README.md)
 golden:
     #!/usr/bin/env bash
     set -euo pipefail
     uv_image="ghcr.io/astral-sh/uv:0.12.13-python3.12-trixie-slim@sha256:87bc72093c0aa93cc962bd7c0498ddf416dad3ce9e1434724e936e02b72afe5d"
     repo="$(pwd)"
+    prototype="$(mktemp -d)"
+    compose=(docker compose --project-name mathtrail-golden --project-directory "$prototype")
 
-    if [ ! -d prototype/src/taskgen ]; then
-        echo "golden: prototype/ is missing; the export runs the prototype's own code." >&2
-        exit 1
-    fi
+    # Whatever happens next, the database goes once it was asked for, and so does
+    # the clone: with set -e a failing export would otherwise leave either behind
+    # until somebody noticed. The clone goes even when the database will not, and
+    # that is said.
+    database=no
+    cleanup() {
+        if [ "$database" = yes ]; then
+            echo "==> removing PostgreSQL"
+            "${compose[@]}" down --volumes || echo "golden: the database of project mathtrail-golden was not removed" >&2
+        fi
+        rm -rf "$prototype"
+    }
+    trap cleanup EXIT
+
+    # The one commit, and none of the history around it.
+    echo "==> the prototype at {{ PROTOTYPE_COMMIT }}"
+    git -C "$prototype" init --quiet
+    git -C "$prototype" fetch --quiet --depth 1 "{{ PROTOTYPE_REPOSITORY }}" "{{ PROTOTYPE_COMMIT }}"
+    git -C "$prototype" checkout --quiet --detach FETCH_HEAD
 
     echo "==> PostgreSQL"
-    (cd prototype && docker compose up -d --wait)
-
-    # Whatever happens next, the database stops: with set -e a failing export
-    # would otherwise leave it running until somebody notices.
-    trap 'echo "==> stopping PostgreSQL"; (cd "$repo/prototype" && docker compose down)' EXIT
+    database=yes
+    "${compose[@]}" up -d --wait
 
     echo "==> dependencies, schema, seed profiles, export"
     docker run --rm --network host \
-        -v "$repo:/repo" -w /repo/prototype --user "$(id -u):$(id -g)" \
+        -v "$repo:/repo" -v "$prototype:/prototype" -w /prototype --user "$(id -u):$(id -g)" \
         -e HOME=/tmp -e UV_PROJECT_ENVIRONMENT=/tmp/venv -e UV_CACHE_DIR=/tmp/uvcache \
         -e DATABASE_URL=postgresql://taskgen:taskgen@127.0.0.1:5432/taskgen \
         "$uv_image" \
@@ -782,12 +808,14 @@ ci-tf-outputs:
 # file the service ships. It imports the service, so its go.mod follows the
 # service's: a change to the service's go.mod is followed by `just load-tidy`.
 
-# The children of a run sign in through the development sign-in, so the
-# service is one `just run` started. Arguments go to the tool as they are. The
+# A run starts the service itself, from the image of what is in the tree,
+# built first, in a container of an instance's size — unless it is given a
+# service somebody else started with -url, such as one `just run` started, or
+# an image of its own with -image. Arguments go to the tool as they are. The
 # tool is built and then run, rather than run through the go command, which
 # answers every failing exit with 1: its own exit is 0 for a clean run, 1 for
 # one that found something, and 2 for one that could not run.
-# Run a scenario of the load tool against a running service, such as `just load lesson -url http://localhost:8080`
+# Run a scenario of the load tool, such as `just load lesson`, or `just load lesson -url http://localhost:8080`
 [positional-arguments]
 [working-directory('tools/load')]
 load scenario *args:
@@ -796,7 +824,62 @@ load scenario *args:
     scenario="$1"
     shift
     go build -o bin/load .
-    exec bin/load -scenario "$scenario" "$@"
+    for arg in "$@"; do
+        case "$arg" in
+        -url | -url=* | --url | --url=* | -image | -image=* | --image | --image=*)
+            exec bin/load -scenario "$scenario" "$@"
+            ;;
+        esac
+    done
+    just docker-build
+    exec bin/load -scenario "$scenario" -image mathtrail:dev "$@"
+
+# Every scenario, against the image of what is in the tree, built once, in a
+# container of an instance's size: one vCPU and 1 GiB, told what a deployment
+# of that size is told. Each run is held to the most memory its instance may
+# hold — its peak as measured, with room to spare; for the solvers that keep
+# hundreds of MiB, whose peak is wherever the collector chose to work, just
+# under the instance — and one that finds something does not stop the rest:
+# every run reports, each under the command that ran it, and the worst exit is
+# the recipe's. Saturation runs twice: once through the pace of the instance,
+# and once with eighty hand-ins in flight past it, which is the sandbox's queue
+# alone. Arguments go to every run, so `just ci-load -env
+# MATHTRAIL_SOLVER_CONCURRENCY=32` runs them all against a sandbox of
+# thirty-two slots on one processor. They are for what the service is told:
+# the size of the instance and the ceilings were measured together, and a
+# ceiling held against another -memory or -cpus means nothing.
+# Run every load scenario against the image, holding each run to its memory
+[positional-arguments]
+[working-directory('tools/load')]
+ci-load *args: docker-build
+    #!/usr/bin/env bash
+    set -uo pipefail
+    go build -o bin/load . || exit 2
+    echo "load: docker runs its containers' cgroups $(docker info --format '{{ DOCKER_CGROUPS }}')" >&2
+    extra=("$@")
+    worst=0
+    one() {
+        local command=(-image mathtrail:dev -cpus 1 -memory 1g "$@" "${extra[@]}")
+        printf '> `load %s`\n\n' "${command[*]}"
+        code=0
+        bin/load "${command[@]}" || code=$?
+        if ((code > worst)); then
+            worst=$code
+        fi
+        echo
+    }
+    one -scenario lesson -memory-ceiling 64m
+    one -scenario saturation -memory-ceiling 64m
+    one -scenario saturation -children 80 -rate 27 -env MATHTRAIL_RATE_INSTANCE_PER_MIN=1000000 -memory-ceiling 96m
+    one -scenario limits -memory-ceiling 64m
+    one -scenario cold -memory-ceiling 64m
+    one -scenario adversarial -variants appends -memory-ceiling 256m
+    one -scenario adversarial -variants helper -memory-ceiling 128m
+    one -scenario adversarial -variants tuples -memory-ceiling 960m
+    one -scenario adversarial -variants pairs -memory-ceiling 960m
+    one -scenario adversarial -variants sets -memory-ceiling 960m
+    one -scenario adversarial -variants product -memory-ceiling 288m
+    exit "$worst"
 
 # The load tool's tests, with the race detector
 [working-directory('tools/load')]

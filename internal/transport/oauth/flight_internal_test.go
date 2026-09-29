@@ -285,6 +285,36 @@ func TestOnlyApprovalsSealedHereCount(t *testing.T) {
 	}
 }
 
+// An approval of an address on the parent's own computer counts for nothing,
+// even one sealed here: whoever waits at that address is not proven to be the
+// client that was approved.
+func TestAnApprovalOfTheParentsComputerCountsForNothing(t *testing.T) {
+	t.Parallel()
+
+	now := testDay
+	f := flowAt(t, &now)
+	for _, tc := range []struct {
+		redirectURI string
+		counts      bool
+	}{
+		{"https://claude.ai/api/mcp/auth_callback", true},
+		{"http://127.0.0.1:33418/cb", false},
+		{"http://localhost:6274/oauth/callback", false},
+		{"https://app.localhost/cb", false},
+	} {
+		request := aRequest(testDay)
+		request.RedirectURI = tc.redirectURI
+		approval := `[{"f":"` + fingerprint(request) + `","t":` + strconv.FormatInt(testDay.Unix(), 10) + `}]`
+		sealed, err := ringOf(t, 'k').Seal(seal.PurposeConsent, []byte(approval), testIssuer)
+		if err != nil {
+			t.Fatalf("Seal() error = %v, want nil", err)
+		}
+		if got := f.approved(fromBrowser(t, []*http.Cookie{{Name: consentCookie, Value: sealed}}), request); got != tc.counts {
+			t.Errorf("an approval of %s held: approved = %v, want %v", tc.redirectURI, got, tc.counts)
+		}
+	}
+}
+
 // genFlight produces a request under way with every field chosen freely.
 func genFlight() gopter.Gen {
 	return gen.SliceOfN(10, gen.AnyString()).Map(func(fields []string) *flight {

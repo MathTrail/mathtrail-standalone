@@ -15,21 +15,26 @@ Every file carries a `source` block naming what produced the numbers and what v1
 
 ## How to run it
 
-Everything runs in containers; nothing is installed into the devcontainer (CLAUDE.md, "Devcontainer only"). Python comes from the `uv` image pinned by tag **and** digest, PostgreSQL from the prototype's own `docker-compose.yml`, which pins its image the same way.
+The prototype's code comes from its public repository, [MathTrail/llm-taskgen-prototype](https://github.com/MathTrail/llm-taskgen-prototype), at commit `02638353482e25d6213120ba10caea3467a0437a`. The copy these vectors were first exported from matched that commit byte for byte, and an export from a fresh clone of it gives the same files. Everything runs in containers; nothing is installed into the devcontainer (CLAUDE.md, "Devcontainer only"). Python comes from the `uv` image pinned by tag **and** digest, PostgreSQL from the prototype's own `docker-compose.yml`, which pins its image the same way.
 
 ```sh
 just golden
 ```
 
-That recipe does four things, and they can be run by hand just as well:
+That recipe does seven things, and they can be run by hand just as well:
 
 ```sh
-# 1. PostgreSQL, from the prototype's compose file
-cd prototype && docker compose up -d --wait
+# 1. the prototype, at the commit and nothing else of its history
+git init /tmp/prototype
+git -C /tmp/prototype fetch --depth 1 https://github.com/MathTrail/llm-taskgen-prototype 02638353482e25d6213120ba10caea3467a0437a
+git -C /tmp/prototype checkout --detach FETCH_HEAD
 
-# 2-4. dependencies from uv.lock, the schema, the seed profiles, then the export
+# 2. PostgreSQL, from the prototype's compose file
+docker compose --project-name mathtrail-golden --project-directory /tmp/prototype up -d --wait
+
+# 3-6. dependencies from uv.lock, the schema, the seed profiles, then the export
 docker run --rm --network host \
-  -v "$PWD:/repo" -w /repo/prototype --user "$(id -u):$(id -g)" \
+  -v "$PWD:/repo" -v /tmp/prototype:/prototype -w /prototype --user "$(id -u):$(id -g)" \
   -e HOME=/tmp -e UV_PROJECT_ENVIRONMENT=/tmp/venv -e UV_CACHE_DIR=/tmp/uvcache \
   -e DATABASE_URL=postgresql://taskgen:taskgen@127.0.0.1:5432/taskgen \
   ghcr.io/astral-sh/uv:0.12.13-python3.12-trixie-slim@sha256:87bc72093c0aa93cc962bd7c0498ddf416dad3ce9e1434724e936e02b72afe5d \
@@ -37,20 +42,24 @@ docker run --rm --network host \
     && uv run python -m taskgen.apply_schema --force \
     && uv run python -m taskgen.seed \
     && uv run python /repo/testdata/golden/export/export_golden.py --out /repo/testdata/golden"
+
+# 7. the database with its volume, and the clone
+docker compose --project-name mathtrail-golden --project-directory /tmp/prototype down --volumes
+rm -rf /tmp/prototype
 ```
 
 Three details that are not decoration:
 
-- `UV_PROJECT_ENVIRONMENT=/tmp/venv` keeps the virtual environment out of `prototype/`, which is a read-only reference copy (CLAUDE.md, "Reference copies").
+- `UV_PROJECT_ENVIRONMENT=/tmp/venv` keeps the virtual environment out of the clone, which stays the commit and nothing else.
 - `--user "$(id -u):$(id -g)"` keeps the written files owned by you rather than by root.
-- `uv sync --frozen` forbids re-locking: the versions are `prototype/uv.lock` exactly.
+- `uv sync --frozen` forbids re-locking: the versions are the commit's `uv.lock` exactly.
 
 `--force` on the schema step drops and recreates the prototype's tables. It touches only the container's database, never the product.
 
 ## How it was checked
 
 - **Reproducible.** Two runs into different directories, compared byte for byte.
-- **Against the prototype's own documents.** Every number of the worked example in `prototype/docs/architecture/05-ratings.md` appears in `ratings.json`: P of 0.7848, 0.6343 and 0.5383; θ of 0.0861, −0.1556 and −0.3513; the corridors [−1.294; −0.339], [−1.778; −0.822] and [−2.169; −1.213]; and the table of P by difficulty at θ = 0 — 0.905, 0.785, 0.600, 0.415, 0.295.
+- **Against the prototype's own documents.** Every number of the worked example in the prototype's `docs/architecture/05-ratings.md` appears in `ratings.json`: P of 0.7848, 0.6343 and 0.5383; θ of 0.0861, −0.1556 and −0.3513; the corridors [−1.294; −0.339], [−1.778; −0.822] and [−2.169; −1.213]; and the table of P by difficulty at θ = 0 — 0.905, 0.785, 0.600, 0.415, 0.295.
 - **Against the prototype's own tests.** The Flesch–Kincaid values commented in `tests/test_filters.py` — −0.1, 5.4, 3.5, 4.1 and 11.5 — are what `readability.json` reports for the same anchors.
 
 ## What v1 does not take from these vectors

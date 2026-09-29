@@ -208,7 +208,7 @@ func TestRun(t *testing.T) {
 			contains: "match: unexpected keyword arguments",
 		},
 		{
-			name:    "an empty sequence costs nothing",
+			name:    "an empty sequence walked",
 			source:  "def solve(options):\n    return match(options, len(list([])) + 6)\n",
 			status:  solver.StatusOK,
 			letters: []string{"C"},

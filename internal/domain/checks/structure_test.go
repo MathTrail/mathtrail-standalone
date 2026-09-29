@@ -408,3 +408,45 @@ func TestAPartThatCouldNotBeReadIsNotCheckedAgain(t *testing.T) {
 func mentions(problems []checks.Problem, fragment string) bool {
 	return slices.ContainsFunc(problems, func(p checks.Problem) bool { return strings.Contains(p.Message, fragment) })
 }
+
+// A text the child reads is no longer than a card holds: one at its limit
+// passes, and one character more is refused, naming the text and the limit.
+// The limit counts characters, so a text in another script — here Cyrillic, of
+// two bytes a character — is held to the same length.
+func TestATextLongerThanACardHoldsIsRefused(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name    string
+		set     func(d *checks.Draft, text string)
+		longest int
+		want    string
+	}{
+		{"the question", func(d *checks.Draft, text string) { d.Task.Question = text },
+			1500, "task.question is 1501 characters long, and it is at most 1500"},
+		{"the hint", func(d *checks.Draft, text string) { d.Task.Hint = text },
+			500, "task.hint is 501 characters long, and it is at most 500"},
+		{"the solution", func(d *checks.Draft, text string) { d.Task.Solution = text },
+			2000, "task.solution is 2001 characters long, and it is at most 2000"},
+		{"an option", func(d *checks.Draft, text string) { d.Task.Options["E"] = text },
+			200, "an option is at most 200 characters"},
+		{"an explanation", func(d *checks.Draft, text string) {
+			d.Task.Distractors["B"] = checks.Distractor{Trap: "missed_case", Text: text}
+		}, 500, "an explanation is at most 500 characters"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			atTheLimit := validDraft()
+			tc.set(&atTheLimit, strings.Repeat("я", tc.longest))
+			if problems := checks.Structure(atTheLimit, asked(), testCatalog); len(problems) != 0 {
+				t.Errorf("Structure() at %d characters = %v, want no problems", tc.longest, problems)
+			}
+			past := validDraft()
+			tc.set(&past, strings.Repeat("я", tc.longest+1))
+			if problems := checks.Structure(past, asked(), testCatalog); !mentions(problems, tc.want) {
+				t.Errorf("Structure() at %d characters = %v, want a problem mentioning %q", tc.longest+1, problems, tc.want)
+			}
+		})
+	}
+}

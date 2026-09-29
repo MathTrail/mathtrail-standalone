@@ -236,3 +236,22 @@ func TestSomethingElseSealedInItsPlaceIsRefused(t *testing.T) {
 		}
 	}
 }
+
+// What is sealed is written as it reads. A solution made of the characters a
+// web page escapes seals to about its own size and a third, as base64 makes
+// it, rather than six times that: the file carries the sealed value whole.
+func TestASealIsAboutAsLongAsWhatItSeals(t *testing.T) {
+	t.Parallel()
+
+	p := parseFixture(t, "dima")
+	answering(t, p, "counting.gaps", 3)
+	escaped := secret()
+	escaped.Solution = strings.Repeat("<&>", 2000)
+
+	if err := p.SealTask(newSealer(t), escaped); err != nil {
+		t.Fatalf("SealTask() error = %v, want nil", err)
+	}
+	if got, most := len(p.CurrentTask.Sealed), 2*len(escaped.Solution); got > most {
+		t.Errorf("a solution of %d bytes sealed to %d, want at most %d", len(escaped.Solution), got, most)
+	}
+}
