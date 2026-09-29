@@ -782,12 +782,14 @@ ci-tf-outputs:
 # file the service ships. It imports the service, so its go.mod follows the
 # service's: a change to the service's go.mod is followed by `just load-tidy`.
 
-# The children of a run sign in through the development sign-in, so the
-# service is one `just run` started. Arguments go to the tool as they are. The
+# A run starts the service itself, from the image of what is in the tree,
+# built first, in a container of an instance's size — unless it is given a
+# service somebody else started with -url, such as one `just run` started, or
+# an image of its own with -image. Arguments go to the tool as they are. The
 # tool is built and then run, rather than run through the go command, which
 # answers every failing exit with 1: its own exit is 0 for a clean run, 1 for
 # one that found something, and 2 for one that could not run.
-# Run a scenario of the load tool against a running service, such as `just load lesson -url http://localhost:8080`
+# Run a scenario of the load tool, such as `just load lesson`, or `just load lesson -url http://localhost:8080`
 [positional-arguments]
 [working-directory('tools/load')]
 load scenario *args:
@@ -796,7 +798,15 @@ load scenario *args:
     scenario="$1"
     shift
     go build -o bin/load .
-    exec bin/load -scenario "$scenario" "$@"
+    for arg in "$@"; do
+        case "$arg" in
+        -url | -url=* | --url | --url=* | -image | -image=* | --image | --image=*)
+            exec bin/load -scenario "$scenario" "$@"
+            ;;
+        esac
+    done
+    just docker-build
+    exec bin/load -scenario "$scenario" -image mathtrail:dev "$@"
 
 # The load tool's tests, with the race detector
 [working-directory('tools/load')]
