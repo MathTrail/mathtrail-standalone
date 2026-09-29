@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"reflect"
 	"runtime"
+	"runtime/debug"
 	"slices"
 	"strings"
 	"testing"
@@ -234,6 +235,38 @@ func TestContainerCarriesTheCheckedContent(t *testing.T) {
 	}
 	if embedded.InstructionsVersion() == "" {
 		t.Error("the content carries no version of the instructions")
+	}
+}
+
+// The line that says the sandbox is built says too what the instance gave the
+// runtime: the processors it schedules on, and the soft limit on its heap, so
+// that the log of a deployment shows whether the size it was given arrived.
+//
+// Not parallel: the soft limit belongs to the whole process. It is set here as
+// the environment of a deployment sets it, and put back before any test that
+// runs in parallel starts.
+func TestContainerSaysWhatTheInstanceGaveTheRuntime(t *testing.T) {
+	const told = 921 << 20
+	before := debug.SetMemoryLimit(told)
+	t.Cleanup(func() { debug.SetMemoryLimit(before) })
+
+	core, logs := observer.New(zapcore.InfoLevel)
+	container, err := app.NewContainer(t.Context(), testConfig(), zap.New(core))
+	if err != nil {
+		t.Fatalf("NewContainer() error = %v, want nil", err)
+	}
+	t.Cleanup(func() { container.Close(context.Background()) })
+
+	built := logs.FilterMessage("solver sandbox built").All()
+	if len(built) != 1 {
+		t.Fatalf("got %d lines saying the sandbox was built, want 1", len(built))
+	}
+	fields := built[0].ContextMap()
+	if got, want := fields["gomaxprocs"], int64(runtime.GOMAXPROCS(0)); got != want {
+		t.Errorf("gomaxprocs: got %v, want %v", got, want)
+	}
+	if got := fields["memory_limit"]; got != int64(told) {
+		t.Errorf("memory_limit: got %v, want %d", got, int64(told))
 	}
 }
 

@@ -87,6 +87,9 @@ func TestCombinatoricsRefusals(t *testing.T) {
 		{"a tuple wider than will be built, the long way", `product(repeat=2000, *[[1]] * 1000)`, "a tuple of 2000000 values"},
 		{"a product of a pair a hundred times over", `product([0, 1], repeat=100)`, "elements"},
 		{"a tuple wider than will be built, out of nothing", `product([], [], repeat=600000)`, "a tuple of 1200000 values"},
+		// Every sequence handed over is a place in every tuple, and more of them
+		// than a tuple may hold is refused before any of them is read.
+		{"more sequences than a tuple may hold", `product(*[[]] * 1000001)`, "a tuple of 1000001 values"},
 		{"an r that is not a number", `combinations([1, 2], "two")`, "r must be a whole number"},
 		{"an r wider than will be built", `combinations([1], 2000000)`, "a tuple of 2000000 values"},
 	} {
@@ -104,13 +107,13 @@ func TestCombinatoricsRefusals(t *testing.T) {
 }
 
 // TestTheWidthOfATupleIsPaidFor is the half of the rule a list's length cannot
-// show. A thousand tuples of ten is ten thousand values allocated, and a
-// budget that counted only the tuples would let a solver take a hundred times
-// what it was given.
+// show. A thousand tuples of ten are ten thousand values and a thousand tuples
+// to hold them, and a budget that counted only the tuples would let a solver
+// take a hundred times what it was given.
 func TestTheWidthOfATupleIsPaidFor(t *testing.T) {
 	t.Parallel()
 	// A thousand and twenty-four tuples of ten: well inside the ceiling, and
-	// ten thousand two hundred and forty values.
+	// some two hundred kilobytes, which is some sixteen thousand steps.
 	const wide = "def solve(options):\n    return match(options, len(product(*[[0, 1]] * 10)))\n"
 
 	roomy := sandbox(t, starlark.Limits{Steps: 20_000, Timeout: time.Minute, Concurrency: 1, Wait: time.Minute})
@@ -131,8 +134,9 @@ func TestTheWidthOfATupleIsPaidFor(t *testing.T) {
 		t.Errorf("with less: got %q (%s), want %q", result.Status, result.Message, solver.StatusTimeout)
 	}
 
-	// The same number of values in a flat list is paid for once each, so the
-	// budget that would not cover the tuples covers these.
+	// The same number of values in a flat list is a step each to walk and
+	// sixteen bytes each to hold, with no tuples around them, so the budget
+	// that would not cover the tuples covers these.
 	flat := "def solve(options):\n    return match(options, len(list(range(1024))))\n"
 	result, err = tight.Run(t.Context(), flat, options)
 	if err != nil {

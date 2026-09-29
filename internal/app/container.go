@@ -8,7 +8,10 @@ package app
 import (
 	"context"
 	"errors"
+	"math"
 	"net/http"
+	"runtime"
+	"runtime/debug"
 	"slices"
 	"time"
 
@@ -145,6 +148,11 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 		zap.Duration("timeout", cfg.SolverTimeout),
 		zap.Int("concurrency", cfg.SolverConcurrency),
 		zap.Duration("wait", cfg.SolverWait),
+		// What the instance gave the runtime, beside the slots it was given:
+		// the processors it schedules on and the soft limit its collector
+		// keeps the heap under, so that a deployment shows what it got.
+		zap.Int("gomaxprocs", runtime.GOMAXPROCS(0)),
+		zap.Int64("memory_limit", softMemoryLimit()),
 	)
 
 	// A task is reviewed against the content above and run in the sandbox
@@ -336,6 +344,15 @@ func profileStore(cfg *config.Config, log *zap.Logger, traces trace.TracerProvid
 		Traces:    traces,
 		ProjectID: cfg.GCPProjectID,
 	})
+}
+
+// softMemoryLimit is the soft limit the runtime's collector keeps the heap under,
+// as GOMEMLIMIT set it, or nothing when it was not set.
+func softMemoryLimit() int64 {
+	if limit := debug.SetMemoryLimit(-1); limit != math.MaxInt64 {
+		return limit
+	}
+	return 0
 }
 
 // Close releases everything in reverse order of construction. It logs each

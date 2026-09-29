@@ -110,7 +110,7 @@ func parse(args []string, stderr io.Writer) (invocation, error) {
 	service := declareService(flags)
 	given := declareOptions(flags)
 	cpus := flags.Float64("cpus", 1, "the vCPUs an instance has, and is billed for")
-	memory := flags.String("memory", "512m", "the memory an instance has, and is billed for, as docker writes it: 512m, 1g")
+	memory := flags.String("memory", "1g", "the memory an instance has, and is billed for, as docker writes it: 1g, 512m")
 	if err := flags.Parse(args); err != nil {
 		return invocation{}, errUsage
 	}
@@ -193,16 +193,58 @@ func (s *serviceFlags) fromImage(options *scenario.Options, cpus float64, memory
 	if err != nil {
 		return nil, "", err
 	}
-	if held, _ := bytesOf("-memory", memory); ceiling >= held && ceiling > 0 {
+	held, _ := bytesOf("-memory", memory)
+	if ceiling >= held && ceiling > 0 {
 		// The instance is killed at its memory before it could hold more.
 		return nil, "", fmt.Errorf("-memory-ceiling %s is no lower than the instance's -memory %s, and could never be passed",
 			*s.ceiling, memory)
 	}
-	spec := instance.Spec{Image: *s.image, CPUs: cpus, Memory: memory, Env: s.env, Ceiling: ceiling, Up: options.Timeout}
+	env := deployed(cpus, held, s.env)
+	spec := instance.Spec{Image: *s.image, CPUs: cpus, Memory: memory, Env: env, Ceiling: ceiling, Up: options.Timeout}
 	if invalid := spec.Check(); invalid != nil {
 		return nil, "", invalid
 	}
-	return scenario.FromImage(&spec), "an instance of " + *s.image, nil
+	return scenario.FromImage(&spec), "an instance of " + *s.image + " with " + strings.Join(sized(env), " "), nil
+}
+
+// The variables a deployment derives from the size of an instance rather than
+// takes as given: a solver slot for every whole processor, and nine tenths of
+// the memory as the runtime's soft limit.
+const (
+	solverSlots = "MATHTRAIL_SOLVER_CONCURRENCY"
+	softLimit   = "GOMEMLIMIT"
+)
+
+// sizedNames are those variables, by name.
+var sizedNames = []string{solverSlots, softLimit}
+
+// deployed is the environment an instance of the processors and the memory
+// given starts with: what a deployment derives from that size, then the
+// variables given, which take the place of a derived one they name.
+func deployed(cpus float64, memory uint64, given environment) []string {
+	derived := []struct{ name, value string }{
+		{solverSlots, strconv.Itoa(max(1, int(cpus)))},
+		{softLimit, strconv.FormatUint(memory*9/10>>20, 10) + "MiB"},
+	}
+	env := make([]string, 0, len(derived)+len(given))
+	for _, variable := range derived {
+		if !slices.ContainsFunc(given, func(v string) bool { return strings.HasPrefix(v, variable.name+"=") }) {
+			env = append(env, variable.name+"="+variable.value)
+		}
+	}
+	return append(env, given...)
+}
+
+// sized is what an environment gives of the variables a deployment derives
+// from the size of an instance.
+func sized(env []string) []string {
+	var found []string
+	for _, variable := range env {
+		if name, _, _ := strings.Cut(variable, "="); slices.Contains(sizedNames, name) {
+			found = append(found, variable)
+		}
+	}
+	return found
 }
 
 // environment is the variables given with -env, each NAME=VALUE.

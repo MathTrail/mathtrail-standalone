@@ -62,6 +62,11 @@ NPM_LICENSE_EXCEPTIONS := "lightningcss=MPL-2.0"
 # meet the interpolation of this file.
 LOAD_MODULE_OF := '{{with .Module}}{{if not .Main}}{{if not .Replace}}{{.Path}} {{.Version}}{{end}}{{end}}{{end}}'
 
+# The Go template that prints how the Docker daemon keeps its containers'
+# cgroups, and on what kernel: they decide whether the load tool can measure
+# an instance at all. It sits in a variable for the same reason.
+DOCKER_CGROUPS := '{{.CgroupVersion}} {{.CgroupDriver}}, kernel {{.KernelVersion}}'
+
 # The origin the site is published on. Every absolute address on the site, and
 # the CNAME that claims the domain, are built from this one value.
 SITE_BASE := "https://mathtrail.app"
@@ -807,6 +812,53 @@ load scenario *args:
     done
     just docker-build
     exec bin/load -scenario "$scenario" -image mathtrail:dev "$@"
+
+# Every scenario, against the image of what is in the tree, built once, in a
+# container of an instance's size: one vCPU and 1 GiB, told what a deployment
+# of that size is told. Each run is held to the most memory its instance may
+# hold — its peak as measured, with room to spare; for the solvers that keep
+# hundreds of MiB, whose peak is wherever the collector chose to work, just
+# under the instance — and one that finds something does not stop the rest:
+# every run reports, each under the command that ran it, and the worst exit is
+# the recipe's. Saturation runs twice: once through the pace of the instance,
+# and once with eighty hand-ins in flight past it, which is the sandbox's queue
+# alone. Arguments go to every run, so `just ci-load -env
+# MATHTRAIL_SOLVER_CONCURRENCY=32` runs them all against a sandbox of
+# thirty-two slots on one processor. They are for what the service is told:
+# the size of the instance and the ceilings were measured together, and a
+# ceiling held against another -memory or -cpus means nothing.
+# Run every load scenario against the image, holding each run to its memory
+[positional-arguments]
+[working-directory('tools/load')]
+ci-load *args: docker-build
+    #!/usr/bin/env bash
+    set -uo pipefail
+    go build -o bin/load . || exit 2
+    echo "load: docker runs its containers' cgroups $(docker info --format '{{ DOCKER_CGROUPS }}')" >&2
+    extra=("$@")
+    worst=0
+    one() {
+        local command=(-image mathtrail:dev -cpus 1 -memory 1g "$@" "${extra[@]}")
+        printf '> `load %s`\n\n' "${command[*]}"
+        code=0
+        bin/load "${command[@]}" || code=$?
+        if ((code > worst)); then
+            worst=$code
+        fi
+        echo
+    }
+    one -scenario lesson -memory-ceiling 64m
+    one -scenario saturation -memory-ceiling 64m
+    one -scenario saturation -children 80 -rate 27 -env MATHTRAIL_RATE_INSTANCE_PER_MIN=1000000 -memory-ceiling 96m
+    one -scenario limits -memory-ceiling 64m
+    one -scenario cold -memory-ceiling 64m
+    one -scenario adversarial -variants appends -memory-ceiling 256m
+    one -scenario adversarial -variants helper -memory-ceiling 128m
+    one -scenario adversarial -variants tuples -memory-ceiling 960m
+    one -scenario adversarial -variants pairs -memory-ceiling 960m
+    one -scenario adversarial -variants sets -memory-ceiling 960m
+    one -scenario adversarial -variants product -memory-ceiling 288m
+    exit "$worst"
 
 # The load tool's tests, with the race detector
 [working-directory('tools/load')]

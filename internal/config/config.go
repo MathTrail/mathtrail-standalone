@@ -53,7 +53,7 @@ const (
 
 	DefaultSolverSteps       = 25_000_000
 	DefaultSolverTimeout     = 2 * time.Second
-	DefaultSolverConcurrency = 4
+	DefaultSolverConcurrency = 1
 	DefaultSolverWait        = 3 * time.Second
 
 	DefaultRequestWindow = 15 * time.Minute
@@ -117,7 +117,11 @@ type Config struct {
 	SolverSteps uint64 `mapstructure:"MATHTRAIL_SOLVER_STEPS"`
 	// SolverTimeout is the wall clock of one run of a solver.
 	SolverTimeout time.Duration `mapstructure:"MATHTRAIL_SOLVER_TIMEOUT"`
-	// SolverConcurrency is how many solvers may run at once in this process.
+	// SolverConcurrency is how many solvers may run at once in this process:
+	// one for every processor the instance has, since the clock of a run is
+	// wall time and a run sharing a processor would spend it on another's
+	// work. It is not worked out from the processors the runtime sees, which
+	// never counts fewer than two on a machine that has two.
 	SolverConcurrency int `mapstructure:"MATHTRAIL_SOLVER_CONCURRENCY"`
 	// SolverWait is how long a run of a solver waits for one of those places to
 	// come free. A task whose run finds none in that time is not checked, and

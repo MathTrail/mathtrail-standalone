@@ -69,8 +69,11 @@ func TestSaturationTurnsAwayWhatTheSandboxHasNoSlotFor(t *testing.T) {
 func TestEveryCostlySolverLeavesTheServiceAlive(t *testing.T) {
 	t.Parallel()
 
-	target := servicetest.Start(t,
-		"MATHTRAIL_SOLVER_STEPS=200000", "MATHTRAIL_SOLVER_TIMEOUT=300ms", "MATHTRAIL_RATE_USER_PER_MIN=600")
+	// The variants share one service, so the pace of the instance is set past
+	// what all of them send together, as the account's is past what one child
+	// does.
+	target := servicetest.Start(t, "MATHTRAIL_SOLVER_STEPS=200000", "MATHTRAIL_SOLVER_TIMEOUT=300ms",
+		"MATHTRAIL_RATE_USER_PER_MIN=600", "MATHTRAIL_RATE_INSTANCE_PER_MIN=6000")
 	o := optionsOf(t, scenario.Adversarial)
 	o.Variants = lesson.Costly()
 	o.Rate, o.Duration, o.Children, o.Steps, o.Timeout = 5, 600*time.Millisecond, 2, lesson.MinSteps, 10*time.Second

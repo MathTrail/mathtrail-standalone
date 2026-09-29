@@ -40,7 +40,7 @@ func permutations(steps uint64) *starlark.Builtin {
 		for place := 0; place < width && count > 0; place++ {
 			count = times(count, len(pool)-place)
 		}
-		if err = charge(thread, steps, count, width); err != nil {
+		if err = charge(thread, steps, count, width, cost{built: tuplesOf(count, width)}); err != nil {
 			return nil, fmt.Errorf("%s: %w", builtin.Name(), err)
 		}
 		return starlark.NewList(orderings(pool, width, count)), nil
@@ -59,7 +59,7 @@ func combinations(steps uint64) *starlark.Builtin {
 		}
 
 		count := choose(len(pool), width)
-		if err = charge(thread, steps, count, width); err != nil {
+		if err = charge(thread, steps, count, width, cost{built: tuplesOf(count, width)}); err != nil {
 			return nil, fmt.Errorf("%s: %w", builtin.Name(), err)
 		}
 		return starlark.NewList(choices(pool, width, count)), nil
@@ -86,7 +86,7 @@ func combinationsWithReplacement(steps uint64) *starlark.Builtin {
 		if width > 0 {
 			count = choose(len(pool)+width-1, width)
 		}
-		if err = charge(thread, steps, count, width); err != nil {
+		if err = charge(thread, steps, count, width, cost{built: tuplesOf(count, width)}); err != nil {
 			return nil, fmt.Errorf("%s: %w", builtin.Name(), err)
 		}
 		return starlark.NewList(choicesWithRepeats(pool, width, count)), nil
@@ -111,6 +111,12 @@ func product(steps uint64) *starlark.Builtin {
 			return nil, fmt.Errorf("%s: repeat is %d, and it must be between 0 and %d", name, repeat, maxElements)
 		}
 
+		// Every sequence is a place in every tuple and a walk begun, however
+		// short it is, so a product of a million empty ones is refused or paid
+		// for before any of them is opened.
+		if err := charge(thread, steps, 0, len(args), cost{built: openBytes * clamped(len(args))}); err != nil {
+			return nil, fmt.Errorf("%s: %w", name, err)
+		}
 		given := make([][]starlark.Value, 0, len(args))
 		for _, argument := range args {
 			pool, err := elementsOf(thread, steps, name, argument)
@@ -121,10 +127,10 @@ func product(steps uint64) *starlark.Builtin {
 		}
 
 		count, width := crossingCount(given, repeat)
-		if err := charge(thread, steps, count, width); err != nil {
+		if err := charge(thread, steps, count, width, cost{built: tuplesOf(count, width)}); err != nil {
 			return nil, fmt.Errorf("%s: %w", name, err)
 		}
-		return starlark.NewList(crossings(given, repeat, count)), nil
+		return starlark.NewList(crossings(given, width, count)), nil
 	})
 }
 
@@ -213,32 +219,31 @@ func choicesWithRepeats(pool []starlark.Value, width, count int) []starlark.Valu
 	}
 }
 
-// crossings is one element from each pool, the pools given repeat times over,
-// every way round: a row of counters with the last one moving fastest, running
-// to the end of its pool, going back to the start and moving the one before it.
-// Nothing is laid out for a product that holds no tuple at all, however wide
-// its tuples would have been.
-func crossings(given [][]starlark.Value, repeat, count int) []starlark.Value {
+// crossings is one element from each pool, the pools given over and over until
+// a tuple is as wide as it should be, every way round: a row of counters with
+// the last one moving fastest, running to the end of its pool, going back to
+// the start and moving the one before it. Nothing is laid out for a product
+// that holds no tuple at all, however wide its tuples would have been, and the
+// pools are never copied out once for every repeat: a place reads the pool it
+// stands for where the pools already are.
+func crossings(given [][]starlark.Value, width, count int) []starlark.Value {
 	if count == 0 {
 		return nil
 	}
-	pools := make([][]starlark.Value, 0, len(given)*repeat)
-	for range repeat {
-		pools = append(pools, given...)
-	}
+	poolAt := func(place int) []starlark.Value { return given[place%len(given)] }
 	tuples := make([]starlark.Value, 0, count)
-	places := make([]int, len(pools))
+	places := make([]int, width)
 	for {
-		tuple := make(starlark.Tuple, len(pools))
+		tuple := make(starlark.Tuple, width)
 		for place, index := range places {
-			tuple[place] = pools[place][index]
+			tuple[place] = poolAt(place)[index]
 		}
 		tuples = append(tuples, tuple)
 
-		last := len(pools) - 1
+		last := width - 1
 		for last >= 0 {
 			places[last]++
-			if places[last] < len(pools[last]) {
+			if places[last] < len(poolAt(last)) {
 				break
 			}
 			places[last] = 0
