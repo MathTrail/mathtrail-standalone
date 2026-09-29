@@ -1,13 +1,27 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
 import { describe, expect, test } from "vitest";
-import { readAnswer, readHandedTask } from "./payload";
+import { readAnswer, readHandedTask, readWaiting } from "./payload";
 import {
 	answered,
+	exhausted,
 	failure,
 	fence,
+	limited,
+	refused,
 	staleAnswer,
 	toldAgain,
 } from "./testing/lesson";
+
+// staleRequest is a task handed in for a request no longer open, with no task
+// on the card: the card waits for the task the model is told to ask for.
+const staleRequest = {
+	screen: "waiting",
+	status: "stale",
+	code: "stale_request",
+	last_answer: null,
+	child: fence.child,
+	task: null,
+};
 
 describe("a task handed to the card", () => {
 	test("is read with what the child may see and whose card it is", () => {
@@ -100,5 +114,36 @@ describe("an answer sent from the card", () => {
 		["there is no payload", { content: [] }],
 	])("is not recorded when %s", (_, result) => {
 		expect(readAnswer(result, fence.task.id)).toEqual({ kind: "failed" });
+	});
+});
+
+describe("a wait for the next task", () => {
+	test.each([
+		["a task refused, with attempts left", refused, "working"],
+		["a task handed in for no open request", staleRequest, "working"],
+		["the model's last attempt refused", exhausted, "exhausted"],
+	])("after %s is read with whose card it is", (_, payload, kind) => {
+		expect(readWaiting(payload)).toEqual({ kind, child: fence.child });
+	});
+
+	test("refused for the day is read whether or not it says whose card it is", () => {
+		expect(readWaiting(limited)).toEqual({ kind: "limit", child: undefined });
+		expect(readWaiting({ ...limited, child: fence.child })).toEqual({
+			kind: "limit",
+			child: fence.child,
+		});
+	});
+
+	test.each([
+		["a task", fence],
+		["a wait that does not say whose card it is", { ...refused, child: null }],
+		[
+			"a grade that is no number",
+			{ ...refused, child: { ...fence.child, grade: "3" } },
+		],
+		["the progress", { screen: "progress", profile: null }],
+		["nothing", undefined],
+	])("is not read from %s", (_, payload) => {
+		expect(readWaiting(payload)).toBeUndefined();
 	});
 });

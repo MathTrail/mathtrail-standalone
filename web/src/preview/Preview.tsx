@@ -4,7 +4,7 @@ import { type Language, scenesIn } from "./scenes";
 
 // The widths a card is looked at in: the narrowest it has to fit, the
 // design's narrow card, the design's wide card, and a chat on the web.
-const widths = [320, 360, 640, 736] as const;
+const widths: readonly number[] = [320, 360, 640, 736];
 
 // The host's locale for each language the preview shows.
 const locales: Record<Language, string> = { en: "en-US", ru: "ru-RU" };
@@ -32,7 +32,7 @@ export function Preview() {
 			(asked.get("widths") ?? "320,360,640")
 				.split(",")
 				.map(Number)
-				.filter((width) => widths.some((known) => known === width)),
+				.filter((width) => widths.includes(width)),
 		),
 	);
 	const [only, setOnly] = useState(asked.get("scene") ?? "");

@@ -28,20 +28,9 @@ export type Question = {
 };
 
 /**
- * Progress is the progress shown over the task, as it is read: being read,
- * read, or not read. Each opening is numbered, so that the reply to one closed
- * since is not taken for the reply to the one open now.
- */
-export type Progress =
-	| { state: "reading"; opening: number }
-	| { state: "read"; opening: number; payload: unknown }
-	| { state: "failed"; opening: number };
-
-/**
  * Lesson is everything a task card knows of the lesson on it: whether it
  * still shows the task or waits for the next one, the hint, the answer, the
- * questions asked, the words being typed, and the progress when it is open
- * over the task.
+ * questions asked, and the words being typed.
  */
 export type Lesson = {
 	stage: "task" | "waiting";
@@ -49,7 +38,6 @@ export type Lesson = {
 	answer: Answer;
 	questions: readonly Question[];
 	draft: string;
-	progress: Progress | undefined;
 };
 
 /** lessonStart is a card as a task arrives on it. */
@@ -59,7 +47,6 @@ export const lessonStart: Lesson = {
 	answer: { state: "open" },
 	questions: [],
 	draft: "",
-	progress: undefined,
 };
 
 /** LessonEvent is something that happens on a task card. */
@@ -71,16 +58,12 @@ export type LessonEvent =
 	| { type: "asked"; id: number; words: string }
 	| { type: "question sent"; id: number }
 	| { type: "question lost"; id: number }
-	| { type: "another asked" }
-	| { type: "progress opened"; opening: number }
-	| { type: "progress read"; opening: number; payload: unknown }
-	| { type: "progress failed"; opening: number }
-	| { type: "back to task" };
+	| { type: "another asked" };
 
 /**
  * next is the lesson after event. An event that cannot happen where the
  * lesson stands — a second answer while the first is being checked, a reply
- * for a progress already closed — leaves it as it is.
+ * about a question already told of — leaves it as it is.
  */
 export function next(lesson: Lesson, event: LessonEvent): Lesson {
 	switch (event.type) {
@@ -94,13 +77,7 @@ export function next(lesson: Lesson, event: LessonEvent): Lesson {
 				: lesson;
 		case "hint toggled":
 			return canAnswer(lesson)
-				? {
-						...lesson,
-						hint: {
-							open: !lesson.hint.open,
-							used: lesson.hint.used || !lesson.hint.open,
-						},
-					}
+				? { ...lesson, hint: toggled(lesson.hint) }
 				: lesson;
 		case "typed":
 			return { ...lesson, draft: event.words };
@@ -121,52 +98,23 @@ export function next(lesson: Lesson, event: LessonEvent): Lesson {
 			return lesson.stage === "task" && lesson.answer.state !== "checking"
 				? { ...lesson, stage: "waiting" }
 				: lesson;
-		case "progress opened":
-			return lesson.progress === undefined
-				? {
-						...lesson,
-						progress: { state: "reading", opening: event.opening },
-					}
-				: lesson;
-		case "progress read":
-			return isRead(lesson, event.opening)
-				? {
-						...lesson,
-						progress: {
-							state: "read",
-							opening: event.opening,
-							payload: event.payload,
-						},
-					}
-				: lesson;
-		case "progress failed":
-			return isRead(lesson, event.opening)
-				? {
-						...lesson,
-						progress: { state: "failed", opening: event.opening },
-					}
-				: lesson;
-		case "back to task":
-			return { ...lesson, progress: undefined };
 	}
 }
 
+// toggled is the hint shown if it was hidden and hidden if it was shown, used
+// for good once it has been shown.
+function toggled(hint: Lesson["hint"]): Lesson["hint"] {
+	return { open: !hint.open, used: hint.used || !hint.open };
+}
+
 /**
- * canAnswer says whether an answer can be given now: on the task, with the
- * progress closed, and no answer recorded, refused or already on its way.
+ * canAnswer says whether an answer can be given now: on the task, with no
+ * answer recorded, refused or already on its way.
  */
 export function canAnswer(lesson: Lesson): boolean {
 	return (
 		lesson.stage === "task" &&
-		lesson.progress === undefined &&
 		(lesson.answer.state === "open" || lesson.answer.state === "failed")
-	);
-}
-
-// isRead says whether the progress opened as opening is the one being read.
-function isRead(lesson: Lesson, opening: number): boolean {
-	return (
-		lesson.progress?.state === "reading" && lesson.progress.opening === opening
 	);
 }
 
@@ -208,7 +156,7 @@ function questionNow(
 	state: "sent" | "lost",
 ): Lesson {
 	const question = lesson.questions.find((asked) => asked.id === id);
-	if (question === undefined || question.state !== "sending") {
+	if (question?.state !== "sending") {
 		return lesson;
 	}
 	return {

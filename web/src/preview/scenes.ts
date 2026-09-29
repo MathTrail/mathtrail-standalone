@@ -3,14 +3,16 @@ import type { McpUiHostContext } from "@modelcontextprotocol/ext-apps";
 import type { AnswerResult } from "../widget/payload";
 import {
 	answered,
+	exhausted,
 	failure,
 	fence,
 	fenceInRussian,
 	fenceSolution,
 	fenceSolutionInRussian,
-	type Handed,
+	limited,
 	longTexts,
 	progress,
+	refused,
 	staleAnswer,
 } from "../widget/testing/lesson";
 
@@ -18,14 +20,15 @@ import {
 export type Language = "en" | "ru";
 
 /**
- * Scene is one state of a lesson on a card: the task handed to it, what the
- * service answers the card's calls with, whether the host takes its messages,
- * what the host keeps of the screen's edges, and what the child does on the
- * card to reach the state.
+ * Scene is one state of a lesson on a card: the payload the card is drawn
+ * from — a task handed to it, or a wait for the next — what the service
+ * answers the card's calls with, whether the host takes its messages, what
+ * the host keeps of the screen's edges, and what the child does on the card
+ * to reach the state.
  */
 export type Scene = {
 	name: string;
-	handed: Handed;
+	payload: object;
 	answers?: (tool: string) => Promise<CallToolResult>;
 	refuseMessages?: boolean;
 	insets?: McpUiHostContext["safeAreaInsets"];
@@ -69,18 +72,18 @@ export function scenesIn(language: Language): Scene[] {
 		(tool: string) =>
 			tool === "read_progress" ? Promise.resolve(progress) : result(fields);
 	return [
-		{ name: "task", handed },
+		{ name: "task", payload: handed },
 		{
 			name: "selected (checking)",
-			handed,
+			payload: handed,
 			answers: () => never,
 			play: option("B"),
 		},
-		{ name: "hint", handed, play: button(1) },
-		{ name: "wrong", handed, answers: service(), play: option("B") },
+		{ name: "hint", payload: handed, play: button(1) },
+		{ name: "wrong", payload: handed, answers: service(), play: option("B") },
 		{
 			name: "right",
-			handed,
+			payload: handed,
 			answers: service({
 				choice: "C",
 				correct: true,
@@ -91,7 +94,7 @@ export function scenesIn(language: Language): Scene[] {
 		},
 		{
 			name: "I don't know",
-			handed,
+			payload: handed,
 			answers: service({
 				choice: "?",
 				trap: null,
@@ -99,28 +102,28 @@ export function scenesIn(language: Language): Scene[] {
 			}),
 			play: button(0),
 		},
-		{ name: "question sent", handed, play: ask(words.question) },
+		{ name: "question sent", payload: handed, play: ask(words.question) },
 		{
 			name: "question not sent",
-			handed,
+			payload: handed,
 			refuseMessages: true,
 			play: ask(words.question),
 		},
 		{
 			name: "trial series, 3 of 5",
-			handed,
+			payload: handed,
 			answers: service({ rating: null, trial: { answered: 3, of: 5 } }),
 			play: option("B"),
 		},
 		{
 			name: "trial series, 5 of 5",
-			handed,
+			payload: handed,
 			answers: service({ rating: null, trial: { answered: 5, of: 5 } }),
 			play: option("B"),
 		},
 		{
 			name: "answered before, with D",
-			handed,
+			payload: handed,
 			answers: service({
 				choice: "D",
 				trap: { id: "fence_ends", text: words.ends },
@@ -130,29 +133,49 @@ export function scenesIn(language: Language): Scene[] {
 		},
 		{
 			name: "closed",
-			handed,
+			payload: handed,
 			answers: () => Promise.resolve(staleAnswer),
 			play: option("B"),
 		},
 		{
 			name: "not recorded",
-			handed,
+			payload: handed,
 			answers: () => Promise.resolve(failure),
 			play: option("B"),
 		},
 		{
 			name: "handed out again",
-			handed: { ...handed, status: "stale", code: "stale_request" },
+			payload: { ...handed, status: "stale", code: "stale_request" },
 		},
-		{ name: "progress", handed, answers: service(), play: topLine },
-		{ name: "waiting", handed, play: button(2) },
-		{ name: "long texts", handed: longTexts },
+		{ name: "progress", payload: handed, answers: service(), play: topLine },
+		{ name: "waiting", payload: handed, play: button(2) },
+		{
+			name: "waiting, the ask not sent",
+			payload: handed,
+			refuseMessages: true,
+			play: button(2),
+		},
+		{
+			name: "waiting after a refused task (warm-up at 30 s, late at 120 s)",
+			payload: { ...refused, child: handed.child },
+		},
+		{
+			name: "attempts exhausted",
+			payload: { ...exhausted, child: handed.child },
+		},
+		{ name: "limit reached", payload: limited },
+		{ name: "long texts", payload: longTexts },
 		{
 			name: "room kept at the edges",
-			handed,
+			payload: handed,
 			insets: { top: 24, right: 0, bottom: 34, left: 0 },
 		},
-		{ name: "right to left (layout only)", handed, play: rightToLeft },
+		{ name: "right to left (layout only)", payload: handed, play: rightToLeft },
+		{
+			name: "waiting, right to left (layout only)",
+			payload: { ...refused, child: handed.child },
+			play: rightToLeft,
+		},
 	];
 }
 

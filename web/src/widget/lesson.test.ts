@@ -88,11 +88,11 @@ describe("an answer", () => {
 		);
 	});
 
-	test("cannot be given with the progress open, nor while waiting", () => {
-		expect(
-			canAnswer(lessonAfter({ type: "progress opened", opening: 1 })),
-		).toBe(false);
-		expect(canAnswer(lessonAfter({ type: "another asked" }))).toBe(false);
+	test("cannot be given while the next task is waited for", () => {
+		const waiting = lessonAfter({ type: "another asked" });
+
+		expect(canAnswer(waiting)).toBe(false);
+		expect(next(waiting, { type: "picked", choice: "B" })).toBe(waiting);
 	});
 });
 
@@ -161,68 +161,15 @@ describe("another task", () => {
 		const checking = lessonAfter({ type: "picked", choice: "B" });
 		expect(next(checking, { type: "another asked" })).toBe(checking);
 	});
-});
 
-describe("the progress", () => {
-	test("is read over the task, and closed back onto it as it was", () => {
-		const before = lessonAfter(
-			{ type: "hint toggled" },
-			{ type: "typed", words: "why?" },
+	test("can be asked for once the answer is in, and only once", () => {
+		const recorded = lessonAfter(
+			{ type: "picked", choice: "B" },
+			{ type: "told", outcome: { kind: "answered", result: wrong } },
 		);
-		const opened = next(before, { type: "progress opened", opening: 1 });
-		expect(opened.progress).toEqual({ state: "reading", opening: 1 });
-		const read = next(opened, {
-			type: "progress read",
-			opening: 1,
-			payload: { screen: "progress" },
-		});
-		expect(read.progress).toEqual({
-			state: "read",
-			opening: 1,
-			payload: { screen: "progress" },
-		});
-
-		expect(next(read, { type: "back to task" })).toEqual(before);
-	});
-
-	test("read after it was closed is not opened again", () => {
-		const closed = lessonAfter(
-			{ type: "progress opened", opening: 1 },
-			{ type: "back to task" },
-		);
-
-		expect(
-			next(closed, { type: "progress read", opening: 1, payload: {} }),
-		).toBe(closed);
-		expect(next(closed, { type: "progress failed", opening: 1 })).toBe(closed);
-	});
-
-	test("opened again is settled by its own reply, not the one before", () => {
-		const reopened = lessonAfter(
-			{ type: "progress opened", opening: 1 },
-			{ type: "back to task" },
-			{ type: "progress opened", opening: 2 },
-		);
-
-		expect(next(reopened, { type: "progress failed", opening: 1 })).toBe(
-			reopened,
-		);
-		expect(
-			next(reopened, { type: "progress read", opening: 1, payload: "old" }),
-		).toBe(reopened);
-		expect(
-			next(reopened, { type: "progress read", opening: 2, payload: "new" })
-				.progress,
-		).toEqual({ state: "read", opening: 2, payload: "new" });
-	});
-
-	test("that fails says so", () => {
-		expect(
-			lessonAfter(
-				{ type: "progress opened", opening: 1 },
-				{ type: "progress failed", opening: 1 },
-			).progress,
-		).toEqual({ state: "failed", opening: 1 });
+		const waiting = next(recorded, { type: "another asked" });
+		expect(waiting.stage).toBe("waiting");
+		expect(next(waiting, { type: "another asked" })).toBe(waiting);
 	});
 });
 

@@ -1,4 +1,4 @@
-import type { ComponentChildren } from "preact";
+import type { ComponentChildren, Ref } from "preact";
 import { classes } from "./classes";
 import type { Said } from "./controls";
 import { Icon } from "./icons";
@@ -71,19 +71,33 @@ export function Note({
  */
 export type VerdictTone = "correct" | "wrong" | "none";
 
-/** Verdict is the line that says how the answer went, with its mark. */
+/**
+ * Verdict is the line that says how something went, with its mark when it is
+ * an answer's, and the detail under it when there is more to say.
+ */
 export function Verdict({
 	tone = "none",
+	detail,
 	children,
 }: {
 	tone?: VerdictTone;
+	detail?: string;
 	children: ComponentChildren;
 }) {
-	return (
+	const line = (
 		<p class="mt-verdict-line">
 			{tone !== "none" && <Icon name={`verdict-${tone}`} size={20} />}
 			<span>{children}</span>
 		</p>
+	);
+	if (detail === undefined) {
+		return line;
+	}
+	return (
+		<div class="mt-verdict">
+			{line}
+			<p class="mt-verdict-detail">{detail}</p>
+		</div>
 	);
 }
 
@@ -119,4 +133,63 @@ export function SolutionSteps({
 // say the same.
 function numbered(steps: readonly string[]) {
 	return steps.map((step, at) => ({ number: at + 1, step }));
+}
+
+/** StepStatus is how a step of a course stands: done, under way, or to come. */
+export type StepStatus = "done" | "active" | "waiting";
+
+/** Step is a step of a course being followed, and how it stands. */
+export type Step = { label: string; status: StepStatus };
+
+/**
+ * GeneratingSteps is a course followed step by step under its title: each
+ * step done, under way or to come, with its mark. A screen reader is told how
+ * each step stands, in the words given for it, and hears the list as it moves.
+ */
+export function GeneratingSteps({
+	title,
+	steps,
+	statusLabels,
+	titleRef,
+}: {
+	title: string;
+	steps: readonly Step[];
+	statusLabels: Record<StepStatus, string>;
+	titleRef?: Ref<HTMLParagraphElement>;
+}) {
+	return (
+		<div class="mt-gen">
+			<p class="mt-gen-title" ref={titleRef} tabIndex={-1}>
+				{title}
+			</p>
+			<ol aria-live="polite">
+				{steps.map((step) => (
+					<li key={step.label} data-status={step.status}>
+						<span class="mt-gen-icon">{stepMark(step.status)}</span>
+						<span class="mt-gen-label">
+							<span class="mt-vh">{statusLabels[step.status]} </span>
+							{step.label}
+						</span>
+					</li>
+				))}
+			</ol>
+		</div>
+	);
+}
+
+// stepMark is the mark of a step as it stands: ticked when done, turning in
+// the strongest ink while under way, an empty ring while to come.
+function stepMark(status: StepStatus) {
+	switch (status) {
+		case "done":
+			return <Icon name="step-done" size={20} />;
+		case "active":
+			return (
+				<span class="mt-gen-turning">
+					<Icon name="spinner" size={20} />
+				</span>
+			);
+		case "waiting":
+			return <Icon name="step-waiting" size={20} />;
+	}
 }

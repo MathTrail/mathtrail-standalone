@@ -2,7 +2,7 @@ import { render } from "preact";
 import { act } from "preact/test-utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { Bridge, Host, ToolResult } from "./bridge";
-import { fence } from "./testing/lesson";
+import { exhausted, fence, limited, refused } from "./testing/lesson";
 import { WidgetApp } from "./WidgetApp";
 
 // idleHost is a host the card asks nothing of in these tests.
@@ -73,12 +73,12 @@ describe("the card", () => {
 		const { bridge, deliver } = heldBridge();
 		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
 
-		act(() => deliver({ screen: "waiting", attempt: 1 }));
-		expect(root.textContent).toContain('"attempt": 1');
+		act(() => deliver({ screen: "profile", revision: 1 }));
+		expect(root.textContent).toContain('"revision": 1');
 
-		act(() => deliver({ screen: "waiting", attempt: 2 }));
-		expect(root.textContent).toContain('"attempt": 2');
-		expect(root.textContent).not.toContain('"attempt": 1');
+		act(() => deliver({ screen: "profile", revision: 2 }));
+		expect(root.textContent).toContain('"revision": 2');
+		expect(root.textContent).not.toContain('"revision": 1');
 	});
 
 	test("shows a result that arrived before it was drawn", () => {
@@ -113,6 +113,58 @@ describe("the card", () => {
 			fence.task.question,
 		);
 		expect(root.querySelector(".stub")).toBeNull();
+	});
+
+	test.each([
+		["a task refused", refused, "Preparing the next task…"],
+		[
+			"a day refused",
+			limited,
+			"There are no more new tasks today\u00a0— there will be more tomorrow.",
+		],
+	])("draws the wait after %s as the waiting card", (_, payload, says) => {
+		const { bridge, deliver } = heldBridge();
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
+
+		act(() => deliver(payload));
+
+		expect(root.querySelector(".mt-widget")?.textContent).toContain(says);
+		expect(root.querySelector(".stub")).toBeNull();
+	});
+
+	test("starts a new wait for each payload that asks for one, and only then", () => {
+		vi.useFakeTimers();
+		try {
+			const { bridge, deliver, changeLocale } = heldBridge();
+			act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
+			act(() => deliver(refused));
+			act(() => {
+				vi.advanceTimersByTime(120_000);
+			});
+			expect(root.querySelector(".mt-gen")).toBeNull();
+
+			// The host telling more, or telling the same payload again, is not a
+			// new wait.
+			act(() => changeLocale("en-GB"));
+			act(() => deliver({ ...refused }));
+			expect(root.querySelector(".mt-gen")).toBeNull();
+
+			act(() => deliver(exhausted));
+			expect(root.querySelector(".mt-gen")).not.toBeNull();
+			expect(root.textContent).toContain("This task didn't work out.");
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	test("shows a wait's payload as it arrived when it does not say whose card it is", () => {
+		const { bridge, deliver } = heldBridge();
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
+
+		act(() => deliver({ ...refused, child: null }));
+
+		expect(root.querySelector(".mt-gen")).toBeNull();
+		expect(root.textContent).toContain('"attempts_left": 2');
 	});
 
 	test("shows a task's payload as it arrived when it does not read as a task", () => {

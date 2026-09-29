@@ -520,6 +520,18 @@
 }
 
 /* Verdict */
+.mt-verdict {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+.mt-verdict-detail {
+	margin: 0;
+	font-size: 15px;
+	line-height: 22px;
+	color: var(--text);
+	overflow-wrap: break-word;
+}
 .mt-verdict-line {
 	display: flex;
 	align-items: flex-start;
@@ -643,7 +655,7 @@
 	padding: 16px;
 }
 
-/* Waiting: the title the waiting screen opens with. */
+/* Waiting: the course a task takes, step by step under its title. */
 .mt-gen {
 	display: flex;
 	flex-direction: column;
@@ -656,6 +668,55 @@
 	font-weight: 600;
 	color: var(--text);
 }
+.mt-gen ol {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+.mt-gen li {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	font-size: 15px;
+	line-height: 22px;
+	color: var(--text);
+}
+.mt-gen-icon {
+	display: flex;
+	padding-block-start: 1px;
+}
+.mt-gen-label {
+	min-width: 0;
+	overflow-wrap: break-word;
+}
+.mt-gen-turning {
+	display: flex;
+	color: var(--ink-strong);
+}
+.mt-gen li[data-status="waiting"] {
+	color: var(--text-muted);
+}
+.mt-gen li[data-status="active"] .mt-gen-label {
+	font-weight: 600;
+}
+/* What a card says while it waits, and when no task is coming: the course, a
+   warm-up under it, or the word that replaces both. The place they come into
+   is on the page before anything is in it, and takes no room while empty. */
+.mt-wait {
+	display: flex;
+	flex-direction: column;
+}
+.mt-wait > * + *:not(:empty) {
+	margin-block-start: 16px;
+}
+.mt-warmup {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
 
 /* Right to left: scripts written that way sit taller on their lines. */
 .mt-rtl {
@@ -666,6 +727,8 @@
 }
 .mt-rtl .mt-reply-body > p,
 .mt-rtl .mt-steps li,
-.mt-rtl .mt-note p {
+.mt-rtl .mt-note p,
+.mt-rtl .mt-gen li,
+.mt-rtl .mt-verdict-detail {
 	line-height: 24px;
 }

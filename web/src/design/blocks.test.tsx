@@ -1,7 +1,14 @@
 import { render } from "preact";
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test } from "vitest";
-import { Diagram, Note, type NoteTone, SolutionSteps, Verdict } from "./blocks";
+import {
+	Diagram,
+	GeneratingSteps,
+	Note,
+	type NoteTone,
+	SolutionSteps,
+	Verdict,
+} from "./blocks";
 
 const root = document.createElement("div");
 
@@ -94,6 +101,23 @@ describe("a verdict", () => {
 		draw(<Verdict>Here's how to solve it.</Verdict>);
 
 		expect(root.querySelector(".mt-verdict-line svg")).toBeNull();
+		expect(root.querySelector(".mt-verdict")).toBeNull();
+	});
+
+	test("with more to say says it under its line", () => {
+		draw(
+			<Verdict detail="Ask for one in the chat.">No task is coming.</Verdict>,
+		);
+
+		expect(
+			[...(root.querySelector(".mt-verdict")?.children ?? [])].map((line) => [
+				line.className,
+				line.textContent,
+			]),
+		).toEqual([
+			["mt-verdict-line", "No task is coming."],
+			["mt-verdict-detail", "Ask for one in the chat."],
+		]);
 	});
 });
 
@@ -119,5 +143,58 @@ describe("the solution", () => {
 			["2", "4 + 1 = 5 posts."],
 			["3", "4 + 1 = 5 posts."],
 		]);
+	});
+});
+
+describe("the course being followed", () => {
+	const labels = { done: "Done:", active: "In progress:", waiting: "Waiting:" };
+
+	test("marks each step as it stands, and tells a screen reader how", () => {
+		draw(
+			<GeneratingSteps
+				title="Preparing the next task…"
+				steps={[
+					{ label: "Picked topic and difficulty", status: "done" },
+					{ label: "Writing the task", status: "active" },
+					{ label: "Ready", status: "waiting" },
+				]}
+				statusLabels={labels}
+			/>,
+		);
+
+		expect(root.querySelector(".mt-gen-title")?.textContent).toBe(
+			"Preparing the next task…",
+		);
+		const steps = [...root.querySelectorAll(".mt-gen li")];
+		expect(
+			steps.map((step) => [
+				step.getAttribute("data-status"),
+				step.querySelector(".mt-vh")?.textContent,
+				step.textContent,
+			]),
+		).toEqual([
+			["done", "Done: ", "Done: Picked topic and difficulty"],
+			["active", "In progress: ", "In progress: Writing the task"],
+			["waiting", "Waiting: ", "Waiting: Ready"],
+		]);
+		expect(
+			steps[0]?.querySelector(".mt-gen-icon circle")?.getAttribute("fill"),
+		).toBe("var(--ink-strong)");
+		expect(
+			steps[1]
+				?.querySelector(".mt-gen-turning svg")
+				?.classList.contains("mt-spin"),
+		).toBe(true);
+		expect(
+			steps[2]?.querySelector(".mt-gen-icon circle")?.getAttribute("r"),
+		).toBe("8.5");
+	});
+
+	test("is heard as it moves", () => {
+		draw(<GeneratingSteps title="Title" steps={[]} statusLabels={labels} />);
+
+		expect(root.querySelector(".mt-gen ol")?.getAttribute("aria-live")).toBe(
+			"polite",
+		);
 	});
 });
