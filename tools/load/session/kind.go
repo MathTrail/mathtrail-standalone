@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"net/http"
 	"strconv"
 	"strings"
 	"syscall"
@@ -66,7 +67,8 @@ var (
 	// Busy is a task the sandbox had no slot for in time: never checked, and
 	// costing no attempt.
 	Busy = Kind{Class: Failure, Detail: "busy"}
-	// Paced is a call a pace held back before any tool ran.
+	// Paced is a call or a fetch a pace held back before anything was done
+	// for it.
 	Paced = Kind{Class: Limited, Detail: "paced"}
 	// Mismatched is an answer that belongs to another call.
 	Mismatched = Kind{Class: Mismatch}
@@ -132,6 +134,24 @@ func kindOf(result *mcp.CallToolResult, err error, status int) Kind {
 		return Kind{Class: NoAnswer, Detail: "closed"}
 	}
 	return Kind{Class: NoAnswer, Detail: "other"}
+}
+
+// kindOfStatus tells what a fetch came to, from the status it got and the
+// error that ended it. The service's pace answers a request it held back with
+// 429, and it is told as the pace a call is held back by; any other status of
+// 400 or more, or one that is neither served nor refused, is told by itself.
+func kindOfStatus(status int, err error) Kind {
+	switch {
+	case status == http.StatusTooManyRequests:
+		return Paced
+	case status >= http.StatusBadRequest:
+		return Kind{Class: HTTP, Detail: strconv.Itoa(status)}
+	case err != nil:
+		return kindOf(nil, err, status)
+	case status >= http.StatusOK && status < http.StatusMultipleChoices:
+		return Answered
+	}
+	return Kind{Class: HTTP, Detail: strconv.Itoa(status)}
 }
 
 // kindOfResult tells a result apart: a failure by the sentence it begins with,
