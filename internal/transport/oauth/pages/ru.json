@@ -1,7 +1,7 @@
 {
   "consent.title": "Вход в MathTrail",
   "consent.heading": "Подключить {client} к MathTrail?",
-  "consent.return": "После входа вы вернётесь на {host}.",
+  "consent.return": "После входа вы вернётесь по адресу {address}.",
   "consent.loopback": "Этот адрес находится на этом компьютере. MathTrail не может проверить, какое приложение там ждёт: продолжайте, только если запустили его сами.",
   "consent.google": "Затем Google попросит вас войти и разрешить MathTrail хранить в вашем Google Диске один собственный файл — в нём сохраняются успехи ребёнка. Другие файлы там MathTrail не видит.",
   "consent.allow": "Разрешить",

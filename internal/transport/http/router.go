@@ -239,8 +239,8 @@ func NewRouter(publicURL string, endpoints *Endpoints, limits Limits, logger *za
 	// The sign-in and its documents answer anybody, before anybody has signed
 	// in, so every address is held to a pace of its own there. What starts
 	// work — a client's document fetched, a code traded at Google — is held to
-	// the pace the sign-in takes from everybody too; the documents cost
-	// nothing to answer, and are not. Nothing else is held to either: the
+	// the pace the sign-in takes from everybody too, but for the renewals a
+	// lesson needs (below); the documents cost nothing to answer, and are not. Nothing else is held to either: the
 	// probe is the platform's, a path nobody declared costs nothing to
 	// refuse, and the MCP endpoint holds each account to its own pace inside.
 	address := ratelimit.Ceiling{Name: limitAddress, Limiter: limits.PerAddress}
@@ -263,13 +263,21 @@ func NewRouter(publicURL string, endpoints *Endpoints, limits Limits, logger *za
 	browser.POST("/oauth/consent", gin.WrapH(endpoints.Consent))
 	browser.GET("/oauth/callback", gin.WrapH(endpoints.Callback))
 
-	// What the host does from its own server: it registers, trades the code
-	// for its tokens and renews them, and ends the grant when the parent
-	// disconnects.
+	// What the host does from its own server: it registers, and ends the grant
+	// when the parent disconnects.
 	hosts := router.Group("", middleware.Limit(logger, obs.ProjectID, middleware.TooMany, address, instance))
 	hosts.POST("/oauth/register", gin.WrapH(endpoints.Register))
-	hosts.POST("/oauth/token", gin.WrapH(endpoints.Token))
 	hosts.POST("/oauth/revoke", gin.WrapH(endpoints.Revoke))
+
+	// The token endpoint is where a host trades a code for its tokens and
+	// renews them — every few minutes, in the middle of a lesson. So it is
+	// held to its address's pace alone: the pace the sign-in takes from
+	// everybody is one a flood of anybody's can fill, and a renewal refused by
+	// it stops a lesson that has nothing to do with the flood. What it costs is
+	// opening and sealing tokens, and a call to Google only when the Google
+	// token inside is near its end.
+	renewals := router.Group("", middleware.Limit(logger, obs.ProjectID, middleware.TooMany, address))
+	renewals.POST("/oauth/token", gin.WrapH(endpoints.Token))
 
 	return router, nil
 }

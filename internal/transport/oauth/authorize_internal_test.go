@@ -84,20 +84,96 @@ func TestARequestWithNoTrustedAddressStopsAtAPage(t *testing.T) {
 	}
 }
 
-// Once the host and its address are known, a request this server cannot give
-// what it asks for sends the parent back to the host, which hears why in the
-// protocol's words, with its own state and this issuer.
-func TestARequestThatCannotBeGrantedIsSentBackToTheHost(t *testing.T) {
+// ungrantable is a request from a known host, at an address it registered,
+// that this server cannot give what it asks for: what it changes of a good
+// request, the state the host hears back, and the error and the reason it is
+// refused with.
+type ungrantable struct {
+	name    string
+	changed func(served string) url.Values
+	state   string
+	error   string
+	reason  string
+}
+
+// Once the host and its address are known, and the parent has approved the
+// host there in this browser, a request this server cannot give what it asks
+// for sends the parent back to the host, which hears why in the protocol's
+// words, with its own state and this issuer.
+func TestARequestThatCannotBeGrantedIsSentBackToAnApprovedHost(t *testing.T) {
 	t.Parallel()
 
+	for _, tc := range ungrantables() {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			h := newSignIn(t)
+			clientID := h.register(hostRedirect, hostName)
+			parent := h.browser(t)
+			h.toGoogle(parent, clientID)
+			back := parent.get(h.authorizeURL(clientID, tc.changed(h.served.URL)))
+			answer := answerAt(t, back)
+			if back.status != http.StatusFound || answer.Get("error") != tc.error ||
+				answer.Get("state") != tc.state || answer.Get("iss") != h.served.URL {
+				t.Errorf("GET /oauth/authorize = %d with %v, want %s with the host's state and this issuer", back.status, answer, tc.error)
+			}
+			if lines := h.lines(eventAuthAuthorize); len(lines) != 2 || lines[1]["outcome"] != "refused" || lines[1]["reason"] != tc.reason {
+				t.Errorf("auth_authorize lines = %v, want the second one refused for %s", lines, tc.reason)
+			}
+		})
+	}
+}
+
+// Until the parent has approved the host in this browser, the same request
+// stops at a page, and sends the parent nowhere: anybody may register a host
+// at an address of their own choosing, and a link to this server must not be a
+// way to send a parent there before they have seen a screen of it.
+func TestARequestThatCannotBeGrantedStopsAtAPageUntilTheHostIsApproved(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range ungrantables() {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			h := newSignIn(t)
+			stopped := h.browser(t).get(h.authorizeURL(h.register(hostRedirect, hostName), tc.changed(h.served.URL)))
+			if stopped.status != http.StatusBadRequest || stopped.location != "" || !strings.Contains(stopped.body, tc.error) {
+				t.Errorf("GET /oauth/authorize = %d to %q, want 400 and a page naming %s", stopped.status, stopped.location, tc.error)
+			}
+			if lines := h.lines(eventAuthReject); len(lines) != 1 || lines[0]["step"] != stepAuthorize || lines[0]["reason"] != tc.reason {
+				t.Errorf("auth_reject lines = %v, want one at authorize for %s", lines, tc.reason)
+			}
+			if lines := h.lines(eventAuthAuthorize); len(lines) != 0 {
+				t.Errorf("auth_authorize lines = %v, want none: the request stopped at a page", lines)
+			}
+		})
+	}
+}
+
+// A host on the parent's own computer hears why its request cannot be granted
+// at its address, approved or not: an address there sends the parent nowhere
+// else, and a program waiting at it would otherwise wait for an answer that
+// never comes.
+func TestARequestThatCannotBeGrantedIsSentBackToTheParentsComputer(t *testing.T) {
+	t.Parallel()
+
+	const here = "http://127.0.0.1:33418/cb"
+	h := newSignIn(t)
+	asked := h.authorizeURL(h.register(here, hostName), url.Values{"redirect_uri": {here}, "scope": {"mcp admin"}})
+	back := h.browser(t).get(asked)
+
+	address, err := url.Parse(back.location)
+	if err != nil || back.status != http.StatusFound || !strings.HasPrefix(back.location, here+"?") ||
+		address.Query().Get("error") != "invalid_scope" {
+		t.Errorf("GET /oauth/authorize = %d to %q, want the refusal sent back to %s", back.status, back.location, here)
+	}
+}
+
+// ungrantables are the requests a known host may send from an address it
+// registered that this server cannot give what they ask for.
+func ungrantables() []ungrantable {
 	longState := strings.Repeat("s", maxHostState+1)
-	for _, tc := range []struct {
-		name    string
-		changed func(served string) url.Values
-		state   string
-		error   string
-		reason  string
-	}{
+	return []ungrantable{
 		{"another resource", func(string) url.Values {
 			return url.Values{"resource": {"https://other.example/mcp"}}
 		}, hostState, "invalid_target", "invalid_target"},
@@ -119,21 +195,6 @@ func TestARequestThatCannotBeGrantedIsSentBackToTheHost(t *testing.T) {
 		{"a scope given twice", func(string) url.Values {
 			return url.Values{"scope": {"mcp", "mcp"}}
 		}, hostState, "invalid_request", "invalid_request"},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			h := newSignIn(t)
-			back := h.browser(t).get(h.authorizeURL(h.register(hostRedirect, hostName), tc.changed(h.served.URL)))
-			answer := answerAt(t, back)
-			if back.status != http.StatusFound || answer.Get("error") != tc.error ||
-				answer.Get("state") != tc.state || answer.Get("iss") != h.served.URL {
-				t.Errorf("GET /oauth/authorize = %d with %v, want %s with the host's state and this issuer", back.status, answer, tc.error)
-			}
-			if lines := h.lines(eventAuthAuthorize); len(lines) != 1 || lines[0]["outcome"] != "refused" || lines[0]["reason"] != tc.reason {
-				t.Errorf("auth_authorize lines = %v, want one refused for %s", lines, tc.reason)
-			}
-		})
 	}
 }
 

@@ -4,10 +4,12 @@ import (
 	"context"
 	"crypto/x509"
 	"errors"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/netip"
+	"slices"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -49,16 +51,19 @@ func newFakeClient(t *testing.T, answer http.HandlerFunc) *fakeClient {
 	return client
 }
 
-// at is the address of a document on the fake server under a name of the
-// case's choosing, which the case's resolver turns into the server's address.
-func (c *fakeClient) at(t *testing.T, host, path string) string {
-	t.Helper()
-
+// dial connects to the address asked for on the port the fake server listens
+// on, in place of https's own: that is the one port a client's address may
+// have, and not one a test can listen on.
+func (c *fakeClient) dial(ctx context.Context, network, address string) (net.Conn, error) {
+	host, _, err := net.SplitHostPort(address)
+	if err != nil {
+		return nil, err
+	}
 	_, port, err := net.SplitHostPort(c.Listener.Addr().String())
 	if err != nil {
-		t.Fatalf("the fake server's address: %v", err)
+		return nil, err
 	}
-	return "https://" + net.JoinHostPort(host, port) + path
+	return (&net.Dialer{}).DialContext(ctx, network, net.JoinHostPort(host, port))
 }
 
 // servingItself answers with a document that names itself by the address it
@@ -100,17 +105,17 @@ func publicOrLoopback(addr netip.Addr) bool {
 
 // fetcherFor builds a fetcher for a case: every name resolves to the
 // addresses given, what may be dialled is what allowed allows, the fake
-// servers' certificate is believed, and an attempt takes at most timeout.
+// server answers at each of them, its certificate is believed, and an attempt
+// takes at most timeout.
 func fetcherFor(t *testing.T, server *fakeClient, allowed func(netip.Addr) bool, timeout time.Duration,
 	resolved ...netip.Addr) (*fetcher, *clock) {
 	t.Helper()
 
 	moment := &clock{at: someDay}
-	dialer := &net.Dialer{}
 	fetcher := newFetcher(reach{
 		resolve: func(context.Context, string) ([]netip.Addr, error) { return resolved, nil },
 		allowed: allowed,
-		dial:    dialer.DialContext,
+		dial:    server.dial,
 		roots:   rootsOf(server),
 	}, timeout, moment.now)
 	t.Cleanup(fetcher.client.CloseIdleConnections)
@@ -126,7 +131,7 @@ func TestADocumentIsFetchedAndKept(t *testing.T) {
 
 	server := newFakeClient(t, servingItself("public, max-age=300"))
 	fetcher, moment := fetcherFor(t, server, publicOrLoopback, time.Second, loopback)
-	address := server.at(t, "client.example.com", "/oauth/mcp-oauth-client-metadata")
+	address := "https://client.example.com/oauth/mcp-oauth-client-metadata"
 
 	first, err := fetcher.Fetch(t.Context(), address)
 	if err != nil {
@@ -184,7 +189,7 @@ func TestNoTrapIsDialled(t *testing.T) {
 			}
 			fetcher, _ := fetcherFor(t, server, public, time.Second, resolved...)
 
-			_, err := fetcher.Fetch(t.Context(), server.at(t, "client.example.com", "/meta"))
+			_, err := fetcher.Fetch(t.Context(), clientAt)
 			if !errors.Is(err, ErrAddress) {
 				t.Errorf("Fetch() error = %v, want ErrAddress", err)
 			}
@@ -208,16 +213,17 @@ func TestAnAddressThatIsNotAClientsIsNotLookedUp(t *testing.T) {
 			return []netip.Addr{loopback}, nil
 		},
 		allowed: publicOrLoopback,
-		dial:    (&net.Dialer{}).DialContext,
+		dial:    server.dial,
 	}, time.Second, (&clock{at: someDay}).now)
 
 	for _, address := range []string{
-		strings.Replace(server.at(t, "client.example.com", "/meta"), "https://", "http://", 1),
-		server.at(t, "client.example.com", ""),
-		server.at(t, "client.example.com", "/"),
-		strings.Replace(server.at(t, "client.example.com", "/meta"), "https://", "https://user:secret@", 1),
-		server.at(t, "client.example.com", "/meta#part"),
-		server.at(t, "client.example.com", "/a/../meta"),
+		"http://client.example.com/meta",
+		"https://client.example.com",
+		"https://client.example.com/",
+		"https://user:secret@client.example.com/meta",
+		"https://client.example.com/meta#part",
+		"https://client.example.com/a/../meta",
+		"https://client.example.com:8443/meta",
 	} {
 		if _, err := fetcher.Fetch(t.Context(), address); !errors.Is(err, ErrClientURL) {
 			t.Errorf("Fetch(%q) error = %v, want ErrClientURL", address, err)
@@ -233,19 +239,18 @@ func TestAnAddressThatIsNotAClientsIsNotLookedUp(t *testing.T) {
 func TestARedirectIsNotFollowed(t *testing.T) {
 	t.Parallel()
 
-	elsewhere := newFakeClient(t, servingItself(""))
-	target := elsewhere.at(t, "other.example.com", "/meta")
 	server := newFakeClient(t, func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, target, http.StatusFound)
+		http.Redirect(w, r, "https://other.example.com/meta", http.StatusFound)
 	})
 	fetcher, _ := fetcherFor(t, server, publicOrLoopback, time.Second, loopback)
 
-	if _, err := fetcher.Fetch(t.Context(), server.at(t, "client.example.com", "/meta")); !errors.Is(err, ErrRedirect) {
+	if _, err := fetcher.Fetch(t.Context(), clientAt); !errors.Is(err, ErrRedirect) {
 		t.Errorf("Fetch() error = %v, want ErrRedirect", err)
 	}
-	if server.requests.Load() != 1 || elsewhere.connections.Load() != 0 {
-		t.Errorf("%d requests at the address and %d connections where it pointed, want 1 and 0",
-			server.requests.Load(), elsewhere.connections.Load())
+	// Every name reaches the fake server, so a redirect followed would be one
+	// more request there.
+	if got := server.requests.Load(); got != 1 {
+		t.Errorf("%d requests reached the server, want 1: the one at the address", got)
 	}
 }
 
@@ -283,7 +288,7 @@ func TestOnlyAFailureThatMightPassIsTriedAgain(t *testing.T) {
 			server := newFakeClient(t, tc.answer)
 			fetcher, _ := fetcherFor(t, server, publicOrLoopback, time.Second, loopback)
 
-			if _, err := fetcher.Fetch(t.Context(), server.at(t, "client.example.com", "/meta")); !errors.Is(err, tc.want) {
+			if _, err := fetcher.Fetch(t.Context(), clientAt); !errors.Is(err, tc.want) {
 				t.Errorf("Fetch() error = %v, want %v", err, tc.want)
 			}
 			if got := server.requests.Load(); got != tc.requests {
@@ -301,7 +306,7 @@ func TestACertificateForAnotherNameIsNotBelieved(t *testing.T) {
 	server := newFakeClient(t, servingItself(""))
 	fetcher, _ := fetcherFor(t, server, publicOrLoopback, time.Second, loopback)
 
-	_, err := fetcher.Fetch(t.Context(), server.at(t, "client.example.org", "/meta"))
+	_, err := fetcher.Fetch(t.Context(), "https://client.example.org/oauth/metadata")
 	if !errors.Is(err, ErrUnreachable) {
 		t.Errorf("Fetch() error = %v, want ErrUnreachable", err)
 	}
@@ -339,7 +344,7 @@ func TestADocumentThatIsNotTheClientsIsNeverKept(t *testing.T) {
 				_, _ = w.Write([]byte(tc.body("https://" + r.Host + r.URL.RequestURI())))
 			})
 			fetcher, _ := fetcherFor(t, server, publicOrLoopback, time.Second, loopback)
-			address := server.at(t, "client.example.com", "/meta")
+			address := clientAt
 
 			for range 2 {
 				if _, err := fetcher.Fetch(t.Context(), address); !errors.Is(err, ErrDocument) {
@@ -367,7 +372,7 @@ func TestNoConnectionOutlivesAFetch(t *testing.T) {
 
 	server := newFakeClient(t, servingItself(""))
 	fetcher, _ := fetcherFor(t, server, publicOrLoopback, time.Second, loopback)
-	if _, err := fetcher.Fetch(t.Context(), server.at(t, "client.example.com", "/meta")); err != nil {
+	if _, err := fetcher.Fetch(t.Context(), clientAt); err != nil {
 		t.Fatalf("Fetch() error = %v, want nil", err)
 	}
 
@@ -388,7 +393,6 @@ func TestAnAddressThatNeverAnswersLeavesTheNextItsTurn(t *testing.T) {
 
 	server := newFakeClient(t, servingItself(""))
 	silent := netip.MustParseAddr("192.0.2.1")
-	dialer := &net.Dialer{}
 	fetcher := newFetcher(reach{
 		resolve: func(context.Context, string) ([]netip.Addr, error) { return []netip.Addr{silent, loopback}, nil },
 		allowed: publicOrLoopback,
@@ -397,15 +401,133 @@ func TestAnAddressThatNeverAnswersLeavesTheNextItsTurn(t *testing.T) {
 				<-ctx.Done()
 				return nil, ctx.Err()
 			}
-			return dialer.DialContext(ctx, network, address)
+			return server.dial(ctx, network, address)
 		},
 		roots: rootsOf(server),
 	}, 4*time.Second, (&clock{at: someDay}).now)
 	t.Cleanup(fetcher.client.CloseIdleConnections)
 
-	if _, err := fetcher.Fetch(t.Context(), server.at(t, "client.example.com", "/meta")); err != nil {
+	if _, err := fetcher.Fetch(t.Context(), clientAt); err != nil {
 		t.Errorf("Fetch() error = %v, want the document from the address that answers", err)
 	}
+}
+
+// However many addresses a name stands for, the first few are dialled, in the
+// order the resolver gave them, and on https's own port: a stranger's name
+// cannot have the service knock on a long list of addresses of its choosing.
+func TestOnlyTheFirstFewAddressesOfANameAreDialled(t *testing.T) {
+	t.Parallel()
+
+	many := make([]netip.Addr, 0, 64)
+	for i := range 64 {
+		many = append(many, netip.AddrFrom4([4]byte{192, 0, 2, byte(i + 1)}))
+	}
+	var mu sync.Mutex
+	var dialled []string
+	fetcher := newFetcher(reach{
+		resolve: func(context.Context, string) ([]netip.Addr, error) { return many, nil },
+		allowed: public,
+		dial: func(_ context.Context, _, address string) (net.Conn, error) {
+			mu.Lock()
+			defer mu.Unlock()
+			dialled = append(dialled, address)
+			return nil, errors.New("connection refused")
+		},
+	}, time.Second, (&clock{at: someDay}).now)
+
+	if _, err := fetcher.Fetch(t.Context(), clientAt); !errors.Is(err, ErrUnreachable) {
+		t.Errorf("Fetch() error = %v, want ErrUnreachable", err)
+	}
+	first := []string{"192.0.2.1:443", "192.0.2.2:443", "192.0.2.3:443", "192.0.2.4:443"}
+	mu.Lock()
+	defer mu.Unlock()
+	if want := slices.Concat(first, first); !slices.Equal(dialled, want) {
+		t.Errorf("dialled %v, want %v: the first four, once in each of the two attempts", dialled, want)
+	}
+}
+
+// Nothing a fetch starts outlives the attempt that started it: not a lookup
+// that never answers, nor a connection to a server that takes it and never
+// says a word. The HTTP client lets a dial go on after its request has given
+// up, so each would otherwise hold a goroutine — and the second a socket too
+// — for as long as the stranger's name liked.
+func TestNothingAFetchStartsOutlivesItsAttempt(t *testing.T) {
+	t.Parallel()
+
+	const attempt = 200 * time.Millisecond
+	for _, tc := range []struct {
+		name  string
+		reach func(t *testing.T, started, over *atomic.Int32) reach
+	}{
+		{"a lookup that never answers", func(_ *testing.T, started, over *atomic.Int32) reach {
+			return reach{
+				resolve: func(ctx context.Context, _ string) ([]netip.Addr, error) {
+					started.Add(1)
+					defer over.Add(1)
+					<-ctx.Done()
+					return nil, ctx.Err()
+				},
+				allowed: publicOrLoopback,
+				dial:    (&net.Dialer{}).DialContext,
+			}
+		}},
+		{"a server that takes the connection and never says a word", func(t *testing.T, started, over *atomic.Int32) reach {
+			silent := silentServer(t, started, over)
+			return reach{
+				resolve: func(context.Context, string) ([]netip.Addr, error) { return []netip.Addr{loopback}, nil },
+				allowed: publicOrLoopback,
+				dial: func(ctx context.Context, network, _ string) (net.Conn, error) {
+					return (&net.Dialer{}).DialContext(ctx, network, silent)
+				},
+			}
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			var started, over atomic.Int32
+			fetcher := newFetcher(tc.reach(t, &started, &over), attempt, (&clock{at: someDay}).now)
+			t.Cleanup(fetcher.client.CloseIdleConnections)
+
+			if _, err := fetcher.Fetch(t.Context(), clientAt); !errors.Is(err, ErrUnreachable) {
+				t.Errorf("Fetch() error = %v, want ErrUnreachable", err)
+			}
+			deadline := time.Now().Add(attempt + time.Second)
+			for over.Load() < started.Load() && time.Now().Before(deadline) {
+				time.Sleep(10 * time.Millisecond)
+			}
+			if started, over := started.Load(), over.Load(); started == 0 || over != started {
+				t.Errorf("%d started and %d over after the fetch, want every one over", started, over)
+			}
+		})
+	}
+}
+
+// silentServer takes connections and never says a word. It counts each one
+// it takes, and each one the other side lets go of, and returns its address.
+func silentServer(t *testing.T, taken, letGo *atomic.Int32) string {
+	t.Helper()
+
+	listener, err := (&net.ListenConfig{}).Listen(t.Context(), "tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	t.Cleanup(func() { _ = listener.Close() })
+	go func() {
+		for {
+			conn, err := listener.Accept()
+			if err != nil {
+				return
+			}
+			taken.Add(1)
+			go func() {
+				defer func() { _ = conn.Close() }()
+				_, _ = io.Copy(io.Discard, conn)
+				letGo.Add(1)
+			}()
+		}
+	}()
+	return listener.Addr().String()
 }
 
 // A name that cannot be reached for now — no answer from the resolver, no
@@ -471,7 +593,7 @@ func TestADocumentBrokenOffIsTriedAgain(t *testing.T) {
 	})
 	fetcher, _ := fetcherFor(t, server, publicOrLoopback, time.Second, loopback)
 
-	if _, err := fetcher.Fetch(t.Context(), server.at(t, "client.example.com", "/meta")); !errors.Is(err, ErrUnreachable) {
+	if _, err := fetcher.Fetch(t.Context(), clientAt); !errors.Is(err, ErrUnreachable) {
 		t.Errorf("Fetch() error = %v, want ErrUnreachable", err)
 	}
 	if got := server.requests.Load(); got != 2 {

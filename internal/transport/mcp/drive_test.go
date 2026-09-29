@@ -152,7 +152,8 @@ func TestEveryToolStaysWithinItsDriveBudget(t *testing.T) {
 
 // An instance that has not yet found the parent's file searches for it once,
 // and then knows it; and the first write of a day keeps its revision forever
-// in the same upload, reading the history to count what is kept.
+// in the same upload, reading the history to count what is kept and the file
+// once more after it.
 func TestAColdInstanceSearchesOnceAndADayKeepsItsFirstWrite(t *testing.T) {
 	t.Parallel()
 
@@ -179,7 +180,7 @@ func TestAColdInstanceSearchesOnceAndADayKeepsItsFirstWrite(t *testing.T) {
 
 	first.moving.advance(24 * time.Hour)
 	if got, want := costOf(t, fake, first.session, "save_profile", map[string]any{"interests": []string{"sport"}}),
-		(drivetest.Calls{"download": 2, "update": 1, "revisions": 1}); !maps.Equal(got, want) {
+		(drivetest.Calls{"download": 3, "update": 1, "revisions": 1}); !maps.Equal(got, want) {
 		t.Errorf("the first save_profile of a day cost %v, want %v", got, want)
 	}
 }

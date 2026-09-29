@@ -5,6 +5,7 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"slices"
@@ -102,9 +103,13 @@ func (t *tokens) serveToken(w http.ResponseWriter, r *http.Request) {
 // it was asked for.
 func (t *tokens) sessionOfCode(form url.Values) (*session, *refusal) {
 	clientID, verifier := form.Get("client_id"), form.Get("code_verifier")
-	if form.Get("code") == "" || clientID == "" || verifier == "" {
+	switch {
+	case form.Get("code") == "" || clientID == "" || verifier == "":
 		return nil, &refusal{http.StatusBadRequest, "invalid_request",
 			"code, code_verifier and client_id are required", "invalid_request"}
+	case !isVerifier(verifier):
+		return nil, &refusal{http.StatusBadRequest, "invalid_request",
+			fmt.Sprintf("code_verifier is %d to %d letters, digits and -._~", shortestVerifier, longestVerifier), "invalid_pkce"}
 	}
 	var code grantCode
 	if err := t.openAs(t.codes, form.Get("code"), &code); err != nil {
@@ -228,6 +233,35 @@ func otherResource(resource string) *refusal {
 func within(asked, granted string) bool {
 	given := strings.Fields(granted)
 	return !slices.ContainsFunc(strings.Fields(asked), func(word string) bool { return !slices.Contains(given, word) })
+}
+
+// The lengths a verifier may be (RFC 7636 4.1).
+const (
+	shortestVerifier = 43
+	longestVerifier  = 128
+)
+
+// isVerifier reports whether a value is a verifier as RFC 7636 makes one:
+// letters, digits and the four marks of an address that need no escape, and
+// long enough to be no guess. A host whose verifier is shorter has only
+// itself to blame when its code is stolen, but it is told rather than given
+// tokens on the strength of it.
+func isVerifier(value string) bool {
+	if len(value) < shortestVerifier || len(value) > longestVerifier {
+		return false
+	}
+	for _, c := range value {
+		if !unreserved(c) {
+			return false
+		}
+	}
+	return true
+}
+
+// unreserved reports whether a character is one an address carries without an
+// escape: a letter, a digit, or one of - . _ ~ (RFC 3986 2.3).
+func unreserved(c rune) bool {
+	return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || '0' <= c && c <= '9' || strings.ContainsRune("-._~", c)
 }
 
 // challengeOf is the S256 challenge of a verifier (RFC 7636 4.2).

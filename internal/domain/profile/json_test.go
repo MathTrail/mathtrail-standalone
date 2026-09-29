@@ -6,6 +6,7 @@ import (
 	"errors"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 )
@@ -241,9 +242,14 @@ func FuzzParse(f *testing.F) {
 				t.Fatal("Parse() returned nothing and no error")
 			}
 			// Anything that parses is a profile this service could work with,
-			// which means it can be written back out again.
+			// which means it can be written back out again — and written again
+			// after the next step has moved it on.
 			if _, wrote := profile.Marshal(p); wrote != nil {
 				t.Errorf("a profile that parsed could not be written: %v", wrote)
+			}
+			p.Touch("next", issued)
+			if _, wrote := profile.Marshal(p); wrote != nil {
+				t.Errorf("a profile that parsed could not be written after a step: %v", wrote)
 			}
 			return
 		}
@@ -305,5 +311,95 @@ func TestADayMayBeWrittenWithEscapes(t *testing.T) {
 	}
 	if !bytes.Equal(written, plain) {
 		t.Error("a file read with escapes was not written back in the spelling this service uses")
+	}
+}
+
+// No profile is written larger than a store reads back: one that would be is
+// refused before any of it is kept, since a store that could not read its own
+// write would take the file for damage.
+func TestAProfileLargerThanAStoreReadsIsNotWritten(t *testing.T) {
+	t.Parallel()
+
+	p := parseFixture(t, "olya")
+	answering(t, p, "counting.gaps", 3)
+	p.CurrentTask.Wording = strings.Repeat("a", profile.MaxSize)
+
+	if raw, err := profile.Marshal(p); !errors.Is(err, profile.ErrInvalid) {
+		t.Errorf("Marshal() = %d bytes, %v; want %v", len(raw), err, profile.ErrInvalid)
+	}
+}
+
+// Every count is held far below where one more would stop being a number,
+// and a file is read only with room in every count for one more: whatever the
+// next step adds can then be written. A profile at the most is still written,
+// and read no more; one past it is neither.
+func TestACountLeavesRoomForOneMore(t *testing.T) {
+	t.Parallel()
+
+	const most = 1 << 30
+	for _, tc := range []struct {
+		name string
+		set  func(p *profile.Profile, count int)
+	}{
+		{"the revision", func(p *profile.Profile, count int) { p.Revision = count }},
+		{"the answers", func(p *profile.Profile, count int) { p.Ratings.Answers = count }},
+		{"the failures in a row", func(p *profile.Profile, count int) { p.Ratings.ConsecutiveFailures = count }},
+		{"the day's tasks", func(p *profile.Profile, count int) { p.Daily.Failed = count }},
+		{"a topic's answers", func(p *profile.Profile, count int) {
+			topic := p.Topics["counting.gaps"]
+			topic.Answers = count
+			p.Topics["counting.gaps"] = topic
+		}},
+		{"a trap fallen for", func(p *profile.Profile, count int) {
+			topic := p.Topics["counting.gaps"]
+			topic.Traps = map[string]int{"off_by_one": count}
+			p.Topics["counting.gaps"] = topic
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			for _, step := range []countStep{
+				{most - 1, true, true},
+				{most, true, false},
+				{most + 1, false, false},
+			} {
+				p := parseFixture(t, "olya")
+				tc.set(p, step.count)
+				step.check(t, p)
+			}
+		})
+	}
+}
+
+// countStep is a count a profile is given, and whether the profile is then
+// written, and read back.
+type countStep struct {
+	count          int
+	written, reads bool
+}
+
+// check holds a profile given the step's count to what the step says of it,
+// and a profile that is read back to being written again after the next step.
+func (s countStep) check(t *testing.T, p *profile.Profile) {
+	t.Helper()
+
+	raw, err := profile.Marshal(p)
+	if written := err == nil; written != s.written {
+		t.Errorf("Marshal() at %d: %v; written: %v, want %v", s.count, err, written, s.written)
+	}
+	if err != nil {
+		return
+	}
+	read, err := profile.Parse(raw)
+	if reads := err == nil; reads != s.reads {
+		t.Errorf("Parse() at %d: %v; read: %v, want %v", s.count, err, reads, s.reads)
+	}
+	if err != nil {
+		return
+	}
+	read.Touch("next", issued.Add(time.Hour))
+	if _, err := profile.Marshal(read); err != nil {
+		t.Errorf("a profile read at %d could not be written after a step: %v", s.count, err)
 	}
 }

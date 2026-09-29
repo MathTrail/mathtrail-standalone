@@ -532,3 +532,46 @@ func TestAnAnswerToldAgainNeedsTheSeal(t *testing.T) {
 		t.Error("an answer told again with its seal lost moved the profile")
 	}
 }
+
+// Only an answer recorded here opens the task to be told again. A task the
+// file says was answered — written into it by anybody but this service — does
+// not open, so no answer is told before the child has given one; nor does an
+// answer whose letter was changed in the file, nor one taken out of it to be
+// answered anew.
+func TestOnlyAnAnswerRecordedHereIsToldAgain(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name string
+		edit func(t *testing.T, p *profile.Profile, id string)
+	}{
+		{"marked answered, never answered", func(_ *testing.T, p *profile.Profile, _ string) {
+			p.CurrentTask.Answered = &profile.Given{Choice: wrongLetter}
+		}},
+		{"answered with another letter", func(t *testing.T, p *profile.Profile, id string) {
+			give(t, p, id, wrongLetter, issued.Add(time.Minute))
+			p.CurrentTask.Answered.Choice = rightLetter
+		}},
+		{"its answer taken out", func(t *testing.T, p *profile.Profile, id string) {
+			give(t, p, id, wrongLetter, issued.Add(time.Minute))
+			p.CurrentTask.Answered = nil
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			p := parseFixture(t, "olya")
+			id := answering(t, p, "counting.gaps", 3)
+			tc.edit(t, p, id)
+			ratings, window := p.Ratings, len(p.Recent)
+
+			told, err := p.Record(profile.Answered{TaskID: id, Choice: rightLetter, At: issued.Add(time.Hour)}, newSealer(t))
+			if !errors.Is(err, profile.ErrSealed) || told.Right != "" || told.Solution != "" {
+				t.Errorf("Record() = %+v, %v; want %v and nothing told", told, err, profile.ErrSealed)
+			}
+			if p.Ratings != ratings || len(p.Recent) != window {
+				t.Error("an answer to an edited task moved the profile")
+			}
+		})
+	}
+}

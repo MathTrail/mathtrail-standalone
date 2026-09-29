@@ -489,6 +489,70 @@ func TestARequestOverTheLimitIsRefused(t *testing.T) {
 	}
 }
 
+// A batch of messages is refused whole, whatever white space comes before it,
+// from a request that names no version of the protocol — the one the library
+// would still read a batch from. None of its messages reaches a tool, and none
+// leaves a line of its own. A single message behind the same white space is
+// answered as ever.
+func TestABatchOfMessagesIsRefusedWhole(t *testing.T) {
+	t.Parallel()
+
+	for _, test := range []struct {
+		name   string
+		body   string
+		status int
+		tools  int
+	}{
+		{"a batch", "[" + legacyCall("echo", `{"say":"one"}`) + "," + legacyCall("echo", `{"say":"two"}`) + "]",
+			http.StatusBadRequest, 0},
+		{"a batch behind white space", " \r\n\t[" + legacyCall("echo", `{"say":"one"}`) + "]", http.StatusBadRequest, 0},
+		{"one message behind white space", " \r\n\t" + legacyCall("echo", `{"say":"one"}`), http.StatusOK, 1},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			h := serve(t, mcpserver.DevSignIn)
+			resp := h.post(t, test.body, nil)
+			if resp.status != test.status {
+				t.Errorf("status = %d, want %d; body = %s", resp.status, test.status, resp.body)
+			}
+			h.settle()
+			if lines := h.toolLines(); len(lines) != test.tools {
+				t.Errorf("tool_call lines = %d, want %d", len(lines), test.tools)
+			}
+		})
+	}
+}
+
+// A body past the megabyte is refused as too large whatever it opens with:
+// the white space dropped before the first message counts with the rest.
+func TestABodyPastTheBoundIsTooLargeWhateverItOpensWith(t *testing.T) {
+	t.Parallel()
+
+	const bound = 1 << 20
+	call := legacyCall("echo", `{"say":"one"}`)
+	for _, test := range []struct {
+		name string
+		body string
+	}{
+		{"white space alone", strings.Repeat(" ", bound+1)},
+		{"one message behind white space", strings.Repeat(" ", bound+1-len(call)) + call + " "},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			h := serve(t, mcpserver.DevSignIn)
+			if resp := h.post(t, test.body, nil); resp.status != http.StatusRequestEntityTooLarge {
+				t.Errorf("status = %d, want %d; body = %.200s", resp.status, http.StatusRequestEntityTooLarge, resp.body)
+			}
+			h.settle()
+			if lines := h.toolLines(); len(lines) != 0 {
+				t.Errorf("tool_call lines = %d, want none", len(lines))
+			}
+		})
+	}
+}
+
 // An answer of the endpoint carries a child's profile, tasks and progress, and
 // nothing on its way may keep a copy — although the protocol's library would
 // allow one.

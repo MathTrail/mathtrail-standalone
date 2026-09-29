@@ -67,11 +67,20 @@ func parse(raw []byte, chain map[int]migration) (*Profile, error) {
 	if err := json.Unmarshal(raw, &p); err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrMalformed, err)
 	}
-	if err := p.Validate(); err != nil {
+	// A file is read only with room in every count for one more, so that
+	// whatever the next step adds can be written: a count at the most, set
+	// there by hand, would otherwise make every write after it fail.
+	if err := p.validate(mostCount - 1); err != nil {
 		return nil, err
 	}
 	return &p, nil
 }
+
+// MaxSize is the most a profile may be as a file. A store reads no more than
+// this back, so none is ever written larger: a file the store could not read
+// again would be taken for damage and rolled back. The caps keep a profile far
+// below it, which leaves room for a file edited by hand.
+const MaxSize = 1 << 20
 
 // Marshal writes the profile as the file it is: indented, with the keys of
 // every object in order, and with nothing escaped that a person would then
@@ -91,6 +100,9 @@ func Marshal(p *Profile) ([]byte, error) {
 
 	if err := encoder.Encode(p); err != nil {
 		return nil, fmt.Errorf("profile: write: %w", err)
+	}
+	if out.Len() > MaxSize {
+		return nil, fmt.Errorf("%w: the file would be %d bytes, and a profile is at most %d", ErrInvalid, out.Len(), MaxSize)
 	}
 	return out.Bytes(), nil
 }
