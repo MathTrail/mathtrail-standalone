@@ -15,13 +15,21 @@ export const dontKnow = "?";
 /** Choice is an answer the child can give: an option, or "I don't know". */
 export type Choice = Letter | typeof dontKnow;
 
+const child = z.object({
+	pseudonym: z.string(),
+	grade: z.number().int(),
+	ui_language: z.string().nullable(),
+});
+
+/**
+ * Child is whose card it is: the name the child goes by, the grade, and the
+ * language the parent chose for the cards, or null when they chose none.
+ */
+export type Child = z.infer<typeof child>;
+
 const handedTask = z.object({
 	screen: z.literal("task"),
-	child: z.object({
-		pseudonym: z.string(),
-		grade: z.number().int(),
-		ui_language: z.string().nullable(),
-	}),
+	child,
 	task: z.object({
 		id: z.string(),
 		topic: z.string(),
@@ -118,4 +126,45 @@ export function readAnswer(
 		return { kind: "closed" };
 	}
 	return { kind: "failed" };
+}
+
+const waiting = z.object({
+	screen: z.literal("waiting"),
+	status: z.string().optional(),
+	code: z.string().optional(),
+	child: child.nullish(),
+});
+
+/**
+ * Waiting is a card that waits for the next task, as a tool's payload draws
+ * it: while the model writes the task, after the model's last attempt at one
+ * failed its checks, or once the day has no room for another. A card that
+ * waits for a task knows whose it is; one refused for the day may not.
+ */
+export type Waiting =
+	| { kind: "working" | "exhausted"; child: Child }
+	| { kind: "limit"; child: Child | undefined };
+
+/**
+ * readWaiting is the wait a tool's payload draws, or undefined when the
+ * payload draws another screen, does not read, or has a card wait for a task
+ * without saying whose card it is.
+ */
+export function readWaiting(payload: unknown): Waiting | undefined {
+	const read = waiting.safeParse(payload);
+	if (!read.success) {
+		return undefined;
+	}
+	const { status, code } = read.data;
+	const whose = read.data.child ?? undefined;
+	if (status === "limited") {
+		return { kind: "limit", child: whose };
+	}
+	if (whose === undefined) {
+		return undefined;
+	}
+	return {
+		kind: code === "attempts_exhausted" ? "exhausted" : "working",
+		child: whose,
+	};
 }

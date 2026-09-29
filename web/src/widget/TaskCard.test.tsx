@@ -435,15 +435,21 @@ describe("a card whose host lets it down", () => {
 		expect(text(".mt-verdict-line")).toBe("Not quite — it's 5, not 4.");
 	});
 
-	test("still waits for another task when the chat does not take the ask", async () => {
+	test("says at once that no task is coming when the chat does not take the ask", async () => {
 		const logged = vi.spyOn(console, "error").mockImplementation(() => {});
 		const heard = await drawCard(fence, service, { refuseMessages: true });
 
 		press(button("Another task"));
 
 		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
-		await vi.waitFor(() => expect(logged).toHaveBeenCalled());
-		expect(text(".mt-gen-title")).toBe("Preparing the next task…");
+		await vi.waitFor(() =>
+			expect(text(".mt-verdict-line")).toBe(
+				"If no new task has appeared below, it isn't being prepared.",
+			),
+		);
+		expect(logged).toHaveBeenCalled();
+		expect(root.querySelector(".mt-gen")).toBeNull();
+		expect(document.activeElement).toBe(button("Ask again"));
 	});
 
 	test("says the progress did not load when the call is lost", async () => {
@@ -536,9 +542,53 @@ describe("another task", () => {
 		press(button("Another task"));
 
 		expect(text(".mt-gen-title")).toBe("Preparing the next task…");
+		expect(root.querySelectorAll(".mt-gen li")).toHaveLength(5);
 		expect(root.querySelector(".mt-option")).toBeNull();
+		// The button pressed is switched off: the focus goes to the title.
+		expect(document.activeElement).toBe(root.querySelector(".mt-gen-title"));
 		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
 		expect(heard.calls).toEqual([]);
+	});
+
+	test("is asked for once when two presses come before the card redraws", async () => {
+		const heard = await drawCard();
+		const another = button("Another task");
+
+		act(() => {
+			another.click();
+			another.click();
+		});
+
+		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
+		expect(text(".mt-gen-title")).toBe("Preparing the next task…");
+	});
+
+	test("is not asked for while an answer pressed in the same moment is on its way", async () => {
+		const heard = await drawCard();
+
+		act(() => {
+			option("B").click();
+			button("Another task").click();
+		});
+
+		await vi.waitFor(() => expect(replies()).toHaveLength(1));
+		expect(heard.messages).toEqual([]);
+		expect(root.querySelector(".mt-gen")).toBeNull();
+		expect(text(".mt-verdict-line")).toBe("Not quite — it's 5, not 4.");
+	});
+
+	test("keeps the top line to the progress while the next task is written", async () => {
+		const heard = await drawCard();
+		press(button("Another task"));
+
+		press(topLine());
+
+		await vi.waitFor(() =>
+			expect(text(".mt-progress")).toContain('"screen": "progress"'),
+		);
+		press(button("Back to task"));
+		expect(text(".mt-gen-title")).toBe("Preparing the next task…");
+		expect(heard.calls.map((call) => call.name)).toEqual(["read_progress"]);
 	});
 
 	test("is asked for in the card's language", async () => {

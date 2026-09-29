@@ -8,7 +8,7 @@ import type { Scene } from "./scenes";
 /**
  * HostedCard is the widget's own page in a frame, driven the way a chat host
  * drives it: through the library's host side, over the messages between the
- * frame and this page. It is told the host's context, handed the scene's task,
+ * frame and this page. It is told the host's context, handed the scene's payload,
  * answered as the service would answer, and pressed as the child would press.
  * A frame whose page scrolls sideways is marked: the card has to fit any width
  * from a phone's up.
@@ -56,9 +56,9 @@ export function HostedCard({
 		host.oncalltool = (params) =>
 			scene.answers?.(params.name) ??
 			Promise.reject(new Error("no service here"));
-		host.onmessage = async () =>
-			scene.refuseMessages ? { isError: true } : {};
-		host.onupdatemodelcontext = async () => ({});
+		host.onmessage = () =>
+			Promise.resolve(scene.refuseMessages ? { isError: true } : {});
+		host.onupdatemodelcontext = () => Promise.resolve({});
 		host.addEventListener("sizechange", ({ height: drawn }) => {
 			if (drawn !== undefined) {
 				setHeight(drawn);
@@ -71,7 +71,7 @@ export function HostedCard({
 			await host.sendToolInput({ arguments: {} });
 			await host.sendToolResult({
 				content: [],
-				structuredContent: scene.handed as unknown as Record<string, unknown>,
+				structuredContent: scene.payload as Record<string, unknown>,
 			});
 			whenDrawn(
 				view.document,
@@ -106,8 +106,8 @@ export function HostedCard({
 	);
 }
 
-// whenDrawn calls then once the card has drawn its options, which is when the
-// child can first press anything — unless the frame is taken down first.
+// whenDrawn calls then once the card is drawn, which is when the child can
+// first press anything — unless the frame is taken down first.
 function whenDrawn(
 	card: Document,
 	takenDown: () => boolean,
@@ -117,7 +117,7 @@ function whenDrawn(
 		if (takenDown()) {
 			return;
 		}
-		if (card.querySelector(".mt-option") !== null) {
+		if (card.querySelector(".mt-widget") !== null) {
 			then();
 		} else {
 			setTimeout(check, 50);

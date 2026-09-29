@@ -191,6 +191,52 @@ export const longTexts: Handed = {
 	},
 };
 
+/**
+ * refused is the payload of a task the model handed in that failed its checks,
+ * with attempts left: the card waits while the model writes it again. What the
+ * checks found is for the model, and gives nothing away.
+ */
+export const refused = {
+	screen: "waiting",
+	status: "rejected",
+	code: "solver_disagrees",
+	reasons: [
+		{
+			code: "solver_disagrees",
+			messages: [
+				"The solver finds a different right option than the one marked.",
+			],
+		},
+	],
+	attempt: 1,
+	attempts_left: 2,
+	last_answer: null,
+	child: fence.child,
+	task: null,
+} as const;
+
+/**
+ * exhausted is the payload of the model's last attempt at a task failing its
+ * checks: the request is closed, and the model asks for a new one.
+ */
+export const exhausted = {
+	...refused,
+	code: "attempts_exhausted",
+	attempt: 3,
+	attempts_left: 0,
+} as const;
+
+/**
+ * limited is the payload of a request refused for the day: it says whose card
+ * it would be nowhere, since the tool that refuses reads no child's details.
+ */
+export const limited = {
+	screen: "waiting",
+	status: "limited",
+	code: "limit_reached",
+	last_answer: null,
+} as const;
+
 // toolResult is a tool's result with the payload a card is drawn from.
 function toolResult(
 	structuredContent: Record<string, unknown>,

@@ -1,9 +1,10 @@
 import { useEffect, useLayoutEffect, useMemo, useState } from "preact/hooks";
 import type { Words } from "../i18n/words";
 import type { Bridge, Host } from "./bridge";
-import { readHandedTask } from "./payload";
+import { readHandedTask, readWaiting } from "./payload";
 import { StubCard } from "./StubCard";
 import { TaskCard } from "./TaskCard";
+import { WaitingCard } from "./WaitingCard";
 import { cardWords, type Key, languageChosenIn, WordsContext } from "./words";
 
 /**
@@ -30,14 +31,22 @@ export function WidgetApp({ bridge, host }: { bridge: Bridge; host: Host }) {
 }
 
 // Screen is the screen a payload draws. A task handed to the child draws its
-// card, a new card for each task; a screen not drawn yet shows its payload as
-// it arrived.
+// card, a new card for each task; a wait for the next task draws the waiting
+// card, a new wait for each payload that asks for one; a screen not drawn yet
+// shows its payload as it arrived.
 function Screen({ payload, host }: { payload: unknown; host: Host }) {
 	const handed = useMemo(() => readHandedTask(payload), [payload]);
-	if (handed === undefined) {
-		return <StubCard payload={payload} />;
+	const waiting = useMemo(() => readWaiting(payload), [payload]);
+	// A payload told again is the same wait; another one — the next refusal,
+	// say — starts the card afresh.
+	const said = useMemo(() => JSON.stringify(payload ?? null), [payload]);
+	if (handed !== undefined) {
+		return <TaskCard key={handed.task.id} handed={handed} host={host} />;
 	}
-	return <TaskCard key={handed.task.id} handed={handed} host={host} />;
+	if (waiting !== undefined) {
+		return <WaitingCard key={said} waiting={waiting} host={host} />;
+	}
+	return <StubCard payload={payload} />;
 }
 
 const latestResult = (bridge: Bridge) => bridge.result();

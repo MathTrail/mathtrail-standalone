@@ -15,18 +15,35 @@ const lines = {
 	trap: { d: "M8 2.2L14.3 13.3H1.7L8 2.2zM8 6.5v3M8 11.4v.1", width: 1.4 },
 } as const;
 
-// The marks of a verdict are a white tick or cross on a disc of the verdict's
-// own colour.
-const verdicts = {
-	"verdict-correct": { fill: "var(--correct)", d: "M6 10.2l2.6 2.6L14 7.4" },
-	"verdict-wrong": { fill: "var(--wrong)", d: "M7 7l6 6M13 7l-6 6" },
+// The marks of a verdict, and of a step done, are a tick or cross on a disc:
+// a verdict's in its own colour, a step's in the colour of the strongest ink.
+const marks = {
+	"verdict-correct": {
+		fill: "var(--correct)",
+		ink: "var(--on-signal)",
+		d: "M6 10.2l2.6 2.6L14 7.4",
+	},
+	"verdict-wrong": {
+		fill: "var(--wrong)",
+		ink: "var(--on-signal)",
+		d: "M7 7l6 6M13 7l-6 6",
+	},
+	"step-done": {
+		fill: "var(--ink-strong)",
+		ink: "var(--surface)",
+		d: "M6 10.2l2.6 2.6L14 7.4",
+	},
 } as const;
 
 /**
  * IconName names an icon of the design: a line icon, the spinner of a check
- * under way, or the mark of a verdict.
+ * under way, the mark of a verdict, or how a step stands — done, or to come.
  */
-export type IconName = keyof typeof lines | keyof typeof verdicts | "spinner";
+export type IconName =
+	| keyof typeof lines
+	| keyof typeof marks
+	| "spinner"
+	| "step-waiting";
 
 /**
  * Icon is one of the design's icons. It is decoration, hidden from a screen
@@ -71,8 +88,28 @@ export function Icon({
 			</svg>
 		);
 	}
-	if (name === "verdict-correct" || name === "verdict-wrong") {
-		const { fill, d } = verdicts[name];
+	if (name === "step-waiting") {
+		return (
+			<svg
+				width={size}
+				height={size}
+				viewBox="0 0 20 20"
+				fill="none"
+				aria-hidden="true"
+				class={classes("mt-icon", className)}
+			>
+				<circle
+					cx="10"
+					cy="10"
+					r="8.5"
+					stroke="var(--track)"
+					stroke-width="1.5"
+				/>
+			</svg>
+		);
+	}
+	if (isMark(name)) {
+		const { fill, ink, d } = marks[name];
 		return (
 			<svg
 				width={size}
@@ -85,7 +122,7 @@ export function Icon({
 				<circle cx="10" cy="10" r="10" fill={fill} />
 				<path
 					d={d}
-					stroke="var(--on-signal)"
+					stroke={ink}
 					stroke-width="2"
 					stroke-linecap="round"
 					stroke-linejoin="round"
@@ -115,21 +152,23 @@ export function Icon({
 	);
 }
 
+// isMark says whether name is one of the marks drawn on a disc.
+function isMark(name: IconName): name is keyof typeof marks {
+	return Object.hasOwn(marks, name);
+}
+
 /**
  * Mark is MathTrail's sign: a trail rising to a point, on a disc. It is
- * decoration beside the name it stands with, and an image named label when it
- * stands alone.
+ * decoration: the name beside it says whose it is.
  */
-export function Mark({ size = 32, label }: { size?: number; label?: string }) {
+export function Mark({ size = 32 }: { size?: number }) {
 	return (
 		<svg
 			width={size}
 			height={size}
 			viewBox="0 0 32 32"
 			class="mt-icon"
-			role={label === undefined ? undefined : "img"}
-			aria-label={label}
-			aria-hidden={label === undefined ? "true" : undefined}
+			aria-hidden="true"
 		>
 			<circle cx="16" cy="16" r="16" fill="var(--mark-fill)" />
 			<path

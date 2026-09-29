@@ -25,6 +25,7 @@ describe("an icon", () => {
 		"spinner",
 		"verdict-correct",
 		"verdict-wrong",
+		"step-done",
 	])(
 		"%s is hidden from a screen reader and drawn with SVG's own attributes",
 		(name) => {
@@ -51,25 +52,35 @@ describe("an icon", () => {
 			"mt-icon mt-spin",
 		);
 	});
+
+	test("step-waiting is an empty ring, drawn with SVG's own attributes", () => {
+		draw(<Icon name="step-waiting" />);
+
+		const ring = root.querySelector("svg circle");
+		expect(root.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
+		expect(ring?.getAttribute("stroke-width")).toBe("1.5");
+		expect(ring?.hasAttribute("strokeWidth")).toBe(false);
+		expect(root.querySelector("svg path")).toBeNull();
+	});
+
+	test("step-done is ticked in the colour of the strongest ink", () => {
+		draw(<Icon name="step-done" />);
+
+		expect(root.querySelector("svg circle")?.getAttribute("fill")).toBe(
+			"var(--ink-strong)",
+		);
+		expect(root.querySelector("svg path")?.getAttribute("stroke")).toBe(
+			"var(--surface)",
+		);
+	});
 });
 
-describe("the mark", () => {
-	test("beside a name is decoration", () => {
-		draw(<Mark />);
+test("the mark is decoration beside the name it stands with", () => {
+	draw(<Mark />);
 
-		const mark = root.querySelector("svg");
-		expect(mark?.getAttribute("aria-hidden")).toBe("true");
-		expect(mark?.hasAttribute("role")).toBe(false);
-	});
-
-	test("alone is an image with a name", () => {
-		draw(<Mark label="MathTrail" />);
-
-		const mark = root.querySelector("svg");
-		expect(mark?.getAttribute("role")).toBe("img");
-		expect(mark?.getAttribute("aria-label")).toBe("MathTrail");
-		expect(mark?.hasAttribute("aria-hidden")).toBe(false);
-	});
+	const mark = root.querySelector("svg");
+	expect(mark?.getAttribute("aria-hidden")).toBe("true");
+	expect(mark?.hasAttribute("role")).toBe(false);
 });
 
 test("the avatar is decoration", () => {

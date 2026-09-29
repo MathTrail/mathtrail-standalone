@@ -1,18 +1,19 @@
-import { useEffect, useReducer, useRef } from "preact/hooks";
+import type { Ref } from "preact";
+import { useReducer, useRef } from "preact/hooks";
 import { Diagram, Note, Verdict } from "../design/blocks";
-import { classes } from "../design/classes";
 import {
 	Button,
 	type Option,
 	OptionList,
 	type OptionState,
-	ReplyField,
 	type Said,
 } from "../design/controls";
-import { MessageHeader, ReplyCard, ThreadBar } from "../design/thread";
-import { useWide } from "../design/wide";
+import { ReplyCard } from "../design/thread";
 import { directionOf } from "../i18n/lookup";
 import type { Host } from "./bridge";
+import { CardFrame, CardHeader } from "./CardFrame";
+import { useFocusKeptOnTheCard } from "./focus";
+import { LessonButtons, QuestionField } from "./LessonFoot";
 import {
 	type Answer,
 	canAnswer,
@@ -34,8 +35,8 @@ import {
 	letters,
 	readAnswer,
 } from "./payload";
-import { StubCard } from "./StubCard";
 import { TaskResult } from "./TaskResult";
+import { useAsking, WaitingScreen } from "./WaitingCard";
 import { type Key, useWords } from "./words";
 
 /**
@@ -43,22 +44,17 @@ import { type Key, useWords } from "./words";
  * pressing an option or "I don't know", which records the answer straight
  * away, and reads the result below the task, in the same card; opens the hint;
  * asks a question, which goes to the chat for the model to answer there; asks
- * for another task, which the model writes; and opens the progress in the card
- * and comes back to the task as it was left.
+ * for another task, which the model writes while the card waits for it; and
+ * opens the progress in the card and comes back to the task as it was left.
  */
 export function TaskCard({ handed, host }: { handed: HandedTask; host: Host }) {
 	const { task, child } = handed;
 	const words = useWords();
 	const [lesson, dispatch] = useReducer(next, lessonStart);
-	const root = useRef<HTMLDivElement>(null);
-	const wide = useWide(root);
-	const topBar = useRef<HTMLButtonElement>(null);
-	const backBar = useRef<HTMLButtonElement>(null);
+	const asking = useAsking(host);
 	const outcome = useRef<HTMLDivElement>(null);
 	const nextTask = useRef<HTMLButtonElement>(null);
-	const waitingTitle = useRef<HTMLParagraphElement>(null);
 	const questionsAsked = useRef(0);
-	const progressOpenings = useRef(0);
 	// An answer is sent once. From the moment it is on its way the options and
 	// the buttons that could give another are locked, and a second press that
 	// comes before the card has redrawn to lock them is turned away here.
@@ -81,16 +77,14 @@ export function TaskCard({ handed, host }: { handed: HandedTask; host: Host }) {
 	}
 
 	function askForAnother() {
-		// The card turns to the wait at once; the ask reaches the model after it.
-		// If the host drops it, the adult asks in the chat, and the wait is the
-		// same.
+		// Not while an answer is on its way: its reply would come to a card no
+		// longer showing the task. Otherwise the card turns to the wait at once,
+		// and the ask reaches the model after it.
+		if (answering.current) {
+			return;
+		}
 		dispatch({ type: "another asked" });
-		host.sendMessage(words.text("task.another")).catch((error: unknown) => {
-			console.error(
-				"widget: the ask for another task did not reach the chat",
-				error,
-			);
-		});
+		asking.ask();
 	}
 
 	async function ask(question: string) {
@@ -105,110 +99,36 @@ export function TaskCard({ handed, host }: { handed: HandedTask; host: Host }) {
 		}
 	}
 
-	async function openProgress() {
-		progressOpenings.current += 1;
-		const opening = progressOpenings.current;
-		dispatch({ type: "progress opened", opening });
-		try {
-			const read = await host.callTool("read_progress", {});
-			dispatch(
-				read.isError === true
-					? { type: "progress failed", opening }
-					: {
-							type: "progress read",
-							opening,
-							payload: read.structuredContent,
-						},
-			);
-		} catch (error: unknown) {
-			console.error("widget: the progress did not arrive", error);
-			dispatch({ type: "progress failed", opening });
-		}
-	}
-
-	useFocusFollowsProgress(lesson, topBar, backBar);
 	// Once the answer is in, a focus that was lost goes to the one thing left
 	// to do, while the replies read the result out; with nothing left to do,
 	// to what the card says.
 	useFocusKeptOnTheCard(isOver(lesson.answer), nextTask, outcome);
-	useFocusKeptOnTheCard(lesson.stage === "waiting", waitingTitle);
 
 	// The task is in the language it was written in, which need not be the
 	// card's: a screen reader reads it in its own voice, and it runs its own way.
 	const inTask: Said = { lang: task.language, dir: directionOf(task.language) };
 
-	const waiting = lesson.stage === "waiting";
 	return (
-		<div
-			ref={root}
-			class={classes(
-				"mt",
-				"mt-widget",
-				wide && "mt-wide",
-				words.dir === "rtl" && "mt-rtl",
-			)}
-		>
-			<div hidden={lesson.progress !== undefined}>
-				<ThreadBar
-					name={child.pseudonym}
-					action={words.text("task.profile_action")}
-					onClick={openProgress}
-					buttonRef={topBar}
-				/>
-				<article aria-label={words.text("task.label")}>
-					<MessageHeader
-						author="app"
-						name={words.text("app.name")}
-						badge={words.text("app.badge", { grade: child.grade })}
-						wide={wide}
-					/>
-					{waiting ? (
-						<div class="mt-body">
-							<div class="mt-gen">
-								<p class="mt-gen-title" ref={waitingTitle} tabIndex={-1}>
-									{words.text("waiting.title")}
-								</p>
-							</div>
-						</div>
-					) : (
-						<div class="mt-body">
-							<p class="mt-task-text" lang={inTask.lang} dir={inTask.dir}>
-								{task.question}
-							</p>
-							{task.drawing !== "" && (
-								<Diagram
-									drawing={task.drawing}
-									label={words.text("task.drawing")}
-								/>
-							)}
-							{lesson.hint.open && !isSettled(lesson.answer) && (
-								<Note tone="hint" label={words.text("task.hint")} said={inTask}>
-									{task.hint}
-								</Note>
-							)}
-							<OptionList
-								legend={words.text(
-									lesson.answer.state === "answered"
-										? "result.answers"
-										: "task.pick",
-								)}
-								options={optionsOf(handed, lesson.answer, (key) =>
-									words.text(key),
-								)}
-								locked={!canAnswer(lesson)}
-								onSelect={answer}
-								said={inTask}
+		<CardFrame child={child} back={words.text("progress.back")} host={host}>
+			{(wide) =>
+				lesson.stage === "waiting" ? (
+					<WaitingScreen grade={child.grade} wide={wide} asking={asking} />
+				) : (
+					<>
+						<article aria-label={words.text("task.label")}>
+							<CardHeader grade={child.grade} wide={wide} />
+							<TaskBody
+								handed={handed}
+								lesson={lesson}
+								inTask={inTask}
+								onAnswer={answer}
 							/>
-						</div>
-					)}
-				</article>
-				<section
-					class="mt-replies"
-					aria-label={words.text("task.replies")}
-					aria-live="polite"
-				>
-					{!waiting && (
-						<>
+						</article>
+						<section
+							class="mt-replies"
+							aria-label={words.text("task.replies")}
+							aria-live="polite"
+						>
 							{isOver(lesson.answer) && (
 								<div ref={outcome} tabIndex={-1}>
 									<Outcome answer={lesson.answer} task={task} inTask={inTask} />
@@ -224,94 +144,114 @@ export function TaskCard({ handed, host }: { handed: HandedTask; host: Host }) {
 									<p class="mt-reply-lead">{question.words}</p>
 								</ReplyCard>
 							))}
-						</>
-					)}
-				</section>
-				<div class="mt-foot">
-					<ReplyField
-						value={lesson.draft}
-						placeholder={words.text("task.ask")}
-						label={words.text("task.ask_label")}
-						sendLabel={words.text("task.send")}
-						disabled={waiting}
-						onInput={(typed) => dispatch({ type: "typed", words: typed })}
-						onSend={ask}
-					/>
-					<div class="mt-btns">
-						{/* A task answered has one thing left to do; a task closed has
-						    none on this card, since the task being solved is on a newer
-						    one, and asking for another here would skip it. */}
-						{!waiting && lesson.answer.state === "answered" ? (
-							<Button
-								variant="primary"
-								onClick={askForAnother}
-								buttonRef={nextTask}
-							>
-								{words.text("task.another")}
-							</Button>
-						) : !waiting && lesson.answer.state === "closed" ? null : (
-							<>
-								<Button
-									disabled={waiting}
-									locked={lesson.answer.state === "checking"}
-									onClick={() => answer(dontKnow)}
-								>
-									{words.text("task.idk")}
-								</Button>
-								<Button
-									disabled={waiting}
-									locked={lesson.answer.state === "checking"}
-									expanded={waiting ? undefined : lesson.hint.open}
-									onClick={() => dispatch({ type: "hint toggled" })}
-								>
-									{words.text(
-										lesson.hint.open && !waiting
-											? "task.hide_hint"
-											: "task.hint",
-									)}
-								</Button>
-								<Button
-									disabled={waiting}
-									locked={lesson.answer.state === "checking"}
-									onClick={askForAnother}
-								>
-									{words.text("task.another")}
-								</Button>
-							</>
-						)}
-					</div>
-				</div>
-			</div>
-			{lesson.progress !== undefined && (
-				<>
-					<ThreadBar
-						variant="back"
-						label={words.text("progress.back")}
-						onClick={() => dispatch({ type: "back to task" })}
-						buttonRef={backBar}
-					/>
-					<article
-						aria-label={words.text("progress.label")}
-						aria-busy={lesson.progress.state === "reading"}
-					>
-						<MessageHeader
-							author="person"
-							name={child.pseudonym}
-							badge={words.text("child.grade", { grade: child.grade })}
-							wide={wide}
-						/>
-						<div class="mt-progress">
-							{lesson.progress.state === "read" && (
-								<StubCard payload={lesson.progress.payload} />
-							)}
-							{lesson.progress.state === "failed" && (
-								<Verdict>{words.text("progress.failed")}</Verdict>
-							)}
+						</section>
+						<div class="mt-foot">
+							<QuestionField
+								value={lesson.draft}
+								onInput={(typed) => dispatch({ type: "typed", words: typed })}
+								onSend={ask}
+							/>
+							<div class="mt-btns">
+								<TaskActions
+									lesson={lesson}
+									nextTask={nextTask}
+									onDontKnow={() => answer(dontKnow)}
+									onHint={() => dispatch({ type: "hint toggled" })}
+									onAnother={askForAnother}
+								/>
+							</div>
 						</div>
-					</article>
-				</>
+					</>
+				)
+			}
+		</CardFrame>
+	);
+}
+
+// TaskBody is the task itself: its question, its drawing, the hint while it
+// is shown and the task is not done with, and the options — to press, or
+// marked once the answer is in.
+function TaskBody({
+	handed,
+	lesson,
+	inTask,
+	onAnswer,
+}: {
+	handed: HandedTask;
+	lesson: Lesson;
+	inTask: Said;
+	onAnswer: (choice: Choice) => void;
+}) {
+	const words = useWords();
+	const { task } = handed;
+	return (
+		<div class="mt-body">
+			<p class="mt-task-text" lang={inTask.lang} dir={inTask.dir}>
+				{task.question}
+			</p>
+			{task.drawing !== "" && (
+				<Diagram drawing={task.drawing} label={words.text("task.drawing")} />
 			)}
+			{lesson.hint.open && !isSettled(lesson.answer) && (
+				<Note tone="hint" label={words.text("task.hint")} said={inTask}>
+					{task.hint}
+				</Note>
+			)}
+			<OptionList
+				legend={words.text(
+					lesson.answer.state === "answered" ? "result.answers" : "task.pick",
+				)}
+				options={optionsOf(handed, lesson.answer, (key) => words.text(key))}
+				locked={!canAnswer(lesson)}
+				onSelect={onAnswer}
+				said={inTask}
+			/>
 		</div>
+	);
+}
+
+// TaskActions are the buttons under a task. A task answered has one thing
+// left to do, the next task. A task closed has none on this card: the task
+// being solved is on a newer one, and asking for another here would skip it.
+// The next task's button is its own: the one pressed is not turned into it
+// under the focus, which a screen reader would not tell.
+function TaskActions({
+	lesson,
+	nextTask,
+	onDontKnow,
+	onHint,
+	onAnother,
+}: {
+	lesson: Lesson;
+	nextTask: Ref<HTMLButtonElement>;
+	onDontKnow: () => void;
+	onHint: () => void;
+	onAnother: () => void;
+}) {
+	const words = useWords();
+	if (lesson.answer.state === "answered") {
+		return (
+			<Button
+				key="next"
+				variant="primary"
+				onClick={onAnother}
+				buttonRef={nextTask}
+			>
+				{words.text("task.another")}
+			</Button>
+		);
+	}
+	if (lesson.answer.state === "closed") {
+		return null;
+	}
+	return (
+		<LessonButtons
+			locked={lesson.answer.state === "checking"}
+			hintOpen={lesson.hint.open}
+			onDontKnow={onDontKnow}
+			onHint={onHint}
+			onAnother={onAnother}
+		/>
 	);
 }
 
@@ -403,51 +343,4 @@ function questionMeta(
 		case "lost":
 			return text("task.not_sent");
 	}
-}
-
-// useFocusFollowsProgress moves the focus with the card between the task and
-// the progress: to the way back as the progress opens, to the way there as it
-// closes. The first draw moves nothing.
-function useFocusFollowsProgress(
-	lesson: Lesson,
-	topBar: { current: HTMLButtonElement | null },
-	backBar: { current: HTMLButtonElement | null },
-): void {
-	const open = lesson.progress !== undefined;
-	const wasOpen = useRef(open);
-	useEffect(() => {
-		if (wasOpen.current === open) {
-			return;
-		}
-		wasOpen.current = open;
-		(open ? backBar : topBar).current?.focus({ preventScroll: true });
-	}, [open, topBar, backBar]);
-}
-
-// useFocusKeptOnTheCard gives the focus to target — or, when there is none on
-// the card, to fallback — when shown comes true and the focus has been lost:
-// the button pressed has gone or been switched off. A focus still on something
-// is left where it is, and the page is not scrolled.
-function useFocusKeptOnTheCard(
-	shown: boolean,
-	target: { current: HTMLElement | null },
-	fallback?: { current: HTMLElement | null },
-): void {
-	useEffect(() => {
-		if (shown && focusIsLost()) {
-			(target.current ?? fallback?.current)?.focus({ preventScroll: true });
-		}
-	}, [shown, target, fallback]);
-}
-
-// focusIsLost says whether the focus is on nothing a child could act on: the
-// page itself, or an element that has left the page or been switched off.
-function focusIsLost(): boolean {
-	const focused = document.activeElement;
-	return (
-		focused === null ||
-		focused === document.body ||
-		!focused.isConnected ||
-		(focused instanceof HTMLButtonElement && focused.disabled)
-	);
 }
