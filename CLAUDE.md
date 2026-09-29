@@ -41,8 +41,7 @@ Technical shape:
 - `docs/decisions.md` — implementation decision log, numbered R01… (created in T05). Read it before proposing design changes.
 - `docs/architecture/` — Mermaid diagrams (phase 1). `docs/live/` — reports of live runs in real chat hosts.
 - [draft/ui/mathtrail-site/](draft/ui/mathtrail-site/README.md) — the approved design of the site and the widget, a static export that runs in a browser (R89, SPEC 8.12). The reference the widget (T55–T57) and the site (T66a) are ported from; deleted once they match it.
-- [docs/prototype/](docs/prototype/README.md) — frozen copies of the prototype SPEC, its decision log D01–D45 and research. Prototype decisions are cited as "D43 of the prototype".
-- `prototype/` — a full local copy of the prototype repository (code, data, schemas, prompts, tests, diagrams); see "Reference copies" below.
+- [docs/prototype/](docs/prototype/README.md) — frozen copies of the prototype SPEC, its decision log D01–D45 and research. Prototype decisions are cited as "D43 of the prototype". The prototype itself — its code, data, schemas, prompts, tests and diagrams — is its public repository, [MathTrail/llm-taskgen-prototype](https://github.com/MathTrail/llm-taskgen-prototype), at commit `02638353482e`, the one the golden vectors are exported from.
 - `research/` — the research program for a paper about the product: its plan [research/RUN.md](research/RUN.md) (tasks S00–S66, in Russian), evidence, literature, experiments and paper sources, and a Go module of its own. It never changes the product's code or behaviour; it touches the repository's tooling only where its plan says so.
 
 Project context lives in these files, not in chat history.
@@ -95,7 +94,7 @@ Project context lives in these files, not in chat history.
 
 ## Architecture and code standards
 
-Checked against `reference/mentor-api/`, the platform's reference service. Where we differ from it on purpose, the reason is spelled out — those are the "known gaps" mentioned below.
+These follow `mentor-api`, the platform's reference service. Where we differ from it on purpose, the reason is spelled out — those are the "known gaps" mentioned below.
 
 ### Layout
 
@@ -240,17 +239,6 @@ Implementations of the same interface must be interchangeable, and that is worth
 - The justfile is the entry point for everything; `ci-*` recipes are what CI calls — same recipe names as `mentor-api` (`fmt`, `fmt-check`, `build`, `test`, `mocks`, `ci-lint`, `ci-test`, `ci-mocks-check`).
 - Multi-stage Dockerfile, minimal non-root runtime image pinned by digest, `CGO_ENABLED=0`, `-trimpath`.
 
-## Reference copies
-
-`prototype/` is a local, gitignored copy of the prototype repository. It serves as reference material for porting: catalogs and examples in `data/`, `schemas/`, `prompts/`, `src/taskgen/`, `tests/` (including `tests/example_checks/`) and `docs/architecture/`.
-
-- Its rules file is renamed to `prototype/CLAUDE.prototype.md`; its rules do not apply here.
-- Search tools that respect `.gitignore` (ripgrep) skip it. Use explicit paths (`Read`, `ls`, `grep -r prototype/...`).
-- Never edit it and never commit anything from it except through a RUN.md task that ports content into the product.
-- T65 deletes it once everything needed has been ported.
-
-`reference/mentor-api/` is a local, gitignored copy of the platform's reference Go service, kept for one reason: to check our conventions against a working implementation instead of writing them from memory. Read-only — never edit it, never copy code from it into the product, only conventions. The same ripgrep caveat applies: use explicit paths.
-
 ## Environment
 
 Open the repository in VS Code and choose "Reopen in Container" (`.devcontainer/`).
@@ -269,5 +257,5 @@ Inside the container:
 - **Just recipes.** `just --list` shows all of them. The everyday ones are `just fmt`, `just test`, `just lint`, `just build` and `just run` — the last with the development sign-in, so that `just inspect` (MCP Inspector's web client) and `just inspect-cli` (the same from the terminal) can talk to its MCP endpoint; the two that must be green before a task is done are **`just ci-lint`** and **`just ci-test`** (race detector and coverage), and they are what CI runs. A change to `web/` must also pass **`just ci-web`** — the widget's formatting and lint, its types, its tests and a build; `just web-build` builds the widget alone, and `just build` and `just run` build it first. The load tool in `tools/load` is a module of its own with recipes of its own — `just load <scenario>`, which builds the image and runs the scenario against a container of an instance's size (or against a service already running, with `-url`), `just ci-load`, which runs every scenario against the image, each held to its memory, as the weekly load workflow does, and **`just load-lint`** and **`just load-test`**, which must be green when a change touches it; it imports the product, so a change to the product's `go.mod` is followed by `just load-tidy`.
 - **Git hooks.** `.githooks/pre-commit` is enabled by `post-start` through `core.hooksPath`. It runs formatting, a build and the tests — enough to catch what is embarrassing, while the linter, the race detector, `govulncheck` and `gitleaks` wait for CI. Where no Go toolchain is reachable — a Git client outside the container, for instance — it says so and skips those checks instead of blocking the commit: CI runs them again and is what gates a merge.
 - **The runtime image.** `just docker-build` builds it and `just docker-run` starts it on port 8080. Every image in the `Dockerfile` is pinned by tag and digest: a Node stage that builds the widget, a Go builder that embeds it, and a distroless static runtime that has no shell and runs as a non-root user.
-- **Anything that is not Go runs in a container too.** `just golden` exports the prototype's vectors using the pinned `uv` image and the prototype's own PostgreSQL compose file, so no Python and no database is ever installed into the devcontainer (`testdata/golden/export/README.md`). `just inspect` runs MCP Inspector the same way, from its published image pinned by digest, so none of its npm packages is installed or left to float. The widget's own packages are the exception, because they are part of the build: they are installed into `web/node_modules` from its lockfile, by the Node the image pins, and none of them runs an install step.
-- **Build context.** The devcontainer image is built with the repository root as context; `.dockerignore` keeps `.git`, `.env`, `prototype/`, `reference/`, `docs/`, `testdata/`, `research/`, `tools/`, `draft/`, `node_modules`, the widget built on this machine and its coverage out of it and out of the runtime image; the widget's sources stay in, and the image builds the widget itself.
+- **Anything that is not Go runs in a container too.** `just golden` exports the prototype's vectors from a clone of its public repository at a pinned commit, using the pinned `uv` image and the prototype's own PostgreSQL compose file, so no Python and no database is ever installed into the devcontainer (`testdata/golden/export/README.md`). `just inspect` runs MCP Inspector the same way, from its published image pinned by digest, so none of its npm packages is installed or left to float. The widget's own packages are the exception, because they are part of the build: they are installed into `web/node_modules` from its lockfile, by the Node the image pins, and none of them runs an install step.
+- **Build context.** The devcontainer image is built with the repository root as context; `.dockerignore` keeps `.git`, `.env`, `docs/`, `testdata/`, `research/`, `tools/`, `draft/`, `node_modules`, the widget built on this machine and its coverage out of it and out of the runtime image; the widget's sources stay in, and the image builds the widget itself.

@@ -47,6 +47,11 @@ INSPECTOR_RUN := "docker run --rm --init --network host -e HOST=127.0.0.1 -e MCP
 # other image this repository runs.
 TRIVY_IMAGE := "aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969"
 
+# The prototype the golden vectors are the numbers of: its public repository, at the
+# commit the copy they were first exported from matched byte for byte.
+PROTOTYPE_REPOSITORY := "https://github.com/MathTrail/llm-taskgen-prototype"
+PROTOTYPE_COMMIT := "02638353482e25d6213120ba10caea3467a0437a"
+
 # What a dependency's license may be: permissive, and compatible with releasing
 # the result under MIT.
 ALLOWED_LICENSES := "MIT,BSD-2-Clause,BSD-3-Clause,Apache-2.0,ISC"
@@ -734,30 +739,46 @@ ci-smoke url:
 
 # -- Golden vectors from the prototype --------------------------------------
 
-# Export the prototype's golden vectors into testdata/golden/ (see its export/README.md).
-# Python comes from the uv image and PostgreSQL from the prototype's compose file, both
-# pinned by tag and digest, so neither has to be installed anywhere.
+# The export runs the prototype's own code, from a clone of PROTOTYPE_COMMIT made for
+# the run and removed after it. Python comes from the uv image and PostgreSQL from the
+# prototype's compose file, both pinned by tag and digest, so neither has to be
+# installed anywhere; the database starts empty and is removed with its volume.
+# Export the prototype's golden vectors into testdata/golden/ (see its export/README.md)
 golden:
     #!/usr/bin/env bash
     set -euo pipefail
     uv_image="ghcr.io/astral-sh/uv:0.12.13-python3.12-trixie-slim@sha256:87bc72093c0aa93cc962bd7c0498ddf416dad3ce9e1434724e936e02b72afe5d"
     repo="$(pwd)"
+    prototype="$(mktemp -d)"
+    compose=(docker compose --project-name mathtrail-golden --project-directory "$prototype")
 
-    if [ ! -d prototype/src/taskgen ]; then
-        echo "golden: prototype/ is missing; the export runs the prototype's own code." >&2
-        exit 1
-    fi
+    # Whatever happens next, the database goes once it was asked for, and so does
+    # the clone: with set -e a failing export would otherwise leave either behind
+    # until somebody noticed. The clone goes even when the database will not, and
+    # that is said.
+    database=no
+    cleanup() {
+        if [ "$database" = yes ]; then
+            echo "==> removing PostgreSQL"
+            "${compose[@]}" down --volumes || echo "golden: the database of project mathtrail-golden was not removed" >&2
+        fi
+        rm -rf "$prototype"
+    }
+    trap cleanup EXIT
+
+    # The one commit, and none of the history around it.
+    echo "==> the prototype at {{ PROTOTYPE_COMMIT }}"
+    git -C "$prototype" init --quiet
+    git -C "$prototype" fetch --quiet --depth 1 "{{ PROTOTYPE_REPOSITORY }}" "{{ PROTOTYPE_COMMIT }}"
+    git -C "$prototype" checkout --quiet --detach FETCH_HEAD
 
     echo "==> PostgreSQL"
-    (cd prototype && docker compose up -d --wait)
-
-    # Whatever happens next, the database stops: with set -e a failing export
-    # would otherwise leave it running until somebody notices.
-    trap 'echo "==> stopping PostgreSQL"; (cd "$repo/prototype" && docker compose down)' EXIT
+    database=yes
+    "${compose[@]}" up -d --wait
 
     echo "==> dependencies, schema, seed profiles, export"
     docker run --rm --network host \
-        -v "$repo:/repo" -w /repo/prototype --user "$(id -u):$(id -g)" \
+        -v "$repo:/repo" -v "$prototype:/prototype" -w /prototype --user "$(id -u):$(id -g)" \
         -e HOME=/tmp -e UV_PROJECT_ENVIRONMENT=/tmp/venv -e UV_CACHE_DIR=/tmp/uvcache \
         -e DATABASE_URL=postgresql://taskgen:taskgen@127.0.0.1:5432/taskgen \
         "$uv_image" \
