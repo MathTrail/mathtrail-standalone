@@ -1,8 +1,16 @@
 import { render } from "preact";
 import { act } from "preact/test-utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import type { Bridge, ToolResult } from "./bridge";
+import type { Bridge, Host, ToolResult } from "./bridge";
+import { fence } from "./testing/lesson";
 import { WidgetApp } from "./WidgetApp";
+
+// idleHost is a host the card asks nothing of in these tests.
+const idleHost: Host = {
+	callTool: () => Promise.reject(new Error("no tool is called here")),
+	sendMessage: () => Promise.reject(new Error("no message is sent here")),
+	tellModel: () => Promise.reject(new Error("the model is told nothing here")),
+};
 
 // heldBridge is a bridge whose results arrive, and whose host names its locale,
 // when the test says, so the card can be caught before, between and after them.
@@ -56,19 +64,19 @@ describe("the card", () => {
 	test("draws nothing before the first result", () => {
 		const { bridge } = heldBridge();
 
-		act(() => render(<WidgetApp bridge={bridge} />, root));
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
 
 		expect(root.innerHTML).toBe("");
 	});
 
 	test("shows the payload of the latest result", () => {
 		const { bridge, deliver } = heldBridge();
-		act(() => render(<WidgetApp bridge={bridge} />, root));
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
 
-		act(() => deliver({ screen: "task", attempt: 1 }));
+		act(() => deliver({ screen: "waiting", attempt: 1 }));
 		expect(root.textContent).toContain('"attempt": 1');
 
-		act(() => deliver({ screen: "task", attempt: 2 }));
+		act(() => deliver({ screen: "waiting", attempt: 2 }));
 		expect(root.textContent).toContain('"attempt": 2');
 		expect(root.textContent).not.toContain('"attempt": 1');
 	});
@@ -77,7 +85,7 @@ describe("the card", () => {
 		const { bridge, deliver } = heldBridge();
 		deliver({ screen: "progress" });
 
-		act(() => render(<WidgetApp bridge={bridge} />, root));
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
 
 		expect(root.textContent).toContain('"screen": "progress"');
 	});
@@ -87,7 +95,7 @@ describe("the card", () => {
 
 		// Drawn outside act, the card has not subscribed yet when the result
 		// comes: its effects run after the frame is painted.
-		render(<WidgetApp bridge={bridge} />, root);
+		render(<WidgetApp bridge={bridge} host={idleHost} />, root);
 		deliver({ screen: "result" });
 
 		await vi.waitFor(() =>
@@ -95,9 +103,33 @@ describe("the card", () => {
 		);
 	});
 
+	test("draws a task handed out as the task's card", () => {
+		const { bridge, deliver } = heldBridge();
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
+
+		act(() => deliver(fence));
+
+		expect(root.querySelector(".mt-task-text")?.textContent).toBe(
+			fence.task.question,
+		);
+		expect(root.querySelector(".stub")).toBeNull();
+	});
+
+	test("shows a task's payload as it arrived when it does not read as a task", () => {
+		const { bridge, deliver } = heldBridge();
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
+
+		act(() =>
+			deliver({ ...fence, task: { ...fence.task, options: { A: "3" } } }),
+		);
+
+		expect(root.querySelector(".mt-option")).toBeNull();
+		expect(root.textContent).toContain('"options"');
+	});
+
 	test("keeps markup inside a payload as text", () => {
 		const { bridge, deliver } = heldBridge();
-		act(() => render(<WidgetApp bridge={bridge} />, root));
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
 
 		act(() => deliver({ text: "<img src=x onerror=alert(1)>" }));
 
@@ -123,7 +155,7 @@ describe("the card's language", () => {
 
 	test("is the host's", () => {
 		const { bridge, deliver } = heldBridge("ru-RU");
-		act(() => render(<WidgetApp bridge={bridge} />, root));
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
 
 		act(() =>
 			deliver({
@@ -137,7 +169,7 @@ describe("the card's language", () => {
 
 	test("is the one the parent chose for the cards, over the host's", () => {
 		const { bridge, deliver } = heldBridge("en-US");
-		act(() => render(<WidgetApp bridge={bridge} />, root));
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
 
 		act(() =>
 			deliver({
@@ -155,7 +187,7 @@ describe("the card's language", () => {
 
 	test("is the host's when the widget has no words in the one the parent chose", () => {
 		const { bridge, deliver } = heldBridge("ru-RU");
-		act(() => render(<WidgetApp bridge={bridge} />, root));
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
 
 		act(() => deliver({ screen: "profile", profile: { ui_language: "kk" } }));
 
@@ -164,7 +196,7 @@ describe("the card's language", () => {
 
 	test("is English when the widget has words for neither", () => {
 		const { bridge, deliver } = heldBridge("es-MX");
-		act(() => render(<WidgetApp bridge={bridge} />, root));
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
 
 		act(() => deliver({ screen: "first_run", profile: null }));
 
@@ -177,14 +209,14 @@ describe("the card's language", () => {
 
 		// Drawn outside act, the card has run none of the effects that wait for
 		// a paint.
-		render(<WidgetApp bridge={bridge} />, root);
+		render(<WidgetApp bridge={bridge} host={idleHost} />, root);
 
 		expect(languageOfPage()).toEqual(["ru", "ltr"]);
 	});
 
 	test("follows the host when it names another", () => {
 		const { bridge, deliver, changeLocale } = heldBridge("en-US");
-		act(() => render(<WidgetApp bridge={bridge} />, root));
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
 		act(() => deliver({ screen: "task" }));
 
 		act(() => changeLocale("ru-RU"));

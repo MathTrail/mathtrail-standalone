@@ -16,6 +16,9 @@ COPY web/package.json web/package-lock.json web/.npmrc ./
 RUN npm ci --ignore-scripts --no-audit --no-fund
 
 COPY web/ ./
+# The design tokens live beside the page the build writes, in the package that
+# embeds both, and the widget's styles import them from there.
+COPY internal/widget/tokens.css /src/internal/widget/tokens.css
 
 # The widget tells a host the build it came with.
 ARG VERSION=dev

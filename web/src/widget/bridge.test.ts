@@ -1,10 +1,11 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { openBridge } from "./bridge";
-import { deliver, openTestHost } from "./testing/host";
+import { deliver, listenAsHost, openTestHost } from "./testing/host";
+import { progress } from "./testing/lesson";
 
 afterEach(() => {
 	document.documentElement.removeAttribute("data-theme");
-	document.documentElement.style.colorScheme = "";
+	document.documentElement.removeAttribute("style");
 });
 
 describe("the bridge", () => {
@@ -108,5 +109,75 @@ describe("the bridge", () => {
 		await bridge.connect(widgetSide);
 
 		await vi.waitFor(() => expect(sizes).toHaveBeenCalled());
+	});
+
+	test("gives the page the room the host keeps at the screen's edges, and follows it", async () => {
+		const { host, widgetSide } = await openTestHost({
+			safeAreaInsets: { top: 12, right: 0, bottom: 34, left: 4 },
+		});
+		const bridge = openBridge();
+		await bridge.connect(widgetSide);
+		const inset = (side: string) =>
+			document.documentElement.style.getPropertyValue(`--safe-area-${side}`);
+
+		expect(["top", "right", "bottom", "left"].map(inset)).toEqual([
+			"12px",
+			"0px",
+			"34px",
+			"4px",
+		]);
+
+		await host.sendHostContextChange({
+			safeAreaInsets: { top: 0, right: 0, bottom: 0, left: 0 },
+		});
+
+		await vi.waitFor(() => expect(inset("bottom")).toBe("0px"));
+	});
+});
+
+describe("what the card asks of the host", () => {
+	test("a tool is called through the host, and its result comes back", async () => {
+		const { host, widgetSide } = await openTestHost();
+		const heard = listenAsHost(host, () => progress);
+		const bridge = openBridge();
+		await bridge.connect(widgetSide);
+
+		const result = await bridge.callTool("read_progress", {});
+
+		expect(heard.calls).toEqual([{ name: "read_progress", arguments: {} }]);
+		expect(result.structuredContent).toEqual(progress.structuredContent);
+	});
+
+	test("a message is put in the chat as the child's", async () => {
+		const { host, widgetSide } = await openTestHost();
+		const heard = listenAsHost(host, () => progress);
+		const bridge = openBridge();
+		await bridge.connect(widgetSide);
+
+		await bridge.sendMessage("why isn't it 6?");
+
+		expect(heard.messages).toEqual(["why isn't it 6?"]);
+	});
+
+	test("a message the host does not take is a failure", async () => {
+		const { host, widgetSide } = await openTestHost();
+		listenAsHost(host, () => progress, { refuseMessages: true });
+		const bridge = openBridge();
+		await bridge.connect(widgetSide);
+
+		await expect(bridge.sendMessage("why?")).rejects.toThrow(
+			"the host did not take the message",
+		);
+	});
+
+	test("a line reaches the model", async () => {
+		const { host, widgetSide } = await openTestHost();
+		const heard = listenAsHost(host, () => progress);
+		const bridge = openBridge();
+		await bridge.connect(widgetSide);
+
+		await bridge.tellModel("The child answered.");
+
+		expect(heard.modelLines).toEqual(["The child answered."]);
 	});
 });

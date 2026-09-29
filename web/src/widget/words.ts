@@ -73,6 +73,17 @@ function fieldOf(value: unknown, name: string): unknown {
 }
 
 /**
+ * ratingText is a rating as chess writes one — 1573, with no separator between
+ * the thousands — in the digits of the words' language. Every other number is
+ * written the way its language writes it, a separator and all.
+ */
+export function ratingText(words: Words<Key>, rating: number): string {
+	return new Intl.NumberFormat(words.locale, { useGrouping: false }).format(
+		rating,
+	);
+}
+
+/**
  * WordsContext hands a card's words to everything drawn inside it. A component
  * drawn outside any card speaks English.
  */

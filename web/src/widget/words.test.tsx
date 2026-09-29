@@ -5,6 +5,7 @@ import {
 	cardWords,
 	dictionaries,
 	languageChosenIn,
+	ratingText,
 	useWords,
 	WordsContext,
 } from "./words";
@@ -38,6 +39,21 @@ describe("a card's words", () => {
 		expect([...dictionaries.keys()]).toEqual(
 			expect.arrayContaining(["en", "ru"]),
 		);
+	});
+});
+
+describe("a rating", () => {
+	test.each([
+		["en", "1573"],
+		["ru", "1573"],
+	])("in %s is written as chess writes it, with no separator", (tag, want) => {
+		expect(ratingText(cardWords(tag, undefined), 1573)).toBe(want);
+	});
+
+	test("is written in the digits of the words' language", () => {
+		const bengali = { locale: "bn", dir: "ltr" as const, text: () => "" };
+
+		expect(ratingText(bengali, 1573)).toBe("১৫৭৩");
 	});
 });
 

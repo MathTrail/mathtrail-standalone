@@ -1,0 +1,41 @@
+/* The page around the cards stands in for a chat: plain, and in the theme the
+   cards are shown in. */
+body {
+	margin: 0;
+	font:
+		14px / 1.4 system-ui,
+		sans-serif;
+}
+.preview {
+	min-height: 100vh;
+	padding: 16px;
+}
+.preview-light {
+	background: #f5f4ef;
+	color: #1f1e1b;
+}
+.preview-dark {
+	background: #141312;
+	color: #edebe6;
+}
+.preview-bar {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 16px;
+	padding: 8px 0 16px;
+	background: inherit;
+}
+.preview-scene h2 {
+	margin: 24px 0 8px;
+	font-size: 15px;
+}
+.preview-frames {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: 24px;
+}

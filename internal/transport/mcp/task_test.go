@@ -710,27 +710,40 @@ func TestAnUnansweredTaskIsSkippedByTheNextAsk(t *testing.T) {
 
 // Nothing that gives the answer away leaves the seal before the child has
 // answered: not in the payload a card draws, not in the words for the model,
-// not in the open part of the profile, not on a span and not in a line.
+// not in the open part of the profile, not on a span and not in a line. The
+// card is drawn from two results — the task accepted, and the same task handed
+// in again, which shows the child the task they hold — and neither carries it.
 func TestTheAnswerStaysSealed(t *testing.T) {
 	t.Parallel()
 
 	kept := racer(t)
 	h, session := lesson(t, kept)
-	handed := call(t, session, "submit_task", raceOn(askForTheRace(t, session, kept)))
+	race := raceOn(askForTheRace(t, session, kept))
+	handed := call(t, session, "submit_task", race)
+	again := call(t, session, "submit_task", race)
 
 	secrets := slices.Concat([]string{raceSolution, "correct_answer", "solution", "distractors"}, raceExplained, raceTraps)
-	wantNoneOf(t, "the payload", []string{string(rawPayload(t, handed))}, secrets)
-	wantNoneOf(t, "the words", []string{textOf(t, handed)}, secrets)
+	for _, card := range []struct {
+		name   string
+		result *mcp.CallToolResult
+	}{{"accepted", handed}, {"handed in again", again}} {
+		wantNoneOf(t, "the payload of the task "+card.name, []string{string(rawPayload(t, card.result))}, secrets)
+		wantNoneOf(t, "the words of the task "+card.name, []string{textOf(t, card.result)}, secrets)
 
-	var payload struct {
-		Task map[string]json.RawMessage `json:"task"`
-	}
-	if err := json.Unmarshal(rawPayload(t, handed), &payload); err != nil {
-		t.Fatalf("the payload does not read: %v", err)
-	}
-	if keys := slices.Sorted(maps.Keys(payload.Task)); !slices.Equal(keys,
-		[]string{"drawing", "hint", "id", "language", "options", "question", "topic"}) {
-		t.Errorf("the card's task has %v, want what a child may see and nothing else", keys)
+		var payload struct {
+			Screen string                     `json:"screen"`
+			Task   map[string]json.RawMessage `json:"task"`
+		}
+		if err := json.Unmarshal(rawPayload(t, card.result), &payload); err != nil {
+			t.Fatalf("the payload of the task %s does not read: %v", card.name, err)
+		}
+		if payload.Screen != "task" {
+			t.Errorf("the task %s draws the %q screen, want the task's card", card.name, payload.Screen)
+		}
+		if keys := slices.Sorted(maps.Keys(payload.Task)); !slices.Equal(keys,
+			[]string{"drawing", "hint", "id", "language", "options", "question", "topic"}) {
+			t.Errorf("the card of the task %s has %v, want what a child may see and nothing else", card.name, keys)
+		}
 	}
 
 	p, _ := loadKept(t, kept)

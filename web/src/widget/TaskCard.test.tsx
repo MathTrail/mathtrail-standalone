@@ -1,0 +1,651 @@
+import type { CallToolResult } from "@modelcontextprotocol/client";
+import { render } from "preact";
+import { act } from "preact/test-utils";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import { start } from "./start";
+import {
+	deliver,
+	listenAsHost,
+	openTestHost,
+	type ToolCall,
+} from "./testing/host";
+import {
+	answered,
+	dontKnowAnswer,
+	failure,
+	fence,
+	fenceInRussian,
+	type Handed,
+	progress,
+	rightAnswer,
+	staleAnswer,
+	toldAgain,
+	trialAnswer,
+} from "./testing/lesson";
+
+let root: HTMLElement;
+
+afterEach(() => {
+	act(() => render(null, root));
+	root.remove();
+	document.documentElement.removeAttribute("lang");
+	document.documentElement.removeAttribute("dir");
+});
+
+// service answers the widget's calls as the service would for the fence: a
+// wrong B recorded, and the progress read.
+function service({ name }: ToolCall): CallToolResult {
+	return name === "read_progress" ? progress : answered();
+}
+
+// drawCard draws the card a host hands payload to, the host answering the
+// widget's tool calls with tools, and returns what the host hears.
+async function drawCard(
+	payload: Handed = fence,
+	tools: (call: ToolCall) => CallToolResult | Promise<CallToolResult> = service,
+	options: {
+		refuseMessages?: boolean;
+		refuseModelLines?: boolean;
+		args?: Record<string, unknown>;
+	} = {},
+) {
+	const { host, widgetSide } = await openTestHost();
+	const heard = listenAsHost(host, tools, options);
+	root = document.createElement("div");
+	document.body.append(root);
+	await start(root, widgetSide);
+	await deliver(host, payload, options.args);
+	await vi.waitFor(() =>
+		expect(root.querySelector(".mt-option")).not.toBeNull(),
+	);
+	return heard;
+}
+
+// pending is a tool's result that arrives when the test says.
+function pending() {
+	let arrive: (result: CallToolResult) => void = () => {};
+	const result = new Promise<CallToolResult>((resolve) => {
+		arrive = resolve;
+	});
+	return { result, arrive };
+}
+
+function option(letter: string): HTMLButtonElement {
+	const found = [
+		...root.querySelectorAll<HTMLButtonElement>(".mt-option"),
+	].find(
+		(row) => row.querySelector(".mt-option-letter")?.textContent === letter,
+	);
+	if (found === undefined) {
+		throw new Error(`the card has no option ${letter}`);
+	}
+	return found;
+}
+
+function button(label: string): HTMLButtonElement {
+	const found = [...root.querySelectorAll<HTMLButtonElement>("button")].find(
+		(candidate) =>
+			!candidate.closest("[hidden]") &&
+			(candidate.textContent === label ||
+				candidate.getAttribute("aria-label") === label),
+	);
+	if (found === undefined) {
+		throw new Error(`the card has no button ${label}`);
+	}
+	return found;
+}
+
+// topLine is the line at the top of the task: the child's pseudonym and the
+// way to the progress.
+function topLine(): HTMLButtonElement {
+	const found = root.querySelector<HTMLButtonElement>(
+		".mt-bar:not(.mt-bar-back)",
+	);
+	if (found === null) {
+		throw new Error("the card has no line at its top");
+	}
+	return found;
+}
+
+function press(element: HTMLElement): void {
+	act(() => {
+		element.focus();
+		element.click();
+	});
+}
+
+function type(words: string): void {
+	const field = root.querySelector<HTMLInputElement>(".mt-field input");
+	if (field === null) {
+		throw new Error("the card has no question field");
+	}
+	act(() => {
+		field.value = words;
+		field.dispatchEvent(new Event("input", { bubbles: true }));
+	});
+}
+
+const text = (selector: string) => root.querySelector(selector)?.textContent;
+const replies = () => [...root.querySelectorAll(".mt-replies .mt-reply")];
+const shownButtons = () =>
+	[...root.querySelectorAll<HTMLButtonElement>(".mt-btns .mt-btn")].map(
+		(shown) => shown.textContent,
+	);
+const states = () =>
+	["A", "B", "C", "D", "E"].map((letter) => option(letter).dataset.state);
+
+describe("a task card", () => {
+	test("shows the task as it was handed out, without its answer", async () => {
+		await drawCard();
+
+		expect(text(".mt-bar-name")).toBe("Comet");
+		expect(text(".mt-bar-action")).toBe("Profile & progress");
+		expect(text(".mt-badge")).toBe("Olympiad coach · Grade 3");
+		expect(text(".mt-task-text")).toBe(fence.task.question);
+		const drawing = root.querySelector("pre.mt-diagram");
+		expect(drawing?.getAttribute("dir")).toBe("ltr");
+		expect(drawing?.textContent).toBe("|--3--|--3--|--3--|--3--|");
+		expect(
+			[...root.querySelectorAll(".mt-option")].map((row) => row.textContent),
+		).toEqual(["A 3", "B 4", "C 5", "D 6", "E 12"]);
+		expect(states()).toEqual([
+			"default",
+			"default",
+			"default",
+			"default",
+			"default",
+		]);
+		expect(text(".mt-options legend")).toBe("Pick one answer");
+		expect(root.querySelector(".mt-note-hint")).toBeNull();
+		expect(shownButtons()).toEqual(["I don't know", "Hint", "Another task"]);
+	});
+
+	test("draws no drawing for a task that has none", async () => {
+		await drawCard({ ...fence, task: { ...fence.task, drawing: "" } });
+
+		expect(root.querySelector(".mt-diagram")).toBeNull();
+	});
+
+	test("has no button that opens nothing", async () => {
+		await drawCard();
+
+		expect(root.querySelector("[aria-haspopup]")).toBeNull();
+	});
+
+	test("keeps markup in the task's words as text", async () => {
+		const trick = "<img src=x onerror=alert(1)>";
+		await drawCard(
+			{
+				...fence,
+				child: { ...fence.child, pseudonym: trick },
+				task: {
+					...fence.task,
+					question: trick,
+					drawing: trick,
+					hint: trick,
+					options: { ...fence.task.options, A: trick },
+				},
+			},
+			() =>
+				answered({ trap: { id: "fence_gaps", text: trick }, solution: trick }),
+		);
+		press(button("Hint"));
+		press(option("B"));
+
+		await vi.waitFor(() => expect(replies()).toHaveLength(1));
+		expect(root.querySelector("img")).toBeNull();
+		expect(root.textContent).toContain(trick);
+	});
+
+	test("never shows what the tool was called with", async () => {
+		await drawCard(fence, service, {
+			args: {
+				task: { correct_answer: "C", solution: "the sealed solution" },
+			},
+		});
+
+		expect(root.textContent).not.toContain("the sealed solution");
+	});
+});
+
+describe("an answer", () => {
+	test("is recorded with the letter pressed", async () => {
+		const heard = await drawCard();
+
+		press(option("B"));
+
+		await vi.waitFor(() => expect(heard.calls).toHaveLength(1));
+		expect(heard.calls[0]).toEqual({
+			name: "submit_answer",
+			arguments: { task_id: "task_fence", answer: "B", hint_used: false },
+		});
+	});
+
+	test('of "I don\'t know" is recorded as ?', async () => {
+		const heard = await drawCard(fence, () => dontKnowAnswer);
+
+		press(button("I don't know"));
+
+		await vi.waitFor(() => expect(heard.calls).toHaveLength(1));
+		expect(heard.calls[0]?.arguments).toEqual({
+			task_id: "task_fence",
+			answer: "?",
+			hint_used: false,
+		});
+	});
+
+	test("is shown being checked, and is sent once however often it is pressed", async () => {
+		const reply = pending();
+		const heard = await drawCard(fence, () => reply.result);
+
+		press(option("B"));
+		press(option("B"));
+		press(option("C"));
+		press(button("I don't know"));
+
+		await vi.waitFor(() => expect(heard.calls).toHaveLength(1));
+		expect(option("B").dataset.state).toBe("selected");
+		expect(option("B").textContent).toBe("B 4 Checking…");
+		expect(option("C").getAttribute("aria-disabled")).toBe("true");
+		expect(button("Hint").getAttribute("aria-disabled")).toBe("true");
+		reply.arrive(answered());
+		await vi.waitFor(() => expect(option("B").dataset.state).toBe("wrong"));
+		expect(heard.calls).toHaveLength(1);
+	});
+
+	test("is sent once when two presses come before the card redraws", async () => {
+		const heard = await drawCard();
+
+		act(() => {
+			option("B").click();
+			option("C").click();
+			button("I don't know").click();
+		});
+
+		await vi.waitFor(() => expect(replies()).toHaveLength(1));
+		expect(heard.calls).toHaveLength(1);
+		expect(heard.calls[0]?.arguments.answer).toBe("B");
+	});
+
+	test("that is wrong is told from its trap, step by step, with the rating", async () => {
+		const heard = await drawCard();
+
+		press(option("B"));
+
+		await vi.waitFor(() => expect(replies()).toHaveLength(1));
+		expect(states()).toEqual(["muted", "wrong", "correct", "muted", "muted"]);
+		expect(option("B").textContent).toBe("B 4 Your answer");
+		expect(option("C").textContent).toBe("C 5 Correct answer");
+		expect(text(".mt-options legend")).toBe("Answers");
+		expect(text(".mt-verdict-line")).toBe("Not quite — it's 5, not 4.");
+		expect(root.querySelector(".mt-verdict-line svg")).not.toBeNull();
+		expect(text(".mt-note-trap p")).toBe(
+			"Counted the gaps instead of the posts.",
+		);
+		expect(
+			[...root.querySelectorAll(".mt-steps li")].map(
+				(step) => step.textContent,
+			),
+		).toEqual([
+			"1 12 ÷ 3 = 4 gaps.",
+			"2 A straight fence with posts at both ends has one more post than gaps.",
+			"3 4 + 1 = 5 posts.",
+		]);
+		expect(text(".mt-note-plain")).toBe("Rating in this topic1502 → 1480");
+		expect(shownButtons()).toEqual(["Another task"]);
+		expect(root.querySelector(".mt-btn-primary")?.textContent).toBe(
+			"Another task",
+		);
+		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(1));
+		expect(heard.modelLines[0]).toBe(
+			"Task task_fence has its answer recorded: B, which is wrong; the right option is C. The card shows the trap and the solution.",
+		);
+	});
+
+	test("that is right is praised, with no trap", async () => {
+		await drawCard(fence, () => rightAnswer);
+
+		press(option("C"));
+
+		await vi.waitFor(() => expect(replies()).toHaveLength(1));
+		expect(states()).toEqual(["muted", "muted", "correct", "muted", "muted"]);
+		expect(text(".mt-verdict-line")).toBe("Correct! It's 5.");
+		expect(root.querySelector(".mt-note-trap")).toBeNull();
+		expect(text(".mt-note-plain p")).toBe("1502 → 1519");
+	});
+
+	test('of "I don\'t know" shows the solution with no verdict, and the rating it cost', async () => {
+		await drawCard(fence, () => dontKnowAnswer);
+		const idk = button("I don't know");
+
+		press(idk);
+
+		await vi.waitFor(() => expect(replies()).toHaveLength(1));
+		expect(states()).toEqual(["muted", "muted", "correct", "muted", "muted"]);
+		expect(text(".mt-verdict-line")).toBe("Here's how to solve it.");
+		expect(root.querySelector(".mt-verdict-line svg")).toBeNull();
+		expect(root.querySelectorAll(".mt-steps li")).toHaveLength(3);
+		expect(text(".mt-note-plain p")).toBe("1502 → 1488");
+		// The button pressed is gone: the focus goes to the one thing left to
+		// do, while the replies read the result out.
+		expect(idk.isConnected).toBe(false);
+		expect(document.activeElement).toBe(button("Another task"));
+	});
+
+	test("keeps the focus on the option pressed", async () => {
+		await drawCard();
+
+		press(option("B"));
+
+		await vi.waitFor(() => expect(replies()).toHaveLength(1));
+		expect(document.activeElement).toBe(option("B"));
+	});
+
+	test("in the trial series shows how far it has got instead of a rating", async () => {
+		await drawCard(fence, () => trialAnswer);
+
+		press(option("B"));
+
+		await vi.waitFor(() => expect(replies()).toHaveLength(1));
+		expect(text(".mt-note-plain")).toBe("Trial series3 of 5");
+	});
+
+	test("recorded before is shown, and told to the model, as it was recorded", async () => {
+		const heard = await drawCard(fence, () => toldAgain);
+
+		press(option("B"));
+
+		await vi.waitFor(() => expect(replies()).toHaveLength(1));
+		expect(states()).toEqual(["muted", "muted", "correct", "wrong", "muted"]);
+		expect(text(".mt-reply-body > p")).toBe(
+			"This task was answered before — here is that answer.",
+		);
+		expect(text(".mt-verdict-line")).toBe("Not quite — it's 5, not 6.");
+		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(1));
+		expect(heard.modelLines[0]).toBe(
+			"Task task_fence has its answer recorded: D, which is wrong; the right option is C. The card shows the trap and the solution.",
+		);
+	});
+
+	test("to a task no longer being solved closes the task, and asks for no other", async () => {
+		await drawCard(fence, () => staleAnswer);
+		const idk = button("I don't know");
+
+		press(idk);
+
+		await vi.waitFor(() => expect(replies()).toHaveLength(1));
+		expect(text(".mt-verdict-line")).toBe(
+			"This task is closed. The newest task is further down the chat.",
+		);
+		expect(option("A").getAttribute("aria-disabled")).toBe("true");
+		// Another task asked for here would skip the one on the newer card.
+		expect(shownButtons()).toEqual([]);
+		expect(document.activeElement).toBe(
+			root.querySelector(".mt-replies > [tabindex='-1']"),
+		);
+	});
+
+	test.each([
+		["the service fails", () => failure],
+		[
+			"the call is lost",
+			(): CallToolResult => {
+				throw new Error("the host went away");
+			},
+		],
+	])("that is not recorded because %s can be given again", async (_, fails) => {
+		let calls = 0;
+		const heard = await drawCard(fence, () =>
+			calls++ === 0 ? fails() : answered({ choice: "C", correct: true }),
+		);
+
+		press(option("B"));
+
+		await vi.waitFor(() =>
+			expect(text(".mt-verdict-line")).toBe(
+				"The answer couldn't be checked. Try again.",
+			),
+		);
+		expect(states()).toEqual([
+			"default",
+			"default",
+			"default",
+			"default",
+			"default",
+		]);
+		press(option("C"));
+		await vi.waitFor(() => expect(heard.calls).toHaveLength(2));
+		await vi.waitFor(() => expect(option("C").dataset.state).toBe("correct"));
+	});
+});
+
+describe("a card whose host lets it down", () => {
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
+	test("still shows the result when the model cannot be told of it", async () => {
+		const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+		const heard = await drawCard(fence, service, { refuseModelLines: true });
+
+		press(option("B"));
+
+		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(1));
+		await vi.waitFor(() => expect(logged).toHaveBeenCalled());
+		expect(text(".mt-verdict-line")).toBe("Not quite — it's 5, not 4.");
+	});
+
+	test("still waits for another task when the chat does not take the ask", async () => {
+		const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+		const heard = await drawCard(fence, service, { refuseMessages: true });
+
+		press(button("Another task"));
+
+		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
+		await vi.waitFor(() => expect(logged).toHaveBeenCalled());
+		expect(text(".mt-gen-title")).toBe("Preparing the next task…");
+	});
+
+	test("says the progress did not load when the call is lost", async () => {
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		await drawCard(fence, ({ name }) => {
+			if (name === "read_progress") {
+				throw new Error("the host went away");
+			}
+			return answered();
+		});
+
+		press(topLine());
+
+		await vi.waitFor(() =>
+			expect(text(".mt-progress")).toBe(
+				"The progress didn't load. Go back and try again.",
+			),
+		);
+	});
+});
+
+describe("a task in another language than the card's", () => {
+	test("is marked as written in it, and runs its way", async () => {
+		await drawCard(
+			{
+				...fence,
+				task: { ...fence.task, language: "ar", question: "كم عمودًا؟" },
+			},
+			() => answered(),
+		);
+		press(button("Hint"));
+
+		for (const said of [
+			".mt-task-text",
+			".mt-option-value",
+			".mt-note-hint p",
+		]) {
+			const words = root.querySelector(said);
+			expect(words?.getAttribute("lang")).toBe("ar");
+			expect(words?.getAttribute("dir")).toBe("rtl");
+		}
+		// The card's own words stay in the card's language.
+		expect(root.querySelector(".mt-options legend")?.hasAttribute("lang")).toBe(
+			false,
+		);
+
+		press(option("B"));
+
+		await vi.waitFor(() => expect(replies()).toHaveLength(1));
+		expect(root.querySelector(".mt-note-trap p")?.getAttribute("lang")).toBe(
+			"ar",
+		);
+		expect(root.querySelector(".mt-steps ol")?.getAttribute("dir")).toBe("rtl");
+	});
+});
+
+describe("the hint", () => {
+	test("is shown and hidden, and its use goes with the answer", async () => {
+		const heard = await drawCard();
+
+		press(button("Hint"));
+
+		expect(text(".mt-note-hint p")).toBe(fence.task.hint);
+		expect(button("Hide hint").getAttribute("aria-expanded")).toBe("true");
+		press(button("Hide hint"));
+		expect(root.querySelector(".mt-note-hint")).toBeNull();
+		expect(button("Hint").getAttribute("aria-expanded")).toBe("false");
+
+		press(option("B"));
+
+		await vi.waitFor(() => expect(heard.calls).toHaveLength(1));
+		expect(heard.calls[0]?.arguments.hint_used).toBe(true);
+	});
+
+	test("goes once the answer is in", async () => {
+		await drawCard();
+		press(button("Hint"));
+
+		press(option("B"));
+
+		await vi.waitFor(() => expect(replies()).toHaveLength(1));
+		expect(root.querySelector(".mt-note-hint")).toBeNull();
+	});
+});
+
+describe("another task", () => {
+	test("turns the card to the wait at once and asks the chat for it", async () => {
+		const heard = await drawCard();
+
+		press(button("Another task"));
+
+		expect(text(".mt-gen-title")).toBe("Preparing the next task…");
+		expect(root.querySelector(".mt-option")).toBeNull();
+		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
+		expect(heard.calls).toEqual([]);
+	});
+
+	test("is asked for in the card's language", async () => {
+		const heard = await drawCard({
+			...fenceInRussian,
+			child: { ...fenceInRussian.child, ui_language: "ru" },
+		});
+
+		press(button("Другая задача"));
+
+		await vi.waitFor(() => expect(heard.messages).toEqual(["Другая задача"]));
+	});
+
+	test("can be asked for once the answer is in", async () => {
+		const heard = await drawCard();
+		press(option("B"));
+		await vi.waitFor(() => expect(replies()).toHaveLength(1));
+
+		press(button("Another task"));
+
+		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
+		expect(text(".mt-gen-title")).toBe("Preparing the next task…");
+	});
+});
+
+describe("a question", () => {
+	test("goes to the chat in the child's words, and no answer appears in the card", async () => {
+		const heard = await drawCard();
+
+		type("why isn't it 6?");
+		press(button("Send"));
+
+		await vi.waitFor(() => expect(heard.messages).toEqual(["why isn't it 6?"]));
+		await vi.waitFor(() =>
+			expect(text(".mt-reply .mt-meta")).toBe("Sent to the chat"),
+		);
+		expect(replies()).toHaveLength(1);
+		expect(text(".mt-reply .mt-name")).toBe("You");
+		expect(text(".mt-reply-lead")).toBe("why isn't it 6?");
+		expect(root.querySelector(".mt-field input")).toHaveProperty("value", "");
+		expect(heard.calls).toEqual([]);
+	});
+
+	test("that does not reach the chat says so, and its words come back", async () => {
+		await drawCard(fence, service, { refuseMessages: true });
+
+		type("why isn't it 6?");
+		press(button("Send"));
+
+		await vi.waitFor(() =>
+			expect(text(".mt-reply .mt-meta")).toBe("Not sent — try again"),
+		);
+		expect(root.querySelector(".mt-field input")).toHaveProperty(
+			"value",
+			"why isn't it 6?",
+		);
+	});
+});
+
+describe("the progress", () => {
+	test("is read in the card, and the task comes back as it was left", async () => {
+		const heard = await drawCard();
+		press(button("Hint"));
+		press(option("B"));
+		await vi.waitFor(() => expect(replies()).toHaveLength(1));
+		type("why?");
+		const task = root.querySelector(".mt-widget > div")?.innerHTML;
+
+		press(topLine());
+
+		await vi.waitFor(() =>
+			expect(text(".mt-progress")).toContain('"screen": "progress"'),
+		);
+		expect(document.activeElement).toBe(button("Back to task"));
+		expect(root.querySelector(".mt-widget > div")?.hasAttribute("hidden")).toBe(
+			true,
+		);
+		press(button("Back to task"));
+
+		expect(root.querySelector(".mt-widget > div")?.innerHTML).toBe(task);
+		expect(document.activeElement).toBe(topLine());
+		expect(heard.calls.map((call) => call.name)).toEqual([
+			"submit_answer",
+			"read_progress",
+		]);
+		expect(heard.calls[1]?.arguments).toEqual({});
+	});
+
+	test("that does not arrive says so", async () => {
+		await drawCard(fence, () => failure);
+
+		press(topLine());
+
+		await vi.waitFor(() =>
+			expect(text(".mt-progress")).toBe(
+				"The progress didn't load. Go back and try again.",
+			),
+		);
+	});
+});
+
+describe("the replies", () => {
+	test("are listened to before the first one arrives", async () => {
+		await drawCard();
+
+		const list = root.querySelector(".mt-replies");
+		expect(list?.getAttribute("aria-live")).toBe("polite");
+		expect(list?.children).toHaveLength(0);
+	});
+});

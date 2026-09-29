@@ -331,6 +331,14 @@ web-lint: web-install
 web-test: web-install
     npm run --silent test
 
+# The page plays a chat host: it frames the widget's own page, as it is being
+# worked on, and drives it through every state a lesson puts a card in, at a
+# phone's width and a web page's, in the light and the dark theme.
+# Serve the widget in every state of a lesson, to look at beside the design
+[working-directory('web')]
+web-preview: web-install
+    npm run --silent preview
+
 # -- The full checks --------------------------------------------------------
 
 # Formatting and lint
