@@ -17,15 +17,35 @@ const maxElements = 1_000_000
 
 // walkers are the built-ins of the language that can be handed a whole
 // sequence at once, and therefore the ones that can spend an instance without
-// spending a single step of the budget.
+// spending a single step of the budget — each with what it builds out of what
+// it is handed.
 //
 // A range is the way in: it is lazy and costs nothing to make, so range of a
 // billion is free, iterating it costs a step an element and stops at the
 // budget — and handing it to any of these turns it into a billion values
 // inside one call that the interpreter is not watching.
-var walkers = []string{
-	"all", "any", "dict", "enumerate", "list",
-	"max", "min", "reversed", "set", "sorted", "tuple", "zip",
+var walkers = []walker{
+	{"all", nothing},
+	{"any", nothing},
+	{"dict", table},
+	{"enumerate", numbered},
+	{"list", flat},
+	{"max", nothing},
+	{"min", nothing},
+	{"reversed", flat},
+	{"set", table},
+	{"sorted", flat},
+	{"tuple", flat},
+	{"zip", rows},
+}
+
+// walker is a built-in of the language to bound, and what it builds.
+type walker struct {
+	name string
+	// builds is what a call of it builds out of the arguments it is handed:
+	// how many elements the result holds, how many values sit in each, and
+	// the bytes it takes.
+	builds func(args starlark.Tuple, kwargs []starlark.Tuple) (count, width int, built uint64)
 }
 
 // vocabulary is what a solver can see on top of the language itself: the
@@ -52,34 +72,35 @@ func vocabulary(steps uint64) (starlark.StringDict, error) {
 		"days_between":                  starlark.NewBuiltin("days_between", daysBetween),
 		"match":                         match(steps),
 	}
-	for _, name := range walkers {
-		capped, err := bounded(name, steps)
+	for _, w := range walkers {
+		capped, err := bounded(w, steps)
 		if err != nil {
 			return nil, err
 		}
-		declared[name] = capped
+		declared[w.name] = capped
 	}
 	return declared, nil
 }
 
 // bounded wraps one built-in so that it refuses a sequence past the cap and
-// charges the step budget for the elements it is about to walk.
+// charges the step budget for the elements it is about to walk and for what it
+// is about to build of them.
 //
 // The interpreter counts its own instructions and nothing else, and it looks
 // for a cancellation only between them, so neither limit can reach inside a
 // single call. The length of a sequence is known before the walk begins, which
 // is what makes the refusal possible before anything is allocated rather than
 // after.
-func bounded(name string, steps uint64) (*starlark.Builtin, error) {
-	inner, isBuiltin := starlark.Universe[name].(*starlark.Builtin)
+func bounded(w walker, steps uint64) (*starlark.Builtin, error) {
+	inner, isBuiltin := starlark.Universe[w.name].(*starlark.Builtin)
 	if !isBuiltin {
-		return nil, fmt.Errorf("starlark: the language has no built-in %s to bound", name)
+		return nil, fmt.Errorf("starlark: the language has no built-in %s to bound", w.name)
 	}
-	return starlark.NewBuiltin(name, func(
+	return starlark.NewBuiltin(w.name, func(
 		thread *starlark.Thread, _ *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple,
 	) (starlark.Value, error) {
 		for _, argument := range args {
-			if err := weigh(thread, steps, name, argument); err != nil {
+			if err := weigh(thread, steps, w.name, argument); err != nil {
 				return nil, err
 			}
 		}
@@ -88,9 +109,13 @@ func bounded(name string, steps uint64) (*starlark.Builtin, error) {
 		// by name as readily as by position, and a cap that looked only at the
 		// position would be one anybody could walk around by typing the name.
 		for _, pair := range kwargs {
-			if err := weigh(thread, steps, name, pair[1]); err != nil {
+			if err := weigh(thread, steps, w.name, pair[1]); err != nil {
 				return nil, err
 			}
+		}
+		count, width, built := w.builds(args, kwargs)
+		if err := charge(thread, steps, count, width, cost{built: built}); err != nil {
+			return nil, fmt.Errorf("%s: %w", w.name, err)
 		}
 		return inner.CallInternal(thread, args, kwargs)
 	}), nil
@@ -101,7 +126,7 @@ func bounded(name string, steps uint64) (*starlark.Builtin, error) {
 func weigh(thread *starlark.Thread, steps uint64, name string, value starlark.Value) error {
 	length, err := lengthOf(value)
 	if err == nil {
-		err = charge(thread, steps, length, 1)
+		err = charge(thread, steps, length, 1, walking(value, length))
 	}
 	if err != nil {
 		return fmt.Errorf("%s: %w", name, err)
@@ -159,34 +184,32 @@ var errTooManySteps = errors.New("too many steps")
 // taken. A value with no length of its own — a number, a function — costs
 // nothing and passes.
 //
-// The two numbers do different jobs. The count is how many elements the list
-// ends up holding, and that is what the ceiling is about: a million of
-// anything is already more than a task at this level could need. The width is
-// how many values sit inside each element, and it is what the budget is
-// charged for, because a hundred thousand tuples of twenty is two million
-// values allocated and the length of the list says nothing about it. A flat
-// sequence has a width of one. Both ceilings hold even when nothing will be
+// The two numbers and the price do different jobs. The count is how many
+// elements the list ends up holding, and the width how many values sit inside
+// each of them: those are what the ceilings are about, since a million of
+// anything is already more than a task at this level could need, and a tuple
+// of a million values as much. Both ceilings hold even when nothing will be
 // built, because a caller may lay out room for a tuple before it learns that
-// there is none to fill.
-func charge(thread *starlark.Thread, steps uint64, count, width int) error {
+// there is none to fill. The price is what the budget is charged: the
+// elements walked, and the bytes built — a hundred thousand tuples of twenty
+// are two million values and a hundred thousand tuples to hold them, and the
+// length of the list says nothing about either.
+func charge(thread *starlark.Thread, steps uint64, count, width int, price cost) error {
 	if count > maxElements {
 		return fmt.Errorf("%d elements, and %d is the most that will be walked at once", count, maxElements)
 	}
 	if width > maxElements {
 		return fmt.Errorf("a tuple of %d values, and %d is the most that will be walked at once", width, maxElements)
 	}
-	if count <= 0 || width <= 0 {
-		return nil
-	}
-	thread.Steps += uint64(count) * uint64(width)
+	thread.Steps += price.steps()
 	if thread.Steps >= steps {
 		return errTooManySteps
 	}
 	return nil
 }
 
-// elementsOf reads a sequence a helper was handed, charging the budget for its
-// length before any of it is held.
+// elementsOf reads a sequence a helper was handed, charging the budget for the
+// walk before any of it is held.
 //
 // A string is refused by name. Strings are not sequences in this language and
 // nothing else here iterates one either, but a model porting Python will reach
@@ -202,7 +225,7 @@ func elementsOf(thread *starlark.Thread, steps uint64, name string, value starla
 	}
 	length, err := lengthOf(value)
 	if err == nil {
-		err = charge(thread, steps, length, 1)
+		err = charge(thread, steps, length, 1, walking(value, length))
 	}
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", name, err)
@@ -247,7 +270,7 @@ func match(steps uint64) *starlark.Builtin {
 			if len(text) > maxElements {
 				return nil, fmt.Errorf("match: a text of %d bytes, and %d is the longest that will be compared", len(text), maxElements)
 			}
-			if err := charge(thread, steps, len(text), 1); err != nil {
+			if err := charge(thread, steps, len(text), 1, cost{walked: clamped(len(text))}); err != nil {
 				return nil, fmt.Errorf("match: %w", err)
 			}
 		}

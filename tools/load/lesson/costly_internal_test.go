@@ -33,6 +33,7 @@ func TestEveryCostlySolverIsSizedToAnyCeiling(t *testing.T) {
 		{Helper, maxElements, summed},
 		{Tuples, widestTuples, tuples},
 		{Pairs, widestPairs, pairs},
+		{Sets, maxElements, sets},
 	} {
 		properties.Property(plan.name+" plans nine to ten tenths of the ceiling", prop.ForAll(
 			func(steps uint64) bool {

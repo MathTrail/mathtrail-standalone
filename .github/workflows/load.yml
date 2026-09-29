@@ -1,0 +1,57 @@
+# The load an instance of the service has to take, run every week against the
+# image of what is on main: every scenario of the load tool, in a container of
+# an instance's size, and the reports as the run's summary.
+#
+# It fails on what the service should never do under any load — a status of
+# an error, a call nobody answered, a panic, an instance killed for its memory
+# or ended by itself, a peak past the memory a run is held to, a service that
+# does not come back — and on nothing the machine decides: latencies and
+# throughput are reported and fail nothing, since the runner is shared and its
+# times are its own as much as the service's.
+name: Load
+
+on:
+  schedule:
+    - cron: "23 5 * * 1"
+  workflow_dispatch:
+  # A change to this file runs before it is merged: the button to run a
+  # workflow by hand is there only once the workflow is on main.
+  pull_request:
+    paths:
+      - '.github/workflows/load.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: load-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  load:
+    name: Every scenario against the image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    # On the runner itself: the tool starts the service's containers through the
+    # Docker daemon and reads their cgroups from this machine, and the toolchain
+    # image has no docker client to do either with.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The tool is built from its own module, with the Go that module declares.
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: tools/load/go.mod
+          cache: false
+
+      - uses: ./.github/actions/just
+
+      # Under bash the pipe keeps the recipe's exit as the step's own, so the
+      # summary gets every report and the step still fails on a hard fact.
+      - run: just ci-load | tee -a "$GITHUB_STEP_SUMMARY"

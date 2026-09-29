@@ -8,13 +8,14 @@
 // say, and what one run may spend.
 //
 // Two limits do the stopping: a budget of interpreter steps and a wall clock.
-// Neither is a limit on memory, which the interpreter does not account for at
-// all, so everything predeclared here refuses a sequence past a cap of its own
-// and charges the step budget for what it walks. What that still leaves open is
-// the language itself: its operators and the methods of its values — a list
-// times a number, extend, union, += with a range — build a sequence of any
-// length in a single step, past both limits, and only a limit on the memory of
-// the whole process could stop them.
+// The interpreter accounts for no memory at all, so everything predeclared here
+// refuses a sequence past a cap of its own and charges the step budget for the
+// elements it walks and for the bytes it builds, which makes the budget a bound
+// on what the built-ins of a run can hold. What that still leaves open is the
+// language itself: its literals, its operators and the methods of its values —
+// a dictionary written in a loop, a list times a number, extend, union, += with
+// a range — take whatever they take for a step each, and only a limit on the
+// memory of the whole process could stop them.
 package starlark
 
 import (
@@ -49,12 +50,14 @@ const (
 type Limits struct {
 	// Steps is how many instructions the interpreter may execute. It counts
 	// its own instructions and nothing else, which is why the vocabulary
-	// charges it for the elements it walks.
+	// charges it for the elements it walks and the bytes it builds.
 	Steps uint64
 	// Timeout is the wall clock of one run, from the first instruction.
 	Timeout time.Duration
-	// Concurrency is how many runs may be in flight at once. A solver holds a
-	// core for as long as its clock allows, and an instance has few.
+	// Concurrency is how many runs may be in flight at once: as many as the
+	// processors the instance has. The clock is wall time, so a run sharing a
+	// processor with another would spend its clock on the other's work too,
+	// and its verdict would turn on what happened to run beside it.
 	Concurrency int
 	// Wait is how long a run waits for one of those slots to come free. It
 	// bounds the queue in time rather than in length: a burst of short runs

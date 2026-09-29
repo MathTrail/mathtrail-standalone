@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"slices"
 	"strings"
 	"testing"
 
@@ -143,6 +144,42 @@ func TestAMemoryIsReadAsDockerWritesIt(t *testing.T) {
 		if got, err := gibibytes("-memory", size); err == nil {
 			t.Errorf("gibibytes(%q) = %v, want an error", size, got)
 		}
+	}
+}
+
+// An instance started from an image is told what a deployment of its size is
+// told — a solver slot for every whole processor, never fewer than one, and
+// nine tenths of its memory as the runtime's soft limit — unless the run names
+// a variable itself, which takes the derived one's place.
+func TestAnInstanceIsToldWhatADeploymentIsTold(t *testing.T) {
+	t.Parallel()
+
+	for _, test := range []struct {
+		name   string
+		cpus   float64
+		memory string
+		given  environment
+		want   []string
+	}{
+		{"one processor and a GiB", 1, "1g", nil,
+			[]string{"MATHTRAIL_SOLVER_CONCURRENCY=1", "GOMEMLIMIT=921MiB"}},
+		{"half a processor and half a GiB", 0.5, "512m", nil,
+			[]string{"MATHTRAIL_SOLVER_CONCURRENCY=1", "GOMEMLIMIT=460MiB"}},
+		{"two processors and two GiB", 2, "2g", nil,
+			[]string{"MATHTRAIL_SOLVER_CONCURRENCY=2", "GOMEMLIMIT=1843MiB"}},
+		{"slots named by the run", 1, "1g", environment{"MATHTRAIL_SOLVER_CONCURRENCY=32", "MATHTRAIL_LOG_LEVEL=debug"},
+			[]string{"GOMEMLIMIT=921MiB", "MATHTRAIL_SOLVER_CONCURRENCY=32", "MATHTRAIL_LOG_LEVEL=debug"}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			memory, err := bytesOf("-memory", test.memory)
+			if err != nil {
+				t.Fatalf("bytesOf(%q): %v", test.memory, err)
+			}
+			if got := deployed(test.cpus, memory, test.given); !slices.Equal(got, test.want) {
+				t.Errorf("deployed(%v, %s, %v) = %v, want %v", test.cpus, test.memory, test.given, got, test.want)
+			}
+		})
 	}
 }
 

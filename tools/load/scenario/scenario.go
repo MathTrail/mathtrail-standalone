@@ -113,9 +113,10 @@ var scenarios = map[string]scenario{
 		lasts:    lessonLasts,
 	},
 	Saturation: {
-		// Three hand-ins a second of a solver that spends most of its budget
-		// hold the slots of an instance of one processor for more than they
-		// have, for half a minute.
+		// Three hand-ins a second, about as many as the pace of an instance lets
+		// through, of a solver that spends most of its budget, for half a
+		// minute: whether the slots of an instance keep up with all the
+		// sandbox can be sent.
 		defaults: func() Options { return common(Saturation) },
 		reads:    []string{readsRate, readsDuration, readsChildren, readsSteps, readsTimeout},
 		run:      runSaturation,
@@ -182,7 +183,7 @@ func common(name string) Options {
 		Children: 10,
 		// Twelve fetches a minute, against the twenty an address may make.
 		QuietEvery: 5 * time.Second,
-		Variants:   []string{lesson.Appends, lesson.Helper, lesson.Tuples, lesson.Pairs, lesson.Product},
+		Variants:   []string{lesson.Appends, lesson.Helper, lesson.Tuples, lesson.Pairs, lesson.Sets, lesson.Product},
 		Steps:      config.DefaultSolverSteps,
 	}
 }

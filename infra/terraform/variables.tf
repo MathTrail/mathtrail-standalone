@@ -95,21 +95,31 @@ variable "max_instances" {
 }
 
 variable "concurrency" {
-  description = "How many requests one instance serves at a time."
+  description = "How many requests one instance serves at a time. Most of them wait on Drive rather than on a processor; the solvers among them queue for the sandbox's own slots, one for every vCPU, and a hand-in that finds none free within the wait is told the service is busy."
   type        = number
   default     = 80
 }
 
 variable "cpu" {
-  description = "CPU per instance. Allocated only while a request is being served."
+  description = "CPU per instance, in whole vCPUs, written as the platform takes them: 1, 2, or 1000m, 2000m. Allocated only while a request is being served. The sandbox runs one solver on each."
   type        = string
   default     = "1"
+
+  validation {
+    condition     = can(regex("^([1-9][0-9]*|[1-9][0-9]*000m)$", var.cpu))
+    error_message = "CPU is a whole number of vCPUs, at least one — 1, 2, or 1000m, 2000m: the sandbox runs a solver on each."
+  }
 }
 
 variable "memory" {
-  description = "Memory per instance. The binary carries its content and its solver sandbox, and holds nothing else between requests."
+  description = "Memory per instance, in Mi or Gi. The binary carries its content and its solver sandbox, and holds nothing else between requests; a solver running holds up to 381 MiB of what it builds, and the collector may need as much again. Nine tenths of it is the soft limit the runtime is told."
   type        = string
-  default     = "512Mi"
+  default     = "1Gi"
+
+  validation {
+    condition     = can(regex("^[1-9][0-9]*(Mi|Gi)$", var.memory))
+    error_message = "Memory is written as a whole number of Mi or Gi, such as 1Gi: nine tenths of it is worked out from it for the runtime."
+  }
 }
 
 variable "request_timeout" {
@@ -149,9 +159,14 @@ variable "google_client_secret_version" {
 }
 
 variable "settings" {
-  description = "Extra environment variables, for the ceilings and timeouts the binary otherwise defaults to. Never a secret: these values are readable in the state and in the deployed revision."
+  description = "Extra environment variables, for the ceilings and timeouts the binary otherwise defaults to. Never a secret: these values are readable in the state and in the deployed revision. The two the size of an instance decides, its solver slots and the runtime's memory limit, are set from cpu and memory and cannot be set here."
   type        = map(string)
   default     = {}
+
+  validation {
+    condition     = length(setintersection(keys(var.settings), ["GOMEMLIMIT", "MATHTRAIL_SOLVER_CONCURRENCY"])) == 0
+    error_message = "GOMEMLIMIT and MATHTRAIL_SOLVER_CONCURRENCY follow memory and cpu; set those instead."
+  }
 }
 
 variable "budget_amount" {

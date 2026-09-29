@@ -67,7 +67,7 @@ func TestOnlyABuiltinCanBeBounded(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			if capped, err := bounded(name, 1_000_000); err == nil || !strings.Contains(err.Error(), name) {
+			if capped, err := bounded(walker{name, nothing}, 1_000_000); err == nil || !strings.Contains(err.Error(), name) {
 				t.Errorf("bounded(%q) = %v, %v; want a refusal naming it", name, capped, err)
 			}
 		})
@@ -81,7 +81,7 @@ func TestAWalkerThatCannotBeBoundedStopsTheVocabulary(t *testing.T) {
 	// Not parallel: it changes the list every vocabulary is built from, and
 	// puts it back before any test that runs in parallel starts.
 	kept := walkers
-	walkers = append(slices.Clip(kept), "None")
+	walkers = append(slices.Clip(kept), walker{"None", nothing})
 	t.Cleanup(func() { walkers = kept })
 
 	if declared, err := vocabulary(1_000_000); err == nil || !strings.Contains(err.Error(), "None") {
