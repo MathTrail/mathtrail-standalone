@@ -168,3 +168,166 @@ export function readWaiting(payload: unknown): Waiting | undefined {
 		child: whose,
 	};
 }
+
+const details = child.extend({
+	interests: z.array(z.string()),
+	excluded_skills: z.array(z.string()),
+});
+
+/**
+ * Details are the child's profile as a card shows it: who the child is, what
+ * the tasks may be dressed in, what the child has not met at school yet, and
+ * the language of the cards. The parent's notes are never among them.
+ */
+export type Details = z.infer<typeof details>;
+
+const trial = z.object({ answered: z.number().int(), of: z.number().int() });
+
+const recommendation = z.object({
+	topic: z.string(),
+	goal: z.string(),
+});
+
+/**
+ * Recommendation is what the rule would set next: a topic, and whether it is
+ * worked over again after a mistake or is new ground.
+ */
+export type Recommendation = z.infer<typeof recommendation>;
+
+const progressReport = z.object({
+	screen: z.literal("progress"),
+	profile: details,
+	trial: trial.nullable(),
+	overall: z
+		.object({
+			rating: z.number().int(),
+			rank: z.number().int(),
+			ranks: z.number().int(),
+		})
+		.nullable(),
+	topics: z.array(
+		z.object({
+			topic: z.string(),
+			rating: z.number().int().nullable(),
+			mastered: z.boolean(),
+			skipped: z.number().int(),
+		}),
+	),
+	recent: z.array(
+		z.object({
+			topic: z.string(),
+			correct: z.boolean().nullable(),
+			skipped: z.boolean(),
+		}),
+	),
+	recommendation: recommendation.nullable(),
+});
+
+/**
+ * ProgressReport is where the child stands, as the progress screen shows it:
+ * the overall rating with its rank — or, while the trial series runs, how far
+ * the series has got — the topics met, the latest answers and the tasks left
+ * without one, what comes next, and the child's profile.
+ */
+export type ProgressReport = z.infer<typeof progressReport>;
+
+const profileCard = z.object({
+	screen: z.literal("profile"),
+	status: z.string().optional(),
+	profile: details,
+	location: z
+		.object({
+			folder: z.string(),
+			file: z.string(),
+			others: z.array(z.object({ file: z.string() })),
+		})
+		.optional(),
+});
+
+/**
+ * ProfileReport is the child's profile as its own card shows it to the parent:
+ * the details; where their file is, when the service keeps it somewhere a
+ * person can open, and the other files that hold a profile too; and whether
+ * the change just asked for was refused, the profile shown as it stays.
+ */
+export type ProfileReport = {
+	details: Details;
+	location: z.infer<typeof profileCard>["location"];
+	refused: boolean;
+};
+
+const firstRun = z.object({
+	screen: z.literal("first_run"),
+	status: z.string().optional(),
+});
+
+/**
+ * FirstRun is the card of an account with no profile yet, and whether the
+ * profile just asked for was refused.
+ */
+export type FirstRun = { refused: boolean };
+
+/**
+ * Screen is what a payload draws, read: each screen a card can show, with
+ * what it shows. The payload names its screen; the widget never guesses one
+ * from the shape of the data.
+ */
+export type Screen =
+	| { screen: "task"; handed: HandedTask }
+	| { screen: "waiting"; waiting: Waiting }
+	| { screen: "progress"; report: ProgressReport }
+	| { screen: "profile"; profile: ProfileReport }
+	| { screen: "first_run"; firstRun: FirstRun };
+
+const named = z.object({ screen: z.string() });
+
+/**
+ * readScreen is the screen a tool's payload draws, read as the payload names
+ * it, or undefined when it names none a card draws, or does not read as the
+ * one it names.
+ */
+export function readScreen(payload: unknown): Screen | undefined {
+	switch (named.safeParse(payload).data?.screen) {
+		case "task": {
+			const handed = readHandedTask(payload);
+			return handed === undefined ? undefined : { screen: "task", handed };
+		}
+		case "waiting": {
+			const waiting = readWaiting(payload);
+			return waiting === undefined ? undefined : { screen: "waiting", waiting };
+		}
+		case "progress": {
+			const report = progressReport.safeParse(payload);
+			return report.success
+				? { screen: "progress", report: report.data }
+				: undefined;
+		}
+		case "profile":
+			return readProfile(payload);
+		case "first_run": {
+			const first = firstRun.safeParse(payload);
+			return first.success
+				? {
+						screen: "first_run",
+						firstRun: { refused: first.data.status === "rejected" },
+					}
+				: undefined;
+		}
+		default:
+			return undefined;
+	}
+}
+
+// readProfile is the profile's card a payload draws, or undefined when it
+// does not read as one.
+function readProfile(payload: unknown): Screen | undefined {
+	const read = profileCard.safeParse(payload);
+	if (!read.success) {
+		return undefined;
+	}
+	const { profile, location, status } = read.data;
+	return {
+		screen: "profile",
+		profile: { details: profile, location, refused: status === "rejected" },
+	};
+}

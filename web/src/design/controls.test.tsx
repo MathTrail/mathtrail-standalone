@@ -3,6 +3,7 @@ import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import {
 	Button,
+	Checkbox,
 	type Option,
 	OptionList,
 	OptionRow,
@@ -307,5 +308,27 @@ describe("the question field", () => {
 		expect(label?.getAttribute("for")).toBe(input.id);
 		expect(label?.textContent).toBe("Ask a question about the task");
 		expect(send.getAttribute("aria-label")).toBe("Send");
+	});
+});
+
+describe("a checkbox", () => {
+	test("is ticked by pressing anywhere on its line, and says so", () => {
+		const ticks: boolean[] = [];
+		draw(
+			<Checkbox
+				label="I am the child's parent or tutor"
+				checked={false}
+				onChange={(checked) => ticks.push(checked)}
+			/>,
+		);
+
+		const line = root.querySelector("label.mt-check");
+		expect(line?.textContent).toBe("I am the child's parent or tutor");
+		act(() => {
+			line
+				?.querySelector("span")
+				?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+		});
+		expect(ticks).toEqual([true]);
 	});
 });

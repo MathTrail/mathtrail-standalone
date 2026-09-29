@@ -236,3 +236,28 @@ export function ReplyField({
 		</div>
 	);
 }
+
+/**
+ * Checkbox is a statement the reader ticks to confirm it, the whole line a
+ * target for a finger.
+ */
+export function Checkbox({
+	label,
+	checked,
+	onChange,
+}: {
+	label: string;
+	checked: boolean;
+	onChange: (checked: boolean) => void;
+}) {
+	return (
+		<label class="mt-check">
+			<input
+				type="checkbox"
+				checked={checked}
+				onChange={(event) => onChange(event.currentTarget.checked)}
+			/>
+			<span>{label}</span>
+		</label>
+	);
+}

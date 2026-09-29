@@ -8,6 +8,7 @@ const lines = {
 	send: { d: "M3 8h9.5M8.5 4l4 4-4 4", width: 1.75 },
 	check: { d: "M3.5 8.5l3 3 6-7", width: 2 },
 	cross: { d: "M4.5 4.5l7 7M11.5 4.5l-7 7", width: 2 },
+	dash: { d: "M4.5 8h7", width: 2 },
 	hint: {
 		d: "M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.6 8.2c.4.3.6.7.6 1.1v.2h4v-.2c0-.4.2-.8.6-1.1A4.5 4.5 0 0 0 8 1.5z",
 		width: 1.4,

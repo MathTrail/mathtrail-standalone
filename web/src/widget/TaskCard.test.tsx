@@ -1,20 +1,20 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
-import { render } from "preact";
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { start } from "./start";
 import {
-	deliver,
-	listenAsHost,
-	openTestHost,
-	type ToolCall,
-} from "./testing/host";
+	buttonIn,
+	drawCard as drawOnHost,
+	press,
+	takeDown,
+} from "./testing/card";
+import type { ToolCall } from "./testing/host";
 import {
 	answered,
 	dontKnowAnswer,
 	failure,
 	fence,
 	fenceInRussian,
+	firstRun,
 	type Handed,
 	progress,
 	rightAnswer,
@@ -26,10 +26,7 @@ import {
 let root: HTMLElement;
 
 afterEach(() => {
-	act(() => render(null, root));
-	root.remove();
-	document.documentElement.removeAttribute("lang");
-	document.documentElement.removeAttribute("dir");
+	takeDown(root);
 });
 
 // service answers the widget's calls as the service would for the fence: a
@@ -49,16 +46,12 @@ async function drawCard(
 		args?: Record<string, unknown>;
 	} = {},
 ) {
-	const { host, widgetSide } = await openTestHost();
-	const heard = listenAsHost(host, tools, options);
-	root = document.createElement("div");
-	document.body.append(root);
-	await start(root, widgetSide);
-	await deliver(host, payload, options.args);
+	const drawn = await drawOnHost(payload, { tools, ...options });
+	root = drawn.root;
 	await vi.waitFor(() =>
 		expect(root.querySelector(".mt-option")).not.toBeNull(),
 	);
-	return heard;
+	return drawn.heard;
 }
 
 // pending is a tool's result that arrives when the test says.
@@ -82,18 +75,7 @@ function option(letter: string): HTMLButtonElement {
 	return found;
 }
 
-function button(label: string): HTMLButtonElement {
-	const found = [...root.querySelectorAll<HTMLButtonElement>("button")].find(
-		(candidate) =>
-			!candidate.closest("[hidden]") &&
-			(candidate.textContent === label ||
-				candidate.getAttribute("aria-label") === label),
-	);
-	if (found === undefined) {
-		throw new Error(`the card has no button ${label}`);
-	}
-	return found;
-}
+const button = (label: string) => buttonIn(root, label);
 
 // topLine is the line at the top of the task: the child's pseudonym and the
 // way to the progress.
@@ -105,13 +87,6 @@ function topLine(): HTMLButtonElement {
 		throw new Error("the card has no line at its top");
 	}
 	return found;
-}
-
-function press(element: HTMLElement): void {
-	act(() => {
-		element.focus();
-		element.click();
-	});
 }
 
 function type(words: string): void {
@@ -583,9 +558,7 @@ describe("another task", () => {
 
 		press(topLine());
 
-		await vi.waitFor(() =>
-			expect(text(".mt-progress")).toContain('"screen": "progress"'),
-		);
+		await vi.waitFor(() => expect(text(".mt-rating-num")).toBe("1573"));
 		press(button("Back to task"));
 		expect(text(".mt-gen-title")).toBe("Preparing the next task…");
 		expect(heard.calls.map((call) => call.name)).toEqual(["read_progress"]);
@@ -659,9 +632,7 @@ describe("the progress", () => {
 
 		press(topLine());
 
-		await vi.waitFor(() =>
-			expect(text(".mt-progress")).toContain('"screen": "progress"'),
-		);
+		await vi.waitFor(() => expect(text(".mt-rating-num")).toBe("1573"));
 		expect(document.activeElement).toBe(button("Back to task"));
 		expect(root.querySelector(".mt-widget > div")?.hasAttribute("hidden")).toBe(
 			true,
@@ -687,6 +658,35 @@ describe("the progress", () => {
 				"The progress didn't load. Go back and try again.",
 			),
 		);
+	});
+
+	test("that does not read says it did not load", async () => {
+		await drawCard(fence, () => ({
+			content: [],
+			structuredContent: { screen: "progress", profile: null },
+		}));
+
+		press(topLine());
+
+		await vi.waitFor(() =>
+			expect(text(".mt-progress")).toBe(
+				"The progress didn't load. Go back and try again.",
+			),
+		);
+	});
+
+	test("that finds the profile gone shows the first sign-in, and the way back", async () => {
+		await drawCard(fence, () => ({ content: [], structuredContent: firstRun }));
+
+		press(topLine());
+
+		await vi.waitFor(() =>
+			expect(root.querySelector(".mt-check")).not.toBeNull(),
+		);
+		expect(button("Back to task")).toBeDefined();
+		press(button("Back to task"));
+		expect(root.querySelector(".mt-check")).toBeNull();
+		expect(root.querySelector(".mt-option")).not.toBeNull();
 	});
 });
 

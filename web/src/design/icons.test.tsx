@@ -20,6 +20,7 @@ describe("an icon", () => {
 		"send",
 		"check",
 		"cross",
+		"dash",
 		"hint",
 		"trap",
 		"spinner",

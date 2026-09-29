@@ -26,6 +26,15 @@ export const dictionaries: ReadonlyMap<string, Dictionary> = new Map(
 
 const spoken: ReadonlySet<string> = new Set(dictionaries.keys());
 
+/**
+ * isKey says whether key names a text of the widget: one its English words
+ * have, as the words of every other language do.
+ */
+export function isKey(key: string): key is Key {
+	const english = dictionaries.get("en");
+	return english !== undefined && Object.hasOwn(english, key);
+}
+
 // tagOf is the tag a dictionary's file is named after: ru for locales/ru.json.
 function tagOf(file: string): string {
 	return file.slice(file.lastIndexOf("/") + 1, -".json".length);

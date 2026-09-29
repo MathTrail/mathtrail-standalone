@@ -143,23 +143,232 @@ export const failure: CallToolResult = {
 	isError: true,
 };
 
-/** progress is the progress a card reads when its top line is pressed. */
-export const progress = toolResult({
+/**
+ * standing is where Comet stands after the trial series: the design's own
+ * progress — four topics, one mastered, the latest answers with one task left
+ * without an answer, and the topic worked over again after a mistake next.
+ */
+export const standing = {
 	screen: "progress",
-	last_answer: null,
+	last_answer: {
+		task_id: "task_fence",
+		topic: "combinatorics.enumeration",
+		correct: false,
+		answered_at: "2026-09-29T12:00:00Z",
+	},
 	profile: {
 		pseudonym: "Comet",
 		grade: 3,
-		interests: ["space"],
-		excluded_skills: [],
+		interests: ["space", "animals", "football"],
+		excluded_skills: ["division_with_remainder"],
 		ui_language: null,
 	},
 	trial: null,
-	overall: { rating: 1502, rank: 3, ranks: 11 },
-	topics: [],
-	recent: [],
+	overall: { rating: 1573, rank: 3, ranks: 11 },
+	topics: [
+		{
+			topic: "logic.ordering",
+			rating: 1712,
+			answers: 6,
+			correct: 5,
+			mastered: true,
+			skipped: 0,
+		},
+		{
+			topic: "combinatorics.enumeration",
+			rating: 1627,
+			answers: 4,
+			correct: 2,
+			mastered: false,
+			skipped: 1,
+		},
+		{
+			topic: "counting.gaps",
+			rating: 1588,
+			answers: 3,
+			correct: 2,
+			mastered: false,
+			skipped: 0,
+		},
+		{
+			topic: "parity.alternation",
+			rating: 1541,
+			answers: 2,
+			correct: 1,
+			mastered: false,
+			skipped: 0,
+		},
+	],
+	recent: [
+		{
+			topic: "combinatorics.enumeration",
+			correct: false,
+			skipped: false,
+			answered_at: "2026-09-29T12:00:00Z",
+		},
+		{
+			topic: "combinatorics.enumeration",
+			correct: null,
+			skipped: true,
+			answered_at: "2026-09-29T11:50:00Z",
+		},
+		{
+			topic: "counting.gaps",
+			correct: true,
+			skipped: false,
+			answered_at: "2026-09-29T11:40:00Z",
+		},
+		{
+			topic: "logic.ordering",
+			correct: true,
+			skipped: false,
+			answered_at: "2026-09-29T11:30:00Z",
+		},
+		{
+			topic: "parity.alternation",
+			correct: false,
+			skipped: false,
+			answered_at: "2026-09-29T11:20:00Z",
+		},
+		{
+			topic: "logic.ordering",
+			correct: true,
+			skipped: false,
+			answered_at: "2026-09-29T11:10:00Z",
+		},
+	],
+	recommendation: {
+		topic: "combinatorics.enumeration",
+		grade_level: "3-4",
+		difficulty: 2,
+		goal: "reinforce",
+	},
+};
+
+/** progress is the progress a card reads when its top line is pressed. */
+export const progress = toolResult(standing);
+
+/**
+ * inTrial is the progress of a child three tasks into the trial series: no
+ * rating yet, nor a rank, and a new topic next.
+ */
+export const inTrial = {
+	...standing,
+	trial: { answered: 3, of: 5 },
+	overall: null,
+	topics: [
+		{
+			topic: "logic.ordering",
+			rating: null,
+			answers: 1,
+			correct: 1,
+			mastered: false,
+			skipped: 0,
+		},
+		{
+			topic: "counting.gaps",
+			rating: null,
+			answers: 1,
+			correct: 0,
+			mastered: false,
+			skipped: 0,
+		},
+		{
+			topic: "time.clocks",
+			rating: null,
+			answers: 1,
+			correct: 1,
+			mastered: false,
+			skipped: 0,
+		},
+	],
+	recent: [
+		{
+			topic: "time.clocks",
+			correct: true,
+			skipped: false,
+			answered_at: "2026-09-29T11:30:00Z",
+		},
+		{
+			topic: "counting.gaps",
+			correct: false,
+			skipped: false,
+			answered_at: "2026-09-29T11:20:00Z",
+		},
+		{
+			topic: "logic.ordering",
+			correct: true,
+			skipped: false,
+			answered_at: "2026-09-29T11:10:00Z",
+		},
+	],
+	recommendation: {
+		topic: "parity.alternation",
+		grade_level: "3-4",
+		difficulty: 1,
+		goal: "new_topic",
+	},
+};
+
+/**
+ * profileRead is the profile as the model reads it: the details with the
+ * parent's notes — for the model to read back, never for a card — and where
+ * the file is, with an older file that holds a profile too.
+ */
+export const profileRead = {
+	screen: "profile",
+	last_answer: null,
+	profile: {
+		...standing.profile,
+		ui_language: "ru",
+		notes: "Loses heart after two mistakes in a row.",
+	},
+	trial: null,
+	recommendation: standing.recommendation,
+	location: {
+		folder: "MathTrail",
+		file: "mathtrail-profile.json",
+		link: "https://drive.google.com/file/d/profile/view",
+		others: [
+			{
+				file: "mathtrail-profile (1).json",
+				link: "https://drive.google.com/file/d/older/view",
+			},
+		],
+	},
+};
+
+/**
+ * profileRefused is a change to the profile refused for a field that broke a
+ * rule: the profile is handed back as it stays, with no location.
+ */
+export const profileRefused = {
+	screen: "profile",
+	status: "rejected",
+	code: "invalid_profile",
+	problems: [{ field: "pseudonym", rule: "at most 32 characters, 40 given" }],
+	last_answer: null,
+	profile: { ...standing.profile, notes: "" },
+	trial: null,
+	recommendation: standing.recommendation,
+};
+
+/** firstRun is an account with no profile yet, as the profile's tool finds it. */
+export const firstRun = {
+	screen: "first_run",
+	last_answer: null,
+	profile: null,
+	trial: null,
 	recommendation: null,
-});
+};
+
+/** firstRunRefused is a first profile refused for a field that broke a rule. */
+export const firstRunRefused = {
+	...firstRun,
+	status: "rejected",
+	code: "invalid_profile",
+	problems: [{ field: "grade", rule: "from 1 to 6, 9 given" }],
+};
 
 /**
  * longTexts is a task at every limit a card has to fit at its narrowest: a

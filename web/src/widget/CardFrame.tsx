@@ -1,13 +1,13 @@
-import type { ComponentChildren, Ref } from "preact";
-import { useEffect, useReducer, useRef } from "preact/hooks";
+import type { ComponentChildren } from "preact";
+import { useEffect, useMemo, useReducer, useRef } from "preact/hooks";
 import { Verdict } from "../design/blocks";
-import { classes } from "../design/classes";
 import { MessageHeader, ThreadBar } from "../design/thread";
-import { useWide } from "../design/wide";
 import type { Host } from "./bridge";
-import type { Child } from "./payload";
+import { CardRoot } from "./CardRoot";
+import { FirstRunScreen } from "./FirstRunScreen";
+import { ProgressScreen } from "./ProgressScreen";
+import { type Child, readScreen } from "./payload";
 import { type Progress, progressAfter } from "./progress";
-import { StubCard } from "./StubCard";
 import { useWords } from "./words";
 
 /**
@@ -28,8 +28,6 @@ export function CardFrame({
 	children: (wide: boolean) => ComponentChildren;
 }) {
 	const words = useWords();
-	const root = useRef<HTMLDivElement>(null);
-	const wide = useWide(root);
 	const [progress, dispatch] = useReducer(progressAfter, undefined);
 	const topBar = useRef<HTMLButtonElement>(null);
 	const backBar = useRef<HTMLButtonElement>(null);
@@ -55,109 +53,86 @@ export function CardFrame({
 	useFocusFollowsProgress(progress !== undefined, topBar, backBar);
 
 	return (
-		<div
-			ref={root}
-			class={classes(
-				"mt",
-				"mt-widget",
-				wide && "mt-wide",
-				words.dir === "rtl" && "mt-rtl",
+		<CardRoot>
+			{(wide) => (
+				<>
+					<div hidden={progress !== undefined}>
+						{child !== undefined && (
+							<ThreadBar
+								name={child.pseudonym}
+								action={words.text("task.profile_action")}
+								onClick={openProgress}
+								buttonRef={topBar}
+							/>
+						)}
+						{children(wide)}
+					</div>
+					{progress !== undefined && child !== undefined && (
+						<>
+							<ThreadBar
+								variant="back"
+								label={back}
+								onClick={() => dispatch({ type: "closed" })}
+								buttonRef={backBar}
+							/>
+							<ProgressOverCard
+								progress={progress}
+								child={child}
+								wide={wide}
+								host={host}
+							/>
+						</>
+					)}
+				</>
 			)}
-		>
-			<div hidden={progress !== undefined}>
-				{child !== undefined && (
-					<ThreadBar
-						name={child.pseudonym}
-						action={words.text("task.profile_action")}
-						onClick={openProgress}
-						buttonRef={topBar}
-					/>
-				)}
-				{children(wide)}
-			</div>
-			{progress !== undefined && child !== undefined && (
-				<ProgressOverCard
-					progress={progress}
-					child={child}
-					wide={wide}
-					back={back}
-					backBar={backBar}
-					onBack={() => dispatch({ type: "closed" })}
-				/>
-			)}
-		</div>
-	);
-}
-
-/**
- * CardHeader heads what a card shows with MathTrail's name and, when the card
- * knows whose it is, the grade the child is coached at.
- */
-export function CardHeader({
-	grade,
-	wide,
-}: {
-	grade: number | undefined;
-	wide: boolean;
-}) {
-	const words = useWords();
-	return (
-		<MessageHeader
-			author="app"
-			name={words.text("app.name")}
-			badge={
-				grade === undefined ? undefined : words.text("app.badge", { grade })
-			}
-			wide={wide}
-		/>
+		</CardRoot>
 	);
 }
 
 // ProgressOverCard is the progress shown in the card over what it showed: the
-// way back, whose progress it is, and what reading it gave — shown as it
-// arrived until the progress has a screen of its own.
+// screen the reply names — the progress, or the first sign-in when the
+// profile has gone since — and, until the reply is in or when it does not
+// read, whose progress it is and why none is shown.
 function ProgressOverCard({
 	progress,
 	child,
 	wide,
-	back,
-	backBar,
-	onBack,
+	host,
 }: {
 	progress: Progress;
 	child: Child;
 	wide: boolean;
-	back: string;
-	backBar: Ref<HTMLButtonElement>;
-	onBack: () => void;
+	host: Host;
 }) {
 	const words = useWords();
+	const shown = useMemo(
+		() =>
+			progress.state === "read" ? readScreen(progress.payload) : undefined,
+		[progress],
+	);
+	if (shown?.screen === "progress") {
+		return <ProgressScreen report={shown.report} wide={wide} host={host} />;
+	}
+	if (shown?.screen === "first_run") {
+		return <FirstRunScreen firstRun={shown.firstRun} wide={wide} host={host} />;
+	}
 	return (
-		<>
-			<ThreadBar
-				variant="back"
-				label={back}
-				onClick={onBack}
-				buttonRef={backBar}
+		<article
+			aria-label={words.text("progress.label")}
+			aria-busy={progress.state === "reading"}
+		>
+			<MessageHeader
+				author="person"
+				name={child.pseudonym}
+				badge={words.text("child.grade", { grade: child.grade })}
+				wide={wide}
 			/>
-			<article
-				aria-label={words.text("progress.label")}
-				aria-busy={progress.state === "reading"}
-			>
-				<MessageHeader
-					author="person"
-					name={child.pseudonym}
-					badge={words.text("child.grade", { grade: child.grade })}
-					wide={wide}
-				/>
-				<div class="mt-progress">
-					{progress.state === "read" && <StubCard payload={progress.payload} />}
-					{progress.state === "failed" && (
-						<Verdict>{words.text("progress.failed")}</Verdict>
-					)}
-				</div>
-			</article>
-		</>
+			<div class="mt-progress">
+				{progress.state !== "reading" && (
+					<Verdict>{words.text("progress.failed")}</Verdict>
+				)}
+			</div>
+		</article>
 	);
 }
 

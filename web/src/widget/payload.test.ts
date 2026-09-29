@@ -1,14 +1,20 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
 import { describe, expect, test } from "vitest";
-import { readAnswer, readHandedTask, readWaiting } from "./payload";
+import { readAnswer, readHandedTask, readScreen, readWaiting } from "./payload";
 import {
 	answered,
 	exhausted,
 	failure,
 	fence,
+	firstRun,
+	firstRunRefused,
+	inTrial,
 	limited,
+	profileRead,
+	profileRefused,
 	refused,
 	staleAnswer,
+	standing,
 	toldAgain,
 } from "./testing/lesson";
 
@@ -145,5 +151,78 @@ describe("a wait for the next task", () => {
 		["nothing", undefined],
 	])("is not read from %s", (_, payload) => {
 		expect(readWaiting(payload)).toBeUndefined();
+	});
+});
+
+describe("the screen a payload draws", () => {
+	test.each([
+		["a task", fence, "task"],
+		["a wait", refused, "waiting"],
+		["the progress", standing, "progress"],
+		["the progress in the trial series", inTrial, "progress"],
+		["the profile", profileRead, "profile"],
+		["a refused change to the profile", profileRefused, "profile"],
+		["the first sign-in", firstRun, "first_run"],
+		["a refused first profile", firstRunRefused, "first_run"],
+	])("is read from %s", (_, payload, screen) => {
+		expect(readScreen(payload)?.screen).toBe(screen);
+	});
+
+	test.each([
+		["a result, which no tool draws a card for", { screen: "result" }],
+		["a screen nobody names", { screen: "settings" }],
+		["the progress with no profile", { ...standing, profile: null }],
+		[
+			"the progress with a topic's rating as text",
+			{
+				...standing,
+				topics: [{ ...standing.topics[0], rating: "1712" }],
+			},
+		],
+		["the profile with no details", { ...profileRead, profile: null }],
+		["nothing", undefined],
+	])("is none for %s", (_, payload) => {
+		expect(readScreen(payload)).toBeUndefined();
+	});
+
+	test("of the profile keeps the details and where the file is, and drops the parent's notes", () => {
+		const shown = readScreen(profileRead);
+
+		expect(shown).toEqual({
+			screen: "profile",
+			profile: {
+				details: {
+					pseudonym: "Comet",
+					grade: 3,
+					interests: ["space", "animals", "football"],
+					excluded_skills: ["division_with_remainder"],
+					ui_language: "ru",
+				},
+				location: {
+					folder: "MathTrail",
+					file: "mathtrail-profile.json",
+					others: [{ file: "mathtrail-profile (1).json" }],
+				},
+				refused: false,
+			},
+		});
+		expect(JSON.stringify(shown)).not.toContain("Loses heart");
+	});
+
+	test("says whether a change asked for was refused", () => {
+		const refusedChange = readScreen(profileRefused);
+		const refusedFirst = readScreen(firstRunRefused);
+
+		expect(
+			refusedChange?.screen === "profile" && refusedChange.profile.refused,
+		).toBe(true);
+		expect(refusedFirst).toEqual({
+			screen: "first_run",
+			firstRun: { refused: true },
+		});
+		expect(readScreen(firstRun)).toEqual({
+			screen: "first_run",
+			firstRun: { refused: false },
+		});
 	});
 });

@@ -15,14 +15,3 @@ body {
 		var(--safe-area-bottom, 0) var(--safe-area-left, 0);
 	font-family: system-ui, sans-serif;
 }
-
-/* A payload wraps rather than scrolls sideways, however narrow the card. */
-.stub {
-	margin: 0;
-	padding: 12px;
-	font:
-		12px / 1.4 ui-monospace,
-		monospace;
-	white-space: pre-wrap;
-	overflow-wrap: anywhere;
-}
