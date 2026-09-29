@@ -1,7 +1,8 @@
 // Package scenario is what a run does to the service. A lesson walks one
-// child through the tools at a live pace; the runner sends calls at a constant
-// pace however slowly they are answered, for the scenarios that load the
-// service rather than walk through it.
+// child through the tools at a live pace. The attacks — saturation, limits
+// and the adversarial solvers — send calls at a constant pace however slowly
+// they are answered, and each is followed by a look at whether the service
+// came back.
 package scenario
 
 import (
@@ -9,16 +10,17 @@ import (
 	"fmt"
 	"maps"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/config"
 	"github.com/MathTrail/mathtrail-standalone/tools/load/lesson"
 	"github.com/MathTrail/mathtrail-standalone/tools/load/report"
 	"github.com/MathTrail/mathtrail-standalone/tools/load/session"
 )
 
-// Options are what a run of a scenario is asked to do.
+// Options are what a run of a scenario is asked to do. A scenario reads the
+// options it needs, which Reads names, and leaves the others be.
 type Options struct {
 	// Scenario is the name of the scenario.
 	Scenario string
@@ -27,19 +29,73 @@ type Options struct {
 	// Pace is the pause before every step of a lesson: a model writing a task,
 	// a child reading one.
 	Pace time.Duration
-	// Timeout is how long one call may take before it counts as unanswered.
+	// Timeout is how long one call may take before it counts as unanswered,
+	// and how long the service has to come back after an attack.
 	Timeout time.Duration
+	// Rate is how many calls a second an attack sends: hand-ins in saturation
+	// and adversarial; in limits, the calls of the greedy child and the
+	// fetches of the greedy address, each.
+	Rate float64
+	// Duration is how long an attack goes on; in adversarial, each variant's.
+	Duration time.Duration
+	// Children is how many children an attack's hand-ins are shared among; in
+	// limits, how many walk a lesson beside the greedy one, and how many
+	// quiet addresses fetch the document beside the greedy address.
+	Children int
+	// QuietEvery is how often each quiet address of limits fetches the
+	// document: well within the pace of an address.
+	QuietEvery time.Duration
+	// Variants are the costly solvers adversarial hands in, one after another.
+	Variants []string
+	// Steps is the step ceiling of the service, which the costly solvers are
+	// sized to.
+	Steps uint64
 }
 
-// Lesson is the name of the scenario of one child's lesson.
-const Lesson = "lesson"
+// The options a scenario may read, by the names of the flags that set them.
+const (
+	readsTasks    = "tasks"
+	readsPace     = "pace"
+	readsTimeout  = "timeout"
+	readsRate     = "rate"
+	readsDuration = "duration"
+	readsChildren = "children"
+	readsVariants = "variants"
+	readsSteps    = "steps"
+)
 
-// scenario is what a scenario starts from, what it does to the service, and
-// what it expects to have come to when it has run to its end.
+// The scenarios there are.
+const (
+	// Lesson is one child's lesson.
+	Lesson = "lesson"
+	// Saturation is more solvers than the sandbox has slots.
+	Saturation = "saturation"
+	// Limits is one child and one address past their paces, and the others
+	// within theirs.
+	Limits = "limits"
+	// Adversarial is the costliest solvers the rules of the sandbox allow.
+	Adversarial = "adversarial"
+)
+
+// The bounds of the options.
+const (
+	// maxRate is the most calls a second a run sends: a load of a tool, not a
+	// flood, and a pace the runner keeps to the millisecond.
+	maxRate = 1000
+	// maxChildren is the most children a run signs in.
+	maxChildren = 1000
+)
+
+// scenario is what a scenario starts from and which of the options it reads,
+// what it does to the service — which comes to one run, or to one for each
+// thing it does at once or in turn — about how long that takes, and what it
+// refuses of the options besides what every scenario refuses, if anything.
 type scenario struct {
-	defaults Options
-	run      func(context.Context, Options, *session.Service) report.Run
-	expected func(*report.Run, *Options) []string
+	defaults func() Options
+	reads    []string
+	run      func(context.Context, *Options, session.Target) []report.Run
+	lasts    func(*Options) time.Duration
+	check    func(*Options) error
 }
 
 // scenarios are the scenarios there are, by name.
@@ -48,14 +104,83 @@ var scenarios = map[string]scenario{
 		// Five tasks at a pause of five seconds is a lesson of a minute and a
 		// half: short enough to run by hand, and about the pace at which a
 		// child's lesson calls the tools at its busiest.
-		defaults: Options{Scenario: Lesson, Tasks: 5, Pace: 5 * time.Second, Timeout: time.Minute},
+		defaults: func() Options { return common(Lesson) },
+		reads:    []string{readsTasks, readsPace, readsTimeout},
 		run:      runLesson,
-		expected: lessonExpected,
+		lasts:    lessonLasts,
 	},
+	Saturation: {
+		// Three hand-ins a second of a solver that spends most of its budget
+		// hold the slots of an instance of one processor for more than they
+		// have, for half a minute.
+		defaults: func() Options { return common(Saturation) },
+		reads:    []string{readsRate, readsDuration, readsChildren, readsSteps, readsTimeout},
+		run:      runSaturation,
+		lasts:    func(o *Options) time.Duration { return o.Duration },
+	},
+	Limits: {
+		// A child calling three times a second is six times the pace of an
+		// account, and an address fetching as often nine times the pace of an
+		// address; three other children walk lessons of two tasks, and three
+		// quiet addresses fetch once every five seconds, well within theirs,
+		// for the minute a pace is counted over.
+		defaults: func() Options {
+			o := common(Limits)
+			o.Duration, o.Children, o.Tasks = time.Minute, 3, 2
+			return o
+		},
+		reads: []string{readsRate, readsDuration, readsChildren, readsTasks, readsPace, readsTimeout},
+		run:   runLimits,
+		lasts: func(o *Options) time.Duration {
+			return max(o.Duration, lessonLasts(o))
+		},
+		check: func(o *Options) error {
+			if o.Duration <= o.QuietEvery || o.QuietEvery <= 0 {
+				return fmt.Errorf("scenario: a quiet address fetches once every %v, which an attack of %v never comes to",
+					o.QuietEvery, o.Duration)
+			}
+			return nil
+		},
+	},
+	Adversarial: {
+		// Every costly solver but the loop, whose share of the sandbox is
+		// saturation's, for twenty seconds each.
+		defaults: func() Options {
+			o := common(Adversarial)
+			o.Duration = 20 * time.Second
+			return o
+		},
+		reads: []string{readsRate, readsDuration, readsChildren, readsVariants, readsSteps, readsTimeout},
+		run:   runAdversarial,
+		lasts: func(o *Options) time.Duration {
+			return time.Duration(len(o.Variants)) * o.Duration
+		},
+	},
+}
+
+// common are the options every scenario starts from.
+func common(name string) Options {
+	return Options{
+		Scenario: name,
+		Tasks:    5,
+		Pace:     5 * time.Second,
+		Timeout:  time.Minute,
+		Rate:     3,
+		Duration: 30 * time.Second,
+		Children: 10,
+		// Twelve fetches a minute, against the twenty an address may make.
+		QuietEvery: 5 * time.Second,
+		Variants:   []string{lesson.Appends, lesson.Helper, lesson.Tuples, lesson.Pairs, lesson.Product},
+		Steps:      config.DefaultSolverSteps,
+	}
 }
 
 // Names are the names of the scenarios there are, in order.
 func Names() []string { return slices.Sorted(maps.Keys(scenarios)) }
+
+// Reads are the options the scenario named reads, by the names of the flags
+// that set them: an option it does not read is one it would leave be.
+func Reads(name string) []string { return slices.Clone(scenarios[name].reads) }
 
 // Defaults are the options of the scenario named, before any is changed.
 func Defaults(name string) (Options, error) {
@@ -63,7 +188,7 @@ func Defaults(name string) (Options, error) {
 	if !found {
 		return Options{}, fmt.Errorf("scenario: no scenario %q; there are %s", name, strings.Join(Names(), ", "))
 	}
-	return known.defaults, nil
+	return known.defaults(), nil
 }
 
 // Check refuses options no run could keep to.
@@ -72,151 +197,72 @@ func (o *Options) Check() error {
 	case o.Tasks < 1 || o.Tasks > len(lesson.Written()):
 		return fmt.Errorf("scenario: a lesson asks for 1 to %d tasks, not %d", len(lesson.Written()), o.Tasks)
 	case o.Pace < 0:
-		return fmt.Errorf("scenario: a pause of %v is no pause", o.Pace)
+		return fmt.Errorf("scenario: a pause of %v goes back in time", o.Pace)
 	case o.Timeout <= 0:
 		return fmt.Errorf("scenario: a call may take no time at all: %v", o.Timeout)
+	case !(o.Rate > 0) || o.Rate > maxRate:
+		return fmt.Errorf("scenario: a rate of %v calls a second is not between 0 and %d", o.Rate, maxRate)
+	case o.Duration <= 0:
+		return fmt.Errorf("scenario: an attack of %v is no attack", o.Duration)
+	case !(o.Rate*o.Duration.Seconds() > 1):
+		// The first call of an attack is due one interval in, so an attack no
+		// longer than one interval sends nothing at all.
+		return fmt.Errorf("scenario: an attack of %v at %v calls a second sends no call", o.Duration, o.Rate)
+	case o.Children < 1 || o.Children > maxChildren:
+		return fmt.Errorf("scenario: a run signs in 1 to %d children, not %d", maxChildren, o.Children)
+	case o.Steps < lesson.MinSteps:
+		return fmt.Errorf("scenario: the costly solvers are sized for %d steps at least, not %d", lesson.MinSteps, o.Steps)
+	case len(o.Variants) == 0:
+		return fmt.Errorf("scenario: no variant to hand in; there are %s", strings.Join(lesson.Costly(), ", "))
+	}
+	for _, variant := range o.Variants {
+		if !slices.Contains(lesson.Costly(), variant) {
+			return fmt.Errorf("scenario: no costly solver %q; there are %s", variant, strings.Join(lesson.Costly(), ", "))
+		}
+	}
+	if known, found := scenarios[o.Scenario]; found && known.check != nil {
+		return known.check(o)
 	}
 	return nil
 }
 
-// Steps is how many steps a run of the options takes at their pace: a
-// reckoning of how long it will last, for whoever is waiting for it.
-func (o *Options) Steps() int {
-	// Opening the profile, three steps for each task, and the progress.
-	return 1 + 3*o.Tasks + 1
-}
-
-// Run runs the scenario of the options against the service at the target. A
-// run asked to stop before its end is the part that ran, marked as stopped,
-// and is held to no expectation: it did not get to meet them. The error is
-// for a run that could not start at all.
-func Run(ctx context.Context, o Options, target session.Target) (report.Run, error) {
+// Lasts is about how long a run of the options takes, for whoever is waiting
+// for it.
+func (o *Options) Lasts() time.Duration {
 	known, found := scenarios[o.Scenario]
 	if !found {
-		return report.Run{}, fmt.Errorf("scenario: no scenario %q", o.Scenario)
+		return 0
+	}
+	return known.lasts(o)
+}
+
+// Run runs the scenario of the options against the service at the target,
+// and is what it came to: one run, or one for each thing the scenario does at
+// once or in turn. A run the scenario was asked to stop in the middle of is
+// the part that ran, marked as stopped, and is held to no expectation: it did
+// not get to meet them. A run that ended before is what it was. The error is
+// for a scenario that could not start at all.
+func Run(ctx context.Context, o *Options, target session.Target) ([]report.Run, error) {
+	known, found := scenarios[o.Scenario]
+	if !found {
+		return nil, fmt.Errorf("scenario: no scenario %q", o.Scenario)
 	}
 	if err := o.Check(); err != nil {
-		return report.Run{}, err
+		return nil, err
 	}
-	service := session.Open(target, o.Timeout)
-	defer service.Close()
 
-	run := known.run(ctx, o, service)
-	run.Stopped = ctx.Err() != nil
-	if !run.Stopped {
-		run.Broken = known.expected(&run, &o)
+	runs := known.run(ctx, o, target)
+	for i := range runs {
+		if runs[i].Stopped {
+			runs[i].Broken = nil
+		}
 	}
-	return run, nil
+	return runs, nil
 }
 
-// student is the child of a lesson, as the card shows them.
-var student = lesson.Student{Pseudonym: "Otter", Grade: 2}
-
-// runLesson walks one child through a lesson: the profile, then each task
-// asked for, handed in and answered — right and wrong in turn — and the
-// progress at the end, with a pause before every step. The child is new to the
-// service, so that a lesson finds no profile and no request left by another.
-func runLesson(ctx context.Context, o Options, service *session.Service) report.Run {
-	run := report.Run{Scenario: Lesson, Unit: "accepted task", Began: time.Now()}
-	child := service.Child("lesson-" + strconv.FormatInt(run.Began.UnixNano(), 36))
-	defer func() { _ = child.Close() }()
-	w := &walk{child: child, pace: o.Pace, run: &run}
-
-	if w.step(ctx) {
-		w.record(lesson.Start(ctx, child, student)...)
-	}
-	tasks := lesson.Written()[:o.Tasks]
-	for i := range tasks {
-		if !w.step(ctx) {
-			break
-		}
-		letter := tasks[i].Body.Correct
-		if i%2 == 1 {
-			letter = tasks[i].Wrong
-		}
-		w.task(ctx, &tasks[i], letter)
-	}
-	if w.step(ctx) {
-		w.record(lesson.Progress(ctx, child))
-	}
-
+// finish ends a run: when it ended, and whether it was asked to stop before
+// it could.
+func finish(ctx context.Context, run *report.Run) {
 	run.Ended = time.Now()
-	run.Requests = service.Requests()
-	run.Reconnects = child.Reconnects()
-	return run
-}
-
-// walk is one child's way through a lesson: the pause before every step, and
-// the run that keeps every call of it.
-type walk struct {
-	child *session.Child
-	pace  time.Duration
-	run   *report.Run
-}
-
-// step waits the pause before a step, and says whether the run may take it.
-func (w *walk) step(ctx context.Context) bool { return pause(ctx, w.pace) }
-
-// record keeps the answers of a step among the calls of the run.
-func (w *walk) record(answers ...session.Answer) {
-	for i := range answers {
-		w.run.Calls = append(w.run.Calls, report.CallOf(&answers[i], answers[i].Started))
-	}
-}
-
-// task walks the child through one task: asked for, handed in and, once the
-// service accepted it, answered with the letter given. The task counts as
-// soon as the service accepted it, whether or not the run goes on to the
-// answer.
-func (w *walk) task(ctx context.Context, written *lesson.Task, letter string) {
-	request, asked, err := lesson.Ask(ctx, w.child, written.Choice)
-	w.record(asked)
-	if err != nil || !w.step(ctx) {
-		return
-	}
-	card, handedIn := lesson.HandIn(ctx, w.child, request, written, student)
-	w.record(handedIn)
-	if handedIn.Kind != session.Answered {
-		return
-	}
-	w.run.Units++
-	if w.step(ctx) {
-		w.record(lesson.AnswerTask(ctx, w.child, card, letter))
-	}
-}
-
-// lessonExpected is what a lesson that ran to its end did not come to that it
-// should have: every call answered as asked, and every task it asked for
-// accepted.
-func lessonExpected(run *report.Run, o *Options) []string {
-	var broken []string
-	if run.Units < o.Tasks {
-		broken = append(broken, fmt.Sprintf("%d of %d tasks accepted", run.Units, o.Tasks))
-	}
-	var other []string
-	for _, kind := range report.Kinds(run.Calls) {
-		if kind != session.Answered {
-			other = append(other, kind.String())
-		}
-	}
-	if len(other) > 0 {
-		broken = append(broken, "calls of a lesson answered otherwise than as asked: "+strings.Join(other, ", "))
-	}
-	return broken
-}
-
-// pause waits the pause given, and says whether the run may go on: a run
-// asked to stop stops in the middle of a pause rather than at its end.
-func pause(ctx context.Context, d time.Duration) bool {
-	if d <= 0 {
-		return ctx.Err() == nil
-	}
-	timer := time.NewTimer(d)
-	defer timer.Stop()
-	select {
-	case <-timer.C:
-		return true
-	case <-ctx.Done():
-		return false
-	}
+	run.Stopped = ctx.Err() != nil
 }
