@@ -26,7 +26,12 @@ const (
 	eventAuthRefresh   = "auth_refresh"
 	eventAuthRevoke    = "auth_revoke"
 	eventAuthBearer    = "auth_bearer"
+	eventLimitHit      = "limit_hit"
 )
+
+// limitRenewals is the pace of an account's renewals at Google, as the line
+// of a flood of them names it.
+const limitRenewals = "renewal_rate"
 
 // signInLog writes a line for each step of a sign-in, from fields named one by
 // one. A line never carries what a client sent in its own words — its name,
@@ -51,6 +56,15 @@ func (l *signInLog) fetched(ctx context.Context, clientID string, cached bool, t
 		zap.Int64("duration_ms", took.Milliseconds()),
 		zap.String("outcome", fetchOutcome(err)),
 	)
+}
+
+// limited leaves the line of a pace an account reached, once for a flood: a
+// warning, naming the pace and the account's user identifier.
+func (l *signInLog) limited(ctx context.Context, limit, user string) {
+	l.logger.Warn(eventLimitHit, slices.Concat(
+		[]zap.Field{zap.String("limit", limit), zap.String("user", user)},
+		callerFields(ctx, l.projectID),
+	)...)
 }
 
 // registered leaves the line of a registration made.

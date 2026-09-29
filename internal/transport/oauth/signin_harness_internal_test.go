@@ -21,6 +21,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth/googletest"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
+	"github.com/MathTrail/mathtrail-standalone/internal/ratelimit/ratelimittest"
 )
 
 // What a host signs a parent in with in these cases.
@@ -106,6 +107,7 @@ func build(t *testing.T, withGoogle bool, start time.Time) *signIn {
 		Seal:      h.ring,
 		Documents: h.documents,
 		Logger:    zap.New(core),
+		Renewals:  ratelimittest.Roomy(t),
 		SiteURL:   testSite,
 		Now:       h.clock.Now,
 	}

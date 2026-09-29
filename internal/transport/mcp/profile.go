@@ -75,7 +75,7 @@ type saveProfileIn struct {
 	ExcludedSkills []string `json:"excluded_skills,omitempty" jsonschema:"ids of skills the child has not met at school yet, from the list in this tool's description. The list replaces the one kept; an empty list clears it"`
 	Notes          *string  `json:"notes,omitempty" jsonschema:"what the adult wants known about the child, for pitching the words, at most 500 characters. An empty text clears it"`
 	UILanguage     *string  `json:"ui_language,omitempty" jsonschema:"the language of the cards as a BCP 47 tag, such as en, ru or pt-BR. An empty text makes the cards follow the chat's language"`
-	StartOver      bool     `json:"start_over,omitempty" jsonschema:"true only when a result said the profile file cannot be read or is in the Google Drive bin, and the adult asked for a new profile instead. The old file is set aside, not deleted, and a new profile starts from the pseudonym and grade given. A profile that can be read is never started over"`
+	StartOver      bool     `json:"start_over,omitempty" jsonschema:"true only when a result said the profile file cannot be read, was saved by a version of MathTrail this one cannot read, or is in the Google Drive bin, and the adult asked for a new profile instead. The old file is set aside, not deleted, and a new profile starts from the pseudonym and grade given. A profile this version can read is never started over"`
 }
 
 // edit is the change the arguments ask for.
@@ -159,7 +159,7 @@ func (s *Service) readProfile(ctx context.Context, account store.Account) (Reply
 
 // saveProfile creates the profile when there is none and changes it when
 // there is, and starts it over when the adult asks for that in place of one
-// nothing can read. Nothing is written when the details break a rule, and
+// this version cannot read. Nothing is written when the details break a rule, and
 // nothing when they already say what the call asks for.
 //
 //nolint:gocritic // hugeParam: the frame hands every handler its arguments by value
@@ -175,7 +175,7 @@ func (s *Service) writeProfile(ctx context.Context, account store.Account, in *s
 	switch {
 	case errors.Is(err, store.ErrNotFound):
 		return s.createProfile(ctx, account, &edit)
-	case in.StartOver && (errors.Is(err, store.ErrCorrupted) || errors.Is(err, store.ErrInBin)):
+	case in.StartOver && (errors.Is(err, store.ErrCorrupted) || errors.Is(err, store.ErrInBin) || errors.Is(err, profile.ErrNewer)):
 		return s.startOver(ctx, account, &edit)
 	case err != nil:
 		return Reply[profileOut]{}, fmt.Errorf("mcp: read the profile: %w", err)
@@ -212,9 +212,10 @@ func (s *Service) createProfile(ctx context.Context, account store.Account, edit
 	return s.profileReply(p, "The profile is created.")
 }
 
-// startOver makes a new profile in place of one nothing can read, or one in
-// the bin, as the adult asked: the child starts again from the grade given,
-// and the old file is set aside rather than deleted.
+// startOver makes a new profile in place of one nothing can read, one of a
+// newer version this one cannot, or one in the bin, as the adult asked: the
+// child starts again from the grade given, and the old file is set aside
+// rather than deleted.
 func (s *Service) startOver(ctx context.Context, account store.Account, edit *profile.Edit) (Reply[profileOut], error) {
 	student, problems := profile.NewStudent(edit, s.content.HasSkill)
 	if len(problems) > 0 {

@@ -263,6 +263,7 @@ func TestTheStoreInDriveKeepsTheContract(t *testing.T) {
 				t.Helper()
 				f.fake.Revoke(account.Token())
 			},
+			Now: f.clock.now,
 		}
 	})
 }

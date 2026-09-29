@@ -6,15 +6,18 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"net/url"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/oauthex"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth"
+	"github.com/MathTrail/mathtrail-standalone/internal/ratelimit"
 )
 
 // tokens issues the tokens a host holds for a sign-in, renews them, ends the
@@ -30,6 +33,7 @@ type tokens struct {
 	access   sealer
 	refresh  sealer
 	google   googleauth.SignIn
+	renewals ratelimit.Limiter
 	events   *signInLog
 	now      func() time.Time
 }
@@ -82,6 +86,9 @@ func (t *tokens) serveToken(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		failure, end := failureOf(err)
 		end.user = s.user
+		if paced := new(*renewalPaced); errors.As(err, paced) {
+			w.Header().Set("Retry-After", strconv.Itoa(max(1, int(math.Ceil((*paced).after.Seconds())))))
+		}
 		t.events.granted(r.Context(), event, registration, form, &end)
 		writeRefusal(w, t.issuer, failure)
 		return
@@ -188,6 +195,10 @@ func failureOf(err error) (*refusal, ending) {
 	case errors.Is(err, googleauth.ErrGrantEnded):
 		return invalidGrant("the parent's access at Google has ended: sign in again", "grant_ended"),
 			ending{outcome: "refused", reason: "grant_ended"}
+	case errors.As(err, new(*renewalPaced)):
+		return &refusal{http.StatusServiceUnavailable, "temporarily_unavailable",
+				"this sign-in was renewed at Google too often in a short time: try again after the time Retry-After gives", "renewal_rate"},
+			ending{outcome: "refused", reason: "renewal_rate"}
 	case googleUnavailable(err):
 		return &refusal{http.StatusServiceUnavailable, "temporarily_unavailable",
 				"Google did not answer: try again later", "google_unavailable"},

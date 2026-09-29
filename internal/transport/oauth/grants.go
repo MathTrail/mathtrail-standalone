@@ -199,12 +199,23 @@ func (t *tokens) issue(ctx context.Context, s *session) (issued, error) {
 // freshen renews the session's Google access token at Google when little is
 // left of it, and goes on with the refresh token the renewal names: the one
 // it had, or the one Google gave in its place.
+//
+// A renewal is held to the pace of its account. A grant needs one about
+// every hour, but a refresh token stays good to its own end, and one issued an
+// hour ago carries a Google token past its end: without the pace, whoever
+// kept one could have this server call Google with every use of it.
 func (t *tokens) freshen(ctx context.Context, s *session) error {
 	if s.google.accessExpiry.Sub(t.now()) >= googleRenewal {
 		return nil
 	}
 	if t.google == nil {
 		return errUnconfigured
+	}
+	if verdict := t.renewals.Take(s.user); !verdict.Allowed {
+		if verdict.Began {
+			t.events.limited(ctx, limitRenewals, s.user)
+		}
+		return &renewalPaced{after: verdict.RetryAfter}
 	}
 	renewal, err := t.google.Refresh(ctx, s.google.refreshToken)
 	if err != nil {
@@ -213,6 +224,14 @@ func (t *tokens) freshen(ctx context.Context, s *session) error {
 	s.google.accessToken, s.google.accessExpiry, s.google.refreshToken = renewal.AccessToken, renewal.Expiry, renewal.RefreshToken
 	return nil
 }
+
+// renewalPaced is a renewal at Google past the pace of its account, and how
+// long the next one waits.
+type renewalPaced struct {
+	after time.Duration
+}
+
+func (*renewalPaced) Error() string { return "oauth: renewed at Google too often" }
 
 // sealAs seals what a token carries, bound to this issuer, with the purpose
 // of the ring given.

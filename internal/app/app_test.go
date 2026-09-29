@@ -640,6 +640,7 @@ func testConfig() *config.Config {
 		RateUserPerMin:     config.DefaultRateUserPerMin,
 		RateIPPerMin:       config.DefaultRateIPPerMin,
 		RateInstancePerMin: config.DefaultRateInstancePerMin,
+		RateRenewalPerMin:  config.DefaultRateRenewalPerMin,
 		DailyTasks:         config.DefaultDailyTasks,
 		DailyFailed:        config.DefaultDailyFailed,
 		DriveTimeout:       config.DefaultDriveTimeout,
