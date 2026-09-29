@@ -8,6 +8,8 @@ afterEach(() => {
 });
 
 describe("the bridge", () => {
+	// The card subscribes as it is drawn, before the handshake, and hears the
+	// handshake itself and then the result.
 	test("hands on the result the host delivers", async () => {
 		const { host, widgetSide } = await openTestHost();
 		const bridge = openBridge();
@@ -17,7 +19,7 @@ describe("the bridge", () => {
 
 		await deliver(host, { screen: "task" });
 
-		await vi.waitFor(() => expect(heard).toHaveBeenCalledOnce());
+		await vi.waitFor(() => expect(heard).toHaveBeenCalledTimes(2));
 		expect(bridge.result()?.structuredContent).toEqual({ screen: "task" });
 	});
 
@@ -40,9 +42,9 @@ describe("the bridge", () => {
 		const bridge = openBridge();
 		const heard = vi.fn();
 		const stop = bridge.subscribe(heard);
-		await bridge.connect(widgetSide);
 
 		stop();
+		await bridge.connect(widgetSide);
 		await deliver(host, { screen: "task" });
 
 		await vi.waitFor(() => expect(bridge.result()).toBeDefined());
@@ -62,6 +64,39 @@ describe("the bridge", () => {
 		await vi.waitFor(() =>
 			expect(document.documentElement.dataset.theme).toBe("light"),
 		);
+	});
+
+	test("tells the card the host's locale, and each locale it names after", async () => {
+		const { host, widgetSide } = await openTestHost({ locale: "ru-RU" });
+		const bridge = openBridge();
+		const heard = vi.fn();
+		bridge.subscribe(heard);
+
+		await bridge.connect(widgetSide);
+
+		expect(bridge.locale()).toBe("ru-RU");
+		expect(heard).toHaveBeenCalledOnce();
+
+		await host.sendHostContextChange({ locale: "en-GB" });
+
+		await vi.waitFor(() => expect(bridge.locale()).toBe("en-GB"));
+		expect(heard).toHaveBeenCalledTimes(2);
+	});
+
+	test("leaves the card be when a change of context names no locale", async () => {
+		const { host, widgetSide } = await openTestHost({ locale: "ru-RU" });
+		const bridge = openBridge();
+		await bridge.connect(widgetSide);
+		const heard = vi.fn();
+		bridge.subscribe(heard);
+
+		await host.sendHostContextChange({ theme: "dark" });
+
+		await vi.waitFor(() =>
+			expect(document.documentElement.dataset.theme).toBe("dark"),
+		);
+		expect(heard).not.toHaveBeenCalled();
+		expect(bridge.locale()).toBe("ru-RU");
 	});
 
 	test("tells the host how big the card is", async () => {

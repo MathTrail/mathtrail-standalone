@@ -70,6 +70,13 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    groups:
+      # The parts of CodeQL's action move together: analyze reads the
+      # configuration init wrote and refuses one written by another version, so
+      # a pull request that bumps one part alone fails the scan it bumps.
+      codeql-action:
+        patterns:
+          - "github/codeql-action/*"
 
   # The image the service runs on, and the one it is developed in.
   - package-ecosystem: docker

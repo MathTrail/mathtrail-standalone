@@ -11,12 +11,21 @@ export type ToolResult = AppEventMap["toolresult"];
 
 /**
  * Bridge is the widget's side of its conversation with the chat host: the
- * result of the tool call that drew the card, and the handshake that starts it.
+ * result of the tool call that drew the card, the language the host reads, and
+ * the handshake that starts it.
  */
 export type Bridge = {
 	/** result is the latest result the host delivered, undefined before one. */
 	result(): ToolResult | undefined;
-	/** subscribe calls listener after each new result, until it is stopped. */
+	/**
+	 * locale is the language and region the host says its user reads, as a
+	 * BCP 47 tag, or undefined while it has named none.
+	 */
+	locale(): string | undefined;
+	/**
+	 * subscribe calls listener after each new result, and each time the host may
+	 * have named another locale, until it is stopped.
+	 */
 	subscribe(listener: () => void): () => void;
 	/**
 	 * connect performs the handshake with the host: over transport when one is
@@ -38,20 +47,31 @@ export function openBridge(): Bridge {
 	);
 	let latest: ToolResult | undefined;
 	const listeners = new Set<() => void>();
+	const notify = () => {
+		for (const listener of listeners) {
+			listener();
+		}
+	};
 
 	// Both are registered before the handshake: the host sends the result once,
 	// right after it, and a listener added later would never hear it. The result
 	// is kept here, so a card drawn after it arrived still shows it.
 	app.addEventListener("toolresult", (result) => {
 		latest = result;
-		for (const listener of listeners) {
-			listener();
+		notify();
+	});
+	// A change of context names only what changed; the library has merged it
+	// into the context by the time this runs.
+	app.addEventListener("hostcontextchanged", (changed) => {
+		followTheme(changed);
+		if (changed.locale !== undefined) {
+			notify();
 		}
 	});
-	app.addEventListener("hostcontextchanged", followTheme);
 
 	return {
 		result: () => latest,
+		locale: () => app.getHostContext()?.locale,
 		subscribe(listener) {
 			listeners.add(listener);
 			return () => {
@@ -61,6 +81,8 @@ export function openBridge(): Bridge {
 		async connect(transport) {
 			await app.connect(transport);
 			followTheme(app.getHostContext());
+			// The handshake brings the host's first context, its locale among it.
+			notify();
 		},
 	};
 }
