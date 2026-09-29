@@ -183,8 +183,9 @@ type handedInPayload struct {
 	Attempt      int  `json:"attempt"`
 	AttemptsLeft *int `json:"attempts_left"`
 	Child        *struct {
-		Pseudonym string `json:"pseudonym"`
-		Grade     int    `json:"grade"`
+		Pseudonym  string  `json:"pseudonym"`
+		Grade      int     `json:"grade"`
+		UILanguage *string `json:"ui_language"`
 	} `json:"child"`
 	Task *struct {
 		ID       string            `json:"id"`
@@ -262,7 +263,8 @@ func wantRequestOpened(t *testing.T, asked *mcp.CallToolResult, kept store.Stora
 }
 
 // wantOnTheCard holds what submit_task answered to the race on the child's card
-// at the first attempt, beside the name and the grade of the child it is for.
+// at the first attempt, beside the name and the grade of the child it is for,
+// and no language of the cards' own: the parent chose none.
 func wantOnTheCard(t *testing.T, handed *mcp.CallToolResult) handedInPayload {
 	t.Helper()
 
@@ -270,8 +272,8 @@ func wantOnTheCard(t *testing.T, handed *mcp.CallToolResult) handedInPayload {
 	if card.Screen != "task" || card.Status != "" || card.Attempt != 1 || card.Task == nil {
 		t.Fatalf("submit_task = %+v, want the task on the card at the first attempt", card)
 	}
-	if card.Child == nil || card.Child.Pseudonym != "Otter" || card.Child.Grade != 2 {
-		t.Errorf("child = %+v, want Otter of grade 2 beside the task", card.Child)
+	if card.Child == nil || card.Child.Pseudonym != "Otter" || card.Child.Grade != 2 || card.Child.UILanguage != nil {
+		t.Errorf("child = %+v, want Otter of grade 2 beside the task, the cards in the chat's language", card.Child)
 	}
 	if card.Task.Question != raceQuestion || len(card.Task.Options) != 5 || card.Task.Hint == "" ||
 		card.Task.Language != "en" || card.Task.Topic != "logic.ordering" {
@@ -747,6 +749,31 @@ func TestTheAnswerStaysSealed(t *testing.T) {
 	lines := h.logs.All()
 	for i := range lines {
 		wantNoneOf(t, "line "+lines[i].Message, lineTexts(t, &lines[i]), secrets)
+	}
+}
+
+// A card is told the language the parent chose for the cards, the waiting card
+// a refusal draws as well as the task's, so that it speaks that language in
+// place of the chat's.
+func TestTheCardIsToldTheLanguageChosenForTheCards(t *testing.T) {
+	t.Parallel()
+
+	russian := "ru"
+	kept := keptAsIs(t, profile.New(profile.Student{
+		Grade: 2, Pseudonym: "Otter", Interests: []string{"sport"}, UILanguage: &russian,
+	}, "test", lessonDay))
+	_, session := lesson(t, kept)
+	request := askForTheRace(t, session, kept)
+
+	refused := payloadOf[handedInPayload](t, call(t, session, "submit_task", broken(request)))
+	handed := payloadOf[handedInPayload](t, call(t, session, "submit_task", raceOn(request)))
+	for _, card := range []handedInPayload{refused, handed} {
+		if card.Child == nil || card.Child.UILanguage == nil || *card.Child.UILanguage != russian {
+			t.Errorf("the %s card is for %+v, want the cards' language, %s", card.Screen, card.Child, russian)
+		}
+	}
+	if refused.Screen != "waiting" || handed.Screen != "task" {
+		t.Errorf("the cards are %q and %q, want a waiting card and then the task's", refused.Screen, handed.Screen)
 	}
 }
 

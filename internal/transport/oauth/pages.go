@@ -45,7 +45,6 @@ type pages struct {
 	consent *template.Template
 	refusal *template.Template
 	words   map[string]map[string]string
-	matcher language.Matcher
 	style   template.CSS
 	site    string
 }
@@ -91,7 +90,6 @@ func newPages(files fs.FS, site string) (*pages, error) {
 		consent: consent,
 		refusal: refusal,
 		words:   words,
-		matcher: language.NewMatcher(pageLanguages),
 		// Both stylesheets are the service's own, embedded when it is built:
 		// nothing a request carries ever reaches them.
 		style: template.CSS(widget.Tokens() + "\n" + string(style)), //nolint:gosec // the service's own stylesheets, embedded at build time
@@ -99,19 +97,62 @@ func newPages(files fs.FS, site string) (*pages, error) {
 	}, nil
 }
 
-// languageOf is the language a page is drawn in for a request: the best of
-// the pages' languages for what the browser asks for, and the first of them
-// when it asks for none.
-func (p *pages) languageOf(r *http.Request) string {
-	asked, _, err := language.ParseAcceptLanguage(r.Header.Get("Accept-Language"))
-	if err != nil || len(asked) == 0 {
-		return pageLanguages[0].String()
+// mostEntriesRead is how many entries of an Accept-Language header are read.
+// A browser names a handful of languages, and a header padded to the size a
+// request may carry would otherwise cost a page a parse of every entry — the
+// page a sign-in past its pace is shown among them, which the pace is meant
+// to keep cheap.
+const mostEntriesRead = 32
+
+// languageOf is the language a page is drawn in for a request: of the
+// languages the browser asks for that the pages are written in, the one it
+// wants most, the first written when it wants two alike; and the first of the
+// pages' languages when it asks for none of them. A tag counts for the
+// language it names, in the script it names or its language is usually
+// written in, so ru-RU asks for Russian, and for no other: a browser that asks
+// for Kazakh alone is answered in English, not in Russian, however many who
+// read the one read the other, and so is one that asks for Russian in Latin
+// letters.
+func languageOf(r *http.Request) string {
+	chosen, wanted := pageLanguages[0], float32(0)
+	read := 0
+	for entry := range strings.SplitSeq(r.Header.Get("Accept-Language"), ",") {
+		if read == mostEntriesRead {
+			break
+		}
+		read++
+		// Each entry is read on its own, so that one that does not read — a
+		// language nobody registered, a weight that is no number or lies
+		// outside the 0 to 1 a weight is written in — is passed over rather
+		// than taking the whole header with it. An entry weighed at zero reads
+		// as asking for nothing.
+		asked, weights, err := language.ParseAcceptLanguage(entry)
+		if err != nil || len(asked) == 0 || weights[0] > 1 {
+			continue
+		}
+		if written, found := writtenIn(asked[0]); found && weights[0] > wanted {
+			chosen, wanted = written, weights[0]
+		}
 	}
-	_, index, confidence := p.matcher.Match(asked...)
-	if confidence == language.No {
-		return pageLanguages[0].String()
+	return chosen.String()
+}
+
+// writtenIn is the language of the pages a tag asks for, when the pages are
+// written in the language the tag names and in its script.
+func writtenIn(tag language.Tag) (language.Tag, bool) {
+	asked, confidence := tag.Base()
+	if confidence != language.Exact {
+		return language.Und, false
 	}
-	return pageLanguages[index].String()
+	script, _ := tag.Script()
+	for _, written := range pageLanguages {
+		base, _ := written.Base()
+		writtenScript, _ := written.Script()
+		if base == asked && writtenScript == script {
+			return written, true
+		}
+	}
+	return language.Und, false
 }
 
 // consentScreen is what the consent screen shows and posts.
@@ -145,7 +186,7 @@ type consentView struct {
 // listens there. The form may be sent to this server alone, and what it leads
 // to — Google, or the client, when the parent declines — is let through too.
 func (p *pages) showConsent(w http.ResponseWriter, r *http.Request, screen consentScreen) error {
-	lang := p.languageOf(r)
+	lang := languageOf(r)
 	words := p.words[lang]
 	client := shownName(screen.client)
 	if client == "" {
@@ -282,7 +323,7 @@ type refusalView struct {
 // showRefusal draws the page a sign-in stopped at. It sends the parent
 // nowhere: the page itself is the answer.
 func (p *pages) showRefusal(w http.ResponseWriter, r *http.Request, how stop) error {
-	lang := p.languageOf(r)
+	lang := languageOf(r)
 	words := p.words[lang]
 	return p.write(w, how.status, lang, p.refusal, refusalView{
 		Lang:    lang,

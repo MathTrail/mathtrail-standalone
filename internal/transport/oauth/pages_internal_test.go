@@ -101,24 +101,43 @@ func slotsOf(wording string) []string {
 }
 
 // A page is drawn in the language the browser asks for most, among the ones
-// the pages are written in, and in English when it asks for none of them.
+// the pages are written in, and in English when it asks for none of them —
+// never in a language it did not name, nor in a script it did not ask for, and
+// never in English only because one of its entries did not read. A header
+// longer than a browser sends is read no further than its first entries.
 func TestAPageIsInTheLanguageTheBrowserAsksFor(t *testing.T) {
 	t.Parallel()
 
-	screens := pagesOf(t)
 	for asked, want := range map[string]string{
-		"":                           "en",
-		"ru":                         "ru",
-		"ru-RU,ru;q=0.9,en;q=0.8":    "ru",
-		"en-GB,en;q=0.9,ru;q=0.8":    "en",
-		"de-DE,de;q=0.9":             "en",
-		"de-DE,de;q=0.9,ru;q=0.5":    "ru",
-		"fr;q=1.0, ru;q=0.1":         "ru",
+		"":                          "en",
+		"ru":                        "ru",
+		"ru-RU,ru;q=0.9,en;q=0.8":   "ru",
+		"en-GB,en;q=0.9,ru;q=0.8":   "en",
+		"de-DE,de;q=0.9":            "en",
+		"de-DE,de;q=0.9,ru;q=0.5":   "ru",
+		"fr;q=1.0, ru;q=0.1":        "ru",
+		"es-MX,es;q=0.9":            "en",
+		"pt-BR":                     "en",
+		"xx":                        "en",
+		"ru, xx":                    "ru",
+		"xx, ru;q=0.5":              "ru",
+		"en;q=nonsense, ru;q=0.1":   "ru",
+		"en;q=0.5, ru;q=0.5":        "en",
+		"en, ru;q=2":                "en",
+		"en, ru;q=inf":              "en",
+		"kk":                        "en",
+		"be-BY, hy;q=0.9, az;q=0.8": "en",
+		"und-RU":                    "en",
+		"ru-Latn":                   "en",
+		"ru-Latn, ru-Cyrl;q=0.5":    "ru",
+		strings.Repeat("de, ", mostEntriesRead-1) + "ru": "ru",
+		strings.Repeat("de, ", mostEntriesRead) + "ru":   "en",
+		"*":                          "en",
 		"not a language at all, ;;;": "en",
 	} {
 		request := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/oauth/authorize", http.NoBody)
 		request.Header.Set("Accept-Language", asked)
-		if got := screens.languageOf(request); got != want {
+		if got := languageOf(request); got != want {
 			t.Errorf("languageOf(%q) = %q, want %q", asked, got, want)
 		}
 	}

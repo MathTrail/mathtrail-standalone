@@ -79,15 +79,17 @@ type reasonOut struct {
 }
 
 // childLine is who a card is for: the name the child goes by and the grade, for
-// the top line of the card and its badge. It stands beside the task and never
-// inside its text.
+// the top line of the card and its badge, and the language the parent chose
+// for the cards, which the card speaks in place of the chat's — null when they
+// chose none. It stands beside the task and never inside its text.
 type childLine struct {
-	Pseudonym string `json:"pseudonym"`
-	Grade     int    `json:"grade"`
+	Pseudonym  string  `json:"pseudonym"`
+	Grade      int     `json:"grade"`
+	UILanguage *string `json:"ui_language"`
 }
 
 func childLineOf(s *profile.Student) *childLine {
-	return &childLine{Pseudonym: s.Pseudonym, Grade: s.Grade}
+	return &childLine{Pseudonym: s.Pseudonym, Grade: s.Grade, UILanguage: s.UILanguage}
 }
 
 // cardOut is the task as the child's card shows it: the wording, the drawing,
