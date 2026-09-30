@@ -7,27 +7,26 @@ import (
 	"fmt"
 	"html/template"
 	"io/fs"
-	"maps"
 	"net/http"
 	"net/url"
-	"slices"
 	"strings"
 	"unicode"
-
-	"golang.org/x/text/language"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/widget"
 )
 
 // pageFiles are the pages a parent may see during a sign-in, the stylesheet
-// they share, and their words in every language they are written in.
+// they share, and their words.
 //
 //go:embed pages
 var pageFiles embed.FS
 
-// pageLanguages are the languages the pages are written in. The first is the
-// one a browser is answered in when it asks for none of them.
-var pageLanguages = []language.Tag{language.English, language.Russian}
+// pageLanguage is the one language the pages are written in, whatever
+// language the browser reads. The consent screen is what a parent agrees to,
+// and the terms and the policy it points to prevail in English wherever a
+// translation of them says otherwise: the page that takes the agreement speaks
+// the language the agreement is kept in, and there is one wording of it.
+const pageLanguage = "en"
 
 // fragment is a piece of a sentence as a page shows it: plain text, a name
 // set apart from it, or a link.
@@ -38,20 +37,19 @@ type fragment struct {
 }
 
 // pages draws the pages of a sign-in: the consent screen, and the page a
-// sign-in stops at. They are the service's own, outside any chat, so they are
-// drawn in the language the browser asks for, with the design's tokens
-// inlined — the policy they are served under loads nothing.
+// sign-in stops at. They are the service's own, outside any chat, and drawn
+// with the design's tokens inlined — the policy they are served under loads
+// nothing.
 type pages struct {
 	consent *template.Template
 	refusal *template.Template
-	words   map[string]map[string]string
+	words   map[string]string
 	style   template.CSS
 	site    string
 }
 
 // newPages reads the pages, their stylesheet and their words from the files
-// given, and refuses words that differ in what they say between two
-// languages: a key one language lacks would be a blank on a page in it.
+// given.
 func newPages(files fs.FS, site string) (*pages, error) {
 	consent, err := template.ParseFS(files, "pages/consent.html", "pages/phrase.html")
 	if err != nil {
@@ -66,24 +64,13 @@ func newPages(files fs.FS, site string) (*pages, error) {
 		return nil, fmt.Errorf("oauth: read the pages' stylesheet: %w", err)
 	}
 
-	words := make(map[string]map[string]string, len(pageLanguages))
-	for _, tag := range pageLanguages {
-		lang := tag.String()
-		raw, err := fs.ReadFile(files, "pages/"+lang+".json")
-		if err != nil {
-			return nil, fmt.Errorf("oauth: read the words in %s: %w", lang, err)
-		}
-		var dictionary map[string]string
-		if err := json.Unmarshal(raw, &dictionary); err != nil {
-			return nil, fmt.Errorf("oauth: read the words in %s: %w", lang, err)
-		}
-		words[lang] = dictionary
+	raw, err := fs.ReadFile(files, "pages/"+pageLanguage+".json")
+	if err != nil {
+		return nil, fmt.Errorf("oauth: read the pages' words: %w", err)
 	}
-	first := words[pageLanguages[0].String()]
-	for lang, dictionary := range words {
-		if !slices.Equal(slices.Sorted(maps.Keys(dictionary)), slices.Sorted(maps.Keys(first))) {
-			return nil, fmt.Errorf("oauth: the words in %s are not the words in %s", lang, pageLanguages[0])
-		}
+	var words map[string]string
+	if err := json.Unmarshal(raw, &words); err != nil {
+		return nil, fmt.Errorf("oauth: read the pages' words: %w", err)
 	}
 
 	return &pages{
@@ -95,64 +82,6 @@ func newPages(files fs.FS, site string) (*pages, error) {
 		style: template.CSS(widget.Tokens() + "\n" + string(style)), //nolint:gosec // the service's own stylesheets, embedded at build time
 		site:  site,
 	}, nil
-}
-
-// mostEntriesRead is how many entries of an Accept-Language header are read.
-// A browser names a handful of languages, and a header padded to the size a
-// request may carry would otherwise cost a page a parse of every entry — the
-// page a sign-in past its pace is shown among them, which the pace is meant
-// to keep cheap.
-const mostEntriesRead = 32
-
-// languageOf is the language a page is drawn in for a request: of the
-// languages the browser asks for that the pages are written in, the one it
-// wants most, the first written when it wants two alike; and the first of the
-// pages' languages when it asks for none of them. A tag counts for the
-// language it names, in the script it names or its language is usually
-// written in, so ru-RU asks for Russian, and for no other: a browser that asks
-// for Kazakh alone is answered in English, not in Russian, however many who
-// read the one read the other, and so is one that asks for Russian in Latin
-// letters.
-func languageOf(r *http.Request) string {
-	chosen, wanted := pageLanguages[0], float32(0)
-	read := 0
-	for entry := range strings.SplitSeq(r.Header.Get("Accept-Language"), ",") {
-		if read == mostEntriesRead {
-			break
-		}
-		read++
-		// Each entry is read on its own, so that one that does not read — a
-		// language nobody registered, a weight that is no number or lies
-		// outside the 0 to 1 a weight is written in — is passed over rather
-		// than taking the whole header with it. An entry weighed at zero reads
-		// as asking for nothing.
-		asked, weights, err := language.ParseAcceptLanguage(entry)
-		if err != nil || len(asked) == 0 || weights[0] > 1 {
-			continue
-		}
-		if written, found := writtenIn(asked[0]); found && weights[0] > wanted {
-			chosen, wanted = written, weights[0]
-		}
-	}
-	return chosen.String()
-}
-
-// writtenIn is the language of the pages a tag asks for, when the pages are
-// written in the language the tag names and in its script.
-func writtenIn(tag language.Tag) (language.Tag, bool) {
-	asked, confidence := tag.Base()
-	if confidence != language.Exact {
-		return language.Und, false
-	}
-	script, _ := tag.Script()
-	for _, written := range pageLanguages {
-		base, _ := written.Base()
-		writtenScript, _ := written.Script()
-		if base == asked && writtenScript == script {
-			return written, true
-		}
-	}
-	return language.Und, false
 }
 
 // consentScreen is what the consent screen shows and posts.
@@ -185,25 +114,23 @@ type consentView struct {
 // the parent's own computer gets a warning, since nothing proves which program
 // listens there. The form may be sent to this server alone, and what it leads
 // to — Google, or the client, when the parent declines — is let through too.
-func (p *pages) showConsent(w http.ResponseWriter, r *http.Request, screen consentScreen) error {
-	lang := languageOf(r)
-	words := p.words[lang]
+func (p *pages) showConsent(w http.ResponseWriter, screen consentScreen) error {
 	client := shownName(screen.client)
 	if client == "" {
 		client = hostOf(screen.redirectURI)
 	}
-	return p.write(w, http.StatusOK, lang, p.consent, consentView{
-		Lang:    lang,
+	return p.write(w, http.StatusOK, p.consent, consentView{
+		Lang:    pageLanguage,
 		Style:   p.style,
-		Words:   words,
-		Heading: phrase(words["consent.heading"], map[string]fragment{"client": {Text: client, Strong: true}}),
-		Return: phrase(words["consent.return"], map[string]fragment{
+		Words:   p.words,
+		Heading: phrase(p.words["consent.heading"], map[string]fragment{"client": {Text: client, Strong: true}}),
+		Return: phrase(p.words["consent.return"], map[string]fragment{
 			"address": {Text: shownAddress(screen.redirectURI), Strong: true},
 		}),
 		Loopback: toThisComputer(screen.redirectURI),
-		Legal: phrase(words["consent.legal"], map[string]fragment{
-			"terms":   {Text: words["consent.terms"], Link: p.site + "/" + lang + "/terms/"},
-			"privacy": {Text: words["consent.privacy"], Link: p.site + "/" + lang + "/privacy/"},
+		Legal: phrase(p.words["consent.legal"], map[string]fragment{
+			"terms":   {Text: p.words["consent.terms"], Link: p.site + "/" + pageLanguage + "/terms/"},
+			"privacy": {Text: p.words["consent.privacy"], Link: p.site + "/" + pageLanguage + "/privacy/"},
 		}),
 		Request: screen.request,
 	}, screen.google, screen.redirectURI)
@@ -322,15 +249,13 @@ type refusalView struct {
 
 // showRefusal draws the page a sign-in stopped at. It sends the parent
 // nowhere: the page itself is the answer.
-func (p *pages) showRefusal(w http.ResponseWriter, r *http.Request, how stop) error {
-	lang := languageOf(r)
-	words := p.words[lang]
-	return p.write(w, how.status, lang, p.refusal, refusalView{
-		Lang:    lang,
+func (p *pages) showRefusal(w http.ResponseWriter, how stop) error {
+	return p.write(w, how.status, p.refusal, refusalView{
+		Lang:    pageLanguage,
 		Style:   p.style,
-		Heading: words["refusal."+how.page+".heading"],
-		Text:    words["refusal."+how.page+".text"],
-		Code:    phrase(words["refusal.code"], map[string]fragment{"code": {Text: how.code, Strong: true}}),
+		Heading: p.words["refusal."+how.page+".heading"],
+		Text:    p.words["refusal."+how.page+".text"],
+		Code:    phrase(p.words["refusal.code"], map[string]fragment{"code": {Text: how.code, Strong: true}}),
 	})
 }
 
@@ -338,13 +263,13 @@ func (p *pages) showRefusal(w http.ResponseWriter, r *http.Request, how stop) er
 // pace: too many requests from their network, so wait a minute and connect
 // again. A page that could not be drawn has answered 500 already, which the
 // request's own line records.
-func (p *pages) busy(w http.ResponseWriter, r *http.Request) {
-	_ = p.showRefusal(w, r, stoppedBusy)
+func (p *pages) busy(w http.ResponseWriter, _ *http.Request) {
+	_ = p.showRefusal(w, stoppedBusy)
 }
 
 // write answers with a page, drawn whole before anything is sent, so that a
 // page that could not be drawn is a failure rather than half a page.
-func (p *pages) write(w http.ResponseWriter, status int, lang string, page *template.Template, view any, formTargets ...string) error {
+func (p *pages) write(w http.ResponseWriter, status int, page *template.Template, view any, formTargets ...string) error {
 	var body bytes.Buffer
 	if err := page.Execute(&body, view); err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -352,7 +277,7 @@ func (p *pages) write(w http.ResponseWriter, status int, lang string, page *temp
 	}
 	header := w.Header()
 	header.Set("Content-Type", "text/html; charset=utf-8")
-	header.Set("Content-Language", lang)
+	header.Set("Content-Language", pageLanguage)
 	header.Set("Cache-Control", "no-store")
 	header.Set("Content-Security-Policy", pagePolicy(formTargets))
 	w.WriteHeader(status)

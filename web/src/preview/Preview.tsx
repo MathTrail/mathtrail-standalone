@@ -1,16 +1,24 @@
 import { useMemo, useState } from "preact/hooks";
+import { dictionaries } from "../widget/words";
 import { HostedCard } from "./HostedCard";
-import { type Language, scenesIn } from "./scenes";
+import { scenesIn } from "./scenes";
 
 // The widths a card is looked at in: the narrowest it has to fit, the
 // design's narrow card, the design's wide card, and a chat on the web.
 const widths: readonly number[] = [320, 360, 640, 736];
 
-// The host's locale for each language the preview shows.
-const locales: Record<Language, string> = { en: "en-US", ru: "ru-RU" };
+// The languages a card can be shown in: every one the widget speaks, the
+// pseudo-language of a development build among them, English and Russian
+// first, as the design draws them.
+const languages: readonly string[] = [...dictionaries.keys()].sort(
+	(one, other) =>
+		Number(other === "en") - Number(one === "en") ||
+		Number(other === "ru") - Number(one === "ru") ||
+		one.localeCompare(other),
+);
 
 // asked is what the page's address asks to be shown first — ?scene=wrong,
-// ?theme=dark, ?lang=ru, ?widths=320,640 — so that one view can be opened, or
+// ?theme=dark, ?lang=ar, ?widths=320,640 — so that one view can be opened, or
 // sent, as a link.
 const asked = new URLSearchParams(location.search);
 
@@ -24,8 +32,8 @@ export function Preview() {
 	const [theme, setTheme] = useState<"light" | "dark">(
 		asked.get("theme") === "dark" ? "dark" : "light",
 	);
-	const [language, setLanguage] = useState<Language>(
-		asked.get("lang") === "ru" ? "ru" : "en",
+	const [language, setLanguage] = useState(
+		languages.find((tag) => tag === asked.get("lang")) ?? "en",
 	);
 	const [shown, setShown] = useState<ReadonlySet<number>>(
 		new Set(
@@ -74,17 +82,19 @@ export function Preview() {
 				<select
 					aria-label="Language"
 					value={language}
-					onChange={(event) =>
-						setLanguage(event.currentTarget.value === "ru" ? "ru" : "en")
-					}
+					onChange={(event) => setLanguage(event.currentTarget.value)}
 				>
-					<option value="en">en</option>
-					<option value="ru">ru</option>
+					{languages.map((tag) => (
+						<option key={tag} value={tag}>
+							{tag}
+						</option>
+					))}
 				</select>
 				{widths.map((width) => (
 					<label key={width}>
 						<input
 							type="checkbox"
+							value={width}
 							checked={shown.has(width)}
 							onChange={() => toggle(width)}
 						/>
@@ -105,7 +115,7 @@ export function Preview() {
 										key={`${scene.name}-${theme}-${language}-${width}`}
 										scene={scene}
 										theme={theme}
-										locale={locales[language]}
+										locale={language}
 										width={width}
 									/>
 								))}

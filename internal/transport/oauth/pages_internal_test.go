@@ -5,7 +5,6 @@ import (
 	"flag"
 	"html"
 	"io/fs"
-	"maps"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -33,43 +32,47 @@ func pagesOf(t *testing.T) *pages {
 	return screens
 }
 
-// wordsIn reads the words of a language as they are embedded.
-func wordsIn(t *testing.T, lang string) map[string]string {
+// pageWords reads the pages' words as they are embedded.
+func pageWords(t *testing.T) map[string]string {
 	t.Helper()
 
-	raw, err := fs.ReadFile(pageFiles, "pages/"+lang+".json")
+	raw, err := fs.ReadFile(pageFiles, "pages/"+pageLanguage+".json")
 	if err != nil {
-		t.Fatalf("reading the words in %s: %v", lang, err)
+		t.Fatalf("reading the pages' words: %v", err)
 	}
 	var words map[string]string
 	if err := json.Unmarshal(raw, &words); err != nil {
-		t.Fatalf("the words in %s are not a flat object of strings: %v", lang, err)
+		t.Fatalf("the pages' words are not a flat object of strings: %v", err)
 	}
 	return words
 }
 
-// Every language says the same things: the same keys, every one the pages ask
-// for, the words of every page a sign-in stops at, and in each wording the
-// same slots as in English.
-func TestEveryLanguageSaysTheSameThings(t *testing.T) {
+// The words say everything the pages ask for — the words of every page a
+// sign-in stops at among them — and nothing they never ask for, and each
+// wording the code fills names the slots it is filled with.
+func TestTheWordsSayEverythingThePagesAskFor(t *testing.T) {
 	t.Parallel()
 
-	english := wordsIn(t, "en")
+	words := pageWords(t)
 	asked := wordsAskedFor(t)
-	for _, tag := range pageLanguages {
-		words := wordsIn(t, tag.String())
-		if !slices.Equal(slices.Sorted(maps.Keys(words)), slices.Sorted(maps.Keys(english))) {
-			t.Errorf("the words in %s have other keys than the words in English", tag)
+	for _, key := range asked {
+		if strings.TrimSpace(words[key]) == "" {
+			t.Errorf("the pages' words have nothing for %q", key)
 		}
-		for _, key := range asked {
-			if strings.TrimSpace(words[key]) == "" {
-				t.Errorf("the words in %s have nothing for %q", tag, key)
-			}
+	}
+	for key := range words {
+		if !slices.Contains(asked, key) {
+			t.Errorf("the pages' words have %q, which no page asks for", key)
 		}
-		for key, wording := range words {
-			if got, want := slotsOf(wording), slotsOf(english[key]); !slices.Equal(got, want) {
-				t.Errorf("%s in %s has the slots %q, want those of English, %q", key, tag, got, want)
-			}
+	}
+	for key, want := range map[string][]string{
+		"consent.heading": {"{client}"},
+		"consent.return":  {"{address}"},
+		"consent.legal":   {"{privacy}", "{terms}"},
+		"refusal.code":    {"{code}"},
+	} {
+		if got := slotsOf(words[key]); !slices.Equal(got, want) {
+			t.Errorf("%s names the slots %q, want %q", key, got, want)
 		}
 	}
 }
@@ -100,45 +103,36 @@ func slotsOf(wording string) []string {
 	return slices.Sorted(slices.Values(regexp.MustCompile(`\{[a-z]+\}`).FindAllString(wording, -1)))
 }
 
-// A page is drawn in the language the browser asks for most, among the ones
-// the pages are written in, and in English when it asks for none of them —
-// never in a language it did not name, nor in a script it did not ask for, and
-// never in English only because one of its entries did not read. A header
-// longer than a browser sends is read no further than its first entries.
-func TestAPageIsInTheLanguageTheBrowserAsksFor(t *testing.T) {
+// The pages are in English whatever language the browser reads: the consent
+// screen, and the page a sign-in stops at, for a browser that asks for Russian
+// first and for English not at all.
+func TestThePagesAreInEnglishWhateverTheBrowserReads(t *testing.T) {
 	t.Parallel()
 
-	for asked, want := range map[string]string{
-		"":                          "en",
-		"ru":                        "ru",
-		"ru-RU,ru;q=0.9,en;q=0.8":   "ru",
-		"en-GB,en;q=0.9,ru;q=0.8":   "en",
-		"de-DE,de;q=0.9":            "en",
-		"de-DE,de;q=0.9,ru;q=0.5":   "ru",
-		"fr;q=1.0, ru;q=0.1":        "ru",
-		"es-MX,es;q=0.9":            "en",
-		"pt-BR":                     "en",
-		"xx":                        "en",
-		"ru, xx":                    "ru",
-		"xx, ru;q=0.5":              "ru",
-		"en;q=nonsense, ru;q=0.1":   "ru",
-		"en;q=0.5, ru;q=0.5":        "en",
-		"en, ru;q=2":                "en",
-		"en, ru;q=inf":              "en",
-		"kk":                        "en",
-		"be-BY, hy;q=0.9, az;q=0.8": "en",
-		"und-RU":                    "en",
-		"ru-Latn":                   "en",
-		"ru-Latn, ru-Cyrl;q=0.5":    "ru",
-		strings.Repeat("de, ", mostEntriesRead-1) + "ru": "ru",
-		strings.Repeat("de, ", mostEntriesRead) + "ru":   "en",
-		"*":                          "en",
-		"not a language at all, ;;;": "en",
+	h := newSignIn(t)
+	parent := h.browser(t)
+	parent.language = "ru-RU,ru;q=0.9"
+	screen, _ := h.toConsent(parent, h.register(hostRedirect, hostName))
+	stopped := parent.get(h.authorizeURL("an-unknown-client", nil))
+	words := pageWords(t)
+	for name, tc := range map[string]struct {
+		page   reply
+		status int
+		says   string
+	}{
+		"the consent screen":          {screen, http.StatusOK, words["consent.allow"]},
+		"the page a sign-in stops at": {stopped, http.StatusBadRequest, words["refusal.client.heading"]},
 	} {
-		request := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/oauth/authorize", http.NoBody)
-		request.Header.Set("Accept-Language", asked)
-		if got := languageOf(request); got != want {
-			t.Errorf("languageOf(%q) = %q, want %q", asked, got, want)
+		if tc.page.status != tc.status {
+			t.Errorf("%s: status = %d, want %d", name, tc.page.status, tc.status)
+		}
+		if got := tc.page.header.Get("Content-Language"); got != "en" {
+			t.Errorf("%s: Content-Language = %q, want en", name, got)
+		}
+		for _, want := range []string{`<html lang="en">`, html.EscapeString(tc.says)} {
+			if !strings.Contains(tc.page.body, want) {
+				t.Errorf("%s has no %q", name, want)
+			}
 		}
 	}
 }
@@ -199,15 +193,12 @@ func TestAPolicyNamesOnlyTheOriginsItCan(t *testing.T) {
 	}
 }
 
-// consentFor draws the consent screen for a client and an address back, in a
-// language.
-func consentFor(t *testing.T, client, redirectURI, lang string) *httptest.ResponseRecorder {
+// consentFor draws the consent screen for a client and an address back.
+func consentFor(t *testing.T, client, redirectURI string) *httptest.ResponseRecorder {
 	t.Helper()
 
-	request := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/oauth/authorize", http.NoBody)
-	request.Header.Set("Accept-Language", lang)
 	answer := httptest.NewRecorder()
-	if err := pagesOf(t).showConsent(answer, request, consentScreen{
+	if err := pagesOf(t).showConsent(answer, consentScreen{
 		client:      client,
 		redirectURI: redirectURI,
 		request:     "mt1.s.KEYID.the-sealed-request",
@@ -279,7 +270,7 @@ func TestTheConsentScreenSaysWhoAndWhere(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			answer := consentFor(t, tc.client, tc.redirectURI, "en")
+			answer := consentFor(t, tc.client, tc.redirectURI)
 			body := answer.Body.String()
 			for _, want := range tc.shows {
 				if !strings.Contains(body, want) {
@@ -295,17 +286,18 @@ func TestTheConsentScreenSaysWhoAndWhere(t *testing.T) {
 	}
 }
 
-// A page is served as the service's own document: in the language it is drawn
-// in, kept by nobody on the way, loading nothing, framed by nobody, and with a
-// form that may be sent here and on to where it leads.
+// A page is served as the service's own document: in English, kept by nobody
+// on the way, loading nothing, framed by nobody, with the terms and the policy
+// it points to in English too, and with a form that may be sent here and on to
+// where it leads.
 func TestAPageIsServedAsTheServicesOwn(t *testing.T) {
 	t.Parallel()
 
-	answer := consentFor(t, "Claude", "https://claude.ai/api/mcp/auth_callback", "ru")
+	answer := consentFor(t, "Claude", "https://claude.ai/api/mcp/auth_callback")
 	header := answer.Header()
 	for name, want := range map[string]string{
 		"Content-Type":     "text/html; charset=utf-8",
-		"Content-Language": "ru",
+		"Content-Language": "en",
 		"Cache-Control":    "no-store",
 		"Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; " +
 			"form-action 'self' https://accounts.google.com https://claude.ai; frame-ancestors 'none'",
@@ -315,7 +307,7 @@ func TestAPageIsServedAsTheServicesOwn(t *testing.T) {
 		}
 	}
 	body := answer.Body.String()
-	for _, want := range []string{`<html lang="ru">`, "--surface:", testSite + "/ru/terms/", testSite + "/ru/privacy/", "Разрешить"} {
+	for _, want := range []string{`<html lang="en">`, "--surface:", testSite + "/en/terms/", testSite + "/en/privacy/", "Allow"} {
 		if !strings.Contains(body, want) {
 			t.Errorf("the page has no %q", want)
 		}
@@ -327,28 +319,22 @@ func TestAPageIsServedAsTheServicesOwn(t *testing.T) {
 	}
 }
 
-// The pages as a parent sees them, in every language, against the snapshots
-// the review last read. The stylesheet is left out of the comparison: it is
-// the design tokens and the pages' own, which are checked where they are
-// kept.
+// The pages as a parent sees them, against the snapshots the review last
+// read. The stylesheet is left out of the comparison: it is the design tokens
+// and the pages' own, which are checked where they are kept.
 func TestThePagesLookAsTheReviewLastSawThem(t *testing.T) {
 	t.Parallel()
 
 	style := regexp.MustCompile(`(?s)<style>.*?</style>`)
-	for _, tag := range pageLanguages {
-		lang := tag.String()
-		refusal := httptest.NewRecorder()
-		request := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/oauth/callback", http.NoBody)
-		request.Header.Set("Accept-Language", lang)
-		if err := pagesOf(t).showRefusal(refusal, request, stoppedCookie); err != nil {
-			t.Fatalf("showRefusal() error = %v, want nil", err)
-		}
-		for name, answer := range map[string]*httptest.ResponseRecorder{
-			"consent." + lang + ".html": consentFor(t, "Claude", "https://claude.ai/api/mcp/auth_callback", lang),
-			"refusal." + lang + ".html": refusal,
-		} {
-			matchesSnapshot(t, name, style.ReplaceAllString(answer.Body.String(), "<style>…</style>"))
-		}
+	refusal := httptest.NewRecorder()
+	if err := pagesOf(t).showRefusal(refusal, stoppedCookie); err != nil {
+		t.Fatalf("showRefusal() error = %v, want nil", err)
+	}
+	for name, answer := range map[string]*httptest.ResponseRecorder{
+		"consent.en.html": consentFor(t, "Claude", "https://claude.ai/api/mcp/auth_callback"),
+		"refusal.en.html": refusal,
+	} {
+		matchesSnapshot(t, name, style.ReplaceAllString(answer.Body.String(), "<style>…</style>"))
 	}
 }
 
@@ -399,18 +385,11 @@ func pageFilesWith(t *testing.T, replaced map[string]string, dropped ...string) 
 	return files
 }
 
-// Pages that cannot be read, or words that do not say the same things in
-// every language, stop the service before it serves a sign-in.
+// Pages that cannot be read, or words that are not there, stop the service
+// before it serves a sign-in.
 func TestPagesThatCannotBeReadStopTheService(t *testing.T) {
 	t.Parallel()
 
-	// The English words with one key taken out, whatever the file's layout.
-	lacking := wordsIn(t, "en")
-	delete(lacking, "consent.allow")
-	lackingJSON, err := json.Marshal(lacking)
-	if err != nil {
-		t.Fatalf("encoding the words: %v", err)
-	}
 	for _, tc := range []struct {
 		name     string
 		replaced map[string]string
@@ -419,9 +398,8 @@ func TestPagesThatCannotBeReadStopTheService(t *testing.T) {
 		{name: "no consent screen", dropped: []string{"pages/consent.html"}},
 		{name: "a refusal that does not parse", replaced: map[string]string{"pages/refusal.html": "{{ if }}"}},
 		{name: "no stylesheet", dropped: []string{"pages/pages.css"}},
-		{name: "no Russian words", dropped: []string{"pages/ru.json"}},
-		{name: "Russian words that are no words", replaced: map[string]string{"pages/ru.json": "[]"}},
-		{name: "Russian words with a key missing", replaced: map[string]string{"pages/ru.json": string(lackingJSON)}},
+		{name: "no words", dropped: []string{"pages/en.json"}},
+		{name: "words that are no words", replaced: map[string]string{"pages/en.json": "[]"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -440,33 +418,29 @@ func TestPagesThatCannotBeReadStopTheService(t *testing.T) {
 	})
 }
 
-// A parent's browser past the sign-in's pace is shown a page of its own, in
-// the parent's language: 429, what happened and what to do, and kept by no
-// cache.
-func TestABrowserPastThePaceIsShownAPageInItsLanguage(t *testing.T) {
+// A parent's browser past the sign-in's pace is shown a page of its own: 429,
+// what happened and what to do, in English, and kept by no cache.
+func TestABrowserPastThePaceIsShownAPageOfItsOwn(t *testing.T) {
 	t.Parallel()
 
-	for _, lang := range []string{"en", "ru"} {
-		answer := httptest.NewRecorder()
-		request := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/oauth/authorize", http.NoBody)
-		request.Header.Set("Accept-Language", lang)
-		pagesOf(t).busy(answer, request)
+	answer := httptest.NewRecorder()
+	request := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/oauth/authorize", http.NoBody)
+	request.Header.Set("Accept-Language", "ru-RU,ru;q=0.9")
+	pagesOf(t).busy(answer, request)
 
-		if answer.Code != http.StatusTooManyRequests {
-			t.Errorf("in %s: status = %d, want %d", lang, answer.Code, http.StatusTooManyRequests)
+	if answer.Code != http.StatusTooManyRequests {
+		t.Errorf("status = %d, want %d", answer.Code, http.StatusTooManyRequests)
+	}
+	for name, want := range map[string]string{"Content-Language": "en", "Cache-Control": "no-store"} {
+		if got := answer.Header().Get(name); got != want {
+			t.Errorf("%s = %q, want %q", name, got, want)
 		}
-		if got := answer.Header().Get("Content-Language"); got != lang {
-			t.Errorf("in %s: Content-Language = %q, want %q", lang, got, lang)
-		}
-		if got := answer.Header().Get("Cache-Control"); got != "no-store" {
-			t.Errorf("in %s: Cache-Control = %q, want no-store", lang, got)
-		}
-		words := wordsIn(t, lang)
-		body := answer.Body.String()
-		for _, key := range []string{"refusal.busy.heading", "refusal.busy.text"} {
-			if !strings.Contains(body, html.EscapeString(words[key])) {
-				t.Errorf("in %s: the page does not say %q", lang, words[key])
-			}
+	}
+	words := pageWords(t)
+	body := answer.Body.String()
+	for _, key := range []string{"refusal.busy.heading", "refusal.busy.text"} {
+		if !strings.Contains(body, html.EscapeString(words[key])) {
+			t.Errorf("the page does not say %q", words[key])
 		}
 	}
 }

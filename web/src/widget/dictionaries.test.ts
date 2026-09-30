@@ -24,13 +24,23 @@ function strayBraces(text: string): boolean {
 	return /[{}]/.test(text.replace(placeholder, ""));
 }
 
+// hiddenMark says whether a text has a character a reader cannot see, one of
+// Unicode's format characters: a mark that turns the way text runs, a space
+// or a joiner of no width, a soft hyphen. A card sets which way its words run
+// itself, and wraps them itself, and such a character in a wording would do
+// either otherwise. The joiners Persian and the scripts of India write their
+// words with are part of those words, and not among them.
+function hiddenMark(text: string): boolean {
+	return /(?![\u200c\u200d])\p{Cf}/u.test(text);
+}
+
 // disagreements are the ways the words of one language, tagged tag, say other
 // things than the English ones: a key one of them lacks, a wording with other
 // slots, a wording plural in one and not in the other, a text that is empty or
-// no text, a brace that is no placeholder, and a plural wording that does not
-// name exactly the categories its language counts in — one it lacks is a form
-// of the words the card cannot say, and one its language never chooses is a
-// form nobody reads.
+// no text, a brace that is no placeholder, a mark a reader cannot see, and a
+// plural wording that does not name exactly the categories its language
+// counts in — one it lacks is a form of the words the card cannot say, and one
+// its language never chooses is a form nobody reads.
 function disagreements(
 	english: Dictionary,
 	words: Dictionary,
@@ -69,6 +79,13 @@ function disagreements(
 			)
 		) {
 			found.push(`${key} has a brace that is no placeholder`);
+		}
+		if (
+			textsOf(wording).some(
+				(text) => typeof text === "string" && hiddenMark(text),
+			)
+		) {
+			found.push(`${key} has a mark a reader cannot see`);
 		}
 		if (typeof wording !== "string") {
 			const named = Object.keys(wording).sort();
@@ -185,6 +202,36 @@ describe("words that disagree with English", () => {
 			);
 		},
 	);
+
+	test.each([
+		["a mark that turns text right to left", 0x200f],
+		["the mark of Arabic letters", 0x061c],
+		["an embedding that turns it left to right", 0x202a],
+		["a space nobody sees", 0x200b],
+		["a joiner of words that keeps a line from breaking", 0x2060],
+		["a soft hyphen", 0x00ad],
+	])("are caught for %s", (_, mark) => {
+		const hidden: Dictionary = {
+			...english,
+			"task.hint": `Hi${String.fromCodePoint(mark)}nt`,
+		};
+
+		expect(disagreements(english, hidden, "en")).toContain(
+			"task.hint has a mark a reader cannot see",
+		);
+	});
+
+	test.each([
+		["the non-joiner Persian writes its words with", 0x200c],
+		["the joiner the scripts of India write theirs with", 0x200d],
+	])("let %s through", (_, joiner) => {
+		const joined: Dictionary = {
+			...english,
+			"task.hint": `می${String.fromCodePoint(joiner)}شود`,
+		};
+
+		expect(disagreements(english, joined, "en")).toEqual([]);
+	});
 
 	test("are caught for a category their language never chooses", () => {
 		const extra: Dictionary = {

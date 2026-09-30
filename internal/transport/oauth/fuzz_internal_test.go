@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"go.uber.org/zap"
-	"golang.org/x/text/language"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/cimd"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth"
@@ -377,43 +376,4 @@ func FuzzRevoke(f *testing.F) {
 			t.Fatalf("status = %d for %q, want 200 or a refusal", answer.Code, body)
 		}
 	})
-}
-
-// Whatever a browser says it reads, a page is drawn in English or in a language
-// the browser names: never in one it did not ask for.
-func FuzzLanguageOf(f *testing.F) {
-	for _, seed := range []string{
-		"",
-		"ru-RU,ru;q=0.9,en;q=0.8",
-		"xx, ru;q=0.5",
-		"en;q=nonsense, ru;q=0.1",
-		"ru;q=2, en;q=-1",
-		"kk, hy;q=0.5",
-		"*;q=0.1, ,;;",
-		strings.Repeat("ru-", 400),
-	} {
-		f.Add(seed)
-	}
-
-	f.Fuzz(func(t *testing.T, header string) {
-		request := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/oauth/authorize", http.NoBody)
-		request.Header.Set("Accept-Language", header)
-		lang := languageOf(request)
-		if lang != pageLanguages[0].String() && !namedIn(header, lang) {
-			t.Errorf("languageOf(%q) = %q, want English or a language the browser names", header, lang)
-		}
-	})
-}
-
-// namedIn says whether an entry of an Accept-Language header, its tag read on
-// its own, names the language lang outright.
-func namedIn(header, lang string) bool {
-	for entry := range strings.SplitSeq(header, ",") {
-		name, _, _ := strings.Cut(entry, ";")
-		tag, err := language.Parse(strings.TrimSpace(name))
-		if base, confidence := tag.Base(); err == nil && confidence == language.Exact && base.String() == lang {
-			return true
-		}
-	}
-	return false
 }

@@ -94,14 +94,14 @@ func (f *flow) resume(w http.ResponseWriter, r *http.Request, step, sealed strin
 // refusal and why — an error of ours as well, when the page could not be
 // drawn.
 func (f *flow) stopAt(w http.ResponseWriter, r *http.Request, step string, how stop, reason string) {
-	f.events.rejected(r.Context(), step, reason, f.pages.showRefusal(w, r, how))
+	f.events.rejected(r.Context(), step, reason, f.pages.showRefusal(w, how))
 }
 
 // fail stops a step of the sign-in at the page of a failure of this server's
 // own, and leaves one line of it — with the page's own failure beside, when
 // the page could not be drawn either.
 func (f *flow) fail(w http.ResponseWriter, r *http.Request, step string, err error) {
-	if pageErr := f.pages.showRefusal(w, r, stoppedFailed); pageErr != nil {
+	if pageErr := f.pages.showRefusal(w, stoppedFailed); pageErr != nil {
 		err = errors.Join(err, pageErr)
 	}
 	f.events.failed(r.Context(), step, err)

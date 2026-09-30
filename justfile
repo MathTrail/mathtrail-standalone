@@ -47,6 +47,13 @@ INSPECTOR_RUN := "docker run --rm --init --network host -e HOST=127.0.0.1 -e MCP
 # other image this repository runs.
 TRIVY_IMAGE := "aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969"
 
+# The image the widget's layout is measured in: Chromium and WebKit as the pinned
+# Playwright release builds them, with the libraries and the fonts of every
+# script they need, pinned by tag and digest. Its release is the one
+# web/package.json pins playwright-core to, since a release drives only the
+# browsers of its own build.
+PLAYWRIGHT_IMAGE := "mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27"
+
 # The prototype the golden vectors are the numbers of: its public repository, at the
 # commit the copy they were first exported from matched byte for byte.
 PROTOTYPE_REPOSITORY := "https://github.com/MathTrail/llm-taskgen-prototype"
@@ -369,6 +376,30 @@ web-test: web-install
 [working-directory('web')]
 web-preview: web-install
     npm run --silent preview
+
+# Every state of a lesson in the preview, in every language the widget speaks
+# and the pseudo-language, at 320, 360 and 640 px, in Chromium and WebKit: it
+# fails on a page that scrolls sideways, a part that sticks out of its card,
+# and text that runs out of its box or is cut short. The browsers run in their
+# image, as this user, over the repository as it is; what they find, and a
+# picture of every card written right to left, are left in web/layout/.
+# Arguments narrow the run: --engine chromium --language ar --width 320.
+# Measure the widget's layout in real browsers, in every language, at every width a card must fit
+[working-directory('web')]
+web-layout *args: web-install
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # playwright-core drives only the browsers of its own release: a package
+    # moved without the image, or the image without the package, would find no
+    # browser to launch, and say so in words that name neither pin.
+    release=$(node -p 'require("./package.json").devDependencies["playwright-core"]')
+    if [[ "{{ PLAYWRIGHT_IMAGE }}" != *":v${release}-"* ]]; then
+        echo "web-layout: web/package.json pins playwright-core ${release}, and the image is {{ PLAYWRIGHT_IMAGE }}; move them together" >&2
+        exit 1
+    fi
+    docker run --rm --init --shm-size=1g --user "$(id -u):$(id -g)" -e HOME=/tmp \
+        -v "{{ justfile_directory() }}:{{ justfile_directory() }}" -w "{{ justfile_directory() }}/web" \
+        {{ PLAYWRIGHT_IMAGE }} node scripts/layout.ts {{ args }}
 
 # -- The full checks --------------------------------------------------------
 

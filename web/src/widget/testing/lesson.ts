@@ -58,6 +58,26 @@ export const fenceSolutionInRussian =
 	"12 : 3 = 4 промежутка. У прямого забора со столбами на обоих концах столбов на один больше, чем промежутков. 4 + 1 = 5 столбов.";
 
 /**
+ * fenceInArabic is the same task in Arabic, a language written right to
+ * left: its words run that way, its drawing does not.
+ */
+export const fenceInArabic: Handed = {
+	...fence,
+	child: { pseudonym: "مذنّب", grade: 3, ui_language: null },
+	task: {
+		...fence.task,
+		language: "ar",
+		question:
+			"طول السياج 12 مترًا. تقف الأعمدة كل 3 أمتار، ومنها عمودان عند الطرفين. كم عدد الأعمدة؟",
+		hint: "لنبدأ بسياج أقصر: طوله 6 أمتار، وعمود كل 3 أمتار. لنرسمه ونعدّ أعمدته.",
+	},
+};
+
+/** fenceSolutionInArabic is the Arabic one. */
+export const fenceSolutionInArabic =
+	"12 ÷ 3 = 4 مسافات. في السياج المستقيم الذي تقف أعمدته عند طرفيه يزيد عدد الأعمدة على عدد المسافات بواحد. 4 + 1 = 5 أعمدة.";
+
+/**
  * answered is the result of an answer to the fence the service recorded: by
  * default the wrong B, whose trap is counting the gaps, with the rating in the
  * topic going down. Fields given replace the default ones.

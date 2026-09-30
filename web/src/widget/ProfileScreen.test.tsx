@@ -24,9 +24,9 @@ async function draw(payload: object): Promise<Drawn> {
 
 // A profile whose cards speak a language the widget has no words for yet:
 // the card speaks the chat's, and names the chosen one in it.
-const inPortuguese = {
+const inSwahili = {
 	...profileRead,
-	profile: { ...profileRead.profile, ui_language: "pt-BR" },
+	profile: { ...profileRead.profile, ui_language: "sw" },
 };
 
 // fields are the fields of the section labelled label.
@@ -41,7 +41,7 @@ function fields(root: HTMLElement, label: string): string[][] {
 
 describe("the profile's card", () => {
 	test("shows the child's details, and never the parent's notes", async () => {
-		const { root } = await draw(inPortuguese);
+		const { root } = await draw(inSwahili);
 
 		expect(root.querySelector("article")?.getAttribute("aria-label")).toBe(
 			"Profile",
@@ -51,14 +51,14 @@ describe("the profile's card", () => {
 			["Grade", "3", "Only a label: changing it moves no rating."],
 			["Interests", "space, animals, football"],
 			["Not at school yet", "Division with a remainder"],
-			["Language of the cards", "Brazilian Portuguese"],
+			["Language of the cards", "Swahili"],
 		]);
 		expect(root.textContent).not.toContain("Loses heart");
 		expect(root.querySelector(".mt-bar")).toBeNull();
 	});
 
 	test("says where the profile's file is, and what the parent can do with it", async () => {
-		const { root } = await draw(inPortuguese);
+		const { root } = await draw(inSwahili);
 
 		expect(fields(root, "Your data")).toEqual([
 			[
@@ -83,8 +83,8 @@ describe("the profile's card", () => {
 
 	test("names the file alone when it lies in no folder, and no other file when there is none", async () => {
 		const { root } = await draw({
-			...inPortuguese,
-			location: { ...inPortuguese.location, folder: "", others: [] },
+			...inSwahili,
+			location: { ...inSwahili.location, folder: "", others: [] },
 		});
 
 		expect(fields(root, "Your data")[0]).toEqual([
@@ -94,7 +94,7 @@ describe("the profile's card", () => {
 	});
 
 	test("says nothing of the data when its tool does not say where the file is", async () => {
-		const { location: _, ...saved } = inPortuguese;
+		const { location: _, ...saved } = inSwahili;
 		const { root } = await draw(saved);
 
 		expect(fields(root, "Your data")).toEqual([]);
@@ -115,7 +115,7 @@ describe("the profile's card", () => {
 	});
 
 	test("asks the chat to edit the profile", async () => {
-		const { root, heard } = await draw(inPortuguese);
+		const { root, heard } = await draw(inSwahili);
 
 		press(buttonIn(root, "Edit profile"));
 

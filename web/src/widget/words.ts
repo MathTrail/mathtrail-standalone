@@ -1,7 +1,8 @@
 import { createContext } from "preact";
 import { useContext } from "preact/hooks";
-import type english from "../../locales/en.json";
+import english from "../../locales/en.json";
 import { chooseLocale } from "../i18n/lookup";
+import { pseudoLocale, pseudoWords } from "../i18n/pseudo";
 import { type Dictionary, openWords, type Words } from "../i18n/words";
 
 /**
@@ -10,12 +11,9 @@ import { type Dictionary, openWords, type Words } from "../i18n/words";
  */
 export type Key = keyof typeof english;
 
-/**
- * dictionaries are the widget's words in every language it speaks, by the tag
- * their file is named after. The page carries all of them: a card can load
- * nothing, so a language it does not carry is one it can never speak.
- */
-export const dictionaries: ReadonlyMap<string, Dictionary> = new Map(
+// written are the dictionaries of the languages the widget is written in, by
+// the tag their file is named after.
+const written: ReadonlyMap<string, Dictionary> = new Map(
 	Object.entries(
 		import.meta.glob<Dictionary>("../../locales/*.json", {
 			eager: true,
@@ -23,6 +21,20 @@ export const dictionaries: ReadonlyMap<string, Dictionary> = new Map(
 		}),
 	).map(([file, words]) => [tagOf(file), words]),
 );
+
+/**
+ * dictionaries are the widget's words in every language it speaks, by the tag
+ * their file is named after. The page carries all of them: a card can load
+ * nothing, so a language it does not carry is one it can never speak. The
+ * preview and the widget's tests speak the pseudo-language too — English
+ * stretched as a longer language stretches it, to see a card hold longer
+ * words — and a build for production leaves it out, since a host could name
+ * it. It is the build's mode that decides, not the environment it runs in.
+ */
+export const dictionaries: ReadonlyMap<string, Dictionary> =
+	import.meta.env.MODE === "production"
+		? written
+		: new Map([...written, [pseudoLocale, pseudoWords(english)]]);
 
 const spoken: ReadonlySet<string> = new Set(dictionaries.keys());
 

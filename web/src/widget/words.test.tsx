@@ -1,6 +1,7 @@
 import { render } from "preact";
 import { act } from "preact/test-utils";
-import { afterEach, describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import { pseudoLocale } from "../i18n/pseudo";
 import {
 	cardWords,
 	dictionaries,
@@ -16,7 +17,10 @@ describe("a card's words", () => {
 		["en", "ru-RU", "en"],
 		[undefined, "ru-RU", "ru"],
 		["kk", "ru-RU", "ru"],
-		[undefined, "es-MX", "en"],
+		[undefined, "es-MX", "es"],
+		["pt-BR", "ru-RU", "pt"],
+		[undefined, "zh-CN", "zh-Hans"],
+		[undefined, "sw-KE", "en"],
 		[undefined, undefined, "en"],
 	])(
 		"with the language chosen %s and the host's %s are in %s",
@@ -35,9 +39,32 @@ describe("a card's words", () => {
 		).toBe("Grade 3");
 	});
 
-	test("are in English and in Russian", () => {
+	test("are in every one of the twenty-two languages of v1", () => {
 		expect([...dictionaries.keys()]).toEqual(
-			expect.arrayContaining(["en", "ru"]),
+			expect.arrayContaining([
+				"en",
+				"zh-Hans",
+				"hi",
+				"es",
+				"ar",
+				"fr",
+				"bn",
+				"pt",
+				"ru",
+				"ur",
+				"id",
+				"de",
+				"ja",
+				"tr",
+				"ko",
+				"vi",
+				"it",
+				"fa",
+				"pl",
+				"uk",
+				"th",
+				"nl",
+			]),
 		);
 	});
 });
@@ -138,5 +165,26 @@ describe("a component inside a card", () => {
 		act(() => render(<Hint />, root));
 
 		expect(root.textContent).toBe("Hint");
+	});
+});
+
+describe("the pseudo-language", () => {
+	afterEach(() => {
+		vi.unstubAllEnvs();
+		vi.resetModules();
+	});
+
+	test("is spoken by the preview and the tests", () => {
+		expect(dictionaries.has(pseudoLocale)).toBe(true);
+	});
+
+	test("is left out of a build for production, which a host could ask it of", async () => {
+		vi.stubEnv("MODE", "production");
+		vi.resetModules();
+
+		const { dictionaries: shipped } = await import("./words");
+
+		expect(shipped.has(pseudoLocale)).toBe(false);
+		expect(shipped.has("en")).toBe(true);
 	});
 });
