@@ -36,7 +36,18 @@ var wellMadeDrawings = map[string]string{
 	"as many lines as a drawing may have":       strings.TrimSuffix(strings.Repeat("│\n", 12), "\n"),
 	"as many spaces in a row as allowed":        "A" + strings.Repeat(" ", 20) + "B",
 	"a newline at the end, which opens no line": strings.Repeat("│\n", 12),
-	"wide characters, two cells each":           strings.Repeat("◽", 15),
+	"every character a drawing may use":         linesOf(checks.DrawingCharacters, 30),
+}
+
+// linesOf is the characters of text in lines of at most width characters.
+func linesOf(text string, width int) string {
+	var lines []string
+	for runes := []rune(text); len(runes) > 0; {
+		cut := min(width, len(runes))
+		lines = append(lines, string(runes[:cut]))
+		runes = runes[cut:]
+	}
+	return strings.Join(lines, "\n")
 }
 
 func TestAWellMadeDrawingPasses(t *testing.T) {
@@ -63,7 +74,6 @@ func TestEachFormatRuleRefusesOnItsOwn(t *testing.T) {
 	}{
 		{"a line too many", strings.Repeat("│\n", 13), "task.drawing has 13 lines, and a drawing may have at most 12"},
 		{"a line a cell too wide", strings.Repeat("─", 31), "wider than 30 cells on line 1"},
-		{"wide characters count two cells each", strings.Repeat("◽", 16), "wider than 30 cells on line 1"},
 		{"a space too many in a row", "A" + strings.Repeat(" ", 21) + "B", "more than 20 spaces in a row on line 1"},
 		{"a space at the end of a line", "A───B \n│", "spaces at the end of line 1"},
 		{"a tab", "A\t───B", "tabs on line 1 (U+0009)"},
@@ -80,6 +90,18 @@ func TestEachFormatRuleRefusesOnItsOwn(t *testing.T) {
 		{"an emoji", "A───🍎", "characters a drawing may not use on line 1 (U+1F34E)"},
 		{"a Cyrillic letter that looks Latin", "А───B", "characters a drawing may not use on line 1 (U+0410)"},
 		{"a Chinese character", "A───猫", "characters a drawing may not use on line 1 (U+732B)"},
+		// Box drawing, blocks, shapes and arrows that a common monospaced font
+		// lacks, and draws from another font out of line with the rest.
+		{"a double arrow", "A───⇒B", "characters a drawing may not use on line 1 (U+21D2)"},
+		{"a rounded corner", "╭───B", "characters a drawing may not use on line 1 (U+256D)"},
+		{"a diagonal", "A╲B", "characters a drawing may not use on line 1 (U+2572)"},
+		{"a heavy line", "A━━━B", "characters a drawing may not use on line 1 (U+2501)"},
+		{"a diamond", "A─◆─B", "characters a drawing may not use on line 1 (U+25C6)"},
+		{"a lower block", "A▁▁B", "characters a drawing may not use on line 1 (U+2581)"},
+		{"a wide square", "A◽B", "characters a drawing may not use on line 1 (U+25FD)"},
+		{"an arrow asked to be an emoji", "A→\uFE0FB", "combining marks on line 1 (U+FE0F)"},
+		{"a double-headed arrow, which is also an emoji", "A↔B", "characters a drawing may not use on line 1 (U+2194)"},
+		{"a small square, which is also an emoji", "A▪B", "characters a drawing may not use on line 1 (U+25AA)"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
@@ -121,6 +143,22 @@ func TestTheWidthIsCountedInScreenCells(t *testing.T) {
 				t.Errorf("DrawingFormat() = %v, want too wide %v", problems, test.tooWide)
 			}
 		})
+	}
+}
+
+// Every character a drawing may use takes one cell, as ASCII does: a drawing
+// of them is as wide as it is long, and lines of it stand under one another.
+func TestEveryDrawingCharacterTakesOneCell(t *testing.T) {
+	t.Parallel()
+
+	for _, r := range checks.DrawingCharacters {
+		line := strings.Repeat(string(r), 30)
+		if problems := checks.DrawingFormat(line, checks.DefaultDrawingLimits()); len(problems) != 0 {
+			t.Errorf("thirty of U+%04X = %v, want them thirty cells and allowed", r, problems)
+		}
+		if !mentions(checks.DrawingFormat(line+string(r), checks.DefaultDrawingLimits()), "wider than 30 cells") {
+			t.Errorf("thirty-one of U+%04X fit thirty cells, want each one cell", r)
+		}
 	}
 }
 

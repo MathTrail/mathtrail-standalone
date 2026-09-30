@@ -21,11 +21,12 @@ type DrawingLimits struct {
 }
 
 // DefaultDrawingLimits are the limits every drawing is held to, set here and
-// nowhere else. Thirty cells is what a phone card 353 pixels wide showed
-// legibly without scrolling sideways, twelve lines fit the card without
-// pushing its buttons off the screen, and a drawing held together by a longer
-// run of spaces falls apart in any font that is not monospaced. All three are
-// conservative until a live run on real widgets calibrates them.
+// nowhere else, as the widget's card measured them. Thirty cells is what its
+// drawing holds without scrolling sideways on a card 320 pixels wide — a phone
+// 360 wide once a host's margins are off — and 34 on a card 353 wide; twelve
+// lines leave the question, the drawing and the five options on one phone
+// screen; and a drawing held together by a longer run of spaces falls apart in
+// any font that is not monospaced.
 func DefaultDrawingLimits() DrawingLimits {
 	return DrawingLimits{Width: 30, Height: 12, SpaceRun: 20}
 }
@@ -113,20 +114,25 @@ func longestSpaceRun(line string) int {
 	return longest
 }
 
-// drawable says whether a drawing may use a character: printable ASCII, and
-// the arrows, box drawing, block elements and geometric shapes a frame is made
-// of. Anything else renders differently from one font to the next.
+// DrawingCharacters are the characters a drawing may use besides printable
+// ASCII: the box drawing, block elements, geometric shapes and arrows that
+// every monospaced font draws one cell wide. They are the ones of the WGL4 set
+// — what Consolas, Courier New, Droid Sans Mono and Liberation Mono all carry —
+// that measured one cell wide in Liberation Mono, DejaVu Sans Mono and Noto
+// Sans Mono alike; the rest of their blocks fall back to another font, and a
+// line drawn with them runs out of true with the lines around it. Of those,
+// ↔ ↕ ▪ ▫ are left out too: they are also emoji, and a phone whose font lacks
+// one may draw it as a colour picture two cells wide.
+const DrawingCharacters = "─│┌┐└┘├┤┬┴┼═║╒╓╔╕╖╗╘╙╚╛╜╝╞╟╠╡╢╣╤╥╦╧╨╩╪╫╬" +
+	"▀▄█▌▐░▒▓" +
+	"■□▬▲►▼◄◊○●◘◙◦" +
+	"←↑→↓"
+
+// drawable says whether a drawing may use a character: printable ASCII and
+// the characters of DrawingCharacters. Anything else renders differently from
+// one font to the next.
 func drawable(r rune) bool {
-	switch {
-	case r >= 0x0020 && r <= 0x007E: // printable ASCII
-	case r >= 0x2190 && r <= 0x21FF: // arrows
-	case r >= 0x2500 && r <= 0x257F: // box drawing
-	case r >= 0x2580 && r <= 0x259F: // block elements
-	case r >= 0x25A0 && r <= 0x25FF: // geometric shapes
-	default:
-		return false
-	}
-	return true
+	return (r >= 0x0020 && r <= 0x007E) || strings.ContainsRune(DrawingCharacters, r)
 }
 
 // A characterFault is a kind of character a drawing may not use: what a
@@ -149,7 +155,7 @@ var characterFaults = []characterFault{
 	{"invisible characters", "remove them", func(r rune) bool { return unicode.Is(unicode.Cf, r) }},
 	{"spaces other than the plain space", "use the plain space", func(r rune) bool { return unicode.Is(unicode.Zs, r) }},
 	{"combining marks", "use characters that stand on their own", func(r rune) bool { return unicode.Is(unicode.M, r) }},
-	{"characters a drawing may not use", "draw with ASCII, box drawing, block elements, geometric shapes and arrows",
+	{"characters a drawing may not use", "draw with ASCII and " + DrawingCharacters + " alone",
 		func(rune) bool { return true }},
 }
 

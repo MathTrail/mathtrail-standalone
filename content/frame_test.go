@@ -24,12 +24,6 @@ type filled struct {
 	Structure *checks.DrawingStructure `json:"drawing_structure"`
 }
 
-// emojiLike are the characters a drawing may hold that some platforms draw as
-// a colour emoji two cells wide, while the check counts each as one cell. A
-// frame keeps away from them, since it is copied into every drawing made
-// from it.
-var emojiLike = []rune{'↔', '↕', '↖', '↗', '↘', '↙', '↩', '↪', '▪', '▫', '▶', '◀', '◻', '◼', '◽', '◾'}
-
 // Every frame is a drawing the checks accept as it stands, with the limits
 // every submitted drawing is held to: a frame that failed them would teach the
 // model to fail them too.
@@ -230,11 +224,6 @@ func holdsToTheDrawingChecks(t *testing.T, question, drawing string, structure *
 	for _, written := range lettered(drawing) {
 		if !declared[written] {
 			t.Errorf("%q is drawn and not declared: a drawing holds labels, and no words or units", written)
-		}
-	}
-	for _, r := range drawing {
-		if slices.Contains(emojiLike, r) {
-			t.Errorf("%c (U+%04X) is drawn, and a platform may draw it as a wide colour emoji", r, r)
 		}
 	}
 }

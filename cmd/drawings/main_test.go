@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -27,8 +28,9 @@ func theSet(t *testing.T) []sample {
 }
 
 // Every drawing of the set is exactly as large as it says, measured as the
-// checks measure a drawing, and uses no character a drawing may not: a rating
-// is only worth what the size it is written down against is.
+// checks measure a drawing, and uses no character a drawing may not — but the
+// one that shows those characters for comparison, which is refused for them
+// alone: a rating is only worth what the size it is written down against is.
 func TestEveryDrawingIsAsLargeAsItSays(t *testing.T) {
 	t.Parallel()
 
@@ -39,30 +41,35 @@ func TestEveryDrawingIsAsLargeAsItSays(t *testing.T) {
 			fits := checks.DrawingLimits{
 				Width: drawing.width, Height: drawing.height, SpaceRun: checks.DefaultDrawingLimits().SpaceRun,
 			}
-			if problems := checks.DrawingFormat(drawing.drawing, fits); len(problems) != 0 {
+			problems := checks.DrawingFormat(drawing.drawing, fits)
+			switch {
+			case drawing.outOfSet && (len(problems) != 1 || !strings.Contains(problems[0].Message, "may not use")):
+				t.Errorf("DrawingFormat() at %dx%d = %v, want it refused for its characters alone",
+					drawing.width, drawing.height, problems)
+			case !drawing.outOfSet && len(problems) != 0:
 				t.Errorf("DrawingFormat() at %dx%d = %v, want none", drawing.width, drawing.height, problems)
 			}
 			narrower, shorter := fits, fits
 			narrower.Width--
 			shorter.Height--
-			if len(checks.DrawingFormat(drawing.drawing, narrower)) == 0 {
+			if len(checks.DrawingFormat(drawing.drawing, narrower)) == len(problems) {
 				t.Errorf("the drawing fits %d cells, want it %d wide", narrower.Width, drawing.width)
 			}
-			if len(checks.DrawingFormat(drawing.drawing, shorter)) == 0 {
+			if len(checks.DrawingFormat(drawing.drawing, shorter)) == len(problems) {
 				t.Errorf("the drawing fits %d lines, want it %d tall", shorter.Height, drawing.height)
 			}
 		})
 	}
 }
 
-// The set holds every width, every height, the four classes of characters and
-// both frames: a frame renamed in the content would otherwise drop out of it
-// unseen.
+// The set holds every width, every height, the four classes of characters, the
+// characters left out beside them, and both frames: a frame renamed in the
+// content would otherwise drop out of it unseen.
 func TestTheSetHoldsEveryCase(t *testing.T) {
 	t.Parallel()
 
 	widths, heights := ladders()
-	if got, want := len(theSet(t)), len(widths)+len(heights)+4+2; got != want {
+	if got, want := len(theSet(t)), len(widths)+len(heights)+5+2; got != want {
 		t.Errorf("the set holds %d drawings, want %d", got, want)
 	}
 }

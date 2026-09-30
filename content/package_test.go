@@ -85,9 +85,10 @@ type shape struct {
 		SentenceCharacters int `json:"sentence_characters"`
 		FleschKincaidGrade int `json:"flesch_kincaid_grade"`
 		Drawing            struct {
-			Width    int `json:"width"`
-			Height   int `json:"height"`
-			SpaceRun int `json:"space_run"`
+			Width      int    `json:"width"`
+			Height     int    `json:"height"`
+			SpaceRun   int    `json:"space_run"`
+			Characters string `json:"characters"`
 		} `json:"drawing"`
 	} `json:"limits"`
 	Guide               string `json:"guide"`
@@ -192,7 +193,8 @@ func TestAPackageCarriesTheChildAndWhatTheTaskIsHeldTo(t *testing.T) {
 	readable, drawn := checks.ReadabilityLimitsFor(asked.Brief.GradeLevel), checks.DefaultDrawingLimits()
 	if got.Limits.SentenceWords != readable.SentenceWords || got.Limits.SentenceCharacters != readable.SentenceCharacters ||
 		got.Limits.FleschKincaidGrade != readable.FleschKincaid || got.Limits.Drawing.Width != drawn.Width ||
-		got.Limits.Drawing.Height != drawn.Height || got.Limits.Drawing.SpaceRun != drawn.SpaceRun {
+		got.Limits.Drawing.Height != drawn.Height || got.Limits.Drawing.SpaceRun != drawn.SpaceRun ||
+		got.Limits.Drawing.Characters != checks.DrawingCharacters {
 		t.Errorf("limits = %+v, want the ones the checks hold a task to", got.Limits)
 	}
 	if guide, _ := shipped.Instruction("task_writing.md"); got.Guide != guide {

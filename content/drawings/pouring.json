@@ -1,5 +1,5 @@
 {
-  "purpose": "Containers A, B and C, such as a bucket and two jugs. Write how much each holds now over the ## inside it, and how much it can hold over the ## under it. Leave out a container the task does not have, or add another alongside.",
+  "purpose": "Containers A, B and C, such as a bucket and two jugs: name them in the question, or leave the letters out and let the amounts the question gives be the labels. Write how much each holds now over the ## inside it, and how much it can hold over the ## under it. Leave out a container the task does not have, or add another alongside.",
   "topics": ["algorithms.weighing_pouring"],
   "drawing": [
     "  A       B       C",

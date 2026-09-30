@@ -164,11 +164,13 @@ type packageLimits struct {
 	Drawing            drawingLimits `json:"drawing"`
 }
 
-// drawingLimits are how large a drawing may be.
+// drawingLimits are how large a drawing may be, and the characters it may use
+// besides ASCII.
 type drawingLimits struct {
-	Width    int `json:"width"`
-	Height   int `json:"height"`
-	SpaceRun int `json:"space_run"`
+	Width      int    `json:"width"`
+	Height     int    `json:"height"`
+	SpaceRun   int    `json:"space_run"`
+	Characters string `json:"characters"`
 }
 
 // contentsFor gathers every part of a package for one request.
@@ -200,7 +202,9 @@ func (c *Content) contentsFor(request *Request) (packageContents, error) {
 			SentenceWords:      readable.SentenceWords,
 			SentenceCharacters: readable.SentenceCharacters,
 			FleschKincaidGrade: readable.FleschKincaid,
-			Drawing:            drawingLimits{Width: drawn.Width, Height: drawn.Height, SpaceRun: drawn.SpaceRun},
+			Drawing: drawingLimits{
+				Width: drawn.Width, Height: drawn.Height, SpaceRun: drawn.SpaceRun, Characters: checks.DrawingCharacters,
+			},
 		},
 		Templates:           c.templatePrograms(topic.ID),
 		Frames:              c.framesFor(topic.ID),

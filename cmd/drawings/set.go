@@ -16,6 +16,9 @@ type sample struct {
 	width   int
 	height  int
 	drawing string
+	// outOfSet says the drawing is made of characters a drawing may not use,
+	// shown beside the ones it may for comparison.
+	outOfSet bool
 }
 
 // ladders are the widths and the heights the set tries: from a little under
@@ -38,7 +41,8 @@ const classWidth = 29
 
 // calibrationSet is every drawing the server shows, in the order they are
 // numbered: the widths, the heights, the classes of characters a drawing may
-// use besides ASCII, and two frames the model is given, as it is given them.
+// use besides ASCII and the ones it may not beside them, and two frames the
+// model is given, as it is given them.
 func calibrationSet(frames []content.Frame) []sample {
 	widths, heights := ladders()
 	set := make([]sample, 0, len(widths)+len(heights)+8)
@@ -109,48 +113,59 @@ func tall(height int) string {
 
 // characterClasses are the characters a drawing may use besides ASCII, each
 // class under a row of ASCII digits as long as its lines: a class a font draws
-// wider or narrower than a digit leaves the digits' right edge.
+// wider or narrower than a digit leaves the digits' right edge. The last is
+// characters a drawing may not use, which some fonts draw out of line: the
+// same test shows why they are left out.
 func characterClasses() []sample {
 	const look = "Do the right ends of all lines stand exactly under the last digit of the top line?"
 	classes := []struct {
-		name  string
-		lines []string
+		name     string
+		lines    []string
+		outOfSet bool
 	}{
 		{"box drawing", []string{
 			"┌──────┬──────┬──────┬──────┐",
 			"│ A    │ B    │ C    │ D    │",
-			"├──────┼──────┼──────┼──────┤",
-			"│ E    │ F    │ G    │ H    │",
-			"└──────┴──────┴──────┴──────┘",
-		}},
+			"╞══════╪══════╪══════╪══════╡",
+			"║ E    ║ F    ║ G    ║ H    ║",
+			"╚══════╩══════╩══════╩══════╝",
+		}, false},
 		{"block elements", []string{
 			pattern("█", classWidth),
 			pattern("▓", 10) + pattern("▒", 10) + pattern("░", classWidth-20),
 			pattern("▀", 14) + pattern("▄", classWidth-14),
 			pattern("▌▐", classWidth),
-		}},
+		}, false},
 		{"geometric shapes", []string{
 			pattern("■□", classWidth),
-			pattern("▲△", classWidth),
-			pattern("●○", classWidth),
-			pattern("◆◇", classWidth),
-		}},
+			pattern("▲►▼◄", classWidth),
+			pattern("○●◘◙", classWidth),
+			pattern("◊◦▬", classWidth),
+		}, false},
 		{"arrows", []string{
 			pattern("←→", classWidth),
 			pattern("↑↓", classWidth),
-			pattern("↔↕", classWidth),
+		}, false},
+		{"characters a drawing may not use", []string{
 			pattern("⇐⇒", classWidth),
-		}},
+			pattern("◆◇△", classWidth),
+			pattern("╭╮╰╯", classWidth),
+			pattern("━┃", classWidth),
+			pattern("╱╲", classWidth),
+			pattern("▁▂▃", classWidth),
+			pattern("↔↕▪▫", classWidth),
+		}, true},
 	}
 	samples := make([]sample, 0, len(classes))
 	for _, class := range classes {
 		lines := append([]string{digits(classWidth)}, class.lines...)
 		samples = append(samples, sample{
-			name:    class.name + " against ASCII digits",
-			look:    look,
-			width:   classWidth,
-			height:  len(lines),
-			drawing: strings.Join(lines, "\n"),
+			name:     class.name + " against ASCII digits",
+			look:     look,
+			width:    classWidth,
+			height:   len(lines),
+			drawing:  strings.Join(lines, "\n"),
+			outOfSet: class.outOfSet,
 		})
 	}
 	return samples
