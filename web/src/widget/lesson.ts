@@ -196,6 +196,8 @@ export function optionStateOf(answer: Answer, letter: Letter): OptionState {
  * answer recorded before — in the chat, in another card — as it was recorded.
  * The model wrote the task, so it holds the options, the traps and the
  * solution already; after an answer, naming the letters gives nothing away.
+ * A mistake the child has made before asks for a reminder of it, in the
+ * model's own words, since the card keeps none.
  */
 export function modelLineOf(result: AnswerResult): string {
 	const task = `Task ${result.task_id} has its answer recorded`;
@@ -207,5 +209,9 @@ export function modelLineOf(result: AnswerResult): string {
 	}
 	const shown =
 		result.trap === null ? "the solution" : "the trap and the solution";
-	return `${task}: ${result.choice}, which is wrong; the right option is ${result.correct_answer}. The card shows ${shown}.`;
+	const line = `${task}: ${result.choice}, which is wrong; the right option is ${result.correct_answer}. The card shows ${shown}.`;
+	if (result.trap?.repeated) {
+		return `${line} The child has made this mistake before among the latest answers: end your explanation with one short reminder of it, in your own words, that the child can keep in mind next time.`;
+	}
+	return line;
 }

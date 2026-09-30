@@ -191,6 +191,15 @@ func (s *Service) skillName(id string) string {
 	return id
 }
 
+// trapDescribed is what the catalog says of a trap, as an item of a list, or
+// its id when the catalog has no such trap.
+func (s *Service) trapDescribed(id string) string {
+	if description, found := s.content.TrapDescription(id); found {
+		return strings.TrimSuffix(description, ".")
+	}
+	return id
+}
+
 // trialLine says how far the trial series has got and what comes after it, or
 // nothing once it is over.
 func trialLine(trial *progress.Trial) string {

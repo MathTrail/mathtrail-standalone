@@ -1,22 +1,34 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import skills from "../../../content/catalogs/skills.json";
 import topics from "../../../content/catalogs/topics.json";
+import traps from "../../../content/catalogs/traps.json";
 import english from "../../locales/en.json";
-import { languageName, listed, rankName, skillName, topicName } from "./names";
+import {
+	languageName,
+	listed,
+	rankName,
+	skillName,
+	topicName,
+	trapName,
+} from "./names";
 import { cardWords } from "./words";
 
 const inEnglish = cardWords("en", undefined);
 const inRussian = cardWords("ru", undefined);
 
 describe("the catalogs' names", () => {
-	// A topic or a skill the service can name that the card has no words for
-	// would reach the child as its id.
+	// A topic, a skill or a mistake the service can name that the card has no
+	// words for would reach the child as its id.
 	test.each(topics.map((topic) => topic.id))("the topic %s has words", (id) => {
 		expect(Object.hasOwn(english, `topic.${id}`)).toBe(true);
 	});
 
 	test.each(skills.map((skill) => skill.id))("the skill %s has words", (id) => {
 		expect(Object.hasOwn(english, `skill.${id}`)).toBe(true);
+	});
+
+	test.each(traps.map((trap) => trap.id))("the mistake %s has words", (id) => {
+		expect(Object.hasOwn(english, `trap.${id}`)).toBe(true);
 	});
 
 	test("are said in the card's language", () => {
@@ -27,11 +39,18 @@ describe("the catalogs' names", () => {
 		expect(skillName(inRussian, "division_with_remainder")).toBe(
 			"Деление с остатком",
 		);
+		expect(trapName(inEnglish, "missed_case")).toBe(
+			"Missed a case while listing",
+		);
+		expect(trapName(inRussian, "double_count")).toBe(
+			"Одно и то же посчитано дважды",
+		);
 	});
 
 	test("the card has no words for are called by their ids", () => {
 		expect(topicName(inEnglish, "logic.unknown")).toBe("logic.unknown");
 		expect(skillName(inEnglish, "juggling")).toBe("juggling");
+		expect(trapName(inEnglish, "counted_the_cat")).toBe("counted_the_cat");
 	});
 });
 

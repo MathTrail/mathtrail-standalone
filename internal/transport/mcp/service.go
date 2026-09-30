@@ -10,6 +10,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/content"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/progress"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 )
 
@@ -26,6 +27,7 @@ type Service struct {
 	sealer   profile.Sealer
 	window   time.Duration
 	daily    Daily
+	repeats  int
 	now      func() time.Time
 	version  string
 	events   *lessonLog
@@ -49,6 +51,9 @@ type Parts struct {
 	Window time.Duration
 	// Daily are the ceilings of a child's day, past which no task is asked for.
 	Daily Daily
+	// TrapRepeats is how many of the latest answers a trap has to be behind to
+	// count as a mistake that repeats.
+	TrapRepeats int
 	// Now is the clock every write is stamped with.
 	Now func() time.Time
 	// Version is the build that writes the profile.
@@ -81,6 +86,9 @@ func NewService(parts *Parts) (*Service, error) {
 		return nil, fmt.Errorf("%w: the tools need a window to wait for a task in", ErrSettings)
 	case parts.Daily.Tasks < 1, parts.Daily.Failed < 1:
 		return nil, fmt.Errorf("%w: the tools need a day with room for a task", ErrSettings)
+	case parts.TrapRepeats < progress.FewestRepeats, parts.TrapRepeats > profile.MaxRecent:
+		return nil, fmt.Errorf("%w: the tools need a mistake to repeat at from %d to %d answers of the window",
+			ErrSettings, progress.FewestRepeats, profile.MaxRecent)
 	case parts.Now == nil:
 		return nil, fmt.Errorf("%w: the tools need a clock", ErrSettings)
 	case parts.Version == "":
@@ -97,6 +105,7 @@ func NewService(parts *Parts) (*Service, error) {
 		sealer:   parts.Sealer,
 		window:   parts.Window,
 		daily:    parts.Daily,
+		repeats:  parts.TrapRepeats,
 		now:      parts.Now,
 		version:  parts.Version,
 		events: &lessonLog{

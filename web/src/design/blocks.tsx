@@ -38,17 +38,20 @@ export type NoteTone = "plain" | "hint" | "trap";
 /**
  * Note is a short labelled block: the hint, set aside from the task, the trap
  * behind a wrong answer, or a plain remark. Its words are in the language
- * said, its label in the card's.
+ * said; its label, and the detail under the words when there is one, in the
+ * card's.
  */
 export function Note({
 	tone = "plain",
 	label,
 	said = {},
+	detail,
 	children,
 }: {
 	tone?: NoteTone;
 	label: string;
 	said?: Said;
+	detail?: string;
 	children: ComponentChildren;
 }) {
 	const Element = tone === "hint" ? "aside" : "div";
@@ -61,6 +64,7 @@ export function Note({
 			<p lang={said.lang} dir={said.dir}>
 				{children}
 			</p>
+			{detail !== undefined && <p class="mt-note-detail">{detail}</p>}
 		</Element>
 	);
 }

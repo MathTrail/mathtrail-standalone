@@ -64,9 +64,9 @@ type Topic struct {
 	// TopStreak is the run of correct answers at the harder half of the
 	// corridor with no hint — the run that earns mastery.
 	TopStreak int `json:"top_streak"`
-	// Traps is how often this child fell for each trap in this topic. The
-	// rule picks the two most frequent, and the progress screen draws the map
-	// of misconceptions from the same numbers.
+	// Traps is how often this child fell for each trap in this topic, ever.
+	// The rule picks the two most frequent; the map of misconceptions counts
+	// the history window instead, so that a mistake left behind drops out.
 	Traps map[string]int `json:"traps"`
 	// WrongStreak is the run of wrong answers in this topic. It is what mastery
 	// is lost by, and it is counted rather than read back out of the history

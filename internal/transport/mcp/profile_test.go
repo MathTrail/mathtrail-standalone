@@ -80,9 +80,16 @@ type progressPayload struct {
 	Recent []struct {
 		Topic string `json:"topic"`
 	} `json:"recent"`
+	Mistakes       []mistakePayload `json:"mistakes"`
 	Recommendation *struct {
 		Topic string `json:"topic"`
 	} `json:"recommendation"`
+}
+
+// mistakePayload is a mistake on the map of misconceptions.
+type mistakePayload struct {
+	Trap  string `json:"trap"`
+	Times int    `json:"times"`
 }
 
 type trialPayload struct {
@@ -699,6 +706,10 @@ func TestAServiceWithAPartMissingIsNotBuilt(t *testing.T) {
 		{"no window", func(p *mcpserver.Parts) { p.Window = 0 }},
 		{"no task in a day", func(p *mcpserver.Parts) { p.Daily.Tasks = 0 }},
 		{"no failure in a day", func(p *mcpserver.Parts) { p.Daily.Failed = 0 }},
+		{"a mistake that repeats once", func(p *mcpserver.Parts) { p.TrapRepeats = 1 }},
+		{"a mistake that repeats more often than the window holds", func(p *mcpserver.Parts) {
+			p.TrapRepeats = profile.MaxRecent + 1
+		}},
 		{"no clock", func(p *mcpserver.Parts) { p.Now = nil }},
 		{"no version", func(p *mcpserver.Parts) { p.Version = "" }},
 		{"no logger", func(p *mcpserver.Parts) { p.Logger = nil }},
@@ -729,15 +740,71 @@ func allParts(t *testing.T) *mcpserver.Parts {
 		t.Fatalf("build the sandbox: %v", err)
 	}
 	return &mcpserver.Parts{
-		Store:    memory.New(),
-		Content:  loaded,
-		Reviewer: checks.NewReviewer(loaded, runner, checks.DefaultDrawingLimits()),
-		Sealer:   sealer(t),
-		Window:   time.Minute,
-		Daily:    mcpserver.Daily{Tasks: config.DefaultDailyTasks, Failed: config.DefaultDailyFailed},
-		Now:      func() time.Time { return lessonDay },
-		Version:  "test",
-		Logger:   zap.NewNop(),
-		Traces:   tracenoop.NewTracerProvider(),
+		Store:       memory.New(),
+		Content:     loaded,
+		Reviewer:    checks.NewReviewer(loaded, runner, checks.DefaultDrawingLimits()),
+		Sealer:      sealer(t),
+		Window:      time.Minute,
+		Daily:       mcpserver.Daily{Tasks: config.DefaultDailyTasks, Failed: config.DefaultDailyFailed},
+		TrapRepeats: config.DefaultTrapRepeats,
+		Now:         func() time.Time { return lessonDay },
+		Version:     "test",
+		Logger:      zap.NewNop(),
+		Traces:      tracenoop.NewTracerProvider(),
+	}
+}
+
+// The map of misconceptions lists the traps the child fell for again among the
+// latest answers, by their ids and how many times, the most frequent first, and
+// the words name them for the model by what the catalog says of them. Olya fell
+// for double_count once; once more puts it on the map.
+func TestTheProgressMapsTheMistakesThatRepeat(t *testing.T) {
+	t.Parallel()
+
+	kept := keptAs(t, "olya", func(p *profile.Profile) {
+		p.Recent = append(p.Recent, profile.Answer{
+			AnsweredAt: profile.At(lessonDay), Chosen: "B", Difficulty: 3, GradeLevel: rating.Grades34,
+			Pace: profile.PaceNormal, TaskID: "tsk_olya_again", Topic: "combinatorics.enumeration",
+			Trap: "double_count",
+		})
+	})
+	_, session := lesson(t, kept)
+
+	result := call(t, session, "get_progress", nil)
+	want := []mistakePayload{{Trap: "double_count", Times: 2}}
+	if got := payloadOf[progressPayload](t, result).Mistakes; !slices.Equal(got, want) {
+		t.Errorf("mistakes = %+v, want %+v", got, want)
+	}
+	if text := textOf(t, result); !strings.Contains(text,
+		"Mistakes that keep coming back among the latest answers, the most frequent first: "+
+			"Counted the same option twice (2 times).") {
+		t.Errorf("the words are %q, want the mistake named by the catalog", text)
+	}
+}
+
+// A child with no mistake that repeats, and a parent with no profile yet, get
+// an empty map rather than none: the card draws a list, never nothing.
+func TestAMapWithNoMistakeIsEmpty(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name string
+		kept store.Storage
+	}{
+		{"olya", keptWith(t, "olya")},
+		{"no profile", memory.New()},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, session := lesson(t, tc.kept)
+			result := call(t, session, "get_progress", nil)
+			if raw := string(rawPayload(t, result)); !strings.Contains(raw, `"mistakes":[]`) {
+				t.Errorf("the payload is %s, want an empty map", raw)
+			}
+			if strings.Contains(textOf(t, result), "Mistakes that keep coming back") {
+				t.Errorf("the words name mistakes when there are none: %s", textOf(t, result))
+			}
+		})
 	}
 }

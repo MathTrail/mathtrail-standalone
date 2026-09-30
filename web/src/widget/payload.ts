@@ -71,7 +71,15 @@ const answerResult = z.object({
 	choice: z.union([letter, z.literal(dontKnow)]),
 	correct: z.boolean(),
 	correct_answer: letter,
-	trap: z.object({ id: z.string(), text: z.string() }).nullable(),
+	trap: z
+		.object({
+			id: z.string(),
+			text: z.string(),
+			// A result from before mistakes were marked as repeating says nothing
+			// of it, and is read as one that does not.
+			repeated: z.boolean().default(false),
+		})
+		.nullable(),
 	solution: z.string(),
 	hint_used: z.boolean(),
 	rating: z.object({ before: z.number(), after: z.number() }).nullable(),
@@ -220,6 +228,11 @@ const progressReport = z.object({
 			skipped: z.boolean(),
 		}),
 	),
+	// A progress from before the map of mistakes has none, and is read as one
+	// where nothing repeats: a card of an earlier chat, drawn again, still shows.
+	mistakes: z
+		.array(z.object({ trap: z.string(), times: z.number().int().positive() }))
+		.default([]),
 	recommendation: recommendation.nullable(),
 });
 
@@ -227,7 +240,8 @@ const progressReport = z.object({
  * ProgressReport is where the child stands, as the progress screen shows it:
  * the overall rating with its rank — or, while the trial series runs, how far
  * the series has got — the topics met, the latest answers and the tasks left
- * without one, what comes next, and the child's profile.
+ * without one, the mistakes that keep coming back, what comes next, and the
+ * child's profile.
  */
 export type ProgressReport = z.infer<typeof progressReport>;
 

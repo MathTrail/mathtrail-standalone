@@ -72,6 +72,7 @@ export function answered(fields: Partial<AnswerResult> = {}): CallToolResult {
 		trap: {
 			id: "fence_gaps",
 			text: "Counted the gaps instead of the posts.",
+			repeated: false,
 		},
 		solution: fenceSolution,
 		hint_used: false,
@@ -91,6 +92,18 @@ export function answered(fields: Partial<AnswerResult> = {}): CallToolResult {
 		result,
 	});
 }
+
+/**
+ * repeatedAnswer is the wrong B again, its trap one the child has fallen for
+ * before among the latest answers.
+ */
+export const repeatedAnswer = answered({
+	trap: {
+		id: "fence_gaps",
+		text: "Counted the gaps instead of the posts.",
+		repeated: true,
+	},
+});
 
 /** rightAnswer is the fence answered with C, which is right. */
 export const rightAnswer = answered({
@@ -119,7 +132,7 @@ export const trialAnswer = answered({
  */
 export const toldAgain = answered({
 	choice: "D",
-	trap: { id: "fence_ends", text: "Counted one end twice." },
+	trap: { id: "fence_ends", text: "Counted one end twice.", repeated: false },
 	already_answered: true,
 });
 
@@ -146,7 +159,8 @@ export const failure: CallToolResult = {
 /**
  * standing is where Comet stands after the trial series: the design's own
  * progress — four topics, one mastered, the latest answers with one task left
- * without an answer, and the topic worked over again after a mistake next.
+ * without an answer, two mistakes that keep coming back, and the topic worked
+ * over again after a mistake next.
  */
 export const standing = {
 	screen: "progress",
@@ -237,6 +251,10 @@ export const standing = {
 			answered_at: "2026-09-29T11:10:00Z",
 		},
 	],
+	mistakes: [
+		{ trap: "missed_case", times: 3 },
+		{ trap: "double_count", times: 2 },
+	],
 	recommendation: {
 		topic: "combinatorics.enumeration",
 		grade_level: "3-4",
@@ -250,7 +268,7 @@ export const progress = toolResult(standing);
 
 /**
  * inTrial is the progress of a child three tasks into the trial series: no
- * rating yet, nor a rank, and a new topic next.
+ * rating yet, nor a rank, no mistake made twice, and a new topic next.
  */
 export const inTrial = {
 	...standing,
@@ -302,6 +320,7 @@ export const inTrial = {
 			answered_at: "2026-09-29T11:10:00Z",
 		},
 	],
+	mistakes: [],
 	recommendation: {
 		topic: "parity.alternation",
 		grade_level: "3-4",

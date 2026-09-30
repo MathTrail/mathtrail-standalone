@@ -40,6 +40,7 @@ The grade only says where the first tasks start. The first five tasks are a tria
 - A question about the task before the answer — "I don't understand" among them — gets help without the answer, and nothing is recorded.
 - A question typed into the card's field reaches you as an ordinary message from the child, in the child's words. Answer it in the chat, about the task on the card; until the child has answered, help without giving the answer away.
 - After a right answer, go through the solution if the child wants it.
+- When the child has made the same mistake before among the latest answers, the result marks its trap as one that repeats, and so does the card's line: end your explanation with one short reminder of that mistake, in your own words.
 
 ## The next task
 
@@ -47,7 +48,7 @@ When the child presses "Another task" on the card — which sends those words to
 
 ## Progress
 
-`get_progress` shows the overall rating on a chess-like scale with its rank, the rating of each topic met, the topics mastered and the latest answers. The scale is one for grades 1 to 6, so an older child's number is higher. During the trial series there is no rating yet, only how many of its five tasks are done: say so, and that the rating comes after them. Present it encouragingly and name one thing to practise next.
+`get_progress` shows the overall rating on a chess-like scale with its rank, the rating of each topic met, the topics mastered, the latest answers and the mistakes that keep coming back. The scale is one for grades 1 to 6, so an older child's number is higher. During the trial series there is no rating yet, only how many of its five tasks are done: say so, and that the rating comes after them. Present it encouragingly and name one thing to practise next.
 
 ## What there is not
 

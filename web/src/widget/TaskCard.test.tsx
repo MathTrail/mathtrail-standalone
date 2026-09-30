@@ -17,6 +17,7 @@ import {
 	firstRun,
 	type Handed,
 	progress,
+	repeatedAnswer,
 	rightAnswer,
 	staleAnswer,
 	toldAgain,
@@ -162,7 +163,10 @@ describe("a task card", () => {
 				},
 			},
 			() =>
-				answered({ trap: { id: "fence_gaps", text: trick }, solution: trick }),
+				answered({
+					trap: { id: "fence_gaps", text: trick, repeated: false },
+					solution: trick,
+				}),
 		);
 		press(button("Hint"));
 		press(option("B"));
@@ -257,6 +261,7 @@ describe("an answer", () => {
 		expect(text(".mt-note-trap p")).toBe(
 			"Counted the gaps instead of the posts.",
 		);
+		expect(root.querySelector(".mt-note-detail")).toBeNull();
 		expect(
 			[...root.querySelectorAll(".mt-steps li")].map(
 				(step) => step.textContent,
@@ -274,6 +279,26 @@ describe("an answer", () => {
 		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(1));
 		expect(heard.modelLines[0]).toBe(
 			"Task task_fence has its answer recorded: B, which is wrong; the right option is C. The card shows the trap and the solution.",
+		);
+	});
+
+	test("that repeats a mistake made before says so under its trap, and asks the model for a reminder", async () => {
+		const heard = await drawCard(fence, () => repeatedAnswer);
+
+		press(option("B"));
+
+		await vi.waitFor(() => expect(replies()).toHaveLength(1));
+		expect(
+			[...root.querySelectorAll(".mt-note-trap p")].map(
+				(said) => said.textContent,
+			),
+		).toEqual([
+			"Counted the gaps instead of the posts.",
+			"This mistake has come up before.",
+		]);
+		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(1));
+		expect(heard.modelLines[0]).toContain(
+			"The child has made this mistake before among the latest answers: end your explanation with one short reminder of it",
 		);
 	});
 

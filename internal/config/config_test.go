@@ -101,6 +101,7 @@ func TestTheLimitsStartFromTheirDefaults(t *testing.T) {
 		{"RateRenewalPerMin", cfg.RateRenewalPerMin, config.DefaultRateRenewalPerMin},
 		{"DailyTasks", cfg.DailyTasks, config.DefaultDailyTasks},
 		{"DailyFailed", cfg.DailyFailed, config.DefaultDailyFailed},
+		{"TrapRepeats", cfg.TrapRepeats, config.DefaultTrapRepeats},
 	} {
 		if ceiling.got != ceiling.want {
 			t.Errorf("%s = %d, want %d", ceiling.name, ceiling.got, ceiling.want)
@@ -132,6 +133,7 @@ func TestValuesAreRead(t *testing.T) {
 		"MATHTRAIL_RATE_RENEWAL_PER_MIN=13",
 		"MATHTRAIL_DAILY_TASKS=21",
 		"MATHTRAIL_DAILY_FAILED=6",
+		"MATHTRAIL_TRAP_REPEATS=3",
 	})
 	if err != nil {
 		t.Fatalf("LoadFrom() error = %v, want nil", err)
@@ -173,9 +175,12 @@ func TestValuesAreRead(t *testing.T) {
 	if cfg.DriveTimeout != 3*time.Second {
 		t.Errorf("DriveTimeout = %v, want %v", cfg.DriveTimeout, 3*time.Second)
 	}
-	limits := []int{cfg.RateUserPerMin, cfg.RateIPPerMin, cfg.RateInstancePerMin, cfg.RateRenewalPerMin, cfg.DailyTasks, cfg.DailyFailed}
-	if want := []int{31, 21, 201, 13, 21, 6}; !slices.Equal(limits, want) {
-		t.Errorf("the limits = %v, want %v, as the environment set them", limits, want)
+	counts := []int{
+		cfg.RateUserPerMin, cfg.RateIPPerMin, cfg.RateInstancePerMin, cfg.RateRenewalPerMin,
+		cfg.DailyTasks, cfg.DailyFailed, cfg.TrapRepeats,
+	}
+	if want := []int{31, 21, 201, 13, 21, 6, 3}; !slices.Equal(counts, want) {
+		t.Errorf("the limits and the repeats of a mistake = %v, want %v, as the environment set them", counts, want)
 	}
 }
 
@@ -454,6 +459,16 @@ func TestRefusals(t *testing.T) {
 			name:    "a day with no room for a failed request",
 			environ: []string{"MATHTRAIL_DAILY_FAILED=0"},
 			wantVar: "MATHTRAIL_DAILY_FAILED",
+		},
+		{
+			name:    "a trap met once counted as one that repeats",
+			environ: []string{"MATHTRAIL_TRAP_REPEATS=1"},
+			wantVar: "MATHTRAIL_TRAP_REPEATS",
+		},
+		{
+			name:    "a trap the history window cannot hold that many times",
+			environ: []string{"MATHTRAIL_TRAP_REPEATS=21"},
+			wantVar: "MATHTRAIL_TRAP_REPEATS",
 		},
 		{
 			name:    "a call to Drive with no time to take",

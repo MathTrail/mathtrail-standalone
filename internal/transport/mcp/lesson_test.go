@@ -117,17 +117,18 @@ func lessonService(t *testing.T, h *harness, kept store.Storage, moving *clock, 
 		t.Fatalf("ObserveSolver() error = %v", err)
 	}
 	service, err := mcpserver.NewService(&mcpserver.Parts{
-		Store:     kept,
-		Content:   loaded,
-		Reviewer:  checks.NewReviewer(loaded, observed, checks.DefaultDrawingLimits()),
-		Sealer:    sealer(t),
-		Window:    config.DefaultRequestWindow,
-		Daily:     mcpserver.Daily{Tasks: config.DefaultDailyTasks, Failed: config.DefaultDailyFailed},
-		Now:       moving.now,
-		Version:   "test",
-		Logger:    h.log,
-		Traces:    h.traces,
-		ProjectID: projectID,
+		Store:       kept,
+		Content:     loaded,
+		Reviewer:    checks.NewReviewer(loaded, observed, checks.DefaultDrawingLimits()),
+		Sealer:      sealer(t),
+		Window:      config.DefaultRequestWindow,
+		Daily:       mcpserver.Daily{Tasks: config.DefaultDailyTasks, Failed: config.DefaultDailyFailed},
+		TrapRepeats: config.DefaultTrapRepeats,
+		Now:         moving.now,
+		Version:     "test",
+		Logger:      h.log,
+		Traces:      h.traces,
+		ProjectID:   projectID,
 	})
 	if err != nil {
 		t.Fatalf("NewService() error = %v", err)

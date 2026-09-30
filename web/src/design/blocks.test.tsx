@@ -60,6 +60,28 @@ describe("a note", () => {
 		);
 		expect(note?.querySelector("p")?.textContent).toBe("Words");
 		expect(note?.querySelector(".mt-note-label svg") !== null).toBe(icon);
+		expect(note?.querySelector(".mt-note-detail")).toBeNull();
+	});
+
+	test("says its detail under its words, in the card's language rather than theirs", () => {
+		draw(
+			<Note
+				tone="trap"
+				label="The trap"
+				said={{ lang: "ru", dir: "ltr" }}
+				detail="This mistake has come up before."
+			>
+				Посчитаны промежутки, а не столбы.
+			</Note>,
+		);
+
+		const said = [...root.querySelectorAll(".mt-note p")];
+		expect(said.map((line) => line.textContent)).toEqual([
+			"Посчитаны промежутки, а не столбы.",
+			"This mistake has come up before.",
+		]);
+		expect(said.map((line) => line.getAttribute("lang"))).toEqual(["ru", null]);
+		expect(said[1]?.classList.contains("mt-note-detail")).toBe(true);
 	});
 });
 

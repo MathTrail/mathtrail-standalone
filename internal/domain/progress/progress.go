@@ -1,7 +1,8 @@
 // Package progress is where a child stands, as the child and the parent are
 // shown it: the overall rating and the rank above it, the rating of each topic
 // the child has met, what is mastered, the latest answers and the tasks left
-// without one, and what the rule would set next.
+// without one, the mistakes that keep coming back, and what the rule would set
+// next.
 //
 // It is worked out from the profile every time it is asked for and kept
 // nowhere, so it cannot disagree with the file it came from. While the trial

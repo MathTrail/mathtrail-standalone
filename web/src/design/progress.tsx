@@ -75,14 +75,16 @@ export function StatusMark({
 
 /**
  * StatRow is one line of a list: what it is about, and how it stands — a
- * mark, a number, or both. Its id tells it apart from the others, since two
- * lines may say the same.
+ * mark, a number, or both — or, on a line that has one, how often, with a bar
+ * as long as its share of the most. Its id tells it apart from the others,
+ * since two lines may say the same.
  */
 export type StatRow = {
 	id: string;
 	label: string;
 	status?: { tone: StatusTone; label: string };
 	value?: string;
+	bar?: { share: number; count: string };
 };
 
 /**
@@ -103,21 +105,46 @@ export function StatList({
 		<section class="mt-list">
 			<h3 class="mt-section-label">{label}</h3>
 			<ul>
-				{rows.map((row) => (
-					<li key={row.id} class="mt-row">
-						<span class="mt-row-label">{row.label}</span>
-						<span class="mt-row-spacer" />
-						{row.status !== undefined && (
-							<StatusMark tone={row.status.tone} label={row.status.label} />
-						)}
-						{row.value !== undefined && (
-							<span class="mt-row-value">{row.value}</span>
-						)}
-					</li>
-				))}
+				{rows.map((row) =>
+					row.bar === undefined ? (
+						<li key={row.id} class="mt-row">
+							<span class="mt-row-label">{row.label}</span>
+							<span class="mt-row-spacer" />
+							{row.status !== undefined && (
+								<StatusMark tone={row.status.tone} label={row.status.label} />
+							)}
+							{row.value !== undefined && (
+								<span class="mt-row-value">{row.value}</span>
+							)}
+						</li>
+					) : (
+						<li key={row.id} class="mt-row mt-row-bar">
+							<div class="mt-row-bar-top">
+								<span class="mt-row-label">{row.label}</span>
+								<span class="mt-row-spacer" />
+								<span class="mt-row-count">{row.bar.count}</span>
+							</div>
+							<Bar share={row.bar.share} />
+						</li>
+					),
+				)}
 			</ul>
 			{note !== undefined && <p class="mt-list-note">{note}</p>}
 		</section>
+	);
+}
+
+// Bar is a share from nothing to all of it, drawn as a filled length of its
+// track. The length is an attribute of the drawing rather than a style: a
+// card's page is held to its host's policy, which promises nothing for a style
+// set on an element.
+function Bar({ share }: { share: number }) {
+	const filled = Math.round(Math.min(Math.max(share, 0), 1) * 100);
+	return (
+		<svg class="mt-bar-chart" width="100%" height="4" aria-hidden="true">
+			<rect class="mt-bar-track" width="100%" height="4" rx="2" />
+			<rect class="mt-bar-fill" width={`${filled}%`} height="4" rx="2" />
+		</svg>
 	);
 }
 

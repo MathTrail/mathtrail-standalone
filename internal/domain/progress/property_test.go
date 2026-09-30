@@ -7,8 +7,10 @@ import (
 	"github.com/leanovate/gopter/gen"
 	"github.com/leanovate/gopter/prop"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/progress"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/tutor"
 )
 
 // Whatever the ratings say, a child in the trial series is shown no rating and
@@ -62,4 +64,77 @@ func everyTopicRated(summary *progress.Summary) bool {
 		}
 	}
 	return len(summary.Topics) > 0
+}
+
+// Whatever the window holds, the map lists exactly the traps behind at least
+// the threshold of its answers, each with how many answers it was behind, the
+// most frequent first — and says of each of them, and of no other, that it
+// repeats. The worked cases pin the order of a tie; this is what catches the
+// window nobody wrote a case for.
+func TestTheMapCountsTheWindow(t *testing.T) {
+	t.Parallel()
+
+	catalog := embedded(t)
+	properties := gopter.NewProperties(nil)
+	properties.Property("every trap at the threshold, counted, the most frequent first", prop.ForAll(
+		func(picks []int, repeats int) bool {
+			window, times := windowOf(picks)
+			mistakes := progress.Mistakes(window, catalog, repeats)
+			return countedInOrder(mistakes, times, repeats) && listedAsRepeating(window, catalog, mistakes, times, repeats)
+		},
+		gen.SliceOf(gen.IntRange(0, len(windowTraps)-1)), gen.IntRange(1, 5),
+	))
+	properties.TestingRun(t)
+}
+
+// windowTraps are what a generated answer has behind it: no trap, or one of
+// three.
+var windowTraps = []string{"", "off_by_one", "missed_case", "double_count"}
+
+// windowOf is a window of answers with the traps picks name behind them, and
+// how many of its answers each trap is behind.
+func windowOf(picks []int) (window []profile.Answer, times map[string]int) {
+	window = make([]profile.Answer, len(picks))
+	times = map[string]int{}
+	for at, pick := range picks {
+		window[at] = profile.Answer{Topic: "counting.gaps", Trap: windowTraps[pick]}
+		if windowTraps[pick] != "" {
+			times[windowTraps[pick]]++
+		}
+	}
+	return window, times
+}
+
+// countedInOrder says whether every mistake on the map is counted as the
+// window has it, at the threshold at least, and comes after none less
+// frequent.
+func countedInOrder(mistakes []progress.Mistake, times map[string]int, repeats int) bool {
+	for at, mistake := range mistakes {
+		if mistake.Times != times[mistake.Trap] || mistake.Times < repeats {
+			return false
+		}
+		if at > 0 && mistakes[at-1].Times < mistake.Times {
+			return false
+		}
+	}
+	return true
+}
+
+// listedAsRepeating says whether the traps on the map, and the traps said to
+// repeat, are exactly those behind at least the threshold of the window's
+// answers.
+func listedAsRepeating(
+	window []profile.Answer, catalog tutor.Catalog, mistakes []progress.Mistake, times map[string]int, repeats int,
+) bool {
+	listed := map[string]bool{}
+	for _, mistake := range mistakes {
+		listed[mistake.Trap] = true
+	}
+	for trap, counted := range times {
+		repeated := counted >= repeats
+		if repeated != listed[trap] || progress.Repeats(window, catalog, trap, repeats) != repeated {
+			return false
+		}
+	}
+	return true
 }
