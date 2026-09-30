@@ -91,9 +91,14 @@ const fuzzRequest = "req_fuzz"
 // a task asked for or handed in, a refusal, or arguments that do not fit — and
 // never as a failure of ours.
 func FuzzTaskArguments(f *testing.F) {
-	race, err := json.Marshal(raceOn(openRace(f)))
+	request := openRace(f)
+	race, err := json.Marshal(raceOn(request))
 	if err != nil {
 		f.Fatalf("the race does not encode: %v", err)
+	}
+	raceQuoted, err := json.Marshal(partsAsStrings(f, raceOn(request)))
+	if err != nil {
+		f.Fatalf("the race with its parts as strings does not encode: %v", err)
 	}
 	for _, seed := range []struct {
 		tool      uint8
@@ -104,6 +109,7 @@ func FuzzTaskArguments(f *testing.F) {
 		{0, `{"language":"","topic":"nowhere","difficulty":-7}`},
 		{0, `{"language":"zh-Hant-TW","grade_level":"5-6","reason":"` + strings.Repeat("\u202e", 400) + `"}`},
 		{1, string(race)},
+		{1, string(raceQuoted)},
 		{1, strings.Replace(string(race), `"correct_answer":"C"`, `"correct_answer":"A"`, 1)},
 		{1, `{"request_id":"req_fuzz","brief":"a string","task":[1,2],"solver":"","self_check":null}`},
 		{1, `{"request_id":"req_fuzz","brief":{},"task":{"options":{"A":1}},"solver":"def solve(options): return","self_check":{}}`},

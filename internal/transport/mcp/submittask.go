@@ -34,10 +34,10 @@ const (
 // and the answer of this tool is drawn on a card.
 type submitTaskIn struct {
 	RequestID string `json:"request_id" jsonschema:"the id of the request next_task opened"`
-	Brief     any    `json:"brief" jsonschema:"the brief of the package as you received it: you may change its setting, traps_to_use and constraints, and say why in its rationale"`
-	Task      any    `json:"task" jsonschema:"the task, written as the guide in the package describes"`
+	Brief     any    `json:"brief" jsonschema:"the brief of the package as you received it, as a JSON object: you may change its setting, traps_to_use and constraints, and say why in its rationale"`
+	Task      any    `json:"task" jsonschema:"the task as a JSON object, written as the guide in the package describes"`
 	Solver    string `json:"solver" jsonschema:"the Starlark program that proves the answer, written as the guide in the package describes"`
-	SelfCheck any    `json:"self_check" jsonschema:"your own check of the task, written as the guide in the package describes"`
+	SelfCheck any    `json:"self_check" jsonschema:"your own check of the task as a JSON object, written as the guide in the package describes"`
 }
 
 // submission is the task as the checks read it: its three parts as the JSON
@@ -45,13 +45,36 @@ type submitTaskIn struct {
 func (in *submitTaskIn) submission() (*checks.Submission, error) {
 	parts := make([]json.RawMessage, 0, 3)
 	for _, part := range []any{in.Brief, in.Task, in.SelfCheck} {
-		raw, err := json.Marshal(part)
+		raw, err := partJSON(part)
 		if err != nil {
 			return nil, fmt.Errorf("mcp: read the task: %w", err)
 		}
 		parts = append(parts, raw)
 	}
 	return &checks.Submission{Brief: parts[0], Task: parts[1], SelfCheck: parts[2], Solver: in.Solver}, nil
+}
+
+// partJSON is a part of the task as the JSON it is. A client may send a part
+// whose schema names no type as a string holding the JSON rather than as the
+// JSON itself, and the model cannot choose otherwise: such a string is read for
+// the JSON it holds, decoded into the same plain values as a part sent as JSON
+// — a number as a float — so that the checks see the same task either way. A
+// string that opens as an object or a list but does not decode is handed on as
+// it is, so that the checks say its JSON is broken rather than that it is no
+// object; any other string stays the string it is, for the checks to refuse.
+func partJSON(part any) (json.RawMessage, error) {
+	text, isText := part.(string)
+	if !isText {
+		return json.Marshal(part)
+	}
+	var held any
+	if json.Unmarshal([]byte(text), &held) == nil {
+		return json.Marshal(held)
+	}
+	if opened := strings.TrimSpace(text); strings.HasPrefix(opened, "{") || strings.HasPrefix(opened, "[") {
+		return json.RawMessage(text), nil
+	}
+	return json.Marshal(text)
 }
 
 // handedInOut is what submit_task hands back: the task on the child's card, or
