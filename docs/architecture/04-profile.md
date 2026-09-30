@@ -117,11 +117,11 @@ One entry per topic the child has ever been given, keyed by the catalog's topic 
 | `mastered_since` | date or null | Set when `top_streak` reaches the criterion; the progress screen reads it |
 | `mastered_level` | level or null | The level of the task whose answer completed the run — `1-2`, `3-4` or `5-6` — set and cleared together with `mastered_since`. A topic counts as mastered only while its recommended point stays at this level or below, so mastery at `1-2` does not keep a topic out of the rotation once its tasks come from `3-4`; a run completed at a higher level moves mastery up to it, and nothing moves it down (SPEC 2.5) |
 | `skipped` | integer | Tasks of this topic left without an answer when a new one was asked for (R98). Nothing that computes reads it; the progress screen shows it to the parent |
-| `traps` | map of trap id → count | How often this child fell for each trap in this topic. The rule picks the two most frequent (prototype 5.7), and the progress screen draws the map of misconceptions from the same numbers (T57a) |
+| `traps` | map of trap id → count | How often this child fell for each trap in this topic, ever. The rule picks the two most frequent (prototype 5.7). The map of misconceptions counts the history window instead, so that a mistake the child has left behind drops off it (R136) |
 
 ### The history window
 
-`recent` — the last **20** entries, answers and skipped tasks alike (R98), oldest first, and never fewer than 5 answers after any pruning (see "Size, and the window policy"). It exists for two readers: the progress screen's "recent answers" (PRODUCT 4.2), and the rule, which needs the topic of the last answer when it decides to consolidate.
+`recent` — the last **20** entries, answers and skipped tasks alike (R98), oldest first, and never fewer than 5 answers after any pruning (see "Size, and the window policy"). It exists for two readers: the progress screen — its "recent answers" (PRODUCT 4.2), and its map of the mistakes that repeat, each trap behind at least `MATHTRAIL_TRAP_REPEATS` of the window's answers (R136) —, and the rule, which needs the topic of the last answer when it decides to consolidate.
 
 | Field | Type | Why |
 |---|---|---|

@@ -31,6 +31,7 @@ type progressOut struct {
 	Overall        *standingOut       `json:"overall"`
 	Topics         []topicOut         `json:"topics"`
 	Recent         []recentOut        `json:"recent"`
+	Mistakes       []mistakeOut       `json:"mistakes"`
 	Recommendation *recommendationOut `json:"recommendation"`
 }
 
@@ -64,13 +65,23 @@ type recentOut struct {
 	AnsweredAt string `json:"answered_at"`
 }
 
+// mistakeOut is a trap the child keeps falling for among the latest answers:
+// its catalog id — the card names it in its own language, and the model has
+// the catalog's words for it — and how many answers it was behind. Neither a
+// task nor an answer is in it.
+type mistakeOut struct {
+	Trap  string `json:"trap"`
+	Times int    `json:"times"`
+}
+
 func (s *Service) getProgressTool() Tool {
 	return Define(Spec{
 		Name:  "get_progress",
 		Title: "Show the child's progress",
 		Description: "Shows the child's progress: the overall rating on a chess-like scale with its rank, the rating " +
-			"of each topic met, the topics mastered, the latest answers and what comes next. The scale is one for " +
-			"grades 1 to 6, so an older child's number is higher. During the trial series — the first five tasks — " +
+			"of each topic met, the topics mastered, the latest answers, the mistakes that keep coming back and " +
+			"what comes next. The scale is one for grades 1 to 6, so an older child's number is higher. During " +
+			"the trial series — the first five tasks — " +
 			"there is no rating yet, only how many of the five are done. Present it encouragingly and name one " +
 			"thing to practise next.",
 		ReadOnly:   true,
@@ -103,9 +114,10 @@ func (s *Service) readProgress(ctx context.Context, account store.Account) (Repl
 	switch {
 	case errors.Is(err, store.ErrNotFound):
 		return Reply[progressOut]{Text: firstRunText, Payload: progressOut{
-			Screen: screenFirstRun,
-			Topics: []topicOut{},
-			Recent: []recentOut{},
+			Screen:   screenFirstRun,
+			Topics:   []topicOut{},
+			Recent:   []recentOut{},
+			Mistakes: []mistakeOut{},
 		}}, nil
 	case err != nil:
 		return Reply[progressOut]{}, fmt.Errorf("mcp: read the profile: %w", err)
@@ -115,8 +127,9 @@ func (s *Service) readProgress(ctx context.Context, account store.Account) (Repl
 	if err != nil {
 		return Reply[progressOut]{}, err
 	}
+	mistakes := progress.Mistakes(p.Recent, s.content, s.repeats)
 	return Reply[progressOut]{
-		Text: s.progressText(p, &summary),
+		Text: s.progressText(p, &summary, mistakes),
 		Payload: progressOut{
 			Screen:         screenProgress,
 			LastAnswer:     lastAnswerOf(p),
@@ -125,6 +138,7 @@ func (s *Service) readProgress(ctx context.Context, account store.Account) (Repl
 			Overall:        standingOf(summary.Overall),
 			Topics:         topicsOf(summary.Topics),
 			Recent:         recentOf(summary.Recent),
+			Mistakes:       mistakesOf(mistakes),
 			Recommendation: recommendationOf(&summary.Next),
 		},
 	}, nil
@@ -152,6 +166,14 @@ func topicsOf(topics []progress.Topic) []topicOut {
 	return out
 }
 
+func mistakesOf(mistakes []progress.Mistake) []mistakeOut {
+	out := make([]mistakeOut, 0, len(mistakes))
+	for _, mistake := range mistakes {
+		out = append(out, mistakeOut{Trap: mistake.Trap, Times: mistake.Times})
+	}
+	return out
+}
+
 func recentOf(entries []profile.Answer) []recentOut {
 	out := make([]recentOut, 0, len(entries))
 	for i := range entries {
@@ -166,7 +188,7 @@ func recentOf(entries []profile.Answer) []recentOut {
 }
 
 // progressText is the progress in words.
-func (s *Service) progressText(p *profile.Profile, summary *progress.Summary) string {
+func (s *Service) progressText(p *profile.Profile, summary *progress.Summary, mistakes []progress.Mistake) string {
 	standing := ""
 	if summary.Overall != nil {
 		standing = fmt.Sprintf("Overall rating %d, rank %d of %d.",
@@ -178,8 +200,24 @@ func (s *Service) progressText(p *profile.Profile, summary *progress.Summary) st
 		standing,
 		s.topicsText(summary.Topics),
 		s.recentText(summary.Recent),
+		s.mistakesText(mistakes),
 		s.nextText(&summary.Next),
 	)
+}
+
+// mistakesText names the mistakes that keep coming back among the latest
+// answers, the most frequent first, each by what the catalog says of it, or
+// nothing when none does.
+func (s *Service) mistakesText(mistakes []progress.Mistake) string {
+	if len(mistakes) == 0 {
+		return ""
+	}
+	parts := make([]string, 0, len(mistakes))
+	for _, mistake := range mistakes {
+		parts = append(parts, fmt.Sprintf("%s (%d times)", s.trapDescribed(mistake.Trap), mistake.Times))
+	}
+	return "Mistakes that keep coming back among the latest answers, the most frequent first: " +
+		strings.Join(parts, "; ") + "."
 }
 
 // topicsText names every topic met and what it is, with its rating once there

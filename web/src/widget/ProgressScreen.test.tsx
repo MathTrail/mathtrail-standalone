@@ -39,6 +39,13 @@ function lists(root: HTMLElement): Record<string, (string | null)[]> {
 	);
 }
 
+// bars are how far the bars of the card's lists are filled, in order.
+function bars(root: HTMLElement): (string | null)[] {
+	return [...root.querySelectorAll(".mt-bar-fill")].map((fill) =>
+		fill.getAttribute("width"),
+	);
+}
+
 // fields are the fields of the profile's section labelled label.
 function fields(root: HTMLElement, label: string): string[][] {
 	const section = [...root.querySelectorAll(".mt-fields")].find(
@@ -93,24 +100,59 @@ describe("the progress", () => {
 	test("lists the topics met with their ratings, and the latest five entries", async () => {
 		const { root } = await draw(standing);
 
-		expect(lists(root)).toEqual({
-			Topics: [
-				"OrderingMastered1712",
-				"Enumeration1627",
-				"Gaps and boundaries1588",
-				"Parity and alternation1541",
-			],
-			"Recent answers": [
-				"EnumerationWrong",
-				"EnumerationSkipped",
-				"Gaps and boundariesRight",
-				"OrderingRight",
-				"Parity and alternationWrong",
-			],
-		});
+		const shown = lists(root);
+		expect(shown.Topics).toEqual([
+			"OrderingMastered1712",
+			"Enumeration1627",
+			"Gaps and boundaries1588",
+			"Parity and alternation1541",
+		]);
+		expect(shown["Recent answers"]).toEqual([
+			"EnumerationWrong",
+			"EnumerationSkipped",
+			"Gaps and boundariesRight",
+			"OrderingRight",
+			"Parity and alternationWrong",
+		]);
 		expect(text(root, ".mt-list-note")).toBe(
 			"In all, 1 task was left without an answer.",
 		);
+	});
+
+	test("lists the mistakes that keep coming back after the latest answers, each with a bar as long as its share of the most frequent", async () => {
+		const { root } = await draw(standing);
+
+		expect(Object.keys(lists(root))).toEqual([
+			"Topics",
+			"Recent answers",
+			"Mistakes that repeat",
+		]);
+		expect(lists(root)["Mistakes that repeat"]).toEqual([
+			"Missed a case while listing3 times",
+			"Counted the same thing twice2 times",
+		]);
+		expect(bars(root)).toEqual(["100%", "67%"]);
+	});
+
+	test("shows no list of mistakes when none has come up twice", async () => {
+		const { root } = await draw({ ...standing, mistakes: [] });
+
+		expect(Object.keys(lists(root))).toEqual(["Topics", "Recent answers"]);
+		expect(root.querySelector(".mt-bar-chart")).toBeNull();
+	});
+
+	test("with no answer yet shows the series to come, and no list", async () => {
+		const { root } = await draw({
+			...inTrial,
+			trial: { answered: 0, of: 5 },
+			topics: [],
+			recent: [],
+			mistakes: [],
+		});
+
+		expect(text(root, ".mt-rating-num")).toBe("0 of 5");
+		expect(root.querySelector(".mt-list")).toBeNull();
+		expect(fields(root, "Profile · for the parent")).toHaveLength(4);
 	});
 
 	test("says nothing of skipped tasks when none was skipped", async () => {
@@ -178,6 +220,10 @@ describe("the progress", () => {
 		expect(text(root, ".mt-list-note")).toBe(
 			"Всего без ответа оставили 1 задачу.",
 		);
+		expect(lists(root)["Повторяющиеся ошибки"]).toEqual([
+			"Пропущен случай при переборе3 раза",
+			"Одно и то же посчитано дважды2 раза",
+		]);
 		expect(fields(root, "Профиль · для родителя")[3]).toEqual([
 			"Язык карточек",
 			"Русский",

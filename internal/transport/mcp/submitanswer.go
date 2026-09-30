@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/progress"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 )
@@ -62,11 +63,14 @@ type resultOut struct {
 	AlreadyAnswered bool      `json:"already_answered"`
 }
 
-// trapOut is the mistake a wrong letter leads to: its catalog id, and what the
-// child is told about it.
+// trapOut is the mistake a wrong letter leads to: its catalog id, what the
+// child is told about it, and whether it has come up before among the latest
+// answers — a mistake that repeats, which the model gives a short reminder of
+// in its own words.
 type trapOut struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
+	ID       string `json:"id"`
+	Text     string `json:"text"`
+	Repeated bool   `json:"repeated"`
 }
 
 // movedOut is the rating in a topic before an answer and after it, as the
@@ -84,7 +88,7 @@ func (s *Service) submitAnswerTool() Tool {
 			"option the child chose, A to E, or ? when the child says they do not know, which counts as a wrong " +
 			"answer. Pass hint_used when the child opened the hint first. Record the answer before you explain " +
 			"anything. The result says whether the answer was right, which option is, what went wrong on the way " +
-			"to a wrong one, the solution, and how the child's rating in the topic moved — during the trial series, " +
+			"to a wrong one and whether that mistake has come up before, the solution, and how the child's rating in the topic moved — during the trial series, " +
 			"how many of its tasks are done instead. An answer is recorded once: the same task answered again, on " +
 			"the card or by you, changes nothing and is told what was recorded the first time — the whole result " +
 			"while the task is on the card, and whether it was right once the next task has been asked for.",
@@ -187,16 +191,18 @@ func (s *Service) discard(ctx context.Context, account store.Account, p *profile
 // it to the model.
 func (s *Service) told(p *profile.Profile, recorded *profile.Recorded) Reply[answeredOut] {
 	task := p.CurrentTask
+	repeated := progress.Repeats(p.Recent, s.content, recorded.Trap.Trap, s.repeats)
 	return Reply[answeredOut]{
-		Text: s.toldText(task, recorded),
+		Text: s.toldText(task, recorded, repeated),
 		Payload: answeredOut{
-			Screen: screenResult, LastAnswer: lastAnswerOf(p), Result: resultOf(task.ID, recorded),
+			Screen: screenResult, LastAnswer: lastAnswerOf(p), Result: resultOf(task.ID, recorded, repeated),
 		},
 	}
 }
 
-// resultOf is how an answer went, as the result side of the card shows it.
-func resultOf(taskID string, recorded *profile.Recorded) *resultOut {
+// resultOf is how an answer went, as the result side of the card shows it;
+// repeated says the trap it fell for has come up before.
+func resultOf(taskID string, recorded *profile.Recorded, repeated bool) *resultOut {
 	result := &resultOut{
 		TaskID:          taskID,
 		Topic:           recorded.Topic,
@@ -208,7 +214,7 @@ func resultOf(taskID string, recorded *profile.Recorded) *resultOut {
 		AlreadyAnswered: recorded.Again,
 	}
 	if recorded.Trap != (profile.Distractor{}) {
-		result.Trap = &trapOut{ID: recorded.Trap.Trap, Text: recorded.Trap.Text}
+		result.Trap = &trapOut{ID: recorded.Trap.Trap, Text: recorded.Trap.Text, Repeated: repeated}
 	}
 	// While the trial series runs there is no rating to show, only how far it
 	// has got; the answer that ends it is the last to show that.
@@ -226,10 +232,10 @@ func shownRating(level float64) int { return rating.Shown(rating.Elo(level)) }
 
 // toldText tells how an answer went, for the model to explain it by: the
 // child's choice and the right option with their texts, what went wrong on the
-// way to a wrong one, the solution, and where the child stands now. The texts
-// of the task stand in quotes, in the task's own language, around sentences of
-// the service's.
-func (s *Service) toldText(task *profile.CurrentTask, recorded *profile.Recorded) string {
+// way to a wrong one — and whether it has come up before — the solution, and
+// where the child stands now. The texts of the task stand in quotes, in the
+// task's own language, around sentences of the service's.
+func (s *Service) toldText(task *profile.CurrentTask, recorded *profile.Recorded, repeated bool) string {
 	lead := fmt.Sprintf("The answer to task %s is recorded.", task.ID)
 	if recorded.Again {
 		lead = fmt.Sprintf("Task %s was answered before, and nothing was recorded now: this is what was recorded then.", task.ID)
@@ -246,19 +252,26 @@ func (s *Service) toldText(task *profile.CurrentTask, recorded *profile.Recorded
 			"solution if they want it.", right)
 	default:
 		outcome = fmt.Sprintf("The child chose %s) %s, and it is wrong; the right option is %s. %s",
-			recorded.Choice, quoted(task.Options[recorded.Choice]), right, mistakeText(recorded.Trap))
+			recorded.Choice, quoted(task.Options[recorded.Choice]), right, mistakeText(recorded.Trap, repeated))
 	}
 	return joined(lead, outcome, s.standingText(recorded)) + "\nSolution: " + quoted(recorded.Solution)
 }
 
 // mistakeText is how to explain a wrong letter: from what went wrong on the
-// way to it, when the task says, and then the solution.
-func mistakeText(trap profile.Distractor) string {
+// way to it, when the task says, and then the solution — and, when the child
+// has made the same mistake before, a short reminder of it in the model's own
+// words, since the service keeps none of its own.
+func mistakeText(trap profile.Distractor, repeated bool) string {
 	if trap.Text == "" {
 		return "Go through the solution step by step, kindly."
 	}
-	return "Start from what went wrong on the way to it: " + quoted(trap.Text) +
+	text := "Start from what went wrong on the way to it: " + quoted(trap.Text) +
 		". Then go through the solution step by step, kindly."
+	if repeated {
+		text += " The child has made this mistake before among the latest answers: end with one short " +
+			"reminder of it, in your own words, that the child can keep in mind next time."
+	}
+	return text
 }
 
 // standingText is where the child stands after the answer: the rating in the

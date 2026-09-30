@@ -221,19 +221,21 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 		zap.Int("renewal_per_min", cfg.RateRenewalPerMin),
 		zap.Int("daily_tasks", cfg.DailyTasks),
 		zap.Int("daily_failed", cfg.DailyFailed),
+		zap.Int("trap_repeats", cfg.TrapRepeats),
 	)
 	lesson, err := mcpserver.NewService(&mcpserver.Parts{
-		Store:     c.Store,
-		Content:   embedded,
-		Reviewer:  c.Reviewer,
-		Sealer:    ring.For(seal.PurposeTaskAnswer),
-		Window:    cfg.RequestWindow,
-		Daily:     mcpserver.Daily{Tasks: cfg.DailyTasks, Failed: cfg.DailyFailed},
-		Now:       time.Now,
-		Version:   version.Version,
-		Logger:    log,
-		Traces:    tel.TracerProvider(),
-		ProjectID: cfg.GCPProjectID,
+		Store:       c.Store,
+		Content:     embedded,
+		Reviewer:    c.Reviewer,
+		Sealer:      ring.For(seal.PurposeTaskAnswer),
+		Window:      cfg.RequestWindow,
+		Daily:       mcpserver.Daily{Tasks: cfg.DailyTasks, Failed: cfg.DailyFailed},
+		TrapRepeats: cfg.TrapRepeats,
+		Now:         time.Now,
+		Version:     version.Version,
+		Logger:      log,
+		Traces:      tel.TracerProvider(),
+		ProjectID:   cfg.GCPProjectID,
 	})
 	if err != nil {
 		return nil, err

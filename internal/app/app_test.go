@@ -643,6 +643,7 @@ func testConfig() *config.Config {
 		RateRenewalPerMin:  config.DefaultRateRenewalPerMin,
 		DailyTasks:         config.DefaultDailyTasks,
 		DailyFailed:        config.DefaultDailyFailed,
+		TrapRepeats:        config.DefaultTrapRepeats,
 		DriveTimeout:       config.DefaultDriveTimeout,
 		SiteURL:            config.DefaultSiteURL,
 	}

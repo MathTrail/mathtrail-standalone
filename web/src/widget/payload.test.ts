@@ -1,6 +1,12 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
 import { describe, expect, test } from "vitest";
-import { readAnswer, readHandedTask, readScreen, readWaiting } from "./payload";
+import {
+	type AnswerResult,
+	readAnswer,
+	readHandedTask,
+	readScreen,
+	readWaiting,
+} from "./payload";
 import {
 	answered,
 	exhausted,
@@ -75,6 +81,24 @@ describe("an answer sent from the card", () => {
 
 		expect(outcome.kind).toBe("answered");
 		expect(outcome.kind === "answered" && outcome.result.choice).toBe("D");
+	});
+
+	test("from before mistakes were marked as repeating is recorded with its trap as one that does not", () => {
+		const outcome = readAnswer(
+			answered({
+				trap: {
+					id: "fence_gaps",
+					text: "Counted the gaps instead of the posts.",
+				} as AnswerResult["trap"],
+			}),
+			fence.task.id,
+		);
+
+		expect(outcome.kind === "answered" && outcome.result.trap).toEqual({
+			id: "fence_gaps",
+			text: "Counted the gaps instead of the posts.",
+			repeated: false,
+		});
 	});
 
 	test("is closed when the task is no longer the one being solved", () => {
@@ -179,6 +203,14 @@ describe("the screen a payload draws", () => {
 				topics: [{ ...standing.topics[0], rating: "1712" }],
 			},
 		],
+		[
+			"the progress with a mistake made no times",
+			{ ...standing, mistakes: [{ trap: "missed_case", times: 0 }] },
+		],
+		[
+			"the progress with a mistake made half a time",
+			{ ...standing, mistakes: [{ trap: "missed_case", times: 1.5 }] },
+		],
 		["the profile with no details", { ...profileRead, profile: null }],
 		["nothing", undefined],
 	])("is none for %s", (_, payload) => {
@@ -207,6 +239,35 @@ describe("the screen a payload draws", () => {
 			},
 		});
 		expect(JSON.stringify(shown)).not.toContain("Loses heart");
+	});
+
+	test("of the progress from before the map of mistakes is read with none", () => {
+		const before = Object.fromEntries(
+			Object.entries(standing).filter(([field]) => field !== "mistakes"),
+		);
+
+		const shown = readScreen(before);
+
+		expect(shown?.screen === "progress" && shown.report.mistakes).toEqual([]);
+	});
+
+	test("of the progress keeps of each mistake its name and how many times, and nothing of a task", () => {
+		const shown = readScreen({
+			...standing,
+			mistakes: [
+				{
+					trap: "missed_case",
+					times: 3,
+					task_id: "task_fence",
+					text: "Counted the gaps instead of the posts.",
+					answer: "C",
+				},
+			],
+		});
+
+		expect(shown?.screen === "progress" && shown.report.mistakes).toEqual([
+			{ trap: "missed_case", times: 3 },
+		]);
 	});
 
 	test("says whether a change asked for was refused", () => {

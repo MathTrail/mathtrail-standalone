@@ -68,7 +68,7 @@ export function scenesIn(language: Language): Scene[] {
 	const result = (fields: Partial<AnswerResult> = {}) =>
 		Promise.resolve(
 			answered({
-				trap: { id: "fence_gaps", text: words.gaps },
+				trap: { id: "fence_gaps", text: words.gaps, repeated: false },
 				solution: words.solution,
 				...fields,
 			}),
@@ -87,6 +87,14 @@ export function scenesIn(language: Language): Scene[] {
 		},
 		{ name: "hint", payload: handed, play: button(1) },
 		{ name: "wrong", payload: handed, answers: service(), play: option("B") },
+		{
+			name: "wrong, a mistake made before",
+			payload: handed,
+			answers: service({
+				trap: { id: "fence_gaps", text: words.gaps, repeated: true },
+			}),
+			play: option("B"),
+		},
 		{
 			name: "right",
 			payload: handed,
@@ -132,7 +140,7 @@ export function scenesIn(language: Language): Scene[] {
 			payload: handed,
 			answers: service({
 				choice: "D",
-				trap: { id: "fence_ends", text: words.ends },
+				trap: { id: "fence_ends", text: words.ends, repeated: false },
 				already_answered: true,
 			}),
 			play: option("B"),
@@ -306,6 +314,17 @@ const longProgress = {
 		mastered: at % 3 === 0,
 		skipped: at % 5 === 0 ? 2 : 0,
 	})),
+	// The window's twenty answers shared by the mistakes with the longest
+	// names: one behind eight of them, the rest behind two each.
+	mistakes: [
+		{ trap: "ratio_total_confusion", times: 8 },
+		{ trap: "number_from_text", times: 2 },
+		{ trap: "best_case_not_worst", times: 2 },
+		{ trap: "reversed_relation", times: 2 },
+		{ trap: "off_by_one", times: 2 },
+		{ trap: "first_move_assumed", times: 2 },
+		{ trap: "percent_wrong_base", times: 2 },
+	],
 };
 
 // askForProfile ticks the adult's statement and asks for the profile.

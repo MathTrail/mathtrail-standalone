@@ -13,7 +13,12 @@ import {
 	optionStateOf,
 } from "./lesson";
 import { type AnswerResult, letters } from "./payload";
-import { answered, dontKnowAnswer, rightAnswer } from "./testing/lesson";
+import {
+	answered,
+	dontKnowAnswer,
+	repeatedAnswer,
+	rightAnswer,
+} from "./testing/lesson";
 
 // resultOf is the answer's result a tool's result carries.
 function resultOf(tool: CallToolResult): AnswerResult {
@@ -255,6 +260,11 @@ describe("the line for the model", () => {
 			"a wrong answer the service told no trap for",
 			{ ...wrong, trap: null },
 			"Task task_fence has its answer recorded: B, which is wrong; the right option is C. The card shows the solution.",
+		],
+		[
+			"a mistake the child has made before",
+			resultOf(repeatedAnswer),
+			"Task task_fence has its answer recorded: B, which is wrong; the right option is C. The card shows the trap and the solution. The child has made this mistake before among the latest answers: end your explanation with one short reminder of it, in your own words, that the child can keep in mind next time.",
 		],
 	])("after %s says what is recorded", (_, result, want) => {
 		expect(modelLineOf(result)).toBe(want);

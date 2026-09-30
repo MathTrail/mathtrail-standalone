@@ -105,6 +105,58 @@ describe("a list", () => {
 		expect(status?.textContent).toBe("Words");
 	});
 
+	test("gives a line that counts how often, and a bar as long as its share", () => {
+		draw(
+			<StatList
+				label="Mistakes that repeat"
+				rows={[
+					{
+						id: "a",
+						label: "Missed a case",
+						bar: { share: 1, count: "3 times" },
+					},
+					{
+						id: "b",
+						label: "Counted twice",
+						bar: { share: 2 / 3, count: "2 times" },
+					},
+				]}
+			/>,
+		);
+
+		expect(
+			[...root.querySelectorAll(".mt-row-bar")].map((row) => row.textContent),
+		).toEqual(["Missed a case3 times", "Counted twice2 times"]);
+		const charts = [...root.querySelectorAll("svg.mt-bar-chart")];
+		expect(charts.map((chart) => chart.getAttribute("aria-hidden"))).toEqual([
+			"true",
+			"true",
+		]);
+		expect(
+			charts.map((chart) =>
+				chart.querySelector(".mt-bar-fill")?.getAttribute("width"),
+			),
+		).toEqual(["100%", "67%"]);
+		// A card's page promises nothing for a style set on an element.
+		expect(root.querySelector("[style]")).toBeNull();
+	});
+
+	test.each([
+		[-0.5, "0%"],
+		[1.5, "100%"],
+	])("keeps a share of %s within its track", (share, width) => {
+		draw(
+			<StatList
+				label="Mistakes that repeat"
+				rows={[{ id: "a", label: "Missed a case", bar: { share, count: "" } }]}
+			/>,
+		);
+
+		expect(root.querySelector(".mt-bar-fill")?.getAttribute("width")).toBe(
+			width,
+		);
+	});
+
 	test("tells apart two lines that say the same, and says more under them", () => {
 		draw(
 			<StatList

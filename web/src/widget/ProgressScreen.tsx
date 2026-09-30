@@ -4,7 +4,7 @@ import { MessageHeader } from "../design/thread";
 import type { Words } from "../i18n/words";
 import type { Host } from "./bridge";
 import { CardRoot } from "./CardRoot";
-import { rankName, topicName } from "./names";
+import { rankName, topicName, trapName } from "./names";
 import { ParentProfile } from "./ProfileScreen";
 import type { ProgressReport, Recommendation } from "./payload";
 import { type Key, ratingText, useWords } from "./words";
@@ -34,8 +34,8 @@ export function ProgressCard({
  * ProgressScreen is where the child stands: the overall rating with its rank
  * above it — or, while the trial series runs, how far the series has got —
  * what comes next, the topics met with their ratings, the latest answers and
- * how many tasks were left without one, and the child's profile for the
- * parent.
+ * how many tasks were left without one, the mistakes that keep coming back,
+ * and the child's profile for the parent.
  */
 export function ProgressScreen({
 	report,
@@ -79,6 +79,12 @@ export function ProgressScreen({
 								? words.text("progress.skipped_count", { count: skipped })
 								: undefined
 						}
+					/>
+				)}
+				{report.mistakes.length > 0 && (
+					<StatList
+						label={words.text("progress.mistakes")}
+						rows={mistakeRows(words, report.mistakes)}
 					/>
 				)}
 				<ParentProfile details={profile} host={host} />
@@ -178,4 +184,24 @@ function statusOf(
 	return entry.correct
 		? { tone: "correct", label: words.text("progress.right") }
 		: { tone: "wrong", label: words.text("progress.wrong") };
+}
+
+// mistakeRows are the mistakes that keep coming back, the most frequent
+// first: each with how many times, and a bar as long as its share of the most
+// frequent.
+function mistakeRows(
+	words: Words<Key>,
+	mistakes: ProgressReport["mistakes"],
+): StatRow[] {
+	const most = Math.max(...mistakes.map((mistake) => mistake.times));
+	return mistakes.map(
+		(mistake): StatRow => ({
+			id: mistake.trap,
+			label: trapName(words, mistake.trap),
+			bar: {
+				share: mistake.times / most,
+				count: words.text("progress.times", { count: mistake.times }),
+			},
+		}),
+	);
 }

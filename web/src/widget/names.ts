@@ -18,6 +18,14 @@ export function skillName(words: Words<Key>, id: string): string {
 }
 
 /**
+ * trapName is what the card calls a mistake of the catalog's, in plain words
+ * of its language; a mistake the card has no words for is called by its id.
+ */
+export function trapName(words: Words<Key>, id: string): string {
+	return nameOf(words, `trap.${id}`, id);
+}
+
+/**
  * rankName is what the card calls a rank, in its language; a rank the card
  * has no words for is called by its number.
  */

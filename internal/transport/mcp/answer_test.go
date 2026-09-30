@@ -3,6 +3,7 @@ package mcpserver_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"slices"
 	"strings"
 	"testing"
@@ -33,8 +34,9 @@ type resultPayload struct {
 	Correct       bool   `json:"correct"`
 	CorrectAnswer string `json:"correct_answer"`
 	Trap          *struct {
-		ID   string `json:"id"`
-		Text string `json:"text"`
+		ID       string `json:"id"`
+		Text     string `json:"text"`
+		Repeated bool   `json:"repeated"`
 	} `json:"trap"`
 	Solution string `json:"solution"`
 	HintUsed bool   `json:"hint_used"`
@@ -894,4 +896,67 @@ func takeOffTheCard(t *testing.T, kept store.Storage) {
 	if _, err := kept.Save(t.Context(), devAccount, p, revision); err != nil {
 		t.Fatalf("Save() error = %v", err)
 	}
+}
+
+// fellFor is a wrong answer to an earlier race, behind which lay trap: an entry
+// of the history window as an answer the child gave before leaves it.
+func fellFor(trap string, i int) profile.Answer {
+	return profile.Answer{
+		AnsweredAt: profile.At(lessonDay), Chosen: "A", Difficulty: 2, GradeLevel: rating.Grades12,
+		Pace: profile.PaceNormal, TaskID: fmt.Sprintf("tsk_race_%d", i), Topic: "logic.ordering", Trap: trap,
+	}
+}
+
+// The second time among the latest answers the child falls for a trap, it is
+// marked as a mistake that repeats, and the model is asked to end with a short
+// reminder of it in its own words; the first time, neither.
+func TestATrapFallenForAgainIsMarkedAsOneThatRepeats(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name     string
+		before   int
+		repeated bool
+	}{
+		{"the first time", 0, false},
+		{"the second time", 1, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			p := raceOnTheCard(t, rating.TrialAnswers)
+			for i := range tc.before {
+				p.Recent = append(p.Recent, fellFor(raceTraps[0], i))
+			}
+			_, session := lesson(t, keptAsIs(t, p))
+
+			result := answerIt(t, session, p.CurrentTask.ID, "A", false)
+			if trap := answered(t, result).Trap; trap == nil || trap.ID != raceTraps[0] || trap.Repeated != tc.repeated {
+				t.Errorf("trap = %+v, want %s with repeated %v", trap, raceTraps[0], tc.repeated)
+			}
+			if reminded := strings.Contains(textOf(t, result), "end with one short reminder of it"); reminded != tc.repeated {
+				t.Errorf("the words ask for a reminder: %v, want %v: %s", reminded, tc.repeated, textOf(t, result))
+			}
+		})
+	}
+}
+
+// The map of misconceptions carries a trap's id and how many times, and nothing
+// of the tasks the child fell for it in: no wording, no explanation, no
+// solution — the card that shows it is the child's too.
+func TestTheMapCarriesNothingOfATask(t *testing.T) {
+	t.Parallel()
+
+	p := raceOnTheCard(t, rating.TrialAnswers)
+	p.Recent = append(p.Recent, fellFor(raceTraps[0], 0))
+	_, session := lesson(t, keptAsIs(t, p))
+	answerIt(t, session, p.CurrentTask.ID, "A", false)
+
+	result := call(t, session, "read_progress", nil)
+	want := []mistakePayload{{Trap: raceTraps[0], Times: 2}}
+	if got := payloadOf[progressPayload](t, result).Mistakes; !slices.Equal(got, want) {
+		t.Errorf("mistakes = %+v, want %+v", got, want)
+	}
+	secrets := append([]string{raceQuestion, raceSolution}, raceExplained...)
+	wantNoneOf(t, "the progress", []string{string(rawPayload(t, result))}, secrets)
 }

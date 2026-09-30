@@ -48,7 +48,14 @@ export function TaskResult({
 			{result.already_answered && <p>{words.text("result.told_again")}</p>}
 			<Verdict tone={tone}>{words.text(verdict.key, verdict.slots)}</Verdict>
 			{result.trap !== null && (
-				<Note tone="trap" label={words.text("result.trap")} said={inTask}>
+				<Note
+					tone="trap"
+					label={words.text("result.trap")}
+					said={inTask}
+					detail={
+						result.trap.repeated ? words.text("result.trap_again") : undefined
+					}
+				>
 					{result.trap.text}
 				</Note>
 			)}

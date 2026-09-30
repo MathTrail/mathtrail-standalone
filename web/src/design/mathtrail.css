@@ -518,6 +518,11 @@
 .mt-note-plain {
 	gap: 2px;
 }
+.mt-note p.mt-note-detail {
+	font-size: 13px;
+	line-height: 18px;
+	color: var(--text-muted);
+}
 
 /* Verdict */
 .mt-verdict {
@@ -752,6 +757,36 @@
 	line-height: 18px;
 	color: var(--text-muted);
 }
+.mt-row-bar {
+	flex-direction: column;
+	align-items: stretch;
+	gap: 6px;
+	min-height: 0;
+}
+.mt-row-bar-top {
+	display: flex;
+	align-items: baseline;
+	gap: 10px;
+}
+.mt-row-count {
+	font-size: 13px;
+	line-height: 18px;
+	color: var(--text-muted);
+	white-space: nowrap;
+}
+.mt-bar-chart {
+	display: block;
+}
+.mt-bar-track {
+	fill: var(--border);
+}
+.mt-bar-fill {
+	fill: var(--ink-strong);
+}
+/* A bar grows from where its line starts to read. */
+[dir="rtl"] .mt-bar-chart {
+	transform: scaleX(-1);
+}
 .mt-status {
 	display: inline-flex;
 	align-items: center;
@@ -923,7 +958,7 @@
 }
 .mt-rtl .mt-reply-body > p,
 .mt-rtl .mt-steps li,
-.mt-rtl .mt-note p,
+.mt-rtl .mt-note p:not(.mt-note-detail),
 .mt-rtl .mt-gen li,
 .mt-rtl .mt-verdict-detail,
 .mt-rtl .mt-row-label,

@@ -23,6 +23,8 @@ import (
 
 	"github.com/spf13/viper"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/progress"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
 	"github.com/MathTrail/mathtrail-standalone/internal/telemetry/collector"
 )
@@ -64,6 +66,8 @@ const (
 	DefaultRateRenewalPerMin  = 12
 	DefaultDailyTasks         = 20
 	DefaultDailyFailed        = 5
+
+	DefaultTrapRepeats = 2
 
 	DefaultDriveTimeout = 10 * time.Second
 
@@ -154,6 +158,11 @@ type Config struct {
 	// DailyFailed is how many requests of a day may end with the model out of
 	// attempts before no more are opened that day.
 	DailyFailed int `mapstructure:"MATHTRAIL_DAILY_FAILED"`
+
+	// TrapRepeats is how many of the latest answers a trap has to be behind to
+	// count as a mistake that repeats: the map of misconceptions lists it, and
+	// the answer that falls for it again says so.
+	TrapRepeats int `mapstructure:"MATHTRAIL_TRAP_REPEATS"`
 
 	// DriveTimeout is how long one call to a parent's Drive may take.
 	DriveTimeout time.Duration `mapstructure:"MATHTRAIL_DRIVE_TIMEOUT"`
@@ -277,6 +286,7 @@ func LoadFrom(environ []string) (*Config, error) {
 	v.SetDefault("MATHTRAIL_RATE_RENEWAL_PER_MIN", DefaultRateRenewalPerMin)
 	v.SetDefault("MATHTRAIL_DAILY_TASKS", DefaultDailyTasks)
 	v.SetDefault("MATHTRAIL_DAILY_FAILED", DefaultDailyFailed)
+	v.SetDefault("MATHTRAIL_TRAP_REPEATS", DefaultTrapRepeats)
 	v.SetDefault("MATHTRAIL_DRIVE_TIMEOUT", DefaultDriveTimeout)
 	v.SetDefault("MATHTRAIL_TELEMETRY", DefaultTelemetry)
 	v.SetDefault("MATHTRAIL_TELEMETRY_ENDPOINT", DefaultTelemetryEndpoint)
@@ -351,22 +361,8 @@ func (c *Config) Validate() error {
 		return err
 	}
 
-	switch c.LogLevel {
-	case "debug", "info", "warn", "error":
-	default:
-		return fmt.Errorf("%w: MATHTRAIL_LOG_LEVEL must be debug, info, warn or error, got %q", ErrInvalid, c.LogLevel)
-	}
-
-	switch c.LogFormat {
-	case "json", "console":
-	default:
-		return fmt.Errorf("%w: MATHTRAIL_LOG_FORMAT must be json or console, got %q", ErrInvalid, c.LogFormat)
-	}
-	// The console format is for a person at a terminal. It escapes nothing, so a
-	// newline a request carries would start a line of its own, and a collector
-	// reads no severity out of it: a deployment writes JSON.
-	if c.LogFormat == "console" && c.Deployed() {
-		return fmt.Errorf("%w: MATHTRAIL_LOG_FORMAT must be json when K_SERVICE is set", ErrInvalid)
+	if err := c.validateLogging(); err != nil {
+		return err
 	}
 
 	if err := c.validateTimeouts(); err != nil {
@@ -378,6 +374,10 @@ func (c *Config) Validate() error {
 	}
 
 	if err := c.validateLimits(); err != nil {
+		return err
+	}
+
+	if err := c.validateTrapRepeats(); err != nil {
 		return err
 	}
 
@@ -395,6 +395,29 @@ func (c *Config) Validate() error {
 		return err
 	}
 	return c.validateSiteURL()
+}
+
+// validateLogging refuses a level or a format the logger does not have, and
+// the format for a terminal where a collector reads the log.
+func (c *Config) validateLogging() error {
+	switch c.LogLevel {
+	case "debug", "info", "warn", "error":
+	default:
+		return fmt.Errorf("%w: MATHTRAIL_LOG_LEVEL must be debug, info, warn or error, got %q", ErrInvalid, c.LogLevel)
+	}
+
+	switch c.LogFormat {
+	case "json", "console":
+	default:
+		return fmt.Errorf("%w: MATHTRAIL_LOG_FORMAT must be json or console, got %q", ErrInvalid, c.LogFormat)
+	}
+	// The console format is for a person at a terminal. It escapes nothing, so a
+	// newline a request carries would start a line of its own, and a collector
+	// reads no severity out of it: a deployment writes JSON.
+	if c.LogFormat == "console" && c.Deployed() {
+		return fmt.Errorf("%w: MATHTRAIL_LOG_FORMAT must be json when K_SERVICE is set", ErrInvalid)
+	}
+	return nil
 }
 
 // validatePublicURL refuses an address the service could not be itself at. The
@@ -497,6 +520,17 @@ func (c *Config) validateLimits() error {
 		if ceiling.value < 1 {
 			return fmt.Errorf("%w: %s must be at least 1, got %d", ErrInvalid, ceiling.name, ceiling.value)
 		}
+	}
+	return nil
+}
+
+// validateTrapRepeats refuses a threshold no mistake could repeat at: a trap
+// met once is a slip, not a mistake that repeats, and one the history window
+// cannot hold that many times would never repeat at all.
+func (c *Config) validateTrapRepeats() error {
+	if c.TrapRepeats < progress.FewestRepeats || c.TrapRepeats > profile.MaxRecent {
+		return fmt.Errorf("%w: MATHTRAIL_TRAP_REPEATS must be from %d to %d, got %d",
+			ErrInvalid, progress.FewestRepeats, profile.MaxRecent, c.TrapRepeats)
 	}
 	return nil
 }
