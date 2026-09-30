@@ -2,7 +2,9 @@ package report
 
 import (
 	"bytes"
+	"errors"
 	"flag"
+	"io"
 	"os"
 	"path/filepath"
 	"slices"
@@ -288,4 +290,62 @@ func tallied(t *testing.T, lines ...string) *counts {
 		t.Fatalf("readAll() = %+v, error %v; want every line read", read, err)
 	}
 	return tally(read)
+}
+
+// A log that breaks off while it is read, and a report nobody can take, are
+// failures that say which of the two it was, and nothing is written of a log
+// read only in part.
+func TestAReadOrAWriteThatFailsSaysWhich(t *testing.T) {
+	t.Parallel()
+
+	var out bytes.Buffer
+	broken := io.MultiReader(strings.NewReader(`{"message":"limit_hit","limit":"user_rate"}`+"\n"), failing{})
+	if err := Run(broken, &out); err == nil || !strings.Contains(err.Error(), "report: read the log") || out.Len() != 0 {
+		t.Errorf("Run() on a log that breaks off = %v, wrote %d bytes; want the read named and nothing written", err, out.Len())
+	}
+	if err := Run(strings.NewReader(""), failing{}); err == nil || !strings.Contains(err.Error(), "report: write the report") {
+		t.Errorf("Run() to a report nobody can take = %v, want the write named", err)
+	}
+}
+
+// failing is a reader and a writer that fail at once.
+type failing struct{}
+
+func (failing) Read([]byte) (int, error)  { return 0, errors.New("the log broke off") }
+func (failing) Write([]byte) (int, error) { return 0, errors.New("nobody takes the report") }
+
+// A number that is no number at all makes its line one of the service's the
+// report could not read.
+func TestANumberThatIsNoNumberMakesItsLineUnreadable(t *testing.T) {
+	t.Parallel()
+
+	read, err := readAll(strings.NewReader(`{"message":"task_submitted","attempt":"two"}`))
+	if err != nil || len(read.lines) != 0 || read.unreadable != 1 {
+		t.Errorf("readAll() = %+v, %v; want the line counted as unreadable", read, err)
+	}
+}
+
+// A refused attempt whose refusal names no check of its own is counted by
+// none, and still fails the checks it names.
+func TestARefusalThatNamesNoCheckIsCountedByNone(t *testing.T) {
+	t.Parallel()
+
+	c := tallied(t, `{"message":"task_submitted","attempt":1,"outcome":"rejected","primary":"","failed":["readability"],"instructions_version":"v1"}`)
+	if got := c.refusals[refusedBy{version: "v1", check: "readability"}]; got == nil || *got != (refusals{counted: 0, failed: 1}) || len(c.refusals) != 1 {
+		t.Errorf("refusals = %v, want readability failed once and no check without a name", c.refusals)
+	}
+}
+
+// Lines with no time on them are counted, and the report says it cannot tell
+// when they were written.
+func TestLinesWithNoTimeAreSaidToHaveNone(t *testing.T) {
+	t.Parallel()
+
+	var out bytes.Buffer
+	if err := Run(strings.NewReader(`{"message":"limit_hit","limit":"user_rate"}`), &out); err != nil {
+		t.Fatalf("Run() error = %v, want nil", err)
+	}
+	if !strings.Contains(out.String(), "1 lines of the service's, with no time on them.") {
+		t.Errorf("the report begins %q, want it to say the lines have no time", out.String()[:min(out.Len(), 120)])
+	}
 }
