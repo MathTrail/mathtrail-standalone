@@ -90,7 +90,21 @@ const accented: Readonly<Record<string, string>> = {
 	Z: "Ž",
 };
 
-const vowels = "aeiouyAEIOUY";
+// The accented letters a vowel is said again as.
+const echoes: Readonly<Record<string, string>> = {
+	a: "á",
+	e: "é",
+	i: "í",
+	o: "ó",
+	u: "ú",
+	y: "ý",
+	A: "á",
+	E: "é",
+	I: "í",
+	O: "ó",
+	U: "ú",
+	Y: "ý",
+};
 
 // The words a text too short for its growth is made longer with, as Android's
 // pseudo-language does: counting words, said longer like the rest, and counted
@@ -117,11 +131,21 @@ export function pseudoText(text: string): string {
 	const length = literalLength(text);
 	const wanted = Math.max(length * 2, length + 10);
 	let said = aroundSlots(text, saidLonger);
-	// The two brackets count towards the length too.
-	for (let at = 0; literalLength(said) + 2 < wanted; at++) {
-		said += ` ${saidLonger(padding[at % padding.length] ?? "")}`;
+	for (const word of counting()) {
+		// The two brackets count towards the length too.
+		if (literalLength(said) + 2 >= wanted) {
+			break;
+		}
+		said += ` ${saidLonger(word)}`;
 	}
 	return `[${said}]`;
+}
+
+// counting are the padding words, counted again from one after ten.
+function* counting(): Generator<string> {
+	for (;;) {
+		yield* padding;
+	}
 }
 
 // aroundSlots is text with what lies between its slots said by say, and the
@@ -140,10 +164,7 @@ function aroundSlots(text: string, say: (words: string) => string): string {
 function saidLonger(text: string): string {
 	let said = "";
 	for (const letter of text) {
-		const shown = accented[letter] ?? letter;
-		said += vowels.includes(letter)
-			? shown + (accented[letter.toLowerCase()] ?? letter)
-			: shown;
+		said += (accented[letter] ?? letter) + (echoes[letter] ?? "");
 	}
 	return said;
 }

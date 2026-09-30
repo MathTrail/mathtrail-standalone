@@ -1,6 +1,6 @@
 import { createContext } from "preact";
 import { useContext } from "preact/hooks";
-import type english from "../../locales/en.json";
+import english from "../../locales/en.json";
 import { chooseLocale } from "../i18n/lookup";
 import { pseudoLocale, pseudoWords } from "../i18n/pseudo";
 import { type Dictionary, openWords, type Words } from "../i18n/words";
@@ -34,10 +34,7 @@ const written: ReadonlyMap<string, Dictionary> = new Map(
 export const dictionaries: ReadonlyMap<string, Dictionary> =
 	import.meta.env.MODE === "production"
 		? written
-		: new Map([
-				...written,
-				[pseudoLocale, pseudoWords(written.get("en") ?? {})],
-			]);
+		: new Map([...written, [pseudoLocale, pseudoWords(english)]]);
 
 const spoken: ReadonlySet<string> = new Set(dictionaries.keys());
 

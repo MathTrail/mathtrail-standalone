@@ -1,6 +1,7 @@
 import { render } from "preact";
 import { act } from "preact/test-utils";
-import { afterEach, describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import { pseudoLocale } from "../i18n/pseudo";
 import {
 	cardWords,
 	dictionaries,
@@ -164,5 +165,26 @@ describe("a component inside a card", () => {
 		act(() => render(<Hint />, root));
 
 		expect(root.textContent).toBe("Hint");
+	});
+});
+
+describe("the pseudo-language", () => {
+	afterEach(() => {
+		vi.unstubAllEnvs();
+		vi.resetModules();
+	});
+
+	test("is spoken by the preview and the tests", () => {
+		expect(dictionaries.has(pseudoLocale)).toBe(true);
+	});
+
+	test("is left out of a build for production, which a host could ask it of", async () => {
+		vi.stubEnv("MODE", "production");
+		vi.resetModules();
+
+		const { dictionaries: shipped } = await import("./words");
+
+		expect(shipped.has(pseudoLocale)).toBe(false);
+		expect(shipped.has("en")).toBe(true);
 	});
 });
