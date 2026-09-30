@@ -356,7 +356,7 @@ func (s *Service) hand(ctx context.Context, done *reviewed, program string) (Rep
 	}
 
 	if left != nil {
-		s.events.write(ctx, done.account, eventTaskSkipped, skippedFields(left.Topic, left.GradeLevel, left.Difficulty)...)
+		s.events.write(ctx, done.account, eventTaskSkipped, s.skippedFields(left.Topic, left.GradeLevel, left.Difficulty)...)
 	}
 	s.events.write(ctx, done.account, eventTaskAccepted,
 		zap.String("topic", issued.Topic),

@@ -78,9 +78,9 @@ func (s *Service) trapLabel(id string) string {
 	return other
 }
 
-// topicLabel is a topic of the catalog, or other. The topic of an answer is
-// read from the profile, which a person can edit, and a line names only topics
-// the catalog has.
+// topicLabel is a topic of the catalog, or other. The topic of an answer or of
+// a skipped task is read from the profile, which a person can edit, and a line
+// names only topics the catalog has.
 func (s *Service) topicLabel(id string) string {
 	if s.content.HasTopic(id) {
 		return id
