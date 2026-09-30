@@ -231,7 +231,7 @@ export function ReplyField({
 				disabled={disabled || words === ""}
 				onClick={send}
 			>
-				<Icon name="send" size={18} />
+				<Icon name="send" size={18} className="mt-send" />
 			</button>
 		</div>
 	);

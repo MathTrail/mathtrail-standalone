@@ -314,7 +314,7 @@ describe("the card's language", () => {
 	});
 
 	test("is English when the widget has words for neither", () => {
-		const { bridge, deliver } = heldBridge("es-MX");
+		const { bridge, deliver } = heldBridge("sw-KE");
 		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
 
 		act(() => deliver({ screen: "first_run", profile: null }));

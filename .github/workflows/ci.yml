@@ -144,6 +144,29 @@ jobs:
           path: web/coverage/lcov.info
           retention-days: 14
 
+  layout:
+    name: Widget layout
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    # This job stays on the runner: the browsers run in an image of their own,
+    # which needs a Docker daemon. The widget's packages are installed here, by
+    # the Node the development image pins, and the image runs over them.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/just
+      - uses: ./.github/actions/node
+      - run: just web-layout
+      # What the browsers found, and a picture of every card written right to
+      # left, are kept whether the run passed or not: they are what is looked
+      # at either way.
+      - name: Keep what the layout showed
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: widget-layout
+          path: web/layout/
+          retention-days: 14
+
   sonar:
     name: Static analysis
     needs: [test, widget]

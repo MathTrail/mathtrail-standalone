@@ -169,7 +169,7 @@ func (f *flow) begin(w http.ResponseWriter, r *http.Request, client *Client, req
 	if f.google != nil {
 		screen.google = f.google.AuthURL(sealed, request.Verifier, request.Nonce)
 	}
-	if err := f.pages.showConsent(w, r, screen); err != nil {
+	if err := f.pages.showConsent(w, screen); err != nil {
 		f.events.failed(r.Context(), stepAuthorize, err)
 		return
 	}

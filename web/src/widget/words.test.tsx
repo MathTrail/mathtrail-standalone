@@ -16,7 +16,10 @@ describe("a card's words", () => {
 		["en", "ru-RU", "en"],
 		[undefined, "ru-RU", "ru"],
 		["kk", "ru-RU", "ru"],
-		[undefined, "es-MX", "en"],
+		[undefined, "es-MX", "es"],
+		["pt-BR", "ru-RU", "pt"],
+		[undefined, "zh-CN", "zh-Hans"],
+		[undefined, "sw-KE", "en"],
 		[undefined, undefined, "en"],
 	])(
 		"with the language chosen %s and the host's %s are in %s",
@@ -35,9 +38,32 @@ describe("a card's words", () => {
 		).toBe("Grade 3");
 	});
 
-	test("are in English and in Russian", () => {
+	test("are in every one of the twenty-two languages of v1", () => {
 		expect([...dictionaries.keys()]).toEqual(
-			expect.arrayContaining(["en", "ru"]),
+			expect.arrayContaining([
+				"en",
+				"zh-Hans",
+				"hi",
+				"es",
+				"ar",
+				"fr",
+				"bn",
+				"pt",
+				"ru",
+				"ur",
+				"id",
+				"de",
+				"ja",
+				"tr",
+				"ko",
+				"vi",
+				"it",
+				"fa",
+				"pl",
+				"uk",
+				"th",
+				"nl",
+			]),
 		);
 	});
 });

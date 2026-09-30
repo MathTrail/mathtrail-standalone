@@ -20,4 +20,5 @@ coverage.*
 **/node_modules
 internal/widget/widget.html
 web/coverage
+web/layout
 draft

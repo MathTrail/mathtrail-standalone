@@ -6,8 +6,10 @@ import {
 	exhausted,
 	failure,
 	fence,
+	fenceInArabic,
 	fenceInRussian,
 	fenceSolution,
+	fenceSolutionInArabic,
 	fenceSolutionInRussian,
 	firstRun,
 	firstRunRefused,
@@ -21,9 +23,6 @@ import {
 	staleAnswer,
 	standing,
 } from "../widget/testing/lesson";
-
-/** Language is a language the preview shows the card in. */
-export type Language = "en" | "ru";
 
 /**
  * Scene is one state of a lesson on a card: the payload the card is drawn
@@ -41,30 +40,56 @@ export type Scene = {
 	play?: (card: Document) => void;
 };
 
-// The words of the fence's result in each language: the trap behind B and D,
-// and the solution.
-const told = {
-	en: {
-		gaps: "Counted the gaps instead of the posts.",
-		ends: "Counted one end twice.",
-		solution: fenceSolution,
-		question: "why isn't it 6?",
-	},
+// Fence is the fence in one language: the task as it is handed to a card,
+// the trap behind B and D, the solution, and a question about it.
+type Fence = {
+	handed: typeof fence;
+	gaps: string;
+	ends: string;
+	solution: string;
+	question: string;
+};
+
+const fenceInEnglish: Fence = {
+	handed: fence,
+	gaps: "Counted the gaps instead of the posts.",
+	ends: "Counted one end twice.",
+	solution: fenceSolution,
+	question: "why isn't it 6?",
+};
+
+// The fence in the languages it is written in. A card in any other language
+// is handed the English one, as a child whose cards speak one language may be
+// given a task in another.
+const fences: Readonly<Record<string, Fence>> = {
+	en: fenceInEnglish,
 	ru: {
+		handed: fenceInRussian,
 		gaps: "Посчитаны промежутки, а не столбы.",
 		ends: "Один из концов посчитан дважды.",
 		solution: fenceSolutionInRussian,
 		question: "а почему не 6?",
 	},
-} as const;
+	ar: {
+		handed: fenceInArabic,
+		gaps: "عُدّت المسافات بدلًا من الأعمدة.",
+		ends: "عُدّ أحد الطرفين مرتين.",
+		solution: fenceSolutionInArabic,
+		question: "لماذا ليست 6؟",
+	},
+};
 
 // A reply that never comes, for a card caught while it checks an answer.
 const never = new Promise<CallToolResult>(() => {});
 
-/** scenesIn are every scene of a lesson, in language. */
-export function scenesIn(language: Language): Scene[] {
-	const handed = language === "en" ? fence : fenceInRussian;
-	const words = told[language];
+/**
+ * scenesIn are every scene of a lesson, on a card whose words are in language:
+ * the task and its result in that language when the fence is written in it,
+ * and in English otherwise.
+ */
+export function scenesIn(language: string): Scene[] {
+	const words = fences[language] ?? fenceInEnglish;
+	const handed = words.handed;
 	const result = (fields: Partial<AnswerResult> = {}) =>
 		Promise.resolve(
 			answered({
@@ -197,27 +222,11 @@ export function scenesIn(language: Language): Scene[] {
 		},
 		{ name: "first sign-in, a profile refused", payload: firstRunRefused },
 		{ name: "a card it cannot show", payload: { screen: "result" } },
-		{
-			name: "progress, right to left (layout only)",
-			payload: standing,
-			play: rightToLeft,
-		},
-		{
-			name: "first sign-in, right to left (layout only)",
-			payload: firstRun,
-			play: rightToLeft,
-		},
 		{ name: "long texts", payload: longTexts },
 		{
 			name: "room kept at the edges",
 			payload: handed,
 			insets: { top: 24, right: 0, bottom: 34, left: 0 },
-		},
-		{ name: "right to left (layout only)", payload: handed, play: rightToLeft },
-		{
-			name: "waiting, right to left (layout only)",
-			payload: { ...refused, child: handed.child },
-			play: rightToLeft,
 		},
 	];
 }
@@ -261,13 +270,6 @@ function ask(words: string) {
 // topLine presses the line at the top of the card.
 function topLine(card: Document) {
 	card.querySelector<HTMLElement>(".mt-bar")?.click();
-}
-
-// rightToLeft lays the card out as for a language written right to left. The
-// words stay as they are: no dictionary is written that way yet.
-function rightToLeft(card: Document) {
-	card.documentElement.dir = "rtl";
-	card.querySelector(".mt-widget")?.classList.add("mt-rtl");
 }
 
 // longProgress is the progress at every limit a card has to fit at its
