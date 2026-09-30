@@ -68,6 +68,10 @@ const moments: readonly { name: string; after: string }[] = [
 // phone's width.
 const photographed = { engine: "chromium", width: 360 };
 
+// The moment the pages' clock is set to: any will do, and a fixed one makes
+// every run see the same dates.
+const clockStarts = Date.UTC(2026, 0, 1);
+
 const web = join(import.meta.dirname, "..");
 const out = join(web, "layout");
 
@@ -288,7 +292,6 @@ async function measuredOn(page: Page, base: string, shown: Shown) {
 	const { engine, language, width } = shown;
 	const query = new URLSearchParams({ lang: language, widths: `${width}` });
 	await page.goto(`${base}preview.html?${query}`);
-	await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 1);
 	const photographs =
 		engine === photographed.engine && width === photographed.width;
 	const pictured = new Map<string, string>();
@@ -342,7 +345,12 @@ async function measuredIn(
 			viewport: { width: 1280, height: 900 },
 			reducedMotion: "reduce",
 		});
-		await context.clock.install();
+		// The pages' clock starts at a fixed moment and stands still from an
+		// hour after it: every card is drawn and measured on it, moved on only
+		// by what the check moves it by. The hour is room to pause in, however
+		// slow the machine; a pause at a moment already past is refused.
+		await context.clock.install({ time: clockStarts });
+		await context.clock.pauseAt(clockStarts + 3_600_000);
 		const page = await context.newPage();
 		await page.goto(`${base}preview.html`);
 		const offered = await page
