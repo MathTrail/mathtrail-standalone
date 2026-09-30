@@ -14,21 +14,23 @@ const WidgetURI = "ui://mathtrail/app.html"
 // a document to show.
 const widgetMIME = "text/html;profile=mcp-app"
 
-// addWidget serves the widget's page as a resource.
+// AddWidget serves page as the widget's resource at uri: the service's own
+// page at WidgetURI, or a copy another server draws its cards with, at an
+// address of its own, so that it is drawn as the service's cards are.
 //
 // What a host needs to know about the page travels twice: with the resource
 // where it is listed, and with the page where it is read. A host takes what
 // came with the page and falls back to the listing, and the library copies
 // neither onto the other.
-func addWidget(server *mcp.Server, page string) {
+func AddWidget(server *mcp.Server, uri, page string) {
 	server.AddResource(&mcp.Resource{
-		URI:      WidgetURI,
+		URI:      uri,
 		Name:     "widget",
 		Title:    "MathTrail",
 		MIMEType: widgetMIME,
 		Meta:     widgetMeta(),
 	}, func(context.Context, *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
-		return widgetRead(page), nil
+		return widgetRead(uri, page), nil
 	})
 }
 
@@ -37,10 +39,10 @@ func addWidget(server *mcp.Server, page string) {
 // library writes into whatever a handler returns — the address, the type, the
 // cache hint, the server's own name — so a result shared between reads would
 // be written by several of them at once.
-func widgetRead(page string) *mcp.ReadResourceResult {
+func widgetRead(uri, page string) *mcp.ReadResourceResult {
 	return &mcp.ReadResourceResult{
 		Contents: []*mcp.ResourceContents{{
-			URI:      WidgetURI,
+			URI:      uri,
 			MIMEType: widgetMIME,
 			Text:     page,
 			Meta:     widgetMeta(),

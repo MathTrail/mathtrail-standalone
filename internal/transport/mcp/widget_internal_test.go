@@ -14,7 +14,7 @@ import (
 func TestEveryReadOfTheWidgetGetsAResultOfItsOwn(t *testing.T) {
 	t.Parallel()
 
-	first, second := widgetRead("<p>the page</p>"), widgetRead("<p>the page</p>")
+	first, second := widgetRead(WidgetURI, "<p>the page</p>"), widgetRead(WidgetURI, "<p>the page</p>")
 	want, err := json.Marshal(second)
 	if err != nil {
 		t.Fatalf("the result does not marshal: %v", err)

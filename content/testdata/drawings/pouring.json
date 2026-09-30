@@ -1,7 +1,6 @@
 {
   "from": "wp-34-d3-1",
   "drawing": [
-    "  A       B       C",
     "│   │   │   │   │   │",
     "│ 8 │   │ 0 │   │ 0 │",
     "└───┘   └───┘   └───┘",
@@ -10,9 +9,18 @@
   "drawing_structure": {
     "kind": "pouring",
     "objects": [
-      {"id": "A", "label": "A", "value": 8},
-      {"id": "B", "label": "B", "value": 0},
-      {"id": "C", "label": "C", "value": 0}
+      {
+        "id": "bucket",
+        "label": "8"
+      },
+      {
+        "id": "big_jug",
+        "label": "5"
+      },
+      {
+        "id": "small_jug",
+        "label": "3"
+      }
     ]
   }
 }

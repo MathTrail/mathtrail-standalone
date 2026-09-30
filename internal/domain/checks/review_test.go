@@ -263,9 +263,10 @@ var refusals = []struct {
 	}, checks.CodeNearDuplicate, "already been given"},
 }
 
-// draw gives a scenario's task a drawing, and a structure declaring these
-// labels.
+// draw gives a scenario's task a drawing, a structure declaring these labels,
+// and a sentence of its question naming them, as a task that draws must.
 func draw(s *scenario, drawing string, labels ...string) {
+	s.draft.Task.Question += " The drawing marks " + strings.Join(labels, ", ") + "."
 	s.draft.Task.Drawing = drawing
 	s.draft.Task.DrawingStructure = &checks.DrawingStructure{Kind: "number_line"}
 	for _, label := range labels {

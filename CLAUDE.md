@@ -101,6 +101,7 @@ These follow `mentor-api`, the platform's reference service. Where we differ fro
 ```
 cmd/server/main.go
 cmd/sitegen/ sitecheck/   the public site: renders it, and refuses a broken one
+cmd/drawings/             the calibration set of text drawings, shown to a chat host on the widget's cards
 internal/
   apierror/       the shape of an HTTP error answer, as the platform's other services have it
   app/            DI container, HTTP server

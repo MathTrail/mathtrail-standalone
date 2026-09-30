@@ -368,6 +368,65 @@ func TestARefusedTaskSpendsAnAttemptAndHearsEveryReason(t *testing.T) {
 	}
 }
 
+// A client may send a part of the task as a string holding its JSON rather
+// than as the JSON itself: the part is read for the JSON it holds, and the task
+// reaches the card as it would have. A string that holds no JSON is still no
+// part, and is refused in the structure check's own words.
+func TestAPartSentAsAStringOfItsJSONIsReadForIt(t *testing.T) {
+	t.Parallel()
+
+	kept := racer(t)
+	_, session := lesson(t, kept)
+	request := askForTheRace(t, session, kept)
+
+	worded := raceOn(request)
+	worded["brief"] = "the brief as it came"
+	refused := payloadOf[handedInPayload](t, call(t, session, "submit_task", worded))
+	if refused.Code != "bad_structure" || len(refused.Reasons) == 0 ||
+		!slices.Contains(refused.Reasons[0].Messages, "brief must be a JSON object") {
+		t.Errorf("a brief of words = %+v, want it refused as no object", refused)
+	}
+
+	// JSON with a fault in it is told as broken JSON: the model can mend that,
+	// and cannot send the part as anything but a string.
+	faulty := raceOn(request)
+	faulty["brief"] = `{"setting":"park",}`
+	refused = payloadOf[handedInPayload](t, call(t, session, "submit_task", faulty))
+	if refused.Code != "bad_structure" || len(refused.Reasons) == 0 ||
+		!slices.Contains(refused.Reasons[0].Messages, "brief is not valid JSON") {
+		t.Errorf("a brief of broken JSON = %+v, want it refused as broken JSON", refused)
+	}
+
+	// A whole number written as 2.0 reads as 2 in a part sent as JSON; so it
+	// does in a part sent as a string of it.
+	race := partsAsStrings(t, raceOn(request))
+	brief, isText := race["brief"].(string)
+	if !isText || !strings.Contains(brief, `"difficulty":2`) {
+		t.Fatalf("the brief as a string = %v, want its difficulty in it", race["brief"])
+	}
+	race["brief"] = strings.Replace(brief, `"difficulty":2`, `"difficulty":2.0`, 1)
+	accepted := payloadOf[handedInPayload](t, call(t, session, "submit_task", race))
+	if accepted.Screen != "task" || accepted.Task == nil || accepted.Task.Question != raceQuestion {
+		t.Errorf("the race with its parts as strings = %+v, want it on the card", accepted)
+	}
+}
+
+// partsAsStrings is a task handed in with its brief, task and self-check each
+// sent as a string of its JSON, as a client may send a part whose schema names
+// no type.
+func partsAsStrings(t testing.TB, race map[string]any) map[string]any {
+	t.Helper()
+
+	for _, part := range []string{"brief", "task", "self_check"} {
+		encoded, err := json.Marshal(race[part])
+		if err != nil {
+			t.Fatalf("encode the %s: %v", part, err)
+		}
+		race[part] = string(encoded)
+	}
+	return race
+}
+
 // The third refusal closes the request: nothing reaches the child, the day's
 // failed generations go up and its accepted tasks do not. A task handed in
 // after that is for a request that is over, and spends nothing.
