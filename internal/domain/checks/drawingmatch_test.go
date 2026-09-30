@@ -108,6 +108,8 @@ func TestEachMismatchIsRefused(t *testing.T) {
 			"A\nB\nC", labelled("A", "B", "C"), "task.question does not name 1 of the labels"},
 		{"a capital that is the unit of a number", "The jug holds 3 L of water.", "L\n┼", labelled("L"),
 			"task.question does not name 1 of the labels"},
+		{"a word label the wording does not name, which no range spans", "Ann walks to the end.", "Start ───▶ End",
+			labelled("Start", "End"), "task.question does not name 1 of the labels"},
 		{"a word in capitals holding a label's letter", "The stone is NOT at P. It is at Q.", pointsPQ + "\nT",
 			labelled("P", "Q", "T"), "task.question does not name 1 of the labels"},
 	} {

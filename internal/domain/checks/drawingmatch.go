@@ -83,9 +83,6 @@ func unnamedLabels(question string, structure *DrawingStructure) int {
 // nor is the English I told from the row I by anything but its language.
 func namedAsWord(runes []rune, label string) bool {
 	target := []rune(label)
-	if len(target) == 0 {
-		return false
-	}
 	for at := 0; at+len(target) <= len(runes); at++ {
 		if !sameRunes(runes[at:at+len(target)], target) || joinedInLatin(runes, at, at+len(target)) {
 			continue

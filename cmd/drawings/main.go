@@ -67,6 +67,8 @@ var ratings = map[string]string{
 // server is told to stop: a rating on its way is the run's result.
 const shutdownGrace = 5 * time.Second
 
+// main owns what a process owns and a function should not: its flags, the
+// signals that stop it and the code it exits with.
 func main() {
 	addr := flag.String("addr", "127.0.0.1:8090", "the address to listen on")
 	flag.Parse()
@@ -76,15 +78,18 @@ func main() {
 		fmt.Fprintln(os.Stderr, "drawings: logger:", err)
 		os.Exit(1)
 	}
-	if err := run(*addr, log); err != nil {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	err = run(ctx, *addr, log)
+	stop()
+	if err != nil {
 		log.Error("drawings stopped", zap.Error(err))
 		os.Exit(1)
 	}
 }
 
-// run serves the set until the process is told to stop, and lets a request
-// under way finish before it returns.
-func run(addr string, log *zap.Logger) error {
+// run serves the set until ctx ends, and lets a request under way finish
+// before it returns.
+func run(ctx context.Context, addr string, log *zap.Logger) error {
 	loaded, err := content.Load()
 	if err != nil {
 		return fmt.Errorf("drawings: load the content: %w", err)
@@ -102,8 +107,10 @@ func run(addr string, log *zap.Logger) error {
 	})
 	server := &http.Server{Addr: addr, Handler: mux, ReadHeaderTimeout: 10 * time.Second}
 
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
+	listener, err := new(net.ListenConfig).Listen(ctx, "tcp", addr)
+	if err != nil {
+		return fmt.Errorf("drawings: listen: %w", err)
+	}
 	stopped := make(chan struct{})
 	go func() {
 		defer close(stopped)
@@ -112,10 +119,6 @@ func run(addr string, log *zap.Logger) error {
 		defer cancel()
 		_ = server.Shutdown(shutdown)
 	}()
-	listener, err := new(net.ListenConfig).Listen(ctx, "tcp", addr)
-	if err != nil {
-		return fmt.Errorf("drawings: listen: %w", err)
-	}
 	log.Info("listening", zap.String("addr", addr), zap.Int("drawings", len(set)))
 	if err := server.Serve(listener); !errors.Is(err, http.ErrServerClosed) {
 		return fmt.Errorf("drawings: serve: %w", err)

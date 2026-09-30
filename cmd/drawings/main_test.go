@@ -1,11 +1,15 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
+	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.uber.org/zap"
@@ -183,7 +187,8 @@ func TestADrawingOutsideTheSetIsRefused(t *testing.T) {
 }
 
 // A card's id carries its drawing and its surface there and back, a surface
-// with a dash in it included.
+// with a dash in it included; an id that names no surface names an unknown
+// one.
 func TestACardsIDCarriesItsDrawingAndSurface(t *testing.T) {
 	t.Parallel()
 
@@ -194,6 +199,134 @@ func TestACardsIDCarriesItsDrawingAndSurface(t *testing.T) {
 	if surface, number := fromTaskID("tsk_other"); surface != "unknown" || number != 0 {
 		t.Errorf("fromTaskID(tsk_other) = %q, %d, want unknown, 0", surface, number)
 	}
+	if surface, number := fromTaskID("drawing-5"); surface != "unknown" || number != 5 {
+		t.Errorf("fromTaskID(drawing-5) = %q, %d, want unknown, 5", surface, number)
+	}
+}
+
+// A call that carries neither the host's name nor a user agent — a host that
+// said its name only when it connected — is still written down, its host as
+// unknown.
+func TestACallThatNamesNoHostIsWrittenDownAsUnknown(t *testing.T) {
+	t.Parallel()
+
+	core, logs := observer.New(zapcore.InfoLevel)
+	shows := &shower{set: theSet(t), log: zap.New(core)}
+	if _, _, err := shows.show(t.Context(), &mcp.CallToolRequest{}, showIn{Number: 1, Surface: "claude-web"}); err != nil {
+		t.Fatalf("show() error = %v, want a card", err)
+	}
+	shown := logs.FilterMessage("shown").All()
+	if len(shown) != 1 {
+		t.Fatalf("shown lines = %d, want 1", len(shown))
+	}
+	if fields := shown[0].ContextMap(); fields["client"] != "unknown" || fields["user_agent"] != "" {
+		t.Errorf("the line names client %v and user agent %q, want unknown and none",
+			fields["client"], fields["user_agent"])
+	}
+}
+
+// The server serves the set — its cards on the protocol's endpoint, and its
+// health — until it is told to stop, and then stops without an error.
+func TestTheSetIsServedUntilTheServerIsStopped(t *testing.T) {
+	t.Parallel()
+
+	addr := freeAddress(t)
+	ctx, cancel := context.WithCancel(t.Context())
+	stopped := make(chan error, 1)
+	go func() { stopped <- run(ctx, addr, zap.NewNop()) }()
+	waitUntilHealthy(t, addr)
+
+	client := mcp.NewClient(&mcp.Implementation{Name: "test", Version: "1"}, nil)
+	session, err := client.Connect(t.Context(), &mcp.StreamableClientTransport{Endpoint: "http://" + addr + "/mcp"}, nil)
+	if err != nil {
+		t.Fatalf("Connect() error = %v", err)
+	}
+	shown, err := session.CallTool(t.Context(), &mcp.CallToolParams{
+		Name: "show_drawing", Arguments: map[string]any{"number": 1, "surface": "chatgpt-phone"},
+	})
+	_ = session.Close()
+	if err != nil || shown.IsError {
+		t.Fatalf("show_drawing = %+v, %v, want a card", shown, err)
+	}
+	var card cardOut
+	decode(t, shown.StructuredContent, &card)
+	if card.Task.ID != taskID("chatgpt-phone", 1) {
+		t.Errorf("the card's id = %q, want %q", card.Task.ID, taskID("chatgpt-phone", 1))
+	}
+
+	cancel()
+	select {
+	case err := <-stopped:
+		if err != nil {
+			t.Errorf("run() error = %v, want nil once told to stop", err)
+		}
+	case <-time.After(10 * time.Second):
+		t.Fatal("run() did not return within 10s of being told to stop")
+	}
+}
+
+// An address the server cannot listen on is reported, and nothing is served.
+func TestAnAddressItCannotListenOnIsReported(t *testing.T) {
+	t.Parallel()
+
+	var config net.ListenConfig
+	taken, err := config.Listen(t.Context(), "tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen for an address to take: %v", err)
+	}
+	t.Cleanup(func() { _ = taken.Close() })
+
+	if err := run(t.Context(), taken.Addr().String(), zap.NewNop()); err == nil ||
+		!strings.Contains(err.Error(), "drawings: listen") {
+		t.Errorf("run() on a taken address error = %v, want it refused to listen", err)
+	}
+}
+
+// freeAddress is a loopback address nothing listens on yet.
+func freeAddress(t *testing.T) string {
+	t.Helper()
+
+	var config net.ListenConfig
+	probe, err := config.Listen(t.Context(), "tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen for a free address: %v", err)
+	}
+	addr := probe.Addr().String()
+	if err := probe.Close(); err != nil {
+		t.Fatalf("close the probe listener: %v", err)
+	}
+	return addr
+}
+
+// waitUntilHealthy waits until the server at addr answers its health check.
+func waitUntilHealthy(t *testing.T, addr string) {
+	t.Helper()
+
+	deadline := time.Now().Add(10 * time.Second)
+	for time.Now().Before(deadline) {
+		if healthy(t, addr) {
+			return
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	t.Fatalf("nothing answers the health check at %s after 10s", addr)
+}
+
+// healthy says whether the server at addr answers its health check with ok.
+func healthy(t *testing.T, addr string) bool {
+	t.Helper()
+
+	request, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://"+addr+"/healthz", http.NoBody)
+	if err != nil {
+		t.Fatalf("build the health check: %v", err)
+	}
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		return false
+	}
+	defer func() { _ = response.Body.Close() }()
+	body, err := io.ReadAll(response.Body)
+	return err == nil && response.StatusCode == http.StatusOK && string(body) == "ok"
 }
 
 // decode reads a result's structured content into out.
