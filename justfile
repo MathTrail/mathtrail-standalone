@@ -217,6 +217,37 @@ play *args:
     exec claude --model "{{ PLAY_MODEL }}" --strict-mcp-config --mcp-config .mcp.json --tools "" \
         --allowedTools "{{ PLAY_TOOLS }}" --append-system-prompt "$session" "$@"
 
+# The drawings the limits of a text drawing are chosen by, each on the widget's
+# own task card: a server with no sign-in behind a quick tunnel, whose address
+# the tunnel prints. Add it to a chat host as a connector with no sign-in and
+# ask for the drawings by number; the five options of a card rate its drawing,
+# and every rating is a line of the log, JSON lines named by the time the
+# server started. The tunnel hands the server its requests as addressed to the
+# server itself: the protocol library refuses a request that reaches a server
+# on this machine addressed to any other host.
+# Show a chat host the calibration set of text drawings behind a quick tunnel, and log the ratings
+drawings port="8090": web-build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mkdir -p "{{ PLAY_DIR }}"
+    go build -o "{{ PLAY_DIR }}/drawings" ./cmd/drawings
+    log="{{ PLAY_DIR }}/drawings-$(date -u +%Y%m%dT%H%M%SZ).jsonl"
+    "{{ PLAY_DIR }}/drawings" -addr "127.0.0.1:{{ port }}" > "$log" &
+    server=$!
+    trap 'kill "$server" 2> /dev/null' EXIT
+    # A tunnel to a server that never started would print an address that
+    # answers nothing.
+    until curl -fsS "http://127.0.0.1:{{ port }}/healthz" > /dev/null 2>&1; do
+        if ! kill -0 "$server" 2> /dev/null; then
+            echo "drawings: the server did not start; the end of its log:" >&2
+            tail -n 5 "$log" >&2
+            exit 1
+        fi
+        sleep 0.5
+    done
+    cloudflared tunnel --no-autoupdate --url "http://127.0.0.1:{{ port }}" \
+        --http-host-header "127.0.0.1:{{ port }}"
+
 # Show one reference task beside the solver that proves its answer
 solver id:
     #!/usr/bin/env bash

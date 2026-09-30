@@ -12,6 +12,8 @@ bin/
 dist/
 # The load tool's binary, when it is built where it lives
 tools/load/load
+# The drawings command's binary, when it is built at the root
+/drawings
 coverage.*
 *.out
 *.test
