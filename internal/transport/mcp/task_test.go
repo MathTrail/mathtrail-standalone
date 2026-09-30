@@ -17,6 +17,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/config"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/tutor"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
@@ -1100,6 +1101,57 @@ func TestATaskHandedOutOverAnotherSkipsIt(t *testing.T) {
 	h.settle()
 	if skipped := linesOf(h, "task_skipped"); len(skipped) != 1 || skipped[0].ContextMap()["topic"] != "time.clocks" {
 		t.Errorf("task_skipped lines = %d, want one about time.clocks", len(skipped))
+	}
+}
+
+// A skipped task is read from the profile, which a person can edit, so its line
+// names the task's topic only while the catalog has it: a name typed over the
+// topic in the file stays in the file. So whichever way the task is left — for
+// the next ask, or under a task handed out over it.
+func TestTheLineOfASkippedTaskNamesOnlyACatalogTopic(t *testing.T) {
+	t.Parallel()
+
+	ways := map[string]func(t *testing.T, topic string) (*harness, *mcp.CallToolResult){
+		"asked past": func(t *testing.T, topic string) (*harness, *mcp.CallToolResult) {
+			p := raceOnTheCard(t, rating.TrialAnswers)
+			p.CurrentTask.Topic = topic
+			h, session := lesson(t, keptAsIs(t, p))
+			return h, call(t, session, "next_task", map[string]any{"language": "en"})
+		},
+		"handed out over": func(t *testing.T, topic string) (*harness, *mcp.CallToolResult) {
+			on := fuzzProfile(t)
+			on.CurrentTask = &profile.CurrentTask{
+				Difficulty: 3, Fingerprint: "sketch", GradeLevel: "3-4", Hint: "Count them.",
+				ID: "tsk_left", InstructionsVersion: "test", IssuedAt: profile.At(lessonDay), Language: "en",
+				Options: map[string]string{"A": "1", "B": "2", "C": "3", "D": "4", "E": "5"},
+				Sealed:  "mt1.t.kid.sealed", Topic: topic, Wording: "What time is it?",
+			}
+			h, session := lesson(t, keptAsIs(t, on))
+			return h, call(t, session, "submit_task", raceOn(on.OpenRequest))
+		},
+	}
+	for way, leave := range ways {
+		for _, tc := range []struct{ name, topic, want string }{
+			{"as the service wrote it", "time.clocks", "time.clocks"},
+			{"a name typed over", pseudonym, other},
+		} {
+			t.Run(way+", "+tc.name, func(t *testing.T) {
+				t.Parallel()
+
+				h, left := leave(t, tc.topic)
+				if left.IsError {
+					t.Fatalf("the call that leaves the task failed: %s", textOf(t, left))
+				}
+				h.settle()
+				skipped := linesOf(h, "task_skipped")
+				if len(skipped) != 1 {
+					t.Fatalf("task_skipped lines = %d, want 1", len(skipped))
+				}
+				if got := skipped[0].ContextMap()["topic"]; got != tc.want {
+					t.Errorf("task_skipped names the topic %v, want %s", got, tc.want)
+				}
+			})
+		}
 	}
 }
 

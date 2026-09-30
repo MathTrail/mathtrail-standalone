@@ -592,11 +592,7 @@ ci-tf-apply:
     # The project is read from the file that names it rather than from an
     # output: an apply that was given targets refreshes only the outputs those
     # targets feed, and this one is fed by a variable.
-    project=$(sed -n 's/^[[:space:]]*project_id[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' {{ TF_DIR }}/prod.auto.tfvars | head -1)
-    if [ -z "$project" ]; then
-        echo "ci-tf-apply: {{ TF_DIR }}/prod.auto.tfvars names no project_id." >&2
-        exit 1
-    fi
+    project=$(just _project)
 
     seal_key=$(tf output -raw secret_seal_key)
     client_secret=$(tf output -raw secret_google_client)
@@ -632,6 +628,22 @@ ci-tf-apply:
 
     tf apply -auto-approve -input=false
     tf output
+
+# The project the deployment lives in, as the Terraform configuration names it
+_project:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    named="{{ TF_DIR }}/prod.auto.tfvars"
+    if [ ! -f "$named" ]; then
+        echo "$named is missing, and it is what names the project." >&2
+        exit 1
+    fi
+    project=$(sed -n 's/^[[:space:]]*project_id[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$named" | head -1)
+    if [ -z "$project" ]; then
+        echo "$named names no project_id." >&2
+        exit 1
+    fi
+    echo "$project"
 
 # -- Container --------------------------------------------------------------
 
@@ -805,6 +817,34 @@ ci-smoke url:
     fi
 
     echo "smoke: {{ url }} answers as {{ COMMIT }}, and its MCP endpoint wants a sign-in and says where it begins"
+
+# The report reads what the deployed service logged within the window given —
+# 1d, 7d, 30d, as far back as Cloud Logging keeps it — in the project the
+# Terraform configuration names, and only the lines it adds up. They are read
+# whole into a file of their own before anything is added up, so that a read
+# that fails — a sign-in that ran out, a right the account lacks — stops here
+# rather than passing for a log with nothing in it. Cloud Logging keeps a
+# line's own fields as the payload of an entry and moves its severity, its
+# time and its span out beside it, so those are put back before the report
+# reads the line. A log of a local run, such as `just play-server` writes, is
+# read as it is: go run ./cmd/report < that file.
+# Add up the deployed service's log: tasks asked for, accepted and refused, why, the time to write one, limits, tool calls
+report since="1d" service="mathtrail":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if ! command -v gcloud > /dev/null; then
+        echo "report: this environment has gcloud on x86_64 alone. Elsewhere, read the entries with Google's" >&2
+        echo "google-cloud-cli image and hand them to the report as this recipe does." >&2
+        exit 1
+    fi
+    project=$(just _project)
+    filter='resource.type="cloud_run_revision" AND resource.labels.service_name="{{ service }}"
+        AND jsonPayload.message=("task_requested" OR "task_submitted" OR "task_accepted" OR "limit_hit" OR "tool_call")'
+    entries=$(mktemp)
+    trap 'rm -f "$entries"' EXIT
+    gcloud logging read "$filter" --project="$project" --freshness="{{ since }}" --format=json > "$entries"
+    jq -c '.[] | .jsonPayload + {severity, time: .timestamp, "logging.googleapis.com/spanId": .spanId}' "$entries" \
+        | go run ./cmd/report
 
 
 # -- Golden vectors from the prototype --------------------------------------

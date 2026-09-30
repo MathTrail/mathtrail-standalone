@@ -162,7 +162,7 @@ func (s *Service) openRequest(ctx context.Context, account store.Account, in nex
 
 	lead := ""
 	if wasSkipped {
-		s.events.write(ctx, account, eventTaskSkipped, skippedFields(skipped.Topic, skipped.GradeLevel, skipped.Difficulty)...)
+		s.events.write(ctx, account, eventTaskSkipped, s.skippedFields(skipped.Topic, skipped.GradeLevel, skipped.Difficulty)...)
 		lead = fmt.Sprintf("Task %s, left on the child's card without an answer, is recorded as skipped.", skipped.TaskID)
 	}
 	s.events.write(ctx, account, eventTaskRequested, requestFields(request, false)...)
@@ -268,10 +268,11 @@ func packageText(pack []byte) string {
 }
 
 // skippedFields are what the line about a skipped task keeps of it: where it
-// stood.
-func skippedFields(topic string, level rating.GradeLevel, difficulty int) []zap.Field {
+// stood. The task is read from the profile, which a person can edit, so the
+// line names its topic only while the catalog has it.
+func (s *Service) skippedFields(topic string, level rating.GradeLevel, difficulty int) []zap.Field {
 	return []zap.Field{
-		zap.String("topic", topic),
+		zap.String("topic", s.topicLabel(topic)),
 		zap.String("level", string(level)),
 		zap.Int("difficulty", difficulty),
 	}

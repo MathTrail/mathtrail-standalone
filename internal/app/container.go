@@ -58,10 +58,23 @@ type Container struct {
 	closers []func(context.Context) error
 }
 
-// NewContainer builds everything. If construction fails halfway, whatever was
-// already built is closed before the error is returned: a half-built container
-// must not leak a connection or a goroutine.
-func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *Container, err error) {
+// outside is where the service reaches the two services of Google's that a
+// parent's sign-in and profile live with: its sign-in, and Drive.
+type outside struct {
+	signIn googleauth.Endpoints
+	drive  string
+}
+
+// NewContainer builds everything, reaching Google's own sign-in and Drive. If
+// construction fails halfway, whatever was already built is closed before the
+// error is returned: a half-built container must not leak a connection or a
+// goroutine.
+func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (*Container, error) {
+	return newContainer(ctx, cfg, log, &outside{signIn: googleauth.Accounts, drive: drive.Google})
+}
+
+// newContainer builds everything, reaching Google where reach says.
+func newContainer(ctx context.Context, cfg *config.Config, log *zap.Logger, reach *outside) (_ *Container, err error) {
 	c := &Container{Config: cfg, Logger: log}
 	defer func() {
 		if err == nil {
@@ -160,13 +173,13 @@ func NewContainer(ctx context.Context, cfg *config.Config, log *zap.Logger) (_ *
 	// any other.
 	c.Reviewer = checks.NewReviewer(embedded, c.Solver, checks.DefaultDrawingLimits())
 
-	c.Store, err = profileStore(cfg, log, tel.TracerProvider())
+	c.Store, err = profileStore(cfg, log, tel.TracerProvider(), reach.drive)
 	if err != nil {
 		return nil, err
 	}
 	log.Info("profile store", zap.Bool("in_drive", !cfg.DevAuth))
 
-	google, err := googleSignIn(cfg)
+	google, err := googleSignIn(cfg, reach.signIn)
 	if err != nil {
 		return nil, err
 	}
@@ -311,10 +324,10 @@ func newPaces(cfg *config.Config) (*paces, error) {
 }
 
 // googleSignIn is how a parent signs in with Google: through the service's own
-// client there, coming back to the authorization server's callback. A machine
-// with no client configured has no sign-in, and nil is what it gets; the
-// configuration refuses that on a deployment.
-func googleSignIn(cfg *config.Config) (googleauth.SignIn, error) {
+// client there, at the endpoints given, coming back to the authorization
+// server's callback. A machine with no client configured has no sign-in, and
+// nil is what it gets; the configuration refuses that on a deployment.
+func googleSignIn(cfg *config.Config, endpoints googleauth.Endpoints) (googleauth.SignIn, error) {
 	if !cfg.GoogleSignIn() {
 		return nil, nil
 	}
@@ -322,22 +335,22 @@ func googleSignIn(cfg *config.Config) (googleauth.SignIn, error) {
 		ClientID:     cfg.GoogleClientID,
 		ClientSecret: cfg.GoogleClientSecret,
 		RedirectURL:  cfg.Origin() + oauthserver.CallbackPath,
-		Endpoints:    googleauth.Accounts,
+		Endpoints:    endpoints,
 		Now:          time.Now,
 	})
 }
 
 // profileStore is where the profiles are kept. A profile lives in the Drive of
-// the parent who signed in, reached with the Google token their sign-in
-// carries. The development sign-in carries none, so under it profiles are kept
-// in the memory of the process: what is written there is lost with it, and one
-// instance knows nothing of what another kept. The configuration refuses that
-// sign-in on a deployment.
-func profileStore(cfg *config.Config, log *zap.Logger, traces trace.TracerProvider) (store.Storage, error) {
+// the parent who signed in, reached at the root given with the Google token
+// their sign-in carries. The development sign-in carries none, so under it
+// profiles are kept in the memory of the process: what is written there is
+// lost with it, and one instance knows nothing of what another kept. The
+// configuration refuses that sign-in on a deployment.
+func profileStore(cfg *config.Config, log *zap.Logger, traces trace.TracerProvider, root string) (store.Storage, error) {
 	if cfg.DevAuth {
 		return memory.New(), nil
 	}
-	calls := &drive.Settings{Root: drive.Google, Timeout: cfg.DriveTimeout}
+	calls := &drive.Settings{Root: root, Timeout: cfg.DriveTimeout}
 	files, err := drive.NewFiles(calls)
 	if err != nil {
 		return nil, err
