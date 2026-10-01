@@ -100,7 +100,7 @@ These follow `mentor-api`, the platform's reference service. Where we differ fro
 
 ```
 cmd/server/main.go
-cmd/sitegen/ sitecheck/   the public site: renders it, and refuses a broken one
+cmd/sitecheck/            refuses a built site that should not be published
 cmd/drawings/             the calibration set of text drawings, shown to a chat host on the widget's cards
 cmd/report/               prints what the service's log adds up to
 internal/
@@ -119,15 +119,15 @@ internal/
     drive/        reaches the files in a parent's Drive, one request per call; drivetest/ stands in for Drive in tests
     cimd/         fetches a client's metadata document, reaching public addresses only
     googleauth/   signs a parent in with Google and proves who it was, renews the grant and ends it; googletest/ stands in for Google in tests
-  site/           render/ turns the site's sources into files, check/ judges them
+  site/           check/ judges a built site, knowing nothing of how it was built
   store/          storage interface plus its in-memory and Drive implementations (memory/, and drive/ as package drivestore); storetest/ holds both to one contract
   transport/
     mcp/          tools, ui:// resources
     oauth/        the authorization server: its metadata, its clients, its endpoints, the sign-in's pages
     http/         /health, and the router every endpoint is mounted on
 content/          catalogs, reference tasks and model instructions, embedded
-site/             the public site: texts per locale, templates, assets
-web/              widget sources, built into internal/widget/
+site/             the public site's texts per locale, and its mark
+web/              the widget's and the site's code: the widget is built into internal/widget/, the site into site/dist/
 infra/terraform/  the Google Cloud project as code — not to be confused with internal/infra/
 research/         the research program: a separate Go module that imports the product, never the reverse
 tools/load/       the load tool: a Go module of its own that imports the product, never the reverse

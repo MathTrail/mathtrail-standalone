@@ -1,0 +1,300 @@
+/* The site's look: a white page, near-black headings, grey text, and blue for
+   whatever can be followed or pressed. These colours are the site's alone —
+   the card a chat draws and the sign-in pages keep the design's palette — so
+   they are named here rather than in the shared tokens, which still give the
+   site its fonts, its spaces, its radii and its widths. The site is always
+   light, whatever the reader's system prefers.
+
+   Logical properties throughout: the same rules lay out a page written right
+   to left, with no mirrored copy of them. */
+
+:root {
+	--s-page: #ffffff;
+	--s-text: #1f1f1f;
+	--s-muted: #5f6368;
+	--s-line: #dadce0;
+	--s-accent: #0b57d0;
+	--s-accent-hover: #0842a0;
+	--s-accent-tint: #e8f0fe;
+	--s-foot: #f8f9fa;
+	--s-code: #f1f3f4;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	/* The reader's own font, so the page costs no download and looks native
+	   on every system it is opened on. */
+	font-family: var(--font-sans);
+	line-height: 1.6;
+	text-size-adjust: 100%;
+	background: var(--s-page);
+	color: var(--s-text);
+}
+
+body {
+	margin: 0;
+	min-block-size: 100svh;
+	display: flex;
+	flex-direction: column;
+}
+
+a {
+	color: var(--s-accent);
+	text-underline-offset: 0.15em;
+}
+
+a:hover {
+	color: var(--s-accent-hover);
+}
+
+:focus-visible {
+	outline: 2px solid var(--s-accent);
+	outline-offset: 2px;
+	border-radius: var(--radius-control);
+}
+
+.s-wrap {
+	inline-size: 100%;
+	max-inline-size: var(--site-max);
+	margin-inline: auto;
+	padding-inline: var(--space-16);
+}
+
+/* The header: the mark and the name on one side, the languages on the other,
+   over a hairline. */
+.s-nav {
+	border-block-end: 1px solid var(--s-line);
+	background: var(--s-page);
+}
+
+.s-nav-inner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-16);
+	min-block-size: 64px;
+}
+
+.s-brand {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-8);
+	color: var(--s-text);
+	font-size: 1.375rem;
+	font-weight: 500;
+	letter-spacing: -0.01em;
+	text-decoration: none;
+}
+
+.s-brand:hover {
+	color: var(--s-text);
+}
+
+.s-brand img {
+	display: block;
+}
+
+.s-brand-sm {
+	font-size: 1rem;
+}
+
+/* The language switch: one pill, the language being read filled in. */
+.s-seg {
+	display: inline-flex;
+	gap: 2px;
+	padding: 3px;
+	border: 1px solid var(--s-line);
+	border-radius: var(--radius-pill);
+}
+
+.s-seg a {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-inline-size: var(--tap-target);
+	min-block-size: 36px;
+	padding-inline: var(--space-12);
+	border-radius: var(--radius-pill);
+	color: var(--s-muted);
+	font-size: 0.875rem;
+	font-weight: 500;
+	text-decoration: none;
+}
+
+.s-seg a:hover {
+	color: var(--s-accent);
+}
+
+.s-seg a[aria-current="page"] {
+	background: var(--s-accent-tint);
+	color: var(--s-accent);
+}
+
+.s-main {
+	flex: 1 0 auto;
+}
+
+/* A document is read, not skimmed: one comfortable column, and headings with
+   room to separate one obligation from the next. */
+.s-doc {
+	max-inline-size: var(--measure);
+	margin-inline: auto;
+	padding-block: var(--space-64);
+	font-size: 1.0625rem;
+	line-height: 1.7;
+}
+
+.s-doc p {
+	margin-block: 0 var(--space-16);
+}
+
+.s-doc h1 {
+	margin-block: 0 var(--space-24);
+	font-size: clamp(2rem, 1.4rem + 2.6vw, 3.25rem);
+	font-weight: 700;
+	line-height: 1.1;
+	letter-spacing: -0.02em;
+	text-wrap: balance;
+}
+
+.s-doc h1 + p {
+	font-size: 1.25rem;
+	color: var(--s-muted);
+}
+
+.s-doc h2 {
+	margin-block: var(--space-44) var(--space-16);
+	font-size: 1.5rem;
+	font-weight: 700;
+	line-height: 1.25;
+	letter-spacing: -0.01em;
+}
+
+.s-doc h3 {
+	margin-block: var(--space-32) var(--space-8);
+	font-size: 1.1875rem;
+	font-weight: 600;
+	line-height: 1.35;
+}
+
+.s-doc ul {
+	margin-block: 0 var(--space-16);
+	padding-inline-start: var(--space-24);
+}
+
+.s-doc li {
+	margin-block-end: var(--space-8);
+}
+
+.s-doc code {
+	padding-block: 0.1em;
+	padding-inline: 0.35em;
+	border-radius: var(--radius-control);
+	background: var(--s-code);
+	font-family: var(--font-mono);
+	font-size: 0.9em;
+}
+
+/* The apex is a doorway, not a page to read: the name large in the middle, a
+   line under it, and the languages as buttons. */
+.s-apex {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-24);
+	padding-block: var(--space-120) var(--space-64);
+	text-align: center;
+}
+
+.s-apex h1 {
+	margin: 0;
+	font-size: clamp(2.75rem, 1.8rem + 4vw, 4.5rem);
+	font-weight: 700;
+	line-height: 1.05;
+	letter-spacing: -0.03em;
+}
+
+.s-lead {
+	max-inline-size: 36ch;
+	margin: 0;
+	color: var(--s-muted);
+	font-size: 1.25rem;
+	text-wrap: balance;
+}
+
+.s-choices {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: var(--space-12);
+}
+
+.s-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-block-size: var(--tap-target);
+	padding-inline: var(--space-24);
+	border: 1px solid var(--s-line);
+	border-radius: var(--radius-pill);
+	background: var(--s-page);
+	color: var(--s-accent);
+	font-size: 1rem;
+	font-weight: 500;
+	text-decoration: none;
+}
+
+.s-btn:hover {
+	background: var(--s-accent-tint);
+	color: var(--s-accent-hover);
+}
+
+/* The footer: a quiet grey band with the documents and the code. */
+.s-footer {
+	border-block-start: 1px solid var(--s-line);
+	background: var(--s-foot);
+	color: var(--s-muted);
+	font-size: 0.875rem;
+}
+
+.s-foot {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-16);
+	padding-block: var(--space-32);
+}
+
+.s-footlinks {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-8) var(--space-24);
+}
+
+.s-footlinks a {
+	color: var(--s-muted);
+	text-decoration: none;
+}
+
+.s-footlinks a:hover {
+	color: var(--s-accent);
+	text-decoration: underline;
+}
+
+.s-legal {
+	max-inline-size: var(--measure);
+	margin-block: 0;
+	padding-block-end: var(--space-32);
+}
+
+@media (min-width: 720px) {
+	.s-wrap {
+		padding-inline: var(--space-24);
+	}
+}

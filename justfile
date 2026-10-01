@@ -329,7 +329,8 @@ _license-list:
     cat <<'WIDGET'
 
     The npm packages below are what the widget the server embeds is built from:
-    every package its lockfile needs outside development. Each line is a
+    every package its lockfile needs outside development, and every package one
+    of those names as an optional companion, used or not. Each line is a
     license, the package at the exact version in web/package-lock.json, and the
     page of that version in the npm registry.
 
@@ -548,15 +549,19 @@ ci-licenses:
 
 # -- Site -------------------------------------------------------------------
 
-# Render the site into site/dist/
-site:
-    go run ./cmd/sitegen -base {{ SITE_BASE }} -out {{ SITE_DIR }}
+# The site is drawn by the widget's own toolchain, from the texts in
+# site/content/, and judged by a checker that knows nothing of how it was drawn.
+# Build the site into site/dist/
+[working-directory('web')]
+site: web-install
+    npm run --silent build:site -- --base {{ SITE_BASE }} --out ../{{ SITE_DIR }}
 
-# Render the site and serve it, so a page can be read the way a visitor reads it
-site-serve port="8081":
-    go run ./cmd/sitegen -base {{ SITE_BASE }} -out {{ SITE_DIR }} -serve :{{ port }}
+# Build the site and serve it, so a page can be read the way a visitor reads it
+[working-directory('web')]
+site-serve port="8081": site
+    npm run --silent preview:site -- --outDir ../{{ SITE_DIR }} --host 0.0.0.0 --port {{ port }} --strictPort
 
-# Render the site and refuse it if anything about it is wrong
+# Build the site and refuse it if anything about it is wrong
 ci-site: site
     go run ./cmd/sitecheck -base {{ SITE_BASE }} -dir {{ SITE_DIR }}
 

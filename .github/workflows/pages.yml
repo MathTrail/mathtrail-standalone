@@ -1,7 +1,8 @@
 # Builds the site and, on main, publishes it. The build runs inside the same
-# toolchain image as every other check, so a page rendered here and a page
-# rendered on a laptop come from the same Go at the same version; the deployment
-# itself runs on the runner, because that is where the Pages API is reachable.
+# toolchain image as every other check, so a page built here and a page built
+# on a laptop come from the same Node and the same packages, and are judged by
+# the same checker; the deployment itself runs on the runner, because that is
+# where the Pages API is reachable.
 name: Pages
 
 on:
@@ -73,7 +74,7 @@ jobs:
             /tmp/go/build
           key: go-${{ hashFiles('go.sum') }}
           restore-keys: go-
-      - name: Render the site and hold it to its own rules
+      - name: Build the site and hold it to its own rules
         run: just ci-site
       - name: Keep the site for the deployment
         if: github.event_name != 'pull_request'

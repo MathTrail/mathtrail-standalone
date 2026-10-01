@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { type Dictionary, openWords } from "./words";
+import { type Dictionary, dictionariesByTag, openWords } from "./words";
 
 // Words in a few languages, the Brazilian ones left unfinished, to see how a
 // wording is said, counted and filled, and where a missing one comes from.
@@ -149,5 +149,24 @@ describe("in the build that ships, words", () => {
 		vi.stubEnv("DEV", false);
 
 		expect(openWords("en", dictionaries).text("times")).toBe("{count} times");
+	});
+});
+
+describe("dictionaries a glob found", () => {
+	test("are known by the tag each file is named after", () => {
+		const en: Dictionary = { "task.hint": "Hint" };
+		const zh: Dictionary = { "task.hint": "提示" };
+
+		expect(
+			dictionariesByTag({
+				"../../locales/en.json": en,
+				"./locales/zh-Hans.json": zh,
+			}),
+		).toEqual(
+			new Map([
+				["en", en],
+				["zh-Hans", zh],
+			]),
+		);
 	});
 });
