@@ -30,6 +30,21 @@ export type Words<Key extends string> = {
 };
 
 /**
+ * dictionariesByTag are the dictionaries a glob found, by the tag each file is
+ * named after: ru for locales/ru.json.
+ */
+export function dictionariesByTag(
+	files: Readonly<Record<string, Dictionary>>,
+): ReadonlyMap<string, Dictionary> {
+	return new Map(
+		Object.entries(files).map(([file, words]) => [
+			file.slice(file.lastIndexOf("/") + 1, -".json".length),
+			words,
+		]),
+	);
+}
+
+/**
  * placeholder is a slot as a wording names it: its name in lowercase letters,
  * in braces — `{count}`.
  */

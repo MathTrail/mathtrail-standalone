@@ -5,9 +5,11 @@
 	"type": "module",
 	"scripts": {
 		"build:widget": "vite build --config vite.config.widget.ts",
+		"build:site": "node scripts/prerender-site.ts",
 		"check": "biome ci .",
 		"fmt": "biome check --write .",
 		"preview": "vite --config vite.config.preview.ts",
+		"preview:site": "vite preview --config vite.config.site.ts",
 		"typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
 		"test": "vitest run"
 	},
@@ -23,7 +25,9 @@
 		"@types/node": "24.19.0",
 		"@vitest/coverage-v8": "5.0.2",
 		"happy-dom": "20.14.5",
+		"marked": "18.0.14",
 		"playwright-core": "1.63.0",
+		"preact-render-to-string": "6.7.0",
 		"typescript": "7.0.2",
 		"vite": "8.3.1",
 		"vite-plugin-singlefile": "2.3.3",

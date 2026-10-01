@@ -3,7 +3,12 @@ import { useContext } from "preact/hooks";
 import english from "../../locales/en.json";
 import { chooseLocale } from "../i18n/lookup";
 import { pseudoLocale, pseudoWords } from "../i18n/pseudo";
-import { type Dictionary, openWords, type Words } from "../i18n/words";
+import {
+	type Dictionary,
+	dictionariesByTag,
+	openWords,
+	type Words,
+} from "../i18n/words";
 
 /**
  * Key names a text of the widget: a key of its English words, which the words
@@ -13,13 +18,11 @@ export type Key = keyof typeof english;
 
 // written are the dictionaries of the languages the widget is written in, by
 // the tag their file is named after.
-const written: ReadonlyMap<string, Dictionary> = new Map(
-	Object.entries(
-		import.meta.glob<Dictionary>("../../locales/*.json", {
-			eager: true,
-			import: "default",
-		}),
-	).map(([file, words]) => [tagOf(file), words]),
+const written: ReadonlyMap<string, Dictionary> = dictionariesByTag(
+	import.meta.glob<Dictionary>("../../locales/*.json", {
+		eager: true,
+		import: "default",
+	}),
 );
 
 /**
@@ -45,11 +48,6 @@ const spoken: ReadonlySet<string> = new Set(dictionaries.keys());
 export function isKey(key: string): key is Key {
 	const english = dictionaries.get("en");
 	return english !== undefined && Object.hasOwn(english, key);
-}
-
-// tagOf is the tag a dictionary's file is named after: ru for locales/ru.json.
-function tagOf(file: string): string {
-	return file.slice(file.lastIndexOf("/") + 1, -".json".length);
 }
 
 /**
