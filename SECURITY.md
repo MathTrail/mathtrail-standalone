@@ -43,8 +43,22 @@ Worth knowing before you look for something that is not there:
 
 ## Supported versions
 
-The tip of `main` is what is deployed and what is supported. There is no separate maintenance branch: a fix goes to `main` and is delivered from there.
+The tip of `main` is what is deployed and what is supported. Every green `main` is also published as a signed release, and only the newest release is supported. There is no separate maintenance branch: a fix goes to `main` and is delivered from there.
+
+## Checking that a binary is ours
+
+Every [release](https://github.com/MathTrail/mathtrail-standalone/releases) carries the server for each architecture, `SHA256SUMS` of what was built, and a Sigstore bundle beside every file. The release workflow signs them with a short-lived identity of its own rather than a stored key, and the certificate in each bundle names the repository, the workflow and the branch it ran on; the release's tag points at the commit that was built. With [cosign](https://github.com/sigstore/cosign) 3 or later, in the folder the files were downloaded to:
+
+```bash
+cosign verify-blob --bundle SHA256SUMS.sigstore.json \
+  --certificate-identity https://github.com/MathTrail/mathtrail-standalone/.github/workflows/release.yml@refs/heads/main \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  SHA256SUMS
+sha256sum --check --ignore-missing SHA256SUMS
+```
+
+The first command says the sums were signed by this repository's release workflow, run on `main`; the second, that each binary downloaded beside them is the one they describe — on macOS, `shasum -a 256 --check --ignore-missing SHA256SUMS` does the same. A release cut by hand from another branch names that branch in its certificate instead, and fails the first command as written.
 
 ## How this is kept honest
 
-Every change arrives through a pull request that cannot be merged until the following pass: the tests with the race detector, the linter including `gosec`, CodeQL, `govulncheck`, a secret scan of the whole history, a licence check, a vulnerability scan of the runtime image, and 90% coverage of the lines the change touches. The reasoning behind each of these is written down in [`docs/decisions.md`](docs/decisions.md).
+Every change arrives through a pull request that cannot be merged until the following pass: the tests with the race detector, the linter including `gosec`, CodeQL, `govulncheck` over the Go code and `npm audit` over the packages the widget is built from, a secret scan of the whole history, a licence check, a vulnerability scan of the runtime image, and 90% coverage of the lines the change touches. The reasoning behind each of these is written down in [`docs/decisions.md`](docs/decisions.md).

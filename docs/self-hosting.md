@@ -1,27 +1,49 @@
 # Running your own copy
 
-MathTrail is MIT-licensed and holds nothing of its own: every deployment is one Cloud Run service, one Artifact Registry repository, two secrets and a domain, in a Google Cloud project you control. This page is how that gets created — and almost none of it is done by hand. The repository describes the deployment, and a workflow delivers it.
+MathTrail is MIT-licensed and holds nothing of its own: every deployment is one Cloud Run service, one Artifact Registry repository, two secrets and a domain, in a Google Cloud project you control, beside a small site on GitHub Pages that carries its privacy policy and terms. This page is how that gets created — and almost none of it is done by hand. The repository describes the deployment, and its workflows deliver it.
 
-The name is not part of the licence: a copy that is not this project is named differently.
+The name is not part of the licence: a copy that runs publicly goes by a name of its own ([below](#a-name-of-your-own)).
 
 ## What is done by hand, ever
 
-Four things, once, because no API can do them:
+Five things, once — four because no API can do them, and the settings of the repository itself:
 
 1. **The bootstrap**, below: the project, the bucket its state lives in and the identity the pipeline signs in as. A pipeline cannot create the door it walks in by. Once — and again on the day that identity needs a right it was not given, which is its own section further down.
 2. **The Google consent screen and one OAuth client.** Google has no API for either.
-3. **Two DNS records**, at whatever registrar holds the domain, and one click that makes the deployment identity a verified owner of it.
+3. **The DNS records**, at whatever registrar holds the domain — for the service and for the site — and one click that makes the deployment identity a verified owner of the domain.
 4. **The OAuth client's secret**, pasted into the repository's secrets. It is the one value that exists nowhere but the Google console.
+5. **The repository's settings**: the fork's workflows enabled, GitHub Pages published from them on the site's domain, and that domain verified for Pages.
 
-Everything else — enabling APIs, the registry and its cleanup, the secrets, the service, the domain mapping, the spend alert, the image and every roll-out after it — happens when a change reaches the main branch, or when the workflow is started by hand from a branch.
+Everything else — enabling APIs, the registry and its cleanup, the secrets, the service, the domain mapping, the spend alert, the image and every roll-out after it — happens when a change reaches the main branch, or when the workflow is started by hand from a branch. The site is published the same way, by a workflow of its own.
 
 ## What you need
 
 - A Google Cloud project with billing attached, or the right to create one, and a billing account you may create budgets on.
-- A domain, and the ability to add a record to it. The service answers on a host of its own — `mcp.example.com` — while the site lives wherever you publish it.
+- A domain, and the ability to add records to it. The service answers on a host of its own — `mcp.example.com` — and the site on another, the apex `example.com` for instance.
+- A GitHub account to keep your copy of the repository in: its workflows check it, deliver it and publish the site.
+- An address parents can write to. The privacy policy and the terms name whoever runs a copy, because that is who the parents using it are trusting.
 - The development container of this repository, or a browser with Cloud Shell: the bootstrap is the only step that needs a shell at all.
 
-## 1. Say what the deployment is
+## 1. Your copy of the repository
+
+Fork this repository. GitHub runs none of a fork's workflows until they are enabled, on the fork's **Actions** tab: enable them there. From then on the fork is the description of your deployment, and every step below is either a change to it or a setting beside it.
+
+What each workflow needs in a copy:
+
+- **`deploy.yml`**, the delivery, needs everything below.
+- **`pages.yml`**, the site, needs Pages published from GitHub Actions — step 4.
+- **`ci.yml`**, the checks, needs nothing to run. Two of its steps report to this repository's projects: the SonarCloud job, which fails on `main` without a `SONAR_TOKEN` — give it a project of your own in `sonar-project.properties`, or remove it — and the Codecov upload, which fails nothing without a token of yours.
+- **`release.yml`** needs green checks: it runs once `ci.yml` has passed on `main`, so a SonarCloud job left failing stops every release.
+- **`codeql.yml`** and **`scorecard.yml`** need nothing.
+- **`load.yml`** needs nothing, and spends runner minutes once a week; disable it if nobody reads its reports.
+
+The checks and the site's build run inside the toolchain image this repository publishes, which anybody may pull. A copy that changes `.devcontainer/Dockerfile` publishes an image of its own from both workflows, so `TOOLCHAIN_IMAGE` in the `justfile` then has to name a registry the copy may write to.
+
+### A name of your own
+
+MathTrail is this project's name, and the licence does not pass it on: a copy that runs publicly goes by a name of its own. The name is in the words people read — the widget's dictionaries in `web/locales/`, the sign-in pages in `internal/transport/oauth/pages/`, what the tools tell the model in `internal/transport/mcp/` and `content/instructions/`, the server's name in the protocol, the folder and the file in a parent's Drive, and the site. `git grep -i mathtrail` finds every place, along with names nobody reads — the module path `github.com/MathTrail/…` in the Go imports, the names of the cloud resources — which can stay.
+
+## 2. Say what the deployment is
 
 Three files in the repository, and nothing about the deployment lives anywhere else:
 
@@ -31,9 +53,9 @@ Three files in the repository, and nothing about the deployment lives anywhere e
 | `infra/terraform/backend.hcl` | the bucket the state lives in |
 | `infra/ci.env` | the two facts a workflow needs before it can sign in — filled from what the bootstrap prints |
 
-None of it is secret: the client id travels in every authorization request, and the federated pool is guarded by a condition on the repository rather than by the secrecy of its name. Changing where this repository deploys is a pull request, which is the point.
+Every value in them is this deployment's: replace each one with yours, the repository and its owner's id included. None of it is secret: the client id travels in every authorization request, and the federated pool is guarded by a condition on the repository rather than by the secrecy of its name. Changing where this repository deploys is a pull request, which is the point.
 
-## 2. Bootstrap, once
+## 3. Bootstrap, once
 
 ```bash
 TF_VAR_billing_account=01ABCD-234567-89EFGH just bootstrap
@@ -43,13 +65,24 @@ Or, with no local tooling at all, paste the contents of `infra/bootstrap.sh` int
 
 It creates the project and links billing, enables the handful of APIs without which nothing else can be created, makes the state bucket with versioning, creates the federated pool and its GitHub provider, and creates the identity the infrastructure is applied as — with an enumerated set of roles rather than Owner. It prints two lines for `infra/ci.env`. Commit them.
 
-## 3. The Google sign-in
+## 4. Your site: the privacy policy and the terms
+
+Google publishes a consent screen only with a home page, a privacy policy and terms of use to link to, and the service's own consent page links the last two, at `/en/privacy/` and `/en/terms/` of the site. The ones in `site/` are this deployment's: they name its operator and the address that answers parents' questions. A copy publishes its own.
+
+1. **The texts.** Rewrite `site/content/<locale>/privacy.md` and `terms.md` for your copy, in every language the site carries: the contact, the operator, and every sentence that stops being true of a copy. The English text is the one that prevails. `just site-serve` shows the site on this machine before anybody else sees it.
+2. **The address.** `SITE_BASE` in the `justfile` is the origin the site is published on, and every absolute address on the site is built from it. The service learns the same origin from `MATHTRAIL_SITE_URL`, [in `settings`](#the-services-environment).
+3. **Pages.** In the repository's **Settings → Pages**, choose **GitHub Actions** as the source and enter your domain as the custom domain: a site published by a workflow is given its domain there, and the `CNAME` file the build writes is ignored. Verify the domain for Pages first, in your account's or organisation's settings, as GitHub recommends, so that no other repository can claim it.
+4. **The DNS records.** For an apex domain, the four A and four AAAA records in [GitHub's list](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site); for a subdomain, a CNAME to `<owner>.github.io`. Once Pages offers it, turn on **Enforce HTTPS**: until then the policy is served over plain HTTP as well.
+
+The site is published on every push to `main`. Have it live before the consent screen: Google asks for the policy's address.
+
+## 5. The Google sign-in
 
 The parent signs in with Google, and the service asks Google for exactly two things: a verified identifier, and room for one file of its own in the parent's Drive. It is configured in the Google Cloud console, under **Google Auth Platform**, on its four pages.
 
-**Branding.** The name people see on the consent screen, a support email, and three links: the home page, the privacy policy and the terms — for this deployment `https://mathtrail.app/en/`, `https://mathtrail.app/en/privacy/` and `https://mathtrail.app/en/terms/`. Add the top private domain of those links, `mathtrail.app`, as an authorized domain: one entry covers both the site on the apex and the service on its subdomain.
+**Branding.** The name people see on the consent screen, a support email, a developer contact email, and three links: the home page, the privacy policy and the terms of your site, which for this deployment are `https://mathtrail.app/en/`, `https://mathtrail.app/en/privacy/` and `https://mathtrail.app/en/terms/`. Add the top private domain of those links — `mathtrail.app` here — as an authorized domain: one entry covers both the site on the apex and the service on its subdomain. Leave the logo out unless you mean to have the app reviewed: uploading one sends it to Google's brand verification.
 
-**Audience.** User type **External**, publishing status **In production**. Not Testing: there a consent expires seven days after it is given and takes the refresh token with it, so every parent would be signed out once a week.
+**Audience.** User type **External**, publishing status **In production**. Not Testing: there only the test users listed on that page may sign in at all, and a consent expires seven days after it is given and takes the refresh token with it, so every parent would be signed out once a week.
 
 **Data access.** Two scopes and no others: `openid`, which is what makes the identifier verified, and `https://www.googleapis.com/auth/drive.file`, which reaches only the files the app itself created plus anything the parent hands it explicitly. Both are non-sensitive, so publishing needs no app verification at all; brand verification is the separate, lighter process that makes the app's own name and logo appear on the consent screen instead of the project's name.
 
@@ -57,7 +90,7 @@ The parent signs in with Google, and the service asks Google for exactly two thi
 
 Neither the project nor this client is ever recreated. A parent grants `drive.file` to that client in that project, and the grant cannot be moved: a new client sees none of the files parents have already given it, and every child's profile becomes unreachable through the app.
 
-## 4. The domain
+## 6. The service's domain
 
 1. Verify ownership of the domain in [Search Console](https://search.google.com/search-console), with the TXT record it asks for.
 2. At the registrar: the service's host as a **CNAME** to `ghs.googlehosted.com.`
@@ -65,7 +98,7 @@ Neither the project nor this client is ever recreated. A parent grants `drive.fi
 
 Do all three before the first delivery: the certificate is issued only once the record resolves, and that can take a day.
 
-## 5. The two repository secrets
+## 7. The two repository secrets
 
 Settings → Secrets and variables → Actions → Secrets:
 
@@ -78,7 +111,7 @@ The bootstrap needs the second one too, so export it there: `TF_VAR_billing_acco
 
 The key everything is sealed with is in neither list: the pipeline generates 32 random bytes on the first apply and writes them straight into Secret Manager. No person, no state file and no log ever sees that value.
 
-## 6. Deliver
+## 8. Deliver
 
 A push to `main` — or the workflow started by hand from any branch — runs three jobs:
 
@@ -90,21 +123,28 @@ A pull request that touches `infra/` gets a `terraform plan` in its summary inst
 
 **Give the telemetry twenty minutes.** On a project that has never received traces or metrics, enabling the APIs is all it takes, but the storage behind them is provisioned after the first data arrives rather than before. Until that finishes, reading a trace answers `_Trace bucket not found in project …` and the metrics are nowhere in Monitoring — which reads like a permanent fault and is not one. Nothing needs clicking; the service will have reported no error, because none of it failed.
 
-## 7. Leave one entrance
+## 9. Leave one entrance
 
 Once the domain answers, withdraw the platform's own address for the service, so that there is one way in and one issuer of tokens: set `disable_default_url = true` in `prod.auto.tfvars` and merge. It is a step of its own because Cloud Run asks for the domain to be mapped before its own address is withdrawn — and until the certificate exists, that address is the only way to reach anything at all.
 
 A deployment with no domain of its own instead sets `create_domain_mapping = false` and puts the platform's address in `public_host`, which is known only after the first delivery — so it takes two.
 
+## 10. Connect it
+
+Add the service to a chat the way the [README](../README.md#add-it-to-your-chat) describes, with your own address — `https://mcp.example.com/mcp` — and ask for a task. The first connection goes through your consent page, your Google client and your site, and the first task through every check: nothing else proves the whole path at once.
+
 ## The first delivery, as a checklist
 
+- [ ] A fork with its workflows enabled, and a name of its own if it is to run publicly.
 - [ ] `prod.auto.tfvars` and `backend.hcl` filled in, and a project id nobody has taken.
 - [ ] `just bootstrap`, and the two lines it prints committed to `infra/ci.env`.
+- [ ] Your privacy policy and terms published on your site — Pages from GitHub Actions, its domain verified, HTTPS enforced — which `SITE_BASE` and `MATHTRAIL_SITE_URL` both name.
 - [ ] The consent screen published and a Web client created; its client id in `prod.auto.tfvars`.
 - [ ] The domain verified, its CNAME created, and the deployment identity added as a verified owner.
 - [ ] Both repository secrets: `GOOGLE_OAUTH_CLIENT_SECRET` and `TF_VAR_billing_account`.
 - [ ] Merged to `main`, and all three jobs green.
 - [ ] `disable_default_url = true` merged, once the domain answers.
+- [ ] A task in a chat, through your own sign-in.
 
 It is not finished until all four of these say so:
 
@@ -145,17 +185,45 @@ gcloud artifacts repositories describe mathtrail --location=us-central1
 | `seal_key_version` | `1` | The secret version the service seals with |
 | `seal_key_previous_version` | empty | The version still accepted while a key is being rotated |
 | `google_client_secret_version` | `1` | The secret version the sign-in authenticates with |
-| `settings` | `{}` | Extra environment variables — ceilings and timeouts, never a secret. The solver slots and `GOMEMLIMIT` follow `cpu` and `memory`, and are refused here |
+| `settings` | `{}` | Extra environment variables of the service — the site's address, ceilings and timeouts, never a secret. The solver slots and `GOMEMLIMIT` follow `cpu` and `memory`, and are refused here |
 | `budget_amount`, `budget_currency` | `1`, `USD` | Where the spend alert fires |
 | `keep_images` | `5` | Image versions kept whatever their age |
 | `image_max_age` | `30d` | When an older version is deleted |
+
+### The service's environment
+
+The service reads its configuration from environment variables alone; every one of them, with its default and what reads it, is in [section 11.2 of the spec](../SPEC.md#112-the-environment). A deployment described here sets them three ways:
+
+- **From the variables above**, by Terraform: `MATHTRAIL_PUBLIC_URL` from `public_host`, `MATHTRAIL_GOOGLE_CLIENT_ID` from `google_oauth_client_id`, `MATHTRAIL_GCP_PROJECT_ID` from `project_id`, `MATHTRAIL_SOLVER_CONCURRENCY` from `cpu`, and `GOMEMLIMIT` from `memory`. `PORT` and `K_SERVICE` come from Cloud Run itself.
+- **From Secret Manager**, read by Cloud Run as an instance starts: `MATHTRAIL_SEAL_KEY_CURRENT`, `MATHTRAIL_SEAL_KEY_PREVIOUS` during a rotation, and `MATHTRAIL_GOOGLE_CLIENT_SECRET`.
+- **Through `settings`**, everything else. One of them a copy has to set, because its default is this deployment's site:
+
+```hcl
+settings = {
+  MATHTRAIL_SITE_URL = "https://example.com"
+}
+```
+
+The rest have the defaults the service is meant to run with. The ones a deployment is most likely to move:
+
+| Variable | Default | What it moves |
+|---|---|---|
+| `MATHTRAIL_DAILY_TASKS` | `20` | Tasks a child may be given in a day |
+| `MATHTRAIL_DAILY_FAILED` | `5` | Requests of a day that may end with the model out of attempts |
+| `MATHTRAIL_RATE_USER_PER_MIN` | `30` | Requests one account may send an instance in a minute |
+| `MATHTRAIL_RATE_IP_PER_MIN` | `20` | Requests one address may send the sign-in of an instance in a minute |
+| `MATHTRAIL_RATE_INSTANCE_PER_MIN` | `200` | Requests one instance takes in a minute, from everybody together |
+| `MATHTRAIL_SOLVER_STEPS` | `25000000` | How far one solver may run; a higher ceiling needs more `memory` |
+| `MATHTRAIL_TELEMETRY` | `auto` | Whether traces and metrics are sent: from a deployment, anywhere, or nowhere |
+| `MATHTRAIL_LOG_LEVEL` | `info` | How much the service logs |
 
 ## What nothing in this repository owns
 
 - **The project's billing.** Linked by the bootstrap, owned by whoever pays.
 - **The values of the secrets.** One is generated by the pipeline and read by nobody; the other is pasted once. Neither is ever in the state.
-- **The Google OAuth client and the consent screen.** No API exists; they are the reason step 3 is done by hand.
+- **The Google OAuth client and the consent screen.** No API exists; they are the reason step 5 is done by hand.
 - **Domain ownership and DNS.** At the registrar and in Search Console.
+- **The site's Pages settings.** Its source and its domain, in the repository's settings.
 - **The pool the pipeline signs in through.** Created by the bootstrap, deliberately outside Terraform.
 
 ## What can cost money
@@ -169,7 +237,7 @@ The intent is $0, and inside the free allowance it is $0 — but the allowance i
 - **Cloud Trace** beyond 2.5 million spans a month. The platform's own traces of incoming requests are not billed at all; these are the spans the service adds inside them, and the sampler is what keeps their number a fraction of the requests.
 - **Cloud Monitoring** beyond 150 MiB a month of ingested metrics of our own. The platform's own metrics of the service are free; ours are the three of section 12.5 of the spec. What passes that allowance is not traffic but series, and a series is created by every new combination of labels — which is why every label here is drawn from a closed list and no label ever carries anything a caller chose. One label holding a user or a task identifier would pass it in a week.
 - **A region that is not first-tier**, where the free allowance does not apply.
-- **Cloud DNS**, if the domain's records are ever moved into it: a managed zone is billed per month whether anybody visits or not. That is why DNS stays at the registrar and those two records are made by hand.
+- **Cloud DNS**, if the domain's records are ever moved into it: a managed zone is billed per month whether anybody visits or not. That is why DNS stays at the registrar and those records are made by hand.
 - **A load balancer**, if the domain mapping is ever replaced by one. Domain mappings cost nothing; a forwarding rule is billed by the hour.
 
 The spend alert warns, it does not stop anything: Google has no switch that halts a project at a number. Treat the first alert as a fault to investigate.
@@ -211,6 +279,10 @@ It should name `roles/telemetry.writer` and `roles/serviceusage.serviceUsageCons
 
 None of this is billed: granting a role and enabling an API cost nothing.
 
+## Keeping your copy current
+
+Merge this repository's `main` into your fork's like any other change: the delivery runs on the merge, and the content and the instructions for the model travel inside the binary, so there is nothing else to update. Where the merge meets what you made your own — the site's texts, the name — the conflict is yours to resolve; and a delivery that fails at its first job after a merge is the case [the section above](#when-the-bootstrap-changes) describes.
+
 ## Rotating the sealing key
 
 Both keys are versions of the same secret. Add a version, then say in `prod.auto.tfvars` which version seals and which one is still accepted, and merge:
@@ -249,4 +321,4 @@ gcloud run services update-traffic mathtrail --region=us-central1 --to-revisions
 
 ## Removing a deployment
 
-`terraform destroy` removes everything the configuration created, including the secrets and every version in them: copy the sealing key out first if anything sealed with it still matters. The APIs stay enabled, because switching one off breaks whatever else in the project still uses it. The project, the state bucket, the federated pool, the DNS records and the OAuth client were never described here and stay as they are.
+`terraform destroy` removes everything the configuration created, including the secrets and every version in them: copy the sealing key out first if anything sealed with it still matters. The APIs stay enabled, because switching one off breaks whatever else in the project still uses it. The project, the state bucket, the federated pool, the DNS records and the OAuth client were never described here and stay as they are, and so does the site, until Pages is switched off in the repository's settings.
