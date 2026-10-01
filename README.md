@@ -3,6 +3,7 @@
 [![CI](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/ci.yml/badge.svg)](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/ci.yml)
 [![Deploy](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/deploy.yml/badge.svg)](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/deploy.yml)
 [![CodeQL](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/codeql.yml/badge.svg)](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/codeql.yml)
+[![Release](https://img.shields.io/github/v/release/MathTrail/mathtrail-standalone)](https://github.com/MathTrail/mathtrail-standalone/releases/latest)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/MathTrail/mathtrail-standalone)](https://github.com/MathTrail/mathtrail-standalone/blob/main/go.mod)
 [![codecov](https://codecov.io/gh/MathTrail/mathtrail-standalone/branch/main/graph/badge.svg)](https://codecov.io/gh/MathTrail/mathtrail-standalone)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14761/badge)](https://www.bestpractices.dev/projects/14761)
@@ -15,13 +16,13 @@
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=MathTrail_mathtrail-standalone&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=MathTrail_mathtrail-standalone)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=MathTrail_mathtrail-standalone&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=MathTrail_mathtrail-standalone)
 
-Free, open-source standalone MathTrail app for LLM applications: an endless stream of checked olympiad-style maths tasks for grades 1–6, in any language, with a diagnosis of the child's mistake and a memory of how they are progressing.
+A free, open-source app for Claude and ChatGPT: an endless stream of checked olympiad-style maths tasks for grades 1–6, in any language, with a diagnosis of the child's mistake and a memory of how they are progressing.
 
 It is neither a homework solver nor a drill of the school syllabus. It turns an adult's own Claude or ChatGPT chat into an adaptive olympiad trainer for a child in grades 1–6.
 
 ## What a lesson looks like
 
-The screens below come from the approved design of the widget, the one the widget in `web/` is being built to. They follow the viewer's light or dark theme. The fence task, its options and its traps are an example.
+The screens below come from the widget's approved design, which the cards in the chat are built to. They follow the viewer's light or dark theme. The fence task, its options and its traps are an example.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screens/task-dark.png">
@@ -52,6 +53,39 @@ A tap records the answer at once, before any explanation, so nothing in the chat
 </picture>
 
 The same screen opens from the card's top line or when the child or the parent asks in the chat. It shows a chess-style rating with its rank, what comes next, the rating of every topic and the ones mastered, the recent answers, the traps that keep coming back, and the profile. All of it is one JSON file in the parent's own Google Drive.
+
+## Add it to your chat
+
+You need a Claude or ChatGPT account and a Google account; your child needs neither. MathTrail is used by an adult — a parent or a tutor — in their own chat (Claude is for 18+, ChatGPT for 13+), and the child solves the tasks next to them. It is free and stays free, with no payment and no advertising.
+
+### Claude
+
+Works now, on the free plan too:
+
+1. In Claude, open [Customize → Connectors](https://claude.ai/customize/connectors).
+2. Press **+** and choose **Add custom connector**.
+3. Paste the address: `https://mcp.mathtrail.app/mcp`
+4. Press **Add**, then **Connect**, and sign in with Google. MathTrail asks to keep one file in your Google Drive — your child's profile. Allow it: without that file there is nowhere to keep the progress, and the sign-in stops.
+5. In a chat, press **+** → **Connectors**, switch MathTrail on and say: "Let's do a MathTrail task."
+
+The free plan allows one custom connector. A connector added on claude.ai or in Claude Desktop is in Claude's mobile apps too, on the same account.
+
+The first time, the chat asks you for a pseudonym for your child — never a real name — and the grade, 1 to 6, and, if you like, their interests and anything to leave out of the tasks. The first five tasks are a trial series that finds where your child stands; after it, the tasks follow the answers.
+
+### ChatGPT
+
+Free ChatGPT accounts add apps only from ChatGPT's directory. As soon as MathTrail is listed there, find it by name, connect it and sign in with Google. It is not listed yet.
+
+Until then, ChatGPT's developer mode adds an app by its address, on Plus, Pro, Business, Enterprise and Education plans, on the web: turn it on and add an app with the address above, as [OpenAI describes](https://developers.openai.com/apps-sdk/deploy/connect-chatgpt). MathTrail is still being tested in ChatGPT.
+
+## Your child's data
+
+- **A file in your Google Drive.** The profile, the ratings and the current task live in one file, `mathtrail-profile.json`, in a folder named `MathTrail` in your own Drive. You can open it, and Drive keeps its history.
+- **Nothing on our side.** The service stores nothing between requests. Its logs hold counts and an opaque code standing for the account, never text, names or an email address.
+- **A pseudonym, not a name.** No real name, birth date or school; the pseudonym never goes into a task.
+- **Leave any time.** Download the file, delete it, disconnect MathTrail in your chat and remove its access in your Google account — [step by step](docs/parents.md).
+
+What is collected and where it goes is in the [privacy policy](https://mathtrail.app/en/privacy/), and the rules are in the [terms of use](https://mathtrail.app/en/terms/).
 
 ## How it works
 
@@ -100,3 +134,17 @@ Ask a chat model for "an olympiad task for grade 2" and it will cheerfully hand 
 - **A wrong answer is a diagnosis.** Every wrong option is tied to a named trap — off-by-one in gaps, a missed case while enumerating, double counting — and the explanation starts from how the child reasoned, not from the right answer.
 
 "Checked" means exactly what the program checks. Whether the wording, the drawing and the solution agree in meaning is checked by the model's own self-check, so this is not a promise of a flawless task every time.
+
+## Run your own copy
+
+A copy runs in a Google Cloud project of your own, within its free tier, on a domain of your own: one Cloud Run service and two secrets, delivered by GitHub Actions from your fork. [docs/self-hosting.md](docs/self-hosting.md) goes through it step by step — the project, the Google sign-in, the domain, the site with your own privacy policy, and the variables.
+
+## Contributing and security
+
+[CONTRIBUTING.md](CONTRIBUTING.md) says what helps, what will be declined and how to set up the development container. A security fault is reported privately, as [SECURITY.md](SECURITY.md) describes — never in a public issue.
+
+## License and the name
+
+The code and the bundled content — the catalogs, the reference tasks and the instructions for the model — are released under the [MIT License](LICENSE). The licenses of the dependencies are listed in [THIRD_PARTY_LICENSES](THIRD_PARTY_LICENSES).
+
+**The MIT License grants no rights to the name MathTrail or to its logos.** A fork that runs publicly goes by a name of its own.

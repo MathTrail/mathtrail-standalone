@@ -5,7 +5,7 @@ description: What MathTrail knows about your child, where it is kept, and how to
 
 # Privacy policy
 
-Last updated: 21 September 2026.
+Last updated: 1 October 2026.
 
 MathTrail is a free, open-source project. Questions about this policy or about your child's data go to [alexander.ryazanov.1987@gmail.com](mailto:alexander.ryazanov.1987@gmail.com).
 
@@ -104,7 +104,7 @@ Everything is in your own Drive, so all of it is in your hands:
 
 - **Export** — open the `MathTrail` folder in Drive and download `mathtrail-profile.json`. That file is the whole profile.
 - **Delete** — delete the file. Empty Drive's bin to remove it completely. Nothing of the profile survives elsewhere.
-- **Cut off access** — go to your Google account's [third-party access settings](https://myaccount.google.com/connections) and remove MathTrail. The service can then reach nothing.
+- **Cut off access** — go to your Google account's [linked apps](https://myaccount.google.com/linkedapps) and remove MathTrail's access to your account. The service can then reach nothing.
 - **Remove the app** — disconnect MathTrail in your chat's own settings.
 
 Deleting the file and revoking access are independent, and doing both leaves nothing behind.

@@ -304,15 +304,28 @@ _license-list:
 
     MathTrail itself is MIT; see LICENSE. Rewrite this file with: just licenses
 
-    The Go modules below are linked into the programs this repository builds.
-    Each line is a license, the module it covers, and the text of that license
-    at the exact version in go.mod.
+    The Go modules below are linked into the programs this repository builds,
+    and so are the standard library and the runtime of the Go release that
+    builds them, listed as std. Each line is a license, what it covers, and the
+    text of that license at the exact version that is built.
 
     HEADER
+    # The release go.mod names is the one the releases are built with, and it
+    # names its patch too, as every version here does: every Go release since
+    # 1.21 is tagged with its patch, so a link without one would lead nowhere.
+    release=$(awk '$1 == "go" { print $2; exit }' go.mod)
+    if [[ ! "$release" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "go.mod names Go ${release}; the license list needs the exact release" >&2
+        exit 1
+    fi
     # The report goes to stdout and the progress of the scan to stderr, which is
-    # noise here. The columns are license, module, license text.
-    go run {{ GO_LICENSES }} report ./... --ignore {{ MODULE }} 2>/dev/null \
-        | awk -F, '{ printf "%-13s %-46s %s\n", $3, $1, $2 }'
+    # noise here. The columns are module, license text, license. No module graph
+    # lists the standard library and the runtime, which every binary carries,
+    # so they are put at the head of the report as one more module.
+    {
+        echo "std,https://github.com/golang/go/blob/go${release}/LICENSE,BSD-3-Clause"
+        go run {{ GO_LICENSES }} report ./... --ignore {{ MODULE }} 2>/dev/null
+    } | awk -F, '{ printf "%-13s %-46s %s\n", $3, $1, $2 }'
     cat <<'WIDGET'
 
     The npm packages below are what the widget the server embeds is built from:
