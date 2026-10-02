@@ -220,8 +220,8 @@ func (t *Telemetry) MeterProvider() metric.MeterProvider { return t.metrics }
 // would only wait behind another's delivery. Measurements are sent once an
 // interval has passed, whichever request asks: they belong to no one request,
 // and waiting for one whose trace was kept would leave a quiet instance's
-// numbers in memory for hours. Every delivery costs bytes whether or not
-// anything changed, which is what the interval is for.
+// numbers in memory for hours. Every delivery costs a point for each series
+// that changed, and the interval is what lets a minute of requests share one.
 func (t *Telemetry) ForceFlush(ctx context.Context, spans bool) error {
 	if !t.enabled {
 		return nil
@@ -276,7 +276,8 @@ func (t *Telemetry) Shutdown(ctx context.Context) error {
 // the provider stops reading, and then releases the exporter: a reader that
 // only reads when asked delivers nothing at a shutdown of its own, and does not
 // own the exporter it is paired with. The delivery is not held to the interval:
-// it is the last one there will be.
+// it is the last one there will be, so it goes even seconds after a request's,
+// at the price of the collector refusing it when the two share a series.
 func (t *Telemetry) closeMeasurements(ctx context.Context) error {
 	delivered := t.measurements.deliver(ctx)
 	return errors.Join(delivered, t.metrics.Shutdown(ctx), t.measurements.exporter.Shutdown(ctx))

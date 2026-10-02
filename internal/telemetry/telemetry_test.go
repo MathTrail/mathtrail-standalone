@@ -81,9 +81,10 @@ func TestTheTextOfAStatusNeverLeavesTheProcess(t *testing.T) {
 }
 
 // Measurements go to their own path, and only once an interval has passed,
-// whichever requests ask for them: every delivery costs bytes whether or not
-// anything changed. A request that kept no trace, asking before then, finds
-// nothing due and sends nothing at all.
+// whichever requests ask for them: every delivery costs a point for each series
+// that changed, and the interval lets a minute of requests share one. A request
+// that kept no trace, asking before then, finds nothing due and sends nothing
+// at all.
 func TestMeasurementsAreNotDeliveredTwiceInAnInterval(t *testing.T) {
 	for _, c := range []struct {
 		name  string
@@ -167,6 +168,46 @@ func TestWhatIsMeasuredAfterTheLastDeliveryLeavesAtShutdown(t *testing.T) {
 	}
 	if deliveries := len(collector.takenAt("/v1/metrics")); deliveries != 2 {
 		t.Errorf("the collector saw %d metric deliveries, want 2: one asked for by a request, one at the stop", deliveries)
+	}
+}
+
+// A request that finds the measurements due when nothing has been measured
+// posts nothing: a request carrying nothing is a round trip spent on nothing.
+func TestADueRequestWithNothingMeasuredPostsNothing(t *testing.T) {
+	collector := newCollector(t, http.StatusOK)
+	tel := newTelemetry(t, collector, &telemetry.Settings{SampleRatio: 0})
+
+	if err := tel.ForceFlush(t.Context(), false); err != nil {
+		t.Fatalf("ForceFlush() error = %v, want nil", err)
+	}
+	if deliveries := len(collector.takenAt("/v1/metrics")); deliveries != 0 {
+		t.Errorf("the collector saw %d metric deliveries, want none: nothing had been measured", deliveries)
+	}
+}
+
+// A stop with nothing measured since the last delivery posts nothing either:
+// an instance scaled in after its last request has nothing left to say, and
+// the round trip would be time taken from the shutdown.
+func TestAStopWithNothingNewPostsNothing(t *testing.T) {
+	collector := newCollector(t, http.StatusOK)
+	tel := newTelemetry(t, collector, &telemetry.Settings{SampleRatio: 0})
+
+	counter, err := tel.MeterProvider().Meter("test").Int64Counter("unit_total")
+	if err != nil {
+		t.Fatalf("Int64Counter() error = %v, want nil", err)
+	}
+	counter.Add(t.Context(), 1)
+	if err := tel.ForceFlush(t.Context(), false); err != nil {
+		t.Fatalf("ForceFlush() error = %v, want nil", err)
+	}
+
+	closing, cancel := context.WithTimeout(context.WithoutCancel(t.Context()), time.Second)
+	defer cancel()
+	if err := tel.Shutdown(closing); err != nil {
+		t.Fatalf("Shutdown() error = %v, want nil", err)
+	}
+	if deliveries := len(collector.takenAt("/v1/metrics")); deliveries != 1 {
+		t.Errorf("the collector saw %d metric deliveries, want 1: the stop had nothing new to post", deliveries)
 	}
 }
 

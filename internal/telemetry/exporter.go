@@ -103,11 +103,20 @@ func newDelivery(exporter sdkmetric.Exporter) *delivery {
 	}
 }
 
-// deliver reads what has been measured since the last reading and posts it.
+// deliver reads what has been measured since the last reading and posts it,
+// and posts nothing when nothing has been: a request carrying nothing is a
+// round trip spent on nothing, and at a stop that is time taken from the
+// shutdown. A reading is empty only while every instrument reports changes
+// alone, as the counters and histograms here do; an up-down counter or an
+// observable instrument would report on every reading, and then every reading
+// is posted.
 func (d *delivery) deliver(ctx context.Context) error {
 	var measured metricdata.ResourceMetrics
 	if err := d.reader.Collect(ctx, &measured); err != nil {
 		return fmt.Errorf("read: %w", err)
+	}
+	if len(measured.ScopeMetrics) == 0 {
+		return nil
 	}
 	if err := d.exporter.Export(ctx, &measured); err != nil {
 		return fmt.Errorf("post: %w", err)
