@@ -248,13 +248,13 @@ func (s *Service) toldText(task *profile.CurrentTask, recorded *profile.Recorded
 		outcome = fmt.Sprintf("The child did not know, which counts as a wrong answer; the right option is %s. "+
 			"Go through the solution with the child step by step, simply and kindly.", right)
 	case recorded.Correct:
-		outcome = fmt.Sprintf("The child chose %s, and it is right. Praise the child briefly, and go through the "+
-			"solution if they want it.", right)
+		outcome = fmt.Sprintf("The child chose %s, and it is right. Praise briefly, and go through the solution if "+
+			"they want it.", right)
 	default:
 		outcome = fmt.Sprintf("The child chose %s) %s, and it is wrong; the right option is %s. %s",
 			recorded.Choice, quoted(task.Options[recorded.Choice]), right, mistakeText(recorded.Trap, repeated))
 	}
-	return joined(lead, outcome, s.standingText(recorded)) + "\nSolution: " + quoted(recorded.Solution)
+	return joined(lead, outcome, aboutTheStep, s.standingText(recorded)) + "\nSolution: " + quoted(recorded.Solution)
 }
 
 // mistakeText is how to explain a wrong letter: from what went wrong on the

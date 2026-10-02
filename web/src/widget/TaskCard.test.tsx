@@ -278,7 +278,7 @@ describe("an answer", () => {
 		);
 		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(1));
 		expect(heard.modelLines[0]).toBe(
-			"Task task_fence has its answer recorded: B, which is wrong; the right option is C. The card shows the trap and the solution.",
+			"Task task_fence has its answer recorded: B, which is wrong; the right option is C. The card shows the trap and the solution. In a language with grammatical gender, word it so it does not show whether the child is a boy or a girl: praise the step, not the child, and keep to the present tense.",
 		);
 	});
 
@@ -363,7 +363,7 @@ describe("an answer", () => {
 		expect(text(".mt-verdict-line")).toBe("Not quite — it's 5, not 6.");
 		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(1));
 		expect(heard.modelLines[0]).toBe(
-			"Task task_fence has its answer recorded: D, which is wrong; the right option is C. The card shows the trap and the solution.",
+			"Task task_fence has its answer recorded: D, which is wrong; the right option is C. The card shows the trap and the solution. In a language with grammatical gender, word it so it does not show whether the child is a boy or a girl: praise the step, not the child, and keep to the present tense.",
 		);
 	});
 
@@ -471,12 +471,16 @@ describe("a card whose host lets it down", () => {
 	});
 });
 
-describe("a task in another language than the card's", () => {
+describe("a task in a language the card has no words for", () => {
+	// The card speaks its lesson's language when it has words for it, and the
+	// host's otherwise: Hebrew is one it has none for, and is written right to
+	// left.
 	test("is marked as written in it, and runs its way", async () => {
 		await drawCard(
 			{
 				...fence,
-				task: { ...fence.task, language: "ar", question: "كم عمودًا؟" },
+				task: { ...fence.task, language: "he", question: "כמה עמודים?" },
+				language: "he",
 			},
 			() => answered(),
 		);
@@ -488,7 +492,7 @@ describe("a task in another language than the card's", () => {
 			".mt-note-hint p",
 		]) {
 			const words = root.querySelector(said);
-			expect(words?.getAttribute("lang")).toBe("ar");
+			expect(words?.getAttribute("lang")).toBe("he");
 			expect(words?.getAttribute("dir")).toBe("rtl");
 		}
 		// The card's own words stay in the card's language.
@@ -500,7 +504,7 @@ describe("a task in another language than the card's", () => {
 
 		await vi.waitFor(() => expect(replies()).toHaveLength(1));
 		expect(root.querySelector(".mt-note-trap p")?.getAttribute("lang")).toBe(
-			"ar",
+			"he",
 		);
 		expect(root.querySelector(".mt-steps ol")?.getAttribute("dir")).toBe("rtl");
 	});

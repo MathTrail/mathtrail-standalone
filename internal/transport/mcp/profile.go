@@ -74,7 +74,7 @@ type saveProfileIn struct {
 	Interests      []string `json:"interests,omitempty" jsonschema:"what tasks may be dressed in, at most 10 of at most 40 characters each. The list replaces the one kept; an empty list clears it"`
 	ExcludedSkills []string `json:"excluded_skills,omitempty" jsonschema:"ids of skills the child has not met at school yet, from the list in this tool's description. The list replaces the one kept; an empty list clears it"`
 	Notes          *string  `json:"notes,omitempty" jsonschema:"what the adult wants known about the child, for pitching the words, at most 500 characters. An empty text clears it"`
-	UILanguage     *string  `json:"ui_language,omitempty" jsonschema:"the language of the cards as a BCP 47 tag, such as en, ru or pt-BR. An empty text makes the cards follow the chat's language"`
+	UILanguage     *string  `json:"ui_language,omitempty" jsonschema:"the language of the lessons — the tasks, the cards and your words — as a BCP 47 tag, such as en, ru or pt-BR. An empty text makes them follow the chat's language"`
 	StartOver      bool     `json:"start_over,omitempty" jsonschema:"true only when a result said the profile file cannot be read, was saved by a version of MathTrail this one cannot read, or is in the Google Drive bin, and the adult asked for a new profile instead. The old file is set aside, not deleted, and a new profile starts from the pseudonym and grade given. A profile this version can read is never started over"`
 }
 
@@ -95,9 +95,10 @@ func (s *Service) getProfileTool() Tool {
 		Name:  "get_profile",
 		Title: "Get the child's profile",
 		Description: "Reads the child's profile — the pseudonym, the grade, the interests, the skills left out of " +
-			"the tasks, the adult's notes and the language of the cards — and what the next task would be. " +
-			"Call it first. When there is no profile yet it says so: ask the adult for a pseudonym and the grade, " +
-			"then create the profile with save_profile. Every result carries last_answer, the last answer the child " +
+			"the tasks, the adult's notes and the language of the lessons — and what the next task would be. " +
+			"Call it when the adult asks about the profile; a task needs only next_task. When there is no profile yet " +
+			"it says so, as next_task does, and how to set one up with save_profile. Every result carries " +
+			"last_answer, the last answer the child " +
 			"gave, maybe on a card without you: read it before you say anything about the current task.",
 		ReadOnly:   true,
 		Idempotent: true,
@@ -273,7 +274,7 @@ func (s *Service) profileReply(p *profile.Profile, lead string) (Reply[profileOu
 	}
 	trial := progress.TrialOf(p)
 	return Reply[profileOut]{
-		Text: joined(lead, s.detailsText(&p.Student), trialLine(trial), s.lastAnswerText(p), s.nextText(&next)),
+		Text: joined(lead, s.detailsText(&p.Student), stillInText(p), trialLine(trial), s.lastAnswerText(p), s.nextText(&next)),
 		Payload: profileOut{
 			Screen:         screenProfile,
 			LastAnswer:     lastAnswerOf(p),
@@ -311,9 +312,9 @@ func detailsOf(s *profile.Student) *detailsOut {
 
 // detailsText is the child's details in words, a sentence for each.
 func (s *Service) detailsText(student *profile.Student) string {
-	language := "The cards follow the chat's language."
-	if student.UILanguage != nil {
-		language = "The cards are in " + *student.UILanguage + "."
+	language := "The lessons follow the chat's language."
+	if chosen, ok := student.ChosenLanguage(); ok {
+		language = "The lessons are in " + chosen + ": the tasks, the cards and your words."
 	}
 	skills := make([]string, 0, len(student.ExcludedSkills))
 	for _, id := range student.ExcludedSkills {

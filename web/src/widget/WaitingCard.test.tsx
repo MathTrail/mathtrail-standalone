@@ -257,7 +257,7 @@ describe("a card waiting for the next task", () => {
 		}
 	});
 
-	test("speaks the language the parent chose for the cards", async () => {
+	test("speaks the language the parent chose for the lessons", async () => {
 		await drawCard({
 			...refused,
 			child: { ...refused.child, ui_language: "ru" },

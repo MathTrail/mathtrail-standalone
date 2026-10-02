@@ -51,7 +51,7 @@ describe("the profile's card", () => {
 			["Grade", "3", "Only a label: changing it moves no rating."],
 			["Interests", "space, animals, football"],
 			["Not at school yet", "Division with a remainder"],
-			["Language of the cards", "Swahili"],
+			["Language of the lessons", "Swahili"],
 		]);
 		expect(root.textContent).not.toContain("Loses heart");
 		expect(root.querySelector(".mt-bar")).toBeNull();

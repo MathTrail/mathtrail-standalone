@@ -67,7 +67,8 @@ type OpenRequest struct {
 	// ID must come back with the task. Anything else is a request that has
 	// been superseded.
 	ID string `json:"id"`
-	// Language is the language of the chat, so the task is written in it.
+	// Language is the lesson's language, which the task is written in: the one
+	// the parent chose when the request was opened, or else the chat's.
 	Language string `json:"language"`
 	// OpenedAt starts the window after which an unfinished request counts as
 	// abandoned.

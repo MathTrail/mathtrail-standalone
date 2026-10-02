@@ -31,7 +31,7 @@ const (
 // The limits are in the words rather than in the schema, and the rule checks
 // them, saying what is wrong without repeating it.
 type nextTaskIn struct {
-	Language   string `json:"language" jsonschema:"the language of the chat as a BCP 47 tag, such as en, ru or pt-BR: the task is written in it"`
+	Language   string `json:"language" jsonschema:"the language of the chat as a BCP 47 tag, such as en, ru or pt-BR: the task is written in it, unless the profile names a language for the lessons"`
 	Topic      string `json:"topic,omitempty" jsonschema:"a topic of your own instead of the rule's, by its id from the list in this tool's description. Needs a reason"`
 	GradeLevel string `json:"grade_level,omitempty" jsonschema:"a level of your own: 1-2, 3-4 or 5-6, the grades a task is written for. Needs a reason"`
 	Difficulty int    `json:"difficulty,omitempty" jsonschema:"a difficulty of your own inside the level, 1 to 5. Needs a reason"`
@@ -51,11 +51,16 @@ func (in *nextTaskIn) choice() tutor.Choice {
 }
 
 // differsFrom reports whether the call asks for anything the request open does
-// not have: a choice of the model's own, a reason, or another language.
-func (in *nextTaskIn) differsFrom(request *profile.OpenRequest) bool {
+// not have: a choice of the model's own, a reason, or — when the parent chose
+// no language for the lessons — another chat language. A language the parent
+// chose wins over the chat's, so the chat's then asks for nothing, whatever
+// the request was opened in.
+func (in *nextTaskIn) differsFrom(request *profile.OpenRequest, student *profile.Student) bool {
 	choice := in.choice()
 	language, rule := profile.LanguageTag(in.Language)
-	return choice.Made() || choice.Reason != "" || (rule == "" && language != "" && language != request.Language)
+	_, chosen := student.ChosenLanguage()
+	return choice.Made() || choice.Reason != "" ||
+		(!chosen && rule == "" && language != "" && language != request.Language)
 }
 
 // requestRefusedOut is what next_task hands back when no request can be opened:
@@ -80,7 +85,9 @@ func (s *Service) nextTaskTool() Tool {
 		Title: "Ask for the next task",
 		Description: "Asks for the child's next task and returns the package to write it from: the brief — the " +
 			"topic, the level and the difficulty the rule sets — with reference tasks, the page on how to write and " +
-			"hand in a task, and the request id to hand it in with. Always pass language, the language of the chat. " +
+			"hand in a task, and the request id to hand it in with. Always pass language, the language of the chat; " +
+			"when the profile names a language for the lessons, the task is written in that one instead, and you " +
+			"talk in it too. " +
 			"Called again before the task of the open request is handed in, it hands back that request with its " +
 			"package: hand in the task you wrote for it, or write it now, rather than asking again. A task on the " +
 			"child's card with no answer yet is recorded as skipped, so ask for a new one only when the child wants " +
@@ -129,7 +136,7 @@ func (s *Service) openRequest(ctx context.Context, account store.Account, in nex
 
 	now := s.now()
 	if open := p.OpenRequest; open != nil && open.Awaited(s.window, now) {
-		return s.stillOpen(ctx, account, p, now, in.differsFrom(open))
+		return s.stillOpen(ctx, account, p, now, in.differsFrom(open, &p.Student))
 	}
 	if limit, count, reached := s.daily.reached(p.Daily.Today(now)); reached {
 		limitHit(ctx, s.events.logger, s.events.projectID, account.ID, limit, zap.Int("count", count))
@@ -150,7 +157,7 @@ func (s *Service) openRequest(ctx context.Context, account store.Account, in nex
 	}
 
 	skipped, wasSkipped := p.Skip(now)
-	request := p.Ask(&brief, mode, language, now)
+	request := p.Ask(&brief, mode, p.Student.LessonLanguage(language), now)
 	pack, err := s.packageFor(p, request)
 	if err != nil {
 		return Reply[any]{}, err
@@ -169,7 +176,7 @@ func (s *Service) openRequest(ctx context.Context, account store.Account, in nex
 	return Reply[any]{
 		Text: joined(lead, fmt.Sprintf("Request %s is open. Write one task in %s to the package below, and hand it "+
 			"in with submit_task and request_id %s.", request.ID, request.Language, request.ID),
-			s.lastAnswerText(p)) + packageText(pack),
+			lessonLanguageText(&p.Student), forYouAlone, s.lastAnswerText(p)) + packageText(pack),
 	}, nil
 }
 
@@ -194,7 +201,8 @@ func (s *Service) stillOpen(ctx context.Context, account store.Account, p *profi
 	if ignored {
 		lead += " The arguments of this call were not applied: the request keeps what it was opened with."
 	}
-	return Reply[any]{Text: joined(lead, s.lastAnswerText(p)) + packageText(pack)}, nil
+	return Reply[any]{Text: joined(lead, lessonLanguageText(&p.Student), stillInText(p), forYouAlone, s.lastAnswerText(p)) +
+		packageText(pack)}, nil
 }
 
 // dayIsFull is a call the day has no room for. Nothing is asked for and nothing
@@ -204,10 +212,10 @@ func (s *Service) stillOpen(ctx context.Context, account store.Account, p *profi
 // is the same either way.
 func (s *Service) dayIsFull(p *profile.Profile) Reply[any] {
 	return Reply[any]{
-		Text: joined("No task was asked for: there are no more new tasks for the child today. Tell the child so, "+
-			"in the language of the chat: there are no more new tasks today, and there will be more tomorrow; "+
-			"meanwhile they can look at their progress, or go back over the last task.",
-			s.lastAnswerText(p)),
+		Text: joined("No task was asked for: there are no more new tasks for the child today. Tell the child so: "+
+			"there are no more new tasks today, and there will be more tomorrow; meanwhile they can look at their "+
+			"progress, or go back over the last task.",
+			lessonLanguageText(&p.Student), s.lastAnswerText(p)),
 		Payload: requestRefusedOut{Screen: screenWaiting, Status: statusLimited, Code: codeLimitReached, LastAnswer: lastAnswerOf(p)},
 	}
 }
@@ -227,9 +235,11 @@ func argumentsRefused(p *profile.Profile, problems []profile.Problem) Reply[any]
 	}
 }
 
-// languageOf reads the language a task is to be written in, by the rule the
-// cards' own language is read by. A task needs one: written in a language
-// guessed, it is a generation wasted.
+// languageOf reads the chat's language, by the rule the language the parent
+// chose is read by. Every call needs one, even when the profile names a
+// language of its own: a profile that names none would otherwise leave the
+// lesson's language to a guess, and a task written in a language guessed is a
+// generation wasted.
 func languageOf(text string) (string, []profile.Problem) {
 	tag, rule := profile.LanguageTag(text)
 	if tag == "" && rule == "" {

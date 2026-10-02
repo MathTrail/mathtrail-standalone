@@ -286,7 +286,7 @@ describe("the card's language", () => {
 		expect(languageOfPage()).toEqual(["ru", "ltr"]);
 	});
 
-	test("is the one the parent chose for the cards, over the host's", () => {
+	test("is the one the parent chose for the lessons, over the host's", () => {
 		const { bridge, deliver } = heldBridge("en-US");
 		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
 
@@ -301,6 +301,21 @@ describe("the card's language", () => {
 		act(() =>
 			deliver({ screen: "progress", profile: { ui_language: "ru-RU" } }),
 		);
+		expect(languageOfPage()).toEqual(["ru", "ltr"]);
+	});
+
+	test("is the lesson's on a task card, over the host's, when the parent chose none", () => {
+		const { bridge, deliver } = heldBridge("en-US");
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
+
+		act(() =>
+			deliver({
+				screen: "task",
+				child: { pseudonym: "Otter", grade: 2, ui_language: null },
+				language: "ru",
+			}),
+		);
+
 		expect(languageOfPage()).toEqual(["ru", "ltr"]);
 	});
 

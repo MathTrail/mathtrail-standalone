@@ -33,7 +33,7 @@ const (
 	// MaxNotes is how much free-form context the parent may write. It is a
 	// size budget as much as a privacy one: every generation carries it.
 	MaxNotes = 500
-	// MaxLanguageTag is how long a language tag may be, the cards' and a
+	// MaxLanguageTag is how long a language tag may be, the lessons' and a
 	// task's alike: the length every reader of a BCP 47 tag is asked to hold,
 	// and longer than any language a child is taught in needs.
 	MaxLanguageTag = 35

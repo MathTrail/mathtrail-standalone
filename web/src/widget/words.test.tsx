@@ -5,7 +5,7 @@ import { pseudoLocale } from "../i18n/pseudo";
 import {
 	cardWords,
 	dictionaries,
-	languageChosenIn,
+	languageIn,
 	ratingText,
 	useWords,
 	WordsContext,
@@ -84,8 +84,40 @@ describe("a rating", () => {
 	});
 });
 
-describe("the language chosen for the cards", () => {
+describe("the language of a card", () => {
 	test.each([
+		[
+			"a task card, from its lesson over the language chosen",
+			{
+				screen: "task",
+				child: { pseudonym: "Otter", grade: 2, ui_language: "ru" },
+				language: "en",
+			},
+			"en",
+		],
+		[
+			"a task card with no language chosen, from its lesson",
+			{
+				screen: "task",
+				child: { pseudonym: "Otter", grade: 2, ui_language: null },
+				language: "ru",
+			},
+			"ru",
+		],
+		[
+			"a task card from before its lesson's language travelled with it, from the language chosen",
+			{
+				screen: "task",
+				child: { pseudonym: "Otter", grade: 2, ui_language: "ru" },
+				task: { language: "en" },
+			},
+			"ru",
+		],
+		[
+			"a waiting card, from the request it waits for",
+			{ screen: "waiting", child: { ui_language: null }, language: "ru" },
+			"ru",
+		],
 		[
 			"a task card, with the child",
 			{
@@ -110,7 +142,7 @@ describe("the language chosen for the cards", () => {
 			"en",
 		],
 	])("is read from %s", (_, payload, want) => {
-		expect(languageChosenIn(payload)).toBe(want);
+		expect(languageIn(payload)).toBe(want);
 	});
 
 	test.each([
@@ -133,7 +165,7 @@ describe("the language chosen for the cards", () => {
 		],
 		["no payload", undefined],
 	])("is none for %s", (_, payload) => {
-		expect(languageChosenIn(payload)).toBeUndefined();
+		expect(languageIn(payload)).toBeUndefined();
 	});
 });
 

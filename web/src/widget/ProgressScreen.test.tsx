@@ -171,7 +171,7 @@ describe("the progress", () => {
 			["Grade", "3", "Only a label: changing it moves no rating."],
 			["Interests", "space, animals, football"],
 			["Not at school yet", "Division with a remainder"],
-			["Language of the cards", "The chat's language"],
+			["Language of the lessons", "The chat's language"],
 		]);
 	});
 
@@ -209,7 +209,7 @@ describe("the progress", () => {
 		expect(text(root, ".mt-note-plain p")).toBe("Parity and alternation");
 	});
 
-	test("is in the language the parent chose for the cards", async () => {
+	test("is in the language the parent chose for the lessons", async () => {
 		const { root } = await draw({
 			...standing,
 			profile: { ...standing.profile, ui_language: "ru" },
@@ -225,7 +225,7 @@ describe("the progress", () => {
 			"Одно и то же посчитано дважды2 раза",
 		]);
 		expect(fields(root, "Профиль · для родителя")[3]).toEqual([
-			"Язык карточек",
+			"Язык занятий",
 			"Русский",
 		]);
 	});

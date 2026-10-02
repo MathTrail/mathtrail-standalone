@@ -23,7 +23,7 @@ const child = z.object({
 
 /**
  * Child is whose card it is: the name the child goes by, the grade, and the
- * language the parent chose for the cards, or null when they chose none.
+ * language the parent chose for the lessons, or null when they chose none.
  */
 export type Child = z.infer<typeof child>;
 
@@ -45,6 +45,9 @@ const handedTask = z.object({
 		}),
 		hint: z.string(),
 	}),
+	// The lesson's language, which the card's words are in; a card from before
+	// it travelled with the task has none.
+	language: z.string().optional(),
 });
 
 /**
@@ -141,6 +144,7 @@ const waiting = z.object({
 	status: z.string().optional(),
 	code: z.string().optional(),
 	child: child.nullish(),
+	language: z.string().optional(),
 });
 
 /**
@@ -185,7 +189,7 @@ const details = child.extend({
 /**
  * Details are the child's profile as a card shows it: who the child is, what
  * the tasks may be dressed in, what the child has not met at school yet, and
- * the language of the cards. The parent's notes are never among them.
+ * the language of the lessons. The parent's notes are never among them.
  */
 export type Details = z.infer<typeof details>;
 

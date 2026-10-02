@@ -196,7 +196,7 @@ exports[`the screens in Arabic > the profile, its cards chosen to be in Arabic 1
           </div>
           <div>
             <dt>
-              لغة البطاقات
+              لغة الدروس
             </dt>
             <dd>
               العربية
@@ -737,7 +737,7 @@ exports[`the screens in Arabic > the progress 1`] = `
           </div>
           <div>
             <dt>
-              لغة البطاقات
+              لغة الدروس
             </dt>
             <dd>
               لغة الدردشة

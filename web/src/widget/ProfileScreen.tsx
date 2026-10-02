@@ -71,7 +71,7 @@ function ProfileScreen({
 /**
  * ParentProfile is the child's profile as the parent reads it on a card: the
  * grade, which is only a label once the child has started, the interests,
- * what the child has not met at school yet, and the language of the cards —
+ * what the child has not met at school yet, and the language of the lessons —
  * with the one way to change them, which is to ask in the chat.
  */
 export function ParentProfile({

@@ -52,12 +52,11 @@ sequenceDiagram
 
     Note over A,MT: the connector is added and the parent signs in — see 02-auth
     A->>M: let us start
-    M->>MT: get_profile
+    M->>MT: next_task
     MT->>D: look for the profile file
     D-->>MT: there is none yet
-    MT-->>M: no profile, and the fields one needs to create it
-    MT-->>W: first sign-in screen
-    A->>M: pseudonym, grade, interests, constraints
+    MT-->>M: no profile: ask the adult to say they are the parent or tutor, then for the fields one needs to create it
+    A->>M: parent or tutor; pseudonym, grade, interests, constraints
     M->>MT: save_profile
     MT->>D: create the file
     D-->>MT: the new revision

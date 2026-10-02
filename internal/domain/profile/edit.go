@@ -14,7 +14,7 @@ import (
 // Edit is a change to the child's details as the parent asked for it, by way
 // of the chat's model. A field left nil stays as it is. A list that is given
 // replaces the one kept, so an empty list clears it; an empty text clears the
-// notes, and an empty language makes the cards follow the chat's language
+// notes, and an empty language makes the lessons follow the chat's language
 // again.
 type Edit struct {
 	Pseudonym      *string
@@ -98,7 +98,7 @@ func (s *Student) editSkills(given []string, known func(skill string) bool) []Pr
 	return nil
 }
 
-// editLanguage puts the language of the cards in place, or says why it cannot
+// editLanguage puts the language of the lessons in place, or says why it cannot
 // be.
 func (s *Student) editLanguage(given *string) []Problem {
 	if given == nil {
@@ -253,7 +253,7 @@ var notLanguages = []language.Base{
 // name its language outright: "und-US" only guesses one from a country, and a
 // private tag names none. What it returns is the tag, or the rule the text
 // broke, in words that never repeat the text. An empty text is no tag and
-// breaks no rule here: what "none" means — the chat's language for the cards,
+// breaks no rule here: what "none" means — the chat's language for the lessons,
 // a missing argument for a task — is the caller's to say.
 func LanguageTag(text string) (tag, rule string) {
 	text = strings.TrimSpace(text)

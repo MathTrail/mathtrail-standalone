@@ -51,31 +51,38 @@ export function isKey(key: string): key is Key {
 }
 
 /**
- * cardWords are the words a card speaks: in the language the parent chose for
- * the cards when the widget has words for it, in the host's otherwise, and in
- * English when it has words for neither.
+ * cardWords are the words a card speaks: in the language its payload names
+ * when the widget has words for it, in the host's otherwise, and in English
+ * when it has words for neither.
  */
 export function cardWords(
-	chosen: string | undefined,
+	named: string | undefined,
 	host: string | undefined,
 ): Words<Key> {
-	return openWords<Key>(chooseLocale([chosen, host], spoken), dictionaries);
+	return openWords<Key>(chooseLocale([named, host], spoken), dictionaries);
 }
 
 /**
- * languageChosenIn is the language the parent chose for the cards, as a
- * payload carries it — with the child's details on a task card, with the
- * profile on the progress and the profile — or undefined when they chose none
- * and the cards follow the chat's.
+ * languageIn is the language a card speaks, as its payload names it: the
+ * lesson's, which a card of a task, or of a wait for one, carries as its
+ * `language` — its task's or the awaited request's — and otherwise the one the
+ * parent chose for the lessons, with the child's details or with the profile.
+ * It is undefined when the payload names none, and the card follows the
+ * host's. A task and the words around it are always in one language: buttons
+ * in another would leave a child reading two at once. A card from before the
+ * lesson's language travelled with it names none, and keeps the parent's
+ * choice it was drawn in.
  */
-export function languageChosenIn(payload: unknown): string | undefined {
-	for (const holder of ["child", "profile"]) {
-		const language = fieldOf(fieldOf(payload, holder), "ui_language");
-		if (typeof language === "string" && language !== "") {
-			return language;
-		}
-	}
-	return undefined;
+export function languageIn(payload: unknown): string | undefined {
+	const named = [
+		fieldOf(payload, "language"),
+		fieldOf(fieldOf(payload, "child"), "ui_language"),
+		fieldOf(fieldOf(payload, "profile"), "ui_language"),
+	];
+	return named.find(
+		(language): language is string =>
+			typeof language === "string" && language !== "",
+	);
 }
 
 // fieldOf is a field of an object, or undefined when value is no object or has

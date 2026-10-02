@@ -8,18 +8,19 @@ import { readScreen } from "./payload";
 import { TaskCard } from "./TaskCard";
 import { UnreadableCard } from "./UnreadableCard";
 import { WaitingCard } from "./WaitingCard";
-import { cardWords, type Key, languageChosenIn, WordsContext } from "./words";
+import { cardWords, type Key, languageIn, WordsContext } from "./words";
 
 /**
  * WidgetApp is the card a tool's result is drawn as, in the words of the
- * language the parent chose for the cards or, when they chose none, of the
- * host's. Until the first result arrives it draws nothing.
+ * language its result names — the lesson's, or the one the parent chose — or,
+ * when it names none, of the host's. Until the first result arrives it draws
+ * nothing.
  */
 export function WidgetApp({ bridge, host }: { bridge: Bridge; host: Host }) {
 	const result = useBridge(bridge, latestResult);
 	const hostLocale = useBridge(bridge, localeOfHost);
 	const words = useMemo(
-		() => cardWords(languageChosenIn(result?.structuredContent), hostLocale),
+		() => cardWords(languageIn(result?.structuredContent), hostLocale),
 		[result, hostLocale],
 	);
 	useDocumentLanguage(words);

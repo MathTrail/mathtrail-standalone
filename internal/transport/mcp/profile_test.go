@@ -143,6 +143,33 @@ func TestTheToolsOfTheLessonAreListedAsTheyAreMeant(t *testing.T) {
 	}
 }
 
+// The tools that draw the profile and the progress are described as not being
+// where a lesson starts: a card of either, drawn before the task, puts the
+// adult's screen in front of the child. A task needs only next_task, which
+// says when there is no profile, and the progress is shown when someone asks
+// for it.
+func TestTheAdultsCardsAreNotWhereALessonStarts(t *testing.T) {
+	t.Parallel()
+
+	_, session := lesson(t, memory.New())
+	listed, err := session.ListTools(t.Context(), nil)
+	if err != nil {
+		t.Fatalf("ListTools() error = %v", err)
+	}
+	described := map[string]string{}
+	for _, tool := range listed.Tools {
+		described[tool.Name] = tool.Description
+	}
+	for name, want := range map[string]string{
+		"get_profile":  "a task needs only next_task",
+		"get_progress": "Call it only when someone asks to see the progress",
+	} {
+		if description, listed := described[name]; !listed || !strings.Contains(description, want) {
+			t.Errorf("%s is described as %q (listed: %v), want it listed and saying %q", name, description, listed, want)
+		}
+	}
+}
+
 // listing is how a tool is meant to be listed. wordsOnly marks the tool that
 // answers the model in words alone, and so declares no payload to check.
 type listing struct {
@@ -554,7 +581,7 @@ func TestTheWordsForTheModelSayWhatTheCardShows(t *testing.T) {
 			tag := "pt-BR"
 			p.Student.UILanguage = &tag
 		}), "get_profile",
-			[]string{"was wrong", "to go over it again after a mistake", "The cards are in pt-BR."}},
+			[]string{"was wrong", "to go over it again after a mistake", "The lessons are in pt-BR: the tasks, the cards and your words."}},
 		{"a topic the catalog no longer has", keptAs(t, "masha", func(p *profile.Profile) {
 			p.Recent[len(p.Recent)-1].Topic = "clocks.sundials"
 		}), "get_progress",

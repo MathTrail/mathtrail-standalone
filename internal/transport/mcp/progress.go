@@ -82,8 +82,8 @@ func (s *Service) getProgressTool() Tool {
 			"of each topic met, the topics mastered, the latest answers, the mistakes that keep coming back and " +
 			"what comes next. The scale is one for grades 1 to 6, so an older child's number is higher. During " +
 			"the trial series — the first five tasks — " +
-			"there is no rating yet, only how many of the five are done. Present it encouragingly and name one " +
-			"thing to practise next.",
+			"there is no rating yet, only how many of the five are done. Call it only when someone asks to see the " +
+			"progress. Present it encouragingly and name one thing to practise next.",
 		ReadOnly:   true,
 		Idempotent: true,
 		DrawsCard:  true,

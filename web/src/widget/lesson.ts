@@ -197,9 +197,20 @@ export function optionStateOf(answer: Answer, letter: Letter): OptionState {
  * The model wrote the task, so it holds the options, the traps and the
  * solution already; after an answer, naming the letters gives nothing away.
  * A mistake the child has made before asks for a reminder of it, in the
- * model's own words, since the card keeps none.
+ * model's own words, since the card keeps none. And whatever the model says
+ * next is worded so it does not show whether the child is a boy or a girl,
+ * which nothing tells the card: in a language with grammatical gender, a
+ * past-tense sentence about what the child did shows it.
  */
 export function modelLineOf(result: AnswerResult): string {
+	return `${recordedLineOf(result)} ${aboutTheStep}`;
+}
+
+const aboutTheStep =
+	"In a language with grammatical gender, word it so it does not show whether the child is a boy or a girl: praise the step, not the child, and keep to the present tense.";
+
+// recordedLineOf is what the card says is recorded, and how it went.
+function recordedLineOf(result: AnswerResult): string {
 	const task = `Task ${result.task_id} has its answer recorded`;
 	if (result.choice === dontKnow) {
 		return `${task}: "I don't know", which counts as a wrong answer; the right option is ${result.correct_answer}. The card shows the solution.`;
