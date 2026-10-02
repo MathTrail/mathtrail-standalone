@@ -1,7 +1,6 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
 import { act } from "preact/test-utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import english from "../../locales/en.json";
 import {
 	buttonIn,
 	drawCard as drawOnHost,
@@ -10,7 +9,6 @@ import {
 } from "./testing/card";
 import type { ToolCall } from "./testing/host";
 import { exhausted, fence, limited, progress, refused } from "./testing/lesson";
-import { warmUps } from "./waiting";
 
 let root: HTMLElement;
 
@@ -81,13 +79,9 @@ describe("a card waiting for the next task", () => {
 		expect(root.querySelector(".mt-gen ol")?.getAttribute("aria-live")).toBe(
 			"polite",
 		);
-		expect(
-			root.querySelector<HTMLInputElement>(".mt-field input")?.disabled,
-		).toBe(true);
-		expect(shownButtons()).toEqual(["I don't know", "Hint", "Another task"]);
-		for (const shown of root.querySelectorAll<HTMLButtonElement>(".mt-btn")) {
-			expect(shown.disabled).toBe(true);
-		}
+		// Nothing to press while the task is written: no buttons of a task that
+		// is not there.
+		expect(root.querySelector(".mt-foot")).toBeNull();
 	});
 
 	test("shows nothing of why the model's task was refused", async () => {
@@ -131,29 +125,6 @@ describe("a card waiting for the next task", () => {
 				expect(step.textContent?.replace("grade 3", "")).not.toMatch(/\d/);
 			}
 		}
-	});
-
-	test("offers a warm-up once the wait drags on, and another when asked", async () => {
-		await drawCard(refused);
-
-		wait(29);
-		expect(root.querySelector(".mt-note")).toBeNull();
-		wait(1);
-		expect(text(".mt-note-label")).toBe("Warm-up");
-		const first = warmUps.findIndex(
-			(key) => english[key] === text(".mt-note p"),
-		);
-		expect(first).not.toBe(-1);
-		expect(root.querySelector(".mt-note")?.closest("[aria-live]")).toBe(
-			root.querySelector(".mt-news"),
-		);
-
-		press(button("Another warm-up"));
-
-		expect(text(".mt-note p")).toBe(
-			english[warmUps[(first + 1) % warmUps.length] ?? warmUps[0]],
-		);
-		expect(document.activeElement).toBe(button("Another warm-up"));
 	});
 
 	test("after two minutes says plainly that no task is coming, and asks again", async () => {
@@ -220,26 +191,6 @@ describe("a card waiting for the next task", () => {
 		expect(document.activeElement).toBe(button("Ask again"));
 	});
 
-	test("after the model's last attempt says the task did not work out, and waits for the next", async () => {
-		await drawCard(exhausted);
-
-		expect(text(".mt-wait > .mt-verdict-line")).toBe(
-			"This task didn't work out.",
-		);
-		expect(text(".mt-gen-title")).toBe("Preparing the next task…");
-		expect(statuses()[0]).toBe("active");
-	});
-
-	test("asked again after the last attempt, waits for the new ask alone", async () => {
-		await drawCard(exhausted);
-		wait(120);
-
-		press(button("Ask again"));
-
-		expect(root.querySelector(".mt-gen")).not.toBeNull();
-		expect(root.textContent).not.toContain("This task didn't work out.");
-	});
-
 	test("has the list of steps and the place for news heard apart, each once", async () => {
 		await drawCard(refused);
 
@@ -291,6 +242,22 @@ describe("a card drawn while the chat has the focus", () => {
 		expect(document.activeElement).toBe(document.body);
 		wait(120);
 		expect(document.activeElement).toBe(document.body);
+	});
+});
+
+describe("a card whose task did not work out", () => {
+	test("says so, and that a new one will come below, with nothing to wait for or press", async () => {
+		await drawCard(exhausted);
+
+		expect(text(".mt-bar-name")).toBe("Comet");
+		expect(text(".mt-verdict-line")).toBe("This task didn't work out.");
+		expect(text(".mt-verdict-detail")).toBe(
+			"A new one will come below, in a new card.",
+		);
+		expect(root.querySelector(".mt-gen")).toBeNull();
+		expect(root.querySelector(".mt-btns")).toBeNull();
+		wait(120);
+		expect(root.querySelector(".mt-wait")).toBeNull();
 	});
 });
 

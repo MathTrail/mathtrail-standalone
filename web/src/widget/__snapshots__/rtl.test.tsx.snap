@@ -1137,36 +1137,6 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
       class="mt-foot"
     >
       <div
-        class="mt-field"
-      >
-        <label
-          class="mt-vh"
-          for="P0-0"
-        >
-          سؤال عن المسألة
-        </label>
-        <input
-          id="P0-0"
-          placeholder="سؤالك عن المسألة…"
-          type="text"
-        />
-        <button
-          aria-label="إرسال"
-          class="mt-icon-btn"
-          disabled=""
-          type="button"
-        >
-          <svg
-            aria-hidden="true"
-            class="mt-icon mt-send"
-            fill="none"
-            height="18"
-            viewBox="0 0 16 16"
-            width="18"
-          />
-        </button>
-      </div>
-      <div
         class="mt-btns"
       >
         <button
@@ -1176,6 +1146,12 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
           مسألة أخرى
         </button>
       </div>
+      <p
+        aria-live="polite"
+        class="mt-action-note"
+      >
+        
+      </p>
     </div>
   </div>
 </div>
@@ -1385,36 +1361,6 @@ exports[`the screens in Arabic > the task 1`] = `
       class="mt-foot"
     >
       <div
-        class="mt-field"
-      >
-        <label
-          class="mt-vh"
-          for="P0-0"
-        >
-          سؤال عن المسألة
-        </label>
-        <input
-          id="P0-0"
-          placeholder="سؤالك عن المسألة…"
-          type="text"
-        />
-        <button
-          aria-label="إرسال"
-          class="mt-icon-btn"
-          disabled=""
-          type="button"
-        >
-          <svg
-            aria-hidden="true"
-            class="mt-icon mt-send"
-            fill="none"
-            height="18"
-            viewBox="0 0 16 16"
-            width="18"
-          />
-        </button>
-      </div>
-      <div
         class="mt-btns"
       >
         <button
@@ -1437,6 +1383,12 @@ exports[`the screens in Arabic > the task 1`] = `
           مسألة أخرى
         </button>
       </div>
+      <p
+        aria-live="polite"
+        class="mt-action-note"
+      >
+        
+      </p>
     </div>
   </div>
 </div>
@@ -1676,67 +1628,6 @@ exports[`the screens in Arabic > the wait for the next task 1`] = `
         </div>
       </div>
     </article>
-    <div
-      class="mt-foot"
-    >
-      <div
-        class="mt-field"
-        data-disabled="true"
-      >
-        <label
-          class="mt-vh"
-          for="P0-1"
-        >
-          سؤال عن المسألة
-        </label>
-        <input
-          disabled=""
-          id="P0-1"
-          placeholder="سؤالك عن المسألة…"
-          type="text"
-        />
-        <button
-          aria-label="إرسال"
-          class="mt-icon-btn"
-          disabled=""
-          type="button"
-        >
-          <svg
-            aria-hidden="true"
-            class="mt-icon mt-send"
-            fill="none"
-            height="18"
-            viewBox="0 0 16 16"
-            width="18"
-          />
-        </button>
-      </div>
-      <div
-        class="mt-btns"
-      >
-        <button
-          class="mt-btn"
-          disabled=""
-          type="button"
-        >
-          لا أعرف
-        </button>
-        <button
-          class="mt-btn"
-          disabled=""
-          type="button"
-        >
-          تلميح
-        </button>
-        <button
-          class="mt-btn"
-          disabled=""
-          type="button"
-        >
-          مسألة أخرى
-        </button>
-      </div>
-    </div>
   </div>
 </div>
 `;

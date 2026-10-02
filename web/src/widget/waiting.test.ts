@@ -1,5 +1,4 @@
 import { describe, expect, test } from "vitest";
-import english from "../../locales/en.json";
 import {
 	isLate,
 	moments,
@@ -7,8 +6,6 @@ import {
 	type Wait,
 	waitAfter,
 	waitStart,
-	warmUpAt,
-	warmUps,
 } from "./waiting";
 
 describe("a wait", () => {
@@ -90,23 +87,6 @@ describe("the course of a task", () => {
 			expect(now.filter((status) => status === "active")).toHaveLength(1);
 			// Done, then under way, then to come: the course never goes back.
 			expect(now.join(" ")).toMatch(/^(done )*active( waiting)*$/);
-		}
-	});
-});
-
-describe("the warm-up", () => {
-	test("goes round its list, one at a time", () => {
-		expect(warmUpAt(0)).toBe(warmUps[0]);
-		expect(warmUpAt(1)).toBe(warmUps[1]);
-		expect(warmUpAt(warmUps.length)).toBe(warmUps[0]);
-		expect(new Set(warmUps.map((_, at) => warmUpAt(at))).size).toBe(
-			warmUps.length,
-		);
-	});
-
-	test("asks no question, since the card never tells an answer", () => {
-		for (const key of warmUps) {
-			expect(english[key]).not.toContain("?");
 		}
 	});
 });

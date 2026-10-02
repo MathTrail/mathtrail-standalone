@@ -182,7 +182,7 @@ The acceptance check for this task: every requirement in sections 4–7 belongs 
 | 4.4 One current task, kept in the profile file until it is answered | Storage |
 | 4.4 The answer lives in a sealed block, encrypted with the service key (О-25) | Sealing, Storage |
 | 4.4 The host's tool-call log is out of the threat model (О-27) | Outside the service: the host UI; described in the privacy policy (T19) |
-| 4.4 The waiting screen and the warm-up (О-26) | Widget |
+| 4.4 The waiting screen (О-26), with no warm-up since R145 | Widget |
 | 4.5 P = 0.2 + 0.8·σ(θ + δ − β), Elo updates, the 0.70–0.85 corridor | Ratings |
 | 4.5 The chess scale and a rank above the number (О-48) | Ratings, Widget |
 | 4.5 Hint, pace and consecutive failures do not change the rating (О-33); "I don't know" counts as a wrong answer (R93) | Ratings, Rule |

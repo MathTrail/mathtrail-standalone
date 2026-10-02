@@ -5,8 +5,8 @@
 // engine of Safari and of every browser on an iPhone. A card fails when its
 // page scrolls sideways, when a part of it sticks out of the card, when text
 // runs out of the box it is set in, or when text a card is written to show
-// whole is cut short. The waiting scenes are looked at again once the warm-up
-// is offered and once the deadline has passed. Every card in a language
+// whole is cut short. The waiting scenes are looked at again as their course
+// moves on and once the deadline has passed. Every card in a language
 // written right to left is photographed, to be looked at.
 //
 //	node scripts/layout.ts [--engine chromium] [--language ar] [--width 320]
@@ -56,8 +56,8 @@ const widths = [320, 360, 640];
 const engines: Readonly<Record<string, BrowserType>> = { chromium, webkit };
 
 // The moments a card is looked at, each as far after the one before as the
-// clock is moved on: the warm-up of a waiting card is offered at 30 seconds,
-// and the wait given up on at 120.
+// clock is moved on: the course of a waiting card takes up its third step at
+// 35 seconds, and the wait is given up on at 120.
 const moments: readonly { name: string; after: string }[] = [
 	{ name: "at once", after: "" },
 	{ name: "after 35 s", after: "00:35" },
@@ -232,8 +232,8 @@ async function markupOf({ frame }: Card): Promise<string> {
 type Settled = Card & { markup: string };
 
 // A card is given at most this many ticks of the page's clock, a tenth of a
-// second each, to settle: 28 seconds, short of the half minute at which a
-// waiting card first changes on its own.
+// second each, to settle: 28 seconds, short of the 35 at which the course of a
+// waiting card moves on next.
 const mostTicks = 280;
 
 // settled waits until every card of the page has been drawn and has become

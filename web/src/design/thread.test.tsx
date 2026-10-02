@@ -94,10 +94,10 @@ describe("a header", () => {
 });
 
 describe("a reply", () => {
-	test("is headed compactly, with a note beside the name", () => {
+	test("is MathTrail's, headed compactly, with nothing noted beside the name", () => {
 		draw(
-			<ReplyCard author="person" name="You" meta="Sent to the chat">
-				<p class="mt-reply-lead">why isn't it 6?</p>
+			<ReplyCard name="MathTrail">
+				<p>Here's how to solve it.</p>
 			</ReplyCard>,
 		);
 
@@ -105,22 +105,10 @@ describe("a reply", () => {
 		expect(reply?.querySelector(".mt-head")?.className).toBe(
 			"mt-head mt-head-compact",
 		);
-		expect(reply?.querySelector(".mt-name")?.textContent).toBe("You");
-		expect(reply?.querySelector(".mt-meta")?.textContent).toBe(
-			"Sent to the chat",
-		);
+		expect(reply?.querySelector(".mt-name")?.textContent).toBe("MathTrail");
 		expect(reply?.querySelector(".mt-reply-body")?.textContent).toBe(
-			"why isn't it 6?",
+			"Here's how to solve it.",
 		);
-	});
-
-	test("with nothing to note shows only the name", () => {
-		draw(
-			<ReplyCard author="app" name="MathTrail">
-				<p>Here's how to solve it.</p>
-			</ReplyCard>,
-		);
-
 		expect(root.querySelector(".mt-meta")).toBeNull();
 	});
 });

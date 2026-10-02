@@ -17,7 +17,6 @@ describe("an icon", () => {
 	test.each<IconName>([
 		"chevron-right",
 		"chevron-left",
-		"send",
 		"check",
 		"cross",
 		"dash",

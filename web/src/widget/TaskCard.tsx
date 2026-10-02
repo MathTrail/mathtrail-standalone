@@ -13,8 +13,9 @@ import { directionOf } from "../i18n/lookup";
 import type { Host } from "./bridge";
 import { CardFrame } from "./CardFrame";
 import { CardHeader } from "./CardRoot";
+import { type Request, RequestNote, useChatRequest } from "./ChatRequest";
 import { useFocusKeptOnTheCard } from "./focus";
-import { LessonButtons, QuestionField } from "./LessonFoot";
+import { LessonButtons } from "./LessonFoot";
 import {
 	type Answer,
 	canAnswer,
@@ -25,7 +26,6 @@ import {
 	modelLineOf,
 	next,
 	optionStateOf,
-	type Question,
 } from "./lesson";
 import {
 	type AnswerOutcome,
@@ -37,25 +37,24 @@ import {
 	readAnswer,
 } from "./payload";
 import { TaskResult } from "./TaskResult";
-import { useAsking, WaitingScreen } from "./WaitingCard";
 import { type Key, useWords } from "./words";
 
 /**
  * TaskCard is the card a task is handed to the child on. The child answers by
  * pressing an option or "I don't know", which records the answer straight
  * away, and reads the result below the task, in the same card; opens the hint;
- * asks a question, which goes to the chat for the model to answer there; asks
- * for another task, which the model writes while the card waits for it; and
- * opens the progress in the card and comes back to the task as it was left.
+ * asks for another task, which goes to the chat for the model to write — the
+ * new task comes in a card of its own, below, and this one says so and keeps
+ * its task; and opens the progress in the card and comes back to the task as
+ * it was left.
  */
 export function TaskCard({ handed, host }: { handed: HandedTask; host: Host }) {
 	const { task, child } = handed;
 	const words = useWords();
 	const [lesson, dispatch] = useReducer(next, lessonStart);
-	const asking = useAsking(host);
+	const another = useChatRequest(host);
 	const outcome = useRef<HTMLDivElement>(null);
 	const nextTask = useRef<HTMLButtonElement>(null);
-	const questionsAsked = useRef(0);
 	// An answer is sent once. From the moment it is on its way the options and
 	// the buttons that could give another are locked, and a second press that
 	// comes before the card has redrawn to lock them is turned away here.
@@ -78,26 +77,14 @@ export function TaskCard({ handed, host }: { handed: HandedTask; host: Host }) {
 	}
 
 	function askForAnother() {
-		// Not while an answer is on its way: its reply would come to a card no
-		// longer showing the task. Otherwise the card turns to the wait at once,
-		// and the ask reaches the model after it.
+		// Not while an answer is on its way: the ask would race the answer to a
+		// task the model is about to set aside. The label of the button, in the
+		// card's language, goes to the chat as the child's message: only the
+		// model can write a task, and those are the words it takes as the ask.
 		if (answering.current) {
 			return;
 		}
-		dispatch({ type: "another asked" });
-		asking.ask();
-	}
-
-	async function ask(question: string) {
-		const id = questionsAsked.current++;
-		dispatch({ type: "asked", id, words: question });
-		try {
-			await host.sendMessage(question);
-			dispatch({ type: "question sent", id });
-		} catch (error: unknown) {
-			console.error("widget: the question did not reach the chat", error);
-			dispatch({ type: "question lost", id });
-		}
+		another.send(words.text("task.another"));
 	}
 
 	// Once the answer is in, a focus that was lost goes to the one thing left
@@ -111,60 +98,45 @@ export function TaskCard({ handed, host }: { handed: HandedTask; host: Host }) {
 
 	return (
 		<CardFrame child={child} back={words.text("progress.back")} host={host}>
-			{(wide) =>
-				lesson.stage === "waiting" ? (
-					<WaitingScreen grade={child.grade} wide={wide} asking={asking} />
-				) : (
-					<>
-						<article aria-label={words.text("task.label")}>
-							<CardHeader grade={child.grade} wide={wide} />
-							<TaskBody
-								handed={handed}
-								lesson={lesson}
-								inTask={inTask}
-								onAnswer={answer}
-							/>
-						</article>
-						<section
-							class="mt-replies"
-							aria-label={words.text("task.replies")}
-							aria-live="polite"
-						>
-							{isOver(lesson.answer) && (
-								<div ref={outcome} tabIndex={-1}>
-									<Outcome answer={lesson.answer} task={task} inTask={inTask} />
-								</div>
-							)}
-							{lesson.questions.map((question) => (
-								<ReplyCard
-									key={question.id}
-									author="person"
-									name={words.text("child.you")}
-									meta={questionMeta(question, (key) => words.text(key))}
-								>
-									<p class="mt-reply-lead">{question.words}</p>
-								</ReplyCard>
-							))}
-						</section>
+			{(wide) => (
+				<>
+					<article aria-label={words.text("task.label")}>
+						<CardHeader grade={child.grade} wide={wide} />
+						<TaskBody
+							handed={handed}
+							lesson={lesson}
+							inTask={inTask}
+							onAnswer={answer}
+						/>
+					</article>
+					<section
+						class="mt-replies"
+						aria-label={words.text("task.replies")}
+						aria-live="polite"
+					>
+						{isOver(lesson.answer) && (
+							<div ref={outcome} tabIndex={-1}>
+								<Outcome answer={lesson.answer} task={task} inTask={inTask} />
+							</div>
+						)}
+					</section>
+					{lesson.answer.state !== "closed" && (
 						<div class="mt-foot">
-							<QuestionField
-								value={lesson.draft}
-								onInput={(typed) => dispatch({ type: "typed", words: typed })}
-								onSend={ask}
-							/>
 							<div class="mt-btns">
 								<TaskActions
 									lesson={lesson}
+									another={another.state}
 									nextTask={nextTask}
 									onDontKnow={() => answer(dontKnow)}
 									onHint={() => dispatch({ type: "hint toggled" })}
 									onAnother={askForAnother}
 								/>
 							</div>
+							<RequestNote state={another.state} taken="task.another_coming" />
 						</div>
-					</>
-				)
-			}
+					)}
+				</>
+			)}
 		</CardFrame>
 	);
 }
@@ -212,29 +184,38 @@ function TaskBody({
 }
 
 // TaskActions are the buttons under a task. A task answered has one thing
-// left to do, the next task. A task closed has none on this card: the task
-// being solved is on a newer one, and asking for another here would skip it.
+// left to do, the next task. A task closed has none, and its card no foot: the
+// task being solved is on a newer card, and asking for another here would
+// skip it.
 // The next task's button is its own: the one pressed is not turned into it
-// under the focus, which a screen reader would not tell.
+// under the focus, which a screen reader would not tell. While an ask for
+// another task is on its way to the chat its button takes no second press;
+// once the chat has it, the button may be pressed again, since a host may hold
+// the message for the person to send and the card cannot see whether it went,
+// and a second ask while a task is being written is handed the one open.
 function TaskActions({
 	lesson,
+	another,
 	nextTask,
 	onDontKnow,
 	onHint,
 	onAnother,
 }: {
 	lesson: Lesson;
+	another: Request;
 	nextTask: Ref<HTMLButtonElement>;
 	onDontKnow: () => void;
 	onHint: () => void;
 	onAnother: () => void;
 }) {
 	const words = useWords();
+	const anotherSending = another === "sending";
 	if (lesson.answer.state === "answered") {
 		return (
 			<Button
 				key="next"
 				variant="primary"
+				locked={anotherSending}
 				onClick={onAnother}
 				buttonRef={nextTask}
 			>
@@ -242,12 +223,10 @@ function TaskActions({
 			</Button>
 		);
 	}
-	if (lesson.answer.state === "closed") {
-		return null;
-	}
 	return (
 		<LessonButtons
 			locked={lesson.answer.state === "checking"}
+			anotherSending={anotherSending}
 			hintOpen={lesson.hint.open}
 			onDontKnow={onDontKnow}
 			onHint={onHint}
@@ -272,7 +251,7 @@ function Outcome({
 		return <TaskResult result={answer.result} task={task} inTask={inTask} />;
 	}
 	return (
-		<ReplyCard author="app" name={words.text("app.name")}>
+		<ReplyCard name={words.text("app.name")}>
 			<Verdict>
 				{words.text(
 					answer.state === "closed" ? "task.closed" : "task.answer_failed",
@@ -329,19 +308,3 @@ const statusKeys: Partial<Record<OptionState, Key>> = {
 	correct: "result.correct_answer",
 	wrong: "result.your_answer",
 };
-
-// questionMeta is the note beside a question the child asked: whether it got
-// to the chat, and nothing while it is on its way.
-function questionMeta(
-	question: Question,
-	text: (key: Key) => string,
-): string | undefined {
-	switch (question.state) {
-		case "sending":
-			return undefined;
-		case "sent":
-			return text("chat.sent");
-		case "lost":
-			return text("chat.not_sent");
-	}
-}

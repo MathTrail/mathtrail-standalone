@@ -253,61 +253,6 @@
 	color: var(--text-muted);
 }
 
-/* Reply field */
-.mt-field {
-	display: flex;
-	align-items: center;
-	height: 44px;
-	border: 1px solid var(--border-strong);
-	border-radius: var(--radius-control);
-	background: var(--surface);
-	padding-inline-start: 12px;
-}
-.mt-field:focus-within {
-	border-color: var(--accent);
-	box-shadow: 0 0 0 1px var(--accent);
-}
-.mt-field[data-disabled="true"] {
-	opacity: 0.5;
-}
-.mt-field input {
-	flex-grow: 1;
-	min-width: 0;
-	height: 40px;
-	padding: 0;
-	border: 0;
-	background: transparent;
-	font-size: 15px;
-	color: var(--text);
-	outline: none;
-}
-.mt-field input::placeholder {
-	color: var(--text-muted);
-	opacity: 1;
-}
-.mt-icon-btn {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 44px;
-	height: 42px;
-	flex-shrink: 0;
-	padding: 0;
-	border: 0;
-	border-radius: var(--radius-control);
-	background: transparent;
-	color: var(--text-muted);
-	cursor: pointer;
-}
-.mt-icon-btn:disabled {
-	cursor: default;
-}
-@media (hover: hover) {
-	.mt-icon-btn:hover:not(:disabled) {
-		background: var(--hover);
-	}
-}
-
 /* Thread bar. A long pseudonym gives way to the way to the progress, ending
    in an ellipsis. */
 .mt-bar {
@@ -358,8 +303,7 @@
 	color: var(--text-muted);
 }
 /* An arrow that points the way a line reads turns round with it. */
-[dir="rtl"] .mt-chevron,
-[dir="rtl"] .mt-send {
+[dir="rtl"] .mt-chevron {
 	transform: scaleX(-1);
 }
 
@@ -647,18 +591,18 @@
 	color: var(--text);
 	overflow-wrap: break-word;
 }
-.mt-reply-body > p.mt-reply-lead {
-	font-size: 16px;
-	line-height: 24px;
-}
 
 /* Footer */
 .mt-foot {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
 	padding: 12px;
 	border-block-start: 1px solid var(--border);
+}
+/* A note under the buttons is on the page before it says anything, and takes
+   no room while empty. */
+.mt-foot > * + *:not(:empty) {
+	margin-block-start: 8px;
 }
 .mt-wide .mt-foot {
 	padding: 16px;
@@ -936,20 +880,15 @@
 .mt-gen li[data-status="active"] .mt-gen-label {
 	font-weight: 600;
 }
-/* What a card says while it waits, and when no task is coming: the course, a
-   warm-up under it, or the word that replaces both. The place they come into
-   is on the page before anything is in it, and takes no room while empty. */
+/* What a card says while it waits, and when no task is coming: the course,
+   or the word that replaces it. The place they come into is on the page
+   before anything is in it, and takes no room while empty. */
 .mt-wait {
 	display: flex;
 	flex-direction: column;
 }
 .mt-wait > * + *:not(:empty) {
 	margin-block-start: 16px;
-}
-.mt-warmup {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
 }
 
 /* Right to left: scripts written that way sit taller on their lines. */

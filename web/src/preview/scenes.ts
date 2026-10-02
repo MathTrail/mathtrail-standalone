@@ -41,13 +41,12 @@ export type Scene = {
 };
 
 // Fence is the fence in one language: the task as it is handed to a card,
-// the trap behind B and D, the solution, and a question about it.
+// the trap behind B and D, and the solution.
 type Fence = {
 	handed: typeof fence;
 	gaps: string;
 	ends: string;
 	solution: string;
-	question: string;
 };
 
 const fenceInEnglish: Fence = {
@@ -55,7 +54,6 @@ const fenceInEnglish: Fence = {
 	gaps: "Counted the gaps instead of the posts.",
 	ends: "Counted one end twice.",
 	solution: fenceSolution,
-	question: "why isn't it 6?",
 };
 
 // The fence in the languages it is written in. A card in any other language
@@ -68,14 +66,12 @@ const fences: Readonly<Record<string, Fence>> = {
 		gaps: "Посчитаны промежутки, а не столбы.",
 		ends: "Один из концов посчитан дважды.",
 		solution: fenceSolutionInRussian,
-		question: "а почему не 6?",
 	},
 	ar: {
 		handed: fenceInArabic,
 		gaps: "عُدّت المسافات بدلًا من الأعمدة.",
 		ends: "عُدّ أحد الطرفين مرتين.",
 		solution: fenceSolutionInArabic,
-		question: "لماذا ليست 6؟",
 	},
 };
 
@@ -141,13 +137,6 @@ export function scenesIn(language: string): Scene[] {
 			}),
 			play: button(0),
 		},
-		{ name: "question sent", payload: handed, play: ask(words.question) },
-		{
-			name: "question not sent",
-			payload: handed,
-			refuseMessages: true,
-			play: ask(words.question),
-		},
 		{
 			name: "trial series, 3 of 5",
 			payload: handed,
@@ -187,15 +176,15 @@ export function scenesIn(language: string): Scene[] {
 			payload: { ...handed, status: "stale", code: "stale_request" },
 		},
 		{ name: "progress", payload: handed, answers: service(), play: topLine },
-		{ name: "waiting", payload: handed, play: button(2) },
+		{ name: "another task asked", payload: handed, play: button(2) },
 		{
-			name: "waiting, the ask not sent",
+			name: "another task, the ask not sent",
 			payload: handed,
 			refuseMessages: true,
 			play: button(2),
 		},
 		{
-			name: "waiting after a refused task (warm-up at 30 s, late at 120 s)",
+			name: "waiting after a refused task (late at 120 s)",
 			payload: { ...refused, child: handed.child },
 		},
 		{
@@ -248,22 +237,6 @@ function option(letter: string) {
 function button(place: number) {
 	return (card: Document) => {
 		card.querySelectorAll<HTMLElement>(".mt-btns .mt-btn")[place]?.click();
-	};
-}
-
-// ask types words into the question field and sends them.
-function ask(words: string) {
-	return (card: Document) => {
-		const field = card.querySelector<HTMLInputElement>(".mt-field input");
-		if (field === null) {
-			return;
-		}
-		field.value = words;
-		field.dispatchEvent(new Event("input", { bubbles: true }));
-		// The send button is enabled once the card has taken the words in.
-		setTimeout(() => {
-			card.querySelector<HTMLElement>(".mt-field button")?.click();
-		});
 	};
 }
 

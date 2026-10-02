@@ -10,6 +10,7 @@ import {
 	firstRun,
 	profileRead,
 	progress,
+	refused,
 	standing,
 } from "./testing/lesson";
 
@@ -53,16 +54,6 @@ function markupOf(root: HTMLElement): Element {
 		icon.replaceChildren();
 	}
 	return card;
-}
-
-// pressed presses the button of the card's row of buttons at place: 0 "I
-// don't know", 1 the hint, 2 another task.
-function pressed(root: HTMLElement, place: number): void {
-	const found = root.querySelectorAll<HTMLElement>(".mt-btns .mt-btn")[place];
-	if (found === undefined) {
-		throw new Error(`the card has no button at ${place}`);
-	}
-	press(found);
 }
 
 describe("a card in a language written right to left", () => {
@@ -125,12 +116,9 @@ describe("the screens in Arabic", () => {
 	});
 
 	test("the wait for the next task", async () => {
-		const root = await draw(fenceInArabic);
-		pressed(root, 2);
-		await vi.waitFor(() =>
-			expect(root.querySelector(".mt-gen")).not.toBeNull(),
-		);
+		const root = await draw({ ...refused, child: fenceInArabic.child });
 
+		expect(root.querySelector(".mt-gen")).not.toBeNull();
 		expect(markupOf(root)).toMatchSnapshot();
 	});
 

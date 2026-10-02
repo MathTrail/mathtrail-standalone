@@ -3,9 +3,9 @@ import type { Key } from "./words";
 
 /**
  * Wait is where a card waiting for the next task stands: which round of
- * asking it is in — a card turned to the wait by the child's own ask starts
- * at the first, one drawn while the model is already at work at none — and
- * whether that round's ask was lost on its way to the chat.
+ * asking it is in — a card drawn while the model is already at work is at
+ * none, and each ask made from it starts the next — and whether that round's
+ * ask was lost on its way to the chat.
  */
 export type Wait = { round: number; lost: boolean };
 
@@ -35,13 +35,12 @@ export function waitAfter(wait: Wait, event: WaitEvent): Wait {
 
 /**
  * moments are the seconds of a round at which what the card shows changes:
- * each step after the first taken up, the warm-up offered, and the round
- * given up on. The card cannot see the work, so the steps are the usual course
- * of one, and move by the clock; the median task took 69 seconds to write.
+ * each step after the first taken up, and the round given up on. The card
+ * cannot see the work, so the steps are the usual course of one, and move by
+ * the clock; the median task took 69 seconds to write.
  */
 export const moments = {
 	writing: 5,
-	warmUp: 30,
 	answers: 35,
 	readability: 50,
 	deadline: 120,
@@ -85,25 +84,4 @@ function statusOf(at: number, underWay: number): StepStatus {
  */
 export function isLate(wait: Wait, seconds: number): boolean {
 	return wait.lost || seconds >= moments.deadline;
-}
-
-/**
- * warmUps are what the child may do while the task is written: short things to
- * think about or do, with nothing to answer and nothing to check.
- */
-export const warmUps = [
-	"waiting.warmup.1",
-	"waiting.warmup.2",
-	"waiting.warmup.3",
-	"waiting.warmup.4",
-	"waiting.warmup.5",
-	"waiting.warmup.6",
-	"waiting.warmup.7",
-	"waiting.warmup.8",
-	"waiting.warmup.9",
-] as const satisfies readonly Key[];
-
-/** warmUpAt is the warm-up shown after turns turns, the list going round. */
-export function warmUpAt(turns: number): Key {
-	return warmUps[turns % warmUps.length] ?? warmUps[0];
 }

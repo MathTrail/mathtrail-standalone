@@ -20,50 +20,31 @@ export type Answer =
 	| { state: "closed" }
 	| { state: "failed" };
 
-/** Question is a question the child typed into the card, and whether it got to the chat. */
-export type Question = {
-	id: number;
-	words: string;
-	state: "sending" | "sent" | "lost";
-};
-
 /**
- * Lesson is everything a task card knows of the lesson on it: whether it
- * still shows the task or waits for the next one, the hint, the answer, the
- * questions asked, and the words being typed.
+ * Lesson is everything a task card knows of the lesson on it: the hint, and
+ * the answer.
  */
 export type Lesson = {
-	stage: "task" | "waiting";
 	hint: { open: boolean; used: boolean };
 	answer: Answer;
-	questions: readonly Question[];
-	draft: string;
 };
 
 /** lessonStart is a card as a task arrives on it. */
 export const lessonStart: Lesson = {
-	stage: "task",
 	hint: { open: false, used: false },
 	answer: { state: "open" },
-	questions: [],
-	draft: "",
 };
 
 /** LessonEvent is something that happens on a task card. */
 export type LessonEvent =
 	| { type: "picked"; choice: Choice }
 	| { type: "told"; outcome: AnswerOutcome }
-	| { type: "hint toggled" }
-	| { type: "typed"; words: string }
-	| { type: "asked"; id: number; words: string }
-	| { type: "question sent"; id: number }
-	| { type: "question lost"; id: number }
-	| { type: "another asked" };
+	| { type: "hint toggled" };
 
 /**
  * next is the lesson after event. An event that cannot happen where the
- * lesson stands — a second answer while the first is being checked, a reply
- * about a question already told of — leaves it as it is.
+ * lesson stands — a second answer while the first is being checked, the hint
+ * of a task done with — leaves it as it is.
  */
 export function next(lesson: Lesson, event: LessonEvent): Lesson {
 	switch (event.type) {
@@ -79,25 +60,6 @@ export function next(lesson: Lesson, event: LessonEvent): Lesson {
 			return canAnswer(lesson)
 				? { ...lesson, hint: toggled(lesson.hint) }
 				: lesson;
-		case "typed":
-			return { ...lesson, draft: event.words };
-		case "asked":
-			return {
-				...lesson,
-				questions: [
-					...lesson.questions,
-					{ id: event.id, words: event.words, state: "sending" },
-				],
-				draft: "",
-			};
-		case "question sent":
-			return questionNow(lesson, event.id, "sent");
-		case "question lost":
-			return questionNow(lesson, event.id, "lost");
-		case "another asked":
-			return lesson.stage === "task" && lesson.answer.state !== "checking"
-				? { ...lesson, stage: "waiting" }
-				: lesson;
 	}
 }
 
@@ -108,14 +70,11 @@ function toggled(hint: Lesson["hint"]): Lesson["hint"] {
 }
 
 /**
- * canAnswer says whether an answer can be given now: on the task, with no
- * answer recorded, refused or already on its way.
+ * canAnswer says whether an answer can be given now: with no answer recorded,
+ * refused or already on its way.
  */
 export function canAnswer(lesson: Lesson): boolean {
-	return (
-		lesson.stage === "task" &&
-		(lesson.answer.state === "open" || lesson.answer.state === "failed")
-	);
+	return lesson.answer.state === "open" || lesson.answer.state === "failed";
 }
 
 /**
@@ -145,28 +104,6 @@ function answerAfter(outcome: AnswerOutcome): Answer {
 		case "failed":
 			return { state: "failed" };
 	}
-}
-
-// questionNow is the lesson with the question id in state. A question that
-// did not reach the chat gives its words back to an empty field, to be sent
-// again or changed; words typed since then are not overwritten.
-function questionNow(
-	lesson: Lesson,
-	id: number,
-	state: "sent" | "lost",
-): Lesson {
-	const question = lesson.questions.find((asked) => asked.id === id);
-	if (question?.state !== "sending") {
-		return lesson;
-	}
-	return {
-		...lesson,
-		questions: lesson.questions.map((asked) =>
-			asked.id === id ? { ...asked, state } : asked,
-		),
-		draft:
-			state === "lost" && lesson.draft === "" ? question.words : lesson.draft,
-	};
 }
 
 /**

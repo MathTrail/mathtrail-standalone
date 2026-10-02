@@ -182,8 +182,13 @@ describe("the card", () => {
 			act(() => deliver({ ...refused }));
 			expect(root.querySelector(".mt-gen")).toBeNull();
 
-			act(() => deliver(exhausted));
+			act(() => deliver({ ...refused, attempt: 2, attempts_left: 1 }));
 			expect(root.querySelector(".mt-gen")).not.toBeNull();
+
+			// The last attempt refused turns the wait to a card no task is coming
+			// to: no course runs on it any more.
+			act(() => deliver(exhausted));
+			expect(root.querySelector(".mt-gen")).toBeNull();
 			expect(root.textContent).toContain("This task didn't work out.");
 		} finally {
 			vi.useRealTimers();
