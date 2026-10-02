@@ -48,17 +48,17 @@ const (
 	// a child waits for.
 	FlushTimeout = 200 * time.Millisecond
 
-	// MetricInterval is the shortest gap between two metric deliveries, and
-	// the interval of the periodic one. A delivery asked for sooner is
-	// declined: each one costs bytes of a monthly allowance, and an aggregate
-	// does not change fast enough to be worth more of them.
+	// MetricInterval is the shortest gap between two metric deliveries. A
+	// delivery asked for sooner is declined: each one costs bytes of a monthly
+	// allowance, and an aggregate does not change fast enough to be worth more
+	// of them.
 	MetricInterval = time.Minute
 
-	// exportTimeout bounds a delivery made in the background, retries and
-	// all, where no request is waiting and only the next delivery is delayed.
-	// The processors that make the deliveries carry it: the exporters' own
-	// timeout applies only to a client they build themselves, and they are
-	// handed one.
+	// exportTimeout bounds a delivery of spans made in the background, retries
+	// and all, where no request is waiting and only the next delivery is
+	// delayed. The batcher that makes those deliveries carries it: the
+	// exporter's own timeout applies only to a client it builds itself, and it
+	// is handed one.
 	exportTimeout = 5 * time.Second
 )
 
@@ -99,6 +99,10 @@ type Telemetry struct {
 	traces  *sdktrace.TracerProvider
 	metrics *sdkmetric.MeterProvider
 	enabled bool
+
+	// measurements is how the meter provider's readings leave the process. It
+	// is set exactly when enabled is.
+	measurements *delivery
 
 	// mu guards lastMetricFlush, which a delivery reads and writes from
 	// whatever goroutine is answering a request.
@@ -154,7 +158,7 @@ func New(ctx context.Context, settings *Settings, log *zap.Logger) (*Telemetry, 
 	if err != nil {
 		return nil, err
 	}
-	metricReader, err := newMetricReader(ctx, settings, client, metricEndpoint)
+	measurements, err := newMetricDelivery(ctx, settings, client, metricEndpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -176,8 +180,9 @@ func New(ctx context.Context, settings *Settings, log *zap.Logger) (*Telemetry, 
 		),
 		metrics: sdkmetric.NewMeterProvider(
 			sdkmetric.WithResource(res),
-			sdkmetric.WithReader(metricReader),
+			sdkmetric.WithReader(measurements.reader),
 		),
+		measurements: measurements,
 	}, nil
 }
 
@@ -221,8 +226,8 @@ func (t *Telemetry) ForceFlush(ctx context.Context, spans bool) error {
 	if !t.enabled {
 		return nil
 	}
-	measurements := t.metricsDue(time.Now())
-	if !spans && !measurements {
+	measurementsDue := t.metricsDue(time.Now())
+	if !spans && !measurementsDue {
 		return nil
 	}
 
@@ -238,8 +243,8 @@ func (t *Telemetry) ForceFlush(ctx context.Context, spans bool) error {
 	// — and a delivery that misses its deadline loses what it carried.
 	var measured, sent error
 	var delivering sync.WaitGroup
-	if measurements {
-		delivering.Go(func() { measured = from("metrics", t.metrics.ForceFlush(ctx)) })
+	if measurementsDue {
+		delivering.Go(func() { measured = from("metrics", t.measurements.deliver(ctx)) })
 	}
 	if spans {
 		sent = from("traces", t.traces.ForceFlush(ctx))
@@ -259,12 +264,22 @@ func (t *Telemetry) Shutdown(ctx context.Context) error {
 	}
 	err := errors.Join(
 		from("traces", t.traces.Shutdown(ctx)),
-		from("metrics", t.metrics.Shutdown(ctx)),
+		from("metrics", t.closeMeasurements(ctx)),
 	)
 	if err != nil {
 		return fmt.Errorf("telemetry: shutdown: %w", err)
 	}
 	return nil
+}
+
+// closeMeasurements delivers what was measured since the last delivery, before
+// the provider stops reading, and then releases the exporter: a reader that
+// only reads when asked delivers nothing at a shutdown of its own, and does not
+// own the exporter it is paired with. The delivery is not held to the interval:
+// it is the last one there will be.
+func (t *Telemetry) closeMeasurements(ctx context.Context) error {
+	delivered := t.measurements.deliver(ctx)
+	return errors.Join(delivered, t.metrics.Shutdown(ctx), t.measurements.exporter.Shutdown(ctx))
 }
 
 // from names which of the two providers an error came from. Both are offered

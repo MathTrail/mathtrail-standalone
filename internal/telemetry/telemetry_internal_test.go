@@ -241,14 +241,15 @@ func TestSpansAndMeasurementsAreDeliveredSideBySide(t *testing.T) {
 	traces := sdktrace.NewTracerProvider(sdktrace.WithBatcher(&waitingSpans{
 		waiting: waiting{started: spansStarted, other: measurementsStarted},
 	}))
-	metrics := sdkmetric.NewMeterProvider(sdkmetric.WithReader(sdkmetric.NewPeriodicReader(&waitingMeasurements{
+	measurements := newDelivery(&waitingMeasurements{
 		waiting: waiting{started: measurementsStarted, other: spansStarted},
-	})))
+	})
+	metrics := sdkmetric.NewMeterProvider(sdkmetric.WithReader(measurements.reader))
 	t.Cleanup(func() {
 		_ = traces.Shutdown(context.Background())
 		_ = metrics.Shutdown(context.Background())
 	})
-	tel := &Telemetry{traces: traces, metrics: metrics, enabled: true}
+	tel := &Telemetry{traces: traces, metrics: metrics, measurements: measurements, enabled: true}
 
 	_, span := traces.Tracer("test").Start(t.Context(), "request")
 	span.End()
@@ -262,6 +263,77 @@ func TestSpansAndMeasurementsAreDeliveredSideBySide(t *testing.T) {
 		t.Errorf("ForceFlush() error = %v, want nil: one delivery waited for the other", err)
 	}
 }
+
+// Measurements leave when a request finds them due and at no other time: a
+// flush of the meter provider — what a reader keeping a clock of its own does
+// when its clock comes round — posts nothing. Two clocks that do not know about
+// each other fall due on the same request after a quiet minute and post the
+// same series seconds apart, and the collector refuses the second point.
+func TestMeasurementsLeaveOnlyWhenARequestFindsThemDue(t *testing.T) {
+	t.Parallel()
+
+	posted := &countingMeasurements{}
+	measurements := newDelivery(posted)
+	metrics := sdkmetric.NewMeterProvider(sdkmetric.WithReader(measurements.reader))
+	traces := sdktrace.NewTracerProvider()
+	t.Cleanup(func() {
+		_ = traces.Shutdown(context.Background())
+		_ = metrics.Shutdown(context.Background())
+	})
+	tel := &Telemetry{traces: traces, metrics: metrics, measurements: measurements, enabled: true}
+
+	requests, err := metrics.Meter("test").Int64Counter("requests")
+	if err != nil {
+		t.Fatalf("Int64Counter() error = %v, want nil", err)
+	}
+	requests.Add(t.Context(), 1)
+
+	if err := metrics.ForceFlush(t.Context()); err != nil {
+		t.Fatalf("MeterProvider.ForceFlush() error = %v, want nil", err)
+	}
+	if got := posted.count(); got != 0 {
+		t.Fatalf("the meter provider posted %d deliveries on its own, want none", got)
+	}
+	if err := tel.ForceFlush(t.Context(), false); err != nil {
+		t.Fatalf("ForceFlush() error = %v, want nil", err)
+	}
+	if got := posted.count(); got != 1 {
+		t.Errorf("a request that found the measurements due posted %d deliveries, want 1", got)
+	}
+}
+
+// countingMeasurements is a metric exporter that counts what it is handed.
+type countingMeasurements struct {
+	mu    sync.Mutex
+	posts int
+}
+
+func (e *countingMeasurements) count() int {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	return e.posts
+}
+
+func (*countingMeasurements) Temporality(kind sdkmetric.InstrumentKind) metricdata.Temporality {
+	return deltaTemporality(kind)
+}
+
+func (*countingMeasurements) Aggregation(kind sdkmetric.InstrumentKind) sdkmetric.Aggregation {
+	return sdkmetric.DefaultAggregationSelector(kind)
+}
+
+func (e *countingMeasurements) Export(context.Context, *metricdata.ResourceMetrics) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	e.posts++
+	return nil
+}
+
+func (*countingMeasurements) ForceFlush(context.Context) error { return nil }
+
+func (*countingMeasurements) Shutdown(context.Context) error { return nil }
 
 // waiting is an exporter's half of a meeting: it says it has started, and
 // waits until the other half has too, or the deadline passes.
