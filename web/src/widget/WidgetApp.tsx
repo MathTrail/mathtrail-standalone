@@ -66,7 +66,7 @@ function Screen({ payload, host }: { payload: unknown; host: Host }) {
 		case "profile":
 			return <ProfileCard key={said} profile={shown.profile} host={host} />;
 		case "first_run":
-			return <FirstRunCard key={said} firstRun={shown.firstRun} host={host} />;
+			return <FirstRunCard key={said} firstRun={shown.firstRun} />;
 		case undefined:
 			return <UnreadableCard />;
 	}

@@ -1,5 +1,5 @@
 import type { ComponentChildren } from "preact";
-import { useEffect, useMemo, useReducer, useRef } from "preact/hooks";
+import { useEffect, useMemo, useReducer, useRef, useState } from "preact/hooks";
 import { Verdict } from "../design/blocks";
 import { MessageHeader, ThreadBar } from "../design/thread";
 import type { Host } from "./bridge";
@@ -14,7 +14,10 @@ import { useWords } from "./words";
  * CardFrame is what every card of a lesson has around what it shows: the width
  * it lays out for, handed to what it frames, and — on a card that knows whose
  * it is — the line at its top, which opens the child's progress over the card
- * and leads back to it as it was left, by the way back named in back.
+ * and leads back to it as it was left, by the way back named in back. A change
+ * the parent saves on the progress's form is the card's from then on — its line
+ * and what it frames show the child as the profile now says — until the card
+ * is handed another payload, which carries the child as the service has it.
  */
 export function CardFrame({
 	child,
@@ -25,9 +28,15 @@ export function CardFrame({
 	child: Child | undefined;
 	back: string;
 	host: Host;
-	children: (wide: boolean) => ComponentChildren;
+	children: (wide: boolean, child: Child | undefined) => ComponentChildren;
 }) {
 	const words = useWords();
+	const [saved, setSaved] = useState<{
+		over: Child | undefined;
+		child: Child;
+	}>();
+	const whose =
+		saved !== undefined && saved.over === child ? saved.child : child;
 	const [progress, dispatch] = useReducer(progressAfter, undefined);
 	const topBar = useRef<HTMLButtonElement>(null);
 	const backBar = useRef<HTMLButtonElement>(null);
@@ -57,17 +66,17 @@ export function CardFrame({
 			{(wide) => (
 				<>
 					<div hidden={progress !== undefined}>
-						{child !== undefined && (
+						{whose !== undefined && (
 							<ThreadBar
-								name={child.pseudonym}
+								name={whose.pseudonym}
 								action={words.text("task.profile_action")}
 								onClick={openProgress}
 								buttonRef={topBar}
 							/>
 						)}
-						{children(wide)}
+						{children(wide, whose)}
 					</div>
-					{progress !== undefined && child !== undefined && (
+					{progress !== undefined && whose !== undefined && (
 						<>
 							<ThreadBar
 								variant="back"
@@ -77,9 +86,10 @@ export function CardFrame({
 							/>
 							<ProgressOverCard
 								progress={progress}
-								child={child}
+								child={whose}
 								wide={wide}
 								host={host}
+								onSaved={(changed) => setSaved({ over: child, child: changed })}
 							/>
 						</>
 					)}
@@ -92,17 +102,20 @@ export function CardFrame({
 // ProgressOverCard is the progress shown in the card over what it showed: the
 // screen the reply names — the progress, or the first sign-in when the
 // profile has gone since — and, until the reply is in or when it does not
-// read, whose progress it is and why none is shown.
+// read, whose progress it is and why none is shown. A change saved on its form
+// is handed to onSaved.
 function ProgressOverCard({
 	progress,
 	child,
 	wide,
 	host,
+	onSaved,
 }: {
 	progress: Progress;
 	child: Child;
 	wide: boolean;
 	host: Host;
+	onSaved: (child: Child) => void;
 }) {
 	const words = useWords();
 	const shown = useMemo(
@@ -111,10 +124,17 @@ function ProgressOverCard({
 		[progress],
 	);
 	if (shown?.screen === "progress") {
-		return <ProgressScreen report={shown.report} wide={wide} host={host} />;
+		return (
+			<ProgressScreen
+				report={shown.report}
+				wide={wide}
+				host={host}
+				onSaved={onSaved}
+			/>
+		);
 	}
 	if (shown?.screen === "first_run") {
-		return <FirstRunScreen firstRun={shown.firstRun} wide={wide} host={host} />;
+		return <FirstRunScreen firstRun={shown.firstRun} wide={wide} />;
 	}
 	return (
 		<article

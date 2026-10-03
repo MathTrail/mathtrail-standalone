@@ -264,9 +264,37 @@ export type Field = {
 };
 
 /**
- * ProfileFields is a group of a profile's fields in a frame: their label at
- * its head, with what can be done about them beside it and what became of it
- * under it, and each field named.
+ * FieldsFrame is a frame for a group of a profile's fields: their label at its
+ * head, with what can be done about them beside it and what became of it
+ * under it, and the fields — told, or a form to change them — below.
+ */
+export function FieldsFrame({
+	label,
+	action,
+	status,
+	children,
+}: {
+	label: string;
+	action?: ComponentChildren;
+	status?: ComponentChildren;
+	children: ComponentChildren;
+}) {
+	return (
+		<section class="mt-fields">
+			<div class="mt-fields-head">
+				<h3 class="mt-section-label">{label}</h3>
+				{action}
+			</div>
+			{status}
+			{children}
+		</section>
+	);
+}
+
+/**
+ * ProfileFields is a group of a profile's fields in a frame, each named, with
+ * what can be done about them beside the label at its head and what became of
+ * it under it.
  */
 export function ProfileFields({
 	label,
@@ -280,12 +308,7 @@ export function ProfileFields({
 	status?: ComponentChildren;
 }) {
 	return (
-		<section class="mt-fields">
-			<div class="mt-fields-head">
-				<h3 class="mt-section-label">{label}</h3>
-				{action}
-			</div>
-			{status}
+		<FieldsFrame label={label} action={action} status={status}>
 			<dl>
 				{fields.map((field) => (
 					<div key={field.term}>
@@ -309,6 +332,6 @@ export function ProfileFields({
 					</div>
 				))}
 			</dl>
-		</section>
+		</FieldsFrame>
 	);
 }

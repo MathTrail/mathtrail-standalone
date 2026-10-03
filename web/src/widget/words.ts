@@ -42,6 +42,14 @@ export const dictionaries: ReadonlyMap<string, Dictionary> =
 const spoken: ReadonlySet<string> = new Set(dictionaries.keys());
 
 /**
+ * lessonLanguages are the languages a parent can choose for the lessons on a
+ * card: every one the widget is written in, so that a card of the lessons
+ * speaks the language its task is written in. The pseudo-language is no
+ * language a lesson is held in.
+ */
+export const lessonLanguages: readonly string[] = [...written.keys()];
+
+/**
  * isKey says whether key names a text of the widget: one its English words
  * have, as the words of every other language do.
  */

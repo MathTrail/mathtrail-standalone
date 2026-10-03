@@ -20,8 +20,9 @@ const codeInvalidProfile = "invalid_profile"
 // the details could not be kept, which fields broke which rule.
 //
 // The parent's notes are here so that the model can read back to the parent
-// what they wrote about the child. The card drawn from the same answer leaves
-// them off its screen.
+// what they wrote about the child. Neither tool draws a card; a card drawn
+// from this payload all the same — a host may still draw one, as it drew
+// one in an earlier chat — leaves the notes off its screen.
 type profileOut struct {
 	Screen         string             `json:"screen"`
 	Status         string             `json:"status,omitempty"`
@@ -39,13 +40,6 @@ type profileOut struct {
 type detailsOut struct {
 	childOut
 	Notes string `json:"notes"`
-}
-
-// problemOut is one field that broke a rule, and the rule. It never repeats
-// what the field held.
-type problemOut struct {
-	Field string `json:"field"`
-	Rule  string `json:"rule"`
 }
 
 // saveProfileIn is what save_profile takes. Every field is optional, and one
@@ -80,13 +74,13 @@ func (s *Service) getProfileTool() Tool {
 		Title: "Get the child's profile",
 		Description: "Reads the child's profile — the pseudonym, the grade, the interests, the skills left out of " +
 			"the tasks, the adult's notes and the language of the lessons — and what the next task would be. " +
-			"Call it when the adult asks about the profile; a task needs only next_task. When there is no profile yet " +
-			"it says so, as next_task does, and how to set one up with save_profile. Every result carries " +
-			"last_answer, the last answer the child " +
-			"gave, maybe on a card without you: read it before you say anything about the current task.",
+			"Call it when the adult asks about the profile; a task needs only next_task. It draws no card: the " +
+			"adult sees the profile, and changes it with a form, at the foot of the progress get_progress shows. " +
+			"When there is no profile yet it says so, as next_task does, and how to set one up with save_profile. " +
+			"Every result carries last_answer, the last answer the child gave, maybe on a card without you: read it " +
+			"before you say anything about the current task.",
 		ReadOnly:   true,
 		Idempotent: true,
-		DrawsCard:  true,
 	}, s.getProfile)
 }
 
@@ -97,10 +91,10 @@ func (s *Service) saveProfileTool() Tool {
 		Description: "Creates the child's profile, or changes it. Pass only what changes; a field left out stays " +
 			"as it is. To create the profile, pseudonym and grade are required. The pseudonym is what the child is " +
 			"called: never a real name, a birth date or a school. The grade only sets where the first tasks start; " +
-			"changed later it moves no rating. When a field breaks a rule, nothing is saved and the result names " +
-			"the field and the rule.\n\nSkills that can be left out of the tasks, by id:\n" + s.skillList(),
+			"changed later it moves no rating. No card is drawn: say in a sentence what was saved. When a field " +
+			"breaks a rule, nothing is saved and the result names the field and the rule.\n\nSkills that can be " +
+			"left out of the tasks, by id:\n" + s.skillList(),
 		Idempotent: true,
-		DrawsCard:  true,
 	}, s.saveProfile)
 }
 
@@ -129,16 +123,16 @@ func (s *Service) readProfile(ctx context.Context, account store.Account) (Reply
 	case err != nil:
 		return Reply[profileOut]{}, fmt.Errorf("mcp: read the profile: %w", err)
 	}
-	location, err := s.store.Export(ctx, account)
+	location, where, err := s.whereKept(ctx, account)
 	if err != nil {
-		return Reply[profileOut]{}, fmt.Errorf("mcp: find the profile: %w", err)
+		return Reply[profileOut]{}, err
 	}
 	reply, err := s.profileReply(p, "")
 	if err != nil {
 		return Reply[profileOut]{}, err
 	}
-	reply.Payload.Location = locationOf(&location)
-	reply.Text = joined(reply.Text, locationText(&location))
+	reply.Payload.Location = location
+	reply.Text = joined(reply.Text, where)
 	return reply, nil
 }
 
@@ -170,18 +164,38 @@ func (s *Service) writeProfile(ctx context.Context, account store.Account, in *s
 		return s.profileReply(p, "The profile can be read, so it was not started over, and nothing was saved.")
 	}
 
-	changed, problems := p.Change(&edit, s.content.HasSkill, s.version, s.now())
-	if len(problems) > 0 {
+	changed, problems, err := s.saveChange(ctx, account, p, revision, &edit)
+	switch {
+	case err != nil:
+		return Reply[profileOut]{}, err
+	case len(problems) > 0:
 		return s.refusal(p, problems)
-	}
-	if !changed {
+	case !changed:
 		return s.profileReply(p, "Nothing changed: the profile already says so.")
 	}
-	if _, err := s.store.Save(ctx, account, p, revision); err != nil {
-		return Reply[profileOut]{}, fmt.Errorf("mcp: save the profile: %w", err)
-	}
-	return s.profileReply(p, "Saved.")
+	return s.profileReply(p, joined("Saved.", sayWhatWasSaved))
 }
+
+// saveChange makes an edit to the profile read at revision, and writes it.
+// It reports whether there was anything to write: there is not when the edit
+// breaks a rule, and the problems say which, or when it asks for what the
+// profile already says.
+func (s *Service) saveChange(ctx context.Context, account store.Account, p *profile.Profile, revision store.Revision,
+	edit *profile.Edit,
+) (bool, []profile.Problem, error) {
+	changed, problems := p.Change(edit, s.content.HasSkill, s.version, s.now())
+	if !changed {
+		return false, problems, nil
+	}
+	if _, err := s.store.Save(ctx, account, p, revision); err != nil {
+		return false, nil, fmt.Errorf("mcp: save the profile: %w", err)
+	}
+	return true, nil, nil
+}
+
+// sayWhatWasSaved is what the model is told once the profile is written: no
+// card shows the profile, so its words are all the adult is shown of it.
+const sayWhatWasSaved = "No card shows the profile: tell the adult in a sentence what was saved."
 
 // createProfile makes the first profile of an account. The grade decides
 // where the child starts on the ladder, once, here.
@@ -194,7 +208,7 @@ func (s *Service) createProfile(ctx context.Context, account store.Account, edit
 	if _, err := s.store.Create(ctx, account, p); err != nil {
 		return Reply[profileOut]{}, fmt.Errorf("mcp: create the profile: %w", err)
 	}
-	return s.profileReply(p, "The profile is created.")
+	return s.profileReply(p, joined("The profile is created.", sayWhatWasSaved))
 }
 
 // startOver makes a new profile in place of one nothing can read, one of a
@@ -210,11 +224,12 @@ func (s *Service) startOver(ctx context.Context, account store.Account, edit *pr
 	if _, err := s.store.StartOver(ctx, account, p); err != nil {
 		return Reply[profileOut]{}, fmt.Errorf("mcp: start the profile over: %w", err)
 	}
-	return s.profileReply(p, "A new profile is started. The old file was not deleted: it stays in Google Drive, "+
-		"renamed as set aside.")
+	return s.profileReply(p, joined("A new profile is started. The old file was not deleted: it stays in Google "+
+		"Drive, renamed as set aside.", sayWhatWasSaved))
 }
 
-// profileReply is a profile as the two tools of the profile hand it back.
+// profileReply is a profile as the two tools of the profile hand it back: the
+// details, with the parent's notes, which only the model is told.
 func (s *Service) profileReply(p *profile.Profile, lead string) (Reply[profileOut], error) {
 	next, err := progress.Recommend(p, s.content)
 	if err != nil {
@@ -222,7 +237,8 @@ func (s *Service) profileReply(p *profile.Profile, lead string) (Reply[profileOu
 	}
 	trial := progress.TrialOf(p)
 	return Reply[profileOut]{
-		Text: joined(lead, s.detailsText(&p.Student), stillInText(p), trialLine(trial), s.lastAnswerText(p), s.nextText(&next)),
+		Text: joined(lead, s.detailsText(&p.Student), notesText(p.Student.Notes), stillInText(p), trialLine(trial),
+			s.lastAnswerText(p), s.nextText(&next)),
 		Payload: profileOut{
 			Screen:         screenProfile,
 			LastAnswer:     lastAnswerOf(p),
@@ -244,13 +260,10 @@ func (s *Service) refusal(p *profile.Profile, problems []profile.Problem) (Reply
 			return Reply[profileOut]{}, err
 		}
 	}
-	lines := make([]string, 0, len(problems))
-	for _, problem := range problems {
-		reply.Payload.Problems = append(reply.Payload.Problems, problemOut{Field: problem.Field, Rule: problem.Rule})
-		lines = append(lines, problem.String())
-	}
+	var lines string
+	reply.Payload.Problems, lines = problemsOf(problems)
 	reply.Payload.Status, reply.Payload.Code = statusRejected, codeInvalidProfile
-	reply.Text = "Nothing was saved. Fix these fields and call save_profile again: " + strings.Join(lines, "; ") + "."
+	reply.Text = "Nothing was saved. Fix these fields and call save_profile again: " + lines + "."
 	return reply, nil
 }
 
@@ -258,7 +271,8 @@ func detailsOf(s *profile.Student) *detailsOut {
 	return &detailsOut{childOut: *childOf(s), Notes: s.Notes}
 }
 
-// detailsText is the child's details in words, a sentence for each.
+// detailsText is the child's details in words, a sentence for each: every
+// detail a card may show, and so never the parent's notes.
 func (s *Service) detailsText(student *profile.Student) string {
 	language := "The lessons follow the chat's language."
 	if chosen, ok := student.ChosenLanguage(); ok {
@@ -272,7 +286,6 @@ func (s *Service) detailsText(student *profile.Student) string {
 		fmt.Sprintf("The profile of %s, grade %d.", quoted(student.Pseudonym), student.Grade),
 		"Interests: "+listed(quotedEach(student.Interests), ", ")+".",
 		"Left out of the tasks: "+listed(skills, "; ")+".",
-		notesText(student.Notes),
 		language,
 	)
 }

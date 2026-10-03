@@ -471,7 +471,7 @@ func TestContainerServesTheWidgetItCarries(t *testing.T) {
 }
 
 // The container serves the tools of the lesson over the store it built: a
-// development account sees the six of them, a first call finds no profile yet,
+// development account sees the eight of them, a first call finds no profile yet,
 // and no task can be asked for without one.
 func TestContainerServesTheToolsOfTheLesson(t *testing.T) {
 	t.Parallel()
@@ -494,7 +494,8 @@ func TestContainerServesTheToolsOfTheLesson(t *testing.T) {
 	}
 	slices.Sort(names)
 	want := []string{
-		"get_profile", "get_progress", "next_task", "read_progress", "save_profile", "submit_answer", "submit_task",
+		"edit_profile", "get_profile", "get_progress", "next_task", "read_progress", "save_profile", "submit_answer",
+		"submit_task",
 	}
 	if !slices.Equal(names, want) {
 		t.Errorf("tools = %v, want %v", names, want)

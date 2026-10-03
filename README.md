@@ -22,25 +22,25 @@ It is neither a homework solver nor a drill of the school syllabus. It turns an 
 
 ## What a lesson looks like
 
-The screens below come from the widget's approved design, which the cards in the chat are built to. They follow the viewer's light or dark theme. The fence task, its options and its traps are an example.
+The screens below are the widget itself, photographed by a script from the scenes of its preview, at a large phone's width. They follow the viewer's light or dark theme. The fence task, its options and its traps are an example.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screens/task-dark.png">
-  <img src="docs/screens/task-light.png" width="428" alt="A chat with the message 'A new task, please' and, under it, the MathTrail card. The top line reads Comet, the child's pseudonym, and Profile & progress. The card is signed MathTrail, Olympiad coach, Grade 3. The task: a fence is 12 meters long, posts stand every 3 meters, including both ends; how many posts are there? Below it, a text drawing of the fence, then five options, A 3, B 4, C 5, D 6 and E 12. At the bottom, a field to ask a question about the task and three buttons: I don't know, Hint and Another task.">
+  <img src="docs/screens/task-light.png" width="428" alt="The MathTrail card with a task. The top line reads Comet, the child's pseudonym, and Profile & progress. The card is signed MathTrail, Olympiad coach · Grade 3. The task: a fence is 12 meters long, posts stand every 3 meters, including both ends; how many posts are there? Below it, a text drawing of the fence, then Pick one answer and five options, A 3, B 4, C 5, D 6 and E 12. At the bottom, three buttons: I don't know, Hint and Another task.">
 </picture>
 
 A child asks in the chat for a new task, and it arrives as a card:
 
 - **The task.** The chat's model wrote it, and the service let it through only after its checks. The drawing is plain text, laid out left to right in any language.
 - **Five options, A to E.** The answer is not in the card: it is sealed in the parent's Drive until the child picks one.
-- **Help that stays the child's own.** Hint shows a leading question or a first step, which the model wrote with the task. I don't know counts as a wrong answer and shows the solution. Another task skips this one. A question typed into the field goes to the chat, and the model answers it under the card.
+- **Help that stays the child's own.** Hint shows a leading question or a first step, which the model wrote with the task. I don't know counts as a wrong answer and shows the solution. Another task skips this one. A question about the task is asked in the chat, and the model helps without giving the answer away.
 - **The top line.** It shows the child's pseudonym, never a real name, and opens the progress screen.
 
 ### After a wrong answer
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screens/wrong-dark.png">
-  <img src="docs/screens/wrong-light.png" width="428" alt="The same card after the child picked B, 4. Option B is framed in red and marked Your answer; option C, 5, is framed in green and marked Correct answer. Under the options, MathTrail says: Not quite, it's 5, not 4. A red note titled The trap reads: Counted the gaps instead of the posts. A solution follows in three steps: 12 divided by 3 is 4 gaps; a straight fence with posts at both ends has one more post than gaps; 4 plus 1 is 5 posts. At the bottom, the question field and a button, Another task.">
+  <img src="docs/screens/wrong-light.png" width="428" alt="The same card after the child picked B, 4. Option B is framed in red and marked Your answer; option C, 5, is framed in green and marked Correct answer. Under the options, MathTrail says: Not quite — it's 5, not 4. A red note titled The trap reads: Counted the gaps instead of the posts. The solution follows in three steps: 12 divided by 3 is 4 gaps; a straight fence with posts at both ends has one more post than gaps; 4 plus 1 is 5 posts. The rating in this topic goes from 1502 to 1480. At the bottom, one button: Another task.">
 </picture>
 
 A tap records the answer at once, before any explanation, so nothing in the chat can talk it into being right. Every wrong option was written with a named trap behind it, and the card shows the trap the child fell into — here, counting the gaps instead of the posts — then the solution. The model explains in the chat starting from that trap, not from the right answer, and the child's rating in the topic moves.
@@ -49,10 +49,10 @@ A tap records the answer at once, before any explanation, so nothing in the chat
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screens/progress-dark.png">
-  <img src="docs/screens/progress-light.png" width="428" alt="The progress screen after the message 'How is Comet doing?'. The top line reads Back to task. Under Comet, Grade 3: Rank 3, an overall rating of 1573 with a bar of rank steps, and Next up: Enumeration again, at the same level. Topics with their ratings: Enumeration 1627, Ordering 1712 marked Mastered, Gaps and boundaries 1588, Parity and alternation 1541. Recent answers: Enumeration wrong, Gaps and boundaries right, Ordering right. Mistakes that repeat: Missed a case while listing, 3 times; Counted the same thing twice, 1 time. The profile for the parent: grade 3, interests space, animals and football, not at school yet division with remainder, and an Edit profile button.">
+  <img src="docs/screens/progress-light.png" width="428" alt="The progress screen of Comet, grade 3. At its head, the rank River crossing, rank 3 of 11, rating 1573, over a course of eleven steps, two filled and the third partly; then Next rank — Hill. Next up: Enumeration, once more. Topics, each with a course of its own and the rank in it: Ordering, mastered, ahead, Hill; Enumeration, River crossing; Gaps and boundaries, River crossing; Parity and alternation, behind, Forest path; Pigeonhole principle, no answers yet. Recent answers: Enumeration wrong, Enumeration skipped, Gaps and boundaries right, Ordering right, Parity and alternation wrong; in all, 1 task was left without an answer. Mistakes that repeat: Missed a case while listing, 3 times; Counted the same thing twice, 2 times. Profile · for the parent, with an Edit button at its head: grade 3, which is only a label; interests space, animals and football; not at school yet, Division with a remainder; the language of the lessons, the chat's. Your data: where the profile is, how to delete it, how to cut off access, and how to remove the app.">
 </picture>
 
-The same screen opens from the card's top line or when the child or the parent asks in the chat. It shows a chess-style rating with its rank, what comes next, the rating of every topic and the ones mastered, the recent answers, the traps that keep coming back, and the profile. All of it is one JSON file in the parent's own Google Drive.
+The same screen opens from the card's top line or when the child or the parent asks in the chat. It shows a chess-style rating with its rank, what comes next, the rank of every topic and the ones mastered, the recent answers, the traps that keep coming back, and the profile, which the parent changes right there with Edit. All of it is one JSON file in the parent's own Google Drive.
 
 ## Add it to your chat
 
@@ -70,7 +70,7 @@ Works now, on the free plan too:
 
 The free plan allows one custom connector. A connector added on claude.ai or in Claude Desktop is in Claude's mobile apps too, on the same account.
 
-The first time, the chat asks you for a pseudonym for your child — never a real name — and the grade, 1 to 6, and, if you like, their interests and anything to leave out of the tasks. The first five tasks are a trial series that finds where your child stands; after it, the tasks follow the answers.
+The first time, the chat asks you to say you are the child's parent or tutor, then for a pseudonym for your child — never a real name — and the grade, 1 to 6, and, if you like, their interests and anything to leave out of the tasks. You can change any of it later, in the chat or with Edit on the progress screen. The first five tasks are a trial series that finds where your child stands; after it, the tasks follow the answers.
 
 ### ChatGPT
 

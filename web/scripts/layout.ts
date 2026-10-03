@@ -18,15 +18,8 @@
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import {
-	type BrowserType,
-	chromium,
-	type ElementHandle,
-	type Frame,
-	type Page,
-	webkit,
-} from "playwright-core";
-import { createServer } from "vite";
+import { type BrowserType, chromium, type Page, webkit } from "playwright-core";
+import { type Card, letGo, served, settled, stillClock } from "./drive.ts";
 
 /** Finding is one way the card of one frame does not fit. */
 export type Finding = {
@@ -66,10 +59,6 @@ const moments: readonly { name: string; after: string }[] = [
 // Where the cards written right to left are photographed: in Chromium, at a
 // phone's width.
 const photographed = { engine: "chromium", width: 360 };
-
-// The moment the pages' clock is set to: any will do, and a fixed one makes
-// every run see the same dates.
-const clockStarts = Date.UTC(2026, 0, 1);
 
 const web = join(import.meta.dirname, "..");
 const out = join(web, "layout");
@@ -159,109 +148,20 @@ return findingsIn();
 })()`;
 
 /**
- * allowed says whether a finding is how the card is meant to behave: a
+ * allowed says whether a finding is how the card is meant to behave. A
  * pseudonym is the parent's own and may be as long as a profile allows, so the
  * line at the top that shows it gives way to what stands beside it and ends
- * in an ellipsis.
+ * in an ellipsis; and a box a person types into scrolls its own text, so a
+ * pseudonym as long as that is wider than the box on a phone, which shows the
+ * part being typed.
  */
 export function allowed(finding: Finding): boolean {
 	return (
-		finding.what === "is cut short" &&
-		finding.where.startsWith("span.mt-bar-name ")
+		(finding.what === "is cut short" &&
+			finding.where.startsWith("span.mt-bar-name ")) ||
+		(finding.what === "runs out of its box sideways" &&
+			finding.where.startsWith("input.mt-input "))
 	);
-}
-
-// served starts the preview, and says where it is. It watches no file: a
-// source changed while the cards are measured would reload them halfway.
-async function served(): Promise<{ base: string; close: () => Promise<void> }> {
-	const server = await createServer({
-		configFile: join(web, "vite.config.preview.ts"),
-		logLevel: "warn",
-		server: {
-			host: "127.0.0.1",
-			port: 5173,
-			strictPort: false,
-			hmr: false,
-			watch: null,
-		},
-	});
-	await server.listen();
-	const base = server.resolvedUrls?.local[0];
-	if (base === undefined) {
-		throw new Error("layout: the preview names no address");
-	}
-	return { base, close: () => server.close() };
-}
-
-/** Card is the frame of one scene in the preview's page. */
-type Card = { scene: string; element: ElementHandle; frame: Frame };
-
-// cardsOf are the cards of the preview's page, in the order of its scenes. A
-// frame the page takes down while it is read is not among them, and the page
-// is read again until it holds still. Each card holds on to its frame's
-// element until it is let go of.
-async function cardsOf(page: Page): Promise<Card[]> {
-	const cards: Card[] = [];
-	for (const element of await page.locator("iframe").elementHandles()) {
-		const frame = await element.contentFrame().catch(() => null);
-		const scene = await element.getAttribute("title").catch(() => null);
-		if (frame !== null && scene !== null) {
-			cards.push({ scene, element, frame });
-		}
-	}
-	return cards;
-}
-
-// markupOf is what a card's page holds, or nothing while it has no card: a
-// card whose markup stays the same has done what its scene does to it.
-async function markupOf({ frame }: Card): Promise<string> {
-	try {
-		return await frame.evaluate(async () => {
-			await document.fonts.ready;
-			return document.querySelector(".mt-widget") === null
-				? ""
-				: document.body.innerHTML;
-		});
-	} catch {
-		return "";
-	}
-}
-
-/** Settled is a card that has become what its scene makes of it. */
-type Settled = Card & { markup: string };
-
-// A card is given at most this many ticks of the page's clock, a tenth of a
-// second each, to settle: 28 seconds, short of the two minutes after which a
-// waiting card gives up.
-const mostTicks = 280;
-
-// settled waits until every card of the page has been drawn and has become
-// what its scene makes of it, and says what the cards are. The page's clock
-// stands still but for what this moves it on by, a tick at a time, so that the
-// timers a card is drawn with fire, and a card is measured at the moment it is
-// meant to be, however long the machine takes to draw it.
-async function settled(page: Page): Promise<Settled[]> {
-	let before: string[] = [];
-	for (let tick = 0; tick < mostTicks; tick++) {
-		await page.clock.runFor(100);
-		const cards = await cardsOf(page);
-		const markups = await Promise.all(cards.map(markupOf));
-		const still =
-			markups.length === before.length &&
-			markups.every((markup, at) => markup !== "" && markup === before[at]);
-		if (cards.length > 0 && still) {
-			return cards.map((card, at) => ({ ...card, markup: markups[at] ?? "" }));
-		}
-		await letGo(cards);
-		before = markups;
-		await page.waitForTimeout(100);
-	}
-	throw new Error("layout: the cards never settled");
-}
-
-// letGo lets go of the elements the cards held on to.
-async function letGo(cards: Card[]): Promise<void> {
-	await Promise.all(cards.map(({ element }) => element.dispose()));
 }
 
 // photograph keeps a picture of a card, named by its place among the scenes,
@@ -344,12 +244,7 @@ async function measuredIn(
 			viewport: { width: 1280, height: 900 },
 			reducedMotion: "reduce",
 		});
-		// The pages' clock starts at a fixed moment and stands still from an
-		// hour after it: every card is drawn and measured on it, moved on only
-		// by what the check moves it by. The hour is room to pause in, however
-		// slow the machine; a pause at a moment already past is refused.
-		await context.clock.install({ time: clockStarts });
-		await context.clock.pauseAt(clockStarts + 3_600_000);
+		await stillClock(context);
 		const page = await context.newPage();
 		await page.goto(`${base}preview.html`);
 		const offered = await page

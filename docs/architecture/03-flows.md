@@ -21,7 +21,7 @@ Three consequences, and they decide the shape of the flows:
 3. **`submit_answer` carries no widget either**, for a different reason: the result screen is a state of the task card the child is already looking at, not a second card. The child presses a button and the same card turns over.
 4. **A refusal from `submit_task` names no answer letter and quotes no option.** Whether a card is drawn is a property of the *tool*, not of the individual result — the host reads `_meta.ui.resourceUri` from the tool definition (`getToolUiResourceUri(tool)` in the library) — so `submit_task` draws a card on every call, refusals included. The model already holds its own draft and does not need the letters quoted back to fix it, and this way consequence 1 stays free of exceptions.
 
-Which screen a card shows is decided by the payload, not by the tool: `get_profile` draws the first-sign-in screen when there is no file yet and the profile screen when there is, and `submit_task` draws the task card when it accepts and the waiting screen while it is still refusing.
+Which screen a card shows is decided by the payload, not by the tool: `get_progress` draws the first-sign-in screen when there is no file yet and the progress when there is, and `submit_task` draws the task card when it accepts and the waiting screen while it is still refusing.
 
 ## The tools, and what each costs in Drive
 
@@ -29,8 +29,9 @@ Which screen a card shows is decided by the payload, not by the tool: `get_profi
 
 | Tool | Called by | Renders a card | Reads | Writes | Not written when |
 |---|---|---|---|---|---|
-| `get_profile` | the model | yes — profile, or first sign-in when there is no file | 1 | 0 | always |
-| `save_profile` | the model | yes — profile | 1 | 1 | the fields fail validation |
+| `get_profile` | the model | **no** — the profile is shown at the foot of the progress (R148) | 1 | 0 | always |
+| `save_profile` | the model | **no** — the model says in a sentence what was saved (R148) | 1 | 1 | the fields fail validation, or ask for what the profile already says |
+| `edit_profile` | the widget only, from the form at the foot of the progress (R148) | **no** — the card that called it shows the details saved | 1 | 1 | the fields fail validation, change nothing, or there is no profile — a form never makes one |
 | `get_progress` | the model | yes — progress | 1 | 0 | always |
 | `read_progress` | the widget only, from the line at the top of a card (R91, R97) | **no** — the card that called it turns to its progress | 1 | 0 | always |
 | `next_task` | the model | **no** | 1 | 1 | a limit was hit, or the same open request is returned again |
@@ -60,9 +61,9 @@ sequenceDiagram
     M->>MT: save_profile
     MT->>D: create the file
     D-->>MT: the new revision
-    MT-->>M: the profile, and the rule's recommendation for the first task
-    MT-->>W: profile screen
-    Note over W: the card goes to the waiting state and the first task is requested
+    MT-->>M: the profile, and the rule's recommendation for the first task — no card (R148)
+    M-->>A: the profile is saved, in a sentence, and a first task is offered
+    Note over W: a first sign-in card, which only tells, is drawn only where a tool that draws a card meets no profile
 ```
 
 **How to read these diagrams.** `M` and `W` both live inside the host: the model reads tool results as text, the widget is the card the host renders from a result whose tool carries `_meta.ui.resourceUri`. An arrow to `W` therefore means "this same result also draws or updates a card", not a second message from the server. An arrow from `W` to `M` is a host mechanism — `ui/message` or `ui/update-model-context` — not a network call to us.
@@ -201,11 +202,17 @@ sequenceDiagram
     MT->>D: read the profile
     Note over MT: only the fields this tool owns change —<br/>ratings, history and the current task are untouched
     MT->>D: write the profile
-    MT-->>M: the updated profile and the recommendation
-    MT-->>W: profile screen
+    MT-->>M: the updated profile and the recommendation — no card (R148)
+
+    A->>W: "Edit" at the foot of the progress; the form filled in and saved
+    W->>MT: edit_profile — the fields that changed, and no other (R148)
+    MT->>D: read the profile, then write it
+    MT-->>W: the details as they now stand, and the words of the change
+    W->>M: ui/update-model-context — the change, the notes left out
+    Note over W: the form closes and says "Saved"; nothing is asked of the model
 ```
 
-Neither tool ever returns the current task's answer, even though both read the file that holds it: the sealed block is opened in exactly one place, `submit_answer`, and only once the child has answered.
+None of these tools ever returns the current task's answer, even though each reads the file that holds it: the sealed block is opened in exactly one place, `submit_answer`, and only once the child has answered.
 
 ## The waiting screen and "Another task"
 

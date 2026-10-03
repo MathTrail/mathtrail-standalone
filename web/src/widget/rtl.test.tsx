@@ -10,6 +10,7 @@ import {
 import { type ToolCall, toolInfoOf } from "./testing/host";
 import {
 	answered,
+	editRefused,
 	fence,
 	fenceInArabic,
 	fenceSolutionInArabic,
@@ -49,10 +50,11 @@ async function draw(payload: object, locale = "ar-EG"): Promise<HTMLElement> {
 	return drawn.root;
 }
 
-// markupOf is the card's markup as its snapshot keeps it: the drawings of its
-// icons left out, since they say nothing of the way its words run.
-function markupOf(root: HTMLElement): Element {
-	const card = root.querySelector(".mt-widget")?.cloneNode(true);
+// markupOf is the markup of the card, or of the part of it named by selector,
+// as its snapshot keeps it: the drawings of its icons left out, since they say
+// nothing of the way its words run.
+function markupOf(root: HTMLElement, selector = ".mt-widget"): Element {
+	const card = root.querySelector(selector)?.cloneNode(true);
 	if (!(card instanceof Element)) {
 		throw new Error("the card is not drawn");
 	}
@@ -95,7 +97,7 @@ describe("a card in a language written right to left", () => {
 	});
 });
 
-// The markup of seven screens in Arabic, against the snapshots the review last
+// The markup of eight screens in Arabic, against the snapshots the review last
 // read: which of their parts run right to left and which do not, and what
 // they say. A change to them is a change to read in the snapshots' diff.
 describe("the screens in Arabic", () => {
@@ -154,5 +156,27 @@ describe("the screens in Arabic", () => {
 
 	test("the first sign-in", async () => {
 		expect(markupOf(await draw(firstRun))).toMatchSnapshot();
+	});
+
+	test("the form of the profile, refused field by field", async () => {
+		drawn = await drawCard(standing, {
+			tools: () => editRefused,
+			context: { locale: "ar-EG" },
+		});
+		const { root } = drawn;
+		press(root.querySelector<HTMLElement>(".mt-fields-head .mt-btn") ?? root);
+		const box = root.querySelector<HTMLInputElement>(".mt-form .mt-input");
+		if (box === null) {
+			throw new Error("the card shows no form");
+		}
+		box.value = "نجم";
+		box.dispatchEvent(new Event("input", { bubbles: true }));
+		await vi.waitFor(() => expect(box.value).toBe("نجم"));
+		press(root.querySelector<HTMLElement>(".mt-form .mt-btn-primary") ?? root);
+		await vi.waitFor(() =>
+			expect(root.querySelectorAll(".mt-field-problem")).toHaveLength(5),
+		);
+
+		expect(markupOf(root, ".mt-form")).toMatchSnapshot();
 	});
 });

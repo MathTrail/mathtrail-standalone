@@ -118,13 +118,14 @@ func NewService(parts *Parts) (*Service, error) {
 }
 
 // ProfileTools are the tools that read and write the child's details and read
-// the progress: the profile for the model and its card, and the progress
-// twice — once for the model, with a card, and once for a card that opens the
-// progress inside itself.
+// the progress: the profile for the model, in words; its change for the form
+// on a card; and the progress twice — once for the model, with a card, and
+// once for a card that opens the progress inside itself.
 func (s *Service) ProfileTools() []Tool {
 	return []Tool{
 		s.getProfileTool(),
 		s.saveProfileTool(),
+		s.editProfileTool(),
 		s.getProgressTool(),
 		s.readProgressTool(),
 	}

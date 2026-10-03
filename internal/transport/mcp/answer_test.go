@@ -55,6 +55,7 @@ type answerPayload struct {
 	Code     string `json:"code"`
 	Problems []struct {
 		Field string `json:"field"`
+		Code  string `json:"code"`
 		Rule  string `json:"rule"`
 	} `json:"problems"`
 	LastAnswer *struct {
@@ -452,8 +453,8 @@ func TestAnAnswerThatIsNoLetterIsRefusedByItsRule(t *testing.T) {
 			result := answerIt(t, session, p.CurrentTask.ID, typed, false)
 			payload := payloadOf[answerPayload](t, result)
 			if payload.Status != "rejected" || payload.Code != "invalid_arguments" || len(payload.Problems) != 1 ||
-				payload.Problems[0].Field != "answer" || payload.Result != nil {
-				t.Errorf("submit_answer = %+v, want invalid_arguments naming the answer", payload)
+				payload.Problems[0].Field != "answer" || payload.Problems[0].Code != "not_one_of" || payload.Result != nil {
+				t.Errorf("submit_answer = %+v, want invalid_arguments naming the answer, by the rule of a choice among a few", payload)
 			}
 			if typed == "zebra" && strings.Contains(textOf(t, result), typed) {
 				t.Errorf("the words are %q, want the rule and not what was sent", textOf(t, result))

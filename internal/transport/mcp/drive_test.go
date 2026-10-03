@@ -1,13 +1,19 @@
 package mcpserver_test
 
 import (
+	"context"
 	"maps"
+	"net/http"
 	"slices"
+	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"go.uber.org/zap/zapcore"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/drive"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/drive/drivetest"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
@@ -121,6 +127,8 @@ func TestEveryToolStaysWithinItsDriveBudget(t *testing.T) {
 		{"read_progress", map[string]any{}, located},
 		{"save_profile", map[string]any{"interests": []string{"sport", "space"}}, write},
 		{"save_profile", map[string]any{"interests": []string{"sport", "space"}}, read},
+		{"edit_profile", map[string]any{"grade": 3}, write},
+		{"edit_profile", map[string]any{"grade": 3}, read},
 		{"next_task", raceChoice, write},
 		// Asked again while the request is open, it hands the same one back.
 		{"next_task", raceChoice, read},
@@ -147,6 +155,44 @@ func TestEveryToolStaysWithinItsDriveBudget(t *testing.T) {
 	// The same answer again is told again, and written nowhere.
 	if got := costOf(t, fake, session, "submit_answer", answer); !maps.Equal(got, read) {
 		t.Errorf("submit_answer given again cost %v, want %v", got, read)
+	}
+}
+
+// When Drive cannot say where the profile's file is, the progress and the
+// profile are shown all the same, with nothing of where the file is kept: a
+// card draws no parent's data, and the model is told to say so if the adult
+// asks. The failure is the line of the call that failed, one for each.
+func TestAProfileDriveCannotPlaceJustNowIsShownAllTheSame(t *testing.T) {
+	t.Parallel()
+
+	fake := drivetest.New(t)
+	warm := instanceOverDrive(t, fake)
+	if result := call(t, warm.session, "save_profile", map[string]any{"pseudonym": "Otter", "grade": 2}); result.IsError {
+		t.Fatalf("save_profile failed: %s", textOf(t, result))
+	}
+
+	tools := []string{"get_progress", "read_progress", "get_profile"}
+	for _, tool := range tools {
+		// The name of the folder is the last thing a location asks Drive for.
+		fake.Fail(drivetest.Get, http.StatusBadRequest, "badRequest")
+		result := call(t, warm.session, tool, map[string]any{})
+		if raw := string(rawPayload(t, result)); strings.Contains(raw, `"location"`) {
+			t.Errorf("%s hands back %s, want no location in it", tool, raw)
+		}
+		if words := textOf(t, result); !strings.Contains(words, "could not be found just now") {
+			t.Errorf("%s says %q, want it to say where the file is could not be found just now", tool, words)
+		}
+	}
+
+	warm.h.settle()
+	failed := 0
+	for _, line := range linesOf(warm.h, "drive_call") {
+		if line.Level == zapcore.WarnLevel && line.ContextMap()["op"] == "get" {
+			failed++
+		}
+	}
+	if failed != len(tools) {
+		t.Errorf("failed drive_call lines of the folder = %d, want one for each of the %d calls", failed, len(tools))
 	}
 }
 
@@ -182,5 +228,57 @@ func TestAColdInstanceSearchesOnceAndADayKeepsItsFirstWrite(t *testing.T) {
 	if got, want := costOf(t, fake, first.session, "save_profile", map[string]any{"interests": []string{"sport"}}),
 		(drivetest.Calls{"download": 3, "update": 1, "revisions": 1}); !maps.Equal(got, want) {
 		t.Errorf("the first save_profile of a day cost %v, want %v", got, want)
+	}
+}
+
+// goneWhenPlaced is a store whose profile is deleted as the progress asks
+// where its file is: the read before found it, every read after finds none.
+type goneWhenPlaced struct {
+	store.Storage
+	gone atomic.Bool
+}
+
+func (s *goneWhenPlaced) Load(ctx context.Context, account store.Account) (*profile.Profile, store.Revision, error) {
+	if s.gone.Load() {
+		return nil, "", store.ErrNotFound
+	}
+	return s.Storage.Load(ctx, account)
+}
+
+func (s *goneWhenPlaced) Export(context.Context, store.Account) (store.Location, error) {
+	s.gone.Store(true)
+	return store.Location{}, store.ErrNotFound
+}
+
+// A profile deleted between its read and the search for its file is not
+// shown as if it were there: it is read again, and found gone.
+func TestAProfileGoneWhileItIsPlacedIsToldAsGone(t *testing.T) {
+	t.Parallel()
+
+	for _, tool := range []string{"get_progress", "get_profile"} {
+		_, session := lesson(t, &goneWhenPlaced{Storage: keptWith(t, "masha")})
+		if got := payloadOf[progressPayload](t, call(t, session, tool, nil)); got.Screen != "first_run" {
+			t.Errorf("%s shows %q, want the first sign-in of a profile gone", tool, got.Screen)
+		}
+	}
+}
+
+// revokedWhenPlaced is a store whose access is taken back as the progress asks
+// where its file is.
+type revokedWhenPlaced struct{ store.Storage }
+
+func (revokedWhenPlaced) Export(context.Context, store.Account) (store.Location, error) {
+	return store.Location{}, store.ErrAccessRevoked
+}
+
+// Access taken back as the file is placed is no failure of Drive's to show the
+// progress past: it is told as it is told everywhere, with the sign-in asked
+// for again.
+func TestAccessTakenBackWhileTheFileIsPlacedIsToldSo(t *testing.T) {
+	t.Parallel()
+
+	for _, tool := range []string{"get_progress", "get_profile"} {
+		_, session := lesson(t, revokedWhenPlaced{keptWith(t, "masha")})
+		wantOurSentence(t, call(t, session, tool, nil), "MathTrail can no longer reach the child's profile")
 	}
 }

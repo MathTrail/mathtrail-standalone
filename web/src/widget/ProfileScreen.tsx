@@ -1,18 +1,34 @@
+import { useReducer, useRef, useState } from "preact/hooks";
 import { Verdict } from "../design/blocks";
 import { Button } from "../design/controls";
-import { type Field, ProfileFields } from "../design/progress";
+import { type Field, FieldsFrame, ProfileFields } from "../design/progress";
 import { MessageHeader } from "../design/thread";
 import type { Words } from "../i18n/words";
 import type { Host } from "./bridge";
 import { CardRoot } from "./CardRoot";
-import { RequestNote, useChatRequest } from "./ChatRequest";
+import {
+	changesOf,
+	type Draft,
+	type Editing,
+	editingAfter,
+	notEditing,
+} from "./editing";
+import { useFocusKeptOnTheCard } from "./focus";
 import { languageName, listed, skillName } from "./names";
-import type { Details, Location, ProfileReport } from "./payload";
+import { ProfileForm } from "./ProfileForm";
+import {
+	type Details,
+	type EditOutcome,
+	type Location,
+	type ProfileReport,
+	readEdited,
+} from "./payload";
 import { type Key, useWords } from "./words";
 
 /**
- * ProfileCard is the card of the child's profile, drawn when the model reads
- * the profile or saves a change to it.
+ * ProfileCard is the card of the child's profile, as a card of an earlier chat
+ * was drawn when the model read the profile or saved a change to it. Neither
+ * tool draws one now; a host that still does draws this.
  */
 export function ProfileCard({
 	profile,
@@ -29,8 +45,9 @@ export function ProfileCard({
 }
 
 // ProfileScreen is the profile for the parent: a change just refused, if one
-// was, the details as they stand, and — where the tool that drew the card says
-// where the file is — what the parent can do with the data.
+// was and nothing has been saved since, the details as they stand, and — where
+// the tool that drew the card says where the file is — what the parent can do
+// with the data.
 function ProfileScreen({
 	profile,
 	wide,
@@ -41,7 +58,8 @@ function ProfileScreen({
 	host: Host;
 }) {
 	const words = useWords();
-	const { details } = profile;
+	const [details, setDetails] = useState(profile.details);
+	const [saved, setSaved] = useState(false);
 	return (
 		<article aria-label={words.text("profile.card_label")}>
 			<MessageHeader
@@ -51,12 +69,19 @@ function ProfileScreen({
 				wide={wide}
 			/>
 			<div class="mt-progress">
-				{profile.refused && (
+				{profile.refused && !saved && (
 					<Verdict detail={words.text("profile.not_saved_detail")}>
 						{words.text("profile.not_saved")}
 					</Verdict>
 				)}
-				<ParentProfile details={details} host={host} />
+				<ParentProfile
+					details={details}
+					host={host}
+					onSaved={(changed) => {
+						setDetails(changed);
+						setSaved(true);
+					}}
+				/>
 				{profile.location !== undefined && (
 					<ParentData location={profile.location} />
 				)}
@@ -66,35 +91,131 @@ function ProfileScreen({
 }
 
 /**
- * ParentProfile is the child's profile as the parent reads it on a card: the
- * grade, which is only a label once the child has started, the interests,
- * what the child has not met at school yet, and the language of the lessons —
- * with the one way to change them, which is to ask in the chat, at its head.
+ * ParentProfile is the child's profile as the parent reads it on a card — the
+ * grade, which is only a label once the child has started, the interests, what
+ * the child has not met at school yet, and the language of the lessons — with
+ * the button at its head that opens the form to change them in its place. The
+ * focus the form had goes back to that button when it closes, and to what the
+ * card says in its place when the profile is gone. A change saved is handed
+ * to onSaved, and told to the model in the service's
+ * words, since the model is not called by the form and would otherwise go on
+ * with what it was told before.
  */
 export function ParentProfile({
 	details,
 	host,
+	onSaved,
 }: {
 	details: Details;
 	host: Host;
+	onSaved: (details: Details) => void;
 }) {
 	const words = useWords();
-	const request = useChatRequest(host);
-	return (
-		<ProfileFields
-			label={words.text("profile.label")}
-			fields={detailFields(words, details)}
-			action={
-				<Button
-					locked={request.state === "sent"}
-					onClick={() => request.send(words.text("profile.edit"))}
-				>
-					{words.text("profile.edit")}
-				</Button>
+	const [editing, dispatch] = useReducer(editingAfter, notEditing);
+	const sending = useRef(false);
+	const edit = useRef<HTMLButtonElement>(null);
+	const gone = useRef<HTMLParagraphElement>(null);
+	useFocusKeptOnTheCard(editing.state === "closed", edit);
+	useFocusKeptOnTheCard(editing.state === "gone", gone);
+
+	async function save(from: Details, draft: Draft) {
+		if (sending.current) {
+			return;
+		}
+		const changes = changesOf(from, draft);
+		if (Object.keys(changes).length === 0) {
+			dispatch({ type: "closed" });
+			return;
+		}
+		sending.current = true;
+		dispatch({ type: "sent" });
+		const outcome = await sent(host, changes);
+		sending.current = false;
+		dispatch({ type: "answered", outcome });
+		if (outcome.kind === "saved") {
+			onSaved(outcome.details);
+			if (outcome.told !== undefined) {
+				host.tellModel(outcome.told).catch((error: unknown) => {
+					console.error("widget: the model was not told of the change", error);
+				});
 			}
-			status={<RequestNote state={request.state} />}
-		/>
-	);
+		}
+	}
+
+	const label = words.text("profile.label");
+	switch (editing.state) {
+		case "gone":
+			return (
+				<FieldsFrame label={label}>
+					<p class="mt-fields-said" tabIndex={-1} ref={gone}>
+						{words.text("profile.gone")}
+					</p>
+				</FieldsFrame>
+			);
+		case "open":
+		case "saving":
+			return (
+				<FieldsFrame label={label}>
+					<ProfileForm
+						editing={editing}
+						onChange={(draft) => dispatch({ type: "typed", draft })}
+						onSave={() => save(editing.from, editing.draft)}
+						onCancel={() => dispatch({ type: "closed" })}
+					/>
+				</FieldsFrame>
+			);
+		case "closed":
+			return (
+				<ProfileFields
+					label={label}
+					fields={detailFields(words, details)}
+					action={
+						<Button
+							buttonRef={edit}
+							onClick={() => dispatch({ type: "opened", details })}
+						>
+							{words.text("profile.edit")}
+						</Button>
+					}
+					status={
+						<p class="mt-action-note" aria-live="polite">
+							{savedNote(words, editing)}
+						</p>
+					}
+				/>
+			);
+	}
+}
+
+// sent is how a change sent to the service ended. A call that never reached
+// the service, or whose answer never came back, is a change not saved.
+async function sent(
+	host: Host,
+	changes: Record<string, unknown>,
+): Promise<EditOutcome> {
+	try {
+		return readEdited(await host.callTool("edit_profile", changes));
+	} catch (error: unknown) {
+		console.error("widget: the change did not reach the service", error);
+		return { kind: "failed" };
+	}
+}
+
+// savedNote is what became of the change last saved, in words: saved, and the
+// language chosen comes with the next task when the adult chose another — the
+// card goes on in the words it was drawn in.
+function savedNote(
+	words: Words<Key>,
+	editing: Extract<Editing, { state: "closed" }>,
+): string {
+	switch (editing.said) {
+		case "saved":
+			return words.text("profile.saved");
+		case "saved_language":
+			return words.text("profile.saved_language");
+		default:
+			return "";
+	}
 }
 
 /**

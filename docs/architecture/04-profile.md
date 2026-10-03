@@ -16,6 +16,7 @@ flowchart LR
     st["submit_task"]
     sa["submit_answer"]
     sp["save_profile"]
+    ep["edit_profile<br/>the card's form"]
     rule["The rule and the ratings<br/>pure computation"]
 
     subgraph file["profile.json, in the parent's Drive"]
@@ -31,7 +32,7 @@ flowchart LR
         day["daily counters<br/>accepted and failed, UTC date"]
     end
 
-    sp --> kid
+    sp & ep --> kid
     nt --> req
     nt --> rec
     nt --> top
@@ -44,7 +45,7 @@ flowchart LR
     sa --> top
     sa --> rec
     sa --> cur
-    sp & nt & st & sa --> svc
+    sp & ep & nt & st & sa --> svc
 
     kid -.-> rule
     rat -.-> rule

@@ -1,5 +1,15 @@
+import english from "../../locales/en.json";
 import type { Words } from "../i18n/words";
 import { isKey, type Key } from "./words";
+
+/**
+ * catalogSkills are the skills a parent can leave out of the tasks, by their
+ * ids, in the order of the catalog: every skill the card has a name for, its
+ * words kept in that order.
+ */
+export const catalogSkills: readonly string[] = Object.keys(english)
+	.filter((key) => key.startsWith("skill."))
+	.map((key) => key.slice("skill.".length));
 
 /**
  * topicName is what the card calls a topic of the catalog, in its language;

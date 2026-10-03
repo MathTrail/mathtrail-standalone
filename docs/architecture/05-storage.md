@@ -59,14 +59,14 @@ Every tool call is read → compute → write (03-flows). The cost in HTTP calls
 | Tool | Cold instance | File id already cached |
 |---|---|---|
 | `get_profile`, `get_progress`, `read_progress` | 4 — list, get; then list and the folder's name, for where the file is | 3 — get; list and the folder's name |
-| `save_profile`, `next_task`, `submit_task`, `submit_answer` | 4 — list, get, get again, `files.update` | 3 — get, get again, update |
+| `save_profile`, `edit_profile`, `next_task`, `submit_task`, `submit_answer` | 4 — list, get, get again, `files.update` | 3 — get, get again, update |
 | A call that writes nothing — a request already open, an answer told again, an edit that changes nothing | as a read | as a read |
 | No profile yet: `get_profile` | 2 — list (miss), the list of the bin (miss) | — |
 | First sign-in, no file yet | 7 — list and the list of the bin (misses); then the same two again before the creation, the search for the folder, the folder, `files.create` multipart; 6 when the folder is there | — |
 | The first write of a day | +2 — `revisions.list`, a `revisions.delete` for each revision kept past a hundred, and a get more after them | same |
 | A write refused as a conflict and made again | a read and a write more, at most twice | same |
 
-The second get is the check "Two tabs" below turns on: a write reads the file once more and compares it with what it was computed from, because Drive has no conditional write (R116). A whole task — `next_task`, `submit_task`, `submit_answer` — costs nine Drive calls on a warm instance. Every response asks for a narrow `fields` list, so nothing but the few fields we use crosses the wire. The bin is looked in only when a search finds nothing. A call Drive asks to pause, or fails on its side, is made again, twice at most (below).
+The second get is the check "Two tabs" below turns on: a write reads the file once more and compares it with what it was computed from, because Drive has no conditional write (R116). A whole task — `next_task`, `submit_task`, `submit_answer` — costs nine Drive calls on a warm instance. Every response asks for a narrow `fields` list, so nothing but the few fields we use crosses the wire. The bin is looked in only when a search finds nothing. A call Drive asks to pause, or fails on its side, is made again, twice at most (below). A search for where the file is that still fails leaves the location out of the progress and the profile rather than failing them: what was read is shown, and the words say where the file is could not be found (R148).
 
 The file id is cached in the instance's memory, keyed by the user identifier from 02-auth. It is a cache in the strict sense: a stale id produces a `404`, which falls back to the search. It is trusted for ten minutes from the search that found it, and then searched for again: Drive answers a file in the bin by its ID as it answers any other, and only a search leaves the bin out (R120). Nothing durable is keyed by that identifier, which 02-auth requires.
 

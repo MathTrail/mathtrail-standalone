@@ -33,8 +33,8 @@ PLAY_DIR := env("MATHTRAIL_PLAY_DIR", home_directory() / "mathtrail-play")
 # that moves on to a newer model, so that runs compare; MATHTRAIL_PLAY_MODEL
 # names another.
 PLAY_MODEL := env("MATHTRAIL_PLAY_MODEL", "claude-sonnet-5")
-# The lesson's tools as a chat's model calls them. The one only a card calls is
-# not among them.
+# The lesson's tools as a chat's model calls them. The ones only a card calls
+# are not among them.
 PLAY_TOOLS := "mcp__mathtrail__get_profile mcp__mathtrail__save_profile mcp__mathtrail__get_progress mcp__mathtrail__next_task mcp__mathtrail__submit_task mcp__mathtrail__submit_answer"
 # The Inspector shares this environment's network, so that it reaches the local
 # server at its own address, and it listens on the loopback alone rather than on
@@ -128,6 +128,50 @@ test:
 # Build the server binary into bin/, with the widget built into it
 build: web-build
     go build -trimpath -ldflags "{{ LDFLAGS }}" -o {{ BINARY }} ./cmd/server
+
+# A version asked for is the one published. Otherwise it is the next patch of
+# the line the releases are numbered in, MAJOR.MINOR — the line's first when
+# none of it is out yet. A line older than the newest release would publish a
+# version below one already out, and is refused; so is a version already
+# released, or one that is not vMAJOR.MINOR.PATCH. The arguments reach the
+# script as arguments, never as its text, since a version asked for is typed by
+# a person.
+# Print the version the next release is published as, such as `just release-version 0.2`
+[positional-arguments]
+release-version line requested="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    line="$1"
+    requested="${2:-}"
+    if [[ ! "$line" =~ ^[0-9]+\.[0-9]+$ ]]; then
+        echo "release: the line $line is not MAJOR.MINOR" >&2
+        exit 1
+    fi
+    newest="$(git tag --list 'v[0-9]*' --sort=-v:refname | head -1)"
+    if [ -n "$requested" ]; then
+        version="$requested"
+    else
+        last="$(git tag --list "v$line.[0-9]*" --sort=-v:refname | head -1)"
+        if [ -z "$last" ]; then
+            version="v$line.0"
+        else
+            version="v$line.$((${last##*.} + 1))"
+        fi
+        if [ -n "$newest" ] &&
+            [ "$(printf '%s\n' "${newest#v}" "${version#v}" | sort -V | tail -1)" != "${version#v}" ]; then
+            echo "release: the line $line is older than the newest release, $newest" >&2
+            exit 1
+        fi
+    fi
+    if [[ ! "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "release: $version is not vMAJOR.MINOR.PATCH" >&2
+        exit 1
+    fi
+    if git rev-parse -q --verify "refs/tags/$version" > /dev/null; then
+        echo "release: $version is already released" >&2
+        exit 1
+    fi
+    echo "$version"
 
 # The version is a parameter, because a release knows the number it is about to
 # publish before any tag carries it; without one, the same version the rest of
@@ -400,20 +444,38 @@ web-preview: web-install
 # Arguments narrow the run: --engine chromium --language ar --width 320.
 # Measure the widget's layout in real browsers, in every language, at every width a card must fit
 [working-directory('web')]
-web-layout *args: web-install
+web-layout *args: _playwright-pinned
     #!/usr/bin/env bash
     set -euo pipefail
-    # playwright-core drives only the browsers of its own release: a package
-    # moved without the image, or the image without the package, would find no
-    # browser to launch, and say so in words that name neither pin.
-    release=$(node -p 'require("./package.json").devDependencies["playwright-core"]')
-    if [[ "{{ PLAYWRIGHT_IMAGE }}" != *":v${release}-"* ]]; then
-        echo "web-layout: web/package.json pins playwright-core ${release}, and the image is {{ PLAYWRIGHT_IMAGE }}; move them together" >&2
-        exit 1
-    fi
     docker run --rm --init --shm-size=1g --user "$(id -u):$(id -g)" -e HOME=/tmp \
         -v "{{ justfile_directory() }}:{{ justfile_directory() }}" -w "{{ justfile_directory() }}/web" \
         {{ PLAYWRIGHT_IMAGE }} node scripts/layout.ts {{ args }}
+
+# The README's pictures of a task, a wrong answer and the progress, each in the
+# light and the dark theme: the preview's own scenes, photographed in Chromium
+# from the image the layout is measured in, as a phone 428 px wide shows them
+# at twice its density. They are written over docs/screens/, for the change to
+# be looked at before it is kept.
+# Photograph the widget for the README
+[working-directory('web')]
+web-screens: _playwright-pinned
+    docker run --rm --init --shm-size=1g --user "$(id -u):$(id -g)" -e HOME=/tmp \
+        -v "{{ justfile_directory() }}:{{ justfile_directory() }}" -w "{{ justfile_directory() }}/web" \
+        {{ PLAYWRIGHT_IMAGE }} node scripts/screens.ts
+
+# playwright-core drives only the browsers of its own release: a package moved
+# without the image, or the image without the package, would find no browser to
+# launch, and say so in words that name neither pin.
+# Fail unless the widget's playwright-core and the browsers' image are one release
+[working-directory('web')]
+_playwright-pinned: web-install
+    #!/usr/bin/env bash
+    set -euo pipefail
+    release=$(node -p 'require("./package.json").devDependencies["playwright-core"]')
+    if [[ "{{ PLAYWRIGHT_IMAGE }}" != *":v${release}-"* ]]; then
+        echo "playwright: web/package.json pins playwright-core ${release}, and the image is {{ PLAYWRIGHT_IMAGE }}; move them together" >&2
+        exit 1
+    fi
 
 # -- The full checks --------------------------------------------------------
 

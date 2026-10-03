@@ -1,12 +1,5 @@
-import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import {
-	buttonIn,
-	type Drawn,
-	drawCard,
-	press,
-	takeDown,
-} from "./testing/card";
+import { type Drawn, drawCard, takeDown } from "./testing/card";
 import { atTheTop, inTrial, standing, standingBefore } from "./testing/lesson";
 
 let drawn: Drawn | undefined;
@@ -417,74 +410,5 @@ describe("the progress", () => {
 		const { heard } = await draw(standing);
 
 		expect(heard.calls).toEqual([]);
-	});
-});
-
-describe("editing the profile", () => {
-	test("is asked for in the chat, in the words of the button at the profile's head", async () => {
-		const { root, heard } = await draw(standing);
-
-		const edit = buttonIn(root, "Edit profile");
-		expect(edit.closest(".mt-fields-head")).not.toBeNull();
-		press(edit);
-
-		await vi.waitFor(() => expect(heard.messages).toEqual(["Edit profile"]));
-		await vi.waitFor(() =>
-			expect(text(root, ".mt-action-note")).toBe("Sent to the chat"),
-		);
-		expect(heard.calls).toEqual([]);
-	});
-
-	test("is asked for once when two presses come before the card redraws", async () => {
-		const { root, heard } = await draw(standing);
-		const edit = buttonIn(root, "Edit profile");
-
-		act(() => {
-			edit.click();
-			edit.click();
-		});
-
-		await vi.waitFor(() => expect(heard.messages).toHaveLength(1));
-		await vi.waitFor(() =>
-			expect(text(root, ".mt-action-note")).toBe("Sent to the chat"),
-		);
-		expect(heard.messages).toHaveLength(1);
-	});
-
-	test("that the chat took is not asked again from the same button", async () => {
-		const { root, heard } = await draw(standing);
-		const edit = buttonIn(root, "Edit profile");
-		press(edit);
-		await vi.waitFor(() =>
-			expect(text(root, ".mt-action-note")).toBe("Sent to the chat"),
-		);
-
-		press(edit);
-
-		expect(edit.getAttribute("aria-disabled")).toBe("true");
-		expect(document.activeElement).toBe(edit);
-		await Promise.resolve();
-		expect(heard.messages).toEqual(["Edit profile"]);
-	});
-
-	test("that the chat does not take says so, and can be asked again", async () => {
-		vi.spyOn(console, "error").mockImplementation(() => {});
-		const { root, heard } = await draw(standing, { refuseMessages: true });
-
-		press(buttonIn(root, "Edit profile"));
-
-		await vi.waitFor(() =>
-			expect(text(root, ".mt-action-note")).toBe("Not sent — try again"),
-		);
-		press(buttonIn(root, "Edit profile"));
-		await vi.waitFor(() => expect(heard.messages).toHaveLength(2));
-	});
-
-	test("has its outcome heard once it comes", async () => {
-		const { root } = await draw(standing);
-
-		const note = root.querySelector(".mt-action-note");
-		expect(note?.getAttribute("aria-live")).toBe("polite");
-		expect(note?.textContent).toBe("");
 	});
 });

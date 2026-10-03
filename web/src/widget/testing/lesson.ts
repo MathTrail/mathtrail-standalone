@@ -500,6 +500,55 @@ export const firstRunRefused = {
 };
 
 /**
+ * editSaved is a change from the form saved: the details as they now stand,
+ * and the words the card hands the model.
+ */
+export function editSaved(
+	profile: Record<string, unknown> = {},
+): CallToolResult {
+	return {
+		content: [{ type: "text", text: savedWords }],
+		structuredContent: {
+			screen: "profile",
+			changed: true,
+			profile: { ...standing.profile, ...profile },
+		},
+	};
+}
+
+/** savedWords are what the service tells the model of a change from the form. */
+export const savedWords =
+	"The adult changed the child's profile with the form on a card.";
+
+/**
+ * editRefused is a change from the form refused for every field it shows, each
+ * by the code of the rule it broke, the profile handed back as it stays.
+ */
+export const editRefused = toolResult({
+	screen: "profile",
+	status: "rejected",
+	code: "invalid_profile",
+	problems: [
+		{ field: "excluded_skills", code: "not_in_catalog", rule: "entry 2" },
+		{ field: "grade", code: "out_of_range", rule: "1 to 6" },
+		{ field: "interests", code: "entry_length", rule: "1 to 40" },
+		{ field: "pseudonym", code: "required", rule: "is required" },
+		{ field: "ui_language", code: "not_a_language", rule: "a BCP 47 tag" },
+	],
+	changed: false,
+	profile: standing.profile,
+});
+
+/** editGone is a change from the form for a profile no longer there. */
+export const editGone = toolResult({
+	screen: "first_run",
+	status: "stale",
+	code: "stale_profile",
+	changed: false,
+	profile: null,
+});
+
+/**
  * longTexts is a task at every limit a card has to fit at its narrowest: a
  * pseudonym as long as a profile allows, a drawing as wide and as tall as the
  * checks allow, a number of fourteen digits and an option of two hundred

@@ -57,10 +57,10 @@ func (in *nextTaskIn) choice() tutor.Choice {
 // the request was opened in.
 func (in *nextTaskIn) differsFrom(request *profile.OpenRequest, student *profile.Student) bool {
 	choice := in.choice()
-	language, rule := profile.LanguageTag(in.Language)
+	language, broken := profile.LanguageTag(in.Language)
 	_, chosen := student.ChosenLanguage()
 	return choice.Made() || choice.Reason != "" ||
-		(!chosen && rule == "" && language != "" && language != request.Language)
+		(!chosen && broken.Code == "" && language != "" && language != request.Language)
 }
 
 // requestRefusedOut is what next_task hands back when no request can be opened:
@@ -223,15 +223,12 @@ func (s *Service) dayIsFull(p *profile.Profile) Reply[any] {
 // argumentsRefused is a call no request can be opened from, told argument by
 // argument. Nothing is written.
 func argumentsRefused(p *profile.Profile, problems []profile.Problem) Reply[any] {
-	payload := requestRefusedOut{Screen: screenWaiting, Status: statusRejected, Code: codeInvalidArguments, LastAnswer: lastAnswerOf(p)}
-	lines := make([]string, 0, len(problems))
-	for _, problem := range problems {
-		payload.Problems = append(payload.Problems, problemOut{Field: problem.Field, Rule: problem.Rule})
-		lines = append(lines, problem.String())
-	}
+	out, lines := problemsOf(problems)
 	return Reply[any]{
-		Text:    "No task was asked for. Fix these arguments and call next_task again: " + strings.Join(lines, "; ") + ".",
-		Payload: payload,
+		Text: "No task was asked for. Fix these arguments and call next_task again: " + lines + ".",
+		Payload: requestRefusedOut{
+			Screen: screenWaiting, Status: statusRejected, Code: codeInvalidArguments, Problems: out, LastAnswer: lastAnswerOf(p),
+		},
 	}
 }
 
@@ -241,12 +238,13 @@ func argumentsRefused(p *profile.Profile, problems []profile.Problem) Reply[any]
 // lesson's language to a guess, and a task written in a language guessed is a
 // generation wasted.
 func languageOf(text string) (string, []profile.Problem) {
-	tag, rule := profile.LanguageTag(text)
-	if tag == "" && rule == "" {
-		rule = "is required: the language of the chat, as a BCP 47 tag such as en, ru or pt-BR"
+	tag, broken := profile.LanguageTag(text)
+	if tag == "" && broken.Code == "" {
+		broken = profile.Broken{Code: profile.CodeRequired,
+			Rule: "is required: the language of the chat, as a BCP 47 tag such as en, ru or pt-BR"}
 	}
-	if rule != "" {
-		return "", []profile.Problem{{Field: "language", Rule: rule}}
+	if broken.Code != "" {
+		return "", []profile.Problem{{Field: "language", Broken: broken}}
 	}
 	return tag, nil
 }

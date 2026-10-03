@@ -2,10 +2,7 @@ import { useMemo, useState } from "preact/hooks";
 import { dictionaries } from "../widget/words";
 import { HostedCard } from "./HostedCard";
 import { scenesIn } from "./scenes";
-
-// The widths a card is looked at in: the narrowest it has to fit, the
-// design's narrow card, the design's wide card, and a chat on the web.
-const widths: readonly number[] = [320, 360, 640, 736];
+import { previewWidths } from "./widths";
 
 // The languages a card can be shown in: every one the widget speaks, the
 // pseudo-language of a development build among them, English and Russian
@@ -40,7 +37,7 @@ export function Preview() {
 			(asked.get("widths") ?? "320,360,640")
 				.split(",")
 				.map(Number)
-				.filter((width) => widths.includes(width)),
+				.filter((width) => previewWidths.includes(width)),
 		),
 	);
 	const [only, setOnly] = useState(asked.get("scene") ?? "");
@@ -90,7 +87,7 @@ export function Preview() {
 						</option>
 					))}
 				</select>
-				{widths.map((width) => (
+				{previewWidths.map((width) => (
 					<label key={width}>
 						<input
 							type="checkbox"
@@ -108,7 +105,7 @@ export function Preview() {
 					<section key={scene.name} class="preview-scene">
 						<h2>{scene.name}</h2>
 						<div class="preview-frames">
-							{widths
+							{previewWidths
 								.filter((width) => shown.has(width))
 								.map((width) => (
 									<HostedCard

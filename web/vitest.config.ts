@@ -11,8 +11,9 @@ export default defineConfig({
 			// element and starts the widget, and start is what the tests cover;
 			// what lives under testing/ serves the tests and is not the widget;
 			// the preview is a page for looking at the widget, which ships
-			// nowhere and is judged by eye; and the measure of the layout is a
-			// check of its own, run in real browsers against the preview.
+			// nowhere and is judged by eye; and the measure of the layout, the
+			// pictures of the README and the driving of the preview they share
+			// run in real browsers against the preview, and nowhere else.
 			include: ["src/**/*.{ts,tsx}", "scripts/**/*.ts"],
 			exclude: [
 				"**/*.test.{ts,tsx}",
@@ -20,7 +21,9 @@ export default defineConfig({
 				"src/**/testing/**",
 				"src/preview/**",
 				"src/widget/main.ts",
+				"scripts/drive.ts",
 				"scripts/layout.ts",
+				"scripts/screens.ts",
 			],
 			reportsDirectory: "coverage",
 			// Paths are written from the repository's root, where the readers of

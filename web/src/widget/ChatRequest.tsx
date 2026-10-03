@@ -11,9 +11,8 @@ export type Request = "idle" | "sending" | "sent" | "lost";
 
 /**
  * useChatRequest is something a card asks the chat for, in words the child's
- * or the adult's own message would use — only the model can change a profile
- * or make one — and where the ask stands. A second press while one is on its
- * way is the same ask.
+ * own message would use — only the model can write the next task — and where
+ * the ask stands. A second press while one is on its way is the same ask.
  */
 export function useChatRequest(host: Host): {
 	state: Request;
@@ -49,13 +48,7 @@ export function useChatRequest(host: Host): {
  * the card can name says that rather than that it was sent. It is on the page
  * before it says anything, so that a screen reader hears it when it does.
  */
-export function RequestNote({
-	state,
-	taken = "chat.sent",
-}: {
-	state: Request;
-	taken?: Key;
-}) {
+export function RequestNote({ state, taken }: { state: Request; taken: Key }) {
 	const words = useWords();
 	let note = "";
 	if (state === "sent") {

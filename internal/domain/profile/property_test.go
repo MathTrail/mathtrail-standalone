@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"maps"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -214,6 +215,41 @@ func TestAnAnswerHoldsItsProperties(t *testing.T) {
 				last.Confused && !last.Correct && last.Chosen == "" && last.Trap == ""
 		},
 		children, levels, difficulties, gen.Bool(),
+	))
+
+	properties.TestingRun(t)
+}
+
+// Whatever an edit holds, its refusal names each field it found wrong once,
+// by a code of the closed list, and with the rule in words. A card shows one
+// message under a field, from a code it has words for; a field named twice
+// would show two, and a code it was never told of none it could say.
+func TestARefusalHoldsItsProperties(t *testing.T) {
+	t.Parallel()
+
+	properties := gopter.NewProperties(nil)
+	known := profile.Codes()
+
+	properties.Property("each field once, by a code of the list, with its rule", prop.ForAll(
+		func(pseudonym string, grade int, interests, excluded []string, notes, language string) bool {
+			edit := profile.Edit{
+				Pseudonym: &pseudonym, Grade: &grade, Interests: interests, ExcludedSkills: excluded,
+				Notes: &notes, UILanguage: &language,
+			}
+			_, problems := profile.NewStudent(&edit, skills)
+			named := map[string]bool{}
+			for _, problem := range problems {
+				if named[problem.Field] || !slices.Contains(known, problem.Code) || problem.Rule == "" {
+					return false
+				}
+				named[problem.Field] = true
+			}
+			return true
+		},
+		gen.AnyString(), gen.IntRange(profile.MinGrade-2, profile.MaxGrade+2),
+		gen.SliceOf(gen.AnyString()), gen.SliceOf(gen.OneGenOf(gen.OneConstOf("fractions", "negative_numbers", ""), gen.Identifier())),
+		gen.OneGenOf(gen.AnyString(), gen.Const(strings.Repeat("ж", profile.MaxNotes+1))),
+		gen.OneConstOf("", " ", "en", "pt-br", "und", "x-private", strings.Repeat("a", profile.MaxLanguageTag+1)),
 	))
 
 	properties.TestingRun(t)

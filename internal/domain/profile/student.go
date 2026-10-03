@@ -45,8 +45,8 @@ func (s *Student) ChosenLanguage() (string, bool) {
 	if s.UILanguage == nil {
 		return "", false
 	}
-	tag, rule := LanguageTag(*s.UILanguage)
-	return tag, tag != "" && rule == ""
+	tag, broken := LanguageTag(*s.UILanguage)
+	return tag, tag != "" && broken.Code == ""
 }
 
 // LessonLanguage is the language a lesson is held in: the one the parent chose,
@@ -62,14 +62,63 @@ func (s *Student) LessonLanguage(chat string) string {
 
 // Problem is one field that breaks a rule — of the child's details, or of what
 // the model asked a task to be: the field, named as the file and the tools name
-// it, and the rule. The rule never repeats what the field holds. The details
-// are the parent's own words and a choice is the model's, and a refusal that
-// carried either would carry it into every place a refusal goes.
+// it, and the rule it broke. The rule never repeats what the field holds. The
+// details are the parent's own words and a choice is the model's, and a
+// refusal that carried either would carry it into every place a refusal goes.
 type Problem struct {
 	// Field is the field, as the file and the tool that writes it name it.
 	Field string
-	// Rule is what the field has to be.
+	Broken
+}
+
+// Broken is a rule a value breaks: its code, and the rule in words. The code
+// is for a card, which says the rule in its own language and from limits of
+// its own; the words are for the model, which reads English. The zero Broken
+// is no rule broken.
+type Broken struct {
+	// Code names the rule, one of the codes below.
+	Code string
+	// Rule is what the value has to be.
 	Rule string
+}
+
+// The rules a value can break, by the code a refusal names each with. The
+// list is closed, so that a card can say a code it is sent in words of its own
+// language, and say one it has no words for in words that fit any; a rule
+// that fits none of them is a new code here first.
+const (
+	// CodeRequired is a value that has to be given, and was not.
+	CodeRequired = "required"
+	// CodeTooLong is a text longer than it may be.
+	CodeTooLong = "too_long"
+	// CodeTooMany is a list with more entries than it may hold.
+	CodeTooMany = "too_many"
+	// CodeEntryLength is an entry of a list that is empty, or longer than an
+	// entry may be.
+	CodeEntryLength = "entry_length"
+	// CodeOutOfRange is a number outside the range it has to be in.
+	CodeOutOfRange = "out_of_range"
+	// CodeNotOneOf is a value that is none of the few it may be.
+	CodeNotOneOf = "not_one_of"
+	// CodeNotInCatalog is an id the catalog does not have.
+	CodeNotInCatalog = "not_in_catalog"
+	// CodeNotTaught is a level its topic is not taught at.
+	CodeNotTaught = "not_taught"
+	// CodeNotALanguage is a text that is no BCP 47 tag of a language.
+	CodeNotALanguage = "not_a_language"
+	// CodeEmptyText is an empty text where null is what says "none".
+	CodeEmptyText = "empty_text"
+	// CodeControlCharacters is a text with characters that control rather
+	// than show.
+	CodeControlCharacters = "control_characters"
+)
+
+// Codes are every code a rule can be broken with.
+func Codes() []string {
+	return []string{
+		CodeRequired, CodeTooLong, CodeTooMany, CodeEntryLength, CodeOutOfRange, CodeNotOneOf,
+		CodeNotInCatalog, CodeNotTaught, CodeNotALanguage, CodeEmptyText, CodeControlCharacters,
+	}
 }
 
 // String is the problem as one line: the field, then its rule.
@@ -81,74 +130,74 @@ func (p Problem) String() string { return p.Field + ": " + p.Rule }
 // written.
 func (s *Student) problems() []Problem {
 	checked := []Problem{
-		{Field: "excluded_skills", Rule: excludedSkillsRule(s.ExcludedSkills)},
-		{Field: "grade", Rule: gradeRule(s.Grade)},
-		{Field: "interests", Rule: interestsRule(s.Interests)},
-		{Field: "notes", Rule: notesRule(s.Notes)},
-		{Field: "pseudonym", Rule: pseudonymRule(s.Pseudonym)},
-		{Field: "ui_language", Rule: languageRule(s.UILanguage)},
+		{Field: "excluded_skills", Broken: excludedSkillsRule(s.ExcludedSkills)},
+		{Field: "grade", Broken: gradeRule(s.Grade)},
+		{Field: "interests", Broken: interestsRule(s.Interests)},
+		{Field: "notes", Broken: notesRule(s.Notes)},
+		{Field: "pseudonym", Broken: pseudonymRule(s.Pseudonym)},
+		{Field: "ui_language", Broken: languageRule(s.UILanguage)},
 	}
-	return slices.DeleteFunc(checked, func(p Problem) bool { return p.Rule == "" })
+	return slices.DeleteFunc(checked, func(p Problem) bool { return p.Code == "" })
 }
 
 // Each rule below says what its field has to be, or nothing when the field is
 // what it has to be. A rule may say how far off the field is — a count is not
 // what the parent wrote — and never what it holds.
 
-func excludedSkillsRule(skills []string) string {
+func excludedSkillsRule(skills []string) Broken {
 	if len(skills) > MaxExcludedSkills {
-		return fmt.Sprintf("may hold at most %d skills, not %d", MaxExcludedSkills, len(skills))
+		return Broken{CodeTooMany, fmt.Sprintf("may hold at most %d skills, not %d", MaxExcludedSkills, len(skills))}
 	}
-	return ""
+	return Broken{}
 }
 
-func gradeRule(grade int) string {
+func gradeRule(grade int) Broken {
 	if grade < MinGrade || grade > MaxGrade {
-		return fmt.Sprintf("must be a school year from %d to %d", MinGrade, MaxGrade)
+		return Broken{CodeOutOfRange, fmt.Sprintf("must be a school year from %d to %d", MinGrade, MaxGrade)}
 	}
-	return ""
+	return Broken{}
 }
 
-func interestsRule(interests []string) string {
+func interestsRule(interests []string) Broken {
 	if len(interests) > MaxInterests {
-		return fmt.Sprintf("may hold at most %d interests, not %d", MaxInterests, len(interests))
+		return Broken{CodeTooMany, fmt.Sprintf("may hold at most %d interests, not %d", MaxInterests, len(interests))}
 	}
 	for _, interest := range interests {
 		if count := utf8.RuneCountInString(interest); count == 0 || count > MaxInterest {
-			return fmt.Sprintf("must each be 1 to %d characters; one is %d", MaxInterest, count)
+			return Broken{CodeEntryLength, fmt.Sprintf("must each be 1 to %d characters; one is %d", MaxInterest, count)}
 		}
 	}
-	return ""
+	return Broken{}
 }
 
-func notesRule(notes string) string {
+func notesRule(notes string) Broken {
 	if count := utf8.RuneCountInString(notes); count > MaxNotes {
-		return fmt.Sprintf("must be at most %d characters, not %d", MaxNotes, count)
+		return Broken{CodeTooLong, fmt.Sprintf("must be at most %d characters, not %d", MaxNotes, count)}
 	}
-	return ""
+	return Broken{}
 }
 
-func pseudonymRule(pseudonym string) string {
+func pseudonymRule(pseudonym string) Broken {
 	switch count := utf8.RuneCountInString(pseudonym); {
 	case count == 0:
-		return "is required, and is what the child is called: never a real name"
+		return Broken{CodeRequired, "is required, and is what the child is called: never a real name"}
 	case count > MaxPseudonym:
-		return fmt.Sprintf("must be at most %d characters, not %d", MaxPseudonym, count)
+		return Broken{CodeTooLong, fmt.Sprintf("must be at most %d characters, not %d", MaxPseudonym, count)}
 	case strings.ContainsFunc(pseudonym, unicode.IsControl):
-		return "must not carry control characters"
+		return Broken{CodeControlCharacters, "must not carry control characters"}
 	}
-	return ""
+	return Broken{}
 }
 
-func languageRule(language *string) string {
+func languageRule(language *string) Broken {
 	switch {
 	case language == nil:
-		return ""
+		return Broken{}
 	case *language == "":
-		return "is null to follow the chat's language, never an empty text"
+		return Broken{CodeEmptyText, "is null to follow the chat's language, never an empty text"}
 	}
 	if count := utf8.RuneCountInString(*language); count > MaxLanguageTag {
-		return fmt.Sprintf("must be at most %d characters, not %d", MaxLanguageTag, count)
+		return Broken{CodeTooLong, fmt.Sprintf("must be at most %d characters, not %d", MaxLanguageTag, count)}
 	}
-	return ""
+	return Broken{}
 }

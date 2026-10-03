@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 
@@ -155,7 +156,7 @@ func callOn(t *testing.T, p *profile.Profile, tool, arguments string) map[string
 		Traces:              tracenoop.NewTracerProvider(),
 		Logger:              zap.New(core),
 		Widget:              page,
-	}, service.TaskTools()...)
+	}, slices.Concat(service.ProfileTools(), service.TaskTools())...)
 	if err != nil {
 		t.Fatalf("NewHandler() error = %v, want nil", err)
 	}
@@ -240,6 +241,40 @@ func FuzzAnswerArguments(f *testing.F) {
 
 		if line := callOn(t, p, "submit_answer", arguments); line["outcome"] == "failed" {
 			t.Errorf("submit_answer(%q) failed as ours: %v", arguments, line)
+		}
+	})
+}
+
+// The form on a card sends what the adult typed, with a host between: whatever
+// arrives is answered — the change written, refused field by field, or
+// arguments that do not fit — and never as a failure of ours, which is how a
+// change let through that the file could not be written as would show.
+func FuzzEditArguments(f *testing.F) {
+	for _, seed := range []string{
+		`{"pseudonym":"Comet"}`,
+		`{"grade":4,"interests":["space","robots"]}`,
+		`{"excluded_skills":["fractions","calculus"]}`,
+		`{"ui_language":"pt-br"}`,
+		`{"ui_language":""}`,
+		`{"pseudonym":"\tOtter\n","interests":["",""]}`,
+		`{"grade":"three"}`,
+		`{"notes":"Loves comets."}`,
+		`{"start_over":true}`,
+		`{}`,
+	} {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, arguments string) {
+		if !json.Valid([]byte(arguments)) {
+			quoted, err := json.Marshal(arguments)
+			if err != nil {
+				t.Fatalf("quoting the arguments: %v", err)
+			}
+			arguments = string(quoted)
+		}
+		if line := callOn(t, fuzzProfile(t), "edit_profile", arguments); line["outcome"] == "failed" {
+			t.Errorf("edit_profile(%q) failed as ours: %v", arguments, line)
 		}
 	})
 }
