@@ -40,16 +40,50 @@ import { TaskResult } from "./TaskResult";
 import { type Key, useWords } from "./words";
 
 /**
- * TaskCard is the card a task is handed to the child on. The child answers by
- * pressing an option or "I don't know", which records the answer straight
- * away, and reads the result below the task, in the same card; opens the hint;
- * asks for another task, which goes to the chat for the model to write — the
- * new task comes in a card of its own, below, and this one says so and keeps
- * its task; and opens the progress in the card and comes back to the task as
- * it was left.
+ * TaskCard is the card a task is handed to the child on: the task, in the
+ * frame every card of a lesson has, which opens the progress in the card and
+ * comes back to the task as it was left.
  */
 export function TaskCard({ handed, host }: { handed: HandedTask; host: Host }) {
-	const { task, child } = handed;
+	const words = useWords();
+	return (
+		<CardFrame
+			child={handed.child}
+			back={words.text("progress.back")}
+			host={host}
+		>
+			{(wide, whose) => (
+				<TaskInCard
+					handed={handed}
+					host={host}
+					wide={wide}
+					grade={whose?.grade}
+				/>
+			)}
+		</CardFrame>
+	);
+}
+
+/**
+ * TaskInCard is a task inside the frame of the card it is on, under the
+ * card's header with the grade given. The child answers by pressing an option
+ * or "I don't know", which records the answer straight away, and reads the
+ * result below the task, in the same card; opens the hint; and asks for
+ * another task, which goes to the chat for the model to write — the new task
+ * comes in a card of its own, below, and this one says so and keeps its task.
+ */
+export function TaskInCard({
+	handed,
+	host,
+	wide,
+	grade,
+}: {
+	handed: HandedTask;
+	host: Host;
+	wide: boolean;
+	grade: number | undefined;
+}) {
+	const { task } = handed;
 	const words = useWords();
 	const [lesson, dispatch] = useReducer(next, lessonStart);
 	const another = useChatRequest(host);
@@ -97,47 +131,43 @@ export function TaskCard({ handed, host }: { handed: HandedTask; host: Host }) {
 	const inTask: Said = { lang: task.language, dir: directionOf(task.language) };
 
 	return (
-		<CardFrame child={child} back={words.text("progress.back")} host={host}>
-			{(wide, whose) => (
-				<>
-					<article aria-label={words.text("task.label")}>
-						<CardHeader grade={whose?.grade} wide={wide} />
-						<TaskBody
-							handed={handed}
+		<>
+			<article aria-label={words.text("task.label")}>
+				<CardHeader grade={grade} wide={wide} />
+				<TaskBody
+					handed={handed}
+					lesson={lesson}
+					inTask={inTask}
+					onAnswer={answer}
+				/>
+			</article>
+			<section
+				class="mt-replies"
+				aria-label={words.text("task.replies")}
+				aria-live="polite"
+			>
+				{isOver(lesson.answer) && (
+					<div ref={outcome} tabIndex={-1}>
+						<Outcome answer={lesson.answer} task={task} inTask={inTask} />
+					</div>
+				)}
+			</section>
+			{lesson.answer.state !== "closed" && (
+				<div class="mt-foot">
+					<div class="mt-btns">
+						<TaskActions
 							lesson={lesson}
-							inTask={inTask}
-							onAnswer={answer}
+							another={another.state}
+							nextTask={nextTask}
+							onDontKnow={() => answer(dontKnow)}
+							onHint={() => dispatch({ type: "hint toggled" })}
+							onAnother={askForAnother}
 						/>
-					</article>
-					<section
-						class="mt-replies"
-						aria-label={words.text("task.replies")}
-						aria-live="polite"
-					>
-						{isOver(lesson.answer) && (
-							<div ref={outcome} tabIndex={-1}>
-								<Outcome answer={lesson.answer} task={task} inTask={inTask} />
-							</div>
-						)}
-					</section>
-					{lesson.answer.state !== "closed" && (
-						<div class="mt-foot">
-							<div class="mt-btns">
-								<TaskActions
-									lesson={lesson}
-									another={another.state}
-									nextTask={nextTask}
-									onDontKnow={() => answer(dontKnow)}
-									onHint={() => dispatch({ type: "hint toggled" })}
-									onAnother={askForAnother}
-								/>
-							</div>
-							<RequestNote state={another.state} taken="task.another_coming" />
-						</div>
-					)}
-				</>
+					</div>
+					<RequestNote state={another.state} taken="task.another_coming" />
+				</div>
 			)}
-		</CardFrame>
+		</>
 	);
 }
 

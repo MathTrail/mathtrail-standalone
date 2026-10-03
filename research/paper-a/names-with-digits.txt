@@ -1,0 +1,15 @@
+# Names in paper A that carry digits of their own, so that the check for
+# numbers typed by hand lets them through: one regular expression a line.
+# A name here is never a number of the paper.
+
+# The research questions.
+RQ[12]
+# The defect classes and operators of the experiment with injected defects.
+\b[DX][0-9]{2}[ab]?\b
+# The rating system, the cipher, the models and the law's article.
+Glicko-2
+XChaCha20-Poly1305
+GPT-4
+claude-opus-5-5
+Claude Sonnet 5
+Article~8

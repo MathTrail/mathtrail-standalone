@@ -123,7 +123,7 @@ var scenarios = map[string]scenario{
 		lasts:    func(o *Options) time.Duration { return o.Duration },
 	},
 	Limits: {
-		// A child calling three times a second is six times the pace of an
+		// A child calling three times a second is three times the pace of an
 		// account, and an address fetching as often nine times the pace of an
 		// address; three other children walk lessons of two tasks, and three
 		// quiet addresses fetch once every five seconds, well within theirs,

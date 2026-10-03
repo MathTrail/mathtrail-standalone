@@ -1,0 +1,32 @@
+# A clone of the prototype's public repository, which the evidence ledger reads
+# its proofs from; it is recreated whenever it is missing.
+/.cache/
+
+# The paper's build output, made anew by `just research paper-a`.
+/paper-a/build/
+
+# The binaries `go build` leaves where it is run: the research's tools are run
+# with `go run`, and a built one is never kept.
+/citecheck
+/ledger
+/macros
+/isolation
+/tools/*/citecheck
+/tools/*/ledger
+/tools/*/macros
+/tools/*/isolation
+/faultinject
+/learnersim
+
+# Copies of local files the repository keeps out — the product's planning
+# documents and the prototype's — kept as this machine's memory of what they
+# said, never as evidence.
+/archive/
+
+# The numbers the paper prints, written anew from the results by every build of
+# the paper and of the artifact.
+/paper-a/generated/
+
+# The artifact as it is assembled and unpacked, made anew by
+# `just research release`.
+/release/build/

@@ -21,6 +21,7 @@ import {
 	inTrial,
 	limited,
 	longTexts,
+	notComing,
 	profileRead,
 	profileRefused,
 	progress,
@@ -29,12 +30,13 @@ import {
 	staleWait,
 	standing,
 	standingBefore,
+	writing,
 } from "../widget/testing/lesson";
 
 /**
  * Scene is one state of a lesson on a card: the payload the card is drawn
- * from — a task handed to it, or a card a task did not come to — or, for a
- * task caught being handed in, how far its call has got; what the service
+ * from — a task handed to it, a task on its way, or a card a task did not come
+ * to — or, for a task caught being asked for, how far its call has got; what the service
  * answers the card's calls with, whether the host takes its messages, what
  * the host keeps of the screen's edges, and what the child does on the card
  * to reach the state.
@@ -193,9 +195,29 @@ export function scenesIn(language: string): Scene[] {
 			refuseMessages: true,
 			play: button(2),
 		},
-		{ name: "a task being written", caught: "started" },
-		{ name: "a task being checked", caught: "running" },
-		{ name: "a task not finished", caught: "cancelled" },
+		{ name: "a task being asked for", caught: "started" },
+		{ name: "a task asked for, then stopped", caught: "cancelled" },
+		{
+			name: "a task being written",
+			payload: comingFor(handed),
+			answers: () => Promise.resolve(writing()),
+		},
+		{
+			name: "a try turned down, a new one being written",
+			payload: comingFor(handed),
+			answers: () => Promise.resolve(writing(1)),
+		},
+		{
+			name: "the task come to the card that waited",
+			payload: comingFor(handed),
+			answers: () =>
+				Promise.resolve({ content: [], structuredContent: { ...handed } }),
+		},
+		{
+			name: "a card drawn again, its task no longer here",
+			payload: comingFor(handed),
+			answers: () => Promise.resolve(notComing),
+		},
 		{
 			name: "a try that did not pass",
 			payload: { ...refused, child: handed.child },
@@ -395,6 +417,18 @@ function rankedAt(topic: string, at: number) {
 		correct: 4,
 		mastered: at % 3 === 0,
 		skipped: at % 5 === 0 ? 2 : 0,
+	};
+}
+
+// comingFor is the card a task asked for comes to, for the child the task
+// given is for. It names no language of the lesson, so that its words are in
+// the language the preview shows, as the words of a task's card are.
+function comingFor(handed: typeof fence) {
+	return {
+		screen: "coming",
+		request_id: "req_preview",
+		child: handed.child,
+		last_answer: null,
 	};
 }
 

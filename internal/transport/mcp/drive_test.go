@@ -92,7 +92,8 @@ func costOf(t *testing.T, fake *drivetest.Drive, session *mcp.ClientSession, too
 // found the parent's file and on one that remembers it: a read is one call
 // once the file is known, and a write reads the file, reads it once more to be
 // sure nothing changed it in between, and writes it. A whole task — asked for,
-// handed in, answered — is nine calls on a warm instance. The profile's own
+// its package fetched, handed in, answered — is ten calls on a warm instance,
+// and each look the card waiting for it takes is one more. The profile's own
 // tool and the progress also say where the file is, which takes a search and
 // the folder's name.
 func TestEveryToolStaysWithinItsDriveBudget(t *testing.T) {
@@ -141,6 +142,11 @@ func TestEveryToolStaysWithinItsDriveBudget(t *testing.T) {
 	p, _, err := warm.kept.Load(t.Context(), parent)
 	if err != nil || p.OpenRequest == nil {
 		t.Fatalf("Load() = %v, %v, want the request next_task opened", p, err)
+	}
+	for _, tool := range []string{"get_package", "read_task"} {
+		if got := costOf(t, fake, session, tool, map[string]any{"request_id": p.OpenRequest.ID}); !maps.Equal(got, read) {
+			t.Errorf("%s on a warm instance cost %v, want %v", tool, got, read)
+		}
 	}
 	if got := costOf(t, fake, session, "submit_task", raceOn(p.OpenRequest)); !maps.Equal(got, write) {
 		t.Errorf("submit_task on a warm instance cost %v, want %v", got, write)

@@ -476,8 +476,8 @@ func TestAWrongAnswerIsGoneOverAgainWithItsTrapFirst(t *testing.T) {
 	answerIt(t, session, p.CurrentTask.ID, "A", false)
 
 	var brief profile.Brief
-	asked := call(t, session, "next_task", map[string]any{"language": "en"})
-	if err := json.Unmarshal(packageIn(t, textOf(t, asked))["brief"], &brief); err != nil {
+	asked := wantComing(t, call(t, session, "next_task", map[string]any{"language": "en"}))
+	if err := json.Unmarshal(packageIn(t, fetchPackage(t, session, asked.RequestID))["brief"], &brief); err != nil {
 		t.Fatalf("the package carries no brief: %v", err)
 	}
 	if brief.PedagogicalGoal != profile.GoalReinforce || brief.TargetConcept != "logic.ordering" ||

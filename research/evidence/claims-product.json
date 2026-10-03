@@ -1,0 +1,2192 @@
+[
+  {
+    "id": "C001",
+    "group": "Architecture",
+    "claim": "The product is one Go module, built with Go 1.27.1.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "go.mod",
+        "match": "^go 1\\.27\\.1$"
+      }
+    ],
+    "used_in": "A: §3 system"
+  },
+  {
+    "id": "C002",
+    "group": "Architecture",
+    "claim": "The service is one stateless Go binary on Cloud Run with no database: the child's profile is kept in the parent's Drive, or in the process's memory for development.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "CLAUDE.md",
+        "match": "one stateless Go binary on Google Cloud Run, with no database"
+      },
+      {
+        "file": "infra/terraform/service.tf",
+        "match": "^resource \"google_cloud_run_v2_service\" \"service\" \\{$"
+      },
+      {
+        "file": "internal/store/store.go",
+        "match": "^// Where the file actually lives — in the parent's own Drive, or in the memory$"
+      }
+    ],
+    "used_in": "A: §3 system, §8 discussion"
+  },
+  {
+    "id": "C003",
+    "group": "Architecture",
+    "claim": "The service makes no LLM API calls of its own; the chat's model writes every task. No module of a model provider's SDK is among the product's dependencies, and no model API's host is named in its code.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "CLAUDE.md",
+        "match": "makes no LLM API calls of its own"
+      },
+      {
+        "file": "README.md",
+        "match": "^2\\. The chat's model writes the task\\."
+      },
+      {
+        "stat": "llm_sdk_modules",
+        "expect": "0"
+      },
+      {
+        "stat": "llm_api_hosts_in_code",
+        "expect": "0"
+      }
+    ],
+    "used_in": "A: §3 system, §6 evaluation, §8 discussion"
+  },
+  {
+    "id": "C004",
+    "group": "Architecture",
+    "claim": "The HTTP server answers the MCP endpoint /mcp, the endpoints of the service's own authorization server — discovery, registration, authorization, consent, Google's callback, tokens and revocation — and /health.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/transport/http/router.go",
+        "match": "router\\.Match\\(\\[\\]string\\{http\\.MethodGet, http\\.MethodPost\\}, \"/mcp\","
+      },
+      {
+        "file": "internal/transport/http/router.go",
+        "match": "documents\\.GET\\(\"/\\.well-known/oauth-authorization-server\""
+      },
+      {
+        "file": "internal/transport/http/router.go",
+        "match": "browser\\.GET\\(\"/oauth/authorize\""
+      },
+      {
+        "file": "internal/transport/http/router.go",
+        "match": "renewals\\.POST\\(\"/oauth/token\""
+      },
+      {
+        "file": "internal/transport/http/router.go",
+        "match": "router\\.GET\\(\"/health\""
+      }
+    ],
+    "used_in": "A, extended version only: §3 system"
+  },
+  {
+    "id": "C005",
+    "group": "Architecture",
+    "claim": "Cloud Run is configured for at most 3 instances, 80 concurrent requests each, 1 vCPU, 1 GiB and a 60 s request timeout.",
+    "status": "built",
+    "evidence": [
+      {
+        "stat": "cloud_run_max_instances",
+        "expect": "3"
+      },
+      {
+        "stat": "cloud_run_concurrency",
+        "expect": "80"
+      },
+      {
+        "stat": "cloud_run_cpu",
+        "expect": "1"
+      },
+      {
+        "stat": "cloud_run_memory",
+        "expect": "1Gi"
+      },
+      {
+        "stat": "cloud_run_request_timeout",
+        "expect": "60s"
+      },
+      {
+        "file": "infra/terraform/service.tf",
+        "match": "^ +max_instance_count = var\\.max_instances$"
+      },
+      {
+        "file": "infra/terraform/service.tf",
+        "match": "^ +max_instance_request_concurrency = var\\.concurrency$"
+      },
+      {
+        "file": "infra/terraform/service.tf",
+        "match": "^ +cpu +?= var\\.cpu$"
+      },
+      {
+        "file": "infra/terraform/service.tf",
+        "match": "^ +memory = var\\.memory$"
+      },
+      {
+        "file": "infra/terraform/service.tf",
+        "match": "^ +timeout +?= var\\.request_timeout$"
+      }
+    ],
+    "used_in": "A: §3 system"
+  },
+  {
+    "id": "C006",
+    "group": "Architecture",
+    "claim": "The content (catalogs, reference tasks, instructions, schemas, solver templates, drawing frames) is embedded in the binary.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "content/content.go",
+        "match": "^//go:embed catalogs drawings examples instructions schemas solvers$"
+      }
+    ],
+    "used_in": "A, extended version only: §3 system"
+  },
+  {
+    "id": "C007",
+    "group": "Architecture",
+    "claim": "The instructions version is a prefix of a SHA-256 over the instructions, and it travels with every package.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "content/instructions.go",
+        "match": "return hex\\.EncodeToString\\(sum\\.Sum\\(nil\\)\\)\\[:versionLength\\]"
+      },
+      {
+        "file": "content/package.go",
+        "match": "^\\tInstructionsVersion string +`json:\"instructions_version\"`$"
+      }
+    ],
+    "used_in": "A, extended version only: §3 system"
+  },
+  {
+    "id": "C008",
+    "group": "Architecture",
+    "claim": "A test holds every package a profile allows to a budget of 64 KB, so nothing has to be dropped from one to meet it; the service does not enforce the budget at run time.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "content/package.go",
+        "match": "^const PackageBudget = 64 \\* 1024$"
+      },
+      {
+        "file": "content/package.go",
+        "match": "^// test holds every such package to it, so nothing is ever left out of a$"
+      },
+      {
+        "file": "SPEC.md",
+        "match": "^\\*\\*The budget is 64 KB, and nothing is dropped to meet it\\*\\*"
+      }
+    ],
+    "used_in": "A: §3 system"
+  },
+  {
+    "id": "C067",
+    "group": "Architecture",
+    "claim": "The product is released under the MIT license.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "LICENSE",
+        "match": "^MIT License$"
+      }
+    ],
+    "used_in": "A: §1 introduction, §8 discussion"
+  },
+  {
+    "id": "C068",
+    "group": "Architecture",
+    "claim": "Every card is drawn by one MCP Apps resource, ui://mathtrail/app.html: a single HTML page with its dictionaries inlined, whose content security policy names no outside domain, which MCP Apps reads as no external connections.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/transport/mcp/widget.go",
+        "match": "^const WidgetURI = \"ui://mathtrail/app\\.html\"$"
+      },
+      {
+        "file": "internal/transport/mcp/widget.go",
+        "match": "\"connectDomains\": +\\[\\]string\\{\\},"
+      },
+      {
+        "file": "SPEC.md",
+        "match": "^The empty CSP is worth stating as a property rather than a setting"
+      }
+    ],
+    "used_in": "A: §3 system"
+  },
+  {
+    "id": "C062",
+    "group": "Architecture",
+    "claim": "The MCP endpoint speaks the protocol over Streamable HTTP without sessions, 2026-07-28 being the newest version it speaks: every request carries what the server needs, so any instance can answer any request.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/transport/mcp/server.go",
+        "match": "^\\t+Stateless: +true,$"
+      },
+      {
+        "file": "internal/transport/mcp/server.go",
+        "match": "^// The protocol is served without sessions\\. Every request carries what the$"
+      },
+      {
+        "file": "internal/transport/mcp/endpoint_test.go",
+        "match": "^func TestTheNewestProtocolIsSpokenAndOlderOnesAreAnswered\\("
+      }
+    ],
+    "used_in": "A: §3 system, §8 discussion; S04 (premise 8)"
+  },
+  {
+    "id": "C063",
+    "group": "Architecture",
+    "claim": "The product's design is drawn as Mermaid diagrams — its context, sign-in and tokens, the tool flows with the task's state machine, the profile file and its storage in Drive — and its implementation decisions are logged from R01 on.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "docs/architecture/01-context.md",
+        "match": "^# 01\\. Context diagram$"
+      },
+      {
+        "file": "docs/architecture/02-auth.md",
+        "match": "^# 02\\. Sign-in and tokens$"
+      },
+      {
+        "file": "docs/architecture/03-flows.md",
+        "match": "^# 03\\. Tool flows and the task state machine$"
+      },
+      {
+        "file": "docs/architecture/04-profile.md",
+        "match": "^# 04\\. The profile file: what is in it$"
+      },
+      {
+        "file": "docs/architecture/05-storage.md",
+        "match": "^# 05\\. The profile in Drive$"
+      },
+      {
+        "file": "docs/decisions.md",
+        "match": "^\\*\\*R01\\. "
+      }
+    ],
+    "used_in": "not in paper A; S04 (premise 10)"
+  },
+  {
+    "id": "C009",
+    "group": "Learner model",
+    "claim": "The chance of a correct answer is P = 0.2 + 0.8·σ(θ + δ_topic − β): a Rasch model with a guessing floor of 0.2 for five options.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "SPEC.md",
+        "match": "^## 2\\.1 The model$"
+      },
+      {
+        "file": "internal/domain/rating/rating.go",
+        "match": "^const Guess = 0\\.2$"
+      },
+      {
+        "file": "internal/domain/rating/rating.go",
+        "match": "^func Probability\\(level, beta float64\\) float64 \\{$"
+      },
+      {
+        "file": "internal/domain/solver/options.go",
+        "match": "^const letters = \"ABCDE\"$"
+      }
+    ],
+    "used_in": "A: §5 learner model"
+  },
+  {
+    "id": "C010",
+    "group": "Learner model",
+    "claim": "Every task stands on one ladder for grades 1–6: its β is the shift of its grade level plus (d − 3), for a difficulty d of 1–5, with shifts 0, 2.5 and 5 for grades 1–2, 3–4 and 5–6, so the two hardest difficulties of a level overlap the two easiest of the next. The step of 2.5 is a guess nothing has measured yet.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/rating/ladder.go",
+        "match": "^\\tlevelShift = 2\\.5$"
+      },
+      {
+        "file": "internal/domain/rating/ladder.go",
+        "match": "^\\treturn levelShift \\* float64\\(place\\)$"
+      },
+      {
+        "file": "internal/domain/rating/ladder.go",
+        "match": "^\\treturn p\\.GradeLevel\\.Shift\\(\\) \\+ float64\\(p\\.Difficulty-middleDifficulty\\)$"
+      },
+      {
+        "file": "internal/domain/rating/rating.go",
+        "match": "^\\tmiddleDifficulty *= 3$"
+      },
+      {
+        "file": "internal/domain/rating/ladder.go",
+        "match": "^\\t// Nothing has measured it yet, and the first children are what test it\\.$"
+      }
+    ],
+    "used_in": "A: §5 learner model, §6 evaluation"
+  },
+  {
+    "id": "C011",
+    "group": "Learner model",
+    "claim": "After the trial series, each answer moves θ by K_θ·(S − P) and δ by K_δ·(S − P), Elo-style, with K = K₀/(1 + 0.05·n): for θ, K₀ = 0.2 and n is the child's answers so far, the trial answers included; for δ, K₀ = 0.4 and n is the answers so far in that topic.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/rating/rating.go",
+        "match": "^\\tk0Theta = 0\\.2$"
+      },
+      {
+        "file": "internal/domain/rating/rating.go",
+        "match": "^\\tk0Delta = 0\\.4$"
+      },
+      {
+        "file": "internal/domain/rating/rating.go",
+        "match": "^\\tdecay = 0\\.05$"
+      },
+      {
+        "file": "internal/domain/rating/rating.go",
+        "match": "^func Update\\(s State, beta float64, correct bool\\) Result \\{$"
+      },
+      {
+        "file": "internal/domain/rating/rating.go",
+        "match": "^\tkTheta, kDelta := step\\(k0Theta, s\\.Answers\\), step\\(k0Delta, s\\.TopicAnswers\\)$"
+      },
+      {
+        "file": "internal/domain/profile/answer.go",
+        "match": "^\\t\\tupdated := rating\\.Update\\(before, point\\.Beta\\(\\), correct\\)$"
+      }
+    ],
+    "used_in": "A: §5 learner model"
+  },
+  {
+    "id": "C012",
+    "group": "Learner model",
+    "claim": "Only correctness enters the update: \"I don't know\" counts as a wrong answer, and neither the hint nor the pace enters.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/rating/rating.go",
+        "match": "^func Update\\(s State, beta float64, correct bool\\) Result \\{$"
+      },
+      {
+        "file": "internal/domain/profile/answer.go",
+        "match": "^// DontKnow is the answer \"I don't know\"\\. The card shows the solution for it,$"
+      }
+    ],
+    "used_in": "A: §5 learner model"
+  },
+  {
+    "id": "C013",
+    "group": "Learner model",
+    "claim": "Task difficulty β enters each update as an argument and is neither updated nor stored: every task is written for one child and never handed out again.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/rating/rating.go",
+        "match": "^func Update\\(s State, beta float64, correct bool\\) Result \\{$"
+      },
+      {
+        "file": "internal/domain/rating/rating.go",
+        "match": "^type State struct \\{$"
+      },
+      {
+        "file": "SPEC.md",
+        "match": "^\\*\\*β is not updated in v1\\.\\*\\*"
+      }
+    ],
+    "used_in": "A: §2 related work, §5 learner model"
+  },
+  {
+    "id": "C014",
+    "group": "Learner model",
+    "claim": "The target corridor is P ∈ [0.70, 0.85]. The recommended point is the one of the topic's points — every difficulty of every level the topic is taught at — whose P is closest to the corridor's middle, 0.775, the easier of two equally close on either side of the middle, marked inside, harder or easier than the corridor.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/rating/corridor.go",
+        "match": "^\\tcorridorLow  = 0\\.70$"
+      },
+      {
+        "file": "internal/domain/rating/corridor.go",
+        "match": "^\\tcorridorHigh = 0\\.85$"
+      },
+      {
+        "file": "internal/domain/rating/corridor.go",
+        "match": "^\\tCorridorMiddle = \\(corridorLow \\+ corridorHigh\\) / 2$"
+      },
+      {
+        "file": "internal/domain/rating/corridor.go",
+        "match": "^func NewCorridor\\(level float64, points \\[\\]Point\\) Corridor \\{$"
+      },
+      {
+        "file": "internal/domain/rating/corridor.go",
+        "match": "^\\t\\tif from < best \\|\\| from == best && probability > CorridorMiddle \\{$"
+      },
+      {
+        "file": "internal/domain/tutor/tutor.go",
+        "match": "^\\treturn rating\\.Points\\(catalog\\.LevelsOf\\(topic\\)\\.\\.\\.\\)$"
+      }
+    ],
+    "used_in": "A: §3 system, §5 learner model, §6 evaluation"
+  },
+  {
+    "id": "C015",
+    "group": "Learner model",
+    "claim": "A topic is mastered once it has at least 5 answers and at least 3 qualifying answers since its last wrong one: correct, on a task whose P was at most 0.775, and without the hint. A correct answer that does not qualify neither adds to the run nor breaks it. Mastery is lost after 2 wrong answers in a row.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/profile/answer.go",
+        "match": "^\\tMasteryAnswers = 5$"
+      },
+      {
+        "file": "internal/domain/profile/answer.go",
+        "match": "^\\tMasteryStreak = 3$"
+      },
+      {
+        "file": "internal/domain/profile/answer.go",
+        "match": "^\\tMasteryLostAfter = 2$"
+      },
+      {
+        "file": "internal/domain/profile/answer.go",
+        "match": "^// easy task leaves the run where it is rather than adding to it"
+      }
+    ],
+    "used_in": "A: §5 learner model, §7 limitations"
+  },
+  {
+    "id": "C016",
+    "group": "Learner model",
+    "claim": "The child sees a chess-style number, R = 1500 + (400/ln 10)·level, on one scale for every child, and one of eleven ranks, each a corridor — 166 points — wide. Neither is shown during the trial series.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/rating/scale.go",
+        "match": "^\\teloBase  = 1500$"
+      },
+      {
+        "file": "internal/domain/rating/scale.go",
+        "match": "^\\teloScale = 400 / math\\.Ln10$"
+      },
+      {
+        "file": "internal/domain/rating/scale.go",
+        "match": "^\\trankStep = 166$"
+      },
+      {
+        "file": "internal/domain/rating/scale.go",
+        "match": "^const Ranks = 11$"
+      },
+      {
+        "file": "SPEC.md",
+        "match": "^\\*\\*During the trial series neither is shown\\.\\*\\*"
+      }
+    ],
+    "used_in": "A, extended version only: §5 learner model, §8 discussion"
+  },
+  {
+    "id": "C017",
+    "group": "Learner model",
+    "claim": "An answer is tagged fast under one minute and slow over three minutes.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/profile/answer.go",
+        "match": "^\\tfastAnswer = time\\.Minute$"
+      },
+      {
+        "file": "internal/domain/profile/answer.go",
+        "match": "^\\tslowAnswer = 3 \\* time\\.Minute$"
+      }
+    ],
+    "used_in": "no paper: paper A leaves the pace out (Q49); paper B, which used it, left the plan (Q60)"
+  },
+  {
+    "id": "C065",
+    "group": "Learner model",
+    "claim": "The grade sets only the start: a child begins at the shift of the level the grade falls into, and a grade changed later moves no rating. The rule never reads the grade.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/rating/ladder.go",
+        "match": "^func Start\\(grade int\\) float64 \\{$"
+      },
+      {
+        "file": "internal/domain/profile/student.go",
+        "match": "^\\t// Grade is the school year, 1 to 6\\. It decides where the child starts on$"
+      },
+      {
+        "file": "internal/domain/tutor/tutor.go",
+        "match": "^// child's grade either: the grade decided where the child started, and from$"
+      },
+      {
+        "file": "internal/transport/mcp/profile_test.go",
+        "match": "^func TestALaterGradeMovesNoRating\\("
+      }
+    ],
+    "used_in": "A: §5 learner model"
+  },
+  {
+    "id": "C018",
+    "group": "Task selection",
+    "claim": "A deterministic rule suggests the brief — goal, topic, grade level, difficulty, setting, traps — from the profile alone.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/tutor/tutor.go",
+        "match": "^func Next\\(p \\*profile\\.Profile, catalog Catalog, choice Choice\\) \\(profile\\.Brief, profile\\.TutorMode, error\\) \\{$"
+      },
+      {
+        "file": "internal/domain/tutor/tutor.go",
+        "match": "^// Nothing here is random and nothing here is a model: the same profile always$"
+      }
+    ],
+    "used_in": "A: §3 system"
+  },
+  {
+    "id": "C019",
+    "group": "Task selection",
+    "claim": "Outside the trial series, after a failure the goal is to reinforce the topic of the last answer while it stays within reach; otherwise it is a new topic within reach and not mastered, one never given first, then the one given longest ago, ties going to the topic first in the catalog's order. In the trial series every task takes a new topic.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/tutor/tutor.go",
+        "match": "^\\t\\t\\t\\treturn last\\.Topic, profile\\.GoalReinforce, failureBehind\\("
+      },
+      {
+        "file": "internal/domain/tutor/tutor.go",
+        "match": "^\\tcase p\\.Ratings\\.InTrial\\(\\):$"
+      },
+      {
+        "file": "internal/domain/tutor/tutor.go",
+        "match": "^\\ttopic = oldest\\(p, candidates\\)$"
+      },
+      {
+        "file": "internal/domain/tutor/tutor.go",
+        "match": "^\\t\\tif waitedLonger\\(p, topic, best\\) \\{$"
+      },
+      {
+        "file": "internal/domain/tutor/tutor.go",
+        "match": "^\\t\\treturn false // both untouched: catalog order already settled it$"
+      },
+      {
+        "file": "internal/domain/tutor/tutor.go",
+        "match": "^\\tfor _, topic := range catalog\\.TopicIDs\\(\\) \\{$"
+      }
+    ],
+    "used_in": "A: §5 learner model"
+  },
+  {
+    "id": "C020",
+    "group": "Task selection",
+    "claim": "The brief asks for two traps: the child's most frequent in the topic, topped up from the most frequent of the topic's reference tasks at the brief's level, then at the levels nearest it.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/tutor/traps.go",
+        "match": "^func traps\\(p \\*profile\\.Profile, topic string, level rating\\.GradeLevel, catalog Catalog\\) \\[\\]string \\{$"
+      },
+      {
+        "file": "internal/domain/tutor/traps.go",
+        "match": "^func ownTraps\\("
+      },
+      {
+        "file": "internal/domain/tutor/tutor.go",
+        "match": "^const Traps = 2$"
+      }
+    ],
+    "used_in": "A: §3 system"
+  },
+  {
+    "id": "C070",
+    "group": "Task selection",
+    "claim": "A mastered topic leaves the rotation; once every topic within reach is mastered, all of them come back into it.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/tutor/tutor.go",
+        "match": "^\\tallMastered := len\\(candidates\\) == 0$"
+      },
+      {
+        "file": "internal/domain/tutor/tutor.go",
+        "match": "^\\t\\tcandidates = open$"
+      }
+    ],
+    "used_in": "A: §5 learner model, §7 limitations"
+  },
+  {
+    "id": "C073",
+    "group": "Task selection",
+    "claim": "The package the model writes from holds the brief, the corridor, the topic, every trap, the skills the task may not use, three reference tasks, the topic's solver templates and drawing frames, the limits the task is held to, the guide to writing it and the version of the instructions — and no pseudonym.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "content/package.go",
+        "match": "^// JSON it receives: the brief, the corridor, the topic, every trap, what the$"
+      },
+      {
+        "file": "content/package.go",
+        "match": "^// task may not use, the child, three reference tasks, the solver templates and$"
+      },
+      {
+        "file": "content/package.go",
+        "match": "^// There is no pseudonym in it, because the request has none to give: a task$"
+      }
+    ],
+    "used_in": "A: §3 system"
+  },
+  {
+    "id": "C021",
+    "group": "Verification",
+    "claim": "A submitted task is refused with one of nine codes: bad_structure, distractor_explanations, drawing_format, drawing_mismatch, readability, solver_error, solver_disagrees, self_check_blocking, near_duplicate.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/checks/checks.go",
+        "match": "CodeBadStructure Code = \"bad_structure\""
+      },
+      {
+        "file": "internal/domain/checks/checks.go",
+        "match": "CodeNearDuplicate Code = \"near_duplicate\""
+      },
+      {
+        "stat": "check_codes",
+        "expect": "9"
+      }
+    ],
+    "used_in": "A: §4 verification"
+  },
+  {
+    "id": "C022",
+    "group": "Verification",
+    "claim": "The review runs in two halves: Examine decodes the task and runs the solver before the profile is read; Judge runs every check that has its input, and notes a check whose input is missing as not run rather than passed. A task is accepted when the review finds no problem; every input a check can lack — a part that can be read, the question, the structure of a drawing — is one the structure check requires, so a task with a check not run is refused in any case.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/checks/review.go",
+        "match": "^func \\(r \\*reviewer\\) Examine\\("
+      },
+      {
+        "file": "internal/domain/checks/review.go",
+        "match": "^func \\(r \\*reviewer\\) Judge\\("
+      },
+      {
+        "file": "internal/domain/checks/review.go",
+        "match": "^// told what failed\\. A check whose input is missing does not run, and is noted$"
+      },
+      {
+        "file": "internal/domain/checks/outcome.go",
+        "match": "^func \\(o \\*Outcome\\) Accepted\\(\\) bool \\{ return o\\.judged && len\\(o\\.Problems\\) == 0 \\}$"
+      },
+      {
+        "file": "internal/domain/checks/decode.go",
+        "match": "^\\t\\treturn nil, append\\(problems, structural\\(\"%s is missing\", name\\)\\)$"
+      },
+      {
+        "file": "internal/domain/checks/structure.go",
+        "match": "^\\tproblems = append\\(problems, required\\(\"task\\.question\", task\\.Question\\)\\.\\.\\.\\)$"
+      },
+      {
+        "file": "internal/domain/checks/structure.go",
+        "match": "task\\.drawing comes with task\\.drawing_structure, and it is missing"
+      }
+    ],
+    "used_in": "A: §4 verification"
+  },
+  {
+    "id": "C023",
+    "group": "Verification",
+    "claim": "The model's Starlark solver runs twice, the second time with the option labels rotated by two, and must pick the same option both times.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/solver/options.go",
+        "match": "rotated\\[\\(place\\+relabel\\)%Count\\] = text"
+      },
+      {
+        "file": "internal/domain/solver/verdict.go",
+        "match": "^func Verdict\\("
+      },
+      {
+        "file": "internal/domain/solver/options.go",
+        "match": "^const relabel = 2$"
+      }
+    ],
+    "used_in": "A: §3 system, §4 verification"
+  },
+  {
+    "id": "C024",
+    "group": "Verification",
+    "claim": "A solver run is limited to 25,000,000 steps and 2 seconds. An instance runs one solver per vCPU, and a run that waits 3 seconds for its slot does not start: the task is told it was not checked, and no attempt is spent.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/config/config.go",
+        "match": "DefaultSolverSteps *= 25_000_000"
+      },
+      {
+        "file": "internal/config/config.go",
+        "match": "DefaultSolverTimeout *= 2 \\* time\\.Second"
+      },
+      {
+        "file": "internal/config/config.go",
+        "match": "DefaultSolverConcurrency = 1$"
+      },
+      {
+        "file": "internal/config/config.go",
+        "match": "DefaultSolverWait *= 3 \\* time\\.Second"
+      },
+      {
+        "file": "infra/terraform/service.tf",
+        "match": "^ +name  = \"MATHTRAIL_SOLVER_CONCURRENCY\"$"
+      },
+      {
+        "file": "infra/terraform/service.tf",
+        "match": "^ +value = tostring\\(local\\.vcpus\\)$"
+      }
+    ],
+    "used_in": "A: §4 verification"
+  },
+  {
+    "id": "C025",
+    "group": "Verification",
+    "claim": "Under the sandbox's price of bytes, the costliest of the 603 reference solvers takes 2,413,617 steps, under a tenth of the ceiling. When the limits were first set, over the 450 solvers of grades 1–4 and before that price, the costliest took 2,081,362 steps and the slowest ran in about 35 ms; no timing of all 603 is recorded.",
+    "status": "measured",
+    "evidence": [
+      {
+        "file": "SPEC.md",
+        "match": "the worst of all 603 is 2,413,617 steps"
+      },
+      {
+        "file": "SPEC.md",
+        "match": "the costliest reference solver takes 2,081,362 steps \\(`pig-34-d4-2`\\) and the slowest run about 35 ms against 2 seconds"
+      }
+    ],
+    "used_in": "A, extended version only: §4 verification"
+  },
+  {
+    "id": "C026",
+    "group": "Verification",
+    "claim": "The verification checks the model's formalisation, not the meaning of its text: the solver is written by the same model that wrote the task.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "SPEC.md",
+        "match": "the program is written by the same model that wrote the task"
+      }
+    ],
+    "used_in": "A: §4 verification"
+  },
+  {
+    "id": "C027",
+    "group": "Verification",
+    "claim": "A question is a near-duplicate when the Jaccard index of its character trigrams with another question's is 0.7 or more. The trigrams are built from padded words exactly as PostgreSQL's pg_trgm builds them, so the measure is the prototype's; scripts written without spaces use character bigrams instead.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/checks/duplicate.go",
+        "match": "^const Threshold = 0\\.7$"
+      },
+      {
+        "file": "SPEC.md",
+        "match": "^\\*\\*The measure\\*\\* is the one the prototype used, in a form that works without a database"
+      },
+      {
+        "file": "SPEC.md",
+        "match": "^The word construction reproduces Postgres exactly"
+      }
+    ],
+    "used_in": "A: §3 system, §4 verification"
+  },
+  {
+    "id": "C028",
+    "group": "Verification",
+    "claim": "Near-duplicates are sought among the reference questions of the task's level and the child's own past tasks.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/checks/review.go",
+        "match": "references := r\\.content\\.ReferenceQuestions\\(against\\.Asked\\.GradeLevel\\)"
+      },
+      {
+        "file": "internal/domain/checks/review.go",
+        "match": "return NearDuplicate\\(task\\.Question, against\\.Language, references, against\\.Fingerprints\\)"
+      }
+    ],
+    "used_in": "A: §3 system, §4 verification, §7 limitations; E-A1 (leave-one-out)"
+  },
+  {
+    "id": "C029",
+    "group": "Verification",
+    "claim": "Past tasks are remembered only as MinHash sketches of 192 positions of four bits, 96 bytes each, at most 200 of them, with no text.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/checks/fingerprint.go",
+        "match": "^const sketchSize = 192$"
+      },
+      {
+        "file": "internal/domain/checks/fingerprint.go",
+        "match": "^const sketchBytes = sketchSize / 2$"
+      },
+      {
+        "file": "internal/domain/profile/validate.go",
+        "match": "^\\tMaxFingerprints = 200$"
+      }
+    ],
+    "used_in": "A: §4 verification, §7 limitations"
+  },
+  {
+    "id": "C030",
+    "group": "Verification",
+    "claim": "Readability is held to the task's level, not the child's grade: the longest sentence may have at most 20, 25 or 30 words — 40, 50 or 60 characters in scripts written without spaces — for levels 1–2, 3–4 and 5–6, and in English the Flesch–Kincaid grade may exceed the youngest grade of the level by at most 3.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/checks/readability.go",
+        "match": "^\\trating\\.Grades12: \\{words: 20, characters: 40\\},$"
+      },
+      {
+        "file": "internal/domain/checks/readability.go",
+        "match": "^\\trating\\.Grades34: \\{words: 25, characters: 50\\},$"
+      },
+      {
+        "file": "internal/domain/checks/readability.go",
+        "match": "^\\trating\\.Grades56: \\{words: 30, characters: 60\\},$"
+      },
+      {
+        "file": "internal/domain/checks/readability.go",
+        "match": "^const gradeMargin = 3$"
+      },
+      {
+        "file": "internal/domain/checks/readability.go",
+        "match": "FleschKincaid: +level\\.FirstGrade\\(\\) \\+ gradeMargin,"
+      }
+    ],
+    "used_in": "A: §4 verification"
+  },
+  {
+    "id": "C031",
+    "group": "Verification",
+    "claim": "A text drawing may be at most 30 cells wide and 12 lines high.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/checks/drawing.go",
+        "match": "return DrawingLimits\\{Width: 30, Height: 12, SpaceRun: 20\\}"
+      }
+    ],
+    "used_in": "A: §4 verification"
+  },
+  {
+    "id": "C032",
+    "group": "Verification",
+    "claim": "The model gets at most three attempts per request: after the third refusal the request closes and the child is handed nothing. Requests closed in failure count toward a daily ceiling of their own.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/profile/validate.go",
+        "match": "^\\tMaxAttempts = 3$"
+      },
+      {
+        "file": "internal/domain/profile/request.go",
+        "match": "^\\tif p\\.OpenRequest\\.Attempts < MaxAttempts \\{$"
+      },
+      {
+        "file": "internal/transport/mcp/task_test.go",
+        "match": "^func TestTheThirdRefusalClosesTheRequest\\("
+      },
+      {
+        "file": "internal/transport/mcp/limits.go",
+        "match": "^\\tlimitDailyFailed = \"daily_failed\"$"
+      }
+    ],
+    "used_in": "A: §3 system"
+  },
+  {
+    "id": "C071",
+    "group": "Verification",
+    "claim": "A refusal names every problem found at once, so the model can fix them all in one more attempt, and never quotes an option's letter or text: it reaches the child's widget with everything else the tool returns.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/checks/checks.go",
+        "match": "never quotes an option.s letter or its text\\. A refusal$"
+      },
+      {
+        "file": "internal/domain/checks/checks.go",
+        "match": "^// reaches the widget with everything else the tool returns, and the model$"
+      },
+      {
+        "file": "internal/domain/checks/checks.go",
+        "match": "^// reported at once, so that the model can fix all of them in one more$"
+      }
+    ],
+    "used_in": "A: §4 verification"
+  },
+  {
+    "id": "C072",
+    "group": "Verification",
+    "claim": "A submission holds the brief, the task, the model's self-check and the source of its solver. The task gives the question, five options, the key, a hint, a step-by-step solution, and for each of the four wrong options the trap it comes from and what the child reads after choosing it.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/checks/review.go",
+        "match": "^\\tSolver +string$"
+      },
+      {
+        "file": "internal/domain/checks/review.go",
+        "match": "^\\tSelfCheck json\\.RawMessage$"
+      },
+      {
+        "file": "content/schemas/task.json",
+        "match": "\"description\": \"One entry for each of the four wrong options, and none for the correct one\\.\","
+      },
+      {
+        "file": "content/schemas/task.json",
+        "match": "\"description\": \"Trap id from the trap catalog: the mistake that leads to this option\\.\","
+      }
+    ],
+    "used_in": "A: §3 system"
+  },
+  {
+    "id": "C061",
+    "group": "Verification",
+    "claim": "Every task the model writes carries a hint: one leading question or the first step.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "content/schemas/task.json",
+        "match": "^    \"hint\",$"
+      }
+    ],
+    "used_in": "A: §3 system; S04, Q62"
+  },
+  {
+    "id": "C074",
+    "group": "Verification",
+    "claim": "The hint arrives with the task and the card keeps it folded until the child opens it; whether it was opened travels with the answer. The checks require only that a hint is present: that it must not give the answer away is a rule of the instructions.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/transport/mcp/submittask.go",
+        "match": "^// the five options and the hint, which the card keeps folded until the child$"
+      },
+      {
+        "file": "SPEC.md",
+        "match": "^- `hint` and `solution` are present and non-empty;$"
+      },
+      {
+        "file": "content/instructions/task_writing.md",
+        "match": "^- `hint` is one leading question or a first step, and never gives the answer away\\."
+      }
+    ],
+    "used_in": "A, extended version only: §3 system"
+  },
+  {
+    "id": "C075",
+    "group": "Verification",
+    "claim": "Memory the language takes by itself is not priced: an operator such as xs = xs + xs, repeated, reaches about 480 MiB in under 300 steps, and a loop of empty dictionary literals killed an instance of 1 GiB for its memory. A solver written to exhaust memory can take its instance down.",
+    "status": "measured",
+    "evidence": [
+      {
+        "file": "SPEC.md",
+        "match": "^What a cap cannot reach is an operator\\."
+      },
+      {
+        "file": "docs/load.md",
+        "match": "killed for want of memory at 1,008 MiB"
+      }
+    ],
+    "used_in": "A, extended version only: §4 verification, §7 limitations; Q32"
+  },
+  {
+    "id": "C076",
+    "group": "Verification",
+    "claim": "Two limits are reasoned, not measured: the sentence limits in characters for scripts written without spaces, set at twice the word limits, and the near-duplicate threshold of 0.7 on character bigrams.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "SPEC.md",
+        "match": "The character limits are set at twice the word limit by analogy, because nobody has measured them"
+      },
+      {
+        "file": "SPEC.md",
+        "match": "The threshold there is \\*\\*0\\.7\\*\\* too\\."
+      }
+    ],
+    "used_in": "A, extended version only: §4 verification, §7 limitations; Q33, Q34"
+  },
+  {
+    "id": "C033",
+    "group": "Answer sealing and privacy",
+    "claim": "The answer, the explanations of the wrong options, the solution and the solver are sealed with XChaCha20-Poly1305 under an HKDF subkey of their own purpose, bound to this child and this task — and, once answered, to the letter given — until the child answers.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/infra/seal/key.go",
+        "match": "chacha20poly1305\\.NewX\\(subkey\\)"
+      },
+      {
+        "file": "internal/infra/seal/key.go",
+        "match": "hkdf\\.Key\\(sha256\\.New, secret, nil, subkeyInfo\\+string\\(purpose\\), KeySize\\)"
+      },
+      {
+        "file": "internal/domain/profile/sealed.go",
+        "match": "^type TaskSecret struct \\{$"
+      },
+      {
+        "file": "internal/domain/profile/sealed.go",
+        "match": "^// binding is what a sealed task belongs to: this child, this task of theirs,$"
+      }
+    ],
+    "used_in": "A: §3 system, §4 verification"
+  },
+  {
+    "id": "C034",
+    "group": "Answer sealing and privacy",
+    "claim": "The history window holds the last 20 entries, answers and skipped tasks together, and never lets go of one of the 5 latest answers.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/profile/validate.go",
+        "match": "^\\tMaxRecent = 20$"
+      },
+      {
+        "file": "internal/domain/profile/validate.go",
+        "match": "^\\tMinRecent = 5$"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "C035",
+    "group": "Answer sealing and privacy",
+    "claim": "The service writes one log line for each event of a lesson — a task requested, skipped, submitted or accepted, an answer recorded, a solver run — each with the version of the instructions the task was written to, and builds it from fields named one by one, never from a profile or a task.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/transport/mcp/events.go",
+        "match": "^\\teventTaskRequested  = \"task_requested\"$"
+      },
+      {
+        "file": "internal/transport/mcp/events.go",
+        "match": "^\\teventAnswerRecorded = \"answer_recorded\"$"
+      },
+      {
+        "file": "internal/transport/mcp/events.go",
+        "match": "^// A line is built from fields the caller names one by one, and never from a$"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "C036",
+    "group": "Answer sealing and privacy",
+    "claim": "Task text, options, answer letters and the pseudonym stay out of logs, traces and metrics; tests check that nothing of the answer, the child or what the parent typed reaches a span, a log line or a label.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "SPEC.md",
+        "match": "^## 12\\.3 What never appears$"
+      },
+      {
+        "file": "internal/transport/mcp/answer_test.go",
+        "match": "^func TestNothingOfTheAnswerReachesASpanALineOrALabel\\("
+      },
+      {
+        "file": "internal/transport/mcp/endpoint_test.go",
+        "match": "^func TestNothingAboutTheChildReachesASpanOrALine\\("
+      },
+      {
+        "file": "internal/transport/mcp/profile_test.go",
+        "match": "^func TestNothingTheParentTypedReachesASpanOrALine\\("
+      }
+    ],
+    "used_in": "A: §4 verification, §8 discussion"
+  },
+  {
+    "id": "C037",
+    "group": "Answer sealing and privacy",
+    "claim": "Telemetry replaces attributes the service may not keep with a fixed 'redacted' value.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/telemetry/redact.go",
+        "match": "^const redactedValue = \"redacted\"$"
+      }
+    ],
+    "used_in": "A, extended version only: §8 discussion"
+  },
+  {
+    "id": "C069",
+    "group": "Answer sealing and privacy",
+    "claim": "The child is known to the service by a pseudonym alone: the profile holds no name, birth date or school.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/profile/student.go",
+        "match": "^// writes directly\\. There is no name, no birth date and no school here: a$"
+      },
+      {
+        "file": "internal/domain/profile/student.go",
+        "match": "^\\tPseudonym string `json:\"pseudonym\"`$"
+      }
+    ],
+    "used_in": "A: §8 discussion"
+  },
+  {
+    "id": "C064",
+    "group": "Answer sealing and privacy",
+    "claim": "The card's tool results carry the task's question, drawing, options and hint and nothing that gives the answer away; the answer, the explanations and the solution come in a result only once the child has answered. The model that wrote the task knows the answer, and an adult who reads the host's own tool-call log sees the submitted task with it: that is outside the threat model.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/transport/mcp/submittask.go",
+        "match": "^// opens it\\. What would give the answer away is sealed in the profile and never$"
+      },
+      {
+        "file": "internal/transport/mcp/task_test.go",
+        "match": "^func TestTheAnswerStaysSealed\\("
+      },
+      {
+        "file": "docs/architecture/04-profile.md",
+        "match": "^One limitation stays, and it is deliberate \\(О-27\\): the adult who reads the host's own tool-call log sees the task the model submitted, answer included\\."
+      }
+    ],
+    "used_in": "A: §3 system, §4 verification, §7 limitations; Q36"
+  },
+  {
+    "id": "C038",
+    "group": "Tools, sign-in and storage",
+    "claim": "The service offers seven MCP tools: get_profile, save_profile, get_progress, read_progress (called by the card alone), next_task, submit_task and submit_answer.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/transport/mcp/profile.go",
+        "match": "^\\t\\tName: +\"get_profile\",$"
+      },
+      {
+        "file": "internal/transport/mcp/profile.go",
+        "match": "^\\t\\tName: +\"save_profile\",$"
+      },
+      {
+        "file": "internal/transport/mcp/progress.go",
+        "match": "^\\t\\tName: +\"get_progress\",$"
+      },
+      {
+        "file": "internal/transport/mcp/progress.go",
+        "match": "^\\t\\tName: +\"read_progress\",$"
+      },
+      {
+        "file": "internal/transport/mcp/nexttask.go",
+        "match": "^\\t\\tName: +\"next_task\",$"
+      },
+      {
+        "file": "internal/transport/mcp/submittask.go",
+        "match": "^\\t\\tName: +\"submit_task\",$"
+      },
+      {
+        "file": "internal/transport/mcp/submitanswer.go",
+        "match": "^\\t\\tName: +\"submit_answer\",$"
+      }
+    ],
+    "used_in": "A: §3 system"
+  },
+  {
+    "id": "C039",
+    "group": "Tools, sign-in and storage",
+    "claim": "The child's answer is recorded once, by submit_answer, which the card calls itself or the model calls when the child answers in the chat, card or none; the same answer sent again is told what was recorded.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/transport/mcp/submitanswer.go",
+        "match": "^\\t\\tName: +\"submit_answer\",$"
+      },
+      {
+        "file": "internal/transport/mcp/answer_test.go",
+        "match": "^func TestAnAnswerFromTheCardAndTheModelIsRecordedOnce\\("
+      },
+      {
+        "file": "content/instructions/mcp_instructions.md",
+        "match": "^- When the child answers in the chat, record the answer with `submit_answer` before you explain anything"
+      }
+    ],
+    "used_in": "A: §3 system, §8 discussion"
+  },
+  {
+    "id": "C040",
+    "group": "Tools, sign-in and storage",
+    "claim": "The service is its own OAuth 2.1 authorization server: a host signs the parent in through Google, which is asked for the parent's identity and the drive.file scope alone. It keeps nothing between requests: a sign-in under way travels sealed with the parent, and a finished one in the host's tokens.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "CLAUDE.md",
+        "match": "^- the service is its own OAuth 2\\.1 authorization server, with Google sign-in; its state lives in sealed tokens;$"
+      },
+      {
+        "file": "internal/transport/oauth/server.go",
+        "match": "^// Package oauthserver is the service's own authorization server: a chat host$"
+      },
+      {
+        "file": "internal/transport/oauth/server.go",
+        "match": "^// It keeps nothing between requests\\. What a stateful server would keep in a$"
+      },
+      {
+        "file": "internal/infra/googleauth/googleauth.go",
+        "match": "^\\tScopeDriveFile = \"https://www\\.googleapis\\.com/auth/drive\\.file\"$"
+      }
+    ],
+    "used_in": "A: §3 system"
+  },
+  {
+    "id": "C041",
+    "group": "Tools, sign-in and storage",
+    "claim": "Requests are held to paces per account, per address and per instance, counted in each instance's own memory, and next_task opens no request once the day's ceiling of accepted tasks, or of requests closed in failure, is reached.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/ratelimit/ratelimit.go",
+        "match": "^// Package ratelimit holds requests to the pace an instance lets them in at,$"
+      },
+      {
+        "file": "internal/transport/mcp/limits.go",
+        "match": "^\\tlimitDailyTasks  = \"daily_tasks\"$"
+      },
+      {
+        "file": "internal/transport/mcp/limits_test.go",
+        "match": "^func TestADayAtItsCeilingOpensNoRequest\\("
+      },
+      {
+        "file": "internal/transport/mcp/limits_test.go",
+        "match": "^func TestACallPastItsAccountsPaceIsHeldBack\\("
+      }
+    ],
+    "used_in": "A: §3 system"
+  },
+  {
+    "id": "C042",
+    "group": "Not built yet",
+    "claim": "Usage evidence with a monthly counting pseudonym and daily aggregates is an open task (T67.1).",
+    "status": "planned",
+    "evidence": [
+      {
+        "file": "RUN.md",
+        "match": "^\\| \\[ \\] \\| T67\\.1 \\|"
+      }
+    ],
+    "used_in": "no paper: paper B, which used it, left the plan (Q60)"
+  },
+  {
+    "id": "C043",
+    "group": "Content",
+    "claim": "The topic catalog holds 17 topics, the trap catalog 20 traps, the skill catalog 25 skills.",
+    "status": "built",
+    "evidence": [
+      {
+        "stat": "topics",
+        "expect": "17"
+      },
+      {
+        "stat": "traps",
+        "expect": "20"
+      },
+      {
+        "stat": "skills",
+        "expect": "25"
+      }
+    ],
+    "used_in": "A: §3 system"
+  },
+  {
+    "id": "C044",
+    "group": "Content",
+    "claim": "The reference tasks at the pinned commit, by grade level, each with its own solver.",
+    "status": "built",
+    "evidence": [
+      {
+        "stat": "reference_tasks",
+        "expect": "603"
+      },
+      {
+        "stat": "reference_tasks_1_2",
+        "expect": "200"
+      },
+      {
+        "stat": "reference_tasks_3_4",
+        "expect": "250"
+      },
+      {
+        "stat": "reference_tasks_5_6",
+        "expect": "153"
+      },
+      {
+        "stat": "reference_solvers",
+        "expect": "603"
+      },
+      {
+        "stat": "reference_tasks_without_solver",
+        "expect": "0"
+      }
+    ],
+    "used_in": "A: §1 introduction, §3 system"
+  },
+  {
+    "id": "C077",
+    "group": "Content",
+    "claim": "Every reference task names, behind each of its four wrong options, a trap of the catalog.",
+    "status": "built",
+    "evidence": [
+      {
+        "stat": "reference_tasks_with_a_trap_per_wrong_option",
+        "expect": "603"
+      },
+      {
+        "stat": "reference_tasks",
+        "expect": "603"
+      }
+    ],
+    "used_in": "A: §1 introduction, §3 system"
+  },
+  {
+    "id": "C045",
+    "group": "Content",
+    "claim": "The model is given 33 solver templates and 11 drawing frames to start from.",
+    "status": "built",
+    "evidence": [
+      {
+        "stat": "solver_templates",
+        "expect": "33"
+      },
+      {
+        "stat": "drawing_frames",
+        "expect": "11"
+      }
+    ],
+    "used_in": "A, extended version only: §3 system"
+  },
+  {
+    "id": "C046",
+    "group": "Content",
+    "claim": "The instructions for the model: the task-writing guide and the MCP instructions, with their word counts.",
+    "status": "built",
+    "evidence": [
+      {
+        "stat": "words_task_writing"
+      },
+      {
+        "stat": "words_mcp_instructions"
+      }
+    ],
+    "used_in": "A, extended version only: §3 system"
+  },
+  {
+    "id": "C066",
+    "group": "Content",
+    "claim": "The reference tasks of grades 5–6 were written by Claude in ten batches of the product's own plan, each batch checked by the author; those of grades 1–4 are the prototype's 450 (P012, P013).",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "RUN.md",
+        "match": "^\\| \\[x\\] \\| T37\\.1 \\| Эталоны 5–6: общие тесты и клетчатая геометрия \\| Claude, проверяю я \\|"
+      },
+      {
+        "file": "RUN.md",
+        "match": "^\\| \\[x\\] \\| T37\\.2 \\| Эталоны 5–6: игры и множества \\| Claude, проверяю я \\|"
+      },
+      {
+        "file": "RUN.md",
+        "match": "^\\| \\[x\\] \\| T37\\.3 \\| Эталоны 5–6: доли и проценты \\| Claude, проверяю я \\|"
+      },
+      {
+        "file": "RUN.md",
+        "match": "^\\| \\[x\\] \\| T37\\.4 \\| Эталоны 5–6: отношения и делимость \\| Claude, проверяю я \\|"
+      },
+      {
+        "file": "RUN.md",
+        "match": "^\\| \\[x\\] \\| T38\\.1 \\| Эталоны 5–6: упорядочивание и рыцари \\| Claude, проверяю я \\|"
+      },
+      {
+        "file": "RUN.md",
+        "match": "^\\| \\[x\\] \\| T38\\.2 \\| Эталоны 5–6: перебор и промежутки \\| Claude, проверяю я \\|"
+      },
+      {
+        "file": "RUN.md",
+        "match": "^\\| \\[x\\] \\| T38\\.3 \\| Эталоны 5–6: часы \\| Claude, проверяю я \\|"
+      },
+      {
+        "file": "RUN.md",
+        "match": "^\\| \\[x\\] \\| T39\\.1 \\| Эталоны 5–6: календарь и арифметика с подвохом \\| Claude, проверяю я \\|"
+      },
+      {
+        "file": "RUN.md",
+        "match": "^\\| \\[x\\] \\| T39\\.2 \\| Эталоны 5–6: Дирихле и чётность \\| Claude, проверяю я \\|"
+      },
+      {
+        "file": "RUN.md",
+        "match": "^\\| \\[x\\] \\| T39\\.3 \\| Эталоны 5–6: взвешивания и переливания \\| Claude, проверяю я \\|"
+      },
+      {
+        "stat": "reference_tasks_5_6",
+        "expect": "153"
+      }
+    ],
+    "used_in": "A: §3 system"
+  },
+  {
+    "id": "C047",
+    "group": "Quality",
+    "claim": "The product's tests: test, fuzz and benchmark functions, and gopter properties, at the pinned commit.",
+    "status": "built",
+    "evidence": [
+      {
+        "stat": "test_functions",
+        "expect": "1099"
+      },
+      {
+        "stat": "fuzz_functions",
+        "expect": "32"
+      },
+      {
+        "stat": "benchmark_functions",
+        "expect": "3"
+      },
+      {
+        "stat": "gopter_properties",
+        "expect": "99"
+      },
+      {
+        "stat": "test_files",
+        "expect": "201"
+      }
+    ],
+    "used_in": "A, extended version only: §3 system"
+  },
+  {
+    "id": "C048",
+    "group": "Quality",
+    "claim": "Statement coverage of the product's tests at the pinned commit.",
+    "status": "built",
+    "evidence": [
+      {
+        "stat": "coverage_statements",
+        "expect": "82.1%"
+      }
+    ],
+    "used_in": "A, extended version only: §3 system"
+  },
+  {
+    "id": "C049",
+    "group": "Measurements already in the repository",
+    "claim": "On the reference tasks, the whole readability check passes 76 % of the grades 1–2 tasks and 91 % of the grades 3–4 tasks at the limits of their own levels.",
+    "status": "measured",
+    "evidence": [
+      {
+        "file": "SPEC.md",
+        "match": "passes 76 % of the grades 1–2 tasks and 91 % of the grades 3–4 tasks at the limits of their levels"
+      }
+    ],
+    "used_in": "A, extended version only: §4 verification"
+  },
+  {
+    "id": "C050",
+    "group": "Measurements already in the repository",
+    "claim": "Over every pair of reference questions of one level — 62,653 pairs among all 603 — the sketches miss the exact trigram Jaccard index by 0.031 on average and 0.139 at worst, and decide 33 pairs differently from it at the 0.7 threshold, all within 0.1 of it.",
+    "status": "measured",
+    "evidence": [
+      {
+        "file": "SPEC.md",
+        "match": "\\*\\*192 hash values, four bits each\\*\\*"
+      },
+      {
+        "file": "SPEC.md",
+        "match": "Over every pair of reference questions of one level \\(62,653 pairs\\) the sketches miss the exact measure by 0\\.031 on average and 0\\.139 at worst, and they decide 33 pairs differently from it at 0\\.7, all within 0\\.1 of it"
+      }
+    ],
+    "numbers": {
+      "sketch_pairs": "62,653",
+      "sketch_pairs_decided_otherwise": "33",
+      "sketch_disagreement_within": "0.1"
+    },
+    "used_in": "A, extended version only: §4 verification"
+  },
+  {
+    "id": "C051",
+    "group": "Measurements already in the repository",
+    "claim": "/health took a median 196 ms through the domain (minimum 150, maximum 218, 10 requests) after the first deploy.",
+    "status": "measured",
+    "evidence": [
+      {
+        "file": "docs/live/03-first-deploy.md",
+        "match": "196 мс \\(мин 150, макс 218\\)"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "C052",
+    "group": "Measurements already in the repository",
+    "claim": "The runtime image took 6.8 MB in Artifact Registry.",
+    "status": "measured",
+    "evidence": [
+      {
+        "file": "docs/live/03-first-deploy.md",
+        "match": "6,8 МБ"
+      }
+    ],
+    "used_in": "A, extended version only: §6 evaluation"
+  },
+  {
+    "id": "C053",
+    "group": "Measurements already in the repository",
+    "claim": "In one traced request, a request for a path the service does not serve, answered with Not Found, the service's own span took 274.734 µs of the 204.011 ms Cloud Run measured for the whole request.",
+    "status": "measured",
+    "evidence": [
+      {
+        "file": "docs/live/03a-telemetry.md",
+        "match": "204\\.011 мс"
+      },
+      {
+        "file": "docs/live/03a-telemetry.md",
+        "match": "274\\.734 мкс"
+      },
+      {
+        "file": "docs/live/03a-telemetry.md",
+        "match": "наш `http_request` со статусом 404"
+      }
+    ],
+    "used_in": "no paper: the trace is of a request answered with Not Found, not of a task, and Section 6.3 (6.4 of the extended version) measures reviews instead (S39, Q76)"
+  },
+  {
+    "id": "C054",
+    "group": "Measurements already in the repository",
+    "claim": "With the solver templates, the drawing frames and the reference tasks' drawings in, a child with an ordinary profile gets a package of 19.7 KB on average across the catalog and 25.2 KB at most.",
+    "status": "measured",
+    "evidence": [
+      {
+        "file": "SPEC.md",
+        "match": "gets 19\\.7 KB on average across the catalog and 25\\.2 KB at most"
+      }
+    ],
+    "used_in": "no paper: Section 6.3 (6.4 of the extended version) measures the packages at every point and turn (S39, Q76)"
+  },
+  {
+    "id": "C059",
+    "group": "Continuity with the prototype",
+    "claim": "The prototype's own code exported golden vectors into the product: the readability of all 450 of its reference questions, pg_trgm similarities, the rating formulas' worked example with the replayed seed profiles, and the rule's briefs for the five seed profiles; no Go test may rewrite them.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "testdata/golden/export/README.md",
+        "match": "The numbers in `testdata/golden/` are the prototype's, produced by the prototype's own code"
+      },
+      {
+        "file": "testdata/golden/export/README.md",
+        "match": "so \\*\\*no Go test ever rewrites these files\\*\\*"
+      }
+    ],
+    "used_in": "A, extended version only: §3 system"
+  },
+  {
+    "id": "C060",
+    "group": "Continuity with the prototype",
+    "claim": "The product's Go implementations of the ratings, the readability check, the near-duplicate measure and the rule are tested against those vectors.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/rating/golden_test.go",
+        "match": "path := filepath\\.Join\\(\"\\.\\.\", \"\\.\\.\", \"\\.\\.\", \"testdata\", \"golden\", \"ratings\\.json\"\\)"
+      },
+      {
+        "file": "internal/domain/checks/readability_golden_test.go",
+        "match": "raw, err := os\\.ReadFile\\(filepath\\.Join\\(\"\\.\\.\", \"\\.\\.\", \"\\.\\.\", \"testdata\", \"golden\", \"readability\\.json\"\\)\\)"
+      },
+      {
+        "file": "internal/domain/checks/similarity_test.go",
+        "match": "raw, err := os\\.ReadFile\\(filepath\\.Join\\(\"\\.\\.\", \"\\.\\.\", \"\\.\\.\", \"testdata\", \"golden\", \"trgm_similarity\\.json\"\\)\\)"
+      },
+      {
+        "file": "internal/domain/tutor/golden_test.go",
+        "match": "repoFile\\(t, \"testdata\", \"golden\", \"rule_briefs\\.json\"\\)"
+      }
+    ],
+    "used_in": "A, extended version only: §3 system"
+  },
+  {
+    "id": "C056",
+    "group": "Remarks for the author",
+    "claim": "SPEC says the pace changes what is chosen next, yet the rule's code names neither the pace nor \"I don't know\"; SPEC's own remark 43 records the gap. \"I don't know\" reaches the rule only as a wrong answer, through the run of failures that makes it reinforce the topic.",
+    "status": "remark",
+    "evidence": [
+      {
+        "file": "SPEC.md",
+        "match": "The hint, the pace and the run of failures are recorded \\(04-profile\\) and change what is chosen next"
+      },
+      {
+        "file": "SPEC.md",
+        "match": "^43\\. \\*\\*The hint and the pace are said to steer what comes next, and the rule reads neither\\.\\*\\*"
+      },
+      {
+        "stat": "pace_or_confused_lines_in_rule",
+        "expect": "0"
+      },
+      {
+        "file": "internal/domain/profile/answer.go",
+        "match": "^\\t\\tp\\.Ratings\\.ConsecutiveFailures\\+\\+$"
+      },
+      {
+        "file": "internal/domain/profile/answer.go",
+        "match": "^\\tcase DontKnow:$"
+      }
+    ],
+    "used_in": "the author; it tells A's learner model and rule what not to claim"
+  },
+  {
+    "id": "C057",
+    "group": "Remarks for the author",
+    "claim": "docs/usage-evidence-for-grants.md counts 513 reference tasks; the pinned commit has 603.",
+    "status": "remark",
+    "evidence": [
+      {
+        "file": "docs/usage-evidence-for-grants.md",
+        "match": "513 эталонных задач"
+      },
+      {
+        "stat": "reference_tasks",
+        "expect": "603"
+      }
+    ],
+    "used_in": "the author; no paper"
+  },
+  {
+    "id": "C080",
+    "group": "Learner model",
+    "claim": "The first five answers are a trial series. After each of them θ is set to the most likely level given the start and every trial answer at once — a normal prior around the start with a spread of one level shift, 2.5, chosen by simulation, times the chance of each answer — and the topic corrections do not move.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/rating/trial.go",
+        "match": "^const TrialAnswers = 5$"
+      },
+      {
+        "file": "internal/domain/rating/trial.go",
+        "match": "^\\tstartSpread = levelShift$"
+      },
+      {
+        "file": "internal/domain/rating/trial.go",
+        "match": "^func Estimate\\(start float64, answers \\[\\]Answer\\) float64 \\{$"
+      },
+      {
+        "file": "internal/domain/profile/answer.go",
+        "match": "^\\t\\tTheta: +rating\\.Estimate\\(p\\.Ratings\\.Start, answers\\),$"
+      },
+      {
+        "file": "internal/domain/profile/answer.go",
+        "match": "^\\t\\tDelta: +before\\.Delta,$"
+      },
+      {
+        "file": "internal/domain/rating/trial.go",
+        "match": "^\\t// simulation, as the balance between the child whose grade was entered a$"
+      },
+      {
+        "file": "SPEC.md",
+        "match": "^  \\*\\*L\\(θ\\) = −\\(θ − θ₀\\)² / \\(2σ₀²\\) \\+ Σᵢ"
+      }
+    ],
+    "used_in": "A: §5 learner model, §6 evaluation; E-A3"
+  },
+  {
+    "id": "C081",
+    "group": "Task selection",
+    "claim": "A topic is within reach when its easiest point, difficulty 1 of the lowest level it is taught at, has P ≥ 0.70; the rule sets only topics within reach, and a child below all of them gets the topics taught from grades 1–2.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/rating/ladder.go",
+        "match": "^func InReach\\(level float64, point Point\\) bool \\{$"
+      },
+      {
+        "file": "internal/domain/tutor/tutor.go",
+        "match": "^func withinReach\\(p \\*profile\\.Profile, catalog Catalog\\) \\[\\]string \\{$"
+      },
+      {
+        "file": "internal/domain/tutor/tutor.go",
+        "match": "^\\t\\tif rating\\.InReach\\(p\\.LevelIn\\(topic\\), easiest\\) \\{$"
+      }
+    ],
+    "used_in": "A: §5 learner model"
+  },
+  {
+    "id": "C082",
+    "group": "Learner model",
+    "claim": "Mastery is held at a level: a topic counts as mastered only while its recommended point stays at the level of the task that completed the run, or below; once the child's tasks in it come from the level above, it is back in the rotation.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/tutor/tutor.go",
+        "match": "^func Mastered\\(p \\*profile\\.Profile, catalog Catalog, topic string\\) bool \\{$"
+      },
+      {
+        "file": "internal/domain/tutor/tutor.go",
+        "match": "^\\treturn recommended\\.GradeLevel\\.Shift\\(\\) <= summary\\.MasteredLevel\\.Shift\\(\\)$"
+      },
+      {
+        "file": "internal/domain/profile/answer.go",
+        "match": "^// Mastery is held at the level of the task that completed the run, and a run$"
+      }
+    ],
+    "used_in": "A, extended version only: §5 learner model"
+  },
+  {
+    "id": "C083",
+    "group": "Task selection",
+    "claim": "The model may ask for another topic, level or difficulty than the rule's, with a reason of at most 300 characters; the brief then keeps the rule's goal, the model's choice and both reasons, and the request records that the model chose.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/tutor/tutor.go",
+        "match": "^const MaxReason = 300$"
+      },
+      {
+        "file": "internal/domain/tutor/tutor.go",
+        "match": "^\\treturn topic, point, profile\\.TutorLLM$"
+      },
+      {
+        "file": "SPEC.md",
+        "match": "^The model may ask for a different topic, level or difficulty, and must give a reason"
+      }
+    ],
+    "used_in": "A: §3 system, §5 learner model, §7 limitations"
+  },
+  {
+    "id": "C079",
+    "group": "Verification",
+    "claim": "Everything the sandbox predeclares pays a step for every sixteen bytes it builds, charged before it builds anything, so at the step ceiling the built-ins of one run keep at most 381 MiB.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "SPEC.md",
+        "match": "it pays the budget of 6\\.6 for what it builds: a step for every sixteen bytes\\*\\*"
+      },
+      {
+        "file": "docs/load.md",
+        "match": "^Everything the sandbox declares pays a step for every element it walks\\."
+      }
+    ],
+    "used_in": "A: §4 verification"
+  },
+  {
+    "id": "C078",
+    "group": "Tools, sign-in and storage",
+    "claim": "The child's profile is one JSON file in the parent's own Google Drive, reached with the parent's token and none of the service's. Drive has no conditional write, so a save reads the file again before it writes and refuses when it has changed.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/store/drive/drivestore.go",
+        "match": "^// Package drivestore keeps the child's profile in the parent's own Google$"
+      },
+      {
+        "file": "internal/store/drive/drivestore.go",
+        "match": "^// Drive has no conditional write\\. So a save reads the file once more before it$"
+      }
+    ],
+    "used_in": "A: §3 system, §8 discussion"
+  },
+  {
+    "id": "C087",
+    "group": "Tools, sign-in and storage",
+    "claim": "The cards speak 22 languages, a dictionary each; English and Russian were written by people, and the other twenty are machine translations nobody who speaks them has read yet.",
+    "status": "built",
+    "evidence": [
+      {
+        "stat": "widget_languages",
+        "expect": "22"
+      },
+      {
+        "file": "SPEC.md",
+        "match": "\\*\\*Machine translations, not yet read by anyone who speaks the language\\*\\*"
+      }
+    ],
+    "used_in": "A: §7 limitations"
+  },
+  {
+    "id": "C090",
+    "group": "Not built yet",
+    "claim": "Acceptance in Claude and in ChatGPT, and the load, logs and message limits measured on the deployed service, are open product tasks (T62–T64).",
+    "status": "planned",
+    "evidence": [
+      {
+        "file": "RUN.md",
+        "match": "^\\| \\[ \\] \\| T62 \\|"
+      },
+      {
+        "file": "RUN.md",
+        "match": "^\\| \\[ \\] \\| T63 \\|"
+      },
+      {
+        "file": "RUN.md",
+        "match": "^\\| \\[ \\] \\| T64 \\|"
+      }
+    ],
+    "used_in": "A, extended version only: §3 system"
+  },
+  {
+    "id": "C084",
+    "group": "Measurements already in the repository",
+    "claim": "In a first local run of an earlier build (2026-09-27), through Claude Code with claude-sonnet-5 in text mode, the model wrote 15 tasks over 17 hand-ins: 13 were accepted at the first attempt and 2 at the second, one after solver_disagrees and one after readability; from the request to acceptance took a median of 30 s and at most 57 s. Solved by hand, each of the 15 had the keyed answer as its intended one; one could also be read another way (C089).",
+    "status": "measured",
+    "evidence": [
+      {
+        "file": "docs/live/04-local-run.md",
+        "match": "модель Sonnet \\(`claude-sonnet-5`\\)"
+      },
+      {
+        "file": "docs/live/04-local-run.md",
+        "match": "^- Задачи: 15 принято, 17 сдач, 13 из 15 приняты с первой попытки\\."
+      },
+      {
+        "file": "docs/live/04-local-run.md",
+        "match": "^- Время до приёма: медиана 30 секунд, среднее 32, самое долгое 57"
+      },
+      {
+        "file": "docs/live/04-local-run.md",
+        "match": "Все 15 при ручной проверке решаются однозначно"
+      }
+    ],
+    "numbers": {
+      "live_tasks": "15",
+      "live_handins": "17",
+      "live_first_attempt": "13",
+      "live_median_seconds": "30"
+    },
+    "used_in": "A: §3 system"
+  },
+  {
+    "id": "C089",
+    "group": "Measurements already in the repository",
+    "claim": "In that run one accepted task became ambiguous when the model shortened its question to pass the readability check and dropped the word \"different\", on which the answer rested; no check saw it.",
+    "status": "measured",
+    "evidence": [
+      {
+        "file": "docs/live/04-local-run.md",
+        "match": "верно по замыслу, но \\*\\*двусмысленно\\*\\*"
+      }
+    ],
+    "used_in": "A: §4 verification"
+  },
+  {
+    "id": "C085",
+    "group": "Measurements already in the repository",
+    "claim": "On the deployed service, in Claude on the web (2026-09-30), a child's whole trial series of five tasks went through: each task was accepted at its first attempt, 16 to 31 s after next_task. The build that ran, 51b78cc, was a branch commit; the drawing checks, the drawing frames and the guide for the model changed after it and before the pinned commit.",
+    "status": "measured",
+    "evidence": [
+      {
+        "file": "docs/live/05-login-drive.md",
+        "match": "Дальше пробная серия целиком, каждая задача принята с первой попытки: `logic\\.ordering` \\(от `next_task` до принятия 16 с\\)"
+      },
+      {
+        "file": "docs/live/05-login-drive.md",
+        "match": "^- \\*\\*01:5x UTC, исправление находки 4 выкачено\\.\\*\\* Коммит `51b78cc` на ветке `live-check`"
+      }
+    ],
+    "used_in": "A: §3 system"
+  },
+  {
+    "id": "C086",
+    "group": "Measurements already in the repository",
+    "claim": "Measured on the development machine, in a container of one instance's size with the profile kept in memory, a lesson's task is billed 0.36 vCPU-seconds and 0.36 GiB-seconds, which would let the platform's free tier cover about 500,000 tasks a month, and an instance starts in a median of 254 ms. Drive's round trips and the extra calls a host makes are not in these numbers; the deployed service is measured in T64.",
+    "status": "measured",
+    "evidence": [
+      {
+        "file": "docs/load.md",
+        "match": "^\\| Billed \\| 0\\.36 vCPU-seconds and 0\\.36 GiB-seconds per task \\|$"
+      },
+      {
+        "file": "docs/load.md",
+        "match": "^\\| The free tier a month \\| 500,000 tasks\\."
+      },
+      {
+        "file": "docs/load.md",
+        "match": "^\\| From the container asked for to the probe's first answer \\| 254 ms \\|$"
+      },
+      {
+        "file": "docs/load.md",
+        "match": "^\\| Calls \\| 18, all answered\\. Median 4 ms, longest 10 ms\\. The development sign-in keeps profiles in memory, so no Drive is involved \\|$"
+      },
+      {
+        "file": "docs/load.md",
+        "match": "^The tool counts only its own requests\\. A chat host sends more for every call it makes"
+      }
+    ],
+    "used_in": "A, extended version only: §6 evaluation"
+  },
+  {
+    "id": "C088",
+    "group": "Measurements already in the repository",
+    "claim": "The drawing limits were calibrated on the task card in Chromium with three monospaced fonts: 30 cells and 12 lines stay, now measured, and the allowed characters were narrowed to 65.",
+    "status": "measured",
+    "evidence": [
+      {
+        "file": "docs/live/06-drawings.md",
+        "match": "ширина 30 ячеек и высота 12 строк остаются, теперь как измеренные; набор символов сужен с четырёх целых блоков Unicode \\(368 символов\\) до 65"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "C091",
+    "group": "Answer sealing and privacy",
+    "claim": "The privacy policy states that MathTrail shows no advertising, builds no advertising profile, sells nothing and uses no child's data to train any model.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "site/content/en/privacy.md",
+        "match": "^- \\*\\*Nothing is sold, and nothing trains a model\\.\\*\\*$"
+      },
+      {
+        "file": "site/content/en/privacy.md",
+        "match": "^There is no advertising in MathTrail\\. Nothing about your child is used to build an advertising profile"
+      }
+    ],
+    "used_in": "A: §8 discussion"
+  },
+  {
+    "id": "C092",
+    "group": "Answer sealing and privacy",
+    "claim": "The package carries the child's grade and interests and the parent's free-form notes, up to 500 characters: all three reach the chat's model with every task. The privacy policy names the notes.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "content/package.go",
+        "match": "^\\t\\tChild: +packageChild\\{Grade: request\\.Grade, Interests: request\\.Interests, Notes: request\\.Notes\\},$"
+      },
+      {
+        "file": "internal/domain/profile/validate.go",
+        "match": "^\\tMaxNotes = 500$"
+      },
+      {
+        "file": "site/content/en/privacy.md",
+        "match": "and \\*\\*the free-form notes you wrote about the child\\*\\*, if you wrote any"
+      }
+    ],
+    "used_in": "A: §3 system, §8 discussion"
+  },
+  {
+    "id": "C093",
+    "group": "Answer sealing and privacy",
+    "claim": "The profile holds a permanent random identifier of the child; every log line of a signed-in call carries user, a 16-character HMAC-SHA256 of the parent's Google subject under a key of the service's, never the subject itself; and Cloud Run's own request logs keep the address each request came from.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/profile/profile.go",
+        "match": "^\\t// StudentID is a permanent random identifier\\. It means nothing outside$"
+      },
+      {
+        "file": "internal/transport/mcp/boundary.go",
+        "match": "^\\t\\tfields = append\\(fields, zap\\.String\\(\"user\", user\\)\\)$"
+      },
+      {
+        "file": "SPEC.md",
+        "match": "^\\| User identifier \\| base64url of HMAC-SHA256 under the subkey `mathtrail/v1/user-id` of the current key"
+      },
+      {
+        "file": "site/content/en/privacy.md",
+        "match": "^Separately, Google Cloud Run keeps the standard request logs any service on it produces"
+      }
+    ],
+    "used_in": "A: §8 discussion"
+  },
+  {
+    "id": "C094",
+    "group": "Remarks for the author",
+    "claim": "The privacy policy says the package brings the notes and that the rest of the profile stays out, but the package also carries the child's grade and interests; and it says the logs hold counts, not content, without naming the derived identifier of the parent's account that every signed-in log line carries.",
+    "status": "remark",
+    "evidence": [
+      {
+        "file": "site/content/en/privacy.md",
+        "match": "^Write those notes accordingly: they leave for the chat provider along with everything else in that message\\. The pseudonym does not go with them, and the rest of the profile"
+      },
+      {
+        "file": "content/package.go",
+        "match": "^\\t\\tChild: +packageChild\\{Grade: request\\.Grade, Interests: request\\.Interests, Notes: request\\.Notes\\},$"
+      },
+      {
+        "file": "site/content/en/privacy.md",
+        "match": "^The service writes counts, not content:"
+      },
+      {
+        "file": "internal/transport/mcp/boundary.go",
+        "match": "^\\t\\tfields = append\\(fields, zap\\.String\\(\"user\", user\\)\\)$"
+      }
+    ],
+    "used_in": "the author; no paper"
+  },
+  {
+    "id": "C095",
+    "group": "Verification",
+    "claim": "The self-check asks the model to read its task as a strict critic before handing it in: is a condition missing, can the question be read two ways, is a negation easy to miss, is a word or a range vague, do conditions contradict each other, does the right option answer another question. It records each problem with one of seven types and a severity, blocking or minor, and gives the answer it reaches solving the task afresh.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "content/instructions/task_writing.md",
+        "match": "^Before handing in, read the task as a strict critic would\\. Is anything missing from the conditions\\? Can the question be read two ways\\? Is there a negation that is easy to miss\\? A vague word or a range, such as \"several\" or \"about\"\\? Conditions that contradict each other\\? Does the right option answer a different question from the one asked\\?$"
+      },
+      {
+        "file": "content/instructions/task_writing.md",
+        "match": "`final_answer` is the letter you arrive at solving the task afresh, or `UNSOLVABLE`\\.$"
+      },
+      {
+        "file": "internal/domain/checks/draft.go",
+        "match": "^\\t\"too_hard_for_grade\", \"needs_picture\", \"factual_error\",$"
+      }
+    ],
+    "used_in": "A: §4 verification"
+  },
+  {
+    "id": "C096",
+    "group": "Answer sealing and privacy",
+    "claim": "The task's card is drawn by submit_task, whose arguments hold the task with its key and its solution.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/transport/mcp/submittask.go",
+        "match": "^\\t\\tDrawsCard: true,$"
+      },
+      {
+        "file": "internal/transport/mcp/submittask.go",
+        "match": "Task +any +`json:\"task\" jsonschema:\"the task as a JSON object, written as the guide in the package describes\"`"
+      },
+      {
+        "file": "content/schemas/task.json",
+        "match": "^    \"correct_answer\": \\{$"
+      }
+    ],
+    "used_in": "A: §4 verification, §7 limitations"
+  },
+  {
+    "id": "C097",
+    "group": "Task selection",
+    "claim": "The rule that sets the next task never reads the parent's notes, which reach the model as tone and are not allowed to change what the child is set.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "internal/domain/tutor/tutor.go",
+        "match": "^// reads the parent's notes about the child, which travel to the model as tone$"
+      },
+      {
+        "file": "internal/domain/tutor/tutor.go",
+        "match": "^// and are not allowed to change what the child is set, and it never reads the$"
+      },
+      {
+        "file": "internal/domain/tutor/property_test.go",
+        "match": "^func TestTheNotesNeverReachTheBrief\\(t \\*testing\\.T\\) \\{$"
+      }
+    ],
+    "used_in": "A, extended version only: §7 limitations; S34"
+  },
+  {
+    "id": "C098",
+    "group": "Answer sealing and privacy",
+    "claim": "The service's terms make an adult — a parent or a tutor old enough for the chat platform — its user: the child does not sign in and has no account, and the adult runs the lesson.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "site/content/en/terms.md",
+        "match": "^An adult — a parent or a tutor — who is old enough to use the chat platform they are using\\..*The child does not sign in and has no account\\.$"
+      },
+      {
+        "file": "site/content/en/terms.md",
+        "match": "^\\*\\*The adult runs the lesson\\.\\*\\* You open the task, read it with the child if they need it, and decide when to stop\\."
+      }
+    ],
+    "used_in": "A: §8 discussion; S34"
+  },
+  {
+    "id": "C099",
+    "group": "Remarks for the author",
+    "claim": "The product's rule is that the answer must not appear in widget payloads. MCP Apps has a host hand a card the complete arguments of the call that drew it, and the task's card is drawn by submit_task, whose arguments hold the key (C096); so the key reaches the card's memory before the child answers, although the card never shows it.",
+    "status": "remark",
+    "evidence": [
+      {
+        "file": "CLAUDE.md",
+        "match": "^- \\*\\*The answer stays hidden\\*\\* until the child answers\\. It must not appear in widget payloads"
+      },
+      {
+        "file": "internal/transport/mcp/submittask.go",
+        "match": "^\\t\\tDrawsCard: true,$"
+      }
+    ],
+    "used_in": "the author decided (K10, 2026-10-01): a known limitation, like the host's tool log; the paper says the key is never shown on the card [C096]; no paper as a fact"
+  },
+  {
+    "id": "C100",
+    "group": "Answer sealing and privacy",
+    "claim": "The task's card has a field, \"Ask a question about the task\", that sends the child's own words to the chat as a message.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "web/locales/en.json",
+        "match": "\"task\\.ask_label\": \"Ask a question about the task\","
+      },
+      {
+        "file": "web/src/widget/TaskCard.tsx",
+        "match": "await host\\.sendMessage\\(question\\);"
+      }
+    ],
+    "used_in": "A: §8 discussion; S34"
+  },
+  {
+    "id": "C101",
+    "group": "Measurements already in the repository",
+    "claim": "Measured on the development machine, an instance lets in about three tasks handed in a second, the pace its limit of 200 messages a minute allows, and its one solver slot kept up with them: of a costly solver handed in at that pace for thirty seconds, all 90 hand-ins were examined, with a median of 134 ms.",
+    "status": "measured",
+    "evidence": [
+      {
+        "file": "docs/load.md",
+        "match": "^\\*\\*Through the pace of the instance\\.\\*\\* Three hand-ins a second is about as many as the instance's limit of 200 messages a minute lets in\\. In thirty seconds, 90 hand-ins were all examined, with a median of 134 ms, and the one slot kept up\\.$"
+      }
+    ],
+    "used_in": "A, extended version only: §6 evaluation"
+  },
+  {
+    "id": "C102",
+    "group": "Verification",
+    "claim": "The reference tasks are in English whatever the language of the chat, because what they carry is the structure and not the wording; since the near-duplicate check compares character trigrams (C027, C028), a reference task translated into another language is not caught as a copy.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "content/example.go",
+        "match": "^// way a trap is attached to every wrong option\\. They are in English whatever$"
+      },
+      {
+        "file": "content/example.go",
+        "match": "^// the language of the chat, because what they carry is the structure and not$"
+      }
+    ],
+    "used_in": "A: §7 limitations"
+  },
+  {
+    "id": "C103",
+    "group": "Measurements already in the repository",
+    "claim": "In that run the one refusal by the solver check was a false alarm: the solver returned «Mail» where the option read «Mail car», so it matched no option, and the model added « car» to its solver. Two accepted tasks had hints that gave too much away, one naming the whole method and one nearly giving the answer; no check looks at what a hint gives away.",
+    "status": "measured",
+    "evidence": [
+      {
+        "file": "docs/live/04-local-run.md",
+        "match": "решатель вернул «Mail», а вариант назывался «Mail car»"
+      },
+      {
+        "file": "docs/live/04-local-run.md",
+        "match": "подсказка «на сколько иллюминаторов больше, чем промежутков\\?» называет весь приём"
+      },
+      {
+        "file": "docs/live/04-local-run.md",
+        "match": "подсказка «сколько будет 5 часов плюс 2 часа\\?» почти даёт ответ"
+      }
+    ],
+    "used_in": "A: §4 verification"
+  }
+]

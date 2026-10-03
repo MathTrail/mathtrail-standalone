@@ -1,225 +1,329 @@
-import type { McpUiHostContext } from "@modelcontextprotocol/ext-apps";
+import type { CallToolResult } from "@modelcontextprotocol/client";
 import { act } from "preact/test-utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { openCard, takeDown } from "./testing/card";
-import { toolInfoOf } from "./testing/host";
-import { fence, refused } from "./testing/lesson";
+import { firstAskIn } from "./coming";
+import { buttonIn, openCard, press, takeDown } from "./testing/card";
+import type { ToolCall } from "./testing/host";
+import {
+	coming,
+	failure,
+	fence,
+	notComing,
+	onTheCard,
+	progress,
+	rightAnswer,
+	writing,
+} from "./testing/lesson";
+import { moments } from "./waiting";
 
 let root: HTMLElement;
+let seen: "visible" | "hidden" = "visible";
 
 beforeEach(() => {
-	// The card's clock is the test's; what the protocol does in between is
-	// delivered at once, and needs none.
+	// The card's clock is the test's, and a page is looked at unless a case
+	// puts it out of sight.
 	vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+	seen = "visible";
+	vi.spyOn(document, "visibilityState", "get").mockImplementation(() => seen);
 });
 
 afterEach(() => {
 	takeDown(root);
+	vi.restoreAllMocks();
 	vi.useRealTimers();
 });
 
-// handingIn is the context of a host that drew the card for a task being
-// handed in.
-const handingIn: McpUiHostContext = {
-	locale: "en-US",
-	toolInfo: toolInfoOf("submit_task"),
-};
+// first is when the card of the request in the fixtures first asks, counted
+// from the moment it is drawn.
+const first = firstAskIn(coming.request_id);
 
-// openOn starts the widget on a host with context, tells it nothing of the call
-// yet, and lets the card run its effects — Preact runs those of a card drawn
-// outside a test's act on a timer of its own — so that the card's own clock
-// starts now.
-async function openOn(context: McpUiHostContext = handingIn) {
-	const opened = await openCard({ context });
-	root = opened.root;
-	wait(100);
-	return opened.host;
-}
+// late is how far either side of its moment a question may be seen: the clock
+// passes a frame at a time, and the card sets its next question going in the
+// frame that brought the answer to the one before.
+const late = 300;
 
-// wait lets milliseconds of the card's own clock pass.
-function wait(milliseconds: number): void {
-	act(() => {
-		vi.advanceTimersByTime(milliseconds);
-	});
-}
-
-const text = (selector: string) => root.querySelector(selector)?.textContent;
-const statuses = () =>
-	[...root.querySelectorAll(".mt-gen li")].map((step) =>
-		step.getAttribute("data-status"),
-	);
-const labels = () =>
-	[...root.querySelectorAll(".mt-gen li")].map((step) => step.textContent);
-
-// everSeen watches the card for selector, from now on, and says whether it
-// ever appeared, however briefly. It reads what each change added rather than
-// the card as it is when the changes are told: by then the card may have
-// dropped it again.
-function everSeen(selector: string): () => boolean {
-	const shows = (changes: MutationRecord[]) =>
-		changes.some((change) =>
-			[...change.addedNodes].some(
-				(node) =>
-					node instanceof Element &&
-					(node.matches(selector) || node.querySelector(selector) !== null),
-			),
-		);
-	let seen = root.querySelector(selector) !== null;
-	const watching = new MutationObserver((changes) => {
-		seen ||= shows(changes);
-	});
-	watching.observe(root, { childList: true, subtree: true });
-	return () => {
-		seen ||= shows(watching.takeRecords());
-		watching.disconnect();
-		return seen;
+// answering answers the card's questions with the statuses given, one for each
+// question, the last again for every question after it; and the other tools a
+// card calls as the service would.
+function answering(...statuses: (CallToolResult | Promise<CallToolResult>)[]) {
+	let asked = 0;
+	return (call: ToolCall) => {
+		switch (call.name) {
+			case "read_task": {
+				const status = statuses[Math.min(asked, statuses.length - 1)];
+				asked += 1;
+				if (status === undefined) {
+					throw new Error("no status to answer with");
+				}
+				return status;
+			}
+			case "read_progress":
+				return progress;
+			case "submit_answer":
+				return rightAnswer;
+			default:
+				throw new Error(`no ${call.name} here`);
+		}
 	};
 }
 
-describe("a card a task is being handed in to", () => {
-	test("shows nothing for a moment, then the task being written", async () => {
-		await openOn();
+// drawn is the card a task asked for comes to, drawn on a host that answers
+// it as given, and the questions it asks of the service, as the host heard
+// them. The card's effects have run, so that its clock starts now.
+async function drawn(tools: ReturnType<typeof answering>) {
+	const opened = await openCard({ context: { locale: "en-US" }, tools });
+	root = opened.root;
+	await opened.host.sendToolResult({ content: [], structuredContent: coming });
+	await pass(100);
+	return {
+		...opened,
+		asked: () => opened.heard.calls.filter((call) => call.name === "read_task"),
+	};
+}
 
-		wait(300);
-		expect(root.querySelector(".mt-widget")).toBeNull();
-		wait(1000);
+// step is how much of the card's clock passes between two of its frames.
+const step = 50;
 
-		expect(text(".mt-gen-title")).toBe("Preparing the next task…");
+// pass lets milliseconds of the card's own clock pass, a frame at a time, and
+// whatever was set going in them come back. A frame ends with the card's
+// effects run, as a page runs them, so that what an answer sets going — the
+// next question — is set going within the frame.
+async function pass(milliseconds: number): Promise<void> {
+	let left = milliseconds;
+	do {
+		const now = Math.min(step, left);
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(now);
+		});
+		left -= now;
+	} while (left > 0);
+}
+
+const text = (selector: string) => root.querySelector(selector)?.textContent;
+const news = () => root.querySelector(".mt-news")?.textContent ?? "";
+const labels = () =>
+	[...root.querySelectorAll(".mt-gen li")].map((step) => step.textContent);
+
+describe("a card a task asked for comes to", () => {
+	test("asks how the task stands a moment after it is drawn, then every few seconds while it is written", async () => {
+		const card = await drawn(answering(writing()));
+
+		await pass(first);
+		expect(card.asked()).toEqual([
+			{ name: "read_task", arguments: { request_id: coming.request_id } },
+		]);
 		expect(labels()).toEqual([
 			"Done: Picked topic and difficulty",
 			"In progress: Writing the task",
 			"Waiting: Checking every answer",
 			"Waiting: Ready",
 		]);
-		// Nothing to press, and nothing of a child it does not know yet.
-		expect(root.querySelector("button")).toBeNull();
-		expect(root.querySelector(".mt-badge")).toBeNull();
+		expect(text(".mt-badge")).toBe("Olympiad coach · Grade 3");
+		expect(text(".mt-bar-action")).toBe("Profile & progress");
+
+		await pass(moments.ask - late);
+		expect(card.asked()).toHaveLength(1);
+		await pass(2 * late);
+		expect(card.asked()).toHaveLength(2);
+		await pass(3 * (moments.ask + late));
+		expect(card.asked()).toHaveLength(5);
 	});
 
-	test("takes up the checks once the task has come whole", async () => {
-		const host = await openOn();
-		wait(1000);
+	test("turns into the task once it is on the card, asks no more, and the task is answered on it", async () => {
+		const card = await drawn(answering(writing(), onTheCard));
 
-		await host.sendToolInput({ arguments: {} });
-
-		await vi.waitFor(() =>
-			expect(statuses()).toEqual(["done", "done", "active", "waiting"]),
-		);
-	});
-
-	test("turns into the task when its result comes", async () => {
-		const host = await openOn();
-		wait(1000);
-		await host.sendToolInput({ arguments: {} });
-
-		await host.sendToolResult({ content: [], structuredContent: fence });
-
-		await vi.waitFor(() =>
-			expect(text(".mt-task-text")).toBe(fence.task.question),
-		);
+		await pass(first + moments.ask + late);
+		expect(text(".mt-task-text")).toBe(fence.task.question);
 		expect(root.querySelector(".mt-gen")).toBeNull();
-	});
+		await pass(moments.askSlowly * 4);
+		expect(card.asked()).toHaveLength(2);
 
-	test("turns into the word that the try failed when a refusal comes", async () => {
-		const host = await openOn();
-		wait(1000);
-
-		await host.sendToolResult({ content: [], structuredContent: refused });
-
-		await vi.waitFor(() =>
-			expect(text(".mt-verdict-line")).toBe("This try didn't pass the checks."),
-		);
-		expect(root.querySelector(".mt-gen")).toBeNull();
-	});
-
-	test("does not flash a wait past when the result comes with the call", async () => {
-		const host = await openOn();
-		const waited = everSeen(".mt-gen");
-
-		await host.sendToolInput({ arguments: {} });
-		wait(200);
-		await host.sendToolResult({ content: [], structuredContent: fence });
-		await vi.waitFor(() =>
-			expect(text(".mt-task-text")).toBe(fence.task.question),
-		);
-		wait(1000);
-
-		expect(waited()).toBe(false);
-	});
-
-	test("says the task was not finished when the call is cancelled", async () => {
-		const host = await openOn();
-		wait(1000);
-
-		await host.sendToolCancelled({ reason: "user action" });
-
-		await vi.waitFor(() =>
-			expect(text(".mt-verdict-line")).toBe("This task wasn't finished."),
-		);
-		expect(text(".mt-verdict-detail")).toBe("Ask for a task in the chat.");
-		expect(root.querySelector(".mt-gen")).toBeNull();
-		expect(root.querySelector(".mt-verdict")?.closest("[aria-live]")).toBe(
-			root.querySelector(".mt-news"),
-		);
-	});
-
-	test("gives up two minutes after the call last moved on, counted afresh once the task has come whole", async () => {
-		const host = await openOn();
-		wait(1000);
-		wait(100_000);
-		await host.sendToolInput({ arguments: {} });
-		await vi.waitFor(() => expect(statuses()[2]).toBe("active"));
-
-		wait(100_000);
-		expect(root.querySelector(".mt-gen")).not.toBeNull();
-		wait(20_000);
-
-		expect(text(".mt-verdict-line")).toBe(
-			"If no new task has appeared below, it isn't being prepared.",
-		);
-		expect(text(".mt-verdict-detail")).toBe("Ask for a task in the chat.");
-		expect(root.querySelector(".mt-gen")).toBeNull();
-	});
-
-	test.each(["MathTrail:submit_task", "mcp__MathTrail__submit_task"])(
-		"knows the task by its name under a host's prefix, as in %s",
-		async (name) => {
-			await openOn({ toolInfo: toolInfoOf(name) });
-			wait(1000);
-
-			expect(root.querySelector(".mt-gen")).not.toBeNull();
-		},
-	);
-
-	test("never shows the arguments the task was handed in with", async () => {
-		const secret = "the-sealed-answer-C";
-		const host = await openOn();
-
-		await host.sendToolInputPartial({
-			arguments: { task: { answer: secret } },
+		press(buttonIn(root, "C 5"));
+		await pass(0);
+		expect(card.heard.calls.at(-1)).toEqual({
+			name: "submit_answer",
+			arguments: { task_id: fence.task.id, answer: "C", hint_used: false },
 		});
-		await host.sendToolInput({ arguments: { task: { answer: secret } } });
-		wait(1000);
-		await vi.waitFor(() => expect(statuses()[2]).toBe("active"));
-		expect(root.innerHTML).not.toContain(secret);
-
-		await host.sendToolResult({ content: [], structuredContent: fence });
-		await vi.waitFor(() =>
-			expect(root.querySelector(".mt-option")).not.toBeNull(),
-		);
-		expect(root.innerHTML).not.toContain(secret);
+		expect(text(".mt-verdict-line")).toBe("Correct! It's 5.");
 	});
-});
 
-describe("a card drawn for anything else", () => {
-	test.each([
-		["another tool", { toolInfo: toolInfoOf("get_progress") }],
-		["a host that does not say", {}],
-	])("draws nothing before its result, for %s", async (_, context) => {
-		await openOn(context);
+	test("says a try was turned down while a new one is written", async () => {
+		await drawn(answering(writing(1)));
 
-		wait(1000);
+		await pass(first);
 
-		expect(root.querySelector(".mt-widget")).toBeNull();
+		expect(news()).toBe(
+			"A try didn't pass the checks; a new one is being written.",
+		);
+		expect(root.querySelector(".mt-gen")).not.toBeNull();
+	});
+
+	test("says the task is taking long two minutes after its last news, and asks seldom from then on", async () => {
+		const card = await drawn(answering(writing()));
+		await pass(first);
+
+		await pass(moments.slow - late);
+		expect(news()).toBe("");
+		await pass(2 * late);
+		expect(text(".mt-verdict-line")).toBe(
+			"The task is taking longer than usual.",
+		);
+		expect(text(".mt-verdict-detail")).toBe(
+			"If it doesn't appear here, ask for a task in the chat.",
+		);
+		expect(root.querySelector(".mt-gen")).not.toBeNull();
+
+		// The question set going before the wait went long waits the longer
+		// pause too, counted from then, and so does each one after it.
+		// A seldom question is put off by the card's own moment as well.
+		const slowly = card.asked().length;
+		await pass(moments.askSlowly + first - 2 * late);
+		expect(card.asked()).toHaveLength(slowly);
+		await pass(2 * late);
+		expect(card.asked()).toHaveLength(slowly + 1);
+		await pass(moments.askSlowly + first - 2 * late);
+		expect(card.asked()).toHaveLength(slowly + 1);
+		await pass(2 * late);
+		expect(card.asked()).toHaveLength(slowly + 2);
+	});
+
+	test("counts the wait afresh from each try turned down", async () => {
+		await drawn(answering(writing(), writing(1)));
+		await pass(first + moments.ask + late);
+		expect(news()).toBe(
+			"A try didn't pass the checks; a new one is being written.",
+		);
+
+		await pass(moments.slow - moments.ask);
+		expect(news()).not.toContain("longer than usual");
+	});
+
+	test("says no task is here once its request is over, and asks no more once that is sure", async () => {
+		const card = await drawn(answering(writing(), notComing, notComing));
+
+		await pass(first + moments.ask + late);
+		expect(text(".mt-verdict-line")).toBe("No task here.");
+		expect(text(".mt-verdict-detail")).toBe(
+			"The next one comes below; if none does, ask for a task in the chat.",
+		);
+		expect(root.querySelector(".mt-gen")).toBeNull();
+
+		await pass(moments.ask + late);
+		expect(card.asked()).toHaveLength(3);
+		await pass(moments.askSlowly * 4);
+		expect(card.asked()).toHaveLength(3);
+	});
+
+	test("says no task is here when it is drawn again long after, and makes sure of it once more", async () => {
+		const card = await drawn(answering(notComing));
+
+		await pass(first);
+		expect(text(".mt-verdict-line")).toBe("No task here.");
+		expect(root.querySelector(".mt-gen")).toBeNull();
+
+		await pass(moments.ask - 2 * late);
+		expect(card.asked()).toHaveLength(1);
+		await pass(2 * late);
+		expect(card.asked()).toHaveLength(2);
+		await pass(moments.askSlowly * 4);
+		expect(card.asked()).toHaveLength(2);
+	});
+
+	test("goes back to the wait when the word that no task is coming was a read made too early", async () => {
+		await drawn(answering(notComing, writing()));
+
+		await pass(first + moments.ask + late);
+
+		expect(root.querySelector(".mt-gen")).not.toBeNull();
+		expect(root.querySelector(".mt-verdict")).toBeNull();
+	});
+
+	test("keeps the answer on its way when the wait goes long meanwhile", async () => {
+		let deliver: (status: CallToolResult) => void = () => {};
+		const onItsWay = new Promise<CallToolResult>((resolve) => {
+			deliver = resolve;
+		});
+		// Every question is told the task is being written, until the one set
+		// going a pause before the wait goes long, whose answer comes after.
+		const before = moments.slow / moments.ask - 1;
+		const card = await drawn(
+			answering(
+				...Array.from({ length: before }, () => writing()),
+				onItsWay,
+				writing(),
+			),
+		);
+		await pass(first + moments.slow - late);
+		expect(card.asked()).toHaveLength(before + 1);
+
+		await pass(2 * late);
+		expect(text(".mt-verdict-line")).toBe(
+			"The task is taking longer than usual.",
+		);
+		deliver(onTheCard);
+		await pass(late);
+
+		expect(text(".mt-task-text")).toBe(fence.task.question);
+		expect(card.asked()).toHaveLength(before + 1);
+	});
+
+	test("asks one question at a time: a question unanswered holds back the next", async () => {
+		const card = await drawn(answering(new Promise<CallToolResult>(() => {})));
+
+		await pass(first + moments.askSlowly * 4);
+
+		expect(card.asked()).toHaveLength(1);
+	});
+
+	test("takes a failed question for no news, and asks again seldom", async () => {
+		const card = await drawn(answering(writing(), failure, writing()));
+		await pass(first + moments.ask + late);
+		expect(card.asked()).toHaveLength(2);
+		expect(root.querySelector(".mt-gen")).not.toBeNull();
+
+		await pass(moments.askSlowly + first - 2 * late);
+		expect(card.asked()).toHaveLength(2);
+		await pass(2 * late);
+		expect(card.asked()).toHaveLength(3);
+	});
+
+	test("asks nothing while the page is out of sight, and asks at once when it is looked at again", async () => {
+		seen = "hidden";
+		const card = await drawn(answering(writing()));
+
+		await pass(first + moments.askSlowly * 2);
+		expect(card.asked()).toHaveLength(0);
+
+		seen = "visible";
+		document.dispatchEvent(new Event("visibilitychange"));
+		await pass(0);
+		expect(card.asked()).toHaveLength(1);
+	});
+
+	test("asks nothing once it is taken off the page", async () => {
+		const card = await drawn(answering(writing()));
+		await pass(first);
+
+		takeDown(root);
+		await pass(moments.askSlowly * 4);
+
+		expect(card.asked()).toHaveLength(1);
+	});
+
+	test("keeps the progress open over it when the task comes, and leads back to the task", async () => {
+		await drawn(answering(writing(), onTheCard));
+		await pass(first);
+
+		press(buttonIn(root, "Comet Profile & progress"));
+		await pass(late);
+		expect(buttonIn(root, "Back")).toBeTruthy();
+
+		await pass(moments.ask + late);
+		press(buttonIn(root, "Back to task"));
+		await pass(0);
+
+		expect(text(".mt-task-text")).toBe(fence.task.question);
+		// One frame holds the wait and the task: one line at its top.
+		expect(root.querySelectorAll(".mt-bar")).toHaveLength(1);
 	});
 });

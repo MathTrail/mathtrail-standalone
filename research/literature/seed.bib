@@ -1,0 +1,1324 @@
+% Every source the prototype's research notes cite, taken from the notes at
+% github.com/MathTrail/llm-taskgen-prototype@02638353482e.
+% Nothing here is verified: the notes' pages were retold by an auxiliary model.
+% Titles are in English. Where a note names a source by a Russian description,
+% the title translates it, and a Russian work keeps its title transliterated;
+% a title in square brackets is supplied, not the work's own. Each note gives
+% the lines of the research notes that cite the source. A source with several
+% addresses has an entry for each, related to the first. S08 checks entries
+% against DOI, arXiv or DBLP metadata and replaces the ones it verifies;
+% `just research seed-check` fails when a link of the notes has no entry.
+
+@misc{arxiv2406.15736,
+  title      = {Evaluating Large Vision-and-Language Models on Children's Mathematical Olympiads},
+  author     = {Cherian and others},
+  url        = {https://arxiv.org/abs/2406.15736},
+  eprint     = {2406.15736},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/01-feasibility.md:82, research/02-contest-domain.md:78, research/08-finetuning-data.md:79},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2506.07418,
+  title      = {[A multilingual benchmark of visual mathematics for multimodal LLMs]},
+  url        = {https://arxiv.org/abs/2506.07418},
+  eprint     = {2506.07418},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/01-feasibility.md:83; the title is supplied: the work's own names the contest the prototype never names (its decision D36)},
+  keywords   = {unverified},
+}
+
+@misc{link-springer-com-article-10-1007-s11227-026-082,
+  title    = {[A multilingual benchmark of visual mathematics for multimodal LLMs, journal version]},
+  url      = {https://link.springer.com/article/10.1007/s11227-026-08291-1},
+  related  = {arxiv2506.07418},
+  note     = {unverified; another address of arxiv2506.07418; cited at research/01-feasibility.md:83; the title is supplied: the work's own names the contest the prototype never names (its decision D36)},
+  keywords = {unverified},
+}
+
+@misc{arxiv2605.00674,
+  title      = {Beyond Benchmarks: MathArena as an Evaluation Platform for Mathematics with LLMs},
+  url        = {https://arxiv.org/abs/2605.00674},
+  eprint     = {2605.00674},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/01-feasibility.md:84, research/02-contest-domain.md:79, research/07-models.md:99},
+  keywords   = {unverified},
+}
+
+@misc{github-com-eth-sri-matharena,
+  title    = {Beyond Benchmarks: MathArena as an Evaluation Platform for Mathematics with LLMs},
+  url      = {https://github.com/eth-sri/matharena},
+  related  = {arxiv2605.00674},
+  note     = {unverified; another address of arxiv2605.00674; cited at research/01-feasibility.md:84, research/02-contest-domain.md:79, research/07-models.md:99},
+  keywords = {unverified},
+}
+
+@misc{arxiv2410.05229,
+  title      = {GSM-Symbolic},
+  author     = {Mirzadeh and others},
+  url        = {https://arxiv.org/abs/2410.05229},
+  eprint     = {2410.05229},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/01-feasibility.md:85, research/03-problem-generation.md:79},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2410.23123,
+  title      = {On Memorization of Large Language Models in Logical Reasoning},
+  author     = {Xie and others},
+  url        = {https://arxiv.org/abs/2410.23123},
+  eprint     = {2410.23123},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/01-feasibility.md:86, research/05-verification.md:100},
+  keywords   = {unverified},
+}
+
+@misc{github-com-AlphaPav-mem-kk-logic,
+  title    = {On Memorization of Large Language Models in Logical Reasoning},
+  author   = {Xie and others},
+  url      = {https://github.com/AlphaPav/mem-kk-logic},
+  related  = {arxiv2410.23123},
+  note     = {unverified; another address of arxiv2410.23123; cited at research/01-feasibility.md:86, research/05-verification.md:100},
+  keywords = {unverified},
+}
+
+@misc{arxiv2402.15861,
+  title      = {MATHWELL: Generating Educational Math Word Problems Using Teacher Annotations},
+  url        = {https://arxiv.org/abs/2402.15861},
+  eprint     = {2402.15861},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/01-feasibility.md:87, research/03-problem-generation.md:81, research/10-risks-children.md:83},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2510.06965,
+  title      = {EDUMATH: Generating Standards-aligned Educational Math Word Problems},
+  url        = {https://arxiv.org/abs/2510.06965},
+  eprint     = {2510.06965},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/01-feasibility.md:88, research/03-problem-generation.md:80},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2506.05950,
+  title      = {Elementary Math Word Problem Generation using Large Language Models},
+  url        = {https://arxiv.org/abs/2506.05950},
+  eprint     = {2506.05950},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/01-feasibility.md:89, research/03-problem-generation.md:82},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2407.21009,
+  title      = {AI-Assisted Generation of Difficult Math Questions},
+  url        = {https://arxiv.org/abs/2407.21009},
+  eprint     = {2407.21009},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/01-feasibility.md:90, research/03-problem-generation.md:77},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2502.14678,
+  title      = {How to Get Your LLM to Generate Challenging Problems for Evaluation},
+  url        = {https://arxiv.org/abs/2502.14678},
+  eprint     = {2502.14678},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/01-feasibility.md:91, research/03-problem-generation.md:78},
+  keywords   = {unverified},
+}
+
+@misc{aksf-org-countries-xhtml,
+  title    = {Countries},
+  author   = {{AKSF}},
+  url      = {https://www.aksf.org/countries.xhtml},
+  note     = {unverified; cited at research/02-contest-domain.md:77},
+  keywords = {unverified},
+}
+
+@misc{arxiv2403.02333,
+  title      = {Key-Point-Driven Data Synthesis with its Enhancement on Mathematical Reasoning},
+  author     = {Huang and others},
+  url        = {https://arxiv.org/abs/2403.02333},
+  eprint     = {2403.02333},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/03-problem-generation.md:76, research/08-finetuning-data.md:74},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2601.17006,
+  title      = {MathMixup: Difficulty-Controllable Data Synthesis and Curriculum Learning},
+  url        = {https://arxiv.org/abs/2601.17006},
+  eprint     = {2601.17006},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/03-problem-generation.md:83},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2601.11792,
+  title      = {A self-evolving multi-role collaborative framework with fine-grained difficulty guidance},
+  url        = {https://arxiv.org/abs/2601.11792},
+  eprint     = {2601.11792},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/03-problem-generation.md:84},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2510.12803,
+  title      = {AutoCode: LLMs as Problem Setters for Competitive Programming},
+  url        = {https://arxiv.org/abs/2510.12803},
+  eprint     = {2510.12803},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/03-problem-generation.md:85},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2410.01560,
+  title      = {OpenMathInstruct-2},
+  url        = {https://arxiv.org/abs/2410.01560},
+  eprint     = {2410.01560},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/03-problem-generation.md:86, research/08-finetuning-data.md:73, research/09-architecture-patterns.md:62},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2510.22954,
+  title      = {Artificial Hivemind: The Open-Ended Homogeneity of Language Models},
+  url        = {https://arxiv.org/abs/2510.22954},
+  eprint     = {2510.22954},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/03-problem-generation.md:87},
+  keywords   = {unverified},
+}
+
+@misc{academic-oup-com-pnasnexus-article-5-3-pgag042-8,
+  title    = {Large language models are homogeneously creative},
+  url      = {https://academic.oup.com/pnasnexus/article/5/3/pgag042/8529001},
+  note     = {unverified; cited at research/03-problem-generation.md:88},
+  keywords = {unverified},
+}
+
+@misc{arxiv2410.18336,
+  title      = {Assessing the Creativity of LLMs in Proposing Novel Solutions to Mathematical Problems},
+  url        = {https://arxiv.org/abs/2410.18336},
+  eprint     = {2410.18336},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/03-problem-generation.md:89},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2404.02124,
+  title      = {Exploring Automated Distractor Generation for Math Multiple-choice Questions via Large Language Models},
+  author     = {Feng and others},
+  url        = {https://arxiv.org/abs/2404.02124},
+  eprint     = {2404.02124},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/04-distractors-misconceptions.md:66},
+  keywords   = {unverified},
+}
+
+@misc{aclanthology-org-2024-findings-naacl-193,
+  title    = {Exploring Automated Distractor Generation for Math Multiple-choice Questions via Large Language Models},
+  author   = {Feng and others},
+  url      = {https://aclanthology.org/2024.findings-naacl.193/},
+  related  = {arxiv2404.02124},
+  note     = {unverified; another address of arxiv2404.02124; cited at research/04-distractors-misconceptions.md:66},
+  keywords = {unverified},
+}
+
+@misc{github-com-umass-ml4ed-prompt-distractor-generat,
+  title    = {Exploring Automated Distractor Generation for Math Multiple-choice Questions via Large Language Models},
+  author   = {Feng and others},
+  url      = {https://github.com/umass-ml4ed/prompt_distractor_generation_NAACL},
+  related  = {arxiv2404.02124},
+  note     = {unverified; another address of arxiv2404.02124; cited at research/04-distractors-misconceptions.md:66},
+  keywords = {unverified},
+}
+
+@misc{kaggle-com-competitions-eedi-mining-misconceptio,
+  title        = {Eedi — Mining Misconceptions in Mathematics},
+  howpublished = {Kaggle},
+  url          = {https://www.kaggle.com/competitions/eedi-mining-misconceptions-in-mathematics},
+  note         = {unverified; cited at research/04-distractors-misconceptions.md:67},
+  keywords     = {unverified},
+}
+
+@misc{kaggle-com-competitions-eedi-mining-misconceptio-2,
+  title        = {1st Place Detailed Solution},
+  howpublished = {Kaggle},
+  url          = {https://www.kaggle.com/competitions/eedi-mining-misconceptions-in-mathematics/writeups/mth-101-1st-place-detailed-solution},
+  note         = {unverified; cited at research/04-distractors-misconceptions.md:68, research/07-models.md:105},
+  keywords     = {unverified},
+}
+
+@misc{eedi-com-news-from-wrong-answers-to-real-insight,
+  title    = {From Wrong Answers to Real Insights: How We Used a Kaggle Challenge to Map Student Misconceptions},
+  author   = {{Eedi}},
+  url      = {https://www.eedi.com/news/from-wrong-answers-to-real-insights-how-we-used-a-kaggle-challenge-to-map-student-misconceptions},
+  note     = {unverified; cited at research/04-distractors-misconceptions.md:69, research/08-finetuning-data.md:78},
+  keywords = {unverified},
+}
+
+@misc{arxiv2505.13903,
+  title      = {Let's Verify Math Questions Step by Step},
+  url        = {https://arxiv.org/abs/2505.13903},
+  eprint     = {2505.13903},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/05-verification.md:88},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2403.03558,
+  title      = {Benchmarking Hallucination in LLMs based on Unanswerable Math Word Problem},
+  url        = {https://arxiv.org/abs/2403.03558},
+  eprint     = {2403.03558},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/05-verification.md:89},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2508.16514,
+  title      = {FLAMES: Improving LLM Math Reasoning via a Fine-Grained Analysis of the Data Synthesis Pipeline},
+  url        = {https://arxiv.org/abs/2508.16514},
+  eprint     = {2508.16514},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/05-verification.md:90, research/09-architecture-patterns.md:61},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2502.17387,
+  title      = {Big-Math},
+  url        = {https://arxiv.org/abs/2502.17387},
+  eprint     = {2502.17387},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/05-verification.md:91},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2505.16646,
+  title      = {SMART: Self-Generating and Self-Validating Multi-Dimensional Assessment},
+  url        = {https://arxiv.org/abs/2505.16646},
+  eprint     = {2505.16646},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/05-verification.md:92},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2506.07962,
+  title      = {Correlated Errors in Large Language Models},
+  url        = {https://arxiv.org/abs/2506.07962},
+  eprint     = {2506.07962},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/05-verification.md:93},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2604.22891,
+  title      = {Quantifying and Mitigating Self-Preference Bias of LLM Judges},
+  url        = {https://arxiv.org/abs/2604.22891},
+  eprint     = {2604.22891},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/05-verification.md:94},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2508.06709,
+  title      = {Play Favorites: A Statistical Method to Measure Self-Bias in LLM-as-a-Judge},
+  url        = {https://arxiv.org/abs/2508.06709},
+  eprint     = {2508.06709},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/05-verification.md:95},
+  keywords   = {unverified},
+}
+
+@misc{openlayer-com-blog-llm-as-judge-evaluation-guide,
+  title    = {LLM-as-judge: evaluation best practices},
+  author   = {{Openlayer}},
+  url      = {https://www.openlayer.com/blog/llm-as-judge-evaluation-guide},
+  note     = {unverified; cited at research/05-verification.md:96},
+  keywords = {unverified},
+}
+
+@misc{arxiv2405.12063,
+  title      = {CLAMBER},
+  url        = {https://arxiv.org/abs/2405.12063},
+  eprint     = {2405.12063},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/05-verification.md:97},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2503.22674,
+  title      = {QuestBench},
+  url        = {https://arxiv.org/abs/2503.22674},
+  eprint     = {2503.22674},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/05-verification.md:97},
+  keywords   = {unverified},
+}
+
+@misc{openreview-net-pdf-id-OkHC30LLpO,
+  title    = {AbstentionBench},
+  url      = {https://openreview.net/pdf?id=OkHC30LLpO},
+  note     = {unverified; cited at research/05-verification.md:97},
+  keywords = {unverified},
+}
+
+@misc{arxiv2605.25284,
+  title      = {Knowing but Not Showing: LLMs Recognize Ambiguity but Rarely Ask Clarifying Questions},
+  url        = {https://arxiv.org/abs/2605.25284},
+  eprint     = {2605.25284},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/05-verification.md:98},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2211.10435,
+  title      = {PAL: Program-aided Language Models},
+  author     = {Gao and others},
+  url        = {https://arxiv.org/abs/2211.10435},
+  eprint     = {2211.10435},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/05-verification.md:99},
+  keywords   = {unverified},
+}
+
+@misc{sciencedirect-com-science-article-abs-pii-S03601,
+  title    = {Computer adaptive practice of Maths ability using a new item response model for on the fly ability and difficulty estimation},
+  author   = {Klinkenberg and Straatemeier and van der Maas},
+  url      = {https://www.sciencedirect.com/science/article/abs/pii/S0360131511000418},
+  note     = {unverified; cited at research/06-adaptive-learning.md:63},
+  keywords = {unverified},
+}
+
+@misc{klinkenberg-amsterdam-publication-math-garden,
+  title    = {Computer adaptive practice of Maths ability using a new item response model for on the fly ability and difficulty estimation},
+  author   = {Klinkenberg and Straatemeier and van der Maas},
+  url      = {https://www.klinkenberg.amsterdam/publication/math-garden/},
+  related  = {sciencedirect-com-science-article-abs-pii-S03601},
+  note     = {unverified; another address of sciencedirect-com-science-article-abs-pii-S03601; cited at research/06-adaptive-learning.md:63},
+  keywords = {unverified},
+}
+
+@misc{sciencedirect-com-science-article-abs-pii-S03601-2,
+  title    = {Applications of the Elo rating system in adaptive educational systems},
+  author   = {Pelánek},
+  url      = {https://www.sciencedirect.com/science/article/abs/pii/S036013151630080X},
+  note     = {unverified; cited at research/06-adaptive-learning.md:64},
+  keywords = {unverified},
+}
+
+@misc{fi-muni-cz-xpelanek-publications-CAE-elo-pdf,
+  title    = {Applications of the Elo rating system in adaptive educational systems},
+  author   = {Pelánek},
+  url      = {https://www.fi.muni.cz/~xpelanek/publications/CAE-elo.pdf},
+  related  = {sciencedirect-com-science-article-abs-pii-S03601-2},
+  note     = {unverified; another address of sciencedirect-com-science-article-abs-pii-S03601-2; cited at research/06-adaptive-learning.md:64},
+  keywords = {unverified},
+}
+
+@misc{link-springer-com-article-10-1007-s11257-025-094,
+  title    = {Balancing stability and flexibility: a dynamic K value approach for the Elo rating system},
+  url      = {https://link.springer.com/article/10.1007/s11257-025-09439-z},
+  note     = {unverified; cited at research/06-adaptive-learning.md:65},
+  keywords = {unverified},
+}
+
+@misc{sciencedirect-com-science-article-pii-S2666920X2,
+  title    = {Psychometrics of an Elo-based large-scale online learning system},
+  url      = {https://www.sciencedirect.com/science/article/pii/S2666920X25000165},
+  note     = {unverified; cited at research/06-adaptive-learning.md:66},
+  keywords = {unverified},
+}
+
+@misc{nature-com-articles-s41467-019-12552-4,
+  title    = {The Eighty Five Percent Rule for optimal learning},
+  author   = {Wilson and Shenhav and Straccia and Cohen},
+  url      = {https://www.nature.com/articles/s41467-019-12552-4},
+  note     = {unverified; cited at research/06-adaptive-learning.md:67},
+  keywords = {unverified},
+}
+
+@misc{arxiv2512.23036,
+  title      = {Problems With Large Language Models for Learner Modelling: Why LLMs Alone Fall Short for Responsible Tutoring in K–12 Education},
+  url        = {https://arxiv.org/abs/2512.23036},
+  eprint     = {2512.23036},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/06-adaptive-learning.md:68},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2409.16490,
+  title      = {Exploring Knowledge Tracing in Tutor-Student Dialogues using LLMs},
+  url        = {https://arxiv.org/abs/2409.16490},
+  eprint     = {2409.16490},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/06-adaptive-learning.md:69},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2605.01097,
+  title      = {Interpretable Difficulty-Aware Knowledge Tracing in Tutor-Student Dialogues},
+  url        = {https://arxiv.org/abs/2605.01097},
+  eprint     = {2605.01097},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/06-adaptive-learning.md:70},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2505.01563,
+  title      = {TutorGym: A Testbed for Evaluating AI Agents as Tutors and Students},
+  url        = {https://arxiv.org/abs/2505.01563},
+  eprint     = {2505.01563},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/06-adaptive-learning.md:71},
+  keywords   = {unverified},
+}
+
+@misc{platform-claude-com-docs,
+  title    = {Anthropic API documentation: models, prices, thinking and effort, prompt caching, Batch API, structured outputs (snapshot of 2026-06-24)},
+  url      = {https://platform.claude.com/docs},
+  note     = {unverified; cited at research/07-models.md:98, research/09-architecture-patterns.md:60},
+  keywords = {unverified},
+}
+
+@misc{anthropic-com-pricing,
+  title    = {Anthropic: pricing},
+  url      = {https://www.anthropic.com/pricing},
+  related  = {platform-claude-com-docs},
+  note     = {unverified; another address of platform-claude-com-docs; cited at research/07-models.md:98, research/09-architecture-patterns.md:60},
+  keywords = {unverified},
+}
+
+@misc{arxiv2505.14810,
+  title      = {Scaling Reasoning, Losing Control: Evaluating Instruction Following in Large Reasoning Models},
+  url        = {https://arxiv.org/abs/2505.14810},
+  eprint     = {2505.14810},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/07-models.md:100},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2508.10925,
+  title      = {gpt-oss-120b \& gpt-oss-20b Model Card},
+  author     = {{OpenAI}},
+  url        = {https://arxiv.org/abs/2508.10925},
+  eprint     = {2508.10925},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/07-models.md:101},
+  keywords   = {unverified},
+}
+
+@misc{openai-com-index-introducing-gpt-oss,
+  title    = {gpt-oss-120b \& gpt-oss-20b Model Card},
+  author   = {{OpenAI}},
+  url      = {https://openai.com/index/introducing-gpt-oss/},
+  related  = {arxiv2508.10925},
+  note     = {unverified; another address of arxiv2508.10925; cited at research/07-models.md:101},
+  keywords = {unverified},
+}
+
+@misc{arxiv2505.09388,
+  title      = {Qwen3 Technical Report},
+  author     = {{Qwen Team}},
+  url        = {https://arxiv.org/abs/2505.09388},
+  eprint     = {2505.09388},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/07-models.md:102},
+  keywords   = {unverified},
+}
+
+@misc{qwenlm-github-io-blog-qwen3,
+  title    = {Qwen3 Technical Report},
+  author   = {{Qwen Team}},
+  url      = {https://qwenlm.github.io/blog/qwen3/},
+  related  = {arxiv2505.09388},
+  note     = {unverified; another address of arxiv2505.09388; cited at research/07-models.md:102},
+  keywords = {unverified},
+}
+
+@misc{blog-salad-com-qwen-3-5-small-models-on-saladclo,
+  title    = {Qwen 3.5 small models on SaladCloud: benchmarks and cost (a secondary review)},
+  url      = {https://blog.salad.com/qwen-3-5-small-models-on-saladcloud-benchmarks-cost-and-why-you-dont-need-a-mac-mini/},
+  note     = {unverified; cited at research/07-models.md:103},
+  keywords = {unverified},
+}
+
+@misc{insiderllm-com-guides-qwen-models-guide,
+  title    = {A guide to the Qwen models (a secondary review)},
+  url      = {https://insiderllm.com/guides/qwen-models-guide/},
+  related  = {blog-salad-com-qwen-3-5-small-models-on-saladclo},
+  note     = {unverified; another address of blog-salad-com-qwen-3-5-small-models-on-saladclo; cited at research/07-models.md:103},
+  keywords = {unverified},
+}
+
+@misc{wavect-io-blog-open-weight-llm-comparison-2026,
+  title    = {A comparison of open-weight language models, 2026 (a secondary review)},
+  url      = {https://wavect.io/blog/open-weight-llm-comparison-2026/},
+  note     = {unverified; cited at research/07-models.md:104},
+  keywords = {unverified},
+}
+
+@misc{support-claude-com-en-articles-12326764-can-i-us,
+  title        = {Can I use my Outputs to train an AI model?},
+  howpublished = {Claude Help Center},
+  url          = {https://support.claude.com/en/articles/12326764-can-i-use-my-outputs-to-train-an-ai-model},
+  note         = {unverified; cited at research/08-finetuning-data.md:70},
+  keywords     = {unverified},
+}
+
+@misc{anthropic-com-legal-commercial-terms,
+  title    = {Anthropic Commercial Terms of Service},
+  url      = {https://www.anthropic.com/legal/commercial-terms},
+  note     = {unverified; cited at research/08-finetuning-data.md:71},
+  keywords = {unverified},
+}
+
+@misc{contrastsecurity-com-hubfs-Anthropic-on-Bedrock,
+  title    = {Anthropic Commercial Terms of Service},
+  url      = {https://www.contrastsecurity.com/hubfs/Anthropic-on-Bedrock_Commercial_Terms.pdf},
+  related  = {anthropic-com-legal-commercial-terms},
+  note     = {unverified; another address of anthropic-com-legal-commercial-terms; cited at research/08-finetuning-data.md:71},
+  keywords = {unverified},
+}
+
+@misc{brookings-edu-articles-what-happens-when-ai-comp,
+  title    = {What happens when AI companies compete with their customers?},
+  author   = {{Brookings}},
+  url      = {https://www.brookings.edu/articles/what-happens-when-ai-companies-compete-with-their-customers/},
+  note     = {unverified; cited at research/08-finetuning-data.md:72},
+  keywords = {unverified},
+}
+
+@misc{openreview-net-pdf-id-3ELRdg2sgI,
+  title    = {STaR: Self-Taught Reasoner},
+  author   = {Zelikman and others},
+  url      = {https://openreview.net/pdf?id=_3ELRdg2sgI},
+  note     = {unverified; cited at research/08-finetuning-data.md:75},
+  keywords = {unverified},
+}
+
+@misc{nature-com-articles-s41586-024-07566-y,
+  title    = {AI models collapse when trained on recursively generated data},
+  author   = {Shumailov and others},
+  url      = {https://www.nature.com/articles/s41586-024-07566-y},
+  note     = {unverified; cited at research/08-finetuning-data.md:76},
+  keywords = {unverified},
+}
+
+@misc{arxiv2410.12954,
+  title      = {A Note on Shumailov et al. (2024)},
+  url        = {https://arxiv.org/abs/2410.12954},
+  eprint     = {2410.12954},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/08-finetuning-data.md:77},
+  keywords   = {unverified},
+}
+
+@misc{dataprotectionreport-com-2025-06-ftcs-coppa-rule,
+  title    = {FTC's COPPA Rule changes include AI training consent requirement},
+  url      = {https://www.dataprotectionreport.com/2025/06/ftcs-coppa-rule-changes-include-ai-training-consent-requirement/},
+  note     = {unverified; cited at research/08-finetuning-data.md:80, research/10-risks-children.md:73},
+  keywords = {unverified},
+}
+
+@misc{anthropic-com-engineering-building-effective-age,
+  title    = {Building effective agents},
+  author   = {Schluntz and Zhang},
+  url      = {https://www.anthropic.com/engineering/building-effective-agents},
+  note     = {unverified; cited at research/09-architecture-patterns.md:59},
+  keywords = {unverified},
+}
+
+@misc{ftc-gov-news-events-news-press-releases-2025-01,
+  title    = {FTC Finalizes Changes to Children's Privacy Rule},
+  author   = {{FTC}},
+  url      = {https://www.ftc.gov/news-events/news/press-releases/2025/01/ftc-finalizes-changes-childrens-privacy-rule-limiting-companies-ability-monetize-kids-data},
+  note     = {unverified; cited at research/10-risks-children.md:71},
+  keywords = {unverified},
+}
+
+@misc{federalregister-gov-documents-2025-04-22-2025-05,
+  title        = {Children's Online Privacy Protection Rule},
+  howpublished = {Federal Register},
+  url          = {https://www.federalregister.gov/documents/2025/04/22/2025-05904/childrens-online-privacy-protection-rule},
+  note         = {unverified; cited at research/10-risks-children.md:72},
+  keywords     = {unverified},
+}
+
+@misc{dwt-com-blogs-privacy-security-law-blog-2025-05,
+  title    = {FTC Amends COPPA Rule},
+  author   = {{Davis Wright Tremaine}},
+  url      = {https://www.dwt.com/blogs/privacy--security-law-blog/2025/05/coppa-rule-ftc-amended-childrens-privacy},
+  note     = {unverified; cited at research/10-risks-children.md:74},
+  keywords = {unverified},
+}
+
+@misc{gdpr-info-eu-art-8-gdpr,
+  title    = {GDPR, Article 8: conditions applicable to a child's consent},
+  url      = {https://gdpr-info.eu/art-8-gdpr/},
+  note     = {unverified; cited at research/10-risks-children.md:75},
+  keywords = {unverified},
+}
+
+@misc{euconsent-eu-digital-age-of-consent-under-the-gd,
+  title    = {The digital age of consent under the GDPR, by country},
+  url      = {https://euconsent.eu/digital-age-of-consent-under-the-gdpr/},
+  related  = {gdpr-info-eu-art-8-gdpr},
+  note     = {unverified; another address of gdpr-info-eu-art-8-gdpr; cited at research/10-risks-children.md:75},
+  keywords = {unverified},
+}
+
+@misc{normativ-kontur-ru-document-moduleId-1-documentI,
+  title    = {Federal Law No. 152-FZ "On Personal Data" (Russia)},
+  url      = {https://normativ.kontur.ru/document?moduleId=1&documentId=501173},
+  note     = {unverified; cited at research/10-risks-children.md:76},
+  keywords = {unverified},
+}
+
+@misc{ic-tech-ru-blog-faq-questions-152fz-kto-mozhet-d,
+  title    = {Who may consent to the processing of a child's personal data (a commentary on 152-FZ)},
+  url      = {https://ic-tech.ru/blog/faq/questions-152fz/kto-mozhet-dat-soglasie-na-obrabotku-dannyh-rebyonka/},
+  related  = {normativ-kontur-ru-document-moduleId-1-documentI},
+  note     = {unverified; another address of normativ-kontur-ru-document-moduleId-1-documentI; cited at research/10-risks-children.md:76},
+  keywords = {unverified},
+}
+
+@misc{arxiv2310.18502,
+  title      = {On the Automatic Generation and Simplification of Children's Stories},
+  url        = {https://arxiv.org/abs/2310.18502},
+  eprint     = {2310.18502},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/10-risks-children.md:77},
+  keywords   = {unverified},
+}
+
+@misc{link-springer-com-chapter-10-1007-978-3-032-2978,
+  title    = {Toward Grade-Aligned Educational Text Generation with Training-Free Readability Steering},
+  url      = {https://link.springer.com/chapter/10.1007/978-3-032-29788-4_68},
+  note     = {unverified; cited at research/10-risks-children.md:78},
+  keywords = {unverified},
+}
+
+@misc{arxiv2406.09205,
+  title      = {ReadCtrl: Personalizing text generation with readability-controlled instruction learning},
+  url        = {https://arxiv.org/abs/2406.09205},
+  eprint     = {2406.09205},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/10-risks-children.md:79},
+  keywords   = {unverified},
+}
+
+@misc{readable-com-readability-flesch-reading-ease-fle,
+  title    = {Flesch Reading Ease and the Flesch Kincaid Grade Level},
+  author   = {{Readable}},
+  url      = {https://readable.com/readability/flesch-reading-ease-flesch-kincaid-grade-level/},
+  note     = {unverified; cited at research/10-risks-children.md:80},
+  keywords = {unverified},
+}
+
+@misc{arxiv2406.12679,
+  title      = {Vernacular? I Barely Know Her: Challenges with Style Control and Stereotyping},
+  url        = {https://arxiv.org/abs/2406.12679},
+  eprint     = {2406.12679},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/10-risks-children.md:81},
+  keywords   = {unverified},
+}
+
+@misc{arxiv2606.29685,
+  title      = {CAREBench: A Child-Safety Risk Benchmark for Language Models},
+  url        = {https://arxiv.org/abs/2606.29685},
+  eprint     = {2606.29685},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/10-risks-children.md:82},
+  keywords   = {unverified},
+}
+
+@misc{ru-wikisource-org-wiki,
+  title    = {Russian Wikisource: author page of Yakov Perelman},
+  url      = {https://ru.wikisource.org/wiki/Автор:Яков_Исидорович_Перельман},
+  note     = {unverified; cited at research/12-task-sources.md:133},
+  keywords = {unverified},
+}
+
+@misc{ru-wikisource-org-wiki-2,
+  title    = {Russian Wikisource: Perelman, Zhivaya matematika (Living Mathematics)},
+  url      = {https://ru.wikisource.org/wiki/Живая_математика_(Перельман)},
+  note     = {unverified; cited at research/12-task-sources.md:134},
+  keywords = {unverified},
+}
+
+@misc{mathedu-ru-text-perelman-zanimatelnaya-arifmetik,
+  title    = {Perelman, Zanimatelnaya arifmetika (Entertaining Arithmetic), 1938, scan at mathedu.ru},
+  url      = {https://www.mathedu.ru/text/perelman_zanimatelnaya_arifmetika_1938},
+  note     = {unverified; cited at research/12-task-sources.md:135},
+  keywords = {unverified},
+}
+
+@misc{rusneb-ru-catalog-000199-000009-006636096,
+  title    = {Ignatiev, V tsarstve smekalki (In the Kingdom of Ingenuity), book 1, 1911, National Electronic Library of Russia},
+  url      = {https://rusneb.ru/catalog/000199_000009_006636096/},
+  note     = {unverified; cited at research/12-task-sources.md:136},
+  keywords = {unverified},
+}
+
+@misc{mathedu-ru-text-ignatjev-v-czarstve-smekalki-kn1,
+  title    = {Ignatiev, V tsarstve smekalki (In the Kingdom of Ingenuity), book 1, 1923, scan at mathedu.ru},
+  url      = {https://www.mathedu.ru/text/ignatjev_v_czarstve_smekalki_kn1_1923/},
+  note     = {unverified; cited at research/12-task-sources.md:137},
+  keywords = {unverified},
+}
+
+@misc{mathedu-ru-text-kordemskiy-matematicheskaya-smek,
+  title    = {Kordemsky, Matematicheskaya smekalka (Mathematical Ingenuity), 1956, scan at mathedu.ru},
+  url      = {https://www.mathedu.ru/text/kordemskiy_matematicheskaya_smekalka_1956/},
+  note     = {unverified; cited at research/12-task-sources.md:138},
+  keywords = {unverified},
+}
+
+@misc{mathedu-ru-text-nagibin-kanin-matematicheskaya-s,
+  title    = {Nagibin and Kanin, Matematicheskaya shkatulka (The Mathematical Casket), 1988, scan at mathedu.ru},
+  url      = {https://www.mathedu.ru/text/nagibin_kanin_matematicheskaya_shkatulka_1988/},
+  note     = {unverified; cited at research/12-task-sources.md:139},
+  keywords = {unverified},
+}
+
+@misc{cyberleninka-ru-article-n-professor-fedor-fedoro,
+  title    = {Professor Fyodor Fyodorovich Nagibin (for his life dates), CyberLeninka},
+  url      = {https://cyberleninka.ru/article/n/professor-fedor-fedorovich-nagibin},
+  note     = {unverified; cited at research/12-task-sources.md:140},
+  keywords = {unverified},
+}
+
+@misc{mathedu-ru-text-trudnev-schitay-smekay-otgadyvay,
+  title    = {Trudnev, Schitay, smekay, otgadyvay (Count, Think, Guess), 1980, scan at mathedu.ru},
+  url      = {https://www.mathedu.ru/text/trudnev_schitay_smekay_otgadyvay_1980/},
+  note     = {unverified; cited at research/12-task-sources.md:141},
+  keywords = {unverified},
+}
+
+@misc{sovietime-ru-matematika-schitaj-smekaj-otgadyvaj,
+  title    = {Trudnev, Schitay, smekay, otgadyvay! (Count, Think, Guess!), 1970, scan at sovietime.ru},
+  url      = {https://sovietime.ru/matematika/schitaj-smekaj-otgadyvaj-trudnev-1970},
+  note     = {unverified; cited at research/12-task-sources.md:142},
+  keywords = {unverified},
+}
+
+@misc{sovietime-ru-matematika-zanimatelnye-zadachi-194,
+  title    = {Polyak, Zanimatelnye zadachi (Entertaining Problems), 1948, scan at sovietime.ru},
+  url      = {https://sovietime.ru/matematika/zanimatelnye-zadachi-1948},
+  note     = {unverified; cited at research/12-task-sources.md:143},
+  keywords = {unverified},
+}
+
+@misc{sovietime-ru-matematika-sbornik-arifmeticheskikh,
+  title    = {A collection of arithmetic problems and exercises for grade 3, 1946, scan at sovietime.ru},
+  url      = {https://sovietime.ru/matematika/sbornik-arifmeticheskikh-zadach-i-uprazhnenij-dlya-3-go-kl-1946},
+  note     = {unverified; cited at research/12-task-sources.md:144},
+  keywords = {unverified},
+}
+
+@misc{sovietime-ru-matematika-arifmetika-1965,
+  title    = {Pchelko, Arifmetika (Arithmetic), 1965, scan at sovietime.ru},
+  url      = {https://sovietime.ru/matematika/arifmetika-1965},
+  note     = {unverified; cited at research/12-task-sources.md:145},
+  keywords = {unverified},
+}
+
+@misc{ru-wikipedia-org-wiki,
+  title    = {Russian Wikipedia: Alexander Pchelko},
+  url      = {https://ru.wikipedia.org/wiki/Пчёлко,_Александр_Спиридонович},
+  note     = {unverified; cited at research/12-task-sources.md:146},
+  keywords = {unverified},
+}
+
+@misc{livelib-ru-author-480734-mariya-moro,
+  title    = {LiveLib: Maria Moro (for her life dates)},
+  url      = {https://www.livelib.ru/author/480734-mariya-moro},
+  note     = {unverified; cited at research/12-task-sources.md:147},
+  keywords = {unverified},
+}
+
+@misc{old-mccme-ru-free-books-pdf-kozlova-pdf,
+  title    = {Kozlova, Skazki i podskazki (Tales and Hints): problems for a mathematics circle, MCCME (PDF)},
+  url      = {https://old.mccme.ru/free-books/pdf/kozlova.pdf},
+  note     = {unverified; cited at research/12-task-sources.md:148},
+  keywords = {unverified},
+}
+
+@misc{olimpiada-ru-activity-72-tasks-2021-class-4,
+  title    = {Olimpiada.ru: the All-Russian Mathematics Olympiad, problems for grade 4},
+  url      = {https://olimpiada.ru/activity/72/tasks/2021?class=4},
+  note     = {unverified; cited at research/12-task-sources.md:152},
+  keywords = {unverified},
+}
+
+@misc{olimpiada-ru-article-1047,
+  title    = {Olimpiada.ru: problems and solutions of the school stage run by Sirius},
+  url      = {https://olimpiada.ru/article/1047},
+  note     = {unverified; cited at research/12-task-sources.md:153},
+  keywords = {unverified},
+}
+
+@misc{siriusolymp-ru,
+  title    = {Sirius: the school stage of the olympiad},
+  url      = {https://siriusolymp.ru/},
+  note     = {unverified; cited at research/12-task-sources.md:154},
+  keywords = {unverified},
+}
+
+@misc{olympiads-mccme-ru-matprazdnik,
+  title    = {Matematicheskiy prazdnik (the Mathematical Festival): archive},
+  url      = {https://olympiads.mccme.ru/matprazdnik/},
+  note     = {unverified; cited at research/12-task-sources.md:155},
+  keywords = {unverified},
+}
+
+@misc{olympiads-mccme-ru-matprazdnik-sbornik-html,
+  title    = {Yashchenko, Priglashenie na Matematicheskiy prazdnik (An Invitation to the Mathematical Festival)},
+  url      = {https://olympiads.mccme.ru/matprazdnik/sbornik.html},
+  note     = {unverified; cited at research/12-task-sources.md:156},
+  keywords = {unverified},
+}
+
+@misc{turlom-olimpiada-ru-old,
+  title    = {The Lomonosov Tournament: archive},
+  url      = {http://turlom.olimpiada.ru/old},
+  note     = {unverified; cited at research/12-task-sources.md:157},
+  keywords = {unverified},
+}
+
+@misc{problems-ru,
+  title    = {problems.ru: Zadachi (Problems), by MCCME and School 57},
+  url      = {https://problems.ru/},
+  note     = {unverified; cited at research/12-task-sources.md:158},
+  keywords = {unverified},
+}
+
+@misc{nsportal-ru-nachalnaya-shkola-matematika-2019-12,
+  title    = {Nsportal.ru: olympiad problems for grades 1–4 with answers, an example},
+  url      = {https://nsportal.ru/nachalnaya-shkola/matematika/2019/12/02/olimpiadnye-zadaniya-dlya-1-4-klassov-s-otvetami},
+  note     = {unverified; cited at research/12-task-sources.md:159},
+  keywords = {unverified},
+}
+
+@misc{matolimp-ru,
+  title    = {Matolimp.ru: olympiads for grades 1–4},
+  url      = {https://matolimp.ru/},
+  note     = {unverified; cited at research/12-task-sources.md:160},
+  keywords = {unverified},
+}
+
+@misc{gutenberg-org-ebooks-16713,
+  title        = {Amusements in Mathematics},
+  author       = {Dudeney},
+  howpublished = {Project Gutenberg},
+  url          = {https://www.gutenberg.org/ebooks/16713},
+  note         = {unverified; cited at research/12-task-sources.md:164},
+  keywords     = {unverified},
+}
+
+@misc{gutenberg-org-files-27635-27635-h-27635-h-htm,
+  title        = {The Canterbury Puzzles},
+  author       = {Dudeney},
+  howpublished = {Project Gutenberg},
+  url          = {https://www.gutenberg.org/files/27635/27635-h/27635-h.htm},
+  note         = {unverified; cited at research/12-task-sources.md:165},
+  keywords     = {unverified},
+}
+
+@misc{archive-org-details-samloydcyclopedi00libg,
+  title        = {Cyclopedia of Puzzles},
+  author       = {Sam Loyd},
+  howpublished = {Internet Archive},
+  url          = {https://archive.org/details/samloydcyclopedi00libg},
+  note         = {unverified; cited at research/12-task-sources.md:166},
+  keywords     = {unverified},
+}
+
+@misc{archive-org-details-pillowproblemsan0000carr,
+  title        = {Pillow Problems},
+  author       = {Lewis Carroll},
+  howpublished = {Internet Archive},
+  url          = {https://archive.org/details/pillowproblemsan0000carr},
+  note         = {unverified; cited at research/12-task-sources.md:167},
+  keywords     = {unverified},
+}
+
+@misc{huggingface-co-datasets-openai-gsm8k,
+  title    = {Hugging Face, openai/gsm8k},
+  url      = {https://huggingface.co/datasets/openai/gsm8k},
+  note     = {unverified; cited at research/12-task-sources.md:168},
+  keywords = {unverified},
+}
+
+@misc{github-com-arkilpatel-SVAMP-blob-main-LICENSE,
+  title    = {SVAMP: license, GitHub},
+  url      = {https://github.com/arkilpatel/SVAMP/blob/main/LICENSE},
+  note     = {unverified; cited at research/12-task-sources.md:169},
+  keywords = {unverified},
+}
+
+@misc{github-com-chaochun-nlu-asdiv-dataset,
+  title    = {GitHub, ASDiv},
+  url      = {https://github.com/chaochun/nlu-asdiv-dataset},
+  note     = {unverified; cited at research/12-task-sources.md:170},
+  keywords = {unverified},
+}
+
+@misc{microsoft-com-en-us-research-publication-mawps-m,
+  title    = {Microsoft Research, MAWPS},
+  url      = {https://www.microsoft.com/en-us/research/publication/mawps-math-word-problem-repository/},
+  note     = {unverified; cited at research/12-task-sources.md:171},
+  keywords = {unverified},
+}
+
+@misc{illustrativemathematics-org-math-curriculum-k-5,
+  title    = {Illustrative Mathematics, K–5},
+  url      = {https://illustrativemathematics.org/math-curriculum/k-5-math/},
+  note     = {unverified; cited at research/12-task-sources.md:172},
+  keywords = {unverified},
+}
+
+@misc{nrich-maths-org-terms-and-conditions,
+  title    = {NRICH, Terms and Conditions},
+  url      = {https://nrich.maths.org/terms-and-conditions},
+  note     = {unverified; cited at research/12-task-sources.md:173},
+  keywords = {unverified},
+}
+
+@misc{consultant-ru-document-cons-doc-LAW-64629-675b81,
+  title    = {Civil Code of the Russian Federation, Article 1281: the term of the exclusive right to a work},
+  url      = {https://www.consultant.ru/document/cons_doc_LAW_64629/675b81f0bc9b8ecd68ea332ecfd9d1562541fb98/},
+  note     = {unverified; cited at research/12-task-sources.md:177},
+  keywords = {unverified},
+}
+
+@misc{khanmigo-ai-pricing,
+  title    = {Khanmigo: pricing},
+  url      = {https://www.khanmigo.ai/pricing},
+  note     = {unverified; cited at research/13-competitors.md:208},
+  keywords = {unverified},
+}
+
+@misc{blog-khanacademy-org-from-chat-to-classroom-expl,
+  title    = {From chat to classroom: explore Khan Academy's math questions in ChatGPT},
+  url      = {https://blog.khanacademy.org/from-chat-to-classroom-explore-khan-academys-math-questions-in-chatgpt/},
+  note     = {unverified; cited at research/13-competitors.md:209},
+  keywords = {unverified},
+}
+
+@misc{apps-apple-com-us-app-vimi-my-math-tutor-id67485,
+  title    = {Vimi, App Store},
+  url      = {https://apps.apple.com/us/app/vimi-my-math-tutor/id6748574236},
+  note     = {unverified; cited at research/13-competitors.md:210},
+  keywords = {unverified},
+}
+
+@misc{heyvimi-com,
+  title    = {Vimi, App Store},
+  url      = {https://heyvimi.com/},
+  related  = {apps-apple-com-us-app-vimi-my-math-tutor-id67485},
+  note     = {unverified; another address of apps-apple-com-us-app-vimi-my-math-tutor-id67485; cited at research/13-competitors.md:210},
+  keywords = {unverified},
+}
+
+@misc{ynetnews-com-tech-and-digital-article-b1v9yjpsfg,
+  title    = {Vimi, App Store},
+  url      = {https://www.ynetnews.com/tech-and-digital/article/b1v9yjpsfg},
+  related  = {apps-apple-com-us-app-vimi-my-math-tutor-id67485},
+  note     = {unverified; another address of apps-apple-com-us-app-vimi-my-math-tutor-id67485; cited at research/13-competitors.md:210},
+  keywords = {unverified},
+}
+
+@misc{apps-apple-com-us-app-gauth-ai-study-companion-i,
+  title    = {Gauth, App Store},
+  url      = {https://apps.apple.com/us/app/gauth-ai-study-companion/id1542571008},
+  note     = {unverified; cited at research/13-competitors.md:211},
+  keywords = {unverified},
+}
+
+@misc{beastacademy-com-online-enroll,
+  title    = {Beast Academy},
+  url      = {https://beastacademy.com/online/enroll},
+  note     = {unverified; cited at research/13-competitors.md:212},
+  keywords = {unverified},
+}
+
+@misc{artofproblemsolving-com-alcumus,
+  title    = {Beast Academy},
+  url      = {https://artofproblemsolving.com/alcumus},
+  related  = {beastacademy-com-online-enroll},
+  note     = {unverified; another address of beastacademy-com-online-enroll; cited at research/13-competitors.md:212},
+  keywords = {unverified},
+}
+
+@misc{artofproblemsolving-com-school,
+  title    = {Beast Academy},
+  url      = {https://artofproblemsolving.com/school},
+  related  = {beastacademy-com-online-enroll},
+  note     = {unverified; another address of beastacademy-com-online-enroll; cited at research/13-competitors.md:212},
+  keywords = {unverified},
+}
+
+@misc{brilliant-org-help-pricing-and-plans-how-much-do,
+  title    = {Brilliant: how much does Brilliant Premium cost},
+  url      = {https://brilliant.org/help/pricing-and-plans/how-much-does-brilliant-premium-cost/},
+  note     = {unverified; cited at research/13-competitors.md:213},
+  keywords = {unverified},
+}
+
+@misc{synthesis-com-tutor,
+  title    = {Synthesis Tutor},
+  url      = {https://www.synthesis.com/tutor},
+  note     = {unverified; cited at research/13-competitors.md:214},
+  keywords = {unverified},
+}
+
+@misc{live-poshenloh-com-enroll,
+  title    = {Po-Shen Loh LIVE},
+  url      = {https://live.poshenloh.com/enroll},
+  note     = {unverified; cited at research/13-competitors.md:215},
+  keywords = {unverified},
+}
+
+@misc{thethinkacademy-com,
+  title    = {Think Academy},
+  url      = {https://www.thethinkacademy.com/},
+  note     = {unverified; cited at research/13-competitors.md:216},
+  keywords = {unverified},
+}
+
+@misc{ixl-com-membership-family-subscribe,
+  title    = {IXL},
+  url      = {https://www.ixl.com/membership/family/subscribe},
+  note     = {unverified; cited at research/13-competitors.md:217},
+  keywords = {unverified},
+}
+
+@misc{prodigygame-com-Memberships-purchase-cart,
+  title    = {IXL},
+  url      = {https://www.prodigygame.com/Memberships/purchase/cart/},
+  related  = {ixl-com-membership-family-subscribe},
+  note     = {unverified; another address of ixl-com-membership-family-subscribe; cited at research/13-competitors.md:217},
+  keywords = {unverified},
+}
+
+@misc{ec-europa-eu-commission-presscorner-detail-pt-ip,
+  title    = {Photomath and its acquisition by Google (European Commission press corner)},
+  url      = {https://ec.europa.eu/commission/presscorner/detail/pt/ip_23_1927},
+  note     = {unverified; cited at research/13-competitors.md:218},
+  keywords = {unverified},
+}
+
+@misc{x-com-MicrosoftMath-status-1931103750753599946,
+  title    = {Microsoft Math Solver: closed on 2025-07-07},
+  url      = {https://x.com/MicrosoftMath/status/1931103750753599946},
+  note     = {unverified; cited at research/13-competitors.md:219},
+  keywords = {unverified},
+}
+
+@misc{olympiadai-io,
+  title    = {OlympiadAI},
+  url      = {https://www.olympiadai.io/},
+  note     = {unverified; cited at research/13-competitors.md:222},
+  keywords = {unverified},
+}
+
+@misc{mathwisdom-academy,
+  title    = {MathWisdom},
+  url      = {https://www.mathwisdom.academy/},
+  note     = {unverified; cited at research/13-competitors.md:223},
+  keywords = {unverified},
+}
+
+@misc{masterolympiad-com,
+  title    = {MasterOlympiad},
+  url      = {https://www.masterolympiad.com/},
+  note     = {unverified; cited at research/13-competitors.md:224},
+  keywords = {unverified},
+}
+
+@misc{spirallearning-pages-dev-olympiad,
+  title    = {Spiral Learning},
+  url      = {https://spirallearning.pages.dev/olympiad},
+  note     = {unverified; cited at research/13-competitors.md:225},
+  keywords = {unverified},
+}
+
+@misc{mathforces-com-olympiads,
+  title    = {MathForces: olympiad problems generated with Gemini},
+  url      = {https://mathforces.com/olympiads/},
+  note     = {unverified; cited at research/13-competitors.md:226},
+  keywords = {unverified},
+}
+
+@misc{matharena-ai,
+  title    = {MathArena},
+  url      = {https://matharena.ai/},
+  note     = {unverified; cited at research/13-competitors.md:227},
+  keywords = {unverified},
+}
+
+@misc{arxiv2503.21934,
+  title      = {Proof or Bluff? (USAMO 2025)},
+  url        = {https://arxiv.org/abs/2503.21934},
+  eprint     = {2503.21934},
+  eprinttype = {arxiv},
+  note       = {unverified; cited at research/13-competitors.md:228},
+  keywords   = {unverified},
+}
+
+@misc{math-olymp-uchi-ru,
+  title    = {Uchi.ru: mathematics olympiad},
+  url      = {https://math-olymp.uchi.ru/},
+  note     = {unverified; cited at research/13-competitors.md:231},
+  keywords = {unverified},
+}
+
+@misc{education-yandex-ru-tutor-go,
+  title    = {Yandex Uchebnik: the AI tutor},
+  url      = {https://education.yandex.ru/tutor/go},
+  note     = {unverified; cited at research/13-competitors.md:232},
+  keywords = {unverified},
+}
+
+@misc{habr-com-ru-articles-1057090,
+  title    = {A review of olympiad courses with prices (an advertisement), Habr},
+  url      = {https://habr.com/ru/articles/1057090/},
+  note     = {unverified; cited at research/13-competitors.md:233},
+  keywords = {unverified},
+}
+
+@misc{support-claude-com-en-articles-13117299-minimum,
+  title    = {Claude: minimum age requirement and access restriction},
+  url      = {https://support.claude.com/en/articles/13117299-minimum-age-requirement-access-restriction},
+  note     = {unverified; cited at research/13-competitors.md:236},
+  keywords = {unverified},
+}
+
+@misc{support-claude-com-en-articles-11175166-get-star,
+  title    = {Claude: get started with custom connectors using remote MCP},
+  url      = {https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp},
+  note     = {unverified; cited at research/13-competitors.md:237},
+  keywords = {unverified},
+}
+
+@misc{support-claude-com-en-articles-13145358-anthropi,
+  title    = {Anthropic software directory policy},
+  url      = {https://support.claude.com/en/articles/13145358-anthropic-software-directory-policy},
+  note     = {unverified; cited at research/13-competitors.md:238},
+  keywords = {unverified},
+}
+
+@misc{support-claude-com-en-articles-9307344-responsib,
+  title    = {Responsible use of Anthropic's models: guidelines for organizations serving minors},
+  url      = {https://support.claude.com/en/articles/9307344-responsible-use-of-anthropic-s-models-guidelines-for-organizations-serving-minors},
+  note     = {unverified; cited at research/13-competitors.md:239},
+  keywords = {unverified},
+}
+
+@misc{developers-openai-com-apps-sdk-app-submission-gu,
+  title    = {OpenAI Apps SDK: app submission guidelines},
+  url      = {https://developers.openai.com/apps-sdk/app-submission-guidelines},
+  note     = {unverified; cited at research/13-competitors.md:240},
+  keywords = {unverified},
+}
+
+@misc{help-openai-com-en-articles-8313401-is-chatgpt-s,
+  title    = {Is ChatGPT safe for all ages?},
+  url      = {https://help.openai.com/en/articles/8313401-is-chatgpt-safe-for-all-ages},
+  note     = {unverified; cited at research/13-competitors.md:241},
+  keywords = {unverified},
+}
+
+@misc{support-google-com-gemini-answer-16109150,
+  title    = {Gemini for children through Family Link},
+  url      = {https://support.google.com/gemini/answer/16109150},
+  note     = {unverified; cited at research/13-competitors.md:242},
+  keywords = {unverified},
+}
+
+@misc{techcrunch-com-2025-07-29-openai-launches-study,
+  title    = {ChatGPT Study Mode},
+  url      = {https://techcrunch.com/2025/07/29/openai-launches-study-mode-in-chatgpt/},
+  note     = {unverified; cited at research/13-competitors.md:243},
+  keywords = {unverified},
+}
+
+@misc{venturebeat-com-ai-anthropic-takes-on-openai-and,
+  title    = {Claude Learning Mode},
+  url      = {https://venturebeat.com/ai/anthropic-takes-on-openai-and-google-with-new-claude-ai-features-designed-for-students-and-developers},
+  note     = {unverified; cited at research/13-competitors.md:244},
+  keywords = {unverified},
+}
+
+@misc{techcrunch-com-2025-08-06-google-takes-on-chatgp,
+  title    = {Gemini Guided Learning},
+  url      = {https://techcrunch.com/2025/08/06/google-takes-on-chatgpts-study-mode-with-new-guided-learning-tool-in-gemini/},
+  note     = {unverified; cited at research/13-competitors.md:245},
+  keywords = {unverified},
+}
+
+@misc{en-wikipedia-org-wiki-Photomath,
+  title    = {Photomath},
+  url      = {https://en.wikipedia.org/wiki/Photomath},
+  note     = {unverified; cited at research/13-competitors.md:28},
+  keywords = {unverified},
+}
+
+@misc{mathway-com,
+  title    = {Mathway},
+  url      = {https://www.mathway.com/},
+  note     = {unverified; cited at research/13-competitors.md:29},
+  keywords = {unverified},
+}
+
+@misc{symbolab-com,
+  title    = {Symbolab},
+  url      = {https://www.symbolab.com/},
+  note     = {unverified; cited at research/13-competitors.md:30},
+  keywords = {unverified},
+}
+
+@misc{brainly-com,
+  title    = {Brainly},
+  url      = {https://brainly.com/},
+  note     = {unverified; cited at research/13-competitors.md:31},
+  keywords = {unverified},
+}
+
+@misc{duolingo-fandom-com-wiki-Duolingo-Math,
+  title    = {Duolingo Math},
+  url      = {https://duolingo.fandom.com/wiki/Duolingo_Math},
+  note     = {unverified; cited at research/13-competitors.md:36},
+  keywords = {unverified},
+}
+
+@misc{splashlearn-com,
+  title    = {SplashLearn},
+  url      = {https://www.splashlearn.com/},
+  note     = {unverified; cited at research/13-competitors.md:39},
+  keywords = {unverified},
+}
+
+@misc{dreambox-com,
+  title    = {DreamBox},
+  url      = {https://www.dreambox.com/},
+  note     = {unverified; cited at research/13-competitors.md:40},
+  keywords = {unverified},
+}
+
+@misc{brilliant-org-help-pricing-and-plans,
+  title    = {Brilliant},
+  url      = {https://brilliant.org/help/pricing-and-plans/},
+  note     = {unverified; cited at research/13-competitors.md:44},
+  keywords = {unverified},
+}
+
+@misc{russianschool-com,
+  title    = {RSM},
+  url      = {https://www.russianschool.com/},
+  note     = {unverified; cited at research/13-competitors.md:47},
+  keywords = {unverified},
+}

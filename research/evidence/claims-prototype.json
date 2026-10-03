@@ -1,0 +1,909 @@
+[
+  {
+    "id": "P001",
+    "group": "Architecture: from API agents to an MCP server",
+    "claim": "The prototype was first designed as four roles on the Claude API — Methodist, Generator, then Analyst and Skeptic in parallel — with the two verifiers seeing only the question and the options.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "docs/decisions.md",
+        "match": "^\\*\\*D07\\. Four roles: Methodist → Generator → Analyst ∥ Skeptic\\.\\*\\* Analyst and Skeptic see only question and options, run in parallel\\."
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P002",
+    "group": "Architecture: from API agents to an MCP server",
+    "claim": "The code that called the Claude API was removed before the first live call: no task was ever written by the agent pipeline.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "docs/decisions.md",
+        "match": "were removed before the first live call"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P003",
+    "group": "Architecture: from API agents to an MCP server",
+    "claim": "The prototype became an MCP server: the chat client's model writes each task within the user's own subscription, and the server makes no LLM API calls of its own.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "docs/decisions.md",
+        "match": "^\\*\\*D42\\. The prototype is an MCP server; the chat client's model writes the tasks\\.\\*\\*"
+      },
+      {
+        "file": "pyproject.toml",
+        "match": "\"mcp\\[cli\\]\","
+      },
+      {
+        "file": "src/taskgen/mcp_server.py",
+        "match": "^server = MCPServer\\(\"taskgen\", instructions=service\\.instructions\\(\\)\\)"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P004",
+    "group": "Architecture: from API agents to an MCP server",
+    "claim": "The prototype's decision log records that claude.ai, Claude Desktop and Claude Code did not support MCP sampling, so the task is written in the conversation rather than requested by the server.",
+    "status": "unverified",
+    "evidence": [
+      {
+        "file": "docs/decisions.md",
+        "match": "MCP sampling \\(the server asking the client's model to generate\\) is not supported by claude\\.ai, Claude Desktop or Claude Code"
+      }
+    ],
+    "used_in": "not in paper A; S34: revision 2026-07-28 deprecates sampling (SEP-2577), and no page read says which hosts support it"
+  },
+  {
+    "id": "P005",
+    "group": "Architecture: from API agents to an MCP server",
+    "claim": "With the move to MCP there is no independent verifier: the same model writes and checks the task, the solver program still fails for other reasons than reasoning does, and the author's manual review is the main guard against false accepts.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "SPEC.md",
+        "match": "^\\*\\*Независимых проверяющих больше нет\\.\\*\\*"
+      },
+      {
+        "file": "docs/decisions.md",
+        "match": "there are no independent verifiers any more — the same model writes and checks the task"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P006",
+    "group": "Architecture: from API agents to an MCP server",
+    "claim": "A task was accepted when its structure passed, its solver ran in a network-less Docker sandbox and returned exactly the correct option, the self-check had no blocking issue, the readability filter passed and no near duplicate was found; the model had three attempts per request.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "SPEC.md",
+        "match": "^Задача \\*\\*принимается\\*\\*, если:"
+      },
+      {
+        "file": "src/taskgen/sandbox.py",
+        "match": "\"--network\", \"none\","
+      },
+      {
+        "file": "config.yaml",
+        "match": "^max_attempts: 3"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P007",
+    "group": "Architecture: from API agents to an MCP server",
+    "claim": "Near duplicates were PostgreSQL pg_trgm similarities of 0.6 or more against the bank and the reference tasks.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "config.yaml",
+        "match": "^  max_similarity: 0\\.6 # pg_trgm similarity threshold"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P008",
+    "group": "Architecture: from API agents to an MCP server",
+    "claim": "The prototype's ratings are the product's: P = 0.2 + 0.8·σ(θ + δ − β), K = K₀/(1 + 0.05·n) with K₀ = 0.2 for θ and 0.4 for δ, and the corridor [0.70, 0.85].",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "src/taskgen/rating.py",
+        "match": "^    return GUESS \\+ \\(1 - GUESS\\) \\* sigmoid\\(level - beta\\)"
+      },
+      {
+        "file": "config.yaml",
+        "match": "^  k0_student: 0\\.2"
+      },
+      {
+        "file": "config.yaml",
+        "match": "^  k0_topic: 0\\.4"
+      },
+      {
+        "file": "config.yaml",
+        "match": "^  decay: 0\\.05"
+      },
+      {
+        "file": "config.yaml",
+        "match": "^  corridor: \\[0\\.70, 0\\.85\\]"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P009",
+    "group": "Architecture: from API agents to an MCP server",
+    "claim": "Unlike the product, the prototype also moved a task's difficulty β after every answer (K₀ = 0.4), because accepted tasks went into a bank and were handed to other children.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "SPEC.md",
+        "match": "^- β −= K_задача · \\(S − P\\)"
+      },
+      {
+        "file": "config.yaml",
+        "match": "^  k0_task: 0\\.4"
+      },
+      {
+        "file": "SPEC.md",
+        "match": "^Все принятые задачи хранятся в таблице `tasks`"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P010",
+    "group": "Architecture: from API agents to an MCP server",
+    "claim": "The prototype knew that the answer sat in the model's context and in the arguments of submit_task, where a curious child could read it; hiding it was left to an MCP Apps card after the prototype.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "SPEC.md",
+        "match": "^\\*\\*Известное ограничение прототипа\\.\\*\\* Верный ответ есть в контексте модели и в параметрах вызова `submit_task`"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P056",
+    "group": "Architecture: from API agents to an MCP server",
+    "claim": "The prototype kept everything in PostgreSQL — profiles, history, ratings, the task bank and the logs — and used no vector search: exact fields such as grade, topic and skill must never be vectors.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "docs/decisions.md",
+        "match": "^\\*\\*D19\\. Everything lives in PostgreSQL \\(Docker\\)\\.\\*\\*"
+      },
+      {
+        "file": "docs/decisions.md",
+        "match": "^\\*\\*D21\\. No pgvector for now\\.\\*\\* Exact fields \\(grade, topics, skills\\) must never be vectors\\."
+      }
+    ],
+    "used_in": "not in paper A; S04"
+  },
+  {
+    "id": "P057",
+    "group": "Architecture: from API agents to an MCP server",
+    "claim": "The prototype left out Kubernetes, Kafka, Go, workers and queues.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "SPEC.md",
+        "match": "^- k8s, Kafka, Go, воркеры, очереди\\.$"
+      }
+    ],
+    "used_in": "not in paper A; S04 (premises 8, 10)"
+  },
+  {
+    "id": "P058",
+    "group": "Architecture: from API agents to an MCP server",
+    "claim": "The prototype drew its request flow and the states of an attempt for the API pipeline; after the move to MCP both diagrams were kept only as history.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "RUN.md",
+        "match": "^> Схемы 01, 02 и 04 описывают прежний конвейер с Claude API\\."
+      }
+    ],
+    "used_in": "not in paper A; S04 (premise 10)"
+  },
+  {
+    "id": "P011",
+    "group": "Content",
+    "claim": "The prototype's catalogs held 10 topics, 14 traps and 15 skills.",
+    "status": "built",
+    "evidence": [
+      {
+        "stat": "topics",
+        "expect": "10"
+      },
+      {
+        "stat": "traps",
+        "expect": "14"
+      },
+      {
+        "stat": "skills",
+        "expect": "15"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P012",
+    "group": "Content",
+    "claim": "The prototype had 450 reference tasks: five for each of the 90 combinations of topic, grade level (1–2 or 3–4) and difficulty 1–5.",
+    "status": "built",
+    "evidence": [
+      {
+        "stat": "reference_tasks",
+        "expect": "450"
+      },
+      {
+        "stat": "reference_cells",
+        "expect": "90"
+      },
+      {
+        "stat": "reference_cells_not_five",
+        "expect": "0"
+      }
+    ],
+    "used_in": "A: §3 system"
+  },
+  {
+    "id": "P013",
+    "group": "Content",
+    "claim": "Claude wrote the reference tasks at the author's request, in the genre of Soviet collections of olympiad and graded problems; every answer was checked by a brute-force function and a blind solve by another model, and the author reviewed them by hand.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "docs/decisions.md",
+        "match": "^\\*\\*D23\\. Reference examples: 450 tasks written by Claude, reviewed by the author\\.\\*\\*"
+      },
+      {
+        "stat": "reference_check_modules",
+        "expect": "10"
+      }
+    ],
+    "used_in": "A: §3 system"
+  },
+  {
+    "id": "P014",
+    "group": "Content",
+    "claim": "The decision log records a risk: reference tasks in Claude's own style may make generation less diverse; the near-duplicate check and the author's review were to compensate.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "docs/decisions.md",
+        "match": "few-shot examples in Claude's own style may make the Generator less diverse"
+      }
+    ],
+    "used_in": "A, extended version only: §6 evaluation"
+  },
+  {
+    "id": "P015",
+    "group": "Content",
+    "claim": "Only topics whose tasks a program can brute-force entered the catalog; sequence patterns were excluded because code cannot prove a continuation unique.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "docs/decisions.md",
+        "match": "^\\*\\*D05\\. Closed topic catalog\\.\\*\\*"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P016",
+    "group": "Content",
+    "claim": "Tasks are text only, because most problems of a major international multiple-choice contest for schoolchildren use a picture and models are much weaker on them.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "docs/decisions.md",
+        "match": "^\\*\\*D04\\. Text-only problems\\.\\*\\*"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P017",
+    "group": "Content",
+    "claim": "Difficulty is a level from 1 to 5 within the grade level, with the starting β = difficulty − 3; the contest the project started from is never named.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "docs/decisions.md",
+        "match": "^\\*\\*D36\\. Olympiad-style tasks, the starting contest is never named; difficulty 1–5\\.\\*\\*"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P018",
+    "group": "Measured by the prototype",
+    "claim": "Readability calibration on the 450 reference tasks: a Flesch–Kincaid margin of +1 passed only 48 % of the grades 1–2 tasks for a first-grader and 66 % for a second-grader; +3 passed 83 % and 96 %, and at least 94 % of the grades 3–4 tasks for grades 3 and 4; the sentence limits passed 90 % of the tasks at each level.",
+    "status": "measured",
+    "evidence": [
+      {
+        "file": "docs/decisions.md",
+        "match": "on the 450 reference tasks the margin \\+1 from SPEC passed only 48% of the 1–2 tasks for a first-grader and 66% for a second-grader"
+      },
+      {
+        "file": "docs/decisions.md",
+        "match": "with \\+3 pass 83% and 96% of the 1–2 tasks for grades 1 and 2 and at least 94% of the 3–4 tasks for grades 3 and 4; the sentence limits pass 90% of the examples at each level"
+      }
+    ],
+    "used_in": "A: §6 evaluation"
+  },
+  {
+    "id": "P019",
+    "group": "Measured by the prototype",
+    "claim": "First live run (2026-09-15), one seed profile: 2 tasks, both accepted at the first attempt, in 68 s and 87 s; the solver agreed with the model, and the author found both correct and unambiguous.",
+    "status": "measured",
+    "evidence": [
+      {
+        "file": "RUN.md",
+        "match": "обе приняты с первой попытки \\(68 и 87 с\\), решатель согласился с моделью, ручная проверка: обе верны и однозначны"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P020",
+    "group": "Measured by the prototype",
+    "claim": "Second live run, the same day: all five scenarios, the child played by Claude in headless sessions; 9 requests, 8 tasks generated and all accepted at the first attempt in 44–109 s, 1 served from the bank; the maths of every task was correct and unambiguous.",
+    "status": "measured",
+    "evidence": [
+      {
+        "file": "RUN.md",
+        "match": "ребёнка играл Claude в headless-сессиях `claude -p` из `taskgen\\.play`\\. 9 запросов: 8 задач сгенерировано, все приняты с первой попытки \\(44–109 с\\), 1 выдана из банка; математика всех задач верна и однозначна"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P021",
+    "group": "Measured by the prototype",
+    "claim": "The live runs found that the model turned \"I don't understand\" into a hint without recording it, that a seed pseudonym leaked into the text of a task bound for the shared bank, and that Russian trap explanations used the masculine gender; the last two were fixed in the writing guide.",
+    "status": "measured",
+    "evidence": [
+      {
+        "file": "RUN.md",
+        "match": "Находки: «не понимаю» модель превращает в подсказку и не записывает `\\?`; псевдоним ученика попадает в текст задачи, которая уходит в общий банк"
+      },
+      {
+        "file": "RUN.md",
+        "match": "Псевдоним и род закрыты правкой `prompts/task_writing\\.md`"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P022",
+    "group": "Measured by the prototype",
+    "claim": "The market note sums the live runs as 8 of 8 tasks accepted at the first attempt with a median of 69 s, and calls its sample of 10 tasks small.",
+    "status": "measured",
+    "evidence": [
+      {
+        "file": "research/13-competitors.md",
+        "match": "В прогонах T23 и T24 это дало 8 из 8 задач, принятых с первой попытки, при медиане 69 секунд"
+      },
+      {
+        "file": "research/13-competitors.md",
+        "match": "на выборке в 10 задач\\. Это мало\\."
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P023",
+    "group": "Measured by the prototype",
+    "claim": "By the metrics report the model had changed only three of the rule's briefs, so the blind comparison of the rule's and the model's briefs was deferred.",
+    "status": "measured",
+    "evidence": [
+      {
+        "file": "docs/decisions.md",
+        "match": "The blind comparison of rule and model briefs is deferred: by T24 the model had changed only three briefs\\."
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P024",
+    "group": "Measured by the prototype",
+    "claim": "In a live run, after a wrong answer in ordering, the child asked for combinatorics and the brief read reinforce combinatorics.enumeration: the goal describes the child's situation, not the topic.",
+    "status": "measured",
+    "evidence": [
+      {
+        "file": "docs/decisions.md",
+        "match": "^\\*\\*D44\\. The pedagogical goal describes the child's situation, not the chosen topic\\.\\*\\*"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P025",
+    "group": "Set as targets, never measured",
+    "claim": "The prototype set targets it never reached a verdict on: over 90 % of 20–30 accepted tasks good by the author's review; no false accepts (at most 2 %); the model's briefs better than the rule's; over 80 % unique plots among 20 tasks of a topic.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "SPEC.md",
+        "match": "^\\| Качество по ручной проверке \\|"
+      },
+      {
+        "file": "SPEC.md",
+        "match": "^\\| \\*\\*Ложно принятые\\*\\* \\|"
+      },
+      {
+        "file": "SPEC.md",
+        "match": "^\\| Адаптивность \\|"
+      },
+      {
+        "file": "SPEC.md",
+        "match": "^\\| Разнообразие \\|"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P026",
+    "group": "Set as targets, never measured",
+    "claim": "The file for the author's verdicts holds none: no task of the prototype was ever given a quality verdict on record.",
+    "status": "built",
+    "evidence": [
+      {
+        "file": "SPEC.md",
+        "match": "Ручные вердикты я пишу в `data/eval/reviews\\.json`"
+      },
+      {
+        "stat": "eval_reviews",
+        "expect": "0"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P027",
+    "group": "Set as targets, never measured",
+    "claim": "The prototype's other targets were first-attempt acceptance over 50 %, acceptance within three attempts over 80 % and under 90 s per accepted task; only the live runs above speak to them, on 10 tasks.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "SPEC.md",
+        "match": "^\\| Принято с 1-й попытки \\|"
+      },
+      {
+        "file": "SPEC.md",
+        "match": "^\\| Принято за ≤ 3 попытки \\|"
+      },
+      {
+        "file": "SPEC.md",
+        "match": "^\\| Время одной принятой задачи \\|"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P028",
+    "group": "Decisions that matter to the papers",
+    "claim": "A solver program was adopted because models of one provider make correlated errors and code fails for other reasons; its known limit is that it shares the writer's reading of the problem.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "docs/decisions.md",
+        "match": "^\\*\\*D12\\. Program verification: the Analyst writes `solver_code` in the same call\\.\\*\\*"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P029",
+    "group": "Decisions that matter to the papers",
+    "claim": "The self-check carries an explicit ambiguity checklist, because models recognise ambiguity but rarely report it unless asked.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "docs/decisions.md",
+        "match": "^\\*\\*D13\\. Skeptic prompt carries an explicit ambiguity checklist\\.\\*\\*"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P030",
+    "group": "Decisions that matter to the papers",
+    "claim": "Traps form a closed catalog referred to by id, because free text cannot be aggregated; Eedi ties distractors to a misconception taxonomy.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "docs/decisions.md",
+        "match": "^\\*\\*D14\\. Closed traps catalog\\.\\*\\*"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P031",
+    "group": "Decisions that matter to the papers",
+    "claim": "Ratings are computed by code rather than by the language model, because language models are worse learner models than classic knowledge tracing.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "docs/decisions.md",
+        "match": "^\\*\\*D17\\. Ratings are computed by code \\(Elo \\+ IRT\\), not by the LLM\\.\\*\\*"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P032",
+    "group": "Decisions that matter to the papers",
+    "claim": "Separate K₀ for θ and δ: with one K₀ = 0.4 two failures in a row moved the topic level by nearly a whole difficulty level; the corridor is 0.96 wide on the β scale, so it holds at most one level and can be empty.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "docs/decisions.md",
+        "match": "^\\*\\*D37\\. Rating parameters: separate K₀, one rule for the corridor\\.\\*\\*"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P033",
+    "group": "Decisions that matter to the papers",
+    "claim": "The collected tasks are never used for fine-tuning: the providers' terms forbid using outputs as training targets without written permission.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "docs/decisions.md",
+        "match": "^\\*\\*D22\\. Datasets are collected but never used for fine-tuning\\.\\*\\*"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P034",
+    "group": "Decisions that matter to the papers",
+    "claim": "Quality is reviewed by the author alone, an experienced olympiad solver and coach, and a false accept means a mathematical failure only: a wrong answer, an ambiguity, no solution or several correct options.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "docs/decisions.md",
+        "match": "^\\*\\*D28\\. Quality review is done by the author alone\\.\\*\\*"
+      },
+      {
+        "file": "docs/decisions.md",
+        "match": "^\\*\\*D29\\. \"False accepts\" means math failures only\\.\\*\\*"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P035",
+    "group": "Decisions that matter to the papers",
+    "claim": "The rule: after a failure it reinforces the last topic; otherwise the unmastered topic given longest ago, never-given ones first; two traps, the child's most frequent topped up from the reference tasks'.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "docs/decisions.md",
+        "match": "^\\*\\*D40\\. Rule tutor details\\.\\*\\*"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P036",
+    "group": "What the research notes report (unchecked)",
+    "claim": "The notes were compiled by web search, with pages retold by an auxiliary model; their numbers are to be checked against the originals.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "research/00-README.md",
+        "match": "Страницы пересказывала вспомогательная модель, поэтому \\*\\*цифры стоит сверять с оригиналом\\*\\*"
+      }
+    ],
+    "used_in": "every task that cites the notes"
+  },
+  {
+    "id": "P037",
+    "group": "What the research notes report (unchecked)",
+    "claim": "The notes found no work on generating olympiad problems for grades 1–4; their conclusions on generation come from school word problems and synthetic datasets.",
+    "status": "unverified",
+    "evidence": [
+      {
+        "file": "research/00-README.md",
+        "match": "Прямых работ про генерацию \\*олимпиадных\\* задач для 1–4 классов не нашлось"
+      }
+    ],
+    "used_in": "not in paper A; S31, S35"
+  },
+  {
+    "id": "P038",
+    "group": "What the research notes report (unchecked)",
+    "claim": "SMART-840: 840 problems of the contest from 2020–2024 for grades 1–12, 240 of them for grades 1–4, 69 % with a picture; models did worst on the youngest grades, and difficulty for children did not correlate with difficulty for models.",
+    "status": "unverified",
+    "evidence": [
+      {
+        "file": "research/01-feasibility.md",
+        "match": "840 задач международного конкурса с выбором ответа \\(площадка в США\\) за 2020–2024 годы для 1–12 классов, из них 240 — для 1–4 классов\\. 69% задач содержат рисунок"
+      },
+      {
+        "file": "research/01-feasibility.md",
+        "match": "нет значимой корреляции между тем, насколько задача трудна для детей и насколько для модели"
+      }
+    ],
+    "used_in": "not in paper A; S31"
+  },
+  {
+    "id": "P039",
+    "group": "What the research notes report (unchecked)",
+    "claim": "EDUMATH: of generated school word problems for grades 3–5, about 90 % were solvable, 77 % had a correct answer and 66 % met every criterion.",
+    "status": "unverified",
+    "evidence": [
+      {
+        "file": "research/01-feasibility.md",
+        "match": "~90% решаемы, ~77% с верным ответом, ~66% проходят все критерии"
+      }
+    ],
+    "used_in": "not in paper A; S31"
+  },
+  {
+    "id": "P040",
+    "group": "What the research notes report (unchecked)",
+    "claim": "GSM-Symbolic: changing only the numbers of a problem lowers every model's accuracy, and one irrelevant but plausible clause drops it by up to 65 %.",
+    "status": "unverified",
+    "evidence": [
+      {
+        "file": "research/01-feasibility.md",
+        "match": "Одно лишнее, но правдоподобное условие роняет точность до 65%\\."
+      }
+    ],
+    "used_in": "not in paper A; S31"
+  },
+  {
+    "id": "P041",
+    "group": "What the research notes report (unchecked)",
+    "claim": "Different language models are homogeneous in similar ways (Artificial Hivemind), so switching models does not restore diversity.",
+    "status": "unverified",
+    "evidence": [
+      {
+        "file": "research/03-problem-generation.md",
+        "match": "\\*Artificial Hivemind\\* \\(2025\\): открытые генерации моделей однородны, и \\*\\*разные модели однородны похожим образом\\*\\*\\."
+      }
+    ],
+    "used_in": "not in paper A; E-A2"
+  },
+  {
+    "id": "P042",
+    "group": "What the research notes report (unchecked)",
+    "claim": "OpenMathInstruct-2 removed about 50 thousand of 569 thousand new problems (about 9 %) as paraphrases of test problems.",
+    "status": "unverified",
+    "evidence": [
+      {
+        "file": "research/03-problem-generation.md",
+        "match": "удалили около 50 тыс\\. из 569 тыс\\. новых задач \\(~9%\\) как перефразы задач из тестовых наборов"
+      }
+    ],
+    "used_in": "not in paper A; S31"
+  },
+  {
+    "id": "P043",
+    "group": "What the research notes report (unchecked)",
+    "claim": "Eedi (NAACL 2024 Findings): people rated the plausibility of LLM distractors 2.68 of 5 against 3.72 for distractors written by people; prompting with three similar problems worked best.",
+    "status": "unverified",
+    "evidence": [
+      {
+        "file": "research/04-distractors-misconceptions.md",
+        "match": "На данных Eedi дистракторы от LLM оценены на 2,68 из 5 по правдоподобию, а составленные людьми — на 3,72\\."
+      },
+      {
+        "file": "research/04-distractors-misconceptions.md",
+        "match": "^  \\| kNN — 3 похожих примера в промпте \\| 10,95% \\| 73,85% \\| 38,52% \\|"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P044",
+    "group": "What the research notes report (unchecked)",
+    "claim": "When two language models err they often err the same way, more so within one provider, and judges favour answers of their own family.",
+    "status": "unverified",
+    "evidence": [
+      {
+        "file": "research/05-verification.md",
+        "match": "\\*Correlated Errors in Large Language Models\\* \\(2025\\): когда две модели ошибаются, они часто ошибаются \\*одинаково\\*\\."
+      },
+      {
+        "file": "research/05-verification.md",
+        "match": "\\*\\*Предвзятость к своим:\\*\\* судьи завышают оценки ответам своего семейства\\."
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P045",
+    "group": "What the research notes report (unchecked)",
+    "claim": "Models often recognise that a problem is ambiguous but do not say so unless asked (Knowing but Not Showing).",
+    "status": "unverified",
+    "evidence": [
+      {
+        "file": "research/05-verification.md",
+        "match": "\\*Knowing but Not Showing\\* \\(2026\\): модели часто \\*распознают\\* неоднозначность, но не сообщают о ней, если их прямо не спросить\\."
+      }
+    ],
+    "used_in": "not in paper A; S31"
+  },
+  {
+    "id": "P046",
+    "group": "What the research notes report (unchecked)",
+    "claim": "PAL: letting the model write a program that an interpreter runs beat chain-of-thought PaLM-540B on GSM8K by 15 percentage points.",
+    "status": "unverified",
+    "evidence": [
+      {
+        "file": "research/05-verification.md",
+        "match": "На GSM8K PAL обошёл цепочку рассуждений PaLM-540B на 15 процентных пунктов\\."
+      }
+    ],
+    "used_in": "not in paper A; S31"
+  },
+  {
+    "id": "P047",
+    "group": "What the research notes report (unchecked)",
+    "claim": "Math Garden chooses items so that the expected success rate is 0.75, and the Eighty Five Percent Rule puts the optimal error rate of a class of learning algorithms at 15.87 %.",
+    "status": "unverified",
+    "evidence": [
+      {
+        "file": "research/06-adaptive-learning.md",
+        "match": "задачи подбираются так, чтобы средняя вероятность успеха была \\*\\*0,75\\*\\*"
+      },
+      {
+        "file": "research/06-adaptive-learning.md",
+        "match": "оптимальная доля ошибок около \\*\\*15,87%\\*\\*"
+      }
+    ],
+    "used_in": "not in paper A; S32"
+  },
+  {
+    "id": "P048",
+    "group": "What the research notes report (unchecked)",
+    "claim": "Language models, even fine-tuned, fell short of Deep Knowledge Tracing as learner models.",
+    "status": "unverified",
+    "evidence": [
+      {
+        "file": "research/06-adaptive-learning.md",
+        "match": "LLM, даже после серьёзного дообучения, уступили Deep Knowledge Tracing\\."
+      }
+    ],
+    "used_in": "not in paper A; S32"
+  },
+  {
+    "id": "P049",
+    "group": "What the research notes report (unchecked)",
+    "claim": "Anthropic's terms forbid using outputs as training targets for models without written permission.",
+    "status": "unverified",
+    "evidence": [
+      {
+        "file": "research/08-finetuning-data.md",
+        "match": "прямо запрещено: «Using Outputs as training targets for models»"
+      }
+    ],
+    "used_in": "not in paper A"
+  },
+  {
+    "id": "P050",
+    "group": "What the research notes report (unchecked)",
+    "claim": "The amended COPPA Rule was adopted on 16 January 2025 and took effect on 23 June 2025, with full compliance by 22 April 2026; it asks for a separate verifiable parental consent before a child's data is disclosed to third parties to train AI.",
+    "status": "unverified",
+    "evidence": [
+      {
+        "file": "research/10-risks-children.md",
+        "match": "приняты 16\\.01\\.2025, действуют с 23\\.06\\.2025, полное соблюдение — к 22\\.04\\.2026"
+      },
+      {
+        "file": "research/10-risks-children.md",
+        "match": "требуется \\*\\*отдельное проверяемое согласие родителя\\*\\* на раскрытие данных детей третьим лицам для обучения ИИ"
+      }
+    ],
+    "used_in": "not in paper A; S16"
+  },
+  {
+    "id": "P051",
+    "group": "What the research notes report (unchecked)",
+    "claim": "Texts language models wrote for children scored more than 17 % worse on every readability metric than texts people wrote for the same audience.",
+    "status": "unverified",
+    "evidence": [
+      {
+        "file": "research/10-risks-children.md",
+        "match": "тексты LLM для детей по всем метрикам читаемости более чем на 17% хуже текстов, написанных людьми для той же аудитории"
+      }
+    ],
+    "used_in": "not in paper A; S31"
+  },
+  {
+    "id": "P052",
+    "group": "What the research notes report (unchecked)",
+    "claim": "Claude admits users from 18; ChatGPT from 13 with a parent's consent, and apps in its directory may not target children under 13; so the user of the app is a parent or a coach.",
+    "status": "unverified",
+    "evidence": [
+      {
+        "file": "research/13-competitors.md",
+        "match": "Claude — с 18 лет\\. ChatGPT — с 13 лет и с согласия родителя, а приложения в каталоге не имеют права ориентироваться на детей младше 13"
+      }
+    ],
+    "used_in": "not in paper A; S34"
+  },
+  {
+    "id": "P053",
+    "group": "What the research notes report (unchecked)",
+    "claim": "On USAMO 2025 proofs, models strong at problems with an answer scored in the single digits (Proof or Bluff?), so a brute-force solver does not reach proof-based olympiads.",
+    "status": "unverified",
+    "evidence": [
+      {
+        "file": "research/13-competitors.md",
+        "match": "модели, сильные в задачах с ответом, на строгих доказательствах набирают единицы процентов"
+      }
+    ],
+    "used_in": "not in paper A; S31"
+  },
+  {
+    "id": "P054",
+    "group": "What the research notes report (unchecked)",
+    "claim": "The assistants' own study modes appeared in the summer of 2025: ChatGPT Study Mode on 29 July, Gemini Guided Learning on 6 August, and Claude's learning mode generally available on 14 August.",
+    "status": "unverified",
+    "evidence": [
+      {
+        "file": "research/13-competitors.md",
+        "match": "ChatGPT Study Mode вышел 29 июля 2025 года и доступен на бесплатном тарифе; Claude Learning Mode стал общедоступным 14 августа 2025 года"
+      }
+    ],
+    "used_in": "not in paper A; S33"
+  },
+  {
+    "id": "P055",
+    "group": "What the research notes report (unchecked)",
+    "claim": "The only strong olympiad product for young children the market note found is Beast Academy, a finite, English-only bank written by people; Khan Academy already serves checked problems from its bank inside ChatGPT.",
+    "status": "unverified",
+    "evidence": [
+      {
+        "file": "research/13-competitors.md",
+        "match": "\\*\\*В олимпиадной нише есть один сильный игрок для младших классов\\*\\* — Art of Problem Solving с Beast Academy"
+      },
+      {
+        "file": "research/13-competitors.md",
+        "match": "Khan уже пришёл в наш канал"
+      }
+    ],
+    "used_in": "not in paper A; S33"
+  },
+  {
+    "id": "P059",
+    "group": "Content",
+    "claim": "The prototype's study of task sources sorted the sources of task ideas by copyright, named the problem books in the public domain — Perelman, Ignatiev, Dudeney, Loyd and Carroll — and advised taking those when the choice was otherwise equal; only a task's idea and answer were to be taken, never its wording.",
+    "status": "specified",
+    "evidence": [
+      {
+        "file": "research/12-task-sources.md",
+        "match": "^  - \\*\\*общественное достояние\\*\\* — Перельман, Игнатьев, Дьюдени, Лойд, Кэрролл;$"
+      },
+      {
+        "file": "research/12-task-sources.md",
+        "match": "^3\\. \\*\\*При равном выборе брать общественное достояние\\*\\*"
+      },
+      {
+        "file": "research/12-task-sources.md",
+        "match": "^- \\*\\*По D23 права не мешают:\\*\\* из источника мы берём только идею и ответ"
+      }
+    ],
+    "used_in": "A: §3 system; Q82"
+  }
+]

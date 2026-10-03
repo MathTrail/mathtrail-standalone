@@ -139,6 +139,70 @@ export function readAnswer(
 	return { kind: "failed" };
 }
 
+const coming = z.object({
+	screen: z.literal("coming"),
+	request_id: z.string().min(1),
+	child,
+	// The lesson's language, which the task is written in and the card's
+	// words are in while it waits.
+	language: z.string().optional(),
+});
+
+/**
+ * Coming is a task on its way, as the card that waits for it is handed it:
+ * the request whose task it asks after, and whose card it is.
+ */
+export type Coming = { requestId: string; child: Child };
+
+/**
+ * TaskStatus is how the task a card waits for stands, as the service last
+ * said: still being written, with how many tries the checks have turned down;
+ * on the card, as the card shows it; or not coming. A question that brought no
+ * answer worth reading — the service failed, the call was lost or held back,
+ * or what came does not read — leaves it unknown.
+ */
+export type TaskStatus =
+	| { kind: "writing"; refused: number }
+	| { kind: "task"; handed: HandedTask }
+	| { kind: "over" }
+	| { kind: "unknown" };
+
+const writing = z.object({
+	screen: z.literal("coming"),
+	refused: z.number().int().nonnegative().default(0),
+});
+
+/**
+ * readTaskStatus is how the task a card waits for stands, read from what the
+ * service answered the card's question with. A profile gone since the card was
+ * drawn has no task coming either.
+ */
+export function readTaskStatus(result: CallToolResult): TaskStatus {
+	if (result.isError === true) {
+		return { kind: "unknown" };
+	}
+	const payload = result.structuredContent;
+	switch (named.safeParse(payload).data?.screen) {
+		case "coming": {
+			const read = writing.safeParse(payload);
+			return read.success
+				? { kind: "writing", refused: read.data.refused }
+				: { kind: "unknown" };
+		}
+		case "task": {
+			const handed = readHandedTask(payload);
+			return handed === undefined
+				? { kind: "unknown" }
+				: { kind: "task", handed };
+		}
+		case "waiting":
+		case "first_run":
+			return { kind: "over" };
+		default:
+			return { kind: "unknown" };
+	}
+}
+
 const waiting = z.object({
 	screen: z.literal("waiting"),
 	status: z.string().optional(),
@@ -150,9 +214,9 @@ const waiting = z.object({
 /**
  * Waiting is a card a task did not come to, as a tool's payload draws it: the
  * model's attempt failed its checks and the next one is to come, the request
- * it was for is over, its last attempt failed too, or the day has no room for
- * another. A card a task was handed in for knows whose it is; one refused for
- * the day may not.
+ * it was for is over or was never opened, its last attempt failed too, or the
+ * day has no room for another. A card a task was asked for knows whose it is;
+ * one refused for the day by an earlier service may not.
  */
 export type Waiting =
 	| { kind: "refused" | "stale" | "exhausted"; child: Child }
@@ -179,7 +243,12 @@ export function readWaiting(payload: unknown): Waiting | undefined {
 	if (code === "attempts_exhausted") {
 		return { kind: "exhausted", child: whose };
 	}
-	return { kind: status === "stale" ? "stale" : "refused", child: whose };
+	// A task asked for with arguments no request could be opened from had no
+	// try to fail: no task comes to the card, as to one whose request is over.
+	if (status === "stale" || code === "invalid_arguments") {
+		return { kind: "stale", child: whose };
+	}
+	return { kind: "refused", child: whose };
 }
 
 const details = child.extend({
@@ -392,6 +461,7 @@ export type FirstRun = { refused: boolean };
  */
 export type Screen =
 	| { screen: "task"; handed: HandedTask }
+	| { screen: "coming"; coming: Coming }
 	| { screen: "waiting"; waiting: Waiting }
 	| { screen: "progress"; report: ProgressReport }
 	| { screen: "profile"; profile: ProfileReport }
@@ -409,6 +479,15 @@ export function readScreen(payload: unknown): Screen | undefined {
 		case "task": {
 			const handed = readHandedTask(payload);
 			return handed === undefined ? undefined : { screen: "task", handed };
+		}
+		case "coming": {
+			const read = coming.safeParse(payload);
+			return read.success
+				? {
+						screen: "coming",
+						coming: { requestId: read.data.request_id, child: read.data.child },
+					}
+				: undefined;
 		}
 		case "waiting": {
 			const waiting = readWaiting(payload);

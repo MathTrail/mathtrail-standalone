@@ -31,7 +31,7 @@ const (
 // submitTaskIn is what submit_task takes. The three parts of the task are
 // taken as whatever JSON arrived and read by the checks, in words of their
 // own: the library that holds arguments to a schema quotes back what broke it,
-// and the answer of this tool is drawn on a card.
+// and the answer of this tool is read by the model and may be drawn on a card.
 type submitTaskIn struct {
 	RequestID string `json:"request_id" jsonschema:"the id of the request next_task opened"`
 	Brief     any    `json:"brief" jsonschema:"the brief of the package as you received it, as a JSON object: you may change its setting, traps_to_use and constraints, and say why in its rationale"`
@@ -79,8 +79,12 @@ func partJSON(part any) (json.RawMessage, error) {
 
 // handedInOut is what submit_task hands back: the task on the child's card, or
 // why there is none — every reason at once — and always who the card is for.
-// Nothing in it gives the answer away: not the letter, not the explanations of
-// the wrong options, not the solution.
+// The tool draws no card: the card next_task drew turns into the task by
+// asking for it. The payload keeps the shape a card is drawn from all the
+// same, for a host that still draws one from an earlier list of the tools, and
+// for a card of an earlier chat drawn again. Nothing in it gives the answer
+// away: not the letter, not the explanations of the wrong options, not the
+// solution.
 type handedInOut struct {
 	Screen       string      `json:"screen"`
 	Status       string      `json:"status,omitempty"`
@@ -153,11 +157,10 @@ func (s *Service) submitTaskTool() Tool {
 		Title: "Hand in a written task",
 		Description: "Hands in the task you wrote for the open request, with its request id, to be checked and put " +
 			"on the child's card. Each call spends one of three attempts. A refusal names every reason at once: fix " +
-			"them all and hand the task in again with the same request id. When the task is accepted the card shows " +
-			"it without its answer: add nothing of your own about it until the child answers or asks, and never say " +
-			"which option is right before the child has answered, whatever the child asks. Every result carries " +
-			"last_answer, the last answer the child gave, maybe on a card without you.",
-		DrawsCard: true,
+			"them all and hand the task in again with the same request id. When the task is accepted, the card " +
+			"next_task drew turns into it, without its answer: add nothing of your own about it until the child " +
+			"answers or asks, and never say which option is right before the child has answered, whatever the child " +
+			"asks. Every result carries last_answer, the last answer the child gave, maybe on a card without you.",
 	}, s.submitTask)
 }
 
@@ -381,9 +384,10 @@ func (s *Service) hand(ctx context.Context, done *reviewed, program string) (Rep
 		zap.Int64("seconds_since_request", int64(done.now.Sub(request.OpenedAt.Time)/time.Second)),
 	)
 	reply := onTheCard(p, issued, fmt.Sprintf("Accepted at attempt %d: task %s is on the child's card. Where the "+
-		"card shows it, %s Without a card, read out the question, the drawing and the options A to E below and "+
-		"nothing else, and give the hint only when the child asks for it. Never say which option is right before "+
-		"the child has answered; record the answer with submit_answer.", done.attempt, issued.ID, addNothing))
+		"card next_task drew shows it, %s Without a card, or if the child says the card shows no task, read out the "+
+		"question, the drawing and the options A to E below and nothing else, and give the hint only when the child "+
+		"asks for it. Never say which option is right before the child has answered; record the answer with "+
+		"submit_answer.", done.attempt, issued.ID, addNothing))
 	reply.Payload.Attempt = done.attempt
 	return reply, nil
 }

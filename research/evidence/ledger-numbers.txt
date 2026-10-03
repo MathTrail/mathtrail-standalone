@@ -1,0 +1,10 @@
+# Numbers the claims of the evidence ledger state, each found in a line that proves its claim at 52ce86908135.
+# C050
+sketch_disagreement_within=0.1
+sketch_pairs=62,653
+sketch_pairs_decided_otherwise=33
+# C084
+live_first_attempt=13
+live_handins=17
+live_median_seconds=30
+live_tasks=15

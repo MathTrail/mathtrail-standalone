@@ -131,21 +131,24 @@ func racer(t *testing.T, excluded ...string) store.Storage {
 }
 
 // askForTheRace asks for the race and is the request opened for it, as the
-// profile keeps it.
+// profile keeps it: the one the card next_task drew waits for.
 func askForTheRace(t *testing.T, session *mcp.ClientSession, kept store.Storage) *profile.OpenRequest {
 	t.Helper()
 
-	asked := leadOf(wantWordsAlone(t, call(t, session, "next_task", raceChoice)))
+	asked := call(t, session, "next_task", raceChoice)
+	coming := wantComing(t, asked)
 	p, _ := loadKept(t, kept)
-	if p.OpenRequest == nil || !strings.Contains(asked, "Request "+p.OpenRequest.ID+" is open") {
-		t.Fatalf("next_task said %q and the profile holds %+v, want the one request", asked, p.OpenRequest)
+	if p.OpenRequest == nil || coming.RequestID != p.OpenRequest.ID ||
+		!strings.Contains(textOf(t, asked), "Request "+p.OpenRequest.ID+" is open") {
+		t.Fatalf("next_task = %+v, %q and the profile holds %+v, want the one request", coming, textOf(t, asked),
+			p.OpenRequest)
 	}
 	return p.OpenRequest
 }
 
-// refusedRequestPayload is what next_task hands back when it opens no request:
-// the one result of the tool with a payload.
-type refusedRequestPayload struct {
+// requestPayload is what next_task hands the card it draws: a task on its way,
+// or why no request was opened.
+type requestPayload struct {
 	Screen   string `json:"screen"`
 	Status   string `json:"status"`
 	Code     string `json:"code"`
@@ -153,24 +156,79 @@ type refusedRequestPayload struct {
 		Field string `json:"field"`
 		Code  string `json:"code"`
 	} `json:"problems"`
+	RequestID   string `json:"request_id"`
+	AlreadyOpen bool   `json:"already_open"`
+	AgeSeconds  int    `json:"age_seconds"`
+	Child       *struct {
+		Pseudonym string `json:"pseudonym"`
+		Grade     int    `json:"grade"`
+	} `json:"child"`
+	Language string `json:"language"`
 }
 
-// wantWordsAlone holds a result of next_task to carrying no payload, and is its
-// words. What the tool says is for the model alone, and a host that shows the
+// wantComing holds a result of next_task to a card waiting for a task on its
+// way — the request, whom it is for and the language it is written in — and
+// is what the card was handed.
+func wantComing(t *testing.T, result *mcp.CallToolResult) requestPayload {
+	t.Helper()
+
+	coming := payloadOf[requestPayload](t, result)
+	if coming.Screen != "coming" || coming.Status != "" || coming.RequestID == "" || coming.Child == nil ||
+		coming.Language == "" {
+		t.Fatalf("next_task = %+v, want a card waiting for the task of a request", coming)
+	}
+	return coming
+}
+
+// fetchPackage asks for the package of a request, as the model does once
+// next_task has answered, and is the words it comes in.
+func fetchPackage(t *testing.T, session *mcp.ClientSession, requestID string) string {
+	t.Helper()
+
+	return wantWordsAlone(t, call(t, session, "get_package", map[string]any{"request_id": requestID}))
+}
+
+// wantWordsAlone holds a result of get_package to carrying no payload, and is
+// its words. The package is for the model alone, and a host that shows the
 // model a payload in place of the words would show it nothing to write from.
 func wantWordsAlone(t *testing.T, result *mcp.CallToolResult) string {
 	t.Helper()
 
 	if result.IsError || result.StructuredContent != nil {
-		t.Fatalf("next_task = %+v, %s, want words alone", result.StructuredContent, textOf(t, result))
+		t.Fatalf("get_package = %+v, %s, want words alone", result.StructuredContent, textOf(t, result))
 	}
 	return textOf(t, result)
 }
 
-// leadOf is the words of next_task before the package they carry.
+// leadOf is the words of get_package before the package they carry, or the
+// whole of words that carry none.
 func leadOf(text string) string {
 	lead, _, _ := strings.Cut(text, "\n\nPackage:\n")
 	return lead
+}
+
+// awaitedPayload is what read_task tells the card that waits for a task.
+type awaitedPayload struct {
+	Screen  string `json:"screen"`
+	Status  string `json:"status"`
+	Code    string `json:"code"`
+	Refused int    `json:"refused"`
+	Child   *struct {
+		Pseudonym string `json:"pseudonym"`
+	} `json:"child"`
+	Task *struct {
+		ID       string            `json:"id"`
+		Question string            `json:"question"`
+		Options  map[string]string `json:"options"`
+	} `json:"task"`
+	Language string `json:"language"`
+}
+
+// awaited is what read_task tells the card waiting for a request's task.
+func awaited(t *testing.T, session *mcp.ClientSession, requestID string) awaitedPayload {
+	t.Helper()
+
+	return payloadOf[awaitedPayload](t, call(t, session, "read_task", map[string]any{"request_id": requestID}))
 }
 
 // handedInPayload is what submit_task hands a card.
@@ -217,17 +275,22 @@ func linesOf(h *harness, event string) []observer.LoggedEntry {
 	return h.logs.FilterMessage(event).All()
 }
 
-// The whole way, as a model goes it: a task asked for with a choice of the
-// model's own, the package it is written from, the task handed in and
-// accepted at the first attempt — on the child's card without its answer,
-// sealed in the profile with it, and every step of it a line.
+// The whole way, as a model and a card go it: a task asked for with a choice
+// of the model's own, which draws the card it will come to; the package it is
+// written from, fetched by the model; the card told the task is being written;
+// the task handed in and accepted at the first attempt — sealed in the profile
+// with its answer — and the card told it is on the card, without its answer;
+// the child's answer from the card; and every step of it a line.
 func TestATaskGoesFromTheRuleToTheChildsCard(t *testing.T) {
 	t.Parallel()
 
 	kept := racer(t)
 	h, session := lesson(t, kept)
 
-	open := wantRequestOpened(t, call(t, session, "next_task", raceChoice), kept)
+	open := wantRequestOpened(t, session, call(t, session, "next_task", raceChoice), kept)
+	if waiting := awaited(t, session, open.ID); waiting.Screen != "coming" || waiting.Task != nil || waiting.Status != "" {
+		t.Errorf("read_task before the task is handed in = %+v, want it being written", waiting)
+	}
 	handed := call(t, session, "submit_task", raceOn(open))
 	card := wantOnTheCard(t, handed)
 	if text := textOf(t, handed); !strings.HasPrefix(text, "Accepted at attempt 1") || !strings.Contains(text, raceQuestion) {
@@ -235,9 +298,20 @@ func TestATaskGoesFromTheRuleToTheChildsCard(t *testing.T) {
 	}
 	wantHandedOut(t, kept, card.Task.ID)
 
+	shown := awaited(t, session, open.ID)
+	if shown.Screen != "task" || shown.Task == nil || shown.Task.ID != card.Task.ID || shown.Task.Question != raceQuestion ||
+		shown.Child == nil || shown.Child.Pseudonym != "Otter" || shown.Language != "en" {
+		t.Fatalf("read_task once the task is accepted = %+v, want the race on the card, as submit_task put it there", shown)
+	}
+	answered := payloadOf[answerPayload](t, call(t, session, "submit_answer",
+		map[string]any{"task_id": shown.Task.ID, "answer": "C"}))
+	if answered.Screen != "result" || answered.Result == nil || !answered.Result.Correct {
+		t.Errorf("the answer from the card = %+v, want it recorded as right", answered)
+	}
+
 	h.settle()
 	wantLessonLines(t, h, map[string]int{
-		"task_requested": 1, "solver_run": 2, "task_submitted": 1, "task_accepted": 1,
+		"task_requested": 1, "solver_run": 2, "task_submitted": 1, "task_accepted": 1, "answer_recorded": 1,
 	})
 	if accepted := linesOf(h, "task_accepted")[0].ContextMap(); accepted["topic"] != "logic.ordering" ||
 		accepted["attempts"] != int64(1) {
@@ -245,32 +319,59 @@ func TestATaskGoesFromTheRuleToTheChildsCard(t *testing.T) {
 	}
 }
 
-// wantRequestOpened holds what next_task answered the race with to a new
-// request, whose package carries its brief, and is the request as the profile
-// keeps it: the model's choice, in English, with no attempt spent.
-func wantRequestOpened(t *testing.T, asked *mcp.CallToolResult, kept store.Storage) *profile.OpenRequest {
+// wantRequestOpened holds what next_task answered the race with to a card
+// waiting for a new request's task, with nothing of its package — which the
+// model fetches with get_package, and whose brief is the race's — and is the
+// request as the profile keeps it: the model's choice, in English, with no
+// attempt spent.
+func wantRequestOpened(t *testing.T, session *mcp.ClientSession, asked *mcp.CallToolResult, kept store.Storage) *profile.OpenRequest {
 	t.Helper()
 
-	lead := leadOf(wantWordsAlone(t, asked))
+	coming := wantComing(t, asked)
+	text := fetchPackage(t, session, coming.RequestID)
+	pack := packageIn(t, text)
 	var brief profile.Brief
-	if err := json.Unmarshal(packageIn(t, textOf(t, asked))["brief"], &brief); err != nil || brief.TargetConcept != "logic.ordering" {
+	if err := json.Unmarshal(pack["brief"], &brief); err != nil || brief.TargetConcept != "logic.ordering" {
 		t.Errorf("the package carries the brief %+v (%v), want the race's topic", brief, err)
 	}
+	wantNoPackage(t, asked, pack)
 	p, _ := loadKept(t, kept)
 	open := p.OpenRequest
-	if open == nil || !strings.Contains(lead, "Request "+open.ID+" is open") || open.Language != "en" || open.Attempts != 0 ||
-		open.TutorMode != profile.TutorLLM || open.Brief.Difficulty != 2 {
+	if open == nil || coming.RequestID != open.ID || !strings.Contains(textOf(t, asked), "Request "+open.ID+" is open") ||
+		!strings.Contains(leadOf(text), "The package of request "+open.ID) || open.Language != "en" ||
+		open.Attempts != 0 || open.TutorMode != profile.TutorLLM || open.Brief.Difficulty != 2 {
 		t.Fatalf("the request is %+v, want the model's choice in English with no attempt spent", open)
 	}
 	return open
 }
 
+// wantNoPackage holds a result of next_task to carrying nothing of the package
+// a task is written from, in its words or in its payload: a card is drawn from
+// the whole of the result, and the package — reference tasks with their
+// answers among it — is for the model alone.
+func wantNoPackage(t *testing.T, result *mcp.CallToolResult, pack map[string]json.RawMessage) {
+	t.Helper()
+
+	var examples []struct {
+		Question string `json:"question"`
+	}
+	if err := json.Unmarshal(pack["examples"], &examples); err != nil || len(examples) == 0 {
+		t.Fatalf("the package carries the examples %s (%v), want some to look for", pack["examples"], err)
+	}
+	var guide string
+	if err := json.Unmarshal(pack["guide"], &guide); err != nil || len(guide) < 80 {
+		t.Fatalf("the package carries the guide %q (%v), want one to look for", guide, err)
+	}
+	marks := []string{"Package:", `"examples"`, `"guide"`, `"solver_templates"`, examples[0].Question, guide[:80]}
+	wantNoneOf(t, "the result of next_task", []string{textOf(t, result), string(rawPayload(t, result))}, marks)
+}
+
 // The words around a task keep the model from giving it away: while the task
-// is written the child hears only that one is coming, and once the card shows
-// it — accepted, or handed in again after it was — the model adds nothing of
-// its own until the child answers or asks. A host may keep only the start of
-// the instructions, so the words that come with the task are where the rule is
-// sure to be read.
+// is written the child hears only that one is coming — so say the request and
+// the package alike — and once the card shows it — accepted, or handed in
+// again after it was — the model adds nothing of its own until the child
+// answers or asks. A host may keep only the start of the instructions, so the
+// words that come with the task are where the rule is sure to be read.
 func TestTheWordsAroundATaskKeepTheModelQuiet(t *testing.T) {
 	t.Parallel()
 
@@ -278,11 +379,15 @@ func TestTheWordsAroundATaskKeepTheModelQuiet(t *testing.T) {
 	_, session := lesson(t, kept)
 
 	asked := call(t, session, "next_task", raceChoice)
-	race := raceOn(wantRequestOpened(t, asked, kept))
+	request := wantRequestOpened(t, session, asked, kept)
+	race := raceOn(request)
 	again := call(t, session, "next_task", raceChoice)
-	for name, result := range map[string]*mcp.CallToolResult{"opening the request": asked, "asked again": again} {
+	pack := call(t, session, "get_package", map[string]any{"request_id": request.ID})
+	for name, result := range map[string]*mcp.CallToolResult{
+		"next_task opening the request": asked, "next_task asked again": again, "get_package": pack,
+	} {
 		if lead := leadOf(textOf(t, result)); !strings.Contains(lead, "tell the child only that one is on its way") {
-			t.Errorf("next_task %s says %q, want the child told only that a task is coming", name, lead)
+			t.Errorf("%s says %q, want the child told only that a task is coming", name, lead)
 		}
 	}
 	for _, handedIn := range []string{"when accepted", "when handed in again"} {
@@ -582,6 +687,146 @@ func TestATaskForNoOpenRequestSpendsNothing(t *testing.T) {
 	}
 }
 
+// The package is handed out for the request that is open and still awaited,
+// and for no other: not for a request never asked, nor another request's, nor
+// one handed out already, nor one past its window. A model writing for such a
+// request is told so, and sent to the request open when there is one, or else
+// to the task on the card; nothing is written.
+func TestAPackageIsHandedOutOnlyForTheOpenRequest(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name   string
+		before func(t *testing.T, session *mcp.ClientSession, kept store.Storage, moving *clock) string
+		says   string
+	}{
+		{"no request asked for", func(*testing.T, *mcp.ClientSession, store.Storage, *clock) string {
+			return "req_nobody_asked"
+		}, "Ask for a new task with next_task."},
+		{"another request's id", func(t *testing.T, session *mcp.ClientSession, kept store.Storage, _ *clock) string {
+			askForTheRace(t, session, kept)
+			return "req_another"
+		}, "is the open one, and the card waits for its task: get its package with get_package"},
+		{"a request handed out already", func(t *testing.T, session *mcp.ClientSession, kept store.Storage, _ *clock) string {
+			request := askForTheRace(t, session, kept)
+			call(t, session, "submit_task", raceOn(request))
+			return request.ID
+		}, "is on the child's card: wait for the child's answer to it."},
+		{"a request past its window", func(t *testing.T, session *mcp.ClientSession, kept store.Storage, moving *clock) string {
+			request := askForTheRace(t, session, kept)
+			moving.advance(config.DefaultRequestWindow)
+			return request.ID
+		}, "Ask for a new task with next_task."},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			kept, moving := racer(t), &clock{at: lessonDay}
+			_, session := lessonWith(t, kept, moving, nil)
+			id := tc.before(t, session, kept, moving)
+			_, revision := loadKept(t, kept)
+
+			result := call(t, session, "get_package", map[string]any{"request_id": id})
+			refused, text := payloadOf[requestPayload](t, result), textOf(t, result)
+			if refused.Screen != "waiting" || refused.Status != "stale" || refused.Code != "stale_request" ||
+				!strings.Contains(text, "there is no package for it") || !strings.Contains(text, tc.says) ||
+				strings.Contains(text, "Package:") {
+				t.Errorf("get_package = %+v, %q, want it refused as stale, saying %q, with no package", refused, text, tc.says)
+			}
+			if _, now := loadKept(t, kept); now != revision {
+				t.Error("get_package wrote the profile, want nothing written")
+			}
+		})
+	}
+}
+
+// A card that waits for a request's task is told how it stands each time it
+// asks: being written, and how many tries the checks have turned down; on the
+// card, once it is handed out; and not coming once the request is over —
+// out of attempts, past its window or replaced by the next — or when it asks
+// about a request that never was. Asking writes nothing, and the answer is
+// never a refusal.
+func TestACardIsToldHowItsTaskStands(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name    string
+		before  func(t *testing.T, session *mcp.ClientSession, kept store.Storage, moving *clock) string
+		screen  string
+		refused int
+	}{
+		{"just asked for", func(t *testing.T, session *mcp.ClientSession, kept store.Storage, _ *clock) string {
+			return askForTheRace(t, session, kept).ID
+		}, "coming", 0},
+		{"a try turned down", func(t *testing.T, session *mcp.ClientSession, kept store.Storage, _ *clock) string {
+			request := askForTheRace(t, session, kept)
+			call(t, session, "submit_task", broken(request))
+			return request.ID
+		}, "coming", 1},
+		{"every try turned down", func(t *testing.T, session *mcp.ClientSession, kept store.Storage, _ *clock) string {
+			request := askForTheRace(t, session, kept)
+			for range profile.MaxAttempts {
+				call(t, session, "submit_task", broken(request))
+			}
+			return request.ID
+		}, "waiting", 0},
+		{"handed out and answered", func(t *testing.T, session *mcp.ClientSession, kept store.Storage, _ *clock) string {
+			request := askForTheRace(t, session, kept)
+			card := wantOnTheCard(t, call(t, session, "submit_task", raceOn(request)))
+			call(t, session, "submit_answer", map[string]any{"task_id": card.Task.ID, "answer": "C"})
+			return request.ID
+		}, "task", 0},
+		{"past its window", func(t *testing.T, session *mcp.ClientSession, kept store.Storage, moving *clock) string {
+			request := askForTheRace(t, session, kept)
+			moving.advance(config.DefaultRequestWindow)
+			return request.ID
+		}, "waiting", 0},
+		{"its task left for the next one", func(t *testing.T, session *mcp.ClientSession, kept store.Storage, _ *clock) string {
+			request := askForTheRace(t, session, kept)
+			call(t, session, "submit_task", raceOn(request))
+			call(t, session, "next_task", raceChoice)
+			return request.ID
+		}, "waiting", 0},
+		{"a request that never was", func(*testing.T, *mcp.ClientSession, store.Storage, *clock) string {
+			return "req_never"
+		}, "waiting", 0},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			kept, moving := racer(t), &clock{at: lessonDay}
+			h, session := lessonWith(t, kept, moving, nil)
+			id := tc.before(t, session, kept, moving)
+			_, revision := loadKept(t, kept)
+
+			told := awaited(t, session, id)
+			wantTold(t, &told, tc.screen, tc.refused)
+			if _, now := loadKept(t, kept); now != revision {
+				t.Error("read_task wrote the profile, want nothing written")
+			}
+			h.settle()
+			if outcome := field(t, h.lineOf(t, "read_task"), "outcome"); outcome != "ok" {
+				t.Errorf("the line of read_task says %q, want an answer, never a refusal", outcome)
+			}
+		})
+	}
+}
+
+// wantTold holds what read_task told a card to this screen, with this many
+// tries turned down, for the child the card is for: the task only on the
+// task's screen, a request that is over named so, and never a status.
+func wantTold(t *testing.T, got *awaitedPayload, screen string, refused int) {
+	t.Helper()
+
+	if got.Screen != screen || got.Refused != refused || got.Status != "" || got.Child == nil ||
+		(got.Task != nil) != (screen == "task") {
+		t.Errorf("read_task = %+v, want the %s screen with %d tries turned down, and no status", got, screen, refused)
+	}
+	if screen == "waiting" && got.Code != "stale_request" {
+		t.Errorf("read_task = %+v, want a request that is over named so", got)
+	}
+}
+
 // wantStaleSpendingNothing hands in a task for no open request and holds what
 // follows to a stale refusal on this screen that judged nothing and wrote
 // nothing. The card shows the task the child holds when the screen is the
@@ -659,9 +904,10 @@ func TestASandboxThatCannotRunSpendsNoAttempt(t *testing.T) {
 }
 
 // Asked again while a task is being written, next_task hands back the same
-// request, marked open and aged, with the package again, and writes nothing —
-// and the choice of the second call is not applied. Once the request has
-// waited past its window, the next ask opens a new one.
+// request, marked open and aged, to a card that waits for its task like the
+// first, sends a model that has not written the task for its package, and
+// writes nothing — and the choice of the second call is not applied. Once the
+// request has waited past its window, the next ask opens a new one.
 func TestAskingAgainGivesTheSameRequest(t *testing.T) {
 	t.Parallel()
 
@@ -672,15 +918,17 @@ func TestAskingAgainGivesTheSameRequest(t *testing.T) {
 
 	moving.advance(30 * time.Second)
 	again := call(t, session, "next_task", map[string]any{"language": "ru", "topic": "time.clocks", "reason": "clocks"})
-	text := wantWordsAlone(t, again)
-	if lead := leadOf(text); !strings.Contains(lead, "Request "+first.ID+" is already open, since 30 seconds ago") ||
-		!strings.Contains(lead, "If you have written its task, hand it in") ||
-		!strings.Contains(lead, "If you have not, a turn cut short say, the task is yours to write") ||
-		!strings.Contains(lead, "not applied") {
-		t.Errorf("the words are %q, want the request open for 30 seconds, its task asked for if written and the model's "+
-			"to write if not, and the choice not applied", lead)
+	if card := wantComing(t, again); card.RequestID != first.ID || !card.AlreadyOpen || card.AgeSeconds != 30 ||
+		card.Language != "en" {
+		t.Errorf("next_task asked again = %+v, want request %s open for 30 seconds, in English", card, first.ID)
 	}
-	packageIn(t, text)
+	if text := textOf(t, again); !strings.Contains(text, "Request "+first.ID+" is already open, since 30 seconds ago") ||
+		!strings.Contains(text, "If you have written its task, hand it in") ||
+		!strings.Contains(text, "If you have not, a turn cut short say, the task is yours to write: get its package with get_package") ||
+		!strings.Contains(text, "not applied") || strings.Contains(text, "Package:") {
+		t.Errorf("the words are %q, want the request open for 30 seconds, its task asked for if written and its "+
+			"package fetched if not, the choice not applied, and no package", text)
+	}
 	if p, now := loadKept(t, kept); now != revision || p.OpenRequest.Brief.TargetConcept != "logic.ordering" {
 		t.Error("asking again wrote the profile or changed the request, want neither")
 	}
@@ -691,9 +939,8 @@ func TestAskingAgainGivesTheSameRequest(t *testing.T) {
 	}
 
 	moving.advance(config.DefaultRequestWindow)
-	if later := leadOf(wantWordsAlone(t, call(t, session, "next_task", raceChoice))); strings.Contains(later, first.ID) ||
-		strings.Contains(later, "already open") {
-		t.Errorf("next_task past the window says %q, want a new request", later)
+	if later := wantComing(t, call(t, session, "next_task", raceChoice)); later.RequestID == first.ID || later.AlreadyOpen {
+		t.Errorf("next_task past the window = %+v, want a new request", later)
 	}
 
 	h.settle()
@@ -709,7 +956,8 @@ func TestAskingAgainGivesTheSameRequest(t *testing.T) {
 // Arguments no request can be opened from are refused one by one in the
 // service's words, each by the code of the rule it broke, and nothing is
 // written: the language a task is to be written in, always, and a choice of
-// the model's own that the catalog can carry, with its reason.
+// the model's own that the catalog can carry, with its reason. The card the
+// refusal draws knows whose it is, and that no task comes to it.
 func TestArgumentsNoRequestCanBeOpenedFromAreRefused(t *testing.T) {
 	t.Parallel()
 
@@ -759,18 +1007,31 @@ func TestArgumentsNoRequestCanBeOpenedFromAreRefused(t *testing.T) {
 			_, session := lesson(t, kept)
 			_, revision := loadKept(t, kept)
 
-			got := payloadOf[refusedRequestPayload](t, call(t, session, "next_task", tc.arguments))
-			problems := make([]string, 0, len(got.Problems))
-			for _, problem := range got.Problems {
-				problems = append(problems, problem.Field+" "+problem.Code)
-			}
-			if got.Status != "rejected" || got.Code != "invalid_arguments" || !slices.Equal(problems, tc.problems) {
-				t.Errorf("next_task = %+v, want %v refused as invalid_arguments", got, tc.problems)
-			}
+			got := payloadOf[requestPayload](t, call(t, session, "next_task", tc.arguments))
+			wantArgumentsRefused(t, &got, tc.problems)
 			if p, now := loadKept(t, kept); now != revision || p.OpenRequest != nil {
 				t.Error("a refusal wrote the profile, want nothing written")
 			}
 		})
+	}
+}
+
+// wantArgumentsRefused holds what next_task answered to a refusal of these
+// problems, each a field and the code of the rule it broke, on a card that
+// knows whose it is and that no task comes to it.
+func wantArgumentsRefused(t *testing.T, got *requestPayload, want []string) {
+	t.Helper()
+
+	problems := make([]string, 0, len(got.Problems))
+	for _, problem := range got.Problems {
+		problems = append(problems, problem.Field+" "+problem.Code)
+	}
+	if got.Screen != "waiting" || got.Status != "rejected" || got.Code != "invalid_arguments" ||
+		!slices.Equal(problems, want) || got.RequestID != "" {
+		t.Errorf("next_task = %+v, want %v refused as invalid_arguments, on a card no task comes to", got, want)
+	}
+	if got.Child == nil || got.Child.Pseudonym != "Otter" {
+		t.Errorf("child = %+v, want the card a refusal draws to know whose it is", got.Child)
 	}
 }
 
@@ -817,23 +1078,26 @@ func TestAnUnansweredTaskIsSkippedByTheNextAsk(t *testing.T) {
 
 // Nothing that gives the answer away leaves the seal before the child has
 // answered: not in the payload a card draws, not in the words for the model,
-// not in the open part of the profile, not on a span and not in a line. The
-// card is drawn from two results — the task accepted, and the same task handed
-// in again, which shows the child the task they hold — and neither carries it.
+// not in the open part of the profile, not on a span and not in a line. A card
+// shows the task from three results — the task as the card next_task drew is
+// told of it, the task accepted, and the same task handed in again, which shows
+// the child the task they hold — and none of them carries it.
 func TestTheAnswerStaysSealed(t *testing.T) {
 	t.Parallel()
 
 	kept := racer(t)
 	h, session := lesson(t, kept)
-	race := raceOn(askForTheRace(t, session, kept))
+	request := askForTheRace(t, session, kept)
+	race := raceOn(request)
 	handed := call(t, session, "submit_task", race)
 	again := call(t, session, "submit_task", race)
+	shown := call(t, session, "read_task", map[string]any{"request_id": request.ID})
 
 	secrets := slices.Concat([]string{raceSolution, "correct_answer", "solution", "distractors"}, raceExplained, raceTraps)
 	for _, card := range []struct {
 		name   string
 		result *mcp.CallToolResult
-	}{{"accepted", handed}, {"handed in again", again}} {
+	}{{"accepted", handed}, {"handed in again", again}, {"read by the card that waits for it", shown}} {
 		wantNoneOf(t, "the payload of the task "+card.name, []string{string(rawPayload(t, card.result))}, secrets)
 		wantNoneOf(t, "the words of the task "+card.name, []string{textOf(t, card.result)}, secrets)
 
@@ -1023,8 +1287,9 @@ func TestThePseudonymStaysBesideTheTask(t *testing.T) {
 	h, session := lesson(t, kept)
 
 	asked := call(t, session, "next_task", raceChoice)
-	wantNoneOf(t, "the package", []string{textOf(t, asked)}, []string{name})
 	p, _ := loadKept(t, kept)
+	pack := fetchPackage(t, session, p.OpenRequest.ID)
+	wantNoneOf(t, "the words of the request and the package", []string{textOf(t, asked), pack}, []string{name})
 	handed := call(t, session, "submit_task", raceOn(p.OpenRequest))
 	card := payloadOf[handedInPayload](t, handed)
 	if card.Child == nil || card.Child.Pseudonym != name {
@@ -1080,22 +1345,30 @@ func TestTheReviewIsTracedUnderTheCall(t *testing.T) {
 	}
 }
 
-// With no profile there is no task to ask for or to hand in: both say so, show
-// the first sign-in and write nothing. A lesson starts with next_task, so its
-// words are where the adult is first asked to say they are the child's parent
-// or tutor, before any detail of the child.
+// With no profile there is no task to ask for, to write or to hand in, and
+// none for a card to wait for: each says so, shows the first sign-in and
+// writes nothing. A lesson starts with next_task, so its words are where the
+// adult is first asked to say they are the child's parent or tutor, before any
+// detail of the child.
 func TestWithNoProfileThereIsNoTask(t *testing.T) {
 	t.Parallel()
 
 	kept := memory.New()
 	_, session := lesson(t, kept)
 
-	asked := wantWordsAlone(t, call(t, session, "next_task", raceChoice))
+	result := call(t, session, "next_task", raceChoice)
+	asked, card := textOf(t, result), payloadOf[requestPayload](t, result)
 	handed := payloadOf[handedInPayload](t, call(t, session, "submit_task",
 		raceOn(&profile.OpenRequest{ID: "req_nobody"})))
-	if !strings.HasPrefix(asked, "No task can be asked for yet. There is no profile yet.") || handed.Screen != "first_run" ||
-		handed.Code != "stale_request" {
-		t.Errorf("next_task says %q and submit_task = %+v, want both to point at the first sign-in", asked, handed)
+	if !strings.HasPrefix(asked, "No task can be asked for yet. There is no profile yet.") || card.Screen != "first_run" ||
+		handed.Screen != "first_run" || handed.Code != "stale_request" {
+		t.Errorf("next_task says %q and draws %+v, and submit_task = %+v, want all to point at the first sign-in",
+			asked, card, handed)
+	}
+	pack := wantWordsAlone(t, call(t, session, "get_package", map[string]any{"request_id": "req_nobody"}))
+	if waiting := awaited(t, session, "req_nobody"); !strings.Contains(pack, "There is no profile yet.") ||
+		waiting.Screen != "first_run" {
+		t.Errorf("get_package says %q and read_task = %+v, want both to point at the first sign-in", pack, waiting)
 	}
 	if confirmed, pseudonym := strings.Index(asked, "parent or tutor"), strings.Index(asked, "ask for a pseudonym"); confirmed < 0 || pseudonym < confirmed {
 		t.Errorf("next_task says %q, want the adult asked to say they are the parent or tutor before the pseudonym", asked)
@@ -1236,9 +1509,8 @@ func TestARequestWithNoAttemptLeftIsNotAskedAgain(t *testing.T) {
 	spent := askForTheRace(t, session, kept)
 	spendEveryAttempt(t, kept)
 
-	if again := leadOf(wantWordsAlone(t, call(t, session, "next_task", raceChoice))); strings.Contains(again, "already open") ||
-		strings.Contains(again, spent.ID) {
-		t.Errorf("next_task says %q, want a new request in place of %s", again, spent.ID)
+	if again := wantComing(t, call(t, session, "next_task", raceChoice)); again.AlreadyOpen || again.RequestID == spent.ID {
+		t.Errorf("next_task = %+v, want a new request in place of %s", again, spent.ID)
 	}
 }
 

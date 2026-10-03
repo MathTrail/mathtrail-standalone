@@ -1,0 +1,35 @@
+{
+  "data": {
+    "id": "10.5281/zenodo.3554625",
+    "type": "dois",
+    "attributes": {
+      "doi": "10.5281/zenodo.3554625",
+      "titles": [
+        {
+          "title": "Closing the Loop: Automated Data-Driven Cognitive Model Discoveries Lead to Improved Instruction and Learning Gains"
+        }
+      ],
+      "creators": [
+        {
+          "name": "Liu, Ran",
+          "givenName": "Ran",
+          "familyName": "Liu",
+          "nameType": "Personal"
+        },
+        {
+          "name": "Koedinger, Kenneth R.",
+          "givenName": "Kenneth R.",
+          "familyName": "Koedinger",
+          "nameType": "Personal"
+        }
+      ],
+      "publicationYear": 2017,
+      "publisher": "Zenodo",
+      "container": {},
+      "types": {
+        "resourceTypeGeneral": "Text"
+      },
+      "state": "findable"
+    }
+  }
+}

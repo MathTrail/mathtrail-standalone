@@ -11,10 +11,9 @@ export type ToolResult = AppEventMap["toolresult"];
 
 /**
  * CallStage is how far the tool call that drew the card has got before its
- * result: begun, its arguments still to come whole; running, its arguments
- * come and the tool at work on them; or cancelled.
+ * result: under way, or cancelled.
  */
-export type CallStage = "started" | "running" | "cancelled";
+export type CallStage = "started" | "cancelled";
 
 /**
  * Call is the tool call that drew the card, as far as the host has told of
@@ -32,8 +31,9 @@ export type Bridge = {
 	/** result is the latest result the host delivered, undefined before one. */
 	result(): ToolResult | undefined;
 	/**
-	 * call is the tool call that drew the card. Its arguments are never kept:
-	 * a task handed in carries its answer in them.
+	 * call is the tool call that drew the card. Nothing of its arguments is
+	 * listened for: a task handed in carries its answer in them, and a host
+	 * with an earlier list of the tools still draws a card for that call.
 	 */
 	call(): Call;
 	/**
@@ -126,14 +126,8 @@ export function openBridge(): Bridge & Host {
 		latest = result;
 		notify();
 	});
-	// Only that the arguments have come is taken from them, never what they
-	// are. Arguments still coming are not listened for at all, and the library
-	// drops what nobody listens for.
-	app.addEventListener("toolinput", () => {
-		if (call.stage === "started") {
-			callNow({ ...call, stage: "running" });
-		}
-	});
+	// The arguments, whole or still coming, are not listened for at all, and
+	// the library drops what nobody listens for.
 	app.addEventListener("toolcancelled", () => {
 		callNow({ ...call, stage: "cancelled" });
 	});

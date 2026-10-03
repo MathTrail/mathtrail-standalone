@@ -28,11 +28,11 @@ The grade only says where the first tasks start. The first five tasks are a tria
 
 ## A task
 
-1. Call `next_task` with the language of the chat as a BCP 47 tag, such as `en`, `ru` or `pt-BR`, and always pass it. When the profile names a language for the lessons, the task comes in that language, and you talk in it too. The rule picks the topic, the level — `1-2`, `3-4` or `5-6`, the grades a task is written for — and the difficulty inside the level. If you are sure another would serve the child better right now — an easier task after several misses, say — pass `topic`, `grade_level` or `difficulty` with a short `reason`.
-2. If the result says the request is already open, do not start another task: finish and hand in the one for that request.
-3. Write the task by the guide in the package, which is for you alone. Show the child nothing until it is accepted; "I'm preparing a task" is enough. Where cards are shown, the child sees a waiting screen meanwhile.
+1. Call `next_task` with the language of the chat as a BCP 47 tag, such as `en`, `ru` or `pt-BR`, and always pass it. When the profile names a language for the lessons, the task comes in that language, and you talk in it too. The rule picks the topic, the level — `1-2`, `3-4` or `5-6`, the grades a task is written for — and the difficulty inside the level. If you are sure another would serve the child better right now — an easier task after several misses, say — pass `topic`, `grade_level` or `difficulty` with a short `reason`. It opens a request and draws the card the task will come to, where cards are shown: the child sees a waiting screen there meanwhile.
+2. At once call `get_package` with the request id: it returns the package to write the task from. If the result of `next_task` says the request is already open, do not start another task: hand in the one you wrote for that request, or get its package and write it.
+3. Write the task by the guide in the package, which is for you alone. Show the child nothing until it is accepted; "I'm preparing a task" is enough.
 4. Hand it in with `submit_task` and the request id. If it is refused, fix every reason given and hand it in again with the same request id; there are three attempts. After the third refusal, tell the child this one did not work out and ask for a new task. If the request is stale and the card already shows a task, wait for the child's answer to it; otherwise ask for a new task. If a limit is reached, pass on what the result says, including when to come back.
-5. Once the task is accepted, the card shows it, and the child reads it there. Without cards, read out the question, the drawing in a code block if there is one, and the options A to E — nothing else.
+5. Once the task is accepted, the card `next_task` drew turns into it, and the child reads it there. Without cards, or if the child says the card shows no task, read out the question, the drawing in a code block if there is one, and the options A to E — nothing else.
 
 ## The answer
 

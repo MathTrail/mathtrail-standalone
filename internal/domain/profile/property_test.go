@@ -220,6 +220,128 @@ func TestAnAnswerHoldsItsProperties(t *testing.T) {
 	properties.TestingRun(t)
 }
 
+// However a lesson goes — tasks asked for, attempts turned down, tasks handed
+// out and left, seals lost, time passing — the task of a request only moves
+// forward: from being written to the card or to not coming, and from the card
+// to not coming, never back. A card that has been told its task will not come
+// stops asking on the strength of it. A task is being written only inside its
+// request's window, with its count of attempts turned down never falling; and
+// at any moment one task at most is being written, and one at most is on the
+// card.
+func TestTheTaskOfARequestOnlyMovesForward(t *testing.T) {
+	t.Parallel()
+
+	properties := gopter.NewProperties(nil)
+	properties.Property("a task never moves back, and one at a time is written or shown", prop.ForAll(
+		func(steps []int) bool {
+			walk := walkALesson(t)
+			for _, step := range steps {
+				walk.take(step)
+				if !walk.movedForward() {
+					return false
+				}
+			}
+			return true
+		},
+		gen.SliceOf(gen.IntRange(0, 6)),
+	))
+
+	properties.TestingRun(t)
+}
+
+// requestWindow is how long the lessons of these properties wait for a task.
+const requestWindow = 15 * time.Minute
+
+// forward is where the task of a request may move from where it stands.
+var forward = map[profile.TaskState][]profile.TaskState{
+	profile.TaskBeingWritten: {profile.TaskBeingWritten, profile.TaskOnTheCard, profile.TaskNotComing},
+	profile.TaskOnTheCard:    {profile.TaskOnTheCard, profile.TaskNotComing},
+	profile.TaskNotComing:    {profile.TaskNotComing},
+}
+
+// seenTask is what was last said of the task of a request, and when the
+// request was opened.
+type seenTask struct {
+	state   profile.TaskState
+	refused int
+	opened  time.Time
+}
+
+// lessonWalk is a profile taken through a lesson a step at a time, with what
+// was last said of the task of every request it asked for.
+type lessonWalk struct {
+	p      *profile.Profile
+	sealer profile.Sealer
+	brief  profile.Brief
+	now    time.Time
+	last   map[string]seenTask
+}
+
+// walkALesson starts a lesson on a profile with no request open and no task
+// on the card.
+func walkALesson(t *testing.T) *lessonWalk {
+	t.Helper()
+
+	p := parseFixture(t, "dima")
+	p.OpenRequest, p.CurrentTask = nil, nil
+	return &lessonWalk{p: p, sealer: newSealer(t), brief: briefOn("counting.gaps"), now: asked, last: map[string]seenTask{}}
+}
+
+// take does one thing a lesson does: ask for a task, turn an attempt down,
+// hand the task out, take it off the card, lose its seal, or let a minute or
+// six pass. An attempt is turned down or a task handed out only while the
+// request is still awaited, as the tool that takes a task makes sure: a task
+// handed in for any other request is stale, and changes nothing.
+func (w *lessonWalk) take(step int) {
+	awaited := w.p.OpenRequest != nil && w.p.OpenRequest.Awaited(requestWindow, w.now)
+	switch step {
+	case 0:
+		request := w.p.Ask(&w.brief, profile.TutorRule, "en", w.now)
+		w.last[request.ID] = seenTask{state: profile.TaskBeingWritten, opened: w.now}
+	case 1:
+		if awaited {
+			_, _ = w.p.Refuse(w.now)
+		}
+	case 2:
+		if awaited {
+			_, _ = w.p.Issue(written(), secret(), w.sealer, w.now)
+		}
+	case 3:
+		w.p.Skip(w.now)
+	case 4:
+		w.p.DiscardTask()
+	case 5:
+		w.now = w.now.Add(time.Minute)
+	case 6:
+		w.now = w.now.Add(6 * time.Minute)
+	}
+}
+
+// movedForward says whether the task of every request asked for moved only
+// forward since the last step, was written only inside its window with no
+// fewer attempts turned down, and whether one task at most is being written
+// and one at most is on the card.
+func (w *lessonWalk) movedForward() bool {
+	writing, shown := 0, 0
+	for id, before := range w.last {
+		state, refused := w.p.TaskFor(id, requestWindow, w.now)
+		if !slices.Contains(forward[before.state], state) {
+			return false
+		}
+		switch state {
+		case profile.TaskBeingWritten:
+			if refused < before.refused || w.now.Sub(before.opened) >= requestWindow {
+				return false
+			}
+			writing++
+		case profile.TaskOnTheCard:
+			shown++
+		}
+		w.last[id] = seenTask{state: state, refused: refused, opened: before.opened}
+	}
+	return writing <= 1 && shown <= 1
+}
+
 // Whatever an edit holds, its refusal names each field it found wrong once,
 // by a code of the closed list, and with the rule in words. A card shows one
 // message under a field, from a code it has words for; a field named twice

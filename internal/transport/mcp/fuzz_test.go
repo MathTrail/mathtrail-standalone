@@ -115,6 +115,10 @@ func FuzzTaskArguments(f *testing.F) {
 		{1, `{"request_id":"req_fuzz","brief":"a string","task":[1,2],"solver":"","self_check":null}`},
 		{1, `{"request_id":"req_fuzz","brief":{},"task":{"options":{"A":1}},"solver":"def solve(options): return","self_check":{}}`},
 		{1, `{}`},
+		{2, `{"request_id":"` + request.ID + `"}`},
+		{2, `{"request_id":"req_\u0000","extra":true}`},
+		{3, `{"request_id":"` + request.ID + `"}`},
+		{3, `{"request_id":["req_fuzz"]}`},
 	} {
 		f.Add(seed.tool, seed.arguments)
 	}
@@ -127,7 +131,8 @@ func FuzzTaskArguments(f *testing.F) {
 			}
 			arguments = string(quoted)
 		}
-		tool := []string{"next_task", "submit_task"}[pick%2]
+		tools := []string{"next_task", "submit_task", "get_package", "read_task"}
+		tool := tools[int(pick)%len(tools)]
 
 		if line := callOn(t, fuzzProfile(t), tool, arguments); line["outcome"] == "failed" {
 			t.Errorf("%s(%q) failed as ours: %v", tool, arguments, line)

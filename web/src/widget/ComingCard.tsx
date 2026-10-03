@@ -1,105 +1,144 @@
-import { useEffect, useState } from "preact/hooks";
-import { GeneratingSteps, Verdict } from "../design/blocks";
-import type { CallStage } from "./bridge";
-import { CardHeader, CardRoot } from "./CardRoot";
-import { type CourseStep, moments, stepsOf } from "./waiting";
-import { type Key, useWords } from "./words";
+import { useEffect, useReducer, useRef } from "preact/hooks";
+import type { Host } from "./bridge";
+import { CardFrame } from "./CardFrame";
+import { CardHeader } from "./CardRoot";
+import {
+	askIn,
+	firstAskIn,
+	isSettled,
+	shows,
+	type Wait,
+	waitAfter,
+	waitStart,
+} from "./coming";
+import { type Coming, readTaskStatus, type TaskStatus } from "./payload";
+import { TaskInCard } from "./TaskCard";
+import { TaskWait } from "./TaskWait";
+import { moments } from "./waiting";
+import { useWords } from "./words";
 
 /**
- * ComingCard is the card of a task being handed in, drawn before its result:
- * the usual course of a task, each step taken up as the host tells of the
- * call — the task written while its arguments come, checked once they have
- * come whole — and, when the call is cancelled, the word that the task was not
- * finished, or, when no result has come long after the call last moved on, the
- * word that none is coming. It shows nothing for its first moment, so that a
- * result that comes with the call does not make a wait flash past, and it has
- * nothing to press. Before its result it knows no child and no lesson: it has
- * no line at its top and no grade, and it speaks the host's language. A screen
- * reader hears each step from the list, and the word that ends the wait from a
- * place beside it, on the page from the start.
+ * ComingCard is the card a task asked for comes to. It is drawn as soon as the
+ * task is asked for, and waits for it: it asks the service how the task
+ * stands, and shows the task being written — and a try the checks turned
+ * down, with a new one being written, and the wait gone long — until the task
+ * is on the card, and then turns into it, in the same frame, the progress
+ * opened over it left open. A task that is not coming is said so, in words
+ * true whatever ended its request — the tries spent, the request replaced, or
+ * the task gone from the card long since, for a card drawn again with an
+ * earlier chat: no task is here, and where the next one comes.
  */
-export function ComingCard({ stage }: { stage: CallStage }) {
+export function ComingCard({ coming, host }: { coming: Coming; host: Host }) {
 	const words = useWords();
-	const shown = useShown();
-	const late = useLate(stage);
-	if (!shown) {
-		return null;
-	}
-	const wait = waitOf(stage, late);
+	const wait = useWaitFor(host, coming.requestId);
+	const { task } = wait;
 	return (
-		<CardRoot>
-			{(wide) => (
-				<article aria-label={words.text("waiting.label")}>
-					<CardHeader grade={undefined} wide={wide} />
-					<div class="mt-body">
-						<div class="mt-wait">
-							{wait.steps !== undefined && (
-								<GeneratingSteps
-									title={words.text("waiting.title")}
-									steps={wait.steps.map(({ key, status }) => ({
-										label: words.text(key),
-										status,
-									}))}
-									statusLabels={{
-										done: words.text("waiting.done"),
-										active: words.text("waiting.active"),
-										waiting: words.text("waiting.waiting"),
-									}}
-								/>
-							)}
-							<div class="mt-news" aria-live="polite">
-								{wait.over !== undefined && (
-									<Verdict detail={words.text("waiting.ask_in_chat")}>
-										{words.text(wait.over)}
-									</Verdict>
-								)}
-							</div>
-						</div>
-					</div>
-				</article>
+		<CardFrame
+			child={coming.child}
+			back={words.text(
+				task === undefined ? "progress.back_plain" : "progress.back",
 			)}
-		</CardRoot>
+			host={host}
+		>
+			{(wide, whose) =>
+				task === undefined ? (
+					<article aria-label={words.text("waiting.label")}>
+						<CardHeader grade={whose?.grade} wide={wide} />
+						<TaskWait
+							phase="writing"
+							rewriting={wait.refused > 0}
+							slow={wait.slow}
+							ended={
+								shows(wait) === "not coming"
+									? { said: "waiting.stale", next: "waiting.next_below" }
+									: undefined
+							}
+						/>
+					</article>
+				) : (
+					<TaskInCard
+						key={task.task.id}
+						handed={task}
+						host={host}
+						wide={wide}
+						grade={whose?.grade}
+					/>
+				)
+			}
+		</CardFrame>
 	);
 }
 
-// Wait is what the card shows of the wait: the steps of the task as far as its
-// call has got, or, once the wait is over, the word that ends it.
-type Wait =
-	| { steps: CourseStep[]; over?: undefined }
-	| { over: Key; steps?: undefined };
+// useWaitFor is the wait for the task of the request given, kept up by asking
+// the service how it stands: first after a moment of the request's own, then
+// each time the question before was answered, as often as the wait says, until
+// it is settled. A page out of sight asks nothing, and asks at once when it is
+// looked at again.
+function useWaitFor(host: Host, requestId: string): Wait {
+	const [wait, dispatch] = useReducer(waitAfter, waitStart);
+	// latest is the wait as it stands, which the next question is timed by. A
+	// change of pace alone — the wait gone long — sets no question going afresh,
+	// and drops no answer already on its way.
+	const latest = useRef(wait);
+	latest.current = wait;
+	const settled = isSettled(wait);
 
-// waitOf is the wait as the call stands: over once the call is cancelled, or
-// once it is late, and its steps otherwise.
-function waitOf(stage: CallStage, late: boolean): Wait {
-	if (stage === "cancelled") {
-		return { over: "waiting.cancelled" };
-	}
-	if (late) {
-		return { over: "waiting.late" };
-	}
-	return { steps: stepsOf(stage) };
-}
-
-// useShown says whether the card has been up long enough to show its wait.
-function useShown(): boolean {
-	const [shown, setShown] = useState(false);
 	useEffect(() => {
-		const timer = setTimeout(() => setShown(true), moments.shown);
-		return () => clearTimeout(timer);
-	}, []);
-	return shown;
-}
+		if (settled) {
+			return;
+		}
+		let gone = false;
+		const ask = async () => {
+			if (document.visibilityState === "hidden") {
+				document.addEventListener("visibilitychange", whenSeen);
+				return;
+			}
+			const status = await statusOf(host, requestId);
+			if (!gone) {
+				dispatch({ type: "answered", status });
+			}
+		};
+		const whenSeen = () => {
+			if (document.visibilityState !== "hidden") {
+				document.removeEventListener("visibilitychange", whenSeen);
+				void ask();
+			}
+		};
+		const pause =
+			wait.answers === 0
+				? firstAskIn(requestId)
+				: (askIn(latest.current, firstAskIn(requestId)) ?? moments.askSlowly);
+		const timer = setTimeout(() => void ask(), pause);
+		return () => {
+			gone = true;
+			clearTimeout(timer);
+			document.removeEventListener("visibilitychange", whenSeen);
+		};
+	}, [host, requestId, wait.answers, settled]);
 
-// useLate says whether no result has come long after the call last moved on:
-// the clock starts with the card, and again once the task has come whole.
-function useLate(stage: CallStage): boolean {
-	const [late, setLate] = useState({ stage, late: false });
 	useEffect(() => {
+		if (settled) {
+			return;
+		}
 		const timer = setTimeout(
-			() => setLate({ stage, late: true }),
-			moments.givenUp,
+			() => dispatch({ type: "slowed", news: wait.news }),
+			moments.slow,
 		);
 		return () => clearTimeout(timer);
-	}, [stage]);
-	return late.stage === stage && late.late;
+	}, [wait.news, settled]);
+
+	return wait;
+}
+
+// statusOf asks the service how the task of the request stands. A question
+// whose answer never came leaves it unknown, and is asked again later.
+async function statusOf(host: Host, requestId: string): Promise<TaskStatus> {
+	try {
+		return readTaskStatus(
+			await host.callTool("read_task", { request_id: requestId }),
+		);
+	} catch (error: unknown) {
+		console.error("widget: how the task stands did not arrive", error);
+		return { kind: "unknown" };
+	}
 }

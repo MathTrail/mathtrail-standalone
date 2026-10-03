@@ -1,0 +1,44 @@
+% Paper A. Target: AIED 2027, main track, full paper — 14 pages with
+% references, Springer LNAI, double-blind. Build: `just research paper-a`.
+\documentclass[runningheads]{llncs}
+\input{preamble}
+
+\begin{document}
+
+\title{The Model Writes, the Service Checks:\\
+Olympiad-Style Maths Problems for Primary-School Children inside Chat Assistants}
+\titlerunning{The Model Writes, the Service Checks}
+
+\ifanonymous
+  \author{Anonymous Author(s)}
+  \institute{Anonymous Institution}
+\else
+  % Authorship, affiliation and ORCID are settled before submission.
+  \author{[Author]}
+  \institute{[Affiliation]}
+\fi
+
+\maketitle
+
+\input{sections/abstract}
+\input{sections/introduction}
+\input{sections/related}
+\input{sections/system}
+\input{sections/verification}
+\input{sections/learner}
+\input{sections/evaluation}
+\input{sections/limitations}
+\input{sections/discussion}
+
+\ifanonymous\else
+\begin{credits}
+\subsubsection{Contributions.} \TBD{K05: who did what, in CRediT's terms}
+\subsubsection{\ackname} \TBD{K05: acknowledgements and funding}
+\subsubsection{\discintname} \TBD{K05: competing interests}
+\end{credits}
+\fi
+
+\bibliographystyle{splncs04}
+\bibliography{refs,web}
+
+\end{document}

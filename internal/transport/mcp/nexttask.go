@@ -9,7 +9,6 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/MathTrail/mathtrail-standalone/content"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/tutor"
@@ -63,38 +62,46 @@ func (in *nextTaskIn) differsFrom(request *profile.OpenRequest, student *profile
 		(!chosen && broken.Code == "" && language != "" && language != request.Language)
 }
 
-// requestRefusedOut is what next_task hands back when no request can be opened:
-// which argument broke which rule, or that the day has no room for a task. It
-// is the one result of the tool that has a payload, because its status is what
-// marks it a refusal. Every other result is words alone: the package is written
-// for the model and travels in the words, and a host that shows the model a
-// result's payload in place of its words would otherwise hand it a request
-// with nothing to write the task from. No card is drawn from next_task, so a
-// payload would have no other reader.
-type requestRefusedOut struct {
-	Screen     string       `json:"screen"`
-	Status     string       `json:"status"`
-	Code       string       `json:"code"`
-	Problems   []problemOut `json:"problems,omitempty"`
-	LastAnswer *answerLine  `json:"last_answer"`
+// requestOut is what next_task hands the card it draws: the request a task is
+// on its way for, with whom it is for and the language it is written in, or
+// why no request was opened. The package to write the task from is in neither
+// the payload nor the words, since the card reads both: the model fetches it
+// with get_package. A host may show the model the payload in place of the
+// words, so what the model acts on is here as well — the request, whether it
+// was open already and since when, and the last answer.
+type requestOut struct {
+	Screen      string       `json:"screen"`
+	Status      string       `json:"status,omitempty"`
+	Code        string       `json:"code,omitempty"`
+	Problems    []problemOut `json:"problems,omitempty"`
+	RequestID   string       `json:"request_id,omitempty"`
+	AlreadyOpen bool         `json:"already_open,omitempty"`
+	AgeSeconds  int          `json:"age_seconds,omitempty"`
+	LastAnswer  *answerLine  `json:"last_answer"`
+	Child       *childLine   `json:"child"`
+	// Language is the request's, which the card's words are in while it waits
+	// and which its task is written in. It is empty where no request is open.
+	Language string `json:"language,omitempty"`
 }
 
 func (s *Service) nextTaskTool() Tool {
 	return Define(Spec{
 		Name:  "next_task",
 		Title: "Ask for the next task",
-		Description: "Asks for the child's next task and returns the package to write it from: the brief — the " +
-			"topic, the level and the difficulty the rule sets — with reference tasks, the page on how to write and " +
-			"hand in a task, and the request id to hand it in with. Always pass language, the language of the chat; " +
-			"when the profile names a language for the lessons, the task is written in that one instead, and you " +
-			"talk in it too. " +
-			"Called again before the task of the open request is handed in, it hands back that request with its " +
-			"package: hand in the task you wrote for it, or write it now, rather than asking again. A task on the " +
-			"child's card with no answer yet is recorded as skipped, so ask for a new one only when the child wants " +
-			"another. To set a topic, a level or a difficulty other than the rule's, pass it with a short reason. " +
-			"Never put the child's name in a task." +
+		Description: "Asks for the child's next task: opens a request and draws the card the task will appear on, " +
+			"which shows the child a wait meanwhile. It does not write the task: you do. At once call get_package " +
+			"with its request_id for what to write it from — the brief, reference tasks and the page on how to write " +
+			"and hand in a task — and hand the task in with submit_task. Always pass language, the language of the " +
+			"chat; when the profile names a language for the lessons, the task is written in that one instead, and " +
+			"you talk in it too. " +
+			"Called again before the task of the open request is handed in, it hands back that request: hand in " +
+			"the task you wrote for it, or write it now, rather than asking again. A task on the child's card with " +
+			"no answer yet is recorded as skipped, so ask for a new one only when the child wants another. To set a " +
+			"topic, a level or a difficulty other than the rule's, pass it with a short reason. Never put the " +
+			"child's name in a task." +
 			"\n\nTopics, by id, with the levels each is taught at:\n" + s.topicList(),
 		Idempotent: true,
+		DrawsCard:  true,
 	}, s.nextTask)
 }
 
@@ -115,23 +122,25 @@ func (s *Service) topicList() string {
 	return strings.TrimSuffix(lines.String(), "\n")
 }
 
-// nextTask opens a request for a task and hands the model what to write it
-// from — or hands back the request already open, while the task for it is
-// still to be handed in. Everything it says is in the words; only a refusal
-// has a payload.
-func (s *Service) nextTask(ctx context.Context, account store.Account, in nextTaskIn) (Reply[any], error) {
-	return afresh(ctx, func() (Reply[any], error) { return s.openRequest(ctx, account, in) })
+// nextTask opens a request for a task and draws the card it will come to — or
+// hands back the request already open, while the task for it is still to be
+// handed in.
+func (s *Service) nextTask(ctx context.Context, account store.Account, in nextTaskIn) (Reply[requestOut], error) {
+	return afresh(ctx, func() (Reply[requestOut], error) { return s.openRequest(ctx, account, in) })
 }
 
 // openRequest is one read of the profile and the write of the request it
 // opens, or the request already open.
-func (s *Service) openRequest(ctx context.Context, account store.Account, in nextTaskIn) (Reply[any], error) {
+func (s *Service) openRequest(ctx context.Context, account store.Account, in nextTaskIn) (Reply[requestOut], error) {
 	p, revision, err := s.store.Load(ctx, account)
 	switch {
 	case errors.Is(err, store.ErrNotFound):
-		return Reply[any]{Text: "No task can be asked for yet. " + firstRunText}, nil
+		return Reply[requestOut]{
+			Text:    "No task can be asked for yet. " + firstRunText,
+			Payload: requestOut{Screen: screenFirstRun},
+		}, nil
 	case err != nil:
-		return Reply[any]{}, fmt.Errorf("mcp: read the profile: %w", err)
+		return Reply[requestOut]{}, fmt.Errorf("mcp: read the profile: %w", err)
 	}
 
 	now := s.now()
@@ -150,7 +159,7 @@ func (s *Service) openRequest(ctx context.Context, account store.Account, in nex
 	case errors.As(err, &refused):
 		problems = append(problems, refused.Problems...)
 	case err != nil:
-		return Reply[any]{}, fmt.Errorf("mcp: choose the task: %w", err)
+		return Reply[requestOut]{}, fmt.Errorf("mcp: choose the task: %w", err)
 	}
 	if len(problems) > 0 {
 		return argumentsRefused(p, problems), nil
@@ -158,13 +167,12 @@ func (s *Service) openRequest(ctx context.Context, account store.Account, in nex
 
 	skipped, wasSkipped := p.Skip(now)
 	request := p.Ask(&brief, mode, p.Student.LessonLanguage(language), now)
-	pack, err := s.packageFor(p, request)
-	if err != nil {
-		return Reply[any]{}, err
+	if err := s.canPackage(p, request); err != nil {
+		return Reply[requestOut]{}, err
 	}
 	p.Touch(s.version, now)
 	if _, err := s.store.Save(ctx, account, p, revision); err != nil {
-		return Reply[any]{}, fmt.Errorf("mcp: save the profile: %w", err)
+		return Reply[requestOut]{}, fmt.Errorf("mcp: save the profile: %w", err)
 	}
 
 	lead := ""
@@ -173,61 +181,84 @@ func (s *Service) openRequest(ctx context.Context, account store.Account, in nex
 		lead = fmt.Sprintf("Task %s, left on the child's card without an answer, is recorded as skipped.", skipped.TaskID)
 	}
 	s.events.write(ctx, account, eventTaskRequested, requestFields(request, false)...)
-	return Reply[any]{
-		Text: joined(lead, fmt.Sprintf("Request %s is open. Write one task in %s to the package below, and hand it "+
-			"in with submit_task and request_id %s.", request.ID, request.Language, request.ID),
-			lessonLanguageText(&p.Student), forYouAlone, s.lastAnswerText(p)) + packageText(pack),
+	return Reply[requestOut]{
+		Text: joined(lead, fmt.Sprintf("Request %s is open, in %s. You write its task: get the package to write it "+
+			"from with get_package and request_id %s, now, then hand the task in with submit_task and the same "+
+			"request_id. Where cards are shown, the child sees a card waiting for the task, and the task on it once "+
+			"it is accepted.", request.ID, request.Language, request.ID),
+			lessonLanguageText(&p.Student), forYouAlone, s.lastAnswerText(p), noPackageTool),
+		Payload: requestOut{
+			Screen: screenComing, RequestID: request.ID, LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student),
+			Language: request.Language,
+		},
 	}, nil
 }
 
 // stillOpen hands back the request already open, as it was: its task is still
 // to be handed in, and a second task written beside it would race the first
 // for the same three attempts. So the words ask for the task written for it
-// first, and only then offer the package, which comes again, whole, for a model
-// that has not written the task or has lost what to write it from. Nothing is
-// written.
-func (s *Service) stillOpen(ctx context.Context, account store.Account, p *profile.Profile, now time.Time, ignored bool) (Reply[any], error) {
+// first, and only then send a model that has not written it — or has lost what
+// to write it from — for the package. Nothing is written.
+func (s *Service) stillOpen(ctx context.Context, account store.Account, p *profile.Profile, now time.Time, ignored bool) (Reply[requestOut], error) {
 	request := p.OpenRequest
-	pack, err := s.packageFor(p, request)
-	if err != nil {
-		return Reply[any]{}, err
+	if err := s.canPackage(p, request); err != nil {
+		return Reply[requestOut]{}, err
 	}
 	s.events.write(ctx, account, eventTaskRequested, requestFields(request, true)...)
 
 	age := max(0, int(now.Sub(request.OpenedAt.Time)/time.Second))
 	lead := fmt.Sprintf("Request %s is already open, since %d seconds ago, in %s. If you have written its task, "+
 		"hand it in with submit_task and request_id %s. If you have not, a turn cut short say, the task is yours "+
-		"to write, to the package below. Do not ask for another.", request.ID, age, request.Language, request.ID)
+		"to write: get its package with get_package and the same request_id. Do not ask for another.",
+		request.ID, age, request.Language, request.ID)
 	if ignored {
 		lead += " The arguments of this call were not applied: the request keeps what it was opened with."
 	}
-	return Reply[any]{Text: joined(lead, lessonLanguageText(&p.Student), stillInText(p), forYouAlone, s.lastAnswerText(p)) +
-		packageText(pack)}, nil
+	return Reply[requestOut]{
+		Text: joined(lead, lessonLanguageText(&p.Student), stillInText(p), forYouAlone, s.lastAnswerText(p), noPackageTool),
+		Payload: requestOut{
+			Screen: screenComing, RequestID: request.ID, AlreadyOpen: true, AgeSeconds: age, LastAnswer: lastAnswerOf(p),
+			Child: childLineOf(&p.Student), Language: request.Language,
+		},
+	}, nil
+}
+
+// canPackage is whether the package a request's task is written from can be
+// built. next_task builds it here only to be sure of that, and throws it away:
+// the model fetches it with get_package, and a request it could never fetch
+// one for would hold the lesson for the whole of its window.
+func (s *Service) canPackage(p *profile.Profile, request *profile.OpenRequest) error {
+	_, err := s.packageFor(p, request)
+	return err
 }
 
 // dayIsFull is a call the day has no room for. Nothing is asked for and nothing
 // written, and the model is told what the child is to hear: that the new tasks
 // are over for today, when there will be more, and what the child can do
-// meanwhile. Which ceiling it was stays in the line, since what the child hears
-// is the same either way.
-func (s *Service) dayIsFull(p *profile.Profile) Reply[any] {
-	return Reply[any]{
+// meanwhile. The card says the same. Which ceiling it was stays in the line,
+// since what the child hears is the same either way.
+func (s *Service) dayIsFull(p *profile.Profile) Reply[requestOut] {
+	return Reply[requestOut]{
 		Text: joined("No task was asked for: there are no more new tasks for the child today. Tell the child so: "+
 			"there are no more new tasks today, and there will be more tomorrow; meanwhile they can look at their "+
 			"progress, or go back over the last task.",
 			lessonLanguageText(&p.Student), s.lastAnswerText(p)),
-		Payload: requestRefusedOut{Screen: screenWaiting, Status: statusLimited, Code: codeLimitReached, LastAnswer: lastAnswerOf(p)},
+		Payload: requestOut{
+			Screen: screenWaiting, Status: statusLimited, Code: codeLimitReached, LastAnswer: lastAnswerOf(p),
+			Child: childLineOf(&p.Student),
+		},
 	}
 }
 
 // argumentsRefused is a call no request can be opened from, told argument by
-// argument. Nothing is written.
-func argumentsRefused(p *profile.Profile, problems []profile.Problem) Reply[any] {
+// argument. Nothing is written, and the card says no task comes to it.
+func argumentsRefused(p *profile.Profile, problems []profile.Problem) Reply[requestOut] {
 	out, lines := problemsOf(problems)
-	return Reply[any]{
+	return Reply[requestOut]{
 		Text: "No task was asked for. Fix these arguments and call next_task again: " + lines + ".",
-		Payload: requestRefusedOut{
-			Screen: screenWaiting, Status: statusRejected, Code: codeInvalidArguments, Problems: out, LastAnswer: lastAnswerOf(p),
+		Payload: requestOut{
+			Screen: screenWaiting, Status: statusRejected, Code: codeInvalidArguments, Problems: out,
+			LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student),
 		},
 	}
 }
@@ -247,32 +278,6 @@ func languageOf(text string) (string, []profile.Problem) {
 		return "", []profile.Problem{{Field: "language", Broken: broken}}
 	}
 	return tag, nil
-}
-
-// packageFor is what the model is handed to write the request's task from: the
-// brief the request keeps, the chances around it for this child now, and the
-// child as the task is to be pitched at them.
-func (s *Service) packageFor(p *profile.Profile, request *profile.OpenRequest) ([]byte, error) {
-	pack, err := s.content.Package(&content.Request{
-		Language:  request.Language,
-		Brief:     request.Brief,
-		Corridor:  tutor.CorridorIn(p, s.content, request.Brief.TargetConcept),
-		Grade:     p.Student.Grade,
-		Interests: p.Student.Interests,
-		Notes:     p.Student.Notes,
-		Answers:   p.Ratings.Answers,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("mcp: build the package: %w", err)
-	}
-	return pack, nil
-}
-
-// packageText puts the package after the words about it, where the model reads
-// it. It travels here alone and never in the payload: a card is drawn from the
-// payload, and the package describes the child and the task to come.
-func packageText(pack []byte) string {
-	return "\n\nPackage:\n" + string(pack)
 }
 
 // skippedFields are what the line about a skipped task keeps of it: where it

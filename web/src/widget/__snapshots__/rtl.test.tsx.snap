@@ -2606,7 +2606,7 @@ exports[`the screens in Arabic > the task 1`] = `
 </div>
 `;
 
-exports[`the screens in Arabic > the wait for a task being handed in 1`] = `
+exports[`the screens in Arabic > the wait for a task asked for 1`] = `
 <div
   class="mt mt-widget mt-rtl"
 >
@@ -2655,33 +2655,6 @@ exports[`the screens in Arabic > the wait for a task being handed in 1`] = `
             aria-live="polite"
           >
             <li
-              data-status="done"
-            >
-              <span
-                class="mt-gen-icon"
-              >
-                <svg
-                  aria-hidden="true"
-                  class="mt-icon"
-                  fill="none"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  width="20"
-                />
-              </span>
-              <span
-                class="mt-gen-label"
-              >
-                <span
-                  class="mt-vh"
-                >
-                  اكتمل:
-                   
-                </span>
-                تم اختيار الموضوع ومستوى الصعوبة
-              </span>
-            </li>
-            <li
               data-status="active"
             >
               <span
@@ -2707,6 +2680,33 @@ exports[`the screens in Arabic > the wait for a task being handed in 1`] = `
                   class="mt-vh"
                 >
                   قيد التنفيذ:
+                   
+                </span>
+                تم اختيار الموضوع ومستوى الصعوبة
+              </span>
+            </li>
+            <li
+              data-status="waiting"
+            >
+              <span
+                class="mt-gen-icon"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="mt-icon"
+                  fill="none"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  width="20"
+                />
+              </span>
+              <span
+                class="mt-gen-label"
+              >
+                <span
+                  class="mt-vh"
+                >
+                  في الانتظار:
                    
                 </span>
                 كتابة المسألة
@@ -2775,5 +2775,223 @@ exports[`the screens in Arabic > the wait for a task being handed in 1`] = `
       </div>
     </div>
   </article>
+</div>
+`;
+
+exports[`the screens in Arabic > the wait for a task being written, a try turned down 1`] = `
+<div
+  class="mt mt-widget mt-rtl"
+>
+  <div>
+    <button
+      class="mt-bar"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="mt-icon"
+        height="24"
+        viewBox="0 0 24 24"
+        width="24"
+      />
+      <span
+        class="mt-bar-name"
+      >
+        مذنّب
+      </span>
+       
+      <span
+        class="mt-bar-action"
+      >
+        الملف الشخصي والتقدم
+      </span>
+      <svg
+        aria-hidden="true"
+        class="mt-icon mt-chevron"
+        fill="none"
+        height="16"
+        viewBox="0 0 16 16"
+        width="16"
+      />
+    </button>
+    <article
+      aria-label="المسألة التالية"
+    >
+      <header
+        class="mt-head"
+      >
+        <svg
+          aria-hidden="true"
+          class="mt-icon"
+          height="32"
+          viewBox="0 0 32 32"
+          width="32"
+        />
+        <div
+          class="mt-head-text"
+        >
+          <div
+            class="mt-head-line"
+          >
+            <span
+              class="mt-name"
+            >
+              MathTrail
+            </span>
+          </div>
+          <span
+            class="mt-badge"
+          >
+            مدرب الأولمبياد · الصف 3
+          </span>
+        </div>
+      </header>
+      <div
+        class="mt-body"
+      >
+        <div
+          class="mt-wait"
+        >
+          <div
+            class="mt-gen"
+          >
+            <p
+              class="mt-gen-title"
+            >
+              جار إعداد المسألة التالية…
+            </p>
+            <ol
+              aria-live="polite"
+            >
+              <li
+                data-status="done"
+              >
+                <span
+                  class="mt-gen-icon"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="mt-icon"
+                    fill="none"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    width="20"
+                  />
+                </span>
+                <span
+                  class="mt-gen-label"
+                >
+                  <span
+                    class="mt-vh"
+                  >
+                    اكتمل:
+                     
+                  </span>
+                  تم اختيار الموضوع ومستوى الصعوبة
+                </span>
+              </li>
+              <li
+                data-status="active"
+              >
+                <span
+                  class="mt-gen-icon"
+                >
+                  <span
+                    class="mt-gen-turning"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="mt-icon mt-spin"
+                      fill="none"
+                      height="20"
+                      viewBox="0 0 20 20"
+                      width="20"
+                    />
+                  </span>
+                </span>
+                <span
+                  class="mt-gen-label"
+                >
+                  <span
+                    class="mt-vh"
+                  >
+                    قيد التنفيذ:
+                     
+                  </span>
+                  كتابة المسألة
+                </span>
+              </li>
+              <li
+                data-status="waiting"
+              >
+                <span
+                  class="mt-gen-icon"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="mt-icon"
+                    fill="none"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    width="20"
+                  />
+                </span>
+                <span
+                  class="mt-gen-label"
+                >
+                  <span
+                    class="mt-vh"
+                  >
+                    في الانتظار:
+                     
+                  </span>
+                  التحقق من كل إجابة
+                </span>
+              </li>
+              <li
+                data-status="waiting"
+              >
+                <span
+                  class="mt-gen-icon"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="mt-icon"
+                    fill="none"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    width="20"
+                  />
+                </span>
+                <span
+                  class="mt-gen-label"
+                >
+                  <span
+                    class="mt-vh"
+                  >
+                    في الانتظار:
+                     
+                  </span>
+                  المسألة جاهزة
+                </span>
+              </li>
+            </ol>
+          </div>
+          <div
+            aria-live="polite"
+            class="mt-news"
+          >
+            <p
+              class="mt-verdict-line"
+            >
+              <span>
+                لم تجتز إحدى المحاولات الفحص، ويجري الآن إعداد محاولة جديدة.
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
 </div>
 `;

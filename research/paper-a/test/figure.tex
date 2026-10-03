@@ -1,0 +1,16 @@
+% A self-test of the paper's build, not part of the paper: a pgfplots figure
+% drawn straight from a CSV file, so that `just research paper-a-figure-check`
+% can show that a changed CSV changes the figure with no edit to any .tex file.
+\documentclass{article}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\pgfplotsset{compat=1.18}
+\pagestyle{empty}
+\begin{document}
+\pgfplotstableread[col sep=comma]{data.csv}\points
+\begin{tikzpicture}
+\begin{axis}[ybar, xlabel={x}, ylabel={y}, symbolic x coords={a,b,c}, xtick=data]
+\addplot table[x=x, y=y] {\points};
+\end{axis}
+\end{tikzpicture}
+\end{document}

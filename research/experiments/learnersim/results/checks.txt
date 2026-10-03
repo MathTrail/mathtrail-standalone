@@ -1,0 +1,12 @@
+# Checks of the baselines against their papers, and of the chain against itself.
+glickman_example_rating=1464.05
+glickman_example_rd=151.52
+glickman_example_volatility=0.059996
+urnings_tournament_players=100
+urnings_tournament_games=2000000
+urnings_tournament_gap=0.0028
+urnings_fixed_item_gap=0.0007
+urnings_fixed_item_variation_near_the_learner=0.0030
+chain_gap_1=-0.0010
+chain_gap_2=-0.0007
+chain_gap_3=-0.0008

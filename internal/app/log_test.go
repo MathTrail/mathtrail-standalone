@@ -133,6 +133,8 @@ func wantTheLessonInTheReport(t *testing.T, lines []observer.LoggedEntry) {
 		"| " + version + " | bad_structure | 1 | 1 |",
 		"| daily_tasks | 1 |",
 		"| claude | next_task | 3 | 2 | 1 | 0 | 0 |",
+		"| claude | get_package | 1 | 1 | 0 | 0 | 0 |",
+		"| claude | read_task | 2 | 2 | 0 | 0 | 0 |",
 		"| claude | submit_task | 2 | 1 | 1 | 0 | 0 |",
 		"| claude | submit_answer | 2 | 2 | 0 | 0 | 0 |",
 	} {

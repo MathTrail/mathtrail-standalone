@@ -163,7 +163,7 @@ Two hundred is ten days of heavy use at twenty tasks a day. Beyond that a child 
 | Field | Where | Why |
 |---|---|---|
 | `answered` | open, absent until the answer | The answer the task was given: `choice` — the letter or `?` —, `hint_used`, `level_before` and `level_after`, the level in the topic before and after, and `trial`, which answer of the trial series it was or 0. It is what the same answer sent again is told from — by a second tab, after a reply lost on its way, by the model after the card — word for word and with nothing written (03-flows); the right option, the trap and the solution come from opening the seal again |
-| `id` | open | `submit_answer` is keyed by it: the answer is recorded once (03-flows) |
+| `id` | open | `submit_answer` is keyed by it: the answer is recorded once (03-flows). It is the id of the request it was written for, `tsk_` in place of `req_`, which is how the card that waits for the request finds it; nothing else in the file says which request a task came from (R152) |
 | `issued_at` | open | The pace is measured from here |
 | `topic`, `grade_level`, `difficulty`, `language` | open | The history entry and the rating update are built from them |
 | `instructions_version` | open | Which version of the instructions produced this task, so the result's log line can carry it (О-21) |

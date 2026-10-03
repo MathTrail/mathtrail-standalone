@@ -1,0 +1,16 @@
+# What the secret scan looks for: everything it looks for by default, less one
+# false alarm. A bibliography key — a family name, a year and a word, such as
+# gupta2025beyond — follows the word "Key" in the research's literature notes
+# and in the tests of its citation checker, and the generic rule for API keys
+# reads it as a key. The exception is held to those two places and to that
+# shape together, so a real key there, or a key of that shape anywhere else,
+# is still reported.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Bibliography keys in the research's literature notes and citation checker"
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''(^|/)research/(literature|tools/citecheck)/''']
+regexes = ['''^[a-z]+[0-9]{4}[a-z]+$''']

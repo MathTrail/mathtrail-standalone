@@ -1,0 +1,35 @@
+% Figure 2: the fifteen rules of the sweep on children who stay put — the share
+% of tasks in the corridor, and the share of declarations of mastery made while
+% the child's true chance on the level's middle task was below 0.775 — each
+% with its 95 % interval, drawn straight from the simulation's results, so that
+% a new run redraws it. The service is the filled mark.
+\pgfplotstableread[col sep=comma]{../experiments/learnersim/results/corridor.csv}\sweeprules
+\begin{tikzpicture}
+  \pgfplotsset{
+    rules/.style={
+      width=3.8cm, height=5.0cm, scale only axis,
+      y dir=reverse, ytick=data, enlarge y limits=0.04,
+      tick label style={font=\scriptsize}, label style={font=\scriptsize},
+      grid=major, grid style={gray!25}, xmajorgrids, ymajorgrids=false,
+    },
+    marks/.style={
+      scatter, only marks, scatter src=explicit symbolic,
+      scatter/classes={service={mark=*, black}, baseline={mark=o, black}},
+      error bars/.cd, x dir=both, x explicit, error bar style={black},
+    },
+  }
+  \begin{axis}[rules, name=inside, yticklabels from table={\sweeprules}{label}, xlabel={tasks in the corridor, \%}]
+    \addplot[marks] table[
+      x=inside, y expr=\coordindex, meta=kind,
+      x error minus expr=\thisrow{inside}-\thisrow{inside_low},
+      x error plus expr=\thisrow{inside_high}-\thisrow{inside},
+    ] {\sweeprules};
+  \end{axis}
+  \begin{axis}[rules, at={(inside.east)}, anchor=west, xshift=4mm, yticklabels={}, xlabel={false declarations of mastery, \%}]
+    \addplot[marks] table[
+      x=declared_wrongly, y expr=\coordindex, meta=kind,
+      x error minus expr=\thisrow{declared_wrongly}-\thisrow{declared_wrongly_low},
+      x error plus expr=\thisrow{declared_wrongly_high}-\thisrow{declared_wrongly},
+    ] {\sweeprules};
+  \end{axis}
+\end{tikzpicture}

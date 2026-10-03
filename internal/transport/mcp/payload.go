@@ -17,6 +17,9 @@ import (
 // guesses a screen from the shape of the data, because a wrong guess would
 // show a child the wrong thing.
 const (
+	// screenComing is a task on its way: the card waits for it, and turns into
+	// it once it is handed out.
+	screenComing   = "coming"
 	screenFirstRun = "first_run"
 	screenProfile  = "profile"
 	screenProgress = "progress"
@@ -276,6 +279,12 @@ const addNothing = "add nothing of your own about it — not its topic, not why 
 // one is on its way, and nothing of what it was handed to write it from.
 const forYouAlone = "Until the task is accepted, tell the child only that one is on its way: the package, and " +
 	"what these words say of past answers, are for you alone."
+
+// noPackageTool is what a model is told to do when it has no tool to fetch the
+// package with: a chat keeps the list of tools it began with, and one begun
+// before the package had a tool of its own has none to write the task from.
+const noPackageTool = "If get_package is not among your tools, this chat has an earlier list of MathTrail's " +
+	"tools: ask the adult to start a new chat."
 
 // aboutTheStep keeps an explanation from showing whether the child is a boy or
 // a girl, which nothing tells the service: in a language with grammatical

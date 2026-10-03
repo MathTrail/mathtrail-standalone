@@ -157,9 +157,10 @@ func TestTheLastRefusalClosesTheRequest(t *testing.T) {
 
 // An accepted task is handed out standing exactly where the request asked:
 // its topic, level and difficulty are the brief's and its language the
-// request's, whatever the model might have said. Its answer is sealed, the
-// request is closed, its fingerprint is remembered, its topic records the day,
-// and it counts as the day's task.
+// request's, whatever the model might have said, and its id is the one the
+// request gives it. Its answer is sealed, the request is closed, its
+// fingerprint is remembered, its topic records the day, and it counts as the
+// day's task.
 func TestAnIssuedTaskStandsWhereTheRequestAsked(t *testing.T) {
 	t.Parallel()
 
@@ -167,7 +168,7 @@ func TestAnIssuedTaskStandsWhereTheRequestAsked(t *testing.T) {
 	p.Daily = profile.Daily{Date: profile.DateOf(asked), Accepted: 2}
 	fingerprints := len(p.TaskFingerprints)
 	brief := briefOn("counting.gaps")
-	p.Ask(&brief, profile.TutorRule, "de-CH", asked)
+	request := p.Ask(&brief, profile.TutorRule, "de-CH", asked)
 	sealer := newSealer(t)
 	handed := asked.Add(2 * time.Minute)
 
@@ -178,6 +179,9 @@ func TestAnIssuedTaskStandsWhereTheRequestAsked(t *testing.T) {
 
 	if task != p.CurrentTask || !strings.HasPrefix(task.ID, "tsk_") {
 		t.Fatalf("Issue() = %+v, want the task in flight with an id of a task", task)
+	}
+	if want := profile.TaskIDFor(request.ID); task.ID != want {
+		t.Errorf("the task is %q, want %q, the id its request gives it", task.ID, want)
 	}
 	want := profile.CurrentTask{
 		Difficulty: brief.Difficulty, Fingerprint: "sketch-of-the-gaps", GradeLevel: brief.GradeLevel,
@@ -211,6 +215,87 @@ func TestAnIssuedTaskStandsWhereTheRequestAsked(t *testing.T) {
 	if _, err := p.Issue(written(), secret(), sealer, handed); !errors.Is(err, profile.ErrNoRequest) {
 		t.Errorf("Issue() with no request error = %v, want %v", err, profile.ErrNoRequest)
 	}
+}
+
+// A card that waits for a request is told how its task stands. While the
+// request is waited for, the task is being written, with the attempts the
+// checks have turned down so far; once handed out, it is on the card, answered
+// or not, until it leaves; and a request that ran out of attempts or of time,
+// or that a newer one replaced, has no task coming — nor has an id the file
+// never held.
+func TestATaskForARequestStandsAsTheFileSays(t *testing.T) {
+	t.Parallel()
+
+	const window = 15 * time.Minute
+	brief := briefOn("counting.gaps")
+	handOut := func(t *testing.T, p *profile.Profile) {
+		t.Helper()
+		if _, err := p.Issue(written(), secret(), newSealer(t), asked.Add(time.Minute)); err != nil {
+			t.Fatalf("Issue() error = %v, want nil", err)
+		}
+	}
+	turnDown := func(t *testing.T, p *profile.Profile, times int) {
+		t.Helper()
+		for range times {
+			if _, err := p.Refuse(asked); err != nil {
+				t.Fatalf("Refuse() error = %v, want nil", err)
+			}
+		}
+	}
+	for _, tc := range []struct {
+		name    string
+		then    func(t *testing.T, p *profile.Profile)
+		at      time.Time
+		state   profile.TaskState
+		refused int
+	}{
+		{"just asked for", func(*testing.T, *profile.Profile) {}, asked, profile.TaskBeingWritten, 0},
+		{"with two attempts turned down", func(t *testing.T, p *profile.Profile) { turnDown(t, p, 2) },
+			asked, profile.TaskBeingWritten, 2},
+		{"with every attempt turned down", func(t *testing.T, p *profile.Profile) { turnDown(t, p, profile.MaxAttempts) },
+			asked, profile.TaskNotComing, 0},
+		{"past its window", func(*testing.T, *profile.Profile) {}, asked.Add(window), profile.TaskNotComing, 0},
+		{"replaced by a newer request", func(_ *testing.T, p *profile.Profile) {
+			p.Ask(&brief, profile.TutorRule, "en", asked.Add(time.Minute))
+		}, asked.Add(time.Minute), profile.TaskNotComing, 0},
+		{"handed out", handOut, asked.Add(time.Minute), profile.TaskOnTheCard, 0},
+		{"handed out and answered", func(t *testing.T, p *profile.Profile) {
+			handOut(t, p)
+			give(t, p, p.CurrentTask.ID, rightLetter, asked.Add(2*time.Minute))
+		}, asked.Add(2 * time.Minute), profile.TaskOnTheCard, 0},
+		{"handed out a day ago", handOut, asked.Add(24 * time.Hour), profile.TaskOnTheCard, 0},
+		{"handed out, and the next one asked for", func(t *testing.T, p *profile.Profile) {
+			handOut(t, p)
+			p.Skip(asked.Add(time.Hour))
+			p.Ask(&brief, profile.TutorRule, "en", asked.Add(time.Hour))
+		}, asked.Add(time.Hour), profile.TaskNotComing, 0},
+		{"handed out, and its seal lost", func(t *testing.T, p *profile.Profile) {
+			handOut(t, p)
+			p.DiscardTask()
+		}, asked.Add(time.Minute), profile.TaskNotComing, 0},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			p := parseFixture(t, "dima")
+			request := p.Ask(&brief, profile.TutorRule, "en", asked).ID
+			tc.then(t, p)
+
+			state, refused := p.TaskFor(request, window, tc.at)
+			if state != tc.state || refused != tc.refused {
+				t.Errorf("TaskFor() = %s, %d refused, want %s, %d", state, refused, tc.state, tc.refused)
+			}
+		})
+	}
+
+	t.Run("an id the file never held", func(t *testing.T) {
+		t.Parallel()
+
+		p := parseFixture(t, "masha")
+		if state, _ := p.TaskFor("req_never_asked", window, asked); state != profile.TaskNotComing {
+			t.Errorf("TaskFor() = %s, want %s", state, profile.TaskNotComing)
+		}
+	})
 }
 
 // A task that cannot be sealed is not handed out, and nothing about the

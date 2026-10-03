@@ -1,0 +1,66 @@
+# Numbers paper A takes from the works it cites, each checked against the
+# original. The comment above a number names the work, the place of the passage
+# it comes from, and the notes that quote the passage; the paper prints it as
+# \stat{literature}{<key>}.
+
+# gupta2025beyond, arXiv version 1, section 5: "Across all five of the LLMs
+# only 56.6% of the tutor dialogues were entirely correct." (generation-verification.md)
+gupta_dialogues_entirely_correct_percent=56.6
+
+# gupta2025beyond, section 4.2: "The evaluators prompted each of the five models
+# to provide tutoring support on the same set of 30 problems, resulting in a
+# total of 150 LLM dialogues." (generation-verification.md)
+gupta_dialogues=150
+
+# sun2024benchmarking, arXiv version 1, appendix A.6, Table 6: "they offered a
+# discount of more than $ 8 per t-shirt" and GPT-4's answer "The t-shirts were
+# sold for $51 - $8 = $43 each after the discount." (generation-verification.md)
+sun_example_discount_dollars=8
+
+# klinkenberg2011computer, read as chapter 2 of Straatemeier's thesis, p. 24
+# (abstract): "Items are sampled with a mean success probability of .75, making
+# the tasks challenging yet not too difficult." (learner-models.md)
+klinkenberg_target_success=0.75
+
+# wilson2019eighty, abstract: "we find that the optimal error rate for training
+# is around 15.87% or, conversely, that the optimal training accuracy is about
+# 85%." (learner-models.md)
+wilson_optimal_accuracy_gaussian_percent=85
+
+# wilson2019eighty, Discussion: "from 85% for Gaussian, to 82% for Laplacian
+# noise, to 75% for Cauchy noise" (learner-models.md)
+wilson_optimal_accuracy_cauchy_percent=75
+
+# wilson2019eighty, Discussion, the same passage: "to 82% for Laplacian noise"
+# (learner-models.md)
+wilson_optimal_accuracy_laplace_percent=82
+
+# christ2024mathwell, §3, "Human Evaluation Criteria": "3) Appropriateness,
+# where MWPs should be questions teachers would feel comfortable giving to K-8
+# students." (generation-verification.md)
+mathwell_grade_max=8
+
+# christ2026edumath, §3: "We study generating MWPs for grades 3-5 in the US."
+# (generation-verification.md)
+edumath_grade_min=3
+edumath_grade_max=5
+
+# beastacademy2026, the site's navigation, read on 2026-10-01: "Beast Academy
+# Engaging math books and online learning for students ages 6-13"
+# (llm-tutors.md)
+beastacademy_age_min=6
+beastacademy_age_max=13
+
+# anthropic2025consumerterms, §2: "Minimum age. You must be at least 18 years
+# old or the minimum age required to consent to use the Services in your
+# location, whichever is higher." (mcp-safety.md)
+anthropic_minimum_age=18
+
+# openai2026terms: "Minimum age. You must be at least 13 years old or the
+# minimum age required in your country to consent to use the Services."
+# (mcp-safety.md)
+openai_minimum_age=13
+
+# oreopoulos2026making, abstract: "Mastery increased three-correct-in-a-row
+# attainment but did not by itself improve delayed learning." (llm-tutors.md)
+oreopoulos_mastery_streak=3

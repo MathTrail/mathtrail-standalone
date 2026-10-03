@@ -1,0 +1,15 @@
+repository=github.com/MathTrail/llm-taskgen-prototype
+commit=02638353482e
+commit_date=2026-09-16
+topics=10
+traps=14
+skills=15
+reference_tasks=450
+reference_cells=90
+reference_cells_not_five=0
+reference_check_modules=10
+decisions=45
+research_notes=14
+seed_profiles=5
+live_scenarios=6
+eval_reviews=0

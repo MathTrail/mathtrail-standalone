@@ -1,0 +1,53 @@
+{
+  "data": {
+    "id": "10.48550/arxiv.2503.16460",
+    "type": "dois",
+    "attributes": {
+      "doi": "10.48550/arxiv.2503.16460",
+      "titles": [
+        {
+          "title": "Beyond Final Answers: Evaluating Large Language Models for Math Tutoring"
+        }
+      ],
+      "creators": [
+        {
+          "name": "Gupta, Adit",
+          "givenName": "Adit",
+          "familyName": "Gupta",
+          "nameType": "Personal"
+        },
+        {
+          "name": "Reddig, Jennifer",
+          "givenName": "Jennifer",
+          "familyName": "Reddig",
+          "nameType": "Personal"
+        },
+        {
+          "name": "Calo, Tommaso",
+          "givenName": "Tommaso",
+          "familyName": "Calo",
+          "nameType": "Personal"
+        },
+        {
+          "name": "Weitekamp, Daniel",
+          "givenName": "Daniel",
+          "familyName": "Weitekamp",
+          "nameType": "Personal"
+        },
+        {
+          "name": "MacLellan, Christopher J.",
+          "givenName": "Christopher J.",
+          "familyName": "MacLellan",
+          "nameType": "Personal"
+        }
+      ],
+      "publicationYear": 2025,
+      "publisher": "arXiv",
+      "container": {},
+      "types": {
+        "resourceTypeGeneral": "Preprint"
+      },
+      "state": "findable"
+    }
+  }
+}

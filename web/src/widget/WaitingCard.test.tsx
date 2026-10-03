@@ -8,6 +8,7 @@ import {
 } from "./testing/card";
 import type { ToolCall } from "./testing/host";
 import {
+	askRefused,
 	exhausted,
 	fence,
 	limited,
@@ -43,6 +44,7 @@ describe("a card a task did not come to", () => {
 	test.each([
 		["a try that did not pass", refused, "This try didn't pass the checks."],
 		["a request that is over", staleWait, "No task here."],
+		["an ask no request could be opened from", askRefused, "No task here."],
 		["the last try", exhausted, "This task didn't work out."],
 	])(
 		"after %s says so, and where the next one comes, with nothing that moves or asks",

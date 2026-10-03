@@ -1,0 +1,366 @@
+date	task	source	query	results	kept	note
+2026-09-25	S09	OpenAlex	mathematical problem solving heuristics instruction	33414	0	leads: Lester 2013 (its host refused automated readers), Brown, Collins and Duguid 1989 (not needed)
+2026-09-25	S09	OpenAlex	Schoenfeld problem solving metacognition control beliefs	1527	0	lead: Schoenfeld 2013 (its host refused automated readers); his 1992 chapter was found by web search
+2026-09-25	S09	OpenAlex	metacognitive instruction mathematics IMPROVE	50213	0	lead: Mevarech and Kramarski 1997 (paywalled); their 2003 study was found by web search
+2026-09-25	S09	OpenAlex	productive failure mathematics meta-analysis	35095	0	the meta-analysis came from the next query
+2026-09-25	S09	OpenAlex	desirable difficulties learning	465977	0	lead: Bjork and Bjork 2011 (a chapter without a DOI); their 2020 paper was found by web search
+2026-09-25	S09	OpenAlex	far transfer mathematics problem solving	465622	0	lead: Gick and Holyoak 1980, not read: transfer is taken from the reviews
+2026-09-25	S09	OpenAlex	adaptive expertise	1257874	0	leads: Bohle Carbonell et al. 2014 (its copies refused automated readers), Verschaffel et al. 2009 (paywalled); the concept is taken from How People Learn
+2026-09-25	S09	OpenAlex	inert knowledge	388765	0	lead: Renkl, Mandl and Gruber 1996 (paywalled); the concept is taken from How People Learn
+2026-09-25	S09	OpenAlex	When Problem Solving Followed by Instruction Works: Evidence for Productive Failure	64667	1	sinha2021problem, read at ETH Research Collection
+2026-09-25	S09	OpenAlex	Critical Maths for Innovative Societies metacognitive pedagogies	6424	0	the OECD page refused automated readers
+2026-09-25	S09	OpenAlex	Adding It Up: Helping Children Learn Mathematics	105535	1	anonymous2001adding, read on the National Academies Press site; the DOI from Crossref
+2026-09-25	S09	OpenAlex	How experts deal with novel situations: A review of adaptive expertise	87832	0	its copies refused automated readers
+2026-09-25	S09	OpenAlex	Analogical problem solving Gick Holyoak	1391	0	not read: transfer is taken from the reviews
+2026-09-25	S09	OpenAlex	The role of tutoring in problem solving	181818	0	the publisher refused automated readers; scaffolding is taken from van de Pol et al. 2010
+2026-09-25	S09	OpenAlex	Productive failure in learning math	44438	0	paywalled; productive failure is taken from the meta-analysis
+2026-09-25	S09	OpenAlex	scaffolding teacher student interaction review	102879	1	vandepol2010scaffolding, read at UvA-DARE
+2026-09-25	S09	OpenAlex	far transfer meta-analysis chess music working memory training	1374	1	sala2017far, read at LSE Research Online
+2026-09-25	S09	OpenAlex	How People Learn brain mind experience school	208083	1	anonymous2000people, read on the National Academies Press site; the DOI from Crossref
+2026-09-25	S09	OpenAlex	eighty five percent rule optimal learning	12493	1	wilson2019eighty (a lead of the prototype), read at the publisher
+2026-09-25	S09	OpenAlex	When and where do we apply what we learn taxonomy far transfer	69519	1	barnett2002where (paywalled; a copy was found by web search)
+2026-09-25	S09	OpenAlex	When and where do we apply what we learn? A taxonomy for far transfer		0	the API answered HTTP 400 to the question mark; run again without it
+2026-09-25	S09	Crossref	Polya How to Solve It A New Aspect of Mathematical Method		1	polya2014solve; only the publisher's sample pages were read
+2026-09-25	S09	web search	Schoenfeld 1992 "Learning to think mathematically" pdf problem solving metacognition sense making		1	schoenfeld2016learning (the 1992 chapter, reprinted); a copy of the manuscript
+2026-09-25	S09	web search	Barnett Ceci 2002 "When and where do we apply what we learn" taxonomy far transfer pdf		0	a copy of barnett2002where, the published article
+2026-09-25	S09	web search	Koedinger Aleven 2007 "Exploring the assistance dilemma in experiments with cognitive tutors" pdf		0	the copy's server has an expired certificate; a lead for S33
+2026-09-25	S09	web search	Bjork Bjork 2020 "Desirable difficulties in theory and practice" Journal of Applied Research in Memory and Cognition pdf		1	bjork2020desirable; the authors' posted copy
+2026-09-25	S09	web search	Mevarech Kramarski IMPROVE metacognitive questions comprehension connection strategic reflection mathematics pdf		1	kramarski2003enhancing; a copy of the published article
+2026-09-25	S10	OpenAlex	mathematics olympiad participation effects	2513	1	rebholz2022getting (grades 3 and 4); leads: a 2021 interview study of former Australian olympians (abstract only) and a 2019 review of gender differences in competitions (not read)
+2026-09-25	S10	OpenAlex	mathematical circles enrichment outcomes	55533	0	nothing on circles; the results are off topic
+2026-09-25	S10	OpenAlex	PISA creative problem solving mathematics	24990	0	the PISA 2012 framework was found by web search
+2026-09-25	S10	OpenAlex	assessing transfer to novel problems	1131570	0	leads: Gick and Holyoak 1980 and 1983; surface and structural similarity is taken from Holyoak and Koh 1987
+2026-09-25	S10	OpenAlex	problem novelty assessment mathematics	114718	0	nothing on the novelty of a task for a learner; a gap
+2026-09-25	S10	OpenAlex	mathematics competition primary school children effects	69413	0	nothing beyond rebholz2022getting
+2026-09-25	S10	OpenAlex	Russian mathematics education mathematical circles olympiads	1167	2	leikin2021practice and delosada2022perspectives, read in PubMed Central
+2026-09-25	S10	OpenAlex	TIMSS mathematics framework reasoning cognitive domain	4839	0	the TIMSS 2023 framework was found by web search
+2026-09-25	S10	OpenAlex	preparation for future learning transfer assessment	512559	0	Bransford and Schwartz 1999 did not come up and is paywalled
+2026-09-25	S10	OpenAlex	computational thinking definition review decomposition abstraction	12497	1	voogt2015computational, read at UvA-DARE; Shute et al. 2017 not read
+2026-09-25	S10	OpenAlex	Bebras tasks computational thinking	813	0	Dagiene and Sentance 2016: the repository refused automated readers
+2026-09-25	S10	web search	PISA 2012 Assessment and Analytical Framework problem solving "method of solution is not immediately obvious" pdf oecd.org		1	oecd2013pisa, read from the page images of its scan at the Internet Archive
+2026-09-25	S10	web search	TIMSS 2023 Assessment Frameworks mathematics cognitive domains reasoning "non-routine" pdf		1	philpot2021timss in web.bib: no DOI
+2026-09-25	S10	web search	Holyoak Koh 1987 "Surface and structural similarity in analogical transfer" pdf		1	holyoak1987surface, the scan posted by the authors' laboratory
+2026-09-25	S10	Crossref	TIMSS 2023 Assessment Frameworks (titles under the prefix 10.6017)		0	no DOI for the 2023 frameworks
+2026-09-25	S10	known work	Wing 2006 Computational thinking, Communications of the ACM		1	wing2006computational, the standard reference; read from the copy on a Carnegie Mellon course page
+2026-09-25	S10	OpenAlex	олимпиадные задачи младшие школьники	15	0	judged by title only: methodological papers, none reporting a controlled evaluation
+2026-09-25	S10	OpenAlex	математический кружок младших школьников эффективность	27	0	judged by title only: models and programmes, none reporting a controlled evaluation
+2026-09-25	S10	OpenAlex	олимпиадная подготовка по математике результаты исследования	23	0	judged by title only: mostly older students and universities; none kept
+2026-09-25	S10	web search	Kenderov "Competitions and mathematics education" ICM 2006 Madrid proceedings pdf		0	the 2006 paper was not read; the search led to his 2022 paper
+2026-09-25	S10	Crossref	Kenderov Competitions and mathematics education International Congress of Mathematicians 2006		1	kenderov2022mathematics, read in PubMed Central
+2026-09-25	S10	known work	Agarwal and Gaule 2020, Invisible Geniuses, American Economic Review: Insights		1	agarwal2020invisible, what olympiad scores predict; the accepted manuscript at the University of Bath
+2026-09-30	S16	OpenAlex	COPPA 2025 amendments consent artificial intelligence	103	0	secondary reviews only; the rule itself was read from the eCFR and the Federal Register
+2026-09-30	S16	OpenAlex	GDPR article 8 child consent information society services	5943	0	nothing on article 8 itself; the Regulation was read from the Publications Office's copy of the Official Journal
+2026-09-30	S16	OpenAlex	Age Appropriate Design Code	1855211	0	the search matches any "code"; lead: Grace, Abel and Salen 2023 (IDC), which refused automated readers at ACM and eScholarship
+2026-09-30	S16	OpenAlex	research ethics minors online experiments education	63534	0	off topic; the rules for research with children were read from 45 CFR 46 Subpart D and BERA 2024
+2026-09-30	S16	OpenAlex	k-anonymity model protecting privacy	79458	1	sweeney2002kanonymity, read from the author's copy
+2026-09-30	S16	OpenAlex	algorithmic foundations of differential privacy	33629	1	dwork2014algorithmic, read from the authors' copy
+2026-09-30	S16	OpenAlex	federated analytics collaborative data science without data collection	26055	1	kairouz2021advances; its reference [382] led to the post that named the practice
+2026-09-30	S16	OpenAlex	revealing information while preserving privacy	93828	0	lead: Dinur and Nissim 2003, which ACM refused to automated readers; the fundamental law is cited from Dwork and Roth
+2026-09-30	S16	OpenAlex	A/B testing ethics education experiments learners	70611	0	off topic
+2026-09-30	S16	OpenAlex	ethical privacy principles learning analytics	142817	0	leads: Pardo and Siemens 2014 (paywalled), Slade and Prinsloo 2013 (not needed)
+2026-09-30	S16	OpenAlex	children data privacy educational technology parental consent	27808	0	off topic
+2026-09-30	S16	OpenAlex	embedding experiments causal inference authentic educational contexts	5862	1	motz2018embedding, the published version
+2026-09-30	S16	OpenAlex	ethics randomized experiments online learning platforms consent	53719	0	off topic; a gap: nothing found on consent for experiments with young children on learning platforms
+2026-09-30	S16	OpenAlex	cardinality estimators do not preserve privacy	2122	1	desfontaines2019cardinality, cited by the product's plan for usage evidence
+2026-09-30	S16	OpenAlex	pseudonymisation GDPR personal data re-identification	1348	1	mourby2018pseudonymised, the published version from figshare
+2026-09-30	S16	OpenAlex	children privacy rights digital environment datafication	1608	0	lead: Livingstone and Third 2017, fetched and not needed for any claim
+2026-09-30	S16	OpenAlex	research with children assent parental permission minimal risk	5666	0	medical studies; the federal rule on research with children was read instead
+2026-09-30	S16	known work	COPPA Rule, 16 CFR Part 312 (eCFR API)		1	coppa2025rule in web.bib
+2026-09-30	S16	known work	Federal Register 2025-05904 (Federal Register API)		1	ftc2025childrens in web.bib
+2026-09-30	S16	known work	Regulation (EU) 2016/679 (Publications Office, Cellar)		1	gdpr2016regulation in web.bib; EUR-Lex answered with a challenge for robots
+2026-09-30	S16	known work	ICO, Age appropriate design: a code of practice for online services		1	ico2020age in web.bib
+2026-09-30	S16	known work	45 CFR 46 Subpart D (eCFR API)		1	hhs2024subpartd in web.bib
+2026-09-30	S16	known work	BERA Ethical Guidelines for Educational Research, fifth edition (2024)		1	bera2024ethical in web.bib
+2026-09-30	S16	known work	Ramage and Mazzocchi 2020, Federated Analytics (Google Research blog)		1	ramage2020federated in web.bib
+2026-09-30	S31	known work	MATHWELL (task list), arXiv 2402.15861	1	1	read v5 HTML in full
+2026-09-30	S31	Crossref	MATHWELL Generating Educational Math Word Problems Using Teacher Annotations	8578772	1	relevance-ranked, top 3 inspected; published: Findings EMNLP 2024, DOI 10.18653/v1/2024.findings-emnlp.696; lead: AERA 2026 instructional-alignment paper
+2026-09-30	S31	known work	EDUMATH (task list), arXiv 2510.06965	1	1	read v2 HTML in full
+2026-09-30	S31	Crossref	EDUMATH Generating Standards-aligned Educational Math Word Problems	3216167	1	top 3 inspected; published: ACL 2026 long, DOI 10.18653/v1/2026.acl-long.1973; lead: IEIR 2025 pupil-ability paper
+2026-09-30	S31	known work	Elementary MWP Generation using LLMs (task list), arXiv 2506.05950	1	1	read v2 HTML in full; it is the MathWiz system
+2026-09-30	S31	Crossref	Elementary Math Word Problem Generation using Large Language Models Ariyarathne	510642	0	top 4 inspected; only a Research Square preprint, DOI 10.21203/rs.3.rs-6814693/v1
+2026-09-30	S31	OpenAlex	Elementary Math Word Problem Generation using Large Language Models	31317	0	top 5 inspected; no record of the work
+2026-09-30	S31	known work	MATH^2 (task list), arXiv 2407.21009	1	1	read v4 HTML in full
+2026-09-30	S31	Crossref	AI-Assisted Generation of Difficult Math Questions	3019277	0	top 4 inspected; no record
+2026-09-30	S31	OpenAlex	AI-Assisted Generation of Difficult Math Questions	20519	0	top 5 inspected; arXiv record only
+2026-09-30	S31	DBLP	AI-Assisted Generation of Difficult Math Questions	0	0	refused automated reader (non-JSON answer)
+2026-09-30	S31	known work	CHASE (task list), arXiv 2502.14678	1	1	read v1 HTML in full
+2026-09-30	S31	Crossref	How to Get Your LLM to Generate Challenging Problems for Evaluation	4386568	0	top 4 inspected; no record
+2026-09-30	S31	OpenAlex	How to Get Your LLM to Generate Challenging Problems for Evaluation	24610	0	top 3 inspected; no record
+2026-09-30	S31	DBLP	Generate Challenging Problems for Evaluation Patel Reddy Bahdanau	0	0	refused automated reader
+2026-09-30	S31	web search	"CHASE" "Challenging AI with Synthetic Evaluations" Patel Reddy Bahdanau accepted	10	0	OpenReview forum 2VhFZPYqjE exists; venue not confirmed (OpenReview API returned nothing)
+2026-09-30	S31	known work	KPDDS (task list), arXiv 2403.02333	1	1	read arXiv v3 HTML and the AAAI PDF in full
+2026-09-30	S31	Crossref	Key-Point-Driven Data Synthesis with its Enhancement on Mathematical Reasoning	9451961	1	top 4 inspected; published: AAAI 2025 39(23) 24176-24184, DOI 10.1609/aaai.v39i23.34593; lead: IJCNN 2025 distillation
+2026-09-30	S31	OpenAlex	Key-Point-Driven Data Synthesis Mathematical Reasoning	52812	0	top 3 inspected; no record
+2026-09-30	S31	known work	GSM-Symbolic (task list), arXiv 2410.05229	1	1	read v2 HTML in full; ICLR 2025 per arXiv comment
+2026-09-30	S31	web search	MathWiz LLM math word problem generation system	9	1	MathWiz = the system of arXiv 2506.05950; lead: arXiv 2510.08615
+2026-09-30	S31	web search	"MathWiz" personalized math problems large language model children	9	0	no other system named MathWiz; lead: arXiv 2604.05160 (AIED 2026)
+2026-09-30	S31	known work	Feng et al. 2024 (task list), arXiv 2404.02124	1	1	read v3 HTML in full; DOI 10.18653/v1/2024.findings-naacl.193 confirmed on Crossref
+2026-09-30	S31	GitHub API	umass-ml4ed/prompt_distractor_generation_NAACL file tree	1	0	the 444 error explanations are not in the repository
+2026-09-30	S31	known work	DiVERT, follow-up of Feng et al. (same group, Eedi data), arXiv 2406.19356	1	1	read v2 HTML in full
+2026-09-30	S31	Crossref	DiVERT Distractor Generation with Variational Errors Represented as Text	1226849	1	top 2 inspected; EMNLP 2024 main, DOI 10.18653/v1/2024.emnlp-main.512
+2026-09-30	S31	known work	NeurIPS 2020 Education Challenge (task list), arXiv 2007.12061	1	1	read v3 HTML in full
+2026-09-30	S31	Crossref	Instructions and Guide for Diagnostic Questions NeurIPS 2020 Education Challenge	12786668	0	top 3 inspected; no record, arXiv DOI only
+2026-09-30	S31	web search	Eedi misconception taxonomy distractors paper "misconception" labels math multiple-choice dataset arXiv	9	0	leads: arXiv 2603.15547, 2505.01903, 2308.03234, 2502.15140
+2026-09-30	S31	web search	"Eedi - Mining Misconceptions in Mathematics" Kaggle competition misconception_mapping 2587 misconceptions	9	1	Eedi's own page on the competition (eedi2025from); lead: arXiv 2510.11502
+2026-09-30	S31	Kaggle	competition overview page eedi-mining-misconceptions-in-mathematics	1	0	JavaScript shell only, not readable
+2026-09-30	S31	known work	eedi.com news page linked from eedi2025from: Misconception Graph is now a public good	1	1	mu2026eedis; links the Hugging Face dataset
+2026-09-30	S31	Hugging Face API	datasets/Eedi/Eedi-Misconceptions-Graph	1	1	eedi2026misconceptions, CC BY 4.0, read in full
+2026-09-30	S31	web search	arXiv paper Eedi Kaggle "Mining Misconceptions in Mathematics" competition dataset misconception retrieval MAP@25 distractor	9	0	leads: arXiv 2606.23205, 2510.11502
+2026-09-30	S31	web search	NCETM "Misconceptions with the Key Objectives" primary mathematics pdf	9	0	only secondary copies of the NCETM catalogue
+2026-09-30	S31	web search	ncetm.org.uk "Misconceptions with the Key Objectives" download	10	0	no publisher copy found
+2026-09-30	S31	web search	Newman's error analysis reading comprehension transformation process skills encoding word problems primary pupils open access White 2010 Numeracy literacy	9	1	White 2009 MAV paper (white2009revaluation); Sambo & Makgakga 2025 grade-3 study noted, not used
+2026-09-30	S31	web search	"Numeracy, literacy and Newman's Error Analysis" White Journal of Science and Mathematics Education in Southeast Asia pdf	10	0	ERIC EJ970194 has no full text (404)
+2026-09-30	S31	Crossref	A revaluation of Newman's error analysis White	7352651	0	top 3 inspected; no record, no DOI
+2026-09-30	S31	OpenAlex	A revaluation of Newman's error analysis	89	0	top 3 inspected; no record
+2026-09-30	S31	OpenAlex	math word problem generation large language models evaluation (from 2022)	34331	0	top 15 are general LLM papers
+2026-09-30	S31	OpenAlex	distractor generation mathematics misconceptions (from 2022)	1266	2	Feng et al. 2024 and DiVERT (read); leads: PeerJ CS 2024 review, McNichols et al. 2023, 2025 misconception-prediction paper
+2026-09-30	S31	OpenAlex	olympiad problem generation elementary school large language model (from 2022)	1133	0	gap: no generation of olympiad-style problems for children; PromptCoT as contrast
+2026-09-30	S31	OpenAlex	non-routine mathematics problems generation primary school language model (from 2022)	18566	0	gap: nothing relevant in the top 15
+2026-09-30	S31	web search	LLM generation of olympiad-style or non-routine math problems for elementary school children (grades 1-6) evaluation	10	0	gap; leads: PromptCoT (arXiv 2503.02324), EMNLP 2025 2025.emnlp-main.1223, arXiv 2511.08548
+2026-09-30	S31	arXiv HTML	2211.10435 (known work, task list)	1	1	PAL; latest HTML = v2, full text read
+2026-09-30	S31	arXiv HTML	2211.12588 (known work, task list)	1	1	PoT; latest HTML = v4, full text read
+2026-09-30	S31	arXiv HTML	2310.01798 (known work, task list)	1	1	Huang et al.; v2, full text read
+2026-09-30	S31	arXiv HTML	2311.08516 (known work, task list example for item 4)	1	1	Tyen et al.; v3, full text read; chosen for item 4
+2026-09-30	S31	arXiv HTML	2505.13903 (known work, task list)	1	1	MathQ-Verify; v2 with KDD 2026 header, full text read
+2026-09-30	S31	arXiv HTML	2405.12063 (known work, task list)	1	1	CLAMBER; v2, full text read
+2026-09-30	S31	arXiv HTML	2503.22674 (known work, task list)	1	1	QuestBench; v2, full text read (prompts recovered from SVG boxes)
+2026-09-30	S31	arXiv HTML	2506.09038 (known work, task list)	1	1	AbstentionBench; v1 (only version), full text read
+2026-09-30	S31	arXiv HTML	2403.03558 (known work, task list)	1	1	UMWP; v1, full text read
+2026-09-30	S31	arXiv API	id_list = the nine task ids	9	9	latest versions, comments, journal-refs
+2026-09-30	S31	Crossref	query.bibliographic="PAL: Program-aided Language Models"	5	0	no record for the paper (PMLR issues no DOI)
+2026-09-30	S31	Crossref	query.bibliographic="Program of Thoughts Prompting: Disentangling Computation from Reasoning for Numerical Reasoning Tasks"	5	0	no record (TMLR issues no DOI)
+2026-09-30	S31	Crossref	query.bibliographic="Large Language Models Cannot Self-Correct Reasoning Yet"	5	0	no record (ICLR issues no DOI)
+2026-09-30	S31	Crossref	query.bibliographic="LLMs cannot find reasoning errors, but can correct them given the error location"	5	1	10.18653/v1/2024.findings-acl.826
+2026-09-30	S31	Crossref	query.bibliographic="Let's Verify Math Questions Step by Step"	5	1	10.1145/3770854.3785700 (KDD 2026)
+2026-09-30	S31	Crossref	query.bibliographic="CLAMBER: A Benchmark of Identifying and Clarifying Ambiguous Information Needs in Large Language Models"	5	1	10.18653/v1/2024.acl-long.578
+2026-09-30	S31	Crossref	query.bibliographic="QuestBench: Can LLMs ask the right question to acquire information in reasoning tasks?"	5	1	10.52202/085713-4503 (NeurIPS 38)
+2026-09-30	S31	Crossref	query.bibliographic="AbstentionBench: Reasoning LLMs Fail on Unanswerable Questions"	5	1	10.52202/085713-5729 (NeurIPS 38)
+2026-09-30	S31	Crossref	query.bibliographic="Benchmarking Hallucination in Large Language Models based on Unanswerable Math Word Problem"	5	1	10.63317/3jovt56oiu3g (LREC-COLING 2024); TreeCut and a thesis noted as leads
+2026-09-30	S31	Crossref	works/<DOI> for the six DOIs found	6	6	confirmed titles, venues, pages, authors
+2026-09-30	S31	OpenAlex	search="PAL: Program-aided Language Models"	5	1	only the arXiv DOI 10.48550/arXiv.2211.10435
+2026-09-30	S31	OpenAlex	search="Program of Thoughts Prompting: Disentangling Computation from Reasoning for Numerical Reasoning Tasks"	5	1	only the arXiv DOI
+2026-09-30	S31	OpenAlex	search="Large Language Models Cannot Self-Correct Reasoning Yet"	5	1	only the arXiv DOI
+2026-09-30	S31	PMLR	proceedings.mlr.press/v202/gao23f.html	1	1	PAL = PMLR 202:10764-10799
+2026-09-30	S31	OpenReview API	notes/search term="Large Language Models Cannot Self-Correct Reasoning Yet"	3	1	IkmD3fKBPQ, ICLR 2024 poster
+2026-09-30	S31	OpenReview API	notes?id=YfZ4ZPt8zd	0	0	403 challenge; forum id taken from the PoT paper
+2026-09-30	S31	arXiv API	id_list = 14 lead ids (known works from the references read, plus self-bias and correlated-error works known beforehand)	14	14	titles and ids verified for the Leads list; not read
+2026-09-30	S31	arXiv API	id_list=2309.03882	1	1	Zheng et al., option-ID bias; lead, not read
+2026-09-30	S31	known work (task list)	Artificial Hivemind, arXiv 2510.22954	1	1	full arXiv HTML v1 read (marked camera-ready on arXiv)
+2026-09-30	S31	known work (task list)	CreativeMath, arXiv 2410.18336	1	1	arXiv HTML v1 read; AAAI 2025 PDF compared
+2026-09-30	S31	known work (task list)	OpenMathInstruct-2, arXiv 2410.01560	1	1	arXiv HTML v2 read; ICLR camera-ready read for decontamination
+2026-09-30	S31	known work (task list)	SMART-840, arXiv 2406.12849 as given	1	0	id resolves to an unrelated paper (Depth Anywhere)
+2026-09-30	S31	WebSearch	Evaluating Large Vision-and-Language Models on Children's Mathematical Olympiads SMART-840 arXiv	9	1	correct id arXiv 2406.15736; v2 read
+2026-09-30	S31	known work (task list)	MathArena, arXiv 2505.23281	1	1	id correct; arXiv HTML v3 read
+2026-09-30	S31	known work (task list)	Valentini et al., arXiv 2310.18502	1	1	arXiv HTML v1 read
+2026-09-30	S31	known work (task list)	Lee et al., arXiv 2107.06499	1	1	arXiv HTML v2 read
+2026-09-30	S31	WebSearch	Broder "On the resemblance and containment of documents" pdf	10	0	ResearchGate copy refused (403); none of the hits used
+2026-09-30	S31	known work (course archive)	cs.princeton.edu/courses/archive/spring13/cos598C/broder97resemblance.pdf	1	1	author's copy, 9 pp.; LZW PDF read with a patched extractor
+2026-09-30	S31	WebSearch	Broder Charikar Frieze Mitzenmacher "Min-wise independent permutations" pdf	10	1	authors' full version (princeton.edu/~rblee) read; ScienceDirect refused (403)
+2026-09-30	S31	Crossref API	works/10.1109/SEQUEN.1997.666900; works/10.1006/jcss.1999.1690	2	2	pages 21-29; JCSS 60(3):630-659, Elsevier open-archive licence listed
+2026-09-30	S31	Crossref API	query.bibliographic for the 7 arXiv titles, rows=4 each	28	5	DOIs for CreativeMath, SMART-840, MathArena, Valentini, Lee; Hivemind query failed; no DOI for OpenMathInstruct-2
+2026-09-30	S31	Crossref API	Artificial Hivemind Open-Ended Homogeneity Language Models Jiang	4	1	NeurIPS 2025 DOI 10.52202/085713-2732
+2026-09-30	S31	OpenAlex API	Artificial Hivemind: The Open-Ended Homogeneity of Language Models	4	2	confirms DOI; found Schaeffer et al. 2026 (arXiv 2609.33936); sections 1–5 read in full, appendices not read
+2026-09-30	S31	OpenAlex API	OpenMathInstruct-2: Accelerating AI for Math with Massive Open-Source Instruction Data	4	1	only the arXiv DataCite DOI
+2026-09-30	S31	WebSearch	OpenMathInstruct-2 ICLR 2025 openreview Toshniwal	10	1	ICLR 2025 poster confirmed; OpenReview PDF refused (403)
+2026-09-30	S31	WebSearch	proceedings.iclr.cc 2025 "OpenMathInstruct-2" pdf	10	0	top hit was a different paper (WizardMath)
+2026-09-30	S31	ICLR proceedings index	OpenMathInstruct (in proceedings.iclr.cc/paper_files/paper/2025)	1	1	camera-ready PDF, 33 pp.
+2026-09-30	S31	AAAI OJS	article 34760 (from the Crossref DOI)	1	1	published CreativeMath PDF, 10 pp.
+2026-09-30	S31	arXiv abs pages	version histories of 2410.01560, 2510.22954, 2505.23281	3	3	OpenMathInstruct-2 v1-v2 only; Hivemind v1 is camera-ready; MathArena v3 latest
+2026-09-30	S31	known work (ref. [37] in OpenMathInstruct-2)	Yang et al. 2023, Rethinking Benchmark and Contamination for Language Models with Rephrased Samples	1	0	lead
+2026-09-30	S31	known work (ref. [10] in SMART-840)	Cherian et al. 2023, Are deep neural networks smarter than second graders?	1	0	lead
+2026-09-30	S31	known work (ref. [43] in OpenMathInstruct-2)	Zhang et al. 2024, A Careful Examination of Large Language Model Performance on Grade School Arithmetic	1	0	lead
+2026-09-30	S31	known work (ref. [11] in min-wise)	Broder, Glassman, Manasse, Zweig 1997, Syntactic clustering of the Web	1	0	lead
+2026-09-30	S31	known work (ref. in Valentini et al.)	Vajjala 2022, Trends, limitations and open challenges in automatic readability assessment research	1	0	lead
+2026-09-30	S31	known work (ref. in Schaeffer et al.)	Kirk et al. 2024, Understanding the effects of RLHF on LLM generalisation and diversity	1	0	lead
+2026-09-30	S31	known work (ref. in Artificial Hivemind)	Doshi & Hauser 2024, Generative AI enhances individual creativity but reduces the collective diversity of novel content	1	0	lead
+2026-09-30	S31	known work (seed.bib)	Beyond Benchmarks: MathArena as an Evaluation Platform for Mathematics with LLMs, arXiv 2605.00674	1	0	lead
+2026-09-30	S31	known work (seed.bib)	Large language models are homogeneously creative, PNAS Nexus 2026	1	0	lead
+2026-09-30	S31	known work (not from these references)	Li & König 2010, b-Bit Minwise Hashing	1	0	lead: estimator for 4-bit sketches
+2026-10-01	S31	OpenAlex	mathematics question generation verification solvability (from 2022)	105439	0	top 15 are general papers on models and education; none checks generated problems
+2026-10-01	S31	OpenAlex	program-aided language models (from 2022)	387321	1	PAL first, already read; the rest general
+2026-10-01	S31	OpenAlex	homogeneity of language model outputs novelty (from 2022)	4031	0	nothing on maths problems; lead: Divergent creativity in humans and large language models (Scientific Reports 2026)
+2026-10-01	S31	OpenAlex	unanswerable math word problems (from 2022)	819	1	UMWP first, already read; leads: TreeCut (ACL 2025), When Not to Answer (2024; 2026)
+2026-10-01	S31	OpenAlex	Beyond Final Answers: Evaluating Large Language Models for Math Tutoring	5	1	the AIED 2025 chapter, with copies on arXiv (2503.16460) and OSF; checks the 56.6 % the introduction cites
+2026-10-01	S31	known work (exemplars, E1)	arXiv 2503.16460	1	1	version 1 HTML read in full; Springer's chapter page refused automated readers
+2026-10-01	S31	known work (lead of S31.1; review of the notes)	arXiv 2604.05160, Ikram et al., validator agents for personalised maths problems	1	1	version 1 HTML read in full; published as AIED 2026, LNCS, 10.1007/978-3-032-29744-0_16 (Crossref)
+2026-10-01	S31	known work (lead of S31.2, cited by Huang et al.; review of the notes)	arXiv 2308.07921, Zhou et al., code-based self-verification	1	1	version 1 HTML read: sections 1-3, 4.1 and 5; Crossref and OpenAlex hold only the arXiv record; OpenReview: ICLR 2024 poster, c8McWs4Av0
+2026-09-30	S32	WebSearch	Pelánek "Applications of the Elo rating system in adaptive educational systems" pdf	10	3	author's accepted manuscript at fi.muni.cz/~xpelanek/publications/CAE-elo.pdf; also surfaced EDM 2025 multidimensional Elo and Abdi et al. multivariate Elo (ERIC ED599177)
+2026-09-30	S32	WebSearch	Klinkenberg Straatemeier van der Maas 2011 "Computer adaptive practice of Maths ability using a new item response model for on the fly ability and difficulty estimation" pdf	10	3	Klinkenberg thesis at pure.uva.nl; ERIC EJ925823 (no full text); surfaced "Keeping Elo alive" (PMC12784335)
+2026-09-30	S32	OpenAlex	works/doi:10.1016/j.compedu.2011.02.003	1	1	oa_status closed; UvA-DARE record has abstract only (no file)
+2026-09-30	S32	WebSearch	pure.uva.nl Klinkenberg 2011 Computer adaptive practice of Maths ability Computers & Education pdf	10	2	UvA thesis PDFs (Brinkhuis 2014 "Tracking educational progress"; Hofman 2018 thesis); surfaced "Tracking with (Un)Certainty" PMC7151223
+2026-09-30	S32	WebSearch	Straatemeier 2014 thesis "Math Garden" "a new educational and scientific instrument" pdf UvA	10	1	thesis record at UvA-DARE; chapter files on pure.uva.nl; Chapter 2 is the 2011 article (read in full)
+2026-09-30	S32	WebSearch	Elo rating system adaptive learning K factor step size decreasing uncertainty learners 2024 2025	9	3	Vermeiren et al. 2025 UMUAI dynamic K (PMC12682724) read in full; "Keeping Elo alive" BJMSP (PMC12784335) read in full; leads: "Psychometrics of an Elo-based large-scale online learning system" (CAEAI 2025), arXiv 2604.03840
+2026-09-30	S32	Europe PMC REST	PMC12682724/fullTextXML; PMC12784335/fullTextXML	2	2	full texts fetched as JATS XML (PMC HTML behind a reCAPTCHA)
+2026-09-30	S32	known work	glicko.net/glicko.html and research.html (author's pages)	4	4	Glicko description (glicko/glicko.pdf), Glicko-2 example (glicko/glicko2.pdf), 1999 Applied Statistics paper (research/glicko.pdf), 2001 J. Appl. Stat. paper (research/dpcmsv.pdf); all read
+2026-09-30	S32	WebSearch	Herbrich Minka Graepel 2006 "TrueSkill: A Bayesian skill rating system" NIPS pdf	10	1	NeurIPS proceedings page and PDF; read in full
+2026-09-30	S32	Crossref	query.bibliographic=TrueSkill A Bayesian skill rating system Herbrich	5	1	DOI 10.7551/mitpress/7503.003.0076 (MIT Press NIPS 19 volume)
+2026-09-30	S32	known work	references of Bolsinova et al. 2025 "Keeping Elo alive" (Urnings papers)	3	3	Bolsinova et al. 2022 JRSS C Urnings (read), Hofman et al. 2020 J. Intelligence "Tracking with (un)certainty" (read), Bolsinova et al. 2022 BJMSP "Tracking a multitude of abilities as they develop" (lead)
+2026-09-30	S32	OpenAlex	works/doi:10.1111/rssc.12523; 10.3390/jintelligence8010010; 10.1111/bmsp.12276	3	3	all open access; Urnings PDF from UvA Pure (Wiley pdfdirect 403)
+2026-09-30	S32	known work	EDM 2025 "Evaluating multidimensional extensions of the Elo rating systems..." (surfaced by the first two searches)	1	1	read in full (HTML); compares MERS (Park et al. 2019) and MELO (Abdi et al. 2019)
+2026-09-30	S32	known work	reference [24] of Vermeiren et al. EDM 2025 (MERS: Park et al. 2019, Frontiers in Psychology)	1	1	read in full via Europe PMC (PMC6450197)
+2026-09-30	S32	Europe PMC REST	search DOI:10.3389/fpsyg.2019.00620	1	1	PMC6450197
+2026-09-30	S32	WebSearch	"The multidimensional random coefficients multinomial logit model" Adams Wilson Wang 1997 pdf	10	1	no open full text; ACER publication page gives the abstract; bepress copy retired; leads: Briggs & Wilson intro (colorado.edu PDF), TIMSS 1995 technical report ch. 7
+2026-09-30	S32	WebSearch	"The Rasch testlet model" Wang Wilson 2005 Applied Psychological Measurement pdf	10	0	no open full text; ERIC EJ689708 abstract only
+2026-09-30	S32	OpenAlex + Semantic Scholar	DOI 10.1177/0146621697211001; DOI 10.1177/0146621604271053	2	0	both closed (no open copy known)
+2026-09-30	S32	ERIC API	search=author:Rijmen testlet	187	1	ED507813 Rijmen 2009 ETS RR-09-37 (full text on ERIC) read; JEM 2010 version not read
+2026-09-30	S32	ERIC API	search=title:"testlet" AND title:"bi-factor"	4	0	DeMars 2006 JEM, Koziol 2016, Soysal 2022: leads only
+2026-09-30	S32	ERIC API	search=id:EJ689708 (Wang & Wilson 2005)	1	1	abstract only
+2026-09-30	S32	Crossref	query.bibliographic=Three Multidimensional Models for Testlet-Based Tests ... Rijmen	4	1	DOI 10.1002/j.2333-8504.2009.tb02194.x
+2026-09-30	S32	Internet Archive advancedsearch	title:(probabilistic models for some intelligence and attainment tests)	2	0	ERIC microfiche ED419814 holds only the document resume ("Document Not Available from EDRS"); 1980 edition is a lending copy; Rasch 1960 not readable
+2026-09-30	S32	Internet Archive advancedsearch	title:(statistical theories of mental test scores)	2	0	lending copies only
+2026-09-30	S32	WebSearch	Birnbaum 1958 "On the estimation of mental ability" School of Aviation Medicine report DTIC pdf	10	1	no DTIC copy found; a course-reading scan of Birnbaum's Chapter 17 (Lord & Novick 1968) at faculty.ucmerced.edu read
+2026-09-30	S32	WebSearch	Rasch 1961 "On general laws and the meaning of measurement in psychology" Berkeley Symposium Project Euclid	10	1	Project Euclid record of Rasch (1961), Proc. Fourth Berkeley Symp. 4, 321-333
+2026-09-30	S32	WebSearch	digitalassets.lib.berkeley.edu math_s4_v4 Rasch "On general laws and the meaning of measurement in psychology"	10	1	open scan of Rasch (1961) at UC Berkeley digital collections (older digitalassets URL works); read in full
+2026-09-30	S32	WebSearch	Nižnan Pelánek Řihák 2015 "Student models for prior knowledge estimation" EDM pdf hierarchical global skill	10	1	ERIC ED560514 full text read (global skill + concept skill Elo; shifted logistic for k options; U(n)=α/(1+βn)); lead: Pelánek et al. 2017 UMUAI
+2026-09-30	S32	known work	Pelánek's publication list (fi.muni.cz/~xpelanek/publications/publications.html)	1	1	umuai-adaptive-practice.pdf = Pelánek et al. 2017 UMUAI (hierarchical Elo, target success rate experiments), read in full
+2026-09-30	S32	Crossref	query.bibliographic=Elo-based learner modeling for the adaptive practice of facts Pelanek	2	1	DOI 10.1007/s11257-016-9185-7
+2026-09-30	S32	ERIC API	search=title:"Adaptive Practice of Facts in Domains with Varied Prior Knowledge"	0	0	not in ERIC
+2026-09-30	S32	known work	Pelánek's publication list: EDM14-adaptive-facts.pdf (Papoušek, Pelánek & Stanislav 2014)	1	1	origin of the uncertainty function a/(1+bn) with a=1, b=0.05; read in full
+2026-09-30	S32	Crossref	query.bibliographic=Applications of the Elo rating system in adaptive educational systems Pelanek	1	1	DOI 10.1016/j.compedu.2016.03.017, Computers & Education 98, 169-179 (confirms version details)
+2026-09-30	S32	Crossref	query.bibliographic=Student models for prior knowledge estimation Niznan Pelanek Rihak	3	0	no DOI for the EDM 2015 paper (results unrelated)
+2026-09-30	S32	OpenAlex	works/doi:10.3389/fpsyg.2019.00620	1	1	Park et al. 2019 gold open access; PMID 30984068
+2026-09-30	S32	Europe PMC REST	PMC7151223/fullTextXML; PMC6450197/fullTextXML	2	2	Hofman et al. 2020 and Park et al. 2019 full texts as JATS XML
+2026-09-30	S32	ERIC API	search=id:ED419814 (Rasch 1960, MESA Press 1993 reprint)	1	0	record only; e_fulltextauth=0; files.eric.ed.gov PDF 404
+2026-09-30	S32	known work	Briggs & Wilson "An introduction to multidimensional measurement using Rasch models" (colorado.edu PDF, surfaced by the Adams 1997 search)	1	0	PDF downloaded but RC4-encrypted; the extractor failed (invalid zlib after decryption); not read, kept as lead
+2026-09-30	S32	Project Euclid	euclid.bsmsp/1200512895 (Rasch 1961)	1	0	Incapsula bot-check page; read the UC Berkeley scan instead
+2026-09-30	S32	arXiv	known work: arXiv 2512.23036 (html, abs)	1	1	Hooshyar et al.; v1 HTML read in full (src/hooshyar2025problems.txt)
+2026-09-30	S32	arXiv	known work: arXiv 1506.05908 (html, abs)	1	1	Piech et al., Deep Knowledge Tracing; only v1 exists; HTML read in full
+2026-09-30	S32	Europe PMC REST	DOI:10.1038/s41467-019-12552-4	1	1	Wilson et al. 2019: PMID 31690723, PMC6831579; full text read from nature.com HTML
+2026-09-30	S32	nature.com	known work: 10.1038/s41467-019-12552-4	1	1	version of record, open access, HTML incl. Methods
+2026-09-30	S32	Project Euclid	known work: 10.1214/aoms/1177729586	1	1	.full and .pdf URLs answered an Incapsula bot page; journalArticle/Download URL gave the JSTOR scan (no text layer); transcribed by hand
+2026-09-30	S32	web search	Robbins Monro 1951 "A Stochastic Approximation Method" pdf	10	1	only the Project Euclid record was useful
+2026-09-30	S32	web search	"Robbins" "Monro" "stochastic approximation method" 1951 Annals pdf copy course "M(x)" "a_n" scanned	10	0	no other open copy needed
+2026-09-30	S32	web search	Corbett Anderson "Knowledge tracing: Modeling the acquisition of procedural knowledge" pdf act-r.psy.cmu.edu	10	0	results were the Springer page and surveys; copy taken from the known ACT-R URL instead
+2026-09-30	S32	ACT-R website	known work: 893CorbettAnderson1995.pdf	1	1	author-hosted scan, 26 pages, no text layer; OCR with Tesseract in the local poppler container; p. 278 blank in the scan
+2026-09-30	S32	ERIC	known work: ED506305 (PFA, cited as "Online Submission" in the DKT reference list)	1	1	authors' version of the AIED 2009 paper, 8 pages
+2026-09-30	S32	Crossref	Performance Factors Analysis A New Alternative to Knowledge Tracing	3	1	DOI 10.3233/978-1-60750-028-5-531
+2026-09-30	S32	web search	Pelánek Řihák "Experimental analysis of mastery learning criteria" pdf	10	3	UMAP 2017 author PDF; leads: AIED 2018 conceptual issues, NRHM 2018 extended version
+2026-09-30	S32	fi.muni.cz Adaptive Learning publications page	known list: papers on mastery, difficulty and Elo	about 40 listed	4	mastery-modeling.pdf (AIED 2018), its-target-difficulty.pdf (ITS 2016), umuai-adaptive-practice.pdf (UMUAI 2017), nrhm-mastery.pdf (NRHM 2018, searched only)
+2026-09-30	S32	Crossref	Towards Modeling Learner Performance with Large Language Models Neshaei	3	0	not indexed in Crossref
+2026-09-30	S32	Crossref	Problems With Large Language Models for Learner Modelling Hooshyar	3	1	published version: IEEE Access 14: 91267-91284 (2026), DOI 10.1109/ACCESS.2026.3701047, new title
+2026-09-30	S32	Crossref	Impact of Question Difficulty on Engagement and Learning Papousek	3	1	DOI 10.1007/978-3-319-39583-8_28, LNCS pp. 267-272
+2026-09-30	S32	Crossref	Conceptual Issues in Mastery Criteria Differentiating Uncertainty and Degrees of Knowledge	3	1	DOI 10.1007/978-3-319-93843-1_33, LNCS pp. 450-461
+2026-09-30	S32	Crossref	Deep Knowledge Tracing Piech 2015	3	0	the NeurIPS paper has no DOI
+2026-09-30	S32	Crossref	Experimental Analysis of Mastery Learning Criteria Pelanek	3	2	DOI 10.1145/3079628.3079667 (pp. 156-163); NRHM 2018 DOI 10.1080/13614568.2018.1476596
+2026-09-30	S32	OpenAlex	Towards Modeling Learner Performance with Large Language Models (search)	5	0	unrelated results
+2026-09-30	S32	OpenAlex	Deep Knowledge Tracing Piech, filter year 2015	5	0	unrelated results
+2026-09-30	S32	Crossref	works/10.1109/access.2026.3701047	1	1	same seven authors as arXiv 2512.23036; OpenAlex marks it gold open access
+2026-09-30	S32	IEEE Xplore	known work: arnumber 11554315	1	1	stamp page was a bot check; the ielx8 PDF link worked; 18 pages read (src/hooshyar2026why.txt)
+2026-09-30	S32	arXiv	known work: arXiv 2403.14661 (reference [97] of Hooshyar et al.)	1	1	Neshaei et al.; v1 HTML read in full
+2026-09-30	S32	OpenAlex	title.search: modeling learner performance with large language models	4	1	only the arXiv record (W4393177779)
+2026-09-30	S32	web search	Neshaei Davis Hazimeh Lazarevski Dillenbourg Käser "Towards Modeling Learner Performance with Large Language Models" EDM 2024 proceedings zenodo	10	1	EDM 2024 poster paper, DOI 10.5281/zenodo.12729942 (not read; arXiv v1 read)
+2026-09-30	S32	known work	Kelly et al. 2015 (reference [13] of Pelánek & Řihák 2017)	1	1	followed from the reference list
+2026-09-30	S32	web search	Kelly Wang Thompson Heffernan 2015 "Defining Mastery: Knowledge Tracing Versus N-Consecutive Correct Responses" EDM pdf	10	2	EDM 2015 poster PDF; lead found: Doroudi 2020
+2026-09-30	S32	known work	Fancsali, Nixon & Ritter 2013 (reference [7] of Pelánek & Řihák 2017)	1	1	followed from the reference list
+2026-09-30	S32	web search	Fancsali Nixon Ritter 2013 "Optimal and Worst-Case Performance of Mastery Learning Assessment with Bayesian Knowledge Tracing" pdf educationaldatamining.org	10	1	EDM 2013 PDF
+2026-09-30	S32	web search	Pelánek "Mastery Learning Heuristics and Their Hidden Models" AIED 2020 pdf	10	1	the author is Doroudi, not Pelánek; DOI 10.1007/978-3-030-52240-7_16
+2026-09-30	S32	OpenAlex	doi:10.1007/978-3-030-52240-7_16	1	1	green open access copy PMC7334722; read via Europe PMC full-text XML
+2026-09-30	S32	Crossref	Can large language models match tutoring system adaptivity benchmarking study Borchers	0	0	no result; found on OpenAlex instead
+2026-09-30	S32	OpenAlex	Can large language models match tutoring system adaptivity (search)	3	1	Borchers & Shou 2025, DOI 10.1007/978-3-031-98417-4_29; lead, not read
+2026-09-30	S32	Crossref	Bayesian knowledge tracing logistic models and beyond overview of learner modeling techniques	2	1	Pelánek 2017, DOI 10.1007/s11257-017-9193-2; lead
+2026-09-30	S32	Crossref	Going deeper with deep knowledge tracing Xiong	2	0	not found (lead kept by title only)
+2026-09-30	S32	Crossref	How deep is knowledge tracing Khajah Lindsey Mozer	2	0	not found (lead kept by title only)
+2026-09-30	S32	Crossref	influence of experiencing success in math on math anxiety perceived math competence Jansen	2	1	Jansen et al. 2013, DOI 10.1016/j.lindif.2012.12.014; Math Garden target success rates; lead
+2026-09-30	S32	Crossref	Explainable few-shot knowledge tracing Li	2	1	Li et al. 2025, DOI 10.1007/s44366-025-0071-x; lead (counter-evidence cited by Hooshyar et al.)
+2026-09-30	S32	Crossref	works/ lookups: 10.1007/s11257-016-9185-7, 10.1007/BF01099821, 10.1214/aoms/1177729586, 10.3233/978-1-60750-028-5-531, 10.1007/978-3-030-52240-7_16	5	5	volume, issue and pages confirmed
+2026-10-01	S32	OpenAlex	Elo rating adaptive learning student model	2910	2	Nižnan et al. 2015 and Papoušek et al. 2014, already read; lead: Abdi et al. 2019, a multivariate Elo learner model (arXiv 1910.12581)
+2026-10-01	S32	OpenAlex	Rasch model guessing parameter adaptive practice	2634	0	general IRT and Rasch applications; Birnbaum's chapter was read instead, found by a web search
+2026-10-01	S32	OpenAlex	Urnings rating system	10718	1	Bolsinova et al. 2022, already read; lead: Tracking a multitude of abilities as they develop (BJMSP 2022)
+2026-10-01	S32	OpenAlex	eighty five percent rule optimal learning	12541	1	Wilson et al. 2019, already read (and its 2018 preprint)
+2026-10-01	S32	OpenAlex	mastery criterion consecutive correct knowledge tracing	636	0	surveys of knowledge tracing; the mastery papers were found through Pelánek and Řihák's references
+2026-10-01	S32	OpenAlex	Glicko rating educational	94	0	lead: Modelling Learners in Adaptive Educational Systems: A Multivariate Glicko-based Approach (LAK 2021, 10.1145/3448139.3448189)
+2026-10-01	S32	ACM Digital Library	10.1145/3448139.3448189 (Abdi et al. 2021, MV-Glicko; review of the notes)	1	0	refused automated readers (403); OpenAlex lists it as closed, with no open copy
+2026-10-01	S32	Semantic Scholar API	DOI:10.1145/3448139.3448189	1	1	abstract read and saved; cited for its abstract only; it does not say whether the model has a guessing floor
+2026-09-30	S33	Crossref (query.bibliographic)	Generative AI without guardrails can harm learning: Evidence from high school mathematics	3	2	PNAS DOI 10.1073/pnas.2422633122 and its correction 10.1073/pnas.2518204122
+2026-09-30	S33	Crossref (query.bibliographic)	AI tutoring outperforms in-class active learning: an RCT introducing a novel research-based design in an authentic educational setting	3	1	Sci Rep DOI 10.1038/s41598-025-97652-6; Research Square preprint noted
+2026-09-30	S33	Crossref (query.bibliographic)	ChatGPT-generated help produces learning gains equivalent to human tutor-authored help on mathematics skills	3	1	PLOS ONE DOI 10.1371/journal.pone.0304013
+2026-09-30	S33	Crossref (query.bibliographic)	Beyond Final Answers: Evaluating Large Language Models for Math Tutoring	3	1	LNCS DOI 10.1007/978-3-031-98414-3_23 confirmed
+2026-09-30	S33	Crossref (query.bibliographic)	Tutor CoPilot: A Human-AI Approach for Scaling Real-Time Expertise	3	1	Research Square DOI 10.21203/rs.3.rs-5363154/v1
+2026-09-30	S33	Crossref (query.bibliographic)	LearnLM: Improving Gemini for Learning	3	0	no match; arXiv only
+2026-09-30	S33	NCBI PMC ID converter	4 DOIs (Bastani, correction, Kestin, Pardos)	4	4	PMC ids; full texts taken from Europe PMC XML (PMC HTML behind reCAPTCHA)
+2026-09-30	S33	WebSearch	LearnLM Improving Gemini for Learning arXiv 2412.16429	10	1	arXiv 2412.16429; lead 2505.24477
+2026-09-30	S33	WebSearch	"Beyond Final Answers" Evaluating Large Language Models for Math Tutoring arXiv Gupta Reddig	9	1	arXiv 2503.16460
+2026-09-30	S33	arXiv API	id_list=2412.16429,2503.16460	2	2	versions 2412.16429v3 and 2503.16460v1
+2026-09-30	S33	WebSearch	Eedi Google DeepMind LearnLM randomized controlled trial UK classrooms maths tutoring arXiv 2025	10	1	arXiv 2512.23633; leads AEA trial 18079, 2607.08849, 2602.19296
+2026-09-30	S33	WebSearch	"Towards an AI-Augmented Textbook" LearnLM arXiv 2025 Learn Your Way	9	1	arXiv 2509.13348
+2026-09-30	S33	arXiv API	id_list=2512.23633,2509.13348,2410.03017,2402.09809,2607.08849	5	4	versions; 2607.08849 kept as a lead only
+2026-09-30	S33	OpenAlex (search)	Tutor CoPilot / Rori Ghana / Eedi RCT / LearnLM / AI-Augmented Textbook	25	0	no journal versions of the five preprints
+2026-09-30	S33	WebSearch	Henkel Rori AI tutor WhatsApp Ghana math achievement randomized effect size 0.37 published	9	1	arXiv 2402.09809; no journal version
+2026-09-30	S33	WebSearch	large language model tutor primary school children mathematics randomized controlled trial 2025 learning gains	9	0	only already-known works; lead World Bank Nigeria
+2026-09-30	S33	WebSearch	elementary students GPT-4 math tutoring experiment grade 4 5 learning outcomes study 2025 arXiv	9	0	leads 2409.15981 and 2605.21629
+2026-09-30	S33	WebSearch	"GPT-4 as a Homework Tutor" fifth-year students randomized mathematics arXiv 2409.15981	9	0	not mathematics per snippet; lead only
+2026-09-30	S33	WebSearch	randomized experiment generative AI tutor math practice platform students attempt problem first Kim 2025 learning	10	1	Oreopoulos et al. 2026 EdWorkingPaper 26-1552 (NUMI); leads 2609.14789 and 2608.16907
+2026-09-30	S33	EdWorkingPapers page + PDF	https://edworkingpapers.com/ai26-1552	1	1	DOI 10.26300/01qv-6c22; PDF read
+2026-09-30	S33	WebSearch	LLM conversational agent children ages 6-10 math learning study CHI IDC 2025 learning gains elementary	9	0	leads Mathemyths (CHI 2024) and MathBuddy
+2026-09-30	S33	WebSearch	"primary school" pupils "ChatGPT" OR "large language model" mathematics randomized experiment learning outcome 2025 journal	9	2	Wu et al. 2026 meta-analysis; retracted Wang and Fan 2025; ChatGPT-MWPS unreadable
+2026-09-30	S33	Crossref + OpenAlex (by DOI)	10.1007/978-3-031-98414-3_23	1	1	LNCS pp. 323-337; OpenAlex oa_status closed; Springer bot challenge
+2026-09-30	S33	WebSearch	Anthropic learning mode Claude.ai all users Claude Code learning output style August 2025 announcement	9	0	press only (Aug 14, 2025 extension)
+2026-09-30	S33	WebSearch	support.claude.com Learning style Claude "learning" style dropdown Socratic release notes	9	0	press only
+2026-09-30	S33	WebSearch	Claude learning mode 2026 Anthropic students "learning mode" update	9	0	press; noted Claude for Teachers (Jul 14, 2026)
+2026-09-30	S33	WebSearch (domains anthropic.com, claude.com, support.claude.com, claude.ai)	"learning mode" Claude	10	2	anthropic.com/news/introducing-claude-for-education; claude.com/solutions/education
+2026-09-30	S33	Claude Help Center (curl)	release notes; Claude for Education use; personalization; styles article 10181068	4	0	no learning-mode text; styles article 404
+2026-09-30	S33	Internet Archive CDX	anthropic.com/news/* (Aug 2025; 2025-2026 filtered for education terms)	16	0	no Anthropic page announcing learning modes for all users
+2026-09-30	S33	Internet Archive availability/CDX	openai.com/index/chatgpt-study-mode/	9	1	snapshot 20260919205121 used (live page 403)
+2026-09-30	S33	WebSearch	help.openai.com ChatGPT study mode FAQ	9	1	FAQ article 11780217, read via snapshot 20260921171417
+2026-09-30	S33	WebSearch	support.google.com gemini Guided Learning help "Guided Learning" Gemini app use	9	1	Gemini Apps Help 16448384
+2026-09-30	S33	Internet Archive CDX	blog.khanacademy.org/from-chat-to-classroom-explore-khan-academys-math-questions-in-chatgpt/	1	1	snapshot 20260313195620 (live 503/504)
+2026-09-30	S33	WebSearch	ChatGPT apps directory education math practice app for kids 2026 Apps SDK	9	1	third-party list awesome-chatgpt-apps (finding aid only)
+2026-09-30	S33	GitHub raw	rdmgator12/awesome-chatgpt-apps README, education section	40	4	Khan Academy; Beast Academy - All Ten; KMath.app; Strive PDF Generator
+2026-09-30	S33	WebSearch	MCP server math practice for children elementary tutor open source "MCP" 2026	9	1	Tutor MCP (ArnaudGuiovanna/tutor-mcp)
+2026-09-30	S33	WebSearch	"MCP" app "math" "grade" worksheet generator kids ChatGPT app OR Claude connector practice problems verified	9	0	generic worksheet tools
+2026-09-30	S33	WebSearch	Beast Academy "All Ten" ChatGPT app Art of Problem Solving	10	0	no own-page confirmation of the ChatGPT app
+2026-09-30	S33	Internet Archive availability	chatgpt.com/apps/{beast-academy-all-ten, kmath-app, khan-academy}	3	0	no snapshots; live pages 403
+2026-09-30	S33	Product pages (curl)	28 URLs from prototype note 13 plus kmath.app and strivemath.com/pdf	30	30	statuses and texts saved in src/competitors2026.txt
+2026-09-30	S33	known work	Bastani ref. 27 -> Tutor CoPilot, arXiv 2410.03017	1	1	read (item 7)
+2026-09-30	S33	known work	LearnLM 2412.16429 ref. 1 -> Jurenka et al., arXiv 2407.12687	1	0	lead
+2026-09-30	S33	known work	Eedi RCT refs -> De Simone et al. 2025 (World Bank); LearnLM arena 2505.24477; Kosmyna et al. 2506.08872	3	0	leads
+2026-09-30	S33	known work	Oreopoulos et al. refs -> Lehmann et al. 2024; Nie et al. 2024 (2407.09975); Fesler et al. 2026	3	0	leads
+2026-09-30	S33	known work	Wu et al. 2026 discussion -> Wang and Fan 2025 (retracted 22 Apr 2026)	1	1	status and Retraction Note read
+2026-09-30	S33	known work	Kestin ref. 3 -> Kumar et al., SSRN 10.2139/ssrn.4641653	1	0	lead
+2026-09-30	S33	known work	Gupta ref. 23 -> Reddig, Arora and MacLellan 2024	1	0	lead
+2026-09-30	S33	repository	docs/prototype/research/13-competitors.md	1	1	product list for item 16
+2026-10-01	S33	OpenAlex	large language model tutor randomized trial learning outcomes (from 2022)	9799	1	Kestin et al. 2025, already read; lead: Do AI chatbots improve students learning outcomes? (BJET 2023, meta-analysis)
+2026-10-01	S33	OpenAlex	LLM mathematics tutoring errors evaluation (from 2022)	4858	2	Pardos and Bhandari 2024 and Gupta et al. 2025, already read; lead: a systematic review of AI-driven tutoring systems in K-12 (npj Science of Learning 2025)
+2026-10-01	S33	OpenAlex	AI tutor overreliance students (from 2022)	5240	0	perceptions and opinion papers on higher education; Bastani et al. is the trial on overreliance, read
+2026-10-01	S33	Semantic Scholar API	DOI:10.1186/s40561-025-00419-9 (ChatGPT-MWPS; review of the notes)	1	1	abstract read: fifth-graders, imported problems, usability only; the publisher refused automated readers
+2026-10-01	S33	Semantic Scholar API	DOI:10.1145/3613904.3642647 (Mathemyths; review of the notes)	1	1	abstract read: storytelling with 35 children aged 4-8, mathematical language; no tasks written
+2026-10-01	S33	arXiv abstract pages	2409.15981, 2605.21629, 2609.14789, 2608.16907 (leads of the reading; review of the notes)	4	0	none concerns maths for primary pupils: high-school English, ALEKS study time, GCSE science, high-school Python
+2026-09-30	S34	modelcontextprotocol.io llms.txt (documentation index)	pages of revision 2026-07-28: specification, docs, extensions	354	18	index entries; kept the 2026-07-28 overview, changelog, base protocol, transports (2), authorization (4), tools, versioning (2), security best practices, MCP Apps overview, SEP-1865 page, extensions overview and client matrix (SEP-1865 page and extensions overview read for orientation, not cited)
+2026-09-30	S34	GitHub API, modelcontextprotocol/ext-apps	contents of specification/; commits touching specification/2026-01-26/apps.mdx	2 dirs; 1 commit	1	stable spec 2026-01-26; commit 298e884 of 2026-01-26 is the only one
+2026-09-30	S34	developers.openai.com llms.txt and plugins/llms.txt	OpenAI Apps SDK / plugins documentation index	32	8	/apps-sdk/ now redirects to /plugins/; kept plugin guidelines, security & privacy, add UI, reference, app review, auth (cited), MCP server and submission (skimmed, not cited)
+2026-09-30	S34	arXiv abs pages	2503.23278, 2504.03767, 2302.12173, 2508.14925 (version histories)	4	4	latest versions v3, v2, v2, v2 read as HTML
+2026-09-30	S34	Crossref API	Model Context Protocol (MCP): Landscape, Security Threats, and Future Research Directions	5	1	ACM TOSEM doi:10.1145/3796519
+2026-09-30	S34	Crossref API + OpenAlex	MCP Safety Audit: LLMs with the Model Context Protocol Allow Major Security Exploits	8	1	SPIE doi:10.1117/12.3097390; lead doi:10.1145/3814959
+2026-09-30	S34	Crossref API	doi:10.1145/3605764.3623985	1	1	Greshake et al., AISec '23, pp. 79-90 confirmed
+2026-09-30	S34	WebSearch	tool poisoning attack Model Context Protocol benchmark arXiv MCPTox	10	1	MCPTox kept; leads MCP-ITP 2601.07395, SMCP 2602.01129, Unicode tag blocks 2607.05744, MCP Pitfall Lab 2604.21477, AEGIS 2608.20481
+2026-09-30	S34	Crossref API + OpenAlex	MCPTox: A Benchmark for Tool Poisoning Attack on Real-World MCP Servers	8	1	AAAI-26 doi:10.1609/aaai.v40i42.40895; leads doi:10.3390/electronics15102214, doi:10.3390/jcp6030084
+2026-09-30	S34	WebSearch	Invariant Labs "MCP Security Notification: Tool Poisoning Attacks" Beurer-Kellner Fischer	10	0	the post itself fetched by its known URL; lead MCP-SafetyBench 2512.15163
+2026-09-30	S34	known work (MCPTox §2.2 reference)	Beurer-Kellner and Fischer 2025, Invariant Labs blog	1	1	read in full
+2026-09-30	S34	anthropic.com (known URLs)	consumer terms; usage policy	2	2	effective 2025-10-08 and 2025-09-15
+2026-09-30	S34	known work (links in Anthropic's Usage Policy and related-article lists)	Claude Help Center: minors guidelines, age assurance, minimum age restriction, child safety for developers, software directory policy, custom connectors	6	6	all read in full (article bodies)
+2026-09-30	S34	openai.com (known URL)	terms of use	1	0	403 challenge page; read through the Internet Archive instead
+2026-09-30	S34	Internet Archive availability API	openai.com terms, usage policies, building towards age prediction, parental controls, teen safety; help article 8313401	6	6	captures 2026-09-04 to 2026-09-29 read in full; some lookups answered 429, retried
+2026-09-30	S34	WebSearch (openai.com, help.openai.com)	OpenAI ChatGPT age prediction rollout 2026 under-18 experience	10	1	"Our approach to age prediction" kept (capture 2026-09-01); leads Model Spec teen protections, ChatGPT for Teens, Teen Safety Blueprint
+2026-09-30	S34	Internet Archive CDX	developers.openai.com/apps-sdk/app-submission-guidelines, captures from 2025	5	1	earliest (2025-12-18) kept to date the age rule
+2026-09-30	S34	WebSearch (ftc.gov)	FTC launches inquiry AI chatbots acting as companions 6(b) orders children September 2025	10	1	press release kept; the Commissioners' statements not read
+2026-09-30	S34	WebSearch	MCP Apps UI widget iframe security attack ui/message ui/update-model-context prompt injection arXiv 2026	9	0	no study of MCP Apps views found; leads SoK 2512.08290, NSA CSI on MCP (June 2026), MCPThreatHive 2604.13849
+2026-10-01	S34	OpenAlex	Model Context Protocol security (from 2022)	350925	1	Hou et al., already read; leads: MCP at First Glance (TOSEM 2026, 10.1145/3814959), MCPXkit (TDSC 2026)
+2026-10-01	S34	OpenAlex	MCP Apps specification (from 2022)	1148	0	no study of MCP Apps found; surveys of MCP and the MCP-Universe benchmark (arXiv 2508.14704) as leads
+2026-10-01	S34	OpenAlex	tool use language model agents prompt injection (from 2022)	20495	1	Greshake et al., already read; lead: InjecAgent (Findings of ACL 2024, 10.18653/v1/2024.findings-acl.624)
+2026-10-01	S34	product repository at 52ce869	git show: internal/transport/mcp/tool.go, submittask.go; internal/domain/tutor/tutor.go; site/content/en/terms.md	4	4	which tools draw the card (submit_task does), whether the rule reads the notes (it does not), what the terms say of the user (the adult)
+2026-10-01	S35	OpenAlex (cites:)	works citing MATHWELL (Findings of EMNLP 2024)	5	1	a systematic review of word-problem generation (IJSME 2026), closed; Ikram et al., already read; the rest not on generation for children
+2026-10-01	S35	OpenAlex (cites:)	works citing EDUMATH (ACL 2026)	1	0	teachers' perceptions of personalised problems; not generation of olympiad problems
+2026-10-01	S35	OpenAlex (cites:)	works citing MathWiz (arXiv 2506.05950)	0	0	none indexed
+2026-10-01	S35	OpenAlex (cites:)	works citing MATHWELL's arXiv record	1	0	multi-objective problem generation with retrieval (2025); lead, not for children's olympiad problems
+2026-10-01	S35	OpenAlex	olympiad problems primary school generation large language model (from 2022)	2071	0	gap: model surveys and olympiad benchmarks (OlympiadBench); no generation for primary school
+2026-10-01	S35	OpenAlex	mathematical olympiad elementary students large language model problems (from 2022)	1181	0	gap: evaluations of models' mathematics; no generation for children
+2026-10-01	S35	OpenAlex	non-routine problem generation ChatGPT elementary (from 2022)	1731	0	gap: reflections and surveys of ChatGPT in education; a scoping survey (2025) read from its abstract, about use, not generation
+2026-10-01	S35	OpenAlex	generated math problems verified by code execution (from 2022)	21344	1	code verification for solving (Zhou et al., already read; LEVER; CodeT); none for checking generated problems for children
+2026-10-01	S35	OpenAlex	Kangaroo mathematics problems generation (from 2022)	766	0	gap: a multilingual Kangaroo benchmark for multimodal models (2026); a study of prompting for problem solving (2024); no generation
+2026-10-01	S35	OpenAlex	генерация олимпиадных задач начальная школа (from 2022)	0	0	gap: the search in Russian returned nothing
+2026-10-01	S35	Semantic Scholar, Crossref, Springer	10.1007/s10763-026-10715-6 (Utami and Hwang 2026, systematic review)	1	0	closed; no abstract in Semantic Scholar or Crossref; Springer refused automated readers; for the author to obtain
+2026-10-01	S35	arXiv and ACL Anthology abstract pages	S31's open leads: arXiv 2503.02324 (PromptCoT), 2511.08548, ACL 2025.emnlp-main.1223 (review of the notes)	3	0	abstracts read: problem synthesis to train models, interestingness judgements, a generation framework; none writes problems for children
+2026-10-01	S62	Crossref (citecheck add)	10.1007/s10763-026-10715-6, Utami and Hwang 2026	1	1	metadata only: the review is closed and was not read (Q72); paper A names it among the limits of its search
+2026-10-01	S62	Product page (curl)	https://kmath.app/ (KMath, checked again before the paper's threats are written)	1	1	still not live: "Service Renewal", "Opening in October 2026"; the quoted sentence on connecting to Claude or ChatGPT unchanged
+2026-10-01	S62	GitHub API	ArnaudGuiovanna/tutor-mcp: repository metadata and README (Tutor MCP, checked again)	1	1	last push 2026-10-01, MIT; both quoted passages unchanged; the AI still writes the exercises, answers are scored against a rubric, no check of a written task described
+2026-10-01	S63	Product page (curl)	https://beastacademy.com/ (Beast Academy: the ages it names, for the paper's related work)	1	1	the site names "students ages 6-13", not grades 1–5 as the notes had it; notes, positioning and the extended draft corrected

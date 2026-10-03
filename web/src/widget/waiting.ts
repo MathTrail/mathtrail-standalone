@@ -1,18 +1,33 @@
 import type { StepStatus } from "../design/blocks";
-import type { CallStage } from "./bridge";
 import type { Key } from "./words";
 
 /**
- * moments are the milliseconds a card of a task being handed in waits on its
- * own: before it shows the course at all, so that a result that comes with the
- * call does not make a wait flash past; and before it gives up, counted afresh
- * once the task has been handed in whole, so that a slow hand-in is never
- * taken for a task that is not coming. Most of a task's writing is done before
- * its hand-in starts, and its checks take seconds.
+ * moments are the milliseconds a card that waits for a task keeps to: how long
+ * it shows nothing before the service has answered the ask, so that an answer
+ * that comes at once does not make a wait flash past; how often it asks how
+ * the task stands, and how often once the wait has gone long or a question
+ * went unanswered; how long the wait may go without news before the card says
+ * it is taking long; and how far its first question may be put off, so that
+ * the cards of a chat drawn again do not all ask at once. A task usually takes
+ * a minute to write, and its checks seconds.
  */
-export const moments = { shown: 400, givenUp: 120_000 } as const;
+export const moments = {
+	shown: 400,
+	ask: 4_000,
+	askSlowly: 15_000,
+	slow: 120_000,
+	spread: 1_500,
+} as const;
 
-// The usual course of a task, in the order it takes them. The last, the task
+/**
+ * Phase is how far a task has got as a card can see it: its topic and
+ * difficulty being picked, before the service has answered the ask, or the
+ * task being written.
+ */
+export type Phase = "choosing" | "writing";
+
+// The usual course of a task, in the order it takes them. The checks run
+// inside the hand-in, out of the card's sight, and the last step, the task
 // ready, is never taken up: a task that is ready takes the course's place.
 const course: readonly Key[] = [
 	"waiting.step.topic",
@@ -25,12 +40,11 @@ const course: readonly Key[] = [
 export type CourseStep = { key: Key; status: StepStatus };
 
 /**
- * stepsOf is the usual course of a task as far as its hand-in has got: the
- * topic chosen — no task is handed in before one is — the task being written
- * while its arguments come, and checked once they have come whole.
+ * stepsOf is the usual course of a task as far as a card can see it: the topic
+ * and difficulty being picked, then picked, with the task being written.
  */
-export function stepsOf(stage: Exclude<CallStage, "cancelled">): CourseStep[] {
-	const underWay = stage === "started" ? 1 : 2;
+export function stepsOf(phase: Phase): CourseStep[] {
+	const underWay = phase === "choosing" ? 0 : 1;
 	return course.map((key, at) => ({ key, status: statusOf(at, underWay) }));
 }
 
