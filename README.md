@@ -1,7 +1,7 @@
 # MathTrail
 
 [![CI](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/ci.yml/badge.svg)](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/ci.yml)
-[![Deploy](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/deploy.yml/badge.svg)](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/deploy.yml)
+[![Release and deploy](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/release.yml/badge.svg)](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/release.yml)
 [![CodeQL](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/codeql.yml/badge.svg)](https://github.com/MathTrail/mathtrail-standalone/actions/workflows/codeql.yml)
 [![Release](https://img.shields.io/github/v/release/MathTrail/mathtrail-standalone)](https://github.com/MathTrail/mathtrail-standalone/releases/latest)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/MathTrail/mathtrail-standalone)](https://github.com/MathTrail/mathtrail-standalone/blob/main/go.mod)

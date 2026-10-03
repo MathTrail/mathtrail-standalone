@@ -167,6 +167,7 @@ Two hundred is ten days of heavy use at twenty tasks a day. Beyond that a child 
 | `issued_at` | open | The pace is measured from here |
 | `topic`, `grade_level`, `difficulty`, `language` | open | The history entry and the rating update are built from them |
 | `instructions_version` | open | Which version of the instructions produced this task, so the result's log line can carry it (О-21) |
+| `tutor_mode` | open, absent on a task handed out before it was kept | Who chose the task — `rule` or `llm` — as its request had it, so that the line about its answer can say whether the chance being weighed is the rule's (R153) |
 | `fingerprint` | open | Added to `task_fingerprints` when the task is accepted |
 | `wording`, `drawing`, `options`, `hint` | open | Exactly what the card shows and what the model was given back |
 | `sealed` | sealed | `mt1.t.<kid>.<ciphertext>` — the answer, the trap id and the explanation behind each wrong option, the solution and the solver program |
@@ -248,6 +249,7 @@ What grows without a bound of its own is the per-topic summary, which gains an e
 - **Adding an optional field** is not a version bump. Removing one, renaming one, or changing what one means is.
 - **The ladder did not raise the version.** One ladder for grades 1–6 (О-56) added `ratings.start`, `grade_level` in the brief, the current task and every answer of the window, and `mastered_level` beside `mastered_since`, all of them required, and changed what θ means — a place on the ladder rather than a level within the grade. All of that is still version 1 because no file of version 1 had been written by the service when it changed: the tools that write one arrive in T43 and the storage in T50. From the first written file on, a change of that kind is a version and a migration.
 - **The answer a task keeps did not raise the version either.** `current_task.answered` is optional, and a file without it reads as before. An older build reads past it, and asked for the next task it would record the answered task as skipped as well; that can happen only once a file outlives a build, which is T50's, so the question waited there (SPEC remark 44, R101). **Answered in T50:** no build that predates the field ever reads a file in Drive — T50 is the first build that keeps profiles there, and it knows the field — so the window is empty and the version stays 1 (R116).
+- **Who chose a task did not raise the version either.** `current_task.tutor_mode` is optional: a file without it reads as before, the answer to its task is logged as chosen by nobody known, and an older build reads past it (R153).
 - **The sealed block carries its own version** inside the ciphertext and is migrated or dropped on its own: a task on the card is worth less than a profile.
 - Unknown fields at the current version are ignored on read and are not written back — forward compatibility is the refusal above, not a bag of leftovers.
 

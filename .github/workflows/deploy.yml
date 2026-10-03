@@ -1,5 +1,5 @@
 # Continuous delivery: brings the cloud up to what this repository describes,
-# then builds the image of this commit and rolls a revision of the service.
+# then builds the image of a release and rolls a revision of the service.
 #
 # Every step is a pinned action or a recipe of the justfile, so the same
 # commands work from a laptop; the identity is federated, and the only secret
@@ -7,10 +7,17 @@
 name: CD
 
 on:
-  push:
-    branches: [main]
-  # Any other branch is deployed deliberately, by hand, and goes out exactly as
-  # it is checked out.
+  # What main delivers is a release, handed over by the workflow that has just
+  # published it, once the checks have passed: the image is built from the
+  # release's tag, so the service and its widget name the version they run.
+  workflow_call:
+    inputs:
+      version:
+        description: "The release to deploy: the tag the image is built from."
+        type: string
+        required: true
+  # A branch, main among them, may be deployed deliberately, by hand, and goes
+  # out exactly as it is checked out, named by how far past a release it is.
   workflow_dispatch:
   # On a pull request the same configuration is only read, never applied.
   pull_request:
@@ -74,6 +81,9 @@ jobs:
       public_url: ${{ steps.target.outputs.public_url }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The release handed over, or, started by hand, the branch chosen.
+          ref: ${{ inputs.version }}
       - uses: ./.github/actions/just
       - uses: ./.github/actions/deployment-target
       - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
@@ -107,6 +117,11 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.version }}
+          # The whole history with its tags: a branch started by hand is named
+          # by how far past a release it is, which a shallow clone cannot say.
+          fetch-depth: 0
       - uses: ./.github/actions/just
       - uses: ./.github/actions/deployment-target
       # A narrower identity than the one that applied the configuration: it may
@@ -122,7 +137,17 @@ jobs:
         name: Publish the image
         env:
           REPOSITORY: ${{ needs.infra.outputs.image_repository }}
-        run: echo "reference=$(just ci-image-push "$REPOSITORY/server")" >> "$GITHUB_OUTPUT"
+          RELEASE: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          # A release is stamped with its own number: a commit can carry more
+          # than one tag, and git describe would name whichever sorts first.
+          # A branch started by hand is named by git describe.
+          version=()
+          if [ -n "$RELEASE" ]; then
+              version=(--set VERSION "$RELEASE")
+          fi
+          echo "reference=$(just "${version[@]}" ci-image-push "$REPOSITORY/server")" >> "$GITHUB_OUTPUT"
       - name: Roll out the revision
         env:
           SERVICE: ${{ needs.infra.outputs.service }}

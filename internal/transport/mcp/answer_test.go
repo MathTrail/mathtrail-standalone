@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"math"
 	"slices"
 	"strings"
 	"testing"
@@ -612,6 +613,56 @@ func TestTheLineOfAnAnswerNamesOnlyWhatTheServiceWrites(t *testing.T) {
 	}
 }
 
+// The line about an answer says what the task's chance of a right answer was
+// when it was handed out, to two places, and who chose the task — the rule, the
+// model, or nobody known for a task handed out before the card kept that; and
+// which answer of the trial series it was, or, after the series, which of the
+// child's answers it was, as a range. Those are what the report tells from
+// them: whether a chance came true, and whether the estimate falls behind a
+// child as the answers pile up.
+func TestTheLineOfAnAnswerSaysItsChanceAndWhoChoseIt(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name     string
+		answered int
+		chose    profile.TutorMode
+		chooser  string
+		trial    int64
+		bucket   string // none: the line has no range
+	}{
+		{"the rule's, just after the series", rating.TrialAnswers, profile.TutorRule, "rule", 0, "6-20"},
+		{"the model's", 60, profile.TutorLLM, "llm", 0, "51-100"},
+		{"handed out before the card kept who chose it", 250, "", "unknown", 0, "201+"},
+		{"in the trial series", 2, profile.TutorRule, "rule", 3, ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			p := raceOnTheCard(t, tc.answered)
+			p.CurrentTask.TutorMode = tc.chose
+			point := rating.Point{GradeLevel: p.CurrentTask.GradeLevel, Difficulty: p.CurrentTask.Difficulty}
+			chance := math.Round(rating.Probability(p.LevelIn(p.CurrentTask.Topic), point.Beta())*100) / 100
+			h, session := lesson(t, keptAsIs(t, p))
+			answered(t, answerIt(t, session, p.CurrentTask.ID, "C", false))
+
+			h.settle()
+			lines := linesOf(h, "answer_recorded")
+			if len(lines) != 1 {
+				t.Fatalf("answer_recorded lines = %d, want 1", len(lines))
+			}
+			fields := lines[0].ContextMap()
+			if fields["chance"] != chance || fields["tutor_mode"] != tc.chooser || fields["trial"] != tc.trial {
+				t.Errorf("answer_recorded says chance %v, chosen by %v, trial answer %v; want %v, %s, %d",
+					fields["chance"], fields["tutor_mode"], fields["trial"], chance, tc.chooser, tc.trial)
+			}
+			if bucket, has := fields["answers_bucket"]; tc.bucket == "" && has || tc.bucket != "" && bucket != tc.bucket {
+				t.Errorf("answer_recorded puts the answer in %v, want %q", bucket, tc.bucket)
+			}
+		})
+	}
+}
+
 // A task answered and then left for the next is no skipped task: asking for
 // the next one takes it off the card and records nothing about it.
 func TestAnAnsweredTaskIsNotSkippedByTheNextAsk(t *testing.T) {
@@ -639,9 +690,12 @@ func TestAnAnsweredTaskIsNotSkippedByTheNextAsk(t *testing.T) {
 }
 
 // The answer is told to the card and the model, and to nothing else: not a
-// letter, not the pace, not the rating reaches a span, a line or the label of
-// a measurement, and neither does a word of the task. The span of the answer
-// says whether it was right, and the trap by its catalog id, and nothing more.
+// letter reaches a span, a line or the label of a measurement, and neither
+// does a word of the task. Neither the pace nor the rating reaches a span or a
+// label: the line about the answer keeps the pace, and the chance the task was
+// handed out at, which the rating set, and nothing traced may. The span of the
+// answer says whether it was right, and the trap by its catalog id, and
+// nothing more.
 func TestNothingOfTheAnswerReachesASpanALineOrALabel(t *testing.T) {
 	t.Parallel()
 
@@ -689,8 +743,11 @@ func wantTheAnswerSpan(t *testing.T, h *harness) {
 
 // wantNoLetters holds every span, every line and every label of a measurement
 // to carrying no letter of an option and no "I don't know" as a value, and to
-// naming neither a pace nor a rating: the answer, the child's or the right
-// one, is told to nobody but the card and the model.
+// naming neither a pace, nor a rating, nor a chance the rating set: the answer,
+// the child's or the right one, is told to nobody but the card and the model.
+// The pace and the chance of the line about the answer are the two the guard
+// lets through: the pace by its name, and the chance because the line keeps it
+// as a number, and of a line only its words are read here.
 func wantNoLetters(t *testing.T, h *harness) {
 	t.Helper()
 
@@ -698,8 +755,9 @@ func wantNoLetters(t *testing.T, h *harness) {
 		if value := strings.TrimSpace(label.Value.String()); slices.Contains(solver.Letters(), value) || value == profile.DontKnow {
 			t.Errorf("%s carries %q, a letter of the answer", label.Key, value)
 		}
-		if key := string(label.Key); key != "pace" && (strings.Contains(key, "pace") || strings.Contains(key, "rating")) {
-			t.Errorf("%s names a pace or a rating", key)
+		key := string(label.Key)
+		if key != "pace" && (strings.Contains(key, "pace") || strings.Contains(key, "rating") || strings.Contains(key, "chance")) {
+			t.Errorf("%s names a pace, a rating or a chance", key)
 		}
 	}
 }

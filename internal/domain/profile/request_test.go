@@ -156,9 +156,9 @@ func TestTheLastRefusalClosesTheRequest(t *testing.T) {
 }
 
 // An accepted task is handed out standing exactly where the request asked:
-// its topic, level and difficulty are the brief's and its language the
-// request's, whatever the model might have said, and its id is the one the
-// request gives it. Its answer is sealed, the request is closed, its
+// its topic, level and difficulty are the brief's, and its language and who
+// chose it the request's, whatever the model might have said, and its id is
+// the one the request gives it. Its answer is sealed, the request is closed, its
 // fingerprint is remembered, its topic records the day, and it counts as the
 // day's task.
 func TestAnIssuedTaskStandsWhereTheRequestAsked(t *testing.T) {
@@ -186,7 +186,8 @@ func TestAnIssuedTaskStandsWhereTheRequestAsked(t *testing.T) {
 	want := profile.CurrentTask{
 		Difficulty: brief.Difficulty, Fingerprint: "sketch-of-the-gaps", GradeLevel: brief.GradeLevel,
 		Hint: written().Hint, ID: task.ID, InstructionsVersion: "357968db0310", IssuedAt: profile.At(handed),
-		Language: "de-CH", Options: written().Options, Sealed: task.Sealed, Topic: "counting.gaps", Wording: written().Wording,
+		Language: "de-CH", Options: written().Options, Sealed: task.Sealed, Topic: "counting.gaps",
+		TutorMode: profile.TutorRule, Wording: written().Wording,
 	}
 	if !reflect.DeepEqual(*task, want) {
 		t.Errorf("the task is %+v, want %+v", *task, want)

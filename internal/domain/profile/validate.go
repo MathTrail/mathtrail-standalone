@@ -280,6 +280,8 @@ func (t *CurrentTask) validate() error {
 			ErrInvalid, t.GradeLevel, rating.GradeLevels())
 	case len(t.Options) != solver.Count:
 		return fmt.Errorf("%w: current_task offers %d options, want %d", ErrInvalid, len(t.Options), solver.Count)
+	case t.TutorMode != "" && t.TutorMode != TutorRule && t.TutorMode != TutorLLM:
+		return fmt.Errorf("%w: current_task.tutor_mode is %q, want rule, llm or none", ErrInvalid, t.TutorMode)
 	}
 	for place := range solver.Count {
 		if letter := solver.Letter(place); solver.Blank(t.Options[letter]) {

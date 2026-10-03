@@ -1,0 +1,7 @@
+seed=20261001
+experiment=E-A3
+children=1000
+answers=200
+version=v0.2.1-1-g38087a4-dirty
+go=go1.27.1
+arch=amd64

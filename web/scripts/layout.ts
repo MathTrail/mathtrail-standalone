@@ -60,6 +60,11 @@ const moments: readonly { name: string; after: string }[] = [
 // phone's width.
 const photographed = { engine: "chromium", width: 360 };
 
+// The longest version a build names itself by: one between releases, with
+// changes of its own. A card's header shows it, and has to hold it at every
+// width.
+const longestVersion = "v0.12.345-678-g1a2b3c4d-dirty";
+
 const web = join(import.meta.dirname, "..");
 const out = join(web, "layout");
 
@@ -334,6 +339,9 @@ async function main(): Promise<void> {
 
 	await rm(out, { recursive: true, force: true });
 	await mkdir(out, { recursive: true });
+	// The preview reads the version from the environment it is started in, as
+	// the widget's own build does.
+	process.env.VITE_VERSION = longestVersion;
 	const preview = await served();
 	let measured: Measured[];
 	try {

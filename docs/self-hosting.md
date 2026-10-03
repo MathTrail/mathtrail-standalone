@@ -33,7 +33,7 @@ What each workflow needs in a copy:
 - **`deploy.yml`**, the delivery, needs everything below.
 - **`pages.yml`**, the site, needs Pages published from GitHub Actions — step 4.
 - **`ci.yml`**, the checks, needs nothing to run. Two of its steps report to this repository's projects: the SonarCloud job, which fails on `main` without a `SONAR_TOKEN` — give it a project of your own in `sonar-project.properties`, or remove it — and the Codecov upload, which fails nothing without a token of yours.
-- **`release.yml`** needs green checks: it runs once `ci.yml` has passed on `main`, so a SonarCloud job left failing stops every release.
+- **`release.yml`** needs green checks: it runs once `ci.yml` has passed on `main`, publishes a release and then runs `deploy.yml` with it — so a SonarCloud job left failing stops every release, and every delivery with it.
 - **`codeql.yml`** and **`scorecard.yml`** need nothing.
 - **`load.yml`** needs nothing, and spends runner minutes once a week; disable it if nobody reads its reports.
 
@@ -113,9 +113,9 @@ The key everything is sealed with is in neither list: the pipeline generates 32 
 
 ## 8. Deliver
 
-A push to `main` — or the workflow started by hand from any branch — runs three jobs:
+A push to `main` is delivered once the checks have passed on it and its release is published: `release.yml` hands the release to `deploy.yml`, which builds from the release's tag, so the service — `/health` and the header of the task card — names the release it runs. `deploy.yml` started by hand delivers any branch as it stands, named by how far past a release it is. Either way it runs three jobs:
 
-1. **The cloud, as described.** `terraform apply`, every time, so the deployment always matches the branch it was cut from. On the very first run this is what creates everything; afterwards it is usually a no-op that takes half a minute.
+1. **The cloud, as described.** `terraform apply`, every time, so the deployment always matches the commit it was cut from. On the very first run this is what creates everything; afterwards it is usually a no-op that takes half a minute.
 2. **The image of this commit.** Built, pushed to the registry with the commit as its tag, and rolled out **by digest** — a tag can be moved afterwards and a digest cannot.
 3. **The check.** `/health` is asked which commit it is serving, and the delivery fails unless the answer is the commit that was just built.
 
@@ -142,7 +142,7 @@ Add the service to a chat the way the [README](../README.md#add-it-to-your-chat)
 - [ ] The consent screen published and a Web client created; its client id in `prod.auto.tfvars`.
 - [ ] The domain verified, its CNAME created, and the deployment identity added as a verified owner.
 - [ ] Both repository secrets: `GOOGLE_OAUTH_CLIENT_SECRET` and `TF_VAR_billing_account`.
-- [ ] Merged to `main`, and all three jobs green.
+- [ ] Merged to `main`, its checks and its release green, and all three jobs of the delivery after them.
 - [ ] `disable_default_url = true` merged, once the domain answers.
 - [ ] A task in a chat, through your own sign-in.
 
@@ -281,7 +281,7 @@ None of this is billed: granting a role and enabling an API cost nothing.
 
 ## Keeping your copy current
 
-Merge this repository's `main` into your fork's like any other change: the delivery runs on the merge, and the content and the instructions for the model travel inside the binary, so there is nothing else to update. Where the merge meets what you made your own — the site's texts, the name — the conflict is yours to resolve; and a delivery that fails at its first job after a merge is the case [the section above](#when-the-bootstrap-changes) describes.
+Merge this repository's `main` into your fork's like any other change: the delivery follows the merge, once its checks have passed and its release is published, and the content and the instructions for the model travel inside the binary, so there is nothing else to update. Where the merge meets what you made your own — the site's texts, the name — the conflict is yours to resolve; and a delivery that fails at its first job after a merge is the case [the section above](#when-the-bootstrap-changes) describes.
 
 ## Rotating the sealing key
 

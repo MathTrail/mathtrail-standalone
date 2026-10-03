@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -141,7 +142,8 @@ func (s *Service) answer(ctx context.Context, account store.Account, in submitAn
 	if _, err := s.store.Save(ctx, account, p, revision); err != nil {
 		return Reply[answeredOut]{}, fmt.Errorf("mcp: save the profile: %w", err)
 	}
-	s.events.writeFor(ctx, account, p.CurrentTask.InstructionsVersion, eventAnswerRecorded, s.answerFields(&recorded)...)
+	s.events.writeFor(ctx, account, p.CurrentTask.InstructionsVersion, eventAnswerRecorded,
+		s.answerFields(&recorded, p.Ratings.Answers)...)
 	return s.told(p, &recorded), nil
 }
 
@@ -337,15 +339,21 @@ func answerRefused(p *profile.Profile, broken profile.Broken) Reply[answeredOut]
 
 // answerFields are what the line about an answer keeps of it: where the task
 // stood, whether it was right, the trap it fell for by its catalog id, whether
-// the hint was opened, whether it was "I don't know", and the pace. Never a
-// letter — neither the child's nor the right one — and the topic and the trap
-// held to the catalog, since both are read from a file a person can edit.
-func (s *Service) answerFields(recorded *profile.Recorded) []zap.Field {
+// the hint was opened, whether it was "I don't know", and the pace; the chance
+// of a right answer the task was handed out at, to two places, and who chose
+// the task, which is what tells whether a chance came true; and which answer
+// of the trial series it was, or, after the series, which of the child's
+// answers it was, as a range, which is what tells whether the estimate falls
+// behind a child as the answers pile up. answers is how many the child has
+// given, this one included. Never a letter — neither the child's nor the right
+// one — and the topic and the trap held to the catalog, since both are read
+// from a file a person can edit.
+func (s *Service) answerFields(recorded *profile.Recorded, answers int) []zap.Field {
 	trap := ""
 	if recorded.Trap.Trap != "" {
 		trap = s.trapLabel(recorded.Trap.Trap)
 	}
-	return []zap.Field{
+	fields := []zap.Field{
 		zap.String("topic", s.topicLabel(recorded.Topic)),
 		zap.String("level", string(recorded.GradeLevel)),
 		zap.Int("difficulty", recorded.Difficulty),
@@ -354,5 +362,45 @@ func (s *Service) answerFields(recorded *profile.Recorded) []zap.Field {
 		zap.Bool("hint_used", recorded.HintUsed),
 		zap.Bool("confused", recorded.Choice == profile.DontKnow),
 		zap.String("pace", string(recorded.Pace)),
+		zap.Float64("chance", math.Round(recorded.Probability*100)/100),
+		zap.String("tutor_mode", chooserOf(recorded.TutorMode)),
+		zap.Int("trial", recorded.Trial),
 	}
+	if recorded.Trial == 0 {
+		fields = append(fields, zap.String("answers_bucket", answersBucket(answers)))
+	}
+	return fields
+}
+
+// chooserUnknown is who chose a task handed out before the card kept that.
+const chooserUnknown = "unknown"
+
+// chooserOf is who chose a task as a line names it: the rule or the model, and
+// unknown for a task that does not say.
+func chooserOf(mode profile.TutorMode) string {
+	if mode == profile.TutorRule || mode == profile.TutorLLM {
+		return string(mode)
+	}
+	return chooserUnknown
+}
+
+// answerRanges are the ranges an answer after the trial series is counted in,
+// each by the last answer it holds: the first takes the answers just after the
+// series, while the estimate is still settling, and each after it about twice
+// as many as the one before. The answers past the last are counted together.
+var answerRanges = []int{20, 50, 100, 200}
+
+// answersBucket is the range an answer after the trial series falls in, given
+// how many answers the child has given with it, named by its first and last
+// answer — 6-20, 21-50, 51-100, 101-200 — or, past the last range, by the
+// first answer past it, 201+.
+func answersBucket(answers int) string {
+	from := rating.TrialAnswers + 1
+	for _, upTo := range answerRanges {
+		if answers <= upTo {
+			return fmt.Sprintf("%d-%d", from, upTo)
+		}
+		from = upTo + 1
+	}
+	return fmt.Sprintf("%d+", from)
 }
