@@ -7,9 +7,8 @@
 name: CD
 
 on:
-  # What main delivers is a release, handed over by the workflow that has just
-  # published it, once the checks have passed: the image is built from the
-  # release's tag, so the service and its widget name the version they run.
+  # A release, named by its tag: the image is built from that tag and stamped
+  # with its number, so the service and its widget name the version they run.
   workflow_call:
     inputs:
       version:

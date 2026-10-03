@@ -148,6 +148,9 @@ jobs:
               echo "main ends at $tip now: $TARGET is released and not deployed"
           fi
 
+  # A delivery that failed is started again with "Re-run failed jobs": run
+  # again with all jobs, the release job would publish the same commit once
+  # more, under the next number.
   deploy:
     name: Deploy the release
     needs: release

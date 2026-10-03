@@ -119,6 +119,8 @@ A push to `main` is delivered once the checks have passed on it and its release 
 2. **The image of this commit.** Built, pushed to the registry with the commit as its tag, and rolled out **by digest** — a tag can be moved afterwards and a digest cannot.
 3. **The check.** `/health` is asked which commit it is serving, and the delivery fails unless the answer is the commit that was just built.
 
+A delivery after a release that fails — an apply refused, a roll-out that timed out — is started again from its run with **Re-run failed jobs**. **Re-run all jobs** would run the release too, and publish the same commit once more under the next number.
+
 A pull request that touches `infra/` gets a `terraform plan` in its summary instead, so what the cloud is about to become is reviewable before the merge.
 
 **Give the telemetry twenty minutes.** On a project that has never received traces or metrics, enabling the APIs is all it takes, but the storage behind them is provisioned after the first data arrives rather than before. Until that finishes, reading a trace answers `_Trace bucket not found in project …` and the metrics are nowhere in Monitoring — which reads like a permanent fault and is not one. Nothing needs clicking; the service will have reported no error, because none of it failed.
