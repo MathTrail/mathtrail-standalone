@@ -1,6 +1,6 @@
 import { useRef, useState } from "preact/hooks";
 import type { Host } from "./bridge";
-import { useWords } from "./words";
+import { type Key, useWords } from "./words";
 
 /**
  * Request is where something a card asked the chat for stands: not asked
@@ -44,14 +44,22 @@ export function useChatRequest(host: Host): {
 
 /**
  * RequestNote says where an ask stands once the chat has answered it: taken,
- * or not, to be asked again. It is on the page before it says anything, so
- * that a screen reader hears it when it does.
+ * in the words given for it, or not, to be asked again. A host that takes a
+ * message may still hold it for the person to send, so an ask whose result
+ * the card can name says that rather than that it was sent. It is on the page
+ * before it says anything, so that a screen reader hears it when it does.
  */
-export function RequestNote({ state }: { state: Request }) {
+export function RequestNote({
+	state,
+	taken = "chat.sent",
+}: {
+	state: Request;
+	taken?: Key;
+}) {
 	const words = useWords();
 	let note = "";
 	if (state === "sent") {
-		note = words.text("chat.sent");
+		note = words.text(taken);
 	} else if (state === "lost") {
 		note = words.text("chat.not_sent");
 	}

@@ -361,5 +361,29 @@ func TestTheRanksHoldTheirProperties(t *testing.T) {
 		gen.Float64Range(-1e6, 1e6),
 	))
 
+	properties.Property("a share is a whole percent from 0 to 100", prop.ForAll(
+		func(elo float64) bool {
+			share := rating.Share(elo)
+			return share >= 0 && share <= 100
+		},
+		gen.Float64Range(-1e6, 1e6),
+	))
+
+	properties.Property("a rank and its share together never fall as the rating rises", prop.ForAll(
+		func(elo, gain float64) bool {
+			higher := elo + math.Abs(gain)
+			before, after := rating.Rank(elo), rating.Rank(higher)
+			return after > before || after == before && rating.Share(higher) >= rating.Share(elo)
+		},
+		gen.Float64Range(800, 3400), gen.Float64Range(0, 400),
+	))
+
+	properties.Property("the whole way is drawn at the top rank alone", prop.ForAll(
+		func(elo float64) bool {
+			return (rating.Share(elo) == 100) == (rating.Rank(elo) == rating.Ranks)
+		},
+		gen.Float64Range(-1e6, 1e6),
+	))
+
 	properties.TestingRun(t)
 }

@@ -26,7 +26,7 @@
       "minLength": 1
     },
     "question": {
-      "description": "The wording the child reads, in the language of the chat.",
+      "description": "The wording the child reads, in the lesson's language, which the package names.",
       "type": "string",
       "minLength": 1
     },

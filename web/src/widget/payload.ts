@@ -23,7 +23,7 @@ const child = z.object({
 
 /**
  * Child is whose card it is: the name the child goes by, the grade, and the
- * language the parent chose for the cards, or null when they chose none.
+ * language the parent chose for the lessons, or null when they chose none.
  */
 export type Child = z.infer<typeof child>;
 
@@ -45,6 +45,9 @@ const handedTask = z.object({
 		}),
 		hint: z.string(),
 	}),
+	// The lesson's language, which the card's words are in; a card from before
+	// it travelled with the task has none.
+	language: z.string().optional(),
 });
 
 /**
@@ -141,16 +144,18 @@ const waiting = z.object({
 	status: z.string().optional(),
 	code: z.string().optional(),
 	child: child.nullish(),
+	language: z.string().optional(),
 });
 
 /**
- * Waiting is a card that waits for the next task, as a tool's payload draws
- * it: while the model writes the task, after the model's last attempt at one
- * failed its checks, or once the day has no room for another. A card that
- * waits for a task knows whose it is; one refused for the day may not.
+ * Waiting is a card a task did not come to, as a tool's payload draws it: the
+ * model's attempt failed its checks and the next one is to come, the request
+ * it was for is over, its last attempt failed too, or the day has no room for
+ * another. A card a task was handed in for knows whose it is; one refused for
+ * the day may not.
  */
 export type Waiting =
-	| { kind: "working" | "exhausted"; child: Child }
+	| { kind: "refused" | "stale" | "exhausted"; child: Child }
 	| { kind: "limit"; child: Child | undefined };
 
 /**
@@ -171,10 +176,10 @@ export function readWaiting(payload: unknown): Waiting | undefined {
 	if (whose === undefined) {
 		return undefined;
 	}
-	return {
-		kind: code === "attempts_exhausted" ? "exhausted" : "working",
-		child: whose,
-	};
+	if (code === "attempts_exhausted") {
+		return { kind: "exhausted", child: whose };
+	}
+	return { kind: status === "stale" ? "stale" : "refused", child: whose };
 }
 
 const details = child.extend({
@@ -185,7 +190,7 @@ const details = child.extend({
 /**
  * Details are the child's profile as a card shows it: who the child is, what
  * the tasks may be dressed in, what the child has not met at school yet, and
- * the language of the cards. The parent's notes are never among them.
+ * the language of the lessons. The parent's notes are never among them.
  */
 export type Details = z.infer<typeof details>;
 
@@ -202,6 +207,22 @@ const recommendation = z.object({
  */
 export type Recommendation = z.infer<typeof recommendation>;
 
+const location = z.object({
+	folder: z.string(),
+	file: z.string(),
+	others: z.array(z.object({ file: z.string() })),
+});
+
+/**
+ * Location is where the profile's file is, as a card names it: the folder and
+ * the file, and the other files that hold a profile too. A card opens none of
+ * them.
+ */
+export type Location = z.infer<typeof location>;
+
+// share is how far through a rank a rating has come, as a whole percent.
+const share = z.number().int().min(0).max(100);
+
 const progressReport = z.object({
 	screen: z.literal("progress"),
 	profile: details,
@@ -211,12 +232,24 @@ const progressReport = z.object({
 			rating: z.number().int(),
 			rank: z.number().int(),
 			ranks: z.number().int(),
+			// A progress from before the share has none: its course is drawn
+			// with the step under way empty, as an earlier chat's card still
+			// is when it is drawn again.
+			share: share.optional(),
 		})
 		.nullable(),
 	topics: z.array(
 		z.object({
 			topic: z.string(),
 			rating: z.number().int().nullable(),
+			// A progress from before the topics had ranks has none of these,
+			// and its topics are drawn with an empty course and no word of
+			// where they stand. How a rank compares is read as any text, so
+			// that one a later release adds draws no word rather than no card.
+			rank: z.number().int().positive().nullish(),
+			share: share.nullish(),
+			compared: z.string().nullish(),
+			answers: z.number().int().nonnegative(),
 			mastered: z.boolean(),
 			skipped: z.number().int(),
 		}),
@@ -228,20 +261,27 @@ const progressReport = z.object({
 			skipped: z.boolean(),
 		}),
 	),
+	// A progress from before the total of the skips has none, and the card
+	// adds its topics' counts up as it did then.
+	skipped: z.number().int().nonnegative().optional(),
 	// A progress from before the map of mistakes has none, and is read as one
 	// where nothing repeats: a card of an earlier chat, drawn again, still shows.
 	mistakes: z
 		.array(z.object({ trap: z.string(), times: z.number().int().positive() }))
 		.default([]),
 	recommendation: recommendation.nullable(),
+	// Kept nowhere a person could open, or from before the progress said where
+	// the file is, a progress has no location, and the card no parent's data.
+	location: location.optional(),
 });
 
 /**
  * ProgressReport is where the child stands, as the progress screen shows it:
- * the overall rating with its rank — or, while the trial series runs, how far
- * the series has got — the topics met, the latest answers and the tasks left
- * without one, the mistakes that keep coming back, what comes next, and the
- * child's profile.
+ * the overall rating with its rank and how far through it — or, while the
+ * trial series runs, how far the series has got — the topics met or within
+ * reach, each with a rank of its own, the latest answers and how many tasks
+ * were left without one, the mistakes that keep coming back, what comes next,
+ * the child's profile, and where its file is.
  */
 export type ProgressReport = z.infer<typeof progressReport>;
 
@@ -249,13 +289,7 @@ const profileCard = z.object({
 	screen: z.literal("profile"),
 	status: z.string().optional(),
 	profile: details,
-	location: z
-		.object({
-			folder: z.string(),
-			file: z.string(),
-			others: z.array(z.object({ file: z.string() })),
-		})
-		.optional(),
+	location: location.optional(),
 });
 
 /**
@@ -266,7 +300,7 @@ const profileCard = z.object({
  */
 export type ProfileReport = {
 	details: Details;
-	location: z.infer<typeof profileCard>["location"];
+	location: Location | undefined;
 	refused: boolean;
 };
 

@@ -92,6 +92,10 @@ type handedInOut struct {
 	LastAnswer   *answerLine `json:"last_answer"`
 	Child        *childLine  `json:"child"`
 	Task         *cardOut    `json:"task"`
+	// Language is the lesson's language, which the card's words are in: its
+	// task's on a task card, and on a card waiting for a task the request's.
+	// It is empty where there is no task and no request to wait for.
+	Language string `json:"language,omitempty"`
 }
 
 // reasonOut is one check a task failed, and everything it found. No message
@@ -103,8 +107,10 @@ type reasonOut struct {
 
 // childLine is who a card is for: the name the child goes by and the grade, for
 // the top line of the card and its badge, and the language the parent chose
-// for the cards, which the card speaks in place of the chat's — null when they
-// chose none. It stands beside the task and never inside its text.
+// for the lessons — null when they chose none. A card of a task, or one
+// waiting for a task, speaks the lesson's language instead, which is the
+// parent's choice when there is one and the chat's otherwise. It stands beside
+// the task and never inside its text.
 type childLine struct {
 	Pseudonym  string  `json:"pseudonym"`
 	Grade      int     `json:"grade"`
@@ -148,9 +154,9 @@ func (s *Service) submitTaskTool() Tool {
 		Description: "Hands in the task you wrote for the open request, with its request id, to be checked and put " +
 			"on the child's card. Each call spends one of three attempts. A refusal names every reason at once: fix " +
 			"them all and hand the task in again with the same request id. When the task is accepted the card shows " +
-			"it without its answer: never say which option is right before the child has answered, whatever the " +
-			"child asks. Every result carries last_answer, the last answer the child gave, maybe on a card without " +
-			"you.",
+			"it without its answer: add nothing of your own about it until the child answers or asks, and never say " +
+			"which option is right before the child has answered, whatever the child asks. Every result carries " +
+			"last_answer, the last answer the child gave, maybe on a card without you.",
 		DrawsCard: true,
 	}, s.submitTask)
 }
@@ -196,7 +202,7 @@ func (s *Service) review(ctx context.Context, account store.Account, in *submitT
 	now := s.now()
 	request := p.OpenRequest
 	if request == nil || request.ID != in.RequestID || !request.Awaited(s.window, now) {
-		return s.stale(p), nil
+		return s.stale(p, now), nil
 	}
 	outcome, err := s.judge(ctx, examined, checks.Against{
 		Asked: &request.Brief, Language: request.Language, Fingerprints: p.TaskFingerprints,
@@ -253,24 +259,33 @@ func (s *Service) judge(ctx context.Context, examined checks.Examined, against c
 // accepted already, ran out of attempts, was replaced or waited too long — or
 // for another request than the open one. Nothing is judged, spent or written.
 // The card shows the task the child is working on, when there is one: a task
-// handed in twice, the answer to the first gone astray, must not turn the card
-// the child is working on into a wait. A task that has had its answer is done
-// with, and the card waits for the next.
-func (s *Service) stale(p *profile.Profile) Reply[handedInOut] {
+// handed in twice, the answer to the first gone astray, must not take the task
+// off the card the child is working on. A task that has had its answer is done
+// with, and the card says no task comes to it.
+func (s *Service) stale(p *profile.Profile, now time.Time) Reply[handedInOut] {
 	lead := "The request_id is not the open request's: that request was accepted already, ran out of attempts, " +
 		"was replaced by a newer one or waited too long. Nothing was checked or spent."
 	task := p.InFlight()
 	if task == nil {
+		// The card says so in the language of whatever request is still open,
+		// a newer one say, whose task comes next; with none open it falls back
+		// to the language the parent chose, as any card does. A request past
+		// its window is open no longer, and the language it was opened in may
+		// have been changed since.
+		var language string
+		if open := p.OpenRequest; open != nil && open.Awaited(s.window, now) {
+			language = open.Language
+		}
 		return Reply[handedInOut]{
 			Text: lead + " Ask for a new task with next_task.",
 			Payload: handedInOut{
 				Screen: screenWaiting, Status: statusStale, Code: codeStaleRequest,
-				LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student),
+				LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student), Language: language,
 			},
 		}
 	}
-	reply := onTheCard(p, task, fmt.Sprintf("%s Task %s is on the child's card: wait for the child's "+
-		"answer, and ask for a new task only when the child wants another.", lead, task.ID))
+	reply := onTheCard(p, task, fmt.Sprintf("%s Task %s is on the child's card: %s Ask for a new task only "+
+		"when the child wants another.", lead, task.ID, addNothing))
 	reply.Payload.Status, reply.Payload.Code = statusStale, codeStaleRequest
 	return reply
 }
@@ -308,7 +323,7 @@ func (s *Service) record(ctx context.Context, done *reviewed) error {
 // at once. The last attempt closes the request with nothing handed out.
 func (s *Service) refuse(ctx context.Context, done *reviewed) (Reply[handedInOut], error) {
 	p, outcome, attempt := done.profile, done.outcome, done.attempt
-	requestID := p.OpenRequest.ID
+	requestID, language := p.OpenRequest.ID, p.OpenRequest.Language
 	exhausted, err := p.Refuse(done.now)
 	if err != nil {
 		return Reply[handedInOut]{}, fmt.Errorf("mcp: refuse the task: %w", err)
@@ -321,7 +336,7 @@ func (s *Service) refuse(ctx context.Context, done *reviewed) (Reply[handedInOut
 	payload := handedInOut{
 		Screen: screenWaiting, Status: statusRejected, Code: string(outcome.Primary()),
 		Reasons: reasonsOf(outcome), Unchecked: outcome.Unchecked, Attempt: attempt, AttemptsLeft: &left,
-		LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student),
+		LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student), Language: language,
 	}
 	lead := fmt.Sprintf("Refused, attempt %d of %d: nothing was handed to the child. Fix every reason below and "+
 		"hand the task in again with submit_task and request_id %s; %d left.", attempt, profile.MaxAttempts, requestID, left)
@@ -365,10 +380,10 @@ func (s *Service) hand(ctx context.Context, done *reviewed, program string) (Rep
 		zap.Int("attempts", done.attempt),
 		zap.Int64("seconds_since_request", int64(done.now.Sub(request.OpenedAt.Time)/time.Second)),
 	)
-	reply := onTheCard(p, issued, fmt.Sprintf("Accepted at attempt %d: task %s is on the child's card. Without a "+
-		"card, read out the question, the drawing and the options A to E below, and give the hint only when the "+
-		"child asks for it. Never say which option is right before the child has answered; record the answer with "+
-		"submit_answer.", done.attempt, issued.ID))
+	reply := onTheCard(p, issued, fmt.Sprintf("Accepted at attempt %d: task %s is on the child's card. Where the "+
+		"card shows it, %s Without a card, read out the question, the drawing and the options A to E below and "+
+		"nothing else, and give the hint only when the child asks for it. Never say which option is right before "+
+		"the child has answered; record the answer with submit_answer.", done.attempt, issued.ID, addNothing))
 	reply.Payload.Attempt = done.attempt
 	return reply, nil
 }
@@ -396,6 +411,7 @@ func onTheCard(p *profile.Profile, task *profile.CurrentTask, lead string) Reply
 		Text: lead + "\n\n" + taskWords(task),
 		Payload: handedInOut{
 			Screen: screenTask, LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student), Task: cardOf(task),
+			Language: task.Language,
 		},
 	}
 }

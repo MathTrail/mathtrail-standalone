@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel/codes"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
 	"go.opentelemetry.io/otel/trace"
@@ -80,9 +81,10 @@ func TestTheTextOfAStatusNeverLeavesTheProcess(t *testing.T) {
 }
 
 // Measurements go to their own path, and only once an interval has passed,
-// whichever requests ask for them: every delivery costs bytes whether or not
-// anything changed. A request that kept no trace, asking before then, finds
-// nothing due and sends nothing at all.
+// whichever requests ask for them: every delivery costs a point for each series
+// that changed, and the interval lets a minute of requests share one. A request
+// that kept no trace, asking before then, finds nothing due and sends nothing
+// at all.
 func TestMeasurementsAreNotDeliveredTwiceInAnInterval(t *testing.T) {
 	for _, c := range []struct {
 		name  string
@@ -106,6 +108,106 @@ func TestMeasurementsAreNotDeliveredTwiceInAnInterval(t *testing.T) {
 				t.Errorf("the collector saw %d deliveries, want the measurements once and nothing else", seen)
 			}
 		})
+	}
+}
+
+// Measurements leave when a request finds them due and at no other time: a
+// flush of the meter provider itself — what a reader keeping a clock of its own
+// does when the clock comes round — posts nothing. Two clocks that do not know
+// about each other fall due on the same request after a quiet minute and post
+// the same series seconds apart, and the collector refuses the second point.
+func TestTheMeterProviderPostsNothingOnItsOwn(t *testing.T) {
+	collector := newCollector(t, http.StatusOK)
+	tel := newTelemetry(t, collector, &telemetry.Settings{SampleRatio: 0})
+	provider, ok := tel.MeterProvider().(*sdkmetric.MeterProvider)
+	if !ok {
+		t.Fatalf("MeterProvider() is %T, want the SDK's provider", tel.MeterProvider())
+	}
+
+	counter, err := provider.Meter("test").Int64Counter("unit_total")
+	if err != nil {
+		t.Fatalf("Int64Counter() error = %v, want nil", err)
+	}
+	counter.Add(t.Context(), 1)
+
+	if err := provider.ForceFlush(t.Context()); err != nil {
+		t.Fatalf("MeterProvider.ForceFlush() error = %v, want nil", err)
+	}
+	if got := len(collector.takenAt("/v1/metrics")); got != 0 {
+		t.Fatalf("the collector saw %d metric deliveries the meter provider made on its own, want none", got)
+	}
+	if err := tel.ForceFlush(t.Context(), false); err != nil {
+		t.Fatalf("ForceFlush() error = %v, want nil", err)
+	}
+	if got := len(collector.takenAt("/v1/metrics")); got != 1 {
+		t.Errorf("the collector saw %d metric deliveries after a request found them due, want 1", got)
+	}
+}
+
+// What is measured after the last delivery leaves when the process stops,
+// whether or not an interval has passed since: a stop is the last chance there
+// is, and nothing else would deliver it.
+func TestWhatIsMeasuredAfterTheLastDeliveryLeavesAtShutdown(t *testing.T) {
+	collector := newCollector(t, http.StatusOK)
+	tel := newTelemetry(t, collector, &telemetry.Settings{SampleRatio: 0})
+
+	counter, err := tel.MeterProvider().Meter("test").Int64Counter("unit_total")
+	if err != nil {
+		t.Fatalf("Int64Counter() error = %v, want nil", err)
+	}
+	counter.Add(t.Context(), 1)
+	if err := tel.ForceFlush(t.Context(), false); err != nil {
+		t.Fatalf("ForceFlush() error = %v, want nil", err)
+	}
+	counter.Add(t.Context(), 1)
+
+	closing, cancel := context.WithTimeout(context.WithoutCancel(t.Context()), time.Second)
+	defer cancel()
+	if err := tel.Shutdown(closing); err != nil {
+		t.Fatalf("Shutdown() error = %v, want nil", err)
+	}
+	if deliveries := len(collector.takenAt("/v1/metrics")); deliveries != 2 {
+		t.Errorf("the collector saw %d metric deliveries, want 2: one asked for by a request, one at the stop", deliveries)
+	}
+}
+
+// A request that finds the measurements due when nothing has been measured
+// posts nothing: a request carrying nothing is a round trip spent on nothing.
+func TestADueRequestWithNothingMeasuredPostsNothing(t *testing.T) {
+	collector := newCollector(t, http.StatusOK)
+	tel := newTelemetry(t, collector, &telemetry.Settings{SampleRatio: 0})
+
+	if err := tel.ForceFlush(t.Context(), false); err != nil {
+		t.Fatalf("ForceFlush() error = %v, want nil", err)
+	}
+	if deliveries := len(collector.takenAt("/v1/metrics")); deliveries != 0 {
+		t.Errorf("the collector saw %d metric deliveries, want none: nothing had been measured", deliveries)
+	}
+}
+
+// A stop with nothing measured since the last delivery posts nothing either:
+// an instance scaled in after its last request has nothing left to say, and
+// the round trip would be time taken from the shutdown.
+func TestAStopWithNothingNewPostsNothing(t *testing.T) {
+	collector := newCollector(t, http.StatusOK)
+	tel := newTelemetry(t, collector, &telemetry.Settings{SampleRatio: 0})
+
+	counter, err := tel.MeterProvider().Meter("test").Int64Counter("unit_total")
+	if err != nil {
+		t.Fatalf("Int64Counter() error = %v, want nil", err)
+	}
+	counter.Add(t.Context(), 1)
+	if err := tel.ForceFlush(t.Context(), false); err != nil {
+		t.Fatalf("ForceFlush() error = %v, want nil", err)
+	}
+
+	closing, cancel := context.WithTimeout(context.WithoutCancel(t.Context()), time.Second)
+	defer cancel()
+	if err := tel.Shutdown(closing); err != nil {
+		t.Fatalf("Shutdown() error = %v, want nil", err)
+	}
+	if deliveries := len(collector.takenAt("/v1/metrics")); deliveries != 1 {
+		t.Errorf("the collector saw %d metric deliveries, want 1: the stop had nothing new to post", deliveries)
 	}
 }
 

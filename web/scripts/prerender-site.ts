@@ -40,25 +40,36 @@ export type SiteOptions = {
 export async function readSources(
 	dir: string,
 ): Promise<Map<string, Map<string, string>>> {
-	const sources = new Map<string, Map<string, string>>();
-	for (const locale of await readdir(dir, { withFileTypes: true })) {
-		if (!locale.isDirectory()) {
-			continue;
-		}
-		const pages = new Map<string, string>();
-		for (const file of await readdir(join(dir, locale.name), {
-			withFileTypes: true,
-		})) {
-			if (file.isFile() && file.name.endsWith(".md")) {
-				pages.set(
-					file.name.slice(0, -".md".length),
-					await readFile(join(dir, locale.name, file.name), "utf8"),
-				);
-			}
-		}
-		sources.set(locale.name, pages);
-	}
-	return sources;
+	const locales = (await readdir(dir, { withFileTypes: true })).filter(
+		(entry) => entry.isDirectory(),
+	);
+	return new Map(
+		await Promise.all(
+			locales.map(
+				async (locale) =>
+					[locale.name, await readPages(join(dir, locale.name))] as const,
+			),
+		),
+	);
+}
+
+// readPages reads the pages of one locale: every .md file in dir, named after
+// the file.
+async function readPages(dir: string): Promise<Map<string, string>> {
+	const files = (await readdir(dir, { withFileTypes: true })).filter(
+		(file) => file.isFile() && file.name.endsWith(".md"),
+	);
+	return new Map(
+		await Promise.all(
+			files.map(
+				async (file) =>
+					[
+						file.name.slice(0, -".md".length),
+						await readFile(join(dir, file.name), "utf8"),
+					] as const,
+			),
+		),
+	);
 }
 
 /** Made is one file of a build, ready to be written below the site's root. */
@@ -75,11 +86,6 @@ export async function buildSite({
 	out,
 	content = join(repository, "site", "content"),
 }: SiteOptions): Promise<void> {
-	if (!(await replaceable(out))) {
-		throw new Error(
-			`${out} holds something other than a build of the site, and a build replaces everything in it`,
-		);
-	}
 	const files: Made[] = [
 		...(await drawPages(base, await readSources(content))),
 		...(await buildStyles()),
@@ -101,26 +107,43 @@ export async function buildSite({
 	if (twice !== undefined) {
 		throw new Error(`${twice} would be written twice`);
 	}
-	await rm(out, { recursive: true, force: true });
-	for (const { path, data } of files) {
-		const target = join(out, path);
-		await mkdir(dirname(target), { recursive: true });
-		await writeFile(target, data);
+	if (!(await replaceable(out, files))) {
+		throw new Error(
+			`${out} holds something other than a build of the site, and a build replaces everything in it`,
+		);
 	}
+	await rm(out, { recursive: true, force: true });
+	await Promise.all(
+		files.map(async ({ path, data }) => {
+			const target = join(out, path);
+			await mkdir(dirname(target), { recursive: true });
+			await writeFile(target, data);
+		}),
+	);
 }
 
-// replaceable says whether out may be replaced by a build: it does not exist
-// yet, it is empty, or it holds a build of the site, which always carries
-// .nojekyll. A build deletes everything in out, so anything else — the
-// repository itself, a directory named by mistake — is not the build's to
-// delete.
-async function replaceable(out: string): Promise<boolean> {
+// replaceable says whether out may be replaced by a build that writes files:
+// it does not exist yet, it is empty, or it holds an earlier build of the site
+// — the .nojekyll every build writes, and nothing at its top that this build
+// would not write too. A build deletes everything in out, so anything else —
+// the repository itself, another site's folder with its history, a directory
+// named by mistake — is not the build's to delete.
+async function replaceable(
+	out: string,
+	files: readonly Made[],
+): Promise<boolean> {
+	let entries: string[];
 	try {
-		const entries = await readdir(out);
-		return entries.length === 0 || entries.includes(".nojekyll");
+		entries = await readdir(out);
 	} catch (error) {
 		return error instanceof Error && "code" in error && error.code === "ENOENT";
 	}
+	const written = new Set(files.map(({ path }) => path.split("/")[0]));
+	return (
+		entries.length === 0 ||
+		(entries.includes(".nojekyll") &&
+			entries.every((entry) => written.has(entry)))
+	);
 }
 
 /**

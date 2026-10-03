@@ -1,7 +1,7 @@
 import { render } from "preact";
 import { act } from "preact/test-utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import type { Bridge, Host, ToolResult } from "./bridge";
+import type { Bridge, Call, Host, ToolResult } from "./bridge";
 import {
 	exhausted,
 	fence,
@@ -21,6 +21,10 @@ const idleHost: Host = {
 	tellModel: () => Promise.reject(new Error("the model is told nothing here")),
 };
 
+// notDrawnForATask is the call of a host that names no tool: the card waits for
+// its result with nothing to show.
+const notDrawnForATask: Call = { tool: undefined, stage: "started" };
+
 // heldBridge is a bridge whose results arrive, and whose host names its locale,
 // when the test says, so the card can be caught before, between and after them.
 function heldBridge(hostLocale?: string) {
@@ -34,6 +38,7 @@ function heldBridge(hostLocale?: string) {
 	};
 	const bridge: Bridge = {
 		result: () => latest,
+		call: () => notDrawnForATask,
 		locale: () => locale,
 		subscribe(listener) {
 			listeners.add(listener);
@@ -123,7 +128,7 @@ describe("the card", () => {
 	});
 
 	test.each([
-		["the progress", standing, ".mt-rating-num"],
+		["the progress", standing, ".mt-rank-name"],
 		["the profile", profileRead, ".mt-fields"],
 		["the first sign-in", firstRun, ".mt-check"],
 	])("draws %s as its card", (_, payload, drawnPart) => {
@@ -149,7 +154,7 @@ describe("the card", () => {
 	});
 
 	test.each([
-		["a task refused", refused, "Preparing the next task…"],
+		["a task refused", refused, "This try didn't pass the checks."],
 		[
 			"a day refused",
 			limited,
@@ -165,29 +170,16 @@ describe("the card", () => {
 		expect(root.querySelector(".stub")).toBeNull();
 	});
 
-	test("starts a new wait for each payload that asks for one, and only then", () => {
-		vi.useFakeTimers();
-		try {
-			const { bridge, deliver, changeLocale } = heldBridge();
-			act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
-			act(() => deliver(refused));
-			act(() => {
-				vi.advanceTimersByTime(120_000);
-			});
-			expect(root.querySelector(".mt-gen")).toBeNull();
+	test("turns a card waiting after a refused try to the next payload it is told", () => {
+		const { bridge, deliver } = heldBridge();
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
+		act(() => deliver(refused));
+		expect(root.textContent).toContain("This try didn't pass the checks.");
 
-			// The host telling more, or telling the same payload again, is not a
-			// new wait.
-			act(() => changeLocale("en-GB"));
-			act(() => deliver({ ...refused }));
-			expect(root.querySelector(".mt-gen")).toBeNull();
-
-			act(() => deliver(exhausted));
-			expect(root.querySelector(".mt-gen")).not.toBeNull();
-			expect(root.textContent).toContain("This task didn't work out.");
-		} finally {
-			vi.useRealTimers();
-		}
+		// The last attempt refused turns it to a card no task is coming to.
+		act(() => deliver(exhausted));
+		expect(root.textContent).toContain("This task didn't work out.");
+		expect(root.querySelector(".mt-gen")).toBeNull();
 	});
 
 	test("starts a card afresh for each payload, and keeps it for the same one told again", () => {
@@ -224,7 +216,7 @@ describe("the card", () => {
 		act(() => deliver(payload));
 		const note = () => root.querySelector(".mt-action-note")?.textContent;
 		act(() => {
-			root.querySelector<HTMLElement>(".mt-fields-actions button")?.click();
+			root.querySelector<HTMLElement>(".mt-fields-head button")?.click();
 		});
 		// The card says the ask did not reach the chat, in the card's language.
 		await vi.waitFor(() => expect(note()).not.toBe(""));
@@ -286,7 +278,7 @@ describe("the card's language", () => {
 		expect(languageOfPage()).toEqual(["ru", "ltr"]);
 	});
 
-	test("is the one the parent chose for the cards, over the host's", () => {
+	test("is the one the parent chose for the lessons, over the host's", () => {
 		const { bridge, deliver } = heldBridge("en-US");
 		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
 
@@ -301,6 +293,21 @@ describe("the card's language", () => {
 		act(() =>
 			deliver({ screen: "progress", profile: { ui_language: "ru-RU" } }),
 		);
+		expect(languageOfPage()).toEqual(["ru", "ltr"]);
+	});
+
+	test("is the lesson's on a task card, over the host's, when the parent chose none", () => {
+		const { bridge, deliver } = heldBridge("en-US");
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
+
+		act(() =>
+			deliver({
+				screen: "task",
+				child: { pseudonym: "Otter", grade: 2, ui_language: null },
+				language: "ru",
+			}),
+		);
+
 		expect(languageOfPage()).toEqual(["ru", "ltr"]);
 	});
 

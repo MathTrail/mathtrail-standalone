@@ -165,7 +165,7 @@ func TestAnAnswerIsToldHowItWent(t *testing.T) {
 		trap         string
 		says         string
 	}{
-		{name: "right", answer: "C", correct: true, says: "and it is right"},
+		{name: "right", answer: "C", correct: true, says: "and it is right. Praise briefly"},
 		{name: "wrong", answer: "A", trap: "reversed_relation", says: raceExplained[0]},
 		{name: "I don't know", answer: "?", says: "The child did not know, which counts as a wrong answer"},
 	} {
@@ -179,6 +179,9 @@ func TestAnAnswerIsToldHowItWent(t *testing.T) {
 			wantToldAsItWent(t, answered(t, answer), tc.answer, tc.correct, tc.trap)
 			if text := textOf(t, answer); !strings.Contains(text, tc.says) || !strings.Contains(text, "The rating in Ordering went from") {
 				t.Errorf("the words are %q, want them to say %q and how the rating moved", text, tc.says)
+			}
+			if text := textOf(t, answer); !strings.Contains(text, "does not show whether the child is a boy or a girl") {
+				t.Errorf("the words are %q, want the explanation worded so it does not show the child's gender", text)
 			}
 		})
 	}

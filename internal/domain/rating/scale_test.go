@@ -79,6 +79,56 @@ func TestTheRanks(t *testing.T) {
 	}
 }
 
+// How far through its rank a rating has come, boundary by boundary: nothing at
+// a floor, never the whole way below the next one, and the whole way only at
+// the top. The first rank is counted from a step below the second's floor.
+func TestTheShareOfARank(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		shown int
+		share int
+	}{
+		{shown: 800, share: 0},
+		{shown: 1167, share: 0},
+		{shown: 1168, share: 0},
+		{shown: 1250, share: 49},
+		{shown: 1333, share: 99},
+		{shown: 1334, share: 0},
+		{shown: 1335, share: 0},
+		{shown: 1417, share: 50},
+		{shown: 1499, share: 99},
+		{shown: 1500, share: 0},
+		{shown: 1573, share: 43},
+		{shown: 2827, share: 99},
+		{shown: 2828, share: 100},
+		{shown: 4000, share: 100},
+	}
+
+	for _, tc := range cases {
+		t.Run(fmt.Sprintf("%d", tc.shown), func(t *testing.T) {
+			t.Parallel()
+
+			if got := rating.Share(float64(tc.shown)); got != tc.share {
+				t.Errorf("the share at %d = %d, want %d", tc.shown, got, tc.share)
+			}
+		})
+	}
+}
+
+// A share is drawn beside the number too, so it reads the number as drawn: a
+// rating of 1416.6 is shown as 1417, half the way through the second rank.
+func TestAShareFollowsTheNumberBesideIt(t *testing.T) {
+	t.Parallel()
+
+	if got := rating.Share(1416.6); got != 50 {
+		t.Errorf("the share at 1416.6, shown as 1417, = %d, want 50", got)
+	}
+	if got := rating.Share(1416.4); got != 49 {
+		t.Errorf("the share at 1416.4, shown as 1416, = %d, want 49", got)
+	}
+}
+
 // The ranks cover the ladder: a child for whom the easiest task of the
 // youngest level is just right stands in the first, and one for whom the
 // hardest task of the oldest level is, in the last.
@@ -145,5 +195,13 @@ func TestARatingPastAnyLimitIsShownAtIt(t *testing.T) {
 	}
 	if got := rating.Shown(math.NaN()); got != 1500 {
 		t.Errorf("Shown(NaN) = %d, want 1500, the rating a child starts at", got)
+	}
+	for _, tc := range []struct {
+		elo   float64
+		share int
+	}{{1e30, 100}, {-1e30, 0}, {math.NaN(), 0}} {
+		if got := rating.Share(tc.elo); got != tc.share {
+			t.Errorf("Share(%g) = %d, want %d", tc.elo, got, tc.share)
+		}
 	}
 }

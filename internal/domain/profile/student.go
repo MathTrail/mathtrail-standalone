@@ -30,8 +30,34 @@ type Student struct {
 	// Pseudonym is what the child is called. It must never reach the text of
 	// a task, which is a rule the instructions carry and no code enforces.
 	Pseudonym string `json:"pseudonym"`
-	// UILanguage overrides the interface language, or nil to follow the chat.
+	// UILanguage is the language the parent chose for the lessons — the tasks,
+	// the cards and the model's words — or nil to follow the chat. The file
+	// keeps the name it was given when it set the cards' language alone.
 	UILanguage *string `json:"ui_language"`
+}
+
+// ChosenLanguage is the language the parent chose for the lessons, read as any
+// language tag is read, and false when they chose none. The file is the
+// parent's to edit by hand and is held to the length of a tag alone, so a
+// value that names no language counts as no choice: it would otherwise become
+// the language a task is written in and checked by.
+func (s *Student) ChosenLanguage() (string, bool) {
+	if s.UILanguage == nil {
+		return "", false
+	}
+	tag, rule := LanguageTag(*s.UILanguage)
+	return tag, tag != "" && rule == ""
+}
+
+// LessonLanguage is the language a lesson is held in: the one the parent chose,
+// when they chose one, and otherwise the chat's. The task and the words of its
+// card always share it: buttons in one language around a task in another
+// leave a child reading two languages at once.
+func (s *Student) LessonLanguage(chat string) string {
+	if chosen, ok := s.ChosenLanguage(); ok {
+		return chosen
+	}
+	return chat
 }
 
 // Problem is one field that breaks a rule — of the child's details, or of what

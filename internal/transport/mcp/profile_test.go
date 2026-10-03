@@ -71,19 +71,39 @@ type progressPayload struct {
 		Rating int `json:"rating"`
 		Rank   int `json:"rank"`
 		Ranks  int `json:"ranks"`
+		Share  int `json:"share"`
 	} `json:"overall"`
-	Topics []struct {
-		Topic    string `json:"topic"`
-		Rating   *int   `json:"rating"`
-		Mastered bool   `json:"mastered"`
-	} `json:"topics"`
+	Topics []topicPayload `json:"topics"`
 	Recent []struct {
 		Topic string `json:"topic"`
 	} `json:"recent"`
+	Skipped        int              `json:"skipped"`
 	Mistakes       []mistakePayload `json:"mistakes"`
 	Recommendation *struct {
 		Topic string `json:"topic"`
 	} `json:"recommendation"`
+	Location *struct {
+		File string `json:"file"`
+	} `json:"location"`
+}
+
+// topicPayload is one topic of the progress.
+type topicPayload struct {
+	Topic    string  `json:"topic"`
+	Rating   *int    `json:"rating"`
+	Rank     *int    `json:"rank"`
+	Share    *int    `json:"share"`
+	Compared *string `json:"compared"`
+	Answers  int     `json:"answers"`
+	Mastered bool    `json:"mastered"`
+	Skipped  int     `json:"skipped"`
+}
+
+// standsTogether says whether a topic's rating, rank, share and comparison are
+// all there or all null, as a card reads them: never one without the others.
+func (topic topicPayload) standsTogether() bool {
+	there := topic.Rating != nil
+	return (topic.Rank != nil) == there && (topic.Share != nil) == there && (topic.Compared != nil) == there
 }
 
 // mistakePayload is a mistake on the map of misconceptions.
@@ -140,6 +160,33 @@ func TestTheToolsOfTheLessonAreListedAsTheyAreMeant(t *testing.T) {
 			}
 			wantListedAs(t, tool, want)
 		})
+	}
+}
+
+// The tools that draw the profile and the progress are described as not being
+// where a lesson starts: a card of either, drawn before the task, puts the
+// adult's screen in front of the child. A task needs only next_task, which
+// says when there is no profile, and the progress is shown when someone asks
+// for it.
+func TestTheAdultsCardsAreNotWhereALessonStarts(t *testing.T) {
+	t.Parallel()
+
+	_, session := lesson(t, memory.New())
+	listed, err := session.ListTools(t.Context(), nil)
+	if err != nil {
+		t.Fatalf("ListTools() error = %v", err)
+	}
+	described := map[string]string{}
+	for _, tool := range listed.Tools {
+		described[tool.Name] = tool.Description
+	}
+	for name, want := range map[string]string{
+		"get_profile":  "a task needs only next_task",
+		"get_progress": "Call it only when someone asks to see the progress",
+	} {
+		if description, listed := described[name]; !listed || !strings.Contains(description, want) {
+			t.Errorf("%s is described as %q (listed: %v), want it listed and saying %q", name, description, listed, want)
+		}
 	}
 }
 
@@ -424,11 +471,38 @@ func TestTheProgressIsOneAnswerForTheModelAndTheCard(t *testing.T) {
 		t.Fatalf("screen %q, trial %v, overall %v; want the progress past the trial series", payload.Screen,
 			payload.Trial, payload.Overall)
 	}
-	if payload.Overall.Ranks != rating.Ranks || payload.Overall.Rank < 1 || payload.Overall.Rank > rating.Ranks {
-		t.Errorf("overall = %+v, want a rank out of %d", *payload.Overall, rating.Ranks)
+	if payload.Overall.Ranks != rating.Ranks || payload.Overall.Rank < 1 || payload.Overall.Rank > rating.Ranks ||
+		payload.Overall.Share < 0 || payload.Overall.Share > 100 {
+		t.Errorf("overall = %+v, want a rank out of %d and a share of it", *payload.Overall, rating.Ranks)
 	}
-	if len(payload.Topics) == 0 || payload.Topics[0].Rating == nil {
-		t.Errorf("topics = %+v, want the topics met, each with a rating", payload.Topics)
+	rated := 0
+	for _, topic := range payload.Topics {
+		if !topic.standsTogether() || (topic.Rating != nil) != (topic.Answers > 0) {
+			t.Errorf("topic %+v, want its rating, rank, share and comparison together, and there once it has an answer",
+				topic)
+		}
+		if topic.Rating != nil {
+			rated++
+		}
+	}
+	if rated == 0 || rated == len(payload.Topics) {
+		t.Errorf("topics = %+v, want the topics met with their ranks and some within reach not met yet", payload.Topics)
+	}
+}
+
+// A progress kept in memory, nowhere a person could open, says nothing of where
+// it is kept: no location for a card to draw the parent's data from, and no
+// word of a Drive.
+func TestAProgressKeptInMemorySaysNowhere(t *testing.T) {
+	t.Parallel()
+
+	_, session := lesson(t, keptWith(t, "olya"))
+	result := call(t, session, "get_progress", nil)
+	if raw := rawPayload(t, result); bytes.Contains(raw, []byte(`"location"`)) {
+		t.Errorf("the payload is %s, want no location in it", raw)
+	}
+	if text := textOf(t, result); strings.Contains(text, "Google Drive") {
+		t.Errorf("the words are %q, want nothing of a Drive", text)
 	}
 }
 
@@ -489,8 +563,8 @@ func TestTheProgressOfMasha(t *testing.T) {
 	}
 	mastered := false
 	for _, topic := range progressed.Topics {
-		if topic.Rating != nil {
-			t.Errorf("%s has a rating during the trial series", topic.Topic)
+		if topic.Rating != nil || !topic.standsTogether() {
+			t.Errorf("%s stands at %+v during the trial series, want nowhere", topic.Topic, topic)
 		}
 		mastered = mastered || topic.Topic == "logic.knights_liars" && topic.Mastered
 	}
@@ -502,16 +576,21 @@ func TestTheProgressOfMasha(t *testing.T) {
 	}
 }
 
-// A child who has answered nothing yet has nothing to show but the trial
-// series ahead.
+// A child who has answered nothing yet has the trial series ahead, and the
+// topics the rule could set first, none of them met and none with a rank.
 func TestTheProgressOfSasha(t *testing.T) {
 	t.Parallel()
 
 	_, session := lesson(t, keptWith(t, "sasha"))
 	progressed := payloadOf[progressPayload](t, call(t, session, "get_progress", nil))
-	if progressed.Trial == nil || progressed.Trial.Answered != 0 || len(progressed.Topics) != 0 ||
-		len(progressed.Recent) != 0 || progressed.LastAnswer != nil {
-		t.Errorf("progress = %+v, want the trial series not begun and nothing to show", progressed)
+	if progressed.Trial == nil || progressed.Trial.Answered != 0 || len(progressed.Topics) == 0 ||
+		len(progressed.Recent) != 0 || progressed.Skipped != 0 || progressed.LastAnswer != nil {
+		t.Errorf("progress = %+v, want the trial series not begun and the topics within reach", progressed)
+	}
+	for _, topic := range progressed.Topics {
+		if topic.Answers != 0 || topic.Skipped != 0 || topic.Rating != nil || !topic.standsTogether() {
+			t.Errorf("topic %+v, want one within reach, not met yet and with no rank", topic)
+		}
 	}
 }
 
@@ -554,7 +633,7 @@ func TestTheWordsForTheModelSayWhatTheCardShows(t *testing.T) {
 			tag := "pt-BR"
 			p.Student.UILanguage = &tag
 		}), "get_profile",
-			[]string{"was wrong", "to go over it again after a mistake", "The cards are in pt-BR."}},
+			[]string{"was wrong", "to go over it again after a mistake", "The lessons are in pt-BR: the tasks, the cards and your words."}},
 		{"a topic the catalog no longer has", keptAs(t, "masha", func(p *profile.Profile) {
 			p.Recent[len(p.Recent)-1].Topic = "clocks.sundials"
 		}), "get_progress",
@@ -568,6 +647,22 @@ func TestTheWordsForTheModelSayWhatTheCardShows(t *testing.T) {
 			p.Student.ExcludedSkills = []string{"long_division_by_hand"}
 		}), "get_profile",
 			[]string{"Left out of the tasks: long_division_by_hand."}},
+		{"the overall rank and how far through it", keptWith(t, "olya"), "get_progress",
+			[]string{"Overall rating 1486, rank 2 of 11, 91% of the way to rank 3."}},
+		{"the highest rank", keptAs(t, "petya", func(p *profile.Profile) {
+			p.Ratings.Theta = 9
+		}), "get_progress",
+			[]string{"rank 11 of 11, the highest."}},
+		{"a topic's rank beside the overall one", keptAs(t, "petya", func(p *profile.Profile) {
+			for id, delta := range map[string]float64{"arithmetic.tricks": 1, "combinatorics.enumeration": -1} {
+				kept := p.Topics[id]
+				kept.Delta = delta
+				p.Topics[id] = kept
+			}
+		}), "get_progress",
+			[]string{"rating 2159, rank 6, ahead of the overall rank", "rating 1811, rank 4, behind the overall rank"}},
+		{"the topics within reach not met yet", keptWith(t, "sasha"), "get_progress",
+			[]string{"No topic has been answered yet. Not met yet, and within reach now: Ordering, Knights and liars,"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()

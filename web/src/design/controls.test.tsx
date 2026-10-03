@@ -8,7 +8,6 @@ import {
 	OptionList,
 	OptionRow,
 	type OptionState,
-	ReplyField,
 } from "./controls";
 
 const root = document.createElement("div");
@@ -194,120 +193,6 @@ describe("a button", () => {
 		pressed(root.querySelector("button"));
 
 		expect(done).toHaveBeenCalledOnce();
-	});
-});
-
-describe("the question field", () => {
-	function field(
-		value: string,
-		{
-			onInput = vi.fn(),
-			onSend = vi.fn(),
-			disabled = false,
-		}: {
-			onInput?: (value: string) => void;
-			onSend?: (words: string) => void;
-			disabled?: boolean;
-		} = {},
-	) {
-		draw(
-			<ReplyField
-				value={value}
-				placeholder="Ask a question about the task…"
-				label="Ask a question about the task"
-				sendLabel="Send"
-				disabled={disabled}
-				onInput={onInput}
-				onSend={onSend}
-			/>,
-		);
-		const input = root.querySelector("input");
-		const send = root.querySelector<HTMLButtonElement>("button");
-		if (input === null || send === null) {
-			throw new Error("the field is not drawn");
-		}
-		return { input, send };
-	}
-
-	test("hands on each word typed", () => {
-		const typed = vi.fn();
-		const { input } = field("", { onInput: typed });
-
-		act(() => {
-			input.value = "why";
-			input.dispatchEvent(new Event("input", { bubbles: true }));
-		});
-
-		expect(typed).toHaveBeenCalledWith("why");
-	});
-
-	test("sends its words trimmed, with the button or with Enter", () => {
-		const sent = vi.fn();
-		const { input, send } = field("  why isn't it 6? ", { onSend: sent });
-
-		pressed(send);
-		act(() => {
-			input.dispatchEvent(
-				new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
-			);
-		});
-
-		expect(sent.mock.calls).toEqual([["why isn't it 6?"], ["why isn't it 6?"]]);
-	});
-
-	test("sends nothing on an Enter that only closes a word being composed", () => {
-		const sent = vi.fn();
-		const { input } = field("为什么", { onSend: sent });
-
-		act(() => {
-			input.dispatchEvent(
-				new KeyboardEvent("keydown", {
-					key: "Enter",
-					isComposing: true,
-					bubbles: true,
-				}),
-			);
-		});
-
-		expect(sent).not.toHaveBeenCalled();
-	});
-
-	test("sends nothing blank", () => {
-		const sent = vi.fn();
-		const { input, send } = field("   ", { onSend: sent });
-
-		act(() => {
-			input.dispatchEvent(
-				new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
-			);
-		});
-
-		expect(send.disabled).toBe(true);
-		expect(sent).not.toHaveBeenCalled();
-	});
-
-	test("sends nothing while it is disabled", () => {
-		const sent = vi.fn();
-		const { input, send } = field("why", { onSend: sent, disabled: true });
-
-		act(() => {
-			input.dispatchEvent(
-				new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
-			);
-		});
-
-		expect(input.disabled).toBe(true);
-		expect(send.disabled).toBe(true);
-		expect(sent).not.toHaveBeenCalled();
-	});
-
-	test("is named for a screen reader and its button too", () => {
-		const { input, send } = field("");
-
-		const label = root.querySelector("label");
-		expect(label?.getAttribute("for")).toBe(input.id);
-		expect(label?.textContent).toBe("Ask a question about the task");
-		expect(send.getAttribute("aria-label")).toBe("Send");
 	});
 });
 

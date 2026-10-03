@@ -1,5 +1,4 @@
 import type { ComponentChildren, Ref } from "preact";
-import { useId } from "preact/hooks";
 import { classes } from "./classes";
 import { Icon, type IconName } from "./icons";
 
@@ -171,69 +170,6 @@ export function OptionList<L extends string>({
 				))}
 			</div>
 		</fieldset>
-	);
-}
-
-/**
- * ReplyField is the one-line field a question is typed into, with its send
- * button. Its text is held by whoever draws it, so that the words typed
- * survive the field being taken off the page and put back. Enter sends, unless
- * it only closes a word being composed, as it does in the input methods of
- * Chinese and Japanese; blank text is never sent.
- */
-export function ReplyField({
-	value,
-	placeholder,
-	label,
-	sendLabel,
-	disabled = false,
-	onInput,
-	onSend,
-}: {
-	value: string;
-	placeholder: string;
-	label: string;
-	sendLabel: string;
-	disabled?: boolean;
-	onInput: (value: string) => void;
-	onSend: (words: string) => void;
-}) {
-	const id = useId();
-	const words = value.trim();
-	const send = () => {
-		if (!disabled && words !== "") {
-			onSend(words);
-		}
-	};
-	return (
-		<div class="mt-field" data-disabled={disabled ? "true" : undefined}>
-			<label for={id} class="mt-vh">
-				{label}
-			</label>
-			<input
-				id={id}
-				type="text"
-				placeholder={placeholder}
-				disabled={disabled}
-				value={value}
-				onInput={(event) => onInput(event.currentTarget.value)}
-				onKeyDown={(event) => {
-					if (event.key === "Enter" && !event.isComposing) {
-						event.preventDefault();
-						send();
-					}
-				}}
-			/>
-			<button
-				type="button"
-				class="mt-icon-btn"
-				aria-label={sendLabel}
-				disabled={disabled || words === ""}
-				onClick={send}
-			>
-				<Icon name="send" size={18} className="mt-send" />
-			</button>
-		</div>
 	);
 }
 

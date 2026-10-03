@@ -1,3 +1,4 @@
+import { byCodeUnits } from "./order";
 import { type Dictionary, placeholder, type Wording } from "./words";
 
 // textsOf are the texts a wording says: its one, or one per plural category.
@@ -12,7 +13,7 @@ function slotsOf(wording: Wording): string[] {
 			? [...text.matchAll(placeholder)].flatMap(([, name]) => name ?? [])
 			: [],
 	);
-	return [...new Set(names)].sort();
+	return [...new Set(names)].sort(byCodeUnits);
 }
 
 // strayBraces says whether a text has a brace that is not part of a
@@ -46,54 +47,58 @@ export function disagreements(
 	words: Dictionary,
 	tag: string,
 ): string[] {
-	const found = Object.keys(english)
-		.filter((key) => !Object.hasOwn(words, key))
-		.map((key) => `${key} is missing`);
 	const counted = [
 		...new Intl.PluralRules(tag).resolvedOptions().pluralCategories,
-	].sort();
-	for (const [key, wording] of Object.entries(words)) {
-		const reference = english[key];
-		if (reference === undefined) {
-			found.push(`${key} is not among the English words`);
-			continue;
-		}
-		if (slotsOf(wording).join() !== slotsOf(reference).join()) {
+	].sort(byCodeUnits);
+	const missing = Object.keys(english)
+		.filter((key) => !Object.hasOwn(words, key))
+		.map((key) => `${key} is missing`);
+	return [
+		...missing,
+		...Object.entries(words).flatMap(([key, wording]) => {
+			const reference = english[key];
+			return reference === undefined
+				? [`${key} is not among the English words`]
+				: wordingDisagreements(key, wording, reference, tag, counted);
+		}),
+	];
+}
+
+// wordingDisagreements are the ways the wording of key says other things than
+// the English reference does, in the language tagged tag, which counts in the
+// plural categories counted.
+function wordingDisagreements(
+	key: string,
+	wording: Wording,
+	reference: Wording,
+	tag: string,
+	counted: readonly string[],
+): string[] {
+	const found: string[] = [];
+	const texts = textsOf(wording);
+	if (slotsOf(wording).join() !== slotsOf(reference).join()) {
+		found.push(
+			`${key} names the slots [${slotsOf(wording)}], the English [${slotsOf(reference)}]`,
+		);
+	}
+	if ((typeof wording === "string") !== (typeof reference === "string")) {
+		found.push(`${key} changes with a number in one language only`);
+	}
+	if (texts.some((text) => typeof text !== "string" || text.trim() === "")) {
+		found.push(`${key} has a text that is empty or no text`);
+	}
+	if (texts.some((text) => typeof text === "string" && strayBraces(text))) {
+		found.push(`${key} has a brace that is no placeholder`);
+	}
+	if (texts.some((text) => typeof text === "string" && hiddenMark(text))) {
+		found.push(`${key} has a mark a reader cannot see`);
+	}
+	if (typeof wording !== "string") {
+		const named = Object.keys(wording).sort(byCodeUnits);
+		if (named.join() !== counted.join()) {
 			found.push(
-				`${key} names the slots [${slotsOf(wording)}], the English [${slotsOf(reference)}]`,
+				`${key} is written for [${named}], ${tag} counts in [${counted}]`,
 			);
-		}
-		if ((typeof wording === "string") !== (typeof reference === "string")) {
-			found.push(`${key} changes with a number in one language only`);
-		}
-		if (
-			textsOf(wording).some(
-				(text) => typeof text !== "string" || text.trim() === "",
-			)
-		) {
-			found.push(`${key} has a text that is empty or no text`);
-		}
-		if (
-			textsOf(wording).some(
-				(text) => typeof text === "string" && strayBraces(text),
-			)
-		) {
-			found.push(`${key} has a brace that is no placeholder`);
-		}
-		if (
-			textsOf(wording).some(
-				(text) => typeof text === "string" && hiddenMark(text),
-			)
-		) {
-			found.push(`${key} has a mark a reader cannot see`);
-		}
-		if (typeof wording !== "string") {
-			const named = Object.keys(wording).sort();
-			if (named.join() !== counted.join()) {
-				found.push(
-					`${key} is written for [${named}], ${tag} counts in [${counted}]`,
-				);
-			}
 		}
 	}
 	return found;

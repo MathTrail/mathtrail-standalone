@@ -28,6 +28,35 @@ func fields(problems []profile.Problem) []string {
 	return names
 }
 
+// A lesson is held in the language the parent chose, whatever the chat is in,
+// and in the chat's when the parent chose none — or when the file, edited by
+// hand, holds something that names no language.
+func TestALessonIsHeldInTheParentsLanguageOrElseTheChats(t *testing.T) {
+	t.Parallel()
+
+	for _, c := range []struct {
+		name   string
+		chosen *string
+		want   string
+	}{
+		{name: "chosen", chosen: text("en"), want: "en"},
+		{name: "chosen as a person types it", chosen: text(" pt-br "), want: "pt-BR"},
+		{name: "none chosen", chosen: nil, want: "ru"},
+		{name: "chosen empty", chosen: text(""), want: "ru"},
+		{name: "typed into the file as words", chosen: text("Russian please"), want: "ru"},
+		{name: "a tag that names no language", chosen: text("und"), want: "ru"},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
+			student := profile.Student{UILanguage: c.chosen}
+			if got := student.LessonLanguage("ru"); got != c.want {
+				t.Errorf("LessonLanguage(%q) = %q, want %q", "ru", got, c.want)
+			}
+		})
+	}
+}
+
 // Every field is taken as the parent meant it: what nobody can see is
 // dropped, a line break reads as a space, and a list given twice the same
 // entry keeps it once.

@@ -69,23 +69,59 @@ func newTraceExporter(ctx context.Context, settings *Settings, client *http.Clie
 	return exporter, nil
 }
 
-// newMetricReader collects the measurements and posts them to the collector on
-// its own clock. Something else has to wake it where a process loses its
-// processor between requests, and that is what an asked-for delivery is for.
-func newMetricReader(ctx context.Context, settings *Settings, client *http.Client, endpoint string) (sdkmetric.Reader, error) {
+// newMetricDelivery is how the measurements reach the collector.
+func newMetricDelivery(ctx context.Context, settings *Settings, client *http.Client, endpoint string) (*delivery, error) {
 	exporter, err := otlpmetrichttp.New(ctx,
 		otlpmetrichttp.WithEndpointURL(endpoint),
 		otlpmetrichttp.WithHTTPClient(client),
 		otlpmetrichttp.WithHeaders(map[string]string{quotaProjectHeader: settings.ProjectID}),
-		otlpmetrichttp.WithTemporalitySelector(deltaTemporality),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("telemetry: metric exporter: %w", err)
 	}
-	return sdkmetric.NewPeriodicReader(exporter,
-		sdkmetric.WithInterval(MetricInterval),
-		sdkmetric.WithTimeout(exportTimeout),
-	), nil
+	return newDelivery(exporter), nil
+}
+
+// delivery reads the measurements and posts them when it is asked to, and
+// never on a clock of its own. A clock of its own would not know when a
+// request last delivered: after a quiet minute both would fall due on the
+// same request and post the same series seconds apart, and the collector
+// refuses a point that comes sooner than its sampling period allows. So the
+// only clock is the interval a request finds due, and the only other delivery
+// is the last one, when the process stops.
+type delivery struct {
+	reader   sdkmetric.Reader
+	exporter sdkmetric.Exporter
+}
+
+// newDelivery pairs the exporter with a reader that reads only when asked,
+// each reading carrying what changed since the one before.
+func newDelivery(exporter sdkmetric.Exporter) *delivery {
+	return &delivery{
+		reader:   sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(deltaTemporality)),
+		exporter: exporter,
+	}
+}
+
+// deliver reads what has been measured since the last reading and posts it,
+// and posts nothing when nothing has been: a request carrying nothing is a
+// round trip spent on nothing, and at a stop that is time taken from the
+// shutdown. A reading is empty only while every instrument reports changes
+// alone, as the counters and histograms here do; an up-down counter or an
+// observable instrument would report on every reading, and then every reading
+// is posted.
+func (d *delivery) deliver(ctx context.Context) error {
+	var measured metricdata.ResourceMetrics
+	if err := d.reader.Collect(ctx, &measured); err != nil {
+		return fmt.Errorf("read: %w", err)
+	}
+	if len(measured.ScopeMetrics) == 0 {
+		return nil
+	}
+	if err := d.exporter.Export(ctx, &measured); err != nil {
+		return fmt.Errorf("post: %w", err)
+	}
+	return nil
 }
 
 // endpoints are the two addresses the signals are posted to, each under the

@@ -118,23 +118,19 @@ export function MessageHeader({
 }
 
 /**
- * ReplyCard is a reply below the task — MathTrail's result, or the child's
- * question — under a compact header.
+ * ReplyCard is MathTrail's reply below the task — the result of an answer, or
+ * why there is none — under a compact header.
  */
 export function ReplyCard({
-	author,
 	name,
-	meta,
 	children,
 }: {
-	author: "app" | "person";
 	name: string;
-	meta?: string;
 	children: ComponentChildren;
 }) {
 	return (
 		<article class="mt-reply">
-			<MessageHeader author={author} name={name} meta={meta} compact />
+			<MessageHeader author="app" name={name} compact />
 			<div class="mt-reply-body">{children}</div>
 		</article>
 	);

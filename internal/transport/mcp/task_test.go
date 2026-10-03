@@ -196,6 +196,7 @@ type handedInPayload struct {
 		Options  map[string]string `json:"options"`
 		Hint     string            `json:"hint"`
 	} `json:"task"`
+	Language string `json:"language"`
 }
 
 // packageIn is the package the words of next_task carry after their lead.
@@ -261,6 +262,33 @@ func wantRequestOpened(t *testing.T, asked *mcp.CallToolResult, kept store.Stora
 		t.Fatalf("the request is %+v, want the model's choice in English with no attempt spent", open)
 	}
 	return open
+}
+
+// The words around a task keep the model from giving it away: while the task
+// is written the child hears only that one is coming, and once the card shows
+// it — accepted, or handed in again after it was — the model adds nothing of
+// its own until the child answers or asks. A host may keep only the start of
+// the instructions, so the words that come with the task are where the rule is
+// sure to be read.
+func TestTheWordsAroundATaskKeepTheModelQuiet(t *testing.T) {
+	t.Parallel()
+
+	kept := racer(t)
+	_, session := lesson(t, kept)
+
+	asked := call(t, session, "next_task", raceChoice)
+	race := raceOn(wantRequestOpened(t, asked, kept))
+	again := call(t, session, "next_task", raceChoice)
+	for name, result := range map[string]*mcp.CallToolResult{"opening the request": asked, "asked again": again} {
+		if lead := leadOf(textOf(t, result)); !strings.Contains(lead, "tell the child only that one is on its way") {
+			t.Errorf("next_task %s says %q, want the child told only that a task is coming", name, lead)
+		}
+	}
+	for _, handedIn := range []string{"when accepted", "when handed in again"} {
+		if text := textOf(t, call(t, session, "submit_task", race)); !strings.Contains(text, "add nothing of your own about it") {
+			t.Errorf("submit_task %s says %q, want the model to add nothing about the task on the card", handedIn, text)
+		}
+	}
 }
 
 // wantOnTheCard holds what submit_task answered to the race on the child's card
@@ -825,10 +853,11 @@ func TestTheAnswerStaysSealed(t *testing.T) {
 	}
 }
 
-// A card is told the language the parent chose for the cards, the waiting card
-// a refusal draws as well as the task's, so that it speaks that language in
-// place of the chat's.
-func TestTheCardIsToldTheLanguageChosenForTheCards(t *testing.T) {
+// A lesson is held in the language the parent chose, whatever the chat is in:
+// the request is opened in it and the model is told to write the task in it,
+// the waiting card a refusal draws and the task's card speak it, and the same
+// ask in the chat's language again finds nothing to differ from.
+func TestALessonIsHeldInTheLanguageTheParentChose(t *testing.T) {
 	t.Parallel()
 
 	russian := "ru"
@@ -836,17 +865,131 @@ func TestTheCardIsToldTheLanguageChosenForTheCards(t *testing.T) {
 		Grade: 2, Pseudonym: "Otter", Interests: []string{"sport"}, UILanguage: &russian,
 	}, "test", lessonDay))
 	_, session := lesson(t, kept)
-	request := askForTheRace(t, session, kept)
+	first := leadOf(textOf(t, call(t, session, "next_task", raceChoice)))
+	p, _ := loadKept(t, kept)
+	request := p.OpenRequest
+	if request == nil || request.Language != russian {
+		t.Fatalf("the request is %+v, want it in the language the parent chose, %s, over the chat's", request, russian)
+	}
+	again := leadOf(textOf(t, call(t, session, "next_task", map[string]any{"language": "en"})))
+	if strings.Contains(again, "not applied") || !strings.Contains(again, "in "+russian+".") {
+		t.Errorf("the ask again in the chat's language says %q, want the request kept in %s with nothing set aside", again, russian)
+	}
+	for name, lead := range map[string]string{"opening the request": first, "asked again": again} {
+		if !strings.Contains(lead, "The parent chose "+russian+" for the lessons: talk to the child in it") {
+			t.Errorf("next_task %s says %q, want the model told the language the parent chose, and to talk in it", name, lead)
+		}
+	}
 
 	refused := payloadOf[handedInPayload](t, call(t, session, "submit_task", broken(request)))
 	handed := payloadOf[handedInPayload](t, call(t, session, "submit_task", raceOn(request)))
 	for _, card := range []handedInPayload{refused, handed} {
 		if card.Child == nil || card.Child.UILanguage == nil || *card.Child.UILanguage != russian {
-			t.Errorf("the %s card is for %+v, want the cards' language, %s", card.Screen, card.Child, russian)
+			t.Errorf("the %s card is for %+v, want the language the parent chose, %s", card.Screen, card.Child, russian)
 		}
 	}
-	if refused.Screen != "waiting" || handed.Screen != "task" {
-		t.Errorf("the cards are %q and %q, want a waiting card and then the task's", refused.Screen, handed.Screen)
+	if refused.Screen != "waiting" || refused.Language != russian {
+		t.Errorf("the refusal draws %q in %q, want a waiting card in %s", refused.Screen, refused.Language, russian)
+	}
+	if handed.Screen != "task" || handed.Task == nil || handed.Task.Language != russian || handed.Language != russian {
+		t.Errorf("the task's card is %q in %q with %+v, want the task and its card in %s", handed.Screen, handed.Language, handed.Task, russian)
+	}
+}
+
+// A task handed in for a request that is not the open one draws a card that
+// waits for the one that is, and speaks that request's language. A request
+// past its window is open no longer, and the card names no language of its
+// own: it falls back to the parent's choice, or the host's.
+func TestAStaleWaitingCardSpeaksTheOpenRequestsLanguage(t *testing.T) {
+	t.Parallel()
+
+	for _, c := range []struct {
+		name   string
+		waited time.Duration
+		speaks bool
+	}{
+		{name: "while the other request is open", waited: 0, speaks: true},
+		{name: "once it is past its window", waited: config.DefaultRequestWindow, speaks: false},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
+			kept, moving := racer(t), &clock{at: lessonDay}
+			_, session := lessonWith(t, kept, moving, nil)
+			request := askForTheRace(t, session, kept)
+			moving.advance(c.waited)
+			race := raceOn(request)
+			race["request_id"] = "req_another"
+
+			want := ""
+			if c.speaks {
+				want = request.Language
+			}
+			stale := payloadOf[handedInPayload](t, call(t, session, "submit_task", race))
+			if stale.Screen != "waiting" || stale.Status != "stale" || stale.Language != want {
+				t.Errorf("submit_task = %+v, want a stale waiting card in %q", stale, want)
+			}
+		})
+	}
+}
+
+// A language the parent chooses while a request is open changes nothing the
+// model asked for: the same ask again is not told its arguments were set
+// aside, and the request keeps the language it was opened in.
+func TestALanguageChosenWhileARequestIsOpenSetsNoArgumentAside(t *testing.T) {
+	t.Parallel()
+
+	kept := racer(t)
+	_, session := lesson(t, kept)
+	request := askForTheRace(t, session, kept)
+	saved := textOf(t, call(t, session, "save_profile", map[string]any{"ui_language": "ru"}))
+
+	again := leadOf(textOf(t, call(t, session, "next_task", map[string]any{"language": "en"})))
+	if strings.Contains(again, "not applied") || !strings.Contains(again, "Request "+request.ID+" is already open") {
+		t.Errorf("the same ask again says %q, want the request handed back with nothing set aside", again)
+	}
+	stays := "The task already asked for stays in en, and its card speaks it; the next one comes in ru."
+	for name, words := range map[string]string{"the saved profile": saved, "the ask again": again} {
+		if !strings.Contains(words, stays) {
+			t.Errorf("%s says %q, want the model told the task asked for keeps its language", name, words)
+		}
+	}
+}
+
+// A language typed into the file by hand that names no language is no choice:
+// the model is told the lessons follow the chat's, as the requests do, and the
+// words it reads never carry the text typed.
+func TestALanguageTypedIntoTheFileThatNamesNoneIsNoChoice(t *testing.T) {
+	t.Parallel()
+
+	typed := "Russian please"
+	kept := keptAsIs(t, profile.New(profile.Student{
+		Grade: 2, Pseudonym: "Otter", Interests: []string{"sport"}, UILanguage: &typed,
+	}, "test", lessonDay))
+	_, session := lesson(t, kept)
+
+	read := textOf(t, call(t, session, "get_profile", map[string]any{}))
+	if !strings.Contains(read, "The lessons follow the chat's language.") || strings.Contains(read, typed) {
+		t.Errorf("get_profile says %q, want the lessons following the chat's language and nothing of the text typed", read)
+	}
+	if request := askForTheRace(t, session, kept); request.Language != "en" {
+		t.Errorf("the request is in %q, want the chat's, en", request.Language)
+	}
+}
+
+// With no language chosen a lesson is held in the chat's, and the waiting card
+// a refusal draws speaks it too, where it would otherwise fall back to the
+// host's.
+func TestWithNoLanguageChosenALessonIsHeldInTheChats(t *testing.T) {
+	t.Parallel()
+
+	kept := racer(t)
+	_, session := lesson(t, kept)
+	request := askForTheRace(t, session, kept)
+
+	refused := payloadOf[handedInPayload](t, call(t, session, "submit_task", broken(request)))
+	if request.Language != "en" || refused.Language != "en" {
+		t.Errorf("the request is in %q and its refusal draws a card in %q, want both in the chat's, en", request.Language, refused.Language)
 	}
 }
 
@@ -919,7 +1062,9 @@ func TestTheReviewIsTracedUnderTheCall(t *testing.T) {
 }
 
 // With no profile there is no task to ask for or to hand in: both say so, show
-// the first sign-in and write nothing.
+// the first sign-in and write nothing. A lesson starts with next_task, so its
+// words are where the adult is first asked to say they are the child's parent
+// or tutor, before any detail of the child.
 func TestWithNoProfileThereIsNoTask(t *testing.T) {
 	t.Parallel()
 
@@ -932,6 +1077,9 @@ func TestWithNoProfileThereIsNoTask(t *testing.T) {
 	if !strings.HasPrefix(asked, "No task can be asked for yet. There is no profile yet.") || handed.Screen != "first_run" ||
 		handed.Code != "stale_request" {
 		t.Errorf("next_task says %q and submit_task = %+v, want both to point at the first sign-in", asked, handed)
+	}
+	if confirmed, pseudonym := strings.Index(asked, "parent or tutor"), strings.Index(asked, "ask for a pseudonym"); confirmed < 0 || pseudonym < confirmed {
+		t.Errorf("next_task says %q, want the adult asked to say they are the parent or tutor before the pseudonym", asked)
 	}
 	if _, _, err := kept.Load(t.Context(), devAccount); !errors.Is(err, store.ErrNotFound) {
 		t.Errorf("Load() error = %v, want still no profile", err)
@@ -1187,9 +1335,10 @@ func TestATaskHandedOutOverAnAnsweredOneSkipsNothing(t *testing.T) {
 	}
 }
 
-// The words of the progress name the latest answers and count the skips apart,
-// so that a run of skipped tasks never hides how the answers went.
-func TestTheProgressCountsTheSkipsApart(t *testing.T) {
+// The progress counts the tasks left without an answer once, in all, and its
+// words name the latest entries the card lists, a skip among them as skipped:
+// the words and the card say the same.
+func TestTheProgressCountsTheSkipsAsTheCardDoes(t *testing.T) {
 	t.Parallel()
 
 	kept := keptWith(t, "masha")
@@ -1200,16 +1349,25 @@ func TestTheProgressCountsTheSkipsApart(t *testing.T) {
 			TaskID: fmt.Sprintf("tsk_skipped_%d", i), Topic: "time.clocks",
 		})
 	}
+	clocks := p.Topics["time.clocks"]
+	clocks.Skipped += 6
+	p.Topics["time.clocks"] = clocks
 	p.Touch("test", lessonDay)
 	if _, err := kept.Save(t.Context(), devAccount, p, revision); err != nil {
 		t.Fatalf("Save() error = %v", err)
 	}
 	_, session := lesson(t, kept)
 
-	text := textOf(t, call(t, session, "get_progress", nil))
-	if !strings.Contains(text, "Latest answers, the latest first: Clocks wrong,") ||
-		!strings.Contains(text, "Of the last 9 tasks, 6 were left without an answer.") {
-		t.Errorf("the words are %q, want the answers named and the six skips counted apart", text)
+	result := call(t, session, "get_progress", nil)
+	if counted := payloadOf[progressPayload](t, result).Skipped; counted != 6 {
+		t.Errorf("skipped = %d, want the 6 tasks left without an answer", counted)
+	}
+	text := textOf(t, result)
+	if !strings.Contains(text, "The latest tasks, the latest first: Clocks skipped, Clocks skipped, "+
+		"Clocks skipped, Clocks skipped, Clocks skipped.") ||
+		!strings.Contains(text, "Tasks left without an answer in all: 6.") {
+		t.Errorf("the words are %q, want the five latest entries named as the card lists them and the six skips "+
+			"counted in all", text)
 	}
 }
 

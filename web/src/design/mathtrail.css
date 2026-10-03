@@ -253,61 +253,6 @@
 	color: var(--text-muted);
 }
 
-/* Reply field */
-.mt-field {
-	display: flex;
-	align-items: center;
-	height: 44px;
-	border: 1px solid var(--border-strong);
-	border-radius: var(--radius-control);
-	background: var(--surface);
-	padding-inline-start: 12px;
-}
-.mt-field:focus-within {
-	border-color: var(--accent);
-	box-shadow: 0 0 0 1px var(--accent);
-}
-.mt-field[data-disabled="true"] {
-	opacity: 0.5;
-}
-.mt-field input {
-	flex-grow: 1;
-	min-width: 0;
-	height: 40px;
-	padding: 0;
-	border: 0;
-	background: transparent;
-	font-size: 15px;
-	color: var(--text);
-	outline: none;
-}
-.mt-field input::placeholder {
-	color: var(--text-muted);
-	opacity: 1;
-}
-.mt-icon-btn {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 44px;
-	height: 42px;
-	flex-shrink: 0;
-	padding: 0;
-	border: 0;
-	border-radius: var(--radius-control);
-	background: transparent;
-	color: var(--text-muted);
-	cursor: pointer;
-}
-.mt-icon-btn:disabled {
-	cursor: default;
-}
-@media (hover: hover) {
-	.mt-icon-btn:hover:not(:disabled) {
-		background: var(--hover);
-	}
-}
-
 /* Thread bar. A long pseudonym gives way to the way to the progress, ending
    in an ellipsis. */
 .mt-bar {
@@ -358,8 +303,7 @@
 	color: var(--text-muted);
 }
 /* An arrow that points the way a line reads turns round with it. */
-[dir="rtl"] .mt-chevron,
-[dir="rtl"] .mt-send {
+[dir="rtl"] .mt-chevron {
 	transform: scaleX(-1);
 }
 
@@ -647,25 +591,26 @@
 	color: var(--text);
 	overflow-wrap: break-word;
 }
-.mt-reply-body > p.mt-reply-lead {
-	font-size: 16px;
-	line-height: 24px;
-}
 
 /* Footer */
 .mt-foot {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
 	padding: 12px;
 	border-block-start: 1px solid var(--border);
+}
+/* A note under the buttons is on the page before it says anything, and takes
+   no room while empty. */
+.mt-foot > * + *:not(:empty) {
+	margin-block-start: 8px;
 }
 .mt-wide .mt-foot {
 	padding: 16px;
 }
 
-/* Progress: the rating with the rank above it, lists of topics and answers,
-   and the profile's fields. */
+/* Progress: the rank reached and how far through it, the topics each with a
+   rank of its own, the lists of answers and mistakes, and the profile's
+   fields. */
 .mt-progress {
 	display: flex;
 	flex-direction: column;
@@ -675,44 +620,73 @@
 .mt-wide .mt-progress {
 	padding: 20px;
 }
-.mt-rating {
+.mt-rank {
 	display: flex;
 	flex-direction: column;
-	gap: 6px;
+	gap: 10px;
 }
-.mt-rating-rank {
-	font-size: 13px;
-	line-height: 18px;
-	font-weight: 600;
-	color: var(--text-muted);
-	overflow-wrap: break-word;
-}
-.mt-rating-line {
+.mt-rank-head {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: baseline;
-	column-gap: 8px;
+	column-gap: 10px;
 }
-.mt-rating-num {
+.mt-rank-name {
 	font-size: 32px;
 	line-height: 38px;
-	font-weight: 600;
+	font-weight: 700;
 	color: var(--text);
-	font-variant-numeric: tabular-nums;
+	overflow-wrap: break-word;
+	min-width: 0;
 }
-.mt-pips {
+.mt-rank-line {
+	margin: 0;
+	font-size: 15px;
+	line-height: 22px;
+	color: var(--text-muted);
+}
+/* A course of equal steps, each filled as far as it has come: in plain ink,
+   or, for a topic's rank, in the step of the ramp its rank stands at. */
+.mt-segments {
 	display: flex;
 	gap: 4px;
-	padding-block-start: 2px;
 }
-.mt-pip {
-	flex-grow: 1;
+.mt-segment {
+	display: block;
+	flex: 1 1 0;
+	min-width: 0;
 	height: 6px;
-	border-radius: 3px;
-	background: var(--border);
 }
-.mt-pip[data-on="true"] {
-	background: var(--ink-strong);
+.mt-segment-track {
+	fill: var(--border);
+}
+.mt-segment-fill {
+	fill: var(--ink-strong);
+}
+.mt-segments[data-tone="1"] .mt-segment-fill {
+	fill: var(--ramp-1);
+}
+.mt-segments[data-tone="2"] .mt-segment-fill {
+	fill: var(--ramp-2);
+}
+.mt-segments[data-tone="3"] .mt-segment-fill {
+	fill: var(--ramp-3);
+}
+.mt-segments[data-tone="4"] .mt-segment-fill {
+	fill: var(--ramp-4);
+}
+.mt-segments[data-tone="5"] .mt-segment-fill {
+	fill: var(--ramp-5);
+}
+/* A step nothing has been measured in yet is drawn open. */
+.mt-segment-open {
+	box-sizing: border-box;
+	border: 1px dashed var(--border-strong);
+	border-radius: 3px;
+}
+/* A course fills from where its line starts to read. */
+[dir="rtl"] .mt-segment {
+	transform: scaleX(-1);
 }
 .mt-list {
 	display: flex;
@@ -725,6 +699,53 @@
 	padding: 0;
 	display: flex;
 	flex-direction: column;
+}
+.mt-list-lead {
+	margin: 0;
+	font-size: 13px;
+	line-height: 18px;
+	color: var(--text-muted);
+}
+/* A topic's line: its name, and how its rank stands with the rank's name at
+   the far end — on a line of their own when the two do not fit — and its
+   course under them. */
+.mt-rank-row {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding-block: 10px;
+}
+.mt-rank-row-top {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	column-gap: 12px;
+	row-gap: 2px;
+}
+.mt-rank-row-start {
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	column-gap: 8px;
+	min-width: 0;
+}
+.mt-rank-row-end {
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	column-gap: 6px;
+	margin-inline-start: auto;
+}
+.mt-rank-word {
+	font-size: 13px;
+	line-height: 18px;
+	color: var(--text-muted);
+}
+.mt-rank-row-name {
+	font-size: 15px;
+	line-height: 22px;
+	font-weight: 600;
+	color: var(--text);
 }
 .mt-row {
 	display: flex;
@@ -747,13 +768,6 @@
 .mt-row-spacer {
 	flex-grow: 1;
 }
-.mt-row-value {
-	font-size: 15px;
-	line-height: 22px;
-	font-weight: 600;
-	color: var(--text);
-	font-variant-numeric: tabular-nums;
-}
 .mt-list-note {
 	margin: 0;
 	padding-block-start: 6px;
@@ -761,35 +775,31 @@
 	line-height: 18px;
 	color: var(--text-muted);
 }
-.mt-row-bar {
-	flex-direction: column;
-	align-items: stretch;
-	gap: 6px;
-	min-height: 0;
-}
-.mt-row-bar-top {
-	display: flex;
-	align-items: baseline;
-	gap: 10px;
-}
 .mt-row-count {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
 	font-size: 13px;
 	line-height: 18px;
 	color: var(--text-muted);
 	white-space: nowrap;
 }
-.mt-bar-chart {
-	display: block;
+.mt-dots {
+	display: inline-flex;
+	gap: 4px;
 }
-.mt-bar-track {
-	fill: var(--border);
+.mt-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: var(--radius-round);
+	background: var(--wrong);
 }
-.mt-bar-fill {
-	fill: var(--ink-strong);
-}
-/* A bar grows from where its line starts to read. */
-[dir="rtl"] .mt-bar-chart {
-	transform: scaleX(-1);
+/* A list set apart, in a frame of its own. */
+.mt-list-framed ul {
+	padding-inline: 12px;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-card);
 }
 .mt-status {
 	display: inline-flex;
@@ -810,45 +820,91 @@
 .mt-status-skipped {
 	color: var(--text-muted);
 }
+/* A group of a profile's fields, in a frame: its label at the head with what
+   can be done beside it, and each field on a line of its own — named at its
+   start and told beside the name where the two fit, under it where they do
+   not. */
 .mt-fields {
 	display: flex;
 	flex-direction: column;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-card);
+}
+.mt-fields-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
 	gap: 8px;
+	padding: 12px;
+	border-block-end: 1px solid var(--border);
+}
+/* The button at the head keeps a finger's height, and wraps its words rather
+   than run out of a narrow card. */
+.mt-fields-head .mt-btn {
+	height: auto;
+	min-height: var(--tap-target);
+	max-width: 100%;
+	white-space: normal;
+}
+.mt-fields > .mt-action-note:not(:empty) {
+	padding: 8px 12px 0;
 }
 .mt-fields dl {
 	margin: 0;
 	display: flex;
 	flex-direction: column;
-	gap: 10px;
 }
 .mt-fields dl > div {
 	display: flex;
-	flex-direction: column;
-	gap: 2px;
+	flex-wrap: wrap;
+	column-gap: 16px;
+	row-gap: 4px;
+	padding: 12px;
+	border-block-end: 1px solid var(--border);
+}
+.mt-fields dl > div:last-child {
+	border-block-end: 0;
 }
 .mt-fields dt {
+	flex: 1 1 120px;
+	min-width: 0;
 	font-size: 13px;
-	line-height: 18px;
+	line-height: 22px;
 	color: var(--text-muted);
+	overflow-wrap: break-word;
 }
 .mt-fields dd {
+	flex: 3 1 180px;
+	min-width: 0;
 	margin: 0;
 	font-size: 15px;
 	line-height: 22px;
 	color: var(--text);
 	overflow-wrap: break-word;
 }
-.mt-fields dd.mt-field-note {
+.mt-field-note {
+	margin: 2px 0 0;
 	font-size: 13px;
 	line-height: 18px;
 	color: var(--text-muted);
 }
-.mt-fields-actions {
+.mt-chips {
+	list-style: none;
+	margin: 0;
+	padding: 0;
 	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
+	flex-wrap: wrap;
 	gap: 6px;
-	padding-block-start: 4px;
+}
+.mt-chip {
+	max-width: 100%;
+	padding: 2px 10px;
+	border: 1px solid var(--border-strong);
+	border-radius: var(--radius-pill);
+	font-size: 14px;
+	line-height: 20px;
+	overflow-wrap: anywhere;
 }
 /* What became of something asked of the chat: said under the button that
    asked, from a place on the page before there is anything to say. */
@@ -936,20 +992,15 @@
 .mt-gen li[data-status="active"] .mt-gen-label {
 	font-weight: 600;
 }
-/* What a card says while it waits, and when no task is coming: the course, a
-   warm-up under it, or the word that replaces both. The place they come into
-   is on the page before anything is in it, and takes no room while empty. */
+/* What a card says while it waits, and when no task is coming: the course,
+   or the word that replaces it. The place they come into is on the page
+   before anything is in it, and takes no room while empty. */
 .mt-wait {
 	display: flex;
 	flex-direction: column;
 }
 .mt-wait > * + *:not(:empty) {
 	margin-block-start: 16px;
-}
-.mt-warmup {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
 }
 
 /* Right to left: scripts written that way sit taller on their lines. */

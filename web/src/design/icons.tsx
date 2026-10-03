@@ -5,7 +5,6 @@ import { classes } from "./classes";
 const lines = {
 	"chevron-right": { d: "M6 4l4 4-4 4", width: 1.75 },
 	"chevron-left": { d: "M10 4l-4 4 4 4", width: 1.75 },
-	send: { d: "M3 8h9.5M8.5 4l4 4-4 4", width: 1.75 },
 	check: { d: "M3.5 8.5l3 3 6-7", width: 2 },
 	cross: { d: "M4.5 4.5l7 7M11.5 4.5l-7 7", width: 2 },
 	dash: { d: "M4.5 8h7", width: 2 },

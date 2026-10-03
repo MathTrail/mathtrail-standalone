@@ -8,6 +8,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/progress"
+	"github.com/MathTrail/mathtrail-standalone/internal/store"
 )
 
 // The screens a card can show, as a payload names them. The widget never
@@ -120,6 +121,35 @@ func recommendationOf(next *progress.Recommendation) *recommendationOut {
 	}
 }
 
+// locationOut is where the adult finds the child's profile for themselves:
+// the file is the export, and there is no other. Files beside it that hold a
+// profile too are named, for the adult to look at and delete.
+type locationOut struct {
+	Folder string         `json:"folder"`
+	File   string         `json:"file"`
+	Link   string         `json:"link"`
+	Others []elsewhereOut `json:"others"`
+}
+
+// elsewhereOut is another file that holds a profile.
+type elsewhereOut struct {
+	File string `json:"file"`
+	Link string `json:"link"`
+}
+
+// locationOf is where the profile is, as the payload carries it, or nothing
+// when it is kept nowhere a person could open it.
+func locationOf(location *store.Location) *locationOut {
+	if location.File == "" {
+		return nil
+	}
+	out := &locationOut{Folder: location.Folder, File: location.File, Link: location.Link, Others: []elsewhereOut{}}
+	for _, other := range location.Others {
+		out.Others = append(out.Others, elsewhereOut(other))
+	}
+	return out
+}
+
 // moment is a moment as a payload writes it: RFC 3339, in UTC.
 func moment(t profile.Time) string { return t.UTC().Format(time.RFC3339) }
 
@@ -149,14 +179,96 @@ func quotedEach(texts []string) []string {
 	return quotes
 }
 
+// locationText is where the profile is, in words: the file is the export.
+func locationText(location *store.Location) string {
+	if location.File == "" {
+		return ""
+	}
+	where := "as the file " + quoted(location.File)
+	if location.Folder != "" {
+		where += " in the folder " + quoted(location.Folder)
+	}
+	text := fmt.Sprintf("The profile is kept in the adult's Google Drive %s: %s. That file is the export: "+
+		"the adult can open, download or copy it like any other file.", where, location.Link)
+	if len(location.Others) == 0 {
+		return text
+	}
+	others := make([]string, 0, len(location.Others))
+	for _, other := range location.Others {
+		others = append(others, quoted(other.File)+" ("+other.Link+")")
+	}
+	return text + " Other files in the adult's Drive hold a profile too: " + strings.Join(others, ", ") +
+		". MathTrail reads and writes only the newest, the one above, and never merges them; " +
+		"the adult can delete the others."
+}
+
 // firstRunText is what the model is told when there is no profile. The
 // service keeps nothing of its own, so it cannot tell a first sign-in from a
 // profile deleted for good or kept in another Google account, and says all
-// three.
+// three. A lesson starts with next_task, which draws no card, so for a new
+// adult these words come before any card does: they are where the adult is
+// asked to say they are the child's parent or tutor — unless a card's tick has
+// had them say it — and told where the profile lives, before any detail of the
+// child is asked for.
 const firstRunText = "There is no profile yet. If the adult made one before, it has been deleted for good, " +
-	"or they signed in with another Google account. Ask the adult for a pseudonym — never the child's real name — " +
-	"and the school grade from 1 to 6. Interests, skills the child has not met at school yet, " +
-	"notes about the child and the language of the cards are optional. Then create the profile with save_profile."
+	"or they signed in with another Google account. First ask the adult to say they are the child's parent or " +
+	"tutor, unless they have said so already, and tell them the profile is one file in their own Google Drive, " +
+	"with the child known by a pseudonym alone. Then ask for a pseudonym — never the child's real name, birth date, age " +
+	"or school — and the school grade from 1 to 6. Interests, skills the child has not met at school yet, notes " +
+	"about the child and the language of the lessons are optional. Then create the profile with save_profile."
+
+// addNothing is what the model may say about a task the card shows: nothing,
+// until the child answers or asks. A word about why the task came, or about
+// the way to solve it, gives the task away; and a host may keep only the start
+// of the instructions, so the words that come with the task are where the rule
+// is sure to be read.
+const addNothing = "add nothing of your own about it — not its topic, not why it came, not how to solve it — " +
+	"until the child answers or asks."
+
+// forYouAlone is what the model may tell the child while it writes a task: that
+// one is on its way, and nothing of what it was handed to write it from.
+const forYouAlone = "Until the task is accepted, tell the child only that one is on its way: the package, and " +
+	"what these words say of past answers, are for you alone."
+
+// aboutTheStep keeps an explanation from showing whether the child is a boy or
+// a girl, which nothing tells the service: in a language with grammatical
+// gender, a past-tense sentence about what the child did shows it, and praise
+// of the step in the present tense does not.
+const aboutTheStep = "In a language with grammatical gender, word it so it does not show whether the child is a " +
+	"boy or a girl: praise the step, not the child, and keep to the present tense."
+
+// lessonLanguageText tells the model the language the parent chose for the
+// lessons, when they chose one: a lesson starts with next_task, so the model
+// may not have read the profile, and it talks to the child in that language as
+// well as writing the tasks in it.
+func lessonLanguageText(student *profile.Student) string {
+	chosen, ok := student.ChosenLanguage()
+	if !ok {
+		return ""
+	}
+	return fmt.Sprintf("The parent chose %s for the lessons: talk to the child in it, and every task is written in it.", chosen)
+}
+
+// stillInText says that the task already asked for keeps the language it was
+// asked in, when the parent has chosen another since: its card speaks that
+// one, and the language chosen starts with the next task.
+func stillInText(p *profile.Profile) string {
+	chosen, ok := p.Student.ChosenLanguage()
+	if !ok {
+		return ""
+	}
+	var asked string
+	switch task := p.InFlight(); {
+	case task != nil:
+		asked = task.Language
+	case p.OpenRequest != nil:
+		asked = p.OpenRequest.Language
+	}
+	if asked == "" || asked == chosen {
+		return ""
+	}
+	return fmt.Sprintf("The task already asked for stays in %s, and its card speaks it; the next one comes in %s.", asked, chosen)
+}
 
 // topicName is what the catalog calls a topic, or its id when the catalog no
 // longer has it.

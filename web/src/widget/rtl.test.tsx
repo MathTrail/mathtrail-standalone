@@ -1,7 +1,13 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { type Drawn, drawCard, press, takeDown } from "./testing/card";
-import type { ToolCall } from "./testing/host";
+import {
+	type Drawn,
+	drawCard,
+	openCard,
+	press,
+	takeDown,
+} from "./testing/card";
+import { type ToolCall, toolInfoOf } from "./testing/host";
 import {
 	answered,
 	fence,
@@ -10,6 +16,7 @@ import {
 	firstRun,
 	profileRead,
 	progress,
+	refused,
 	standing,
 } from "./testing/lesson";
 
@@ -55,16 +62,6 @@ function markupOf(root: HTMLElement): Element {
 	return card;
 }
 
-// pressed presses the button of the card's row of buttons at place: 0 "I
-// don't know", 1 the hint, 2 another task.
-function pressed(root: HTMLElement, place: number): void {
-	const found = root.querySelectorAll<HTMLElement>(".mt-btns .mt-btn")[place];
-	if (found === undefined) {
-		throw new Error(`the card has no button at ${place}`);
-	}
-	press(found);
-}
-
 describe("a card in a language written right to left", () => {
 	test.each([
 		["ar-EG", "ar"],
@@ -98,7 +95,7 @@ describe("a card in a language written right to left", () => {
 	});
 });
 
-// The markup of six screens in Arabic, against the snapshots the review last
+// The markup of seven screens in Arabic, against the snapshots the review last
 // read: which of their parts run right to left and which do not, and what
 // they say. A change to them is a change to read in the snapshots' diff.
 describe("the screens in Arabic", () => {
@@ -124,12 +121,20 @@ describe("the screens in Arabic", () => {
 		expect(markupOf(root)).toMatchSnapshot();
 	});
 
-	test("the wait for the next task", async () => {
-		const root = await draw(fenceInArabic);
-		pressed(root, 2);
+	test("the wait for a task being handed in", async () => {
+		const opened = await openCard({
+			context: { locale: "ar-EG", toolInfo: toolInfoOf("submit_task") },
+		});
+		drawn = { root: opened.root, heard: opened.heard };
 		await vi.waitFor(() =>
-			expect(root.querySelector(".mt-gen")).not.toBeNull(),
+			expect(opened.root.querySelector(".mt-gen")).not.toBeNull(),
 		);
+
+		expect(markupOf(opened.root)).toMatchSnapshot();
+	});
+
+	test("a try that did not pass", async () => {
+		const root = await draw({ ...refused, child: fenceInArabic.child });
 
 		expect(markupOf(root)).toMatchSnapshot();
 	});

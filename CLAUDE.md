@@ -83,7 +83,7 @@ Project context lives in these files, not in chat history.
   - The paper draft under `research/` has a Russian copy beside it, `draft.ru.md`, for the author to read. The English file is the source and the one a venue receives; the copy follows it in the same change.
   - Reports to the author in chat are in Russian.
   - The frozen prototype copies under `docs/prototype/` stay in Russian as they were written: they are a historical record, cited but never rewritten.
-  - Tasks for the child are written by the chat's model in the chat language.
+  - Tasks for the child are written by the chat's model in the lesson's language: the one the parent chose in the profile, or else the chat's.
 - **Children's data.**
   - Only a pseudonym, never a real name, birth date or school.
   - No personal data, task text or answers in logs or metrics.

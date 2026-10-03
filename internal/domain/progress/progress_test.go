@@ -79,18 +79,26 @@ func TestDuringTheTrialSeriesThereIsNoRatingToShow(t *testing.T) {
 			if summary.Overall != nil {
 				t.Errorf("overall = %+v during the trial series, want none", *summary.Overall)
 			}
-			for _, topic := range summary.Topics {
-				if topic.Rating != nil {
-					t.Errorf("%s has the rating %d during the trial series, want none", topic.ID, *topic.Rating)
-				}
-			}
+			wantNoTopicStanding(t, &summary)
 		})
 	}
 }
 
-// Once the series is over the child has one rating on the ladder, with the one
-// rank there is above it, and every topic met has a rating of its own and no
-// rank.
+// wantNoTopicStanding holds every topic listed to standing nowhere, as during
+// the trial series, which is still finding where the child stands.
+func wantNoTopicStanding(t *testing.T, summary *progress.Summary) {
+	t.Helper()
+
+	for _, topic := range summary.Topics {
+		if topic.Standing != nil || topic.Compared != "" {
+			t.Errorf("%s stands at %+v, %q, during the trial series, want nowhere", topic.ID, topic.Standing, topic.Compared)
+		}
+	}
+}
+
+// Once the series is over the child has one rating on the ladder, with its rank
+// and how far through the rank it has come, and every topic answered stands
+// somewhere of its own beside it.
 func TestAfterTheTrialSeriesTheRatingHasItsRank(t *testing.T) {
 	t.Parallel()
 
@@ -98,11 +106,12 @@ func TestAfterTheTrialSeriesTheRatingHasItsRank(t *testing.T) {
 	for _, tc := range []struct {
 		student string
 		rank    int
+		share   int
 	}{
-		// Olya stands just below where the youngest start, and Petya a rank
-		// past the start of grades 3 and 4.
-		{"olya", 2},
-		{"petya", 5},
+		// Olya stands just below where the youngest start, near the top of her
+		// rank, and Petya a rank past the start of grades 3 and 4.
+		{"olya", 2, 91},
+		{"petya", 5, 92},
 	} {
 		t.Run(tc.student, func(t *testing.T) {
 			t.Parallel()
@@ -113,59 +122,125 @@ func TestAfterTheTrialSeriesTheRatingHasItsRank(t *testing.T) {
 				t.Fatalf("trial = %+v, want the series over", *summary.Trial)
 			}
 			elo := rating.Elo(p.Ratings.Theta)
-			want := progress.Standing{Rating: rating.Shown(elo), Rank: tc.rank}
+			want := progress.Standing{Rating: rating.Shown(elo), Rank: tc.rank, Share: tc.share}
 			if summary.Overall == nil || *summary.Overall != want {
 				t.Fatalf("overall = %+v, want %+v", summary.Overall, want)
 			}
-			wantTopicRatings(t, p, &summary)
+			wantTopicStandings(t, p, &summary)
 		})
 	}
 }
 
-// wantTopicRatings holds every topic listed to the rating of its own level: the
-// overall one with the topic's correction.
-func wantTopicRatings(t *testing.T, p *profile.Profile, summary *progress.Summary) {
+// wantTopicStandings holds every topic answered to the standing of its own
+// level — the overall one with the topic's correction — and every topic with
+// no answer yet to none.
+func wantTopicStandings(t *testing.T, p *profile.Profile, summary *progress.Summary) {
 	t.Helper()
 
 	for _, topic := range summary.Topics {
-		want := rating.Shown(rating.Elo(p.Ratings.Theta + p.Topics[topic.ID].Delta))
-		if topic.Rating == nil || *topic.Rating != want {
-			t.Errorf("%s has the rating %v, want %d", topic.ID, topic.Rating, want)
+		if p.Topics[topic.ID].Answers == 0 {
+			if topic.Standing != nil {
+				t.Errorf("%s, with no answer, stands at %+v, want nowhere", topic.ID, *topic.Standing)
+			}
+			continue
+		}
+		elo := rating.Elo(p.Ratings.Theta + p.Topics[topic.ID].Delta)
+		want := progress.Standing{Rating: rating.Shown(elo), Rank: rating.Rank(elo), Share: rating.Share(elo)}
+		if topic.Standing == nil || *topic.Standing != want {
+			t.Errorf("%s stands at %v, want %+v", topic.ID, topic.Standing, want)
 		}
 	}
 }
 
-// A topic is listed once it has an answer behind it, in the order of the
-// catalog, with what the child made of it. A topic never met has nothing to
-// show.
-func TestTheTopicsAnsweredAreListedInCatalogOrder(t *testing.T) {
+// A topic is listed once the child has met it, or the rule could set it now,
+// in the order of the catalog, with what the child made of it: the list grows
+// as the child does.
+func TestTheTopicsMetAndWithinReachAreListedInCatalogOrder(t *testing.T) {
 	t.Parallel()
 
 	catalog := embedded(t)
 	p := fixture(t, "olya")
 	summary := summaryOf(t, p, catalog)
 
-	var got []string
+	reachable := tutor.WithinReach(p, catalog)
+	var want, unmet []string
+	for _, id := range catalog.TopicIDs() {
+		met := p.Topics[id].Answers > 0 || p.Topics[id].Skipped > 0
+		if met || slices.Contains(reachable, id) {
+			want = append(want, id)
+		}
+		if !met && slices.Contains(reachable, id) {
+			unmet = append(unmet, id)
+		}
+	}
+	if got := idsOf(summary.Topics); !slices.Equal(got, want) || len(unmet) == 0 {
+		t.Errorf("topics = %v, want %v, %v of them not met yet", got, want, unmet)
+	}
 	for _, topic := range summary.Topics {
-		got = append(got, topic.ID)
 		kept := p.Topics[topic.ID]
 		if topic.Answers != kept.Answers || topic.Correct != kept.Correct {
 			t.Errorf("%s shows %d of %d right, want %d of %d",
 				topic.ID, topic.Correct, topic.Answers, kept.Correct, kept.Answers)
 		}
 	}
-	var want []string
-	for _, id := range catalog.TopicIDs() {
-		if p.Topics[id].Answers > 0 {
-			want = append(want, id)
-		}
+}
+
+// A child who has answered nothing yet is shown the topics the rule could set,
+// none of them met.
+func TestAChildWhoHasAnsweredNothingIsShownTheTopicsWithinReach(t *testing.T) {
+	t.Parallel()
+
+	catalog := embedded(t)
+	p := fixture(t, "sasha")
+	within := tutor.WithinReach(p, catalog)
+	if got := idsOf(summaryOf(t, p, catalog).Topics); !slices.Equal(got, within) || len(within) == 0 {
+		t.Errorf("topics = %v, want the %v within reach", got, within)
 	}
-	if !slices.Equal(got, want) || len(want) == 0 {
-		t.Errorf("topics = %v, want %v", got, want)
+}
+
+// idsOf are the ids of topics, in their order.
+func idsOf(topics []progress.Topic) []string {
+	ids := make([]string, 0, len(topics))
+	for _, topic := range topics {
+		ids = append(ids, topic.ID)
+	}
+	return ids
+}
+
+// A topic's rank is compared with the overall one rank for rank, so that the
+// word beside it agrees with the names drawn: a topic a little above the
+// overall rating, but in the same rank, is even with it.
+func TestATopicIsComparedByItsRank(t *testing.T) {
+	t.Parallel()
+
+	catalog := embedded(t)
+	p := fixture(t, "petya")
+	for id, delta := range map[string]float64{
+		"arithmetic.tricks":         1,
+		"combinatorics.enumeration": -1,
+		"counting.gaps":             0.05,
+	} {
+		kept := p.Topics[id]
+		kept.Delta = delta
+		p.Topics[id] = kept
 	}
 
-	if listed := summaryOf(t, fixture(t, "sasha"), catalog).Topics; len(listed) != 0 {
-		t.Errorf("a child who has answered nothing shows the topics %+v, want none", listed)
+	summary := summaryOf(t, p, catalog)
+	if summary.Overall == nil || summary.Overall.Rank != 5 {
+		t.Fatalf("overall = %+v, want Petya in rank 5 for this case", summary.Overall)
+	}
+	for id, want := range map[string]progress.Comparison{
+		"arithmetic.tricks":         progress.Ahead,
+		"combinatorics.enumeration": progress.Behind,
+		"counting.gaps":             progress.Even,
+	} {
+		at := slices.IndexFunc(summary.Topics, func(topic progress.Topic) bool { return topic.ID == id })
+		if at < 0 {
+			t.Fatalf("%s is not among the topics %+v", id, summary.Topics)
+		}
+		if topic := summary.Topics[at]; topic.Compared != want {
+			t.Errorf("%s at %+v is %q of the overall rank, want %q", id, topic.Standing, topic.Compared, want)
+		}
 	}
 }
 
@@ -262,9 +337,9 @@ func TestTheLatestAnswerComesFirst(t *testing.T) {
 }
 
 // A skipped task is shown to the parent where it was skipped, among the latest
-// answers, and counted in its topic. A topic whose only tasks were skipped is
-// listed for the count, with no rating: without an answer its rating would
-// only be the overall one again.
+// answers, counted in its topic and in the total. A topic whose only tasks
+// were skipped is listed for the count, standing nowhere: without an answer
+// its rating would only be the overall one again.
 func TestTheSkippedTasksAreShownToTheParent(t *testing.T) {
 	t.Parallel()
 
@@ -285,8 +360,11 @@ func TestTheSkippedTasksAreShownToTheParent(t *testing.T) {
 	if at < 0 {
 		t.Fatalf("topics = %+v, want %s listed for its skipped task", summary.Topics, skippedOn)
 	}
-	if topic := summary.Topics[at]; topic.Skipped != 1 || topic.Answers != 0 || topic.Rating != nil || topic.Mastered {
-		t.Errorf("%s shows %+v, want one skipped task, no answer and no rating", skippedOn, topic)
+	if topic := summary.Topics[at]; topic.Skipped != 1 || topic.Answers != 0 || topic.Standing != nil || topic.Mastered {
+		t.Errorf("%s shows %+v, want one skipped task, no answer and no standing", skippedOn, topic)
+	}
+	if summary.Skipped != 1 {
+		t.Errorf("tasks left without an answer in all = %d, want the 1 skipped", summary.Skipped)
 	}
 }
 
@@ -306,3 +384,21 @@ func (emptyCatalog) TopicIDs() []string                              { return ni
 func (emptyCatalog) LevelsOf(string) []rating.GradeLevel             { return nil }
 func (emptyCatalog) TrapIDs() []string                               { return nil }
 func (emptyCatalog) ExampleTraps(string, rating.GradeLevel) []string { return nil }
+
+// A topic the catalog no longer has is not listed, and its skips still count
+// in all: the total is every task the profile recorded as left without an
+// answer.
+func TestTheSkipsOfATopicNoLongerInTheCatalogCountInAll(t *testing.T) {
+	t.Parallel()
+
+	p := fixture(t, "olya")
+	p.Topics["clocks.sundials"] = profile.Topic{Skipped: 2}
+
+	summary := summaryOf(t, p, embedded(t))
+	if slices.ContainsFunc(summary.Topics, func(topic progress.Topic) bool { return topic.ID == "clocks.sundials" }) {
+		t.Errorf("topics = %+v, want clocks.sundials, which the catalog no longer has, left out", summary.Topics)
+	}
+	if summary.Skipped != 2 {
+		t.Errorf("tasks left without an answer in all = %d, want the 2 of clocks.sundials", summary.Skipped)
+	}
+}

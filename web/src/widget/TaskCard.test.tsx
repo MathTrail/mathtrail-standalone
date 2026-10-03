@@ -90,17 +90,6 @@ function topLine(): HTMLButtonElement {
 	return found;
 }
 
-function type(words: string): void {
-	const field = root.querySelector<HTMLInputElement>(".mt-field input");
-	if (field === null) {
-		throw new Error("the card has no question field");
-	}
-	act(() => {
-		field.value = words;
-		field.dispatchEvent(new Event("input", { bubbles: true }));
-	});
-}
-
 const text = (selector: string) => root.querySelector(selector)?.textContent;
 const replies = () => [...root.querySelectorAll(".mt-replies .mt-reply")];
 const shownButtons = () =>
@@ -278,7 +267,7 @@ describe("an answer", () => {
 		);
 		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(1));
 		expect(heard.modelLines[0]).toBe(
-			"Task task_fence has its answer recorded: B, which is wrong; the right option is C. The card shows the trap and the solution.",
+			"Task task_fence has its answer recorded: B, which is wrong; the right option is C. The card shows the trap and the solution. In a language with grammatical gender, word it so it does not show whether the child is a boy or a girl: praise the step, not the child, and keep to the present tense.",
 		);
 	});
 
@@ -363,7 +352,7 @@ describe("an answer", () => {
 		expect(text(".mt-verdict-line")).toBe("Not quite — it's 5, not 6.");
 		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(1));
 		expect(heard.modelLines[0]).toBe(
-			"Task task_fence has its answer recorded: D, which is wrong; the right option is C. The card shows the trap and the solution.",
+			"Task task_fence has its answer recorded: D, which is wrong; the right option is C. The card shows the trap and the solution. In a language with grammatical gender, word it so it does not show whether the child is a boy or a girl: praise the step, not the child, and keep to the present tense.",
 		);
 	});
 
@@ -435,7 +424,7 @@ describe("a card whose host lets it down", () => {
 		expect(text(".mt-verdict-line")).toBe("Not quite — it's 5, not 4.");
 	});
 
-	test("says at once that no task is coming when the chat does not take the ask", async () => {
+	test("says the ask for another task did not reach the chat, and takes it again", async () => {
 		const logged = vi.spyOn(console, "error").mockImplementation(() => {});
 		const heard = await drawCard(fence, service, { refuseMessages: true });
 
@@ -443,13 +432,17 @@ describe("a card whose host lets it down", () => {
 
 		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
 		await vi.waitFor(() =>
-			expect(text(".mt-verdict-line")).toBe(
-				"If no new task has appeared below, it isn't being prepared.",
-			),
+			expect(text(".mt-action-note")).toBe("Not sent — try again"),
 		);
 		expect(logged).toHaveBeenCalled();
-		expect(root.querySelector(".mt-gen")).toBeNull();
-		expect(document.activeElement).toBe(button("Ask again"));
+		expect(button("Another task").getAttribute("aria-disabled")).toBeNull();
+		expect(root.querySelector(".mt-option")).not.toBeNull();
+
+		press(button("Another task"));
+
+		await vi.waitFor(() =>
+			expect(heard.messages).toEqual(["Another task", "Another task"]),
+		);
 	});
 
 	test("says the progress did not load when the call is lost", async () => {
@@ -471,12 +464,16 @@ describe("a card whose host lets it down", () => {
 	});
 });
 
-describe("a task in another language than the card's", () => {
+describe("a task in a language the card has no words for", () => {
+	// The card speaks its lesson's language when it has words for it, and the
+	// host's otherwise: Hebrew is one it has none for, and is written right to
+	// left.
 	test("is marked as written in it, and runs its way", async () => {
 		await drawCard(
 			{
 				...fence,
-				task: { ...fence.task, language: "ar", question: "كم عمودًا؟" },
+				task: { ...fence.task, language: "he", question: "כמה עמודים?" },
+				language: "he",
 			},
 			() => answered(),
 		);
@@ -488,7 +485,7 @@ describe("a task in another language than the card's", () => {
 			".mt-note-hint p",
 		]) {
 			const words = root.querySelector(said);
-			expect(words?.getAttribute("lang")).toBe("ar");
+			expect(words?.getAttribute("lang")).toBe("he");
 			expect(words?.getAttribute("dir")).toBe("rtl");
 		}
 		// The card's own words stay in the card's language.
@@ -500,7 +497,7 @@ describe("a task in another language than the card's", () => {
 
 		await vi.waitFor(() => expect(replies()).toHaveLength(1));
 		expect(root.querySelector(".mt-note-trap p")?.getAttribute("lang")).toBe(
-			"ar",
+			"he",
 		);
 		expect(root.querySelector(".mt-steps ol")?.getAttribute("dir")).toBe("rtl");
 	});
@@ -536,21 +533,32 @@ describe("the hint", () => {
 });
 
 describe("another task", () => {
-	test("turns the card to the wait at once and asks the chat for it", async () => {
+	test("is asked of the chat, while the card keeps its task and says where the new one will come", async () => {
 		const heard = await drawCard();
 
 		press(button("Another task"));
 
-		expect(text(".mt-gen-title")).toBe("Preparing the next task…");
-		expect(root.querySelectorAll(".mt-gen li")).toHaveLength(5);
-		expect(root.querySelector(".mt-option")).toBeNull();
-		// The button pressed is switched off: the focus goes to the title.
-		expect(document.activeElement).toBe(root.querySelector(".mt-gen-title"));
 		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
+		await vi.waitFor(() =>
+			expect(text(".mt-action-note")).toBe(
+				"Once the ask reaches the chat, the new task will come below, in a new card.",
+			),
+		);
+		// The card no longer turns to a wait it cannot see the end of: the
+		// task stays, and nothing claims to be under way.
+		expect(root.querySelector(".mt-gen")).toBeNull();
+		expect(text(".mt-task-text")).toBe(fence.task.question);
+		expect(root.querySelector(".mt-option")).not.toBeNull();
+		expect(root.textContent).not.toContain("Sent to the chat");
+		// The button pressed keeps the focus, and once the chat has the ask it
+		// may be pressed again: a host may hold the message for the person to
+		// send, and the card cannot see whether it went.
+		expect(document.activeElement).toBe(button("Another task"));
+		expect(button("Another task").getAttribute("aria-disabled")).toBeNull();
 		expect(heard.calls).toEqual([]);
 	});
 
-	test("is asked for once when two presses come before the card redraws", async () => {
+	test("is asked for once while the ask is on its way, and again once the chat has it", async () => {
 		const heard = await drawCard();
 		const another = button("Another task");
 
@@ -558,9 +566,18 @@ describe("another task", () => {
 			another.click();
 			another.click();
 		});
+		await vi.waitFor(() =>
+			expect(text(".mt-action-note")).toBe(
+				"Once the ask reaches the chat, the new task will come below, in a new card.",
+			),
+		);
+		expect(heard.messages).toEqual(["Another task"]);
 
-		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
-		expect(text(".mt-gen-title")).toBe("Preparing the next task…");
+		press(button("Another task"));
+
+		await vi.waitFor(() =>
+			expect(heard.messages).toEqual(["Another task", "Another task"]),
+		);
 	});
 
 	test("is not asked for while an answer pressed in the same moment is on its way", async () => {
@@ -577,15 +594,21 @@ describe("another task", () => {
 		expect(text(".mt-verdict-line")).toBe("Not quite — it's 5, not 4.");
 	});
 
-	test("keeps the top line to the progress while the next task is written", async () => {
+	test("keeps the top line to the progress, and the card as it was", async () => {
 		const heard = await drawCard();
 		press(button("Another task"));
+		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
 
 		press(topLine());
 
-		await vi.waitFor(() => expect(text(".mt-rating-num")).toBe("1573"));
+		await vi.waitFor(() =>
+			expect(text(".mt-rank-name")).toBe("River crossing"),
+		);
 		press(button("Back to task"));
-		expect(text(".mt-gen-title")).toBe("Preparing the next task…");
+		expect(text(".mt-task-text")).toBe(fence.task.question);
+		expect(text(".mt-action-note")).toBe(
+			"Once the ask reaches the chat, the new task will come below, in a new card.",
+		);
 		expect(heard.calls.map((call) => call.name)).toEqual(["read_progress"]);
 	});
 
@@ -608,41 +631,12 @@ describe("another task", () => {
 		press(button("Another task"));
 
 		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
-		expect(text(".mt-gen-title")).toBe("Preparing the next task…");
-	});
-});
-
-describe("a question", () => {
-	test("goes to the chat in the child's words, and no answer appears in the card", async () => {
-		const heard = await drawCard();
-
-		type("why isn't it 6?");
-		press(button("Send"));
-
-		await vi.waitFor(() => expect(heard.messages).toEqual(["why isn't it 6?"]));
 		await vi.waitFor(() =>
-			expect(text(".mt-reply .mt-meta")).toBe("Sent to the chat"),
+			expect(text(".mt-action-note")).toBe(
+				"Once the ask reaches the chat, the new task will come below, in a new card.",
+			),
 		);
-		expect(replies()).toHaveLength(1);
-		expect(text(".mt-reply .mt-name")).toBe("You");
-		expect(text(".mt-reply-lead")).toBe("why isn't it 6?");
-		expect(root.querySelector(".mt-field input")).toHaveProperty("value", "");
-		expect(heard.calls).toEqual([]);
-	});
-
-	test("that does not reach the chat says so, and its words come back", async () => {
-		await drawCard(fence, service, { refuseMessages: true });
-
-		type("why isn't it 6?");
-		press(button("Send"));
-
-		await vi.waitFor(() =>
-			expect(text(".mt-reply .mt-meta")).toBe("Not sent — try again"),
-		);
-		expect(root.querySelector(".mt-field input")).toHaveProperty(
-			"value",
-			"why isn't it 6?",
-		);
+		expect(text(".mt-verdict-line")).toBe("Not quite — it's 5, not 4.");
 	});
 });
 
@@ -652,12 +646,13 @@ describe("the progress", () => {
 		press(button("Hint"));
 		press(option("B"));
 		await vi.waitFor(() => expect(replies()).toHaveLength(1));
-		type("why?");
 		const task = root.querySelector(".mt-widget > div")?.innerHTML;
 
 		press(topLine());
 
-		await vi.waitFor(() => expect(text(".mt-rating-num")).toBe("1573"));
+		await vi.waitFor(() =>
+			expect(text(".mt-rank-name")).toBe("River crossing"),
+		);
 		expect(document.activeElement).toBe(button("Back to task"));
 		expect(root.querySelector(".mt-widget > div")?.hasAttribute("hidden")).toBe(
 			true,

@@ -20,20 +20,11 @@ import {
 	profileRefused,
 	refused,
 	staleAnswer,
+	staleWait,
 	standing,
+	standingBefore,
 	toldAgain,
 } from "./testing/lesson";
-
-// staleRequest is a task handed in for a request no longer open, with no task
-// on the card: the card waits for the task the model is told to ask for.
-const staleRequest = {
-	screen: "waiting",
-	status: "stale",
-	code: "stale_request",
-	last_answer: null,
-	child: fence.child,
-	task: null,
-};
 
 describe("a task handed to the card", () => {
 	test("is read with what the child may see and whose card it is", () => {
@@ -149,8 +140,8 @@ describe("an answer sent from the card", () => {
 
 describe("a wait for the next task", () => {
 	test.each([
-		["a task refused, with attempts left", refused, "working"],
-		["a task handed in for no open request", staleRequest, "working"],
+		["a task refused, with attempts left", refused, "refused"],
+		["a task handed in for no open request", staleWait, "stale"],
 		["the model's last attempt refused", exhausted, "exhausted"],
 	])("after %s is read with whose card it is", (_, payload, kind) => {
 		expect(readWaiting(payload)).toEqual({ kind, child: fence.child });
@@ -211,6 +202,10 @@ describe("the screen a payload draws", () => {
 			"the progress with a mistake made half a time",
 			{ ...standing, mistakes: [{ trap: "missed_case", times: 1.5 }] },
 		],
+		[
+			"the progress with a share past the whole way",
+			{ ...standing, overall: { ...standing.overall, share: 101 } },
+		],
 		["the profile with no details", { ...profileRead, profile: null }],
 		["nothing", undefined],
 	])("is none for %s", (_, payload) => {
@@ -239,6 +234,49 @@ describe("the screen a payload draws", () => {
 			},
 		});
 		expect(JSON.stringify(shown)).not.toContain("Loses heart");
+	});
+
+	test("of the progress keeps how far through its rank the rating has come, each topic's rank, the total of the skips and where the file is", () => {
+		const shown = readScreen(standing);
+		if (shown?.screen !== "progress") {
+			throw new Error(`the progress reads as ${shown?.screen}`);
+		}
+
+		expect(shown.report.overall?.share).toBe(43);
+		expect(shown.report.topics[0]).toMatchObject({
+			topic: "logic.ordering",
+			rank: 4,
+			share: 27,
+			compared: "ahead",
+		});
+		expect(shown.report.topics.at(-1)).toMatchObject({
+			topic: "pigeonhole.basic",
+			rank: null,
+			answers: 0,
+		});
+		expect(shown.report.skipped).toBe(1);
+		expect(shown.report.location?.file).toBe("mathtrail-profile.json");
+	});
+
+	test("of the progress from before the topics had ranks is read with none of what came after", () => {
+		const shown = readScreen(standingBefore);
+		if (shown?.screen !== "progress") {
+			throw new Error(`the progress reads as ${shown?.screen}`);
+		}
+
+		expect(shown.report.overall?.share).toBeUndefined();
+		expect(shown.report.topics[0]?.rank).toBeUndefined();
+		expect(shown.report.skipped).toBeUndefined();
+		expect(shown.report.location).toBeUndefined();
+	});
+
+	test("of the progress is read whatever a later release says of how a rank compares", () => {
+		const later = {
+			...standing,
+			topics: [{ ...standing.topics[0], compared: "far_ahead" }],
+		};
+
+		expect(readScreen(later)?.screen).toBe("progress");
 	});
 
 	test("of the progress from before the map of mistakes is read with none", () => {

@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { openBridge } from "./bridge";
-import { deliver, listenAsHost, openTestHost } from "./testing/host";
+import {
+	deliver,
+	listenAsHost,
+	openTestHost,
+	toolInfoOf,
+} from "./testing/host";
 import { progress } from "./testing/lesson";
 
 afterEach(() => {
@@ -10,7 +15,7 @@ afterEach(() => {
 
 describe("the bridge", () => {
 	// The card subscribes as it is drawn, before the handshake, and hears the
-	// handshake itself and then the result.
+	// handshake itself, the arguments coming whole, and then the result.
 	test("hands on the result the host delivers", async () => {
 		const { host, widgetSide } = await openTestHost();
 		const bridge = openBridge();
@@ -20,7 +25,7 @@ describe("the bridge", () => {
 
 		await deliver(host, { screen: "task" });
 
-		await vi.waitFor(() => expect(heard).toHaveBeenCalledTimes(2));
+		await vi.waitFor(() => expect(heard).toHaveBeenCalledTimes(3));
 		expect(bridge.result()?.structuredContent).toEqual({ screen: "task" });
 	});
 
@@ -179,5 +184,98 @@ describe("what the card asks of the host", () => {
 		await bridge.tellModel("The child answered.");
 
 		expect(heard.modelLines).toEqual(["The child answered."]);
+	});
+});
+
+describe("the call that drew the card", () => {
+	test("is named by the context the handshake brings", async () => {
+		const { widgetSide } = await openTestHost({
+			toolInfo: toolInfoOf("submit_task"),
+		});
+		const bridge = openBridge();
+
+		await bridge.connect(widgetSide);
+
+		expect(bridge.call()).toEqual({ tool: "submit_task", stage: "started" });
+	});
+
+	test("is named by a change of context after the handshake, and told of", async () => {
+		const { host, widgetSide } = await openTestHost();
+		const bridge = openBridge();
+		await bridge.connect(widgetSide);
+		const heard = vi.fn();
+		bridge.subscribe(heard);
+		expect(bridge.call().tool).toBeUndefined();
+
+		await host.sendHostContextChange({ toolInfo: toolInfoOf("submit_task") });
+
+		await vi.waitFor(() => expect(bridge.call().tool).toBe("submit_task"));
+		expect(heard).toHaveBeenCalledOnce();
+	});
+
+	test("runs once its arguments have come whole, and is cancelled once cancelled", async () => {
+		const { host, widgetSide } = await openTestHost();
+		const bridge = openBridge();
+		await bridge.connect(widgetSide);
+
+		await host.sendToolInput({ arguments: {} });
+		await vi.waitFor(() => expect(bridge.call().stage).toBe("running"));
+
+		await host.sendToolCancelled({ reason: "user action" });
+		await vi.waitFor(() => expect(bridge.call().stage).toBe("cancelled"));
+	});
+
+	test("cancelled before its arguments come is not taken up again by them", async () => {
+		const { host, widgetSide } = await openTestHost();
+		const bridge = openBridge();
+		await bridge.connect(widgetSide);
+
+		await host.sendToolCancelled({});
+		await vi.waitFor(() => expect(bridge.call().stage).toBe("cancelled"));
+		await host.sendToolInput({ arguments: {} });
+		await host.sendHostContextChange({ theme: "dark" });
+		await vi.waitFor(() =>
+			expect(document.documentElement.dataset.theme).toBe("dark"),
+		);
+
+		expect(bridge.call().stage).toBe("cancelled");
+	});
+
+	test("keeps nothing of the arguments, which carry the task's answer", async () => {
+		const secret = "the-sealed-answer-C";
+		const { host, widgetSide } = await openTestHost({
+			toolInfo: toolInfoOf("submit_task"),
+		});
+		const bridge = openBridge();
+		await bridge.connect(widgetSide);
+
+		await host.sendToolInputPartial({
+			arguments: { task: { answer: secret } },
+		});
+		await host.sendToolInput({ arguments: { task: { answer: secret } } });
+
+		await vi.waitFor(() => expect(bridge.call().stage).toBe("running"));
+		expect(JSON.stringify(bridge.call())).not.toContain(secret);
+		expect(bridge.result()).toBeUndefined();
+	});
+
+	test("is the same object until something of it changes", async () => {
+		const { host, widgetSide } = await openTestHost({
+			toolInfo: toolInfoOf("submit_task"),
+		});
+		const bridge = openBridge();
+		await bridge.connect(widgetSide);
+		const before = bridge.call();
+
+		// A host may tell the whole context again when only its theme changed.
+		await host.sendHostContextChange({
+			theme: "dark",
+			toolInfo: toolInfoOf("submit_task"),
+		});
+
+		await vi.waitFor(() =>
+			expect(document.documentElement.dataset.theme).toBe("dark"),
+		);
+		expect(bridge.call()).toBe(before);
 	});
 });

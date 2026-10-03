@@ -10,21 +10,41 @@ import {
 export type ToolResult = AppEventMap["toolresult"];
 
 /**
+ * CallStage is how far the tool call that drew the card has got before its
+ * result: begun, its arguments still to come whole; running, its arguments
+ * come and the tool at work on them; or cancelled.
+ */
+export type CallStage = "started" | "running" | "cancelled";
+
+/**
+ * Call is the tool call that drew the card, as far as the host has told of
+ * it: the tool, by the name the host gives it, or undefined while the host
+ * has named none, and how far the call has got.
+ */
+export type Call = { tool: string | undefined; stage: CallStage };
+
+/**
  * Bridge is the widget's side of its conversation with the chat host: the
- * result of the tool call that drew the card, the language the host reads, and
- * the handshake that starts it.
+ * tool call that drew the card and its result, the language the host reads,
+ * and the handshake that starts it.
  */
 export type Bridge = {
 	/** result is the latest result the host delivered, undefined before one. */
 	result(): ToolResult | undefined;
+	/**
+	 * call is the tool call that drew the card. Its arguments are never kept:
+	 * a task handed in carries its answer in them.
+	 */
+	call(): Call;
 	/**
 	 * locale is the language and region the host says its user reads, as a
 	 * BCP 47 tag, or undefined while it has named none.
 	 */
 	locale(): string | undefined;
 	/**
-	 * subscribe calls listener after each new result, and each time the host may
-	 * have named another locale, until it is stopped.
+	 * subscribe calls listener after each new result, each step of the call,
+	 * and each time the host may have named another locale, until it is
+	 * stopped.
 	 */
 	subscribe(listener: () => void): () => void;
 	/**
@@ -74,25 +94,55 @@ export function openBridge(): Bridge & Host {
 		{ autoResize: true, strict: true },
 	);
 	let latest: ToolResult | undefined;
+	// The call is replaced, never changed in place, and only when something of
+	// it changed: a card reading it redraws when it is another object.
+	let call: Call = { tool: undefined, stage: "started" };
 	const listeners = new Set<() => void>();
 	const notify = () => {
 		for (const listener of listeners) {
 			listener();
 		}
 	};
+	const callNow = (next: Call) => {
+		if (next.tool !== call.tool || next.stage !== call.stage) {
+			call = next;
+			notify();
+		}
+	};
+	// The tool is kept here rather than read from the context each time: the
+	// handshake's answer replaces the context, and with it whatever an earlier
+	// change of it had told.
+	const toolNamed = (context: McpUiHostContext | undefined) => {
+		const tool = context?.toolInfo?.tool.name;
+		if (tool !== undefined) {
+			callNow({ ...call, tool });
+		}
+	};
 
-	// Both are registered before the handshake: the host sends the result once,
+	// All are registered before the handshake: the host sends each of them once,
 	// right after it, and a listener added later would never hear it. The result
 	// is kept here, so a card drawn after it arrived still shows it.
 	app.addEventListener("toolresult", (result) => {
 		latest = result;
 		notify();
 	});
+	// Only that the arguments have come is taken from them, never what they
+	// are. Arguments still coming are not listened for at all, and the library
+	// drops what nobody listens for.
+	app.addEventListener("toolinput", () => {
+		if (call.stage === "started") {
+			callNow({ ...call, stage: "running" });
+		}
+	});
+	app.addEventListener("toolcancelled", () => {
+		callNow({ ...call, stage: "cancelled" });
+	});
 	// A change of context names only what changed; the library has merged it
 	// into the context by the time this runs.
 	app.addEventListener("hostcontextchanged", (changed) => {
 		followTheme(changed);
 		followInsets(changed);
+		toolNamed(changed);
 		if (changed.locale !== undefined) {
 			notify();
 		}
@@ -100,6 +150,7 @@ export function openBridge(): Bridge & Host {
 
 	return {
 		result: () => latest,
+		call: () => call,
 		locale: () => app.getHostContext()?.locale,
 		subscribe(listener) {
 			listeners.add(listener);
@@ -111,6 +162,7 @@ export function openBridge(): Bridge & Host {
 			await app.connect(transport);
 			followTheme(app.getHostContext());
 			followInsets(app.getHostContext());
+			toolNamed(app.getHostContext());
 			// The handshake brings the host's first context, its locale among it.
 			notify();
 		},

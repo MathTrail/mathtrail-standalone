@@ -241,14 +241,15 @@ func TestSpansAndMeasurementsAreDeliveredSideBySide(t *testing.T) {
 	traces := sdktrace.NewTracerProvider(sdktrace.WithBatcher(&waitingSpans{
 		waiting: waiting{started: spansStarted, other: measurementsStarted},
 	}))
-	metrics := sdkmetric.NewMeterProvider(sdkmetric.WithReader(sdkmetric.NewPeriodicReader(&waitingMeasurements{
+	measurements := newDelivery(&waitingMeasurements{
 		waiting: waiting{started: measurementsStarted, other: spansStarted},
-	})))
+	})
+	metrics := sdkmetric.NewMeterProvider(sdkmetric.WithReader(measurements.reader))
 	t.Cleanup(func() {
 		_ = traces.Shutdown(context.Background())
 		_ = metrics.Shutdown(context.Background())
 	})
-	tel := &Telemetry{traces: traces, metrics: metrics, enabled: true}
+	tel := &Telemetry{traces: traces, metrics: metrics, measurements: measurements, enabled: true}
 
 	_, span := traces.Tracer("test").Start(t.Context(), "request")
 	span.End()

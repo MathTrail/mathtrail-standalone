@@ -1,13 +1,21 @@
 import { Note } from "../design/blocks";
-import { RatingSummary, StatList, type StatRow } from "../design/progress";
+import {
+	RankList,
+	type RankRow,
+	RankSummary,
+	Segments,
+	type SegmentTone,
+	StatList,
+	type StatRow,
+} from "../design/progress";
 import { MessageHeader } from "../design/thread";
 import type { Words } from "../i18n/words";
 import type { Host } from "./bridge";
 import { CardRoot } from "./CardRoot";
-import { rankName, topicName, trapName } from "./names";
-import { ParentProfile } from "./ProfileScreen";
+import { rankCount, rankName, topicName, trapName } from "./names";
+import { ParentData, ParentProfile } from "./ProfileScreen";
 import type { ProgressReport, Recommendation } from "./payload";
-import { type Key, ratingText, useWords } from "./words";
+import { type Key, percentText, ratingText, useWords } from "./words";
 
 /** recentShown is how many of the latest entries the progress lists. */
 const recentShown = 5;
@@ -31,11 +39,12 @@ export function ProgressCard({
 }
 
 /**
- * ProgressScreen is where the child stands: the overall rating with its rank
- * above it — or, while the trial series runs, how far the series has got —
- * what comes next, the topics met with their ratings, the latest answers and
- * how many tasks were left without one, the mistakes that keep coming back,
- * and the child's profile for the parent.
+ * ProgressScreen is where the child stands: the rank reached and how far
+ * through it — or, while the trial series runs, how far the series has got —
+ * what comes next, each topic met or within reach with a rank of its own, the
+ * latest answers and how many tasks were left without one, the mistakes that
+ * keep coming back, and the child's profile for the parent with what the
+ * parent can do with the data.
  */
 export function ProgressScreen({
 	report,
@@ -48,7 +57,9 @@ export function ProgressScreen({
 }) {
 	const words = useWords();
 	const { profile, recommendation } = report;
-	const skipped = report.topics.reduce((sum, topic) => sum + topic.skipped, 0);
+	const skipped =
+		report.skipped ??
+		report.topics.reduce((sum, topic) => sum + topic.skipped, 0);
 	return (
 		<article aria-label={words.text("progress.label")}>
 			<MessageHeader
@@ -65,9 +76,14 @@ export function ProgressScreen({
 					</Note>
 				)}
 				{report.topics.length > 0 && (
-					<StatList
+					<RankList
 						label={words.text("progress.topics")}
-						rows={topicRows(words, report.topics)}
+						note={
+							report.trial === null
+								? words.text("progress.topics_note")
+								: undefined
+						}
+						rows={topicRows(words, report)}
 					/>
 				)}
 				{report.recent.length > 0 && (
@@ -85,48 +101,74 @@ export function ProgressScreen({
 					<StatList
 						label={words.text("progress.mistakes")}
 						rows={mistakeRows(words, report.mistakes)}
+						framed
 					/>
 				)}
 				<ParentProfile details={profile} host={host} />
+				{report.location !== undefined && (
+					<ParentData location={report.location} />
+				)}
 			</div>
 		</article>
 	);
 }
 
-// Standing is the number the child climbs: the overall rating under its
-// rank, or — while the trial series is still finding where the child stands
-// — how many of its tasks are done, with no rating yet to show.
+// Standing is the rank the child climbs: its name, the rank out of how many
+// with the rating beside it, the course of the ranks filled as far as the
+// rating has come, and the next rank to reach — or, while the trial series is
+// still finding where the child stands, how many of its tasks are done, with
+// no rank yet to show.
 function Standing({ report }: { report: ProgressReport }) {
 	const words = useWords();
 	const { trial, overall } = report;
 	if (trial !== null) {
 		return (
-			<RatingSummary
-				rankLabel={words.text("result.trial")}
-				rating={words.text("result.trial_progress", {
+			<RankSummary
+				name={words.text("result.trial")}
+				meta={words.text("result.trial_progress", {
 					answered: trial.answered,
 					total: trial.of,
 				})}
-				ratingLabel={words.text("progress.trial_after", { total: trial.of })}
-				pips={{ on: trial.answered, of: trial.of }}
-			/>
+				line={words.text("progress.trial_ranks", { total: trial.of })}
+			>
+				<Segments of={trial.of} filled={trial.answered} />
+			</RankSummary>
 		);
 	}
 	if (overall === null) {
 		return null;
 	}
+	const top = overall.rank >= overall.ranks;
 	return (
-		<RatingSummary
+		<RankSummary
 			label={words.text("progress.overall_label")}
-			rankLabel={words.text("progress.rank", {
+			name={rankName(words, overall.rank)}
+			meta={words.text("progress.rank_line", {
 				rank: overall.rank,
 				total: overall.ranks,
-				name: rankName(words, overall.rank),
+				rating: ratingText(words, overall.rating),
 			})}
-			rating={ratingText(words, overall.rating)}
-			ratingLabel={words.text("progress.overall")}
-			pips={{ on: overall.rank, of: overall.ranks }}
-		/>
+			line={
+				top
+					? words.text("progress.top_rank")
+					: words.text("progress.next_rank", {
+							name: rankName(words, overall.rank + 1),
+						})
+			}
+		>
+			<Segments
+				of={overall.ranks}
+				filled={overall.rank - 1}
+				part={(overall.share ?? 0) / 100}
+				label={
+					top || overall.share === undefined
+						? undefined
+						: words.text("progress.share", {
+								share: percentText(words, overall.share),
+							})
+				}
+			/>
+		</RankSummary>
 	);
 }
 
@@ -139,23 +181,74 @@ function nextUp(words: Words<Key>, next: Recommendation): string {
 		: topic;
 }
 
-// topicRows are the topics met, each with its rating once it has one, and
-// marked when it is mastered.
-function topicRows(
-	words: Words<Key>,
-	topics: ProgressReport["topics"],
-): StatRow[] {
-	return topics.map(
-		(topic): StatRow => ({
+// topicRows are the topics listed, each with its rank, how that stands to the
+// overall one and its course of the ranks in the ramp's step for it; or, with
+// no rank yet, its course drawn open and the word why — the trial series still
+// running, or no answer in the topic so far. A topic of a progress from
+// before the topics had ranks is drawn with an empty course, saying nothing.
+function topicRows(words: Words<Key>, report: ProgressReport): RankRow[] {
+	const ranks = report.overall?.ranks ?? rankCount;
+	return report.topics.map((topic): RankRow => {
+		const row = {
 			id: topic.topic,
 			label: topicName(words, topic.topic),
-			status: topic.mastered
-				? { tone: "correct", label: words.text("progress.mastered") }
+			mark: topic.mastered
+				? { tone: "correct" as const, label: words.text("progress.mastered") }
 				: undefined,
-			value:
-				topic.rating === null ? undefined : ratingText(words, topic.rating),
-		}),
-	);
+		};
+		if (topic.rank !== null && topic.rank !== undefined) {
+			return {
+				...row,
+				word: comparedWord(words, topic.compared),
+				name: rankName(words, topic.rank),
+				segments: {
+					of: ranks,
+					filled: topic.rank - 1,
+					part: (topic.share ?? 0) / 100,
+					tone: toneOf(topic.rank, ranks),
+				},
+			};
+		}
+		if (report.trial !== null) {
+			return {
+				...row,
+				word: words.text("progress.no_rank"),
+				segments: { of: ranks, filled: 0, open: true },
+			};
+		}
+		if (topic.answers === 0) {
+			return {
+				...row,
+				word: words.text("progress.no_answers"),
+				segments: { of: ranks, filled: 0, open: true },
+			};
+		}
+		return { ...row, segments: { of: ranks, filled: 0 } };
+	});
+}
+
+// comparedWord is how a topic's rank stands to the overall one, in words: a
+// rank above it is ahead, one below it behind, and the overall rank itself
+// needs no word.
+function comparedWord(
+	words: Words<Key>,
+	compared: string | null | undefined,
+): string | undefined {
+	switch (compared) {
+		case "ahead":
+			return words.text("progress.ahead");
+		case "behind":
+			return words.text("progress.behind");
+		default:
+			return undefined;
+	}
+}
+
+// toneOf is the step of the ramp a rank is drawn in: five steps over the
+// ranks there are, the first ranks in the first.
+function toneOf(rank: number, ranks: number): SegmentTone {
+	const step = 1 + Math.floor(((rank - 1) * 5) / ranks);
+	return Math.min(Math.max(step, 1), 5) as SegmentTone;
 }
 
 // recentRows are the latest entries, the newest first: each answer right or
@@ -187,20 +280,18 @@ function statusOf(
 }
 
 // mistakeRows are the mistakes that keep coming back, the most frequent
-// first: each with how many times, and a bar as long as its share of the most
-// frequent.
+// first: each with how many times, and a dot for each time.
 function mistakeRows(
 	words: Words<Key>,
 	mistakes: ProgressReport["mistakes"],
 ): StatRow[] {
-	const most = Math.max(...mistakes.map((mistake) => mistake.times));
 	return mistakes.map(
 		(mistake): StatRow => ({
 			id: mistake.trap,
 			label: trapName(words, mistake.trap),
-			bar: {
-				share: mistake.times / most,
-				count: words.text("progress.times", { count: mistake.times }),
+			count: {
+				times: mistake.times,
+				label: words.text("progress.times", { count: mistake.times }),
 			},
 		}),
 	);

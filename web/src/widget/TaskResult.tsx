@@ -37,14 +37,14 @@ export function TaskResult({
 	const words = useWords();
 	const optionText = (letter: Letter) => task.options[letter];
 	const [tone, verdict] = verdictOf(result, optionText);
-	// The card redraws with every word typed into the question field; the
-	// steps are cut once for each solution.
+	// The card redraws as an ask for another task goes to the chat; the steps
+	// are cut once for each solution.
 	const steps = useMemo(
 		() => stepsOf(result.solution, task.language),
 		[result.solution, task.language],
 	);
 	return (
-		<ReplyCard author="app" name={words.text("app.name")}>
+		<ReplyCard name={words.text("app.name")}>
 			{result.already_answered && <p>{words.text("result.told_again")}</p>}
 			<Verdict tone={tone}>{words.text(verdict.key, verdict.slots)}</Verdict>
 			{result.trap !== null && (

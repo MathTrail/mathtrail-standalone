@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useState } from "preact/hooks";
 import type { Words } from "../i18n/words";
-import type { Bridge, Host } from "./bridge";
+import type { Bridge, Call, Host } from "./bridge";
+import { ComingCard } from "./ComingCard";
 import { FirstRunCard } from "./FirstRunScreen";
 import { ProfileCard } from "./ProfileScreen";
 import { ProgressCard } from "./ProgressScreen";
@@ -8,23 +9,30 @@ import { readScreen } from "./payload";
 import { TaskCard } from "./TaskCard";
 import { UnreadableCard } from "./UnreadableCard";
 import { WaitingCard } from "./WaitingCard";
-import { cardWords, type Key, languageChosenIn, WordsContext } from "./words";
+import { cardWords, type Key, languageIn, WordsContext } from "./words";
 
 /**
  * WidgetApp is the card a tool's result is drawn as, in the words of the
- * language the parent chose for the cards or, when they chose none, of the
- * host's. Until the first result arrives it draws nothing.
+ * language its result names — the lesson's, or the one the parent chose — or,
+ * when it names none, of the host's. Until the first result arrives it draws
+ * the wait for a task being handed in, when the host says that is the call it
+ * was drawn for, and nothing otherwise.
  */
 export function WidgetApp({ bridge, host }: { bridge: Bridge; host: Host }) {
 	const result = useBridge(bridge, latestResult);
+	const call = useBridge(bridge, callOf);
 	const hostLocale = useBridge(bridge, localeOfHost);
 	const words = useMemo(
-		() => cardWords(languageChosenIn(result?.structuredContent), hostLocale),
+		() => cardWords(languageIn(result?.structuredContent), hostLocale),
 		[result, hostLocale],
 	);
 	useDocumentLanguage(words);
 	if (result === undefined) {
-		return null;
+		return handsInATask(call) ? (
+			<WordsContext.Provider value={words}>
+				<ComingCard stage={call.stage} />
+			</WordsContext.Provider>
+		) : null;
 	}
 	return (
 		<WordsContext.Provider value={words}>
@@ -34,14 +42,13 @@ export function WidgetApp({ bridge, host }: { bridge: Bridge; host: Host }) {
 }
 
 // Screen is the card a payload draws: a task handed to the child, a new card
-// for each task; a wait for the next task, a new wait for each payload that
-// asks for one; the progress, the profile or the first sign-in. A payload that
+// for each task; a card a task did not come to, a new one for each payload
+// that says so; the progress, the profile or the first sign-in. A payload that
 // names none of them, or does not read as the one it names, draws a card that
 // says so.
 function Screen({ payload, host }: { payload: unknown; host: Host }) {
 	const shown = useMemo(() => readScreen(payload), [payload]);
-	// A payload told again is the same card; another one — the next refusal of
-	// a task, say — starts the card afresh.
+	// A payload told again is the same card; another one starts it afresh.
 	const said = useMemo(() => JSON.stringify(payload ?? null), [payload]);
 	switch (shown?.screen) {
 		case "task":
@@ -66,7 +73,16 @@ function Screen({ payload, host }: { payload: unknown; host: Host }) {
 }
 
 const latestResult = (bridge: Bridge) => bridge.result();
+const callOf = (bridge: Bridge) => bridge.call();
 const localeOfHost = (bridge: Bridge) => bridge.locale();
+
+// handsInATask says whether the call that drew the card is a task being handed
+// in. A host may put a prefix of its own before the tool's name, and each host
+// writes it its own way; the name is matched by its end, which no other tool
+// of the service shares.
+function handsInATask(call: Call): boolean {
+	return call.tool?.endsWith("submit_task") ?? false;
+}
 
 // useBridge is what read finds on the bridge, kept current as the host tells
 // the widget more.

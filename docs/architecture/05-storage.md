@@ -50,7 +50,7 @@ flowchart TD
 
 The four outcomes are the four things that actually happen to a file in somebody's Drive: it is there, there are somehow two of them, it is in the bin, or it has been emptied out of it. None of them is allowed to produce a stack trace or a silently new, empty profile — starting over is something the parent asks for, never something the service decides (PRODUCT 5). The last one cannot be told from a first sign-in, since the service keeps nothing of its own, so the answer says all of them: no profile yet, or one deleted for good, or one in another Google account.
 
-Two files match only after an unusual sequence — the file was trashed, a new one was made, the old one was restored — and merging them automatically would be guesswork. The newest by `modifiedTime` wins, and `get_profile` names the others, so the parent can delete them (R120).
+Two files match only after an unusual sequence — the file was trashed, a new one was made, the old one was restored — and merging them automatically would be guesswork. The newest by `modifiedTime` wins, and `get_profile` and the progress name the others, so the parent can delete them (R120, R147).
 
 ## One read, one write, nothing slow in between
 
@@ -58,8 +58,7 @@ Every tool call is read → compute → write (03-flows). The cost in HTTP calls
 
 | Tool | Cold instance | File id already cached |
 |---|---|---|
-| `get_progress`, `read_progress` | 2 — `files.list`, `files.get(alt=media)` | 1 — `files.get(alt=media)` |
-| `get_profile` | 4 — list, get; then list and the folder's name, for where the file is | 3 — get; list and the folder's name |
+| `get_profile`, `get_progress`, `read_progress` | 4 — list, get; then list and the folder's name, for where the file is | 3 — get; list and the folder's name |
 | `save_profile`, `next_task`, `submit_task`, `submit_answer` | 4 — list, get, get again, `files.update` | 3 — get, get again, update |
 | A call that writes nothing — a request already open, an answer told again, an edit that changes nothing | as a read | as a read |
 | No profile yet: `get_profile` | 2 — list (miss), the list of the bin (miss) | — |
@@ -153,7 +152,7 @@ Both daily counters — accepted tasks and failed generations (04-profile) — l
 
 ## Export
 
-The export is the file. It is JSON, it is in the parent's own Drive, in a folder they can see, and they can download or copy it like any other file — which is most of why О-5 put it there rather than in the app's hidden folder. `get_profile` answers "where is my child's data" every time, by naming the folder, the file and its link, and the other files that carry a profile when there are any, at two calls more (R120); there is no separate export format and no second copy to keep in step. The child's permanent UUID travels in it (О-41), so a future paid edition can take the file as it stands.
+The export is the file. It is JSON, it is in the parent's own Drive, in a folder they can see, and they can download or copy it like any other file — which is most of why О-5 put it there rather than in the app's hidden folder. `get_profile` and the two tools of the progress answer "where is my child's data" every time, by naming the folder, the file and its link, and the other files that carry a profile when there are any, at two calls more (R120, R147); there is no separate export format and no second copy to keep in step. The child's permanent UUID travels in it (О-41), so a future paid edition can take the file as it stands.
 
 ## Coverage: PRODUCT 5 and criterion 11.4
 
