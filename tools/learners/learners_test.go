@@ -27,7 +27,7 @@ func TestStepRulesAreTheServicesUpdate(t *testing.T) {
 		}
 		beta, correct := 8*rng.Float64()-2, rng.IntN(2) == 0
 		want := rating.Update(state, beta, correct)
-		s := newStepRule(both, 0)
+		s := newStepRule(0)
 		s.theta, s.delta["t"], s.answers, s.inTopic["t"] = state.Theta, state.Delta, state.Answers, state.TopicAnswers
 		s.answered("t", beta, correct)
 		if math.Abs(s.theta-want.Theta) > 1e-12 || math.Abs(s.delta["t"]-want.Delta) > 1e-12 {
@@ -60,6 +60,14 @@ func TestTheEstimateConvergesOnTheTrivialLearner(t *testing.T) {
 	if late >= early {
 		t.Errorf("root mean square error after 200 answers %.3f, after 20 %.3f; want it smaller after 200", late, early)
 	}
+}
+
+// logisticTerm is a game against an opponent of a rating and a deviation, as
+// Glickman has it: his g, his E, and the score.
+func logisticTerm(mu, opponent, deviation, score float64) term {
+	g := 1 / math.Sqrt(1+3*deviation*deviation/(math.Pi*math.Pi))
+	e := logistic(g * (mu - opponent))
+	return term{information: g * g * e * (1 - e), gradient: g * (score - e)}
 }
 
 // glickmanExample is Glickman's worked example (2022): a player at 1500 with
@@ -151,17 +159,15 @@ func TestAStepRuleHoldsTheTrialsEstimateDuringTheSeries(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, shape := range []structure{general, topics, both} {
-		r := &rule{name: "constant", shape: shape, trial: true, make: steps(shape, func(s *stepRule) { s.decay = 0 })}
-		s := newSession(w, r, newChild(misplaced, 1, w.topics))
-		for k := range rating.TrialAnswers {
-			if err := s.step(k); err != nil {
-				t.Fatal(err)
-			}
-			for _, topic := range w.topics {
-				if got, want := s.est.level(topic), s.p.LevelIn(topic); math.Abs(got-want) > 1e-12 {
-					t.Fatalf("%s, after answer %d: the rule stands at %v in %s, the series at %v", shape, k+1, got, topic, want)
-				}
+	r := &rule{name: "constant", shape: both, trial: true, make: steps(func(s *stepRule) { s.decay = 0 })}
+	s := newSession(w, r, newChild(misplaced, 1, w.topics))
+	for k := range rating.TrialAnswers {
+		if err := s.step(k); err != nil {
+			t.Fatal(err)
+		}
+		for _, topic := range w.topics {
+			if got, want := s.est.level(topic), s.p.LevelIn(topic); math.Abs(got-want) > 1e-12 {
+				t.Fatalf("after answer %d: the rule stands at %v in %s, the series at %v", k+1, got, topic, want)
 			}
 		}
 	}

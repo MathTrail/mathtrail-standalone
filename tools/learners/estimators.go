@@ -44,20 +44,16 @@ func (s service) chance(topic string, beta float64) float64 {
 	return rating.Probability(s.level(topic), beta)
 }
 
-// stepRule is an update in the style of Elo with the service's step and its
-// variants: a constant step, a floor under the overall level's step, and other
-// first steps.
+// stepRule is an update in the style of Elo in the service's structure, an
+// overall level and a topic offset, with the service's step and its variants:
+// a constant step, a floor under the overall level's step, and other first
+// steps.
 type stepRule struct {
-	shape   structure
 	k0Theta float64
 	k0Delta float64
 	decay   float64
 	floor   float64 // the least the overall level's step may shrink to
-	start   float64
 	theta   float64
-	// base is the offset of a topic the rule has not moved yet: zero, or the
-	// trial series' estimate where only the topics have levels.
-	base    float64
 	delta   map[string]float64
 	answers int
 	inTopic map[string]int
@@ -70,32 +66,23 @@ const (
 	serviceDecay   = 0.05
 )
 
-func newStepRule(shape structure, start float64) *stepRule {
+func newStepRule(start float64) *stepRule {
 	return &stepRule{
-		shape: shape, k0Theta: serviceK0Theta, k0Delta: serviceK0Delta, decay: serviceDecay,
-		start: start, theta: start,
+		k0Theta: serviceK0Theta, k0Delta: serviceK0Delta, decay: serviceDecay, theta: start,
 		delta: map[string]float64{}, inTopic: map[string]int{},
 	}
 }
 
 func (s *stepRule) overall() float64 { return s.theta }
 
-func (s *stepRule) level(topic string) float64 { return s.theta + s.offset(topic) }
-
-// offset is a topic's offset from the overall level.
-func (s *stepRule) offset(topic string) float64 {
-	if moved, found := s.delta[topic]; found {
-		return moved
-	}
-	return s.base
-}
+func (s *stepRule) level(topic string) float64 { return s.theta + s.delta[topic] }
 
 // chance is the service's chance of a right answer at the rule's level.
 func (s *stepRule) chance(topic string, beta float64) float64 {
 	return rating.Guess + (1-rating.Guess)*logistic(s.level(topic)-beta)
 }
 
-// answered moves the levels the structure lets move by the step of each.
+// answered moves the overall level and the topic's offset, each by its step.
 func (s *stepRule) answered(topic string, beta float64, correct bool) {
 	p := s.chance(topic, beta)
 	score := 0.0
@@ -105,15 +92,8 @@ func (s *stepRule) answered(topic string, beta float64, correct bool) {
 	surprise := score - p
 	kTheta := max(s.k0Theta/(1+s.decay*float64(s.answers)), s.floor)
 	kDelta := s.k0Delta / (1 + s.decay*float64(s.inTopic[topic]))
-	switch s.shape {
-	case general:
-		s.theta += kTheta * surprise
-	case topics:
-		s.delta[topic] = s.offset(topic) + kDelta*surprise
-	case both:
-		s.theta += kTheta * surprise
-		s.delta[topic] = s.offset(topic) + kDelta*surprise
-	}
+	s.theta += kTheta * surprise
+	s.delta[topic] += kDelta * surprise
 	s.answers++
 	s.inTopic[topic]++
 }
@@ -125,13 +105,6 @@ func (s *stepRule) counted(topic string) {
 	s.inTopic[topic]++
 }
 
-// takeOver starts the rule from the trial series' estimate: the overall level
-// it set, or, where only the topics have levels, every topic at that level and
-// the overall level back at the start.
-func (s *stepRule) takeOver(estimate float64) {
-	if s.shape == topics {
-		s.theta, s.base = s.start, estimate-s.start
-		return
-	}
-	s.theta = estimate
-}
+// takeOver starts the rule from the overall level the trial series' estimate
+// set.
+func (s *stepRule) takeOver(estimate float64) { s.theta = estimate }

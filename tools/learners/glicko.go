@@ -1,6 +1,10 @@
 package main
 
-import "math"
+import (
+	"math"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
+)
 
 // Glicko-2 as Glickman describes it (2022): a rating, its deviation and its
 // volatility, on the scale where a difference of one is a factor of e in the
@@ -22,14 +26,6 @@ type glickoRating struct {
 // rating, and the gradient of its log-likelihood.
 type term struct {
 	information, gradient float64
-}
-
-// logisticTerm is a game against an opponent of a rating and a deviation, as
-// Glickman has it: his g, his E, and the score.
-func logisticTerm(mu, opponent, deviation, score float64) term {
-	g := 1 / math.Sqrt(1+3*deviation*deviation/(math.Pi*math.Pi))
-	e := logistic(g * (mu - opponent))
-	return term{information: g * g * e * (1 - e), gradient: g * (score - e)}
 }
 
 // flooredTerm is a task of known difficulty when a guess the child can always
@@ -92,19 +88,19 @@ func bracket(a, phi, v, delta float64, f func(float64) float64) float64 {
 	return a - k*glickoTau
 }
 
-// glicko is the estimator of Glicko-2: one rating for the child, or one per
-// topic, each starting at the child's start. Every answer is a rating period
-// of its own, against a task of known difficulty, whose deviation is zero.
+// glicko is the estimator of Glicko-2 over a chance that lets a child guess,
+// as flooredTerm has it: one rating for the child, or one per topic, each
+// starting at the child's start. Every answer is a rating period of its own,
+// against a task of known difficulty, whose deviation is zero.
 type glicko struct {
 	shape   structure
 	start   float64
-	floor   float64
 	one     glickoRating
 	ratings map[string]glickoRating
 }
 
-func newGlicko(shape structure, start, floor float64) *glicko {
-	return &glicko{shape: shape, start: start, floor: floor, one: freshGlicko(start), ratings: map[string]glickoRating{}}
+func newGlicko(shape structure, start float64) *glicko {
+	return &glicko{shape: shape, start: start, one: freshGlicko(start), ratings: map[string]glickoRating{}}
 }
 
 func freshGlicko(start float64) glickoRating {
@@ -131,7 +127,7 @@ func (g *glicko) overall() float64 {
 func (g *glicko) level(topic string) float64 { return g.rating(topic).mu }
 
 func (g *glicko) chance(topic string, beta float64) float64 {
-	return g.floor + (1-g.floor)*logistic(g.level(topic)-beta)
+	return rating.Guess + (1-rating.Guess)*logistic(g.level(topic)-beta)
 }
 
 func (g *glicko) answered(topic string, beta float64, correct bool) {
@@ -140,11 +136,7 @@ func (g *glicko) answered(topic string, beta float64, correct bool) {
 		score = 1
 	}
 	r := g.rating(topic)
-	t := logisticTerm(r.mu, beta, 0, score)
-	if g.floor > 0 {
-		t = flooredTerm(g.floor, r.mu, beta, score)
-	}
-	updated := r.period([]term{t})
+	updated := r.period([]term{flooredTerm(rating.Guess, r.mu, beta, score)})
 	if g.shape == general {
 		g.one = updated
 		return

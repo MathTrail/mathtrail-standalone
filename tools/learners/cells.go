@@ -1,9 +1,5 @@
 package main
 
-import (
-	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
-)
-
 // cell is one rule run on one generator's children.
 type cell struct {
 	rule      *rule
@@ -20,10 +16,10 @@ var allGenerators = []generator{
 	staticChildren, misplaced, learning, jumping, harderHost, linkedTopics, otherSlope, otherFloor, hintsUsed,
 }
 
-// steps makes a step rule in a structure, tuned by a variant.
-func steps(shape structure, tune func(s *stepRule)) func(c *child, start float64) estimator {
+// steps makes a step rule, tuned by a variant.
+func steps(tune func(s *stepRule)) func(c *child, start float64) estimator {
 	return func(_ *child, start float64) estimator {
-		s := newStepRule(shape, start)
+		s := newStepRule(start)
 		if tune != nil {
 			tune(s)
 		}
@@ -40,14 +36,14 @@ func steps(shape structure, tune func(s *stepRule)) func(c *child, start float64
 // numbers draw.
 func rules() []*rule {
 	glicko := func(shape structure) *rule {
-		return &rule{name: "glicko2_floor", shape: shape, make: func(_ *child, start float64) estimator { return newGlicko(shape, start, rating.Guess) }}
+		return &rule{name: "glicko2_floor", shape: shape, make: func(_ *child, start float64) estimator { return newGlicko(shape, start) }}
 	}
 	return []*rule{
 		{name: "shrinking", shape: both, service: true},
-		{name: "constant", shape: both, trial: true, make: steps(both, func(s *stepRule) { s.decay = 0 })},
-		{name: "constant_slow", shape: both, trial: true, make: steps(both, func(s *stepRule) { s.decay, s.k0Theta, s.k0Delta = 0, 0.1, 0.2 })},
-		{name: "floor_0.05", shape: both, trial: true, make: steps(both, func(s *stepRule) { s.floor = 0.05 })},
-		{name: "no_trial", shape: both, make: steps(both, nil)},
+		{name: "constant", shape: both, trial: true, make: steps(func(s *stepRule) { s.decay = 0 })},
+		{name: "constant_slow", shape: both, trial: true, make: steps(func(s *stepRule) { s.decay, s.k0Theta, s.k0Delta = 0, 0.1, 0.2 })},
+		{name: "floor_0.05", shape: both, trial: true, make: steps(func(s *stepRule) { s.floor = 0.05 })},
+		{name: "no_trial", shape: both, make: steps(nil)},
 		glicko(general),
 		glicko(topics),
 	}
