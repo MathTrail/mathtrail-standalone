@@ -628,8 +628,27 @@ export const staleWait = {
 } as const;
 
 /**
- * limited is the payload of a request refused for the day: it says whose card
- * it would be nowhere, since the tool that refuses reads no child's details.
+ * askRefused is the payload of a task asked for with arguments no request
+ * could be opened from: the model asks again, and no task comes to this card.
+ */
+export const askRefused = {
+	screen: "waiting",
+	status: "rejected",
+	code: "invalid_arguments",
+	problems: [
+		{
+			field: "topic",
+			code: "not_in_catalog",
+			rule: "is not a topic of the catalog",
+		},
+	],
+	last_answer: null,
+	child: fence.child,
+} as const;
+
+/**
+ * limited is the payload of a request refused for the day, as an earlier
+ * service sent it: it says whose card it would be nowhere.
  */
 export const limited = {
 	screen: "waiting",
@@ -637,6 +656,51 @@ export const limited = {
 	code: "limit_reached",
 	last_answer: null,
 } as const;
+
+/**
+ * coming is the payload of a task asked for: the card next_task draws, which
+ * waits for the task of the request it names.
+ */
+export const coming = {
+	screen: "coming",
+	request_id: "req_fence",
+	child: fence.child,
+	language: "en",
+	last_answer: null,
+} as const;
+
+/**
+ * writing is what the service tells a card of the task it waits for while it
+ * is being written, with as many tries turned down as given.
+ */
+export function writing(refused = 0): CallToolResult {
+	return toolResult({
+		screen: "coming",
+		refused,
+		last_answer: null,
+		child: fence.child,
+		task: null,
+		language: "en",
+	});
+}
+
+/**
+ * onTheCard is what the service tells a card once the task it waits for is on
+ * the child's card: the fence.
+ */
+export const onTheCard = toolResult({ ...fence, language: "en" });
+
+/**
+ * notComing is what the service tells a card whose request is over with no
+ * task of its on the card.
+ */
+export const notComing = toolResult({
+	screen: "waiting",
+	code: "stale_request",
+	last_answer: null,
+	child: fence.child,
+	task: null,
+});
 
 // toolResult is a tool's result with the payload a card is drawn from.
 function toolResult(

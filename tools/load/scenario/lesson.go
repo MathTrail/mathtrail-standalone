@@ -90,14 +90,20 @@ func (w *walk) record(answers ...session.Answer) {
 	}
 }
 
-// task walks the child through one task: asked for, handed in and, once the
-// service accepted it, answered with the letter given. The task counts as
-// soon as the service accepted it, whether or not the run goes on to the
-// answer.
+// task walks the child through one task: asked for, its package fetched, the
+// card it will come to told it is being written, handed in, the card told it
+// is on it and, once the service accepted it, answered with the letter given.
+// The card asks once on either side of the hand-in, as few times as says
+// whether it turned into the task. The task counts as soon as the service
+// accepted it, whether or not the run goes on to the answer.
 func (w *walk) task(ctx context.Context, written *lesson.Task, letter string) {
 	request, asked, err := lesson.Ask(ctx, w.child, written.Choice)
-	w.record(asked)
-	if err != nil || !w.step(ctx) {
+	w.record(asked...)
+	if err != nil {
+		return
+	}
+	w.record(lesson.AwaitWriting(ctx, w.child, request))
+	if !w.step(ctx) {
 		return
 	}
 	card, handedIn := lesson.HandIn(ctx, w.child, request, written, student)
@@ -106,6 +112,7 @@ func (w *walk) task(ctx context.Context, written *lesson.Task, letter string) {
 		return
 	}
 	w.run.Units++
+	w.record(lesson.AwaitCard(ctx, w.child, request, card))
 	if w.step(ctx) {
 		w.record(lesson.AnswerTask(ctx, w.child, card, letter))
 	}

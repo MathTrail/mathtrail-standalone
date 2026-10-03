@@ -1,0 +1,16 @@
+label,kind,inside,inside_low,inside_high,declared_wrongly,declared_wrongly_low,declared_wrongly_high
+Glicko-2 with floor (one level),baseline,43.0,42.5,43.5,63.6,61.6,65.7
+the service,service,42.4,41.9,43.0,63.2,61.5,65.0
+gradient step (level + offsets),baseline,42.2,41.6,42.8,63.9,62.2,65.6
+constant step (one level),baseline,41.8,41.3,42.2,63.0,61.1,64.9
+constant step (level + offsets),baseline,41.4,41.0,41.8,67.9,66.5,69.3
+Glicko-2 (one level),baseline,41.0,40.6,41.5,71.1,69.0,73.0
+shrinking step (one level),baseline,39.1,38.3,39.8,64.3,61.6,67.0
+Glicko-2 (per topic),baseline,38.9,38.4,39.3,56.7,55.0,58.5
+gradient step (one level),baseline,38.7,38.0,39.5,64.3,61.6,67.0
+Urnings (one level),baseline,38.5,38.1,39.0,63.9,61.8,66.1
+Glicko-2 with floor (per topic),baseline,38.2,37.7,38.6,53.9,52.0,55.7
+constant step (per topic),baseline,36.2,35.5,37.0,61.6,59.8,63.6
+shrinking step (per topic),baseline,36.0,35.2,37.0,60.1,58.2,61.9
+gradient step (per topic),baseline,35.7,34.8,36.6,59.5,57.5,61.4
+Urnings (per topic),baseline,33.5,32.5,34.4,61.4,59.1,63.8

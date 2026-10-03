@@ -3,6 +3,7 @@ package lesson_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -34,8 +35,8 @@ func childOf(t *testing.T, target session.Target, name string) *session.Child {
 	return child
 }
 
-// The request is read out of the words of next_task the way a model reads it:
-// the id its words name before the package, and the brief of the package.
+// The request is read out of the words of get_package the way a model reads
+// it: the id its words name before the package, and the brief of the package.
 func TestTheRequestIsReadOutOfTheWords(t *testing.T) {
 	t.Parallel()
 
@@ -46,14 +47,14 @@ func TestTheRequestIsReadOutOfTheWords(t *testing.T) {
 		wantBrief   string
 	}{
 		{
-			name:      "a request opened",
-			words:     "Request " + id + " is open. Write one task in en to the package below, and hand it in with submit_task and request_id " + id + "." + pack,
+			name:      "the package of a request",
+			words:     "The package of request " + id + ". Write one task in en to it, and hand it in with submit_task and request_id " + id + "." + pack,
 			wantBrief: `{"topic":"logic.ordering"}`,
 		},
 		{
-			name: "a request opened after a task was skipped",
-			words: "Task tsk_1b4e28ba-2fa1-11d2-883f-0016d3cca427, left on the child's card without an answer, is recorded as skipped.\n" +
-				"Request " + id + " is open." + pack,
+			name: "the package after a word about the language",
+			words: "The package of request " + id + ".\n" +
+				"The parent chose ru for the lessons: talk to the child in it, and every task is written in it." + pack,
 			wantBrief: `{"topic":"logic.ordering"}`,
 		},
 	} {
@@ -129,9 +130,101 @@ func TestACardThatShowsAnotherTaskIsAMismatch(t *testing.T) {
 	}
 }
 
+// kindsOf are the kinds of the answers given, in the order they came.
+func kindsOf(answers []session.Answer) []session.Kind {
+	kinds := make([]session.Kind, 0, len(answers))
+	for i := range answers {
+		kinds = append(kinds, answers[i].Kind)
+	}
+	return kinds
+}
+
+// A card waiting for a task, or a package, that belongs to another call is told
+// as a mismatch: next_task drawing no card for a request, a package of another
+// request than the card waits for, and a card told of anything but the task
+// being written, or then of anything but the task the hand-in put on it.
+func TestWhatBelongsToAnotherCallIsAMismatch(t *testing.T) {
+	t.Parallel()
+
+	const id = "req_0f8fad5b-d9cb-469f-a165-70867728950e"
+	const other = "req_1b4e28ba-2fa1-11d2-883f-0016d3cca427"
+	answering := func(payload any, words string) mcp.ToolHandler {
+		return func(context.Context, *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			return &mcp.CallToolResult{Content: []mcp.Content{&mcp.TextContent{Text: words}}, StructuredContent: payload}, nil
+		}
+	}
+	packageOf := func(request string) string {
+		return "The package of request " + request + ".\n\nPackage:\n" + `{"brief":{"topic":"logic.ordering"}}`
+	}
+	coming := map[string]any{"screen": "coming", "request_id": id}
+	card := lesson.Card{TaskID: "tsk_1", Question: "Who finished first?"}
+	shown := func(taskID string) map[string]any {
+		return map[string]any{"screen": "task", "task": map[string]any{"id": taskID, "question": card.Question}}
+	}
+
+	for _, test := range []struct {
+		name  string
+		tools map[string]mcp.ToolHandler
+		take  func(child *session.Child) session.Kind
+		want  session.Kind
+	}{
+		{"a card drawn for the request, and its package", map[string]mcp.ToolHandler{
+			"next_task": answering(coming, "Request "+id+" is open."), "get_package": answering(nil, packageOf(id)),
+		}, asking, session.Answered},
+		{"no card drawn for the request", map[string]mcp.ToolHandler{
+			"next_task":   answering(map[string]any{"screen": "waiting", "request_id": id}, "No task."),
+			"get_package": answering(nil, packageOf(id)),
+		}, asking, session.Mismatched},
+		{"a card drawn for no request", map[string]mcp.ToolHandler{
+			"next_task": answering(map[string]any{"screen": "coming"}, "A task is coming."), "get_package": answering(nil, packageOf(id)),
+		}, asking, session.Mismatched},
+		{"the package of another request", map[string]mcp.ToolHandler{
+			"next_task": answering(coming, "Request "+id+" is open."), "get_package": answering(nil, packageOf(other)),
+		}, asking, session.Mismatched},
+		{"told the task is being written", map[string]mcp.ToolHandler{
+			"read_task": answering(map[string]any{"screen": "coming"}, "Being written."),
+		}, func(child *session.Child) session.Kind {
+			return lesson.AwaitWriting(context.Background(), child, lesson.Request{ID: id}).Kind
+		}, session.Answered},
+		{"told of a task while it is being written", map[string]mcp.ToolHandler{
+			"read_task": answering(shown("tsk_1"), "On the card."),
+		}, func(child *session.Child) session.Kind {
+			return lesson.AwaitWriting(context.Background(), child, lesson.Request{ID: id}).Kind
+		}, session.Mismatched},
+		{"told of the task handed in", map[string]mcp.ToolHandler{
+			"read_task": answering(shown("tsk_1"), "On the card."),
+		}, func(child *session.Child) session.Kind {
+			return lesson.AwaitCard(context.Background(), child, lesson.Request{ID: id}, card).Kind
+		}, session.Answered},
+		{"told of another task once it was handed in", map[string]mcp.ToolHandler{
+			"read_task": answering(shown("tsk_2"), "On the card."),
+		}, func(child *session.Child) session.Kind {
+			return lesson.AwaitCard(context.Background(), child, lesson.Request{ID: id}, card).Kind
+		}, session.Mismatched},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			child := childOf(t, servicetest.Fake(t, test.tools, nil), "otter")
+			if got := test.take(child); got != test.want {
+				t.Errorf("the answer is %q, want %q", got, test.want)
+			}
+		})
+	}
+}
+
+// asking asks for the first written task, and is the kind of the last answer
+// asking for it took.
+func asking(child *session.Child) session.Kind {
+	_, answers, _ := lesson.Ask(context.Background(), child, lesson.Written()[0].Choice)
+	return answers[len(answers)-1].Kind
+}
+
 // Every written task is accepted by the service's own checks, in the order a
 // lesson hands them in to one child — so none is a near-copy of one the child
-// was handed before it — and each is answered, right and wrong in turn.
+// was handed before it — and each is answered, right and wrong in turn. The
+// card waiting for each is told it is being written, and then that it is on
+// the card.
 func TestEveryWrittenTaskIsAcceptedInTheOrderALessonHandsItIn(t *testing.T) {
 	t.Parallel()
 
@@ -144,24 +237,44 @@ func TestEveryWrittenTaskIsAcceptedInTheOrderALessonHandsItIn(t *testing.T) {
 	}
 
 	for i, task := range lesson.Written() {
-		request, asked, err := lesson.Ask(t.Context(), child, task.Choice)
-		if err != nil {
-			t.Fatalf("task %d: next_task %q: %v, want a request", i+1, asked.Kind, err)
-		}
-		card, handedIn := lesson.HandIn(t.Context(), child, request, &task, otter)
-		if handedIn.Kind != session.Answered {
-			t.Fatalf("task %d: submit_task %q, %s, want it accepted", i+1, handedIn.Kind, handedIn.Text())
-		}
 		letter := task.Body.Correct
 		if i%2 == 1 {
 			letter = task.Wrong
 		}
-		if answered := lesson.AnswerTask(t.Context(), child, card, letter); answered.Kind != session.Answered {
-			t.Errorf("task %d: submit_answer %q, %s, want it recorded", i+1, answered.Kind, answered.Text())
+		// A task not walked to its end leaves its request open, and the tasks
+		// after it would only say so.
+		if !t.Run(fmt.Sprintf("task %d", i+1), func(t *testing.T) { walkTask(t, child, &task, letter) }) {
+			break
 		}
 	}
 	if progress := lesson.Progress(t.Context(), child); progress.Kind != session.Answered {
 		t.Errorf("get_progress %q, want it answered", progress.Kind)
+	}
+}
+
+// walkTask takes the child through one written task, as a model and a card
+// take it: asked for with its package, the card told it is being written,
+// handed in and accepted, the card told it is on it, and answered with the
+// letter given.
+func walkTask(t *testing.T, child *session.Child, task *lesson.Task, letter string) {
+	t.Helper()
+
+	request, asked, err := lesson.Ask(t.Context(), child, task.Choice)
+	if err != nil {
+		t.Fatalf("asked for as %v: %v, want a request", kindsOf(asked), err)
+	}
+	if writing := lesson.AwaitWriting(t.Context(), child, request); writing.Kind != session.Answered {
+		t.Errorf("read_task %q, %s, want the task being written", writing.Kind, writing.Text())
+	}
+	card, handedIn := lesson.HandIn(t.Context(), child, request, task, otter)
+	if handedIn.Kind != session.Answered {
+		t.Fatalf("submit_task %q, %s, want it accepted", handedIn.Kind, handedIn.Text())
+	}
+	if shown := lesson.AwaitCard(t.Context(), child, request, card); shown.Kind != session.Answered {
+		t.Errorf("read_task %q, %s, want the task on the card", shown.Kind, shown.Text())
+	}
+	if answered := lesson.AnswerTask(t.Context(), child, card, letter); answered.Kind != session.Answered {
+		t.Errorf("submit_answer %q, %s, want it recorded", answered.Kind, answered.Text())
 	}
 }
 

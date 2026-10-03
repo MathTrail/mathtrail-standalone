@@ -1,0 +1,507 @@
+# Research: task runner for the research program's own module.
+# The research module is separate from the product: the product's ci-* recipes
+# never see it, and these recipes neither touch nor check the product. Tools the
+# root already pins (govulncheck, go-licenses, the license allow-list) are read
+# from the root justfile rather than repeated, so both modules use one version.
+
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+JUST := quote(just_executable())
+ROOT := JUST + " --justfile ../justfile --working-directory .."
+
+# The shell scripts are checked by ShellCheck, run from its image pinned by tag
+# and digest.
+SHELLCHECK := "koalaman/shellcheck:v0.11.0@sha256:61862eba1fcf09a484ebcc6feea46f1782532571a34ed51fedf90dd25f925a8d"
+
+# List the recipes
+default:
+    @{{ JUST }} --justfile {{ quote(justfile()) }} --list
+
+# Tests of the research module, with the race detector
+test:
+    go test ./... -race -count=1
+
+# Formatting is checked here rather than through the root's fmt-check, which
+# walks the whole repository and would fail a research task on product files.
+[doc('gofmt -s and golangci-lint over this module, ShellCheck over its scripts')]
+lint:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    unformatted=$(gofmt -s -l .)
+    if [ -n "$unformatted" ]; then
+        echo "These files need gofmt -s:" >&2
+        echo "$unformatted" >&2
+        exit 1
+    fi
+    golangci-lint run ./...
+    mapfile -t scripts < <(find . \( -path ./.cache -o -path ./release/build \) -prune -o -name '*.sh' -print | LC_ALL=C sort)
+    docker run --rm -v "$PWD:/mnt:ro" -w /mnt {{ SHELLCHECK }} -x "${scripts[@]}"
+
+# -test covers what test files import as well: an experiment written as a test
+# must not bring in a vulnerable module unseen.
+[doc("Known vulnerabilities in this module, with the root's pinned govulncheck")]
+vuln:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    tool=$({{ ROOT }} --evaluate GOVULNCHECK)
+    go run "$tool" -test ./...
+
+# go-licenses reads only what non-test code imports, so experiments live in
+# non-test packages; test files import the standard library, the product and
+# what non-test code already imports. The module ships nothing, so unlike the
+# root there is no license file to keep in step: the check alone is enough.
+# This module's own packages fall under the repository's LICENSE, which
+# go-licenses does not look for above a module's root, so they are left out;
+# what they import is still checked.
+[doc("Licenses of this module's dependencies, against the root's allow-list")]
+licenses:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    tool=$({{ ROOT }} --evaluate GO_LICENSES)
+    allowed=$({{ ROOT }} --evaluate ALLOWED_LICENSES)
+    module=$(go list -m)
+    go run "$tool" check ./... --allowed_licenses="$allowed" --ignore "$module"
+
+[doc("go.sum after the product's go.mod changed or a dependency was added")]
+tidy:
+    go mod tidy
+
+# The module runs the product's own packages, so a module whose packages both
+# builds compile must be selected at the same version in both: a dependency of
+# an experiment can otherwise raise one, and nothing fails while the product's
+# code runs against a version the product does not ship. A module that only
+# sits in a build's graph, with no package of it compiled, changes no program
+# and is not compared.
+[doc("Fail if a module whose packages the product and this module both compile is selected at different versions")]
+deps-check:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    versions() {
+        go list -deps -test -f '{{{{with .Module}}{{{{if not .Main}}{{{{.Path}} {{{{.Version}}{{{{end}}{{{{end}}' ./... | awk 'NF == 2' | LC_ALL=C sort -u
+    }
+    shared=$(LC_ALL=C join <(cd .. && versions) <(versions))
+    differ=$(printf '%s\n' "$shared" | awk 'NF == 3 && $2 != $3')
+    if [ -n "$differ" ]; then
+        echo "Modules both builds use, at different versions (module, product, research):" >&2
+        echo "$differ" >&2
+        exit 1
+    fi
+    echo "$(printf '%s\n' "$shared" | wc -l) modules shared with the product, all at its versions"
+
+# -- Literature ----------------------------------------------------------------
+
+# With no arguments every entry of refs.bib is checked against its Crossref or
+# DataCite record; with `add <DOI | arXiv:id>...` new entries are written from
+# those records.
+[doc("Check literature/refs.bib against Crossref and DataCite, or add works to it: citecheck add <DOI | arXiv:id>...")]
+[positional-arguments]
+citecheck *args:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ $# -eq 0 ]; then set -- check; fi
+    go run ./tools/citecheck -bib literature/refs.bib "$@"
+
+# -- Evidence ledger ----------------------------------------------------------
+
+# The prototype's public repository: its claims are proven at a commit of it,
+# read from a local clone that git ignores.
+PROTOTYPE_URL := "https://github.com/MathTrail/llm-taskgen-prototype"
+PROTOTYPE_CLONE := ".cache/llm-taskgen-prototype.git"
+
+# product.sh unpacks the commit into a temporary directory, so nothing in the
+# shared working tree changes the numbers.
+[doc('Recompute evidence/product-stats.txt at a commit of the product')]
+pin commit: (_facts "evidence/product-stats.txt" "evidence/product.sh" commit)
+
+[doc('Recompute evidence/prototype-stats.txt at a commit of the prototype')]
+prototype-pin commit: _prototype-clone (_facts "evidence/prototype-stats.txt" "evidence/prototype.sh" PROTOTYPE_CLONE commit)
+
+# A set of facts replaces the old one only once all of it is computed: a run
+# that fails leaves the last good set.
+[positional-arguments]
+_facts out script *args:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    out=$1 script=$2
+    shift 2
+    facts=$(mktemp "$(dirname "$out")/.facts.XXXXXX")
+    trap 'rm -f "$facts"' EXIT
+    "$script" "$@" > "$facts"
+    chmod 644 "$facts"
+    mv "$facts" "$out"
+
+# Each part of the ledger is pinned to the commit its stats name, so a table
+# and its numbers can never describe two different states of a system. The
+# product's part, its claims, facts, table and numbers, is named once here.
+PRODUCT_LEDGER := "-claims evidence/claims-product.json -stats evidence/product-stats.txt -ledger evidence/ledger.md -section product -numbers evidence/ledger-numbers.txt"
+
+[doc("Rewrite the claims tables, the product's in evidence/ledger.md and the prototype's in evidence/prototype.md, and the numbers the product's claims state, in evidence/ledger-numbers.txt")]
+ledger *flags: _prototype-clone
+    go run ./tools/ledger {{ flags }} {{ PRODUCT_LEDGER }}
+    go run ./tools/ledger {{ flags }} -claims evidence/claims-prototype.json \
+        -stats evidence/prototype-stats.txt -repo {{ PROTOTYPE_CLONE }} \
+        -ledger evidence/prototype.md -section prototype
+
+[doc("Fail if a claim lost its proof or a claims table is out of date")]
+ledger-check: (ledger "-check")
+
+# The local copies of the prototype are deleted once the product has ported
+# what it needs; this records, while they exist, which of their files a claim
+# can rest on.
+[doc("Compare the local copies of the prototype with a commit of its public repository")]
+prototype-snapshot commit: _prototype-clone
+    evidence/prototype-snapshot.sh {{ PROTOTYPE_CLONE }} {{ quote(commit) }}
+
+[doc("Bring the clone of the prototype's public repository up to date")]
+prototype-fetch: _prototype-clone
+    git --git-dir {{ PROTOTYPE_CLONE }} fetch --quiet --prune origin '+refs/heads/*:refs/heads/*'
+
+# A pinned commit never changes, so a clone that exists is good enough to read
+# it; prototype-fetch brings the clone up to date for a later commit.
+_prototype-clone:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ ! -d {{ PROTOTYPE_CLONE }} ]; then
+        git clone --bare --quiet {{ PROTOTYPE_URL }} {{ PROTOTYPE_CLONE }}
+    fi
+
+# The research notes are read at the prototype's pinned commit, every Markdown
+# file under research/. A link counts as covered when some entry's url is
+# exactly that link. A link may hold balanced parentheses, as a Wikipedia title
+# does; Markdown and quotation marks around it are not part of it.
+[doc("Fail if a link in the prototype's research notes is missing from literature/seed.bib")]
+seed-check: _prototype-clone
+    #!/usr/bin/env bash
+    set -euo pipefail
+    commit=$(sed -n 's/^commit=//p' evidence/prototype-stats.txt)
+    link=$'https?://([^][ ()<>`"*|\'«»]|\\([^ ()]*\\))+'
+    links=$(git --git-dir {{ PROTOTYPE_CLONE }} ls-tree -r -z --name-only "$commit" -- research/ |
+        while IFS= read -r -d '' note; do
+            case $note in *.md) git --git-dir {{ PROTOTYPE_CLONE }} show "$commit:$note" ;; esac
+        done |
+        { LC_ALL=C.UTF-8 grep -oE "$link" || true; } | sed -E 's/[.,;:]+$//' | LC_ALL=C sort -u)
+    entries=$(sed -n 's/^  url *= {\(.*\)},$/\1/p' literature/seed.bib | LC_ALL=C sort -u)
+    missing=$(LC_ALL=C comm -23 <(printf '%s\n' "$links") <(printf '%s\n' "$entries"))
+    if [ -n "$missing" ]; then
+        echo "Links of the research notes missing from literature/seed.bib:" >&2
+        echo "$missing" >&2
+        exit 1
+    fi
+    echo "$(printf '%s\n' "$links" | wc -l) links of the research notes at ${commit:0:12}, all in literature/seed.bib"
+
+# -- Models through their command-line clients --------------------------------
+
+# Codex CLI and Gemini CLI run from this image, built from exact versions; the
+# logins live in named volumes, one per client.
+[doc("Build the image of Codex CLI and Gemini CLI at their pinned versions")]
+cli-image:
+    docker build -q -t mathtrail-research-cli:local containers/cli
+
+# A person signs in here once per client; the credentials stay in the volume.
+[doc("A shell in the clients' image with a client's login volume mounted: codex or gemini")]
+cli-shell client: cli-image
+    #!/usr/bin/env bash
+    set -euo pipefail
+    case {{ quote(client) }} in
+        codex | gemini) ;;
+        *) echo "cli-shell: codex or gemini; Claude Code signs in inside the devcontainer" >&2; exit 2 ;;
+    esac
+    # Gemini CLI writes each session's transcript under its temporary
+    # directory; as in a trial, that stays in memory rather than in the volume.
+    extra=()
+    if [ {{ quote(client) }} = gemini ]; then extra=(--tmpfs /home/node/.gemini/tmp:uid=1000,gid=1000); fi
+    docker run --rm -it -v "mathtrail-research-{{ client }}:/home/node/.{{ client }}" "${extra[@]}" mathtrail-research-cli:local bash
+
+# Every call spends the subscription's limits, so a person starts it. Only the
+# clients that run in the image need it built, and a dry run needs nothing.
+[doc("Three isolated trial calls of a model: claude, codex or gemini, then the model; --dry-run only prints them")]
+cli-trial client model *flags:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [[ {{ quote(client) }} != claude && " {{ flags }} " != *" --dry-run "* ]]; then
+        {{ JUST }} --justfile {{ quote(justfile()) }} cli-image
+    fi
+    experiments/cli-trial.sh {{ quote(client) }} {{ quote(model) }} {{ flags }}
+
+# -- Paper A -------------------------------------------------------------------
+
+# TeX Live, pinned by tag and digest: the frozen TeX Live 2025 with the LNCS
+# class Springer publishes on CTAN (llncs 2.26, CC BY 4.0), pgfplots, siunitx,
+# latexmk and BibTeX. Nothing of it is installed in the devcontainer.
+TEXLIVE := "texlive/texlive:TL2025-historic@sha256:f25ee2dcd00f58198f918064f4a1c8562410b33e84155bd55b02b419d73d9391"
+
+# The files every number of the paper is computed in or taken from, as
+# name=path: the product's facts, and the numbers of the works it cites. An
+# experiment adds its own results here once they exist.
+NUMBERS := "product=evidence/product-stats.txt ledger=evidence/ledger-numbers.txt literature=literature/numbers.txt ea1=experiments/faultinject/results/numbers.txt ea3=experiments/learnersim/results/numbers.txt ea4=experiments/perf/results/numbers.txt"
+
+# The keys whose values name the system to a reviewer: the commit can be looked
+# up. A web address, or the project's name, in any value is hidden as well.
+IDENTIFYING := "commit"
+
+[doc('Build paper A: its numbers, checks of its names and its anonymity, then the named and the anonymous PDF, each checked for its citations')]
+paper-a: _paper-a-ledger _paper-a-numbers _paper-a-names _paper-a-handtyped _paper-a-anonymity (_paper-a-latex "paper-a") (_paper-a-latex "paper-a-anonymous" '\def\Anonymous{}')
+    @echo "paper-a/build/paper-a.pdf and paper-a/build/paper-a-anonymous.pdf"
+
+# What goes to the venue: the anonymous PDF, refused while any TBD is left.
+[doc('Build the anonymous PDF for submission; fails while any TBD is left')]
+paper-a-final: _paper-a-ledger _paper-a-numbers _paper-a-names _paper-a-handtyped _paper-a-anonymity (_paper-a-latex "paper-a-submission" '\def\Anonymous{}\def\Final{}')
+    @echo "paper-a/build/paper-a-submission.pdf"
+
+# The numbers the product's claims state reach the paper only as the claims
+# prove them at the pin the facts name: a claim, a pin or a number changed
+# since the ledger was written fails the build here.
+[doc('Fail if a claim lost its proof, or a number the paper reads from the ledger is out of date')]
+_paper-a-ledger:
+    go run ./tools/ledger -check {{ PRODUCT_LEDGER }}
+
+[doc('Write paper-a/generated/numbers.tex from the computed numbers')]
+_paper-a-numbers:
+    go run ./tools/macros -out paper-a/generated/numbers.tex -identifying {{ IDENTIFYING }} {{ NUMBERS }}
+
+# No number in the paper is typed by hand: each comes through a macro of the
+# computed numbers, or is marked as one the text chooses. A figure is read for
+# the words it prints; its coordinates are layout.
+[doc("Fail if a number in the paper's LaTeX was typed by hand")]
+_paper-a-handtyped:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    figures=()
+    for figure in paper-a/figures/*.tex; do figures+=(-labels "$figure"); done
+    go run ./tools/handtyped -names paper-a/names-with-digits.txt "${figures[@]}" paper-a/main.tex paper-a/sections/*.tex
+
+# One build of the paper into paper-a/build/, under a job name and with what
+# is read before the preamble.
+#
+# The first pass runs LaTeX alone, and its .aux records every key the paper
+# cites, from whatever file LaTeX read it. Each must be in refs.bib, which
+# citecheck checks against the registries, or in web.bib, the laws and pages
+# with no DOI: a lead from seed.bib, read by nobody, is refused before BibTeX
+# could print it. The second pass completes the PDF with BibTeX, which runs
+# only once something is cited, since it stops a build that cites nothing.
+#
+# A build that hides the system is then read back: the bibliography must not
+# name the project or its repositories, which no check of the text can see.
+#
+# The PDF carries the pinned commit's date rather than the moment of the build,
+# so the same sources make the same file.
+[positional-arguments]
+_paper-a-latex jobname pretex='':
+    #!/usr/bin/env bash
+    set -euo pipefail
+    date=$(sed -n 's/^commit_date=//p' evidence/product-stats.txt)
+    if [ -z "$date" ]; then
+        echo "evidence/product-stats.txt names no commit_date, and the PDF would carry today's" >&2
+        exit 1
+    fi
+    pretex=()
+    if [ -n "$2" ]; then pretex=("-usepretex=$2"); fi
+    latex() {
+        local job=$1
+        shift
+        docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
+            -e SOURCE_DATE_EPOCH="$(date -u -d "$date" +%s)" -e FORCE_SOURCE_DATE=1 -e BIBINPUTS=/research/literature: \
+            -v "$PWD:/research" -w /research/paper-a {{ TEXLIVE }} \
+            latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir=build "-jobname=$job" "${pretex[@]}" "$@" main.tex
+    }
+    latex "$1" -bibtex-
+    aux="paper-a/build/$1.aux"
+    go run ./tools/citecheck -bib literature/refs.bib -also literature/web.bib cited "$aux"
+    if grep -q '^\\citation{' "$aux"; then latex "$1" -bibtex; fi
+    if [ -n "$2" ] && [ -f "paper-a/build/$1.bbl" ]; then
+        if grep -n -i -E 'mathtrail|llm-taskgen-prototype' "paper-a/build/$1.bbl"; then
+            echo "the anonymous build's bibliography names the project or its repositories" >&2
+            exit 1
+        fi
+    fi
+
+# The review version must name neither the system nor its repositories, so the
+# text says \System and \ArtifactURL, which the anonymous build replaces; a name
+# written out by hand would reach the reviewers. The preamble, which defines
+# those two, is the one file allowed to name them.
+_paper-a-names:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shopt -s nullglob
+    tex=(paper-a/main.tex paper-a/sections/*.tex paper-a/figures/*.tex)
+    if grep -n -i -E 'mathtrail|llm-taskgen-prototype' "${tex[@]}"; then
+        echo "paper-a: write \\System and \\ArtifactURL, not the name or the repositories: the anonymous build replaces only those" >&2
+        exit 1
+    fi
+
+# The names and the numbers that identify the system — the repository and the
+# commit a reviewer could look up — must reach the named build and not the
+# anonymous one. A test document writes what they expand to into its log,
+# built both ways; each build must write all five lines, and the logs are read.
+_paper-a-anonymity:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shopt -s inherit_errexit
+    work=$(mktemp -d)
+    trap 'rm -rf "$work"' EXIT
+    commit=$(sed -n 's/^commit=//p' evidence/product-stats.txt)
+    log() {
+        docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
+            -v "$PWD:/research" -v "$work:/out" -w /research/paper-a {{ TEXLIVE }} \
+            pdflatex -interaction=nonstopmode -halt-on-error -output-directory=/out "$@" > /dev/null
+        lines=$(grep '^ANONYMITY-CHECK' "$work/anonymity.log")
+        if [ "$(wc -l <<<"$lines")" -ne 5 ]; then
+            echo "the test document did not write all five lines:" >&2; echo "$lines" >&2; exit 1
+        fi
+        echo "$lines"
+    }
+    named=$(log test/anonymity.tex)
+    anonymous=$(log '\def\Anonymous{}\input{test/anonymity}')
+    for mark in MathTrail github.com/MathTrail "$commit"; do
+        if ! grep -q -F "$mark" <<<"$named"; then
+            echo "the named build lost $mark" >&2; exit 1
+        fi
+        if grep -q -F "$mark" <<<"$anonymous"; then
+            echo "the anonymous build names $mark:" >&2; echo "$anonymous" >&2; exit 1
+        fi
+    done
+
+# The build draws figures straight from CSV files. This builds a test figure
+# from two different CSV files and from the same one twice: the first pair of
+# PDFs must differ and the second must match, byte for byte.
+[doc('Show that a changed CSV changes a figure with no edit to the LaTeX, and that a build is reproducible')]
+paper-a-figure-check:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shopt -s inherit_errexit
+    work=$(mktemp -d)
+    trap 'rm -rf "$work"' EXIT
+    cp paper-a/test/figure.tex "$work/"
+    build() {
+        cp "paper-a/test/$1" "$work/data.csv"
+        docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
+            -e SOURCE_DATE_EPOCH=0 -e FORCE_SOURCE_DATE=1 \
+            -v "$work:/work" -w /work {{ TEXLIVE }} \
+            latexmk -pdf -interaction=nonstopmode -halt-on-error -silent figure.tex > /dev/null
+        if [ ! -s "$work/figure.pdf" ]; then echo "no PDF from $1" >&2; exit 1; fi
+        sha256sum "$work/figure.pdf" | cut -d' ' -f1
+        rm -f "$work"/figure.{aux,fdb_latexmk,fls,log,pdf}
+    }
+    one=$(build data-1.csv); again=$(build data-1.csv); two=$(build data-2.csv)
+    if [ "$one" != "$again" ]; then echo "the same CSV built twice gave two PDFs" >&2; exit 1; fi
+    if [ "$one" = "$two" ]; then echo "a changed CSV left the figure as it was" >&2; exit 1; fi
+    echo "a changed CSV changed the figure; the same CSV gave the same PDF"
+
+# -- Protocols of the experiments ----------------------------------------------
+
+# A protocol is frozen before its experiment's first data by stamping its digest
+# with OpenTimestamps. The official client runs in a Python image pinned by tag
+# and digest, at an exact version with every package it needs at an exact
+# version too, installed into the container and gone with it. Only a digest of
+# the file, salted by the client, reaches the public calendars; the text never
+# leaves the machine. The client, its library and python-bitcoinlib are LGPL-3.0
+# or later, the other packages BSD, MIT or in the public domain: a tool the
+# research runs, part of no code in the repository.
+PYTHON_IMAGE := "python:3.12.14-slim-trixie@sha256:f77ac9e44ae96ef2c90b8053ea08c31f8be030f824196b0ae4db6d462c84e51f"
+OTS_PACKAGES := "opentimestamps-client==0.7.2 opentimestamps==0.4.5 python-bitcoinlib==0.12.2 pycryptodomex==3.23.0 GitPython==3.2.0 gitdb==4.0.12 smmap==5.0.3 PySocks==1.7.1 appdirs==1.4.4"
+
+# A proof that exists already belongs to a frozen protocol, and stamping again
+# would put a second, later date beside it; the recipe refuses rather than
+# overwrite it.
+[doc('Freeze a protocol: print its SHA-256 and stamp it with OpenTimestamps, the proof written as <file>.ots beside it')]
+timestamp file:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    file={{ quote(file) }}
+    if [ ! -f "$file" ]; then echo "timestamp: there is no file $file" >&2; exit 2; fi
+    if [ -e "$file.ots" ]; then echo "timestamp: $file.ots exists, so $file is frozen already" >&2; exit 1; fi
+    sha256sum "$file"
+    {{ JUST }} --justfile {{ quote(justfile()) }} _ots "$file" stamp
+
+# The calendars hand back a proof that a Bitcoin block commits to the digest
+# some hours after the stamp; until then the proof rests on the calendars. The
+# client keeps the proof it upgraded as <file>.ots.bak.
+[doc('Complete the proof of a stamped protocol with its Bitcoin attestation, once the calendars have it, and show the proof')]
+timestamp-upgrade file:
+    {{ JUST }} --justfile {{ quote(justfile()) }} _ots {{ quote(file) }} upgrade
+
+[positional-arguments]
+_ots file command:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    dir=$(cd "$(dirname "$1")" && pwd)
+    name=$(basename "$1")
+    read -r -a packages <<< {{ quote(OTS_PACKAGES) }}
+    # GitPython looks for a git executable when it is imported, and the image
+    # has none; the client needs git only for timestamping commits.
+    docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -e GIT_PYTHON_REFRESH=quiet \
+        -v "$dir:/work" -w /work {{ PYTHON_IMAGE }} \
+        bash -c 'set -euo pipefail
+            name=$1 command=$2; shift 2
+            python -m venv /tmp/ots
+            /tmp/ots/bin/pip install -q --disable-pip-version-check --no-deps "$@"
+            case $command in
+                stamp) /tmp/ots/bin/ots stamp "$name" ;;
+                upgrade) /tmp/ots/bin/ots upgrade "$name.ots" ;;
+            esac
+            /tmp/ots/bin/ots info "$name.ots"' ots "$name" "$2" "${packages[@]}"
+
+# -- Experiments ---------------------------------------------------------------
+
+# Every number of the experiment with injected defects comes from one run of
+# this command over the shipped reference tasks; the run is repeatable, every
+# random choice drawn from a fixed seed.
+[doc('Inject defects into the reference tasks and record which checks refuse them; results in experiments/faultinject/results')]
+faultinject:
+    go run ./experiments/faultinject -out experiments/faultinject/results
+    {{ JUST }} --justfile {{ quote(justfile()) }} _provenance experiments/faultinject/results
+
+# Every number of the experiment with simulated learners comes from one run of
+# this command over the service's own rule, profile and rating code; the run is
+# repeatable, every child and every answer drawn from a fixed seed.
+[doc('Run simulated learners through the service and the baselines; results in experiments/learnersim/results')]
+learnersim:
+    go run ./experiments/learnersim -out experiments/learnersim/results
+    {{ JUST }} --justfile {{ quote(justfile()) }} _provenance experiments/learnersim/results
+
+# The local numbers of what a review costs come from one run of this command:
+# the reviews of the experiment with injected defects, timed one at a time, what
+# a review allocates, and the package at every point of the ladder. Times
+# depend on the machine, which the numbers name.
+[doc('Time the review of every reference task the checks accept, count what one allocates and size the package at every point; results in experiments/perf/results')]
+perf:
+    go run ./experiments/perf -out experiments/perf/results
+    {{ JUST }} --justfile {{ quote(justfile()) }} _provenance experiments/perf/results
+
+# Beside an experiment's results: the commit it ran on, whether the code under
+# test is still the code at the ledger's pin, and the version of the
+# interpreter the solvers run in beside the version the pin names.
+_provenance out:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    out={{ quote(out) }}
+    pin=$(sed -n 's/^commit=//p' evidence/product-stats.txt)
+    if [ -z "$pin" ]; then echo "provenance: evidence/product-stats.txt names no commit to compare with" >&2; exit 1; fi
+    tested_paths=(internal/domain internal/infra/starlark internal/infra/seal content)
+    # git diff says 1 for a difference and more for a failure, which must not
+    # pass for one; files it does not track are looked for apart.
+    changed=0
+    git -C .. diff --quiet "$pin" -- "${tested_paths[@]}" || changed=$?
+    if [ "$changed" -gt 1 ]; then echo "provenance: git could not compare the tree with $pin" >&2; exit 1; fi
+    untracked=$(git -C .. ls-files --others --exclude-standard -- "${tested_paths[@]}")
+    tested="as at the pin"
+    if [ "$changed" -eq 1 ] || [ -n "$untracked" ]; then tested="differs from the pin"; fi
+    starlark=$(go list -m -f '{{{{.Version}}' go.starlark.net)
+    pinned=$(git -C .. show "$pin:go.mod" | awk '$1 == "go.starlark.net" { print $2 }')
+    printf 'commit=%s\npin=%s\ncode_under_test=%s\nstarlark=%s\nstarlark_at_pin=%s\ngo=%s\n' \
+        "$(git -C .. rev-parse HEAD)" "$pin" "$tested" "$starlark" "$pinned" "$(go env GOVERSION)" > "$out/provenance.txt"
+
+# -- The artifact of paper A ---------------------------------------------------
+
+# The product at the ledger's pin with its reference tasks, and the experiments
+# with their results, the ledger and the numbers the paper prints, as one
+# tarball in release/build. The anonymous flavour, for a double-blind review,
+# replaces every name and commit that would lead to the system or its authors
+# and fails if one is left.
+[doc('Assemble the artifact of paper A as a tarball in release/build: named, or anonymous for double-blind review')]
+release flavour='named': _paper-a-numbers
+    release/assemble.sh {{ quote(flavour) }}
+
+[doc('Unpack the artifact into an empty directory, rerun the experiments from it and compare what they write with the results it ships')]
+release-check flavour='named':
+    release/check.sh {{ quote(flavour) }}

@@ -1,0 +1,35 @@
+\section{Verification}
+\label{sec:verification}
+
+A submitted task is admitted exactly when none of \statword{product}{check_codes} checks finds a problem (Table~\ref{tab:checks}). The solver runs before the child's profile is read, the other checks after; a task that lacks an input some check needs is refused by the structure check in any case. Every problem is reported at once, so the model can fix all of them in one more attempt, and no message quotes an option, because a refusal reaches the child's card.
+
+\begin{table}
+\caption{The checks and what each refuses.}
+\label{tab:checks}
+\small
+\begin{tabular}{@{}p{3.9cm}p{8.1cm}@{}}
+\toprule
+Code & Refuses \\
+\midrule
+\texttt{bad\_structure} & a task out of format, or one that does not match the brief \\
+\texttt{distractor\_explanations} & an explanation of a wrong option that cannot tell a child what went wrong \\
+\texttt{drawing\_format} & a text drawing wider than \stat{product}{drawing_width} cells or taller than \stat{product}{drawing_height} lines, or with characters fonts draw differently \\
+\texttt{drawing\_mismatch} & a drawing that does not match its declared structure \\
+\texttt{readability} & a question too hard to read for the task's level \\
+\texttt{solver\_error} & a solver that does not run to an answer \\
+\texttt{solver\_disagrees} & a solver that finds no option, several, or another than the key; a self-check that reaches another answer \\
+\texttt{self\_check\_blocking} & a task whose own self-check reports a blocking issue \\
+\texttt{near\_duplicate} & a question that copies a reference task of its level or one of the child's past tasks \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{The solver, run twice.} With each task the model writes a short program in Starlark, a deterministic dialect of Python, that computes the answer from the problem's data and returns the letters of the options whose text means that value. The service runs it in a sandbox limited to \statnum{product}{solver_steps} steps and \statword{product}{solver_seconds} seconds. The run must single out exactly one option, the keyed one. A program could defeat this by returning a letter written out by hand, so the service runs it again with the option labels moved by \statword{product}{label_shift}, A becoming C and so on: a program that computes follows its text to the new label, and one that writes out a letter names another text and fails. One that writes out the value still passes.
+
+\paragraph{Near-duplicates and readability.} A question is a near-duplicate of another when the Jaccard index of their character trigrams is at least \stat{product}{near_duplicate_threshold}. It is compared with the reference questions of its level and with the child's last \stat{product}{fingerprints_kept} tasks, kept as MinHash sketches~\cite{broder2000minwise} of \stat{product}{sketch_positions} positions cut to \statword{product}{sketch_bits} bits. The longest sentence may have \stat{product}{sentence_words_1}, \stat{product}{sentence_words_2} or \stat{product}{sentence_words_3} words at grade level \stat{product}{grade_level_1}, \stat{product}{grade_level_2} or \stat{product}{grade_level_3}, and an English question's Flesch--Kincaid grade may exceed the level's youngest grade by at most \statword{product}{fk_grade_margin}.
+
+\paragraph{What the checks cannot see.}
+\label{sec:limits}
+An admitted task carries one guarantee about its key: the model's own program, under both labellings, singles out the keyed option and no other. The key is right relative to the model's formalisation of the problem, which is what the checks test, not the meaning of its text. If the model misreads its own question, and the solver computes the misreading and the key agrees, every check passes: a program removes arithmetic errors, not misreadings~\cite{chen2022program}. The self-check asks what benchmarks of ill-posed problems ask --- a missing condition, two readings, a vague word --- but it is the same model's second opinion~\cite{huang2023large}. In the first local run, the solver check refused once, falsely: the program named an option by part of its text. No check saw two hints that gave too much away, or a question shortened for the readability check that dropped the word the answer rested on.
+
+\paragraph{The answer's path.} The answer, the explanations, the solution and the solver are sealed in the profile with XChaCha20-Poly1305, bound to this child and this task; until the child answers, no result returned to the card and no log line, trace or metric holds any of them. Two copies stay outside this path: the model that wrote the task knows its answer, and the host hands the card the arguments of the call that submitted the task, the key and the solution among them.

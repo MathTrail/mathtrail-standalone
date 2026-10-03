@@ -10,6 +10,7 @@ import {
 import { type ToolCall, toolInfoOf } from "./testing/host";
 import {
 	answered,
+	coming,
 	editRefused,
 	fence,
 	fenceInArabic,
@@ -19,6 +20,7 @@ import {
 	progress,
 	refused,
 	standing,
+	writing,
 } from "./testing/lesson";
 
 let drawn: Drawn | undefined;
@@ -39,9 +41,17 @@ const wrongInArabic = answered({
 	solution: fenceSolutionInArabic,
 });
 
-// service answers the card's calls as the service would for the Arabic fence.
+// service answers the card's calls as the service would for the Arabic fence,
+// a try at which the checks have turned down once.
 function service({ name }: ToolCall): CallToolResult {
-	return name === "read_progress" ? progress : wrongInArabic;
+	switch (name) {
+		case "read_progress":
+			return progress;
+		case "read_task":
+			return writing(1);
+		default:
+			return wrongInArabic;
+	}
 }
 
 // draw draws the card a host in locale hands payload to.
@@ -123,9 +133,9 @@ describe("the screens in Arabic", () => {
 		expect(markupOf(root)).toMatchSnapshot();
 	});
 
-	test("the wait for a task being handed in", async () => {
+	test("the wait for a task asked for", async () => {
 		const opened = await openCard({
-			context: { locale: "ar-EG", toolInfo: toolInfoOf("submit_task") },
+			context: { locale: "ar-EG", toolInfo: toolInfoOf("next_task") },
 		});
 		drawn = { root: opened.root, heard: opened.heard };
 		await vi.waitFor(() =>
@@ -133,6 +143,21 @@ describe("the screens in Arabic", () => {
 		);
 
 		expect(markupOf(opened.root)).toMatchSnapshot();
+	});
+
+	test("the wait for a task being written, a try turned down", async () => {
+		const root = await draw({
+			...coming,
+			child: fenceInArabic.child,
+			language: "ar",
+		});
+		await vi.waitFor(
+			() =>
+				expect(root.querySelector(".mt-news .mt-verdict-line")).not.toBeNull(),
+			{ timeout: 3000 },
+		);
+
+		expect(markupOf(root)).toMatchSnapshot();
 	});
 
 	test("a try that did not pass", async () => {

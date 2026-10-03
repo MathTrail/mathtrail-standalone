@@ -1,0 +1,12 @@
+% A self-test of the paper's build, not part of the paper: it writes into its
+% log what the names and the identifying numbers expand to, so that a check
+% can read the log of the named build and of the anonymous one.
+\documentclass{llncs}
+\input{preamble}
+\begin{document}
+\typeout{ANONYMITY-CHECK system: \System}
+\typeout{ANONYMITY-CHECK artifact: \ArtifactURL}
+\typeout{ANONYMITY-CHECK repository: \stat{product}{repository}}
+\typeout{ANONYMITY-CHECK commit: \stat{product}{commit}}
+\typeout{ANONYMITY-CHECK date: \stat{product}{commit_date}}
+\end{document}

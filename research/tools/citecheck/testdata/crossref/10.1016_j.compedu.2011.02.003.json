@@ -1,0 +1,52 @@
+{
+  "status": "ok",
+  "message-type": "work",
+  "message": {
+    "DOI": "10.1016/j.compedu.2011.02.003",
+    "type": "journal-article",
+    "title": [
+      "Computer adaptive practice of Maths ability using a new item response model for on the fly ability and difficulty estimation"
+    ],
+    "subtitle": [],
+    "author": [
+      {
+        "given": "S.",
+        "family": "Klinkenberg",
+        "sequence": "first"
+      },
+      {
+        "given": "M.",
+        "family": "Straatemeier",
+        "sequence": "additional"
+      },
+      {
+        "given": "H.L.J.",
+        "family": "van der Maas",
+        "sequence": "additional"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2011,
+          9
+        ]
+      ]
+    },
+    "published-print": {
+      "date-parts": [
+        [
+          2011,
+          9
+        ]
+      ]
+    },
+    "container-title": [
+      "Computers &amp; Education"
+    ],
+    "publisher": "Elsevier BV",
+    "volume": "57",
+    "issue": "2",
+    "page": "1813-1824"
+  }
+}

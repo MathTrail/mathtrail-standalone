@@ -1,0 +1,68 @@
+{
+  "status": "ok",
+  "message-type": "work",
+  "message": {
+    "DOI": "10.1007/978-3-031-98414-3_23",
+    "type": "book-chapter",
+    "title": [
+      "Beyond Final Answers: Evaluating Large Language Models for Math Tutoring"
+    ],
+    "subtitle": [],
+    "author": [
+      {
+        "given": "Adit",
+        "family": "Gupta",
+        "sequence": "first"
+      },
+      {
+        "given": "Jennifer",
+        "family": "Reddig",
+        "sequence": "additional"
+      },
+      {
+        "given": "Tommaso",
+        "family": "Calò",
+        "sequence": "additional"
+      },
+      {
+        "given": "Daniel",
+        "family": "Weitekamp",
+        "sequence": "additional"
+      },
+      {
+        "given": "Christopher J.",
+        "family": "MacLellan",
+        "sequence": "additional"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2025
+        ]
+      ]
+    },
+    "published-print": {
+      "date-parts": [
+        [
+          2025
+        ]
+      ]
+    },
+    "published-online": {
+      "date-parts": [
+        [
+          2025,
+          7,
+          15
+        ]
+      ]
+    },
+    "container-title": [
+      "Lecture Notes in Computer Science",
+      "Artificial Intelligence in Education"
+    ],
+    "publisher": "Springer Nature Switzerland",
+    "page": "323-337"
+  }
+}

@@ -1,0 +1,42 @@
+\section{Learner Model and Selection Rule}
+\label{sec:learner}
+
+\subsection{The Model}
+\label{sec:model}
+
+The service predicts the chance that a child answers a task correctly as
+\[
+P = c + (1 - c)\,\sigma(\theta + \delta_t - \beta), \qquad c = \stat{product}{guess_floor}, \qquad \beta = s_\ell + (d - \stat{product}{middle_difficulty}),
+\]
+where $\theta$ is the child's overall level and $\delta_t$ the child's offset for the task's topic $t$. A task is written for a grade level $\ell$ --- grades \stat{product}{grade_level_1}, \stat{product}{grade_level_2} or \stat{product}{grade_level_3} --- and a difficulty $d$ from \stat{product}{difficulty_min} to \stat{product}{difficulties} inside it; the shifts $s_\ell = \stat{product}{level_shift_1}$, \stat{product}{level_shift_2} and \stat{product}{level_shift_3} put all \statword{product}{ladder_points} points on one ladder; the shift of \stat{product}{level_shift} between levels is a guess nothing has measured yet. The floor $c$ is the chance of guessing one of \statword{product}{options} options. After the trial series (Section~\ref{sec:trial}), both levels move Elo-style after each answer $S \in \{0, 1\}$:
+\[
+\theta \leftarrow \theta + K_\theta (S - P), \qquad \delta_t \leftarrow \delta_t + K_\delta (S - P), \qquad K = \frac{K_0}{1 + \stat{product}{step_decay}\,n},
+\]
+with $K_0 = \stat{product}{step_theta}$ for $\theta$, $n$ counting the child's answers, and $K_0 = \stat{product}{step_delta}$ for $\delta_t$, $n$ counting the answers in topic $t$. ``I don't know'' counts as wrong. The difficulty $\beta$ is given, never updated: each task is written for one child and never handed out again.
+
+\subsection{The Update and Maximum Likelihood}
+\label{sec:mle}
+
+The log-likelihood of one answer is $\ell = S \ln P + (1 - S) \ln(1 - P)$. With $x = \theta + \delta_t - \beta$, its gradient is
+\[
+\frac{\partial \ell}{\partial x} = (S - P)\, w(P), \qquad w(P) = \frac{P - c}{P\,(1 - c)}.
+\]
+The service's step $K(S - P)$ is the gradient step divided by $w(P)$. When the model is right --- every task's true chance of success is the $P$ the model gives it at the child's true levels --- the two have the same expected zero, where each topic's level $\theta + \delta_t$ is the child's true one: dropping $w$ adds no bias and changes only the size of the step. At the corridor's ends, $P = \stat{product}{corridor_high}$ and $P = \statr{product}{corridor_low}{2}$, the service steps \statr{product}{step_further_at_corridor_high_percent}{1}\pct{} and \statr{product}{step_further_at_corridor_low_percent}{0}\pct{} further than the gradient, and \statr{product}{step_ratio_at_hard}{1} times as far at $P = \stat{product}{step_point_hard}$: the level moves further, and more noisily, after tasks harder than the corridor. The step shrinks as $1/(1 + \stat{product}{step_decay}\,n)$, as Robbins and Monro's recursion needs~\cite{robbins1951stochastic}: for one topic and a child who does not change, with every task at $P = \stat{product}{corridor_middle}$ on a continuous scale, it converges in probability to where the child's success is \stat{product}{corridor_middle}, provided the response curve never falls as tasks get easier and crosses \stat{product}{corridor_middle} with a positive slope. A child who learns is followed ever more slowly, since nothing floors the step.
+
+\subsection{The Corridor and Mastery}
+\label{sec:corridor}
+
+The target is a predicted success in $[\statr{product}{corridor_low}{2}, \stat{product}{corridor_high}]$. Inverting the model, the corridor is an interval of difficulty,
+\[
+\beta \in [\,\theta + \delta_t - \stat{product}{corridor_easiest_offset},\; \theta + \delta_t - \stat{product}{corridor_hardest_offset}\,],
+\]
+\statr{product}{corridor_width}{2} wide, narrower than the step of \stat{product}{difficulty_step} between two difficulties of a level, so it holds at most one of them and sometimes none; where a topic's levels overlap, their points interleave and it may hold two. The brief therefore asks for the topic's point whose $P$ is closest to \stat{product}{corridor_middle}, the easier of two equally close. After a wrong answer the rule keeps that answer's topic while it stays within reach; otherwise it takes the unmastered topic within reach that has waited longest. A topic counts as mastered once it has at least \statword{product}{mastery_answers} answers and, since its last wrong answer, at least \statword{product}{mastery_streak} qualifying ones: correct, without the hint, on a task whose $P$ was at most \stat{product}{corridor_middle} (an eligible task). \Statword{product}{mastery_lost_after} wrong answers in a row take mastery away, and a mastered topic leaves the rotation until every topic within reach is mastered. A streak is not learning: \statword{literature}{oreopoulos_mastery_streak} correct in a row raised a platform's count of mastery but not what students retained~\cite{oreopoulos2026making}, so we report mastery as the rule's state. For a child whose true chance is the same on every eligible task, the run is a Markov chain that bounds the chance of a false ``mastered'' from above: at a true chance of \given{0.6}, it reaches \statword{product}{mastery_streak} within \given{10} eligible attempts with probability \statr{ea3}{chain_p60_h00_m10}{2}.
+
+\subsection{Placement by a Trial Series}
+\label{sec:trial}
+
+The grade the parent enters sets only the start, $\theta_0 = s_\ell$. A child placed a level too high would fail task after task while the step walked down, so the first \statword{product}{trial_answers} answers, each on a new topic, are a trial series, after each of which $\theta$ is set to the most likely level given the start and every trial answer:
+\[
+\hat\theta = \arg\max_\theta \Big[ -\frac{(\theta - \theta_0)^2}{2\sigma_0^2} + \sum_{i} \ln P_i(S_i) \Big], \qquad \sigma_0 = \stat{product}{trial_prior_spread},
+\]
+where $P_i(S_i)$ is the model's chance of the $i$-th trial answer at level $\theta$, under a normal prior one level shift wide, its spread chosen by simulation. The topic offsets stay put during the series, and an early slip is weighed again at every later answer.

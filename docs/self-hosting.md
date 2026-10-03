@@ -210,7 +210,7 @@ The rest have the defaults the service is meant to run with. The ones a deployme
 |---|---|---|
 | `MATHTRAIL_DAILY_TASKS` | `20` | Tasks a child may be given in a day |
 | `MATHTRAIL_DAILY_FAILED` | `5` | Requests of a day that may end with the model out of attempts |
-| `MATHTRAIL_RATE_USER_PER_MIN` | `30` | Requests one account may send an instance in a minute |
+| `MATHTRAIL_RATE_USER_PER_MIN` | `60` | Requests one account may send an instance in a minute: a card waiting for a task asks fifteen times a minute |
 | `MATHTRAIL_RATE_IP_PER_MIN` | `20` | Requests one address may send the sign-in of an instance in a minute |
 | `MATHTRAIL_RATE_INSTANCE_PER_MIN` | `200` | Requests one instance takes in a minute, from everybody together |
 | `MATHTRAIL_SOLVER_STEPS` | `25000000` | How far one solver may run; a higher ceiling needs more `memory` |

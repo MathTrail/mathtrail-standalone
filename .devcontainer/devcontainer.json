@@ -52,7 +52,10 @@
                 "files.eol": "\n",
                 "files.insertFinalNewline": true,
                 // SonarQube for IDE sends nothing about how it is used.
-                "sonarlint.disableTelemetry": true
+                "sonarlint.disableTelemetry": true,
+                // The Python extensions read the code with the image's pinned interpreter,
+                // whatever else a person puts on the path later.
+                "python.defaultInterpreterPath": "/usr/local/bin/python3"
             },
             // Exact versions; the Claude Code extension matches CLAUDE_CODE_VERSION.
             "extensions": [

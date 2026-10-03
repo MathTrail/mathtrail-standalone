@@ -1,0 +1,96 @@
+{
+  "status": "ok",
+  "message-type": "work",
+  "message": {
+    "DOI": "10.1177/1758835919874651",
+    "type": "journal-article",
+    "title": [
+      "RETRACTED: Downregulation of long noncoding RNA LINC01419 inhibits cell migration, invasion, and tumor growth and promotes autophagy\n                    <i>via</i>\n                    inactivation of the PI3K/Akt1/mTOR pathway in gastric cancer"
+    ],
+    "subtitle": [],
+    "author": [
+      {
+        "given": "Lin-Lin",
+        "family": "Wang",
+        "sequence": "first"
+      },
+      {
+        "given": "Lei",
+        "family": "Zhang",
+        "sequence": "additional"
+      },
+      {
+        "given": "Xiao-Feng",
+        "family": "Cui",
+        "sequence": "additional"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2019,
+          1
+        ]
+      ]
+    },
+    "published-print": {
+      "date-parts": [
+        [
+          2019,
+          1
+        ]
+      ]
+    },
+    "published-online": {
+      "date-parts": [
+        [
+          2019,
+          9,
+          24
+        ]
+      ]
+    },
+    "container-title": [
+      "Therapeutic Advances in Medical Oncology"
+    ],
+    "publisher": "SAGE Publications",
+    "volume": "11",
+    "updated-by": [
+      {
+        "DOI": "10.1177/17588359211061903",
+        "type": "retraction",
+        "label": "Retraction",
+        "source": "retraction-watch",
+        "updated": {
+          "date-parts": [
+            [
+              2021,
+              12,
+              15
+            ]
+          ],
+          "date-time": "2021-12-15T00:00:00Z",
+          "timestamp": 1639526400000
+        },
+        "record-id": "34999"
+      },
+      {
+        "DOI": "10.1177/17588359211061903",
+        "type": "retraction",
+        "label": "Retraction",
+        "source": "publisher",
+        "updated": {
+          "date-parts": [
+            [
+              2021,
+              12,
+              15
+            ]
+          ],
+          "date-time": "2021-12-15T00:00:00Z",
+          "timestamp": 1639526400000
+        }
+      }
+    ]
+  }
+}

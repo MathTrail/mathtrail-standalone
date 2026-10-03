@@ -10,7 +10,7 @@ import type { Scene } from "./scenes";
  * HostedCard is the widget's own page in a frame, driven the way a chat host
  * drives it: through the library's host side, over the messages between the
  * frame and this page. It is told the host's context, handed the scene's payload
- * — or, for a task caught being handed in, told the call as far as it got —
+ * — or, for a task caught being asked for, told the call as far as it got —
  * answered as the service would answer, and pressed as the child would press.
  * A frame whose page scrolls sideways is marked: the card has to fit any width
  * from a phone's up.
@@ -47,7 +47,7 @@ export function HostedCard({
 					platform: width < 640 ? "mobile" : "web",
 					containerDimensions: { width, maxHeight: 5000 },
 					...(scene.caught !== undefined && {
-						toolInfo: toolInfoOf("submit_task"),
+						toolInfo: toolInfoOf("next_task"),
 					}),
 					safeAreaInsets: scene.insets ?? {
 						top: 0,
@@ -73,12 +73,9 @@ export function HostedCard({
 		});
 		let taken = false;
 		host.addEventListener("initialized", async () => {
-			// A task caught being handed in is told as far as its call got, and
+			// A task caught being asked for is told as far as its call got, and
 			// never its result.
 			if (scene.caught !== undefined) {
-				if (scene.caught !== "started") {
-					await host.sendToolInput({ arguments: {} });
-				}
 				if (scene.caught === "cancelled") {
 					await host.sendToolCancelled({});
 				}

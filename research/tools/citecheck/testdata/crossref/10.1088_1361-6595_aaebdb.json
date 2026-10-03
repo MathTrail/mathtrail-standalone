@@ -1,0 +1,112 @@
+{
+  "status": "ok",
+  "message-type": "work",
+  "message": {
+    "DOI": "10.1088/1361-6595/aaebdb",
+    "type": "journal-article",
+    "title": [
+      "Mechanisms responsible for the initiation of a fast breakdown in an atmospheric discharge"
+    ],
+    "subtitle": [],
+    "author": [
+      {
+        "given": "E V",
+        "family": "Parkevich",
+        "sequence": "first"
+      },
+      {
+        "given": "G V",
+        "family": "Ivanenkov",
+        "sequence": "additional"
+      },
+      {
+        "given": "M A",
+        "family": "Medvedev",
+        "sequence": "additional"
+      },
+      {
+        "given": "A I",
+        "family": "Khirianova",
+        "sequence": "additional"
+      },
+      {
+        "given": "A S",
+        "family": "Selyukov",
+        "sequence": "additional"
+      },
+      {
+        "given": "A V",
+        "family": "Agafonov",
+        "sequence": "additional"
+      },
+      {
+        "given": "A R",
+        "family": "Mingaleev",
+        "sequence": "additional"
+      },
+      {
+        "given": "T A",
+        "family": "Shelkovenko",
+        "sequence": "additional"
+      },
+      {
+        "given": "S A",
+        "family": "Pikuz",
+        "sequence": "additional"
+      }
+    ],
+    "issued": {
+      "date-parts": [
+        [
+          2018,
+          11,
+          1
+        ]
+      ]
+    },
+    "published-print": {
+      "date-parts": [
+        [
+          2018,
+          11,
+          1
+        ]
+      ]
+    },
+    "published-online": {
+      "date-parts": [
+        [
+          2018,
+          11,
+          19
+        ]
+      ]
+    },
+    "container-title": [
+      "Plasma Sources Science and Technology"
+    ],
+    "publisher": "IOP Publishing",
+    "volume": "27",
+    "issue": "11",
+    "page": "11LT01",
+    "updated-by": [
+      {
+        "DOI": "10.1088/1361-6595/ab245f",
+        "type": "correction",
+        "label": "Correction",
+        "source": "publisher",
+        "updated": {
+          "date-parts": [
+            [
+              2019,
+              7,
+              11
+            ]
+          ],
+          "date-time": "2019-07-11T00:00:00Z",
+          "timestamp": 1562803200000
+        }
+      }
+    ]
+  }
+}

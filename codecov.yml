@@ -23,12 +23,17 @@ coverage:
 # between packages. Like any
 # test it measures rather than being measured: the lines that report a failure
 # never run while the code under test behaves.
+#
+# The research module is a Go module of its own with checks of its own, and
+# none of its tests run with the service's: until they do, its code is not
+# counted, so that nothing it adds or removes moves the service's number.
 ignore:
   - "internal/store/storetest"
   - "internal/infra/googleauth/googletest"
   - "internal/infra/drive/drivetest"
   - "internal/ratelimit/ratelimittest"
   - "internal/infra/starlark/starlarktest"
+  - "research"
 
 comment:
   layout: "condensed_header, diff, files"

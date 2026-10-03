@@ -3,6 +3,7 @@ import { act } from "preact/test-utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { Bridge, Call, Host, ToolResult } from "./bridge";
 import {
+	coming,
 	editSaved,
 	exhausted,
 	fence,
@@ -49,15 +50,17 @@ function heldBridge(hostLocale?: string) {
 		},
 		connect: async () => {},
 	};
-	const deliver = (structuredContent: Record<string, unknown>) => {
-		latest = { content: [], structuredContent };
+	const deliverResult = (result: ToolResult) => {
+		latest = result;
 		tell();
 	};
+	const deliver = (structuredContent: Record<string, unknown>) =>
+		deliverResult({ content: [], structuredContent });
 	const changeLocale = (next: string) => {
 		locale = next;
 		tell();
 	};
-	return { bridge, deliver, changeLocale };
+	return { bridge, deliver, deliverResult, changeLocale };
 }
 
 let root: HTMLElement;
@@ -221,6 +224,48 @@ describe("the card", () => {
 
 		expect(root.querySelector(".mt-widget")?.textContent).toContain(says);
 		expect(root.querySelector(".stub")).toBeNull();
+	});
+
+	test("draws a task on its way as the card that waits for it, whose it is at its top", () => {
+		const { bridge, deliver } = heldBridge();
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
+
+		act(() => deliver(coming));
+
+		expect(root.querySelector(".mt-gen")).not.toBeNull();
+		expect(root.querySelector(".mt-bar-name")?.textContent).toBe("Comet");
+		expect(root.textContent).not.toContain(unreadable);
+	});
+
+	test("draws nothing for a result with nothing for a card, as a tool that answered in words alone sent", () => {
+		const { bridge, deliverResult } = heldBridge();
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
+
+		act(() =>
+			deliverResult({
+				content: [
+					{ type: "text", text: "Request req_old is open. Package: …" },
+				],
+			}),
+		);
+
+		expect(root.innerHTML).toBe("");
+	});
+
+	test("says it cannot show a failure that came with nothing for a card", () => {
+		const { bridge, deliverResult } = heldBridge();
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
+
+		act(() =>
+			deliverResult({
+				content: [{ type: "text", text: "Something went wrong." }],
+				isError: true,
+			}),
+		);
+
+		expect(root.querySelector(".mt-verdict-line")?.textContent).toBe(
+			unreadable,
+		);
 	});
 
 	test("turns a card waiting after a refused try to the next payload it is told", () => {

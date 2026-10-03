@@ -4,6 +4,7 @@ import (
 	"errors"
 	"maps"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -12,6 +13,43 @@ import (
 // ErrNoRequest means no task is being written: there is no request for an
 // attempt to count against or a task to answer.
 var ErrNoRequest = errors.New("profile: no request open")
+
+// TaskIDFor is the id of the task written for a request: the request's own,
+// marked as a task's. A card that waits for a request finds its task by it, so
+// the file need not say which request a task was written for.
+func TaskIDFor(requestID string) string {
+	return "tsk_" + strings.TrimPrefix(requestID, "req_")
+}
+
+// TaskState is how the task written for a request stands, as a card that
+// waits for that request sees it.
+type TaskState string
+
+const (
+	// TaskBeingWritten is a request still waited for: its task has not been
+	// handed out yet.
+	TaskBeingWritten TaskState = "being_written"
+	// TaskOnTheCard is the request's task on the child's card, answered or not.
+	TaskOnTheCard TaskState = "on_the_card"
+	// TaskNotComing is a request whose task will not be on the card: it ran out
+	// of attempts or of time, a newer request replaced it, or its task has left
+	// the card.
+	TaskNotComing TaskState = "not_coming"
+)
+
+// TaskFor says how the task written for a request stands, and, while it is
+// being written, how many of its attempts the checks have turned down. A task
+// handed out closes its request, so the task on the card is looked for first:
+// it is all that is left of the request.
+func (p *Profile) TaskFor(requestID string, window time.Duration, now time.Time) (state TaskState, refused int) {
+	if task := p.CurrentTask; task != nil && task.ID == TaskIDFor(requestID) {
+		return TaskOnTheCard, 0
+	}
+	if request := p.OpenRequest; request != nil && request.ID == requestID && request.Awaited(window, now) {
+		return TaskBeingWritten, request.Attempts
+	}
+	return TaskNotComing, 0
+}
 
 // Awaited reports whether a task written to this request is still waited for:
 // the request was opened within the window, and it has an attempt left. A
@@ -78,7 +116,8 @@ type Written struct {
 
 // Issue hands the task written for the open request to the child. It becomes
 // the task on the card, standing where the request asked, with everything that
-// gives its answer away sealed; the request is closed. The task's fingerprint
+// gives its answer away sealed, and under the id the request gives it; the
+// request is closed. The task's fingerprint
 // joins those of the tasks already given, the oldest leaving when there are
 // too many, the topic records the day, and the day's count of accepted tasks —
 // the unit of the daily limit — goes up.
@@ -103,7 +142,7 @@ func (p *Profile) Issue(written *Written, secret TaskSecret, sealer Sealer, now 
 		Fingerprint:         written.Fingerprint,
 		GradeLevel:          request.Brief.GradeLevel,
 		Hint:                written.Hint,
-		ID:                  "tsk_" + uuid.NewString(),
+		ID:                  TaskIDFor(request.ID),
 		InstructionsVersion: written.InstructionsVersion,
 		IssuedAt:            At(now),
 		Language:            request.Language,

@@ -6,10 +6,13 @@ import {
 	readEdited,
 	readHandedTask,
 	readScreen,
+	readTaskStatus,
 	readWaiting,
 } from "./payload";
 import {
 	answered,
+	askRefused,
+	coming,
 	editGone,
 	editRefused,
 	editSaved,
@@ -20,6 +23,8 @@ import {
 	firstRunRefused,
 	inTrial,
 	limited,
+	notComing,
+	onTheCard,
 	profileRead,
 	profileRefused,
 	refused,
@@ -29,6 +34,7 @@ import {
 	standing,
 	standingBefore,
 	toldAgain,
+	writing,
 } from "./testing/lesson";
 
 describe("a task handed to the card", () => {
@@ -148,6 +154,7 @@ describe("a wait for the next task", () => {
 		["a task refused, with attempts left", refused, "refused"],
 		["a task handed in for no open request", staleWait, "stale"],
 		["the model's last attempt refused", exhausted, "exhausted"],
+		["an ask no request could be opened from", askRefused, "stale"],
 	])("after %s is read with whose card it is", (_, payload, kind) => {
 		expect(readWaiting(payload)).toEqual({ kind, child: fence.child });
 	});
@@ -175,8 +182,16 @@ describe("a wait for the next task", () => {
 });
 
 describe("the screen a payload draws", () => {
+	test("of a task on its way keeps the request and whose card it is", () => {
+		expect(readScreen(coming)).toEqual({
+			screen: "coming",
+			coming: { requestId: "req_fence", child: fence.child },
+		});
+	});
+
 	test.each([
 		["a task", fence, "task"],
+		["a task on its way", coming, "coming"],
 		["a wait", refused, "waiting"],
 		["the progress", standing, "progress"],
 		["the progress in the trial series", inTrial, "progress"],
@@ -212,6 +227,8 @@ describe("the screen a payload draws", () => {
 			{ ...standing, overall: { ...standing.overall, share: 101 } },
 		],
 		["the profile with no details", { ...profileRead, profile: null }],
+		["a task on its way for no request", { ...coming, request_id: "" }],
+		["a task on its way with no child", { ...coming, child: null }],
 		["nothing", undefined],
 	])("is none for %s", (_, payload) => {
 		expect(readScreen(payload)).toBeUndefined();
@@ -415,5 +432,68 @@ describe("a change sent from the form", () => {
 		],
 	])("is not saved after %s", (_, result) => {
 		expect(readEdited(result)).toEqual({ kind: "failed" });
+	});
+});
+
+describe("how the task a card waits for stands", () => {
+	test.each<[string, CallToolResult, ReturnType<typeof readTaskStatus>]>([
+		["being written", writing(), { kind: "writing", refused: 0 }],
+		[
+			"being written after two tries turned down",
+			writing(2),
+			{ kind: "writing", refused: 2 },
+		],
+		[
+			"on the card",
+			onTheCard,
+			{
+				kind: "task",
+				handed: readHandedTask(onTheCard.structuredContent) ?? fence,
+			},
+		],
+		["over", notComing, { kind: "over" }],
+		[
+			"gone with the profile",
+			{ content: [], structuredContent: firstRun },
+			{ kind: "over" },
+		],
+	])("is read %s", (_, result, status) => {
+		expect(readTaskStatus(result)).toEqual(status);
+	});
+
+	test.each<[string, CallToolResult]>([
+		["the service failed", failure],
+		["nothing came", { content: [] }],
+		[
+			"a task that does not read as one",
+			{ content: [], structuredContent: { ...fence, task: null } },
+		],
+		[
+			"tries turned down that are no count",
+			{ content: [], structuredContent: { screen: "coming", refused: -1 } },
+		],
+		[
+			"a screen nobody names",
+			{ content: [], structuredContent: { screen: "settings" } },
+		],
+	])("is unknown when %s", (_, result) => {
+		expect(readTaskStatus(result)).toEqual({ kind: "unknown" });
+	});
+
+	test("never carries what the card was not handed: an answer in the payload stays out", () => {
+		const status = readTaskStatus({
+			content: [],
+			structuredContent: {
+				...fence,
+				task: {
+					...fence.task,
+					correct_answer: "C",
+					solution: "Count the posts.",
+				},
+			},
+		});
+
+		expect(JSON.stringify(status)).not.toContain("Count the posts.");
+		expect(JSON.stringify(status)).not.toContain("correct_answer");
 	});
 });

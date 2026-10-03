@@ -296,7 +296,7 @@ func TestInstructionsAreInTheBinary(t *testing.T) {
 
 // tools are the tools the model sees, named as the server names them. A tool
 // only a card calls is not among them: the model is never told of it.
-var tools = []string{"get_profile", "save_profile", "get_progress", "next_task", "submit_task", "submit_answer"}
+var tools = []string{"get_profile", "save_profile", "get_progress", "next_task", "get_package", "submit_task", "submit_answer"}
 
 // The instructions the server hands the model walk it through every tool it
 // offers, each by the name the server gives it. A host may put its own prefix

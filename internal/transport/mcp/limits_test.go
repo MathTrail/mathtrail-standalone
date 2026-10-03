@@ -256,14 +256,15 @@ func TestADayAtItsCeilingOpensNoRequest(t *testing.T) {
 }
 
 // wantTheDayFull holds a result of next_task to the refusal of a day with no
-// room left: limited, as limit_reached, naming no problem, in words that say
-// what happened, when it clears and what the child can do meanwhile, and no
-// number.
+// room left: limited, as limit_reached, naming no problem, on a card that
+// knows whose it is, in words that say what happened, when it clears and what
+// the child can do meanwhile, and no number.
 func wantTheDayFull(t *testing.T, result *mcp.CallToolResult) {
 	t.Helper()
 
-	if got := payloadOf[refusedRequestPayload](t, result); got.Status != "limited" || got.Code != "limit_reached" || len(got.Problems) != 0 {
-		t.Errorf("next_task = %+v, want limited as limit_reached, naming no problem", got)
+	if got := payloadOf[requestPayload](t, result); got.Screen != "waiting" || got.Status != "limited" ||
+		got.Code != "limit_reached" || len(got.Problems) != 0 || got.RequestID != "" || got.Child == nil {
+		t.Errorf("next_task = %+v, want limited as limit_reached, naming no problem, on the child's card", got)
 	}
 	words := textOf(t, result)
 	for _, said := range []string{"no more new tasks today", "more tomorrow", "look at their progress"} {
@@ -338,8 +339,10 @@ func TestARequestOpenedBeforeTheDayFilledUpIsHandedBack(t *testing.T) {
 		t.Fatalf("Save() error = %v", err)
 	}
 
-	again := leadOf(wantWordsAlone(t, call(t, session, "next_task", raceChoice)))
-	if !strings.Contains(again, "Request "+first.ID+" is already open") {
-		t.Errorf("next_task on a full day with a request open says %q, want that request handed back", again)
+	again := call(t, session, "next_task", raceChoice)
+	if card := wantComing(t, again); card.RequestID != first.ID || !card.AlreadyOpen ||
+		!strings.Contains(textOf(t, again), "Request "+first.ID+" is already open") {
+		t.Errorf("next_task on a full day with a request open = %+v, %q, want that request handed back",
+			card, textOf(t, again))
 	}
 }

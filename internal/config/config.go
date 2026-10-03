@@ -60,7 +60,7 @@ const (
 
 	DefaultRequestWindow = 15 * time.Minute
 
-	DefaultRateUserPerMin     = 30
+	DefaultRateUserPerMin     = 60
 	DefaultRateIPPerMin       = 20
 	DefaultRateInstancePerMin = 200
 	DefaultRateRenewalPerMin  = 12

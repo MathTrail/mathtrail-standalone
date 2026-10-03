@@ -35,10 +35,10 @@ type Spec struct {
 	// DrawsCard says a host draws the tool's result as a card, with the
 	// widget. Which screen the card shows is for the payload to say.
 	DrawsCard bool
-	// WidgetOnly hides the tool from the model: only a card calls it, for a
-	// screen of its own, and the model has another tool for the same thing.
-	// Such a tool draws no card, since the card that called it is the one
-	// showing what it answers.
+	// WidgetOnly hides the tool from the model: only a card calls it, for what
+	// that card shows, and the model has another tool for the same thing or no
+	// use for it. Such a tool draws no card, since the card that called it is
+	// the one showing what it answers.
 	WidgetOnly bool
 }
 

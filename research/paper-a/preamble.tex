@@ -1,0 +1,130 @@
+% Paper A's preamble: packages, the numbers every figure and sentence cites,
+% and the names the anonymous build hides.
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\pgfplotsset{compat=1.18}
+\usepackage[hidelinks]{hyperref}
+
+% -- Names the anonymous build hides ------------------------------------------
+% The review version names neither the system nor its repositories: the
+% anonymous build is made with \def\Anonymous{} before this file is read.
+\newif\ifanonymous
+\ifdefined\Anonymous\anonymoustrue\fi
+\ifanonymous
+  \newcommand{\System}{\textsc{[anonymised system]}}
+  % Until the anonymised artifact has a link, the build for submission stops
+  % here rather than send a paper that points nowhere.
+  \newcommand{\ArtifactURL}{\ifdefined\Final\TBD{K11: the anonymised artifact link}\else\textit{[anonymised artifact link]}\fi}
+\else
+  \newcommand{\System}{MathTrail}
+  \newcommand{\ArtifactURL}{\url{https://github.com/MathTrail/mathtrail-standalone}}
+\fi
+
+% -- Numbers ------------------------------------------------------------------
+% No number in the paper is typed by hand. Each comes from a file a script
+% computed, through generated/numbers.tex, which the build writes from those
+% files. \stat{source}{key} prints one, and stops the build when nothing
+% defines it, so a number that lost its source cannot slip into the PDF.
+%
+% A value that would name the system to a reviewer — the commit, a web
+% address, the project's name — is written as \statiddef, and the anonymous
+% build prints a mark in its place.
+\makeatletter
+\newcommand{\statdef}[3]{\expandafter\gdef\csname stat@#1@#2\endcsname{#3}}
+\ifanonymous
+  \newcommand{\statiddef}[3]{\expandafter\gdef\csname stat@#1@#2\endcsname{\textit{[anonymised]}}}
+\else
+  \let\statiddef\statdef
+\fi
+\newcommand{\stat}[2]{%
+  \ifcsname stat@#1@#2\endcsname
+    \csname stat@#1@#2\endcsname
+  \else
+    \PackageError{paper-a}{No number #1/#2}{Every number comes from generated/numbers.tex: add the key to a computed source and build again.}%
+  \fi}
+\makeatother
+\input{generated/numbers}
+
+% How a number is printed is chosen where it is cited; its value never is.
+% \statr{source}{key}{places} rounds it to that many decimal places;
+% \statpct{source}{key}{places} prints a share as a percentage; \statabs
+% drops the sign of a value the text calls "below" or "behind"; \statnum
+% groups the thousands of a whole number; \statword and \Statword spell out a
+% whole number up to twenty, in running text and at the start of a sentence.
+% \statmin and \statmax{source}{places}{key,key,...} print the least and the
+% greatest of several values, and \statminpct and \statmaxpct the same as
+% percentages, so that a range over several cells names each cell it covers.
+\sisetup{group-separator={,}, group-minimum-digits=4, round-mode=places}
+\newcommand{\statr}[3]{\num[round-precision=#3]{\stat{#1}{#2}}}
+\newcommand{\statpct}[3]{\num[round-precision=#3]{\fpeval{100*(\stat{#1}{#2})}}}
+\newcommand{\statabs}[3]{\num[round-precision=#3]{\fpeval{abs(\stat{#1}{#2})}}}
+\newcommand{\statnum}[2]{\num[round-mode=none]{\stat{#1}{#2}}}
+\newcommand{\statword}[2]{\numberword{\the\numexpr\stat{#1}{#2}\relax}}
+\newcommand{\Statword}[2]{\Numberword{\the\numexpr\stat{#1}{#2}\relax}}
+\newcommand{\numberword}[1]{\ifcase#1 zero\or one\or two\or three\or four\or five\or six\or seven\or eight\or nine\or ten\or eleven\or twelve\or thirteen\or fourteen\or fifteen\or sixteen\or seventeen\or eighteen\or nineteen\or twenty\else\PackageError{paper-a}{No word for #1}{Print it with \string\statnum.}\fi}
+\newcommand{\Numberword}[1]{\ifcase#1 Zero\or One\or Two\or Three\or Four\or Five\or Six\or Seven\or Eight\or Nine\or Ten\or Eleven\or Twelve\or Thirteen\or Fourteen\or Fifteen\or Sixteen\or Seventeen\or Eighteen\or Nineteen\or Twenty\else\PackageError{paper-a}{No word for #1}{Print it with \string\statnum.}\fi}
+\ExplSyntaxOn
+\cs_new:Npn \__paper_values:nn #1#2 { \clist_map_tokens:nn {#2} { \__paper_value:nn {#1} } }
+\cs_new:Npn \__paper_value:nn #1#2 { , \stat {#1} {#2} }
+\cs_new:Npn \__paper_fold:nnn #1#2#3 { #1 ( \stat {#2} { \clist_item:nn {#3} {1} } \__paper_values:nn {#2} {#3} ) }
+\NewDocumentCommand \statmin { m m m } { \num [ round-precision = #2 ] { \fp_eval:n { \__paper_fold:nnn { min } {#1} {#3} } } }
+\NewDocumentCommand \statmax { m m m } { \num [ round-precision = #2 ] { \fp_eval:n { \__paper_fold:nnn { max } {#1} {#3} } } }
+\NewDocumentCommand \statminpct { m m m } { \num [ round-precision = #2 ] { \fp_eval:n { 100 * \__paper_fold:nnn { min } {#1} {#3} } } }
+\NewDocumentCommand \statmaxpct { m m m } { \num [ round-precision = #2 ] { \fp_eval:n { 100 * \__paper_fold:nnn { max } {#1} {#3} } } }
+% The same over magnitudes, for a range of values that share a sign, such as
+% how far each rule's estimate stood below the truth.
+\cs_new:Npn \__paper_absvalues:nn #1#2 { \clist_map_tokens:nn {#2} { \__paper_absvalue:nn {#1} } }
+\cs_new:Npn \__paper_absvalue:nn #1#2 { , abs ( \stat {#1} {#2} ) }
+\cs_new:Npn \__paper_absfold:nnn #1#2#3 { #1 ( abs ( \stat {#2} { \clist_item:nn {#3} {1} } ) \__paper_absvalues:nn {#2} {#3} ) }
+\NewDocumentCommand \statabsmin { m m m } { \num [ round-precision = #2 ] { \fp_eval:n { \__paper_absfold:nnn { min } {#1} {#3} } } }
+\NewDocumentCommand \statabsmax { m m m } { \num [ round-precision = #2 ] { \fp_eval:n { \__paper_absfold:nnn { max } {#1} {#3} } } }
+% \statless{source}{a}{b} prints nothing and stops the build unless a is less
+% than b: a comparison in words — this rule had the lower error — rests on it,
+% so a new run that turns the comparison round cannot pass.
+\NewDocumentCommand \statless { m m m } { \fp_compare:nNnF { \stat {#1} {#2} } < { \stat {#1} {#3} } { \PackageError {paper-a} {#1/#2~is~not~less~than~#1/#3} {A~comparison~of~the~text~rests~on~this~order:~change~the~text.} } }
+
+% \statvszero{source}{key}{relation} prints nothing and stops the build unless
+% the value stands in that relation, <, = or >, to zero: a claim in words — an
+% interval that lies below zero, one that holds it, a change of nothing —
+% rests on the sign.
+\NewDocumentCommand \statvszero { m m m } { \fp_compare:nNnF { \stat {#1} {#2} } #3 { 0 } { \PackageError {paper-a} {#1/#2~is~not~#3~0} {A~claim~of~the~text~rests~on~this~sign:~change~the~text.} } }
+\ExplSyntaxOff
+
+% \statzero{source}{key} prints nothing and stops the build unless the count
+% is zero: a claim in words — every case, never — rests on it, so a new run
+% that breaks the claim cannot pass with a rounded share that still reads 100.
+\newcommand{\statzero}[2]{\ifnum\stat{#1}{#2}=0\relax\else\PackageError{paper-a}{#1/#2 is \stat{#1}{#2}, not zero}{A claim of the text rests on this count being zero: change the text.}\fi}
+
+% \given marks a number the text chooses rather than reports: a point a
+% function is evaluated at, a confidence level, the window a measure reads. It
+% prints the number as it is. The check for numbers typed by hand lets these
+% through, besides the names that carry digits and a formula's own 0, 1 and 2,
+% so each one stays visible as a choice.
+\newcommand{\given}[1]{#1}
+% The space before a percent sign, as the draft writes it.
+\newcommand{\pct}{\,\%}
+
+% -- Notation -------------------------------------------------------------------
+\newcommand{\Pcorrect}{P}              % predicted chance of a correct answer
+\newcommand{\guess}{c}                 % the guessing floor
+\newcommand{\level}{\theta}            % the child's overall level
+\newcommand{\offset}[1]{\delta_{#1}}   % the child's offset in topic #1
+\newcommand{\difficulty}{\beta}        % a task's place on the ladder
+\newcommand{\logistic}{\sigma}         % the logistic function
+
+% -- Marks for what a later task supplies -----------------------------------------
+% A TBD prints boldly in every draft so it cannot pass unseen. The build for
+% submission, made with \def\Final{} as well, refuses to finish while one is left.
+\ifdefined\Final
+  \newcommand{\TBD}[1]{\PackageError{paper-a}{TBD left: #1}{Finish it before the paper is submitted.}}
+\else
+  \newcommand{\TBD}[1]{\textbf{[TBD: #1]}}
+\fi

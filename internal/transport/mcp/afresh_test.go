@@ -121,11 +121,13 @@ func TestARequestOpenedByAnotherTabMeanwhileIsHandedBack(t *testing.T) {
 	if p.OpenRequest == nil {
 		t.Fatal("no request is open after two asks, want one")
 	}
-	if text := wantWordsAlone(t, landed); !strings.Contains(text, "Request "+p.OpenRequest.ID+" is open") {
-		t.Errorf("the tab that landed said %q, want request %s opened", leadOf(text), p.OpenRequest.ID)
+	if card, text := wantComing(t, landed), textOf(t, landed); card.RequestID != p.OpenRequest.ID || card.AlreadyOpen ||
+		!strings.Contains(text, "Request "+p.OpenRequest.ID+" is open") {
+		t.Errorf("the tab that landed drew %+v and said %q, want request %s opened", card, text, p.OpenRequest.ID)
 	}
-	if text := wantWordsAlone(t, held); !strings.Contains(text, "Request "+p.OpenRequest.ID+" is already open") {
-		t.Errorf("the tab that was overtaken said %q, want request %s handed back", leadOf(text), p.OpenRequest.ID)
+	if card, text := wantComing(t, held), textOf(t, held); card.RequestID != p.OpenRequest.ID || !card.AlreadyOpen ||
+		!strings.Contains(text, "Request "+p.OpenRequest.ID+" is already open") {
+		t.Errorf("the tab that was overtaken drew %+v and said %q, want request %s handed back", card, text, p.OpenRequest.ID)
 	}
 }
 

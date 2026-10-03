@@ -242,12 +242,11 @@ func (f *family) presentAStrangersToken() {
 	}
 }
 
-// holdALesson is a lesson, as the host's client of the protocol and the chat's
-// model go through it: the tools listed and the widget's page read, the
-// child's profile made, a race asked for — and asked for again before it is
-// written, which hands the same request back —, refused once and accepted,
-// answered wrongly and told again, the progress read, and then the day's
-// limit, since the day has room for one task.
+// holdALesson is a lesson, as the host's client of the protocol, the chat's
+// model and the card go through it: the tools listed and the widget's page
+// read, the child's profile made, a race written and answered wrongly, the
+// answer told again, the progress read, and then the day's limit, since the
+// day has room for one task.
 func (f *family) holdALesson() {
 	t := f.t
 	t.Helper()
@@ -280,22 +279,7 @@ func (f *family) holdALesson() {
 		t.Fatalf("save_profile shows %q, want the profile made", made.Screen)
 	}
 
-	_, words := f.call("next_task", map[string]any{
-		"language": "en", "topic": "logic.ordering", "grade_level": "1-2", "difficulty": 2, "reason": reason,
-	})
-	requestID, brief := opened(t, words)
-	if _, again := f.call("next_task", map[string]any{"language": "en"}); !strings.Contains(again, "Request "+requestID+" is already open") {
-		t.Fatalf("next_task asked again says %q, want the request still open handed back", again)
-	}
-	if refused, _ := f.call("submit_task", race(requestID, brief, false)); refused.Status != "rejected" {
-		t.Fatalf("a race with no hint is %q, want it refused", refused.Status)
-	}
-	handed, _ := f.call("submit_task", race(requestID, brief, true))
-	if handed.Screen != "task" || handed.Task == nil {
-		t.Fatalf("the race shows %q, want it on the child's card", handed.Screen)
-	}
-
-	answer := map[string]any{"task_id": handed.Task.ID, "answer": wrongAnswer}
+	answer := map[string]any{"task_id": f.writeTheRace(), "answer": wrongAnswer}
 	if told, _ := f.call("submit_answer", answer); told.Result == nil || told.Result.Correct {
 		t.Fatalf("the answer %s is told as %+v, want a wrong answer", wrongAnswer, told.Result)
 	}
@@ -308,6 +292,41 @@ func (f *family) holdALesson() {
 	if limited, _ := f.call("next_task", map[string]any{"language": "en"}); limited.Status != "limited" {
 		t.Fatalf("a second task in the day is %q, want it held to the day's limit", limited.Status)
 	}
+}
+
+// writeTheRace is a race asked for, and is the id of the task the child is
+// handed: the card asked for it draws, the package fetched, the card told the
+// task is being written, the race asked for again before it is written — which
+// hands the same request back —, refused once and accepted, and the card told
+// it is on it.
+func (f *family) writeTheRace() (taskID string) {
+	t := f.t
+	t.Helper()
+
+	_, words := f.call("next_task", map[string]any{
+		"language": "en", "topic": "logic.ordering", "grade_level": "1-2", "difficulty": 2, "reason": reason,
+	})
+	requestID := opened(t, words)
+	_, packed := f.call("get_package", map[string]any{"request_id": requestID})
+	brief := briefOf(t, packed)
+	awaited := map[string]any{"request_id": requestID}
+	if waiting, _ := f.call("read_task", awaited); waiting.Screen != "coming" {
+		t.Fatalf("the card is told %q, want the task being written", waiting.Screen)
+	}
+	if _, again := f.call("next_task", map[string]any{"language": "en"}); !strings.Contains(again, "Request "+requestID+" is already open") {
+		t.Fatalf("next_task asked again says %q, want the request still open handed back", again)
+	}
+	if refused, _ := f.call("submit_task", race(requestID, brief, false)); refused.Status != "rejected" {
+		t.Fatalf("a race with no hint is %q, want it refused", refused.Status)
+	}
+	handed, _ := f.call("submit_task", race(requestID, brief, true))
+	if handed.Screen != "task" || handed.Task == nil {
+		t.Fatalf("the race shows %q, want it on the child's card", handed.Screen)
+	}
+	if shown, _ := f.call("read_task", awaited); shown.Screen != "task" || shown.Task == nil || shown.Task.ID != handed.Task.ID {
+		t.Fatalf("the card is told %+v, want the race on it", shown)
+	}
+	return handed.Task.ID
 }
 
 // card is as much of a tool's payload as says how a step went.
@@ -349,20 +368,30 @@ func (f *family) call(tool string, arguments any) (shown card, words string) {
 	return shown, words
 }
 
-// opened is the request next_task's words open, and the brief its package
-// carries, which the model hands back as it received it.
-func opened(t *testing.T, words string) (requestID string, brief json.RawMessage) {
+// opened is the request next_task's words open.
+func opened(t *testing.T, words string) (requestID string) {
 	t.Helper()
 
 	id := openedRequest.FindStringSubmatch(words)
+	if id == nil {
+		t.Fatalf("next_task says %q, want a request opened", words)
+	}
+	return id[1]
+}
+
+// briefOf is the brief of the package get_package's words carry, as a model
+// reads it to hand back with the task.
+func briefOf(t *testing.T, words string) json.RawMessage {
+	t.Helper()
+
 	_, pack, found := strings.Cut(words, "Package:\n")
 	var contents struct {
 		Brief json.RawMessage `json:"brief"`
 	}
-	if id == nil || !found || json.Unmarshal([]byte(pack), &contents) != nil || contents.Brief == nil {
-		t.Fatalf("next_task says %q, want a request opened and its package", words)
+	if !found || json.Unmarshal([]byte(pack), &contents) != nil || contents.Brief == nil {
+		t.Fatalf("get_package says %q, want the package of the request", words)
 	}
-	return id[1], contents.Brief
+	return contents.Brief
 }
 
 // race is the race handed in for a request, the brief handed back as it was

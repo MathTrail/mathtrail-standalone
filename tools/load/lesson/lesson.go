@@ -67,22 +67,85 @@ func Start(ctx context.Context, child *session.Child, student Student) []session
 	}
 }
 
-// Ask asks for a task of the choice given, and reads the request the words of
-// the answer open. A request that cannot be read is no request, and the answer
-// that failed to give one is still the answer the service gave.
-func Ask(ctx context.Context, child *session.Child, choice Choice) (Request, session.Answer, error) {
-	answer := child.Call(ctx, "next_task", map[string]any{
+// Ask asks for a task of the choice given, which draws the card it will come
+// to, and then, as a model does at once, for the package to write it from, and
+// reads the request out of the package's words. A request that cannot be read
+// is no request, and the answers that failed to give one are still the answers
+// the service gave; a package of another request than the card waits for
+// belongs to another call, and is told as a mismatch.
+func Ask(ctx context.Context, child *session.Child, choice Choice) (Request, []session.Answer, error) {
+	asked := child.Call(ctx, "next_task", map[string]any{
 		"language":    language,
 		"topic":       choice.Topic,
 		"grade_level": choice.GradeLevel,
 		"difficulty":  choice.Difficulty,
 		"reason":      choice.Reason,
 	})
-	if answer.Kind != session.Answered {
-		return Request{}, answer, fmt.Errorf("lesson: next_task answered %s", answer.Kind)
+	if asked.Kind != session.Answered {
+		return Request{}, []session.Answer{asked}, fmt.Errorf("lesson: next_task answered %s", asked.Kind)
 	}
-	request, err := ReadRequest(answer.Text())
-	return request, answer, err
+	var coming struct {
+		Screen    string `json:"screen"`
+		RequestID string `json:"request_id"`
+	}
+	if err := asked.Payload(&coming); err != nil || coming.Screen != "coming" || coming.RequestID == "" {
+		asked.Kind = session.Mismatched
+		return Request{}, []session.Answer{asked}, errors.New("lesson: next_task drew no card waiting for a request")
+	}
+
+	packed := child.Call(ctx, "get_package", map[string]any{"request_id": coming.RequestID})
+	answers := []session.Answer{asked, packed}
+	if packed.Kind != session.Answered {
+		return Request{}, answers, fmt.Errorf("lesson: get_package answered %s", packed.Kind)
+	}
+	request, err := ReadRequest(packed.Text())
+	if err == nil && request.ID != coming.RequestID {
+		answers[1].Kind = session.Mismatched
+		return Request{}, answers, errors.New("lesson: the package is of another request than the card waits for")
+	}
+	return request, answers, err
+}
+
+// AwaitWriting asks, as the card next_task drew does, how the task of a
+// request stands while it is being written, and is what the card was told. An
+// answer that says anything but that it is being written belongs to another
+// call, and is told as a mismatch.
+func AwaitWriting(ctx context.Context, child *session.Child, request Request) session.Answer {
+	return await(ctx, child, request, func(a *awaited) bool { return a.Screen == "coming" && a.Task == nil })
+}
+
+// AwaitCard asks, as the card next_task drew does, how the task of a request
+// stands once it was handed in, and is what the card was told. An answer that
+// shows anything but the task the hand-in put on the card belongs to another
+// call, and is told as a mismatch.
+func AwaitCard(ctx context.Context, child *session.Child, request Request, card Card) session.Answer {
+	return await(ctx, child, request, func(a *awaited) bool {
+		return a.Screen == "task" && a.Task != nil && a.Task.ID == card.TaskID && a.Task.Question == card.Question
+	})
+}
+
+// awaited is as much of what a card is told of the task it waits for as says
+// how it stands.
+type awaited struct {
+	Screen string `json:"screen"`
+	Task   *struct {
+		ID       string `json:"id"`
+		Question string `json:"question"`
+	} `json:"task"`
+}
+
+// await asks how the task of a request stands, and holds what the card is told
+// to what it should be.
+func await(ctx context.Context, child *session.Child, request Request, should func(*awaited) bool) session.Answer {
+	answer := child.Call(ctx, "read_task", map[string]any{"request_id": request.ID})
+	if answer.Kind != session.Answered {
+		return answer
+	}
+	var told awaited
+	if err := answer.Payload(&told); err != nil || !should(&told) {
+		answer.Kind = session.Mismatched
+	}
+	return answer
 }
 
 // HandIn hands a task in for a request, and reads the card it went onto. A
@@ -137,16 +200,16 @@ func Progress(ctx context.Context, child *session.Child) session.Answer {
 	return child.Call(ctx, "get_progress", map[string]any{})
 }
 
-// packageMark is where the words of next_task end and the package the task is
+// packageMark is where the words of get_package end and the package the task is
 // written from begins.
 const packageMark = "\n\nPackage:\n"
 
-// requestID is the id of a request, as the words of next_task name it.
+// requestID is the id of a request, as the words of get_package name it.
 var requestID = regexp.MustCompile(`\breq_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b`)
 
-// ReadRequest reads the request the words of next_task open, as a model reads
-// them: the id the words before the package name, and the brief of the package
-// after them.
+// ReadRequest reads the request the words of get_package hand the package of,
+// as a model reads them: the id the words before the package name, and the
+// brief of the package after them.
 func ReadRequest(words string) (Request, error) {
 	lead, pack, found := strings.Cut(words, packageMark)
 	if !found {

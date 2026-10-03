@@ -15,7 +15,8 @@ afterEach(() => {
 
 describe("the bridge", () => {
 	// The card subscribes as it is drawn, before the handshake, and hears the
-	// handshake itself, the arguments coming whole, and then the result.
+	// handshake itself and then the result; the arguments that come before the
+	// result tell it nothing.
 	test("hands on the result the host delivers", async () => {
 		const { host, widgetSide } = await openTestHost();
 		const bridge = openBridge();
@@ -25,7 +26,8 @@ describe("the bridge", () => {
 
 		await deliver(host, { screen: "task" });
 
-		await vi.waitFor(() => expect(heard).toHaveBeenCalledTimes(3));
+		await vi.waitFor(() => expect(bridge.result()).toBeDefined());
+		expect(heard).toHaveBeenCalledTimes(2);
 		expect(bridge.result()?.structuredContent).toEqual({ screen: "task" });
 	});
 
@@ -213,13 +215,17 @@ describe("the call that drew the card", () => {
 		expect(heard).toHaveBeenCalledOnce();
 	});
 
-	test("runs once its arguments have come whole, and is cancelled once cancelled", async () => {
+	test("is under way whatever its arguments, and cancelled once cancelled", async () => {
 		const { host, widgetSide } = await openTestHost();
 		const bridge = openBridge();
 		await bridge.connect(widgetSide);
 
 		await host.sendToolInput({ arguments: {} });
-		await vi.waitFor(() => expect(bridge.call().stage).toBe("running"));
+		await host.sendHostContextChange({ theme: "dark" });
+		await vi.waitFor(() =>
+			expect(document.documentElement.dataset.theme).toBe("dark"),
+		);
+		expect(bridge.call().stage).toBe("started");
 
 		await host.sendToolCancelled({ reason: "user action" });
 		await vi.waitFor(() => expect(bridge.call().stage).toBe("cancelled"));
@@ -253,8 +259,11 @@ describe("the call that drew the card", () => {
 			arguments: { task: { answer: secret } },
 		});
 		await host.sendToolInput({ arguments: { task: { answer: secret } } });
+		await host.sendHostContextChange({ theme: "dark" });
 
-		await vi.waitFor(() => expect(bridge.call().stage).toBe("running"));
+		await vi.waitFor(() =>
+			expect(document.documentElement.dataset.theme).toBe("dark"),
+		);
 		expect(JSON.stringify(bridge.call())).not.toContain(secret);
 		expect(bridge.result()).toBeUndefined();
 	});

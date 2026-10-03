@@ -1152,6 +1152,11 @@
 .mt-wait > * + *:not(:empty) {
 	margin-block-start: 16px;
 }
+/* The news of a wait may be two at once: a try turned down, and the wait
+   gone long. */
+.mt-news > * + * {
+	margin-block-start: 12px;
+}
 
 /* Right to left: scripts written that way sit taller on their lines. */
 .mt-rtl {

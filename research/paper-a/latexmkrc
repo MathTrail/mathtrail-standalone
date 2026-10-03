@@ -1,0 +1,6 @@
+# latexmk's settings for paper A, read from this directory by every build.
+
+# BibTeX that reads UTF-8. The 8-bit BibTeX takes the first byte of a name
+# that starts with a letter outside ASCII — Řihák, Émile, Łukasz — for its
+# initial, and the PDF breaks; bibtexu takes the whole letter.
+$bibtex = 'bibtexu %O %S';

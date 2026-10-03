@@ -47,6 +47,8 @@ One child's lesson, run five times: a task asked for, handed in and answered.
 
 The tool counts only its own requests. A chat host sends more for every call it makes (SPEC remark 62), and T64 counts those.
 
+These numbers were measured before T62.8. Since then a lesson asks for each task's package with a call of its own, and the card a task comes to asks how it stands, once on either side of the hand-in in the tool's lesson: six calls a task where there were three, each of the new ones a read (R152). In a host the card asks every four seconds while the task is written, about fifteen times for a minute's wait; T64 measures that against the deployed service.
+
 ## Slots and the clock
 
 A run of `loop` that spends the whole budget takes 65 ms on this machine. A run that builds takes longer:

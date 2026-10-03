@@ -1,0 +1,6 @@
+commit=d4ab715df743573ca9a943dec192c6676effb476
+pin=52ce86908135
+code_under_test=as at the pin
+starlark=v0.0.0-20260908191801-89a6a09411d5
+starlark_at_pin=v0.0.0-20260908191801-89a6a09411d5
+go=go1.27.1

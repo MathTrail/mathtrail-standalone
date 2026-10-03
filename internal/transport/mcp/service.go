@@ -132,13 +132,16 @@ func (s *Service) ProfileTools() []Tool {
 }
 
 // TaskTools are the tools that take a task from the rule to the child and back:
-// one asks for it and hands the model what to write it from, one takes what the
-// model wrote through the checks and puts it on the child's card, and one
-// records the child's answer and tells how it went.
+// one asks for it and draws the card it will come to, one hands the model what
+// to write it from, one takes what the model wrote through the checks and puts
+// it on the child's card, one tells that card how the task it waits for
+// stands, and one records the child's answer and tells how it went.
 func (s *Service) TaskTools() []Tool {
 	return []Tool{
 		s.nextTaskTool(),
+		s.getPackageTool(),
 		s.submitTaskTool(),
+		s.readTaskTool(),
 		s.submitAnswerTool(),
 	}
 }

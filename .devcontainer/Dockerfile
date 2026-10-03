@@ -4,9 +4,15 @@
 # detected at RUN time via dpkg instead. A host that has Docker can build this, and that is the
 # whole requirement.
 #
-# Two stages. `toolchain` holds what it takes to build and check the code, and is the stage
-# the automated checks run inside. `devcontainer` adds what a person needs on top of that and
-# is the default stage, so building this file with no target gives the full environment.
+# Two stages of its own, beside the one uv is copied from. `toolchain` holds what it takes
+# to build and check the code, and is the stage the automated checks run inside.
+# `devcontainer` adds what a person needs on top of that and is the default stage, so
+# building this file with no target gives the full environment.
+
+# The image uv is copied from: Astral's own, pinned by tag and digest like every image
+# here. It is a stage of its own so that the devcontainer stage copies from it by name.
+ARG UV_IMAGE=ghcr.io/astral-sh/uv:0.12.13@sha256:b485bd65cc2cf1c9a93b3554012c9c3778cf7b1b5fd3d3096ce9e1226c97e1e6
+FROM ${UV_IMAGE} AS uv
 
 # -- toolchain: builds and checks the code -----------------------------------
 
@@ -109,9 +115,10 @@ ARG GCLOUD_VERSION=585.0.0
 # GNU spelling.
 #
 # The x86_64 archive of gcloud carries a Python interpreter of its own and runs
-# straight out of the tarball; the arm one expects to find a system Python, which
-# this image deliberately does not have, so there gcloud is left out and the same
-# commands are run from Google's own container image instead.
+# straight out of the tarball; the arm one needs a Python to run on. The image has
+# one now — the editor's, further down — and CLOUDSDK_PYTHON could point gcloud at
+# it; until somebody builds on arm, gcloud is left out there and the same commands
+# are run from Google's own container image instead.
 RUN arch="$(dpkg --print-architecture)"; \
     case "$arch" in \
         amd64) gnu_arch=x86_64 ;; \
@@ -184,6 +191,26 @@ RUN echo "gopls ${GOPLS_VERSION}, dlv ${DELVE_VERSION}, claude code ${CLAUDE_COD
     && GOBIN=/usr/local/bin go install -mod=readonly "github.com/go-delve/delve/cmd/dlv@v${DELVE_VERSION}" \
     && npm install -g --allow-scripts=@anthropic-ai/claude-code \
         "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
+
+# uv and a Python of its own, for the editor's Python extensions. Finding no
+# Python, they offer to install both into the home directory, at whatever
+# versions are current, and a rebuilt container loses them again. uv is copied
+# from UV_IMAGE, and it checks the interpreter it installs against the hash it
+# carries for that build, so that image's digest pins the Python too. Both are
+# the versions the golden export runs with — the uv of the image `just golden`
+# runs, and the version of its Python, though theirs is Debian's build of it —
+# so the editor reads the export as it runs; when that image moves, these move
+# with it. The Python goes on everybody's path, as python and python3. Where the
+# install goes is set for this step alone: a Python a person installs later
+# goes into their own home, as uv puts it by default. A download cut short is
+# tried again, as every download of this file is, and uv keeps no cache behind.
+COPY --from=uv /uv /uvx /usr/local/bin/
+ARG PYTHON_VERSION=3.12.14
+RUN echo "python ${PYTHON_VERSION}" \
+    && UV_PYTHON_INSTALL_DIR=/opt/uv/python UV_PYTHON_BIN_DIR=/usr/local/bin \
+        UV_HTTP_RETRIES=5 UV_NO_CACHE=1 \
+        uv python install --preview-features python-install-default --default "${PYTHON_VERSION}" \
+    && python3 --version
 
 # The config dirs are created here so the named volumes mounted over them inherit
 # vscode ownership, and the image is left as that user: nothing in it needs root

@@ -1,0 +1,138 @@
+# Local copies of the prototype against its public repository, byte for byte.
+repository=github.com/MathTrail/llm-taskgen-prototype
+commit=02638353482e25d6213120ba10caea3467a0437a
+local_files=131
+matching=120
+kept_in_archive=1
+# local path<TAB>path at the commit<TAB>result
+docs/prototype/README.md	-	absent, kept in archive/
+docs/prototype/SPEC.md	SPEC.md	match
+docs/prototype/decisions.md	docs/decisions.md	match
+docs/prototype/research/10-risks-children.md	research/10-risks-children.md	match
+docs/prototype/research/12-task-sources.md	research/12-task-sources.md	match
+docs/prototype/research/13-competitors.md	research/13-competitors.md	match
+prototype/.devcontainer/Dockerfile	.devcontainer/Dockerfile	match
+prototype/.devcontainer/devcontainer-lock.json	.devcontainer/devcontainer-lock.json	match
+prototype/.devcontainer/devcontainer.json	.devcontainer/devcontainer.json	match
+prototype/.env.example	.env.example	match
+prototype/.gitignore	.gitignore	match
+prototype/.mcp.json	.mcp.json	match
+prototype/CLAUDE.prototype.md	CLAUDE.md	match
+prototype/LICENSE	LICENSE	match
+prototype/PRODUCT-V1.md	PRODUCT-V1.md	match
+prototype/README.md	README.md	match
+prototype/RUN.md	RUN.md	match
+prototype/SPEC.md	SPEC.md	match
+prototype/config.yaml	config.yaml	match
+prototype/data/catalogs/skills.json	data/catalogs/skills.json	match
+prototype/data/catalogs/topics.json	data/catalogs/topics.json	match
+prototype/data/catalogs/traps.json	data/catalogs/traps.json	match
+prototype/data/eval/.gitkeep	data/eval/.gitkeep	match
+prototype/data/eval/live_scenarios.json	data/eval/live_scenarios.json	match
+prototype/data/eval/reviews.json	data/eval/reviews.json	match
+prototype/data/examples/algorithms.weighing_pouring.json	data/examples/algorithms.weighing_pouring.json	match
+prototype/data/examples/arithmetic.tricks.json	data/examples/arithmetic.tricks.json	match
+prototype/data/examples/combinatorics.enumeration.json	data/examples/combinatorics.enumeration.json	match
+prototype/data/examples/counting.gaps.json	data/examples/counting.gaps.json	match
+prototype/data/examples/logic.knights_liars.json	data/examples/logic.knights_liars.json	match
+prototype/data/examples/logic.ordering.json	data/examples/logic.ordering.json	match
+prototype/data/examples/parity.alternation.json	data/examples/parity.alternation.json	match
+prototype/data/examples/pigeonhole.basic.json	data/examples/pigeonhole.basic.json	match
+prototype/data/examples/time.calendar.json	data/examples/time.calendar.json	match
+prototype/data/examples/time.clocks.json	data/examples/time.clocks.json	match
+prototype/data/seed/dima.json	data/seed/dima.json	match
+prototype/data/seed/masha.json	data/seed/masha.json	match
+prototype/data/seed/olya.json	data/seed/olya.json	match
+prototype/data/seed/petya.json	data/seed/petya.json	match
+prototype/data/seed/sasha.json	data/seed/sasha.json	match
+prototype/db/schema.sql	db/schema.sql	match
+prototype/docker-compose.yml	docker-compose.yml	match
+prototype/docs/architecture/01-context.md	docs/architecture/01-context.md	match
+prototype/docs/architecture/02-request-flow.md	docs/architecture/02-request-flow.md	match
+prototype/docs/architecture/03-data-model.md	docs/architecture/03-data-model.md	match
+prototype/docs/architecture/04-attempt-states.md	docs/architecture/04-attempt-states.md	match
+prototype/docs/architecture/05-ratings.md	docs/architecture/05-ratings.md	match
+prototype/docs/decisions.md	docs/decisions.md	match
+prototype/prompts/.gitkeep	prompts/.gitkeep	match
+prototype/prompts/mcp_instructions.md	prompts/mcp_instructions.md	match
+prototype/prompts/play_session.md	prompts/play_session.md	match
+prototype/prompts/task_writing.md	prompts/task_writing.md	match
+prototype/pyproject.toml	pyproject.toml	match
+prototype/research/00-README.md	research/00-README.md	match
+prototype/research/01-feasibility.md	research/01-feasibility.md	match
+prototype/research/02-contest-domain.md	research/02-contest-domain.md	match
+prototype/research/03-problem-generation.md	research/03-problem-generation.md	match
+prototype/research/04-distractors-misconceptions.md	research/04-distractors-misconceptions.md	match
+prototype/research/05-verification.md	research/05-verification.md	match
+prototype/research/06-adaptive-learning.md	research/06-adaptive-learning.md	match
+prototype/research/07-models.md	research/07-models.md	match
+prototype/research/08-finetuning-data.md	research/08-finetuning-data.md	match
+prototype/research/09-architecture-patterns.md	research/09-architecture-patterns.md	match
+prototype/research/10-risks-children.md	research/10-risks-children.md	match
+prototype/research/11-spec-recommendations.md	research/11-spec-recommendations.md	match
+prototype/research/12-task-sources.md	research/12-task-sources.md	match
+prototype/research/13-competitors.md	research/13-competitors.md	match
+prototype/schemas/brief.json	schemas/brief.json	match
+prototype/schemas/catalogs/skills.json	schemas/catalogs/skills.json	match
+prototype/schemas/catalogs/topics.json	schemas/catalogs/topics.json	match
+prototype/schemas/catalogs/traps.json	schemas/catalogs/traps.json	match
+prototype/schemas/example_task.json	schemas/example_task.json	match
+prototype/schemas/generator.json	schemas/generator.json	match
+prototype/schemas/profile.json	schemas/profile.json	match
+prototype/schemas/skeptic.json	schemas/skeptic.json	match
+prototype/src/taskgen/__init__.py	src/taskgen/__init__.py	match
+prototype/src/taskgen/__pycache__/__init__.cpython-312.pyc	src/taskgen/__pycache__/__init__.cpython-312.pyc	absent, byte-code cache, not kept
+prototype/src/taskgen/__pycache__/apply_schema.cpython-312.pyc	src/taskgen/__pycache__/apply_schema.cpython-312.pyc	absent, byte-code cache, not kept
+prototype/src/taskgen/__pycache__/catalogs.cpython-312.pyc	src/taskgen/__pycache__/catalogs.cpython-312.pyc	absent, byte-code cache, not kept
+prototype/src/taskgen/__pycache__/db.cpython-312.pyc	src/taskgen/__pycache__/db.cpython-312.pyc	absent, byte-code cache, not kept
+prototype/src/taskgen/__pycache__/filters.cpython-312.pyc	src/taskgen/__pycache__/filters.cpython-312.pyc	absent, byte-code cache, not kept
+prototype/src/taskgen/__pycache__/rating.cpython-312.pyc	src/taskgen/__pycache__/rating.cpython-312.pyc	absent, byte-code cache, not kept
+prototype/src/taskgen/__pycache__/seed.cpython-312.pyc	src/taskgen/__pycache__/seed.cpython-312.pyc	absent, byte-code cache, not kept
+prototype/src/taskgen/__pycache__/tutor_rule.cpython-312.pyc	src/taskgen/__pycache__/tutor_rule.cpython-312.pyc	absent, byte-code cache, not kept
+prototype/src/taskgen/__pycache__/validate_examples.cpython-312.pyc	src/taskgen/__pycache__/validate_examples.cpython-312.pyc	absent, byte-code cache, not kept
+prototype/src/taskgen/apply_schema.py	src/taskgen/apply_schema.py	match
+prototype/src/taskgen/catalogs.py	src/taskgen/catalogs.py	match
+prototype/src/taskgen/db.py	src/taskgen/db.py	match
+prototype/src/taskgen/filters.py	src/taskgen/filters.py	match
+prototype/src/taskgen/journal.py	src/taskgen/journal.py	match
+prototype/src/taskgen/mcp_server.py	src/taskgen/mcp_server.py	match
+prototype/src/taskgen/play.py	src/taskgen/play.py	match
+prototype/src/taskgen/rating.py	src/taskgen/rating.py	match
+prototype/src/taskgen/report.py	src/taskgen/report.py	match
+prototype/src/taskgen/sandbox.py	src/taskgen/sandbox.py	match
+prototype/src/taskgen/seed.py	src/taskgen/seed.py	match
+prototype/src/taskgen/service.py	src/taskgen/service.py	match
+prototype/src/taskgen/tutor_rule.py	src/taskgen/tutor_rule.py	match
+prototype/src/taskgen/validate_examples.py	src/taskgen/validate_examples.py	match
+prototype/tests/__pycache__/test_filters.cpython-312.pyc	tests/__pycache__/test_filters.cpython-312.pyc	absent, byte-code cache, not kept
+prototype/tests/conftest.py	tests/conftest.py	match
+prototype/tests/example_checks/__init__.py	tests/example_checks/__init__.py	match
+prototype/tests/example_checks/algorithms_weighing_pouring.py	tests/example_checks/algorithms_weighing_pouring.py	match
+prototype/tests/example_checks/arithmetic_tricks.py	tests/example_checks/arithmetic_tricks.py	match
+prototype/tests/example_checks/combinatorics_enumeration.py	tests/example_checks/combinatorics_enumeration.py	match
+prototype/tests/example_checks/counting_gaps.py	tests/example_checks/counting_gaps.py	match
+prototype/tests/example_checks/logic_knights_liars.py	tests/example_checks/logic_knights_liars.py	match
+prototype/tests/example_checks/logic_ordering.py	tests/example_checks/logic_ordering.py	match
+prototype/tests/example_checks/parity_alternation.py	tests/example_checks/parity_alternation.py	match
+prototype/tests/example_checks/pigeonhole_basic.py	tests/example_checks/pigeonhole_basic.py	match
+prototype/tests/example_checks/time_calendar.py	tests/example_checks/time_calendar.py	match
+prototype/tests/example_checks/time_clocks.py	tests/example_checks/time_clocks.py	match
+prototype/tests/test_catalogs.py	tests/test_catalogs.py	match
+prototype/tests/test_db.py	tests/test_db.py	match
+prototype/tests/test_example_answers.py	tests/test_example_answers.py	match
+prototype/tests/test_examples.py	tests/test_examples.py	match
+prototype/tests/test_filters.py	tests/test_filters.py	match
+prototype/tests/test_journal.py	tests/test_journal.py	match
+prototype/tests/test_mcp_server.py	tests/test_mcp_server.py	match
+prototype/tests/test_play.py	tests/test_play.py	match
+prototype/tests/test_rating.py	tests/test_rating.py	match
+prototype/tests/test_report.py	tests/test_report.py	match
+prototype/tests/test_sandbox.py	tests/test_sandbox.py	match
+prototype/tests/test_schemas.py	tests/test_schemas.py	match
+prototype/tests/test_seed.py	tests/test_seed.py	match
+prototype/tests/test_service.py	tests/test_service.py	match
+prototype/tests/test_skeleton.py	tests/test_skeleton.py	match
+prototype/tests/test_submit_answer.py	tests/test_submit_answer.py	match
+prototype/tests/test_submit_task.py	tests/test_submit_task.py	match
+prototype/tests/test_tutor_rule.py	tests/test_tutor_rule.py	match
+prototype/uv.lock	uv.lock	match

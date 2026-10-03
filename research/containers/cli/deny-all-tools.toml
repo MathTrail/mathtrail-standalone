@@ -1,0 +1,6 @@
+# Every tool of Gemini CLI is denied: a trial run answers from the model alone,
+# with no shell, no file access, no web fetch and no MCP server.
+[[rule]]
+toolName = "*"
+decision = "deny"
+priority = 999
