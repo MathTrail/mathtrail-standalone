@@ -109,6 +109,8 @@ type childResult struct {
 	wrongRun, longest   int
 	hardFirst           int
 	pairs               map[string]*pairTrack
+	reachable           int
+	screen              screenRecord
 }
 
 func newChildResult(*child) *childResult {
@@ -118,23 +120,28 @@ func newChildResult(*child) *childResult {
 	}
 }
 
-// observedAnswer is what is known of an answer before the rule takes it in,
-// and whether the profile held the task's topic mastered at its level or
-// above before it.
+// observedAnswer is what is known of an answer before the rule takes it in —
+// the rule's level in the topic and overall among it — and whether the
+// profile held the task's topic mastered at its level or above before it.
 type observedAnswer struct {
-	estimate, truth, predicted, chance float64
-	correct, heldMastered              bool
+	estimate, overall, truth, predicted, chance float64
+	correct, heldMastered                       bool
 }
 
 // observeBefore measures an answer at the moment the task is set: the rule's
-// prediction against the outcome, where the task's true chance falls, and the
-// error of the rule's level in the topic.
+// prediction against the outcome, where the task's true chance falls, whether
+// the topic's ladder held a task in the corridor at all, and the error of the
+// rule's level in the topic.
 func (s *session) observeBefore(brief *profile.Brief, beta, truth float64, correct bool, k int) observedAnswer {
 	r := s.result
 	topic := brief.TargetConcept
 	o := observedAnswer{
-		estimate: s.est.level(topic), truth: s.c.level(topic), predicted: s.est.chance(topic, beta), chance: truth,
+		estimate: s.est.level(topic), overall: s.est.overall(), truth: s.c.level(topic),
+		predicted: s.est.chance(topic, beta), chance: truth,
 		correct: correct, heldMastered: masteredAtOrAbove(s.p, topic, brief.GradeLevel),
+	}
+	if s.reachable(topic) {
+		r.reachable++
 	}
 	score := 0.0
 	if correct {
@@ -200,6 +207,19 @@ func (r *childResult) after(s *session, brief *profile.Brief, recorded *profile.
 	r.followLate(s, topicLevel{topic: topic, level: level}, truth, o.heldMastered, recorded.Mastered)
 	r.followPair(topic, recorded, truth, o.chance)
 	r.followJump(s, topic, k)
+	r.screen.after(s, topic, o, k)
+}
+
+// reachable says whether the topic's ladder holds a task whose true chance,
+// for the child as they stand, lies in the corridor: whether any rule could
+// have handed out a task in it, whatever it knew of the child.
+func (s *session) reachable(topic string) bool {
+	for _, point := range s.w.ladders[topic] {
+		if chance := s.c.chance(topic, point.Beta()); chance >= corridorLow && chance <= corridorHigh {
+			return true
+		}
+	}
+	return false
 }
 
 // followLate counts, for every topic and level the child truly masters, the

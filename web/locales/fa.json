@@ -53,7 +53,7 @@
 	"progress.label": "نمایه و پیشرفت",
 	"progress.back": "بازگشت به مسئله",
 	"progress.back_plain": "بازگشت",
-	"progress.rank_line": "مرحلهٔ {rank} از {total} · امتیاز {rating}",
+	"progress.rank_line": "مرحلهٔ {rank} از {total}",
 	"progress.next_rank": "مرحلهٔ بعد: {name}. پاسخ‌های درست نوار را جلو می‌برند و اشتباه‌ها کمی عقب.",
 	"progress.top_rank": "این بالاترین مرحله است.",
 	"progress.share": "{share} از راه تا مرحلهٔ بعد",
@@ -84,6 +84,7 @@
 		"other": "در مجموع {count} مسئله بی‌جواب مانده است."
 	},
 	"progress.trial_ranks": "مرحله‌ها پس از {total} مسئله می‌آیند.",
+	"progress.for_parent": "برای والدین",
 	"profile.card_label": "نمایه",
 	"profile.grade": "پایه",
 	"profile.grade_note": "فقط یک برچسب است: تغییرش هیچ امتیازی را جابه‌جا نمی‌کند.",

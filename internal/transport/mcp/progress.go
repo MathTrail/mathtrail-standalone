@@ -90,10 +90,11 @@ func (s *Service) getProgressTool() Tool {
 		Description: "Shows the child's progress: the overall rating on a chess-like scale with its rank and how far " +
 			"through the rank it has come, each topic met or within reach now with a rank of its own, ahead of or " +
 			"behind the overall one, the topics mastered, the latest answers and how many tasks were left without " +
-			"one, the mistakes that keep coming back, what comes next, and where the profile's file is kept. The " +
-			"scale is one for grades 1 to 6, so an older child's number is higher. During the trial series — the " +
-			"first five tasks — there is no rating yet, only how many of the five are done. Call it only when " +
-			"someone asks to see the progress. Present it encouragingly and name one thing to practise next.",
+			"one, the mistakes that keep coming back, what comes next, and where the profile's file is kept. Its " +
+			"card draws the rank, not the rating's number: say the number yourself. The scale is one for grades 1 " +
+			"to 6, so an older child's number is higher. During the trial series — the first five tasks — there " +
+			"is no rating yet, only how many of the five are done. Call it only when someone asks to see the " +
+			"progress. Present it encouragingly and name one thing to practise next.",
 		ReadOnly:   true,
 		Idempotent: true,
 		DrawsCard:  true,

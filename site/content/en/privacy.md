@@ -5,9 +5,9 @@ description: What MathTrail knows about your child, where it is kept, and how to
 
 # Privacy policy
 
-Last updated: 1 October 2026.
+Last updated: 3 October 2026.
 
-MathTrail is a free, open-source project. Questions about this policy or about your child's data go to [alexander.ryazanov.1987@gmail.com](mailto:alexander.ryazanov.1987@gmail.com).
+MathTrail is a free, open-source project. Questions about this policy or about your child's data go to [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com).
 
 ## The short version
 

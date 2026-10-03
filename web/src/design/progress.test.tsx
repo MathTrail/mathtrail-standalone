@@ -7,6 +7,7 @@ import {
 	RankSummary,
 	Segments,
 	StatList,
+	StatusDots,
 	type StatusTone,
 } from "./progress";
 
@@ -246,6 +247,35 @@ describe("a list", () => {
 			"In all, 1 task was left without an answer.",
 		);
 	});
+
+	test("carries no label of its own where what it stands in names it", () => {
+		draw(<StatList rows={[{ id: "a", label: "Clocks" }]} />);
+
+		expect(root.querySelector(".mt-section-label")).toBeNull();
+		expect(root.querySelector(".mt-row")?.textContent).toBe("Clocks");
+	});
+});
+
+describe("the dots of a run of entries", () => {
+	test("are a dot for each entry in its tone's colour, the first first, said in words for a screen reader alone", () => {
+		draw(
+			<StatusDots
+				tones={["wrong", "skipped", "correct"]}
+				label="Wrong, Skipped, Right"
+			/>,
+		);
+
+		const dots = root.querySelector(".mt-status-dots .mt-dots");
+		expect(dots?.getAttribute("aria-hidden")).toBe("true");
+		expect(
+			[...(dots?.querySelectorAll(".mt-dot") ?? [])].map((dot) =>
+				dot.getAttribute("data-tone"),
+			),
+		).toEqual(["wrong", "skipped", "correct"]);
+		expect(root.querySelector(".mt-status-dots .mt-vh")?.textContent).toBe(
+			"Wrong, Skipped, Right",
+		);
+	});
 });
 
 describe("a profile's fields", () => {
@@ -322,5 +352,28 @@ describe("a profile's fields", () => {
 				(part) => part.textContent,
 			),
 		).toEqual(["Your data"]);
+	});
+
+	test("carry no label where what they stand in names them, and keep what can be done at their head", () => {
+		draw(
+			<ProfileFields
+				fields={[{ term: "Grade", value: "3" }]}
+				action={<button type="button">Edit</button>}
+			/>,
+		);
+
+		expect(root.querySelector(".mt-section-label")).toBeNull();
+		expect(
+			[...(root.querySelector(".mt-fields-head")?.children ?? [])].map(
+				(part) => part.textContent,
+			),
+		).toEqual(["Edit"]);
+	});
+
+	test("have no head with neither a label nor anything to be done", () => {
+		draw(<ProfileFields fields={[{ term: "Grade", value: "3" }]} />);
+
+		expect(root.querySelector(".mt-fields-head")).toBeNull();
+		expect(root.querySelector("dt")?.textContent).toBe("Grade");
 	});
 });

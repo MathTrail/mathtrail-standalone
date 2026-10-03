@@ -44,6 +44,19 @@ func (s service) chance(topic string, beta float64) float64 {
 	return rating.Probability(s.level(topic), beta)
 }
 
+// oracle stands where the child truly stands, in every topic, at every moment,
+// and knows the child's true chance: the ceiling of every rule that learns of
+// a child from their answers. It learns nothing from an answer, having nothing
+// to learn.
+type oracle struct {
+	c *child
+}
+
+func (o oracle) overall() float64                          { return o.c.theta }
+func (o oracle) level(topic string) float64                { return o.c.level(topic) }
+func (o oracle) chance(topic string, beta float64) float64 { return o.c.chance(topic, beta) }
+func (o oracle) answered(string, float64, bool)            {}
+
 // stepRule is an update in the style of Elo in the service's structure, an
 // overall level and a topic offset, with the service's step and its variants:
 // a constant step, a floor under the overall level's step, and other first

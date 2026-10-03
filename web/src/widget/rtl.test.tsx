@@ -196,7 +196,13 @@ describe("the screens in Arabic", () => {
 			context: { locale: "ar-EG" },
 		});
 		const { root } = drawn;
-		press(root.querySelector<HTMLElement>(".mt-fields-head .mt-btn") ?? root);
+		const edit = root.querySelector<HTMLElement>(".mt-fields-head .mt-btn");
+		press(
+			edit
+				?.closest(".mt-fold")
+				?.querySelector<HTMLElement>(".mt-fold-button") ?? root,
+		);
+		press(edit ?? root);
 		const box = root.querySelector<HTMLInputElement>(".mt-form .mt-input");
 		if (box === null) {
 			throw new Error("the card shows no form");

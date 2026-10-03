@@ -53,7 +53,7 @@
 	"progress.label": "Profil i postępy",
 	"progress.back": "Do zadania",
 	"progress.back_plain": "Wróć",
-	"progress.rank_line": "ranga {rank} z {total} · ranking {rating}",
+	"progress.rank_line": "ranga {rank} z {total}",
 	"progress.next_rank": "Następna ranga: {name}. Dobre odpowiedzi przesuwają pasek do przodu, błędy — trochę do tyłu.",
 	"progress.top_rank": "To najwyższa ranga.",
 	"progress.share": "{share} drogi do następnej rangi",
@@ -88,6 +88,7 @@
 		"other": "Łącznie bez odpowiedzi pozostawiono {count} zadania."
 	},
 	"progress.trial_ranks": "Rangi pojawią się po {total} zadaniach.",
+	"progress.for_parent": "dla rodziców",
 	"profile.card_label": "Profil",
 	"profile.grade": "Klasa",
 	"profile.grade_note": "Tylko informacja: zmiana klasy nie wpływa na ranking.",

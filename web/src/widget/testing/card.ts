@@ -83,6 +83,33 @@ export function press(element: HTMLElement): void {
 }
 
 /**
+ * foldIn is the title of root's section named title: the button that opens
+ * and folds it. The button's words are the title and the summary beside it,
+ * so it is found by the title alone.
+ */
+export function foldIn(root: HTMLElement, title: string): HTMLButtonElement {
+	const found = [
+		...root.querySelectorAll<HTMLButtonElement>("button.mt-fold-button"),
+	].find(
+		(candidate) =>
+			!candidate.closest("[hidden]") &&
+			candidate.querySelector(".mt-fold-title")?.textContent === title,
+	);
+	if (found === undefined) {
+		throw new Error(`the card has no section ${title}`);
+	}
+	return found;
+}
+
+/** unfold opens root's section named title as a person does, if it is folded. */
+export function unfold(root: HTMLElement, title: string): void {
+	const section = foldIn(root, title);
+	if (section.getAttribute("aria-expanded") !== "true") {
+		press(section);
+	}
+}
+
+/**
  * openCard starts the widget, in an element of its own on the page, on a host
  * that has told it its context and nothing of the call yet, and returns the
  * host for the test to tell it the rest — the call's arguments, its result or

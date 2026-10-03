@@ -53,7 +53,7 @@
 	"progress.label": "پروفائل اور پیش رفت",
 	"progress.back": "سوال پر واپس",
 	"progress.back_plain": "واپس",
-	"progress.rank_line": "{total} میں سے مرحلہ {rank} · ریٹنگ {rating}",
+	"progress.rank_line": "{total} میں سے مرحلہ {rank}",
 	"progress.next_rank": "اگلا مرحلہ: {name}۔ صحیح جواب پٹی کو آگے بڑھاتے ہیں، غلطیاں تھوڑا پیچھے لے جاتی ہیں۔",
 	"progress.top_rank": "یہ سب سے اونچا مرحلہ ہے۔",
 	"progress.share": "اگلے مرحلے تک کا راستہ: {share}",
@@ -84,6 +84,7 @@
 		"other": "کل ملا کر {count} سوال بغیر جواب کے رہ گئے۔"
 	},
 	"progress.trial_ranks": "مراحل {total} سوالوں کے بعد نظر آئیں گے۔",
+	"progress.for_parent": "والدین کے لیے",
 	"profile.card_label": "پروفائل",
 	"profile.grade": "جماعت",
 	"profile.grade_note": "یہ صرف ایک لیبل ہے: اسے بدلنے سے کوئی ریٹنگ نہیں بدلتی۔",

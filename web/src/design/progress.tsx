@@ -76,9 +76,9 @@ function fillOf(step: number, filled: number, part: number): number {
 
 /**
  * RankSummary is where the child stands, large: the name of the step reached,
- * the line that places it — the step out of how many, and the number beside
- * it — the course drawn under them, and a line of what comes next. A label
- * names it for a screen reader where the name does not.
+ * the line that places it — the step out of how many —, the course drawn under
+ * them, and a line of what comes next. A label names it for a screen reader
+ * where the name does not.
  */
 export function RankSummary({
 	label,
@@ -134,6 +134,31 @@ export function StatusMark({
 }
 
 /**
+ * StatusDots is how a run of entries went, a dot for each in its tone's
+ * colour, the first entry first, and the same in words for a screen reader
+ * alone. It is a summary: the entries are told, each with its mark and its
+ * words, where the summary leads.
+ */
+export function StatusDots({
+	tones,
+	label,
+}: {
+	tones: readonly StatusTone[];
+	label: string;
+}) {
+	return (
+		<span class="mt-status-dots">
+			<span class="mt-dots" aria-hidden="true">
+				{counted(tones.length).map((place) => (
+					<span key={place} class="mt-dot" data-tone={tones[place - 1]} />
+				))}
+			</span>
+			<span class="mt-vh">{label}</span>
+		</span>
+	);
+}
+
+/**
  * RankRow is one topic of a list of ranks: what it is about, a mark when it is
  * mastered, a word of how it stands and the name of its rank at the line's
  * end, and its course under them. Its id tells it apart from the others.
@@ -148,21 +173,22 @@ export type RankRow = {
 };
 
 /**
- * RankList is a labelled list of topics, each with its own course, under a
- * line that says what the courses show when there is one.
+ * RankList is a list of topics, each with its own course, under a line that
+ * says what the courses show when there is one. It carries its label, unless
+ * what it stands in names it already — the title of a part folded away.
  */
 export function RankList({
 	label,
 	note,
 	rows,
 }: {
-	label: string;
+	label?: string;
 	note?: string;
 	rows: readonly RankRow[];
 }) {
 	return (
 		<section class="mt-list">
-			<h3 class="mt-section-label">{label}</h3>
+			{label !== undefined && <h3 class="mt-section-label">{label}</h3>}
 			{note !== undefined && <p class="mt-list-lead">{note}</p>}
 			<ul>
 				{rows.map((row) => (
@@ -208,9 +234,11 @@ export type StatRow = {
 };
 
 /**
- * StatList is a labelled list of lines, each with what it is about at its
- * start and how it stands at its end, and a note under it when there is more
- * to say of the whole list; a list set apart is drawn in a frame of its own.
+ * StatList is a list of lines, each with what it is about at its start and
+ * how it stands at its end, and a note under it when there is more to say of
+ * the whole list; a list set apart is drawn in a frame of its own. It carries
+ * its label, unless what it stands in names it already — the title of a part
+ * folded away.
  */
 export function StatList({
 	label,
@@ -218,14 +246,14 @@ export function StatList({
 	note,
 	framed = false,
 }: {
-	label: string;
+	label?: string;
 	rows: readonly StatRow[];
 	note?: string;
 	framed?: boolean;
 }) {
 	return (
 		<section class={classes("mt-list", framed && "mt-list-framed")}>
-			<h3 class="mt-section-label">{label}</h3>
+			{label !== undefined && <h3 class="mt-section-label">{label}</h3>}
 			<ul>
 				{rows.map((row) => (
 					<li key={row.id} class="mt-row">
@@ -264,9 +292,11 @@ export type Field = {
 };
 
 /**
- * FieldsFrame is a frame for a group of a profile's fields: their label at its
- * head, with what can be done about them beside it and what became of it
- * under it, and the fields — told, or a form to change them — below.
+ * FieldsFrame is a frame for a group of a profile's fields: at its head their
+ * label — unless what the frame stands in names it already, the title of a
+ * part folded away — and what can be done about them, what became of it under
+ * the head, and the fields — told, or a form to change them — below. A frame
+ * with nothing for its head has none.
  */
 export function FieldsFrame({
 	label,
@@ -274,17 +304,19 @@ export function FieldsFrame({
 	status,
 	children,
 }: {
-	label: string;
+	label?: string;
 	action?: ComponentChildren;
 	status?: ComponentChildren;
 	children: ComponentChildren;
 }) {
 	return (
 		<section class="mt-fields">
-			<div class="mt-fields-head">
-				<h3 class="mt-section-label">{label}</h3>
-				{action}
-			</div>
+			{(label !== undefined || action !== undefined) && (
+				<div class="mt-fields-head">
+					{label !== undefined && <h3 class="mt-section-label">{label}</h3>}
+					{action}
+				</div>
+			)}
 			{status}
 			{children}
 		</section>
@@ -293,8 +325,8 @@ export function FieldsFrame({
 
 /**
  * ProfileFields is a group of a profile's fields in a frame, each named, with
- * what can be done about them beside the label at its head and what became of
- * it under it.
+ * its label, unless what it stands in names it already, and what can be done
+ * about them at its head, and what became of it under the head.
  */
 export function ProfileFields({
 	label,
@@ -302,7 +334,7 @@ export function ProfileFields({
 	action,
 	status,
 }: {
-	label: string;
+	label?: string;
 	fields: readonly Field[];
 	action?: ComponentChildren;
 	status?: ComponentChildren;

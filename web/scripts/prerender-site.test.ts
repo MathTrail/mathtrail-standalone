@@ -15,20 +15,6 @@ import { buildSite, givenTwice, main, readSources } from "./prerender-site.ts";
 
 const repository = join(import.meta.dirname, "..", "..");
 
-// published are the addresses the site has handed out: the consent screen of
-// the sign-in points at two of them, and a listing points at the apex. A build
-// that dropped one would break a link somebody else holds, and no check of
-// the built site can know what was handed out before it.
-const published = [
-	"/",
-	"/en/",
-	"/en/privacy/",
-	"/en/terms/",
-	"/ru/",
-	"/ru/privacy/",
-	"/ru/terms/",
-];
-
 // filesIn are the paths of every file below dir, relative to it, sorted.
 async function filesIn(dir: string): Promise<string[]> {
 	const entries = await readdir(dir, { recursive: true, withFileTypes: true });
@@ -68,14 +54,6 @@ describe("the site built from this repository", () => {
 		await rm(out, { recursive: true, force: true });
 	});
 
-	test("keeps every address the site has published", async () => {
-		for (const address of published) {
-			await expect(
-				readFile(join(out, address, "index.html"), "utf8"),
-			).resolves.toMatch(/^<!DOCTYPE html>/);
-		}
-	});
-
 	test("is its pages, its stylesheets, its mark and the host's files, and nothing older", async () => {
 		expect(await filesIn(out)).toEqual([
 			".nojekyll",
@@ -113,8 +91,10 @@ describe("the site built from this repository", () => {
 	});
 
 	test("loads on every page the tokens, then the styles, and no script", async () => {
-		for (const address of published) {
-			const html = await readFile(join(out, address, "index.html"), "utf8");
+		const pages = (await filesIn(out)).filter((file) => file.endsWith(".html"));
+		expect(pages).not.toEqual([]);
+		for (const page of pages) {
+			const html = await readFile(join(out, page), "utf8");
 
 			expect(
 				[...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map(

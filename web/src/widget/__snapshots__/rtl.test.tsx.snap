@@ -221,26 +221,26 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
     >
       <label
         class="mt-form-label"
-        for="P0-0"
+        for="P0-4"
       >
         الاسم المستعار
       </label>
       <input
-        aria-describedby="P0-0-note P0-0-problem"
+        aria-describedby="P0-4-note P0-4-problem"
         aria-invalid="true"
         class="mt-input"
-        id="P0-0"
+        id="P0-4"
         type="text"
       />
       <p
         class="mt-field-note"
-        id="P0-0-note"
+        id="P0-4-note"
       >
         ليس الاسم الحقيقي للطفل أبدا.
       </p>
       <p
         class="mt-field-problem"
-        id="P0-0-problem"
+        id="P0-4-problem"
       >
         يرجى ملء هذا الحقل.
       </p>
@@ -250,15 +250,15 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
     >
       <label
         class="mt-form-label"
-        for="P0-1"
+        for="P0-5"
       >
         الصف
       </label>
       <select
-        aria-describedby="P0-1-note P0-1-problem"
+        aria-describedby="P0-5-note P0-5-problem"
         aria-invalid="true"
         class="mt-input mt-select"
-        id="P0-1"
+        id="P0-5"
       >
         <option
           value="1"
@@ -293,19 +293,19 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
       </select>
       <p
         class="mt-field-note"
-        id="P0-1-note"
+        id="P0-5-note"
       >
         مجرد تسمية: تغييره لا يؤثر في أي تصنيف.
       </p>
       <p
         class="mt-field-problem"
-        id="P0-1-problem"
+        id="P0-5-problem"
       >
         يرجى اختيار إحدى القيم المعروضة.
       </p>
     </div>
     <fieldset
-      aria-describedby="P0-2-problem"
+      aria-describedby="P0-6-problem"
       class="mt-form-field"
     >
       <legend
@@ -391,13 +391,13 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
       >
         <label
           class="mt-vh"
-          for="P0-2"
+          for="P0-6"
         >
           اهتمام جديد
         </label>
         <input
           class="mt-input"
-          id="P0-2"
+          id="P0-6"
           type="text"
         />
         <button
@@ -410,13 +410,13 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
       </div>
       <p
         class="mt-field-problem"
-        id="P0-2-problem"
+        id="P0-6-problem"
       >
         أحدها فارغ أو طويل جدا.
       </p>
     </fieldset>
     <fieldset
-      aria-describedby="P0-3-problem"
+      aria-describedby="P0-7-problem"
       class="mt-form-field"
     >
       <legend
@@ -680,7 +680,7 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
       </div>
       <p
         class="mt-field-problem"
-        id="P0-3-problem"
+        id="P0-7-problem"
       >
         إحدى هذه المهارات لا يعرفها MathTrail: يرجى إلغاء تحديدها.
       </p>
@@ -690,15 +690,15 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
     >
       <label
         class="mt-form-label"
-        for="P0-4"
+        for="P0-8"
       >
         لغة الدروس
       </label>
       <select
-        aria-describedby="P0-4-problem"
+        aria-describedby="P0-8-problem"
         aria-invalid="true"
         class="mt-input mt-select"
-        id="P0-4"
+        id="P0-8"
       >
         <option
           value=""
@@ -818,7 +818,7 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
       </select>
       <p
         class="mt-field-problem"
-        id="P0-4-problem"
+        id="P0-8-problem"
       >
         يرجى اختيار لغة من القائمة.
       </p>
@@ -1093,7 +1093,7 @@ exports[`the screens in Arabic > the progress 1`] = `
           <span
             class="mt-meta"
           >
-            المرحلة 3 من 11 · التصنيف 1573
+            المرحلة 3 من 11
           </span>
         </div>
         <div
@@ -1181,34 +1181,744 @@ exports[`the screens in Arabic > the progress 1`] = `
           حصر الحالات، مرة أخرى
         </p>
       </div>
-      <section
-        class="mt-list"
+    </div>
+    <div
+      class="mt-folds"
+    >
+      <div
+        class="mt-fold"
       >
-        <h3
-          class="mt-section-label"
+        <h2
+          class="mt-fold-head"
         >
-          المواضيع
-        </h3>
-        <p
-          class="mt-list-lead"
-        >
-          المرحلة في كل موضوع
-        </p>
-        <ul>
-          <li
-            class="mt-rank-row"
+          <button
+            aria-controls="P0-0"
+            aria-expanded="false"
+            class="mt-fold-button"
+            type="button"
           >
-            <div
-              class="mt-rank-row-top"
+            <span
+              class="mt-fold-text"
             >
               <span
-                class="mt-rank-row-start"
+                class="mt-fold-title"
+              >
+                المواضيع
+              </span>
+            </span>
+            <svg
+              aria-hidden="true"
+              class="mt-icon mt-chevron"
+              fill="none"
+              height="16"
+              viewBox="0 0 16 16"
+              width="16"
+            />
+          </button>
+        </h2>
+        <div
+          class="mt-fold-body"
+          hidden=""
+          id="P0-0"
+        >
+          <section
+            class="mt-list"
+          >
+            <p
+              class="mt-list-lead"
+            >
+              المرحلة في كل موضوع
+            </p>
+            <ul>
+              <li
+                class="mt-rank-row"
+              >
+                <div
+                  class="mt-rank-row-top"
+                >
+                  <span
+                    class="mt-rank-row-start"
+                  >
+                    <span
+                      class="mt-row-label"
+                    >
+                      الترتيب
+                    </span>
+                    <span
+                      class="mt-status mt-status-correct"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="mt-icon"
+                        fill="none"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        width="16"
+                      />
+                      تم إتقانه
+                    </span>
+                  </span>
+                  <span
+                    class="mt-rank-row-end"
+                  >
+                    <span
+                      class="mt-rank-word"
+                    >
+                      في المقدّمة
+                    </span>
+                    <span
+                      class="mt-rank-row-name"
+                    >
+                      التل
+                    </span>
+                  </span>
+                </div>
+                <div
+                  class="mt-segments"
+                  data-tone="2"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                </div>
+              </li>
+              <li
+                class="mt-rank-row"
+              >
+                <div
+                  class="mt-rank-row-top"
+                >
+                  <span
+                    class="mt-rank-row-start"
+                  >
+                    <span
+                      class="mt-row-label"
+                    >
+                      حصر الحالات
+                    </span>
+                  </span>
+                  <span
+                    class="mt-rank-row-end"
+                  >
+                    <span
+                      class="mt-rank-row-name"
+                    >
+                      معبر النهر
+                    </span>
+                  </span>
+                </div>
+                <div
+                  class="mt-segments"
+                  data-tone="1"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                </div>
+              </li>
+              <li
+                class="mt-rank-row"
+              >
+                <div
+                  class="mt-rank-row-top"
+                >
+                  <span
+                    class="mt-rank-row-start"
+                  >
+                    <span
+                      class="mt-row-label"
+                    >
+                      الفواصل والحدود
+                    </span>
+                  </span>
+                  <span
+                    class="mt-rank-row-end"
+                  >
+                    <span
+                      class="mt-rank-row-name"
+                    >
+                      معبر النهر
+                    </span>
+                  </span>
+                </div>
+                <div
+                  class="mt-segments"
+                  data-tone="1"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                </div>
+              </li>
+              <li
+                class="mt-rank-row"
+              >
+                <div
+                  class="mt-rank-row-top"
+                >
+                  <span
+                    class="mt-rank-row-start"
+                  >
+                    <span
+                      class="mt-row-label"
+                    >
+                      الزوجية والتناوب
+                    </span>
+                  </span>
+                  <span
+                    class="mt-rank-row-end"
+                  >
+                    <span
+                      class="mt-rank-word"
+                    >
+                      في الخلف
+                    </span>
+                    <span
+                      class="mt-rank-row-name"
+                    >
+                      درب الغابة
+                    </span>
+                  </span>
+                </div>
+                <div
+                  class="mt-segments"
+                  data-tone="1"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                  <svg
+                    aria-hidden="true"
+                    class="mt-segment"
+                    height="6"
+                  />
+                </div>
+              </li>
+              <li
+                class="mt-rank-row"
+              >
+                <div
+                  class="mt-rank-row-top"
+                >
+                  <span
+                    class="mt-rank-row-start"
+                  >
+                    <span
+                      class="mt-row-label"
+                    >
+                      مبدأ برج الحمام
+                    </span>
+                  </span>
+                  <span
+                    class="mt-rank-row-end"
+                  >
+                    <span
+                      class="mt-rank-word"
+                    >
+                      لا إجابات بعد
+                    </span>
+                  </span>
+                </div>
+                <div
+                  class="mt-segments"
+                  data-tone="ink"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="mt-segment mt-segment-open"
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="mt-segment mt-segment-open"
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="mt-segment mt-segment-open"
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="mt-segment mt-segment-open"
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="mt-segment mt-segment-open"
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="mt-segment mt-segment-open"
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="mt-segment mt-segment-open"
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="mt-segment mt-segment-open"
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="mt-segment mt-segment-open"
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="mt-segment mt-segment-open"
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="mt-segment mt-segment-open"
+                  />
+                </div>
+              </li>
+            </ul>
+          </section>
+        </div>
+      </div>
+      <div
+        class="mt-fold"
+      >
+        <h2
+          class="mt-fold-head"
+        >
+          <button
+            aria-controls="P0-1"
+            aria-expanded="false"
+            class="mt-fold-button"
+            type="button"
+          >
+            <span
+              class="mt-fold-text"
+            >
+              <span
+                class="mt-fold-title"
+              >
+                أخطاء متكررة
+              </span>
+            </span>
+            <svg
+              aria-hidden="true"
+              class="mt-icon mt-chevron"
+              fill="none"
+              height="16"
+              viewBox="0 0 16 16"
+              width="16"
+            />
+          </button>
+        </h2>
+        <div
+          class="mt-fold-body"
+          hidden=""
+          id="P0-1"
+        >
+          <section
+            class="mt-list mt-list-framed"
+          >
+            <ul>
+              <li
+                class="mt-row"
               >
                 <span
                   class="mt-row-label"
                 >
-                  الترتيب
+                  إغفال حالة أثناء الحصر
                 </span>
+                <span
+                  class="mt-row-spacer"
+                />
+                <span
+                  class="mt-row-count"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="mt-dots"
+                  >
+                    <span
+                      class="mt-dot"
+                    />
+                    <span
+                      class="mt-dot"
+                    />
+                    <span
+                      class="mt-dot"
+                    />
+                  </span>
+                  3 مرات
+                </span>
+              </li>
+              <li
+                class="mt-row"
+              >
+                <span
+                  class="mt-row-label"
+                >
+                  حساب الشيء نفسه مرتين
+                </span>
+                <span
+                  class="mt-row-spacer"
+                />
+                <span
+                  class="mt-row-count"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="mt-dots"
+                  >
+                    <span
+                      class="mt-dot"
+                    />
+                    <span
+                      class="mt-dot"
+                    />
+                  </span>
+                  2 مرتان
+                </span>
+              </li>
+            </ul>
+          </section>
+        </div>
+      </div>
+      <div
+        class="mt-fold"
+      >
+        <h2
+          class="mt-fold-head"
+        >
+          <button
+            aria-controls="P0-2"
+            aria-expanded="false"
+            class="mt-fold-button"
+            type="button"
+          >
+            <span
+              class="mt-fold-text"
+            >
+              <span
+                class="mt-fold-title"
+              >
+                آخر الإجابات
+              </span>
+               
+              <span
+                class="mt-fold-summary"
+              >
+                <span
+                  class="mt-status-dots"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="mt-dots"
+                  >
+                    <span
+                      class="mt-dot"
+                      data-tone="wrong"
+                    />
+                    <span
+                      class="mt-dot"
+                      data-tone="skipped"
+                    />
+                    <span
+                      class="mt-dot"
+                      data-tone="correct"
+                    />
+                    <span
+                      class="mt-dot"
+                      data-tone="correct"
+                    />
+                    <span
+                      class="mt-dot"
+                      data-tone="wrong"
+                    />
+                  </span>
+                  <span
+                    class="mt-vh"
+                  >
+                    خطأ وتم التخطي وصحيح وصحيح وخطأ
+                  </span>
+                </span>
+              </span>
+            </span>
+            <svg
+              aria-hidden="true"
+              class="mt-icon mt-chevron"
+              fill="none"
+              height="16"
+              viewBox="0 0 16 16"
+              width="16"
+            />
+          </button>
+        </h2>
+        <div
+          class="mt-fold-body"
+          hidden=""
+          id="P0-2"
+        >
+          <section
+            class="mt-list"
+          >
+            <ul>
+              <li
+                class="mt-row"
+              >
+                <span
+                  class="mt-row-label"
+                >
+                  حصر الحالات
+                </span>
+                <span
+                  class="mt-row-spacer"
+                />
+                <span
+                  class="mt-status mt-status-wrong"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="mt-icon"
+                    fill="none"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    width="16"
+                  />
+                  خطأ
+                </span>
+              </li>
+              <li
+                class="mt-row"
+              >
+                <span
+                  class="mt-row-label"
+                >
+                  حصر الحالات
+                </span>
+                <span
+                  class="mt-row-spacer"
+                />
+                <span
+                  class="mt-status mt-status-skipped"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="mt-icon"
+                    fill="none"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    width="16"
+                  />
+                  تم التخطي
+                </span>
+              </li>
+              <li
+                class="mt-row"
+              >
+                <span
+                  class="mt-row-label"
+                >
+                  الفواصل والحدود
+                </span>
+                <span
+                  class="mt-row-spacer"
+                />
                 <span
                   class="mt-status mt-status-correct"
                 >
@@ -1220,773 +1930,244 @@ exports[`the screens in Arabic > the progress 1`] = `
                     viewBox="0 0 16 16"
                     width="16"
                   />
-                  تم إتقانه
+                  صحيح
                 </span>
-              </span>
-              <span
-                class="mt-rank-row-end"
-              >
-                <span
-                  class="mt-rank-word"
-                >
-                  في المقدّمة
-                </span>
-                <span
-                  class="mt-rank-row-name"
-                >
-                  التل
-                </span>
-              </span>
-            </div>
-            <div
-              class="mt-segments"
-              data-tone="2"
-            >
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-            </div>
-          </li>
-          <li
-            class="mt-rank-row"
-          >
-            <div
-              class="mt-rank-row-top"
-            >
-              <span
-                class="mt-rank-row-start"
+              </li>
+              <li
+                class="mt-row"
               >
                 <span
                   class="mt-row-label"
                 >
-                  حصر الحالات
+                  الترتيب
                 </span>
-              </span>
-              <span
-                class="mt-rank-row-end"
-              >
                 <span
-                  class="mt-rank-row-name"
-                >
-                  معبر النهر
-                </span>
-              </span>
-            </div>
-            <div
-              class="mt-segments"
-              data-tone="1"
-            >
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-            </div>
-          </li>
-          <li
-            class="mt-rank-row"
-          >
-            <div
-              class="mt-rank-row-top"
-            >
-              <span
-                class="mt-rank-row-start"
-              >
+                  class="mt-row-spacer"
+                />
                 <span
-                  class="mt-row-label"
+                  class="mt-status mt-status-correct"
                 >
-                  الفواصل والحدود
+                  <svg
+                    aria-hidden="true"
+                    class="mt-icon"
+                    fill="none"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    width="16"
+                  />
+                  صحيح
                 </span>
-              </span>
-              <span
-                class="mt-rank-row-end"
-              >
-                <span
-                  class="mt-rank-row-name"
-                >
-                  معبر النهر
-                </span>
-              </span>
-            </div>
-            <div
-              class="mt-segments"
-              data-tone="1"
-            >
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-            </div>
-          </li>
-          <li
-            class="mt-rank-row"
-          >
-            <div
-              class="mt-rank-row-top"
-            >
-              <span
-                class="mt-rank-row-start"
+              </li>
+              <li
+                class="mt-row"
               >
                 <span
                   class="mt-row-label"
                 >
                   الزوجية والتناوب
                 </span>
-              </span>
-              <span
-                class="mt-rank-row-end"
-              >
                 <span
-                  class="mt-rank-word"
-                >
-                  في الخلف
-                </span>
+                  class="mt-row-spacer"
+                />
                 <span
-                  class="mt-rank-row-name"
+                  class="mt-status mt-status-wrong"
                 >
-                  درب الغابة
+                  <svg
+                    aria-hidden="true"
+                    class="mt-icon"
+                    fill="none"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    width="16"
+                  />
+                  خطأ
                 </span>
-              </span>
-            </div>
-            <div
-              class="mt-segments"
-              data-tone="1"
+              </li>
+            </ul>
+            <p
+              class="mt-list-note"
             >
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-              <svg
-                aria-hidden="true"
-                class="mt-segment"
-                height="6"
-              />
-            </div>
-          </li>
-          <li
-            class="mt-rank-row"
-          >
-            <div
-              class="mt-rank-row-top"
-            >
-              <span
-                class="mt-rank-row-start"
-              >
-                <span
-                  class="mt-row-label"
-                >
-                  مبدأ برج الحمام
-                </span>
-              </span>
-              <span
-                class="mt-rank-row-end"
-              >
-                <span
-                  class="mt-rank-word"
-                >
-                  لا إجابات بعد
-                </span>
-              </span>
-            </div>
-            <div
-              class="mt-segments"
-              data-tone="ink"
-            >
-              <span
-                aria-hidden="true"
-                class="mt-segment mt-segment-open"
-              />
-              <span
-                aria-hidden="true"
-                class="mt-segment mt-segment-open"
-              />
-              <span
-                aria-hidden="true"
-                class="mt-segment mt-segment-open"
-              />
-              <span
-                aria-hidden="true"
-                class="mt-segment mt-segment-open"
-              />
-              <span
-                aria-hidden="true"
-                class="mt-segment mt-segment-open"
-              />
-              <span
-                aria-hidden="true"
-                class="mt-segment mt-segment-open"
-              />
-              <span
-                aria-hidden="true"
-                class="mt-segment mt-segment-open"
-              />
-              <span
-                aria-hidden="true"
-                class="mt-segment mt-segment-open"
-              />
-              <span
-                aria-hidden="true"
-                class="mt-segment mt-segment-open"
-              />
-              <span
-                aria-hidden="true"
-                class="mt-segment mt-segment-open"
-              />
-              <span
-                aria-hidden="true"
-                class="mt-segment mt-segment-open"
-              />
-            </div>
-          </li>
-        </ul>
-      </section>
-      <section
-        class="mt-list"
+              في المجموع، 1 مسألة بلا إجابة.
+            </p>
+          </section>
+        </div>
+      </div>
+      <div
+        class="mt-fold"
       >
-        <h3
-          class="mt-section-label"
+        <h2
+          class="mt-fold-head"
         >
-          آخر الإجابات
-        </h3>
-        <ul>
-          <li
-            class="mt-row"
-          >
-            <span
-              class="mt-row-label"
-            >
-              حصر الحالات
-            </span>
-            <span
-              class="mt-row-spacer"
-            />
-            <span
-              class="mt-status mt-status-wrong"
-            >
-              <svg
-                aria-hidden="true"
-                class="mt-icon"
-                fill="none"
-                height="16"
-                viewBox="0 0 16 16"
-                width="16"
-              />
-              خطأ
-            </span>
-          </li>
-          <li
-            class="mt-row"
-          >
-            <span
-              class="mt-row-label"
-            >
-              حصر الحالات
-            </span>
-            <span
-              class="mt-row-spacer"
-            />
-            <span
-              class="mt-status mt-status-skipped"
-            >
-              <svg
-                aria-hidden="true"
-                class="mt-icon"
-                fill="none"
-                height="16"
-                viewBox="0 0 16 16"
-                width="16"
-              />
-              تم التخطي
-            </span>
-          </li>
-          <li
-            class="mt-row"
-          >
-            <span
-              class="mt-row-label"
-            >
-              الفواصل والحدود
-            </span>
-            <span
-              class="mt-row-spacer"
-            />
-            <span
-              class="mt-status mt-status-correct"
-            >
-              <svg
-                aria-hidden="true"
-                class="mt-icon"
-                fill="none"
-                height="16"
-                viewBox="0 0 16 16"
-                width="16"
-              />
-              صحيح
-            </span>
-          </li>
-          <li
-            class="mt-row"
-          >
-            <span
-              class="mt-row-label"
-            >
-              الترتيب
-            </span>
-            <span
-              class="mt-row-spacer"
-            />
-            <span
-              class="mt-status mt-status-correct"
-            >
-              <svg
-                aria-hidden="true"
-                class="mt-icon"
-                fill="none"
-                height="16"
-                viewBox="0 0 16 16"
-                width="16"
-              />
-              صحيح
-            </span>
-          </li>
-          <li
-            class="mt-row"
-          >
-            <span
-              class="mt-row-label"
-            >
-              الزوجية والتناوب
-            </span>
-            <span
-              class="mt-row-spacer"
-            />
-            <span
-              class="mt-status mt-status-wrong"
-            >
-              <svg
-                aria-hidden="true"
-                class="mt-icon"
-                fill="none"
-                height="16"
-                viewBox="0 0 16 16"
-                width="16"
-              />
-              خطأ
-            </span>
-          </li>
-        </ul>
-        <p
-          class="mt-list-note"
-        >
-          في المجموع، 1 مسألة بلا إجابة.
-        </p>
-      </section>
-      <section
-        class="mt-list mt-list-framed"
-      >
-        <h3
-          class="mt-section-label"
-        >
-          أخطاء متكررة
-        </h3>
-        <ul>
-          <li
-            class="mt-row"
-          >
-            <span
-              class="mt-row-label"
-            >
-              إغفال حالة أثناء الحصر
-            </span>
-            <span
-              class="mt-row-spacer"
-            />
-            <span
-              class="mt-row-count"
-            >
-              <span
-                aria-hidden="true"
-                class="mt-dots"
-              >
-                <span
-                  class="mt-dot"
-                />
-                <span
-                  class="mt-dot"
-                />
-                <span
-                  class="mt-dot"
-                />
-              </span>
-              3 مرات
-            </span>
-          </li>
-          <li
-            class="mt-row"
-          >
-            <span
-              class="mt-row-label"
-            >
-              حساب الشيء نفسه مرتين
-            </span>
-            <span
-              class="mt-row-spacer"
-            />
-            <span
-              class="mt-row-count"
-            >
-              <span
-                aria-hidden="true"
-                class="mt-dots"
-              >
-                <span
-                  class="mt-dot"
-                />
-                <span
-                  class="mt-dot"
-                />
-              </span>
-              2 مرتان
-            </span>
-          </li>
-        </ul>
-      </section>
-      <section
-        class="mt-fields"
-      >
-        <div
-          class="mt-fields-head"
-        >
-          <h3
-            class="mt-section-label"
-          >
-            الملف الشخصي · لولي الأمر
-          </h3>
           <button
-            class="mt-btn"
+            aria-controls="P0-3"
+            aria-expanded="false"
+            class="mt-fold-button"
             type="button"
           >
-            تعديل
+            <span
+              class="mt-fold-text"
+            >
+              <span
+                class="mt-fold-title"
+              >
+                الملف الشخصي
+              </span>
+               
+              <span
+                class="mt-fold-summary"
+              >
+                لولي الأمر
+              </span>
+            </span>
+            <svg
+              aria-hidden="true"
+              class="mt-icon mt-chevron"
+              fill="none"
+              height="16"
+              viewBox="0 0 16 16"
+              width="16"
+            />
           </button>
-        </div>
-        <p
-          aria-live="polite"
-          class="mt-action-note"
-        >
-          
-        </p>
-        <dl>
-          <div>
-            <dt>
-              الصف
-            </dt>
-            <dd>
-              3
-              <p
-                class="mt-field-note"
-              >
-                مجرد تسمية: تغييره لا يؤثر في أي تصنيف.
-              </p>
-            </dd>
-          </div>
-          <div>
-            <dt>
-              الاهتمامات
-            </dt>
-            <dd>
-              <ul
-                class="mt-chips"
-              >
-                <li
-                  class="mt-chip"
-                >
-                  space
-                </li>
-                <li
-                  class="mt-chip"
-                >
-                  animals
-                </li>
-                <li
-                  class="mt-chip"
-                >
-                  football
-                </li>
-              </ul>
-            </dd>
-          </div>
-          <div>
-            <dt>
-              ما لم تتناوله المدرسة بعد
-            </dt>
-            <dd>
-              <ul
-                class="mt-chips"
-              >
-                <li
-                  class="mt-chip"
-                >
-                  القسمة مع الباقي
-                </li>
-              </ul>
-            </dd>
-          </div>
-          <div>
-            <dt>
-              لغة الدروس
-            </dt>
-            <dd>
-              لغة الدردشة
-            </dd>
-          </div>
-        </dl>
-      </section>
-      <section
-        class="mt-fields"
-      >
+        </h2>
         <div
-          class="mt-fields-head"
+          class="mt-fold-body"
+          hidden=""
+          id="P0-3"
         >
-          <h3
-            class="mt-section-label"
+          <section
+            class="mt-fields"
           >
-            بياناتك
-          </h3>
+            <div
+              class="mt-fields-head"
+            >
+              <button
+                class="mt-btn"
+                type="button"
+              >
+                تعديل
+              </button>
+            </div>
+            <p
+              aria-live="polite"
+              class="mt-action-note"
+            >
+              
+            </p>
+            <dl>
+              <div>
+                <dt>
+                  الصف
+                </dt>
+                <dd>
+                  3
+                  <p
+                    class="mt-field-note"
+                  >
+                    مجرد تسمية: تغييره لا يؤثر في أي تصنيف.
+                  </p>
+                </dd>
+              </div>
+              <div>
+                <dt>
+                  الاهتمامات
+                </dt>
+                <dd>
+                  <ul
+                    class="mt-chips"
+                  >
+                    <li
+                      class="mt-chip"
+                    >
+                      space
+                    </li>
+                    <li
+                      class="mt-chip"
+                    >
+                      animals
+                    </li>
+                    <li
+                      class="mt-chip"
+                    >
+                      football
+                    </li>
+                  </ul>
+                </dd>
+              </div>
+              <div>
+                <dt>
+                  ما لم تتناوله المدرسة بعد
+                </dt>
+                <dd>
+                  <ul
+                    class="mt-chips"
+                  >
+                    <li
+                      class="mt-chip"
+                    >
+                      القسمة مع الباقي
+                    </li>
+                  </ul>
+                </dd>
+              </div>
+              <div>
+                <dt>
+                  لغة الدروس
+                </dt>
+                <dd>
+                  لغة الدردشة
+                </dd>
+              </div>
+            </dl>
+          </section>
+          <section
+            class="mt-fields"
+          >
+            <div
+              class="mt-fields-head"
+            >
+              <h3
+                class="mt-section-label"
+              >
+                بياناتك
+              </h3>
+            </div>
+            <dl>
+              <div>
+                <dt>
+                  مكان الملف الشخصي
+                </dt>
+                <dd>
+                  الملف الشخصي كله محفوظ في ملف واحد على Google Drive الخاص بك: mathtrail-profile.json، في المجلد MathTrail. يمكنك تنزيله أو نسخه من هناك، ويمكن أن تعطيك الدردشة رابطه.
+                </dd>
+              </div>
+              <div>
+                <dt>
+                  طريقة الحذف
+                </dt>
+                <dd>
+                  بحذف الملف وإفراغ سلة المهملات في Drive، لا يبقى أي شيء من الملف الشخصي في أي مكان.
+                </dd>
+              </div>
+              <div>
+                <dt>
+                  طريقة إلغاء الوصول
+                </dt>
+                <dd>
+                  في حساب Google، ضمن التطبيقات التابعة لجهات خارجية التي لها حق الوصول، يمكن إزالة MathTrail، وبعدها لن يصل إلى أي شيء.
+                </dd>
+              </div>
+              <div>
+                <dt>
+                  طريقة إزالة التطبيق
+                </dt>
+                <dd>
+                  يمكن فصل MathTrail من إعدادات الدردشة نفسها.
+                </dd>
+              </div>
+            </dl>
+          </section>
         </div>
-        <dl>
-          <div>
-            <dt>
-              مكان الملف الشخصي
-            </dt>
-            <dd>
-              الملف الشخصي كله محفوظ في ملف واحد على Google Drive الخاص بك: mathtrail-profile.json، في المجلد MathTrail. يمكنك تنزيله أو نسخه من هناك، ويمكن أن تعطيك الدردشة رابطه.
-            </dd>
-          </div>
-          <div>
-            <dt>
-              طريقة الحذف
-            </dt>
-            <dd>
-              بحذف الملف وإفراغ سلة المهملات في Drive، لا يبقى أي شيء من الملف الشخصي في أي مكان.
-            </dd>
-          </div>
-          <div>
-            <dt>
-              طريقة إلغاء الوصول
-            </dt>
-            <dd>
-              في حساب Google، ضمن التطبيقات التابعة لجهات خارجية التي لها حق الوصول، يمكن إزالة MathTrail، وبعدها لن يصل إلى أي شيء.
-            </dd>
-          </div>
-          <div>
-            <dt>
-              طريقة إزالة التطبيق
-            </dt>
-            <dd>
-              يمكن فصل MathTrail من إعدادات الدردشة نفسها.
-            </dd>
-          </div>
-        </dl>
-      </section>
+      </div>
     </div>
   </article>
 </div>

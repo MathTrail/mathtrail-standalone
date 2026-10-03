@@ -5,9 +5,9 @@ description: What MathTrail promises, what it deliberately does not promise, and
 
 # Terms of use
 
-Last updated: 21 September 2026.
+Last updated: 3 October 2026.
 
-By adding MathTrail to your chat you accept what is written here. If you do not, do not add it. Questions go to [alexander.ryazanov.1987@gmail.com](mailto:alexander.ryazanov.1987@gmail.com).
+By adding MathTrail to your chat you accept what is written here. If you do not, do not add it. Questions go to [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com).
 
 ## What MathTrail is
 

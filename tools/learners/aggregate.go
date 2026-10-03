@@ -38,12 +38,14 @@ type metric struct {
 func placesOverall(r *rule) bool { return r.shape != topics }
 
 // vector is what one child brings to every metric, in the order of metrics(),
-// with its calibration bins and its topics' eligible attempts: all of a child
-// a summary needs, kept small.
+// with its calibration bins, its topics' eligible attempts and the moves of
+// the card's rating in each window: all of a child a summary needs, kept
+// small.
 type vector struct {
 	parts    []part
 	bins     [calibrationBins]bin
 	attempts [longestChain]atAttempt
+	moves    [len(screenWindows)][]uint16
 }
 
 // atAttempt is, at one eligible attempt, how many of a child's topics made it
@@ -54,7 +56,7 @@ type atAttempt struct {
 }
 
 func vectorOf(r *childResult, all []metric) vector {
-	v := vector{parts: make([]part, len(all)), bins: r.bins, attempts: attemptsOf(r)}
+	v := vector{parts: make([]part, len(all)), bins: r.bins, attempts: attemptsOf(r), moves: r.screen.moves}
 	for i, m := range all {
 		v.parts[i] = m.extract(r)
 	}
@@ -149,6 +151,15 @@ func metrics() []metric {
 	)
 	for _, b := range chanceBins {
 		all = append(all, ratio("r4b_chance_"+b.name, chancesIn(b.low, b.high)))
+	}
+	all = append(all, mean("r3_reachable", func(r *childResult) (float64, bool) {
+		return float64(r.reachable) / float64(r.answers), r.answers > 0
+	}))
+	for at, w := range screenWindows {
+		all = append(all,
+			shown(overallOnly(mean("r8_rank_"+w.name(), rankChanges(at, false)))),
+			shown(mean("r8_topic_rank_"+w.name(), rankChanges(at, true))),
+		)
 	}
 	return all
 }
@@ -294,11 +305,15 @@ type summary struct {
 type reader func(children []vector, sample []int) (float64, bool)
 
 // pooled is a number read off a sample of children as a whole rather than as
-// one sum over what each brings: the calibration error, and the chance of a
-// false "mastered" within m attempts.
+// one sum over what each brings: the calibration error, the chance of a false
+// "mastered" within m attempts, and how far the card's rating moves on most
+// answers.
 type pooled struct {
 	name string
 	read reader
+	// applies says whether the number means anything under a rule; nil when
+	// it does under every rule.
+	applies func(r *rule) bool
 }
 
 // calibrationName is the name the expected calibration error is written
@@ -311,6 +326,9 @@ func pooledMetrics() []pooled {
 	all := []pooled{{name: calibrationName, read: calibrationError}}
 	for _, m := range chainLengths {
 		all = append(all, pooled{name: "r4b_" + strconv.Itoa(m), read: declaredWithin(m)})
+	}
+	for at, w := range screenWindows {
+		all = append(all, pooled{name: "r8_move_p95_" + w.name(), read: movesAt(at, 95), applies: notCeiling})
 	}
 	return all
 }

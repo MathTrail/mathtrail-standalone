@@ -53,7 +53,7 @@
 	"progress.label": "প্রোফাইল ও অগ্রগতি",
 	"progress.back": "প্রশ্নে ফেরো",
 	"progress.back_plain": "ফিরে যাও",
-	"progress.rank_line": "ধাপ {rank} / {total} · রেটিং {rating}",
+	"progress.rank_line": "ধাপ {rank} / {total}",
 	"progress.next_rank": "পরের ধাপ: {name}। সঠিক উত্তর বারকে এগিয়ে নেয়, ভুল একটু পিছিয়ে দেয়।",
 	"progress.top_rank": "এটাই সবচেয়ে উঁচু ধাপ।",
 	"progress.share": "পরের ধাপ পর্যন্ত পথের {share}",
@@ -84,6 +84,7 @@
 		"other": "মোট {count}টি প্রশ্ন উত্তর ছাড়া রয়ে গেছে।"
 	},
 	"progress.trial_ranks": "{total}টি প্রশ্নের পরে ধাপ দেখা যাবে।",
+	"progress.for_parent": "অভিভাবকের জন্য",
 	"profile.card_label": "প্রোফাইল",
 	"profile.grade": "ক্লাস",
 	"profile.grade_note": "এটা শুধু একটা লেবেল: বদলালে রেটিং বদলায় না।",

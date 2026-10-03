@@ -53,7 +53,7 @@
 	"progress.label": "档案和进度",
 	"progress.back": "返回题目",
 	"progress.back_plain": "返回",
-	"progress.rank_line": "等级{rank}/{total} · 评分{rating}",
+	"progress.rank_line": "等级{rank}/{total}",
 	"progress.next_rank": "下一等级：{name}。答对会让进度条向前，答错会让它退后一点。",
 	"progress.top_rank": "这是最高等级。",
 	"progress.share": "距下一等级已走完{share}",
@@ -82,6 +82,7 @@
 		"other": "共有{count}道题没有作答。"
 	},
 	"progress.trial_ranks": "做完{total}道题后显示等级。",
+	"progress.for_parent": "供家长查看",
 	"profile.card_label": "档案",
 	"profile.grade": "年级",
 	"profile.grade_note": "只是一个标签：修改它不会改变评分。",

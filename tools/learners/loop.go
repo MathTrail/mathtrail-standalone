@@ -35,14 +35,19 @@ type rule struct {
 	service bool
 	// trial marks a step rule that starts after the service's trial series.
 	trial bool
-	make  func(c *child, start float64) estimator
+	// ceiling marks a rule that knows what no rule of answers can: where the
+	// child truly stands. It shows how far a rule could go, and is no rule to
+	// choose or to compare with as one.
+	ceiling bool
+	make    func(c *child, start float64) estimator
 }
 
-// world is what every run shares: the catalog, its topics, the sealer and how
-// many answers a child gives.
+// world is what every run shares: the catalog, its topics and the points of
+// each topic's ladder, the sealer and how many answers a child gives.
 type world struct {
 	catalog tutor.Catalog
 	topics  []string
+	ladders map[string][]rating.Point
 	sealer  profile.Sealer
 	answers int
 }

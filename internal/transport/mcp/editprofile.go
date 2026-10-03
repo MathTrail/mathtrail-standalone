@@ -58,7 +58,7 @@ func (s *Service) editProfileTool() Tool {
 	return Define(Spec{
 		Name:  "edit_profile",
 		Title: "Change the child's profile from the card",
-		Description: "Changes the child's details from the form at the foot of the progress: the fields sent, " +
+		Description: "Changes the child's details from the form in the progress's Profile section: the fields sent, " +
 			"and no other. Only the card calls it.",
 		Idempotent: true,
 		WidgetOnly: true,

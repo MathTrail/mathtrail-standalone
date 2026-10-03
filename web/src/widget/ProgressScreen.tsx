@@ -1,5 +1,5 @@
 import { useState } from "preact/hooks";
-import { Note } from "../design/blocks";
+import { Fold, Note } from "../design/blocks";
 import {
 	RankList,
 	type RankRow,
@@ -8,22 +8,25 @@ import {
 	type SegmentTone,
 	StatList,
 	type StatRow,
+	StatusDots,
 } from "../design/progress";
 import { MessageHeader } from "../design/thread";
 import type { Words } from "../i18n/words";
 import type { Host } from "./bridge";
 import { CardRoot } from "./CardRoot";
-import { rankCount, rankName, topicName, trapName } from "./names";
+import { type Folds, type Section, useFolds } from "./folds";
+import { listed, rankCount, rankName, topicName, trapName } from "./names";
 import { ParentData, ParentProfile } from "./ProfileScreen";
 import type { Details, ProgressReport, Recommendation } from "./payload";
-import { type Key, percentText, ratingText, useWords } from "./words";
+import { type Key, percentText, useWords } from "./words";
 
 /** recentShown is how many of the latest entries the progress lists. */
 const recentShown = 5;
 
 /**
  * ProgressCard is the card of the child's progress, drawn when the model
- * reads it. No task stands behind it, so it has no way back to one.
+ * reads it. No task stands behind it, so it has no way back to one; its
+ * sections stay as they were opened for as long as the card is drawn.
  */
 export function ProgressCard({
 	report,
@@ -32,9 +35,12 @@ export function ProgressCard({
 	report: ProgressReport;
 	host: Host;
 }) {
+	const folds = useFolds();
 	return (
 		<CardRoot>
-			{(wide) => <ProgressScreen report={report} wide={wide} host={host} />}
+			{(wide) => (
+				<ProgressScreen report={report} wide={wide} host={host} folds={folds} />
+			)}
 		</CardRoot>
 	);
 }
@@ -42,21 +48,26 @@ export function ProgressCard({
 /**
  * ProgressScreen is where the child stands: the rank reached and how far
  * through it — or, while the trial series runs, how far the series has got —
- * what comes next, each topic met or within reach with a rank of its own, the
- * latest answers and how many tasks were left without one, the mistakes that
- * keep coming back, and the child's profile for the parent with what the
- * parent can do with the data. A change the parent saves on its form shows at
- * once, the name and the grade at the top among it, and is handed to onSaved.
+ * and what comes next, over the sections that fold away under their titles:
+ * each topic met or within reach with a rank of its own, the mistakes that
+ * keep coming back, the latest answers with how many tasks were left without
+ * one, and the child's profile for the parent with what the parent can do
+ * with the data. A section with nothing in it is not drawn; which sections are
+ * open is told by folds, kept by whoever outlives the screen. A change the
+ * parent saves on its form shows at once, the name and the grade at the top
+ * among it, and is handed to onSaved.
  */
 export function ProgressScreen({
 	report,
 	wide,
 	host,
+	folds,
 	onSaved,
 }: {
 	report: ProgressReport;
 	wide: boolean;
 	host: Host;
+	folds: Folds;
 	onSaved?: (details: Details) => void;
 }) {
 	const words = useWords();
@@ -65,6 +76,11 @@ export function ProgressScreen({
 	const skipped =
 		report.skipped ??
 		report.topics.reduce((sum, topic) => sum + topic.skipped, 0);
+	const latest = latestOf(words, report.recent);
+	const folding = (section: Section) => ({
+		open: folds.open.has(section),
+		onToggle: () => folds.toggle(section),
+	});
 	return (
 		<article aria-label={words.text("progress.label")}>
 			<MessageHeader
@@ -73,63 +89,90 @@ export function ProgressScreen({
 				badge={words.text("child.grade", { grade: profile.grade })}
 				wide={wide}
 			/>
-			<div class="mt-progress">
-				<Standing report={report} />
-				{recommendation !== null && (
-					<Note label={words.text("progress.next_up")}>
-						{nextUp(words, recommendation)}
-					</Note>
-				)}
+			{(report.trial !== null ||
+				report.overall !== null ||
+				recommendation !== null) && (
+				<div class="mt-progress">
+					<Standing report={report} />
+					{recommendation !== null && (
+						<Note label={words.text("progress.next_up")}>
+							{nextUp(words, recommendation)}
+						</Note>
+					)}
+				</div>
+			)}
+			<div class="mt-folds">
 				{report.topics.length > 0 && (
-					<RankList
-						label={words.text("progress.topics")}
-						note={
-							report.trial === null
-								? words.text("progress.topics_note")
-								: undefined
-						}
-						rows={topicRows(words, report)}
-					/>
-				)}
-				{report.recent.length > 0 && (
-					<StatList
-						label={words.text("progress.recent")}
-						rows={recentRows(words, report.recent)}
-						note={
-							skipped > 0
-								? words.text("progress.skipped_count", { count: skipped })
-								: undefined
-						}
-					/>
+					<Fold title={words.text("progress.topics")} {...folding("topics")}>
+						<RankList
+							note={
+								report.trial === null
+									? words.text("progress.topics_note")
+									: undefined
+							}
+							rows={topicRows(words, report)}
+						/>
+					</Fold>
 				)}
 				{report.mistakes.length > 0 && (
-					<StatList
-						label={words.text("progress.mistakes")}
-						rows={mistakeRows(words, report.mistakes)}
-						framed
+					<Fold
+						title={words.text("progress.mistakes")}
+						{...folding("mistakes")}
+					>
+						<StatList rows={mistakeRows(words, report.mistakes)} framed />
+					</Fold>
+				)}
+				{latest.length > 0 && (
+					<Fold
+						title={words.text("progress.recent")}
+						summary={
+							<StatusDots
+								tones={latest.map((entry) => entry.status.tone)}
+								label={listed(
+									words,
+									latest.map((entry) => entry.status.label),
+								)}
+							/>
+						}
+						{...folding("recent")}
+					>
+						<StatList
+							rows={recentRows(words, latest)}
+							note={
+								skipped > 0
+									? words.text("progress.skipped_count", { count: skipped })
+									: undefined
+							}
+						/>
+					</Fold>
+				)}
+				<Fold
+					title={words.text("profile.card_label")}
+					summary={words.text("progress.for_parent")}
+					{...folding("profile")}
+				>
+					<ParentProfile
+						details={profile}
+						host={host}
+						onSaved={(saved) => {
+							setProfile(saved);
+							onSaved?.(saved);
+						}}
 					/>
-				)}
-				<ParentProfile
-					details={profile}
-					host={host}
-					onSaved={(saved) => {
-						setProfile(saved);
-						onSaved?.(saved);
-					}}
-				/>
-				{report.location !== undefined && (
-					<ParentData location={report.location} />
-				)}
+					{report.location !== undefined && (
+						<ParentData location={report.location} />
+					)}
+				</Fold>
 			</div>
 		</article>
 	);
 }
 
-// Standing is the rank the child climbs: its name, the rank out of how many
-// with the rating beside it, the course of the ranks filled as far as the
-// rating has come, and the next rank to reach — or, while the trial series is
-// still finding where the child stands, how many of its tasks are done, with
-// no rank yet to show.
+// Standing is the rank the child climbs: its name, the rank out of how many,
+// the course of the ranks filled as far as the rating has come, and the next
+// rank to reach — or, while the trial series is still finding where the child
+// stands, how many of its tasks are done, with no rank yet to show. The
+// rating's number is the model's to say, and the answer's result shows it.
 function Standing({ report }: { report: ProgressReport }) {
 	const words = useWords();
 	const { trial, overall } = report;
@@ -158,7 +201,6 @@ function Standing({ report }: { report: ProgressReport }) {
 			meta={words.text("progress.rank_line", {
 				rank: overall.rank,
 				total: overall.ranks,
-				rating: ratingText(words, overall.rating),
 			})}
 			line={
 				top
@@ -263,17 +305,32 @@ function toneOf(rank: number, ranks: number): SegmentTone {
 	return Math.min(Math.max(step, 1), 5) as SegmentTone;
 }
 
-// recentRows are the latest entries, the newest first: each answer right or
-// wrong, and each task left without one.
-function recentRows(
+// Status is how an entry went, in words and as the tone of its mark.
+type Status = NonNullable<StatRow["status"]>;
+
+// Latest is one of the latest entries the progress shows: its topic, and how
+// it went.
+type Latest = { topic: string; status: Status };
+
+// latestOf are the latest entries the progress shows, the newest first, each
+// with how it went.
+function latestOf(
 	words: Words<Key>,
 	recent: ProgressReport["recent"],
-): StatRow[] {
-	return recent.slice(0, recentShown).map(
+): Latest[] {
+	return recent
+		.slice(0, recentShown)
+		.map((entry) => ({ topic: entry.topic, status: statusOf(words, entry) }));
+}
+
+// recentRows are the latest entries as lines: each answer right or wrong, and
+// each task left without one.
+function recentRows(words: Words<Key>, latest: readonly Latest[]): StatRow[] {
+	return latest.map(
 		(entry, place): StatRow => ({
 			id: `${place}`,
 			label: topicName(words, entry.topic),
-			status: statusOf(words, entry),
+			status: entry.status,
 		}),
 	);
 }
@@ -282,7 +339,7 @@ function recentRows(
 function statusOf(
 	words: Words<Key>,
 	entry: ProgressReport["recent"][number],
-): StatRow["status"] {
+): Status {
 	if (entry.skipped || entry.correct === null) {
 		return { tone: "skipped", label: words.text("progress.skipped") };
 	}

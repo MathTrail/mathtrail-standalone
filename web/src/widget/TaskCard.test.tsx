@@ -4,8 +4,10 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import {
 	buttonIn,
 	drawCard as drawOnHost,
+	foldIn,
 	press,
 	takeDown,
+	unfold,
 } from "./testing/card";
 import type { ToolCall } from "./testing/host";
 import {
@@ -677,6 +679,29 @@ describe("the progress", () => {
 		expect(heard.calls[1]?.arguments).toEqual({});
 	});
 
+	test("is read afresh each time it is opened, its sections open as they were left", async () => {
+		const heard = await drawCard();
+		press(topLine());
+		await vi.waitFor(() =>
+			expect(text(".mt-rank-name")).toBe("River crossing"),
+		);
+		expect(foldIn(root, "Topics").getAttribute("aria-expanded")).toBe("false");
+		press(foldIn(root, "Topics"));
+		press(button("Back to task"));
+
+		press(topLine());
+		await vi.waitFor(() =>
+			expect(text(".mt-rank-name")).toBe("River crossing"),
+		);
+
+		expect(foldIn(root, "Topics").getAttribute("aria-expanded")).toBe("true");
+		expect(foldIn(root, "Profile").getAttribute("aria-expanded")).toBe("false");
+		expect(heard.calls.map((call) => call.name)).toEqual([
+			"read_progress",
+			"read_progress",
+		]);
+	});
+
 	test("keeps a change saved on its form, and the card shows the child as the profile now says", async () => {
 		const heard = await drawCard(fence, ({ name }) =>
 			name === "read_progress"
@@ -687,6 +712,7 @@ describe("the progress", () => {
 		await vi.waitFor(() =>
 			expect(text(".mt-rank-name")).toBe("River crossing"),
 		);
+		unfold(root, "Profile");
 		press(button("Edit"));
 		const box = root.querySelector<HTMLInputElement>(".mt-form .mt-input");
 		act(() => {

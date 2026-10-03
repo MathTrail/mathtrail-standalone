@@ -16,6 +16,16 @@ const (
 	paperExperiment = "E-A3"
 )
 
+// The seed and the name of the run kept for confirming a choice, and the
+// directory, inside the one results are written to, its results go to. A rule
+// chosen on the working seeds is confirmed on children nobody has seen, so
+// nothing draws from these before the confirmation.
+const (
+	heldOutSeed       = 20261003
+	heldOutExperiment = "held-out"
+	heldOutDirectory  = "held-out"
+)
+
 // masterSeed is where every random draw of a run comes from, and experiment
 // names the run in every seed it draws. The command line may set either before
 // the run starts; nothing changes them during it.
@@ -59,6 +69,21 @@ const (
 	hintShare         = 0.2
 )
 
+// The departures of the generators that move one assumption of the base
+// population, or one way of changing, by a degree: how far a written task
+// misses, how widely children spread around their start and their topics
+// around their level, and the answer by which a child whose learning fades
+// learns half as fast as at first.
+const (
+	smallMiss         = 0.25
+	largeMiss         = 1.0
+	narrowStartSpread = 0.5
+	wideStartSpread   = 2.0
+	closeTopicsSpread = 0.3
+	farTopicsSpread   = 1.0
+	fadeAfter         = 50.0
+)
+
 // generator is a population of simulated children: the base population, with
 // one way children depart from the model.
 type generator string
@@ -75,25 +100,38 @@ const (
 	otherFloor       generator = "G7"
 	hintsUsed        generator = "G8"
 	exactlyAsWritten generator = "G0-exact"
+	smallMisses      generator = "G0-miss0.25"
+	largeMisses      generator = "G0-miss1"
+	learningHalf     generator = "G2-half"
+	learningFades    generator = "G2-fading"
+	dropping         generator = "G3-drop"
+	narrowStart      generator = "G0-start0.5"
+	wideStart        generator = "G0-start2"
+	closeTopics      generator = "G0-topics0.3"
+	farTopics        generator = "G0-topics1"
 )
 
 // child is one simulated child: where they truly stand, how they answer, and
 // how they change.
 type child struct {
-	id       string
-	grade    int
-	start    float64
-	theta    float64
-	delta    map[string]float64
-	first    map[string]float64
-	slope    float64
-	floor    float64
-	hint     float64
-	writing  float64
-	jumpAt   int
-	learns   bool
-	twoHosts bool
-	draws    *rand.Rand
+	id        string
+	grade     int
+	start     float64
+	theta     float64
+	delta     map[string]float64
+	first     map[string]float64
+	slope     float64
+	floor     float64
+	hint      float64
+	writing   float64
+	jumpAt    int
+	jump      float64
+	learns    bool
+	learnRate float64
+	topicRate float64
+	fades     bool
+	twoHosts  bool
+	draws     *rand.Rand
 }
 
 // newChild draws child number i of a generator over the catalog's topics. The
@@ -114,7 +152,8 @@ func newChild(gen generator, i int, topics []string) *child {
 		draws:   seeded(id, "answers"),
 	}
 	c.start = rating.Start(c.grade)
-	c.theta = c.start + spreadAroundStart*params.NormFloat64()
+	aroundStart, ofTopics := spreadsOf(gen)
+	c.theta = c.start + aroundStart*params.NormFloat64()
 	sign := 1.0
 	if params.IntN(2) == 0 {
 		sign = -1
@@ -123,12 +162,30 @@ func newChild(gen generator, i int, topics []string) *child {
 		if gen == linkedTopics {
 			c.delta[topic] = groupSide(place, len(topics))*sign*groupOffset + spreadInGroup*params.NormFloat64()
 		} else {
-			c.delta[topic] = spreadOfTopics * params.NormFloat64()
+			c.delta[topic] = ofTopics * params.NormFloat64()
 		}
 		c.first[topic] = c.delta[topic]
 	}
 	c.depart(gen, i, params)
 	return c
+}
+
+// spreadsOf is how far a generator's children stand from the start their
+// grade gives, and their topics from their overall level: the base
+// population's, but for the generators that move one of them. Each is a factor
+// on the same draws, so that no generator draws more than another.
+func spreadsOf(gen generator) (aroundStart, ofTopics float64) {
+	switch gen {
+	case narrowStart:
+		return narrowStartSpread, spreadOfTopics
+	case wideStart:
+		return wideStartSpread, spreadOfTopics
+	case closeTopics:
+		return spreadAroundStart, closeTopicsSpread
+	case farTopics:
+		return spreadAroundStart, farTopicsSpread
+	}
+	return spreadAroundStart, spreadOfTopics
 }
 
 // groupSide is +1 for the first ⌈T/2⌉ topics of the catalog's order and −1
@@ -151,9 +208,16 @@ func (c *child) depart(gen generator, i int, params *rand.Rand) {
 			c.theta = c.start - misplacedBy
 		}
 	case learning:
-		c.learns = true
+		c.learn(learningPerAnswer, topicLearning)
+	case learningHalf:
+		c.learn(learningPerAnswer/2, topicLearning/2)
+	case learningFades:
+		c.learn(learningPerAnswer, topicLearning)
+		c.fades = true
 	case jumping:
-		c.jumpAt = jumpEarliest + params.IntN(jumpLatest-jumpEarliest+1)
+		c.jumpAt, c.jump = jumpAnswerOf(params), jumpBy
+	case dropping:
+		c.jumpAt, c.jump = jumpAnswerOf(params), -jumpBy
 	case harderHost:
 		c.twoHosts = true
 	case otherSlope:
@@ -170,7 +234,22 @@ func (c *child) depart(gen generator, i int, params *rand.Rand) {
 		c.hint = hintShare
 	case exactlyAsWritten:
 		c.writing = 0
+	case smallMisses:
+		c.writing = smallMiss
+	case largeMisses:
+		c.writing = largeMiss
 	}
+}
+
+// jumpAnswerOf draws the answer at which a child's level jumps or drops.
+func jumpAnswerOf(params *rand.Rand) int {
+	return jumpEarliest + params.IntN(jumpLatest-jumpEarliest+1)
+}
+
+// learn makes the child one who learns: by gain an answer overall, and by
+// topicGain more in the topic answered.
+func (c *child) learn(gain, topicGain float64) {
+	c.learns, c.learnRate, c.topicRate = true, gain, topicGain
 }
 
 // answerDraws are what one answer takes from the child's stream, the same
@@ -220,21 +299,27 @@ func (c *child) truthAt(topic string, level rating.GradeLevel) float64 {
 	return c.chance(topic, rating.Point{GradeLevel: level, Difficulty: 3}.Beta())
 }
 
-// after moves the child on after answer k in a topic: learning and forgetting,
-// and a jump at its answer.
+// after moves the child on after answer k in a topic: learning, slower as the
+// answers go by where it fades, and forgetting, and a jump or a drop at its
+// answer.
 func (c *child) after(topic string, k int) {
 	if c.learns {
-		c.theta += learningPerAnswer
+		gain, topicGain := c.learnRate, c.topicRate
+		if c.fades {
+			slowing := fadeAfter / (fadeAfter + float64(k))
+			gain, topicGain = gain*slowing, topicGain*slowing
+		}
+		c.theta += gain
 		for other, offset := range c.delta {
 			if other == topic {
-				c.delta[other] = offset + topicLearning
+				c.delta[other] = offset + topicGain
 				continue
 			}
 			c.delta[other] = offset + forgetting*(c.first[other]-offset)
 		}
 	}
 	if k+1 == c.jumpAt {
-		c.theta += jumpBy
+		c.theta += c.jump
 	}
 }
 

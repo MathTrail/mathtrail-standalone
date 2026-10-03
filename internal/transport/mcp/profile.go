@@ -75,7 +75,7 @@ func (s *Service) getProfileTool() Tool {
 		Description: "Reads the child's profile — the pseudonym, the grade, the interests, the skills left out of " +
 			"the tasks, the adult's notes and the language of the lessons — and what the next task would be. " +
 			"Call it when the adult asks about the profile; a task needs only next_task. It draws no card: the " +
-			"adult sees the profile, and changes it with a form, at the foot of the progress get_progress shows. " +
+			"adult sees the profile, and changes it with a form, in the Profile section of the progress get_progress shows. " +
 			"When there is no profile yet it says so, as next_task does, and how to set one up with save_profile. " +
 			"Every result carries last_answer, the last answer the child gave, maybe on a card without you: read it " +
 			"before you say anything about the current task.",

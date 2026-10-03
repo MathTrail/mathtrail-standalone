@@ -13,5 +13,27 @@
 		"rules": {
 			"preset": "recommended"
 		}
-	}
+	},
+	"overrides": [
+		{
+			"includes": ["tools/sitecheck/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": ["**/src/**", "**/scripts/**"],
+										"message": "The site's checker judges a built directory and knows nothing of what drew it: a check that calls the builder's code tests that a function equals itself."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		}
+	]
 }

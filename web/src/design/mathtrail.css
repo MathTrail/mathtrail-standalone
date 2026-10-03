@@ -39,6 +39,12 @@
 .mt [tabindex="-1"]:focus {
 	outline: none;
 }
+/* What is hidden stays hidden, whatever a component's own class lays it out
+   as: a part folded away keeps its place on the page, and this rule outweighs
+   any display a single class gives it. */
+.mt [hidden] {
+	display: none;
+}
 .mt-icon {
 	display: block;
 	flex-shrink: 0;
@@ -638,6 +644,96 @@
 .mt-wide .mt-progress {
 	padding: 20px;
 }
+/* Folds: the parts of a card that fold away under their titles, one under
+   another across the card's whole width. The title is a button with a short
+   summary at the line's end — under the title where the two do not fit, never
+   cut short — and an arrow that turns down when the part is open. */
+.mt-folds {
+	border-block-start: 1px solid var(--border);
+}
+.mt-fold + .mt-fold {
+	border-block-start: 1px solid var(--border);
+}
+.mt-fold-head {
+	margin: 0;
+	font-size: inherit;
+	font-weight: inherit;
+	line-height: inherit;
+}
+.mt-fold-button {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	width: 100%;
+	min-height: 56px;
+	padding-block: 10px;
+	padding-inline: 16px;
+	border: 0;
+	background: transparent;
+	color: var(--text);
+	text-align: start;
+	cursor: pointer;
+}
+.mt-wide .mt-fold-button {
+	padding-inline: 20px;
+}
+/* The ring of the focus is drawn inside the button: the card cuts off
+   whatever reaches past its edges. */
+.mt .mt-fold-button:focus-visible {
+	outline-offset: -2px;
+}
+@media (hover: hover) {
+	.mt-fold-button:hover {
+		background: var(--hover);
+	}
+}
+/* The title and the summary share a line, at its two ends; a summary that does
+   not fit beside the title starts a line of its own under it. */
+.mt-fold-text {
+	display: flex;
+	flex: 1 1 auto;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	column-gap: 12px;
+	row-gap: 4px;
+	min-width: 0;
+}
+.mt-fold-title {
+	min-width: 0;
+	font-size: 16px;
+	line-height: 22px;
+	font-weight: 600;
+	overflow-wrap: break-word;
+}
+.mt-fold-summary {
+	display: inline-flex;
+	align-items: center;
+	min-width: 0;
+	font-size: 13px;
+	line-height: 18px;
+	color: var(--text-muted);
+	overflow-wrap: break-word;
+}
+.mt-fold-button .mt-chevron {
+	color: var(--text-muted);
+}
+/* The arrow of an open part points down whichever way the card reads: this
+   comes after the arrow turned round for a right-to-left card, and outweighs
+   it. It turns at once, since a turn out of the mirror would flatten it on the
+   way. */
+.mt-fold-button[aria-expanded="true"] .mt-chevron {
+	transform: rotate(90deg);
+}
+.mt-fold-body {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	padding: 4px 16px 16px;
+}
+.mt-wide .mt-fold-body {
+	padding: 4px 20px 20px;
+}
 .mt-rank {
 	display: flex;
 	flex-direction: column;
@@ -812,6 +908,17 @@
 	height: 8px;
 	border-radius: var(--radius-round);
 	background: var(--wrong);
+}
+/* A run of entries, a dot for each in the colour of how it went. */
+.mt-status-dots {
+	display: inline-flex;
+	align-items: center;
+}
+.mt-dot[data-tone="correct"] {
+	background: var(--correct);
+}
+.mt-dot[data-tone="skipped"] {
+	background: var(--text-muted);
 }
 /* A list set apart, in a frame of its own. */
 .mt-list-framed ul {

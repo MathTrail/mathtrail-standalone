@@ -53,7 +53,7 @@
 	"progress.label": "Perfil e progresso",
 	"progress.back": "Voltar ao problema",
 	"progress.back_plain": "Voltar",
-	"progress.rank_line": "etapa {rank} de {total} · pontuação {rating}",
+	"progress.rank_line": "etapa {rank} de {total}",
 	"progress.next_rank": "Próxima etapa: {name}. Respostas certas fazem a barra avançar; erros a fazem voltar um pouco.",
 	"progress.top_rank": "Esta é a etapa mais alta.",
 	"progress.share": "{share} do caminho até a próxima etapa",
@@ -86,6 +86,7 @@
 		"other": "No total, {count} problemas ficaram sem resposta."
 	},
 	"progress.trial_ranks": "As etapas aparecem depois de {total} problemas.",
+	"progress.for_parent": "para os pais",
 	"profile.card_label": "Perfil",
 	"profile.grade": "Ano escolar",
 	"profile.grade_note": "É só uma indicação: mudar o ano não altera nenhuma pontuação.",

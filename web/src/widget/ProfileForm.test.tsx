@@ -5,8 +5,10 @@ import {
 	buttonIn,
 	type Drawn,
 	drawCard,
+	foldIn,
 	press,
 	takeDown,
+	unfold,
 } from "./testing/card";
 import type { ToolCall } from "./testing/host";
 import {
@@ -28,7 +30,8 @@ afterEach(() => {
 });
 
 // opened draws the progress of payload, answered by tools, and opens the form
-// at its foot, as the parent does.
+// in its profile's section, as the parent does. The profile's own card, of an
+// earlier chat, folds nothing away, and its form is opened straight from it.
 async function opened(
 	tools: (call: ToolCall) => CallToolResult | Promise<CallToolResult> = () => {
 		throw new Error("no tool is answered here");
@@ -37,6 +40,9 @@ async function opened(
 	payload: object = standing,
 ): Promise<Drawn> {
 	drawn = await drawCard(payload, { tools, ...options });
+	if (drawn.root.querySelector(".mt-fold") !== null) {
+		unfold(drawn.root, "Profile");
+	}
 	press(buttonIn(drawn.root, "Edit"));
 	await vi.waitFor(() =>
 		expect(drawn?.root.querySelector(".mt-form")).not.toBeNull(),
@@ -230,7 +236,11 @@ describe("the form of the profile", () => {
 		);
 		await vi.waitFor(() => expect(heard.modelLines).toEqual([savedWords]));
 		expect(heard.messages).toEqual([]);
-		expect(document.activeElement).toBe(buttonIn(root, "Edit"));
+		// The focus goes back once the card has drawn itself without the form,
+		// which need not have come before the model was told.
+		await vi.waitFor(() =>
+			expect(document.activeElement).toBe(buttonIn(root, "Edit")),
+		);
 	});
 
 	test("says a new language comes with the next task, and the card goes on in its own words", async () => {
@@ -283,6 +293,35 @@ describe("the form of the profile", () => {
 		expect(heard.calls[0]?.arguments).toEqual({
 			excluded_skills: ["fractions"],
 		});
+	});
+
+	test("keeps what was typed while its section is folded and opened again", async () => {
+		const { root } = await opened();
+
+		typed(root, "Pseudonym", "Nova");
+		press(foldIn(root, "Profile"));
+
+		expect(form(root).closest("[hidden]")).not.toBeNull();
+
+		press(foldIn(root, "Profile"));
+
+		expect(form(root).closest("[hidden]")).toBeNull();
+		expect(field<HTMLInputElement>(root, "Pseudonym").value).toBe("Nova");
+	});
+
+	test("says what became of a change saved while its section was folded, once it is opened again", async () => {
+		const { root, heard } = await opened(() =>
+			editSaved({ pseudonym: "Nova" }),
+		);
+
+		typed(root, "Pseudonym", "Nova");
+		press(buttonIn(root, "Save"));
+		press(foldIn(root, "Profile"));
+		await vi.waitFor(() => expect(heard.calls).toHaveLength(1));
+		await vi.waitFor(() => expect(root.querySelector(".mt-form")).toBeNull());
+		press(foldIn(root, "Profile"));
+
+		expect(saved(root)).toBe("Saved.");
 	});
 
 	test("with nothing changed closes, and sends nothing", async () => {
