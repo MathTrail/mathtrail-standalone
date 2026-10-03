@@ -122,6 +122,10 @@ type CurrentTask struct {
 	Sealed string `json:"sealed"`
 	// Topic is the catalog id of what is being asked.
 	Topic string `json:"topic"`
+	// TutorMode is who chose the task's topic and difficulty, as its request
+	// had it: the rule, or the model with a reason of its own. A task handed
+	// out before the card kept it has none.
+	TutorMode TutorMode `json:"tutor_mode,omitempty"`
 	// Wording is the question as the child reads it.
 	Wording string `json:"wording"`
 }
