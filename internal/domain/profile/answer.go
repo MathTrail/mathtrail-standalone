@@ -93,6 +93,9 @@ type Recorded struct {
 	Topic      string
 	GradeLevel rating.GradeLevel
 	Difficulty int
+	// TutorMode is who chose the task, as the task kept it: the rule, the
+	// model, or nobody known for a task handed out before the card kept it.
+	TutorMode TutorMode
 	// Choice is what the child chose: a letter of the options, or DontKnow.
 	Choice string
 	// Correct says whether that was the right option. DontKnow never is.
@@ -279,6 +282,7 @@ func toldOf(task *CurrentTask, secret *TaskSecret) Recorded {
 		Topic:       task.Topic,
 		GradeLevel:  task.GradeLevel,
 		Difficulty:  task.Difficulty,
+		TutorMode:   task.TutorMode,
 		Choice:      given.Choice,
 		Correct:     correct,
 		Right:       secret.Answer,

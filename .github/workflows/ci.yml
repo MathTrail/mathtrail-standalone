@@ -73,10 +73,11 @@ jobs:
           path: |
             /tmp/go/mod
             /tmp/go/build
-          key: go-${{ hashFiles('go.sum', 'tools/load/go.sum') }}
+          key: go-${{ hashFiles('go.sum', 'tools/load/go.sum', 'tools/learners/go.sum') }}
           restore-keys: go-
       - run: just ci-lint
       - run: just load-lint
+      - run: just learners-lint
 
   test:
     name: Tests
@@ -95,7 +96,7 @@ jobs:
           path: |
             /tmp/go/mod
             /tmp/go/build
-          key: go-${{ hashFiles('go.sum', 'tools/load/go.sum') }}
+          key: go-${{ hashFiles('go.sum', 'tools/load/go.sum', 'tools/learners/go.sum') }}
           restore-keys: go-
       - run: just ci-test
       - name: Send the coverage profile to Codecov
@@ -114,6 +115,7 @@ jobs:
           path: coverage.out
           retention-days: 14
       - run: just load-test
+      - run: just learners-test
 
   widget:
     name: Widget
@@ -216,7 +218,7 @@ jobs:
           path: |
             /tmp/go/mod
             /tmp/go/build
-          key: go-${{ hashFiles('go.sum', 'tools/load/go.sum') }}
+          key: go-${{ hashFiles('go.sum', 'tools/load/go.sum', 'tools/learners/go.sum') }}
           restore-keys: go-
       - run: just ci-mocks-check
 
@@ -237,7 +239,7 @@ jobs:
           path: |
             /tmp/go/mod
             /tmp/go/build
-          key: go-${{ hashFiles('go.sum', 'tools/load/go.sum') }}
+          key: go-${{ hashFiles('go.sum', 'tools/load/go.sum', 'tools/learners/go.sum') }}
           restore-keys: go-
       - run: just ci-vuln
       - run: just ci-licenses
@@ -263,7 +265,7 @@ jobs:
           path: |
             /tmp/go/mod
             /tmp/go/build
-          key: go-${{ hashFiles('go.sum', 'tools/load/go.sum') }}
+          key: go-${{ hashFiles('go.sum', 'tools/load/go.sum', 'tools/learners/go.sum') }}
           restore-keys: go-
       - run: just ci-secrets
 

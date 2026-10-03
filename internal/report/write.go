@@ -30,6 +30,11 @@ func write(out io.Writer, c *counts) error {
 			"acceptance: the time the chat's model took to write it.", c.acceptedTable()},
 		{"Why attempts were refused", "An attempt is counted by one check, the first its refusal names, and " +
 			"fails that check and any others beside it.", c.refusalsTable()},
+		{"Chances and what came of them", c.promisesAbout(), c.promisesTable()},
+		{"How the estimate keeps up", "The same answers by which of the child's answers each was: a right answer " +
+			"as 1 and a wrong one as 0, less the chance promised, on average, with the standard error of that " +
+			"mean. Above zero the child did better than the estimate promised, which is how an estimate that " +
+			"falls behind a learning child shows; below zero, worse.", c.keptUpTable()},
 		{"Limits reached", "A pace writes one line for a flood of refusals, and a day's ceiling one for every " +
 			"call it refused.", c.limitsTable()},
 		{"Tool calls", "Milliseconds are the service's own time for a call, its calls to Drive included.",
@@ -144,17 +149,21 @@ func (c *counts) toolsTable() *table {
 	return t
 }
 
-// groups are the groups tasks were counted for: by version, in the order the
-// versions first appear, and by host within a version.
+// groups are the groups tasks were counted for, in the order compareGroups
+// puts them.
 func (c *counts) groups() []group {
 	groups := slices.Collect(maps.Keys(c.tasks))
-	slices.SortFunc(groups, func(a, b group) int {
-		return cmp.Or(
-			cmp.Compare(slices.Index(c.versions, a.version), slices.Index(c.versions, b.version)),
-			cmp.Compare(a.host, b.host),
-		)
-	})
+	slices.SortFunc(groups, c.compareGroups)
 	return groups
+}
+
+// compareGroups orders groups by version, in the order the versions first
+// appear, and by host within a version.
+func (c *counts) compareGroups(a, b group) int {
+	return cmp.Or(
+		cmp.Compare(slices.Index(c.versions, a.version), slices.Index(c.versions, b.version)),
+		cmp.Compare(a.host, b.host),
+	)
 }
 
 // table is one table of the report: a heading for each column, and its rows.

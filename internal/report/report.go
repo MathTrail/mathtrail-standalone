@@ -1,8 +1,10 @@
 // Package report adds up the lines the service writes into the numbers they
 // are written for: how many tasks were asked for, handed in, accepted and
 // refused, at which attempt and why, how long the chat's model took to write
-// one, which limits were reached, and how the tools answered — by the version
-// of the instructions a task was written to and by the chat host that called.
+// one, whether the chance of a right answer a task was handed out at came
+// true, and whether the estimate of a child keeps up as the answers pile up,
+// which limits were reached, and how the tools answered — by the version of
+// the instructions a task was written to and by the chat host that called.
 //
 // It reads the service's own lines, one JSON object each: a log of a local run
 // as the service wrote it, or the payloads of the entries Cloud Logging keeps,
@@ -64,6 +66,18 @@ type line struct {
 
 	// A limit reached.
 	Limit string `json:"limit"`
+
+	// An answer: the child's account, whether it was right and came after the
+	// hint, the chance its task was handed out at, who chose the task, which
+	// answer of the trial series it was, and, after the series, which of the
+	// child's answers it was, as a range.
+	User          string   `json:"user"`
+	Correct       bool     `json:"correct"`
+	HintUsed      bool     `json:"hint_used"`
+	Chance        *float64 `json:"chance"`
+	TutorMode     string   `json:"tutor_mode"`
+	Trial         whole    `json:"trial"`
+	AnswersBucket string   `json:"answers_bucket"`
 }
 
 // whole is a whole number as a line carries it. The service writes 2, and

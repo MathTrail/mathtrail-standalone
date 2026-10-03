@@ -1,13 +1,14 @@
 # What a green main produces: the server built for the architectures it runs on,
-# the sums of what was built, and a signature for each of them. A release here
-# is a record of provenance rather than a delivery — the service is deployed
-# from main continuously — so what matters is that anybody can check that a
-# binary came from this repository, from this workflow, at this commit.
+# the sums of what was built, and a signature for each of them, and then the
+# service deployed from the release's tag. What matters in the release is that
+# anybody can check that a binary came from this repository, from this
+# workflow, at this commit; what matters in the delivery after it is that the
+# service names the release it runs.
 #
 # Nobody tags anything by hand: the version is the next patch of the line the
 # releases are numbered in, and the tag is created with the release. The button
 # exists for the release that deserves a number of its own.
-name: Release
+name: Release and deploy
 
 on:
   workflow_run:
@@ -29,12 +30,6 @@ permissions:
 env:
   RELEASE_LINE: "0.2"
 
-# Releases queue rather than overlap: the second one has to see the version the
-# first one published before it can work out the next.
-concurrency:
-  group: release
-  cancel-in-progress: false
-
 defaults:
   run:
     shell: bash
@@ -42,6 +37,12 @@ defaults:
 jobs:
   release:
     name: Build, sign and publish
+    # Releases queue rather than overlap: the second one has to see the version
+    # the first one published before it can work out the next. The queue holds
+    # the release alone, not the delivery after it, which queues on its own.
+    concurrency:
+      group: release
+      cancel-in-progress: false
     # Only from a commit the checks have already passed on, and only when that
     # commit is this repository's own. A pull request from a fork runs the checks
     # here as well, carrying the fork's code, and the branch filter above matches
@@ -55,6 +56,9 @@ jobs:
       github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      newest: ${{ steps.newest.outputs.newest }}
     permissions:
       # Creating the release and uploading what it holds.
       contents: write
@@ -125,3 +129,42 @@ jobs:
               --target "$TARGET" \
               --title "$VERSION" \
               --generate-notes
+
+      # Asked once the release is out, as late as it can be. The checks of an
+      # older commit can finish after a newer one's, or be run again, and its
+      # release would then carry a higher number than the code the service
+      # already runs.
+      - name: Whether main still ends at this commit
+        id: newest
+        env:
+          TARGET: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: |
+          set -euo pipefail
+          tip="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [ "$tip" = "$TARGET" ]; then
+              echo "newest=true" >> "$GITHUB_OUTPUT"
+          else
+              echo "newest=false" >> "$GITHUB_OUTPUT"
+              echo "main ends at $tip now: $TARGET is released and not deployed"
+          fi
+
+  # A delivery that failed is started again with "Re-run failed jobs": run
+  # again with all jobs, the release job would publish the same commit once
+  # more, under the next number.
+  deploy:
+    name: Deploy the release
+    needs: release
+    # Only the newest of main is deployed, so the service never goes back to
+    # older code: a release of a commit main has moved past, or of another
+    # branch, is published and deployed by nobody.
+    if: needs.release.outputs.newest == 'true'
+    permissions:
+      contents: read
+      # The federated token the delivery signs in to Google Cloud with.
+      id-token: write
+    uses: ./.github/workflows/deploy.yml
+    with:
+      version: ${{ needs.release.outputs.version }}
+    # The delivery's own: the billing account, and the OAuth client's secret
+    # for the first apply of a deployment.
+    secrets: inherit

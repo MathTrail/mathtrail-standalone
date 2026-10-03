@@ -342,6 +342,9 @@ func TestATaskInFlightIsRefusedWhenItIsNotWhole(t *testing.T) {
 		"issued_at":                    func(t *profile.CurrentTask) { t.IssuedAt = profile.Time{} },
 		"difficulty":                   func(t *profile.CurrentTask) { t.Difficulty = 0 },
 		"grade_level":                  func(t *profile.CurrentTask) { t.GradeLevel = "5-7" },
+		// Nobody but the rule and the model chooses a task; a file that names
+		// anyone else was edited by hand.
+		"current_task.tutor_mode is \"teacher\"": func(t *profile.CurrentTask) { t.TutorMode = "teacher" },
 		// Five options, and one of them says nothing: a child cannot pick it,
 		// and the count alone would not notice.
 		"options shows nothing": func(t *profile.CurrentTask) { t.Options["C"] = "" },

@@ -49,14 +49,16 @@ export function Badge({ children }: { children: ComponentChildren }) {
 /**
  * MessageHeader says who speaks — MathTrail, with its mark, or the child, with
  * the avatar — with a badge under the name, or beside it on a wide card, and a
- * short note beside the name when there is one. A compact header heads a
- * reply below the task.
+ * short note beside the name when there is one. A version, when there is one,
+ * closes the line at its far end. A compact header heads a reply below the
+ * task.
  */
 export function MessageHeader({
 	author = "app",
 	name,
 	badge,
 	meta,
+	version,
 	compact = false,
 	wide = false,
 }: {
@@ -64,6 +66,7 @@ export function MessageHeader({
 	name: string;
 	badge?: string;
 	meta?: string;
+	version?: string;
 	compact?: boolean;
 	wide?: boolean;
 }) {
@@ -109,10 +112,20 @@ export function MessageHeader({
 				"mt-head",
 				compact && "mt-head-compact",
 				wide && "mt-head-wide",
+				version !== undefined && "mt-head-versioned",
 			)}
 		>
 			{picture}
 			{text}
+			{version !== undefined && (
+				// A version is Latin letters and digits in any language, and
+				// reads left to right inside a card that reads the other way. It
+				// is for a grown-up reading the card off the screen, so a screen
+				// reader does not read it out to the child before every task.
+				<span class="mt-version" dir="ltr" aria-hidden="true">
+					{version}
+				</span>
+			)}
 		</header>
 	);
 }

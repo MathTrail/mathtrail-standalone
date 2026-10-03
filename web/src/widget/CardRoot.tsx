@@ -3,6 +3,7 @@ import { useRef } from "preact/hooks";
 import { classes } from "../design/classes";
 import { MessageHeader } from "../design/thread";
 import { useWide } from "../design/wide";
+import { buildVersion } from "./version";
 import { useWords } from "./words";
 
 /**
@@ -33,8 +34,9 @@ export function CardRoot({
 }
 
 /**
- * CardHeader heads what a card shows with MathTrail's name and, when the card
- * knows whose it is, the grade the child is coached at.
+ * CardHeader heads what a card shows with MathTrail's name, the version of the
+ * build and, when the card knows whose it is, the grade the child is coached
+ * at.
  */
 export function CardHeader({
 	grade,
@@ -51,6 +53,7 @@ export function CardHeader({
 			badge={
 				grade === undefined ? undefined : words.text("app.badge", { grade })
 			}
+			version={buildVersion()}
 			wide={wide}
 		/>
 	);

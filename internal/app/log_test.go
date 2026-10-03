@@ -60,8 +60,16 @@ var events = map[string][]string{
 		"instructions_version", "user",
 	},
 	"task_accepted": {"topic", "level", "difficulty", "attempts", "seconds_since_request", "instructions_version", "user"},
+	// The chance beside the user is the child's rating, answer by answer, as
+	// far as two places of a chance tell it. The topic, the level, the
+	// difficulty and whether each answer was right let the rating be rebuilt
+	// too, but only from the child's first answer on, with the start guessed
+	// from the first tasks, and only while the log keeps every answer since;
+	// the chance tells it outright. It is the one number of a line the rating
+	// sets.
 	"answer_recorded": {
-		"topic", "level", "difficulty", "correct", "trap", "hint_used", "confused", "pace", "instructions_version", "user",
+		"topic", "level", "difficulty", "correct", "trap", "hint_used", "confused", "pace",
+		"chance", "tutor_mode", "trial", "answers_bucket", "instructions_version", "user",
 	},
 	"limit_hit": {"limit", "count", "user"},
 }
@@ -137,6 +145,9 @@ func wantTheLessonInTheReport(t *testing.T, lines []observer.LoggedEntry) {
 		"| claude | read_task | 2 | 2 | 0 | 0 | 0 |",
 		"| claude | submit_task | 2 | 1 | 1 | 0 | 0 |",
 		"| claude | submit_answer | 2 | 2 | 0 | 0 | 0 |",
+		// The race was asked for by the model, so its answer is not weighed
+		// against the chance: the task kept who chose it, and the line says.
+		"are the answers to tasks the model chose (1).",
 	} {
 		if !strings.Contains(added.String(), row) {
 			t.Errorf("the report of the lesson has no row starting %q:\n%s", row, added.String())

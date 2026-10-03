@@ -24,8 +24,10 @@ var update = flag.Bool("update", false, "rewrite testdata/report.md from testdat
 // The lines of a few lessons, as the service writes them, add up to the report
 // kept beside them: two versions of the instructions, two chat hosts and a
 // task whose call is not among the lines, a request refused to the last
-// attempt, the limits reached, every way a tool call ends, and lines that are
-// not the service's.
+// attempt, answers weighed against their chance — enough of them in one cell
+// to read, too few in another — and answers of every kind the weighing leaves
+// out, the limits reached, every way a tool call ends, and lines that are not
+// the service's.
 func TestTheLinesOfSomeLessonsAddUpToTheirReport(t *testing.T) {
 	t.Parallel()
 
@@ -224,7 +226,7 @@ func TestAReportOfNoLinesSaysSo(t *testing.T) {
 		t.Fatalf("Run() error = %v, want nil", err)
 	}
 	if got := out.String(); !strings.Contains(got, "No lines of the service's were read.") ||
-		strings.Count(got, "None in these lines.") != 5 || strings.Contains(got, "|") {
+		strings.Count(got, "None in these lines.") != 7 || strings.Contains(got, "|") {
 		t.Errorf("the report of no lines is\n%s\nwant it to say there are none, and no table", got)
 	}
 }

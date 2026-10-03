@@ -1,6 +1,6 @@
 # What the log adds up to
 
-36 lines of the service's, from 2026-09-28 10:00:00 UTC to 2026-09-29 09:30:00 UTC. 2 more lines, not the service's, were left out.
+114 lines of the service's, from 2026-09-28 10:00:00 UTC to 2026-09-29 10:40:00 UTC. 2 more lines, not the service's, were left out.
 
 ## Tasks
 
@@ -34,6 +34,24 @@ An attempt is counted by one check, the first its refusal names, and fails that 
 | 0a1b2c3d4e5f | readability | 1 | 2 |
 | 0a1b2c3d4e5f | near_duplicate | 0 | 1 |
 
+## Chances and what came of them
+
+Answers to tasks the rule chose, after the trial series and without the hint, by the chance of a right answer each task was handed out at: how many there were, from how many children, the chance promised on average, and the share that came out right. A cell of fewer than 30 answers says too few. Left out of this table and the next are the answers to tasks the model chose (1), in the trial series (1), given with the hint (1) and on lines that carry no chance or no range of answers (1). Answers given with the hint, and tasks left unanswered — 2 in these lines, of every kind — are mostly ones that looked too hard, so the share right reads a little high by what they take away.
+
+| Instructions | Host | Chance | Answers | Children | Promised | Came true |
+|---|---|---|---:|---:|---:|---:|
+| 88b63e22129c | claude | 0.70-0.77 | 3 | 3 | too few | too few |
+| 88b63e22129c | claude | 0.78-0.85 | 32 | 4 | 0.80 | 0.81 |
+
+## How the estimate keeps up
+
+The same answers by which of the child's answers each was: a right answer as 1 and a wrong one as 0, less the chance promised, on average, with the standard error of that mean. Above zero the child did better than the estimate promised, which is how an estimate that falls behind a learning child shows; below zero, worse.
+
+| Instructions | Host | Answer number | Answers | Children | Came true less promised | Standard error |
+|---|---|---|---:|---:|---:|---:|
+| 88b63e22129c | claude | 6-20 | 32 | 4 | +0.01 | 0.04 |
+| 88b63e22129c | claude | 21-50 | 3 | 3 | too few | too few |
+
 ## Limits reached
 
 A pace writes one line for a flood of refusals, and a day's ceiling one for every call it refused.
@@ -55,5 +73,5 @@ Milliseconds are the service's own time for a call, its calls to Drive included.
 | chatgpt | other | 1 | 0 | 0 | 0 | 1 | 1 | 1 |
 | chatgpt | submit_task | 3 | 0 | 3 | 0 | 0 | 310 | 320 |
 | claude | next_task | 3 | 2 | 1 | 0 | 0 | 100 | 120 |
-| claude | submit_answer | 1 | 1 | 0 | 0 | 0 | 80 | 80 |
+| claude | submit_answer | 39 | 39 | 0 | 0 | 0 | 80 | 80 |
 | claude | submit_task | 3 | 2 | 1 | 0 | 0 | 250 | 300 |

@@ -148,6 +148,7 @@ func (p *Profile) Issue(written *Written, secret TaskSecret, sealer Sealer, now 
 		Language:            request.Language,
 		Options:             maps.Clone(written.Options),
 		Topic:               request.Brief.TargetConcept,
+		TutorMode:           request.TutorMode,
 		Wording:             written.Wording,
 	}
 	if err := p.SealTask(sealer, secret); err != nil {

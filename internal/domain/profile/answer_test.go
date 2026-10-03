@@ -606,3 +606,27 @@ func TestAnAnswerTheTaskCannotBeSealedWithMovesNothing(t *testing.T) {
 		t.Errorf("the answer sent again = %+v, want it recorded, and right", recorded)
 	}
 }
+
+// An answer says who chose its task, as the task kept it — the rule or the
+// model — and says nobody for a task handed out before the card kept that.
+// Told again, it says the same.
+func TestAnAnswerSaysWhoChoseItsTask(t *testing.T) {
+	t.Parallel()
+
+	for _, chose := range []profile.TutorMode{profile.TutorRule, profile.TutorLLM, ""} {
+		t.Run(string(chose), func(t *testing.T) {
+			t.Parallel()
+
+			p := parseFixture(t, "olya")
+			id := answering(t, p, "counting.gaps", 3)
+			p.CurrentTask.TutorMode = chose
+
+			if recorded := give(t, p, id, rightLetter, issued.Add(time.Minute)); recorded.TutorMode != chose {
+				t.Errorf("Record() says the task was chosen by %q, want %q", recorded.TutorMode, chose)
+			}
+			if told := give(t, p, id, rightLetter, issued.Add(2*time.Minute)); !told.Again || told.TutorMode != chose {
+				t.Errorf("the answer told again = %+v, want it told again, chosen by %q", told, chose)
+			}
+		})
+	}
+}

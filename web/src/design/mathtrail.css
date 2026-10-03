@@ -388,6 +388,23 @@
 	overflow-wrap: anywhere;
 }
 
+/* Version. It closes the header's line, quieter than anything else in it. A
+   build between releases names itself at length, so the version takes no more
+   than a share of the line, and on a narrow card it is the version that gives
+   way: it wraps in whatever room is left, and the name beside it is never
+   cut. */
+.mt-version {
+	max-width: 40%;
+	font-size: 12px;
+	line-height: 18px;
+	color: var(--text-muted);
+	font-variant-numeric: tabular-nums;
+	overflow-wrap: anywhere;
+}
+.mt-head-versioned .mt-head-text {
+	min-width: min-content;
+}
+
 /* Body blocks */
 .mt-body {
 	display: flex;

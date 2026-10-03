@@ -42,6 +42,7 @@ just ci-lint    # what the checks run: formatting and the linter
 just ci-test    # what the checks run: the tests, with the race detector and coverage
 just ci-web     # what the checks run for the widget in web/: formatting, lint, types, tests, a build
 just load-test  # the load tool in tools/load, a Go module of its own: its tests; just load-lint for the rest
+just learners-test  # the learners' bench in tools/learners, a Go module of its own: its tests; just learners-lint for the rest
 ```
 
 ## What a change has to satisfy
@@ -50,7 +51,7 @@ The conventions are written down in [`CLAUDE.md`](CLAUDE.md) — it is addressed
 
 The short version:
 
-- **`just ci-lint` and `just ci-test` are green**, and `just ci-web` too when the widget changed, and `just load-lint` and `just load-test` when the load tool did. They are what the pull request checks run, so a failure here is a failure there.
+- **`just ci-lint` and `just ci-test` are green**, and `just ci-web` too when the widget changed, `just load-lint` and `just load-test` when the load tool did, and `just learners-lint` and `just learners-test` when the learners' bench or what it runs did — the rating, the rule, the profile, the catalog's topics. They are what the pull request checks run, so a failure here is a failure there.
 - **Tests come with the change.** A pull request that drops below 90% coverage of the lines it touches cannot be merged. A new check is not considered covered until its test has been seen to fail with the check switched off.
 - **English everywhere in the repository**: code, every comment, configuration and documents.
 - **Nothing personal reaches a log.** Log lines carry aggregates — never a task, an answer, a pseudonym or a profile.

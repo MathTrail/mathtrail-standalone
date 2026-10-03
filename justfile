@@ -68,11 +68,11 @@ ALLOWED_LICENSES := "MIT,BSD-2-Clause,BSD-3-Clause,Apache-2.0,ISC"
 # MPL-2.0, is the CSS minifier the widget's bundler cannot be installed without.
 NPM_LICENSE_EXCEPTIONS := "lightningcss=MPL-2.0"
 
-# The Go template that prints the module a package of the load tool's build
-# comes from, and its version, when that module is neither the tool nor the
-# service it is built against. It sits in a variable so that its braces never
-# meet the interpolation of this file.
-LOAD_MODULE_OF := '{{with .Module}}{{if not .Main}}{{if not .Replace}}{{.Path}} {{.Version}}{{end}}{{end}}{{end}}'
+# The Go template that prints the module a package of a tool's build comes
+# from, and its version, when that module is neither the tool nor the service it
+# is built against. It sits in a variable so that its braces never meet the
+# interpolation of this file.
+TOOL_MODULE_OF := '{{with .Module}}{{if not .Main}}{{if not .Replace}}{{.Path}} {{.Version}}{{end}}{{end}}{{end}}'
 
 # The Go template that prints how the Docker daemon keeps its containers'
 # cgroups, and on what kernel: they decide whether the load tool can measure
@@ -429,11 +429,12 @@ web-test: web-install
 
 # The page plays a chat host: it frames the widget's own page, as it is being
 # worked on, and drives it through every state a lesson puts a card in, at a
-# phone's width and a web page's, in the light and the dark theme.
+# phone's width and a web page's, in the light and the dark theme. The cards
+# name the version a build of this tree would.
 # Serve the widget in every state of a lesson, to look at beside the design
 [working-directory('web')]
 web-preview: web-install
-    npm run --silent preview
+    VITE_VERSION="{{ VERSION }}" npm run --silent preview
 
 # Every state of a lesson in the preview, in every language the widget speaks
 # and the pseudo-language, at 320, 360 and 640 px, in Chromium and WebKit: it
@@ -455,11 +456,17 @@ web-layout *args: _playwright-pinned
 # light and the dark theme: the preview's own scenes, photographed in Chromium
 # from the image the layout is measured in, as a phone 428 px wide shows them
 # at twice its density. They are written over docs/screens/, for the change to
-# be looked at before it is kept.
+# be looked at before it is kept. The cards name the newest release this tree
+# follows, rather than the changes on top of it nobody has released; a clone
+# that holds no release is refused, rather than photographed as "dev".
 # Photograph the widget for the README
 [working-directory('web')]
 web-screens: _playwright-pinned
+    #!/usr/bin/env bash
+    set -euo pipefail
+    release=$(git describe --tags --abbrev=0)
     docker run --rm --init --shm-size=1g --user "$(id -u):$(id -g)" -e HOME=/tmp \
+        -e VITE_VERSION="$release" \
         -v "{{ justfile_directory() }}:{{ justfile_directory() }}" -w "{{ justfile_directory() }}/web" \
         {{ PLAYWRIGHT_IMAGE }} node scripts/screens.ts
 
@@ -820,7 +827,9 @@ ci-image-push image:
     # the first component of the image path.
     gcloud auth configure-docker "${image%%/*}" --quiet >&2
 
-    just ci-image-widget "$tag" >&2
+    # A run of just of its own would work the version out again, so it is
+    # handed this one, which may have been set rather than worked out.
+    just --set VERSION "{{ VERSION }}" ci-image-widget "$tag" >&2
     docker push "$tag" >&2
 
     # Read with awk rather than a Go template, whose braces would collide with
@@ -1076,18 +1085,21 @@ ci-load *args: docker-build
 load-test:
     go test ./... -race -count=1
 
-# A module the tool builds with and the service also uses is held to the
-# version the service's own build selects: the tool would otherwise run the
-# service against code the service does not ship with. Only the modules that
-# give the tool's build a package are compared — the service's module graph
-# names older versions of modules neither build takes a package from.
-# The load tool's formatting, lint, licenses, known vulnerabilities, and the versions it shares with the service
-[working-directory('tools/load')]
-load-lint:
+# A tool that is a module of its own under tools/ is held to what the service
+# is: tidy, formatted, linted, linking only what the service's licenses allow,
+# and free of known vulnerabilities. A module the tool builds with and the
+# service also uses is held to the version the service's own build selects: the
+# tool would otherwise run the service against code the service does not ship
+# with. Only the modules that give the tool's build a package are compared —
+# the service's module graph names older versions of modules neither build
+# takes a package from. The tool is named by its directory, as its recipes are.
+[positional-arguments]
+_tool-lint tool:
     #!/usr/bin/env bash
     set -euo pipefail
+    cd "tools/$1"
     if ! go mod tidy -diff > /dev/null; then
-        echo "load-lint: tools/load/go.mod or go.sum is not what the code asks for: run just load-tidy" >&2
+        echo "$1-lint: tools/$1/go.mod or go.sum is not what the code asks for: run just $1-tidy" >&2
         exit 1
     fi
     unformatted=$(gofmt -s -l .)
@@ -1101,18 +1113,57 @@ load-lint:
     # own license; what is checked is everything else the tool links.
     go run {{ GO_LICENSES }} check ./... --allowed_licenses={{ ALLOWED_LICENSES }} --ignore {{ MODULE }}
     go run {{ GOVULNCHECK }} ./...
-    tool=$(go list -deps -test -f '{{ LOAD_MODULE_OF }}' ./... | LC_ALL=C sort -u)
+    tool=$(go list -deps -test -f '{{ TOOL_MODULE_OF }}' ./... | LC_ALL=C sort -u)
     service=$(cd ../.. && go list -m all | LC_ALL=C sort -u)
     apart=$(LC_ALL=C join <(printf '%s\n' "$tool") <(printf '%s\n' "$service") | awk '$2 != $3')
     if [ -n "$apart" ]; then
-        echo "load-lint: the tool builds with other versions than the service (module, the tool's, the service's):" >&2
+        echo "$1-lint: the tool builds with other versions than the service (module, the tool's, the service's):" >&2
         echo "$apart" >&2
         exit 1
     fi
 
+# The load tool's formatting, lint, licenses, known vulnerabilities, and the versions it shares with the service
+load-lint: (_tool-lint "load")
+
 # Bring the load tool's go.mod and go.sum to what its code asks for, as a change to the service's go.mod calls for
 [working-directory('tools/load')]
 load-tidy:
+    go mod tidy
+
+# -- Learners ----------------------------------------------------------------
+
+# The learners' bench is a Go module of its own under tools/learners, as the
+# load tool is: simulated children answer there through the service's own
+# rule, profile and rating, so that a change to how the service places a child
+# is measured before it ships, and nothing the bench needs reaches the service.
+# It imports the service, so its go.mod follows the service's: a change to the
+# service's go.mod is followed by `just learners-tidy`.
+
+# A run writes its tables, its summary and what it was into
+# tools/learners/results, over the run kept there, and prints the summary. It
+# draws the children of the paper's run unless it is given -seed or
+# -experiment. Arguments go to the bench as they are; a quick look, such as
+# `just learners -children 100 -out /tmp/learners`, is written elsewhere, so
+# that the run kept is a whole one. The service's version is stamped in as a
+# build of the service carries it, so that run.txt says what code the numbers
+# came from.
+# Run every rule of the learners' bench on every generator, and print the summary
+[positional-arguments]
+[working-directory('tools/learners')]
+learners *args:
+    go run -ldflags "-X {{ SYMBOLS }}.Version={{ VERSION }}" . -out results "$@"
+
+# The learners' bench's tests, with the race detector
+[working-directory('tools/learners')]
+learners-test:
+    go test ./... -race -count=1
+
+# The learners' bench's formatting, lint, licenses, known vulnerabilities, and the versions it shares with the service
+learners-lint: (_tool-lint "learners")
+
+# Bring the learners' bench's go.mod and go.sum to what its code asks for, as a change to the service's go.mod calls for
+[working-directory('tools/learners')]
+learners-tidy:
     go mod tidy
 
 # -- Research ----------------------------------------------------------------

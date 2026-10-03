@@ -1,5 +1,5 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
 	type Drawn,
 	drawCard,
@@ -25,9 +25,16 @@ import {
 
 let drawn: Drawn | undefined;
 
+// The header names the build, and the snapshots name one of their own rather
+// than whatever the environment the tests run in was given.
+beforeEach(() => {
+	vi.stubEnv("VITE_VERSION", "v0.2.1");
+});
+
 afterEach(() => {
 	takeDown(drawn?.root);
 	drawn = undefined;
+	vi.unstubAllEnvs();
 });
 
 // wrongInArabic is the Arabic fence answered with the wrong B: the trap

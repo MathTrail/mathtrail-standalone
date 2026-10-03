@@ -357,6 +357,11 @@
           "minLength": 1
         },
         "topic": { "type": "string", "minLength": 1 },
+        "tutor_mode": {
+          "description": "Who chose the topic and the difficulty, as the task's request had it. A task handed out before it was kept has none.",
+          "type": "string",
+          "enum": ["rule", "llm"]
+        },
         "wording": { "type": "string", "minLength": 1 }
       }
     },

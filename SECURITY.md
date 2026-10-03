@@ -43,7 +43,7 @@ Worth knowing before you look for something that is not there:
 
 ## Supported versions
 
-The tip of `main` is what is deployed and what is supported. Every green `main` is also published as a signed release, and only the newest release is supported. There is no separate maintenance branch: a fix goes to `main` and is delivered from there.
+Every green `main` is published as a signed release, the service is deployed from those releases, and only the newest release is supported. The service names the release it runs at `/health` and in the header of the task card. There is no separate maintenance branch: a fix goes to `main` and is delivered from there.
 
 ## Checking that a binary is ours
 

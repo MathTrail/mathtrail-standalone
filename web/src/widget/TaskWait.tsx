@@ -27,7 +27,7 @@ export function TaskWait({
 	phase: Phase;
 	rewriting?: boolean;
 	slow?: boolean;
-	ended?: Ending | undefined;
+	ended?: Ending;
 }) {
 	const words = useWords();
 	return (

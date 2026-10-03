@@ -29,6 +29,7 @@ let root: HTMLElement;
 
 afterEach(() => {
 	takeDown(root);
+	vi.unstubAllEnvs();
 });
 
 // service answers the widget's calls as the service would for the fence: a
@@ -124,6 +125,13 @@ describe("a task card", () => {
 		expect(text(".mt-options legend")).toBe("Pick one answer");
 		expect(root.querySelector(".mt-note-hint")).toBeNull();
 		expect(shownButtons()).toEqual(["I don't know", "Hint", "Another task"]);
+	});
+
+	test("names in its header the build the widget came with", async () => {
+		vi.stubEnv("VITE_VERSION", "v0.2.1");
+		await drawCard();
+
+		expect(text(".mt-head .mt-version")).toBe("v0.2.1");
 	});
 
 	test("draws no drawing for a task that has none", async () => {

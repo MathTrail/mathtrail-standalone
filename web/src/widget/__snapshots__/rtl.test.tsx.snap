@@ -40,7 +40,7 @@ exports[`the screens in Arabic > a try that did not pass 1`] = `
       aria-label="المسألة التالية"
     >
       <header
-        class="mt-head"
+        class="mt-head mt-head-versioned"
       >
         <svg
           aria-hidden="true"
@@ -67,6 +67,13 @@ exports[`the screens in Arabic > a try that did not pass 1`] = `
             مدرب الأولمبياد · الصف 3
           </span>
         </div>
+        <span
+          aria-hidden="true"
+          class="mt-version"
+          dir="ltr"
+        >
+          v0.2.1
+        </span>
       </header>
       <div
         class="mt-body"
@@ -101,7 +108,7 @@ exports[`the screens in Arabic > the first sign-in 1`] = `
     aria-label="مرحبا بك في MathTrail"
   >
     <header
-      class="mt-head"
+      class="mt-head mt-head-versioned"
     >
       <svg
         aria-hidden="true"
@@ -123,6 +130,13 @@ exports[`the screens in Arabic > the first sign-in 1`] = `
           </span>
         </div>
       </div>
+      <span
+        aria-hidden="true"
+        class="mt-version"
+        dir="ltr"
+      >
+        v0.2.1
+      </span>
     </header>
     <div
       class="mt-body"
@@ -2018,7 +2032,7 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
       aria-label="مسألة"
     >
       <header
-        class="mt-head"
+        class="mt-head mt-head-versioned"
       >
         <svg
           aria-hidden="true"
@@ -2045,6 +2059,13 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
             مدرب الأولمبياد · الصف 3
           </span>
         </div>
+        <span
+          aria-hidden="true"
+          class="mt-version"
+          dir="ltr"
+        >
+          v0.2.1
+        </span>
       </header>
       <div
         class="mt-body"
@@ -2409,7 +2430,7 @@ exports[`the screens in Arabic > the task 1`] = `
       aria-label="مسألة"
     >
       <header
-        class="mt-head"
+        class="mt-head mt-head-versioned"
       >
         <svg
           aria-hidden="true"
@@ -2436,6 +2457,13 @@ exports[`the screens in Arabic > the task 1`] = `
             مدرب الأولمبياد · الصف 3
           </span>
         </div>
+        <span
+          aria-hidden="true"
+          class="mt-version"
+          dir="ltr"
+        >
+          v0.2.1
+        </span>
       </header>
       <div
         class="mt-body"
@@ -2614,7 +2642,7 @@ exports[`the screens in Arabic > the wait for a task asked for 1`] = `
     aria-label="المسألة التالية"
   >
     <header
-      class="mt-head"
+      class="mt-head mt-head-versioned"
     >
       <svg
         aria-hidden="true"
@@ -2636,6 +2664,13 @@ exports[`the screens in Arabic > the wait for a task asked for 1`] = `
           </span>
         </div>
       </div>
+      <span
+        aria-hidden="true"
+        class="mt-version"
+        dir="ltr"
+      >
+        v0.2.1
+      </span>
     </header>
     <div
       class="mt-body"
@@ -2818,7 +2853,7 @@ exports[`the screens in Arabic > the wait for a task being written, a try turned
       aria-label="المسألة التالية"
     >
       <header
-        class="mt-head"
+        class="mt-head mt-head-versioned"
       >
         <svg
           aria-hidden="true"
@@ -2845,6 +2880,13 @@ exports[`the screens in Arabic > the wait for a task being written, a try turned
             مدرب الأولمبياد · الصف 3
           </span>
         </div>
+        <span
+          aria-hidden="true"
+          class="mt-version"
+          dir="ltr"
+        >
+          v0.2.1
+        </span>
       </header>
       <div
         class="mt-body"

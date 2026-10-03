@@ -11,11 +11,13 @@ import (
 
 // The events the report reads, as their lines are named.
 const (
-	eventToolCall      = "tool_call"
-	eventTaskRequested = "task_requested"
-	eventTaskSubmitted = "task_submitted"
-	eventTaskAccepted  = "task_accepted"
-	eventLimitHit      = "limit_hit"
+	eventToolCall       = "tool_call"
+	eventTaskRequested  = "task_requested"
+	eventTaskSubmitted  = "task_submitted"
+	eventTaskAccepted   = "task_accepted"
+	eventTaskSkipped    = "task_skipped"
+	eventAnswerRecorded = "answer_recorded"
+	eventLimitHit       = "limit_hit"
 )
 
 // outcomeRejected is an attempt at a task that its checks refused.
@@ -78,16 +80,26 @@ type counts struct {
 	refusals map[refusedBy]*refusals
 	limits   map[string]int
 	tools    map[toolOf]*calls
+	// promises and keptUp are the answers weighed against the chance their
+	// tasks were handed out at, by that chance and by how many answers the
+	// child had given; answersLeftOut counts the answers neither takes, by
+	// why, and skipped the tasks left without an answer.
+	promises       map[promisedIn]*cameTrue
+	keptUp         map[keptUpIn]*keptUp
+	answersLeftOut map[string]int
+	skipped        int
 }
 
-// tally adds the lines up. A task is counted for the chat host of the tool
-// call it came in, whose line is the one line of a call that names the host.
+// tally adds the lines up. A task or an answer is counted for the chat host of
+// the tool call it came in, whose line is the one line of a call that names
+// the host.
 func tally(in *input) *counts {
 	lines := in.lines
 	c := &counts{
 		lines: len(lines), others: in.others, unreadable: in.unreadable,
 		tasks: map[group]*tasks{}, refusals: map[refusedBy]*refusals{},
 		limits: map[string]int{}, tools: map[toolOf]*calls{},
+		promises: map[promisedIn]*cameTrue{}, keptUp: map[keptUpIn]*keptUp{}, answersLeftOut: map[string]int{},
 	}
 	hosts := hostsOf(lines)
 	firstSeen := map[string]time.Time{}
@@ -102,6 +114,11 @@ func tally(in *input) *counts {
 		case eventTaskRequested, eventTaskSubmitted, eventTaskAccepted:
 			seenAt(firstSeen, l.InstructionsVersion, l.Time)
 			c.task(l, c.tasksOf(group{version: l.InstructionsVersion, host: hostOf(hosts, l.call())}))
+		case eventAnswerRecorded:
+			seenAt(firstSeen, l.InstructionsVersion, l.Time)
+			c.answer(l, group{version: l.InstructionsVersion, host: hostOf(hosts, l.call())})
+		case eventTaskSkipped:
+			c.skipped++
 		}
 	}
 	c.versions = inOrder(firstSeen)

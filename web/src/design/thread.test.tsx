@@ -68,6 +68,35 @@ describe("a header", () => {
 		).toEqual(["mt-name", "mt-badge"]);
 	});
 
+	test.each([
+		["narrow", false],
+		["wide", true],
+	])("closes its line with the version on a %s card", (_, wide) => {
+		draw(
+			<MessageHeader
+				name="MathTrail"
+				badge="Olympiad coach · Grade 3"
+				version="v0.2.1"
+				wide={wide}
+			/>,
+		);
+
+		const header = root.querySelector(".mt-head");
+		expect(header?.classList.contains("mt-head-versioned")).toBe(true);
+		const last = header?.lastElementChild;
+		expect(last?.className).toBe("mt-version");
+		expect(last?.getAttribute("dir")).toBe("ltr");
+		expect(last?.getAttribute("aria-hidden")).toBe("true");
+		expect(last?.textContent).toBe("v0.2.1");
+	});
+
+	test("shows no version it was not given", () => {
+		draw(<MessageHeader name="MathTrail" badge="Olympiad coach · Grade 3" />);
+
+		expect(root.querySelector(".mt-version")).toBeNull();
+		expect(root.querySelector(".mt-head-versioned")).toBeNull();
+	});
+
 	test("says who speaks: MathTrail by its mark, the child by the avatar", () => {
 		draw(
 			<>

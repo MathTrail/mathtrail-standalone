@@ -70,11 +70,13 @@ jobs:
           languages: javascript-typescript
           build-mode: none
           queries: security-extended
-          # The design draft runs its own copy of React to show itself in a
-          # browser, and none of it ships, so it is left out of the analysis.
+          # The design drafts — the site's and the research page's — run their
+          # own copy of React to show themselves in a browser, and none of it
+          # ships, so they are left out of the analysis.
           config: |
             paths-ignore:
               - draft
+              - research/draft-ui
 
       - uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
         with:

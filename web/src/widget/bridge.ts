@@ -5,6 +5,7 @@ import {
 	applyDocumentTheme,
 	type McpUiHostContext,
 } from "@modelcontextprotocol/ext-apps";
+import { buildVersion } from "./version";
 
 /** ToolResult is a tool's result as the host hands it to the widget. */
 export type ToolResult = AppEventMap["toolresult"];
@@ -89,7 +90,7 @@ export function openBridge(): Bridge & Host {
 	// height. strict makes a misuse — a call before the handshake, a one-time
 	// notification handled too late — an error rather than a console warning.
 	const app = new App(
-		{ name: "mathtrail", version: import.meta.env.VITE_VERSION ?? "dev" },
+		{ name: "mathtrail", version: buildVersion() },
 		{},
 		{ autoResize: true, strict: true },
 	);
