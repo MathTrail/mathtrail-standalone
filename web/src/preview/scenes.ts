@@ -188,6 +188,12 @@ export function scenesIn(language: string): Scene[] {
 			payload: { ...handed, status: "stale", code: "stale_request" },
 		},
 		{ name: "progress", payload: handed, answers: service(), play: topLine },
+		{
+			name: "progress over a task, every section open",
+			payload: handed,
+			answers: service(),
+			play: progressUnfolded,
+		},
 		{ name: "another task asked", payload: handed, play: button(2) },
 		{
 			name: "another task, the ask not sent",
@@ -448,6 +454,13 @@ function everyFold(card: Document) {
 	)) {
 		title.click();
 	}
+}
+
+// progressUnfolded opens the progress over the task from the line at its top
+// and, once the progress is drawn, every section of it.
+function progressUnfolded(card: Document) {
+	topLine(card);
+	setTimeout(() => everyFold(card), 100);
 }
 
 // inTheForm opens the profile's section of the progress and the form in it,
