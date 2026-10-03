@@ -4,6 +4,7 @@ import topics from "../../../content/catalogs/topics.json";
 import traps from "../../../content/catalogs/traps.json";
 import english from "../../locales/en.json";
 import {
+	catalogSkills,
 	languageName,
 	listed,
 	rankCount,
@@ -100,5 +101,13 @@ describe("a language", () => {
 
 	test("that no tag names is shown as it is", () => {
 		expect(languageName(inEnglish, "not a tag")).toBe("not a tag");
+	});
+});
+
+describe("the skills a parent can leave out", () => {
+	// A skill the form does not offer is one the parent cannot leave out from
+	// the card, and the form offers them in the order the catalog lists them.
+	test("are every skill of the catalog, in its order", () => {
+		expect(catalogSkills).toEqual(skills.map((skill) => skill.id));
 	});
 });

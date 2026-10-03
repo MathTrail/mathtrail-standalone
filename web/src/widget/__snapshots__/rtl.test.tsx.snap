@@ -157,7 +157,7 @@ exports[`the screens in Arabic > the first sign-in 1`] = `
           </span>
         </div>
         <p>
-          اسم مستعار والصف، من 1 إلى 6. وإن رغبت، أيضا اهتمامات الطفل، وما لم تتناوله المدرسة بعد، ولغة البطاقات.
+          اسم مستعار والصف، من 1 إلى 6. وإن رغبت، أيضا اهتمامات الطفل، وما لم تتناوله المدرسة بعد، ولغة الدروس.
         </p>
       </div>
       <div
@@ -174,40 +174,669 @@ exports[`the screens in Arabic > the first sign-in 1`] = `
           في ملف واحد على Google Drive الخاص بك، يمكنك فتحه أو تنزيله أو حذفه. لا يحتفظ MathTrail بأي شيء لديه.
         </p>
       </div>
+      <div
+        class="mt-note mt-note-plain"
+      >
+        <div
+          class="mt-note-label"
+        >
+          <span>
+            طريقة البدء
+          </span>
+        </div>
+        <p>
+          يكفي طلب ملف شخصي في MathTrail في هذه الدردشة والإجابة عن أسئلتها. ويمكن تغييره لاحقا من «الملف الشخصي والتقدم».
+        </p>
+      </div>
     </div>
   </article>
-  <div
-    class="mt-foot"
+</div>
+`;
+
+exports[`the screens in Arabic > the form of the profile, refused field by field 1`] = `
+<form
+  aria-busy="false"
+  aria-label="تغيير الملف الشخصي"
+  class="mt-form"
+>
+  <fieldset
+    class="mt-form-fields"
   >
-    <label
-      class="mt-check"
+    <div
+      class="mt-form-field"
     >
+      <label
+        class="mt-form-label"
+        for="P0-0"
+      >
+        الاسم المستعار
+      </label>
       <input
-        type="checkbox"
+        aria-describedby="P0-0-note P0-0-problem"
+        aria-invalid="true"
+        class="mt-input"
+        id="P0-0"
+        type="text"
       />
-      <span>
-        أتولى تربية الطفل أو تدريسه
-      </span>
-    </label>
+      <p
+        class="mt-field-note"
+        id="P0-0-note"
+      >
+        ليس الاسم الحقيقي للطفل أبدا.
+      </p>
+      <p
+        class="mt-field-problem"
+        id="P0-0-problem"
+      >
+        يرجى ملء هذا الحقل.
+      </p>
+    </div>
+    <div
+      class="mt-form-field"
+    >
+      <label
+        class="mt-form-label"
+        for="P0-1"
+      >
+        الصف
+      </label>
+      <select
+        aria-describedby="P0-1-note P0-1-problem"
+        aria-invalid="true"
+        class="mt-input mt-select"
+        id="P0-1"
+      >
+        <option
+          value="1"
+        >
+          1
+        </option>
+        <option
+          value="2"
+        >
+          2
+        </option>
+        <option
+          value="3"
+        >
+          3
+        </option>
+        <option
+          value="4"
+        >
+          4
+        </option>
+        <option
+          value="5"
+        >
+          5
+        </option>
+        <option
+          value="6"
+        >
+          6
+        </option>
+      </select>
+      <p
+        class="mt-field-note"
+        id="P0-1-note"
+      >
+        مجرد تسمية: تغييره لا يؤثر في أي تصنيف.
+      </p>
+      <p
+        class="mt-field-problem"
+        id="P0-1-problem"
+      >
+        يرجى اختيار إحدى القيم المعروضة.
+      </p>
+    </div>
+    <fieldset
+      aria-describedby="P0-2-problem"
+      class="mt-form-field"
+    >
+      <legend
+        class="mt-form-label"
+      >
+        الاهتمامات
+      </legend>
+      <ul
+        class="mt-chips"
+      >
+        <li
+          class="mt-chip mt-chip-removable"
+        >
+          <span
+            class="mt-chip-text"
+          >
+            space
+          </span>
+          <button
+            aria-label="إزالة «space»"
+            class="mt-chip-remove"
+            type="button"
+          >
+            <svg
+              aria-hidden="true"
+              class="mt-icon"
+              fill="none"
+              height="14"
+              viewBox="0 0 16 16"
+              width="14"
+            />
+          </button>
+        </li>
+        <li
+          class="mt-chip mt-chip-removable"
+        >
+          <span
+            class="mt-chip-text"
+          >
+            animals
+          </span>
+          <button
+            aria-label="إزالة «animals»"
+            class="mt-chip-remove"
+            type="button"
+          >
+            <svg
+              aria-hidden="true"
+              class="mt-icon"
+              fill="none"
+              height="14"
+              viewBox="0 0 16 16"
+              width="14"
+            />
+          </button>
+        </li>
+        <li
+          class="mt-chip mt-chip-removable"
+        >
+          <span
+            class="mt-chip-text"
+          >
+            football
+          </span>
+          <button
+            aria-label="إزالة «football»"
+            class="mt-chip-remove"
+            type="button"
+          >
+            <svg
+              aria-hidden="true"
+              class="mt-icon"
+              fill="none"
+              height="14"
+              viewBox="0 0 16 16"
+              width="14"
+            />
+          </button>
+        </li>
+      </ul>
+      <div
+        class="mt-add"
+      >
+        <label
+          class="mt-vh"
+          for="P0-2"
+        >
+          اهتمام جديد
+        </label>
+        <input
+          class="mt-input"
+          id="P0-2"
+          type="text"
+        />
+        <button
+          class="mt-btn"
+          disabled=""
+          type="button"
+        >
+          إضافة
+        </button>
+      </div>
+      <p
+        class="mt-field-problem"
+        id="P0-2-problem"
+      >
+        أحدها فارغ أو طويل جدا.
+      </p>
+    </fieldset>
+    <fieldset
+      aria-describedby="P0-3-problem"
+      class="mt-form-field"
+    >
+      <legend
+        class="mt-form-label"
+      >
+        ما لم تتناوله المدرسة بعد
+      </legend>
+      <div
+        class="mt-checks"
+      >
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            الجمع
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            الطرح
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            الضرب
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            القسمة
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            القسمة مع الباقي
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            الكسور البسيطة
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            ترتيب العمليات
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            الأعداد الزوجية والفردية
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            الأعداد الأكبر من 20
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            الأعداد الأكبر من 100
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            الأعداد الأكبر من 1000
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            الساعات والدقائق
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            أشهر السنة
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            النقود ورد الباقي
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            تحويل الوحدات
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            العمليات على الكسور
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            الكسور العشرية
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            النسب المئوية
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            النسبة والتناسب
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            الأعداد السالبة
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            المربعات والقوى
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            المساحة والمحيط
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            الإحداثيات
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            المتوسط الحسابي
+          </span>
+        </label>
+        <label
+          class="mt-check"
+        >
+          <input
+            type="checkbox"
+          />
+          <span>
+            قواعد قابلية القسمة
+          </span>
+        </label>
+      </div>
+      <p
+        class="mt-field-problem"
+        id="P0-3-problem"
+      >
+        إحدى هذه المهارات لا يعرفها MathTrail: يرجى إلغاء تحديدها.
+      </p>
+    </fieldset>
+    <div
+      class="mt-form-field"
+    >
+      <label
+        class="mt-form-label"
+        for="P0-4"
+      >
+        لغة الدروس
+      </label>
+      <select
+        aria-describedby="P0-4-problem"
+        aria-invalid="true"
+        class="mt-input mt-select"
+        id="P0-4"
+      >
+        <option
+          value=""
+        >
+          لغة الدردشة
+        </option>
+        <option
+          value="es"
+        >
+          الإسبانية
+        </option>
+        <option
+          value="de"
+        >
+          الألمانية
+        </option>
+        <option
+          value="en"
+        >
+          الإنجليزية
+        </option>
+        <option
+          value="id"
+        >
+          الإندونيسية
+        </option>
+        <option
+          value="ur"
+        >
+          الأوردية
+        </option>
+        <option
+          value="uk"
+        >
+          الأوكرانية
+        </option>
+        <option
+          value="it"
+        >
+          الإيطالية
+        </option>
+        <option
+          value="pt"
+        >
+          البرتغالية
+        </option>
+        <option
+          value="bn"
+        >
+          البنغالية
+        </option>
+        <option
+          value="pl"
+        >
+          البولندية
+        </option>
+        <option
+          value="th"
+        >
+          التايلاندية
+        </option>
+        <option
+          value="tr"
+        >
+          التركية
+        </option>
+        <option
+          value="ru"
+        >
+          الروسية
+        </option>
+        <option
+          value="zh-Hans"
+        >
+          الصينية المبسطة
+        </option>
+        <option
+          value="ar"
+        >
+          العربية
+        </option>
+        <option
+          value="fa"
+        >
+          الفارسية
+        </option>
+        <option
+          value="fr"
+        >
+          الفرنسية
+        </option>
+        <option
+          value="vi"
+        >
+          الفيتنامية
+        </option>
+        <option
+          value="ko"
+        >
+          الكورية
+        </option>
+        <option
+          value="hi"
+        >
+          الهندية
+        </option>
+        <option
+          value="nl"
+        >
+          الهولندية
+        </option>
+        <option
+          value="ja"
+        >
+          اليابانية
+        </option>
+      </select>
+      <p
+        class="mt-field-problem"
+        id="P0-4-problem"
+      >
+        يرجى اختيار لغة من القائمة.
+      </p>
+    </div>
+  </fieldset>
+  <div
+    class="mt-form-actions"
+  >
     <div
       class="mt-btns"
     >
       <button
         class="mt-btn mt-btn-primary"
-        disabled=""
         type="button"
       >
-        إنشاء ملف شخصي
+        حفظ
+      </button>
+      <button
+        class="mt-btn"
+        type="button"
+      >
+        إلغاء
       </button>
     </div>
     <p
       aria-live="polite"
       class="mt-action-note"
     >
-      
+      لم يتم الحفظ: يرجى مراجعة الحقول المشار إليها.
     </p>
   </div>
-</div>
+</form>
 `;
 
 exports[`the screens in Arabic > the profile, its cards chosen to be in Arabic 1`] = `
@@ -264,7 +893,7 @@ exports[`the screens in Arabic > the profile, its cards chosen to be in Arabic 1
             class="mt-btn"
             type="button"
           >
-            تعديل الملف الشخصي
+            تعديل
           </button>
         </div>
         <p
@@ -1222,7 +1851,7 @@ exports[`the screens in Arabic > the progress 1`] = `
             class="mt-btn"
             type="button"
           >
-            تعديل الملف الشخصي
+            تعديل
           </button>
         </div>
         <p

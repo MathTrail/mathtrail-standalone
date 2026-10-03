@@ -11,6 +11,7 @@ import type { ToolCall } from "./testing/host";
 import {
 	answered,
 	dontKnowAnswer,
+	editSaved,
 	failure,
 	fence,
 	fenceInRussian,
@@ -668,6 +669,39 @@ describe("the progress", () => {
 		expect(heard.calls[1]?.arguments).toEqual({});
 	});
 
+	test("keeps a change saved on its form, and the card shows the child as the profile now says", async () => {
+		const heard = await drawCard(fence, ({ name }) =>
+			name === "read_progress"
+				? progress
+				: editSaved({ pseudonym: "Star", grade: 4 }),
+		);
+		press(topLine());
+		await vi.waitFor(() =>
+			expect(text(".mt-rank-name")).toBe("River crossing"),
+		);
+		press(button("Edit"));
+		const box = root.querySelector<HTMLInputElement>(".mt-form .mt-input");
+		act(() => {
+			if (box !== null) {
+				box.value = "Star";
+				box.dispatchEvent(new Event("input", { bubbles: true }));
+			}
+		});
+		press(button("Save"));
+		await vi.waitFor(() =>
+			expect(heard.calls.map((call) => call.name)).toContain("edit_profile"),
+		);
+		await vi.waitFor(() => expect(root.querySelector(".mt-form")).toBeNull());
+
+		press(button("Back to task"));
+
+		expect(text(".mt-bar-name")).toBe("Star");
+		expect(text(".mt-head .mt-badge")).toContain("4");
+		expect(root.querySelector(".mt-task-text")?.textContent).toBe(
+			fence.task.question,
+		);
+	});
+
 	test("that does not arrive says so", async () => {
 		await drawCard(fence, () => failure);
 
@@ -701,11 +735,11 @@ describe("the progress", () => {
 		press(topLine());
 
 		await vi.waitFor(() =>
-			expect(root.querySelector(".mt-check")).not.toBeNull(),
+			expect(root.querySelector(".mt-lead")).not.toBeNull(),
 		);
 		expect(button("Back to task")).toBeDefined();
 		press(button("Back to task"));
-		expect(root.querySelector(".mt-check")).toBeNull();
+		expect(root.querySelector(".mt-lead")).toBeNull();
 		expect(root.querySelector(".mt-option")).not.toBeNull();
 	});
 });

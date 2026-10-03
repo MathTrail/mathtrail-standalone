@@ -6,6 +6,7 @@ import {
 	cardWords,
 	dictionaries,
 	languageIn,
+	lessonLanguages,
 	ratingText,
 	useWords,
 	WordsContext,
@@ -218,5 +219,16 @@ describe("the pseudo-language", () => {
 
 		expect(shipped.has(pseudoLocale)).toBe(false);
 		expect(shipped.has("en")).toBe(true);
+	});
+});
+
+describe("the languages of the lessons", () => {
+	// A language a card cannot speak would be one its task is written in and
+	// its buttons are not.
+	test("are every language the widget is written in, and never the pseudo-language", () => {
+		expect([...lessonLanguages].sort()).toEqual(
+			[...dictionaries.keys()].filter((tag) => tag !== pseudoLocale).sort(),
+		);
+		expect(lessonLanguages).toHaveLength(22);
 	});
 });

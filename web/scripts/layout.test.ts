@@ -23,6 +23,16 @@ describe("a finding of the layout", () => {
 		);
 	});
 
+	test("is allowed for the text of a box a person types into, which scrolls", () => {
+		expect(
+			allowed({
+				what: "runs out of its box sideways",
+				where: 'input.mt-input ""',
+				by: 28,
+			}),
+		).toBe(true);
+	});
+
 	test.each<[string, Finding]>([
 		["text cut short anywhere else", cut('span.mt-badge "Grade 3"')],
 		[
@@ -36,6 +46,18 @@ describe("a finding of the layout", () => {
 		[
 			"an element whose name only begins like the pseudonym's",
 			cut('span.mt-bar-name-other "Comet"'),
+		],
+		[
+			"a box a person types into that sticks out of the card",
+			{ what: "sticks out of the card", where: 'input.mt-input ""', by: 9 },
+		],
+		[
+			"a field around the box that runs out of its own box",
+			{
+				what: "runs out of its box sideways",
+				where: 'div.mt-form-field "Language"',
+				by: 10,
+			},
 		],
 		[
 			"a page that scrolls sideways",

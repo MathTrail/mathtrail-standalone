@@ -4,9 +4,9 @@
 # from main continuously — so what matters is that anybody can check that a
 # binary came from this repository, from this workflow, at this commit.
 #
-# Nobody tags anything by hand: the version is the previous one with its patch
-# number raised, and the tag is created with the release. The button exists for
-# the release that deserves a number of its own.
+# Nobody tags anything by hand: the version is the next patch of the line the
+# releases are numbered in, and the tag is created with the release. The button
+# exists for the release that deserves a number of its own.
 name: Release
 
 on:
@@ -22,6 +22,12 @@ on:
 
 permissions:
   contents: read
+
+# The line the releases are numbered in: the major and minor version every
+# release carries, the patch counting up within it. A change that deserves a
+# new number raises it here, and the release after it is the line's first.
+env:
+  RELEASE_LINE: "0.2"
 
 # Releases queue rather than overlap: the second one has to see the version the
 # first one published before it can work out the next.
@@ -63,34 +69,15 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           fetch-depth: 0
 
+      - uses: ./.github/actions/just
+
       - name: Work out the version
         id: version
         env:
           REQUESTED: ${{ inputs.version }}
         run: |
           set -euo pipefail
-
-          if [ -n "${REQUESTED:-}" ]; then
-              version="$REQUESTED"
-          else
-              latest="$(git tag --list 'v[0-9]*' --sort=-v:refname | head -1)"
-              if [ -z "$latest" ]; then
-                  version="v0.1.0"
-              else
-                  IFS=. read -r major minor patch <<<"${latest#v}"
-                  version="v${major}.${minor}.$((patch + 1))"
-              fi
-          fi
-
-          if [[ ! "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-              echo "release: $version is not vMAJOR.MINOR.PATCH" >&2
-              exit 1
-          fi
-          if git rev-parse -q --verify "refs/tags/$version" > /dev/null; then
-              echo "release: $version is already released" >&2
-              exit 1
-          fi
-
+          version="$(just release-version "$RELEASE_LINE" "${REQUESTED:-}")"
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "releasing $version"
 
@@ -98,8 +85,6 @@ jobs:
         with:
           go-version-file: go.mod
           cache: false
-
-      - uses: ./.github/actions/just
 
       # Every binary carries the widget, and the widget is built with Node.
       - uses: ./.github/actions/node

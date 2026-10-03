@@ -1,3 +1,4 @@
+import { useState } from "preact/hooks";
 import { Note } from "../design/blocks";
 import {
 	RankList,
@@ -14,7 +15,7 @@ import type { Host } from "./bridge";
 import { CardRoot } from "./CardRoot";
 import { rankCount, rankName, topicName, trapName } from "./names";
 import { ParentData, ParentProfile } from "./ProfileScreen";
-import type { ProgressReport, Recommendation } from "./payload";
+import type { Details, ProgressReport, Recommendation } from "./payload";
 import { type Key, percentText, ratingText, useWords } from "./words";
 
 /** recentShown is how many of the latest entries the progress lists. */
@@ -44,19 +45,23 @@ export function ProgressCard({
  * what comes next, each topic met or within reach with a rank of its own, the
  * latest answers and how many tasks were left without one, the mistakes that
  * keep coming back, and the child's profile for the parent with what the
- * parent can do with the data.
+ * parent can do with the data. A change the parent saves on its form shows at
+ * once, the name and the grade at the top among it, and is handed to onSaved.
  */
 export function ProgressScreen({
 	report,
 	wide,
 	host,
+	onSaved,
 }: {
 	report: ProgressReport;
 	wide: boolean;
 	host: Host;
+	onSaved?: (details: Details) => void;
 }) {
 	const words = useWords();
-	const { profile, recommendation } = report;
+	const { recommendation } = report;
+	const [profile, setProfile] = useState(report.profile);
 	const skipped =
 		report.skipped ??
 		report.topics.reduce((sum, topic) => sum + topic.skipped, 0);
@@ -104,7 +109,14 @@ export function ProgressScreen({
 						framed
 					/>
 				)}
-				<ParentProfile details={profile} host={host} />
+				<ParentProfile
+					details={profile}
+					host={host}
+					onSaved={(saved) => {
+						setProfile(saved);
+						onSaved?.(saved);
+					}}
+				/>
 				{report.location !== undefined && (
 					<ParentData location={report.location} />
 				)}

@@ -57,7 +57,7 @@ flowchart LR
     model -. "text mode, where widgets do not render" .-> kid
     adult -. "Google sign-in and consent screen in a browser" .-> authsrv
     model -- "tool calls over HTTPS" --> router
-    appsrt -- "the child's answer and the progress, called straight from the widget" --> router
+    appsrt -- "the child's answer, the progress and the profile's form,<br/>called straight from the widget" --> router
     mcpsrv -- "ui:// · resources/read" --> appsrt
     authsrv -. "fetches the client document" .-> cimd
 
@@ -122,7 +122,7 @@ Platforms outside v1 are deliberately absent from the diagram: Gemini and DeepSe
 | **HTTP router** | The single entry point of the process: `/health`, `/mcp`, the OAuth and `.well-known` endpoints. Timeouts, body size limit, `Origin` check, client address from the last hop of `X-Forwarded-For`, own domain as the issuer | 6, 7, 9.3 | T17, T41, T47 |
 | **Authorization server** | We are our own OAuth 2.1 authorization server: resource and server metadata, CIMD with SSRF protection and DCR as a fallback, `/authorize` with a consent screen and a CSRF cookie, the Google sign-in, the callback, `/token`, refresh, revoke, and the bearer check on every request | 6, 7, 9.3 | T47–T49 |
 | **MCP server** | The protocol: Streamable HTTP 2026-07-28, stateless, on go-sdk v1.8.0; `tools/list` and `tools/call`; the `ui://` resource with its MIME type and CSP; server `instructions` with their version. The set of supported protocol versions is not narrowed (R02) | 4.1, 4.2, 7, 9.3 | T41, T42 |
-| **Tools** | The five capabilities of PRODUCT 4.1, plus the answer tool the widget calls directly (О-42); the widget also reads the progress itself (R91). Every call is the same shape: read the profile, compute, write it back. Nothing secret and nothing internal ever goes into `structuredContent` (О-39) | 3, 4.1–4.4 | T43–T45 |
+| **Tools** | The five capabilities of PRODUCT 4.1, plus the answer tool the widget calls directly (О-42); the widget also reads the progress itself (R91) and saves the profile's form itself, through a tool of its own that never makes a profile (R148). Every call is the same shape: read the profile, compute, write it back. Nothing secret and nothing internal ever goes into `structuredContent` (О-39) | 3, 4.1–4.4 | T43–T45 |
 | **Rule** | The deterministic choice of a brief: after a failure, consolidate the same topic; otherwise a new topic not seen for a while; difficulty from the 70–85 % corridor. The hint, the pace and consecutive failures change nothing but this (О-33); "I don't know" is a wrong answer (R93) | 4.3, 4.5 | T27 |
 | **Ratings** | P = 0.2 + 0.8·σ(θ + δ − β), Elo updates with a decaying step, the corridor and the recommended β, the chess scale and the rank boundaries, the criterion for a mastered topic (О-32, О-48) | 4.5 | T25 |
 | **Checks** | The pipeline a submitted task passes: structure and five distinct options, a trap and an explanation behind every wrong one, explanations distinguishable from each other (R10), readability for the grade, near-duplicates, the format of the text drawing and the match between its structural description and the wording (О-37) | 4.3 | T32–T35 |

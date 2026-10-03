@@ -28,13 +28,10 @@ import (
 // profilePayload is what the tools of the profile hand a card, as a card reads
 // it.
 type profilePayload struct {
-	Screen   string `json:"screen"`
-	Status   string `json:"status"`
-	Code     string `json:"code"`
-	Problems []struct {
-		Field string `json:"field"`
-		Rule  string `json:"rule"`
-	} `json:"problems"`
+	Screen     string           `json:"screen"`
+	Status     string           `json:"status"`
+	Code       string           `json:"code"`
+	Problems   []problemPayload `json:"problems"`
 	LastAnswer *struct {
 		TaskID  string `json:"task_id"`
 		Correct bool   `json:"correct"`
@@ -117,15 +114,18 @@ type trialPayload struct {
 	Of       int `json:"of"`
 }
 
-// A host lists the seven tools of the lesson as they are meant: four that draw
-// a card, under both keys a host reads; one that only a card calls, kept from
-// the model and drawing nothing; the one that asks for a task, which draws
-// nothing either and declares no payload, since what it hands over is for the
-// model alone and travels in its words; and the one
-// that records an answer, which the card calls as well as the model and which
-// draws nothing, since the card that sent the answer turns to its result.
-// Handing a task in is the one call that is not the same twice: each spends
-// an attempt. Every description is short enough to reach the model whole.
+// A host lists the eight tools of the lesson as they are meant: two that draw
+// a card, under both keys a host reads — the progress, and the task handed in;
+// the two of the profile, which the model reads and writes in words, drawing
+// nothing: the profile is shown at the foot of the progress; two that only a
+// card calls, kept from the model and drawing nothing — the progress opened
+// inside a card, and the change the form on it sends; the one that asks for a
+// task, which draws nothing either and declares no payload, since what it
+// hands over is for the model alone and travels in its words; and the one that
+// records an answer, which the card calls as well as the model and which draws
+// nothing, since the card that sent the answer turns to its result. Handing a
+// task in is the one call that is not the same twice: each spends an attempt.
+// Every description is short enough to reach the model whole.
 func TestTheToolsOfTheLessonAreListedAsTheyAreMeant(t *testing.T) {
 	t.Parallel()
 
@@ -138,13 +138,14 @@ func TestTheToolsOfTheLessonAreListedAsTheyAreMeant(t *testing.T) {
 	for _, tool := range listed.Tools {
 		byName[tool.Name] = tool
 	}
-	if len(byName) != 7 {
-		t.Errorf("%d tools are listed, want the seven of the lesson", len(byName))
+	if len(byName) != 8 {
+		t.Errorf("%d tools are listed, want the eight of the lesson", len(byName))
 	}
 
 	for _, want := range []listing{
-		{name: "get_profile", readOnly: true, idempotent: true, drawsCard: true},
-		{name: "save_profile", idempotent: true, drawsCard: true},
+		{name: "get_profile", readOnly: true, idempotent: true},
+		{name: "save_profile", idempotent: true},
+		{name: "edit_profile", idempotent: true, widgetOnly: true},
 		{name: "get_progress", readOnly: true, idempotent: true, drawsCard: true},
 		{name: "read_progress", readOnly: true, idempotent: true, widgetOnly: true},
 		{name: "next_task", idempotent: true, wordsOnly: true},
@@ -163,12 +164,13 @@ func TestTheToolsOfTheLessonAreListedAsTheyAreMeant(t *testing.T) {
 	}
 }
 
-// The tools that draw the profile and the progress are described as not being
-// where a lesson starts: a card of either, drawn before the task, puts the
-// adult's screen in front of the child. A task needs only next_task, which
+// The tools of the profile and the progress are described as not being where
+// a lesson starts: the progress puts the adult's screen in front of the child,
+// and the profile is the adult's business. A task needs only next_task, which
 // says when there is no profile, and the progress is shown when someone asks
-// for it.
-func TestTheAdultsCardsAreNotWhereALessonStarts(t *testing.T) {
+// for it. Neither tool of the profile draws a card, and both say so: the model
+// is the one to tell the adult what was saved, and where the form is.
+func TestTheAdultsToolsAreNotWhereALessonStarts(t *testing.T) {
 	t.Parallel()
 
 	_, session := lesson(t, memory.New())
@@ -180,12 +182,14 @@ func TestTheAdultsCardsAreNotWhereALessonStarts(t *testing.T) {
 	for _, tool := range listed.Tools {
 		described[tool.Name] = tool.Description
 	}
-	for name, want := range map[string]string{
-		"get_profile":  "a task needs only next_task",
-		"get_progress": "Call it only when someone asks to see the progress",
+	for _, want := range []struct{ name, says string }{
+		{"get_profile", "a task needs only next_task"},
+		{"get_profile", "It draws no card: the adult sees the profile, and changes it with a form, at the foot of the progress"},
+		{"save_profile", "No card is drawn: say in a sentence what was saved."},
+		{"get_progress", "Call it only when someone asks to see the progress"},
 	} {
-		if description, listed := described[name]; !listed || !strings.Contains(description, want) {
-			t.Errorf("%s is described as %q (listed: %v), want it listed and saying %q", name, description, listed, want)
+		if description, listed := described[want.name]; !listed || !strings.Contains(description, want.says) {
+			t.Errorf("%s is described as %q (listed: %v), want it listed and saying %q", want.name, description, listed, want.says)
 		}
 	}
 }
@@ -318,6 +322,23 @@ func TestWithNoProfileEveryReaderSaysSo(t *testing.T) {
 	}
 }
 
+// A profile is made in the chat, so the words of a first sign-in lead the
+// conversation that makes it: the adult says first that they are the child's
+// parent or tutor, and only then is asked for a pseudonym — never the child's
+// name, age or school.
+func TestTheFirstSignInLeadsTheConversationThatMakesAProfile(t *testing.T) {
+	t.Parallel()
+
+	_, session := lesson(t, memory.New())
+	text := textOf(t, call(t, session, "get_profile", nil))
+	confirm := strings.Index(text, "First ask the adult to say they are the child's parent or tutor")
+	pseudonym := strings.Index(text, "Then ask for a pseudonym — never the child's real name, birth date, age or school")
+	create := strings.Index(text, "Then create the profile with save_profile")
+	if confirm < 0 || pseudonym <= confirm || create <= pseudonym {
+		t.Errorf("the words are %q, want the adult's word first, then the pseudonym alone, then the profile made", text)
+	}
+}
+
 // A profile is not made without a pseudonym and a grade: the call is refused
 // field by field, and nothing is kept.
 func TestAProfileIsNotMadeWithoutAPseudonymAndAGrade(t *testing.T) {
@@ -331,21 +352,13 @@ func TestAProfileIsNotMadeWithoutAPseudonymAndAGrade(t *testing.T) {
 		t.Errorf("status %q, code %q, screen %q; want rejected, invalid_profile, first_run",
 			refused.Status, refused.Code, refused.Screen)
 	}
-	if got := problemFields(&refused); !slices.Equal(got, []string{"grade", "pseudonym"}) {
-		t.Errorf("problems with %v, want grade and pseudonym", got)
+	want := []problemPayload{{Field: "grade", Code: "out_of_range"}, {Field: "pseudonym", Code: "required"}}
+	if got := withoutRules(refused.Problems); !slices.Equal(got, want) {
+		t.Errorf("problems %+v, want %+v", got, want)
 	}
 	if _, _, err := kept.Load(t.Context(), devAccount); !errors.Is(err, store.ErrNotFound) {
 		t.Errorf("Load() after a refusal error = %v, want no profile kept", err)
 	}
-}
-
-// problemFields names the fields a refusal found a problem with.
-func problemFields(payload *profilePayload) []string {
-	fields := make([]string, 0, len(payload.Problems))
-	for _, problem := range payload.Problems {
-		fields = append(fields, problem.Field)
-	}
-	return fields
 }
 
 // A profile made of a pseudonym and a grade starts where the grade puts it, in
@@ -393,8 +406,9 @@ func TestARefusedEditWritesNothingAndRepeatsNothing(t *testing.T) {
 	notes := strings.Repeat("Loves long sums. ", 40)
 	result := call(t, session, "save_profile", map[string]any{"grade": 9, "notes": notes})
 	payload := payloadOf[profilePayload](t, result)
-	if fields := problemFields(&payload); payload.Status != "rejected" || !slices.Equal(fields, []string{"grade", "notes"}) {
-		t.Errorf("status %q with problems %v, want rejected with grade and notes", payload.Status, fields)
+	want := []problemPayload{{Field: "grade", Code: "out_of_range"}, {Field: "notes", Code: "too_long"}}
+	if got := withoutRules(payload.Problems); payload.Status != "rejected" || !slices.Equal(got, want) {
+		t.Errorf("status %q with problems %+v, want rejected with %+v", payload.Status, got, want)
 	}
 	if payload.Profile == nil || payload.Recommendation == nil || payload.Trial == nil {
 		t.Errorf("profile %v, recommendation %v, trial %v; want the profile kept shown whole beside the refusal",
@@ -704,6 +718,8 @@ func TestAStoreThatFailsIsToldInOurWords(t *testing.T) {
 	}
 	wantOurSentence(t, call(t, session, "save_profile", map[string]any{"grade": 2}),
 		"Something went wrong inside MathTrail.")
+	wantOurSentence(t, call(t, session, "edit_profile", map[string]any{"grade": 2}),
+		"Something went wrong inside MathTrail.")
 	wantOurSentence(t, call(t, session, "next_task", map[string]any{"language": "en"}),
 		"Something went wrong inside MathTrail.")
 	wantOurSentence(t, call(t, session, "submit_task", raceOn(openRace(t))),
@@ -764,6 +780,8 @@ func TestNothingTheParentTypedReachesASpanOrALine(t *testing.T) {
 	h, session := lesson(t, memory.New())
 	call(t, session, "save_profile", map[string]any{"pseudonym": name, "grade": 2, "interests": []string{interest}, "notes": notes})
 	call(t, session, "save_profile", map[string]any{"pseudonym": name + name + name, "notes": strings.Repeat(notes, 40)})
+	call(t, session, "edit_profile", map[string]any{"interests": []string{interest, interest + interest}})
+	call(t, session, "edit_profile", map[string]any{"pseudonym": name + name + name, "interests": []string{strings.Repeat(interest, 3)}})
 	for _, tool := range []string{"get_profile", "get_progress", "read_progress"} {
 		call(t, session, tool, nil)
 	}
@@ -901,5 +919,38 @@ func TestAMapWithNoMistakeIsEmpty(t *testing.T) {
 				t.Errorf("the words name mistakes when there are none: %s", textOf(t, result))
 			}
 		})
+	}
+}
+
+// The tools only a card calls are never named to the model in the server's
+// instructions: it would call one, and a host that keeps them from it would
+// refuse the call, or let through a change the adult never made on a form.
+// Which tools those are is read from how each is listed.
+func TestTheInstructionsNameNoToolOnlyACardCalls(t *testing.T) {
+	t.Parallel()
+
+	_, session := lesson(t, memory.New())
+	listed, err := session.ListTools(t.Context(), nil)
+	if err != nil {
+		t.Fatalf("ListTools() error = %v", err)
+	}
+	loaded, err := shipped()
+	if err != nil {
+		t.Fatalf("load the content: %v", err)
+	}
+	text := loaded.ServerInstructions()
+	cardOnly := 0
+	for _, tool := range listed.Tools {
+		ui, _ := tool.Meta["ui"].(map[string]any)
+		if visibility, _ := json.Marshal(ui["visibility"]); string(visibility) != `["app"]` {
+			continue
+		}
+		cardOnly++
+		if strings.Contains(text, tool.Name) {
+			t.Errorf("the server instructions name %s, which only a card calls", tool.Name)
+		}
+	}
+	if cardOnly == 0 {
+		t.Error("no tool is listed for a card alone, want the ones only a card calls checked")
 	}
 }

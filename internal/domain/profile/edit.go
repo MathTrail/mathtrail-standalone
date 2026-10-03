@@ -91,8 +91,8 @@ func (s *Student) editSkills(given []string, known func(skill string) bool) []Pr
 	// Checked where each entry stood in what was sent, so that the entry a
 	// refusal names is the one the model wrote there.
 	cleaned := typedEach(given)
-	if rule := catalogRule(cleaned, known); rule != "" {
-		return []Problem{{Field: "excluded_skills", Rule: rule}}
+	if broken := catalogRule(cleaned, known); broken.Code != "" {
+		return []Problem{{Field: "excluded_skills", Broken: broken}}
 	}
 	s.ExcludedSkills = distinct(cleaned)
 	return nil
@@ -104,10 +104,10 @@ func (s *Student) editLanguage(given *string) []Problem {
 	if given == nil {
 		return nil
 	}
-	tag, rule := LanguageTag(*given)
+	tag, broken := LanguageTag(*given)
 	switch {
-	case rule != "":
-		return []Problem{{Field: "ui_language", Rule: rule}}
+	case broken.Code != "":
+		return []Problem{{Field: "ui_language", Broken: broken}}
 	case tag == "":
 		s.UILanguage = nil
 	default:
@@ -230,13 +230,13 @@ func distinct(entries []string) []string {
 // catalog, by its place rather than by what it says: a model resending a list
 // that holds a skill the catalog has since dropped learns which one to leave
 // out.
-func catalogRule(skills []string, known func(skill string) bool) string {
+func catalogRule(skills []string, known func(skill string) bool) Broken {
 	for place, skill := range skills {
 		if !known(skill) {
-			return fmt.Sprintf("must name skills of the catalog, by their ids; entry %d names none", place+1)
+			return Broken{CodeNotInCatalog, fmt.Sprintf("must name skills of the catalog, by their ids; entry %d names none", place+1)}
 		}
 	}
-	return ""
+	return Broken{}
 }
 
 // notLanguages are the codes of BCP 47 that name no language a card could be
@@ -255,18 +255,18 @@ var notLanguages = []language.Base{
 // broke, in words that never repeat the text. An empty text is no tag and
 // breaks no rule here: what "none" means — the chat's language for the lessons,
 // a missing argument for a task — is the caller's to say.
-func LanguageTag(text string) (tag, rule string) {
+func LanguageTag(text string) (string, Broken) {
 	text = strings.TrimSpace(text)
 	if text == "" {
-		return "", ""
+		return "", Broken{}
 	}
 	if count := utf8.RuneCountInString(text); count > MaxLanguageTag {
-		return "", fmt.Sprintf("must be at most %d characters, not %d", MaxLanguageTag, count)
+		return "", Broken{CodeTooLong, fmt.Sprintf("must be at most %d characters, not %d", MaxLanguageTag, count)}
 	}
 	parsed, err := language.Parse(text)
 	base, confidence := parsed.Base()
 	if err != nil || confidence != language.Exact || slices.Contains(notLanguages, base) {
-		return "", "must be a BCP 47 tag that names a language, such as en, ru or pt-BR"
+		return "", Broken{CodeNotALanguage, "must be a BCP 47 tag that names a language, such as en, ru or pt-BR"}
 	}
-	return parsed.String(), ""
+	return parsed.String(), Broken{}
 }

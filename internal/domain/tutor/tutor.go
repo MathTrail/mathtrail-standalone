@@ -105,18 +105,19 @@ func (c *Choice) problems(catalog Catalog, suggested string) []profile.Problem {
 	if c.Topic != "" {
 		topic = c.Topic
 		if len(catalog.LevelsOf(c.Topic)) == 0 {
-			found = append(found, profile.Problem{Field: "topic", Rule: "must be a topic of the catalog, by its id"})
+			found = append(found, profile.Problem{Field: "topic", Broken: profile.Broken{
+				Code: profile.CodeNotInCatalog, Rule: "must be a topic of the catalog, by its id"}})
 		}
 	}
-	if rule := c.levelRule(catalog, topic, suggested); rule != "" {
-		found = append(found, profile.Problem{Field: "grade_level", Rule: rule})
+	if broken := c.levelRule(catalog, topic, suggested); broken.Code != "" {
+		found = append(found, profile.Problem{Field: "grade_level", Broken: broken})
 	}
 	if c.Difficulty != 0 && (c.Difficulty < profile.MinDifficulty || c.Difficulty > profile.MaxDifficulty) {
-		found = append(found, profile.Problem{Field: "difficulty", Rule: fmt.Sprintf(
-			"must be from %d to %d", profile.MinDifficulty, profile.MaxDifficulty)})
+		found = append(found, profile.Problem{Field: "difficulty", Broken: profile.Broken{
+			Code: profile.CodeOutOfRange, Rule: fmt.Sprintf("must be from %d to %d", profile.MinDifficulty, profile.MaxDifficulty)}})
 	}
-	if rule := c.reasonRule(); rule != "" {
-		found = append(found, profile.Problem{Field: "reason", Rule: rule})
+	if broken := c.reasonRule(); broken.Code != "" {
+		found = append(found, profile.Problem{Field: "reason", Broken: broken})
 	}
 	return found
 }
@@ -125,21 +126,22 @@ func (c *Choice) problems(catalog Catalog, suggested string) []profile.Problem {
 // held to the topic it will be set on: the model's own, or the rule's when the
 // model named none, which the rule names back so that the model can pick a
 // topic that fits instead.
-func (c *Choice) levelRule(catalog Catalog, topic, suggested string) string {
+func (c *Choice) levelRule(catalog Catalog, topic, suggested string) profile.Broken {
 	levels := catalog.LevelsOf(topic)
 	switch {
 	case c.GradeLevel == "":
-		return ""
+		return profile.Broken{}
 	case !c.GradeLevel.Known():
-		return fmt.Sprintf("must be one of %s", joined(rating.GradeLevels()))
+		return profile.Broken{Code: profile.CodeNotOneOf, Rule: fmt.Sprintf("must be one of %s", joined(rating.GradeLevels()))}
 	case len(levels) == 0 || slices.Contains(levels, c.GradeLevel):
 		// An unknown topic is refused as a topic; its levels are nobody's.
-		return ""
+		return profile.Broken{}
 	case c.Topic == "":
-		return fmt.Sprintf("must be a level the rule's topic, %s, is taught at: %s; or name a topic taught at this level",
-			suggested, joined(levels))
+		return profile.Broken{Code: profile.CodeNotTaught, Rule: fmt.Sprintf(
+			"must be a level the rule's topic, %s, is taught at: %s; or name a topic taught at this level",
+			suggested, joined(levels))}
 	}
-	return fmt.Sprintf("must be a level the topic is taught at: %s", joined(levels))
+	return profile.Broken{Code: profile.CodeNotTaught, Rule: fmt.Sprintf("must be a level the topic is taught at: %s", joined(levels))}
 }
 
 // reasonRule is the rule the model's reason breaks, or nothing. A reason with
@@ -147,17 +149,18 @@ func (c *Choice) levelRule(catalog Catalog, topic, suggested string) string {
 // reason is counted as it will be kept — cleaned as any text typed into the
 // file is — so that nothing unseen pads it past its limit or reorders it where
 // it is read.
-func (c *Choice) reasonRule() string {
+func (c *Choice) reasonRule() profile.Broken {
 	if !c.Made() {
-		return ""
+		return profile.Broken{}
 	}
 	switch count := utf8.RuneCountInString(profile.Typed(c.Reason)); {
 	case count == 0:
-		return "is required with a topic, a level or a difficulty of your own: say in a sentence why the child needs it now"
+		return profile.Broken{Code: profile.CodeRequired, Rule: "is required with a topic, a level or a difficulty of " +
+			"your own: say in a sentence why the child needs it now"}
 	case count > MaxReason:
-		return fmt.Sprintf("must be at most %d characters, not %d", MaxReason, count)
+		return profile.Broken{Code: profile.CodeTooLong, Rule: fmt.Sprintf("must be at most %d characters, not %d", MaxReason, count)}
 	}
-	return ""
+	return profile.Broken{}
 }
 
 // joined lists levels the way a sentence does.

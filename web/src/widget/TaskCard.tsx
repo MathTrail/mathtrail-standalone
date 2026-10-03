@@ -98,10 +98,10 @@ export function TaskCard({ handed, host }: { handed: HandedTask; host: Host }) {
 
 	return (
 		<CardFrame child={child} back={words.text("progress.back")} host={host}>
-			{(wide) => (
+			{(wide, whose) => (
 				<>
 					<article aria-label={words.text("task.label")}>
-						<CardHeader grade={child.grade} wide={wide} />
+						<CardHeader grade={whose?.grade} wide={wide} />
 						<TaskBody
 							handed={handed}
 							lesson={lesson}

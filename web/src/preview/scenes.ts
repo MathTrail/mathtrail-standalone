@@ -5,6 +5,9 @@ import type { AnswerResult } from "../widget/payload";
 import {
 	answered,
 	atTheTop,
+	editGone,
+	editRefused,
+	editSaved,
 	exhausted,
 	failure,
 	fence,
@@ -219,12 +222,43 @@ export function scenesIn(language: string): Scene[] {
 			},
 		},
 		{ name: "profile, a change refused", payload: profileRefused },
-		{ name: "first sign-in", payload: firstRun },
+		{ name: "profile form", payload: standing, play: inTheForm() },
 		{
-			name: "first sign-in, ticked and asked",
-			payload: firstRun,
-			play: askForProfile,
+			name: "profile form, long texts",
+			payload: longProgress,
+			play: inTheForm(),
 		},
+		{
+			name: "profile form, refused field by field",
+			payload: standing,
+			answers: () => Promise.resolve(editRefused),
+			play: inTheForm(renamed, saved),
+		},
+		{
+			name: "profile form, saving",
+			payload: standing,
+			answers: () => never,
+			play: inTheForm(renamed, saved),
+		},
+		{
+			name: "profile form, not saved",
+			payload: standing,
+			answers: () => Promise.resolve(failure),
+			play: inTheForm(renamed, saved),
+		},
+		{
+			name: "profile saved, the language changed",
+			payload: standing,
+			answers: () => Promise.resolve(editSaved({ ui_language: "fr" })),
+			play: inTheForm(inFrench, saved),
+		},
+		{
+			name: "profile gone",
+			payload: standing,
+			answers: () => Promise.resolve(editGone),
+			play: inTheForm(renamed, saved),
+		},
+		{ name: "first sign-in", payload: firstRun },
 		{ name: "first sign-in, a profile refused", payload: firstRunRefused },
 		{ name: "a card it cannot show", payload: { screen: "result" } },
 		{ name: "long texts", payload: longTexts },
@@ -364,11 +398,39 @@ function rankedAt(topic: string, at: number) {
 	};
 }
 
-// askForProfile ticks the adult's statement and asks for the profile.
-function askForProfile(card: Document) {
-	card.querySelector<HTMLElement>(".mt-check span")?.click();
-	// The button is switched on once the card has taken the tick in.
-	setTimeout(() => {
-		card.querySelector<HTMLElement>(".mt-btn-primary")?.click();
-	});
+// inTheForm opens the form at the foot of the progress and does each step on
+// it in turn, each once the card has taken the one before in.
+function inTheForm(...steps: ((card: Document) => void)[]) {
+	return (card: Document) => {
+		card.querySelector<HTMLElement>(".mt-fields-head .mt-btn")?.click();
+		let after = 0;
+		for (const step of steps) {
+			after += 100;
+			setTimeout(() => step(card), after);
+		}
+	};
+}
+
+// renamed types another pseudonym into the form, as a person does.
+function renamed(card: Document) {
+	const box = card.querySelector<HTMLInputElement>(".mt-form .mt-input");
+	if (box !== null) {
+		box.value = "Nova";
+		box.dispatchEvent(new Event("input", { bubbles: true }));
+	}
+}
+
+// inFrench chooses French for the lessons.
+function inFrench(card: Document) {
+	const lists = card.querySelectorAll<HTMLSelectElement>(".mt-form select");
+	const language = lists[lists.length - 1];
+	if (language !== undefined) {
+		language.value = "fr";
+		language.dispatchEvent(new Event("change", { bubbles: true }));
+	}
+}
+
+// saved presses the form's button that saves it.
+function saved(card: Document) {
+	card.querySelector<HTMLElement>(".mt-form .mt-btn-primary")?.click();
 }

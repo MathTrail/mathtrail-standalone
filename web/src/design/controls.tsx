@@ -1,4 +1,5 @@
 import type { ComponentChildren, Ref } from "preact";
+import { useEffect, useId, useRef } from "preact/hooks";
 import { classes } from "./classes";
 import { Icon, type IconName } from "./icons";
 
@@ -195,5 +196,309 @@ export function Checkbox({
 			/>
 			<span>{label}</span>
 		</label>
+	);
+}
+
+/**
+ * Told is what is said under a field: a line of explanation, and what is wrong
+ * with what it holds. Each is read out with the field, by the ids it is given.
+ */
+type Told = { note?: string; problem?: string };
+
+// toldUnder are the lines said under the field id, and the ids a control
+// names them by for a screen reader, or undefined when there is nothing to
+// say.
+function toldUnder(
+	id: string,
+	{ note, problem }: Told,
+): { ids: string | undefined; lines: ComponentChildren } {
+	const ids = [
+		note !== undefined && `${id}-note`,
+		problem !== undefined && `${id}-problem`,
+	].filter((named): named is string => named !== false);
+	return {
+		ids: ids.length > 0 ? ids.join(" ") : undefined,
+		lines: (
+			<>
+				{note !== undefined && (
+					<p id={`${id}-note`} class="mt-field-note">
+						{note}
+					</p>
+				)}
+				{problem !== undefined && (
+					<p id={`${id}-problem`} class="mt-field-problem">
+						{problem}
+					</p>
+				)}
+			</>
+		),
+	};
+}
+
+/**
+ * TextField is a line of text a person types, under its name. Its text is held
+ * by whoever draws it, and is never longer than most characters, each counted
+ * as withinLength counts it. Enter does what onEnter says, unless it only
+ * closes a word being composed, as it does in the input methods of Chinese and
+ * Japanese.
+ */
+export function TextField({
+	label,
+	value,
+	most,
+	note,
+	problem,
+	onInput,
+	onEnter,
+	inputRef,
+}: Told & {
+	label: string;
+	value: string;
+	most: number;
+	onInput: (value: string) => void;
+	onEnter?: () => void;
+	inputRef?: Ref<HTMLInputElement>;
+}) {
+	const id = useId();
+	const told = toldUnder(id, { note, problem });
+	return (
+		<div class="mt-form-field">
+			<label for={id} class="mt-form-label">
+				{label}
+			</label>
+			<input
+				id={id}
+				ref={inputRef}
+				type="text"
+				class="mt-input"
+				value={value}
+				aria-invalid={problem !== undefined ? "true" : undefined}
+				aria-describedby={told.ids}
+				onInput={(event) =>
+					onInput(withinLength(event.currentTarget.value, most))
+				}
+				onKeyDown={(event) => {
+					if (event.key === "Enter" && !event.isComposing) {
+						event.preventDefault();
+						onEnter?.();
+					}
+				}}
+			/>
+			{told.lines}
+		</div>
+	);
+}
+
+/**
+ * withinLength is text cut to at most most characters, a character counted as
+ * one however many units of the page's strings it takes — an emoji is one —
+ * as a profile counts it. A box's own limit counts those units instead, and
+ * would cut an emoji pseudonym the profile takes at half its length.
+ */
+export function withinLength(text: string, most: number): string {
+	const characters = [...text];
+	return characters.length > most ? characters.slice(0, most).join("") : text;
+}
+
+/** Choice is one of the values a list offers: the value, and its words. */
+export type Choice = { value: string; label: string };
+
+/**
+ * SelectField is one value chosen from a list, under its name: the platform's
+ * own list, which a phone opens as a list of its own the width of the screen.
+ */
+export function SelectField({
+	label,
+	value,
+	choices,
+	note,
+	problem,
+	onChange,
+}: Told & {
+	label: string;
+	value: string;
+	choices: readonly Choice[];
+	onChange: (value: string) => void;
+}) {
+	const id = useId();
+	const told = toldUnder(id, { note, problem });
+	return (
+		<div class="mt-form-field">
+			<label for={id} class="mt-form-label">
+				{label}
+			</label>
+			<select
+				id={id}
+				class="mt-input mt-select"
+				value={value}
+				aria-invalid={problem !== undefined ? "true" : undefined}
+				aria-describedby={told.ids}
+				onChange={(event) => onChange(event.currentTarget.value)}
+			>
+				{choices.map((choice) => (
+					<option key={choice.value} value={choice.value}>
+						{choice.label}
+					</option>
+				))}
+			</select>
+			{told.lines}
+		</div>
+	);
+}
+
+/**
+ * ChipsField is a list of short texts a person adds to and takes from, under
+ * its name: each text drawn apart with a button that takes it out, and a line
+ * to type the next one into, added with its button or with Enter. A list as
+ * long as it may be takes no more, and says so. The focus stays where the next text
+ * is typed once one is added or taken out — the button pressed for it may have
+ * gone, or been switched off — or, the list full and the line shut, on the
+ * button that takes the last one out.
+ */
+export function ChipsField({
+	label,
+	chips,
+	typed,
+	most,
+	longest,
+	typeLabel,
+	addLabel,
+	removeLabel,
+	fullNote,
+	problem,
+	onType,
+	onAdd,
+	onRemove,
+}: {
+	label: string;
+	chips: readonly string[];
+	typed: string;
+	most: number;
+	longest: number;
+	typeLabel: string;
+	addLabel: string;
+	removeLabel: (chip: string) => string;
+	fullNote: string;
+	problem?: string;
+	onType: (typed: string) => void;
+	onAdd: () => void;
+	onRemove: (chip: string) => void;
+}) {
+	const id = useId();
+	const full = chips.length >= most;
+	const told = toldUnder(id, { note: full ? fullNote : undefined, problem });
+	const input = useRef<HTMLInputElement>(null);
+	const list = useRef<HTMLUListElement>(null);
+	const moving = useRef(false);
+	useEffect(() => {
+		if (!moving.current) {
+			return;
+		}
+		moving.current = false;
+		const last = list.current?.querySelector<HTMLButtonElement>(
+			"li:last-child .mt-chip-remove",
+		);
+		(full ? last : input.current)?.focus({ preventScroll: true });
+	});
+	const add = () => {
+		// Only an add that changes something draws the list again.
+		moving.current = !full && typed.trim() !== "";
+		onAdd();
+	};
+	const remove = (chip: string) => {
+		moving.current = true;
+		onRemove(chip);
+	};
+	return (
+		<fieldset class="mt-form-field" aria-describedby={told.ids}>
+			<legend class="mt-form-label">{label}</legend>
+			{chips.length > 0 && (
+				<ul class="mt-chips" ref={list}>
+					{chips.map((chip) => (
+						<li key={chip} class="mt-chip mt-chip-removable">
+							<span class="mt-chip-text">{chip}</span>
+							<button
+								type="button"
+								class="mt-chip-remove"
+								aria-label={removeLabel(chip)}
+								onClick={() => remove(chip)}
+							>
+								<Icon name="cross" size={14} />
+							</button>
+						</li>
+					))}
+				</ul>
+			)}
+			<div class="mt-add">
+				<label for={id} class="mt-vh">
+					{typeLabel}
+				</label>
+				<input
+					id={id}
+					ref={input}
+					type="text"
+					class="mt-input"
+					value={typed}
+					disabled={full}
+					onInput={(event) =>
+						onType(withinLength(event.currentTarget.value, longest))
+					}
+					onKeyDown={(event) => {
+						if (event.key === "Enter" && !event.isComposing) {
+							event.preventDefault();
+							add();
+						}
+					}}
+				/>
+				<Button disabled={full || typed.trim() === ""} onClick={add}>
+					{addLabel}
+				</Button>
+			</div>
+			{told.lines}
+		</fieldset>
+	);
+}
+
+/**
+ * CheckGroup is a list of statements under its name, each ticked on its own:
+ * the names of what is ticked are value.
+ */
+export function CheckGroup({
+	legend,
+	choices,
+	value,
+	problem,
+	onChange,
+}: {
+	legend: string;
+	choices: readonly Choice[];
+	value: readonly string[];
+	problem?: string;
+	onChange: (value: string[]) => void;
+}) {
+	const id = useId();
+	const told = toldUnder(id, { problem });
+	const ticked = new Set(value);
+	return (
+		<fieldset class="mt-form-field" aria-describedby={told.ids}>
+			<legend class="mt-form-label">{legend}</legend>
+			<div class="mt-checks">
+				{choices.map((choice) => (
+					<Checkbox
+						key={choice.value}
+						label={choice.label}
+						checked={ticked.has(choice.value)}
+						onChange={(checked) =>
+							onChange(
+								checked
+									? [...value, choice.value]
+									: value.filter((named) => named !== choice.value),
+							)
+						}
+					/>
+				))}
+			</div>
+			{told.lines}
+		</fieldset>
 	);
 }

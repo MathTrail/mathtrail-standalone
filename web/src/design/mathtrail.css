@@ -13,7 +13,8 @@
 	-webkit-font-smoothing: antialiased;
 }
 .mt button,
-.mt input {
+.mt input,
+.mt select {
 	font-family: inherit;
 }
 .mt-vh {
@@ -943,6 +944,155 @@
 .mt-check input:focus-visible {
 	outline: 2px solid var(--accent);
 	outline-offset: 2px;
+}
+
+/* The form the parent changes the profile with, in the frame of its fields:
+   each field under its name, a box to type in a finger's height, and what the
+   service refused of a field said under it. The text in a box is 16px: a
+   phone zooms in on a smaller one as it is touched. */
+.mt-form {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 12px;
+}
+.mt-form-fields {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+/* Fields locked for the moment a form is saved look as they did, as a locked
+   button does: the moment is short, and a form that dimmed for it would
+   flicker. */
+.mt-form-fields:disabled :disabled {
+	opacity: 1;
+	cursor: default;
+}
+.mt-form-field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+.mt-form-label {
+	padding: 0;
+	font-size: 13px;
+	line-height: 18px;
+	font-weight: 600;
+	color: var(--text-muted);
+	overflow-wrap: break-word;
+}
+.mt-input {
+	width: 100%;
+	min-width: 0;
+	height: var(--tap-target);
+	padding-block: 0;
+	padding-inline: 12px;
+	border: 1px solid var(--border-strong);
+	border-radius: var(--radius-control);
+	background: var(--surface);
+	color: var(--text);
+	font-family: inherit;
+	font-size: 16px;
+	line-height: 22px;
+}
+.mt-input:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 1px;
+}
+.mt-input[aria-invalid="true"] {
+	border-color: var(--wrong);
+}
+.mt-input:disabled {
+	opacity: 0.5;
+}
+.mt-select {
+	cursor: pointer;
+	text-overflow: ellipsis;
+	contain: paint;
+}
+.mt-field-problem {
+	margin: 0;
+	font-size: 13px;
+	line-height: 18px;
+	color: var(--wrong);
+	overflow-wrap: break-word;
+}
+.mt-chip-removable {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+	padding-inline-end: 2px;
+}
+.mt-chip-text {
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+.mt-chip-remove {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	flex-shrink: 0;
+	padding: 0;
+	border: 0;
+	border-radius: var(--radius-pill);
+	background: transparent;
+	color: var(--text-muted);
+	cursor: pointer;
+}
+.mt-add {
+	display: flex;
+	gap: 8px;
+}
+.mt-add .mt-input {
+	flex: 1 1 auto;
+}
+.mt-add .mt-btn {
+	flex-shrink: 0;
+}
+/* The skills stand in a column on a phone and side by side where they fit. */
+.mt-checks {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+	column-gap: 16px;
+}
+.mt-form-actions {
+	display: flex;
+	flex-direction: column;
+}
+.mt-form-actions > * + *:not(:empty) {
+	margin-block-start: 8px;
+}
+/* The buttons of the form wrap their words rather than run out of a narrow
+   card, as the button at the head of the fields does. */
+.mt-form-actions .mt-btn {
+	height: auto;
+	min-height: var(--tap-target);
+	max-width: 100%;
+	white-space: normal;
+}
+/* What a frame of fields says in place of its fields. */
+.mt-fields-said {
+	margin: 0;
+	padding: 12px;
+	font-size: 15px;
+	line-height: 22px;
+	color: var(--text);
+	overflow-wrap: break-word;
+}
+@media (hover: hover) {
+	.mt-chip-remove:hover {
+		background: var(--hover);
+	}
 }
 
 /* Waiting: the course a task takes, step by step under its title. */

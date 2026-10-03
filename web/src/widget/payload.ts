@@ -194,6 +194,76 @@ const details = child.extend({
  */
 export type Details = z.infer<typeof details>;
 
+/**
+ * Problem is a field a change from the form broke a rule of: the field, as
+ * the service names it, and the code of the rule, which the card says in its
+ * own words. A code the card has no words for is said in words that fit any.
+ */
+export type Problem = { field: string; code: string };
+
+const edited = z.object({
+	status: z.string().optional(),
+	code: z.string().optional(),
+	problems: z
+		.array(z.object({ field: z.string(), code: z.string().catch("") }))
+		.default([]),
+	changed: z.boolean().default(false),
+	profile: details.nullish(),
+});
+
+/**
+ * EditOutcome is how a change sent from the form ended: saved, with the details
+ * as they now stand and, when something changed, the words for the model;
+ * refused, field by field; refused because the profile is not there any
+ * more; or not saved at all, and worth sending again.
+ */
+export type EditOutcome =
+	| { kind: "saved"; details: Details; told: string | undefined }
+	| { kind: "refused"; problems: readonly Problem[] }
+	| { kind: "gone" }
+	| { kind: "failed" };
+
+/**
+ * readEdited is the outcome of a change sent from the form, read from the
+ * result the service returned. A failure of the service and anything that does
+ * not read are a change not saved.
+ */
+export function readEdited(result: CallToolResult): EditOutcome {
+	if (result.isError === true) {
+		return { kind: "failed" };
+	}
+	const read = edited.safeParse(result.structuredContent);
+	if (!read.success) {
+		return { kind: "failed" };
+	}
+	const { status, code, problems, changed, profile } = read.data;
+	if (status === "stale" && code === "stale_profile") {
+		return { kind: "gone" };
+	}
+	if (status === "rejected" && problems.length > 0) {
+		return { kind: "refused", problems };
+	}
+	if (status !== undefined || profile === null || profile === undefined) {
+		return { kind: "failed" };
+	}
+	return {
+		kind: "saved",
+		details: profile,
+		told: changed ? wordsOf(result) : undefined,
+	};
+}
+
+// wordsOf is the text a result gives the model, or undefined when it gives
+// none.
+function wordsOf(result: CallToolResult): string | undefined {
+	for (const block of result.content) {
+		if (block.type === "text" && block.text !== "") {
+			return block.text;
+		}
+	}
+	return undefined;
+}
+
 const trial = z.object({ answered: z.number().int(), of: z.number().int() });
 
 const recommendation = z.object({

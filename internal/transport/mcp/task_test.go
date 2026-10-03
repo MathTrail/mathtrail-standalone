@@ -151,6 +151,7 @@ type refusedRequestPayload struct {
 	Code     string `json:"code"`
 	Problems []struct {
 		Field string `json:"field"`
+		Code  string `json:"code"`
 	} `json:"problems"`
 }
 
@@ -706,31 +707,49 @@ func TestAskingAgainGivesTheSameRequest(t *testing.T) {
 }
 
 // Arguments no request can be opened from are refused one by one in the
-// service's words, and nothing is written: the language a task is to be
-// written in, always, and a choice of the model's own that the catalog can
-// carry, with its reason.
+// service's words, each by the code of the rule it broke, and nothing is
+// written: the language a task is to be written in, always, and a choice of
+// the model's own that the catalog can carry, with its reason.
 func TestArgumentsNoRequestCanBeOpenedFromAreRefused(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []struct {
 		name      string
 		arguments map[string]any
-		fields    []string
+		problems  []string
 	}{
-		{"no language", map[string]any{"language": ""}, []string{"language"}},
-		{"not a language", map[string]any{"language": "not a language"}, []string{"language"}},
-		{"a topic with no reason", map[string]any{"language": "en", "topic": "time.clocks"}, []string{"reason"}},
-		{"a topic of spaces", map[string]any{"language": "en", "topic": "  "}, []string{"topic", "reason"}},
-		{"a topic nobody has", map[string]any{"language": "en", "topic": "astronomy.stars", "reason": "stars"}, []string{"topic"}},
+		{"no language", map[string]any{"language": ""}, []string{"language required"}},
+		{"not a language", map[string]any{"language": "not a language"}, []string{"language not_a_language"}},
+		{"a topic with no reason", map[string]any{"language": "en", "topic": "time.clocks"}, []string{"reason required"}},
+		{
+			"a topic of spaces",
+			map[string]any{"language": "en", "topic": "  "},
+			[]string{"topic not_in_catalog", "reason required"},
+		},
+		{
+			"a topic nobody has",
+			map[string]any{"language": "en", "topic": "astronomy.stars", "reason": "stars"},
+			[]string{"topic not_in_catalog"},
+		},
+		{
+			"a level nobody has",
+			map[string]any{"language": "en", "grade_level": "7-8", "reason": "older"},
+			[]string{"grade_level not_one_of"},
+		},
 		{
 			"a level the topic is not taught at",
 			map[string]any{"language": "en", "topic": "percent.basic", "grade_level": "1-2", "reason": "easier"},
-			[]string{"grade_level"},
+			[]string{"grade_level not_taught"},
+		},
+		{
+			"a reason past its length",
+			map[string]any{"language": "en", "topic": "time.clocks", "reason": strings.Repeat("why ", 100)},
+			[]string{"reason too_long"},
 		},
 		{
 			"everything at once",
 			map[string]any{"language": "", "topic": "astronomy.stars", "difficulty": 9},
-			[]string{"language", "topic", "difficulty", "reason"},
+			[]string{"language required", "topic not_in_catalog", "difficulty out_of_range", "reason required"},
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -741,12 +760,12 @@ func TestArgumentsNoRequestCanBeOpenedFromAreRefused(t *testing.T) {
 			_, revision := loadKept(t, kept)
 
 			got := payloadOf[refusedRequestPayload](t, call(t, session, "next_task", tc.arguments))
-			fields := make([]string, 0, len(got.Problems))
+			problems := make([]string, 0, len(got.Problems))
 			for _, problem := range got.Problems {
-				fields = append(fields, problem.Field)
+				problems = append(problems, problem.Field+" "+problem.Code)
 			}
-			if got.Status != "rejected" || got.Code != "invalid_arguments" || !slices.Equal(fields, tc.fields) {
-				t.Errorf("next_task = %+v, want %v refused as invalid_arguments", got, tc.fields)
+			if got.Status != "rejected" || got.Code != "invalid_arguments" || !slices.Equal(problems, tc.problems) {
+				t.Errorf("next_task = %+v, want %v refused as invalid_arguments", got, tc.problems)
 			}
 			if p, now := loadKept(t, kept); now != revision || p.OpenRequest != nil {
 				t.Error("a refusal wrote the profile, want nothing written")

@@ -28,9 +28,9 @@ export function WaitingCard({
 			back={words.text("progress.back_plain")}
 			host={host}
 		>
-			{(wide) => (
+			{(wide, whose) => (
 				<article aria-label={words.text("waiting.label")}>
-					<CardHeader grade={waiting.child?.grade} wide={wide} />
+					<CardHeader grade={whose?.grade} wide={wide} />
 					<div class="mt-body">
 						<Verdict detail={words.text(next)}>{words.text(happened)}</Verdict>
 					</div>

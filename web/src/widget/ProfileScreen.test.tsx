@@ -118,7 +118,7 @@ describe("the profile's card", () => {
 		expect(root.querySelectorAll(".mt-fields")).toHaveLength(1);
 	});
 
-	test("after a change refused, says nothing was saved over the profile as it stays", async () => {
+	test("of an earlier chat, after a change refused, says nothing was saved over the profile as it stays", async () => {
 		const { root } = await draw(profileRefused);
 
 		expect(root.querySelector(".mt-verdict-line")?.textContent).toBe(
@@ -131,12 +131,17 @@ describe("the profile's card", () => {
 		expect(root.textContent).not.toContain("40 given");
 	});
 
-	test("asks the chat to edit the profile", async () => {
+	test("opens the form in its place from the button at its head, and asks the chat for nothing", async () => {
 		const { root, heard } = await draw(inSwahili);
+		const edit = buttonIn(root, "Edit");
+		expect(edit.closest(".mt-fields-head")).not.toBeNull();
 
-		press(buttonIn(root, "Edit profile"));
+		press(edit);
 
-		await vi.waitFor(() => expect(heard.messages).toEqual(["Edit profile"]));
+		await vi.waitFor(() =>
+			expect(root.querySelector(".mt-form")).not.toBeNull(),
+		);
+		expect(heard.messages).toEqual([]);
 		expect(heard.calls).toEqual([]);
 	});
 });

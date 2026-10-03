@@ -481,18 +481,18 @@ func TestAnAnswerIsReadAsItWasTyped(t *testing.T) {
 		{"?", profile.DontKnow},
 		{" ? ", profile.DontKnow},
 	} {
-		if choice, rule := profile.ChoiceOf(tc.typed); choice != tc.want || rule != "" {
-			t.Errorf("ChoiceOf(%q) = %q, %q, want %q and no rule", tc.typed, choice, rule, tc.want)
+		if choice, broken := profile.ChoiceOf(tc.typed); choice != tc.want || broken != (profile.Broken{}) {
+			t.Errorf("ChoiceOf(%q) = %q, %+v, want %q and no rule broken", tc.typed, choice, broken, tc.want)
 		}
 	}
 
 	for _, typed := range []string{"", "F", "AB", "C)", "c.", "zebra", "¿", "Ｃ", "?!"} {
-		choice, rule := profile.ChoiceOf(typed)
-		if choice != "" || rule == "" {
-			t.Errorf("ChoiceOf(%q) = %q, %q, want no choice and a rule", typed, choice, rule)
+		choice, broken := profile.ChoiceOf(typed)
+		if choice != "" || broken.Code != profile.CodeNotOneOf || broken.Rule == "" {
+			t.Errorf("ChoiceOf(%q) = %q, %+v, want no choice and the rule of a choice among a few", typed, choice, broken)
 		}
-		if strings.TrimSpace(typed) != "" && strings.Contains(rule, typed) {
-			t.Errorf("ChoiceOf(%q) says %q, want a rule that does not repeat what was typed", typed, rule)
+		if strings.TrimSpace(typed) != "" && strings.Contains(broken.Rule, typed) {
+			t.Errorf("ChoiceOf(%q) says %q, want a rule that does not repeat what was typed", typed, broken.Rule)
 		}
 	}
 }

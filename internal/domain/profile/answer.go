@@ -133,14 +133,14 @@ type Recorded struct {
 // options in either case, or DontKnow, with any space around it dropped. What
 // it returns is the choice, or the rule the text broke, in words that never
 // repeat the text.
-func ChoiceOf(text string) (choice, rule string) {
-	choice = strings.ToUpper(strings.TrimSpace(text))
+func ChoiceOf(text string) (string, Broken) {
+	choice := strings.ToUpper(strings.TrimSpace(text))
 	if !choosable(choice) {
 		letters := solver.Letters()
-		return "", fmt.Sprintf("must be one of the letters %s to %s, or %s when the child does not know",
-			letters[0], letters[len(letters)-1], DontKnow)
+		return "", Broken{CodeNotOneOf, fmt.Sprintf("must be one of the letters %s to %s, or %s when the child does not know",
+			letters[0], letters[len(letters)-1], DontKnow)}
 	}
-	return choice, ""
+	return choice, Broken{}
 }
 
 // choosable reports whether a choice is one the child can make: a letter of

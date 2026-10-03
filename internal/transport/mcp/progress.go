@@ -133,9 +133,9 @@ func (s *Service) readProgress(ctx context.Context, account store.Account) (Repl
 	case err != nil:
 		return Reply[progressOut]{}, fmt.Errorf("mcp: read the profile: %w", err)
 	}
-	location, err := s.store.Export(ctx, account)
+	location, where, err := s.whereKept(ctx, account)
 	if err != nil {
-		return Reply[progressOut]{}, fmt.Errorf("mcp: find the profile: %w", err)
+		return Reply[progressOut]{}, err
 	}
 
 	summary, err := progress.Of(p, s.content)
@@ -144,7 +144,7 @@ func (s *Service) readProgress(ctx context.Context, account store.Account) (Repl
 	}
 	mistakes := progress.Mistakes(p.Recent, s.content, s.repeats)
 	return Reply[progressOut]{
-		Text: joined(s.progressText(p, &summary, mistakes), locationText(&location)),
+		Text: joined(s.progressText(p, &summary, mistakes), where),
 		Payload: progressOut{
 			Screen:         screenProgress,
 			LastAnswer:     lastAnswerOf(p),
@@ -156,7 +156,7 @@ func (s *Service) readProgress(ctx context.Context, account store.Account) (Repl
 			Skipped:        summary.Skipped,
 			Mistakes:       mistakesOf(mistakes),
 			Recommendation: recommendationOf(&summary.Next),
-			Location:       locationOf(&location),
+			Location:       location,
 		},
 	}, nil
 }

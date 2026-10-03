@@ -118,9 +118,9 @@ func (s *Service) answer(ctx context.Context, account store.Account, in submitAn
 		return Reply[answeredOut]{}, fmt.Errorf("mcp: read the profile: %w", err)
 	}
 
-	choice, rule := profile.ChoiceOf(in.Answer)
-	if rule != "" {
-		return answerRefused(p, rule), nil
+	choice, broken := profile.ChoiceOf(in.Answer)
+	if broken.Code != "" {
+		return answerRefused(p, broken), nil
 	}
 	now := s.now()
 	recorded, err := s.recordAnswer(ctx, p, profile.Answered{TaskID: in.TaskID, Choice: choice, HintUsed: in.HintUsed, At: now})
@@ -325,13 +325,12 @@ func (s *Service) notOnTheCard(p *profile.Profile, taskID string) Reply[answered
 // answerRefused is an answer that is none: neither a letter of the options nor
 // "I don't know". It is refused by the rule it broke, never by what arrived;
 // nothing is recorded, and the card stays on its task.
-func answerRefused(p *profile.Profile, rule string) Reply[answeredOut] {
-	problem := profile.Problem{Field: "answer", Rule: rule}
+func answerRefused(p *profile.Profile, broken profile.Broken) Reply[answeredOut] {
+	out, line := problemsOf([]profile.Problem{{Field: "answer", Broken: broken}})
 	return Reply[answeredOut]{
-		Text: "Nothing was recorded. Fix this argument and call submit_answer again: " + problem.String() + ".",
+		Text: "Nothing was recorded. Fix this argument and call submit_answer again: " + line + ".",
 		Payload: answeredOut{
-			Screen: screenTask, Status: statusRejected, Code: codeInvalidArguments,
-			Problems: []problemOut{{Field: problem.Field, Rule: problem.Rule}}, LastAnswer: lastAnswerOf(p),
+			Screen: screenTask, Status: statusRejected, Code: codeInvalidArguments, Problems: out, LastAnswer: lastAnswerOf(p),
 		},
 	}
 }

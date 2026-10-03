@@ -3,12 +3,16 @@ import { describe, expect, test } from "vitest";
 import {
 	type AnswerResult,
 	readAnswer,
+	readEdited,
 	readHandedTask,
 	readScreen,
 	readWaiting,
 } from "./payload";
 import {
 	answered,
+	editGone,
+	editRefused,
+	editSaved,
 	exhausted,
 	failure,
 	fence,
@@ -19,6 +23,7 @@ import {
 	profileRead,
 	profileRefused,
 	refused,
+	savedWords,
 	staleAnswer,
 	staleWait,
 	standing,
@@ -323,5 +328,92 @@ describe("the screen a payload draws", () => {
 			screen: "first_run",
 			firstRun: { refused: false },
 		});
+	});
+});
+
+describe("a change sent from the form", () => {
+	test("saved is read with the details as they now stand and the words for the model", () => {
+		expect(readEdited(editSaved({ pseudonym: "Nova" }))).toEqual({
+			kind: "saved",
+			details: { ...standing.profile, pseudonym: "Nova" },
+			told: savedWords,
+		});
+	});
+
+	test("that changed nothing has no words for the model", () => {
+		const unchanged = editSaved();
+		expect(
+			readEdited({
+				...unchanged,
+				structuredContent: {
+					...(unchanged.structuredContent ?? {}),
+					changed: false,
+				},
+			}),
+		).toEqual({ kind: "saved", details: standing.profile, told: undefined });
+	});
+
+	test("refused is read field by field, by the codes of the rules broken", () => {
+		expect(readEdited(editRefused)).toEqual({
+			kind: "refused",
+			problems: [
+				{ field: "excluded_skills", code: "not_in_catalog" },
+				{ field: "grade", code: "out_of_range" },
+				{ field: "interests", code: "entry_length" },
+				{ field: "pseudonym", code: "required" },
+				{ field: "ui_language", code: "not_a_language" },
+			],
+		});
+	});
+
+	test("refused by a service from before the codes is read with codes it has no words for", () => {
+		expect(
+			readEdited({
+				content: [],
+				structuredContent: {
+					screen: "profile",
+					status: "rejected",
+					code: "invalid_profile",
+					problems: [{ field: "pseudonym", rule: "is required" }],
+					profile: standing.profile,
+				},
+			}),
+		).toEqual({
+			kind: "refused",
+			problems: [{ field: "pseudonym", code: "" }],
+		});
+	});
+
+	test("for a profile no longer there is read as gone", () => {
+		expect(readEdited(editGone)).toEqual({ kind: "gone" });
+	});
+
+	test.each<[string, CallToolResult]>([
+		["a failure of the service", failure],
+		[
+			"a payload that does not read",
+			{ content: [], structuredContent: { profile: 3 } },
+		],
+		["no payload at all", { content: [] }],
+		[
+			"a refusal that names no field",
+			{
+				content: [],
+				structuredContent: { status: "rejected", profile: standing.profile },
+			},
+		],
+		[
+			"a status the card does not know",
+			{
+				content: [],
+				structuredContent: { status: "limited", profile: standing.profile },
+			},
+		],
+		[
+			"a save that hands back no details",
+			{ content: [], structuredContent: { screen: "profile", changed: true } },
+		],
+	])("is not saved after %s", (_, result) => {
+		expect(readEdited(result)).toEqual({ kind: "failed" });
 	});
 });

@@ -1,7 +1,9 @@
 package mcpserver
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -65,6 +67,27 @@ func lastAnswerOf(p *profile.Profile) *answerLine {
 		Correct:    answer.Correct,
 		AnsweredAt: moment(answer.AnsweredAt),
 	}
+}
+
+// problemOut is one field that broke a rule: the field, the code of the rule,
+// which a card says in words of its own language, and the rule in words for
+// the model. It never repeats what the field held.
+type problemOut struct {
+	Field string `json:"field"`
+	Code  string `json:"code"`
+	Rule  string `json:"rule"`
+}
+
+// problemsOf are problems as a payload carries them, and as the words for the
+// model carry them: one line, the problems set apart by semicolons.
+func problemsOf(problems []profile.Problem) (out []problemOut, lines string) {
+	out = make([]problemOut, 0, len(problems))
+	broken := make([]string, 0, len(problems))
+	for _, problem := range problems {
+		out = append(out, problemOut{Field: problem.Field, Code: problem.Code, Rule: problem.Rule})
+		broken = append(broken, problem.String())
+	}
+	return out, strings.Join(broken, "; ")
 }
 
 // childOut are the child's details a card shows, named as save_profile takes
@@ -137,6 +160,31 @@ type elsewhereOut struct {
 	Link string `json:"link"`
 }
 
+// whereKept is where the profile's file is, as a payload and the words carry
+// it. When Drive cannot say just now — it failed, or took too long — it is no
+// location and a sentence saying so: what was read is read already, and the
+// name of a folder is no reason to withhold it. Nothing is logged here, since
+// the store's own line of the call that failed says so. What is no failure of
+// Drive's is told as it is told everywhere: a profile gone since it was read,
+// by reading it again; access taken back or ending, by asking for the sign-in
+// again; and a call given up on, by its end.
+func (s *Service) whereKept(ctx context.Context, account store.Account) (*locationOut, string, error) {
+	location, err := s.store.Export(ctx, account)
+	switch {
+	case err == nil:
+		return locationOf(&location), locationText(&location), nil
+	case ctx.Err() != nil, errors.Is(err, store.ErrNotFound),
+		errors.Is(err, store.ErrAccessRevoked), errors.Is(err, store.ErrAccessExpired):
+		return nil, "", fmt.Errorf("mcp: find the profile: %w", err)
+	}
+	return nil, locationUnknown, nil
+}
+
+// locationUnknown is what the model is told when Drive could not say where the
+// profile's file is.
+const locationUnknown = "Where the profile's file is kept could not be found just now: if the adult asks, say so, " +
+	"and that asking again later will tell."
+
 // locationOf is where the profile is, as the payload carries it, or nothing
 // when it is kept nowhere a person could open it.
 func locationOf(location *store.Location) *locationOut {
@@ -205,11 +253,10 @@ func locationText(location *store.Location) string {
 // firstRunText is what the model is told when there is no profile. The
 // service keeps nothing of its own, so it cannot tell a first sign-in from a
 // profile deleted for good or kept in another Google account, and says all
-// three. A lesson starts with next_task, which draws no card, so for a new
-// adult these words come before any card does: they are where the adult is
-// asked to say they are the child's parent or tutor — unless a card's tick has
-// had them say it — and told where the profile lives, before any detail of the
-// child is asked for.
+// three. A profile is made in the chat alone — a card only tells the adult to
+// ask for one there — so these words are where the adult is asked to say they
+// are the child's parent or tutor and told where the profile lives, before any
+// detail of the child is asked for.
 const firstRunText = "There is no profile yet. If the adult made one before, it has been deleted for good, " +
 	"or they signed in with another Google account. First ask the adult to say they are the child's parent or " +
 	"tutor, unless they have said so already, and tell them the profile is one file in their own Google Drive, " +

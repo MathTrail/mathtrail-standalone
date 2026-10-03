@@ -3,12 +3,13 @@ import { act } from "preact/test-utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { Bridge, Call, Host, ToolResult } from "./bridge";
 import {
+	editSaved,
 	exhausted,
 	fence,
 	firstRun,
-	firstRunRefused,
 	limited,
 	profileRead,
+	progress,
 	refused,
 	standing,
 } from "./testing/lesson";
@@ -130,7 +131,7 @@ describe("the card", () => {
 	test.each([
 		["the progress", standing, ".mt-rank-name"],
 		["the profile", profileRead, ".mt-fields"],
-		["the first sign-in", firstRun, ".mt-check"],
+		["the first sign-in", firstRun, ".mt-lead"],
 	])("draws %s as its card", (_, payload, drawnPart) => {
 		const { bridge, deliver } = heldBridge();
 		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
@@ -139,6 +140,58 @@ describe("the card", () => {
 
 		expect(root.querySelector(drawnPart)).not.toBeNull();
 		expect(root.textContent).not.toContain(unreadable);
+	});
+
+	test("keeps a task's card for the task told again, and shows the child as the payload now says", () => {
+		const { bridge, deliver } = heldBridge();
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
+		act(() => deliver(fence));
+
+		act(() =>
+			deliver({ ...fence, child: { ...fence.child, pseudonym: "Star" } }),
+		);
+
+		expect(root.querySelector(".mt-bar-name")?.textContent).toBe("Star");
+	});
+
+	test("keeps a change saved over a task's card until a later payload says otherwise", async () => {
+		const { bridge, deliver } = heldBridge();
+		const host: Host = {
+			callTool: async (name) =>
+				name === "read_progress" ? progress : editSaved({ pseudonym: "Star" }),
+			sendMessage: async () => {},
+			tellModel: async () => {},
+		};
+		document.body.append(root);
+		act(() => render(<WidgetApp bridge={bridge} host={host} />, root));
+		act(() => deliver(fence));
+		const press = (selector: string) =>
+			act(() => root.querySelector<HTMLElement>(selector)?.click());
+		const barName = () => root.querySelector(".mt-bar-name")?.textContent;
+
+		press(".mt-bar");
+		await vi.waitFor(() =>
+			expect(root.querySelector(".mt-fields-head .mt-btn")).not.toBeNull(),
+		);
+		press(".mt-fields-head .mt-btn");
+		const box = root.querySelector<HTMLInputElement>(".mt-form .mt-input");
+		act(() => {
+			if (box !== null) {
+				box.value = "Star";
+				box.dispatchEvent(new Event("input", { bubbles: true }));
+			}
+		});
+		press(".mt-form .mt-btn-primary");
+		await vi.waitFor(() => expect(root.querySelector(".mt-form")).toBeNull());
+		press(".mt-bar-back");
+		expect(barName()).toBe("Star");
+
+		act(() =>
+			deliver({ ...fence, child: { ...fence.child, pseudonym: "Nova" } }),
+		);
+
+		expect(barName()).toBe("Nova");
+		root.remove();
 	});
 
 	test("draws a task handed out as the task's card", () => {
@@ -182,50 +235,30 @@ describe("the card", () => {
 		expect(root.querySelector(".mt-gen")).toBeNull();
 	});
 
-	test("starts a card afresh for each payload, and keeps it for the same one told again", () => {
-		const { bridge, deliver, changeLocale } = heldBridge();
-		// A label passes a press on to its box only on the page.
-		document.body.append(root);
-		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
-		act(() => deliver(firstRun));
-		// ticked says whether the card took the adult's tick in: its button is
-		// switched on by it.
-		const ticked = () =>
-			!root.querySelector<HTMLButtonElement>(".mt-btn-primary")?.disabled;
-		act(() => {
-			root.querySelector<HTMLElement>(".mt-check span")?.click();
-		});
-		expect(ticked()).toBe(true);
-
-		act(() => changeLocale("en-GB"));
-		act(() => deliver({ ...firstRun }));
-		expect(ticked()).toBe(true);
-
-		act(() => deliver(firstRunRefused));
-		expect(ticked()).toBe(false);
-		root.remove();
-	});
-
 	test.each([
 		["the progress", standing],
 		["the profile", profileRead],
-	])("starts %s afresh for each payload", async (_, payload) => {
-		const { bridge, deliver } = heldBridge();
-		vi.spyOn(console, "error").mockImplementation(() => {});
-		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
-		act(() => deliver(payload));
-		const note = () => root.querySelector(".mt-action-note")?.textContent;
-		act(() => {
-			root.querySelector<HTMLElement>(".mt-fields-head button")?.click();
-		});
-		// The card says the ask did not reach the chat, in the card's language.
-		await vi.waitFor(() => expect(note()).not.toBe(""));
+	])(
+		"keeps %s for the same payload told again, and starts it afresh for another",
+		(_, payload) => {
+			const { bridge, deliver, changeLocale } = heldBridge();
+			act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
+			act(() => deliver(payload));
+			// open says whether the card's form is open, which a card starts without.
+			const open = () => root.querySelector(".mt-form") !== null;
+			act(() => {
+				root.querySelector<HTMLElement>(".mt-fields-head button")?.click();
+			});
+			expect(open()).toBe(true);
 
-		act(() => deliver({ ...payload, last_answer: null, told: "again" }));
+			act(() => changeLocale("en-GB"));
+			act(() => deliver({ ...payload }));
+			expect(open()).toBe(true);
 
-		expect(note()).toBe("");
-		vi.restoreAllMocks();
-	});
+			act(() => deliver({ ...payload, last_answer: null, told: "again" }));
+			expect(open()).toBe(false);
+		},
+	);
 
 	test.each([
 		["a wait that does not say whose card it is", { ...refused, child: null }],
