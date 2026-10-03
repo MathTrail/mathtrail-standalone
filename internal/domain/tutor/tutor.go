@@ -177,7 +177,7 @@ func joined(levels []rating.GradeLevel) string {
 // that a failure just happened and something else was asked for, which is a
 // fact about the child rather than a defect.
 func Next(p *profile.Profile, catalog Catalog, choice Choice) (profile.Brief, profile.TutorMode, error) {
-	open := withinReach(p, catalog)
+	open := WithinReach(p, catalog)
 	if len(open) == 0 {
 		return profile.Brief{}, "", errors.New("tutor: the catalog has no topic taught at any level")
 	}
@@ -208,12 +208,12 @@ func Next(p *profile.Profile, catalog Catalog, choice Choice) (profile.Brief, pr
 	}, mode, nil
 }
 
-// withinReach keeps the topics a child can be set now, in catalog order: those
+// WithinReach keeps the topics a child can be set now, in catalog order: those
 // whose easiest task — difficulty 1 of the lowest level the topic is taught
 // at — the child solves often enough to be set it. A child below every one of
 // them is given the topics whose easiest task is the easiest the catalog has,
 // since nothing easier exists; a topic taught at no level is never given.
-func withinReach(p *profile.Profile, catalog Catalog) []string {
+func WithinReach(p *profile.Profile, catalog Catalog) []string {
 	var open, bottom []string
 	lowest := math.Inf(1)
 	for _, topic := range catalog.TopicIDs() {

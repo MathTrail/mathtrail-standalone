@@ -12,17 +12,19 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 )
 
-// textAnswers is how many of the latest answers the words for the model name.
-// The payload holds the whole window; a sentence that listed twenty answers
-// would be one nobody relays.
-const textAnswers = 5
+// recentNamed is how many of the latest entries the words for the model name:
+// as many as the card lists, a skip among them where it fell, so that the two
+// say the same. The payload holds the whole window; a sentence that listed
+// twenty entries would be one nobody relays.
+const recentNamed = 5
 
 // progressOut is the progress as a card and a model read it. The child's
-// details are the ones the progress screen shows, so that a card opening the
-// progress inside itself draws the whole screen from one call. The parent's
-// notes are not among them: the progress is what the child opens from a task
-// card, and the notes are the parent's words about the child, which that screen
-// has no reason to carry.
+// details are the ones the progress screen shows, and where the profile's file
+// is, so that a card opening the progress inside itself draws the whole
+// screen, the parent's data with it, from one call. The parent's notes are not
+// among them: the progress is what the child opens from a task card, and the
+// notes are the parent's words about the child, which that screen has no
+// reason to carry.
 type progressOut struct {
 	Screen         string             `json:"screen"`
 	LastAnswer     *answerLine        `json:"last_answer"`
@@ -31,29 +33,36 @@ type progressOut struct {
 	Overall        *standingOut       `json:"overall"`
 	Topics         []topicOut         `json:"topics"`
 	Recent         []recentOut        `json:"recent"`
+	Skipped        int                `json:"skipped"`
 	Mistakes       []mistakeOut       `json:"mistakes"`
 	Recommendation *recommendationOut `json:"recommendation"`
+	Location       *locationOut       `json:"location,omitempty"`
 }
 
-// standingOut is the overall rating and the rank above it, out of how many
-// ranks there are, so that a card need not know the number.
+// standingOut is the overall rating, its rank out of how many ranks there are,
+// so that a card need not know the number, and how far through the rank it has
+// come, as a whole percent.
 type standingOut struct {
 	Rating int `json:"rating"`
 	Rank   int `json:"rank"`
 	Ranks  int `json:"ranks"`
+	Share  int `json:"share"`
 }
 
-// topicOut is one topic the child has answered or skipped a task of. Its
-// rating is a plain number, null while the trial series runs and before its
-// first answer, and it has no rank of its own. The skipped tasks are for the
-// parent to see.
+// topicOut is one topic the child has met, or the rule could set now. Its
+// rating, rank and share of the way through the rank, and how the rank stands
+// to the overall one, are null together: while the trial series runs, and
+// before its first answer. The skipped tasks are for the parent to see.
 type topicOut struct {
-	Topic    string `json:"topic"`
-	Rating   *int   `json:"rating"`
-	Answers  int    `json:"answers"`
-	Correct  int    `json:"correct"`
-	Mastered bool   `json:"mastered"`
-	Skipped  int    `json:"skipped"`
+	Topic    string  `json:"topic"`
+	Rating   *int    `json:"rating"`
+	Rank     *int    `json:"rank"`
+	Share    *int    `json:"share"`
+	Compared *string `json:"compared"`
+	Answers  int     `json:"answers"`
+	Correct  int     `json:"correct"`
+	Mastered bool    `json:"mastered"`
+	Skipped  int     `json:"skipped"`
 }
 
 // recentOut is one of the latest entries: an answer, or a task left without
@@ -78,12 +87,13 @@ func (s *Service) getProgressTool() Tool {
 	return Define(Spec{
 		Name:  "get_progress",
 		Title: "Show the child's progress",
-		Description: "Shows the child's progress: the overall rating on a chess-like scale with its rank, the rating " +
-			"of each topic met, the topics mastered, the latest answers, the mistakes that keep coming back and " +
-			"what comes next. The scale is one for grades 1 to 6, so an older child's number is higher. During " +
-			"the trial series — the first five tasks — " +
-			"there is no rating yet, only how many of the five are done. Call it only when someone asks to see the " +
-			"progress. Present it encouragingly and name one thing to practise next.",
+		Description: "Shows the child's progress: the overall rating on a chess-like scale with its rank and how far " +
+			"through the rank it has come, each topic met or within reach now with a rank of its own, ahead of or " +
+			"behind the overall one, the topics mastered, the latest answers and how many tasks were left without " +
+			"one, the mistakes that keep coming back, what comes next, and where the profile's file is kept. The " +
+			"scale is one for grades 1 to 6, so an older child's number is higher. During the trial series — the " +
+			"first five tasks — there is no rating yet, only how many of the five are done. Call it only when " +
+			"someone asks to see the progress. Present it encouragingly and name one thing to practise next.",
 		ReadOnly:   true,
 		Idempotent: true,
 		DrawsCard:  true,
@@ -108,7 +118,8 @@ func (s *Service) progress(ctx context.Context, account store.Account, _ noArgum
 	return afresh(ctx, func() (Reply[progressOut], error) { return s.readProgress(ctx, account) })
 }
 
-// readProgress is one read of the profile, and the progress it holds.
+// readProgress is one read of the profile, the progress it holds, and where it
+// is kept.
 func (s *Service) readProgress(ctx context.Context, account store.Account) (Reply[progressOut], error) {
 	p, _, err := s.store.Load(ctx, account)
 	switch {
@@ -122,6 +133,10 @@ func (s *Service) readProgress(ctx context.Context, account store.Account) (Repl
 	case err != nil:
 		return Reply[progressOut]{}, fmt.Errorf("mcp: read the profile: %w", err)
 	}
+	location, err := s.store.Export(ctx, account)
+	if err != nil {
+		return Reply[progressOut]{}, fmt.Errorf("mcp: find the profile: %w", err)
+	}
 
 	summary, err := progress.Of(p, s.content)
 	if err != nil {
@@ -129,7 +144,7 @@ func (s *Service) readProgress(ctx context.Context, account store.Account) (Repl
 	}
 	mistakes := progress.Mistakes(p.Recent, s.content, s.repeats)
 	return Reply[progressOut]{
-		Text: s.progressText(p, &summary, mistakes),
+		Text: joined(s.progressText(p, &summary, mistakes), locationText(&location)),
 		Payload: progressOut{
 			Screen:         screenProgress,
 			LastAnswer:     lastAnswerOf(p),
@@ -138,8 +153,10 @@ func (s *Service) readProgress(ctx context.Context, account store.Account) (Repl
 			Overall:        standingOf(summary.Overall),
 			Topics:         topicsOf(summary.Topics),
 			Recent:         recentOf(summary.Recent),
+			Skipped:        summary.Skipped,
 			Mistakes:       mistakesOf(mistakes),
 			Recommendation: recommendationOf(&summary.Next),
+			Location:       locationOf(&location),
 		},
 	}, nil
 }
@@ -148,20 +165,25 @@ func standingOf(overall *progress.Standing) *standingOut {
 	if overall == nil {
 		return nil
 	}
-	return &standingOut{Rating: overall.Rating, Rank: overall.Rank, Ranks: rating.Ranks}
+	return &standingOut{Rating: overall.Rating, Rank: overall.Rank, Ranks: rating.Ranks, Share: overall.Share}
 }
 
 func topicsOf(topics []progress.Topic) []topicOut {
 	out := make([]topicOut, 0, len(topics))
 	for _, topic := range topics {
-		out = append(out, topicOut{
+		entry := topicOut{
 			Topic:    topic.ID,
-			Rating:   topic.Rating,
 			Answers:  topic.Answers,
 			Correct:  topic.Correct,
 			Mastered: topic.Mastered,
 			Skipped:  topic.Skipped,
-		})
+		}
+		if standing := topic.Standing; standing != nil {
+			compared := string(topic.Compared)
+			entry.Rating, entry.Rank, entry.Share = &standing.Rating, &standing.Rank, &standing.Share
+			entry.Compared = &compared
+		}
+		out = append(out, entry)
 	}
 	return out
 }
@@ -189,20 +211,28 @@ func recentOf(entries []profile.Answer) []recentOut {
 
 // progressText is the progress in words.
 func (s *Service) progressText(p *profile.Profile, summary *progress.Summary, mistakes []progress.Mistake) string {
-	standing := ""
-	if summary.Overall != nil {
-		standing = fmt.Sprintf("Overall rating %d, rank %d of %d.",
-			summary.Overall.Rating, summary.Overall.Rank, rating.Ranks)
-	}
 	return joined(
 		"The progress of "+quoted(p.Student.Pseudonym)+".",
 		trialLine(summary.Trial),
-		standing,
+		standingText(summary.Overall),
 		s.topicsText(summary.Topics),
-		s.recentText(summary.Recent),
+		s.recentText(summary.Recent, summary.Skipped),
 		s.mistakesText(mistakes),
 		s.nextText(&summary.Next),
 	)
+}
+
+// standingText is the overall rating in words: its rank, and how far through
+// the rank it has come, or nothing while the trial series runs.
+func standingText(overall *progress.Standing) string {
+	if overall == nil {
+		return ""
+	}
+	if overall.Rank == rating.Ranks {
+		return fmt.Sprintf("Overall rating %d, rank %d of %d, the highest.", overall.Rating, overall.Rank, rating.Ranks)
+	}
+	return fmt.Sprintf("Overall rating %d, rank %d of %d, %d%% of the way to rank %d.",
+		overall.Rating, overall.Rank, rating.Ranks, overall.Share, overall.Rank+1)
 }
 
 // mistakesText names the mistakes that keep coming back among the latest
@@ -220,51 +250,72 @@ func (s *Service) mistakesText(mistakes []progress.Mistake) string {
 		strings.Join(parts, "; ") + "."
 }
 
-// topicsText names every topic met and what it is, with its rating once there
-// is one, and the tasks of it the child left without an answer.
+// topicsText names every topic met and what it is, with its rating and rank
+// once there are some, how the rank stands to the overall one, and the tasks
+// of it the child left without an answer; then, by name, the topics within
+// reach that the child has not met yet.
 func (s *Service) topicsText(topics []progress.Topic) string {
-	if len(topics) == 0 {
-		return "No topic has been answered yet."
-	}
-	parts := make([]string, 0, len(topics))
+	met := make([]string, 0, len(topics))
+	var unmet []string
 	for _, topic := range topics {
-		part := fmt.Sprintf("%s, %d of %d right", s.topicDescribed(topic.ID), topic.Correct, topic.Answers)
-		if topic.Rating != nil {
-			part += fmt.Sprintf(", rating %d", *topic.Rating)
+		if topic.Answers == 0 && topic.Skipped == 0 {
+			unmet = append(unmet, s.topicName(topic.ID))
+			continue
 		}
-		if topic.Mastered {
-			part += ", mastered"
-		}
-		if topic.Skipped > 0 {
-			part += fmt.Sprintf(", %d skipped", topic.Skipped)
-		}
-		parts = append(parts, part)
+		met = append(met, s.topicMet(&topic))
 	}
-	return "Topics: " + strings.Join(parts, "; ") + "."
+	words := "No topic has been answered yet."
+	if len(met) > 0 {
+		words = "Topics: " + strings.Join(met, "; ") + "."
+	}
+	if len(unmet) == 0 {
+		return words
+	}
+	return joined(words, "Not met yet, and within reach now: "+strings.Join(unmet, ", ")+".")
 }
 
-// recentText names the latest few answers, the latest first, and how many of
-// the tasks the window holds were left without one. The skips are counted
-// apart, so that a run of them never hides how the answers went, and against
-// the tasks they are counted among, so that a few old ones are not read as a
-// habit of today.
-func (s *Service) recentText(entries []profile.Answer) string {
-	answers := make([]string, 0, textAnswers)
-	skipped := 0
-	for i := range entries {
-		switch {
-		case entries[i].Skipped:
-			skipped++
-		case len(answers) < textAnswers:
-			answers = append(answers, s.topicName(entries[i].Topic)+" "+howItWent(entries[i].Correct))
+// topicMet is one topic the child has met, in words.
+func (s *Service) topicMet(topic *progress.Topic) string {
+	part := s.topicDescribed(topic.ID) + ", no answers yet"
+	if topic.Answers > 0 {
+		part = fmt.Sprintf("%s, %d of %d right", s.topicDescribed(topic.ID), topic.Correct, topic.Answers)
+	}
+	if standing := topic.Standing; standing != nil {
+		part += fmt.Sprintf(", rating %d, rank %d", standing.Rating, standing.Rank)
+		switch topic.Compared {
+		case progress.Ahead:
+			part += ", ahead of the overall rank"
+		case progress.Behind:
+			part += ", behind the overall rank"
 		}
 	}
+	if topic.Mastered {
+		part += ", mastered"
+	}
+	if topic.Skipped > 0 {
+		part += fmt.Sprintf(", %d skipped", topic.Skipped)
+	}
+	return part
+}
+
+// recentText names the latest entries, the latest first, as many as the card
+// lists — a task left without an answer among them as skipped — and how many
+// tasks were left without an answer in all.
+func (s *Service) recentText(entries []profile.Answer, skipped int) string {
+	named := make([]string, 0, recentNamed)
+	for i := range entries[:min(len(entries), recentNamed)] {
+		went := "skipped"
+		if !entries[i].Skipped {
+			went = howItWent(entries[i].Correct)
+		}
+		named = append(named, s.topicName(entries[i].Topic)+" "+went)
+	}
 	latest := ""
-	if len(answers) > 0 {
-		latest = "Latest answers, the latest first: " + strings.Join(answers, ", ") + "."
+	if len(named) > 0 {
+		latest = "The latest tasks, the latest first: " + strings.Join(named, ", ") + "."
 	}
 	if skipped == 0 {
 		return latest
 	}
-	return joined(latest, fmt.Sprintf("Of the last %d tasks, %d were left without an answer.", len(entries), skipped))
+	return joined(latest, fmt.Sprintf("Tasks left without an answer in all: %d.", skipped))
 }

@@ -2,6 +2,7 @@ import type { VNode } from "preact";
 import { renderToString } from "preact-render-to-string";
 import { disagreements } from "../i18n/dictionaries";
 import { fallbackLocale } from "../i18n/lookup";
+import { byCodeUnits } from "../i18n/order";
 import { type Dictionary, openWords, type Words } from "../i18n/words";
 import { ApexPage } from "./ApexPage";
 import {
@@ -11,13 +12,7 @@ import {
 	outputPath,
 	parseBase,
 } from "./addresses";
-import {
-	byCodeUnits,
-	frontPage,
-	readTexts,
-	type Sources,
-	type Texts,
-} from "./content";
+import { frontPage, readTexts, type Sources, type Texts } from "./content";
 import { DocumentPage } from "./DocumentPage";
 import type { DocumentLink } from "./Footer";
 import { cname, robots, sitemap } from "./metadata";

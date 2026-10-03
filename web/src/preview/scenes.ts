@@ -4,6 +4,7 @@ import type { CallStage } from "../widget/bridge";
 import type { AnswerResult } from "../widget/payload";
 import {
 	answered,
+	atTheTop,
 	exhausted,
 	failure,
 	fence,
@@ -24,6 +25,7 @@ import {
 	staleAnswer,
 	staleWait,
 	standing,
+	standingBefore,
 } from "../widget/testing/lesson";
 
 /**
@@ -207,6 +209,8 @@ export function scenesIn(language: string): Scene[] {
 		{ name: "progress, the model's card", payload: standing },
 		{ name: "progress in the trial series", payload: inTrial },
 		{ name: "progress, long texts", payload: longProgress },
+		{ name: "progress at the highest rank", payload: atTheTop },
+		{ name: "progress from an earlier release", payload: standingBefore },
 		{
 			name: "profile",
 			payload: {
@@ -259,7 +263,10 @@ function topLine(card: Document) {
 
 // longProgress is the progress at every limit a card has to fit at its
 // narrowest: a pseudonym as long as a profile allows, every topic of the
-// catalog met, and as many interests, as long, as a profile holds.
+// catalog listed — every rank among them, each step of the ramp, and topics
+// not met yet — the next rank the one with the longest name, as many
+// interests, as long, as a profile holds, and the profile's file named at
+// length beside other files that hold one.
 const longProgress = {
 	...standing,
 	profile: {
@@ -274,7 +281,7 @@ const longProgress = {
 			"order_of_operations",
 		],
 	},
-	overall: { rating: 2879, rank: 11, ranks: 11 },
+	overall: { rating: 2700, rank: 10, ranks: 11, share: 23 },
 	topics: [
 		"logic.ordering",
 		"logic.knights_liars",
@@ -293,14 +300,8 @@ const longProgress = {
 		"number.divisibility",
 		"logic.sets",
 		"games.strategy",
-	].map((topic, at) => ({
-		topic,
-		rating: 2400 + at * 31,
-		answers: 5,
-		correct: 4,
-		mastered: at % 3 === 0,
-		skipped: at % 5 === 0 ? 2 : 0,
-	})),
+	].map((topic, at) => rankedAt(topic, at)),
+	skipped: 8,
 	// The window's twenty answers shared by the mistakes with the longest
 	// names: one behind eight of them, the rest behind two each.
 	mistakes: [
@@ -312,7 +313,56 @@ const longProgress = {
 		{ trap: "first_move_assumed", times: 2 },
 		{ trap: "percent_wrong_base", times: 2 },
 	],
+	location: {
+		folder: "MathTrail, the olympiad maths of the whole family",
+		file: "mathtrail-profile set aside 2026-10-03.json",
+		link: "https://drive.google.com/file/d/profile/view",
+		others: [
+			{ file: "mathtrail-profile set aside 2026-09-12.json" },
+			{ file: "mathtrail-profile (1).json" },
+			{ file: "mathtrail-profile (2).json" },
+		],
+	},
 };
+
+// rankedAt is the topic at place at of the long progress: the first fifteen
+// each a rank in turn, from the first to the last and again, the overall
+// rank's tenth ahead of, even with or behind them, and the last two not met
+// yet.
+function rankedAt(topic: string, at: number) {
+	if (at >= 15) {
+		return {
+			topic,
+			rating: null,
+			rank: null,
+			share: null,
+			compared: null,
+			answers: 0,
+			correct: 0,
+			mastered: false,
+			skipped: 0,
+		};
+	}
+	const rank = (at % 11) + 1;
+	const share = (at * 37) % 100;
+	let compared = "even";
+	if (rank > 10) {
+		compared = "ahead";
+	} else if (rank < 10) {
+		compared = "behind";
+	}
+	return {
+		topic,
+		rating: 1168 + (rank - 1) * 166 + Math.floor(share * 1.66),
+		rank,
+		share,
+		compared,
+		answers: 5,
+		correct: 4,
+		mastered: at % 3 === 0,
+		skipped: at % 5 === 0 ? 2 : 0,
+	};
+}
 
 // askForProfile ticks the adult's statement and asks for the profile.
 function askForProfile(card: Document) {

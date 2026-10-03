@@ -128,7 +128,7 @@ describe("the card", () => {
 	});
 
 	test.each([
-		["the progress", standing, ".mt-rating-num"],
+		["the progress", standing, ".mt-rank-name"],
 		["the profile", profileRead, ".mt-fields"],
 		["the first sign-in", firstRun, ".mt-check"],
 	])("draws %s as its card", (_, payload, drawnPart) => {
@@ -216,7 +216,7 @@ describe("the card", () => {
 		act(() => deliver(payload));
 		const note = () => root.querySelector(".mt-action-note")?.textContent;
 		act(() => {
-			root.querySelector<HTMLElement>(".mt-fields-actions button")?.click();
+			root.querySelector<HTMLElement>(".mt-fields-head button")?.click();
 		});
 		// The card says the ask did not reach the chat, in the card's language.
 		await vi.waitFor(() => expect(note()).not.toBe(""));

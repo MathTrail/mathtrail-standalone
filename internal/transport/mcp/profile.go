@@ -34,22 +34,6 @@ type profileOut struct {
 	Location       *locationOut       `json:"location,omitempty"`
 }
 
-// locationOut is where the adult finds the child's profile for themselves:
-// the file is the export, and there is no other. Files beside it that hold a
-// profile too are named, for the adult to look at and delete.
-type locationOut struct {
-	Folder string         `json:"folder"`
-	File   string         `json:"file"`
-	Link   string         `json:"link"`
-	Others []elsewhereOut `json:"others"`
-}
-
-// elsewhereOut is another file that holds a profile.
-type elsewhereOut struct {
-	File string `json:"file"`
-	Link string `json:"link"`
-}
-
 // detailsOut are the child's details as the progress carries them, and the
 // parent's notes beside them.
 type detailsOut struct {
@@ -228,42 +212,6 @@ func (s *Service) startOver(ctx context.Context, account store.Account, edit *pr
 	}
 	return s.profileReply(p, "A new profile is started. The old file was not deleted: it stays in Google Drive, "+
 		"renamed as set aside.")
-}
-
-// locationOf is where the profile is, as the payload carries it, or nothing
-// when it is kept nowhere a person could open it.
-func locationOf(location *store.Location) *locationOut {
-	if location.File == "" {
-		return nil
-	}
-	out := &locationOut{Folder: location.Folder, File: location.File, Link: location.Link, Others: []elsewhereOut{}}
-	for _, other := range location.Others {
-		out.Others = append(out.Others, elsewhereOut(other))
-	}
-	return out
-}
-
-// locationText is where the profile is, in words: the file is the export.
-func locationText(location *store.Location) string {
-	if location.File == "" {
-		return ""
-	}
-	where := "as the file " + quoted(location.File)
-	if location.Folder != "" {
-		where += " in the folder " + quoted(location.Folder)
-	}
-	text := fmt.Sprintf("The profile is kept in the adult's Google Drive %s: %s. That file is the export: "+
-		"the adult can open, download or copy it like any other file.", where, location.Link)
-	if len(location.Others) == 0 {
-		return text
-	}
-	others := make([]string, 0, len(location.Others))
-	for _, other := range location.Others {
-		others = append(others, quoted(other.File)+" ("+other.Link+")")
-	}
-	return text + " Other files in the adult's Drive hold a profile too: " + strings.Join(others, ", ") +
-		". MathTrail reads and writes only the newest, the one above, and never merges them; " +
-		"the adult can delete the others."
 }
 
 // profileReply is a profile as the two tools of the profile hand it back.

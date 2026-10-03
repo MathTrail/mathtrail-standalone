@@ -1,6 +1,7 @@
 package progress_test
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/leanovate/gopter"
@@ -15,7 +16,8 @@ import (
 
 // Whatever the ratings say, a child in the trial series is shown no rating and
 // no rank anywhere, and a child past it is shown the overall rating with one
-// rank from the ladder's own, and a rating for every topic met. The worked
+// rank from the ladder's own, and every topic answered standing somewhere,
+// compared with the overall rank as its own rank stands to it. The worked
 // cases above pin the numbers; this is what catches the profile nobody wrote a
 // case for.
 func TestTheTrialSeriesDecidesWhetherARatingIsShown(t *testing.T) {
@@ -37,33 +39,101 @@ func TestTheTrialSeriesDecidesWhetherARatingIsShown(t *testing.T) {
 			}
 			if p.Ratings.InTrial() {
 				return summary.Overall == nil && summary.Trial != nil &&
-					summary.Trial.Answered == answers && noTopicRated(&summary)
+					summary.Trial.Answered == answers && noTopicStands(&summary)
 			}
 			return summary.Trial == nil && summary.Overall != nil &&
 				summary.Overall.Rank >= 1 && summary.Overall.Rank <= rating.Ranks &&
-				everyTopicRated(&summary)
+				everyTopicAnsweredStands(&summary)
 		},
 		gen.IntRange(0, 2*rating.TrialAnswers), gen.Float64Range(-4, 9), gen.Float64Range(-3, 3),
 	))
 	properties.TestingRun(t)
 }
 
-func noTopicRated(summary *progress.Summary) bool {
+func noTopicStands(summary *progress.Summary) bool {
 	for _, topic := range summary.Topics {
-		if topic.Rating != nil {
+		if topic.Standing != nil || topic.Compared != "" {
 			return false
 		}
 	}
 	return true
 }
 
-func everyTopicRated(summary *progress.Summary) bool {
+// everyTopicAnsweredStands says whether exactly the topics with an answer stand
+// somewhere, each compared with the overall rank as its own rank stands to it.
+func everyTopicAnsweredStands(summary *progress.Summary) bool {
+	standing := 0
 	for _, topic := range summary.Topics {
-		if topic.Rating == nil {
+		if (topic.Standing != nil) != (topic.Answers > 0) {
+			return false
+		}
+		if topic.Standing == nil {
+			if topic.Compared != "" {
+				return false
+			}
+			continue
+		}
+		standing++
+		if topic.Compared != comparisonOf(topic.Standing.Rank, summary.Overall.Rank) {
 			return false
 		}
 	}
-	return len(summary.Topics) > 0
+	return standing > 0
+}
+
+// comparisonOf is how a rank stands to the overall one, as the screen puts it.
+func comparisonOf(rank, overall int) progress.Comparison {
+	switch {
+	case rank > overall:
+		return progress.Ahead
+	case rank < overall:
+		return progress.Behind
+	default:
+		return progress.Even
+	}
+}
+
+// Wherever the child stands and whatever was skipped, a topic is listed
+// exactly when the child has met it or the rule could set it now, in catalog
+// order, and the total of the tasks left without an answer is what every topic
+// the profile counted adds up to.
+func TestTheTopicsListedAreTheOnesMetOrWithinReach(t *testing.T) {
+	t.Parallel()
+
+	catalog := embedded(t)
+	ids := catalog.TopicIDs()
+	properties := gopter.NewProperties(nil)
+	properties.Property("listed when met or within reach, in catalog order, every skip counted in all", prop.ForAll(
+		func(theta float64, skips []int) bool {
+			p := fixture(t, "petya")
+			p.Ratings.Theta = theta
+			for at, skipped := range skips {
+				kept := p.Topics[ids[at]]
+				kept.Skipped = skipped
+				p.Topics[ids[at]] = kept
+			}
+
+			summary, err := progress.Of(p, catalog)
+			if err != nil {
+				return false
+			}
+			reachable := tutor.WithinReach(p, catalog)
+			var want []string
+			for _, id := range ids {
+				kept := p.Topics[id]
+				if kept.Answers > 0 || kept.Skipped > 0 || slices.Contains(reachable, id) {
+					want = append(want, id)
+				}
+			}
+			total := 0
+			for _, kept := range p.Topics {
+				total += kept.Skipped
+			}
+			return slices.Equal(idsOf(summary.Topics), want) && summary.Skipped == total
+		},
+		gen.Float64Range(-4, 9), gen.SliceOfN(len(ids), gen.OneConstOf(0, 0, 1, 3)),
+	))
+	properties.TestingRun(t)
 }
 
 // Whatever the window holds, the map lists exactly the traps behind at least

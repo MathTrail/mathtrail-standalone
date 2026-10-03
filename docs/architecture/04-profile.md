@@ -59,7 +59,7 @@ A solid arrow writes, a dashed arrow reads. Every write also touches the service
 - **No task texts.** Past tasks are kept as fingerprints only (О-40), so a child cannot be handed the same task twice and nobody can read back what they were asked.
 - **No answer in the open.** The answer, the explanations behind the wrong options, the solution and the solver live in one sealed block (О-25).
 - **Nothing that identifies the parent.** No email, no Google `sub`, not even the derived identifier the limits use (02-auth): the file is found with the parent's own Drive token, so it never needs to name them. The child's UUID is random and means nothing outside this file.
-- **No rank.** The five-step rank is computed from the rating when it is shown (R12, О-48).
+- **No rank.** The eleven ranks, and how far through its rank a rating has come, are computed from the rating when they are shown (R12, R147, О-48).
 - **No "solved today" for display.** The rhythm of practice is not shown at all (R13, О-49). The daily counters below exist only to enforce the limits and never reach a screen.
 - **No β per task.** Each task is solved by one child and never reused, so its place on the ladder is derived from the task's level and difficulty when the answer is recorded and is not stored (PRODUCT 4.5, SPEC 2.1).
 

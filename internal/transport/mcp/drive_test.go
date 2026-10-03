@@ -87,8 +87,8 @@ func costOf(t *testing.T, fake *drivetest.Drive, session *mcp.ClientSession, too
 // once the file is known, and a write reads the file, reads it once more to be
 // sure nothing changed it in between, and writes it. A whole task — asked for,
 // handed in, answered — is nine calls on a warm instance. The profile's own
-// tool also says where the file is, which takes a search and the folder's
-// name.
+// tool and the progress also say where the file is, which takes a search and
+// the folder's name.
 func TestEveryToolStaysWithinItsDriveBudget(t *testing.T) {
 	t.Parallel()
 
@@ -117,8 +117,8 @@ func TestEveryToolStaysWithinItsDriveBudget(t *testing.T) {
 		want drivetest.Calls
 	}{
 		{"get_profile", map[string]any{}, located},
-		{"get_progress", map[string]any{}, read},
-		{"read_progress", map[string]any{}, read},
+		{"get_progress", map[string]any{}, located},
+		{"read_progress", map[string]any{}, located},
 		{"save_profile", map[string]any{"interests": []string{"sport", "space"}}, write},
 		{"save_profile", map[string]any{"interests": []string{"sport", "space"}}, read},
 		{"next_task", raceChoice, write},
@@ -168,7 +168,7 @@ func TestAColdInstanceSearchesOnceAndADayKeepsItsFirstWrite(t *testing.T) {
 		args any
 		want drivetest.Calls
 	}{
-		{"get_progress", map[string]any{}, drivetest.Calls{"list": 1, "download": 1}},
+		{"get_progress", map[string]any{}, drivetest.Calls{"list": 2, "download": 1, "get": 1}},
 		{"get_profile", map[string]any{}, drivetest.Calls{"list": 2, "download": 1, "get": 1}},
 		{"save_profile", map[string]any{"interests": []string{"space"}}, drivetest.Calls{"list": 1, "download": 2, "update": 1}},
 	} {

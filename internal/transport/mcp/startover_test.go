@@ -138,9 +138,23 @@ func TestANewStartWithNothingToSetAsideIsAFirstProfile(t *testing.T) {
 	}
 }
 
-// The profile's tool says where the adult finds the file for themselves — the
-// file is the export — and names the other files that hold a profile too.
-func TestTheProfileSaysWhereItIsKept(t *testing.T) {
+// locatedPayload is where a payload says the profile's file is.
+type locatedPayload struct {
+	Location *struct {
+		Folder string `json:"folder"`
+		File   string `json:"file"`
+		Link   string `json:"link"`
+		Others []struct {
+			File string `json:"file"`
+			Link string `json:"link"`
+		} `json:"others"`
+	} `json:"location"`
+}
+
+// The profile's tool and the progress say where the adult finds the file for
+// themselves — the file is the export — and name the other files that hold a
+// profile too; the two tools of the progress say it in the same bytes.
+func TestTheProfileAndTheProgressSayWhereItIsKept(t *testing.T) {
 	t.Parallel()
 
 	fake := drivetest.New(t)
@@ -151,29 +165,24 @@ func TestTheProfileSaysWhereItIsKept(t *testing.T) {
 		Content: []byte("{}"), ModifiedTime: lessonDay.Add(-24 * time.Hour),
 	})
 
-	result := call(t, d.session, "get_profile", map[string]any{})
-	payload := payloadOf[struct {
-		Location *struct {
-			Folder string `json:"folder"`
-			File   string `json:"file"`
-			Link   string `json:"link"`
-			Others []struct {
-				File string `json:"file"`
-				Link string `json:"link"`
-			} `json:"others"`
-		} `json:"location"`
-	}](t, result)
-	where := payload.Location
-	switch {
-	case where == nil:
-		t.Fatal("get_profile carries no location, want where the file is")
-	case where.Folder != "MathTrail" || where.File != "mathtrail-profile.json" || !strings.HasPrefix(where.Link, "https://drive.google.com/"):
-		t.Errorf("location = %+v, want the folder, the file and its link", where)
-	case len(where.Others) != 1 || where.Others[0].Link != drivetest.WebViewLink(older):
-		t.Errorf("the other files = %+v, want the older profile file", where.Others)
+	for _, tool := range []string{"get_profile", "get_progress", "read_progress"} {
+		result := call(t, d.session, tool, map[string]any{})
+		where := payloadOf[locatedPayload](t, result).Location
+		switch {
+		case where == nil:
+			t.Errorf("%s carries no location, want where the file is", tool)
+		case where.Folder != "MathTrail" || where.File != "mathtrail-profile.json" || !strings.HasPrefix(where.Link, "https://drive.google.com/"):
+			t.Errorf("%s says the location is %+v, want the folder, the file and its link", tool, where)
+		case len(where.Others) != 1 || where.Others[0].Link != drivetest.WebViewLink(older):
+			t.Errorf("%s says the other files are %+v, want the older profile file", tool, where.Others)
+		}
+		if text := textOf(t, result); !strings.Contains(text, "That file is the export") || !strings.Contains(text, "mathtrail-profile (1).json") {
+			t.Errorf("%s says %q, want where the file is and the other one named", tool, text)
+		}
 	}
-	if text := textOf(t, result); !strings.Contains(text, "That file is the export") || !strings.Contains(text, "mathtrail-profile (1).json") {
-		t.Errorf("get_profile says %q, want where the file is and the other one named", text)
+	forModel := rawPayload(t, call(t, d.session, "get_progress", map[string]any{}))
+	if forCard := rawPayload(t, call(t, d.session, "read_progress", map[string]any{})); !bytes.Equal(forModel, forCard) {
+		t.Errorf("get_progress and read_progress differ over Drive:\n%s\n%s", forModel, forCard)
 	}
 }
 

@@ -26,6 +26,13 @@ export function trapName(words: Words<Key>, id: string): string {
 }
 
 /**
+ * rankCount is how many ranks there are, one name for each in the
+ * dictionaries. A topic's course is drawn out of them while the trial series
+ * runs, before an overall rating says how many there are.
+ */
+export const rankCount = 11;
+
+/**
  * rankName is what the card calls a rank, in its language; a rank the card
  * has no words for is called by its number.
  */

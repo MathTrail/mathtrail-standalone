@@ -1335,9 +1335,10 @@ func TestATaskHandedOutOverAnAnsweredOneSkipsNothing(t *testing.T) {
 	}
 }
 
-// The words of the progress name the latest answers and count the skips apart,
-// so that a run of skipped tasks never hides how the answers went.
-func TestTheProgressCountsTheSkipsApart(t *testing.T) {
+// The progress counts the tasks left without an answer once, in all, and its
+// words name the latest entries the card lists, a skip among them as skipped:
+// the words and the card say the same.
+func TestTheProgressCountsTheSkipsAsTheCardDoes(t *testing.T) {
 	t.Parallel()
 
 	kept := keptWith(t, "masha")
@@ -1348,16 +1349,25 @@ func TestTheProgressCountsTheSkipsApart(t *testing.T) {
 			TaskID: fmt.Sprintf("tsk_skipped_%d", i), Topic: "time.clocks",
 		})
 	}
+	clocks := p.Topics["time.clocks"]
+	clocks.Skipped += 6
+	p.Topics["time.clocks"] = clocks
 	p.Touch("test", lessonDay)
 	if _, err := kept.Save(t.Context(), devAccount, p, revision); err != nil {
 		t.Fatalf("Save() error = %v", err)
 	}
 	_, session := lesson(t, kept)
 
-	text := textOf(t, call(t, session, "get_progress", nil))
-	if !strings.Contains(text, "Latest answers, the latest first: Clocks wrong,") ||
-		!strings.Contains(text, "Of the last 9 tasks, 6 were left without an answer.") {
-		t.Errorf("the words are %q, want the answers named and the six skips counted apart", text)
+	result := call(t, session, "get_progress", nil)
+	if counted := payloadOf[progressPayload](t, result).Skipped; counted != 6 {
+		t.Errorf("skipped = %d, want the 6 tasks left without an answer", counted)
+	}
+	text := textOf(t, result)
+	if !strings.Contains(text, "The latest tasks, the latest first: Clocks skipped, Clocks skipped, "+
+		"Clocks skipped, Clocks skipped, Clocks skipped.") ||
+		!strings.Contains(text, "Tasks left without an answer in all: 6.") {
+		t.Errorf("the words are %q, want the five latest entries named as the card lists them and the six skips "+
+			"counted in all", text)
 	}
 }
 

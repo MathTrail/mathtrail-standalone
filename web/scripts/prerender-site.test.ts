@@ -10,7 +10,7 @@ import {
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { byCodeUnits } from "../src/site/content.ts";
+import { byCodeUnits } from "../src/i18n/order.ts";
 import { buildSite, givenTwice, main, readSources } from "./prerender-site.ts";
 
 const repository = join(import.meta.dirname, "..", "..");
@@ -177,7 +177,40 @@ describe("a directory that holds something else", () => {
 		} finally {
 			await rm(elsewhere, { recursive: true, force: true });
 		}
-	});
+	}, 60_000);
+
+	// Another static site carries .nojekyll too; what tells it from a build of
+	// this one is everything at its top that this build never writes.
+	test("is not replaced when it is another site's, kept with its history", async () => {
+		const other = await mkdtemp(join(tmpdir(), "other-site-"));
+		try {
+			await writeFile(join(other, ".nojekyll"), "");
+			await writeFile(join(other, "index.html"), "theirs");
+			await mkdir(join(other, ".git"));
+			await writeFile(join(other, ".git", "HEAD"), "ref: refs/heads/main\n");
+
+			const { code, said } = await command([
+				"--base",
+				"https://mathtrail.app",
+				"--out",
+				other,
+			]);
+
+			expect(code).toBe(1);
+			expect(said).toEqual([
+				expect.stringContaining(
+					"holds something other than a build of the site",
+				),
+			]);
+			expect(await filesIn(other)).toEqual([
+				".git/HEAD",
+				".nojekyll",
+				"index.html",
+			]);
+		} finally {
+			await rm(other, { recursive: true, force: true });
+		}
+	}, 60_000);
 });
 
 describe("a directory that does not exist yet", () => {

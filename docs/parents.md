@@ -4,14 +4,14 @@ For the parent or tutor who connected MathTrail. Everything MathTrail knows abou
 
 ## Where it is
 
-In your Google Drive, in a folder named **MathTrail**, the file **`mathtrail-profile.json`**. That one file is the whole profile: the pseudonym, the grade, the interests, the ratings, a summary of past answers and the task on the card. Ask the chat where your child's profile is, and MathTrail gives it the folder, the file and a link; the profile card shows where it is, under *Your data*.
+In your Google Drive, in a folder named **MathTrail**, the file **`mathtrail-profile.json`**. That one file is the whole profile: the pseudonym, the grade, the interests, the ratings, a summary of past answers and the task on the card. Ask the chat where your child's profile is, and MathTrail gives it the folder, the file and a link; the *Profile and progress* card shows where it is, under *Your data*.
 
 The service keeps nothing between requests: no database, no copy of the file, and no pseudonym, task or answer in its logs. What the file holds, field by field, is in the [privacy policy](https://mathtrail.app/en/privacy/).
 
 Two more kinds of file can turn up in the folder:
 
 - **`mathtrail-profile set aside <date>.json`** — a profile that could not be read, put aside when you asked for a new start in its place. MathTrail never reads it again; it is left there so that nothing is lost by mistake. Delete it when you no longer need it.
-- **Another file with a profile in it.** MathTrail reads only the newest, and the profile card names the others, so that you can delete them.
+- **Another file with a profile in it.** MathTrail reads only the newest, and the *Profile and progress* card names the others, so that you can delete them.
 
 ## Take it with you
 

@@ -7,7 +7,7 @@ import type { Host } from "./bridge";
 import { CardRoot } from "./CardRoot";
 import { RequestNote, useChatRequest } from "./ChatRequest";
 import { languageName, listed, skillName } from "./names";
-import type { Details, ProfileReport } from "./payload";
+import type { Details, Location, ProfileReport } from "./payload";
 import { type Key, useWords } from "./words";
 
 /**
@@ -58,10 +58,7 @@ function ProfileScreen({
 				)}
 				<ParentProfile details={details} host={host} />
 				{profile.location !== undefined && (
-					<ProfileFields
-						label={words.text("data.label")}
-						fields={dataFields(words, profile.location)}
-					/>
+					<ParentData location={profile.location} />
 				)}
 			</div>
 		</article>
@@ -72,7 +69,7 @@ function ProfileScreen({
  * ParentProfile is the child's profile as the parent reads it on a card: the
  * grade, which is only a label once the child has started, the interests,
  * what the child has not met at school yet, and the language of the lessons —
- * with the one way to change them, which is to ask in the chat.
+ * with the one way to change them, which is to ask in the chat, at its head.
  */
 export function ParentProfile({
 	details,
@@ -88,22 +85,38 @@ export function ParentProfile({
 			label={words.text("profile.label")}
 			fields={detailFields(words, details)}
 			action={
-				<>
-					<Button
-						locked={request.state === "sent"}
-						onClick={() => request.send(words.text("profile.edit"))}
-					>
-						{words.text("profile.edit")}
-					</Button>
-					<RequestNote state={request.state} />
-				</>
+				<Button
+					locked={request.state === "sent"}
+					onClick={() => request.send(words.text("profile.edit"))}
+				>
+					{words.text("profile.edit")}
+				</Button>
 			}
+			status={<RequestNote state={request.state} />}
+		/>
+	);
+}
+
+/**
+ * ParentData is what the parent can do with the child's data, each under the
+ * question it answers rather than a word that reads as a button: where the
+ * file is, which is the export, and the other files that hold a profile; how
+ * to delete it; how to cut the service off from Drive; and how to remove the
+ * app. It names the files and opens none of them.
+ */
+export function ParentData({ location }: { location: Location }) {
+	const words = useWords();
+	return (
+		<ProfileFields
+			label={words.text("data.label")}
+			fields={dataFields(words, location)}
 		/>
 	);
 }
 
 // detailFields are the child's details as the parent's fields, each in the
-// card's words; a list left empty says it is not set.
+// card's words: a list as its names, each drawn apart, or the word that it is
+// not set when it is empty.
 function detailFields(words: Words<Key>, details: Details): Field[] {
 	const none = words.text("profile.none");
 	const skills = details.excluded_skills.map((id) => skillName(words, id));
@@ -115,12 +128,11 @@ function detailFields(words: Words<Key>, details: Details): Field[] {
 		},
 		{
 			term: words.text("profile.interests"),
-			value:
-				details.interests.length > 0 ? listed(words, details.interests) : none,
+			value: details.interests.length > 0 ? details.interests : none,
 		},
 		{
 			term: words.text("profile.not_yet"),
-			value: skills.length > 0 ? listed(words, skills) : none,
+			value: skills.length > 0 ? skills : none,
 		},
 		{
 			term: words.text("profile.language"),
@@ -132,16 +144,13 @@ function detailFields(words: Words<Key>, details: Details): Field[] {
 	];
 }
 
-// dataFields are what the parent can do with the child's data: take the
-// file, delete it, cut the service off from Drive, and remove the app.
-function dataFields(
-	words: Words<Key>,
-	location: NonNullable<ProfileReport["location"]>,
-): Field[] {
+// dataFields are what the parent can do with the child's data, each under the
+// question it answers.
+function dataFields(words: Words<Key>, location: Location): Field[] {
 	const others = location.others.map((other) => other.file);
 	return [
 		{
-			term: words.text("data.export"),
+			term: words.text("data.where"),
 			value:
 				location.folder === ""
 					? words.text("data.export_file", { file: location.file })
@@ -154,8 +163,17 @@ function dataFields(
 					? words.text("data.others", { files: listed(words, others) })
 					: undefined,
 		},
-		{ term: words.text("data.delete"), value: words.text("data.delete_how") },
-		{ term: words.text("data.access"), value: words.text("data.access_how") },
-		{ term: words.text("data.remove"), value: words.text("data.remove_how") },
+		{
+			term: words.text("data.how_delete"),
+			value: words.text("data.delete_how"),
+		},
+		{
+			term: words.text("data.how_cut_off"),
+			value: words.text("data.access_how"),
+		},
+		{
+			term: words.text("data.how_remove"),
+			value: words.text("data.remove_how"),
+		},
 	];
 }

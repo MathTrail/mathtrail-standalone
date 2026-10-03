@@ -54,8 +54,35 @@ func Shown(elo float64) int {
 // is eleven chances for one of them to be typed wrong.
 func Rank(elo float64) int {
 	rank, shown := 1, Shown(elo)
-	for floor := eloBase - (ranksBelowStart-1)*rankStep; rank < Ranks && shown >= floor; floor += rankStep {
+	for rank < Ranks && shown >= floorOf(rank+1) {
 		rank++
 	}
 	return rank
+}
+
+// Share is how far through its rank the rating has come: a whole percent of
+// the way from the rank's floor to the next one's, rounded down, so that the
+// next rank is never drawn as reached before it is. Like the rank, it reads
+// the number as drawn. The first rank is counted from a step below the
+// second's floor, and a rating below even that has come no way at all; the
+// last rank has no next one to come towards, and is drawn with the whole way
+// behind it.
+func Share(elo float64) int {
+	rank := Rank(elo)
+	if rank == Ranks {
+		return 100
+	}
+	// The rating is held at the rank's floor before the floor is taken from
+	// it: the lowest rating a whole number holds would wrap round otherwise,
+	// where a whole number has four bytes.
+	floor := floorOf(rank)
+	return (max(Shown(elo), floor) - floor) * 100 / rankStep
+}
+
+// floorOf is the lowest rating drawn in rank, one step above the floor of the
+// rank before, counted from the rating the youngest children start at. The
+// first rank has no floor of its own: the one this gives it is where the way
+// through it is counted from.
+func floorOf(rank int) int {
+	return eloBase + (rank-1-ranksBelowStart)*rankStep
 }

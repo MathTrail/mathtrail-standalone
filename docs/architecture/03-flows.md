@@ -37,7 +37,7 @@ Which screen a card shows is decided by the payload, not by the tool: `get_profi
 | `submit_task` | the model | yes — the task card when accepted, the waiting screen when it refuses | 1 | 1 | the request id is stale |
 | `submit_answer` | the **widget**, or the model in text mode | **no** — the card turns itself over | 1 | 1 | this task was already answered |
 
-One full task costs three reads and three writes — `next_task`, `submit_task`, `submit_answer` — and one more pair for each rejected attempt. Opening the progress from a card costs one read more. Everything between the read and the write is pure computation: the rule, the checks, the Starlark solver and the ratings never touch the network (01-context).
+One full task costs three reads and three writes — `next_task`, `submit_task`, `submit_answer` — and one more pair for each rejected attempt. Opening the progress from a card costs one read more, and the search and the folder's name that say where the profile's file is (R147). Everything between the read and the write is pure computation: the rule, the checks, the Starlark solver and the ratings never touch the network (01-context).
 
 ## Scenario 1. First sign-in
 
@@ -193,7 +193,7 @@ sequenceDiagram
     A->>W: "Profile & progress" on a task card
     W->>MT: read_progress — the widget's own tool, which draws no card (R97)
     MT->>D: read the profile
-    MT-->>W: the same progress, with the profile's fields
+    MT-->>W: the same progress, with the profile's fields and where its file is
     Note over W: drawn in the same card, "Back to task" returns to it — the model is not asked
 
     A->>M: he has moved up to grade 3

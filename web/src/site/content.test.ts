@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { bodyHTML, byCodeUnits, parseDocument, readTexts } from "./content";
+import { bodyHTML, parseDocument, readTexts } from "./content";
 
 // text is a source with the front matter every page needs.
 function text(title: string, body = `# ${title}\n`): string {
@@ -160,18 +160,5 @@ describe("the texts of a site", () => {
 		],
 	])("are refused for %s", (_, broken, want) => {
 		expect(() => readTexts(broken, "en")).toThrow(want);
-	});
-});
-
-describe("the order of a build", () => {
-	test("is by code units, wherever the build runs", () => {
-		expect(["ru", "en", "zh-Hans", "en-GB", "Z"].sort(byCodeUnits)).toEqual([
-			"Z",
-			"en",
-			"en-GB",
-			"ru",
-			"zh-Hans",
-		]);
-		expect(byCodeUnits("en", "en")).toBe(0);
 	});
 });

@@ -178,9 +178,11 @@ export const failure: CallToolResult = {
 
 /**
  * standing is where Comet stands after the trial series: the design's own
- * progress — four topics, one mastered, the latest answers with one task left
- * without an answer, two mistakes that keep coming back, and the topic worked
- * over again after a mistake next.
+ * progress — four topics met, each with its rank, one ahead of the overall
+ * rank, two even with it and one behind it, one of them mastered, and a topic
+ * within reach not met yet; the latest answers with one task left without an
+ * answer, two mistakes that keep coming back, the topic worked over again
+ * after a mistake next, and where the profile's file is.
  */
 export const standing = {
 	screen: "progress",
@@ -198,11 +200,14 @@ export const standing = {
 		ui_language: null,
 	},
 	trial: null,
-	overall: { rating: 1573, rank: 3, ranks: 11 },
+	overall: { rating: 1573, rank: 3, ranks: 11, share: 43 },
 	topics: [
 		{
 			topic: "logic.ordering",
 			rating: 1712,
+			rank: 4,
+			share: 27,
+			compared: "ahead",
 			answers: 6,
 			correct: 5,
 			mastered: true,
@@ -211,6 +216,9 @@ export const standing = {
 		{
 			topic: "combinatorics.enumeration",
 			rating: 1627,
+			rank: 3,
+			share: 76,
+			compared: "even",
 			answers: 4,
 			correct: 2,
 			mastered: false,
@@ -219,6 +227,9 @@ export const standing = {
 		{
 			topic: "counting.gaps",
 			rating: 1588,
+			rank: 3,
+			share: 53,
+			compared: "even",
 			answers: 3,
 			correct: 2,
 			mastered: false,
@@ -226,9 +237,23 @@ export const standing = {
 		},
 		{
 			topic: "parity.alternation",
-			rating: 1541,
+			rating: 1480,
+			rank: 2,
+			share: 87,
+			compared: "behind",
 			answers: 2,
 			correct: 1,
+			mastered: false,
+			skipped: 0,
+		},
+		{
+			topic: "pigeonhole.basic",
+			rating: null,
+			rank: null,
+			share: null,
+			compared: null,
+			answers: 0,
+			correct: 0,
 			mastered: false,
 			skipped: 0,
 		},
@@ -271,6 +296,7 @@ export const standing = {
 			answered_at: "2026-09-29T11:10:00Z",
 		},
 	],
+	skipped: 1,
 	mistakes: [
 		{ trap: "missed_case", times: 3 },
 		{ trap: "double_count", times: 2 },
@@ -281,14 +307,57 @@ export const standing = {
 		difficulty: 2,
 		goal: "reinforce",
 	},
+	location: {
+		folder: "MathTrail",
+		file: "mathtrail-profile.json",
+		link: "https://drive.google.com/file/d/profile/view",
+		others: [],
+	},
 };
 
 /** progress is the progress a card reads when its top line is pressed. */
 export const progress = toolResult(standing);
 
 /**
+ * standingBefore is where Comet stands, as a progress from before the topics
+ * had ranks of their own says it: no share of the rank, no rank of a topic, no
+ * topic not met yet, no total of the skips and no word of where the file is.
+ * A card of an earlier chat, drawn again, is drawn from one.
+ */
+export const standingBefore = {
+	screen: standing.screen,
+	last_answer: standing.last_answer,
+	profile: standing.profile,
+	trial: null,
+	overall: { rating: 1573, rank: 3, ranks: 11 },
+	topics: standing.topics
+		.filter((topic) => topic.answers > 0)
+		.map(({ topic, rating, answers, correct, mastered, skipped }) => ({
+			topic,
+			rating,
+			answers,
+			correct,
+			mastered,
+			skipped,
+		})),
+	recent: standing.recent,
+	mistakes: standing.mistakes,
+	recommendation: standing.recommendation,
+};
+
+/**
+ * atTheTop is where a child stands who has reached the highest rank: the
+ * whole way of it behind, with no rank left to come.
+ */
+export const atTheTop = {
+	...standing,
+	overall: { rating: 2905, rank: 11, ranks: 11, share: 100 },
+};
+
+/**
  * inTrial is the progress of a child three tasks into the trial series: no
- * rating yet, nor a rank, no mistake made twice, and a new topic next.
+ * rating yet, nor a rank, no mistake made twice, a topic within reach not met
+ * yet, and a new topic next.
  */
 export const inTrial = {
 	...standing,
@@ -298,6 +367,9 @@ export const inTrial = {
 		{
 			topic: "logic.ordering",
 			rating: null,
+			rank: null,
+			share: null,
+			compared: null,
 			answers: 1,
 			correct: 1,
 			mastered: false,
@@ -306,6 +378,9 @@ export const inTrial = {
 		{
 			topic: "counting.gaps",
 			rating: null,
+			rank: null,
+			share: null,
+			compared: null,
 			answers: 1,
 			correct: 0,
 			mastered: false,
@@ -314,12 +389,27 @@ export const inTrial = {
 		{
 			topic: "time.clocks",
 			rating: null,
+			rank: null,
+			share: null,
+			compared: null,
 			answers: 1,
 			correct: 1,
 			mastered: false,
 			skipped: 0,
 		},
+		{
+			topic: "parity.alternation",
+			rating: null,
+			rank: null,
+			share: null,
+			compared: null,
+			answers: 0,
+			correct: 0,
+			mastered: false,
+			skipped: 0,
+		},
 	],
+	skipped: 0,
 	recent: [
 		{
 			topic: "time.clocks",

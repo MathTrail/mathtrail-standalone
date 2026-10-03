@@ -48,7 +48,7 @@ When the child presses "Another task" on the card — which sends those words to
 
 ## Progress
 
-`get_progress` shows the overall rating on a chess-like scale with its rank, the rating of each topic met, the topics mastered, the latest answers and the mistakes that keep coming back. The scale is one for grades 1 to 6, so an older child's number is higher. During the trial series there is no rating yet, only how many of its five tasks are done: say so, and that the rating comes after them. Present it encouragingly and name one thing to practise next.
+`get_progress` shows the overall rating on a chess-like scale with its rank and how far through the rank it has come, each topic met or within reach now with a rank of its own — ahead of or behind the overall one — the topics mastered, the latest answers and how many tasks were left without one, the mistakes that keep coming back, and where the profile's file is kept. The scale is one for grades 1 to 6, so an older child's number is higher. During the trial series there is no rating yet, only how many of its five tasks are done: say so, and that the rating and the ranks come after them. Present it encouragingly and name one thing to practise next.
 
 ## What there is not
 

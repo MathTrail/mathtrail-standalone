@@ -110,6 +110,16 @@ export function ratingText(words: Words<Key>, rating: number): string {
 }
 
 /**
+ * percentText is a whole percent, from 0 to 100, as the words' language writes
+ * one, in its digits and with its own sign.
+ */
+export function percentText(words: Words<Key>, percent: number): string {
+	return new Intl.NumberFormat(words.locale, { style: "percent" }).format(
+		percent / 100,
+	);
+}
+
+/**
  * WordsContext hands a card's words to everything drawn inside it. A component
  * drawn outside any card speaks English.
  */

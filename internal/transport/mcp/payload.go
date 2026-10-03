@@ -8,6 +8,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/progress"
+	"github.com/MathTrail/mathtrail-standalone/internal/store"
 )
 
 // The screens a card can show, as a payload names them. The widget never
@@ -120,6 +121,35 @@ func recommendationOf(next *progress.Recommendation) *recommendationOut {
 	}
 }
 
+// locationOut is where the adult finds the child's profile for themselves:
+// the file is the export, and there is no other. Files beside it that hold a
+// profile too are named, for the adult to look at and delete.
+type locationOut struct {
+	Folder string         `json:"folder"`
+	File   string         `json:"file"`
+	Link   string         `json:"link"`
+	Others []elsewhereOut `json:"others"`
+}
+
+// elsewhereOut is another file that holds a profile.
+type elsewhereOut struct {
+	File string `json:"file"`
+	Link string `json:"link"`
+}
+
+// locationOf is where the profile is, as the payload carries it, or nothing
+// when it is kept nowhere a person could open it.
+func locationOf(location *store.Location) *locationOut {
+	if location.File == "" {
+		return nil
+	}
+	out := &locationOut{Folder: location.Folder, File: location.File, Link: location.Link, Others: []elsewhereOut{}}
+	for _, other := range location.Others {
+		out.Others = append(out.Others, elsewhereOut(other))
+	}
+	return out
+}
+
 // moment is a moment as a payload writes it: RFC 3339, in UTC.
 func moment(t profile.Time) string { return t.UTC().Format(time.RFC3339) }
 
@@ -147,6 +177,29 @@ func quotedEach(texts []string) []string {
 		quotes = append(quotes, quoted(text))
 	}
 	return quotes
+}
+
+// locationText is where the profile is, in words: the file is the export.
+func locationText(location *store.Location) string {
+	if location.File == "" {
+		return ""
+	}
+	where := "as the file " + quoted(location.File)
+	if location.Folder != "" {
+		where += " in the folder " + quoted(location.Folder)
+	}
+	text := fmt.Sprintf("The profile is kept in the adult's Google Drive %s: %s. That file is the export: "+
+		"the adult can open, download or copy it like any other file.", where, location.Link)
+	if len(location.Others) == 0 {
+		return text
+	}
+	others := make([]string, 0, len(location.Others))
+	for _, other := range location.Others {
+		others = append(others, quoted(other.File)+" ("+other.Link+")")
+	}
+	return text + " Other files in the adult's Drive hold a profile too: " + strings.Join(others, ", ") +
+		". MathTrail reads and writes only the newest, the one above, and never merges them; " +
+		"the adult can delete the others."
 }
 
 // firstRunText is what the model is told when there is no profile. The

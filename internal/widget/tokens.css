@@ -32,6 +32,13 @@
   --pressed-border: #b9b4ab;
   --ink-strong: #3d3a35;
   --track: #d8d4cc;
+  /* The ramp a topic's rank is drawn in, from the first ranks to the last:
+     orange to green, and never the red of a wrong answer. */
+  --ramp-1: #e8590c;
+  --ramp-2: #d97706;
+  --ramp-3: #b8860b;
+  --ramp-4: #65a30d;
+  --ramp-5: #15803d;
   --avatar-fill: #ebe5da;
   --avatar-ink: #6f685c;
   --mark-fill: #23211d;
@@ -70,6 +77,11 @@
   --pressed-border: #6b675f;
   --ink-strong: #dcd8d0;
   --track: #4d4a44;
+  --ramp-1: #fb923c;
+  --ramp-2: #f59e0b;
+  --ramp-3: #fde047;
+  --ramp-4: #a3e635;
+  --ramp-5: #4ade80;
   --avatar-fill: #3a3731;
   --avatar-ink: #c9c2b4;
   --mark-fill: #f3eee4;
@@ -136,6 +148,11 @@
   --pressed-border: #6b675f;
   --ink-strong: #dcd8d0;
   --track: #4d4a44;
+  --ramp-1: #fb923c;
+  --ramp-2: #f59e0b;
+  --ramp-3: #fde047;
+  --ramp-4: #a3e635;
+  --ramp-5: #4ade80;
   --avatar-fill: #3a3731;
   --avatar-ink: #c9c2b4;
   --mark-fill: #f3eee4;

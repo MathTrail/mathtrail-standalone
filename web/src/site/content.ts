@@ -1,4 +1,5 @@
 import { Marked } from "marked";
+import { byCodeUnits } from "../i18n/order";
 
 /**
  * Document is one text of the site: the fields a page's head is made of, and
@@ -193,18 +194,6 @@ export function readTexts(sources: Sources, reference: string): Texts {
 		pages,
 		front,
 	};
-}
-
-/**
- * byCodeUnits orders strings by their code units, the same on every machine
- * whatever language it is set to, so that a build's order never depends on
- * where it ran.
- */
-export function byCodeUnits(a: string, b: string): number {
-	if (a === b) {
-		return 0;
-	}
-	return a < b ? -1 : 1;
 }
 
 // pageText reads the source of the file named file, and says which file it was

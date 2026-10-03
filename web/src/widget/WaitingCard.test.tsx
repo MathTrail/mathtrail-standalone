@@ -82,7 +82,9 @@ describe("a card a task did not come to", () => {
 		const heard = await drawCard(refused);
 
 		press(button("Comet Profile & progress"));
-		await vi.waitFor(() => expect(text(".mt-rating-num")).toBe("1573"));
+		await vi.waitFor(() =>
+			expect(text(".mt-rank-name")).toBe("River crossing"),
+		);
 		// A card with no task leads back to what it shows.
 		press(button("Back"));
 

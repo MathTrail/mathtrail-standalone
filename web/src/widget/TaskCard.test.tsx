@@ -601,7 +601,9 @@ describe("another task", () => {
 
 		press(topLine());
 
-		await vi.waitFor(() => expect(text(".mt-rating-num")).toBe("1573"));
+		await vi.waitFor(() =>
+			expect(text(".mt-rank-name")).toBe("River crossing"),
+		);
 		press(button("Back to task"));
 		expect(text(".mt-task-text")).toBe(fence.task.question);
 		expect(text(".mt-action-note")).toBe(
@@ -648,7 +650,9 @@ describe("the progress", () => {
 
 		press(topLine());
 
-		await vi.waitFor(() => expect(text(".mt-rating-num")).toBe("1573"));
+		await vi.waitFor(() =>
+			expect(text(".mt-rank-name")).toBe("River crossing"),
+		);
 		expect(document.activeElement).toBe(button("Back to task"));
 		expect(root.querySelector(".mt-widget > div")?.hasAttribute("hidden")).toBe(
 			true,

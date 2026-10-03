@@ -29,14 +29,28 @@ const inSwahili = {
 	profile: { ...profileRead.profile, ui_language: "sw" },
 };
 
-// fields are the fields of the section labelled label.
+// fields are the fields of the group labelled label: each its name, what it
+// holds — a list's names joined — and the note under it, when there is one.
 function fields(root: HTMLElement, label: string): string[][] {
-	const section = [...root.querySelectorAll(".mt-fields")].find(
-		(found) => found.querySelector(".mt-section-label")?.textContent === label,
+	const group = [...root.querySelectorAll(".mt-fields")].find(
+		(found) =>
+			found.querySelector(".mt-fields-head .mt-section-label")?.textContent ===
+			label,
 	);
-	return [...(section?.querySelectorAll("dl > div") ?? [])].map((field) =>
-		[...field.children].map((part) => part.textContent ?? ""),
-	);
+	return [...(group?.querySelectorAll("dl > div") ?? [])].map((field) => {
+		const told = field.querySelector("dd");
+		const names = [...(told?.querySelectorAll(".mt-chip") ?? [])].map(
+			(chip) => chip.textContent ?? "",
+		);
+		const note = told?.querySelector(".mt-field-note")?.textContent;
+		return [
+			field.querySelector("dt")?.textContent ?? "",
+			names.length > 0
+				? names.join(", ")
+				: (told?.firstChild?.textContent ?? ""),
+			...(note === undefined || note === null ? [] : [note]),
+		];
+	});
 }
 
 describe("the profile's card", () => {
@@ -57,24 +71,27 @@ describe("the profile's card", () => {
 		expect(root.querySelector(".mt-bar")).toBeNull();
 	});
 
-	test("says where the profile's file is, and what the parent can do with it", async () => {
+	test("says where the profile's file is, and what the parent can do with it, each under the question it answers", async () => {
 		const { root } = await draw(inSwahili);
 
 		expect(fields(root, "Your data")).toEqual([
 			[
-				"Export",
+				"Where the profile is",
 				"The whole profile is one file in your Google Drive: mathtrail-profile.json, in the folder MathTrail. Download or copy it there; the chat can give you its link.",
 				"Other files with a profile: mathtrail-profile (1).json. MathTrail reads only the newest; you can delete the others.",
 			],
 			[
-				"Delete",
+				"How to delete it",
 				"Delete the file and empty Drive's bin: nothing of the profile stays anywhere.",
 			],
 			[
-				"Cut off access",
+				"How to cut off access",
 				"In your Google account, under third-party access, remove MathTrail: it can then reach nothing.",
 			],
-			["Remove the app", "Disconnect MathTrail in your chat's settings."],
+			[
+				"How to remove the app",
+				"Disconnect MathTrail in your chat's settings.",
+			],
 		]);
 		// A card opens no link: the chat gives it.
 		expect(root.querySelector("a")).toBeNull();
@@ -88,7 +105,7 @@ describe("the profile's card", () => {
 		});
 
 		expect(fields(root, "Your data")[0]).toEqual([
-			"Export",
+			"Where the profile is",
 			"The whole profile is one file in your Google Drive: mathtrail-profile.json. Download or copy it there; the chat can give you its link.",
 		]);
 	});
