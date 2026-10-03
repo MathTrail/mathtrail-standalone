@@ -259,18 +259,18 @@ func (s *Service) judge(ctx context.Context, examined checks.Examined, against c
 // accepted already, ran out of attempts, was replaced or waited too long — or
 // for another request than the open one. Nothing is judged, spent or written.
 // The card shows the task the child is working on, when there is one: a task
-// handed in twice, the answer to the first gone astray, must not turn the card
-// the child is working on into a wait. A task that has had its answer is done
-// with, and the card waits for the next.
+// handed in twice, the answer to the first gone astray, must not take the task
+// off the card the child is working on. A task that has had its answer is done
+// with, and the card says no task comes to it.
 func (s *Service) stale(p *profile.Profile, now time.Time) Reply[handedInOut] {
 	lead := "The request_id is not the open request's: that request was accepted already, ran out of attempts, " +
 		"was replaced by a newer one or waited too long. Nothing was checked or spent."
 	task := p.InFlight()
 	if task == nil {
-		// The card waits for whatever request is still open, a newer one say,
-		// and speaks its lesson's language; with none open it falls back to
-		// the language the parent chose, as any card does. A request past its
-		// window is open no longer, and the language it was opened in may
+		// The card says so in the language of whatever request is still open,
+		// a newer one say, whose task comes next; with none open it falls back
+		// to the language the parent chose, as any card does. A request past
+		// its window is open no longer, and the language it was opened in may
 		// have been changed since.
 		var language string
 		if open := p.OpenRequest; open != nil && open.Awaited(s.window, now) {

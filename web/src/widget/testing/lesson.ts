@@ -475,6 +475,20 @@ export const exhausted = {
 } as const;
 
 /**
+ * staleWait is the payload of a task handed in for a request that is not the
+ * open one, with no task on the card: nothing was checked, and the model asks
+ * for a new task.
+ */
+export const staleWait = {
+	screen: "waiting",
+	status: "stale",
+	code: "stale_request",
+	last_answer: null,
+	child: fence.child,
+	task: null,
+} as const;
+
+/**
  * limited is the payload of a request refused for the day: it says whose card
  * it would be nowhere, since the tool that refuses reads no child's details.
  */

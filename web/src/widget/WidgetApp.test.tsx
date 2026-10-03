@@ -1,7 +1,7 @@
 import { render } from "preact";
 import { act } from "preact/test-utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import type { Bridge, Host, ToolResult } from "./bridge";
+import type { Bridge, Call, Host, ToolResult } from "./bridge";
 import {
 	exhausted,
 	fence,
@@ -21,6 +21,10 @@ const idleHost: Host = {
 	tellModel: () => Promise.reject(new Error("the model is told nothing here")),
 };
 
+// notDrawnForATask is the call of a host that names no tool: the card waits for
+// its result with nothing to show.
+const notDrawnForATask: Call = { tool: undefined, stage: "started" };
+
 // heldBridge is a bridge whose results arrive, and whose host names its locale,
 // when the test says, so the card can be caught before, between and after them.
 function heldBridge(hostLocale?: string) {
@@ -34,6 +38,7 @@ function heldBridge(hostLocale?: string) {
 	};
 	const bridge: Bridge = {
 		result: () => latest,
+		call: () => notDrawnForATask,
 		locale: () => locale,
 		subscribe(listener) {
 			listeners.add(listener);
@@ -149,7 +154,7 @@ describe("the card", () => {
 	});
 
 	test.each([
-		["a task refused", refused, "Preparing the next task…"],
+		["a task refused", refused, "This try didn't pass the checks."],
 		[
 			"a day refused",
 			limited,
@@ -165,34 +170,16 @@ describe("the card", () => {
 		expect(root.querySelector(".stub")).toBeNull();
 	});
 
-	test("starts a new wait for each payload that asks for one, and only then", () => {
-		vi.useFakeTimers();
-		try {
-			const { bridge, deliver, changeLocale } = heldBridge();
-			act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
-			act(() => deliver(refused));
-			act(() => {
-				vi.advanceTimersByTime(120_000);
-			});
-			expect(root.querySelector(".mt-gen")).toBeNull();
+	test("turns a card waiting after a refused try to the next payload it is told", () => {
+		const { bridge, deliver } = heldBridge();
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
+		act(() => deliver(refused));
+		expect(root.textContent).toContain("This try didn't pass the checks.");
 
-			// The host telling more, or telling the same payload again, is not a
-			// new wait.
-			act(() => changeLocale("en-GB"));
-			act(() => deliver({ ...refused }));
-			expect(root.querySelector(".mt-gen")).toBeNull();
-
-			act(() => deliver({ ...refused, attempt: 2, attempts_left: 1 }));
-			expect(root.querySelector(".mt-gen")).not.toBeNull();
-
-			// The last attempt refused turns the wait to a card no task is coming
-			// to: no course runs on it any more.
-			act(() => deliver(exhausted));
-			expect(root.querySelector(".mt-gen")).toBeNull();
-			expect(root.textContent).toContain("This task didn't work out.");
-		} finally {
-			vi.useRealTimers();
-		}
+		// The last attempt refused turns it to a card no task is coming to.
+		act(() => deliver(exhausted));
+		expect(root.textContent).toContain("This task didn't work out.");
+		expect(root.querySelector(".mt-gen")).toBeNull();
 	});
 
 	test("starts a card afresh for each payload, and keeps it for the same one told again", () => {

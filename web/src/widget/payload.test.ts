@@ -20,20 +20,10 @@ import {
 	profileRefused,
 	refused,
 	staleAnswer,
+	staleWait,
 	standing,
 	toldAgain,
 } from "./testing/lesson";
-
-// staleRequest is a task handed in for a request no longer open, with no task
-// on the card: the card waits for the task the model is told to ask for.
-const staleRequest = {
-	screen: "waiting",
-	status: "stale",
-	code: "stale_request",
-	last_answer: null,
-	child: fence.child,
-	task: null,
-};
 
 describe("a task handed to the card", () => {
 	test("is read with what the child may see and whose card it is", () => {
@@ -149,8 +139,8 @@ describe("an answer sent from the card", () => {
 
 describe("a wait for the next task", () => {
 	test.each([
-		["a task refused, with attempts left", refused, "working"],
-		["a task handed in for no open request", staleRequest, "working"],
+		["a task refused, with attempts left", refused, "refused"],
+		["a task handed in for no open request", staleWait, "stale"],
 		["the model's last attempt refused", exhausted, "exhausted"],
 	])("after %s is read with whose card it is", (_, payload, kind) => {
 		expect(readWaiting(payload)).toEqual({ kind, child: fence.child });

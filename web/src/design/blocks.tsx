@@ -1,4 +1,4 @@
-import type { ComponentChildren, Ref } from "preact";
+import type { ComponentChildren } from "preact";
 import { classes } from "./classes";
 import type { Said } from "./controls";
 import { Icon } from "./icons";
@@ -154,18 +154,14 @@ export function GeneratingSteps({
 	title,
 	steps,
 	statusLabels,
-	titleRef,
 }: {
 	title: string;
 	steps: readonly Step[];
 	statusLabels: Record<StepStatus, string>;
-	titleRef?: Ref<HTMLParagraphElement>;
 }) {
 	return (
 		<div class="mt-gen">
-			<p class="mt-gen-title" ref={titleRef} tabIndex={-1}>
-				{title}
-			</p>
+			<p class="mt-gen-title">{title}</p>
 			<ol aria-live="polite">
 				{steps.map((step) => (
 					<li key={step.label} data-status={step.status}>

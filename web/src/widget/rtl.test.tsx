@@ -1,7 +1,13 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { type Drawn, drawCard, press, takeDown } from "./testing/card";
-import type { ToolCall } from "./testing/host";
+import {
+	type Drawn,
+	drawCard,
+	openCard,
+	press,
+	takeDown,
+} from "./testing/card";
+import { type ToolCall, toolInfoOf } from "./testing/host";
 import {
 	answered,
 	fence,
@@ -89,7 +95,7 @@ describe("a card in a language written right to left", () => {
 	});
 });
 
-// The markup of six screens in Arabic, against the snapshots the review last
+// The markup of seven screens in Arabic, against the snapshots the review last
 // read: which of their parts run right to left and which do not, and what
 // they say. A change to them is a change to read in the snapshots' diff.
 describe("the screens in Arabic", () => {
@@ -115,10 +121,21 @@ describe("the screens in Arabic", () => {
 		expect(markupOf(root)).toMatchSnapshot();
 	});
 
-	test("the wait for the next task", async () => {
+	test("the wait for a task being handed in", async () => {
+		const opened = await openCard({
+			context: { locale: "ar-EG", toolInfo: toolInfoOf("submit_task") },
+		});
+		drawn = { root: opened.root, heard: opened.heard };
+		await vi.waitFor(() =>
+			expect(opened.root.querySelector(".mt-gen")).not.toBeNull(),
+		);
+
+		expect(markupOf(opened.root)).toMatchSnapshot();
+	});
+
+	test("a try that did not pass", async () => {
 		const root = await draw({ ...refused, child: fenceInArabic.child });
 
-		expect(root.querySelector(".mt-gen")).not.toBeNull();
 		expect(markupOf(root)).toMatchSnapshot();
 	});
 

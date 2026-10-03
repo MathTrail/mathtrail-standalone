@@ -148,13 +148,14 @@ const waiting = z.object({
 });
 
 /**
- * Waiting is a card that waits for the next task, as a tool's payload draws
- * it: while the model writes the task, after the model's last attempt at one
- * failed its checks, or once the day has no room for another. A card that
- * waits for a task knows whose it is; one refused for the day may not.
+ * Waiting is a card a task did not come to, as a tool's payload draws it: the
+ * model's attempt failed its checks and the next one is to come, the request
+ * it was for is over, its last attempt failed too, or the day has no room for
+ * another. A card a task was handed in for knows whose it is; one refused for
+ * the day may not.
  */
 export type Waiting =
-	| { kind: "working" | "exhausted"; child: Child }
+	| { kind: "refused" | "stale" | "exhausted"; child: Child }
 	| { kind: "limit"; child: Child | undefined };
 
 /**
@@ -175,10 +176,10 @@ export function readWaiting(payload: unknown): Waiting | undefined {
 	if (whose === undefined) {
 		return undefined;
 	}
-	return {
-		kind: code === "attempts_exhausted" ? "exhausted" : "working",
-		child: whose,
-	};
+	if (code === "attempts_exhausted") {
+		return { kind: "exhausted", child: whose };
+	}
+	return { kind: status === "stale" ? "stale" : "refused", child: whose };
 }
 
 const details = child.extend({

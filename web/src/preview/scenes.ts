@@ -1,5 +1,6 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
 import type { McpUiHostContext } from "@modelcontextprotocol/ext-apps";
+import type { CallStage } from "../widget/bridge";
 import type { AnswerResult } from "../widget/payload";
 import {
 	answered,
@@ -21,24 +22,28 @@ import {
 	progress,
 	refused,
 	staleAnswer,
+	staleWait,
 	standing,
 } from "../widget/testing/lesson";
 
 /**
  * Scene is one state of a lesson on a card: the payload the card is drawn
- * from — a task handed to it, or a wait for the next — what the service
+ * from — a task handed to it, or a card a task did not come to — or, for a
+ * task caught being handed in, how far its call has got; what the service
  * answers the card's calls with, whether the host takes its messages, what
  * the host keeps of the screen's edges, and what the child does on the card
  * to reach the state.
  */
 export type Scene = {
 	name: string;
-	payload: object;
 	answers?: (tool: string) => Promise<CallToolResult>;
 	refuseMessages?: boolean;
 	insets?: McpUiHostContext["safeAreaInsets"];
 	play?: (card: Document) => void;
-};
+} & (
+	| { payload: object; caught?: undefined }
+	| { caught: CallStage; payload?: undefined }
+);
 
 // Fence is the fence in one language: the task as it is handed to a card,
 // the trap behind B and D, and the solution.
@@ -183,9 +188,16 @@ export function scenesIn(language: string): Scene[] {
 			refuseMessages: true,
 			play: button(2),
 		},
+		{ name: "a task being written", caught: "started" },
+		{ name: "a task being checked", caught: "running" },
+		{ name: "a task not finished", caught: "cancelled" },
 		{
-			name: "waiting after a refused task (late at 120 s)",
+			name: "a try that did not pass",
 			payload: { ...refused, child: handed.child },
+		},
+		{
+			name: "a request that is over",
+			payload: { ...staleWait, child: handed.child },
 		},
 		{
 			name: "attempts exhausted",

@@ -1,10 +1,19 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
 import type { McpUiHostContext } from "@modelcontextprotocol/ext-apps";
+import type { AppBridge } from "@modelcontextprotocol/ext-apps/app-bridge";
 import { render } from "preact";
 import { act } from "preact/test-utils";
 import { expect, vi } from "vitest";
 import { start } from "../start";
 import { deliver, listenAsHost, openTestHost, type ToolCall } from "./host";
+
+/** CardOptions are what a test sets of the host a card is drawn on. */
+type CardOptions = {
+	tools?: (call: ToolCall) => CallToolResult | Promise<CallToolResult>;
+	refuseMessages?: boolean;
+	refuseModelLines?: boolean;
+	context?: McpUiHostContext;
+};
 
 /**
  * Drawn is a card a test drew: the element it is drawn in, and what the host
@@ -25,26 +34,11 @@ export type Drawn = {
 export async function drawCard(
 	payload: object,
 	{
-		tools = () => {
-			throw new Error("no tool is answered here");
-		},
-		refuseMessages = false,
-		refuseModelLines = false,
-		context = {},
 		args = {},
-	}: {
-		tools?: (call: ToolCall) => CallToolResult | Promise<CallToolResult>;
-		refuseMessages?: boolean;
-		refuseModelLines?: boolean;
-		context?: McpUiHostContext;
-		args?: Record<string, unknown>;
-	} = {},
+		...options
+	}: CardOptions & { args?: Record<string, unknown> } = {},
 ): Promise<Drawn> {
-	const { host, widgetSide } = await openTestHost(context);
-	const heard = listenAsHost(host, tools, { refuseMessages, refuseModelLines });
-	const root = document.createElement("div");
-	document.body.append(root);
-	await start(root, widgetSide);
+	const { host, root, heard } = await openCard(options);
 	await deliver(host, payload, args);
 	await vi.waitFor(() =>
 		expect(root.querySelector(".mt-widget")).not.toBeNull(),
@@ -86,4 +80,26 @@ export function press(element: HTMLElement): void {
 		element.focus();
 		element.click();
 	});
+}
+
+/**
+ * openCard starts the widget, in an element of its own on the page, on a host
+ * that has told it its context and nothing of the call yet, and returns the
+ * host for the test to tell it the rest — the call's arguments, its result or
+ * its cancelling — as a chat host would, when it would.
+ */
+export async function openCard({
+	tools = () => {
+		throw new Error("no tool is answered here");
+	},
+	refuseMessages = false,
+	refuseModelLines = false,
+	context = {},
+}: CardOptions = {}): Promise<Drawn & { host: AppBridge }> {
+	const { host, widgetSide } = await openTestHost(context);
+	const heard = listenAsHost(host, tools, { refuseMessages, refuseModelLines });
+	const root = document.createElement("div");
+	document.body.append(root);
+	await start(root, widgetSide);
+	return { root, heard, host };
 }

@@ -21,6 +21,16 @@ export async function openTestHost(context: McpUiHostContext = {}) {
 }
 
 /**
+ * toolInfoOf is what a host tells a card of the call that drew it: the tool,
+ * by the name given.
+ */
+export function toolInfoOf(
+	name: string,
+): NonNullable<McpUiHostContext["toolInfo"]> {
+	return { tool: { name, inputSchema: { type: "object" } } };
+}
+
+/**
  * deliver hands the widget a tool's result the way a host does once a call it
  * drew a card for has ended: the call's arguments first, then its result.
  */
