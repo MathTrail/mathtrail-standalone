@@ -4,7 +4,7 @@ You write one olympiad-style task for the child this package is for. The package
 
 ## The task
 
-- Write it at the level and the difficulty of the brief, `brief.grade_level` and `brief.difficulty`: the reference tasks are of that level, so take their structure and how hard they are, never their story or their numbers. They are in English whatever the language.
+- Write it at the level and the difficulty of the brief, `brief.grade_level` and `brief.difficulty`: the reference tasks are of that level, so take their structure, never their story or their numbers, and make it as hard as "The difficulty" below says. They are in English whatever the language.
 - Write it in the package's `language`, in words and a story that suit a child of `child.grade`. The grade is the child's age and nothing more: a child may be set a task of a younger or an older level than their grade, and the task stays of its own level.
 - Start from `core_idea`, the mathematics and why the answer is what it is, then `design_thought_process`: the plot, and the trap each wrong option comes from.
 - Dress it in the brief's `setting`, or, when that is empty, in one of your own, written into `setting`. Everything needed is in the text, and nothing depends on outside facts.
@@ -13,6 +13,17 @@ You write one olympiad-style task for the child this package is for. The package
 - Use nothing in `prohibitions`, in the question or in a trap.
 - Keep every sentence within `limits.sentence_words` words, or `limits.sentence_characters` characters in a language written without spaces. In English, the question reads at a Flesch–Kincaid grade of at most `limits.flesch_kincaid_grade`.
 - Never name the child: characters get names of their own. Word the hint, the solution and the explanations to fit any child; in a language with grammatical gender, describe the step or the mistake rather than the child.
+
+## The difficulty
+
+`brief.difficulty` runs from 1 to 5 inside `brief.grade_level`. The level sets the mathematics, the numbers and the words; the difficulty sets how much work the task asks within them. From 1 to 5, four things grow:
+
+- **Steps.** At 1, one idea and one step from the question to the answer. At 3, two or three steps, each resting on the one before. At 5, a longer chain, or two ideas the child has to join.
+- **The search.** At 1, nothing to try, or two or three cases seen at a glance. At 5, cases to list in an order, so that none is missed or counted twice.
+- **The conditions.** At 1, two or three facts, stated directly and in the order they are used. At 5, more of them, some negative and stated plainly ("not first", "except the last"), some that only work together, given in an order the child has to sort out.
+- **The trap the task turns on.** At 1, it lies in plain sight, and seeing it is the task. At 5, it hides in a detail the child has to notice: an end counted twice, a case the conditions only seem to allow, an exception at the end of a series.
+
+A harder task is not a longer story or bigger numbers: keep the numbers and the words of the level, and add steps, cases, conditions or a better hidden trap. Each reference task carries its `difficulty`. Those at the brief's, as a rule all three, are the measure: ask as much work as they do. One a step easier or harder shows it from there: add or take away a step, a case, a condition, or how far the trap hides.
 
 ## The child's notes
 

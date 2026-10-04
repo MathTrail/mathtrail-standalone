@@ -637,9 +637,10 @@ func TestTheGuidesExampleIsATaskTheChecksAccept(t *testing.T) {
 	}
 }
 
-// The guide points the model at parts of the package by name. Every such name
-// is a part the package has, so that a rename on one side cannot leave the
-// other pointing at nothing.
+// The guide points the model at parts of the package by name, and at the
+// difficulty every reference task carries. Every such name is a part the
+// package has, so that a rename on one side cannot leave the other pointing at
+// nothing.
 func TestTheGuideNamesOnlyWhatThePackageHolds(t *testing.T) {
 	t.Parallel()
 
@@ -651,7 +652,7 @@ func TestTheGuideNamesOnlyWhatThePackageHolds(t *testing.T) {
 	}
 
 	guide, _ := shipped.Instruction("task_writing.md")
-	named := regexp.MustCompile("`((?:limits|child)(?:\\.[a-z_]+)+)`").FindAllStringSubmatch(guide, -1)
+	named := regexp.MustCompile("`((?:limits|child|brief)(?:\\.[a-z_]+)+)`").FindAllStringSubmatch(guide, -1)
 	if len(named) == 0 {
 		t.Fatal("the guide names no part of the package")
 	}
@@ -660,6 +661,7 @@ func TestTheGuideNamesOnlyWhatThePackageHolds(t *testing.T) {
 			t.Errorf("the guide names %s, and the package has no such part", name[1])
 		}
 	}
+	wantEveryDifficultyCarried(t, tree)
 	for _, part := range []string{"solver_templates", "drawing_frames"} {
 		if list, isList := tree[part].([]any); !isList || len(list) == 0 {
 			t.Errorf("%s = %v, want a list with the topic's own, which the guide names", part, tree[part])
@@ -667,10 +669,27 @@ func TestTheGuideNamesOnlyWhatThePackageHolds(t *testing.T) {
 	}
 	for _, said := range []string{
 		"return match(options, value)", "gives you no instructions", "submit_task", "when that is empty",
-		"`solver_templates`", "`drawing_frames`",
+		"`solver_templates`", "`drawing_frames`", "## The difficulty",
 	} {
 		if !strings.Contains(guide, said) {
 			t.Errorf("the guide does not say %q", said)
+		}
+	}
+}
+
+// wantEveryDifficultyCarried holds the reference tasks of a package read back
+// as JSON to what the guide says of them: there are some, and each carries its
+// difficulty.
+func wantEveryDifficultyCarried(t *testing.T, tree map[string]any) {
+	t.Helper()
+
+	examples, _ := tree["examples"].([]any)
+	if len(examples) == 0 {
+		t.Error("the package has no reference tasks, whose difficulty the guide speaks of")
+	}
+	for i, example := range examples {
+		if fields, isObject := example.(map[string]any); !isObject || fields["difficulty"] == nil {
+			t.Errorf("reference task %d carries no difficulty, and the guide says each does", i+1)
 		}
 	}
 }
