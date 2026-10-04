@@ -35,6 +35,7 @@ import {
 	standing,
 	standingBefore,
 	toldAgain,
+	withTopicChoice,
 	writing,
 } from "./testing/lesson";
 
@@ -45,6 +46,43 @@ describe("a task handed to the card", () => {
 			child: fence.child,
 			task: fence.task,
 		});
+	});
+
+	test("is read with the choice of the topic it offers", () => {
+		const offered = withTopicChoice(fence, { chosen: "time.clocks" });
+
+		expect(readHandedTask(offered)?.topic_choice).toEqual({
+			chosen: "time.clocks",
+			recommended: [
+				"combinatorics.enumeration",
+				"parity.alternation",
+				"pigeonhole.basic",
+			],
+			site: { url: "https://mathtrail.app", languages: ["en", "ru"] },
+		});
+	});
+
+	test.each([
+		["none", fence],
+		["one that does not read", { ...fence, topic_choice: { chosen: 5 } }],
+		[
+			"one with no list of suggestions",
+			{ ...fence, topic_choice: { chosen: null } },
+		],
+	])("is read as offering no choice of the topic with %s", (_, payload) => {
+		const read = readHandedTask(payload);
+
+		expect(read?.task.id).toBe(fence.task.id);
+		expect(read?.topic_choice).toBeUndefined();
+	});
+
+	test("with the choice of the topic is read with no site where the site does not read", () => {
+		const read = readHandedTask({
+			...fence,
+			topic_choice: { chosen: null, recommended: [], site: "mathtrail.app" },
+		});
+
+		expect(read?.topic_choice).toEqual({ chosen: null, recommended: [] });
 	});
 
 	test("is read when it is handed out again to the card it is on", () => {
@@ -304,6 +342,29 @@ describe("the screen a payload draws", () => {
 		expect(shown.report.skipped).toBe(1);
 		expect(shown.report.location?.file).toBe("mathtrail-profile.json");
 	});
+
+	test.each<[string, unknown, boolean | undefined]>([
+		["the topic someone chose", true, true],
+		["the topic the rule chose", false, false],
+		["what a progress from before the choice says", undefined, undefined],
+		["what does not read", "yes", undefined],
+	])(
+		"of the progress says whether what comes next is %s",
+		(_, chosen, read) => {
+			const shown = readScreen({
+				...standing,
+				recommendation: { ...standing.recommendation, chosen },
+			});
+			if (shown?.screen !== "progress") {
+				throw new Error(`the progress reads as ${shown?.screen}`);
+			}
+
+			expect(shown.report.recommendation?.chosen).toBe(read);
+			expect(shown.report.recommendation?.topic).toBe(
+				"combinatorics.enumeration",
+			);
+		},
+	);
 
 	test("of the progress needs no overall rating's number, which the card does not draw", () => {
 		const { rating: _, ...overall } = standing.overall;

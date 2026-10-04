@@ -47,6 +47,12 @@ export function Badge({ children }: { children: ComponentChildren }) {
 }
 
 /**
+ * Version is what a header says of the build a card came with: the word for a
+ * version, in the card's language, and the number.
+ */
+export type Version = { label: string; number: string };
+
+/**
  * MessageHeader says who speaks — MathTrail, with its logo, or the child, with
  * the avatar — with a badge under the name, or beside it on a wide card, and a
  * short note beside the name when there is one. A version, when there is one,
@@ -66,7 +72,7 @@ export function MessageHeader({
 	name: string;
 	badge?: string;
 	meta?: string;
-	version?: string;
+	version?: Version;
 	compact?: boolean;
 	wide?: boolean;
 }) {
@@ -118,12 +124,16 @@ export function MessageHeader({
 			{picture}
 			{text}
 			{version !== undefined && (
-				// A version is Latin letters and digits in any language, and
-				// reads left to right inside a card that reads the other way. It
-				// is for a grown-up reading the card off the screen, so a screen
+				// The word runs the way the card's language does; the number is
+				// Latin letters and digits in any language, and reads left to
+				// right inside a card that reads the other way. The version is
+				// for a grown-up reading the card off the screen, so a screen
 				// reader does not read it out to the child before every task.
-				<span class="mt-version" dir="ltr" aria-hidden="true">
-					{version}
+				<span class="mt-version" aria-hidden="true">
+					<span class="mt-version-label">{version.label}</span>{" "}
+					<span class="mt-version-number" dir="ltr">
+						{version.number}
+					</span>
 				</span>
 			)}
 		</header>

@@ -20,6 +20,15 @@ export function topicName(words: Words<Key>, id: string): string {
 }
 
 /**
+ * groupName is what the card calls a group of topics of the site's page of
+ * topics, in its language; a group the card has no words for is called by its
+ * id.
+ */
+export function groupName(words: Words<Key>, id: string): string {
+	return nameOf(words, `group.${id}`, id);
+}
+
+/**
  * skillName is what the card calls a skill of the catalog, in its language;
  * a skill the card has no words for is called by its id.
  */

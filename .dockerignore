@@ -1,6 +1,7 @@
 # Build context filter for images built from the repository root.
-# The image needs the Go sources and the widget's, and nothing else. A widget
-# built on this machine stays out too: the image builds its own.
+# The image needs the Go sources, the widget's, and the site's data the widget
+# takes the groups of topics from, and nothing else. A widget built on this
+# machine stays out too: the image builds its own.
 .git
 .github
 .vscode

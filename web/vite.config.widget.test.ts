@@ -56,6 +56,41 @@ test("the widget builds into one page that loads nothing from outside it", () =>
 	expect(page).not.toContain(pseudoLocale);
 });
 
+// solversIn are the names of the solvers a part of the site's data names, at
+// any depth: the solvers that prove its examples' answers.
+function solversIn(part: unknown): string[] {
+	if (Array.isArray(part)) {
+		return part.flatMap(solversIn);
+	}
+	if (typeof part !== "object" || part === null) {
+		return [];
+	}
+	return Object.entries(part).flatMap(([key, value]) =>
+		key === "solver" && typeof value === "string" ? [value] : solversIn(value),
+	);
+}
+
+// The card offers the topics in the groups of the site's page of topics, read
+// from the file the site is built from. The rest of that file is the site's —
+// its examples, the solvers that prove them, its pages' cards — and a page a
+// host loads for every task has no use for it.
+test("the widget page carries the site's groups of topics and nothing else of the site's data", async () => {
+	const data: unknown = JSON.parse(
+		await readFile(
+			join(import.meta.dirname, "..", "site", "data.json"),
+			"utf8",
+		),
+	);
+	// A solver named by one word — a cross, a ferry — is a word a page may hold
+	// for any reason; one of several words is the example's alone.
+	const solvers = solversIn(data).filter((solver) => solver.includes("-"));
+
+	expect(solvers.length).toBeGreaterThan(10);
+	for (const solver of solvers) {
+		expect(page, solver).not.toContain(solver);
+	}
+});
+
 // The icons the card was first drawn with came from another app's design, and
 // the card draws its own. Every part of their paths, from one move to the
 // next, is named here by its SHA-256, so that none of them is kept in the

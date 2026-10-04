@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import catalog from "../../../content/catalogs/topics.json";
 import { groups } from "../../../site/data.json";
-import { topicGroups } from "./topicGroups";
+import { groupsOf, topicGroups } from "./topicGroups";
 
 describe("the groups of topics a card offers", () => {
 	test("are the site's groups, in the order of its page of topics", () => {
@@ -29,5 +29,24 @@ describe("the groups of topics a card offers", () => {
 		expect(from.get("time.clocks")).toBe(1);
 		expect(from.get("logic.knights_liars")).toBe(3);
 		expect(from.get("percent.basic")).toBe(5);
+	});
+
+	test("leave out a topic the catalog has no level for", () => {
+		expect(
+			groupsOf(
+				[
+					{
+						id: "logic",
+						topics: ["logic.knights_liars", "logic.unknown", "logic.unset"],
+					},
+				],
+				[
+					{ id: "logic.knights_liars", grade_levels: ["5-6", "3-4"] },
+					{ id: "logic.unset", grade_levels: [] },
+				],
+			),
+		).toEqual([
+			{ id: "logic", topics: [{ id: "logic.knights_liars", fromGrade: 3 }] },
+		]);
 	});
 });

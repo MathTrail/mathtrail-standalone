@@ -1,4 +1,4 @@
-import type { Ref } from "preact";
+import type { ComponentChildren, Ref } from "preact";
 import { useReducer, useRef } from "preact/hooks";
 import { Diagram, Note, Verdict } from "../design/blocks";
 import {
@@ -37,6 +37,13 @@ import {
 	readAnswer,
 } from "./payload";
 import { TaskResult } from "./TaskResult";
+import {
+	TopicButton,
+	TopicChip,
+	TopicNote,
+	TopicPanel,
+	useTopicChoice,
+} from "./TopicChoice";
 import { type Key, useWords } from "./words";
 
 /**
@@ -82,8 +89,10 @@ export function TaskCard({
  * result below the task, in the same card; opens the hint; and asks for
  * another task, which goes to the chat for the model to write — the new task
  * comes in a card of its own, below, and this one says so and keeps its task.
- * The lesson begins at start, the task just handed out unless it says
- * otherwise.
+ * A task handed out with the choice of the topic offers it too: a topic to
+ * keep the lessons to, or the coach's choice, saved and then asked for as
+ * another task is. The lesson begins at start, the task just handed out unless
+ * it says otherwise.
  */
 export function TaskInCard({
 	handed,
@@ -108,9 +117,16 @@ export function TaskInCard({
 	// the buttons that could give another are locked, and a second press that
 	// comes before the card has redrawn to lock them is turned away here.
 	const answering = useRef(false);
+	const choosing = useTopicChoice(host, handed.topic_choice, {
+		busy: () => answering.current,
+		ask: another.send,
+	});
+	// A choice of the topic on its way locks the card as an answer does: the
+	// task it asks for would race the answer.
+	const saving = choosing.said === "saving";
 
 	async function answer(choice: Choice) {
-		if (answering.current) {
+		if (answering.current || choosing.busy()) {
 			return;
 		}
 		answering.current = true;
@@ -130,7 +146,7 @@ export function TaskInCard({
 		// task the model is about to set aside. The label of the button, in the
 		// card's language, goes to the chat as the child's message: only the
 		// model can write a task, and those are the words it takes as the ask.
-		if (answering.current) {
+		if (answering.current || choosing.busy()) {
 			return;
 		}
 		another.send(words.text("task.another"));
@@ -144,6 +160,10 @@ export function TaskInCard({
 	// The task is in the language it was written in, which need not be the
 	// card's: a screen reader reads it in its own voice, and it runs its own way.
 	const inTask: Said = { lang: task.language, dir: directionOf(task.language) };
+	const offered = handed.topic_choice;
+	// The choice of the topic asks for a task, so it waits as another task does.
+	const topicLocked =
+		lesson.answer.state === "checking" || another.state === "sending" || saving;
 
 	return (
 		<>
@@ -153,7 +173,18 @@ export function TaskInCard({
 					handed={handed}
 					lesson={lesson}
 					inTask={inTask}
+					locked={!canAnswer(lesson) || saving}
 					onAnswer={answer}
+					chip={
+						offered !== undefined &&
+						choosing.chosen === task.topic && (
+							<TopicChip
+								choosing={choosing}
+								topic={task.topic}
+								locked={topicLocked}
+							/>
+						)
+					}
 				/>
 			</article>
 			<section
@@ -173,12 +204,28 @@ export function TaskInCard({
 						<TaskActions
 							lesson={lesson}
 							another={another.state}
+							saving={saving}
 							nextTask={nextTask}
 							onDontKnow={() => answer(dontKnow)}
 							onHint={() => dispatch({ type: "hint toggled" })}
 							onAnother={askForAnother}
 						/>
+						{offered !== undefined && (
+							<TopicButton choosing={choosing} locked={topicLocked} />
+						)}
 					</div>
+					{offered !== undefined && (
+						<>
+							<TopicPanel
+								choosing={choosing}
+								offered={offered}
+								grade={grade ?? handed.child.grade}
+								host={host}
+								locked={topicLocked}
+							/>
+							<TopicNote said={choosing.said} />
+						</>
+					)}
 					<RequestNote state={another.state} taken="task.another_coming" />
 				</div>
 			)}
@@ -186,24 +233,30 @@ export function TaskInCard({
 	);
 }
 
-// TaskBody is the task itself: its question, its drawing, the hint while it
-// is shown and the task is not done with, and the options — to press, or
-// marked once the answer is in.
+// TaskBody is the task itself: the mark of the topic the lessons are kept to,
+// when the task is on it, its question, its drawing, the hint while it is
+// shown and the task is not done with, and the options — to press unless
+// locked, or marked once the answer is in.
 function TaskBody({
 	handed,
 	lesson,
 	inTask,
+	locked,
 	onAnswer,
+	chip,
 }: {
 	handed: HandedTask;
 	lesson: Lesson;
 	inTask: Said;
+	locked: boolean;
 	onAnswer: (choice: Choice) => void;
+	chip: ComponentChildren;
 }) {
 	const words = useWords();
 	const { task } = handed;
 	return (
 		<div class="mt-body">
+			{chip}
 			<p class="mt-task-text" lang={inTask.lang} dir={inTask.dir}>
 				{task.question}
 			</p>
@@ -220,7 +273,7 @@ function TaskBody({
 					lesson.answer.state === "answered" ? "result.answers" : "task.pick",
 				)}
 				options={optionsOf(handed, lesson.answer, (key) => words.text(key))}
-				locked={!canAnswer(lesson)}
+				locked={locked}
 				onSelect={onAnswer}
 				said={inTask}
 			/>
@@ -238,9 +291,11 @@ function TaskBody({
 // once the chat has it, the button may be pressed again, since a host may hold
 // the message for the person to send and the card cannot see whether it went,
 // and a second ask while a task is being written is handed the one open.
+// While a choice of the topic is on its way, every button is locked.
 function TaskActions({
 	lesson,
 	another,
+	saving,
 	nextTask,
 	onDontKnow,
 	onHint,
@@ -248,13 +303,14 @@ function TaskActions({
 }: {
 	lesson: Lesson;
 	another: Request;
+	saving: boolean;
 	nextTask: Ref<HTMLButtonElement>;
 	onDontKnow: () => void;
 	onHint: () => void;
 	onAnother: () => void;
 }) {
 	const words = useWords();
-	const anotherSending = another === "sending";
+	const anotherSending = another === "sending" || saving;
 	if (lesson.answer.state === "answered") {
 		return (
 			<Button
@@ -270,7 +326,7 @@ function TaskActions({
 	}
 	return (
 		<LessonButtons
-			locked={lesson.answer.state === "checking"}
+			locked={lesson.answer.state === "checking" || saving}
 			anotherSending={anotherSending}
 			hintOpen={lesson.hint.open}
 			onDontKnow={onDontKnow}

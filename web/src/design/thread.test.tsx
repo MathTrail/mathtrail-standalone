@@ -78,7 +78,7 @@ describe("a header", () => {
 			<MessageHeader
 				name="MathTrail"
 				badge="Olympiad coach · Grade 3"
-				version="v0.2.1"
+				version={{ label: "version", number: "0.2.1" }}
 				wide={wide}
 			/>,
 		);
@@ -87,9 +87,32 @@ describe("a header", () => {
 		expect(header?.classList.contains("mt-head-versioned")).toBe(true);
 		const last = header?.lastElementChild;
 		expect(last?.className).toBe("mt-version");
-		expect(last?.getAttribute("dir")).toBe("ltr");
 		expect(last?.getAttribute("aria-hidden")).toBe("true");
-		expect(last?.textContent).toBe("v0.2.1");
+		expect(last?.hasAttribute("dir")).toBe(false);
+	});
+
+	test("draws the version as the word, then the number read left to right", () => {
+		draw(
+			<MessageHeader
+				name="MathTrail"
+				version={{ label: "версия", number: "0.2.1" }}
+			/>,
+		);
+
+		const parts = [...(root.querySelector(".mt-version")?.children ?? [])];
+		expect(
+			parts.map((part) => [
+				part.className,
+				part.textContent,
+				part.getAttribute("dir"),
+			]),
+		).toEqual([
+			["mt-version-label", "версия", null],
+			["mt-version-number", "0.2.1", "ltr"],
+		]);
+		// Read without the stylesheet — in a reader mode, a text browser — the
+		// word and the number stay two words.
+		expect(root.querySelector(".mt-version")?.textContent).toBe("версия 0.2.1");
 	});
 
 	test("shows no version it was not given", () => {

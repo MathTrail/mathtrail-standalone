@@ -354,6 +354,24 @@ describe("the progress", () => {
 
 		expect(text(root, ".mt-note-plain .mt-note-label")).toBe("Next up");
 		expect(text(root, ".mt-note-plain p")).toBe("Enumeration, once more");
+		expect(root.querySelector(".mt-note-plain .mt-note-detail")).toBeNull();
+	});
+
+	test("says under what comes next that it is the topic chosen for the lessons", async () => {
+		const { root } = await draw({
+			...standing,
+			recommendation: {
+				...standing.recommendation,
+				topic: "time.clocks",
+				goal: "new_topic",
+				chosen: true,
+			},
+		});
+
+		expect(text(root, ".mt-note-plain p")).toBe("Clocks");
+		expect(text(root, ".mt-note-plain .mt-note-detail")).toBe(
+			"Chosen for the lessons.",
+		);
 	});
 
 	test("shows each topic's rank, how it stands to the overall one, and its course in the colour of its rank", async () => {

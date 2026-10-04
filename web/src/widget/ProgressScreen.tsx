@@ -163,7 +163,14 @@ export function ProgressScreen({
 					)}
 					<Standing report={report} moves={moves} shown={shown} />
 					{recommendation !== null && (
-						<Note label={words.text("progress.next_up")}>
+						<Note
+							label={words.text("progress.next_up")}
+							detail={
+								recommendation.chosen === true
+									? words.text("progress.next_chosen")
+									: undefined
+							}
+						>
 							{nextUp(words, recommendation)}
 						</Note>
 					)}

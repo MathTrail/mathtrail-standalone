@@ -1,9 +1,9 @@
 # What a green main produces: the server built for the architectures it runs on,
 # the sums of what was built, and a signature for each of them, and then the
-# service deployed from the release's tag. What matters in the release is that
-# anybody can check that a binary came from this repository, from this
-# workflow, at this commit; what matters in the delivery after it is that the
-# service names the release it runs.
+# service deployed and the site published from the release's tag. What matters
+# in the release is that anybody can check that a binary came from this
+# repository, from this workflow, at this commit; what matters in the delivery
+# and the site after it is that both name the release the service runs.
 #
 # Nobody tags anything by hand: the version is the next patch of the line the
 # releases are numbered in, and the tag is created with the release. The button
@@ -145,12 +145,12 @@ jobs:
               echo "newest=true" >> "$GITHUB_OUTPUT"
           else
               echo "newest=false" >> "$GITHUB_OUTPUT"
-              echo "main ends at $tip now: $TARGET is released and not deployed"
+              echo "main ends at $tip now: $TARGET is released, and neither deployed nor its site published"
           fi
 
-  # A delivery that failed is started again with "Re-run failed jobs": run
-  # again with all jobs, the release job would publish the same commit once
-  # more, under the next number.
+  # A delivery or a site that failed is started again with "Re-run failed
+  # jobs": run again with all jobs, the release job would publish the same
+  # commit once more, under the next number.
   deploy:
     name: Deploy the release
     needs: release
@@ -168,3 +168,26 @@ jobs:
     # The delivery's own: the billing account, and the OAuth client's secret
     # for the first apply of a deployment.
     secrets: inherit
+
+  # The site of the release goes out beside its delivery rather than after it.
+  # The site is published sooner than the service is rolled out, so the
+  # privacy policy and the topics' pages a card links to are online before the
+  # service that points at them; and neither holds the other back when it
+  # fails. The cards on the site name the release a little before the chats
+  # run it, and, when a delivery fails, until the next one succeeds.
+  site:
+    name: Publish the release's site
+    needs: release
+    # The same newest commit of main the delivery takes: the site never goes
+    # back to older pages either.
+    if: needs.release.outputs.newest == 'true'
+    permissions:
+      contents: read
+      # The toolchain image the site is built in, published when it is new.
+      packages: write
+      # The deployment to Pages, and the token its origin is checked by.
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages.yml
+    with:
+      version: ${{ needs.release.outputs.version }}

@@ -97,7 +97,11 @@ describe("the address of a group of topics", () => {
 		["no site", undefined, "time"],
 		["a group that would turn the address", site, "time?child=Comet"],
 		["a group that names a path", site, "../privacy"],
-		["a site with a path", { ...site, url: "https://mathtrail.app/en" }, "time"],
+		[
+			"a site with a path",
+			{ ...site, url: "https://mathtrail.app/en" },
+			"time",
+		],
 		["a site with no https", { ...site, url: "http://mathtrail.app" }, "time"],
 	])("is none for %s", (_, given, group) => {
 		expect(groupAddress(given, "en", group)).toBeUndefined();

@@ -32,9 +32,9 @@ Fork this repository. GitHub runs none of a fork's workflows until they are enab
 What each workflow needs in a copy:
 
 - **`deploy.yml`**, the delivery, needs everything below.
-- **`pages.yml`**, the site, needs Pages published from GitHub Actions — step 4.
+- **`pages.yml`**, the site, needs Pages published from GitHub Actions — step 4. `release.yml` runs it with every release; on a pull request it only builds and checks the site.
 - **`ci.yml`**, the checks, needs nothing to run. Two of its steps report to this repository's projects: the SonarCloud job, which fails on `main` without a `SONAR_TOKEN` — give it a project of your own in `sonar-project.properties`, or remove it — and the Codecov upload, which fails nothing without a token of yours.
-- **`release.yml`** needs green checks: it runs once `ci.yml` has passed on `main`, publishes a release and then runs `deploy.yml` with it — so a SonarCloud job left failing stops every release, and every delivery with it.
+- **`release.yml`** needs green checks: it runs once `ci.yml` has passed on `main`, publishes a release and then runs `deploy.yml` and `pages.yml` with it, side by side — so a SonarCloud job left failing stops every release, and every delivery and every publication of the site with it.
 - **`codeql.yml`** and **`scorecard.yml`** need nothing.
 - **`load.yml`** needs nothing, and spends runner minutes once a week; disable it if nobody reads its reports.
 
@@ -75,7 +75,7 @@ Google publishes a consent screen only with a home page, a privacy policy and te
 3. **Pages.** In the repository's **Settings → Pages**, choose **GitHub Actions** as the source and enter your domain as the custom domain: a site published by a workflow is given its domain there, and the `CNAME` file the build writes is ignored. Verify the domain for Pages first, in your account's or organisation's settings, as GitHub recommends, so that no other repository can claim it.
 4. **The DNS records.** For an apex domain, the four A and four AAAA records in [GitHub's list](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site); for a subdomain, a CNAME to `<owner>.github.io`. Once Pages offers it, turn on **Enforce HTTPS**: until then the policy is served over plain HTTP as well.
 
-The site is published on every push to `main`. Have it live before the consent screen: Google asks for the policy's address.
+The site is published with every release, from the release's tag, beside the delivery of the service, and the widget's cards on its pages name that release. Have it live before the consent screen, since Google asks for the policy's address: before the first release exists, start **Pages** by hand on `main`, which publishes the branch as it stands and names no release.
 
 The progress links each topic's name to its page on this site, and the words for the model name those pages too, at addresses built from `MATHTRAIL_SITE_URL`, the page's language and the topic's slug. Nothing turns the links off, so publish the site from the commit the service is delivered from: a service ahead of its site links to pages the site does not have yet.
 
@@ -116,7 +116,7 @@ The key everything is sealed with is in neither list, and neither is the key the
 
 ## 8. Deliver
 
-A push to `main` is delivered once the checks have passed on it and its release is published: `release.yml` hands the release to `deploy.yml`, which builds from the release's tag, so the service — `/health` and the header of the task card — names the release it runs. `deploy.yml` started by hand delivers any branch as it stands, named by how far past a release it is. Either way it runs three jobs:
+A push to `main` is delivered once the checks have passed on it and its release is published: `release.yml` hands the release to `deploy.yml`, which builds from the release's tag, so the service — `/health` and the header of the task card — names the release it runs; beside it, `pages.yml` publishes the site from the same tag. `deploy.yml` started by hand delivers any branch as it stands, named by how far past a release it is. Either way it runs three jobs:
 
 1. **The cloud, as described.** `terraform apply`, every time, so the deployment always matches the commit it was cut from. On the very first run this is what creates everything; afterwards it is usually a no-op that takes half a minute.
 2. **The image of this commit.** Built, pushed to the registry with the commit as its tag, and rolled out **by digest** — a tag can be moved afterwards and a digest cannot.

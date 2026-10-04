@@ -1,5 +1,5 @@
 import { type Element, Window } from "happy-dom";
-import { afterAll, describe, expect, test } from "vitest";
+import { afterAll, afterEach, describe, expect, test, vi } from "vitest";
 import topics from "../../../content/catalogs/topics.json";
 import traps from "../../../content/catalogs/traps.json";
 import file from "../../../site/data.json";
@@ -241,9 +241,42 @@ describe("the home page", () => {
 		expect(home.querySelectorAll(".s-card:not([inert])").length).toBe(0);
 	});
 
-	test("names no build on any card, since the site is published before its release is tagged", () => {
-		expect(home.querySelector(".mt-head")).not.toBeNull();
-		expect(home.querySelector(".mt-version")).toBeNull();
+	describe("built", () => {
+		afterEach(() => {
+			vi.unstubAllEnvs();
+		});
+
+		// homeBuiltWith is the home page in English of a site built told the
+		// version given, as the release's build is told it.
+		const homeBuiltWith = (version: string) => {
+			vi.stubEnv("VITE_VERSION", version);
+			return new browser.DOMParser().parseFromString(
+				render().find(({ path }) => path === "en/index.html")?.data ?? "",
+				"text/html",
+			);
+		};
+
+		test("from a release, names it on every card MathTrail heads, as a chat does", () => {
+			const page = homeBuiltWith("v0.2.1");
+			const heads = [
+				...page.querySelectorAll(".mt-head:not(.mt-head-compact)"),
+			].filter(
+				(head) => head.querySelector(".mt-name")?.textContent === "MathTrail",
+			);
+
+			expect(heads.length).toBeGreaterThan(0);
+			expect(
+				heads.map((head) => head.querySelector(".mt-version")?.textContent),
+			).toEqual(heads.map(() => "version 0.2.1"));
+			expect(page.querySelectorAll(".mt-version")).toHaveLength(heads.length);
+		});
+
+		test("from no release, names no build on any card, rather than dev", () => {
+			const page = homeBuiltWith("");
+
+			expect(page.querySelector(".mt-head")).not.toBeNull();
+			expect(page.querySelector(".mt-version")).toBeNull();
+		});
 	});
 
 	test("names every part of itself once, though it draws seven cards", () => {
