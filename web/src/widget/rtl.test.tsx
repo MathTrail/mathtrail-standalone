@@ -3,9 +3,11 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
 	type Drawn,
 	drawCard,
+	foldIn,
 	openCard,
 	press,
 	takeDown,
+	unfold,
 } from "./testing/card";
 import { type ToolCall, toolInfoOf } from "./testing/host";
 import {
@@ -67,11 +69,16 @@ async function draw(payload: object, locale = "ar-EG"): Promise<HTMLElement> {
 	return drawn.root;
 }
 
-// markupOf is the markup of the card, or of the part of it named by selector,
-// as its snapshot keeps it: the drawings of its icons left out, since they say
-// nothing of the way its words run.
-function markupOf(root: HTMLElement, selector = ".mt-widget"): Element {
-	const card = root.querySelector(selector)?.cloneNode(true);
+// markupOf is the markup of the card, or of the part of it named by selector
+// or given, as its snapshot keeps it: the drawings of its icons left out,
+// since they say nothing of the way its words run.
+function markupOf(
+	root: HTMLElement,
+	selector: string | Element | null = ".mt-widget",
+): Element {
+	const part =
+		typeof selector === "string" ? root.querySelector(selector) : selector;
+	const card = part?.cloneNode(true);
 	if (!(card instanceof Element)) {
 		throw new Error("the card is not drawn");
 	}
@@ -175,6 +182,15 @@ describe("the screens in Arabic", () => {
 
 	test("the progress", async () => {
 		expect(markupOf(await draw(standing))).toMatchSnapshot();
+	});
+
+	test("the review of the progress, opened", async () => {
+		const root = await draw(standing);
+		unfold(root, "المراجعة");
+
+		expect(
+			markupOf(root, foldIn(root, "المراجعة").closest(".mt-fold")),
+		).toMatchSnapshot();
 	});
 
 	test("the profile, its cards chosen to be in Arabic", async () => {

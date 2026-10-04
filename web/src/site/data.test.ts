@@ -175,6 +175,39 @@ describe("the site's data", () => {
 			},
 			"site/data.json: the card on the page Why is set in grade 9, which counting.gaps is not taught in",
 		],
+		[
+			"a technique that leads to a topic the catalog does not have",
+			{
+				...knights,
+				techniques: {
+					groups: [
+						{
+							id: "see",
+							techniques: [
+								{
+									id: "draw",
+									topics: ["logic.tables"],
+									example: { level: "1-2", solver: "one", answer: "1" },
+								},
+							],
+						},
+					],
+					cues: [["draw"]],
+				},
+			},
+			"site/data.json: the technique draw leads to logic.tables, a topic the catalog does not have",
+		],
+		[
+			"a technique with no example to work through",
+			{
+				...knights,
+				techniques: {
+					groups: [{ id: "see", techniques: [{ id: "draw", topics: [] }] }],
+					cues: [["draw"]],
+				},
+			},
+			"→ at techniques.groups[0].techniques[0].example",
+		],
 	])("is refused for %s", (_, broken, want) => {
 		expect(() => readSiteData(catalog, broken)).toThrow(want);
 	});

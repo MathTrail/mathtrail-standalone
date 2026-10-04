@@ -825,11 +825,17 @@ describe("the review", () => {
 		expect(root.querySelector(".mt-advice")?.tagName).toBe("OL");
 	});
 
-	test("leaves out what it has no words for — a reason, a kind of step, the advice for a mistake — and keeps the name of a topic named for nothing it can say", async () => {
+	test("leaves out what it has no words for — a reason, a kind of step, a mistake's name in a sentence and its advice — and keeps the name of a topic named for nothing it can say", async () => {
 		const { root } = await drawOpened(
 			withReview({
 				strong: [{ topic: "logic.ordering", reasons: ["shining"] }],
-				develop: [{ topic: "counting.gaps", reasons: ["low", "toString"] }],
+				develop: [
+					{
+						topic: "counting.gaps",
+						reasons: ["low", "toString", "trap"],
+						trap: "counted_the_cat",
+					},
+				],
 				steps: [
 					{ kind: "trap", topic: "counting.gaps", trap: "counted_the_cat" },
 					{ kind: "dance", topic: "counting.gaps" },

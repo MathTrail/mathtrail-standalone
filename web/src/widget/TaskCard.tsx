@@ -49,7 +49,7 @@ import { type Key, useWords } from "./words";
 export function TaskCard({
 	handed,
 	host,
-	start = lessonStart,
+	start,
 }: {
 	handed: HandedTask;
 	host: Host;

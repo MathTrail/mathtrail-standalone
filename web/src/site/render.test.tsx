@@ -609,15 +609,26 @@ describe("the apex", () => {
 
 describe("a language written right to left", () => {
 	// Arabic words for the site, made from the English ones so that every key
-	// is there with its slots, and Arabic texts made from the Russian ones.
+	// is there with its slots — a wording that changes with a number with a
+	// text for each of Arabic's plural categories — and Arabic texts made from
+	// the Russian ones.
+	const categories = new Intl.PluralRules("ar").resolvedOptions()
+		.pluralCategories;
+	const arabicText = (key: string, english: string) =>
+		[`نص ${key}`, ...(english.match(/\{[a-z]+\}/g) ?? [])].join(" ");
 	const arabic: Dictionary = Object.fromEntries(
 		[...Object.entries(dictionaries.get("en") ?? {})].map(([key, english]) => [
 			key,
 			key === "language.name"
 				? "العربية"
-				: [`نص ${key}`, ...(String(english).match(/\{[a-z]+\}/g) ?? [])].join(
-						" ",
-					),
+				: typeof english === "string"
+					? arabicText(key, english)
+					: Object.fromEntries(
+							categories.map((category) => [
+								category,
+								arabicText(key, english.other ?? ""),
+							]),
+						),
 		]),
 	);
 	const built = renderSite({

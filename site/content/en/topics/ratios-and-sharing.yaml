@@ -1,0 +1,185 @@
+# The page of the topic of ratios and sharing, for a parent. The topic's name,
+# its group, its grades and its traps' names are not here: they are the card's
+# words and the catalog's numbers. Each example's level, and the answer its
+# solver proves, are the site's data; an example here is worked through to that
+# answer. The traps are the topic's commonest, counted in its reference tasks.
+
+title: Ratios and sharing
+description: What problems about ratios and sharing in parts are, how they are solved, where children go wrong, and how to help at home.
+
+hero:
+  lead: >-
+    Ann and Ben share 35 sweets in the ratio 3 to 4. How many does each get?
+    In these tasks a ratio says how many equal parts each one gets, not how
+    many things. Counting the parts first and finding what one part is worth
+    turns every ratio task into a division.
+  method: Count the parts, then find one part
+  teaches: To see a ratio as equal parts, and to scale a recipe up or down
+  # 35 sweets shared in the ratio 3 to 4: seven equal parts.
+  drawing: |2
+    Ann □ □ □
+    Ben □ □ □ □
+    7 parts = 35
+
+basis:
+  title: The rules of ratios
+  cards:
+    - mark: "3:4"
+      title: A ratio is parts
+      text: >-
+        3 to 4 means: for every 3 equal parts of one, 4 of the other. Together
+        that is 7 equal parts, not 3 or 4.
+    - mark: "1"
+      title: One part first
+      text: >-
+        Divide the total by the number of parts to find one part, then multiply
+        by each one's number: 35 : 7 = 5, so 3 parts are 15 and 4 parts are 20.
+    - mark: "×2"
+      title: Scale both sides
+      text: >-
+        A ratio stays the same when both of its numbers are multiplied by the
+        same number: 3 to 4 is 6 to 8 and 30 to 40. That is how a recipe grows.
+
+idea:
+  title: Count the parts
+  lead: Whatever the ratio, add its numbers up first. That is how many equal parts the whole is cut into.
+  table:
+    head:
+      - Shared
+      - Parts
+      - One part and the shares
+    rows:
+      - - 35 sweets, 3 to 4
+        - 3 + 4 = 7
+        - "35 : 7 = 5, so 15 and 20"
+      - - 60 cards, 1 to 2 to 3
+        - 1 + 2 + 3 = 6
+        - "60 : 6 = 10, so 10, 20 and 30"
+      - - 45 beads, 2 to 7
+        - 2 + 7 = 9
+        - "45 : 9 = 5, so 10 and 35"
+  note:
+    title: Why it matters
+    text: >-
+      The commonest mistake is to divide by one number of the ratio instead of
+      their sum: 35 : 3 or 35 : 4. Drawing a box for every part makes the sum
+      impossible to miss.
+
+method:
+  title: "How to solve: a box for every part"
+  lead: >-
+    Draw one box for every part of the ratio, a row of boxes for each one who
+    shares. Count all the boxes, find what one box holds, then fill in the
+    shares. The examples below go from the simplest to an olympiad's.
+  steps:
+    - Draw a box for every part
+    - Find what one box holds
+    - Fill in the shares, and check the total
+
+examples:
+  - title: Mushrooms
+    question: >-
+      Max and Lena pick 45 mushrooms together. For every 4 mushrooms Max picks,
+      Lena picks 5. How many mushrooms does Lena pick?
+    # A box for every part: four for Max and five for Lena.
+    drawing: |2
+      Max  □ □ □ □
+      Lena □ □ □ □ □
+    steps:
+      - 4 to 5 means 4 parts for Max and 5 for Lena, 9 equal parts in all.
+      - "One part is 45 : 9 = 5 mushrooms."
+      - "Lena has 5 parts: 5 × 5 = 25 mushrooms. Check: Max has 20, and 20 + 25 = 45."
+    answer: 25 mushrooms.
+    note:
+      title: "Why not 45 : 5?"
+      text: >-
+        45 : 5 = 9 divides by Lena's number alone. The 45 mushrooms are all 9
+        parts, Max's and Lena's together.
+  - title: The choir
+    question: >-
+      A choir has 4 boys for every 7 girls, and there are 9 more girls than
+      boys. How many children sing in the choir?
+    # The boys' parts and the girls' parts: the girls' three extra parts are
+    # the 9.
+    drawing: |2
+      boys  □ □ □ □
+      girls □ □ □ □ □ □ □
+                    └ 9 ┘
+    steps:
+      - >-
+        The boys are 4 parts and the girls 7 parts, so the girls have 3 parts
+        more than the boys.
+      - "Those 3 parts are the 9 extra girls: one part is 9 : 3 = 3 children."
+      - >-
+        The choir is 4 + 7 = 11 parts: 11 × 3 = 33 children. Check: 12 boys
+        and 21 girls, 9 more girls.
+    answer: 33 children.
+    note:
+      title: Which parts are the 9?
+      text: >-
+        The 9 are not the girls' 7 parts but the 3 parts the girls have over
+        the boys. Dividing 9 by 7 or by 11 gives no whole number of children.
+  - title: Two boxes
+    question: >-
+      Two boxes hold marbles in the ratio 3 to 1. After 10 marbles are moved
+      from the first box to the second, the boxes hold as many marbles each.
+      How many marbles are there in all?
+    # The boxes in parts of the same total, before and after the move.
+    drawing: |2
+      before  A □ □ □  B □
+      after   A □ □    B □ □
+    steps:
+      - >-
+        Moving marbles from one box to the other does not change the total: it
+        is the same before and after.
+      - >-
+        Before, the total is 4 parts and the first box holds 3 of them. After,
+        it holds half of the total, 2 of the same 4 parts. So it gave away 1
+        part.
+      - >-
+        That part is the 10 marbles moved: the total is 4 × 10 = 40. Check: 30
+        and 10 before, 20 and 20 after.
+    answer: 40 marbles.
+    note:
+      title: What does not change
+      text: >-
+        Ratio tasks often hide something that stays the same: here the total.
+        Measuring both ratios in parts of that same total is what makes them
+        comparable.
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ratio_total_confusion:
+    shows: >-
+      The numbers of the ratio are taken for shares of the total: 4 to 5 is
+      read as 4 out of 5, or the 45 mushrooms are divided by 5 instead of by
+      the 4 + 5 = 9 parts.
+    say: “How many equal parts are there in all?”
+  wrong_operation:
+    shows: >-
+      The child adds where the ratio needs multiplying: a recipe for 6 more
+      people gets 6 more eggs, when the eggs must grow in step with the
+      people.
+    say: “If there are twice as many people, what happens to the eggs?”
+  answered_other_question:
+    shows: >-
+      A share is found and the wrong one is given: Max's mushrooms instead of
+      Lena's, or one part, 3 children, instead of the whole choir.
+    say: “Whose share does the question ask about?”
+
+home:
+  - title: Cooking by a ratio
+    text: >-
+      Make a drink or a dough by a ratio together: one cup of juice to three of
+      water. Then make twice as much, and see what doubles.
+  - title: Boxes on paper
+    text: >-
+      For any sharing at home, of sweets or of chores, draw a box for every
+      part and fill them in. The boxes do the thinking.
+  - title: Maps and models
+    text: >-
+      Look at the scale of a map or a model car: 1 to 50 means every centimetre
+      stands for 50. Measure something together and scale it up.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Give me a task about ratios and sharing

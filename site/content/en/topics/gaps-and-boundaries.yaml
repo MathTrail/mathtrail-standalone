@@ -117,7 +117,7 @@ examples:
       - "The flights are all the same, so 8 : 2 = 4. Lena climbs 4 times as many steps."
     answer: 4 times as many.
     note:
-      title: Why not 3?
+      title: Why not 3 times?
       text: >-
         9 : 3 = 3 divides the floors, but the steps are on the flights between
         floors, and nobody climbs up to floor 1.

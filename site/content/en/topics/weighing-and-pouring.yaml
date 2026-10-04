@@ -1,0 +1,198 @@
+# The page of the topic of weighing and pouring, for a parent. The topic's
+# name, its group, its grades and its traps' names are not here: they are the
+# card's words and the catalog's numbers. Each example's level, and the answer
+# its solver proves, are the site's data; an example here is worked through to
+# that answer. The traps are the topic's commonest, counted in its reference
+# tasks.
+
+title: Weighing and pouring
+description: What problems about weighing on a balance and pouring between jugs are, how they are solved, where children go wrong, and how to help at home.
+
+hero:
+  lead: >-
+    With a 5-litre jug and a 3-litre jug, how do you measure exactly 4 litres?
+    With a balance and no weights, how do you find the one light coin among
+    many? In these tasks a child plans a short sequence of steps, and every
+    rule counts: no marks on the jugs, no weights for the balance. It is a
+    first meeting with algorithms, plans that work whatever happens.
+  method: Write down every state and look for the shortest way
+  teaches: To plan steps ahead, and to think through every outcome of a weighing
+  # Measuring 4 litres with a 5-litre jug and a 3-litre jug, step by step.
+  drawing: |2
+    5 l  3 l
+     5    0
+     2    3
+     2    0
+     0    2
+     5    2
+     4    3
+
+basis:
+  title: The rules of weighing and pouring
+  cards:
+    - mark: "→"
+      title: A state is every jug
+      text: >-
+        Write what each jug holds after every step: 5 and 0, then 2 and 3. A
+        list of states shows where you can get to and where you have already
+        been.
+    - mark: "3"
+      title: Three outcomes
+      text: >-
+        A balance can tip left, tip right or stay level, so every weighing has
+        three outcomes. Split the coins into three groups, not two.
+    - mark: "!"
+      title: Every rule counts
+      text: >-
+        No marks on the jugs, no water poured away, weights on one pan only:
+        each rule changes which steps are allowed, and so the answer.
+
+idea:
+  title: Three outcomes of a weighing
+  lead: Each weighing has three outcomes, so it can split the coins into three groups. That decides how many coins a number of weighings can handle.
+  table:
+    head:
+      - Weighings
+      - Outcomes
+      - Coins they can handle
+    rows:
+      - - "1"
+        - "3"
+        - up to 3
+      - - "2"
+        - 3 × 3 = 9
+        - up to 9
+      - - "3"
+        - 3 × 3 × 3 = 27
+        - up to 27
+  note:
+    title: Why it matters
+    text: >-
+      A child who weighs half the coins against the other half needs more
+      weighings than necessary. Seeing that a balance answers in three ways,
+      not two, is the whole idea, and it comes back later in computer science
+      as search.
+
+method:
+  title: "How to solve: a table of states"
+  lead: >-
+    For pouring, make a table with a column for each jug and a row for each
+    step, and try every allowed step from each row until the goal appears; the
+    first time it appears is the fewest steps. For weighing, plan what to do
+    after each of the three outcomes. The examples below go from the simplest
+    to an olympiad's.
+  steps:
+    - Write down the state, what each jug or pan holds
+    - Try every allowed step from it
+    - Stop at the goal, and count the steps
+
+examples:
+  - title: One litre
+    question: >-
+      A cook has an empty 3-litre jug, an empty 5-litre jug and a tap. The jugs
+      have no marks. In one step she fills a jug from the tap, pours a jug out,
+      or pours from one jug into the other until the first is empty or the
+      second is full. What is the fewest steps to get exactly 1 litre in a jug?
+    # What the two jugs hold after each step.
+    drawing: |2
+      3 l  5 l
+       3    0
+       0    3
+       3    3
+       1    5
+    steps:
+      - Fill the 3-litre jug and pour it into the 5-litre jug, which now holds 3 litres.
+      - >-
+        Fill the 3-litre jug again and pour from it until the big jug is full:
+        only 2 more litres fit.
+      - "1 litre is left in the small jug, after 4 steps: fill, pour, fill, pour."
+    answer: 4 steps.
+    note:
+      title: Why not fewer?
+      text: >-
+        A table of every state reached in up to three steps has no 1 litre in
+        it: the jugs hold only 0, 2, 3 or 5 litres. The first litre appears
+        after the fourth step.
+  - title: Eight coins
+    question: >-
+      There are 8 coins that look the same. One of them is fake and lighter
+      than the others, which all weigh the same. What is the smallest number of
+      weighings on a balance without weights that is sure to find the fake?
+    # The first weighing: three coins on each pan and two aside.
+    drawing: |2
+      [●●●] [●●●]  ●●
+    steps:
+      - Put 3 coins on each pan and keep 2 aside.
+      - >-
+        If a pan rises, the fake is among its 3 coins: weigh 1 against 1, and
+        the lighter one is the fake, or the third coin if they balance.
+      - >-
+        If the pans balance, the fake is one of the 2 aside: weigh them against
+        each other. Either way 2 weighings are enough, and 1 is not: it has
+        only 3 outcomes for 8 coins.
+    answer: 2 weighings.
+    note:
+      title: Why not 4 and 4?
+      text: >-
+        Weighing 4 against 4 leaves 4 coins after the first weighing, and 4
+        coins need 2 more weighings, 3 in all. Groups of three let the outcome
+        “level” do some of the work too.
+  - title: A hundred coins
+    question: >-
+      Among 100 coins that look the same, one is fake and lighter than the
+      others, which all weigh the same. What is the smallest number of
+      weighings on a balance without weights that is sure to find the fake?
+    steps:
+      - >-
+        Each weighing has 3 outcomes, so 4 weighings tell apart at most
+        3 × 3 × 3 × 3 = 81 cases. That is fewer than 100 coins, so 4 weighings
+        are not enough.
+      - >-
+        Put 33 coins on each pan and keep 34 aside: whatever happens, at most 34
+        coins are left. In the same way 34 come down to at most 12, then 4,
+        then 2, then 1.
+      - That makes 5 weighings, as the coins go from 100 to 34, 12, 4, 2 and 1.
+    answer: 5 weighings.
+    note:
+      title: Two halves of a proof
+      text: >-
+        The answer needs both: a plan that finds the fake in 5 weighings, and
+        the count of outcomes that shows 4 can never be enough. Olympiad answers
+        about “the fewest” always have these two halves.
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ignored_condition:
+    shows: >-
+      A rule of the task is broken without noticing: water is poured away
+      though the task does not allow it, a jug is filled to a mark it does not
+      have, or a weight goes on the load's pan.
+    say: “Which steps does the task allow?”
+  stopped_early:
+    shows: >-
+      The plan stops before it is sure: one weighing finds the group with the
+      fake and the search ends there, or the pouring stops at 2 litres when the
+      goal was 1.
+    say: “Whatever the balance showed, do you know for certain now?”
+  off_by_one:
+    shows: >-
+      The steps are counted one off: the first filling from the tap is left
+      out, or the last pouring is counted twice.
+    say: "“Count again on the table: one row, one step.”"
+
+home:
+  - title: Jugs in the sink
+    text: >-
+      Take two cups of different sizes and try to measure an amount that
+      neither holds. A sink is the best lab, and spilled water does no harm.
+  - title: Find the light one
+    text: >-
+      Hide one lighter object among a few that look the same and find it with
+      a home balance, or a coat hanger with two bags. Count the weighings.
+  - title: Plan first
+    text: >-
+      Before pouring or weighing, write the plan as a table and check it step
+      by step. Planning first is the skill, not luck.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Give me a task about weighing and pouring

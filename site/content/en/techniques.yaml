@@ -1,0 +1,355 @@
+# The page of the techniques of olympiad problem solving, for a parent. Which
+# techniques there are, their groups and order, the topics each one leads to,
+# and each example's level and the answer its solver proves are the site's
+# data; the words here follow them, technique by technique. A technique's
+# drawing is laid out by the page, and only its labels are here.
+
+title: Problem-solving techniques
+description: The techniques that crack many olympiad maths problems at once, each with a problem, a drawing and a worked solution, and a hint on which one to try.
+
+hero:
+  title: Problem-solving techniques for olympiad maths
+  lead: >-
+    An olympiad problem comes with no ready-made method. What it has instead
+    are techniques that work across many problems at once. Here are the
+    {count} that come up most often, each with a problem, a drawing and a
+    solution.
+  advice: >-
+    Try the problem with your child before you open the solution. What matters
+    most is noticing which technique worked, so as to recognise it next time.
+
+start:
+  title: Where to begin any problem
+  lead: >-
+    Before you choose a technique, it helps to go through four steps. The
+    mathematician George Pólya set them out in his book *How to Solve It*
+    (1945).
+  steps:
+    - title: Understand the problem
+      text: Say it in your own words. What do you know? What do you have to find?
+    - title: Make a plan
+      text: What does it remind you of? Which technique on this page could you try?
+    - title: Carry it out
+      text: Step by step, writing down what each step gives.
+    - title: Look back
+      text: Put the answer back into the problem. Does everything fit? Could there be another answer?
+
+groups:
+  see:
+    title: See the problem
+    lead: >-
+      First the problem has to be understood. These techniques turn words into
+      a picture, a table or a small example.
+  find:
+    title: Find the answer
+    lead: >-
+      Once it is clear what is going on, these techniques lead to the answer
+      without losing anything on the way.
+  prove:
+    title: Prove it
+    lead: >-
+      At an olympiad the question is often not “how many” but “can it happen”.
+      Then counting is not enough: you have to explain why it cannot be
+      otherwise.
+
+techniques:
+  draw:
+    name: Draw the problem
+    what: >-
+      A picture or a diagram turns words into something you can look at.
+      Lines, dots and arrows are enough; it does not have to be pretty.
+    when: “so many more than”, ages, journeys, parts of a whole.
+    task: >-
+      A brother is 4 years older than his sister. Together they are 16. How old
+      is the brother?
+    steps:
+      - Draw the sister's age as a bar, and the brother's as the same bar and 4 years more.
+      - "Take away the extra 4 years: 16 − 4 = 12. That is two equal bars."
+      - "One bar is 12 ÷ 2 = 6 years: that is the sister. The brother is 6 + 4 = 10."
+    answer: The brother is 10.
+    drawing:
+      title: Diagram
+      sister: Sister
+      brother: Brother
+      without: Without the extra 4 years
+      count: 16 − 4 = 12 · 12 ÷ 2 = 6
+    caption: >-
+      The diagram shows what is hard to hold in your head: without the extra
+      four years, brother and sister have the same.
+  table:
+    name: Make a table
+    what: >-
+      When there are many clues, they are hard to keep in your head. A table
+      keeps them for you: every clue is a cross, and where a row has one free
+      cell left, that is the answer.
+    when: several people, several things, and clues with “not”.
+    task: >-
+      Anya, Borya and Vera have a cat, a dog and a parrot, one pet each. Anya
+      does not keep the cat. Borya is afraid of dogs. The cat does not live
+      with Borya. Who has which pet?
+    steps:
+      - "Put a cross for each clue: Anya, not the cat; Borya, not the dog; the cat, not with Borya."
+      - "Borya has one cell left: the parrot. So neither Anya nor Vera has the parrot."
+      - Anya is left with the dog, and Vera with the cat.
+    answer: Anya has the dog, Borya the parrot, Vera the cat.
+    drawing:
+      title: Table
+      children:
+        anya: Anya
+        borya: Borya
+        vera: Vera
+      pets:
+        cat: Cat
+        dog: Dog
+        parrot: Parrot
+    caption: The small number in a cell is the step of the solution at which it was marked.
+  small-numbers:
+    name: Start with small numbers
+    aka: A special case
+    what: >-
+      When the numbers are big and you cannot see where to start, solve the
+      same problem with small numbers. Spot the rule, then apply it to the big
+      ones.
+    when: big numbers, “a hundred”, “a thousand”, long rows.
+    task: >-
+      Posts are put along a road 100 metres long, one every 5 metres, at both
+      ends too. How many posts are needed?
+    steps:
+      - "You cannot draw a hundred metres, so take a road of 10 m. Posts at 0, 5 and 10 m: 3 posts for 2 gaps."
+      - "For 15 and 20 m it is the same: there is always one post more than there are gaps."
+      - On 100 m there are 100 ÷ 5 = 20 gaps, so there are 21 posts.
+    answer: 21 posts.
+    drawing:
+      gaps: gaps
+      posts: posts
+      road: "{length} m"
+      rule: one post more
+    caption: >-
+      The rule shows on a short road already; then it is enough to apply it to
+      a hundred metres.
+  systematic:
+    name: List systematically
+    what: >-
+      Listing at random is bound to miss something or count it twice. Listing
+      systematically goes in order: first by one feature, then by the next. A
+      tree is handy for it.
+    when: “how many ways”, “how many numbers”, “write out every option”.
+    task: >-
+      How many different two-digit numbers can be made from the digits 2, 4, 6
+      and 8, if no digit is used twice in a number?
+    steps:
+      - "Choose an order: first the tens digit, then the units."
+      - The tens digit is 2, 4, 6 or 8. Each leaves three others for the units.
+      - "Write them out branch by branch: 24, 26, 28, 42, 46, 48, 62, 64, 68, 82, 84, 86. None is missed, and none is repeated."
+    answer: 12 numbers.
+    drawing:
+      title: Tree of options
+      total: 4 branches × 3 numbers = 12
+    caption: "The tree lets nothing slip: each first digit has branches of its own."
+  backwards:
+    name: Work from the end
+    aka: Working backwards
+    what: >-
+      When you know how the story ends and are asked how it began, go
+      backwards. Turn every action into its opposite: “ate” into “gave back”,
+      “multiplied” into “divided”.
+    when: you know what came out at the end, and have to find what there was at the start.
+    task: >-
+      There were some apples in a bowl. Tanya ate half of them. Then Petya ate
+      half of what was left, and one apple more. 2 apples were left. How many
+      apples were there at the start?
+    steps:
+      - "Start from what you know: at the end there were 2 apples."
+      - "Before Petya: give back the one apple, 2 + 1 = 3. That was half, so there were 6."
+      - "Before Tanya: 6 was half, so there were 12. Check: 12 → 6 → 6 − 3 − 1 = 2."
+    answer: 12 apples.
+    drawing:
+      forward: As it happened, forwards
+      backward: As we solve it, backwards
+      tanya: "Tanya: ½"
+      petya: "Petya: ½ and 1"
+      undo-tanya: × 2
+      undo-petya: + 1, × 2
+    caption: >-
+      Go from right to left and do everything the other way round: “ate half”
+      becomes “times 2”, “ate one more” becomes “plus 1”.
+  all-the-same:
+    name: Suppose they are all the same
+    aka: The assumption method
+    what: >-
+      When a problem has things of two kinds, imagine they are all of one
+      kind. Count how far the answer is off, and you will see how many have to
+      be swapped.
+    when: "two kinds of things and a known total: heads and legs, coins of two values."
+    task: >-
+      Hens and rabbits are walking in a yard. Together they have 10 heads and
+      28 legs. How many rabbits are in the yard?
+    steps:
+      - Suppose all 10 are hens. Then there are 10 × 2 = 20 legs.
+      - "In fact there are 28 legs: 8 more."
+      - "Each rabbit in place of a hen adds 2 legs: 8 ÷ 2 = 4 rabbits. Check: 4 × 4 + 6 × 2 = 28."
+    answer: 4 rabbits.
+    drawing:
+      guess: Suppose all are hens
+      guess-legs: 20 legs
+      short: 8 legs short, 2 more for each of four
+      real-legs: 28 legs
+      rabbits: rabbits
+      hens: hens
+    caption: >-
+      First count as if they were all the same, then change exactly as many as
+      it takes to fit.
+  pattern:
+    name: Look for a pattern
+    what: >-
+      Look at the first few steps and find what repeats. The repeating piece
+      lets you jump far ahead without drawing everything in between.
+    when: "patterns, rows, the calendar: “which will be the twentieth”, “which will be the hundredth”."
+    task: >-
+      Flags hang in order: red, yellow, green, blue, then red, yellow, green,
+      blue again, and so on. What colour is the 23rd flag?
+    steps:
+      - "Find the piece that repeats: red, yellow, green, blue, four flags."
+      - 23 flags are 5 whole fours, which is 20 flags, and 3 more.
+      - The 23rd is the third of its four, and the third is always green.
+    answer: Green.
+    drawing:
+      title: Flags in fours
+      sum: 23 = 4 × 5 + 3
+      note: 5 fours and three flags more
+    caption: >-
+      There is no need to draw twenty-three flags: it is enough to see which
+      place in its four the flag takes.
+  opposite:
+    name: Suppose the opposite
+    aka: Proof by contradiction
+    what: >-
+      To prove that something cannot be, suppose it can, and follow the
+      reasoning until you run into a contradiction. Almost every
+      knights-and-liars problem is solved this way.
+    when: “can it happen”, “prove it is impossible”, who is telling the truth.
+    task: >-
+      On an island live knights, who always tell the truth, and liars, who
+      always lie. Anya said: “Borya is a liar.” Borya said: “Anya and I are
+      both knights.” Who is who?
+    steps:
+      - >-
+        **Suppose Borya is a knight.** Then his words are true, and Anya is a
+        knight too. But Anya, a knight, said that Borya is a liar. **A
+        contradiction.**
+      - "So Borya is a liar, and his words are false: Anya and he are not both knights. That fits."
+      - Anya said “Borya is a liar”, and that is true. Only a knight says true things, so Anya is a knight.
+    answer: Anya is a knight, and Borya is a liar.
+    drawing:
+      knight: Suppose Borya is a knight
+      knight-then: Then Anya is a knight too
+      knight-but: But she called him a liar
+      contradiction: A contradiction
+      liar: So Borya is a liar
+      liar-then: Anya's words are true
+      fits: Anya is a knight
+    caption: One path leads to a dead end, so the other one is right.
+  parity:
+    name: Watch the parity
+    what: >-
+      Sometimes you need not know everything: it is enough to know whether a
+      number is even or odd. If something switches between even and odd at
+      every step, the number of steps tells you at once where you can end up
+      and where you cannot.
+    when: jumps, moves, swaps, “every other one”, “can it turn out”.
+    task: >-
+      A grasshopper sits at zero on a number line. Every jump takes it exactly
+      1 to the left or to the right. Can it be back at zero after 5 jumps?
+    steps:
+      - "Colour the cells in turn: even and odd."
+      - "Every jump changes the colour: from an even cell to an odd one, and back."
+      - After 5 jumps, an odd number, the grasshopper is sure to be on an odd cell, and zero is even.
+    answer: No, it cannot.
+    drawing:
+      title: The number line
+      even: even
+      odd: odd
+      start: start
+      after: The cell after each jump
+      even-short: even
+      odd-short: odd
+      end: After the 5th jump the cell is odd, and zero is even.
+    caption: >-
+      There is no need to follow where exactly the grasshopper went: it is
+      enough to follow the colour of its cell.
+  pigeonhole:
+    name: Pigeons and pigeonholes
+    aka: The pigeonhole principle
+    what: >-
+      If there are more pigeons than holes, some hole holds at least two
+      pigeons. It sounds obvious, yet it proves things that seem impossible to
+      check.
+    when: “prove there must be”, “at least two”, “for certain”.
+    task: >-
+      How many times must you throw a die to be certain that some number comes
+      up at least twice?
+    steps:
+      - "A die has 6 numbers: those are 6 “holes”. The throws are the “pigeons”."
+      - "After 6 throws the numbers can still all be different: 1, 2, 3, 4, 5, 6."
+      - "The seventh throw has no free hole left: some number comes up a second time. So 7 throws."
+    answer: 7 throws.
+    drawing:
+      title: 6 numbers, 6 holes
+      first: the first 6 throws
+      seventh: the 7th throw
+    caption: Even if the first six throws all differ, the seventh has to repeat one of them.
+  mirror:
+    name: Mirror the moves
+    aka: A symmetric strategy
+    what: >-
+      In two-player games the winner is often the one who can mirror the
+      other's moves. Then you always have a reply, as long as your opponent
+      has a move.
+    when: "two-player games: “who wins with the right play”."
+    task: >-
+      A strip has 9 cells. Two players take turns to put a counter in an empty
+      cell that is not next to a filled one. Whoever cannot put a counter
+      loses. Where should the first player put the first counter to win,
+      however the other plays?
+    steps:
+      - With the first move, put a counter in the middle, the fifth cell.
+      - "Answer every move of the opponent with its mirror: the cell opposite, across the middle."
+      - If the opponent's cell was free and not next to a counter, so is its mirror. So the opponent runs out of moves first.
+    answer: In the middle, the fifth cell, and then mirror every move.
+    drawing:
+      title: The strip from above
+      first: first player
+      second: opponent
+      moves: the number is the move
+    caption: >-
+      A strip has one middle, and every other cell has a mirror. That is why
+      the first player never runs out of moves.
+
+labels:
+  when: "When it helps:"
+  task: Problem · {grades}
+  show: Show the solution
+  topics: "In the topics:"
+
+cues:
+  title: Which technique to try
+  lead: >-
+    A hint from the words of the problem. Not a rule: many problems give way
+    to two techniques at once.
+  if: If the problem has…
+  try: …try
+  rows:
+    - “so many more than”, ages, parts of a whole
+    - many people, things and clues with “not”
+    - big numbers, and no idea where to start
+    - “how many ways”, “how many numbers”
+    - the end is known, and the question is the start
+    - two kinds of things and a total
+    - "something repeats: “which will be the twentieth”"
+    - “can it happen”, “prove it is impossible”
+    - “for certain”, “at least two”
+    - "a game for two: “who wins”"
+
+end:
+  title: Try the techniques on problems
+  lead: They come in handy in the problems of every MathTrail topic.

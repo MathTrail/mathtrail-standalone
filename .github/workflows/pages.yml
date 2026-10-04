@@ -65,10 +65,6 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          # The whole history with its tags: a card of the widget on a page
-          # names the newest release, which a shallow clone cannot see.
-          fetch-depth: 0
       - name: Build the site and hold it to its own rules
         run: just ci-site
       - name: Keep the site for the deployment

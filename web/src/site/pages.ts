@@ -1,6 +1,7 @@
 import type { VNode } from "preact";
 import type { SiteData } from "./data";
 import type { PageReader } from "./reader";
+import { TechniquesPage } from "./TechniquesPage";
 import { topicPage } from "./TopicPage";
 import { TopicsPage, topicsStyle } from "./TopicsPage";
 import { WhyPage } from "./WhyPage";
@@ -36,6 +37,7 @@ export function sitePages(data: SiteData): ReadonlyMap<string, Page> {
 	return new Map<string, Page>([
 		["why", { draw: WhyPage, card: true }],
 		["topics", { draw: TopicsPage, card: true, style: topicsStyle }],
+		["techniques", { draw: TechniquesPage }],
 		...data.topics.all.map((topic): [string, Page] => [
 			`topics/${topic.slug}`,
 			topicPage(topic),

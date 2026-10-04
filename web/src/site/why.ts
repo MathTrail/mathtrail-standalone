@@ -17,14 +17,19 @@ const doi = /^10\.\d{4,9}\/\S+$/;
 // slotName is what a slot of a page's text may be called: lowercase letters.
 const slotName = /^[a-z]+$/;
 
+// language is a language as an element names it: a tag of BCP 47, such as de.
+const language = /^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/;
+
 // sourceFile is a work the page cites, as the site's data writes it: its
-// authors, each as "Family, I.", its year, its title, where it was published,
-// and its DOI, which is where the page links it.
+// authors, each as "Family, I.", its year, its title, where it was published —
+// with the language of the journal's name when that is not English, as the
+// works' own titles all are — and its DOI, which is where the page links it.
 const sourceFile = z.object({
 	authors: z.array(z.string().min(1)).min(1),
 	year: z.number().int(),
 	title: z.string().min(1),
 	journal: z.string().min(1),
+	journal_language: z.string().regex(language).optional(),
 	volume: z.string().min(1),
 	issue: z.string().min(1),
 	pages: z.string().min(1),
@@ -61,6 +66,23 @@ type WhyFile = z.infer<typeof whyFile>;
 
 /** Source is a work the page "Why" cites, under the id the site's data gives it. */
 export type Source = z.infer<typeof sourceFile> & { readonly id: string };
+
+// doiResolver is where a DOI is resolved to the work it names.
+const doiResolver = "https://doi.org/";
+
+/**
+ * doiAddress is where source's DOI leads. A DOI may hold characters an address
+ * reads otherwise — a # would end the path, a ? begin a query — so each part
+ * of it is escaped, and the slashes between them kept.
+ */
+export function doiAddress(source: Pick<Source, "doi">): string {
+	return doiResolver + source.doi.split("/").map(encodeURIComponent).join("/");
+}
+
+/** doiShown is source's DOI as a reader reads it: at its resolver, unescaped. */
+export function doiShown(source: Pick<Source, "doi">): string {
+	return doiResolver + source.doi;
+}
 
 /** WhyCard is the card of a wrong answer the page shows, but for its words. */
 export type WhyCard = WhyFile["card"];

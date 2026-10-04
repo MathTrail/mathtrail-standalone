@@ -36,13 +36,24 @@ export function trapName(words: Words<Key>, id: string): string {
 }
 
 /**
+ * knownTrapName is what the card calls a mistake of the catalog's, or undefined
+ * for a mistake the card has no words for: inside a sentence its id would read
+ * as a word.
+ */
+export function knownTrapName(
+	words: Words<Key>,
+	id: string,
+): string | undefined {
+	return textOf(words, `trap.${id}`);
+}
+
+/**
  * trapAdvice is what the card advises the adult to do about a mistake of the
  * catalog's, in a sentence of its language, or undefined for a mistake the
  * card has no advice for: no advice at all is better than a wrong one.
  */
 export function trapAdvice(words: Words<Key>, id: string): string | undefined {
-	const key = `advice.${id}`;
-	return isKey(key) ? words.text(key) : undefined;
+	return textOf(words, `advice.${id}`);
 }
 
 /**
@@ -62,7 +73,12 @@ export function rankName(words: Words<Key>, rank: number): string {
 
 // nameOf is the text of key, or otherwise when the words have none.
 function nameOf(words: Words<Key>, key: string, otherwise: string): string {
-	return isKey(key) ? words.text(key) : otherwise;
+	return textOf(words, key) ?? otherwise;
+}
+
+// textOf is the text of key, or undefined when the words have none.
+function textOf(words: Words<Key>, key: string): string | undefined {
+	return isKey(key) ? words.text(key) : undefined;
 }
 
 /**

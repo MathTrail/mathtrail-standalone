@@ -8,9 +8,9 @@ import {
 	ReviewPart,
 } from "../design/review";
 import type { Words } from "../i18n/words";
-import { listed, topicName, trapAdvice, trapName } from "./names";
+import { knownTrapName, listed, topicName, trapAdvice } from "./names";
 import type { Judged, Review, ReviewStep } from "./payload";
-import type { Key } from "./words";
+import { type Key, useWords } from "./words";
 
 /**
  * ReviewSaid is the review of the topics as the card says it: the strong
@@ -27,9 +27,11 @@ export type ReviewSaid = {
 
 /**
  * reviewSaid is the review in the card's words, with the mistakes that repeat
- * as their lines. What the card has no words for — a reason, a kind of step or
- * the advice for a mistake that a later release adds — is left out rather than
- * said wrong; a topic named for no reason the card can say keeps its name.
+ * as their lines. What the card has no words for — a reason, a kind of step, a
+ * mistake's advice, or a mistake's name inside a sentence, that a later release
+ * adds — is left out rather than said wrong. A topic named for no reason the
+ * card can say keeps its name, and a mistake that repeats is called by its id,
+ * as every name the card lacks is.
  */
 export function reviewSaid(
 	words: Words<Key>,
@@ -61,13 +63,8 @@ export function saysNothing(said: ReviewSaid): boolean {
  * what goes well, what to develop, what is too early to judge, the mistakes
  * that repeat, and what to do next. A part with nothing in it is not drawn.
  */
-export function ReviewParts({
-	words,
-	said,
-}: {
-	words: Words<Key>;
-	said: ReviewSaid;
-}) {
+export function ReviewParts({ said }: { said: ReviewSaid }) {
+	const words = useWords();
 	return (
 		<>
 			{said.strong.length > 0 && (
@@ -132,16 +129,18 @@ function judgedRow(words: Words<Key>, topic: Judged): JudgedRow {
 }
 
 // reasonSaid is a reason in a sentence of the card's language: the trap's with
-// the mistake named, and none for a reason the card has no words for.
+// the mistake named, and none for a reason the card has no words for — nor for
+// a mistake it has no name for, whose id would read as a word of the sentence.
 function reasonSaid(
 	words: Words<Key>,
 	reason: string,
 	trap: string | undefined,
 ): string[] {
 	if (reason === "trap") {
-		return trap === undefined
+		const named = trap === undefined ? undefined : knownTrapName(words, trap);
+		return named === undefined
 			? []
-			: [words.text("review.reason_trap", { trap: trapName(words, trap) })];
+			: [words.text("review.reason_trap", { trap: named })];
 	}
 	const key = reasonWords.get(reason);
 	return key === undefined ? [] : [words.text(key)];

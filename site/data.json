@@ -83,10 +83,180 @@
 			{ "level": "3-4", "solver": "four-darts", "answer": "No" },
 			{ "level": "5-6", "solver": "spider-on-a-cube", "answer": "No" }
 		],
+		"arithmetic.tricks": [
+			{ "level": "1-2", "solver": "pairs-to-ten", "answer": "30" },
+			{ "level": "3-4", "solver": "undo-from-the-end", "answer": "10" },
+			{ "level": "5-6", "solver": "big-products", "answer": "1" }
+		],
+		"algorithms.weighing_pouring": [
+			{ "level": "3-4", "solver": "one-litre", "answer": "4" },
+			{ "level": "3-4", "solver": "eight-coins", "answer": "2" },
+			{ "level": "5-6", "solver": "hundred-coins", "answer": "5" }
+		],
+		"fractions.parts": [
+			{ "level": "5-6", "solver": "rolls-of-the-rest", "answer": "10" },
+			{ "level": "5-6", "solver": "book-in-sevenths", "answer": "140" },
+			{ "level": "5-6", "solver": "eggs-at-the-market", "answer": "7" }
+		],
+		"percent.basic": [
+			{ "level": "5-6", "solver": "sports-clubs", "answer": "195" },
+			{ "level": "5-6", "solver": "bike-price", "answer": "400" },
+			{ "level": "5-6", "solver": "drying-watermelons", "answer": "100" }
+		],
+		"ratio.sharing": [
+			{ "level": "5-6", "solver": "mushrooms", "answer": "25" },
+			{ "level": "5-6", "solver": "choir", "answer": "33" },
+			{ "level": "5-6", "solver": "two-boxes", "answer": "40" }
+		],
+		"geometry.grid": [
+			{ "level": "5-6", "solver": "cross", "answer": "12" },
+			{ "level": "5-6", "solver": "strip-in-two", "answer": "4" },
+			{ "level": "5-6", "solver": "diagonal", "answer": "7" }
+		],
+		"number.divisibility": [
+			{ "level": "5-6", "solver": "buses", "answer": "4" },
+			{ "level": "5-6", "solver": "star-digit", "answer": "1" },
+			{ "level": "5-6", "solver": "hundred-twos", "answer": "6" }
+		],
 		"logic.sets": [
 			{ "level": "5-6", "solver": "sisters-and-brothers", "answer": "4" },
 			{ "level": "5-6", "solver": "apples-and-pears", "answer": "9" },
 			{ "level": "5-6", "solver": "three-subjects", "answer": "11" }
+		],
+		"games.strategy": [
+			{ "level": "5-6", "solver": "sweets-in-a-bowl", "answer": "3" },
+			{ "level": "5-6", "solver": "kings-walk", "answer": "The second player" },
+			{ "level": "5-6", "solver": "daisy", "answer": "The second player" }
+		]
+	},
+	"techniques": {
+		"groups": [
+			{
+				"id": "see",
+				"techniques": [
+					{
+						"id": "draw",
+						"topics": ["time.calendar"],
+						"example": {
+							"level": "1-2",
+							"solver": "brother-and-sister",
+							"answer": "10"
+						}
+					},
+					{
+						"id": "table",
+						"topics": ["logic.ordering"],
+						"example": {
+							"level": "1-2",
+							"solver": "three-pets",
+							"answer": "Anya dog, Borya parrot, Vera cat"
+						}
+					},
+					{
+						"id": "small-numbers",
+						"topics": ["counting.gaps"],
+						"example": {
+							"level": "3-4",
+							"solver": "posts-on-a-road",
+							"answer": "21"
+						}
+					}
+				]
+			},
+			{
+				"id": "find",
+				"techniques": [
+					{
+						"id": "systematic",
+						"topics": ["combinatorics.enumeration"],
+						"example": {
+							"level": "1-2",
+							"solver": "four-even-digits",
+							"answer": "12"
+						}
+					},
+					{
+						"id": "backwards",
+						"topics": [
+							"arithmetic.tricks",
+							"algorithms.weighing_pouring",
+							"games.strategy"
+						],
+						"example": {
+							"level": "3-4",
+							"solver": "apples-backwards",
+							"answer": "12"
+						}
+					},
+					{
+						"id": "all-the-same",
+						"topics": [],
+						"example": {
+							"level": "3-4",
+							"solver": "heads-and-legs",
+							"answer": "4"
+						}
+					},
+					{
+						"id": "pattern",
+						"topics": ["parity.alternation", "time.calendar"],
+						"example": {
+							"level": "1-2",
+							"solver": "flags-in-fours",
+							"answer": "green"
+						}
+					}
+				]
+			},
+			{
+				"id": "prove",
+				"techniques": [
+					{
+						"id": "opposite",
+						"topics": ["logic.knights_liars"],
+						"example": {
+							"level": "3-4",
+							"solver": "anya-and-borya",
+							"answer": "Anya knight, Borya liar"
+						}
+					},
+					{
+						"id": "parity",
+						"topics": ["parity.alternation"],
+						"example": {
+							"level": "3-4",
+							"solver": "five-jumps",
+							"answer": "No"
+						}
+					},
+					{
+						"id": "pigeonhole",
+						"topics": ["pigeonhole.basic"],
+						"example": { "level": "3-4", "solver": "dice-twice", "answer": "7" }
+					},
+					{
+						"id": "mirror",
+						"topics": ["games.strategy"],
+						"example": {
+							"level": "5-6",
+							"solver": "strip-of-nine",
+							"answer": "5"
+						}
+					}
+				]
+			}
+		],
+		"cues": [
+			["draw"],
+			["table"],
+			["small-numbers"],
+			["systematic"],
+			["backwards"],
+			["all-the-same"],
+			["pattern"],
+			["opposite", "parity"],
+			["pigeonhole"],
+			["mirror"]
 		]
 	},
 	"progress": {
@@ -207,6 +377,7 @@
 				"year": 2022,
 				"title": "Getting fit for the Mathematical Olympiad: positive effects on achievement and motivation?",
 				"journal": "Zeitschrift für Erziehungswissenschaft",
+				"journal_language": "de",
 				"volume": "25",
 				"issue": "5",
 				"pages": "1175–1198",
@@ -217,6 +388,7 @@
 				"year": 2012,
 				"title": "Evaluating the Impact of the Brazilian Public School Math Olympics on the Quality of Education",
 				"journal": "Economía",
+				"journal_language": "es",
 				"volume": "12",
 				"issue": "2",
 				"pages": "143–175",

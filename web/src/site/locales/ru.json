@@ -5,6 +5,7 @@
 	"nav.menu": "Меню",
 	"nav.topics": "Темы",
 	"nav.why": "Зачем",
+	"nav.techniques": "Приёмы",
 	"cite.one": "{first}, {year}",
 	"cite.two": "{first} и {second}, {year}",
 	"cite.many": "{first} и др., {year}",
@@ -21,6 +22,12 @@
 	"topics.grades": "{range} класс",
 	"topics.more": "Подробнее →",
 	"topics.soon": "Скоро",
+	"techniques.count": {
+		"one": "{count} приём",
+		"few": "{count} приёма",
+		"many": "{count} приёмов",
+		"other": "{count} приёма"
+	},
 	"topic.path": "Вы здесь",
 	"topic.method": "Главный приём",
 	"topic.teaches": "Чему учит",

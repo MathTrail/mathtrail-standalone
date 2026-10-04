@@ -10,6 +10,7 @@ import type { Frame } from "./frame";
 import { type Page, sitePages } from "./pages";
 import { renderSite } from "./render";
 import { gradesOf } from "./topics";
+import { doiAddress } from "./why";
 
 const browser = new Window({
 	settings: {
@@ -188,7 +189,7 @@ const all = (selector: string, name: string) =>
 
 // doi is where a work of the site's data is linked.
 const doi = (id: string) =>
-	`https://doi.org/${file.why.sources[id as keyof typeof file.why.sources].doi}`;
+	doiAddress(file.why.sources[id as keyof typeof file.why.sources]);
 
 describe("the page Why", () => {
 	test("reads in full with no script", () => {
@@ -250,6 +251,20 @@ describe("the page Why", () => {
 				link.getAttribute("href"),
 			),
 		).toEqual([doi(file.why.apps)]);
+	});
+
+	test("tells a screen reader its works are English, and a journal's name that is not", () => {
+		expect(new Set(all(".s-sources li", "lang"))).toEqual(new Set(["en"]));
+		expect(all(".s-sources li em", "lang")).toEqual(
+			[...file.why.findings, file.why.apps].map(
+				(id) =>
+					(
+						file.why.sources[id as keyof typeof file.why.sources] as {
+							journal_language?: string;
+						}
+					).journal_language ?? "",
+			),
+		);
 	});
 
 	test("lists exactly the works it cites, each linked by its DOI", () => {

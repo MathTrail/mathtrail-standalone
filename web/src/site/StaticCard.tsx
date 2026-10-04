@@ -9,6 +9,7 @@ import type {
 	ProgressReport,
 } from "../widget/payload";
 import { TaskCard } from "../widget/TaskCard";
+import { NamesBuild } from "../widget/version";
 import { cardWords, WordsContext } from "../widget/words";
 
 // stillHost answers nothing: a card drawn on a page has no chat behind it,
@@ -84,8 +85,9 @@ export function StaticAnswer({
 	);
 }
 
-// Still is a card drawn on a page: shown rather than used, and speaking the
-// widget's words in the page's language.
+// Still is a card drawn on a page: shown rather than used, speaking the
+// widget's words in the page's language, and naming no build, since the site
+// is published before the release its commit becomes is tagged.
 function Still({
 	locale,
 	children,
@@ -95,9 +97,11 @@ function Still({
 }) {
 	return (
 		<div class="s-card" inert>
-			<WordsContext.Provider value={cardWords(locale, undefined)}>
-				{children}
-			</WordsContext.Provider>
+			<NamesBuild.Provider value={false}>
+				<WordsContext.Provider value={cardWords(locale, undefined)}>
+					{children}
+				</WordsContext.Provider>
+			</NamesBuild.Provider>
 		</div>
 	);
 }

@@ -286,6 +286,21 @@ export function scenesIn(language: string): Scene[] {
 			play: inTurn(pickedPeriod("week"), everyFold),
 		},
 		{ name: "progress in the trial series", payload: inTrial, play: everyFold },
+		{
+			name: "progress in the trial series, a mistake made twice",
+			payload: trialMistake,
+			play: everyFold,
+		},
+		{
+			name: "progress, a review with every part",
+			payload: reviewedInFull,
+			play: everyFold,
+		},
+		{
+			name: "progress, too early to judge",
+			payload: tooEarly,
+			play: everyFold,
+		},
 		{ name: "progress, long texts", payload: longProgress, play: everyFold },
 		{
 			name: "progress at the highest rank",
@@ -381,9 +396,12 @@ function topLine(card: Document) {
 // longProgress is the progress at every limit a card has to fit at its
 // narrowest: a pseudonym as long as a profile allows, every topic of the
 // catalog listed — every rank among them, each step of the ramp, and topics
-// not met yet — the next rank the one with the longest name, as many
-// interests, as long, as a profile holds, and the profile's file named at
-// length beside other files that hold one.
+// not met yet — the next rank the one with the longest name, a review naming
+// as many topics as it can, by the names that run longest across the
+// languages, whatever the topics above say of them, with every reason they can
+// have at once and the longest advice, as many interests, as long, as a
+// profile holds, and the profile's file named at length beside other files
+// that hold one. It is a card's limits, not a child's progress.
 const longProgress = {
 	...standing,
 	profile: {
@@ -428,6 +446,42 @@ const longProgress = {
 		},
 	},
 	skipped: 8,
+	review: {
+		strong: ["games.strategy", "logic.sets", "algorithms.weighing_pouring"].map(
+			(topic) => ({ topic, reasons: ["mastered", "high", "rose"] }),
+		),
+		develop: [
+			{
+				topic: "ratio.sharing",
+				reasons: ["low", "hints", "trap", "fell"],
+				trap: "best_case_not_worst",
+				moving: true,
+			},
+			{
+				topic: "parity.alternation",
+				reasons: ["low", "hints", "trap", "fell"],
+				trap: "number_from_text",
+				moving: true,
+			},
+			{ topic: "geometry.grid", reasons: ["low", "failures"] },
+		],
+		early: [
+			"pigeonhole.basic",
+			"number.divisibility",
+			"logic.knights_liars",
+			"arithmetic.tricks",
+		],
+		steps: [
+			{ kind: "trap", topic: "ratio.sharing", trap: "best_case_not_worst" },
+			{
+				kind: "trap",
+				topic: "parity.alternation",
+				trap: "number_from_text",
+			},
+			{ kind: "practice", topic: "geometry.grid" },
+			{ kind: "trap", trap: "ratio_total_confusion" },
+		],
+	},
 	// The window's twenty answers shared by the mistakes with the longest
 	// names: one behind eight of them, the rest behind two each.
 	mistakes: [
@@ -520,6 +574,94 @@ function movedFrom(rank: number, share: number, by: number) {
 	}
 	return { ...before, moved };
 }
+
+// trialMistake is the progress of the trial series with a mistake made in two
+// of its three answers: no review yet, and the mistake in a section of its own.
+const trialMistake = {
+	...inTrial,
+	topics: inTrial.topics.map((topic) =>
+		topic.topic === "time.clocks" ? { ...topic, correct: 0 } : topic,
+	),
+	recent: inTrial.recent.map((entry) =>
+		entry.topic === "time.clocks" ? { ...entry, correct: false } : entry,
+	),
+	mistakes: [{ trap: "off_by_one", times: 2 }],
+};
+
+// reviewedInFull is how the ranks moved, with a review of every part a review
+// has: Ordering strong for each reason a topic can be, Enumeration to develop
+// for the mistake it keeps making, Parity and alternation for standing low and
+// falling, Gaps and boundaries for the hint, its last answer right; Clocks met
+// too few times to judge; and the steps of a trap, of a rhythm, of the tasks
+// tried without the hint, and the mistake that repeats as often as the one
+// advised, for every topic.
+const reviewedInFull = {
+	...moving,
+	topics: [
+		...moving.topics,
+		{
+			topic: "time.clocks",
+			rating: 1400,
+			rank: 2,
+			share: 40,
+			compared: "behind",
+			answers: 2,
+			correct: 1,
+			mastered: false,
+			skipped: 0,
+		},
+	],
+	mistakes: [
+		{ trap: "missed_case", times: 3 },
+		{ trap: "double_count", times: 3 },
+	],
+	review: {
+		strong: [
+			{ topic: "logic.ordering", reasons: ["mastered", "high", "rose"] },
+		],
+		develop: [
+			{
+				topic: "combinatorics.enumeration",
+				reasons: ["trap"],
+				trap: "missed_case",
+			},
+			{ topic: "parity.alternation", reasons: ["low", "fell"] },
+			{ topic: "counting.gaps", reasons: ["hints"], moving: true },
+		],
+		early: ["time.clocks"],
+		steps: [
+			{
+				kind: "trap",
+				topic: "combinatorics.enumeration",
+				trap: "missed_case",
+			},
+			{ kind: "rhythm", topic: "parity.alternation" },
+			{ kind: "unaided", topic: "counting.gaps" },
+			{ kind: "trap", trap: "double_count" },
+		],
+	},
+};
+
+// tooEarly is the progress just after the trial series: every topic met too
+// few times to judge — fewer answers than mastering one takes, and none
+// mastered —, and the mistake that repeats most advised for every topic.
+const tooEarly = {
+	...standing,
+	topics: standing.topics.map((topic) => ({
+		...topic,
+		answers: Math.min(topic.answers, 2),
+		correct: Math.min(topic.correct, 1),
+		mastered: false,
+	})),
+	review: {
+		strong: [],
+		develop: [],
+		early: standing.topics
+			.filter((topic) => topic.answers > 0)
+			.map((topic) => topic.topic),
+		steps: [{ kind: "trap", trap: "missed_case" }],
+	},
+};
 
 // withOverallWeek is how the ranks moved, with the overall rank's week told
 // as week says.

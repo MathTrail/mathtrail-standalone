@@ -108,6 +108,20 @@ describe("a progress card drawn on a page", () => {
 // service names beside the task, as it does for every task it hands out.
 const russianFence = { ...fenceInRussian, language: "ru" };
 
+// withoutBuild is a copy of a card a chat drew, with the version of the build
+// its header names taken out: the one part a card on a page leaves out.
+function withoutBuild(card: Element | null): Element | null {
+	const copy = card?.cloneNode(true);
+	if (!(copy instanceof Element)) {
+		return null;
+	}
+	copy.querySelector(".mt-version")?.remove();
+	copy
+		.querySelector(".mt-head-versioned")
+		?.classList.remove("mt-head-versioned");
+	return copy;
+}
+
 // wrong is the fence answered with the wrong B, as the service records it for
 // a card in Russian.
 const wrong = answered({
@@ -134,7 +148,7 @@ function answeredStill() {
 }
 
 describe("a card of a wrong answer drawn on a page", () => {
-	test("is the card the widget draws in a chat once the same answer is recorded", async () => {
+	test("is the card the widget draws in a chat once the same answer is recorded, but for the build it names", async () => {
 		drawn = await drawCard(russianFence, { tools: () => wrong });
 		const pressed = [
 			...drawn.root.querySelectorAll<HTMLButtonElement>(".mt-option"),
@@ -150,12 +164,20 @@ describe("a card of a wrong answer drawn on a page", () => {
 			expect(root.querySelector(".mt-replies .mt-reply")).not.toBeNull(),
 		);
 		const page = answeredStill();
-		const chat = root.querySelector(".mt-widget");
+		const chat = withoutBuild(root.querySelector(".mt-widget"));
 
 		expect(page.querySelector(".mt-widget")?.textContent).toBe(
 			chat?.textContent,
 		);
 		expect(shape(page.querySelector(".mt-widget"))).toEqual(shape(chat));
+	});
+
+	test("names no build, since the site is published before its release is tagged", () => {
+		const page = answeredStill();
+
+		expect(page.querySelector(".mt-head")).not.toBeNull();
+		expect(page.querySelector(".mt-version")).toBeNull();
+		expect(page.querySelector(".mt-head-versioned")).toBeNull();
 	});
 
 	test("is inert, and drawn at the narrow width", () => {

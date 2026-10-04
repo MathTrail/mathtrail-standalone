@@ -12,6 +12,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import catalog from "../../content/catalogs/topics.json";
+import data from "../../site/data.json";
 import { byCodeUnits } from "../src/i18n/order.ts";
 import { buildSite, givenTwice, main, readSources } from "./prerender-site.ts";
 
@@ -102,33 +103,51 @@ describe("the site built from this repository", () => {
 			"assets/tokens.css",
 			"en/index.html",
 			"en/privacy/index.html",
+			"en/techniques/index.html",
 			"en/terms/index.html",
+			"en/topics/arithmetic-with-a-trick/index.html",
 			"en/topics/calendar-and-age/index.html",
 			"en/topics/clocks/index.html",
+			"en/topics/divisibility-and-remainders/index.html",
 			"en/topics/enumeration/index.html",
+			"en/topics/figures-on-a-grid/index.html",
 			"en/topics/gaps-and-boundaries/index.html",
 			"en/topics/index.html",
 			"en/topics/knights-and-liars/index.html",
 			"en/topics/ordering/index.html",
 			"en/topics/overlapping-groups/index.html",
 			"en/topics/parity-and-alternation/index.html",
+			"en/topics/parts-and-shares/index.html",
+			"en/topics/percentages/index.html",
 			"en/topics/pigeonhole-principle/index.html",
+			"en/topics/ratios-and-sharing/index.html",
+			"en/topics/weighing-and-pouring/index.html",
+			"en/topics/winning-strategy/index.html",
 			"en/why/index.html",
 			"index.html",
 			"robots.txt",
 			"ru/index.html",
 			"ru/privacy/index.html",
+			"ru/techniques/index.html",
 			"ru/terms/index.html",
+			"ru/topics/arithmetic-with-a-trick/index.html",
 			"ru/topics/calendar-and-age/index.html",
 			"ru/topics/clocks/index.html",
+			"ru/topics/divisibility-and-remainders/index.html",
 			"ru/topics/enumeration/index.html",
+			"ru/topics/figures-on-a-grid/index.html",
 			"ru/topics/gaps-and-boundaries/index.html",
 			"ru/topics/index.html",
 			"ru/topics/knights-and-liars/index.html",
 			"ru/topics/ordering/index.html",
 			"ru/topics/overlapping-groups/index.html",
 			"ru/topics/parity-and-alternation/index.html",
+			"ru/topics/parts-and-shares/index.html",
+			"ru/topics/percentages/index.html",
 			"ru/topics/pigeonhole-principle/index.html",
+			"ru/topics/ratios-and-sharing/index.html",
+			"ru/topics/weighing-and-pouring/index.html",
+			"ru/topics/winning-strategy/index.html",
 			"ru/why/index.html",
 			"sitemap.xml",
 		]);
@@ -250,6 +269,48 @@ describe("the site built from this repository", () => {
 
 			expect(written.length).toBeGreaterThan(1);
 			expect(new Set(written).size).toBe(1);
+		}
+	});
+
+	test("shows on the page of the techniques every technique of the data, once among the links at its top and once as its card", async () => {
+		const ids = (data.techniques?.groups ?? []).flatMap((group) =>
+			group.techniques.map((technique) => technique.id),
+		);
+		expect(ids).not.toEqual([]);
+		for (const locale of ["en", "ru"]) {
+			const html = await readFile(
+				join(out, locale, "techniques", "index.html"),
+				"utf8",
+			);
+			const top = html.slice(
+				html.indexOf('class="s-panel s-overview"'),
+				html.indexOf("</nav>", html.indexOf('class="s-panel s-overview"')),
+			);
+
+			expect([...top.matchAll(/href="#([^"]+)"/g)].map(([, id]) => id)).toEqual(
+				ids,
+			);
+			expect(
+				[...html.matchAll(/<article id="([^"]+)" class="s-technique"/g)].map(
+					([, id]) => id,
+				),
+			).toEqual(ids);
+		}
+	});
+
+	test("leads every link within a page to a part the page has, and gives no two parts of a page one name", async () => {
+		const pages = (await filesIn(out)).filter((file) => file.endsWith(".html"));
+		expect(pages).not.toEqual([]);
+		for (const page of pages) {
+			const html = await readFile(join(out, page), "utf8");
+			const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(([, id]) => id);
+			const within = [...html.matchAll(/href="#([^"]+)"/g)].map(([, id]) => id);
+
+			expect(new Set(ids).size, page).toBe(ids.length);
+			expect(
+				within.filter((id) => !ids.includes(id)),
+				page,
+			).toEqual([]);
 		}
 	});
 

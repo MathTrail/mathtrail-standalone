@@ -1,8 +1,6 @@
+import { sourceURL } from "./brand";
 import { Brand } from "./Header";
 import { useSiteWords } from "./words";
-
-/** sourceURL is where the product's code and content are published. */
-export const sourceURL = "https://github.com/MathTrail/mathtrail-standalone";
 
 /**
  * contactAddress is where questions about the product and a child's data go:

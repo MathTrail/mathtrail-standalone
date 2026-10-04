@@ -192,7 +192,7 @@ export function ProgressScreen({
 						summary={words.text("review.summary")}
 						{...folding("review")}
 					>
-						<ReviewParts words={words} said={review} />
+						<ReviewParts said={review} />
 					</Fold>
 				)}
 				{review === undefined && mistakes.length > 0 && (

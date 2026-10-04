@@ -5,6 +5,8 @@ import { address } from "./addresses";
 import type { Example, SiteData } from "./data";
 import type { Page, PageProps } from "./pages";
 import type { PageReader } from "./reader";
+import { Solution } from "./Solution";
+import { TableFrame } from "./TableFrame";
 import { TopicFoot } from "./TopicFoot";
 import type { Group, Topic } from "./topics";
 import { gradesText, groupKey, type SiteKey, useSiteWords } from "./words";
@@ -215,12 +217,7 @@ function Idea({ page }: { page: PageReader }) {
 				<h2 id="idea-title">{page.text("idea.title")}</h2>
 				<p class="s-intro-line">{page.text("idea.lead")}</p>
 			</div>
-			<section
-				class="s-table-frame"
-				aria-labelledby="idea-title"
-				// biome-ignore lint/a11y/noNoninteractiveTabindex: a table wider than the screen scrolls inside its frame, and a keyboard has to reach the frame to scroll it
-				tabIndex={0}
-			>
+			<TableFrame labelledBy="idea-title">
 				<table class="s-table">
 					<thead>
 						<tr>
@@ -247,7 +244,7 @@ function Idea({ page }: { page: PageReader }) {
 						))}
 					</tbody>
 				</table>
-			</section>
+			</TableFrame>
 			<Note page={page} at="idea.note" />
 		</section>
 	);
@@ -343,34 +340,22 @@ function WorkedExample({
 	at: string;
 	label: string;
 }) {
-	const words = useSiteWords();
-	const numbers = new Intl.NumberFormat(page.locale);
 	return (
 		<article class="s-example">
 			<p class="s-example-label">{label}</p>
 			<h3>{page.text(`${at}.title`)}</h3>
 			<p class="s-example-task">{page.text(`${at}.question`)}</p>
-			<div class="s-example-work">
-				<ol class="s-example-steps">
-					{page.list(`${at}.steps`).map((key, step) => (
-						<li key={key} class="s-step">
-							<span class="s-number" aria-hidden="true">
-								{numbers.format(step + 1)}
-							</span>
-							<span>{page.text(key)}</span>
-						</li>
-					))}
-				</ol>
-				{page.has(`${at}.drawing`) && (
-					<pre class="s-drawing" dir="ltr">
-						{page.plain(`${at}.drawing`)}
-					</pre>
-				)}
-			</div>
-			<p class="s-example-answer">
-				<span class="s-example-answer-label">{words.text("topic.answer")}</span>{" "}
-				<span>{page.text(`${at}.answer`)}</span>
-			</p>
+			<Solution
+				page={page}
+				at={at}
+				drawing={
+					page.has(`${at}.drawing`) && (
+						<pre class="s-drawing" dir="ltr">
+							{page.plain(`${at}.drawing`)}
+						</pre>
+					)
+				}
+			/>
 			{page.has(`${at}.note`) && <Note page={page} at={`${at}.note`} />}
 		</article>
 	);

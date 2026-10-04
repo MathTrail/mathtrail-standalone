@@ -32,6 +32,7 @@ export const siteFrame: Frame = {
 	menu: [
 		{ page: "why", label: "nav.why" },
 		{ page: "topics", label: "nav.topics" },
+		{ page: "techniques", label: "nav.techniques" },
 	],
 	footer: ["privacy", "terms"],
 };

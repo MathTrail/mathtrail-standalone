@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import topics from "../../../content/catalogs/topics.json";
 import traps from "../../../content/catalogs/traps.json";
 import file from "../../../site/data.json";
-import { answerOf, readWhy, type WhyCard } from "./why";
+import { answerOf, doiAddress, readWhy, type WhyCard } from "./why";
 
 // catalog is the service's catalog of topics and traps.
 const catalog = { topics, traps };
@@ -135,5 +135,18 @@ describe("what the page Why takes from the data", () => {
 		],
 	])("refuses %s", (_, broken, want) => {
 		expect(() => readWhy(catalog, broken)).toThrow(want);
+	});
+});
+
+describe("the address of a work", () => {
+	test.each([
+		["10.1257/aeri.20190457", "https://doi.org/10.1257/aeri.20190457"],
+		[
+			"10.1002/(SICI)1097-4571(199806)49:8<693::AID-ASI4>3.0.CO;2-0",
+			"https://doi.org/10.1002/(SICI)1097-4571(199806)49%3A8%3C693%3A%3AAID-ASI4%3E3.0.CO%3B2-0",
+		],
+		["10.1000/a#b?c", "https://doi.org/10.1000/a%23b%3Fc"],
+	])("of DOI %s is %s: every part escaped, the slashes kept", (doi, want) => {
+		expect(doiAddress({ doi })).toBe(want);
 	});
 });

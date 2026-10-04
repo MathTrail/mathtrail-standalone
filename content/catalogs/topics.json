@@ -120,7 +120,7 @@
     ],
     "slug": "arithmetic-with-a-trick",
     "builds_on": [],
-    "site_page": false
+    "site_page": true
   },
   {
     "id": "algorithms.weighing_pouring",
@@ -135,7 +135,7 @@
       "combinatorics.enumeration",
       "pigeonhole.basic"
     ],
-    "site_page": false
+    "site_page": true
   },
   {
     "id": "fractions.parts",
@@ -148,7 +148,7 @@
     "builds_on": [
       "arithmetic.tricks"
     ],
-    "site_page": false
+    "site_page": true
   },
   {
     "id": "percent.basic",
@@ -161,7 +161,7 @@
     "builds_on": [
       "fractions.parts"
     ],
-    "site_page": false
+    "site_page": true
   },
   {
     "id": "ratio.sharing",
@@ -174,7 +174,7 @@
     "builds_on": [
       "fractions.parts"
     ],
-    "site_page": false
+    "site_page": true
   },
   {
     "id": "geometry.grid",
@@ -188,7 +188,7 @@
       "combinatorics.enumeration",
       "counting.gaps"
     ],
-    "site_page": false
+    "site_page": true
   },
   {
     "id": "number.divisibility",
@@ -202,7 +202,7 @@
       "time.calendar",
       "parity.alternation"
     ],
-    "site_page": false
+    "site_page": true
   },
   {
     "id": "logic.sets",
@@ -230,6 +230,6 @@
       "combinatorics.enumeration",
       "parity.alternation"
     ],
-    "site_page": false
+    "site_page": true
   }
 ]

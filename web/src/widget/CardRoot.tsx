@@ -1,9 +1,9 @@
 import type { ComponentChildren } from "preact";
-import { useRef } from "preact/hooks";
+import { useContext, useRef } from "preact/hooks";
 import { classes } from "../design/classes";
 import { MessageHeader } from "../design/thread";
 import { useWide } from "../design/wide";
-import { buildVersion } from "./version";
+import { buildVersion, NamesBuild } from "./version";
 import { useWords } from "./words";
 
 /**
@@ -35,8 +35,8 @@ export function CardRoot({
 
 /**
  * CardHeader heads what a card shows with MathTrail's name, the version of the
- * build and, when the card knows whose it is, the grade the child is coached
- * at.
+ * build when the card names it, and, when the card knows whose it is, the
+ * grade the child is coached at.
  */
 export function CardHeader({
 	grade,
@@ -46,6 +46,7 @@ export function CardHeader({
 	wide: boolean;
 }) {
 	const words = useWords();
+	const namesBuild = useContext(NamesBuild);
 	return (
 		<MessageHeader
 			author="app"
@@ -53,7 +54,7 @@ export function CardHeader({
 			badge={
 				grade === undefined ? undefined : words.text("app.badge", { grade })
 			}
-			version={buildVersion()}
+			version={namesBuild ? buildVersion() : undefined}
 			wide={wide}
 		/>
 	);

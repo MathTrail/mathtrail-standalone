@@ -5,6 +5,7 @@ import traps from "../../../content/catalogs/traps.json";
 import english from "../../locales/en.json";
 import {
 	catalogSkills,
+	knownTrapName,
 	languageName,
 	listed,
 	rankCount,
@@ -64,6 +65,13 @@ describe("the catalogs' names", () => {
 		expect(trapName(inRussian, "double_count")).toBe(
 			"Одно и то же посчитано дважды",
 		);
+	});
+
+	test("the card has no words for have no name to say inside a sentence", () => {
+		expect(knownTrapName(inRussian, "double_count")).toBe(
+			"Одно и то же посчитано дважды",
+		);
+		expect(knownTrapName(inEnglish, "counted_the_cat")).toBeUndefined();
 	});
 
 	test("the card has no words for are called by their ids", () => {

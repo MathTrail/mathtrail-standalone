@@ -5,6 +5,7 @@
 	"nav.menu": "Menu",
 	"nav.topics": "Topics",
 	"nav.why": "Why",
+	"nav.techniques": "Techniques",
 	"cite.one": "{first}, {year}",
 	"cite.two": "{first} and {second}, {year}",
 	"cite.many": "{first} et al., {year}",
@@ -21,6 +22,10 @@
 	"topics.grades": "Grades {range}",
 	"topics.more": "More →",
 	"topics.soon": "Soon",
+	"techniques.count": {
+		"one": "{count} technique",
+		"other": "{count} techniques"
+	},
 	"topic.path": "You are here",
 	"topic.method": "The main move",
 	"topic.teaches": "What it teaches",

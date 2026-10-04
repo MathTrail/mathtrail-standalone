@@ -2,13 +2,14 @@ import type { Words } from "../i18n/words";
 import { topicName } from "../widget/names";
 import { cardWords } from "../widget/words";
 import { address } from "./addresses";
+import { sourceURL } from "./brand";
 import { frontPage } from "./content";
-import { sourceURL } from "./Footer";
 import type { PageProps } from "./pages";
 import type { Fill, PageReader } from "./reader";
 import { StaticAnswer } from "./StaticCard";
+import { TableFrame } from "./TableFrame";
 import type { Topics } from "./topics";
-import { answerOf, type Source, type Why } from "./why";
+import { answerOf, doiAddress, doiShown, type Source, type Why } from "./why";
 import { gradesText, type SiteKey, useSiteWords } from "./words";
 
 /**
@@ -156,8 +157,7 @@ function Honest({
 }
 
 // School is how a school lesson and an olympiad problem differ, as a table
-// with the olympiad's column marked. A narrow screen scrolls the table sideways
-// inside its frame, which the keyboard can reach for that.
+// with the olympiad's column marked.
 function School({ page }: { page: PageReader }) {
 	return (
 		<section class="s-wrap s-section">
@@ -165,12 +165,7 @@ function School({ page }: { page: PageReader }) {
 				<h2 id="school-title">{page.text("school.title")}</h2>
 				<p class="s-intro-line">{page.text("school.lead")}</p>
 			</div>
-			<section
-				class="s-table-frame"
-				aria-labelledby="school-title"
-				// biome-ignore lint/a11y/noNoninteractiveTabindex: a table wider than the screen scrolls inside its frame, and a keyboard has to reach the frame to scroll it
-				tabIndex={0}
-			>
+			<TableFrame labelledBy="school-title">
 				<table class="s-table s-versus">
 					<thead>
 						<tr>
@@ -193,7 +188,7 @@ function School({ page }: { page: PageReader }) {
 						))}
 					</tbody>
 				</table>
-			</section>
+			</TableFrame>
 		</section>
 	);
 }
@@ -405,8 +400,9 @@ function Ask({ page }: { page: PageReader }) {
 }
 
 // Sources are the works the page cites, in the order it first cites them,
-// each as its journal prints it and linked by its DOI. Every one of them was
-// published in English, which a screen reader is told.
+// each as its journal prints it and linked by its DOI. A screen reader is told
+// the entry is English, as every work is, and told the language of a journal
+// whose name is not.
 function Sources({ page, why }: { page: PageReader; why: Why }) {
 	return (
 		<section class="s-wrap s-section s-sources">
@@ -414,10 +410,11 @@ function Sources({ page, why }: { page: PageReader; why: Why }) {
 			<ol>
 				{why.sources.map((source) => (
 					<li key={source.id} lang="en">
-						{`${source.authors.join(", ")} (${source.year}). ${sentence(source.title)} `}
-						<em>{source.journal}</em>
+						{`${source.authors.join(", ")} (${source.year}). `}
+						{sentence(source.title)}{" "}
+						<em lang={source.journal_language}>{source.journal}</em>
 						{`, ${source.volume}(${source.issue}), ${source.pages}. `}
-						<a href={doiAddress(source)}>{doiAddress(source)}</a>
+						<a href={doiAddress(source)}>{doiShown(source)}</a>
 					</li>
 				))}
 			</ol>
@@ -456,9 +453,4 @@ function citeText(words: Words<SiteKey>, source: Source): string {
 // familyOf is the family name of an author written "Family, I.".
 function familyOf(author: string): string {
 	return author.split(",", 1)[0] ?? author;
-}
-
-// doiAddress is where source's DOI leads.
-function doiAddress(source: Source): string {
-	return `https://doi.org/${source.doi}`;
 }
