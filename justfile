@@ -62,6 +62,12 @@ PROTOTYPE_COMMIT := "02638353482e25d6213120ba10caea3467a0437a"
 # What a dependency's license may be: permissive, and compatible with releasing
 # the result under MIT.
 ALLOWED_LICENSES := "MIT,BSD-2-Clause,BSD-3-Clause,Apache-2.0,ISC"
+# The licenses a font may carry besides: the site ships a font's files, and the
+# Open Font License lets them travel with software under any license, so long
+# as its notice and text travel with them. The npm check alone takes them,
+# since the fonts come from npm, and it takes any package under one of them,
+# font or not.
+FONT_LICENSES := "OFL-1.1"
 # The npm packages allowed a license outside that list, as name=license. Each is
 # a tool that builds the widget and ends up in nothing that is shipped, and it is
 # allowed only while it stays a development dependency. lightningcss, under
@@ -370,15 +376,15 @@ _license-list:
         echo "std,https://github.com/golang/go/blob/go${release}/LICENSE,BSD-3-Clause"
         go run {{ GO_LICENSES }} report ./... --ignore {{ MODULE }} 2>/dev/null
     } | awk -F, '{ printf "%-13s %-46s %s\n", $3, $1, $2 }'
-    cat <<'WIDGET'
+    cat <<'WEB'
 
-    The npm packages below are what the widget the server embeds is built from:
-    every package its lockfile needs outside development, and every package one
-    of those names as an optional companion, used or not. Each line is a
-    license, the package at the exact version in web/package-lock.json, and the
-    page of that version in the npm registry.
+    The npm packages below are what the widget the server embeds and the site
+    are built from: every package their lockfile needs outside development, and
+    every package one of those names as an optional companion, used or not.
+    Each line is a license, the package at the exact version in
+    web/package-lock.json, and the page of that version in the npm registry.
 
-    WIDGET
+    WEB
     node web/scripts/licenses.ts list
 
 # -- Widget -----------------------------------------------------------------
@@ -609,7 +615,7 @@ ci-licenses:
     #!/usr/bin/env bash
     set -euo pipefail
     go run {{ GO_LICENSES }} check ./... --allowed_licenses={{ ALLOWED_LICENSES }}
-    node web/scripts/licenses.ts check --allowed {{ ALLOWED_LICENSES }} --except {{ NPM_LICENSE_EXCEPTIONS }}
+    node web/scripts/licenses.ts check --allowed {{ ALLOWED_LICENSES }},{{ FONT_LICENSES }} --except {{ NPM_LICENSE_EXCEPTIONS }}
     # The list is built first and compared second: a report that failed to run
     # would otherwise look exactly like a list somebody forgot to update.
     list=$(just _license-list)
@@ -912,15 +918,23 @@ ci-smoke url:
 
 # The report reads what the deployed service logged within the window given —
 # 1d, 7d, 30d, as far back as Cloud Logging keeps it — in the project the
-# Terraform configuration names, and only the lines it adds up. They are read
-# whole into a file of their own before anything is added up, so that a read
-# that fails — a sign-in that ran out, a right the account lacks — stops here
-# rather than passing for a log with nothing in it. Cloud Logging keeps a
-# line's own fields as the payload of an entry and moves its severity, its
-# time and its span out beside it, so those are put back before the report
-# reads the line. A log of a local run, such as `just play-server` writes, is
-# read as it is: go run ./cmd/report < that file.
-# Add up the deployed service's log: tasks asked for, accepted and refused, why, the time to write one, limits, tool calls
+# Terraform configuration names: every line the service wrote, since the report
+# holds each of them to the rules of the log as well as adding them up: what it
+# writes on its standard output and its standard error, and none of the
+# platform's own records, of requests or of the instances.
+# The lines are read whole into a file of their own before anything is added
+# up, so that a read that fails — a sign-in that ran out, a right the account
+# lacks — stops here rather than passing for a log with nothing in it. Cloud
+# Logging keeps a line's own fields as the payload of an entry and moves its
+# severity, its time and its trace out beside it, so those are put back before
+# the report reads the line, and the instance that wrote it, which the entry's
+# labels name, is put beside them. An entry says a trace was kept only when it
+# was: one that names a trace and says nothing of it was dropped. The entries
+# are taken out of the file one at a time, so that a long window costs the
+# disk rather than the memory; a long window over a busy service is many pages
+# of the log, and is best read a day at a time. A log of a local run, such as
+# `just play-server` writes, is read as it is: go run ./cmd/report < that file.
+# Add up the deployed service's log: tasks, refusals, time to write one, limits, tool calls with and without Drive, traces, the busiest minute, the rules of the log
 report since="1d" service="mathtrail":
     #!/usr/bin/env bash
     set -euo pipefail
@@ -931,12 +945,86 @@ report since="1d" service="mathtrail":
     fi
     project=$(just _project)
     filter='resource.type="cloud_run_revision" AND resource.labels.service_name="{{ service }}"
-        AND jsonPayload.message=("task_requested" OR "task_submitted" OR "task_accepted" OR "limit_hit" OR "tool_call")'
+        AND (log_id("run.googleapis.com/stdout") OR log_id("run.googleapis.com/stderr"))'
     entries=$(mktemp)
     trap 'rm -f "$entries"' EXIT
     gcloud logging read "$filter" --project="$project" --freshness="{{ since }}" --format=json > "$entries"
-    jq -c '.[] | .jsonPayload + {severity, time: .timestamp, "logging.googleapis.com/spanId": .spanId}' "$entries" \
+    jq -cn --stream 'fromstream(1 | truncate_stream(inputs))
+        | (.jsonPayload // {}) + ({
+            severity,
+            time: .timestamp,
+            "logging.googleapis.com/trace": .trace,
+            "logging.googleapis.com/spanId": .spanId,
+            "logging.googleapis.com/trace_sampled": (if .trace then (.traceSampled // false) else null end),
+            instance: .labels.instanceId
+        } | with_entries(select(.value != null)))' "$entries" \
         | go run ./cmd/report
+
+# What the platform counted of the deployed service within the window given —
+# 30m, 2h, 1d, 30d — as Cloud Monitoring keeps it: the processor and the
+# memory the instances were allocated, which is what the free tier is counted
+# in, the requests that reached them, the time they were billed for, and the
+# most instances that served in one minute. Each series is summed a minute at
+# a time; the instances that served are taken on average over each minute and
+# added up across revisions, so that counts taken at different moments of a
+# minute never add up to more than ran at once. The window is set against the
+# free tier of a month: 180,000 vCPU-seconds, 360,000 GiB-seconds and two
+# million requests. The platform shows a minute up to three minutes after it
+# ends, so a window that ends now may leave out its last minutes. The token
+# rides in a header read from a file descriptor, never on the command line.
+# What the deployed service used of Cloud Run within a window, against the free tier of a month
+usage since="1h" service="mathtrail":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if ! command -v gcloud > /dev/null; then
+        echo "usage: this environment has gcloud on x86_64 alone." >&2
+        exit 1
+    fi
+    since="{{ since }}"
+    if [[ ! "$since" =~ ^[1-9][0-9]{0,4}[mhd]$ ]]; then
+        echo "usage: a window is whole minutes, hours or days, such as 30m, 2h or 1d, not $since" >&2
+        exit 1
+    fi
+    case "$since" in
+    *m) seconds=$(( ${since%m} * 60 )) ;;
+    *h) seconds=$(( ${since%h} * 3600 )) ;;
+    *d) seconds=$(( ${since%d} * 86400 )) ;;
+    esac
+    project=$(just _project)
+    token=$(gcloud auth print-access-token)
+    now=$(date -u +%s)
+    end=$(date -u -d "@$now" +%Y-%m-%dT%H:%M:%SZ)
+    start=$(date -u -d "@$(( now - seconds ))" +%Y-%m-%dT%H:%M:%SZ)
+    series() {
+        curl -fsS --max-time 30 -G "https://monitoring.googleapis.com/v3/projects/$project/timeSeries" \
+            -H @<(printf 'Authorization: Bearer %s\n' "$token") \
+            --data-urlencode "filter=metric.type=\"run.googleapis.com/$1\" AND resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"{{ service }}\"${3:+ AND $3}" \
+            --data-urlencode "interval.startTime=$start" \
+            --data-urlencode "interval.endTime=$end" \
+            --data-urlencode "aggregation.alignmentPeriod=60s" \
+            --data-urlencode "aggregation.perSeriesAligner=$2" \
+            --data-urlencode "aggregation.crossSeriesReducer=REDUCE_SUM" \
+            --data-urlencode "view=FULL"
+    }
+    summed='[.timeSeries[]?.points[]?.value | (.doubleValue // (.int64Value | tonumber))] | add // 0'
+    most='[.timeSeries[]?.points[]?.value | (.doubleValue // (.int64Value | tonumber))] | max // 0'
+    vcpu=$(series container/cpu/allocation_time ALIGN_SUM | jq "$summed")
+    gib=$(series container/memory/allocation_time ALIGN_SUM | jq "$summed")
+    requests=$(series request_count ALIGN_SUM | jq "$summed")
+    billed=$(series container/billable_instance_time ALIGN_SUM | jq "$summed")
+    instances=$(series container/instance_count ALIGN_MEAN 'metric.labels.state="active"' | jq "$most")
+    share() { awk -v used="$1" -v free="$2" 'BEGIN { printf "%.3f %%", 100 * used / free }'; }
+    echo "# What the platform counted"
+    echo
+    echo "Cloud Run, the service {{ service }}, from $start to $end, as Cloud Monitoring counts it."
+    echo
+    echo "| | Used | Of a month's free tier |"
+    echo "|---|---:|---:|"
+    echo "| vCPU-seconds | $(printf '%.1f' "$vcpu") | $(share "$vcpu" 180000) |"
+    echo "| GiB-seconds | $(printf '%.1f' "$gib") | $(share "$gib" 360000) |"
+    echo "| Requests | $(printf '%.0f' "$requests") | $(share "$requests" 2000000) |"
+    echo "| Instance-seconds billed | $(printf '%.1f' "$billed") | |"
+    echo "| Most instances that served in one minute | $(printf '%.1f' "$instances") | |"
 
 
 # -- Golden vectors from the prototype --------------------------------------
@@ -1017,6 +1105,9 @@ ci-tf-outputs:
 # tool is built and then run, rather than run through the go command, which
 # answers every failing exit with 1: its own exit is 0 for a clean run, 1 for
 # one that found something, and 2 for one that could not run.
+# A deployed service is run against with the accounts a parent signed in on
+# it, since it has no development sign-in: `just load paces -url
+# https://mcp.mathtrail.app -accounts parent,load` (docs/load.md).
 # Run a scenario of the load tool, such as `just load lesson`, or `just load lesson -url http://localhost:8080`
 [positional-arguments]
 [working-directory('tools/load')]
@@ -1036,9 +1127,26 @@ load scenario *args:
     just docker-build
     exec bin/load -scenario "$scenario" -image mathtrail:dev "$@"
 
-# Every scenario, against the image of what is in the tree, built once, in a
-# container of an instance's size: one vCPU and 1 GiB, told what a deployment
-# of that size is told. Each run is held to the most memory its instance may
+# The parent opens the address it prints and signs in with Google; the browser
+# comes back to this computer, or the parent pastes the address it ended up at.
+# The tokens are kept in the user's own configuration, never in the repository.
+# The deployed service is the one signed in on unless the arguments name
+# another with -url, which, given later, is the one the tool takes.
+# Sign an account in on the deployed service for the load's runs against it, such as `just load-signin parent`
+[positional-arguments]
+[working-directory('tools/load')]
+load-signin name *args:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    go build -o bin/load .
+    name="$1"
+    shift
+    exec bin/load -signin "$name" -url https://mcp.mathtrail.app "$@"
+
+# Every scenario of a container, against the image of what is in the tree,
+# built once, in a container of an instance's size: one vCPU and 1 GiB, told
+# what a deployment of that size is told; the two of the deployed service are
+# run by hand against it. Each run is held to the most memory its instance may
 # hold — its peak as measured, with room to spare; for the solvers that keep
 # hundreds of MiB, whose peak is wherever the collector chose to work, just
 # under the instance — and one that finds something does not stop the rest:
@@ -1144,13 +1252,15 @@ load-tidy:
 
 # A run writes its tables, its summary and what it was into
 # tools/learners/results, over the run kept there, and prints the summary. It
-# draws the children of the paper's run unless it is given -seed or
-# -experiment. Arguments go to the bench as they are; a quick look, such as
-# `just learners -children 100 -out /tmp/learners`, is written elsewhere, so
-# that the run kept is a whole one. The service's version is stamped in as a
-# build of the service carries it, so that run.txt says what code the numbers
-# came from.
-# Run every rule of the learners' bench on every generator, and print the summary
+# runs the bench's own set of rules unless -rules names another, whose results
+# go into a directory of their own within results; it draws the children of
+# the paper's run unless it is given -seed or -experiment, or a set that draws
+# children of its own. Arguments go to the bench as they are; a quick look,
+# such as `just learners -children 100 -out /tmp/learners`, is written
+# elsewhere, so that the run kept is a whole one. The service's version is
+# stamped in as a build of the service carries it, so that run.txt says what
+# code the numbers came from.
+# Run a set of the learners' bench's rules on every generator, and print the summary
 [positional-arguments]
 [working-directory('tools/learners')]
 learners *args:

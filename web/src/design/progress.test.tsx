@@ -2,6 +2,9 @@ import { render } from "preact";
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test } from "vitest";
 import {
+	MoveCounts,
+	MoveLegend,
+	MoveLine,
 	ProfileFields,
 	RankList,
 	RankSummary,
@@ -27,6 +30,264 @@ function fills(): (string | null | undefined)[] {
 		segment.querySelector(".mt-segment-fill")?.getAttribute("width"),
 	);
 }
+
+// striped are how each step of the course drawn is drawn: how far it is
+// filled, how far the stripes of a move reach under the fill, and the way the
+// move's stripes say — the last two null on a step no move is drawn across.
+function striped(): [string, string | null, string | null][] {
+	return [...root.querySelectorAll("svg.mt-segment")].map((segment) => [
+		segment.querySelector(".mt-segment-fill")?.getAttribute("width") ?? "",
+		segment.querySelector(".mt-segment-stripes")?.getAttribute("width") ?? null,
+		segment.querySelector("pattern")?.getAttribute("class") ?? null,
+	]);
+}
+
+describe("a course that moved", () => {
+	test("is filled as far as where it stood and striped on to where it stands, when it moved up", () => {
+		draw(
+			<Segments of={4} filled={1} part={0.6} was={{ filled: 1, part: 0.2 }} />,
+		);
+
+		expect(striped()).toEqual([
+			["100%", null, null],
+			["20%", "60%", "mt-stripes mt-stripes-gain"],
+			["0%", null, null],
+			["0%", null, null],
+		]);
+	});
+
+	test("is filled as far as where it stands and striped on to where it stood, when it moved back", () => {
+		draw(
+			<Segments of={4} filled={1} part={0.2} was={{ filled: 1, part: 0.6 }} />,
+		);
+
+		expect(striped()).toEqual([
+			["100%", null, null],
+			["20%", "60%", "mt-stripes mt-stripes-loss"],
+			["0%", null, null],
+			["0%", null, null],
+		]);
+	});
+
+	test("is striped across every step a rank's move crossed", () => {
+		draw(
+			<Segments of={4} filled={2} part={0.3} was={{ filled: 1, part: 0.8 }} />,
+		);
+
+		expect(striped()).toEqual([
+			["100%", null, null],
+			["80%", "100%", "mt-stripes mt-stripes-gain"],
+			["0%", "30%", "mt-stripes mt-stripes-gain"],
+			["0%", null, null],
+		]);
+	});
+
+	test.each<[string, number, number, [string, string | null, string | null]]>([
+		[
+			"a gain of a point ends at the edge",
+			0.44,
+			0.43,
+			["30%", "44%", "mt-stripes mt-stripes-gain"],
+		],
+		[
+			"a gain from the step's start reaches past the edge",
+			0.01,
+			0,
+			["0%", "14%", "mt-stripes mt-stripes-gain"],
+		],
+		[
+			"a step back of a point starts at the edge",
+			0.43,
+			0.44,
+			["43%", "57%", "mt-stripes mt-stripes-loss"],
+		],
+		[
+			"a step back near the step's end keeps within it",
+			0.98,
+			0.99,
+			["86%", "100%", "mt-stripes mt-stripes-loss"],
+		],
+	])(
+		"is striped over a seventh of a step at least, where %s",
+		(_, now, then, step) => {
+			draw(
+				<Segments
+					of={3}
+					filled={1}
+					part={now}
+					was={{ filled: 1, part: then }}
+				/>,
+			);
+
+			expect(striped()[1]).toEqual(step);
+		},
+	);
+
+	test("draws a move seen on the steps it crossed as it is, and nothing past its edge", () => {
+		draw(
+			<Segments of={3} filled={1} part={0} was={{ filled: 0, part: 0.8 }} />,
+		);
+
+		expect(striped()).toEqual([
+			["80%", "100%", "mt-stripes mt-stripes-gain"],
+			["0%", null, null],
+			["0%", null, null],
+		]);
+	});
+
+	test("shows a rank just reached, at the start of its step", () => {
+		draw(
+			<Segments of={3} filled={1} part={0} was={{ filled: 0, part: 0.99 }} />,
+		);
+
+		expect(striped()).toEqual([
+			["99%", "100%", "mt-stripes mt-stripes-gain"],
+			["0%", "14%", "mt-stripes mt-stripes-gain"],
+			["0%", null, null],
+		]);
+	});
+
+	test("draws each step's stripes by a pattern no other drawing on the page is named by, with no style set on an element", () => {
+		draw(
+			<Segments of={4} filled={2} part={0.3} was={{ filled: 1, part: 0.8 }} />,
+		);
+
+		const patterns = [...root.querySelectorAll("pattern")];
+		const names = patterns.map((pattern) => pattern.id);
+		expect(new Set(names).size).toBe(2);
+		expect(
+			[...root.querySelectorAll(".mt-segment-stripes")].map((stripes) =>
+				stripes.getAttribute("fill"),
+			),
+		).toEqual(names.map((name) => `url(#${name})`));
+		expect(
+			patterns.every(
+				(pattern) => pattern.getAttribute("patternUnits") === "userSpaceOnUse",
+			),
+		).toBe(true);
+		expect(root.querySelector("[style]")).toBeNull();
+	});
+});
+
+describe("how a rank moved", () => {
+	test("is a line in the colour of its way, after an arrow a screen reader does not read, and read out whenever it changes", () => {
+		draw(<MoveLine way="loss" text="The last task moved the bar back" />);
+
+		const line = root.querySelector(".mt-rank-move");
+		expect(line?.getAttribute("data-way")).toBe("loss");
+		expect(line?.getAttribute("aria-live")).toBe("polite");
+		expect(line?.querySelector("[aria-hidden='true']")?.textContent).toBe("↓");
+		expect(line?.textContent).toBe("↓The last task moved the bar back");
+	});
+
+	test("is a plain line where nothing moved, and an empty one with nothing to say", () => {
+		draw(<MoveLine text="The last task didn't move the bar" />);
+		expect(root.querySelector(".mt-rank-move")?.hasAttribute("data-way")).toBe(
+			false,
+		);
+		expect(root.querySelector(".mt-rank-move [aria-hidden]")).toBeNull();
+
+		draw(<MoveLine />);
+		expect(root.querySelector(".mt-rank-move")?.textContent).toBe("");
+	});
+
+	test("is told between the course and the next rank to reach", () => {
+		draw(
+			<RankSummary
+				name="River crossing"
+				meta="rank 3 of 11"
+				line="Next rank — Hill."
+				move={<MoveLine text="moved" />}
+			>
+				<Segments of={11} filled={2} part={0.43} />
+			</RankSummary>,
+		);
+
+		expect(
+			[...(root.querySelector(".mt-rank")?.children ?? [])].map(
+				(child) => child.className,
+			),
+		).toEqual(["mt-rank-head", "mt-segments", "mt-rank-move", "mt-rank-line"]);
+	});
+
+	test("is counted by the title of a list, each way that moved with its arrow, and the same in words for a screen reader", () => {
+		draw(
+			<MoveCounts
+				up="2"
+				down="1"
+				label="2 topics moved forward and 1 topic slipped back"
+			/>,
+		);
+
+		expect(
+			[...root.querySelectorAll(".mt-move-counted [data-way]")].map((count) => [
+				count.getAttribute("data-way"),
+				count.textContent,
+			]),
+		).toEqual([
+			["gain", "↑ 2"],
+			["loss", "↓ 1"],
+		]);
+		expect(
+			root.querySelector(".mt-move-counted")?.getAttribute("aria-hidden"),
+		).toBe("true");
+		expect(root.querySelector(".mt-move-counts .mt-vh")?.textContent).toBe(
+			"2 topics moved forward and 1 topic slipped back",
+		);
+	});
+
+	test("has a legend: a sample of each way's stripes beside its name, and the while", () => {
+		draw(<MoveLegend gain="gain" loss="loss" period="over the past week" />);
+
+		expect(
+			[...root.querySelectorAll(".mt-move-sample")].map((sample) => [
+				sample.getAttribute("data-way"),
+				sample.getAttribute("aria-hidden"),
+			]),
+		).toEqual([
+			["gain", "true"],
+			["loss", "true"],
+		]);
+		expect(root.querySelector(".mt-move-legend")?.textContent).toBe(
+			"gainloss· over the past week",
+		);
+	});
+
+	test("is a topic's word in the colour of its way, after its arrow", () => {
+		draw(
+			<RankList
+				rows={[
+					{
+						id: "a",
+						label: "Ordering",
+						word: "new rank",
+						way: "gain",
+						name: "Hill",
+						segments: { of: 3, filled: 1 },
+					},
+					{
+						id: "b",
+						label: "Gaps",
+						word: "even",
+						name: "Ford",
+						segments: { of: 3, filled: 1 },
+					},
+				]}
+			/>,
+		);
+
+		const words = [...root.querySelectorAll(".mt-rank-word")];
+		expect(
+			words.map((word) => [word.getAttribute("data-way"), word.textContent]),
+		).toEqual([
+			["gain", "↑new rank"],
+			[null, "even"],
+		]);
+		expect(words[0]?.querySelector("[aria-hidden='true']")?.textContent).toBe(
+			"↑",
+		);
+	});
+});
 
 describe("a course of steps", () => {
 	test("fills the steps behind, the one under way as far as it has come, and leaves the rest", () => {

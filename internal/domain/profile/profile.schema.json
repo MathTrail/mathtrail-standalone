@@ -40,6 +40,12 @@
       "description": "The task being written right now, or null.",
       "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/openRequest" }]
     },
+    "rating_days": {
+      "description": "Where the child stood at the start of each of the last days with answers, oldest first and one to a date: what the change over a week is told from. Only recording an answer writes it, and each one lets go of the days the week of seven dates ending on its date no longer reaches. Absent until the first answer after the trial series.",
+      "type": "array",
+      "maxItems": 7,
+      "items": { "$ref": "#/$defs/ratingDay" }
+    },
     "ratings": {
       "$ref": "#/$defs/ratings"
     },
@@ -199,6 +205,33 @@
         }
       }
     },
+    "ratingDay": {
+      "description": "Where the child stood at the start of one day with answers.",
+      "type": "object",
+      "required": ["date", "deltas", "theta"],
+      "properties": {
+        "date": {
+          "description": "The day, in UTC.",
+          "type": "string",
+          "format": "date"
+        },
+        "deltas": {
+          "description": "The corrections of the topics answered before the day began, by catalog id. A topic answered for the first time that day is not among them.",
+          "type": "object",
+          "propertyNames": { "minLength": 1 },
+          "additionalProperties": { "type": "number" }
+        },
+        "theta": {
+          "description": "The overall level.",
+          "type": "number"
+        },
+        "unkept": {
+          "description": "The latest date of an answer that keeps no levels before it, on the first day kept after a build that kept no history wrote the file; absent on every other day. A week that reaches back to it cannot be told.",
+          "type": "string",
+          "format": "date"
+        }
+      }
+    },
     "answer": {
       "description": "An answer the child gave, or a task left without one when another was asked for. A skipped task says where it stood and when it was left, and carries no outcome at all.",
       "type": "object",
@@ -208,6 +241,15 @@
           "description": "When the answer arrived, or when the task was left.",
           "type": "string",
           "format": "date-time"
+        },
+        "before": {
+          "description": "Where the child stood before this answer moved anything: the overall level and the correction of the answered topic. Absent from a skipped task, and from an answer an earlier build wrote.",
+          "type": "object",
+          "required": ["delta", "theta"],
+          "properties": {
+            "delta": { "type": "number" },
+            "theta": { "type": "number" }
+          }
         },
         "chosen": {
           "description": "The option picked, written only for a wrong answer.",
@@ -246,6 +288,7 @@
       "then": {
         "not": {
           "anyOf": [
+            { "required": ["before"] },
             { "required": ["chosen"] },
             { "required": ["confused"] },
             { "required": ["correct"] },

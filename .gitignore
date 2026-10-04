@@ -12,6 +12,10 @@ dist/
 # The load tool's binary and the learners' bench's, when they are built where they live
 tools/load/load
 tools/learners/learners
+# The tables of every cell of the bench's sweep and its refinement: tens of
+# megabytes, which a run gives again to the last digit
+tools/learners/results/sweep/cells.csv
+tools/learners/results/refine/cells.csv
 # The drawings command's binary, when it is built at the root
 /drawings
 coverage.*

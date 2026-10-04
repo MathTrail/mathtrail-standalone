@@ -2,9 +2,11 @@ package session_test
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -266,6 +268,71 @@ func TestEveryRequestCarriesTheChildsNameAndTheServedHost(t *testing.T) {
 	defer mu.Unlock()
 	if len(seen) != 1 || !seen["localhost:8080 Bearer ann"] {
 		t.Errorf("requests went out as %v, want every one to localhost:8080 as Bearer ann", seen)
+	}
+}
+
+// A child signed in with an account a parent signed in sends the access token
+// the account gives at each request — a renewed one once it is renewed — and
+// never the name the account is kept under. One whose account cannot give a
+// token sends nothing, and its call is told as unsigned.
+func TestAChildSignedInSendsTheAccountsToken(t *testing.T) {
+	t.Parallel()
+
+	var mu sync.Mutex
+	var bearers []string
+	target := servicetest.Fake(t, map[string]mcp.ToolHandler{
+		"answer": says(&mcp.CallToolResult{Content: words("done")}),
+	}, func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			mu.Lock()
+			bearers = append(bearers, r.Header.Get("Authorization"))
+			mu.Unlock()
+			next.ServeHTTP(w, r)
+		})
+	})
+	service := session.Open(target, 5*time.Second)
+	defer service.Close()
+
+	tokens := []string{"access-1", "access-2"}
+	given := 0
+	signedIn := service.SignedIn("parent", func() (string, error) {
+		mu.Lock()
+		defer mu.Unlock()
+		token := tokens[min(given, len(tokens)-1)]
+		given++
+		return token, nil
+	})
+	defer func() { _ = signedIn.Close() }()
+	if answer := signedIn.Call(t.Context(), "answer", map[string]any{}); answer.Kind != session.Answered {
+		t.Fatalf("Call() = %q (%v), want an answer", answer.Kind, answer.Err)
+	}
+	mu.Lock()
+	sent := slices.Clone(bearers)
+	mu.Unlock()
+	if len(sent) < 2 || sent[0] != "Bearer access-1" || sent[len(sent)-1] != "Bearer access-2" {
+		t.Errorf("requests went out as %q, want each with the token the account gave then", sent)
+	}
+
+	nobody := service.SignedIn("nobody", func() (string, error) { return "", nil })
+	defer func() { _ = nobody.Close() }()
+	mu.Lock()
+	bearers = nil
+	mu.Unlock()
+	_ = nobody.Call(t.Context(), "answer", map[string]any{})
+	mu.Lock()
+	unsigned := slices.Clone(bearers)
+	mu.Unlock()
+	if len(unsigned) == 0 || slices.ContainsFunc(unsigned, func(sent string) bool { return sent != "" }) {
+		t.Errorf("an account with no token sent %q, want requests with no Authorization at all", unsigned)
+	}
+
+	lapsed := service.SignedIn("lapsed", func() (string, error) { return "", errors.New("the refresh token has ended") })
+	defer func() { _ = lapsed.Close() }()
+	before := service.Requests()
+	answer := lapsed.Call(t.Context(), "answer", map[string]any{})
+	if answer.Kind.String() != "no_answer:unsigned" || service.Requests() != before {
+		t.Errorf("Call() = %q after %d requests more, want no_answer:unsigned and nothing sent",
+			answer.Kind, service.Requests()-before)
 	}
 }
 

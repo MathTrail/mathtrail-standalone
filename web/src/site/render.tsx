@@ -4,18 +4,27 @@ import { disagreements } from "../i18n/dictionaries";
 import { fallbackLocale } from "../i18n/lookup";
 import { byCodeUnits } from "../i18n/order";
 import { type Dictionary, openWords, type Words } from "../i18n/words";
+import { cardWords } from "../widget/words";
 import { ApexPage } from "./ApexPage";
+import { address, alternatesOf, outputPath, parseBase } from "./addresses";
 import {
-	address,
-	alternatesOf,
-	localesWith,
-	outputPath,
-	parseBase,
-} from "./addresses";
-import { frontPage, readTexts, type Sources, type Texts } from "./content";
+	frontPage,
+	readTexts,
+	type Sources,
+	type Summary,
+	summaryOf,
+	type Texts,
+	textOf,
+} from "./content";
 import { DocumentPage } from "./DocumentPage";
-import type { DocumentLink } from "./Footer";
+import { type SiteData, siteData } from "./data";
+import type { FooterLink } from "./Footer";
+import { type Frame, siteFrame } from "./frame";
+import type { Head } from "./Layout";
 import { cname, robots, sitemap } from "./metadata";
+import { type Page, sitePages } from "./pages";
+import { openReader } from "./reader";
+import { type PageFrame, SitePage } from "./SitePage";
 import { type SiteKey, SiteWords, siteDictionaries } from "./words";
 
 /**
@@ -25,34 +34,45 @@ import { type SiteKey, SiteWords, siteDictionaries } from "./words";
 export type SiteFile = { readonly path: string; readonly data: string };
 
 /**
- * renderSite draws every file the site's texts and words make: a page for each
- * text of each locale, the apex, and the files a crawler and the host read. It
- * writes nothing. The files come back sorted by path, so that two builds of
- * the same texts are the same bytes, and anything wrong with a text or a
- * dictionary stops the build before a single file is written. The stylesheets
- * and the mark are not among them: they are built and copied beside these.
+ * renderSite draws every file the site's texts and words make: every page of
+ * every locale, the apex, and the files a crawler and the host read. It writes
+ * nothing. The files come back sorted by path, so that two builds of the same
+ * texts are the same bytes, and anything wrong with a text, a dictionary, the
+ * frame, a page's component or the site's data stops the build before a
+ * single file is written. The stylesheets and the mark are not among them:
+ * they are built and copied beside these.
  *
- * base is the origin the site is published on. The dictionaries are the
- * site's own unless a test hands it others.
+ * base is the origin the site is published on. The dictionaries, the frame,
+ * the data and the pages a component draws — the site's own for that data —
+ * are the site's unless a test hands it others.
  */
 export function renderSite({
 	base,
 	sources,
 	dictionaries = siteDictionaries,
+	frame = siteFrame,
+	data = siteData(),
+	pages = sitePages(data),
 }: {
 	base: string;
 	sources: Sources;
 	dictionaries?: ReadonlyMap<string, Dictionary>;
+	frame?: Frame;
+	data?: SiteData;
+	pages?: ReadonlyMap<string, Page>;
 }): SiteFile[] {
 	const origin = parseBase(base);
 	const texts = readTexts(sources, fallbackLocale);
-	for (const locale of texts.locales) {
-		checkWords(dictionaries, locale);
-	}
+	checkLanguages(dictionaries, texts.locales);
+	checkFrame(frame, texts.names);
+	checkTopicPages(data, texts.names);
 	const opened = new Map<string, Words<SiteKey>>();
 	const site: Site = {
 		texts,
 		base,
+		frame,
+		pages,
+		data,
 		wordsOf(locale) {
 			let words = opened.get(locale);
 			if (words === undefined) {
@@ -64,7 +84,12 @@ export function renderSite({
 	};
 
 	const files: SiteFile[] = [
-		...texts.locales.flatMap((locale) => pagesOf(site, locale)),
+		...texts.locales.flatMap((locale) =>
+			texts.names.map((name) => ({
+				path: outputPath(address(locale, name)),
+				data: drawPage(site, locale, name),
+			})),
+		),
 		{ path: "index.html", data: apex(site) },
 		{ path: "sitemap.xml", data: sitemap(texts, base, fallbackLocale) },
 		{ path: "robots.txt", data: robots(base) },
@@ -77,48 +102,111 @@ export function renderSite({
 }
 
 // Site is what every page of a build is drawn from: the texts, the origin they
-// are published on, and the words of each locale, which every locale with
-// texts has, opened once for the whole build.
+// are published on, the frame, the pages a component draws, the site's data,
+// and the words of each locale, which every locale with texts has, opened
+// once for the whole build.
 type Site = {
 	readonly texts: Texts;
 	readonly base: string;
+	readonly frame: Frame;
+	readonly pages: ReadonlyMap<string, Page>;
+	readonly data: SiteData;
 	readonly wordsOf: (locale: string) => Words<SiteKey>;
 };
 
-// pagesOf draws every page a locale has.
-function pagesOf(site: Site, locale: string): SiteFile[] {
-	const { texts, base } = site;
+// drawPage draws the page name of a locale: a document's HTML set in the
+// frame, or the page's component, which reads the page's words. A component
+// that leaves a text of its words unshown stops the build: the text would be
+// translated and never read.
+function drawPage(site: Site, locale: string, name: string): string {
+	const text = textOf(site.texts, locale, name);
 	const words = site.wordsOf(locale);
-	const home = address(locale, frontPage);
-	return [...(texts.pages.get(locale) ?? [])].map(([name, text]) => {
-		const served = address(locale, name);
-		return {
-			path: outputPath(served),
-			data: page(
-				words,
-				<DocumentPage
-					head={{
-						lang: locale,
-						dir: words.dir,
-						title: text.title,
-						description: text.description,
-						canonical: base + served,
-						alternates: alternatesOf(texts, base, fallbackLocale, name),
-					}}
-					home={home}
-					languages={localesWith(texts, name).map((other) => ({
-						locale: other,
-						href: address(other, name),
-						name: site.wordsOf(other).text("language.name"),
-						current: other === locale,
-					}))}
-					documents={documentsOf(texts, locale)}
-					translated={locale !== fallbackLocale}
-					html={text.html}
-				/>,
-			),
-		};
-	});
+	const frame = frameOf(site, locale, name);
+	if (text.kind === "document") {
+		return page(
+			words,
+			<DocumentPage
+				head={headOf(site, locale, name, text)}
+				frame={frame}
+				html={text.html}
+			/>,
+		);
+	}
+	const file = `${locale}/${name}.yaml`;
+	const { page: reader, unread } = openReader(text.words, file, locale);
+	const { draw: Draw, card, style } = pageOf(site.pages, name);
+	const drawn = page(
+		words,
+		<SitePage
+			head={headOf(site, locale, name, {
+				title: reader.plain("title"),
+				description: reader.plain("description"),
+			})}
+			frame={frame}
+			card={card}
+			style={style?.(site.data)}
+		>
+			<Draw page={reader} data={site.data} />
+		</SitePage>,
+	);
+	const unshown = unread();
+	if (unshown.length > 0) {
+		throw new Error(`${file}: the page never shows ${unshown.join(", ")}`);
+	}
+	return drawn;
+}
+
+// headOf is what the page name of a locale tells a browser, a search engine
+// and a chat about itself.
+function headOf(
+	site: Site,
+	locale: string,
+	name: string,
+	{ title, description }: Summary,
+): Head {
+	return {
+		lang: locale,
+		dir: site.wordsOf(locale).dir,
+		title,
+		description,
+		canonical: site.base + address(locale, name),
+		alternates: alternatesOf(site.texts, site.base, fallbackLocale, name),
+	};
+}
+
+// frameOf is the frame the page name of a locale is set in: its menu, the
+// page itself marked, every language of the site to switch to, and the pages
+// the footer leads to.
+function frameOf(site: Site, locale: string, name: string): PageFrame {
+	const words = site.wordsOf(locale);
+	return {
+		home: address(locale, frontPage),
+		menu: site.frame.menu.map(({ page, anchor, label }) => ({
+			href:
+				anchor === undefined
+					? address(locale, page)
+					: `${address(locale, page)}#${anchor}`,
+			label: words.text(label),
+			current: anchor === undefined && page === name,
+		})),
+		languages: site.texts.locales.map((other) => ({
+			locale: other,
+			href: address(other, name),
+			name: site.wordsOf(other).text("language.name"),
+			current: other === locale,
+		})),
+		footer: footerOf(site, locale),
+		translated: locale !== fallbackLocale,
+	};
+}
+
+// footerOf are the pages the footer of a locale's page leads to, each under
+// its own title.
+function footerOf(site: Site, locale: string): FooterLink[] {
+	return site.frame.footer.map((name) => ({
+		href: address(locale, name),
+		label: summaryOf(textOf(site.texts, locale, name)).title,
+	}));
 }
 
 // apex draws the page the bare domain serves, in the reference locale: its
@@ -137,7 +225,7 @@ function apex(site: Site): string {
 				canonical: `${base}/`,
 				alternates: alternatesOf(texts, base, fallbackLocale, frontPage),
 			}}
-			choices={localesWith(texts, frontPage).map((locale) => {
+			choices={texts.locales.map((locale) => {
 				const own = site.wordsOf(locale);
 				return {
 					locale,
@@ -146,9 +234,31 @@ function apex(site: Site): string {
 					dir: own.dir,
 				};
 			})}
-			documents={documentsOf(texts, fallbackLocale)}
+			footer={footerOf(site, fallbackLocale)}
 		/>,
 	);
+}
+
+// checkLanguages holds the site's languages to its dictionaries. A locale
+// with texts has words that say what the English ones say, and a locale with
+// words has texts: the languages of the site are those of its dictionaries,
+// and the card links a topic's page in its own language when the site has it.
+// Every one of them is a language the widget speaks too.
+function checkLanguages(
+	dictionaries: ReadonlyMap<string, Dictionary>,
+	locales: readonly string[],
+): void {
+	for (const locale of locales) {
+		checkWords(dictionaries, locale);
+		checkCardLanguage(locale);
+	}
+	for (const tag of dictionaries.keys()) {
+		if (!locales.includes(tag)) {
+			throw new Error(
+				`the site has words in ${tag} — its dictionary ${tag}.json — and no texts: every page is in every language the site speaks`,
+			);
+		}
+	}
 }
 
 // checkWords refuses a locale whose words say other things than the English
@@ -177,16 +287,72 @@ function checkWords(
 	}
 }
 
-// documentsOf are the pages a locale has besides its front page, in the order
-// of their names, each under its own title.
-function documentsOf(texts: Texts, locale: string): DocumentLink[] {
-	const pages = texts.pages.get(locale);
-	return texts.names.flatMap((name) => {
-		const text = pages?.get(name);
-		return name === frontPage || text === undefined
-			? []
-			: [{ href: address(locale, name), label: text.title }];
-	});
+// checkCardLanguage refuses a locale the widget does not speak: the cards its
+// pages draw, and the names they give topics and traps in the card's words,
+// would be in another language, and nothing after the build would notice.
+function checkCardLanguage(locale: string): void {
+	if (cardWords(locale, undefined).locale !== locale) {
+		throw new Error(
+			`the site speaks ${locale}, and the widget does not: the cards and the names of topics and traps on its pages would be in another language`,
+		);
+	}
+}
+
+// checkFrame refuses a menu or a footer that leads to a page the site does not
+// have: a page joins them with the task that publishes it.
+function checkFrame(frame: Frame, names: readonly string[]): void {
+	for (const { page } of frame.menu) {
+		if (!names.includes(page)) {
+			throw new Error(
+				`the menu leads to the page ${page}, which the site does not have`,
+			);
+		}
+	}
+	for (const page of frame.footer) {
+		if (!names.includes(page)) {
+			throw new Error(
+				`the footer leads to the page ${page}, which the site does not have`,
+			);
+		}
+	}
+}
+
+// checkTopicPages holds the topics' pages to the catalog: a topic's page,
+// topics/<slug>, is published when the catalog says so, and is there whenever
+// it does, since the card links it from then on.
+function checkTopicPages(data: SiteData, names: readonly string[]): void {
+	const published = new Set(
+		data.topics.all
+			.filter((topic) => topic.sitePage)
+			.map((topic) => `topics/${topic.slug}`),
+	);
+	for (const name of names) {
+		if (name.startsWith("topics/") && !published.has(name)) {
+			throw new Error(
+				`the site has the page ${name}, and no topic of the catalog has its page published there`,
+			);
+		}
+	}
+	for (const name of published) {
+		if (!names.includes(name)) {
+			throw new Error(
+				`the catalog has the page ${name} published, and the site does not have it`,
+			);
+		}
+	}
+}
+
+// pageOf is the page a component draws by the name name. Words that no
+// component draws stop the build: they would be translated into every language
+// and published in none.
+function pageOf(pages: ReadonlyMap<string, Page>, name: string): Page {
+	const found = pages.get(name);
+	if (found === undefined) {
+		throw new Error(
+			`the site has words for the page ${name}, and no component draws it`,
+		);
+	}
+	return found;
 }
 
 // page is a whole HTML document: the page drawn in its language's words,

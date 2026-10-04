@@ -1,0 +1,901 @@
+rule,structure,kind,name,generator,metric,bound,value,low,high,verdict,mark
+shrinking,both,score,the share of the way to the ceiling,,,,0.0000,0.0000,0.0000,,
+shrinking,both,goal,the lag at most 45 % of the service's,G2-half,r6_lag,0.2684,0.5965,0.5611,0.6314,not met,not reached
+shrinking,both,goal,the corridor a share of the way to the ceiling,G2-half,r3_inside,0.4273,0.3625,0.3501,0.3748,not met,not reached
+shrinking,both,goal,children not caught up after the jump at most 25 %,G3,r6_jump_unsettled,0.2500,0.7133,0.6600,0.7633,not met,not reached
+shrinking,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G0,r8_move_p95_6_20,74.0000,74.0000,73.0000,74.0000,met,reached
+shrinking,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G0,r8_rank_6_20,3.0889,3.0889,2.4000,3.8222,met,on the edge
+shrinking,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G0,r8_move_p95_150_200,74.0000,37.0000,36.0000,38.0000,met,reached
+shrinking,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G0,r8_rank_150_200,3.0889,0.5621,0.2941,0.8562,met,reached
+shrinking,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,73.0000,72.0000,73.0000,met,reached
+shrinking,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_rank_6_20,3.0667,3.0667,2.3778,3.7778,met,on the edge
+shrinking,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,35.0000,35.0000,36.0000,met,reached
+shrinking,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_rank_150_200,3.0667,0.7320,0.4641,1.0392,met,reached
+shrinking,both,not worse,not worse than the service,G0,r1_rms_200,0.0398,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G0,r3_inside,0.0150,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G1,r1_rms_200,0.0373,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G1,r3_inside,0.0137,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G2,r1_rms_200,0.0600,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G2,r3_inside,0.0135,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G3,r1_rms_200,0.0535,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G3,r3_inside,0.0152,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G4,r1_rms_200,0.0438,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G4,r3_inside,0.0128,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G5,r1_rms_200,0.0393,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G5,r3_inside,0.0148,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G6,r1_rms_200,0.0591,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G6,r3_inside,0.0162,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G7,r1_rms_200,0.0382,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G7,r3_inside,0.0130,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G8,r1_rms_200,0.0333,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G8,r3_inside,0.0146,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G0-exact,r1_rms_200,0.0392,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G0-exact,r3_inside,0.0266,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G0-miss0.25,r1_rms_200,0.0366,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G0-miss0.25,r3_inside,0.0214,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G0-miss1,r1_rms_200,0.0386,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G0-miss1,r3_inside,0.0100,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G2-half,r1_rms_200,0.0489,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G2-half,r3_inside,0.0144,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G2-fading,r1_rms_200,0.0468,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G2-fading,r3_inside,0.0144,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G3-drop,r1_rms_200,0.0499,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G3-drop,r3_inside,0.0117,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G0-start0.5,r1_rms_200,0.0373,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G0-start0.5,r3_inside,0.0148,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G0-start2,r1_rms_200,0.0390,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G0-start2,r3_inside,0.0146,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G0-topics0.3,r1_rms_200,0.0372,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G0-topics0.3,r3_inside,0.0135,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G0-topics1,r1_rms_200,0.0367,0.0000,0.0000,0.0000,met,reached
+shrinking,both,not worse,not worse than the service,G0-topics1,r3_inside,0.0161,0.0000,0.0000,0.0000,met,reached
+constant_slow,both,score,the share of the way to the ceiling,,,,0.1555,0.1425,0.1682,,
+constant_slow,both,goal,the lag at most 45 % of the service's,G2-half,r6_lag,0.2684,0.4077,0.3810,0.4360,not met,not reached
+constant_slow,both,goal,the corridor a share of the way to the ceiling,G2-half,r3_inside,0.4273,0.4007,0.3904,0.4105,not met,not reached
+constant_slow,both,goal,children not caught up after the jump at most 25 %,G3,r6_jump_unsettled,0.2500,0.3167,0.2667,0.3700,not met,not reached
+constant_slow,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G0,r8_move_p95_6_20,74.0000,42.0000,42.0000,42.0000,met,reached
+constant_slow,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G0,r8_rank_6_20,3.0889,2.4889,1.8444,3.2222,met,on the edge
+constant_slow,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G0,r8_move_p95_150_200,74.0000,42.0000,42.0000,42.0000,met,reached
+constant_slow,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G0,r8_rank_150_200,3.0889,2.9085,2.3660,3.4771,met,on the edge
+constant_slow,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,42.0000,42.0000,42.0000,met,reached
+constant_slow,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_rank_6_20,3.0667,2.5778,1.8222,3.3778,met,on the edge
+constant_slow,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,42.0000,41.0000,42.0000,met,reached
+constant_slow,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_rank_150_200,3.0667,2.6275,2.1373,3.1373,met,on the edge
+constant_slow,both,not worse,not worse than the service,G0,r1_rms_200,0.0398,-0.0149,-0.0334,0.0028,met,reached
+constant_slow,both,not worse,not worse than the service,G0,r3_inside,0.0150,-0.0033,-0.0100,0.0036,met,reached
+constant_slow,both,not worse,not worse than the service,G1,r1_rms_200,0.0373,-0.0271,-0.0445,-0.0105,met,reached
+constant_slow,both,not worse,not worse than the service,G1,r3_inside,0.0137,0.0088,0.0026,0.0151,met,reached
+constant_slow,both,not worse,not worse than the service,G2,r1_rms_200,0.0600,-0.5306,-0.5586,-0.5039,met,reached
+constant_slow,both,not worse,not worse than the service,G2,r3_inside,0.0135,0.0664,0.0604,0.0727,met,reached
+constant_slow,both,not worse,not worse than the service,G3,r1_rms_200,0.0535,-0.2397,-0.2635,-0.2148,met,reached
+constant_slow,both,not worse,not worse than the service,G3,r3_inside,0.0152,0.0318,0.0250,0.0388,met,reached
+constant_slow,both,not worse,not worse than the service,G4,r1_rms_200,0.0438,0.0077,-0.0121,0.0278,met,reached
+constant_slow,both,not worse,not worse than the service,G4,r3_inside,0.0128,-0.0010,-0.0071,0.0046,met,reached
+constant_slow,both,not worse,not worse than the service,G5,r1_rms_200,0.0393,0.0217,0.0048,0.0406,met,on the edge
+constant_slow,both,not worse,not worse than the service,G5,r3_inside,0.0148,-0.0038,-0.0106,0.0029,met,reached
+constant_slow,both,not worse,not worse than the service,G6,r1_rms_200,0.0591,0.0055,-0.0210,0.0328,met,reached
+constant_slow,both,not worse,not worse than the service,G6,r3_inside,0.0162,0.0068,-0.0008,0.0140,met,reached
+constant_slow,both,not worse,not worse than the service,G7,r1_rms_200,0.0382,-0.0109,-0.0284,0.0064,met,reached
+constant_slow,both,not worse,not worse than the service,G7,r3_inside,0.0130,0.0017,-0.0042,0.0076,met,reached
+constant_slow,both,not worse,not worse than the service,G8,r1_rms_200,0.0333,-0.0157,-0.0310,-0.0007,met,reached
+constant_slow,both,not worse,not worse than the service,G8,r3_inside,0.0146,0.0007,-0.0060,0.0073,met,reached
+constant_slow,both,not worse,not worse than the service,G0-exact,r1_rms_200,0.0392,-0.0121,-0.0300,0.0057,met,reached
+constant_slow,both,not worse,not worse than the service,G0-exact,r3_inside,0.0266,-0.0037,-0.0154,0.0089,met,reached
+constant_slow,both,not worse,not worse than the service,G0-miss0.25,r1_rms_200,0.0366,-0.0074,-0.0240,0.0094,met,reached
+constant_slow,both,not worse,not worse than the service,G0-miss0.25,r3_inside,0.0214,0.0013,-0.0086,0.0110,met,reached
+constant_slow,both,not worse,not worse than the service,G0-miss1,r1_rms_200,0.0386,-0.0213,-0.0389,-0.0037,met,reached
+constant_slow,both,not worse,not worse than the service,G0-miss1,r3_inside,0.0100,0.0011,-0.0030,0.0049,met,reached
+constant_slow,both,not worse,not worse than the service,G2-half,r1_rms_200,0.0489,-0.2305,-0.2527,-0.2081,met,reached
+constant_slow,both,not worse,not worse than the service,G2-half,r3_inside,0.0144,0.0381,0.0316,0.0447,met,reached
+constant_slow,both,not worse,not worse than the service,G2-fading,r1_rms_200,0.0468,-0.1245,-0.1453,-0.1026,met,reached
+constant_slow,both,not worse,not worse than the service,G2-fading,r3_inside,0.0144,0.0335,0.0271,0.0402,met,reached
+constant_slow,both,not worse,not worse than the service,G3-drop,r1_rms_200,0.0499,-0.1865,-0.2102,-0.1647,met,reached
+constant_slow,both,not worse,not worse than the service,G3-drop,r3_inside,0.0117,0.0108,0.0054,0.0160,met,reached
+constant_slow,both,not worse,not worse than the service,G0-start0.5,r1_rms_200,0.0373,0.0017,-0.0155,0.0185,met,reached
+constant_slow,both,not worse,not worse than the service,G0-start0.5,r3_inside,0.0148,0.0036,-0.0031,0.0104,met,reached
+constant_slow,both,not worse,not worse than the service,G0-start2,r1_rms_200,0.0390,-0.0201,-0.0386,-0.0030,met,reached
+constant_slow,both,not worse,not worse than the service,G0-start2,r3_inside,0.0146,-0.0021,-0.0089,0.0044,met,reached
+constant_slow,both,not worse,not worse than the service,G0-topics0.3,r1_rms_200,0.0372,-0.0417,-0.0586,-0.0247,met,reached
+constant_slow,both,not worse,not worse than the service,G0-topics0.3,r3_inside,0.0135,0.0095,0.0033,0.0155,met,reached
+constant_slow,both,not worse,not worse than the service,G0-topics1,r1_rms_200,0.0367,0.0618,0.0451,0.0785,not met,not reached
+constant_slow,both,not worse,not worse than the service,G0-topics1,r3_inside,0.0161,-0.0157,-0.0230,-0.0083,met,on the edge
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,score,the share of the way to the ceiling,,,,0.2265,0.2107,0.2419,,
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,goal,the lag at most 45 % of the service's,G2-half,r6_lag,0.2684,0.2231,0.1948,0.2521,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,goal,the corridor a share of the way to the ceiling,G2-half,r3_inside,0.4273,0.4134,0.4042,0.4226,not met,not reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,goal,children not caught up after the jump at most 25 %,G3,r6_jump_unsettled,0.2500,0.1033,0.0700,0.1367,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G0,r8_move_p95_6_20,74.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G0,r8_rank_6_20,3.0889,1.0222,0.5778,1.5111,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G0,r8_move_p95_150_200,74.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G0,r8_rank_150_200,3.0889,3.7908,3.1765,4.4510,not met,not reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_rank_6_20,3.0667,0.6667,0.3333,1.0222,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_rank_150_200,3.0667,4.0327,3.3791,4.7320,not met,not reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0,r1_rms_200,0.0398,0.0377,0.0172,0.0581,met,on the edge
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0,r3_inside,0.0150,-0.0132,-0.0211,-0.0057,met,on the edge
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G1,r1_rms_200,0.0373,0.0071,-0.0132,0.0276,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G1,r3_inside,0.0137,0.0077,-0.0003,0.0162,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2,r1_rms_200,0.0600,-0.7293,-0.7637,-0.6940,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2,r3_inside,0.0135,0.1098,0.1011,0.1180,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G3,r1_rms_200,0.0535,-0.2884,-0.3188,-0.2601,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G3,r3_inside,0.0152,0.0504,0.0420,0.0588,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G4,r1_rms_200,0.0438,-0.0381,-0.0628,-0.0144,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G4,r3_inside,0.0128,-0.0077,-0.0139,-0.0014,met,on the edge
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G5,r1_rms_200,0.0393,0.0309,0.0092,0.0529,met,on the edge
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G5,r3_inside,0.0148,-0.0142,-0.0216,-0.0067,met,on the edge
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G6,r1_rms_200,0.0591,-0.0012,-0.0348,0.0332,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G6,r3_inside,0.0162,-0.0114,-0.0200,-0.0027,met,on the edge
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G7,r1_rms_200,0.0382,0.0186,-0.0048,0.0398,met,on the edge
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G7,r3_inside,0.0130,-0.0056,-0.0131,0.0018,met,on the edge
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G8,r1_rms_200,0.0333,0.0351,0.0163,0.0548,met,on the edge
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G8,r3_inside,0.0146,-0.0102,-0.0174,-0.0031,met,on the edge
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-exact,r1_rms_200,0.0392,0.0247,0.0057,0.0435,met,on the edge
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-exact,r3_inside,0.0266,-0.0285,-0.0418,-0.0147,met,on the edge
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss0.25,r1_rms_200,0.0366,0.0336,0.0144,0.0531,met,on the edge
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss0.25,r3_inside,0.0214,-0.0185,-0.0299,-0.0074,met,on the edge
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss1,r1_rms_200,0.0386,0.0029,-0.0166,0.0229,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss1,r3_inside,0.0100,0.0004,-0.0041,0.0048,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2-half,r1_rms_200,0.0489,-0.2849,-0.3124,-0.2573,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2-half,r3_inside,0.0144,0.0509,0.0418,0.0597,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2-fading,r1_rms_200,0.0468,-0.1551,-0.1810,-0.1304,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2-fading,r3_inside,0.0144,0.0407,0.0323,0.0489,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G3-drop,r1_rms_200,0.0499,-0.1303,-0.1548,-0.1061,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G3-drop,r3_inside,0.0117,-0.0026,-0.0087,0.0036,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-start0.5,r1_rms_200,0.0373,0.0326,0.0131,0.0512,met,on the edge
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-start0.5,r3_inside,0.0148,-0.0101,-0.0178,-0.0027,met,on the edge
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-start2,r1_rms_200,0.0390,0.0151,-0.0059,0.0355,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-start2,r3_inside,0.0146,-0.0083,-0.0161,-0.0006,met,on the edge
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics0.3,r1_rms_200,0.0372,0.0310,0.0127,0.0510,met,on the edge
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics0.3,r3_inside,0.0135,-0.0064,-0.0139,0.0010,met,on the edge
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics1,r1_rms_200,0.0367,-0.0019,-0.0213,0.0180,met,reached
+uncertain_v0.05_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics1,r3_inside,0.0161,-0.0091,-0.0165,-0.0017,met,on the edge
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,score,the share of the way to the ceiling,,,,0.2516,0.2361,0.2673,,
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,goal,the lag at most 45 % of the service's,G2-half,r6_lag,0.2684,0.1997,0.1755,0.2259,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,goal,the corridor a share of the way to the ceiling,G2-half,r3_inside,0.4273,0.4230,0.4156,0.4308,not met,on the edge
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,goal,children not caught up after the jump at most 25 %,G3,r6_jump_unsettled,0.2500,0.1133,0.0800,0.1500,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G0,r8_move_p95_6_20,74.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G0,r8_rank_6_20,3.0889,2.4889,1.8000,3.2889,met,on the edge
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G0,r8_move_p95_150_200,74.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G0,r8_rank_150_200,3.0889,3.5948,3.0327,4.1569,not met,on the edge
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_rank_6_20,3.0667,2.2222,1.5333,2.9556,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_rank_150_200,3.0667,4.0327,3.4118,4.6993,not met,not reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0,r1_rms_200,0.0398,0.0219,0.0014,0.0433,met,on the edge
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0,r3_inside,0.0150,-0.0084,-0.0167,-0.0007,met,on the edge
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G1,r1_rms_200,0.0373,0.0047,-0.0156,0.0244,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G1,r3_inside,0.0137,0.0111,0.0025,0.0201,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2,r1_rms_200,0.0600,-0.7499,-0.7854,-0.7160,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2,r3_inside,0.0135,0.1293,0.1208,0.1380,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G3,r1_rms_200,0.0535,-0.2857,-0.3177,-0.2546,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G3,r3_inside,0.0152,0.0551,0.0468,0.0637,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G4,r1_rms_200,0.0438,-0.0360,-0.0617,-0.0107,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G4,r3_inside,0.0128,-0.0004,-0.0068,0.0062,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G5,r1_rms_200,0.0393,0.0354,0.0152,0.0547,met,on the edge
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G5,r3_inside,0.0148,-0.0078,-0.0153,-0.0001,met,on the edge
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G6,r1_rms_200,0.0591,-0.0037,-0.0378,0.0294,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G6,r3_inside,0.0162,-0.0095,-0.0196,-0.0000,met,on the edge
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G7,r1_rms_200,0.0382,0.0092,-0.0123,0.0313,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G7,r3_inside,0.0130,-0.0001,-0.0075,0.0080,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G8,r1_rms_200,0.0333,0.0133,-0.0052,0.0308,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G8,r3_inside,0.0146,-0.0060,-0.0137,0.0018,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-exact,r1_rms_200,0.0392,0.0296,0.0077,0.0516,met,on the edge
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-exact,r3_inside,0.0266,-0.0268,-0.0417,-0.0122,met,on the edge
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss0.25,r1_rms_200,0.0366,0.0304,0.0114,0.0508,met,on the edge
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss0.25,r3_inside,0.0214,-0.0050,-0.0172,0.0079,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss1,r1_rms_200,0.0386,0.0152,-0.0071,0.0364,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss1,r3_inside,0.0100,0.0030,-0.0013,0.0076,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2-half,r1_rms_200,0.0489,-0.2856,-0.3142,-0.2574,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2-half,r3_inside,0.0144,0.0605,0.0503,0.0701,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2-fading,r1_rms_200,0.0468,-0.1452,-0.1708,-0.1192,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2-fading,r3_inside,0.0144,0.0528,0.0435,0.0616,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G3-drop,r1_rms_200,0.0499,-0.1392,-0.1665,-0.1140,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G3-drop,r3_inside,0.0117,-0.0016,-0.0080,0.0051,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-start0.5,r1_rms_200,0.0373,0.0353,0.0162,0.0541,met,on the edge
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-start0.5,r3_inside,0.0148,-0.0066,-0.0145,0.0012,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-start2,r1_rms_200,0.0390,0.0210,-0.0002,0.0417,met,on the edge
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-start2,r3_inside,0.0146,0.0003,-0.0073,0.0086,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics0.3,r1_rms_200,0.0372,0.0343,0.0163,0.0535,met,on the edge
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics0.3,r3_inside,0.0135,0.0016,-0.0065,0.0094,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics1,r1_rms_200,0.0367,-0.0122,-0.0329,0.0078,met,reached
+uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics1,r3_inside,0.0161,-0.0043,-0.0112,0.0033,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,score,the share of the way to the ceiling,,,,0.2056,0.1909,0.2204,,
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,goal,the lag at most 45 % of the service's,G2-half,r6_lag,0.2684,0.3138,0.2872,0.3386,not met,not reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,goal,the corridor a share of the way to the ceiling,G2-half,r3_inside,0.4273,0.4107,0.4023,0.4192,not met,not reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,goal,children not caught up after the jump at most 25 %,G3,r6_jump_unsettled,0.2500,0.2300,0.1833,0.2800,met,on the edge
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G0,r8_move_p95_6_20,74.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G0,r8_rank_6_20,3.0889,2.4444,1.8000,3.1556,met,on the edge
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G0,r8_move_p95_150_200,74.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G0,r8_rank_150_200,3.0889,3.2353,2.6863,3.8039,not met,on the edge
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_rank_6_20,3.0667,2.0444,1.4444,2.7333,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_rank_150_200,3.0667,4.3922,3.7190,5.0980,not met,not reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0,r1_rms_200,0.0398,0.0134,-0.0058,0.0329,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0,r3_inside,0.0150,-0.0060,-0.0134,0.0014,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G1,r1_rms_200,0.0373,-0.0098,-0.0304,0.0092,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G1,r3_inside,0.0137,0.0099,0.0028,0.0169,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2,r1_rms_200,0.0600,-0.6912,-0.7252,-0.6582,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2,r3_inside,0.0135,0.1010,0.0934,0.1082,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G3,r1_rms_200,0.0535,-0.2801,-0.3084,-0.2517,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G3,r3_inside,0.0152,0.0502,0.0431,0.0576,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G4,r1_rms_200,0.0438,0.0056,-0.0227,0.0314,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G4,r3_inside,0.0128,0.0005,-0.0051,0.0058,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G5,r1_rms_200,0.0393,0.0252,0.0043,0.0477,met,on the edge
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G5,r3_inside,0.0148,-0.0048,-0.0114,0.0017,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G6,r1_rms_200,0.0591,0.0119,-0.0213,0.0448,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G6,r3_inside,0.0162,0.0067,-0.0018,0.0152,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G7,r1_rms_200,0.0382,0.0037,-0.0163,0.0264,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G7,r3_inside,0.0130,0.0039,-0.0026,0.0108,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G8,r1_rms_200,0.0333,0.0188,0.0010,0.0359,met,on the edge
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G8,r3_inside,0.0146,0.0016,-0.0046,0.0080,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-exact,r1_rms_200,0.0392,-0.0001,-0.0204,0.0184,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-exact,r3_inside,0.0266,-0.0122,-0.0255,0.0009,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss0.25,r1_rms_200,0.0366,0.0172,-0.0021,0.0363,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss0.25,r3_inside,0.0214,0.0018,-0.0076,0.0111,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss1,r1_rms_200,0.0386,0.0017,-0.0175,0.0215,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss1,r3_inside,0.0100,0.0031,-0.0009,0.0073,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2-half,r1_rms_200,0.0489,-0.2596,-0.2852,-0.2332,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2-half,r3_inside,0.0144,0.0481,0.0406,0.0563,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2-fading,r1_rms_200,0.0468,-0.1345,-0.1590,-0.1095,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2-fading,r3_inside,0.0144,0.0409,0.0329,0.0487,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G3-drop,r1_rms_200,0.0499,-0.1712,-0.1966,-0.1459,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G3-drop,r3_inside,0.0117,0.0097,0.0040,0.0155,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-start0.5,r1_rms_200,0.0373,0.0258,0.0083,0.0433,met,on the edge
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-start0.5,r3_inside,0.0148,-0.0002,-0.0072,0.0070,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-start2,r1_rms_200,0.0390,0.0076,-0.0129,0.0282,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-start2,r3_inside,0.0146,-0.0025,-0.0094,0.0046,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics0.3,r1_rms_200,0.0372,0.0024,-0.0153,0.0205,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics0.3,r3_inside,0.0135,0.0045,-0.0016,0.0106,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics1,r1_rms_200,0.0367,0.0169,-0.0009,0.0334,met,reached
+uncertain_v0.1_s0.6_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics1,r3_inside,0.0161,-0.0098,-0.0165,-0.0032,met,on the edge
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,score,the share of the way to the ceiling,,,,0.2571,0.2396,0.2753,,
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,goal,the lag at most 45 % of the service's,G2-half,r6_lag,0.2684,0.0753,0.0473,0.1053,met,reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,goal,the corridor a share of the way to the ceiling,G2-half,r3_inside,0.4273,0.4218,0.4139,0.4291,not met,on the edge
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,goal,children not caught up after the jump at most 25 %,G3,r6_jump_unsettled,0.2500,0.0333,0.0167,0.0533,met,reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G0,r8_move_p95_6_20,74.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G0,r8_rank_6_20,3.0889,1.6444,1.0444,2.3333,met,reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G0,r8_move_p95_150_200,74.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G0,r8_rank_150_200,3.0889,4.0327,3.3922,4.7124,not met,not reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_rank_6_20,3.0667,1.3111,0.8222,1.8889,met,reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_rank_150_200,3.0667,3.6863,3.0784,4.3007,not met,not reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0,r1_rms_200,0.0398,0.0758,0.0533,0.0983,not met,not reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0,r3_inside,0.0150,-0.0280,-0.0375,-0.0175,not met,not reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G1,r1_rms_200,0.0373,0.0540,0.0292,0.0780,met,on the edge
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G1,r3_inside,0.0137,0.0003,-0.0101,0.0105,met,reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2,r1_rms_200,0.0600,-0.8123,-0.8477,-0.7778,met,reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2,r3_inside,0.0135,0.1412,0.1317,0.1509,met,reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G3,r1_rms_200,0.0535,-0.2936,-0.3280,-0.2589,met,reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G3,r3_inside,0.0152,0.0562,0.0466,0.0659,met,reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G4,r1_rms_200,0.0438,-0.0776,-0.1035,-0.0523,met,reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G4,r3_inside,0.0128,-0.0156,-0.0233,-0.0075,met,on the edge
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G5,r1_rms_200,0.0393,0.0386,0.0147,0.0615,met,on the edge
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G5,r3_inside,0.0148,-0.0264,-0.0356,-0.0174,not met,not reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G6,r1_rms_200,0.0591,-0.0173,-0.0574,0.0235,met,reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G6,r3_inside,0.0162,-0.0387,-0.0502,-0.0256,not met,not reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G7,r1_rms_200,0.0382,0.0348,0.0084,0.0609,met,on the edge
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G7,r3_inside,0.0130,-0.0190,-0.0283,-0.0098,met,on the edge
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G8,r1_rms_200,0.0333,0.0673,0.0453,0.0884,not met,not reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G8,r3_inside,0.0146,-0.0298,-0.0394,-0.0204,not met,not reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-exact,r1_rms_200,0.0392,0.0611,0.0389,0.0842,met,on the edge
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-exact,r3_inside,0.0266,-0.0584,-0.0771,-0.0412,not met,not reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss0.25,r1_rms_200,0.0366,0.0773,0.0550,0.0987,not met,not reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss0.25,r3_inside,0.0214,-0.0386,-0.0527,-0.0240,not met,not reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss1,r1_rms_200,0.0386,0.0241,0.0006,0.0461,met,on the edge
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss1,r3_inside,0.0100,-0.0040,-0.0091,0.0015,met,reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2-half,r1_rms_200,0.0489,-0.2873,-0.3176,-0.2583,met,reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2-half,r3_inside,0.0144,0.0593,0.0483,0.0704,met,reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2-fading,r1_rms_200,0.0468,-0.1275,-0.1534,-0.1018,met,reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2-fading,r3_inside,0.0144,0.0496,0.0386,0.0607,met,reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G3-drop,r1_rms_200,0.0499,-0.0791,-0.1055,-0.0525,met,reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G3-drop,r3_inside,0.0117,-0.0331,-0.0397,-0.0264,not met,not reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-start0.5,r1_rms_200,0.0373,0.0680,0.0483,0.0889,not met,not reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-start0.5,r3_inside,0.0148,-0.0267,-0.0359,-0.0169,not met,not reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-start2,r1_rms_200,0.0390,0.0417,0.0173,0.0642,met,on the edge
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-start2,r3_inside,0.0146,-0.0172,-0.0275,-0.0071,met,on the edge
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics0.3,r1_rms_200,0.0372,0.0967,0.0740,0.1180,not met,not reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics0.3,r3_inside,0.0135,-0.0247,-0.0341,-0.0151,not met,not reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics1,r1_rms_200,0.0367,-0.0312,-0.0526,-0.0084,met,reached
+uncertain_v0.1_s0.85_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics1,r3_inside,0.0161,-0.0087,-0.0173,-0.0001,met,on the edge
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,score,the share of the way to the ceiling,,,,0.1770,0.1635,0.1912,,
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,goal,the lag at most 45 % of the service's,G2-half,r6_lag,0.2684,0.3301,0.2989,0.3583,not met,not reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,goal,the corridor a share of the way to the ceiling,G2-half,r3_inside,0.4273,0.4048,0.3948,0.4133,not met,not reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,goal,children not caught up after the jump at most 25 %,G3,r6_jump_unsettled,0.2500,0.2533,0.2033,0.3033,not met,on the edge
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G0,r8_move_p95_6_20,74.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G0,r8_rank_6_20,3.0889,1.6889,1.1556,2.2667,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G0,r8_move_p95_150_200,74.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G0,r8_rank_150_200,3.0889,2.6471,2.0850,3.2288,met,on the edge
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_rank_6_20,3.0667,1.4444,0.9333,2.0444,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,52.0000,51.0000,52.0000,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_rank_150_200,3.0667,2.2941,1.8170,2.8039,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0,r1_rms_200,0.0398,0.0032,-0.0145,0.0206,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0,r3_inside,0.0150,-0.0097,-0.0174,-0.0023,met,on the edge
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G1,r1_rms_200,0.0373,-0.0138,-0.0335,0.0049,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G1,r3_inside,0.0137,0.0060,-0.0019,0.0136,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G2,r1_rms_200,0.0600,-0.5849,-0.6157,-0.5556,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G2,r3_inside,0.0135,0.0905,0.0829,0.0982,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G3,r1_rms_200,0.0535,-0.2586,-0.2835,-0.2329,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G3,r3_inside,0.0152,0.0416,0.0346,0.0491,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G4,r1_rms_200,0.0438,-0.0186,-0.0412,0.0024,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G4,r3_inside,0.0128,-0.0027,-0.0091,0.0033,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G5,r1_rms_200,0.0393,0.0108,-0.0081,0.0303,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G5,r3_inside,0.0148,-0.0126,-0.0194,-0.0060,met,on the edge
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G6,r1_rms_200,0.0591,0.0089,-0.0186,0.0363,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G6,r3_inside,0.0162,-0.0114,-0.0193,-0.0036,met,on the edge
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G7,r1_rms_200,0.0382,-0.0052,-0.0240,0.0136,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G7,r3_inside,0.0130,-0.0027,-0.0104,0.0047,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G8,r1_rms_200,0.0333,0.0160,0.0005,0.0317,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G8,r3_inside,0.0146,-0.0055,-0.0124,0.0014,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-exact,r1_rms_200,0.0392,0.0059,-0.0122,0.0245,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-exact,r3_inside,0.0266,-0.0252,-0.0387,-0.0104,met,on the edge
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss0.25,r1_rms_200,0.0366,0.0227,0.0047,0.0404,met,on the edge
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss0.25,r3_inside,0.0214,-0.0084,-0.0196,0.0028,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss1,r1_rms_200,0.0386,-0.0051,-0.0238,0.0146,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss1,r3_inside,0.0100,0.0011,-0.0031,0.0053,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G2-half,r1_rms_200,0.0489,-0.2459,-0.2707,-0.2209,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G2-half,r3_inside,0.0144,0.0423,0.0341,0.0503,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G2-fading,r1_rms_200,0.0468,-0.1355,-0.1582,-0.1147,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G2-fading,r3_inside,0.0144,0.0353,0.0272,0.0433,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G3-drop,r1_rms_200,0.0499,-0.1218,-0.1454,-0.0961,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G3-drop,r3_inside,0.0117,0.0015,-0.0048,0.0075,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-start0.5,r1_rms_200,0.0373,0.0102,-0.0065,0.0261,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-start0.5,r3_inside,0.0148,-0.0075,-0.0142,-0.0004,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-start2,r1_rms_200,0.0390,0.0036,-0.0142,0.0213,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-start2,r3_inside,0.0146,-0.0007,-0.0080,0.0066,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics0.3,r1_rms_200,0.0372,0.0152,-0.0023,0.0324,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics0.3,r3_inside,0.0135,-0.0015,-0.0078,0.0053,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics1,r1_rms_200,0.0367,-0.0256,-0.0418,-0.0090,met,reached
+uncertain_v0.1_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics1,r3_inside,0.0161,-0.0059,-0.0125,0.0011,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,score,the share of the way to the ceiling,,,,0.3018,0.2834,0.3197,,
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,goal,the lag at most 45 % of the service's,G2-half,r6_lag,0.2684,0.0332,0.0053,0.0603,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,goal,the corridor a share of the way to the ceiling,G2-half,r3_inside,0.4273,0.4258,0.4186,0.4329,not met,on the edge
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,goal,children not caught up after the jump at most 25 %,G3,r6_jump_unsettled,0.2500,0.0233,0.0067,0.0433,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G0,r8_move_p95_6_20,74.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G0,r8_rank_6_20,3.0889,2.1778,1.6000,2.8222,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G0,r8_move_p95_150_200,74.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G0,r8_rank_150_200,3.0889,6.1765,5.4641,6.8954,not met,not reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_rank_6_20,3.0667,2.0444,1.4444,2.7556,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_rank_150_200,3.0667,6.4183,5.6732,7.1634,not met,not reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0,r1_rms_200,0.0398,0.0593,0.0350,0.0824,met,on the edge
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0,r3_inside,0.0150,-0.0174,-0.0268,-0.0086,met,on the edge
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G1,r1_rms_200,0.0373,0.0294,0.0051,0.0532,met,on the edge
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G1,r3_inside,0.0137,0.0109,0.0016,0.0211,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G2,r1_rms_200,0.0600,-0.8558,-0.8941,-0.8178,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G2,r3_inside,0.0135,0.1561,0.1459,0.1659,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G3,r1_rms_200,0.0535,-0.2961,-0.3308,-0.2601,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G3,r3_inside,0.0152,0.0621,0.0530,0.0712,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G4,r1_rms_200,0.0438,-0.0690,-0.0951,-0.0427,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G4,r3_inside,0.0128,-0.0052,-0.0122,0.0021,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G5,r1_rms_200,0.0393,0.0600,0.0352,0.0846,met,on the edge
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G5,r3_inside,0.0148,-0.0177,-0.0255,-0.0092,met,on the edge
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G6,r1_rms_200,0.0591,-0.0259,-0.0677,0.0142,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G6,r3_inside,0.0162,-0.0204,-0.0322,-0.0082,met,on the edge
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G7,r1_rms_200,0.0382,0.0267,-0.0010,0.0558,met,on the edge
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G7,r3_inside,0.0130,-0.0082,-0.0166,0.0004,met,on the edge
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G8,r1_rms_200,0.0333,0.0702,0.0491,0.0920,not met,not reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G8,r3_inside,0.0146,-0.0169,-0.0249,-0.0081,met,on the edge
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-exact,r1_rms_200,0.0392,0.0408,0.0180,0.0630,met,on the edge
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-exact,r3_inside,0.0266,-0.0411,-0.0557,-0.0257,met,on the edge
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss0.25,r1_rms_200,0.0366,0.0724,0.0486,0.0958,not met,not reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss0.25,r3_inside,0.0214,-0.0198,-0.0343,-0.0060,met,on the edge
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss1,r1_rms_200,0.0386,0.0180,-0.0043,0.0414,met,on the edge
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss1,r3_inside,0.0100,-0.0009,-0.0057,0.0037,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G2-half,r1_rms_200,0.0489,-0.2937,-0.3238,-0.2634,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G2-half,r3_inside,0.0144,0.0633,0.0520,0.0747,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G2-fading,r1_rms_200,0.0468,-0.1253,-0.1534,-0.0976,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G2-fading,r3_inside,0.0144,0.0538,0.0427,0.0645,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G3-drop,r1_rms_200,0.0499,-0.1182,-0.1442,-0.0916,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G3-drop,r3_inside,0.0117,-0.0123,-0.0185,-0.0058,met,on the edge
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-start0.5,r1_rms_200,0.0373,0.0546,0.0325,0.0760,met,on the edge
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-start0.5,r3_inside,0.0148,-0.0182,-0.0268,-0.0098,met,on the edge
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-start2,r1_rms_200,0.0390,0.0471,0.0236,0.0719,met,on the edge
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-start2,r3_inside,0.0146,-0.0091,-0.0179,-0.0003,met,on the edge
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics0.3,r1_rms_200,0.0372,0.0567,0.0337,0.0795,met,on the edge
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics0.3,r3_inside,0.0135,-0.0082,-0.0174,0.0009,met,on the edge
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics1,r1_rms_200,0.0367,0.0043,-0.0173,0.0258,met,reached
+uncertain_v0.1_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics1,r3_inside,0.0161,-0.0139,-0.0225,-0.0062,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,score,the share of the way to the ceiling,,,,0.2339,0.2178,0.2496,,
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,goal,the lag at most 45 % of the service's,G2-half,r6_lag,0.2684,0.2282,0.1998,0.2567,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,goal,the corridor a share of the way to the ceiling,G2-half,r3_inside,0.4273,0.4159,0.4080,0.4239,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,goal,children not caught up after the jump at most 25 %,G3,r6_jump_unsettled,0.2500,0.1400,0.1000,0.1800,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G0,r8_move_p95_6_20,74.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G0,r8_rank_6_20,3.0889,1.8667,1.3111,2.4667,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G0,r8_move_p95_150_200,74.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G0,r8_rank_150_200,3.0889,3.7582,3.1961,4.3399,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_rank_6_20,3.0667,1.6667,1.1111,2.3111,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_rank_150_200,3.0667,3.8824,3.2418,4.5621,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0,r1_rms_200,0.0398,0.0282,0.0089,0.0470,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0,r3_inside,0.0150,-0.0078,-0.0157,0.0006,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G1,r1_rms_200,0.0373,-0.0002,-0.0217,0.0204,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G1,r3_inside,0.0137,0.0080,-0.0005,0.0171,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G2,r1_rms_200,0.0600,-0.7342,-0.7690,-0.7004,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G2,r3_inside,0.0135,0.1175,0.1090,0.1260,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G3,r1_rms_200,0.0535,-0.2852,-0.3150,-0.2549,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G3,r3_inside,0.0152,0.0506,0.0423,0.0588,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G4,r1_rms_200,0.0438,-0.0237,-0.0490,0.0030,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G4,r3_inside,0.0128,0.0004,-0.0060,0.0065,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G5,r1_rms_200,0.0393,0.0384,0.0170,0.0599,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G5,r3_inside,0.0148,-0.0077,-0.0152,-0.0000,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G6,r1_rms_200,0.0591,-0.0018,-0.0363,0.0324,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G6,r3_inside,0.0162,-0.0018,-0.0105,0.0073,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G7,r1_rms_200,0.0382,0.0032,-0.0177,0.0252,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G7,r3_inside,0.0130,-0.0005,-0.0080,0.0072,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G8,r1_rms_200,0.0333,0.0171,-0.0023,0.0367,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G8,r3_inside,0.0146,-0.0078,-0.0151,0.0002,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-exact,r1_rms_200,0.0392,0.0071,-0.0132,0.0275,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-exact,r3_inside,0.0266,-0.0206,-0.0352,-0.0054,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-miss0.25,r1_rms_200,0.0366,0.0260,0.0078,0.0434,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-miss0.25,r3_inside,0.0214,-0.0061,-0.0178,0.0059,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-miss1,r1_rms_200,0.0386,0.0058,-0.0152,0.0261,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-miss1,r3_inside,0.0100,0.0002,-0.0043,0.0045,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G2-half,r1_rms_200,0.0489,-0.2896,-0.3164,-0.2621,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G2-half,r3_inside,0.0144,0.0534,0.0441,0.0627,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G2-fading,r1_rms_200,0.0468,-0.1386,-0.1633,-0.1136,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G2-fading,r3_inside,0.0144,0.0455,0.0362,0.0542,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G3-drop,r1_rms_200,0.0499,-0.1499,-0.1771,-0.1238,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G3-drop,r3_inside,0.0117,0.0042,-0.0019,0.0103,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-start0.5,r1_rms_200,0.0373,0.0334,0.0137,0.0515,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-start0.5,r3_inside,0.0148,-0.0070,-0.0150,0.0004,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-start2,r1_rms_200,0.0390,0.0161,-0.0046,0.0366,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-start2,r3_inside,0.0146,0.0001,-0.0072,0.0078,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-topics0.3,r1_rms_200,0.0372,0.0309,0.0120,0.0496,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-topics0.3,r3_inside,0.0135,0.0019,-0.0052,0.0095,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-topics1,r1_rms_200,0.0367,0.0023,-0.0164,0.0210,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-topics1,r3_inside,0.0161,-0.0081,-0.0150,-0.0011,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,score,the share of the way to the ceiling,,,,0.2669,0.2509,0.2828,,
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,goal,the lag at most 45 % of the service's,G2-half,r6_lag,0.2684,0.1053,0.0791,0.1306,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,goal,the corridor a share of the way to the ceiling,G2-half,r3_inside,0.4273,0.4265,0.4187,0.4338,not met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,goal,children not caught up after the jump at most 25 %,G3,r6_jump_unsettled,0.2500,0.0500,0.0267,0.0767,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G0,r8_move_p95_6_20,74.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G0,r8_rank_6_20,3.0889,2.0222,1.4444,2.6222,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G0,r8_move_p95_150_200,74.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G0,r8_rank_150_200,3.0889,4.0915,3.4052,4.8301,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_rank_6_20,3.0667,1.6222,1.0444,2.2889,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,52.0000,52.0000,52.0000,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_rank_150_200,3.0667,4.0850,3.3987,4.8235,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0,r1_rms_200,0.0398,0.0609,0.0388,0.0849,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0,r3_inside,0.0150,-0.0134,-0.0215,-0.0048,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G1,r1_rms_200,0.0373,0.0493,0.0245,0.0747,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G1,r3_inside,0.0137,0.0071,-0.0020,0.0162,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G2,r1_rms_200,0.0600,-0.8323,-0.8659,-0.7991,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G2,r3_inside,0.0135,0.1406,0.1315,0.1494,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G3,r1_rms_200,0.0535,-0.3152,-0.3470,-0.2848,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G3,r3_inside,0.0152,0.0620,0.0534,0.0706,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G4,r1_rms_200,0.0438,-0.0966,-0.1197,-0.0743,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G4,r3_inside,0.0128,-0.0077,-0.0143,-0.0009,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G5,r1_rms_200,0.0393,0.0461,0.0245,0.0691,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G5,r3_inside,0.0148,-0.0148,-0.0225,-0.0066,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G6,r1_rms_200,0.0591,-0.0187,-0.0615,0.0219,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G6,r3_inside,0.0162,-0.0205,-0.0313,-0.0098,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G7,r1_rms_200,0.0382,0.0251,-0.0011,0.0502,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G7,r3_inside,0.0130,-0.0070,-0.0148,0.0014,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G8,r1_rms_200,0.0333,0.0613,0.0412,0.0828,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G8,r3_inside,0.0146,-0.0149,-0.0229,-0.0070,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-exact,r1_rms_200,0.0392,0.0549,0.0336,0.0785,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-exact,r3_inside,0.0266,-0.0405,-0.0558,-0.0246,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-miss0.25,r1_rms_200,0.0366,0.0760,0.0533,0.1000,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-miss0.25,r3_inside,0.0214,-0.0224,-0.0351,-0.0092,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-miss1,r1_rms_200,0.0386,0.0042,-0.0195,0.0262,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-miss1,r3_inside,0.0100,-0.0002,-0.0050,0.0045,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G2-half,r1_rms_200,0.0489,-0.3201,-0.3493,-0.2914,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G2-half,r3_inside,0.0144,0.0640,0.0540,0.0736,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G2-fading,r1_rms_200,0.0468,-0.1474,-0.1756,-0.1198,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G2-fading,r3_inside,0.0144,0.0516,0.0421,0.0617,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G3-drop,r1_rms_200,0.0499,-0.0443,-0.0714,-0.0186,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G3-drop,r3_inside,0.0117,-0.0187,-0.0248,-0.0125,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-start0.5,r1_rms_200,0.0373,0.0600,0.0396,0.0798,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-start0.5,r3_inside,0.0148,-0.0092,-0.0169,-0.0017,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-start2,r1_rms_200,0.0390,0.0458,0.0216,0.0698,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-start2,r3_inside,0.0146,-0.0088,-0.0175,-0.0006,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-topics0.3,r1_rms_200,0.0372,0.0690,0.0475,0.0907,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-topics0.3,r3_inside,0.0135,-0.0067,-0.0148,0.0017,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-topics1,r1_rms_200,0.0367,-0.0108,-0.0304,0.0105,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-topics1,r3_inside,0.0161,-0.0090,-0.0165,-0.0017,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,score,the share of the way to the ceiling,,,,0.2069,0.1809,0.2317,,
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,goal,the lag at most 45 % of the service's,G2-half,r6_lag,0.2684,0.0909,0.0626,0.1203,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,goal,the corridor a share of the way to the ceiling,G2-half,r3_inside,0.4273,0.4250,0.4163,0.4331,not met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,goal,children not caught up after the jump at most 25 %,G3,r6_jump_unsettled,0.2500,0.0133,0.0033,0.0267,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G0,r8_move_p95_6_20,74.0000,39.0000,39.0000,39.0000,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G0,r8_rank_6_20,3.0889,1.7778,1.1333,2.4889,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G0,r8_move_p95_150_200,74.0000,39.0000,39.0000,39.0000,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G0,r8_rank_150_200,3.0889,4.6209,3.9608,5.3660,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,39.0000,39.0000,39.0000,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_rank_6_20,3.0667,1.3778,0.8444,2.0000,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,39.0000,39.0000,39.0000,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_rank_150_200,3.0667,4.3072,3.6667,4.9739,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G0,r1_rms_200,0.0398,0.1107,0.0833,0.1392,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G0,r3_inside,0.0150,-0.0383,-0.0489,-0.0276,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G1,r1_rms_200,0.0373,0.0903,0.0618,0.1186,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G1,r3_inside,0.0137,-0.0119,-0.0233,-0.0007,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G2,r1_rms_200,0.0600,-0.9123,-0.9464,-0.8790,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G2,r3_inside,0.0135,0.1600,0.1487,0.1705,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G3,r1_rms_200,0.0535,-0.3152,-0.3508,-0.2784,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G3,r3_inside,0.0152,0.0646,0.0535,0.0752,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G4,r1_rms_200,0.0438,-0.1682,-0.1928,-0.1433,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G4,r3_inside,0.0128,-0.0241,-0.0324,-0.0160,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G5,r1_rms_200,0.0393,0.1009,0.0738,0.1286,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G5,r3_inside,0.0148,-0.0444,-0.0538,-0.0344,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G6,r1_rms_200,0.0591,-0.0712,-0.1199,-0.0210,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G6,r3_inside,0.0162,-0.0588,-0.0741,-0.0442,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G7,r1_rms_200,0.0382,0.0625,0.0307,0.0943,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G7,r3_inside,0.0130,-0.0347,-0.0458,-0.0238,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G8,r1_rms_200,0.0333,0.1103,0.0849,0.1338,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G8,r3_inside,0.0146,-0.0429,-0.0532,-0.0324,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G0-exact,r1_rms_200,0.0392,0.0960,0.0693,0.1213,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G0-exact,r3_inside,0.0266,-0.0900,-0.1095,-0.0699,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G0-miss0.25,r1_rms_200,0.0366,0.1313,0.1047,0.1582,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G0-miss0.25,r3_inside,0.0214,-0.0652,-0.0838,-0.0478,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G0-miss1,r1_rms_200,0.0386,0.0483,0.0218,0.0755,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G0-miss1,r3_inside,0.0100,-0.0047,-0.0103,0.0009,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G2-half,r1_rms_200,0.0489,-0.3311,-0.3612,-0.3003,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G2-half,r3_inside,0.0144,0.0625,0.0502,0.0751,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G2-fading,r1_rms_200,0.0468,-0.1165,-0.1507,-0.0862,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G2-fading,r3_inside,0.0144,0.0488,0.0359,0.0612,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G3-drop,r1_rms_200,0.0499,0.0159,-0.0122,0.0434,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G3-drop,r3_inside,0.0117,-0.0594,-0.0668,-0.0521,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G0-start0.5,r1_rms_200,0.0373,0.1185,0.0933,0.1447,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G0-start0.5,r3_inside,0.0148,-0.0393,-0.0492,-0.0285,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G0-start2,r1_rms_200,0.0390,0.0870,0.0602,0.1142,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G0-start2,r3_inside,0.0146,-0.0277,-0.0386,-0.0155,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G0-topics0.3,r1_rms_200,0.0372,0.1232,0.0970,0.1508,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G0-topics0.3,r3_inside,0.0135,-0.0311,-0.0424,-0.0192,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G0-topics1,r1_rms_200,0.0367,0.0197,-0.0031,0.0434,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.22,both,not worse,not worse than the service,G0-topics1,r3_inside,0.0161,-0.0315,-0.0403,-0.0230,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,score,the share of the way to the ceiling,,,,0.1959,0.1802,0.2110,,
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,goal,the lag at most 45 % of the service's,G2-half,r6_lag,0.2684,0.3185,0.2895,0.3483,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,goal,the corridor a share of the way to the ceiling,G2-half,r3_inside,0.4273,0.4086,0.4002,0.4172,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,goal,children not caught up after the jump at most 25 %,G3,r6_jump_unsettled,0.2500,0.2033,0.1600,0.2500,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G0,r8_move_p95_6_20,74.0000,63.0000,63.0000,63.0000,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G0,r8_rank_6_20,3.0889,2.2667,1.6667,2.8889,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G0,r8_move_p95_150_200,74.0000,57.0000,57.0000,58.0000,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G0,r8_rank_150_200,3.0889,3.8497,3.2418,4.4771,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,63.0000,63.0000,63.0000,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_rank_6_20,3.0667,1.8667,1.3111,2.4667,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,57.0000,57.0000,58.0000,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_rank_150_200,3.0667,3.6863,3.0915,4.2876,not met,not reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G0,r1_rms_200,0.0398,0.0356,0.0148,0.0562,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G0,r3_inside,0.0150,-0.0080,-0.0154,-0.0008,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G1,r1_rms_200,0.0373,0.0026,-0.0180,0.0234,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G1,r3_inside,0.0137,0.0099,0.0026,0.0174,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G2,r1_rms_200,0.0600,-0.6982,-0.7341,-0.6617,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G2,r3_inside,0.0135,0.1055,0.0976,0.1128,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G3,r1_rms_200,0.0535,-0.2649,-0.2939,-0.2376,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G3,r3_inside,0.0152,0.0473,0.0400,0.0546,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G4,r1_rms_200,0.0438,0.0188,-0.0072,0.0446,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G4,r3_inside,0.0128,-0.0050,-0.0111,0.0012,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G5,r1_rms_200,0.0393,0.0435,0.0217,0.0652,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G5,r3_inside,0.0148,-0.0061,-0.0132,0.0011,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G6,r1_rms_200,0.0591,0.0350,0.0012,0.0674,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G6,r3_inside,0.0162,0.0019,-0.0066,0.0104,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G7,r1_rms_200,0.0382,0.0209,-0.0002,0.0435,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G7,r3_inside,0.0130,-0.0017,-0.0074,0.0049,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G8,r1_rms_200,0.0333,0.0314,0.0119,0.0523,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G8,r3_inside,0.0146,-0.0070,-0.0134,-0.0005,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G0-exact,r1_rms_200,0.0392,0.0234,0.0044,0.0431,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G0-exact,r3_inside,0.0266,-0.0210,-0.0346,-0.0082,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G0-miss0.25,r1_rms_200,0.0366,0.0352,0.0175,0.0541,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G0-miss0.25,r3_inside,0.0214,-0.0037,-0.0132,0.0065,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G0-miss1,r1_rms_200,0.0386,0.0298,0.0084,0.0520,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G0-miss1,r3_inside,0.0100,-0.0005,-0.0049,0.0040,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G2-half,r1_rms_200,0.0489,-0.2481,-0.2752,-0.2191,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G2-half,r3_inside,0.0144,0.0461,0.0381,0.0547,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G2-fading,r1_rms_200,0.0468,-0.1186,-0.1440,-0.0927,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G2-fading,r3_inside,0.0144,0.0346,0.0266,0.0424,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G3-drop,r1_rms_200,0.0499,-0.1411,-0.1671,-0.1157,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G3-drop,r3_inside,0.0117,0.0128,0.0068,0.0186,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G0-start0.5,r1_rms_200,0.0373,0.0388,0.0200,0.0583,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G0-start0.5,r3_inside,0.0148,-0.0042,-0.0109,0.0035,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G0-start2,r1_rms_200,0.0390,0.0178,-0.0035,0.0384,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G0-start2,r3_inside,0.0146,-0.0034,-0.0101,0.0038,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G0-topics0.3,r1_rms_200,0.0372,0.0335,0.0163,0.0507,met,on the edge
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G0-topics0.3,r3_inside,0.0135,-0.0005,-0.0075,0.0067,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G0-topics1,r1_rms_200,0.0367,-0.0009,-0.0195,0.0167,met,reached
+uncertain_v0.1_s0.7_qt0.003_qd0.006_L0.36,both,not worse,not worse than the service,G0-topics1,r3_inside,0.0161,-0.0033,-0.0098,0.0032,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,score,the share of the way to the ceiling,,,,0.2678,0.2483,0.2869,,
+stored_s0.7_qt0.003_qd0.006_L0.3,both,goal,the lag at most 45 % of the service's,G2-half,r6_lag,0.2684,0.1715,0.1465,0.1970,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,goal,the corridor a share of the way to the ceiling,G2-half,r3_inside,0.4273,0.4255,0.4188,0.4321,not met,on the edge
+stored_s0.7_qt0.003_qd0.006_L0.3,both,goal,children not caught up after the jump at most 25 %,G3,r6_jump_unsettled,0.2500,0.1233,0.0900,0.1633,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G0,r8_move_p95_6_20,74.0000,52.0000,52.0000,52.0000,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G0,r8_rank_6_20,3.0889,13.1333,11.8444,14.4222,not met,not reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G0,r8_move_p95_150_200,74.0000,52.0000,52.0000,52.0000,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G0,r8_rank_150_200,3.0889,3.9477,3.3203,4.5948,not met,not reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,52.0000,52.0000,52.0000,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_rank_6_20,3.0667,12.0444,10.8222,13.2444,not met,not reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,52.0000,52.0000,52.0000,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_rank_150_200,3.0667,4.1307,3.5163,4.7843,not met,not reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0,r1_rms_200,0.0398,0.0189,-0.0020,0.0396,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0,r3_inside,0.0150,-0.0107,-0.0207,0.0000,met,on the edge
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G1,r1_rms_200,0.0373,0.0004,-0.0215,0.0216,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G1,r3_inside,0.0137,0.0193,0.0068,0.0311,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2,r1_rms_200,0.0600,-0.7352,-0.7718,-0.6998,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2,r3_inside,0.0135,0.1467,0.1337,0.1594,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G3,r1_rms_200,0.0535,-0.2999,-0.3301,-0.2682,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G3,r3_inside,0.0152,0.0592,0.0481,0.0706,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G4,r1_rms_200,0.0438,-0.0276,-0.0538,-0.0010,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G4,r3_inside,0.0128,-0.0034,-0.0110,0.0048,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G5,r1_rms_200,0.0393,0.0433,0.0190,0.0676,met,on the edge
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G5,r3_inside,0.0148,-0.0144,-0.0240,-0.0047,met,on the edge
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G6,r1_rms_200,0.0591,-0.0316,-0.0695,0.0034,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G6,r3_inside,0.0162,-0.0242,-0.0389,-0.0090,met,on the edge
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G7,r1_rms_200,0.0382,0.0041,-0.0176,0.0267,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G7,r3_inside,0.0130,-0.0029,-0.0122,0.0067,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G8,r1_rms_200,0.0333,0.0202,-0.0011,0.0410,met,on the edge
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G8,r3_inside,0.0146,-0.0047,-0.0148,0.0056,met,on the edge
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-exact,r1_rms_200,0.0392,0.0111,-0.0079,0.0294,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-exact,r3_inside,0.0266,-0.0317,-0.0492,-0.0113,met,on the edge
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss0.25,r1_rms_200,0.0366,0.0373,0.0155,0.0585,met,on the edge
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss0.25,r3_inside,0.0214,-0.0114,-0.0268,0.0033,met,on the edge
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss1,r1_rms_200,0.0386,-0.0035,-0.0241,0.0178,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss1,r3_inside,0.0100,0.0006,-0.0048,0.0063,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2-half,r1_rms_200,0.0489,-0.2958,-0.3217,-0.2685,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2-half,r3_inside,0.0144,0.0629,0.0501,0.0765,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2-fading,r1_rms_200,0.0468,-0.1552,-0.1808,-0.1288,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G2-fading,r3_inside,0.0144,0.0637,0.0517,0.0767,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G3-drop,r1_rms_200,0.0499,-0.1386,-0.1647,-0.1123,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G3-drop,r3_inside,0.0117,-0.0080,-0.0167,-0.0000,met,on the edge
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-start0.5,r1_rms_200,0.0373,0.0329,0.0133,0.0526,met,on the edge
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-start0.5,r3_inside,0.0148,-0.0141,-0.0243,-0.0036,met,on the edge
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-start2,r1_rms_200,0.0390,-0.0059,-0.0280,0.0150,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-start2,r3_inside,0.0146,0.0044,-0.0067,0.0155,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics0.3,r1_rms_200,0.0372,0.0207,0.0021,0.0400,met,on the edge
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics0.3,r3_inside,0.0135,-0.0040,-0.0147,0.0071,met,on the edge
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics1,r1_rms_200,0.0367,-0.0163,-0.0352,0.0047,met,reached
+stored_s0.7_qt0.003_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics1,r3_inside,0.0161,-0.0083,-0.0165,0.0006,met,on the edge
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,score,the share of the way to the ceiling,,,,0.2349,0.2160,0.2535,,
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,goal,the lag at most 45 % of the service's,G2-half,r6_lag,0.2684,0.2337,0.2084,0.2583,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,goal,the corridor a share of the way to the ceiling,G2-half,r3_inside,0.4273,0.4272,0.4200,0.4336,not met,on the edge
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,goal,children not caught up after the jump at most 25 %,G3,r6_jump_unsettled,0.2500,0.2000,0.1567,0.2433,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G0,r8_move_p95_6_20,74.0000,52.0000,52.0000,52.0000,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G0,r8_rank_6_20,3.0889,13.0000,11.6444,14.3333,not met,not reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G0,r8_move_p95_150_200,74.0000,51.0000,51.0000,52.0000,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G0,r8_rank_150_200,3.0889,2.8105,2.2222,3.4183,met,on the edge
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,52.0000,52.0000,52.0000,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_rank_6_20,3.0667,12.1556,10.9333,13.4000,not met,not reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,51.0000,50.0000,51.0000,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_rank_150_200,3.0667,2.7451,2.2026,3.3268,met,on the edge
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0,r1_rms_200,0.0398,0.0102,-0.0091,0.0305,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0,r3_inside,0.0150,-0.0077,-0.0181,0.0034,met,on the edge
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G1,r1_rms_200,0.0373,-0.0216,-0.0420,-0.0010,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G1,r3_inside,0.0137,0.0182,0.0067,0.0307,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G2,r1_rms_200,0.0600,-0.6458,-0.6767,-0.6126,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G2,r3_inside,0.0135,0.1311,0.1195,0.1431,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G3,r1_rms_200,0.0535,-0.2753,-0.3028,-0.2492,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G3,r3_inside,0.0152,0.0497,0.0383,0.0604,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G4,r1_rms_200,0.0438,-0.0356,-0.0583,-0.0134,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G4,r3_inside,0.0128,-0.0006,-0.0089,0.0075,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G5,r1_rms_200,0.0393,0.0348,0.0114,0.0576,met,on the edge
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G5,r3_inside,0.0148,-0.0109,-0.0196,-0.0016,met,on the edge
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G6,r1_rms_200,0.0591,-0.0447,-0.0786,-0.0121,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G6,r3_inside,0.0162,-0.0211,-0.0353,-0.0075,met,on the edge
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G7,r1_rms_200,0.0382,0.0088,-0.0127,0.0291,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G7,r3_inside,0.0130,0.0035,-0.0060,0.0132,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G8,r1_rms_200,0.0333,0.0060,-0.0123,0.0242,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G8,r3_inside,0.0146,-0.0008,-0.0106,0.0095,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-exact,r1_rms_200,0.0392,0.0056,-0.0118,0.0221,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-exact,r3_inside,0.0266,-0.0232,-0.0412,-0.0041,met,on the edge
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss0.25,r1_rms_200,0.0366,0.0104,-0.0077,0.0298,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss0.25,r3_inside,0.0214,0.0003,-0.0146,0.0155,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss1,r1_rms_200,0.0386,-0.0026,-0.0221,0.0168,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss1,r3_inside,0.0100,0.0024,-0.0031,0.0079,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G2-half,r1_rms_200,0.0489,-0.2663,-0.2933,-0.2396,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G2-half,r3_inside,0.0144,0.0647,0.0528,0.0763,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G2-fading,r1_rms_200,0.0468,-0.1619,-0.1872,-0.1370,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G2-fading,r3_inside,0.0144,0.0641,0.0523,0.0766,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G3-drop,r1_rms_200,0.0499,-0.1267,-0.1508,-0.1021,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G3-drop,r3_inside,0.0117,-0.0116,-0.0190,-0.0041,met,on the edge
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-start0.5,r1_rms_200,0.0373,0.0109,-0.0077,0.0289,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-start0.5,r3_inside,0.0148,-0.0067,-0.0168,0.0035,met,on the edge
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-start2,r1_rms_200,0.0390,-0.0169,-0.0372,0.0037,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-start2,r3_inside,0.0146,0.0094,-0.0010,0.0203,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics0.3,r1_rms_200,0.0372,0.0164,-0.0011,0.0337,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics0.3,r3_inside,0.0135,0.0038,-0.0071,0.0151,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics1,r1_rms_200,0.0367,-0.0252,-0.0464,-0.0061,met,reached
+stored_s0.7_qt0.0015_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics1,r3_inside,0.0161,-0.0054,-0.0141,0.0035,met,reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,score,the share of the way to the ceiling,,,,0.2988,0.2776,0.3203,,
+stored_s0.7_qt0.006_qd0.006_L0.3,both,goal,the lag at most 45 % of the service's,G2-half,r6_lag,0.2684,0.0458,0.0186,0.0732,met,reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,goal,the corridor a share of the way to the ceiling,G2-half,r3_inside,0.4273,0.4254,0.4186,0.4320,not met,on the edge
+stored_s0.7_qt0.006_qd0.006_L0.3,both,goal,children not caught up after the jump at most 25 %,G3,r6_jump_unsettled,0.2500,0.0567,0.0300,0.0867,met,reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G0,r8_move_p95_6_20,74.0000,52.0000,52.0000,52.0000,met,reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G0,r8_rank_6_20,3.0889,13.6667,12.3333,15.0667,not met,not reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G0,r8_move_p95_150_200,74.0000,52.0000,52.0000,52.0000,met,reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G0,r8_rank_150_200,3.0889,5.5294,4.8497,6.2549,not met,not reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,52.0000,52.0000,52.0000,met,reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_rank_6_20,3.0667,12.2222,11.0000,13.4000,not met,not reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,52.0000,52.0000,52.0000,met,reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_rank_150_200,3.0667,6.3595,5.6209,7.1438,not met,not reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0,r1_rms_200,0.0398,0.0408,0.0177,0.0638,met,on the edge
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0,r3_inside,0.0150,-0.0229,-0.0340,-0.0113,met,on the edge
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G1,r1_rms_200,0.0373,0.0129,-0.0105,0.0368,met,reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G1,r3_inside,0.0137,0.0108,-0.0016,0.0236,met,reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G2,r1_rms_200,0.0600,-0.8536,-0.8910,-0.8167,met,reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G2,r3_inside,0.0135,0.1656,0.1531,0.1789,met,reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G3,r1_rms_200,0.0535,-0.3017,-0.3355,-0.2690,met,reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G3,r3_inside,0.0152,0.0615,0.0504,0.0730,met,reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G4,r1_rms_200,0.0438,-0.0480,-0.0769,-0.0192,met,reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G4,r3_inside,0.0128,-0.0098,-0.0179,-0.0012,met,on the edge
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G5,r1_rms_200,0.0393,0.0754,0.0487,0.1005,not met,not reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G5,r3_inside,0.0148,-0.0237,-0.0337,-0.0130,met,on the edge
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G6,r1_rms_200,0.0591,-0.0285,-0.0703,0.0142,met,reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G6,r3_inside,0.0162,-0.0370,-0.0535,-0.0211,not met,not reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G7,r1_rms_200,0.0382,0.0207,-0.0045,0.0440,met,on the edge
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G7,r3_inside,0.0130,-0.0129,-0.0233,-0.0023,met,on the edge
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G8,r1_rms_200,0.0333,0.0424,0.0209,0.0649,met,on the edge
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G8,r3_inside,0.0146,-0.0186,-0.0295,-0.0079,met,on the edge
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-exact,r1_rms_200,0.0392,0.0310,0.0093,0.0514,met,on the edge
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-exact,r3_inside,0.0266,-0.0486,-0.0675,-0.0286,not met,not reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss0.25,r1_rms_200,0.0366,0.0628,0.0400,0.0856,not met,not reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss0.25,r3_inside,0.0214,-0.0299,-0.0465,-0.0134,met,on the edge
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss1,r1_rms_200,0.0386,-0.0022,-0.0254,0.0212,met,reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-miss1,r3_inside,0.0100,-0.0008,-0.0063,0.0051,met,reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G2-half,r1_rms_200,0.0489,-0.3010,-0.3308,-0.2732,met,reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G2-half,r3_inside,0.0144,0.0629,0.0503,0.0764,met,reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G2-fading,r1_rms_200,0.0468,-0.1397,-0.1677,-0.1123,met,reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G2-fading,r3_inside,0.0144,0.0590,0.0460,0.0732,met,reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G3-drop,r1_rms_200,0.0499,-0.1277,-0.1543,-0.0994,met,reached
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G3-drop,r3_inside,0.0117,-0.0134,-0.0219,-0.0048,met,on the edge
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-start0.5,r1_rms_200,0.0373,0.0486,0.0279,0.0699,met,on the edge
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-start0.5,r3_inside,0.0148,-0.0229,-0.0328,-0.0123,met,on the edge
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-start2,r1_rms_200,0.0390,0.0242,-0.0014,0.0502,met,on the edge
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-start2,r3_inside,0.0146,-0.0067,-0.0177,0.0035,met,on the edge
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics0.3,r1_rms_200,0.0372,0.0500,0.0272,0.0717,met,on the edge
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics0.3,r3_inside,0.0135,-0.0162,-0.0280,-0.0047,met,on the edge
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics1,r1_rms_200,0.0367,0.0211,-0.0018,0.0445,met,on the edge
+stored_s0.7_qt0.006_qd0.006_L0.3,both,not worse,not worse than the service,G0-topics1,r3_inside,0.0161,-0.0149,-0.0236,-0.0052,met,on the edge
+stored_s0.7_qt0.003_qd0.003_L0.3,both,score,the share of the way to the ceiling,,,,0.2654,0.2462,0.2847,,
+stored_s0.7_qt0.003_qd0.003_L0.3,both,goal,the lag at most 45 % of the service's,G2-half,r6_lag,0.2684,0.1841,0.1591,0.2089,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,goal,the corridor a share of the way to the ceiling,G2-half,r3_inside,0.4273,0.4288,0.4220,0.4356,met,on the edge
+stored_s0.7_qt0.003_qd0.003_L0.3,both,goal,children not caught up after the jump at most 25 %,G3,r6_jump_unsettled,0.2500,0.1333,0.0967,0.1700,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G0,r8_move_p95_6_20,74.0000,52.0000,52.0000,52.0000,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G0,r8_rank_6_20,3.0889,13.1556,11.8222,14.4444,not met,not reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G0,r8_move_p95_150_200,74.0000,52.0000,52.0000,52.0000,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G0,r8_rank_150_200,3.0889,3.8627,3.2288,4.5556,not met,not reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,52.0000,52.0000,52.0000,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_rank_6_20,3.0667,12.0889,10.8444,13.3333,not met,not reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,52.0000,52.0000,52.0000,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_rank_150_200,3.0667,4.0196,3.3987,4.6928,not met,not reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0,r1_rms_200,0.0398,0.0118,-0.0094,0.0345,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0,r3_inside,0.0150,-0.0085,-0.0190,0.0018,met,on the edge
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G1,r1_rms_200,0.0373,-0.0027,-0.0239,0.0184,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G1,r3_inside,0.0137,0.0167,0.0049,0.0291,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G2,r1_rms_200,0.0600,-0.7420,-0.7784,-0.7066,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G2,r3_inside,0.0135,0.1468,0.1337,0.1595,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G3,r1_rms_200,0.0535,-0.3031,-0.3335,-0.2729,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G3,r3_inside,0.0152,0.0570,0.0461,0.0683,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G4,r1_rms_200,0.0438,-0.0165,-0.0412,0.0090,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G4,r3_inside,0.0128,-0.0006,-0.0090,0.0079,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G5,r1_rms_200,0.0393,0.0428,0.0192,0.0662,met,on the edge
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G5,r3_inside,0.0148,-0.0130,-0.0227,-0.0032,met,on the edge
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G6,r1_rms_200,0.0591,-0.0230,-0.0618,0.0155,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G6,r3_inside,0.0162,-0.0195,-0.0335,-0.0052,met,on the edge
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G7,r1_rms_200,0.0382,0.0033,-0.0173,0.0262,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G7,r3_inside,0.0130,-0.0009,-0.0113,0.0093,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G8,r1_rms_200,0.0333,0.0151,-0.0046,0.0349,met,on the edge
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G8,r3_inside,0.0146,-0.0035,-0.0138,0.0071,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-exact,r1_rms_200,0.0392,0.0116,-0.0088,0.0315,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-exact,r3_inside,0.0266,-0.0280,-0.0462,-0.0092,met,on the edge
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-miss0.25,r1_rms_200,0.0366,0.0254,0.0050,0.0455,met,on the edge
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-miss0.25,r3_inside,0.0214,-0.0053,-0.0213,0.0101,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-miss1,r1_rms_200,0.0386,-0.0064,-0.0282,0.0156,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-miss1,r3_inside,0.0100,0.0014,-0.0040,0.0071,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G2-half,r1_rms_200,0.0489,-0.2867,-0.3158,-0.2592,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G2-half,r3_inside,0.0144,0.0663,0.0529,0.0797,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G2-fading,r1_rms_200,0.0468,-0.1541,-0.1800,-0.1287,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G2-fading,r3_inside,0.0144,0.0649,0.0523,0.0781,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G3-drop,r1_rms_200,0.0499,-0.1543,-0.1806,-0.1292,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G3-drop,r3_inside,0.0117,-0.0058,-0.0131,0.0021,met,on the edge
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-start0.5,r1_rms_200,0.0373,0.0307,0.0119,0.0497,met,on the edge
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-start0.5,r3_inside,0.0148,-0.0107,-0.0214,-0.0003,met,on the edge
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-start2,r1_rms_200,0.0390,-0.0065,-0.0291,0.0170,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-start2,r3_inside,0.0146,0.0058,-0.0053,0.0167,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-topics0.3,r1_rms_200,0.0372,0.0045,-0.0139,0.0211,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-topics0.3,r3_inside,0.0135,-0.0011,-0.0120,0.0104,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-topics1,r1_rms_200,0.0367,-0.0063,-0.0269,0.0137,met,reached
+stored_s0.7_qt0.003_qd0.003_L0.3,both,not worse,not worse than the service,G0-topics1,r3_inside,0.0161,-0.0096,-0.0183,-0.0006,met,on the edge
+stored_s0.7_qt0.003_qd0.015_L0.3,both,score,the share of the way to the ceiling,,,,0.2792,0.2589,0.2992,,
+stored_s0.7_qt0.003_qd0.015_L0.3,both,goal,the lag at most 45 % of the service's,G2-half,r6_lag,0.2684,0.0888,0.0629,0.1129,met,reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,goal,the corridor a share of the way to the ceiling,G2-half,r3_inside,0.4273,0.4306,0.4241,0.4375,met,on the edge
+stored_s0.7_qt0.003_qd0.015_L0.3,both,goal,children not caught up after the jump at most 25 %,G3,r6_jump_unsettled,0.2500,0.0700,0.0433,0.1000,met,reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G0,r8_move_p95_6_20,74.0000,52.0000,52.0000,52.0000,met,reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G0,r8_rank_6_20,3.0889,13.2667,12.0000,14.6889,not met,not reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G0,r8_move_p95_150_200,74.0000,52.0000,52.0000,52.0000,met,reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G0,r8_rank_150_200,3.0889,4.5490,3.8562,5.3007,not met,not reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,52.0000,52.0000,52.0000,met,reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_rank_6_20,3.0667,12.0222,10.7556,13.2889,not met,not reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,52.0000,52.0000,52.0000,met,reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_rank_150_200,3.0667,3.5817,2.9085,4.2810,not met,on the edge
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0,r1_rms_200,0.0398,0.0531,0.0279,0.0783,met,on the edge
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0,r3_inside,0.0150,-0.0172,-0.0286,-0.0067,met,on the edge
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G1,r1_rms_200,0.0373,0.0259,0.0026,0.0493,met,on the edge
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G1,r3_inside,0.0137,0.0143,0.0021,0.0263,met,reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G2,r1_rms_200,0.0600,-0.8181,-0.8539,-0.7823,met,reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G2,r3_inside,0.0135,0.1565,0.1441,0.1685,met,reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G3,r1_rms_200,0.0535,-0.3146,-0.3451,-0.2852,met,reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G3,r3_inside,0.0152,0.0608,0.0503,0.0717,met,reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G4,r1_rms_200,0.0438,-0.0925,-0.1177,-0.0688,met,reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G4,r3_inside,0.0128,-0.0041,-0.0127,0.0042,met,reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G5,r1_rms_200,0.0393,0.0602,0.0357,0.0850,met,on the edge
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G5,r3_inside,0.0148,-0.0242,-0.0343,-0.0141,met,on the edge
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G6,r1_rms_200,0.0591,-0.0440,-0.0880,-0.0010,met,reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G6,r3_inside,0.0162,-0.0353,-0.0517,-0.0194,not met,not reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G7,r1_rms_200,0.0382,0.0271,0.0029,0.0516,met,on the edge
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G7,r3_inside,0.0130,-0.0094,-0.0200,0.0007,met,on the edge
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G8,r1_rms_200,0.0333,0.0409,0.0184,0.0632,met,on the edge
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G8,r3_inside,0.0146,-0.0129,-0.0230,-0.0021,met,on the edge
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-exact,r1_rms_200,0.0392,0.0426,0.0216,0.0643,met,on the edge
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-exact,r3_inside,0.0266,-0.0494,-0.0692,-0.0301,not met,not reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-miss0.25,r1_rms_200,0.0366,0.0696,0.0476,0.0923,not met,not reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-miss0.25,r3_inside,0.0214,-0.0231,-0.0389,-0.0065,met,on the edge
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-miss1,r1_rms_200,0.0386,0.0043,-0.0191,0.0273,met,reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-miss1,r3_inside,0.0100,0.0016,-0.0043,0.0075,met,reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G2-half,r1_rms_200,0.0489,-0.3137,-0.3431,-0.2841,met,reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G2-half,r3_inside,0.0144,0.0681,0.0550,0.0817,met,reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G2-fading,r1_rms_200,0.0468,-0.1558,-0.1833,-0.1282,met,reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G2-fading,r3_inside,0.0144,0.0669,0.0537,0.0807,met,reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G3-drop,r1_rms_200,0.0499,-0.0776,-0.1039,-0.0517,met,reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G3-drop,r3_inside,0.0117,-0.0225,-0.0300,-0.0146,not met,not reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-start0.5,r1_rms_200,0.0373,0.0485,0.0272,0.0698,met,on the edge
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-start0.5,r3_inside,0.0148,-0.0182,-0.0289,-0.0079,met,on the edge
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-start2,r1_rms_200,0.0390,0.0256,0.0009,0.0492,met,on the edge
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-start2,r3_inside,0.0146,-0.0003,-0.0118,0.0109,met,reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-topics0.3,r1_rms_200,0.0372,0.0676,0.0487,0.0900,not met,not reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-topics0.3,r3_inside,0.0135,-0.0107,-0.0221,0.0012,met,on the edge
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-topics1,r1_rms_200,0.0367,-0.0175,-0.0400,0.0042,met,reached
+stored_s0.7_qt0.003_qd0.015_L0.3,both,not worse,not worse than the service,G0-topics1,r3_inside,0.0161,-0.0095,-0.0180,-0.0008,met,on the edge
+oracle,both,score,the share of the way to the ceiling,,,,1.0000,0.9777,1.0233,,
+oracle,both,goal,the lag at most 45 % of the service's,G2-half,r6_lag,0.2684,0.0000,0.0000,0.0000,met,reached
+oracle,both,goal,the corridor a share of the way to the ceiling,G2-half,r3_inside,0.4273,0.6023,0.5974,0.6073,met,reached
+oracle,both,goal,children not caught up after the jump at most 25 %,G3,r6_jump_unsettled,0.2500,0.0000,0.0000,0.0000,met,reached
+oracle,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G0,r8_move_p95_6_20,74.0000,,,,unread,
+oracle,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G0,r8_rank_6_20,3.0889,,,,unread,
+oracle,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G0,r8_move_p95_150_200,74.0000,,,,unread,
+oracle,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G0,r8_rank_150_200,3.0889,,,,unread,
+oracle,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,,,,unread,
+oracle,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_rank_6_20,3.0667,,,,unread,
+oracle,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,,,,unread,
+oracle,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_rank_150_200,3.0667,,,,unread,
+oracle,both,not worse,not worse than the service,G0,r1_rms_200,0.0398,-0.4937,-0.5099,-0.4782,met,reached
+oracle,both,not worse,not worse than the service,G0,r3_inside,0.0150,0.1797,0.1690,0.1907,met,reached
+oracle,both,not worse,not worse than the service,G1,r1_rms_200,0.0373,-0.5046,-0.5226,-0.4868,met,reached
+oracle,both,not worse,not worse than the service,G1,r3_inside,0.0137,0.1894,0.1733,0.2056,met,reached
+oracle,both,not worse,not worse than the service,G2,r1_rms_200,0.0600,-1.4345,-1.4705,-1.3972,met,reached
+oracle,both,not worse,not worse than the service,G2,r3_inside,0.0135,0.3516,0.3398,0.3642,met,reached
+oracle,both,not worse,not worse than the service,G3,r1_rms_200,0.0535,-0.8314,-0.8606,-0.8012,met,reached
+oracle,both,not worse,not worse than the service,G3,r3_inside,0.0152,0.2733,0.2624,0.2840,met,reached
+oracle,both,not worse,not worse than the service,G4,r1_rms_200,0.0438,-0.6570,-0.6786,-0.6352,met,reached
+oracle,both,not worse,not worse than the service,G4,r3_inside,0.0128,0.0903,0.0822,0.0986,met,reached
+oracle,both,not worse,not worse than the service,G5,r1_rms_200,0.0393,-0.5469,-0.5698,-0.5256,met,reached
+oracle,both,not worse,not worse than the service,G5,r3_inside,0.0148,0.1924,0.1804,0.2034,met,reached
+oracle,both,not worse,not worse than the service,G6,r1_rms_200,0.0591,-0.7522,-0.8042,-0.7045,met,reached
+oracle,both,not worse,not worse than the service,G6,r3_inside,0.0162,-0.0662,-0.0844,-0.0492,not met,not reached
+oracle,both,not worse,not worse than the service,G7,r1_rms_200,0.0382,-0.5589,-0.5773,-0.5407,met,reached
+oracle,both,not worse,not worse than the service,G7,r3_inside,0.0130,0.1422,0.1313,0.1541,met,reached
+oracle,both,not worse,not worse than the service,G8,r1_rms_200,0.0333,-0.4855,-0.5014,-0.4704,met,reached
+oracle,both,not worse,not worse than the service,G8,r3_inside,0.0146,0.1777,0.1684,0.1881,met,reached
+oracle,both,not worse,not worse than the service,G0-exact,r1_rms_200,0.0392,-0.4838,-0.5001,-0.4690,met,reached
+oracle,both,not worse,not worse than the service,G0-exact,r3_inside,0.0266,0.4166,0.3960,0.4374,met,reached
+oracle,both,not worse,not worse than the service,G0-miss0.25,r1_rms_200,0.0366,-0.4764,-0.4903,-0.4617,met,reached
+oracle,both,not worse,not worse than the service,G0-miss0.25,r3_inside,0.0214,0.3501,0.3337,0.3661,met,reached
+oracle,both,not worse,not worse than the service,G0-miss1,r1_rms_200,0.0386,-0.5347,-0.5546,-0.5155,met,reached
+oracle,both,not worse,not worse than the service,G0-miss1,r3_inside,0.0100,0.0598,0.0541,0.0660,met,reached
+oracle,both,not worse,not worse than the service,G2-half,r1_rms_200,0.0489,-0.8175,-0.8431,-0.7923,met,reached
+oracle,both,not worse,not worse than the service,G2-half,r3_inside,0.0144,0.2398,0.2273,0.2515,met,reached
+oracle,both,not worse,not worse than the service,G2-fading,r1_rms_200,0.0468,-0.6570,-0.6831,-0.6306,met,reached
+oracle,both,not worse,not worse than the service,G2-fading,r3_inside,0.0144,0.2275,0.2153,0.2400,met,reached
+oracle,both,not worse,not worse than the service,G3-drop,r1_rms_200,0.0499,-0.6949,-0.7189,-0.6713,met,reached
+oracle,both,not worse,not worse than the service,G3-drop,r3_inside,0.0117,0.2114,0.2027,0.2201,met,reached
+oracle,both,not worse,not worse than the service,G0-start0.5,r1_rms_200,0.0373,-0.4827,-0.4976,-0.4687,met,reached
+oracle,both,not worse,not worse than the service,G0-start0.5,r3_inside,0.0148,0.1821,0.1725,0.1917,met,reached
+oracle,both,not worse,not worse than the service,G0-start2,r1_rms_200,0.0390,-0.5090,-0.5292,-0.4900,met,reached
+oracle,both,not worse,not worse than the service,G0-start2,r3_inside,0.0146,0.1878,0.1741,0.2008,met,reached
+oracle,both,not worse,not worse than the service,G0-topics0.3,r1_rms_200,0.0372,-0.4302,-0.4452,-0.4167,met,reached
+oracle,both,not worse,not worse than the service,G0-topics0.3,r3_inside,0.0135,0.1654,0.1550,0.1770,met,reached
+oracle,both,not worse,not worse than the service,G0-topics1,r1_rms_200,0.0367,-0.7301,-0.7525,-0.7090,met,reached
+oracle,both,not worse,not worse than the service,G0-topics1,r3_inside,0.0161,0.2476,0.2380,0.2573,met,reached

@@ -64,6 +64,8 @@ type toolOf struct{ host, tool string }
 type calls struct {
 	outcomes     map[string]int
 	milliseconds []int64
+	// own is the milliseconds of each call less those of its calls to Drive.
+	own []int64
 }
 
 // counts is everything the lines add up to.
@@ -88,6 +90,12 @@ type counts struct {
 	keptUp         map[keptUpIn]*keptUp
 	answersLeftOut map[string]int
 	skipped        int
+	// traces is what became of the traces and their deliveries, busy how busy
+	// the busiest minute was, and breaches every way the lines broke the rules
+	// of the log.
+	traces   traces
+	busy     busy
+	breaches map[breach]int
 }
 
 // tally adds the lines up. A task or an answer is counted for the chat host of
@@ -102,13 +110,14 @@ func tally(in *input) *counts {
 		promises: map[promisedIn]*cameTrue{}, keptUp: map[keptUpIn]*keptUp{}, answersLeftOut: map[string]int{},
 	}
 	hosts := hostsOf(lines)
+	drive := driveTimes(lines)
 	firstSeen := map[string]time.Time{}
 	for i := range lines {
 		l := &lines[i]
 		c.within(l.Time)
 		switch l.Message {
 		case eventToolCall:
-			c.toolCall(l)
+			c.toolCall(l, drive)
 		case eventLimitHit:
 			c.limits[l.Limit]++
 		case eventTaskRequested, eventTaskSubmitted, eventTaskAccepted:
@@ -122,6 +131,7 @@ func tally(in *input) *counts {
 		}
 	}
 	c.versions = inOrder(firstSeen)
+	c.traces, c.busy, c.breaches = tracesOf(lines), busyOf(lines), in.breaches
 	return c
 }
 
@@ -148,8 +158,10 @@ func (c *counts) within(at time.Time) {
 	}
 }
 
-// toolCall counts a tool call: how it ended and how long it took.
-func (c *counts) toolCall(l *line) {
+// toolCall counts a tool call: how it ended, how long it took, and how long
+// less the calls to Drive made in its request. Calls to Drive made at once
+// could add up to more than the call took, and leave it no time of its own.
+func (c *counts) toolCall(l *line, drive map[string]int64) {
 	key := toolOf{host: l.Client, tool: l.Tool}
 	called, found := c.tools[key]
 	if !found {
@@ -158,6 +170,7 @@ func (c *counts) toolCall(l *line) {
 	}
 	called.outcomes[l.Outcome]++
 	called.milliseconds = append(called.milliseconds, int64(l.DurationMS))
+	called.own = append(called.own, max(int64(l.DurationMS)-drive[l.request()], 0))
 }
 
 // task counts a line about a task into the tasks of its group.

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -16,72 +15,22 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/report"
 )
 
-// events are the lines a whole lesson leaves, each with the fields it may
-// carry. A field that is not here is one nobody decided a line may carry, and
-// that is how something personal would get in: the rule is not to clean a
-// value before it is written, but never to write it.
-var events = map[string][]string{
+// lessonEvents are the lines a whole lesson leaves. The fields each may carry
+// are the report's to decide, in the one table every reader of the log holds
+// lines to: here the lesson, and in the report the log of a deployment.
+var lessonEvents = []string{
 	// The service as it is built.
-	"content loaded":       {"topics", "traps", "skills", "reference_tasks", "instructions_version"},
-	"seal keys loaded":     {"key_id", "previous_key"},
-	"telemetry built":      {"export", "endpoint", "sample_ratio"},
-	"solver sandbox built": {"steps", "timeout", "concurrency", "wait", "gomaxprocs", "memory_limit"},
-	"profile store":        {"in_drive"},
-	"google sign-in":       {"configured"},
-	"limits set": {
-		"user_per_min", "ip_per_min", "instance_per_min", "renewal_per_min", "daily_tasks", "daily_failed", "trap_repeats",
-	},
-
+	"content loaded", "seal keys loaded", "telemetry built", "solver sandbox built", "profile store",
+	"google sign-in", "limits set",
 	// Every request, whatever it asked for.
-	"http_request": {"status", "method", "route", "duration", "body_size", "query", "query_others", "errors", "panic", "stack"},
-
+	"http_request",
 	// The sign-in.
-	"auth_register":  {"registration", "redirect_host", "outcome", "reason", "error"},
-	"cimd_fetch":     {"host", "cached", "duration_ms", "outcome"},
-	"auth_reject":    {"step", "reason", "error"},
-	"auth_authorize": {"registration", "redirect_host", "resource", "scope", "outcome", "reason"},
-	"auth_consent":   {"registration", "redirect_host", "outcome"},
-	"auth_callback":  {"registration", "redirect_host", "outcome", "reason", "user", "error"},
-	"auth_token":     {"registration", "resource", "outcome", "reason", "user", "error"},
-	"auth_bearer":    {"outcome", "reason"},
-	"auth_refresh":   {"registration", "resource", "outcome", "reason", "user", "error"},
-	"auth_revoke":    {"registration", "token", "outcome", "reason", "user", "error"},
-
+	"auth_register", "cimd_fetch", "auth_reject", "auth_authorize", "auth_consent", "auth_callback", "auth_token",
+	"auth_bearer", "auth_refresh", "auth_revoke",
 	// The lesson.
-	"tool_call": {
-		"tool", "outcome", "status", "error", "duration_ms", "instructions_version", "protocol_version", "client",
-		"user", "panic", "stack",
-	},
-	"drive_call":     {"op", "duration_ms", "retries", "outcome", "user"},
-	"task_requested": {"topic", "level", "difficulty", "goal", "tutor_mode", "already_open", "instructions_version", "user"},
-	"solver_run":     {"status", "steps", "duration_ms", "instructions_version", "user"},
-	"task_submitted": {
-		"attempt", "outcome", "primary", "failed", "minor_issues", "duration_ms", "solver_steps", "solver_ms",
-		"instructions_version", "user",
-	},
-	"task_accepted": {"topic", "level", "difficulty", "attempts", "seconds_since_request", "instructions_version", "user"},
-	// The chance beside the user is the child's rating, answer by answer, as
-	// far as two places of a chance tell it. The topic, the level, the
-	// difficulty and whether each answer was right let the rating be rebuilt
-	// too, but only from the child's first answer on, with the start guessed
-	// from the first tasks, and only while the log keeps every answer since;
-	// the chance tells it outright. It is the one number of a line the rating
-	// sets.
-	"answer_recorded": {
-		"topic", "level", "difficulty", "correct", "trap", "hint_used", "confused", "pace",
-		"chance", "tutor_mode", "trial", "answers_bucket", "instructions_version", "user",
-	},
-	"limit_hit": {"limit", "count", "user"},
+	"tool_call", "drive_call", "task_requested", "solver_run", "task_submitted", "task_accepted", "answer_recorded",
+	"limit_hit",
 }
-
-// ofARequest are the fields any line written inside a request may carry: the
-// request it belongs to, and the trace a reader opens it in.
-var ofARequest = []string{
-	"request_id", "logging.googleapis.com/trace", "logging.googleapis.com/spanId", "logging.googleapis.com/trace_sampled",
-}
-
-// emailAddress is anything shaped like an email address, whoever wrote it.
-var emailAddress = regexp.MustCompile(`[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}`)
 
 // A whole lesson, read line by line. A family signs in through the consent
 // screen and Google, makes the child's profile, has the race refused and
@@ -124,6 +73,12 @@ func wantTheLessonInTheReport(t *testing.T, lines []observer.LoggedEntry) {
 			version, _ = fields["instructions_version"].(string)
 		}
 		fields["message"], fields["time"] = lines[i].Message, lines[i].Time.Format(time.RFC3339Nano)
+		// A duration is written in seconds, as the service's encoder writes it.
+		for key, value := range fields {
+			if took, isDuration := value.(time.Duration); isDuration {
+				fields[key] = took.Seconds()
+			}
+		}
 		encoded, err := json.Marshal(fields)
 		if err != nil {
 			t.Fatalf("a %s line does not encode: %v", lines[i].Message, err)
@@ -153,6 +108,13 @@ func wantTheLessonInTheReport(t *testing.T, lines []observer.LoggedEntry) {
 			t.Errorf("the report of the lesson has no row starting %q:\n%s", row, added.String())
 		}
 	}
+	// The report holds the lines to the rules this test holds them to, and
+	// finds them kept: its own section, up to the next, says so.
+	_, rules, _ := strings.Cut(added.String(), "## The rules of the log")
+	rules, _, _ = strings.Cut(rules, "\n## ")
+	if !strings.Contains(rules, "None in these lines.") {
+		t.Errorf("the report finds the lesson's lines breaking the rules of the log:%s", rules)
+	}
 }
 
 // wantNothingPersonal holds every text of every line to carrying nothing of a
@@ -179,14 +141,14 @@ func wantOnlyTheFieldsOfTheirEvents(t *testing.T, lines []observer.LoggedEntry) 
 	seen := map[string]bool{}
 	for i := range lines {
 		seen[lines[i].Message] = true
-		if _, known := events[lines[i].Message]; !known {
+		if !slices.Contains(lessonEvents, lines[i].Message) || !report.Known(lines[i].Message) {
 			t.Errorf("a line of %q, which the lesson is not known to leave: %v", lines[i].Message, lines[i].ContextMap())
 		}
 		for _, field := range strayFields(&lines[i]) {
 			t.Errorf("a %s line carries %s, a field nobody decided it may", lines[i].Message, field)
 		}
 	}
-	for event := range events {
+	for _, event := range lessonEvents {
 		if !seen[event] {
 			t.Errorf("the lesson left no %s line, want the event it is listed for", event)
 		}
@@ -206,7 +168,7 @@ func personal(text string, secrets, words []string) []string {
 	if slices.Contains(words, text) {
 		found = append(found, fmt.Sprintf("%q as a value of its own", text))
 	}
-	if address := emailAddress.FindString(text); address != "" {
+	if address := report.EmailIn(text); address != "" {
 		found = append(found, "the email address "+address)
 	}
 	return found
@@ -217,7 +179,7 @@ func personal(text string, secrets, words []string) []string {
 func strayFields(line *observer.LoggedEntry) []string {
 	var stray []string
 	for field := range line.ContextMap() {
-		if !slices.Contains(events[line.Message], field) && !slices.Contains(ofARequest, field) {
+		if !report.Decided(line.Message, field) {
 			stray = append(stray, field)
 		}
 	}

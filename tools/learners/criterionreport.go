@@ -8,10 +8,10 @@ import (
 )
 
 // criterionText is the criterion as a run reads it, in Markdown: every rule's
-// score and how many of its constraints it meets, the goals with every rule's
-// value against them, what of not worse each rule does not meet, and what
-// the bench resolves on each check of not worse.
-func criterionText(read []ruleCriterion, resolutions []checkResolution, d design) string {
+// score and how many of its constraints it meets, every rule's value against
+// each goal's bound, what of not worse each rule does not meet, what the bench
+// resolves on each check of not worse, and the choice it all comes to.
+func criterionText(read []ruleCriterion, resolutions []checkResolution, choice *stepChoice, d design) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "# The criterion, read on this run\n\n")
 	fmt.Fprintf(&b, "Seed %d, experiment %s: %d children a generator, %d answers each. ", masterSeed, experiment, d.children, d.answers)
@@ -20,6 +20,7 @@ func criterionText(read []ruleCriterion, resolutions []checkResolution, d design
 	}
 	b.WriteString("The score is the share of the way from the service to the ceiling a rule closes, with its 95 % interval; " +
 		"the ceiling is no candidate, and is read to show the way.\n\n")
+	writeChoice(&b, choice)
 	writeScores(&b, read)
 	writeGoals(&b, read)
 	writeNotWorse(&b, read)
@@ -40,20 +41,29 @@ func writeScores(b *strings.Builder, read []ruleCriterion) {
 	b.WriteString("\n")
 }
 
+// writeGoals lists the goals, numbered, and gives every rule a row of its
+// values against them, so that the table reads the same for two rules or for
+// hundreds.
 func writeGoals(b *strings.Builder, read []ruleCriterion) {
 	b.WriteString("## Goals\n\nEvery rule's value against each goal's bound, and whether its interval reaches the bound, " +
-		"stands on its edge or does not reach it.\n\n| Goal | Generator | Bound |")
-	for _, rc := range read {
-		fmt.Fprintf(b, " %s |", ruleName(rc.rule))
-	}
-	b.WriteString("\n|---|---|---:|" + strings.Repeat("---|", len(read)) + "\n")
+		"stands on its edge or does not reach it. The goals:\n\n")
+	var places []int
 	for i := range read[0].readings {
 		rd := &read[0].readings[i]
-		if rd.kind != "goal" {
+		if rd.kind != goalKind {
 			continue
 		}
-		fmt.Fprintf(b, "| %s | %s | %s |", rd.name, rd.generator, decimals3(rd.bound))
-		for _, rc := range read {
+		places = append(places, i)
+		fmt.Fprintf(b, "%d. %s — %s, %s, bound %s\n", len(places), rd.name, rd.generator, rd.metric, decimals3(rd.bound))
+	}
+	b.WriteString("\n| Rule |")
+	for n := range places {
+		fmt.Fprintf(b, " %d |", n+1)
+	}
+	b.WriteString("\n|---|" + strings.Repeat("---|", len(places)) + "\n")
+	for _, rc := range read {
+		fmt.Fprintf(b, "| %s |", ruleName(rc.rule))
+		for _, i := range places {
 			fmt.Fprintf(b, " %s |", valueAndMark(&rc.readings[i]))
 		}
 		b.WriteString("\n")
@@ -69,7 +79,7 @@ func writeNotWorse(b *strings.Builder, read []ruleCriterion) {
 		var missed []string
 		for i := range rc.readings {
 			rd := &rc.readings[i]
-			if rd.kind != "not worse" {
+			if rd.kind != notWorseKind {
 				continue
 			}
 			checks++

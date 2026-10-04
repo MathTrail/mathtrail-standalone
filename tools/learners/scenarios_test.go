@@ -12,7 +12,7 @@ import (
 // ruleNamed is the rule of the bench of that name.
 func ruleNamed(t *testing.T, name string) *rule {
 	t.Helper()
-	for _, r := range rules() {
+	for _, r := range benchRules() {
 		if r.name == name {
 			return r
 		}
@@ -180,34 +180,65 @@ func TestTheOracleIsInTheCorridorWheneverTheLadderAllows(t *testing.T) {
 	}
 }
 
-// The held-out seeds draw other children than the working ones: their seed
-// and their name differ, the first draws of no child's streams in the one set
-// are drawn in the other, and their results go into a directory of their own.
-// A command line that asks for them takes no seed or name of its own. The test
-// sets the seed and the name every other test draws with, so it does not run
-// beside them.
-func TestTheHeldOutSeedsDrawOtherChildren(t *testing.T) {
+// The held-out seeds and the sweep's draw other children than the working
+// ones and than each other: their seeds or names differ, the first draws of
+// no child's streams in one set are drawn in another, and their results go
+// into directories of their own. The test sets the seed and the name every
+// other test draws with, so it does not run beside them.
+func TestTheHeldOutAndTheSweepsSeedsDrawOtherChildren(t *testing.T) {
 	t.Cleanup(func() { masterSeed, experiment = paperSeed, paperExperiment })
-	if heldOutSeed == paperSeed || heldOutExperiment == paperExperiment {
-		t.Fatalf("the held-out seed %d and name %s, want neither the working ones", heldOutSeed, heldOutExperiment)
+	if heldOutSeed == paperSeed || heldOutExperiment == paperExperiment || sweepExperiment == paperExperiment {
+		t.Fatalf("the held-out seed %d and name %s and the sweep's name %s, want none the working ones", heldOutSeed, heldOutExperiment, sweepExperiment)
 	}
-	_, working := firstDraws(t, "-out", "results")
-	out, heldOut := firstDraws(t, "-out", "results", "-held-out")
-	for draw := range heldOut {
-		if working[draw] {
-			t.Errorf("a first draw of %v in both sets", draw)
+	sets := []struct {
+		name, directory string
+		args            []string
+	}{
+		{"working", "results", []string{"-out", "results"}},
+		{"held-out", filepath.Join("results", heldOutDirectory), []string{"-out", "results", "-held-out"}},
+		{"sweep", filepath.Join("results", "sweep"), []string{"-out", "results", "-rules", "sweep"}},
+	}
+	drawn := map[float64]string{}
+	for _, set := range sets {
+		out, draws := firstDraws(t, set.args...)
+		if out != set.directory {
+			t.Errorf("the %s results go to %s, want %s", set.name, out, set.directory)
+		}
+		for draw := range draws {
+			if other, seen := drawn[draw]; seen {
+				t.Errorf("a first draw of %v among the %s children and the %s ones", draw, other, set.name)
+			}
+			drawn[draw] = set.name
 		}
 	}
-	if want := filepath.Join("results", heldOutDirectory); out != want {
-		t.Errorf("the held-out results go to %s, want %s", out, want)
-	}
+}
+
+// A command line that asks for two things at once is refused: a set of rules
+// that draws children of its own and a seed or a name besides, or the
+// held-out children and a set of rules other than the confirmation, which is
+// all they are run on. One that names no set is refused too, and a decision
+// run goes to its own directory on the working children. The test sets the
+// seed and the name every other test draws with, so it does not run beside
+// them.
+func TestACommandLineAskingForTwoThingsAtOnceIsRefused(t *testing.T) {
+	t.Cleanup(func() { masterSeed, experiment = paperSeed, paperExperiment })
 	if out, _, err := parse([]string{"-held-out", "-out", ""}, io.Discard); err != nil || out != "" {
 		t.Errorf("parse with -held-out and no directory = %q, %v; want no directory, for the run to refuse", out, err)
 	}
-	for _, args := range [][]string{{"-held-out", "-seed", "7"}, {"-experiment", "another", "-held-out"}} {
-		if _, _, err := parse(args, io.Discard); !errors.Is(err, errSeedBesideHeldOut) {
-			t.Errorf("parse(%q) error = %v, want %v", args, err, errSeedBesideHeldOut)
+	for _, args := range [][]string{{"-held-out", "-seed", "7"}, {"-experiment", "another", "-held-out"}, {"-rules", "sweep", "-seed", "7"}} {
+		if _, _, err := parse(args, io.Discard); !errors.Is(err, errOwnSeeds) {
+			t.Errorf("parse(%q) error = %v, want %v", args, err, errOwnSeeds)
 		}
+	}
+	if _, _, err := parse([]string{"-held-out", "-rules", "bench"}, io.Discard); !errors.Is(err, errHeldOutBesideRules) {
+		t.Errorf("parse with -held-out and the bench's rules: error %v, want %v", err, errHeldOutBesideRules)
+	}
+	if _, _, err := parse([]string{"-rules", "nothing"}, io.Discard); err == nil {
+		t.Error("parse with a set of rules nobody named = nil error, want one")
+	}
+	if out, d, err := parse([]string{"-rules", "decision", "-children", "4000"}, io.Discard); err != nil || out != filepath.Join("results", "decision") ||
+		d.set != "decision" || masterSeed != paperSeed || experiment != paperExperiment {
+		t.Errorf("parse of a decision run = %q, %+v, %v, seed %d and %s; want results/decision on the working children", out, d, err, masterSeed, experiment)
 	}
 }
 

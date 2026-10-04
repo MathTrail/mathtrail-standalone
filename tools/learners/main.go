@@ -6,17 +6,23 @@
 //
 // Every child is drawn from a seed of its own and is run under every rule with
 // the same parameters and the same draws for its answers. The results are
-// written as tables of every cell and of the comparisons, a summary of the
-// numbers a change to the rule is judged by, which is also printed, the
-// criterion a new rule is chosen by as every rule meets it, and what the run
-// was.
+// written as tables of every cell, of the comparisons and of every rule across
+// the generators, a summary of the numbers a change to the rule is judged by,
+// which is also printed, the criterion a new step is chosen by as every rule
+// meets it, with the choice it comes to, and what the run was.
+//
+// A run is given a set of rules: the bench's own, unless it names another —
+// the sweep of candidate steps and its refinement, which draw children of
+// their own, the decision run, the parts of the chosen step, or its
+// confirmation on the held-out children.
 //
 // Usage:
 //
-//	learners [-out <directory>] [-children <n>] [-answers <n>] [-seed <n>] [-experiment <name> | -held-out]
+//	learners [-out <directory>] [-children <n>] [-answers <n>] [-rules <set>] [-seed <n>] [-experiment <name>] [-held-out]
 package main
 
 import (
+	"cmp"
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
@@ -26,6 +32,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 
 	"github.com/MathTrail/mathtrail-standalone/content"
@@ -49,53 +56,94 @@ func runCommand(args []string, stdout, stderr io.Writer) int {
 	return 0
 }
 
-// errSeedBesideHeldOut is a command line that asks for the held-out seeds and
-// for a seed or a name of its own at once.
-var errSeedBesideHeldOut = errors.New("learners: -held-out draws from seeds of its own, and takes no -seed or -experiment")
+// The command lines that ask for two things at once.
+var (
+	// errOwnSeeds asks for a set of rules that draws children of its own and
+	// for a seed or a name of the run besides.
+	errOwnSeeds = errors.New("learners: this set of rules draws children of its own, and takes no -seed or -experiment")
+	// errHeldOutBesideRules asks for the held-out children, which only the
+	// confirmation is run on, and for another set of rules.
+	errHeldOutBesideRules = errors.New("learners: -held-out runs the confirmation of the chosen step, and takes no other -rules")
+)
 
-// parse reads the command line: the directory the results are written to and
-// the run's design, and into masterSeed and experiment the seed and the name
-// of the run, each the paper's when the command line does not give it, or the
-// held-out ones, whose results go into a directory of their own.
+// parse reads the command line: the directory the results are written to,
+// within it the set's own directory, and the run's design, with the set of
+// rules it runs; and into masterSeed and experiment the seed and the name of
+// the run — the set's own, for a set that draws children of its own, or else
+// the command line's, or the paper's when it gives none.
 func parse(args []string, stderr io.Writer) (string, design, error) {
 	flags := flag.NewFlagSet("learners", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	out := flags.String("out", "results", "the directory the results are written to")
 	children := flags.Int("children", 1000, "how many children each generator draws")
 	answers := flags.Int("answers", 200, "how many answers each child gives")
+	setName := flags.String("rules", benchSet, "the set of rules to run: "+strings.Join(setNames(), ", "))
 	flags.Uint64Var(&masterSeed, "seed", paperSeed, "the seed every draw of the run comes from")
 	flags.StringVar(&experiment, "experiment", paperExperiment, "the name of the run, which every seed it draws takes in")
-	heldOut := flags.Bool("held-out", false, "draw from the seeds kept for confirming a choice, and write under "+heldOutDirectory)
+	heldOut := flags.Bool("held-out", false, "confirm the chosen step on the seeds kept for it, and write under "+heldOutDirectory)
 	if err := flags.Parse(args); err != nil {
 		return "", design{}, err
 	}
+	given := map[string]bool{}
+	flags.Visit(func(f *flag.Flag) { given[f.Name] = true })
 	if *heldOut {
-		seedGiven := false
-		flags.Visit(func(f *flag.Flag) { seedGiven = seedGiven || f.Name == "seed" || f.Name == "experiment" })
-		if seedGiven {
-			fmt.Fprintln(stderr, errSeedBesideHeldOut)
-			return "", design{}, errSeedBesideHeldOut
+		if given["rules"] && *setName != confirmationSet {
+			return refused(stderr, errHeldOutBesideRules)
 		}
-		masterSeed, experiment = heldOutSeed, heldOutExperiment
-		if *out != "" {
-			*out = filepath.Join(*out, heldOutDirectory)
-		}
+		*setName = confirmationSet
 	}
-	return *out, design{children: *children, answers: *answers}, nil
+	set, known := ruleSetNamed(*setName)
+	if !known {
+		return refused(stderr, fmt.Errorf("learners: no set of rules is named %q; the sets are %s", *setName, strings.Join(setNames(), ", ")))
+	}
+	if set.ownSeeds() {
+		if given["seed"] || given["experiment"] {
+			return refused(stderr, errOwnSeeds)
+		}
+		masterSeed, experiment = set.seed, set.experiment
+	}
+	if *out != "" && set.directory != "" {
+		*out = filepath.Join(*out, set.directory)
+	}
+	return *out, design{children: *children, answers: *answers, set: set.name}, nil
+}
+
+// refused says why a command line is refused, and refuses it.
+func refused(stderr io.Writer, err error) (string, design, error) {
+	fmt.Fprintln(stderr, err)
+	return "", design{}, err
+}
+
+// setNames are the names of the sets of rules.
+func setNames() []string {
+	var names []string
+	for _, s := range ruleSets() {
+		names = append(names, s.name)
+	}
+	return names
 }
 
 func experimentInto(out string, d design, stdout io.Writer) error {
 	if out == "" || d.children < 1 || d.answers < 1 {
-		return errors.New("usage: learners [-out <directory>] [-children <n>] [-answers <n>] [-seed <n>] [-experiment <name> | -held-out]")
+		return errors.New("usage: learners [-out <directory>] [-children <n>] [-answers <n>] [-rules <set>] [-seed <n>] [-experiment <name>] [-held-out]")
 	}
 	if last := checkpoints[len(checkpoints)-1]; d.answers < last {
 		return fmt.Errorf("learners: the comparisons read the error after %d answers, so a child gives at least %d", last, last)
 	}
+	set, known := ruleSetNamed(cmp.Or(d.set, benchSet))
+	if !known {
+		return fmt.Errorf("learners: no set of rules is named %q", d.set)
+	}
+	rules, err := set.rules()
+	if err != nil {
+		return err
+	}
+	d.set = set.name
 	w, err := newWorld(d.answers)
 	if err != nil {
 		return err
 	}
-	all := cells()
+	all := cellsOf(rules)
 	ms := metrics()
 	results, err := runCells(w, all, d.children, ms)
 	if err != nil {

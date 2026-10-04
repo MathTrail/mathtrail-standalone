@@ -305,6 +305,84 @@ func TestEveryLimitIsRefusedByName(t *testing.T) {
 			},
 			wantSay: "topics[counting.gaps] counts answers",
 		},
+		{
+			name:    "an answer that moved from a level that is no number",
+			breakIt: func(p *profile.Profile) { p.Recent[0].Before = &profile.Levels{Theta: math.NaN()} },
+			wantSay: "recent[0].before",
+		},
+		{
+			// A task left without an answer moved nothing, and a level it moved
+			// from would be read as an answer the child never gave.
+			name: "a skipped task that moved from a level",
+			breakIt: func(p *profile.Profile) {
+				p.Recent[0] = profile.Answer{
+					AnsweredAt: p.Recent[0].AnsweredAt, Difficulty: 3, GradeLevel: rating.Grades34,
+					Skipped: true, TaskID: "tsk_left", Topic: "counting.gaps", Before: &profile.Levels{},
+				}
+			},
+			wantSay: "recent[0] is a skipped task",
+		},
+		{
+			name:    "more days than the week reaches",
+			breakIt: func(p *profile.Profile) { p.RatingDays = ratingDays(profile.RatingDaysKept + 1) },
+			wantSay: "rating_days holds",
+		},
+		{
+			name: "a day with no date",
+			breakIt: func(p *profile.Profile) {
+				p.RatingDays = ratingDays(2)
+				p.RatingDays[1].Date = profile.Date{}
+			},
+			wantSay: "rating_days[1] has no date",
+		},
+		{
+			name: "two days on one date",
+			breakIt: func(p *profile.Profile) {
+				p.RatingDays = ratingDays(2)
+				p.RatingDays[1].Date = p.RatingDays[0].Date
+			},
+			wantSay: "rating_days[1] is not after the day before it",
+		},
+		{
+			name: "days out of order",
+			breakIt: func(p *profile.Profile) {
+				p.RatingDays = ratingDays(2)
+				p.RatingDays[0], p.RatingDays[1] = p.RatingDays[1], p.RatingDays[0]
+			},
+			wantSay: "rating_days[1] is not after the day before it",
+		},
+		{
+			name: "a day whose overall level is no number",
+			breakIt: func(p *profile.Profile) {
+				p.RatingDays = ratingDays(1)
+				p.RatingDays[0].Theta = math.Inf(1)
+			},
+			wantSay: "rating_days[0].theta",
+		},
+		{
+			name: "a day with a correction of no topic",
+			breakIt: func(p *profile.Profile) {
+				p.RatingDays = ratingDays(1)
+				p.RatingDays[0].Deltas[""] = 0.1
+			},
+			wantSay: "rating_days[0].deltas",
+		},
+		{
+			name: "a day with no corrections at all",
+			breakIt: func(p *profile.Profile) {
+				p.RatingDays = ratingDays(1)
+				p.RatingDays[0].Deltas = nil
+			},
+			wantSay: "rating_days[0] has no deltas",
+		},
+		{
+			name: "a day with a correction that is no number",
+			breakIt: func(p *profile.Profile) {
+				p.RatingDays = ratingDays(1)
+				p.RatingDays[0].Deltas["counting.gaps"] = math.NaN()
+			},
+			wantSay: "rating_days[0].deltas",
+		},
 	}
 
 	for _, tc := range cases {
@@ -327,6 +405,20 @@ func TestEveryLimitIsRefusedByName(t *testing.T) {
 			}
 		})
 	}
+}
+
+// ratingDays are days one after another, each with a correction of one
+// topic, the way recording answers keeps them.
+func ratingDays(count int) []profile.RatingDay {
+	days := make([]profile.RatingDay, 0, count)
+	for i := range count {
+		days = append(days, profile.RatingDay{
+			Date:   profile.DateOf(time.Date(2026, time.September, 20+i, 9, 0, 0, 0, time.UTC)),
+			Deltas: map[string]float64{"counting.gaps": 0.1 * float64(i)},
+			Theta:  2.5 + 0.01*float64(i),
+		})
+	}
+	return days
 }
 
 // A task in flight has to be whole: five options, a wording, and something

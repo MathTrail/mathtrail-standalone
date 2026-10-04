@@ -65,10 +65,11 @@ type progressPayload struct {
 	} `json:"profile"`
 	Trial   *trialPayload `json:"trial"`
 	Overall *struct {
-		Rating int `json:"rating"`
-		Rank   int `json:"rank"`
-		Ranks  int `json:"ranks"`
-		Share  int `json:"share"`
+		Rating int             `json:"rating"`
+		Rank   int             `json:"rank"`
+		Ranks  int             `json:"ranks"`
+		Share  int             `json:"share"`
+		Change *changesPayload `json:"change"`
 	} `json:"overall"`
 	Topics []topicPayload `json:"topics"`
 	Recent []struct {
@@ -86,14 +87,15 @@ type progressPayload struct {
 
 // topicPayload is one topic of the progress.
 type topicPayload struct {
-	Topic    string  `json:"topic"`
-	Rating   *int    `json:"rating"`
-	Rank     *int    `json:"rank"`
-	Share    *int    `json:"share"`
-	Compared *string `json:"compared"`
-	Answers  int     `json:"answers"`
-	Mastered bool    `json:"mastered"`
-	Skipped  int     `json:"skipped"`
+	Topic    string          `json:"topic"`
+	Rating   *int            `json:"rating"`
+	Rank     *int            `json:"rank"`
+	Share    *int            `json:"share"`
+	Compared *string         `json:"compared"`
+	Answers  int             `json:"answers"`
+	Mastered bool            `json:"mastered"`
+	Skipped  int             `json:"skipped"`
+	Change   *changesPayload `json:"change"`
 }
 
 // standsTogether says whether a topic's rating, rank, share and comparison are

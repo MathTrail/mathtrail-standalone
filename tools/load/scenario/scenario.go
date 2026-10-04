@@ -2,11 +2,13 @@
 // child through the tools at a live pace. The attacks — saturation, limits
 // and the adversarial solvers — send calls at a constant pace however slowly
 // they are answered, and each is followed by a look at whether the service
-// came back.
+// came back. Paces and the ceiling are the limits as a deployed service lets a
+// run try them, with accounts a parent signed in for real.
 package scenario
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"maps"
 	"slices"
@@ -49,6 +51,18 @@ type Options struct {
 	// Steps is the step ceiling of the service, which the costly solvers are
 	// sized to.
 	Steps uint64
+	// Accounts are accounts a parent signed in for real, which the children
+	// of a run against a deployed service sign in with, in order, where there
+	// is no development sign-in to make children up; none against a service
+	// that has one.
+	Accounts []Account
+}
+
+// Account is an account a child of a run signs in with: the name it is kept
+// under, and its access token, renewed when it has run out.
+type Account struct {
+	Name  string
+	Token func() (string, error)
 }
 
 // The options a scenario may read, by the names of the flags that set them.
@@ -61,6 +75,7 @@ const (
 	readsChildren = "children"
 	readsVariants = "variants"
 	readsSteps    = "steps"
+	readsAccounts = "accounts"
 )
 
 // The scenarios there are.
@@ -76,6 +91,12 @@ const (
 	Adversarial = "adversarial"
 	// Cold is the service started again and again.
 	Cold = "cold"
+	// Paces is one account and the tool's own address past their paces, and
+	// the other accounts within theirs, as a deployed service lets a run try.
+	Paces = "paces"
+	// Ceiling is one account failing requests until the day refuses it, and
+	// the other accounts working beside it.
+	Ceiling = "ceiling"
 )
 
 // The bounds of the options.
@@ -169,6 +190,37 @@ var scenarios = map[string]scenario{
 		lasts:    func(*Options) time.Duration { return starts * startLasts },
 		starts:   true,
 	},
+	Paces: {
+		// The paces of limits, for the minute a pace is counted over: the
+		// greedy account calls three times a second, and one other account
+		// walks a lesson of two tasks.
+		defaults: func() Options {
+			o := common(Paces)
+			o.Duration, o.Children, o.Tasks = time.Minute, 1, 2
+			return o
+		},
+		reads: []string{readsRate, readsDuration, readsChildren, readsTasks, readsPace, readsTimeout, readsAccounts},
+		run:   runPaces,
+		lasts: func(o *Options) time.Duration {
+			return max(o.Duration, lessonLasts(o))
+		},
+	},
+	Ceiling: {
+		// Five failed requests is the day's ceiling as the service starts with
+		// it: twenty-seven calls with the profile's own two, one every one and
+		// a half seconds, well within the pace of an account, so that what
+		// refuses the account is the day and nothing else. Two minutes is the
+		// most the run waits for the day to refuse one more. One other account
+		// reads its profile once every five seconds meanwhile.
+		defaults: func() Options {
+			o := common(Ceiling)
+			o.Duration, o.Children, o.Pace = 2*time.Minute, 1, 1500*time.Millisecond
+			return o
+		},
+		reads: []string{readsDuration, readsChildren, readsPace, readsTimeout, readsAccounts},
+		run:   runCeiling,
+		lasts: func(o *Options) time.Duration { return o.Duration },
+	},
 }
 
 // common are the options every scenario starts from.
@@ -236,6 +288,11 @@ func (o *Options) Check() error {
 		if !slices.Contains(lesson.Costly(), variant) {
 			return fmt.Errorf("scenario: no costly solver %q; there are %s", variant, strings.Join(lesson.Costly(), ", "))
 		}
+	}
+	if len(o.Accounts) == 1 {
+		// Each of them holds one account to its limits and needs another
+		// beside it, to show that the limits hold back the one alone.
+		return errors.New("scenario: a run of accounts signs in two at least: one held to its limits, one beside it")
 	}
 	if known, found := scenarios[o.Scenario]; found && known.check != nil {
 		return known.check(o)

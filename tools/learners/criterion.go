@@ -10,9 +10,10 @@ import (
 // any candidate ran, so that what the candidates turn out to give cannot shape
 // what they are judged by. A run reads it for every rule: the constraints a
 // candidate must meet, and its score, the share of the way from the service
-// to the ceiling it closes. Choosing among the rules that meet it — the best,
-// its equals, the simplest of those, the confirmation on held-out seeds and
-// the exit — is done from these numbers by whoever runs the candidates.
+// to the ceiling it closes. The choice among the rules that meet it — the
+// best, its equals, the simplest of those, the backup, the exit, and the
+// confirmation on the held-out seeds — is read from these numbers by the
+// choice the run writes beside them.
 
 // decisionChildren is how many children a cell needs for its criterion to
 // decide anything. A run of fewer is a rough look, and reads not worse as no
@@ -33,15 +34,13 @@ const (
 )
 
 // The tolerances of not worse, as the author set them: the error after 200
-// answers in logits, the corridor and false masteries as shares. A tolerance
-// is held to no less than resolutionWidths standard errors of the paired
-// difference, which a candidate exactly as good as the service stays within
-// 99 times in 100: a finer one would fail good candidates by chance across
-// some fifty checks.
+// answers in logits, the corridor as a share. A tolerance is held to no less
+// than resolutionWidths standard errors of the paired difference, which a
+// candidate exactly as good as the service stays within 99 times in 100: a
+// finer one would fail good candidates by chance across some forty checks.
 const (
 	errorTolerance    = 0.01
 	corridorTolerance = 0.01
-	falseTolerance    = 0.02
 	resolutionWidths  = 4.3
 )
 
@@ -60,17 +59,27 @@ const (
 )
 
 // reading is one constraint as a run reads it for one rule: its value, with
-// the interval the run gives it, the bound it is held to, whether it holds,
-// and whether the whole interval lies on the bound's right side, across it, or
-// on the wrong side.
+// the interval the run gives it, the bound it is held to, which side of it is
+// the right one, whether it holds, and whether the whole interval lies on the
+// right side, across the bound, or on the wrong side.
 type reading struct {
 	kind, name       string
 	generator        generator
 	metric           string
 	bound            float64
 	value, low, high float64
-	verdict, mark    string
+	// atLeast marks a goal held to at least its bound, higherIsBetter a check
+	// of not worse on a measure more of which is better, and screen a goal of
+	// what the child is shown.
+	atLeast, higherIsBetter, screen bool
+	verdict, mark                   string
 }
+
+// The kinds of constraint a reading is of.
+const (
+	goalKind     = "goal"
+	notWorseKind = "not worse"
+)
 
 // goal is a constraint read on a rule's own point estimate, against a bound
 // read off the service's cell, and the ceiling's for a share of the way.
@@ -81,6 +90,9 @@ type goal struct {
 	// size reads the value as its size: the lag is as far behind as ahead.
 	size   bool
 	atMost bool
+	// screen marks a goal of what the child is shown, which binds the exit
+	// too.
+	screen bool
 	bound  func(cr *criterionRun) (float64, bool)
 }
 
@@ -170,12 +182,12 @@ func goals() []goal {
 			all = append(all,
 				goal{
 					name: "the card's move in answers " + w.label() + " no more than the service's in answers " + earlyLabel, generator: g,
-					metric: "r8_move_p95_" + w.name(), atMost: true,
+					metric: "r8_move_p95_" + w.name(), atMost: true, screen: true,
 					bound: func(cr *criterionRun) (float64, bool) { return cr.serviceValue(g, "r8_move_p95_"+early) },
 				},
 				goal{
 					name: "the rank's changes in answers " + w.label() + " no more than the service's in answers " + earlyLabel, generator: g,
-					metric: "r8_rank_" + w.name(), atMost: true,
+					metric: "r8_rank_" + w.name(), atMost: true, screen: true,
 					bound: func(cr *criterionRun) (float64, bool) { return cr.serviceValue(g, "r8_rank_"+early) },
 				},
 			)
@@ -184,16 +196,26 @@ func goals() []goal {
 	return all
 }
 
-// notWorseChecks are the checks of not worse: on every generator the error
-// after 200 answers, the corridor and false masteries.
+// stepNotWorse are the measures a step is held to no worse than the
+// service's on: the error after 200 answers and the corridor. The share of
+// masteries declared falsely is not among them: under the service's rule of
+// mastery it grows the closer an estimate follows the child, the ceiling's
+// most of all, so it would hold back every step that follows a child better;
+// the choice of the rule of mastery, read over the step chosen, holds it.
+var stepNotWorse = []notWorse{
+	{metric: "r1_rms_200", tolerance: errorTolerance},
+	{metric: "r3_inside", higherIsBetter: true, tolerance: corridorTolerance},
+}
+
+// notWorseChecks are the checks of not worse: every measure of stepNotWorse
+// on every generator.
 func notWorseChecks() []notWorse {
 	var all []notWorse
 	for _, g := range allGenerators {
-		all = append(all,
-			notWorse{generator: g, metric: "r1_rms_200", tolerance: errorTolerance},
-			notWorse{generator: g, metric: "r3_inside", higherIsBetter: true, tolerance: corridorTolerance},
-			notWorse{generator: g, metric: "r4_false", tolerance: falseTolerance},
-		)
+		for _, nw := range stepNotWorse {
+			nw.generator = g
+			all = append(all, nw)
+		}
 	}
 	return all
 }
@@ -271,7 +293,7 @@ func (cr *criterionRun) ceilingValue(g generator, metric string) (float64, bool)
 
 // readGoal reads a goal for a rule on its own point estimate.
 func (cr *criterionRun) readGoal(r *rule, g goal) reading {
-	rd := reading{kind: "goal", name: g.name, generator: g.generator, metric: g.metric, verdict: unread}
+	rd := reading{kind: goalKind, name: g.name, generator: g.generator, metric: g.metric, atLeast: !g.atMost, screen: g.screen, verdict: unread}
 	own, hasOwn := cr.summaryOf(r, g.generator, g.metric)
 	bound, hasBound := g.bound(cr)
 	rd.bound = bound
@@ -367,7 +389,10 @@ func toleranceOf(nw notWorse, se float64, has bool) float64 {
 // the check's resolution already, so neither is drawn again.
 func (cr *criterionRun) readNotWorse(r *rule, res *checkResolution) reading {
 	nw := res.check
-	rd := reading{kind: "not worse", name: "not worse than the service", generator: nw.generator, metric: nw.metric, bound: res.tolerance, verdict: unread}
+	rd := reading{
+		kind: notWorseKind, name: "not worse than the service", generator: nw.generator, metric: nw.metric,
+		bound: res.tolerance, higherIsBetter: nw.higherIsBetter, verdict: unread,
+	}
 	var diff summary
 	var has bool
 	switch r {
@@ -487,31 +512,7 @@ func (cr *criterionRun) scoreOf(r *rule) summary {
 	if !has {
 		return summary{}
 	}
-	whole := make([][]int, len(sheet.parts))
-	for p, part := range sheet.parts {
-		whole[p] = everyone(len(part.rule))
-	}
-	value, has := sheet.read(whole)
-	if !has {
-		return summary{}
-	}
-	rng := seeded("criterion/"+r.name+"/"+string(r.shape)+"/score", "bootstrap")
-	draws := make([]float64, 0, resamples)
-	samples := make([][]int, len(sheet.parts))
-	for p := range samples {
-		samples[p] = make([]int, len(whole[p]))
-	}
-	for range resamples {
-		drawSamples(samples, rng)
-		if v, ok := sheet.read(samples); ok {
-			draws = append(draws, v)
-		}
-	}
-	if len(draws) == 0 {
-		return summary{}
-	}
-	low, high := interval(draws)
-	return summary{value: value, low: low, high: high, has: true}
+	return bootstrapped(sheet.counts(), seeded("criterion/"+r.name+"/"+string(r.shape)+"/score", "bootstrap"), sheet.read)
 }
 
 // drawSamples draws every sample anew, each from its own children.

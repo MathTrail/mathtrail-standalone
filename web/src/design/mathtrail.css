@@ -792,15 +792,164 @@
 .mt-segments[data-tone="5"] .mt-segment-fill {
 	fill: var(--ramp-5);
 }
+/* A move is striped on a course: a gain in its green, a step back in its
+   coral, the track showing between the stripes. */
+.mt-stripes-gain rect {
+	fill: var(--gain);
+}
+.mt-stripes-loss rect {
+	fill: var(--loss);
+}
 /* A step nothing has been measured in yet is drawn open. */
 .mt-segment-open {
 	box-sizing: border-box;
 	border: 1px dashed var(--border-strong);
 	border-radius: 3px;
 }
-/* A course fills from where its line starts to read. */
+/* A course fills from where its line starts to read, and its stripes lean
+   the other way with it. */
 [dir="rtl"] .mt-segment {
 	transform: scaleX(-1);
+}
+/* How a rank moved over a while: a line under the course, in the colour of
+   the move's way and after its arrow, or plain where nothing moved; and the
+   same colours for a topic's word of its move, and for the counts by the
+   title of the topics. A line with nothing to say takes no room, and stays
+   where a screen reader hears it once it has something to say. */
+.mt-rank-move {
+	margin: 0;
+	font-size: 15px;
+	line-height: 22px;
+	font-weight: 600;
+	color: var(--text-muted);
+}
+.mt-rank-move:empty {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+}
+.mt-move-arrow {
+	margin-inline-end: 0.3em;
+}
+.mt-rank-move[data-way="gain"],
+.mt-rank-word[data-way="gain"],
+.mt-move-counted [data-way="gain"] {
+	color: var(--gain);
+}
+.mt-rank-move[data-way="loss"],
+.mt-rank-word[data-way="loss"],
+.mt-move-counted [data-way="loss"] {
+	color: var(--loss);
+}
+.mt-rank-word[data-way] {
+	font-weight: 600;
+}
+.mt-move-counted {
+	display: inline-flex;
+	gap: 10px;
+	font-weight: 600;
+}
+/* What the stripes are: a sample of each beside its name, and the while
+   they are drawn over. */
+.mt-move-legend {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	column-gap: 16px;
+	row-gap: 4px;
+	margin: 0;
+	padding-block: 4px 6px;
+	font-size: 13px;
+	line-height: 18px;
+	color: var(--text-muted);
+}
+.mt-move-key {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+.mt-move-sample {
+	display: inline-block;
+	flex-shrink: 0;
+	width: 20px;
+	height: 6px;
+	border-radius: 3px;
+}
+.mt-move-sample[data-way="gain"] {
+	background: repeating-linear-gradient(
+		135deg,
+		var(--gain) 0 2px,
+		var(--border) 2px 4px
+	);
+}
+.mt-move-sample[data-way="loss"] {
+	background: repeating-linear-gradient(
+		135deg,
+		var(--loss) 0 2px,
+		var(--border) 2px 4px
+	);
+}
+/* A sample's stripes lean as the course's do. */
+[dir="rtl"] .mt-move-sample {
+	transform: scaleX(-1);
+}
+/* A switch between views of the same thing: segments in a row, the one
+   chosen pressed in, each a finger's height, its words wrapping rather than
+   running out of it. The radio button under each segment is hidden over it,
+   and its focus is drawn on the segment. */
+.mt-switch {
+	display: flex;
+	gap: 3px;
+	margin: 0;
+	padding: 3px;
+	min-width: 0;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-control);
+	background: var(--band);
+}
+.mt-switch-option {
+	position: relative;
+	display: flex;
+	flex: 1 1 0;
+	min-width: 0;
+}
+.mt-switch-input {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	opacity: 0;
+	cursor: pointer;
+}
+.mt-switch-label {
+	display: flex;
+	flex: 1 1 auto;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	min-width: 0;
+	min-height: 44px;
+	padding: 4px 8px;
+	border: 1px solid transparent;
+	border-radius: var(--radius-control);
+	font-size: 14px;
+	line-height: 20px;
+	font-weight: 600;
+	text-align: center;
+	color: var(--text-muted);
+	overflow-wrap: break-word;
+}
+.mt-switch-input:checked + .mt-switch-label {
+	background: var(--pressed-fill);
+	border-color: var(--pressed-border);
+	color: var(--text);
+}
+.mt-switch-input:focus-visible + .mt-switch-label {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
 }
 .mt-list {
 	display: flex;

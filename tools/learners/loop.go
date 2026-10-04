@@ -33,13 +33,17 @@ type rule struct {
 	// service marks the product's own path, which no estimate of the
 	// harness's replaces.
 	service bool
-	// trial marks a step rule that starts after the service's trial series.
+	// trial marks a rule that starts after the service's trial series, whose
+	// estimator follows the series until then.
 	trial bool
 	// ceiling marks a rule that knows what no rule of answers can: where the
 	// child truly stands. It shows how far a rule could go, and is no rule to
 	// choose or to compare with as one.
 	ceiling bool
-	make    func(c *child, start float64) estimator
+	// candidacy is what the choice of a step reads of a rule that is a
+	// candidate for it; nil for every other rule.
+	candidacy *candidacy
+	make      func(c *child, start float64) estimator
 }
 
 // world is what every run shares: the catalog, its topics and the points of
@@ -160,17 +164,16 @@ func (s *session) answer(brief *profile.Brief, mode profile.TutorMode, draws *an
 	return s.p.Record(profile.Answered{TaskID: task.ID, Choice: choice, HintUsed: draws.hint < s.c.hint, At: s.now}, s.w.sealer)
 }
 
-// learn takes the answer into the rule's estimate. A step rule that starts
-// after the trial series only counts the series' answers and holds the
-// series' estimate as it stands after each, so that until its own first step
-// it chooses and predicts from the estimate the service has.
+// learn takes the answer into the rule's estimate. A rule that starts after
+// the trial series is handed the series' answers and the series' estimate as
+// it stands after each, so that until its own first step it chooses and
+// predicts from the estimate the service has.
 func (s *session) learn(topic string, beta float64, correct bool, k int) {
 	if s.r.service {
 		return
 	}
-	if steps, following := s.est.(*stepRule); following && s.r.trial && k < rating.TrialAnswers {
-		steps.counted(topic)
-		steps.takeOver(s.p.Ratings.Theta)
+	if f, following := s.est.(follower); following && s.r.trial && k < rating.TrialAnswers {
+		f.followed(topic, beta, correct, s.p.Ratings.Theta)
 		return
 	}
 	s.est.answered(topic, beta, correct)

@@ -100,7 +100,9 @@ describe("refusals", () => {
 		);
 		expect(refused).toHaveLength(2);
 		expect(refused[0]).toContain("copyleft@1.0.0 is licensed GPL-3.0");
-		expect(refused[0]).toContain("part of what the widget is built from");
+		expect(refused[0]).toContain(
+			"part of what the widget and the site are built from",
+		);
 		expect(refused[1]).toContain("silent@1.0.0");
 		expect(refused[1]).toContain("a build tool");
 	});

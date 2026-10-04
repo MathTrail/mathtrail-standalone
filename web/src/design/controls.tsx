@@ -502,3 +502,49 @@ export function CheckGroup({
 		</fieldset>
 	);
 }
+
+/** SwitchOption is one view a switch offers: what it is, and its name. */
+export type SwitchOption<Value extends string> = {
+	value: Value;
+	label: string;
+};
+
+/**
+ * ViewSwitch is a choice of one of a few views of the same thing, drawn as a
+ * row of segments with the one chosen pressed in. Its options are radio
+ * buttons under a legend a screen reader alone hears: a view gives no answer
+ * and sends nothing, so the arrows that move through a group of radio buttons
+ * change nothing anyone would regret, and the group is one stop of the
+ * keyboard, as it should be.
+ */
+export function ViewSwitch<Value extends string>({
+	legend,
+	options,
+	value,
+	onChange,
+}: {
+	legend: string;
+	options: readonly SwitchOption<Value>[];
+	value: Value;
+	onChange: (value: Value) => void;
+}) {
+	const name = useId();
+	return (
+		<fieldset class="mt-switch">
+			<legend class="mt-vh">{legend}</legend>
+			{options.map((option) => (
+				<label key={option.value} class="mt-switch-option">
+					<input
+						type="radio"
+						class="mt-switch-input"
+						name={name}
+						value={option.value}
+						checked={option.value === value}
+						onChange={() => onChange(option.value)}
+					/>
+					<span class="mt-switch-label">{option.label}</span>
+				</label>
+			))}
+		</fieldset>
+	);
+}

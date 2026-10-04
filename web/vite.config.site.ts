@@ -18,14 +18,19 @@ export default defineConfig({
 		// site counts such an address as a load from somewhere else.
 		assetsInlineLimit: 0,
 		rolldownOptions: {
-			// A stylesheet alone: Vite leaves out the empty script such an entry
+			// Stylesheets alone: Vite leaves out the empty script such an entry
 			// would otherwise bring. The design's tokens are not imported into
-			// it — the site ships them as a file of their own, the same file the
-			// widget and the sign-in pages read.
-			input: { style: "src/site/style.css" },
+			// them — the site ships them as a file of their own, the same file
+			// the widget and the sign-in pages read. The cards' styles are the
+			// very ones a chat draws a card with, for the pages that draw one.
+			input: {
+				style: "src/site/style.css",
+				card: "src/design/mathtrail.css",
+			},
 			output: {
 				// The stylesheet's address was published with the first site and
-				// stays what it was.
+				// stays what it was; the font files it names keep the names their
+				// package gives them.
 				assetFileNames: "assets/[name][extname]",
 			},
 		},

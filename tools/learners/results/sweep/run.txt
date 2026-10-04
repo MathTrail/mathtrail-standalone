@@ -1,0 +1,8 @@
+seed=20261001
+experiment=sweep
+children=300
+answers=200
+rules=sweep
+version=v0.2.3-dirty
+go=go1.27.1
+arch=amd64

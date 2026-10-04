@@ -1,4 +1,5 @@
 import type { ComponentChildren } from "preact";
+import { useId } from "preact/hooks";
 import { classes } from "./classes";
 import { Icon, type IconName } from "./icons";
 
@@ -10,13 +11,28 @@ import { Icon, type IconName } from "./icons";
 export type SegmentTone = "ink" | 1 | 2 | 3 | 4 | 5;
 
 /**
+ * MoveWay is which way a rank moved over a while, as a course and the words
+ * beside it draw it: a gain, or a step back.
+ */
+export type MoveWay = "gain" | "loss";
+
+/**
+ * SegmentsAt is where a course stood: how many steps were behind it, and how
+ * far through the next one it had come.
+ */
+export type SegmentsAt = { filled: number; part: number };
+
+/**
  * Segments is a course of equal steps drawn as a row: the steps behind filled,
  * the one under way filled as far as it has come, the rest empty — or, where
- * nothing is measured yet, every step drawn open. A label says in words, for a
- * screen reader alone, what the drawing shows; without one the drawing is a
- * picture of what the words beside it say. The lengths are attributes of the
- * drawing rather than styles: a card's page is held to its host's policy,
- * which promises nothing for a style set on an element.
+ * nothing is measured yet, every step drawn open. A course that moved since
+ * it stood where was says is filled as far as the lower of the two, and
+ * striped on to the higher: in the colour of a gain when it moved up, of a
+ * step back when it moved down. A label says in words, for a screen reader
+ * alone, what the drawing shows; without one the drawing is a picture of what
+ * the words beside it say. The lengths are attributes of the drawing rather
+ * than styles: a card's page is held to its host's policy, which promises
+ * nothing for a style set on an element.
  */
 export function Segments({
 	of,
@@ -25,6 +41,7 @@ export function Segments({
 	tone = "ink",
 	open = false,
 	label,
+	was,
 }: {
 	of: number;
 	filled: number;
@@ -32,31 +49,130 @@ export function Segments({
 	tone?: SegmentTone;
 	open?: boolean;
 	label?: string;
+	was?: SegmentsAt;
 }) {
 	return (
 		<div class="mt-segments" data-tone={String(tone)}>
 			{label !== undefined && <span class="mt-vh">{label}</span>}
-			{counted(of).map((step) =>
-				open ? (
-					<span
-						key={step}
-						class="mt-segment mt-segment-open"
-						aria-hidden="true"
-					/>
+			{counted(of).map((step) => {
+				if (open) {
+					return (
+						<span
+							key={step}
+							class="mt-segment mt-segment-open"
+							aria-hidden="true"
+						/>
+					);
+				}
+				const drawn = drawnStep(step, filled, part, was);
+				return drawn.stripes > drawn.fill ? (
+					<StripedStep key={step} {...drawn} />
 				) : (
 					<svg key={step} class="mt-segment" height="6" aria-hidden="true">
 						<rect class="mt-segment-track" width="100%" height="6" rx="3" />
 						<rect
 							class="mt-segment-fill"
-							width={`${Math.round(fillOf(step, filled, part) * 100)}%`}
+							width={lengthOf(drawn.fill)}
 							height="6"
 							rx="3"
 						/>
 					</svg>
-				),
-			)}
+				);
+			})}
 		</div>
 	);
+}
+
+// StripedStep is a step a move is drawn across: its track, the stripes of the
+// move under its fill, reaching as far as the move does, and the fill over
+// them. The stripes are a pattern of the step's own, by a name no other
+// drawing on the page has, and take their colour from the move's way.
+function StripedStep({
+	fill,
+	stripes,
+	way,
+}: {
+	fill: number;
+	stripes: number;
+	way: MoveWay;
+}) {
+	const pattern = useId();
+	return (
+		<svg class="mt-segment" height="6" aria-hidden="true">
+			<defs>
+				<pattern
+					id={pattern}
+					class={`mt-stripes mt-stripes-${way}`}
+					patternUnits="userSpaceOnUse"
+					width="4"
+					height="4"
+					patternTransform="rotate(45)"
+				>
+					<rect width="2" height="4" />
+				</pattern>
+			</defs>
+			<rect class="mt-segment-track" width="100%" height="6" rx="3" />
+			<rect
+				class="mt-segment-stripes"
+				width={lengthOf(stripes)}
+				height="6"
+				rx="3"
+				fill={`url(#${pattern})`}
+			/>
+			<rect class="mt-segment-fill" width={lengthOf(fill)} height="6" rx="3" />
+		</svg>
+	);
+}
+
+// leastShown is the least part of a step a move is drawn over: a step is about
+// 22 px wide on the narrowest card, 320 px, and a seventh of it is the 3 px a
+// move takes to be seen at all.
+const leastShown = 0.14;
+
+// drawnStep is how the step at place step is drawn: how much of it is filled,
+// and how far the stripes of a move reach under the fill, from where the
+// course stood at was to where it stands — none when it did not move. A move
+// too small to be seen, over all the steps it crosses, takes the least part of
+// a step that is, at the edge of the step the course is under way in, so that
+// the drawing never says less than the words beside it: a gain ends at the
+// edge, and a step back starts there.
+function drawnStep(
+	step: number,
+	filled: number,
+	part: number,
+	was: SegmentsAt | undefined,
+): { fill: number; stripes: number; way: MoveWay } {
+	if (was === undefined) {
+		return { fill: fillOf(step, filled, part), stripes: 0, way: "gain" };
+	}
+	const now = filled + bounded(part);
+	const then = was.filled + bounded(was.part);
+	const way = now >= then ? "gain" : "loss";
+	const within = (at: number) => bounded(at - (step - 1));
+	let fill = within(Math.min(now, then));
+	let stripes = within(Math.max(now, then));
+	if (step === filled + 1 && Math.abs(now - then) < leastShown) {
+		const edge = within(now);
+		if (way === "gain") {
+			stripes = Math.max(edge, leastShown);
+			fill = Math.min(fill, stripes - leastShown);
+		} else {
+			stripes = Math.min(Math.max(stripes, edge + leastShown), 1);
+			fill = Math.min(fill, stripes - leastShown);
+		}
+	}
+	return { fill, stripes, way };
+}
+
+// bounded is a part of a step, held from nothing to all of it.
+function bounded(part: number): number {
+	return Math.min(Math.max(part, 0), 1);
+}
+
+// lengthOf is a part of a step as the length of a drawing within it, in whole
+// percents.
+function lengthOf(part: number): string {
+	return `${Math.round(part * 100)}%`;
 }
 
 // counted are the numbers from one to count: the steps, each told apart by its
@@ -71,26 +187,28 @@ function fillOf(step: number, filled: number, part: number): number {
 	if (step <= filled) {
 		return 1;
 	}
-	return step === filled + 1 ? Math.min(Math.max(part, 0), 1) : 0;
+	return step === filled + 1 ? bounded(part) : 0;
 }
 
 /**
  * RankSummary is where the child stands, large: the name of the step reached,
  * the line that places it — the step out of how many —, the course drawn under
- * them, and a line of what comes next. A label names it for a screen reader
- * where the name does not.
+ * them, how it moved where that is told, and a line of what comes next. A
+ * label names it for a screen reader where the name does not.
  */
 export function RankSummary({
 	label,
 	name,
 	meta,
 	line,
+	move,
 	children,
 }: {
 	label?: string;
 	name: string;
 	meta: string;
 	line: string;
+	move?: ComponentChildren;
 	children: ComponentChildren;
 }) {
 	return (
@@ -100,8 +218,93 @@ export function RankSummary({
 				<span class="mt-meta">{meta}</span>
 			</div>
 			{children}
+			{move}
 			<p class="mt-rank-line">{line}</p>
 		</section>
+	);
+}
+
+// The arrow drawn before the words of a move, a picture of them.
+const moveArrows: Record<MoveWay, string> = { gain: "↑", loss: "↓" };
+
+/**
+ * MoveLine is how a rank moved over a while, in a line: in the colour of the
+ * move's way and after its arrow, or plain where it did not move or cannot be
+ * told. The arrow is a picture of the words and is hidden from a screen
+ * reader, which reads the line out again whenever it changes; a line with
+ * nothing to say takes no room.
+ */
+export function MoveLine({ way, text }: { way?: MoveWay; text?: string }) {
+	return (
+		<p class="mt-rank-move" data-way={way} aria-live="polite">
+			{way !== undefined && text !== undefined && (
+				<span class="mt-move-arrow" aria-hidden="true">
+					{moveArrows[way]}
+				</span>
+			)}
+			{text}
+		</p>
+	);
+}
+
+/**
+ * MoveCounts is how many of a list's rows moved up over a while and how many
+ * moved back, an arrow and a number for each way some did, and the same in
+ * words for a screen reader alone. It is a summary: each row says its own move
+ * where the summary leads.
+ */
+export function MoveCounts({
+	up,
+	down,
+	label,
+}: {
+	up?: string;
+	down?: string;
+	label: string;
+}) {
+	return (
+		<span class="mt-move-counts">
+			<span class="mt-move-counted" aria-hidden="true">
+				{up !== undefined && (
+					<span data-way="gain">{`${moveArrows.gain} ${up}`}</span>
+				)}
+				{down !== undefined && (
+					<span data-way="loss">{`${moveArrows.loss} ${down}`}</span>
+				)}
+			</span>
+			<span class="mt-vh">{label}</span>
+		</span>
+	);
+}
+
+/**
+ * MoveLegend says what the stripes on the courses are: a gain and a step back,
+ * each beside a sample of its stripes, and the while they are drawn over.
+ */
+export function MoveLegend({
+	gain,
+	loss,
+	period,
+}: {
+	gain: string;
+	loss: string;
+	period: string;
+}) {
+	return (
+		<p class="mt-move-legend">
+			<span class="mt-move-key">
+				<span class="mt-move-sample" data-way="gain" aria-hidden="true" />
+				{gain}
+			</span>
+			<span class="mt-move-key">
+				<span class="mt-move-sample" data-way="loss" aria-hidden="true" />
+				{loss}
+			</span>
+			<span class="mt-move-period">
+				<span aria-hidden="true">· </span>
+				{period}
+			</span>
+		</p>
 	);
 }
 
@@ -160,36 +363,42 @@ export function StatusDots({
 
 /**
  * RankRow is one topic of a list of ranks: what it is about, a mark when it is
- * mastered, a word of how it stands and the name of its rank at the line's
- * end, and its course under them. Its id tells it apart from the others.
+ * mastered, a word of how it stands — or of how it moved, in the colour of the
+ * move's way and after its arrow — and the name of its rank at the line's end,
+ * and its course under them. Its id tells it apart from the others.
  */
 export type RankRow = {
 	id: string;
 	label: string;
 	mark?: { tone: StatusTone; label: string };
 	word?: string;
+	way?: MoveWay;
 	name?: string;
 	segments: Parameters<typeof Segments>[0];
 };
 
 /**
  * RankList is a list of topics, each with its own course, under a line that
- * says what the courses show when there is one. It carries its label, unless
- * what it stands in names it already — the title of a part folded away.
+ * says what the courses show when there is one, and what their stripes are
+ * when they are drawn with any. It carries its label, unless what it stands in
+ * names it already — the title of a part folded away.
  */
 export function RankList({
 	label,
 	note,
+	legend,
 	rows,
 }: {
 	label?: string;
 	note?: string;
+	legend?: ComponentChildren;
 	rows: readonly RankRow[];
 }) {
 	return (
 		<section class="mt-list">
 			{label !== undefined && <h3 class="mt-section-label">{label}</h3>}
 			{note !== undefined && <p class="mt-list-lead">{note}</p>}
+			{legend}
 			<ul>
 				{rows.map((row) => (
 					<li key={row.id} class="mt-rank-row">
@@ -202,7 +411,14 @@ export function RankList({
 							</span>
 							<span class="mt-rank-row-end">
 								{row.word !== undefined && (
-									<span class="mt-rank-word">{row.word}</span>
+									<span class="mt-rank-word" data-way={row.way}>
+										{row.way !== undefined && (
+											<span class="mt-move-arrow" aria-hidden="true">
+												{moveArrows[row.way]}
+											</span>
+										)}
+										{row.word}
+									</span>
 								)}
 								{row.name !== undefined && (
 									<span class="mt-rank-row-name">{row.name}</span>

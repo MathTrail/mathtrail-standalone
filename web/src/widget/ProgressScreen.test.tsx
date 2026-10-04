@@ -1,6 +1,16 @@
+import { render } from "preact";
+import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { ProgressScreen } from "./ProgressScreen";
+import { readScreen } from "./payload";
 import { type Drawn, drawCard, foldIn, press, takeDown } from "./testing/card";
-import { atTheTop, inTrial, standing, standingBefore } from "./testing/lesson";
+import {
+	atTheTop,
+	inTrial,
+	moving,
+	standing,
+	standingBefore,
+} from "./testing/lesson";
 
 let drawn: Drawn | undefined;
 
@@ -291,10 +301,10 @@ describe("the progress", () => {
 				"2",
 				eleven("100%", "100%", "100%", "27%"),
 			],
-			["Enumeration", "River crossing", "1", eleven("100%", "100%", "76%")],
+			["Enumeration", "evenRiver crossing", "1", eleven("100%", "100%", "76%")],
 			[
 				"Gaps and boundaries",
-				"River crossing",
+				"evenRiver crossing",
 				"1",
 				eleven("100%", "100%", "53%"),
 			],
@@ -509,8 +519,8 @@ describe("the progress", () => {
 		expect(text(root, ".mt-note-plain p")).toBe("Перебор, ещё раз");
 		expect(topics(root).map(([, standsAt]) => standsAt)).toEqual([
 			"впередиХолм",
-			"Брод",
-			"Брод",
+			"вровеньБрод",
+			"вровеньБрод",
 			"отстаётЛесная тропа",
 			"ответов пока нет",
 		]);
@@ -548,5 +558,268 @@ describe("the progress", () => {
 		const { heard } = await draw(standing);
 
 		expect(heard.calls).toEqual([]);
+	});
+});
+
+// periods are the whiles the switch offers, each its value and whether it is
+// the one chosen.
+function periods(root: HTMLElement): [string, boolean][] {
+	return [...root.querySelectorAll<HTMLInputElement>(".mt-switch input")].map(
+		(radio) => [radio.value, radio.checked],
+	);
+}
+
+// stripes are how far the stripes of a move reach on each step of the first
+// course drawn in element, or "" on a step no move is drawn across.
+function stripes(element: Element | null | undefined): string[] {
+	return [
+		...(element?.querySelector(".mt-segments")?.querySelectorAll("svg") ?? []),
+	].map(
+		(step) =>
+			step.querySelector(".mt-segment-stripes")?.getAttribute("width") ?? "",
+	);
+}
+
+// counted is the topics' count of moves by their title, each way that moved
+// with its arrow, and the same in words for a screen reader.
+function counted(root: HTMLElement): [string[], string] {
+	const summary = foldIn(root, "Topics");
+	return [
+		[...summary.querySelectorAll(".mt-move-counted [data-way]")].map(
+			(count) => count.textContent ?? "",
+		),
+		summary.querySelector(".mt-move-counts .mt-vh")?.textContent ?? "",
+	];
+}
+
+// chosen presses the while named on the switch.
+function chosen(root: HTMLElement, period: string): void {
+	const radio = root.querySelector<HTMLInputElement>(
+		`.mt-switch input[value="${period}"]`,
+	);
+	if (radio === null) {
+		throw new Error(`no ${period} on the switch`);
+	}
+	press(radio);
+}
+
+// withWeek is moving with the week of the overall rank and of every topic
+// told as week says of each.
+function withWeek(week: (change: { week: unknown }) => unknown) {
+	return {
+		...moving,
+		overall: {
+			...moving.overall,
+			change: { ...moving.overall.change, week: week(moving.overall.change) },
+		},
+		topics: moving.topics.map((topic) =>
+			topic.change === undefined
+				? topic
+				: { ...topic, change: { ...topic.change, week: week(topic.change) } },
+		),
+	};
+}
+
+describe("the moves", () => {
+	test("are drawn over the week at first: the rank's line and stripes, each topic's word and stripes, the topics' count and a legend", async () => {
+		const { root } = await drawOpened(moving);
+
+		expect(periods(root)).toEqual([
+			["last_task", false],
+			["week", true],
+		]);
+		expect(text(root, ".mt-rank-move")).toBe(
+			"↑Over the past week — a new rank: Forest path → River crossing",
+		);
+		expect(root.querySelector(".mt-rank-move")?.getAttribute("data-way")).toBe(
+			"gain",
+		);
+		const rank = root.querySelector(".mt-rank");
+		expect(fills(rank)).toEqual(eleven("100%", "80%", "0%"));
+		expect(stripes(rank)).toEqual([
+			"",
+			"100%",
+			"43%",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+		]);
+		expect(topics(root).map(([name, end]) => [name, end])).toEqual([
+			["OrderingMastered", "↑new rankHill"],
+			["Enumeration", "↑forwardRiver crossing"],
+			["Gaps and boundaries", "evenRiver crossing"],
+			["Parity and alternation", "↓rank belowForest path"],
+			["Pigeonhole principle", "no answers yet"],
+		]);
+		// Ordering reached a new rank over the week: striped from where it stood
+		// in the rank before, across the step, to where it stands.
+		expect(stripes(root.querySelector(".mt-rank-row"))).toEqual([
+			"",
+			"",
+			"100%",
+			"27%",
+			...Array.from({ length: 7 }, () => ""),
+		]);
+		expect(counted(root)).toEqual([
+			["↑ 2", "↓ 1"],
+			"2 topics moved forward, 1 topic slipped back",
+		]);
+		expect(text(root, ".mt-move-legend")).toBe("gainloss· over the past week");
+	});
+
+	test("are drawn since the last task once it is chosen", async () => {
+		const { root } = await drawOpened(moving);
+
+		chosen(root, "last_task");
+
+		expect(periods(root)).toEqual([
+			["last_task", true],
+			["week", false],
+		]);
+		expect(text(root, ".mt-rank-move")).toBe(
+			"↓The last task moved the bar back",
+		);
+		// A step back of four points is drawn over a seventh of the step.
+		expect(stripes(root.querySelector(".mt-rank"))[2]).toBe("57%");
+		expect(topics(root).map(([, end]) => end)).toEqual([
+			"aheadHill",
+			"↓backRiver crossing",
+			"evenRiver crossing",
+			"behindForest path",
+			"no answers yet",
+		]);
+		expect(counted(root)).toEqual([["↓ 1"], "1 topic slipped back"]);
+		expect(text(root, ".mt-move-legend")).toBe("gainloss· since the last task");
+	});
+
+	test("are drawn since the last task at first when the week cannot be told, and say there is nothing to compare when it is chosen", async () => {
+		const { root } = await drawOpened(withWeek(() => null));
+
+		expect(periods(root)).toEqual([
+			["last_task", true],
+			["week", false],
+		]);
+		chosen(root, "week");
+
+		expect(text(root, ".mt-rank-move")).toBe(
+			"Nothing to compare the past week with yet",
+		);
+		expect(root.querySelector(".mt-rank-move")?.hasAttribute("data-way")).toBe(
+			false,
+		);
+		expect(root.querySelector(".mt-segment-stripes")).toBeNull();
+		expect(topics(root).map(([, end]) => end)).toEqual([
+			"aheadHill",
+			"evenRiver crossing",
+			"evenRiver crossing",
+			"behindForest path",
+			"no answers yet",
+		]);
+		expect(foldIn(root, "Topics").querySelector(".mt-move-counts")).toBeNull();
+	});
+
+	test("say the bar stayed where nothing moved, with no stripes and no count", async () => {
+		const { root } = await drawOpened(
+			withWeek((change) => ({ ...(change.week as object), moved: "same" })),
+		);
+
+		expect(text(root, ".mt-rank-move")).toBe(
+			"Over the past week the bar stayed where it was",
+		);
+		expect(root.querySelector(".mt-segment-stripes")).toBeNull();
+		expect(foldIn(root, "Topics").querySelector(".mt-move-counts")).toBeNull();
+	});
+
+	test("count a topic new to the while among those that moved up, with a word of its own", async () => {
+		const { root } = await drawOpened({
+			...moving,
+			topics: [
+				{
+					...moving.topics[2],
+					change: { last_task: null, week: { moved: "new" } },
+				},
+			],
+		});
+
+		expect(topics(root).map(([, end]) => end)).toEqual([
+			"↑new topicRiver crossing",
+		]);
+		expect(counted(root)).toEqual([["↑ 1"], "1 topic moved forward"]);
+	});
+
+	test("draw nothing of a move a later release names, and the progress all the same", async () => {
+		const { root } = await drawOpened({
+			...moving,
+			overall: {
+				...moving.overall,
+				change: {
+					...moving.overall.change,
+					week: { rank: 3, share: 40, moved: "leap" },
+				},
+			},
+		});
+
+		expect(text(root, ".mt-rank-name")).toBe("River crossing");
+		expect(text(root, ".mt-rank-move")).toBe("");
+		expect(stripes(root.querySelector(".mt-rank")).join("")).toBe("");
+	});
+
+	test("are not drawn during the trial series, nor from a progress that tells none", async () => {
+		for (const payload of [inTrial, standing]) {
+			const { root } = await drawOpened(payload);
+
+			expect(root.querySelector(".mt-switch")).toBeNull();
+			expect(root.querySelector(".mt-rank-move")).toBeNull();
+			expect(root.querySelector(".mt-move-legend")).toBeNull();
+			expect(root.querySelector(".mt-segment-stripes")).toBeNull();
+			takeDown(root);
+		}
+	});
+});
+
+describe("a progress screen nobody outlives", () => {
+	// stillHost is a host that answers nothing: a screen drawn on its own,
+	// over no card, has nobody to call.
+	const stillHost = {
+		callTool: () => Promise.reject(new Error("no host")),
+		sendMessage: () => Promise.reject(new Error("no host")),
+		tellModel: () => Promise.reject(new Error("no host")),
+	};
+
+	test("keeps the while chosen on its switch itself", () => {
+		const root = document.createElement("div");
+		document.body.append(root);
+		const report = readScreen(moving);
+		if (report?.screen !== "progress") {
+			throw new Error(`the progress reads as ${report?.screen}`);
+		}
+		act(() =>
+			render(
+				<ProgressScreen
+					report={report.report}
+					wide={false}
+					host={stillHost}
+					folds={{ open: new Set(), toggle: () => {} }}
+				/>,
+				root,
+			),
+		);
+
+		chosen(root, "last_task");
+
+		expect(periods(root)).toEqual([
+			["last_task", true],
+			["week", false],
+		]);
+		expect(text(root, ".mt-rank-move")).toBe(
+			"↓The last task moved the bar back",
+		);
+		act(() => render(null, root));
+		root.remove();
 	});
 });

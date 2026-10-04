@@ -172,9 +172,7 @@ export function parsePage(file: string, html: string): Page {
 }
 
 // walk reads the head and collects every reference in the document, the content
-// of a template included. An anchor inside a template is not collected: what a
-// template holds is not part of the page until a script puts it there, so a
-// link cannot scroll to it.
+// of a template included.
 function walk(node: Node, page: Page, inTemplate = false): void {
 	if ("tagName" in node) {
 		readElement(node, page, inTemplate);
@@ -194,10 +192,29 @@ function attribute(element: Element, name: string): string {
 	return element.attrs.find((a) => a.name === name)?.value ?? "";
 }
 
-// readElement takes from one element whatever the checks need from it.
+// readElement takes from one element whatever the checks need from it. What a
+// template holds is not part of the page until a script puts it there: it gives
+// the page neither an anchor nor anything of its head, while the files it names
+// still count, since the page may yet load them.
 function readElement(element: Element, page: Page, inTemplate: boolean): void {
+	if (!inTemplate) {
+		readOwn(element, page);
+	}
+	if (element.tagName === "a") {
+		addReference(element, "href", false, page);
+	} else if (element.tagName === "link") {
+		readLink(element, page, inTemplate);
+	}
+	if (srcElements.has(element.tagName)) {
+		addReference(element, "src", true, page);
+	}
+}
+
+// readOwn takes what only the page's own elements give it: an anchor, its
+// language and direction, its title and its description.
+function readOwn(element: Element, page: Page): void {
 	const id = attribute(element, "id");
-	if (id !== "" && !inTemplate) {
+	if (id !== "") {
 		page.ids.add(id);
 	}
 	switch (element.tagName) {
@@ -217,15 +234,6 @@ function readElement(element: Element, page: Page, inTemplate: boolean): void {
 				page.description = attribute(element, "content").trim();
 			}
 			break;
-		case "a":
-			addReference(element, "href", false, page);
-			break;
-		case "link":
-			readLink(element, page);
-			break;
-	}
-	if (srcElements.has(element.tagName)) {
-		addReference(element, "src", true, page);
 	}
 }
 
@@ -237,14 +245,17 @@ function textOf(element: Element): string {
 }
 
 // readLink sorts a link element into the three things it can be: a statement of
-// the page's own address, a pointer at a translation, or a file to fetch.
-function readLink(element: Element, page: Page): void {
+// the page's own address, a pointer at a translation, or a file to fetch. A
+// statement inside a template says nothing about the page.
+function readLink(element: Element, page: Page, inTemplate: boolean): void {
 	const rel = attribute(element, "rel").trim().toLowerCase();
 	if (rel === "canonical") {
-		page.canonical = attribute(element, "href");
+		if (!inTemplate) {
+			page.canonical = attribute(element, "href");
+		}
 	} else if (rel === "alternate") {
 		const hreflang = attribute(element, "hreflang");
-		if (hreflang !== "") {
+		if (hreflang !== "" && !inTemplate) {
 			page.alternates.set(hreflang, attribute(element, "href"));
 		}
 	} else {

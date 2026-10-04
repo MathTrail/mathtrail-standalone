@@ -100,6 +100,8 @@ func FuzzParse(f *testing.F) {
 	for _, seed := range []string{
 		"", "{", "null", "[]", `{"schema_version": 0}`, `{"schema_version": 1}`, `{"schema_version": 2}`,
 		`{"schema_version": 1e400}`, `{"schema_version": -1}`,
+		`{"schema_version": 1, "rating_days": [{"date": "2026-09-20", "deltas": {"counting.gaps": 0.1}, "theta": 2.5}]}`,
+		`{"schema_version": 1, "recent": [{"before": {"delta": 0.1, "theta": 2.5}}]}`,
 	} {
 		f.Add([]byte(seed))
 	}

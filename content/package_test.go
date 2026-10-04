@@ -135,6 +135,16 @@ func TestAPackageCarriesEveryPart(t *testing.T) {
 	if parts := partsOf(t, encoded); !slices.Equal(parts, packageParts) {
 		t.Errorf("parts = %v, want %v", parts, packageParts)
 	}
+	// The model is told what a topic is about and nothing of the site: the
+	// topic's page, its links and whether the page is out take no part in
+	// writing a task.
+	var whole map[string]json.RawMessage
+	if err := json.Unmarshal(encoded, &whole); err != nil {
+		t.Fatalf("read the package: %v", err)
+	}
+	if keys := partsOf(t, whole["topic"]); !slices.Equal(keys, []string{"description", "id", "name"}) {
+		t.Errorf("the topic's parts = %v, want its description, id and name alone", keys)
+	}
 	if got.Language != "en" || !reflect.DeepEqual(got.Brief, asked.Brief) {
 		t.Errorf("language %q, brief %+v, want the request's", got.Language, got.Brief)
 	}

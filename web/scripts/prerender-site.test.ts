@@ -7,13 +7,46 @@ import {
 	rm,
 	writeFile,
 } from "node:fs/promises";
+import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
-import { join, relative } from "node:path";
+import { dirname, join, relative } from "node:path";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import catalog from "../../content/catalogs/topics.json";
 import { byCodeUnits } from "../src/i18n/order.ts";
 import { buildSite, givenTwice, main, readSources } from "./prerender-site.ts";
 
 const repository = join(import.meta.dirname, "..", "..");
+
+// font is the directory of the font package the site sets its text in.
+const font = dirname(
+	createRequire(import.meta.url).resolve(
+		"@fontsource-variable/onest/package.json",
+	),
+);
+
+// fontFiles are the subsets of the font the site serves, as the stylesheet
+// the build makes names them.
+const fontFiles = [
+	"onest-cyrillic-wght-normal.woff2",
+	"onest-latin-wght-normal.woff2",
+];
+
+// scripted are the pages that may run a script: none, until the home page's
+// demo comes.
+const scripted: readonly string[] = [];
+
+// carded are the pages that draw a card of the widget, and load its styles.
+const carded: readonly string[] = [
+	"en/topics/index.html",
+	"ru/topics/index.html",
+];
+
+// urlsIn are the addresses every url() of a stylesheet names, sorted.
+function urlsIn(style: string): string[] {
+	return [...style.matchAll(/url\(\s*["']?([^"')]*)["']?\s*\)/g)]
+		.map(([, address]) => address ?? "")
+		.sort(byCodeUnits);
+}
 
 // filesIn are the paths of every file below dir, relative to it, sorted.
 async function filesIn(dir: string): Promise<string[]> {
@@ -54,21 +87,29 @@ describe("the site built from this repository", () => {
 		await rm(out, { recursive: true, force: true });
 	});
 
-	test("is its pages, its stylesheets, its mark and the host's files, and nothing older", async () => {
+	test("is its pages, its stylesheets, its font, its mark and the host's files, and nothing older", async () => {
 		expect(await filesIn(out)).toEqual([
 			".nojekyll",
 			"CNAME",
+			"assets/card.css",
 			"assets/favicon.svg",
+			"assets/onest-cyrillic-wght-normal.woff2",
+			"assets/onest-latin-wght-normal.woff2",
+			"assets/onest-license.txt",
 			"assets/style.css",
 			"assets/tokens.css",
 			"en/index.html",
 			"en/privacy/index.html",
 			"en/terms/index.html",
+			"en/topics/index.html",
+			"en/topics/knights-and-liars/index.html",
 			"index.html",
 			"robots.txt",
 			"ru/index.html",
 			"ru/privacy/index.html",
 			"ru/terms/index.html",
+			"ru/topics/index.html",
+			"ru/topics/knights-and-liars/index.html",
 			"sitemap.xml",
 		]);
 	});
@@ -82,15 +123,32 @@ describe("the site built from this repository", () => {
 		);
 	});
 
+	test("ships the font's subsets as its package has them, and its licence beside them", async () => {
+		for (const file of fontFiles) {
+			expect(await readFile(join(out, "assets", file))).toEqual(
+				await readFile(join(font, "files", file)),
+			);
+		}
+		expect(await readFile(join(out, "assets", "onest-license.txt"))).toEqual(
+			await readFile(join(font, "LICENSE")),
+		);
+	});
+
 	test("builds the site's own stylesheet, with no copy of the tokens inside it", async () => {
 		const style = await readFile(join(out, "assets", "style.css"), "utf8");
 
 		expect(style).toContain("--s-page:");
 		expect(style).not.toContain("--surface:");
-		expect(style).not.toMatch(/url\(|@import|https?:|data:/);
+		expect(style).not.toMatch(/@import|https?:|data:/);
 	});
 
-	test("loads on every page the tokens, then the styles, and no script", async () => {
+	test("builds a stylesheet that loads the site's own font files and nothing else", async () => {
+		const style = await readFile(join(out, "assets", "style.css"), "utf8");
+
+		expect(urlsIn(style)).toEqual(fontFiles.map((file) => `/assets/${file}`));
+	});
+
+	test("loads on every page the tokens, then the styles, and a script only on a page allowed one", async () => {
 		const pages = (await filesIn(out)).filter((file) => file.endsWith(".html"));
 		expect(pages).not.toEqual([]);
 		for (const page of pages) {
@@ -100,8 +158,78 @@ describe("the site built from this repository", () => {
 				[...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map(
 					([, href]) => href,
 				),
-			).toEqual(["/assets/tokens.css", "/assets/style.css"]);
-			expect(html).not.toContain("<script");
+			).toEqual([
+				"/assets/tokens.css",
+				"/assets/style.css",
+				...(carded.includes(page) ? ["/assets/card.css"] : []),
+			]);
+			expect(html.includes("<script")).toBe(scripted.includes(page));
+			expect(html.includes('class="mt mt-widget')).toBe(carded.includes(page));
+		}
+	});
+
+	test("builds the cards' stylesheet from the widget's own, loading nothing", async () => {
+		const card = await readFile(join(out, "assets", "card.css"), "utf8");
+
+		expect(card).toContain(".mt-widget");
+		expect(card).not.toMatch(/url\(|@import|https?:|data:/);
+	});
+
+	test("shows on the page of the topics every topic of the catalog, and every link between them", async () => {
+		for (const locale of ["en", "ru"]) {
+			const html = await readFile(
+				join(out, locale, "topics", "index.html"),
+				"utf8",
+			);
+			const cards = [
+				...html.matchAll(/<article id="([^"]+)" class="s-topic"/g),
+			];
+			const lines = [
+				...html.matchAll(/<g id="line-[^"]+" class="s-map-line"/g),
+			];
+
+			expect(cards.map(([, slug]) => slug ?? "").sort(byCodeUnits)).toEqual(
+				catalog.map((topic) => topic.slug).sort(byCodeUnits),
+			);
+			expect(lines).toHaveLength(
+				catalog.reduce((sum, topic) => sum + topic.builds_on.length, 0),
+			);
+		}
+	});
+
+	test("draws the page of every topic the catalog publishes, which the page of the topics leads to", async () => {
+		const published = catalog.filter((topic) => topic.site_page);
+		expect(published).not.toEqual([]);
+		for (const locale of ["en", "ru"]) {
+			const topics = await readFile(
+				join(out, locale, "topics", "index.html"),
+				"utf8",
+			);
+			for (const { slug } of published) {
+				const html = await readFile(
+					join(out, locale, "topics", slug, "index.html"),
+					"utf8",
+				);
+
+				expect(topics).toContain(`href="/${locale}/topics/${slug}/"`);
+				expect(html).toContain(`<section id="traps"`);
+				expect(html).toContain(`<section id="home"`);
+			}
+		}
+	});
+
+	test("gives on the privacy policy's page one address to write to, the policy's and the footer's", async () => {
+		for (const locale of ["en", "ru"]) {
+			const html = await readFile(
+				join(out, locale, "privacy", "index.html"),
+				"utf8",
+			);
+			const written = [...html.matchAll(/href="mailto:([^"]+)"/g)].map(
+				([, address]) => address,
+			);
+
+			expect(written.length).toBeGreaterThan(1);
+			expect(new Set(written).size).toBe(1);
 		}
 	});
 
@@ -273,11 +401,38 @@ describe("the site's stylesheet, as it is written", () => {
 	});
 
 	test.each([
-		["a resource loaded by url()", /url\(/],
 		["another stylesheet imported", /@import/],
 		["an address of another origin", /https?:/],
 	])("loads nothing from anywhere: no %s", (_, rule) => {
 		expect(style).not.toMatch(rule);
+	});
+
+	test("loads by url() the font's subsets alone, from the font's package", () => {
+		expect(urlsIn(style)).toEqual(
+			fontFiles.map((file) => `@fontsource-variable/onest/files/${file}`),
+		);
+	});
+
+	test("declares each subset of the font with the characters its package gives it", async () => {
+		const ranges = JSON.parse(
+			await readFile(join(font, "unicode.json"), "utf8"),
+		) as Record<string, string>;
+		const declared = [...style.matchAll(/@font-face\s*{([^}]*)}/g)].map(
+			([, rules = ""]) => ({
+				subset: /onest-([a-z-]+)-wght-normal/.exec(rules)?.[1],
+				range: /unicode-range:([^;]*);/.exec(rules)?.[1]?.replace(/\s+/g, ""),
+			}),
+		);
+
+		expect(declared).toEqual([
+			{ subset: "latin", range: ranges.latin },
+			{ subset: "cyrillic", range: ranges.cyrillic },
+		]);
+	});
+
+	test("sets its text in its own font, the system's behind it", () => {
+		expect(style).toMatch(/--s-font:\s*"Onest",\s*var\(--font-sans\);/);
+		expect(style).toMatch(/html\s*{[^}]*font-family:\s*var\(--s-font\);/);
 	});
 
 	test("has one look, whatever the reader's system prefers", () => {
@@ -296,9 +451,11 @@ describe("the site's texts", () => {
 
 	beforeAll(async () => {
 		dir = await mkdtemp(join(tmpdir(), "texts-"));
-		await mkdir(join(dir, "en"));
+		await mkdir(join(dir, "en", "topics"), { recursive: true });
 		await writeFile(join(dir, "en", "index.md"), "home");
-		await writeFile(join(dir, "en", "notes.txt"), "not a page");
+		await writeFile(join(dir, "en", "why.yaml"), "title: Why");
+		await writeFile(join(dir, "en", "topics", "sample.yaml"), "title: Sample");
+		await writeFile(join(dir, "en", "notes.txt"), "not a text");
 		await mkdir(join(dir, "en", "drafts"));
 		await writeFile(join(dir, "README.md"), "not a locale");
 	});
@@ -307,9 +464,16 @@ describe("the site's texts", () => {
 		await rm(dir, { recursive: true, force: true });
 	});
 
-	test("are the .md files of each locale's directory, by page name", async () => {
-		expect(await readSources(dir)).toEqual(
-			new Map([["en", new Map([["index", "home"]])]]),
-		);
+	test("are the .md and .yaml files below each locale's directory, by their path", async () => {
+		const read = await readSources(dir);
+
+		expect([...read.keys()]).toEqual(["en"]);
+		expect(
+			[...(read.get("en") ?? [])].sort(([a], [b]) => byCodeUnits(a, b)),
+		).toEqual([
+			["index.md", "home"],
+			["topics/sample.yaml", "title: Sample"],
+			["why.yaml", "title: Why"],
+		]);
 	});
 });

@@ -2,7 +2,8 @@
 // crawler or a reviewer would otherwise each find broken separately: a link
 // that leads nowhere, a page that quietly fetches from somebody else's domain,
 // a head that a search result cannot be built from, a locale that lost a page,
-// a page that grew past its budget, an address the site handed out and lost.
+// a page that grew past its budget, an address the site handed out and lost,
+// and a page it serves without having listed it among the addresses it keeps.
 //
 // It reads the finished directory and nothing of what drew it, so it keeps
 // judging the same way whatever builds the site.
@@ -16,6 +17,7 @@ import {
 	parsePage,
 	resolveReference,
 } from "./page.ts";
+import { stylesheetReferences } from "./stylesheet.ts";
 
 /** Options are the expectations a built site cannot state about itself. */
 export type Options = {
@@ -27,13 +29,14 @@ export type Options = {
 	/** referenceLocale is the locale whose pages every other locale must have. */
 	referenceLocale: string;
 	/**
-	 * maxPageBytes caps a page together with the local files it pulls in; zero
-	 * leaves the size unchecked.
+	 * maxPageBytes caps a page together with the local files it pulls in, and
+	 * the files its stylesheets pull in; zero leaves the size unchecked.
 	 */
 	maxPageBytes: number;
 	/**
 	 * published are the addresses the site has handed out and must keep: a
-	 * page's, or an anchor on one, such as "/en/#connect".
+	 * page's, or an anchor on one, such as "/en/#connect". Every page the site
+	 * serves is among them.
 	 */
 	published: readonly string[];
 };
@@ -46,6 +49,12 @@ export type Rule =
 	| "published"
 	| "translation"
 	| "weight";
+
+/**
+ * Load is one address a stylesheet loads, as it is written, and the file of
+ * the site it asks for.
+ */
+type Load = { value: string; target: string };
 
 /** Finding is one thing that is wrong, named where a person can go and fix it. */
 export type Finding = {
@@ -78,6 +87,13 @@ export async function check(dir: string, options: Options): Promise<Finding[]> {
 	if (options.base === "") {
 		throw new Error("base URL is empty");
 	}
+	// Every address the checker expects is the base with a path after it, so a
+	// base that is not an origin would turn every page into a finding.
+	if (!isOrigin(options.base)) {
+		throw new Error(
+			`base URL "${options.base}" is not an origin: a scheme and a host, with no path and no slash at the end`,
+		);
+	}
 	if (options.referenceLocale === "") {
 		throw new Error("reference locale is empty");
 	}
@@ -87,26 +103,32 @@ export async function check(dir: string, options: Options): Promise<Finding[]> {
 	}
 
 	const files = await readSizes(dir);
-	const pages = await readPages(dir, files);
+	const [pages, sheets] = await Promise.all([
+		readPages(dir, files),
+		readStylesheets(dir, files),
+	]);
 	if (!pages.has(address(options.referenceLocale, ""))) {
 		throw new Error(
 			`reference locale "${options.referenceLocale}" has no front page`,
 		);
 	}
 
+	const loads = loadsOf(sheets);
 	const findings: Finding[] = [];
 	for (const page of pages.values()) {
 		findings.push(
 			...links(page, files),
 			...external(page),
 			...head(page, pages, options),
-			...weight(page, files, options),
+			...weight(page, files, loads, options),
 		);
 	}
 	findings.push(
+		...stylesheetLinks(loads, files),
 		...translations(pages, options),
-		...(await stylesheets(dir, files)),
+		...stylesheets(sheets),
 		...publishedAddresses(files, pages, options),
+		...unlisted(pages, options),
 	);
 	return findings.sort(
 		(a, b) =>
@@ -120,17 +142,20 @@ export async function check(dir: string, options: Options): Promise<Finding[]> {
 // link leads somewhere and what a page weighs.
 async function readSizes(dir: string): Promise<Map<string, number>> {
 	const entries = await readdir(dir, { recursive: true, withFileTypes: true });
-	const sizes = new Map<string, number>();
-	for (const entry of entries) {
-		if (!entry.isFile()) {
-			continue;
-		}
-		const file = join(entry.parentPath, entry.name);
-		sizes.set(
-			relative(dir, file).split(sep).join("/"),
-			(await stat(file)).size,
-		);
-	}
+	// A link to a file serves that file, and weighs what it weighs; a link to a
+	// directory or to nothing serves no file at all.
+	const sized = await Promise.all(
+		entries
+			.filter((entry) => entry.isFile() || entry.isSymbolicLink())
+			.map(async (entry) => {
+				const file = join(entry.parentPath, entry.name);
+				const info = await stat(file).catch(() => undefined);
+				return info?.isFile()
+					? ([relative(dir, file).split(sep).join("/"), info.size] as const)
+					: undefined;
+			}),
+	);
+	const sizes = new Map(sized.filter((entry) => entry !== undefined));
 	if (sizes.size === 0) {
 		throw new Error("the site is empty");
 	}
@@ -142,18 +167,49 @@ async function readPages(
 	dir: string,
 	files: Map<string, number>,
 ): Promise<Map<string, Page>> {
-	const pages = new Map<string, Page>();
-	for (const file of files.keys()) {
-		if (posix.basename(file) !== indexFile) {
-			continue;
-		}
-		const page = parsePage(file, await readFile(join(dir, file), "utf8"));
-		pages.set(page.address, page);
-	}
+	const parsed = await Promise.all(
+		[...files.keys()]
+			.filter((file) => posix.basename(file) === indexFile)
+			.map(async (file) =>
+				parsePage(file, await readFile(join(dir, file), "utf8")),
+			),
+	);
+	const pages = new Map(parsed.map((page) => [page.address, page]));
 	if (pages.size === 0) {
 		throw new Error("the site holds no page");
 	}
 	return pages;
+}
+
+// readStylesheets reads every stylesheet of the site, by its file.
+async function readStylesheets(
+	dir: string,
+	files: Map<string, number>,
+): Promise<Map<string, string>> {
+	const read = await Promise.all(
+		[...files.keys()]
+			.filter((file) => file.endsWith(".css"))
+			.map(
+				async (file) =>
+					[file, await readFile(join(dir, file), "utf8")] as const,
+			),
+	);
+	return new Map(read);
+}
+
+// loadsOf are the files of the site each stylesheet loads, by the stylesheet's
+// file. An address of another origin is no file of the site: the stylesheet
+// rule names it.
+function loadsOf(sheets: Map<string, string>): Map<string, Load[]> {
+	return new Map(
+		[...sheets].map(([file, text]) => [
+			file,
+			stylesheetReferences(text)
+				.filter((value) => !isExternal(value))
+				.map((value) => ({ value, target: resolveReference(value, file) }))
+				.filter(({ target }) => target !== ""),
+		]),
+	);
 }
 
 // links reports every reference that leads to a file the site does not have.
@@ -174,6 +230,24 @@ function links(page: Page, files: Map<string, number>): Finding[] {
 			},
 		];
 	});
+}
+
+// stylesheetLinks reports every file a stylesheet loads that the site does
+// not have: a font that never arrives leaves the page in another typeface, and
+// nothing else would say so.
+function stylesheetLinks(
+	loads: Map<string, Load[]>,
+	files: Map<string, number>,
+): Finding[] {
+	return [...loads].flatMap(([file, wanted]) =>
+		wanted
+			.filter(({ target }) => !files.has(target))
+			.map(({ value, target }) => ({
+				path: file,
+				rule: "link" as const,
+				message: `the stylesheet loads "${value}", which leads to ${target}, and the site does not have it`,
+			})),
+	);
 }
 
 // external reports anything the page fetches from another origin. A link a
@@ -275,10 +349,12 @@ function translations(pages: Map<string, Page>, options: Options): Finding[] {
 }
 
 // weight reports a page that, with everything it pulls in, costs its reader
-// more than the budget allows.
+// more than the budget allows: its own files, and every file its stylesheets
+// load in turn — each font subset they declare, as if all were fetched.
 function weight(
 	page: Page,
 	files: Map<string, number>,
+	loads: Map<string, Load[]>,
 	options: Options,
 ): Finding[] {
 	if (options.maxPageBytes === 0) {
@@ -291,6 +367,13 @@ function weight(
 		}
 		const target = resolveReference(ref.value, page.file);
 		if (target !== "") {
+			counted.add(target);
+		}
+	}
+	// A set visits what is added to it while it is walked, so a stylesheet
+	// another one loads is counted, and what it loads, once each.
+	for (const file of counted) {
+		for (const { target } of loads.get(file) ?? []) {
 			counted.add(target);
 		}
 	}
@@ -313,27 +396,18 @@ function weight(
 // stylesheets reports a stylesheet that reaches for another origin. A font or an
 // image pulled in from a stylesheet is invisible in the HTML, and it hands a
 // third party every visit as surely as a script would.
-async function stylesheets(
-	dir: string,
-	files: Map<string, number>,
-): Promise<Finding[]> {
-	const findings: Finding[] = [];
-	for (const file of files.keys()) {
-		if (!file.endsWith(".css")) {
-			continue;
-		}
-		const text = await readFile(join(dir, file), "utf8");
-		for (const marker of foreignMarkers) {
-			if (text.includes(marker)) {
-				findings.push({
+function stylesheets(sheets: Map<string, string>): Finding[] {
+	return [...sheets].flatMap(([file, text]) =>
+		foreignMarkers
+			.filter((marker) => text.includes(marker))
+			.map(
+				(marker): Finding => ({
 					path: file,
 					rule: "external",
 					message: `the stylesheet mentions "${marker}", so it may load from another origin`,
-				});
-			}
-		}
-	}
-	return findings;
+				}),
+			),
+	);
 }
 
 // publishedAddresses reports an address the site handed out that the build no
@@ -370,6 +444,21 @@ function publishedAddresses(
 	});
 }
 
+// unlisted reports a page the site serves that the list of published
+// addresses does not hold. Every page is somebody's link once it is out, and
+// only an address on the list is held to staying, so a page joins the list
+// with the change that publishes it.
+function unlisted(pages: Map<string, Page>, options: Options): Finding[] {
+	const listed = new Set(options.published.map((p) => p.split("#")[0]));
+	return [...pages.values()]
+		.filter((page) => !listed.has(page.address))
+		.map((page) => ({
+			path: page.file,
+			rule: "published",
+			message: `the site serves ${page.address}, which the list of published addresses does not hold`,
+		}));
+}
+
 // localesOf lists the locales the site has, in a stable order.
 function localesOf(pages: Map<string, Page>): string[] {
 	const locales = new Set<string>();
@@ -395,6 +484,20 @@ function namesOf(pages: Map<string, Page>, locale: string): Set<string> {
 // address is the path a locale's page is served at.
 function address(locale: string, name: string): string {
 	return name === "" ? `/${locale}/` : `/${locale}/${name}/`;
+}
+
+// isOrigin reports whether base is an origin written as a browser writes one: a
+// web scheme and a host, perhaps a port, and nothing after them.
+function isOrigin(base: string): boolean {
+	try {
+		const url = new URL(base);
+		return (
+			(url.protocol === "https:" || url.protocol === "http:") &&
+			url.origin === base
+		);
+	} catch {
+		return false;
+	}
 }
 
 // byCodeUnits orders strings by their code units, so that a report reads the

@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { mkdtemp, rm, unlink } from "node:fs/promises";
+import { mkdtemp, rm, symlink, unlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
@@ -149,6 +149,34 @@ describe("check", () => {
 			contains: "the budget is 64",
 		},
 		{
+			name: "a page whose stylesheet loads a font past the budget",
+			change: (files) => {
+				files["assets/style.css"] =
+					"@font-face{font-family:A;src:url(/assets/a.woff2)}";
+				files["assets/a.woff2"] = "x".repeat(4096);
+			},
+			rule: "weight",
+			contains: "the budget is 4096",
+		},
+		{
+			name: "a font a stylesheet loads that the site does not have",
+			change: (files) => {
+				files["assets/style.css"] =
+					'@font-face{font-family:A;src:url("fonts/a.woff2")}';
+			},
+			rule: "link",
+			contains: `assets/style.css: link: the stylesheet loads "fonts/a.woff2", which leads to assets/fonts/a.woff2`,
+		},
+		{
+			name: "a page the site serves and its list of published addresses does not hold",
+			change: (files) => {
+				files["en/why/index.html"] = pageAt("/en/why/", ["/en/why/"]);
+			},
+			rule: "published",
+			contains:
+				"the site serves /en/why/, which the list of published addresses does not hold",
+		},
+		{
 			name: "an address the site handed out and no longer has",
 			adjust: (options) => ({
 				...options,
@@ -200,6 +228,60 @@ describe("check", () => {
 				published: [...addresses, "/en/#connect"],
 			}),
 		).toEqual([]);
+	});
+
+	test("serves a linked file as the file it links to", async () => {
+		const dir = await site((files) => {
+			files["shared/style.css"] =
+				"@import url(https://fonts.example.com/x.css);";
+		});
+		await unlink(join(dir, "assets", "style.css"));
+		await symlink(
+			join(dir, "shared", "style.css"),
+			join(dir, "assets", "style.css"),
+		);
+
+		const findings = await check(dir, options());
+
+		expect(findings.filter((finding) => finding.rule === "link")).toEqual([]);
+		expect(findings).toContainEqual({
+			path: "assets/style.css",
+			rule: "external",
+			message: `the stylesheet mentions "https://", so it may load from another origin`,
+		});
+	});
+
+	test("weighs what a stylesheet loads through another, once each", async () => {
+		const dir = await site((files) => {
+			files["assets/style.css"] = '@import "more.css";';
+			files["assets/more.css"] =
+				"@font-face{src:url(a.woff2)}@font-face{src:url(/assets/a.woff2)}";
+			// A page of some 500 bytes with this font is past 4096 bytes, and past
+			// 6000 only if the font were counted for each of its two addresses.
+			files["assets/a.woff2"] = "x".repeat(3600);
+		});
+
+		expect(
+			(await check(dir, options())).filter(({ rule }) => rule === "weight"),
+		).toEqual(
+			["en/index.html", "index.html", "ru/index.html"].map((path) => ({
+				path,
+				rule: "weight",
+				message: expect.stringContaining("and the budget is 4096"),
+			})),
+		);
+		expect(await check(dir, { ...options(), maxPageBytes: 6000 })).toEqual([]);
+	});
+
+	test("leaves an address of another origin in a stylesheet to the stylesheet rule", async () => {
+		const dir = await site((files) => {
+			files["assets/style.css"] =
+				"@font-face{src:url(https://fonts.example.com/a.woff2)}";
+		});
+
+		expect(
+			(await check(dir, options())).map(({ path, rule }) => `${path}: ${rule}`),
+		).toEqual(["assets/style.css: external"]);
 	});
 
 	test("names a page the build lost, though the link rule cannot see it", async () => {
@@ -278,6 +360,18 @@ describe("check", () => {
 			files: siteAt(addresses),
 			options: { ...options(), referenceLocale: "de" },
 			message: `reference locale "de" has no front page`,
+		},
+		{
+			name: "a base with a slash at its end",
+			files: siteAt(addresses),
+			options: { ...options(), base: `${base}/` },
+			message: `base URL "${base}/" is not an origin`,
+		},
+		{
+			name: "a base with a path",
+			files: siteAt(addresses),
+			options: { ...options(), base: `${base}/site` },
+			message: `base URL "${base}/site" is not an origin`,
 		},
 		{
 			name: "a published address that is no page's",

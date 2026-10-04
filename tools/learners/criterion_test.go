@@ -81,19 +81,20 @@ func TestNotWorseIsReadOnTheWorseEndOfTheInterval(t *testing.T) {
 // on every generator, two alike children a cell, whose every number is what
 // value gives for its rule, generator and metric.
 func fakeRun(value func(r *rule, g generator, metric string) float64) *criterionRun {
-	ms := metrics()
-	names := metricNames(ms)
-	rs := []*rule{
+	return fakeRunOf([]*rule{
 		{name: "shrinking", shape: both, service: true},
 		{name: "candidate", shape: both},
 		{name: "oracle", shape: both, ceiling: true},
-	}
-	var all []cell
-	for _, r := range rs {
-		for _, g := range allGenerators {
-			all = append(all, cell{rule: r, generator: g})
-		}
-	}
+	}, value)
+}
+
+// fakeRunOf is a run of these rules on every generator, two alike children a
+// cell, whose every number is what value gives for its rule, generator and
+// metric.
+func fakeRunOf(rs []*rule, value func(r *rule, g generator, metric string) float64) *criterionRun {
+	ms := metrics()
+	names := metricNames(ms)
+	all := cellsOf(rs)
 	summaries := make([][]summary, len(all))
 	results := make([][]vector, len(all))
 	for c := range all {

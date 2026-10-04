@@ -2,6 +2,16 @@ import { markPath, siteName } from "./brand";
 import { useSiteWords } from "./words";
 
 /**
+ * MenuLink is one entry of the menu as a page draws it: where it leads, under
+ * which word, and whether it is the page being read.
+ */
+export type MenuLink = {
+	readonly href: string;
+	readonly label: string;
+	readonly current: boolean;
+};
+
+/**
  * LanguageLink is one language a page is offered in: where the page is in it,
  * and the language's own name for itself.
  */
@@ -14,21 +24,42 @@ export type LanguageLink = {
 
 /**
  * Header is the bar on top of a page: the product's mark and name, leading to
- * the front page of the reader's language, and the languages this page is
- * offered in, when there is a choice to offer.
+ * the front page of the reader's language; the site's menu, when it has one;
+ * and the languages the page is offered in, when there is a choice to offer.
+ * On a narrow screen the menu folds behind a button that opens it with no
+ * script: the same links, drawn a second time inside a disclosure, which the
+ * stylesheet shows in the menu's place.
  */
 export function Header({
 	home,
+	menu = [],
 	languages = [],
 }: {
 	home: string;
+	menu?: readonly MenuLink[];
 	languages?: readonly LanguageLink[];
 }) {
+	const words = useSiteWords();
+	const hasMenu = menu.length > 0;
 	return (
 		<header class="s-nav">
 			<div class="s-wrap s-nav-inner">
 				<Brand home={home} />
-				{languages.length > 0 && <LanguageSwitch languages={languages} />}
+				{hasMenu && <Menu class="s-navlinks" links={menu} />}
+				{(hasMenu || languages.length > 0) && (
+					<div class="s-nav-tools">
+						{languages.length > 0 && <LanguageSwitch languages={languages} />}
+						{hasMenu && (
+							<details class="s-menu">
+								<summary>
+									<MenuIcon />
+									<span class="s-hidden">{words.text("nav.menu")}</span>
+								</summary>
+								<Menu class="s-menu-list" links={menu} />
+							</details>
+						)}
+					</div>
+				)}
 			</div>
 		</header>
 	);
@@ -42,7 +73,7 @@ export function Brand({
 	home: string;
 	small?: boolean;
 }) {
-	const size = small ? 20 : 28;
+	const size = small ? 24 : 28;
 	return (
 		<a class={small ? "s-brand s-brand-sm" : "s-brand"} href={home}>
 			<img src={markPath} alt="" width={size} height={size} />
@@ -51,10 +82,51 @@ export function Brand({
 	);
 }
 
-// LanguageSwitch offers the page in each language it exists in, by the
-// language's code, with its own name for itself on hover. A language that
-// lacks the page is not offered: a switch that leads to a missing page is
-// worse than one language fewer.
+// Menu is the menu's links, the page being read marked, wherever the header
+// draws them.
+function Menu({
+	class: name,
+	links,
+}: {
+	class: string;
+	links: readonly MenuLink[];
+}) {
+	const words = useSiteWords();
+	return (
+		<nav class={name} aria-label={words.text("nav.pages")}>
+			{links.map(({ href, label, current }) => (
+				<a key={href} href={href} aria-current={current ? "page" : undefined}>
+					{label}
+				</a>
+			))}
+		</nav>
+	);
+}
+
+// MenuIcon is the three lines a menu's button is known by, in the colour of
+// the button. The button's name is the word beside it, which a screen reader
+// says and the stylesheet hides.
+function MenuIcon() {
+	return (
+		<svg
+			width="24"
+			height="24"
+			viewBox="0 0 24 24"
+			fill="none"
+			aria-hidden="true"
+		>
+			<path
+				d="M4 7h16M4 12h16M4 17h16"
+				stroke="currentColor"
+				stroke-width="1.75"
+				stroke-linecap="round"
+			/>
+		</svg>
+	);
+}
+
+// LanguageSwitch offers the page in each language of the site, by the
+// language's code, with its own name for itself on hover.
 function LanguageSwitch({ languages }: { languages: readonly LanguageLink[] }) {
 	const words = useSiteWords();
 	return (

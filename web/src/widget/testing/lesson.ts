@@ -315,8 +315,61 @@ export const standing = {
 	},
 };
 
+// The moves of each topic of moving, by its id.
+const movesOfTopic: Record<
+	string,
+	{ last_task: object | null; week: object | null } | undefined
+> = {
+	"logic.ordering": {
+		last_task: { rank: 4, share: 27, moved: "same" },
+		week: { rank: 3, share: 90, moved: "rank_up" },
+	},
+	"combinatorics.enumeration": {
+		last_task: { rank: 3, share: 85, moved: "back" },
+		week: { rank: 3, share: 60, moved: "forward" },
+	},
+	"counting.gaps": {
+		last_task: { rank: 3, share: 53, moved: "same" },
+		week: { rank: 3, share: 53, moved: "same" },
+	},
+	"parity.alternation": {
+		last_task: { rank: 2, share: 87, moved: "same" },
+		week: { rank: 3, share: 5, moved: "rank_down" },
+	},
+};
+
+/**
+ * moving is where Comet stands with how the ranks moved: over the week the
+ * overall rank rose from the one below, and the last task, a wrong answer in
+ * Enumeration, took a little of it back; in the topics, over the week Ordering
+ * reached a new rank, Enumeration went forward within its own, Gaps and
+ * boundaries stayed where it was and Parity and alternation fell a rank, and
+ * since the last task only Enumeration moved, back. Pigeonhole principle, not
+ * met yet, has no moves.
+ */
+export const moving = {
+	...standing,
+	overall: {
+		...standing.overall,
+		change: {
+			last_task: { rating: 1580, rank: 3, share: 47, moved: "back" },
+			week: { rating: 1467, rank: 2, share: 80, moved: "rank_up" },
+		},
+	},
+	topics: standing.topics.map((topic) => ({
+		...topic,
+		change: movesOfTopic[topic.topic],
+	})),
+};
+
 /** progress is the progress a card reads when its top line is pressed. */
 export const progress = toolResult(standing);
+
+/**
+ * progressMoving is the progress a card reads when its top line is pressed,
+ * with how the ranks moved.
+ */
+export const progressMoving = toolResult(moving);
 
 /**
  * standingBefore is where Comet stands, as a progress from before the topics

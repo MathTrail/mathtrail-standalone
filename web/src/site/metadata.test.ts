@@ -4,19 +4,18 @@ import { cname, robots, sitemap } from "./metadata";
 
 const base = "https://example.test";
 
-// The pages of a small site: English has a front page and a privacy policy,
-// Russian a front page alone.
+// The pages of a small site, in English and Russian: a front page and a
+// topic's page below the topics.
 const texts = readTexts(
-	new Map([
-		[
-			"en",
+	new Map(
+		["en", "ru"].map((locale) => [
+			locale,
 			new Map([
-				["index", "---\ntitle: Home\ndescription: D\n---\n"],
-				["privacy", "---\ntitle: Privacy\ndescription: D\n---\n"],
+				["index.md", "---\ntitle: Home\ndescription: D\n---\n"],
+				["topics/sample.yaml", "title: Sample\ndescription: D\n"],
 			]),
-		],
-		["ru", new Map([["index", "---\ntitle: Главная\ndescription: D\n---\n"]])],
-	]),
+		]),
+	),
 	"en",
 );
 
@@ -39,15 +38,22 @@ describe("the files a crawler and the host read", () => {
 				'    <xhtml:link rel="alternate" hreflang="x-default" href="https://example.test/"/>',
 				"  </url>",
 				"  <url>",
-				"    <loc>https://example.test/en/privacy/</loc>",
-				'    <xhtml:link rel="alternate" hreflang="en" href="https://example.test/en/privacy/"/>',
-				'    <xhtml:link rel="alternate" hreflang="x-default" href="https://example.test/en/privacy/"/>',
+				"    <loc>https://example.test/en/topics/sample/</loc>",
+				'    <xhtml:link rel="alternate" hreflang="en" href="https://example.test/en/topics/sample/"/>',
+				'    <xhtml:link rel="alternate" hreflang="ru" href="https://example.test/ru/topics/sample/"/>',
+				'    <xhtml:link rel="alternate" hreflang="x-default" href="https://example.test/en/topics/sample/"/>',
 				"  </url>",
 				"  <url>",
 				"    <loc>https://example.test/ru/</loc>",
 				'    <xhtml:link rel="alternate" hreflang="en" href="https://example.test/en/"/>',
 				'    <xhtml:link rel="alternate" hreflang="ru" href="https://example.test/ru/"/>',
 				'    <xhtml:link rel="alternate" hreflang="x-default" href="https://example.test/"/>',
+				"  </url>",
+				"  <url>",
+				"    <loc>https://example.test/ru/topics/sample/</loc>",
+				'    <xhtml:link rel="alternate" hreflang="en" href="https://example.test/en/topics/sample/"/>',
+				'    <xhtml:link rel="alternate" hreflang="ru" href="https://example.test/ru/topics/sample/"/>',
+				'    <xhtml:link rel="alternate" hreflang="x-default" href="https://example.test/en/topics/sample/"/>',
 				"  </url>",
 				"</urlset>",
 				"",

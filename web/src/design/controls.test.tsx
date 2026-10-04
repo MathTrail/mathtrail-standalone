@@ -12,6 +12,7 @@ import {
 	type OptionState,
 	SelectField,
 	TextField,
+	ViewSwitch,
 	withinLength,
 } from "./controls";
 
@@ -489,3 +490,82 @@ function drawn(element: preact.JSX.Element) {
 	draw(element);
 	return { rerender: (next: preact.JSX.Element) => draw(next) };
 }
+
+describe("a switch between views", () => {
+	const options = [
+		{ value: "last_task", label: "Last task" },
+		{ value: "week", label: "Past week" },
+	] as const;
+
+	test("is a group of radio buttons under a legend a screen reader alone hears, the view shown chosen", () => {
+		draw(
+			<ViewSwitch
+				legend="Show the change"
+				options={options}
+				value="week"
+				onChange={() => {}}
+			/>,
+		);
+
+		const group = root.querySelector("fieldset.mt-switch");
+		expect(group?.querySelector("legend.mt-vh")?.textContent).toBe(
+			"Show the change",
+		);
+		const radios = [
+			...root.querySelectorAll<HTMLInputElement>("input[type=radio]"),
+		];
+		expect(
+			radios.map((radio) => [
+				radio.value,
+				radio.checked,
+				radio.closest("label")?.textContent,
+			]),
+		).toEqual([
+			["last_task", false, "Last task"],
+			["week", true, "Past week"],
+		]);
+		// One name, one group: the keyboard stops at it once.
+		expect(new Set(radios.map((radio) => radio.name)).size).toBe(1);
+		expect(radios[0]?.name).not.toBe("");
+	});
+
+	test("hands on the view chosen", () => {
+		const onChange = vi.fn();
+		draw(
+			<ViewSwitch
+				legend="Show the change"
+				options={options}
+				value="week"
+				onChange={onChange}
+			/>,
+		);
+
+		pressed(root.querySelector('input[value="last_task"]'));
+
+		expect(onChange).toHaveBeenCalledWith("last_task");
+	});
+
+	test("names two switches on one page apart, so that each is a group of its own", () => {
+		draw(
+			<div>
+				<ViewSwitch
+					legend="One"
+					options={options}
+					value="week"
+					onChange={() => {}}
+				/>
+				<ViewSwitch
+					legend="Two"
+					options={options}
+					value="week"
+					onChange={() => {}}
+				/>
+			</div>,
+		);
+
+		const names = [...root.querySelectorAll("fieldset.mt-switch")].map(
+			(group) => group.querySelector("input")?.name,
+		);
+		expect(new Set(names).size).toBe(2);
+	});
+});

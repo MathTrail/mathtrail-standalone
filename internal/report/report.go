@@ -3,12 +3,17 @@
 // refused, at which attempt and why, how long the chat's model took to write
 // one, whether the chance of a right answer a task was handed out at came
 // true, and whether the estimate of a child keeps up as the answers pile up,
-// which limits were reached, and how the tools answered — by the version of
-// the instructions a task was written to and by the chat host that called.
+// which limits were reached, how the tools answered and how long they took
+// beside their calls to Drive, what became of the traces, and how busy the
+// busiest minute was — by the version of the instructions a task was written
+// to and by the chat host that called. It also holds every line to the rules
+// of the log: an event the service is decided to write, the fields decided
+// for it, and nothing shaped like an email address.
 //
 // It reads the service's own lines, one JSON object each: a log of a local run
 // as the service wrote it, or the payloads of the entries Cloud Logging keeps,
-// with what Cloud Logging moved out of them put back. The report is Markdown.
+// with what Cloud Logging moved out of them put back and the instance that
+// wrote each beside it. The report is Markdown.
 package report
 
 import (
@@ -41,6 +46,26 @@ type line struct {
 	RequestID           string    `json:"request_id"`
 	SpanID              string    `json:"logging.googleapis.com/spanId"`
 	InstructionsVersion string    `json:"instructions_version"`
+
+	// The trace a line was written in, and whether it was kept, which the
+	// service names only when it knows its project; the instance that wrote
+	// the line, which the reader of the platform's log names.
+	Trace    string `json:"logging.googleapis.com/trace"`
+	Sampled  *bool  `json:"logging.googleapis.com/trace_sampled"`
+	Instance string `json:"instance"`
+
+	// A request's line: the route it was served by, and how long it took, in
+	// seconds.
+	Route    string  `json:"route"`
+	Duration float64 `json:"duration"`
+
+	// A failure: what failed, in the words of whatever failed.
+	Error string `json:"error"`
+
+	// The telemetry as it was built: whether it exports, and the share of the
+	// traces it keeps.
+	Export      bool     `json:"export"`
+	SampleRatio *float64 `json:"sample_ratio"`
 
 	// Outcome is how a tool call ended, or how an attempt at a task did.
 	Outcome string `json:"outcome"`
@@ -106,18 +131,33 @@ func (l *line) call() string {
 	return l.RequestID
 }
 
+// request is which request a line was written in, whatever span it names: the
+// request's id and the trace it was in together, empty when the line names
+// neither. A call to Drive has a span of its own inside the tool call's, and is
+// tied to the call through the request. Either alone could be another
+// request's as well: a client may send the same id twice, and every request
+// it sends with one parent joins the same trace.
+func (l *line) request() string {
+	if l.RequestID == "" && l.Trace == "" {
+		return ""
+	}
+	return l.RequestID + " " + l.Trace
+}
+
 // input is what the report was given: the lines of the service's it read, how
 // many other lines there were — the runtime's own words when a process ends,
 // say, or a line cut short — and how many lines of the service's it could not
-// read, which the report owns up to rather than leaving out as another's.
+// read, which the report owns up to rather than leaving out as another's; and
+// every way the lines of the service's broke the rules of the log.
 type input struct {
 	lines              []line
 	others, unreadable int
+	breaches           map[breach]int
 }
 
 // readAll reads the input a line at a time, to its end.
 func readAll(in io.Reader) (*input, error) {
-	read := &input{}
+	read := &input{breaches: map[breach]int{}}
 	reader := bufio.NewReader(in)
 	for {
 		text, err := reader.ReadBytes('\n')
@@ -134,19 +174,26 @@ func readAll(in io.Reader) (*input, error) {
 }
 
 // add takes in one line of the input: a line of the service's, one of the
-// service's that does not read as the report expects, or another's.
+// service's that does not read as the report expects, or another's. Every line
+// of the service's is held to the rules of the log, read as the report
+// expects it or not.
 func (in *input) add(text []byte) {
-	var read line
-	if err := json.Unmarshal(text, &read); err == nil && read.Message != "" {
-		in.lines = append(in.lines, read)
+	var fields map[string]any
+	if json.Unmarshal(text, &fields) != nil {
+		in.others++
 		return
 	}
-	var named struct {
-		Message string `json:"message"`
+	if message, isText := fields["message"].(string); !isText || message == "" {
+		in.others++
+		return
 	}
-	if json.Unmarshal(text, &named) == nil && named.Message != "" {
+	for _, broken := range audit(fields) {
+		in.breaches[broken]++
+	}
+	var read line
+	if json.Unmarshal(text, &read) != nil {
 		in.unreadable++
 		return
 	}
-	in.others++
+	in.lines = append(in.lines, read)
 }

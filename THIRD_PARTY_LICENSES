@@ -87,12 +87,13 @@ Apache-2.0    google.golang.org/genproto/googleapis/rpc/status https://github.co
 Apache-2.0    google.golang.org/grpc                         https://github.com/grpc/grpc-go/blob/v1.83.2/LICENSE
 BSD-3-Clause  google.golang.org/protobuf                     https://github.com/protocolbuffers/protobuf-go/blob/v1.36.12/LICENSE
 
-The npm packages below are what the widget the server embeds is built from:
-every package its lockfile needs outside development, and every package one
-of those names as an optional companion, used or not. Each line is a
-license, the package at the exact version in web/package-lock.json, and the
-page of that version in the npm registry.
+The npm packages below are what the widget the server embeds and the site
+are built from: every package their lockfile needs outside development, and
+every package one of those names as an optional companion, used or not.
+Each line is a license, the package at the exact version in
+web/package-lock.json, and the page of that version in the npm registry.
 
+OFL-1.1       @fontsource-variable/onest@5.3.1               https://www.npmjs.com/package/@fontsource-variable/onest/v/5.3.1
 MIT           @modelcontextprotocol/client@2.1.0             https://www.npmjs.com/package/@modelcontextprotocol/client/v/2.1.0
 MIT           @modelcontextprotocol/core@2.1.0               https://www.npmjs.com/package/@modelcontextprotocol/core/v/2.1.0
 MIT           @modelcontextprotocol/ext-apps@2.0.3           https://www.npmjs.com/package/@modelcontextprotocol/ext-apps/v/2.0.3

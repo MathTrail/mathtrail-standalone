@@ -228,6 +228,9 @@ func (p *Profile) apply(task *CurrentTask, answer *Answered, secret *TaskSecret)
 		moved, probability = updated.State, updated.Probability
 	}
 
+	// The day starts from the levels as they stand before this answer moves
+	// them, and only before.
+	p.startTheDay(DateOf(answer.At))
 	p.Ratings.Theta, p.Ratings.Answers = moved.Theta, moved.Answers
 	topic.Delta, topic.Answers = moved.Delta, moved.TopicAnswers
 	if correct {
@@ -258,6 +261,7 @@ func (p *Profile) apply(task *CurrentTask, answer *Answered, secret *TaskSecret)
 
 	p.remember(&Answer{
 		AnsweredAt: At(answer.At),
+		Before:     &Levels{Delta: before.Delta, Theta: before.Theta},
 		Chosen:     chosenOf(answer.Choice, correct),
 		Confused:   answer.Choice == DontKnow,
 		Correct:    correct,

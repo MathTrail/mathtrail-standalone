@@ -5,7 +5,7 @@ description: What MathTrail knows about your child, where it is kept, and how to
 
 # Privacy policy
 
-Last updated: 3 October 2026.
+Last updated: 4 October 2026.
 
 MathTrail is a free, open-source project. Questions about this policy or about your child's data go to [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com).
 
@@ -39,6 +39,7 @@ It holds:
 - an identifier for the child, so that the profile can be carried to a future edition;
 - the interface language, if you chose one;
 - which topics are mastered, the rating numbers behind the difficulty, and a summary of past answers: per topic, when it was last given, how many attempts and successes there were, and which traps came up;
+- where the ratings stood before each of the latest answers, and at the start of each of the last seven days with answers, so that the progress can show what moved since the last task and over the week;
 - a counter of tasks accepted today, which is how the daily limit is kept;
 - the current task, with its answer encrypted so that it cannot be read out of the file before the child answers.
 
