@@ -53,7 +53,7 @@
 	"progress.label": "Profile and progress",
 	"progress.back": "Back to task",
 	"progress.back_plain": "Back",
-	"progress.rank_line": "rank {rank} of {total} · rating {rating}",
+	"progress.rank_line": "rank {rank} of {total}",
 	"progress.next_rank": "Next rank — {name}. Right answers move the bar forward, mistakes a little back.",
 	"progress.top_rank": "This is the highest rank.",
 	"progress.share": "{share} of the way to the next rank",
@@ -84,6 +84,7 @@
 		"other": "In all, {count} tasks were left without an answer."
 	},
 	"progress.trial_ranks": "Ranks come after {total} tasks.",
+	"progress.for_parent": "for the parent",
 	"profile.card_label": "Profile",
 	"profile.grade": "Grade",
 	"profile.grade_note": "Only a label: changing it moves no rating.",

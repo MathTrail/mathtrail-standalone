@@ -2,6 +2,7 @@ import { render } from "preact";
 import { act } from "preact/test-utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { Bridge, Call, Host, ToolResult } from "./bridge";
+import { foldIn } from "./testing/card";
 import {
 	coming,
 	editSaved,
@@ -176,6 +177,7 @@ describe("the card", () => {
 		await vi.waitFor(() =>
 			expect(root.querySelector(".mt-fields-head .mt-btn")).not.toBeNull(),
 		);
+		act(() => foldIn(root, "Profile").click());
 		press(".mt-fields-head .mt-btn");
 		const box = root.querySelector<HTMLInputElement>(".mt-form .mt-input");
 		act(() => {

@@ -9,8 +9,9 @@
 # Build and test output
 bin/
 dist/
-# The load tool's binary, when it is built where it lives
+# The load tool's binary and the learners' bench's, when they are built where they live
 tools/load/load
+tools/learners/learners
 # The drawings command's binary, when it is built at the root
 /drawings
 coverage.*

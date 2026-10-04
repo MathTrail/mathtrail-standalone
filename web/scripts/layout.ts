@@ -9,7 +9,11 @@
 // been given up on. Every card in a language written right to left is
 // photographed, to be looked at.
 //
-//	node scripts/layout.ts [--engine chromium] [--language ar] [--width 320]
+//	node scripts/layout.ts [--engine chromium] [--language ar] [--width 320] [--shard 2/6]
+//
+// A run can be shared out between machines that measure at once: --shard 2/6
+// measures the second of six parts of it, and the six parts between them
+// measure every card once.
 //
 // It runs where the browsers are, inside the image of the pinned Playwright
 // release, against the widget's sources as they are: the preview is served
@@ -187,7 +191,7 @@ async function photograph(
 }
 
 /** Shown is one page of the preview: its cards in a language, at a width, in an engine. */
-type Shown = { engine: string; language: string; width: number };
+export type Shown = { engine: string; language: string; width: number };
 
 // measuredOn measures the cards of one page of the preview at every moment,
 // and photographs those written right to left where photographs are taken:
@@ -229,12 +233,13 @@ async function measuredOn(page: Page, base: string, shown: Shown) {
 	return measured;
 }
 
-// measuredIn measures every page of the preview in one engine: each language
-// it offers that is asked for, at each width asked for.
+// measuredIn measures the pages of the preview in one engine that are its
+// shard's share: at each width asked for, the page of each language the
+// preview offers that is asked for.
 async function measuredIn(
 	engine: string,
 	base: string,
-	asked: { languages?: string[]; widths: number[] },
+	asked: { languages?: string[]; widths: number[]; shard: Shard },
 ): Promise<Measured[]> {
 	const type = engines[engine];
 	if (type === undefined) {
@@ -273,19 +278,14 @@ async function measuredIn(
 				);
 			}
 		}
+		const languages = offered.filter(
+			(language) =>
+				asked.languages === undefined || asked.languages.includes(language),
+		);
+		const pages = pagesOf(engine, languages, asked.widths);
 		const measured: Measured[] = [];
-		for (const language of offered) {
-			if (
-				asked.languages !== undefined &&
-				!asked.languages.includes(language)
-			) {
-				continue;
-			}
-			for (const width of asked.widths) {
-				measured.push(
-					...(await measuredOn(page, base, { engine, language, width })),
-				);
-			}
+		for (const shown of shareOf(pages, asked.shard)) {
+			measured.push(...(await measuredOn(page, base, shown)));
 		}
 		return measured;
 	} finally {
@@ -305,6 +305,38 @@ function cardOf({ engine, language, width, scene }: Measured): string {
  */
 export function unoffered<T>(asked: readonly T[], offered: readonly T[]): T[] {
 	return asked.filter((thing) => !offered.includes(thing));
+}
+
+/** Shard is one of the equal parts a run is shared out in: the part-th of parts. */
+export type Shard = { part: number; parts: number };
+
+// whole is a run measured as one part.
+const whole: Shard = { part: 1, parts: 1 };
+
+/**
+ * shareOf is the share of the pages one shard measures: every parts-th of
+ * them, from the part-th on. The shards of a run between them measure every
+ * page once, and no shard measures more than one page more than another.
+ */
+export function shareOf<T>(pages: readonly T[], { part, parts }: Shard): T[] {
+	return pages.filter((_, at) => at % parts === part - 1);
+}
+
+/**
+ * pagesOf are the pages of one engine, width by width: at each width, the page
+ * of each language. Shared out in this order, every shard measures at every
+ * width while there are at least as many languages as shards, so that none is
+ * left with all of one width — the one that costs the most to draw, or the
+ * one photographed.
+ */
+export function pagesOf(
+	engine: string,
+	languages: readonly string[],
+	widths: readonly number[],
+): Shown[] {
+	return widths.flatMap((width) =>
+		languages.map((language) => ({ engine, language, width })),
+	);
 }
 
 /**
@@ -330,11 +362,13 @@ async function main(): Promise<void> {
 			engine: { type: "string", multiple: true },
 			language: { type: "string", multiple: true },
 			width: { type: "string", multiple: true },
+			shard: { type: "string" },
 		},
 	});
 	const asked = {
 		languages: values.language,
 		widths: values.width?.map(widthOf) ?? widths,
+		shard: values.shard === undefined ? whole : shardOf(values.shard),
 	};
 
 	await rm(out, { recursive: true, force: true });
@@ -378,6 +412,17 @@ export function widthOf(asked: string): number {
 		throw new Error(`layout: ${asked} is no width in pixels`);
 	}
 	return width;
+}
+
+/** shardOf is a shard asked for as part/parts: 2/6 is the second of six. */
+export function shardOf(asked: string): Shard {
+	const numbers = /^(\d+)\/(\d+)$/.exec(asked);
+	const part = Number(numbers?.[1]);
+	const parts = Number(numbers?.[2]);
+	if (numbers === null || part < 1 || part > parts) {
+		throw new Error(`layout: ${asked} is no shard, such as 2/6`);
+	}
+	return { part, parts };
 }
 
 if (import.meta.main) {

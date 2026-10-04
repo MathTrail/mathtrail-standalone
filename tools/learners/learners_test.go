@@ -7,6 +7,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"testing"
@@ -345,37 +346,109 @@ func TestTheSeedAndTheNameDecideWhoIsDrawn(t *testing.T) {
 	}
 }
 
-// A small run is summed up as its snapshot in testdata says, the command
-// prints the summary it writes, and run.txt states what the run was given. A
-// change to the numbers is a change to the snapshot, which go test -update
-// rewrites from the run, to be read before it is kept. The run draws with the
-// paper's seed and name, which it sets, so it does not run beside the tests
-// that draw.
-func TestASmallRunIsSummedUpAsItsSnapshot(t *testing.T) {
+// A small run of every cell — the paper's seed and name, ten children a cell,
+// two hundred answers each — gives every number the bench was carried over
+// with, is summed up and reads the criterion as its snapshots say, prints the
+// summary it writes, and says in run.txt what it was given. A change to the
+// snapshots' numbers is a change to the snapshots, which go test -update
+// rewrites from the run, to be read before it is kept; the carried-over
+// numbers it never rewrites. The run sets the seed and the name every other
+// test draws with, so it does not run beside them.
+func TestASmallRun(t *testing.T) {
 	out := t.TempDir()
 	var stdout, stderr strings.Builder
 	if code := runCommand([]string{"-out", out, "-children", "10", "-answers", "200"}, &stdout, &stderr); code != 0 {
 		t.Fatalf("learners exited %d: %s", code, stderr.String())
 	}
-	got := readFile(t, filepath.Join(out, "summary.md"))
-	if !strings.Contains(stdout.String(), got) {
-		t.Errorf("the command printed\n%s\nwant the summary it wrote:\n%s", stdout.String(), got)
+	t.Run("gives the numbers it was carried over with", func(t *testing.T) { wantCarriedOver(t, out) })
+	t.Run("is summed up as its snapshot", func(t *testing.T) {
+		summary := wantSnapshot(t, out, "summary.md")
+		if !strings.Contains(stdout.String(), summary) {
+			t.Errorf("the command printed\n%s\nwant the summary it wrote:\n%s", stdout.String(), summary)
+		}
+	})
+	t.Run("reads the criterion as its snapshot", func(t *testing.T) { wantSnapshot(t, out, "criterion.md") })
+	t.Run("says what it was given", func(t *testing.T) {
+		run := readFile(t, filepath.Join(out, "run.txt"))
+		for _, line := range []string{"seed=20261001", "experiment=E-A3", "children=10", "answers=200"} {
+			if !slices.Contains(strings.Split(run, "\n"), line) {
+				t.Errorf("run.txt lacks %q:\n%s", line, run)
+			}
+		}
+	})
+}
+
+// wantCarriedOver holds a run to the numbers the bench gave as it was carried
+// over, in testdata/carried-over: every row of its cells, its comparisons and
+// its summary comes out of the run as it is, in the order it is written
+// there, with whatever was added since standing between them. The numbers
+// were computed on amd64, where Go fuses no multiplication with an addition;
+// elsewhere their last places may differ, and the check is not made.
+func wantCarriedOver(t *testing.T, out string) {
+	t.Helper()
+	if runtime.GOARCH != "amd64" {
+		t.Skipf("the carried-over numbers were computed on amd64, and this is %s", runtime.GOARCH)
 	}
-	run := readFile(t, filepath.Join(out, "run.txt"))
-	for _, line := range []string{"seed=20261001", "experiment=E-A3", "children=10", "answers=200"} {
-		if !slices.Contains(strings.Split(run, "\n"), line) {
-			t.Errorf("run.txt lacks %q:\n%s", line, run)
+	for _, table := range []string{"cells.csv", "comparisons.csv", "summary.md"} {
+		carried := strings.Split(strings.TrimSuffix(readFile(t, filepath.Join("testdata", "carried-over", table)), "\n"), "\n")
+		got := strings.Split(readFile(t, filepath.Join(out, table)), "\n")
+		if at := firstNotInOrder(carried, got); at >= 0 {
+			t.Errorf("%s no longer gives row %d of what it was carried over with, in its order: %q", table, at+1, carried[at])
 		}
 	}
-	snapshot := filepath.Join("testdata", "summary.md")
+}
+
+// firstNotInOrder is the place among the wanted lines of the first one the
+// lines do not hold in the wanted order, or -1 when they hold them all. A
+// place rather than the line, since a line that is lost may be an empty one.
+func firstNotInOrder(wanted, lines []string) int {
+	next := 0
+	for at, line := range wanted {
+		found := slices.Index(lines[next:], line)
+		if found < 0 {
+			return at
+		}
+		next += found + 1
+	}
+	return -1
+}
+
+// The check of carried-over rows finds a row that is lost, an empty one
+// included, and one that comes out of its order, and lets new rows stand
+// between the old ones.
+func TestTheCarriedOverRowsAreFoundInTheirOrder(t *testing.T) {
+	t.Parallel()
+	wanted := []string{"a", "", "b"}
+	for _, tc := range []struct {
+		lines []string
+		want  int
+	}{
+		{[]string{"a", "new", "", "b"}, -1},
+		{[]string{"a", "b"}, 1},
+		{[]string{"a", "b", ""}, 2},
+		{[]string{"", "a", "b"}, 1},
+	} {
+		if got := firstNotInOrder(wanted, tc.lines); got != tc.want {
+			t.Errorf("firstNotInOrder(%q, %q) = %d, want %d", wanted, tc.lines, got, tc.want)
+		}
+	}
+}
+
+// wantSnapshot holds a file of a run to its snapshot in testdata, which
+// go test -update rewrites from the run, and returns the file.
+func wantSnapshot(t *testing.T, out, name string) string {
+	t.Helper()
+	got := readFile(t, filepath.Join(out, name))
+	snapshot := filepath.Join("testdata", name)
 	if *update {
 		if err := os.WriteFile(snapshot, []byte(got), 0o600); err != nil {
 			t.Fatal(err)
 		}
 	}
 	if want := readFile(t, snapshot); got != want {
-		t.Errorf("the summary of a small run is not %s; if the change is meant, rewrite it with go test -run %s -update and read the diff:\n%s", snapshot, t.Name(), got)
+		t.Errorf("%s of a small run is not its snapshot %s; if the change is meant, rewrite it with go test -run TestASmallRun -update and read the diff:\n%s", name, snapshot, got)
 	}
+	return got
 }
 
 func readFile(t *testing.T, path string) string {

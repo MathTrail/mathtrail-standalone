@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { type Drawn, drawCard, takeDown } from "./testing/card";
+import { type Drawn, drawCard, foldIn, press, takeDown } from "./testing/card";
 import { atTheTop, inTrial, standing, standingBefore } from "./testing/lesson";
 
 let drawn: Drawn | undefined;
@@ -10,13 +10,36 @@ afterEach(() => {
 	vi.restoreAllMocks();
 });
 
-// draw draws the progress card of payload.
+// draw draws the progress card of payload, as it first opens.
 async function draw(
 	payload: object,
 	options: Parameters<typeof drawCard>[1] = {},
 ): Promise<Drawn> {
 	drawn = await drawCard(payload, options);
 	return drawn;
+}
+
+// drawOpened draws the progress card of payload and opens each of its
+// sections in turn, as a person reading all of it does.
+async function drawOpened(payload: object): Promise<Drawn> {
+	const opened = await draw(payload);
+	for (const title of opened.root.querySelectorAll<HTMLButtonElement>(
+		'.mt-fold-button[aria-expanded="false"]',
+	)) {
+		press(title);
+	}
+	return opened;
+}
+
+// sections are the card's sections in order, each its title, the summary
+// beside it, whether it is open, and whether what it holds is shown.
+function sections(root: HTMLElement): [string, string, string, boolean][] {
+	return [...root.querySelectorAll(".mt-fold")].map((fold) => [
+		fold.querySelector(".mt-fold-title")?.textContent ?? "",
+		fold.querySelector(".mt-fold-summary")?.textContent ?? "",
+		fold.querySelector(".mt-fold-button")?.getAttribute("aria-expanded") ?? "",
+		!(fold.querySelector(".mt-fold-body")?.hasAttribute("hidden") ?? true),
+	]);
 }
 
 const text = (root: HTMLElement, selector: string) =>
@@ -54,27 +77,45 @@ function topics(root: HTMLElement): [string, string, string, string[]][] {
 	]);
 }
 
-// lists are the card's lists of lines by their labels, each a list of its
-// lines.
+// lists are the card's lists of lines by the titles of their sections, each a
+// list of its lines.
 function lists(root: HTMLElement): Record<string, (string | null)[]> {
 	return Object.fromEntries(
-		[...root.querySelectorAll(".mt-list")]
-			.filter((list) => list.querySelector(".mt-rank-row") === null)
-			.map((list) => [
-				list.querySelector(".mt-section-label")?.textContent ?? "",
-				[...list.querySelectorAll(".mt-row")].map((row) => row.textContent),
+		[...root.querySelectorAll(".mt-fold")]
+			.filter(
+				(fold) =>
+					fold.querySelector(".mt-list") !== null &&
+					fold.querySelector(".mt-rank-row") === null,
+			)
+			.map((fold) => [
+				fold.querySelector(".mt-fold-title")?.textContent ?? "",
+				[...fold.querySelectorAll(".mt-row")].map((row) => row.textContent),
 			]),
 	);
 }
 
-// fields are the fields of the group labelled label: each its name, what it
-// holds — a list's names joined — and the note under it, when there is one.
+// fields are the fields of the group labelled label.
 function fields(root: HTMLElement, label: string): string[][] {
-	const group = [...root.querySelectorAll(".mt-fields")].find(
-		(found) =>
-			found.querySelector(".mt-fields-head .mt-section-label")?.textContent ===
-			label,
+	return fieldsIn(
+		[...root.querySelectorAll(".mt-fields")].find(
+			(found) =>
+				found.querySelector(".mt-fields-head .mt-section-label")
+					?.textContent === label,
+		),
 	);
+}
+
+// profileFields are the fields of the profile, in the frame of the section
+// titled title, which carries no label of its own.
+function profileFields(root: HTMLElement, title = "Profile"): string[][] {
+	return fieldsIn(
+		foldIn(root, title).closest(".mt-fold")?.querySelector(".mt-fields"),
+	);
+}
+
+// fieldsIn are the fields of group: each its name, what it holds — a list's
+// names joined — and the note under it, when there is one.
+function fieldsIn(group: Element | null | undefined): string[][] {
 	return [...(group?.querySelectorAll("dl > div") ?? [])].map((field) => {
 		const told = field.querySelector("dd");
 		const names = [...(told?.querySelectorAll(".mt-chip") ?? [])].map(
@@ -92,15 +133,13 @@ function fields(root: HTMLElement, label: string): string[][] {
 }
 
 describe("the progress", () => {
-	test("names the rank reached over the rank out of how many and the rating, its course filled as far as it has come, and the next rank", async () => {
+	test("names the rank reached over the rank out of how many, with no rating's number, its course filled as far as it has come, and the next rank", async () => {
 		const { root } = await draw(standing);
 
 		const rank = root.querySelector("section.mt-rank");
 		expect(rank?.getAttribute("aria-label")).toBe("Overall rating");
 		expect(text(root, ".mt-rank-name")).toBe("River crossing");
-		expect(text(root, ".mt-rank-head .mt-meta")).toBe(
-			"rank 3 of 11 · rating 1573",
-		);
+		expect(text(root, ".mt-rank-head .mt-meta")).toBe("rank 3 of 11");
 		expect(fills(rank)).toEqual(eleven("100%", "100%", "43%"));
 		expect(rank?.querySelector(".mt-segments")?.getAttribute("data-tone")).toBe(
 			"ink",
@@ -139,6 +178,101 @@ describe("the progress", () => {
 		expect(root.querySelector(".mt-list")).not.toBeNull();
 	});
 
+	test("draws nothing over its sections when there is neither a rank nor what comes next", async () => {
+		const { root } = await draw({
+			...standing,
+			overall: null,
+			recommendation: null,
+		});
+
+		expect(root.querySelector(".mt-progress")).toBeNull();
+		expect(root.querySelector(".mt-folds")).not.toBeNull();
+	});
+
+	test("opens with every section folded under its title, each title a button that says so", async () => {
+		const { root } = await draw(standing);
+
+		expect(sections(root)).toEqual([
+			["Topics", "", "false", false],
+			["Mistakes that repeat", "", "false", false],
+			["Recent answers", "Wrong, Skipped, Right, Right, Wrong", "false", false],
+			["Profile", "for the parent", "false", false],
+		]);
+		for (const fold of root.querySelectorAll(".mt-fold")) {
+			const title = fold.querySelector(".mt-fold-button");
+			expect(title?.tagName).toBe("BUTTON");
+			expect(title?.getAttribute("type")).toBe("button");
+			expect(title?.getAttribute("aria-controls")).toBe(
+				fold.querySelector(".mt-fold-body")?.id,
+			);
+		}
+	});
+
+	test("opens a section when its title is pressed, and folds it again, keeping the focus on the title", async () => {
+		const { root } = await draw(standing);
+		const topicsTitle = foldIn(root, "Topics");
+
+		press(topicsTitle);
+
+		expect(
+			sections(root).map(([title, , open, shown]) => [title, open, shown]),
+		).toEqual([
+			["Topics", "true", true],
+			["Mistakes that repeat", "false", false],
+			["Recent answers", "false", false],
+			["Profile", "false", false],
+		]);
+		expect(document.activeElement).toBe(topicsTitle);
+
+		press(topicsTitle);
+
+		expect(sections(root)[0]).toEqual(["Topics", "", "false", false]);
+		expect(document.activeElement).toBe(topicsTitle);
+	});
+
+	test("sums up the latest answers by their section's title: a dot for each in the colour of how it went, and the same in words for a screen reader", async () => {
+		const { root } = await draw(standing);
+		const summary = foldIn(root, "Recent answers").querySelector(
+			".mt-fold-summary",
+		);
+
+		expect(
+			[...(summary?.querySelectorAll(".mt-dot") ?? [])].map((dot) =>
+				dot.getAttribute("data-tone"),
+			),
+		).toEqual(["wrong", "skipped", "correct", "correct", "wrong"]);
+		expect(
+			summary?.querySelector(".mt-dots")?.getAttribute("aria-hidden"),
+		).toBe("true");
+		expect(summary?.querySelector(".mt-vh")?.textContent).toBe(
+			"Wrong, Skipped, Right, Right, Wrong",
+		);
+	});
+
+	test("names the profile once, by its section's title: its frame carries no label of its own, and Edit at its head", async () => {
+		const { root } = await drawOpened(standing);
+		const frame = foldIn(root, "Profile")
+			.closest(".mt-fold")
+			?.querySelector(".mt-fields");
+
+		expect(frame?.querySelector(".mt-section-label")).toBeNull();
+		expect(frame?.querySelector(".mt-fields-head .mt-btn")?.textContent).toBe(
+			"Edit",
+		);
+		expect(fields(root, "Your data")).toHaveLength(4);
+	});
+
+	test("draws no section with nothing in it", async () => {
+		const { root } = await draw({
+			...standing,
+			topics: [],
+			recent: [],
+			mistakes: [],
+		});
+
+		expect(sections(root).map(([title]) => title)).toEqual(["Profile"]);
+	});
+
 	test("names what comes next, and that it comes again after a mistake", async () => {
 		const { root } = await draw(standing);
 
@@ -147,7 +281,7 @@ describe("the progress", () => {
 	});
 
 	test("shows each topic's rank, how it stands to the overall one, and its course in the colour of its rank", async () => {
-		const { root } = await draw(standing);
+		const { root } = await drawOpened(standing);
 
 		expect(text(root, ".mt-list-lead")).toBe("The rank in each topic");
 		expect(topics(root)).toEqual([
@@ -180,7 +314,7 @@ describe("the progress", () => {
 	});
 
 	test("lists the latest five entries, and how many tasks were left without an answer in all, as the service counts them", async () => {
-		const { root } = await draw({ ...standing, skipped: 4 });
+		const { root } = await drawOpened({ ...standing, skipped: 4 });
 
 		expect(lists(root)["Recent answers"]).toEqual([
 			"EnumerationWrong",
@@ -194,12 +328,12 @@ describe("the progress", () => {
 		);
 	});
 
-	test("lists the mistakes that keep coming back after the latest answers, a dot for each time, in a frame of their own", async () => {
-		const { root } = await draw(standing);
+	test("lists the mistakes that keep coming back before the latest answers, a dot for each time, in a frame of their own", async () => {
+		const { root } = await drawOpened(standing);
 
 		expect(Object.keys(lists(root))).toEqual([
-			"Recent answers",
 			"Mistakes that repeat",
+			"Recent answers",
 		]);
 		expect(lists(root)["Mistakes that repeat"]).toEqual([
 			"Missed a case while listing3 times",
@@ -213,15 +347,15 @@ describe("the progress", () => {
 		).toEqual([3, 2]);
 	});
 
-	test("shows no list of mistakes when none has come up twice", async () => {
-		const { root } = await draw({ ...standing, mistakes: [] });
+	test("shows no section of mistakes when none has come up twice", async () => {
+		const { root } = await drawOpened({ ...standing, mistakes: [] });
 
 		expect(Object.keys(lists(root))).toEqual(["Recent answers"]);
-		expect(root.querySelector(".mt-dots")).toBeNull();
+		expect(root.querySelector(".mt-list-framed")).toBeNull();
 	});
 
 	test("with no answer yet shows the series to come, and no list", async () => {
-		const { root } = await draw({
+		const { root } = await drawOpened({
 			...inTrial,
 			trial: { answered: 0, of: 5 },
 			topics: [],
@@ -238,7 +372,7 @@ describe("the progress", () => {
 			"0%",
 		]);
 		expect(root.querySelector(".mt-list")).toBeNull();
-		expect(fields(root, "Profile · for the parent")).toHaveLength(4);
+		expect(profileFields(root)).toHaveLength(4);
 	});
 
 	test("says nothing of skipped tasks when the service counts none", async () => {
@@ -248,7 +382,7 @@ describe("the progress", () => {
 	});
 
 	test("from an earlier release still draws: its course with the step under way empty, its topics with no rank, the skips its topics count, and no data", async () => {
-		const { root } = await draw(standingBefore);
+		const { root } = await drawOpened(standingBefore);
 
 		expect(text(root, ".mt-rank-name")).toBe("River crossing");
 		expect(fills(root.querySelector(".mt-rank"))).toEqual(
@@ -270,9 +404,9 @@ describe("the progress", () => {
 	});
 
 	test("shows the child's profile for the parent, each list as its names", async () => {
-		const { root } = await draw(standing);
+		const { root } = await drawOpened(standing);
 
-		expect(fields(root, "Profile · for the parent")).toEqual([
+		expect(profileFields(root)).toEqual([
 			["Grade", "3", "Only a label: changing it moves no rating."],
 			["Interests", "space, animals, football"],
 			["Not at school yet", "Division with a remainder"],
@@ -282,19 +416,19 @@ describe("the progress", () => {
 	});
 
 	test("says a list the parent left empty is not set", async () => {
-		const { root } = await draw({
+		const { root } = await drawOpened({
 			...standing,
 			profile: { ...standing.profile, interests: [], excluded_skills: [] },
 		});
 
-		expect(fields(root, "Profile · for the parent").slice(1, 3)).toEqual([
+		expect(profileFields(root).slice(1, 3)).toEqual([
 			["Interests", "Not set"],
 			["Not at school yet", "Not set"],
 		]);
 	});
 
 	test("says where the profile's file is and what the parent can do with the data, each under the question it answers", async () => {
-		const { root } = await draw(standing);
+		const { root } = await drawOpened(standing);
 
 		expect(fields(root, "Your data")).toEqual([
 			[
@@ -323,11 +457,11 @@ describe("the progress", () => {
 		const { root } = await draw(nowhere);
 
 		expect(fields(root, "Your data")).toEqual([]);
-		expect(fields(root, "Profile · for the parent")).toHaveLength(4);
+		expect(profileFields(root)).toHaveLength(4);
 	});
 
 	test("in the trial series shows how far it has got, with no rank anywhere and every topic drawn open", async () => {
-		const { root } = await draw(inTrial);
+		const { root } = await drawOpened(inTrial);
 
 		// The series is named once, by its name.
 		expect(
@@ -356,15 +490,19 @@ describe("the progress", () => {
 	});
 
 	test("is in the language the parent chose for the lessons", async () => {
-		const { root } = await draw({
+		const { root } = await drawOpened({
 			...standing,
 			profile: { ...standing.profile, ui_language: "ru" },
 		});
 
 		expect(text(root, ".mt-rank-name")).toBe("Брод");
-		expect(text(root, ".mt-rank-head .mt-meta")).toBe(
-			"ранг 3 из 11 · рейтинг 1573",
-		);
+		expect(text(root, ".mt-rank-head .mt-meta")).toBe("ранг 3 из 11");
+		expect(sections(root).map(([title, summary]) => [title, summary])).toEqual([
+			["Темы", ""],
+			["Повторяющиеся ошибки", ""],
+			["Последние ответы", "Неверно, Пропущено, Верно, Верно, Неверно"],
+			["Профиль", "для родителя"],
+		]);
 		expect(text(root, ".mt-rank-line")).toBe(
 			"Следующий ранг — Холм. Верные ответы двигают полоску вперёд, ошибки — чуть назад.",
 		);
@@ -383,7 +521,7 @@ describe("the progress", () => {
 			"Пропущен случай при переборе3 раза",
 			"Одно и то же посчитано дважды2 раза",
 		]);
-		expect(fields(root, "Профиль · для родителя")[3]).toEqual([
+		expect(profileFields(root, "Профиль")[3]).toEqual([
 			"Язык занятий",
 			"Русский",
 		]);

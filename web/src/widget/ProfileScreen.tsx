@@ -75,6 +75,7 @@ function ProfileScreen({
 					</Verdict>
 				)}
 				<ParentProfile
+					label={words.text("profile.label")}
 					details={details}
 					host={host}
 					onSaved={(changed) => {
@@ -93,19 +94,21 @@ function ProfileScreen({
 /**
  * ParentProfile is the child's profile as the parent reads it on a card — the
  * grade, which is only a label once the child has started, the interests, what
- * the child has not met at school yet, and the language of the lessons — with
- * the button at its head that opens the form to change them in its place. The
- * focus the form had goes back to that button when it closes, and to what the
- * card says in its place when the profile is gone. A change saved is handed
- * to onSaved, and told to the model in the service's
- * words, since the model is not called by the form and would otherwise go on
- * with what it was told before.
+ * the child has not met at school yet, and the language of the lessons — under
+ * label, where what it stands in does not name it already, with the button at
+ * its head that opens the form to change them in its place. The focus the
+ * form had goes back to that button when it closes, and to what the card says
+ * in its place when the profile is gone. A change saved is handed to onSaved,
+ * and told to the model in the service's words, since the model is not called
+ * by the form and would otherwise go on with what it was told before.
  */
 export function ParentProfile({
+	label,
 	details,
 	host,
 	onSaved,
 }: {
+	label?: string;
 	details: Details;
 	host: Host;
 	onSaved: (details: Details) => void;
@@ -142,7 +145,6 @@ export function ParentProfile({
 		}
 	}
 
-	const label = words.text("profile.label");
 	switch (editing.state) {
 		case "gone":
 			return (

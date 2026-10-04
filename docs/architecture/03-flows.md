@@ -29,9 +29,9 @@ Which screen a card shows is decided by the payload, not by the tool: `get_progr
 
 | Tool | Called by | Renders a card | Reads | Writes | Not written when |
 |---|---|---|---|---|---|
-| `get_profile` | the model | **no** — the profile is shown at the foot of the progress (R148) | 1 | 0 | always |
+| `get_profile` | the model | **no** — the profile is shown in the progress's Profile section (R148, R162) | 1 | 0 | always |
 | `save_profile` | the model | **no** — the model says in a sentence what was saved (R148) | 1 | 1 | the fields fail validation, or ask for what the profile already says |
-| `edit_profile` | the widget only, from the form at the foot of the progress (R148) | **no** — the card that called it shows the details saved | 1 | 1 | the fields fail validation, change nothing, or there is no profile — a form never makes one |
+| `edit_profile` | the widget only, from the form in the progress's Profile section (R148, R162) | **no** — the card that called it shows the details saved | 1 | 1 | the fields fail validation, change nothing, or there is no profile — a form never makes one |
 | `get_progress` | the model | yes — progress | 1 | 0 | always |
 | `read_progress` | the widget only, from the line at the top of a card (R91, R97) | **no** — the card that called it turns to its progress | 1 | 0 | always |
 | `next_task` | the model | yes — the task on its way, which turns into the task (R152) | 1 | 1 | a limit was hit, or the same open request is returned again |
@@ -219,7 +219,7 @@ sequenceDiagram
     MT->>D: write the profile
     MT-->>M: the updated profile and the recommendation — no card (R148)
 
-    A->>W: "Edit" at the foot of the progress; the form filled in and saved
+    A->>W: "Edit" in the progress's Profile section; the form filled in and saved
     W->>MT: edit_profile — the fields that changed, and no other (R148)
     MT->>D: read the profile, then write it
     MT-->>W: the details as they now stand, and the words of the change

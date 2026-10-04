@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 // writeAll writes every file of the results into a directory: the numbers of
-// every cell, the comparisons, the summary and what the run was. It returns
-// the summary, for the command to print.
+// every cell, the comparisons, the summary, the criterion as every rule meets
+// it, and what the run was. It returns the summary, for the command to print.
 func writeAll(dir string, all []cell, results [][]vector, ms []metric, d design) (string, error) {
 	if err := os.MkdirAll(filepath.Clean(dir), 0o750); err != nil {
 		return "", fmt.Errorf("learners: make the results directory: %w", err)
@@ -26,6 +28,7 @@ func writeAll(dir string, all []cell, results [][]vector, ms []metric, d design)
 	if err != nil {
 		return "", err
 	}
+	read, resolutions := readCriterion(newCriterionRun(all, summaries, results, ms, d.children))
 	writers := []struct {
 		name  string
 		write func(path string) error
@@ -33,6 +36,8 @@ func writeAll(dir string, all []cell, results [][]vector, ms []metric, d design)
 		{"cells.csv", func(path string) error { return writeCSV(path, cellTable(all, summaries, names)) }},
 		{"comparisons.csv", func(path string) error { return writeCSV(path, comparisonTable(comparisons)) }},
 		{"summary.md", func(path string) error { return writeText(path, summary) }},
+		{"criterion.md", func(path string) error { return writeText(path, criterionText(read, resolutions, d)) }},
+		{"criterion.csv", func(path string) error { return writeCSV(path, criterionTable(read)) }},
 		{"run.txt", func(path string) error { return writeText(path, d.lines()) }},
 	}
 	for _, w := range writers {
@@ -83,13 +88,32 @@ func metricNames(ms []metric) []string {
 }
 
 // summarizeCells reads every metric off every cell it applies to, with its
-// interval.
+// interval, many cells at once: each number draws on a stream of its own, so
+// the order the cells are read in changes none of them.
 func summarizeCells(all []cell, results [][]vector, ms []metric) [][]summary {
 	summaries := make([][]summary, len(all))
-	for c := range all {
-		summaries[c] = summarizeCell(&all[c], results[c], ms)
-	}
+	eachAtOnce(len(all), func(c int) { summaries[c] = summarizeCell(&all[c], results[c], ms) })
 	return summaries
+}
+
+// eachAtOnce calls do for every index below n, as many at once as there are
+// processors, and returns when all are done. do may write only what belongs
+// to its own index.
+func eachAtOnce(n int, do func(i int)) {
+	indices := make(chan int)
+	var wg sync.WaitGroup
+	for range runtime.GOMAXPROCS(0) {
+		wg.Go(func() {
+			for i := range indices {
+				do(i)
+			}
+		})
+	}
+	for i := range n {
+		indices <- i
+	}
+	close(indices)
+	wg.Wait()
 }
 
 // summarizeCell reads every metric off one cell's children, leaving empty the
@@ -106,7 +130,11 @@ func summarizeCell(cl *cell, children []vector, ms []metric) []summary {
 		summaries = append(summaries, s)
 	}
 	for _, p := range pooledMetrics() {
-		summaries = append(summaries, summarize(p.read, children, seeded(cl.name()+"/"+p.name, "bootstrap")))
+		var s summary
+		if p.applies == nil || p.applies(cl.rule) {
+			s = summarize(p.read, children, seeded(cl.name()+"/"+p.name, "bootstrap"))
+		}
+		summaries = append(summaries, s)
 	}
 	return summaries
 }
@@ -138,12 +166,12 @@ type comparison struct {
 }
 
 // primaryComparisons are the comparisons every run makes, in four groups: the
-// service against every other rule on children who stay put (1) and on
-// children who learn (2), the service against no trial series on children
-// placed far off (3), and the floor under the step against the service on
-// children who jump and on children who stay put (4). A cell or a metric it
-// names that the run does not have, or a comparison the run gives no values
-// for, is an error, not a comparison quietly left out.
+// service against every other rule but the ceiling on children who stay put
+// (1) and on children who learn (2), the service against no trial series on
+// children placed far off (3), and the floor under the step against the
+// service on children who jump and on children who stay put (4). A cell or a
+// metric it names that the run does not have, or a comparison the run gives no
+// values for, is an error, not a comparison quietly left out.
 func primaryComparisons(all []cell, results [][]vector, ms []metric) ([]comparison, error) {
 	cp := &comparer{results: results, ms: ms, cells: map[string]int{}, metrics: map[string]int{}}
 	for c := range all {
@@ -154,7 +182,7 @@ func primaryComparisons(all []cell, results [][]vector, ms []metric) ([]comparis
 	}
 	service := func(g generator) string { return "shrinking/both/" + string(g) }
 	for _, r := range rules() {
-		if r.service {
+		if r.service || r.ceiling {
 			continue
 		}
 		cp.add("1", service(staticChildren), r.name+"/"+string(r.shape)+"/"+string(staticChildren), "r1_rms_200", "r3_inside", "r4_false")

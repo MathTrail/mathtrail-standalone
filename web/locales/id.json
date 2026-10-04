@@ -53,7 +53,7 @@
 	"progress.label": "Profil dan kemajuan",
 	"progress.back": "Kembali ke soal",
 	"progress.back_plain": "Kembali",
-	"progress.rank_line": "pos {rank} dari {total} · rating {rating}",
+	"progress.rank_line": "pos {rank} dari {total}",
 	"progress.next_rank": "Pos berikutnya: {name}. Jawaban benar memajukan bilah, kesalahan memundurkannya sedikit.",
 	"progress.top_rank": "Ini pos tertinggi.",
 	"progress.share": "{share} perjalanan ke pos berikutnya",
@@ -82,6 +82,7 @@
 		"other": "Total ada {count} soal yang dibiarkan tanpa jawaban."
 	},
 	"progress.trial_ranks": "Pos muncul setelah {total} soal.",
+	"progress.for_parent": "untuk orang tua",
 	"profile.card_label": "Profil",
 	"profile.grade": "Kelas",
 	"profile.grade_note": "Hanya label: mengubahnya tidak menggeser rating apa pun.",

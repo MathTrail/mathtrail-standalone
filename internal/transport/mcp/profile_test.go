@@ -117,8 +117,8 @@ type trialPayload struct {
 // A host lists the ten tools of the lesson as they are meant: two that draw a
 // card, under both keys a host reads — the progress, and the task asked for,
 // whose card waits for it and turns into it; the two of the profile, which the
-// model reads and writes in words, drawing nothing: the profile is shown at
-// the foot of the progress; three that only a card calls, kept from the model
+// model reads and writes in words, drawing nothing: the profile has a section
+// of the progress; three that only a card calls, kept from the model
 // and drawing nothing — the progress opened inside a card, the change the form
 // on it sends, and how the task a card waits for stands; the one that hands the
 // model what to write a task from, which draws nothing and declares no
@@ -189,9 +189,10 @@ func TestTheAdultsToolsAreNotWhereALessonStarts(t *testing.T) {
 	}
 	for _, want := range []struct{ name, says string }{
 		{"get_profile", "a task needs only next_task"},
-		{"get_profile", "It draws no card: the adult sees the profile, and changes it with a form, at the foot of the progress"},
+		{"get_profile", "It draws no card: the adult sees the profile, and changes it with a form, in the Profile section of the progress"},
 		{"save_profile", "No card is drawn: say in a sentence what was saved."},
 		{"get_progress", "Call it only when someone asks to see the progress"},
+		{"get_progress", "card draws the rank, not the rating's number: say the number yourself"},
 	} {
 		if description, listed := described[want.name]; !listed || !strings.Contains(description, want.says) {
 			t.Errorf("%s is described as %q (listed: %v), want it listed and saying %q", want.name, description, listed, want.says)

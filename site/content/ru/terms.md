@@ -5,9 +5,9 @@ description: Что MathTrail обещает, чего намеренно не �
 
 # Условия использования
 
-Обновлено 21 сентября 2026 года.
+Обновлено 3 октября 2026 года.
 
-Подключая MathTrail к своему чату, вы принимаете написанное здесь. Если не принимаете — не подключайте. Вопросы — на [alexander.ryazanov.1987@gmail.com](mailto:alexander.ryazanov.1987@gmail.com).
+Подключая MathTrail к своему чату, вы принимаете написанное здесь. Если не принимаете — не подключайте. Вопросы — на [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com).
 
 ## Что такое MathTrail
 

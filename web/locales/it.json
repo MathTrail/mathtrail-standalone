@@ -53,7 +53,7 @@
 	"progress.label": "Profilo e progressi",
 	"progress.back": "Torna al problema",
 	"progress.back_plain": "Indietro",
-	"progress.rank_line": "tappa {rank} di {total} · punteggio {rating}",
+	"progress.rank_line": "tappa {rank} di {total}",
 	"progress.next_rank": "Prossima tappa: {name}. Le risposte giuste fanno avanzare la barra, gli errori la fanno tornare un po’ indietro.",
 	"progress.top_rank": "È la tappa più alta.",
 	"progress.share": "{share} della strada fino alla prossima tappa",
@@ -86,6 +86,7 @@
 		"other": "In tutto, {count} problemi sono rimasti senza risposta."
 	},
 	"progress.trial_ranks": "Le tappe arrivano dopo {total} problemi.",
+	"progress.for_parent": "per i genitori",
 	"profile.card_label": "Profilo",
 	"profile.grade": "Classe",
 	"profile.grade_note": "È solo un’indicazione: cambiarla non modifica nessun punteggio.",

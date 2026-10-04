@@ -366,9 +366,10 @@ const progressReport = z.object({
 	screen: z.literal("progress"),
 	profile: details,
 	trial: trial.nullable(),
+	// The overall rating's number is the service's to send and the model's to
+	// say: the card draws the rank alone, and needs nothing it does not draw.
 	overall: z
 		.object({
-			rating: z.number().int(),
 			rank: z.number().int(),
 			ranks: z.number().int(),
 			// A progress from before the share has none: its course is drawn

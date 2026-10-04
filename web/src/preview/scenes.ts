@@ -188,6 +188,12 @@ export function scenesIn(language: string): Scene[] {
 			payload: { ...handed, status: "stale", code: "stale_request" },
 		},
 		{ name: "progress", payload: handed, answers: service(), play: topLine },
+		{
+			name: "progress over a task, every section open",
+			payload: handed,
+			answers: service(),
+			play: progressUnfolded,
+		},
 		{ name: "another task asked", payload: handed, play: button(2) },
 		{
 			name: "another task, the ask not sent",
@@ -231,11 +237,19 @@ export function scenesIn(language: string): Scene[] {
 			payload: { ...exhausted, child: handed.child },
 		},
 		{ name: "limit reached", payload: limited },
-		{ name: "progress, the model's card", payload: standing },
-		{ name: "progress in the trial series", payload: inTrial },
-		{ name: "progress, long texts", payload: longProgress },
-		{ name: "progress at the highest rank", payload: atTheTop },
-		{ name: "progress from an earlier release", payload: standingBefore },
+		{ name: "progress, the model's card", payload: standing, play: everyFold },
+		{ name: "progress in the trial series", payload: inTrial, play: everyFold },
+		{ name: "progress, long texts", payload: longProgress, play: everyFold },
+		{
+			name: "progress at the highest rank",
+			payload: atTheTop,
+			play: everyFold,
+		},
+		{
+			name: "progress from an earlier release",
+			payload: standingBefore,
+			play: everyFold,
+		},
 		{
 			name: "profile",
 			payload: {
@@ -432,11 +446,35 @@ function comingFor(handed: typeof fence) {
 	};
 }
 
-// inTheForm opens the form at the foot of the progress and does each step on
-// it in turn, each once the card has taken the one before in.
+// everyFold opens every section of the progress still folded, as a person
+// opening each in turn does: the sections it opened before stay open.
+function everyFold(card: Document) {
+	for (const title of card.querySelectorAll<HTMLElement>(
+		'.mt-fold-button[aria-expanded="false"]',
+	)) {
+		title.click();
+	}
+}
+
+// progressUnfolded opens the progress over the task from the line at its top
+// and, once the progress is drawn, every section of it.
+function progressUnfolded(card: Document) {
+	topLine(card);
+	setTimeout(() => everyFold(card), 100);
+}
+
+// inTheForm opens the profile's section of the progress and the form in it,
+// and does each step on the form in turn, each once the card has taken the one
+// before in. The section is found from the button that opens the form, so
+// that it is found in any language.
 function inTheForm(...steps: ((card: Document) => void)[]) {
 	return (card: Document) => {
-		card.querySelector<HTMLElement>(".mt-fields-head .mt-btn")?.click();
+		const edit = card.querySelector<HTMLElement>(".mt-fields-head .mt-btn");
+		edit
+			?.closest(".mt-fold")
+			?.querySelector<HTMLElement>('.mt-fold-button[aria-expanded="false"]')
+			?.click();
+		edit?.click();
 		let after = 0;
 		for (const step of steps) {
 			after += 100;

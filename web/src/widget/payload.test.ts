@@ -280,6 +280,14 @@ describe("the screen a payload draws", () => {
 		expect(shown.report.location?.file).toBe("mathtrail-profile.json");
 	});
 
+	test("of the progress needs no overall rating's number, which the card does not draw", () => {
+		const { rating: _, ...overall } = standing.overall;
+
+		const shown = readScreen({ ...standing, overall });
+
+		expect(shown?.screen).toBe("progress");
+	});
+
 	test("of the progress from before the topics had ranks is read with none of what came after", () => {
 		const shown = readScreen(standingBefore);
 		if (shown?.screen !== "progress") {

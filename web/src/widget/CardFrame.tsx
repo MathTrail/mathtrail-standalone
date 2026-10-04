@@ -5,6 +5,7 @@ import { MessageHeader, ThreadBar } from "../design/thread";
 import type { Host } from "./bridge";
 import { CardRoot } from "./CardRoot";
 import { FirstRunScreen } from "./FirstRunScreen";
+import { type Folds, useFolds } from "./folds";
 import { ProgressScreen } from "./ProgressScreen";
 import { type Child, readScreen } from "./payload";
 import { type Progress, progressAfter } from "./progress";
@@ -14,10 +15,12 @@ import { useWords } from "./words";
  * CardFrame is what every card of a lesson has around what it shows: the width
  * it lays out for, handed to what it frames, and — on a card that knows whose
  * it is — the line at its top, which opens the child's progress over the card
- * and leads back to it as it was left, by the way back named in back. A change
- * the parent saves on the progress's form is the card's from then on — its line
- * and what it frames show the child as the profile now says — until the card
- * is handed another payload, which carries the child as the service has it.
+ * and leads back to it as it was left, by the way back named in back. The
+ * progress is read afresh at each opening, and its sections open as they were
+ * left, for as long as the card is drawn. A change the parent saves on the
+ * progress's form is the card's from then on — its line and what it frames
+ * show the child as the profile now says — until the card is handed another
+ * payload, which carries the child as the service has it.
  */
 export function CardFrame({
 	child,
@@ -38,6 +41,7 @@ export function CardFrame({
 	const whose =
 		saved !== undefined && saved.over === child ? saved.child : child;
 	const [progress, dispatch] = useReducer(progressAfter, undefined);
+	const folds = useFolds();
 	const topBar = useRef<HTMLButtonElement>(null);
 	const backBar = useRef<HTMLButtonElement>(null);
 	const openings = useRef(0);
@@ -89,6 +93,7 @@ export function CardFrame({
 								child={whose}
 								wide={wide}
 								host={host}
+								folds={folds}
 								onSaved={(changed) => setSaved({ over: child, child: changed })}
 							/>
 						</>
@@ -100,21 +105,23 @@ export function CardFrame({
 }
 
 // ProgressOverCard is the progress shown in the card over what it showed: the
-// screen the reply names — the progress, or the first sign-in when the
-// profile has gone since — and, until the reply is in or when it does not
-// read, whose progress it is and why none is shown. A change saved on its form
-// is handed to onSaved.
+// screen the reply names — the progress, its sections open as folds says, or
+// the first sign-in when the profile has gone since — and, until the reply is
+// in or when it does not read, whose progress it is and why none is shown. A
+// change saved on its form is handed to onSaved.
 function ProgressOverCard({
 	progress,
 	child,
 	wide,
 	host,
+	folds,
 	onSaved,
 }: {
 	progress: Progress;
 	child: Child;
 	wide: boolean;
 	host: Host;
+	folds: Folds;
 	onSaved: (child: Child) => void;
 }) {
 	const words = useWords();
@@ -129,6 +136,7 @@ function ProgressOverCard({
 				report={shown.report}
 				wide={wide}
 				host={host}
+				folds={folds}
 				onSaved={onSaved}
 			/>
 		);

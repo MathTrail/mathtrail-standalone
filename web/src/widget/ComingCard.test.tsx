@@ -2,7 +2,7 @@ import type { CallToolResult } from "@modelcontextprotocol/client";
 import { act } from "preact/test-utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { firstAskIn } from "./coming";
-import { buttonIn, openCard, press, takeDown } from "./testing/card";
+import { buttonIn, foldIn, openCard, press, takeDown } from "./testing/card";
 import type { ToolCall } from "./testing/host";
 import {
 	coming,
@@ -325,5 +325,22 @@ describe("a card a task asked for comes to", () => {
 		expect(text(".mt-task-text")).toBe(fence.task.question);
 		// One frame holds the wait and the task: one line at its top.
 		expect(root.querySelectorAll(".mt-bar")).toHaveLength(1);
+	});
+
+	test("keeps a section of the progress opened over the wait open over the task that came", async () => {
+		await drawn(answering(writing(), onTheCard));
+		await pass(first);
+		press(buttonIn(root, "Comet Profile & progress"));
+		await pass(late);
+		press(foldIn(root, "Topics"));
+
+		await pass(moments.ask + late);
+		press(buttonIn(root, "Back to task"));
+		await pass(0);
+		expect(text(".mt-task-text")).toBe(fence.task.question);
+		press(buttonIn(root, "Comet Profile & progress"));
+		await pass(late);
+
+		expect(foldIn(root, "Topics").getAttribute("aria-expanded")).toBe("true");
 	});
 });

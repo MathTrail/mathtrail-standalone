@@ -53,7 +53,7 @@
 	"progress.label": "Profil ve ilerleme",
 	"progress.back": "Soruya dön",
 	"progress.back_plain": "Geri",
-	"progress.rank_line": "aşama {rank}/{total} · puan {rating}",
+	"progress.rank_line": "aşama {rank}/{total}",
 	"progress.next_rank": "Sonraki aşama: {name}. Doğru cevaplar çubuğu ileri taşır, hatalar biraz geri götürür.",
 	"progress.top_rank": "Bu en yüksek aşama.",
 	"progress.share": "sonraki aşamaya giden yol: {share}",
@@ -84,6 +84,7 @@
 		"other": "Toplam {count} soru cevapsız kaldı."
 	},
 	"progress.trial_ranks": "Aşamalar {total} sorudan sonra gelecek.",
+	"progress.for_parent": "ebeveyn için",
 	"profile.card_label": "Profil",
 	"profile.grade": "Sınıf",
 	"profile.grade_note": "Yalnızca bir etiket: değiştirmek hiçbir puanı etkilemez.",

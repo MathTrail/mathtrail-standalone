@@ -7,12 +7,13 @@
 // Every child is drawn from a seed of its own and is run under every rule with
 // the same parameters and the same draws for its answers. The results are
 // written as tables of every cell and of the comparisons, a summary of the
-// numbers a change to the rule is judged by, which is also printed, and what
-// the run was.
+// numbers a change to the rule is judged by, which is also printed, the
+// criterion a new rule is chosen by as every rule meets it, and what the run
+// was.
 //
 // Usage:
 //
-//	learners [-out <directory>] [-children <n>] [-answers <n>] [-seed <n>] [-experiment <name>]
+//	learners [-out <directory>] [-children <n>] [-answers <n>] [-seed <n>] [-experiment <name> | -held-out]
 package main
 
 import (
@@ -23,10 +24,12 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"runtime"
 	"sync"
 
 	"github.com/MathTrail/mathtrail-standalone/content"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
 )
 
@@ -46,9 +49,14 @@ func runCommand(args []string, stdout, stderr io.Writer) int {
 	return 0
 }
 
+// errSeedBesideHeldOut is a command line that asks for the held-out seeds and
+// for a seed or a name of its own at once.
+var errSeedBesideHeldOut = errors.New("learners: -held-out draws from seeds of its own, and takes no -seed or -experiment")
+
 // parse reads the command line: the directory the results are written to and
 // the run's design, and into masterSeed and experiment the seed and the name
-// of the run, each the paper's when the command line does not give it.
+// of the run, each the paper's when the command line does not give it, or the
+// held-out ones, whose results go into a directory of their own.
 func parse(args []string, stderr io.Writer) (string, design, error) {
 	flags := flag.NewFlagSet("learners", flag.ContinueOnError)
 	flags.SetOutput(stderr)
@@ -57,15 +65,28 @@ func parse(args []string, stderr io.Writer) (string, design, error) {
 	answers := flags.Int("answers", 200, "how many answers each child gives")
 	flags.Uint64Var(&masterSeed, "seed", paperSeed, "the seed every draw of the run comes from")
 	flags.StringVar(&experiment, "experiment", paperExperiment, "the name of the run, which every seed it draws takes in")
+	heldOut := flags.Bool("held-out", false, "draw from the seeds kept for confirming a choice, and write under "+heldOutDirectory)
 	if err := flags.Parse(args); err != nil {
 		return "", design{}, err
+	}
+	if *heldOut {
+		seedGiven := false
+		flags.Visit(func(f *flag.Flag) { seedGiven = seedGiven || f.Name == "seed" || f.Name == "experiment" })
+		if seedGiven {
+			fmt.Fprintln(stderr, errSeedBesideHeldOut)
+			return "", design{}, errSeedBesideHeldOut
+		}
+		masterSeed, experiment = heldOutSeed, heldOutExperiment
+		if *out != "" {
+			*out = filepath.Join(*out, heldOutDirectory)
+		}
 	}
 	return *out, design{children: *children, answers: *answers}, nil
 }
 
 func experimentInto(out string, d design, stdout io.Writer) error {
 	if out == "" || d.children < 1 || d.answers < 1 {
-		return errors.New("usage: learners [-out <directory>] [-children <n>] [-answers <n>] [-seed <n>] [-experiment <name>]")
+		return errors.New("usage: learners [-out <directory>] [-children <n>] [-answers <n>] [-seed <n>] [-experiment <name> | -held-out]")
 	}
 	if last := checkpoints[len(checkpoints)-1]; d.answers < last {
 		return fmt.Errorf("learners: the comparisons read the error after %d answers, so a child gives at least %d", last, last)
@@ -88,9 +109,9 @@ func experimentInto(out string, d design, stdout io.Writer) error {
 	return nil
 }
 
-// newWorld is what every run shares: the shipped catalog and its topics, and
-// a sealer with a key made for the run, which seals the tasks as the service
-// does.
+// newWorld is what every run shares: the shipped catalog, its topics and the
+// points of each topic's ladder, and a sealer with a key made for the run,
+// which seals the tasks as the service does.
 func newWorld(answers int) (*world, error) {
 	shipped, err := content.Load()
 	if err != nil {
@@ -104,7 +125,12 @@ func newWorld(answers int) (*world, error) {
 	if err != nil {
 		return nil, fmt.Errorf("learners: make the key ring: %w", err)
 	}
-	return &world{catalog: shipped, topics: shipped.TopicIDs(), sealer: ring.For(seal.PurposeTaskAnswer), answers: answers}, nil
+	topics := shipped.TopicIDs()
+	ladders := make(map[string][]rating.Point, len(topics))
+	for _, topic := range topics {
+		ladders[topic] = rating.Points(shipped.LevelsOf(topic)...)
+	}
+	return &world{catalog: shipped, topics: topics, ladders: ladders, sealer: ring.For(seal.PurposeTaskAnswer), answers: answers}, nil
 }
 
 // job is one child of one cell.

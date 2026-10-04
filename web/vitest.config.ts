@@ -3,7 +3,12 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
 	test: {
 		environment: "happy-dom",
-		include: ["src/**/*.test.{ts,tsx}", "scripts/**/*.test.ts", "*.test.ts"],
+		include: [
+			"src/**/*.test.{ts,tsx}",
+			"scripts/**/*.test.ts",
+			"tools/**/*.test.ts",
+			"*.test.ts",
+		],
 		coverage: {
 			provider: "v8",
 			// The code, not the configurations that the build test and every run
@@ -14,11 +19,12 @@ export default defineConfig({
 			// nowhere and is judged by eye; and the measure of the layout, the
 			// pictures of the README and the driving of the preview they share
 			// run in real browsers against the preview, and nowhere else.
-			include: ["src/**/*.{ts,tsx}", "scripts/**/*.ts"],
+			include: ["src/**/*.{ts,tsx}", "scripts/**/*.ts", "tools/**/*.ts"],
 			exclude: [
 				"**/*.test.{ts,tsx}",
 				"**/*.d.ts",
 				"src/**/testing/**",
+				"tools/**/testing/**",
 				"src/preview/**",
 				"src/widget/main.ts",
 				"scripts/drive.ts",

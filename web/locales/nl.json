@@ -53,7 +53,7 @@
 	"progress.label": "Profiel en voortgang",
 	"progress.back": "Naar de opgave",
 	"progress.back_plain": "Terug",
-	"progress.rank_line": "rang {rank} van {total} · rating {rating}",
+	"progress.rank_line": "rang {rank} van {total}",
 	"progress.next_rank": "Volgende rang: {name}. Goede antwoorden brengen de balk vooruit, fouten een stukje terug.",
 	"progress.top_rank": "Dit is de hoogste rang.",
 	"progress.share": "{share} van de weg naar de volgende rang",
@@ -84,6 +84,7 @@
 		"other": "In totaal zijn {count} opgaven zonder antwoord gebleven."
 	},
 	"progress.trial_ranks": "De rangen komen na {total} opgaven.",
+	"progress.for_parent": "voor ouders",
 	"profile.card_label": "Profiel",
 	"profile.grade": "Leerjaar",
 	"profile.grade_note": "Alleen ter informatie: als u dit wijzigt, verandert er niets aan de rating.",

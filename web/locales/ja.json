@@ -53,7 +53,7 @@
 	"progress.label": "プロフィールと記録",
 	"progress.back": "問題にもどる",
 	"progress.back_plain": "もどる",
-	"progress.rank_line": "ランク{rank}/{total} · レーティング{rating}",
+	"progress.rank_line": "ランク{rank}/{total}",
 	"progress.next_rank": "次のランクは{name}。正しい答えでバーが進み、まちがえると少しもどります。",
 	"progress.top_rank": "いちばん高いランクです。",
 	"progress.share": "次のランクまで{share}",
@@ -82,6 +82,7 @@
 		"other": "答えないままの問題は、全部で{count}問です。"
 	},
 	"progress.trial_ranks": "ランクは{total}問のあとで出ます。",
+	"progress.for_parent": "保護者の方へ",
 	"profile.card_label": "プロフィール",
 	"profile.grade": "学年",
 	"profile.grade_note": "表示用のラベルです。変更してもレーティングは変わりません。",

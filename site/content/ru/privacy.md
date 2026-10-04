@@ -5,9 +5,9 @@ description: Что MathTrail знает о вашем ребёнке, где э
 
 # Политика приватности
 
-Обновлено 1 октября 2026 года.
+Обновлено 3 октября 2026 года.
 
-MathTrail — бесплатный проект с открытым кодом. Вопросы об этой политике и о данных ребёнка — на [alexander.ryazanov.1987@gmail.com](mailto:alexander.ryazanov.1987@gmail.com).
+MathTrail — бесплатный проект с открытым кодом. Вопросы об этой политике и о данных ребёнка — на [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com).
 
 ## Коротко
 

@@ -27,8 +27,6 @@ env:
   GIT_CONFIG_COUNT: "1"
   GIT_CONFIG_KEY_0: safe.directory
   GIT_CONFIG_VALUE_0: "*"
-  GOMODCACHE: /tmp/go/mod
-  GOCACHE: /tmp/go/build
 
 defaults:
   run:
@@ -67,13 +65,6 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            /tmp/go/mod
-            /tmp/go/build
-          key: go-${{ hashFiles('go.sum') }}
-          restore-keys: go-
       - name: Build the site and hold it to its own rules
         run: just ci-site
       - name: Keep the site for the deployment

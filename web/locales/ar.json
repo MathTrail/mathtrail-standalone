@@ -53,7 +53,7 @@
 	"progress.label": "الملف الشخصي والتقدم",
 	"progress.back": "إلى المسألة",
 	"progress.back_plain": "رجوع",
-	"progress.rank_line": "المرحلة {rank} من {total} · التصنيف {rating}",
+	"progress.rank_line": "المرحلة {rank} من {total}",
 	"progress.next_rank": "المرحلة التالية: {name}. الإجابات الصحيحة تدفع الشريط إلى الأمام، والأخطاء تعيده قليلًا إلى الوراء.",
 	"progress.top_rank": "هذه أعلى مرحلة.",
 	"progress.share": "{share} من الطريق إلى المرحلة التالية",
@@ -92,6 +92,7 @@
 		"other": "في المجموع، {count} مسألة بلا إجابة."
 	},
 	"progress.trial_ranks": "تظهر المراحل بعد المسألة {total}.",
+	"progress.for_parent": "لولي الأمر",
 	"profile.card_label": "الملف الشخصي",
 	"profile.grade": "الصف",
 	"profile.grade_note": "مجرد تسمية: تغييره لا يؤثر في أي تصنيف.",

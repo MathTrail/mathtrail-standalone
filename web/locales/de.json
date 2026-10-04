@@ -53,7 +53,7 @@
 	"progress.label": "Profil und Fortschritt",
 	"progress.back": "Zur Aufgabe",
 	"progress.back_plain": "Zurück",
-	"progress.rank_line": "Rang {rank} von {total} · Wertung {rating}",
+	"progress.rank_line": "Rang {rank} von {total}",
 	"progress.next_rank": "Nächster Rang: {name}. Richtige Antworten schieben den Balken nach vorn, Fehler ein Stück zurück.",
 	"progress.top_rank": "Das ist der höchste Rang.",
 	"progress.share": "{share} des Wegs bis zum nächsten Rang",
@@ -84,6 +84,7 @@
 		"other": "Insgesamt blieben {count} Aufgaben ohne Antwort."
 	},
 	"progress.trial_ranks": "Die Ränge kommen nach {total} Aufgaben.",
+	"progress.for_parent": "für Eltern",
 	"profile.card_label": "Profil",
 	"profile.grade": "Klasse",
 	"profile.grade_note": "Nur eine Angabe: Eine Änderung wirkt sich auf keine Wertung aus.",

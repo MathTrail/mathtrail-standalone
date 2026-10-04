@@ -53,7 +53,7 @@
 	"progress.label": "โปรไฟล์และความคืบหน้า",
 	"progress.back": "กลับไปที่โจทย์",
 	"progress.back_plain": "กลับ",
-	"progress.rank_line": "ด่านที่ {rank} จาก {total} · คะแนน {rating}",
+	"progress.rank_line": "ด่านที่ {rank} จาก {total}",
 	"progress.next_rank": "ด่านถัดไป: {name} ตอบถูกแถบจะขยับไปข้างหน้า ตอบผิดจะถอยกลับเล็กน้อย",
 	"progress.top_rank": "นี่คือด่านสูงสุด",
 	"progress.share": "ไปถึงด่านถัดไปแล้ว {share}",
@@ -82,6 +82,7 @@
 		"other": "รวมแล้วมีโจทย์ที่ไม่ได้ตอบ {count} ข้อ"
 	},
 	"progress.trial_ranks": "ด่านจะแสดงหลังทำครบ {total} ข้อ",
+	"progress.for_parent": "สำหรับผู้ปกครอง",
 	"profile.card_label": "โปรไฟล์",
 	"profile.grade": "ชั้นเรียน",
 	"profile.grade_note": "เป็นแค่ป้ายกำกับ เปลี่ยนแล้วคะแนนก็ไม่เปลี่ยน",

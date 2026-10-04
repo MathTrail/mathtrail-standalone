@@ -53,7 +53,7 @@
 	"progress.label": "Профіль і прогрес",
 	"progress.back": "До задачі",
 	"progress.back_plain": "Назад",
-	"progress.rank_line": "ранг {rank} з {total} · рейтинг {rating}",
+	"progress.rank_line": "ранг {rank} з {total}",
 	"progress.next_rank": "Наступний ранг — {name}. Правильні відповіді рухають смужку вперед, помилки — трохи назад.",
 	"progress.top_rank": "Це найвищий ранг.",
 	"progress.share": "{share} шляху до наступного рангу",
@@ -88,6 +88,7 @@
 		"other": "Загалом без відповіді залишено {count} задачі."
 	},
 	"progress.trial_ranks": "Ранги з’являться після {total} задач.",
+	"progress.for_parent": "для батьків",
 	"profile.card_label": "Профіль",
 	"profile.grade": "Клас",
 	"profile.grade_note": "Лише підпис: якщо його змінити, рейтинг не зміниться.",

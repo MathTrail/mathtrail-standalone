@@ -1,8 +1,10 @@
 import { render } from "preact";
+import { useState } from "preact/hooks";
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test } from "vitest";
 import {
 	Diagram,
+	Fold,
 	GeneratingSteps,
 	Note,
 	type NoteTone,
@@ -19,6 +21,75 @@ afterEach(() => {
 function draw(element: preact.JSX.Element): void {
 	act(() => render(element, root));
 }
+
+// Folding is a part folded away under its title, opened and folded by its
+// title as whoever draws a fold does: remembering which it is.
+function Folding({ summary }: { summary?: string }) {
+	const [open, setOpen] = useState(false);
+	return (
+		<Fold
+			title="Topics"
+			summary={summary}
+			open={open}
+			onToggle={() => setOpen(!open)}
+		>
+			<p>What it holds</p>
+		</Fold>
+	);
+}
+
+// title and body are the title and the body of the fold drawn.
+const title = () => root.querySelector<HTMLButtonElement>("h2 button");
+const body = () => root.querySelector(".mt-fold-body");
+
+describe("a fold", () => {
+	test("is a button under a title, saying that the part it leads to is folded", () => {
+		draw(<Folding summary="3 up" />);
+
+		expect(title()?.getAttribute("type")).toBe("button");
+		expect(title()?.getAttribute("aria-expanded")).toBe("false");
+		expect(title()?.getAttribute("aria-controls")).toBe(body()?.id);
+		expect(body()?.id).not.toBe("");
+	});
+
+	test("keeps the part on the page while it is folded, hidden", () => {
+		draw(<Folding />);
+
+		expect(body()?.hasAttribute("hidden")).toBe(true);
+		expect(body()?.textContent).toBe("What it holds");
+	});
+
+	test("opens the part when pressed, and folds it again", () => {
+		draw(<Folding />);
+
+		act(() => title()?.click());
+
+		expect(title()?.getAttribute("aria-expanded")).toBe("true");
+		expect(body()?.hasAttribute("hidden")).toBe(false);
+
+		act(() => title()?.click());
+
+		expect(title()?.getAttribute("aria-expanded")).toBe("false");
+		expect(body()?.hasAttribute("hidden")).toBe(true);
+	});
+
+	test("says its title and its summary as two things, with the arrow beside them", () => {
+		draw(<Folding summary="3 up" />);
+
+		expect(title()?.textContent).toBe("Topics 3 up");
+		expect(title()?.querySelector(".mt-fold-summary")?.textContent).toBe(
+			"3 up",
+		);
+		expect(title()?.querySelector(".mt-chevron")).not.toBeNull();
+	});
+
+	test("with no summary says its title alone", () => {
+		draw(<Folding />);
+
+		expect(title()?.textContent).toBe("Topics");
+		expect(title()?.querySelector(".mt-fold-summary")).toBeNull();
+	});
+});
 
 describe("a drawing", () => {
 	test("is laid out left to right, named for a screen reader, and reachable to scroll", () => {

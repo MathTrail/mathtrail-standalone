@@ -1,4 +1,5 @@
 import type { ComponentChildren } from "preact";
+import { useId } from "preact/hooks";
 import { classes } from "./classes";
 import type { Said } from "./controls";
 import { Icon } from "./icons";
@@ -101,6 +102,58 @@ export function Verdict({
 		<div class="mt-verdict">
 			{line}
 			<p class="mt-verdict-detail">{detail}</p>
+		</div>
+	);
+}
+
+/**
+ * Fold is a part of a card that folds away under its title. The title, a
+ * short summary of what the part holds and an arrow are one button, which
+ * opens the part and folds it again, and says which it is; the summary goes
+ * to a line of its own where the two do not fit. Folded, what the part holds
+ * stays on the page, hidden, so that whatever is half done in it — a form
+ * being filled in — is there as it was when the part opens again. Whether it
+ * is open is not the fold's to remember: whoever draws it says.
+ */
+export function Fold({
+	title,
+	summary,
+	open,
+	onToggle,
+	children,
+}: {
+	title: string;
+	summary?: ComponentChildren;
+	open: boolean;
+	onToggle: () => void;
+	children: ComponentChildren;
+}) {
+	const body = useId();
+	return (
+		<div class="mt-fold">
+			<h2 class="mt-fold-head">
+				<button
+					type="button"
+					class="mt-fold-button"
+					aria-expanded={open}
+					aria-controls={body}
+					onClick={onToggle}
+				>
+					<span class="mt-fold-text">
+						<span class="mt-fold-title">{title}</span>
+						{summary !== undefined && (
+							<>
+								{" "}
+								<span class="mt-fold-summary">{summary}</span>
+							</>
+						)}
+					</span>
+					<Icon name="chevron-right" size={16} className="mt-chevron" />
+				</button>
+			</h2>
+			<div id={body} class="mt-fold-body" hidden={!open}>
+				{children}
+			</div>
 		</div>
 	);
 }

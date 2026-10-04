@@ -442,7 +442,9 @@ web-preview: web-install
 # and text that runs out of its box or is cut short. The browsers run in their
 # image, as this user, over the repository as it is; what they find, and a
 # picture of every card written right to left, are left in web/layout/.
-# Arguments narrow the run: --engine chromium --language ar --width 320.
+# Arguments narrow the run: --engine chromium --language ar --width 320; and
+# --shard 2/6 measures the second of six parts of it, for machines that share
+# one run between them.
 # Measure the widget's layout in real browsers, in every language, at every width a card must fit
 [working-directory('web')]
 web-layout *args: _playwright-pinned
@@ -631,8 +633,9 @@ site-serve port="8081": site
     npm run --silent preview:site -- --outDir ../{{ SITE_DIR }} --host 0.0.0.0 --port {{ port }} --strictPort
 
 # Build the site and refuse it if anything about it is wrong
+[working-directory('web')]
 ci-site: site
-    go run ./cmd/sitecheck -base {{ SITE_BASE }} -dir {{ SITE_DIR }}
+    npm run --silent check:site -- --base {{ SITE_BASE }} --dir ../{{ SITE_DIR }}
 
 # -- Infrastructure ---------------------------------------------------------
 
