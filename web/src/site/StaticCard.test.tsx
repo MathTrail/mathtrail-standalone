@@ -1,11 +1,22 @@
 import { Window } from "happy-dom";
 import { renderToString } from "preact-render-to-string";
-import { afterAll, afterEach, describe, expect, test } from "vitest";
+import { afterAll, afterEach, describe, expect, test, vi } from "vitest";
 import type { Section } from "../widget/folds";
-import { readScreen } from "../widget/payload";
-import { type Drawn, drawCard, takeDown, unfold } from "../widget/testing/card";
-import { standing } from "../widget/testing/lesson";
-import { StaticProgress } from "./StaticCard";
+import { readAnswer, readHandedTask, readScreen } from "../widget/payload";
+import {
+	type Drawn,
+	drawCard,
+	press,
+	takeDown,
+	unfold,
+} from "../widget/testing/card";
+import {
+	answered,
+	fenceInRussian,
+	fenceSolutionInRussian,
+	standing,
+} from "../widget/testing/lesson";
+import { StaticAnswer, StaticProgress } from "./StaticCard";
 
 // browser reads the static card the way a page holds it, apart from the card
 // the widget draws in this test's own document.
@@ -90,5 +101,83 @@ describe("a progress card drawn on a page", () => {
 		].map((button) => button.querySelector(".mt-fold-title")?.textContent);
 
 		expect(open).toEqual(["Темы"]);
+	});
+});
+
+// russianFence is the fence handed out in a lesson in Russian, which the
+// service names beside the task, as it does for every task it hands out.
+const russianFence = { ...fenceInRussian, language: "ru" };
+
+// wrong is the fence answered with the wrong B, as the service records it for
+// a card in Russian.
+const wrong = answered({
+	trap: {
+		id: "off_by_one",
+		text: "Посчитаны промежутки, а не столбы.",
+		repeated: false,
+	},
+	solution: fenceSolutionInRussian,
+});
+
+// answeredStill is the static card of the fence once wrong is recorded, read
+// back as a page holds it.
+function answeredStill() {
+	const handed = readHandedTask(russianFence);
+	const told = readAnswer(wrong, russianFence.task.id);
+	if (handed === undefined || told.kind !== "answered") {
+		throw new Error("the example is no task answered");
+	}
+	const html = renderToString(
+		<StaticAnswer handed={handed} result={told.result} locale="ru" />,
+	);
+	return new browser.DOMParser().parseFromString(html, "text/html");
+}
+
+describe("a card of a wrong answer drawn on a page", () => {
+	test("is the card the widget draws in a chat once the same answer is recorded", async () => {
+		drawn = await drawCard(russianFence, { tools: () => wrong });
+		const pressed = [
+			...drawn.root.querySelectorAll<HTMLButtonElement>(".mt-option"),
+		].find(
+			(row) => row.querySelector(".mt-option-letter")?.textContent === "B",
+		);
+		if (pressed === undefined) {
+			throw new Error("the card has no option B");
+		}
+		press(pressed);
+		const root = drawn.root;
+		await vi.waitFor(() =>
+			expect(root.querySelector(".mt-replies .mt-reply")).not.toBeNull(),
+		);
+		const page = answeredStill();
+		const chat = root.querySelector(".mt-widget");
+
+		expect(page.querySelector(".mt-widget")?.textContent).toBe(
+			chat?.textContent,
+		);
+		expect(shape(page.querySelector(".mt-widget"))).toEqual(shape(chat));
+	});
+
+	test("is inert, and drawn at the narrow width", () => {
+		const page = answeredStill();
+
+		expect(page.querySelector(".s-card")?.hasAttribute("inert")).toBe(true);
+		expect(page.querySelector(".s-card .mt-widget")).not.toBeNull();
+		expect(page.querySelector(".mt-wide")).toBeNull();
+	});
+
+	test("marks the option picked wrong and the right one right, by their letters", () => {
+		const states = [...answeredStill().querySelectorAll(".mt-option")].map(
+			(row) =>
+				`${row.querySelector(".mt-option-letter")?.textContent} ${row.getAttribute("data-state")}`,
+		);
+
+		expect(states).toEqual([
+			"A muted",
+			"B wrong",
+			"C correct",
+			"D muted",
+			"E muted",
+		]);
 	});
 });

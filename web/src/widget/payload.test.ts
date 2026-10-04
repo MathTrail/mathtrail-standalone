@@ -310,6 +310,51 @@ describe("the screen a payload draws", () => {
 		expect(readScreen(later)?.screen).toBe("progress");
 	});
 
+	test("of the progress reads its review, codes a later release adds among it", () => {
+		const later = {
+			...standing,
+			review: {
+				...standing.review,
+				strong: [{ topic: "logic.ordering", reasons: ["shining"] }],
+				steps: [{ kind: "dance", topic: "logic.ordering" }],
+			},
+		};
+
+		const shown = readScreen(later);
+		if (shown?.screen !== "progress") {
+			throw new Error(`the progress reads as ${shown?.screen}`);
+		}
+
+		expect(shown.report.review?.strong).toEqual([
+			{ topic: "logic.ordering", reasons: ["shining"] },
+		]);
+		expect(shown.report.review?.develop[0]).toEqual({
+			topic: "combinatorics.enumeration",
+			reasons: ["trap"],
+			trap: "missed_case",
+		});
+		expect(shown.report.review?.early).toEqual(["counting.gaps"]);
+		expect(shown.report.review?.steps).toEqual([
+			{ kind: "dance", topic: "logic.ordering" },
+		]);
+	});
+
+	test.each([
+		["the trial series", inTrial],
+		["a progress from before the review", standingBefore],
+		["a review that does not read", { ...standing, review: { strong: 3 } }],
+	])(
+		"of the progress has no review in %s, and reads all the same",
+		(_, payload) => {
+			const shown = readScreen(payload);
+
+			expect(shown?.screen).toBe("progress");
+			expect(
+				shown?.screen === "progress" && shown.report.review,
+			).toBeUndefined();
+		},
+	);
+
 	test("of the progress from before the map of mistakes is read with none", () => {
 		const before = Object.fromEntries(
 			Object.entries(standing).filter(([field]) => field !== "mistakes"),

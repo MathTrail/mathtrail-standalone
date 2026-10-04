@@ -67,9 +67,9 @@ Every rule's value against each goal's bound, and whether its interval reaches t
 | floor_0.05+cautious_z0/both | 0.154, reached | 4.193, reached | 0.168, reached | 4.318, reached | 73.000, reached | 3.667, on the edge | 40.000, reached | 1.665, reached | 73.000, reached | 3.633, on the edge | 41.000, reached | 1.601, reached |
 | oracle/both (the ceiling) | 0.750, not reached | 6.402, reached | 0.731, not reached | 6.547, reached | — | — | — | — | — | — | — | — |
 
-## Not worse than the service
+## Not worse than the baseline
 
-What of not worse each rule does not meet, or the run cannot read: its difference from the service, with its interval, and the tolerance it is read with.
+What of not worse each rule does not meet, or the run cannot read: its difference from the baseline, with its interval, and the tolerance it is read with.
 
 | Rule | Checks met | Not met or unread |
 |---|---:|---|
@@ -86,7 +86,7 @@ What of not worse each rule does not meet, or the run cannot read: its differenc
 
 ## What the bench resolves
 
-Each check of not worse: the author's tolerance, the standard error of the paired difference between constant_slow and the service, the tolerance the check is read with — never under 4.3 standard errors — and the chance a candidate exactly as good as the service passes it, read as this run reads it and as a decision run does.
+Each check of not worse: the author's tolerance, the standard error of the paired difference between constant_slow and the baseline, the tolerance the check is read with — never under 4.3 standard errors — and the chance a candidate exactly as good as the baseline passes it, read as this run reads it and as a decision run does.
 
 | Generator | Measure | Author's tolerance | Standard error | Tolerance read | Passes, 4000 children | Passes, 4000 children |
 |---|---|---:|---:|---:|---:|---:|

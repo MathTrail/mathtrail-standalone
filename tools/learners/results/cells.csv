@@ -18,6 +18,8 @@ shrinking,both,G0,r3_below_0.5,0.0365,0.0327,0.0407
 shrinking,both,G0,r3_above_0.95,0.0311,0.0280,0.0342
 shrinking,both,G0,r4_false,0.6317,0.6147,0.6496
 shrinking,both,G0,r4_false_0.70,0.5260,0.5072,0.5445
+shrinking,both,G0,r4_below,0.0000,0.0000,0.0000
+shrinking,both,G0,r4_false_at_task,0.6317,0.6143,0.6486
 shrinking,both,G0,r4_declared,9.8610,9.6370,10.0780
 shrinking,both,G0,r5_late_answers,9.8436,9.6006,10.0869
 shrinking,both,G0,r5_never,0.2176,0.1986,0.2377
@@ -63,6 +65,8 @@ shrinking,both,G1,r3_below_0.5,0.1194,0.1064,0.1323
 shrinking,both,G1,r3_above_0.95,0.0459,0.0410,0.0516
 shrinking,both,G1,r4_false,0.6266,0.6055,0.6484
 shrinking,both,G1,r4_false_0.70,0.5702,0.5503,0.5914
+shrinking,both,G1,r4_below,0.0000,0.0000,0.0000
+shrinking,both,G1,r4_false_at_task,0.6266,0.6048,0.6487
 shrinking,both,G1,r4_declared,10.4240,10.1800,10.6560
 shrinking,both,G1,r5_late_answers,9.4419,9.2116,9.6879
 shrinking,both,G1,r5_never,0.2073,0.1864,0.2274
@@ -108,6 +112,8 @@ shrinking,both,G2,r3_below_0.5,0.0147,0.0131,0.0164
 shrinking,both,G2,r3_above_0.95,0.1649,0.1570,0.1734
 shrinking,both,G2,r4_false,0.4038,0.3874,0.4207
 shrinking,both,G2,r4_false_0.70,0.2866,0.2707,0.3016
+shrinking,both,G2,r4_below,0.0000,0.0000,0.0000
+shrinking,both,G2,r4_false_at_task,0.4038,0.3872,0.4202
 shrinking,both,G2,r4_declared,14.0740,13.8240,14.3290
 shrinking,both,G2,r5_late_answers,7.6603,7.5252,7.7912
 shrinking,both,G2,r5_never,0.1114,0.0994,0.1237
@@ -153,6 +159,8 @@ shrinking,both,G3,r3_below_0.5,0.0291,0.0265,0.0322
 shrinking,both,G3,r3_above_0.95,0.0827,0.0776,0.0884
 shrinking,both,G3,r4_false,0.5253,0.5072,0.5432
 shrinking,both,G3,r4_false_0.70,0.4079,0.3895,0.4270
+shrinking,both,G3,r4_below,0.0000,0.0000,0.0000
+shrinking,both,G3,r4_false_at_task,0.5253,0.5069,0.5439
 shrinking,both,G3,r4_declared,12.0510,11.7980,12.3020
 shrinking,both,G3,r5_late_answers,8.3412,8.1620,8.5216
 shrinking,both,G3,r5_never,0.1624,0.1465,0.1785
@@ -200,6 +208,8 @@ shrinking,both,G4,r3_below_0.5,0.0543,0.0499,0.0589
 shrinking,both,G4,r3_above_0.95,0.0376,0.0343,0.0408
 shrinking,both,G4,r4_false,0.5779,0.5598,0.5953
 shrinking,both,G4,r4_false_0.70,0.4665,0.4467,0.4853
+shrinking,both,G4,r4_below,0.0000,0.0000,0.0000
+shrinking,both,G4,r4_false_at_task,0.5779,0.5604,0.5957
 shrinking,both,G4,r4_declared,9.3290,9.1280,9.5470
 shrinking,both,G4,r5_late_answers,10.2464,9.9951,10.5232
 shrinking,both,G4,r5_never,0.2464,0.2260,0.2657
@@ -245,6 +255,8 @@ shrinking,both,G5,r3_below_0.5,0.0543,0.0490,0.0597
 shrinking,both,G5,r3_above_0.95,0.0359,0.0321,0.0401
 shrinking,both,G5,r4_false,0.6250,0.6072,0.6438
 shrinking,both,G5,r4_false_0.70,0.5136,0.4947,0.5325
+shrinking,both,G5,r4_below,0.0000,0.0000,0.0000
+shrinking,both,G5,r4_false_at_task,0.6250,0.6077,0.6427
 shrinking,both,G5,r4_declared,9.7380,9.5410,9.9600
 shrinking,both,G5,r5_late_answers,10.1768,9.9067,10.4443
 shrinking,both,G5,r5_never,0.2227,0.2021,0.2443
@@ -290,6 +302,8 @@ shrinking,both,G6,r3_below_0.5,0.0583,0.0535,0.0635
 shrinking,both,G6,r3_above_0.95,0.0948,0.0876,0.1018
 shrinking,both,G6,r4_false,0.6861,0.6685,0.7039
 shrinking,both,G6,r4_false_0.70,0.5660,0.5472,0.5854
+shrinking,both,G6,r4_below,0.0000,0.0000,0.0000
+shrinking,both,G6,r4_false_at_task,0.6861,0.6686,0.7029
 shrinking,both,G6,r4_declared,9.5250,9.3180,9.7390
 shrinking,both,G6,r5_late_answers,9.8161,9.5447,10.0911
 shrinking,both,G6,r5_never,0.2389,0.2165,0.2614
@@ -335,6 +349,8 @@ shrinking,both,G7,r3_below_0.5,0.0379,0.0339,0.0422
 shrinking,both,G7,r3_above_0.95,0.0323,0.0291,0.0358
 shrinking,both,G7,r4_false,0.6497,0.6338,0.6660
 shrinking,both,G7,r4_false_0.70,0.5474,0.5296,0.5655
+shrinking,both,G7,r4_below,0.0000,0.0000,0.0000
+shrinking,both,G7,r4_false_at_task,0.6497,0.6340,0.6659
 shrinking,both,G7,r4_declared,9.7390,9.5420,9.9430
 shrinking,both,G7,r5_late_answers,10.0870,9.8448,10.3340
 shrinking,both,G7,r5_never,0.1968,0.1789,0.2148
@@ -380,6 +396,8 @@ shrinking,both,G8,r3_below_0.5,0.0350,0.0318,0.0384
 shrinking,both,G8,r3_above_0.95,0.0344,0.0306,0.0381
 shrinking,both,G8,r4_false,0.6407,0.6234,0.6589
 shrinking,both,G8,r4_false_0.70,0.5327,0.5153,0.5532
+shrinking,both,G8,r4_below,0.0000,0.0000,0.0000
+shrinking,both,G8,r4_false_at_task,0.6407,0.6235,0.6593
 shrinking,both,G8,r4_declared,7.4260,7.2210,7.6150
 shrinking,both,G8,r5_late_answers,11.0497,10.7428,11.3623
 shrinking,both,G8,r5_never,0.3797,0.3572,0.4025
@@ -425,6 +443,8 @@ shrinking,both,G0-exact,r3_below_0.5,0.0168,0.0143,0.0196
 shrinking,both,G0-exact,r3_above_0.95,0.0133,0.0110,0.0159
 shrinking,both,G0-exact,r4_false,0.6390,0.6233,0.6560
 shrinking,both,G0-exact,r4_false_0.70,0.5325,0.5142,0.5501
+shrinking,both,G0-exact,r4_below,0.0000,0.0000,0.0000
+shrinking,both,G0-exact,r4_false_at_task,0.6390,0.6231,0.6558
 shrinking,both,G0-exact,r4_declared,9.8020,9.5880,10.0180
 shrinking,both,G0-exact,r5_late_answers,9.5994,9.3580,9.8334
 shrinking,both,G0-exact,r5_never,0.2131,0.1947,0.2325
@@ -470,6 +490,8 @@ shrinking,both,G0-miss0.25,r3_below_0.5,0.0256,0.0224,0.0292
 shrinking,both,G0-miss0.25,r3_above_0.95,0.0134,0.0112,0.0157
 shrinking,both,G0-miss0.25,r4_false,0.6509,0.6354,0.6674
 shrinking,both,G0-miss0.25,r4_false_0.70,0.5422,0.5250,0.5604
+shrinking,both,G0-miss0.25,r4_below,0.0000,0.0000,0.0000
+shrinking,both,G0-miss0.25,r4_false_at_task,0.6509,0.6355,0.6669
 shrinking,both,G0-miss0.25,r4_declared,9.6580,9.4410,9.8650
 shrinking,both,G0-miss0.25,r5_late_answers,10.0284,9.7770,10.2768
 shrinking,both,G0-miss0.25,r5_never,0.2119,0.1930,0.2313
@@ -515,6 +537,8 @@ shrinking,both,G0-miss1,r3_below_0.5,0.0864,0.0823,0.0909
 shrinking,both,G0-miss1,r3_above_0.95,0.1123,0.1071,0.1175
 shrinking,both,G0-miss1,r4_false,0.6211,0.6030,0.6385
 shrinking,both,G0-miss1,r4_false_0.70,0.5088,0.4902,0.5283
+shrinking,both,G0-miss1,r4_below,0.0000,0.0000,0.0000
+shrinking,both,G0-miss1,r4_false_at_task,0.6211,0.6049,0.6385
 shrinking,both,G0-miss1,r4_declared,9.9020,9.6750,10.1160
 shrinking,both,G0-miss1,r5_late_answers,9.9183,9.6606,10.1961
 shrinking,both,G0-miss1,r5_never,0.2175,0.1985,0.2366
@@ -560,6 +584,8 @@ shrinking,both,G2-half,r3_below_0.5,0.0220,0.0198,0.0242
 shrinking,both,G2-half,r3_above_0.95,0.0713,0.0657,0.0766
 shrinking,both,G2-half,r4_false,0.5162,0.4988,0.5329
 shrinking,both,G2-half,r4_false_0.70,0.4043,0.3872,0.4216
+shrinking,both,G2-half,r4_below,0.0000,0.0000,0.0000
+shrinking,both,G2-half,r4_false_at_task,0.5162,0.4991,0.5327
 shrinking,both,G2-half,r4_declared,12.0070,11.7750,12.2400
 shrinking,both,G2-half,r5_late_answers,8.8758,8.7003,9.0609
 shrinking,both,G2-half,r5_never,0.1627,0.1470,0.1792
@@ -605,6 +631,8 @@ shrinking,both,G2-fading,r3_below_0.5,0.0232,0.0209,0.0257
 shrinking,both,G2-fading,r3_above_0.95,0.0624,0.0569,0.0684
 shrinking,both,G2-fading,r4_false,0.5354,0.5180,0.5527
 shrinking,both,G2-fading,r4_false_0.70,0.4135,0.3952,0.4307
+shrinking,both,G2-fading,r4_below,0.0000,0.0000,0.0000
+shrinking,both,G2-fading,r4_false_at_task,0.5354,0.5182,0.5529
 shrinking,both,G2-fading,r4_declared,11.4230,11.1920,11.6510
 shrinking,both,G2-fading,r5_late_answers,8.8241,8.6376,9.0201
 shrinking,both,G2-fading,r5_never,0.1702,0.1536,0.1869
@@ -650,6 +678,8 @@ shrinking,both,G3-drop,r3_below_0.5,0.0864,0.0807,0.0927
 shrinking,both,G3-drop,r3_above_0.95,0.0202,0.0178,0.0227
 shrinking,both,G3-drop,r4_false,0.7212,0.7055,0.7371
 shrinking,both,G3-drop,r4_false_0.70,0.6256,0.6081,0.6425
+shrinking,both,G3-drop,r4_below,0.0000,0.0000,0.0000
+shrinking,both,G3-drop,r4_false_at_task,0.7212,0.7057,0.7365
 shrinking,both,G3-drop,r4_declared,8.5650,8.3640,8.7660
 shrinking,both,G3-drop,r5_late_answers,10.0945,9.8181,10.3916
 shrinking,both,G3-drop,r5_never,0.3434,0.3229,0.3651
@@ -697,6 +727,8 @@ shrinking,both,G0-start0.5,r3_below_0.5,0.0311,0.0284,0.0338
 shrinking,both,G0-start0.5,r3_above_0.95,0.0292,0.0262,0.0324
 shrinking,both,G0-start0.5,r4_false,0.6672,0.6532,0.6809
 shrinking,both,G0-start0.5,r4_false_0.70,0.5659,0.5502,0.5808
+shrinking,both,G0-start0.5,r4_below,0.0000,0.0000,0.0000
+shrinking,both,G0-start0.5,r4_false_at_task,0.6672,0.6535,0.6815
 shrinking,both,G0-start0.5,r4_declared,9.7430,9.5290,9.9460
 shrinking,both,G0-start0.5,r5_late_answers,10.0130,9.7567,10.2501
 shrinking,both,G0-start0.5,r5_never,0.2009,0.1836,0.2189
@@ -742,6 +774,8 @@ shrinking,both,G0-start2,r3_below_0.5,0.0726,0.0618,0.0836
 shrinking,both,G0-start2,r3_above_0.95,0.0430,0.0374,0.0487
 shrinking,both,G0-start2,r4_false,0.5953,0.5750,0.6153
 shrinking,both,G0-start2,r4_false_0.70,0.5050,0.4845,0.5259
+shrinking,both,G0-start2,r4_below,0.0000,0.0000,0.0000
+shrinking,both,G0-start2,r4_false_at_task,0.5953,0.5765,0.6138
 shrinking,both,G0-start2,r4_declared,10.1140,9.8720,10.3460
 shrinking,both,G0-start2,r5_late_answers,9.5336,9.3089,9.7697
 shrinking,both,G0-start2,r5_never,0.2089,0.1893,0.2310
@@ -787,6 +821,8 @@ shrinking,both,G0-topics0.3,r3_below_0.5,0.0312,0.0282,0.0346
 shrinking,both,G0-topics0.3,r3_above_0.95,0.0232,0.0202,0.0265
 shrinking,both,G0-topics0.3,r4_false,0.6526,0.6351,0.6692
 shrinking,both,G0-topics0.3,r4_false_0.70,0.5473,0.5293,0.5666
+shrinking,both,G0-topics0.3,r4_below,0.0000,0.0000,0.0000
+shrinking,both,G0-topics0.3,r4_false_at_task,0.6526,0.6358,0.6692
 shrinking,both,G0-topics0.3,r4_declared,9.7600,9.5490,9.9730
 shrinking,both,G0-topics0.3,r5_late_answers,10.1792,9.9197,10.4285
 shrinking,both,G0-topics0.3,r5_never,0.2158,0.1960,0.2354
@@ -832,6 +868,8 @@ shrinking,both,G0-topics1,r3_below_0.5,0.0621,0.0574,0.0672
 shrinking,both,G0-topics1,r3_above_0.95,0.0635,0.0593,0.0679
 shrinking,both,G0-topics1,r4_false,0.5938,0.5773,0.6106
 shrinking,both,G0-topics1,r4_false_0.70,0.4986,0.4824,0.5144
+shrinking,both,G0-topics1,r4_below,0.0000,0.0000,0.0000
+shrinking,both,G0-topics1,r4_false_at_task,0.5938,0.5783,0.6104
 shrinking,both,G0-topics1,r4_declared,9.7070,9.4810,9.9330
 shrinking,both,G0-topics1,r5_late_answers,9.4111,9.1896,9.6395
 shrinking,both,G0-topics1,r5_never,0.2081,0.1898,0.2265
@@ -877,6 +915,8 @@ constant,both,G0,r3_below_0.5,0.0411,0.0378,0.0449
 constant,both,G0,r3_above_0.95,0.0300,0.0282,0.0320
 constant,both,G0,r4_false,0.6792,0.6648,0.6930
 constant,both,G0,r4_false_0.70,0.5793,0.5630,0.5945
+constant,both,G0,r4_below,0.0000,0.0000,0.0000
+constant,both,G0,r4_false_at_task,0.6792,0.6655,0.6934
 constant,both,G0,r4_declared,10.5080,10.3300,10.6920
 constant,both,G0,r5_late_answers,9.4504,9.2376,9.6647
 constant,both,G0,r5_never,0.2710,0.2521,0.2893
@@ -922,6 +962,8 @@ constant,both,G1,r3_below_0.5,0.1152,0.1033,0.1272
 constant,both,G1,r3_above_0.95,0.0380,0.0350,0.0408
 constant,both,G1,r4_false,0.6579,0.6394,0.6770
 constant,both,G1,r4_false_0.70,0.5963,0.5772,0.6154
+constant,both,G1,r4_below,0.0000,0.0000,0.0000
+constant,both,G1,r4_false_at_task,0.6579,0.6386,0.6772
 constant,both,G1,r4_declared,10.3960,10.2180,10.5720
 constant,both,G1,r5_late_answers,9.5093,9.3016,9.7338
 constant,both,G1,r5_never,0.2906,0.2697,0.3105
@@ -967,6 +1009,8 @@ constant,both,G2,r3_below_0.5,0.0188,0.0175,0.0202
 constant,both,G2,r3_above_0.95,0.0657,0.0625,0.0691
 constant,both,G2,r4_false,0.5098,0.4934,0.5261
 constant,both,G2,r4_false_0.70,0.4058,0.3903,0.4204
+constant,both,G2,r4_below,0.0000,0.0000,0.0000
+constant,both,G2,r4_false_at_task,0.5098,0.4938,0.5253
 constant,both,G2,r4_declared,13.0650,12.8670,13.2750
 constant,both,G2,r5_late_answers,7.3686,7.2434,7.4981
 constant,both,G2,r5_never,0.2647,0.2496,0.2795
@@ -1012,6 +1056,8 @@ constant,both,G3,r3_below_0.5,0.0329,0.0307,0.0356
 constant,both,G3,r3_above_0.95,0.0506,0.0482,0.0531
 constant,both,G3,r4_false,0.5976,0.5826,0.6139
 constant,both,G3,r4_false_0.70,0.4845,0.4685,0.5010
+constant,both,G3,r4_below,0.0000,0.0000,0.0000
+constant,both,G3,r4_false_at_task,0.5976,0.5808,0.6135
 constant,both,G3,r4_declared,11.7010,11.5220,11.8810
 constant,both,G3,r5_late_answers,7.8678,7.7035,8.0361
 constant,both,G3,r5_never,0.2800,0.2636,0.2961
@@ -1059,6 +1105,8 @@ constant,both,G4,r3_below_0.5,0.0567,0.0530,0.0603
 constant,both,G4,r3_above_0.95,0.0418,0.0396,0.0439
 constant,both,G4,r4_false,0.6168,0.6014,0.6325
 constant,both,G4,r4_false_0.70,0.5023,0.4858,0.5194
+constant,both,G4,r4_below,0.0000,0.0000,0.0000
+constant,both,G4,r4_false_at_task,0.6168,0.6014,0.6333
 constant,both,G4,r4_declared,10.3530,10.1740,10.5320
 constant,both,G4,r5_late_answers,9.8196,9.6006,10.0552
 constant,both,G4,r5_never,0.2663,0.2470,0.2846
@@ -1104,6 +1152,8 @@ constant,both,G5,r3_below_0.5,0.0543,0.0503,0.0587
 constant,both,G5,r3_above_0.95,0.0361,0.0337,0.0387
 constant,both,G5,r4_false,0.6653,0.6498,0.6813
 constant,both,G5,r4_false_0.70,0.5580,0.5408,0.5746
+constant,both,G5,r4_below,0.0000,0.0000,0.0000
+constant,both,G5,r4_false_at_task,0.6653,0.6498,0.6813
 constant,both,G5,r4_declared,10.7640,10.5940,10.9320
 constant,both,G5,r5_late_answers,9.4686,9.2494,9.6782
 constant,both,G5,r5_never,0.2480,0.2291,0.2660
@@ -1149,6 +1199,8 @@ constant,both,G6,r3_below_0.5,0.0647,0.0602,0.0693
 constant,both,G6,r3_above_0.95,0.0971,0.0907,0.1039
 constant,both,G6,r4_false,0.7143,0.6997,0.7295
 constant,both,G6,r4_false_0.70,0.5957,0.5783,0.6114
+constant,both,G6,r4_below,0.0000,0.0000,0.0000
+constant,both,G6,r4_false_at_task,0.7143,0.7002,0.7288
 constant,both,G6,r4_declared,10.2280,10.0480,10.4030
 constant,both,G6,r5_late_answers,9.5387,9.3175,9.7661
 constant,both,G6,r5_never,0.2893,0.2682,0.3091
@@ -1194,6 +1246,8 @@ constant,both,G7,r3_below_0.5,0.0411,0.0378,0.0448
 constant,both,G7,r3_above_0.95,0.0312,0.0293,0.0333
 constant,both,G7,r4_false,0.6843,0.6708,0.6983
 constant,both,G7,r4_false_0.70,0.5844,0.5695,0.6000
+constant,both,G7,r4_below,0.0000,0.0000,0.0000
+constant,both,G7,r4_false_at_task,0.6843,0.6707,0.6976
 constant,both,G7,r4_declared,10.4780,10.3100,10.6520
 constant,both,G7,r5_late_answers,9.5734,9.3472,9.7979
 constant,both,G7,r5_never,0.2522,0.2335,0.2702
@@ -1239,6 +1293,8 @@ constant,both,G8,r3_below_0.5,0.0385,0.0357,0.0415
 constant,both,G8,r3_above_0.95,0.0329,0.0309,0.0352
 constant,both,G8,r4_false,0.6886,0.6726,0.7043
 constant,both,G8,r4_false_0.70,0.5872,0.5695,0.6054
+constant,both,G8,r4_below,0.0000,0.0000,0.0000
+constant,both,G8,r4_false_at_task,0.6886,0.6727,0.7039
 constant,both,G8,r4_declared,7.1520,7.0090,7.2990
 constant,both,G8,r5_late_answers,9.8318,9.5608,10.1107
 constant,both,G8,r5_never,0.4806,0.4618,0.4993
@@ -1284,6 +1340,8 @@ constant,both,G0-exact,r3_below_0.5,0.0180,0.0161,0.0200
 constant,both,G0-exact,r3_above_0.95,0.0109,0.0095,0.0124
 constant,both,G0-exact,r4_false,0.6788,0.6641,0.6930
 constant,both,G0-exact,r4_false_0.70,0.5772,0.5617,0.5933
+constant,both,G0-exact,r4_below,0.0000,0.0000,0.0000
+constant,both,G0-exact,r4_false_at_task,0.6788,0.6647,0.6935
 constant,both,G0-exact,r4_declared,10.4450,10.2620,10.6270
 constant,both,G0-exact,r5_late_answers,9.2836,9.0882,9.4937
 constant,both,G0-exact,r5_never,0.2694,0.2513,0.2889
@@ -1329,6 +1387,8 @@ constant,both,G0-miss0.25,r3_below_0.5,0.0256,0.0232,0.0283
 constant,both,G0-miss0.25,r3_above_0.95,0.0131,0.0117,0.0145
 constant,both,G0-miss0.25,r4_false,0.6988,0.6846,0.7123
 constant,both,G0-miss0.25,r4_false_0.70,0.5895,0.5742,0.6051
+constant,both,G0-miss0.25,r4_below,0.0000,0.0000,0.0000
+constant,both,G0-miss0.25,r4_false_at_task,0.6988,0.6853,0.7121
 constant,both,G0-miss0.25,r4_declared,10.4600,10.2940,10.6290
 constant,both,G0-miss0.25,r5_late_answers,9.6006,9.3823,9.8359
 constant,both,G0-miss0.25,r5_never,0.2563,0.2366,0.2750
@@ -1374,6 +1434,8 @@ constant,both,G0-miss1,r3_below_0.5,0.0900,0.0870,0.0933
 constant,both,G0-miss1,r3_above_0.95,0.1100,0.1069,0.1132
 constant,both,G0-miss1,r4_false,0.6617,0.6474,0.6762
 constant,both,G0-miss1,r4_false_0.70,0.5444,0.5274,0.5612
+constant,both,G0-miss1,r4_below,0.0000,0.0000,0.0000
+constant,both,G0-miss1,r4_false_at_task,0.6617,0.6471,0.6761
 constant,both,G0-miss1,r4_declared,10.4990,10.3390,10.6720
 constant,both,G0-miss1,r5_late_answers,9.4788,9.2571,9.6994
 constant,both,G0-miss1,r5_never,0.2712,0.2527,0.2887
@@ -1419,6 +1481,8 @@ constant,both,G2-half,r3_below_0.5,0.0277,0.0260,0.0295
 constant,both,G2-half,r3_above_0.95,0.0439,0.0416,0.0463
 constant,both,G2-half,r4_false,0.5921,0.5771,0.6072
 constant,both,G2-half,r4_false_0.70,0.4850,0.4687,0.5002
+constant,both,G2-half,r4_below,0.0000,0.0000,0.0000
+constant,both,G2-half,r4_false_at_task,0.5921,0.5776,0.6068
 constant,both,G2-half,r4_declared,11.9330,11.7410,12.1290
 constant,both,G2-half,r5_late_answers,8.3136,8.1448,8.4726
 constant,both,G2-half,r5_never,0.2631,0.2452,0.2799
@@ -1464,6 +1528,8 @@ constant,both,G2-fading,r3_below_0.5,0.0291,0.0272,0.0309
 constant,both,G2-fading,r3_above_0.95,0.0421,0.0399,0.0445
 constant,both,G2-fading,r4_false,0.6091,0.5942,0.6247
 constant,both,G2-fading,r4_false_0.70,0.4928,0.4758,0.5098
+constant,both,G2-fading,r4_below,0.0000,0.0000,0.0000
+constant,both,G2-fading,r4_false_at_task,0.6091,0.5933,0.6243
 constant,both,G2-fading,r4_declared,11.3750,11.1980,11.5580
 constant,both,G2-fading,r5_late_answers,8.4053,8.2355,8.5603
 constant,both,G2-fading,r5_never,0.2714,0.2543,0.2888
@@ -1509,6 +1575,8 @@ constant,both,G3-drop,r3_below_0.5,0.0719,0.0663,0.0775
 constant,both,G3-drop,r3_above_0.95,0.0238,0.0220,0.0257
 constant,both,G3-drop,r4_false,0.7358,0.7219,0.7492
 constant,both,G3-drop,r4_false_0.70,0.6455,0.6304,0.6610
+constant,both,G3-drop,r4_below,0.0000,0.0000,0.0000
+constant,both,G3-drop,r4_false_at_task,0.7358,0.7224,0.7493
 constant,both,G3-drop,r4_declared,9.4600,9.2970,9.6230
 constant,both,G3-drop,r5_late_answers,9.9629,9.7258,10.1876
 constant,both,G3-drop,r5_never,0.3390,0.3184,0.3595
@@ -1556,6 +1624,8 @@ constant,both,G0-start0.5,r3_below_0.5,0.0338,0.0321,0.0357
 constant,both,G0-start0.5,r3_above_0.95,0.0302,0.0284,0.0321
 constant,both,G0-start0.5,r4_false,0.7034,0.6915,0.7146
 constant,both,G0-start0.5,r4_false_0.70,0.5988,0.5851,0.6136
+constant,both,G0-start0.5,r4_below,0.0000,0.0000,0.0000
+constant,both,G0-start0.5,r4_false_at_task,0.7034,0.6910,0.7147
 constant,both,G0-start0.5,r4_declared,10.2850,10.1210,10.4650
 constant,both,G0-start0.5,r5_late_answers,9.4826,9.2611,9.6910
 constant,both,G0-start0.5,r5_never,0.2632,0.2450,0.2805
@@ -1601,6 +1671,8 @@ constant,both,G0-start2,r3_below_0.5,0.0747,0.0645,0.0851
 constant,both,G0-start2,r3_above_0.95,0.0380,0.0342,0.0420
 constant,both,G0-start2,r4_false,0.6568,0.6403,0.6732
 constant,both,G0-start2,r4_false_0.70,0.5651,0.5465,0.5825
+constant,both,G0-start2,r4_below,0.0000,0.0000,0.0000
+constant,both,G0-start2,r4_false_at_task,0.6568,0.6397,0.6732
 constant,both,G0-start2,r4_declared,10.4360,10.2230,10.6410
 constant,both,G0-start2,r5_late_answers,9.4566,9.2464,9.6816
 constant,both,G0-start2,r5_never,0.2892,0.2685,0.3104
@@ -1646,6 +1718,8 @@ constant,both,G0-topics0.3,r3_below_0.5,0.0328,0.0305,0.0351
 constant,both,G0-topics0.3,r3_above_0.95,0.0244,0.0227,0.0261
 constant,both,G0-topics0.3,r4_false,0.6940,0.6805,0.7088
 constant,both,G0-topics0.3,r4_false_0.70,0.5905,0.5742,0.6069
+constant,both,G0-topics0.3,r4_below,0.0000,0.0000,0.0000
+constant,both,G0-topics0.3,r4_false_at_task,0.6940,0.6797,0.7085
 constant,both,G0-topics0.3,r4_declared,10.3490,10.1800,10.5180
 constant,both,G0-topics0.3,r5_late_answers,9.6888,9.4715,9.9208
 constant,both,G0-topics0.3,r5_never,0.2832,0.2637,0.3017
@@ -1691,6 +1765,8 @@ constant,both,G0-topics1,r3_below_0.5,0.0637,0.0601,0.0678
 constant,both,G0-topics1,r3_above_0.95,0.0644,0.0616,0.0674
 constant,both,G0-topics1,r4_false,0.6264,0.6122,0.6408
 constant,both,G0-topics1,r4_false_0.70,0.5290,0.5150,0.5431
+constant,both,G0-topics1,r4_below,0.0000,0.0000,0.0000
+constant,both,G0-topics1,r4_false_at_task,0.6264,0.6116,0.6403
 constant,both,G0-topics1,r4_declared,10.8100,10.6380,10.9950
 constant,both,G0-topics1,r5_late_answers,8.9046,8.7255,9.0984
 constant,both,G0-topics1,r5_never,0.2198,0.2028,0.2365
@@ -1736,6 +1812,8 @@ constant_slow,both,G0,r3_below_0.5,0.0399,0.0362,0.0442
 constant_slow,both,G0,r3_above_0.95,0.0286,0.0258,0.0315
 constant_slow,both,G0,r4_false,0.6563,0.6397,0.6734
 constant_slow,both,G0,r4_false_0.70,0.5542,0.5360,0.5725
+constant_slow,both,G0,r4_below,0.0000,0.0000,0.0000
+constant_slow,both,G0,r4_false_at_task,0.6563,0.6388,0.6742
 constant_slow,both,G0,r4_declared,10.7100,10.5020,10.9220
 constant_slow,both,G0,r5_late_answers,9.4268,9.1946,9.6517
 constant_slow,both,G0,r5_never,0.2365,0.2171,0.2571
@@ -1781,6 +1859,8 @@ constant_slow,both,G1,r3_below_0.5,0.1210,0.1089,0.1348
 constant_slow,both,G1,r3_above_0.95,0.0431,0.0387,0.0478
 constant_slow,both,G1,r4_false,0.6359,0.6151,0.6570
 constant_slow,both,G1,r4_false_0.70,0.5773,0.5576,0.5969
+constant_slow,both,G1,r4_below,0.0000,0.0000,0.0000
+constant_slow,both,G1,r4_false_at_task,0.6359,0.6159,0.6568
 constant_slow,both,G1,r4_declared,10.4900,10.2690,10.7200
 constant_slow,both,G1,r5_late_answers,9.1376,8.9223,9.3746
 constant_slow,both,G1,r5_never,0.2434,0.2219,0.2662
@@ -1826,6 +1906,8 @@ constant_slow,both,G2,r3_below_0.5,0.0168,0.0151,0.0185
 constant_slow,both,G2,r3_above_0.95,0.0990,0.0930,0.1048
 constant_slow,both,G2,r4_false,0.4549,0.4382,0.4732
 constant_slow,both,G2,r4_false_0.70,0.3497,0.3340,0.3663
+constant_slow,both,G2,r4_below,0.0000,0.0000,0.0000
+constant_slow,both,G2,r4_false_at_task,0.4549,0.4380,0.4720
 constant_slow,both,G2,r4_declared,14.2970,14.0600,14.5410
 constant_slow,both,G2,r5_late_answers,7.4090,7.2777,7.5442
 constant_slow,both,G2,r5_never,0.1840,0.1686,0.1991
@@ -1871,6 +1953,8 @@ constant_slow,both,G3,r3_below_0.5,0.0323,0.0295,0.0352
 constant_slow,both,G3,r3_above_0.95,0.0601,0.0564,0.0641
 constant_slow,both,G3,r4_false,0.5506,0.5324,0.5694
 constant_slow,both,G3,r4_false_0.70,0.4388,0.4206,0.4574
+constant_slow,both,G3,r4_below,0.0000,0.0000,0.0000
+constant_slow,both,G3,r4_false_at_task,0.5506,0.5323,0.5680
 constant_slow,both,G3,r4_declared,12.1440,11.9190,12.3720
 constant_slow,both,G3,r5_late_answers,7.9494,7.7685,8.1212
 constant_slow,both,G3,r5_never,0.2318,0.2150,0.2493
@@ -1918,6 +2002,8 @@ constant_slow,both,G4,r3_below_0.5,0.0582,0.0537,0.0626
 constant_slow,both,G4,r3_above_0.95,0.0357,0.0329,0.0387
 constant_slow,both,G4,r4_false,0.5972,0.5786,0.6147
 constant_slow,both,G4,r4_false_0.70,0.4879,0.4692,0.5074
+constant_slow,both,G4,r4_below,0.0000,0.0000,0.0000
+constant_slow,both,G4,r4_false_at_task,0.5972,0.5798,0.6161
 constant_slow,both,G4,r4_declared,10.1490,9.9300,10.3790
 constant_slow,both,G4,r5_late_answers,9.8331,9.5819,10.0841
 constant_slow,both,G4,r5_never,0.2584,0.2374,0.2796
@@ -1963,6 +2049,8 @@ constant_slow,both,G5,r3_below_0.5,0.0570,0.0519,0.0624
 constant_slow,both,G5,r3_above_0.95,0.0345,0.0311,0.0377
 constant_slow,both,G5,r4_false,0.6509,0.6341,0.6679
 constant_slow,both,G5,r4_false_0.70,0.5399,0.5210,0.5597
+constant_slow,both,G5,r4_below,0.0000,0.0000,0.0000
+constant_slow,both,G5,r4_false_at_task,0.6509,0.6326,0.6682
 constant_slow,both,G5,r4_declared,10.6010,10.3810,10.8190
 constant_slow,both,G5,r5_late_answers,9.4887,9.2432,9.7340
 constant_slow,both,G5,r5_never,0.2331,0.2122,0.2529
@@ -2008,6 +2096,8 @@ constant_slow,both,G6,r3_below_0.5,0.0637,0.0589,0.0692
 constant_slow,both,G6,r3_above_0.95,0.0917,0.0855,0.0985
 constant_slow,both,G6,r4_false,0.6864,0.6700,0.7026
 constant_slow,both,G6,r4_false_0.70,0.5719,0.5514,0.5910
+constant_slow,both,G6,r4_below,0.0000,0.0000,0.0000
+constant_slow,both,G6,r4_false_at_task,0.6864,0.6692,0.7039
 constant_slow,both,G6,r4_declared,10.1970,9.9840,10.4210
 constant_slow,both,G6,r5_late_answers,9.5764,9.3226,9.8287
 constant_slow,both,G6,r5_never,0.2495,0.2285,0.2723
@@ -2053,6 +2143,8 @@ constant_slow,both,G7,r3_below_0.5,0.0391,0.0353,0.0432
 constant_slow,both,G7,r3_above_0.95,0.0294,0.0265,0.0324
 constant_slow,both,G7,r4_false,0.6548,0.6381,0.6709
 constant_slow,both,G7,r4_false_0.70,0.5569,0.5389,0.5764
+constant_slow,both,G7,r4_below,0.0000,0.0000,0.0000
+constant_slow,both,G7,r4_false_at_task,0.6548,0.6380,0.6705
 constant_slow,both,G7,r4_declared,10.4170,10.2140,10.6290
 constant_slow,both,G7,r5_late_answers,9.5748,9.3294,9.8071
 constant_slow,both,G7,r5_never,0.2281,0.2086,0.2492
@@ -2098,6 +2190,8 @@ constant_slow,both,G8,r3_below_0.5,0.0380,0.0346,0.0416
 constant_slow,both,G8,r3_above_0.95,0.0315,0.0283,0.0349
 constant_slow,both,G8,r4_false,0.6631,0.6443,0.6807
 constant_slow,both,G8,r4_false_0.70,0.5583,0.5378,0.5774
+constant_slow,both,G8,r4_below,0.0000,0.0000,0.0000
+constant_slow,both,G8,r4_false_at_task,0.6631,0.6449,0.6816
 constant_slow,both,G8,r4_declared,7.6680,7.4700,7.8600
 constant_slow,both,G8,r5_late_answers,10.4080,10.1044,10.7258
 constant_slow,both,G8,r5_never,0.4208,0.3985,0.4424
@@ -2143,6 +2237,8 @@ constant_slow,both,G0-exact,r3_below_0.5,0.0178,0.0153,0.0206
 constant_slow,both,G0-exact,r3_above_0.95,0.0128,0.0106,0.0152
 constant_slow,both,G0-exact,r4_false,0.6583,0.6421,0.6747
 constant_slow,both,G0-exact,r4_false_0.70,0.5537,0.5353,0.5726
+constant_slow,both,G0-exact,r4_below,0.0000,0.0000,0.0000
+constant_slow,both,G0-exact,r4_false_at_task,0.6583,0.6408,0.6752
 constant_slow,both,G0-exact,r4_declared,10.5560,10.3280,10.7680
 constant_slow,both,G0-exact,r5_late_answers,9.3767,9.1618,9.6002
 constant_slow,both,G0-exact,r5_never,0.2284,0.2079,0.2487
@@ -2188,6 +2284,8 @@ constant_slow,both,G0-miss0.25,r3_below_0.5,0.0278,0.0242,0.0315
 constant_slow,both,G0-miss0.25,r3_above_0.95,0.0131,0.0112,0.0152
 constant_slow,both,G0-miss0.25,r4_false,0.6683,0.6526,0.6837
 constant_slow,both,G0-miss0.25,r4_false_0.70,0.5616,0.5437,0.5795
+constant_slow,both,G0-miss0.25,r4_below,0.0000,0.0000,0.0000
+constant_slow,both,G0-miss0.25,r4_false_at_task,0.6683,0.6520,0.6848
 constant_slow,both,G0-miss0.25,r4_declared,10.3230,10.0880,10.5410
 constant_slow,both,G0-miss0.25,r5_late_answers,9.7029,9.4674,9.9482
 constant_slow,both,G0-miss0.25,r5_never,0.2359,0.2166,0.2556
@@ -2233,6 +2331,8 @@ constant_slow,both,G0-miss1,r3_below_0.5,0.0895,0.0853,0.0937
 constant_slow,both,G0-miss1,r3_above_0.95,0.1067,0.1021,0.1111
 constant_slow,both,G0-miss1,r4_false,0.6314,0.6139,0.6494
 constant_slow,both,G0-miss1,r4_false_0.70,0.5228,0.5032,0.5412
+constant_slow,both,G0-miss1,r4_below,0.0000,0.0000,0.0000
+constant_slow,both,G0-miss1,r4_false_at_task,0.6314,0.6132,0.6486
 constant_slow,both,G0-miss1,r4_declared,10.5060,10.2890,10.7210
 constant_slow,both,G0-miss1,r5_late_answers,9.5781,9.3238,9.8439
 constant_slow,both,G0-miss1,r5_never,0.2394,0.2205,0.2594
@@ -2278,6 +2378,8 @@ constant_slow,both,G2-half,r3_below_0.5,0.0255,0.0231,0.0280
 constant_slow,both,G2-half,r3_above_0.95,0.0512,0.0470,0.0555
 constant_slow,both,G2-half,r4_false,0.5577,0.5411,0.5750
 constant_slow,both,G2-half,r4_false_0.70,0.4505,0.4343,0.4676
+constant_slow,both,G2-half,r4_below,0.0000,0.0000,0.0000
+constant_slow,both,G2-half,r4_false_at_task,0.5577,0.5409,0.5747
 constant_slow,both,G2-half,r4_declared,12.4540,12.2240,12.6880
 constant_slow,both,G2-half,r5_late_answers,8.3729,8.2025,8.5489
 constant_slow,both,G2-half,r5_never,0.2129,0.1955,0.2303
@@ -2323,6 +2425,8 @@ constant_slow,both,G2-fading,r3_below_0.5,0.0271,0.0246,0.0296
 constant_slow,both,G2-fading,r3_above_0.95,0.0491,0.0450,0.0533
 constant_slow,both,G2-fading,r4_false,0.5690,0.5518,0.5864
 constant_slow,both,G2-fading,r4_false_0.70,0.4485,0.4311,0.4665
+constant_slow,both,G2-fading,r4_below,0.0000,0.0000,0.0000
+constant_slow,both,G2-fading,r4_false_at_task,0.5690,0.5514,0.5858
 constant_slow,both,G2-fading,r4_declared,11.8460,11.6160,12.0770
 constant_slow,both,G2-fading,r5_late_answers,8.3782,8.1960,8.5730
 constant_slow,both,G2-fading,r5_never,0.2186,0.2000,0.2373
@@ -2368,6 +2472,8 @@ constant_slow,both,G3-drop,r3_below_0.5,0.0775,0.0718,0.0837
 constant_slow,both,G3-drop,r3_above_0.95,0.0207,0.0184,0.0231
 constant_slow,both,G3-drop,r4_false,0.7236,0.7078,0.7397
 constant_slow,both,G3-drop,r4_false_0.70,0.6312,0.6141,0.6486
+constant_slow,both,G3-drop,r4_below,0.0000,0.0000,0.0000
+constant_slow,both,G3-drop,r4_false_at_task,0.7236,0.7071,0.7389
 constant_slow,both,G3-drop,r4_declared,9.1160,8.9250,9.3070
 constant_slow,both,G3-drop,r5_late_answers,9.7101,9.4243,10.0029
 constant_slow,both,G3-drop,r5_never,0.3525,0.3288,0.3742
@@ -2415,6 +2521,8 @@ constant_slow,both,G0-start0.5,r3_below_0.5,0.0327,0.0301,0.0353
 constant_slow,both,G0-start0.5,r3_above_0.95,0.0275,0.0251,0.0301
 constant_slow,both,G0-start0.5,r4_false,0.6874,0.6727,0.7016
 constant_slow,both,G0-start0.5,r4_false_0.70,0.5830,0.5666,0.5999
+constant_slow,both,G0-start0.5,r4_below,0.0000,0.0000,0.0000
+constant_slow,both,G0-start0.5,r4_false_at_task,0.6874,0.6735,0.7015
 constant_slow,both,G0-start0.5,r4_declared,10.0290,9.8280,10.2280
 constant_slow,both,G0-start0.5,r5_late_answers,9.6348,9.3761,9.8820
 constant_slow,both,G0-start0.5,r5_never,0.2408,0.2229,0.2591
@@ -2460,6 +2568,8 @@ constant_slow,both,G0-start2,r3_below_0.5,0.0753,0.0650,0.0861
 constant_slow,both,G0-start2,r3_above_0.95,0.0393,0.0345,0.0445
 constant_slow,both,G0-start2,r4_false,0.6238,0.6043,0.6443
 constant_slow,both,G0-start2,r4_false_0.70,0.5309,0.5110,0.5521
+constant_slow,both,G0-start2,r4_below,0.0000,0.0000,0.0000
+constant_slow,both,G0-start2,r4_false_at_task,0.6238,0.6048,0.6431
 constant_slow,both,G0-start2,r4_declared,10.5160,10.2720,10.7830
 constant_slow,both,G0-start2,r5_late_answers,9.1584,8.9331,9.3842
 constant_slow,both,G0-start2,r5_never,0.2438,0.2218,0.2670
@@ -2505,6 +2615,8 @@ constant_slow,both,G0-topics0.3,r3_below_0.5,0.0317,0.0286,0.0348
 constant_slow,both,G0-topics0.3,r3_above_0.95,0.0201,0.0176,0.0229
 constant_slow,both,G0-topics0.3,r4_false,0.6740,0.6578,0.6906
 constant_slow,both,G0-topics0.3,r4_false_0.70,0.5696,0.5501,0.5886
+constant_slow,both,G0-topics0.3,r4_below,0.0000,0.0000,0.0000
+constant_slow,both,G0-topics0.3,r4_false_at_task,0.6740,0.6569,0.6904
 constant_slow,both,G0-topics0.3,r4_declared,10.3300,10.1090,10.5540
 constant_slow,both,G0-topics0.3,r5_late_answers,9.7338,9.4921,9.9675
 constant_slow,both,G0-topics0.3,r5_never,0.2428,0.2227,0.2638
@@ -2550,6 +2662,8 @@ constant_slow,both,G0-topics1,r3_below_0.5,0.0725,0.0678,0.0779
 constant_slow,both,G0-topics1,r3_above_0.95,0.0687,0.0646,0.0726
 constant_slow,both,G0-topics1,r4_false,0.6077,0.5923,0.6236
 constant_slow,both,G0-topics1,r4_false_0.70,0.5107,0.4953,0.5259
+constant_slow,both,G0-topics1,r4_below,0.0000,0.0000,0.0000
+constant_slow,both,G0-topics1,r4_false_at_task,0.6077,0.5918,0.6229
 constant_slow,both,G0-topics1,r4_declared,10.4540,10.2510,10.6640
 constant_slow,both,G0-topics1,r5_late_answers,8.8563,8.6532,9.0692
 constant_slow,both,G0-topics1,r5_never,0.2208,0.2036,0.2381
@@ -2595,6 +2709,8 @@ floor_0.05,both,G0,r3_below_0.5,0.0372,0.0333,0.0413
 floor_0.05,both,G0,r3_above_0.95,0.0307,0.0276,0.0339
 floor_0.05,both,G0,r4_false,0.6466,0.6298,0.6626
 floor_0.05,both,G0,r4_false_0.70,0.5416,0.5242,0.5594
+floor_0.05,both,G0,r4_below,0.0000,0.0000,0.0000
+floor_0.05,both,G0,r4_false_at_task,0.6466,0.6300,0.6642
 floor_0.05,both,G0,r4_declared,10.0640,9.8390,10.2800
 floor_0.05,both,G0,r5_late_answers,9.6867,9.4523,9.9268
 floor_0.05,both,G0,r5_never,0.2354,0.2152,0.2556
@@ -2640,6 +2756,8 @@ floor_0.05,both,G1,r3_below_0.5,0.1192,0.1065,0.1328
 floor_0.05,both,G1,r3_above_0.95,0.0447,0.0402,0.0498
 floor_0.05,both,G1,r4_false,0.6326,0.6109,0.6539
 floor_0.05,both,G1,r4_false_0.70,0.5744,0.5533,0.5961
+floor_0.05,both,G1,r4_below,0.0000,0.0000,0.0000
+floor_0.05,both,G1,r4_false_at_task,0.6326,0.6108,0.6535
 floor_0.05,both,G1,r4_declared,10.6880,10.4430,10.9160
 floor_0.05,both,G1,r5_late_answers,9.5645,9.3198,9.8332
 floor_0.05,both,G1,r5_never,0.2103,0.1918,0.2298
@@ -2685,6 +2803,8 @@ floor_0.05,both,G2,r3_below_0.5,0.0148,0.0134,0.0165
 floor_0.05,both,G2,r3_above_0.95,0.1379,0.1308,0.1452
 floor_0.05,both,G2,r4_false,0.4330,0.4167,0.4494
 floor_0.05,both,G2,r4_false_0.70,0.3191,0.3042,0.3349
+floor_0.05,both,G2,r4_below,0.0000,0.0000,0.0000
+floor_0.05,both,G2,r4_false_at_task,0.4330,0.4174,0.4504
 floor_0.05,both,G2,r4_declared,14.6960,14.4380,14.9280
 floor_0.05,both,G2,r5_late_answers,7.6397,7.4994,7.7735
 floor_0.05,both,G2,r5_never,0.1314,0.1181,0.1446
@@ -2730,6 +2850,8 @@ floor_0.05,both,G3,r3_below_0.5,0.0297,0.0269,0.0327
 floor_0.05,both,G3,r3_above_0.95,0.0730,0.0687,0.0776
 floor_0.05,both,G3,r4_false,0.5462,0.5285,0.5647
 floor_0.05,both,G3,r4_false_0.70,0.4319,0.4146,0.4503
+floor_0.05,both,G3,r4_below,0.0000,0.0000,0.0000
+floor_0.05,both,G3,r4_false_at_task,0.5462,0.5290,0.5631
 floor_0.05,both,G3,r4_declared,12.4760,12.2200,12.7390
 floor_0.05,both,G3,r5_late_answers,8.2230,8.0441,8.4025
 floor_0.05,both,G3,r5_never,0.1844,0.1668,0.2024
@@ -2777,6 +2899,8 @@ floor_0.05,both,G4,r3_below_0.5,0.0541,0.0500,0.0587
 floor_0.05,both,G4,r3_above_0.95,0.0374,0.0343,0.0407
 floor_0.05,both,G4,r4_false,0.5881,0.5699,0.6056
 floor_0.05,both,G4,r4_false_0.70,0.4764,0.4583,0.4961
+floor_0.05,both,G4,r4_below,0.0000,0.0000,0.0000
+floor_0.05,both,G4,r4_false_at_task,0.5881,0.5707,0.6068
 floor_0.05,both,G4,r4_declared,9.6320,9.4140,9.8520
 floor_0.05,both,G4,r5_late_answers,10.2542,9.9947,10.5221
 floor_0.05,both,G4,r5_never,0.2547,0.2346,0.2751
@@ -2822,6 +2946,8 @@ floor_0.05,both,G5,r3_below_0.5,0.0546,0.0496,0.0599
 floor_0.05,both,G5,r3_above_0.95,0.0351,0.0315,0.0392
 floor_0.05,both,G5,r4_false,0.6332,0.6162,0.6509
 floor_0.05,both,G5,r4_false_0.70,0.5239,0.5064,0.5434
+floor_0.05,both,G5,r4_below,0.0000,0.0000,0.0000
+floor_0.05,both,G5,r4_false_at_task,0.6332,0.6158,0.6506
 floor_0.05,both,G5,r4_declared,10.0050,9.7870,10.2230
 floor_0.05,both,G5,r5_late_answers,10.1011,9.8246,10.3711
 floor_0.05,both,G5,r5_never,0.2312,0.2110,0.2501
@@ -2867,6 +2993,8 @@ floor_0.05,both,G6,r3_below_0.5,0.0593,0.0545,0.0643
 floor_0.05,both,G6,r3_above_0.95,0.0935,0.0869,0.1004
 floor_0.05,both,G6,r4_false,0.6849,0.6686,0.7013
 floor_0.05,both,G6,r4_false_0.70,0.5649,0.5456,0.5842
+floor_0.05,both,G6,r4_below,0.0000,0.0000,0.0000
+floor_0.05,both,G6,r4_false_at_task,0.6849,0.6685,0.7016
 floor_0.05,both,G6,r4_declared,9.7300,9.5180,9.9520
 floor_0.05,both,G6,r5_late_answers,9.8887,9.6246,10.1720
 floor_0.05,both,G6,r5_never,0.2444,0.2225,0.2673
@@ -2912,6 +3040,8 @@ floor_0.05,both,G7,r3_below_0.5,0.0378,0.0339,0.0418
 floor_0.05,both,G7,r3_above_0.95,0.0313,0.0282,0.0347
 floor_0.05,both,G7,r4_false,0.6516,0.6366,0.6665
 floor_0.05,both,G7,r4_false_0.70,0.5498,0.5323,0.5667
+floor_0.05,both,G7,r4_below,0.0000,0.0000,0.0000
+floor_0.05,both,G7,r4_false_at_task,0.6516,0.6359,0.6668
 floor_0.05,both,G7,r4_declared,10.0570,9.8380,10.2650
 floor_0.05,both,G7,r5_late_answers,9.9499,9.7130,10.1981
 floor_0.05,both,G7,r5_never,0.1997,0.1814,0.2184
@@ -2957,6 +3087,8 @@ floor_0.05,both,G8,r3_below_0.5,0.0349,0.0316,0.0383
 floor_0.05,both,G8,r3_above_0.95,0.0330,0.0296,0.0367
 floor_0.05,both,G8,r4_false,0.6481,0.6311,0.6652
 floor_0.05,both,G8,r4_false_0.70,0.5399,0.5195,0.5587
+floor_0.05,both,G8,r4_below,0.0000,0.0000,0.0000
+floor_0.05,both,G8,r4_false_at_task,0.6481,0.6310,0.6658
 floor_0.05,both,G8,r4_declared,7.3650,7.1810,7.5480
 floor_0.05,both,G8,r5_late_answers,10.9789,10.6519,11.2838
 floor_0.05,both,G8,r5_never,0.4111,0.3890,0.4321
@@ -3002,6 +3134,8 @@ floor_0.05,both,G0-exact,r3_below_0.5,0.0164,0.0140,0.0190
 floor_0.05,both,G0-exact,r3_above_0.95,0.0126,0.0104,0.0150
 floor_0.05,both,G0-exact,r4_false,0.6488,0.6327,0.6653
 floor_0.05,both,G0-exact,r4_false_0.70,0.5430,0.5245,0.5613
+floor_0.05,both,G0-exact,r4_below,0.0000,0.0000,0.0000
+floor_0.05,both,G0-exact,r4_false_at_task,0.6488,0.6326,0.6661
 floor_0.05,both,G0-exact,r4_declared,10.1030,9.8890,10.3130
 floor_0.05,both,G0-exact,r5_late_answers,9.6416,9.4129,9.8628
 floor_0.05,both,G0-exact,r5_never,0.2191,0.1998,0.2387
@@ -3047,6 +3181,8 @@ floor_0.05,both,G0-miss0.25,r3_below_0.5,0.0260,0.0228,0.0297
 floor_0.05,both,G0-miss0.25,r3_above_0.95,0.0133,0.0112,0.0154
 floor_0.05,both,G0-miss0.25,r4_false,0.6587,0.6433,0.6743
 floor_0.05,both,G0-miss0.25,r4_false_0.70,0.5481,0.5306,0.5654
+floor_0.05,both,G0-miss0.25,r4_below,0.0000,0.0000,0.0000
+floor_0.05,both,G0-miss0.25,r4_false_at_task,0.6587,0.6429,0.6739
 floor_0.05,both,G0-miss0.25,r4_declared,9.9550,9.7240,10.1720
 floor_0.05,both,G0-miss0.25,r5_late_answers,9.9845,9.7431,10.2375
 floor_0.05,both,G0-miss0.25,r5_never,0.2135,0.1953,0.2339
@@ -3092,6 +3228,8 @@ floor_0.05,both,G0-miss1,r3_below_0.5,0.0863,0.0820,0.0907
 floor_0.05,both,G0-miss1,r3_above_0.95,0.1117,0.1070,0.1169
 floor_0.05,both,G0-miss1,r4_false,0.6291,0.6126,0.6463
 floor_0.05,both,G0-miss1,r4_false_0.70,0.5163,0.4980,0.5346
+floor_0.05,both,G0-miss1,r4_below,0.0000,0.0000,0.0000
+floor_0.05,both,G0-miss1,r4_false_at_task,0.6291,0.6113,0.6462
 floor_0.05,both,G0-miss1,r4_declared,10.0810,9.8580,10.3070
 floor_0.05,both,G0-miss1,r5_late_answers,9.9316,9.6806,10.1926
 floor_0.05,both,G0-miss1,r5_never,0.2231,0.2056,0.2423
@@ -3137,6 +3275,8 @@ floor_0.05,both,G2-half,r3_below_0.5,0.0224,0.0202,0.0248
 floor_0.05,both,G2-half,r3_above_0.95,0.0635,0.0587,0.0687
 floor_0.05,both,G2-half,r4_false,0.5375,0.5219,0.5543
 floor_0.05,both,G2-half,r4_false_0.70,0.4273,0.4098,0.4435
+floor_0.05,both,G2-half,r4_below,0.0000,0.0000,0.0000
+floor_0.05,both,G2-half,r4_false_at_task,0.5375,0.5200,0.5534
 floor_0.05,both,G2-half,r4_declared,12.4980,12.2490,12.7600
 floor_0.05,both,G2-half,r5_late_answers,8.7254,8.5591,8.9009
 floor_0.05,both,G2-half,r5_never,0.1743,0.1573,0.1926
@@ -3182,6 +3322,8 @@ floor_0.05,both,G2-fading,r3_below_0.5,0.0235,0.0212,0.0260
 floor_0.05,both,G2-fading,r3_above_0.95,0.0567,0.0518,0.0617
 floor_0.05,both,G2-fading,r4_false,0.5568,0.5398,0.5733
 floor_0.05,both,G2-fading,r4_false_0.70,0.4365,0.4189,0.4543
+floor_0.05,both,G2-fading,r4_below,0.0000,0.0000,0.0000
+floor_0.05,both,G2-fading,r4_false_at_task,0.5568,0.5402,0.5743
 floor_0.05,both,G2-fading,r4_declared,11.8310,11.5930,12.0770
 floor_0.05,both,G2-fading,r5_late_answers,8.6802,8.4916,8.8606
 floor_0.05,both,G2-fading,r5_never,0.1814,0.1636,0.1985
@@ -3227,6 +3369,8 @@ floor_0.05,both,G3-drop,r3_below_0.5,0.0825,0.0771,0.0888
 floor_0.05,both,G3-drop,r3_above_0.95,0.0204,0.0181,0.0230
 floor_0.05,both,G3-drop,r4_false,0.7259,0.7111,0.7418
 floor_0.05,both,G3-drop,r4_false_0.70,0.6302,0.6131,0.6471
+floor_0.05,both,G3-drop,r4_below,0.0000,0.0000,0.0000
+floor_0.05,both,G3-drop,r4_false_at_task,0.7259,0.7103,0.7417
 floor_0.05,both,G3-drop,r4_declared,8.6550,8.4640,8.8560
 floor_0.05,both,G3-drop,r5_late_answers,10.0840,9.7998,10.3692
 floor_0.05,both,G3-drop,r5_never,0.3601,0.3367,0.3834
@@ -3274,6 +3418,8 @@ floor_0.05,both,G0-start0.5,r3_below_0.5,0.0309,0.0283,0.0336
 floor_0.05,both,G0-start0.5,r3_above_0.95,0.0283,0.0256,0.0312
 floor_0.05,both,G0-start0.5,r4_false,0.6759,0.6627,0.6894
 floor_0.05,both,G0-start0.5,r4_false_0.70,0.5731,0.5576,0.5892
+floor_0.05,both,G0-start0.5,r4_below,0.0000,0.0000,0.0000
+floor_0.05,both,G0-start0.5,r4_false_at_task,0.6759,0.6619,0.6895
 floor_0.05,both,G0-start0.5,r4_declared,9.9040,9.6850,10.1190
 floor_0.05,both,G0-start0.5,r5_late_answers,9.8439,9.5946,10.0959
 floor_0.05,both,G0-start0.5,r5_never,0.2171,0.1994,0.2358
@@ -3319,6 +3465,8 @@ floor_0.05,both,G0-start2,r3_below_0.5,0.0726,0.0619,0.0833
 floor_0.05,both,G0-start2,r3_above_0.95,0.0413,0.0360,0.0469
 floor_0.05,both,G0-start2,r4_false,0.6067,0.5875,0.6265
 floor_0.05,both,G0-start2,r4_false_0.70,0.5164,0.4961,0.5368
+floor_0.05,both,G0-start2,r4_below,0.0000,0.0000,0.0000
+floor_0.05,both,G0-start2,r4_false_at_task,0.6067,0.5869,0.6255
 floor_0.05,both,G0-start2,r4_declared,10.3530,10.1030,10.5990
 floor_0.05,both,G0-start2,r5_late_answers,9.5276,9.3061,9.7604
 floor_0.05,both,G0-start2,r5_never,0.2160,0.1959,0.2378
@@ -3364,6 +3512,8 @@ floor_0.05,both,G0-topics0.3,r3_below_0.5,0.0313,0.0283,0.0345
 floor_0.05,both,G0-topics0.3,r3_above_0.95,0.0225,0.0198,0.0257
 floor_0.05,both,G0-topics0.3,r4_false,0.6608,0.6441,0.6768
 floor_0.05,both,G0-topics0.3,r4_false_0.70,0.5538,0.5345,0.5738
+floor_0.05,both,G0-topics0.3,r4_below,0.0000,0.0000,0.0000
+floor_0.05,both,G0-topics0.3,r4_false_at_task,0.6608,0.6439,0.6774
 floor_0.05,both,G0-topics0.3,r4_declared,10.0140,9.8090,10.2200
 floor_0.05,both,G0-topics0.3,r5_late_answers,10.2310,9.9837,10.4743
 floor_0.05,both,G0-topics0.3,r5_never,0.2329,0.2132,0.2532
@@ -3409,6 +3559,8 @@ floor_0.05,both,G0-topics1,r3_below_0.5,0.0625,0.0583,0.0672
 floor_0.05,both,G0-topics1,r3_above_0.95,0.0637,0.0593,0.0680
 floor_0.05,both,G0-topics1,r4_false,0.6054,0.5905,0.6205
 floor_0.05,both,G0-topics1,r4_false_0.70,0.5087,0.4927,0.5241
+floor_0.05,both,G0-topics1,r4_below,0.0000,0.0000,0.0000
+floor_0.05,both,G0-topics1,r4_false_at_task,0.6054,0.5907,0.6208
 floor_0.05,both,G0-topics1,r4_declared,9.9380,9.7210,10.1640
 floor_0.05,both,G0-topics1,r5_late_answers,9.4503,9.2428,9.6842
 floor_0.05,both,G0-topics1,r5_never,0.2190,0.2010,0.2364
@@ -3454,6 +3606,8 @@ no_trial,both,G0,r3_below_0.5,0.0288,0.0255,0.0324
 no_trial,both,G0,r3_above_0.95,0.0285,0.0258,0.0314
 no_trial,both,G0,r4_false,0.6155,0.5986,0.6320
 no_trial,both,G0,r4_false_0.70,0.5095,0.4910,0.5286
+no_trial,both,G0,r4_below,0.0000,0.0000,0.0000
+no_trial,both,G0,r4_false_at_task,0.6155,0.5993,0.6326
 no_trial,both,G0,r4_declared,9.7130,9.5110,9.9180
 no_trial,both,G0,r5_late_answers,9.6701,9.4156,9.9156
 no_trial,both,G0,r5_never,0.2215,0.2025,0.2417
@@ -3499,6 +3653,8 @@ no_trial,both,G1,r3_below_0.5,0.1430,0.1306,0.1554
 no_trial,both,G1,r3_above_0.95,0.1290,0.1203,0.1374
 no_trial,both,G1,r4_false,0.6575,0.6333,0.6805
 no_trial,both,G1,r4_false_0.70,0.5926,0.5710,0.6147
+no_trial,both,G1,r4_below,0.0000,0.0000,0.0000
+no_trial,both,G1,r4_false_at_task,0.6575,0.6354,0.6806
 no_trial,both,G1,r4_declared,11.7490,11.4660,12.0270
 no_trial,both,G1,r5_late_answers,8.2962,8.1487,8.4402
 no_trial,both,G1,r5_never,0.0972,0.0833,0.1122
@@ -3544,6 +3700,8 @@ no_trial,both,G2,r3_below_0.5,0.0110,0.0098,0.0122
 no_trial,both,G2,r3_above_0.95,0.1546,0.1476,0.1620
 no_trial,both,G2,r4_false,0.3889,0.3723,0.4048
 no_trial,both,G2,r4_false_0.70,0.2780,0.2642,0.2919
+no_trial,both,G2,r4_below,0.0000,0.0000,0.0000
+no_trial,both,G2,r4_false_at_task,0.3889,0.3728,0.4051
 no_trial,both,G2,r4_declared,14.3200,14.0810,14.5640
 no_trial,both,G2,r5_late_answers,7.6393,7.5179,7.7613
 no_trial,both,G2,r5_never,0.1040,0.0934,0.1143
@@ -3589,6 +3747,8 @@ no_trial,both,G3,r3_below_0.5,0.0205,0.0182,0.0230
 no_trial,both,G3,r3_above_0.95,0.0852,0.0804,0.0900
 no_trial,both,G3,r4_false,0.4906,0.4739,0.5091
 no_trial,both,G3,r4_false_0.70,0.3737,0.3560,0.3912
+no_trial,both,G3,r4_below,0.0000,0.0000,0.0000
+no_trial,both,G3,r4_false_at_task,0.4906,0.4723,0.5079
 no_trial,both,G3,r4_declared,11.9150,11.6710,12.1740
 no_trial,both,G3,r5_late_answers,8.3144,8.1428,8.4896
 no_trial,both,G3,r5_never,0.1575,0.1434,0.1715
@@ -3636,6 +3796,8 @@ no_trial,both,G4,r3_below_0.5,0.0495,0.0457,0.0536
 no_trial,both,G4,r3_above_0.95,0.0317,0.0292,0.0344
 no_trial,both,G4,r4_false,0.5601,0.5417,0.5779
 no_trial,both,G4,r4_false_0.70,0.4483,0.4292,0.4672
+no_trial,both,G4,r4_below,0.0000,0.0000,0.0000
+no_trial,both,G4,r4_false_at_task,0.5601,0.5427,0.5776
 no_trial,both,G4,r4_declared,9.1470,8.9580,9.3390
 no_trial,both,G4,r5_late_answers,10.3121,10.0541,10.5688
 no_trial,both,G4,r5_never,0.2531,0.2361,0.2704
@@ -3681,6 +3843,8 @@ no_trial,both,G5,r3_below_0.5,0.0398,0.0355,0.0445
 no_trial,both,G5,r3_above_0.95,0.0382,0.0346,0.0422
 no_trial,both,G5,r4_false,0.6160,0.5981,0.6340
 no_trial,both,G5,r4_false_0.70,0.5073,0.4889,0.5263
+no_trial,both,G5,r4_below,0.0000,0.0000,0.0000
+no_trial,both,G5,r4_false_at_task,0.6160,0.5976,0.6334
 no_trial,both,G5,r4_declared,9.8430,9.6410,10.0450
 no_trial,both,G5,r5_late_answers,9.3886,9.1422,9.6460
 no_trial,both,G5,r5_never,0.1984,0.1805,0.2169
@@ -3726,6 +3890,8 @@ no_trial,both,G6,r3_below_0.5,0.0449,0.0410,0.0493
 no_trial,both,G6,r3_above_0.95,0.1085,0.1001,0.1171
 no_trial,both,G6,r4_false,0.6610,0.6434,0.6786
 no_trial,both,G6,r4_false_0.70,0.5502,0.5307,0.5694
+no_trial,both,G6,r4_below,0.0000,0.0000,0.0000
+no_trial,both,G6,r4_false_at_task,0.6610,0.6423,0.6787
 no_trial,both,G6,r4_declared,9.3320,9.1230,9.5460
 no_trial,both,G6,r5_late_answers,9.4691,9.2159,9.7419
 no_trial,both,G6,r5_never,0.2309,0.2088,0.2545
@@ -3771,6 +3937,8 @@ no_trial,both,G7,r3_below_0.5,0.0343,0.0305,0.0382
 no_trial,both,G7,r3_above_0.95,0.0274,0.0244,0.0307
 no_trial,both,G7,r4_false,0.6166,0.6004,0.6332
 no_trial,both,G7,r4_false_0.70,0.5123,0.4962,0.5298
+no_trial,both,G7,r4_below,0.0000,0.0000,0.0000
+no_trial,both,G7,r4_false_at_task,0.6166,0.6002,0.6328
 no_trial,both,G7,r4_declared,9.4420,9.2400,9.6630
 no_trial,both,G7,r5_late_answers,9.8475,9.6291,10.0815
 no_trial,both,G7,r5_never,0.2050,0.1861,0.2243
@@ -3816,6 +3984,8 @@ no_trial,both,G8,r3_below_0.5,0.0282,0.0251,0.0314
 no_trial,both,G8,r3_above_0.95,0.0313,0.0284,0.0343
 no_trial,both,G8,r4_false,0.6310,0.6124,0.6492
 no_trial,both,G8,r4_false_0.70,0.5203,0.5015,0.5397
+no_trial,both,G8,r4_below,0.0000,0.0000,0.0000
+no_trial,both,G8,r4_false_at_task,0.6310,0.6138,0.6482
 no_trial,both,G8,r4_declared,7.2060,7.0290,7.3780
 no_trial,both,G8,r5_late_answers,10.9536,10.6355,11.2868
 no_trial,both,G8,r5_never,0.3993,0.3782,0.4206
@@ -3861,6 +4031,8 @@ no_trial,both,G0-exact,r3_below_0.5,0.0108,0.0090,0.0128
 no_trial,both,G0-exact,r3_above_0.95,0.0139,0.0110,0.0169
 no_trial,both,G0-exact,r4_false,0.6150,0.5980,0.6318
 no_trial,both,G0-exact,r4_false_0.70,0.5092,0.4914,0.5291
+no_trial,both,G0-exact,r4_below,0.0000,0.0000,0.0000
+no_trial,both,G0-exact,r4_false_at_task,0.6150,0.5984,0.6317
 no_trial,both,G0-exact,r4_declared,9.6250,9.4230,9.8320
 no_trial,both,G0-exact,r5_late_answers,9.6070,9.3760,9.8445
 no_trial,both,G0-exact,r5_never,0.2109,0.1914,0.2308
@@ -3906,6 +4078,8 @@ no_trial,both,G0-miss0.25,r3_below_0.5,0.0168,0.0143,0.0192
 no_trial,both,G0-miss0.25,r3_above_0.95,0.0118,0.0095,0.0146
 no_trial,both,G0-miss0.25,r4_false,0.6373,0.6214,0.6534
 no_trial,both,G0-miss0.25,r4_false_0.70,0.5240,0.5059,0.5428
+no_trial,both,G0-miss0.25,r4_below,0.0000,0.0000,0.0000
+no_trial,both,G0-miss0.25,r4_false_at_task,0.6373,0.6210,0.6535
 no_trial,both,G0-miss0.25,r4_declared,9.4700,9.2690,9.6670
 no_trial,both,G0-miss0.25,r5_late_answers,9.8026,9.5759,10.0401
 no_trial,both,G0-miss0.25,r5_never,0.2199,0.2009,0.2411
@@ -3951,6 +4125,8 @@ no_trial,both,G0-miss1,r3_below_0.5,0.0785,0.0748,0.0821
 no_trial,both,G0-miss1,r3_above_0.95,0.1091,0.1044,0.1138
 no_trial,both,G0-miss1,r4_false,0.5932,0.5757,0.6104
 no_trial,both,G0-miss1,r4_false_0.70,0.4809,0.4621,0.4996
+no_trial,both,G0-miss1,r4_below,0.0000,0.0000,0.0000
+no_trial,both,G0-miss1,r4_false_at_task,0.5932,0.5761,0.6109
 no_trial,both,G0-miss1,r4_declared,9.4570,9.2510,9.6590
 no_trial,both,G0-miss1,r5_late_answers,9.8408,9.6104,10.0882
 no_trial,both,G0-miss1,r5_never,0.2268,0.2093,0.2442
@@ -3996,6 +4172,8 @@ no_trial,both,G2-half,r3_below_0.5,0.0168,0.0148,0.0188
 no_trial,both,G2-half,r3_above_0.95,0.0677,0.0632,0.0728
 no_trial,both,G2-half,r4_false,0.4916,0.4750,0.5093
 no_trial,both,G2-half,r4_false_0.70,0.3854,0.3688,0.4028
+no_trial,both,G2-half,r4_below,0.0000,0.0000,0.0000
+no_trial,both,G2-half,r4_false_at_task,0.4916,0.4748,0.5083
 no_trial,both,G2-half,r4_declared,11.9890,11.7620,12.2300
 no_trial,both,G2-half,r5_late_answers,8.8432,8.6749,9.0135
 no_trial,both,G2-half,r5_never,0.1499,0.1354,0.1648
@@ -4041,6 +4219,8 @@ no_trial,both,G2-fading,r3_below_0.5,0.0150,0.0135,0.0165
 no_trial,both,G2-fading,r3_above_0.95,0.0605,0.0560,0.0656
 no_trial,both,G2-fading,r4_false,0.5059,0.4883,0.5232
 no_trial,both,G2-fading,r4_false_0.70,0.3898,0.3723,0.4081
+no_trial,both,G2-fading,r4_below,0.0000,0.0000,0.0000
+no_trial,both,G2-fading,r4_false_at_task,0.5059,0.4882,0.5230
 no_trial,both,G2-fading,r4_declared,11.4060,11.1660,11.6480
 no_trial,both,G2-fading,r5_late_answers,8.5803,8.4046,8.7575
 no_trial,both,G2-fading,r5_never,0.1537,0.1383,0.1691
@@ -4086,6 +4266,8 @@ no_trial,both,G3-drop,r3_below_0.5,0.0759,0.0704,0.0818
 no_trial,both,G3-drop,r3_above_0.95,0.0223,0.0197,0.0252
 no_trial,both,G3-drop,r4_false,0.7053,0.6897,0.7214
 no_trial,both,G3-drop,r4_false_0.70,0.6151,0.5977,0.6324
+no_trial,both,G3-drop,r4_below,0.0000,0.0000,0.0000
+no_trial,both,G3-drop,r4_false_at_task,0.7053,0.6896,0.7220
 no_trial,both,G3-drop,r4_declared,8.3170,8.1320,8.5020
 no_trial,both,G3-drop,r5_late_answers,9.9217,9.6405,10.2048
 no_trial,both,G3-drop,r5_never,0.3564,0.3325,0.3779
@@ -4133,6 +4315,8 @@ no_trial,both,G0-start0.5,r3_below_0.5,0.0167,0.0157,0.0178
 no_trial,both,G0-start0.5,r3_above_0.95,0.0171,0.0157,0.0186
 no_trial,both,G0-start0.5,r4_false,0.6409,0.6266,0.6546
 no_trial,both,G0-start0.5,r4_false_0.70,0.5419,0.5250,0.5586
+no_trial,both,G0-start0.5,r4_below,0.0000,0.0000,0.0000
+no_trial,both,G0-start0.5,r4_false_at_task,0.6409,0.6260,0.6549
 no_trial,both,G0-start0.5,r4_declared,9.1470,8.9670,9.3220
 no_trial,both,G0-start0.5,r5_late_answers,9.8246,9.5733,10.0793
 no_trial,both,G0-start0.5,r5_never,0.2341,0.2162,0.2520
@@ -4178,6 +4362,8 @@ no_trial,both,G0-start2,r3_below_0.5,0.0783,0.0677,0.0899
 no_trial,both,G0-start2,r3_above_0.95,0.0832,0.0739,0.0933
 no_trial,both,G0-start2,r4_false,0.5684,0.5468,0.5899
 no_trial,both,G0-start2,r4_false_0.70,0.4758,0.4540,0.4976
+no_trial,both,G0-start2,r4_below,0.0000,0.0000,0.0000
+no_trial,both,G0-start2,r4_false_at_task,0.5684,0.5485,0.5889
 no_trial,both,G0-start2,r4_declared,10.2780,10.0070,10.5470
 no_trial,both,G0-start2,r5_late_answers,8.8866,8.6625,9.1240
 no_trial,both,G0-start2,r5_never,0.1722,0.1526,0.1922
@@ -4223,6 +4409,8 @@ no_trial,both,G0-topics0.3,r3_below_0.5,0.0192,0.0170,0.0216
 no_trial,both,G0-topics0.3,r3_above_0.95,0.0221,0.0197,0.0247
 no_trial,both,G0-topics0.3,r4_false,0.6201,0.6020,0.6358
 no_trial,both,G0-topics0.3,r4_false_0.70,0.5132,0.4943,0.5322
+no_trial,both,G0-topics0.3,r4_below,0.0000,0.0000,0.0000
+no_trial,both,G0-topics0.3,r4_false_at_task,0.6201,0.6044,0.6370
 no_trial,both,G0-topics0.3,r4_declared,9.6200,9.4220,9.8180
 no_trial,both,G0-topics0.3,r5_late_answers,9.7975,9.5566,10.0364
 no_trial,both,G0-topics0.3,r5_never,0.2105,0.1917,0.2275
@@ -4268,6 +4456,8 @@ no_trial,both,G0-topics1,r3_below_0.5,0.0492,0.0457,0.0531
 no_trial,both,G0-topics1,r3_above_0.95,0.0651,0.0607,0.0696
 no_trial,both,G0-topics1,r4_false,0.5589,0.5432,0.5750
 no_trial,both,G0-topics1,r4_false_0.70,0.4610,0.4457,0.4771
+no_trial,both,G0-topics1,r4_below,0.0000,0.0000,0.0000
+no_trial,both,G0-topics1,r4_false_at_task,0.5589,0.5433,0.5747
 no_trial,both,G0-topics1,r4_declared,9.5660,9.3540,9.7780
 no_trial,both,G0-topics1,r5_late_answers,9.3354,9.1068,9.5559
 no_trial,both,G0-topics1,r5_never,0.1970,0.1801,0.2149
@@ -4313,6 +4503,8 @@ glicko2_floor,general,G0,r3_below_0.5,0.0365,0.0329,0.0404
 glicko2_floor,general,G0,r3_above_0.95,0.0265,0.0246,0.0284
 glicko2_floor,general,G0,r4_false,0.6364,0.6159,0.6573
 glicko2_floor,general,G0,r4_false_0.70,0.5349,0.5137,0.5561
+glicko2_floor,general,G0,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,general,G0,r4_false_at_task,0.6364,0.6164,0.6572
 glicko2_floor,general,G0,r4_declared,10.2790,10.0390,10.5270
 glicko2_floor,general,G0,r5_late_answers,9.1447,8.9244,9.3708
 glicko2_floor,general,G0,r5_never,0.2611,0.2385,0.2826
@@ -4358,6 +4550,8 @@ glicko2_floor,general,G1,r3_below_0.5,0.1188,0.1057,0.1321
 glicko2_floor,general,G1,r3_above_0.95,0.0350,0.0325,0.0376
 glicko2_floor,general,G1,r4_false,0.6814,0.6589,0.7030
 glicko2_floor,general,G1,r4_false_0.70,0.6107,0.5890,0.6333
+glicko2_floor,general,G1,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,general,G1,r4_false_at_task,0.6814,0.6580,0.7031
 glicko2_floor,general,G1,r4_declared,10.1430,9.9100,10.3770
 glicko2_floor,general,G1,r5_late_answers,9.6187,9.3738,9.8631
 glicko2_floor,general,G1,r5_never,0.3028,0.2768,0.3280
@@ -4403,6 +4597,8 @@ glicko2_floor,general,G2,r3_below_0.5,0.0133,0.0123,0.0143
 glicko2_floor,general,G2,r3_above_0.95,0.0759,0.0725,0.0795
 glicko2_floor,general,G2,r4_false,0.4304,0.4133,0.4486
 glicko2_floor,general,G2,r4_false_0.70,0.3233,0.3066,0.3406
+glicko2_floor,general,G2,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,general,G2,r4_false_at_task,0.4304,0.4135,0.4484
 glicko2_floor,general,G2,r4_declared,12.8030,12.5550,13.0400
 glicko2_floor,general,G2,r5_late_answers,7.3541,7.2166,7.4953
 glicko2_floor,general,G2,r5_never,0.2557,0.2386,0.2729
@@ -4448,6 +4644,8 @@ glicko2_floor,general,G3,r3_below_0.5,0.0250,0.0228,0.0276
 glicko2_floor,general,G3,r3_above_0.95,0.0559,0.0532,0.0584
 glicko2_floor,general,G3,r4_false,0.5409,0.5209,0.5606
 glicko2_floor,general,G3,r4_false_0.70,0.4289,0.4094,0.4485
+glicko2_floor,general,G3,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,general,G3,r4_false_at_task,0.5409,0.5224,0.5594
 glicko2_floor,general,G3,r4_declared,11.5520,11.3270,11.7830
 glicko2_floor,general,G3,r5_late_answers,7.9648,7.7846,8.1514
 glicko2_floor,general,G3,r5_never,0.2691,0.2492,0.2896
@@ -4495,6 +4693,8 @@ glicko2_floor,general,G4,r3_below_0.5,0.0514,0.0474,0.0554
 glicko2_floor,general,G4,r3_above_0.95,0.0365,0.0344,0.0384
 glicko2_floor,general,G4,r4_false,0.5873,0.5662,0.6089
 glicko2_floor,general,G4,r4_false_0.70,0.4804,0.4575,0.5043
+glicko2_floor,general,G4,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,general,G4,r4_false_at_task,0.5873,0.5658,0.6084
 glicko2_floor,general,G4,r4_declared,10.4250,10.1800,10.6690
 glicko2_floor,general,G4,r5_late_answers,9.4061,9.1835,9.6570
 glicko2_floor,general,G4,r5_never,0.2614,0.2398,0.2831
@@ -4540,6 +4740,8 @@ glicko2_floor,general,G5,r3_below_0.5,0.0482,0.0441,0.0529
 glicko2_floor,general,G5,r3_above_0.95,0.0356,0.0332,0.0382
 glicko2_floor,general,G5,r4_false,0.6168,0.5952,0.6374
 glicko2_floor,general,G5,r4_false_0.70,0.5080,0.4847,0.5306
+glicko2_floor,general,G5,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,general,G5,r4_false_at_task,0.6168,0.5951,0.6374
 glicko2_floor,general,G5,r4_declared,10.5170,10.2860,10.7410
 glicko2_floor,general,G5,r5_late_answers,8.8245,8.5942,9.0599
 glicko2_floor,general,G5,r5_never,0.2285,0.2081,0.2498
@@ -4585,6 +4787,8 @@ glicko2_floor,general,G6,r3_below_0.5,0.0664,0.0611,0.0719
 glicko2_floor,general,G6,r3_above_0.95,0.0958,0.0892,0.1023
 glicko2_floor,general,G6,r4_false,0.6713,0.6512,0.6913
 glicko2_floor,general,G6,r4_false_0.70,0.5496,0.5261,0.5724
+glicko2_floor,general,G6,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,general,G6,r4_false_at_task,0.6713,0.6518,0.6908
 glicko2_floor,general,G6,r4_declared,10.2310,9.9980,10.4570
 glicko2_floor,general,G6,r5_late_answers,9.0991,8.8474,9.3562
 glicko2_floor,general,G6,r5_never,0.2624,0.2388,0.2852
@@ -4630,6 +4834,8 @@ glicko2_floor,general,G7,r3_below_0.5,0.0359,0.0324,0.0400
 glicko2_floor,general,G7,r3_above_0.95,0.0272,0.0254,0.0292
 glicko2_floor,general,G7,r4_false,0.6474,0.6288,0.6673
 glicko2_floor,general,G7,r4_false_0.70,0.5519,0.5307,0.5733
+glicko2_floor,general,G7,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,general,G7,r4_false_at_task,0.6474,0.6278,0.6667
 glicko2_floor,general,G7,r4_declared,10.3640,10.1290,10.6070
 glicko2_floor,general,G7,r5_late_answers,9.2483,9.0177,9.4878
 glicko2_floor,general,G7,r5_never,0.2469,0.2251,0.2697
@@ -4675,6 +4881,8 @@ glicko2_floor,general,G8,r3_below_0.5,0.0358,0.0325,0.0397
 glicko2_floor,general,G8,r3_above_0.95,0.0295,0.0275,0.0315
 glicko2_floor,general,G8,r4_false,0.6530,0.6321,0.6746
 glicko2_floor,general,G8,r4_false_0.70,0.5453,0.5211,0.5673
+glicko2_floor,general,G8,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,general,G8,r4_false_at_task,0.6530,0.6326,0.6739
 glicko2_floor,general,G8,r4_declared,7.6910,7.4670,7.8920
 glicko2_floor,general,G8,r5_late_answers,9.7201,9.4474,9.9986
 glicko2_floor,general,G8,r5_never,0.4416,0.4187,0.4631
@@ -4720,6 +4928,8 @@ glicko2_floor,general,G0-exact,r3_below_0.5,0.0135,0.0112,0.0162
 glicko2_floor,general,G0-exact,r3_above_0.95,0.0094,0.0082,0.0107
 glicko2_floor,general,G0-exact,r4_false,0.6523,0.6318,0.6713
 glicko2_floor,general,G0-exact,r4_false_0.70,0.5472,0.5265,0.5686
+glicko2_floor,general,G0-exact,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,general,G0-exact,r4_false_at_task,0.6523,0.6317,0.6737
 glicko2_floor,general,G0-exact,r4_declared,10.2250,9.9740,10.4840
 glicko2_floor,general,G0-exact,r5_late_answers,9.0696,8.8525,9.3006
 glicko2_floor,general,G0-exact,r5_never,0.2625,0.2393,0.2851
@@ -4765,6 +4975,8 @@ glicko2_floor,general,G0-miss0.25,r3_below_0.5,0.0193,0.0165,0.0223
 glicko2_floor,general,G0-miss0.25,r3_above_0.95,0.0113,0.0102,0.0126
 glicko2_floor,general,G0-miss0.25,r4_false,0.6659,0.6461,0.6856
 glicko2_floor,general,G0-miss0.25,r4_false_0.70,0.5578,0.5385,0.5791
+glicko2_floor,general,G0-miss0.25,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,general,G0-miss0.25,r4_false_at_task,0.6659,0.6463,0.6847
 glicko2_floor,general,G0-miss0.25,r4_declared,10.3690,10.1460,10.6030
 glicko2_floor,general,G0-miss0.25,r5_late_answers,9.2976,9.0673,9.5319
 glicko2_floor,general,G0-miss0.25,r5_never,0.2360,0.2159,0.2568
@@ -4810,6 +5022,8 @@ glicko2_floor,general,G0-miss1,r3_below_0.5,0.0841,0.0810,0.0873
 glicko2_floor,general,G0-miss1,r3_above_0.95,0.1016,0.0985,0.1047
 glicko2_floor,general,G0-miss1,r4_false,0.6386,0.6176,0.6587
 glicko2_floor,general,G0-miss1,r4_false_0.70,0.5303,0.5084,0.5525
+glicko2_floor,general,G0-miss1,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,general,G0-miss1,r4_false_at_task,0.6386,0.6199,0.6582
 glicko2_floor,general,G0-miss1,r4_declared,10.4950,10.2510,10.7340
 glicko2_floor,general,G0-miss1,r5_late_answers,9.2363,9.0239,9.4809
 glicko2_floor,general,G0-miss1,r5_never,0.2594,0.2366,0.2821
@@ -4855,6 +5069,8 @@ glicko2_floor,general,G2-half,r3_below_0.5,0.0206,0.0189,0.0224
 glicko2_floor,general,G2-half,r3_above_0.95,0.0425,0.0400,0.0449
 glicko2_floor,general,G2-half,r4_false,0.5373,0.5182,0.5570
 glicko2_floor,general,G2-half,r4_false_0.70,0.4282,0.4082,0.4480
+glicko2_floor,general,G2-half,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,general,G2-half,r4_false_at_task,0.5373,0.5181,0.5569
 glicko2_floor,general,G2-half,r4_declared,11.7970,11.5480,12.0320
 glicko2_floor,general,G2-half,r5_late_answers,8.1602,7.9769,8.3474
 glicko2_floor,general,G2-half,r5_never,0.2510,0.2311,0.2714
@@ -4900,6 +5116,8 @@ glicko2_floor,general,G2-fading,r3_below_0.5,0.0208,0.0192,0.0223
 glicko2_floor,general,G2-fading,r3_above_0.95,0.0404,0.0379,0.0427
 glicko2_floor,general,G2-fading,r4_false,0.5628,0.5438,0.5826
 glicko2_floor,general,G2-fading,r4_false_0.70,0.4433,0.4228,0.4630
+glicko2_floor,general,G2-fading,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,general,G2-fading,r4_false_at_task,0.5628,0.5429,0.5811
 glicko2_floor,general,G2-fading,r4_declared,11.0670,10.8290,11.3140
 glicko2_floor,general,G2-fading,r5_late_answers,8.2566,8.0669,8.4449
 glicko2_floor,general,G2-fading,r5_never,0.2694,0.2481,0.2910
@@ -4945,6 +5163,8 @@ glicko2_floor,general,G3-drop,r3_below_0.5,0.0797,0.0736,0.0861
 glicko2_floor,general,G3-drop,r3_above_0.95,0.0192,0.0177,0.0210
 glicko2_floor,general,G3-drop,r4_false,0.7166,0.6990,0.7334
 glicko2_floor,general,G3-drop,r4_false_0.70,0.6291,0.6087,0.6479
+glicko2_floor,general,G3-drop,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,general,G3-drop,r4_false_at_task,0.7166,0.6974,0.7338
 glicko2_floor,general,G3-drop,r4_declared,9.5950,9.3840,9.7900
 glicko2_floor,general,G3-drop,r5_late_answers,9.4637,9.2047,9.7181
 glicko2_floor,general,G3-drop,r5_never,0.3244,0.3018,0.3471
@@ -4992,6 +5212,8 @@ glicko2_floor,general,G0-start0.5,r3_below_0.5,0.0258,0.0244,0.0273
 glicko2_floor,general,G0-start0.5,r3_above_0.95,0.0267,0.0250,0.0285
 glicko2_floor,general,G0-start0.5,r4_false,0.6649,0.6458,0.6830
 glicko2_floor,general,G0-start0.5,r4_false_0.70,0.5600,0.5401,0.5797
+glicko2_floor,general,G0-start0.5,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,general,G0-start0.5,r4_false_at_task,0.6649,0.6473,0.6835
 glicko2_floor,general,G0-start0.5,r4_declared,9.7540,9.5260,9.9600
 glicko2_floor,general,G0-start0.5,r5_late_answers,9.1372,8.9006,9.3838
 glicko2_floor,general,G0-start0.5,r5_never,0.2531,0.2330,0.2722
@@ -5037,6 +5259,8 @@ glicko2_floor,general,G0-start2,r3_below_0.5,0.0733,0.0628,0.0845
 glicko2_floor,general,G0-start2,r3_above_0.95,0.0348,0.0312,0.0387
 glicko2_floor,general,G0-start2,r4_false,0.6347,0.6124,0.6564
 glicko2_floor,general,G0-start2,r4_false_0.70,0.5409,0.5186,0.5644
+glicko2_floor,general,G0-start2,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,general,G0-start2,r4_false_at_task,0.6347,0.6125,0.6568
 glicko2_floor,general,G0-start2,r4_declared,10.4890,10.2250,10.7580
 glicko2_floor,general,G0-start2,r5_late_answers,9.0750,8.8732,9.2952
 glicko2_floor,general,G0-start2,r5_never,0.2672,0.2424,0.2917
@@ -5082,6 +5306,8 @@ glicko2_floor,general,G0-topics0.3,r3_below_0.5,0.0204,0.0185,0.0226
 glicko2_floor,general,G0-topics0.3,r3_above_0.95,0.0151,0.0137,0.0166
 glicko2_floor,general,G0-topics0.3,r4_false,0.6628,0.6422,0.6817
 glicko2_floor,general,G0-topics0.3,r4_false_0.70,0.5601,0.5368,0.5828
+glicko2_floor,general,G0-topics0.3,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,general,G0-topics0.3,r4_false_at_task,0.6628,0.6432,0.6828
 glicko2_floor,general,G0-topics0.3,r4_declared,10.2180,9.9680,10.4550
 glicko2_floor,general,G0-topics0.3,r5_late_answers,9.3247,9.0975,9.5633
 glicko2_floor,general,G0-topics0.3,r5_never,0.2613,0.2374,0.2856
@@ -5127,6 +5353,8 @@ glicko2_floor,general,G0-topics1,r3_below_0.5,0.0952,0.0882,0.1020
 glicko2_floor,general,G0-topics1,r3_above_0.95,0.0891,0.0853,0.0932
 glicko2_floor,general,G0-topics1,r4_false,0.5686,0.5490,0.5876
 glicko2_floor,general,G0-topics1,r4_false_0.70,0.4754,0.4559,0.4954
+glicko2_floor,general,G0-topics1,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,general,G0-topics1,r4_false_at_task,0.5686,0.5499,0.5880
 glicko2_floor,general,G0-topics1,r4_declared,10.5490,10.3370,10.7590
 glicko2_floor,general,G0-topics1,r5_late_answers,8.5036,8.3147,8.7127
 glicko2_floor,general,G0-topics1,r5_never,0.2230,0.2047,0.2409
@@ -5172,6 +5400,8 @@ glicko2_floor,topics,G0,r3_below_0.5,0.0577,0.0535,0.0621
 glicko2_floor,topics,G0,r3_above_0.95,0.0487,0.0452,0.0520
 glicko2_floor,topics,G0,r4_false,0.5386,0.5204,0.5573
 glicko2_floor,topics,G0,r4_false_0.70,0.4290,0.4108,0.4478
+glicko2_floor,topics,G0,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,topics,G0,r4_false_at_task,0.5386,0.5203,0.5568
 glicko2_floor,topics,G0,r4_declared,8.8990,8.7000,9.0980
 glicko2_floor,topics,G0,r5_late_answers,10.9215,10.7039,11.1452
 glicko2_floor,topics,G0,r5_never,0.2323,0.2160,0.2501
@@ -5213,6 +5443,8 @@ glicko2_floor,topics,G1,r3_below_0.5,0.1610,0.1484,0.1738
 glicko2_floor,topics,G1,r3_above_0.95,0.1298,0.1207,0.1393
 glicko2_floor,topics,G1,r4_false,0.4594,0.4362,0.4848
 glicko2_floor,topics,G1,r4_false_0.70,0.4190,0.3963,0.4422
+glicko2_floor,topics,G1,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,topics,G1,r4_false_at_task,0.4594,0.4356,0.4826
 glicko2_floor,topics,G1,r4_declared,10.8030,10.5610,11.0390
 glicko2_floor,topics,G1,r5_late_answers,8.8822,8.7559,9.0125
 glicko2_floor,topics,G1,r5_never,0.0945,0.0845,0.1050
@@ -5254,6 +5486,8 @@ glicko2_floor,topics,G2,r3_below_0.5,0.0260,0.0238,0.0281
 glicko2_floor,topics,G2,r3_above_0.95,0.1909,0.1837,0.1983
 glicko2_floor,topics,G2,r4_false,0.2779,0.2645,0.2926
 glicko2_floor,topics,G2,r4_false_0.70,0.1851,0.1738,0.1958
+glicko2_floor,topics,G2,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,topics,G2,r4_false_at_task,0.2779,0.2646,0.2923
 glicko2_floor,topics,G2,r4_declared,11.8120,11.6070,12.0270
 glicko2_floor,topics,G2,r5_late_answers,8.7972,8.6770,8.9177
 glicko2_floor,topics,G2,r5_never,0.1226,0.1148,0.1312
@@ -5295,6 +5529,8 @@ glicko2_floor,topics,G3,r3_below_0.5,0.0447,0.0418,0.0481
 glicko2_floor,topics,G3,r3_above_0.95,0.1053,0.1004,0.1108
 glicko2_floor,topics,G3,r4_false,0.3971,0.3789,0.4152
 glicko2_floor,topics,G3,r4_false_0.70,0.2893,0.2734,0.3047
+glicko2_floor,topics,G3,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,topics,G3,r4_false_at_task,0.3971,0.3804,0.4142
 glicko2_floor,topics,G3,r4_declared,10.4840,10.2700,10.6920
 glicko2_floor,topics,G3,r5_late_answers,9.3228,9.1709,9.4785
 glicko2_floor,topics,G3,r5_never,0.1616,0.1494,0.1741
@@ -5338,6 +5574,8 @@ glicko2_floor,topics,G4,r3_below_0.5,0.0838,0.0793,0.0882
 glicko2_floor,topics,G4,r3_above_0.95,0.0515,0.0484,0.0547
 glicko2_floor,topics,G4,r4_false,0.4837,0.4664,0.5016
 glicko2_floor,topics,G4,r4_false_0.70,0.3699,0.3526,0.3886
+glicko2_floor,topics,G4,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,topics,G4,r4_false_at_task,0.4837,0.4646,0.5021
 glicko2_floor,topics,G4,r4_declared,8.1640,7.9740,8.3520
 glicko2_floor,topics,G4,r5_late_answers,11.7031,11.4437,11.9650
 glicko2_floor,topics,G4,r5_never,0.2915,0.2731,0.3102
@@ -5379,6 +5617,8 @@ glicko2_floor,topics,G5,r3_below_0.5,0.0663,0.0615,0.0713
 glicko2_floor,topics,G5,r3_above_0.95,0.0540,0.0500,0.0584
 glicko2_floor,topics,G5,r4_false,0.5364,0.5173,0.5559
 glicko2_floor,topics,G5,r4_false_0.70,0.4265,0.4075,0.4451
+glicko2_floor,topics,G5,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,topics,G5,r4_false_at_task,0.5364,0.5174,0.5550
 glicko2_floor,topics,G5,r4_declared,8.9710,8.7800,9.1680
 glicko2_floor,topics,G5,r5_late_answers,10.9527,10.7386,11.2038
 glicko2_floor,topics,G5,r5_never,0.2280,0.2100,0.2460
@@ -5420,6 +5660,8 @@ glicko2_floor,topics,G6,r3_below_0.5,0.0686,0.0640,0.0734
 glicko2_floor,topics,G6,r3_above_0.95,0.1216,0.1129,0.1310
 glicko2_floor,topics,G6,r4_false,0.5867,0.5671,0.6058
 glicko2_floor,topics,G6,r4_false_0.70,0.4685,0.4499,0.4881
+glicko2_floor,topics,G6,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,topics,G6,r4_false_at_task,0.5867,0.5670,0.6067
 glicko2_floor,topics,G6,r4_declared,8.5530,8.3550,8.7520
 glicko2_floor,topics,G6,r5_late_answers,10.9073,10.6578,11.1666
 glicko2_floor,topics,G6,r5_never,0.2471,0.2269,0.2676
@@ -5461,6 +5703,8 @@ glicko2_floor,topics,G7,r3_below_0.5,0.0648,0.0607,0.0694
 glicko2_floor,topics,G7,r3_above_0.95,0.0467,0.0432,0.0504
 glicko2_floor,topics,G7,r4_false,0.5517,0.5341,0.5687
 glicko2_floor,topics,G7,r4_false_0.70,0.4421,0.4246,0.4607
+glicko2_floor,topics,G7,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,topics,G7,r4_false_at_task,0.5517,0.5346,0.5683
 glicko2_floor,topics,G7,r4_declared,8.6410,8.4600,8.8200
 glicko2_floor,topics,G7,r5_late_answers,11.3225,11.0853,11.5659
 glicko2_floor,topics,G7,r5_never,0.2250,0.2077,0.2426
@@ -5502,6 +5746,8 @@ glicko2_floor,topics,G8,r3_below_0.5,0.0590,0.0549,0.0631
 glicko2_floor,topics,G8,r3_above_0.95,0.0521,0.0485,0.0558
 glicko2_floor,topics,G8,r4_false,0.5620,0.5431,0.5808
 glicko2_floor,topics,G8,r4_false_0.70,0.4493,0.4305,0.4678
+glicko2_floor,topics,G8,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,topics,G8,r4_false_at_task,0.5620,0.5437,0.5800
 glicko2_floor,topics,G8,r4_declared,6.2860,6.1240,6.4510
 glicko2_floor,topics,G8,r5_late_answers,12.6851,12.3449,13.0055
 glicko2_floor,topics,G8,r5_never,0.4231,0.4016,0.4436
@@ -5543,6 +5789,8 @@ glicko2_floor,topics,G0-exact,r3_below_0.5,0.0385,0.0352,0.0419
 glicko2_floor,topics,G0-exact,r3_above_0.95,0.0302,0.0270,0.0337
 glicko2_floor,topics,G0-exact,r4_false,0.5358,0.5187,0.5547
 glicko2_floor,topics,G0-exact,r4_false_0.70,0.4261,0.4076,0.4434
+glicko2_floor,topics,G0-exact,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,topics,G0-exact,r4_false_at_task,0.5358,0.5191,0.5548
 glicko2_floor,topics,G0-exact,r4_declared,8.8850,8.6860,9.0730
 glicko2_floor,topics,G0-exact,r5_late_answers,10.8300,10.6049,11.0673
 glicko2_floor,topics,G0-exact,r5_never,0.2250,0.2079,0.2415
@@ -5584,6 +5832,8 @@ glicko2_floor,topics,G0-miss0.25,r3_below_0.5,0.0476,0.0439,0.0514
 glicko2_floor,topics,G0-miss0.25,r3_above_0.95,0.0290,0.0263,0.0321
 glicko2_floor,topics,G0-miss0.25,r4_false,0.5635,0.5469,0.5802
 glicko2_floor,topics,G0-miss0.25,r4_false_0.70,0.4458,0.4296,0.4628
+glicko2_floor,topics,G0-miss0.25,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,topics,G0-miss0.25,r4_false_at_task,0.5635,0.5467,0.5810
 glicko2_floor,topics,G0-miss0.25,r4_declared,8.7300,8.5460,8.9190
 glicko2_floor,topics,G0-miss0.25,r5_late_answers,11.2010,10.9675,11.4482
 glicko2_floor,topics,G0-miss0.25,r5_never,0.2243,0.2068,0.2415
@@ -5625,6 +5875,8 @@ glicko2_floor,topics,G0-miss1,r3_below_0.5,0.1092,0.1047,0.1137
 glicko2_floor,topics,G0-miss1,r3_above_0.95,0.1238,0.1190,0.1284
 glicko2_floor,topics,G0-miss1,r4_false,0.5294,0.5109,0.5468
 glicko2_floor,topics,G0-miss1,r4_false_0.70,0.4144,0.3969,0.4331
+glicko2_floor,topics,G0-miss1,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,topics,G0-miss1,r4_false_at_task,0.5294,0.5124,0.5467
 glicko2_floor,topics,G0-miss1,r4_declared,8.6520,8.4650,8.8360
 glicko2_floor,topics,G0-miss1,r5_late_answers,11.2840,11.0496,11.5318
 glicko2_floor,topics,G0-miss1,r5_never,0.2581,0.2395,0.2755
@@ -5666,6 +5918,8 @@ glicko2_floor,topics,G2-half,r3_below_0.5,0.0379,0.0350,0.0408
 glicko2_floor,topics,G2-half,r3_above_0.95,0.0947,0.0898,0.0998
 glicko2_floor,topics,G2-half,r4_false,0.3988,0.3841,0.4147
 glicko2_floor,topics,G2-half,r4_false_0.70,0.2887,0.2753,0.3018
+glicko2_floor,topics,G2-half,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,topics,G2-half,r4_false_at_task,0.3988,0.3840,0.4134
 glicko2_floor,topics,G2-half,r4_declared,10.5410,10.3540,10.7290
 glicko2_floor,topics,G2-half,r5_late_answers,9.8716,9.7125,10.0294
 glicko2_floor,topics,G2-half,r5_never,0.1690,0.1567,0.1813
@@ -5707,6 +5961,8 @@ glicko2_floor,topics,G2-fading,r3_below_0.5,0.0371,0.0345,0.0397
 glicko2_floor,topics,G2-fading,r3_above_0.95,0.0865,0.0813,0.0920
 glicko2_floor,topics,G2-fading,r4_false,0.4300,0.4132,0.4462
 glicko2_floor,topics,G2-fading,r4_false_0.70,0.3113,0.2967,0.3265
+glicko2_floor,topics,G2-fading,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,topics,G2-fading,r4_false_at_task,0.4300,0.4144,0.4458
 glicko2_floor,topics,G2-fading,r4_declared,10.2150,10.0210,10.4040
 glicko2_floor,topics,G2-fading,r5_late_answers,9.9438,9.7837,10.1206
 glicko2_floor,topics,G2-fading,r5_never,0.1687,0.1543,0.1827
@@ -5748,6 +6004,8 @@ glicko2_floor,topics,G3-drop,r3_below_0.5,0.1153,0.1094,0.1218
 glicko2_floor,topics,G3-drop,r3_above_0.95,0.0375,0.0346,0.0405
 glicko2_floor,topics,G3-drop,r4_false,0.6378,0.6194,0.6569
 glicko2_floor,topics,G3-drop,r4_false_0.70,0.5354,0.5159,0.5539
+glicko2_floor,topics,G3-drop,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,topics,G3-drop,r4_false_at_task,0.6378,0.6203,0.6567
 glicko2_floor,topics,G3-drop,r4_declared,7.0340,6.8360,7.2350
 glicko2_floor,topics,G3-drop,r5_late_answers,11.5269,11.2280,11.8301
 glicko2_floor,topics,G3-drop,r5_never,0.3995,0.3756,0.4218
@@ -5791,6 +6049,8 @@ glicko2_floor,topics,G0-start0.5,r3_below_0.5,0.0481,0.0459,0.0502
 glicko2_floor,topics,G0-start0.5,r3_above_0.95,0.0395,0.0374,0.0417
 glicko2_floor,topics,G0-start0.5,r4_false,0.5969,0.5812,0.6122
 glicko2_floor,topics,G0-start0.5,r4_false_0.70,0.4871,0.4723,0.5028
+glicko2_floor,topics,G0-start0.5,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,topics,G0-start0.5,r4_false_at_task,0.5969,0.5823,0.6121
 glicko2_floor,topics,G0-start0.5,r4_declared,8.3950,8.2300,8.5660
 glicko2_floor,topics,G0-start0.5,r5_late_answers,11.4638,11.2372,11.7089
 glicko2_floor,topics,G0-start0.5,r5_never,0.2523,0.2335,0.2717
@@ -5832,6 +6092,8 @@ glicko2_floor,topics,G0-start2,r3_below_0.5,0.1027,0.0921,0.1141
 glicko2_floor,topics,G0-start2,r3_above_0.95,0.0941,0.0851,0.1033
 glicko2_floor,topics,G0-start2,r4_false,0.4666,0.4439,0.4885
 glicko2_floor,topics,G0-start2,r4_false_0.70,0.3793,0.3590,0.3995
+glicko2_floor,topics,G0-start2,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,topics,G0-start2,r4_false_at_task,0.4666,0.4447,0.4884
 glicko2_floor,topics,G0-start2,r4_declared,9.3620,9.1420,9.5830
 glicko2_floor,topics,G0-start2,r5_late_answers,10.1515,9.9415,10.3692
 glicko2_floor,topics,G0-start2,r5_never,0.1860,0.1697,0.2027
@@ -5873,6 +6135,8 @@ glicko2_floor,topics,G0-topics0.3,r3_below_0.5,0.0556,0.0523,0.0593
 glicko2_floor,topics,G0-topics0.3,r3_above_0.95,0.0460,0.0429,0.0491
 glicko2_floor,topics,G0-topics0.3,r4_false,0.5542,0.5352,0.5730
 glicko2_floor,topics,G0-topics0.3,r4_false_0.70,0.4451,0.4270,0.4635
+glicko2_floor,topics,G0-topics0.3,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,topics,G0-topics0.3,r4_false_at_task,0.5542,0.5361,0.5735
 glicko2_floor,topics,G0-topics0.3,r4_declared,8.7080,8.5250,8.8960
 glicko2_floor,topics,G0-topics0.3,r5_late_answers,11.3970,11.1648,11.6427
 glicko2_floor,topics,G0-topics0.3,r5_never,0.2402,0.2220,0.2585
@@ -5914,6 +6178,8 @@ glicko2_floor,topics,G0-topics1,r3_below_0.5,0.0611,0.0572,0.0655
 glicko2_floor,topics,G0-topics1,r3_above_0.95,0.0656,0.0613,0.0699
 glicko2_floor,topics,G0-topics1,r4_false,0.5053,0.4896,0.5226
 glicko2_floor,topics,G0-topics1,r4_false_0.70,0.3976,0.3823,0.4133
+glicko2_floor,topics,G0-topics1,r4_below,0.0000,0.0000,0.0000
+glicko2_floor,topics,G0-topics1,r4_false_at_task,0.5053,0.4888,0.5228
 glicko2_floor,topics,G0-topics1,r4_declared,8.9320,8.7360,9.1210
 glicko2_floor,topics,G0-topics1,r5_late_answers,10.7474,10.5467,10.9717
 glicko2_floor,topics,G0-topics1,r5_never,0.2138,0.1969,0.2301
@@ -5955,6 +6221,8 @@ oracle,both,G0,r3_below_0.5,0.0061,0.0034,0.0093
 oracle,both,G0,r3_above_0.95,0.0011,0.0009,0.0012
 oracle,both,G0,r4_false,0.7501,0.7336,0.7665
 oracle,both,G0,r4_false_0.70,0.5251,0.5046,0.5455
+oracle,both,G0,r4_below,0.0000,0.0000,0.0000
+oracle,both,G0,r4_false_at_task,0.7501,0.7344,0.7657
 oracle,both,G0,r4_declared,5.7510,5.6050,5.9120
 oracle,both,G0,r5_late_answers,6.3138,6.1463,6.4738
 oracle,both,G0,r5_never,0.6501,0.6333,0.6665
@@ -5994,6 +6262,8 @@ oracle,both,G1,r3_below_0.5,0.0800,0.0677,0.0929
 oracle,both,G1,r3_above_0.95,0.0011,0.0009,0.0012
 oracle,both,G1,r4_false,0.6766,0.6511,0.7016
 oracle,both,G1,r4_false_0.70,0.5774,0.5505,0.6031
+oracle,both,G1,r4_below,0.0000,0.0000,0.0000
+oracle,both,G1,r4_false_at_task,0.6766,0.6513,0.7016
 oracle,both,G1,r4_declared,6.2870,6.1050,6.4640
 oracle,both,G1,r5_late_answers,6.3822,6.2457,6.5251
 oracle,both,G1,r5_never,0.5813,0.5680,0.5953
@@ -6033,6 +6303,8 @@ oracle,both,G2,r3_below_0.5,0.0038,0.0035,0.0040
 oracle,both,G2,r3_above_0.95,0.0023,0.0016,0.0033
 oracle,both,G2,r4_false,0.6611,0.6438,0.6783
 oracle,both,G2,r4_false_0.70,0.4375,0.4213,0.4544
+oracle,both,G2,r4_below,0.0000,0.0000,0.0000
+oracle,both,G2,r4_false_at_task,0.6611,0.6433,0.6783
 oracle,both,G2,r4_declared,11.6320,11.3880,11.8850
 oracle,both,G2,r5_late_answers,7.7915,7.6398,7.9558
 oracle,both,G2,r5_never,0.3971,0.3806,0.4132
@@ -6072,6 +6344,8 @@ oracle,both,G3,r3_below_0.5,0.0042,0.0029,0.0061
 oracle,both,G3,r3_above_0.95,0.0009,0.0007,0.0010
 oracle,both,G3,r4_false,0.7234,0.7052,0.7414
 oracle,both,G3,r4_false_0.70,0.5150,0.4950,0.5362
+oracle,both,G3,r4_below,0.0000,0.0000,0.0000
+oracle,both,G3,r4_false_at_task,0.7234,0.7046,0.7409
 oracle,both,G3,r4_declared,6.5860,6.4430,6.7400
 oracle,both,G3,r5_late_answers,5.6391,5.4723,5.7995
 oracle,both,G3,r5_never,0.6745,0.6613,0.6871
@@ -6113,6 +6387,8 @@ oracle,both,G4,r3_below_0.5,0.0385,0.0364,0.0412
 oracle,both,G4,r3_above_0.95,0.0005,0.0004,0.0006
 oracle,both,G4,r4_false,0.7391,0.7221,0.7550
 oracle,both,G4,r4_false_0.70,0.5020,0.4822,0.5220
+oracle,both,G4,r4_below,0.0000,0.0000,0.0000
+oracle,both,G4,r4_false_at_task,0.7391,0.7233,0.7555
 oracle,both,G4,r4_declared,5.4920,5.3510,5.6360
 oracle,both,G4,r5_late_answers,7.5971,7.3804,7.8279
 oracle,both,G4,r5_never,0.6563,0.6403,0.6718
@@ -6152,6 +6428,8 @@ oracle,both,G5,r3_below_0.5,0.0110,0.0073,0.0152
 oracle,both,G5,r3_above_0.95,0.0010,0.0008,0.0011
 oracle,both,G5,r4_false,0.7563,0.7383,0.7747
 oracle,both,G5,r4_false_0.70,0.5306,0.5072,0.5528
+oracle,both,G5,r4_below,0.0000,0.0000,0.0000
+oracle,both,G5,r4_false_at_task,0.7563,0.7385,0.7747
 oracle,both,G5,r4_declared,5.9410,5.7660,6.1200
 oracle,both,G5,r5_late_answers,6.4862,6.3089,6.6558
 oracle,both,G5,r5_never,0.6559,0.6374,0.6752
@@ -6191,6 +6469,8 @@ oracle,both,G6,r3_below_0.5,0.0073,0.0047,0.0109
 oracle,both,G6,r3_above_0.95,0.1493,0.1397,0.1597
 oracle,both,G6,r4_false,0.6939,0.6733,0.7145
 oracle,both,G6,r4_false_0.70,0.6387,0.6194,0.6582
+oracle,both,G6,r4_below,0.0000,0.0000,0.0000
+oracle,both,G6,r4_false_at_task,0.6939,0.6743,0.7141
 oracle,both,G6,r4_declared,5.5110,5.3530,5.6730
 oracle,both,G6,r5_late_answers,5.8333,5.6935,5.9936
 oracle,both,G6,r5_never,0.5391,0.5221,0.5566
@@ -6230,6 +6510,8 @@ oracle,both,G7,r3_below_0.5,0.0167,0.0143,0.0198
 oracle,both,G7,r3_above_0.95,0.0014,0.0012,0.0016
 oracle,both,G7,r4_false,0.6971,0.6804,0.7134
 oracle,both,G7,r4_false_0.70,0.6158,0.5989,0.6345
+oracle,both,G7,r4_below,0.0000,0.0000,0.0000
+oracle,both,G7,r4_false_at_task,0.6971,0.6808,0.7148
 oracle,both,G7,r4_declared,5.4340,5.2990,5.5790
 oracle,both,G7,r5_late_answers,6.5170,6.3482,6.6932
 oracle,both,G7,r5_never,0.5620,0.5458,0.5782
@@ -6269,6 +6551,8 @@ oracle,both,G8,r3_below_0.5,0.0042,0.0026,0.0063
 oracle,both,G8,r3_above_0.95,0.0011,0.0009,0.0012
 oracle,both,G8,r4_false,0.7500,0.7333,0.7671
 oracle,both,G8,r4_false_0.70,0.5171,0.4964,0.5378
+oracle,both,G8,r4_below,0.0000,0.0000,0.0000
+oracle,both,G8,r4_false_at_task,0.7500,0.7338,0.7664
 oracle,both,G8,r4_declared,5.2600,5.1220,5.4030
 oracle,both,G8,r5_late_answers,7.3262,7.1058,7.5626
 oracle,both,G8,r5_never,0.6765,0.6608,0.6929
@@ -6308,6 +6592,8 @@ oracle,both,G0-exact,r3_below_0.5,0.0008,0.0000,0.0022
 oracle,both,G0-exact,r3_above_0.95,0.0000,0.0000,0.0000
 oracle,both,G0-exact,r4_false,0.7507,0.7344,0.7665
 oracle,both,G0-exact,r4_false_0.70,0.5158,0.4965,0.5363
+oracle,both,G0-exact,r4_below,0.0000,0.0000,0.0000
+oracle,both,G0-exact,r4_false_at_task,0.7507,0.7350,0.7659
 oracle,both,G0-exact,r4_declared,5.5990,5.4410,5.7580
 oracle,both,G0-exact,r5_late_answers,6.6411,6.4707,6.8203
 oracle,both,G0-exact,r5_never,0.6520,0.6374,0.6665
@@ -6347,6 +6633,8 @@ oracle,both,G0-miss0.25,r3_below_0.5,0.0016,0.0000,0.0038
 oracle,both,G0-miss0.25,r3_above_0.95,0.0000,0.0000,0.0000
 oracle,both,G0-miss0.25,r4_false,0.7622,0.7460,0.7779
 oracle,both,G0-miss0.25,r4_false_0.70,0.5260,0.5068,0.5450
+oracle,both,G0-miss0.25,r4_below,0.0000,0.0000,0.0000
+oracle,both,G0-miss0.25,r4_false_at_task,0.7622,0.7465,0.7784
 oracle,both,G0-miss0.25,r4_declared,5.5210,5.3680,5.6740
 oracle,both,G0-miss0.25,r5_late_answers,6.3450,6.1806,6.5210
 oracle,both,G0-miss0.25,r5_never,0.6601,0.6432,0.6760
@@ -6386,6 +6674,8 @@ oracle,both,G0-miss1,r3_below_0.5,0.0637,0.0617,0.0660
 oracle,both,G0-miss1,r3_above_0.95,0.0534,0.0522,0.0545
 oracle,both,G0-miss1,r4_false,0.7355,0.7190,0.7516
 oracle,both,G0-miss1,r4_false_0.70,0.4952,0.4781,0.5146
+oracle,both,G0-miss1,r4_below,0.0000,0.0000,0.0000
+oracle,both,G0-miss1,r4_false_at_task,0.7355,0.7197,0.7522
 oracle,both,G0-miss1,r4_declared,5.6180,5.4660,5.7710
 oracle,both,G0-miss1,r5_late_answers,6.5892,6.4214,6.7617
 oracle,both,G0-miss1,r5_never,0.6490,0.6330,0.6647
@@ -6425,6 +6715,8 @@ oracle,both,G2-half,r3_below_0.5,0.0048,0.0043,0.0053
 oracle,both,G2-half,r3_above_0.95,0.0007,0.0006,0.0008
 oracle,both,G2-half,r4_false,0.7298,0.7162,0.7436
 oracle,both,G2-half,r4_false_0.70,0.4962,0.4814,0.5110
+oracle,both,G2-half,r4_below,0.0000,0.0000,0.0000
+oracle,both,G2-half,r4_false_at_task,0.7298,0.7162,0.7439
 oracle,both,G2-half,r4_declared,12.8960,12.6960,13.1160
 oracle,both,G2-half,r5_late_answers,8.8518,8.6877,9.0256
 oracle,both,G2-half,r5_never,0.2508,0.2314,0.2695
@@ -6464,6 +6756,8 @@ oracle,both,G2-fading,r3_below_0.5,0.0044,0.0040,0.0050
 oracle,both,G2-fading,r3_above_0.95,0.0010,0.0008,0.0011
 oracle,both,G2-fading,r4_false,0.7170,0.7023,0.7313
 oracle,both,G2-fading,r4_false_0.70,0.4607,0.4453,0.4767
+oracle,both,G2-fading,r4_below,0.0000,0.0000,0.0000
+oracle,both,G2-fading,r4_false_at_task,0.7170,0.7027,0.7311
 oracle,both,G2-fading,r4_declared,11.1790,11.0190,11.3420
 oracle,both,G2-fading,r5_late_answers,9.5179,9.3334,9.7070
 oracle,both,G2-fading,r5_never,0.2623,0.2430,0.2823
@@ -6503,6 +6797,8 @@ oracle,both,G3-drop,r3_below_0.5,0.0188,0.0137,0.0240
 oracle,both,G3-drop,r3_above_0.95,0.0011,0.0009,0.0012
 oracle,both,G3-drop,r4_false,0.7781,0.7629,0.7931
 oracle,both,G3-drop,r4_false_0.70,0.5442,0.5246,0.5634
+oracle,both,G3-drop,r4_below,0.0000,0.0000,0.0000
+oracle,both,G3-drop,r4_false_at_task,0.7781,0.7630,0.7938
 oracle,both,G3-drop,r4_declared,6.0470,5.8920,6.1970
 oracle,both,G3-drop,r5_late_answers,6.1074,5.9513,6.2738
 oracle,both,G3-drop,r5_never,0.6460,0.6310,0.6610
@@ -6544,6 +6840,8 @@ oracle,both,G0-start0.5,r3_below_0.5,0.0020,0.0018,0.0022
 oracle,both,G0-start0.5,r3_above_0.95,0.0014,0.0012,0.0015
 oracle,both,G0-start0.5,r4_false,0.7420,0.7284,0.7555
 oracle,both,G0-start0.5,r4_false_0.70,0.5210,0.5029,0.5385
+oracle,both,G0-start0.5,r4_below,0.0000,0.0000,0.0000
+oracle,both,G0-start0.5,r4_false_at_task,0.7420,0.7283,0.7558
 oracle,both,G0-start0.5,r4_declared,5.5280,5.3810,5.6760
 oracle,both,G0-start0.5,r5_late_answers,6.3955,6.2326,6.5703
 oracle,both,G0-start0.5,r5_never,0.6123,0.5948,0.6297
@@ -6583,6 +6881,8 @@ oracle,both,G0-start2,r3_below_0.5,0.0404,0.0305,0.0509
 oracle,both,G0-start2,r3_above_0.95,0.0046,0.0021,0.0079
 oracle,both,G0-start2,r4_false,0.7133,0.6931,0.7341
 oracle,both,G0-start2,r4_false_0.70,0.5157,0.4918,0.5398
+oracle,both,G0-start2,r4_below,0.0000,0.0000,0.0000
+oracle,both,G0-start2,r4_false_at_task,0.7133,0.6925,0.7337
 oracle,both,G0-start2,r4_declared,5.7280,5.5680,5.8950
 oracle,both,G0-start2,r5_late_answers,6.3672,6.2287,6.5076
 oracle,both,G0-start2,r5_never,0.6507,0.6355,0.6664
@@ -6622,6 +6922,8 @@ oracle,both,G0-topics0.3,r3_below_0.5,0.0043,0.0029,0.0062
 oracle,both,G0-topics0.3,r3_above_0.95,0.0010,0.0009,0.0012
 oracle,both,G0-topics0.3,r4_false,0.7580,0.7399,0.7748
 oracle,both,G0-topics0.3,r4_false_0.70,0.5273,0.5033,0.5499
+oracle,both,G0-topics0.3,r4_below,0.0000,0.0000,0.0000
+oracle,both,G0-topics0.3,r4_false_at_task,0.7580,0.7403,0.7751
 oracle,both,G0-topics0.3,r4_declared,5.7560,5.5900,5.9170
 oracle,both,G0-topics0.3,r5_late_answers,6.4652,6.3109,6.6269
 oracle,both,G0-topics0.3,r5_never,0.6468,0.6284,0.6660
@@ -6661,6 +6963,8 @@ oracle,both,G0-topics1,r3_below_0.5,0.0044,0.0021,0.0073
 oracle,both,G0-topics1,r3_above_0.95,0.0012,0.0010,0.0015
 oracle,both,G0-topics1,r4_false,0.7405,0.7266,0.7551
 oracle,both,G0-topics1,r4_false_0.70,0.5217,0.5039,0.5400
+oracle,both,G0-topics1,r4_below,0.0000,0.0000,0.0000
+oracle,both,G0-topics1,r4_false_at_task,0.7405,0.7258,0.7549
 oracle,both,G0-topics1,r4_declared,5.3690,5.2220,5.5140
 oracle,both,G0-topics1,r5_late_answers,6.6231,6.4478,6.7971
 oracle,both,G0-topics1,r5_never,0.6715,0.6581,0.6849

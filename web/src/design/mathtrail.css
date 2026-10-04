@@ -1094,6 +1094,81 @@
 .mt-status-skipped {
 	color: var(--text-muted);
 }
+/* A review: its parts one under another, each under a heading in its tone —
+   the topics that go well and the ones to work on each after a dot in the
+   colour of their heading, with why under the name, and the steps to take
+   numbered, each the topic it is for over what to do. */
+.mt-review-part {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+.mt-review-label {
+	margin: 0;
+	font-size: 13px;
+	line-height: 18px;
+	font-weight: 700;
+	color: var(--text-muted);
+}
+.mt-review-label[data-tone="correct"] {
+	color: var(--correct);
+}
+.mt-review-label[data-tone="wrong"] {
+	color: var(--wrong);
+}
+.mt-review-label[data-tone="accent"] {
+	color: var(--accent);
+}
+.mt-judged,
+.mt-advice {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+.mt-judged-row {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+}
+/* The dot stands in the middle of the name's first line. */
+.mt-judged-dot {
+	flex-shrink: 0;
+	margin-block-start: 7px;
+}
+.mt-review-text {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+	margin: 0;
+}
+.mt-judged-name {
+	font-size: 15px;
+	line-height: 22px;
+	color: var(--text);
+	overflow-wrap: break-word;
+}
+.mt-review-note {
+	font-size: 14px;
+	line-height: 20px;
+	color: var(--text-muted);
+	overflow-wrap: break-word;
+}
+.mt-advice-step {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	font-size: 15px;
+	line-height: 22px;
+	color: var(--text);
+	overflow-wrap: break-word;
+}
+.mt-advice-topic {
+	font-weight: 600;
+}
 /* A group of a profile's fields, in a frame: its label at the head with what
    can be done beside it, and each field on a line of its own — named at its
    start and told beside the name where the two fit, under it where they do

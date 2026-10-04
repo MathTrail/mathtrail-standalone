@@ -181,8 +181,14 @@ export const failure: CallToolResult = {
  * progress — four topics met, each with its rank, one ahead of the overall
  * rank, two even with it and one behind it, one of them mastered, and a topic
  * within reach not met yet; the latest answers with one task left without an
- * answer, two mistakes that keep coming back, the topic worked over again
- * after a mistake next, and where the profile's file is.
+ * answer, two mistakes that keep coming back, the review of the topics, the
+ * topic worked over again after a mistake next, and where the profile's file
+ * is. The review is the one the service makes of these numbers: Ordering
+ * mastered and well above the overall level, risen over the week; Enumeration
+ * to develop for the mistake it keeps making, first since the rule sets it
+ * next, and Parity and alternation for standing low and falling over the
+ * week; Gaps and boundaries met too few times to judge; and a step for each
+ * topic to develop, the mistake that repeats most advised among them.
  */
 export const standing = {
 	screen: "progress",
@@ -219,7 +225,7 @@ export const standing = {
 			rank: 3,
 			share: 76,
 			compared: "even",
-			answers: 4,
+			answers: 5,
 			correct: 2,
 			mastered: false,
 			skipped: 1,
@@ -241,8 +247,8 @@ export const standing = {
 			rank: 2,
 			share: 87,
 			compared: "behind",
-			answers: 2,
-			correct: 1,
+			answers: 5,
+			correct: 2,
 			mastered: false,
 			skipped: 0,
 		},
@@ -301,6 +307,28 @@ export const standing = {
 		{ trap: "missed_case", times: 3 },
 		{ trap: "double_count", times: 2 },
 	],
+	review: {
+		strong: [
+			{ topic: "logic.ordering", reasons: ["mastered", "high", "rose"] },
+		],
+		develop: [
+			{
+				topic: "combinatorics.enumeration",
+				reasons: ["trap"],
+				trap: "missed_case",
+			},
+			{ topic: "parity.alternation", reasons: ["low", "fell"] },
+		],
+		early: ["counting.gaps"],
+		steps: [
+			{
+				kind: "trap",
+				topic: "combinatorics.enumeration",
+				trap: "missed_case",
+			},
+			{ kind: "rhythm", topic: "parity.alternation" },
+		],
+	},
 	recommendation: {
 		topic: "combinatorics.enumeration",
 		grade_level: "3-4",
@@ -409,13 +437,14 @@ export const atTheTop = {
 
 /**
  * inTrial is the progress of a child three tasks into the trial series: no
- * rating yet, nor a rank, no mistake made twice, a topic within reach not met
- * yet, and a new topic next.
+ * rating yet, nor a rank, nor a review, no mistake made twice, a topic within
+ * reach not met yet, and a new topic next.
  */
 export const inTrial = {
 	...standing,
 	trial: { answered: 3, of: 5 },
 	overall: null,
+	review: undefined,
 	topics: [
 		{
 			topic: "logic.ordering",

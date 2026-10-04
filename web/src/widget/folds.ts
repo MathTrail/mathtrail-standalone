@@ -2,9 +2,11 @@ import { useReducer } from "preact/hooks";
 
 /**
  * Section is a part of the progress that folds away under its title: the
- * topics, the mistakes that repeat, the latest answers, and the profile.
+ * topics, the review of them — which holds the mistakes that repeat once the
+ * trial series is over —, the mistakes that repeat while it runs, the latest
+ * answers, and the profile.
  */
-export type Section = "topics" | "mistakes" | "recent" | "profile";
+export type Section = "topics" | "review" | "mistakes" | "recent" | "profile";
 
 /** Open is which sections of the progress are open. */
 export type Open = ReadonlySet<Section>;

@@ -1,0 +1,323 @@
+import { Window } from "happy-dom";
+import { afterAll, describe, expect, test } from "vitest";
+import topics from "../../../content/catalogs/topics.json";
+import traps from "../../../content/catalogs/traps.json";
+import file from "../../../site/data.json";
+import { topicName } from "../widget/names";
+import { cardWords } from "../widget/words";
+import { readSiteData } from "./data";
+import type { Frame } from "./frame";
+import { type Page, sitePages } from "./pages";
+import { renderSite } from "./render";
+import { gradesOf } from "./topics";
+
+const browser = new Window({
+	settings: {
+		disableCSSFileLoading: true,
+		disableJavaScriptFileLoading: true,
+		handleDisabledFileLoadingAsSuccess: true,
+	},
+});
+
+afterAll(async () => {
+	await browser.happyDOM.close();
+});
+
+// data is the site's data over the service's catalog, with no example of any
+// topic's page: the page Why draws its card, its topics' names and its works.
+const data = readSiteData(
+	{
+		topics: topics.map((topic) => ({ ...topic, site_page: false })),
+		traps,
+		tasks: [],
+	},
+	{
+		groups: file.groups,
+		examples: {},
+		progress: file.progress,
+		why: file.why,
+	},
+);
+
+// words are the page's words, the same in each language: every block the page
+// draws, with the slots it fills, and a finding for each work the data names.
+const words = [
+	"title: Why",
+	"description: Why olympiad maths.",
+	"honest: Honestly",
+	"task:",
+	"  question: How many posts?",
+	"  trap: Counted the gaps.",
+	"  solution: Four gaps. One more post. Five posts.",
+	"hero:",
+	"  title: Why olympiad maths",
+	"  lead: Up to grade {last}.",
+	"  free: Free",
+	"  open: Open",
+	"  school:",
+	"    label: A sum",
+	"    text: Divide.",
+	"    sum: 12 ÷ 3 = 4",
+	"  olympiad:",
+	"    label: A problem",
+	'    answer: "Answer: {answer}"',
+	"    trap: A trap",
+	"    text: Understand it.",
+	"  caption: Same numbers.",
+	"research:",
+	"  title: What research found",
+	"  lead: Few studies.",
+	"  findings:",
+	...file.why.findings.flatMap((id) => [
+		`    ${id}:`,
+		`      title: Found by ${id}`,
+		"      text: What it found.",
+	]),
+	"  note: Mostly observation.",
+	"school:",
+	"  title: School and olympiads",
+	"  lead: Different jobs.",
+	"  lesson: A lesson",
+	"  olympiad: A problem",
+	"  rows:",
+	"    - label: What counts",
+	"      lesson: Speed",
+	"      olympiad: Understanding",
+	"time:",
+	"  title: No time",
+	"  cards:",
+	"    - title: A syllabus",
+	"      text: For everyone.",
+	"parent:",
+	"  title: A parent can",
+	"  note: Up to grade {last}.",
+	"  unneeded:",
+	"    title: Not needed",
+	"    items:",
+	"      - A degree",
+	"    note: MathTrail's part.",
+	"  needed:",
+	"    title: Needed",
+	"    items:",
+	"      - title: Curiosity",
+	"        text: Be curious.",
+	"  explain:",
+	"    title: How to explain",
+	"    quotes:",
+	"      - A riddle.",
+	"thinking:",
+	"  title: How it teaches",
+	"  lead: Around each problem.",
+	"  points:",
+	"    - title: One idea",
+	"      text: Topics such as {enumeration}, {parity} or {knights}.",
+	"  topics: See the topics",
+	"  child: Comet",
+	"  caption: The card.",
+	"  chat:",
+	"    label: An illustration",
+	"    child: The child",
+	"    model: The model",
+	"    question: Why not 6?",
+	"    reply: One post twice.",
+	"app:",
+	"  title: No ordinary app",
+	"  lead: Apps keep children playing ({source}).",
+	"  cards:",
+	"    - title: Checked",
+	"      text: By a program.",
+	"  code: The code is open.",
+	"  github: GitHub",
+	"ask:",
+	"  title: Start",
+	"  lead: Together.",
+	"  connect: Add to Claude",
+	"  topics: See the topics",
+	"sources:",
+	"  title: Sources",
+].join("\n");
+
+// document is a document's text under its title.
+const document = (title: string) =>
+	`---\ntitle: ${title}\ndescription: D\n---\n\n# ${title}\n`;
+
+// sourcesWith are the site's texts, with the page's words in Russian and in
+// English, which are these unless others are given.
+const sourcesWith = (russian = words, english = words) =>
+	new Map(
+		Object.entries({ en: english, ru: russian }).map(([locale, words]) => [
+			locale,
+			new Map([
+				["index.md", document("Home")],
+				["privacy.md", document("Privacy")],
+				["terms.md", document("Terms")],
+				["why.yaml", words],
+			]),
+		]),
+	);
+
+const pages = new Map<string, Page>([
+	["why", sitePages(data).get("why") ?? { draw: () => <p /> }],
+]);
+
+// A menu of the one page this site has.
+const frame: Frame = {
+	menu: [{ page: "why", label: "nav.why" }],
+	footer: ["privacy", "terms"],
+};
+
+const render = (sources = sourcesWith()) =>
+	renderSite({ base: "https://example.test", sources, pages, frame, data });
+
+const files = render();
+
+// pageIn is the page Why in locale, read as a document.
+const pageIn = (locale: string) =>
+	new browser.DOMParser().parseFromString(
+		files.find(({ path }) => path === `${locale}/why/index.html`)?.data ?? "",
+		"text/html",
+	);
+
+const why = pageIn("en");
+
+// all are the values of name on every element selector finds.
+const all = (selector: string, name: string) =>
+	[...why.querySelectorAll(selector)].map(
+		(element) => element.getAttribute(name) ?? "",
+	);
+
+// doi is where a work of the site's data is linked.
+const doi = (id: string) =>
+	`https://doi.org/${file.why.sources[id as keyof typeof file.why.sources].doi}`;
+
+describe("the page Why", () => {
+	test("reads in full with no script", () => {
+		expect(why.querySelector("script")).toBeNull();
+	});
+
+	test("draws the widget's own card of a wrong answer, inert, and loads its stylesheet", () => {
+		expect(why.querySelector(".s-card[inert] .mt-widget")).not.toBeNull();
+		expect(all('link[rel="stylesheet"]', "href")).toContain("/assets/card.css");
+		expect(
+			[...why.querySelectorAll(".s-card .mt-option")].map(
+				(row) =>
+					`${row.querySelector(".mt-option-letter")?.textContent} ${row.getAttribute("data-state")}`,
+			),
+		).toEqual(["A muted", "B wrong", "C correct", "D muted", "E muted"]);
+		expect(why.querySelector(".s-card .mt-note-trap")).not.toBeNull();
+		expect(why.querySelectorAll(".s-card .mt-steps li").length).toBe(3);
+	});
+
+	test("draws its card in the page's language", () => {
+		expect(why.querySelector(".s-card .mt-badge")?.textContent).toBe(
+			"Olympiad coach · Grade 3",
+		);
+		expect(pageIn("ru").querySelector(".s-card .mt-badge")?.textContent).toBe(
+			"Олимпиадный тренер · 3 класс",
+		);
+	});
+
+	test("puts the chat's question and reply under the card, labelled as an illustration", () => {
+		const parts = [
+			...why.querySelectorAll(".s-lesson .s-card, .s-lesson .s-chat"),
+		];
+		const chat = why.querySelector(".s-lesson .s-chat");
+
+		expect(parts.map((part) => part.getAttribute("class"))).toEqual([
+			"s-card",
+			"s-chat",
+		]);
+		expect(why.querySelector(".s-card .s-chat")).toBeNull();
+		expect(chat?.querySelector("figcaption")?.textContent).toBe(
+			"An illustration",
+		);
+		expect(
+			[...(chat?.querySelectorAll(".s-message") ?? [])].map((message) =>
+				message.getAttribute("class"),
+			),
+		).toEqual(["s-message s-message-child", "s-message s-message-model"]);
+	});
+
+	test("shows a finding for each work the data names, in its order, each linking its work", () => {
+		expect(all(".s-finding .s-cite a", "href")).toEqual(
+			file.why.findings.map(doi),
+		);
+	});
+
+	test("cites the work behind what it says of children's apps", () => {
+		expect(
+			[...why.querySelectorAll(".s-intro-line a")].map((link) =>
+				link.getAttribute("href"),
+			),
+		).toEqual([doi(file.why.apps)]);
+	});
+
+	test("lists exactly the works it cites, each linked by its DOI", () => {
+		expect(all(".s-sources li a", "href")).toEqual(
+			[...file.why.findings, file.why.apps].map(doi),
+		);
+	});
+
+	test("cites a work by its one or two authors, or the first of more, and its year", () => {
+		const cited = [...why.querySelectorAll(".s-cite a")].map(
+			(link) => link.textContent,
+		);
+
+		expect(cited).toContain("Agarwal and Gaule, 2020");
+		expect(cited).toContain("Rebholz et al., 2022");
+		expect(
+			[...pageIn("ru").querySelectorAll(".s-cite a")].map(
+				(link) => link.textContent,
+			),
+		).toContain("Rebholz и др., 2022");
+	});
+
+	test("names the grades MathTrail is for from the catalog", () => {
+		const grades = topics.flatMap((topic) => gradesOf(topic.grade_levels));
+
+		expect(why.querySelector(".s-hero .s-chip")?.textContent).toBe(
+			`Grades ${Math.min(...grades)}–${Math.max(...grades)}`,
+		);
+	});
+
+	test("names its example topics as the card names them", () => {
+		const said = why.querySelector(".s-points")?.textContent ?? "";
+		const card = cardWords("en", undefined);
+
+		for (const id of Object.values(file.why.topics)) {
+			expect(said).toContain(topicName(card, id));
+		}
+	});
+
+	test("leads to connecting on the home page, and to every topic", () => {
+		expect(all(".s-ask a", "href")).toEqual(["/en/", "/en/topics/"]);
+	});
+
+	test("is the menu's entry, marked as the page being read", () => {
+		expect(all(".s-navlinks a", "href")).toEqual(["/en/why/"]);
+		expect(all(".s-navlinks a", "aria-current")).toEqual(["page"]);
+	});
+
+	test("is refused when its Russian words lack one the English have", () => {
+		const lacking = words.replace("  free: Free\n", "");
+
+		expect(lacking).not.toBe(words);
+		expect(() => render(sourcesWith(lacking))).toThrow("hero.free");
+	});
+
+	test("is refused when its words give a finding no work of the data backs", () => {
+		const extra = words.replace(
+			"  note: Mostly observation.",
+			[
+				"    smith2024:",
+				"      title: Found by nobody",
+				"      text: Nothing.",
+				"  note: Mostly observation.",
+			].join("\n"),
+		);
+
+		expect(() => render(sourcesWith(extra, extra))).toThrow(
+			"the page never shows research.findings.smith2024",
+		);
+	});
+});

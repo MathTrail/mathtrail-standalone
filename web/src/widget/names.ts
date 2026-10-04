@@ -36,6 +36,16 @@ export function trapName(words: Words<Key>, id: string): string {
 }
 
 /**
+ * trapAdvice is what the card advises the adult to do about a mistake of the
+ * catalog's, in a sentence of its language, or undefined for a mistake the
+ * card has no advice for: no advice at all is better than a wrong one.
+ */
+export function trapAdvice(words: Words<Key>, id: string): string | undefined {
+	const key = `advice.${id}`;
+	return isKey(key) ? words.text(key) : undefined;
+}
+
+/**
  * rankCount is how many ranks there are, one name for each in the
  * dictionaries. A topic's course is drawn out of them while the trial series
  * runs, before an overall rating says how many there are.

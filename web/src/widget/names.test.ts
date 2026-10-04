@@ -11,6 +11,7 @@ import {
 	rankName,
 	skillName,
 	topicName,
+	trapAdvice,
 	trapName,
 } from "./names";
 import { cardWords } from "./words";
@@ -31,6 +32,22 @@ describe("the catalogs' names", () => {
 
 	test.each(traps.map((trap) => trap.id))("the mistake %s has words", (id) => {
 		expect(Object.hasOwn(english, `trap.${id}`)).toBe(true);
+	});
+
+	// The advice is the same English sentence the service tells the model, so
+	// that there is one English for every language to be written from.
+	test.each(traps.map((trap) => [trap.id, trap.advice]))(
+		"the mistake %s has advice, in English the catalog's own",
+		(id, advice) => {
+			expect((english as Record<string, unknown>)[`advice.${id}`]).toBe(advice);
+		},
+	);
+
+	test("advise in the card's language, and not at all on a mistake the card has no advice for", () => {
+		expect(trapAdvice(inRussian, "missed_case")).toBe(
+			"Выписывать случаи в одном порядке, начиная с меньшего, и отмечать каждый, чтобы ни один не потерялся.",
+		);
+		expect(trapAdvice(inEnglish, "counted_the_cat")).toBeUndefined();
 	});
 
 	test("are said in the card's language", () => {

@@ -22,7 +22,7 @@ A*, the main rule of mastery of the highest score: floor_0.05+cautious_z1/both, 
 
 No main rule of mastery's score less A*'s holds nothing: A* has no equals.
 
-The simplest of them, the main rule of mastery: floor_0.05+cautious_z1/both — 1 numbers added to the service's rule, no field added to the profile, a distance of 1.000 from the service's rule.
+The simplest of them, the main rule of mastery: floor_0.05+cautious_z1/both — 1 numbers added to the service's rule, no field added to the profile, a distance of 1.000 from the service's rule of mastery.
 
 No backup meets every constraint and is better than the baseline.
 

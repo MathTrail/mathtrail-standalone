@@ -17,7 +17,7 @@
   {
     "id": "ignored_not",
     "description": "Did not notice the word \"not\" in the question.",
-    "advice": "Read the question aloud and circle the word \"not\" before solving it."
+    "advice": "Read the question aloud and circle the word “not” before solving it."
   },
   {
     "id": "answered_other_question",
@@ -67,7 +67,7 @@
   {
     "id": "ignored_condition",
     "description": "Ignored one of the conditions, such as \"different\", \"exactly once\" or \"at both ends\".",
-    "advice": "Reread the question and mark every condition, such as \"different\" or \"exactly once\", then check the answer against each."
+    "advice": "Reread the question and mark every condition, such as “different” or “exactly once”, then check the answer against each."
   },
   {
     "id": "percent_wrong_base",

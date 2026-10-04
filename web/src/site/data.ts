@@ -5,6 +5,7 @@ import file from "../../../site/data.json";
 import { type ProgressReport, readScreen } from "../widget/payload";
 import { type CatalogTopic, gradesOf, readTopics, type Topics } from "./topics";
 import { type CatalogTrap, type ReferenceTask, rankTraps } from "./traps";
+import { readWhy, type Why, whyFile } from "./why";
 
 /**
  * Catalog is what the site reads of the service's content: its topics, its
@@ -25,8 +26,9 @@ export type Example = { readonly grades: readonly [number, number] };
 /**
  * SiteData is what the site's pages draw that no language changes: the
  * catalog's topics with the groups they are shown in, each topic's traps, the
- * examples its page works through, and the progress of the child the site's
- * cards are drawn for, an invented one.
+ * examples its page works through, the progress of the child the site's
+ * cards are drawn for, an invented one, and what the page "Why" shows: its
+ * card and the works it cites.
  */
 export type SiteData = {
 	readonly topics: Topics;
@@ -36,6 +38,8 @@ export type SiteData = {
 	readonly examples: ReadonlyMap<string, readonly Example[]>;
 	/** progress is a progress as the service sends it, but for the child's name. */
 	readonly progress: Sample;
+	/** why is what the page "Why" draws, when the data has it. */
+	readonly why?: Why;
 };
 
 // sample is a progress as the service sends it, whose profile is completed
@@ -51,7 +55,8 @@ const solverName = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 // dataFile is the shape of the site's data file: its groups, the examples of
 // the topics' pages — each with its level, and the solver and the answer that
-// prove it — and the progress its cards are drawn from.
+// prove it — the progress its cards are drawn from, and what the page "Why"
+// draws.
 const dataFile = z.object({
 	groups: z.array(z.object({ id: z.string(), topics: z.array(z.string()) })),
 	examples: z.record(
@@ -65,6 +70,7 @@ const dataFile = z.object({
 		),
 	),
 	progress: sample,
+	why: whyFile.optional(),
 });
 
 /**
@@ -73,6 +79,7 @@ const dataFile = z.object({
  * whatever the child's name, and an example of a topic whose page is not
  * published, or at a level the topic is not taught at, so that a mistake in
  * the file stops the build rather than drawing a page with a part missing.
+ * What the page "Why" draws is held to the catalog as well.
  */
 export function readSiteData(catalog: Catalog, data: unknown): SiteData {
 	const read = dataFile.safeParse(data);
@@ -86,6 +93,10 @@ export function readSiteData(catalog: Catalog, data: unknown): SiteData {
 			traps: ranked,
 			examples: readExamples(catalog.topics, read.data.examples),
 			progress: read.data.progress,
+			why:
+				read.data.why === undefined
+					? undefined
+					: readWhy(catalog, read.data.why),
 		};
 		progressOf(site, "Comet");
 		return site;

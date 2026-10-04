@@ -51,7 +51,7 @@
     ],
     "slug": "gaps-and-boundaries",
     "builds_on": [],
-    "site_page": false
+    "site_page": true
   },
   {
     "id": "time.clocks",
@@ -64,7 +64,7 @@
     ],
     "slug": "clocks",
     "builds_on": [],
-    "site_page": false
+    "site_page": true
   },
   {
     "id": "time.calendar",
@@ -79,7 +79,7 @@
     "builds_on": [
       "counting.gaps"
     ],
-    "site_page": false
+    "site_page": true
   },
   {
     "id": "pigeonhole.basic",
@@ -107,7 +107,7 @@
     ],
     "slug": "parity-and-alternation",
     "builds_on": [],
-    "site_page": false
+    "site_page": true
   },
   {
     "id": "arithmetic.tricks",

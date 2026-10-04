@@ -1,0 +1,161 @@
+# The page "Why", for a parent: why olympiad maths is worth a child's time,
+# what research has found about it, how it differs from a school lesson, what a
+# parent can do, how MathTrail goes about it, and why it is no ordinary app.
+# The grades, the topics' names and the card's own words are not here: they are
+# the catalog's numbers and the widget's words. The card's options, its drawing
+# and the works the page cites are the site's data; a finding here says what
+# its work found, no more.
+
+title: Why olympiad maths
+description: Why olympiad problems are worth a child's time, what research has found about them, and how a parent can help with MathTrail.
+
+# The label of the two notes that say plainly what the page does not promise.
+honest: Honestly
+
+# The fence: the problem the first screen sets beside a school sum, and the
+# card further down shows answered wrong. A variant of the site's own, never a
+# reference task word for word.
+task:
+  question: A fence is 12 metres long. Posts stand every 3 metres, including at both ends. How many posts are there?
+  # The trap behind the wrong option picked on the card, as the card says it.
+  trap: Counted the gaps instead of the posts.
+  # The solution, a sentence for each step the card numbers.
+  solution: 12 ÷ 3 = 4 gaps. A straight fence with posts at both ends has one post more than gaps. 4 + 1 = 5 posts.
+
+hero:
+  title: Why olympiad maths for your child
+  lead: School teaches how to solve a problem by an example worked in class. Olympiad problems teach how to find a way when there is no example to follow. Up to grade {last}, a parent can prepare a child for them, and MathTrail is made for that.
+  free: Free
+  open: Open source
+  school:
+    label: A school sum
+    text: You need to know how to divide.
+    sum: 12 ÷ 3 = 4
+  olympiad:
+    label: An olympiad problem
+    answer: "Answer: {answer}"
+    trap: "Trap: 4 is the gaps, not the posts"
+    text: You need to understand what is going on.
+  caption: The same numbers. A different way of thinking.
+
+research:
+  title: What research has found
+  lead: Olympiad problems have been set to children for more than a century, yet careful studies of what they do are few. These are four of them.
+  findings:
+    rebholz2022:
+      title: Preparation shows at school too
+      text: In Germany, third- and fourth-graders took a course of olympiad-style problems. At the Mathematical Olympiad they did clearly better than children who entered without the course, and the fourth-graders also did better on a school maths test. Their teachers had picked them for the course.
+    biondi2012:
+      title: An olympiad for all lifts school results
+      text: Brazil's maths olympiad for public schools is open to every pupil, and 19 million took part in 2009. Schools that entered it had better maths results among their ninth-graders on the national test, and better still the more years they had entered.
+    agarwal2020:
+      title: Strong olympians go far in science
+      text: The higher a teenager scored at the International Mathematical Olympiad, the more often they went on to a doctorate, published research, were cited and won the highest prizes in mathematics.
+    nunes2007:
+      title: Reasoning is learned from the age of six
+      text: How well six-year-olds reasoned logically foretold their maths 16 months later. Children who were taught to reason this way made more progress in maths than children who were not.
+  note: Most of this is observation. Children who already enjoy maths come to olympiads more often, so these studies do not prove that olympiad problems make a child more successful, and MathTrail does not promise it. What they do show is that the skill can be practised, and MathTrail gives a child problems to practise it on.
+
+school:
+  title: School and olympiads teach different things
+  lead: This is no reproach to school, which has a different job. But the knack of finding a solution when no method is given does not appear by itself. It is trained.
+  lesson: A usual lesson
+  olympiad: An olympiad problem
+  rows:
+    - label: How the problem is built
+      lesson: A method is shown, then repeated on similar examples
+      olympiad: No method is given, and it has to be found
+    - label: What counts
+      lesson: Working fast and without slips
+      olympiad: Understanding what is going on, and explaining why
+    - label: What a mistake means
+      lesson: A mark lost
+      olympiad: A sign of where the reasoning turned the wrong way
+    - label: What it teaches
+      lesson: To use a tool you know
+      olympiad: To invent one when there is none
+
+time:
+  title: Why school has no time for it
+  cards:
+    - title: A syllabus for the whole class
+      text: A teacher has to bring every pupil up to the standard. Hours for problems beyond the syllabus are hard to find.
+    - title: A test sees the answer, not the thought
+      text: A test checks the result. There is seldom time to go through how a child reasoned, and where exactly it went wrong.
+    - title: A maths circle is not everywhere
+      text: Not every school runs an olympiad circle, and the nearest one may be far away or take only older children.
+
+parent:
+  title: A parent can prepare a child
+  note: MathTrail does not replace a teacher of olympiad maths, and a strong circle with a coach will give more. But up to grade {last} you can prepare a child for olympiads yourself.
+  unneeded:
+    title: What you do not need
+    items:
+      - A degree in maths
+      - To know the solutions in advance
+      - To find and check problems
+    note: The problems, their answers and the explanation of mistakes are MathTrail's part.
+  needed:
+    title: What you need
+    items:
+      - title: Your child's curiosity
+        text: An olympiad problem is a puzzle, not a test. A child should be curious, not afraid of being wrong.
+      - title: To explain what it is for
+        text: Not “to get top marks”, but to learn to invent a way when nobody has shown how.
+      - title: Your time and interest
+        text: A little time beside your child, better often than a lot at once. Your interest in a problem is catching.
+  explain:
+    title: How to explain to a child what it is for
+    quotes:
+      - "“It's like a riddle: the answer is hidden, and you can find it.”"
+      - "“Here you are allowed to be wrong: a mistake shows where to think again.”"
+      - “The best part is not the answer, but how you got to it.”
+
+thinking:
+  title: How MathTrail teaches to think
+  lead: Not by the number of problems, but by what happens around each one.
+  points:
+    - title: One problem, one idea
+      text: Every problem belongs to a topic, such as “{enumeration}”, “{parity}” or “{knights}”. The topics form a map, from the simple to the hard.
+    - title: A problem within reach
+      text: Every topic has a rating of its own. By it MathTrail chooses what comes next, the topic and the difficulty; the grade only sets the start.
+    - title: A mistake is a diagnosis
+      text: Behind every wrong option stands a named trap. The explanation starts from how the child reasoned, not from the right answer.
+    - title: A hint instead of the answer
+      text: A child can ask for a hint, or ask in their own words, “why not 6?”. The model answers about this very problem.
+  topics: See the topics →
+  # The name of the child the card on this page shows, an invented one.
+  child: Comet
+  caption: The card as a chat shows it after a wrong answer. The child and the numbers are an example.
+  # Two messages of the chat beneath the card: the child's question and the
+  # model's reply. They are the site's words, never the card's.
+  chat:
+    label: An illustration of the chat
+    child: The child
+    model: The model
+    question: Why not 6?
+    reply: Six would count a post twice. Walk along the fence from the left. Each gap ends with a post, so 4 gaps bring 4 posts, and the first post stands before them all. 4 + 1 = 5.
+
+app:
+  title: Why this is no ordinary app
+  lead: In a study of the apps that three-to-five-year-olds play, about two in three had designs that keep a child playing longer ({source}). MathTrail is built differently, and that can be checked.
+  cards:
+    - title: A program checks every problem
+      text: The model writes a problem and a program that solves it. The server runs the program in a sealed sandbox and checks that exactly one option is right, that the answer agrees, that the text suits the grade and that it does not repeat the text of earlier problems. A problem that fails never reaches the child.
+    - title: Free, and plainly why
+      text: MathTrail has no AI of its own. The problem is written by the model of your chat, within your plan, and Claude's free plan will do. The server has almost nothing to pay for, so there are no subscriptions, no ads and no locked topics.
+    - title: The data stays with you
+      text: The child's profile is a file in your Google Drive. Only the answer and the solution of the problem being solved are sealed, so that the child cannot peek. The server keeps nothing between requests and sells nothing.
+    - title: Nothing to keep a child at the screen
+      text: No coins, no chests, no timers, no ads. Once the problem is solved, the chat can be closed and the problem talked over at dinner.
+  code: The code is open, and every claim this page makes about MathTrail can be checked in it.
+  github: The code on GitHub
+
+ask:
+  title: Start with one problem, together
+  lead: Connecting takes a couple of minutes. The first problem is best solved side by side with your child.
+  connect: Add to Claude
+  topics: See the topics
+
+sources:
+  title: Sources

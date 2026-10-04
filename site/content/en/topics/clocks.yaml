@@ -1,0 +1,177 @@
+# The page of the topic of clocks, for a parent. The topic's name, its group,
+# its grades and its traps' names are not here: they are the card's words and
+# the catalog's numbers. Each example's level, and the answer its solver
+# proves, are the site's data; an example here is worked through to that
+# answer. The traps are the topic's commonest, counted in its reference tasks.
+
+title: Clocks
+description: What problems about clocks and time are, how they are solved, where children go wrong, and how to help at home.
+
+hero:
+  lead: >-
+    A walk starts at 4:50 and lasts 25 minutes: when does it end? In these
+    tasks a child adds and takes away time, and the catch is that an hour has
+    60 minutes, not 100. Going past the whole hour, past noon or past midnight
+    is where most mistakes happen.
+  method: Step to the whole hour, then go on
+  teaches: To count time across the hour and across midnight, and to tell a time on the clock from a length of time
+  # Adding 25 minutes in two steps, through the whole hour.
+  drawing: |2
+    4:50 + 10 min = 5:00
+    5:00 + 15 min = 5:15
+
+basis:
+  title: The rules of the clock
+  cards:
+    - mark: "60"
+      title: An hour is 60 minutes
+      text: >-
+        Not 100. So 8:50 and 20 minutes more is 9:10, not 8:70, and 110
+        minutes is 1 hour 50 minutes, not 1 hour 10.
+    - mark: ":00"
+      title: Through the whole hour
+      text: >-
+        To add time across an hour, step to the whole hour first and add the
+        rest after it: from 8:50, 10 minutes to 9:00, then 10 more.
+    - mark: "24"
+      title: A day is 24 hours
+      text: >-
+        After 23:59 comes 0:00 of the next day. From 22:00 to 6:00 is 2 hours
+        to midnight and 6 hours after it.
+
+idea:
+  title: Through the whole hour
+  lead: How long from one time to another? Stop at the whole hour on the way. It turns one hard subtraction into two easy steps.
+  table:
+    head:
+      - From and to
+      - Through the whole hour
+      - How long
+    rows:
+      - - 8:40 to 9:15
+        - 20 min + 15 min
+        - 35 min
+      - - 10:50 to 12:30
+        - 10 min + 1 h 30 min
+        - 1 h 40 min
+      - - 22:30 to 6:00
+        - 1 h 30 min + 6 h
+        - 7 h 30 min
+  note:
+    title: Why it matters
+    text: >-
+      Taking one time from another in a column, 9:15 − 8:40, tempts a child to
+      borrow 100 minutes instead of 60. Counting on through the whole hour
+      never does.
+
+method:
+  title: "How to solve: a line of time"
+  lead: >-
+    Draw a line and put the times on it in order, the earlier on the left.
+    Step to the whole hour, then on by whole hours, then add the minutes that
+    are left. The examples below go from the simplest to an olympiad's.
+  steps:
+    - Put the times on a line, the earlier first
+    - Step to the whole hour, then go on
+    - Add the steps up, and check the answer is earlier or later as it should be
+
+examples:
+  - title: The swimming lesson
+    question: >-
+      Tom's swimming lesson starts at 3:45 and lasts 40 minutes. At what time
+      does it end?
+    steps:
+      - "From 3:45 to the whole hour, 4:00, is 15 minutes."
+      - "40 − 15 = 25 minutes are left after 4:00."
+      - "4:00 and 25 minutes more is 4:25."
+    answer: At 4:25.
+    note:
+      title: Why not 3:85?
+      text: >-
+        45 + 40 = 85, but a clock has no 85 minutes: at 60 the hour turns over.
+        Stepping to the whole hour first never makes such a time.
+  - title: The chess tournament
+    question: >-
+      A chess tournament has 5 rounds. Each round lasts 50 minutes, and there
+      is a 15-minute break between every two rounds. The first round starts at
+      10:00. At what time does the last round end?
+    # Five rounds and the four breaks between them.
+    drawing: |2
+      ■ ■ ■ ■ ■  rounds
+       □ □ □ □   breaks
+    steps:
+      - "5 rounds of 50 minutes: 5 × 50 = 250 minutes of play."
+      - >-
+        The breaks are only between rounds, so there are 4 of them, not 5:
+        4 × 15 = 60 minutes.
+      - >-
+        250 + 60 = 310 minutes, which is 5 hours 10 minutes. 10:00 and 5 hours
+        10 minutes more is 15:10.
+    answer: At 15:10.
+    note:
+      title: Why not 13:10?
+      text: >-
+        310 minutes is not 3 hours 10 minutes: an hour has 60 minutes, not 100.
+        310 = 5 × 60 + 10.
+  - title: Two cities
+    question: >-
+      Grandma flies to see Ann, who lives in another city. The plane takes off
+      at 8:00 by the clocks of Grandma's city and lands at 8:30 by the clocks
+      of Ann's. The clocks in Ann's city show 4 hours less than in Grandma's.
+      How long is the flight?
+    # The take-off and the landing on the clocks of both cities.
+    drawing: |2
+      Grandma 8:00 → 12:30
+      Ann     4:00 →  8:30
+    steps:
+      - >-
+        8:00 and 8:30 are read on different clocks, so first put both times on
+        one clock: Grandma's.
+      - "When the clocks in Ann's city show 8:30, Grandma's show 4 hours more: 12:30."
+      - "From 8:00 to 12:30 on one clock is 4 hours 30 minutes."
+    answer: 4 hours 30 minutes.
+    note:
+      title: Half an hour?
+      text: >-
+        8:30 − 8:00 is half an hour only when both times are on one clock.
+        Times from two cities are compared after one of them is moved onto the
+        other's clock.
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  wrong_operation:
+    shows: >-
+      The child does an action the question does not ask for: adds two clock
+      times as if they were amounts, 3 o'clock and 5 o'clock making 8, or
+      multiplies where the times only need counting on. A time on the clock is
+      a point on a line, not an amount.
+    say: “Is this a time on the clock or a length of time?”
+  time_unit_mixup:
+    shows: >-
+      Minutes are counted as if an hour had 100 of them: 3:45 and 40 minutes
+      more becomes 3:85, or 310 minutes becomes 3 hours 10 minutes.
+    say: “How many minutes are there in an hour?”
+  reversed_relation:
+    shows: >-
+      Earlier and later change places: the child counts back when the question
+      goes forward, or adds a time difference that should be taken away, and
+      the plane lands before it takes off.
+    say: “Should the answer be earlier or later than the start?”
+
+home:
+  - title: A clock with hands
+    text: >-
+      Keep a clock with hands where the child can see it, and ask in passing:
+      what time will it be in a quarter of an hour? And what was it twenty
+      minutes ago?
+  - title: How long is left?
+    text: >-
+      Before a cartoon or a walk, guess together how long is left to wait, then
+      check on the clock. A real wait makes the minutes count.
+  - title: A plan for the day
+    text: >-
+      Write a plan of a free day with times: a walk from 11:30 to 12:15, lunch
+      at 12:30. How long is each part, and how long is the gap between them?
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Give me a task about clocks

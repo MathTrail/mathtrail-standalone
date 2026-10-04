@@ -150,6 +150,31 @@ describe("the site's data", () => {
 			}),
 			'→ at examples["logic.knights_liars"][0].answer',
 		],
+		[
+			"a work the page Why cites whose DOI is no DOI",
+			{
+				...knights,
+				why: {
+					...file.why,
+					sources: {
+						...file.why.sources,
+						agarwal2020: {
+							...file.why.sources.agarwal2020,
+							doi: "aeaweb.org/articles?id=10.1257/aeri.20190457",
+						},
+					},
+				},
+			},
+			"→ at why.sources.agarwal2020.doi",
+		],
+		[
+			"a card on the page Why that the catalog would not set",
+			{
+				...knights,
+				why: { ...file.why, card: { ...file.why.card, grade: 9 } },
+			},
+			"site/data.json: the card on the page Why is set in grade 9, which counting.gaps is not taught in",
+		],
 	])("is refused for %s", (_, broken, want) => {
 		expect(() => readSiteData(catalog, broken)).toThrow(want);
 	});

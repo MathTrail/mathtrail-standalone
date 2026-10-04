@@ -38,7 +38,9 @@ const scripted: readonly string[] = [];
 // carded are the pages that draw a card of the widget, and load its styles.
 const carded: readonly string[] = [
 	"en/topics/index.html",
+	"en/why/index.html",
 	"ru/topics/index.html",
+	"ru/why/index.html",
 ];
 
 // urlsIn are the addresses every url() of a stylesheet names, sorted.
@@ -101,23 +103,33 @@ describe("the site built from this repository", () => {
 			"en/index.html",
 			"en/privacy/index.html",
 			"en/terms/index.html",
+			"en/topics/calendar-and-age/index.html",
+			"en/topics/clocks/index.html",
 			"en/topics/enumeration/index.html",
+			"en/topics/gaps-and-boundaries/index.html",
 			"en/topics/index.html",
 			"en/topics/knights-and-liars/index.html",
 			"en/topics/ordering/index.html",
 			"en/topics/overlapping-groups/index.html",
+			"en/topics/parity-and-alternation/index.html",
 			"en/topics/pigeonhole-principle/index.html",
+			"en/why/index.html",
 			"index.html",
 			"robots.txt",
 			"ru/index.html",
 			"ru/privacy/index.html",
 			"ru/terms/index.html",
+			"ru/topics/calendar-and-age/index.html",
+			"ru/topics/clocks/index.html",
 			"ru/topics/enumeration/index.html",
+			"ru/topics/gaps-and-boundaries/index.html",
 			"ru/topics/index.html",
 			"ru/topics/knights-and-liars/index.html",
 			"ru/topics/ordering/index.html",
 			"ru/topics/overlapping-groups/index.html",
+			"ru/topics/parity-and-alternation/index.html",
 			"ru/topics/pigeonhole-principle/index.html",
+			"ru/why/index.html",
 			"sitemap.xml",
 		]);
 	});

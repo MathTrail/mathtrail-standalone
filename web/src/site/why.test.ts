@@ -1,0 +1,139 @@
+import { describe, expect, test } from "vitest";
+import topics from "../../../content/catalogs/topics.json";
+import traps from "../../../content/catalogs/traps.json";
+import file from "../../../site/data.json";
+import { answerOf, readWhy, type WhyCard } from "./why";
+
+// catalog is the service's catalog of topics and traps.
+const catalog = { topics, traps };
+
+// own is what the site's own data gives the page "Why".
+const own = file.why;
+
+// withCard is the page's data with these fields of its card changed.
+const withCard = (fields: Partial<WhyCard>) => ({
+	...own,
+	card: { ...own.card, ...fields },
+});
+
+describe("what the page Why takes from the site's own data", () => {
+	const why = readWhy(catalog, own);
+
+	test("shows its findings in the data's order, each of a work it lists", () => {
+		expect(why.findings.map((source) => source.id)).toEqual(own.findings);
+		expect(why.sources.map((source) => source.id)).toEqual([
+			...own.findings,
+			own.apps,
+		]);
+	});
+
+	test("names as examples only topics of the catalog", () => {
+		const known = new Set(topics.map((topic) => topic.id));
+
+		for (const id of Object.values(why.topics)) {
+			expect(known.has(id)).toBe(true);
+		}
+	});
+});
+
+describe("the card on the page Why", () => {
+	const said = {
+		language: "ru",
+		child: "Комета",
+		question: "Сколько столбов?",
+		trap: "Посчитаны промежутки.",
+		solution: "Четыре и один.",
+	};
+
+	test("is a task handed out in the page's language, with the page's words and no hint", () => {
+		const { handed } = answerOf(own.card, said);
+
+		expect(handed.language).toBe("ru");
+		expect(handed.task.language).toBe("ru");
+		expect(handed.child).toEqual({
+			pseudonym: "Комета",
+			grade: own.card.grade,
+			ui_language: null,
+		});
+		expect(handed.task.question).toBe(said.question);
+		expect(handed.task.options).toEqual(own.card.options);
+		expect(handed.task.hint).toBe("");
+	});
+
+	test("is answered wrong, with the trap behind the option picked and the solution", () => {
+		const { result } = answerOf(own.card, said);
+
+		expect(result.correct).toBe(false);
+		expect(result.choice).toBe(own.card.choice);
+		expect(result.correct_answer).toBe(own.card.correct);
+		expect(result.trap).toEqual({
+			id: own.card.trap,
+			text: said.trap,
+			repeated: false,
+		});
+		expect(result.solution).toBe(said.solution);
+		expect(result.rating).toEqual(own.card.rating);
+	});
+});
+
+describe("what the page Why takes from the data", () => {
+	test.each([
+		[
+			"a card of a topic the catalog does not have",
+			withCard({ topic: "logic.tables" }),
+			"the card on the page Why is of logic.tables, a topic the catalog does not have",
+		],
+		[
+			"a card in a grade its topic is not taught in",
+			withCard({ topic: "fractions.parts" }),
+			"the card on the page Why is set in grade 3, which fractions.parts is not taught in",
+		],
+		[
+			"a card that names a trap the catalog does not have",
+			withCard({ trap: "counted_fence" }),
+			"the card on the page Why names the trap counted_fence, which the catalog does not have",
+		],
+		[
+			"a card answered right",
+			withCard({ choice: "C" }),
+			"the card on the page Why answers right, and the page shows a wrong answer",
+		],
+		[
+			'a card answered "I don\'t know"',
+			withCard({ choice: "?" }),
+			"the card on the page Why picks ?, and the page shows an option picked",
+		],
+		[
+			"a card with an option missing",
+			withCard({ options: { A: "3", B: "4", C: "5", D: "6" } }),
+			"the card on the page Why is no task the widget can draw",
+		],
+		[
+			"a card whose right option is no letter",
+			withCard({ correct: "F" }),
+			"the card on the page Why holds no answer the widget can draw",
+		],
+		[
+			"an example topic the catalog does not have",
+			{ ...own, topics: { ...own.topics, tables: "logic.tables" } },
+			"the page Why names logic.tables as an example, a topic the catalog does not have",
+		],
+		[
+			"a finding of a work the data does not list",
+			{ ...own, findings: [...own.findings, "smith2024"] },
+			"the page Why cites smith2024, which the data's sources do not have",
+		],
+		[
+			"a finding shown twice",
+			{ ...own, findings: [...own.findings, own.findings[0] ?? ""] },
+			"the page Why shows a finding twice",
+		],
+		[
+			"a work cited nowhere",
+			{ ...own, findings: own.findings.slice(1) },
+			`the source ${own.findings[0]} is cited nowhere on the page Why`,
+		],
+	])("refuses %s", (_, broken, want) => {
+		expect(() => readWhy(catalog, broken)).toThrow(want);
+	});
+});

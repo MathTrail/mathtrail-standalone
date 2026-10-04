@@ -97,6 +97,9 @@ TF_DIR := "infra/terraform"
 # run of just, so that a binary and the image built beside it carry the same
 # words.
 VERSION := `git describe --tags --always --dirty 2>/dev/null || echo dev`
+# The release this tree follows: its newest tag, or dev in a clone that holds
+# none.
+RELEASE := `git describe --tags --abbrev=0 2>/dev/null || echo dev`
 COMMIT := `git rev-parse --short HEAD 2>/dev/null || echo unknown`
 DATE := `date -u +%Y-%m-%dT%H:%M:%SZ`
 SYMBOLS := MODULE + "/internal/version"
@@ -628,10 +631,13 @@ ci-licenses:
 
 # The site is drawn by the widget's own toolchain, from the texts in
 # site/content/, and judged by a checker that knows nothing of how it was drawn.
+# A card of the widget on a page names in its header the release the chats run,
+# as a chat names it: the newest release this tree follows, rather than the
+# changes on top of it nobody has released.
 # Build the site into site/dist/
 [working-directory('web')]
 site: web-install
-    npm run --silent build:site -- --base {{ SITE_BASE }} --out ../{{ SITE_DIR }}
+    VITE_VERSION="{{ RELEASE }}" npm run --silent build:site -- --base {{ SITE_BASE }} --out ../{{ SITE_DIR }}
 
 # Build the site and serve it, so a page can be read the way a visitor reads it
 [working-directory('web')]

@@ -1,0 +1,178 @@
+# The page of the topic of gaps and boundaries, for a parent. The topic's name,
+# its group, its grades and its traps' names are not here: they are the card's
+# words and the catalog's numbers. Each example's level, and the answer its
+# solver proves, are the site's data; an example here is worked through to that
+# answer. The traps are the topic's commonest, counted in its reference tasks.
+
+title: Gaps and boundaries
+description: What problems about gaps and boundaries are, how they are solved, where children go wrong, and how to help at home.
+
+hero:
+  lead: >-
+    Six trees in a row: how many gaps between them? A log in five pieces: how
+    many cuts? In these tasks a child counts either the things or the gaps
+    between them, and the two numbers differ by one. That one is where most
+    wrong answers come from, and a quick drawing of a small case is what puts
+    it right.
+  method: Draw a small case and count on it
+  teaches: To tell the things from the gaps between them, and to check a rule on a picture
+  # Four posts in a row, numbered above, and the three gaps between them,
+  # numbered below.
+  drawing: |2
+    1     2     3     4
+    |-----|-----|-----|
+       1     2     3
+
+basis:
+  title: The rules of gaps
+  cards:
+    - mark: "−1"
+      title: In a row, one fewer
+      text: >-
+        Gaps sit between things, so a row always has one gap fewer than
+        things: six trees, five gaps; five pieces of a log, four cuts.
+    - mark: "="
+      title: In a ring, as many
+      text: >-
+        When the row closes into a ring, as bushes round a flowerbed do, the
+        last one has a gap to the first: there are as many gaps as things.
+    - mark: "+1"
+      title: Both ends count
+      text: >-
+        From page 3 to page 7 is 7 − 3 = 4 steps, but 5 pages, because the
+        first page is read too. Counting “from … to …” with both ends adds one.
+
+idea:
+  title: Things or gaps?
+  lead: Each question counts one of the two. A row, a ring and a range count differently, and a small picture shows how.
+  table:
+    head:
+      - The picture
+      - What is counted
+      - How many
+    rows:
+      - - 6 trees in a row
+        - the gaps between them
+        - 6 − 1 = 5
+      - - a log in 5 pieces
+        - the cuts
+        - 5 − 1 = 4
+      - - 8 bushes round a flowerbed
+        - the gaps between them
+        - "8"
+      - - pages 3 to 7
+        - the pages read
+        - 7 − 3 + 1 = 5
+  note:
+    title: Why it matters
+    text: >-
+      An answer that is one off looks almost right, so a child rarely notices
+      it. Two or three posts drawn on paper show at once whether to add one,
+      take one away, or neither.
+
+method:
+  title: "How to solve: draw a small case"
+  lead: >-
+    Draw the things as dots or posts, first for a small number, two or three.
+    Count the gaps on the drawing, see the rule, and only then use it for the
+    numbers of the task. The examples below go from the simplest to an
+    olympiad's.
+  steps:
+    - Draw the things and the gaps
+    - Find which of them the question counts
+    - Work it out, and check the rule on a small case
+
+examples:
+  - title: The bus route
+    question: >-
+      A bus route has 6 stops. The bus takes 3 minutes to get from one stop to
+      the next. How many minutes does it take from the first stop to the last?
+    # Six stops, and the five gaps between them, 3 minutes each.
+    drawing: |2
+      1   2   3   4   5   6
+      ●---●---●---●---●---●
+        3   3   3   3   3
+    steps:
+      - Draw the 6 stops as dots. The bus drives along the gaps between them.
+      - Between 6 stops there are 5 gaps, one fewer than stops.
+      - "Each gap takes 3 minutes: 5 × 3 = 15."
+    answer: 15 minutes.
+    note:
+      title: Why not 18?
+      text: >-
+        6 × 3 = 18 gives every stop a gap of its own, but after the last stop
+        the bus goes nowhere: the minutes are spent between the stops.
+  - title: Floor 9 and floor 3
+    question: >-
+      Lena lives on floor 9 and Masha on floor 3 of the same house, and both
+      walk up from floor 1. All the flights of stairs are the same. How many
+      times as many steps does Lena climb as Masha?
+    steps:
+      - >-
+        Masha climbs from floor 1 to floor 3: 2 flights of stairs, from 1 to 2
+        and from 2 to 3.
+      - >-
+        Lena climbs from floor 1 to floor 9, which is 8 flights, one fewer than
+        the number of her floor.
+      - "The flights are all the same, so 8 : 2 = 4. Lena climbs 4 times as many steps."
+    answer: 4 times as many.
+    note:
+      title: Why not 3?
+      text: >-
+        9 : 3 = 3 divides the floors, but the steps are on the flights between
+        floors, and nobody climbs up to floor 1.
+  - title: How many logs?
+    question: >-
+      Woodcutters sawed some logs, and every log was cut at least once. They
+      made 9 cuts in all and got 14 pieces. How many logs did they saw?
+    steps:
+      - >-
+        Saw one log: 1 cut makes 2 pieces, 2 cuts make 3. Each log ends up with
+        one piece more than it has cuts.
+      - Add that up over all the logs. The pieces are the cuts, and one more for each log.
+      - 14 − 9 = 5. There were 5 logs.
+    answer: 5 logs.
+    note:
+      title: Does it matter how the cuts were shared?
+      text: >-
+        No. Five logs with 9 cuts give 14 pieces whether one log took most of
+        the cuts or they were shared evenly: each cut turns one piece into two.
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  off_by_one:
+    shows: >-
+      The child counts the stops instead of the gaps between them, or the gaps
+      instead of the posts: 6 stops become 6 × 3 = 18 minutes. The answer is
+      one off, so it looks almost right.
+    say: “Draw three stops. How many gaps are there?”
+  wrong_operation:
+    shows: >-
+      The child does something with the task's numbers that the picture does
+      not ask for: adds them, 6 + 3, or doubles one of them, instead of
+      counting the gaps and giving each its minutes.
+    say: “What does one gap take, and how many gaps are there?”
+  number_from_text:
+    shows: >-
+      A number from the question becomes the answer: the 6 stops when the
+      question asks for minutes, or floor 9 when it asks for flights of
+      stairs.
+    say: "“What does this number count: stops or gaps?”"
+
+home:
+  - title: Fingers and gaps
+    text: >-
+      Spread your fingers: five fingers, four gaps between them. It is the
+      quickest picture of the whole topic, and it is always at hand.
+  - title: Stairs on the way home
+    text: >-
+      On the stairs, count the floors and the flights together: from floor 1
+      to floor 4, how many flights? And from floor 2 to floor 4?
+  - title: Posts and benches
+    text: >-
+      On a walk, count the posts of a fence and the spans between them, or the
+      benches round a pond. In a row there is one gap fewer; in a ring, the
+      same number.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Give me a task about gaps and boundaries

@@ -36,6 +36,7 @@ import {
 import { listed, rankCount, rankName, topicName, trapName } from "./names";
 import { ParentData, ParentProfile } from "./ProfileScreen";
 import type { Details, Moves, ProgressReport, Recommendation } from "./payload";
+import { ReviewParts, reviewSaid, saysNothing } from "./review";
 import { countText, type Key, percentText, useWords } from "./words";
 
 /** recentShown is how many of the latest entries the progress lists. */
@@ -68,10 +69,12 @@ export function ProgressCard({
  * ProgressScreen is where the child stands: the rank reached and how far
  * through it — or, while the trial series runs, how far the series has got —
  * and what comes next, over the sections that fold away under their titles:
- * each topic met or within reach with a rank of its own, the mistakes that
- * keep coming back, the latest answers with how many tasks were left without
- * one, and the child's profile for the parent with what the parent can do
- * with the data. A section with nothing in it is not drawn; which sections are
+ * each topic met or within reach with a rank of its own; once the trial series
+ * is over, the review of the topics for the adult, the mistakes that keep
+ * coming back among it — while the series runs, in a section of their own —;
+ * the latest answers with how many tasks were left without one; and the
+ * child's profile for the parent with what the parent can do with the data.
+ * A section with nothing in it is not drawn; which sections are
  * open is told by folds, kept by whoever outlives the screen. Once the trial
  * series is over, a switch over the rank chooses the while the moves are drawn
  * over — since the last task, or over the week — as period tells, kept by
@@ -110,6 +113,11 @@ export function ProgressScreen({
 		report.skipped ??
 		report.topics.reduce((sum, topic) => sum + topic.skipped, 0);
 	const latest = latestOf(words, report.recent);
+	const mistakes = mistakeRows(words, report.mistakes);
+	const review =
+		report.review === undefined
+			? undefined
+			: reviewSaid(words, report.review, mistakes);
 	const folding = (section: Section) => ({
 		open: folds.open.has(section),
 		onToggle: () => folds.toggle(section),
@@ -178,12 +186,21 @@ export function ProgressScreen({
 						/>
 					</Fold>
 				)}
-				{report.mistakes.length > 0 && (
+				{review !== undefined && !saysNothing(review) && (
+					<Fold
+						title={words.text("review.title")}
+						summary={words.text("review.summary")}
+						{...folding("review")}
+					>
+						<ReviewParts words={words} said={review} />
+					</Fold>
+				)}
+				{review === undefined && mistakes.length > 0 && (
 					<Fold
 						title={words.text("progress.mistakes")}
 						{...folding("mistakes")}
 					>
-						<StatList rows={mistakeRows(words, report.mistakes)} framed />
+						<StatList rows={mistakes} framed />
 					</Fold>
 				)}
 				{latest.length > 0 && (

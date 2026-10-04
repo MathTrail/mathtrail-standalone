@@ -104,6 +104,53 @@ function lists(root: HTMLElement): Record<string, (string | null)[]> {
 	);
 }
 
+// parts are the parts of the review, in order, each its heading and the tone
+// it is headed in.
+function parts(root: HTMLElement): [string, string][] {
+	return [...root.querySelectorAll(".mt-review-part")].map((part) => {
+		const label = part.querySelector(".mt-review-label");
+		return [label?.textContent ?? "", label?.getAttribute("data-tone") ?? ""];
+	});
+}
+
+// partOf is the part of the review headed heading.
+function partOf(root: HTMLElement, heading: string): Element | undefined {
+	return [...root.querySelectorAll(".mt-review-part")].find(
+		(part) => part.querySelector(".mt-review-label")?.textContent === heading,
+	);
+}
+
+// judged are the topics of the part of the review headed heading, each its
+// name and why.
+function judged(root: HTMLElement, heading: string): [string, string][] {
+	return [
+		...(partOf(root, heading)?.querySelectorAll(".mt-judged-row") ?? []),
+	].map((row) => [
+		row.querySelector(".mt-judged-name")?.textContent ?? "",
+		row.querySelector(".mt-review-note")?.textContent ?? "",
+	]);
+}
+
+// steps are the steps the review advises, each its number, the topic it is
+// for — nothing for the step that holds for every topic — and what to do.
+function steps(root: HTMLElement): [string, string, string][] {
+	return [...root.querySelectorAll(".mt-advice-step")].map((step) => [
+		step.querySelector(".mt-step-num")?.textContent ?? "",
+		step.querySelector(".mt-advice-topic")?.textContent ?? "",
+		step.querySelector(".mt-review-text > span:last-child")?.textContent ?? "",
+	]);
+}
+
+// withReview is Comet's progress with a review of nothing but what review
+// gives, and the rest of the progress as more changes it.
+function withReview(review: object, more: object = {}) {
+	return {
+		...standing,
+		review: { strong: [], develop: [], early: [], steps: [], ...review },
+		...more,
+	};
+}
+
 // fields are the fields of the group labelled label.
 function fields(root: HTMLElement, label: string): string[][] {
 	return fieldsIn(
@@ -204,7 +251,7 @@ describe("the progress", () => {
 
 		expect(sections(root)).toEqual([
 			["Topics", "", "false", false],
-			["Mistakes that repeat", "", "false", false],
+			["Review", "strengths and plan", "false", false],
 			["Recent answers", "Wrong, Skipped, Right, Right, Wrong", "false", false],
 			["Profile", "for the parent", "false", false],
 		]);
@@ -228,7 +275,7 @@ describe("the progress", () => {
 			sections(root).map(([title, , open, shown]) => [title, open, shown]),
 		).toEqual([
 			["Topics", "true", true],
-			["Mistakes that repeat", "false", false],
+			["Review", "false", false],
 			["Recent answers", "false", false],
 			["Profile", "false", false],
 		]);
@@ -278,6 +325,7 @@ describe("the progress", () => {
 			topics: [],
 			recent: [],
 			mistakes: [],
+			review: { strong: [], develop: [], early: [], steps: [] },
 		});
 
 		expect(sections(root).map(([title]) => title)).toEqual(["Profile"]);
@@ -338,14 +386,11 @@ describe("the progress", () => {
 		);
 	});
 
-	test("lists the mistakes that keep coming back before the latest answers, a dot for each time, in a frame of their own", async () => {
+	test("holds the mistakes that keep coming back in its review once the trial series is over, a dot for each time, in a frame of their own", async () => {
 		const { root } = await drawOpened(standing);
 
-		expect(Object.keys(lists(root))).toEqual([
-			"Mistakes that repeat",
-			"Recent answers",
-		]);
-		expect(lists(root)["Mistakes that repeat"]).toEqual([
+		expect(Object.keys(lists(root))).toEqual(["Review", "Recent answers"]);
+		expect(lists(root).Review).toEqual([
 			"Missed a case while listing3 times",
 			"Counted the same thing twice2 times",
 		]);
@@ -355,6 +400,22 @@ describe("the progress", () => {
 				(dots) => dots.children.length,
 			),
 		).toEqual([3, 2]);
+	});
+
+	test("lists the mistakes that keep coming back in a section of their own while the trial series runs, before the latest answers", async () => {
+		const { root } = await drawOpened({
+			...inTrial,
+			mistakes: [{ trap: "off_by_one", times: 2 }],
+		});
+
+		expect(Object.keys(lists(root))).toEqual([
+			"Mistakes that repeat",
+			"Recent answers",
+		]);
+		expect(lists(root)["Mistakes that repeat"]).toEqual([
+			"Off by one when counting gaps2 times",
+		]);
+		expect(root.querySelector(".mt-review-part")).toBeNull();
 	});
 
 	test("shows no section of mistakes when none has come up twice", async () => {
@@ -509,7 +570,7 @@ describe("the progress", () => {
 		expect(text(root, ".mt-rank-head .mt-meta")).toBe("ранг 3 из 11");
 		expect(sections(root).map(([title, summary]) => [title, summary])).toEqual([
 			["Темы", ""],
-			["Повторяющиеся ошибки", ""],
+			["Разбор", "сильные стороны и план"],
 			["Последние ответы", "Неверно, Пропущено, Верно, Верно, Неверно"],
 			["Профиль", "для родителя"],
 		]);
@@ -527,9 +588,27 @@ describe("the progress", () => {
 		expect(text(root, ".mt-list-note")).toBe(
 			"Всего без ответа оставили 1 задачу.",
 		);
-		expect(lists(root)["Повторяющиеся ошибки"]).toEqual([
+		expect(lists(root).Разбор).toEqual([
 			"Пропущен случай при переборе3 раза",
 			"Одно и то же посчитано дважды2 раза",
+		]);
+		expect(judged(root, "Сильные стороны")).toEqual([
+			[
+				"Упорядочивание",
+				"Тема освоена. Заметно выше общего уровня. За неделю\u00a0— заметный рост.",
+			],
+		]);
+		expect(steps(root)).toEqual([
+			[
+				"1",
+				"Перебор",
+				"Выписывать случаи в одном порядке, начиная с меньшего, и отмечать каждый, чтобы ни один не потерялся.",
+			],
+			[
+				"2",
+				"Чётность и чередование",
+				"По 2–3 короткие задачи в день, пока полоска не вернётся.",
+			],
 		]);
 		expect(profileFields(root, "Профиль")[3]).toEqual([
 			"Язык занятий",
@@ -619,6 +698,189 @@ function withWeek(week: (change: { week: unknown }) => unknown) {
 		),
 	};
 }
+
+describe("the review", () => {
+	test("is a section after the topics, with the strengths and the plan by its title, and its parts in the order the adult reads them, each headed in its tone", async () => {
+		const { root } = await drawOpened(standing);
+
+		expect(sections(root).map(([title, summary]) => [title, summary])).toEqual([
+			["Topics", ""],
+			["Review", "strengths and plan"],
+			["Recent answers", "Wrong, Skipped, Right, Right, Wrong"],
+			["Profile", "for the parent"],
+		]);
+		expect(parts(root)).toEqual([
+			["Strengths", "correct"],
+			["To develop", "wrong"],
+			["Too early to judge", "muted"],
+			["Mistakes that repeat", "wrong"],
+			["What to do next", "accent"],
+		]);
+	});
+
+	test("names the strong topics and the ones to develop, each after a dot in its side's colour hidden from a screen reader, with a sentence for each reason", async () => {
+		const { root } = await drawOpened(standing);
+
+		expect(judged(root, "Strengths")).toEqual([
+			[
+				"Ordering",
+				"Mastered. Well above the overall level. A clear step up over the past week.",
+			],
+		]);
+		expect(judged(root, "To develop")).toEqual([
+			["Enumeration", "Missed a case while listing\u00a0— again and again."],
+			[
+				"Parity and alternation",
+				"Well below the overall level. A clear step back over the past week.",
+			],
+		]);
+		const dots = [...root.querySelectorAll(".mt-judged-dot")];
+		expect(dots.map((dot) => dot.getAttribute("data-tone"))).toEqual([
+			"correct",
+			"wrong",
+			"wrong",
+		]);
+		expect(dots.map((dot) => dot.getAttribute("aria-hidden"))).toEqual([
+			"true",
+			"true",
+			"true",
+		]);
+	});
+
+	test("says why a topic is named for wrong answers in a row and the hint, and that a move has begun when its last answer was right", async () => {
+		const { root } = await drawOpened(
+			withReview({
+				develop: [
+					{
+						topic: "counting.gaps",
+						reasons: ["failures", "hints"],
+						moving: true,
+					},
+				],
+			}),
+		);
+
+		expect(judged(root, "To develop")).toEqual([
+			[
+				"Gaps and boundaries",
+				"Several wrong answers in a row. Often needs the hint. The last answer was right\u00a0— a move has begun.",
+			],
+		]);
+	});
+
+	test("lists the topics too early to judge on a line, as the card's language writes a list, with why there is no verdict", async () => {
+		const { root } = await drawOpened(
+			withReview({ early: ["counting.gaps", "time.clocks"] }),
+		);
+		const early = partOf(root, "Too early to judge");
+
+		expect(early?.querySelector(".mt-judged-name")?.textContent).toBe(
+			"Gaps and boundaries, Clocks",
+		);
+		expect(early?.querySelector(".mt-review-note")?.textContent).toBe(
+			"Too few answers so far to say how these stand.",
+		);
+	});
+
+	test("numbers the steps in order, each the topic it is for over what to do, and the step for every topic with what to do alone", async () => {
+		const { root } = await drawOpened(
+			withReview({
+				steps: [
+					{
+						kind: "trap",
+						topic: "combinatorics.enumeration",
+						trap: "missed_case",
+					},
+					{ kind: "rhythm", topic: "parity.alternation" },
+					{ kind: "practice", topic: "counting.gaps" },
+					{ kind: "unaided", topic: "logic.ordering" },
+					{ kind: "trap", trap: "double_count" },
+				],
+			}),
+		);
+
+		expect(steps(root)).toEqual([
+			[
+				"1",
+				"Enumeration",
+				"List the cases in a fixed order, smallest first, and tick each one off so that none is left out.",
+			],
+			[
+				"2",
+				"Parity and alternation",
+				"Two or three short tasks a day, until the bar comes back.",
+			],
+			[
+				"3",
+				"Gaps and boundaries",
+				"A few more tasks in this topic\u00a0— MathTrail sets them at the child’s level.",
+			],
+			["4", "Ordering", "Try each task without the hint first."],
+			[
+				"5",
+				"",
+				"Write each option down once, in a fixed order, and look for repeats before counting them.",
+			],
+		]);
+		expect(root.querySelector(".mt-advice")?.tagName).toBe("OL");
+	});
+
+	test("leaves out what it has no words for — a reason, a kind of step, the advice for a mistake — and keeps the name of a topic named for nothing it can say", async () => {
+		const { root } = await drawOpened(
+			withReview({
+				strong: [{ topic: "logic.ordering", reasons: ["shining"] }],
+				develop: [{ topic: "counting.gaps", reasons: ["low", "toString"] }],
+				steps: [
+					{ kind: "trap", topic: "counting.gaps", trap: "counted_the_cat" },
+					{ kind: "dance", topic: "counting.gaps" },
+					{ kind: "unaided", topic: "counting.gaps" },
+				],
+			}),
+		);
+
+		expect(judged(root, "Strengths")).toEqual([["Ordering", ""]]);
+		expect(judged(root, "To develop")).toEqual([
+			["Gaps and boundaries", "Well below the overall level."],
+		]);
+		expect(steps(root)).toEqual([
+			["1", "Gaps and boundaries", "Try each task without the hint first."],
+		]);
+	});
+
+	test("with nothing to say of the topics still holds the mistakes that repeat", async () => {
+		const { root } = await drawOpened(withReview({}));
+
+		expect(parts(root)).toEqual([["Mistakes that repeat", "wrong"]]);
+	});
+
+	test("is not drawn during the trial series, from a progress before the review, or when it says nothing at all", async () => {
+		for (const payload of [
+			inTrial,
+			standingBefore,
+			withReview({}, { mistakes: [] }),
+		]) {
+			takeDown(drawn?.root);
+			const { root } = await drawOpened(payload);
+
+			expect(root.querySelector(".mt-review-part")).toBeNull();
+			expect(sections(root).map(([title]) => title)).not.toContain("Review");
+		}
+	});
+
+	test("that does not read is none, and the progress draws all the same, the mistakes in a section of their own", async () => {
+		const { root } = await drawOpened({
+			...standing,
+			review: { strong: "Ordering" },
+		});
+
+		expect(sections(root).map(([title]) => title)).toEqual([
+			"Topics",
+			"Mistakes that repeat",
+			"Recent answers",
+			"Profile",
+		]);
+	});
+});
 
 describe("the moves", () => {
 	test("are drawn over the week at first: the rank's line and stripes, each topic's word and stripes, the topics' count and a legend", async () => {

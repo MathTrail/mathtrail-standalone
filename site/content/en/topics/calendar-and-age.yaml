@@ -1,0 +1,184 @@
+# The page of the topic of the calendar and age, for a parent. The topic's
+# name, its group, its grades and its traps' names are not here: they are the
+# card's words and the catalog's numbers. Each example's level, and the answer
+# its solver proves, are the site's data; an example here is worked through to
+# that answer. The traps are the topic's commonest, counted in its reference
+# tasks.
+
+title: Calendar and age
+description: What problems about days of the week, dates and ages are, how they are solved, where children go wrong, and how to help at home.
+
+hero:
+  lead: >-
+    Today is Tuesday: what day will it be in 30 days? Mum is 30 and Ann is 6:
+    how old will Ann be when Mum is twice her age? In these tasks a child works
+    with weeks, months and years, and two facts carry most of them: the week
+    comes round every 7 days, and the difference between two ages never
+    changes.
+  method: Drop the whole weeks, keep the difference of ages
+  teaches: To count days and years without counting them one by one
+  # A month that starts on a Wednesday: dates 7 apart stand in one column.
+  drawing: |2
+    Mo Tu We Th Fr Sa Su
+           1  2  3  4  5
+     6  7  8  9 10 11 12
+    13 14 15 16 17 18 19
+
+basis:
+  title: The rules of the calendar
+  cards:
+    - mark: "7"
+      title: The week comes round
+      text: >-
+        Every 7 days the same day of the week comes back. So for 30 days ahead,
+        only the 2 days left after 4 whole weeks matter.
+    - mark: "+1"
+      title: Both ends of a period
+      text: >-
+        From 3 May to 10 May is 7 days ahead, but a holiday from the 3rd to the
+        10th lasts 8 days, because both the first and the last day count.
+    - mark: "="
+      title: The difference stays
+      text: >-
+        Mum is 24 years older than Ann now, and she will be 24 years older in
+        10 years: each of them gets one year older every year.
+
+idea:
+  title: Drop the whole weeks
+  lead: What day of the week will it be in so many days? Only what is left after the whole weeks matters.
+  table:
+    head:
+      - In how many days
+      - Whole weeks and days left
+      - If today is a Monday
+    rows:
+      - - "10"
+        - 1 week and 3 days
+        - Thursday
+      - - "15"
+        - 2 weeks and 1 day
+        - Tuesday
+      - - "30"
+        - 4 weeks and 2 days
+        - Wednesday
+      - - "100"
+        - 14 weeks and 2 days
+        - Wednesday
+  note:
+    title: Why it matters
+    text: >-
+      Counting a hundred days on fingers is slow and easy to get wrong.
+      Dropping the whole weeks turns it into a step of a day or two.
+
+method:
+  title: "How to solve: find what does not change"
+  lead: >-
+    Look for what stays the same: the week comes round every 7 days, and the
+    gap between two ages never changes. Use it to drop what does not matter,
+    then count only what is left. The examples below go from the simplest to
+    an olympiad's.
+  steps:
+    - Find what repeats or stays the same
+    - Drop the whole weeks, or work with the difference of ages
+    - Count what is left, and check whether both ends count
+
+examples:
+  - title: Watering the flowers
+    question: >-
+      Kate waters the flowers every 3 days. The first time she waters them on a
+      Monday. On which day of the week does she water them for the 4th time?
+    # Two weeks, and the four waterings in them, numbered, 3 days apart.
+    drawing: |2
+      Mo Tu We Th Fr Sa Su
+       1        2        3
+             4
+    steps:
+      - >-
+        From the 1st watering to the 4th there are 3 gaps of 3 days, not 4:
+        3 × 3 = 9 days.
+      - 9 days is a week and 2 days more.
+      - A week after Monday is Monday again, and 2 days more is Wednesday.
+    answer: On a Wednesday.
+    note:
+      title: Why not Saturday?
+      text: >-
+        4 × 3 = 12 days gives the 4th watering a gap after it as well. Between
+        4 waterings there are 3 gaps, as there are between 4 posts.
+  - title: Vera and Dad
+    question: >-
+      Dad is 28 years older than Vera. In 4 years he will be 3 times as old as
+      she will be. How old is Vera now?
+    # Their ages in 4 years: Dad's is three of Vera's, and the two extra are
+    # the 28 years between them.
+    drawing: |2
+      Vera [  ]
+      Dad  [  ][  ][  ]
+               └─ 28 ─┘
+    steps:
+      - "The difference never changes: in 4 years Dad is still 28 years older."
+      - >-
+        Then Dad's age is three of Vera's, as in the drawing. The two extra
+        parts are the 28 years, so one part is 28 : 2 = 14.
+      - >-
+        In 4 years Vera is 14, so now she is 14 − 4 = 10. Check: Dad is 38
+        now, and in 4 years 42 = 3 × 14.
+    answer: 10 years old.
+  - title: Three even Saturdays
+    question: >-
+      In some month, three Saturdays fall on even dates. What day of the week
+      is the 25th of that month?
+    steps:
+      - >-
+        Saturdays come every 7 days, and 7 is odd, so their dates take turns:
+        even, odd, even, odd…
+      - >-
+        Three even ones need five Saturdays, the first on an even date. The
+        fifth comes 28 days after the first and must still fit in the month,
+        so the first is no later than the 3rd. The only even date among the
+        first three is the 2nd: the Saturdays are the 2nd, 9th, 16th, 23rd and
+        30th.
+      - The 23rd is a Saturday, so the 25th, two days later, is a Monday.
+    answer: Monday.
+    note:
+      title: Even and odd in the calendar
+      text: >-
+        The key to this task is parity: 7 is odd, so the dates of one day of the
+        week change from even to odd every week.
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  off_by_one:
+    shows: >-
+      The day count is one off: the child counts today as the first of the days
+      ahead, finds 4 gaps between 4 waterings, or leaves out one end of a
+      period, such as holidays from Monday to Sunday.
+    say: "“Which day is day 1: today or tomorrow?”"
+  wrong_operation:
+    shows: >-
+      The child does an action the question does not ask for: adds the two
+      ages when it asks how much older one is, or takes one date from another
+      when they are in different months.
+    say: "“Say it in words: does the number grow, shrink or stay?”"
+  ignored_condition:
+    shows: >-
+      A fact of the calendar or of the task is lost: that this month has 30
+      days and not 31, or that 365 days are whole weeks and one day more.
+    say: “How many days does this month have?”
+
+home:
+  - title: A calendar on the wall
+    text: >-
+      Hang a paper calendar where the child can reach it and ask about it: on
+      which day of the week is the 1st of next month? How many Fridays are
+      there this month?
+  - title: Ages in the family
+    text: >-
+      Write down everyone's age and the differences between them. A year
+      later, look again: the ages have changed, and the differences have not.
+  - title: Counting down
+    text: >-
+      Count the days to a birthday or a holiday together, first one by one,
+      then by whole weeks, and see that both ways agree.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Give me a task about the calendar and ages
