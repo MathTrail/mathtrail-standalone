@@ -171,7 +171,38 @@ const frame: Frame = {
 	footer: ["privacy", "terms"],
 };
 
-const site = { base, sources, dictionaries, pages: components, frame };
+// dataOf is the site's data over a catalog of one topic, whose page is
+// published or not.
+const dataOf = (published: boolean) =>
+	readSiteData(
+		{
+			topics: [
+				{
+					id: "logic.sample",
+					slug: "sample",
+					grade_levels: ["3-4"],
+					builds_on: [],
+					site_page: published,
+				},
+			],
+			traps: [],
+			tasks: [],
+		},
+		{
+			groups: [{ id: "logic", topics: ["logic.sample"] }],
+			examples: {},
+			progress: siteData().progress,
+		},
+	);
+
+const site = {
+	base,
+	sources,
+	dictionaries,
+	pages: components,
+	frame,
+	data: dataOf(false),
+};
 const files = renderSite(site);
 
 // page is the built file at path, read as a document.
@@ -441,23 +472,6 @@ describe("a page that draws a card of the widget", () => {
 });
 
 describe("a topic's page", () => {
-	// catalogOf is a catalog of one topic, whose page is published or not.
-	const catalogOf = (published: boolean) =>
-		readSiteData(
-			[
-				{
-					id: "logic.sample",
-					slug: "sample",
-					grade_levels: ["3-4"],
-					builds_on: [],
-					site_page: published,
-				},
-			],
-			{
-				groups: [{ id: "logic", topics: ["logic.sample"] }],
-				progress: siteData().progress,
-			},
-		);
 	// withTopicPage is the site with the topic's page among its texts.
 	const withTopicPage = new Map(
 		[...sources].map(([locale, files]) => [
@@ -481,7 +495,7 @@ describe("a topic's page", () => {
 			renderSite({
 				...drawn,
 				sources: withTopicPage,
-				data: catalogOf(true),
+				data: dataOf(true),
 			}).map(({ path }) => path),
 		).toContain("ru/topics/sample/index.html");
 	});
@@ -489,12 +503,12 @@ describe("a topic's page", () => {
 	test.each([
 		[
 			"the catalog says it is published and the site does not have it",
-			{ data: catalogOf(true) },
+			{ data: dataOf(true) },
 			"the catalog has the page topics/sample published, and the site does not have it",
 		],
 		[
 			"the site has it and the catalog does not say it is published",
-			{ sources: withTopicPage, data: catalogOf(false) },
+			{ sources: withTopicPage, data: dataOf(false) },
 			"the site has the page topics/sample, and no topic of the catalog has its page published there",
 		],
 	])("is refused when %s", (_, change, want) => {
@@ -669,6 +683,17 @@ describe("a site that cannot be built", () => {
 				]),
 			},
 			"the site has words in de — its dictionary de.json — and no texts",
+		],
+		[
+			"a locale the widget does not speak",
+			{
+				sources: new Map([...sources, ["xx", sources.get("en") ?? new Map()]]),
+				dictionaries: new Map([
+					...dictionaries,
+					["xx", dictionaries.get("en") ?? {}],
+				]),
+			},
+			"the site speaks xx, and the widget does not",
 		],
 		[
 			"words that lack one of the English ones",

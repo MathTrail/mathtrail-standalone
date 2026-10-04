@@ -124,7 +124,7 @@ internal/
     oauth/        the authorization server: its metadata, its clients, its endpoints, the sign-in's pages
     http/         /health, and the router every endpoint is mounted on
 content/          catalogs, reference tasks and model instructions, embedded
-site/             the public site's texts per locale — a page's words in YAML, the privacy policy and the terms in Markdown — the data its pages draw that no language changes (data.json), and its mark
+site/             the public site's texts per locale — a page's words in YAML, the privacy policy and the terms in Markdown — the data its pages draw that no language changes (data.json), the solvers that prove the answers of a topic's examples with the Go test that runs them, and its mark
 web/              the widget's and the site's code: the widget is built into internal/widget/, the site into site/dist/, and tools/sitecheck/ judges a built site, knowing nothing of how it was built
 infra/terraform/  the Google Cloud project as code — not to be confused with internal/infra/
 research/         the research program: a separate Go module that imports the product, never the reverse

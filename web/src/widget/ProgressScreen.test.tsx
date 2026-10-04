@@ -603,8 +603,8 @@ function chosen(root: HTMLElement, period: string): void {
 	press(radio);
 }
 
-// withMoves is moving with the moves of the overall rank and of every topic
-// told over the week as week says of each.
+// withWeek is moving with the week of the overall rank and of every topic
+// told as week says of each.
 function withWeek(week: (change: { week: unknown }) => unknown) {
 	return {
 		...moving,
@@ -682,7 +682,7 @@ describe("the moves", () => {
 			["week", false],
 		]);
 		expect(text(root, ".mt-rank-move")).toBe(
-			"↓The last task moved the bar back a little",
+			"↓The last task moved the bar back",
 		);
 		// A step back of four points is drawn over a seventh of the step.
 		expect(stripes(root.querySelector(".mt-rank"))[2]).toBe("57%");
@@ -817,7 +817,7 @@ describe("a progress screen nobody outlives", () => {
 			["week", false],
 		]);
 		expect(text(root, ".mt-rank-move")).toBe(
-			"↓The last task moved the bar back a little",
+			"↓The last task moved the bar back",
 		);
 		act(() => render(null, root));
 		root.remove();

@@ -1,6 +1,7 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
 import type { McpUiHostContext } from "@modelcontextprotocol/ext-apps";
 import type { CallStage } from "../widget/bridge";
+import { rankCount } from "../widget/names";
 import type { AnswerResult } from "../widget/payload";
 import {
 	answered,
@@ -498,17 +499,21 @@ function rankedAt(topic: string, at: number) {
 
 // movedFrom is a move to rank and share from where a rating stood by ranks
 // lower — a step back where by is below nothing — told the way the service
-// tells it: by the rank, and then by the share within one.
+// tells it: by the rank, and then by the share within one, the highest rank
+// standing at the whole way through it, where no move is drawn. It counts in
+// whole percents of a rank, so that no move is made of what a fraction leaves
+// over.
 function movedFrom(rank: number, share: number, by: number) {
-	const position = Math.min(Math.max(rank - 1 + share / 100 - by, 0), 10.99);
-	const before = {
-		rank: Math.floor(position) + 1,
-		share: Math.floor((position % 1) * 100),
-	};
+	const percents = (rank - 1) * 100 + share - Math.round(by * 100);
+	const held = Math.min(Math.max(percents, 0), rankCount * 100 - 1);
+	const before = { rank: Math.floor(held / 100) + 1, share: held % 100 };
+	if (before.rank === rankCount) {
+		before.share = 100;
+	}
 	let moved = "same";
 	if (before.rank !== rank) {
 		moved = before.rank < rank ? "rank_up" : "rank_down";
-	} else if (before.share !== share) {
+	} else if (before.share !== share && rank < rankCount) {
 		moved = before.share < share ? "forward" : "back";
 	}
 	return { ...before, moved };
@@ -600,12 +605,12 @@ function pickedPeriod(period: "last_task" | "week") {
 	};
 }
 
-// inTurn does each step in turn, each once the card has taken the one before
-// in.
+// inTurn does each step in turn, each once the card has taken what came
+// before it in.
 function inTurn(...steps: ((card: Document) => void)[]) {
 	return (card: Document) => {
 		steps.forEach((step, at) => {
-			setTimeout(() => step(card), at * 100);
+			setTimeout(() => step(card), (at + 1) * 100);
 		});
 	};
 }
@@ -651,11 +656,7 @@ function inTheForm(...steps: ((card: Document) => void)[]) {
 			?.querySelector<HTMLElement>('.mt-fold-button[aria-expanded="false"]')
 			?.click();
 		edit?.click();
-		let after = 0;
-		for (const step of steps) {
-			after += 100;
-			setTimeout(() => step(card), after);
-		}
+		inTurn(...steps)(card);
 	};
 }
 

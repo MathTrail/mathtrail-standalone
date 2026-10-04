@@ -4,6 +4,7 @@ import { disagreements } from "../i18n/dictionaries";
 import { fallbackLocale } from "../i18n/lookup";
 import { byCodeUnits } from "../i18n/order";
 import { type Dictionary, openWords, type Words } from "../i18n/words";
+import { cardWords } from "../widget/words";
 import { ApexPage } from "./ApexPage";
 import { address, alternatesOf, outputPath, parseBase } from "./addresses";
 import {
@@ -41,24 +42,24 @@ export type SiteFile = { readonly path: string; readonly data: string };
  * single file is written. The stylesheets and the mark are not among them:
  * they are built and copied beside these.
  *
- * base is the origin the site is published on. The dictionaries, the pages a
- * component draws, the frame and the data are the site's own unless a test
- * hands it others.
+ * base is the origin the site is published on. The dictionaries, the frame,
+ * the data and the pages a component draws — the site's own for that data —
+ * are the site's unless a test hands it others.
  */
 export function renderSite({
 	base,
 	sources,
 	dictionaries = siteDictionaries,
-	pages = sitePages,
 	frame = siteFrame,
 	data = siteData(),
+	pages = sitePages(data),
 }: {
 	base: string;
 	sources: Sources;
 	dictionaries?: ReadonlyMap<string, Dictionary>;
-	pages?: ReadonlyMap<string, Page>;
 	frame?: Frame;
 	data?: SiteData;
+	pages?: ReadonlyMap<string, Page>;
 }): SiteFile[] {
 	const origin = parseBase(base);
 	const texts = readTexts(sources, fallbackLocale);
@@ -242,12 +243,14 @@ function apex(site: Site): string {
 // with texts has words that say what the English ones say, and a locale with
 // words has texts: the languages of the site are those of its dictionaries,
 // and the card links a topic's page in its own language when the site has it.
+// Every one of them is a language the widget speaks too.
 function checkLanguages(
 	dictionaries: ReadonlyMap<string, Dictionary>,
 	locales: readonly string[],
 ): void {
 	for (const locale of locales) {
 		checkWords(dictionaries, locale);
+		checkCardLanguage(locale);
 	}
 	for (const tag of dictionaries.keys()) {
 		if (!locales.includes(tag)) {
@@ -280,6 +283,17 @@ function checkWords(
 	if (found.length > 0) {
 		throw new Error(
 			`the site's words in ${locale} disagree with the English: ${found.join("; ")}`,
+		);
+	}
+}
+
+// checkCardLanguage refuses a locale the widget does not speak: the cards its
+// pages draw, and the names they give topics and traps in the card's words,
+// would be in another language, and nothing after the build would notice.
+function checkCardLanguage(locale: string): void {
+	if (cardWords(locale, undefined).locale !== locale) {
+		throw new Error(
+			`the site speaks ${locale}, and the widget does not: the cards and the names of topics and traps on its pages would be in another language`,
 		);
 	}
 }

@@ -25,7 +25,7 @@
       "logic.ordering",
       "combinatorics.enumeration"
     ],
-    "site_page": false
+    "site_page": true
   },
   {
     "id": "combinatorics.enumeration",

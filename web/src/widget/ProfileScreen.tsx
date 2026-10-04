@@ -23,7 +23,7 @@ import {
 	type ProfileReport,
 	readEdited,
 } from "./payload";
-import { type Key, useWords } from "./words";
+import { countText, type Key, useWords } from "./words";
 
 /**
  * ProfileCard is the card of the child's profile, as a card of an earlier chat
@@ -246,7 +246,7 @@ function detailFields(words: Words<Key>, details: Details): Field[] {
 	return [
 		{
 			term: words.text("profile.grade"),
-			value: new Intl.NumberFormat(words.locale).format(details.grade),
+			value: countText(words, details.grade),
 			note: words.text("profile.grade_note"),
 		},
 		{

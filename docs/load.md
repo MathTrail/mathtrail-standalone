@@ -47,7 +47,9 @@ One child's lesson, run five times: a task asked for, handed in and answered.
 
 The tool counts only its own requests. A chat host sends more for every call it makes (SPEC remark 62), and T64 counts those.
 
-These numbers were measured before T62.8. Since then a lesson asks for each task's package with a call of its own, and the card a task comes to asks how it stands, once on either side of the hand-in in the tool's lesson: six calls a task where there were three, each of the new ones a read (R152). In a host the card asks every four seconds while the task is written, about fifteen times for a minute's wait; T64 measures that against the deployed service.
+These numbers were measured before T62.8. Since then a lesson asks for each task's package with a call of its own, and the card a task comes to asks how it stands, once on either side of the hand-in in the tool's lesson: six calls a task where there were three, each of the new ones a read (R152). In a host the card asks every four seconds while the task is written, about fifteen times for a minute's wait.
+
+Against the deployed service a task costs far more, because there every wait on Drive is billed time: an instance is billed for as long as any request it holds is under way. A lesson of the tool came to 10 vCPU-seconds a task, and a week of real lessons, with the cards' questions and the sign-ins, to about 15 — some twelve to eighteen thousand tasks a month in the free tier rather than half a million. That is a quiet service's price: requests that overlap on one instance share their billed time (`docs/live/09-load.md`).
 
 ## Slots and the clock
 
@@ -175,7 +177,7 @@ just load ceiling -url https://mcp.mathtrail.app -accounts load,parent
 
 **What a profile remembers.** The lessons of `paces` hand in the load's five tasks, and a profile keeps every task it was handed, so an account walks them once: the next time they are refused as near-copies. To walk them again, delete the account's profile file in Drive and then from the bin, and the service makes a new one; or sign another account in. The ceiling leaves its account without new tasks until midnight in UTC.
 
-**What it cannot show.** Every request of a run comes from one address, so whether another address is served while the greedy one is held back has to be seen from another network, by hand. How many instances the platform ran, and what they cost, are the platform's to tell: the service's log and the billing, not the tool. T64.3 reads both.
+**What it cannot show.** Every request of a run comes from one address, so whether another address is served while the greedy one is held back has to be seen from another network, by hand. How many instances the platform ran, and what they cost, are the platform's to tell: the service's log and the billing, not the tool. `just report` and `just usage` read both, and `docs/live/09-load.md` is what they told of the first run against `mcp.mathtrail.app`.
 
 ## What is open
 

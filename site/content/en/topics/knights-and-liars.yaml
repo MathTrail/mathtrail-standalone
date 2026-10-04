@@ -1,0 +1,180 @@
+# The page of the topic of knights and liars, for a parent. The topic's name,
+# its group, its grades and its traps' names are not here: they are the card's
+# words and the catalog's numbers. Each example's level, and the answer its
+# solver proves, are the site's data; an example here is worked through to that
+# answer. The traps are the topic's commonest, counted in its reference tasks.
+
+title: Knights and liars
+description: What knights-and-liars problems are, how they are solved, where children go wrong, and how to help at home.
+
+hero:
+  lead: >-
+    On an island live knights, who always tell the truth, and liars, who always
+    lie. From what they say, you have to work out who is who. For many children
+    this is their first meeting with real logical reasoning: make an
+    assumption, follow where it leads, and notice a contradiction.
+  method: "“Suppose this one is a knight…”"
+  teaches: To reason step by step, and to check yourself
+  # Two islanders who call each other liars: one is a knight, the other a liar.
+  drawing: |2
+           A                B
+      “B is a liar”    “A is a liar”
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+basis:
+  title: The island's rules
+  cards:
+    - mark: K
+      title: Knight
+      text: Always tells the truth. Every statement a knight makes is true, without exception.
+    - mark: L
+      title: Liar
+      text: Always lies. Every statement a liar makes is false, and a liar never tells the truth, not even by accident.
+    - mark: "?"
+      title: Nobody else
+      text: Every islander is either a knight or a liar. You cannot tell them apart by their looks, only by their words.
+
+idea:
+  title: Who can say what
+  lead: Start with two sentences. They show at once how these problems work.
+  table:
+    head:
+      - Sentence
+      - Knight
+      - Liar
+      - What it means
+    rows:
+      - - “I am a knight”
+        - "✓ Can say it: it is true"
+        - "✓ Can say it: it is a lie, as a liar's words should be"
+        - "It tells you nothing: anyone may say it."
+      - - “I am a liar”
+        - "✕ Cannot: it would be a lie"
+        - "✕ Cannot: it would be the truth"
+        - "An impossible sentence: nobody can say it."
+  note:
+    title: Why it matters
+    text: >-
+      When an islander says “I am a knight”, you can cross the sentence out: it
+      changes nothing. And when, halfway through a solution, it turns out that
+      someone has in effect said “I am a liar”, the assumption you started from
+      is wrong.
+
+method:
+  title: "How to solve: “suppose that…”"
+  lead: >-
+    Almost every such problem is solved the same way: pick one islander,
+    suppose what they are, and see what follows. The examples below go from
+    the simplest to an olympiad's.
+  steps:
+    - Suppose
+    - Work out what follows
+    - Find a contradiction, or check the answer
+
+examples:
+  - title: Two on the road
+    question: >-
+      Two islanders, A and B, meet on a road. A says: “I am a liar, and B is a
+      knight.” Who is who?
+    steps:
+      - >-
+        **Suppose A is a knight.** Then the words are true, and A is a liar.
+        But we supposed A is a knight: **a contradiction**, so this case is
+        impossible.
+      - >-
+        **Suppose A is a liar.** Then the words are false. Their first half,
+        “I am a liar”, is true, so the second half is false: B is not a knight
+        but a liar. **Everything fits.**
+    answer: A and B are both liars.
+    note:
+      title: How can a liar say “I am a liar”?
+      text: >-
+        On its own, “I am a liar” is impossible. Joined to another sentence by
+        “and”, a liar can say it: the whole sentence is false as soon as one of
+        its parts is.
+  - title: A chain of accusations
+    question: >-
+      Three islanders, A, B and C, say this. A: “B is a liar.” B: “C is a
+      knight.” C: “A and B are both liars.” Who is a knight, and who is a liar?
+    steps:
+      - >-
+        **Where to start?** With the one who says the most, since more follows
+        from their words. That is C.
+      - >-
+        **Suppose C is a knight.** Then A and B are both liars. But B said
+        “C is a knight”, which would be true, and a liar never says anything
+        true. **A contradiction.**
+      - >-
+        **So C is a liar.** Then B's “C is a knight” is false, and B is a liar
+        too.
+      - A said “B is a liar”, and that is true. So A is a knight.
+    answer: A is a knight; B and C are liars.
+    note:
+      title: "The check: every sentence once more"
+      text: >-
+        A: “B is a liar” is true, and a knight says it. B: “C is a knight” is
+        false, and a liar says it. C: “A and B are both liars” is false, since
+        A is a knight, and a liar says it. Everything fits.
+  - title: The round table
+    question: >-
+      Ten islanders sit at a round table. Each of them says: “My neighbour on
+      the right is a liar.” How many knights are at the table?
+    # The table drawn with its answer, knights and liars taking turns.
+    drawing: |2
+           K   L
+        L         K
+       K           L
+        L         K
+           K   L
+    steps:
+      - >-
+        If an islander is a knight, the words are true: the neighbour on the
+        right is a liar.
+      - >-
+        If an islander is a liar, the words are false: the neighbour on the
+        right is a knight.
+      - >-
+        So knights and liars take turns round the table: K, L, K, L… Exactly
+        half of the ten are knights: **5 knights**.
+    answer: 5 knights.
+    note:
+      title: And if 9 islanders sit at the table?
+      text: >-
+        Taking turns round an odd number of seats never closes up: the last
+        and the first would be of one kind. No such table can exist. Here
+        knights and liars meet parity.
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ignored_condition:
+    shows: >-
+      The child puts down K and L and does not go through every sentence once
+      more, and one of them does not fit.
+    say: “Read every sentence again. Is it true or false, and who said it?”
+  trusted_statement:
+    shows: >-
+      The child believes what an islander says without asking who said it: A
+      called B a liar, so B must be one.
+    say: “And if a liar said it? What is true then?”
+  stopped_early:
+    shows: >-
+      The child works out who the first islander is and stops there, leaving
+      the others undecided.
+    say: “Good, A is a liar. What does that tell you about B?”
+
+home:
+  - title: Play the island
+    text: >-
+      You are a liar, and the child asks you questions. Soon the child notices
+      that to “Are you a liar?” you always answer “No”.
+  - title: Ask instead of telling
+    text: >-
+      Instead of an answer, a question: “And if they are a knight, what then?”
+      That is the topic's main move.
+  - title: Write K and L in pencil
+    text: >-
+      Over each name, an assumption. A contradiction? Rub it out and try the
+      other one.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Give me a task about knights and liars

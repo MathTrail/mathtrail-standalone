@@ -1,5 +1,6 @@
 import { Window } from "happy-dom";
 import { afterAll, describe, expect, test } from "vitest";
+import traps from "../../../content/catalogs/traps.json";
 import file from "../../../site/data.json";
 import { readSiteData } from "./data";
 import { type Page, sitePages } from "./pages";
@@ -20,34 +21,39 @@ afterAll(async () => {
 // A catalog of three topics in three layers: beta builds on alpha, gamma on
 // both, its link from alpha skipping a column. Only beta's page is published.
 const data = readSiteData(
-	[
-		{
-			id: "logic.alpha",
-			slug: "alpha",
-			grade_levels: ["1-2", "3-4"],
-			builds_on: [],
-			site_page: false,
-		},
-		{
-			id: "logic.beta",
-			slug: "beta",
-			grade_levels: ["3-4"],
-			builds_on: ["logic.alpha"],
-			site_page: true,
-		},
-		{
-			id: "logic.gamma",
-			slug: "gamma",
-			grade_levels: ["5-6"],
-			builds_on: ["logic.alpha", "logic.beta"],
-			site_page: false,
-		},
-	],
+	{
+		traps,
+		tasks: [],
+		topics: [
+			{
+				id: "logic.alpha",
+				slug: "alpha",
+				grade_levels: ["1-2", "3-4"],
+				builds_on: [],
+				site_page: false,
+			},
+			{
+				id: "logic.beta",
+				slug: "beta",
+				grade_levels: ["3-4"],
+				builds_on: ["logic.alpha"],
+				site_page: true,
+			},
+			{
+				id: "logic.gamma",
+				slug: "gamma",
+				grade_levels: ["5-6"],
+				builds_on: ["logic.alpha", "logic.beta"],
+				site_page: false,
+			},
+		],
+	},
 	{
 		groups: [
 			{ id: "logic", topics: ["logic.alpha", "logic.beta"] },
 			{ id: "counting", topics: ["logic.gamma"] },
 		],
+		examples: {},
 		progress: file.progress,
 	},
 );
@@ -108,7 +114,7 @@ const sources = new Map(
 );
 
 const pages = new Map<string, Page>([
-	["topics", sitePages.get("topics") ?? { draw: () => <p /> }],
+	["topics", sitePages(data).get("topics") ?? { draw: () => <p /> }],
 	["topics/beta", { draw: () => <p>Beta</p> }],
 ]);
 

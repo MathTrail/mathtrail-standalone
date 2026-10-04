@@ -31,6 +31,12 @@ export type PageReader = {
 	plain(key: string, slots?: Readonly<Record<string, string | number>>): string;
 	/** list is the keys of the items of the list under key, in order. */
 	list(key: string): string[];
+	/**
+	 * has reports whether the file holds key, as a text or as a section of
+	 * texts, and reads nothing: for a part some pages of one kind have and
+	 * others do not, which the page still has to read to show.
+	 */
+	has(key: string): boolean;
 };
 
 /**
@@ -98,6 +104,13 @@ export function openReader(
 				);
 			}
 			return items.map((item) => prefix + item);
+		},
+		has(key) {
+			const prefix = `${key}.`;
+			return (
+				words.has(key) ||
+				[...words.keys()].some((name) => name.startsWith(prefix))
+			);
 		},
 	};
 	return {

@@ -34,6 +34,21 @@
 			"topics": ["games.strategy", "algorithms.weighing_pouring"]
 		}
 	],
+	"examples": {
+		"logic.knights_liars": [
+			{
+				"level": "3-4",
+				"solver": "two-on-the-road",
+				"answer": "A liar, B liar"
+			},
+			{
+				"level": "3-4",
+				"solver": "chain-of-accusations",
+				"answer": "A knight, B liar, C liar"
+			},
+			{ "level": "5-6", "solver": "round-table", "answer": "5" }
+		]
+	},
 	"progress": {
 		"screen": "progress",
 		"profile": {

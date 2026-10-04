@@ -17,5 +17,21 @@
 	"topics.opens": "Opens: {topics}",
 	"topics.grades": "Grades {range}",
 	"topics.more": "More →",
-	"topics.soon": "Soon"
+	"topics.soon": "Soon",
+	"topic.path": "You are here",
+	"topic.method": "The main move",
+	"topic.teaches": "What it teaches",
+	"topic.contents": "On this page",
+	"topic.solving": "How it is solved",
+	"topic.example": "Example {number} · {grades}",
+	"topic.answer": "Answer",
+	"topic.traps": "Where children go wrong",
+	"topic.traps_lead": "MathTrail explains every wrong answer by the trap it fell into. These are the commonest in this topic, with something you can say to your child.",
+	"topic.trap": "Trap",
+	"topic.say": "What to say",
+	"topic.home": "How to help at home",
+	"topic.before": "Learn first",
+	"topic.after": "Opens the way to",
+	"topic.ask": "Ask for a task on this topic",
+	"topic.all": "All topics"
 }

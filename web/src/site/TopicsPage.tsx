@@ -1,15 +1,15 @@
 import type { Section } from "../widget/folds";
 import { listed, topicName } from "../widget/names";
 import { cardWords } from "../widget/words";
-import { address } from "./addresses";
 import { progressOf, type SiteData } from "./data";
 import type { PageProps } from "./pages";
 import type { PageReader } from "./reader";
 import { StaticProgress } from "./StaticCard";
+import { TopicFoot } from "./TopicFoot";
 import { TopicMap } from "./TopicMap";
 import { lightRules, mapOf } from "./topicmap";
-import type { Group, Topic } from "./topics";
-import { type SiteKey, useSiteWords } from "./words";
+import type { Topic } from "./topics";
+import { groupKey, useSiteWords } from "./words";
 
 // topicsOpen is the section of the progress the page shows open: the topics,
 // each with its rank, which is what the page is about.
@@ -100,12 +100,6 @@ export function topicsStyle(data: SiteData): string {
 	return lightRules(data.topics, mapOf(data.topics));
 }
 
-// groupKey is the site's word for a group's name, which a topic's own page
-// says too.
-function groupKey(group: Group): SiteKey {
-	return `group.${group.id}` as SiteKey;
-}
-
 // TopicCard is a topic as the page of the topics shows it, under the anchor of
 // its slug, which the map leads to.
 function TopicCard({
@@ -121,7 +115,6 @@ function TopicCard({
 }) {
 	const words = useSiteWords();
 	const key = `topics.${topic.slug}`;
-	const grades = new Intl.NumberFormat(page.locale);
 	return (
 		<article id={topic.slug} class="s-topic">
 			<pre class="s-topic-drawing" dir="ltr">
@@ -139,20 +132,7 @@ function TopicCard({
 					{words.text("topics.opens", { topics: names(topic.opens) })}
 				</p>
 			)}
-			<p class="s-topic-foot">
-				<span>
-					{words.text("topics.grades", {
-						range: `${grades.format(topic.grades[0])}–${grades.format(topic.grades[1])}`,
-					})}
-				</span>
-				{topic.sitePage ? (
-					<a href={address(page.locale, `topics/${topic.slug}`)}>
-						{words.text("topics.more")}
-					</a>
-				) : (
-					<span class="s-soon">{words.text("topics.soon")}</span>
-				)}
-			</p>
+			<TopicFoot topic={topic} />
 		</article>
 	);
 }

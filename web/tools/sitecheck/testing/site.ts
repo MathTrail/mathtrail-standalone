@@ -10,9 +10,14 @@ export const base = "https://example.test";
 /**
  * pageAt is a page at address, among a site whose pages are at addresses, that
  * breaks no rule: it names its language, its direction, its title, its
- * description, its own address and every translation the site has of it.
+ * description, its own address and every translation the site has of it, and
+ * holds an element with each of ids.
  */
-export function pageAt(address: string, addresses: readonly string[]): string {
+export function pageAt(
+	address: string,
+	addresses: readonly string[],
+	ids: readonly string[] = [],
+): string {
 	const name = nameOf(address);
 	const alternates = addresses
 		.filter((other) => other !== "/" && nameOf(other) === name)
@@ -27,17 +32,26 @@ export function pageAt(address: string, addresses: readonly string[]): string {
 			return `<link rel="alternate" hreflang="${hreflang}" href="${base}${href}">`;
 		}),
 		`<link rel="stylesheet" href="/assets/style.css">`,
-		`</head><body><a href="https://github.com/example">Source</a></body></html>`,
+		`</head><body><a href="https://github.com/example">Source</a>`,
+		...ids.map((id) => `<span id="${id}"></span>`),
+		"</body></html>",
 	].join("");
 }
 
-/** siteAt is every file of a site that breaks no rule and has addresses. */
+/**
+ * siteAt is every file of a site that breaks no rule and has addresses: a page
+ * at each of them, which holds the anchor of every address on it.
+ */
 export function siteAt(addresses: readonly string[]): Record<string, string> {
 	const files: Record<string, string> = {
 		"assets/style.css": "body{color:#000}",
 	};
-	for (const address of addresses) {
-		files[`${address.slice(1)}index.html`] = pageAt(address, addresses);
+	const pages = addresses.filter((address) => !address.includes("#"));
+	for (const address of pages) {
+		const ids = addresses
+			.filter((other) => other.startsWith(`${address}#`))
+			.map((other) => other.slice(address.length + 1));
+		files[`${address.slice(1)}index.html`] = pageAt(address, pages, ids);
 	}
 	return files;
 }

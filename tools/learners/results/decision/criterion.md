@@ -8,21 +8,6 @@ Candidates that meet every constraint and are better than the service: 0.
 
 No candidate meets every constraint and is better than the service. **The exit: floor_0.05/both**, the floor of the highest score, 0.056 [0.055, 0.058], among those that meet the constraints of not worse and of the screen.
 
-### The chosen rule's constraints on new children
-
-The chance each constraint holds on as many new children, the likeliest to fail first: the value there falls around the value here with the standard error its interval shows, and a check of not worse holds where the worse end of its interval does. The chance all 46 hold, taken as independent: 15.6 %.
-
-| Constraint | Generator | Measure | Value | Bound | Chance it holds |
-|---|---|---|---:|---:|---:|
-| the rank's changes in answers 6–20 no more than the service's in answers 6–20 | G0 | r8_rank_6_20 | 3.667 | 3.667 | 50.0 % |
-| the rank's changes in answers 6–20 no more than the service's in answers 6–20 | G2-half | r8_rank_6_20 | 3.633 | 3.633 | 50.0 % |
-| not worse than the service | G6 | r1_rms_200 | 0.011 | 0.015 | 62.3 % |
-| not worse than the service | G4 | r1_rms_200 | 0.001 | 0.013 | 100.0 % |
-| not worse than the service | G0-exact | r3_inside | 0.001 | 0.010 | 100.0 % |
-| not worse than the service | G0-miss0.25 | r1_rms_200 | -0.004 | 0.010 | 100.0 % |
-| not worse than the service | G5 | r1_rms_200 | -0.005 | 0.011 | 100.0 % |
-| not worse than the service | G0-miss1 | r1_rms_200 | -0.005 | 0.011 | 100.0 % |
-
 ### Every rule against the main step of the highest score
 
 The main step of the highest score, whatever it meets: uncertain_v0.13_s0.7_qt0.003_qd0.006_L0.3/both, 0.255 [0.251, 0.259]. Its score less every other rule's, on the same children:

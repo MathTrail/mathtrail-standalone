@@ -814,7 +814,8 @@
 /* How a rank moved over a while: a line under the course, in the colour of
    the move's way and after its arrow, or plain where nothing moved; and the
    same colours for a topic's word of its move, and for the counts by the
-   title of the topics. A line with nothing to say takes no room. */
+   title of the topics. A line with nothing to say takes no room, and stays
+   where a screen reader hears it once it has something to say. */
 .mt-rank-move {
 	margin: 0;
 	font-size: 15px;
@@ -823,7 +824,11 @@
 	color: var(--text-muted);
 }
 .mt-rank-move:empty {
-	display: none;
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
 }
 .mt-move-arrow {
 	margin-inline-end: 0.3em;

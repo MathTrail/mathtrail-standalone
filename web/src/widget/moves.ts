@@ -50,23 +50,28 @@ export function moveOver(moves: Moves, period: Period): Move | null {
 }
 
 /**
+ * Moved is how a rank that moved did: a rank up, forward or back within its
+ * rank, or a rank down.
+ */
+export type Moved = "rank_up" | "forward" | "back" | "rank_down";
+
+/**
  * Reading is a move as the card draws it: a while that cannot be told; no
- * move; a topic first answered in it; a move one way, from the rank and the
- * share it stood at, and whether the rank itself changed; or a word this card
- * does not know, or a move it cannot draw, which draws nothing.
+ * move; a topic first answered in it; a move, with the rank and the share it
+ * stood at; or a word this card does not know, or a move it cannot draw, which
+ * draws nothing.
  */
 export type Reading =
 	| { kind: "untold" }
 	| { kind: "same" }
 	| { kind: "new" }
-	| {
-			kind: "moved";
-			way: MoveWay;
-			ranked: boolean;
-			rank: number;
-			share: number;
-	  }
+	| { kind: "moved"; moved: Moved; rank: number; share: number }
 	| { kind: "unknown" };
+
+/** wayOf is which way a rank that moved went: up, or back. */
+export function wayOf(moved: Moved): MoveWay {
+	return moved === "rank_up" || moved === "forward" ? "gain" : "loss";
+}
 
 /** readingOf is a move as the card draws it. */
 export function readingOf(move: Move | null): Reading {
@@ -87,11 +92,7 @@ export function readingOf(move: Move | null): Reading {
 			}
 			return {
 				kind: "moved",
-				way:
-					move.moved === "rank_up" || move.moved === "forward"
-						? "gain"
-						: "loss",
-				ranked: move.moved === "rank_up" || move.moved === "rank_down",
+				moved: move.moved,
 				rank: move.rank,
 				share: move.share,
 			};
@@ -113,7 +114,7 @@ export function movesCounted(readings: readonly Reading[]): {
 	for (const reading of readings) {
 		if (
 			reading.kind === "new" ||
-			(reading.kind === "moved" && reading.way === "gain")
+			(reading.kind === "moved" && wayOf(reading.moved) === "gain")
 		) {
 			up++;
 		} else if (reading.kind === "moved") {

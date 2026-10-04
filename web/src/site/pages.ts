@@ -1,6 +1,7 @@
 import type { VNode } from "preact";
 import type { SiteData } from "./data";
 import type { PageReader } from "./reader";
+import { topicPage } from "./TopicPage";
 import { TopicsPage, topicsStyle } from "./TopicsPage";
 
 /**
@@ -24,9 +25,17 @@ export type Page = {
 
 /**
  * sitePages are the pages a component draws, by the name their words' file
- * has in every language — topics for topics.yaml. A file of words that no
- * component draws stops the build.
+ * has in every language: topics for topics.yaml, and topics/<slug> for the
+ * page of a topic of the catalog, which one template draws for every topic.
+ * Which topics have a page is for their words to say, and for the catalog to
+ * agree with; a file of words that no component draws stops the build.
  */
-export const sitePages: ReadonlyMap<string, Page> = new Map([
-	["topics", { draw: TopicsPage, card: true, style: topicsStyle }],
-]);
+export function sitePages(data: SiteData): ReadonlyMap<string, Page> {
+	return new Map<string, Page>([
+		["topics", { draw: TopicsPage, card: true, style: topicsStyle }],
+		...data.topics.all.map((topic): [string, Page] => [
+			`topics/${topic.slug}`,
+			topicPage(topic),
+		]),
+	]);
+}

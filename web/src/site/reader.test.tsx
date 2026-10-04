@@ -152,3 +152,34 @@ describe("the words a page reads", () => {
 		expect(unread()).toEqual(["lead", "drawing"]);
 	});
 });
+
+describe("whether a page's words hold a part", () => {
+	const source = [
+		"examples:",
+		"  - question: Q1",
+		"    note:",
+		"      title: N",
+		"  - question: Q2",
+	].join("\n");
+
+	test("is told of a text and of a section of texts, and of nothing they only begin like", () => {
+		const { page } = reader(source);
+
+		expect(page.has("examples.1.question")).toBe(true);
+		expect(page.has("examples.1.note")).toBe(true);
+		expect(page.has("examples.2.note")).toBe(false);
+		expect(page.has("examples.1.not")).toBe(false);
+	});
+
+	test("reads nothing of what it finds", () => {
+		const { page, unread } = reader(source);
+
+		page.has("examples.1.note");
+
+		expect(unread()).toEqual([
+			"examples.1.question",
+			"examples.1.note.title",
+			"examples.2.question",
+		]);
+	});
+});

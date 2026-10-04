@@ -17,5 +17,21 @@
 	"topics.opens": "Открывает: {topics}",
 	"topics.grades": "{range} класс",
 	"topics.more": "Подробнее →",
-	"topics.soon": "Скоро"
+	"topics.soon": "Скоро",
+	"topic.path": "Вы здесь",
+	"topic.method": "Главный приём",
+	"topic.teaches": "Чему учит",
+	"topic.contents": "На странице",
+	"topic.solving": "Как решают",
+	"topic.example": "Пример {number} · {grades}",
+	"topic.answer": "Ответ",
+	"topic.traps": "Где ошибаются",
+	"topic.traps_lead": "MathTrail разбирает каждый неверный ответ по названной ловушке. Вот главные в этой теме — и что можно сказать ребёнку.",
+	"topic.trap": "Ловушка",
+	"topic.say": "Что сказать",
+	"topic.home": "Как помочь дома",
+	"topic.before": "Сначала",
+	"topic.after": "Открывает",
+	"topic.ask": "Попросите задачу на эту тему",
+	"topic.all": "Все темы"
 }

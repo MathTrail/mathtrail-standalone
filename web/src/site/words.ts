@@ -41,3 +41,25 @@ export const SiteWords = createContext<Words<SiteKey>>(
 export function useSiteWords(): Words<SiteKey> {
 	return useContext(SiteWords);
 }
+
+/**
+ * groupKey is the site's word for the name of a group of topics, which the
+ * page of the topics says, and so does the page of every topic in the group.
+ */
+export function groupKey(group: { readonly id: string }): SiteKey {
+	return `group.${group.id}` as SiteKey;
+}
+
+/**
+ * gradesText is how words say a span of grades, "Grades 3–6", its numbers
+ * written the way their language writes numbers.
+ */
+export function gradesText(
+	words: Words<SiteKey>,
+	[first, last]: readonly [number, number],
+): string {
+	const numbers = new Intl.NumberFormat(words.locale);
+	return words.text("topics.grades", {
+		range: `${numbers.format(first)}–${numbers.format(last)}`,
+	});
+}

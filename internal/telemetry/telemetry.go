@@ -325,18 +325,3 @@ func ErrorHandler(log *zap.Logger) otel.ErrorHandler {
 		log.Error("telemetry_failed", zap.Error(err))
 	})
 }
-
-// sampler keeps a trace at the configured share, whatever the request it
-// arrived in says about it. That decision is not the platform's alone: a
-// client sets it in the header too, and one asking for every request to be
-// traced would be choosing what this service spends on traces and how long
-// its callers wait for deliveries. A span of our own follows its parent, so a
-// trace is kept or dropped whole, and the share is read off the trace's own
-// identifier, so every process a trace passes through decides it alike.
-func sampler(ratio float64) sdktrace.Sampler {
-	share := sdktrace.TraceIDRatioBased(ratio)
-	return sdktrace.ParentBased(share,
-		sdktrace.WithRemoteParentSampled(share),
-		sdktrace.WithRemoteParentNotSampled(share),
-	)
-}

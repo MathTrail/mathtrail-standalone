@@ -105,7 +105,7 @@ export function readTopics(
 			id: topic.id,
 			slug: topic.slug,
 			sitePage: topic.site_page,
-			grades: gradesOf(topic),
+			grades: gradesOf(topic.grade_levels),
 			layer: layerOf(topic.id),
 			bases: inOrder(topic.builds_on),
 			opens: opensOf(topic.id),
@@ -120,12 +120,12 @@ export function readTopics(
 	};
 }
 
-// gradesOf is the first and the last grade of the levels a topic is taught
-// at, each level written as a span of grades: 3-4.
-function gradesOf(topic: CatalogTopic): [number, number] {
-	const grades = topic.grade_levels.flatMap((level) =>
-		level.split("-").map(Number),
-	);
+/**
+ * gradesOf is the first and the last grade of levels, each written as a span
+ * of grades, as the catalog writes the levels a topic is taught at: 3-4.
+ */
+export function gradesOf(levels: readonly string[]): [number, number] {
+	const grades = levels.flatMap((level) => level.split("-").map(Number));
 	return [Math.min(...grades), Math.max(...grades)];
 }
 
@@ -136,22 +136,12 @@ function checkGroups(
 	catalog: readonly CatalogTopic[],
 	groups: readonly Group[],
 ): void {
-	const slugs = new Set(catalog.map((topic) => topic.slug));
 	const known = new Set(catalog.map((topic) => topic.id));
+	const anchors = new Set(catalog.map((topic) => topic.slug));
 	const groupOf = new Map<string, string>();
-	const names = new Set<string>();
 	for (const { id, topics } of groups) {
-		if (!groupName.test(id)) {
-			throw new Error(
-				`the group ${JSON.stringify(id)} is no anchor: a group is called by lowercase words joined by dashes`,
-			);
-		}
-		if (names.has(id) || slugs.has(id)) {
-			throw new Error(
-				`the group ${id} shares its name with another anchor of the page of the topics`,
-			);
-		}
-		names.add(id);
+		checkGroupName(id, anchors);
+		anchors.add(id);
 		if (topics.length === 0) {
 			throw new Error(`the group ${id} holds no topic`);
 		}
@@ -173,5 +163,20 @@ function checkGroups(
 	const left = catalog.find((topic) => !groupOf.has(topic.id));
 	if (left !== undefined) {
 		throw new Error(`the topic ${left.id} is in no group`);
+	}
+}
+
+// checkGroupName refuses a group's name that is no anchor, and one that an
+// anchor of the page of the topics already has: a topic's or another group's.
+function checkGroupName(id: string, anchors: ReadonlySet<string>): void {
+	if (!groupName.test(id)) {
+		throw new Error(
+			`the group ${JSON.stringify(id)} is no anchor: a group is called by lowercase words joined by dashes`,
+		);
+	}
+	if (anchors.has(id)) {
+		throw new Error(
+			`the group ${id} shares its name with another anchor of the page of the topics`,
+		);
 	}
 }

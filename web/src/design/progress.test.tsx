@@ -171,17 +171,13 @@ describe("a course that moved", () => {
 
 describe("how a rank moved", () => {
 	test("is a line in the colour of its way, after an arrow a screen reader does not read, and read out whenever it changes", () => {
-		draw(
-			<MoveLine way="loss" text="The last task moved the bar back a little" />,
-		);
+		draw(<MoveLine way="loss" text="The last task moved the bar back" />);
 
 		const line = root.querySelector(".mt-rank-move");
 		expect(line?.getAttribute("data-way")).toBe("loss");
 		expect(line?.getAttribute("aria-live")).toBe("polite");
 		expect(line?.querySelector("[aria-hidden='true']")?.textContent).toBe("↓");
-		expect(line?.textContent).toBe(
-			"↓The last task moved the bar back a little",
-		);
+		expect(line?.textContent).toBe("↓The last task moved the bar back");
 	});
 
 	test("is a plain line where nothing moved, and an empty one with nothing to say", () => {

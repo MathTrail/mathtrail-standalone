@@ -102,12 +102,14 @@ describe("the site built from this repository", () => {
 			"en/privacy/index.html",
 			"en/terms/index.html",
 			"en/topics/index.html",
+			"en/topics/knights-and-liars/index.html",
 			"index.html",
 			"robots.txt",
 			"ru/index.html",
 			"ru/privacy/index.html",
 			"ru/terms/index.html",
 			"ru/topics/index.html",
+			"ru/topics/knights-and-liars/index.html",
 			"sitemap.xml",
 		]);
 	});
@@ -192,6 +194,27 @@ describe("the site built from this repository", () => {
 			expect(lines).toHaveLength(
 				catalog.reduce((sum, topic) => sum + topic.builds_on.length, 0),
 			);
+		}
+	});
+
+	test("draws the page of every topic the catalog publishes, which the page of the topics leads to", async () => {
+		const published = catalog.filter((topic) => topic.site_page);
+		expect(published).not.toEqual([]);
+		for (const locale of ["en", "ru"]) {
+			const topics = await readFile(
+				join(out, locale, "topics", "index.html"),
+				"utf8",
+			);
+			for (const { slug } of published) {
+				const html = await readFile(
+					join(out, locale, "topics", slug, "index.html"),
+					"utf8",
+				);
+
+				expect(topics).toContain(`href="/${locale}/topics/${slug}/"`);
+				expect(html).toContain(`<section id="traps"`);
+				expect(html).toContain(`<section id="home"`);
+			}
 		}
 	});
 

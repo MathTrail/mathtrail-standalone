@@ -22,6 +22,7 @@ import type { Host } from "./bridge";
 import { CardRoot } from "./CardRoot";
 import { type Folds, type Section, useFolds } from "./folds";
 import {
+	type Moved,
 	moveOver,
 	movesCounted,
 	type Period,
@@ -30,6 +31,7 @@ import {
 	type Reading,
 	readingOf,
 	usePeriod,
+	wayOf,
 } from "./moves";
 import { listed, rankCount, rankName, topicName, trapName } from "./names";
 import { ParentData, ParentProfile } from "./ProfileScreen";
@@ -42,8 +44,8 @@ const recentShown = 5;
 /**
  * ProgressCard is the card of the child's progress, drawn when the model
  * reads it. No task stands behind it, so it has no way back to one; its
- * sections stay as they were opened, and its moves over the while chosen,
- * for as long as the card is drawn.
+ * sections stay as they were opened for as long as the card is drawn, and the
+ * screen keeps the while its moves are drawn over itself.
  */
 export function ProgressCard({
 	report,
@@ -53,17 +55,10 @@ export function ProgressCard({
 	host: Host;
 }) {
 	const folds = useFolds();
-	const period = usePeriod();
 	return (
 		<CardRoot>
 			{(wide) => (
-				<ProgressScreen
-					report={report}
-					wide={wide}
-					host={host}
-					folds={folds}
-					period={period}
-				/>
+				<ProgressScreen report={report} wide={wide} host={host} folds={folds} />
 			)}
 		</CardRoot>
 	);
@@ -106,8 +101,7 @@ export function ProgressScreen({
 	const own = usePeriod();
 	const choice = period ?? own;
 	const { recommendation } = report;
-	const moves =
-		report.trial === null ? (report.overall?.change ?? undefined) : undefined;
+	const moves = report.trial === null ? report.overall?.change : undefined;
 	const shown =
 		moves === undefined ? undefined : periodShown(choice.chosen, moves);
 	const rows = topicRows(words, report, shown);
@@ -316,18 +310,9 @@ function Standing({
 	);
 }
 
-// MoveKind is what a line says of a while: how the rank moved, or that the
-// while cannot be told.
-type MoveKind =
-	| "rank_up"
-	| "forward"
-	| "same"
-	| "back"
-	| "rank_down"
-	| "untold";
-
-// The words of each while's line, by what it says.
-const moveLines: Record<Period, Record<MoveKind, Key>> = {
+// The words of each while's line, by what it says: how the rank moved, that
+// it stayed, or that the while cannot be told.
+const moveLines: Record<Period, Record<Moved | "same" | "untold", Key>> = {
 	week: {
 		rank_up: "progress.week_rank_up",
 		forward: "progress.week_forward",
@@ -360,25 +345,16 @@ function moveLineOf(
 	const said = moveLines[period];
 	switch (reading.kind) {
 		case "untold":
-			return { text: words.text(said.untold) };
 		case "same":
-			return { text: words.text(said.same) };
-		case "moved": {
-			const gain = reading.way === "gain";
-			if (!reading.ranked) {
-				return {
-					way: reading.way,
-					text: words.text(gain ? said.forward : said.back),
-				};
-			}
+			return { text: words.text(said[reading.kind]) };
+		case "moved":
 			return {
-				way: reading.way,
-				text: words.text(gain ? said.rank_up : said.rank_down, {
+				way: wayOf(reading.moved),
+				text: words.text(said[reading.moved], {
 					from: rankName(words, reading.rank),
 					to: rankName(words, rank),
 				}),
 			};
-		}
 		default:
 			return {};
 	}
@@ -465,6 +441,14 @@ function topicRows(
 	});
 }
 
+// The word of each way a topic moved by its own answers.
+const movedWords: Record<Moved, Key> = {
+	rank_up: "progress.note_rank_up",
+	forward: "progress.note_forward",
+	back: "progress.note_back",
+	rank_down: "progress.note_rank_down",
+};
+
 // movedWord is the word of how a topic moved by its own answers, with the
 // move's way: a rank up or down, forward or back within its rank, or new to
 // the while; none where it did not move or the while cannot be told.
@@ -478,15 +462,10 @@ function movedWord(
 	if (reading?.kind !== "moved") {
 		return undefined;
 	}
-	const gain = reading.way === "gain";
-	const key: Key = reading.ranked
-		? gain
-			? "progress.note_rank_up"
-			: "progress.note_rank_down"
-		: gain
-			? "progress.note_forward"
-			: "progress.note_back";
-	return { word: words.text(key), way: reading.way };
+	return {
+		word: words.text(movedWords[reading.moved]),
+		way: wayOf(reading.moved),
+	};
 }
 
 // rowsMoved is how many topics moved up over the while shown and how many
