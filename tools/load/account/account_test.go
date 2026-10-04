@@ -49,6 +49,9 @@ type authority struct {
 	refresh   string
 	expiresIn int
 	bearers   []string
+	// renewed, when set, is called as a renewal of the tokens arrives, before
+	// it is answered.
+	renewed func()
 }
 
 // newAuthority starts the stand-in, whose access tokens last the seconds
@@ -164,6 +167,9 @@ func (a *authority) token(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		a.renewals++
+		if a.renewed != nil {
+			a.renewed()
+		}
 	default:
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "unsupported_grant_type"})
 		return
@@ -515,16 +521,26 @@ func TestStrayRequestsAtTheWayBackChangeNothing(t *testing.T) {
 }
 
 // A renewed token that cannot be written is still used: the run goes on with
-// it, and the account says why it was not kept.
+// it, and the account says why it was not kept. Here the account's file has
+// turned into a directory by the time the renewal comes back, and nobody can
+// write a file over a directory — not even root, whom a directory that only
+// forbids writing would not stop.
 func TestARenewedTokenThatCannotBeKeptIsUsedAndTold(t *testing.T) {
 	t.Parallel()
 
 	a := newAuthority(t, 900)
 	dir := signedInAt(t, a)
-	if err := os.Chmod(dir, 0o500); err != nil {
-		t.Fatalf("make the accounts' directory read-only: %v", err)
+	file := filepath.Join(dir, "parent.json")
+	a.mu.Lock()
+	a.renewed = func() {
+		if err := os.Remove(file); err != nil {
+			t.Errorf("take the account's file away: %v", err)
+		}
+		if err := os.Mkdir(file, 0o700); err != nil {
+			t.Errorf("put a directory where the account's file was: %v", err)
+		}
 	}
-	t.Cleanup(func() { _ = os.Chmod(dir, 0o700) })
+	a.mu.Unlock()
 
 	loaded, err := account.Load(dir, "parent", a.url(), 20*time.Minute)
 	if err != nil {
