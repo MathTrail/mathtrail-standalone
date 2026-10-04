@@ -101,12 +101,12 @@ The most a minute by the clock held, the minute a pace is counted over. An accou
 
 ## The rules of the log
 
-Every line of the service's is held to an event the service is decided to write, to the fields decided for that event, and to carrying nothing shaped like an email address. A line that breaks one is named by its event and its field, never by what it held.
+Every line of the service's is held to an event the service is decided to write, to the fields decided for that event, and to carrying nothing shaped like an email address. A line that breaks one is named by its event and its field, never by what it held: an event the table does not name is not named, since its words may be anything.
 
 | Event | Field | Rule | Lines |
 |---|---|---|---:|
+| (an event not in the table) | (none) | an event the service is not decided to write | 1 |
 | cimd_fetch | host | text shaped like an email address | 1 |
 | limit_hit | (withheld) | a field its event is not decided to carry | 1 |
 | limit_hit | (withheld) | text shaped like an email address | 1 |
-| made_up_event | (none) | an event the service is not decided to write | 1 |
 | tool_call | pseudonym | a field its event is not decided to carry | 1 |

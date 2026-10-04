@@ -123,6 +123,18 @@ describe("a course that moved", () => {
 		},
 	);
 
+	test("draws a move seen on the steps it crossed as it is, and nothing past its edge", () => {
+		draw(
+			<Segments of={3} filled={1} part={0} was={{ filled: 0, part: 0.8 }} />,
+		);
+
+		expect(striped()).toEqual([
+			["80%", "100%", "mt-stripes mt-stripes-gain"],
+			["0%", null, null],
+			["0%", null, null],
+		]);
+	});
+
 	test("shows a rank just reached, at the start of its step", () => {
 		draw(
 			<Segments of={3} filled={1} part={0} was={{ filled: 0, part: 0.99 }} />,

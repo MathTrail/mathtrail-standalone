@@ -82,8 +82,8 @@ export function ProgressCard({
  * over — since the last task, or over the week — as period tells, kept by
  * whoever outlives the screen too: how the rank moved, in stripes on its
  * course and in a line under it, and each topic by its own answers, with how
- * many moved each way by the title of the topics. A card drawn once, which no
- * one presses, needs no period, and shows the while chosen for it first. A
+ * many moved each way by the title of the topics. Where nobody outlives the
+ * screen — a card drawn once — it keeps the while chosen itself. A
  * change the parent saves on its form shows at once, the name and the grade at
  * the top among it, and is handed to onSaved.
  */
@@ -103,11 +103,13 @@ export function ProgressScreen({
 	onSaved?: (details: Details) => void;
 }) {
 	const words = useWords();
+	const own = usePeriod();
+	const choice = period ?? own;
 	const { recommendation } = report;
 	const moves =
 		report.trial === null ? (report.overall?.change ?? undefined) : undefined;
 	const shown =
-		moves === undefined ? undefined : periodShown(period?.chosen, moves);
+		moves === undefined ? undefined : periodShown(choice.chosen, moves);
 	const rows = topicRows(words, report, shown);
 	const [profile, setProfile] = useState(report.profile);
 	const skipped =
@@ -141,7 +143,7 @@ export function ProgressScreen({
 								{ value: "week", label: words.text("progress.period_week") },
 							]}
 							value={shown}
-							onChange={(chosen) => period?.choose(chosen)}
+							onChange={choice.choose}
 						/>
 					)}
 					<Standing report={report} moves={moves} shown={shown} />

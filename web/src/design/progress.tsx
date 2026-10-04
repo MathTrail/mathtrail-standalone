@@ -132,10 +132,10 @@ const leastShown = 0.14;
 // drawnStep is how the step at place step is drawn: how much of it is filled,
 // and how far the stripes of a move reach under the fill, from where the
 // course stood at was to where it stands — none when it did not move. A move
-// too small to be seen takes the least part of a step that is, at the edge of
-// the step the course is under way in, so that the drawing never says less
-// than the words beside it: a gain ends at the edge, and a step back starts
-// there.
+// too small to be seen, over all the steps it crosses, takes the least part of
+// a step that is, at the edge of the step the course is under way in, so that
+// the drawing never says less than the words beside it: a gain ends at the
+// edge, and a step back starts there.
 function drawnStep(
 	step: number,
 	filled: number,
@@ -151,7 +151,7 @@ function drawnStep(
 	const within = (at: number) => bounded(at - (step - 1));
 	let fill = within(Math.min(now, then));
 	let stripes = within(Math.max(now, then));
-	if (step === filled + 1) {
+	if (step === filled + 1 && Math.abs(now - then) < leastShown) {
 		const edge = within(now);
 		if (way === "gain") {
 			stripes = Math.max(edge, leastShown);

@@ -27,7 +27,11 @@ func TestALineIsHeldToTheRulesOfTheLog(t *testing.T) {
 				`"request_id":"r1","logging.googleapis.com/trace":"t","user":"u1","instance":"i-1","duration_ms":12}`,
 			nil},
 		{"an event nobody decided on", `{"message":"made_up","anything":"at all"}`,
-			[]breach{{event: "made_up", rule: ruleUnknownEvent}}},
+			[]breach{{event: unknownEvent, rule: ruleUnknownEvent}}},
+		{"an event whose words name a child", `{"message":"hello Masha from 10.1.2.3"}`,
+			[]breach{{event: unknownEvent, rule: ruleUnknownEvent}}},
+		{"a field named otherwise than the service names one", `{"message":"tool_call","Masha":"1"}`,
+			[]breach{{event: "tool_call", field: withheld, rule: ruleUndecided}}},
 		{"a field its event is not decided to carry", `{"message":"tool_call","pseudonym":"Comet"}`,
 			[]breach{{event: "tool_call", field: "pseudonym", rule: ruleUndecided}}},
 		{"an email address in a value", `{"message":"cimd_fetch","host":"alice@school.example"}`,
@@ -49,7 +53,7 @@ func TestALineIsHeldToTheRulesOfTheLog(t *testing.T) {
 				{event: "limit_hit", field: withheld, rule: ruleUndecided},
 			}},
 		{"an event named like one", `{"message":"erin@home.example"}`,
-			[]breach{{event: withheld, field: "message", rule: ruleEmail}, {event: withheld, rule: ruleUnknownEvent}}},
+			[]breach{{event: unknownEvent, field: "message", rule: ruleEmail}, {event: unknownEvent, rule: ruleUnknownEvent}}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
@@ -86,22 +90,25 @@ func TestTheFieldsOfEveryLineAreDecidedForEveryEvent(t *testing.T) {
 	}
 }
 
-// No breach the report writes repeats an email address, whatever a line held
-// and wherever: a name shaped like one is withheld.
-func TestABreachNeverRepeatsAnEmailAddress(t *testing.T) {
+// No breach the report writes repeats what a line held, whatever it held and
+// wherever: its event is one the service is decided to write or says it is
+// not, and its field is named as the service names a field or withheld.
+func TestABreachNeverRepeatsWhatALineHeld(t *testing.T) {
 	t.Parallel()
 
-	words := gen.OneConstOf("tool_call", "limit_hit", "made_up", "user", "query", "pseudonym",
-		"alice@school.example", "bob%40home.example", "carol@work.example", "plain")
+	words := gen.OneConstOf("tool_call", "limit_hit", "made_up", "user", "query", "pseudonym", "hello Masha",
+		"Masha", "10.1.2.3", "alice@school.example", "bob%40home.example", "carol@work.example", "plain")
 	properties := gopter.NewProperties(nil)
-	properties.Property("every event and field of a breach is free of an email address", prop.ForAll(
+	properties.Property("every event and field of a breach is the service's own or stands in for one", prop.ForAll(
 		func(event string, keys, values []string) bool {
 			fields := map[string]any{"message": event}
 			for i, key := range keys {
 				fields[key] = values[i%len(values)]
 			}
 			for _, broken := range audit(fields) {
-				if EmailIn(broken.event) != "" || EmailIn(broken.field) != "" {
+				if (!Known(broken.event) && broken.event != unknownEvent) ||
+					(broken.field != "" && broken.field != withheld && !fieldName.MatchString(broken.field)) ||
+					EmailIn(broken.event) != "" || EmailIn(broken.field) != "" {
 					return false
 				}
 			}

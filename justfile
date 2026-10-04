@@ -919,8 +919,9 @@ ci-smoke url:
 # The report reads what the deployed service logged within the window given —
 # 1d, 7d, 30d, as far back as Cloud Logging keeps it — in the project the
 # Terraform configuration names: every line the service wrote, since the report
-# holds each of them to the rules of the log as well as adding them up. The
-# platform's own record of each request is not the service's, and is left out.
+# holds each of them to the rules of the log as well as adding them up: what it
+# writes on its standard output and its standard error, and none of the
+# platform's own records, of requests or of the instances.
 # The lines are read whole into a file of their own before anything is added
 # up, so that a read that fails — a sign-in that ran out, a right the account
 # lacks — stops here rather than passing for a log with nothing in it. Cloud
@@ -944,7 +945,7 @@ report since="1d" service="mathtrail":
     fi
     project=$(just _project)
     filter='resource.type="cloud_run_revision" AND resource.labels.service_name="{{ service }}"
-        AND NOT log_id("run.googleapis.com/requests")'
+        AND (log_id("run.googleapis.com/stdout") OR log_id("run.googleapis.com/stderr"))'
     entries=$(mktemp)
     trap 'rm -f "$entries"' EXIT
     gcloud logging read "$filter" --project="$project" --freshness="{{ since }}" --format=json > "$entries"

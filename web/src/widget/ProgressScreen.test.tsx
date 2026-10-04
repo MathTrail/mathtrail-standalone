@@ -1,4 +1,8 @@
+import { render } from "preact";
+import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { ProgressScreen } from "./ProgressScreen";
+import { readScreen } from "./payload";
 import { type Drawn, drawCard, foldIn, press, takeDown } from "./testing/card";
 import {
 	atTheTop,
@@ -775,5 +779,47 @@ describe("the moves", () => {
 			expect(root.querySelector(".mt-segment-stripes")).toBeNull();
 			takeDown(root);
 		}
+	});
+});
+
+describe("a progress screen nobody outlives", () => {
+	// stillHost is a host that answers nothing: a screen drawn on its own,
+	// over no card, has nobody to call.
+	const stillHost = {
+		callTool: () => Promise.reject(new Error("no host")),
+		sendMessage: () => Promise.reject(new Error("no host")),
+		tellModel: () => Promise.reject(new Error("no host")),
+	};
+
+	test("keeps the while chosen on its switch itself", () => {
+		const root = document.createElement("div");
+		document.body.append(root);
+		const report = readScreen(moving);
+		if (report?.screen !== "progress") {
+			throw new Error(`the progress reads as ${report?.screen}`);
+		}
+		act(() =>
+			render(
+				<ProgressScreen
+					report={report.report}
+					wide={false}
+					host={stillHost}
+					folds={{ open: new Set(), toggle: () => {} }}
+				/>,
+				root,
+			),
+		);
+
+		chosen(root, "last_task");
+
+		expect(periods(root)).toEqual([
+			["last_task", true],
+			["week", false],
+		]);
+		expect(text(root, ".mt-rank-move")).toBe(
+			"↓The last task moved the bar back a little",
+		);
+		act(() => render(null, root));
+		root.remove();
 	});
 });

@@ -232,7 +232,7 @@ The best main candidate — v_T 0.13, s 0.7, q 0.003 and 0.006, the limit 0.3 �
 
 - the corridor of the child who learns at half speed, by a hair: 41.8 % against at least 42.2 %;
 - the overall rank's changes late in a run: 4.6 in a hundred answers on G0 against the service's 3.7 at the start;
-- not worse on the error after 200 answers, on nine generators: on G0 0.512 against the service's 0.493, past a tolerance of about 0.013;
+- not worse on the error after 200 answers, on nine generators: on G0 0.512 against the service's 0.493, past a tolerance of 0.010;
 - not worse on the corridor, on three generators.
 
 The backup scores 0.245 and meets the learner's goals — a lag of 0.245, 42.6 % in the corridor, 18 % not caught up — but its overall rank changes 12.6 times in a hundred answers early, against the service's 3.7: the uncertainty the five answers of the series leave is near 1, so its first steps are large.

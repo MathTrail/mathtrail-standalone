@@ -2,6 +2,7 @@ package report
 
 import (
 	"cmp"
+	"regexp"
 	"slices"
 )
 
@@ -12,9 +13,19 @@ const (
 	ruleEmail        = "text shaped like an email address"
 )
 
-// withheld stands in a breach for an event or a field whose own name is
-// shaped like an email address: the report repeats no such text.
-const withheld = "(withheld)"
+// What a breach says in place of a name it must not repeat: the words of an
+// event nobody decided on, which may be anything at all, a child's name or an
+// address among them, and a field named otherwise than a field of the service
+// is.
+const (
+	unknownEvent = "(an event not in the table)"
+	withheld     = "(withheld)"
+)
+
+// fieldName is how the service names a field, and a log collector its own
+// keys: a lowercase letter first, then letters, digits, dots, slashes, dashes
+// and underscores.
+var fieldName = regexp.MustCompile(`^[a-z][a-zA-Z0-9_./-]{0,63}$`)
 
 // breach is one way a line breaks the rules of the log: the event, the field
 // and the rule. It names what the line held never.
@@ -26,9 +37,10 @@ type breach struct{ event, field, rule string }
 // any of its values or names.
 func audit(fields map[string]any) []breach {
 	event, _ := fields["message"].(string)
-	label := named(event)
+	label := event
 	var found []breach
 	if !Known(event) {
+		label = unknownEvent
 		found = append(found, breach{event: label, rule: ruleUnknownEvent})
 	}
 	for field, value := range fields {
@@ -48,10 +60,10 @@ func compareBreaches(a, b breach) int {
 	return cmp.Or(cmp.Compare(a.event, b.event), cmp.Compare(a.field, b.field), cmp.Compare(a.rule, b.rule))
 }
 
-// named is a name as a breach gives it: as it is, unless it is itself shaped
-// like an email address.
+// named is a field's name as a breach gives it: as it is when it is named the
+// way the service names a field, and withheld otherwise.
 func named(name string) string {
-	if EmailIn(name) != "" {
+	if !fieldName.MatchString(name) {
 		return withheld
 	}
 	return name

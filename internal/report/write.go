@@ -44,7 +44,8 @@ func write(out io.Writer, c *counts) error {
 		{"The busiest minute", c.busyAbout(), c.busyTable()},
 		{"The rules of the log", "Every line of the service's is held to an event the service is decided to " +
 			"write, to the fields decided for that event, and to carrying nothing shaped like an email address. A " +
-			"line that breaks one is named by its event and its field, never by what it held.", c.breachesTable()},
+			"line that breaks one is named by its event and its field, never by what it held: an event the table " +
+			"does not name is not named, since its words may be anything.", c.breachesTable()},
 	} {
 		fmt.Fprintf(&report, "\n## %s\n\n%s\n\n", section.title, section.about)
 		section.table.writeTo(&report)
@@ -299,14 +300,18 @@ func (t *table) writeTo(b *strings.Builder) {
 }
 
 // writeRow writes one row of a table. A cell with nothing in it says so, and
-// a bar in a cell stays in the cell.
+// a bar or a line break in a cell stays in the cell.
 func writeRow(b *strings.Builder, cells []string) {
 	written := make([]string, len(cells))
 	for i, cell := range cells {
-		written[i] = cmp.Or(strings.ReplaceAll(cell, "|", `\|`), "(none)")
+		written[i] = cmp.Or(inACell.Replace(cell), "(none)")
 	}
 	b.WriteString("| " + strings.Join(written, " | ") + " |\n")
 }
+
+// inACell keeps a text inside the cell of a table: a bar is written as a bar,
+// not a border, and a line break as a space, not the end of the row.
+var inACell = strings.NewReplacer("|", `\|`, "\r\n", " ", "\n", " ", "\r", " ")
 
 // number is a whole number as the report writes it.
 func number[T int | int64](n T) string { return strconv.FormatInt(int64(n), 10) }

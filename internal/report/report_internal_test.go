@@ -353,3 +353,16 @@ func TestLinesWithNoTimeAreSaidToHaveNone(t *testing.T) {
 		t.Errorf("the report begins %q, want it to say the lines have no time", out.String()[:min(out.Len(), 120)])
 	}
 }
+
+// A text in a cell of a table stays in its cell and its row: a bar is written
+// as a bar and a line break as a space, so neither starts a cell or a row of
+// its own, and a cell with nothing in it says so.
+func TestATextStaysInItsCell(t *testing.T) {
+	t.Parallel()
+
+	var b strings.Builder
+	writeRow(&b, []string{"a|b", "first\nsecond\r\nthird\rfourth", ""})
+	if got, want := b.String(), "| a\\|b | first second third fourth | (none) |\n"; got != want {
+		t.Errorf("writeRow() = %q, want %q", got, want)
+	}
+}
