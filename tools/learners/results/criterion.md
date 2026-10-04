@@ -15,6 +15,7 @@ No candidate meets every constraint and is better than the service. **The exit: 
 | Rule | Score | Constraints met | Not met | Unread |
 |---|---:|---:|---:|---:|
 | shrinking/both (the service) | 0.000 [0.000, 0.000] | 46 of 49 | 3 | 0 |
+| earlier/both (the service's earlier rule) | -0.069 [-0.074, -0.063] | 37 of 49 | 12 | 0 |
 | constant/both | 0.172 [0.163, 0.181] | 22 of 49 | 27 | 0 |
 | constant_slow/both | 0.100 [0.094, 0.106] | 43 of 49 | 6 | 0 |
 | floor_0.05/both | 0.000 [0.000, 0.000] | 46 of 49 | 3 | 0 |
@@ -43,6 +44,7 @@ Every rule's value against each goal's bound, and whether its interval reaches t
 | Rule | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | shrinking/both (the service) | 0.538, not reached | 0.375, not reached | 0.568, not reached | 73.000, on the edge | 3.813, on the edge | 41.000, reached | 1.633, reached | 73.000, reached | 3.600, on the edge | 40.000, reached | 1.673, reached |
+| earlier/both (the service's earlier rule) | 0.609, not reached | 0.357, not reached | 0.711, not reached | 73.000, on the edge | 3.813, on the edge | 37.000, reached | 0.629, reached | 73.000, reached | 3.600, on the edge | 36.000, reached | 0.502, reached |
 | constant/both | 0.279, not reached | 0.407, not reached | 0.108, reached | 84.000, not reached | 6.940, not reached | 84.000, not reached | 7.059, not reached | 84.000, not reached | 6.267, not reached | 84.000, not reached | 6.947, not reached |
 | constant_slow/both | 0.417, not reached | 0.395, not reached | 0.327, not reached | 42.000, reached | 2.960, reached | 42.000, reached | 3.631, on the edge | 42.000, reached | 2.747, reached | 42.000, reached | 3.316, on the edge |
 | floor_0.05/both | 0.538, not reached | 0.375, not reached | 0.568, not reached | 73.000, on the edge | 3.813, on the edge | 41.000, reached | 1.633, reached | 73.000, reached | 3.600, on the edge | 40.000, reached | 1.673, reached |
@@ -59,6 +61,7 @@ What of not worse each rule does not meet, or the run cannot read: its differenc
 | Rule | Checks met | Not met or unread |
 |---|---:|---|
 | shrinking/both (the service) | 38 of 38 |  |
+| earlier/both (the service's earlier rule) | 29 of 38 | G2 r1_rms_200 0.232 [0.223, 0.241] against 0.024; G2 r3_inside -0.018 [-0.021, -0.015] against 0.010; G3 r1_rms_200 0.109 [0.100, 0.118] against 0.023; G3 r3_inside -0.015 [-0.018, -0.012] against 0.010; G2-half r1_rms_200 0.097 [0.088, 0.105] against 0.021; G2-half r3_inside -0.017 [-0.020, -0.014] against 0.010; G2-fading r1_rms_200 0.049 [0.041, 0.058] against 0.019; G2-fading r3_inside -0.015 [-0.018, -0.012] against 0.010; G3-drop r1_rms_200 0.132 [0.121, 0.143] against 0.021 |
 | constant/both | 21 of 38 | G0 r1_rms_200 0.117 [0.105, 0.129] against 0.017; G1 r1_rms_200 0.080 [0.068, 0.092] against 0.017; G4 r1_rms_200 0.109 [0.095, 0.125] against 0.021; G5 r1_rms_200 0.113 [0.099, 0.126] against 0.018; G6 r1_rms_200 0.130 [0.110, 0.150] against 0.023; G7 r1_rms_200 0.110 [0.097, 0.124] against 0.018; G8 r1_rms_200 0.112 [0.100, 0.125] against 0.015; G0-exact r1_rms_200 0.115 [0.104, 0.126] against 0.015; G0-exact r3_inside -0.030 [-0.037, -0.022] against 0.013; G0-miss0.25 r1_rms_200 0.127 [0.116, 0.139] against 0.016; G0-miss0.25 r3_inside -0.028 [-0.033, -0.023] against 0.010; G0-miss1 r1_rms_200 0.103 [0.088, 0.117] against 0.019; G3-drop r1_rms_200 0.049 [0.036, 0.063] against 0.021; G0-start0.5 r1_rms_200 0.108 [0.097, 0.120] against 0.015; G0-start2 r1_rms_200 0.095 [0.082, 0.108] against 0.017; G0-topics0.3 r1_rms_200 0.137 [0.125, 0.149] against 0.017; G0-topics0.3 r3_inside -0.016 [-0.020, -0.012] against 0.010 |
 | constant_slow/both | 35 of 38 | G5 r1_rms_200 0.029 [0.021, 0.037] against 0.018; G0-topics1 r1_rms_200 0.044 [0.036, 0.052] against 0.017; G0-topics1 r3_inside -0.020 [-0.023, -0.016] against 0.010 |
 | floor_0.05/both | 38 of 38 |  |

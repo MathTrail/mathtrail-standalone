@@ -34,10 +34,14 @@ func steps(tune func(s *stepRule)) func(c *child, start float64) estimator {
 
 // cellsOf are every cell of a run of these rules: every rule on every
 // generator.
-func cellsOf(rules []*rule) []cell {
+func cellsOf(rules []*rule) []cell { return cellsOn(rules, allGenerators) }
+
+// cellsOn are the cells of these rules on these generators, every rule on
+// every one of them.
+func cellsOn(rules []*rule, gens []generator) []cell {
 	var all []cell
 	for _, r := range rules {
-		for _, g := range allGenerators {
+		for _, g := range gens {
 			all = append(all, cell{rule: r, generator: g})
 		}
 	}

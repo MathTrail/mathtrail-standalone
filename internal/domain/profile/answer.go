@@ -264,7 +264,7 @@ func (p *Profile) apply(task *CurrentTask, answer *Answered, secret *TaskSecret,
 	recorded.Pace = paceOf(task.IssuedAt.Time, answer.At)
 	recorded.Mastered, recorded.Unmastered = topic.master(&judged{
 		correct: correct, hint: answer.HintUsed, at: answer.At, probability: probability,
-		task: task.GradeLevel, taught: taught, standing: p.Ratings.Theta + topic.Delta, answers: p.Ratings.Answers,
+		task: task.GradeLevel, taught: taught, moved: moved,
 	})
 	p.putTopic(task.Topic, &topic)
 
@@ -375,16 +375,15 @@ func (p *Profile) clearEarlierMasteries() {
 
 // judged is an answer as mastery reads it: whether it was right and unaided,
 // when it came, the chance its task was handed out at, the level of its task
-// and the levels its topic is taught at, where the child stands in the topic
-// once it has moved the levels, and on how many answers in all.
+// and the levels its topic is taught at, and the levels and counts as the
+// answer left them.
 type judged struct {
 	correct, hint bool
 	at            time.Time
 	probability   float64
 	task          rating.GradeLevel
 	taught        []rating.GradeLevel
-	standing      float64
-	answers       int
+	moved         rating.State
 }
 
 // master moves the two runs this topic keeps and reports whether the answer
@@ -422,7 +421,7 @@ func (t *Topic) master(j *judged) (mastered, unmastered bool) {
 	if !j.correct || j.hint || t.Answers < MasteryAnswers {
 		return false, false
 	}
-	level, clears := rating.MasteredAt(j.standing, j.answers, t.Answers, j.task, j.taught)
+	level, clears := rating.MasteredAt(j.moved.Level(), j.moved.Answers, j.moved.TopicAnswers, j.task, j.taught)
 	if !clears || t.masteredAtOrAbove(level) {
 		return false, false
 	}

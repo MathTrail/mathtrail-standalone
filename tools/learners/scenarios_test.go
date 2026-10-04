@@ -216,10 +216,11 @@ func TestTheHeldOutAndTheSweepsSeedsDrawOtherChildren(t *testing.T) {
 // A command line that asks for two things at once is refused: a set of rules
 // that draws children of its own and a seed or a name besides, or the
 // held-out children and a set of rules other than the confirmation, which is
-// all they are run on. One that names no set is refused too, and a decision
-// run goes to its own directory on the working children. The test sets the
-// seed and the name every other test draws with, so it does not run beside
-// them.
+// all they are run on. One that names no set is refused too, and so is one
+// with words after its flags, such as a guard asked for after them, which a
+// run would otherwise pass over; a decision run goes to its own directory on
+// the working children. The test sets the seed and the name every other test
+// draws with, so it does not run beside them.
 func TestACommandLineAskingForTwoThingsAtOnceIsRefused(t *testing.T) {
 	t.Cleanup(func() { masterSeed, experiment = paperSeed, paperExperiment })
 	if out, _, err := parse([]string{"-held-out", "-out", ""}, io.Discard); err != nil || out != "" {
@@ -235,6 +236,9 @@ func TestACommandLineAskingForTwoThingsAtOnceIsRefused(t *testing.T) {
 	}
 	if _, _, err := parse([]string{"-rules", "nothing"}, io.Discard); err == nil {
 		t.Error("parse with a set of rules nobody named = nil error, want one")
+	}
+	if _, _, err := parse([]string{"-out", "results", guardCommandName}, io.Discard); !errors.Is(err, errArguments) {
+		t.Errorf("parse with the guard asked for after the flags: error %v, want %v", err, errArguments)
 	}
 	if out, d, err := parse([]string{"-rules", "decision", "-children", "4000"}, io.Discard); err != nil || out != filepath.Join("results", "decision") ||
 		d.set != "decision" || masterSeed != paperSeed || experiment != paperExperiment {

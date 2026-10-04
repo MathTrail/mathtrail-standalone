@@ -1462,6 +1462,19 @@ learners *args:
 learners-test:
     go test ./... -race -count=1
 
+# The guard runs the service's path on the first 300 children of the paper's
+# run of each of G0 to G3 and holds the numbers its student model was chosen
+# by within two half-widths of the intervals recorded in
+# tools/learners/testdata/guard.csv, printing a table of them in Markdown; it
+# fails naming each number outside its band. `just ci-learners -update`
+# records the bands again, when a change means to move the model: its diff is
+# read before it is kept.
+# Hold the service's student model to the bands of the learners' bench's guard
+[positional-arguments]
+[working-directory('tools/learners')]
+ci-learners *args:
+    go run . guard "$@"
+
 # The learners' bench's formatting, lint, licenses, known vulnerabilities, and the versions it shares with the service
 learners-lint: (_tool-lint "learners")
 

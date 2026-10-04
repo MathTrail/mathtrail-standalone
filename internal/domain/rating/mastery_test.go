@@ -12,12 +12,12 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
-// The uncertainty of the worked examples, as the specification prints it: of a
-// child of 80 answers in a topic of 10, past the floor of the step, and of one
-// of 9 answers in a topic of 7, too new to call anything mastered. Before any
+// The uncertainty at three counts, worked out by hand: of a child of 80
+// answers in a topic of 10, past the floor of the step, and of one of 9
+// answers in a topic of 7, too new to call anything mastered. Before any
 // answer it is the trial series' spread squared and a topic's twenty answers'
 // worth.
-func TestTheUncertaintyOfTheSpecification(t *testing.T) {
+func TestTheUncertaintyAtCountsWorkedOutByHand(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []struct {

@@ -12,8 +12,8 @@ import {
 	type Editing,
 	editingAfter,
 	notEditing,
-	sendEdit,
 } from "./editing";
+import { sendEdit } from "./edits";
 import { useFocusKeptOnTheCard } from "./focus";
 import { countryName, languageName, listed, skillName } from "./names";
 import { ProfileForm } from "./ProfileForm";

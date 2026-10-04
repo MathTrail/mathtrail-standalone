@@ -539,8 +539,30 @@ func confirmationCriterion() *criterion {
 	return stepCriterion()
 }
 
+// earlierRule names the rule the service had before the floor under the
+// overall level's step and the cautious estimate of mastery, and earlierRun
+// is the run of right answers it mastered a topic by. The run is the bench's
+// own, so that the earlier rule stays what the service was whatever the
+// service keeps of it.
+const (
+	earlierRule = "earlier"
+	earlierRun  = 3
+)
+
+// earlierServiceRule is the service as it was before them: its step after the
+// trial series with no floor, run by the bench's own copy, and mastery by a
+// run of three right answers in the service's rule's place. It is what the
+// service is measured against, and a candidate of no choice.
+func earlierServiceRule() *rule {
+	return &rule{
+		name: earlierRule, shape: both, trial: true, make: steps(nil),
+		mastery: func() masteryTest { return newRunOf(earlierRun) },
+	}
+}
+
 // benchRules are the bench's own: the service's path — the shrinking step in
-// the structure of both — and the rules it is compared with: the step kept
+// the structure of both — the service as it was before its floor and its
+// cautious mastery, and the rules it is compared with: the step kept
 // constant, at the service's first step and at half of it; the shrinking step
 // with a floor under the overall level's; the service's step with no trial
 // series; Glicko-2 that knows a child can guess, with one level and with a
@@ -553,6 +575,7 @@ func benchRules() []*rule {
 	}
 	all := []*rule{
 		serviceRule(),
+		earlierServiceRule(),
 		{name: "constant", shape: both, trial: true, make: steps(func(s *stepRule) { s.overallStep.decay, s.topicStep.decay = 0, 0 })},
 		slowConstantRule(),
 		floorRule(0.05),

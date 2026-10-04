@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"maps"
-	"math"
 	"slices"
 	"strings"
 	"testing"
@@ -221,11 +220,12 @@ func TestAnAnswerHoldsItsProperties(t *testing.T) {
 	properties.TestingRun(t)
 }
 
-// However a topic goes, it is declared mastered only where the cautious
-// estimate puts the child: on a right and unaided answer, with five answers in
-// the topic, at a level no higher than the task's whose middle task the
-// child's level less how far it may be off clears. Once declared, mastery only
-// rises, and only two wrong answers in a row take it away.
+// In a file of the cautious estimate's, however a topic goes, it is declared
+// mastered exactly where the rule puts the child: on a right and unaided
+// answer, with five answers in the topic, at the level the cautious estimate
+// clears among the topic's own levels no higher than the task's, whenever that
+// level is above the one held, and since the day of the answer. Two wrong
+// answers in a row take it away, and nothing else does.
 func TestMasteryHoldsItsProperties(t *testing.T) {
 	t.Parallel()
 
@@ -240,20 +240,29 @@ func TestMasteryHoldsItsProperties(t *testing.T) {
 		hint, _ := values[3].(bool)
 		return answerStep{point: rating.Point{GradeLevel: level, Difficulty: difficulty}, correct: correct, hint: hint}
 	})
+	// The levels a topic can be taught at: a run of neighbouring levels, as
+	// every topic of the catalog is.
+	taughtAt := gen.OneConstOf(
+		[]rating.GradeLevel{rating.Grades12},
+		[]rating.GradeLevel{rating.Grades56},
+		[]rating.GradeLevel{rating.Grades34, rating.Grades56},
+		everyLevel,
+	)
 
 	properties.Property("declared where the cautious estimate clears, held until two failures in a row", prop.ForAll(
-		func(theta float64, answers int, lesson []answerStep) bool {
+		func(theta float64, answers int, taught []rating.GradeLevel, lesson []answerStep) bool {
 			p := settled(t, theta, answers, 0, 0)
 			for number, step := range lesson {
 				before := p.Topics[masteredTopic]
-				recorded := answerAt(t, p, step.point, number+1, step.correct, step.hint)
-				if !keptByTheRule(p, &before, step, &recorded) {
+				at := issued.Add(time.Duration(number+1) * time.Hour)
+				recorded := answerTaughtAt(t, p, step.point, number+1, step.correct, step.hint, taught)
+				if !keptByTheRule(p, &before, &recorded, &ruledAnswer{answerStep: step, taught: taught, day: profile.DateOf(at)}) {
 					return false
 				}
 			}
 			return true
 		},
-		gen.Float64Range(-2, 7), gen.IntRange(0, 400), gen.SliceOfN(30, steps),
+		gen.Float64Range(-2, 7), gen.IntRange(0, 400), taughtAt, gen.SliceOfN(30, steps),
 	))
 
 	properties.TestingRun(t)
@@ -266,27 +275,35 @@ type answerStep struct {
 	correct, hint bool
 }
 
+// ruledAnswer is an answer as the rule is held to it: the step, the levels its
+// topic is taught at, and the day it came.
+type ruledAnswer struct {
+	answerStep
+	taught []rating.GradeLevel
+	day    profile.Date
+}
+
 // keptByTheRule says whether what an answer did to the mastery of its topic is
-// what the rule allows: a declaration only on a right and unaided answer with
-// five answers in the topic, above the level held and no higher than the
-// task's, at a level whose middle task the cautious level clears; a loss only
-// after two wrong answers in a row; and otherwise nothing moved.
-func keptByTheRule(p *profile.Profile, before *profile.Topic, step answerStep, recorded *profile.Recorded) bool {
+// what the rule asks for: a loss after two wrong answers in a row from
+// mastery; a declaration on a right and unaided answer with five answers in
+// the topic, at the level the cautious estimate clears among the topic's
+// levels, when that level is above the one held, since the day of the answer;
+// and otherwise nothing moved. Which level the estimate clears is the rating's
+// to say, and its own properties hold it.
+func keptByTheRule(p *profile.Profile, before *profile.Topic, recorded *profile.Recorded, a *ruledAnswer) bool {
 	after := p.Topics[masteredTopic]
+	lost := before.MasteredSince != nil && after.WrongStreak >= profile.MasteryLostAfter
+	earned, clears := rating.MasteredAt(p.Ratings.Theta+after.Delta, p.Ratings.Answers, after.Answers, a.point.GradeLevel, a.taught)
+	earns := clears && a.correct && !a.hint && after.Answers >= profile.MasteryAnswers &&
+		(before.MasteredLevel == nil || before.MasteredLevel.Shift() < earned.Shift())
 	switch {
-	case recorded.Mastered:
-		level := *after.MasteredLevel
-		cautious := p.Ratings.Theta + after.Delta - math.Sqrt(rating.Uncertainty(p.Ratings.Answers, after.Answers))
-		middle := rating.Point{GradeLevel: level, Difficulty: (profile.MinDifficulty + profile.MaxDifficulty) / 2}
-		return step.correct && !step.hint && after.Answers >= profile.MasteryAnswers &&
-			level.Shift() <= step.point.GradeLevel.Shift() &&
-			(before.MasteredLevel == nil || before.MasteredLevel.Shift() < level.Shift()) &&
-			rating.Probability(cautious, middle.Beta()) >= rating.CorridorMiddle
 	case recorded.Unmastered:
-		return before.MasteredSince != nil && after.MasteredSince == nil && after.MasteredLevel == nil &&
-			after.WrongStreak >= profile.MasteryLostAfter
+		return lost && after.MasteredSince == nil && after.MasteredLevel == nil
+	case recorded.Mastered:
+		return earns && after.MasteredLevel != nil && *after.MasteredLevel == earned &&
+			after.MasteredSince != nil && after.MasteredSince.Equal(a.day.Time)
 	default:
-		return sameMastery(before, &after)
+		return !lost && !earns && sameMastery(before, &after)
 	}
 }
 

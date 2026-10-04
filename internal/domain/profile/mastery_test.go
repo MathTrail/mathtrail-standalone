@@ -42,6 +42,15 @@ func answerEasy(t *testing.T, p *profile.Profile, number int, correct bool) prof
 func answerAt(t *testing.T, p *profile.Profile, point rating.Point, number int, correct, hint bool) profile.Recorded {
 	t.Helper()
 
+	return answerTaughtAt(t, p, point, number, correct, hint, everyLevel)
+}
+
+// answerTaughtAt answers a task of the topic at this point, an hour later
+// for every number, the topic taught at these levels.
+func answerTaughtAt(t *testing.T, p *profile.Profile, point rating.Point, number int, correct, hint bool,
+	taught []rating.GradeLevel) profile.Recorded {
+	t.Helper()
+
 	id := answeringAs(t, p, fmt.Sprintf("tsk_%02d", number), masteredTopic, point)
 	choice := wrongLetter
 	if correct {
@@ -53,7 +62,7 @@ func answerAt(t *testing.T, p *profile.Profile, point rating.Point, number int, 
 		Choice:   choice,
 		HintUsed: hint,
 		At:       issued.Add(time.Duration(number) * time.Hour),
-	}, newSealer(t), everyLevel)
+	}, newSealer(t), taught)
 	if err != nil {
 		t.Fatalf("Record() error = %v, want nil", err)
 	}
@@ -87,11 +96,11 @@ func wantMasteredAt(t *testing.T, p *profile.Profile, level rating.GradeLevel, s
 	}
 }
 
-// Worked example 4 of the specification, in its masteries: a child of 79
-// answers, at 1.2, in a topic at 0.5 over nine answers. A right answer to a
-// task of 3-4 masters the topic at 1-2, the highest level the cautious level
-// clears; one wrong answer after it is a slip, and a second in a row loses it.
-func TestTheWorkedExampleOfMastery(t *testing.T) {
+// A child of 79 answers, at 1.2, in a topic at 0.5 over nine answers. A right
+// answer to a task of 3-4 masters the topic at 1-2, the highest level the
+// cautious level clears; one wrong answer after it is a slip, and a second in
+// a row loses it.
+func TestASettledChildMastersBelowTheTaskAndLosesItAfterTwoWrong(t *testing.T) {
 	t.Parallel()
 
 	p := settled(t, 1.2, 79, 0.5, 9)

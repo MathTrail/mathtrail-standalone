@@ -16,9 +16,14 @@
 // their own, the decision run, the parts of the chosen step, or its
 // confirmation on the held-out children.
 //
+// The guard is a run of its own: the service's path on the first children of
+// four generators, its numbers held to the bands recorded with them, or the
+// bands recorded again.
+//
 // Usage:
 //
 //	learners [-out <directory>] [-children <n>] [-answers <n>] [-rules <set>] [-seed <n>] [-experiment <name>] [-held-out]
+//	learners guard [-update]
 package main
 
 import (
@@ -38,6 +43,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/content"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/tutor"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
 )
 
@@ -46,6 +52,9 @@ func main() {
 }
 
 func runCommand(args []string, stdout, stderr io.Writer) int {
+	if len(args) > 0 && args[0] == guardCommandName {
+		return guardCommand(args[1:], stdout, stderr)
+	}
 	out, d, err := parse(args, stderr)
 	if err != nil {
 		return 2
@@ -65,6 +74,9 @@ var (
 	// errHeldOutBesideRules asks for the held-out children, which only the
 	// confirmation is run on, and for another set of rules.
 	errHeldOutBesideRules = errors.New("learners: -held-out runs the confirmation of the chosen step, and takes no other -rules")
+	// errArguments gives a run words besides its flags, which it would
+	// otherwise pass over and run as if they were not there.
+	errArguments = errors.New("learners: a run takes flags alone; the guard runs as learners guard, before any flag")
 )
 
 // parse reads the command line: the directory the results are written to,
@@ -84,6 +96,9 @@ func parse(args []string, stderr io.Writer) (string, design, error) {
 	heldOut := flags.Bool("held-out", false, "confirm the chosen step on the seeds kept for it, and write under "+heldOutDirectory)
 	if err := flags.Parse(args); err != nil {
 		return "", design{}, err
+	}
+	if flags.NArg() > 0 {
+		return refused(stderr, fmt.Errorf("%w: %q", errArguments, flags.Args()))
 	}
 	given := map[string]bool{}
 	flags.Visit(func(f *flag.Flag) { given[f.Name] = true })
@@ -185,9 +200,36 @@ func newWorld(answers int) (*world, error) {
 		ladders[topic] = rating.Points(shipped.LevelsOf(topic)...)
 	}
 	return &world{
-		catalog: shipped, topics: topics, levels: levels, ladders: ladders,
+		catalog: cached(shipped), topics: topics, levels: levels, ladders: ladders,
 		sealer: ring.For(seal.PurposeTaskAnswer), answers: answers,
 	}, nil
+}
+
+// cachedCatalog answers the traps of the reference tasks from a table made
+// once a run, so that a brief does not count six hundred reference tasks
+// again. Every child shares the lists and only reads them; each is clipped to
+// its length, so that anything appended to one is a copy.
+type cachedCatalog struct {
+	tutor.Catalog
+	traps map[topicLevel][]string
+}
+
+// ExampleTraps lists the traps of the reference tasks of this topic at this
+// level, as the catalog counted them once.
+func (c cachedCatalog) ExampleTraps(topic string, level rating.GradeLevel) []string {
+	return c.traps[topicLevel{topic: topic, level: level}]
+}
+
+// cached is the shipped catalog with the traps of every topic at every level
+// counted once.
+func cached(shipped *content.Content) cachedCatalog {
+	c := cachedCatalog{Catalog: shipped, traps: map[topicLevel][]string{}}
+	for _, topic := range shipped.TopicIDs() {
+		for _, level := range rating.GradeLevels() {
+			c.traps[topicLevel{topic: topic, level: level}] = slices.Clip(shipped.ExampleTraps(topic, level))
+		}
+	}
+	return c
 }
 
 // job is one child of one cell.

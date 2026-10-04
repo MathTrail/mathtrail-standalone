@@ -13,10 +13,12 @@ export type Request = "idle" | "sending" | "sent" | "lost";
  * useChatRequest is something a card asks the chat for, in words the child's
  * own message would use — only the model can write the next task — and where
  * the ask stands. A second press while one is on its way is the same ask.
+ * busy says, at the moment it is asked, whether one is on its way.
  */
 export function useChatRequest(host: Host): {
 	state: Request;
 	send: (words: string) => void;
+	busy: () => boolean;
 } {
 	const [state, setState] = useState<Request>("idle");
 	const sending = useRef(false);
@@ -38,7 +40,7 @@ export function useChatRequest(host: Host): {
 			},
 		);
 	}
-	return { state, send };
+	return { state, send, busy: () => sending.current };
 }
 
 /**

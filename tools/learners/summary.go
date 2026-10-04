@@ -110,12 +110,14 @@ func summaryOf(all []cell, summaries [][]summary, names []string, d design) (str
 func sameRule(a, b *rule) bool { return a.name == b.name && a.shape == b.shape }
 
 // ruleName is a rule as the summary names it: as its cells name it, the
-// service's own and the ceiling marked.
+// service's own, the service's earlier rule and the ceiling marked.
 func ruleName(r *rule) string {
 	name := r.name + "/" + string(r.shape)
 	switch {
 	case r.service:
 		name += " (the service)"
+	case r.name == earlierRule:
+		name += " (the service's earlier rule)"
 	case r.ceiling:
 		name += " (the ceiling)"
 	}

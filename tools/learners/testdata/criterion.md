@@ -15,6 +15,7 @@ No candidate meets every constraint and is better than the service. **The exit: 
 | Rule | Score | Constraints met | Not met | Unread |
 |---|---:|---:|---:|---:|
 | shrinking/both (the service) | 0.000 [0.000, 0.000] | 47 of 49 | 2 | 0 |
+| earlier/both (the service's earlier rule) | -0.108 [-0.168, -0.044] | 45 of 49 | 4 | 0 |
 | constant/both | 0.170 [0.090, 0.255] | 40 of 49 | 9 | 0 |
 | constant_slow/both | 0.080 [0.026, 0.136] | 46 of 49 | 3 | 0 |
 | floor_0.05/both | 0.000 [0.000, 0.000] | 47 of 49 | 2 | 0 |
@@ -43,6 +44,7 @@ Every rule's value against each goal's bound, and whether its interval reaches t
 | Rule | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | shrinking/both (the service) | 0.553, not reached | 0.378, not reached | 0.100, on the edge | 74.000, on the edge | 6.667, on the edge | 41.000, reached | 3.725, on the edge | 72.000, on the edge | 2.000, on the edge | 38.000, reached | 1.961, on the edge |
+| earlier/both (the service's earlier rule) | 0.691, not reached | 0.332, not reached | 0.700, not reached | 74.000, on the edge | 6.667, on the edge | 36.000, reached | 0.392, reached | 72.000, on the edge | 2.000, on the edge | 36.000, reached | 1.176, on the edge |
 | constant/both | 0.312, on the edge | 0.404, not reached | 0.100, on the edge | 83.000, not reached | 7.333, on the edge | 83.000, not reached | 5.882, on the edge | 84.000, not reached | 6.000, on the edge | 84.000, not reached | 6.667, not reached |
 | constant_slow/both | 0.534, not reached | 0.385, on the edge | 0.100, on the edge | 42.000, reached | 4.667, on the edge | 42.000, reached | 4.118, on the edge | 42.000, reached | 1.333, on the edge | 41.000, reached | 4.510, on the edge |
 | floor_0.05/both | 0.553, not reached | 0.378, not reached | 0.100, on the edge | 74.000, on the edge | 6.667, on the edge | 41.000, reached | 3.725, on the edge | 72.000, on the edge | 2.000, on the edge | 38.000, reached | 1.961, on the edge |
@@ -59,6 +61,7 @@ What of not worse each rule does not meet, or the run cannot read: its differenc
 | Rule | Checks met | Not met or unread |
 |---|---:|---|
 | shrinking/both (the service) | 38 of 38 |  |
+| earlier/both (the service's earlier rule) | 37 of 38 | G2-half r1_rms_200 0.156 [0.057, 0.244] against 0.050 |
 | constant/both | 38 of 38 |  |
 | constant_slow/both | 38 of 38 |  |
 | floor_0.05/both | 38 of 38 |  |

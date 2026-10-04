@@ -5,7 +5,7 @@ import { Button } from "../design/controls";
 import { Icon } from "../design/icons";
 import { type Linking, PageLink } from "../design/links";
 import type { Host } from "./bridge";
-import { sendEdit } from "./editing";
+import { sendEdit } from "./edits";
 import { useLinking } from "./linking";
 import { groupAddress } from "./links";
 import { groupName, topicName } from "./names";
@@ -40,21 +40,44 @@ export type Choosing = {
 	panelId: string;
 };
 
+// lineWait is how long a choice waits for the host to take the model's line
+// before the child's message goes, in milliseconds.
+const lineWait = 500;
+
+// within is promise, waited for no longer than ms.
+function within(ms: number, promise: Promise<void>): Promise<void> {
+	return Promise.race([
+		promise,
+		new Promise<void>((resolve) => {
+			setTimeout(resolve, ms);
+		}),
+	]);
+}
+
 /**
  * useTopicChoice is the choice of the topic on a card that offers it: the
  * topic the lessons are kept to as the service last said, until the card
  * changes it. A choice is saved to the profile, the model is told of it in
- * the service's words, and only then is the next task asked of the chat in
- * the child's words, through ask, as another task is: a choice not saved asks
- * nothing, and says so. Nothing is chosen while busy says the card is in the
- * middle of something else, nor while a choice is on its way. The panel takes
+ * the service's words through tell, and only then is the next task asked of
+ * the chat in the child's words, through ask, as another task is: a choice not
+ * saved asks nothing, and says so. Nothing is chosen while busy says the card is in the
+ * middle of something else, nor while a choice is on its way: a press of a
+ * choice that looks locked is turned away here. The panel takes
  * the focus to the choice pressed in as it opens, and gives it back to the
  * button as it closes.
  */
 export function useTopicChoice(
 	host: Host,
 	offered: TopicChoice | undefined,
-	{ busy, ask }: { busy: () => boolean; ask: (words: string) => void },
+	{
+		busy,
+		tell,
+		ask,
+	}: {
+		busy: () => boolean;
+		tell: (line: string) => Promise<void>;
+		ask: (words: string) => void;
+	},
 ): Choosing {
 	const words = useWords();
 	const [state, setState] = useState<{
@@ -76,16 +99,17 @@ export function useTopicChoice(
 	}, [state.open]);
 
 	// What was said of a choice is said until the panel opens or closes, unless
-	// the choice is still on its way.
-	const opened = (open: boolean) =>
+	// the choice is still on its way. open is worked out from whether it is
+	// open, so that two presses before the card redraws open it and close it.
+	const opened = (open: (was: boolean) => boolean) =>
 		setState((was) => ({
 			...was,
-			open,
+			open: open(was.open),
 			said: saving.current ? was.said : undefined,
 		}));
 
 	function close() {
-		opened(false);
+		opened(() => false);
 		button.current?.focus({ preventScroll: true });
 	}
 
@@ -104,12 +128,17 @@ export function useTopicChoice(
 			}));
 			return;
 		}
-		// The model reads the line with the child's message, so the line goes
-		// first; a host that keeps no line still takes the message.
+		// The model reads the line with the child's message, so the line goes to
+		// the host first, and the message once the host has taken it — or a
+		// moment later, since a host that keeps no line, or never says so, still
+		// takes the message.
 		if (outcome.told !== undefined) {
-			await host.tellModel(outcome.told).catch((error: unknown) => {
-				console.error("widget: the model was not told of the topic", error);
-			});
+			await within(
+				lineWait,
+				tell(outcome.told).catch((error: unknown) => {
+					console.error("widget: the model was not told of the topic", error);
+				}),
+			);
 		}
 		saving.current = false;
 		setState({ chosen: topic, open: false, said: undefined });
@@ -124,7 +153,7 @@ export function useTopicChoice(
 	return {
 		...state,
 		busy: () => saving.current,
-		toggle: () => opened(!state.open),
+		toggle: () => opened((open) => !open),
 		close,
 		pick: (topic) => void pick(topic),
 		button,
@@ -186,8 +215,8 @@ const taughtFrom: ReadonlyMap<string, number> = new Map(
  * from a grade above the child's is set apart, with the grade it is taught
  * from, and can be chosen all the same: it is a hint, not a bar. The choice
  * in force is pressed in, and none takes a press while locked. It is on the
- * page while closed, hidden, so that the button that opens it can always name
- * it; Escape and its cross close it.
+ * page while closed, hidden and empty, so that the button that opens it can
+ * always name it; Escape and its cross close it.
  */
 export function TopicPanel({
 	choosing,
@@ -241,54 +270,58 @@ export function TopicPanel({
 				}
 			}}
 		>
-			<div class="mt-topic-head">
-				<div class="mt-topic-head-text">
-					<h2 id={title} class="mt-topic-title">
-						{words.text("topic_choice.title")}
-					</h2>
-					<p class="mt-topic-lead">{words.text("topic_choice.lead")}</p>
-				</div>
-				<button
-					type="button"
-					class="mt-topic-close"
-					aria-label={words.text("topic_choice.close")}
-					onClick={choosing.close}
-				>
-					<Icon name="cross" size={16} />
-				</button>
-			</div>
-			<div class="mt-topic-coach">
-				<TopicOption
-					pressed={choosing.chosen === null}
-					locked={locked}
-					onPick={() => choosing.pick(null)}
-				>
-					{words.text("topic_choice.coach_option")}
-				</TopicOption>
-				<span class="mt-topic-coach-note">
-					{words.text("topic_choice.coach_note")}
-				</span>
-			</div>
-			<div class="mt-topic-rows">
-				{suggested.length > 0 && (
-					<TopicRow
-						name={words.text("topic_choice.recommended")}
-						className="mt-topic-row-suggested"
-					>
-						{suggested.map(option)}
-					</TopicRow>
-				)}
-				{topicGroups.map((group) => (
-					<TopicRow
-						key={group.id}
-						name={groupName(words, group.id)}
-						href={groupAddress(offered.site, words.locale, group.id)}
-						linking={linking}
-					>
-						{group.topics.map((topic) => option(topic.id))}
-					</TopicRow>
-				))}
-			</div>
+			{choosing.open && (
+				<>
+					<div class="mt-topic-head">
+						<div class="mt-topic-head-text">
+							<h2 id={title} class="mt-topic-title">
+								{words.text("topic_choice.title")}
+							</h2>
+							<p class="mt-topic-lead">{words.text("topic_choice.lead")}</p>
+						</div>
+						<button
+							type="button"
+							class="mt-topic-close"
+							aria-label={words.text("topic_choice.close")}
+							onClick={choosing.close}
+						>
+							<Icon name="cross" size={16} />
+						</button>
+					</div>
+					<div class="mt-topic-coach">
+						<TopicOption
+							pressed={choosing.chosen === null}
+							locked={locked}
+							onPick={() => choosing.pick(null)}
+						>
+							{words.text("topic_choice.coach_option")}
+						</TopicOption>
+						<span class="mt-topic-coach-note">
+							{words.text("topic_choice.coach_note")}
+						</span>
+					</div>
+					<div class="mt-topic-rows">
+						{suggested.length > 0 && (
+							<TopicRow
+								name={words.text("topic_choice.recommended")}
+								className="mt-topic-row-suggested"
+							>
+								{suggested.map(option)}
+							</TopicRow>
+						)}
+						{topicGroups.map((group) => (
+							<TopicRow
+								key={group.id}
+								name={groupName(words, group.id)}
+								href={groupAddress(offered.site, words.locale, group.id)}
+								linking={linking}
+							>
+								{group.topics.map((topic) => option(topic.id))}
+							</TopicRow>
+						))}
+					</div>
+				</>
+			)}
 		</section>
 	);
 }
@@ -333,8 +366,9 @@ function TopicRow({
 // choice in force, and ticked so that it is seen to be; a topic taught from a
 // grade above the child's says from which. A press chooses it, and asks for a
 // task on it at once, so the options are buttons rather than a group of radio
-// buttons, whose arrow keys would choose at every step. A locked option keeps
-// the focus it has and ignores presses.
+// buttons, whose arrow keys would choose at every step. A locked option says
+// so and keeps the focus it has; the choice turns its press away while the
+// card is busy.
 function TopicOption({
 	pressed,
 	locked,
@@ -355,11 +389,7 @@ function TopicOption({
 			aria-pressed={pressed ? "true" : "false"}
 			aria-disabled={locked ? "true" : undefined}
 			data-older={older === undefined ? undefined : "true"}
-			onClick={() => {
-				if (!locked) {
-					onPick();
-				}
-			}}
+			onClick={onPick}
 		>
 			{pressed && <Icon name="check" size={14} />}
 			<span class="mt-topic-option-text">
@@ -378,7 +408,8 @@ function TopicOption({
 /**
  * TopicChip is the mark above a task given on the topic the lessons are kept
  * to: the topic, and a cross that gives the choice back to the coach and asks
- * for a new task, as the coach's choice in the panel does, unless locked.
+ * for a new task, as the coach's choice in the panel does. A locked cross says
+ * so, and the choice turns its press away while the card is busy.
  */
 export function TopicChip({
 	choosing,
@@ -403,11 +434,7 @@ export function TopicChip({
 				class="mt-chip-remove"
 				aria-label={words.text("topic_choice.clear")}
 				aria-disabled={locked ? "true" : undefined}
-				onClick={() => {
-					if (!locked) {
-						choosing.pick(null);
-					}
-				}}
+				onClick={() => choosing.pick(null)}
 			>
 				<Icon name="cross" size={14} />
 			</button>

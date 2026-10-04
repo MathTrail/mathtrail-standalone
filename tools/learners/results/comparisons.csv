@@ -1,4 +1,9 @@
 comparison,metric,first,second,difference,low,high
+1,r1_rms_200,shrinking/both/G0,earlier/both/G0,-0.0113,-0.0187,-0.0039
+1,r3_inside,shrinking/both/G0,earlier/both/G0,0.0040,0.0008,0.0073
+1,r4_false,shrinking/both/G0,earlier/both/G0,-0.5957,-0.6116,-0.5786
+2,r6_lag,shrinking/both/G2,earlier/both/G2,0.1137,0.1049,0.1229
+2,r3_inside,shrinking/both/G2,earlier/both/G2,0.0180,0.0154,0.0205
 1,r1_rms_200,shrinking/both/G0,constant/both/G0,-0.1170,-0.1282,-0.1054
 1,r3_inside,shrinking/both/G0,constant/both/G0,0.0123,0.0084,0.0163
 1,r4_false,shrinking/both/G0,constant/both/G0,-0.0319,-0.0381,-0.0256

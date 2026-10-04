@@ -1,8 +1,8 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { buttonIn, drawCard, press, takeDown } from "./testing/card";
-import type { Opening, ToolCall } from "./testing/host";
+import { buttonIn, drawCard, openCard, press, takeDown } from "./testing/card";
+import { deliver, type Opening, type ToolCall } from "./testing/host";
 import {
 	answered,
 	editGone,
@@ -261,6 +261,28 @@ describe("the panel of topics", () => {
 		expect(document.activeElement).toBe(topicButton());
 	});
 
+	test("opens and closes with two presses that come before the card redraws", async () => {
+		await draw();
+
+		act(() => {
+			topicButton().click();
+			topicButton().click();
+		});
+
+		expect(panel().hidden).toBe(true);
+		expect(topicButton().getAttribute("aria-expanded")).toBe("false");
+	});
+
+	test("holds no choices while it is closed", async () => {
+		await draw();
+
+		expect(panel().childElementCount).toBe(0);
+		open();
+		expect(panel().querySelectorAll(".mt-topic-option").length).toBeGreaterThan(
+			17,
+		);
+	});
+
 	test("closes with the button that opened it", async () => {
 		await draw();
 		open();
@@ -492,6 +514,71 @@ describe("a topic chosen", () => {
 		expect(heard.modelLines).toEqual([]);
 	});
 
+	test("is asked for on a host that never answers the line for the model, and the card is free again", async () => {
+		const opened = await openCard({ tools: service });
+		root = opened.root;
+		opened.host.onupdatemodelcontext = () => new Promise(() => {});
+		await deliver(opened.host, withTopicChoice(fence));
+		await vi.waitFor(() =>
+			expect(root.querySelector(".mt-option")).not.toBeNull(),
+		);
+		open();
+
+		press(choice("Clocks"));
+
+		await vi.waitFor(() => expect(opened.heard.messages).toHaveLength(1));
+		await vi.waitFor(() =>
+			expect(topicButton().getAttribute("aria-disabled")).toBeNull(),
+		);
+		expect(option("A").getAttribute("aria-disabled")).toBeNull();
+	});
+
+	test("is asked for once the host has taken the line for the model", async () => {
+		const opened = await openCard({ tools: service });
+		root = opened.root;
+		opened.host.onupdatemodelcontext = async () => {
+			await new Promise((taken) => setTimeout(taken, 100));
+			opened.heard.order.push("model line");
+			return {};
+		};
+		await deliver(opened.host, withTopicChoice(fence));
+		await vi.waitFor(() =>
+			expect(root.querySelector(".mt-option")).not.toBeNull(),
+		);
+		open();
+
+		press(choice("Clocks"));
+
+		await vi.waitFor(() => expect(opened.heard.messages).toHaveLength(1));
+		expect(opened.heard.order).toEqual(["call", "model line", "message"]);
+	});
+
+	test("carries to the model the line of an answer no message has carried yet", async () => {
+		const heard = await draw();
+		press(option("B"));
+		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(1));
+		open();
+
+		press(choice("Clocks"));
+
+		await vi.waitFor(() => expect(heard.messages).toHaveLength(1));
+		expect(heard.modelLines[1]).toBe(`${heard.modelLines[0]}\n\n${topicWords}`);
+	});
+
+	test("carries no line a message has carried already", async () => {
+		const heard = await draw();
+		press(option("B"));
+		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(1));
+		press(button("Another task"));
+		await vi.waitFor(() => expect(heard.messages).toHaveLength(1));
+		open();
+
+		press(choice("Clocks"));
+
+		await vi.waitFor(() => expect(heard.messages).toHaveLength(2));
+		expect(heard.modelLines[1]).toBe(topicWords);
+	});
+
 	test("is asked for on a host that keeps no line for the model", async () => {
 		const heard = await draw(withTopicChoice(fence), {
 			refuseModelLines: true,
@@ -643,6 +730,20 @@ describe("a topic chosen", () => {
 		expect(heard.messages[0]).toContain("Percentages");
 	});
 
+	test("is not chosen while an ask for another task pressed in the same moment is on its way", async () => {
+		const heard = await draw();
+		open();
+
+		act(() => {
+			button("Another task").click();
+			choice("Clocks").click();
+		});
+
+		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
+		expect(heard.calls).toEqual([]);
+		expect(topicButton().textContent).toBe("Topic: the coach chooses");
+	});
+
 	test("can be chosen once the answer is in", async () => {
 		const heard = await draw();
 		press(option("B"));
@@ -670,6 +771,27 @@ describe("the mark of the topic chosen", () => {
 		const mark = root.querySelector(".mt-body > .mt-topic-chip");
 		expect(mark?.textContent).toBe("Topic: Gaps and boundaries");
 		expect(mark?.nextElementSibling?.className).toBe("mt-task-text");
+	});
+
+	test("is not above a task the rule gave, once its own topic is chosen on it", async () => {
+		const heard = await draw();
+		open();
+
+		press(choice("Gaps and boundaries"));
+
+		await vi.waitFor(() => expect(heard.messages).toHaveLength(1));
+		expect(topicButton().textContent).toBe("Topic: Gaps and boundaries");
+		expect(root.querySelector(".mt-topic-chip")).toBeNull();
+	});
+
+	test("is not above a task that is closed", async () => {
+		await draw(onGaps, { tools: () => staleAnswer });
+		expect(root.querySelector(".mt-topic-chip")).not.toBeNull();
+
+		press(option("B"));
+
+		await vi.waitFor(() => expect(root.querySelector(".mt-foot")).toBeNull());
+		expect(root.querySelector(".mt-topic-chip")).toBeNull();
 	});
 
 	test.each([

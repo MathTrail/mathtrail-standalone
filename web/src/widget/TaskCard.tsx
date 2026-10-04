@@ -117,9 +117,25 @@ export function TaskInCard({
 	// the buttons that could give another are locked, and a second press that
 	// comes before the card has redrawn to lock them is turned away here.
 	const answering = useRef(false);
+	// held is the line the model was given on this card that no message has
+	// carried to it yet. The host keeps one line and reads it with the next
+	// message, so a later line carries it along, and a message lets it go.
+	const held = useRef<string | undefined>(undefined);
+	function tell(line: string): Promise<void> {
+		held.current =
+			held.current === undefined ? line : `${held.current}\n\n${line}`;
+		return host.tellModel(held.current);
+	}
+	function ask(message: string) {
+		held.current = undefined;
+		another.send(message);
+	}
+	// A choice asks for a task, so it waits for an answer or an ask already on
+	// its way, even one pressed in the same moment, before the card redraws.
 	const choosing = useTopicChoice(host, handed.topic_choice, {
-		busy: () => answering.current,
-		ask: another.send,
+		busy: () => answering.current || another.busy(),
+		tell,
+		ask,
 	});
 	// A choice of the topic on its way locks the card as an answer does: the
 	// task it asks for would race the answer.
@@ -135,7 +151,7 @@ export function TaskInCard({
 		answering.current = false;
 		dispatch({ type: "told", outcome: told });
 		if (told.kind === "answered") {
-			host.tellModel(modelLineOf(told.result)).catch((error: unknown) => {
+			tell(modelLineOf(told.result)).catch((error: unknown) => {
 				console.error("widget: the model was not told of the answer", error);
 			});
 		}
@@ -149,7 +165,7 @@ export function TaskInCard({
 		if (answering.current || choosing.busy()) {
 			return;
 		}
-		another.send(words.text("task.another"));
+		ask(words.text("task.another"));
 	}
 
 	// Once the answer is in, a focus that was lost goes to the one thing left
@@ -176,8 +192,8 @@ export function TaskInCard({
 					locked={!canAnswer(lesson) || saving}
 					onAnswer={answer}
 					chip={
-						offered !== undefined &&
-						choosing.chosen === task.topic && (
+						givenOnTheChoice(handed, choosing.chosen) &&
+						lesson.answer.state !== "closed" && (
 							<TopicChip
 								choosing={choosing}
 								topic={task.topic}
@@ -231,6 +247,15 @@ export function TaskInCard({
 			)}
 		</>
 	);
+}
+
+// givenOnTheChoice says whether the task was handed out on the topic the
+// lessons are kept to, and the choice still stands: chosen is the choice in
+// force on the card. A task the rule gave is not, even once its own topic is
+// chosen on it.
+function givenOnTheChoice(handed: HandedTask, chosen: string | null): boolean {
+	const topic = handed.task.topic;
+	return handed.topic_choice?.chosen === topic && chosen === topic;
 }
 
 // TaskBody is the task itself: the mark of the topic the lessons are kept to,
