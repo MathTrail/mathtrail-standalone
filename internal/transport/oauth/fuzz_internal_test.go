@@ -270,12 +270,12 @@ func heldByTheFuzzedHost(f *testing.F, server *Server, clientID string) (code, r
 	code, err := server.flow.issueCode(&flight{
 		Client: digestOf(clientID), Registration: registrationDCR, RedirectURI: fuzzedRedirect,
 		Challenge: challengeOf(fuzzedVerifier), Resource: testIssuer + "/mcp", Scope: "mcp",
-	}, &googleauth.Grant{AccessToken: "an-access-token", RefreshToken: "a-refresh-token", Expiry: testDay.Add(time.Hour)}, "a-user")
+	}, &googleauth.Grant{AccessToken: "an-access-token", RefreshToken: "a-refresh-token", Expiry: testDay.Add(time.Hour)}, "a-user", "NZ")
 	if err != nil {
 		f.Fatalf("issueCode() error = %v, want nil", err)
 	}
 	refresh, err = server.tokens.sealAs(server.tokens.refresh, &refreshGrant{
-		User: "a-user", Client: digestOf(clientID), Resource: testIssuer + "/mcp", Scope: "mcp", SignedInAt: testDay.Unix(),
+		User: "a-user", Country: "NZ", Client: digestOf(clientID), Resource: testIssuer + "/mcp", Scope: "mcp", SignedInAt: testDay.Unix(),
 		GoogleAccessToken: "an-access-token", GoogleAccessExpiry: testDay.Add(time.Hour).Unix(),
 		GoogleRefreshToken: "a-refresh-token", IssuedAt: testDay.Unix(), ExpiresAt: testDay.Add(30 * 24 * time.Hour).Unix(),
 	})

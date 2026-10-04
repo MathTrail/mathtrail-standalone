@@ -3,6 +3,6 @@ experiment=sweep
 children=1000
 answers=200
 rules=mastery-pilot
-version=v0.2.4-2-gf726f6a-dirty
+version=v0.2.4-6-g769f84f-dirty
 go=go1.27.1
 arch=amd64

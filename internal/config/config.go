@@ -12,6 +12,8 @@
 package config
 
 import (
+	"bytes"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net"
@@ -26,6 +28,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/progress"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
+	"github.com/MathTrail/mathtrail-standalone/internal/learner"
 	"github.com/MathTrail/mathtrail-standalone/internal/telemetry/collector"
 )
 
@@ -197,6 +200,19 @@ type Config struct {
 	// and in no error message.
 	GoogleClientSecret string `mapstructure:"MATHTRAIL_GOOGLE_CLIENT_SECRET"`
 
+	// LearnerKey is the secret the name a child is counted under in the log is
+	// derived from, standard base64 of 32 random bytes. It is a secret of its
+	// own, never one of the sealing keys, and it is not rotated with them: a
+	// name that changed in the middle of a month would count one child twice.
+	// Required in a deployment; a developer's machine may go without, and its
+	// process then makes one that lasts as long as it does.
+	LearnerKey string `mapstructure:"MATHTRAIL_LEARNER_KEY"`
+
+	// CountryDB is the file of the database the country a parent signs in from
+	// is looked up in. Required in a deployment, whose image carries the file;
+	// a developer's machine may go without, and then no country is known.
+	CountryDB string `mapstructure:"MATHTRAIL_COUNTRY_DB"`
+
 	// SiteURL is the site's address, where the consent screen links the terms
 	// and the privacy policy.
 	SiteURL string `mapstructure:"MATHTRAIL_SITE_URL"`
@@ -296,6 +312,8 @@ func LoadFrom(environ []string) (*Config, error) {
 	v.SetDefault("MATHTRAIL_SEAL_KEY_PREVIOUS", "")
 	v.SetDefault("MATHTRAIL_GOOGLE_CLIENT_ID", "")
 	v.SetDefault("MATHTRAIL_GOOGLE_CLIENT_SECRET", "")
+	v.SetDefault("MATHTRAIL_LEARNER_KEY", "")
+	v.SetDefault("MATHTRAIL_COUNTRY_DB", "")
 	v.SetDefault("MATHTRAIL_SITE_URL", DefaultSiteURL)
 	v.SetDefault("MATHTRAIL_DEV_AUTH", false)
 	v.SetDefault("K_SERVICE", "")
@@ -394,7 +412,55 @@ func (c *Config) Validate() error {
 	if err := c.validateGoogle(); err != nil {
 		return err
 	}
-	return c.validateSiteURL()
+	if err := c.validateSiteURL(); err != nil {
+		return err
+	}
+	if err := c.validateLearnerKey(); err != nil {
+		return err
+	}
+	return c.validateCountryDB()
+}
+
+// validateLearnerKey refuses a secret the children could not be counted
+// under, naming the variable and never the value. A deployment needs one: a
+// key each instance made for itself would give one child a name on every
+// instance it reached. It has to be a secret of its own, because the same
+// bytes as a sealing key would mean a name that changed when that key was
+// rotated.
+func (c *Config) validateLearnerKey() error {
+	if strings.TrimSpace(c.LearnerKey) == "" {
+		if c.Deployed() {
+			return fmt.Errorf("%w: MATHTRAIL_LEARNER_KEY must be set when K_SERVICE is set, to %d random bytes in standard base64",
+				ErrInvalid, learner.KeySize)
+		}
+		return nil
+	}
+	if _, err := learner.NewKey(c.LearnerKey); err != nil {
+		return fmt.Errorf("%w: MATHTRAIL_LEARNER_KEY: %w", ErrInvalid, err)
+	}
+	if sameSecret(c.LearnerKey, c.SealKeyCurrent) || sameSecret(c.LearnerKey, c.SealKeyPrevious) {
+		return fmt.Errorf("%w: MATHTRAIL_LEARNER_KEY must be a secret of its own, not one of the sealing keys", ErrInvalid)
+	}
+	return nil
+}
+
+// sameSecret reports whether two secrets in standard base64 are the same
+// bytes, whatever whitespace each was read with. A value that is no base64 is
+// the same as nothing.
+func sameSecret(one, other string) bool {
+	oneBytes, oneErr := base64.StdEncoding.Strict().DecodeString(strings.TrimSpace(one))
+	otherBytes, otherErr := base64.StdEncoding.Strict().DecodeString(strings.TrimSpace(other))
+	return oneErr == nil && otherErr == nil && len(oneBytes) > 0 && bytes.Equal(oneBytes, otherBytes)
+}
+
+// validateCountryDB refuses a deployment that could not tell where a parent
+// signs in from. Whether the file opens is the service's to find out as it
+// starts; off a deployment it may be left out, and no country is known.
+func (c *Config) validateCountryDB() error {
+	if c.Deployed() && strings.TrimSpace(c.CountryDB) == "" {
+		return fmt.Errorf("%w: MATHTRAIL_COUNTRY_DB must be set when K_SERVICE is set", ErrInvalid)
+	}
+	return nil
 }
 
 // validateLogging refuses a level or a format the logger does not have, and

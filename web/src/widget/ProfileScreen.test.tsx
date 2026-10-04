@@ -66,6 +66,11 @@ describe("the profile's card", () => {
 			["Interests", "space, animals, football"],
 			["Not at school yet", "Division with a remainder"],
 			["Language of the lessons", "Swahili"],
+			[
+				"Country",
+				"Not set",
+				"Optional. Used only to count, without names, how many families each country has.",
+			],
 		]);
 		expect(root.textContent).not.toContain("Loses heart");
 		expect(root.querySelector(".mt-bar")).toBeNull();

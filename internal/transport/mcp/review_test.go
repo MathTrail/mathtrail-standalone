@@ -93,7 +93,8 @@ func TestTheProgressCarriesTheReviewAndTellsIt(t *testing.T) {
 		"Review for the adult. Strong: Ordering (mastered).",
 		"To develop: Gaps and boundaries (answered wrongly several times in a row; keeps falling for this: Off by one when counting gaps, floors or saw cuts).",
 		"Too early to judge, which is no verdict yet: Clocks.",
-		"What to do next: 1. Gaps and boundaries: Before answering, draw a quick sketch: the posts as dots and the gaps between them, then count both.",
+		"What to do next: 1. Gaps and boundaries (https://mathtrail.app/en/topics/gaps-and-boundaries/#traps): " +
+			"Before answering, draw a quick sketch: the posts as dots and the gaps between them, then count both.",
 	} {
 		if !strings.Contains(words, want) {
 			t.Errorf("the words are %q, want them to say %q", words, want)
@@ -114,5 +115,56 @@ func TestTheTrialSeriesHasNoReview(t *testing.T) {
 	}
 	if words := textOf(t, result); strings.Contains(words, "Review") {
 		t.Errorf("the words are %q, want no review during the trial series", words)
+	}
+}
+
+// sitePayload is the site of the progress and each topic's page on it, as a
+// card reads them.
+type sitePayload struct {
+	Site *struct {
+		URL       string   `json:"url"`
+		Languages []string `json:"languages"`
+	} `json:"site"`
+	Topics []struct {
+		Topic    string `json:"topic"`
+		Slug     string `json:"slug"`
+		SitePage bool   `json:"site_page"`
+	} `json:"topics"`
+}
+
+// The progress names the site the topics' pages are on, the languages it is
+// written in and each topic's page as the catalog has it, for a card to link
+// a topic to; and its words link each step of the review in the language of
+// the lessons, the site being written in it.
+func TestTheProgressNamesTheSiteAndEachTopicsPage(t *testing.T) {
+	t.Parallel()
+
+	inRussian := func(p *profile.Profile) {
+		reviewedPetya(p)
+		language := "ru"
+		p.Student.UILanguage = &language
+	}
+	_, session := lesson(t, keptAs(t, "petya", inRussian))
+	result := call(t, session, "get_progress", nil)
+
+	read := payloadOf[sitePayload](t, result)
+	if read.Site == nil || read.Site.URL != "https://mathtrail.app" ||
+		!reflect.DeepEqual(read.Site.Languages, []string{"en", "ru"}) {
+		t.Errorf("site = %+v, want https://mathtrail.app in en and ru", read.Site)
+	}
+	loaded, err := shipped()
+	if err != nil {
+		t.Fatalf("load the content: %v", err)
+	}
+	for _, topic := range read.Topics {
+		listed, _ := loaded.Topic(topic.Topic)
+		if topic.Slug != listed.Slug || topic.SitePage != listed.SitePage {
+			t.Errorf("%s has slug %q and site_page %v, want the catalog's %q and %v",
+				topic.Topic, topic.Slug, topic.SitePage, listed.Slug, listed.SitePage)
+		}
+	}
+	if words := textOf(t, result); !strings.Contains(words,
+		"1. Gaps and boundaries (https://mathtrail.app/ru/topics/gaps-and-boundaries/#traps): ") {
+		t.Errorf("the words are %q, want the step linked to the Russian page of its mistakes", words)
 	}
 }

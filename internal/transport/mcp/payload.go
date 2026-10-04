@@ -102,6 +102,10 @@ type childOut struct {
 	Interests      []string `json:"interests"`
 	ExcludedSkills []string `json:"excluded_skills"`
 	UILanguage     *string  `json:"ui_language"`
+	// Country and Region are where the family lives, by their codes, when
+	// the adult said; null when they did not.
+	Country *string `json:"country"`
+	Region  *string `json:"region"`
 }
 
 func childOf(s *profile.Student) *childOut {
@@ -111,7 +115,17 @@ func childOf(s *profile.Student) *childOut {
 		Interests:      append([]string{}, s.Interests...),
 		ExcludedSkills: append([]string{}, s.ExcludedSkills...),
 		UILanguage:     s.UILanguage,
+		Country:        given(s.Country),
+		Region:         given(s.Region),
 	}
+}
+
+// given is a text that was given, or nil for one that was not.
+func given(text string) *string {
+	if text == "" {
+		return nil
+	}
+	return &text
 }
 
 // trialOut is how far the trial series has got: while it runs there is no

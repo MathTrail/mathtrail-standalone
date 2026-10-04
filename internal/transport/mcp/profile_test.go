@@ -835,6 +835,10 @@ func TestAServiceWithAPartMissingIsNotBuilt(t *testing.T) {
 		{"no version", func(p *mcpserver.Parts) { p.Version = "" }},
 		{"no logger", func(p *mcpserver.Parts) { p.Logger = nil }},
 		{"no traces", func(p *mcpserver.Parts) { p.Traces = nil }},
+		{"no site", func(p *mcpserver.Parts) { p.SiteURL = "" }},
+		{"a site with a path", func(p *mcpserver.Parts) { p.SiteURL = "https://mathtrail.app/en/" }},
+		{"a site with a query", func(p *mcpserver.Parts) { p.SiteURL = "https://mathtrail.app?child=Comet" }},
+		{"no key to count children under", func(p *mcpserver.Parts) { p.Learners = nil }},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -872,6 +876,8 @@ func allParts(t *testing.T) *mcpserver.Parts {
 		Version:     "test",
 		Logger:      zap.NewNop(),
 		Traces:      tracenoop.NewTracerProvider(),
+		Learners:    learners(t),
+		SiteURL:     config.DefaultSiteURL,
 	}
 }
 

@@ -8,9 +8,11 @@ import {
 	editingAfter,
 	notEditing,
 	profileLimits,
+	withCountry,
 	withInterestAdded,
 } from "./editing";
 import type { Details } from "./payload";
+import { countryCodes, regionName, regionsOf } from "./places";
 
 const details: Details = {
 	pseudonym: "Comet",
@@ -18,6 +20,8 @@ const details: Details = {
 	interests: ["space", "animals"],
 	excluded_skills: ["fractions", "division"],
 	ui_language: null,
+	country: null,
+	region: null,
 };
 
 // drafted is the draft of the details with what a case changes in it.
@@ -48,8 +52,24 @@ describe("a draft", () => {
 			interest: "",
 			skills: ["fractions", "division"],
 			language: "",
+			country: "",
+			region: "",
 		});
 		expect(draftOf({ ...details, ui_language: "fr" }).language).toBe("fr");
+		expect(
+			draftOf({ ...details, country: "US", region: "US-TX" }),
+		).toMatchObject({ country: "US", region: "US-TX" });
+	});
+
+	test("keeps the state while the country stays, and leaves it behind for another country", () => {
+		const inTexas = drafted({ country: "US", region: "US-TX" });
+		expect(withCountry(inTexas, "US")).toEqual(inTexas);
+		expect(withCountry(inTexas, "FR")).toEqual(
+			drafted({ country: "FR", region: "" }),
+		);
+		expect(withCountry(inTexas, "")).toEqual(
+			drafted({ country: "", region: "" }),
+		);
 	});
 
 	test("adds the interest being typed, without its spaces, and begins the typing afresh", () => {
@@ -204,5 +224,36 @@ describe("the form", () => {
 		["opened once gone", { state: "gone" }, { type: "opened", details }],
 	])("does not change when %s", (_, before, event) => {
 		expect(editingAfter(before, event)).toBe(before);
+	});
+});
+
+describe("the places the form offers", () => {
+	// The form offers the codes of the file the service holds a place to, read
+	// from that file: a country or a state the service would refuse is never
+	// offered, and none the service takes is missing.
+	test("are the service's own list", () => {
+		expect(countryCodes.length).toBe(250);
+		expect(countryCodes).toContain("US");
+		expect(countryCodes).toContain("XK");
+		expect(regionsOf("US")).toHaveLength(51);
+		expect(regionsOf("FR")).toEqual([]);
+		expect(regionName("US-TX")).toBe("Texas");
+		expect(regionName("US-ZZ")).toBeUndefined();
+	});
+
+	test("are sent as the codes the adult changed, and no others", () => {
+		const inTexas = { ...details, country: "US", region: "US-TX" };
+		expect(changesOf(inTexas, draftOf(inTexas))).toEqual({});
+		expect(changesOf(inTexas, withCountry(draftOf(inTexas), "FR"))).toEqual({
+			country: "FR",
+			region: "",
+		});
+		expect(
+			changesOf(details, {
+				...draftOf(details),
+				country: "US",
+				region: "US-CA",
+			}),
+		).toEqual({ country: "US", region: "US-CA" });
 	});
 });

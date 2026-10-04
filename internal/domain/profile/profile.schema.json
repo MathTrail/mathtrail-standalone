@@ -99,6 +99,11 @@
       "type": "object",
       "required": ["excluded_skills", "grade", "interests", "notes", "pseudonym", "ui_language"],
       "properties": {
+        "country": {
+          "description": "The country the family lives in, if the parent chose to say, by its ISO 3166-1 code, such as US. It is there to count the families of each country, and nothing a child is set depends on it.",
+          "type": "string",
+          "maxLength": 2
+        },
         "excluded_skills": {
           "description": "Catalog ids that may appear neither in a wording nor in a trap.",
           "type": "array",
@@ -127,6 +132,11 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 32
+        },
+        "region": {
+          "description": "The part of the country the family lives in, if the parent chose to say, by its ISO 3166-2 code: a state of the United States, such as US-TX.",
+          "type": "string",
+          "maxLength": 6
         },
         "ui_language": {
           "description": "A BCP 47 tag overriding the interface language, or null to follow the chat.",

@@ -256,6 +256,33 @@ func TestTheChosenStepIsARuleOfTheRuns(t *testing.T) {
 	}
 }
 
+// The model of mastery chosen is a model of the decision run of mastery, of
+// the bench's own set and of the confirmation, which reads it by the
+// criterion of mastery: a name that matched no model would drop it from all
+// three without a word.
+func TestTheChosenModelIsARuleOfTheRuns(t *testing.T) {
+	t.Parallel()
+	model, err := chosenModel()
+	if chosenMastery == "" {
+		if !errors.Is(err, errNoMasteryChosen) {
+			t.Errorf("no model of mastery chosen: error %v, want %v", err, errNoMasteryChosen)
+		}
+		return
+	}
+	if err != nil || model.name != chosenMastery {
+		t.Fatalf("the chosen model %q: %v, %v; want a model of the decision run of mastery", chosenMastery, model, err)
+	}
+	if !containsRule(benchRules(), model) {
+		t.Errorf("the bench's own set lacks the chosen model %s", chosenMastery)
+	}
+	if confirmed, err := confirmationRules(); err != nil || !containsRule(confirmed, model) {
+		t.Errorf("the confirmation's rules lack the chosen model %s: error %v", chosenMastery, err)
+	}
+	if confirmationCriterion().choice != forMastery {
+		t.Errorf("the confirmation reads the step's criterion, want mastery's")
+	}
+}
+
 // masteryChoiceOf is the choice a fake run read by the criterion of mastery
 // comes to: the service as bad as 0.9, the baseline — the step chosen under
 // the service's mastery — as bad as 0.5, the ceiling 0.1, and every candidate
@@ -392,6 +419,51 @@ func TestAChoiceOfMasteryWithoutItsBaselineChoosesNothing(t *testing.T) {
 	if text := b.String(); !strings.Contains(text, "the run lacks the baseline, which is the exit: **nothing is chosen.**") ||
 		strings.Contains(text, "the service's step stays") {
 		t.Errorf("the choice reads\n%s\nwant it to say the baseline is missing and nothing is chosen", text)
+	}
+}
+
+// The choice of mastery takes the price of a rule that declares only what it
+// is sure of: a candidate worse than the baseline on the error, and on
+// masteries never declared on the widest spread of topics, within that price
+// is chosen; one past either, or past the narrower tolerance of masteries
+// never declared on the child who stays put, is not.
+func TestTheChoiceOfMasteryTakesItsPrice(t *testing.T) {
+	t.Parallel()
+	cases := []struct {
+		name       string
+		worseError float64
+		neverOn    generator
+		moreNever  float64
+		chosen     bool
+	}{
+		{"within the price", masteryErrorTolerance - 0.005, farTopics, wideNeverTolerance - 0.01, true},
+		{"the error past it", masteryErrorTolerance + 0.005, farTopics, 0, false},
+		{"masteries never declared past it on the widest spread", 0, farTopics, wideNeverTolerance + 0.01, false},
+		{"masteries never declared past the tolerance on the child who stays put", 0, staticChildren, falseTolerance + 0.01, false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			candidate := masteryCandidateRule("cautious", mainCandidate, 1, false)
+			rs := []*rule{{name: masteryBaseline, shape: both}, candidate}
+			cr := fakeRunReadBy(masteryCriterion(), rs, func(r *rule, g generator, metric string) float64 {
+				baseline := badAt(0.5)(r, g, metric)
+				switch {
+				case r != candidate:
+					return baseline
+				case metric == "r1_rms_200":
+					return baseline + tc.worseError
+				case metric == "r5_never" && g == tc.neverOn:
+					return baseline + tc.moreNever
+				}
+				return badAt(0.15)(r, g, metric)
+			})
+			read, _ := readCriterion(cr)
+			c := cr.choose(read, false)
+			if chosen := nameOf(c.chosen) == candidate.name && !c.exit; chosen != tc.chosen {
+				t.Errorf("chose %s (the exit %v), want the candidate chosen %v", nameOf(c.chosen), c.exit, tc.chosen)
+			}
+		})
 	}
 }
 

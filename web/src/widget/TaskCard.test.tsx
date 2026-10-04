@@ -825,6 +825,8 @@ describe("a lesson begun with its answer in", () => {
 			callTool: (name) => refuse(name),
 			sendMessage: () => refuse("a message"),
 			tellModel: () => refuse("a line for the model"),
+			canOpenLinks: () => false,
+			openLink: () => refuse("a page"),
 		};
 		root = document.createElement("div");
 		document.body.append(root);

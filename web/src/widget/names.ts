@@ -97,6 +97,21 @@ export function listed(words: Words<Key>, names: readonly string[]): string {
 }
 
 /**
+ * countryName is what the card's language calls the country a code names; a
+ * code it cannot name is shown as it is.
+ */
+export function countryName(words: Words<Key>, code: string): string {
+	try {
+		return (
+			new Intl.DisplayNames([words.locale], { type: "region" }).of(code) ?? code
+		);
+	} catch {
+		// A code the platform cannot read names no country it can say.
+		return code;
+	}
+}
+
+/**
  * languageName is what the card's language calls the language tag names,
  * written to begin a line; a tag it cannot read is shown as it is.
  */

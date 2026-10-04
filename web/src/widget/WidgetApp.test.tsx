@@ -22,6 +22,8 @@ const idleHost: Host = {
 	callTool: () => Promise.reject(new Error("no tool is called here")),
 	sendMessage: () => Promise.reject(new Error("no message is sent here")),
 	tellModel: () => Promise.reject(new Error("the model is told nothing here")),
+	canOpenLinks: () => false,
+	openLink: () => Promise.reject(new Error("no page is opened here")),
 };
 
 // notDrawnForATask is the call of a host that names no tool: the card waits for
@@ -165,6 +167,8 @@ describe("the card", () => {
 				name === "read_progress" ? progress : editSaved({ pseudonym: "Star" }),
 			sendMessage: async () => {},
 			tellModel: async () => {},
+			canOpenLinks: () => false,
+			openLink: async () => false,
 		};
 		document.body.append(root);
 		act(() => render(<WidgetApp bridge={bridge} host={host} />, root));

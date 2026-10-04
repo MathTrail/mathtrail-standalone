@@ -17,6 +17,7 @@ const (
 	eventTaskSubmitted  = "task_submitted"
 	eventTaskAccepted   = "task_accepted"
 	eventAnswerRecorded = "answer_recorded"
+	eventTopicMastered  = "topic_mastered"
 	eventSolverRun      = "solver_run"
 )
 

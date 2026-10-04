@@ -101,6 +101,7 @@ describe("the site built from this repository", () => {
 			"assets/onest-license.txt",
 			"assets/style.css",
 			"assets/tokens.css",
+			"en/about/index.html",
 			"en/index.html",
 			"en/privacy/index.html",
 			"en/techniques/index.html",
@@ -126,6 +127,7 @@ describe("the site built from this repository", () => {
 			"en/why/index.html",
 			"index.html",
 			"robots.txt",
+			"ru/about/index.html",
 			"ru/index.html",
 			"ru/privacy/index.html",
 			"ru/techniques/index.html",
@@ -269,6 +271,53 @@ describe("the site built from this repository", () => {
 
 			expect(written.length).toBeGreaterThan(1);
 			expect(new Set(written).size).toBe(1);
+		}
+	});
+
+	test("closes the menu with the page about who makes it, and names that page in the footer before the documents, under the menu's word, in every language", async () => {
+		const locales = (await readdir(out, { withFileTypes: true }))
+			.filter((entry) => entry.isDirectory() && entry.name !== "assets")
+			.map((entry) => entry.name);
+		expect(locales).toEqual(expect.arrayContaining(["en", "ru"]));
+		for (const locale of locales) {
+			const html = await readFile(join(out, locale, "index.html"), "utf8");
+			const links = (list: string) => {
+				const nav = html.match(
+					new RegExp(`<nav class="${list}"[^>]*>(.*?)</nav>`, "s"),
+				);
+				if (nav === null) {
+					throw new Error(`${locale}/index.html has no ${list}`);
+				}
+				return [
+					...(nav[1] ?? "").matchAll(/<a href="([^"]+)"[^>]*>([^<]*)<\/a>/g),
+				].map(([, href, label]) => ({ href, label }));
+			};
+			const menu = links("s-navlinks");
+			const footer = links("s-footlinks");
+
+			expect(menu.at(-1)?.href).toBe(`/${locale}/about/`);
+			expect(footer.slice(0, 3).map(({ href }) => href)).toEqual([
+				`/${locale}/about/`,
+				`/${locale}/privacy/`,
+				`/${locale}/terms/`,
+			]);
+			expect(footer[0]?.label).toBe(menu.at(-1)?.label);
+		}
+	});
+
+	test("writes, on the page about who makes it, to the address the privacy policy names", async () => {
+		for (const locale of ["en", "ru"]) {
+			const addresses = async (page: string) =>
+				[
+					...(
+						await readFile(join(out, locale, page, "index.html"), "utf8")
+					).matchAll(/href="mailto:([^"]+)"/g),
+				].map(([, address]) => address);
+			const policy = await addresses("privacy");
+			const about = await addresses("about");
+
+			expect(about.length).toBeGreaterThan(1);
+			expect(new Set([...policy, ...about]).size).toBe(1);
 		}
 	});
 

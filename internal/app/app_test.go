@@ -729,3 +729,7 @@ func TestContainerRefusesAPaceNothingCouldBeLetInAt(t *testing.T) {
 		}
 	}
 }
+
+// learnerKey is the key a deployment's children are counted under, a secret of
+// its own beside the sealing key.
+var learnerKey = base64.StdEncoding.EncodeToString(bytes.Repeat([]byte("learners"), 4))

@@ -90,7 +90,7 @@ func masteryRules() ([]*rule, error) {
 // chosenMastery names the model the decision run of mastery chose, as its
 // criterion reads the choice; empty until that run, or when the choice keeps
 // the service's rule of mastery.
-const chosenMastery = ""
+const chosenMastery = "floor_0.05+cautious_z1"
 
 var errNoMasteryChosen = errors.New("learners: no rule of mastery is chosen yet")
 

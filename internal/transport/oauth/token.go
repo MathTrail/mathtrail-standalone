@@ -138,6 +138,7 @@ func (t *tokens) sessionOfCode(form url.Values) (*session, *refusal) {
 	}
 	return &session{
 		user:       code.User,
+		country:    code.Country,
 		client:     code.Client,
 		resource:   code.Resource,
 		scope:      code.Scope,

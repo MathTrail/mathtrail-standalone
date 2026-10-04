@@ -81,6 +81,17 @@ export type Host = {
 	 * before.
 	 */
 	tellModel(text: string): Promise<void>;
+	/**
+	 * canOpenLinks says whether the host told the card, as it connected, that
+	 * it opens a page a card asks it to. A host that did not say so is asked
+	 * nothing: a link it would not open is a button that does nothing.
+	 */
+	canOpenLinks(): boolean;
+	/**
+	 * openLink asks the host to open the page at address, and says whether it
+	 * did: a host may refuse, fail, or give up before it answers.
+	 */
+	openLink(address: string): Promise<boolean>;
 };
 
 /** openBridge opens the widget's bridge to its host, ready to connect. */
@@ -169,6 +180,16 @@ export function openBridge(): Bridge & Host {
 			});
 			if (answer.isError === true) {
 				throw new Error("widget: the host did not take the message");
+			}
+		},
+		canOpenLinks: () => app.getHostCapabilities()?.openLinks !== undefined,
+		async openLink(address) {
+			try {
+				const answer = await app.openLink({ url: address });
+				return answer.isError !== true;
+			} catch {
+				// A host that failed, or never answered, did not open the page.
+				return false;
 			}
 		},
 		async tellModel(text) {

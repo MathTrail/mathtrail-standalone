@@ -1,12 +1,6 @@
-import { sourceURL } from "./brand";
+import { contactAddress, sourceURL } from "./brand";
 import { Brand } from "./Header";
 import { useSiteWords } from "./words";
-
-/**
- * contactAddress is where questions about the product and a child's data go:
- * the address the privacy policy names.
- */
-export const contactAddress = "altedtech.info@gmail.com";
 
 /** FooterLink is one page a footer leads to, under the page's own title. */
 export type FooterLink = { readonly href: string; readonly label: string };

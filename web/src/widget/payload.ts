@@ -254,12 +254,17 @@ export function readWaiting(payload: unknown): Waiting | undefined {
 const details = child.extend({
 	interests: z.array(z.string()),
 	excluded_skills: z.array(z.string()),
+	// A profile from a service from before the country was kept names none.
+	country: z.string().nullable().catch(null),
+	region: z.string().nullable().catch(null),
 });
 
 /**
  * Details are the child's profile as a card shows it: who the child is, what
- * the tasks may be dressed in, what the child has not met at school yet, and
- * the language of the lessons. The parent's notes are never among them.
+ * the tasks may be dressed in, what the child has not met at school yet, the
+ * language of the lessons, and the country and the region the family lives
+ * in, by their codes, or null for none given. The parent's notes are never
+ * among them.
  */
 export type Details = z.infer<typeof details>;
 
@@ -429,6 +434,21 @@ const review = z
 	.optional()
 	.catch(undefined);
 
+// site is the site the topics' pages are on: its address and the languages it
+// is written in, each page in every one. A progress from before the links has
+// none, and one that does not read is read as none: the card links nothing.
+const site = z
+	.object({ url: z.string(), languages: z.array(z.string()) })
+	.optional()
+	.catch(undefined);
+
+/**
+ * Site is the site the topics' pages are on, as a progress names it: the
+ * address it gives, which a card checks before it links anything there, and
+ * the languages it is written in.
+ */
+export type Site = NonNullable<z.infer<typeof site>>;
+
 /**
  * Judged is a topic the review names: the topic, why, by codes, the trap its
  * answers keep falling for, and whether it has begun to move.
@@ -481,6 +501,11 @@ const progressReport = z.object({
 			mastered: z.boolean(),
 			skipped: z.number().int(),
 			change: moves,
+			// A progress from before the topics' pages has neither, and one
+			// that does not read is read as none: the topic is drawn with no
+			// link to its page.
+			slug: z.string().optional().catch(undefined),
+			site_page: z.boolean().optional().catch(undefined),
 		}),
 	),
 	recent: z.array(
@@ -503,6 +528,7 @@ const progressReport = z.object({
 	// Kept nowhere a person could open, or from before the progress said where
 	// the file is, a progress has no location, and the card no parent's data.
 	location: location.optional(),
+	site,
 });
 
 /**

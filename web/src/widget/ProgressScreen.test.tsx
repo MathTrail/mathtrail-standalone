@@ -443,7 +443,7 @@ describe("the progress", () => {
 			"0%",
 		]);
 		expect(root.querySelector(".mt-list")).toBeNull();
-		expect(profileFields(root)).toHaveLength(4);
+		expect(profileFields(root)).toHaveLength(5);
 	});
 
 	test("says nothing of skipped tasks when the service counts none", async () => {
@@ -482,6 +482,11 @@ describe("the progress", () => {
 			["Interests", "space, animals, football"],
 			["Not at school yet", "Division with a remainder"],
 			["Language of the lessons", "The chat's language"],
+			[
+				"Country",
+				"Not set",
+				"Optional. Used only to count, without names, how many families each country has.",
+			],
 		]);
 		expect(root.querySelectorAll(".mt-chip")).toHaveLength(4);
 	});
@@ -528,7 +533,7 @@ describe("the progress", () => {
 		const { root } = await draw(nowhere);
 
 		expect(fields(root, "Your data")).toEqual([]);
-		expect(profileFields(root)).toHaveLength(4);
+		expect(profileFields(root)).toHaveLength(5);
 	});
 
 	test("in the trial series shows how far it has got, with no rank anywhere and every topic drawn open", async () => {
@@ -1057,6 +1062,8 @@ describe("a progress screen nobody outlives", () => {
 		callTool: () => Promise.reject(new Error("no host")),
 		sendMessage: () => Promise.reject(new Error("no host")),
 		tellModel: () => Promise.reject(new Error("no host")),
+		canOpenLinks: () => false,
+		openLink: () => Promise.reject(new Error("no host")),
 	};
 
 	test("keeps the while chosen on its switch itself", () => {

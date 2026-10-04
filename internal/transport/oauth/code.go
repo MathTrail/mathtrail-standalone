@@ -8,16 +8,18 @@ import (
 )
 
 // grantCode is what an authorization code carries: whom the parent signed in
-// as, Google's tokens for them, and everything the exchange of the code has
-// to match — the client, the address the code was sent to, the PKCE
-// challenge, the resource and the scope. It is sealed as a code, bound to this
-// issuer, and kept nowhere: the code is the whole of it.
+// as, the country their browser signed in from, Google's tokens for them, and
+// everything the exchange of the code has to match — the client, the address
+// the code was sent to, the PKCE challenge, the resource and the scope. It is
+// sealed as a code, bound to this issuer, and kept nowhere: the code is the
+// whole of it.
 //
 // It carries the digest of the client's identifier, as the request did: the
 // exchange compares an identifier with it, and the code rides back to the
 // client in an address.
 type grantCode struct {
 	User               string `json:"user"`
+	Country            string `json:"country,omitempty"`
 	Client             string `json:"client"`
 	RedirectURI        string `json:"redirect_uri"`
 	Challenge          string `json:"code_challenge"`
@@ -30,9 +32,10 @@ type grantCode struct {
 }
 
 // issueCode seals the code a finished sign-in hands the client.
-func (f *flow) issueCode(request *flight, grant *googleauth.Grant, user string) (string, error) {
+func (f *flow) issueCode(request *flight, grant *googleauth.Grant, user, country string) (string, error) {
 	plain, err := json.Marshal(grantCode{
 		User:               user,
+		Country:            country,
 		Client:             request.Client,
 		RedirectURI:        request.RedirectURI,
 		Challenge:          request.Challenge,

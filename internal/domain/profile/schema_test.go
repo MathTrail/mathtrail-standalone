@@ -221,6 +221,7 @@ func TestTheSchemaStatesTheCapsOfTheDetails(t *testing.T) {
 		got   any
 		want  int
 	}{
+		{"country.maxLength", details["country"]["maxLength"], profile.MaxCountry},
 		{"excluded_skills.maxItems", details["excluded_skills"]["maxItems"], profile.MaxExcludedSkills},
 		{"grade.minimum", details["grade"]["minimum"], profile.MinGrade},
 		{"grade.maximum", details["grade"]["maximum"], profile.MaxGrade},
@@ -228,6 +229,7 @@ func TestTheSchemaStatesTheCapsOfTheDetails(t *testing.T) {
 		{"interests.items.maxLength", interestItems["maxLength"], profile.MaxInterest},
 		{"notes.maxLength", details["notes"]["maxLength"], profile.MaxNotes},
 		{"pseudonym.maxLength", details["pseudonym"]["maxLength"], profile.MaxPseudonym},
+		{"region.maxLength", details["region"]["maxLength"], profile.MaxRegion},
 		{"ui_language.maxLength", details["ui_language"]["maxLength"], profile.MaxLanguageTag},
 	} {
 		if tc.got != float64(tc.want) {

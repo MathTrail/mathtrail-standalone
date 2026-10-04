@@ -204,6 +204,8 @@ export const standing = {
 		interests: ["space", "animals", "football"],
 		excluded_skills: ["division_with_remainder"],
 		ui_language: null,
+		country: null,
+		region: null,
 	},
 	trial: null,
 	overall: { rating: 1573, rank: 3, ranks: 11, share: 43 },

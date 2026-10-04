@@ -61,6 +61,13 @@ type Settings struct {
 	// SiteURL is the site the consent screen links the terms and the privacy
 	// policy on: a scheme and a host, with no path and no trailing slash.
 	SiteURL string
+	// CountryOf is the country a request came from, by its code in the list
+	// of countries, or empty when that is not known. It is asked once a
+	// sign-in, of the request Google sends the parent's browser back with —
+	// the one request of a sign-in that comes from the family rather than from
+	// the servers of their chat. Nil where no database of countries is
+	// configured, and no country is then known.
+	CountryOf func(r *http.Request) string
 	// Now is the clock everything the server issues is dated by, and a fetch
 	// is timed by.
 	Now func() time.Time
@@ -131,8 +138,9 @@ type Server struct {
 	// its pace, in the parent's language.
 	Busy http.Handler
 	// Account reads the access token a request to the resource carries: the
-	// account it signs the request in as, and when the token ends. A token
-	// that signs nobody in is an error.
+	// account it signs the request in as, with the country its sign-in was
+	// made from, and when the token ends. A token that signs nobody in is an
+	// error.
 	Account func(ctx context.Context, token string) (store.Account, time.Time, error)
 	// ResourceMetadataURL is the address of the resource's metadata, which a
 	// refusal of the resource names.
@@ -166,19 +174,24 @@ func New(settings *Settings) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
+	countryOf := settings.CountryOf
+	if countryOf == nil {
+		countryOf = func(*http.Request) string { return "" }
+	}
 	signIn := &flow{
-		issuer:   issuer,
-		resource: issuer + resourcePath,
-		scope:    settings.Scope,
-		clients:  known,
-		flights:  settings.Seal.For(seal.PurposeState),
-		consents: settings.Seal.For(seal.PurposeConsent),
-		codes:    settings.Seal.For(seal.PurposeCode),
-		userID:   settings.Seal.UserID,
-		google:   settings.Google,
-		pages:    screens,
-		events:   events,
-		now:      settings.Now,
+		issuer:    issuer,
+		resource:  issuer + resourcePath,
+		scope:     settings.Scope,
+		clients:   known,
+		flights:   settings.Seal.For(seal.PurposeState),
+		consents:  settings.Seal.For(seal.PurposeConsent),
+		codes:     settings.Seal.For(seal.PurposeCode),
+		userID:    settings.Seal.UserID,
+		countryOf: countryOf,
+		google:    settings.Google,
+		pages:     screens,
+		events:    events,
+		now:       settings.Now,
 	}
 	grants := &tokens{
 		issuer:   issuer,

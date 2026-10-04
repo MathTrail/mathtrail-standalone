@@ -247,6 +247,8 @@ describe("the screen a payload draws", () => {
 					interests: ["space", "animals", "football"],
 					excluded_skills: ["division_with_remainder"],
 					ui_language: "ru",
+					country: null,
+					region: null,
 				},
 				location: {
 					folder: "MathTrail",
@@ -257,6 +259,28 @@ describe("the screen a payload draws", () => {
 			},
 		});
 		expect(JSON.stringify(shown)).not.toContain("Loses heart");
+	});
+
+	test("of the profile from a service that kept no country reads as naming none", () => {
+		const { country: _, region: __, ...before } = profileRead.profile;
+		const shown = readScreen({ ...profileRead, profile: before });
+
+		expect(shown?.screen === "profile" && shown.profile.details).toMatchObject({
+			country: null,
+			region: null,
+		});
+	});
+
+	test("of the profile keeps the country and the state the adult gave", () => {
+		const shown = readScreen({
+			...profileRead,
+			profile: { ...profileRead.profile, country: "US", region: "US-TX" },
+		});
+
+		expect(shown?.screen === "profile" && shown.profile.details).toMatchObject({
+			country: "US",
+			region: "US-TX",
+		});
 	});
 
 	test("of the progress keeps how far through its rank the rating has come, each topic's rank, the total of the skips and where the file is", () => {

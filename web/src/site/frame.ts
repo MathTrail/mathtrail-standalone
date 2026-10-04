@@ -25,14 +25,16 @@ export type Frame = {
 /**
  * siteFrame is the site's own. A page joins the menu with the task that
  * publishes it, and the build refuses an entry whose page is not there, so the
- * menu never leads nowhere. The footer names the documents rather than every
- * page in turn, which seventeen topics would bury them under.
+ * menu never leads nowhere. The page about who makes the product closes the
+ * menu. The footer names that page and the documents rather than every page in
+ * turn, which seventeen topics would bury them under.
  */
 export const siteFrame: Frame = {
 	menu: [
 		{ page: "why", label: "nav.why" },
 		{ page: "topics", label: "nav.topics" },
 		{ page: "techniques", label: "nav.techniques" },
+		{ page: "about", label: "nav.about" },
 	],
-	footer: ["privacy", "terms"],
+	footer: ["about", "privacy", "terms"],
 };

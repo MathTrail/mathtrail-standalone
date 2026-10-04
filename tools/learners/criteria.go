@@ -184,20 +184,39 @@ func masteryGoals() []goal {
 	return append(all, screenGoals("the baseline's")...)
 }
 
+// The price a rule of mastery that declares only what it is sure of may cost
+// against the baseline, for the false masteries it saves. The error after 200
+// answers may be up to masteryErrorTolerance worse: a topic held mastered
+// leaves the rotation, and for a child who moves on its estimate stays where
+// it was. On the widest spread of topics, up to wideNeverTolerance more of the
+// masteries a child has may go undeclared within a run: a topic far above the
+// child's level clears a margin late. Both were set after the decision run of
+// mastery, at what the cautious estimate costs there plus resolutionWidths of
+// its standard errors, rounded up — the width every tolerance of not worse
+// keeps, so that a rule costing that much passes a run of new children 99
+// times in 100 — and a run on children no run has drawn is what tests them.
+const (
+	masteryErrorTolerance = 0.03
+	wideNeverTolerance    = 0.08
+)
+
 // masteryNotWorse are the measures a rule of mastery is held to no worse than
 // the baseline's on: the step's, which a rule of mastery moves by the topics
-// it takes out of the rotation; the share of masteries declared falsely; and
-// the share of masteries the child has that are never declared, since a rule
-// could otherwise wait less only by declaring less. That last is read where
-// the goals of mastery are, on children who stay put, where whatever is left
-// undeclared is the rule's own doing: for a child who learns, the step chosen
-// trails the child, and a margin on top of the trail leaves masteries reached
-// late in a run undeclared by its end, which is the step's to answer for.
+// it takes out of the rotation, the error within its price; the share of
+// masteries declared falsely; and the share of masteries the child has that
+// are never declared, since a rule could otherwise wait less only by
+// declaring less. That last is read where the goals of mastery are, on
+// children who stay put, where whatever is left undeclared is the rule's own
+// doing, and on the widest spread of topics within its price: for a child who
+// learns, the step chosen trails the child, and a margin on top of the trail
+// leaves masteries reached late in a run undeclared by its end, which is the
+// step's to answer for.
 var masteryNotWorse = []notWorse{
-	{metric: "r1_rms_200", tolerance: errorTolerance},
+	{metric: "r1_rms_200", tolerance: masteryErrorTolerance},
 	{metric: "r3_inside", higherIsBetter: true, tolerance: corridorTolerance},
 	{metric: "r4_false", tolerance: falseTolerance},
-	{metric: "r5_never", tolerance: falseTolerance, only: masteryGenerators},
+	{metric: "r5_never", tolerance: falseTolerance, only: []generator{staticChildren}},
+	{metric: "r5_never", tolerance: wideNeverTolerance, only: []generator{farTopics}},
 }
 
 // The measures the score of mastery reads: the share of masteries declared

@@ -2536,3 +2536,58 @@ a:hover {
 .s-cue .s-technique-link {
 	background: var(--s-tint);
 }
+
+/* The page about who makes MathTrail: the first screen with no panel beside
+   it, a card for each of the family under the role it plays, and where to
+   write, in a frame with its buttons. */
+.s-team {
+	padding-block-start: 56px;
+}
+
+.s-team .s-tiles {
+	margin: 0;
+}
+
+.s-member-role {
+	align-self: flex-start;
+	margin: 0;
+}
+
+/* Where to write: the framed line of "Why", a size larger and on its own. */
+.s-contact {
+	gap: var(--space-24);
+	margin: 0;
+	padding: 32px;
+}
+
+.s-contact-copy {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-8);
+	max-inline-size: 640px;
+}
+
+.s-contact-title {
+	margin: 0;
+	font-size: 1.5rem;
+	font-weight: 600;
+	line-height: 1.25;
+}
+
+.s-contact-actions {
+	justify-content: flex-start;
+	margin: 0;
+}
+
+/* Beside no card, the first screen's words start at the top of their row. */
+@media (min-width: 992px) {
+	.s-about-hero .s-hero-copy {
+		padding-block-start: 0;
+	}
+}
+
+@media (max-width: 479px) {
+	.s-contact {
+		padding: var(--space-24);
+	}
+}

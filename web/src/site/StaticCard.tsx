@@ -12,12 +12,14 @@ import { TaskCard } from "../widget/TaskCard";
 import { NamesBuild } from "../widget/version";
 import { cardWords, WordsContext } from "../widget/words";
 
-// stillHost answers nothing: a card drawn on a page has no chat behind it,
-// and being inert, it never asks.
+// stillHost answers nothing and opens nothing: a card drawn on a page has no
+// chat behind it, and being inert, it never asks.
 const stillHost: Host = {
 	callTool: () => Promise.reject(new Error("a card on a page has no host")),
 	sendMessage: () => Promise.reject(new Error("a card on a page has no host")),
 	tellModel: () => Promise.reject(new Error("a card on a page has no host")),
+	canOpenLinks: () => false,
+	openLink: () => Promise.resolve(false),
 };
 
 /**

@@ -12,6 +12,13 @@ import (
 // writes directly. There is no name, no birth date and no school here: a
 // pseudonym is all the service ever learns about who the child is.
 type Student struct {
+	// Country is the country the family lives in, when the parent chose to
+	// say, by its code in the list of countries, such as US. It is there to
+	// count how many families each country has without knowing who anybody
+	// is, and nothing the child is set depends on it. The file is the parent's
+	// to edit, so a line counts a code the list does not have as no country of
+	// it.
+	Country string `json:"country,omitempty"`
 	// ExcludedSkills are catalog ids that must appear neither in the wording
 	// of a task nor in a trap: what this child has not been taught yet.
 	ExcludedSkills []string `json:"excluded_skills"`
@@ -30,6 +37,10 @@ type Student struct {
 	// Pseudonym is what the child is called. It must never reach the text of
 	// a task, which is a rule the instructions carry and no code enforces.
 	Pseudonym string `json:"pseudonym"`
+	// Region is the part of the country the family lives in, when the parent
+	// chose to say — for the United States its state, such as US-TX — by its
+	// code in ISO 3166-2. Only a country the list names regions of has one.
+	Region string `json:"region,omitempty"`
 	// UILanguage is the language the parent chose for the lessons — the tasks,
 	// the cards and the model's words — or nil to follow the chat. The file
 	// keeps the name it was given when it set the cards' language alone.
@@ -130,11 +141,13 @@ func (p Problem) String() string { return p.Field + ": " + p.Rule }
 // written.
 func (s *Student) problems() []Problem {
 	checked := []Problem{
+		{Field: "country", Broken: lengthRule(s.Country, MaxCountry)},
 		{Field: "excluded_skills", Broken: excludedSkillsRule(s.ExcludedSkills)},
 		{Field: "grade", Broken: gradeRule(s.Grade)},
 		{Field: "interests", Broken: interestsRule(s.Interests)},
 		{Field: "notes", Broken: notesRule(s.Notes)},
 		{Field: "pseudonym", Broken: pseudonymRule(s.Pseudonym)},
+		{Field: "region", Broken: lengthRule(s.Region, MaxRegion)},
 		{Field: "ui_language", Broken: languageRule(s.UILanguage)},
 	}
 	return slices.DeleteFunc(checked, func(p Problem) bool { return p.Code == "" })
@@ -198,6 +211,17 @@ func languageRule(language *string) Broken {
 	}
 	if count := utf8.RuneCountInString(*language); count > MaxLanguageTag {
 		return Broken{CodeTooLong, fmt.Sprintf("must be at most %d characters, not %d", MaxLanguageTag, count)}
+	}
+	return Broken{}
+}
+
+// lengthRule holds a code to the length of the longest a code can be. The file
+// is held to nothing more of a country or a region: which codes there are is a
+// rule of the edit, and a code a person typed into the file by hand counts as
+// none where it is read.
+func lengthRule(code string, most int) Broken {
+	if count := utf8.RuneCountInString(code); count > most {
+		return Broken{CodeTooLong, fmt.Sprintf("must be at most %d characters, not %d", most, count)}
 	}
 	return Broken{}
 }

@@ -19,8 +19,9 @@ export const profileLimits = {
 
 /**
  * Draft is the form as the adult fills it in: each detail the form changes,
- * the interest still being typed, and the language of the lessons, the chat's
- * being the empty text.
+ * the interest still being typed, the language of the lessons, the chat's
+ * being the empty text, and the country and the region, none being the empty
+ * text.
  */
 export type Draft = {
 	pseudonym: string;
@@ -29,6 +30,8 @@ export type Draft = {
 	interest: string;
 	skills: readonly string[];
 	language: string;
+	country: string;
+	region: string;
 };
 
 /** draftOf is the form as it opens: the details as they stand. */
@@ -40,6 +43,20 @@ export function draftOf(details: Details): Draft {
 		interest: "",
 		skills: details.excluded_skills,
 		language: details.ui_language ?? "",
+		country: details.country ?? "",
+		region: details.region ?? "",
+	};
+}
+
+/**
+ * withCountry is the draft with the country chosen. A family that moves to
+ * another country leaves the old one's region behind, as the service does.
+ */
+export function withCountry(draft: Draft, country: string): Draft {
+	return {
+		...draft,
+		country,
+		region: country === draft.country ? draft.region : "",
 	};
 }
 
@@ -67,7 +84,7 @@ export function withInterestAdded(draft: Draft): Draft {
  * in the chat while the form was open is kept. A pseudonym is compared without
  * the spaces around it; the interests in their order, since tasks are dressed
  * in them in turn, the one still being typed among them; the skills as a set;
- * and the chat's language is the empty text.
+ * and the chat's language, no country and no region are each the empty text.
  */
 export function changesOf(
 	details: Details,
@@ -89,6 +106,12 @@ export function changesOf(
 	}
 	if (draft.language !== (details.ui_language ?? "")) {
 		changes.ui_language = draft.language;
+	}
+	if (draft.country !== (details.country ?? "")) {
+		changes.country = draft.country;
+	}
+	if (draft.region !== (details.region ?? "")) {
+		changes.region = draft.region;
 	}
 	return changes;
 }

@@ -9,13 +9,15 @@ import (
 	"unicode/utf8"
 
 	"golang.org/x/text/language"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/country"
 )
 
 // Edit is a change to the child's details as the parent asked for it, by way
 // of the chat's model. A field left nil stays as it is. A list that is given
 // replaces the one kept, so an empty list clears it; an empty text clears the
-// notes, and an empty language makes the lessons follow the chat's language
-// again.
+// notes, the country or the region, and an empty language makes the lessons
+// follow the chat's language again.
 type Edit struct {
 	Pseudonym      *string
 	Grade          *int
@@ -23,6 +25,8 @@ type Edit struct {
 	ExcludedSkills []string
 	Notes          *string
 	UILanguage     *string
+	Country        *string
+	Region         *string
 }
 
 // NewStudent is the child's details as the parent first gave them, or the
@@ -55,9 +59,10 @@ func (p *Profile) Change(e *Edit, known func(skill string) bool, appVersion stri
 }
 
 // edited is the details with the edit made and cleaned, and the problems that
-// keep them from being kept, sorted by field. Two rules are the edit's own and
-// not the file's: a skill must be in the catalog, and a language must be one.
-// A file somebody edited by hand is not made unreadable by either.
+// keep them from being kept, sorted by field. Four rules are the edit's own and
+// not the file's: a skill must be in the catalog, a language must be one, and a
+// country and a region must be of the list of countries. A file somebody
+// edited by hand is not made unreadable by any of them.
 func (s *Student) edited(e *Edit, known func(skill string) bool) (Student, []Problem) {
 	next := s.copied()
 	if e.Pseudonym != nil {
@@ -75,6 +80,8 @@ func (s *Student) edited(e *Edit, known func(skill string) bool) (Student, []Pro
 	found := slices.Concat(
 		next.editSkills(e.ExcludedSkills, known),
 		next.editLanguage(e.UILanguage),
+		next.editCountry(e.Country),
+		next.editRegion(e.Region),
 		next.problems(),
 	)
 	slices.SortStableFunc(found, func(a, b Problem) int { return strings.Compare(a.Field, b.Field) })
@@ -116,6 +123,42 @@ func (s *Student) editLanguage(given *string) []Problem {
 	return nil
 }
 
+// editCountry puts the country given in place, or says why it cannot be: a
+// code of the list of countries, read without regard to case or the spaces
+// around it, or an empty text for none. A family that moves to another country
+// leaves the old one's region behind.
+func (s *Student) editCountry(given *string) []Problem {
+	if given == nil {
+		return nil
+	}
+	code := strings.ToUpper(strings.TrimSpace(*given))
+	if code != "" && !country.Known(code) {
+		return []Problem{{Field: "country", Broken: Broken{CodeNotOneOf,
+			"must be the ISO 3166-1 code of a country, such as US or FR, or empty for none"}}}
+	}
+	s.Country = code
+	if !country.KnownRegion(code, s.Region) {
+		s.Region = ""
+	}
+	return nil
+}
+
+// editRegion puts the region given in place, or says why it cannot be: one of
+// the regions of the country — the one this edit gives, or the one kept — read
+// without regard to case or the spaces around it, or an empty text for none.
+func (s *Student) editRegion(given *string) []Problem {
+	if given == nil {
+		return nil
+	}
+	code := strings.ToUpper(strings.TrimSpace(*given))
+	if code != "" && !country.KnownRegion(s.Country, code) {
+		return []Problem{{Field: "region", Broken: Broken{CodeNotOneOf,
+			"must be a state of the United States by its ISO 3166-2 code, such as US-TX, with the country US, or empty for none"}}}
+	}
+	s.Region = code
+	return nil
+}
+
 // copied is the details sharing nothing with the ones they came from, and with
 // a list for every list: a file says "none" as an empty list, never as null,
 // because what the rule copies from it reaches the model as it stands.
@@ -136,6 +179,7 @@ func (s *Student) copied() Student {
 // another order are the same skills.
 func (s *Student) same(other *Student) bool {
 	return s.Pseudonym == other.Pseudonym && s.Grade == other.Grade && s.Notes == other.Notes &&
+		s.Country == other.Country && s.Region == other.Region &&
 		slices.Equal(s.Interests, other.Interests) &&
 		slices.Equal(sorted(s.ExcludedSkills), sorted(other.ExcludedSkills)) &&
 		sameLanguage(s.UILanguage, other.UILanguage)

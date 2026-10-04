@@ -11,6 +11,7 @@ const (
 	ruleUnknownEvent = "an event the service is not decided to write"
 	ruleUndecided    = "a field its event is not decided to carry"
 	ruleEmail        = "text shaped like an email address"
+	ruleShape        = "a value its field may not hold"
 )
 
 // What a breach says in place of a name it must not repeat: the words of an
@@ -33,8 +34,8 @@ type breach struct{ event, field, rule string }
 
 // audit holds a line of the service's to the rules of the log and is every
 // way it breaks them: an event the service is not decided to write, a field
-// its event is not decided to carry, and text shaped like an email address in
-// any of its values or names.
+// its event is not decided to carry, a value of a form its field may not hold,
+// and text shaped like an email address in any of its values or names.
 func audit(fields map[string]any) []breach {
 	event, _ := fields["message"].(string)
 	label := event
@@ -47,6 +48,9 @@ func audit(fields map[string]any) []breach {
 		// The instance is the reader's to add, beside what the service wrote.
 		if Known(event) && !Decided(event, field) && field != instanceField {
 			found = append(found, breach{event: label, field: named(field), rule: ruleUndecided})
+		}
+		if Known(event) && Decided(event, field) && !Fits(event, field, value) {
+			found = append(found, breach{event: label, field: named(field), rule: ruleShape})
 		}
 		if EmailIn(field) != "" || carriesEmail(value) {
 			found = append(found, breach{event: label, field: named(field), rule: ruleEmail})

@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"slices"
+	"time"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -13,6 +15,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/progress"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/tutor"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 )
 
@@ -124,6 +127,7 @@ func (s *Service) answer(ctx context.Context, account store.Account, in submitAn
 		return answerRefused(p, broken), nil
 	}
 	now := s.now()
+	masteredBefore := p.CurrentTask != nil && tutor.Mastered(p, s.content, p.CurrentTask.Topic)
 	recorded, err := s.recordAnswer(ctx, p, profile.Answered{TaskID: in.TaskID, Choice: choice, HintUsed: in.HintUsed, At: now})
 	switch {
 	case errors.Is(err, profile.ErrNoTask), errors.Is(err, profile.ErrOtherTask):
@@ -142,9 +146,30 @@ func (s *Service) answer(ctx context.Context, account store.Account, in submitAn
 	if _, err := s.store.Save(ctx, account, p, revision); err != nil {
 		return Reply[answeredOut]{}, fmt.Errorf("mcp: save the profile: %w", err)
 	}
-	s.events.writeFor(ctx, account, p.CurrentTask.InstructionsVersion, eventAnswerRecorded,
-		s.answerFields(&recorded, p.Ratings.Answers)...)
+	version := p.CurrentTask.InstructionsVersion
+	s.events.writeFor(ctx, account, version, eventAnswerRecorded, s.recordedFields(p, &recorded, now)...)
+	if recorded.Mastered && !masteredBefore && tutor.Mastered(p, s.content, recorded.Topic) {
+		s.events.writeFor(ctx, account, version, eventTopicMastered,
+			zap.String("learner", s.learners.Of(p.StudentID, now)),
+			zap.String("topic", s.topicLabel(recorded.Topic)),
+			zap.Int("grade", p.Student.Grade),
+		)
+	}
 	return s.told(p, &recorded), nil
+}
+
+// recordedFields are what the line about an answer carries: how it went, the
+// child it counts, and how many topics of the catalog the child has mastered
+// once it is in, as the progress counts them. The number is the profile's
+// rather than one added up from the lines about topics mastered, since a topic
+// is lost as well as won, and a topic can count again without an answer when
+// the child's level in it falls back to where it was mastered.
+func (s *Service) recordedFields(p *profile.Profile, recorded *profile.Recorded, now time.Time) []zap.Field {
+	return slices.Concat(
+		s.answerFields(recorded, p.Ratings.Answers),
+		s.countedFields(p, now),
+		[]zap.Field{zap.Int("topics_mastered", tutor.MasteredTopics(p, s.content))},
+	)
 }
 
 // recordAnswer applies the answer inside a span of its own, which says how it

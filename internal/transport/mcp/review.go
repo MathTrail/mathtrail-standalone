@@ -70,7 +70,7 @@ func judgedOf(topics []progress.Judged) []judgedOut {
 // judge — which is no verdict on them — and the steps to take, each with its
 // advice. Without a card these words are the review; during the trial series
 // there is none to tell.
-func (s *Service) reviewText(review *progress.Review) string {
+func (s *Service) reviewText(review *progress.Review, language string) string {
 	if review == nil {
 		return ""
 	}
@@ -88,8 +88,8 @@ func (s *Service) reviewText(review *progress.Review) string {
 		}
 		parts = append(parts, "Too early to judge, which is no verdict yet: "+strings.Join(names, ", ")+".")
 	}
-	if len(review.Steps) > 0 {
-		parts = append(parts, "What to do next: "+s.stepsText(review.Steps))
+	if steps := s.stepsText(review.Steps, language); steps != "" {
+		parts = append(parts, "What to do next: "+steps)
 	}
 	if len(parts) == 0 {
 		return "Review for the adult: nothing to point out yet."
@@ -130,17 +130,43 @@ func (s *Service) judgedText(topics []progress.Judged) string {
 	return strings.Join(named, ", ")
 }
 
-// stepsText is the steps of the review, numbered, each with its advice.
-func (s *Service) stepsText(steps []progress.Step) string {
+// stepsText is the steps of the review, numbered, each with its advice and the
+// page of its topic in language; a step of a kind with no words is left out.
+func (s *Service) stepsText(steps []progress.Step, language string) string {
 	said := make([]string, 0, len(steps))
-	for place, step := range steps {
+	for _, step := range steps {
 		advice := s.stepAdvice(step)
-		if step.Topic != "" {
-			advice = s.topicName(step.Topic) + ": " + advice
+		if advice == "" {
+			continue
 		}
-		said = append(said, fmt.Sprintf("%d. %s", place+1, advice))
+		if step.Topic != "" {
+			advice = s.stepTopic(step, language) + ": " + advice
+		}
+		said = append(said, fmt.Sprintf("%d. %s", len(said)+1, advice))
 	}
 	return strings.Join(said, " ")
+}
+
+// stepTopic is the name of a step's topic, and after it, once the topic's
+// page is published, the address of the part of the page the step is about,
+// in language: the model links the page only as it is given here.
+func (s *Service) stepTopic(step progress.Step, language string) string {
+	name := s.topicName(step.Topic)
+	topic, _ := s.content.Topic(step.Topic)
+	if address := pageAddress(s.site, language, topic, stepAnchor(step.Kind)); address != "" {
+		return name + " (" + address + ")"
+	}
+	return name
+}
+
+// stepAnchor is the part of a topic's page a step leads to: where the
+// mistakes are told, for a trap's advice, and how to help at home, for the
+// rest.
+func stepAnchor(kind progress.StepKind) string {
+	if kind == progress.StepTrap {
+		return anchorTraps
+	}
+	return anchorHome
 }
 
 // stepAdvice is what a step advises, in a sentence: a trap's advice as the
@@ -156,7 +182,9 @@ func (s *Service) stepAdvice(step progress.Step) string {
 		return "two or three short tasks a day, until it comes back."
 	case progress.StepPractice:
 		return "a few more tasks in it; MathTrail sets them where the child stands."
-	default:
+	case progress.StepUnaided:
 		return "try each task first without the hint."
+	default:
+		return ""
 	}
 }

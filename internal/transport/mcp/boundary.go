@@ -133,7 +133,7 @@ func (b *boundary) toolCall(ctx context.Context, method string, req *mcp.CallToo
 	if !b.admitted(spanned, call.user) {
 		return heldBackCall(), nil
 	}
-	result, err = settle(next(spanned, method, req))
+	result, err = settle(next(withHost(spanned, call.client), method, req))
 	return askedToSignIn(ctx, result, call.client), err
 }
 

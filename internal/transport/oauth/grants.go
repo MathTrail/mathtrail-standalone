@@ -52,10 +52,13 @@ const (
 )
 
 // session is a sign-in as the host's tokens carry it from one to the next:
-// whom the parent signed in as and when, the client it is for, the resource
-// and the scope, and Google's grant.
+// whom the parent signed in as and when, and from which country, the client it
+// is for, the resource and the scope, and Google's grant. The country is the
+// one of the sign-in itself: a renewal comes from the host's servers and keeps
+// it as it was.
 type session struct {
 	user       string
+	country    string
 	client     string
 	resource   string
 	scope      string
@@ -72,14 +75,16 @@ type googleGrant struct {
 	refreshToken string
 }
 
-// accessGrant is what an access token carries: whom it signs a request in as,
-// the digest of the client it was issued to, the resource it is for — its
-// audience — and the scope, the Google access token the account's Drive is
-// reached with, and when it was issued and ends. It carries no Google refresh
-// token: one stolen buys minutes of access to a single file, and no way to
-// renew it.
+// accessGrant is what an access token carries: whom it signs a request in as
+// and the country that sign-in was made from — empty in a token of a sign-in
+// made before the country was kept — the digest of the client it was issued
+// to, the resource it is for — its audience — and the scope, the Google access
+// token the account's Drive is reached with, and when it was issued and ends.
+// It carries no Google refresh token: one stolen buys minutes of access to a
+// single file, and no way to renew it.
 type accessGrant struct {
 	User               string `json:"user"`
+	Country            string `json:"country,omitempty"`
 	Client             string `json:"client"`
 	Resource           string `json:"resource"`
 	Scope              string `json:"scope"`
@@ -93,6 +98,7 @@ type accessGrant struct {
 // refresh token among it, and when the token was issued and ends.
 type refreshGrant struct {
 	User               string `json:"user"`
+	Country            string `json:"country,omitempty"`
 	Client             string `json:"client"`
 	Resource           string `json:"resource"`
 	Scope              string `json:"scope"`
@@ -108,6 +114,7 @@ type refreshGrant struct {
 func sessionOf(grant *refreshGrant) *session {
 	return &session{
 		user:       grant.User,
+		country:    grant.Country,
 		client:     grant.Client,
 		resource:   grant.Resource,
 		scope:      grant.Scope,
@@ -167,6 +174,7 @@ func (t *tokens) issue(ctx context.Context, s *session) (issued, error) {
 
 	access, err := t.sealAs(t.access, &accessGrant{
 		User:               s.user,
+		Country:            s.country,
 		Client:             s.client,
 		Resource:           s.resource,
 		Scope:              s.scope,
@@ -180,6 +188,7 @@ func (t *tokens) issue(ctx context.Context, s *session) (issued, error) {
 	}
 	refresh, err := t.sealAs(t.refresh, &refreshGrant{
 		User:               s.user,
+		Country:            s.country,
 		Client:             s.client,
 		Resource:           s.resource,
 		Scope:              s.scope,

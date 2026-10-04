@@ -318,6 +318,19 @@ func Mastered(p *profile.Profile, catalog Catalog, topic string) bool {
 	return recommended.GradeLevel.Shift() <= summary.MasteredLevel.Shift()
 }
 
+// MasteredTopics is how many topics of the catalog count as mastered for the
+// child now, by Mastered: the topics the progress calls mastered, counted. A
+// topic mastered below the level its tasks come from now is not among them.
+func MasteredTopics(p *profile.Profile, catalog Catalog) int {
+	count := 0
+	for _, topic := range catalog.TopicIDs() {
+		if Mastered(p, catalog, topic) {
+			count++
+		}
+	}
+	return count
+}
+
 // oldest is the topic that has waited longest: one never given at all, or the
 // one given furthest back. Candidates arrive in catalog order and the walk
 // keeps the first of any tie, so the order of a map never reaches the answer.

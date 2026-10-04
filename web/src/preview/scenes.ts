@@ -320,7 +320,25 @@ export function scenesIn(language: string): Scene[] {
 			},
 		},
 		{ name: "profile, a change refused", payload: profileRefused },
+		{
+			name: "profile, a family in the United States",
+			payload: placed(profileRead, "US", "US-TX"),
+		},
+		{
+			name: "profile, the longest name of a country",
+			payload: placed(profileRead, "GS", null),
+		},
 		{ name: "profile form", payload: standing, play: inTheForm() },
+		{
+			name: "profile form, a family in the United States",
+			payload: placed(standing, "US", "US-TX"),
+			play: inTheForm(),
+		},
+		{
+			name: "profile form, the longest name of a country",
+			payload: placed(standing, "GS", null),
+			play: inTheForm(),
+		},
 		{
 			name: "profile form, long texts",
 			payload: longProgress,
@@ -813,10 +831,24 @@ function renamed(card: Document) {
 	}
 }
 
-// inFrench chooses French for the lessons.
+// placed is a payload whose profile says where the family lives: the country,
+// by its code — South Georgia and the South Sandwich Islands, GS, has the
+// longest name of any in most languages — and the state, or none.
+function placed<T extends { profile: object }>(
+	payload: T,
+	country: string,
+	region: string | null,
+): T {
+	return { ...payload, profile: { ...payload.profile, country, region } };
+}
+
+// inFrench chooses French for the lessons, on the one list of the form that
+// offers languages: the form's lists are told apart by what they offer, since
+// their labels are in whatever language the card speaks.
 function inFrench(card: Document) {
-	const lists = card.querySelectorAll<HTMLSelectElement>(".mt-form select");
-	const language = lists[lists.length - 1];
+	const language = [
+		...card.querySelectorAll<HTMLSelectElement>(".mt-form select"),
+	].find((list) => list.querySelector('option[value="fr"]') !== null);
 	if (language !== undefined) {
 		language.value = "fr";
 		language.dispatchEvent(new Event("change", { bubbles: true }));
