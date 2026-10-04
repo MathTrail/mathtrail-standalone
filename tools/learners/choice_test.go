@@ -18,7 +18,7 @@ func candidate(name string, kind candidateKind, added int, fields bool, distance
 // ceiling comes to, every rule as bad as badness gives — 0.5 the service's,
 // 0.1 the ceiling's — and every candidate meeting every constraint at a
 // badness of 0.22 or less.
-func choiceOf(t *testing.T, badness map[string]float64, rs ...*rule) (stepChoice, *criterionRun) {
+func choiceOf(t *testing.T, badness map[string]float64, rs ...*rule) (criterionChoice, *criterionRun) {
 	t.Helper()
 	all := append([]*rule{{name: "shrinking", shape: both, service: true}}, rs...)
 	all = append(all, &rule{name: "oracle", shape: both, ceiling: true})
@@ -261,7 +261,7 @@ func TestTheChosenStepIsARuleOfTheRuns(t *testing.T) {
 // the service's mastery — as bad as 0.5, the ceiling 0.1, and every candidate
 // as bad as badness gives; a candidate meets every constraint at a badness of
 // 0.2 or less.
-func masteryChoiceOf(t *testing.T, badness map[string]float64, rs ...*rule) (stepChoice, *criterionRun) {
+func masteryChoiceOf(t *testing.T, badness map[string]float64, rs ...*rule) (criterionChoice, *criterionRun) {
 	t.Helper()
 	all := append([]*rule{{name: "shrinking", shape: both, service: true}, {name: masteryBaseline, shape: both}}, rs...)
 	all = append(all, &rule{name: "oracle", shape: both, ceiling: true})
@@ -297,8 +297,8 @@ func TestTheChoiceOfMasteryComparesWithTheBaseline(t *testing.T) {
 	t.Parallel()
 	c, cr := masteryChoiceOf(t, map[string]float64{"worse": 0.6, "halfway": 0.25},
 		masteryCandidateRule("worse", mainCandidate, 0, false), masteryCandidateRule("halfway", mainCandidate, 1, false))
-	if cr.service.name != masteryBaseline {
-		t.Fatalf("the choice of mastery compares with %s, want %s", cr.service.name, masteryBaseline)
+	if cr.baseline.name != masteryBaseline {
+		t.Fatalf("the choice of mastery compares with %s, want %s", cr.baseline.name, masteryBaseline)
 	}
 	if score := cr.scoreOf(cr.all[2*len(allGenerators)].rule); !score.has || math.Abs(score.value-(-0.2)) > 1e-12 {
 		t.Errorf("a candidate as bad as 0.6 against the baseline's 0.5 scores %+v, want −0.2 of the way to perfect", score)
@@ -326,6 +326,43 @@ func TestTheChoiceOfMasteryIsMadeAsTheStepsIs(t *testing.T) {
 		masteryCandidateRule("wald", backupCandidate, 2, true))
 	if nameOf(c.chosen) != "run5" || c.exit {
 		t.Errorf("chose %s (the exit %v), want run5, the simplest of the equals, the backup within the margin", nameOf(c.chosen), c.exit)
+	}
+}
+
+// The report of the choice of mastery names the baseline wherever it compares
+// with it — its checks of not worse, what the bench resolves on them, and the
+// score, whose way ends at perfect — and measures its candidates' distances
+// from the service's rule of mastery: nothing in it reads as compared with the
+// service or its step.
+func TestTheReportOfMasteryNamesTheBaseline(t *testing.T) {
+	t.Parallel()
+	c, cr := masteryChoiceOf(t, map[string]float64{"run5": 0.15}, masteryCandidateRule("run5", mainCandidate, 0, false))
+	read, resolutions := readCriterion(cr)
+	text := criterionText(read, resolutions, &c, design{children: decisionChildren, answers: 200, set: "mastery"}, cr.crit)
+	for _, want := range []string{
+		"## Not worse than the baseline", "its difference from the baseline,", "between " + measuringRule + " and the baseline,",
+		"as good as the baseline passes", "| Distance from the service's rule of mastery |",
+	} {
+		if !strings.Contains(text, want) {
+			t.Errorf("the report of mastery lacks %q:\n%s", want, text)
+		}
+	}
+	for _, wrong := range []string{"than the service", "from the service,", "and the service,", "as good as the service", "the service's step"} {
+		if strings.Contains(text, wrong) {
+			t.Errorf("the report of mastery says %q, as if compared with the service:\n%s", wrong, text)
+		}
+	}
+	named := map[string][]string{}
+	for _, row := range criterionTable(read, cr.crit)[1:] {
+		if kind, name := row[2], row[3]; !slices.Contains(named[kind], name) {
+			named[kind] = append(named[kind], name)
+		}
+	}
+	if got, want := named[notWorseKind], []string{"not worse than the baseline"}; !slices.Equal(got, want) {
+		t.Errorf("the checks of not worse are named %q, want %q", got, want)
+	}
+	if got, want := named["score"], []string{"the share of the way to perfect"}; !slices.Equal(got, want) {
+		t.Errorf("the scores are named %q, want %q", got, want)
 	}
 }
 

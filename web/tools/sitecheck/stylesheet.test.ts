@@ -35,4 +35,25 @@ describe("a stylesheet's references", () => {
 	test("are none for a stylesheet that loads nothing", () => {
 		expect(stylesheetReferences("body{color:#000}")).toEqual([]);
 	});
+
+	test("are read in time that grows with the stylesheet, however its spaces and quotes fall", () => {
+		const spaces = " ".repeat(200_000);
+		const unclosed = 'url("a"'.repeat(50_000);
+
+		expect(stylesheetReferences(`a{background:url(${spaces}`)).toEqual([]);
+		expect(
+			stylesheetReferences(`a{background:url(${spaces}x.png${spaces})}`),
+		).toEqual(["x.png"]);
+		expect(stylesheetReferences(`a{b:${unclosed}}`)).toEqual([]);
+	});
+
+	test("read past a url() that never closes to the one after it", () => {
+		expect(stylesheetReferences('a{b:url("a) ; c:url("c")}')).toEqual(["c"]);
+	});
+
+	test("are one for an @import whose string holds a url()", () => {
+		expect(stylesheetReferences('@import "url(x.css)";')).toEqual([
+			"url(x.css)",
+		]);
+	});
 });

@@ -5,6 +5,8 @@ import {
 	isSeq,
 	parseAllDocuments,
 	visit,
+	type YAMLMap,
+	type YAMLSeq,
 } from "yaml";
 import { disagreements } from "../i18n/dictionaries";
 
@@ -84,35 +86,51 @@ export function parsePageWords(source: string): PageWords {
 function layOut(node: unknown, key: string, words: Map<string, string>): void {
 	if (isScalar(node)) {
 		words.set(key, String(node.value).replace(/\n$/, ""));
-		return;
+	} else if (isMap(node)) {
+		laySectionOut(node, key, words);
+	} else if (isSeq(node)) {
+		layListOut(node, key, words);
+	} else {
+		// A key written with nothing after it: its text is empty, which the
+		// comparison of a page's words refuses by name.
+		words.set(key, "");
 	}
-	if (isMap(node)) {
-		if (node.items.length === 0) {
-			throw new Error(`${key} is an empty section`);
-		}
-		for (const { key: written, value } of node.items) {
-			const name = isScalar(written) ? String(written.value) : "";
-			if (!keyName.test(name)) {
-				throw new Error(
-					`${JSON.stringify(name)} is no key a page's words may have: a key is lowercase letters, digits, dashes and underscores, and begins with a letter`,
-				);
-			}
-			layOut(value, key === "" ? name : `${key}.${name}`, words);
-		}
-		return;
+}
+
+// laySectionOut adds what a section holds to words, key by key under its own
+// key, refusing a section with nothing in it and a key no page may have.
+function laySectionOut(
+	section: YAMLMap,
+	key: string,
+	words: Map<string, string>,
+): void {
+	if (section.items.length === 0) {
+		throw new Error(`${key} is an empty section`);
 	}
-	if (isSeq(node)) {
-		if (node.items.length === 0) {
-			throw new Error(`${key} is an empty list`);
+	for (const { key: written, value } of section.items) {
+		const name = isScalar(written) ? String(written.value) : "";
+		if (!keyName.test(name)) {
+			throw new Error(
+				`${JSON.stringify(name)} is no key a page's words may have: a key is lowercase letters, digits, dashes and underscores, and begins with a letter`,
+			);
 		}
-		node.items.forEach((item, at) => {
-			layOut(item, `${key}.${at + 1}`, words);
-		});
-		return;
+		layOut(value, key === "" ? name : `${key}.${name}`, words);
 	}
-	// A key written with nothing after it: its text is empty, which the
-	// comparison of a page's words refuses by name.
-	words.set(key, "");
+}
+
+// layListOut adds what a list holds to words, item by item from 1 under its
+// own key, refusing a list with no item.
+function layListOut(
+	list: YAMLSeq,
+	key: string,
+	words: Map<string, string>,
+): void {
+	if (list.items.length === 0) {
+		throw new Error(`${key} is an empty list`);
+	}
+	list.items.forEach((item, at) => {
+		layOut(item, `${key}.${at + 1}`, words);
+	});
 }
 
 // firstLine is what a parser's message says before the excerpt of the file it

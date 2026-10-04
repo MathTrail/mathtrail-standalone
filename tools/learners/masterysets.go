@@ -1,6 +1,9 @@
 package main
 
-import "errors"
+import (
+	"errors"
+	"math"
+)
 
 // masteryBaseline is the rule every rule of mastery is compared with: the step
 // chosen, under the service's own rule of mastery. It is also the exit of the
@@ -27,7 +30,8 @@ type masteryCandidate struct {
 // which adds its two error rates and keeps its sums in the profile, and so is
 // a backup, chosen over the main one only by the margin. The run of five
 // stands nearest the service's rule, then the cautious estimate, the smaller
-// margin the nearer.
+// margin the nearer, and Wald's test, which weighs answers in a way of its
+// own, farthest.
 func masteryCandidates() []masteryCandidate {
 	all := []masteryCandidate{{name: "run5", test: func() masteryTest { return newRunOf(5) }, kind: mainCandidate}}
 	for _, z := range cautiousMargins {
@@ -35,7 +39,9 @@ func masteryCandidates() []masteryCandidate {
 			name: "cautious_z" + decimal(z), test: func() masteryTest { return cautious{z: z} }, kind: mainCandidate, added: 1, distance: z,
 		})
 	}
-	return append(all, masteryCandidate{name: "wald", test: func() masteryTest { return newWald() }, kind: backupCandidate, added: 2, fields: true})
+	return append(all, masteryCandidate{
+		name: "wald", test: func() masteryTest { return newWald() }, kind: backupCandidate, added: 2, fields: true, distance: math.Inf(1),
+	})
 }
 
 // cautiousMargins are the margins of the cautious estimate put forward.

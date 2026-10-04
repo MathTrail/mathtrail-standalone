@@ -378,8 +378,8 @@ const move = z.object({
 // part of the progress a card can do without, never a reason to show none.
 const moves = z
 	.object({
-		last_task: move.nullable().catch(null),
-		week: move.nullable().catch(null),
+		last_task: z.nullable(move).catch(null),
+		week: z.nullable(move).catch(null),
 	})
 	.optional()
 	.catch(undefined);

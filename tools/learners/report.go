@@ -44,7 +44,7 @@ func writeAll(dir string, all []cell, results [][]vector, ms []metric, d design)
 		{"summary.md", func(path string) error { return writeText(path, summary) }},
 		{"scenarios.md", func(path string) error { return writeText(path, scenariosText(all, summaries, names, d)) }},
 		{"criterion.md", func(path string) error { return writeText(path, criterionText(read, resolutions, &choice, d, crit)) }},
-		{"criterion.csv", func(path string) error { return writeCSV(path, criterionTable(read)) }},
+		{"criterion.csv", func(path string) error { return writeCSV(path, criterionTable(read, crit)) }},
 		{"run.txt", func(path string) error { return writeText(path, d.lines()) }},
 	}
 	for _, w := range writers {

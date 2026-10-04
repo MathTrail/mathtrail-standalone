@@ -398,7 +398,8 @@ func TestEachStepAdvisesOnWhatKeepsTheTopicBack(t *testing.T) {
 }
 
 // The step of a topic whose only reason is the hint is to try without it, and
-// a mistake whose advice a topic's step gave already is not given again.
+// the mistake that repeats most is not advised again when a topic's step gave
+// its advice already — nor is the next one advised in its place.
 func TestNoAdviceIsGivenTwice(t *testing.T) {
 	t.Parallel()
 
@@ -414,6 +415,28 @@ func TestNoAdviceIsGivenTwice(t *testing.T) {
 	// The two topics stand level, and the one first in the catalog comes first.
 	want := []progress.Step{
 		{Kind: progress.StepUnaided, Topic: "logic.ordering"},
+		{Kind: progress.StepTrap, Topic: "counting.gaps", Trap: "off_by_one"},
+	}
+	if !reflect.DeepEqual(review.Steps, want) {
+		t.Errorf("steps = %+v, want %+v", review.Steps, want)
+	}
+}
+
+// Of two mistakes that repeat as often, the one whose advice no topic's step
+// gave is advised for every topic, whichever was fallen for last.
+func TestOfMistakesAsFrequentTheOneNotYetAdvisedIsGiven(t *testing.T) {
+	t.Parallel()
+
+	p := judgedChild(t)
+	p.Recent = []profile.Answer{
+		wrong("pigeonhole.basic", "double_count"), wrong("arithmetic.tricks", "double_count"),
+		wrong("logic.knights_liars", "double_count"),
+		wrong("counting.gaps", "off_by_one"), wrong("counting.gaps", "off_by_one"), wrong("counting.gaps", "off_by_one"),
+	}
+
+	review := reviewed(t, p)
+
+	want := []progress.Step{
 		{Kind: progress.StepTrap, Topic: "counting.gaps", Trap: "off_by_one"},
 		{Kind: progress.StepTrap, Trap: "double_count"},
 	}

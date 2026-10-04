@@ -7,11 +7,11 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/progress"
 )
 
-// reviewOut is the review of where the child stands, for the adult, as a card
-// and a model read it: topics and traps by their catalog ids, and why each is
-// named, and what each step advises, by codes. There are no words in it: the
-// card says them in its own language, and the model has the review in words.
-// During the trial series there is none.
+// reviewOut is the review of where the child stands, for the adult: topics and
+// traps by their catalog ids, and why each is named, and what each step
+// advises, by codes. There are no words in it, so that whatever draws it says
+// them in its own language; the model has the review in words. During the
+// trial series there is none.
 type reviewOut struct {
 	Strong  []judgedOut `json:"strong"`
 	Develop []judgedOut `json:"develop"`
@@ -92,7 +92,7 @@ func (s *Service) reviewText(review *progress.Review) string {
 		parts = append(parts, "What to do next: "+s.stepsText(review.Steps))
 	}
 	if len(parts) == 0 {
-		return "Review for the adult: no topic stands apart from the overall level yet."
+		return "Review for the adult: nothing to point out yet."
 	}
 	return "Review for the adult. " + strings.Join(parts, " ")
 }

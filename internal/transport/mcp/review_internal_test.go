@@ -62,7 +62,7 @@ func TestEveryReasonAndStepIsToldInWords(t *testing.T) {
 			"its last answer was right, so a move has begun). What to do next: 1. Knights and liars: try each task first without the hint."},
 		{"nothing to say", &progress.Review{
 			Strong: []progress.Judged{}, Develop: []progress.Judged{}, Early: []string{}, Steps: []progress.Step{},
-		}, "Review for the adult: no topic stands apart from the overall level yet."},
+		}, "Review for the adult: nothing to point out yet."},
 		{"the trial series", nil, ""},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

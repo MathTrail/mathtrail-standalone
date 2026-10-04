@@ -124,7 +124,7 @@ One entry per topic the child has ever been given, keyed by the catalog's topic 
 
 ### The history window
 
-`recent` — the last **20** entries, answers and skipped tasks alike (R98), oldest first, and never fewer than 5 answers after any pruning (see "Size, and the window policy"). It exists for two readers: the progress screen — its "recent answers" (PRODUCT 4.2), and its map of the mistakes that repeat, each trap behind at least `MATHTRAIL_TRAP_REPEATS` of the window's answers (R136) —, and the rule, which needs the topic of the last answer when it decides to consolidate.
+`recent` — the last **20** entries, answers and skipped tasks alike (R98), oldest first, and never fewer than 5 answers after any pruning (see "Size, and the window policy"). It exists for two readers: the progress screen — its "recent answers" (PRODUCT 4.2), its map of the mistakes that repeat, each trap behind at least `MATHTRAIL_TRAP_REPEATS` of the window's answers (R136), and its review, which reads how often each topic's answers in the window used the hint and fell for one trap (SPEC 2.11, R176) —, and the rule, which needs the topic of the last answer when it decides to consolidate.
 
 | Field | Type | Why |
 |---|---|---|
@@ -142,7 +142,7 @@ Unlike the prototype, an answered entry's `correct` is never null: "I don't know
 
 ### The days of the ratings
 
-`rating_days` — where the child stood at the start of each of the last days with answers, oldest first, one to a date in UTC, at most **7**: what the progress measures a week's change from (SPEC 2.10, R165). Absent until the first answer after the trial series.
+`rating_days` — where the child stood at the start of each of the last days with answers, oldest first, one to a date in UTC, at most **7**: what the progress measures a week's change from (SPEC 2.10, R165), and its review a topic's rise or fall over the week (SPEC 2.11, R176). Absent until the first answer after the trial series.
 
 | Field | Type | Why |
 |---|---|---|

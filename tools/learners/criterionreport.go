@@ -11,7 +11,7 @@ import (
 // score and how many of its constraints it meets, every rule's value against
 // each goal's bound, what of not worse each rule does not meet, what the bench
 // resolves on each check of not worse, and the choice it all comes to.
-func criterionText(read []ruleCriterion, resolutions []checkResolution, choice *stepChoice, d design, crit *criterion) string {
+func criterionText(read []ruleCriterion, resolutions []checkResolution, choice *criterionChoice, d design, crit *criterion) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "# The criterion, read on this run\n\n")
 	fmt.Fprintf(&b, "Seed %d, experiment %s: %d children a generator, %d answers each. ", masterSeed, experiment, d.children, d.answers)
@@ -22,8 +22,8 @@ func criterionText(read []ruleCriterion, resolutions []checkResolution, choice *
 	writeChoice(&b, choice)
 	writeScores(&b, read)
 	writeGoals(&b, read)
-	writeNotWorse(&b, read)
-	writeResolutions(&b, resolutions, d.children)
+	writeNotWorse(&b, read, crit.against)
+	writeResolutions(&b, resolutions, d.children, crit.against)
 	return b.String()
 }
 
@@ -70,9 +70,11 @@ func writeGoals(b *strings.Builder, read []ruleCriterion) {
 	b.WriteString("\n")
 }
 
-func writeNotWorse(b *strings.Builder, read []ruleCriterion) {
-	b.WriteString("## Not worse than the service\n\nWhat of not worse each rule does not meet, or the run cannot read: its difference " +
-		"from the service, with its interval, and the tolerance it is read with.\n\n| Rule | Checks met | Not met or unread |\n|---|---:|---|\n")
+// writeNotWorse lists what of not worse each rule does not meet, against the
+// baseline, which the criterion names as against.
+func writeNotWorse(b *strings.Builder, read []ruleCriterion, against string) {
+	fmt.Fprintf(b, "## Not worse than %[1]s\n\nWhat of not worse each rule does not meet, or the run cannot read: its difference "+
+		"from %[1]s, with its interval, and the tolerance it is read with.\n\n| Rule | Checks met | Not met or unread |\n|---|---:|---|\n", against)
 	for _, rc := range read {
 		checks, metCount := 0, 0
 		var missed []string
@@ -97,14 +99,18 @@ func writeNotWorse(b *strings.Builder, read []ruleCriterion) {
 	b.WriteString("\n")
 }
 
-func writeResolutions(b *strings.Builder, resolutions []checkResolution, children int) {
+// writeResolutions lists what the bench resolves on each check of not worse,
+// read against the baseline, which the criterion names as against.
+func writeResolutions(b *strings.Builder, resolutions []checkResolution, children int, against string) {
 	fmt.Fprintf(b, "## What the bench resolves\n\nEach check of not worse: the author's tolerance, the standard error of the paired "+
-		"difference between %s and the service, the tolerance the check is read with — never under %.1f standard errors — "+
-		"and the chance a candidate exactly as good as the service passes it, read as this run reads it and as a decision run does.\n\n", measuringRule, resolutionWidths)
+		"difference between %[1]s and %[2]s, the tolerance the check is read with — never under %.1[3]f standard errors — "+
+		"and the chance a candidate exactly as good as %[2]s passes it, read as this run reads it and as a decision run does.\n\n",
+		measuringRule, against, resolutionWidths)
 	fmt.Fprintf(b, "| Generator | Measure | Author's tolerance | Standard error | Tolerance read | Passes, %d children | Passes, %d children |\n",
 		children, decisionChildren)
 	b.WriteString("|---|---|---:|---:|---:|---:|---:|\n")
-	for _, res := range resolutions {
+	for i := range resolutions {
+		res := &resolutions[i]
 		if !res.has {
 			fmt.Fprintf(b, "| %s | %s | %s | %s | %s | %s | %s |\n",
 				res.check.generator, res.check.metric, decimals3(res.check.tolerance), noNumber, decimals3(res.tolerance), noNumber, noNumber)
@@ -120,14 +126,15 @@ func writeResolutions(b *strings.Builder, resolutions []checkResolution, childre
 
 // criterionTable is the criterion as a run reads it, one row a reading and
 // one a score, for whatever reads the criterion as data.
-func criterionTable(read []ruleCriterion) [][]string {
+func criterionTable(read []ruleCriterion, crit *criterion) [][]string {
 	table := [][]string{{"rule", "structure", "kind", "name", "generator", "metric", "bound", "value", "low", "high", "verdict", "mark"}}
+	scoreName := "the share of the way to " + crit.endOfWay()
 	for _, rc := range read {
 		r := rc.rule
 		score := rc.score
-		scoreRow := []string{r.name, string(r.shape), "score", "the share of the way to the ceiling", "", "", "", "", "", "", unread, ""}
+		scoreRow := []string{r.name, string(r.shape), "score", scoreName, "", "", "", "", "", "", unread, ""}
 		if score.has {
-			scoreRow = []string{r.name, string(r.shape), "score", "the share of the way to the ceiling", "", "", "",
+			scoreRow = []string{r.name, string(r.shape), "score", scoreName, "", "", "",
 				number(score.value), number(score.low), number(score.high), "", ""}
 		}
 		table = append(table, scoreRow)

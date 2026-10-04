@@ -17,12 +17,12 @@ const (
 )
 
 // criterion is what one choice is made by, written down before any of its
-// candidates ran: which candidates it weighs; the rule every comparison is
-// with; the goals, the measures of not worse and the score's generators and
-// measures; whether the score's way ends at the ceiling or at perfect;
-// whether the exit is that rule itself, kept as it is; and how the criterion
-// names what it compares with, its main candidates and the way its score
-// closes.
+// candidates ran: which candidates it weighs; the baseline every comparison
+// is with; the goals, the measures of not worse and the score's generators
+// and measures; whether the score's way ends at the ceiling or at perfect;
+// whether the exit is the baseline itself, kept as it is; and how the
+// criterion names the baseline, its main candidates, the way its score
+// closes and the rule its candidates' distances are from.
 type criterion struct {
 	choice         choiceKind
 	baseline       string
@@ -34,6 +34,15 @@ type criterion struct {
 	against        string
 	main           string
 	way            string
+	distanceFrom   string
+}
+
+// endOfWay names where the criterion's score ends its way.
+func (c *criterion) endOfWay() string {
+	if c.toPerfect {
+		return "perfect"
+	}
+	return "the ceiling"
 }
 
 // checks are the criterion's checks of not worse: every measure of it on
@@ -56,7 +65,7 @@ func (c *criterion) checks() []notWorse {
 func stepCriterion() *criterion {
 	return &criterion{
 		choice: forStep, baseline: serviceRule().name, goals: stepGoals, notWorse: stepNotWorse, scored: scoredGenerators,
-		against: "the service", main: "main step",
+		against: "the service", main: "main step", distanceFrom: "the service's step",
 		way: "the share of the way from the service to the ceiling a rule closes, with its 95 % interval; " +
 			"the ceiling is no candidate, and is read to show the way",
 	}
@@ -71,7 +80,7 @@ func masteryCriterion() *criterion {
 	return &criterion{
 		choice: forMastery, baseline: masteryBaseline, goals: masteryGoals, notWorse: masteryNotWorse, scored: masteryScored(),
 		toPerfect: true, exitIsBaseline: true,
-		against: "the baseline", main: "main rule of mastery",
+		against: "the baseline", main: "main rule of mastery", distanceFrom: "the service's rule of mastery",
 		way: "the share of the way from the baseline, " + masteryBaseline + "/both — the step chosen under the service's rule of mastery — " +
 			"to perfect, no false mastery and no wait, a rule closes, with its 95 % interval",
 	}
@@ -84,14 +93,14 @@ func stepGoals() []goal {
 		{
 			name: "the lag at most " + percentOf(lagShare) + " of the service's", generator: learningHalf, metric: "r6_lag", size: true, atMost: true,
 			bound: func(cr *criterionRun) (float64, bool) {
-				lag, has := cr.serviceValue(learningHalf, "r6_lag")
+				lag, has := cr.baselineValue(learningHalf, "r6_lag")
 				return lagShare * math.Abs(lag), has
 			},
 		},
 		{
 			name: "the corridor a share of the way to the ceiling", generator: learningHalf, metric: "r3_inside",
 			bound: func(cr *criterionRun) (float64, bool) {
-				service, hasService := cr.serviceValue(learningHalf, "r3_inside")
+				service, hasService := cr.baselineValue(learningHalf, "r3_inside")
 				ceiling, hasCeiling := cr.ceilingValue(learningHalf, "r3_inside")
 				return service + corridorShare*(ceiling-service), hasService && hasCeiling
 			},
@@ -117,12 +126,12 @@ func screenGoals(whose string) []goal {
 				goal{
 					name: "the card's move in answers " + w.label() + " no more than " + whose + " in answers " + earlyLabel, generator: g,
 					metric: "r8_move_p95_" + w.name(), atMost: true, screen: true,
-					bound: func(cr *criterionRun) (float64, bool) { return cr.serviceValue(g, "r8_move_p95_"+early) },
+					bound: func(cr *criterionRun) (float64, bool) { return cr.baselineValue(g, "r8_move_p95_"+early) },
 				},
 				goal{
 					name: "the rank's changes in answers " + w.label() + " no more than " + whose + " in answers " + earlyLabel, generator: g,
 					metric: "r8_rank_" + w.name(), atMost: true, screen: true,
-					bound: func(cr *criterionRun) (float64, bool) { return cr.serviceValue(g, "r8_rank_"+early) },
+					bound: func(cr *criterionRun) (float64, bool) { return cr.baselineValue(g, "r8_rank_"+early) },
 				},
 			)
 		}
@@ -166,7 +175,7 @@ func masteryGoals() []goal {
 			goal{
 				name: "the answers until mastery at most 1.5 times the baseline's", generator: g, metric: "r5_late_answers", atMost: true,
 				bound: func(cr *criterionRun) (float64, bool) {
-					late, has := cr.serviceValue(g, "r5_late_answers")
+					late, has := cr.baselineValue(g, "r5_late_answers")
 					return lateTimes * late, has
 				},
 			},

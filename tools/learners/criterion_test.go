@@ -184,7 +184,7 @@ func TestAnUnreadCheckIsListedAsUnread(t *testing.T) {
 		},
 	}
 	var b strings.Builder
-	writeNotWorse(&b, []ruleCriterion{rc})
+	writeNotWorse(&b, []ruleCriterion{rc}, stepCriterion().against)
 	want := "| candidate/both | 1 of 3 | G0 r4_false unread; G2 r1_rms_200 0.100 [0.050, 0.150] against 0.020 |"
 	if !strings.Contains(b.String(), want) {
 		t.Errorf("the table of not worse is\n%s\nwant the row %s", b.String(), want)

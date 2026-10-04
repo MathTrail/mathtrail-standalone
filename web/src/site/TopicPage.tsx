@@ -215,7 +215,12 @@ function Idea({ page }: { page: PageReader }) {
 				<h2 id="idea-title">{page.text("idea.title")}</h2>
 				<p class="s-intro-line">{page.text("idea.lead")}</p>
 			</div>
-			<section class="s-table-frame" aria-labelledby="idea-title" tabindex={0}>
+			<section
+				class="s-table-frame"
+				aria-labelledby="idea-title"
+				// biome-ignore lint/a11y/noNoninteractiveTabindex: a table wider than the screen scrolls inside its frame, and a keyboard has to reach the frame to scroll it
+				tabIndex={0}
+			>
 				<table class="s-table">
 					<thead>
 						<tr>

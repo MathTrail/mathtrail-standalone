@@ -287,7 +287,9 @@ func repeatingTrap(answers []profile.Answer, catalog tutor.Catalog, repeats int)
 // tasks a day when it fell, a few more tasks when it stands low or was
 // answered wrongly in a row, and the tasks tried without the hint when the
 // hint was its only reason — and one for every topic, the advice of the
-// mistake that repeats most across them, when no step has given it already.
+// mistake that repeats most across them, unless a step gave it already. Of
+// mistakes that repeat as often, it is the first whose advice no step gave:
+// which of them was fallen for last says nothing of which matters more.
 func stepsOf(develop []Judged, mistakes []Mistake) []Step {
 	steps := []Step{}
 	advised := map[string]bool{}
@@ -305,6 +307,9 @@ func stepsOf(develop []Judged, mistakes []Mistake) []Step {
 		}
 	}
 	for _, mistake := range mistakes {
+		if mistake.Times < mistakes[0].Times {
+			break
+		}
 		if !advised[mistake.Trap] {
 			return append(steps, Step{Kind: StepTrap, Trap: mistake.Trap})
 		}
