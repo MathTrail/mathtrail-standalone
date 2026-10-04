@@ -17,7 +17,8 @@
 //
 // Every rating moves the same way: by the distance between what was expected
 // and what happened, narrowed as answers accumulate so that a settled rating
-// is not thrown by one bad day. The first answers are the exception. The start
+// is not thrown by one bad day — though the overall level's never so far that
+// a child who moves on is left behind. The first answers are the exception. The start
 // is only a guess made from the grade, so until there are enough answers the
 // level is estimated from all of them at once, and a child placed too high
 // meets easier tasks straight away rather than after a run of failures. Only
@@ -47,6 +48,13 @@ const (
 
 	// decay narrows every step as answers accumulate: k0 / (1 + decay·n).
 	decay = 0.05
+
+	// floorTheta is the least the overall level's step comes down to. Without
+	// it the step dies away — after two hundred answers it is an eleventh of
+	// the first — and a child whose level moves late in a run is followed too
+	// slowly. A topic's step keeps no floor: it counts the topic's own answers,
+	// which come far more slowly.
+	floorTheta = 0.05
 
 	// middleDifficulty is the difficulty a level is centred on: at the
 	// youngest level it sits at zero on the scale, so that a child starting
@@ -111,7 +119,7 @@ func Update(s State, beta float64, correct bool) Result {
 	}
 	surprise := score - probability
 
-	kTheta, kDelta := step(k0Theta, s.Answers), step(k0Delta, s.TopicAnswers)
+	kTheta, kDelta := max(step(k0Theta, s.Answers), floorTheta), step(k0Delta, s.TopicAnswers)
 	return Result{
 		State: State{
 			Theta:        s.Theta + kTheta*surprise,
@@ -127,8 +135,8 @@ func Update(s State, beta float64, correct bool) Result {
 
 // step is how far one answer may move a level: wide at first, so that a new
 // child's rating finds its place within a handful of answers, and narrower
-// afterwards, so that a rating resting on fifty answers stays where it is. A
-// count below zero is no count at all, rather than a step without end.
+// afterwards, so that a rating resting on many answers is not thrown by one.
+// A count below zero is no count at all, rather than a step without end.
 func step(k0 float64, answers int) float64 { return k0 / (1 + decay*float64(max(answers, 0))) }
 
 func sigmoid(x float64) float64 { return 1 / (1 + math.Exp(-x)) }

@@ -4,7 +4,7 @@ How the service's student model does with children whose true level is known: si
 
 ## What it is, and where it comes from
 
-The bench in `tools/learners` is a Go module of its own that imports the product, as the load tool does (R124, R155). It was carried over from the research program's offline experiment with simulated learners, `research/experiments/learnersim`, whose protocol, [`research/experiments/PROTOCOL-A-offline.md`](../research/experiments/PROTOCOL-A-offline.md) (section 2), defines the measures R1–R7 in full. The research copy stays as it is: it describes the rule the paper was written about. The bench follows the product as it changes.
+The bench in `tools/learners` is a Go module of its own that imports the product, as the load tool does (R124, R155). It was carried over from the research program's offline experiment with simulated learners, `research/experiments/learnersim`, whose protocol, [`research/experiments/PROTOCOL-A-offline.md`](../research/experiments/PROTOCOL-A-offline.md) (section 2), defines the measures R1–R7 in full. The research copy stays as it is: it describes the rule the paper was written about, and runs the product at the commit the paper was written on, `v0.1.53`. The bench follows the product as it changes.
 
 Every step of a lesson goes through the product's domain code, the same as in the service:
 
@@ -50,12 +50,12 @@ Each rule estimates where a child stands. The bench writes a rule's estimate int
 
 | Rule | Cells | What it is |
 |---|---|---|
-| The service | `shrinking/both` | The product's own path, untouched: the step K = K₀/(1 + 0.05n) after the trial series, K₀ = 0.2 for the overall level and 0.4 for a topic's offset |
+| The service | `shrinking/both` | The product's own path, untouched: the step K = K₀/(1 + 0.05n) after the trial series, K₀ = 0.2 for the overall level and 0.4 for a topic's offset, the overall level's never below 0.05 (R187), so that it runs as `floor_0.05/both` does |
 | Constant step | `constant/both` | The service's first step, never shrinking |
 | Slow constant step | `constant_slow/both` | Half the service's first step, never shrinking: 0.1 and 0.2 |
-| Floor under the step | `floor_0.05/both` | The service's step, the overall level's never below 0.05 |
+| Floor under the step | `floor_0.05/both` | The service's step with the overall level's never below 0.05, run by the bench's own copy: the step the service took (R187), so its numbers are the service's |
 | Floor under the step, cautious mastery | `floor_0.05+cautious_z1/both` | The floor under the step, with the cautious estimate at z = 1 declaring mastery in the service's rule's place: the model the choices of the step and of mastery came to |
-| No trial series | `no_trial/both` | The service's step from the first answer, with no estimate of the trial series |
+| No trial series | `no_trial/both` | The service's step before its floor, from the first answer, with no estimate of the trial series |
 | Glicko-2 with guessing | `glicko2_floor/general`, `glicko2_floor/topics` | Glicko-2 over a chance that a child can guess, with one level, or with a level per topic |
 | The oracle | `oracle/both` | Stands where the child truly stands, in every topic, at every moment, and knows the child's true chance: **the ceiling** of every rule that learns of a child from answers |
 
@@ -86,7 +86,7 @@ Every number is read off all the children of its cell, with a 95 % interval from
 1. on G0, the service against every other rule but the oracle: R1 after 200 answers, R3, R4;
 2. on G2, the service against every other rule but the oracle: R6, R3;
 3. on G1, the service against no trial series: R7;
-4. the floor of 0.05 under the step against the service: R6 on G3, R1 after 200 answers on G0.
+4. the floor of 0.05 under the step against the service: R6 on G3, R1 after 200 answers on G0 — nothing since the service took the floor itself (R187), and kept to show it.
 
 A comparison is read as finding a difference when its interval leaves zero out. None is corrected for the others.
 
@@ -594,7 +594,7 @@ The sweep and its refinement draw children of their own too, the paper's seed un
 - `comparisons.csv`, the four groups of comparisons;
 - `run.txt`, what the run was given and what computed it: the seed, the name, the children and answers, the set of rules, the service's version, Go's, and the processor's architecture.
 
-A change to the rule, the rating, the profile or the catalog's topics moves the numbers. `TestASmallRun` runs every cell with ten children and holds the run's `summary.md` and `criterion.md` to their snapshots in `tools/learners/testdata/`, so such a change fails `just learners-test` until they are rewritten with `go test -run TestASmallRun -update` in `tools/learners`; the rewritten snapshots, and a new whole run when the change is to the student model, are part of the change's review. The same run must give every row of `testdata/carried-over/`, the bench's numbers as it was carried over, which nothing rewrites: what is added to the bench leaves them as they were, and only a change to the service's own rule moves them. `TestStepRulesAreTheServicesUpdate` holds the bench's copy of the step to `rating.Update` at the service's constants, so a new step in the service fails it until the bench's copy follows.
+A change to the rule, the rating, the profile or the catalog's topics moves the numbers. `TestASmallRun` runs every cell with ten children and holds the run's `summary.md` and `criterion.md` to their snapshots in `tools/learners/testdata/`, so such a change fails `just learners-test` until they are rewritten with `go test -run TestASmallRun -update` in `tools/learners`; the rewritten snapshots, and a new whole run when the change is to the student model, are part of the change's review. The same run must give every row of `testdata/carried-over/`, the bench's numbers as it was carried over, which nothing rewrites: what is added to the bench leaves them as they were, and only a change to the service's own rule moves them. `TestStepRulesAreTheServicesUpdate` holds the bench's copy of the step to `rating.Update` at the service's constants, so a new step in the service fails it until the bench's copy follows. When the service's step took its floor (R187), the rows of `shrinking/both` were rewritten from a run with it, as the README there records. The runs the step and the rule of mastery were chosen by — `sweep/`, `refine/`, `decision/`, `mastery-pilot/`, `mastery/` and `held-out/` — were made before that: their `shrinking/both` is the step without the floor.
 
 ## The paper's numbers
 

@@ -41,7 +41,10 @@ func protocolLabel(version string) string {
 // clientFamily is which chat host a call came from, as one word of a closed
 // list: the name a client gives itself is its own to choose, and it is read for
 // a word or two it can be told by, never written down. A call without a name is
-// unknown; one with a name none of the words fits is other.
+// unknown; one with a name none of the words fits is other. MCP Inspector and
+// the service's own load tool are words of their own too: they are tools
+// rather than hosts a family learns in, and the children are counted without
+// what either of them did.
 func clientFamily(info *mcp.Implementation) string {
 	if info == nil || info.Name == "" {
 		return "unknown"
@@ -54,6 +57,8 @@ func clientFamily(info *mcp.Implementation) string {
 		return familyChatGPT
 	case strings.Contains(name, "inspector"):
 		return "inspector"
+	case strings.Contains(name, "mathtrail-load"):
+		return "load"
 	}
 	return other
 }

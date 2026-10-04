@@ -2561,13 +2561,44 @@ a:hover {
 	padding-block-start: 56px;
 }
 
+/* Four cards in a row, two or one, never three, which would leave the fourth
+   alone; and none so narrow that the longest role leaves its line, so the
+   roles of a row stand at one height and the names under them line up. */
 .s-team .s-tiles {
+	grid-template-columns: minmax(0, 1fr);
 	margin: 0;
+}
+
+@media (min-width: 640px) {
+	.s-team .s-tiles {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (min-width: 1200px) {
+	.s-team .s-tiles {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+}
+
+/* The frame sits closer to the card's edge than the words, its corners
+   following the card's own. */
+.s-member {
+	padding: 12px 20px 32px;
+}
+
+.s-member-frame {
+	aspect-ratio: 4 / 3;
+	margin: 0 -8px 10px;
+	border: 1.5px dashed var(--s-line-strong);
+	border-radius: 16px;
+	background: var(--s-page);
 }
 
 .s-member-role {
 	align-self: flex-start;
 	margin: 0;
+	white-space: nowrap;
 }
 
 /* Where to write: the framed line of "Why", a size larger and on its own. */

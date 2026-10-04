@@ -31,6 +31,14 @@ func genDifficulty() gopter.Gen { return gen.IntRange(1, rating.Difficulties) }
 
 func genAnswers() gopter.Gen { return gen.IntRange(0, 5000) }
 
+// overallFloor is the least the overall level's step comes down to, which it
+// reaches at the 61st answer.
+const overallFloor = 0.05
+
+// genAnswersAcrossTheFloor stays near where the overall level's step reaches
+// its floor, so that as many draws fall before it as after.
+func genAnswersAcrossTheFloor() gopter.Gen { return gen.IntRange(0, 120) }
+
 // genPoint is any point of the ladder.
 func genPoint() gopter.Gen {
 	return gopter.CombineGens(gen.IntRange(0, 2), genDifficulty()).Map(func(values []any) rating.Point {
@@ -225,6 +233,7 @@ func TestAnAnswerHoldsItsProperties(t *testing.T) {
 	// numbers a child carries, not one number used twice.
 	theta, delta := genLevel(), genLevel()
 	answers, topicAnswers := genAnswers(), genAnswers()
+	nearTheFloor := genAnswersAcrossTheFloor()
 
 	properties.Property("an answer moves both levels the way it argues", prop.ForAll(
 		func(theta, delta float64, point rating.Point, answers, topicAnswers int, correct bool) bool {
@@ -251,13 +260,26 @@ func TestAnAnswerHoldsItsProperties(t *testing.T) {
 		theta, delta, genPoint(), answers, topicAnswers, gen.Bool(),
 	))
 
-	properties.Property("every answer leaves the next one a smaller step", prop.ForAll(
-		func(answers int, correct bool) bool {
-			now := rating.Update(rating.State{Answers: answers, TopicAnswers: answers}, youngest(3).Beta(), correct)
+	// A settled rating is not thrown by one bad day: every answer narrows the
+	// next, the overall level's step down to its floor.
+	properties.Property("every answer leaves the next one a smaller step, the overall level's down to its floor", prop.ForAll(
+		func(answers, topicAnswers int, correct bool) bool {
+			now := rating.Update(rating.State{Answers: answers, TopicAnswers: topicAnswers}, youngest(3).Beta(), correct)
 			later := rating.Update(now.State, youngest(3).Beta(), correct)
-			return later.KTheta < now.KTheta && later.KDelta < now.KDelta && later.KTheta > 0
+			return (later.KTheta < now.KTheta || now.KTheta == overallFloor) && later.KDelta < now.KDelta && later.KDelta > 0
 		},
-		genAnswers(), gen.Bool(),
+		nearTheFloor, topicAnswers, gen.Bool(),
+	))
+
+	// Late in a run the overall level's step stops narrowing, so a child whose
+	// level moves after many answers is still followed.
+	properties.Property("the overall level's step, once at its floor, stays there", prop.ForAll(
+		func(answers int, correct bool) bool {
+			now := rating.Update(rating.State{Answers: answers}, youngest(3).Beta(), correct)
+			later := rating.Update(now.State, youngest(3).Beta(), correct)
+			return later.KTheta >= overallFloor && (now.KTheta > overallFloor || later.KTheta == overallFloor)
+		},
+		nearTheFloor, gen.Bool(),
 	))
 
 	// The same answer to a task the child was expected to fail is worth more

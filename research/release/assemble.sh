@@ -77,6 +77,9 @@ research=(
 )
 mkdir -p "$tree/research/paper-a"
 tar -c "${research[@]}" | tar -x -C "$tree/research"
+# The module requires the product at the pin's version; in the artifact that
+# version sits beside it, and the module builds from it with no network.
+(cd "$tree/research" && go mod edit -replace="$product_module=../")
 cp paper-a/generated/numbers.tex "$tree/research/paper-a/numbers.tex"
 cp release/DEVIATIONS.md "$tree/research/experiments/DEVIATIONS.md"
 cp release/README.md "$out/README.md"

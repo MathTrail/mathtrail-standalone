@@ -1,6 +1,39 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="MathTrail">
-  <rect width="32" height="32" rx="7" fill="#1f6f5c"/>
-  <path d="M7 23.5 13 12l5 7 3-4.5 4 9" fill="none" stroke="#fdfcfa" stroke-width="2.6"
-        stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="13" cy="12" r="2.6" fill="#fdfcfa"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="MathTrail">
+  <!-- One ribbon folded into an M on a dark tile, and a star over it: the blue
+       leg and the blue band down into the middle, the green band up out of it
+       and the green leg. The bands lie over the legs, and the green band over
+       the blue one, through which it shows a little. -->
+  <defs>
+    <clipPath id="ground">
+      <rect width="48" height="36.4"/>
+    </clipPath>
+    <linearGradient id="blue-leg" x1="0" y1="17.95" x2="0" y2="36.4" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3d8ef3"/>
+      <stop offset="1" stop-color="#2766d6"/>
+    </linearGradient>
+    <linearGradient id="blue-band" x1="0" y1="17.95" x2="0" y2="33.38" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#76bcff"/>
+      <stop offset="1" stop-color="#4791f0"/>
+    </linearGradient>
+    <linearGradient id="green-leg" x1="0" y1="21.99" x2="0" y2="36.4" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#b9e276"/>
+      <stop offset="1" stop-color="#76c05b"/>
+    </linearGradient>
+    <linearGradient id="green-band" x1="0" y1="21.99" x2="0" y2="33.38" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#86ce69"/>
+      <stop offset="1" stop-color="#57ae55"/>
+    </linearGradient>
+    <linearGradient id="star" x1="0" y1="11.3" x2="0" y2="19.9" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffcd6e"/>
+      <stop offset="1" stop-color="#f5a238"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="6" fill="#0c1a33"/>
+  <g fill="none" stroke-width="6.9" stroke-linecap="round">
+    <path d="M8.61 42.44L20.2 21.4" stroke="url(#blue-leg)" clip-path="url(#ground)"/>
+    <path d="M20.2 21.4L24.25 29.93" stroke="url(#blue-band)"/>
+    <path d="M31.28 25.44L39.51 42.62" stroke="url(#green-leg)" clip-path="url(#ground)"/>
+    <path d="M24.25 29.93L31.28 25.44" stroke="url(#green-band)" stroke-opacity="0.86"/>
+  </g>
+  <path d="M31.3 11.3Q31.8 15.1 36 15.6 31.8 16.1 31.3 19.9 30.8 16.1 26.6 15.6 30.8 15.1 31.3 11.3Z" fill="url(#star)" stroke="url(#star)" stroke-width="0.8" stroke-linejoin="round"/>
 </svg>

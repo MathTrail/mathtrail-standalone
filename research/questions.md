@@ -805,6 +805,20 @@ A decision can be revised by a later task on new facts; the revision is a new en
 - **Blocks:** nothing; the author reads the text next.
 - **Sources:** Q83, Q85; rule G5; `paper-a/sections/evaluation.tex`, `discussion.tex`.
 
+### Q87. The frozen experiments of paper A run the product at its commit, not the working tree
+
+- **Question:** the module reached the product through `replace … => ../` (Q21), so the paper's frozen experiments compiled whatever the working tree held. The product's next change to the rating, a floor under θ's step, would turn `TestStepRulesAreTheServicesUpdate` red and make a rerun of E-A3 report the new product's numbers as the paper's.
+- **Why it matters:** the paper's numbers must come from the code it describes, the product at the ledger's pin `52ce86908135` (the protocol, Q73). A rerun on a changed working tree is a deviation, and with the floor a silent one.
+- **Decision (the author, 2026-10-04, asked by the executor of the product's T72.7):** the module requires the product at `v0.1.53`, the tag on the pin's commit, and no longer replaces it with the working tree. It revises Q21 in that alone: the module stays nested and imports `internal/` packages as before.
+  - `_provenance` writes "as at the pin" when the version required is the pin's commit and nothing replaces it, rather than comparing the working tree with the pin.
+  - `deps-check` compares this module's versions with those of the product at the version required, read where Go keeps it, rather than with the working tree's.
+  - The artifact keeps building from the product it ships: `assemble.sh` points the module at it with a `replace` of its own.
+  - What the product does now is measured by the learners' bench, `tools/learners`, which follows the product as it changes.
+  - Left to T73.1: the module's checks in CI, its coverage, and how the module would hold both sets of numbers if an experiment ever needed the live product.
+- **Who and when:** the author, 2026-10-04; done by the executor of T72.7.
+- **Blocks:** nothing; the product's rating may change.
+- **Sources:** Q21, Q73, Q84; the product's RUN.md, T72.7 and T73.1; `go.mod`; `justfile` (`_provenance`, `deps-check`); `release/assemble.sh`.
+
 ## Answer when convenient
 
 Questions about the author's reasons and intentions. They block nothing: each has a default, or needs none.

@@ -1,0 +1,6 @@
+[
+  {"name": "week", "type": "DATE", "mode": "REQUIRED", "description": "The Monday the week begins on, in UTC."},
+  {"name": "dimension", "type": "STRING", "mode": "REQUIRED", "description": "What the children are told apart by: all, host, language, grade, country, region, signin_country or cohort."},
+  {"name": "value", "type": "STRING", "mode": "REQUIRED", "description": "The value of the dimension, as the lines write it; all for the dimension all."},
+  {"name": "learners", "type": "INTEGER", "mode": "REQUIRED", "description": "The children a task was handed to that week, each under the value of its latest task. The values of a dimension add up to all. A week that spans the turn of a month counts a child twice."}
+]

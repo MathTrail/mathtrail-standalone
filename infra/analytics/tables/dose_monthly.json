@@ -1,0 +1,6 @@
+[
+  {"name": "month", "type": "DATE", "mode": "REQUIRED", "description": "The first day of the calendar month, in UTC."},
+  {"name": "measure", "type": "STRING", "mode": "REQUIRED", "description": "What a child is measured by: tasks, the tasks handed to it that month, or active_days, the days of the month a task was handed to it."},
+  {"name": "bucket", "type": "STRING", "mode": "REQUIRED", "description": "The range of the measure, such as 2-4 or 50+."},
+  {"name": "learners", "type": "INTEGER", "mode": "REQUIRED", "description": "The children whose measure falls in the range."}
+]

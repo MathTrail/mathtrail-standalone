@@ -1,0 +1,10 @@
+[
+  {"name": "month", "type": "DATE", "mode": "REQUIRED", "description": "The first day of the calendar month, in UTC."},
+  {"name": "tenure", "type": "INTEGER", "mode": "REQUIRED", "description": "The months between the month the child's profile was made and this one: 0 in the month it was made."},
+  {"name": "learners", "type": "INTEGER", "mode": "REQUIRED", "description": "The children who answered that month."},
+  {"name": "answers", "type": "INTEGER", "mode": "REQUIRED", "description": "The answers they gave."},
+  {"name": "correct", "type": "INTEGER", "mode": "REQUIRED", "description": "The answers that were right."},
+  {"name": "hinted", "type": "INTEGER", "mode": "REQUIRED", "description": "The answers given after the hint."},
+  {"name": "dont_know", "type": "INTEGER", "mode": "REQUIRED", "description": "The answers that were I don't know."},
+  {"name": "mastered", "type": "INTEGER", "mode": "REQUIRED", "description": "The topics mastered, added up over the children: each child's most that month."}
+]

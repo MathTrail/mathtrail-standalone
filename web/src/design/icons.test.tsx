@@ -1,7 +1,9 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { render } from "preact";
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test } from "vitest";
-import { Avatar, Icon, type IconName, Mark } from "./icons";
+import { Icon, type IconName, Mark } from "./icons";
 
 const root = document.createElement("div");
 
@@ -13,80 +15,163 @@ function draw(element: preact.JSX.Element): void {
 	act(() => render(element, root));
 }
 
+// colours is the colour each icon is drawn in: the text's, or the token of
+// what the icon marks. A new icon cannot be added without a line here.
+const colours: Record<IconName, string> = {
+	"chevron-right": "currentColor",
+	"chevron-left": "currentColor",
+	check: "currentColor",
+	cross: "currentColor",
+	dash: "currentColor",
+	hint: "currentColor",
+	trap: "currentColor",
+	menu: "currentColor",
+	chat: "currentColor",
+	spinner: "currentColor",
+	"verdict-correct": "var(--correct)",
+	"verdict-wrong": "var(--wrong)",
+	"step-done": "var(--ink-strong)",
+	"step-waiting": "var(--track)",
+	avatar: "var(--text-muted)",
+};
+
 describe("an icon", () => {
-	test.each<IconName>([
-		"chevron-right",
-		"chevron-left",
-		"check",
-		"cross",
-		"dash",
-		"hint",
-		"trap",
-		"spinner",
-		"verdict-correct",
-		"verdict-wrong",
-		"step-done",
-	])(
-		"%s is hidden from a screen reader and drawn with SVG's own attributes",
+	test.each(Object.keys(colours) as IconName[])(
+		"%s is a line of the set's width on a grid of 24, in one colour, hidden from a screen reader",
 		(name) => {
-			draw(<Icon name={name} />);
+			draw(<Icon name={name} size={20} />);
 
 			const icon = root.querySelector("svg");
 			expect(icon?.getAttribute("aria-hidden")).toBe("true");
-			const stroked = icon?.querySelector("path");
-			// SVG names its attributes with hyphens; a camel-cased one would be an
-			// attribute nothing reads, and the icon a hairline.
-			expect(stroked?.getAttribute("stroke-width")).not.toBeNull();
-			expect(stroked?.getAttribute("stroke-linecap")).toBe("round");
-			expect(stroked?.hasAttribute("strokeWidth")).toBe(false);
+			expect(icon?.getAttribute("width")).toBe("20");
+			expect(icon?.getAttribute("viewBox")).toBe("0 0 24 24");
+			expect(icon?.getAttribute("fill")).toBe("none");
+			const lines = [...(icon?.children ?? [])];
+			expect(lines.length).toBeGreaterThan(0);
+			for (const line of lines) {
+				expect(line.tagName.toLowerCase()).toBe("path");
+				// SVG names its attributes with hyphens; a camel-cased one would
+				// be an attribute nothing reads, and the icon a hairline.
+				expect(line.getAttribute("stroke-width")).toBe("2.5");
+				expect(line.getAttribute("stroke-linecap")).toBe("round");
+				expect(line.getAttribute("stroke-linejoin")).toBe("round");
+				expect(line.hasAttribute("strokeWidth")).toBe(false);
+				expect(line.hasAttribute("fill")).toBe(false);
+				expect(line.hasAttribute("style")).toBe(false);
+			}
+			expect(lines.at(-1)?.getAttribute("stroke")).toBe(colours[name]);
 		},
 	);
 
-	test("spinner's track takes the colour it is given", () => {
+	test("spinner turns its arc on a track of the colour it is given", () => {
 		draw(<Icon name="spinner" track="accent-tint" />);
 
-		expect(root.querySelector("circle")?.getAttribute("stroke")).toBe(
-			"var(--accent-tint)",
-		);
+		const [track, arc] = root.querySelectorAll("svg path");
+		expect(track?.getAttribute("stroke")).toBe("var(--accent-tint)");
+		expect(arc?.getAttribute("stroke")).toBe("currentColor");
 		expect(root.querySelector("svg")?.getAttribute("class")).toBe(
 			"mt-icon mt-spin",
 		);
 	});
 
-	test("step-waiting is an empty ring, drawn with SVG's own attributes", () => {
-		draw(<Icon name="step-waiting" />);
+	test("takes the classes it is given beside its own", () => {
+		draw(<Icon name="chevron-right" className="mt-chevron" />);
 
-		const ring = root.querySelector("svg circle");
-		expect(root.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
-		expect(ring?.getAttribute("stroke-width")).toBe("1.5");
-		expect(ring?.hasAttribute("strokeWidth")).toBe(false);
-		expect(root.querySelector("svg path")).toBeNull();
-	});
-
-	test("step-done is ticked in the colour of the strongest ink", () => {
-		draw(<Icon name="step-done" />);
-
-		expect(root.querySelector("svg circle")?.getAttribute("fill")).toBe(
-			"var(--ink-strong)",
-		);
-		expect(root.querySelector("svg path")?.getAttribute("stroke")).toBe(
-			"var(--surface)",
+		expect(root.querySelector("svg")?.getAttribute("class")).toBe(
+			"mt-icon mt-chevron",
 		);
 	});
 });
 
-test("the mark is decoration beside the name it stands with", () => {
-	draw(<Mark />);
+describe("the mark", () => {
+	test("is decoration beside the name it stands with", () => {
+		draw(<Mark />);
 
-	const mark = root.querySelector("svg");
-	expect(mark?.getAttribute("aria-hidden")).toBe("true");
-	expect(mark?.hasAttribute("role")).toBe(false);
+		const mark = root.querySelector("svg");
+		expect(mark?.getAttribute("aria-hidden")).toBe("true");
+		expect(mark?.hasAttribute("role")).toBe(false);
+		expect(mark?.getAttribute("width")).toBe("32");
+	});
+
+	test("draws the logo the site serves as its icon", () => {
+		const served = new DOMParser().parseFromString(
+			readFileSync(
+				join(import.meta.dirname, "../../../site/assets/favicon.svg"),
+				"utf8",
+			),
+			"image/svg+xml",
+		).documentElement;
+		draw(<Mark size={48} />);
+
+		expect(drawingOf(root.querySelector("svg"))).toEqual(drawingOf(served));
+	});
+
+	test("names its gradients and its clip apart from another mark's", () => {
+		draw(
+			<>
+				<Mark />
+				<Mark />
+			</>,
+		);
+
+		const ids = [...root.querySelectorAll("[id]")].map((node) => node.id);
+		expect(ids.length).toBeGreaterThan(0);
+		expect(new Set(ids).size).toBe(ids.length);
+		for (const node of root.querySelectorAll("svg")) {
+			for (const reference of referencesIn(node)) {
+				expect(node.querySelector(`[id="${reference}"]`)).not.toBeNull();
+			}
+		}
+	});
 });
 
-test("the avatar is decoration", () => {
-	draw(<Avatar size={32} />);
+// placeDecides are the attributes of a drawing's own element that the place it
+// is shown in decides: its size, its class and its words for a screen reader.
+const placeDecides = new Set([
+	"width",
+	"height",
+	"class",
+	"role",
+	"aria-hidden",
+	"aria-label",
+	"xmlns",
+]);
 
-	const avatar = root.querySelector("svg");
-	expect(avatar?.getAttribute("aria-hidden")).toBe("true");
-	expect(avatar?.getAttribute("width")).toBe("32");
-});
+// drawingOf is what an SVG draws, element by element: each element's name and
+// its attributes in order of name, with the names of its gradients and clips
+// replaced by their place among them, since a page names them as it needs.
+function drawingOf(svg: Element | null): string[] {
+	if (svg === null) {
+		return [];
+	}
+	const elements = [svg, ...svg.querySelectorAll("*")];
+	const places = new Map(
+		elements
+			.filter((element) => element.id !== "")
+			.map((element, place) => [element.id, `#${place}`]),
+	);
+	const placed = (value: string) =>
+		value.replace(
+			/url\(#([^)]+)\)/g,
+			(_, id: string) => `url(${places.get(id) ?? id})`,
+		);
+	return elements.map((element) => {
+		const attributes = [...element.attributes]
+			.filter(({ name }) => element !== svg || !placeDecides.has(name))
+			.map(
+				({ name, value }) =>
+					`${name}=${name === "id" ? places.get(value) : placed(value)}`,
+			)
+			.sort();
+		return `${element.tagName.toLowerCase()} ${attributes.join(" ")}`;
+	});
+}
+
+// referencesIn is every name a drawing points at with url(#…).
+function referencesIn(svg: Element): string[] {
+	return [...svg.querySelectorAll("*")].flatMap((element) =>
+		[...element.attributes].flatMap(({ value }) =>
+			[...value.matchAll(/url\(#([^)]+)\)/g)].map((match) => match[1] ?? ""),
+		),
+	);
+}

@@ -25,7 +25,9 @@ export function AboutPage({ page }: PageProps) {
 }
 
 // Team is the family, a card for each of them in the order the words give:
-// the role they play, who they are in the family, and what they do. The
+// an empty frame where a photograph would stand, for the page shows none of
+// the family's faces; the role they play, who they are in the family, and
+// what they do. The
 // section's heading is for a screen reader, which moves from card to card by
 // the names under it.
 function Team({ page }: { page: PageReader }) {
@@ -37,6 +39,7 @@ function Team({ page }: { page: PageReader }) {
 			<ul class="s-tiles s-tiles-four">
 				{page.list("team.members").map((key) => (
 					<li key={key} class="s-tile s-member">
+						<div class="s-member-frame" />
 						<p class="s-chip s-chip-group s-member-role">
 							{page.text(`${key}.role`)}
 						</p>

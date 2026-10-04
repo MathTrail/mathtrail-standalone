@@ -27,7 +27,9 @@ import (
 const Protocol = "2026-07-28"
 
 // clientName is what the tool calls itself when it connects: a name no chat
-// host goes by, so the service counts its calls apart from theirs.
+// host goes by, which the service writes down as a host of its own, load, so
+// that it counts the tool's calls apart from theirs and counts no child of the
+// accounts the tool walks a lesson for.
 const clientName = "mathtrail-load"
 
 // Target is the service as the tool reaches it.

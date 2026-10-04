@@ -1,0 +1,8 @@
+[
+  {"name": "month", "type": "DATE", "mode": "REQUIRED", "description": "The first day of the calendar month, in UTC."},
+  {"name": "topic", "type": "STRING", "mode": "NULLABLE", "description": "The topic of the catalog, or other; empty on a row of every topic."},
+  {"name": "grade", "type": "INTEGER", "mode": "NULLABLE", "description": "The grade on the line of the answer; empty on a row of every grade."},
+  {"name": "trap", "type": "STRING", "mode": "REQUIRED", "description": "The trap of the catalog a wrong answer fell into, or other."},
+  {"name": "answers", "type": "INTEGER", "mode": "REQUIRED", "description": "The answers that fell into it."},
+  {"name": "learners", "type": "INTEGER", "mode": "REQUIRED", "description": "The children whose answers did."}
+]

@@ -83,14 +83,20 @@ type stepRule struct {
 	inTopic                map[string]int
 }
 
-// The service's own constants, which a variant departs from.
+// The service's own constants, which a variant departs from. The service's
+// overall step has kept a floor since its step was chosen; the rules here,
+// put forward against the step before it, start without one, and a variant
+// that keeps one says so.
 const (
 	serviceK0Theta = 0.2
 	serviceK0Delta = 0.4
 	serviceDecay   = 0.05
+	serviceFloor   = 0.05
 )
 
-// The service's steps, as curves.
+// The service's steps as curves, as they stood when the choice of the step
+// was made — before the floor the service then took, which is the step these
+// curves under floorRule(serviceFloor) come to.
 var (
 	serviceOverallStep = stepCurve{first: serviceK0Theta, decay: serviceDecay}
 	serviceTopicStep   = stepCurve{first: serviceK0Delta, decay: serviceDecay}

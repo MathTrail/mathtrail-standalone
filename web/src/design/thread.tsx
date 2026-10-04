@@ -1,6 +1,6 @@
 import type { ComponentChildren, Ref } from "preact";
 import { classes } from "./classes";
-import { Avatar, Icon, Mark } from "./icons";
+import { Icon, Mark } from "./icons";
 
 /**
  * ThreadBar is the line at the top of a card. Over a task it says whose card
@@ -33,7 +33,7 @@ export function ThreadBar(
 			class="mt-bar"
 			onClick={props.onClick}
 		>
-			<Avatar size={24} />
+			<Icon name="avatar" size={24} />
 			<span class="mt-bar-name">{props.name}</span>{" "}
 			<span class="mt-bar-action">{props.action}</span>
 			<Icon name="chevron-right" size={16} className="mt-chevron" />
@@ -47,7 +47,7 @@ export function Badge({ children }: { children: ComponentChildren }) {
 }
 
 /**
- * MessageHeader says who speaks — MathTrail, with its mark, or the child, with
+ * MessageHeader says who speaks — MathTrail, with its logo, or the child, with
  * the avatar — with a badge under the name, or beside it on a wide card, and a
  * short note beside the name when there is one. A version, when there is one,
  * closes the line at its far end. A compact header heads a reply below the
@@ -74,7 +74,7 @@ export function MessageHeader({
 		author === "app" ? (
 			<Mark size={compact ? 28 : 32} />
 		) : (
-			<Avatar size={compact ? 24 : 32} />
+			<Icon name="avatar" size={compact ? 24 : 32} />
 		);
 	const nameLine = (
 		<>

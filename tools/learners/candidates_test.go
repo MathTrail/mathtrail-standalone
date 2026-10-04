@@ -10,8 +10,8 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
-// A step from counted answers given the service's numbers — nothing added, no
-// limit — is the service's step to the last bit: run beside the service on
+// A step from counted answers given the service's numbers — its floor, nothing
+// added, no limit — is the service's step to the last bit: run beside the service on
 // the same children of every generator, it stands where the service stands
 // after every answer, overall and in every topic, hands out the same task,
 // holds the same masteries, and comes to the same measures. The service's
@@ -30,6 +30,7 @@ func TestAStepAtTheServicesNumbersIsTheService(t *testing.T) {
 	same := &rule{name: "same", shape: both, trial: true, make: steps(func(s *stepRule) {
 		s.overallStep = stepCurve{first: serviceK0Theta, decay: serviceDecay, from: rating.TrialAnswers}
 		s.topicStep = stepCurve{first: serviceK0Delta, decay: serviceDecay}
+		s.floor = serviceFloor
 		s.limit = noLimit
 	})}
 	for _, gen := range allGenerators {
@@ -224,8 +225,8 @@ func TestAStepsPartsAreTakenAwayOneAtATime(t *testing.T) {
 	}
 }
 
-// A step stands nowhere from the service's when it is the service's, and
-// further the more its steps part from it.
+// A step stands nowhere from the service's, as the choice of the step found
+// it, when it is that step, and further the more its steps part from it.
 func TestAStepsDistanceFromTheServicesGrowsWithTheirDifference(t *testing.T) {
 	t.Parallel()
 	if d := stepDistance(serviceOverallStep, serviceTopicStep, 0); d != 0 {
@@ -233,6 +234,6 @@ func TestAStepsDistanceFromTheServicesGrowsWithTheirDifference(t *testing.T) {
 	}
 	near, far := stepDistance(serviceOverallStep, serviceTopicStep, 0.02), stepDistance(serviceOverallStep, serviceTopicStep, 0.1)
 	if near <= 0 || far <= near {
-		t.Errorf("floors of 0.02 and 0.1 stand %v and %v from the service's step, want 0 < the first < the second", near, far)
+		t.Errorf("floors of 0.02 and 0.1 stand %v and %v from the service's step before its floor, want 0 < the first < the second", near, far)
 	}
 }

@@ -1,0 +1,9 @@
+[
+  {"name": "day", "type": "DATE", "mode": "REQUIRED", "description": "The day, in UTC."},
+  {"name": "learners", "type": "INTEGER", "mode": "REQUIRED", "description": "The children a task was handed to that day."},
+  {"name": "learners_week", "type": "INTEGER", "mode": "NULLABLE", "description": "The children a task was handed to in the seven days ending that day. A week that spans the turn of a month counts a child twice. Empty when the raw lines did not reach back to its first day."},
+  {"name": "learners_month", "type": "INTEGER", "mode": "NULLABLE", "description": "The children a task was handed to in the calendar month up to that day. Empty when the raw lines did not reach back to its first day."},
+  {"name": "tasks", "type": "INTEGER", "mode": "REQUIRED", "description": "The tasks handed out that day."},
+  {"name": "answers", "type": "INTEGER", "mode": "REQUIRED", "description": "The answers recorded that day."},
+  {"name": "topics_won", "type": "INTEGER", "mode": "REQUIRED", "description": "The times an answer brought a topic among those the progress calls mastered that day."}
+]

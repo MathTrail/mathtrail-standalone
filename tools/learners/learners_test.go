@@ -16,8 +16,9 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
-// The step rules of the harness, at the service's constants, are the
-// service's own update: the same θ and δ to within 1e-12.
+// The step rules of the harness, at the service's constants — the floor under
+// the overall level's step among them — are the service's own update: the
+// same θ and δ to within 1e-12.
 func TestStepRulesAreTheServicesUpdate(t *testing.T) {
 	t.Parallel()
 	rng := seeded("step rules", "test")
@@ -29,6 +30,7 @@ func TestStepRulesAreTheServicesUpdate(t *testing.T) {
 		beta, correct := 8*rng.Float64()-2, rng.IntN(2) == 0
 		want := rating.Update(state, beta, correct)
 		s := newStepRule(0)
+		s.floor = serviceFloor
 		s.theta, s.delta["t"], s.answers, s.inTopic["t"] = state.Theta, state.Delta, state.Answers, state.TopicAnswers
 		s.answered("t", beta, correct)
 		if math.Abs(s.theta-want.Theta) > 1e-12 || math.Abs(s.delta["t"]-want.Delta) > 1e-12 {

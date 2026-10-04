@@ -127,6 +127,39 @@ func TestTheStepNarrowsWithEveryAnswer(t *testing.T) {
 	}
 }
 
+// The overall level's step narrows to 0.05 and stays there from the 61st
+// answer, where the formula comes to it, so a child who moves on after many
+// answers is still followed. A topic's step keeps no floor: it counts the
+// topic's own answers and comes down to 0.05 only at the 141st.
+func TestTheOverallStepStopsAtItsFloor(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		answers int
+		want    float64
+	}{
+		{59, 0.0506},
+		{60, 0.05},
+		{61, 0.05},
+		{79, 0.05},
+		{200, 0.05},
+	} {
+		got := rating.Update(rating.State{Answers: tc.answers}, youngest(3).Beta(), true).KTheta
+		nearly(t, got, tc.want, tolerance, fmt.Sprintf("the overall level's step after %d answers", tc.answers))
+	}
+	for _, tc := range []struct {
+		inTopic int
+		want    float64
+	}{
+		{140, 0.05},
+		{141, 0.0497},
+		{200, 0.0364},
+	} {
+		got := rating.Update(rating.State{TopicAnswers: tc.inTopic}, youngest(3).Beta(), true).KDelta
+		nearly(t, got, tc.want, tolerance, fmt.Sprintf("a topic's step after %d of its answers", tc.inTopic))
+	}
+}
+
 // Where the child stands in a topic is the level and its correction together,
 // before the answer and after it.
 func TestTheLevelInATopic(t *testing.T) {

@@ -35,7 +35,7 @@ What later tasks will create is listed too, with the task that writes it.
 
 ## The research module
 
-- **What it is.** Code for experiments and tools lives in a separate Go module, `github.com/MathTrail/mathtrail-standalone/research`. It imports the product's packages, including those under `internal/`, through `replace … => ../`, so experiments exercise the product's own code rather than a copy of it. The product never imports the research module.
+- **What it is.** Code for experiments and tools lives in a separate Go module, `github.com/MathTrail/mathtrail-standalone/research`. It imports the product's packages, including those under `internal/`, at `v0.1.53`, the tag on the commit the paper's experiments were run on (Q87), so experiments exercise the product's own code as the paper describes it, rather than a copy of it or whatever the working tree holds now. The product never imports the research module.
 - **What the product's tooling sees.**
   - The product's `ci-*` recipes, the pre-commit hook's build and tests, CodeQL (which builds `./...` from the root) and SonarCloud (`research/**` excluded from sources and tests) do not see the module.
   - Anything that walks files rather than Go packages does: `just fmt` and `just fmt-check` (gofmt over the whole tree), the pre-commit hook's gofmt, and gitleaks.

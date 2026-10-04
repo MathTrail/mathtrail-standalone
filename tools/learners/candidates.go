@@ -269,8 +269,9 @@ func switchRule(threshold float64) *rule {
 	}
 }
 
-// floorRule is the service's step with a floor under the overall level's: an
-// exit, which adds the floor.
+// floorRule is the service's step, as the choice of the step found it, with a
+// floor under the overall level's: an exit, which adds the floor. The floor of
+// serviceFloor is the step the service took.
 func floorRule(floor float64) *rule {
 	return &rule{
 		name: "floor_" + decimal(floor), shape: both, trial: true,
@@ -282,19 +283,19 @@ func floorRule(floor float64) *rule {
 // exitFloors are the floors the exit is chosen among.
 var exitFloors = []float64{0.02, 0.05, 0.1}
 
-// The answers the distance of a step from the service's is read over: the
-// overall level's from the first after the trial series to the 200th, a
-// topic's over its first forty.
+// The answers the distance of a step from the service's, as the choice of the
+// step found it, is read over: the overall level's from the first after the
+// trial series to the 200th, a topic's over its first forty.
 const (
 	distanceAnswers      = 200
 	distanceTopicAnswers = 40
 )
 
-// stepDistance is how far a step stands from the service's, for choosing the
-// nearest of steps alike in all else: the mean difference of the overall
-// level's steps over the answers after the trial series, plus that of a
-// topic's over its first answers. The limit, which only a large surprise
-// meets, is left out.
+// stepDistance is how far a step stands from the service's, as the choice of
+// the step found it — before its floor — for choosing the nearest of steps
+// alike in all else: the mean difference of the overall level's steps over
+// the answers after the trial series, plus that of a topic's over its first
+// answers. The limit, which only a large surprise meets, is left out.
 func stepDistance(overall, topic stepCurve, floor float64) float64 {
 	overallSum := 0.0
 	for n := rating.TrialAnswers; n < distanceAnswers; n++ {

@@ -96,6 +96,8 @@ type counts struct {
 	traces   traces
 	busy     busy
 	breaches map[breach]int
+	// children is what each day adds up to in the counts kept for years.
+	children map[time.Time]*childrenOn
 }
 
 // tally adds the lines up. A task or an answer is counted for the chat host of
@@ -132,6 +134,7 @@ func tally(in *input) *counts {
 	}
 	c.versions = inOrder(firstSeen)
 	c.traces, c.busy, c.breaches = tracesOf(lines), busyOf(lines), in.breaches
+	c.children = childrenByDay(lines)
 	return c
 }
 

@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 	"time"
 )
 
@@ -103,6 +104,14 @@ type line struct {
 	TutorMode     string   `json:"tutor_mode"`
 	Trial         whole    `json:"trial"`
 	AnswersBucket string   `json:"answers_bucket"`
+
+	// A line a child is counted from: the name the child is counted under
+	// that month, and, on a task handed out, the chat host it was handed out
+	// in. Whether the log repeated a line the report has read already is the
+	// report's own note, and no field of the line.
+	Learner string `json:"learner"`
+	Host    string `json:"host"`
+	repeat  bool
 }
 
 // whole is a whole number as a line carries it. The service writes 2, and
@@ -153,11 +162,14 @@ type input struct {
 	lines              []line
 	others, unreadable int
 	breaches           map[breach]int
+	// counted are the lines a child is counted from, as they were read: the
+	// log may hand one over twice, and a repeat is the same text again.
+	counted map[string]struct{}
 }
 
 // readAll reads the input a line at a time, to its end.
 func readAll(in io.Reader) (*input, error) {
-	read := &input{breaches: map[breach]int{}}
+	read := &input{breaches: map[breach]int{}, counted: map[string]struct{}{}}
 	reader := bufio.NewReader(in)
 	for {
 		text, err := reader.ReadBytes('\n')
@@ -194,6 +206,10 @@ func (in *input) add(text []byte) {
 	if json.Unmarshal(text, &read) != nil {
 		in.unreadable++
 		return
+	}
+	if slices.Contains(countedFrom, read.Message) {
+		_, read.repeat = in.counted[string(text)]
+		in.counted[string(text)] = struct{}{}
 	}
 	in.lines = append(in.lines, read)
 }

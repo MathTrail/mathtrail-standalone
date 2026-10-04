@@ -122,7 +122,10 @@ fi
 # Roles may be written, and granted on the project itself, because the
 # configuration defines both: the deployment identity gets a role of five
 # permissions instead of a ready-made one of sixty, and the runtime identity
-# gets the two that let it send telemetry about itself.
+# gets the two that let it send telemetry about itself. The last two make the
+# counts of how the service is used, where a deployment keeps them: a log
+# bucket, the sink that fills it and its link to BigQuery, and the datasets,
+# tables, views and nightly query the counts live in.
 echo "==> what it may do"
 for role in \
     roles/serviceusage.serviceUsageAdmin \
@@ -133,7 +136,9 @@ for role in \
     roles/iam.serviceAccountUser \
     roles/iam.roleAdmin \
     roles/resourcemanager.projectIamAdmin \
-    roles/browser
+    roles/browser \
+    roles/logging.configWriter \
+    roles/bigquery.admin
 do
     gcloud projects add-iam-policy-binding "$project" \
         --member="serviceAccount:${service_account}" \
