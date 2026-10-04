@@ -99,6 +99,30 @@ func loaded(t *testing.T) *content.Content {
 	return c
 }
 
+// Every trap of the catalog says what an adult can do about it, in a sentence
+// of its own: the review of the progress hands it on as it is written.
+func TestEveryTrapAdvisesTheAdult(t *testing.T) {
+	t.Parallel()
+
+	c := loaded(t)
+	for _, id := range c.TrapIDs() {
+		advice, ok := c.TrapAdvice(id)
+		if !ok || advice == "" || !strings.HasSuffix(advice, ".") {
+			t.Errorf("TrapAdvice(%s) = %q, %v; want a sentence of advice", id, advice, ok)
+		}
+		if description, _ := c.TrapDescription(id); advice == description {
+			t.Errorf("TrapAdvice(%s) = %q, the mistake again; want what to do about it", id, advice)
+		}
+	}
+	want := "Before answering, draw a quick sketch: the posts as dots and the gaps between them, then count both."
+	if advice, _ := c.TrapAdvice("off_by_one"); advice != want {
+		t.Errorf("TrapAdvice(off_by_one) = %q, want %q", advice, want)
+	}
+	if advice, ok := c.TrapAdvice("forgot_a_case"); ok || advice != "" {
+		t.Errorf("TrapAdvice(forgot_a_case) = %q, %v; want nothing for a trap nobody wrote", advice, ok)
+	}
+}
+
 func TestCatalogsAreTheClosedLists(t *testing.T) {
 	t.Parallel()
 	c := loaded(t)

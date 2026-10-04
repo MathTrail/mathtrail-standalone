@@ -35,6 +35,11 @@
 		}
 	],
 	"examples": {
+		"logic.ordering": [
+			{ "level": "1-2", "solver": "boat-race", "answer": "green" },
+			{ "level": "3-4", "solver": "canteen-queue", "answer": "Pavel" },
+			{ "level": "5-6", "solver": "six-runners", "answer": "Fay" }
+		],
 		"logic.knights_liars": [
 			{
 				"level": "3-4",
@@ -47,6 +52,21 @@
 				"answer": "A knight, B liar, C liar"
 			},
 			{ "level": "5-6", "solver": "round-table", "answer": "5" }
+		],
+		"combinatorics.enumeration": [
+			{ "level": "1-2", "solver": "two-stripes", "answer": "6" },
+			{ "level": "3-4", "solver": "three-apart", "answer": "13" },
+			{ "level": "5-6", "solver": "no-two-twos", "answer": "8" }
+		],
+		"pigeonhole.basic": [
+			{ "level": "1-2", "solver": "lemon-sweets", "answer": "9" },
+			{ "level": "3-4", "solver": "two-black-socks", "answer": "10" },
+			{ "level": "5-6", "solver": "grid-sums", "answer": "Yes, always" }
+		],
+		"logic.sets": [
+			{ "level": "5-6", "solver": "sisters-and-brothers", "answer": "4" },
+			{ "level": "5-6", "solver": "apples-and-pears", "answer": "9" },
+			{ "level": "5-6", "solver": "three-subjects", "answer": "11" }
 		]
 	},
 	"progress": {

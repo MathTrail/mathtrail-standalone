@@ -1,6 +1,7 @@
 package content
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"reflect"
@@ -8,6 +9,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"testing/fstest"
 
 	"github.com/leanovate/gopter"
 	"github.com/leanovate/gopter/gen"
@@ -261,5 +263,38 @@ func TestCopiesHoldTheirProperties(t *testing.T) {
 		gen.Bool(),
 	))
 
+	properties.TestingRun(t)
+}
+
+// A trap catalog reads exactly when every trap in it carries its advice: a
+// trap without one would leave the review of the progress with nothing to tell
+// an adult about the mistake, and the service with a gap it found too late.
+func TestATrapCatalogReadsOnlyWithEveryTrapsAdvice(t *testing.T) {
+	t.Parallel()
+
+	traps, err := loadTraps(files)
+	if err != nil {
+		t.Fatalf("loadTraps() error = %v, want the shipped catalog", err)
+	}
+	properties := gopter.NewProperties(nil)
+	properties.Property("read exactly when every trap advises", prop.ForAll(
+		func(advised []bool) bool {
+			edited := slices.Clone(traps)
+			every := true
+			for i := range edited {
+				if !advised[i] {
+					edited[i].Advice = ""
+					every = false
+				}
+			}
+			raw, err := json.Marshal(edited)
+			if err != nil {
+				return false
+			}
+			_, err = loadTraps(fstest.MapFS{trapsFile: {Data: raw}})
+			return (err == nil) == every
+		},
+		gen.SliceOfN(len(traps), gen.Bool()),
+	))
 	properties.TestingRun(t)
 }

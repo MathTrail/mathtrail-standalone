@@ -35,7 +35,7 @@ export function ApexPage({
 	return (
 		<SitePage
 			head={head}
-			frame={{ home: "/", menu: [], languages: [], footer, translated: false }}
+			frame={{ home: "/", menu: [], languages: [], footer }}
 		>
 			<div class="s-wrap s-apex">
 				<h1>{siteName}</h1>

@@ -1,96 +1,96 @@
-# Нагрузка на развёрнутом сервисе (T64.3)
+# The deployed service under load (T64.3), and the message limits of free Claude (T64.4)
 
-**Статус: закрыто.** 2026-10-04. Сценарии `paces` и `ceiling` прошли против `https://mcp.mathtrail.app` чисто. Жадный аккаунт и жадный адрес получили понятный отказ своего темпа, а аккаунты рядом не получили ни одного отказа. Дневной предел отказал шестой неудачной просьбе и больше ничему. Платформа подняла три экземпляра. Прогон стоил 0,094 % месячного бесплатного объёма Cloud Run по процессору, то есть $0. Инструменты без Drive отвечают за единицы миллисекунд. Модель Claude пишет задачу быстрее 90 секунд в 29 случаях из 30. В логе нет ничего похожего на персональные данные.
+**T64.3: closed.** 2026-10-04. The `paces` and `ceiling` scenarios ran clean against `https://mcp.mathtrail.app`. The greedy account and the greedy address were refused by their paces in words anyone can follow, and the accounts beside them were never refused. The day's ceiling refused the sixth failed request and nothing else. The platform started three instances. The run cost 0.094 % of a month's free Cloud Run processor time, which is $0. Without Drive, the tools answer in a few milliseconds. Claude's model writes a task in under 90 seconds in 29 cases out of 30. The log holds nothing that looks like personal data.
 
-Прогон нашёл, что доля трасс считалась не по запросу, а по группе запросов: в час прогона сохранилось 0,7 % трасс вместо 10 %. Исправлено в рамках задачи (R173). Числа лимитов и телеметрии остаются как были, теперь измеренные (R174). Не сделана проверка с телефона, открыты две находки — ниже.
+The run found that the share of traces was decided for a run of requests rather than for each request: in the hour of the run, 0.7 % of the traces were kept instead of 10 %. Fixed within the task (R173). The numbers of the limits and of the telemetry stay as they were, now measured (R174). The check from a phone was not done, and two findings are open — below.
 
-> Репозиторий публичный, поэтому в отчёт идут поведение и числа, а не идентификаторы: аккаунты названы по роли, идентификаторы экземпляров, трасс и ревизий кроме номеров не выписаны.
+> The repository is public, so the report carries behaviour and numbers rather than identifiers: accounts are named by their role, and instances, traces and revisions are not written out beyond their numbers.
 
-## Что это
+## What this is
 
-Критерии PRODUCT 11.5–11.8 на развёрнутом сервисе и цели PRODUCT 6 по времени ответа.
+Criteria 11.5–11.8 of PRODUCT on the deployed service, and the response-time goals of PRODUCT 6.
 
-- **Сервис.** `https://mcp.mathtrail.app`, версия `v0.2.3`, коммит `52d0a1c`: так отвечает `/health`.
-- **Аккаунты.** Автор вошёл двумя через `just load-signin`:
-  - `parent` — личный аккаунт автора, в прогоне только читает свой профиль;
-  - `load` — аккаунт компании, его профиль стал профилем нагрузки: псевдоним Otter, 2 класс, задачи нагрузки.
-- **Несколько экземпляров.** На время прогона concurrency сервиса понижена с 80 до 2: с ней три экземпляра поднимаются уже от одного источника запросов.
-- **Роли.** Входы делал автор. Прогон, восстановление сервиса, чтение лога и метрик и этот отчёт — Claude. Команды, которые меняют сервис, разрешены автором узким правилом в `.claude/settings.local.json` на время прогона.
-- **Стоимость.** Оценка до запуска: $0, до 3 % месячного бесплатного объёма Cloud Run. Факт: 0,094 % (ниже).
+- **Service.** `https://mcp.mathtrail.app`, version `v0.2.3`, commit `52d0a1c`: that is what `/health` answers.
+- **Accounts.** The author signed two in with `just load-signin`:
+  - `parent` — the author's personal account, which only reads its profile in the run;
+  - `load` — the company account, whose profile became the load's: the pseudonym Otter, grade 2, the load's tasks.
+- **Several instances.** For the run the service's concurrency was lowered from 80 to 2: with it, three instances start from a single source of requests.
+- **Roles.** The author signed in. The run, putting the service back, reading the log and the metrics, and this report are Claude's. The commands that change the service were allowed by the author with a narrow rule in `.claude/settings.local.json` for the length of the run.
+- **Cost.** Estimated before the start: $0, up to 3 % of a month's free Cloud Run. Actual: 0.094 % (below).
 
-## Как шёл прогон
+## How the run went
 
-Время — UTC, 2026-10-04.
+Times are UTC, 2026-10-04.
 
-1. **03:03–03:06. Вход двумя аккаунтами.**
-   - Порт, который выбирает инструмент, VS Code из контейнера не пробросил, и браузер получил «connection refused». Автор пробросил порт 8976 в панели Ports, вход прошёл с `-callback-port 8976`.
-   - Первый вход аккаунта компании сервис отклонил: `access_denied`, в логе `auth_callback` с причиной `no_drive`. На экране согласия Google не была отмечена галочка Drive, и это поведение по замыслу. Второй вход с галочкой прошёл.
-2. **03:09. Состояние до прогона.** Concurrency 80, до 3 экземпляров, 1 vCPU, 1 GiB, ревизия 00075.
-3. **Перед 03:18. Concurrency 2.** `gcloud run services update mathtrail … --concurrency=2`, ревизия 00076.
-4. **03:18:05.** `just load paces -url https://mcp.mathtrail.app -accounts parent,load -rate 6`, одна минута.
-5. **03:21:18.** `just load ceiling -url https://mcp.mathtrail.app -accounts load,parent`, 1 мин 22 с.
-6. **03:23:38. Concurrency 80 снова.** Ревизия 00077. Проверено:
-   - concurrency 80, до 3 экземпляров, 1 vCPU, 1 GiB, `/health` отвечает `v0.2.3`, `52d0a1c`;
-   - ревизия 00077 совпадает с 00075 целиком: образ, ресурсы, масштаб, переменные и секреты. Отличаются только автор ревизии (аккаунт компании вместо сервисного аккаунта деплоя), идентификатор операции, случайное значение `nonce` и метка маршрута у ревизии, которая теперь обслуживает трафик.
+1. **03:03–03:06. Two accounts signed in.**
+   - VS Code did not forward from the container the port the tool picks, and the browser got "connection refused". The author forwarded port 8976 in the Ports panel, and the sign-in went through with `-callback-port 8976`.
+   - The service refused the company account's first sign-in: `access_denied`, and in the log an `auth_callback` with the reason `no_drive`. The Drive box on Google's consent screen was left unticked, and the refusal is the behaviour as designed. The second sign-in, with the box ticked, went through.
+2. **03:09. The state before the run.** Concurrency 80, up to 3 instances, 1 vCPU, 1 GiB, revision 00075.
+3. **Before 03:18. Concurrency 2.** `gcloud run services update mathtrail … --concurrency=2`, revision 00076.
+4. **03:18:05.** `just load paces -url https://mcp.mathtrail.app -accounts parent,load -rate 6`, one minute.
+5. **03:21:18.** `just load ceiling -url https://mcp.mathtrail.app -accounts load,parent`, 1 min 22 s.
+6. **03:23:38. Concurrency 80 again.** Revision 00077. Checked:
+   - concurrency 80, up to 3 instances, 1 vCPU, 1 GiB, and `/health` answers `v0.2.3`, `52d0a1c`;
+   - revision 00077 matches 00075 in full: image, resources, scaling, variables and secrets. The only differences are the revision's creator (the company account in place of the deployment's service account), the operation id, the random `nonce`, and the route label on the revision that now serves the traffic.
 
-   Это и есть сверка с Terraform. Сервис снова такой, каким его развернул конвейер по `infra/terraform`, и следующая доставка увидит то же, что видела до прогона. `terraform plan` локально не запускался: ему нужен счёт биллинга, который живёт только в секретах GitHub.
-7. **После 03:26.** `just report 1h`, `just report 7d`, `just usage 1h`, `just usage 7d` и выборочные чтения лога для трасс.
+   That is the reconciliation with Terraform. The service is again what the pipeline deployed from `infra/terraform`, and the next delivery sees what it saw before the run. `terraform plan` was not run locally: it needs the billing account, which lives only in GitHub's secrets.
+7. **After 03:26.** `just report 1h`, `just report 7d`, `just usage 1h`, `just usage 7d`, and narrow reads of the log for the traces.
 
-## 11.5: отказ жадному, остальные работают
+## 11.5: the greedy one is refused, the others keep working
 
-Все пять групп получили вердикт инструмента «clean — nothing the service should never do»: ни статуса 400 и выше, ни ошибки протокола, ни ответа на чужой вызов.
+All five groups got the tool's verdict "clean — nothing the service should never do": no status of 400 or above, no protocol error, no answer to another's call.
 
-**`paces`**, одна минута:
+**`paces`**, one minute:
 
-| Кто | Что делал | Вызовов | Прошло | Отказ темпа | p50 / p95 прошедших |
+| Who | Doing what | Calls | Let through | Refused by the pace | p50 / p95 of those let through |
 |---|---|---:|---:|---:|---|
-| `parent`, жадный аккаунт | читает профиль 6 раз в секунду | 359 | 178 | 181 | 600 мс / 1,05 с |
-| `load`, ребёнок рядом | урок в живом темпе, 2 задачи | 15 | 15 | 0 | 955 мс / 3,3 с |
-| адрес инструмента, жадный | документ входа 6 раз в секунду | 359 | 72 | 287, это `429` | 65 мс / 464 мс |
+| `parent`, the greedy account | reads its profile 6 times a second | 359 | 178 | 181 | 600 ms / 1.05 s |
+| `load`, a child beside it | a lesson at a live pace, 2 tasks | 15 | 15 | 0 | 955 ms / 3.3 s |
+| the tool's address, greedy | the sign-in's document 6 times a second | 359 | 72 | 287, as `429` | 65 ms / 464 ms |
 
-Отказ темпа приходит за 64 мс (p50). Это одна фраза для модели, помеченная как ошибка, без числа: «MathTrail received too many calls in a short time, so this call was not made. Wait a moment, then make the same call again.»
+A refusal by the pace comes back in 64 ms (p50). It is one sentence for the model, marked as an error, with no number in it: "MathTrail received too many calls in a short time, so this call was not made. Wait a moment, then make the same call again."
 
-Жадный аккаунт пропущен 178 раз за минуту при темпе 60 в минуту с запасом 20. Это сумма трёх экземпляров, которые считают каждый в своей памяти, как и записано в SPEC 10.1: «с N экземплярами до N раз свободнее». Жадный адрес пропущен 72 раза при темпе 20 с запасом 6: тоже три экземпляра.
+The greedy account was let through 178 times in a minute, at a pace of 60 a minute with a burst of 20. That is the sum of three instances, each counting in its own memory, as SPEC 10.1 has it: "with N instances the effective rate is up to N times looser". The greedy address was let through 72 times at a pace of 20 with a burst of 6: three instances as well.
 
-**`ceiling`**, 1 мин 22 с:
+**`ceiling`**, 1 min 22 s:
 
-| Кто | Вызовов | Итог |
+| Who | Calls | Outcome |
 |---|---:|---|
-| `load`, проваливает генерации | 28 | 12 прошли; 10 попыток отклонены как `solver_disagrees`; 5 просьб исчерпали три попытки; шестая просьба дня получила `limit_reached` |
-| `parent`, читает рядом | 14 | все 14 прошли |
+| `load`, failing its generations | 28 | 12 went through; 10 attempts refused as `solver_disagrees`; 5 requests ran out of their three attempts; the sixth request of the day got `limit_reached` |
+| `parent`, reading beside it | 14 | all 14 went through |
 
-Дневной предел пяти неудачных генераций сработал ровно на шестой просьбе. Аккаунт `load` до полуночи UTC 2026-10-04 новых задач не получит.
+The day's ceiling of five failed generations held at exactly the sixth request. The `load` account gets no new tasks until the end of 2026-10-04, UTC.
 
-## Расход Cloud Run против бесплатного объёма
+## Cloud Run's consumption against the free tier
 
-По Cloud Monitoring (`just usage`):
+As Cloud Monitoring counts it (`just usage`):
 
-| Окно | vCPU-секунды | GiB-секунды | Запросы | Оплачено секунд экземпляров | Больше всего экземпляров за минуту |
+| Window | vCPU-seconds | GiB-seconds | Requests | Instance-seconds billed | Most instances in a minute |
 |---|---:|---:|---:|---:|---:|
-| Час прогона, 02:27–03:27 | 169,0 (0,094 %) | 322,9 (0,090 %) | 830 (0,042 %) | 323,2 | 3 |
-| Неделя, 09-27 03:47 – 10-04 03:47 | 622,3 (0,346 %) | 815,6 (0,227 %) | 1828 (0,091 %) | 848,9 | 3 |
+| The hour of the run, 02:27–03:27 | 169.0 (0.094 %) | 322.9 (0.090 %) | 830 (0.042 %) | 323.2 | 3 |
+| The week, 09-27 03:47 – 10-04 03:47 | 622.3 (0.346 %) | 815.6 (0.227 %) | 1828 (0.091 %) | 848.9 | 3 |
 
-Проценты — от месячного бесплатного объёма: 180 000 vCPU-секунд, 360 000 GiB-секунд, 2 млн запросов. Первыми кончаются vCPU-секунды.
+The percentages are of a month's free tier: 180,000 vCPU-seconds, 360,000 GiB-seconds and 2 million requests. The vCPU-seconds run out first.
 
-**Сколько задач в месяц держит бесплатный объём.** На ограниченном контейнере (`docs/load.md`) задача стоила 0,36 vCPU-секунды, и бесплатного объёма хватало на 500 000 задач в месяц. Там не было Drive.
+**How many tasks a month the free tier holds.** On the constrained container (`docs/load.md`) a task cost 0.36 vCPU-seconds, and the free tier held 500,000 tasks a month. There was no Drive there.
 
-На развёрнутом сервисе:
-- урок нагрузки — 10,15 vCPU-секунды на принятую задачу, около 17 700 задач в месяц;
-- неделя настоящего трафика без часа нагрузки — 453 vCPU-секунды на 30 принятых задач, около 15 на задачу со всеми опросами карточки, входами и чужими запросами. Это около 12 000 задач в месяц.
+On the deployed service:
+- the load's lesson — 10.15 vCPU-seconds per accepted task, about 17,700 tasks a month;
+- the week of real traffic, the hour of the load left out — 453 vCPU-seconds for 30 accepted tasks, about 15 per task with all the cards' questions, the sign-ins and everybody else's requests. That is about 12,000 tasks a month.
 
-Разница — время ожидания Drive. При `cpu_idle` платформа считает экземпляр занятым всё время, пока у него есть хоть один запрос, в том числе пока запрос ждёт Drive. Когда запросов станет больше, они будут перекрываться на одном экземпляре, и задача подешевеет. Нынешняя цифра — верхняя оценка для тихого сервиса.
+The difference is the time spent waiting on Drive. With `cpu_idle` the platform bills an instance for as long as it holds at least one request, a request waiting on Drive included. Once there are more requests, they overlap on one instance, and a task costs less. Today's figure is the upper bound of a quiet service.
 
-Logging, Trace и Monitoring отдельно не мерились. Лог часа прогона — 2085 строк при бесплатных 50 GiB в месяц.
+Logging, Trace and Monitoring were not measured on their own. The log of the hour of the run is 2085 lines, against 50 GiB a month free.
 
-## Время ответа
+## Response time
 
-### Инструменты без Drive: цель меньше секунды (PRODUCT 6)
+### Tools without Drive: the goal is under a second (PRODUCT 6)
 
-Время сервиса на вызов, в миллисекундах; «без Drive» — то же время минус вызовы Drive, сделанные в том же запросе (`just report`).
+The service's time per call, in milliseconds; "without Drive" is the same time less the calls to Drive made in the same request (`just report`).
 
-Настоящие уроки в Claude за неделю:
+Real lessons in Claude over the week:
 
-| Инструмент | Вызовов | С Drive, медиана / p95 | Без Drive, медиана / p95 |
+| Tool | Calls | With Drive, median / p95 | Without Drive, median / p95 |
 |---|---:|---:|---:|
 | `get_package` | 4 | 208 / 217 | 1 / 1 |
 | `get_profile` | 4 | 999 / 1664 | 1 / 4 |
@@ -101,15 +101,15 @@ Logging, Trace и Monitoring отдельно не мерились. Лог ча
 | `submit_answer` | 19 | 2227 / 4589 | 3 / 7 |
 | `submit_task` | 34 | 1911 / 4107 | 13 / 33 |
 
-Под нагрузкой (час прогона, три экземпляра, concurrency 2) без Drive: медианы 0–8 мс, p95 не выше 13 мс. На контейнере без Drive (`docs/load.md`): медиана 4 мс, самый долгий вызов 10 мс. Цель выполнена с запасом в два порядка.
+Under load (the hour of the run, three instances, concurrency 2), without Drive: medians of 0–8 ms, and a p95 no higher than 13 ms. On the container without Drive (`docs/load.md`): a median of 4 ms, and 10 ms for the longest call. The goal is met with two orders of magnitude to spare.
 
-Всё остальное время вызова — Drive: медианы от 0,2 до 2,2 с, p95 до 4,6 с. Это в пределах тайм-аутов хоста.
+All the rest of a call's time is Drive: medians from 0.2 to 2.2 s, and a p95 of up to 4.6 s. That is within the host's timeouts.
 
-### Генерация задачи: цель 90 секунд
+### Writing a task: the goal is 90 seconds
 
-Секунды от просьбы `next_task` до принятия задачи — время, за которое модель чата написала задачу и сдала её. Уроки автора в Claude за неделю, модель и уровень рассуждений — какие были у автора (в T62 это Opus 5.5 с расширенными рассуждениями):
+The seconds from the request `next_task` opened to the task's acceptance: the time in which the chat's model wrote the task and handed it in. The author's lessons in Claude over the week, with whatever model and level of reasoning the author had (in T62, Opus 5.5 with extended reasoning):
 
-| Версия инструкций | Принято | Медиана | 90-й перцентиль | Самая долгая |
+| Instructions version | Accepted | Median | 90th percentile | Longest |
 |---|---:|---:|---:|---:|
 | `7b5d171123e5` | 6 | 19 | 29 | 29 |
 | `88b63e22129c` | 14 | 31 | 59 | 74 |
@@ -117,112 +117,112 @@ Logging, Trace и Monitoring отдельно не мерились. Лог ча
 | `bf40900be9b5` | 3 | 60 | 227 | 227 |
 | `1e1cd63988d6` | 1 | 43 | 43 | 43 |
 
-В 90 секунд уложились 29 задач из 30, одна шла 227 секунд. Бесплатный тариф и его модель меряет T64.4. Требование автора из T62 (находка 7) — меньше 5 секунд, и это отдельный разговор.
+29 tasks of 30 came within 90 seconds, and one took 227 seconds. The free tier and its model are T64.4's to measure. The author's requirement from T62 (finding 7) is under 5 seconds, and that is a separate matter.
 
-## 11.8: персональных данных в логах нет
+## 11.8: no personal data in the logs
 
-`just report` держит каждую строку лога сервиса трёх правил: событие из таблицы решённых, только решённые для него поля и ничего похожего на адрес почты.
+`just report` holds every line of the service's log to three rules: an event from the table of decided events, only the fields decided for it, and nothing that looks like an email address.
 
-- **Час прогона:** 2085 строк, в том числе два входа, урок, отказы темпа и дневного предела. Нарушений нет.
-- **Неделя:** 5065 строк с 2026-09-27 11:07. Нарушений нет.
-- **Старые строки.** Тот же отчёт по всему сроку хранения лога нашёл:
-  - 602 строки `http_request` с полем `path`, все с 22 по 25 сентября, ревизии 00002–00029, до того как R76 заменил путь маршрутом. Ни в одной нет строки запроса: это пути сканеров вроде `/.env` и `/.git/HEAD` и собственные маршруты сервиса;
-  - 11 строк событий, которых нет в таблице, все старше 27 сентября.
+- **The hour of the run:** 2085 lines, two sign-ins, a lesson and the refusals of the paces and of the day's ceiling among them. No breach.
+- **The week:** 5065 lines since 2026-09-27 11:07. No breach.
+- **Old lines.** The same report over the log's whole retention found:
+  - 602 lines of `http_request` with a `path` field, all from 22 to 25 September, revisions 00002–00029, before R76 replaced the path with the route. None of them carries a query string: they are the paths of scanners, such as `/.env` and `/.git/HEAD`, and the service's own routes;
+  - 11 lines of events not in the table, all older than 27 September.
 
-  Отчёт имён таких событий не называет, так задумано. Прочитать сами строки — массовое чтение прод-лога, в этой сессии оно не разрешено. Строки уйдут по сроку хранения лога.
+  The report does not name such events, by design. Reading the lines themselves is a bulk read of the production log, which this session was not allowed. The lines leave with the log's retention.
 
-Адресов почты нет нигде, ни в новых строках, ни в старых.
+No email address anywhere, in the new lines or the old.
 
-## Трассы: решает наша доля, но решала она группами
+## Traces: our share decides, but it decided by runs
 
-**Что проверялось.** R49 и SPEC 12.5 говорят: трассу сохраняет наша доля, 0,1, что бы ни пришло в запросе. Задача — подтвердить это статистикой и выбрать число.
+**What was checked.** R49 and SPEC 12.5 say that a trace is kept by our share, 0.1, whatever the request arrives saying. The task was to confirm that with statistics and to choose the number.
 
-**Что показал час прогона.**
-- Из 828 запросов с трассой сохранено 6, это 0,007 при заданных 0,1.
-- Cloud Run сам сэмплировал 41 запрос из 830 (`traceSampled` в его логе запросов). С нашими шестью совпал один. Значит, флаг платформы не решает, решает наша доля, как и хотел R49.
-- Но доля вышла в 14 раз меньше заданной. Причина в идентификаторах трасс, которые делает фронтенд Cloud Run: правую половину он заполняет один раз на группу запросов, а заново для каждого запроса — только левую. 830 запросов часа легли в 64 группы по первым 12 знакам правой половины. 13 групп — по 20–75 запросов, в них почти все запросы нагрузки; 51 — по 1–6. Как фронтенд собирает группы, не видно: это не соединения, у жадного аккаунта одно соединение на 360 запросов, а групп по нему несколько.
-- Стандартный `TraceIDRatioBased` читает именно правую половину. Поэтому группа сохранялась или отбрасывалась целиком: 7 запросов в 4 группах.
-- Если бы считалась левая половина, тех же запросов сохранилось бы 89, это 0,107.
-- Остаток недели без часа прогона — уроки автора и входы — сохранил 109 трасс из 941, это 0,116. Там доля случайно легла близко к заданной, но решение и там принималось сразу за группу.
+**What the hour of the run showed.**
+- Of 828 requests with a trace, 6 were kept: 0.007, against the 0.1 configured.
+- Cloud Run itself sampled 41 requests of 830 (`traceSampled` in its request log). One of them was among our six. So the platform's flag does not decide, and our share does, as R49 meant.
+- But the share came out 14 times smaller than configured. The cause is the trace identifiers Cloud Run's front end makes: it fills the right half once for a run of requests, and only the left half anew for each. The hour's 830 requests fell into 64 runs by the first 12 hex digits of the right half. 13 runs held 20–75 requests each, nearly all the load's requests among them; 51 held 1–6. How the front end makes its runs cannot be seen: they are not connections, since the greedy account had one connection for its 360 requests, and several runs.
+- The standard `TraceIDRatioBased` reads exactly the right half. So a run was kept or dropped whole: 7 requests, in 4 runs.
+- Read by the left half, the same requests would have kept 89, which is 0.107.
+- The rest of the week without the hour of the run — the author's lessons and sign-ins — kept 109 traces of 941, which is 0.116. There the share landed near the configured one by chance, but there too the decision was made for a whole run at once.
 
-**Исправлено (R173).** Сэмплер теперь читает весь идентификатор, перемешанный финализатором MurmurHash3: правая половина перемешивается, складывается с левой, и всё перемешивается ещё раз. Остальное как было: флаг из запроса не считается, наши спаны идут за родителем. Property-тест держит долю сохранённых равной заданной, какая бы половина ни менялась от трассы к трассе. Со стандартным сэмплером он падает на первом же случае.
+**Fixed (R173).** The sampler now reads the whole identifier, stirred with MurmurHash3's finalizer: the right half is stirred and folded into the left, and the whole is stirred again. The rest is as it was: the request's flag does not count, and our spans follow their parent. A property test holds the share kept to the share configured, whichever half changes from one trace to the next. With the standard sampler it fails at the very first case.
 
-**Число — 0,1 (R174).** Сохранённый запрос несёт от двух до примерно десяти спанов: сервер, вызов инструмента, вызовы Drive, проверки задачи. При доле 0,1 спаны не выходят за бесплатные 2,5 млн в месяц Trace, пока запросы не выходят за бесплатные 2 млн Cloud Run. При 0,2 уже выходили бы. Каждый сохранённый запрос ещё и ждёт своей доставки.
+**The number — 0.1 (R174).** A kept request carries from two to about ten spans: the server, the tool call, the calls to Drive, the task's checks. At a share of 0.1, the spans stay within Trace's free 2.5 million a month for as long as the requests stay within Cloud Run's free 2 million. At 0.2 they would not. Each kept request also waits for its own delivery.
 
-**Что проверить после выката.** `just report 1d` на сборке с R173: доля сохранённых должна выйти около 0,1 на любом окне в несколько сотен запросов.
+**What to check after the rollout.** `just report 1d` on a build with R173: the share kept should come out near 0.1 over any window of a few hundred requests.
 
-## Срок сброса 200 мс против настоящих задержек
+## The 200 ms flush deadline against real latencies
 
-`telemetry_flush_failed` за неделю — 36 строк:
+`telemetry_flush_failed` over the week — 36 lines:
 
-| Что | Строк | Когда |
+| What | Lines | When |
 |---|---:|---|
-| Спаны не уложились в 200 мс | 14 | 6 — в первые 5 с жизни экземпляра (0,2–4,6 с), 8 — на тёплых, от 18 с до 25 мин |
-| Измерения не уложились в 200 мс | 14 | и на холодных, и на тёплых |
-| Измерения отклонил Cloud Monitoring, `400` | 8 | на тёплых экземплярах |
+| Spans that missed 200 ms | 14 | 6 in the first 5 s of an instance's life (0.2–4.6 s), 8 on warm ones, from 18 s to 25 min |
+| Measurements that missed 200 ms | 14 | on cold and warm instances alike |
+| Measurements Cloud Monitoring refused, `400` | 8 | on warm instances |
 
-Ещё 3 строки `telemetry_failed`: собственный тайм-аут считывателя измерений.
+3 more lines of `telemetry_failed`: the measurement reader's own timeout.
 
-В час прогона из шести сохранённых трасс ни одна доставка не сорвалась.
+In the hour of the run, not one delivery of the six kept traces failed.
 
-За неделю 14 доставок спанов сорвались рядом со 115 сохранёнными трассами — около одной из восьми. На холодные экземпляры, которые платят за соединение, пришлись 6 из 14. R49 ждал промахов именно от них, но на тёплых их даже больше — 8.
+Over the week, 14 deliveries of spans failed beside 115 kept traces — about one in eight. The cold instances, which pay for the connection, had 6 of the 14. R49 expected the misses to come from them, but the warm ones had even more — 8.
 
-**Решение (R174): 200 мс остаются.** Срок ограничивает ожидание ребёнка. Время каждого запроса есть в логе, что бы ни стало с его трассой. Выборка, которая теряет одну трассу из восьми, остаётся выборкой. Длиннее срок брать вслепую нельзя: лог не говорит, сколько шла удачная доставка, и неизвестно, сколько потерь купил бы, например, 1 с.
+**Decision (R174): 200 ms stays.** The deadline bounds a child's wait. Every request's time is in the log, whatever becomes of its trace. A sample that loses one trace in eight is still a sample. A longer deadline cannot be chosen blind: the log does not say how long a successful delivery took, so how many of the losses, say, 1 s would buy back is unknown.
 
-## Решения по числам (R174)
+## The decisions on the numbers (R174)
 
-| Число | Было | Стало | Почему |
+| Number | Was | Now | Why |
 |---|---|---|---|
-| Темп аккаунта | 60 в минуту, запас 20 | без изменений | Самая загруженная минута настоящих уроков — 15 вызовов одного аккаунта. Столько и даёт карточка, которая спрашивает о задаче раз в 4 с. Жадный упёрся в темп в первую же минуту; соседи отказов не видели |
-| Темп адреса до входа | 20 в минуту | без изменений | Вход — меньше десяти запросов; жадный адрес получил `429` |
-| Предохранитель экземпляра | 200 в минуту на каждую из двух дверей | без изменений | Самая загруженная минута настоящих уроков — 19 сообщений MCP на экземпляр. Под нагрузкой экземпляр принял 247 сообщений за минуту, большую часть отсёк темп аккаунта ещё до счёта экземпляра, а своё время инструментов не вышло за 13 мс. Двумя аккаунтами до 200 не дойти; в обычный день предохранитель ничего не решает |
-| Неудачных генераций в день | 5 | без изменений | Отказ пришёл ровно на шестой просьбе, чтение рядом не задето |
-| Доля трасс | 0,1 | 0,1, но по всему идентификатору (R173) | Выше |
-| Срок сброса | 200 мс | без изменений | Выше |
-| Оповещения на метриках | открытый вопрос R49 | ни одного | Метрика в политике оповещений стоит $0,35 в месяц (R49) — треть бюджета в $1 за одно оповещение. Бюджет Billing (`infra/terraform/budget.tf`: 50 % и 100 % факта, 100 % прогноза) оповещает о расходе бесплатно; поведение показывают `just report` и `just usage`, и при нескольких уроках в день этого хватает |
+| An account's pace | 60 a minute, burst 20 | unchanged | The busiest minute of real lessons held 15 calls of one account. That is what a card asking about its task every 4 s gives. The greedy account hit its pace in the very first minute; the accounts beside it saw no refusal |
+| An address's pace before sign-in | 20 a minute | unchanged | A sign-in is under ten requests; the greedy address got `429` |
+| The instance's fuse | 200 a minute at each of its two doors | unchanged | The busiest minute of real lessons held 19 MCP messages on one instance. Under load an instance took 247 messages in a minute, most of them cut off by the account's pace before the instance counted them, and the tools' own time stayed within 13 ms. Two accounts cannot reach 200; on an ordinary day the fuse decides nothing |
+| Failed generations a day | 5 | unchanged | The refusal came at exactly the sixth request, and the reading beside it was not touched |
+| The share of traces | 0.1 | 0.1, read off the whole identifier (R173) | Above |
+| The flush deadline | 200 ms | unchanged | Above |
+| Alerts on metrics | an open question of R49 | none | A metric in an alerting policy costs $0.35 a month (R49) — a third of the $1 budget for one alert. The Billing budget (`infra/terraform/budget.tf`: 50 % and 100 % of the actual spend, 100 % of the forecast) alerts on the spend for free; `just report` and `just usage` show the behaviour, and at a few lessons a day that is enough |
 
-У «другой» двери, входа, самая загруженная минута настоящего трафика — 143 запроса на экземпляр. Вероятнее всего, это сканеры: 22–23 сентября они спрашивали пути вроде `/.env`, это видно по старым строкам с путём. Саму минуту отчёт не называет, а читать строки ради неё — массовое чтение лога. Пути, которых сервис не объявлял, темпы не считают (SPEC 10.1).
+At the other door, the sign-in's, the busiest minute of real traffic held 143 requests on one instance. Most likely these were scanners: on 22–23 September they asked for paths such as `/.env`, as the old lines with a path show. The report does not name the minute itself, and reading the lines for it is a bulk read of the log. Paths the service never declared are not counted by the paces (SPEC 10.1).
 
-## Чек-лист 11.6: проверки задач
+## Checklist 11.6: the task checks
 
-| Плохая задача | Проверка | Чем закрыто |
+| A bad task | The check | Covered by |
 |---|---|---|
-| Неверный ответ | `solver_disagrees`: решатель нашёл другой вариант | `internal/domain/checks/review_test.go`: «a solver that finds another answer», «another answer is worked out»; «a self-check with another answer» |
-| Два верных варианта | `solver_disagrees`: «found more than one option that fits» | `TestEachWayASolverDisagreesIsToldApart`, «two options fit» |
-| Нечитаемый текст | `readability` | «a sentence too long for the level»; `readability_golden_test.go` против векторов прототипа |
-| Повтор | `near_duplicate` | «a copy of a reference task», «a repeat of a task the child has had»; `similarity_test.go` и `corpus_test.go` против векторов прототипа |
-| Рисунок со сломанным форматом | `drawing_format`, `drawing_mismatch` | «a drawing with a space at the end of a line», «a drawing without a label it declares»; `drawing_test.go`, `drawingmatch_test.go`, `drawing_property_test.go` |
-| Хорошая задача принимается | — | `TestAGoodTaskIsAccepted`; в `content/` каждая эталонная задача проходит проверки, доказывает свой ответ решателем, а её рисунок — проверки рисунка |
+| A wrong answer | `solver_disagrees`: the solver found another option | `internal/domain/checks/review_test.go`: "a solver that finds another answer", "another answer is worked out"; "a self-check with another answer" |
+| Two right options | `solver_disagrees`: "found more than one option that fits" | `TestEachWayASolverDisagreesIsToldApart`, "two options fit" |
+| Unreadable text | `readability` | "a sentence too long for the level"; `readability_golden_test.go` against the prototype's vectors |
+| A repeat | `near_duplicate` | "a copy of a reference task", "a repeat of a task the child has had"; `similarity_test.go` and `corpus_test.go` against the prototype's vectors |
+| A drawing with a broken format | `drawing_format`, `drawing_mismatch` | "a drawing with a space at the end of a line", "a drawing without a label it declares"; `drawing_test.go`, `drawingmatch_test.go`, `drawing_property_test.go` |
+| A good task is accepted | — | `TestAGoodTaskIsAccepted`; in `content/`, every reference task passes the checks and proves its answer with its solver, and its drawing passes the drawing checks |
 
-Набор тестов перенесён из прототипа: `testdata/golden/` выгружает `just golden` из `MathTrail/llm-taskgen-prototype` на коммите `02638353482e`, а Go-тесты эти файлы никогда не переписывают.
+The test set is carried over from the prototype: `testdata/golden/` is exported by `just golden` from `MathTrail/llm-taskgen-prototype` at commit `02638353482e`, and no Go test ever rewrites those files.
 
-Вживую за неделю: настоящие задачи Claude отклонялись как `bad_structure` (2) и `drawing_mismatch` (1). Задачи нагрузки — как `solver_disagrees` (15), и все 15 заодно как `near_duplicate`.
+Live, over the week: real tasks from Claude were refused as `bad_structure` (2) and `drawing_mismatch` (1). The load's tasks were refused as `solver_disagrees` (15), and all 15 as `near_duplicate` as well.
 
-`just ci-test` зелёный (вместе с этой задачей).
+`just ci-test` is green, this task's change included.
 
-## Чек-лист 11.7: один образ, секретов нет, лицензия, свой экземпляр
+## Checklist 11.7: one image, no secrets, a licence, a copy of your own
 
-| Пункт | Как проверено |
+| Item | How it was checked |
 |---|---|
-| Один образ | `Dockerfile`: сборка виджета, сборка Go, distroless-образ без оболочки, не root, всё по дайджесту. Развёрнутый сервис — этот образ |
-| Внешние сервисы — только вход Google и Drive | Кроме них сервис ходит: в Google Cloud Observability, только на развёртывании и только если проект назван (`MATHTRAIL_TELEMETRY=auto`), без неё сервис работает; к документам метаданных клиентов, которые называет сам клиент при входе, — это часть OAuth |
-| Секретов в репозитории нет | `just ci-secrets` (gitleaks по всей истории): 84 коммита, утечек нет. Секреты — в Secret Manager и переменных окружения |
-| Лицензия | `LICENSE` — MIT; `THIRD_PARTY_LICENSES` актуален: `just ci-licenses` зелёный |
-| Инструкция для своего экземпляра | `docs/self-hosting.md` |
+| One image | `Dockerfile`: the widget's build, the Go build, a distroless image with no shell, not root, everything by digest. The deployed service is this image |
+| No external services but Google's sign-in and Drive | Besides them the service reaches Google Cloud Observability, only on a deployment and only when a project is named (`MATHTRAIL_TELEMETRY=auto`), and works without it; and the metadata documents of clients, which a client names itself at sign-in — part of OAuth |
+| No secrets in the repository | `just ci-secrets` (gitleaks over the whole history): 84 commits, no leaks. The secrets live in Secret Manager and in environment variables |
+| A licence | `LICENSE` — MIT; `THIRD_PARTY_LICENSES` is current: `just ci-licenses` is green |
+| Instructions for a copy of your own | `docs/self-hosting.md` |
 
-## Что не сделано и что открыто
+## What was not done, and what is open
 
-- **Проверка с телефона не сделана.** Автор должен был открыть документ входа с телефона по мобильной сети в момент, когда жадный адрес получает отказ. Все запросы прогона шли с одного адреса, поэтому вживую не видно, что другой адрес в это время обслуживается. На контейнере это проверяет сценарий `limits`, который придумывает адреса сам.
-- **Cloud Monitoring отклоняет измерения (8 за неделю).** Ответ `400 FAILED_PRECONDITION`: «One or more points were written more frequently than the maximum sampling period configured for the metric». В прочитанном случае две точки одного ряда разделяли 5,5 с, а один экземпляр отправляет измерения не чаще раза в минуту. Скорее всего, ряд не различает экземпляры, и в него пишут двое. В ресурсе есть `faas.instance`, но нет `service.instance.id`. Перед исправлением нужно сверить с документацией Google, как OTLP-метрики раскладываются по рядам. Отдельная задача, если автор решит.
-- **Доля трасс после выката.** R173 подтверждается отчётом первой развёрнутой сборки с ним.
-- **Профиль аккаунта компании** теперь профиль нагрузки, а новых задач у него до полуночи UTC нет. Чтобы прогнать `paces` им снова с чистым профилем, удалить файл профиля в Drive и из корзины (`docs/load.md`).
-- **`.claude/settings.local.json`** с разрешениями на этот прогон автору стоит удалить: прогон кончился.
+- **The check from a phone was not done.** The author was to open the sign-in's document from a phone, on a mobile network, while the greedy address was being refused. Every request of the run came from one address, so the run cannot show that another address is served meanwhile. On a container, the `limits` scenario checks it, making its addresses up itself.
+- **Cloud Monitoring refuses measurements (8 in a week).** The answer is `400 FAILED_PRECONDITION`: "One or more points were written more frequently than the maximum sampling period configured for the metric". In the case that was read, two points of one series were 5.5 s apart, while one instance sends its measurements at most once a minute. Most likely the series does not tell instances apart, and two of them write into it. The resource carries `faas.instance` but no `service.instance.id`. Before a fix, how OTLP metrics are laid out into series has to be checked against Google's documentation. A task of its own, if the author decides so.
+- **The share of traces after the rollout.** R173 is confirmed by the report of the first deployed build that has it.
+- **The company account's profile** is now the load's, and it gets no new tasks until midnight UTC. To run `paces` with it again on a clean profile, delete the profile file in Drive and then from the bin (`docs/load.md`).
+- **`.claude/settings.local.json`**, with the permissions for this run, is for the author to delete: the run is over.
 
-## Лимиты сообщений бесплатного Claude (T64.4)
+## The message limits of free Claude (T64.4)
 
-Ещё не мерились.
+Not measured yet.
 
-## Как повторить
+## How to repeat it
 
 ```sh
 just load-signin parent -callback-port 8976
@@ -235,4 +235,4 @@ just report 1h
 just usage 1h
 ```
 
-Порт 8976 должен быть проброшен в VS Code (панель Ports). Аккаунт, профиль которого настоящий, идёт в `paces` первым, а в `ceiling` — не первым (`docs/load.md`).
+Port 8976 must be forwarded in VS Code (the Ports panel). An account whose profile is real goes first in `paces`, and not first in `ceiling` (`docs/load.md`).

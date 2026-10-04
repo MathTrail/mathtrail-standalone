@@ -90,8 +90,13 @@ func fakeRun(value func(r *rule, g generator, metric string) float64) *criterion
 
 // fakeRunOf is a run of these rules on every generator, two alike children a
 // cell, whose every number is what value gives for its rule, generator and
-// metric.
+// metric, read by the step's criterion.
 func fakeRunOf(rs []*rule, value func(r *rule, g generator, metric string) float64) *criterionRun {
+	return fakeRunReadBy(stepCriterion(), rs, value)
+}
+
+// fakeRunReadBy is fakeRunOf read by a criterion.
+func fakeRunReadBy(crit *criterion, rs []*rule, value func(r *rule, g generator, metric string) float64) *criterionRun {
 	ms := metrics()
 	names := metricNames(ms)
 	all := cellsOf(rs)
@@ -110,7 +115,7 @@ func fakeRunOf(rs []*rule, value func(r *rule, g generator, metric string) float
 			}
 		}
 	}
-	return newCriterionRun(all, summaries, results, ms, decisionChildren)
+	return newCriterionRun(all, summaries, results, ms, decisionChildren, crit)
 }
 
 // badnessAt is a value of a fake run in which every measure the score reads
@@ -205,7 +210,7 @@ func TestAScoreReadsOnlyTheRulesOwnMeasures(t *testing.T) {
 // of at most 45 % of the service's, read as its size.
 func TestAGoalHoldsARuleToTheServicesBound(t *testing.T) {
 	t.Parallel()
-	lagGoal := goals()[0]
+	lagGoal := stepGoals()[0]
 	for candidate, want := range map[float64]string{0.2: met, 0.3: notMet} {
 		cr := fakeRun(badnessAt(candidate))
 		rd := cr.readGoal(cr.all[len(allGenerators)].rule, lagGoal)

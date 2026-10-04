@@ -31,6 +31,7 @@ type rivalry struct {
 // children confirms its one candidate, or not.
 type stepChoice struct {
 	decides, confirming bool
+	crit                *criterion
 	candidates          []*ruleCriterion
 	eligible            []*ruleCriterion
 	nearMisses          []*ruleCriterion
@@ -55,10 +56,10 @@ const nearMissCount = 10
 
 // choose reads the choice off a run's criterion.
 func (cr *criterionRun) choose(read []ruleCriterion, confirming bool) stepChoice {
-	c := stepChoice{decides: cr.decides, confirming: confirming}
+	c := stepChoice{decides: cr.decides, confirming: confirming, crit: cr.crit}
 	for i := range read {
 		rc := &read[i]
-		if !isCandidate(rc.rule) {
+		if !isCandidateIn(rc.rule, cr.crit.choice) {
 			continue
 		}
 		c.candidates = append(c.candidates, rc)
@@ -76,7 +77,7 @@ func (cr *criterionRun) choose(read []ruleCriterion, confirming bool) stepChoice
 	c.chooseMain(cr)
 	c.weighBackup(cr)
 	if c.chosen == nil {
-		c.chooseExit(read)
+		c.chooseExit(cr, read)
 	}
 	if c.chosen != nil && !c.exit {
 		c.margins = marginsOf(c.chosen)
@@ -87,14 +88,15 @@ func (cr *criterionRun) choose(read []ruleCriterion, confirming bool) stepChoice
 	return c
 }
 
-// setAgainstTop finds the main step of the highest score, whatever it meets,
-// and sets it against every other rule but the service and the ceiling. Only
+// setAgainstTop finds the main candidate of the highest score, whatever it
+// meets, and sets it against every other rule but the one compared with and
+// the ceiling. Only
 // a decision run does: there the best step's parts are taken away, and a run
 // of every point of a grid would draw a bootstrap for every rule twice over.
 func (c *stepChoice) setAgainstTop(cr *criterionRun, read []ruleCriterion) {
 	for i := range read {
 		rc := &read[i]
-		if rc.rule.candidacy != nil && rc.rule.candidacy.kind == mainCandidate && rc.score.has && (c.top == nil || rc.score.value > c.top.score.value) {
+		if isCandidateIn(rc.rule, cr.crit.choice) && rc.rule.candidacy.kind == mainCandidate && rc.score.has && (c.top == nil || rc.score.value > c.top.score.value) {
 			c.top = rc
 		}
 	}
@@ -103,17 +105,17 @@ func (c *stepChoice) setAgainstTop(cr *criterionRun, read []ruleCriterion) {
 	}
 	for i := range read {
 		rc := &read[i]
-		if rc == c.top || rc.rule.service || rc.rule.ceiling || !rc.score.has {
+		if rc == c.top || rc.rule == cr.service || rc.rule.ceiling || !rc.score.has {
 			continue
 		}
 		c.againstTop = append(c.againstTop, rivalry{rc: rc, difference: cr.scoreDifference(c.top.rule, rc.rule)})
 	}
 }
 
-// isCandidate says whether a rule is a candidate for the step, main or
-// backup, rather than for the exit or none.
-func isCandidate(r *rule) bool {
-	return r.candidacy != nil && r.candidacy.kind != exitCandidate
+// isCandidateIn says whether a rule is a candidate in a choice, main or
+// backup, rather than for its exit, for another choice, or none.
+func isCandidateIn(r *rule, choice choiceKind) bool {
+	return r.candidacy != nil && r.candidacy.choice == choice && r.candidacy.kind != exitCandidate
 }
 
 // chooseMain finds A*, its equals, and the simplest of them.
@@ -176,12 +178,20 @@ func (c *stepChoice) weighBackup(cr *criterionRun) {
 	}
 }
 
-// chooseExit takes the floor of the highest score among those that meet the
-// constraints of not worse and of the screen; the goals do not apply to it.
-func (c *stepChoice) chooseExit(read []ruleCriterion) {
+// chooseExit takes the exit: for a criterion whose exit is the rule it
+// compares with, that rule, kept as it is; otherwise the floor of the highest
+// score among those that meet the constraints of not worse and of the screen,
+// to which the goals do not apply.
+func (c *stepChoice) chooseExit(cr *criterionRun, read []ruleCriterion) {
 	for i := range read {
 		rc := &read[i]
-		if rc.rule.candidacy == nil || rc.rule.candidacy.kind != exitCandidate || !rc.score.has || !meetsNotWorseAndScreen(rc) {
+		if cr.crit.exitIsBaseline {
+			if rc.rule == cr.service {
+				c.chosen, c.exit = rc, true
+			}
+			continue
+		}
+		if rc.rule.candidacy == nil || rc.rule.candidacy.choice != cr.crit.choice || rc.rule.candidacy.kind != exitCandidate || !rc.score.has || !meetsNotWorseAndScreen(rc) {
 			continue
 		}
 		if c.chosen == nil || rc.score.value > c.chosen.score.value {

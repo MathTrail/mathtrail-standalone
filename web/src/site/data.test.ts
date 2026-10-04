@@ -5,8 +5,16 @@ import file from "../../../site/data.json";
 import { progressOf, readSiteData, siteData } from "./data";
 import { siteDictionaries } from "./words";
 
-// catalog is the service's catalog of topics and traps, with no reference task.
-const catalog = { topics, traps, tasks: [] };
+// catalog is the service's catalog of topics and traps, with no reference task,
+// in which the page of knights and liars alone is published.
+const catalog = {
+	topics: topics.map((topic) => ({
+		...topic,
+		site_page: topic.id === "logic.knights_liars",
+	})),
+	traps,
+	tasks: [],
+};
 
 describe("the site's own data", () => {
 	const data = siteData();
@@ -61,8 +69,13 @@ describe("the site's own data", () => {
 });
 
 describe("the site's data", () => {
+	// knights is the site's data with the examples of that one page.
+	const knights = {
+		...file,
+		examples: { "logic.knights_liars": file.examples["logic.knights_liars"] },
+	};
 	// examples is the site's data with these examples of the topics' pages.
-	const examples = (given: unknown) => ({ ...file, examples: given });
+	const examples = (given: unknown) => ({ ...knights, examples: given });
 
 	test("sets each example at the grades of its level", () => {
 		const data = readSiteData(
@@ -90,14 +103,14 @@ describe("the site's data", () => {
 		[
 			"a progress the widget cannot draw",
 			{
-				...file,
+				...knights,
 				progress: { ...file.progress, overall: { rank: "third" } },
 			},
 			"site/data.json: the progress is no progress the widget can draw",
 		],
 		[
 			"a group that leaves a topic out",
-			{ ...file, groups: file.groups.slice(1) },
+			{ ...knights, groups: file.groups.slice(1) },
 			"site/data.json: the topic logic.ordering is in no group",
 		],
 		[

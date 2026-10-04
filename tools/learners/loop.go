@@ -40,31 +40,38 @@ type rule struct {
 	// child truly stands. It shows how far a rule could go, and is no rule to
 	// choose or to compare with as one.
 	ceiling bool
-	// candidacy is what the choice of a step reads of a rule that is a
-	// candidate for it; nil for every other rule.
+	// candidacy is what a choice reads of a rule that is a candidate in it;
+	// nil for every other rule.
 	candidacy *candidacy
 	make      func(c *child, start float64) estimator
+	// mastery makes the test of mastery a rule puts in the service's place
+	// for a child; nil for a rule that keeps the service's own.
+	mastery func() masteryTest
 }
 
-// world is what every run shares: the catalog, its topics and the points of
-// each topic's ladder, the sealer and how many answers a child gives.
+// world is what every run shares: the catalog, its topics, the levels each
+// topic is taught at, the lowest first, and the points of its ladder, the
+// sealer and how many answers a child gives.
 type world struct {
 	catalog tutor.Catalog
 	topics  []string
+	levels  map[string][]rating.GradeLevel
 	ladders map[string][]rating.Point
 	sealer  profile.Sealer
 	answers int
 }
 
-// session is one child under one rule.
+// session is one child under one rule, and the rule's mastery in the
+// service's place, if it has one of its own.
 type session struct {
-	w      *world
-	r      *rule
-	c      *child
-	p      *profile.Profile
-	est    estimator
-	now    time.Time
-	result *childResult
+	w         *world
+	r         *rule
+	c         *child
+	p         *profile.Profile
+	est       estimator
+	mastering *mastering
+	now       time.Time
+	result    *childResult
 }
 
 // run gives a child every answer of a session under a rule and says what the
@@ -87,6 +94,9 @@ func newSession(w *world, r *rule, c *child) *session {
 	s.est = service{p: p}
 	if !r.service {
 		s.est = r.make(c, p.Ratings.Start)
+	}
+	if r.mastery != nil {
+		s.mastering = newMastering(r.mastery())
 	}
 	return s
 }
@@ -118,6 +128,7 @@ func (s *session) step(k int) error {
 		return err
 	}
 	s.learn(topic, beta, correct, k)
+	s.master(&brief, beta, &recorded, correct, draws.hint < s.c.hint)
 	s.result.after(s, &brief, &recorded, &before, k)
 	s.c.after(topic, k)
 	s.result.checkpoint(s, k)
@@ -177,6 +188,24 @@ func (s *session) learn(topic string, beta float64, correct bool, k int) {
 		return
 	}
 	s.est.answered(topic, beta, correct)
+}
+
+// master puts the rule's own mastery in the service's place, if it has one:
+// the rule judges the answer once its estimate has taken it in, its verdict
+// replaces the service's in what is recorded, and what it holds replaces what
+// the service's rule wrote into the profile.
+func (s *session) master(brief *profile.Brief, beta float64, recorded *profile.Recorded, correct, hint bool) {
+	if s.mastering == nil {
+		return
+	}
+	topic := brief.TargetConcept
+	summary := s.p.Topics[topic]
+	a := masteryAnswer{
+		topic: topic, level: brief.GradeLevel, beta: beta, correct: correct, hint: hint, chance: recorded.Probability,
+		answers: s.p.Ratings.Answers, inTopic: summary.Answers, wrongRun: summary.WrongStreak,
+		estimate: s.est.level(topic), levels: s.w.levels[topic],
+	}
+	recorded.Mastered, recorded.Unmastered = s.mastering.judged(s.p, &a, profile.DateOf(s.now))
 }
 
 // advance moves the clock to the next task: at once, or to the next morning

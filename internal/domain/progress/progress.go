@@ -94,6 +94,8 @@ type Topic struct {
 	// Skipped is how many of its tasks were left without an answer. It is for
 	// the parent, who can see from it that hard tasks are being leafed past.
 	Skipped int
+	// InReach says the rule could set the topic now.
+	InReach bool
 	// Changes are how the topic's own standing moved since the last answer
 	// and over the week, nil together with its standing.
 	Changes Changes
@@ -183,6 +185,7 @@ func topics(p *profile.Profile, catalog tutor.Catalog, overall *Standing) []Topi
 			Correct:  summary.Correct,
 			Mastered: tutor.Mastered(p, catalog, id),
 			Skipped:  summary.Skipped,
+			InReach:  slices.Contains(reachable, id),
 		}
 		if overall != nil && summary.Answers > 0 {
 			topic.Standing = standing(p.LevelIn(id))

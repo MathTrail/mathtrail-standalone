@@ -391,13 +391,14 @@ describe("a locale's document", () => {
 		]);
 	});
 
-	test("says that the English text holds, when it is a translation", () => {
-		const legal = (path: string) => texts(page(files, path), ".s-legal");
+	test("holds nothing beside the mark and the links, in a translation as in English", () => {
+		const blocks = (path: string) =>
+			[...page(files, path).querySelectorAll("footer .s-wrap > *")].map(
+				(element) => element.className,
+			);
 
-		expect(legal("ru/privacy/index.html")).toEqual([
-			"Это перевод. При расхождении действует английская версия.",
-		]);
-		expect(legal("en/privacy/index.html")).toEqual([]);
+		expect(blocks("ru/privacy/index.html")).toEqual(["s-foot"]);
+		expect(blocks("en/privacy/index.html")).toEqual(["s-foot"]);
 	});
 });
 
@@ -704,13 +705,13 @@ describe("a site that cannot be built", () => {
 						"ru",
 						Object.fromEntries(
 							Object.entries(dictionaries.get("ru") ?? {}).filter(
-								([key]) => key !== "footer.translation",
+								([key]) => key !== "footer.source",
 							),
 						),
 					],
 				]),
 			},
-			"footer.translation is missing",
+			"footer.source is missing",
 		],
 		[
 			"words English does not have",

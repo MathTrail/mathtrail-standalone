@@ -1,0 +1,187 @@
+# The page of the topic of enumeration, for a parent. The topic's name, its
+# group, its grades and its traps' names are not here: they are the card's
+# words and the catalog's numbers. Each example's level, and the answer its
+# solver proves, are the site's data; an example here is worked through to that
+# answer. The traps are the topic's commonest, counted in its reference tasks.
+
+title: Enumeration
+description: What enumeration problems are, how they are solved, where children go wrong, and how to help at home.
+
+hero:
+  lead: >-
+    How many numbers can be written with these digits? How many handshakes,
+    outfits or ways to stand in a line? In these tasks every case is listed in
+    an order that makes sure none is lost and none is counted twice. A list
+    kept by a rule is the first tool a child has for questions too big to
+    guess.
+  method: List the cases by a rule
+  teaches: To work in order, and to see when cases can be counted without listing them
+  # The two-digit numbers with different digits from 1, 2 and 3, grown from
+  # their first digit.
+  drawing: |2
+          1         2         3
+         / \       / \       / \
+        2   3     1   3     1   2
+       12  13    21  23    31  32
+
+basis:
+  title: The rules of a list
+  cards:
+    - mark: "→"
+      title: In order
+      text: >-
+        Sort the cases before writing them down: by the first letter, then by
+        the second. In a list kept in order, a missing case leaves a gap you
+        can see.
+    - mark: "="
+      title: Each case once
+      text: >-
+        Before counting, decide what makes two cases different. Lea and Tom
+        shaking hands is one handshake, but Lea before Tom and Tom before Lea
+        are two different queues.
+    - mark: "×"
+      title: Choices multiply
+      text: >-
+        When a case is made of choices one after another, a cup and then a
+        saucer, count by multiplying: 3 cups and 2 saucers make 3 × 2 = 6
+        sets.
+
+idea:
+  title: Does the order matter?
+  lead: The same three children, A, B and C, give different counts for different questions.
+  table:
+    head:
+      - The question
+      - Does the order matter?
+      - The cases
+    rows:
+      - - In how many ways can they stand in a line?
+        - "Yes: AB and BA are two lines"
+        - ABC, ACB, BAC, BCA, CAB, CBA — 6
+      - - How many pairs can be sent on an errand?
+        - "No: AB and BA are one pair"
+        - AB, AC, BC — 3
+      - - In how many ways can a leader and a helper be chosen?
+        - "Yes: the leader comes first"
+        - AB, AC, BA, BC, CA, CB — 6
+  note:
+    title: Why it matters
+    text: >-
+      Most wrong answers here count one case twice, or take two different
+      cases for one. Settling first whether the order matters tells which
+      mistake to watch for.
+
+method:
+  title: "How to solve: a list by a rule"
+  lead: >-
+    Make a rule first, what comes first in the list and what next, then write
+    the cases out by it, or count them once the rule shows a pattern. The
+    examples below go from the simplest to an olympiad's.
+  steps:
+    - Decide what makes two cases different
+    - List the cases by a rule
+    - Count them, or multiply when choices are made one after another
+
+examples:
+  - title: Flags of two stripes
+    question: >-
+      A flag has two stripes, one above the other. Each stripe is red, yellow
+      or green, and the two stripes are different colours. How many different
+      flags are there?
+    # Every flag, the top stripe above the bottom one: R red, Y yellow, G green.
+    drawing: |2
+         R  R  Y  Y  G  G
+         Y  G  R  G  R  Y
+    steps:
+      - >-
+        Put the flags in order by the top stripe. With red on top, the bottom
+        one is yellow or green: two flags.
+      - >-
+        With yellow on top, red or green below: two more. With green on top,
+        red or yellow: two more.
+      - >-
+        3 colours for the top, and each time 2 left for the bottom:
+        3 × 2 = 6 flags.
+    answer: 6 flags.
+  - title: Digits three apart
+    question: How many two-digit numbers have digits that differ by 3, like 14 or 30?
+    steps:
+      - >-
+        Go through the tens digit from 1 to 9, and write next to it every units
+        digit 3 away from it: 1 → 4; 2 → 5; 3 → 0 and 6; 4 → 1 and 7; and so
+        on.
+      - >-
+        With 3, 4, 5 or 6 in the tens, there are two numbers each, 3 below and
+        3 above. With 1, 2, 7, 8 or 9, just one: the other would not be a
+        digit.
+      - >-
+        4 × 2 + 5 × 1 = 13 numbers: 14, 25, 30, 36, 41, 47, 52, 58, 63, 69,
+        74, 85, 96.
+    answer: 13 numbers.
+    note:
+      title: The case most often lost
+      text: >-
+        30 is the number children forget: a number may end in 0, though it may
+        not begin with it. A list by a rule finds it, and a list from memory
+        does not.
+  - title: No two 2s side by side
+    question: >-
+      How many four-digit numbers can be written with the digits 1 and 2
+      alone, so that no two 2s stand next to each other?
+    steps:
+      - >-
+        There are too many to guess, so build them up digit by digit. One
+        digit: 1 and 2, two numbers. Two digits: 11, 12 and 21, three, since
+        22 is not allowed.
+      - >-
+        An allowed number ends in 1 or in 2. Ending in 1, it is any allowed
+        number one digit shorter with a 1 added. Ending in 2, the digit before
+        must be 1: it is any allowed number two digits shorter with 12 added.
+        So each count is the sum of the two before it: three digits make
+        3 + 2 = 5, and four digits 5 + 3 = 8.
+      - >-
+        Check by listing them: 1111, 1112, 1121, 1211, 2111, 1212, 2112, 2121,
+        eight.
+    answer: 8 numbers.
+    note:
+      title: A count that grows
+      text: >-
+        The counts 2, 3, 5, 8 go on 13, 21, 34, each the sum of the two before
+        it. Olympiad tasks love a count that can be built from smaller ones.
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  missed_case:
+    shows: >-
+      The child writes the cases as they come to mind and loses one, often one
+      with a 0 or one with a digit repeated.
+    say: “In what order did you write them? Let's write them again by a rule.”
+  wrong_operation:
+    shows: >-
+      The child adds where the choices multiply, so 3 shirts and 2 scarves
+      give 5, or multiplies where a pair is chosen and nobody is paired with
+      themselves.
+    say: "“Take one shirt: how many sets does it make? And how many shirts are there?”"
+  double_count:
+    shows: >-
+      Lea shaking hands with Tom and Tom shaking hands with Lea are counted as
+      two handshakes, though they are one.
+    say: “Is this the same case as one we already have?”
+
+home:
+  - title: Dress up a toy
+    text: >-
+      Give the child two hats and three scarves for a toy, and ask how many
+      ways there are to dress it. Then ask for the list, and check it
+      together.
+  - title: Ask for the rule
+    text: >-
+      When the child lists cases, ask: “In what order are you writing them?”
+      A list with a rule is a list that can be checked.
+  - title: A lock with a code
+    text: >-
+      Make up a lock whose code is two digits from 1, 2 and 3, and let the
+      child find how many codes a thief would have to try.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Give me a task on counting all the cases

@@ -436,11 +436,6 @@ a:hover {
 	text-decoration: underline;
 }
 
-.s-legal {
-	max-inline-size: var(--measure);
-	margin-block: 0;
-}
-
 /* A page a component draws: its sections one under another, each opening
    with its heading and a line or two, and the last one keeping its distance
    from the footer. */
@@ -493,6 +488,9 @@ a:hover {
 	gap: var(--space-24);
 }
 
+/* A word longer than a phone's width, such as a topic's name in Russian, is
+   hyphenated where the browser knows the language, and broken where it does
+   not, rather than pushing the page sideways. */
 .s-hero h1 {
 	margin: 0;
 	font-size: clamp(2.75rem, 1.6rem + 3.6vw, 4.25rem);
@@ -500,6 +498,8 @@ a:hover {
 	line-height: 1.04;
 	letter-spacing: -0.03em;
 	text-wrap: balance;
+	overflow-wrap: break-word;
+	hyphens: auto;
 }
 
 .s-hero .s-lead {

@@ -16,17 +16,15 @@ export type FooterLink = { readonly href: string; readonly label: string };
 /**
  * Footer closes a page: the pages the site's frame names, the code, and the
  * address that answers questions, written out so that it can be copied with
- * no mail program at hand; and, on a page that is a translation, that the
- * English text is the one that holds where the two differ.
+ * no mail program at hand. It says nothing of which language's text holds:
+ * the policy and the terms say that of themselves.
  */
 export function Footer({
 	home,
 	links,
-	translated,
 }: {
 	home: string;
 	links: readonly FooterLink[];
-	translated: boolean;
 }) {
 	const words = useSiteWords();
 	return (
@@ -44,9 +42,6 @@ export function Footer({
 						<a href={`mailto:${contactAddress}`}>{contactAddress}</a>
 					</nav>
 				</div>
-				{translated && (
-					<p class="s-legal">{words.text("footer.translation")}</p>
-				)}
 			</div>
 		</footer>
 	);

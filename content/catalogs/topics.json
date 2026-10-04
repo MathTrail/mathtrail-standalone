@@ -10,7 +10,7 @@
     ],
     "slug": "ordering",
     "builds_on": [],
-    "site_page": false
+    "site_page": true
   },
   {
     "id": "logic.knights_liars",
@@ -38,7 +38,7 @@
     ],
     "slug": "enumeration",
     "builds_on": [],
-    "site_page": false
+    "site_page": true
   },
   {
     "id": "counting.gaps",
@@ -94,7 +94,7 @@
     "builds_on": [
       "combinatorics.enumeration"
     ],
-    "site_page": false
+    "site_page": true
   },
   {
     "id": "parity.alternation",
@@ -216,7 +216,7 @@
       "combinatorics.enumeration",
       "pigeonhole.basic"
     ],
-    "site_page": false
+    "site_page": true
   },
   {
     "id": "games.strategy",

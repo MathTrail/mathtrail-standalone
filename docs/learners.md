@@ -60,7 +60,7 @@ Each rule estimates where a child stands. The bench writes a rule's estimate int
 
 The step rules start from the trial series' estimate, as the service does; Glicko-2 and the oracle start from the first answer. These are the bench's own set of rules, `bench`, which a run is given unless it names another; the step chosen joins them once one is, unless it is among them already, as the floor of 0.05 the choice came to is. Every rule runs on all nineteen generators: 152 cells. The other sets, which choose the step, are described under [The candidates of the step](#the-candidates-of-the-step).
 
-The oracle is the ceiling of the corridor at each miss of the model, and of mastery under the mastery rule the service has now, given a perfect estimate. It knows a child's level but not their slope or their floor (G6, G7). It is not a ceiling for a new mastery rule: to set the oracle beside one, the bench will need a way to put that rule in the service's place. It is compared with no rule as one, and the measures of what the child is shown leave it out: its rating moves only when the child does.
+The oracle is the ceiling of the corridor at each miss of the model, and of mastery under the mastery rule the service has now, given a perfect estimate. It knows a child's level but not their slope or their floor (G6, G7). It is not a ceiling for a new rule of mastery: the oracle keeps the service's, while a rule of mastery takes the service's place under the step chosen (see [The candidates of mastery](#the-candidates-of-mastery)). It is compared with no rule as one, and the measures of what the child is shown leave it out: its rating moves only when the child does.
 
 ## The measures
 
@@ -71,7 +71,7 @@ A topic is **truly mastered** at a level when the child's true chance on a task 
 | R1 error of the level | `r1_rms_N`, `r1_mean_N` | Over the topics the child has answered, the root mean square and the mean of the estimate less the truth, after 5, 10, 20, 50, 100 and 200 answers |
 | R2 calibration | `r2_brier`, `r2_bias`, `r2_ece` | The Brier score of the rule's own chance against the answers, the chance it predicted less the share right, and the calibration error over ten bins |
 | R3 corridor | `r3_inside`, `r3_below_0.5`, `r3_above_0.95`, `r3_reachable` | The share of tasks whose true chance lies in 0.70–0.85, below 0.50 and above 0.95; and the share of tasks whose topic's ladder held a point at a true chance in 0.70–0.85 at all — the ceiling of the ladder itself, which no rule passes when the model misses nothing |
-| R4 false "mastered" | `r4_false`, `r4_false_0.70`, `r4_declared` | Of the masteries declared, the share whose topic was not truly mastered at its level, or not at 0.70; how many were declared |
+| R4 false "mastered" | `r4_false`, `r4_false_0.70`, `r4_declared`, `r4_below`, `r4_false_at_task` | Of the masteries declared, the share whose topic was not truly mastered at the level it is held mastered at, or not at 0.70; how many were declared; the share declared at a level below the task's, which the child is not shown; and the false share of those declared at the task's level |
 | R4b false "mastered" within m attempts | `r4b_3` … `r4b_50`, `r4b_chance_*` | The chance that a topic not truly mastered is declared mastered within its first m tasks set at a chance of at most 0.775, the ones mastery counts, and the true chances on those tasks |
 | R5 late mastery | `r5_late_answers`, `r5_never` | For a topic and level the child truly masters, the answers in the topic until the rule declares it, and the share never declared |
 | R6 lag | `r6_lag`, `r6_jump_answers`, `r6_jump_unsettled` | The estimate less the truth from the 101st answer on, below zero when the estimate lags behind; after a jump or a drop, the answers until the error stays under 0.5 for ten answers, and the share of children it never does for |
@@ -135,16 +135,47 @@ A candidate is chosen on the working seeds, in a decision run of **4,000 childre
 
 ### Choosing mastery
 
-The rule of mastery is chosen in the same way, over the step already chosen, with these constraints and this score.
+The rule of mastery is chosen in the same way, over the step already chosen, with these constraints and this score. **"The service" here is the baseline: the step chosen, the floor of 0.05, under the service's own rule of mastery** (R175). That measures what a rule of mastery gives by itself, rather than charging every candidate with what the floor already moves under the old rule — two points more masteries never declared to a child who learns, three more declared falsely. The baseline is also the exit.
 
 - **Constraints,** on point estimates:
-  - false masteries are at most 20 %, on G0 and on G0-topics1, the widest spread of topics, on which a margin of mastery is chosen; they are read at the level a topic is held mastered at, the service's included, and never against the share the old reading gave;
-  - the answers until a mastery the child has is declared, `r5_late_answers`, are at most 1.5 times the service's, on the same generators.
-- **Not worse than the service:** false masteries, `r4_false`, on every generator, with a tolerance of 2 percentage points or the bench's resolution, whichever is larger, as for the step (R166); the share of masteries never declared, `r5_never`, with the same tolerance — or a rule would wait less only by declaring less; and every constraint of not worse and of the screen of the step.
-- **The score:** the share of the way to perfect — no false mastery and no wait — closed on false masteries and on the answers until mastery, with the weights of the step.
-- **Better, the choice, the confirmation and the exit** as for the step; the exit keeps the service's rule of mastery.
+  - false masteries are at most 20 %, on G0 and on G0-topics1, the widest spread of topics, on which a margin of mastery is chosen; they are read at the level a topic is held mastered at, the baseline's included, and never against the share the old reading gave;
+  - the answers until a mastery the child has is declared, `r5_late_answers`, are at most 1.5 times the baseline's, on the same generators;
+  - the screen's, as for the step, against the baseline's numbers in answers 6–20, which are the service's: the floor does not act before the 60th answer.
+- **Not worse than the baseline:** false masteries, `r4_false`, on every generator, with a tolerance of 2 percentage points or the bench's resolution, whichever is larger, as for the step (R166); the share of masteries never declared, `r5_never`, with the same tolerance — or a rule would wait less only by declaring less — read on G0 and G0-topics1 alone, where the goals of mastery are (R175, decided by the author after the pilot): there whatever is left undeclared is the rule's own doing, while for a child who learns the step chosen trails the child, and a margin on top of the trail leaves masteries reached late in a run undeclared by its end, which is the step's to answer for; and the step's checks of not worse, the error after 200 answers and the corridor, which a rule of mastery moves by the topics it takes out of the rotation.
+- **The score:** the share of the way from the baseline to perfect — no false mastery and no wait — closed on false masteries and on the answers until mastery, with the weights of the step.
+- **Better, the choice and the confirmation** as for the step. **The exit** is the baseline, kept as it is: the service's rule of mastery over the step chosen, which no check is asked of.
 
-The bench evaluates this part once the candidates of mastery are on it; the service's numbers for it are in `cells.csv` already.
+**The pilot.** Before the decision run, the candidates are run on the sweep's children, a thousand a cell (`-rules mastery-pilot`). A candidate is stopped there when, on some generator, the whole 95 % interval of its difference from the baseline in masteries never declared lies above 2 percentage points: the author's tolerance, not widened by the bench's resolution. If every candidate is stopped, the decision run waits for the author (R175).
+
+## The candidates of mastery
+
+The rules of mastery put forward, written down before any of them ran. A rule of mastery takes the service's place on the bench as an estimate does: after each answer, once the service has recorded it and the rule's estimate has taken it in, the rule judges it, and what it holds — the level each topic is mastered at and since when, both or neither — is written into the profile over what the service's own rule wrote there, since the profile is all the service's choice of tasks reads mastery from. What is measured is the rule's own verdict. The counts of answers and the topic's run of wrong answers are read off the profile, which keeps them alike under every rule. A test holds the service's own run of three, put in its place this way, to the service's rule on every answer of every generator, and one at an infinite margin holds the profile to no mastery at all.
+
+Every rule declares only after a right answer without the hint, with at least five answers in the topic, and only at a level above the one the topic is held at; every rule loses mastery after two wrong answers in a row, as the service's does. None is tuned: each is run as written here.
+
+- **A run of five** (`run5`): the service's rule with a run of five instead of three, with all its ways — the run grows before the topic's fifth answer, may complete on a right answer to an easy task, and is spent when it completes, whatever it earns. It adds no number.
+- **The cautious estimate** at z = 1.0, 1.28 and 1.64 (`cautious_z…`): the topic is mastered at the highest of its levels, at or below the task's, on whose middle task — difficulty 3 — a child at the estimate less z·√v answers at the corridor's middle, 0.775, or better. v is the uncertainty of the level in the topic from the counts the profile keeps: v = 1/(1/2.5² + I·n) + 1/(3 + I·m), with n the answers in all and m in the topic and I = 0.15 — the trial series' spread narrowed by every answer, plus the topic's uncertainty the service's step reads its first step from, narrowed by the topic's answers. These are the product's own numbers, so the rule adds z alone. The sum overstates v a little, since a topic's answers tell of the overall level too, which suits a cautious rule. The cautious estimate at no margin, z = 0, is run beside them and is no candidate: it shows what reading at the middle task costs apart from the margin.
+- **Wald's test at each level** (`wald`): for every level of the topic, the chance on its middle task at most 0.70 against at least 0.85, the corridor's bounds, with α = 0.05 and β = 0.2. Every wrong answer and every right and unaided one adds to each level's sum how much likelier it was for a child at the top of the corridor there than at its bottom, the task's own difficulty taken in; a sum that falls under ln(β / (1 − α)) starts again; past ln((1 − β) / α) = ln 16 the topic is mastered at the highest such level at or below the task's, whose sums at and below it are then spent. The sums have to be kept, so the rule adds fields to the profile, and two numbers: it is the backup, chosen over the main rule only by the margin of 0.05. A test holds a single test of it to its errors: at the corridor's bottom it lets a child through at most α / (1 − β) of the time, at its top it turns one away at most β / (1 − α) of it.
+
+The simplest of equals is the one adding the fewest numbers — the run of five none, the cautious estimate one, Wald's test two — then the one adding no field, then the nearest the service's rule: the run of five, then the cautious estimate, the smaller margin the nearer.
+
+A rule that declares at a level below the task's declares a mastery the child is not shown and the rotation does not act on, which still counts among the masteries read for falseness; `r4_below` is the share of those, so that a rule that keeps its false share down that way is seen to, and `r4_false_at_task` the false share of the masteries declared at the task's level, the ones the child is shown.
+
+### What the pilot came to
+
+The pilot, `results/mastery-pilot/`, a thousand of the sweep's children a cell, stopped every candidate on masteries never declared, read then on every generator. Against the baseline:
+
+| Rule | False, G0 / G0-topics1 | False among those shown, G0 | Answers until mastery, G0 | Never declared, G0 / G2-half | Generators clearly worse on never declared | Score |
+|---|---:|---:|---:|---:|---:|---:|
+| The baseline, the floor of 0.05 under the service's mastery | 65 % / 59 % | 65 % | 9.9 | 24 % / 19 % | — | 0 |
+| A run of five | 70 % / 57 % | 70 % | 11.9 | 76 % / 72 % | 19 | −0.13 |
+| The cautious estimate, z = 1.0 | 4 % / 6 % | 4 % | 4.7 | 18 % / 34 % | 6 | 0.69 |
+| The cautious estimate, z = 1.28 | 2.5 % / 4 % | 3 % | 4.9 | 23 % / 38 % | 7 | 0.68 |
+| The cautious estimate, z = 1.64 | 1 % / 3 % | 1.5 % | 5.0 | 30 % / 43 % | 12 | 0.68 |
+| Wald's test | 0.5 % / 0.5 % | 0.4 % | 11.0 | 61 % / 64 % | 19 | 0.38 |
+| The cautious estimate at no margin, no candidate | 16 % / 16 % | 20 % | 4.2 | 7 % / 18 % | 1 | 0.65 |
+
+The cautious estimate met every other constraint, and was stopped only on children who learn, jump or meet two hosts, and on the widest spread of topics at z = 1.28 and above: there the step chosen trails the child, and the margin comes on top of the trail. On children who stay put it leaves fewer masteries undeclared than the baseline. The author then had masteries never declared read on G0 and G0-topics1 alone, where the goals of mastery are (R175), and the pilot was run again with that reading before the decision run; its numbers are those above, but for what the criterion reads of them. A run of five, which reads the task's level as the service's rule does, comes nowhere near 20 % false; Wald's test is as slow as it was expected to be.
 
 ## The candidates of the step
 
@@ -366,12 +397,14 @@ The sweep and its refinement draw children of their own too, the paper's seed un
   - `just learners -rules refine -children 300` — minutes, once the sweep's best is set;
   - `just learners -rules decision -children 4000` — about an hour, once the candidates are nominated;
   - `just learners -rules parts -children 4000`, if the chosen step is a candidate whose parts the decision run did not take away;
-  - `just learners -held-out -children 4000` — the confirmation of a chosen candidate, once, about ten minutes; with the exit chosen, as it is now, it refuses.
+  - `just learners -rules mastery-pilot -children 1000` — the pilot of mastery, on the sweep's children, about three minutes;
+  - `just learners -rules mastery -children 4000` — the decision run of mastery, about a quarter of an hour;
+  - `just learners -held-out -children 4000` — the confirmation of the last candidate chosen, once, about ten minutes: the model of mastery chosen over the step, once one is; the step's exit is taken without one.
 - `just learners-test` runs the bench's tests with the race detector, and `just learners-lint` holds the module to what the service is held to. CI runs both on every pull request. A change to the product's `go.mod` is followed by `just learners-tidy`.
 
 ## The results
 
-`tools/learners/results/` keeps the whole run of the bench's own set, as the line every change to the student model is measured from, and beside it, each in its own directory, the runs the step was chosen by: `sweep/`, `refine/` and `decision/` — and `parts/` and `held-out/` when a chosen candidate needs them, which the exit did not. Every run writes:
+`tools/learners/results/` keeps the whole run of the bench's own set, as the line every change to the student model is measured from, and beside it, each in its own directory, the runs the step was chosen by: `sweep/`, `refine/` and `decision/` — and `parts/` when a chosen candidate needs them, which the exit did not — and the runs the rule of mastery was chosen by: `mastery-pilot/`, `mastery/` and the confirmation of the model chosen, `held-out/`. Every run writes:
 
 - `summary.md`, the numbers a change is judged by at a glance, for every rule: the error after 200 answers on G0, the share in the corridor on G0 and G2, the share of false masteries on G0, the lag on G2, and the share of G3's children not caught up after the jump;
 - `scenarios.md`, every rule on every generator, measure by measure: the error after 200 answers, the corridor, false masteries, the lag, the children not caught up after a jump or a drop, and the error of the overall level after ten answers;

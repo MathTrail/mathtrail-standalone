@@ -31,7 +31,8 @@ func writeAll(dir string, all []cell, results [][]vector, ms []metric, d design)
 	if err != nil {
 		return "", err
 	}
-	cr := newCriterionRun(all, summaries, results, ms, d.children)
+	crit := criterionOf(d.set)
+	cr := newCriterionRun(all, summaries, results, ms, d.children, crit)
 	read, resolutions := readCriterion(cr)
 	choice := cr.choose(read, d.set == confirmationSet)
 	writers := []struct {
@@ -42,7 +43,7 @@ func writeAll(dir string, all []cell, results [][]vector, ms []metric, d design)
 		{"comparisons.csv", func(path string) error { return writeCSV(path, comparisonTable(comparisons)) }},
 		{"summary.md", func(path string) error { return writeText(path, summary) }},
 		{"scenarios.md", func(path string) error { return writeText(path, scenariosText(all, summaries, names, d)) }},
-		{"criterion.md", func(path string) error { return writeText(path, criterionText(read, resolutions, &choice, d)) }},
+		{"criterion.md", func(path string) error { return writeText(path, criterionText(read, resolutions, &choice, d, crit)) }},
 		{"criterion.csv", func(path string) error { return writeCSV(path, criterionTable(read)) }},
 		{"run.txt", func(path string) error { return writeText(path, d.lines()) }},
 	}

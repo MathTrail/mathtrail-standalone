@@ -66,8 +66,8 @@ type shape struct {
 		Name        string `json:"name"`
 		Description string `json:"description"`
 	} `json:"topic"`
-	Traps        []content.Trap  `json:"traps"`
-	Prohibitions []content.Skill `json:"prohibitions"`
+	Traps        []map[string]string `json:"traps"`
+	Prohibitions []content.Skill     `json:"prohibitions"`
 	Child        struct {
 		Grade     int      `json:"grade"`
 		Interests []string `json:"interests"`
@@ -165,7 +165,9 @@ func TestAPackageCarriesEveryPart(t *testing.T) {
 }
 
 // A package carries the whole trap catalog, for the model to choose a trap its
-// plot fits, and the prohibitions of the brief, as the catalog words them.
+// plot fits — each trap's id and what the mistake is, and nothing of what an
+// adult can do about it — and the prohibitions of the brief, as the catalog
+// words them.
 func TestAPackageCarriesTheCatalogsTheTaskIsWrittenAgainst(t *testing.T) {
 	t.Parallel()
 
@@ -173,8 +175,12 @@ func TestAPackageCarriesTheCatalogsTheTaskIsWrittenAgainst(t *testing.T) {
 	asked := request("counting.gaps", rating.Grades12, 3, 0)
 	_, got := packageFor(t, shipped, asked)
 
-	if !reflect.DeepEqual(got.Traps, shipped.Traps()) {
-		t.Errorf("traps = %d of them, want the whole catalog of %d", len(got.Traps), len(shipped.Traps()))
+	want := make([]map[string]string, 0, len(shipped.Traps()))
+	for _, trap := range shipped.Traps() {
+		want = append(want, map[string]string{"id": trap.ID, "description": trap.Description})
+	}
+	if !reflect.DeepEqual(got.Traps, want) {
+		t.Errorf("traps = %v, want the whole catalog's ids and descriptions, and nothing more: %v", got.Traps, want)
 	}
 	for i, id := range asked.Brief.ExcludedSkills {
 		skill, _ := shipped.Skill(id)

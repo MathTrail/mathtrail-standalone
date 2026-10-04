@@ -469,8 +469,10 @@ function rankedAt(topic: string, at: number) {
 			skipped: 0,
 		};
 	}
-	const rank = (at % 11) + 1;
-	const share = (at * 37) % 100;
+	const rank = (at % rankCount) + 1;
+	// The highest rank is drawn with the whole way behind it, as the service
+	// sends it.
+	const share = rank === rankCount ? 100 : (at * 37) % 100;
 	let compared = "even";
 	if (rank > 10) {
 		compared = "ahead";

@@ -11,15 +11,14 @@ import (
 // score and how many of its constraints it meets, every rule's value against
 // each goal's bound, what of not worse each rule does not meet, what the bench
 // resolves on each check of not worse, and the choice it all comes to.
-func criterionText(read []ruleCriterion, resolutions []checkResolution, choice *stepChoice, d design) string {
+func criterionText(read []ruleCriterion, resolutions []checkResolution, choice *stepChoice, d design, crit *criterion) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "# The criterion, read on this run\n\n")
 	fmt.Fprintf(&b, "Seed %d, experiment %s: %d children a generator, %d answers each. ", masterSeed, experiment, d.children, d.answers)
 	if d.children < decisionChildren {
 		fmt.Fprintf(&b, "A rough look, not a decision: a decision runs %d children a cell, and a rough look reads not worse as no clear harm. ", decisionChildren)
 	}
-	b.WriteString("The score is the share of the way from the service to the ceiling a rule closes, with its 95 % interval; " +
-		"the ceiling is no candidate, and is read to show the way.\n\n")
+	b.WriteString("The score is " + crit.way + ".\n\n")
 	writeChoice(&b, choice)
 	writeScores(&b, read)
 	writeGoals(&b, read)

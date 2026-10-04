@@ -153,20 +153,26 @@ func TestBrokenCatalogStopsTheService(t *testing.T) {
 		{
 			name:  "a trap id that is not one snake case name",
 			file:  trapsFile,
-			entry: `{"id":"off by one","description":"Counted the gaps wrongly."}`,
+			entry: `{"id":"off by one","description":"Counted the gaps wrongly.","advice":"Draw the gaps."}`,
 			want:  "an id is one name in snake case",
 		},
 		{
 			name:  "the same trap twice",
 			file:  trapsFile,
-			entry: `{"id":"off_by_one","description":"Counted the gaps wrongly."}`,
+			entry: `{"id":"off_by_one","description":"Counted the gaps wrongly.","advice":"Draw the gaps."}`,
 			want:  `trap "off_by_one": the id is used twice`,
 		},
 		{
 			name:  "a trap with no description",
 			file:  trapsFile,
-			entry: `{"id":"forgot_a_case"}`,
+			entry: `{"id":"forgot_a_case","advice":"List the cases."}`,
 			want:  `trap "forgot_a_case": the description is empty`,
+		},
+		{
+			name:  "a trap with no advice",
+			file:  trapsFile,
+			entry: `{"id":"forgot_a_case","description":"Missed one."}`,
+			want:  `trap "forgot_a_case": the advice is empty`,
 		},
 		{
 			name:  "a trap with a field the format does not have",

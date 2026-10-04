@@ -10,8 +10,6 @@ export type PageFrame = {
 	readonly menu: readonly MenuLink[];
 	readonly languages: readonly LanguageLink[];
 	readonly footer: readonly FooterLink[];
-	/** translated is true for a page in any language but English. */
-	readonly translated: boolean;
 };
 
 /**
@@ -38,11 +36,7 @@ export function SitePage({
 		<Layout head={head} card={card} style={style}>
 			<Header home={frame.home} menu={frame.menu} languages={frame.languages} />
 			<main class="s-main">{children}</main>
-			<Footer
-				home={frame.home}
-				links={frame.footer}
-				translated={frame.translated}
-			/>
+			<Footer home={frame.home} links={frame.footer} />
 		</Layout>
 	);
 }

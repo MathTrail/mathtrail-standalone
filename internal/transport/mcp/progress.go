@@ -35,6 +35,7 @@ type progressOut struct {
 	Recent         []recentOut        `json:"recent"`
 	Skipped        int                `json:"skipped"`
 	Mistakes       []mistakeOut       `json:"mistakes"`
+	Review         *reviewOut         `json:"review,omitempty"`
 	Recommendation *recommendationOut `json:"recommendation"`
 	Location       *locationOut       `json:"location,omitempty"`
 }
@@ -121,7 +122,11 @@ func (s *Service) getProgressTool() Tool {
 			"card draws the rank, not the rating's number: say the number yourself. The scale is one for grades 1 " +
 			"to 6, so an older child's number is higher. During the trial series — the first five tasks — there " +
 			"is no rating yet, only how many of the five are done. Call it only when someone asks to see the " +
-			"progress. Present it encouragingly and name one thing to practise next.",
+			"progress or what to work on: after the trial series it also reviews the topics for the adult — " +
+			"the strong ones, the ones to develop and what to do next, each step with its advice. Tell the " +
+			"adult the review in plain words; a topic too early to judge is no verdict on it. To practise a " +
+			"topic it names, call next_task with that topic and a reason once the child wants a task. Present " +
+			"it encouragingly.",
 		ReadOnly:   true,
 		Idempotent: true,
 		DrawsCard:  true,
@@ -166,13 +171,15 @@ func (s *Service) readProgress(ctx context.Context, account store.Account) (Repl
 		return Reply[progressOut]{}, err
 	}
 
-	summary, err := progress.Of(p, s.content, profile.DateOf(s.now()))
+	today := profile.DateOf(s.now())
+	summary, err := progress.Of(p, s.content, today)
 	if err != nil {
 		return Reply[progressOut]{}, err
 	}
 	mistakes := progress.Mistakes(p.Recent, s.content, s.repeats)
+	review := progress.ReviewOf(p, s.content, &summary, mistakes, s.repeats, today)
 	return Reply[progressOut]{
-		Text: joined(s.progressText(p, &summary, mistakes), where),
+		Text: joined(s.progressText(p, &summary, mistakes, review), where),
 		Payload: progressOut{
 			Screen:         screenProgress,
 			LastAnswer:     lastAnswerOf(p),
@@ -183,6 +190,7 @@ func (s *Service) readProgress(ctx context.Context, account store.Account) (Repl
 			Recent:         recentOf(summary.Recent),
 			Skipped:        summary.Skipped,
 			Mistakes:       mistakesOf(mistakes),
+			Review:         reviewOf(review),
 			Recommendation: recommendationOf(&summary.Next),
 			Location:       location,
 		},
@@ -271,7 +279,9 @@ func recentOf(entries []profile.Answer) []recentOut {
 }
 
 // progressText is the progress in words.
-func (s *Service) progressText(p *profile.Profile, summary *progress.Summary, mistakes []progress.Mistake) string {
+func (s *Service) progressText(
+	p *profile.Profile, summary *progress.Summary, mistakes []progress.Mistake, review *progress.Review,
+) string {
 	return joined(
 		"The progress of "+quoted(p.Student.Pseudonym)+".",
 		trialLine(summary.Trial),
@@ -280,6 +290,7 @@ func (s *Service) progressText(p *profile.Profile, summary *progress.Summary, mi
 		s.topicsText(summary.Topics),
 		s.recentText(summary.Recent, summary.Skipped),
 		s.mistakesText(mistakes),
+		s.reviewText(review),
 		s.nextText(&summary.Next),
 	)
 }

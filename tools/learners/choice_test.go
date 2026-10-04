@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"math"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -252,5 +253,100 @@ func TestTheChosenStepIsARuleOfTheRuns(t *testing.T) {
 	}
 	if !containsRule(benchRules(), chosen) {
 		t.Errorf("the bench's own set lacks the chosen step %s", chosenStep)
+	}
+}
+
+// masteryChoiceOf is the choice a fake run read by the criterion of mastery
+// comes to: the service as bad as 0.9, the baseline — the step chosen under
+// the service's mastery — as bad as 0.5, the ceiling 0.1, and every candidate
+// as bad as badness gives; a candidate meets every constraint at a badness of
+// 0.2 or less.
+func masteryChoiceOf(t *testing.T, badness map[string]float64, rs ...*rule) (stepChoice, *criterionRun) {
+	t.Helper()
+	all := append([]*rule{{name: "shrinking", shape: both, service: true}, {name: masteryBaseline, shape: both}}, rs...)
+	all = append(all, &rule{name: "oracle", shape: both, ceiling: true})
+	cr := fakeRunReadBy(masteryCriterion(), all, func(r *rule, g generator, metric string) float64 {
+		switch bad, given := badness[r.name]; {
+		case given:
+			return badAt(bad)(r, g, metric)
+		case r.name == masteryBaseline:
+			return badAt(0.5)(r, g, metric)
+		case r.service:
+			return badAt(0.9)(r, g, metric)
+		}
+		return badnessAt(0.5)(r, g, metric)
+	})
+	read, _ := readCriterion(cr)
+	c := cr.choose(read, false)
+	return c, cr
+}
+
+// masteryCandidateRule is a rule of a fake run put forward in the choice of
+// mastery.
+func masteryCandidateRule(name string, kind candidateKind, added int, fields bool) *rule {
+	return &rule{name: name, shape: both, candidacy: &candidacy{choice: forMastery, kind: kind, added: added, fields: fields}}
+}
+
+// The choice of mastery compares with the baseline, not with the service: a
+// candidate much better than the service but worse than the baseline is no
+// candidate to choose; its score is the share of the way from the baseline to
+// perfect, which is nothing, rather than to the ceiling; and with no candidate
+// the exit is the baseline itself, kept as it is though it meets none of the
+// goals, the false masteries of half its declarations among them.
+func TestTheChoiceOfMasteryComparesWithTheBaseline(t *testing.T) {
+	t.Parallel()
+	c, cr := masteryChoiceOf(t, map[string]float64{"worse": 0.6, "halfway": 0.25},
+		masteryCandidateRule("worse", mainCandidate, 0, false), masteryCandidateRule("halfway", mainCandidate, 1, false))
+	if cr.service.name != masteryBaseline {
+		t.Fatalf("the choice of mastery compares with %s, want %s", cr.service.name, masteryBaseline)
+	}
+	if score := cr.scoreOf(cr.all[2*len(allGenerators)].rule); !score.has || math.Abs(score.value-(-0.2)) > 1e-12 {
+		t.Errorf("a candidate as bad as 0.6 against the baseline's 0.5 scores %+v, want −0.2 of the way to perfect", score)
+	}
+	if score := cr.scoreOf(cr.all[3*len(allGenerators)].rule); !score.has || math.Abs(score.value-0.5) > 1e-12 {
+		t.Errorf("a candidate as bad as 0.25 against the baseline's 0.5 scores %+v, want half the way to perfect", score)
+	}
+	if nameOf(c.chosen) != masteryBaseline || !c.exit || len(c.margins) != 0 {
+		t.Errorf("chose %s (the exit %v, %d chances read), want the baseline as the exit, with none", nameOf(c.chosen), c.exit, len(c.margins))
+	}
+	var b strings.Builder
+	writeChoice(&b, &c)
+	if want := "**The exit: " + masteryBaseline + "/both**, the baseline itself, kept as it is."; !strings.Contains(b.String(), want) {
+		t.Errorf("the choice reads\n%s\nwant %s", b.String(), want)
+	}
+}
+
+// In the choice of mastery, as in the step's, the simplest of the best and its
+// equals is chosen, and the backup — Wald's test, which keeps its sums in the
+// profile — only by the margin.
+func TestTheChoiceOfMasteryIsMadeAsTheStepsIs(t *testing.T) {
+	t.Parallel()
+	c, _ := masteryChoiceOf(t, map[string]float64{"run5": 0.15, "cautious": 0.15, "wald": 0.14},
+		masteryCandidateRule("cautious", mainCandidate, 1, false), masteryCandidateRule("run5", mainCandidate, 0, false),
+		masteryCandidateRule("wald", backupCandidate, 2, true))
+	if nameOf(c.chosen) != "run5" || c.exit {
+		t.Errorf("chose %s (the exit %v), want run5, the simplest of the equals, the backup within the margin", nameOf(c.chosen), c.exit)
+	}
+}
+
+// The masteries never declared are read on the children who stay put alone,
+// where the goals of mastery are read; every other measure of not worse, on
+// every generator, and the step's checks as they were.
+func TestMasteriesNeverDeclaredAreReadWhereTheGoalsOfMasteryAre(t *testing.T) {
+	t.Parallel()
+	read := map[string][]generator{}
+	for _, nw := range masteryCriterion().checks() {
+		read[nw.metric] = append(read[nw.metric], nw.generator)
+	}
+	if !slices.Equal(read["r5_never"], masteryGenerators) {
+		t.Errorf("masteries never declared are read on %v, want %v", read["r5_never"], masteryGenerators)
+	}
+	for _, metric := range []string{"r1_rms_200", "r3_inside", "r4_false"} {
+		if !slices.Equal(read[metric], allGenerators) {
+			t.Errorf("%s is read on %v, want every generator", metric, read[metric])
+		}
+	}
+	if got, want := len(stepCriterion().checks()), 2*len(allGenerators); got != want {
+		t.Errorf("the step has %d checks of not worse, want %d", got, want)
 	}
 }

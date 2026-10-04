@@ -21,11 +21,12 @@ const (
 	exitCandidate   candidateKind = "exit"
 )
 
-// candidacy is what the choice of a step reads of a candidate beside its
-// numbers: what it is a candidate for, how many numbers it adds to the
-// service's rule, whether it adds fields to the profile, and how far its step
-// stands from the service's.
+// candidacy is what a choice reads of a candidate beside its numbers: the
+// choice it is put forward in, what it is a candidate for there, how many
+// numbers it adds to the service's rule, whether it adds fields to the
+// profile, and how far it stands from the service's rule.
 type candidacy struct {
+	choice   choiceKind
 	kind     candidateKind
 	added    int
 	fields   bool
@@ -465,7 +466,7 @@ func chosenCandidate() (*rule, error) {
 // confirmable is a chosen rule as the runs that follow the choice take it: a
 // candidate as it is, the exit refused.
 func confirmable(r *rule) (*rule, error) {
-	if !isCandidate(r) {
+	if !isCandidateIn(r, forStep) {
 		return nil, errExitTaken
 	}
 	return r, nil
@@ -504,15 +505,37 @@ func partsRules() ([]*rule, error) {
 	return withCalibration(own), nil
 }
 
-// confirmationRules are the chosen rule alone beside the service, the slow
-// constant step and the ceiling: a set held out is confirmed on once, by one
-// candidate.
+// confirmationRules are the last choice's candidate alone beside the service,
+// the slow constant step and the ceiling — and, for a model of mastery, the
+// baseline it was chosen against: a set held out is confirmed on once, by one
+// candidate. The step chosen is the exit, which is taken without one, so it is
+// the model of mastery chosen over it that is confirmed, once one is.
 func confirmationRules() ([]*rule, error) {
+	if chosenMastery != "" {
+		model, err := chosenModel()
+		if err != nil {
+			return nil, err
+		}
+		step, err := chosenRule()
+		if err != nil {
+			return nil, err
+		}
+		return withCalibration([]*rule{step, model}), nil
+	}
 	chosen, err := chosenCandidate()
 	if err != nil {
 		return nil, err
 	}
 	return withCalibration([]*rule{chosen}), nil
+}
+
+// confirmationCriterion is the criterion the confirmation reads: the choice
+// of mastery's, once a model of it is chosen, or else the step's.
+func confirmationCriterion() *criterion {
+	if chosenMastery != "" {
+		return masteryCriterion()
+	}
+	return stepCriterion()
 }
 
 // benchRules are the bench's own: the service's path — the shrinking step in
@@ -539,6 +562,9 @@ func benchRules() []*rule {
 	if chosen, err := chosenRule(); err == nil && !containsRule(all, chosen) {
 		all = append(all, chosen)
 	}
+	if model, err := chosenModel(); err == nil {
+		all = append(all, model)
+	}
 	return append(all, ceilingRule())
 }
 
@@ -551,6 +577,8 @@ type ruleSet struct {
 	seed       uint64
 	experiment string
 	directory  string
+	// criterion is the criterion a run of the set reads; nil for the step's.
+	criterion func() *criterion
 }
 
 // ownSeeds says whether a set draws children of its own whatever the command
@@ -573,8 +601,21 @@ func ruleSets() []ruleSet {
 		{name: "refine", rules: refineRules, seed: paperSeed, experiment: sweepExperiment, directory: "refine"},
 		{name: "decision", rules: decisionRules, directory: "decision"},
 		{name: "parts", rules: partsRules, directory: "parts"},
-		{name: confirmationSet, rules: confirmationRules, seed: heldOutSeed, experiment: heldOutExperiment, directory: heldOutDirectory},
+		{name: "mastery-pilot", rules: masteryRules, seed: paperSeed, experiment: sweepExperiment, directory: "mastery-pilot", criterion: masteryCriterion},
+		{name: "mastery", rules: masteryRules, directory: "mastery", criterion: masteryCriterion},
+		{
+			name: confirmationSet, rules: confirmationRules, seed: heldOutSeed, experiment: heldOutExperiment, directory: heldOutDirectory,
+			criterion: confirmationCriterion,
+		},
 	}
+}
+
+// criterionOf is the criterion a run of a set reads.
+func criterionOf(setName string) *criterion {
+	if set, known := ruleSetNamed(setName); known && set.criterion != nil {
+		return set.criterion()
+	}
+	return stepCriterion()
 }
 
 // ruleSetNamed is the set of that name.

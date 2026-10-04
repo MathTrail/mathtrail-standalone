@@ -152,6 +152,13 @@ func (c *Content) TrapDescription(id string) (string, bool) {
 	return trap.Description, ok
 }
 
+// TrapAdvice is what the trap catalog advises an adult to do about a trap, and
+// whether it has one by this id.
+func (c *Content) TrapAdvice(id string) (string, bool) {
+	trap, ok := c.trapByID[id]
+	return trap.Advice, ok
+}
+
 // HasSkill reports whether the skill catalog has this id.
 func (c *Content) HasSkill(id string) bool {
 	_, ok := c.skillByID[id]

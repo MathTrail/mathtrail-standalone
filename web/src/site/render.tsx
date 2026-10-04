@@ -196,7 +196,6 @@ function frameOf(site: Site, locale: string, name: string): PageFrame {
 			current: other === locale,
 		})),
 		footer: footerOf(site, locale),
-		translated: locale !== fallbackLocale,
 	};
 }
 
