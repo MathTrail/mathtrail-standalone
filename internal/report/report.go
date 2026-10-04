@@ -19,6 +19,7 @@ package report
 import (
 	"bufio"
 	"bytes"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -162,14 +163,15 @@ type input struct {
 	lines              []line
 	others, unreadable int
 	breaches           map[breach]int
-	// counted are the lines a child is counted from, as they were read: the
-	// log may hand one over twice, and a repeat is the same text again.
-	counted map[string]struct{}
+	// counted are the lines a child is counted from, each by a digest of its
+	// text: the log may hand one over twice, and a repeat is the same text
+	// again.
+	counted map[[sha256.Size]byte]struct{}
 }
 
 // readAll reads the input a line at a time, to its end.
 func readAll(in io.Reader) (*input, error) {
-	read := &input{breaches: map[breach]int{}, counted: map[string]struct{}{}}
+	read := &input{breaches: map[breach]int{}, counted: map[[sha256.Size]byte]struct{}{}}
 	reader := bufio.NewReader(in)
 	for {
 		text, err := reader.ReadBytes('\n')
@@ -208,8 +210,9 @@ func (in *input) add(text []byte) {
 		return
 	}
 	if slices.Contains(countedFrom, read.Message) {
-		_, read.repeat = in.counted[string(text)]
-		in.counted[string(text)] = struct{}{}
+		digest := sha256.Sum256(text)
+		_, read.repeat = in.counted[digest]
+		in.counted[digest] = struct{}{}
 	}
 	in.lines = append(in.lines, read)
 }

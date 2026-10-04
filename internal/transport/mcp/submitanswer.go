@@ -415,7 +415,7 @@ const chooserUnknown = "unknown"
 // chooserOf is who chose a task as a line names it: the rule, the model or a
 // person, and unknown for a task that does not say.
 func chooserOf(mode profile.TutorMode) string {
-	if mode == profile.TutorRule || mode == profile.TutorLLM || mode == profile.TutorPerson {
+	if mode.Known() {
 		return string(mode)
 	}
 	return chooserUnknown

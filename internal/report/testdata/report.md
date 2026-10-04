@@ -101,7 +101,7 @@ The most a minute by the clock held, the minute a pace is counted over. An accou
 
 ## Children, a day at a time
 
-The children the counts for grant applications are taken from, by the rules those counts follow: a child is counted under the name it has that month, on each day a task was handed to it; a child the load tool or MCP Inspector handed a task to is left out, and so is every line of its; a line the log repeated is counted once; a day is a day in UTC. The same days of `just impact private` hold the same numbers.
+The children the counts for grant applications are taken from, by the rules those counts follow: a child is counted under the name it has that month, on each day a task was handed to it; a child the load tool or MCP Inspector handed a task to is left out, and so is every line of its; a line the log repeated is counted once; a day is a day in UTC. The same days of the view `impact_private.daily` hold the same numbers.
 
 | Day | Children | Tasks | Answers | Topics won |
 |---|---:|---:|---:|---:|

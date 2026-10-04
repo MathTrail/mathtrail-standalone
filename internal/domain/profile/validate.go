@@ -329,7 +329,7 @@ func (t *CurrentTask) validate() error {
 			ErrInvalid, t.GradeLevel, rating.GradeLevels())
 	case len(t.Options) != solver.Count:
 		return fmt.Errorf("%w: current_task offers %d options, want %d", ErrInvalid, len(t.Options), solver.Count)
-	case t.TutorMode != "" && !t.TutorMode.known():
+	case t.TutorMode != "" && !t.TutorMode.Known():
 		return fmt.Errorf("%w: current_task.tutor_mode is %q, want rule, llm, person or none", ErrInvalid, t.TutorMode)
 	}
 	for place := range solver.Count {
@@ -372,7 +372,7 @@ func (r *OpenRequest) validate() error {
 		return fmt.Errorf("%w: open_request has no opened_at, and the window is measured from it", ErrInvalid)
 	case r.Attempts < 0 || r.Attempts > MaxAttempts:
 		return fmt.Errorf("%w: open_request.attempts is %d, the limit is %d", ErrInvalid, r.Attempts, MaxAttempts)
-	case !r.TutorMode.known():
+	case !r.TutorMode.Known():
 		return fmt.Errorf("%w: open_request.tutor_mode is %q, want rule, llm or person", ErrInvalid, r.TutorMode)
 	case r.Brief.TargetConcept == "":
 		return fmt.Errorf("%w: open_request.brief names no topic", ErrInvalid)

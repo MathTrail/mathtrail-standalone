@@ -34,8 +34,9 @@ const (
 	TutorPerson TutorMode = "person"
 )
 
-// known reports whether the mode is one of the three that choose a task.
-func (m TutorMode) known() bool { return m == TutorRule || m == TutorLLM || m == TutorPerson }
+// Known reports whether the mode is one of the three that choose a task: the
+// rule, the model or a person. A file edited by hand can name anybody else.
+func (m TutorMode) Known() bool { return m == TutorRule || m == TutorLLM || m == TutorPerson }
 
 // Brief is what the model was asked for, exactly as it received it. It is kept
 // with the request so that a task can be read against the instructions it was

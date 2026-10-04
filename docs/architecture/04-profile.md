@@ -397,7 +397,7 @@ What grows without a bound of its own is the per-topic summary, which gains an e
       "last_issued": "2026-09-14",
       "mastered_level": "3-4",
       "mastered_since": "2026-09-14",
-      "top_streak": 5,
+      "top_streak": 2,
       "traps": {
         "off_by_one": 1
       },

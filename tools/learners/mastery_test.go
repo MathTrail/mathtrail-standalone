@@ -21,20 +21,20 @@ func baselineRule(t *testing.T) *rule {
 	return step
 }
 
-// The service's run of three, put in the service's place, is the service's
-// rule: run beside the step chosen under the service's own mastery, on the
-// same children of every generator, it leaves every topic of the profile and
-// the overall level as the service's rule leaves them after every answer,
-// declares and loses mastery on the same answers, and comes to the same
-// measures.
-func TestARunOfThreeInTheServicesPlaceIsTheService(t *testing.T) {
+// The cautious estimate at a margin of one uncertainty, put in the service's
+// place, is the service's rule of mastery: run beside the step chosen under
+// the service's own mastery, on the same children of every generator, it
+// leaves every topic of the profile and the overall level as the service's
+// rule leaves them after every answer, declares and loses mastery on the same
+// answers, and comes to the same measures.
+func TestTheCautiousEstimateInTheServicesPlaceIsTheService(t *testing.T) {
 	t.Parallel()
 	w, err := newWorld(200)
 	if err != nil {
 		t.Fatal(err)
 	}
 	step := baselineRule(t)
-	ours := modelOf(step, masteryCandidate{name: "run3", test: func() masteryTest { return newRunOf(profile.MasteryStreak) }})
+	ours := modelOf(step, masteryCandidate{name: "cautious_z1", test: func() masteryTest { return cautious{z: 1} }})
 	for _, gen := range allGenerators {
 		for i := range 3 {
 			wantTheSameMastery(t, w, step, ours, gen, i)

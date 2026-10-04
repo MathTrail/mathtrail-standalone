@@ -66,7 +66,7 @@ To count how many children use MathTrail each day, week and month without knowin
 
 Like every line about your sessions, these lines also carry an opaque code standing for your account: made with the service's own key from your Google account, it is neither your Google ID nor your email, and it changes at the first sign-in after that key is replaced. While the lines of two months are both kept, that code is what could join a child's two counting names.
 
-These lines are kept for at most 62 days. What is kept after that are totals — how many children, how many tasks, in which countries: totals for each day, and totals for each week and each month told apart by one thing at a time, such as the country or the grade. They hold no identifier of any kind. A total counts a group of children, and a group may be a single child; a total of fewer than ten is never shown publicly.
+These lines are kept for at most 62 days. What is kept after that are totals — how many children, how many tasks, in which countries: totals for each day, totals for each week and each month told apart by one thing at a time, such as the country or the grade, and, for each month, the traps that wrong answers fell into, by topic and grade. They hold no identifier of any kind. A total counts a group of children, and a group may be a single child; a total of fewer than ten is never shown publicly.
 
 The logs never contain the pseudonym, the text of a task, an answer, an email address, a token, the child's identifier, or the address a request came from.
 

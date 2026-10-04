@@ -348,7 +348,7 @@ A copy that has to show how much it is used — for a grant application, say —
 
 The reports are made by hand, in [Data Studio](https://datastudio.google.com) (formerly Looker Studio), signed in as the project's owner:
 
-1. **The private one.** Create a report and add data from BigQuery: the project, the dataset `impact_private`, one view at a time — `months`, `learners`, `learning`, `topics`, `traps`. Share it with nobody.
+1. **The private one.** Create a report and add data from BigQuery: the project, the dataset `impact_private`, one view at a time — `daily`, `weeks`, `months`, `learners`, `dose`, `learning`, `topics`, `traps`. Share it with nobody.
 2. **The public one.** Create another from the views of `impact_public` — `months`, `learners_by_*`, `learning`, `topics`, `traps_by_topic`, `traps_by_grade`. In each data source, set *Data credentials* to the owner's, so that a viewer reads the views without a Google account of the project's. Write on the report, where the countries are shown, "IP geolocation by [DB-IP](https://db-ip.com)": the database the country of the sign-in comes from asks for it wherever what it found is shown. Share it as *Anyone on the internet with the link can view*.
 3. **Link the public one** from the site and the `README.md`.
 

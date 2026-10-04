@@ -172,7 +172,7 @@ func (s *session) answer(brief *profile.Brief, mode profile.TutorMode, draws *an
 		choice = wrong[draws.wrong]
 	}
 	s.now = s.now.Add(answerTime)
-	return s.p.Record(profile.Answered{TaskID: task.ID, Choice: choice, HintUsed: draws.hint < s.c.hint, At: s.now}, s.w.sealer)
+	return s.p.Record(profile.Answered{TaskID: task.ID, Choice: choice, HintUsed: draws.hint < s.c.hint, At: s.now}, s.w.sealer, s.w.levels[brief.TargetConcept])
 }
 
 // learn takes the answer into the rule's estimate. A rule that starts after

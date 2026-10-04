@@ -194,7 +194,7 @@ func TestTheNumbersForAnApplicationReadTheViews(t *testing.T) {
 
 // Every count a public view shows — of children, of tasks, of answers, of
 // topics won — is ten or more and a multiple of five.
-func TestEveryPublicCountIsAMultipleOfFiveAndNoChildrenFewerThanTen(t *testing.T) {
+func TestEveryPublicCountIsTenOrMoreAndAMultipleOfFive(t *testing.T) {
 	s := counted(t)
 
 	views := []string{"months", "learning", "topics", "traps_by_topic", "traps_by_grade"}

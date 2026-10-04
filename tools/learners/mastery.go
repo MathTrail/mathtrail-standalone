@@ -78,11 +78,12 @@ func (m *mastering) judged(p *profile.Profile, a *masteryAnswer, day profile.Dat
 	return mastered, unmastered
 }
 
-// runOf is the service's test with a run of its own length: a run of right
-// answers at the middle of the corridor or harder and unaided, which a wrong
-// answer ends and a right one to an easy or aided task leaves as it is, at as
-// many answers in the topic as the service asks for. A run that completes is
-// spent, whatever it earns, and names the level of the task that completed it.
+// runOf is the test the service had before the cautious estimate, with a run
+// of its own length: a run of right answers at the middle of the corridor or
+// harder and unaided, which a wrong answer ends and a right one to an easy or
+// aided task leaves as it is, at as many answers in the topic as the service
+// asks for. A run that completes is spent, whatever it earns, and names the
+// level of the task that completed it.
 type runOf struct {
 	length int
 	runs   map[string]int
