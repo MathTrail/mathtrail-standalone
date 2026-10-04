@@ -40,6 +40,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/MathTrail/mathtrail-standalone/tools/load/account"
 	"github.com/MathTrail/mathtrail-standalone/tools/load/instance"
 	"github.com/MathTrail/mathtrail-standalone/tools/load/lesson"
 	"github.com/MathTrail/mathtrail-standalone/tools/load/report"
@@ -75,9 +76,10 @@ func run(ctx context.Context, args []string, stdin io.Reader, stdout, stderr io.
 	if asked.signIn != "" {
 		return signIn(ctx, &asked, stdin, stderr)
 	}
-	if unsigned := asked.loadAccounts(); unsigned != nil {
+	if unsigned := asked.loadAccounts(stderr); unsigned != nil {
 		return cannot(stderr, unsigned)
 	}
+	defer asked.tellUnkept(stderr)
 
 	fmt.Fprintf(stderr, "load: %s against %s, about %s\n", asked.options.Scenario, asked.against, asked.options.Lasts())
 	runs, failed := scenario.Run(ctx, &asked.options, asked.launch)
@@ -117,6 +119,8 @@ type invocation struct {
 	// the browser comes back to; accounts is where accounts are kept.
 	signIn, url, accounts string
 	port                  int
+	// loaded are the accounts the run signs in with, once their tokens are read.
+	loaded []*account.Account
 }
 
 // parse reads the command line.

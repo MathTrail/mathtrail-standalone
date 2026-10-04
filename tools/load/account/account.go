@@ -35,11 +35,22 @@ var validName = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,31}$`)
 // Account is an account signed in on one service, as the load keeps it.
 type Account struct {
 	name   string
-	tokens oauth2.TokenSource
+	tokens *keeping
 }
 
 // Name is the name the account is kept under.
 func (a *Account) Name() string { return a.name }
+
+// Until is when the access token the account holds runs out: zero when the
+// service named no end. A token lasts fifteen minutes at most, and less near
+// the end of the parent's grant at Google, so a run longer than that renews it
+// in its middle whatever was renewed before it.
+func (a *Account) Until() time.Time { return a.tokens.until() }
+
+// Unkept is why tokens renewed during the run could not be kept in the
+// account's file, or nil when every one was. The run goes on with them, since
+// they are good; the next run starts from the tokens the file holds.
+func (a *Account) Unkept() error { return a.tokens.unkeptErr() }
 
 // Token is the account's access token: the one it holds while that is good,
 // and a new one, kept in its file, once it has run out.
@@ -63,10 +74,11 @@ func Dir() (string, error) {
 
 // Load is the account kept under the name given in the directory, for the
 // service at the URL given, with an access token good for at least as long as
-// asked. One that would run out sooner is renewed now, so that nothing needs
-// renewing while a run is under way: a renewal goes to the sign-in, which
-// holds every request to the pace of the address it came from, and a run may
-// be spending that pace on purpose.
+// asked, as far as the service gives one that long. One that would run out
+// sooner is renewed now, so that a run shorter than a token lasts needs no
+// renewal while it is under way: a renewal goes to the sign-in, which holds
+// every request to the pace of the address it came from, and a run may be
+// spending that pace on purpose. Until says how long the token lasts.
 func Load(dir, name, service string, goodFor time.Duration) (*Account, error) {
 	where, err := shelfOf(dir, name)
 	if err != nil {
@@ -80,8 +92,10 @@ func Load(dir, name, service string, goodFor time.Duration) (*Account, error) {
 		return nil, fmt.Errorf("account: %s was signed in on %s, not on %s: sign it in there", name, k.Service, serviceOf(service))
 	}
 
-	if time.Until(k.Token.Expiry) < goodFor {
-		// A token with no access token in it is renewed before it is used.
+	// A token with no end said lasts as long as the service lets it. One that ends
+	// too soon is renewed before it is used, which a token with no access token
+	// in it is.
+	if !k.Token.Expiry.IsZero() && time.Until(k.Token.Expiry) < goodFor {
 		k.Token.AccessToken = ""
 	}
 	a := k.account(renewing(), where)
@@ -133,8 +147,10 @@ type keeping struct {
 
 	mu   sync.Mutex
 	kept kept
-	// last is the access token the file holds.
-	last string
+	// last is the access token last renewed, and unkept why the first of them
+	// that could not be written was not.
+	last   string
+	unkept error
 }
 
 func (k *keeping) Token() (*oauth2.Token, error) {
@@ -146,12 +162,26 @@ func (k *keeping) Token() (*oauth2.Token, error) {
 	defer k.mu.Unlock()
 	if token.AccessToken != k.last {
 		k.kept.Token = token
-		if unkept := k.where.write(&k.kept); unkept != nil {
-			return nil, unkept
+		if unkept := k.where.write(&k.kept); unkept != nil && k.unkept == nil {
+			k.unkept = unkept
 		}
 		k.last = token.AccessToken
 	}
 	return token, nil
+}
+
+// until is when the token last given runs out.
+func (k *keeping) until() time.Time {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	return k.kept.Token.Expiry
+}
+
+// unkeptErr is why a renewed token could not be kept, if one could not.
+func (k *keeping) unkeptErr() error {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	return k.unkept
 }
 
 // shelf is where one account is kept: a file of its name in the directory of

@@ -62,6 +62,11 @@ describe("a page's words", () => {
 		["a tag", "count: !!int 3\n", "tags a value"],
 		["a tag of text", "count: !!str 3\n", "tags a value"],
 		["a merge key", "base: &b\n  x: 1\nc:\n  <<: *b\n", "names &b"],
+		[
+			"a text that begins with a star and no quote",
+			"title: **Knights**\n",
+			"reads **Knights** as an alias",
+		],
 		["a key in capitals", "Title: A\n", '"Title" is no key'],
 		["a key with a dot", "hero.lead: A\n", '"hero.lead" is no key'],
 		["a key of digits", "2: A\n", '"2" is no key'],

@@ -313,6 +313,19 @@ func TestAChildSignedInSendsTheAccountsToken(t *testing.T) {
 		t.Errorf("requests went out as %q, want each with the token the account gave then", sent)
 	}
 
+	nobody := service.SignedIn("nobody", func() (string, error) { return "", nil })
+	defer func() { _ = nobody.Close() }()
+	mu.Lock()
+	bearers = nil
+	mu.Unlock()
+	_ = nobody.Call(t.Context(), "answer", map[string]any{})
+	mu.Lock()
+	unsigned := slices.Clone(bearers)
+	mu.Unlock()
+	if len(unsigned) == 0 || slices.ContainsFunc(unsigned, func(sent string) bool { return sent != "" }) {
+		t.Errorf("an account with no token sent %q, want requests with no Authorization at all", unsigned)
+	}
+
 	lapsed := service.SignedIn("lapsed", func() (string, error) { return "", errors.New("the refresh token has ended") })
 	defer func() { _ = lapsed.Close() }()
 	before := service.Requests()

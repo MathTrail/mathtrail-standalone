@@ -1,4 +1,4 @@
-import { Marked } from "marked";
+import { Lexer, Marked } from "marked";
 import { byCodeUnits } from "../i18n/order";
 import { placeholder } from "../i18n/words";
 import {
@@ -327,7 +327,9 @@ function documentText(source: string): PageText {
 }
 
 // wordsText reads a page's words, which give its title and its description as
-// they are written: the apex and the footer show them with no slot filled.
+// they are written: the page's head, the apex and the footer show them with no
+// slot filled and no markup read, so a slot or an emphasis would show as its
+// signs.
 function wordsText(source: string): PageText {
 	const words = parsePageWords(source);
 	for (const key of ["title", "description"]) {
@@ -337,6 +339,14 @@ function wordsText(source: string): PageText {
 		}
 		if (new RegExp(placeholder.source).test(text)) {
 			throw new Error(`a page's ${key} is said as it is written, with no slot`);
+		}
+		if (
+			characterReference.test(text) ||
+			Lexer.lexInline(text, { gfm: false }).some(({ type }) => type !== "text")
+		) {
+			throw new Error(
+				`a page's ${key} is said as it is written, with no markup`,
+			);
 		}
 	}
 	return { kind: "words", words };

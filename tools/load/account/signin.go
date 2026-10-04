@@ -180,9 +180,11 @@ type way struct {
 	back    chan cameBack
 
 	mu sync.Mutex
-	// sent is whether the parent was sent to sign in, and refused why the
+	// sent is whether the parent was sent to sign in, and with what state,
+	// which the service sends back with the browser; refused is why the
 	// sign-in they went through did not let the load in.
 	sent    bool
+	state   string
 	refused error
 }
 
@@ -192,6 +194,10 @@ type way struct {
 // wrong it does: a parent signs in once, so every time after that is answered
 // with what the parent's own sign-in came to.
 func (w *way) signIn(ctx context.Context, show func(address string), address string) (*auth.AuthorizationResult, error) {
+	sending, err := url.Parse(address)
+	if err != nil {
+		return nil, fmt.Errorf("account: read the address of the sign-in: %w", err)
+	}
 	w.mu.Lock()
 	if w.sent {
 		defer w.mu.Unlock()
@@ -200,7 +206,7 @@ func (w *way) signIn(ctx context.Context, show func(address string), address str
 		}
 		return nil, errOnce
 	}
-	w.sent = true
+	w.sent, w.state = true, sending.Query().Get("state")
 	w.mu.Unlock()
 
 	show(address)
@@ -239,7 +245,14 @@ func (w *way) serve(rw http.ResponseWriter, r *http.Request) {
 		http.NotFound(rw, r)
 		return
 	}
-	came := cameBackWith(r.URL.Query())
+	query := r.URL.Query()
+	if !w.awaited(query) {
+		// Anything else on this computer may ask here too, and only the
+		// sign-in under way is waited for.
+		http.Error(rw, "This is not the sign-in the load is waiting for.", http.StatusBadRequest)
+		return
+	}
+	came := cameBackWith(query)
 	w.bring(came)
 	rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	if came.err != nil {
@@ -250,7 +263,7 @@ func (w *way) serve(rw http.ResponseWriter, r *http.Request) {
 }
 
 // read takes an address pasted, one to a line, and brings back the first that
-// is an address the browser was sent back to.
+// is the address the browser of the sign-in under way was sent back to.
 func (w *way) read(pasted io.Reader) {
 	lines := bufio.NewScanner(pasted)
 	for lines.Scan() {
@@ -258,11 +271,20 @@ func (w *way) read(pasted io.Reader) {
 		if err != nil {
 			continue
 		}
-		if query := address.Query(); query.Has("code") || query.Has("error") {
+		if query := address.Query(); w.awaited(query) {
 			w.bring(cameBackWith(query))
 			return
 		}
 	}
+}
+
+// awaited says whether an address the browser came back to is the one the
+// sign-in under way waits for: the service sends it back with the state the
+// parent was sent with, a code or a refusal alike.
+func (w *way) awaited(query url.Values) bool {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return w.state != "" && query.Get("state") == w.state
 }
 
 // bring brings back what the browser came back with, the first time only: the

@@ -348,6 +348,9 @@ func TestLoadRenewsATokenThatWouldRunOutDuringTheRun(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Load() error = %v, want nil", err)
 	}
+	if until := time.Until(renewed.Until()); until < 14*time.Minute || until > 16*time.Minute {
+		t.Errorf("the renewed token runs out in %v, want the fifteen minutes the service gave it", until)
+	}
 	token, err := renewed.Token()
 	if err != nil || token != "access-2" {
 		t.Errorf("Token() = %q, %v; want the renewed access-2", token, err)
@@ -450,5 +453,108 @@ func TestASignInWhoseSessionNeverOpensKeepsNothing(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(dir, "parent.json")); !errors.Is(err, os.ErrNotExist) {
 		t.Errorf("a sign-in whose session never opened left the file of an account: %v", err)
+	}
+}
+
+// A token the service gave no end to lasts as long as the service lets it,
+// and is not renewed before every run for want of one.
+func TestATokenWithNoEndIsNotRenewedBeforeARun(t *testing.T) {
+	t.Parallel()
+
+	a := newAuthority(t, 900)
+	dir := t.TempDir()
+	kept := `{"service": "` + a.url() + `", "client_id": "` + clientID + `", "token_url": "` + a.url() + `/token",` +
+		` "token": {"access_token": "for-good", "token_type": "Bearer", "refresh_token": "never-asked"}}`
+	if err := os.WriteFile(filepath.Join(dir, "parent.json"), []byte(kept), 0o600); err != nil {
+		t.Fatalf("keep an account: %v", err)
+	}
+
+	loaded, err := account.Load(dir, "parent", a.url(), 20*time.Minute)
+	if err != nil {
+		t.Fatalf("Load() error = %v, want nil", err)
+	}
+	token, err := loaded.Token()
+	if err != nil || token != "for-good" {
+		t.Errorf("Token() = %q, %v; want the kept for-good", token, err)
+	}
+	if _, renewals, _ := a.counted(); renewals != 0 {
+		t.Errorf("the service was asked for %d renewals, want none", renewals)
+	}
+	if !loaded.Until().IsZero() {
+		t.Errorf("Until() = %v, want no end for a token the service gave none", loaded.Until())
+	}
+}
+
+// Anything else that asks at the address the browser comes back to — another
+// program, a page that probes it — is turned away, and the parent's own
+// browser coming back after it still signs the account in.
+func TestStrayRequestsAtTheWayBackChangeNothing(t *testing.T) {
+	t.Parallel()
+
+	a := newAuthority(t, 900)
+	parent := following(t)
+	browser := account.Browser{Show: func(address string) {
+		sent, err := url.Parse(address)
+		if err != nil {
+			t.Errorf("the address %q does not read: %v", address, err)
+			return
+		}
+		for _, stray := range []string{"", "?error=access_denied&state=another", "?code=forged&state=another"} {
+			turnedAway(t, sent.Query().Get("redirect_uri")+stray)
+		}
+		parent.Show(address)
+	}}
+
+	signed, err := account.SignIn(soon(t), t.TempDir(), "parent", a.url(), browser, 0)
+	if err != nil {
+		t.Fatalf("SignIn() error = %v, want the parent's own sign-in to go through", err)
+	}
+	if token, err := signed.Token(); err != nil || token != "access-1" {
+		t.Errorf("Token() = %q, %v; want access-1", token, err)
+	}
+}
+
+// A renewed token that cannot be written is still used: the run goes on with
+// it, and the account says why it was not kept.
+func TestARenewedTokenThatCannotBeKeptIsUsedAndTold(t *testing.T) {
+	t.Parallel()
+
+	a := newAuthority(t, 900)
+	dir := signedInAt(t, a)
+	if err := os.Chmod(dir, 0o500); err != nil {
+		t.Fatalf("make the accounts' directory read-only: %v", err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(dir, 0o700) })
+
+	loaded, err := account.Load(dir, "parent", a.url(), 20*time.Minute)
+	if err != nil {
+		t.Fatalf("Load() error = %v, want the renewed token used though it cannot be kept", err)
+	}
+	token, err := loaded.Token()
+	if err != nil || token != "access-2" {
+		t.Errorf("Token() = %q, %v; want the renewed access-2", token, err)
+	}
+	if loaded.Unkept() == nil {
+		t.Error("Unkept() = nil, want why the renewed token could not be kept")
+	}
+}
+
+// turnedAway asks at the address given, as something other than the parent's
+// browser would, and fails the case unless the request is turned away.
+func turnedAway(t *testing.T, address string) {
+	t.Helper()
+	request, err := http.NewRequestWithContext(t.Context(), http.MethodGet, address, http.NoBody)
+	if err != nil {
+		t.Errorf("the request %q does not read: %v", address, err)
+		return
+	}
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		t.Errorf("the request %q could not be sent: %v", address, err)
+		return
+	}
+	_ = response.Body.Close()
+	if response.StatusCode != http.StatusBadRequest {
+		t.Errorf("the request %q came to %d, want it turned away", address, response.StatusCode)
 	}
 }

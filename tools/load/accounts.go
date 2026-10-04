@@ -119,8 +119,9 @@ func (in *invocation) accountsDir() (string, error) {
 }
 
 // loadAccounts reads the tokens of the accounts the run signs in with, each
-// good for the length of the run and a margin.
-func (in *invocation) loadAccounts() error {
+// good for the length of the run and a margin as far as the service gives one
+// that long, and says on stderr which runs out before the run ends.
+func (in *invocation) loadAccounts(stderr io.Writer) error {
 	if len(in.options.Accounts) == 0 {
 		return nil
 	}
@@ -129,13 +130,31 @@ func (in *invocation) loadAccounts() error {
 		return err
 	}
 	for i := range in.options.Accounts {
-		loaded, err := account.Load(dir, in.options.Accounts[i].Name, in.url, in.options.Lasts()+renewBefore)
+		goodFor := in.options.Lasts() + renewBefore
+		loaded, err := account.Load(dir, in.options.Accounts[i].Name, in.url, goodFor)
 		if err != nil {
 			return err
 		}
+		if until := loaded.Until(); !until.IsZero() && time.Until(until) < goodFor {
+			fmt.Fprintf(stderr, "load: the token of %s runs out at %s, before the run ends; renewed in its middle, "+
+				"it is held to the pace of this computer's address at the sign-in, which paces spends on purpose\n",
+				loaded.Name(), until.UTC().Format(time.TimeOnly))
+		}
 		in.options.Accounts[i].Token = loaded.Token
+		in.loaded = append(in.loaded, loaded)
 	}
 	return nil
+}
+
+// tellUnkept says which accounts renewed tokens during the run that could not
+// be kept: the run went on with them, and the next starts from older ones.
+func (in *invocation) tellUnkept(stderr io.Writer) {
+	for _, loaded := range in.loaded {
+		if unkept := loaded.Unkept(); unkept != nil {
+			fmt.Fprintf(stderr, "load: the tokens %s renewed could not be kept, and the next run starts from the ones "+
+				"before them: %v\n", loaded.Name(), unkept)
+		}
+	}
 }
 
 // signIn signs the account the command line names in on its service, in the

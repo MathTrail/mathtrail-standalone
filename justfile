@@ -1048,17 +1048,18 @@ load scenario *args:
 # The parent opens the address it prints and signs in with Google; the browser
 # comes back to this computer, or the parent pastes the address it ended up at.
 # The tokens are kept in the user's own configuration, never in the repository.
+# The deployed service is the one signed in on unless the arguments name
+# another with -url, which, given later, is the one the tool takes.
 # Sign an account in on the deployed service for the load's runs against it, such as `just load-signin parent`
 [positional-arguments]
 [working-directory('tools/load')]
-load-signin name url="https://mcp.mathtrail.app" *args:
+load-signin name *args:
     #!/usr/bin/env bash
     set -euo pipefail
     go build -o bin/load .
     name="$1"
-    url="$2"
-    shift 2
-    exec bin/load -signin "$name" -url "$url" "$@"
+    shift
+    exec bin/load -signin "$name" -url https://mcp.mathtrail.app "$@"
 
 # Every scenario of a container, against the image of what is in the tree,
 # built once, in a container of an instance's size: one vCPU and 1 GiB, told

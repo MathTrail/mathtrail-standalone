@@ -235,6 +235,28 @@ describe("the texts of a site", () => {
 			"ru/topics/sample.yaml: a page's title is said as it is written, with no slot",
 		],
 		[
+			"a title with emphasis",
+			replacing(
+				"ru",
+				russian([
+					"topics/sample.yaml",
+					words('"**Пример**"', "lead: Текст.\n"),
+				]),
+			),
+			"ru/topics/sample.yaml: a page's title is said as it is written, with no markup",
+		],
+		[
+			"a description with a character written as a reference",
+			replacing(
+				"ru",
+				russian([
+					"topics/sample.yaml",
+					"title: Пример\ndescription: Том &amp; Джерри\nlead: Текст.\n",
+				]),
+			),
+			"ru/topics/sample.yaml: a page's description is said as it is written, with no markup",
+		],
+		[
 			"words that cannot be read, naming their file",
 			replacing("ru", russian(["topics/sample.yaml", "title: [A\n"])),
 			"ru/topics/sample.yaml: Flow sequence in block collection",

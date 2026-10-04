@@ -377,7 +377,9 @@ func (s signing) RoundTrip(r *http.Request) (*http.Response, error) {
 			}
 			return nil, fmt.Errorf("%w: %w", errUnsigned, err)
 		}
-		r.Header.Set("Authorization", "Bearer "+bearer)
+		if bearer != "" {
+			r.Header.Set("Authorization", "Bearer "+bearer)
+		}
 	}
 	if s.host != "" {
 		r.Host = s.host

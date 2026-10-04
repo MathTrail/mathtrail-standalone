@@ -1,4 +1,11 @@
-import { isMap, isScalar, isSeq, parseAllDocuments, visit } from "yaml";
+import {
+	isAlias,
+	isMap,
+	isScalar,
+	isSeq,
+	parseAllDocuments,
+	visit,
+} from "yaml";
 import { disagreements } from "../i18n/dictionaries";
 
 /**
@@ -18,9 +25,11 @@ const keyName = /^[a-z][a-z0-9_-]*$/;
  * parsePageWords reads a page's YAML file. Every value is text — the failsafe
  * schema reads no numbers, dates or booleans — and the file is one document of
  * sections, lists and texts, with nothing that stands for something written
- * elsewhere: an anchor is refused, and with it every alias, which can only
- * repeat an anchor written before it; so are a tag, a key written twice and a
- * key no page could name, the merge key among them. Comments are
+ * elsewhere: an anchor, an alias or a tag is refused, and so is a key written
+ * twice and a key no page could name, the merge key among them. YAML reads a
+ * text that begins with a star and no quote as an alias, which the parser
+ * leaves standing even with no anchor to repeat, so the alias is named with the
+ * way out: quotes. Comments are
  * notes for whoever translates, and are left out. A block of text loses the
  * line break YAML keeps at its end.
  */
@@ -41,6 +50,11 @@ export function parsePageWords(source: string): PageWords {
 	}
 	visit(document, {
 		Node(_, node) {
+			if (isAlias(node)) {
+				throw new Error(
+					`the file reads *${node.source} as an alias, and a page's words write every text where it is read: a text that begins with * is written in quotes`,
+				);
+			}
 			if (node.anchor !== undefined) {
 				throw new Error(
 					`the file names &${node.anchor}, and a page's words write every text where it is read`,
