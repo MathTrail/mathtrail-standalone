@@ -10,6 +10,7 @@ import {
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
+import { type DefaultTreeAdapterTypes, parse } from "parse5";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import catalog from "../../content/catalogs/topics.json";
 import data from "../../site/data.json";
@@ -61,6 +62,48 @@ async function localePages(dir: string): Promise<string[]> {
 	return (await filesIn(dir)).filter(
 		(file) => file.endsWith(".html") && file.includes("/"),
 	);
+}
+
+// Link is one anchor of a page, as a browser reads it.
+type Link = { className: string; href: string; text: string };
+
+// linksIn are the HTML anchors of a page, in the order it has them, each with
+// the text it shows: parsed rather than matched, so that markup inside an
+// anchor is read as markup. A template's content is not walked: it is not part
+// of the page until a script puts it there.
+function linksIn(html: string): Link[] {
+	const links: Link[] = [];
+	const walk = (node: DefaultTreeAdapterTypes.Node): void => {
+		if (!("childNodes" in node)) {
+			return;
+		}
+		if (
+			"tagName" in node &&
+			node.tagName === "a" &&
+			node.namespaceURI === "http://www.w3.org/1999/xhtml"
+		) {
+			const value = (name: string) =>
+				node.attrs.find((attr) => attr.name === name)?.value ?? "";
+			links.push({
+				className: value("class"),
+				href: value("href"),
+				text: textIn(node),
+			});
+		}
+		for (const child of node.childNodes) {
+			walk(child);
+		}
+	};
+	walk(parse(html));
+	return links;
+}
+
+// textIn is all the text below node.
+function textIn(node: DefaultTreeAdapterTypes.Node): string {
+	if (node.nodeName === "#text" && "value" in node) {
+		return node.value;
+	}
+	return "childNodes" in node ? node.childNodes.map(textIn).join("") : "";
 }
 
 // urlsIn are the addresses every url() of a stylesheet names, sorted.
@@ -385,16 +428,11 @@ describe("the site built from this repository", () => {
 			const locale = page.slice(0, page.indexOf("/"));
 			const html = await readFile(join(out, page), "utf8");
 			const word = adding[locale] ?? "";
-			const buttons = [...html.matchAll(/<a ([^>]*)>(.*?)<\/a>/gs)].filter(
-				([, , inside]) =>
-					(inside ?? "").replace(/<[^>]*>/g, "").trim() === word,
-			);
+			const buttons = linksIn(html).filter((link) => link.text.trim() === word);
 
-			expect(buttons[0]?.[1], page).toContain("s-nav-action");
+			expect(buttons[0]?.className, page).toContain("s-nav-action");
 			expect(
-				buttons.map(
-					([, attributes]) => attributes?.match(/href="([^"]+)"/)?.[1],
-				),
+				buttons.map((link) => link.href),
 				page,
 			).toEqual(buttons.map(() => `/${locale}/#connect`));
 		}

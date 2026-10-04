@@ -18,9 +18,10 @@ coverage:
         target: 90%
 
 # The contract every store is held to, the stand-ins for Google's sign-in and
-# for Google Drive, and the paces tests are held to, are test code that lives
-# in a package rather than a test file, because a test file cannot be shared
-# between packages. Like any
+# for Google Drive, the paces tests are held to, the watch on the solver's slots
+# and the database of countries tests look addresses up in are test code that
+# lives in a package rather than a test file, because a test file cannot be
+# shared between packages. Like any
 # test it measures rather than being measured: the lines that report a failure
 # never run while the code under test behaves.
 #
@@ -33,6 +34,7 @@ ignore:
   - "internal/infra/drive/drivetest"
   - "internal/ratelimit/ratelimittest"
   - "internal/infra/starlark/starlarktest"
+  - "internal/infra/geoip/geoiptest"
   - "research"
 
 comment:
