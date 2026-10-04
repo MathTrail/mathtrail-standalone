@@ -1,3 +1,5 @@
+import { frontPage } from "./content";
+import { connectSection, lessonSection } from "./home";
 import type { SiteKey } from "./words";
 
 /**
@@ -14,27 +16,35 @@ export type MenuItem = {
 
 /**
  * Frame is what every page of the site is set in besides its own words: the
- * header's menu, and the pages the footer leads to before the code and the
- * address that answers questions, each under its own title.
+ * header's menu and the one thing the header asks a reader to do, when it asks
+ * one, and the pages the footer leads to before the code and the address that
+ * answers questions, each under its own title.
  */
 export type Frame = {
 	readonly menu: readonly MenuItem[];
+	readonly action?: MenuItem;
 	readonly footer: readonly string[];
 };
 
 /**
  * siteFrame is the site's own. A page joins the menu with the task that
  * publishes it, and the build refuses an entry whose page is not there, so the
- * menu never leads nowhere. The page about who makes the product closes the
- * menu. The footer names that page and the documents rather than every page in
+ * menu never leads nowhere. The home page's sections on a lesson and on
+ * connecting open the menu, and the page about who makes the product closes
+ * it; the header asks a reader to add MathTrail to Claude, which the home
+ * page's section on connecting tells how to do. The footer names the page
+ * about who makes the product and the documents rather than every page in
  * turn, which seventeen topics would bury them under.
  */
 export const siteFrame: Frame = {
 	menu: [
+		{ page: frontPage, anchor: lessonSection, label: "nav.lesson" },
+		{ page: frontPage, anchor: connectSection, label: "nav.connect" },
 		{ page: "why", label: "nav.why" },
 		{ page: "topics", label: "nav.topics" },
 		{ page: "techniques", label: "nav.techniques" },
 		{ page: "about", label: "nav.about" },
 	],
+	action: { page: frontPage, anchor: connectSection, label: "nav.add" },
 	footer: ["about", "privacy", "terms"],
 };

@@ -188,17 +188,7 @@ func newContainer(ctx context.Context, cfg *config.Config, log *zap.Logger, reac
 	}
 	log.Info("google sign-in", zap.Bool("configured", google != nil))
 
-	learners, err := learnerKey(cfg)
-	if err != nil {
-		return nil, err
-	}
-	log.Info("learner key", zap.Bool("configured", cfg.LearnerKey != ""))
-
-	// The country a parent signs in from is looked up in a database of the
-	// service's own, opened here and closed on the way out. A file that does
-	// not open stops the process now, as the content does, rather than at the
-	// first parent who signs in.
-	countryOf, err := c.countries(cfg, log)
+	counted, err := c.censusOf(cfg, log)
 	if err != nil {
 		return nil, err
 	}
@@ -224,7 +214,7 @@ func newContainer(ctx context.Context, cfg *config.Config, log *zap.Logger, reac
 		Google:    google,
 		Renewals:  paces.renewals,
 		SiteURL:   cfg.Site(),
-		CountryOf: countryOf,
+		CountryOf: counted.countryOf,
 		Now:       time.Now,
 	})
 	if err != nil {
@@ -234,18 +224,7 @@ func newContainer(ctx context.Context, cfg *config.Config, log *zap.Logger, reac
 	// The tools of the lesson seal a task's answer under the key ring above,
 	// with the purpose that keeps an answer apart from everything else it
 	// seals.
-	//
-	// The MCP endpoint lets a request in with an access token the
-	// authorization server issued, as the account the token signs in, and
-	// refuses any other by naming the resource's metadata, where a client
-	// begins a sign-in. The development sign-in refuses nobody instead: a
-	// request whose bearer credential is a name acts for an account of that
-	// name, and any other for one development account. The configuration
-	// refuses it on a deployment.
-	signIn := mcpserver.BearerSignIn(signInServer.Account, signInServer.ResourceMetadataURL)
-	if cfg.DevAuth {
-		signIn = mcpserver.DevSignIn
-	}
+	signIn := signInOf(cfg, signInServer)
 	log.Info("limits set",
 		zap.Int("user_per_min", cfg.RateUserPerMin),
 		zap.Int("ip_per_min", cfg.RateIPPerMin),
@@ -268,7 +247,7 @@ func newContainer(ctx context.Context, cfg *config.Config, log *zap.Logger, reac
 		Logger:      log,
 		Traces:      tel.TracerProvider(),
 		ProjectID:   cfg.GCPProjectID,
-		Learners:    learners,
+		Learners:    counted.learners,
 		SiteURL:     cfg.Site(),
 	})
 	if err != nil {
@@ -342,6 +321,45 @@ func newPaces(cfg *config.Config) (*paces, error) {
 		return nil, err
 	}
 	return &paces{perAccount: perAccount, perAddress: perAddress, signIn: signIn, lessons: lessons, renewals: renewals}, nil
+}
+
+// signInOf is how the MCP endpoint lets a request in: with an access token
+// the authorization server issued, as the account the token signs in, refusing
+// any other by naming the resource's metadata, where a client begins a
+// sign-in. The development sign-in refuses nobody instead: a request whose
+// bearer credential is a name acts for an account of that name, and any other
+// for one development account. The configuration refuses it on a deployment.
+func signInOf(cfg *config.Config, server *oauthserver.Server) mcpserver.SignIn {
+	if cfg.DevAuth {
+		return mcpserver.DevSignIn
+	}
+	return mcpserver.BearerSignIn(server.Account, server.ResourceMetadataURL)
+}
+
+// census is what the lines that count the children need: the key the name a
+// child is counted under each month is derived from, and the country a request
+// came from, which the sign-in asks of the one request the parent's browser
+// makes.
+type census struct {
+	learners  *learner.Key
+	countryOf func(*http.Request) string
+}
+
+// censusOf builds what the lines that count the children need, and says what
+// it built. The database of countries is opened here and closed on the way
+// out: a file that does not open stops the process now, as the content does,
+// rather than at the first parent who signs in.
+func (c *Container) censusOf(cfg *config.Config, log *zap.Logger) (*census, error) {
+	learners, err := learnerKey(cfg)
+	if err != nil {
+		return nil, err
+	}
+	log.Info("learner key", zap.Bool("configured", cfg.LearnerKey != ""))
+	countryOf, err := c.countries(cfg, log)
+	if err != nil {
+		return nil, err
+	}
+	return &census{learners: learners, countryOf: countryOf}, nil
 }
 
 // learnerKey is the key the children are counted under in the log: the one

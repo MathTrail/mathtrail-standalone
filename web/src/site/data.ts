@@ -3,6 +3,7 @@ import topics from "../../../content/catalogs/topics.json";
 import traps from "../../../content/catalogs/traps.json";
 import file from "../../../site/data.json";
 import { type ProgressReport, readScreen } from "../widget/payload";
+import { type Home, homeFile, readHome } from "./home";
 import { readTechniques, type Techniques } from "./techniques";
 import { type CatalogTopic, gradesOf, readTopics, type Topics } from "./topics";
 import { type CatalogTrap, type ReferenceTask, rankTraps } from "./traps";
@@ -41,6 +42,8 @@ export type SiteData = {
 	readonly progress: Sample;
 	/** why is what the page "Why" draws, when the data has it. */
 	readonly why?: Why;
+	/** home is what the home page draws, when the data has it. */
+	readonly home?: Home;
 	/** techniques are what the page of the techniques draws, when the data has them. */
 	readonly techniques?: Techniques;
 };
@@ -99,6 +102,7 @@ const dataFile = z.object({
 	examples: z.record(z.string(), z.array(exampleFile)),
 	progress: sample,
 	why: whyFile.optional(),
+	home: homeFile.optional(),
 	techniques: techniquesFile.optional(),
 });
 
@@ -127,6 +131,10 @@ export function readSiteData(catalog: Catalog, data: unknown): SiteData {
 				read.data.why === undefined
 					? undefined
 					: readWhy(catalog, read.data.why),
+			home:
+				read.data.home === undefined
+					? undefined
+					: readHome(catalog, read.data.home),
 			techniques:
 				read.data.techniques === undefined
 					? undefined

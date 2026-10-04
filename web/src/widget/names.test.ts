@@ -5,6 +5,7 @@ import traps from "../../../content/catalogs/traps.json";
 import english from "../../locales/en.json";
 import {
 	catalogSkills,
+	countryName,
 	knownTrapName,
 	languageName,
 	listed,
@@ -126,6 +127,17 @@ describe("a language", () => {
 
 	test("that no tag names is shown as it is", () => {
 		expect(languageName(inEnglish, "not a tag")).toBe("not a tag");
+	});
+});
+
+describe("a country", () => {
+	test("is named in the card's language", () => {
+		expect(countryName(inEnglish, "US")).toBe("United States");
+		expect(countryName(inRussian, "FR")).toBe("Франция");
+	});
+
+	test("that no code names is shown as it is", () => {
+		expect(countryName(inEnglish, "not a code")).toBe("not a code");
 	});
 });
 

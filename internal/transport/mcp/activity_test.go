@@ -103,6 +103,30 @@ func TestATaskHandedOutIsCountedByTheCountryOfItsSignIn(t *testing.T) {
 	}
 }
 
+// The language a task is written in is read from the profile, which a person
+// can edit, and the file is held to no list of languages. A task asked for in
+// whatever was typed there by hand — the child's pseudonym, say — is counted
+// in the language other, and what was typed is never written out.
+func TestATaskInALanguageTypedByHandIsCountedAsOther(t *testing.T) {
+	t.Parallel()
+
+	p := profile.New(profile.Student{Grade: 2, Pseudonym: "Otter", Interests: []string{"sport"}}, "test", lessonDay)
+	askForTheRaceAt(t, p, rating.Grades12, 2, lessonDay)
+	p.OpenRequest.Language = p.Student.Pseudonym
+	kept := keptAsIs(t, p)
+	h, session := lesson(t, kept)
+	if card := payloadOf[handedInPayload](t, call(t, session, "submit_task", raceOn(p.OpenRequest))); card.Task == nil {
+		t.Fatalf("submit_task = %+v, want the task on the card", card)
+	}
+	h.settle()
+
+	fields := theOnlyLine(t, h, "task_accepted")
+	if got := fields["language"]; got != "other" {
+		t.Errorf("task_accepted language = %v, want other", got)
+	}
+	wantCounted(t, "task_accepted", fields)
+}
+
 // A child is counted under one name all month, whoever signs in for it: after
 // the sealing keys are rotated, the parent's next sign-in gives their account
 // another identifier, and the child the same name. The next month the child

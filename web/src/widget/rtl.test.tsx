@@ -121,7 +121,7 @@ describe("a card in a language written right to left", () => {
 	});
 });
 
-// The markup of eight screens in Arabic, against the snapshots the review last
+// The markup of eleven screens in Arabic, against the snapshots the review last
 // read: which of their parts run right to left and which do not, and what
 // they say. A change to them is a change to read in the snapshots' diff.
 describe("the screens in Arabic", () => {
@@ -191,6 +191,23 @@ describe("the screens in Arabic", () => {
 		expect(
 			markupOf(root, foldIn(root, "المراجعة").closest(".mt-fold")),
 		).toMatchSnapshot();
+	});
+
+	test("the review of the progress, a page the chat did not open", async () => {
+		drawn = await drawCard(standing, {
+			tools: service,
+			context: { locale: "ar-EG" },
+			links: "refuse",
+		});
+		const { root } = drawn;
+		unfold(root, "المراجعة");
+		const review = foldIn(root, "المراجعة").closest(".mt-fold");
+		press(review?.querySelector<HTMLElement>("a.mt-link") ?? root);
+		await vi.waitFor(() =>
+			expect(review?.querySelector(".mt-link-refused")).not.toBeNull(),
+		);
+
+		expect(markupOf(root, review)).toMatchSnapshot();
 	});
 
 	test("the profile, its cards chosen to be in Arabic", async () => {

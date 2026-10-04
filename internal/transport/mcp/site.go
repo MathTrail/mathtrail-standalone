@@ -24,6 +24,9 @@ const (
 	anchorHome  = "#home"
 )
 
+// defaultPorts are the ports a browser leaves out of an origin, by scheme.
+var defaultPorts = map[string]string{"https": "443", "http": "80"}
+
 // siteOf is address as the origin of the site the topics' pages are on — its
 // scheme and its host, in lower case and with no port a browser would leave
 // out — and whether address is one at all: an address with a path, a query, a
@@ -40,7 +43,7 @@ func siteOf(address string) (string, bool) {
 		return "", false
 	}
 	host := strings.ToLower(parsed.Hostname())
-	if port := parsed.Port(); port != "" && !(scheme == "https" && port == "443") && !(scheme == "http" && port == "80") {
+	if port := parsed.Port(); port != "" && port != defaultPorts[scheme] {
 		host = net.JoinHostPort(host, port)
 	} else if strings.Contains(host, ":") {
 		host = "[" + host + "]"
@@ -72,7 +75,7 @@ func pageLanguage(tag *string) string {
 // pageAddress is the address of topic's page on site in language, at anchor —
 // none for the top of the page —, or nothing when the topic has no page there
 // yet. Nothing of the child is in it: the site, the language, the topic.
-func pageAddress(site, language string, topic content.Topic, anchor string) string {
+func pageAddress(site, language string, topic *content.Topic, anchor string) string {
 	if site == "" || !topic.SitePage || topic.Slug == "" {
 		return ""
 	}

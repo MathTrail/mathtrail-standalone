@@ -9,6 +9,8 @@
 export const published: readonly string[] = [
 	"/",
 	"/en/",
+	"/en/#lesson",
+	"/en/#connect",
 	"/en/about/",
 	"/en/privacy/",
 	"/en/techniques/",
@@ -73,6 +75,8 @@ export const published: readonly string[] = [
 	"/en/topics/winning-strategy/#home",
 	"/en/why/",
 	"/ru/",
+	"/ru/#lesson",
+	"/ru/#connect",
 	"/ru/about/",
 	"/ru/privacy/",
 	"/ru/techniques/",

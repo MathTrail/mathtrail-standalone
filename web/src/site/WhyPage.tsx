@@ -3,12 +3,13 @@ import { topicName } from "../widget/names";
 import { cardWords } from "../widget/words";
 import { address } from "./addresses";
 import { sourceURL } from "./brand";
-import { frontPage } from "./content";
+import { ChatLines } from "./Chat";
+import { connectAddress } from "./home";
 import type { PageProps } from "./pages";
 import type { Fill, PageReader } from "./reader";
 import { StaticAnswer } from "./StaticCard";
 import { TableFrame } from "./TableFrame";
-import type { Topics } from "./topics";
+import { gradesOfAll } from "./topics";
 import { answerOf, doiAddress, doiShown, type Source, type Why } from "./why";
 import { gradesText, type SiteKey, useSiteWords } from "./words";
 
@@ -45,13 +46,6 @@ export function WhyPage({ page, data }: PageProps) {
 			<Sources page={page} why={why} />
 		</>
 	);
-}
-
-// gradesOfAll are the first and the last grade any topic of the catalog is
-// taught at: the grades MathTrail is for.
-function gradesOfAll(topics: Topics): [number, number] {
-	const grades = topics.all.flatMap((topic) => topic.grades);
-	return [Math.min(...grades), Math.max(...grades)];
 }
 
 // Hero is the first screen: why olympiad maths, the grades MathTrail is for,
@@ -334,17 +328,21 @@ function Thinking({ page, why }: { page: PageReader; why: Why }) {
 // words.
 function Chat({ page }: { page: PageReader }) {
 	return (
-		<figure class="s-chat">
-			<figcaption>{page.text("thinking.chat.label")}</figcaption>
-			<div class="s-message s-message-child">
-				<span class="s-hidden">{page.text("thinking.chat.child")}</span>
-				<p class="s-bubble">{page.text("thinking.chat.question")}</p>
-			</div>
-			<div class="s-message s-message-model">
-				<span class="s-hidden">{page.text("thinking.chat.model")}</span>
-				<p class="s-bubble">{page.text("thinking.chat.reply")}</p>
-			</div>
-		</figure>
+		<ChatLines
+			label={page.text("thinking.chat.label")}
+			lines={[
+				{
+					from: "child",
+					speaker: page.text("thinking.chat.child"),
+					said: page.text("thinking.chat.question"),
+				},
+				{
+					from: "model",
+					speaker: page.text("thinking.chat.model"),
+					said: page.text("thinking.chat.reply"),
+				},
+			]}
+		/>
 	);
 }
 
@@ -381,14 +379,15 @@ function App({ page, why }: { page: PageReader; why: Why }) {
 // Ask is how to start: connecting MathTrail, which the home page tells, and
 // every topic.
 function Ask({ page }: { page: PageReader }) {
+	const words = useSiteWords();
 	return (
 		<section class="s-section s-ask-wrap">
 			<div class="s-ask">
 				<h2 class="s-ask-title">{page.text("ask.title")}</h2>
 				<p class="s-ask-lead">{page.text("ask.lead")}</p>
 				<p class="s-choices">
-					<a class="s-btn s-btn-filled" href={address(page.locale, frontPage)}>
-						{page.text("ask.connect")}
+					<a class="s-btn s-btn-filled" href={connectAddress(page.locale)}>
+						{words.text("nav.add")}
 					</a>
 					<a class="s-btn" href={address(page.locale, "topics")}>
 						{page.text("ask.topics")}

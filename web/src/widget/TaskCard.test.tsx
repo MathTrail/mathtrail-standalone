@@ -707,8 +707,10 @@ describe("the progress", () => {
 		await vi.waitFor(() =>
 			expect(text(".mt-rank-name")).toBe("River crossing"),
 		);
-		expect(foldIn(root, "Topics").getAttribute("aria-expanded")).toBe("false");
+		expect(foldIn(root, "Topics").getAttribute("aria-expanded")).toBe("true");
+		expect(foldIn(root, "Profile").getAttribute("aria-expanded")).toBe("false");
 		press(foldIn(root, "Topics"));
+		press(foldIn(root, "Profile"));
 		press(button("Back to task"));
 
 		press(topLine());
@@ -716,8 +718,8 @@ describe("the progress", () => {
 			expect(text(".mt-rank-name")).toBe("River crossing"),
 		);
 
-		expect(foldIn(root, "Topics").getAttribute("aria-expanded")).toBe("true");
-		expect(foldIn(root, "Profile").getAttribute("aria-expanded")).toBe("false");
+		expect(foldIn(root, "Topics").getAttribute("aria-expanded")).toBe("false");
+		expect(foldIn(root, "Profile").getAttribute("aria-expanded")).toBe("true");
 		expect(heard.calls.map((call) => call.name)).toEqual([
 			"read_progress",
 			"read_progress",

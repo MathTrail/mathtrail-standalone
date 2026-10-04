@@ -4,7 +4,7 @@ For the parent or tutor who connected MathTrail. Everything MathTrail knows abou
 
 ## Where it is
 
-In your Google Drive, in a folder named **MathTrail**, the file **`mathtrail-profile.json`**. That one file is the whole profile: the pseudonym, the grade, the interests, the ratings and where they stood over the last seven days, a summary of past answers and the task on the card. Ask the chat where your child's profile is, and MathTrail gives it the folder, the file and a link; the *Profile and progress* card shows where it is, in its *Profile* section, under *Your data*.
+In your Google Drive, in a folder named **MathTrail**, the file **`mathtrail-profile.json`**. That one file is the whole profile: the pseudonym, the grade, the interests, the country and state if you gave them, the ratings and where they stood over the last seven days, a summary of past answers and the task on the card. Ask the chat where your child's profile is, and MathTrail gives it the folder, the file and a link; the *Profile and progress* card shows where it is, in its *Profile* section, under *Your data*.
 
 The service keeps nothing between requests: no database, no copy of the file, and no pseudonym, task or answer in its logs. What the file holds, field by field, is in the [privacy policy](https://mathtrail.app/en/privacy/).
 
@@ -44,7 +44,7 @@ A file deleted forever is gone for good, together with its version history: nobo
 
 - **Your chat.** The conversations of the lessons — the tasks, your child's answers and the explanations — are in your chat history, kept by Anthropic or OpenAI under their own policies. Disconnecting MathTrail does not delete them: delete those conversations in the chat if you want them gone. The chat's log of tool calls also shows each task as the model handed it in, with its answer, so read it after the lesson rather than in front of your child.
 - **Your Google account** lists MathTrail among its linked apps until you remove its access.
-- **MathTrail's logs** hold counts and timings, and an opaque code standing for your account: made from it with the service's own key, it is neither your Google ID nor your email, and it changes at the first sign-in after that key is replaced. Never the pseudonym, a task or an answer. What the platform records about each request is set out in the [privacy policy](https://mathtrail.app/en/privacy/).
+- **MathTrail's logs** hold counts and timings, and an opaque code standing for your account: made from it with the service's own key, it is neither your Google ID nor your email, and it changes at the first sign-in after that key is replaced. The lines about tasks and answers also carry a counting name for your child, which changes every calendar month and leads back to no child, the country and state you gave, if any, and the country you signed in from, looked up from the address of your browser, which is kept nowhere. Never the pseudonym, a task or an answer. What the platform records about each request is set out in the [privacy policy](https://mathtrail.app/en/privacy/).
 
 ## Another Google account
 

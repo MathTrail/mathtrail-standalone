@@ -113,7 +113,7 @@ func TestAPageIsLinkedOnlyOncePublished(t *testing.T) {
 		{"no site", "", published, ""},
 		{"no slug", "https://mathtrail.app", content.Topic{ID: "counting.gaps", SitePage: true}, ""},
 	} {
-		if got := pageAddress(tc.site, "ru", tc.topic, anchorTraps); got != tc.want {
+		if got := pageAddress(tc.site, "ru", &tc.topic, anchorTraps); got != tc.want {
 			t.Errorf("%s: pageAddress() = %q, want %q", tc.name, got, tc.want)
 		}
 	}

@@ -89,7 +89,8 @@ export type Host = {
 	canOpenLinks(): boolean;
 	/**
 	 * openLink asks the host to open the page at address, and says whether it
-	 * did: a host may refuse, fail, or give up before it answers.
+	 * did: a host may refuse, fail, or give up before it answers, and each of
+	 * those is told as a page not opened, never as an error.
 	 */
 	openLink(address: string): Promise<boolean>;
 };

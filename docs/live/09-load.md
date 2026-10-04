@@ -2,7 +2,9 @@
 
 **T64.3: closed.** 2026-10-04. The `paces` and `ceiling` scenarios ran clean against `https://mcp.mathtrail.app`. The greedy account and the greedy address were refused by their paces in words anyone can follow, and the accounts beside them were never refused. The day's ceiling refused the sixth failed request and nothing else. The platform started three instances. The run cost 0.094 % of a month's free Cloud Run processor time, which is $0. Without Drive, the tools answer in a few milliseconds. Claude's model writes a task in under 90 seconds in 29 cases out of 30. The log holds nothing that looks like personal data.
 
-The run found that the share of traces was decided for a run of requests rather than for each request: in the hour of the run, 0.7 % of the traces were kept instead of 10 %. Fixed within the task (R173). The numbers of the limits and of the telemetry stay as they were, now measured (R174). The check from a phone was not done, and two findings are open — below.
+The run found that the share of traces was decided for a run of requests rather than for each request: in the hour of the run, 0.7 % of the traces were kept instead of 10 %. Fixed within the task (R173), and confirmed once deployed: 0.104 in the hour of T64.4's lesson. The numbers of the limits and of the telemetry stay as they were, now measured (R174). The check from a phone was not done, and one finding is open — below.
+
+**T64.4: closed.** 2026-10-04. One five-hour session of free Claude, Sonnet 5.5 at medium effort, held 14 tasks before its limit, where 3–6 were expected: a long lesson by SPEC 10.2, written in 26 minutes. A task costs one message; its wait and its answer on the card cost none. At the limit the open task can still be answered on its card, but no new task can be asked for, and the progress could not be opened. Four findings go to T64.5.
 
 > The repository is public, so the report carries behaviour and numbers rather than identifiers: accounts are named by their role, and instances, traces and revisions are not written out beyond their numbers.
 
@@ -213,14 +215,67 @@ Live, over the week: real tasks from Claude were refused as `bad_structure` (2) 
 ## What was not done, and what is open
 
 - **The check from a phone was not done.** The author was to open the sign-in's document from a phone, on a mobile network, while the greedy address was being refused. Every request of the run came from one address, so the run cannot show that another address is served meanwhile. On a container, the `limits` scenario checks it, making its addresses up itself.
-- **Cloud Monitoring refuses measurements (8 in a week).** The answer is `400 FAILED_PRECONDITION`: "One or more points were written more frequently than the maximum sampling period configured for the metric". In the case that was read, two points of one series were 5.5 s apart, while one instance sends its measurements at most once a minute. Most likely the series does not tell instances apart, and two of them write into it. The resource carries `faas.instance` but no `service.instance.id`. Before a fix, how OTLP metrics are laid out into series has to be checked against Google's documentation. A task of its own, if the author decides so.
-- **The share of traces after the rollout.** R173 is confirmed by the report of the first deployed build that has it.
-- **The company account's profile** is now the load's, and it gets no new tasks until midnight UTC. To run `paces` with it again on a clean profile, delete the profile file in Drive and then from the bin (`docs/load.md`).
+- **Cloud Monitoring refuses measurements (8 in a week).** The answer is `400 FAILED_PRECONDITION`: "One or more points were written more frequently than the maximum sampling period configured for the metric". In the case that was read, two points of one series were 5.5 s apart, while one instance sends its measurements at most once a minute. Most likely the series does not tell instances apart, and two of them write into it. The resource carries `faas.instance` but no `service.instance.id`. Before a fix, how OTLP metrics are laid out into series has to be checked against Google's documentation. The fix is T64.5's.
+- **The share of traces after the rollout — confirmed.** On `v0.2.4`, the first build with R173, the hour of T64.4's lesson kept 28 traces of 270 requests: 0.104, against the 0.1 configured. Two of the 28 deliveries ran out of the deadline, as R174 expects.
+- **The company account's profile** was the load's until T64.4 deleted it and its lesson made a fresh one. To run `paces` with the account again on a clean profile, delete the profile file in Drive and then from the bin (`docs/load.md`).
 - **`.claude/settings.local.json`**, with the permissions for this run, is for the author to delete: the run is over.
 
 ## The message limits of free Claude (T64.4)
 
-Not measured yet.
+Risk 9.4 of PRODUCT, the message limits of the free tiers eaten by the writing of tasks, measured in Claude: how many messages and turns a task takes, when the limit comes, and what the parent sees then.
+
+- **Host and plan.** Claude on the web, the company account on the free plan, whose one custom connector is MathTrail. Claude's own interface is in English, and the lesson was in Russian.
+- **Model.** Sonnet 5.5 at medium effort, as the free plan offers it. It thinks before its calls: "Thinking 11s" on a screenshot.
+- **Service.** `v0.2.4`, commit `f09996c`.
+- **Profile.** A fresh one. The load's profile was deleted from Drive first, and the lesson made a new one, grade 2, so its first five tasks were the trial series.
+- **Roles.** The author held the lesson as the parent and the child, answering on the card, and took the screenshots. Claude read the service's log and wrote this section. The sheet of messages per task was not kept: the messages that asked for a task are counted from the log, one call of `next_task` for each.
+- **Cost.** One session of the company account's free plan; no money.
+
+### Expected, and found
+
+Expected before the start: the limit after 3–6 tasks, 6–10 messages with the profile. A task adds about 25 KB to the conversation — 21 KB of them the package of `get_package`, 10 KB of that the guide, the same in every package — and every turn reads the whole conversation again. The decision log's own guess was three to five generations in a row (R14).
+
+Found: 14 tasks. Times are UTC, 2026-10-04:
+
+| Time | What happened |
+|---|---|
+| about 14:20 | The first message of a new chat; the session's five hours count from here |
+| 14:24:20 – 14:25:27 | `get_profile`, then `save_profile`: the profile made in the chat |
+| 14:25:40 | The first task asked for |
+| 14:50 | After the 13th task, Claude's banner "You've used 90% of your session limit", which blocks nothing |
+| 14:51:18 – 14:51:43 | The 14th task, asked for and accepted; after that turn, the limit |
+| 14:52:01 | The 14th task's answer on the card, recorded |
+| about 14:52 | "Another task" — the send fails |
+
+The limit resets at 19:20 UTC, five hours after the session's first message.
+
+### What a task costs
+
+- **Messages:** one a task. Each of the 14 tasks was asked for by one message — the first in words, the rest by "Another task" and Enter — and each made one call of `next_task`. The profile and the questions asked in the chat came on top, and were not counted.
+- **The model's turn:** `next_task`, `get_package` and `submit_task`, which was called 16 times for 14 tasks. 13 tasks were accepted at the first attempt; one was refused twice — for its drawing's format, then for a drawing that did not match its task — and accepted at the third.
+- **The card, without the model:** `read_task` 132 times, about nine a task while its task was being written; `submit_answer` 14 times, every answer given on the card; `read_progress` 3 times.
+- **The time to write a task:** a median of 31 s, a 90th percentile of 51 s, and 93 s for the longest: 13 tasks of 14 within the goal of 90 s.
+- **The tools without Drive:** no more than 13 ms at the 95th percentile, as in T64.3.
+
+### What the parent sees at the limit
+
+1. At 90 %, a banner above the input: "You've used 90% of your session limit", with "Upgrade". It blocks nothing.
+2. At the limit, once the turn under way has finished: a dialog, "Upgrade to keep chatting — You hit your 5-hour message limit. It resets at 2:20 PM, or you can upgrade for higher limits", and under the input, "You are out of free messages until 2:20 PM".
+3. **What still works:** the answer on the open card. It was recorded at 14:52:01, after the limit: the card calls the service itself, without the model.
+4. **What does not:** a new task. "Another task" put its words into the input under the warning "Use caution before running this prompt…", and the send failed: "Failed to send · Retry", and a toast, "You've hit your limit for Claude messages. Limits will reset at 2:20 PM". After that the chat showed no card, and the progress could not be opened.
+
+### For risk 9.4
+
+One session of free Claude holds one long lesson: 14 tasks, where SPEC 10.2 counts ten to fifteen to a long session, and below the service's own ceiling of twenty accepted tasks a day — so on the free plan it is Claude that ends a lesson, not the service. The session ran out 26 minutes after the first task, and the next one starts five hours after the first message of the last. The risk is real, but smaller than feared: a family gets a long lesson every five hours, not three tasks. The number holds for Sonnet 5.5 at medium effort, since a higher effort spends a session faster; and finding 1 below would have a parent spend two messages on every task. No question for PRODUCT 12.2 is needed.
+
+### Findings
+
+1. **The model asks for the answer's letter in the chat.** Under the first task's card, the model wrote: "Новое задание уже на карточке. Когда Бип выберет ответ, напишите мне букву (A–E), и я её запишу" — the task is on the card; when the child picks an answer, write me the letter and I will record it. The card records an answer by itself, and the instructions say so twice, the first time in "Always", which also says that once a card shows a task, the model says nothing about it. A parent who did as asked would spend a message and a turn on every task — the very limit this run measures. Whether the model wrote it under every card was not counted.
+2. **The waiting card changes its language mid-wait.** Before `next_task` answers, the card speaks the host's language — English, the language of the author's Claude — and with the answer it switches to the profile's, Russian, and gains its top line and grade. That is how `ChoosingCard` is written ("it speaks the host's language"), but a child sees the wait begin in one language and go on in another. The host can hand the card the call's arguments before its result (`ui/notifications/tool-input`, `ontoolinput` in ext-apps 2.0.3), and `next_task` is called with `language`.
+3. **After the limit, "Another task" cannot reach the chat, and the card has no word for it.** The send fails in the chat (above). What the card showed then was not seen: it reports an ask the host refused as not sent (`chat.not_sent`), and one the host took as taken, and which of the two Claude answers at the limit is not known.
+4. **After the limit, no card and no progress.** Once the send failed, the chat showed the failed message alone, and there was no card to open the progress from — although the answer on the open card had been recorded half a minute before. Whether the cards come back when the chat is opened again, and whether their calls go through then, was not checked.
+
+The fixes are T64.5 in RUN.md.
 
 ## How to repeat it
 
@@ -236,3 +291,5 @@ just usage 1h
 ```
 
 Port 8976 must be forwarded in VS Code (the Ports panel). An account whose profile is real goes first in `paces`, and not first in `ceiling` (`docs/load.md`).
+
+T64.4 is a lesson in Claude on the free plan, held as its section describes, followed by `just report 1h` while the lesson's hour is still the last one.

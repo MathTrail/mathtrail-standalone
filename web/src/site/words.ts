@@ -56,10 +56,22 @@ export function groupKey(group: { readonly id: string }): SiteKey {
  */
 export function gradesText(
 	words: Words<SiteKey>,
+	grades: readonly [number, number],
+): string {
+	return words.text("topics.grades", {
+		range: gradesRange(words.locale, grades),
+	});
+}
+
+/**
+ * gradesRange is a span of grades as its numbers alone, "3–6", written the
+ * way the language of locale writes numbers: for a sentence that says the
+ * grades in words of its own.
+ */
+export function gradesRange(
+	locale: string,
 	[first, last]: readonly [number, number],
 ): string {
-	const numbers = new Intl.NumberFormat(words.locale);
-	return words.text("topics.grades", {
-		range: `${numbers.format(first)}–${numbers.format(last)}`,
-	});
+	const numbers = new Intl.NumberFormat(locale);
+	return `${numbers.format(first)}–${numbers.format(last)}`;
 }

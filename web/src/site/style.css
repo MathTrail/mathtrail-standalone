@@ -411,6 +411,23 @@ a:hover {
 	color: var(--s-page);
 }
 
+/* The header's button, the one thing it asks a reader to do: a size smaller
+   than a page's own buttons, whose rules it comes after, and left out on a
+   phone, which has no room for it beside the menu — the menu leads to the
+   same place. */
+.s-nav-action {
+	min-block-size: 40px;
+	padding-inline: 20px;
+	font-size: 0.9375rem;
+	white-space: nowrap;
+}
+
+@media (max-width: 719px) {
+	.s-nav-action {
+		display: none;
+	}
+}
+
 /* The footer: white under a hairline, with the pages, the code and the
    address in grey. */
 .s-footer {
@@ -2589,5 +2606,283 @@ a:hover {
 @media (max-width: 479px) {
 	.s-contact {
 		padding: var(--space-24);
+	}
+}
+
+/* The home page. Its first screen: the buttons under the promise, and a line
+   under them on where it works. */
+.s-hero-actions {
+	justify-content: flex-start;
+	margin: 0;
+}
+
+.s-hero-note {
+	margin: 0;
+	color: var(--s-muted);
+	font-size: 0.9375rem;
+}
+
+/* The line over a section's heading that says what part of the page it is. */
+.s-eyebrow {
+	margin: 0;
+	color: var(--s-accent);
+	font-size: 0.875rem;
+	font-weight: 600;
+}
+
+/* The chat a card stands in: a white frame under the chat's name, with the
+   parent's message above the card, and the model's messages tinted against
+   the white. */
+.s-frame {
+	inline-size: 100%;
+	max-inline-size: 440px;
+	overflow: hidden;
+	border: 1px solid var(--s-line);
+	border-radius: 24px;
+	background: var(--s-page);
+}
+
+.s-frame-head {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	margin: 0;
+	padding: 10px 16px;
+	border-block-end: 1px solid var(--s-line);
+	color: var(--s-muted);
+	font-size: 0.8125rem;
+	font-weight: 500;
+}
+
+.s-frame-body {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-12);
+	padding: var(--space-16);
+}
+
+.s-frame-body > .s-message {
+	align-self: stretch;
+}
+
+.s-frame .s-message-model .s-bubble {
+	background: var(--s-tint);
+}
+
+/* How a lesson goes: each step's words beside the card as it stands at that
+   step, one under the other on a narrow screen. Beside a card taller than
+   themselves, the words stay in sight while the card scrolls past. A step
+   within the one before it has a short line in place of a number. */
+.s-walk {
+	display: flex;
+	flex-direction: column;
+	gap: 72px;
+	margin: 56px 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.s-walk-step {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: var(--space-24);
+}
+
+.s-walk-copy {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-12);
+	max-inline-size: 560px;
+}
+
+.s-walk-copy h3 {
+	margin: 0;
+	font-size: clamp(1.5rem, 1.25rem + 0.6vw, 1.75rem);
+	font-weight: 500;
+	line-height: 1.2;
+	letter-spacing: -0.015em;
+}
+
+.s-walk-number {
+	color: var(--s-accent);
+	font-size: 1.125rem;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+.s-walk-within .s-walk-number {
+	inline-size: 24px;
+	block-size: 1px;
+	margin-block: 12px;
+	background: var(--s-line-strong);
+}
+
+.s-walk-card {
+	display: flex;
+	justify-content: center;
+}
+
+@media (min-width: 960px) {
+	.s-walk-step {
+		grid-template-columns: minmax(0, 1fr) 440px;
+		align-items: start;
+		gap: 80px;
+	}
+
+	.s-walk-copy {
+		position: sticky;
+		inset-block-start: calc(64px + var(--space-32));
+		padding-block-start: var(--space-32);
+	}
+}
+
+.s-walk-note {
+	margin-block-start: 56px;
+}
+
+/* Connecting: Claude's steps on a tinted panel, and ChatGPT's on a white one
+   beside them, one under the other on a narrow screen. */
+.s-connect {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	align-items: start;
+	gap: var(--space-24);
+	margin-block-start: 48px;
+}
+
+@media (min-width: 960px) {
+	.s-connect {
+		grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+	}
+}
+
+.s-connect-panel {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-20);
+	padding: 40px;
+	border-radius: 32px;
+	background: var(--s-tint);
+}
+
+.s-connect-muted {
+	border: 1px solid var(--s-line);
+	background: var(--s-page);
+}
+
+.s-connect-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-12);
+}
+
+.s-connect-head h3 {
+	margin: 0;
+	font-size: 1.75rem;
+	font-weight: 500;
+	line-height: 1.2;
+	letter-spacing: -0.015em;
+}
+
+.s-pill {
+	display: inline-flex;
+	align-items: center;
+	min-block-size: 28px;
+	padding-inline: 12px;
+	border: 1px solid var(--s-line-strong);
+	border-radius: var(--radius-pill);
+	color: var(--s-muted);
+	font-size: 0.8125rem;
+	font-weight: 600;
+}
+
+.s-pill-ok {
+	border-color: transparent;
+	background: var(--s-right);
+	color: var(--s-on-right);
+}
+
+.s-connect-steps {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-16);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.s-connect-steps li {
+	display: flex;
+	align-items: flex-start;
+	gap: 14px;
+}
+
+.s-connect-number {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 28px;
+	block-size: 28px;
+	border-radius: 50%;
+	background: var(--s-accent);
+	color: var(--s-page);
+	font-size: 0.8125rem;
+	font-weight: 600;
+}
+
+.s-connect-step {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	min-inline-size: 0;
+	padding-block-start: 2px;
+}
+
+.s-connect-text {
+	margin: 0;
+	font-size: 1.0625rem;
+	line-height: 1.55;
+}
+
+/* The connector's address in full: a click selects the whole of it, to be
+   copied as it stands. */
+.s-address {
+	display: block;
+	padding: 10px 18px;
+	border: 1px solid var(--s-line);
+	border-radius: var(--radius-pill);
+	background: var(--s-page);
+	font-family: var(--font-mono);
+	font-size: 0.875rem;
+	overflow-wrap: anywhere;
+	user-select: all;
+}
+
+.s-connect-note,
+.s-connect-need {
+	margin: 0;
+	color: var(--s-muted);
+	font-size: 0.9375rem;
+}
+
+.s-connect-need {
+	margin-block-start: var(--space-24);
+}
+
+@media (max-width: 719px) {
+	.s-connect-panel {
+		padding: var(--space-24);
+	}
+}
+
+/* On a phone the chat's frame keeps a narrower margin, so that the card in it
+   keeps the width a chat gives it. */
+@media (max-width: 479px) {
+	.s-frame-body {
+		padding: var(--space-8);
 	}
 }

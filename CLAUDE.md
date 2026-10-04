@@ -106,18 +106,21 @@ internal/
   apierror/       the shape of an HTTP error answer, as the platform's other services have it
   app/            DI container, HTTP server
   config/ logger/ version/
+  learner/        the name a child is counted under in the log: one a calendar month, from a key of its own, leading back to no child
   ratelimit/      the pace requests are let in at, counted in the instance's own memory; ratelimittest/ holds paces for tests
   report/         adds the service's log up into the numbers it is written for: tasks, refusals, time, limits, tool calls
   telemetry/      traces and metrics: their providers, their export, what they may carry
   widget/         the widget page as the web build left it, embedded, and the design tokens; a placeholder until a build runs
   domain/         pure logic — no I/O, no SDKs, no transport
     rating/ tutor/ checks/ solver/ profile/ progress/
+    country/      the countries, and the states of the United States, a family can say it lives in, by their ISO 3166 codes
   infra/          everything that talks to the outside world
     seal/
     starlark/     runs the solver the model wrote, within its limits; starlarktest/ watches its slots in tests
     drive/        reaches the files in a parent's Drive, one request per call; drivetest/ stands in for Drive in tests
     cimd/         fetches a client's metadata document, reaching public addresses only
     googleauth/   signs a parent in with Google and proves who it was, renews the grant and ends it; googletest/ stands in for Google in tests
+    geoip/        finds the country an address was handed out in, in a database of the service's own read at start; geoiptest/ writes one for tests
   store/          storage interface plus its in-memory and Drive implementations (memory/, and drive/ as package drivestore); storetest/ holds both to one contract
   transport/
     mcp/          tools, ui:// resources

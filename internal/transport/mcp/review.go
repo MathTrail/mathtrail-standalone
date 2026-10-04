@@ -153,7 +153,7 @@ func (s *Service) stepsText(steps []progress.Step, language string) string {
 func (s *Service) stepTopic(step progress.Step, language string) string {
 	name := s.topicName(step.Topic)
 	topic, _ := s.content.Topic(step.Topic)
-	if address := pageAddress(s.site, language, topic, stepAnchor(step.Kind)); address != "" {
+	if address := pageAddress(s.site, language, &topic, stepAnchor(step.Kind)); address != "" {
 		return name + " (" + address + ")"
 	}
 	return name
@@ -170,7 +170,8 @@ func stepAnchor(kind progress.StepKind) string {
 }
 
 // stepAdvice is what a step advises, in a sentence: a trap's advice as the
-// catalog writes it, or the advice of the step's kind.
+// catalog writes it, or the advice of the step's kind — and nothing for a kind
+// it has no words for.
 func (s *Service) stepAdvice(step progress.Step) string {
 	switch step.Kind {
 	case progress.StepTrap:

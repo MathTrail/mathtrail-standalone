@@ -1,9 +1,11 @@
 import { Window } from "happy-dom";
+import type { VNode } from "preact";
 import { renderToString } from "preact-render-to-string";
 import { afterAll, afterEach, describe, expect, test, vi } from "vitest";
 import type { Section } from "../widget/folds";
 import { readAnswer, readHandedTask, readScreen } from "../widget/payload";
 import {
+	buttonIn,
 	type Drawn,
 	drawCard,
 	press,
@@ -12,11 +14,17 @@ import {
 } from "../widget/testing/card";
 import {
 	answered,
+	coming,
 	fenceInRussian,
 	fenceSolutionInRussian,
 	standing,
 } from "../widget/testing/lesson";
-import { StaticAnswer, StaticProgress } from "./StaticCard";
+import {
+	StaticAnswer,
+	StaticComing,
+	StaticProgress,
+	StaticTask,
+} from "./StaticCard";
 
 // browser reads the static card the way a page holds it, apart from the card
 // the widget draws in this test's own document.
@@ -201,5 +209,132 @@ describe("a card of a wrong answer drawn on a page", () => {
 			"D muted",
 			"E muted",
 		]);
+	});
+});
+
+// never is an answer that never comes: a card waiting on it stays as it is.
+const never = () => new Promise<never>(() => {});
+
+// pageOf reads a card drawn on a page back as a page holds it.
+function pageOf(card: VNode) {
+	return new browser.DOMParser().parseFromString(
+		renderToString(card),
+		"text/html",
+	);
+}
+
+// handedFence is the fence in Russian as a card reads a task handed out.
+function handedFence() {
+	const handed = readHandedTask(russianFence);
+	if (handed === undefined) {
+		throw new Error("the example is no task handed out");
+	}
+	return handed;
+}
+
+// optionIn is the option of root whose letter is letter.
+function optionIn(root: HTMLElement, letter: string): HTMLButtonElement {
+	const found = [
+		...root.querySelectorAll<HTMLButtonElement>(".mt-option"),
+	].find(
+		(row) => row.querySelector(".mt-option-letter")?.textContent === letter,
+	);
+	if (found === undefined) {
+		throw new Error(`the card has no option ${letter}`);
+	}
+	return found;
+}
+
+// sameCard holds a card drawn on a page to the card a chat drew, but for the
+// build the chat's names.
+function sameCard(page: ReturnType<typeof pageOf>, root: HTMLElement) {
+	const chat = withoutBuild(root.querySelector(".mt-widget"));
+	expect(page.querySelector(".mt-widget")?.textContent).toBe(chat?.textContent);
+	expect(shape(page.querySelector(".mt-widget"))).toEqual(shape(chat));
+}
+
+describe("a card of a task drawn on a page from where its lesson stands", () => {
+	test("with an option picked and being checked, is the card a chat draws while the answer is on its way", async () => {
+		drawn = await drawCard(russianFence, { tools: never });
+		press(optionIn(drawn.root, "B"));
+		const root = drawn.root;
+		await vi.waitFor(() =>
+			expect(optionIn(root, "B").dataset.state).toBe("selected"),
+		);
+
+		sameCard(
+			pageOf(
+				<StaticTask
+					handed={handedFence()}
+					start={{
+						hint: { open: false, used: false },
+						answer: { state: "checking", choice: "B" },
+					}}
+					locale="ru"
+				/>,
+			),
+			root,
+		);
+	});
+
+	test("with its hint open, is the card a chat draws once the hint is pressed", async () => {
+		drawn = await drawCard(russianFence, { tools: never });
+		press(buttonIn(drawn.root, "Подсказка"));
+		const root = drawn.root;
+		await vi.waitFor(() =>
+			expect(root.querySelector(".mt-note-hint")).not.toBeNull(),
+		);
+
+		sameCard(
+			pageOf(
+				<StaticTask
+					handed={handedFence()}
+					start={{
+						hint: { open: true, used: true },
+						answer: { state: "open" },
+					}}
+					locale="ru"
+				/>,
+			),
+			root,
+		);
+	});
+});
+
+describe("a card of a task being written, drawn on a page", () => {
+	// comingInRussian is a task asked for in a lesson in Russian.
+	const comingInRussian = {
+		...coming,
+		child: fenceInRussian.child,
+		language: "ru",
+	};
+
+	test("is the card a chat draws before the service has said anything of the task", async () => {
+		drawn = await drawCard(comingInRussian, { tools: never });
+
+		sameCard(
+			pageOf(
+				<StaticComing
+					coming={{
+						requestId: comingInRussian.request_id,
+						child: comingInRussian.child,
+					}}
+					locale="ru"
+				/>,
+			),
+			drawn.root,
+		);
+	});
+
+	test("is inert, and names no build", () => {
+		const page = pageOf(
+			<StaticComing
+				coming={{ requestId: "req", child: fenceInRussian.child }}
+				locale="ru"
+			/>,
+		);
+
+		expect(page.querySelector(".s-card")?.hasAttribute("inert")).toBe(true);
+		expect(page.querySelector(".mt-version")).toBeNull();
 	});
 });

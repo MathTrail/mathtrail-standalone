@@ -2,6 +2,7 @@ import { topicName } from "../widget/names";
 import { cardWords } from "../widget/words";
 import { address } from "./addresses";
 import type { SiteData } from "./data";
+import { connectAddress } from "./home";
 import type { PageProps } from "./pages";
 import type { PageReader } from "./reader";
 import { Solution } from "./Solution";
@@ -316,8 +317,8 @@ function Cues({
 	);
 }
 
-// End closes the page: the techniques are to be tried on problems, and every
-// topic has them.
+// End closes the page: the techniques are to be tried on problems, in a chat
+// MathTrail is added to, and every topic has them.
 function End({ page }: { page: PageReader }) {
 	const words = useSiteWords();
 	return (
@@ -326,6 +327,9 @@ function End({ page }: { page: PageReader }) {
 				<h2 class="s-ask-title">{page.text("end.title")}</h2>
 				<p class="s-ask-lead">{page.text("end.lead")}</p>
 				<p class="s-choices">
+					<a class="s-btn s-btn-filled" href={connectAddress(page.locale)}>
+						{words.text("nav.add")}
+					</a>
 					<a class="s-btn" href={address(page.locale, "topics")}>
 						{words.text("topic.all")}
 					</a>

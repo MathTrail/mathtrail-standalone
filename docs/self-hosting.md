@@ -1,6 +1,6 @@
 # Running your own copy
 
-MathTrail is MIT-licensed and holds nothing of its own: every deployment is one Cloud Run service, one Artifact Registry repository, two secrets and a domain, in a Google Cloud project you control, beside a small site on GitHub Pages that carries its privacy policy and terms. This page is how that gets created — and almost none of it is done by hand. The repository describes the deployment, and its workflows deliver it.
+MathTrail is MIT-licensed and holds nothing of its own: every deployment is one Cloud Run service, one Artifact Registry repository, three secrets and a domain, in a Google Cloud project you control, beside a small site on GitHub Pages that carries its privacy policy and terms. This page is how that gets created — and almost none of it is done by hand. The repository describes the deployment, and its workflows deliver it.
 
 The name is not part of the licence: a copy that runs publicly goes by a name of its own ([below](#a-name-of-your-own)).
 
@@ -76,6 +76,8 @@ Google publishes a consent screen only with a home page, a privacy policy and te
 
 The site is published on every push to `main`. Have it live before the consent screen: Google asks for the policy's address.
 
+The progress links each topic's name to its page on this site, and the words for the model name those pages too, at addresses built from `MATHTRAIL_SITE_URL`, the page's language and the topic's slug. Nothing turns the links off, so publish the site from the commit the service is delivered from: a service ahead of its site links to pages the site does not have yet.
+
 ## 5. The Google sign-in
 
 The parent signs in with Google, and the service asks Google for exactly two things: a verified identifier, and room for one file of its own in the parent's Drive. It is configured in the Google Cloud console, under **Google Auth Platform**, on its four pages.
@@ -109,7 +111,7 @@ Settings → Secrets and variables → Actions → Secrets:
 
 The bootstrap needs the second one too, so export it there: `TF_VAR_billing_account=01ABCD-234567-89EFGH just bootstrap`.
 
-The key everything is sealed with is in neither list: the pipeline generates 32 random bytes on the first apply and writes them straight into Secret Manager. No person, no state file and no log ever sees that value.
+The key everything is sealed with is in neither list, and neither is the key the children are counted under in the log: the pipeline generates 32 random bytes for each on the first apply and writes them straight into Secret Manager. No person, no state file and no log ever sees either value.
 
 ## 8. Deliver
 
@@ -186,6 +188,7 @@ gcloud artifacts repositories describe mathtrail --location=us-central1
 | `create_domain_mapping` | `true` | Whether `public_host` is mapped onto the service |
 | `seal_key_version` | `1` | The secret version the service seals with |
 | `seal_key_previous_version` | empty | The version still accepted while a key is being rotated |
+| `learner_key_version` | `1` | The secret version the children are counted under in the log; never rotated with the sealing key, and only at the turn of a month |
 | `google_client_secret_version` | `1` | The secret version the sign-in authenticates with |
 | `settings` | `{}` | Extra environment variables of the service — the site's address, ceilings and timeouts, never a secret. The solver slots and `GOMEMLIMIT` follow `cpu` and `memory`, and are refused here |
 | `budget_amount`, `budget_currency` | `1`, `USD` | Where the spend alert fires |
@@ -197,7 +200,8 @@ gcloud artifacts repositories describe mathtrail --location=us-central1
 The service reads its configuration from environment variables alone; every one of them, with its default and what reads it, is in [section 11.2 of the spec](../SPEC.md#112-the-environment). A deployment described here sets them three ways:
 
 - **From the variables above**, by Terraform: `MATHTRAIL_PUBLIC_URL` from `public_host`, `MATHTRAIL_GOOGLE_CLIENT_ID` from `google_oauth_client_id`, `MATHTRAIL_GCP_PROJECT_ID` from `project_id`, `MATHTRAIL_SOLVER_CONCURRENCY` from `cpu`, and `GOMEMLIMIT` from `memory`. `PORT` and `K_SERVICE` come from Cloud Run itself.
-- **From Secret Manager**, read by Cloud Run as an instance starts: `MATHTRAIL_SEAL_KEY_CURRENT`, `MATHTRAIL_SEAL_KEY_PREVIOUS` during a rotation, and `MATHTRAIL_GOOGLE_CLIENT_SECRET`.
+- **From Secret Manager**, read by Cloud Run as an instance starts: `MATHTRAIL_SEAL_KEY_CURRENT`, `MATHTRAIL_SEAL_KEY_PREVIOUS` during a rotation, `MATHTRAIL_LEARNER_KEY` and `MATHTRAIL_GOOGLE_CLIENT_SECRET`.
+- **From the image**, which sets it: `MATHTRAIL_COUNTRY_DB`, the database of countries the image carries.
 - **Through `settings`**, everything else. One of them a copy has to set, because its default is this deployment's site:
 
 ```hcl
@@ -222,7 +226,8 @@ The rest have the defaults the service is meant to run with. The ones a deployme
 ## What nothing in this repository owns
 
 - **The project's billing.** Linked by the bootstrap, owned by whoever pays.
-- **The values of the secrets.** One is generated by the pipeline and read by nobody; the other is pasted once. Neither is ever in the state.
+- **The values of the secrets.** Two are generated by the pipeline and read by nobody; the third is pasted once. None is ever in the state.
+- **The months of the database of countries.** Each is published from a developer's machine with `just countries-publish`, as an image of its own; see below.
 - **The Google OAuth client and the consent screen.** No API exists; they are the reason step 5 is done by hand.
 - **Domain ownership and DNS.** At the registrar and in Search Console.
 - **The site's Pages settings.** Its source and its domain, in the repository's settings.
@@ -234,7 +239,7 @@ The intent is $0, and inside the free allowance it is $0 — but the allowance i
 
 - **Cloud Run** beyond the monthly free requests, vCPU-seconds and GiB-seconds, or beyond the free egress from North America. `min_instance_count` is 0 and CPU is allocated only during requests, so an idle service costs nothing; a service that is being used a great deal does not stay free.
 - **Artifact Registry** beyond half a gigabyte of images. The cleanup policies keep the repository small; a deployment that pushes many images a day should check that they are working.
-- **Secret Manager** beyond six active versions or the monthly free accesses. A version is read once per instance start, and the rotation keeps at most three versions live.
+- **Secret Manager** beyond six active versions or the monthly free accesses. A version is read once per instance start, and the rotation keeps at most four versions live: three of the sealing key and the one key the children are counted under.
 - **Cloud Logging** beyond the free monthly ingestion.
 - **Cloud Trace** beyond 2.5 million spans a month. The platform's own traces of incoming requests are not billed at all; these are the spans the service adds inside them, and the sampler is what keeps their number a fraction of the requests.
 - **Cloud Monitoring** beyond 150 MiB a month of ingested metrics of our own. The platform's own metrics of the service are free; ours are the three of section 12.5 of the spec. What passes that allowance is not traffic but series, and a series is created by every new combination of labels — which is why every label here is drawn from a closed list and no label ever carries anything a caller chose. One label holding a user or a task identifier would pass it in a week.
@@ -277,7 +282,7 @@ gcloud projects get-iam-policy PROJECT_ID \
   --format="value(bindings.role)"
 ```
 
-It should name `roles/telemetry.writer` and `roles/serviceusage.serviceUsageConsumer`, and nothing else. The runtime identity's one other right — reading the two secrets — is granted on those secrets rather than on the project, so it does not appear here and its absence from this list is not a fault.
+It should name `roles/telemetry.writer` and `roles/serviceusage.serviceUsageConsumer`, and nothing else. The runtime identity's one other right — reading the three secrets — is granted on those secrets rather than on the project, so it does not appear here and its absence from this list is not a fault.
 
 None of this is billed: granting a role and enabling an API cost nothing.
 
@@ -300,6 +305,23 @@ seal_key_previous_version = "2"
 ```
 
 Tokens sealed with the previous key keep working until they expire on their own, so nobody is signed out by a rotation. Only once the deployment is serving with the new version does the version that fell off the end get disabled.
+
+## The key the children are counted under
+
+The lines a child is counted from name the child by a name that holds for a calendar month, derived from `mathtrail-learner-key` (section 12.1 of the spec). It is not rotated with the sealing key, and it is best never rotated: a new key gives every child a new name, and a month that sees both counts every child twice. If it has to be, do it at the turn of a month in UTC — add a version as for the sealing key, and set `learner_key_version` to it.
+
+## The database of countries
+
+The country a parent signs in from is looked up in DB-IP's IP to Country Lite, which DB-IP publishes once a month under the Creative Commons Attribution 4.0 licence and keeps to download for about three months. The runtime image copies one month of it from an image of this repository's own, pinned in the `Dockerfile` by tag and digest, so that a build never depends on how long DB-IP keeps a month. Publishing a newer month needs `docker`, and `gh` signed in with the right to write packages (`gh auth refresh -h github.com -s write:packages`):
+
+```bash
+just countries-publish 2026-11   # without a month, this month's
+just licenses
+```
+
+The recipe downloads the month from DB-IP, publishes it unchanged as `ghcr.io/mathtrail/mathtrail-standalone/dbip-country-lite:<month>`, never over a month already published, and pins the `Dockerfile` to it. The first time, the package is private: make it public in its settings on GitHub, or no build that is not signed in to GHCR can pull it. A copy of yours publishes under its own owner: change the name in the `justfile` and the `Dockerfile`. Every place that shows what the database found has to say it comes from DB-IP, with a link: `THIRD_PARTY_LICENSES` and the privacy policy do.
+
+A binary run without the image needs the file itself: download a month from DB-IP, unzip it and name it in `MATHTRAIL_COUNTRY_DB`. A deployment refuses to start without one.
 
 ## When the pipeline is not available
 

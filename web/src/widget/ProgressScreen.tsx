@@ -282,21 +282,18 @@ function useLinking(host: Host, note: string): Linking | undefined {
 				return;
 			}
 			asking.current.add(href);
-			void host
-				.openLink(href)
-				.catch(() => false)
-				.then((opened) => {
-					asking.current.delete(href);
-					setRefused((was) => {
-						const next = new Set(was);
-						if (opened) {
-							next.delete(href);
-						} else {
-							next.add(href);
-						}
-						return next;
-					});
+			void host.openLink(href).then((opened) => {
+				asking.current.delete(href);
+				setRefused((was) => {
+					const next = new Set(was);
+					if (opened) {
+						next.delete(href);
+					} else {
+						next.add(href);
+					}
+					return next;
 				});
+			});
 		},
 	};
 }

@@ -331,8 +331,11 @@ describe("the page of the techniques", () => {
 		expect(inside.filter((id) => !ids.includes(id))).toEqual([]);
 	});
 
-	test("closes with the way to every topic", () => {
-		expect(all(".s-ask .s-btn", "href")).toEqual(["/en/topics/"]);
+	test("closes with the way to add the app on the home page, and to every topic", () => {
+		expect(all(".s-ask .s-btn", "href")).toEqual([
+			"/en/#connect",
+			"/en/topics/",
+		]);
 	});
 
 	test("is refused when the words give the hint another number of rows than the data", () => {

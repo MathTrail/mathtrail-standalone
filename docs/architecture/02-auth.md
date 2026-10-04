@@ -26,7 +26,7 @@ One process wears two hats: it is the **authorization server** the host signs in
 | `/oauth/register` | POST | RFC 7591 registration, kept as the fallback for a host without CIMD (R03); stateless — the record is sealed into the `client_id` itself | public |
 | `/oauth/authorize` | GET | validates the client, the redirect URI, PKCE, `resource` and `scope`; shows the consent screen or goes straight on to Google | the parent's browser |
 | `/oauth/consent` | POST | the parent's approval of this client; the only thing it adds is a cookie entry | CSRF cookie |
-| `/oauth/callback` | GET | Google's redirect target: verifies the state and the cookie, exchanges Google's code, issues **our** code | CSRF cookie |
+| `/oauth/callback` | GET | Google's redirect target: verifies the state and the cookie, exchanges Google's code, looks the country of the parent's browser up, issues **our** code | CSRF cookie |
 | `/oauth/token` | POST | `authorization_code` and `refresh_token` | PKCE / the refresh token |
 | `/oauth/revoke` | POST | RFC 7009; revokes the grant at Google | the token itself |
 | `/mcp` | GET, POST | the protected resource | Bearer |
@@ -212,9 +212,9 @@ Everything below is opaque to the client: a purpose tag, a key id and one AEAD c
 
 | What | What is inside | Sealed with | Lives for | Where it is kept |
 |---|---|---|---|---|
-| Authorization code `mt1.c.` | user id, Google refresh token, Google access token and its expiry, the digest of the client id, exact redirect URI, `code_challenge`, resource, scope, issued-at — no random id, and the client by its digest (SPEC remark 54) | purpose `code` | 60 s | in the redirect URL, then in the host's memory |
-| Access token `mt1.a.` | user id, client id, resource (the audience), scope, Google access token and its expiry, issued-at, expiry | purpose `access` | 15 min, and never past the Google token inside it minus 3 min — the resource's minute of allowance, a minute of clocks, and a minute of the tool calling Drive; the Google token's life is counted from the moment it was asked for (R117) | the host's token store |
-| Refresh token `mt1.r.` | user id, client id, resource, scope, Google refresh token, Google access token and its expiry, the original sign-in time, issued-at, expiry | purpose `refresh` | 30 days sliding, at most 90 days from the original sign-in | the host's token store |
+| Authorization code `mt1.c.` | user id, the country the parent's browser signed in from (when it is known), Google refresh token, Google access token and its expiry, the digest of the client id, exact redirect URI, `code_challenge`, resource, scope, issued-at — no random id, and the client by its digest (SPEC remark 54) | purpose `code` | 60 s | in the redirect URL, then in the host's memory |
+| Access token `mt1.a.` | user id, the sign-in's country, client id, resource (the audience), scope, Google access token and its expiry, issued-at, expiry | purpose `access` | 15 min, and never past the Google token inside it minus 3 min — the resource's minute of allowance, a minute of clocks, and a minute of the tool calling Drive; the Google token's life is counted from the moment it was asked for (R117) | the host's token store |
+| Refresh token `mt1.r.` | user id, the sign-in's country, client id, resource, scope, Google refresh token, Google access token and its expiry, the original sign-in time, issued-at, expiry | purpose `refresh` | 30 days sliding, at most 90 days from the original sign-in | the host's token store |
 | DCR registration, the `client_id` itself `mt1.d.` | redirect URIs, client name, created-at | purpose `client` | as long as the key that sealed it is still loaded | the host's client store |
 | The request context, our `state` towards Google `mt1.s.` | the digest of the client id and how the client is known, redirect URI, the host's own `state`, `code_challenge`, resource, scope, our PKCE verifier and nonce for Google, the hash of the cookie nonce, issued-at | purpose `state` | 10 min | the URL at Google, and the parent's browser |
 | CSRF cookie `__Host-mt_csrf` | 32 random bytes, nothing else | not sealed — it is compared by hash | 10 min | the parent's browser, HttpOnly Secure SameSite=Lax, path `/`: the prefix keeps it to this host alone, so that no site under the same domain can set one in its place |
@@ -255,6 +255,10 @@ The per-user limits of PRODUCT 6 need a stable identifier, and Google's `sub` mu
 
 Because it is carried rather than recomputed, a key rotation cannot change the identifier under a live session — only the next fresh sign-in produces a new one. What that costs: the in-memory rate-limit buckets for a returning parent start empty (they live for minutes anyway, and the daily counter of accepted tasks lives in the profile file, not here), and log aggregates cannot be tied together across a rotation, which is a property О-16 does not ask for. What it constrains: nothing durable may be keyed by this identifier — in particular the Drive file lookup in T10 must not be, or a rotation would orphan profiles.
 
+## The country of the sign-in
+
+The one request of a sign-in that comes from the parent's own browser rather than from the servers of their chat is the callback, where Google sends the browser back. There, and nowhere else, the address the request came from — the last hop of `X-Forwarded-For`, as the pace reads it (SPEC 9.2) — is looked up in a database of countries the service carries, DB-IP's IP to Country Lite, and only the two-letter code is kept: it is sealed into the code and from there into every token, as the user identifier is, and the line about a task handed out carries it as `signin_country` (SPEC 12.2). The address itself is neither written nor kept. A tool call says nothing of where the family is — it comes from the host's servers — so a renewal keeps the country of the sign-in it renews, and a fresh sign-in from elsewhere brings the country with it. An address no country holds — a private network, the machine itself — is looked up nowhere, a code the list of countries does not have is no country, and a token issued before the country was kept carries none: each is `unknown` on the line. Nothing is sent anywhere to find it out: the database is a file of the service's own (R185).
+
 ## Scopes
 
 Our own scope set is one scope, `mcp`, advertised in `scopes_supported` and in the 401 challenge. Towards Google we ask for exactly two: `openid`, for a verified `sub` in the ID token, and `https://www.googleapis.com/auth/drive.file`, the per-file scope that needs no restricted-scope review (PRODUCT 9.3). Google's scopes are never visible to the host: the host's token is ours, and it is about our resource.
@@ -280,6 +284,7 @@ The acceptance question for this task is whether one can see that the server sto
 | Google's access and refresh tokens | sealed inside our code, access and refresh tokens, held by the host | their own lifetimes |
 | The signed-in session | the host's token store; we hold no session at all | at most 90 days |
 | The user identifier for limits | inside the tokens; derived, never stored | with the token |
+| The country the parent signed in from | inside the tokens, as a code; the address it was looked up from is kept nowhere | with the token |
 | The child's profile and the current task | a JSON file in the parent's Google Drive (О-5) | until the parent deletes it |
 | Sealing keys | Secret Manager, read into the instance once at startup | the version's lifetime |
 | Rate-limit counters | the instance's memory (О-15, О-24) | minutes |

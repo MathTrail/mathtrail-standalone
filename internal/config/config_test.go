@@ -638,6 +638,13 @@ func TestRefusals(t *testing.T) {
 			wantVar: "MATHTRAIL_LEARNER_KEY",
 		},
 		{
+			// A blank value is a key given wrong, not a key left out: a machine
+			// handed one makes no key of its own in its place.
+			name:    "a key to count children under that is blank",
+			environ: []string{"MATHTRAIL_LEARNER_KEY= \n"},
+			wantVar: "MATHTRAIL_LEARNER_KEY",
+		},
+		{
 			// The same bytes as a sealing key would rename every child the day
 			// that key is rotated.
 			name:    "a key to count children under that is the sealing key",

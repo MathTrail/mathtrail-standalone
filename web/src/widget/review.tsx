@@ -37,11 +37,11 @@ export type PageAt = (topic: string, anchor: Anchor) => string | undefined;
  * reviewSaid is the review in the card's words, with the mistakes that repeat
  * as their lines, and each step in a topic linked to the part of its page the
  * step is about, by pageAt: a trap's advice to where its mistakes are told,
- * the rest to how to help at home. What the card has no words for — a reason, a kind of step, a
- * mistake's advice, or a mistake's name inside a sentence, that a later release
- * adds — is left out rather than said wrong. A topic named for no reason the
- * card can say keeps its name, and a mistake that repeats is called by its id,
- * as every name the card lacks is.
+ * the rest to how to help at home. What the card has no words for — a reason,
+ * a kind of step, a mistake's advice, or a mistake's name inside a sentence,
+ * that a later release adds — is left out rather than said wrong. A topic
+ * named for no reason the card can say keeps its name, and a mistake that
+ * repeats is called by its id, as every name the card lacks is.
  */
 export function reviewSaid(
 	words: Words<Key>,

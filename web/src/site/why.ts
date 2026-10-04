@@ -1,14 +1,11 @@
 import { z } from "zod";
 import {
-	type AnswerResult,
-	type HandedTask,
-	type Letter,
-	letters,
-	readAnswer,
-	readHandedTask,
-} from "../widget/payload";
-import { type CatalogTopic, gradesOf } from "./topics";
-import type { CatalogTrap } from "./traps";
+	type CardCatalog,
+	type CardWords,
+	answerOf as cardAnswerOf,
+	checkCard,
+	type WrongAnswer,
+} from "./taskcard";
 
 // doi is what a work's DOI looks like: 10., the registrant's number, a slash,
 // and the name the registrant gave the work.
@@ -101,27 +98,12 @@ export type Why = {
 	readonly sources: readonly Source[];
 };
 
-/**
- * CardWords are the words of the card on the page "Why", in the page's
- * language: whose card it is, the task, the trap behind the wrong option
- * picked, and the solution.
- */
-export type CardWords = {
-	readonly language: string;
-	readonly child: string;
-	readonly question: string;
-	readonly trap: string;
-	readonly solution: string;
-};
+export type { CardWords, WrongAnswer } from "./taskcard";
 
-/**
- * WrongAnswer is the card on the page "Why" as the widget reads one: the task
- * handed to the child, and the wrong answer the service recorded for it.
- */
-export type WrongAnswer = {
-	readonly handed: HandedTask;
-	readonly result: AnswerResult;
-};
+// whyCard is the card on the page as what the build says of it names it, and
+// whyTask the id of the task on it, which the answer recorded for it names.
+const whyCard = "the card on the page Why";
+const whyTask = "site_why";
 
 /**
  * readWhy reads what the page "Why" takes from the site's data, beside the
@@ -133,14 +115,8 @@ export type WrongAnswer = {
  * work no part of the page cites: it would be listed among the sources and
  * back nothing.
  */
-export function readWhy(
-	catalog: {
-		readonly topics: readonly CatalogTopic[];
-		readonly traps: readonly CatalogTrap[];
-	},
-	file: WhyFile,
-): Why {
-	checkCard(catalog, file.card);
+export function readWhy(catalog: CardCatalog, file: WhyFile): Why {
+	checkCard(catalog, file.card, whyCard);
 	for (const id of Object.values(file.topics)) {
 		if (!catalog.topics.some((topic) => topic.id === id)) {
 			throw new Error(
@@ -182,102 +158,10 @@ export function readWhy(
 	};
 }
 
-// checkCard refuses a card the catalog would not have set: of a topic or a
-// trap it does not have, or in a grade the topic is not taught at. It refuses
-// a right answer too, and "I don't know", which names no trap: neither is the
-// card the page talks about.
-function checkCard(
-	catalog: {
-		readonly topics: readonly CatalogTopic[];
-		readonly traps: readonly CatalogTrap[];
-	},
-	card: WhyCard,
-): void {
-	const topic = catalog.topics.find(({ id }) => id === card.topic);
-	if (topic === undefined) {
-		throw new Error(
-			`the card on the page Why is of ${card.topic}, a topic the catalog does not have`,
-		);
-	}
-	const [first, last] = gradesOf(topic.grade_levels);
-	if (card.grade < first || card.grade > last) {
-		throw new Error(
-			`the card on the page Why is set in grade ${card.grade}, which ${card.topic} is not taught in`,
-		);
-	}
-	if (!catalog.traps.some(({ id }) => id === card.trap)) {
-		throw new Error(
-			`the card on the page Why names the trap ${card.trap}, which the catalog does not have`,
-		);
-	}
-	if (!letters.includes(card.choice as Letter)) {
-		throw new Error(
-			`the card on the page Why picks ${card.choice}, and the page shows an option picked: a letter A to E`,
-		);
-	}
-	if (card.choice === card.correct) {
-		throw new Error(
-			"the card on the page Why answers right, and the page shows a wrong answer",
-		);
-	}
-}
-
-// cardTask is the id of the task on the card, which the answer recorded for it
-// names: no service handed it out, and nothing shows it.
-const cardTask = "site_why";
-
 /**
- * answerOf is card with the words said, as the widget reads one: the task
- * handed to the child, and the wrong answer recorded for it. The task has no
- * hint, which a card no longer shows once its answer is in. A card the
- * widget's own readers refuse stops the build.
+ * answerOf is the card on the page with the words said, as the widget reads
+ * one: the task handed to the child, and the wrong answer recorded for it.
  */
 export function answerOf(card: WhyCard, said: CardWords): WrongAnswer {
-	const handed = readHandedTask({
-		screen: "task",
-		child: { pseudonym: said.child, grade: card.grade, ui_language: null },
-		task: {
-			id: cardTask,
-			topic: card.topic,
-			language: said.language,
-			question: said.question,
-			drawing: card.drawing,
-			options: card.options,
-			hint: "",
-		},
-		language: said.language,
-	});
-	if (handed === undefined) {
-		throw new Error(
-			"the card on the page Why is no task the widget can draw: it needs the five options A to E",
-		);
-	}
-	const told = readAnswer(
-		{
-			content: [],
-			structuredContent: {
-				screen: "result",
-				result: {
-					task_id: cardTask,
-					topic: card.topic,
-					choice: card.choice,
-					correct: false,
-					correct_answer: card.correct,
-					trap: { id: card.trap, text: said.trap, repeated: false },
-					solution: said.solution,
-					hint_used: false,
-					rating: card.rating,
-					trial: null,
-					already_answered: false,
-				},
-			},
-		},
-		cardTask,
-	);
-	if (told.kind !== "answered") {
-		throw new Error(
-			"the card on the page Why holds no answer the widget can draw: its choice and its right option are letters A to E",
-		);
-	}
-	return { handed, result: told.result };
+	return cardAnswerOf(card, said, whyTask, whyCard);
 }

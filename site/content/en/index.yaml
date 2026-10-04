@@ -1,0 +1,112 @@
+# The home page, for a parent: what MathTrail is, why not just ask the chat,
+# how a lesson goes — the card of the widget at every step — and how to
+# connect. The grades, the names of the traps, the card's drawing, options and
+# rating, the connector's address and the card's own words are not here: they
+# are the catalog's numbers, the site's data, the widget's words and the
+# site's own.
+
+title: MathTrail — olympiad maths in your chat
+description: "Olympiad maths for children in the chat you already use: checked tasks that do not run out, a diagnosis of every mistake and a memory of how the child is progressing."
+
+hero:
+  free: Free
+  open: Open source
+  title: Olympiad maths, in the chat you already use.
+  # The promise, word for word as the README gives it.
+  lead: An endless stream of checked olympiad-style maths tasks for grades {range}, in any language, with a diagnosis of the child's mistake and a memory of how they are progressing.
+  see: See a lesson
+  note: Works in Claude today, on the free plan too. In ChatGPT once it is listed in ChatGPT's directory.
+  caption: The card as the chat draws it.
+
+# The frame a card stands in: the chat a parent already uses, with the
+# parent's message above the card.
+chat:
+  title: Your chat
+  ask: A new task, please
+  progress: How is my child doing?
+
+pillars:
+  title: Why not just ask the chat?
+  lead: Ask a chat model for “an olympiad task for grade 2” and it may cheerfully hand you a task with no solution, with two correct options, or with the arithmetic wrong. MathTrail leaves the writing to the model and puts a program behind it.
+  items:
+    - title: Tasks do not run out.
+      text: Every task is written for your child — the topic, the difficulty, their interests, the mistakes they make — in the language of your chat, not drawn from a fixed bank in one language.
+    - title: A program checks the model.
+      text: A task reaches the child only after it passes the checks — exactly one correct option, the answer reproduced by a solver that tries every case, readability for the grade, no near copy of the text of earlier tasks, a well-formed text drawing.
+    - title: A wrong answer is a diagnosis.
+      # The traps are the catalog's, under the names the card gives them.
+      text: Every wrong option is tied to a named trap — “{first}”, “{second}”, “{third}” — and the explanation starts from how the child reasoned, not from the right answer.
+
+lesson:
+  eyebrow: How a lesson goes
+  title: One task at a time, in your own chat.
+  lead: You sit alongside; your child taps. Beside each step is the card as the chat draws it at that moment.
+  # The steps in the order a lesson takes them, each beside its card.
+  steps:
+    generating:
+      title: Ask for a task
+      text: Type “a new task, please”. MathTrail picks the topic and the difficulty, the chat writes the task, and a program checks every answer before your child sees it.
+    selected:
+      title: Answer with a button
+      text: Five options, A to E. A tap records the answer straight away — before any explanation, so nothing can talk it into being right.
+    hint:
+      title: Stuck? A hint, not the answer
+      text: The hint points to a way in — draw a smaller fence — and the answer stays hidden until your child commits to one.
+    wrong:
+      title: A wrong answer becomes a lesson
+      text: Each wrong option hides a known trap. The card names it from your child's side — “counted the gaps instead of the posts” — then walks through the solution.
+    question:
+      title: Ask why, in your own words
+      text: Once the answer is in, ask in the chat — “why one more post?” — and the model answers about this very task.
+    progress:
+      title: Progress you can read
+      text: The rank reached and the rank of every topic, the mistakes that keep coming back, what comes next — and a review for you of what goes well and what to develop.
+  log: One thing to know — the chat's log of tool calls shows each task together with its answer. Keep it closed while your child solves.
+  # The name of the child the cards show, an invented one.
+  child: Comet
+  # Two messages of the chat beneath a card answered wrong: the child's
+  # question and the model's reply. They are the site's words, never the card's.
+  chat:
+    label: An illustration of the chat
+    child: The child
+    model: The model
+    question: Why one more post?
+    reply: Walk along the fence from the left. Each gap ends with a post, so 4 gaps bring 4 posts, and the first post stands before them all. 4 + 1 = 5.
+
+# The task of the lesson: a variant of a reference task, never one word for
+# word.
+task:
+  question: A fence is 12 metres long. Posts stand every 3 metres, including at both ends. How many posts are there?
+  hint: Try a smaller fence first, 6 metres long, with a post every 3 metres. Draw it and count the posts.
+  # The trap behind the wrong option the steps pick, as the card says it.
+  trap: Counted the gaps instead of the posts.
+  # The solution, a sentence for each step the card numbers.
+  solution: 12 ÷ 3 = 4 gaps. A straight fence with posts at both ends has one post more than gaps. 4 + 1 = 5 posts.
+
+connect:
+  eyebrow: Connect
+  title: A few steps to the first task.
+  claude:
+    pill: Works now · the free plan too
+    # The steps of Claude's own help on custom connectors, as the README gives
+    # them; the address follows the third.
+    steps:
+      open: In Claude, open {connectors}.
+      add: Press **+** and choose **Add custom connector**.
+      paste: "Paste the address:"
+      sign: "Press **Add**, then **Connect**, and sign in with Google. MathTrail asks to keep one file in your Google Drive — your child's profile. Allow it: without that file there is nowhere to keep the progress, and the sign-in stops."
+      chat: "In a chat, press **+** → **Connectors**, switch MathTrail on and say: “Let's do a MathTrail task.”"
+    # Claude's own names for the page, the same in every language.
+    connectors: Customize → Connectors
+    note: The free plan allows one custom connector.
+  chatgpt:
+    pill: Not in the directory yet
+    text: Free ChatGPT accounts add apps only from ChatGPT's directory. As soon as MathTrail is listed there, find it by name, connect it and sign in with Google. It is not listed yet.
+    dev: "Until then, ChatGPT's developer mode adds an app by its address, on Plus, Pro, Business, Enterprise and Education plans, on the web: turn it on and add an app with the address above, as {openai}. MathTrail is still being tested in ChatGPT."
+    openai: OpenAI describes
+  need: You need a Claude or ChatGPT account and a Google account; your child needs neither.
+
+ask:
+  title: Start with one task.
+  lead: Add MathTrail to Claude, and solve the first task side by side with your child.
+  code: View the code on GitHub

@@ -14,6 +14,7 @@ MathTrail is a free, open-source project. Questions about this policy or about y
 - **We store nothing.** The service keeps no database and no files. Between one request and the next it remembers nothing.
 - **Your child's profile lives in your own Google Drive**, in a file you can open, copy or delete at any moment.
 - **A pseudonym, never a real name.** No birth date, no school, no photograph.
+- **We count children without knowing who they are.** A line of the log names a child by a code that changes every month and leads back to no one; what is kept for longer than two months are totals.
 - **Nothing is sold, and nothing trains a model.**
 - **Deleting the file deletes the profile.** There is no second copy anywhere.
 
@@ -38,6 +39,7 @@ It holds:
 - a **pseudonym** for the child, the grade, their interests and anything you asked to avoid;
 - an identifier for the child, so that the profile can be carried to a future edition;
 - the interface language, if you chose one;
+- the country you live in and, in the United States, your state, if you chose to give them — they are there only to count how many families each country has, and you may leave them out;
 - which topics are mastered, the rating numbers behind the difficulty, and a summary of past answers: per topic, when it was last given, how many attempts and successes there were, and which traps came up;
 - where the ratings stood before each of the latest answers, and at the start of each of the last seven days with answers, so that the progress can show what moved since the last task and over the week;
 - a counter of tasks accepted today, which is how the daily limit is kept;
@@ -49,15 +51,31 @@ It does not hold the child's name, birth date, school, address, photograph or an
 
 Nothing. The service is a single program that answers a request and forgets it. It has no database, no disk and no cache of your data.
 
-Your Google sign-in is not stored either: it is encrypted and placed inside the token the service hands to your chat. The key lives in Google Secret Manager and never leaves the server.
+Your Google sign-in is not stored either: it is encrypted and placed inside the token the service hands to your chat, together with the country you signed in from, as described below. The key lives in Google Secret Manager and never leaves the server.
 
 ### In the logs
 
 The service writes counts, not content: whether a task was accepted or rejected, why it was rejected, how long it took, how many attempts it needed, whether a limit was hit, and which version of the instructions was used.
 
-The logs never contain the pseudonym, the text of a task, an answer, an email address or a token.
+To count how many children use MathTrail each day, week and month without knowing who any of them is, the lines about a task given, an answer and a topic mastered also carry:
+
+- a **counting name** for the child: a code made, with a key of the service's own, from the profile's identifier and the calendar month. It stays the same for one month and is different the next, and nothing about the child — the identifier, the pseudonym, anything else — can be worked out from it;
+- the chat (Claude, ChatGPT or another), the language of the task, the grade, the month the profile was made, and how many topics are mastered;
+- the **country**, and the **state** in the United States, if you gave them in the profile, and the **country you signed in from**, each as a short code.
+
+Like every line about your sessions, these lines also carry an opaque code standing for your account: made with the service's own key from your Google account, it is neither your Google ID nor your email, and it changes at the first sign-in after that key is replaced. While the lines of two months are both kept, that code is what could join a child's two counting names.
+
+These lines are kept for at most 62 days. What is kept after that are totals — how many children, how many tasks, in which countries — with no identifier of any kind and no row for any one family; a total of fewer than ten is never shown publicly.
+
+The logs never contain the pseudonym, the text of a task, an answer, an email address, a token, the child's identifier, or the address a request came from.
 
 Separately, Google Cloud Run keeps the standard request logs any service on it produces — time, path, response status and the address the request came from — for the platform's own retention period. Those hold no profile data, no task text and no answers.
+
+### The country you sign in from
+
+When you sign in, Google sends your browser back to MathTrail, and at that one moment the service looks up which country your browser's address belongs to, in DB-IP's free IP-to-Country database — a file the service keeps on its own server, so nothing is sent to DB-IP or anyone else. Only the two-letter code of the country is kept, sealed inside the token your chat holds; the address itself is neither stored nor written down. An address that belongs to no country, such as one of a private network, gives no country. Your chat's own requests come from its servers, not from you, so the country stays the one of your last sign-in.
+
+IP geolocation by [DB-IP](https://db-ip.com), under the [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/) licence.
 
 ## Google sign-in and Drive
 

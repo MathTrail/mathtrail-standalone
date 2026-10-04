@@ -81,8 +81,8 @@ Until then, ChatGPT's developer mode adds an app by its address, on Plus, Pro, B
 ## Your child's data
 
 - **A file in your Google Drive.** The profile, the ratings and the current task live in one file, `mathtrail-profile.json`, in a folder named `MathTrail` in your own Drive. You can open it, and Drive keeps its history.
-- **Nothing on our side.** The service stores nothing between requests. Its logs hold counts and an opaque code standing for the account, never text, names or an email address.
-- **A pseudonym, not a name.** No real name, birth date or school; the pseudonym never goes into a task.
+- **Nothing on our side.** The service stores nothing between requests. Its logs hold counts, an opaque code standing for the account, a counting name for the child that changes every month, and a country by its code, never text, names or an email address.
+- **A pseudonym, not a name.** No real name, birth date or school; the pseudonym never goes into a task. A country, and a state in the United States, only if you choose to give them.
 - **Leave any time.** Download the file, delete it, disconnect MathTrail in your chat and remove its access in your Google account — [step by step](docs/parents.md).
 
 What is collected and where it goes is in the [privacy policy](https://mathtrail.app/en/privacy/), and the rules are in the [terms of use](https://mathtrail.app/en/terms/).
@@ -137,7 +137,7 @@ Ask a chat model for "an olympiad task for grade 2" and it will cheerfully hand 
 
 ## Run your own copy
 
-A copy runs in a Google Cloud project of your own, within its free tier, on a domain of your own: one Cloud Run service and two secrets, delivered by GitHub Actions from your fork. [docs/self-hosting.md](docs/self-hosting.md) goes through it step by step — the project, the Google sign-in, the domain, the site with your own privacy policy, and the variables.
+A copy runs in a Google Cloud project of your own, within its free tier, on a domain of your own: one Cloud Run service and three secrets, delivered by GitHub Actions from your fork. [docs/self-hosting.md](docs/self-hosting.md) goes through it step by step — the project, the Google sign-in, the domain, the site with your own privacy policy, and the variables.
 
 ## Contributing and security
 

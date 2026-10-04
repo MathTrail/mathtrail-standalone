@@ -3,6 +3,7 @@ import { topicName, trapName } from "../widget/names";
 import { cardWords, type Key } from "../widget/words";
 import { address } from "./addresses";
 import type { Example, SiteData } from "./data";
+import { connectAddress } from "./home";
 import type { Page, PageProps } from "./pages";
 import type { PageReader } from "./reader";
 import { Solution } from "./Solution";
@@ -459,7 +460,7 @@ function Related({
 }
 
 // Ask is how to ask for a task on the topic: the words to write in the chat,
-// and the way back to every topic.
+// the way to add MathTrail to a chat first, and the way back to every topic.
 function Ask({ page }: { page: PageReader }) {
 	const words = useSiteWords();
 	return (
@@ -468,6 +469,9 @@ function Ask({ page }: { page: PageReader }) {
 				<h2 class="s-ask-title">{words.text("topic.ask")}</h2>
 				<p class="s-ask-phrase">{page.text("ask")}</p>
 				<p class="s-choices">
+					<a class="s-btn s-btn-filled" href={connectAddress(page.locale)}>
+						{words.text("nav.add")}
+					</a>
 					<a class="s-btn" href={address(page.locale, "topics")}>
 						{words.text("topic.all")}
 					</a>

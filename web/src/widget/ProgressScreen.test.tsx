@@ -3,11 +3,21 @@ import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { ProgressScreen } from "./ProgressScreen";
 import { readScreen } from "./payload";
-import { type Drawn, drawCard, foldIn, press, takeDown } from "./testing/card";
+import {
+	type Drawn,
+	drawCard,
+	foldIn,
+	press,
+	takeDown,
+	unfold,
+} from "./testing/card";
 import {
 	atTheTop,
+	failure,
+	fence,
 	inTrial,
 	moving,
+	progress,
 	standing,
 	standingBefore,
 } from "./testing/lesson";
@@ -29,10 +39,13 @@ async function draw(
 	return drawn;
 }
 
-// drawOpened draws the progress card of payload and opens each of its
-// sections in turn, as a person reading all of it does.
-async function drawOpened(payload: object): Promise<Drawn> {
-	const opened = await draw(payload);
+// drawOpened draws the progress card of payload, on a host as options say,
+// and opens each of its sections in turn, as a person reading all of it does.
+async function drawOpened(
+	payload: object,
+	options: Parameters<typeof drawCard>[1] = {},
+): Promise<Drawn> {
+	const opened = await draw(payload, options);
 	for (const title of opened.root.querySelectorAll<HTMLButtonElement>(
 		'.mt-fold-button[aria-expanded="false"]',
 	)) {
@@ -246,11 +259,11 @@ describe("the progress", () => {
 		expect(root.querySelector(".mt-folds")).not.toBeNull();
 	});
 
-	test("opens with every section folded under its title, each title a button that says so", async () => {
+	test("opens with the topics open and every other section folded under its title, each title a button that says so", async () => {
 		const { root } = await draw(standing);
 
 		expect(sections(root)).toEqual([
-			["Topics", "", "false", false],
+			["Topics", "", "true", true],
 			["Review", "strengths and plan", "false", false],
 			["Recent answers", "Wrong, Skipped, Right, Right, Wrong", "false", false],
 			["Profile", "for the parent", "false", false],
@@ -267,24 +280,29 @@ describe("the progress", () => {
 
 	test("opens a section when its title is pressed, and folds it again, keeping the focus on the title", async () => {
 		const { root } = await draw(standing);
-		const topicsTitle = foldIn(root, "Topics");
+		const recentTitle = foldIn(root, "Recent answers");
 
-		press(topicsTitle);
+		press(recentTitle);
 
 		expect(
 			sections(root).map(([title, , open, shown]) => [title, open, shown]),
 		).toEqual([
 			["Topics", "true", true],
 			["Review", "false", false],
-			["Recent answers", "false", false],
+			["Recent answers", "true", true],
 			["Profile", "false", false],
 		]);
-		expect(document.activeElement).toBe(topicsTitle);
+		expect(document.activeElement).toBe(recentTitle);
 
-		press(topicsTitle);
+		press(recentTitle);
 
-		expect(sections(root)[0]).toEqual(["Topics", "", "false", false]);
-		expect(document.activeElement).toBe(topicsTitle);
+		expect(sections(root)[2]).toEqual([
+			"Recent answers",
+			"Wrong, Skipped, Right, Right, Wrong",
+			"false",
+			false,
+		]);
+		expect(document.activeElement).toBe(recentTitle);
 	});
 
 	test("sums up the latest answers by their section's title: a dot for each in the colour of how it went, and the same in words for a screen reader", async () => {
@@ -504,7 +522,7 @@ describe("the progress", () => {
 	});
 
 	test("says where the profile's file is and what the parent can do with the data, each under the question it answers", async () => {
-		const { root } = await drawOpened(standing);
+		const { root } = await drawOpened(standing, { links: "open" });
 
 		expect(fields(root, "Your data")).toEqual([
 			[
@@ -524,8 +542,15 @@ describe("the progress", () => {
 				"Disconnect MathTrail in your chat's settings.",
 			],
 		]);
-		// It names the file, and opens nothing.
-		expect(root.querySelector("a")).toBeNull();
+		// It names the file, and opens nothing: the file is in Drive, no page of
+		// the site, though the host opens pages.
+		const data = [...root.querySelectorAll(".mt-fields")].find(
+			(group) =>
+				group.querySelector(".mt-fields-head .mt-section-label")
+					?.textContent === "Your data",
+		);
+		expect(data).toBeDefined();
+		expect(data?.querySelector("a")).toBeNull();
 	});
 
 	test("with nowhere to say the file is, shows no data", async () => {
@@ -889,6 +914,153 @@ describe("the review", () => {
 			"Mistakes that repeat",
 			"Recent answers",
 			"Profile",
+		]);
+	});
+});
+
+describe("the links to the topics' pages", () => {
+	// links are the card's links to pages, each the name it is under and where
+	// it leads.
+	const links = (root: HTMLElement) =>
+		[...root.querySelectorAll<HTMLAnchorElement>("a.mt-link")].map((link) => [
+			link.textContent,
+			link.getAttribute("href"),
+		]);
+
+	test("name each topic and each step in a topic by a link to its page, a step's to the part it is about, when the host opens pages", async () => {
+		const { root } = await drawOpened(standing, { links: "open" });
+
+		expect(links(root)).toEqual([
+			["Ordering", "https://mathtrail.app/en/topics/ordering/"],
+			["Enumeration", "https://mathtrail.app/en/topics/enumeration/"],
+			[
+				"Gaps and boundaries",
+				"https://mathtrail.app/en/topics/gaps-and-boundaries/",
+			],
+			[
+				"Parity and alternation",
+				"https://mathtrail.app/en/topics/parity-and-alternation/",
+			],
+			[
+				"Pigeonhole principle",
+				"https://mathtrail.app/en/topics/pigeonhole-principle/",
+			],
+			["Enumeration", "https://mathtrail.app/en/topics/enumeration/#traps"],
+			[
+				"Parity and alternation",
+				"https://mathtrail.app/en/topics/parity-and-alternation/#home",
+			],
+		]);
+	});
+
+	test("lead to the pages in the card's language when the site is written in it, and in English when it is not", async () => {
+		const inRussian = await drawOpened(
+			{ ...standing, profile: { ...standing.profile, ui_language: "ru" } },
+			{ links: "open" },
+		);
+		expect(links(inRussian.root)[0]).toEqual([
+			"Упорядочивание",
+			"https://mathtrail.app/ru/topics/ordering/",
+		]);
+		takeDown(inRussian.root);
+
+		const inFrench = await drawOpened(
+			{ ...standing, profile: { ...standing.profile, ui_language: "fr" } },
+			{ links: "open" },
+		);
+		expect(links(inFrench.root)[0]?.[1]).toBe(
+			"https://mathtrail.app/en/topics/ordering/",
+		);
+	});
+
+	test("are none for a host that does not say it opens pages, nor from a progress before the pages", async () => {
+		const quiet = await drawOpened(standing);
+		expect(quiet.root.querySelector("a")).toBeNull();
+		takeDown(quiet.root);
+
+		const before = await drawOpened(standingBefore, { links: "open" });
+		expect(before.root.querySelector("a")).toBeNull();
+	});
+
+	test("ask the host to open the page when pressed, and nothing more", async () => {
+		const { root, heard } = await drawOpened(standing, { links: "open" });
+		const ordering = root.querySelector<HTMLAnchorElement>("a.mt-link");
+		const click = new MouseEvent("click", { bubbles: true, cancelable: true });
+
+		act(() => {
+			ordering?.dispatchEvent(click);
+		});
+
+		// The card itself goes nowhere: the host is what opens a page.
+		expect(click.defaultPrevented).toBe(true);
+		await vi.waitFor(() =>
+			expect(heard.pages).toEqual([
+				"https://mathtrail.app/en/topics/ordering/",
+			]),
+		);
+		expect(root.querySelector(".mt-link-refused")).toBeNull();
+	});
+
+	test("ask once for presses made while the host is still answering", async () => {
+		const { root, heard } = await drawOpened(standing, { links: "refuse" });
+		const ordering = root.querySelector<HTMLAnchorElement>("a.mt-link");
+
+		act(() => {
+			ordering?.click();
+			ordering?.click();
+		});
+
+		await vi.waitFor(() =>
+			expect(root.querySelector(".mt-link-refused")).not.toBeNull(),
+		);
+		expect(heard.pages).toEqual(["https://mathtrail.app/en/topics/ordering/"]);
+	});
+
+	test.each([
+		["refuses", "refuse" as const],
+		["fails to answer", "fail" as const],
+	])(
+		"show the address under the name when the host %s, and keep the link to try again",
+		async (_, links) => {
+			const { root, heard } = await drawOpened(standing, { links });
+			const ordering = root.querySelector<HTMLAnchorElement>("a.mt-link");
+
+			press(ordering ?? root);
+
+			const refused = await vi.waitFor(() => {
+				const line = root.querySelector(".mt-link-refused");
+				expect(line).not.toBeNull();
+				return line;
+			});
+			expect(refused?.getAttribute("role")).toBe("status");
+			expect(refused?.firstElementChild?.textContent).toBe(
+				"The chat didn't open the page. Its address:",
+			);
+			const address = refused?.querySelector(".mt-link-address");
+			expect(address?.textContent).toBe(
+				"https://mathtrail.app/en/topics/ordering/",
+			);
+			expect(address?.getAttribute("dir")).toBe("ltr");
+			expect(document.activeElement).toBe(ordering);
+
+			press(ordering ?? root);
+
+			await vi.waitFor(() => expect(heard.pages).toHaveLength(2));
+		},
+	);
+
+	test("are drawn in the progress over a task too", async () => {
+		const { root } = await draw(fence, {
+			tools: ({ name }) => (name === "read_progress" ? progress : failure),
+			links: "open",
+		});
+
+		press(root.querySelector<HTMLElement>(".mt-bar:not(.mt-bar-back)") ?? root);
+		await vi.waitFor(() => unfold(root, "Topics"));
+
+		expect(links(root)[0]).toEqual([
+			"Ordering",
+			"https://mathtrail.app/en/topics/ordering/",
 		]);
 	});
 });

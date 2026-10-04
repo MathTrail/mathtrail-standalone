@@ -132,7 +132,6 @@ const words = [
 	"ask:",
 	"  title: Start",
 	"  lead: Together.",
-	"  connect: Add to Claude",
 	"  topics: See the topics",
 	"sources:",
 	"  title: Sources",
@@ -305,7 +304,10 @@ describe("the page Why", () => {
 	});
 
 	test("leads to connecting on the home page, and to every topic", () => {
-		expect(all(".s-ask a", "href")).toEqual(["/en/", "/en/topics/"]);
+		expect(all(".s-ask a", "href")).toEqual(["/en/#connect", "/en/topics/"]);
+		expect(why.querySelector(".s-ask .s-btn-filled")?.textContent).toBe(
+			"Add to Claude",
+		);
 	});
 
 	test("is the menu's entry, marked as the page being read", () => {

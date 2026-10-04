@@ -11,8 +11,12 @@ export type Section = "topics" | "review" | "mistakes" | "recent" | "profile";
 /** Open is which sections of the progress are open. */
 export type Open = ReadonlySet<Section>;
 
-/** allFolded is the progress as it first opens: every section folded. */
-export const allFolded: Open = new Set();
+/**
+ * firstOpen is the progress as it first opens: the topics open, since where
+ * the child stands in each is what the progress is opened for, and every other
+ * section folded.
+ */
+export const firstOpen: Open = new Set(["topics"]);
 
 /**
  * foldsAfter is which sections are open once section is pressed: opened when
@@ -39,6 +43,6 @@ export type Folds = {
  * over it is closed and opened again.
  */
 export function useFolds(): Folds {
-	const [open, toggle] = useReducer(foldsAfter, allFolded);
+	const [open, toggle] = useReducer(foldsAfter, firstOpen);
 	return { open, toggle };
 }

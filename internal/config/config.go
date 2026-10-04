@@ -428,7 +428,7 @@ func (c *Config) Validate() error {
 // bytes as a sealing key would mean a name that changed when that key was
 // rotated.
 func (c *Config) validateLearnerKey() error {
-	if strings.TrimSpace(c.LearnerKey) == "" {
+	if c.LearnerKey == "" {
 		if c.Deployed() {
 			return fmt.Errorf("%w: MATHTRAIL_LEARNER_KEY must be set when K_SERVICE is set, to %d random bytes in standard base64",
 				ErrInvalid, learner.KeySize)
@@ -457,7 +457,7 @@ func sameSecret(one, other string) bool {
 // signs in from. Whether the file opens is the service's to find out as it
 // starts; off a deployment it may be left out, and no country is known.
 func (c *Config) validateCountryDB() error {
-	if c.Deployed() && strings.TrimSpace(c.CountryDB) == "" {
+	if c.Deployed() && c.CountryDB == "" {
 		return fmt.Errorf("%w: MATHTRAIL_COUNTRY_DB must be set when K_SERVICE is set", ErrInvalid)
 	}
 	return nil

@@ -76,6 +76,22 @@ describe("the profile's card", () => {
 		expect(root.querySelector(".mt-bar")).toBeNull();
 	});
 
+	test("names the country by the card's words for it, and a state of the United States by its name", async () => {
+		const { root } = await draw({
+			...inSwahili,
+			profile: { ...inSwahili.profile, country: "US", region: "US-TX" },
+		});
+
+		expect(fields(root, "Profile · for the parent").slice(-2)).toEqual([
+			[
+				"Country",
+				"United States",
+				"Optional. Used only to count, without names, how many families each country has.",
+			],
+			["State", "Texas"],
+		]);
+	});
+
 	test("says where the profile's file is, and what the parent can do with it, each under the question it answers", async () => {
 		const { root } = await draw(inSwahili);
 

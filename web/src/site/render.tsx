@@ -6,7 +6,13 @@ import { byCodeUnits } from "../i18n/order";
 import { type Dictionary, openWords, type Words } from "../i18n/words";
 import { cardWords } from "../widget/words";
 import { ApexPage } from "./ApexPage";
-import { address, alternatesOf, outputPath, parseBase } from "./addresses";
+import {
+	address,
+	alternatesOf,
+	outputPath,
+	parseBase,
+	sectionAddress,
+} from "./addresses";
 import {
 	frontPage,
 	readTexts,
@@ -19,7 +25,7 @@ import {
 import { DocumentPage } from "./DocumentPage";
 import { type SiteData, siteData } from "./data";
 import type { FooterLink } from "./Footer";
-import { type Frame, siteFrame } from "./frame";
+import { type Frame, type MenuItem, siteFrame } from "./frame";
 import type { Head } from "./Layout";
 import { cname, robots, sitemap } from "./metadata";
 import { type Page, sitePages } from "./pages";
@@ -175,20 +181,26 @@ function headOf(
 }
 
 // frameOf is the frame the page name of a locale is set in: its menu, the
-// page itself marked, every language of the site to switch to, and the pages
-// the footer leads to.
+// page itself marked — a section of it is not the page — the header's button,
+// every language of the site to switch to, and the pages the footer leads to.
 function frameOf(site: Site, locale: string, name: string): PageFrame {
 	const words = site.wordsOf(locale);
+	const hrefOf = ({ page, anchor }: MenuItem) =>
+		anchor === undefined
+			? address(locale, page)
+			: sectionAddress(locale, page, anchor);
+	const { action } = site.frame;
 	return {
 		home: address(locale, frontPage),
-		menu: site.frame.menu.map(({ page, anchor, label }) => ({
-			href:
-				anchor === undefined
-					? address(locale, page)
-					: `${address(locale, page)}#${anchor}`,
-			label: words.text(label),
-			current: anchor === undefined && page === name,
+		menu: site.frame.menu.map((item) => ({
+			href: hrefOf(item),
+			label: words.text(item.label),
+			current: item.anchor === undefined && item.page === name,
 		})),
+		action:
+			action === undefined
+				? undefined
+				: { href: hrefOf(action), label: words.text(action.label) },
 		languages: site.texts.locales.map((other) => ({
 			locale: other,
 			href: address(other, name),
@@ -300,6 +312,11 @@ function checkCardLanguage(locale: string): void {
 // checkFrame refuses a menu or a footer that leads to a page the site does not
 // have: a page joins them with the task that publishes it.
 function checkFrame(frame: Frame, names: readonly string[]): void {
+	if (frame.action !== undefined && !names.includes(frame.action.page)) {
+		throw new Error(
+			`the header's button leads to the page ${frame.action.page}, which the site does not have`,
+		);
+	}
 	for (const { page } of frame.menu) {
 		if (!names.includes(page)) {
 			throw new Error(

@@ -304,10 +304,10 @@ describe("the pages a card asks the host to open", () => {
 	});
 
 	test.each([
-		["opens it", "open" as const, true],
-		["refuses it", "refuse" as const, false],
-		["fails to answer", "fail" as const, false],
-	])("are told opened only when the host %s", async (_, opening, opened) => {
+		["opened", "opens it", "open" as const, true],
+		["not opened", "refuses it", "refuse" as const, false],
+		["not opened", "fails to answer", "fail" as const, false],
+	])("are told %s when the host %s", async (_, __, opening, opened) => {
 		const { host, widgetSide } = await openTestHost({}, { openLinks: {} });
 		const heard = listenAsHost(host, () => ({ content: [] }), { opening });
 		const bridge = openBridge();

@@ -124,6 +124,15 @@ export function readTopics(
 }
 
 /**
+ * gradesOfAll are the first and the last grade any topic of the catalog is
+ * taught at: the grades MathTrail is for.
+ */
+export function gradesOfAll(topics: Topics): [number, number] {
+	const grades = topics.all.flatMap((topic) => topic.grades);
+	return [Math.min(...grades), Math.max(...grades)];
+}
+
+/**
  * gradesOf is the first and the last grade of levels, each written as a span
  * of grades, as the catalog writes the levels a topic is taught at: 3-4.
  */

@@ -2483,7 +2483,7 @@ exports[`the screens in Arabic > the progress 1`] = `
         >
           <button
             aria-controls="P0-0"
-            aria-expanded="false"
+            aria-expanded="true"
             class="mt-fold-button"
             type="button"
           >
@@ -2508,7 +2508,6 @@ exports[`the screens in Arabic > the progress 1`] = `
         </h2>
         <div
           class="mt-fold-body"
-          hidden=""
           id="P0-0"
         >
           <section
@@ -4073,6 +4072,340 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
         
       </p>
     </div>
+  </div>
+</div>
+`;
+
+exports[`the screens in Arabic > the review of the progress, a page the chat did not open 1`] = `
+<div
+  class="mt-fold"
+>
+  <h2
+    class="mt-fold-head"
+  >
+    <button
+      aria-controls="P0-1"
+      aria-expanded="true"
+      class="mt-fold-button"
+      type="button"
+    >
+      <span
+        class="mt-fold-text"
+      >
+        <span
+          class="mt-fold-title"
+        >
+          المراجعة
+        </span>
+         
+        <span
+          class="mt-fold-summary"
+        >
+          نقاط القوة والخطة
+        </span>
+      </span>
+      <svg
+        aria-hidden="true"
+        class="mt-icon mt-chevron"
+        fill="none"
+        height="16"
+        viewBox="0 0 16 16"
+        width="16"
+      />
+    </button>
+  </h2>
+  <div
+    class="mt-fold-body"
+    id="P0-1"
+  >
+    <section
+      class="mt-review-part"
+    >
+      <h3
+        class="mt-review-label"
+        data-tone="correct"
+      >
+        نقاط القوة
+      </h3>
+      <ul
+        class="mt-judged"
+      >
+        <li
+          class="mt-judged-row"
+        >
+          <span
+            aria-hidden="true"
+            class="mt-dot mt-judged-dot"
+            data-tone="correct"
+          />
+          <span
+            class="mt-review-text"
+          >
+            <span
+              class="mt-judged-name"
+            >
+              الترتيب
+            </span>
+            <span
+              class="mt-review-note"
+            >
+              تم إتقانه. أعلى بوضوح من المستوى العام. تقدّم واضح في الأسبوع الأخير.
+            </span>
+          </span>
+        </li>
+      </ul>
+    </section>
+    <section
+      class="mt-review-part"
+    >
+      <h3
+        class="mt-review-label"
+        data-tone="wrong"
+      >
+        ما يحتاج إلى تطوير
+      </h3>
+      <ul
+        class="mt-judged"
+      >
+        <li
+          class="mt-judged-row"
+        >
+          <span
+            aria-hidden="true"
+            class="mt-dot mt-judged-dot"
+            data-tone="wrong"
+          />
+          <span
+            class="mt-review-text"
+          >
+            <span
+              class="mt-judged-name"
+            >
+              حصر الحالات
+            </span>
+            <span
+              class="mt-review-note"
+            >
+              إغفال حالة أثناء الحصر، مرة بعد مرة.
+            </span>
+          </span>
+        </li>
+        <li
+          class="mt-judged-row"
+        >
+          <span
+            aria-hidden="true"
+            class="mt-dot mt-judged-dot"
+            data-tone="wrong"
+          />
+          <span
+            class="mt-review-text"
+          >
+            <span
+              class="mt-judged-name"
+            >
+              الزوجية والتناوب
+            </span>
+            <span
+              class="mt-review-note"
+            >
+              أدنى بوضوح من المستوى العام. تراجع واضح في الأسبوع الأخير.
+            </span>
+          </span>
+        </li>
+      </ul>
+    </section>
+    <section
+      class="mt-review-part"
+    >
+      <h3
+        class="mt-review-label"
+        data-tone="muted"
+      >
+        من المبكر الحكم
+      </h3>
+      <p
+        class="mt-review-text"
+      >
+        <span
+          class="mt-judged-name"
+        >
+          الفواصل والحدود
+        </span>
+        <span
+          class="mt-review-note"
+        >
+          الإجابات حتى الآن أقل من أن يُحكم عليها.
+        </span>
+      </p>
+    </section>
+    <section
+      class="mt-review-part"
+    >
+      <h3
+        class="mt-review-label"
+        data-tone="wrong"
+      >
+        أخطاء متكررة
+      </h3>
+      <section
+        class="mt-list mt-list-framed"
+      >
+        <ul>
+          <li
+            class="mt-row"
+          >
+            <span
+              class="mt-row-label"
+            >
+              إغفال حالة أثناء الحصر
+            </span>
+            <span
+              class="mt-row-spacer"
+            />
+            <span
+              class="mt-row-count"
+            >
+              <span
+                aria-hidden="true"
+                class="mt-dots"
+              >
+                <span
+                  class="mt-dot"
+                />
+                <span
+                  class="mt-dot"
+                />
+                <span
+                  class="mt-dot"
+                />
+              </span>
+              3 مرات
+            </span>
+          </li>
+          <li
+            class="mt-row"
+          >
+            <span
+              class="mt-row-label"
+            >
+              حساب الشيء نفسه مرتين
+            </span>
+            <span
+              class="mt-row-spacer"
+            />
+            <span
+              class="mt-row-count"
+            >
+              <span
+                aria-hidden="true"
+                class="mt-dots"
+              >
+                <span
+                  class="mt-dot"
+                />
+                <span
+                  class="mt-dot"
+                />
+              </span>
+              2 مرتان
+            </span>
+          </li>
+        </ul>
+      </section>
+    </section>
+    <section
+      class="mt-review-part"
+    >
+      <h3
+        class="mt-review-label"
+        data-tone="accent"
+      >
+        ما العمل بعد ذلك
+      </h3>
+      <ol
+        class="mt-advice"
+      >
+        <li
+          class="mt-advice-step"
+        >
+          <span
+            class="mt-step-num"
+          >
+            1
+          </span>
+          <span
+            class="mt-review-text"
+          >
+            <span
+              class="mt-advice-topic"
+            >
+              <span
+                class="mt-page-link"
+              >
+                <a
+                  class="mt-link"
+                  href="https://mathtrail.app/en/topics/enumeration/#traps"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  حصر الحالات
+                </a>
+                <span
+                  class="mt-link-refused"
+                  role="status"
+                >
+                  <span>
+                    لم تفتح الدردشة الصفحة. عنوانها:
+                  </span>
+                  <span
+                    class="mt-link-address"
+                    dir="ltr"
+                  >
+                    https://mathtrail.app/en/topics/enumeration/#traps
+                  </span>
+                </span>
+              </span>
+            </span>
+            <span>
+              كتابة الحالات بترتيب ثابت، بدءًا بالأصغر، ووضع علامة على كل حالة حتى لا تُنسى أي منها.
+            </span>
+          </span>
+        </li>
+        <li
+          class="mt-advice-step"
+        >
+          <span
+            class="mt-step-num"
+          >
+            2
+          </span>
+          <span
+            class="mt-review-text"
+          >
+            <span
+              class="mt-advice-topic"
+            >
+              <span
+                class="mt-page-link"
+              >
+                <a
+                  class="mt-link"
+                  href="https://mathtrail.app/en/topics/parity-and-alternation/#home"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  الزوجية والتناوب
+                </a>
+              </span>
+            </span>
+            <span>
+              مسألتان أو ثلاث مسائل قصيرة كل يوم، حتى يعود الشريط.
+            </span>
+          </span>
+        </li>
+      </ol>
+    </section>
   </div>
 </div>
 `;

@@ -12,6 +12,12 @@ export type MenuLink = {
 };
 
 /**
+ * ActionLink is the one thing the header asks a reader to do: where it leads,
+ * and the words of its button.
+ */
+export type ActionLink = { readonly href: string; readonly label: string };
+
+/**
  * LanguageLink is one language a page is offered in: where the page is in it,
  * and the language's own name for itself.
  */
@@ -25,18 +31,21 @@ export type LanguageLink = {
 /**
  * Header is the bar on top of a page: the product's mark and name, leading to
  * the front page of the reader's language; the site's menu, when it has one;
- * and the languages the page is offered in, when there is a choice to offer.
- * On a narrow screen the menu folds behind a button that opens it with no
+ * the languages the page is offered in, when there is a choice to offer; and
+ * the one thing the header asks a reader to do, as a button, when it asks
+ * one. On a narrow screen the menu folds behind a button that opens it with no
  * script: the same links, drawn a second time inside a disclosure, which the
  * stylesheet shows in the menu's place.
  */
 export function Header({
 	home,
 	menu = [],
+	action,
 	languages = [],
 }: {
 	home: string;
 	menu?: readonly MenuLink[];
+	action?: ActionLink;
 	languages?: readonly LanguageLink[];
 }) {
 	const words = useSiteWords();
@@ -46,9 +55,14 @@ export function Header({
 			<div class="s-wrap s-nav-inner">
 				<Brand home={home} />
 				{hasMenu && <Menu class="s-navlinks" links={menu} />}
-				{(hasMenu || languages.length > 0) && (
+				{(hasMenu || languages.length > 0 || action !== undefined) && (
 					<div class="s-nav-tools">
 						{languages.length > 0 && <LanguageSwitch languages={languages} />}
+						{action !== undefined && (
+							<a class="s-btn s-btn-filled s-nav-action" href={action.href}>
+								{action.label}
+							</a>
+						)}
 						{hasMenu && (
 							<details class="s-menu">
 								<summary>

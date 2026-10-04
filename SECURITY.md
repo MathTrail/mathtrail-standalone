@@ -37,7 +37,7 @@ Worth knowing before you look for something that is not there:
 
 - **Nothing is stored between requests.** There is no database and no disk. The child's profile is a JSON file in the *parent's* own Google Drive, reached with the `drive.file` scope, which grants access only to files this application created.
 - **Only a pseudonym.** No real name, no birth date, no school. None of it is asked for, and the pseudonym never reaches the text of a task.
-- **No personal data in the logs.** Log lines carry aggregates — which tool, which outcome, how long, how many attempts — never a task, an answer or a profile.
+- **No personal data in the logs.** Log lines carry aggregates — which tool, which outcome, how long, how many attempts — and, on the lines a child is counted from, a counting name that changes every calendar month and country codes, never a task, an answer or a profile. The address a request came from is looked up for its country at the sign-in and kept nowhere.
 - **The answer to the current task stays sealed** until the child has answered: it is encrypted with the service's own key and is not in any widget payload, in any open field of the profile file, or in any log.
 - **No secrets in this repository.** Keys live in Secret Manager and reach the service through its environment. The whole history is scanned on every pull request, and a key that was ever committed would be treated as leaked and rotated.
 

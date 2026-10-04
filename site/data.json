@@ -442,5 +442,23 @@
 				"doi": "10.1001/jamanetworkopen.2022.17641"
 			}
 		}
+	},
+	"home": {
+		"card": {
+			"topic": "counting.gaps",
+			"grade": 3,
+			"drawing": "├─────── 12 ───────┤\n├─3─┤",
+			"options": { "A": "3", "B": "4", "C": "5", "D": "36", "E": "12" },
+			"correct": "C",
+			"traps": {
+				"A": "ignored_condition",
+				"B": "off_by_one",
+				"D": "wrong_operation",
+				"E": "number_from_text"
+			},
+			"choice": "B",
+			"rating": { "before": 1502, "after": 1480 }
+		},
+		"traps": ["off_by_one", "missed_case", "double_count"]
 	}
 }

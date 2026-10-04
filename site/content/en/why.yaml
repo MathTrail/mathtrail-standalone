@@ -153,8 +153,7 @@ app:
 
 ask:
   title: Start with one problem, together
-  lead: Connecting takes a couple of minutes. The first problem is best solved side by side with your child.
-  connect: Add to Claude
+  lead: Connecting takes a few steps. The first problem is best solved side by side with your child.
   topics: See the topics
 
 sources:
