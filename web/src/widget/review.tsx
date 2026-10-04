@@ -220,16 +220,18 @@ function stepAnchor(kind: string): Anchor {
 }
 
 // stepSaid is what a step advises, in the card's words: a trap's advice, the
-// strong topic a topic to begin builds on — none when the card has no name
-// for it, which would read as a word of the sentence —, or the words of the
-// step's kind.
+// strong topic a topic to begin builds on — none when the step names no topic
+// to begin, or the card has no name for the base, which would read as a word
+// of the sentence —, or the words of the step's kind.
 function stepSaid(words: Words<Key>, step: ReviewStep): string | undefined {
 	if (step.kind === "trap") {
 		return step.trap === undefined ? undefined : trapAdvice(words, step.trap);
 	}
 	if (step.kind === "begin") {
 		const base =
-			step.base === undefined ? undefined : knownTopicName(words, step.base);
+			step.topic === undefined || step.base === undefined
+				? undefined
+				: knownTopicName(words, step.base);
 		return base === undefined
 			? undefined
 			: words.text("review.step_begin", { base });

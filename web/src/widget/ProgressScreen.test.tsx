@@ -892,7 +892,7 @@ describe("the review", () => {
 			[
 				"2",
 				"Calendar and age",
-				"Gaps and boundaries is a strength and a good base to start this new topic.",
+				"Gaps and boundaries\u00a0— a strength and a good base to start this new topic.",
 			],
 		]);
 		expect(
@@ -919,6 +919,7 @@ describe("the review", () => {
 					{ kind: "unaided", topic: "counting.gaps" },
 					{ kind: "begin", topic: "time.calendar", base: "counting.cats" },
 					{ kind: "begin", topic: "time.calendar" },
+					{ kind: "begin", base: "logic.ordering" },
 				],
 			}),
 		);

@@ -625,18 +625,86 @@ func TestTheReviewHoldsItsProperties(t *testing.T) {
 	t.Parallel()
 
 	catalog, judged := embedded(t), judgedChild(t)
+	topics := catalog.TopicIDs()
 	properties := gopter.NewProperties(nil)
 	properties.Property("apart, three at most, steps for the topics to develop, one topic begun on a strong base, of the catalog, the same every time", prop.ForAll(
-		func(states, picks []int, deltas, moves []float64) bool {
+		func(states, picks []int, deltas, moves []float64, next int) bool {
 			p := generatedChild(judged, states, picks, deltas, moves)
-			review, summary := reviewedIn(t, p, catalog), summaryOf(t, p, catalog)
-			return reflect.DeepEqual(review, reviewedIn(t, p, catalog)) &&
+			summary := summaryOf(t, p, catalog)
+			// What the rule sets next is drawn as well, so that a topic that
+			// could be begun is now the rule's and now not.
+			summary.Next.Topic = topics[next%len(topics)]
+			mistakes := progress.Mistakes(p.Recent, catalog, repeatsAt)
+			review := progress.ReviewOf(p, catalog, &summary, mistakes, repeatsAt, today)
+			return reflect.DeepEqual(review, progress.ReviewOf(p, catalog, &summary, mistakes, repeatsAt, today)) &&
 				apartAndFew(review) && stepsForTheTopicsToDevelop(review) &&
 				beginsOneTopicOnAStrongBase(review, &summary, catalog) && ofTheCatalog(review, catalog)
 		},
-		children()...,
+		append(children(), gen.IntRange(0, 1000))...,
 	))
 	properties.TestingRun(t)
+}
+
+// Whichever topics are strong and whichever the rule sets next, the topic to
+// begin is the rule's when it can be begun, and otherwise the first that can be
+// in the catalog's order. Several strong bases leave several topics to choose
+// from — Calendar and age on Gaps and boundaries, Weighing and pouring on
+// Enumeration, and the topics a child has not met yet —, which a child drawn
+// at random seldom has.
+func TestTheTopicToBeginIsTheRulesOrElseTheFirst(t *testing.T) {
+	t.Parallel()
+
+	catalog, judged := embedded(t), judgedChild(t)
+	bases := []string{"counting.gaps", "combinatorics.enumeration", "logic.ordering", "pigeonhole.basic"}
+	unmet := []string{"logic.knights_liars", "pigeonhole.basic"}
+	// Leaving topics unmet or mastering them never takes a topic to begin
+	// away, so the judged child as it is has the fewest there are.
+	if judgedSummary := summaryOf(t, judged, catalog); len(unbegunIn(&judgedSummary)) == 0 {
+		t.Fatalf("the judged child has no topic within reach without an answer; the rule's topic is drawn from them")
+	}
+	properties := gopter.NewProperties(nil)
+	properties.Property("the rule's topic when it can be begun, else the first that can", prop.ForAll(
+		func(mastered, notMet []bool, next int) bool {
+			p := strongAndUnmet(judged, bases, mastered, unmet, notMet)
+			summary := summaryOf(t, p, catalog)
+			unbegun := unbegunIn(&summary)
+			summary.Next.Topic = unbegun[next%len(unbegun)]
+			review := progress.ReviewOf(p, catalog, &summary, nil, repeatsAt, today)
+			return beginsOneTopicOnAStrongBase(review, &summary, catalog)
+		},
+		gen.SliceOfN(len(bases), gen.Bool()), gen.SliceOfN(len(unmet), gen.Bool()), gen.IntRange(0, 100),
+	))
+	properties.TestingRun(t)
+}
+
+// strongAndUnmet is the judged child with each of bases mastered where
+// mastered says so, and each of unmet never met where notMet says so. The
+// judged child is left as it was.
+func strongAndUnmet(judged *profile.Profile, bases []string, mastered []bool, unmet []string, notMet []bool) *profile.Profile {
+	p := *judged
+	p.Topics = maps.Clone(judged.Topics)
+	for i, id := range bases {
+		if mastered[i] {
+			with(&p, id, masteredAt)
+		}
+	}
+	for i, id := range unmet {
+		if notMet[i] {
+			delete(p.Topics, id)
+		}
+	}
+	return &p
+}
+
+// unbegunIn are the topics of summary within reach that have no answer yet.
+func unbegunIn(summary *progress.Summary) []string {
+	var unbegun []string
+	for _, topic := range summary.Topics {
+		if topic.InReach && topic.Answers == 0 {
+			unbegun = append(unbegun, topic.ID)
+		}
+	}
+	return unbegun
 }
 
 // apartAndFew says no topic of the review is both strong and one to develop,
@@ -658,27 +726,29 @@ func stepsForTheTopicsToDevelop(review *progress.Review) bool {
 
 // beginsOneTopicOnAStrongBase says the review suggests a topic to begin when,
 // and only when, a topic within reach has no answer and builds on a strong
-// one: one step at most, the last, for such a topic, its base a strong topic
-// it builds on, with none it builds on named strong before it.
+// one: one step, the last, for the topic the rule sets next when it is such a
+// topic and otherwise the first such in the catalog's order, its base a strong
+// topic it builds on, with none it builds on named strong before it.
 func beginsOneTopicOnAStrongBase(review *progress.Review, summary *progress.Summary, catalog *content.Content) bool {
-	onAStrongBase := func(topic string) bool {
-		return slices.ContainsFunc(review.Strong, func(judged progress.Judged) bool {
-			return slices.Contains(catalog.BasesOf(topic), judged.Topic)
+	qualifies := func(topic progress.Topic) bool {
+		return topic.InReach && topic.Answers == 0 && slices.ContainsFunc(review.Strong, func(judged progress.Judged) bool {
+			return slices.Contains(catalog.BasesOf(topic.ID), judged.Topic)
 		})
 	}
-	could := slices.ContainsFunc(summary.Topics, func(topic progress.Topic) bool {
-		return topic.InReach && topic.Answers == 0 && onAStrongBase(topic.ID)
+	chosen := slices.IndexFunc(summary.Topics, func(topic progress.Topic) bool {
+		return topic.ID == summary.Next.Topic && qualifies(topic)
 	})
+	if chosen < 0 {
+		chosen = slices.IndexFunc(summary.Topics, qualifies)
+	}
 	begun := beginSteps(review)
-	if len(begun) == 0 {
-		return !could
+	if chosen < 0 || len(begun) != 1 {
+		return chosen < 0 && len(begun) == 0
 	}
 	step := begun[0]
-	listed := slices.IndexFunc(summary.Topics, func(topic progress.Topic) bool { return topic.ID == step.Topic })
 	bases := catalog.BasesOf(step.Topic)
 	base := slices.IndexFunc(review.Strong, func(judged progress.Judged) bool { return judged.Topic == step.Base })
-	return len(begun) == 1 && review.Steps[len(review.Steps)-1] == step &&
-		listed >= 0 && summary.Topics[listed].InReach && summary.Topics[listed].Answers == 0 &&
+	return review.Steps[len(review.Steps)-1] == step && step.Topic == summary.Topics[chosen].ID &&
 		base >= 0 && slices.Contains(bases, step.Base) &&
 		!slices.ContainsFunc(review.Strong[:base], func(judged progress.Judged) bool { return slices.Contains(bases, judged.Topic) })
 }

@@ -192,7 +192,7 @@ func (s *Service) stepAdvice(step progress.Step) string {
 	case progress.StepUnaided:
 		return "try each task first without the hint."
 	case progress.StepBegin:
-		return "a new topic to begin — " + s.topicName(step.Base) + " is a strength and a good base for it."
+		return "a new topic to begin; its base, " + s.topicName(step.Base) + ", is a strength."
 	default:
 		return ""
 	}

@@ -74,7 +74,7 @@ func TestEveryReasonAndStepIsToldInWords(t *testing.T) {
 			Steps: []progress.Step{{Kind: progress.StepBegin, Topic: "time.calendar", Base: "counting.gaps"}},
 		}, "Review for the adult. Strong: Gaps and boundaries (mastered). What to do next: " +
 			"1. Calendar and age (https://mathtrail.app/en/topics/calendar-and-age/): " +
-			"a new topic to begin — Gaps and boundaries is a strength and a good base for it."},
+			"a new topic to begin; its base, Gaps and boundaries, is a strength."},
 		{"a step of a kind with no words", "en", &progress.Review{
 			Strong: []progress.Judged{}, Develop: []progress.Judged{}, Early: []string{},
 			Steps: []progress.Step{

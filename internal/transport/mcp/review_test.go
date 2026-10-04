@@ -138,8 +138,8 @@ func TestTheReviewSuggestsATopicToBeginOnAStrongOne(t *testing.T) {
 		last.Base != "counting.gaps" || last.Trap != "" {
 		t.Errorf("the last step is %+v, want to begin Calendar and age on Gaps and boundaries", last)
 	}
-	want := "(https://mathtrail.app/en/topics/calendar-and-age/): a new topic to begin — " +
-		"Gaps and boundaries is a strength and a good base for it."
+	want := "(https://mathtrail.app/en/topics/calendar-and-age/): a new topic to begin; " +
+		"its base, Gaps and boundaries, is a strength."
 	if words := textOf(t, result); !strings.Contains(words, "Calendar and age "+want) {
 		t.Errorf("the words are %q, want them to say %q", words, "Calendar and age "+want)
 	}
