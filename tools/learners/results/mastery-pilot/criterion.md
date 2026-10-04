@@ -8,7 +8,7 @@ As a rough look reads it, which decides nothing.
 
 Candidates that meet every constraint and are better than the baseline: 1.
 
-| Rule | Kind | Score | Numbers added | Fields in the profile | Distance from the service's step |
+| Rule | Kind | Score | Numbers added | Fields in the profile | Distance from the service's rule of mastery |
 |---|---|---:|---:|---|---:|
 | floor_0.05+cautious_z1/both | main | 0.687 [0.678, 0.697] | 1 | no | 1.000 |
 
@@ -34,14 +34,14 @@ The chance each constraint holds on as many new children, the likeliest to fail 
 
 | Constraint | Generator | Measure | Value | Bound | Chance it holds |
 |---|---|---|---:|---:|---:|
-| not worse than the service | G0-topics1 | r5_never | 0.045 | 0.034 | 2.2 % |
-| not worse than the service | G3-drop | r3_inside | -0.009 | 0.010 | 21.1 % |
-| not worse than the service | G1 | r1_rms_200 | 0.012 | 0.016 | 27.5 % |
-| not worse than the service | G0-miss1 | r1_rms_200 | 0.011 | 0.018 | 43.6 % |
-| not worse than the service | G0-topics0.3 | r1_rms_200 | 0.010 | 0.017 | 45.7 % |
-| not worse than the service | G4 | r1_rms_200 | 0.014 | 0.021 | 46.3 % |
-| not worse than the service | G2-half | r1_rms_200 | 0.014 | 0.021 | 46.9 % |
-| not worse than the service | G0-start2 | r1_rms_200 | 0.011 | 0.017 | 48.6 % |
+| not worse than the baseline | G0-topics1 | r5_never | 0.045 | 0.034 | 2.2 % |
+| not worse than the baseline | G3-drop | r3_inside | -0.009 | 0.010 | 21.1 % |
+| not worse than the baseline | G1 | r1_rms_200 | 0.012 | 0.016 | 27.5 % |
+| not worse than the baseline | G0-miss1 | r1_rms_200 | 0.011 | 0.018 | 43.6 % |
+| not worse than the baseline | G0-topics0.3 | r1_rms_200 | 0.010 | 0.017 | 45.7 % |
+| not worse than the baseline | G4 | r1_rms_200 | 0.014 | 0.021 | 46.3 % |
+| not worse than the baseline | G2-half | r1_rms_200 | 0.014 | 0.021 | 46.9 % |
+| not worse than the baseline | G0-start2 | r1_rms_200 | 0.011 | 0.017 | 48.6 % |
 
 ## Scores
 
@@ -88,9 +88,9 @@ Every rule's value against each goal's bound, and whether its interval reaches t
 | floor_0.05+cautious_z0/both | 0.160, reached | 4.208, reached | 0.162, reached | 4.263, reached | 73.000, on the edge | 3.153, on the edge | 40.000, reached | 1.439, reached | 73.000, on the edge | 3.720, on the edge | 40.000, reached | 1.682, reached |
 | oracle/both (the ceiling) | 0.749, not reached | 6.403, reached | 0.727, not reached | 6.529, reached | — | — | — | — | — | — | — | — |
 
-## Not worse than the service
+## Not worse than the baseline
 
-What of not worse each rule does not meet, or the run cannot read: its difference from the service, with its interval, and the tolerance it is read with.
+What of not worse each rule does not meet, or the run cannot read: its difference from the baseline, with its interval, and the tolerance it is read with.
 
 | Rule | Checks met | Not met or unread |
 |---|---:|---|
@@ -107,7 +107,7 @@ What of not worse each rule does not meet, or the run cannot read: its differenc
 
 ## What the bench resolves
 
-Each check of not worse: the author's tolerance, the standard error of the paired difference between constant_slow and the service, the tolerance the check is read with — never under 4.3 standard errors — and the chance a candidate exactly as good as the service passes it, read as this run reads it and as a decision run does.
+Each check of not worse: the author's tolerance, the standard error of the paired difference between constant_slow and the baseline, the tolerance the check is read with — never under 4.3 standard errors — and the chance a candidate exactly as good as the baseline passes it, read as this run reads it and as a decision run does.
 
 | Generator | Measure | Author's tolerance | Standard error | Tolerance read | Passes, 1000 children | Passes, 4000 children |
 |---|---|---:|---:|---:|---:|---:|

@@ -332,16 +332,22 @@ func TestTheChoiceOfMasteryIsMadeAsTheStepsIs(t *testing.T) {
 // The report of the choice of mastery names the baseline wherever it compares
 // with it — its checks of not worse, what the bench resolves on them, and the
 // score, whose way ends at perfect — and measures its candidates' distances
-// from the service's rule of mastery: nothing in it reads as compared with the
-// service or its step.
+// from the service's rule of mastery, Wald's test, which stands apart from it,
+// at none: nothing in it reads as compared with the service or its step.
 func TestTheReportOfMasteryNamesTheBaseline(t *testing.T) {
 	t.Parallel()
-	c, cr := masteryChoiceOf(t, map[string]float64{"run5": 0.15}, masteryCandidateRule("run5", mainCandidate, 0, false))
+	models := map[string]*rule{}
+	for _, mc := range masteryCandidates() {
+		models[mc.name] = modelOf(&rule{name: masteryBaseline, shape: both}, mc)
+	}
+	run5, wald := models["run5"], models["wald"]
+	c, cr := masteryChoiceOf(t, map[string]float64{run5.name: 0.15, wald.name: 0.14}, run5, wald)
 	read, resolutions := readCriterion(cr)
 	text := criterionText(read, resolutions, &c, design{children: decisionChildren, answers: 200, set: "mastery"}, cr.crit)
 	for _, want := range []string{
 		"## Not worse than the baseline", "its difference from the baseline,", "between " + measuringRule + " and the baseline,",
 		"as good as the baseline passes", "| Distance from the service's rule of mastery |",
+		"a distance of 0.000 from the service's rule of mastery.", "| 2 | yes | — |",
 	} {
 		if !strings.Contains(text, want) {
 			t.Errorf("the report of mastery lacks %q:\n%s", want, text)
@@ -363,6 +369,29 @@ func TestTheReportOfMasteryNamesTheBaseline(t *testing.T) {
 	}
 	if got, want := named["score"], []string{"the share of the way to perfect"}; !slices.Equal(got, want) {
 		t.Errorf("the scores are named %q, want %q", got, want)
+	}
+}
+
+// A choice of mastery whose run lacks the baseline chooses nothing, and says
+// so in its own terms: its exit is the baseline, which is not there to keep,
+// rather than a floor under the step.
+func TestAChoiceOfMasteryWithoutItsBaselineChoosesNothing(t *testing.T) {
+	t.Parallel()
+	rs := []*rule{
+		{name: "shrinking", shape: both, service: true}, masteryCandidateRule("cautious", mainCandidate, 1, false),
+		{name: "oracle", shape: both, ceiling: true},
+	}
+	cr := fakeRunReadBy(masteryCriterion(), rs, badAt(0.15))
+	read, _ := readCriterion(cr)
+	c := cr.choose(read, false)
+	if c.chosen != nil {
+		t.Fatalf("chose %s with no baseline in the run, want nothing", nameOf(c.chosen))
+	}
+	var b strings.Builder
+	writeChoice(&b, &c)
+	if text := b.String(); !strings.Contains(text, "the run lacks the baseline, which is the exit: **nothing is chosen.**") ||
+		strings.Contains(text, "the service's step stays") {
+		t.Errorf("the choice reads\n%s\nwant it to say the baseline is missing and nothing is chosen", text)
 	}
 }
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"strings"
 )
 
@@ -29,6 +30,9 @@ func writeChoice(b *strings.Builder, c *criterionChoice) {
 	}
 	writeEligible(b, c)
 	switch {
+	case c.chosen == nil && c.crit.exitIsBaseline:
+		fmt.Fprintf(b, "No candidate meets every constraint and is better than %[1]s, and the run lacks %[1]s, "+
+			"which is the exit: **nothing is chosen.**\n\n", c.crit.against)
 	case c.chosen == nil:
 		fmt.Fprintf(b, "No candidate meets every constraint and is better than %s, and no floor of the exit meets "+
 			"the constraints of not worse and of the screen: **the service's step stays.**\n\n", c.crit.against)
@@ -70,7 +74,7 @@ func writeEligible(b *strings.Builder, c *criterionChoice) {
 		fmt.Fprintf(b, "| Rule | Kind | Score | Numbers added | Fields in the profile | Distance from %s |\n|---|---|---:|---:|---|---:|\n", c.crit.distanceFrom)
 		for _, rc := range c.eligible {
 			fmt.Fprintf(b, "| %s | %s | %s | %d | %s | %s |\n", ruleName(rc.rule), rc.rule.candidacy.kind, interval3(rc.score),
-				rc.rule.candidacy.added, yesOrNo(rc.rule.candidacy.fields), decimals3(rc.rule.candidacy.distance))
+				rc.rule.candidacy.added, yesOrNo(rc.rule.candidacy.fields), distanceText(rc.rule.candidacy.distance))
 		}
 		b.WriteString("\n")
 	}
@@ -99,7 +103,7 @@ func writeMain(b *strings.Builder, c *criterionChoice) {
 		}
 		m := c.main.rule.candidacy
 		fmt.Fprintf(b, "The simplest of them, the %s: %s — %d numbers added to the service's rule, %s, "+
-			"a distance of %s from the service's rule.\n\n", c.crit.main, ruleName(c.main.rule), m.added, fieldsPhrase(m.fields), decimals3(m.distance))
+			"a distance of %s from %s.\n\n", c.crit.main, ruleName(c.main.rule), m.added, fieldsPhrase(m.fields), distanceText(m.distance), c.crit.distanceFrom)
 	}
 	switch {
 	case c.backup == nil:
@@ -176,6 +180,16 @@ func missedOf(rc *ruleCriterion) string {
 		}
 	}
 	return strings.Join(missed, "; ")
+}
+
+// distanceText is a candidate's distance from the service's rule as the
+// choice writes it: a dash for a rule that stands apart from it, farther than
+// any distance the choice could compare.
+func distanceText(distance float64) string {
+	if math.IsInf(distance, 1) {
+		return noNumber
+	}
+	return decimals3(distance)
 }
 
 func yesOrNo(yes bool) string {
