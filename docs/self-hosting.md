@@ -312,7 +312,7 @@ The lines a child is counted from name the child by a name that holds for a cale
 
 ## The database of countries
 
-The country a parent signs in from is looked up in DB-IP's IP to Country Lite, which DB-IP publishes once a month under the Creative Commons Attribution 4.0 licence and keeps to download for about three months. The runtime image copies one month of it from an image of this repository's own, pinned in the `Dockerfile` by tag and digest, so that a build never depends on how long DB-IP keeps a month. Publishing a newer month needs `docker`, and `gh` signed in with the right to write packages (`gh auth refresh -h github.com -s write:packages`):
+The country a parent signs in from is looked up in DB-IP's IP to Country Lite, which DB-IP publishes once a month under the Creative Commons Attribution 4.0 licence and keeps to download for about three months. The runtime image copies one month of it from an image of this repository's own, pinned in the `Dockerfile` by tag and digest, so that a build never depends on how long DB-IP keeps a month. Publishing a newer month needs `docker`, and `gh` signed in with the right to write packages (`gh auth refresh -h github.com -s write:packages`). Nothing has to be signed in to GHCR by hand: the recipe signs `docker` in with the token `gh` holds, in a configuration of its own that it deletes when it ends, so the token is never written to `~/.docker`:
 
 ```bash
 just countries-publish 2026-11   # without a month, this month's

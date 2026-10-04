@@ -838,11 +838,26 @@ countries-publish month="":
     fi
     reference="{{ COUNTRIES_IMAGE }}:${month}"
 
+    # docker is signed in to the registry with the token gh holds, in a
+    # configuration of this run's own, kept apart from the build's context:
+    # the token goes nowhere it would outlive the run, and a sign-in of the
+    # user's own is left as it was. The check below needs it as much as the
+    # push does, since a month not yet made public is hidden from a client
+    # that is not signed in.
+    temp=$(mktemp -d)
+    trap 'rm -rf "$temp"' EXIT
+    export DOCKER_CONFIG="$temp/docker"
+    work="$temp/context"
+    mkdir "$work"
+    user=$(gh api user --jq .login)
+    if ! signin=$(gh auth token | docker login "${reference%%/*}" --username "$user" --password-stdin 2>&1); then
+        echo "$signin" >&2
+        exit 1
+    fi
+
     if docker buildx imagetools inspect "$reference" > /dev/null 2>&1; then
         echo "$reference: published already, leaving it alone"
     else
-        work=$(mktemp -d)
-        trap 'rm -rf "$work"' EXIT
         echo "dbip-country-lite ${month}"
         curl -fsSL --proto "=https" --proto-redir "=https" --retry 3 --retry-all-errors \
             -o "$work/countries.mmdb.gz" "https://download.db-ip.com/free/dbip-country-lite-${month}.mmdb.gz"
