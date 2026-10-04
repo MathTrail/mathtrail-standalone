@@ -37,9 +37,12 @@ type authority struct {
 	server *httptest.Server
 	// refusal, when set, is the error the parent's consent sends the browser
 	// back with; closed, when set, has the endpoint fail every request it
-	// lets in, so that no session opens after a sign-in.
+	// lets in, so that no session opens after a sign-in; renewed, when set, is
+	// called as a renewal of the tokens arrives, before it is answered and
+	// with mu held, so it must take nothing mu guards.
 	refusal string
 	closed  bool
+	renewed func()
 
 	mu        sync.Mutex
 	redirect  string
@@ -50,9 +53,6 @@ type authority struct {
 	refresh   string
 	expiresIn int
 	bearers   []string
-	// renewed, when set, is called as a renewal of the tokens arrives, before
-	// it is answered, with mu held: it must take nothing mu guards.
-	renewed func()
 }
 
 // newAuthority starts the stand-in, whose access tokens last the seconds
@@ -529,19 +529,49 @@ func TestStrayRequestsAtTheWayBackChangeNothing(t *testing.T) {
 func TestARenewedTokenThatCannotBeKeptIsUsedAndTold(t *testing.T) {
 	t.Parallel()
 
+	dir := t.TempDir()
+	file := filepath.Join(dir, "parent.json")
+	a := newAuthority(t, 900, func(a *authority) {
+		a.renewed = func() {
+			if err := os.Remove(file); err != nil {
+				t.Errorf("take the account's file away: %v", err)
+			}
+			if err := os.Mkdir(file, 0o700); err != nil {
+				t.Errorf("put a directory where the account's file was: %v", err)
+			}
+		}
+	})
+	if _, err := account.SignIn(soon(t), dir, "parent", a.url(), following(t), 0); err != nil {
+		t.Fatalf("SignIn() error = %v, want nil", err)
+	}
+
+	usedAndTold(t, a, dir)
+}
+
+// The same holds when the accounts' directory refuses new files, so that not
+// even the draft of the renewed account can be written. Root writes into such
+// a directory all the same, so the case holds for every other user.
+func TestARenewedTokenInADirectoryThatRefusesFilesIsUsedAndTold(t *testing.T) {
+	t.Parallel()
+	if os.Geteuid() == 0 {
+		t.Skip("root writes into a directory that forbids writing")
+	}
+
 	a := newAuthority(t, 900)
 	dir := signedInAt(t, a)
-	file := filepath.Join(dir, "parent.json")
-	a.mu.Lock()
-	a.renewed = func() {
-		if err := os.Remove(file); err != nil {
-			t.Errorf("take the account's file away: %v", err)
-		}
-		if err := os.Mkdir(file, 0o700); err != nil {
-			t.Errorf("put a directory where the account's file was: %v", err)
-		}
+	if err := os.Chmod(dir, 0o500); err != nil {
+		t.Fatalf("make the accounts' directory read-only: %v", err)
 	}
-	a.mu.Unlock()
+	t.Cleanup(func() { _ = os.Chmod(dir, 0o700) })
+
+	usedAndTold(t, a, dir)
+}
+
+// usedAndTold loads the account kept in dir, whose token the stand-in renews,
+// and holds it to using the renewed token, to saying why it was not kept, and
+// to leaving no draft of it behind.
+func usedAndTold(t *testing.T, a *authority, dir string) {
+	t.Helper()
 
 	loaded, err := account.Load(dir, "parent", a.url(), 20*time.Minute)
 	if err != nil {
