@@ -122,22 +122,30 @@ describe("a header", () => {
 		expect(root.querySelector(".mt-head-versioned")).toBeNull();
 	});
 
-	test("says who speaks: MathTrail by its logo, the child by the avatar", () => {
-		draw(
-			<>
-				<MessageHeader author="app" name="MathTrail" />
-				<MessageHeader author="person" name="Comet" />
-			</>,
-		);
+	test.each([
+		["full", false, 32, 32],
+		["compact", true, 28, 24],
+	])(
+		"says who speaks: MathTrail by its logo, the child by the avatar, in a %s header",
+		(_, compact, logo, avatar) => {
+			draw(
+				<>
+					<MessageHeader author="app" name="MathTrail" compact={compact} />
+					<MessageHeader author="person" name="Comet" compact={compact} />
+				</>,
+			);
 
-		const [app, person] = [...root.querySelectorAll(".mt-head")].map((head) =>
-			head.querySelector("svg"),
-		);
-		expect(drawingOf(app ?? null)).toEqual(drawingAlone(<Mark size={32} />));
-		expect(person?.outerHTML).toBe(
-			drawnAlone(<Icon name="avatar" size={32} />),
-		);
-	});
+			const [app, person] = [...root.querySelectorAll(".mt-head")].map((head) =>
+				head.querySelector("svg"),
+			);
+			expect(drawingOf(app ?? null)).toEqual(
+				drawingAlone(<Mark size={logo} />),
+			);
+			expect(person?.outerHTML).toBe(
+				drawnAlone(<Icon name="avatar" size={avatar} />),
+			);
+		},
+	);
 
 	test("has no button that opens nothing", () => {
 		draw(<MessageHeader name="MathTrail" badge="Olympiad coach · Grade 3" />);

@@ -7,10 +7,12 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
+	"github.com/MathTrail/mathtrail-standalone/content"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/progress"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
+	mcpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/mcp"
 )
 
 // The child or the adult may keep the lessons to a topic: on the card of a
@@ -255,6 +257,38 @@ func TestACardIsToldTheChoiceOfTheTopicOnceTheSeriesIsOver(t *testing.T) {
 				wantChoice(t, &got, tc.chosen, suggestedByTheProgress(t, session))
 			}
 		})
+	}
+}
+
+// A catalog the rule can choose no topic from is the service's own fault: the
+// card of a task is not drawn without its choice of the topic, nor the
+// progress without its review, and the model is told that something went
+// wrong inside MathTrail.
+func TestNoTopicToChooseFromIsAFailure(t *testing.T) {
+	t.Parallel()
+
+	kept := keptAs(t, "petya", developing)
+	_, session := lesson(t, kept)
+	request := raceHandedOut(t, session, kept)
+
+	parts := allParts(t)
+	parts.Store, parts.Content = kept, &content.Content{}
+	service, err := mcpserver.NewService(parts)
+	if err != nil {
+		t.Fatalf("NewService() error = %v", err)
+	}
+	h := newHarness(t)
+	h.start(t, mcpserver.DevSignIn, slices.Concat(service.ProfileTools(), service.TaskTools())...)
+	empty := h.connect(t, "")
+
+	for _, tc := range []struct {
+		tool string
+		args map[string]any
+	}{
+		{"read_task", map[string]any{"request_id": request.ID}},
+		{"get_progress", nil},
+	} {
+		wantOurSentence(t, call(t, empty, tc.tool, tc.args), "Something went wrong inside MathTrail.")
 	}
 }
 

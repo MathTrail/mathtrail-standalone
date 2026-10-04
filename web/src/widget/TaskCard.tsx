@@ -74,7 +74,7 @@ export function TaskCard({
 					handed={handed}
 					host={host}
 					wide={wide}
-					grade={whose?.grade}
+					grade={whose.grade}
 					start={start}
 				/>
 			)}
@@ -104,7 +104,7 @@ export function TaskInCard({
 	handed: HandedTask;
 	host: Host;
 	wide: boolean;
-	grade: number | undefined;
+	grade: number;
 	start?: Lesson;
 }) {
 	const { task } = handed;
@@ -235,7 +235,7 @@ export function TaskInCard({
 							<TopicPanel
 								choosing={choosing}
 								offered={offered}
-								grade={grade ?? handed.child.grade}
+								grade={grade}
 								host={host}
 								locked={topicLocked}
 							/>
