@@ -11,6 +11,8 @@ import {
 	SolutionSteps,
 	Verdict,
 } from "./blocks";
+import { Icon } from "./icons";
+import { drawnAlone } from "./testing/drawing";
 
 const root = document.createElement("div");
 
@@ -178,17 +180,17 @@ test("a note and the steps give their words in the language they are said in", (
 });
 
 describe("a verdict", () => {
-	test.each([
-		["correct", "var(--correct)"],
-		["wrong", "var(--wrong)"],
-	] as const)("that is %s carries its mark", (tone, colour) => {
-		draw(<Verdict tone={tone}>Words</Verdict>);
+	test.each(["correct", "wrong"] as const)(
+		"that is %s carries its mark",
+		(tone) => {
+			draw(<Verdict tone={tone}>Words</Verdict>);
 
-		expect(
-			root.querySelector(".mt-verdict-line svg circle")?.getAttribute("fill"),
-		).toBe(colour);
-		expect(root.querySelector(".mt-verdict-line")?.textContent).toBe("Words");
-	});
+			expect(root.querySelector(".mt-verdict-line svg")?.outerHTML).toBe(
+				drawnAlone(<Icon name={`verdict-${tone}`} size={20} />),
+			);
+			expect(root.querySelector(".mt-verdict-line")?.textContent).toBe("Words");
+		},
+	);
 
 	test("with no verdict carries no mark", () => {
 		draw(<Verdict>Here's how to solve it.</Verdict>);
@@ -270,17 +272,17 @@ describe("the course being followed", () => {
 			["active", "In progress: ", "In progress: Writing the task"],
 			["waiting", "Waiting: ", "Waiting: Ready"],
 		]);
-		expect(
-			steps[0]?.querySelector(".mt-gen-icon circle")?.getAttribute("fill"),
-		).toBe("var(--ink-strong)");
+		expect(steps[0]?.querySelector(".mt-gen-icon svg")?.outerHTML).toBe(
+			drawnAlone(<Icon name="step-done" size={20} />),
+		);
 		expect(
 			steps[1]
 				?.querySelector(".mt-gen-turning svg")
 				?.classList.contains("mt-spin"),
 		).toBe(true);
-		expect(
-			steps[2]?.querySelector(".mt-gen-icon circle")?.getAttribute("r"),
-		).toBe("8.5");
+		expect(steps[2]?.querySelector(".mt-gen-icon svg")?.outerHTML).toBe(
+			drawnAlone(<Icon name="step-waiting" size={20} />),
+		);
 	});
 
 	test("is heard as it moves", () => {

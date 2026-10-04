@@ -16,8 +16,9 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
-// The step rules of the harness, at the service's constants, are the
-// service's own update: the same θ and δ to within 1e-12.
+// The step rules of the harness, at the service's constants — the floor under
+// the overall level's step among them — are the service's own update: the
+// same θ and δ to within 1e-12.
 func TestStepRulesAreTheServicesUpdate(t *testing.T) {
 	t.Parallel()
 	rng := seeded("step rules", "test")
@@ -29,6 +30,7 @@ func TestStepRulesAreTheServicesUpdate(t *testing.T) {
 		beta, correct := 8*rng.Float64()-2, rng.IntN(2) == 0
 		want := rating.Update(state, beta, correct)
 		s := newStepRule(0)
+		s.floor = serviceFloor
 		s.theta, s.delta["t"], s.answers, s.inTopic["t"] = state.Theta, state.Delta, state.Answers, state.TopicAnswers
 		s.answered("t", beta, correct)
 		if math.Abs(s.theta-want.Theta) > 1e-12 || math.Abs(s.delta["t"]-want.Delta) > 1e-12 {
@@ -361,6 +363,7 @@ func TestASmallRun(t *testing.T) {
 		t.Fatalf("learners exited %d: %s", code, stderr.String())
 	}
 	t.Run("gives the numbers it was carried over with", func(t *testing.T) { wantCarriedOver(t, out) })
+	t.Run("gives the service's numbers as they were, under the earlier rule", func(t *testing.T) { wantTheServiceAsItWas(t, out) })
 	t.Run("is summed up as its snapshot", func(t *testing.T) {
 		summary := wantSnapshot(t, out, "summary.md")
 		if !strings.Contains(stdout.String(), summary) {
@@ -396,6 +399,35 @@ func wantCarriedOver(t *testing.T, out string) {
 			t.Errorf("%s no longer gives row %d of what it was carried over with, in its order: %q", table, at+1, carried[at])
 		}
 	}
+}
+
+// wantTheServiceAsItWas holds the earlier rule to the numbers the service gave
+// before its floor and its cautious mastery, as the bench was carried over
+// with them, in testdata/carried-over/earlier.csv: every value of those cells
+// comes out of the earlier rule's cells, in that order. Only the values are
+// held: an interval is drawn from a stream named after its cell, and the
+// earlier rule's cells have names of their own. As for the carried-over
+// numbers, the check is made on amd64 alone.
+func wantTheServiceAsItWas(t *testing.T, out string) {
+	t.Helper()
+	if runtime.GOARCH != "amd64" {
+		t.Skipf("the service's numbers were computed on amd64, and this is %s", runtime.GOARCH)
+	}
+	wanted := strings.Split(strings.TrimSuffix(readFile(t, filepath.Join("testdata", "carried-over", "earlier.csv")), "\n"), "\n")
+	var values []string
+	for _, line := range strings.Split(readFile(t, filepath.Join(out, "cells.csv")), "\n") {
+		values = append(values, withoutInterval(line))
+	}
+	if at := firstNotInOrder(wanted, values); at >= 0 {
+		t.Errorf("cells.csv no longer gives row %d of the service's numbers as they were, in its order: %q", at+1, wanted[at])
+	}
+}
+
+// withoutInterval is a row of cells.csv without the ends of its interval: the
+// rule, the structure, the generator, the measure and the value.
+func withoutInterval(line string) string {
+	fields := strings.Split(line, ",")
+	return strings.Join(fields[:min(len(fields), 5)], ",")
 }
 
 // firstNotInOrder is the place among the wanted lines of the first one the

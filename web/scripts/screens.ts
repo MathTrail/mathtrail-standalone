@@ -18,10 +18,13 @@ import { letGo, served, settled, stillClock } from "./drive.ts";
 /** Shot is a scene of the preview, and the file its pictures are named by. */
 export type Shot = { scene: string; file: string };
 
-/** shots are the scenes the README shows, in its order. */
+/**
+ * shots are the scenes the README shows, in its order: the cards of a child
+ * past the trial series, which offer the choice of the topic.
+ */
 export const shots: readonly Shot[] = [
-	{ scene: "task", file: "task" },
-	{ scene: "wrong", file: "wrong" },
+	{ scene: "task after the trial series", file: "task" },
+	{ scene: "wrong after the trial series", file: "wrong" },
 	{ scene: "progress, the model's card", file: "progress" },
 ];
 

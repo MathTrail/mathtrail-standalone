@@ -156,7 +156,7 @@ var shapes = map[string]*regexp.Regexp{
 	"learner":        regexp.MustCompile(`^[A-Za-z0-9_-]{16}$`),
 	"cohort":         regexp.MustCompile(`^\d{4}-(0[1-9]|1[012])$`),
 	"language":       regexp.MustCompile(`^([a-z]{2,3}|other)$`),
-	"host":           regexp.MustCompile(`^(claude|chatgpt|inspector|other|unknown)$`),
+	"host":           regexp.MustCompile(`^(claude|chatgpt|inspector|load|other|unknown)$`),
 	"country":        regexp.MustCompile(`^([A-Z]{2}|unknown|other)$`),
 	"signin_country": regexp.MustCompile(`^([A-Z]{2}|unknown|other)$`),
 	"region":         regexp.MustCompile(`^([A-Z]{2}-[A-Z0-9]{1,3}|unknown|other)$`),

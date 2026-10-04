@@ -1,22 +1,36 @@
-# Builds the site and, on main, publishes it. The build runs inside the same
-# toolchain image as every other check, so a page built here and a page built
-# on a laptop come from the same Node and the same packages, and are judged by
-# the same checker; the deployment itself runs on the runner, because that is
-# where the Pages API is reachable.
+# Builds the site and publishes it: the site of a release, built from its tag,
+# so that the cards its pages draw name the release the chats run. The build
+# runs inside the same toolchain image as every other check, so a page built
+# here and a page built on a laptop come from the same Node and the same
+# packages, and are judged by the same checker; the deployment itself runs on
+# the runner, because that is where the Pages API is reachable.
 name: Pages
 
 on:
-  pull_request:
-  push:
-    branches: [main]
+  # A release, named by its tag: the site is built from that tag, and the
+  # cards on its pages name it.
+  workflow_call:
+    inputs:
+      version:
+        description: "The release to publish the site of: the tag it is built from and names."
+        type: string
+        required: true
+  # A branch may be published by hand, exactly as it is checked out, and its
+  # cards name no release. It is how a new deployment puts its privacy policy
+  # online before any release exists: the sign-in needs the policy's address.
   workflow_dispatch:
+  # On a pull request the site is built and checked, never published.
+  pull_request:
 
 permissions:
   contents: read
   packages: read
 
-# A new push replaces the run of the branch it belongs to. A deployment is never
-# cancelled halfway: the site that is live would be left half replaced.
+# Every publication of main's site, a release's or one started by hand, waits
+# in one queue: one runs at a time, and a newer one takes the place of one
+# still waiting, so two never write the site at once and an older one never
+# lands last. A deployment is never cancelled halfway: the site that is live
+# would be left half replaced. A new push to a pull request replaces its run.
 concurrency:
   group: pages-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -44,6 +58,8 @@ jobs:
       image: ${{ steps.image.outputs.reference }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.version }}
       - uses: ./.github/actions/just
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
@@ -65,7 +81,12 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.version }}
       - name: Build the site and hold it to its own rules
+        env:
+          # The release the cards on the pages name; empty, they name none.
+          VITE_VERSION: ${{ inputs.version }}
         run: just ci-site
       - name: Keep the site for the deployment
         if: github.event_name != 'pull_request'

@@ -86,6 +86,11 @@ func TestEveryLimitIsRefusedByName(t *testing.T) {
 			wantSay: "student.ui_language",
 		},
 		{
+			name:    "a topic for the lessons past the limit",
+			breakIt: func(p *profile.Profile) { p.Student.LessonTopic = strings.Repeat("t", profile.MaxLessonTopic+1) },
+			wantSay: "student.lesson_topic",
+		},
+		{
 			name:    "a level from another shape of the file",
 			breakIt: func(p *profile.Profile) { p.SchemaVersion = profile.Version + 1 },
 			wantSay: "schema_version",
@@ -245,6 +250,11 @@ func TestEveryLimitIsRefusedByName(t *testing.T) {
 			name:    "a start that is no number",
 			breakIt: func(p *profile.Profile) { p.Ratings.Start = math.Inf(1) },
 			wantSay: "ratings.start",
+		},
+		{
+			name:    "masteries of a rule there is not",
+			breakIt: func(p *profile.Profile) { p.Ratings.MasteryRule = "streak" },
+			wantSay: "ratings.mastery_rule",
 		},
 		{
 			name:    "an answer that names no task",
@@ -426,6 +436,12 @@ func ratingDays(count int) []profile.RatingDay {
 func TestATaskInFlightIsRefusedWhenItIsNotWhole(t *testing.T) {
 	t.Parallel()
 
+	onTheChosenTopic := parseFixture(t, "masha")
+	onTheChosenTopic.CurrentTask.TutorMode = profile.TutorPerson
+	if err := onTheChosenTopic.Validate(); err != nil {
+		t.Fatalf("Validate() error = %v, want a task on the topic chosen for the lessons to pass", err)
+	}
+
 	cases := map[string]func(t *profile.CurrentTask){
 		"current_task.sealed":          func(t *profile.CurrentTask) { t.Sealed = "" },
 		"current_task needs":           func(t *profile.CurrentTask) { t.Wording = "" },
@@ -434,8 +450,8 @@ func TestATaskInFlightIsRefusedWhenItIsNotWhole(t *testing.T) {
 		"issued_at":                    func(t *profile.CurrentTask) { t.IssuedAt = profile.Time{} },
 		"difficulty":                   func(t *profile.CurrentTask) { t.Difficulty = 0 },
 		"grade_level":                  func(t *profile.CurrentTask) { t.GradeLevel = "5-7" },
-		// Nobody but the rule and the model chooses a task; a file that names
-		// anyone else was edited by hand.
+		// Nobody but the rule, the model and the topic chosen for the lessons
+		// chooses a task; a file that names anyone else was edited by hand.
 		"current_task.tutor_mode is \"teacher\"": func(t *profile.CurrentTask) { t.TutorMode = "teacher" },
 		// Five options, and one of them says nothing: a child cannot pick it,
 		// and the count alone would not notice.
@@ -525,6 +541,12 @@ func TestAnOpenRequestIsRefusedWhenItIsNotWhole(t *testing.T) {
 	p.OpenRequest = &whole
 	if err := p.Validate(); err != nil {
 		t.Fatalf("Validate() error = %v, want a whole request to pass", err)
+	}
+	onTheChosenTopic := whole
+	onTheChosenTopic.TutorMode = profile.TutorPerson
+	p.OpenRequest = &onTheChosenTopic
+	if err := p.Validate(); err != nil {
+		t.Fatalf("Validate() error = %v, want a request on the topic chosen for the lessons to pass", err)
 	}
 
 	cases := map[string]func(r *profile.OpenRequest){

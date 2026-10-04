@@ -46,12 +46,16 @@ const (
 	// be mastered at all: it keeps a lucky start from mastering a topic on the
 	// third task.
 	MasteryAnswers = 5
-	// MasteryStreak is the run of correct answers that earns it — short enough
-	// to be reachable, long enough to rule out guessing.
+	// MasteryStreak is the run of correct answers the earlier rule mastered a
+	// topic by. top_streak still counts it, for a build of that rule reading
+	// the file, and nothing here decides by it.
 	MasteryStreak = 3
 	// MasteryLostAfter is the run of wrong answers that loses it. One wrong
 	// answer is a slip and undoes nothing.
 	MasteryLostAfter = 2
+	// MasteryRuleCautious marks a file whose masteries the cautious estimate
+	// declared.
+	MasteryRuleCautious = "cautious"
 )
 
 // Answered is one answer as it reaches the service: the task it is for, what
@@ -168,8 +172,9 @@ func choosable(choice string) bool { return choice == DontKnow || solver.Place(c
 // does not open.
 //
 // The caller is left with a profile to write when the answer was recorded now,
-// and with nothing to write when it was only told again.
-func (p *Profile) Record(answer Answered, sealer Sealer) (Recorded, error) {
+// and with nothing to write when it was only told again. taught is the levels
+// the topic of the task is taught at, which its mastery is judged among.
+func (p *Profile) Record(answer Answered, sealer Sealer, taught []rating.GradeLevel) (Recorded, error) {
 	task := p.CurrentTask
 	switch {
 	case task == nil:
@@ -196,7 +201,7 @@ func (p *Profile) Record(answer Answered, sealer Sealer) (Recorded, error) {
 	if err != nil {
 		return Recorded{}, err
 	}
-	recorded := p.apply(task, &answer, &secret)
+	recorded := p.apply(task, &answer, &secret, taught)
 	task.Sealed = resealed
 	return recorded, nil
 }
@@ -204,7 +209,8 @@ func (p *Profile) Record(answer Answered, sealer Sealer) (Recorded, error) {
 // apply records an answer the task has not had before and keeps it with the
 // task. Only correctness moves the level; the hint is written beside the
 // answer and changes what comes next through the runs of the topic.
-func (p *Profile) apply(task *CurrentTask, answer *Answered, secret *TaskSecret) Recorded {
+func (p *Profile) apply(task *CurrentTask, answer *Answered, secret *TaskSecret, taught []rating.GradeLevel) Recorded {
+	p.clearEarlierMasteries()
 	correct, trap := judge(answer.Choice, secret)
 	topic := p.Topics[task.Topic]
 	before := rating.State{
@@ -256,7 +262,10 @@ func (p *Profile) apply(task *CurrentTask, answer *Answered, secret *TaskSecret)
 	recorded := toldOf(task, secret)
 	recorded.Probability = probability
 	recorded.Pace = paceOf(task.IssuedAt.Time, answer.At)
-	recorded.Mastered, recorded.Unmastered = topic.master(probability, task.GradeLevel, correct, answer)
+	recorded.Mastered, recorded.Unmastered = topic.master(&judged{
+		correct: correct, hint: answer.HintUsed, at: answer.At, probability: probability,
+		task: task.GradeLevel, taught: taught, moved: moved,
+	})
 	p.putTopic(task.Topic, &topic)
 
 	p.remember(&Answer{
@@ -350,51 +359,79 @@ func (p *Profile) answers() []Answer {
 	return slices.DeleteFunc(slices.Clone(p.Recent), func(entry Answer) bool { return entry.Skipped })
 }
 
+// clearEarlierMasteries clears the masteries a file keeps of the earlier rule
+// and marks the file as the cautious estimate's, once: the first answer
+// recorded into a file not marked is judged on a file with no mastery in it.
+func (p *Profile) clearEarlierMasteries() {
+	if p.MasteriesStand() {
+		return
+	}
+	for id, topic := range p.Topics {
+		topic.MasteredSince, topic.MasteredLevel = nil, nil
+		p.Topics[id] = topic
+	}
+	p.Ratings.MasteryRule = MasteryRuleCautious
+}
+
+// judged is an answer as mastery reads it: whether it was right and unaided,
+// when it came, the chance its task was handed out at, the level of its task
+// and the levels its topic is taught at, and the levels and counts as the
+// answer left them.
+type judged struct {
+	correct, hint bool
+	at            time.Time
+	probability   float64
+	task          rating.GradeLevel
+	taught        []rating.GradeLevel
+	moved         rating.State
+}
+
 // master moves the two runs this topic keeps and reports whether the answer
 // earned mastery or lost it.
 //
-// The run that earns it counts only answers that prove something: correct, at
-// the middle of the corridor or harder, and unaided. A correct answer to an
-// easy task leaves the run where it is rather than adding to it — it is not
-// evidence against the child, and it is not evidence for them either.
+// Mastery is earned by a cautious estimate: after a right and unaided answer,
+// with enough answers in the topic, the topic is mastered at the highest of
+// its levels, at or below the task's, that the child's level less how far it
+// may be off clears. It is held there, and only a level above earns it again,
+// with a new day; it never moves down. Two wrong answers in a row lose it.
 //
-// Mastery is held at the level of the task that completed the run, and a run
-// completed on a task of a higher level masters the topic again, there: once
-// the child's tasks in a topic come from the level above, the topic is back
-// in the rotation until they master it at that level too. A run is spent once
-// it completes, whether it earns mastery or finds the topic mastered already,
-// so mastering the topic at a higher level takes a run of its own rather than
-// one answer added to a run of the tasks below.
-func (t *Topic) master(probability float64, level rating.GradeLevel, correct bool, answer *Answered) (mastered, unmastered bool) {
+// top_streak is counted as the earlier rule counted it — right answers in a
+// row at the middle of the corridor or harder and unaided, spent once three
+// of them complete in a topic of five answers or more — for a build of that
+// rule reading the file. Nothing here decides by it.
+func (t *Topic) master(j *judged) (mastered, unmastered bool) {
 	switch {
-	case !correct:
+	case !j.correct:
 		t.TopStreak = 0
 		t.WrongStreak++
-	case probability <= rating.CorridorMiddle && !answer.HintUsed:
+	case j.probability <= rating.CorridorMiddle && !j.hint:
 		t.TopStreak++
 		t.WrongStreak = 0
 	default:
 		t.WrongStreak = 0
 	}
+	if t.Answers >= MasteryAnswers && t.TopStreak >= MasteryStreak {
+		t.TopStreak = 0
+	}
 
-	switch {
-	case t.MasteredSince != nil && t.WrongStreak >= MasteryLostAfter:
+	if t.MasteredSince != nil && t.WrongStreak >= MasteryLostAfter {
 		t.MasteredSince, t.MasteredLevel = nil, nil
 		return false, true
-	case t.Answers >= MasteryAnswers && t.TopStreak >= MasteryStreak:
-		t.TopStreak = 0
-		if t.masteredAtOrAbove(level) {
-			return false, false
-		}
-		since := DateOf(answer.At)
-		t.MasteredSince, t.MasteredLevel = &since, &level
-		return true, false
 	}
-	return false, false
+	if !j.correct || j.hint || t.Answers < MasteryAnswers {
+		return false, false
+	}
+	level, clears := rating.MasteredAt(j.moved.Level(), j.moved.Answers, j.moved.TopicAnswers, j.task, j.taught)
+	if !clears || t.masteredAtOrAbove(level) {
+		return false, false
+	}
+	since := DateOf(j.at)
+	t.MasteredSince, t.MasteredLevel = &since, &level
+	return true, false
 }
 
 // masteredAtOrAbove reports whether the topic is mastered at this level or at
-// a higher one, which a run completed at this level adds nothing to.
+// a higher one, which mastery at this level adds nothing to.
 func (t *Topic) masteredAtOrAbove(level rating.GradeLevel) bool {
 	return t.MasteredSince != nil && t.MasteredLevel != nil && t.MasteredLevel.Shift() >= level.Shift()
 }

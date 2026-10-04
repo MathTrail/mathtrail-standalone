@@ -190,6 +190,24 @@ func TestAMasteredTopicIsSkipped(t *testing.T) {
 	}
 }
 
+// A file whose masteries the earlier rule declared counts none of them: the
+// topic stays in the rotation, and nothing counts as mastered, until the next
+// answer clears them.
+func TestTheEarlierRulesMasteriesCountForNothing(t *testing.T) {
+	t.Parallel()
+
+	p := child(t)
+	mastered(p, "counting.gaps", rating.Grades12)
+	p.Ratings.MasteryRule = ""
+
+	if tutor.Mastered(p, threeTopics(), "counting.gaps") {
+		t.Error("Mastered() = true in a file the earlier rule wrote, want its masteries counted for nothing")
+	}
+	if got := brief(t, p, threeTopics()); got.TargetConcept != "counting.gaps" {
+		t.Errorf("topic = %q, want the topic the earlier rule mastered kept in the rotation", got.TargetConcept)
+	}
+}
+
 // Mastery is held at a level. A topic mastered among the tasks of grades 1–2
 // is back in the rotation once the child's tasks in it come from grades 3–4:
 // it has never been met there.

@@ -17,7 +17,9 @@
 // and are not allowed to change what the child is set, and it never reads the
 // child's grade either: the grade decided where the child started, and from
 // there the topics within reach, the level and the difficulty all follow what
-// the child's answers say.
+// the child's answers say. One thing a person says does steer it: a topic the
+// child or the adult chose for the lessons, which every task is set on once
+// the trial series is over, at the level and the difficulty the answers say.
 package tutor
 
 import (
@@ -76,6 +78,20 @@ type Choice struct {
 // or a difficulty of its own. A reason alone asks for nothing.
 func (c *Choice) Made() bool { return c.Topic != "" || c.GradeLevel != "" || c.Difficulty != 0 }
 
+// Beside is the choice as it stands beside the topic the lessons are kept to,
+// lesson: naming that topic asks for nothing, since it is set anyway, and a
+// reason left with nothing beside it explains nothing.
+func (c *Choice) Beside(lesson string) Choice {
+	beside := *c
+	if lesson != "" && beside.Topic == lesson {
+		beside.Topic = ""
+		if !beside.Made() {
+			beside.Reason = ""
+		}
+	}
+	return beside
+}
+
 // ChoiceError is a choice of the model's that no brief can be built from, with
 // every rule it breaks. A caller finds it with errors.As, to tell the model
 // what to change.
@@ -94,22 +110,35 @@ func (e *ChoiceError) Error() string {
 	return "tutor: the model's choice breaks a rule: " + strings.Join(broken, "; ")
 }
 
-// problems are the rules a choice breaks, the topic the rule suggested being
-// the one a level named alone is set on. A topic has to be one of the
-// catalog, and a level one it is taught at — the examples, the traps and the
-// limits of a brief stand on both — and a difficulty one of a level. And a
-// choice of any of them says why.
-func (c *Choice) problems(catalog Catalog, suggested string) []profile.Problem {
+// problems are the rules a choice breaks. A level named alone is set on the
+// topic the lessons are kept to, when the child or the adult chose one, and on
+// the topic the rule suggested otherwise. A topic has to be one of the
+// catalog, and none other than the one chosen for the lessons, and a level one
+// it is taught at — the examples, the traps and the limits of a brief stand on
+// both — and a difficulty one of a level. And a choice of any of them says
+// why.
+func (c *Choice) problems(catalog Catalog, suggested, chosen string) []profile.Problem {
 	var found []profile.Problem
 	topic := suggested
+	if chosen != "" {
+		topic = chosen
+	}
 	if c.Topic != "" {
-		topic = c.Topic
-		if len(catalog.LevelsOf(c.Topic)) == 0 {
+		switch {
+		case len(catalog.LevelsOf(c.Topic)) == 0:
+			topic = c.Topic
 			found = append(found, profile.Problem{Field: "topic", Broken: profile.Broken{
 				Code: profile.CodeNotInCatalog, Rule: "must be a topic of the catalog, by its id"}})
+		case chosen != "":
+			// The chosen topic is what will be set, so a level is held to it.
+			found = append(found, profile.Problem{Field: "topic", Broken: profile.Broken{
+				Code: profile.CodeNotOneOf, Rule: fmt.Sprintf("must be %s, the topic the child or the adult chose for "+
+					"the lessons, or left out; save_profile changes the choice when they ask", chosen)}})
+		default:
+			topic = c.Topic
 		}
 	}
-	if broken := c.levelRule(catalog, topic, suggested); broken.Code != "" {
+	if broken := c.levelRule(catalog, topic, suggested, chosen); broken.Code != "" {
 		found = append(found, profile.Problem{Field: "grade_level", Broken: broken})
 	}
 	if c.Difficulty != 0 && (c.Difficulty < profile.MinDifficulty || c.Difficulty > profile.MaxDifficulty) {
@@ -123,10 +152,11 @@ func (c *Choice) problems(catalog Catalog, suggested string) []profile.Problem {
 }
 
 // levelRule is the rule a level of the model's breaks, or nothing. A level is
-// held to the topic it will be set on: the model's own, or the rule's when the
+// held to the topic it will be set on: the model's own; the one chosen for the
+// lessons, which no level of the model's moves it off; or the rule's when the
 // model named none, which the rule names back so that the model can pick a
 // topic that fits instead.
-func (c *Choice) levelRule(catalog Catalog, topic, suggested string) profile.Broken {
+func (c *Choice) levelRule(catalog Catalog, topic, suggested, chosen string) profile.Broken {
 	levels := catalog.LevelsOf(topic)
 	switch {
 	case c.GradeLevel == "":
@@ -136,6 +166,9 @@ func (c *Choice) levelRule(catalog Catalog, topic, suggested string) profile.Bro
 	case len(levels) == 0 || slices.Contains(levels, c.GradeLevel):
 		// An unknown topic is refused as a topic; its levels are nobody's.
 		return profile.Broken{}
+	case chosen != "" && topic == chosen:
+		return profile.Broken{Code: profile.CodeNotTaught, Rule: fmt.Sprintf(
+			"must be a level the topic chosen for the lessons, %s, is taught at: %s", chosen, joined(levels))}
 	case c.Topic == "":
 		return profile.Broken{Code: profile.CodeNotTaught, Rule: fmt.Sprintf(
 			"must be a level the rule's topic, %s, is taught at: %s; or name a topic taught at this level",
@@ -175,10 +208,15 @@ func joined(levels []rating.GradeLevel) string {
 // Next builds the brief for this child, and says who chose it. A choice of the
 // model's that no brief can be built from is refused with a ChoiceError.
 //
-// The goal is always the rule's, even when the model picks the topic: a brief
-// that says "reinforce" about a topic the child has never practised records
-// that a failure just happened and something else was asked for, which is a
-// fact about the child rather than a defect.
+// Once the trial series is over, a topic the child or the adult chose for the
+// lessons is set in place of the rule's. The model may still name a level or
+// a difficulty with a reason, and asking for that same topic asks for nothing;
+// another topic it is refused, since the choice is theirs to change.
+//
+// The goal is always the rule's, even when the model or the person picks the
+// topic: a brief that says "reinforce" about a topic the child has never
+// practised records that a failure just happened and something else was asked
+// for, which is a fact about the child rather than a defect.
 func Next(p *profile.Profile, catalog Catalog, choice Choice) (profile.Brief, profile.TutorMode, error) {
 	open := WithinReach(p, catalog)
 	if len(open) == 0 {
@@ -186,14 +224,16 @@ func Next(p *profile.Profile, catalog Catalog, choice Choice) (profile.Brief, pr
 	}
 
 	suggested, goal, because := choose(p, catalog, open)
-	if problems := choice.problems(catalog, suggested); len(problems) > 0 {
+	chosen := LessonTopic(p, catalog)
+	choice = choice.Beside(chosen)
+	if problems := choice.problems(catalog, suggested, chosen); len(problems) > 0 {
 		return profile.Brief{}, "", &ChoiceError{Problems: problems}
 	}
 	// The rule's own corridor, of the topic it suggested: what is set unless
-	// the model chose otherwise, and the account the rationale keeps whatever
-	// was set.
+	// the model or the person chose otherwise, and the account the rationale
+	// keeps whatever was set.
 	ruled := CorridorIn(p, catalog, suggested)
-	topic, point, mode := apply(p, catalog, &choice, suggested, &ruled)
+	topic, point, mode := apply(p, catalog, &choice, suggested, chosen, &ruled)
 
 	return profile.Brief{
 		Constraints: []string{},
@@ -204,11 +244,33 @@ func Next(p *profile.Profile, catalog Catalog, choice Choice) (profile.Brief, pr
 		ExcludedSkills:  append([]string{}, p.Student.ExcludedSkills...),
 		GradeLevel:      point.GradeLevel,
 		PedagogicalGoal: goal,
-		Rationale:       rationale(goal, because, &ruled, &choice, point),
+		Rationale:       rationale(goal, because, &ruled, &choice, chosen, point),
 		Setting:         setting(p),
 		TargetConcept:   topic,
 		TrapsToUse:      traps(p, topic, point.GradeLevel, catalog),
 	}, mode, nil
+}
+
+// ChosenTopic is the topic the child or the adult chose to keep the lessons
+// to, while the catalog has it, or none. The file is the parent's to edit, so
+// a topic the catalog does not have, or has since lost, counts as no choice.
+func ChosenTopic(p *profile.Profile, catalog Catalog) string {
+	topic := p.Student.LessonTopic
+	if topic == "" || len(catalog.LevelsOf(topic)) == 0 {
+		return ""
+	}
+	return topic
+}
+
+// LessonTopic is the topic the lessons are kept to now: the one chosen, once
+// the trial series is over, or none. The series finds where the child stands
+// by moving to a new topic each time, so a choice made during it waits for its
+// end.
+func LessonTopic(p *profile.Profile, catalog Catalog) string {
+	if p.Ratings.InTrial() {
+		return ""
+	}
+	return ChosenTopic(p, catalog)
 }
 
 // WithinReach keeps the topics a child can be set now, in catalog order: those
@@ -309,9 +371,10 @@ func unmastered(p *profile.Profile, catalog Catalog, open []string) []string {
 // Mastery at a lower level says nothing about the tasks the child would be set
 // there now, so such a topic is back in the rotation — and a screen that said
 // "mastered" about it would be saying something the rule no longer believes.
+// A file whose masteries the earlier rule declared counts none of them.
 func Mastered(p *profile.Profile, catalog Catalog, topic string) bool {
 	summary := p.Topics[topic]
-	if summary.MasteredSince == nil || summary.MasteredLevel == nil {
+	if !p.MasteriesStand() || summary.MasteredSince == nil || summary.MasteredLevel == nil {
 		return false
 	}
 	recommended := CorridorIn(p, catalog, topic).Recommended
@@ -358,23 +421,28 @@ func waitedLonger(p *profile.Profile, topic, than string) bool {
 	}
 }
 
-// apply lets the model's choice override the rule's. The choice has been held
-// to its rules already, so it names nothing a brief cannot be built from. What
-// the model leaves out, the corridor of the topic fills in: a topic alone is
-// set at its recommended point, a level alone at the recommended difficulty of
-// that level, and a difficulty alone at the level of the recommended point.
+// apply lets the topic chosen for the lessons, and then the model's choice,
+// override the rule's. The choice has been held to its rules already, so it
+// names nothing a brief cannot be built from, and no topic other than the one
+// chosen. What the model leaves out, the corridor of the topic fills in: a
+// topic alone — the model's or the person's — is set at its recommended point,
+// a level alone at the recommended difficulty of that level, and a difficulty
+// alone at the level of the recommended point.
 //
 // A difficulty of the model's own is used as given: the corridor is a
 // recommendation, and a deliberate step outside it is what a tutor sometimes
 // does.
-func apply(p *profile.Profile, catalog Catalog, choice *Choice, suggested string, ruled *rating.Corridor) (
+func apply(p *profile.Profile, catalog Catalog, choice *Choice, suggested, chosen string, ruled *rating.Corridor) (
 	topic string, point rating.Point, mode profile.TutorMode,
 ) {
+	topic, point, mode = suggested, ruled.Recommended, profile.TutorRule
+	if chosen != "" {
+		topic, point, mode = chosen, CorridorIn(p, catalog, chosen).Recommended, profile.TutorPerson
+	}
 	if !choice.Made() {
-		return suggested, ruled.Recommended, profile.TutorRule
+		return topic, point, mode
 	}
 
-	topic, point = suggested, ruled.Recommended
 	if choice.Topic != "" {
 		topic = choice.Topic
 		point = CorridorIn(p, catalog, topic).Recommended

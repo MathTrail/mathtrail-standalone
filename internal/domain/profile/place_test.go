@@ -35,7 +35,7 @@ func TestAPlaceIsKeptAsCodesOfTheList(t *testing.T) {
 			student := newStudent()
 			student.Country, student.Region = tc.country, tc.region
 			p := profile.New(student, "1.2.3", editedAt)
-			if _, problems := p.Change(&tc.edit, skills, "1.2.4", editedAt); len(problems) > 0 {
+			if _, problems := p.Change(&tc.edit, shipped, "1.2.4", editedAt); len(problems) > 0 {
 				t.Fatalf("Change() problems = %v, want none", problems)
 			}
 			if p.Student.Country != tc.wantCountry || p.Student.Region != tc.wantState {
@@ -72,7 +72,7 @@ func TestAPlaceOffTheListIsRefused(t *testing.T) {
 			student := newStudent()
 			student.Country = tc.country
 			p := profile.New(student, "1.2.3", editedAt)
-			changed, problems := p.Change(&tc.edit, skills, "1.2.4", editedAt)
+			changed, problems := p.Change(&tc.edit, shipped, "1.2.4", editedAt)
 			if changed || !slices.Equal(fields(problems), []string{tc.field}) || problems[0].Code != profile.CodeNotOneOf {
 				t.Fatalf("Change() = %v, %v; want nothing changed and %s refused as %s", changed, problems, tc.field, profile.CodeNotOneOf)
 			}

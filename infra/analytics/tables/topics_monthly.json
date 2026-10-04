@@ -1,0 +1,10 @@
+[
+  {"name": "month", "type": "DATE", "mode": "REQUIRED", "description": "The first day of the calendar month, in UTC."},
+  {"name": "topic", "type": "STRING", "mode": "REQUIRED", "description": "The topic of the catalog, or other."},
+  {"name": "learners", "type": "INTEGER", "mode": "REQUIRED", "description": "The children who answered a task of the topic that month."},
+  {"name": "answers", "type": "INTEGER", "mode": "REQUIRED", "description": "The answers to its tasks."},
+  {"name": "correct", "type": "INTEGER", "mode": "REQUIRED", "description": "The answers that were right."},
+  {"name": "dont_know", "type": "INTEGER", "mode": "REQUIRED", "description": "The answers that were I don't know."},
+  {"name": "won", "type": "INTEGER", "mode": "REQUIRED", "description": "The times an answer brought the topic among those the progress calls mastered."},
+  {"name": "winners", "type": "INTEGER", "mode": "REQUIRED", "description": "The children it was brought there for."}
+]

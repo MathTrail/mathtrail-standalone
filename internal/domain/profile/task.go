@@ -18,8 +18,9 @@ const (
 )
 
 // TutorMode says who chose the topic and the difficulty of a task: the rule,
-// or the chat's model with a reason of its own. It is kept so that the two can
-// be told apart afterwards.
+// the chat's model with a reason of its own, or the child or the adult, who
+// chose the topic of the lessons. It is kept so that they can be told apart
+// afterwards.
 type TutorMode string
 
 const (
@@ -27,7 +28,15 @@ const (
 	TutorRule TutorMode = "rule"
 	// TutorLLM means the model chose otherwise and said why.
 	TutorLLM TutorMode = "llm"
+	// TutorPerson means a person chose the task's topic — the child or the
+	// adult, who keep the lessons to it — and the rule set the level and the
+	// difficulty on it.
+	TutorPerson TutorMode = "person"
 )
+
+// Known reports whether the mode is one of the three that choose a task: the
+// rule, the model or a person. A file edited by hand can name anybody else.
+func (m TutorMode) Known() bool { return m == TutorRule || m == TutorLLM || m == TutorPerson }
 
 // Brief is what the model was asked for, exactly as it received it. It is kept
 // with the request so that a task can be read against the instructions it was
@@ -123,8 +132,9 @@ type CurrentTask struct {
 	// Topic is the catalog id of what is being asked.
 	Topic string `json:"topic"`
 	// TutorMode is who chose the task's topic and difficulty, as its request
-	// had it: the rule, or the model with a reason of its own. A task handed
-	// out before the card kept it has none.
+	// had it: the rule, the model with a reason of its own, or a person, who
+	// chose the topic of the lessons. A task handed out before the card kept it
+	// has none.
 	TutorMode TutorMode `json:"tutor_mode,omitempty"`
 	// Wording is the question as the child reads it.
 	Wording string `json:"wording"`

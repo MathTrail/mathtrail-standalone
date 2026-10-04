@@ -202,7 +202,7 @@ func TestAnAnswerHoldsItsProperties(t *testing.T) {
 			for p, choice := range map[*profile.Profile]string{unsure: profile.DontKnow, mistaken: wrongLetter} {
 				id := answeringAt(t, p, topic, point)
 				if _, err := p.Record(profile.Answered{TaskID: id, Choice: choice, HintUsed: hint, At: issued.Add(time.Minute)},
-					newSealer(t)); err != nil {
+					newSealer(t), everyLevel); err != nil {
 					return false
 				}
 			}
@@ -218,6 +218,103 @@ func TestAnAnswerHoldsItsProperties(t *testing.T) {
 	))
 
 	properties.TestingRun(t)
+}
+
+// In a file of the cautious estimate's, however a topic goes, it is declared
+// mastered exactly where the rule puts the child: on a right and unaided
+// answer, with five answers in the topic, at the level the cautious estimate
+// clears among the topic's own levels no higher than the task's, whenever that
+// level is above the one held, and since the day of the answer. Two wrong
+// answers in a row take it away, and nothing else does.
+func TestMasteryHoldsItsProperties(t *testing.T) {
+	t.Parallel()
+
+	properties := gopter.NewProperties(nil)
+	levels := gen.OneConstOf(rating.Grades12, rating.Grades34, rating.Grades56)
+	difficulties := gen.IntRange(profile.MinDifficulty, profile.MaxDifficulty)
+	rights, hints := gen.Bool(), gen.Bool()
+	steps := gopter.CombineGens(levels, difficulties, rights, hints).Map(func(values []any) answerStep {
+		level, _ := values[0].(rating.GradeLevel)
+		difficulty, _ := values[1].(int)
+		correct, _ := values[2].(bool)
+		hint, _ := values[3].(bool)
+		return answerStep{point: rating.Point{GradeLevel: level, Difficulty: difficulty}, correct: correct, hint: hint}
+	})
+	// The levels a topic can be taught at: a run of neighbouring levels, as
+	// every topic of the catalog is.
+	taughtAt := gen.OneConstOf(
+		[]rating.GradeLevel{rating.Grades12},
+		[]rating.GradeLevel{rating.Grades56},
+		[]rating.GradeLevel{rating.Grades34, rating.Grades56},
+		everyLevel,
+	)
+
+	properties.Property("declared where the cautious estimate clears, held until two failures in a row", prop.ForAll(
+		func(theta float64, answers int, taught []rating.GradeLevel, lesson []answerStep) bool {
+			p := settled(t, theta, answers, 0, 0)
+			for number, step := range lesson {
+				before := p.Topics[masteredTopic]
+				at := issued.Add(time.Duration(number+1) * time.Hour)
+				recorded := answerTaughtAt(t, p, step.point, number+1, step.correct, step.hint, taught)
+				if !keptByTheRule(p, &before, &recorded, &ruledAnswer{answerStep: step, taught: taught, day: profile.DateOf(at)}) {
+					return false
+				}
+			}
+			return true
+		},
+		gen.Float64Range(-2, 7), gen.IntRange(0, 400), taughtAt, gen.SliceOfN(30, steps),
+	))
+
+	properties.TestingRun(t)
+}
+
+// answerStep is one answer of a generated lesson: where its task stood, and
+// whether the child got it right and took the hint.
+type answerStep struct {
+	point         rating.Point
+	correct, hint bool
+}
+
+// ruledAnswer is an answer as the rule is held to it: the step, the levels its
+// topic is taught at, and the day it came.
+type ruledAnswer struct {
+	answerStep
+	taught []rating.GradeLevel
+	day    profile.Date
+}
+
+// keptByTheRule says whether what an answer did to the mastery of its topic is
+// what the rule asks for: a loss after two wrong answers in a row from
+// mastery; a declaration on a right and unaided answer with five answers in
+// the topic, at the level the cautious estimate clears among the topic's
+// levels, when that level is above the one held, since the day of the answer;
+// and otherwise nothing moved. Which level the estimate clears is the rating's
+// to say, and its own properties hold it.
+func keptByTheRule(p *profile.Profile, before *profile.Topic, recorded *profile.Recorded, a *ruledAnswer) bool {
+	after := p.Topics[masteredTopic]
+	lost := before.MasteredSince != nil && after.WrongStreak >= profile.MasteryLostAfter
+	earned, clears := rating.MasteredAt(p.Ratings.Theta+after.Delta, p.Ratings.Answers, after.Answers, a.point.GradeLevel, a.taught)
+	earns := clears && a.correct && !a.hint && after.Answers >= profile.MasteryAnswers &&
+		(before.MasteredLevel == nil || before.MasteredLevel.Shift() < earned.Shift())
+	switch {
+	case recorded.Unmastered:
+		return lost && after.MasteredSince == nil && after.MasteredLevel == nil
+	case recorded.Mastered:
+		return earns && after.MasteredLevel != nil && *after.MasteredLevel == earned &&
+			after.MasteredSince != nil && after.MasteredSince.Equal(a.day.Time)
+	default:
+		return !lost && !earns && sameMastery(before, &after)
+	}
+}
+
+// sameMastery says whether a topic is mastered at the same level since the
+// same day as before, or is still not mastered.
+func sameMastery(before, after *profile.Topic) bool {
+	if before.MasteredSince == nil || after.MasteredSince == nil {
+		return before.MasteredSince == nil && after.MasteredSince == nil &&
+			before.MasteredLevel == nil && after.MasteredLevel == nil
+	}
+	return before.MasteredSince.Equal(after.MasteredSince.Time) && *before.MasteredLevel == *after.MasteredLevel
 }
 
 // However a lesson goes — tasks asked for, attempts turned down, tasks handed
@@ -353,12 +450,12 @@ func TestARefusalHoldsItsProperties(t *testing.T) {
 	known := profile.Codes()
 
 	properties.Property("each field once, by a code of the list, with its rule", prop.ForAll(
-		func(pseudonym string, grade int, interests, excluded []string, notes, language string) bool {
+		func(pseudonym string, grade int, interests, excluded []string, notes, language, topic string) bool {
 			edit := profile.Edit{
 				Pseudonym: &pseudonym, Grade: &grade, Interests: interests, ExcludedSkills: excluded,
-				Notes: &notes, UILanguage: &language,
+				Notes: &notes, UILanguage: &language, LessonTopic: &topic,
 			}
-			_, problems := profile.NewStudent(&edit, skills)
+			_, problems := profile.NewStudent(&edit, shipped)
 			named := map[string]bool{}
 			for _, problem := range problems {
 				if named[problem.Field] || !slices.Contains(known, problem.Code) || problem.Rule == "" {
@@ -372,6 +469,7 @@ func TestARefusalHoldsItsProperties(t *testing.T) {
 		gen.SliceOf(gen.AnyString()), gen.SliceOf(gen.OneGenOf(gen.OneConstOf("fractions", "negative_numbers", ""), gen.Identifier())),
 		gen.OneGenOf(gen.AnyString(), gen.Const(strings.Repeat("ж", profile.MaxNotes+1))),
 		gen.OneConstOf("", " ", "en", "pt-br", "und", "x-private", strings.Repeat("a", profile.MaxLanguageTag+1)),
+		gen.OneConstOf("", " ", "time.clocks", " logic.ordering ", "astronomy.stars", strings.Repeat("t", profile.MaxLessonTopic+1)),
 	))
 
 	properties.TestingRun(t)

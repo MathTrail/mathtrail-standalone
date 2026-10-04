@@ -64,10 +64,17 @@ export type ToolCall = { name: string; arguments: Record<string, unknown> };
 export type Opening = "open" | "refuse" | "fail";
 
 /**
+ * Asked is a kind of thing a widget asks of its host: a tool called, a message
+ * put in the chat, a line given to the model, or a page opened.
+ */
+export type Asked = "call" | "message" | "model line" | "page";
+
+/**
  * listenAsHost has host answer the widget as a chat host would: each tool call
  * the widget asks for is answered by tools, each message for the chat and each
  * line for the model is taken, and each page it asks to open is answered as
- * opening says. What was asked is kept, in order, for a test to read.
+ * opening says. What was asked is kept, in order, for a test to read: each
+ * kind on its own, and the kinds as they came, one after another.
  */
 export function listenAsHost(
 	host: AppBridge,
@@ -87,9 +94,11 @@ export function listenAsHost(
 		messages: [] as string[],
 		modelLines: [] as string[],
 		pages: [] as string[],
+		order: [] as Asked[],
 	};
 	host.onopenlink = async ({ url }) => {
 		heard.pages.push(url);
+		heard.order.push("page");
 		if (opening === "fail") {
 			throw new Error("the host could not open the page");
 		}
@@ -98,14 +107,17 @@ export function listenAsHost(
 	host.oncalltool = async (params) => {
 		const call = { name: params.name, arguments: params.arguments ?? {} };
 		heard.calls.push(call);
+		heard.order.push("call");
 		return tools(call);
 	};
 	host.onmessage = async (params) => {
 		heard.messages.push(textOf(params.content));
+		heard.order.push("message");
 		return refuseMessages ? { isError: true } : {};
 	};
 	host.onupdatemodelcontext = async (params) => {
 		heard.modelLines.push(textOf(params.content ?? []));
+		heard.order.push("model line");
 		if (refuseModelLines) {
 			throw new Error("the host keeps no lines for the model");
 		}

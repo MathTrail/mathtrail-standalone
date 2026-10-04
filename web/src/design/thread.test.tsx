@@ -1,6 +1,8 @@
 import { render } from "preact";
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { Icon, Mark } from "./icons";
+import { drawingAlone, drawingOf, drawnAlone } from "./testing/drawing";
 import { MessageHeader, ReplyCard, ThreadBar } from "./thread";
 
 const root = document.createElement("div");
@@ -76,7 +78,7 @@ describe("a header", () => {
 			<MessageHeader
 				name="MathTrail"
 				badge="Olympiad coach · Grade 3"
-				version="v0.2.1"
+				version={{ label: "version", number: "0.2.1" }}
 				wide={wide}
 			/>,
 		);
@@ -85,9 +87,32 @@ describe("a header", () => {
 		expect(header?.classList.contains("mt-head-versioned")).toBe(true);
 		const last = header?.lastElementChild;
 		expect(last?.className).toBe("mt-version");
-		expect(last?.getAttribute("dir")).toBe("ltr");
 		expect(last?.getAttribute("aria-hidden")).toBe("true");
-		expect(last?.textContent).toBe("v0.2.1");
+		expect(last?.hasAttribute("dir")).toBe(false);
+	});
+
+	test("draws the version as the word, then the number read left to right", () => {
+		draw(
+			<MessageHeader
+				name="MathTrail"
+				version={{ label: "версия", number: "0.2.1" }}
+			/>,
+		);
+
+		const parts = [...(root.querySelector(".mt-version")?.children ?? [])];
+		expect(
+			parts.map((part) => [
+				part.className,
+				part.textContent,
+				part.getAttribute("dir"),
+			]),
+		).toEqual([
+			["mt-version-label", "версия", null],
+			["mt-version-number", "0.2.1", "ltr"],
+		]);
+		// Read without the stylesheet — in a reader mode, a text browser — the
+		// word and the number stay two words.
+		expect(root.querySelector(".mt-version")?.textContent).toBe("версия 0.2.1");
 	});
 
 	test("shows no version it was not given", () => {
@@ -97,22 +122,30 @@ describe("a header", () => {
 		expect(root.querySelector(".mt-head-versioned")).toBeNull();
 	});
 
-	test("says who speaks: MathTrail by its mark, the child by the avatar", () => {
-		draw(
-			<>
-				<MessageHeader author="app" name="MathTrail" />
-				<MessageHeader author="person" name="Comet" />
-			</>,
-		);
+	test.each([
+		["full", false, 32, 32],
+		["compact", true, 28, 24],
+	])(
+		"says who speaks: MathTrail by its logo, the child by the avatar, in a %s header",
+		(_, compact, logo, avatar) => {
+			draw(
+				<>
+					<MessageHeader author="app" name="MathTrail" compact={compact} />
+					<MessageHeader author="person" name="Comet" compact={compact} />
+				</>,
+			);
 
-		const [app, person] = root.querySelectorAll(".mt-head");
-		expect(app?.querySelector("svg circle")?.getAttribute("fill")).toBe(
-			"var(--mark-fill)",
-		);
-		expect(person?.querySelector("svg circle")?.getAttribute("fill")).toBe(
-			"var(--avatar-fill)",
-		);
-	});
+			const [app, person] = [...root.querySelectorAll(".mt-head")].map((head) =>
+				head.querySelector("svg"),
+			);
+			expect(drawingOf(app ?? null)).toEqual(
+				drawingAlone(<Mark size={logo} />),
+			);
+			expect(person?.outerHTML).toBe(
+				drawnAlone(<Icon name="avatar" size={avatar} />),
+			);
+		},
+	);
 
 	test("has no button that opens nothing", () => {
 		draw(<MessageHeader name="MathTrail" badge="Olympiad coach · Grade 3" />);

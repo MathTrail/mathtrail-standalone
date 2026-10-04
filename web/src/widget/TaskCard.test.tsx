@@ -135,11 +135,23 @@ describe("a task card", () => {
 		expect(shownButtons()).toEqual(["I don't know", "Hint", "Another task"]);
 	});
 
-	test("names in its header the build the widget came with", async () => {
+	test("names in its header the build the widget came with, by its number", async () => {
 		vi.stubEnv("VITE_VERSION", "v0.2.1");
 		await drawCard();
 
-		expect(text(".mt-head .mt-version")).toBe("v0.2.1");
+		expect(text(".mt-head .mt-version-label")).toBe("version");
+		expect(text(".mt-head .mt-version-number")).toBe("0.2.1");
+	});
+
+	test("says the word for the version in the card's language", async () => {
+		vi.stubEnv("VITE_VERSION", "v0.2.1");
+		await drawCard({
+			...fenceInRussian,
+			child: { ...fenceInRussian.child, ui_language: "ru" },
+		});
+
+		expect(text(".mt-head .mt-version-label")).toBe("версия");
+		expect(text(".mt-head .mt-version-number")).toBe("0.2.1");
 	});
 
 	test("draws no drawing for a task that has none", async () => {

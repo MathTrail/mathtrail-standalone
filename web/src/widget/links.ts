@@ -12,8 +12,9 @@ export type Anchor = "" | "#traps" | "#home";
  */
 export const everyPageLanguage = "en";
 
-// slugPattern is the form of a topic's slug in the catalog: words of small
-// letters and digits joined by hyphens, nothing a path could be turned with.
+// slugPattern is the form of a topic's slug in the catalog, and of the anchor
+// of a group of topics on the site: words of small letters and digits joined
+// by hyphens, nothing a path or an address could be turned with.
 const slugPattern = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 /**
@@ -49,10 +50,35 @@ export function pageAddress(
 	if (origin === undefined) {
 		return undefined;
 	}
-	const written = site.languages.includes(language)
-		? language
-		: everyPageLanguage;
-	return `${origin}/${written}/topics/${page.slug}/${anchor}`;
+	return `${origin}/${writtenIn(site, language)}/topics/${page.slug}/${anchor}`;
+}
+
+/**
+ * groupAddress is the address of a group of topics on the site's page of
+ * topics, in language when the site is written in it and in English
+ * otherwise — or undefined when the card links nowhere: no site, a site that
+ * is not an https origin and nothing more, or a group of another form. The
+ * group's id is the anchor of its part of the page.
+ */
+export function groupAddress(
+	site: Site | undefined,
+	language: string,
+	group: string,
+): string | undefined {
+	if (site === undefined || !slugPattern.test(group)) {
+		return undefined;
+	}
+	const origin = httpsOrigin(site.url);
+	if (origin === undefined) {
+		return undefined;
+	}
+	return `${origin}/${writtenIn(site, language)}/topics/#${group}`;
+}
+
+// writtenIn is language when the site is written in it, and the language every
+// page is written in otherwise.
+function writtenIn(site: Site, language: string): string {
+	return site.languages.includes(language) ? language : everyPageLanguage;
 }
 
 // httpsOrigin is address when it is the origin of an https site and nothing

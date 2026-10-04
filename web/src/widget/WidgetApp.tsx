@@ -15,25 +15,31 @@ import { cardWords, type Key, languageIn, WordsContext } from "./words";
 /**
  * WidgetApp is the card a tool's result is drawn as, in the words of the
  * language its result names — the lesson's, or the one the parent chose — or,
- * when it names none, of the host's. Until the first result arrives it draws
- * the wait for a task asked for, when the host says that is the call it was
- * drawn for, and nothing otherwise. A result with nothing for a card in it,
- * and no failure either, draws nothing: a tool that once answered the model in
- * words alone, drawn again with an earlier chat, has no card to show.
+ * when it names none, of the one a task was asked for in, on the card of that
+ * ask, and else of the host's. Until the first result arrives it draws the
+ * wait for a task asked for, when the host says that is the call it was drawn
+ * for, and nothing otherwise. A result with nothing for a card in it, and no
+ * failure either, draws nothing: a tool that once answered the model in words
+ * alone, drawn again with an earlier chat, has no card to show.
  */
 export function WidgetApp({ bridge, host }: { bridge: Bridge; host: Host }) {
 	const result = useBridge(bridge, latestResult);
 	const call = useBridge(bridge, callOf);
 	const hostLocale = useBridge(bridge, localeOfHost);
+	const asked = asksForATask(call);
+	// The language of a task's ask is the lesson's as the chat has it; the
+	// arguments of any other call say nothing of the lesson.
+	const askedIn = asked ? call.language : undefined;
 	const words = useMemo(
-		() => cardWords(languageIn(result?.structuredContent), hostLocale),
-		[result, hostLocale],
+		() =>
+			cardWords(languageIn(result?.structuredContent) ?? askedIn, hostLocale),
+		[result, askedIn, hostLocale],
 	);
 	useDocumentLanguage(words);
 	if (result === undefined) {
-		return asksForATask(call) ? (
+		return asked ? (
 			<WordsContext.Provider value={words}>
-				<ChoosingCard stage={call.stage} />
+				<ChoosingCard stage={call.stage} languageTold={askedIn !== undefined} />
 			</WordsContext.Provider>
 		) : null;
 	}

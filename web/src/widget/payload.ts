@@ -27,6 +27,42 @@ const child = z.object({
  */
 export type Child = z.infer<typeof child>;
 
+// site is the site the topics' pages are on: its address and the languages it
+// is written in, each page in every one. A progress from before the links has
+// none, and one that does not read is read as none: the card links nothing.
+const site = z
+	.object({ url: z.string(), languages: z.array(z.string()) })
+	.optional()
+	.catch(undefined);
+
+/**
+ * Site is the site the topics' pages are on, as a progress names it: the
+ * address it gives, which a card checks before it links anything there, and
+ * the languages it is written in.
+ */
+export type Site = NonNullable<z.infer<typeof site>>;
+
+// topicChoice is what the card of a task offers to keep the lessons to a
+// topic: the topic chosen, or null while the rule chooses; the topics the
+// review suggests; and the site whose page of topics the groups link to. A
+// task without it — in the trial series, of an earlier release, or on a page
+// of the site — offers no choice, and one that does not read is read so too.
+const topicChoice = z
+	.object({
+		chosen: z.string().nullable(),
+		recommended: z.array(z.string()),
+		site,
+	})
+	.optional()
+	.catch(undefined);
+
+/**
+ * TopicChoice is what the card of a task offers to keep the lessons to a
+ * topic: the topic chosen, or null while the rule chooses; the topics the
+ * review suggests; and the site whose page of topics the groups link to.
+ */
+export type TopicChoice = NonNullable<z.infer<typeof topicChoice>>;
+
 const handedTask = z.object({
 	screen: z.literal("task"),
 	child,
@@ -48,12 +84,13 @@ const handedTask = z.object({
 	// The lesson's language, which the card's words are in; a card from before
 	// it travelled with the task has none.
 	language: z.string().optional(),
+	topic_choice: topicChoice,
 });
 
 /**
  * HandedTask is a task as it is handed to the child's card: what the child
- * may see of it, and whose card it is. It holds nothing that gives the answer
- * away.
+ * may see of it, whose card it is, and what it offers to keep the lessons to.
+ * It holds nothing that gives the answer away.
  */
 export type HandedTask = z.infer<typeof handedTask>;
 
@@ -343,11 +380,15 @@ const trial = z.object({ answered: z.number().int(), of: z.number().int() });
 const recommendation = z.object({
 	topic: z.string(),
 	goal: z.string(),
+	// A progress from before the lessons could be kept to a topic says nothing
+	// of it, and one that does not read is read as a topic the rule chose.
+	chosen: z.boolean().optional().catch(undefined),
 });
 
 /**
- * Recommendation is what the rule would set next: a topic, and whether it is
- * worked over again after a mistake or is new ground.
+ * Recommendation is what the rule would set next: a topic, whether it is
+ * worked over again after a mistake or is new ground, and whether it is the
+ * topic someone chose to keep the lessons to.
  */
 export type Recommendation = z.infer<typeof recommendation>;
 
@@ -434,21 +475,6 @@ const review = z
 	})
 	.optional()
 	.catch(undefined);
-
-// site is the site the topics' pages are on: its address and the languages it
-// is written in, each page in every one. A progress from before the links has
-// none, and one that does not read is read as none: the card links nothing.
-const site = z
-	.object({ url: z.string(), languages: z.array(z.string()) })
-	.optional()
-	.catch(undefined);
-
-/**
- * Site is the site the topics' pages are on, as a progress names it: the
- * address it gives, which a card checks before it links anything there, and
- * the languages it is written in.
- */
-export type Site = NonNullable<z.infer<typeof site>>;
 
 /**
  * Judged is a topic the review names: the topic, why, by codes, the trap its

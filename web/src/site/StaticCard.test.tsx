@@ -1,8 +1,17 @@
 import { Window } from "happy-dom";
 import type { VNode } from "preact";
 import { renderToString } from "preact-render-to-string";
-import { afterAll, afterEach, describe, expect, test, vi } from "vitest";
+import {
+	afterAll,
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	test,
+	vi,
+} from "vitest";
 import type { Section } from "../widget/folds";
+import { lessonStart } from "../widget/lesson";
 import { readAnswer, readHandedTask, readScreen } from "../widget/payload";
 import {
 	buttonIn,
@@ -25,6 +34,7 @@ import {
 	StaticProgress,
 	StaticTask,
 } from "./StaticCard";
+import { handedOf } from "./taskcard";
 
 // browser reads the static card the way a page holds it, apart from the card
 // the widget draws in this test's own document.
@@ -36,9 +46,16 @@ afterAll(async () => {
 
 let drawn: Drawn | undefined;
 
+// The cards are drawn as a site built from a release draws them: knowing the
+// build, and naming it as the cards in a chat do.
+beforeEach(() => {
+	vi.stubEnv("VITE_VERSION", "v0.2.1");
+});
+
 afterEach(() => {
 	takeDown(drawn?.root);
 	drawn = undefined;
+	vi.unstubAllEnvs();
 });
 
 // The widget's own example of a progress, in Russian, so that the language is
@@ -116,20 +133,6 @@ describe("a progress card drawn on a page", () => {
 // service names beside the task, as it does for every task it hands out.
 const russianFence = { ...fenceInRussian, language: "ru" };
 
-// withoutBuild is a copy of a card a chat drew, with the version of the build
-// its header names taken out: the one part a card on a page leaves out.
-function withoutBuild(card: Element | null): Element | null {
-	const copy = card?.cloneNode(true);
-	if (!(copy instanceof Element)) {
-		return null;
-	}
-	copy.querySelector(".mt-version")?.remove();
-	copy
-		.querySelector(".mt-head-versioned")
-		?.classList.remove("mt-head-versioned");
-	return copy;
-}
-
 // wrong is the fence answered with the wrong B, as the service records it for
 // a card in Russian.
 const wrong = answered({
@@ -156,7 +159,7 @@ function answeredStill() {
 }
 
 describe("a card of a wrong answer drawn on a page", () => {
-	test("is the card the widget draws in a chat once the same answer is recorded, but for the build it names", async () => {
+	test("is the card the widget draws in a chat once the same answer is recorded", async () => {
 		drawn = await drawCard(russianFence, { tools: () => wrong });
 		const pressed = [
 			...drawn.root.querySelectorAll<HTMLButtonElement>(".mt-option"),
@@ -172,7 +175,7 @@ describe("a card of a wrong answer drawn on a page", () => {
 			expect(root.querySelector(".mt-replies .mt-reply")).not.toBeNull(),
 		);
 		const page = answeredStill();
-		const chat = withoutBuild(root.querySelector(".mt-widget"));
+		const chat = root.querySelector(".mt-widget");
 
 		expect(page.querySelector(".mt-widget")?.textContent).toBe(
 			chat?.textContent,
@@ -180,7 +183,16 @@ describe("a card of a wrong answer drawn on a page", () => {
 		expect(shape(page.querySelector(".mt-widget"))).toEqual(shape(chat));
 	});
 
-	test("names no build, since the site is published before its release is tagged", () => {
+	test("names the release the site was built from, as a chat names it", () => {
+		const page = answeredStill();
+
+		expect(page.querySelector(".mt-version-label")?.textContent).toBe("версия");
+		expect(page.querySelector(".mt-version-number")?.textContent).toBe("0.2.1");
+	});
+
+	test("names no build when the site was built from no release, rather than dev", () => {
+		vi.stubEnv("VITE_VERSION", "");
+
 		const page = answeredStill();
 
 		expect(page.querySelector(".mt-head")).not.toBeNull();
@@ -245,10 +257,10 @@ function optionIn(root: HTMLElement, letter: string): HTMLButtonElement {
 	return found;
 }
 
-// sameCard holds a card drawn on a page to the card a chat drew, but for the
-// build the chat's names.
+// sameCard holds a card drawn on a page to the card a chat drew, the build it
+// names included.
 function sameCard(page: ReturnType<typeof pageOf>, root: HTMLElement) {
-	const chat = withoutBuild(root.querySelector(".mt-widget"));
+	const chat = root.querySelector(".mt-widget");
 	expect(page.querySelector(".mt-widget")?.textContent).toBe(chat?.textContent);
 	expect(shape(page.querySelector(".mt-widget"))).toEqual(shape(chat));
 }
@@ -326,7 +338,9 @@ describe("a card of a task being written, drawn on a page", () => {
 		);
 	});
 
-	test("is inert, and names no build", () => {
+	test("is inert, and names no build when the site was built from no release", () => {
+		vi.stubEnv("VITE_VERSION", "");
+
 		const page = pageOf(
 			<StaticComing
 				coming={{ requestId: "req", child: fenceInRussian.child }}
@@ -336,5 +350,35 @@ describe("a card of a task being written, drawn on a page", () => {
 
 		expect(page.querySelector(".s-card")?.hasAttribute("inert")).toBe(true);
 		expect(page.querySelector(".mt-version")).toBeNull();
+	});
+});
+
+describe("a card of a task the site draws", () => {
+	// A page keeps no profile, so it has no topic to keep the lessons to: the
+	// site's task is handed to its card with no choice of the topic.
+	test("offers no choice of the topic", () => {
+		const handed = handedOf(
+			{
+				topic: "counting.gaps",
+				grade: 3,
+				drawing: "",
+				options: { A: "3", B: "4", C: "5", D: "6", E: "12" },
+				choice: "B",
+				correct: "C",
+				trap: "fence_gaps",
+				rating: { before: 1502, after: 1480 },
+			},
+			{ language: "ru", child: "Комета", question: "?", hint: "?" },
+			"site_card",
+			"the card of this test",
+		);
+		const page = pageOf(
+			<StaticTask handed={handed} start={lessonStart} locale="ru" />,
+		);
+
+		expect(handed.topic_choice).toBeUndefined();
+		expect(page.querySelector(".mt-btns .mt-btn")).not.toBeNull();
+		expect(page.querySelector(".mt-topic-button")).toBeNull();
+		expect(page.querySelector(".mt-topic-panel")).toBeNull();
 	});
 });

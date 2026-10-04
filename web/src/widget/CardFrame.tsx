@@ -21,18 +21,19 @@ import { useWords } from "./words";
  * left, for as long as the card is drawn. A change the parent saves on the
  * progress's form is the card's from then on — its line and what it frames
  * show the child as the profile now says — until the card is handed another
- * payload, which carries the child as the service has it.
+ * payload, which carries the child as the service has it. A card handed the
+ * child hands what it frames a child too.
  */
-export function CardFrame({
+export function CardFrame<C extends Child | undefined>({
 	child,
 	back,
 	host,
 	children,
 }: {
-	child: Child | undefined;
+	child: C;
 	back: string;
 	host: Host;
-	children: (wide: boolean, child: Child | undefined) => ComponentChildren;
+	children: (wide: boolean, child: C | Child) => ComponentChildren;
 }) {
 	const words = useWords();
 	const [saved, setSaved] = useState<{

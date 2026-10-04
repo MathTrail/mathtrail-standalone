@@ -7,13 +7,13 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
-// The two worked examples of the specification, written out column by column.
+// The worked examples of the specification, written out column by column.
 // They exist so that a failure can be read by eye: the table below is the one
 // a person checks the arithmetic against, and every number in it is printed to
 // the four decimals the specification prints.
 //
 // The prototype's exported vectors are the larger reference and live in
-// golden_test.go; these two are the ones anybody can follow by hand.
+// golden_test.go; these are the ones anybody can follow by hand.
 
 // The corridor and the chance at the recommended difficulty are printed to two
 // decimals in the tables, and are held to that.
@@ -180,4 +180,85 @@ func TestThreeFailuresInARow(t *testing.T) {
 			answers, topicAnswers = result.Answers, result.TopicAnswers
 		})
 	}
+}
+
+// pastTheFloor is one answer of a child whose overall level's step has
+// reached its floor: the state before it, the answer, the two steps it was
+// allowed and the levels it left.
+type pastTheFloor struct {
+	point          rating.Point
+	theta, delta   float64 // before
+	probability    float64
+	correct        bool
+	kTheta, kDelta float64
+	thetaAfter     float64
+	deltaAfter     float64
+}
+
+// A child of 79 answers answers three tasks in a topic taught at every level.
+// The formula alone would give the overall level a step of 0.0404, 0.0400 and
+// 0.0396; the floor holds it at 0.05 at every one, while the topic's step,
+// counted by the topic's own nine answers and more, narrows on. What the
+// example says of mastery is the profile's to reproduce.
+func TestAChildPastTheFloorOfTheStep(t *testing.T) {
+	t.Parallel()
+
+	const settled, inTopic = 79, 9
+	topic := rating.Points(rating.Grades12, rating.Grades34, rating.Grades56)
+
+	table := []pastTheFloor{
+		{rating.Point{GradeLevel: rating.Grades34, Difficulty: 1}, 1.2000, 0.5000, 0.8148, true, 0.0500, 0.2759, 1.2093, 0.5511},
+		{youngest(4), 1.2093, 0.5511, 0.7451, false, 0.0500, 0.2667, 1.1720, 0.3524},
+		{youngest(3), 1.1720, 0.3524, 0.8569, false, 0.0500, 0.2581, 1.1292, 0.1312},
+	}
+
+	theta, delta, answers, topicAnswers := 1.2, 0.5, settled, inTopic
+	after := make([]rating.Result, len(table))
+	for number, row := range table {
+		t.Run(fmt.Sprintf("answer %d", number+1), func(t *testing.T) {
+			nearly(t, theta, row.theta, tolerance, "the overall level before")
+			nearly(t, delta, row.delta, tolerance, "the topic before")
+
+			state := rating.State{Theta: theta, Delta: delta, Answers: answers, TopicAnswers: topicAnswers}
+			result := rating.Update(state, row.point.Beta(), row.correct)
+
+			nearly(t, result.Probability, row.probability, tolerance, "the chance of a correct answer")
+			nearly(t, result.KTheta, row.kTheta, tolerance, "the overall level's step")
+			nearly(t, result.KDelta, row.kDelta, tolerance, "the topic's step")
+			nearly(t, result.Theta, row.thetaAfter, tolerance, "the overall level after")
+			nearly(t, result.Delta, row.deltaAfter, tolerance, "the topic after")
+			if result.Answers != answers+1 || result.TopicAnswers != topicAnswers+1 {
+				t.Errorf("answers = %d and %d in the topic, want %d and %d", result.Answers, result.TopicAnswers, answers+1, topicAnswers+1)
+			}
+
+			theta, delta = result.Theta, result.Delta
+			answers, topicAnswers = result.Answers, result.TopicAnswers
+			after[number] = result
+		})
+	}
+
+	for _, want := range []struct {
+		answer           int
+		overall, inTopic int
+	}{
+		{1, 1710, 1806},
+		{3, 1696, 1719},
+	} {
+		result := after[want.answer-1]
+		if shown := rating.Shown(rating.Elo(result.Theta)); shown != want.overall {
+			t.Errorf("after answer %d the overall rating = %d, want %d", want.answer, shown, want.overall)
+		}
+		if shown := rating.Shown(rating.Elo(result.Level())); shown != want.inTopic {
+			t.Errorf("after answer %d the topic's rating = %d, want %d", want.answer, shown, want.inTopic)
+		}
+	}
+
+	// After the first answer the topic is asked for at difficulty 4 of the
+	// youngest level, inside the corridor, which is the level it is mastered at.
+	corridor := rating.NewCorridor(after[0].Level(), topic)
+	if corridor.Recommended != youngest(4) || corridor.Fit != rating.FitInside {
+		t.Errorf("after the first answer the next point = %+v, %q; want difficulty 4 of %s, %q",
+			corridor.Recommended, corridor.Fit, rating.Grades12, rating.FitInside)
+	}
+	nearly(t, corridor.Probability(corridor.Recommended), 0.7451, tolerance, "the chance at it")
 }

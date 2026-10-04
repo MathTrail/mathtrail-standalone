@@ -1,3 +1,4 @@
+import { Icon } from "../design/icons";
 import { markPath, siteName } from "./brand";
 import { useSiteWords } from "./words";
 
@@ -66,7 +67,7 @@ export function Header({
 						{hasMenu && (
 							<details class="s-menu">
 								<summary>
-									<MenuIcon />
+									<Icon name="menu" size={24} />
 									<span class="s-hidden">{words.text("nav.menu")}</span>
 								</summary>
 								<Menu class="s-menu-list" links={menu} />
@@ -114,28 +115,6 @@ function Menu({
 				</a>
 			))}
 		</nav>
-	);
-}
-
-// MenuIcon is the three lines a menu's button is known by, in the colour of
-// the button. The button's name is the word beside it, which a screen reader
-// says and the stylesheet hides.
-function MenuIcon() {
-	return (
-		<svg
-			width="24"
-			height="24"
-			viewBox="0 0 24 24"
-			fill="none"
-			aria-hidden="true"
-		>
-			<path
-				d="M4 7h16M4 12h16M4 17h16"
-				stroke="currentColor"
-				stroke-width="1.75"
-				stroke-linecap="round"
-			/>
-		</svg>
 	);
 }
 

@@ -43,7 +43,7 @@ export function ComingCard({ coming, host }: { coming: Coming; host: Host }) {
 			{(wide, whose) =>
 				task === undefined ? (
 					<article aria-label={words.text("waiting.label")}>
-						<CardHeader grade={whose?.grade} wide={wide} />
+						<CardHeader grade={whose.grade} wide={wide} />
 						<TaskWait
 							phase="writing"
 							rewriting={wait.refused > 0}
@@ -61,7 +61,7 @@ export function ComingCard({ coming, host }: { coming: Coming; host: Host }) {
 						handed={task}
 						host={host}
 						wide={wide}
-						grade={whose?.grade}
+						grade={whose.grade}
 					/>
 				)
 			}

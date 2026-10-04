@@ -31,7 +31,7 @@ Which screen a card shows is decided by the payload, not by the tool: `get_progr
 |---|---|---|---|---|---|
 | `get_profile` | the model | **no** — the profile is shown in the progress's Profile section (R148, R162) | 1 | 0 | always |
 | `save_profile` | the model | **no** — the model says in a sentence what was saved (R148) | 1 | 1 | the fields fail validation, or ask for what the profile already says |
-| `edit_profile` | the widget only, from the form in the progress's Profile section (R148, R162) | **no** — the card that called it shows the details saved | 1 | 1 | the fields fail validation, change nothing, or there is no profile — a form never makes one |
+| `edit_profile` | the widget only, from the form in the progress's Profile section (R148, R162), and with the topic of the lessons alone from the card of a task (R193) | **no** — the card that called it shows the details saved | 1 | 1 | the fields fail validation, change nothing, or there is no profile — a form never makes one |
 | `get_progress` | the model | yes — progress | 1 | 0 | always |
 | `read_progress` | the widget only, from the line at the top of a card (R91, R97) | **no** — the card that called it turns to its progress | 1 | 0 | always |
 | `next_task` | the model | yes — the task on its way, which turns into the task (R152) | 1 | 1 | a limit was hit, or the same open request is returned again |
@@ -87,7 +87,7 @@ sequenceDiagram
     M->>MT: next_task, with the chat language and, if it wants, its own topic or difficulty and a reason
     Note over W: the host draws the card as the call starts: "Preparing the next task…", the topic being picked
     MT->>D: read the profile
-    Note over MT: the daily and rate limits · the rule picks topic, goal and corridor ·<br/>the model's override is recorded as tutor_mode · the open request is written down:<br/>id, brief, attempts 0, started at
+    Note over MT: the daily and rate limits · the rule picks topic, goal and corridor ·<br/>the model's override, or a topic a person chose, is recorded as tutor_mode · the open request is written down:<br/>id, brief, attempts 0, started at
     MT->>D: write the profile
     MT-->>M: request open: get its package, write the task, hand it in
     MT-->>W: the task on its way — the request, whose card it is, its language, and no package
@@ -241,6 +241,8 @@ The child presses "Another task" — on the result screen, or on the task card i
 1. **The card keeps its task and says that, once the ask reaches the chat, the new one will come below**, in a card of its own (R145). It does not turn to a waiting screen: a host may hold the card's message for the person to send, and a card cannot see whether it went, so a wait drawn there could tick off steps while nothing is being written. While the ask is on its way the button takes no second press; once the host has it, it may be pressed again.
 2. **The press reaches the model** through `ui/message`, because generating a task is the model's job and only the model can start it. This is the one step with no fallback inside the product: if a host does not deliver widget messages, the adult types "next task" in the chat and everything else is identical. A host that refuses the message says so, and the card says the ask was not sent and takes it again. T03 got as far as "the call succeeds"; T46 and T62–T63 are where it is confirmed for real.
 3. **The model calls `next_task`**, and the card the host draws for that call, as the call starts, is the wait (R152): it knows it is a task's card from the host's `toolInfo`, and shows "Preparing the next task…" a moment after it is drawn, the topic being picked. The model then gets the package with `get_package`, writes the task and hands it in with `submit_task`, which draws no card. Meanwhile the card, handed the request by `next_task`'s result, asks `read_task` how the task stands — a moment after it is drawn, then every four seconds — and shows it being written, and a try the checks turned down with a new one being written; once the task is accepted, the next question finds it on the card, and the card turns into it.
+
+**A topic chosen on the card is "Another task" with one step before it** (R194). Once the trial series is over, the task's card ends its row with the topic's button, and the choice it opens — or the cross of the mark above a task given on the topic chosen — first saves the choice with `edit_profile`, the topic alone (SPEC 3.6); once it is saved, the card gives the model the service's line of it with `ui/update-model-context`, and only then sends the ask, in the child's words with the topic's name, by `ui/message`, as the button does — so the model reads the line with the ask, and `next_task` finds the choice in the profile. A choice not saved sends nothing: the card says so under the choice, and the child may choose again. A request already open keeps its topic; the choice starts with the task after it.
 
 A card cannot learn of a call that did not draw it ("One payload, two readers"), so it asks, and each question is a Drive read: about fifteen for a minute's wait, one at a time, none while the page is out of sight. The rejection of such a card in R134 and R146 counted on a wait that starts with the hand-in; the author's live check of 2026-10-03 found the hand-in a minute after the ask (R152).
 

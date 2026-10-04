@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"slices"
 	"strings"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
@@ -139,8 +138,9 @@ func (s *Service) getProgressTool() Tool {
 			"the strong ones, the ones to develop and what to do next, each step with its advice and its " +
 			"topic's page on the site, which you pass on only as given here. Tell the " +
 			"adult the review in plain words; a topic too early to judge is no verdict on it. To practise a " +
-			"topic it names, call next_task with that topic and a reason once the child wants a task. Present " +
-			"it encouragingly.",
+			"topic it names, call next_task with that topic and a reason once the child wants a task — or, while " +
+			"the lessons are kept to a topic someone chose, offer to change that choice with save_profile. " +
+			"Present it encouragingly.",
 		ReadOnly:   true,
 		Idempotent: true,
 		DrawsCard:  true,
@@ -185,13 +185,10 @@ func (s *Service) readProgress(ctx context.Context, account store.Account) (Repl
 		return Reply[progressOut]{}, err
 	}
 
-	today := profile.DateOf(s.now())
-	summary, err := progress.Of(p, s.content, today)
+	summary, mistakes, review, err := s.reviewed(p, profile.DateOf(s.now()))
 	if err != nil {
 		return Reply[progressOut]{}, err
 	}
-	mistakes := progress.Mistakes(p.Recent, s.content, s.repeats)
-	review := progress.ReviewOf(p, s.content, &summary, mistakes, s.repeats, today)
 	return Reply[progressOut]{
 		Text: joined(s.progressText(p, &summary, mistakes, review), where),
 		Payload: progressOut{
@@ -207,9 +204,23 @@ func (s *Service) readProgress(ctx context.Context, account store.Account) (Repl
 			Review:         reviewOf(review),
 			Recommendation: recommendationOf(&summary.Next),
 			Location:       location,
-			Site:           &siteOut{URL: s.site, Languages: slices.Clone(siteLanguages)},
+			Site:           s.siteOut(),
 		},
 	}, nil
+}
+
+// reviewed is where the child stands today, worked out once for every reader:
+// the summary of the progress, the mistakes that repeat, and the review of the
+// topics — none during the trial series —, which the progress tells and whose
+// suggestions the card of a task offers.
+func (s *Service) reviewed(p *profile.Profile, today profile.Date) (progress.Summary, []progress.Mistake, *progress.Review, error) {
+	summary, err := progress.Of(p, s.content, today)
+	if err != nil {
+		return progress.Summary{}, nil, nil, err
+	}
+	mistakes := progress.Mistakes(p.Recent, s.content, s.repeats)
+	review := progress.ReviewOf(p, s.content, &summary, mistakes, s.repeats, today)
+	return summary, mistakes, review, nil
 }
 
 func standingOf(overall *progress.Standing, changes progress.Changes) *standingOut {

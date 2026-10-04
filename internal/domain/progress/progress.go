@@ -102,12 +102,14 @@ type Topic struct {
 }
 
 // Recommendation is what the rule would set next: the topic, the point of the
-// ladder, and why now.
+// ladder, and why now — and whether the topic is the one a person chose for the
+// lessons rather than the rule's own.
 type Recommendation struct {
 	Topic      string
 	GradeLevel rating.GradeLevel
 	Difficulty int
 	Goal       profile.Goal
+	Chosen     bool
 }
 
 // Of is where the child whose profile this is stands today, a date in UTC,
@@ -147,11 +149,13 @@ func TrialOf(p *profile.Profile) *Trial {
 	return &Trial{Answered: max(p.Ratings.Answers, 0), Of: rating.TrialAnswers}
 }
 
-// Recommend is what the rule would set next, as a reader is told it. The rest
-// of the brief — the plot, the traps, the rule's own reasoning — is for the
-// model that writes the task, and reaches it when a task is asked for.
+// Recommend is what the rule would set next, as a reader is told it: the topic
+// chosen for the lessons when a person chose one, at the point the rule sets on
+// it. The rest of the brief — the plot, the traps, the rule's own reasoning —
+// is for the model that writes the task, and reaches it when a task is asked
+// for.
 func Recommend(p *profile.Profile, catalog tutor.Catalog) (Recommendation, error) {
-	brief, _, err := tutor.Next(p, catalog, tutor.Choice{})
+	brief, mode, err := tutor.Next(p, catalog, tutor.Choice{})
 	if err != nil {
 		return Recommendation{}, fmt.Errorf("progress: %w", err)
 	}
@@ -160,6 +164,7 @@ func Recommend(p *profile.Profile, catalog tutor.Catalog) (Recommendation, error
 		GradeLevel: brief.GradeLevel,
 		Difficulty: brief.Difficulty,
 		Goal:       brief.PedagogicalGoal,
+		Chosen:     mode == profile.TutorPerson,
 	}, nil
 }
 

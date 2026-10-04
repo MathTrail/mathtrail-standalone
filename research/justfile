@@ -62,24 +62,35 @@ licenses:
     module=$(go list -m)
     go run "$tool" check ./... --allowed_licenses="$allowed" --ignore "$module"
 
-[doc("go.sum after the product's go.mod changed or a dependency was added")]
+[doc("go.sum after the product's pinned version or a dependency changed")]
 tidy:
     go mod tidy
 
-# The module runs the product's own packages, so a module whose packages both
-# builds compile must be selected at the same version in both: a dependency of
-# an experiment can otherwise raise one, and nothing fails while the product's
-# code runs against a version the product does not ship. A module that only
-# sits in a build's graph, with no package of it compiled, changes no program
-# and is not compared.
-[doc("Fail if a module whose packages the product and this module both compile is selected at different versions")]
+# The module runs the product's own packages, at the version it requires — the
+# commit of the paper's experiments — so a module whose packages both builds
+# compile must be selected at the same version in both: a dependency of an
+# experiment can otherwise raise one, and nothing fails while the product's
+# code runs against a version the product did not ship. The product's build is
+# read where Go keeps the version required. A module that only sits in a
+# build's graph, with no package of it compiled, changes no program and is not
+# compared.
+[doc("Fail if a module whose packages the product, at the version required, and this module both compile is selected at different versions")]
 deps-check:
     #!/usr/bin/env bash
     set -euo pipefail
     versions() {
         go list -deps -test -f '{{{{with .Module}}{{{{if not .Main}}{{{{.Path}} {{{{.Version}}{{{{end}}{{{{end}}' ./... | awk 'NF == 2' | LC_ALL=C sort -u
     }
-    shared=$(LC_ALL=C join <(cd .. && versions) <(versions))
+    # Go names a module's directory only once the module is in its cache.
+    go mod download github.com/MathTrail/mathtrail-standalone
+    product=$(go list -m -f '{{{{.Dir}}' github.com/MathTrail/mathtrail-standalone)
+    if [ -z "$product" ]; then echo "deps-check: Go keeps no copy of the product at the version required" >&2; exit 1; fi
+    # Each list is read whole before the two are joined, so that a list that
+    # fails stops the check rather than leaving nothing to compare.
+    theirs=$(cd "$product" && versions)
+    ours=$(versions)
+    shared=$(LC_ALL=C join <(printf '%s\n' "$theirs") <(printf '%s\n' "$ours"))
+    if [ -z "$shared" ]; then echo "deps-check: no module is shared with the product, so the lists cannot be right" >&2; exit 1; fi
     differ=$(printf '%s\n' "$shared" | awk 'NF == 3 && $2 != $3')
     if [ -n "$differ" ]; then
         echo "Modules both builds use, at different versions (module, product, research):" >&2
@@ -469,23 +480,21 @@ perf:
     {{ JUST }} --justfile {{ quote(justfile()) }} _provenance experiments/perf/results
 
 # Beside an experiment's results: the commit it ran on, whether the code under
-# test is still the code at the ledger's pin, and the version of the
-# interpreter the solvers run in beside the version the pin names.
+# test is the product at the ledger's pin — the version this module requires
+# is that commit, and nothing replaces it — and the version of the interpreter
+# the solvers run in beside the version the pin names.
 _provenance out:
     #!/usr/bin/env bash
     set -euo pipefail
     out={{ quote(out) }}
     pin=$(sed -n 's/^commit=//p' evidence/product-stats.txt)
     if [ -z "$pin" ]; then echo "provenance: evidence/product-stats.txt names no commit to compare with" >&2; exit 1; fi
-    tested_paths=(internal/domain internal/infra/starlark internal/infra/seal content)
-    # git diff says 1 for a difference and more for a failure, which must not
-    # pass for one; files it does not track are looked for apart.
-    changed=0
-    git -C .. diff --quiet "$pin" -- "${tested_paths[@]}" || changed=$?
-    if [ "$changed" -gt 1 ]; then echo "provenance: git could not compare the tree with $pin" >&2; exit 1; fi
-    untracked=$(git -C .. ls-files --others --exclude-standard -- "${tested_paths[@]}")
-    tested="as at the pin"
-    if [ "$changed" -eq 1 ] || [ -n "$untracked" ]; then tested="differs from the pin"; fi
+    pin_commit=$(git -C .. rev-parse --verify --quiet "$pin^{commit}") || { echo "provenance: git knows no commit $pin" >&2; exit 1; }
+    product=$(go list -m -f '{{{{.Version}} {{{{if .Replace}}replaced{{{{else}}-{{{{end}}' github.com/MathTrail/mathtrail-standalone)
+    read -r version replaced <<<"$product"
+    required=$(git -C .. rev-parse --verify --quiet "$version^{commit}" || true)
+    tested="differs from the pin"
+    if [ "$replaced" = "-" ] && [ "$required" = "$pin_commit" ]; then tested="as at the pin"; fi
     starlark=$(go list -m -f '{{{{.Version}}' go.starlark.net)
     pinned=$(git -C .. show "$pin:go.mod" | awk '$1 == "go.starlark.net" { print $2 }')
     printf 'commit=%s\npin=%s\ncode_under_test=%s\nstarlark=%s\nstarlark_at_pin=%s\ngo=%s\n' \

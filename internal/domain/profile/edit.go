@@ -14,10 +14,11 @@ import (
 )
 
 // Edit is a change to the child's details as the parent asked for it, by way
-// of the chat's model. A field left nil stays as it is. A list that is given
-// replaces the one kept, so an empty list clears it; an empty text clears the
-// notes, the country or the region, and an empty language makes the lessons
-// follow the chat's language again.
+// of the chat's model, or as the form or the choice of a topic on a card sent
+// it. A field left nil stays as it is. A list that is given replaces the one
+// kept, so an empty list clears it; an empty text clears the notes, the
+// country or the region, an empty language makes the lessons follow the chat's
+// language again, and an empty topic gives the choice of it back to the rule.
 type Edit struct {
 	Pseudonym      *string
 	Grade          *int
@@ -27,15 +28,26 @@ type Edit struct {
 	UILanguage     *string
 	Country        *string
 	Region         *string
+	LessonTopic    *string
+}
+
+// Catalog is what an edit holds the ids it is given to: the skills and the
+// topics the service ships. The ids come from a model or a card, and one the
+// catalog does not have would keep nothing out of a task, or keep the lessons
+// to a topic no task can be set on.
+type Catalog interface {
+	// HasSkill reports whether the catalog has the skill.
+	HasSkill(id string) bool
+	// HasTopic reports whether the catalog has the topic.
+	HasTopic(id string) bool
 }
 
 // NewStudent is the child's details as the parent first gave them, or the
 // problems that keep them from being kept. A pseudonym and a grade are what
 // a profile cannot be made without; everything else may start empty.
 //
-// A skill is kept only when known names it: the ids come from a model, and a
-// skill the catalog does not have could keep nothing out of a task.
-func NewStudent(e *Edit, known func(skill string) bool) (Student, []Problem) {
+// A skill or a topic is kept only when the catalog has it.
+func NewStudent(e *Edit, known Catalog) (Student, []Problem) {
 	blank := Student{ExcludedSkills: []string{}, Interests: []string{}}
 	return blank.edited(e, known)
 }
@@ -48,7 +60,7 @@ func NewStudent(e *Edit, known func(skill string) bool) (Student, []Problem) {
 // on exactly when there is something to write. Only the details move. The
 // grade among them is a label once the profile exists — the start, the level
 // and the trial series stay where the answers put them.
-func (p *Profile) Change(e *Edit, known func(skill string) bool, appVersion string, now time.Time) (bool, []Problem) {
+func (p *Profile) Change(e *Edit, known Catalog, appVersion string, now time.Time) (bool, []Problem) {
 	edited, problems := p.Student.edited(e, known)
 	if len(problems) > 0 || edited.same(&p.Student) {
 		return false, problems
@@ -59,11 +71,11 @@ func (p *Profile) Change(e *Edit, known func(skill string) bool, appVersion stri
 }
 
 // edited is the details with the edit made and cleaned, and the problems that
-// keep them from being kept, sorted by field. Four rules are the edit's own and
-// not the file's: a skill must be in the catalog, a language must be one, and a
-// country and a region must be of the list of countries. A file somebody
-// edited by hand is not made unreadable by any of them.
-func (s *Student) edited(e *Edit, known func(skill string) bool) (Student, []Problem) {
+// keep them from being kept, sorted by field. Five rules are the edit's own and
+// not the file's: a skill and a topic must be in the catalog, a language must
+// be one, and a country and a region must be of the list of countries. A file
+// somebody edited by hand is not made unreadable by any of them.
+func (s *Student) edited(e *Edit, known Catalog) (Student, []Problem) {
 	next := s.copied()
 	if e.Pseudonym != nil {
 		next.Pseudonym = Typed(*e.Pseudonym)
@@ -82,6 +94,7 @@ func (s *Student) edited(e *Edit, known func(skill string) bool) (Student, []Pro
 		next.editLanguage(e.UILanguage),
 		next.editCountry(e.Country),
 		next.editRegion(e.Region),
+		next.editTopic(e.LessonTopic, known),
 		next.problems(),
 	)
 	slices.SortStableFunc(found, func(a, b Problem) int { return strings.Compare(a.Field, b.Field) })
@@ -91,14 +104,14 @@ func (s *Student) edited(e *Edit, known func(skill string) bool) (Student, []Pro
 // editSkills puts the skills given in place, or says why they cannot be. A
 // list merged of its repeats is counted by the rules of the file afterwards, so
 // every skill of the catalog with one of them given twice still fits.
-func (s *Student) editSkills(given []string, known func(skill string) bool) []Problem {
+func (s *Student) editSkills(given []string, known Catalog) []Problem {
 	if given == nil {
 		return nil
 	}
 	// Checked where each entry stood in what was sent, so that the entry a
 	// refusal names is the one the model wrote there.
 	cleaned := typedEach(given)
-	if broken := catalogRule(cleaned, known); broken.Code != "" {
+	if broken := catalogRule(cleaned, known.HasSkill); broken.Code != "" {
 		return []Problem{{Field: "excluded_skills", Broken: broken}}
 	}
 	s.ExcludedSkills = distinct(cleaned)
@@ -159,6 +172,22 @@ func (s *Student) editRegion(given *string) []Problem {
 	return nil
 }
 
+// editTopic puts the topic chosen for the lessons in place, or says why it
+// cannot be: a topic of the catalog by its id, read without the spaces around
+// it, or an empty text, which gives the choice back to the rule.
+func (s *Student) editTopic(given *string, known Catalog) []Problem {
+	if given == nil {
+		return nil
+	}
+	topic := strings.TrimSpace(*given)
+	if topic != "" && !known.HasTopic(topic) {
+		return []Problem{{Field: "lesson_topic", Broken: Broken{CodeNotInCatalog,
+			"must be a topic of the catalog, by its id, or empty to give the choice back to the rule"}}}
+	}
+	s.LessonTopic = topic
+	return nil
+}
+
 // copied is the details sharing nothing with the ones they came from, and with
 // a list for every list: a file says "none" as an empty list, never as null,
 // because what the rule copies from it reaches the model as it stands.
@@ -179,7 +208,7 @@ func (s *Student) copied() Student {
 // another order are the same skills.
 func (s *Student) same(other *Student) bool {
 	return s.Pseudonym == other.Pseudonym && s.Grade == other.Grade && s.Notes == other.Notes &&
-		s.Country == other.Country && s.Region == other.Region &&
+		s.Country == other.Country && s.Region == other.Region && s.LessonTopic == other.LessonTopic &&
 		slices.Equal(s.Interests, other.Interests) &&
 		slices.Equal(sorted(s.ExcludedSkills), sorted(other.ExcludedSkills)) &&
 		sameLanguage(s.UILanguage, other.UILanguage)

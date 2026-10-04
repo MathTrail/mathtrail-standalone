@@ -22,6 +22,7 @@ import {
 	progress,
 	refused,
 	standing,
+	withTopicChoice,
 	writing,
 } from "./testing/lesson";
 
@@ -121,7 +122,7 @@ describe("a card in a language written right to left", () => {
 	});
 });
 
-// The markup of eleven screens in Arabic, against the snapshots the review last
+// The markup of twelve screens in Arabic, against the snapshots the review last
 // read: which of their parts run right to left and which do not, and what
 // they say. A change to them is a change to read in the snapshots' diff.
 describe("the screens in Arabic", () => {
@@ -152,6 +153,7 @@ describe("the screens in Arabic", () => {
 			context: { locale: "ar-EG", toolInfo: toolInfoOf("next_task") },
 		});
 		drawn = { root: opened.root, heard: opened.heard };
+		await opened.host.sendToolInput({ arguments: { language: "ar" } });
 		await vi.waitFor(() =>
 			expect(opened.root.querySelector(".mt-gen")).not.toBeNull(),
 		);
@@ -210,6 +212,20 @@ describe("the screens in Arabic", () => {
 		);
 
 		expect(markupOf(root, review)).toMatchSnapshot();
+	});
+
+	test("the task on the topic chosen, its choice of the topic open", async () => {
+		drawn = await drawCard(
+			withTopicChoice(fenceInArabic, { chosen: "counting.gaps" }),
+			{ tools: service, context: { locale: "ar-EG" }, links: "open" },
+		);
+		const { root } = drawn;
+		press(root.querySelector<HTMLElement>(".mt-topic-button") ?? root);
+		await vi.waitFor(() =>
+			expect(root.querySelector(".mt-topic-panel[hidden]")).toBeNull(),
+		);
+
+		expect(markupOf(root)).toMatchSnapshot();
 	});
 
 	test("the profile, its cards chosen to be in Arabic", async () => {

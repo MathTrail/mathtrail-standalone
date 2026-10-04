@@ -12,6 +12,7 @@ exports[`the screens in Arabic > a try that did not pass 1`] = `
       <svg
         aria-hidden="true"
         class="mt-icon"
+        fill="none"
         height="24"
         viewBox="0 0 24 24"
         width="24"
@@ -32,7 +33,7 @@ exports[`the screens in Arabic > a try that did not pass 1`] = `
         class="mt-icon mt-chevron"
         fill="none"
         height="16"
-        viewBox="0 0 16 16"
+        viewBox="0 0 24 24"
         width="16"
       />
     </button>
@@ -46,7 +47,7 @@ exports[`the screens in Arabic > a try that did not pass 1`] = `
           aria-hidden="true"
           class="mt-icon"
           height="32"
-          viewBox="0 0 32 32"
+          viewBox="0 0 48 48"
           width="32"
         />
         <div
@@ -70,9 +71,19 @@ exports[`the screens in Arabic > a try that did not pass 1`] = `
         <span
           aria-hidden="true"
           class="mt-version"
-          dir="ltr"
         >
-          v0.2.1
+          <span
+            class="mt-version-label"
+          >
+            الإصدار
+          </span>
+           
+          <span
+            class="mt-version-number"
+            dir="ltr"
+          >
+            0.2.1
+          </span>
         </span>
       </header>
       <div
@@ -114,7 +125,7 @@ exports[`the screens in Arabic > the first sign-in 1`] = `
         aria-hidden="true"
         class="mt-icon"
         height="32"
-        viewBox="0 0 32 32"
+        viewBox="0 0 48 48"
         width="32"
       />
       <div
@@ -133,9 +144,19 @@ exports[`the screens in Arabic > the first sign-in 1`] = `
       <span
         aria-hidden="true"
         class="mt-version"
-        dir="ltr"
       >
-        v0.2.1
+        <span
+          class="mt-version-label"
+        >
+          الإصدار
+        </span>
+         
+        <span
+          class="mt-version-number"
+          dir="ltr"
+        >
+          0.2.1
+        </span>
       </span>
     </header>
     <div
@@ -334,7 +355,7 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
               class="mt-icon"
               fill="none"
               height="14"
-              viewBox="0 0 16 16"
+              viewBox="0 0 24 24"
               width="14"
             />
           </button>
@@ -357,7 +378,7 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
               class="mt-icon"
               fill="none"
               height="14"
-              viewBox="0 0 16 16"
+              viewBox="0 0 24 24"
               width="14"
             />
           </button>
@@ -380,7 +401,7 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
               class="mt-icon"
               fill="none"
               height="14"
-              viewBox="0 0 16 16"
+              viewBox="0 0 24 24"
               width="14"
             />
           </button>
@@ -2143,6 +2164,7 @@ exports[`the screens in Arabic > the profile, its cards chosen to be in Arabic 1
       <svg
         aria-hidden="true"
         class="mt-icon"
+        fill="none"
         height="32"
         viewBox="0 0 24 24"
         width="32"
@@ -2342,6 +2364,7 @@ exports[`the screens in Arabic > the progress 1`] = `
       <svg
         aria-hidden="true"
         class="mt-icon"
+        fill="none"
         height="32"
         viewBox="0 0 24 24"
         width="32"
@@ -2501,7 +2524,7 @@ exports[`the screens in Arabic > the progress 1`] = `
               class="mt-icon mt-chevron"
               fill="none"
               height="16"
-              viewBox="0 0 16 16"
+              viewBox="0 0 24 24"
               width="16"
             />
           </button>
@@ -2541,7 +2564,7 @@ exports[`the screens in Arabic > the progress 1`] = `
                         class="mt-icon"
                         fill="none"
                         height="16"
-                        viewBox="0 0 16 16"
+                        viewBox="0 0 24 24"
                         width="16"
                       />
                       تم إتقانه
@@ -3007,7 +3030,7 @@ exports[`the screens in Arabic > the progress 1`] = `
               class="mt-icon mt-chevron"
               fill="none"
               height="16"
-              viewBox="0 0 16 16"
+              viewBox="0 0 24 24"
               width="16"
             />
           </button>
@@ -3336,7 +3359,7 @@ exports[`the screens in Arabic > the progress 1`] = `
               class="mt-icon mt-chevron"
               fill="none"
               height="16"
-              viewBox="0 0 16 16"
+              viewBox="0 0 24 24"
               width="16"
             />
           </button>
@@ -3369,7 +3392,7 @@ exports[`the screens in Arabic > the progress 1`] = `
                     class="mt-icon"
                     fill="none"
                     height="16"
-                    viewBox="0 0 16 16"
+                    viewBox="0 0 24 24"
                     width="16"
                   />
                   خطأ
@@ -3394,7 +3417,7 @@ exports[`the screens in Arabic > the progress 1`] = `
                     class="mt-icon"
                     fill="none"
                     height="16"
-                    viewBox="0 0 16 16"
+                    viewBox="0 0 24 24"
                     width="16"
                   />
                   تم التخطي
@@ -3419,7 +3442,7 @@ exports[`the screens in Arabic > the progress 1`] = `
                     class="mt-icon"
                     fill="none"
                     height="16"
-                    viewBox="0 0 16 16"
+                    viewBox="0 0 24 24"
                     width="16"
                   />
                   صحيح
@@ -3444,7 +3467,7 @@ exports[`the screens in Arabic > the progress 1`] = `
                     class="mt-icon"
                     fill="none"
                     height="16"
-                    viewBox="0 0 16 16"
+                    viewBox="0 0 24 24"
                     width="16"
                   />
                   صحيح
@@ -3469,7 +3492,7 @@ exports[`the screens in Arabic > the progress 1`] = `
                     class="mt-icon"
                     fill="none"
                     height="16"
-                    viewBox="0 0 16 16"
+                    viewBox="0 0 24 24"
                     width="16"
                   />
                   خطأ
@@ -3516,7 +3539,7 @@ exports[`the screens in Arabic > the progress 1`] = `
               class="mt-icon mt-chevron"
               fill="none"
               height="16"
-              viewBox="0 0 16 16"
+              viewBox="0 0 24 24"
               width="16"
             />
           </button>
@@ -3690,6 +3713,7 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
       <svg
         aria-hidden="true"
         class="mt-icon"
+        fill="none"
         height="24"
         viewBox="0 0 24 24"
         width="24"
@@ -3710,7 +3734,7 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
         class="mt-icon mt-chevron"
         fill="none"
         height="16"
-        viewBox="0 0 16 16"
+        viewBox="0 0 24 24"
         width="16"
       />
     </button>
@@ -3724,7 +3748,7 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
           aria-hidden="true"
           class="mt-icon"
           height="32"
-          viewBox="0 0 32 32"
+          viewBox="0 0 48 48"
           width="32"
         />
         <div
@@ -3748,9 +3772,19 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
         <span
           aria-hidden="true"
           class="mt-version"
-          dir="ltr"
         >
-          v0.2.1
+          <span
+            class="mt-version-label"
+          >
+            الإصدار
+          </span>
+           
+          <span
+            class="mt-version-number"
+            dir="ltr"
+          >
+            0.2.1
+          </span>
         </span>
       </header>
       <div
@@ -3829,7 +3863,7 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
                   class="mt-icon"
                   fill="none"
                   height="16"
-                  viewBox="0 0 16 16"
+                  viewBox="0 0 24 24"
                   width="16"
                 />
                 إجابتك
@@ -3863,7 +3897,7 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
                   class="mt-icon"
                   fill="none"
                   height="16"
-                  viewBox="0 0 16 16"
+                  viewBox="0 0 24 24"
                   width="16"
                 />
                 الإجابة الصحيحة
@@ -3931,7 +3965,7 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
               aria-hidden="true"
               class="mt-icon"
               height="28"
-              viewBox="0 0 32 32"
+              viewBox="0 0 48 48"
               width="28"
             />
             <div
@@ -3955,7 +3989,7 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
                 class="mt-icon"
                 fill="none"
                 height="20"
-                viewBox="0 0 20 20"
+                viewBox="0 0 24 24"
                 width="20"
               />
               <span>
@@ -3973,7 +4007,7 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
                   class="mt-icon"
                   fill="none"
                   height="16"
-                  viewBox="0 0 16 16"
+                  viewBox="0 0 24 24"
                   width="16"
                 />
                 <span>
@@ -4109,7 +4143,7 @@ exports[`the screens in Arabic > the review of the progress, a page the chat did
         class="mt-icon mt-chevron"
         fill="none"
         height="16"
-        viewBox="0 0 16 16"
+        viewBox="0 0 24 24"
         width="16"
       />
     </button>
@@ -4447,7 +4481,7 @@ exports[`the screens in Arabic > the review of the progress, opened 1`] = `
         class="mt-icon mt-chevron"
         fill="none"
         height="16"
-        viewBox="0 0 16 16"
+        viewBox="0 0 24 24"
         width="16"
       />
     </button>
@@ -4724,6 +4758,7 @@ exports[`the screens in Arabic > the task 1`] = `
       <svg
         aria-hidden="true"
         class="mt-icon"
+        fill="none"
         height="24"
         viewBox="0 0 24 24"
         width="24"
@@ -4744,7 +4779,7 @@ exports[`the screens in Arabic > the task 1`] = `
         class="mt-icon mt-chevron"
         fill="none"
         height="16"
-        viewBox="0 0 16 16"
+        viewBox="0 0 24 24"
         width="16"
       />
     </button>
@@ -4758,7 +4793,7 @@ exports[`the screens in Arabic > the task 1`] = `
           aria-hidden="true"
           class="mt-icon"
           height="32"
-          viewBox="0 0 32 32"
+          viewBox="0 0 48 48"
           width="32"
         />
         <div
@@ -4782,9 +4817,19 @@ exports[`the screens in Arabic > the task 1`] = `
         <span
           aria-hidden="true"
           class="mt-version"
-          dir="ltr"
         >
-          v0.2.1
+          <span
+            class="mt-version-label"
+          >
+            الإصدار
+          </span>
+           
+          <span
+            class="mt-version-number"
+            dir="ltr"
+          >
+            0.2.1
+          </span>
         </span>
       </header>
       <div
@@ -4956,6 +5001,949 @@ exports[`the screens in Arabic > the task 1`] = `
 </div>
 `;
 
+exports[`the screens in Arabic > the task on the topic chosen, its choice of the topic open 1`] = `
+<div
+  class="mt mt-widget mt-rtl"
+>
+  <div>
+    <button
+      class="mt-bar"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="mt-icon"
+        fill="none"
+        height="24"
+        viewBox="0 0 24 24"
+        width="24"
+      />
+      <span
+        class="mt-bar-name"
+      >
+        مذنّب
+      </span>
+       
+      <span
+        class="mt-bar-action"
+      >
+        الملف الشخصي والتقدم
+      </span>
+      <svg
+        aria-hidden="true"
+        class="mt-icon mt-chevron"
+        fill="none"
+        height="16"
+        viewBox="0 0 24 24"
+        width="16"
+      />
+    </button>
+    <article
+      aria-label="مسألة"
+    >
+      <header
+        class="mt-head mt-head-versioned"
+      >
+        <svg
+          aria-hidden="true"
+          class="mt-icon"
+          height="32"
+          viewBox="0 0 48 48"
+          width="32"
+        />
+        <div
+          class="mt-head-text"
+        >
+          <div
+            class="mt-head-line"
+          >
+            <span
+              class="mt-name"
+            >
+              MathTrail
+            </span>
+          </div>
+          <span
+            class="mt-badge"
+          >
+            مدرب الأولمبياد · الصف 3
+          </span>
+        </div>
+        <span
+          aria-hidden="true"
+          class="mt-version"
+        >
+          <span
+            class="mt-version-label"
+          >
+            الإصدار
+          </span>
+           
+          <span
+            class="mt-version-number"
+            dir="ltr"
+          >
+            0.2.1
+          </span>
+        </span>
+      </header>
+      <div
+        class="mt-body"
+      >
+        <div
+          class="mt-chip mt-chip-removable mt-topic-chip"
+        >
+          <span
+            class="mt-chip-text"
+          >
+            <span
+              class="mt-topic-chip-label"
+            >
+              الموضوع:
+            </span>
+             
+            <span
+              class="mt-topic-chip-value"
+            >
+              الفواصل والحدود
+            </span>
+          </span>
+          <button
+            aria-label="إعادة اختيار الموضوع إلى المدرب"
+            class="mt-chip-remove"
+            type="button"
+          >
+            <svg
+              aria-hidden="true"
+              class="mt-icon"
+              fill="none"
+              height="14"
+              viewBox="0 0 24 24"
+              width="14"
+            />
+          </button>
+        </div>
+        <p
+          class="mt-task-text"
+          dir="rtl"
+          lang="ar"
+        >
+          طول السياج 12 مترًا. تقف الأعمدة كل 3 أمتار، ومنها عمودان عند الطرفين. كم عدد الأعمدة؟
+        </p>
+        <pre
+          aria-label="الرسم"
+          class="mt-diagram"
+          dir="ltr"
+          role="img"
+          tabindex="0"
+        >
+          |--3--|--3--|--3--|--3--|
+        </pre>
+        <fieldset
+          class="mt-options"
+        >
+          <legend>
+            ما الإجابة الصحيحة؟
+          </legend>
+          <div
+            class="mt-options-list"
+          >
+            <button
+              class="mt-option"
+              data-state="default"
+              type="button"
+            >
+              <span
+                class="mt-option-letter"
+              >
+                A
+              </span>
+               
+              <span
+                class="mt-option-value"
+                dir="rtl"
+                lang="ar"
+              >
+                3
+              </span>
+            </button>
+            <button
+              class="mt-option"
+              data-state="default"
+              type="button"
+            >
+              <span
+                class="mt-option-letter"
+              >
+                B
+              </span>
+               
+              <span
+                class="mt-option-value"
+                dir="rtl"
+                lang="ar"
+              >
+                4
+              </span>
+            </button>
+            <button
+              class="mt-option"
+              data-state="default"
+              type="button"
+            >
+              <span
+                class="mt-option-letter"
+              >
+                C
+              </span>
+               
+              <span
+                class="mt-option-value"
+                dir="rtl"
+                lang="ar"
+              >
+                5
+              </span>
+            </button>
+            <button
+              class="mt-option"
+              data-state="default"
+              type="button"
+            >
+              <span
+                class="mt-option-letter"
+              >
+                D
+              </span>
+               
+              <span
+                class="mt-option-value"
+                dir="rtl"
+                lang="ar"
+              >
+                6
+              </span>
+            </button>
+            <button
+              class="mt-option"
+              data-state="default"
+              type="button"
+            >
+              <span
+                class="mt-option-letter"
+              >
+                E
+              </span>
+               
+              <span
+                class="mt-option-value"
+                dir="rtl"
+                lang="ar"
+              >
+                12
+              </span>
+            </button>
+          </div>
+        </fieldset>
+      </div>
+    </article>
+    <section
+      aria-label="الردود"
+      aria-live="polite"
+      class="mt-replies"
+    />
+    <div
+      class="mt-foot"
+    >
+      <div
+        class="mt-btns"
+      >
+        <button
+          class="mt-btn"
+          type="button"
+        >
+          لا أعرف
+        </button>
+        <button
+          aria-expanded="false"
+          class="mt-btn"
+          type="button"
+        >
+          تلميح
+        </button>
+        <button
+          class="mt-btn"
+          type="button"
+        >
+          مسألة أخرى
+        </button>
+        <button
+          aria-controls="P0-0"
+          aria-expanded="true"
+          class="mt-btn mt-topic-button"
+          type="button"
+        >
+          <span
+            class="mt-topic-button-text"
+          >
+            <span
+              class="mt-topic-button-label"
+            >
+              الموضوع:
+            </span>
+             
+            <span
+              class="mt-topic-button-value"
+            >
+              الفواصل والحدود
+            </span>
+          </span>
+          <svg
+            aria-hidden="true"
+            class="mt-icon mt-chevron"
+            fill="none"
+            height="16"
+            viewBox="0 0 24 24"
+            width="16"
+          />
+        </button>
+      </div>
+      <section
+        aria-labelledby="P0-2"
+        class="mt-topic-panel"
+        id="P0-0"
+      >
+        <div
+          class="mt-topic-head"
+        >
+          <div
+            class="mt-topic-head-text"
+          >
+            <h2
+              class="mt-topic-title"
+              id="P0-2"
+            >
+              ما موضوع المسألة التالية؟
+            </h2>
+            <p
+              class="mt-topic-lead"
+            >
+              تأتي مسألة جديدة فورًا، ويبقى الموضوع للمسائل التالية
+            </p>
+          </div>
+          <button
+            aria-label="إغلاق"
+            class="mt-topic-close"
+            type="button"
+          >
+            <svg
+              aria-hidden="true"
+              class="mt-icon"
+              fill="none"
+              height="16"
+              viewBox="0 0 24 24"
+              width="16"
+            />
+          </button>
+        </div>
+        <div
+          class="mt-topic-coach"
+        >
+          <button
+            aria-pressed="false"
+            class="mt-topic-option"
+            type="button"
+          >
+            <span
+              class="mt-topic-option-text"
+            >
+              <span
+                class="mt-topic-option-name"
+              >
+                يختاره المدرب
+              </span>
+            </span>
+          </button>
+          <span
+            class="mt-topic-coach-note"
+          >
+            حسب تقدّم الطفل
+          </span>
+        </div>
+        <div
+          class="mt-topic-rows"
+        >
+          <div
+            aria-label="نقترح"
+            class="mt-topic-row mt-topic-row-suggested"
+            role="group"
+          >
+            <div
+              class="mt-topic-row-name"
+            >
+              نقترح
+            </div>
+            <div
+              class="mt-topic-row-options"
+            >
+              <button
+                aria-pressed="false"
+                class="mt-topic-option"
+                type="button"
+              >
+                <span
+                  class="mt-topic-option-text"
+                >
+                  <span
+                    class="mt-topic-option-name"
+                  >
+                    حصر الحالات
+                  </span>
+                </span>
+              </button>
+              <button
+                aria-pressed="false"
+                class="mt-topic-option"
+                type="button"
+              >
+                <span
+                  class="mt-topic-option-text"
+                >
+                  <span
+                    class="mt-topic-option-name"
+                  >
+                    الزوجية والتناوب
+                  </span>
+                </span>
+              </button>
+              <button
+                aria-pressed="false"
+                class="mt-topic-option"
+                type="button"
+              >
+                <span
+                  class="mt-topic-option-text"
+                >
+                  <span
+                    class="mt-topic-option-name"
+                  >
+                    مبدأ برج الحمام
+                  </span>
+                </span>
+              </button>
+            </div>
+          </div>
+          <div
+            aria-label="المنطق"
+            class="mt-topic-row"
+            role="group"
+          >
+            <div
+              class="mt-topic-row-name"
+            >
+              <span
+                class="mt-page-link"
+              >
+                <a
+                  class="mt-link"
+                  href="https://mathtrail.app/en/topics/#logic"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  المنطق
+                </a>
+                <span
+                  aria-live="polite"
+                  class="mt-link-refused"
+                />
+              </span>
+            </div>
+            <div
+              class="mt-topic-row-options"
+            >
+              <button
+                aria-pressed="false"
+                class="mt-topic-option"
+                type="button"
+              >
+                <span
+                  class="mt-topic-option-text"
+                >
+                  <span
+                    class="mt-topic-option-name"
+                  >
+                    الترتيب
+                  </span>
+                </span>
+              </button>
+              <button
+                aria-pressed="false"
+                class="mt-topic-option"
+                type="button"
+              >
+                <span
+                  class="mt-topic-option-text"
+                >
+                  <span
+                    class="mt-topic-option-name"
+                  >
+                    الفرسان والكذابون
+                  </span>
+                </span>
+              </button>
+              <button
+                aria-pressed="false"
+                class="mt-topic-option"
+                data-older="true"
+                type="button"
+              >
+                <span
+                  class="mt-topic-option-text"
+                >
+                  <span
+                    class="mt-topic-option-name"
+                  >
+                    المجموعات المتداخلة
+                  </span>
+                   
+                  <span
+                    class="mt-topic-from"
+                  >
+                    من الصف 5
+                  </span>
+                </span>
+              </button>
+            </div>
+          </div>
+          <div
+            aria-label="العدّ والحصر"
+            class="mt-topic-row"
+            role="group"
+          >
+            <div
+              class="mt-topic-row-name"
+            >
+              <span
+                class="mt-page-link"
+              >
+                <a
+                  class="mt-link"
+                  href="https://mathtrail.app/en/topics/#counting"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  العدّ والحصر
+                </a>
+                <span
+                  aria-live="polite"
+                  class="mt-link-refused"
+                />
+              </span>
+            </div>
+            <div
+              class="mt-topic-row-options"
+            >
+              <button
+                aria-pressed="false"
+                class="mt-topic-option"
+                type="button"
+              >
+                <span
+                  class="mt-topic-option-text"
+                >
+                  <span
+                    class="mt-topic-option-name"
+                  >
+                    حصر الحالات
+                  </span>
+                </span>
+              </button>
+              <button
+                aria-pressed="true"
+                class="mt-topic-option"
+                type="button"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="mt-icon"
+                  fill="none"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  width="14"
+                />
+                <span
+                  class="mt-topic-option-text"
+                >
+                  <span
+                    class="mt-topic-option-name"
+                  >
+                    الفواصل والحدود
+                  </span>
+                </span>
+              </button>
+              <button
+                aria-pressed="false"
+                class="mt-topic-option"
+                type="button"
+              >
+                <span
+                  class="mt-topic-option-text"
+                >
+                  <span
+                    class="mt-topic-option-name"
+                  >
+                    مبدأ برج الحمام
+                  </span>
+                </span>
+              </button>
+              <button
+                aria-pressed="false"
+                class="mt-topic-option"
+                data-older="true"
+                type="button"
+              >
+                <span
+                  class="mt-topic-option-text"
+                >
+                  <span
+                    class="mt-topic-option-name"
+                  >
+                    أشكال على ورق المربعات
+                  </span>
+                   
+                  <span
+                    class="mt-topic-from"
+                  >
+                    من الصف 5
+                  </span>
+                </span>
+              </button>
+            </div>
+          </div>
+          <div
+            aria-label="الوقت"
+            class="mt-topic-row"
+            role="group"
+          >
+            <div
+              class="mt-topic-row-name"
+            >
+              <span
+                class="mt-page-link"
+              >
+                <a
+                  class="mt-link"
+                  href="https://mathtrail.app/en/topics/#time"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  الوقت
+                </a>
+                <span
+                  aria-live="polite"
+                  class="mt-link-refused"
+                />
+              </span>
+            </div>
+            <div
+              class="mt-topic-row-options"
+            >
+              <button
+                aria-pressed="false"
+                class="mt-topic-option"
+                type="button"
+              >
+                <span
+                  class="mt-topic-option-text"
+                >
+                  <span
+                    class="mt-topic-option-name"
+                  >
+                    الساعات
+                  </span>
+                </span>
+              </button>
+              <button
+                aria-pressed="false"
+                class="mt-topic-option"
+                type="button"
+              >
+                <span
+                  class="mt-topic-option-text"
+                >
+                  <span
+                    class="mt-topic-option-name"
+                  >
+                    التقويم والأعمار
+                  </span>
+                </span>
+              </button>
+            </div>
+          </div>
+          <div
+            aria-label="أعداد فيها خدعة"
+            class="mt-topic-row"
+            role="group"
+          >
+            <div
+              class="mt-topic-row-name"
+            >
+              <span
+                class="mt-page-link"
+              >
+                <a
+                  class="mt-link"
+                  href="https://mathtrail.app/en/topics/#numbers"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  أعداد فيها خدعة
+                </a>
+                <span
+                  aria-live="polite"
+                  class="mt-link-refused"
+                />
+              </span>
+            </div>
+            <div
+              class="mt-topic-row-options"
+            >
+              <button
+                aria-pressed="false"
+                class="mt-topic-option"
+                type="button"
+              >
+                <span
+                  class="mt-topic-option-text"
+                >
+                  <span
+                    class="mt-topic-option-name"
+                  >
+                    حساب فيه خدعة
+                  </span>
+                </span>
+              </button>
+              <button
+                aria-pressed="false"
+                class="mt-topic-option"
+                type="button"
+              >
+                <span
+                  class="mt-topic-option-text"
+                >
+                  <span
+                    class="mt-topic-option-name"
+                  >
+                    الزوجية والتناوب
+                  </span>
+                </span>
+              </button>
+              <button
+                aria-pressed="false"
+                class="mt-topic-option"
+                data-older="true"
+                type="button"
+              >
+                <span
+                  class="mt-topic-option-text"
+                >
+                  <span
+                    class="mt-topic-option-name"
+                  >
+                    قابلية القسمة والبواقي
+                  </span>
+                   
+                  <span
+                    class="mt-topic-from"
+                  >
+                    من الصف 5
+                  </span>
+                </span>
+              </button>
+            </div>
+          </div>
+          <div
+            aria-label="أجزاء الكل"
+            class="mt-topic-row"
+            role="group"
+          >
+            <div
+              class="mt-topic-row-name"
+            >
+              <span
+                class="mt-page-link"
+              >
+                <a
+                  class="mt-link"
+                  href="https://mathtrail.app/en/topics/#parts"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  أجزاء الكل
+                </a>
+                <span
+                  aria-live="polite"
+                  class="mt-link-refused"
+                />
+              </span>
+            </div>
+            <div
+              class="mt-topic-row-options"
+            >
+              <button
+                aria-pressed="false"
+                class="mt-topic-option"
+                data-older="true"
+                type="button"
+              >
+                <span
+                  class="mt-topic-option-text"
+                >
+                  <span
+                    class="mt-topic-option-name"
+                  >
+                    الأجزاء والحصص
+                  </span>
+                   
+                  <span
+                    class="mt-topic-from"
+                  >
+                    من الصف 5
+                  </span>
+                </span>
+              </button>
+              <button
+                aria-pressed="false"
+                class="mt-topic-option"
+                data-older="true"
+                type="button"
+              >
+                <span
+                  class="mt-topic-option-text"
+                >
+                  <span
+                    class="mt-topic-option-name"
+                  >
+                    النسب المئوية
+                  </span>
+                   
+                  <span
+                    class="mt-topic-from"
+                  >
+                    من الصف 5
+                  </span>
+                </span>
+              </button>
+              <button
+                aria-pressed="false"
+                class="mt-topic-option"
+                data-older="true"
+                type="button"
+              >
+                <span
+                  class="mt-topic-option-text"
+                >
+                  <span
+                    class="mt-topic-option-name"
+                  >
+                    النسب والتقسيم
+                  </span>
+                   
+                  <span
+                    class="mt-topic-from"
+                  >
+                    من الصف 5
+                  </span>
+                </span>
+              </button>
+            </div>
+          </div>
+          <div
+            aria-label="الاستراتيجيات والألعاب"
+            class="mt-topic-row"
+            role="group"
+          >
+            <div
+              class="mt-topic-row-name"
+            >
+              <span
+                class="mt-page-link"
+              >
+                <a
+                  class="mt-link"
+                  href="https://mathtrail.app/en/topics/#games"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  الاستراتيجيات والألعاب
+                </a>
+                <span
+                  aria-live="polite"
+                  class="mt-link-refused"
+                />
+              </span>
+            </div>
+            <div
+              class="mt-topic-row-options"
+            >
+              <button
+                aria-pressed="false"
+                class="mt-topic-option"
+                data-older="true"
+                type="button"
+              >
+                <span
+                  class="mt-topic-option-text"
+                >
+                  <span
+                    class="mt-topic-option-name"
+                  >
+                    ألعاب باستراتيجية رابحة
+                  </span>
+                   
+                  <span
+                    class="mt-topic-from"
+                  >
+                    من الصف 5
+                  </span>
+                </span>
+              </button>
+              <button
+                aria-pressed="false"
+                class="mt-topic-option"
+                type="button"
+              >
+                <span
+                  class="mt-topic-option-text"
+                >
+                  <span
+                    class="mt-topic-option-name"
+                  >
+                    الوزن وسكب السوائل
+                  </span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <p
+        aria-live="polite"
+        class="mt-action-note mt-topic-note"
+      >
+        
+      </p>
+      <p
+        aria-live="polite"
+        class="mt-action-note"
+      >
+        
+      </p>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`the screens in Arabic > the wait for a task asked for 1`] = `
 <div
   class="mt mt-widget mt-rtl"
@@ -4970,7 +5958,7 @@ exports[`the screens in Arabic > the wait for a task asked for 1`] = `
         aria-hidden="true"
         class="mt-icon"
         height="32"
-        viewBox="0 0 32 32"
+        viewBox="0 0 48 48"
         width="32"
       />
       <div
@@ -4989,9 +5977,19 @@ exports[`the screens in Arabic > the wait for a task asked for 1`] = `
       <span
         aria-hidden="true"
         class="mt-version"
-        dir="ltr"
       >
-        v0.2.1
+        <span
+          class="mt-version-label"
+        >
+          الإصدار
+        </span>
+         
+        <span
+          class="mt-version-number"
+          dir="ltr"
+        >
+          0.2.1
+        </span>
       </span>
     </header>
     <div
@@ -5025,7 +6023,7 @@ exports[`the screens in Arabic > the wait for a task asked for 1`] = `
                     class="mt-icon mt-spin"
                     fill="none"
                     height="20"
-                    viewBox="0 0 20 20"
+                    viewBox="0 0 24 24"
                     width="20"
                   />
                 </span>
@@ -5053,7 +6051,7 @@ exports[`the screens in Arabic > the wait for a task asked for 1`] = `
                   class="mt-icon"
                   fill="none"
                   height="20"
-                  viewBox="0 0 20 20"
+                  viewBox="0 0 24 24"
                   width="20"
                 />
               </span>
@@ -5080,7 +6078,7 @@ exports[`the screens in Arabic > the wait for a task asked for 1`] = `
                   class="mt-icon"
                   fill="none"
                   height="20"
-                  viewBox="0 0 20 20"
+                  viewBox="0 0 24 24"
                   width="20"
                 />
               </span>
@@ -5107,7 +6105,7 @@ exports[`the screens in Arabic > the wait for a task asked for 1`] = `
                   class="mt-icon"
                   fill="none"
                   height="20"
-                  viewBox="0 0 20 20"
+                  viewBox="0 0 24 24"
                   width="20"
                 />
               </span>
@@ -5147,6 +6145,7 @@ exports[`the screens in Arabic > the wait for a task being written, a try turned
       <svg
         aria-hidden="true"
         class="mt-icon"
+        fill="none"
         height="24"
         viewBox="0 0 24 24"
         width="24"
@@ -5167,7 +6166,7 @@ exports[`the screens in Arabic > the wait for a task being written, a try turned
         class="mt-icon mt-chevron"
         fill="none"
         height="16"
-        viewBox="0 0 16 16"
+        viewBox="0 0 24 24"
         width="16"
       />
     </button>
@@ -5181,7 +6180,7 @@ exports[`the screens in Arabic > the wait for a task being written, a try turned
           aria-hidden="true"
           class="mt-icon"
           height="32"
-          viewBox="0 0 32 32"
+          viewBox="0 0 48 48"
           width="32"
         />
         <div
@@ -5205,9 +6204,19 @@ exports[`the screens in Arabic > the wait for a task being written, a try turned
         <span
           aria-hidden="true"
           class="mt-version"
-          dir="ltr"
         >
-          v0.2.1
+          <span
+            class="mt-version-label"
+          >
+            الإصدار
+          </span>
+           
+          <span
+            class="mt-version-number"
+            dir="ltr"
+          >
+            0.2.1
+          </span>
         </span>
       </header>
       <div
@@ -5238,7 +6247,7 @@ exports[`the screens in Arabic > the wait for a task being written, a try turned
                     class="mt-icon"
                     fill="none"
                     height="20"
-                    viewBox="0 0 20 20"
+                    viewBox="0 0 24 24"
                     width="20"
                   />
                 </span>
@@ -5268,7 +6277,7 @@ exports[`the screens in Arabic > the wait for a task being written, a try turned
                       class="mt-icon mt-spin"
                       fill="none"
                       height="20"
-                      viewBox="0 0 20 20"
+                      viewBox="0 0 24 24"
                       width="20"
                     />
                   </span>
@@ -5296,7 +6305,7 @@ exports[`the screens in Arabic > the wait for a task being written, a try turned
                     class="mt-icon"
                     fill="none"
                     height="20"
-                    viewBox="0 0 20 20"
+                    viewBox="0 0 24 24"
                     width="20"
                   />
                 </span>
@@ -5323,7 +6332,7 @@ exports[`the screens in Arabic > the wait for a task being written, a try turned
                     class="mt-icon"
                     fill="none"
                     height="20"
-                    viewBox="0 0 20 20"
+                    viewBox="0 0 24 24"
                     width="20"
                   />
                 </span>

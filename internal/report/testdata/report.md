@@ -99,6 +99,14 @@ The most a minute by the clock held, the minute a pace is counted over. An accou
 | Other requests on one instance | 1 |
 | Requests to the MCP endpoint on all instances | 3 |
 
+## Children, a day at a time
+
+The children the counts for grant applications are taken from, by the rules those counts follow: a child is counted under the name it has that month, on each day a task was handed to it; a child the load tool or MCP Inspector handed a task to is left out, and so is every line of its; a line the log repeated is counted once; a day is a day in UTC. The same days of the view `impact_private.daily` hold the same numbers.
+
+| Day | Children | Tasks | Answers | Topics won |
+|---|---:|---:|---:|---:|
+| 2026-09-29 | 2 | 2 | 1 | 1 |
+
 ## The rules of the log
 
 Every line of the service's is held to an event the service is decided to write, to the fields decided for that event, to the form each field of the lines the children are counted from may hold, and to carrying nothing shaped like an email address. A line that breaks one is named by its event and its field, never by what it held: an event the table does not name is not named, since its words may be anything.

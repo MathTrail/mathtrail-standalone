@@ -22,14 +22,15 @@ func TestAnAnswerFallsInTheRangeOfItsNumber(t *testing.T) {
 	}
 }
 
-// Who chose a task is one of three words on a line whatever the task says: the
-// rule, the model, or unknown — for a task that says nothing, and for one that
-// names anybody else, which only a file edited by hand can.
-func TestWhoChoseATaskIsOneOfThreeWords(t *testing.T) {
+// Who chose a task is one of four words on a line whatever the task says: the
+// rule, the model, a person who chose the topic of the lessons, or unknown —
+// for a task that says nothing, and for one that names anybody else, which
+// only a file edited by hand can.
+func TestWhoChoseATaskIsOneOfFourWords(t *testing.T) {
 	t.Parallel()
 
 	for mode, want := range map[profile.TutorMode]string{
-		profile.TutorRule: "rule", profile.TutorLLM: "llm", "": "unknown", "teacher": "unknown",
+		profile.TutorRule: "rule", profile.TutorLLM: "llm", profile.TutorPerson: "person", "": "unknown", "teacher": "unknown",
 	} {
 		if got := chooserOf(mode); got != want {
 			t.Errorf("chooserOf(%q) = %q, want %q", mode, got, want)

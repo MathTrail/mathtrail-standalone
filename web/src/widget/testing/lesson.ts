@@ -1,5 +1,5 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
-import type { AnswerResult, HandedTask } from "../payload";
+import type { AnswerResult, HandedTask, TopicChoice } from "../payload";
 
 /**
  * Handed is a payload that hands the card a task, with the fields the service
@@ -48,6 +48,33 @@ export const fenceInRussian: Handed = {
 		hint: "Начни с забора поменьше: 6 метров, столб через каждые 3 метра. Нарисуй его и посчитай столбы.",
 	},
 };
+
+/**
+ * offeredChoice is what the card of a task offers once the trial series is
+ * over: the coach chooses the topic, the review suggests Enumeration and
+ * Parity and alternation to develop and Pigeonhole principle to begin, and
+ * the groups link to the site the progress names.
+ */
+export const offeredChoice: TopicChoice = {
+	chosen: null,
+	recommended: [
+		"combinatorics.enumeration",
+		"parity.alternation",
+		"pigeonhole.basic",
+	],
+	site: { url: "https://mathtrail.app", languages: ["en", "ru"] },
+};
+
+/**
+ * withTopicChoice is handed with the choice of the topic offered: the one the
+ * trial series over offers, with fields given replacing its own.
+ */
+export function withTopicChoice(
+	handed: Handed,
+	fields: Partial<TopicChoice> = {},
+): Handed {
+	return { ...handed, topic_choice: { ...offeredChoice, ...fields } };
+}
 
 /** fenceSolution is the solution of the fence, three steps in one text. */
 export const fenceSolution =
@@ -611,6 +638,25 @@ export function editSaved(
 		},
 	};
 }
+
+/**
+ * topicSaved is a choice of the topic from the card saved: the details as they
+ * now stand, the topic among them, and the words the card hands the model.
+ */
+export function topicSaved(topic: string | null): CallToolResult {
+	return {
+		content: [{ type: "text", text: topicWords }],
+		structuredContent: {
+			screen: "profile",
+			changed: true,
+			profile: { ...standing.profile, lesson_topic: topic },
+		},
+	};
+}
+
+/** topicWords are what the service tells the model of a choice of the topic. */
+export const topicWords =
+	"On the card, the child or the adult chose the topic of the lessons.";
 
 /** savedWords are what the service tells the model of a change from the form. */
 export const savedWords =

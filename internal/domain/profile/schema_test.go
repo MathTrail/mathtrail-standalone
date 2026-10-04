@@ -230,6 +230,7 @@ func TestTheSchemaStatesTheCapsOfTheDetails(t *testing.T) {
 		{"notes.maxLength", details["notes"]["maxLength"], profile.MaxNotes},
 		{"pseudonym.maxLength", details["pseudonym"]["maxLength"], profile.MaxPseudonym},
 		{"region.maxLength", details["region"]["maxLength"], profile.MaxRegion},
+		{"lesson_topic.maxLength", details["lesson_topic"]["maxLength"], profile.MaxLessonTopic},
 		{"ui_language.maxLength", details["ui_language"]["maxLength"], profile.MaxLanguageTag},
 	} {
 		if tc.got != float64(tc.want) {
@@ -601,4 +602,28 @@ func withAnswered(t *testing.T, p *profile.Profile, answered string) []byte {
 		t.Fatalf("json.Marshal() error = %v, want nil", err)
 	}
 	return edited
+}
+
+// The schema names everyone who may choose a task, as the service does: the
+// rule, the model and a person. A value the service writes and the schema
+// leaves out makes every file holding it one a reader of the schema refuses.
+func TestTheSchemaNamesEveryoneWhoChoosesATask(t *testing.T) {
+	t.Parallel()
+
+	var document struct {
+		Defs map[string]struct {
+			Properties map[string]struct {
+				Enum []string `json:"enum"`
+			} `json:"properties"`
+		} `json:"$defs"`
+	}
+	if err := json.Unmarshal(profile.Schema(), &document); err != nil {
+		t.Fatalf("the schema is not a JSON document: %v", err)
+	}
+	want := []string{string(profile.TutorRule), string(profile.TutorLLM), string(profile.TutorPerson)}
+	for _, def := range []string{"openRequest", "currentTask"} {
+		if got := document.Defs[def].Properties["tutor_mode"].Enum; !slices.Equal(got, want) {
+			t.Errorf("%s.tutor_mode may be %v, want %v", def, got, want)
+		}
+	}
 }

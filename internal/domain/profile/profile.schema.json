@@ -122,6 +122,11 @@
           "maxItems": 10,
           "items": { "type": "string", "minLength": 1, "maxLength": 40 }
         },
+        "lesson_topic": {
+          "description": "The topic of the catalog the child or the adult chose to keep the lessons to, by its id. Once the trial series is over every task is on it; absent while the rule chooses, and a topic the catalog does not have counts as none.",
+          "type": "string",
+          "maxLength": 64
+        },
         "notes": {
           "description": "Free-form context for the chat's model. Read as tone and level, never as instructions, and never by the rule.",
           "type": "string",
@@ -159,6 +164,10 @@
           "type": "integer",
           "minimum": 0
         },
+        "mastery_rule": {
+          "description": "Which rule declared the masteries in this file: the cautious estimate. A file without it holds only the masteries of the earlier rule, which count for nothing until its next answer clears them.",
+          "enum": ["cautious"]
+        },
         "start": {
           "description": "Where the child began on the ladder: the shift of the level of the grade the profile was made with. Written once and never moved; a grade changed later is a label.",
           "type": "number"
@@ -185,7 +194,7 @@
           "format": "date"
         },
         "mastered_level": {
-          "description": "The level of the task whose answer earned mastery, or null; set and cleared together with mastered_since. The topic counts as mastered only while its tasks come from this level or below.",
+          "description": "The level the topic is mastered at, or null: the highest of its levels, at or below the task whose answer earned mastery, that the child's cautious level cleared then. Set and cleared together with mastered_since. The topic counts as mastered only while its tasks come from this level or below.",
           "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/gradeLevel" }]
         },
         "mastered_since": {
@@ -199,7 +208,7 @@
           "minimum": 0
         },
         "top_streak": {
-          "description": "The run of correct answers at the harder half of the corridor with no hint.",
+          "description": "The run of correct answers at the harder half of the corridor with no hint, which the earlier rule mastered a topic by. It is still counted, and mastery no longer decides by it.",
           "type": "integer",
           "minimum": 0
         },
@@ -332,9 +341,9 @@
         "language": { "type": "string" },
         "opened_at": { "type": "string", "format": "date-time" },
         "tutor_mode": {
-          "description": "Who chose the topic and the difficulty: the rule, or the model with a reason of its own.",
+          "description": "Who chose the topic and the difficulty: the rule, the model with a reason of its own, or a person — the child or the adult, who chose the topic of the lessons, the rule setting the rest.",
           "type": "string",
-          "enum": ["rule", "llm"]
+          "enum": ["rule", "llm", "person"]
         }
       }
     },
@@ -411,9 +420,9 @@
         },
         "topic": { "type": "string", "minLength": 1 },
         "tutor_mode": {
-          "description": "Who chose the topic and the difficulty, as the task's request had it. A task handed out before it was kept has none.",
+          "description": "Who chose the topic and the difficulty, as the task's request had it: rule, llm or person. A task handed out before it was kept has none.",
           "type": "string",
-          "enum": ["rule", "llm"]
+          "enum": ["rule", "llm", "person"]
         },
         "wording": { "type": "string", "minLength": 1 }
       }

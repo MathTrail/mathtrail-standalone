@@ -117,6 +117,29 @@ jobs:
       - run: just load-test
       - run: just learners-test
 
+  learners-guard:
+    name: Student model guard
+    needs: toolchain
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    container:
+      image: ${{ needs.toolchain.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            /tmp/go/mod
+            /tmp/go/build
+          key: go-${{ hashFiles('go.sum', 'tools/load/go.sum', 'tools/learners/go.sum') }}
+          restore-keys: go-
+      # The guard's table goes to the run's summary, and the pipe keeps the
+      # guard's own exit as the step's: a number outside its band fails it.
+      - run: just ci-learners | tee -a "$GITHUB_STEP_SUMMARY"
+
   widget:
     name: Widget
     needs: toolchain
@@ -178,6 +201,24 @@ jobs:
           name: widget-layout-${{ matrix.part }}
           path: web/layout/
           retention-days: 14
+
+  analytics:
+    name: The SQL of the counts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    # On the runner itself: the tests run the SQL against a BigQuery emulator
+    # the recipe starts in a container of its own, and the toolchain image has
+    # no docker client to start it with. Go is the version the module declares.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: false
+      - uses: ./.github/actions/just
+      - run: just analytics-test
 
   sonar:
     name: Static analysis

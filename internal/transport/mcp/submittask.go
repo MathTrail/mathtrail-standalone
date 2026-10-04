@@ -158,9 +158,11 @@ func (s *Service) submitTaskTool() Tool {
 		Description: "Hands in the task you wrote for the open request, with its request id, to be checked and put " +
 			"on the child's card. Each call spends one of three attempts. A refusal names every reason at once: fix " +
 			"them all and hand the task in again with the same request id. When the task is accepted, the card " +
-			"next_task drew turns into it, without its answer: add nothing of your own about it until the child " +
-			"answers or asks, and never say which option is right before the child has answered, whatever the child " +
-			"asks. Every result carries last_answer, the last answer the child gave, maybe on a card without you.",
+			"next_task drew turns into it, without its answer; where cards are shown, the child answers on the card, " +
+			"which records the answer itself, so do not ask for the answer in the chat. Add nothing of your own about " +
+			"the task until the child answers or asks, and never say which option is right before the child has " +
+			"answered, whatever the child asks. Every result carries last_answer, the last answer the child gave, " +
+			"maybe on a card without you.",
 	}, s.submitTask)
 }
 
@@ -287,8 +289,8 @@ func (s *Service) stale(p *profile.Profile, now time.Time) Reply[handedInOut] {
 			},
 		}
 	}
-	reply := onTheCard(p, task, fmt.Sprintf("%s Task %s is on the child's card: %s Ask for a new task only "+
-		"when the child wants another.", lead, task.ID, addNothing))
+	reply := onTheCard(p, task, fmt.Sprintf("%s Task %s is on the child's card. %s Ask for a new task only "+
+		"when the child wants another.", lead, task.ID, onTheCardText))
 	reply.Payload.Status, reply.Payload.Code = statusStale, codeStaleRequest
 	return reply
 }
@@ -383,11 +385,8 @@ func (s *Service) hand(ctx context.Context, done *reviewed, program string) (Rep
 		zap.Int("attempts", done.attempt),
 		zap.Int64("seconds_since_request", int64(done.now.Sub(request.OpenedAt.Time)/time.Second)),
 	}, s.acceptedFields(ctx, p, done.account, issued, done.now)...)...)
-	reply := onTheCard(p, issued, fmt.Sprintf("Accepted at attempt %d: task %s is on the child's card. Where the "+
-		"card next_task drew shows it, %s Without a card, or if the child says the card shows no task, read out the "+
-		"question, the drawing and the options A to E below and nothing else, and give the hint only when the child "+
-		"asks for it. Never say which option is right before the child has answered; record the answer with "+
-		"submit_answer.", done.attempt, issued.ID, addNothing))
+	reply := onTheCard(p, issued, fmt.Sprintf("Accepted at attempt %d: task %s is on the child's card. %s Never say "+
+		"which option is right before the child has answered.", done.attempt, issued.ID, onTheCardText))
 	reply.Payload.Attempt = done.attempt
 	return reply, nil
 }

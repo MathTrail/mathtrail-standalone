@@ -10,7 +10,7 @@ import type { Fill, PageReader } from "./reader";
 import { StaticAnswer } from "./StaticCard";
 import { TableFrame } from "./TableFrame";
 import { gradesOfAll } from "./topics";
-import { answerOf, doiAddress, doiShown, type Source, type Why } from "./why";
+import { answerOf, doiAddress, type Source, type Why } from "./why";
 import { gradesText, type SiteKey, useSiteWords } from "./words";
 
 /**
@@ -21,9 +21,8 @@ import { gradesText, type SiteKey, useSiteWords } from "./words";
  * and why school has no time for the second; what a parent needs and does not
  * need to prepare a child; how MathTrail goes about it, beside the widget's
  * own card of a wrong answer and the chat under it; why it is no ordinary app;
- * how to start; and the works it cites. The grades are the catalog's, the
- * topics' names and the card's words the widget's, and the works the site's
- * data.
+ * and how to start. The grades are the catalog's, the topics' names and the
+ * card's words the widget's, and the works it cites the site's data.
  */
 export function WhyPage({ page, data }: PageProps) {
 	const why = data.why;
@@ -43,7 +42,6 @@ export function WhyPage({ page, data }: PageProps) {
 			<Thinking page={page} why={why} />
 			<App page={page} why={why} />
 			<Ask page={page} />
-			<Sources page={page} why={why} />
 		</>
 	);
 }
@@ -373,35 +371,6 @@ function Ask({ page }: { page: PageReader }) {
 			</div>
 		</section>
 	);
-}
-
-// Sources are the works the page cites, in the order it first cites them,
-// each as its journal prints it and linked by its DOI. A screen reader is told
-// the entry is English, as every work is, and told the language of a journal
-// whose name is not.
-function Sources({ page, why }: { page: PageReader; why: Why }) {
-	return (
-		<section class="s-wrap s-section s-sources">
-			<h2 class="s-sources-title">{page.text("sources.title")}</h2>
-			<ol>
-				{why.sources.map((source) => (
-					<li key={source.id} lang="en">
-						{`${source.authors.join(", ")} (${source.year}). `}
-						{sentence(source.title)}{" "}
-						<em lang={source.journal_language}>{source.journal}</em>
-						{`, ${source.volume}(${source.issue}), ${source.pages}. `}
-						<a href={doiAddress(source)}>{doiShown(source)}</a>
-					</li>
-				))}
-			</ol>
-		</section>
-	);
-}
-
-// sentence is a title closed as a sentence: with a full stop, unless it ends
-// in a mark of its own, as a question does.
-function sentence(title: string): string {
-	return /[.?!]$/.test(title) ? title : `${title}.`;
 }
 
 // Cite is a work as a sentence cites it, its first author and its year, linked

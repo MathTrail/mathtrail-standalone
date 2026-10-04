@@ -175,6 +175,12 @@ variable "settings" {
   }
 }
 
+variable "analytics" {
+  description = "Whether the deployment keeps counts of how it is used, for years: the lines the children are counted from kept 62 days in a log bucket of their own, counted every night into BigQuery tables that hold no name of any child, and views for two reports. Off until a copy's own privacy policy says what it keeps."
+  type        = bool
+  default     = false
+}
+
 variable "budget_amount" {
   description = "The monthly spend, in whole units of budget_currency, that the alert is measured against. This is an alert and not a cap: nothing stops a project at a number."
   type        = string

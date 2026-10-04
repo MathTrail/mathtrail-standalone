@@ -143,6 +143,7 @@ describe("the page about who makes MathTrail", () => {
 				[...card.children].map((part) => part.getAttribute("class")),
 			)[0],
 		).toEqual([
+			"s-member-frame",
 			"s-chip s-chip-group s-member-role",
 			"s-member-name",
 			"s-tile-text",

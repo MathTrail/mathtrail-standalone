@@ -10,10 +10,24 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 )
 
-// skills stands in for the catalog of skills: a few ids it has, and none else.
-func skills(id string) bool {
-	return slices.Contains([]string{"fractions", "division_with_remainder", "negative_numbers"}, id)
+// catalog stands in for the catalog: the skills and the topics it has, and
+// none else.
+type catalog struct{ skills, topics []string }
+
+func (c catalog) HasSkill(id string) bool { return slices.Contains(c.skills, id) }
+func (c catalog) HasTopic(id string) bool { return slices.Contains(c.topics, id) }
+
+// shipped is the catalog the edits are held to: a few skills and topics.
+var shipped = catalog{
+	skills: []string{"fractions", "division_with_remainder", "negative_numbers"},
+	topics: []string{"time.clocks", "logic.ordering"},
 }
+
+// everySkill is a catalog that has any skill named, for a list too long for
+// any catalog to be refused for its length rather than for what it names.
+type everySkill struct{ catalog }
+
+func (everySkill) HasSkill(string) bool { return true }
 
 func text(s string) *string { return &s }
 func number(n int) *int     { return &n }
@@ -113,6 +127,10 @@ func TestAnEditIsTakenAsTheParentMeantIt(t *testing.T) {
 					t.Errorf("grade = %d, want 4", s.Grade)
 				}
 			}},
+		{"a topic for the lessons with spaces around it", profile.Edit{LessonTopic: text(" time.clocks\n")},
+			func(t *testing.T, s *profile.Student) { wantText(t, "lesson_topic", s.LessonTopic, "time.clocks") }},
+		{"the topic given back to the rule", profile.Edit{LessonTopic: text("")},
+			func(t *testing.T, s *profile.Student) { wantText(t, "lesson_topic", s.LessonTopic, "") }},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -120,7 +138,7 @@ func TestAnEditIsTakenAsTheParentMeantIt(t *testing.T) {
 
 			p := profile.New(newStudent(), "1.2.3", editedAt)
 			p.Student.UILanguage = text("ru")
-			if _, problems := p.Change(&tc.edit, skills, "1.2.4", editedAt); len(problems) > 0 {
+			if _, problems := p.Change(&tc.edit, shipped, "1.2.4", editedAt); len(problems) > 0 {
 				t.Fatalf("Change() problems = %v, want none", problems)
 			}
 			tc.check(t, &p.Student)
@@ -160,6 +178,7 @@ func TestARefusalNamesTheFieldAndNeverRepeatsIt(t *testing.T) {
 		{"several languages", profile.Edit{UILanguage: text("mul")}, "ui_language"},
 		{"a country that is none", profile.Edit{Country: text(said)}, "country"},
 		{"a region that is none", profile.Edit{Country: text("US"), Region: text(said)}, "region"},
+		{"a topic the catalog does not have", profile.Edit{LessonTopic: text(said)}, "lesson_topic"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -167,7 +186,7 @@ func TestARefusalNamesTheFieldAndNeverRepeatsIt(t *testing.T) {
 
 			p := profile.New(newStudent(), "1.2.3", editedAt)
 			before := p.Student
-			changed, problems := p.Change(&tc.edit, skills, "1.2.4", editedAt)
+			changed, problems := p.Change(&tc.edit, shipped, "1.2.4", editedAt)
 			if changed || !slices.Equal(fields(problems), []string{tc.field}) {
 				t.Fatalf("Change() = %v, %v; want nothing changed and one problem with %s", changed, problems, tc.field)
 			}
@@ -186,18 +205,18 @@ func TestARefusalNamesTheFieldAndNeverRepeatsIt(t *testing.T) {
 func TestARuleSaysHowFarOffTheFieldIs(t *testing.T) {
 	t.Parallel()
 
-	anySkill := func(string) bool { return true }
+	anySkill := everySkill{shipped}
 	for _, tc := range []struct {
 		edit  profile.Edit
-		known func(string) bool
+		known profile.Catalog
 		want  string
 	}{
-		{profile.Edit{Pseudonym: text(strings.Repeat("o", profile.MaxPseudonym+6))}, skills, "at most 32 characters, not 38"},
-		{profile.Edit{Interests: count(profile.MaxInterests + 1)}, skills, "at most 10 interests, not 11"},
+		{profile.Edit{Pseudonym: text(strings.Repeat("o", profile.MaxPseudonym+6))}, shipped, "at most 32 characters, not 38"},
+		{profile.Edit{Interests: count(profile.MaxInterests + 1)}, shipped, "at most 10 interests, not 11"},
 		{profile.Edit{ExcludedSkills: count(profile.MaxExcludedSkills + 2)}, anySkill, "at most 25 skills, not 27"},
-		{profile.Edit{Notes: text(strings.Repeat("n", profile.MaxNotes+3))}, skills, "at most 500 characters, not 503"},
-		{profile.Edit{Interests: []string{strings.Repeat("i", profile.MaxInterest+2)}}, skills, "1 to 40 characters; one is 42"},
-		{profile.Edit{UILanguage: text("en-x-" + strings.Repeat("abcdefgh-", 4) + "abc")}, skills, "at most 35 characters, not 44"},
+		{profile.Edit{Notes: text(strings.Repeat("n", profile.MaxNotes+3))}, shipped, "at most 500 characters, not 503"},
+		{profile.Edit{Interests: []string{strings.Repeat("i", profile.MaxInterest+2)}}, shipped, "1 to 40 characters; one is 42"},
+		{profile.Edit{UILanguage: text("en-x-" + strings.Repeat("abcdefgh-", 4) + "abc")}, shipped, "at most 35 characters, not 44"},
 	} {
 		p := profile.New(newStudent(), "1.2.3", editedAt)
 		if _, problems := p.Change(&tc.edit, tc.known, "1.2.4", editedAt); len(problems) != 1 ||
@@ -215,7 +234,7 @@ func TestASkillOutsideTheCatalogIsNamedByItsPlace(t *testing.T) {
 
 	p := profile.New(newStudent(), "1.2.3", editedAt)
 	edit := profile.Edit{ExcludedSkills: []string{"fractions", "fractions", "long_division_by_hand"}}
-	_, problems := p.Change(&edit, skills, "1.2.4", editedAt)
+	_, problems := p.Change(&edit, shipped, "1.2.4", editedAt)
 	if len(problems) != 1 || !strings.Contains(problems[0].Rule, "entry 3") ||
 		strings.Contains(problems[0].Rule, "long_division") {
 		t.Errorf("problems = %v, want the third entry, as it was sent, named by its place alone", problems)
@@ -244,7 +263,7 @@ func TestAListThatFitsOnceItsRepeatsAreMergedIsKept(t *testing.T) {
 			t.Parallel()
 
 			p := profile.New(newStudent(), "1.2.3", editedAt)
-			if _, problems := p.Change(&tc.edit, skills, "1.2.4", editedAt); len(problems) > 0 {
+			if _, problems := p.Change(&tc.edit, shipped, "1.2.4", editedAt); len(problems) > 0 {
 				t.Errorf("problems = %v, want %s kept once its repeats were merged", problems, tc.field)
 			}
 		})
@@ -270,7 +289,7 @@ func TestTheNotesAreMeasuredAfterTheyAreCleaned(t *testing.T) {
 			t.Parallel()
 
 			p := profile.New(newStudent(), "1.2.3", editedAt)
-			_, problems := p.Change(&profile.Edit{Notes: text(tc.notes)}, skills, "1.2.4", editedAt)
+			_, problems := p.Change(&profile.Edit{Notes: text(tc.notes)}, shipped, "1.2.4", editedAt)
 			if fits := len(problems) == 0; fits != tc.fits {
 				t.Errorf("fits = %v (problems %v), want %v", fits, problems, tc.fits)
 			}
@@ -287,7 +306,7 @@ func TestOnlyAChangeTouchesTheProfile(t *testing.T) {
 	later := editedAt.Add(time.Hour)
 
 	same := profile.Edit{Pseudonym: text(" Otter "), Interests: []string{"space", "cats"}}
-	if changed, problems := p.Change(&same, skills, "1.2.4", later); changed || len(problems) > 0 {
+	if changed, problems := p.Change(&same, shipped, "1.2.4", later); changed || len(problems) > 0 {
 		t.Fatalf("Change(the same) = %v, %v; want nothing changed", changed, problems)
 	}
 	if p.Revision != 1 || p.AppVersion != "1.2.3" || !p.UpdatedAt.Equal(editedAt) {
@@ -295,11 +314,21 @@ func TestOnlyAChangeTouchesTheProfile(t *testing.T) {
 			p.Revision, p.AppVersion, p.UpdatedAt)
 	}
 
-	if changed, _ := p.Change(&profile.Edit{Notes: text("Counts on fingers.")}, skills, "1.2.4", later); !changed {
+	if changed, _ := p.Change(&profile.Edit{Notes: text("Counts on fingers.")}, shipped, "1.2.4", later); !changed {
 		t.Fatal("Change(new notes) changed nothing, want the notes changed")
 	}
 	if p.Revision != 2 || p.AppVersion != "1.2.4" || !p.UpdatedAt.Equal(later) {
 		t.Errorf("a change was not a touch: revision %d, %s at %v", p.Revision, p.AppVersion, p.UpdatedAt)
+	}
+
+	// The topic of the lessons is a detail like the others: choosing one is a
+	// change, and choosing it again is none.
+	topic := profile.Edit{LessonTopic: text("time.clocks")}
+	if changed, problems := p.Change(&topic, shipped, "1.2.4", later); !changed || len(problems) > 0 {
+		t.Fatalf("Change(a topic for the lessons) = %v, %v; want the topic chosen", changed, problems)
+	}
+	if changed, _ := p.Change(&topic, shipped, "1.2.4", later); changed {
+		t.Error("Change(the same topic again) changed the profile, want nothing changed")
 	}
 }
 
@@ -310,7 +339,7 @@ func TestALaterGradeIsALabel(t *testing.T) {
 
 	p := parseFixture(t, "masha")
 	ratings := p.Ratings
-	if changed, problems := p.Change(&profile.Edit{Grade: number(6)}, skills, "1.2.4", editedAt); !changed ||
+	if changed, problems := p.Change(&profile.Edit{Grade: number(6)}, shipped, "1.2.4", editedAt); !changed ||
 		len(problems) > 0 {
 		t.Fatalf("Change(grade 6) = %v, %v; want the grade changed", changed, problems)
 	}
@@ -325,12 +354,12 @@ func TestALaterGradeIsALabel(t *testing.T) {
 func TestANewStudentNeedsAPseudonymAndAGrade(t *testing.T) {
 	t.Parallel()
 
-	if _, problems := profile.NewStudent(&profile.Edit{Interests: []string{"space"}}, skills); !slices.Equal(
+	if _, problems := profile.NewStudent(&profile.Edit{Interests: []string{"space"}}, shipped); !slices.Equal(
 		fields(problems), []string{"grade", "pseudonym"}) {
 		t.Errorf("NewStudent(interests only) problems = %v, want grade and pseudonym", problems)
 	}
 
-	student, problems := profile.NewStudent(&profile.Edit{Pseudonym: text("Comet"), Grade: number(3)}, skills)
+	student, problems := profile.NewStudent(&profile.Edit{Pseudonym: text("Comet"), Grade: number(3)}, shipped)
 	if len(problems) > 0 {
 		t.Fatalf("NewStudent(pseudonym and grade) problems = %v, want none", problems)
 	}
@@ -379,12 +408,13 @@ func TestTheLastAnswerIsTheEndOfTheWindow(t *testing.T) {
 // takes the call down, and an edit it lets through is always a profile the
 // file can be written as.
 func FuzzEdit(f *testing.F) {
-	f.Add("Comet", 3, "space", "fractions", "Reads slowly.\nLikes cats.", "pt-br", "us", "us-tx")
-	f.Add("", 0, "", "", "", "", "", "")
-	f.Add("\a\u2028Otter\u0085", 7, "\t", "calculus", strings.Repeat("ж", profile.MaxNotes+1), "und", "USA", "TX")
-	f.Add(strings.Repeat("o", profile.MaxPseudonym+1), -1, strings.Repeat("a", 41), "negative_numbers", "\x00", "en_US", "fr", "US-TX")
+	f.Add("Comet", 3, "space", "fractions", "Reads slowly.\nLikes cats.", "pt-br", "us", "us-tx", " time.clocks ")
+	f.Add("", 0, "", "", "", "", "", "", "")
+	f.Add("\a\u2028Otter\u0085", 7, "\t", "calculus", strings.Repeat("ж", profile.MaxNotes+1), "und", "USA", "TX", "clocks")
+	f.Add(strings.Repeat("o", profile.MaxPseudonym+1), -1, strings.Repeat("a", 41), "negative_numbers", "\x00", "en_US", "fr", "US-TX",
+		strings.Repeat("t", profile.MaxLessonTopic+1))
 
-	f.Fuzz(func(t *testing.T, pseudonym string, grade int, interest, skill, notes, language, place, region string) {
+	f.Fuzz(func(t *testing.T, pseudonym string, grade int, interest, skill, notes, language, place, region, topic string) {
 		edit := profile.Edit{
 			Pseudonym:      &pseudonym,
 			Grade:          &grade,
@@ -394,14 +424,18 @@ func FuzzEdit(f *testing.F) {
 			UILanguage:     &language,
 			Country:        &place,
 			Region:         &region,
+			LessonTopic:    &topic,
 		}
-		student, problems := profile.NewStudent(&edit, skills)
+		student, problems := profile.NewStudent(&edit, shipped)
 		if len(problems) > 0 {
 			return
 		}
 		if (student.Country != "" && !country.Known(student.Country)) ||
 			(student.Region != "" && !country.KnownRegion(student.Country, student.Region)) {
 			t.Fatalf("an edit let through keeps the country %q and the region %q, not codes of the list", student.Country, student.Region)
+		}
+		if student.LessonTopic != "" && !shipped.HasTopic(student.LessonTopic) {
+			t.Fatalf("an edit let through keeps the topic %q, which the catalog does not have", student.LessonTopic)
 		}
 		p := profile.New(student, "fuzz", editedAt)
 		if err := p.Validate(); err != nil {
@@ -458,10 +492,10 @@ func TestTheSameSkillsInAnotherOrderAreNoChange(t *testing.T) {
 	p := profile.New(newStudent(), "1.2.3", editedAt)
 	p.Student.ExcludedSkills = []string{"fractions", "negative_numbers"}
 	if changed, problems := p.Change(&profile.Edit{ExcludedSkills: []string{"negative_numbers", "fractions"}},
-		skills, "1.2.4", editedAt); changed || len(problems) > 0 {
+		shipped, "1.2.4", editedAt); changed || len(problems) > 0 {
 		t.Errorf("Change(the skills reordered) = %v, %v; want nothing changed", changed, problems)
 	}
-	if changed, _ := p.Change(&profile.Edit{Interests: []string{"cats", "space"}}, skills, "1.2.4", editedAt); !changed {
+	if changed, _ := p.Change(&profile.Edit{Interests: []string{"cats", "space"}}, shipped, "1.2.4", editedAt); !changed {
 		t.Error("Change(the interests reordered) changed nothing, want the order kept as a change")
 	}
 }

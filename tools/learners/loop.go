@@ -123,12 +123,10 @@ func (s *session) step(k int) error {
 	truth := s.c.chance(topic, s.c.writtenDifficulty(beta, k, draws.writing))
 	correct := draws.correct < truth
 	before := s.observeBefore(&brief, beta, truth, correct, k)
-	recorded, err := s.answer(&brief, mode, &draws, correct)
+	recorded, err := s.take(&brief, mode, &draws, correct, draws.hint < s.c.hint, k)
 	if err != nil {
 		return err
 	}
-	s.learn(topic, beta, correct, k)
-	s.master(&brief, beta, &recorded, correct, draws.hint < s.c.hint)
 	s.result.after(s, &brief, &recorded, &before, k)
 	s.c.after(topic, k)
 	s.result.checkpoint(s, k)
@@ -148,8 +146,22 @@ func (s *session) writeLevels() {
 	}
 }
 
+// take is what a lesson does with an answer once the task is set and
+// answered: the service records it, the rule's estimate takes it in, and the
+// rule's own mastery, if it has one, judges it.
+func (s *session) take(brief *profile.Brief, mode profile.TutorMode, draws *answerDraws, correct, hint bool, k int) (profile.Recorded, error) {
+	recorded, err := s.answer(brief, mode, draws, correct, hint)
+	if err != nil {
+		return profile.Recorded{}, err
+	}
+	point := rating.Point{GradeLevel: brief.GradeLevel, Difficulty: brief.Difficulty}
+	s.learn(brief.TargetConcept, point.Beta(), correct, k)
+	s.master(brief, point.Beta(), &recorded, correct, hint)
+	return recorded, nil
+}
+
 // answer issues the task and records the child's answer as the service does.
-func (s *session) answer(brief *profile.Brief, mode profile.TutorMode, draws *answerDraws, correct bool) (profile.Recorded, error) {
+func (s *session) answer(brief *profile.Brief, mode profile.TutorMode, draws *answerDraws, correct, hint bool) (profile.Recorded, error) {
 	s.p.Ask(brief, mode, "en", s.now)
 	letters := solver.Letters()
 	key := letters[draws.key]
@@ -172,7 +184,7 @@ func (s *session) answer(brief *profile.Brief, mode profile.TutorMode, draws *an
 		choice = wrong[draws.wrong]
 	}
 	s.now = s.now.Add(answerTime)
-	return s.p.Record(profile.Answered{TaskID: task.ID, Choice: choice, HintUsed: draws.hint < s.c.hint, At: s.now}, s.w.sealer)
+	return s.p.Record(profile.Answered{TaskID: task.ID, Choice: choice, HintUsed: hint, At: s.now}, s.w.sealer, s.w.levels[brief.TargetConcept])
 }
 
 // learn takes the answer into the rule's estimate. A rule that starts after

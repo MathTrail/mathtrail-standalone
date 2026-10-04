@@ -106,6 +106,9 @@ type childOut struct {
 	// the adult said; null when they did not.
 	Country *string `json:"country"`
 	Region  *string `json:"region"`
+	// LessonTopic is the topic the child or the adult keeps the lessons to,
+	// by its id, as the file names it; null while the rule chooses.
+	LessonTopic *string `json:"lesson_topic"`
 }
 
 func childOf(s *profile.Student) *childOut {
@@ -117,6 +120,7 @@ func childOf(s *profile.Student) *childOut {
 		UILanguage:     s.UILanguage,
 		Country:        given(s.Country),
 		Region:         given(s.Region),
+		LessonTopic:    given(s.LessonTopic),
 	}
 }
 
@@ -150,6 +154,9 @@ type recommendationOut struct {
 	GradeLevel string `json:"grade_level"`
 	Difficulty int    `json:"difficulty"`
 	Goal       string `json:"goal"`
+	// Chosen says that the topic is the one the child or the adult keeps the
+	// lessons to, rather than the rule's own; left out when it is the rule's.
+	Chosen bool `json:"chosen,omitempty"`
 }
 
 func recommendationOf(next *progress.Recommendation) *recommendationOut {
@@ -158,6 +165,7 @@ func recommendationOf(next *progress.Recommendation) *recommendationOut {
 		GradeLevel: string(next.GradeLevel),
 		Difficulty: next.Difficulty,
 		Goal:       string(next.Goal),
+		Chosen:     next.Chosen,
 	}
 }
 
@@ -281,13 +289,22 @@ const firstRunText = "There is no profile yet. If the adult made one before, it 
 	"or school — and the school grade from 1 to 6. Interests, skills the child has not met at school yet, notes " +
 	"about the child and the language of the lessons are optional. Then create the profile with save_profile."
 
-// addNothing is what the model may say about a task the card shows: nothing,
-// until the child answers or asks. A word about why the task came, or about
-// the way to solve it, gives the task away; and a host may keep only the start
-// of the instructions, so the words that come with the task are where the rule
-// is sure to be read.
-const addNothing = "add nothing of your own about it — not its topic, not why it came, not how to solve it — " +
-	"until the child answers or asks."
+// onTheCardText is what the model is told of a task on the child's card,
+// accepted or handed in again, followed by the task in words. Where a card
+// shows the task, the child answers there and the card records the answer: a
+// model told only to record it asks for the letter in the chat, and every such
+// message spends one of the parent's chat messages on an answer the card
+// already has. It adds nothing of its own until the child answers or asks,
+// since a word about why the task came, or about the way to solve it, gives
+// the task away. Without a card the task is read out and the answer recorded
+// from the chat. A host may keep only the start of the instructions, so the
+// words that come with the task are where these rules are sure to be read.
+const onTheCardText = "Where the card next_task drew shows it, the child answers there, and the card records the " +
+	"answer itself: do not ask for the answer in the chat, which would cost the parent a message, and add nothing " +
+	"of your own about the task — not its topic, not why it came, not how to solve it — until the child answers or " +
+	"asks. Without a card, or if the child says the card shows no task, read out the question, the drawing and the " +
+	"options A to E below and nothing else, give the hint only when the child asks for it, and record the answer " +
+	"the child gives in the chat with submit_answer."
 
 // forYouAlone is what the model may tell the child while it writes a task: that
 // one is on its way, and nothing of what it was handed to write it from.
@@ -411,8 +428,13 @@ func (s *Service) lastAnswerText(p *profile.Profile) string {
 		answer.TaskID, s.topicName(answer.Topic), howItWent(answer.Correct))
 }
 
-// nextText says what the rule would set next, and why now.
+// nextText says what the rule would set next, and why now — or, when the
+// lessons are kept to a topic someone chose, that the next task is on it.
 func (s *Service) nextText(next *progress.Recommendation) string {
+	if next.Chosen {
+		return fmt.Sprintf("Next, the topic chosen for the lessons, %s, at level %s, difficulty %d.",
+			s.topicDescribed(next.Topic), next.GradeLevel, next.Difficulty)
+	}
 	why := "as something new"
 	if next.Goal == profile.GoalReinforce {
 		why = "to go over it again after a mistake"

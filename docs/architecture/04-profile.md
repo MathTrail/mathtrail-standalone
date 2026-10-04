@@ -22,7 +22,7 @@ flowchart LR
     subgraph file["profile.json, in the parent's Drive"]
         direction TB
         svc["service<br/>schema_version, student_id, revision, dates, app version"]
-        kid["student<br/>pseudonym, grade, interests, constraints, notes, language"]
+        kid["student<br/>pseudonym, grade, interests, constraints, notes, language, topic of the lessons"]
         rat["ratings<br/>θ, the start, answers, consecutive failures"]
         top["per-topic summary<br/>δ, counters, last issued, traps, mastery and its level"]
         rec["recent<br/>the last 20 answers and skips,<br/>each answer with the levels before it"]
@@ -86,6 +86,7 @@ A solid arrow writes, a dashed arrow reads. Every write also touches the service
 | `pseudonym` | string | 32 characters, no control characters, any script | A pseudonym only — no name, birth date or school (PRODUCT 5). It must never reach the task text, which stays a rule of the instructions with no programmatic check (О-36) |
 | `grade` | integer 1–6 | — | Where the child starts: the grade sets `ratings.start` when the profile is created, and nothing else (SPEC 2.1). Changed later it is a label — the ratings, the start and the trial series stay as they are, and the tasks follow the ratings rather than the grade (О-56). The package still tells the model the grade, as the child's age |
 | `interests` | array of strings | 10 items, 40 characters each | The settings the rule rotates through |
+| `lesson_topic` | catalog id, optional | 64 characters | The topic the child or the adult keeps the lessons to: once the trial series is over every task is on it, at the level and difficulty the rule sets on it (SPEC 3.6). Set by `edit_profile` from the card of a task and by `save_profile` when asked, and left out while the rule chooses. An edit takes a topic of the catalog only; the file is held to the length alone, and a topic the catalog does not have counts as none (R193) |
 | `excluded_skills` | array of catalog ids | 25, the size of the catalog (R99) | What must appear neither in the wording nor in a trap |
 | `notes` | string | **500 characters** | Free-form context about the child, passed to the chat's model as tone and level (О-31). It is in every generation package, so the cap is a size budget as much as a privacy one; it never affects the rule. It is also the one field in this file written by a person and read by a model — see below |
 | `region` | ISO 3166-2 code, optional | 6 characters | The family's state, when the country is the United States and the parent chose to say: its 50 states and the District of Columbia. A country changed to another leaves its region behind (R185) |
@@ -171,7 +172,7 @@ Two hundred is ten days of heavy use at twenty tasks a day. Beyond that a child 
 | `id` | string | `submit_task` must carry it; anything else is `stale_request` |
 | `opened_at` | RFC 3339 UTC | The abandonment window: 15 minutes by default, `MATHTRAIL_REQUEST_WINDOW` (SPEC 11.2) |
 | `attempts` | integer 0–3 | The counter the model cannot forget its way around |
-| `tutor_mode` | `rule` or `llm` | Whether the model kept the rule's topic and difficulty or chose its own with a reason — the comparison the prototype's D43 set up |
+| `tutor_mode` | `rule`, `llm` or `person` | Whether the model kept the rule's topic and difficulty or chose its own with a reason, or the task is on the topic a person keeps the lessons to (SPEC 3.6) — the comparison the prototype's D43 set up |
 | `language` | BCP 47 tag | The language of the chat, so the task is written in it (О-14) |
 | `brief` | object | The brief exactly as the model received it: goal, topic, level, difficulty, setting, traps, constraints, excluded skills (prototype 5.1, minus `motivate`, removed by О-34) |
 
@@ -186,7 +187,7 @@ Two hundred is ten days of heavy use at twenty tasks a day. Beyond that a child 
 | `issued_at` | open | The pace is measured from here |
 | `topic`, `grade_level`, `difficulty`, `language` | open | The history entry and the rating update are built from them |
 | `instructions_version` | open | Which version of the instructions produced this task, so the result's log line can carry it (О-21) |
-| `tutor_mode` | open, absent on a task handed out before it was kept | Who chose the task — `rule` or `llm` — as its request had it, so that the line about its answer can say whether the chance being weighed is the rule's (R153) |
+| `tutor_mode` | open, absent on a task handed out before it was kept | Who chose the task — `rule`, `llm` or `person` — as its request had it, so that the line about its answer can say whether the chance being weighed is the rule's (R153) |
 | `fingerprint` | open | Added to `task_fingerprints` when the task is accepted |
 | `wording`, `drawing`, `options`, `hint` | open | Exactly what the card shows and what the model was given back |
 | `sealed` | sealed | `mt1.t.<kid>.<ciphertext>` — the answer, the trap id and the explanation behind each wrong option, the solution and the solver program |
@@ -233,6 +234,7 @@ The check for this task is that the prototype's rule (its SPEC 5.7) can be compu
 | The setting, rotated through the interests | `student.interests` and **`ratings.answers`** |
 | The two traps | `topics[t].traps`, topped up from the reference tasks of that topic and level in the binary |
 | The prohibitions carried into the brief | `student.excluded_skills` |
+| A topic chosen for the lessons? Then it is set in place of the rule's, at its recommended point | `student.lesson_topic`, once `ratings.answers` is past the trial series, and the topic catalog in the binary |
 
 The rule never reads `student.grade`: the grade has done its work in `ratings.start`, and from there the ratings say where the child stands (SPEC 3.1). The trial series needs one thing more, and not of the rule: the estimate after each trial answer reads the level, the difficulty and the outcome of every earlier one from `recent` (SPEC 2.2.1), which is why the window is never pruned below five — the length of the series.
 
@@ -272,6 +274,7 @@ What grows without a bound of its own is the per-topic summary, which gains an e
 - **Who chose a task did not raise the version either.** `current_task.tutor_mode` is optional: a file without it reads as before, the answer to its task is logged as chosen by nobody known, and an older build reads past it (R153).
 - **Nor did the history of the ratings.** `rating_days` and each answer's `before` are optional: a file without them reads as before and tells no change until answers keep one. An older build reads past them and drops them when it writes, as it drops every field it does not know, so after a rollback the history starts again, and what it tells is never false — a while that holds an answer kept without it cannot be told (R165).
 - **Nor did where the family lives.** `country` and `region` are optional and left out when not given: a file without them reads as before, and every line counts it as `unknown`. An older build reads past them and drops them when it writes, so a country given while two revisions are live can be lost to a write of the older one and has to be given again (R185).
+- **Nor did the topic of the lessons, though a new chooser came with it.** `student.lesson_topic` is optional and left out while the rule chooses. `tutor_mode` gained `person`, which an older build refuses, so a file holding it is one that build cannot read; it came on 2026-10-04 with no profile in any Drive, the author having deleted every one, so nothing written before it was ever read by a build that refuses it (R193).
 - **Nor did the rule of mastery** (R187). The counters keep meaning how many answers there were; the cautious estimate reads them as the uncertainty's n and m beside the step. `mastered_since` and `mastered_level` keep meaning the day and the level a topic is held mastered at, declared now by the cautious estimate. `top_streak` is counted as it was, though no rule reads it, so a file means to an older build what it did: removing it, or no longer counting it, would change what a file of version 1 holds. `ratings.mastery_rule` is optional and marks a file whose masteries the cautious estimate declared; a file without it counts none mastered until its next answer clears them. An older build reads past it and drops it when it writes, so after a rollback and a new rollout the masteries the older build declared are cleared again — they are the earlier rule's.
 - **The sealed block carries its own version** inside the ciphertext and is migrated or dropped on its own: a task on the card is worth less than a profile.
 - Unknown fields at the current version are ignored on read and are not written back — forward compatibility is the refusal above, not a bag of leftovers.
@@ -394,7 +397,7 @@ What grows without a bound of its own is the per-topic summary, which gains an e
       "last_issued": "2026-09-14",
       "mastered_level": "3-4",
       "mastered_since": "2026-09-14",
-      "top_streak": 5,
+      "top_streak": 2,
       "traps": {
         "off_by_one": 1
       },

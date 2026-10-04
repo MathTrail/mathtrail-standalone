@@ -12,9 +12,9 @@ const masteryBaseline = chosenStep
 
 // masteryCandidate is a rule of mastery put forward in its choice: its name,
 // its test, and what the choice reads of it — what it is a candidate for, how
-// many numbers it adds to the service's rule, whether it adds fields to the
-// profile, and how near the service's rule it stands, for choosing the
-// nearest of rules alike in all else.
+// many numbers it adds to the run of three the service had when it was made,
+// whether it adds fields to the profile, and how near that run it stands, for
+// choosing the nearest of rules alike in all else.
 type masteryCandidate struct {
 	name     string
 	test     func() masteryTest
@@ -25,13 +25,15 @@ type masteryCandidate struct {
 }
 
 // masteryCandidates are the rules of mastery put forward, each by one variant
-// and none tuned: the service's run made five long, which adds no number; the
-// cautious estimate at three margins, which adds the margin; and Wald's test,
-// which adds its two error rates and keeps its sums in the profile, and so is
-// a backup, chosen over the main one only by the margin. The run of five
-// stands nearest the service's rule, then the cautious estimate, the smaller
-// margin the nearer, and Wald's test, which weighs answers in a way of its
-// own, farthest.
+// and none tuned: the service's run of three made five long, which adds no
+// number; the cautious estimate at three margins, which adds the margin; and
+// Wald's test, which adds its two error rates and keeps its sums in the
+// profile, and so is a backup, chosen over the main one only by the margin.
+// The run of five stands nearest the run of three, then the cautious
+// estimate, the smaller margin the nearer, and Wald's test, which weighs
+// answers in a way of its own, farthest. The choice made among them put the
+// cautious estimate at a margin of one in the service, which a run of the
+// choice now finds as its baseline.
 func masteryCandidates() []masteryCandidate {
 	all := []masteryCandidate{{name: "run5", test: func() masteryTest { return newRunOf(5) }, kind: mainCandidate}}
 	for _, z := range cautiousMargins {

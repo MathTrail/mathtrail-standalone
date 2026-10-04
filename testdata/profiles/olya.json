@@ -11,6 +11,7 @@
   "ratings": {
     "answers": 5,
     "consecutive_failures": 0,
+    "mastery_rule": "cautious",
     "start": 0,
     "theta": -0.07786841696849543
   },

@@ -6,15 +6,16 @@ The name is not part of the licence: a copy that runs publicly goes by a name of
 
 ## What is done by hand, ever
 
-Five things, once — four because no API can do them, and the settings of the repository itself:
+Five things, once — four because no API can do them, and the settings of the repository itself — and a sixth for a copy that keeps the counts of how it is used:
 
 1. **The bootstrap**, below: the project, the bucket its state lives in and the identity the pipeline signs in as. A pipeline cannot create the door it walks in by. Once — and again on the day that identity needs a right it was not given, which is its own section further down.
 2. **The Google consent screen and one OAuth client.** Google has no API for either.
 3. **The DNS records**, at whatever registrar holds the domain — for the service and for the site — and one click that makes the deployment identity a verified owner of the domain.
 4. **The OAuth client's secret**, pasted into the repository's secrets. It is the one value that exists nowhere but the Google console.
 5. **The repository's settings**: the fork's workflows enabled, GitHub Pages published from them on the site's domain, and that domain verified for Pages.
+6. **The two reports of the counts**, in Data Studio (formerly Looker Studio), where `analytics` is on: Data Studio has no API that makes a report ([below](#the-counts-kept-for-years)).
 
-Everything else — enabling APIs, the registry and its cleanup, the secrets, the service, the domain mapping, the spend alert, the image and every roll-out after it — happens when a change reaches the main branch, or when the workflow is started by hand from a branch. The site is published the same way, by a workflow of its own.
+Everything else — enabling APIs, the registry and its cleanup, the secrets, the service, the domain mapping, the spend alert, the counts kept for years, the image and every roll-out after it — happens when a change reaches the main branch, or when the workflow is started by hand from a branch. The site is published the same way, by a workflow of its own.
 
 ## What you need
 
@@ -31,9 +32,9 @@ Fork this repository. GitHub runs none of a fork's workflows until they are enab
 What each workflow needs in a copy:
 
 - **`deploy.yml`**, the delivery, needs everything below.
-- **`pages.yml`**, the site, needs Pages published from GitHub Actions — step 4.
+- **`pages.yml`**, the site, needs Pages published from GitHub Actions — step 4. `release.yml` runs it with every release; on a pull request it only builds and checks the site.
 - **`ci.yml`**, the checks, needs nothing to run. Two of its steps report to this repository's projects: the SonarCloud job, which fails on `main` without a `SONAR_TOKEN` — give it a project of your own in `sonar-project.properties`, or remove it — and the Codecov upload, which fails nothing without a token of yours.
-- **`release.yml`** needs green checks: it runs once `ci.yml` has passed on `main`, publishes a release and then runs `deploy.yml` with it — so a SonarCloud job left failing stops every release, and every delivery with it.
+- **`release.yml`** needs green checks: it runs once `ci.yml` has passed on `main`, publishes a release and then runs `deploy.yml` and `pages.yml` with it, side by side — so a SonarCloud job left failing stops every release, and every delivery and every publication of the site with it.
 - **`codeql.yml`** and **`scorecard.yml`** need nothing.
 - **`load.yml`** needs nothing, and spends runner minutes once a week; disable it if nobody reads its reports.
 
@@ -74,7 +75,7 @@ Google publishes a consent screen only with a home page, a privacy policy and te
 3. **Pages.** In the repository's **Settings → Pages**, choose **GitHub Actions** as the source and enter your domain as the custom domain: a site published by a workflow is given its domain there, and the `CNAME` file the build writes is ignored. Verify the domain for Pages first, in your account's or organisation's settings, as GitHub recommends, so that no other repository can claim it.
 4. **The DNS records.** For an apex domain, the four A and four AAAA records in [GitHub's list](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site); for a subdomain, a CNAME to `<owner>.github.io`. Once Pages offers it, turn on **Enforce HTTPS**: until then the policy is served over plain HTTP as well.
 
-The site is published on every push to `main`. Have it live before the consent screen: Google asks for the policy's address.
+The site is published with every release, from the release's tag, beside the delivery of the service, and the widget's cards on its pages name that release. Have it live before the consent screen, since Google asks for the policy's address: before the first release exists, start **Pages** by hand on `main`, which publishes the branch as it stands and names no release.
 
 The progress links each topic's name to its page on this site, and the words for the model name those pages too, at addresses built from `MATHTRAIL_SITE_URL`, the page's language and the topic's slug. Nothing turns the links off, so publish the site from the commit the service is delivered from: a service ahead of its site links to pages the site does not have yet.
 
@@ -115,7 +116,7 @@ The key everything is sealed with is in neither list, and neither is the key the
 
 ## 8. Deliver
 
-A push to `main` is delivered once the checks have passed on it and its release is published: `release.yml` hands the release to `deploy.yml`, which builds from the release's tag, so the service — `/health` and the header of the task card — names the release it runs. `deploy.yml` started by hand delivers any branch as it stands, named by how far past a release it is. Either way it runs three jobs:
+A push to `main` is delivered once the checks have passed on it and its release is published: `release.yml` hands the release to `deploy.yml`, which builds from the release's tag, so the service — `/health` and the header of the task card — names the release it runs; beside it, `pages.yml` publishes the site from the same tag. `deploy.yml` started by hand delivers any branch as it stands, named by how far past a release it is. Either way it runs three jobs:
 
 1. **The cloud, as described.** `terraform apply`, every time, so the deployment always matches the commit it was cut from. On the very first run this is what creates everything; afterwards it is usually a no-op that takes half a minute.
 2. **The image of this commit.** Built, pushed to the registry with the commit as its tag, and rolled out **by digest** — a tag can be moved afterwards and a digest cannot.
@@ -190,6 +191,7 @@ gcloud artifacts repositories describe mathtrail --location=us-central1
 | `seal_key_previous_version` | empty | The version still accepted while a key is being rotated |
 | `learner_key_version` | `1` | The secret version the children are counted under in the log; never rotated with the sealing key, and only at the turn of a month |
 | `google_client_secret_version` | `1` | The secret version the sign-in authenticates with |
+| `analytics` | `false` | Whether the counts of how the service is used are kept for years: the lines they are made from kept 62 days in a log bucket of their own, counted every night into BigQuery, and views for two reports ([below](#the-counts-kept-for-years)). Turn it on once your privacy policy says so |
 | `settings` | `{}` | Extra environment variables of the service — the site's address, ceilings and timeouts, never a secret. The solver slots and `GOMEMLIMIT` follow `cpu` and `memory`, and are refused here |
 | `budget_amount`, `budget_currency` | `1`, `USD` | Where the spend alert fires |
 | `keep_images` | `5` | Image versions kept whatever their age |
@@ -229,6 +231,7 @@ The rest have the defaults the service is meant to run with. The ones a deployme
 - **The values of the secrets.** Two are generated by the pipeline and read by nobody; the third is pasted once. None is ever in the state.
 - **The months of the database of countries.** Each is published from a developer's machine with `just countries-publish`, as an image of its own; see below.
 - **The Google OAuth client and the consent screen.** No API exists; they are the reason step 5 is done by hand.
+- **The two reports of the counts.** Data Studio has no API that makes a report; they are made by hand, [below](#the-counts-kept-for-years).
 - **Domain ownership and DNS.** At the registrar and in Search Console.
 - **The site's Pages settings.** Its source and its domain, in the repository's settings.
 - **The pool the pipeline signs in through.** Created by the bootstrap, deliberately outside Terraform.
@@ -240,7 +243,8 @@ The intent is $0, and inside the free allowance it is $0 — but the allowance i
 - **Cloud Run** beyond the monthly free requests, vCPU-seconds and GiB-seconds, or beyond the free egress from North America. `min_instance_count` is 0 and CPU is allocated only during requests, so an idle service costs nothing; a service that is being used a great deal does not stay free.
 - **Artifact Registry** beyond half a gigabyte of images. The cleanup policies keep the repository small; a deployment that pushes many images a day should check that they are working.
 - **Secret Manager** beyond six active versions or the monthly free accesses. A version is read once per instance start, and the rotation keeps at most four versions live: three of the sealing key and the one key the children are counted under.
-- **Cloud Logging** beyond the free monthly ingestion.
+- **Cloud Logging** beyond the free monthly ingestion. With `analytics` on, the lines the children are counted from are taken in twice, into the default bucket and into their own, and kept there past 30 days at $0.01 a GiB a month: kilobytes a day.
+- **BigQuery** beyond 1 TiB of queries and 10 GiB of storage a month, with `analytics` on. The nightly query reads megabytes and the tables hold kilobytes; a report reads them through its own cache. Google's price list names no charge for a scheduled query beyond its query, and the spend alert is what would tell otherwise.
 - **Cloud Trace** beyond 2.5 million spans a month. The platform's own traces of incoming requests are not billed at all; these are the spans the service adds inside them, and the sampler is what keeps their number a fraction of the requests.
 - **Cloud Monitoring** beyond 150 MiB a month of ingested metrics of our own. The platform's own metrics of the service are free; ours are the three of section 12.5 of the spec. What passes that allowance is not traffic but series, and a series is created by every new combination of labels — which is why every label here is drawn from a closed list and no label ever carries anything a caller chose. One label holding a user or a task identifier would pass it in a week.
 - **A region that is not first-tier**, where the free allowance does not apply.
@@ -284,6 +288,16 @@ gcloud projects get-iam-policy PROJECT_ID \
 
 It should name `roles/telemetry.writer` and `roles/serviceusage.serviceUsageConsumer`, and nothing else. The runtime identity's one other right — reading the three secrets — is granted on those secrets rather than on the project, so it does not appear here and its absence from this list is not a fault.
 
+**The two of the counts.** With `analytics` on, the configuration creates a log bucket, its sink and its link to BigQuery, and datasets, tables, views and a scheduled query, which need `roles/logging.configWriter` and `roles/bigquery.admin` on the applying identity. The bootstrap above grants both; a deployment that ran it before needs it again, or these two grants:
+
+```bash
+for role in roles/logging.configWriter roles/bigquery.admin; do
+  gcloud projects add-iam-policy-binding PROJECT_ID \
+    --member="serviceAccount:mathtrail-tf@PROJECT_ID.iam.gserviceaccount.com" \
+    --role="$role" --condition=None
+done
+```
+
 None of this is billed: granting a role and enabling an API cost nothing.
 
 ## Keeping your copy current
@@ -323,6 +337,23 @@ The recipe downloads the month from DB-IP, publishes it unchanged as `ghcr.io/ma
 
 A binary run without the image needs the file itself: download a month from DB-IP, unzip it and name it in `MATHTRAIL_COUNTRY_DB`. A deployment refuses to start without one.
 
+## The counts kept for years
+
+A copy that has to show how much it is used — for a grant application, say — sets `analytics = true` in its tfvars, once its privacy policy says what is kept (this repository's does). The service writes the lines either way; what the switch adds is keeping their counts. Section 12.4 of the spec says what is counted and shown, and decision R192 of [decisions.md](decisions.md) why.
+
+- **What the delivery creates.** A log bucket, `activity`, that keeps the lines the children are counted from for 62 days, and the sink that copies them into it; its link to BigQuery, `activity_logs`; the dataset `impact`, whose tables are the counts and the only thing kept for years; a scheduled query that fills them every night at half past one in UTC, run by an identity of its own that may read the lines, write the counts and nothing else; and two datasets of views, `impact_private` with exact numbers and `impact_public` with no group of fewer than ten children.
+- **Before the first delivery with it**, run the bootstrap again: the applying identity needs two roles more ([below](#when-the-bootstrap-changes)). The first apply may stop at the scheduled query while the rights of its identity spread through the platform; start the delivery again.
+- **A night that did not run** is made up for by the next: every night counts again every period the bucket still holds whole. A run started by hand in the console (BigQuery → Scheduled queries → Run now) does the same. Nothing tells you of a failure but the numbers themselves, and `just impact` lists the days no night counted.
+- **The numbers.** `just impact` prints the main numbers of the latest months as the public views show them, and `just impact private` the exact ones. `just analytics-test` runs the SQL against a BigQuery emulator before it ever reaches the project.
+
+The reports are made by hand, in [Data Studio](https://datastudio.google.com) (formerly Looker Studio), signed in as the project's owner:
+
+1. **The private one.** Create a report and add data from BigQuery: the project, the dataset `impact_private`, one view at a time — `daily`, `weeks`, `months`, `learners`, `dose`, `learning`, `topics`, `traps`. Share it with nobody.
+2. **The public one.** Create another from the views of `impact_public` — `months`, `learners_by_*`, `learning`, `topics`, `traps_by_topic`, `traps_by_grade`. In each data source, set *Data credentials* to the owner's, so that a viewer reads the views without a Google account of the project's. Write on the report, where the countries are shown, "IP geolocation by [DB-IP](https://db-ip.com)": the database the country of the sign-in comes from asks for it wherever what it found is shown. Share it as *Anyone on the internet with the link can view*.
+3. **Link the public one** from the site and the `README.md`.
+
+Leave the reports' data freshness at its default: a report then reads BigQuery a few times a day however many people open it.
+
 ## When the pipeline is not available
 
 Everything the pipeline does is a recipe, so the same delivery runs from a laptop — for an emergency, or to see what a step does:
@@ -346,3 +377,5 @@ gcloud run services update-traffic mathtrail --region=us-central1 --to-revisions
 ## Removing a deployment
 
 `terraform destroy` removes everything the configuration created, including the secrets and every version in them: copy the sealing key out first if anything sealed with it still matters. The APIs stay enabled, because switching one off breaks whatever else in the project still uses it. The project, the state bucket, the federated pool, the DNS records and the OAuth client were never described here and stay as they are, and so does the site, until Pages is switched off in the repository's settings.
+
+With `analytics` on, the destroy stops at the tables of the counts: they are years of evidence, and protected from deletion on purpose. To remove them too, set `deletion_protection = false` on them in `infra/terraform/analytics/main.tf`, apply, and destroy again. The log bucket goes, and its name stays taken for seven days, so `analytics` turned off and on again within a week fails until they pass. The Data Studio reports were never described here either.

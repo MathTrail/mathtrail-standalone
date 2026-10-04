@@ -25,6 +25,7 @@ func TestAClientIsNamedByItsHost(t *testing.T) {
 		{name: "Claude Code", info: &mcp.Implementation{Name: "claude-code"}, want: "claude"},
 		{name: "ChatGPT", info: &mcp.Implementation{Name: "openai-mcp"}, want: "chatgpt"},
 		{name: "MCP Inspector", info: &mcp.Implementation{Name: "mcp-inspector"}, want: "inspector"},
+		{name: "the load tool", info: &mcp.Implementation{Name: "mathtrail-load"}, want: "load"},
 		{name: "anyone else", info: &mcp.Implementation{Name: "masha@school.example"}, want: other},
 	}
 	for _, tc := range cases {

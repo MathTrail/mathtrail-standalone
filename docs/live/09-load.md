@@ -1,10 +1,12 @@
-# The deployed service under load (T64.3), and the message limits of free Claude (T64.4)
+# The deployed service under load (T64.3), the message limits of free Claude (T64.4), and their fixes (T64.5)
 
 **T64.3: closed.** 2026-10-04. The `paces` and `ceiling` scenarios ran clean against `https://mcp.mathtrail.app`. The greedy account and the greedy address were refused by their paces in words anyone can follow, and the accounts beside them were never refused. The day's ceiling refused the sixth failed request and nothing else. The platform started three instances. The run cost 0.094 % of a month's free Cloud Run processor time, which is $0. Without Drive, the tools answer in a few milliseconds. Claude's model writes a task in under 90 seconds in 29 cases out of 30. The log holds nothing that looks like personal data.
 
 The run found that the share of traces was decided for a run of requests rather than for each request: in the hour of the run, 0.7 % of the traces were kept instead of 10 %. Fixed within the task (R173), and confirmed once deployed: 0.104 in the hour of T64.4's lesson. The numbers of the limits and of the telemetry stay as they were, now measured (R174). The check from a phone was not done, and one finding is open — below.
 
 **T64.4: closed.** 2026-10-04. One five-hour session of free Claude, Sonnet 5.5 at medium effort, held 14 tasks before its limit, where 3–6 were expected: a long lesson by SPEC 10.2, written in 26 minutes. A task costs one message; its wait and its answer on the card cost none. At the limit the open task can still be answered on its card, but no new task can be asked for, and the progress could not be opened. Four findings go to T64.5.
+
+**T64.5: fixed in code, the live check to come.** 2026-10-04. The words that come with an accepted task said "record the answer with submit_answer", and the model asked the parent for the letter: they now say the card records the answer. The waiting card now speaks the language the task was asked in from its first word (R190). Cloud Monitoring's refusals were not two instances writing one series: all eight came from builds before T62.1, and none has come since. What Claude does at the limit with "Another task", and with the cards of a chat opened again, is for the live check below.
 
 > The repository is public, so the report carries behaviour and numbers rather than identifiers: accounts are named by their role, and instances, traces and revisions are not written out beyond their numbers.
 
@@ -215,7 +217,7 @@ Live, over the week: real tasks from Claude were refused as `bad_structure` (2) 
 ## What was not done, and what is open
 
 - **The check from a phone was not done.** The author was to open the sign-in's document from a phone, on a mobile network, while the greedy address was being refused. Every request of the run came from one address, so the run cannot show that another address is served meanwhile. On a container, the `limits` scenario checks it, making its addresses up itself.
-- **Cloud Monitoring refuses measurements (8 in a week).** The answer is `400 FAILED_PRECONDITION`: "One or more points were written more frequently than the maximum sampling period configured for the metric". In the case that was read, two points of one series were 5.5 s apart, while one instance sends its measurements at most once a minute. Most likely the series does not tell instances apart, and two of them write into it. The resource carries `faas.instance` but no `service.instance.id`. Before a fix, how OTLP metrics are laid out into series has to be checked against Google's documentation. The fix is T64.5's.
+- **Cloud Monitoring refuses measurements (8 in a week).** The answer is `400 FAILED_PRECONDITION`: "One or more points were written more frequently than the maximum sampling period configured for the metric". In the case that was read, two points of one series were 5.5 s apart, while one instance sends its measurements at most once a minute. Most likely the series does not tell instances apart, and two of them write into it. The resource carries `faas.instance` but no `service.instance.id`. Before a fix, how OTLP metrics are laid out into series has to be checked against Google's documentation. The fix is T64.5's. **Answered in T64.5:** the series does tell instances apart, and all eight refusals came from builds before T62.1 (below).
 - **The share of traces after the rollout — confirmed.** On `v0.2.4`, the first build with R173, the hour of T64.4's lesson kept 28 traces of 270 requests: 0.104, against the 0.1 configured. Two of the 28 deliveries ran out of the deadline, as R174 expects.
 - **The company account's profile** was the load's until T64.4 deleted it and its lesson made a fresh one. To run `paces` with the account again on a clean profile, delete the profile file in Drive and then from the bin (`docs/load.md`).
 - **`.claude/settings.local.json`**, with the permissions for this run, is for the author to delete: the run is over.
@@ -276,6 +278,73 @@ One session of free Claude holds one long lesson: 14 tasks, where SPEC 10.2 coun
 4. **After the limit, no card and no progress.** Once the send failed, the chat showed the failed message alone, and there was no card to open the progress from — although the answer on the open card had been recorded half a minute before. Whether the cards come back when the chat is opened again, and whether their calls go through then, was not checked.
 
 The fixes are T64.5 in RUN.md.
+
+## The fixes of T64.5
+
+### Finding 1: where the letter in the chat came from
+
+The words of an accepted task, which the model reads the moment its task is on the card, ended "Never say which option is right before the child has answered; record the answer with submit_answer" — right after they read out the options A to E for a host with no card. The description of `submit_answer` opened "Records the child's answer to the task on the card". Both told the model that recording the answer was its job, and it asked the parent for the letter so as to do it. "Always" says "An answer on a card is recorded without you", but it is read once, at the start, and the words of the task came last. `next_task` says nothing of the answer.
+
+Now (R103):
+- the words of an accepted task, and of a task handed in again while the card shows it, say that where the card shows the task the child answers there and the card records the answer itself, so the model asks for no answer in the chat, which would cost the parent a message; without a card the model reads the task out and records the answer the child gives in the chat. The words of a task handed in again said nothing of a host without cards before;
+- the descriptions of `submit_task` and `submit_answer` say the same of a host that shows cards;
+- step 5 of "A task" in the instructions says the child reads and answers the task on the card, so the instructions version changes with it.
+
+"Always" stays as it is: it ends at 2,038 characters of the 2,048 a host may keep. A test holds the words and the descriptions to it, and fails without the change.
+
+### Finding 2: the waiting card speaks the ask's language
+
+`ext-apps` 2.0.3, the version the widget pins, holds a host to telling a card the whole arguments of its call once, after the handshake and before the result: "The host MUST send this notification after the View completes initialization … and complete tool arguments become available. This notification is sent exactly once and is required before sendToolResult." `next_task` is always called with `language`, the chat's.
+
+The card now keeps that argument, and nothing else of the arguments, and speaks it from its first word. Until the host has told it, the card shows nothing; a call cancelled before then is said in the host's language, since nothing comes after it. A refusal of the ask, and the first sign-in, whose payloads name no language, go on in the ask's language too (R190).
+
+One switch remains, by R144: when the parent chose a language for the lessons other than the chat's, the wait begins in the chat's and turns to the parent's as the result comes, since the ask cannot know the profile. In T64.4 the chat and the lesson were both in Russian, so its wait would not have switched.
+
+Whether Claude tells a card the arguments is for the live check. If it does not, the card stays blank until the result, which comes in about two seconds.
+
+### Findings 3 and 4: at the limit
+
+Both are for the live check. What the card does now after "Another task":
+- the host took the message — "Once the ask reaches the chat, the new task will come below, in a new card.";
+- the host refused it — "Not sent — try again".
+
+In T64.4 Claude put the words into its input under a warning, and the send failed there, in Claude's own interface. If Claude answered the card before the send, the card shows the first note, and the refusal is Claude's alone to show. If it answered after, with a refusal, the card shows the second, and "try again" is then the wrong advice.
+
+### The refused measurements of T64.3
+
+**How Google lays the series out.** The Telemetry API files every OTLP measurement as a Prometheus series under the monitored resource `prometheus_target`, and its `instance` label is taken from the resource's `instance`, then `service.instance.id`, then `faas.instance`; a point with none is refused. The service's resource carries `faas.instance`, the instance id the platform's metadata names, so every instance writes series of its own. Each refusal names its resource with it.
+
+**What the refusals were.** A narrow read of the log, allowed by the author, found the eight lines and nothing else of the kind in nine days:
+
+| When, UTC | Revision | Series | Points apart |
+|---|---|---|---:|
+| 2026-09-29 15:38 | 00058 | `http_request/delta` | 2.9 s |
+| 2026-09-30 01:30 | 00063 | `http_request/delta` | 4.8 s |
+| 2026-09-30 02:01 | 00064 | `target_info/gauge` | 2.0 s |
+| 2026-09-30 02:02 | 00064 | `http_request/delta` | 2.8 s |
+| 2026-10-02 01:00 | 00070 | `target_info/gauge` | 2.0 s |
+| 2026-10-02 01:04 | 00070 | `http_request/delta` | 5.5 s |
+| 2026-10-02 01:30 | 00070 | `target_info/gauge` | 1.0 s |
+| 2026-10-02 02:10 | 00070 | `http_request/delta` | 5.5 s |
+
+Every one is from a build before T62.1, which reached the service on 2026-10-03. Those builds delivered measurements on the library's own clock as well as with requests, and the two fell due seconds apart after a quiet minute: the same instance wrote its own series twice. Since T62.1 none has come — through the load of T64.3, three instances among it, and the lesson of T64.4 — and no stop's delivery has failed either. The resource stays as it is.
+
+A gap of 5.5 s was refused, so the least gap these series take is more than the 5 s Cloud Monitoring's quotas name. Deliveries a minute apart are far from it either way.
+
+**What the measurements cost.** OTLP metrics are billed as Prometheus samples, $0.06 a million, with no free allotment. The 150 MiB a month R49 counted on is the allotment of metrics billed by bytes, which these are not. A point of a counter is one sample, and a point of a histogram is two plus one for each bucket that is not empty; a delivery carries up to about twenty. At a few lessons a day that is under a cent a month, and with three instances answering the whole month, under $0.20. A series of a process of its own, with `service.instance.id`, would add no sample: a sample is a point written, whichever series it is in. Whether the measurements are worth a cent against the promise of $0 is О-58.
+
+### The live check
+
+It needs the build with these changes deployed, which happens after the merge, and one five-hour session of the company account's free plan. Its cost is $0.
+
+1. A new chat in Claude on the web, signed in to the company account. Claude's interface is in another language than the lesson's, as in T64.4.
+2. The lesson goes as in T64.4. From the first ask, watch the waiting card: it should speak the lesson's language from its first word, or show nothing until `next_task` has answered, about two seconds. If it speaks the interface's language, the change has not reached the service.
+3. Under every task's card, the model writes nothing about the answer, and in particular asks for no letter. Each answer is given on the card.
+4. At Claude's limit, answer the open task on its card first, then press "Another task". Photograph the card's note twice: once its words stand in Claude's input, before they are sent, and again after the send has failed.
+5. Reload the chat's page, and open the chat again from the list. Are the cards there, and does the last one show its task? Open the progress from it. Photograph what each shows.
+6. Within the hour, `just report 1h`: `read_task` and `read_progress` after the limit say whether the cards' calls went through.
+
+What follows from step 4: if the note changes to "Not sent — try again" once the send fails, the refusal can be seen, and the card should say instead that the chat's messages have run out and the task on the card stays. If it keeps "Once the ask reaches the chat…", Claude answers the card before the send, and the refusal is a property of the host. What follows from step 5: if the cards do not come back, or their calls do not go through, that goes into PRODUCT 9.4 as a property of the platform.
 
 ## How to repeat it
 

@@ -30,3 +30,7 @@ workload_identity_pool_id = "mathtrail-github"
 # Turned on once the domain answers, so that the platform's own address for the
 # service stops resolving and one entrance is left.
 disable_default_url = true
+
+# The counts of how the service is used, kept for grant applications, as the
+# privacy policy at mathtrail.app says.
+analytics = true

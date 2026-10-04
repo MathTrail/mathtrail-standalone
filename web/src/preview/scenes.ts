@@ -33,6 +33,8 @@ import {
 	staleWait,
 	standing,
 	standingBefore,
+	topicSaved,
+	withTopicChoice,
 	writing,
 } from "../widget/testing/lesson";
 
@@ -115,8 +117,60 @@ export function scenesIn(language: string): Scene[] {
 		(fields: Partial<AnswerResult> = {}) =>
 		(tool: string) =>
 			tool === "read_progress" ? Promise.resolve(progress) : result(fields);
+	// offering is the task once the trial series is over, with the choice of
+	// the topic it offers.
+	const offering = withTopicChoice(handed);
 	return [
 		{ name: "task", payload: handed },
+		{ name: "task after the trial series", payload: offering },
+		{
+			name: "wrong after the trial series",
+			payload: offering,
+			answers: service(),
+			play: option("B"),
+		},
+		{
+			name: "topic choice open",
+			payload: offering,
+			play: inThePanel(),
+		},
+		{
+			name: "topic chosen, its mark above the task",
+			payload: withTopicChoice(handed, { chosen: handed.task.topic }),
+			play: inThePanel(),
+		},
+		{
+			name: "topic choice, a child in grade 1",
+			payload: withTopicChoice({
+				...handed,
+				child: { ...handed.child, grade: 1 },
+			}),
+			play: inThePanel(),
+		},
+		{
+			name: "topic chosen, the next task asked for",
+			payload: offering,
+			answers: () => Promise.resolve(topicSaved("time.clocks")),
+			play: inThePanel(topicPicked),
+		},
+		{
+			name: "topic choice, not saved",
+			payload: offering,
+			answers: () => Promise.resolve(failure),
+			play: inThePanel(topicPicked),
+		},
+		{
+			name: "topic choice, a chat that opens no links",
+			payload: offering,
+			links: "none",
+			play: inThePanel(),
+		},
+		{
+			name: "topic choice, a group the chat did not open",
+			payload: offering,
+			links: "refuse",
+			play: inThePanel(groupPressed),
+		},
 		{
 			name: "selected (checking)",
 			payload: handed,
@@ -419,6 +473,30 @@ function button(place: number) {
 	return (card: Document) => {
 		card.querySelectorAll<HTMLElement>(".mt-btns .mt-btn")[place]?.click();
 	};
+}
+
+// inThePanel opens the choice of the topic, and does each step in it in turn,
+// each once the card has taken the one before in. The panel opens at once, so
+// that the card has changed by the time it is looked at again.
+function inThePanel(...steps: ((card: Document) => void)[]) {
+	return (card: Document) => {
+		card.querySelector<HTMLElement>(".mt-topic-button")?.click();
+		inTurn(...steps)(card);
+	};
+}
+
+// topicPicked chooses the first topic of the panel not chosen already.
+function topicPicked(card: Document) {
+	card
+		.querySelector<HTMLElement>(
+			'.mt-topic-rows .mt-topic-option[aria-pressed="false"]',
+		)
+		?.click();
+}
+
+// groupPressed presses the link of the panel's first group of topics.
+function groupPressed(card: Document) {
+	card.querySelector<HTMLElement>(".mt-topic-row-name a.mt-link")?.click();
 }
 
 // topLine presses the line at the top of the card.

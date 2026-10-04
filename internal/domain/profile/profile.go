@@ -101,7 +101,7 @@ func New(student Student, appVersion string, now time.Time) *Profile {
 		StudentID:        uuid.NewString(),
 		CreatedAt:        At(now),
 		Daily:            Daily{Date: DateOf(now)},
-		Ratings:          Ratings{Start: rating.Start(student.Grade), Theta: rating.Start(student.Grade)},
+		Ratings:          Ratings{Start: rating.Start(student.Grade), Theta: rating.Start(student.Grade), MasteryRule: MasteryRuleCautious},
 		Recent:           []Answer{},
 		Revision:         1,
 		SchemaVersion:    Version,
@@ -110,6 +110,12 @@ func New(student Student, appVersion string, now time.Time) *Profile {
 		UpdatedAt:        At(now),
 	}
 }
+
+// MasteriesStand reports whether the masteries the file keeps count: whether
+// the cautious estimate declared them. The masteries of the earlier rule, two
+// in three of them declared too soon, count for nothing, and the next answer
+// clears them.
+func (p *Profile) MasteriesStand() bool { return p.Ratings.MasteryRule == MasteryRuleCautious }
 
 // LevelIn is where the child stands in one topic: their level overall with the
 // topic's own correction. A topic never met has no correction, so what decides

@@ -247,6 +247,80 @@ describe("the call that drew the card", () => {
 		expect(bridge.call().stage).toBe("cancelled");
 	});
 
+	// A task asked for names the language it is asked in, and a card asked
+	// for a task speaks it before the result. Arguments still coming may cut
+	// it short, so only the whole ones are read.
+	test("names the language its arguments name, once they are told whole", async () => {
+		const { host, widgetSide } = await openTestHost({
+			toolInfo: toolInfoOf("next_task"),
+		});
+		const bridge = openBridge();
+		await bridge.connect(widgetSide);
+		const heard = vi.fn();
+		bridge.subscribe(heard);
+
+		await host.sendToolInputPartial({ arguments: { language: "r" } });
+		await host.sendHostContextChange({ theme: "dark" });
+		await vi.waitFor(() =>
+			expect(document.documentElement.dataset.theme).toBe("dark"),
+		);
+		expect(bridge.call().language).toBeUndefined();
+		expect(heard).not.toHaveBeenCalled();
+
+		await host.sendToolInput({
+			arguments: { language: "ru", topic: "logic.ordering" },
+		});
+
+		await vi.waitFor(() => expect(bridge.call().language).toBe("ru"));
+		expect(heard).toHaveBeenCalledOnce();
+		expect(bridge.call()).toEqual({
+			tool: "next_task",
+			stage: "started",
+			language: "ru",
+		});
+	});
+
+	// A host tells the arguments before the result. Told after it, they would
+	// turn the card the result drew to another language under the child's eyes.
+	test("names no language told after the result", async () => {
+		const { host, widgetSide } = await openTestHost({
+			toolInfo: toolInfoOf("next_task"),
+		});
+		const bridge = openBridge();
+		await bridge.connect(widgetSide);
+
+		await host.sendToolResult({
+			content: [],
+			structuredContent: { screen: "first_run" },
+		});
+		await vi.waitFor(() => expect(bridge.result()).toBeDefined());
+		await host.sendToolInput({ arguments: { language: "ru" } });
+		await host.sendHostContextChange({ theme: "dark" });
+
+		await vi.waitFor(() =>
+			expect(document.documentElement.dataset.theme).toBe("dark"),
+		);
+		expect(bridge.call().language).toBeUndefined();
+	});
+
+	test.each([
+		["no language", {}],
+		["an empty one", { language: "" }],
+		["one that is no word", { language: 7 }],
+	])("names no language for arguments that name %s", async (_, told) => {
+		const { host, widgetSide } = await openTestHost();
+		const bridge = openBridge();
+		await bridge.connect(widgetSide);
+
+		await host.sendToolInput({ arguments: told });
+		await host.sendHostContextChange({ theme: "dark" });
+
+		await vi.waitFor(() =>
+			expect(document.documentElement.dataset.theme).toBe("dark"),
+		);
+		expect(bridge.call().language).toBeUndefined();
+	});
+
 	test("keeps nothing of the arguments, which carry the task's answer", async () => {
 		const secret = "the-sealed-answer-C";
 		const { host, widgetSide } = await openTestHost({

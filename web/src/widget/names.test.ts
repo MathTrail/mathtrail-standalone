@@ -3,9 +3,12 @@ import skills from "../../../content/catalogs/skills.json";
 import topics from "../../../content/catalogs/topics.json";
 import traps from "../../../content/catalogs/traps.json";
 import english from "../../locales/en.json";
+import siteEnglish from "../site/locales/en.json";
+import siteRussian from "../site/locales/ru.json";
 import {
 	catalogSkills,
 	countryName,
+	groupName,
 	knownTrapName,
 	languageName,
 	listed,
@@ -16,6 +19,7 @@ import {
 	trapAdvice,
 	trapName,
 } from "./names";
+import { topicGroups } from "./topicGroups";
 import { cardWords } from "./words";
 
 const inEnglish = cardWords("en", undefined);
@@ -79,6 +83,28 @@ describe("the catalogs' names", () => {
 		expect(topicName(inEnglish, "logic.unknown")).toBe("logic.unknown");
 		expect(skillName(inEnglish, "juggling")).toBe("juggling");
 		expect(trapName(inEnglish, "counted_the_cat")).toBe("counted_the_cat");
+	});
+});
+
+describe("the groups of topics", () => {
+	// The card names a group as the site's page of topics does, in the two
+	// languages the site is written in, so that a link from one leads to a
+	// part of the page under the same name.
+	test.each(topicGroups.map((group) => group.id))(
+		"the group %s is named as the site names it",
+		(id) => {
+			const key = `group.${id}`;
+			expect(groupName(inEnglish, id)).toBe(
+				siteEnglish[key as keyof typeof siteEnglish],
+			);
+			expect(groupName(inRussian, id)).toBe(
+				siteRussian[key as keyof typeof siteRussian],
+			);
+		},
+	);
+
+	test("the card has no words for are called by their ids", () => {
+		expect(groupName(inEnglish, "puzzles")).toBe("puzzles");
 	});
 });
 

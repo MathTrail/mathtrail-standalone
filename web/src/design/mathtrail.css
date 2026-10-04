@@ -394,18 +394,52 @@
 	overflow-wrap: anywhere;
 }
 
-/* Version. It closes the header's line, quieter than anything else in it. A
-   build between releases names itself at length, so the version takes no more
-   than a share of the line, and on a narrow card it is the version that gives
-   way: it wraps in whatever room is left, and the name beside it is never
-   cut. */
+/* Version. It closes the header's line in a frame of two parts: the word for
+   a version, quiet on a tinted ground, and the number in the monospaced face
+   on the card's own. On a narrow card the word stands over the number, as the
+   name stands over the grade; on a wide card the two stand side by side. The
+   frame keeps its width, so that no word in it is broken to make room: the
+   grade beside it wraps first. A build between releases names itself at
+   length, so the frame takes no more than a share of the line, its number
+   wrapping inside its part, and the share leaves the name room enough never to
+   be cut. The line between the parts is the frame's colour seen through a
+   gap, and the frame clips the parts to its corners, so no part needs a side
+   of its own: the word runs the way the card's language does and the number
+   left to right, and a side named on either would land on the wrong edge of a
+   card that reads right to left. */
 .mt-version {
-	max-width: 40%;
+	display: inline-flex;
+	flex-direction: column;
+	flex-shrink: 0;
+	gap: 1px;
+	max-width: 30%;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-control);
+	background: var(--border);
+	overflow: hidden;
 	font-size: 12px;
 	line-height: 18px;
-	color: var(--text-muted);
-	font-variant-numeric: tabular-nums;
+	text-align: center;
+}
+.mt-head-wide .mt-version {
+	flex-direction: row;
+	flex-wrap: wrap;
+	max-width: 40%;
+}
+.mt-version-label,
+.mt-version-number {
+	flex-grow: 1;
+	padding-inline: 6px;
 	overflow-wrap: anywhere;
+}
+.mt-version-label {
+	background: var(--hover);
+	color: var(--text-muted);
+}
+.mt-version-number {
+	background: var(--surface);
+	color: var(--text);
+	font-family: var(--font-mono);
 }
 .mt-head-versioned .mt-head-text {
 	min-width: min-content;
@@ -1479,6 +1513,215 @@
 	.mt-chip-remove:hover {
 		background: var(--hover);
 	}
+}
+
+/* The choice of the topic: a button at the end of a task's row that names the
+   topic the lessons are kept to, its words wrapping rather than running out of
+   a narrow card, and an arrow that turns up while the choice is open; under
+   the row, a panel of choices — the coach's, the topics suggested and every
+   topic in its group, the group's name above its topics on a narrow card and
+   in a column of its own on a wide one — each a button pressed in while it is
+   the choice in force; and above a task given on the topic chosen, a mark of
+   it. A topic taught from a grade above the child's is quieter, and says
+   from which. */
+.mt-topic-button {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	height: auto;
+	min-height: var(--tap-target);
+	max-width: 100%;
+	margin-inline-start: auto;
+	padding-block: 6px;
+	white-space: normal;
+	text-align: start;
+}
+.mt-topic-button-text {
+	min-width: 0;
+	overflow-wrap: break-word;
+}
+.mt-topic-button-label {
+	font-size: 13px;
+	color: var(--text-muted);
+}
+.mt-topic-button-value {
+	font-weight: 600;
+}
+/* The arrow points down whichever way the card reads, and up while the choice
+   is open: this comes after the arrow turned round for a right-to-left card,
+   and outweighs it. */
+.mt-topic-button[aria-expanded] .mt-chevron {
+	color: var(--text-muted);
+	transform: rotate(90deg);
+}
+.mt-topic-button[aria-expanded="true"] .mt-chevron {
+	transform: rotate(-90deg);
+}
+.mt-topic-panel {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 12px;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-card);
+	background: var(--band);
+}
+.mt-wide .mt-topic-panel {
+	gap: 20px;
+	padding: 16px;
+}
+.mt-topic-head {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+}
+.mt-topic-head-text {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+.mt-topic-title {
+	margin: 0;
+	font-size: 16px;
+	line-height: 22px;
+	font-weight: 600;
+	overflow-wrap: break-word;
+}
+.mt-topic-lead {
+	margin: 0;
+	font-size: 13px;
+	line-height: 18px;
+	color: var(--text-muted);
+	overflow-wrap: break-word;
+}
+/* The cross is a finger's size. */
+.mt-topic-close {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	width: var(--tap-target);
+	height: var(--tap-target);
+	padding: 0;
+	border: 0;
+	border-radius: var(--radius-control);
+	background: transparent;
+	color: var(--text-muted);
+	cursor: pointer;
+}
+.mt-topic-coach {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	column-gap: 10px;
+	row-gap: 4px;
+}
+.mt-topic-coach-note {
+	min-width: 0;
+	font-size: 13px;
+	line-height: 18px;
+	color: var(--text-muted);
+	overflow-wrap: break-word;
+}
+.mt-topic-rows {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+.mt-topic-row {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 0;
+}
+.mt-wide .mt-topic-row {
+	display: grid;
+	grid-template-columns: 140px minmax(0, 1fr);
+	column-gap: 16px;
+	align-items: start;
+}
+.mt-topic-row-suggested {
+	padding-block-end: 14px;
+	border-block-end: 1px solid var(--border);
+}
+.mt-topic-row-name {
+	min-width: 0;
+	font-size: 13px;
+	line-height: 18px;
+	font-weight: 600;
+	color: var(--text-muted);
+	overflow-wrap: break-word;
+}
+/* On a wide card the name stands level with the middle of the first line of
+   buttons beside it. */
+.mt-wide .mt-topic-row-name {
+	padding-block-start: 13px;
+}
+.mt-topic-row-options {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	min-width: 0;
+}
+/* The tick stands at the start of an option, and its words wrap beside it. */
+.mt-topic-option {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	max-width: 100%;
+	min-height: var(--tap-target);
+	padding: 6px 12px;
+	border: 1px solid var(--border-strong);
+	border-radius: var(--radius-control);
+	background: var(--surface);
+	color: var(--text);
+	font-size: 14px;
+	line-height: 20px;
+	font-weight: 500;
+	text-align: start;
+	cursor: pointer;
+}
+.mt-topic-option-text {
+	min-width: 0;
+	overflow-wrap: break-word;
+}
+.mt-topic-option[aria-pressed="true"] {
+	background: var(--pressed-fill);
+	border-color: var(--pressed-border);
+	font-weight: 600;
+}
+.mt-topic-option[data-older="true"] .mt-topic-option-name {
+	color: var(--text-muted);
+}
+.mt-topic-from {
+	font-size: 12px;
+	font-weight: 400;
+	color: var(--text-muted);
+}
+.mt-topic-option[aria-disabled="true"] {
+	cursor: default;
+}
+@media (hover: hover) {
+	.mt-topic-close:hover {
+		background: var(--hover);
+		color: var(--text);
+	}
+	.mt-topic-option:hover:not([aria-disabled="true"]) {
+		border-color: var(--text-muted);
+	}
+}
+.mt-topic-chip {
+	align-self: flex-start;
+	font-size: 13px;
+	line-height: 18px;
+}
+.mt-topic-chip-label {
+	color: var(--text-muted);
+}
+.mt-topic-chip-value {
+	font-weight: 600;
 }
 
 /* Waiting: the course a task takes, step by step under its title. */

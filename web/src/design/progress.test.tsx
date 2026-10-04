@@ -1,6 +1,7 @@
 import { render } from "preact";
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test } from "vitest";
+import { Icon, type IconName } from "./icons";
 import {
 	MoveCounts,
 	MoveLegend,
@@ -13,6 +14,7 @@ import {
 	StatusDots,
 	type StatusTone,
 } from "./progress";
+import { drawnAlone } from "./testing/drawing";
 
 const root = document.createElement("div");
 
@@ -437,10 +439,10 @@ describe("a list of ranks", () => {
 });
 
 describe("a list", () => {
-	test.each<[StatusTone, string]>([
-		["correct", "M3.5 8.5l3 3 6-7"],
-		["wrong", "M4.5 4.5l7 7M11.5 4.5l-7 7"],
-		["skipped", "M4.5 8h7"],
+	test.each<[StatusTone, IconName]>([
+		["correct", "check"],
+		["wrong", "cross"],
+		["skipped", "dash"],
 	])("marks a line that went %s with its own mark and colour", (tone, mark) => {
 		draw(
 			<StatList
@@ -451,7 +453,9 @@ describe("a list", () => {
 
 		const status = root.querySelector(".mt-status");
 		expect(status?.classList.contains(`mt-status-${tone}`)).toBe(true);
-		expect(status?.querySelector("path")?.getAttribute("d")).toBe(mark);
+		expect(status?.querySelector("svg")?.outerHTML).toBe(
+			drawnAlone(<Icon name={mark} size={16} />),
+		);
 		expect(status?.textContent).toBe("Words");
 	});
 

@@ -4,14 +4,14 @@ How the service's student model does with children whose true level is known: si
 
 ## What it is, and where it comes from
 
-The bench in `tools/learners` is a Go module of its own that imports the product, as the load tool does (R124, R155). It was carried over from the research program's offline experiment with simulated learners, `research/experiments/learnersim`, whose protocol, [`research/experiments/PROTOCOL-A-offline.md`](../research/experiments/PROTOCOL-A-offline.md) (section 2), defines the measures R1–R7 in full. The research copy stays as it is: it describes the rule the paper was written about. The bench follows the product as it changes.
+The bench in `tools/learners` is a Go module of its own that imports the product, as the load tool does (R124, R155). It was carried over from the research program's offline experiment with simulated learners, `research/experiments/learnersim`, whose protocol, [`research/experiments/PROTOCOL-A-offline.md`](../research/experiments/PROTOCOL-A-offline.md) (section 2), defines the measures R1–R7 in full. The research copy stays as it is: it describes the rule the paper was written about, and runs the product at the commit the paper was written on, `v0.1.53`. The bench follows the product as it changes.
 
 Every step of a lesson goes through the product's domain code, the same as in the service:
 
 1. a new profile at the start the child's grade gives (`profile.New`);
 2. the rule's brief for the next task (`tutor.Next`);
 3. the request opened and a task issued at the brief's point (`Profile.Ask`, `Profile.Issue`), sealed with a key made for the run;
-4. the child's answer recorded (`Profile.Record`): the trial series, the step, the runs of mastery and the failures, as the service does them.
+4. the child's answer recorded (`Profile.Record`): the trial series, the step, mastery and the failures, as the service does them.
 
 A task is answered two minutes after it is issued, the next is issued at once, and every tenth answer starts a new day. A child gives 200 answers.
 
@@ -46,20 +46,21 @@ How fast real children learn is not known: the speeds are the bench's, not a mea
 
 ## The rules
 
-Each rule estimates where a child stands. The bench writes a rule's estimate into the profile before the service chooses the next task, so that the choice of task, the trial series and mastery are the service's for every rule, and only the estimate differs.
+Each rule estimates where a child stands. The bench writes a rule's estimate into the profile before the service chooses the next task, so that the choice of task, the trial series and mastery are the service's for every rule, and only the estimate differs. The service judges mastery as it records an answer, on the level its own step has just moved. For a rule with a step of its own, that is the rule's estimate moved once by the service's step rather than by the rule's — a mixture, which stays open; the service and the floor of 0.05, whose step is the service's, have none, and neither have the earlier rule and the chosen model, which put a mastery of their own in the service's place.
 
 | Rule | Cells | What it is |
 |---|---|---|
-| The service | `shrinking/both` | The product's own path, untouched: the step K = K₀/(1 + 0.05n) after the trial series, K₀ = 0.2 for the overall level and 0.4 for a topic's offset |
+| The service | `shrinking/both` | The product's own path, untouched: the step K = K₀/(1 + 0.05n) after the trial series, K₀ = 0.2 for the overall level and 0.4 for a topic's offset, the overall level's never below 0.05, and mastery by the cautious estimate at z = 1 (R187), so that it runs as `floor_0.05/both` and `floor_0.05+cautious_z1/both` do |
+| The earlier rule | `earlier/both` | The service as it was before R187: its step after the trial series with no floor, run by the bench's own copy, and mastery by a run of three in the service's rule's place. It gives the service's numbers as the bench was carried over with them, and is what the service is measured against |
 | Constant step | `constant/both` | The service's first step, never shrinking |
 | Slow constant step | `constant_slow/both` | Half the service's first step, never shrinking: 0.1 and 0.2 |
-| Floor under the step | `floor_0.05/both` | The service's step, the overall level's never below 0.05 |
-| Floor under the step, cautious mastery | `floor_0.05+cautious_z1/both` | The floor under the step, with the cautious estimate at z = 1 declaring mastery in the service's rule's place: the model the choices of the step and of mastery came to |
-| No trial series | `no_trial/both` | The service's step from the first answer, with no estimate of the trial series |
+| Floor under the step | `floor_0.05/both` | The service's step with the overall level's never below 0.05, run by the bench's own copy: the step the service took (R187), so its numbers are the service's |
+| Floor under the step, cautious mastery | `floor_0.05+cautious_z1/both` | The floor under the step, with the cautious estimate at z = 1 declaring mastery in the service's rule's place: the model the choices of the step and of mastery came to, which the service took (R187), so its numbers are the service's |
+| No trial series | `no_trial/both` | The service's step before its floor, from the first answer, with no estimate of the trial series |
 | Glicko-2 with guessing | `glicko2_floor/general`, `glicko2_floor/topics` | Glicko-2 over a chance that a child can guess, with one level, or with a level per topic |
 | The oracle | `oracle/both` | Stands where the child truly stands, in every topic, at every moment, and knows the child's true chance: **the ceiling** of every rule that learns of a child from answers |
 
-The step rules start from the trial series' estimate, as the service does; Glicko-2 and the oracle start from the first answer. These are the bench's own set of rules, `bench`, which a run is given unless it names another; the step chosen joins them once one is, unless it is among them already, as the floor of 0.05 the choice came to is, and so does the model of mastery chosen over it, `floor_0.05+cautious_z1`: that floor under the cautious estimate at z = 1. Every rule runs on all nineteen generators: 171 cells. The other sets, which choose the step and the rule of mastery, are described under [The candidates of the step](#the-candidates-of-the-step) and [The candidates of mastery](#the-candidates-of-mastery).
+The step rules start from the trial series' estimate, as the service does; Glicko-2 and the oracle start from the first answer. These are the bench's own set of rules, `bench`, which a run is given unless it names another; the step chosen joins them once one is, unless it is among them already, as the floor of 0.05 the choice came to is, and so does the model of mastery chosen over it, `floor_0.05+cautious_z1`: that floor under the cautious estimate at z = 1. Every rule runs on all nineteen generators: 190 cells. The other sets, which choose the step and the rule of mastery, are described under [The candidates of the step](#the-candidates-of-the-step) and [The candidates of mastery](#the-candidates-of-mastery).
 
 The oracle is the ceiling of the corridor at each miss of the model, and of mastery under the mastery rule the service has now, given a perfect estimate. It knows a child's level but not their slope or their floor (G6, G7). It is not a ceiling for a new rule of mastery: the oracle keeps the service's, while a rule of mastery takes the service's place under the step chosen (see [The candidates of mastery](#the-candidates-of-mastery)). It is compared with no rule as one, and the measures of what the child is shown leave it out: its rating moves only when the child does.
 
@@ -86,7 +87,7 @@ Every number is read off all the children of its cell, with a 95 % interval from
 1. on G0, the service against every other rule but the oracle: R1 after 200 answers, R3, R4;
 2. on G2, the service against every other rule but the oracle: R6, R3;
 3. on G1, the service against no trial series: R7;
-4. the floor of 0.05 under the step against the service: R6 on G3, R1 after 200 answers on G0.
+4. the floor of 0.05 under the step against the service: R6 on G3, R1 after 200 answers on G0 — nothing since the service took the floor itself (R187), and kept to show it.
 
 A comparison is read as finding a difference when its interval leaves zero out. None is corrected for the others.
 
@@ -108,7 +109,7 @@ A candidate is chosen on the working seeds, in a decision run of **4,000 childre
   - on G3, the share of children not caught up after the jump, `r6_jump_unsettled`, is at most 25 %.
 - **Not worse than the service,** read on the paired difference with the service on the same children: the worse end of its 95 % interval lies within the tolerance.
   - On every generator, the error after 200 answers, `r1_rms_200`, and the corridor, `r3_inside`. On G0 they are the goals of no worse than now.
-  - False masteries are not among them (R166). Under the service's rule of mastery they grow the closer an estimate follows the child: on G2-half from the service's 52 % to 54 % under the floor of 0.05, 56 % under the slow constant step, 59 % under the constant step and 73 % under the oracle. At the decision size such a check would fail every step that follows a learner better, the floor of 0.05 of the exit among them, for a fault of the rule of mastery, which is chosen next. They are shown for every rule in `scenarios.md`, and the choice of mastery holds them on every generator.
+  - False masteries are not among them (R166). Under the rule of mastery the service had then, a run of three, they grow the closer an estimate follows the child: on G2-half from the service's 52 % to 54 % under the floor of 0.05, 56 % under the slow constant step, 59 % under the constant step and 73 % under the oracle. At the decision size such a check would fail every step that follows a learner better, the floor of 0.05 of the exit among them, for a fault of the rule of mastery, which is chosen next. They are shown for every rule in `scenarios.md`, and the choice of mastery holds them on every generator.
   - The tolerance of a check is the larger of the author's — 0.01 logit for the error, 1 percentage point for the corridor — and the bench's resolution on that check: 4.3 standard errors of the paired difference between the slow constant step and the service there, in the same run. A candidate exactly as good as the service passes such a check 99 times in 100: a tolerance finer than the bench resolves would fail good candidates by chance across some forty checks.
   - A rough look reads them as no clear harm: a check fails only when the better end of the interval is beyond the tolerance too.
 - **The screen,** on G0 and G2-half, read on point estimates: in both windows, the card's move at the 95th percentile and the changes of the overall rank are no more than the service's in answers 6–20. Late in a run the child sees no more movement than a child sees at the start now, and a candidate's first cards after the trial series move no more than the service's do.
@@ -136,7 +137,7 @@ A candidate is chosen on the working seeds, in a decision run of **4,000 childre
 
 ### Choosing mastery
 
-The rule of mastery is chosen in the same way, over the step already chosen, with these constraints and this score. **"The service" here is the baseline: the step chosen, the floor of 0.05, under the service's own rule of mastery** (R175). That measures what a rule of mastery gives by itself, rather than charging every candidate with what the floor already moves under the old rule — two points more masteries never declared to a child who learns, three more declared falsely. The baseline is also the exit.
+The rule of mastery is chosen in the same way, over the step already chosen, with these constraints and this score. **"The service" here is the baseline: the step chosen, the floor of 0.05, under the service's own rule of mastery** (R175). That measures what a rule of mastery gives by itself, rather than charging every candidate with what the floor already moves under the old rule — two points more masteries never declared to a child who learns, three more declared falsely. The baseline is also the exit. The service's own rule of mastery was then a run of three; the service has since taken the cautious estimate the choice came to (R187), which a run of the choice now finds as its baseline.
 
 - **Constraints,** on point estimates:
   - false masteries are at most 20 %, on G0 and on G0-topics1, the widest spread of topics, on which a margin of mastery is chosen; they are read at the level a topic is held mastered at, the baseline's included, and never against the share the old reading gave;
@@ -151,15 +152,15 @@ The rule of mastery is chosen in the same way, over the step already chosen, wit
 
 ## The candidates of mastery
 
-The rules of mastery put forward, written down before any of them ran. A rule of mastery takes the service's place on the bench as an estimate does: after each answer, once the service has recorded it and the rule's estimate has taken it in, the rule judges it, and what it holds — the level each topic is mastered at and since when, both or neither — is written into the profile over what the service's own rule wrote there, since the profile is all the service's choice of tasks reads mastery from. What is measured is the rule's own verdict. The counts of answers and the topic's run of wrong answers are read off the profile, which keeps them alike under every rule. A test holds the service's own run of three, put in its place this way, to the service's rule on every answer of every generator, and one at an infinite margin holds the profile to no mastery at all.
+The rules of mastery put forward, written down before any of them ran. A rule of mastery takes the service's place on the bench as an estimate does: after each answer, once the service has recorded it and the rule's estimate has taken it in, the rule judges it, and what it holds — the level each topic is mastered at and since when, both or neither — is written into the profile over what the service's own rule wrote there, since the profile is all the service's choice of tasks reads mastery from. What is measured is the rule's own verdict. The counts of answers and the topic's run of wrong answers are read off the profile, which keeps them alike under every rule. A test holds the cautious estimate at z = 1, put in the service's place this way, to the service's own rule on every answer of every generator, and one at an infinite margin holds the profile to no mastery at all.
 
 Every rule declares only after a right answer without the hint, with at least five answers in the topic, and only at a level above the one the topic is held at; every rule loses mastery after two wrong answers in a row, as the service's does. None is tuned: each is run as written here.
 
-- **A run of five** (`run5`): the service's rule with a run of five instead of three, with all its ways — the run grows before the topic's fifth answer, may complete on a right answer to an easy task, and is spent when it completes, whatever it earns. It adds no number.
+- **A run of five** (`run5`): the rule the service had then, with a run of five instead of three, with all its ways — the run grows before the topic's fifth answer, may complete on a right answer to an easy task, and is spent when it completes, whatever it earns. It adds no number.
 - **The cautious estimate** at z = 1.0, 1.28 and 1.64 (`cautious_z…`): the topic is mastered at the highest of its levels, at or below the task's, on whose middle task — difficulty 3 — a child at the estimate less z·√v answers at the corridor's middle, 0.775, or better. v is the uncertainty of the level in the topic from the counts the profile keeps: v = 1/(1/2.5² + I·n) + 1/(3 + I·m), with n the answers in all and m in the topic and I = 0.15 — the trial series' spread narrowed by every answer, plus the topic's uncertainty the service's step reads its first step from, narrowed by the topic's answers. These are the product's own numbers, so the rule adds z alone. The sum overstates v a little, since a topic's answers tell of the overall level too, which suits a cautious rule. The cautious estimate at no margin, z = 0, is run beside them and is no candidate: it shows what reading at the middle task costs apart from the margin.
 - **Wald's test at each level** (`wald`): for every level of the topic, the chance on its middle task at most 0.70 against at least 0.85, the corridor's bounds, with α = 0.05 and β = 0.2. Every wrong answer and every right and unaided one adds to each level's sum how much likelier it was for a child at the top of the corridor there than at its bottom, the task's own difficulty taken in; a sum that falls under ln(β / (1 − α)) starts again; past ln((1 − β) / α) = ln 16 the topic is mastered at the highest such level at or below the task's, whose sums at and below it are then spent. The sums have to be kept, so the rule adds fields to the profile, and two numbers: it is the backup, chosen over the main rule only by the margin of 0.05. A test holds a single test of it to its errors: at the corridor's bottom it lets a child through at most α / (1 − β) of the time, at its top it turns one away at most β / (1 − α) of it.
 
-The simplest of equals is the one adding the fewest numbers — the run of five none, the cautious estimate one, Wald's test two — then the one adding no field, then the nearest the service's rule: the run of five, then the cautious estimate, the smaller margin the nearer. Wald's test, which adds the most, is never weighed by its distance, and the reports show it none.
+The simplest of equals is the one adding the fewest numbers — the run of five none, the cautious estimate one, Wald's test two — then the one adding no field, then the nearest the service's rule as it was then, the run of three: the run of five, then the cautious estimate, the smaller margin the nearer. Wald's test, which adds the most, is never weighed by its distance, and the reports show it none.
 
 A rule that declares at a level below the task's declares a mastery the child is not shown and the rotation does not act on, which still counts among the masteries read for falseness; `r4_below` is the share of those, so that a rule that keeps its false share down that way is seen to, and `r4_false_at_task` the false share of the masteries declared at the task's level, the ones the child is shown.
 
@@ -569,6 +570,44 @@ A run given `-held-out` draws from seeds kept for confirmation: seed 20261003, e
 
 The sweep and its refinement draw children of their own too, the paper's seed under the experiment `sweep`, and refuse `-seed` and `-experiment` likewise. A test proves that no child of any generator is drawn alike in any two of the three sets — the working children, the held-out ones and the sweep's.
 
+## The service against the earlier rule
+
+What the student model of R187 gives the service, from the bench's own run (`results/`): a thousand children a cell, the service against the earlier rule — the service as it was, which gives the service's numbers from before the change to the last digit. Every number has its 95 % interval; the difference is the service's less the earlier rule's on the same children, with its own interval, for the numbers the comparisons read. The last two rows are not among the guard's.
+
+| Measure | Generator | The service | The earlier rule | The service less the earlier |
+|---|---|---:|---:|---:|
+| Error after 200 answers, logits | G0 | 0.484 [0.476, 0.492] | 0.495 [0.486, 0.504] | −0.011 [−0.019, −0.004] |
+| In the corridor | G0 | 42.8 % [42.3, 43.3] | 42.4 % [41.9, 43.0] | +0.4 [0.1, 0.7] points |
+| Masteries declared falsely | G0 | 3.6 % [3.1, 4.2] | 63.2 % [61.5, 64.9] | −59.6 [−61.2, −57.9] points |
+| Answers until a mastery is declared | G0 | 4.6 [4.5, 4.8] | 9.8 [9.6, 10.1] | |
+| Masteries never declared | G0 | 19.4 % [18.0, 20.9] | 21.8 % [19.8, 23.7] | |
+| Overall rank changes per hundred answers, answers 150–200 | G0 | 1.6 [1.4, 1.9] | 0.6 [0.5, 0.8] | |
+| Error of the overall level after 10 answers, logits | G1 | 0.868 [0.822, 0.916] | 0.868 [0.823, 0.916] | |
+| Estimate less level from the 101st answer, logits | G2 | −1.008 [−1.027, −0.988] | −1.122 [−1.143, −1.101] | +0.114 [0.105, 0.123] |
+| In the corridor | G2 | 27.5 % [26.9, 28.1] | 25.7 % [25.1, 26.3] | +1.8 [1.5, 2.1] points |
+| Children not caught up after the jump | G3 | 56.8 % [53.8, 59.8] | 71.1 % [68.3, 73.9] | |
+| Estimate less level from the 101st answer, logits | G2-half | −0.538 [−0.556, −0.520] | −0.609 [−0.630, −0.590] | |
+| In the corridor | G2-half | 37.5 % [36.9, 38.0] | 35.7 % [35.1, 36.4] | |
+
+The service now declares 3.6 % of its masteries falsely where it declared 63.2 %, and declares a mastery the child has in half the answers. It follows a child who learns closer, by a ninth of a logit, and leaves fewer children behind after a jump, 56.8 % against 71.1 %; for a child who stays put, the error is a hundredth of a logit smaller and the corridor a little fuller. The price is the rank: late in a run it changes 1.6 times in a hundred answers against 0.6, still well under the 3.8 the service shows in answers 6–20. The trial series did not change, and neither did the error after ten answers.
+
+## The guard
+
+The guard keeps the service from losing quietly what its student model was chosen for. It runs the service's own path on the first 300 children of each of G0, G1, G2 and G3 of the paper's run, 200 answers each, reads each of these numbers once, with no interval, and holds it within two half-widths of the 95 % interval recorded with it:
+
+- on G0, the error after 200 answers, the corridor, the masteries declared falsely, the answers until a mastery, the masteries never declared, and the changes of the overall rank in answers 150–200;
+- on G1, the error of the overall level after ten answers;
+- on G2, the lag and the corridor;
+- on G3, the children not caught up after the jump.
+
+The bands are kept in `tools/learners/testdata/guard.csv`: each number's value and half the width of its interval, drawn from the same streams a run of the bench draws for the same cells. A number is inside its band when it is at most two half-widths from the recorded value, the edges included. The guard's children are the paper's, so on code that moved nothing it reads the recorded numbers to the last digit: a band is room for a change, not for chance, about four standard errors of 300 children either way. The guard prints a table in Markdown, every number against its band, and fails naming each number outside its band with the band itself. CI runs it on every pull request, as a job of its own, with the table in the run's summary.
+
+Rolled back, the student model turns the guard red. With the overall step's floor taken away, the lag on G2 comes to −1.127, past the band of −1.065 to −0.932, and the children not caught up after a jump to 70.3 %, past 41.7 to 65.0 %. With mastery by a run of three, the masteries declared falsely come to 65.1 %, past 1.8 to 5.4 %, and the answers until a mastery to 9.9, past 4.1 to 5.3.
+
+`just ci-learners -update` records the bands again. It is for a change meant to move the model, whose whole run has been read and whose reason is written down with it; the new `guard.csv` is read in the change's review, as a snapshot is, since recording turns a red guard green. The bands are recorded on amd64, where Go fuses no multiplication with an addition; elsewhere the last digits of the numbers may part from them, well within any band. A change elsewhere, to the catalog's topics say, that moves the numbers within their bands passes; one that moves them past, for better or for worse, is recorded again with its reason.
+
+The guard holds the numbers of a run to the bands by its measures alone, so the same check can read the service's cells of any run on these generators.
+
 ## Running it
 
 - `just learners` runs the bench's own set, a thousand children a cell, writes `tools/learners/results/` over the run kept there, and prints the summary. It takes four to five minutes on the development machine.
@@ -581,7 +620,8 @@ The sweep and its refinement draw children of their own too, the paper's seed un
   - `just learners -rules mastery-pilot -children 1000` — the pilot of mastery, on the sweep's children, about three minutes;
   - `just learners -rules mastery -children 4000` — the decision run of mastery, about a quarter of an hour;
   - `just learners -held-out -children 4000` — the confirmation of the last candidate chosen, once, about ten minutes: the model of mastery chosen over the step. It was run for that model and is not run again.
-- `just learners-test` runs the bench's tests with the race detector, and `just learners-lint` holds the module to what the service is held to. CI runs both on every pull request. A change to the product's `go.mod` is followed by `just learners-tidy`.
+- `just ci-learners` runs [the guard](#the-guard), a few seconds on the development machine, and prints its table; `just ci-learners -update` records its bands again.
+- `just learners-test` runs the bench's tests with the race detector, and `just learners-lint` holds the module to what the service is held to. CI runs both, and the guard, on every pull request. A change to the product's `go.mod` is followed by `just learners-tidy`.
 
 ## The results
 
@@ -594,8 +634,8 @@ The sweep and its refinement draw children of their own too, the paper's seed un
 - `comparisons.csv`, the four groups of comparisons;
 - `run.txt`, what the run was given and what computed it: the seed, the name, the children and answers, the set of rules, the service's version, Go's, and the processor's architecture.
 
-A change to the rule, the rating, the profile or the catalog's topics moves the numbers. `TestASmallRun` runs every cell with ten children and holds the run's `summary.md` and `criterion.md` to their snapshots in `tools/learners/testdata/`, so such a change fails `just learners-test` until they are rewritten with `go test -run TestASmallRun -update` in `tools/learners`; the rewritten snapshots, and a new whole run when the change is to the student model, are part of the change's review. The same run must give every row of `testdata/carried-over/`, the bench's numbers as it was carried over, which nothing rewrites: what is added to the bench leaves them as they were, and only a change to the service's own rule moves them. `TestStepRulesAreTheServicesUpdate` holds the bench's copy of the step to `rating.Update` at the service's constants, so a new step in the service fails it until the bench's copy follows.
+A change to the rule, the rating, the profile or the catalog's topics moves the numbers. `TestASmallRun` runs every cell with ten children and holds the run's `summary.md` and `criterion.md` to their snapshots in `tools/learners/testdata/`, so such a change fails `just learners-test` until they are rewritten with `go test -run TestASmallRun -update` in `tools/learners`; the rewritten snapshots, and a new whole run when the change is to the student model, are part of the change's review. The same run must give every row of `testdata/carried-over/`, the bench's numbers as it was carried over, which nothing rewrites: what is added to the bench leaves them as they were, and only a change to the service's own rule moves them. `TestStepRulesAreTheServicesUpdate` holds the bench's copy of the step to `rating.Update` at the service's constants, so a new step in the service fails it until the bench's copy follows, and `TestTheCautiousEstimateInTheServicesPlaceIsTheService` holds the bench's cautious estimate to the service's mastery the same way. `TestTheChosenModelIsTheProductOnAnySequenceOfAnswers` holds the chosen model to the service on any sequence of answers, not only on the children the bench draws: a hundred sequences of 150 answers, of any grade, three topics in any order, tasks at any point of their ladders, right as often as three times in ten to almost always and the hint taken one time in five, with the overall level and every topic's to within 1e-12 after every answer and every mastery held, declared and lost exactly as the service's. The same small run must give the service's numbers as they were before R187, under the earlier rule: the values of `testdata/carried-over/earlier.csv`. When the service's step took its floor (R187), the rows of `shrinking/both` were rewritten from a run with it; when its mastery became the cautious estimate, the rows of every rule were, since every rule runs under the service's mastery and the choice of the next topic reads it — as the README there records. The runs the step and the rule of mastery were chosen by — `sweep/`, `refine/`, `decision/`, `mastery-pilot/`, `mastery/` and `held-out/` — were made before both: their `shrinking/both` is the step without the floor, and every rule in them without a rule of mastery of its own masters by the run of three.
 
 ## The paper's numbers
 
-A run given neither `-seed` nor `-experiment` draws the children of the paper's run: seed 20261001, experiment E-A3. On amd64 the bench's cells and the comparisons it shares with the research run repeat `research/experiments/learnersim/results` to the last digit, so the summary's first row is the paper's account of the service's rule. On arm64 the last digits may differ, since Go fuses a multiplication and an addition there into one step that rounds once.
+A run given neither `-seed` nor `-experiment` draws the children of the paper's run: seed 20261001, experiment E-A3. Until the service's rule changed, the bench's cells and the comparisons it shares with the research run repeated `research/experiments/learnersim/results` to the last digit on amd64, so the summary's first row was the paper's account of the service's rule. The floor of the step and the cautious estimate (R187) moved them; the research run keeps the paper's account, on the product at `v0.1.53`. On arm64 the last digits may differ, since Go fuses a multiplication and an addition there into one step that rounds once.

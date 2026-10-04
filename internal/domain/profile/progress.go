@@ -18,6 +18,11 @@ type Ratings struct {
 	// switch between going over the same ground again and moving on. A task
 	// the child skipped leaves it alone: there was no answer to learn from.
 	ConsecutiveFailures int `json:"consecutive_failures"`
+	// MasteryRule marks a file whose masteries the cautious estimate
+	// declared, MasteryRuleCautious. A file without it holds only the
+	// masteries of the earlier rule, a run of right answers, which count for
+	// nothing until its next answer clears them.
+	MasteryRule string `json:"mastery_rule,omitempty"`
 	// Start is where the child began on the ladder: the shift of the level of
 	// the grade the profile was made with. It is written once and never moves
 	// — a grade changed later is a label — and the trial series estimates the
@@ -48,10 +53,12 @@ type Topic struct {
 	// when a task is accepted rather than when the topic is chosen: a
 	// generation that produced nothing must not push its topic away.
 	LastIssued Date `json:"last_issued,omitzero"`
-	// MasteredLevel is the level of the task whose answer earned mastery, set
-	// and cleared together with MasteredSince. A topic counts as mastered only
-	// while its tasks come from this level or below: mastered among the tasks
-	// of grades 1–2 says nothing about those of grades 3–4.
+	// MasteredLevel is the level the topic is mastered at: the highest of its
+	// levels, at or below the task whose answer earned mastery, that the
+	// child's cautious level cleared then. It is set and cleared together with
+	// MasteredSince. A topic counts as mastered only while its tasks come from
+	// this level or below: mastered among the tasks of grades 1–2 says nothing
+	// about those of grades 3–4.
 	MasteredLevel *rating.GradeLevel `json:"mastered_level"`
 	// MasteredSince is the day the topic was mastered, or null. A mastered
 	// topic steps out of the rotation until every topic within the child's
@@ -62,7 +69,9 @@ type Topic struct {
 	// parent, who can see from it that hard tasks are being leafed past.
 	Skipped int `json:"skipped,omitzero"`
 	// TopStreak is the run of correct answers at the harder half of the
-	// corridor with no hint — the run that earns mastery.
+	// corridor with no hint — the run the earlier rule mastered a topic by.
+	// It is still counted, for a build of that rule reading the file, and
+	// mastery no longer decides by it.
 	TopStreak int `json:"top_streak"`
 	// Traps is how often this child fell for each trap in this topic, ever.
 	// The rule picks the two most frequent; the map of misconceptions counts

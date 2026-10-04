@@ -175,6 +175,8 @@ just load paces -url https://mcp.mathtrail.app -accounts parent,load
 just load ceiling -url https://mcp.mathtrail.app -accounts load,parent
 ```
 
+**What the counts make of it.** The service writes the tool's calls down with a host of their own, `load`, and the children counted for grant applications leave out every child the tool handed a task to that month (SPEC 12.4): the load's own profile, and never one the tool only read.
+
 **What a profile remembers.** The lessons of `paces` hand in the load's five tasks, and a profile keeps every task it was handed, so an account walks them once: the next time they are refused as near-copies. To walk them again, delete the account's profile file in Drive and then from the bin, and the service makes a new one; or sign another account in. The ceiling leaves its account without new tasks until midnight in UTC.
 
 **What it cannot show.** Every request of a run comes from one address, so whether another address is served while the greedy one is held back has to be seen from another network, by hand. How many instances the platform ran, and what they cost, are the platform's to tell: the service's log and the billing, not the tool. `just report` and `just usage` read both, and `docs/live/09-load.md` is what they told of the first run against `mcp.mathtrail.app`.

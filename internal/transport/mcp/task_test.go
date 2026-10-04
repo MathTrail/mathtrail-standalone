@@ -391,8 +391,57 @@ func TestTheWordsAroundATaskKeepTheModelQuiet(t *testing.T) {
 		}
 	}
 	for _, handedIn := range []string{"when accepted", "when handed in again"} {
-		if text := textOf(t, call(t, session, "submit_task", race)); !strings.Contains(text, "add nothing of your own about it") {
+		if text := textOf(t, call(t, session, "submit_task", race)); !strings.Contains(text, "add nothing of your own about the task") {
 			t.Errorf("submit_task %s says %q, want the model to add nothing about the task on the card", handedIn, text)
+		}
+	}
+}
+
+// The card records the answer the child gives on it, so the model asks for no
+// answer in the chat: in a live lesson a model told only to record the answer
+// asked the parent to type the letter in, and every such message spends one of
+// the parent's chat messages on an answer the card already has. The model is
+// told so where it reads it as the task comes — the words of the task accepted,
+// or handed in again while the card shows it — and in the descriptions of the
+// tools that hand a task in and record an answer; each says it of a host that
+// shows cards, and the words of the task say what to do without one: read the
+// task out and record the answer given in the chat.
+func TestTheModelAsksForNoAnswerTheCardRecords(t *testing.T) {
+	t.Parallel()
+
+	kept := racer(t)
+	_, session := lesson(t, kept)
+	race := raceOn(wantRequestOpened(t, session, call(t, session, "next_task", raceChoice), kept))
+	for _, handedIn := range []string{"when accepted", "when handed in again"} {
+		text := textOf(t, call(t, session, "submit_task", race))
+		for _, says := range []string{
+			"Where the card next_task drew shows it, the child answers there, and the card records the answer itself: " +
+				"do not ask for the answer in the chat",
+			"Without a card, or if the child says the card shows no task, read out the question",
+			"record the answer the child gives in the chat with submit_answer",
+		} {
+			if !strings.Contains(text, says) {
+				t.Errorf("submit_task %s says %q, want it saying %q", handedIn, text, says)
+			}
+		}
+	}
+
+	listed, err := session.ListTools(t.Context(), nil)
+	if err != nil {
+		t.Fatalf("ListTools() error = %v", err)
+	}
+	described := map[string]string{}
+	for _, tool := range listed.Tools {
+		described[tool.Name] = tool.Description
+	}
+	for tool, says := range map[string]string{
+		"submit_task": "where cards are shown, the child answers on the card, which records the answer itself, so do " +
+			"not ask for the answer in the chat",
+		"submit_answer": "Where cards are shown, an answer given on the card is recorded by the card itself: do not ask " +
+			"for one in the chat",
+	} {
+		if !strings.Contains(described[tool], says) {
+			t.Errorf("%s is described as %q, want it saying %q", tool, described[tool], says)
 		}
 	}
 }
@@ -1601,7 +1650,7 @@ func TestATaskHandedOutOverAnAnsweredOneSkipsNothing(t *testing.T) {
 	t.Parallel()
 
 	on := raceOnTheCard(t, 0)
-	if _, err := on.Record(profile.Answered{TaskID: on.CurrentTask.ID, Choice: "C", At: lessonDay}, sealer(t)); err != nil {
+	if _, err := on.Record(profile.Answered{TaskID: on.CurrentTask.ID, Choice: "C", At: lessonDay}, sealer(t), rating.GradeLevels()); err != nil {
 		t.Fatalf("Record() error = %v, want the race answered", err)
 	}
 	asked := fuzzProfile(t).OpenRequest.Brief

@@ -41,7 +41,7 @@ PLAY_DIR := env("MATHTRAIL_PLAY_DIR", home_directory() / "mathtrail-play")
 PLAY_MODEL := env("MATHTRAIL_PLAY_MODEL", "claude-sonnet-5")
 # The lesson's tools as a chat's model calls them. The ones only a card calls
 # are not among them.
-PLAY_TOOLS := "mcp__mathtrail__get_profile mcp__mathtrail__save_profile mcp__mathtrail__get_progress mcp__mathtrail__next_task mcp__mathtrail__submit_task mcp__mathtrail__submit_answer"
+PLAY_TOOLS := "mcp__mathtrail__get_profile mcp__mathtrail__save_profile mcp__mathtrail__get_progress mcp__mathtrail__next_task mcp__mathtrail__get_package mcp__mathtrail__submit_task mcp__mathtrail__submit_answer"
 # The Inspector shares this environment's network, so that it reaches the local
 # server at its own address, and it listens on the loopback alone rather than on
 # every interface its image asks for. Secrets it would keep — the tokens of a
@@ -59,6 +59,10 @@ TRIVY_IMAGE := "aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7
 # web/package.json pins playwright-core to, since a release drives only the
 # browsers of its own build.
 PLAYWRIGHT_IMAGE := "mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27"
+
+# The BigQuery emulator the SQL of the counts kept for years is tested against,
+# pinned by tag and digest. It is no BigQuery: SQLite runs the queries under it.
+BIGQUERY_EMULATOR_IMAGE := "ghcr.io/goccy/bigquery-emulator:0.8.1@sha256:f4e428d265a93dc5ce36c294e1c584c7c9b384117d47ab8ddbb63d8d50b7f393"
 
 # The prototype the golden vectors are the numbers of: its public repository, at the
 # commit the copy they were first exported from matched byte for byte.
@@ -694,6 +698,27 @@ tf-check:
     terraform -chdir={{ TF_DIR }} init -backend=false -input=false
     terraform -chdir={{ TF_DIR }} validate
 
+# The SQL of the counts kept for years — the nightly script, the tables it
+# fills and the views two reports read — run against a BigQuery emulator
+# started for the run, on a port of its own, and removed after it. The tests
+# are the files Terraform hands BigQuery, filled in the same way; they stand
+# behind the build tag analytics, since a plain test run starts no container.
+# Test the SQL of the counts kept for years against a BigQuery emulator
+analytics-test:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    name="mathtrail-bigquery-$$"
+    docker run -d --rm --name "$name" -p 127.0.0.1::9050 {{ BIGQUERY_EMULATOR_IMAGE }} --project=mathtrail > /dev/null
+    trap 'docker rm -f "$name" > /dev/null 2>&1 || true' EXIT
+    address="http://$(docker port "$name" 9050/tcp | head -1)"
+    for _ in $(seq 1 60); do
+        if curl -fs -o /dev/null "$address/bigquery/v2/projects/mathtrail/datasets"; then
+            break
+        fi
+        sleep 1
+    done
+    MATHTRAIL_BIGQUERY_EMULATOR="$address" go test -tags analytics -race -count=1 ./infra/analytics/...
+
 # Create the project, the bucket of its state and the identity the pipeline uses
 bootstrap:
     bash infra/bootstrap.sh
@@ -1140,6 +1165,58 @@ usage since="1h" service="mathtrail":
     echo "| Instance-seconds billed | $(printf '%.1f' "$billed") | |"
     echo "| Most instances that served in one minute | $(printf '%.1f' "$instances") | |"
 
+# The main numbers of the counts kept for years, the latest months first, as
+# a grant application states them: by default as the public views show them —
+# whole months, no group of fewer than ten children, every number to the
+# nearest five — so that they may go anywhere, and given private, every month
+# counted, the one under way among them, in exact numbers. Below the table,
+# the days no night counted: the nightly query tells its failures to nobody
+# but this. The SQL is in infra/analytics/impact/, where the tests of the
+# counts run it too; it reads BigQuery with bq, as the deployment the
+# Terraform configuration names.
+# The main numbers of the counts kept for years, for grant applications
+impact view="public" months="3":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if ! command -v bq > /dev/null; then
+        echo "impact: this environment has bq on x86_64 alone." >&2
+        exit 1
+    fi
+    months="{{ months }}"
+    if [[ ! "$months" =~ ^[1-9][0-9]?$ ]]; then
+        echo "impact: months is a whole number from 1 to 99, not $months" >&2
+        exit 1
+    fi
+    case "{{ view }}" in
+    public) about="As the public views show them: whole months of ten children or more, every number to the nearest five, and none of a group of fewer than ten." ;;
+    private) about="Exact numbers, for the owner: every month counted, the one under way among them." ;;
+    *)
+        echo "impact: the view is public or private, not {{ view }}" >&2
+        exit 1
+        ;;
+    esac
+    project=$(just _project)
+    # The names the SQL is written with, filled in as the tests fill them.
+    sql() {
+        sed -e "s/\${impact}/$project.impact/g" -e "s/\${public}/$project.impact_public/g" \
+            -e "s/\${private}/$project.impact_private/g" -e "s/\${months}/$months/g" "infra/analytics/impact/$1.sql"
+    }
+    read_rows() { bq --project_id="$project" --quiet query --nouse_legacy_sql --format=json --max_rows=1000 "$1"; }
+    echo "# The counts kept for years"
+    echo
+    echo "$about Children are counted by the month: a child is the same child all month, and the next month is counted afresh."
+    echo
+    echo "| Month | Children | New | In the US | Signed in from the US | Tasks | Answers | Tasks a child a week | Active days a child | Topics won |"
+    echo "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|"
+    read_rows "$(sql "{{ view }}")" | jq -r '.[] | "| " + ([.month, .learners, .new_learners, .in_us, .signed_in_from_us, .tasks, .answers, .tasks_per_child_week, .active_days_per_child, .topics_won] | map(. // "—") | join(" | ")) + " |"'
+    echo
+    gaps=$(read_rows "$(sql missing)" | jq -r '.[].day')
+    if [ -z "$gaps" ]; then
+        echo "Every day from the first counted to yesterday was counted."
+    else
+        echo "Days no night counted, to be made up by the next night while the raw lines still hold them: $(echo "$gaps" | paste -sd ' ')."
+    fi
+
 
 # -- Golden vectors from the prototype --------------------------------------
 
@@ -1384,6 +1461,19 @@ learners *args:
 [working-directory('tools/learners')]
 learners-test:
     go test ./... -race -count=1
+
+# The guard runs the service's path on the first 300 children of the paper's
+# run of each of G0 to G3 and holds the numbers its student model was chosen
+# by within two half-widths of the intervals recorded in
+# tools/learners/testdata/guard.csv, printing a table of them in Markdown; it
+# fails naming each number outside its band. `just ci-learners -update`
+# records the bands again, when a change means to move the model: its diff is
+# read before it is kept.
+# Hold the service's student model to the bands of the learners' bench's guard
+[positional-arguments]
+[working-directory('tools/learners')]
+ci-learners *args:
+    go run . guard "$@"
 
 # The learners' bench's formatting, lint, licenses, known vulnerabilities, and the versions it shares with the service
 learners-lint: (_tool-lint "learners")

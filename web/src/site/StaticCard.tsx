@@ -12,7 +12,7 @@ import type {
 	ProgressReport,
 } from "../widget/payload";
 import { TaskCard } from "../widget/TaskCard";
-import { NamesBuild } from "../widget/version";
+import { NamesBuild, versionGiven } from "../widget/version";
 import { cardWords, WordsContext } from "../widget/words";
 
 // stillHost answers nothing and opens nothing: a card drawn on a page has no
@@ -131,8 +131,9 @@ export function StaticComing({
 }
 
 // Still is a card drawn on a page: shown rather than used, speaking the
-// widget's words in the page's language, and naming no build, since the site
-// is published before the release its commit becomes is tagged.
+// widget's words in the page's language, and naming the build only when the
+// site was built from a release, which is the one the chats run. A site built
+// from anything else names none, rather than a "dev" nobody runs.
 function Still({
 	locale,
 	children,
@@ -142,7 +143,7 @@ function Still({
 }) {
 	return (
 		<div class="s-card" inert>
-			<NamesBuild.Provider value={false}>
+			<NamesBuild.Provider value={versionGiven()}>
 				<WordsContext.Provider value={cardWords(locale, undefined)}>
 					{children}
 				</WordsContext.Provider>

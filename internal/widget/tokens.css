@@ -44,10 +44,6 @@
      back is a coral, not the red of a wrong answer. */
   --gain: #1f7a4c;
   --loss: #b9472b;
-  --avatar-fill: #ebe5da;
-  --avatar-ink: #6f685c;
-  --mark-fill: #23211d;
-  --mark-ink: #f3eee4;
   --page: #f5f4ef;
   --page-sunk: #ebe9e2;
   --shadow-frame: 0 1px 2px rgba(31,30,27,0.06), 0 16px 40px rgba(31,30,27,0.10);
@@ -89,10 +85,6 @@
   --ramp-5: #4ade80;
   --gain: #5fd090;
   --loss: #f08f78;
-  --avatar-fill: #3a3731;
-  --avatar-ink: #c9c2b4;
-  --mark-fill: #f3eee4;
-  --mark-ink: #23211d;
   --page: #141312;
   --page-sunk: #1b1a18;
   --shadow-frame: 0 1px 2px rgba(0,0,0,0.5), 0 16px 40px rgba(0,0,0,0.45);
@@ -162,10 +154,6 @@
   --ramp-5: #4ade80;
   --gain: #5fd090;
   --loss: #f08f78;
-  --avatar-fill: #3a3731;
-  --avatar-ink: #c9c2b4;
-  --mark-fill: #f3eee4;
-  --mark-ink: #23211d;
   --page: #141312;
   --page-sunk: #1b1a18;
   --shadow-frame: 0 1px 2px rgba(0,0,0,0.5), 0 16px 40px rgba(0,0,0,0.45);

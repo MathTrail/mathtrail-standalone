@@ -22,6 +22,10 @@ COPY internal/widget/tokens.css /src/internal/widget/tokens.css
 # The countries a parent can choose on the form are the ones the service takes,
 # read from the one file both are built from.
 COPY internal/domain/country/places.json /src/internal/domain/country/places.json
+# The topics a card offers to keep the lessons to are the catalog's, in the
+# groups of the site's page of topics, read from the files those are built from.
+COPY content/catalogs/topics.json /src/content/catalogs/topics.json
+COPY site/data.json /src/site/data.json
 
 # The widget tells a host the build it came with.
 ARG VERSION=dev

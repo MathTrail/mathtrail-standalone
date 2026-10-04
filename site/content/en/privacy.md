@@ -39,6 +39,7 @@ It holds:
 - a **pseudonym** for the child, the grade, their interests and anything you asked to avoid;
 - an identifier for the child, so that the profile can be carried to a future edition;
 - the interface language, if you chose one;
+- the topic the lessons are kept to, if you or your child chose one;
 - the country you live in and, in the United States, your state, if you chose to give them — they are there only to count how many families each country has, and you may leave them out;
 - which topics are mastered, the rating numbers behind the difficulty, and a summary of past answers: per topic, when it was last given, how many attempts and successes there were, and which traps came up;
 - where the ratings stood before each of the latest answers, and at the start of each of the last seven days with answers, so that the progress can show what moved since the last task and over the week;
@@ -65,7 +66,7 @@ To count how many children use MathTrail each day, week and month without knowin
 
 Like every line about your sessions, these lines also carry an opaque code standing for your account: made with the service's own key from your Google account, it is neither your Google ID nor your email, and it changes at the first sign-in after that key is replaced. While the lines of two months are both kept, that code is what could join a child's two counting names.
 
-These lines are kept for at most 62 days. What is kept after that are totals — how many children, how many tasks, in which countries — with no identifier of any kind and no row for any one family; a total of fewer than ten is never shown publicly.
+These lines are kept for at most 62 days. What is kept after that are totals — how many children, how many tasks, in which countries: totals for each day, totals for each week and each month told apart by one thing at a time, such as the country or the grade, and, for each month, the traps that wrong answers fell into, by topic and grade. They hold no identifier of any kind. A total counts a group of children, and a group may be a single child; a total of fewer than ten is never shown publicly.
 
 The logs never contain the pseudonym, the text of a task, an answer, an email address, a token, the child's identifier, or the address a request came from.
 
@@ -131,7 +132,7 @@ Deleting the file and revoking access are independent, and doing both leaves not
 ## Who else is involved
 
 - **Google** — the sign-in and Drive, where your file lives.
-- **Google Cloud Run** — where the service runs.
+- **Google Cloud** — where the service runs (Cloud Run), and where the totals above are kept (BigQuery).
 - **GitHub Pages** — where this website is served from; GitHub records its own access logs for it.
 - **Your chat provider** — Anthropic for Claude, OpenAI for ChatGPT.
 
