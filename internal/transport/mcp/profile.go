@@ -298,7 +298,8 @@ func (s *Service) detailsText(student *profile.Student) string {
 }
 
 // placeText says where the family lives, as far as the adult said: the country
-// by its code, and a state of the United States by its name as well.
+// by its code, and a state of the United States by its name as well. A region
+// the file pairs with a country it is not part of is given by its code alone.
 func placeText(student *profile.Student) string {
 	switch {
 	case student.Country == "":
@@ -306,7 +307,7 @@ func placeText(student *profile.Student) string {
 	case student.Region == "":
 		return "Country: " + student.Country + "."
 	}
-	if name := country.RegionName(student.Region); name != "" {
+	if name := country.RegionName(student.Country, student.Region); name != "" {
 		return fmt.Sprintf("Country: %s, state: %s (%s).", student.Country, student.Region, name)
 	}
 	return fmt.Sprintf("Country: %s, region: %s.", student.Country, student.Region)

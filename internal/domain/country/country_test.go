@@ -65,14 +65,16 @@ func TestARegionBelongsToItsCountry(t *testing.T) {
 func TestARegionIsNamedInEnglish(t *testing.T) {
 	t.Parallel()
 
-	for region, want := range map[string]string{
-		"US-TX": "Texas",
-		"US-DC": "District of Columbia",
-		"US-ZZ": "",
-		"":      "",
+	for _, tc := range []struct{ country, region, want string }{
+		{"US", "US-TX", "Texas"},
+		{"US", "US-DC", "District of Columbia"},
+		{"US", "US-ZZ", ""},
+		{"FR", "US-TX", ""},
+		{"", "US-TX", ""},
+		{"", "", ""},
 	} {
-		if got := country.RegionName(region); got != want {
-			t.Errorf("RegionName(%q) = %q, want %q", region, got, want)
+		if got := country.RegionName(tc.country, tc.region); got != tc.want {
+			t.Errorf("RegionName(%q, %q) = %q, want %q", tc.country, tc.region, got, tc.want)
 		}
 	}
 }

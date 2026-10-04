@@ -9,8 +9,9 @@ import (
 
 // Every reason and every kind of step is told in words of its own: a trap by
 // the catalog's description and its advice, a step in a topic with the address
-// of the part of the topic's page it is about, in the language asked for, and
-// a step for every topic with no topic before it. A step of a kind with no
+// of the part of the topic's page it is about, in the language asked for, a
+// topic to begin with the strong one it builds on, and a step for every topic
+// with no topic before it. A step of a kind with no
 // words is left out. A review with nothing in it says so, and the trial series
 // has none to tell.
 func TestEveryReasonAndStepIsToldInWords(t *testing.T) {
@@ -67,6 +68,13 @@ func TestEveryReasonAndStepIsToldInWords(t *testing.T) {
 		}, "Review for the adult. To develop: Knights and liars (the hint used in half its latest answers; " +
 			"its last answer was right, so a move has begun). What to do next: " +
 			"1. Knights and liars (https://mathtrail.app/ru/topics/knights-and-liars/#home): try each task first without the hint."},
+		{"a topic to begin, at the top of its page", "en", &progress.Review{
+			Strong:  []progress.Judged{{Topic: "counting.gaps", Reasons: []progress.Reason{progress.ReasonMastered}}},
+			Develop: []progress.Judged{}, Early: []string{},
+			Steps: []progress.Step{{Kind: progress.StepBegin, Topic: "time.calendar", Base: "counting.gaps"}},
+		}, "Review for the adult. Strong: Gaps and boundaries (mastered). What to do next: " +
+			"1. Calendar and age (https://mathtrail.app/en/topics/calendar-and-age/): " +
+			"a new topic to begin — Gaps and boundaries is a strength and a good base for it."},
 		{"a step of a kind with no words", "en", &progress.Review{
 			Strong: []progress.Judged{}, Develop: []progress.Judged{}, Early: []string{},
 			Steps: []progress.Step{

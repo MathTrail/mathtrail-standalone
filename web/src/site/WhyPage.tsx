@@ -3,7 +3,7 @@ import { topicName } from "../widget/names";
 import { cardWords } from "../widget/words";
 import { address } from "./addresses";
 import { sourceURL } from "./brand";
-import { ChatLines } from "./Chat";
+import { ChildAsks } from "./Chat";
 import { connectAddress } from "./home";
 import type { PageProps } from "./pages";
 import type { Fill, PageReader } from "./reader";
@@ -316,33 +316,10 @@ function Thinking({ page, why }: { page: PageReader; why: Why }) {
 						/>
 						<figcaption>{page.text("thinking.caption")}</figcaption>
 					</figure>
-					<Chat page={page} />
+					<ChildAsks page={page} at="thinking.chat" />
 				</div>
 			</div>
 		</section>
-	);
-}
-
-// Chat is the child's question and the model's reply as messages of the chat
-// under the card, labelled as an illustration: a card never holds the model's
-// words.
-function Chat({ page }: { page: PageReader }) {
-	return (
-		<ChatLines
-			label={page.text("thinking.chat.label")}
-			lines={[
-				{
-					from: "child",
-					speaker: page.text("thinking.chat.child"),
-					said: page.text("thinking.chat.question"),
-				},
-				{
-					from: "model",
-					speaker: page.text("thinking.chat.model"),
-					said: page.text("thinking.chat.reply"),
-				},
-			]}
-		/>
 	);
 }
 

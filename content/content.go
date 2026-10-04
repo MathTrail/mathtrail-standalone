@@ -204,6 +204,12 @@ func (c *Content) LevelsOf(topic string) []rating.GradeLevel {
 	return slices.Clone(c.topicByID[topic].GradeLevels)
 }
 
+// BasesOf lists the topics a topic builds on, in catalog order: none for a
+// foundation, and none for a topic the catalog does not have.
+func (c *Content) BasesOf(topic string) []string {
+	return slices.Clone(c.topicByID[topic].BuildsOn)
+}
+
 // TrapIDs lists the whole trap catalog in catalog order. It is the order two
 // traps are told apart by when nothing else separates them, which is what
 // keeps a choice made over them from depending on the order a map happened to

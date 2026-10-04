@@ -855,7 +855,54 @@ describe("the review", () => {
 		expect(root.querySelector(".mt-advice")?.tagName).toBe("OL");
 	});
 
-	test("leaves out what it has no words for — a reason, a kind of step, a mistake's name in a sentence and its advice — and keeps the name of a topic named for nothing it can say", async () => {
+	test("suggests a topic to begin last, the topic over the strong one it builds on, linked to the top of its page", async () => {
+		const calendar = {
+			topic: "time.calendar",
+			rating: null,
+			rank: null,
+			share: null,
+			compared: null,
+			answers: 0,
+			correct: 0,
+			mastered: false,
+			skipped: 0,
+			slug: "calendar-and-age",
+			site_page: true,
+		};
+		const { root } = await drawOpened(
+			withReview(
+				{
+					strong: [{ topic: "counting.gaps", reasons: ["mastered"] }],
+					steps: [
+						{ kind: "trap", trap: "double_count" },
+						{ kind: "begin", topic: "time.calendar", base: "counting.gaps" },
+					],
+				},
+				{ topics: [...standing.topics, calendar] },
+			),
+			{ links: "open" },
+		);
+
+		expect(steps(root)).toEqual([
+			[
+				"1",
+				"",
+				"Write each option down once, in a fixed order, and look for repeats before counting them.",
+			],
+			[
+				"2",
+				"Calendar and age",
+				"Gaps and boundaries is a strength and a good base to start this new topic.",
+			],
+		]);
+		expect(
+			root
+				.querySelector(".mt-advice-step:last-child a.mt-link")
+				?.getAttribute("href"),
+		).toBe("https://mathtrail.app/en/topics/calendar-and-age/");
+	});
+
+	test("leaves out what it has no words for — a reason, a kind of step, a mistake's name in a sentence and its advice, the base of a topic to begin — and keeps the name of a topic named for nothing it can say", async () => {
 		const { root } = await drawOpened(
 			withReview({
 				strong: [{ topic: "logic.ordering", reasons: ["shining"] }],
@@ -870,6 +917,8 @@ describe("the review", () => {
 					{ kind: "trap", topic: "counting.gaps", trap: "counted_the_cat" },
 					{ kind: "dance", topic: "counting.gaps" },
 					{ kind: "unaided", topic: "counting.gaps" },
+					{ kind: "begin", topic: "time.calendar", base: "counting.cats" },
+					{ kind: "begin", topic: "time.calendar" },
 				],
 			}),
 		);
@@ -998,7 +1047,35 @@ describe("the links to the topics' pages", () => {
 				"https://mathtrail.app/en/topics/ordering/",
 			]),
 		);
-		expect(root.querySelector(".mt-link-refused")).toBeNull();
+		expect(root.querySelector(".mt-link-refused:not(:empty)")).toBeNull();
+	});
+
+	test("ask the host for the middle button too, and leave the browser's menu to the browser", async () => {
+		const { root, heard } = await drawOpened(standing, { links: "open" });
+		const ordering = root.querySelector<HTMLAnchorElement>("a.mt-link");
+		const middle = new MouseEvent("auxclick", {
+			bubbles: true,
+			cancelable: true,
+			button: 1,
+		});
+		const menu = new MouseEvent("auxclick", {
+			bubbles: true,
+			cancelable: true,
+			button: 2,
+		});
+
+		act(() => {
+			ordering?.dispatchEvent(menu);
+			ordering?.dispatchEvent(middle);
+		});
+
+		expect(middle.defaultPrevented).toBe(true);
+		expect(menu.defaultPrevented).toBe(false);
+		await vi.waitFor(() =>
+			expect(heard.pages).toEqual([
+				"https://mathtrail.app/en/topics/ordering/",
+			]),
+		);
 	});
 
 	test("ask once for presses made while the host is still answering", async () => {
@@ -1011,7 +1088,7 @@ describe("the links to the topics' pages", () => {
 		});
 
 		await vi.waitFor(() =>
-			expect(root.querySelector(".mt-link-refused")).not.toBeNull(),
+			expect(root.querySelector(".mt-link-refused:not(:empty)")).not.toBeNull(),
 		);
 		expect(heard.pages).toEqual(["https://mathtrail.app/en/topics/ordering/"]);
 	});
@@ -1024,15 +1101,20 @@ describe("the links to the topics' pages", () => {
 		async (_, links) => {
 			const { root, heard } = await drawOpened(standing, { links });
 			const ordering = root.querySelector<HTMLAnchorElement>("a.mt-link");
+			// The line is in its place, empty, before anything is said in it:
+			// a screen reader hears what a place it knows is filled with.
+			const place = ordering?.parentElement?.querySelector(".mt-link-refused");
+			expect(place?.getAttribute("aria-live")).toBe("polite");
+			expect(place?.textContent).toBe("");
 
 			press(ordering ?? root);
 
 			const refused = await vi.waitFor(() => {
-				const line = root.querySelector(".mt-link-refused");
+				const line = root.querySelector(".mt-link-refused:not(:empty)");
 				expect(line).not.toBeNull();
 				return line;
 			});
-			expect(refused?.getAttribute("role")).toBe("status");
+			expect(refused).toBe(place);
 			expect(refused?.firstElementChild?.textContent).toBe(
 				"The chat didn't open the page. Its address:",
 			);

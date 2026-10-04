@@ -38,6 +38,11 @@ export type Page = {
 	dir: string;
 	title: string;
 	description: string;
+	/**
+	 * images are the pictures a shared link to the page shows, as its head
+	 * names them.
+	 */
+	images: string[];
 	canonical: string;
 	/** alternates are the translations the page names, by their hreflang. */
 	alternates: Map<string, string>;
@@ -162,6 +167,7 @@ export function parsePage(file: string, html: string): Page {
 		dir: "",
 		title: "",
 		description: "",
+		images: [],
 		canonical: "",
 		alternates: new Map(),
 		references: [],
@@ -211,7 +217,8 @@ function readElement(element: Element, page: Page, inTemplate: boolean): void {
 }
 
 // readOwn takes what only the page's own elements give it: an anchor, its
-// language and direction, its title and its description.
+// language and direction, its title, its description and the pictures a
+// shared link to it shows.
 function readOwn(element: Element, page: Page): void {
 	const id = attribute(element, "id");
 	if (id !== "") {
@@ -232,6 +239,8 @@ function readOwn(element: Element, page: Page): void {
 		case "meta":
 			if (attribute(element, "name").toLowerCase() === "description") {
 				page.description = attribute(element, "content").trim();
+			} else if (attribute(element, "property").toLowerCase() === "og:image") {
+				page.images.push(attribute(element, "content").trim());
 			}
 			break;
 	}

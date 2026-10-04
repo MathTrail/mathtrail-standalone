@@ -276,7 +276,9 @@ function detailFields(words: Words<Key>, details: Details): Field[] {
 			: [
 					{
 						term: words.text("profile.region"),
-						value: regionName(details.region) ?? details.region,
+						value:
+							regionName(details.country ?? "", details.region) ??
+							details.region,
 					},
 				]),
 	];

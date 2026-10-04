@@ -18,6 +18,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { parseArgs } from "node:util";
 import { build, createServer } from "vite";
+import { sharingPicturePath } from "../src/site/brand.ts";
 import type { SiteFile } from "../src/site/render.tsx";
 
 const web = join(import.meta.dirname, "..");
@@ -86,16 +87,19 @@ type Made = { readonly path: string; readonly data: string | Buffer };
 /**
  * buildSite builds the site into out: the pages its texts make, the
  * stylesheet and the font files it names, the font's licence, the design's
- * tokens and the mark. Every file is made before anything is written, so a
- * build that fails at any step leaves the last one where it was.
+ * tokens, the mark and the pictures a shared link shows. Every file is made
+ * before anything is written, so a build that fails at any step leaves the
+ * last one where it was.
  */
 export async function buildSite({
 	base,
 	out,
 	content = join(repository, "site", "content"),
 }: SiteOptions): Promise<void> {
+	const sources = await readSources(content);
 	const files: Made[] = [
-		...(await drawPages(base, await readSources(content))),
+		...(await drawPages(base, sources)),
+		...(await sharingPictures([...sources.keys()])),
 		...(await buildStyles()),
 		// The tokens are the very file the widget and the sign-in pages read,
 		// so the site takes its fonts and sizes from where they do; the mark is
@@ -178,6 +182,38 @@ export function givenTwice(
 		seen.add(path);
 	}
 	return undefined;
+}
+
+/**
+ * keptPictureOf is the file the sharing picture of locale is kept in: the
+ * site's own assets, under the name its pages serve it by.
+ */
+export function keptPictureOf(locale: string): string {
+	return join(repository, "site", sharingPicturePath(locale).slice(1));
+}
+
+// sharingPictures are the pictures a shared link to a page shows, one for each
+// language of the site that has one, kept in the site's assets under the name
+// they are served by. A language with none yet still builds, since a picture
+// is photographed from a site already built; its pages name a picture the site
+// does not have, and a check of the site refuses to publish them so.
+async function sharingPictures(locales: readonly string[]): Promise<Made[]> {
+	const kept: Made[] = [];
+	for (const locale of locales) {
+		try {
+			kept.push({
+				path: sharingPicturePath(locale).slice(1),
+				data: await readFile(keptPictureOf(locale)),
+			});
+		} catch (error) {
+			if (
+				!(error instanceof Error && "code" in error && error.code === "ENOENT")
+			) {
+				throw error;
+			}
+		}
+	}
+	return kept;
 }
 
 // buildStyles builds the site's stylesheet into a directory of its own and

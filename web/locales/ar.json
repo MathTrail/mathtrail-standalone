@@ -154,6 +154,7 @@
 	"review.step_rhythm": "مسألتان أو ثلاث مسائل قصيرة كل يوم، حتى يعود الشريط.",
 	"review.step_practice": "بضع مسائل أخرى في هذا الموضوع، يختارها MathTrail على مستوى الطفل.",
 	"review.step_unaided": "تجربة كل مسألة أولًا من دون تلميح.",
+	"review.step_begin": "{base}، نقطة قوة وأساس جيد لبدء هذا الموضوع الجديد.",
 	"profile.card_label": "الملف الشخصي",
 	"profile.grade": "الصف",
 	"profile.grade_note": "مجرد تسمية: تغييره لا يؤثر في أي تصنيف.",

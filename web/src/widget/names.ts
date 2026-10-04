@@ -48,6 +48,18 @@ export function knownTrapName(
 }
 
 /**
+ * knownTopicName is what the card calls a topic of the catalog, or undefined
+ * for a topic the card has no words for: inside a sentence its id would read
+ * as a word.
+ */
+export function knownTopicName(
+	words: Words<Key>,
+	id: string,
+): string | undefined {
+	return textOf(words, `topic.${id}`);
+}
+
+/**
  * trapAdvice is what the card advises the adult to do about a mistake of the
  * catalog's, in a sentence of its language, or undefined for a mistake the
  * card has no advice for: no advice at all is better than a wrong one.

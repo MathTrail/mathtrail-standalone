@@ -112,8 +112,8 @@ const dataFile = z.object({
  * whatever the child's name, and an example of a topic whose page is not
  * published, or at a level the topic is not taught at, so that a mistake in
  * the file stops the build rather than drawing a page with a part missing.
- * What the page "Why" draws, and the techniques, are held to the catalog as
- * well.
+ * What the home page and the page "Why" draw, and the techniques, are held
+ * to the catalog as well.
  */
 export function readSiteData(catalog: Catalog, data: unknown): SiteData {
 	const read = dataFile.safeParse(data);

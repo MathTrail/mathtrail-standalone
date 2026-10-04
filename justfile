@@ -665,6 +665,19 @@ site-serve port="8081": site
 ci-site: site
     npm run --silent check:site -- --base {{ SITE_BASE }} --dir ../{{ SITE_DIR }}
 
+# The pictures a shared link to the site shows, one for each language: its
+# home page as the site is built, laid out as a picture 1200 by 630 pixels and
+# photographed in Chromium, from the image the widget's layout is measured
+# in. They are written over site/assets/, for the change to be looked at
+# before it is kept; a change to the home page's first screen deserves new
+# ones.
+# Photograph the site's sharing pictures
+[working-directory('web')]
+site-og: site _playwright-pinned
+    docker run --rm --init --shm-size=1g --user "$(id -u):$(id -g)" -e HOME=/tmp \
+        -v "{{ justfile_directory() }}:{{ justfile_directory() }}" -w "{{ justfile_directory() }}/web" \
+        {{ PLAYWRIGHT_IMAGE }} node scripts/og.ts
+
 # -- Infrastructure ---------------------------------------------------------
 
 # Format the Terraform sources in place

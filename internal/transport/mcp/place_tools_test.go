@@ -60,6 +60,23 @@ func TestThePlaceOfTheFamilyIsKeptAndToldAsCodes(t *testing.T) {
 	}
 }
 
+// A file edited by hand can pair a state with a country it is not part of. The
+// words give such a region by its code alone, rather than calling it a state
+// of that country.
+func TestARegionOfAnotherCountryIsToldByItsCode(t *testing.T) {
+	t.Parallel()
+
+	p := profile.New(profile.Student{
+		Grade: 2, Pseudonym: "Otter", Interests: []string{"sport"}, Country: "FR", Region: "US-TX",
+	}, "test", lessonDay)
+	_, session := lesson(t, keptAsIs(t, p))
+
+	words := textOf(t, call(t, session, "get_profile", map[string]any{}))
+	if !strings.Contains(words, "Country: FR, region: US-TX.") || strings.Contains(words, "Texas") {
+		t.Errorf("the words are %q, want the region by its code alone", words)
+	}
+}
+
 // A country or a state the list does not have is refused by its field, by a
 // code a card can say in words of its own, and nothing is written.
 func TestAPlaceOffTheListIsRefusedByItsField(t *testing.T) {

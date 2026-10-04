@@ -97,11 +97,6 @@ const homeTask = "site_home";
  */
 export function readHome(catalog: CardCatalog, file: HomeFile): Home {
 	const { card } = file;
-	if (card.choice === card.correct) {
-		throw new Error(
-			`${homeCard} answers right, and the page shows a wrong answer`,
-		);
-	}
 	for (const letter of letters) {
 		const trap = card.traps[letter];
 		if (letter === card.correct) {
@@ -134,14 +129,7 @@ export function readHome(catalog: CardCatalog, file: HomeFile): Home {
 			);
 		}
 	}
-	const facts = factsOf(card);
-	checkCard(catalog, facts, homeCard);
-	answerOf(
-		facts,
-		{ language: "en", child: "Comet", question: "?", trap: "?", solution: "?" },
-		homeTask,
-		homeCard,
-	);
+	checkCard(catalog, factsOf(card), homeCard);
 	return { card, traps: file.traps };
 }
 

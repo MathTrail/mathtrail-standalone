@@ -586,6 +586,11 @@ func TestRefusals(t *testing.T) {
 			wantVar: "MATHTRAIL_SITE_URL",
 		},
 		{
+			name:    "the site on a host IDNA cannot spell",
+			environ: []string{"MATHTRAIL_SITE_URL=https://xn--zz.example"},
+			wantVar: "MATHTRAIL_SITE_URL",
+		},
+		{
 			name:    "the public url with an empty fragment",
 			environ: []string{"MATHTRAIL_PUBLIC_URL=https://mathtrail.example#"},
 			wantVar: "MATHTRAIL_PUBLIC_URL",
@@ -921,5 +926,38 @@ func TestTheSignInIsRead(t *testing.T) {
 	if cfg.GoogleSignIn() || cfg.Site() != "https://mathtrail.example" {
 		t.Errorf("GoogleSignIn() = %v, Site() = %q; want no client and the site without its slash",
 			cfg.GoogleSignIn(), cfg.Site())
+	}
+}
+
+// The site is named as a browser writes its origin, whichever way it was
+// written: in lower case, a name in ASCII, and no port the scheme implies. A
+// card holds an address to that origin exactly, so another spelling would
+// leave the card with no link the words have.
+func TestTheSiteIsNamedAsABrowserWritesItsOrigin(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name, given, want string
+	}{
+		{"in capitals", "HTTPS://MathTrail.Example", "https://mathtrail.example"},
+		{"with the port https implies", "https://mathtrail.example:443/", "https://mathtrail.example"},
+		{"with a port of its own", "https://mathtrail.example:8443", "https://mathtrail.example:8443"},
+		{"a name in another script", "https://bücher.example", "https://xn--bcher-kva.example"},
+		{"a name with hyphens a registry would refuse", "https://My--Site.example", "https://my--site.example"},
+		{"a name in another script, with an underscore", "https://Bü_cher.example", "https://xn--b_cher-3ya.example"},
+		{"this machine, with the port http implies", "http://localhost:80", "http://localhost"},
+		{"this machine by its address", "http://[::1]:8000", "http://[::1]:8000"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			cfg, err := config.LoadFrom(withSealKey("MATHTRAIL_SITE_URL=" + tc.given))
+			if err != nil {
+				t.Fatalf("LoadFrom() error = %v, want nil", err)
+			}
+			if got := cfg.Site(); got != tc.want {
+				t.Errorf("Site() = %q, want %q", got, tc.want)
+			}
+		})
 	}
 }

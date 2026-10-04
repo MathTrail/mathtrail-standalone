@@ -1,5 +1,6 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
 import type { McpUiHostContext } from "@modelcontextprotocol/ext-apps";
+import topics from "../../../content/catalogs/topics.json";
 import type { CallStage } from "../widget/bridge";
 import { rankCount } from "../widget/names";
 import type { AnswerResult } from "../widget/payload";
@@ -425,27 +426,15 @@ function topLine(card: Document) {
 	card.querySelector<HTMLElement>(".mt-bar")?.click();
 }
 
-// slugs are the slugs of the catalog's topics, each the name of its page on
-// the site, every one of them published.
-const slugs: Readonly<Record<string, string>> = {
-	"logic.ordering": "ordering",
-	"logic.knights_liars": "knights-and-liars",
-	"combinatorics.enumeration": "enumeration",
-	"counting.gaps": "gaps-and-boundaries",
-	"time.clocks": "clocks",
-	"time.calendar": "calendar-and-age",
-	"pigeonhole.basic": "pigeonhole-principle",
-	"parity.alternation": "parity-and-alternation",
-	"arithmetic.tricks": "arithmetic-with-a-trick",
-	"algorithms.weighing_pouring": "weighing-and-pouring",
-	"fractions.parts": "parts-and-shares",
-	"percent.basic": "percentages",
-	"ratio.sharing": "ratios-and-sharing",
-	"geometry.grid": "figures-on-a-grid",
-	"number.divisibility": "divisibility-and-remainders",
-	"logic.sets": "overlapping-groups",
-	"games.strategy": "winning-strategy",
-};
+// pages are the pages of the catalog's topics on the site, by the topic's id:
+// each its slug, and whether it is published.
+const pages: ReadonlyMap<string, { slug: string; site_page: boolean }> =
+	new Map(
+		topics.map((topic) => [
+			topic.id,
+			{ slug: topic.slug, site_page: topic.site_page },
+		]),
+	);
 
 // longProgress is the progress at every limit a card has to fit at its
 // narrowest: a pseudonym as long as a profile allows, every topic of the
@@ -490,8 +479,7 @@ const longProgress = {
 		"games.strategy",
 	].map((topic, at) => ({
 		...rankedAt(topic, at),
-		slug: slugs[topic],
-		site_page: true,
+		...pages.get(topic),
 	})),
 	overall: {
 		rating: 2700,
@@ -538,6 +526,7 @@ const longProgress = {
 			},
 			{ kind: "practice", topic: "geometry.grid" },
 			{ kind: "trap", trap: "ratio_total_confusion" },
+			{ kind: "begin", topic: "number.divisibility", base: "games.strategy" },
 		],
 	},
 	// The window's twenty answers shared by the mistakes with the longest
@@ -651,8 +640,9 @@ const trialMistake = {
 // for the mistake it keeps making, Parity and alternation for standing low and
 // falling, Gaps and boundaries for the hint, its last answer right; Clocks met
 // too few times to judge; and the steps of a trap, of a rhythm, of the tasks
-// tried without the hint, and the mistake that repeats as often as the one
-// advised, for every topic.
+// tried without the hint, the mistake that repeats as often as the one
+// advised, for every topic, and Knights and liars to begin, not met yet and
+// built on Ordering.
 const reviewedInFull = {
 	...moving,
 	topics: [
@@ -667,6 +657,18 @@ const reviewedInFull = {
 			correct: 1,
 			mastered: false,
 			skipped: 0,
+		},
+		{
+			topic: "logic.knights_liars",
+			rating: null,
+			rank: null,
+			share: null,
+			compared: null,
+			answers: 0,
+			correct: 0,
+			mastered: false,
+			skipped: 0,
+			...pages.get("logic.knights_liars"),
 		},
 	],
 	mistakes: [
@@ -696,6 +698,7 @@ const reviewedInFull = {
 			{ kind: "rhythm", topic: "parity.alternation" },
 			{ kind: "unaided", topic: "counting.gaps" },
 			{ kind: "trap", trap: "double_count" },
+			{ kind: "begin", topic: "logic.knights_liars", base: "logic.ordering" },
 		],
 	},
 };

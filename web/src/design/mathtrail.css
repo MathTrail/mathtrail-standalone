@@ -1175,7 +1175,6 @@
 .mt-page-link {
 	display: inline-flex;
 	flex-direction: column;
-	gap: 4px;
 	min-width: 0;
 }
 .mt-link {
@@ -1198,6 +1197,9 @@
 	line-height: 18px;
 	font-weight: 400;
 	color: var(--text-muted);
+}
+.mt-link-refused:not(:empty) {
+	margin-top: 4px;
 }
 .mt-link-address {
 	color: var(--text);

@@ -3,6 +3,7 @@ package mcpserver_test
 import (
 	"bytes"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 
@@ -28,6 +29,7 @@ type reviewPayload struct {
 			Kind  string `json:"kind"`
 			Topic string `json:"topic"`
 			Trap  string `json:"trap"`
+			Base  string `json:"base"`
 		} `json:"steps"`
 	} `json:"review"`
 }
@@ -102,6 +104,47 @@ func TestTheProgressCarriesTheReviewAndTellsIt(t *testing.T) {
 	}
 }
 
+// beganOnGaps is Petya long past the trial series with Gaps and boundaries
+// mastered, his other topics level with the overall one, and Calendar and
+// age, which builds on Gaps and boundaries, not begun.
+func beganOnGaps(p *profile.Profile) {
+	p.Ratings.Answers = 40
+	for id, topic := range p.Topics {
+		topic.Answers, topic.Correct, topic.Delta = 6, 4, 0
+		topic.WrongStreak, topic.TopStreak = 0, 0
+		topic.MasteredSince, topic.MasteredLevel = nil, nil
+		p.Topics[id] = topic
+	}
+	gaps := p.Topics["counting.gaps"]
+	level, since := rating.Grades34, profile.DateOf(lessonDay.AddDate(0, 0, -3))
+	gaps.MasteredSince, gaps.MasteredLevel = &since, &level
+	p.Topics["counting.gaps"] = gaps
+	delete(p.Topics, "time.calendar")
+}
+
+// A strong topic suggests beginning one that builds on it: the payload names
+// the topic and its base, and the words link the top of the topic's page.
+func TestTheReviewSuggestsATopicToBeginOnAStrongOne(t *testing.T) {
+	t.Parallel()
+
+	_, session := lesson(t, keptAs(t, "petya", beganOnGaps))
+	result := call(t, session, "get_progress", nil)
+
+	review := payloadOf[reviewPayload](t, result).Review
+	if review == nil || len(review.Steps) == 0 {
+		t.Fatalf("the progress carries no step: %s", rawPayload(t, result))
+	}
+	if last := review.Steps[len(review.Steps)-1]; last.Kind != "begin" || last.Topic != "time.calendar" ||
+		last.Base != "counting.gaps" || last.Trap != "" {
+		t.Errorf("the last step is %+v, want to begin Calendar and age on Gaps and boundaries", last)
+	}
+	want := "(https://mathtrail.app/en/topics/calendar-and-age/): a new topic to begin — " +
+		"Gaps and boundaries is a strength and a good base for it."
+	if words := textOf(t, result); !strings.Contains(words, "Calendar and age "+want) {
+		t.Errorf("the words are %q, want them to say %q", words, "Calendar and age "+want)
+	}
+}
+
 // During the trial series there is no review, in the payload or in words, and
 // the mistakes that repeat are still told.
 func TestTheTrialSeriesHasNoReview(t *testing.T) {
@@ -125,11 +168,15 @@ type sitePayload struct {
 		URL       string   `json:"url"`
 		Languages []string `json:"languages"`
 	} `json:"site"`
-	Topics []struct {
-		Topic    string `json:"topic"`
-		Slug     string `json:"slug"`
-		SitePage bool   `json:"site_page"`
-	} `json:"topics"`
+	Topics []topicPage `json:"topics"`
+}
+
+// topicPage is a topic of the progress and its page on the site, as a card
+// reads them.
+type topicPage struct {
+	Topic    string `json:"topic"`
+	Slug     string `json:"slug"`
+	SitePage bool   `json:"site_page"`
 }
 
 // The progress names the site the topics' pages are on, the languages it is
@@ -155,6 +202,10 @@ func TestTheProgressNamesTheSiteAndEachTopicsPage(t *testing.T) {
 	loaded, err := shipped()
 	if err != nil {
 		t.Fatalf("load the content: %v", err)
+	}
+	gaps := slices.IndexFunc(read.Topics, func(listed topicPage) bool { return listed.Topic == "counting.gaps" })
+	if gaps < 0 || read.Topics[gaps].Slug != "gaps-and-boundaries" || !read.Topics[gaps].SitePage {
+		t.Fatalf("topics = %+v, want Gaps and boundaries among them, its page gaps-and-boundaries published", read.Topics)
 	}
 	for _, topic := range read.Topics {
 		listed, _ := loaded.Topic(topic.Topic)

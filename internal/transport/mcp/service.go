@@ -73,8 +73,9 @@ type Parts struct {
 	// Learners is the key the name a child is counted under in a line is
 	// derived from.
 	Learners *learner.Key
-	// SiteURL is the address of the site the topics' pages are on, a scheme and
-	// a host alone: the card and the model's words link a topic there.
+	// SiteURL is the origin of the site the topics' pages are on, as a browser
+	// writes it: the card links a topic there only at that exact origin, and
+	// the model's words name the same.
 	SiteURL string
 }
 
@@ -111,10 +112,8 @@ func NewService(parts *Parts) (*Service, error) {
 		return nil, fmt.Errorf("%w: the tools need traces", ErrSettings)
 	case parts.Learners == nil:
 		return nil, fmt.Errorf("%w: the tools need the key children are counted under", ErrSettings)
-	}
-	site, isSite := siteOf(parts.SiteURL)
-	if !isSite {
-		return nil, fmt.Errorf("%w: the tools need the site's address, a scheme and a host alone", ErrSettings)
+	case parts.SiteURL == "":
+		return nil, fmt.Errorf("%w: the tools need the site's address", ErrSettings)
 	}
 	return &Service{
 		store:    parts.Store,
@@ -133,7 +132,7 @@ func NewService(parts *Parts) (*Service, error) {
 		},
 		tracer:   parts.Traces.Tracer(tracerScope),
 		learners: parts.Learners,
-		site:     site,
+		site:     parts.SiteURL,
 	}, nil
 }
 

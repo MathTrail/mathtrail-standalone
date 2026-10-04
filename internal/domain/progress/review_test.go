@@ -445,6 +445,116 @@ func TestOfMistakesAsFrequentTheOneNotYetAdvisedIsGiven(t *testing.T) {
 	}
 }
 
+// beginSteps are the steps of review that suggest a topic to begin.
+func beginSteps(review *progress.Review) []progress.Step {
+	var begun []progress.Step
+	for _, step := range review.Steps {
+		if step.Kind == progress.StepBegin {
+			begun = append(begun, step)
+		}
+	}
+	return begun
+}
+
+// A strong topic suggests one step more, the last: to begin a topic the child
+// has answered nothing of, which builds on it. Petya's Gaps and boundaries is
+// mastered, and Calendar and age, which builds on it, is within his reach and
+// new to him.
+func TestAStrongTopicSuggestsBeginningOneThatBuildsOnIt(t *testing.T) {
+	t.Parallel()
+
+	p := judgedChild(t)
+	with(p, "counting.gaps", masteredAt)
+
+	review := reviewed(t, p)
+
+	want := []progress.Step{{Kind: progress.StepBegin, Topic: "time.calendar", Base: "counting.gaps"}}
+	if got := beginSteps(review); !reflect.DeepEqual(got, want) {
+		t.Fatalf("the steps to begin a topic are %+v, want %+v", got, want)
+	}
+	if last := review.Steps[len(review.Steps)-1]; last.Kind != progress.StepBegin {
+		t.Errorf("the last step is %+v, want the one that begins a topic", last)
+	}
+}
+
+// No step begins a topic out of reach, however strong its base — Parts and
+// shares is taught from grade 5, on Arithmetic with a trick, and Petya is in
+// grade 3, though a task of it was once left without an answer —, nor one
+// begun already: Knights and liars builds on Ordering, and Petya has answered
+// it.
+func TestNoStepBeginsATopicOutOfReachOrBegunAlready(t *testing.T) {
+	t.Parallel()
+
+	p := judgedChild(t)
+	with(p, "arithmetic.tricks", masteredAt)
+	with(p, "logic.ordering", masteredAt)
+	p.Topics["fractions.parts"] = profile.Topic{Skipped: 1}
+
+	if got := beginSteps(reviewed(t, p)); len(got) != 0 {
+		t.Errorf("the steps to begin a topic are %+v, want none", got)
+	}
+}
+
+// A topic only skipped has no answer, and may be begun: a task left without one
+// says nothing of what the child knows.
+func TestATopicOnlySkippedMayBeBegun(t *testing.T) {
+	t.Parallel()
+
+	p := judgedChild(t)
+	with(p, "counting.gaps", masteredAt)
+	p.Topics["time.calendar"] = profile.Topic{Skipped: 2}
+
+	want := []progress.Step{{Kind: progress.StepBegin, Topic: "time.calendar", Base: "counting.gaps"}}
+	if got := beginSteps(reviewed(t, p)); !reflect.DeepEqual(got, want) {
+		t.Errorf("the steps to begin a topic are %+v, want %+v", got, want)
+	}
+}
+
+// Of the topics that could be begun, the one the rule sets next is the one;
+// otherwise the first in the catalog's order. Gaps and boundaries opens
+// Calendar and age, and Enumeration opens Weighing and pouring, later in the
+// catalog.
+func TestTheTopicTheRuleSetsNextIsTheOneToBegin(t *testing.T) {
+	t.Parallel()
+
+	catalog, p := embedded(t), judgedChild(t)
+	with(p, "counting.gaps", masteredAt)
+	with(p, "combinatorics.enumeration", masteredAt)
+	summary := summaryOf(t, p, catalog)
+	mistakes := progress.Mistakes(p.Recent, catalog, repeatsAt)
+
+	for _, tc := range []struct {
+		next, want string
+	}{
+		{"algorithms.weighing_pouring", "algorithms.weighing_pouring"},
+		{"logic.ordering", "time.calendar"},
+	} {
+		summary.Next.Topic = tc.next
+		review := progress.ReviewOf(p, catalog, &summary, mistakes, repeatsAt, today)
+		if got := beginSteps(review); len(got) != 1 || got[0].Topic != tc.want {
+			t.Errorf("with %s next, the steps to begin a topic are %+v, want one for %s", tc.next, got, tc.want)
+		}
+	}
+}
+
+// The base named is the first of the topic's bases in the order the strong
+// topics are named — the mastered first —, not in the catalog's: Weighing and
+// pouring builds on Enumeration and on the Pigeonhole principle, and the
+// mastered Pigeonhole principle is named before Enumeration, which only stands
+// high.
+func TestTheBaseNamedIsTheFirstStrongOne(t *testing.T) {
+	t.Parallel()
+
+	p := judgedChild(t)
+	with(p, "pigeonhole.basic", masteredAt)
+	with(p, "combinatorics.enumeration", func(topic *profile.Topic) { topic.Delta = half })
+
+	want := []progress.Step{{Kind: progress.StepBegin, Topic: "algorithms.weighing_pouring", Base: "pigeonhole.basic"}}
+	if got := beginSteps(reviewed(t, p)); !reflect.DeepEqual(got, want) {
+		t.Errorf("the steps to begin a topic are %+v, want %+v", got, want)
+	}
+}
+
 // reviewTopics are the topics the generated profiles of the properties are
 // made of: Petya's, and one the catalog no longer has.
 var reviewTopics = []string{
@@ -506,20 +616,23 @@ func generatedChild(judged *profile.Profile, states, picks []int, deltas, moves 
 }
 
 // Whatever the topics and the window say, no topic is both strong and one to
-// develop; each side names three at most; every step is for a topic to
-// develop, or for none, and names only topics and traps of the catalog; and
-// one profile is always reviewed the same.
+// develop; each side names three at most; every step but the one that begins
+// a topic is for a topic to develop, or for none; a topic to begin is
+// suggested whenever one can be, once, on a strong base; every step names only
+// topics and traps of the catalog; and one profile is always reviewed the
+// same.
 func TestTheReviewHoldsItsProperties(t *testing.T) {
 	t.Parallel()
 
 	catalog, judged := embedded(t), judgedChild(t)
 	properties := gopter.NewProperties(nil)
-	properties.Property("apart, three at most, steps for the topics to develop, of the catalog, the same every time", prop.ForAll(
+	properties.Property("apart, three at most, steps for the topics to develop, one topic begun on a strong base, of the catalog, the same every time", prop.ForAll(
 		func(states, picks []int, deltas, moves []float64) bool {
 			p := generatedChild(judged, states, picks, deltas, moves)
-			review := reviewedIn(t, p, catalog)
+			review, summary := reviewedIn(t, p, catalog), summaryOf(t, p, catalog)
 			return reflect.DeepEqual(review, reviewedIn(t, p, catalog)) &&
-				apartAndFew(review) && stepsForTheTopicsToDevelop(review) && ofTheCatalog(review, catalog)
+				apartAndFew(review) && stepsForTheTopicsToDevelop(review) &&
+				beginsOneTopicOnAStrongBase(review, &summary, catalog) && ofTheCatalog(review, catalog)
 		},
 		children()...,
 	))
@@ -534,13 +647,40 @@ func apartAndFew(review *progress.Review) bool {
 		!slices.ContainsFunc(strong, func(id string) bool { return slices.Contains(develop, id) })
 }
 
-// stepsForTheTopicsToDevelop says every step of the review is for a topic to
-// develop, or for none.
+// stepsForTheTopicsToDevelop says every step of the review but the one that
+// begins a topic is for a topic to develop, or for none.
 func stepsForTheTopicsToDevelop(review *progress.Review) bool {
 	develop := topicsOf(review.Develop)
 	return !slices.ContainsFunc(review.Steps, func(step progress.Step) bool {
-		return step.Topic != "" && !slices.Contains(develop, step.Topic)
+		return step.Kind != progress.StepBegin && step.Topic != "" && !slices.Contains(develop, step.Topic)
 	})
+}
+
+// beginsOneTopicOnAStrongBase says the review suggests a topic to begin when,
+// and only when, a topic within reach has no answer and builds on a strong
+// one: one step at most, the last, for such a topic, its base a strong topic
+// it builds on, with none it builds on named strong before it.
+func beginsOneTopicOnAStrongBase(review *progress.Review, summary *progress.Summary, catalog *content.Content) bool {
+	onAStrongBase := func(topic string) bool {
+		return slices.ContainsFunc(review.Strong, func(judged progress.Judged) bool {
+			return slices.Contains(catalog.BasesOf(topic), judged.Topic)
+		})
+	}
+	could := slices.ContainsFunc(summary.Topics, func(topic progress.Topic) bool {
+		return topic.InReach && topic.Answers == 0 && onAStrongBase(topic.ID)
+	})
+	begun := beginSteps(review)
+	if len(begun) == 0 {
+		return !could
+	}
+	step := begun[0]
+	listed := slices.IndexFunc(summary.Topics, func(topic progress.Topic) bool { return topic.ID == step.Topic })
+	bases := catalog.BasesOf(step.Topic)
+	base := slices.IndexFunc(review.Strong, func(judged progress.Judged) bool { return judged.Topic == step.Base })
+	return len(begun) == 1 && review.Steps[len(review.Steps)-1] == step &&
+		listed >= 0 && summary.Topics[listed].InReach && summary.Topics[listed].Answers == 0 &&
+		base >= 0 && slices.Contains(bases, step.Base) &&
+		!slices.ContainsFunc(review.Strong[:base], func(judged progress.Judged) bool { return slices.Contains(bases, judged.Topic) })
 }
 
 // ofTheCatalog says every topic and every trap the review names is one the
@@ -552,7 +692,7 @@ func ofTheCatalog(review *progress.Review, catalog *content.Content) bool {
 		traps = append(traps, judged.Trap)
 	}
 	for _, step := range review.Steps {
-		topics, traps = append(topics, step.Topic), append(traps, step.Trap)
+		topics, traps = append(topics, step.Topic, step.Base), append(traps, step.Trap)
 	}
 	return !slices.ContainsFunc(topics, func(id string) bool { return id != "" && !catalog.HasTopic(id) }) &&
 		!slices.ContainsFunc(traps, func(id string) bool { return id != "" && !catalog.HasTrap(id) })

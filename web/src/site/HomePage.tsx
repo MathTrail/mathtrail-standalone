@@ -11,7 +11,7 @@ import {
 	connectorURL,
 	sourceURL,
 } from "./brand";
-import { ChatFrame, ChatLines } from "./Chat";
+import { ChatFrame, ChildAsks } from "./Chat";
 import { frontPage } from "./content";
 import { progressOf } from "./data";
 import {
@@ -276,21 +276,7 @@ function Steps({
 							result={answered.result}
 							locale={locale}
 						/>
-						<ChatLines
-							label={page.text("lesson.chat.label")}
-							lines={[
-								{
-									from: "child",
-									speaker: page.text("lesson.chat.child"),
-									said: page.text("lesson.chat.question"),
-								},
-								{
-									from: "model",
-									speaker: page.text("lesson.chat.model"),
-									said: page.text("lesson.chat.reply"),
-								},
-							]}
-						/>
+						<ChildAsks page={page} at="lesson.chat" />
 					</Chat>
 				</Step>
 				<Step page={page} name="progress" number={4}>

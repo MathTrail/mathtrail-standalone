@@ -5,6 +5,7 @@ import (
 	"net/netip"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/leanovate/gopter"
@@ -131,4 +132,63 @@ func TestLookupsHoldTheirProperties(t *testing.T) {
 	))
 
 	properties.TestingRun(t)
+}
+
+// A lookup may still be running when the service stops and lets go of the
+// database: the server gives up waiting for a request it cannot drain, and
+// leaves it running. Close waits for the lookups under way, and a lookup after
+// it finds no country, rather than reading a file no longer in memory.
+func TestALookupAsTheDatabaseClosesFindsACountryOrNothing(t *testing.T) {
+	t.Parallel()
+
+	database, err := geoip.Open(geoiptest.Write(t))
+	if err != nil {
+		t.Fatalf("Open() error = %v, want none", err)
+	}
+	family := netip.MustParseAddr(geoiptest.Family)
+
+	// The lookups go on until Close has returned, so that Close always runs
+	// while lookups are under way.
+	const lookers = 8
+	var started, done sync.WaitGroup
+	started.Add(lookers)
+	done.Add(lookers)
+	closed := make(chan struct{})
+	for range lookers {
+		go func() {
+			defer done.Done()
+			lookUpUntil(t, database, family, started.Done, closed)
+		}()
+	}
+	started.Wait()
+	if err := database.Close(); err != nil {
+		t.Errorf("Close() error = %v, want none", err)
+	}
+	close(closed)
+	done.Wait()
+
+	if got := database.Country(family); got != "" {
+		t.Errorf("Country() after Close = %q, want nothing", got)
+	}
+}
+
+// lookUpUntil looks the family's address up again and again until stop is
+// closed, says it has started once its first lookup is done, and holds every
+// lookup to the country of the address or to nothing.
+func lookUpUntil(t *testing.T, database geoip.Database, family netip.Addr, started func(), stop <-chan struct{}) {
+	t.Helper()
+
+	for first := true; ; first = false {
+		if got := database.Country(family); got != geoiptest.Country && got != "" {
+			t.Errorf("Country() = %q while the database closes, want %q or nothing", got, geoiptest.Country)
+		}
+		if first {
+			started()
+		}
+		select {
+		case <-stop:
+			return
+		default:
+		}
+	}
 }

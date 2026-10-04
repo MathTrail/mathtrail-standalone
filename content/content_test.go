@@ -491,11 +491,16 @@ func TestWhatIsHandedOutIsACopy(t *testing.T) {
 		t.Error("editing the levels of a topic handed out changed the catalog")
 	}
 
-	// So are the topics a topic builds on.
+	// So are the topics a topic builds on, handed out with the topic or alone.
 	knights, _ := c.Topic("logic.knights_liars")
 	knights.BuildsOn[0] = "edited.by.a.caller"
 	if again, _ := c.Topic("logic.knights_liars"); again.BuildsOn[0] == "edited.by.a.caller" {
 		t.Error("editing the bases of a topic handed out changed the catalog")
+	}
+	bases := c.BasesOf("logic.knights_liars")
+	bases[0] = "edited.by.a.caller"
+	if again := c.BasesOf("logic.knights_liars"); again[0] == "edited.by.a.caller" {
+		t.Error("editing the bases handed out alone changed the catalog")
 	}
 
 	// A reference task holds its options in a map, and a map is shared however

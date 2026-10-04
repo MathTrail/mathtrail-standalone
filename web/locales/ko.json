@@ -134,6 +134,7 @@
 	"review.step_rhythm": "막대가 돌아올 때까지 하루에 짧은 문제 두세 개씩.",
 	"review.step_practice": "이 주제의 문제를 몇 개 더 풀어 보세요. MathTrail이 아이 수준에 맞게 골라 줘요.",
 	"review.step_unaided": "문제마다 먼저 힌트 없이 풀어 보세요.",
+	"review.step_begin": "‘{base}’ 주제는 강점이라 이 새 주제를 시작하기에 좋은 기반이에요.",
 	"profile.card_label": "프로필",
 	"profile.grade": "학년",
 	"profile.grade_note": "표시용일 뿐입니다. 바꿔도 점수는 달라지지 않습니다.",

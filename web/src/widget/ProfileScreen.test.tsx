@@ -92,6 +92,17 @@ describe("the profile's card", () => {
 		]);
 	});
 
+	test("shows by its code a state the file pairs with another country", async () => {
+		const { root } = await draw({
+			...inSwahili,
+			profile: { ...inSwahili.profile, country: "FR", region: "US-TX" },
+		});
+
+		expect(fields(root, "Profile · for the parent").slice(-1)).toEqual([
+			["State", "US-TX"],
+		]);
+	});
+
 	test("says where the profile's file is, and what the parent can do with it, each under the question it answers", async () => {
 		const { root } = await draw(inSwahili);
 

@@ -4352,8 +4352,8 @@ exports[`the screens in Arabic > the review of the progress, a page the chat did
                   حصر الحالات
                 </a>
                 <span
+                  aria-live="polite"
                   class="mt-link-refused"
-                  role="status"
                 >
                   <span>
                     لم تفتح الدردشة الصفحة. عنوانها:
@@ -4397,6 +4397,10 @@ exports[`the screens in Arabic > the review of the progress, a page the chat did
                 >
                   الزوجية والتناوب
                 </a>
+                <span
+                  aria-live="polite"
+                  class="mt-link-refused"
+                />
               </span>
             </span>
             <span>

@@ -60,6 +60,16 @@ const (
 	ReasonFell Reason = "fell"
 )
 
+// Catalog is what the review reads of the catalog: what the rule that chooses
+// a task reads, and the topics each topic builds on, which that rule never
+// reads.
+type Catalog interface {
+	tutor.Catalog
+	// BasesOf lists the topics a topic builds on, in catalog order: none for
+	// a foundation, and none for a topic the catalog does not have.
+	BasesOf(topic string) []string
+}
+
 // StepKind is what a step of the review advises.
 type StepKind string
 
@@ -76,6 +86,10 @@ const (
 	StepPractice StepKind = "practice"
 	// StepUnaided is trying each task of a topic without the hint first.
 	StepUnaided StepKind = "unaided"
+	// StepBegin is starting a topic the child has answered no task of, which
+	// builds on a topic the review calls strong: the step names the topic and
+	// that base.
+	StepBegin StepKind = "begin"
 )
 
 // Review is the review of where the child stands, for the adult: the topics
@@ -99,11 +113,13 @@ type Judged struct {
 }
 
 // Step is one step of the review: what it advises, the topic it is for — none
-// for the step that holds for every topic — and the trap whose advice it is.
+// for the step that holds for every topic —, the trap whose advice it is, and
+// the strong topic a topic to begin builds on.
 type Step struct {
 	Kind  StepKind
 	Topic string
 	Trap  string
+	Base  string
 }
 
 // ReviewOf is the review of where the child stands, worked out from the
@@ -120,7 +136,8 @@ type Step struct {
 // are those the rule could set now, the topic it sets next first, so that the
 // first step agrees with it, and the lowest after it; the strong ones are the
 // mastered first and the highest after them; ties keep the catalog's order.
-func ReviewOf(p *profile.Profile, catalog tutor.Catalog, summary *Summary, mistakes []Mistake, repeats int, today profile.Date) *Review {
+// The last step may suggest a topic to begin, built on a strong one.
+func ReviewOf(p *profile.Profile, catalog Catalog, summary *Summary, mistakes []Mistake, repeats int, today profile.Date) *Review {
 	if summary.Trial != nil {
 		return nil
 	}
@@ -151,6 +168,9 @@ func ReviewOf(p *profile.Profile, catalog tutor.Catalog, summary *Summary, mista
 	review.Develop = firstOf(develop, func(a, b weighed) int { return cmp.Compare(a.delta, b.delta) })
 	review.Strong = firstOf(strong, func(a, b weighed) int { return cmp.Compare(b.delta, a.delta) })
 	review.Steps = stepsOf(review.Develop, mistakes)
+	if step, found := beginStep(summary.Topics, summary.Next.Topic, catalog, review.Strong); found {
+		review.Steps = append(review.Steps, step)
+	}
 	return review
 }
 
@@ -315,4 +335,47 @@ func stepsOf(develop []Judged, mistakes []Mistake) []Step {
 		}
 	}
 	return steps
+}
+
+// beginStep is the step that suggests a new topic: one the rule could set now
+// and the child has answered no task of, which builds on a topic the review
+// calls strong — the topic the rule sets next when it is one, and otherwise
+// the first such in the catalog's order —, its base the first of the strong
+// topics, in the order they are named, that it builds on. A topic only skipped
+// has no answer, and may be begun. There is none when no topic is both new and
+// built on a strong one.
+func beginStep(topics []Topic, next string, catalog Catalog, strong []Judged) (Step, bool) {
+	var first *Step
+	for i := range topics {
+		topic := &topics[i]
+		if !topic.InReach || topic.Answers > 0 {
+			continue
+		}
+		base := strongBase(catalog.BasesOf(topic.ID), strong)
+		if base == "" {
+			continue
+		}
+		step := Step{Kind: StepBegin, Topic: topic.ID, Base: base}
+		if topic.ID == next {
+			return step, true
+		}
+		if first == nil {
+			first = &step
+		}
+	}
+	if first == nil {
+		return Step{}, false
+	}
+	return *first, true
+}
+
+// strongBase is the first of the strong topics, in the order the review names
+// them, that is one of bases, or none when no base is strong.
+func strongBase(bases []string, strong []Judged) string {
+	for _, judged := range strong {
+		if slices.Contains(bases, judged.Topic) {
+			return judged.Topic
+		}
+	}
+	return ""
 }

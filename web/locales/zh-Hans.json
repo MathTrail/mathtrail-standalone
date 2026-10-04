@@ -134,6 +134,7 @@
 	"review.step_rhythm": "每天两三道短题，直到进度条回来。",
 	"review.step_practice": "这个专题再多做几道题，MathTrail 会按孩子的水平挑选。",
 	"review.step_unaided": "每道题先试着不看提示。",
+	"review.step_begin": "“{base}”是强项，也是开始这个新专题的好基础。",
 	"profile.card_label": "档案",
 	"profile.grade": "年级",
 	"profile.grade_note": "只是一个标签：修改它不会改变评分。",

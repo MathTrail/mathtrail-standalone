@@ -13,6 +13,7 @@ import {
 	parseBase,
 	sectionAddress,
 } from "./addresses";
+import { sharingPicturePath } from "./brand";
 import {
 	frontPage,
 	readTexts,
@@ -177,6 +178,8 @@ function headOf(
 		description,
 		canonical: site.base + address(locale, name),
 		alternates: alternatesOf(site.texts, site.base, fallbackLocale, name),
+		image: site.base + sharingPicturePath(locale),
+		imageAlt: site.wordsOf(locale).text("share.picture"),
 	};
 }
 
@@ -235,6 +238,8 @@ function apex(site: Site): string {
 				description: texts.front.description,
 				canonical: `${base}/`,
 				alternates: alternatesOf(texts, base, fallbackLocale, frontPage),
+				image: base + sharingPicturePath(fallbackLocale),
+				imageAlt: words.text("share.picture"),
 			}}
 			choices={texts.locales.map((locale) => {
 				const own = site.wordsOf(locale);

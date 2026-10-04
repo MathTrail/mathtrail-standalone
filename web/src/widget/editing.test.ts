@@ -232,13 +232,18 @@ describe("the places the form offers", () => {
 	// from that file: a country or a state the service would refuse is never
 	// offered, and none the service takes is missing.
 	test("are the service's own list", () => {
-		expect(countryCodes.length).toBe(250);
+		expect(countryCodes).toHaveLength(250);
 		expect(countryCodes).toContain("US");
 		expect(countryCodes).toContain("XK");
 		expect(regionsOf("US")).toHaveLength(51);
 		expect(regionsOf("FR")).toEqual([]);
-		expect(regionName("US-TX")).toBe("Texas");
-		expect(regionName("US-ZZ")).toBeUndefined();
+		expect(regionName("US", "US-TX")).toBe("Texas");
+		expect(regionName("US", "US-ZZ")).toBeUndefined();
+		expect(regionName("FR", "US-TX")).toBeUndefined();
+		// The codes come from a file a person can edit, and a code that names
+		// something every object has names no region.
+		expect(regionName("constructor", "name")).toBeUndefined();
+		expect(regionName("US", "valueOf")).toBeUndefined();
 	});
 
 	test("are sent as the codes the adult changed, and no others", () => {

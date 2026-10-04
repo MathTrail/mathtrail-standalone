@@ -30,11 +30,13 @@ type judgedOut struct {
 }
 
 // stepOut is one step of the review: what it advises, the topic it is for — none
-// for the step that holds for every topic — and the trap whose advice it is.
+// for the step that holds for every topic —, the trap whose advice it is, and
+// the strong topic a topic to begin builds on.
 type stepOut struct {
 	Kind  string `json:"kind"`
 	Topic string `json:"topic,omitempty"`
 	Trap  string `json:"trap,omitempty"`
+	Base  string `json:"base,omitempty"`
 }
 
 func reviewOf(review *progress.Review) *reviewOut {
@@ -43,7 +45,7 @@ func reviewOf(review *progress.Review) *reviewOut {
 	}
 	steps := make([]stepOut, 0, len(review.Steps))
 	for _, step := range review.Steps {
-		steps = append(steps, stepOut{Kind: string(step.Kind), Topic: step.Topic, Trap: step.Trap})
+		steps = append(steps, stepOut{Kind: string(step.Kind), Topic: step.Topic, Trap: step.Trap, Base: step.Base})
 	}
 	return &reviewOut{
 		Strong:  judgedOf(review.Strong),
@@ -160,13 +162,17 @@ func (s *Service) stepTopic(step progress.Step, language string) string {
 }
 
 // stepAnchor is the part of a topic's page a step leads to: where the
-// mistakes are told, for a trap's advice, and how to help at home, for the
-// rest.
+// mistakes are told, for a trap's advice; the top of the page, for a topic to
+// begin; and how to help at home, for the rest.
 func stepAnchor(kind progress.StepKind) string {
-	if kind == progress.StepTrap {
+	switch kind {
+	case progress.StepTrap:
 		return anchorTraps
+	case progress.StepBegin:
+		return ""
+	default:
+		return anchorHome
 	}
-	return anchorHome
 }
 
 // stepAdvice is what a step advises, in a sentence: a trap's advice as the
@@ -185,6 +191,8 @@ func (s *Service) stepAdvice(step progress.Step) string {
 		return "a few more tasks in it; MathTrail sets them where the child stands."
 	case progress.StepUnaided:
 		return "try each task first without the hint."
+	case progress.StepBegin:
+		return "a new topic to begin — " + s.topicName(step.Base) + " is a strength and a good base for it."
 	default:
 		return ""
 	}

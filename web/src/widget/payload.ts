@@ -413,12 +413,13 @@ const judged = z.object({
 });
 
 // step is a step the review advises: what it advises, by a code, the topic it
-// is for — none for the step that holds for every topic — and the trap whose
-// advice it is.
+// is for — none for the step that holds for every topic —, the trap whose
+// advice it is, and the strong topic a topic to begin builds on.
 const step = z.object({
 	kind: z.string(),
 	topic: z.string().optional(),
 	trap: z.string().optional(),
+	base: z.string().optional(),
 });
 
 // review is the review of the topics for the adult. A progress of the trial
@@ -457,7 +458,8 @@ export type Judged = z.infer<typeof judged>;
 
 /**
  * ReviewStep is a step the review advises: its kind, the topic it is for, if
- * it is for one, and the trap whose advice it is.
+ * it is for one, the trap whose advice it is, and the strong topic a topic to
+ * begin builds on.
  */
 export type ReviewStep = z.infer<typeof step>;
 

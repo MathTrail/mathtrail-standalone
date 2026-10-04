@@ -308,7 +308,7 @@ func (s *Service) progressText(
 		s.topicsText(summary.Topics),
 		s.recentText(summary.Recent, summary.Skipped),
 		s.mistakesText(mistakes),
-		s.reviewText(review, pageLanguage(p.Student.UILanguage)),
+		s.reviewText(review, pageLanguage(&p.Student)),
 		s.nextText(&summary.Next),
 	)
 }

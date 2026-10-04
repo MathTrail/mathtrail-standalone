@@ -38,3 +38,15 @@ export const contactAddress = "altedtech.info@gmail.com";
  * two cannot drift apart.
  */
 export const markPath = "/assets/favicon.svg";
+
+/**
+ * sharingPicturePath is where the picture a shared link to a page of locale
+ * shows is served, one for each language of the site. It is kept in the
+ * site's own assets under the same name.
+ */
+export function sharingPicturePath(locale: string): string {
+	return `/assets/og-${locale}.png`;
+}
+
+/** sharingPictureSize is the size of a sharing picture, in pixels. */
+export const sharingPictureSize = { width: 1200, height: 630 } as const;

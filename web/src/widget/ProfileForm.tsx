@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "preact/hooks";
+import { useEffect, useMemo, useRef } from "preact/hooks";
 import {
 	Button,
 	CheckGroup,
@@ -55,6 +55,14 @@ export function ProfileForm({
 	useEffect(() => {
 		first.current?.focus({ preventScroll: true });
 	}, []);
+	// Some two hundred and fifty countries are named and put in order for their
+	// list, so it is drawn up again only when what it shows can change, and not
+	// at every key typed into another field.
+	const keptCountry = editing.from.country ?? "";
+	const countries = useMemo(
+		() => countryChoices(words, [keptCountry, draft.country]),
+		[words, keptCountry, draft.country],
+	);
 	return (
 		<form
 			class="mt-form"
@@ -125,10 +133,7 @@ export function ProfileForm({
 				<SelectField
 					label={words.text("profile.country")}
 					value={draft.country}
-					choices={countryChoices(words, [
-						editing.from.country ?? "",
-						draft.country,
-					])}
+					choices={countries}
 					note={words.text("profile.country_note")}
 					problem={said.get("country")}
 					onChange={(country) => onChange(withCountry(draft, country))}

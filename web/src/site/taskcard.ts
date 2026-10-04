@@ -69,17 +69,28 @@ export type CardCatalog = {
 };
 
 /**
- * checkCard refuses a card the catalog would not have set: of a topic or a
- * trap it does not have, or in a grade the topic is not taught in. It refuses
- * a right answer too, and "I don't know", which names no trap: neither is the
- * card a page talks about. where names the card in what it says, as "the card
- * on the page Why".
+ * checkCard refuses a card the catalog would not have set or the widget could
+ * not draw: of a topic or a trap the catalog does not have, in a grade the
+ * topic is not taught in, or one the widget's own readers of a task and of an
+ * answer refuse. It refuses a right answer too, and "I don't know", which
+ * names no trap: neither is the card a page talks about. where names the card
+ * in what it says, as "the card on the page Why".
  */
 export function checkCard(
 	catalog: CardCatalog,
 	card: CardFacts,
 	where: string,
 ): void {
+	if (!letters.includes(card.choice as Letter)) {
+		throw new Error(
+			`${where} picks ${card.choice}, and the page shows an option picked: a letter A to E`,
+		);
+	}
+	if (card.choice === card.correct) {
+		throw new Error(
+			`${where} answers right, and the page shows a wrong answer`,
+		);
+	}
 	const topic = catalog.topics.find(({ id }) => id === card.topic);
 	if (topic === undefined) {
 		throw new Error(
@@ -97,17 +108,20 @@ export function checkCard(
 			`${where} names the trap ${card.trap}, which the catalog does not have`,
 		);
 	}
-	if (!letters.includes(card.choice as Letter)) {
-		throw new Error(
-			`${where} picks ${card.choice}, and the page shows an option picked: a letter A to E`,
-		);
-	}
-	if (card.choice === card.correct) {
-		throw new Error(
-			`${where} answers right, and the page shows a wrong answer`,
-		);
-	}
+	answerOf(card, anyWords, checkedTask, where);
 }
+
+// anyWords are words any card can be read with while it is checked, and
+// checkedTask the id of its task then: what the widget's readers refuse is in
+// the card's facts, and the page's words come with the page.
+const anyWords: CardWords = {
+	language: "en",
+	child: "Comet",
+	question: "?",
+	trap: "?",
+	solution: "?",
+};
+const checkedTask = "site_card";
 
 /**
  * handedOf is card's task with the words said, as the widget reads a task

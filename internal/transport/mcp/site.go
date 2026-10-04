@@ -1,12 +1,11 @@
 package mcpserver
 
 import (
-	"net"
-	"net/url"
 	"slices"
 	"strings"
 
 	"github.com/MathTrail/mathtrail-standalone/content"
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 )
 
 // siteLanguages are the languages the site is written in, every page of it in
@@ -24,42 +23,17 @@ const (
 	anchorHome  = "#home"
 )
 
-// defaultPorts are the ports a browser leaves out of an origin, by scheme.
-var defaultPorts = map[string]string{"https": "443", "http": "80"}
-
-// siteOf is address as the origin of the site the topics' pages are on — its
-// scheme and its host, in lower case and with no port a browser would leave
-// out — and whether address is one at all: an address with a path, a query, a
-// fragment or credentials names no site. The card holds an address it links to
-// to the exact origin, so the words and the card name the site alike.
-func siteOf(address string) (string, bool) {
-	parsed, err := url.Parse(address)
-	if err != nil || parsed.Host == "" || parsed.User != nil ||
-		(parsed.Path != "" && parsed.Path != "/") || strings.ContainsAny(address, "?#") {
-		return "", false
-	}
-	scheme := strings.ToLower(parsed.Scheme)
-	if scheme != "https" && scheme != "http" {
-		return "", false
-	}
-	host := strings.ToLower(parsed.Hostname())
-	if port := parsed.Port(); port != "" && port != defaultPorts[scheme] {
-		host = net.JoinHostPort(host, port)
-	} else if strings.Contains(host, ":") {
-		host = "[" + host + "]"
-	}
-	return scheme + "://" + host, true
-}
-
-// pageLanguage is the language the topics' pages are linked in for a lesson
-// in tag: the tag's own when the site is written in it, else the first
-// language it narrows down to that the site is written in — pt-BR to pt —,
-// and with none, or no lesson language chosen, the one every page is in.
-func pageLanguage(tag *string) string {
-	if tag == nil {
+// pageLanguage is the language the topics' pages are linked in for the
+// child's lessons: the language the parent chose, read as any tag is read,
+// when the site is written in it, else the first language it narrows down to
+// that the site is written in — pt-BR to pt —, and with none, or no language
+// chosen, the one every page is in.
+func pageLanguage(student *profile.Student) string {
+	chosen, ok := student.ChosenLanguage()
+	if !ok {
 		return everyPageLanguage
 	}
-	for wanted := *tag; wanted != ""; {
+	for wanted := chosen; wanted != ""; {
 		if slices.Contains(siteLanguages, wanted) {
 			return wanted
 		}
@@ -76,7 +50,7 @@ func pageLanguage(tag *string) string {
 // none for the top of the page —, or nothing when the topic has no page there
 // yet. Nothing of the child is in it: the site, the language, the topic.
 func pageAddress(site, language string, topic *content.Topic, anchor string) string {
-	if site == "" || !topic.SitePage || topic.Slug == "" {
+	if !topic.SitePage || topic.Slug == "" {
 		return ""
 	}
 	return site + "/" + language + "/topics/" + topic.Slug + "/" + anchor

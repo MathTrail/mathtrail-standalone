@@ -26,15 +26,17 @@ export function regionsOf(country: string): readonly Region[] {
 }
 
 /**
- * regionName is the name of a region in English, or undefined for a code the
- * list does not have.
+ * regionName is the name in English of a region of the country, or undefined
+ * for a code that is none of that country's regions — a region of another
+ * country among them, which a file edited by hand can pair with any country.
+ * Only the list's own codes are looked at, never what every object has.
  */
-export function regionName(region: string): string | undefined {
-	for (const named of Object.values(regions)) {
-		const name = named[region];
-		if (name !== undefined) {
-			return name;
-		}
-	}
-	return undefined;
+export function regionName(
+	country: string,
+	region: string,
+): string | undefined {
+	const named = Object.hasOwn(regions, country) ? regions[country] : undefined;
+	return named !== undefined && Object.hasOwn(named, region)
+		? named[region]
+		: undefined;
 }

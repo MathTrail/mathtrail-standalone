@@ -124,13 +124,6 @@ export function readWhy(catalog: CardCatalog, file: WhyFile): Why {
 			);
 		}
 	}
-	answerOf(file.card, {
-		language: "en",
-		child: "Comet",
-		question: "?",
-		trap: "?",
-		solution: "?",
-	});
 	const sourceOf = (id: string): Source => {
 		const work = file.sources[id];
 		if (work === undefined) {

@@ -204,7 +204,9 @@ describe("the screens in Arabic", () => {
 		const review = foldIn(root, "المراجعة").closest(".mt-fold");
 		press(review?.querySelector<HTMLElement>("a.mt-link") ?? root);
 		await vi.waitFor(() =>
-			expect(review?.querySelector(".mt-link-refused")).not.toBeNull(),
+			expect(
+				review?.querySelector(".mt-link-refused:not(:empty)"),
+			).not.toBeNull(),
 		);
 
 		expect(markupOf(root, review)).toMatchSnapshot();

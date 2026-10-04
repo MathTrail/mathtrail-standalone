@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"net/netip"
+	"sync"
 	"time"
 
 	"github.com/oschwald/maxminddb-golang/v2"
@@ -33,8 +34,8 @@ type Database interface {
 	Country(addr netip.Addr) string
 	// About says what the database is and when it was built.
 	About() About
-	// Close lets go of the file. Nothing may be looked up while it runs, or
-	// after.
+	// Close lets go of the file once the lookups under way have finished. A
+	// lookup after it finds no country.
 	Close() error
 }
 
@@ -45,8 +46,14 @@ type About struct {
 	Built time.Time
 }
 
-// database is a file of the format, mapped into memory.
+// database is a file of the format, mapped into memory. A lookup may still be
+// running when the file is let go of — one for a request nobody waits for any
+// longer — so the lock keeps the file mapped until the lookups under way have
+// finished, and reading memory no longer mapped would end the process. A
+// lookup after that finds the reader closed, which answers it with an error:
+// no country.
 type database struct {
+	mu     sync.RWMutex
 	reader *maxminddb.Reader
 }
 
@@ -67,6 +74,8 @@ func (d *database) Country(addr netip.Addr) string {
 	if !addr.IsValid() || !addr.IsGlobalUnicast() || addr.IsPrivate() {
 		return ""
 	}
+	d.mu.RLock()
+	defer d.mu.RUnlock()
 	// Only the code is read out of the record: whatever else a database keeps
 	// beside it never enters the process.
 	var code string
@@ -81,6 +90,8 @@ func (d *database) About() About {
 }
 
 func (d *database) Close() error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	if err := d.reader.Close(); err != nil {
 		return fmt.Errorf("geoip: close the database: %w", err)
 	}

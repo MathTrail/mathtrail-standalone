@@ -1,6 +1,7 @@
 // Package site_test proves what the site's pages claim that a program can
 // check: the answer of every example a page works through, on a topic's page
-// or on the page of the techniques.
+// or on the page of the techniques, and that every card a page draws is one
+// the service could hand out.
 package site_test
 
 import (

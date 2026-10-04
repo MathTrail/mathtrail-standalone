@@ -14,6 +14,8 @@ import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import catalog from "../../content/catalogs/topics.json";
 import data from "../../site/data.json";
 import { byCodeUnits } from "../src/i18n/order.ts";
+import english from "../src/site/locales/en.json";
+import russian from "../src/site/locales/ru.json";
 import { buildSite, givenTwice, main, readSources } from "./prerender-site.ts";
 
 const repository = join(import.meta.dirname, "..", "..");
@@ -38,11 +40,28 @@ const scripted: readonly string[] = [];
 
 // carded are the pages that draw a card of the widget, and load its styles.
 const carded: readonly string[] = [
+	"en/index.html",
 	"en/topics/index.html",
 	"en/why/index.html",
+	"ru/index.html",
 	"ru/topics/index.html",
 	"ru/why/index.html",
 ];
+
+// adding is the word of every button that asks a reader to add MathTrail, by
+// the language of its page.
+const adding: Readonly<Record<string, string>> = {
+	en: english["nav.add"],
+	ru: russian["nav.add"],
+};
+
+// localePages are the paths of the pages of every language below dir: all
+// but the apex, which has no language of its own.
+async function localePages(dir: string): Promise<string[]> {
+	return (await filesIn(dir)).filter(
+		(file) => file.endsWith(".html") && file.includes("/"),
+	);
+}
 
 // urlsIn are the addresses every url() of a stylesheet names, sorted.
 function urlsIn(style: string): string[] {
@@ -90,12 +109,14 @@ describe("the site built from this repository", () => {
 		await rm(out, { recursive: true, force: true });
 	});
 
-	test("is its pages, its stylesheets, its font, its mark and the host's files, and nothing older", async () => {
+	test("is its pages, its stylesheets, its font, its mark, its sharing pictures and the host's files, and nothing older", async () => {
 		expect(await filesIn(out)).toEqual([
 			".nojekyll",
 			"CNAME",
 			"assets/card.css",
 			"assets/favicon.svg",
+			"assets/og-en.png",
+			"assets/og-ru.png",
 			"assets/onest-cyrillic-wght-normal.woff2",
 			"assets/onest-latin-wght-normal.woff2",
 			"assets/onest-license.txt",
@@ -209,6 +230,41 @@ describe("the site built from this repository", () => {
 		}
 	});
 
+	test("names on every page the sharing picture of its language, one the build serves at that address", async () => {
+		const pages = (await filesIn(out)).filter((file) => file.endsWith(".html"));
+		for (const page of pages) {
+			const html = await readFile(join(out, page), "utf8");
+			const locale = page.includes("/")
+				? page.slice(0, page.indexOf("/"))
+				: "en";
+			const named = [
+				...html.matchAll(/<meta property="og:image" content="([^"]+)"/g),
+			].map(([, address]) => address ?? "");
+
+			expect(named, page).toEqual([
+				`https://mathtrail.app/assets/og-${locale}.png`,
+			]);
+			const served = await readFile(
+				join(out, new URL(named[0] ?? "").pathname),
+			);
+			const kept = await readFile(
+				join(repository, "site", "assets", `og-${locale}.png`),
+			);
+			expect(served.equals(kept), page).toBe(true);
+			expect(html, page).toContain(
+				'<meta name="twitter:card" content="summary_large_image"/>',
+			);
+			expect(
+				[
+					...html.matchAll(/<meta property="og:image:alt" content="([^"]+)"/g),
+				].map(([, alt]) => alt),
+				page,
+			).toEqual([
+				locale === "ru" ? russian["share.picture"] : english["share.picture"],
+			]);
+		}
+	});
+
 	test("builds the cards' stylesheet from the widget's own, loading nothing", async () => {
 		const card = await readFile(join(out, "assets", "card.css"), "utf8");
 
@@ -302,6 +358,51 @@ describe("the site built from this repository", () => {
 				`/${locale}/terms/`,
 			]);
 			expect(footer[0]?.label).toBe(menu.at(-1)?.label);
+		}
+	});
+
+	test("opens the menu with the home page's sections on a lesson and on connecting, on every page of every language", async () => {
+		const pages = await localePages(out);
+		expect(pages).not.toEqual([]);
+		for (const page of pages) {
+			const locale = page.slice(0, page.indexOf("/"));
+			const html = await readFile(join(out, page), "utf8");
+			const menu =
+				html.match(/<nav class="s-navlinks"[^>]*>(.*?)<\/nav>/s)?.[1] ?? "";
+
+			expect(
+				[...menu.matchAll(/<a href="([^"]+)"/g)]
+					.slice(0, 2)
+					.map(([, href]) => href),
+				page,
+			).toEqual([`/${locale}/#lesson`, `/${locale}/#connect`]);
+		}
+	});
+
+	test("leads every button that asks to add it, the header's first, to the home page's section on connecting, which the home page has", async () => {
+		const pages = await localePages(out);
+		for (const page of pages) {
+			const locale = page.slice(0, page.indexOf("/"));
+			const html = await readFile(join(out, page), "utf8");
+			const word = adding[locale] ?? "";
+			const buttons = [...html.matchAll(/<a ([^>]*)>(.*?)<\/a>/gs)].filter(
+				([, , inside]) =>
+					(inside ?? "").replace(/<[^>]*>/g, "").trim() === word,
+			);
+
+			expect(buttons[0]?.[1], page).toContain("s-nav-action");
+			expect(
+				buttons.map(
+					([, attributes]) => attributes?.match(/href="([^"]+)"/)?.[1],
+				),
+				page,
+			).toEqual(buttons.map(() => `/${locale}/#connect`));
+		}
+		for (const locale of Object.keys(adding)) {
+			const home = await readFile(join(out, locale, "index.html"), "utf8");
+
+			expect(home).toContain(`<section id="lesson"`);
+			expect(home).toContain(`<section id="connect"`);
 		}
 	});
 

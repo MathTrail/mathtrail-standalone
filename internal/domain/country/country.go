@@ -55,13 +55,9 @@ func KnownRegion(country, region string) bool {
 	return listed
 }
 
-// RegionName is the name of a region in English, or empty when the code is
-// none of the list's.
-func RegionName(region string) string {
-	for _, regions := range known.Regions {
-		if name, listed := regions[region]; listed {
-			return name
-		}
-	}
-	return ""
+// RegionName is the name in English of a region of the country, or empty when
+// the code is none of that country's regions — a region of another country
+// among them, which a file edited by hand can pair with any country.
+func RegionName(country, region string) string {
+	return known.Regions[country][region]
 }

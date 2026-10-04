@@ -10,7 +10,13 @@ import {
 } from "../design/review";
 import type { Words } from "../i18n/words";
 import type { Anchor } from "./links";
-import { knownTrapName, listed, topicName, trapAdvice } from "./names";
+import {
+	knownTopicName,
+	knownTrapName,
+	listed,
+	topicName,
+	trapAdvice,
+} from "./names";
 import type { Judged, Review, ReviewStep } from "./payload";
 import { type Key, useWords } from "./words";
 
@@ -36,12 +42,13 @@ export type PageAt = (topic: string, anchor: Anchor) => string | undefined;
 /**
  * reviewSaid is the review in the card's words, with the mistakes that repeat
  * as their lines, and each step in a topic linked to the part of its page the
- * step is about, by pageAt: a trap's advice to where its mistakes are told,
- * the rest to how to help at home. What the card has no words for — a reason,
- * a kind of step, a mistake's advice, or a mistake's name inside a sentence,
- * that a later release adds — is left out rather than said wrong. A topic
- * named for no reason the card can say keeps its name, and a mistake that
- * repeats is called by its id, as every name the card lacks is.
+ * step is about, by pageAt: a trap's advice to where its mistakes are told, a
+ * topic to begin to the top of its page, the rest to how to help at home. What
+ * the card has no words for — a reason, a kind of step, a mistake's advice, a
+ * mistake's name inside a sentence, or the name of a topic to begin's base —
+ * that a later release adds is left out rather than said wrong. A topic named
+ * for no reason the card can say keeps its name, and a mistake that repeats is
+ * called by its id, as every name the card lacks is.
  */
 export function reviewSaid(
 	words: Words<Key>,
@@ -192,17 +199,40 @@ function adviceStep(
 		{
 			id: String(at),
 			topic: topicName(words, step.topic),
-			href: pageAt(step.topic, step.kind === "trap" ? "#traps" : "#home"),
+			href: pageAt(step.topic, stepAnchor(step.kind)),
 			text,
 		},
 	];
 }
 
-// stepSaid is what a step advises, in the card's words: a trap's advice, or
-// the words of the step's kind.
+// stepAnchor is the part of its topic's page a step leads to: where the
+// topic's mistakes are told, for a trap's advice; the top of the page, for a
+// topic to begin; and how to help at home, for the rest.
+function stepAnchor(kind: string): Anchor {
+	switch (kind) {
+		case "trap":
+			return "#traps";
+		case "begin":
+			return "";
+		default:
+			return "#home";
+	}
+}
+
+// stepSaid is what a step advises, in the card's words: a trap's advice, the
+// strong topic a topic to begin builds on — none when the card has no name
+// for it, which would read as a word of the sentence —, or the words of the
+// step's kind.
 function stepSaid(words: Words<Key>, step: ReviewStep): string | undefined {
 	if (step.kind === "trap") {
 		return step.trap === undefined ? undefined : trapAdvice(words, step.trap);
+	}
+	if (step.kind === "begin") {
+		const base =
+			step.base === undefined ? undefined : knownTopicName(words, step.base);
+		return base === undefined
+			? undefined
+			: words.text("review.step_begin", { base });
 	}
 	const key = stepWords.get(step.kind);
 	return key === undefined ? undefined : words.text(key);

@@ -60,14 +60,19 @@ describe("the address of a topic's page", () => {
 
 	// Every address the card can build for the catalog is one the site has
 	// handed out and keeps: a link from a card that leads nowhere is a promise
-	// broken in front of a parent.
-	test("is one the site keeps, for every topic of the catalog, in every language and at every part", () => {
+	// broken in front of a parent. A topic whose page is not out yet has none.
+	test("is one the site keeps, for every topic of the catalog whose page is out, in every language and at every part", () => {
 		const anchors: Anchor[] = ["", "#traps", "#home"];
 		for (const topic of topics) {
 			for (const language of site.languages) {
 				for (const anchor of anchors) {
 					const address = pageAddress(site, language, topic, anchor);
-					expect(address, `${topic.id} ${language} ${anchor}`).toBeDefined();
+					const where = `${topic.id} ${language} ${anchor}`;
+					if (!topic.site_page) {
+						expect(address, where).toBeUndefined();
+						continue;
+					}
+					expect(address, where).toBeDefined();
 					expect(published).toContain(
 						address?.slice("https://mathtrail.app".length),
 					);

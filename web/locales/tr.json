@@ -138,6 +138,7 @@
 	"review.step_rhythm": "Çubuk geri gelene kadar günde iki üç kısa soru.",
 	"review.step_practice": "Bu konudan birkaç soru daha; MathTrail onları çocuğun seviyesine göre seçer.",
 	"review.step_unaided": "Her soruyu önce ipucu olmadan deneyin.",
+	"review.step_begin": "{base}: güçlü bir yön ve bu yeni konuya başlamak için iyi bir temel.",
 	"profile.card_label": "Profil",
 	"profile.grade": "Sınıf",
 	"profile.grade_note": "Yalnızca bir etiket: değiştirmek hiçbir puanı etkilemez.",

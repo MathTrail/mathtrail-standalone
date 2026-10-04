@@ -134,6 +134,7 @@
 	"review.step_rhythm": "バーがもどるまで、1日に短い問題を2〜3問。",
 	"review.step_practice": "このテーマの問題をもう少し。MathTrailが子どもに合った問題を選びます。",
 	"review.step_unaided": "どの問題も、まずヒントなしでやってみる。",
+	"review.step_begin": "「{base}」は得意分野で、この新しいテーマを始めるよい土台になります。",
 	"profile.card_label": "プロフィール",
 	"profile.grade": "学年",
 	"profile.grade_note": "表示用のラベルです。変更してもレーティングは変わりません。",

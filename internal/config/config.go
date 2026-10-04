@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/spf13/viper"
+	"golang.org/x/net/idna"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/progress"
@@ -258,9 +259,46 @@ func (c *Config) CloseTimeout() time.Duration { return c.ShutdownTimeout / 4 }
 // Origin is the public URL as a bare scheme and host, without a trailing slash.
 func (c *Config) Origin() string { return strings.TrimSuffix(c.PublicURL, "/") }
 
-// Site is the site's address as a bare scheme and host, without a trailing
-// slash.
-func (c *Config) Site() string { return strings.TrimSuffix(c.SiteURL, "/") }
+// Site is the site's origin as a browser writes it: its scheme and its host in
+// lower case, a name spelled in ASCII as IDNA spells it, and no port the
+// scheme implies nor a trailing slash. The consent screen, the progress and
+// the card that holds an address to the site's origin then name it alike.
+func (c *Config) Site() string {
+	parsed, err := url.Parse(c.SiteURL)
+	if err != nil {
+		return strings.TrimSuffix(c.SiteURL, "/")
+	}
+	scheme, host := strings.ToLower(parsed.Scheme), asciiHost(parsed.Hostname())
+	if port := parsed.Port(); port != "" && port != defaultPorts[scheme] {
+		return scheme + "://" + net.JoinHostPort(host, port)
+	}
+	if strings.Contains(host, ":") {
+		host = "[" + host + "]"
+	}
+	return scheme + "://" + host
+}
+
+// defaultPorts are the ports a browser leaves out of an origin, by scheme.
+var defaultPorts = map[string]string{"https": "443", "http": "80"}
+
+// browserNames is IDNA as a browser reads the host of an address: mapped as
+// for a lookup, the rules of mixed directions held, and none of the checks of
+// hyphens and of letters a registry makes, which no browser makes.
+var browserNames = idna.New(
+	idna.MapForLookup(), idna.BidiRule(), idna.CheckHyphens(false), idna.StrictDomainName(false), idna.Transitional(false),
+)
+
+// asciiHost is a host as a browser writes it in an origin: a name spelled as
+// IDNA spells it, which writes it in lower case, and the address of a machine
+// in lower case.
+func asciiHost(host string) string {
+	if net.ParseIP(host) == nil {
+		if ascii, err := browserNames.ToASCII(host); err == nil {
+			return ascii
+		}
+	}
+	return strings.ToLower(host)
+}
 
 // GoogleSignIn reports whether a Google client is configured, which is what a
 // parent signs in with.
@@ -529,6 +567,11 @@ func validateOrigin(variable, address string) error {
 func (c *Config) validateSiteURL() error {
 	if err := validateOrigin("MATHTRAIL_SITE_URL", c.SiteURL); err != nil {
 		return err
+	}
+	if parsed, err := url.Parse(c.SiteURL); err == nil && net.ParseIP(parsed.Hostname()) == nil {
+		if _, err := browserNames.ToASCII(parsed.Hostname()); err != nil {
+			return fmt.Errorf("%w: MATHTRAIL_SITE_URL has a host IDNA cannot spell, which no browser opens: %q", ErrInvalid, c.SiteURL)
+		}
 	}
 	if c.Deployed() && !strings.HasPrefix(strings.ToLower(c.SiteURL), "https://") {
 		return fmt.Errorf("%w: MATHTRAIL_SITE_URL must use https when K_SERVICE is set: %q", ErrInvalid, c.SiteURL)
