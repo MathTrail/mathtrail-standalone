@@ -100,6 +100,9 @@ func (p *Profile) validate(most int) error {
 	if err := validateRecent(p.Recent); err != nil {
 		return err
 	}
+	if err := validateRatingDays(p.RatingDays); err != nil {
+		return err
+	}
 	if len(p.TaskFingerprints) > MaxFingerprints {
 		return fmt.Errorf("%w: task_fingerprints holds %d, the limit is %d",
 			ErrInvalid, len(p.TaskFingerprints), MaxFingerprints)
@@ -212,10 +215,42 @@ func validateRecent(recent []Answer) error {
 	return nil
 }
 
+// validateRatingDays checks the days the history of the ratings keeps: no
+// more than the week reaches, each on a date of its own and in the order of
+// their dates, every level a number and every topic named.
+func validateRatingDays(days []RatingDay) error {
+	if len(days) > RatingDaysKept {
+		return fmt.Errorf("%w: rating_days holds %d days, the week is %d", ErrInvalid, len(days), RatingDaysKept)
+	}
+	for i := range days {
+		day := &days[i]
+		switch {
+		case day.Date.IsZero():
+			return fmt.Errorf("%w: rating_days[%d] has no date", ErrInvalid, i)
+		case i > 0 && !days[i-1].Date.Before(day.Date.Time):
+			return fmt.Errorf("%w: rating_days[%d] is not after the day before it; the days are kept oldest first, one to a date",
+				ErrInvalid, i)
+		case !isNumber(day.Theta):
+			return fmt.Errorf("%w: rating_days[%d].theta is %v, and a level is a number", ErrInvalid, i, day.Theta)
+		case day.Deltas == nil:
+			return fmt.Errorf("%w: rating_days[%d] has no deltas; a day with no topic answered before it has {}", ErrInvalid, i)
+		}
+		for id, delta := range day.Deltas {
+			if id == "" || !isNumber(delta) {
+				return fmt.Errorf("%w: rating_days[%d].deltas holds %v for %q; a correction is a number, of a named topic",
+					ErrInvalid, i, delta, id)
+			}
+		}
+	}
+	return nil
+}
+
 // validate checks one entry of the window, the i-th: where the task stood and
 // when, and then the outcome — which an answer has and a skipped task does not.
 func (a *Answer) validate(i int) error {
 	switch {
+	case a.Before != nil && (!isNumber(a.Before.Theta) || !isNumber(a.Before.Delta)):
+		return fmt.Errorf("%w: recent[%d].before holds a level that is not a number", ErrInvalid, i)
 	case a.TaskID == "" || a.Topic == "":
 		return fmt.Errorf("%w: recent[%d] names no task or no topic", ErrInvalid, i)
 	case a.AnsweredAt.IsZero():
@@ -249,10 +284,11 @@ func (a *Answer) validate(i int) error {
 
 // validateSkipped checks that a skipped task carries no outcome: there was no
 // answer, so there is nothing right or wrong about it, no option chosen, no
-// hint opened and no time taken. A file saying otherwise would be read by the
-// progress screen as an answer the child never gave.
+// hint opened, no time taken and no level it moved from. A file saying
+// otherwise would be read by the progress screen as an answer the child never
+// gave.
 func (a *Answer) validateSkipped(i int) error {
-	if a.Correct || a.Chosen != "" || a.Trap != "" || a.HintUsed || a.Confused || a.Pace != "" {
+	if a.Correct || a.Chosen != "" || a.Trap != "" || a.HintUsed || a.Confused || a.Pace != "" || a.Before != nil {
 		return fmt.Errorf("%w: recent[%d] is a skipped task and still carries an outcome, which a task left without an answer does not have",
 			ErrInvalid, i)
 	}

@@ -135,7 +135,7 @@ func TestAScenarioNobodyWroteHasNoDefaults(t *testing.T) {
 func TestEveryScenarioStartsFromOptionsItCanKeepTo(t *testing.T) {
 	t.Parallel()
 
-	set := []string{"tasks", "pace", "timeout", "rate", "duration", "children", "variants", "steps"}
+	set := []string{"tasks", "pace", "timeout", "rate", "duration", "children", "variants", "steps", "accounts"}
 	for _, name := range scenario.Names() {
 		o := optionsOf(t, name)
 		if err := o.Check(); err != nil || o.Lasts() <= 0 {
@@ -173,6 +173,7 @@ func TestOptionsNoRunCouldKeepToAreRefused(t *testing.T) {
 		{"a ceiling no solver is sized to", scenario.Adversarial, func(o *scenario.Options) { o.Steps = lesson.MinSteps - 1 }},
 		{"no variant", scenario.Adversarial, func(o *scenario.Options) { o.Variants = nil }},
 		{"a variant nobody wrote", scenario.Adversarial, func(o *scenario.Options) { o.Variants = []string{lesson.Pairs, "sleep"} }},
+		{"one account alone", scenario.Paces, func(o *scenario.Options) { o.Accounts = []scenario.Account{{Name: "parent"}} }},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()

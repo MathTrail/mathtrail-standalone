@@ -1,23 +1,55 @@
-/* The site's look: a white page, near-black headings, grey text, and blue for
-   whatever can be followed or pressed. These colours are the site's alone —
-   the card a chat draws and the sign-in pages keep the design's palette — so
-   they are named here rather than in the shared tokens, which still give the
-   site its fonts, its spaces, its radii and its widths. The site is always
-   light, whatever the reader's system prefers.
+/* The site's look, after the author's draft: a white page, near-black
+   headings, grey text, and blue for whatever can be followed or pressed, set
+   in Onest. The colours and the typeface are the site's alone — the card a
+   chat draws and the sign-in pages keep the design's palette and the system's
+   fonts — so they are named here rather than in the shared tokens, which
+   still give the site the fonts to fall back on, its spaces, its radii and
+   its widths. The site is always light, whatever the reader's system prefers.
 
    Logical properties throughout: the same rules lay out a page written right
    to left, with no mirrored copy of them. */
 
+/* Onest, from the site's own domain: the two subsets its languages need, with
+   the ranges the font's package gives them, each fetched only for a page that
+   holds one of its characters. A character outside both is drawn by the next
+   font of the stack. */
+@font-face {
+	font-family: "Onest";
+	font-style: normal;
+	font-weight: 100 900;
+	font-display: swap;
+	src: url("@fontsource-variable/onest/files/onest-latin-wght-normal.woff2")
+		format("woff2");
+	unicode-range:
+		U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+		U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+		U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+	font-family: "Onest";
+	font-style: normal;
+	font-weight: 100 900;
+	font-display: swap;
+	src: url("@fontsource-variable/onest/files/onest-cyrillic-wght-normal.woff2")
+		format("woff2");
+	unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+
 :root {
+	--s-font: "Onest", var(--font-sans);
 	--s-page: #ffffff;
 	--s-text: #1f1f1f;
-	--s-muted: #5f6368;
-	--s-line: #dadce0;
+	--s-muted: #444746;
+	--s-line: #e1e3e1;
+	--s-line-strong: #c4c7c5;
+	--s-hairline: #e9eef6;
+	--s-outline: #747775;
+	--s-tint: #f0f4f9;
 	--s-accent: #0b57d0;
 	--s-accent-hover: #0842a0;
-	--s-accent-tint: #e8f0fe;
-	--s-foot: #f8f9fa;
-	--s-code: #f1f3f4;
+	--s-accent-tint: #d3e3fd;
+	--s-on-tint: #041e49;
 }
 
 *,
@@ -27,13 +59,14 @@
 }
 
 html {
-	/* The reader's own font, so the page costs no download and looks native
-	   on every system it is opened on. */
-	font-family: var(--font-sans);
+	font-family: var(--s-font);
 	line-height: 1.6;
 	text-size-adjust: 100%;
 	background: var(--s-page);
 	color: var(--s-text);
+	/* An anchor scrolled to is not hidden under the header, which stays on
+	   top. */
+	scroll-padding-block-start: calc(64px + var(--space-24));
 }
 
 body {
@@ -62,31 +95,47 @@ a:hover {
 	inline-size: 100%;
 	max-inline-size: var(--site-max);
 	margin-inline: auto;
-	padding-inline: var(--space-16);
+	padding-inline: var(--space-24);
 }
 
-/* The header: the mark and the name on one side, the languages on the other,
-   over a hairline. */
+/* A word a screen reader says and the page does not show, such as the name
+   of the menu's button. */
+.s-hidden {
+	position: absolute;
+	inline-size: 1px;
+	block-size: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* The header: the mark and the name, the menu, and the languages, on a white
+   bar that stays on top as the page scrolls under it. */
 .s-nav {
-	border-block-end: 1px solid var(--s-line);
-	background: var(--s-page);
+	position: sticky;
+	inset-block-start: 0;
+	z-index: 20;
+	background: rgb(255 255 255 / 92%);
+	backdrop-filter: blur(10px);
+	box-shadow: 0 1px 0 var(--s-hairline);
 }
 
 .s-nav-inner {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
-	gap: var(--space-16);
+	gap: var(--space-24);
 	min-block-size: 64px;
 }
 
 .s-brand {
 	display: inline-flex;
+	flex: none;
 	align-items: center;
-	gap: var(--space-8);
+	gap: 10px;
 	color: var(--s-text);
 	font-size: 1.375rem;
-	font-weight: 500;
+	font-weight: 600;
+	line-height: 28px;
 	letter-spacing: -0.01em;
 	text-decoration: none;
 }
@@ -100,39 +149,126 @@ a:hover {
 }
 
 .s-brand-sm {
-	font-size: 1rem;
+	font-size: 1.125rem;
+}
+
+.s-navlinks {
+	display: flex;
+	gap: var(--space-4);
+	margin-inline-start: var(--space-16);
+}
+
+.s-navlinks a,
+.s-menu-list a {
+	padding-block: var(--space-8);
+	padding-inline: 14px;
+	border-radius: var(--radius-pill);
+	color: var(--s-muted);
+	font-size: 0.9375rem;
+	font-weight: 500;
+	line-height: 1.6;
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+.s-navlinks a:hover,
+.s-menu-list a:hover {
+	background: var(--s-tint);
+	color: var(--s-text);
+}
+
+.s-navlinks a[aria-current="page"],
+.s-menu-list a[aria-current="page"] {
+	background: var(--s-accent-tint);
+	color: var(--s-on-tint);
+}
+
+.s-nav-tools {
+	display: flex;
+	align-items: center;
+	gap: var(--space-12);
+	margin-inline-start: auto;
 }
 
 /* The language switch: one pill, the language being read filled in. */
 .s-seg {
-	display: inline-flex;
-	gap: 2px;
-	padding: 3px;
-	border: 1px solid var(--s-line);
+	display: flex;
+	padding: 2px;
+	border: 1px solid var(--s-line-strong);
 	border-radius: var(--radius-pill);
 }
 
 .s-seg a {
-	display: inline-flex;
+	display: flex;
 	align-items: center;
 	justify-content: center;
-	min-inline-size: var(--tap-target);
-	min-block-size: 36px;
-	padding-inline: var(--space-12);
+	min-inline-size: 40px;
+	block-size: 32px;
+	padding-inline: 10px;
 	border-radius: var(--radius-pill);
 	color: var(--s-muted);
-	font-size: 0.875rem;
-	font-weight: 500;
+	font-size: 0.8125rem;
+	font-weight: 600;
 	text-decoration: none;
 }
 
 .s-seg a:hover {
-	color: var(--s-accent);
+	color: var(--s-text);
 }
 
 .s-seg a[aria-current="page"] {
 	background: var(--s-accent-tint);
-	color: var(--s-accent);
+	color: var(--s-on-tint);
+}
+
+/* The menu's button, for a screen too narrow for the menu itself: a
+   disclosure, which a browser opens and closes with no script, its list
+   dropping under the header. */
+.s-menu {
+	display: none;
+}
+
+.s-menu > summary {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	inline-size: var(--tap-target);
+	block-size: var(--tap-target);
+	border-radius: var(--radius-pill);
+	color: var(--s-muted);
+	cursor: pointer;
+	list-style: none;
+}
+
+.s-menu > summary::-webkit-details-marker {
+	display: none;
+}
+
+.s-menu > summary:hover,
+.s-menu[open] > summary {
+	background: var(--s-tint);
+	color: var(--s-text);
+}
+
+.s-menu-list {
+	position: absolute;
+	inset-inline: 0;
+	inset-block-start: 100%;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+	padding-block: var(--space-8) var(--space-16);
+	padding-inline: var(--space-16);
+	background: var(--s-page);
+	box-shadow:
+		0 1px 0 var(--s-hairline),
+		0 12px 24px rgb(60 64 67 / 12%);
+}
+
+.s-menu-list a {
+	display: flex;
+	align-items: center;
+	min-block-size: var(--tap-target);
 }
 
 .s-main {
@@ -156,9 +292,9 @@ a:hover {
 .s-doc h1 {
 	margin-block: 0 var(--space-24);
 	font-size: clamp(2rem, 1.4rem + 2.6vw, 3.25rem);
-	font-weight: 700;
+	font-weight: 500;
 	line-height: 1.1;
-	letter-spacing: -0.02em;
+	letter-spacing: -0.03em;
 	text-wrap: balance;
 }
 
@@ -170,9 +306,9 @@ a:hover {
 .s-doc h2 {
 	margin-block: var(--space-44) var(--space-16);
 	font-size: 1.5rem;
-	font-weight: 700;
+	font-weight: 500;
 	line-height: 1.25;
-	letter-spacing: -0.01em;
+	letter-spacing: -0.025em;
 }
 
 .s-doc h3 {
@@ -195,7 +331,7 @@ a:hover {
 	padding-block: 0.1em;
 	padding-inline: 0.35em;
 	border-radius: var(--radius-control);
-	background: var(--s-code);
+	background: var(--s-tint);
 	font-family: var(--font-mono);
 	font-size: 0.9em;
 }
@@ -214,7 +350,7 @@ a:hover {
 .s-apex h1 {
 	margin: 0;
 	font-size: clamp(2.75rem, 1.8rem + 4vw, 4.5rem);
-	font-weight: 700;
+	font-weight: 500;
 	line-height: 1.05;
 	letter-spacing: -0.03em;
 }
@@ -238,9 +374,9 @@ a:hover {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	min-block-size: var(--tap-target);
-	padding-inline: var(--space-24);
-	border: 1px solid var(--s-line);
+	min-block-size: 52px;
+	padding-inline: 28px;
+	border: 1px solid var(--s-outline);
 	border-radius: var(--radius-pill);
 	background: var(--s-page);
 	color: var(--s-accent);
@@ -250,16 +386,23 @@ a:hover {
 }
 
 .s-btn:hover {
-	background: var(--s-accent-tint);
+	background: var(--s-tint);
 	color: var(--s-accent-hover);
 }
 
-/* The footer: a quiet grey band with the documents and the code. */
+/* The footer: white under a hairline, with the pages, the code and the
+   address in grey. */
 .s-footer {
-	border-block-start: 1px solid var(--s-line);
-	background: var(--s-foot);
+	border-block-start: 1px solid var(--s-hairline);
 	color: var(--s-muted);
-	font-size: 0.875rem;
+	font-size: 0.9375rem;
+}
+
+.s-footer > .s-wrap {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-20);
+	padding-block: var(--space-44) var(--space-64);
 }
 
 .s-foot {
@@ -267,8 +410,7 @@ a:hover {
 	flex-wrap: wrap;
 	align-items: center;
 	justify-content: space-between;
-	gap: var(--space-16);
-	padding-block: var(--space-32);
+	gap: var(--space-24);
 }
 
 .s-footlinks {
@@ -280,6 +422,7 @@ a:hover {
 .s-footlinks a {
 	color: var(--s-muted);
 	text-decoration: none;
+	overflow-wrap: anywhere;
 }
 
 .s-footlinks a:hover {
@@ -290,11 +433,26 @@ a:hover {
 .s-legal {
 	max-inline-size: var(--measure);
 	margin-block: 0;
-	padding-block-end: var(--space-32);
 }
 
-@media (min-width: 720px) {
+/* The draft's widths: the menu folds behind its button below 1100 px, and a
+   phone keeps a narrower margin. */
+@media (max-width: 1099px) {
+	.s-navlinks {
+		display: none;
+	}
+
+	.s-menu {
+		display: block;
+	}
+}
+
+@media (max-width: 479px) {
 	.s-wrap {
-		padding-inline: var(--space-24);
+		padding-inline: var(--space-16);
+	}
+
+	.s-nav-inner {
+		gap: var(--space-12);
 	}
 }

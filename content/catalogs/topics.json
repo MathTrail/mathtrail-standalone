@@ -7,7 +7,10 @@
       "1-2",
       "3-4",
       "5-6"
-    ]
+    ],
+    "slug": "ordering",
+    "builds_on": [],
+    "site_page": false
   },
   {
     "id": "logic.knights_liars",
@@ -16,7 +19,13 @@
     "grade_levels": [
       "3-4",
       "5-6"
-    ]
+    ],
+    "slug": "knights-and-liars",
+    "builds_on": [
+      "logic.ordering",
+      "combinatorics.enumeration"
+    ],
+    "site_page": false
   },
   {
     "id": "combinatorics.enumeration",
@@ -26,7 +35,10 @@
       "1-2",
       "3-4",
       "5-6"
-    ]
+    ],
+    "slug": "enumeration",
+    "builds_on": [],
+    "site_page": false
   },
   {
     "id": "counting.gaps",
@@ -36,7 +48,10 @@
       "1-2",
       "3-4",
       "5-6"
-    ]
+    ],
+    "slug": "gaps-and-boundaries",
+    "builds_on": [],
+    "site_page": false
   },
   {
     "id": "time.clocks",
@@ -46,7 +61,10 @@
       "1-2",
       "3-4",
       "5-6"
-    ]
+    ],
+    "slug": "clocks",
+    "builds_on": [],
+    "site_page": false
   },
   {
     "id": "time.calendar",
@@ -56,7 +74,12 @@
       "1-2",
       "3-4",
       "5-6"
-    ]
+    ],
+    "slug": "calendar-and-age",
+    "builds_on": [
+      "counting.gaps"
+    ],
+    "site_page": false
   },
   {
     "id": "pigeonhole.basic",
@@ -66,7 +89,12 @@
       "1-2",
       "3-4",
       "5-6"
-    ]
+    ],
+    "slug": "pigeonhole-principle",
+    "builds_on": [
+      "combinatorics.enumeration"
+    ],
+    "site_page": false
   },
   {
     "id": "parity.alternation",
@@ -76,7 +104,10 @@
       "1-2",
       "3-4",
       "5-6"
-    ]
+    ],
+    "slug": "parity-and-alternation",
+    "builds_on": [],
+    "site_page": false
   },
   {
     "id": "arithmetic.tricks",
@@ -86,7 +117,10 @@
       "1-2",
       "3-4",
       "5-6"
-    ]
+    ],
+    "slug": "arithmetic-with-a-trick",
+    "builds_on": [],
+    "site_page": false
   },
   {
     "id": "algorithms.weighing_pouring",
@@ -95,7 +129,13 @@
     "grade_levels": [
       "3-4",
       "5-6"
-    ]
+    ],
+    "slug": "weighing-and-pouring",
+    "builds_on": [
+      "combinatorics.enumeration",
+      "pigeonhole.basic"
+    ],
+    "site_page": false
   },
   {
     "id": "fractions.parts",
@@ -103,7 +143,12 @@
     "description": "A part of a whole, what is left over, comparing simple fractions.",
     "grade_levels": [
       "5-6"
-    ]
+    ],
+    "slug": "parts-and-shares",
+    "builds_on": [
+      "arithmetic.tricks"
+    ],
+    "site_page": false
   },
   {
     "id": "percent.basic",
@@ -111,7 +156,12 @@
     "description": "A percentage of a quantity, discounts and increases, what percentage one amount is of another.",
     "grade_levels": [
       "5-6"
-    ]
+    ],
+    "slug": "percentages",
+    "builds_on": [
+      "fractions.parts"
+    ],
+    "site_page": false
   },
   {
     "id": "ratio.sharing",
@@ -119,7 +169,12 @@
     "description": "Sharing a quantity in a ratio, how many more one share holds, recipes scaled up.",
     "grade_levels": [
       "5-6"
-    ]
+    ],
+    "slug": "ratios-and-sharing",
+    "builds_on": [
+      "fractions.parts"
+    ],
+    "site_page": false
   },
   {
     "id": "geometry.grid",
@@ -127,7 +182,13 @@
     "description": "Perimeter and area counted in cells, cutting along cell lines, figures made of cells on coordinates.",
     "grade_levels": [
       "5-6"
-    ]
+    ],
+    "slug": "figures-on-a-grid",
+    "builds_on": [
+      "combinatorics.enumeration",
+      "counting.gaps"
+    ],
+    "site_page": false
   },
   {
     "id": "number.divisibility",
@@ -135,7 +196,13 @@
     "description": "Divisibility rules, remainders, the smallest number with a given property.",
     "grade_levels": [
       "5-6"
-    ]
+    ],
+    "slug": "divisibility-and-remainders",
+    "builds_on": [
+      "time.calendar",
+      "parity.alternation"
+    ],
+    "site_page": false
   },
   {
     "id": "logic.sets",
@@ -143,7 +210,13 @@
     "description": "How many belong to both groups, how many to neither, the largest and the smallest possible overlap.",
     "grade_levels": [
       "5-6"
-    ]
+    ],
+    "slug": "overlapping-groups",
+    "builds_on": [
+      "combinatorics.enumeration",
+      "pigeonhole.basic"
+    ],
+    "site_page": false
   },
   {
     "id": "games.strategy",
@@ -151,6 +224,12 @@
     "description": "Two players take turns: who wins with correct play, and what the first move has to be.",
     "grade_levels": [
       "5-6"
-    ]
+    ],
+    "slug": "winning-strategy",
+    "builds_on": [
+      "combinatorics.enumeration",
+      "parity.alternation"
+    ],
+    "site_page": false
   }
 ]

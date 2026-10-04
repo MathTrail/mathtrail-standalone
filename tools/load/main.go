@@ -8,12 +8,17 @@
 //
 //	load -scenario lesson -image mathtrail:dev [flags]
 //	load -scenario lesson -url http://localhost:8080 [flags]
+//	load -signin parent -url https://mcp.mathtrail.app
+//	load -scenario paces -url https://mcp.mathtrail.app -accounts parent,load [flags]
 //
 // With an image, the run starts the service itself, in a container of an
 // instance's size, and reads what the instance spent and how it ended. With a
 // URL, it runs against a service somebody else started, which has to run with
 // the development sign-in, as `just run` runs it: the children of a run sign
-// in through it, each by a name of its own.
+// in through it, each by a name of its own. A deployed service has no such
+// sign-in, so a parent signs accounts in on it once with -signin, in a
+// browser, and the children of the runs after sign in with the accounts that
+// -accounts names.
 //
 // It exits 0 when the run found nothing the service should never do, 1 when
 // it found something, and 2 when it could not run, or was stopped before its
@@ -51,20 +56,27 @@ const (
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	code := run(ctx, os.Args[1:], os.Stdout, os.Stderr)
+	code := run(ctx, os.Args[1:], os.Stdin, os.Stdout, os.Stderr)
 	stop()
 	os.Exit(code)
 }
 
 // run is the command, from its arguments to its exit code: the report goes to
-// stdout, and what went wrong before there was one to stderr.
-func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
+// stdout, and what went wrong before there was one to stderr. While an account
+// signs in, the address a browser was sent back to may be pasted on stdin.
+func run(ctx context.Context, args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	asked, err := parse(args, stderr)
 	switch {
 	case errors.Is(err, errUsage):
 		return exitCannot
 	case err != nil:
 		return cannot(stderr, err)
+	}
+	if asked.signIn != "" {
+		return signIn(ctx, &asked, stdin, stderr)
+	}
+	if unsigned := asked.loadAccounts(); unsigned != nil {
+		return cannot(stderr, unsigned)
 	}
 
 	fmt.Fprintf(stderr, "load: %s against %s, about %s\n", asked.options.Scenario, asked.against, asked.options.Lasts())
@@ -100,6 +112,11 @@ type invocation struct {
 	instance report.Instance
 	// against is what the run is against, in words.
 	against string
+	// signIn is the account to sign in on the service at the URL, when that
+	// is all the command line asks for, and port the port of this computer
+	// the browser comes back to; accounts is where accounts are kept.
+	signIn, url, accounts string
+	port                  int
 }
 
 // parse reads the command line.
@@ -111,13 +128,20 @@ func parse(args []string, stderr io.Writer) (invocation, error) {
 	given := declareOptions(flags)
 	cpus := flags.Float64("cpus", 1, "the vCPUs an instance has, and is billed for")
 	memory := flags.String("memory", "1g", "the memory an instance has, and is billed for, as docker writes it: 1g, 512m")
+	accounts := declareAccounts(flags)
 	if err := flags.Parse(args); err != nil {
 		return invocation{}, errUsage
+	}
+	if *accounts.signIn != "" {
+		return accounts.signingIn(flags, *service.address)
 	}
 
 	options, err := scenario.Defaults(*name)
 	if err != nil {
 		return invocation{}, err
+	}
+	if wrong := accounts.into(flags, &options, *service.address); wrong != nil {
+		return invocation{}, wrong
 	}
 	if unread := given.change(flags, &options); len(unread) > 0 {
 		return invocation{}, fmt.Errorf("%s reads no %s", options.Scenario, strings.Join(unread, ", "))
@@ -136,7 +160,13 @@ func parse(args []string, stderr io.Writer) (invocation, error) {
 	if err != nil {
 		return invocation{}, err
 	}
-	return invocation{options: options, launch: launch, instance: report.Instance{VCPU: *cpus, GiB: gib}, against: against}, nil
+	if len(options.Accounts) > 0 {
+		against += " as " + strings.Join(namesOf(options.Accounts), ", ")
+	}
+	return invocation{
+		options: options, launch: launch, instance: report.Instance{VCPU: *cpus, GiB: gib}, against: against,
+		url: *service.address, accounts: *accounts.dir,
+	}, nil
 }
 
 // serviceFlags are the flags that name the service a run goes against: one

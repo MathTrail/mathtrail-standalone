@@ -6,7 +6,7 @@ What one instance of the service takes, measured in a container of its size. The
 
 The load tool in `tools/load` (R124) starts the service from its image in a container of one vCPU and 1 GiB with no swap, since the platform gives none. The container is told what a deployment of that size is told: one solver slot (`MATHTRAIL_SOLVER_CONCURRENCY=1`) and nine tenths of its memory as the Go runtime's soft limit (`GOMEMLIMIT=921MiB`). The tool reads what the instance spends through its cgroup and writes what each run came to in Markdown.
 
-- `just ci-load` runs every scenario against the image of the working tree, each held to the memory in the table at the end of this page. It is what the weekly workflow runs.
+- `just ci-load` runs every scenario of a container against the image of the working tree, each held to the memory in the table at the end of this page. It is what the weekly workflow runs. The two scenarios of the deployed service are run by hand (below).
 - `just load <scenario> [flags]` runs one scenario. For example, `just load adversarial -memory 512m` or `just load saturation -env MATHTRAIL_SOLVER_CONCURRENCY=4`.
 
 The numbers below were taken on 2026-09-29 on the development machine: Docker inside the devcontainer, cgroups of the second version, kernel 7.1.5. A shared runner or a vCPU of the platform is slower than this machine, so times will differ there; what a run keeps in memory and whether an instance survives do not depend on the machine.
@@ -154,6 +154,28 @@ Each ceiling is the peak measured here, plus the larger of a quarter and 32 MiB,
 | `adversarial` `product` | 179–208 MiB | 288m |
 
 The ceilings of the small runs catch a regression in the service's own footprint, such as a leak or a cache that grows. For `tuples`, `pairs` and `sets`, it is the instance being killed for its memory that catches a regression.
+
+## Against the deployed service
+
+Everything above runs against a container on this machine, whose children sign in through the development sign-in. A deployed service has none, and the platform in front of it writes the tool's own address into every request, so two scenarios are written for it (R168). Against a container they make their children up as the others do; against the deployed service, their children are accounts a parent signed in for real.
+
+- **`paces`** — the parts of `limits` a deployed service lets a run try: the first account reads its profile past the pace of an account, every account after it walks a lesson at a live pace, and the tool's own address fetches the sign-in's document past the pace of an address. Only the first account and the address may be held back. No recovery follows: nothing is attacked that a new child would have to find working.
+- **`ceiling`** — the first account asks for a task and hands in one the checks refuse, three times a request, request after request, until the day refuses to open one more; every account after it reads its profile meanwhile and is never refused. The day's ceiling of failed generations is counted in the profile, which every instance reads, so it is the limit that holds across instances.
+
+**Signing an account in.** `just load-signin <name>` registers the tool with the service as a public client, prints an address and waits. The parent opens it, signs in with Google and allows the tool on the consent screen; the browser comes back to this computer, on a port of its loopback that VS Code forwards from the container, or the parent pastes the address the browser ended up at. The tokens are kept in `~/.config/mathtrail-load/<name>.json`, which only its owner can read, never in the repository: they reach the parent's Drive, as a chat host's do. A refresh token lasts thirty days unused, and a sign-in ninety. Before a run starts, a token that would run out within the run is renewed, because a renewal is held to the pace of the address it comes from, and `paces` spends that pace on purpose.
+
+**Which account does what.** The order of `-accounts` says whose profile is written. In `paces`, the first account only reads, and each account after it walks a lesson, whose profile becomes the load's own: the pseudonym Otter, grade 2, and the load's tasks. In `ceiling`, the first account's requests, attempts and count of the day are written, and the others only read. So an account that holds a real child's profile goes first in `paces` and after the first in `ceiling`, and an account kept for the load the other way round:
+
+```sh
+just load-signin parent
+just load-signin load
+just load paces -url https://mcp.mathtrail.app -accounts parent,load
+just load ceiling -url https://mcp.mathtrail.app -accounts load,parent
+```
+
+**What a profile remembers.** The lessons of `paces` hand in the load's five tasks, and a profile keeps every task it was handed, so an account walks them once: the next time they are refused as near-copies. To walk them again, delete the account's profile file in Drive and then from the bin, and the service makes a new one; or sign another account in. The ceiling leaves its account without new tasks until midnight in UTC.
+
+**What it cannot show.** Every request of a run comes from one address, so whether another address is served while the greedy one is held back has to be seen from another network, by hand. How many instances the platform ran, and what they cost, are the platform's to tell: the service's log and the billing, not the tool. T64.3 reads both.
 
 ## What is open
 

@@ -25,7 +25,8 @@ flowchart LR
         kid["student<br/>pseudonym, grade, interests, constraints, notes, language"]
         rat["ratings<br/>θ, the start, answers, consecutive failures"]
         top["per-topic summary<br/>δ, counters, last issued, traps, mastery and its level"]
-        rec["recent<br/>the last 20 answers and skips"]
+        rec["recent<br/>the last 20 answers and skips,<br/>each answer with the levels before it"]
+        days["rating days<br/>the levels each of the last 7 days began at"]
         fpr["fingerprints<br/>up to 200 sketches, no texts"]
         req["open request<br/>id, brief, attempts, tutor mode"]
         cur["current task<br/>open part, the answer once given,<br/>and one sealed block"]
@@ -44,6 +45,7 @@ flowchart LR
     sa --> rat
     sa --> top
     sa --> rec
+    sa --> days
     sa --> cur
     sp & ep & nt & st & sa --> svc
 
@@ -61,7 +63,7 @@ A solid arrow writes, a dashed arrow reads. Every write also touches the service
 - **No answer in the open.** The answer, the explanations behind the wrong options, the solution and the solver live in one sealed block (О-25).
 - **Nothing that identifies the parent.** No email, no Google `sub`, not even the derived identifier the limits use (02-auth): the file is found with the parent's own Drive token, so it never needs to name them. The child's UUID is random and means nothing outside this file.
 - **No rank.** The eleven ranks, and how far through its rank a rating has come, are computed from the rating when they are shown (R12, R147, О-48).
-- **No "solved today" for display.** The rhythm of practice is not shown at all (R13, О-49). The daily counters below exist only to enforce the limits and never reach a screen.
+- **No "solved today" for display.** The rhythm of practice is not shown at all (R13, О-49). The daily counters below exist only to enforce the limits and never reach a screen, and the days the history of the ratings keeps are there to measure a week's change from: nothing counts them or shows them (R165).
 - **No β per task.** Each task is solved by one child and never reused, so its place on the ladder is derived from the task's level and difficulty when the answer is recorded and is not stored (PRODUCT 4.5, SPEC 2.1).
 
 ## The schema, block by block
@@ -133,9 +135,23 @@ One entry per topic the child has ever been given, keyed by the catalog's topic 
 | `chosen`, `trap` | letter, trap id | Only on a wrong answer to a letter: which option and the trap behind it. An "I don't know" has neither (R93) |
 | `hint_used`, `confused` | booleans | The hint was opened, or "I don't know" was pressed instead of an answer. The hint changes the next step, never the rating (О-33); "I don't know" is recorded as a wrong answer, with no `chosen` and no `trap` (R93) |
 | `pace` | `fast`, `normal`, `slow` | Measured by the server from `issued_at` to the answer, not by the client's clock |
-| `skipped` | boolean | The task was left without an answer when a new one was asked for — `next_task` records it (R98). Such an entry carries the task's id, topic, level and difficulty, and `answered_at` as the moment it was left — and none of `correct`, `chosen`, `trap`, `hint_used`, `confused` or `pace` |
+| `skipped` | boolean | The task was left without an answer when a new one was asked for — `next_task` records it (R98). Such an entry carries the task's id, topic, level and difficulty, and `answered_at` as the moment it was left — and none of `correct`, `chosen`, `trap`, `hint_used`, `confused`, `pace` or `before` |
+| `before` | `{delta, theta}` | Where the child stood before this answer moved anything: θ and the correction of the answer's topic, at full precision. What the progress tells moved since the last answer is measured from it (SPEC 2.10, R165). Absent from a skipped task, which moved nothing, and from an answer an earlier build wrote |
 
 Unlike the prototype, an answered entry's `correct` is never null: "I don't know" shows the solution, so it is an answer, and a wrong one (R93), marked by `confused` rather than by a third outcome. A skipped task is the one entry with no outcome, and every reader that learns from answers — the rating, the trial series, the misconception map, the streaks, the rule's "last answer" — passes over it; only the progress screen reads it (R98).
+
+### The days of the ratings
+
+`rating_days` — where the child stood at the start of each of the last days with answers, oldest first, one to a date in UTC, at most **7**: what the progress measures a week's change from (SPEC 2.10, R165). Absent until the first answer after the trial series.
+
+| Field | Type | Why |
+|---|---|---|
+| `date` | date, UTC | The day |
+| `theta` | number | θ as the day began |
+| `deltas` | map of topic id → number | The correction of every topic answered before the day began. A topic first answered that day is not among them, which is how a topic new to the week is told |
+| `unkept` | date, UTC | Only on the first day kept after a build that kept no history wrote the file — it let go of the days and of every answer's `before` —: the latest date of an answer in the window that keeps no levels before it, which the five latest answers, never pushed out by a skip, are sure to show. A week that reaches back to it cannot be told, even once that answer has left the window. The day the trial series ended at has none, since a week never measures the series (SPEC 2.10) |
+
+Only recording an answer writes it, before the answer moves the levels: the first answer after the trial series on a date later than the last one kept adds that date with the levels as they stand, and every answer lets go of the days the week ending on its date no longer reaches. The trial series adds no day, so a week never starts inside it, and the first answer after it keeps the levels the series ended at; an answer dated before the last day kept — the clock of another instance ran ahead — adds none. Ranks are not kept here either: only levels (R12).
 
 ### Fingerprints of past tasks
 
@@ -232,9 +248,10 @@ Pretty-printed JSON with sorted keys, not a compact line: the parent can open th
 | The open request | 0 or 1.5 KB | 2 KB |
 | The current task, open part | 2 KB | 4 KB |
 | The current task, sealed block | 4 KB | 8 KB |
-| **Total** | **≈ 46 KB** | **≈ 64 KB** |
+| The history of the ratings: the levels before each of 20 entries, and 7 days of 30 topics' corrections | 14 KB | 15 KB |
+| **Total** | **≈ 60 KB** | **≈ 79 KB** |
 
-The target is 64 KB. The caps that keep it there are the ones above — 500 characters of notes, 20 recent answers, 200 fingerprints, 30-odd topics — and the texts of a task, which the structure check holds to what a card shows (SPEC 5.2); they are enforced on every write, not checked afterwards, and past a list's cap its oldest entry goes. Nothing else grows, so nothing is pruned for size. What the service does hold is a ceiling: no file is written past 1 MiB, the most a store reads back, since a file the store could not read again would be taken for damage and rolled back. And every count in the file — the revision, the answers, the streaks, the day's tasks — is held below 2^30, about a billion, with a file read only when each has room for one more: whatever reads can take the next write (R126).
+The target was 64 KB, and the history of the ratings takes a file near the caps past it, to about 80 KB, while a typical one stays within it (R165). The caps that keep it there are the ones above — 500 characters of notes, 20 recent answers, 200 fingerprints, 30-odd topics, 7 days of the ratings — and the texts of a task, which the structure check holds to what a card shows (SPEC 5.2); they are enforced on every write, not checked afterwards, and past a list's cap its oldest entry goes. Nothing else grows, so nothing is pruned for size. What the service does hold is a ceiling: no file is written past 1 MiB, the most a store reads back, since a file the store could not read again would be taken for damage and rolled back. And every count in the file — the revision, the answers, the streaks, the day's tasks — is held below 2^30, about a billion, with a file read only when each has room for one more: whatever reads can take the next write (R126).
 
 **Pruning has a floor, because the rule reads the window.** After a failure the rule needs the topic of the last answer, which it takes from the end of `recent` (SPEC section 3), so an empty window would leave it with nothing to consolidate. `recent` therefore never goes below **5** answers. Skips share the window with answers under one rule: when an entry has to go, the oldest goes — unless it is one of the five most recent answers, and then the oldest skip goes instead. A new skip therefore stays and shows, and a run of skips cannot push out the answers the rule and the trial series read (R98). And the rule does not trust even that: a window that is empty anyway, in a profile restored from an older revision or edited by hand, is read as "nothing to consolidate" and the rule falls through to a new topic. A pure function that panics on its own input is a bug, not a guarantee.
 
@@ -250,6 +267,7 @@ What grows without a bound of its own is the per-topic summary, which gains an e
 - **The ladder did not raise the version.** One ladder for grades 1–6 (О-56) added `ratings.start`, `grade_level` in the brief, the current task and every answer of the window, and `mastered_level` beside `mastered_since`, all of them required, and changed what θ means — a place on the ladder rather than a level within the grade. All of that is still version 1 because no file of version 1 had been written by the service when it changed: the tools that write one arrive in T43 and the storage in T50. From the first written file on, a change of that kind is a version and a migration.
 - **The answer a task keeps did not raise the version either.** `current_task.answered` is optional, and a file without it reads as before. An older build reads past it, and asked for the next task it would record the answered task as skipped as well; that can happen only once a file outlives a build, which is T50's, so the question waited there (SPEC remark 44, R101). **Answered in T50:** no build that predates the field ever reads a file in Drive — T50 is the first build that keeps profiles there, and it knows the field — so the window is empty and the version stays 1 (R116).
 - **Who chose a task did not raise the version either.** `current_task.tutor_mode` is optional: a file without it reads as before, the answer to its task is logged as chosen by nobody known, and an older build reads past it (R153).
+- **Nor did the history of the ratings.** `rating_days` and each answer's `before` are optional: a file without them reads as before and tells no change until answers keep one. An older build reads past them and drops them when it writes, as it drops every field it does not know, so after a rollback the history starts again, and what it tells is never false — a while that holds an answer kept without it cannot be told (R165).
 - **The sealed block carries its own version** inside the ciphertext and is migrated or dropped on its own: a task on the card is worth less than a profile.
 - Unknown fields at the current version are ignored on read and are not written back — forward compatibility is the refusal above, not a bag of leftovers.
 
@@ -285,6 +303,26 @@ What grows without a bound of its own is the per-topic summary, which gains an e
     "failed": 1
   },
   "open_request": null,
+  "rating_days": [
+    {
+      "date": "2026-09-14",
+      "deltas": {
+        "arithmetic.with_a_twist": 0.42,
+        "combinatorics.enumeration": 0.22,
+        "logic.truth_tellers": -0.3
+      },
+      "theta": 2.71
+    },
+    {
+      "date": "2026-09-20",
+      "deltas": {
+        "arithmetic.with_a_twist": 0.55,
+        "combinatorics.enumeration": 0.4,
+        "logic.truth_tellers": -0.24
+      },
+      "theta": 2.89
+    }
+  ],
   "ratings": {
     "answers": 57,
     "consecutive_failures": 1,
@@ -294,6 +332,10 @@ What grows without a bound of its own is the per-topic summary, which gains an e
   "recent": [
     {
       "answered_at": "2026-09-20T18:44:02Z",
+      "before": {
+        "delta": -0.24,
+        "theta": 2.89
+      },
       "correct": true,
       "difficulty": 3,
       "grade_level": "3-4",
@@ -305,6 +347,10 @@ What grows without a bound of its own is the per-topic summary, which gains an e
     },
     {
       "answered_at": "2026-09-20T19:02:55Z",
+      "before": {
+        "delta": 0.4,
+        "theta": 2.95
+      },
       "chosen": "B",
       "confused": false,
       "correct": false,

@@ -25,7 +25,8 @@ export default defineConfig({
 			input: { style: "src/site/style.css" },
 			output: {
 				// The stylesheet's address was published with the first site and
-				// stays what it was.
+				// stays what it was; the font files it names keep the names their
+				// package gives them.
 				assetFileNames: "assets/[name][extname]",
 			},
 		},

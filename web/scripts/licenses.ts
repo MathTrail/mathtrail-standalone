@@ -1,9 +1,9 @@
-// The npm side of the repository's license rules, read from the widget's
-// lockfile. Every package the lockfile pins — what the widget is built from
-// and the tools that build it — must carry a license from the allowed list; a
-// build tool may be excepted by its name and its license, and only while it
-// stays a tool. The packages the widget is built from are listed, with their
-// licenses, for the file of third-party licenses.
+// The npm side of the repository's license rules, read from the lockfile of
+// the widget and the site. Every package the lockfile pins — what the two are
+// built from and the tools that build them — must carry a license from the
+// allowed list; a build tool may be excepted by its name and its license, and
+// only while it stays a tool. The packages the two are built from are listed,
+// with their licenses, for the file of third-party licenses.
 //
 //	node scripts/licenses.ts check --allowed MIT,ISC --except lightningcss=MPL-2.0
 //	node scripts/licenses.ts list
@@ -32,7 +32,7 @@ export type LockedPackage = {
 	version: string;
 	/** license is the package's SPDX expression, empty when it names none. */
 	license: string;
-	/** shipped is true for a package the widget can be built from. */
+	/** shipped is true for a package the widget or the site can be built from. */
 	shipped: boolean;
 	/**
 	 * optional names the packages it may use when there is one for the
@@ -153,14 +153,15 @@ export function refusals(
 		.filter((p) => !satisfies(p.license, allowed) && !excepted(p))
 		.map(
 			(p) =>
-				`${p.name}@${p.version} is licensed ${p.license === "" ? "under nothing it names" : p.license}, which is not on the list; it is ${p.shipped ? "part of what the widget is built from" : "a build tool"}`,
+				`${p.name}@${p.version} is licensed ${p.license === "" ? "under nothing it names" : p.license}, which is not on the list; it is ${p.shipped ? "part of what the widget and the site are built from" : "a build tool"}`,
 		);
 }
 
 /**
- * listing is one line per package the widget is built from: its license, the
- * package at its exact version, and that version's page in the registry. The
- * columns are those of the Go modules above them in the same file.
+ * listing is one line per package the widget and the site are built from: its
+ * license, the package at its exact version, and that version's page in the
+ * registry. The columns are those of the Go modules above them in the same
+ * file.
  */
 export function listing(packages: readonly LockedPackage[]): string[] {
 	const lines = packages

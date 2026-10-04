@@ -1,7 +1,9 @@
 {
 	"language.name": "Русский",
 	"nav.language": "Язык",
-	"footer.documents": "Документы",
+	"nav.pages": "Разделы сайта",
+	"nav.menu": "Меню",
+	"footer.links": "Ссылки",
 	"footer.source": "GitHub",
 	"footer.translation": "Это перевод. При расхождении действует английская версия."
 }

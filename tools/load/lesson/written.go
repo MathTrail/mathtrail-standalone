@@ -257,3 +257,18 @@ func cats() Task {
 		Wrong: "A",
 	}
 }
+
+// Refused is a task the checks refuse every time it is handed in, as a model
+// that got its own answer wrong would hand it in: the race, with the answer,
+// the self-check and the explanations all pointing at an option its solver
+// proves wrong.
+func Refused() Task {
+	task := race()
+	right, wrong := task.Body.Correct, task.Wrong
+	task.Body.Correct = wrong
+	task.Body.Distractors[right] = task.Body.Distractors[wrong]
+	delete(task.Body.Distractors, wrong)
+	task.SelfCheck.FinalAnswer = wrong
+	task.Wrong = right
+	return task
+}

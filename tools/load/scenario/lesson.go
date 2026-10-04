@@ -37,15 +37,20 @@ func lessonLasts(o *Options) time.Duration { return time.Duration(lessonSteps(o)
 // profile, three steps for each task, and the progress.
 func lessonSteps(o *Options) int { return 1 + 3*o.Tasks + 1 }
 
-// walkLesson walks one child, signed in by the name given, through a lesson:
-// the profile, then each task asked for, handed in and answered — right and
-// wrong in turn — and the progress at the end, with a pause before every
-// step. The child is new to the service, so that a lesson finds no profile
-// and no request left by another. What the service was sent in all is the
-// caller's to count, since the service may be shared.
+// walkLesson walks one child, signed in by the name given, through a lesson.
+// The child is new to the service, so that a lesson finds no profile and no
+// request left by another.
 func walkLesson(ctx context.Context, o *Options, service *session.Service, name string) report.Run {
+	return walkLessonAs(ctx, o, service.Child(name))
+}
+
+// walkLessonAs walks the child given through a lesson, and closes the child
+// after: the profile, then each task asked for, handed in and answered — right
+// and wrong in turn — and the progress at the end, with a pause before every
+// step. What the service was sent in all is the caller's to count, since the
+// service may be shared.
+func walkLessonAs(ctx context.Context, o *Options, child *session.Child) report.Run {
 	run := report.Run{Scenario: Lesson, Unit: "accepted task", Began: time.Now()}
-	child := service.Child(name)
 	defer func() { _ = child.Close() }()
 	w := &walk{child: child, pace: o.Pace, run: &run}
 

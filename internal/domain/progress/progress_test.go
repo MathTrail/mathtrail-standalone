@@ -44,10 +44,14 @@ func embedded(t *testing.T) *content.Content {
 	return loaded
 }
 
+// today is the day the summaries of these tests are asked for, after the
+// latest answer of any fixture.
+var today = profile.DateOf(time.Date(2026, time.October, 4, 12, 0, 0, 0, time.UTC))
+
 func summaryOf(t *testing.T, p *profile.Profile, catalog tutor.Catalog) progress.Summary {
 	t.Helper()
 
-	summary, err := progress.Of(p, catalog)
+	summary, err := progress.Of(p, catalog, today)
 	if err != nil {
 		t.Fatalf("Of() error = %v, want nil", err)
 	}
@@ -373,7 +377,7 @@ func TestTheSkippedTasksAreShownToTheParent(t *testing.T) {
 func TestAProgressWithNothingToSuggestFails(t *testing.T) {
 	t.Parallel()
 
-	if _, err := progress.Of(fixture(t, "olya"), emptyCatalog{}); err == nil {
+	if _, err := progress.Of(fixture(t, "olya"), emptyCatalog{}, today); err == nil {
 		t.Error("Of() error = nil for a catalog with no topics, want an error")
 	}
 }

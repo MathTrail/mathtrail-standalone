@@ -74,6 +74,36 @@ describe("locate", () => {
 });
 
 describe("parsePage", () => {
+	test("takes nothing of the page's head from a template, and still counts what the template loads", () => {
+		const page = parsePage(
+			"en/index.html",
+			[
+				`<!DOCTYPE html><html lang="en" dir="ltr"><head>`,
+				`<template><title>Drawn later</title></template>`,
+				`<title>Page</title>`,
+				`<meta name="description" content="The page.">`,
+				`<link rel="canonical" href="https://example.test/en/">`,
+				`<link rel="alternate" hreflang="ru" href="https://example.test/ru/">`,
+				`</head><body><template>`,
+				`<meta name="description" content="Another page.">`,
+				`<link rel="canonical" href="https://example.test/elsewhere/">`,
+				`<link rel="alternate" hreflang="fr" href="https://example.test/fr/">`,
+				`<link rel="stylesheet" href="/assets/demo.css">`,
+				`</template></body></html>`,
+			].join(""),
+		);
+
+		expect(page).toMatchObject({
+			title: "Page",
+			description: "The page.",
+			canonical: "https://example.test/en/",
+		});
+		expect([...page.alternates]).toEqual([["ru", "https://example.test/ru/"]]);
+		expect(page.references.map((ref) => ref.value)).toEqual([
+			"/assets/demo.css",
+		]);
+	});
+
 	test("reads the head and sorts every reference by what the browser does with it", () => {
 		const page = parsePage(
 			"en/index.html",

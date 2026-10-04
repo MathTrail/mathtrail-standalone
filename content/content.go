@@ -109,8 +109,8 @@ func load(src fs.FS) (*Content, error) {
 // Topics returns the whole topic catalog, in catalog order.
 func (c *Content) Topics() []Topic {
 	topics := make([]Topic, 0, len(c.topics))
-	for _, topic := range c.topics {
-		topics = append(topics, topic.clone())
+	for i := range c.topics {
+		topics = append(topics, c.topics[i].clone())
 	}
 	return topics
 }

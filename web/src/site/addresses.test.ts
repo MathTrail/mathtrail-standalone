@@ -1,11 +1,5 @@
 import { describe, expect, test } from "vitest";
-import {
-	address,
-	alternatesOf,
-	localesWith,
-	outputPath,
-	parseBase,
-} from "./addresses";
+import { address, alternatesOf, outputPath, parseBase } from "./addresses";
 import { readTexts } from "./content";
 
 const base = "https://example.test";
@@ -18,7 +12,7 @@ function textsOf(pages: Record<string, string[]>) {
 				locale,
 				new Map(
 					names.map((name) => [
-						name,
+						`${name}.md`,
 						`---\ntitle: ${name}\ndescription: ${name}\n---\n`,
 					]),
 				),
@@ -73,6 +67,12 @@ describe("a page's address", () => {
 		["en", "index", "/en/", "en/index.html"],
 		["en", "privacy", "/en/privacy/", "en/privacy/index.html"],
 		["zh-Hans", "terms", "/zh-Hans/terms/", "zh-Hans/terms/index.html"],
+		[
+			"ru",
+			"topics/knights-and-liars",
+			"/ru/topics/knights-and-liars/",
+			"ru/topics/knights-and-liars/index.html",
+		],
 	])("of %s %s is %s, served from %s", (locale, name, want, file) => {
 		expect(address(locale, name)).toBe(want);
 		expect(outputPath(want)).toBe(file);
@@ -81,13 +81,8 @@ describe("a page's address", () => {
 
 describe("a page's translations", () => {
 	const texts = textsOf({
-		en: ["index", "privacy", "terms"],
+		en: ["index", "privacy"],
 		ru: ["index", "privacy"],
-	});
-
-	test("are the locales that have the page", () => {
-		expect(localesWith(texts, "privacy")).toEqual(["en", "ru"]);
-		expect(localesWith(texts, "terms")).toEqual(["en"]);
 	});
 
 	test("of a front page send a reader with no match to the apex", () => {
@@ -104,9 +99,13 @@ describe("a page's translations", () => {
 			{ hreflang: "ru", url: "https://example.test/ru/privacy/" },
 			{ hreflang: "x-default", url: "https://example.test/en/privacy/" },
 		]);
-		expect(alternatesOf(texts, base, "en", "terms")).toEqual([
-			{ hreflang: "en", url: "https://example.test/en/terms/" },
-			{ hreflang: "x-default", url: "https://example.test/en/terms/" },
+	});
+
+	test("of a page below another lead to the same page in every language", () => {
+		expect(alternatesOf(texts, base, "en", "topics/sample")).toEqual([
+			{ hreflang: "en", url: "https://example.test/en/topics/sample/" },
+			{ hreflang: "ru", url: "https://example.test/ru/topics/sample/" },
+			{ hreflang: "x-default", url: "https://example.test/en/topics/sample/" },
 		]);
 	});
 });

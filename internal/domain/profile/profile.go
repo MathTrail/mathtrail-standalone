@@ -50,6 +50,12 @@ type Profile struct {
 	// OpenRequest is the task being written right now, or nil. It is what
 	// makes "three attempts" survive a restart.
 	OpenRequest *OpenRequest `json:"open_request"`
+	// RatingDays are where the child stood at the start of each of the last
+	// days with answers, oldest first, so that how far the child has come over
+	// a week can be told. Only recording an answer writes them, and each one
+	// lets go of the days the week ending on its date no longer reaches, so the
+	// file holds at most the seven dates up to the latest answer.
+	RatingDays []RatingDay `json:"rating_days,omitempty"`
 	// Ratings is the child's level across every topic.
 	Ratings Ratings `json:"ratings"`
 	// Recent is the history window, oldest first.

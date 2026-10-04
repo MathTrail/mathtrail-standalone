@@ -121,11 +121,25 @@ func (s *Service) Close() { s.pool.CloseIdleConnections() }
 // sign-in makes the account dev-<name> of it, with a profile and a pace of its
 // own.
 func (s *Service) Child(name string) *Child {
+	return s.child(name, func() (string, error) { return name, nil })
+}
+
+// SignedIn is a child of the run signed in with an account a parent signed in
+// for real, where there is no development sign-in: every request carries the
+// access token the function gives, which renews it when it has run out. The
+// name is the one the account is kept under, and is never sent.
+func (s *Service) SignedIn(name string, token func() (string, error)) *Child {
+	return s.child(name, token)
+}
+
+// child is a child of the run, known by the name given, whose every request
+// carries the bearer the function gives.
+func (s *Service) child(name string, bearer func() (string, error)) *Child {
 	return &Child{
 		name:    name,
 		service: s,
 		client:  mcp.NewClient(&mcp.Implementation{Name: clientName, Version: "1"}, nil),
-		http:    &http.Client{Transport: signing{name: name, host: s.target.Host, next: s.pool, sent: &s.requests}},
+		http:    &http.Client{Transport: signing{bearer: bearer, host: s.target.Host, next: s.pool, sent: &s.requests}},
 	}
 }
 
@@ -328,6 +342,10 @@ func (a *Answer) Payload(into any) error {
 	return nil
 }
 
+// errUnsigned is a request that could not be signed: the account it was to
+// carry could not renew its tokens.
+var errUnsigned = errors.New("session: the request could not be signed")
+
 // fellBack is a handshake the library finished at an older version, after the
 // service refused the one the tool asked for.
 type fellBack struct{ version string }
@@ -336,19 +354,30 @@ func (f fellBack) Error() string {
 	return fmt.Sprintf("session: the handshake ended at %q, not at %q", f.version, Protocol)
 }
 
-// signing sends every request of a child signed in by their name — or of
-// nobody, when there is no name — to the host the service knows itself by,
+// signing sends every request of a child signed in by the bearer it gives — or
+// of nobody, when there is none — to the host the service knows itself by,
 // counts it, and keeps the worst status a call's requests got back.
 type signing struct {
-	name, host string
-	next       http.RoundTripper
-	sent       *atomic.Int64
+	bearer func() (string, error)
+	host   string
+	next   http.RoundTripper
+	sent   *atomic.Int64
 }
 
 func (s signing) RoundTrip(r *http.Request) (*http.Response, error) {
 	r = r.Clone(r.Context())
-	if s.name != "" {
-		r.Header.Set("Authorization", "Bearer "+s.name)
+	if s.bearer != nil {
+		bearer, err := s.bearer()
+		if err != nil {
+			// A request that could not be signed never reaches the service, and
+			// the call it was for ends on the way out, as unanswered. A round
+			// trip closes the body it was handed, whatever becomes of it.
+			if r.Body != nil {
+				_ = r.Body.Close()
+			}
+			return nil, fmt.Errorf("%w: %w", errUnsigned, err)
+		}
+		r.Header.Set("Authorization", "Bearer "+bearer)
 	}
 	if s.host != "" {
 		r.Host = s.host

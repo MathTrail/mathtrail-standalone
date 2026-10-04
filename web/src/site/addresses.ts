@@ -54,25 +54,21 @@ export function outputPath(served: string): string {
  */
 export type Alternate = { readonly hreflang: string; readonly url: string };
 
-/** localesWith are the locales that have the page name, in order. */
-export function localesWith(texts: Texts, name: string): string[] {
-	return texts.locales.filter((locale) => texts.pages.get(locale)?.has(name));
-}
-
 /**
- * alternatesOf lists every translation of the page name, plus the x-default a
- * reader with no matching language is sent to. For a front page that is the
- * apex, which hands the reader every language; for anything else it is the
- * reference locale's version, the copy every other is translated from.
+ * alternatesOf lists every translation of the page name — every locale has
+ * every page — plus the x-default a reader with no matching language is sent
+ * to. For a front page that is the apex, which hands the reader every
+ * language; for anything else it is the reference locale's version, the copy
+ * every other is translated from.
  */
 export function alternatesOf(
-	texts: Texts,
+	texts: Pick<Texts, "locales">,
 	base: string,
 	reference: string,
 	name: string,
 ): Alternate[] {
 	return [
-		...localesWith(texts, name).map((locale) => ({
+		...texts.locales.map((locale) => ({
 			hreflang: locale,
 			url: base + address(locale, name),
 		})),

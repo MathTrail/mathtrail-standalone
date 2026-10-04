@@ -109,14 +109,24 @@ describe("a text's body", () => {
 });
 
 describe("the texts of a site", () => {
+	// words are a page's words with the title and description every page has.
+	const words = (title: string, rest = "") =>
+		`title: ${title}\ndescription: About ${title}\n${rest}`;
 	const sources = new Map([
-		["ru", new Map([["index", text("Главная")]])],
+		[
+			"ru",
+			new Map([
+				["index.md", text("Главная")],
+				["privacy.md", text("Приватность")],
+				["topics/sample.yaml", words("Пример", "lead: Текст.\n")],
+			]),
+		],
 		[
 			"en",
 			new Map([
-				["terms", text("Terms")],
-				["index", text("Home")],
-				["privacy", text("Privacy")],
+				["topics/sample.yaml", words("Sample", "lead: Text.\n")],
+				["index.md", text("Home")],
+				["privacy.md", text("Privacy")],
 			]),
 		],
 	]);
@@ -125,13 +135,39 @@ describe("the texts of a site", () => {
 		const texts = readTexts(sources, "en");
 
 		expect(texts.locales).toEqual(["en", "ru"]);
-		expect(texts.names).toEqual(["index", "privacy", "terms"]);
+		expect(texts.names).toEqual(["index", "privacy", "topics/sample"]);
+		expect(texts.front).toEqual({ title: "Home", description: "About Home" });
+	});
+
+	test("are a document for a .md file and a page's words for a .yaml one", () => {
+		const texts = readTexts(sources, "en");
+
 		expect(texts.pages.get("ru")?.get("index")).toEqual({
+			kind: "document",
 			title: "Главная",
 			description: "About Главная",
 			html: "<h1>Главная</h1>\n",
 		});
+		expect(texts.pages.get("ru")?.get("topics/sample")).toEqual({
+			kind: "words",
+			words: new Map([
+				["title", "Пример"],
+				["description", "About Пример"],
+				["lead", "Текст."],
+			]),
+		});
 	});
+
+	// replacing is the sources with one locale's texts replaced by files.
+	const replacing = (locale: string, files: [string, string][]) =>
+		new Map([...sources, [locale, new Map(files)]]);
+	// russian are the Russian texts, with the files given written after them.
+	const russian = (...changed: [string, string][]): [string, string][] => [
+		["index.md", text("Главная")],
+		["privacy.md", text("Приватность")],
+		["topics/sample.yaml", words("Пример", "lead: Текст.\n")],
+		...changed,
+	];
 
 	test.each([
 		["a site with no locale", new Map(), "holds no locale"],
@@ -142,20 +178,75 @@ describe("the texts of a site", () => {
 		],
 		[
 			"a reference locale with no front page",
-			new Map([["en", new Map([["terms", text("Terms")]])]]),
-			'reference locale "en" has no index.md',
+			new Map([["en", new Map([["terms.md", text("Terms")]])]]),
+			'reference locale "en" has no index page',
+		],
+		[
+			"a page some locale lacks",
+			replacing("ru", [
+				["index.md", text("Главная")],
+				["topics/sample.yaml", words("Пример", "lead: Текст.\n")],
+			]),
+			"the page privacy is missing in ru: a page is in every language of the site or in none",
+		],
+		[
+			"a page that is a document in one locale and words in another",
+			replacing("ru", [
+				["index.md", text("Главная")],
+				["privacy.yaml", words("Приватность")],
+				["topics/sample.yaml", words("Пример", "lead: Текст.\n")],
+			]),
+			"the page privacy is a document in one language and a component's words in another",
+		],
+		[
+			"a page two files write",
+			replacing("ru", russian(["privacy.yaml", words("Приватность")])),
+			"ru/privacy.yaml: the page privacy has a text already",
+		],
+		[
+			"a file neither a document nor words",
+			replacing("ru", russian(["notes.txt", "a note"])),
+			"ru/notes.txt: a text is a .md or a .yaml file",
+		],
+		[
+			"a page named otherwise than its address",
+			replacing("ru", russian(["Topics/Sample.yaml", words("Пример")])),
+			"ru/Topics/Sample.yaml: a text is a .md or a .yaml file, named in lowercase words",
+		],
+		[
+			"words that disagree with the English, naming their file",
+			replacing("ru", russian(["topics/sample.yaml", words("Пример")])),
+			"ru/topics/sample.yaml: the words disagree with the English: lead is missing",
+		],
+		[
+			"words with no title",
+			replacing(
+				"ru",
+				russian(["topics/sample.yaml", "description: D\nlead: L\n"]),
+			),
+			"ru/topics/sample.yaml: a page's words give its title",
+		],
+		[
+			"a title with a slot",
+			replacing(
+				"ru",
+				russian(["topics/sample.yaml", words("Тема {name}", "lead: Текст.\n")]),
+			),
+			"ru/topics/sample.yaml: a page's title is said as it is written, with no slot",
+		],
+		[
+			"words that cannot be read, naming their file",
+			replacing("ru", russian(["topics/sample.yaml", "title: [A\n"])),
+			"ru/topics/sample.yaml: Flow sequence in block collection",
 		],
 		[
 			"a text that cannot be read, naming its file",
-			new Map([...sources, ["ru", new Map([["index", "# Главная\n"]])]]),
+			replacing("ru", russian(["index.md", "# Главная\n"])),
 			"ru/index.md: front matter must open",
 		],
 		[
 			"a text holding markup, naming its file",
-			new Map([
-				...sources,
-				["ru", new Map([["index", text("Главная", "<p>hi</p>\n")]])],
-			]),
+			replacing("ru", russian(["index.md", text("Главная", "<p>hi</p>\n")])),
 			"ru/index.md: the text holds markup",
 		],
 	])("are refused for %s", (_, broken, want) => {

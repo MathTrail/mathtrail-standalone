@@ -62,6 +62,12 @@ PROTOTYPE_COMMIT := "02638353482e25d6213120ba10caea3467a0437a"
 # What a dependency's license may be: permissive, and compatible with releasing
 # the result under MIT.
 ALLOWED_LICENSES := "MIT,BSD-2-Clause,BSD-3-Clause,Apache-2.0,ISC"
+# The licenses a font may carry besides: the site ships a font's files, and the
+# Open Font License lets them travel with software under any license, so long
+# as its notice and text travel with them. The npm check alone takes them,
+# since the fonts come from npm, and it takes any package under one of them,
+# font or not.
+FONT_LICENSES := "OFL-1.1"
 # The npm packages allowed a license outside that list, as name=license. Each is
 # a tool that builds the widget and ends up in nothing that is shipped, and it is
 # allowed only while it stays a development dependency. lightningcss, under
@@ -370,15 +376,15 @@ _license-list:
         echo "std,https://github.com/golang/go/blob/go${release}/LICENSE,BSD-3-Clause"
         go run {{ GO_LICENSES }} report ./... --ignore {{ MODULE }} 2>/dev/null
     } | awk -F, '{ printf "%-13s %-46s %s\n", $3, $1, $2 }'
-    cat <<'WIDGET'
+    cat <<'WEB'
 
-    The npm packages below are what the widget the server embeds is built from:
-    every package its lockfile needs outside development, and every package one
-    of those names as an optional companion, used or not. Each line is a
-    license, the package at the exact version in web/package-lock.json, and the
-    page of that version in the npm registry.
+    The npm packages below are what the widget the server embeds and the site
+    are built from: every package their lockfile needs outside development, and
+    every package one of those names as an optional companion, used or not.
+    Each line is a license, the package at the exact version in
+    web/package-lock.json, and the page of that version in the npm registry.
 
-    WIDGET
+    WEB
     node web/scripts/licenses.ts list
 
 # -- Widget -----------------------------------------------------------------
@@ -609,7 +615,7 @@ ci-licenses:
     #!/usr/bin/env bash
     set -euo pipefail
     go run {{ GO_LICENSES }} check ./... --allowed_licenses={{ ALLOWED_LICENSES }}
-    node web/scripts/licenses.ts check --allowed {{ ALLOWED_LICENSES }} --except {{ NPM_LICENSE_EXCEPTIONS }}
+    node web/scripts/licenses.ts check --allowed {{ ALLOWED_LICENSES }},{{ FONT_LICENSES }} --except {{ NPM_LICENSE_EXCEPTIONS }}
     # The list is built first and compared second: a report that failed to run
     # would otherwise look exactly like a list somebody forgot to update.
     list=$(just _license-list)
@@ -1017,6 +1023,9 @@ ci-tf-outputs:
 # tool is built and then run, rather than run through the go command, which
 # answers every failing exit with 1: its own exit is 0 for a clean run, 1 for
 # one that found something, and 2 for one that could not run.
+# A deployed service is run against with the accounts a parent signed in on
+# it, since it has no development sign-in: `just load paces -url
+# https://mcp.mathtrail.app -accounts parent,load` (docs/load.md).
 # Run a scenario of the load tool, such as `just load lesson`, or `just load lesson -url http://localhost:8080`
 [positional-arguments]
 [working-directory('tools/load')]
@@ -1036,9 +1045,25 @@ load scenario *args:
     just docker-build
     exec bin/load -scenario "$scenario" -image mathtrail:dev "$@"
 
-# Every scenario, against the image of what is in the tree, built once, in a
-# container of an instance's size: one vCPU and 1 GiB, told what a deployment
-# of that size is told. Each run is held to the most memory its instance may
+# The parent opens the address it prints and signs in with Google; the browser
+# comes back to this computer, or the parent pastes the address it ended up at.
+# The tokens are kept in the user's own configuration, never in the repository.
+# Sign an account in on the deployed service for the load's runs against it, such as `just load-signin parent`
+[positional-arguments]
+[working-directory('tools/load')]
+load-signin name url="https://mcp.mathtrail.app" *args:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    go build -o bin/load .
+    name="$1"
+    url="$2"
+    shift 2
+    exec bin/load -signin "$name" -url "$url" "$@"
+
+# Every scenario of a container, against the image of what is in the tree,
+# built once, in a container of an instance's size: one vCPU and 1 GiB, told
+# what a deployment of that size is told; the two of the deployed service are
+# run by hand against it. Each run is held to the most memory its instance may
 # hold — its peak as measured, with room to spare; for the solvers that keep
 # hundreds of MiB, whose peak is wherever the collector chose to work, just
 # under the instance — and one that finds something does not stop the rest:
@@ -1144,13 +1169,15 @@ load-tidy:
 
 # A run writes its tables, its summary and what it was into
 # tools/learners/results, over the run kept there, and prints the summary. It
-# draws the children of the paper's run unless it is given -seed or
-# -experiment. Arguments go to the bench as they are; a quick look, such as
-# `just learners -children 100 -out /tmp/learners`, is written elsewhere, so
-# that the run kept is a whole one. The service's version is stamped in as a
-# build of the service carries it, so that run.txt says what code the numbers
-# came from.
-# Run every rule of the learners' bench on every generator, and print the summary
+# runs the bench's own set of rules unless -rules names another, whose results
+# go into a directory of their own within results; it draws the children of
+# the paper's run unless it is given -seed or -experiment, or a set that draws
+# children of its own. Arguments go to the bench as they are; a quick look,
+# such as `just learners -children 100 -out /tmp/learners`, is written
+# elsewhere, so that the run kept is a whole one. The service's version is
+# stamped in as a build of the service carries it, so that run.txt says what
+# code the numbers came from.
+# Run a set of the learners' bench's rules on every generator, and print the summary
 [positional-arguments]
 [working-directory('tools/learners')]
 learners *args:

@@ -2,9 +2,13 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/tools/load/servicetest"
 )
@@ -19,7 +23,7 @@ func TestALessonTheServiceAnswersEndsClean(t *testing.T) {
 	var stdout, stderr strings.Builder
 	code := run(t.Context(), []string{
 		"-scenario", "lesson", "-url", target.URL, "-host", target.Host, "-pace", "0s", "-tasks", "2",
-	}, &stdout, &stderr)
+	}, nil, &stdout, &stderr)
 
 	if code != exitClean {
 		t.Fatalf("exit code = %d, want %d; stderr: %s; stdout: %s", code, exitClean, stderr.String(), stdout.String())
@@ -42,7 +46,7 @@ func TestAnAttackRunsTheVariantsItIsGiven(t *testing.T) {
 	code := run(t.Context(), []string{
 		"-scenario", "adversarial", "-url", target.URL, "-host", target.Host, "-variants", "loop, product",
 		"-rate", "5", "-duration", "500ms", "-children", "1", "-steps", "200000",
-	}, &stdout, &stderr)
+	}, nil, &stdout, &stderr)
 
 	if code != exitClean {
 		t.Fatalf("exit code = %d, want %d; stderr: %s; stdout: %s", code, exitClean, stderr.String(), stdout.String())
@@ -68,7 +72,7 @@ func TestALessonTheServiceHoldsBackEndsHard(t *testing.T) {
 	var stdout, stderr strings.Builder
 	code := run(t.Context(), []string{
 		"-scenario", "lesson", "-url", target.URL, "-host", target.Host, "-pace", "0s",
-	}, &stdout, &stderr)
+	}, nil, &stdout, &stderr)
 
 	if code != exitHard {
 		t.Fatalf("exit code = %d, want %d; stderr: %s", code, exitHard, stderr.String())
@@ -113,12 +117,24 @@ func TestWhatCannotRunIsNotRun(t *testing.T) {
 		{"no child", []string{"-scenario", "saturation", "-url", "http://localhost:8080", "-children", "0"}, "children"},
 		{"a ceiling no solver is sized to", []string{"-scenario", "adversarial", "-url", "http://localhost:8080", "-steps", "1000"}, "steps"},
 		{"a variant nobody wrote", []string{"-scenario", "adversarial", "-url", "http://localhost:8080", "-variants", "pairs,sleep"}, "sleep"},
+		{"a sign-in with no service", []string{"-signin", "parent"}, "on the service at -url, which names none"},
+		{"a sign-in with a run", []string{"-signin", "parent", "-url", "http://localhost:8080", "-scenario", "paces"}, "runs nothing: -scenario"},
+		{"a port that is no port", []string{"-signin", "parent", "-url", "http://localhost:8080", "-callback-port", "70000"}, "is no port"},
+		{"a port with no sign-in", []string{"-scenario", "paces", "-url", "http://localhost:8080", "-callback-port", "9000"}, "-callback-port is for -signin"},
+		{"accounts for children made up", []string{"-scenario", "limits", "-url", "http://localhost:8080", "-accounts", "a,b"}, "limits reads no -accounts"},
+		{"accounts for no deployed service", []string{"-scenario", "paces", "-image", "mathtrail:dev", "-accounts", "a,b"}, "which -url names"},
+		{"one account alone", []string{"-scenario", "paces", "-url", "http://localhost:8080", "-accounts", "a"}, "two at least"},
+		{"an account named twice", []string{"-scenario", "paces", "-url", "http://localhost:8080", "-accounts", "a,a"}, "each account once"},
+		{"an account with no name", []string{"-scenario", "ceiling", "-url", "http://localhost:8080", "-accounts", "a,,b"}, "each account once"},
+		{"accounts beside children", []string{"-scenario", "paces", "-url", "http://localhost:8080", "-accounts", "a,b", "-children", "2"}, "-children goes with no -accounts"},
+		{"accounts never signed in", []string{"-scenario", "paces", "-url", "http://localhost:8080", "-accounts", "a,b", "-accounts-dir", "/nonexistent/mathtrail-load"}, "sign it in first"},
+		{"a directory of no accounts", []string{"-scenario", "paces", "-url", "http://localhost:8080", "-accounts-dir", "/tmp/accounts"}, "neither is given"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
 			var stdout, stderr strings.Builder
-			if code := run(t.Context(), test.args, &stdout, &stderr); code != exitCannot {
+			if code := run(t.Context(), test.args, nil, &stdout, &stderr); code != exitCannot {
 				t.Errorf("exit code = %d, want %d", code, exitCannot)
 			}
 			if !strings.Contains(stderr.String(), test.says) {
@@ -193,7 +209,7 @@ func TestAStoppedRunReportsThePartThatRan(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 	var stdout, stderr strings.Builder
-	code := run(ctx, []string{"-scenario", "lesson", "-url", target.URL, "-host", target.Host}, &stdout, &stderr)
+	code := run(ctx, []string{"-scenario", "lesson", "-url", target.URL, "-host", target.Host}, nil, &stdout, &stderr)
 
 	if code != exitCannot {
 		t.Errorf("exit code = %d, want %d", code, exitCannot)
@@ -202,5 +218,50 @@ func TestAStoppedRunReportsThePartThatRan(t *testing.T) {
 		!strings.Contains(stderr.String(), "stopped") {
 		t.Errorf("stdout %q, stderr %q, want the report of what ran with no verdict and a word that it was stopped",
 			stdout.String(), stderr.String())
+	}
+}
+
+// A run of accounts signs its children in with the tokens kept for them, the
+// first as the greedy one, and says whose they are.
+func TestARunOfAccountsSignsInWithTheTokensKept(t *testing.T) {
+	t.Parallel()
+
+	// The development sign-in takes a token for the name of an account, which
+	// stands in here for the tokens a parent's sign-in kept.
+	target := servicetest.Start(t, "MATHTRAIL_RATE_USER_PER_MIN=60", "MATHTRAIL_RATE_IP_PER_MIN=120")
+	dir := t.TempDir()
+	for _, name := range []string{"first", "second"} {
+		kept, err := json.Marshal(map[string]any{
+			"service":   target.URL,
+			"client_id": "load",
+			"token_url": target.URL + "/oauth/token",
+			"token": map[string]any{
+				"access_token": "accounts-" + name, "token_type": "Bearer", "refresh_token": "never-used",
+				"expiry": time.Now().Add(time.Hour),
+			},
+		})
+		if err != nil {
+			t.Fatalf("encode the account %s: %v", name, err)
+		}
+		if err := os.WriteFile(filepath.Join(dir, name+".json"), kept, 0o600); err != nil {
+			t.Fatalf("keep the account %s: %v", name, err)
+		}
+	}
+	var stdout, stderr strings.Builder
+	code := run(t.Context(), []string{
+		"-scenario", "paces", "-url", target.URL, "-host", target.Host, "-accounts", "first,second", "-accounts-dir", dir,
+		"-rate", "50", "-duration", "1s", "-pace", "0s", "-tasks", "1",
+	}, nil, &stdout, &stderr)
+
+	if code != exitClean {
+		t.Fatalf("exit code = %d, want %d; stderr: %s; stdout: %s", code, exitClean, stderr.String(), stdout.String())
+	}
+	if !strings.Contains(stderr.String(), "as first, second") {
+		t.Errorf("stderr = %q, want it to say whose accounts the run signed in with", stderr.String())
+	}
+	for _, want := range []string{"# Load: paces: the greedy child", "# Load: paces: the other children", "# Load: paces: the greedy address"} {
+		if !strings.Contains(stdout.String(), want) {
+			t.Errorf("the report has no %q:\n%s", want, stdout.String())
+		}
 	}
 }

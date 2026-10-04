@@ -110,6 +110,8 @@ func kindOf(result *mcp.CallToolResult, err error, status int) Kind {
 	switch {
 	case errors.As(err, &handshake):
 		return Kind{Class: Handshake, Detail: handshake.version}
+	case errors.Is(err, errUnsigned):
+		return Kind{Class: NoAnswer, Detail: "unsigned"}
 	case status >= 400:
 		// A status of 400 or more is told by its status, whatever error of the
 		// protocol it carried, and that error goes with it.

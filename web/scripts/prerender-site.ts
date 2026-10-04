@@ -1,6 +1,7 @@
-// The site's build. It reads the texts in site/content/<locale>/*.md, draws
-// every page with the site's components, builds the stylesheet, and writes the
-// whole site into the one directory a static host publishes.
+// The site's build. It reads the texts in site/content/<locale>/ — the
+// documents' Markdown and the pages' words — draws every page with the site's
+// components, builds the stylesheet with the font it sets, and writes the whole
+// site into the one directory a static host publishes.
 //
 //	node scripts/prerender-site.ts --base https://mathtrail.app --out ../site/dist
 
@@ -12,8 +13,9 @@ import {
 	rm,
 	writeFile,
 } from "node:fs/promises";
+import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
-import { dirname, join, relative, resolve } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { parseArgs } from "node:util";
 import { build, createServer } from "vite";
 import type { SiteFile } from "../src/site/render.tsx";
@@ -21,6 +23,11 @@ import type { SiteFile } from "../src/site/render.tsx";
 const web = join(import.meta.dirname, "..");
 const repository = join(web, "..");
 const siteConfig = join(web, "vite.config.site.ts");
+const require = createRequire(import.meta.url);
+
+// textFile matches the files a locale's texts are: a document's Markdown, or
+// the words of a page a component draws.
+const textFile = /\.(md|yaml)$/;
 
 /** SiteOptions say where a build of the site goes and what it is made of. */
 export type SiteOptions = {
@@ -34,7 +41,8 @@ export type SiteOptions = {
 
 /**
  * readSources reads the site's texts below dir: every directory in it is a
- * locale, and every .md file in a locale is a page named after the file.
+ * locale, and every .md and .yaml file below a locale, however deep, is a text,
+ * by its path from the locale's directory — topics/knights-and-liars.yaml.
  * Anything else is left where it is.
  */
 export async function readSources(
@@ -47,27 +55,27 @@ export async function readSources(
 		await Promise.all(
 			locales.map(
 				async (locale) =>
-					[locale.name, await readPages(join(dir, locale.name))] as const,
+					[locale.name, await readLocale(join(dir, locale.name))] as const,
 			),
 		),
 	);
 }
 
-// readPages reads the pages of one locale: every .md file in dir, named after
-// the file.
-async function readPages(dir: string): Promise<Map<string, string>> {
-	const files = (await readdir(dir, { withFileTypes: true })).filter(
-		(file) => file.isFile() && file.name.endsWith(".md"),
-	);
+// readLocale reads the texts of one locale: every text file below dir, by its
+// path from dir, written with forward slashes on every system.
+async function readLocale(dir: string): Promise<Map<string, string>> {
+	const files = (
+		await readdir(dir, { recursive: true, withFileTypes: true })
+	).filter((file) => file.isFile() && textFile.test(file.name));
 	return new Map(
 		await Promise.all(
-			files.map(
-				async (file) =>
-					[
-						file.name.slice(0, -".md".length),
-						await readFile(join(dir, file.name), "utf8"),
-					] as const,
-			),
+			files.map(async (file) => {
+				const path = join(file.parentPath, file.name);
+				return [
+					relative(dir, path).split(sep).join("/"),
+					await readFile(path, "utf8"),
+				] as const;
+			}),
 		),
 	);
 }
@@ -77,9 +85,9 @@ type Made = { readonly path: string; readonly data: string | Buffer };
 
 /**
  * buildSite builds the site into out: the pages its texts make, the
- * stylesheet, the design's tokens and the mark. Every file is made before
- * anything is written, so a build that fails at any step leaves the last one
- * where it was.
+ * stylesheet and the font files it names, the font's licence, the design's
+ * tokens and the mark. Every file is made before anything is written, so a
+ * build that fails at any step leaves the last one where it was.
  */
 export async function buildSite({
 	base,
@@ -101,6 +109,14 @@ export async function buildSite({
 		{
 			path: "assets/favicon.svg",
 			data: await readFile(join(repository, "site", "assets", "favicon.svg")),
+		},
+		// The font's licence travels with its files, as the licence asks of
+		// every copy of the font.
+		{
+			path: "assets/onest-license.txt",
+			data: await readFile(
+				require.resolve("@fontsource-variable/onest/LICENSE"),
+			),
 		},
 	];
 	const twice = givenTwice(files);

@@ -33,9 +33,9 @@ func runLimits(ctx context.Context, o *Options, launch Launch) ([]report.Run, er
 		target := up.Target
 		var group sync.WaitGroup
 		var runs [4]report.Run
-		group.Go(func() { runs[0] = greedyChild(ctx, o, target) })
-		group.Go(func() { runs[1] = otherChildren(ctx, o, target) })
-		group.Go(func() { runs[2] = greedyAddress(ctx, o, target) })
+		group.Go(func() { runs[0] = greedyChild(ctx, o, target, Limits) })
+		group.Go(func() { runs[1] = otherChildren(ctx, o, target, Limits) })
+		group.Go(func() { runs[2] = greedyAddress(ctx, o, target, Limits) })
 		group.Go(func() { runs[3] = quietAddresses(ctx, o, target) })
 		group.Wait()
 		return recovered(ctx, o, up, Limits, runs[:]...)
@@ -43,14 +43,14 @@ func runLimits(ctx context.Context, o *Options, launch Launch) ([]report.Run, er
 }
 
 // greedyChild reads its profile at the rate of the options, past the pace of
-// any account.
-func greedyChild(ctx context.Context, o *Options, target session.Target) report.Run {
+// any account: the first child of the scenario named.
+func greedyChild(ctx context.Context, o *Options, target session.Target, scenario string) report.Run {
 	service := session.Open(target, o.Timeout)
 	defer service.Close()
-	child := service.Child(Limits + "-greedy-" + stamp())
+	child := o.childOf(service, 0, scenario+"-greedy-"+stamp())
 	defer func() { _ = child.Close() }()
 
-	run := report.Run{Scenario: Limits + ": the greedy child", Unit: "call", Began: time.Now()}
+	run := report.Run{Scenario: scenario + ": the greedy child", Unit: "call", Began: time.Now()}
 	hits, unsent := attack(ctx, every(o.Rate), o.Duration, inFlight, func(ctx context.Context, _ uint64) session.Answer {
 		return child.Call(ctx, "get_profile", map[string]any{})
 	})
@@ -63,20 +63,22 @@ func greedyChild(ctx context.Context, o *Options, target session.Target) report.
 }
 
 // otherChildren walk their lessons at the pace of the options, each a child
-// of its own, all at once: none of them should ever meet a pace.
-func otherChildren(ctx context.Context, o *Options, target session.Target) report.Run {
+// of its own, all at once — the children of the scenario named after its
+// first: none of them should ever meet a pace.
+func otherChildren(ctx context.Context, o *Options, target session.Target, scenario string) report.Run {
 	service := session.Open(target, o.Timeout)
 	defer service.Close()
 
-	lessons := make([]report.Run, o.Children)
+	lessons := make([]report.Run, o.others())
 	began := stamp()
 	var group sync.WaitGroup
 	for i := range lessons {
-		group.Go(func() { lessons[i] = walkLesson(ctx, o, service, fmt.Sprintf("%s-%s-%d", Limits, began, i)) })
+		child := o.childOf(service, i+1, fmt.Sprintf("%s-%s-%d", scenario, began, i))
+		group.Go(func() { lessons[i] = walkLessonAs(ctx, o, child) })
 	}
 	group.Wait()
 
-	run := report.Run{Scenario: Limits + ": the other children", Unit: "accepted task"}
+	run := report.Run{Scenario: scenario + ": the other children", Unit: "accepted task"}
 	for i := range lessons {
 		run.Began = earliest(run.Began, lessons[i].Began)
 		run.Calls = append(run.Calls, lessons[i].Calls...)
@@ -85,17 +87,27 @@ func otherChildren(ctx context.Context, o *Options, target session.Target) repor
 	}
 	finish(ctx, &run)
 	run.Requests = service.Requests()
-	run.Broken = lessonExpected(&run, o.Tasks*o.Children)
+	run.Broken = lessonExpected(&run, o.Tasks*len(lessons))
+	if len(o.Accounts) > 0 && countOf(&run, nearCopy) > 0 {
+		// A profile keeps every task it was handed, and an account that walked
+		// these lessons before is handed the same tasks again.
+		run.Broken = append(run.Broken, "an account's profile had been handed the load's tasks before, and refused "+
+			"them as near-copies: walk the lessons with an account whose profile is new")
+	}
 	return run
 }
 
+// nearCopy is a task refused for being too like one the child was handed
+// before.
+var nearCopy = session.Kind{Class: session.Rejected, Detail: "near_duplicate"}
+
 // greedyAddress fetches the document at the rate of the options, past the
 // pace of any address.
-func greedyAddress(ctx context.Context, o *Options, target session.Target) report.Run {
+func greedyAddress(ctx context.Context, o *Options, target session.Target, scenario string) report.Run {
 	service := session.Open(target, o.Timeout)
 	defer service.Close()
 
-	run := report.Run{Scenario: Limits + ": the greedy address", Unit: "fetch", Began: time.Now()}
+	run := report.Run{Scenario: scenario + ": the greedy address", Unit: "fetch", Began: time.Now()}
 	hits, unsent := attack(ctx, every(o.Rate), o.Duration, inFlight, func(ctx context.Context, _ uint64) session.Answer {
 		return service.Fetch(ctx, document, address(0))
 	})

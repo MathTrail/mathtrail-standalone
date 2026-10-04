@@ -150,6 +150,85 @@ func TestEveryTopicIsOfferedToTheOldestChildren(t *testing.T) {
 	}
 }
 
+// A topic builds only on topics a child can have met by the time it is taught:
+// a base first taught in a later grade would point a younger child at a topic
+// they cannot be set yet.
+func TestATopicBuildsOnlyOnTopicsTaughtNoLater(t *testing.T) {
+	t.Parallel()
+	c := loaded(t)
+
+	for _, topic := range c.Topics() {
+		for _, id := range topic.BuildsOn {
+			base, ok := c.Topic(id)
+			if !ok {
+				t.Fatalf("topic %s builds on %s, which is not in the catalog", topic.ID, id)
+			}
+			if firstGrade(base.GradeLevels) > firstGrade(topic.GradeLevels) {
+				t.Errorf("topic %s is first taught in grade %d and builds on %s, first taught in grade %d",
+					topic.ID, firstGrade(topic.GradeLevels), base.ID, firstGrade(base.GradeLevels))
+			}
+		}
+	}
+}
+
+// The map of topics on the site has three layers — foundations, techniques and
+// hard problems — and a topic's layer is the longest chain of bases below it. A
+// link that made a chain longer would need a layer the map does not draw.
+func TestTheMapOfTopicsHasThreeLayers(t *testing.T) {
+	t.Parallel()
+
+	topics := loaded(t).Topics()
+	layers := layersOf(topics)
+	sizes := make([]int, 3)
+	for _, topic := range topics {
+		layer := layers[topic.ID]
+		if layer >= len(sizes) {
+			t.Errorf("topic %s is in layer %d, want one of the map's %d", topic.ID, layer, len(sizes))
+			continue
+		}
+		sizes[layer]++
+	}
+	t.Logf("topics in each layer, foundations first: %v", sizes)
+}
+
+// firstGrade is the youngest school year any of these levels is taught in.
+func firstGrade(levels []rating.GradeLevel) int {
+	grade := 0
+	for _, level := range levels {
+		if first := level.FirstGrade(); grade == 0 || first < grade {
+			grade = first
+		}
+	}
+	return grade
+}
+
+// layersOf works out every topic's layer: 0 for a topic that builds on none,
+// and one more than its highest base otherwise. The loader has refused a
+// circle, so the walk ends.
+func layersOf(topics []content.Topic) map[string]int {
+	byID := make(map[string]content.Topic, len(topics))
+	for _, topic := range topics {
+		byID[topic.ID] = topic
+	}
+	layers := make(map[string]int, len(topics))
+	var layerOf func(id string) int
+	layerOf = func(id string) int {
+		if layer, ok := layers[id]; ok {
+			return layer
+		}
+		layer := 0
+		for _, base := range byID[id].BuildsOn {
+			layer = max(layer, layerOf(base)+1)
+		}
+		layers[id] = layer
+		return layer
+	}
+	for _, topic := range topics {
+		layerOf(topic.ID)
+	}
+	return layers
+}
+
 func TestLookupFindsAnEntryAndMissesWhatIsNotThere(t *testing.T) {
 	t.Parallel()
 	c := loaded(t)
@@ -386,6 +465,13 @@ func TestWhatIsHandedOutIsACopy(t *testing.T) {
 	levels[0] = "9-10"
 	if again := c.Topics(); again[0].GradeLevels[0] == "9-10" {
 		t.Error("editing the levels of a topic handed out changed the catalog")
+	}
+
+	// So are the topics a topic builds on.
+	knights, _ := c.Topic("logic.knights_liars")
+	knights.BuildsOn[0] = "edited.by.a.caller"
+	if again, _ := c.Topic("logic.knights_liars"); again.BuildsOn[0] == "edited.by.a.caller" {
+		t.Error("editing the bases of a topic handed out changed the catalog")
 	}
 
 	// A reference task holds its options in a map, and a map is shared however

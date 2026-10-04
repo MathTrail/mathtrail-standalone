@@ -2,18 +2,21 @@ package main
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
 )
 
 // writeAll writes every file of the results into a directory: the numbers of
-// every cell, the comparisons, the summary, the criterion as every rule meets
-// it, and what the run was. It returns the summary, for the command to print.
+// every cell, the comparisons, the summary, every rule across the generators,
+// the criterion as every rule meets it with the choice it comes to, and what
+// the run was. It returns the summary, for the command to print.
 func writeAll(dir string, all []cell, results [][]vector, ms []metric, d design) (string, error) {
 	if err := os.MkdirAll(filepath.Clean(dir), 0o750); err != nil {
 		return "", fmt.Errorf("learners: make the results directory: %w", err)
@@ -28,7 +31,9 @@ func writeAll(dir string, all []cell, results [][]vector, ms []metric, d design)
 	if err != nil {
 		return "", err
 	}
-	read, resolutions := readCriterion(newCriterionRun(all, summaries, results, ms, d.children))
+	cr := newCriterionRun(all, summaries, results, ms, d.children)
+	read, resolutions := readCriterion(cr)
+	choice := cr.choose(read, d.set == confirmationSet)
 	writers := []struct {
 		name  string
 		write func(path string) error
@@ -36,7 +41,8 @@ func writeAll(dir string, all []cell, results [][]vector, ms []metric, d design)
 		{"cells.csv", func(path string) error { return writeCSV(path, cellTable(all, summaries, names)) }},
 		{"comparisons.csv", func(path string) error { return writeCSV(path, comparisonTable(comparisons)) }},
 		{"summary.md", func(path string) error { return writeText(path, summary) }},
-		{"criterion.md", func(path string) error { return writeText(path, criterionText(read, resolutions, d)) }},
+		{"scenarios.md", func(path string) error { return writeText(path, scenariosText(all, summaries, names, d)) }},
+		{"criterion.md", func(path string) error { return writeText(path, criterionText(read, resolutions, &choice, d)) }},
 		{"criterion.csv", func(path string) error { return writeCSV(path, criterionTable(read)) }},
 		{"run.txt", func(path string) error { return writeText(path, d.lines()) }},
 	}
@@ -165,32 +171,48 @@ type comparison struct {
 	result                       summary
 }
 
-// primaryComparisons are the comparisons every run makes, in four groups: the
-// service against every other rule but the ceiling on children who stay put
-// (1) and on children who learn (2), the service against no trial series on
-// children placed far off (3), and the floor under the step against the
-// service on children who jump and on children who stay put (4). A cell or a
-// metric it names that the run does not have, or a comparison the run gives no
-// values for, is an error, not a comparison quietly left out.
+// primaryComparisons are the comparisons a run makes of its rules, in four
+// groups: the service against every other rule of the run but the ceiling on
+// children who stay put (1) and on children who learn (2), the service against
+// no trial series on children placed far off (3), and the floor under the step
+// against the service on children who jump and on children who stay put (4),
+// the last two when the run has those rules. A run without the service, a
+// cell or a metric a comparison names that the run does not have, or a
+// comparison the run gives no values for, is an error, not a comparison
+// quietly left out.
 func primaryComparisons(all []cell, results [][]vector, ms []metric) ([]comparison, error) {
 	cp := &comparer{results: results, ms: ms, cells: map[string]int{}, metrics: map[string]int{}}
+	var ruleList []*rule
 	for c := range all {
 		cp.cells[all[c].name()] = c
+		if !containsRule(ruleList, all[c].rule) {
+			ruleList = append(ruleList, all[c].rule)
+		}
+	}
+	if !slices.ContainsFunc(ruleList, func(r *rule) bool { return r.service }) {
+		return nil, errors.New("learners: the primary comparisons set the rules against the service's, which the run lacks")
 	}
 	for i, name := range metricNames(ms) {
 		cp.metrics[name] = i
 	}
 	service := func(g generator) string { return "shrinking/both/" + string(g) }
-	for _, r := range rules() {
+	has := func(name string) bool {
+		return slices.ContainsFunc(ruleList, func(r *rule) bool { return r.name == name })
+	}
+	for _, r := range ruleList {
 		if r.service || r.ceiling {
 			continue
 		}
 		cp.add("1", service(staticChildren), r.name+"/"+string(r.shape)+"/"+string(staticChildren), "r1_rms_200", "r3_inside", "r4_false")
 		cp.add("2", service(learning), r.name+"/"+string(r.shape)+"/"+string(learning), "r6_lag", "r3_inside")
 	}
-	cp.add("3", service(misplaced), "no_trial/both/"+string(misplaced), "r7_error_5", "r7_error_10", "r7_longest_wrong", "r7_hard_first")
-	cp.add("4", "floor_0.05/both/"+string(jumping), service(jumping), "r6_jump_answers")
-	cp.add("4", "floor_0.05/both/"+string(staticChildren), service(staticChildren), "r1_rms_200")
+	if has("no_trial") {
+		cp.add("3", service(misplaced), "no_trial/both/"+string(misplaced), "r7_error_5", "r7_error_10", "r7_longest_wrong", "r7_hard_first")
+	}
+	if has("floor_0.05") {
+		cp.add("4", "floor_0.05/both/"+string(jumping), service(jumping), "r6_jump_answers")
+		cp.add("4", "floor_0.05/both/"+string(staticChildren), service(staticChildren), "r1_rms_200")
+	}
 	if len(cp.missing) > 0 {
 		return nil, fmt.Errorf("learners: the primary comparisons name what the run lacks: %s", strings.Join(cp.missing, "; "))
 	}

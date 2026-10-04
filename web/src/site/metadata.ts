@@ -27,9 +27,7 @@ export function sitemap(texts: Texts, base: string, reference: string): string {
 	const entries = [entry(`${base}/`, frontPage)];
 	for (const locale of texts.locales) {
 		for (const name of texts.names) {
-			if (texts.pages.get(locale)?.has(name)) {
-				entries.push(entry(base + address(locale, name), name));
-			}
+			entries.push(entry(base + address(locale, name), name));
 		}
 	}
 	return [

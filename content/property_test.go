@@ -231,18 +231,34 @@ func TestCopiesHoldTheirProperties(t *testing.T) {
 		genExampleSeed(),
 	))
 
-	properties.Property("editing the levels of a copied topic leaves the topic untouched", prop.ForAll(
-		func(id string, levels []rating.GradeLevel) bool {
-			if len(levels) == 0 {
-				return true
-			}
-			topic := Topic{ID: id, GradeLevels: slices.Clone(levels)}
+	properties.Property("editing the levels or the bases of a copied topic leaves the topic untouched", prop.ForAll(
+		func(id string, levels []rating.GradeLevel, bases []string) bool {
+			topic := Topic{ID: id, GradeLevels: slices.Clone(levels), BuildsOn: slices.Clone(bases)}
+			witness := Topic{ID: id, GradeLevels: slices.Clone(levels), BuildsOn: slices.Clone(bases)}
 			copied := topic.clone()
-			copied.GradeLevels[0] = "edited by a caller"
-			return reflect.DeepEqual(topic.GradeLevels, levels)
+			if len(copied.GradeLevels) > 0 {
+				copied.GradeLevels[0] = "edited by a caller"
+			}
+			if len(copied.BuildsOn) > 0 {
+				copied.BuildsOn[0] = "edited.by.a.caller"
+			}
+			return reflect.DeepEqual(topic, witness)
 		},
 		gen.AnyString(),
 		gen.SliceOf(gen.AnyString().Map(func(level string) rating.GradeLevel { return rating.GradeLevel(level) })),
+		gen.SliceOf(gen.AnyString()),
+	))
+
+	properties.Property("a copy of a topic is equal to the topic", prop.ForAll(
+		func(id, slug string, levels []rating.GradeLevel, bases []string, sitePage bool) bool {
+			topic := Topic{ID: id, GradeLevels: levels, Slug: slug, BuildsOn: bases, SitePage: sitePage}
+			return reflect.DeepEqual(topic.clone(), topic)
+		},
+		gen.AnyString(),
+		gen.AlphaString(),
+		gen.SliceOf(gen.AnyString().Map(func(level string) rating.GradeLevel { return rating.GradeLevel(level) })),
+		gen.SliceOf(gen.AnyString()),
+		gen.Bool(),
 	))
 
 	properties.TestingRun(t)

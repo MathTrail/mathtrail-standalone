@@ -28,6 +28,9 @@ type Summary struct {
 	// Overall is the child's rating on the one ladder of grades 1 to 6, with
 	// the rank drawn with it, or nil while the trial series runs.
 	Overall *Standing
+	// Changes are how the overall standing moved since the last answer and
+	// over the week.
+	Changes Changes
 	// Topics are the topics the child has met — answered or skipped a task of
 	// — and those the rule could set now, in catalog order.
 	Topics []Topic
@@ -91,6 +94,9 @@ type Topic struct {
 	// Skipped is how many of its tasks were left without an answer. It is for
 	// the parent, who can see from it that hard tasks are being leafed past.
 	Skipped int
+	// Changes are how the topic's own standing moved since the last answer
+	// and over the week, nil together with its standing.
+	Changes Changes
 }
 
 // Recommendation is what the rule would set next: the topic, the point of the
@@ -102,10 +108,11 @@ type Recommendation struct {
 	Goal       profile.Goal
 }
 
-// Of is where the child whose profile this is stands. It fails only when the
-// rule can suggest nothing at all, which is a catalog with no topic taught at
-// any level.
-func Of(p *profile.Profile, catalog tutor.Catalog) (Summary, error) {
+// Of is where the child whose profile this is stands today, a date in UTC,
+// and how that moved since the last answer and over the week ending today. It
+// fails only when the rule can suggest nothing at all, which is a catalog with
+// no topic taught at any level.
+func Of(p *profile.Profile, catalog tutor.Catalog, today profile.Date) (Summary, error) {
 	next, err := Recommend(p, catalog)
 	if err != nil {
 		return Summary{}, err
@@ -121,6 +128,11 @@ func Of(p *profile.Profile, catalog tutor.Catalog) (Summary, error) {
 	summary.Topics = topics(p, catalog, summary.Overall)
 	for _, topic := range p.Topics {
 		summary.Skipped += topic.Skipped
+	}
+	measured := whilesOf(p, today)
+	summary.Changes = measured.overall(summary.Overall)
+	for i := range summary.Topics {
+		summary.Topics[i].Changes = measured.topic(p.Ratings.Theta, &summary.Topics[i])
 	}
 	return summary, nil
 }

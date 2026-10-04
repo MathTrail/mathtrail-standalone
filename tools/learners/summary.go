@@ -11,22 +11,25 @@ import (
 )
 
 // design is what a run was given besides its seed and its name: how many
-// children a cell draws, and how many answers each gives.
+// children a cell draws, how many answers each gives, and the set of rules it
+// runs.
 type design struct {
 	children, answers int
+	set               string
 }
 
 // lines is the run as run.txt states it: what decides its numbers — the seed,
-// the name, the children and the answers — and what computed them: the
-// service's version, Go's, and the processor's architecture, on which a
-// multiplication and an addition may be fused into one step that rounds once,
-// which moves the last places of a number.
+// the name, the children, the answers and the set of rules — and what
+// computed them: the service's version, Go's, and the processor's
+// architecture, on which a multiplication and an addition may be fused into
+// one step that rounds once, which moves the last places of a number.
 func (d design) lines() string {
 	return strings.Join([]string{
 		"seed=" + strconv.FormatUint(masterSeed, 10),
 		"experiment=" + experiment,
 		"children=" + strconv.Itoa(d.children),
 		"answers=" + strconv.Itoa(d.answers),
+		"rules=" + d.set,
 		"version=" + version.Version,
 		"go=" + runtime.Version(),
 		"arch=" + runtime.GOARCH,

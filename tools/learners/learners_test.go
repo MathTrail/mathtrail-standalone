@@ -160,7 +160,7 @@ func TestAStepRuleHoldsTheTrialsEstimateDuringTheSeries(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	r := &rule{name: "constant", shape: both, trial: true, make: steps(func(s *stepRule) { s.decay = 0 })}
+	r := &rule{name: "constant", shape: both, trial: true, make: steps(func(s *stepRule) { s.overallStep.decay, s.topicStep.decay = 0, 0 })}
 	s := newSession(w, r, newChild(misplaced, 1, w.topics))
 	for k := range rating.TrialAnswers {
 		if err := s.step(k); err != nil {
@@ -272,7 +272,7 @@ func TestARunIsTheSameEveryTime(t *testing.T) {
 func TestAComparisonWithNoValuesFails(t *testing.T) {
 	t.Parallel()
 	ms := metrics()
-	all := cells()
+	all := cellsOf(benchRules())
 	empty := make([][]vector, len(all))
 	for c := range empty {
 		empty[c] = []vector{vectorOf(newChildResult(nil), ms)}
@@ -475,7 +475,7 @@ func TestARunTooShortForItsComparisonsIsRefused(t *testing.T) {
 // than summed up in dashes.
 func TestTheSummaryShowsWhatItLacksAndRefusesWhatTheRunLacks(t *testing.T) {
 	t.Parallel()
-	all, names := cells(), metricNames(metrics())
+	all, names := cellsOf(benchRules()), metricNames(metrics())
 	empty := make([][]summary, len(all))
 	for c := range empty {
 		empty[c] = make([]summary, len(names))
@@ -484,7 +484,7 @@ func TestTheSummaryShowsWhatItLacksAndRefusesWhatTheRunLacks(t *testing.T) {
 	if err != nil {
 		t.Fatalf("summaryOf a whole run = %v, want nil", err)
 	}
-	if got, want := strings.Count(text, noNumber), len(rules())*len(headlines); got != want {
+	if got, want := strings.Count(text, noNumber), len(benchRules())*len(headlines); got != want {
 		t.Errorf("%d dashes in the summary of a run with no numbers, want %d:\n%s", got, want, text)
 	}
 	if _, err := summaryOf(all[1:], empty[1:], names, design{}); err == nil {

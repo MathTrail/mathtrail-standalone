@@ -2,6 +2,8 @@ package content
 
 import (
 	"bytes"
+	"slices"
+	"strings"
 	"testing"
 	"testing/fstest"
 
@@ -42,56 +44,111 @@ func TestBrokenCatalogStopsTheService(t *testing.T) {
 		{
 			name:  "a topic id that is not an area and a topic",
 			file:  topicsFile,
-			entry: `{"id":"ordering","name":"Ordering","description":"Who stands where.","grade_levels":["1-2"]}`,
+			entry: `{"id":"ordering","name":"Ordering","description":"Who stands where.","grade_levels":["1-2"],"slug":"seating","builds_on":[],"site_page":false}`,
 			want:  "an id is an area and a topic in snake case",
 		},
 		{
 			name:  "a topic id with a space in it",
 			file:  topicsFile,
-			entry: `{"id":"logic.simple ordering","name":"Ordering","description":"Who stands where.","grade_levels":["1-2"]}`,
+			entry: `{"id":"logic.simple ordering","name":"Ordering","description":"Who stands where.","grade_levels":["1-2"],"slug":"seating","builds_on":[],"site_page":false}`,
 			want:  "an id is an area and a topic in snake case",
 		},
 		{
 			name:  "the same topic twice",
 			file:  topicsFile,
-			entry: `{"id":"logic.ordering","name":"Ordering","description":"Who stands where.","grade_levels":["1-2"]}`,
+			entry: `{"id":"logic.ordering","name":"Ordering","description":"Who stands where.","grade_levels":["1-2"],"slug":"seating","builds_on":[],"site_page":false}`,
 			want:  `topic "logic.ordering": the id is used twice`,
 		},
 		{
 			name:  "a topic with no name",
 			file:  topicsFile,
-			entry: `{"id":"logic.seating","name":"","description":"Who stands where.","grade_levels":["1-2"]}`,
+			entry: `{"id":"logic.seating","name":"","description":"Who stands where.","grade_levels":["1-2"],"slug":"seating","builds_on":[],"site_page":false}`,
 			want:  "the name is empty",
 		},
 		{
 			name:  "a topic with no description",
 			file:  topicsFile,
-			entry: `{"id":"logic.seating","name":"Seating","grade_levels":["1-2"]}`,
+			entry: `{"id":"logic.seating","name":"Seating","grade_levels":["1-2"],"slug":"seating","builds_on":[],"site_page":false}`,
 			want:  "the description is empty",
 		},
 		{
 			name:  "a topic at no level at all",
 			file:  topicsFile,
-			entry: `{"id":"logic.seating","name":"Seating","description":"Who stands where.","grade_levels":[]}`,
+			entry: `{"id":"logic.seating","name":"Seating","description":"Who stands where.","grade_levels":[],"slug":"seating","builds_on":[],"site_page":false}`,
 			want:  "no grade levels",
 		},
 		{
 			name:  "a topic at a level that does not exist",
 			file:  topicsFile,
-			entry: `{"id":"logic.seating","name":"Seating","description":"Who stands where.","grade_levels":["7-8"]}`,
+			entry: `{"id":"logic.seating","name":"Seating","description":"Who stands where.","grade_levels":["7-8"],"slug":"seating","builds_on":[],"site_page":false}`,
 			want:  `grade level "7-8" is not one of`,
 		},
 		{
 			name:  "a topic at the same level twice",
 			file:  topicsFile,
-			entry: `{"id":"logic.seating","name":"Seating","description":"Who stands where.","grade_levels":["1-2","1-2"]}`,
+			entry: `{"id":"logic.seating","name":"Seating","description":"Who stands where.","grade_levels":["1-2","1-2"],"slug":"seating","builds_on":[],"site_page":false}`,
 			want:  `grade level "1-2" is listed twice`,
 		},
 		{
 			name:  "a topic with a field the format does not have",
 			file:  topicsFile,
-			entry: `{"id":"logic.seating","name":"Seating","description":"Who stands where.","grade_levels":["1-2"],"note":"free text"}`,
+			entry: `{"id":"logic.seating","name":"Seating","description":"Who stands where.","grade_levels":["1-2"],"slug":"seating","builds_on":[],"site_page":false,"note":"free text"}`,
 			want:  `unknown field "note"`,
+		},
+		{
+			name:  "a topic whose page has no address",
+			file:  topicsFile,
+			entry: `{"id":"logic.seating","name":"Seating","description":"Who stands where.","grade_levels":["1-2"],"slug":"","builds_on":[],"site_page":false}`,
+			want:  `topic "logic.seating": a slug is lowercase words and numbers joined by dashes`,
+		},
+		{
+			name:  "a slug that could lead an address elsewhere",
+			file:  topicsFile,
+			entry: `{"id":"logic.seating","name":"Seating","description":"Who stands where.","grade_levels":["1-2"],"slug":"../Seating","builds_on":[],"site_page":false}`,
+			want:  `topic "logic.seating": a slug is lowercase words and numbers joined by dashes`,
+		},
+		{
+			name:  "two topics whose pages would share an address",
+			file:  topicsFile,
+			entry: `{"id":"logic.seating","name":"Seating","description":"Who stands where.","grade_levels":["1-2"],"slug":"ordering","builds_on":[],"site_page":false}`,
+			want:  `topic "logic.ordering": the slug "ordering" is already "logic.seating"'s`,
+		},
+		{
+			name:  "a topic that does not say what it builds on",
+			file:  topicsFile,
+			entry: `{"id":"logic.seating","name":"Seating","description":"Who stands where.","grade_levels":["1-2"],"slug":"seating","site_page":false}`,
+			want:  `topic "logic.seating": builds_on is missing`,
+		},
+		{
+			name:  "a topic that builds on itself",
+			file:  topicsFile,
+			entry: `{"id":"logic.seating","name":"Seating","description":"Who stands where.","grade_levels":["1-2"],"slug":"seating","builds_on":["logic.seating"],"site_page":false}`,
+			want:  `topic "logic.seating": a topic cannot build on itself`,
+		},
+		{
+			name:  "a topic that names one base twice",
+			file:  topicsFile,
+			entry: `{"id":"logic.seating","name":"Seating","description":"Who stands where.","grade_levels":["1-2"],"slug":"seating","builds_on":["logic.ordering","logic.ordering"],"site_page":false}`,
+			want:  `topic "logic.seating": it builds on "logic.ordering" twice`,
+		},
+		{
+			name:  "a topic that names its bases out of the catalog's order",
+			file:  topicsFile,
+			entry: `{"id":"logic.seating","name":"Seating","description":"Who stands where.","grade_levels":["1-2"],"slug":"seating","builds_on":["combinatorics.enumeration","logic.ordering"],"site_page":false}`,
+			want:  `topic "logic.seating": it names "logic.ordering" after "combinatorics.enumeration", and a topic's bases follow the catalog's order`,
+		},
+		{
+			name:  "a topic that builds on one the catalog does not have",
+			file:  topicsFile,
+			entry: `{"id":"logic.seating","name":"Seating","description":"Who stands where.","grade_levels":["1-2"],"slug":"seating","builds_on":["logic.tables"],"site_page":false}`,
+			want:  `topic "logic.seating": it builds on "logic.tables", which is not in the catalog`,
+		},
+		{
+			name: "topics that build on one another in a circle",
+			file: topicsFile,
+			entry: `{"id":"logic.seating","name":"Seating","description":"Who stands where.","grade_levels":["1-2"],"slug":"seating","builds_on":["logic.queues"],"site_page":false},` +
+				`{"id":"logic.queues","name":"Queues","description":"Who comes first.","grade_levels":["1-2"],"slug":"queues","builds_on":["logic.ordering","logic.seating"],"site_page":false}`,
+			want: "topics build on one another in a circle: logic.seating → logic.queues → logic.seating",
 		},
 		{
 			name:  "a trap id that is not one snake case name",
@@ -195,8 +252,43 @@ func TestATopicIDWithADigitIsAccepted(t *testing.T) {
 
 	src := contentCopy(t)
 	withEntry(t, src, topicsFile,
-		`{"id":"geometry.shapes_2d","name":"Shapes on a grid","description":"Figures made of cells.","grade_levels":["5-6"]}`)
+		`{"id":"geometry.shapes_2d","name":"Shapes on a grid","description":"Figures made of cells.","grade_levels":["5-6"],"slug":"shapes-2d","builds_on":[],"site_page":false}`)
 	if _, err := load(src); err != nil {
 		t.Fatalf("load: %v", err)
+	}
+}
+
+// The links are read once every topic is, so a topic may build on one the
+// catalog lists after it: the order of the catalog is the rule's, not the map's.
+func TestATopicMayBuildOnOneListedAfterIt(t *testing.T) {
+	t.Parallel()
+
+	src := contentCopy(t)
+	withEntry(t, src, topicsFile,
+		`{"id":"logic.seating","name":"Seating","description":"Who stands where.","grade_levels":["1-2"],"slug":"seating","builds_on":["logic.ordering"],"site_page":false}`)
+	c, err := load(src)
+	if err != nil {
+		t.Fatalf("load: %v", err)
+	}
+	topic, _ := c.Topic("logic.seating")
+	if got, want := topic.BuildsOn, []string{"logic.ordering"}; !slices.Equal(got, want) {
+		t.Errorf("BuildsOn = %v, want %v", got, want)
+	}
+}
+
+func TestACircleIsNamedOnceThoughABaseIsNamedTwice(t *testing.T) {
+	t.Parallel()
+
+	src := contentCopy(t)
+	withEntry(t, src, topicsFile,
+		`{"id":"logic.seating","name":"Seating","description":"Who stands where.","grade_levels":["1-2"],"slug":"seating","builds_on":["logic.queues"],"site_page":false},`+
+			`{"id":"logic.queues","name":"Queues","description":"Who comes first.","grade_levels":["1-2"],"slug":"queues","builds_on":["logic.seating","logic.seating"],"site_page":false}`)
+	_, err := load(src)
+	if err == nil {
+		t.Fatal("got no error, want the circle and the base named twice")
+	}
+	const circle = "topics build on one another in a circle: logic.seating → logic.queues → logic.seating"
+	if got := strings.Count(err.Error(), circle); got != 1 {
+		t.Errorf("the circle is named %d times in %q, want once", got, err)
 	}
 }

@@ -18,6 +18,15 @@ type estimator interface {
 	answered(topic string, beta float64, correct bool)
 }
 
+// follower is an estimator that starts after the trial series. It takes each
+// of the series' answers in without a step of its own and stands where the
+// series' estimate stands, so that until its own first step it chooses and
+// predicts from the estimate the service has; what it keeps of the answers is
+// its own.
+type follower interface {
+	followed(topic string, beta float64, correct bool, estimate float64)
+}
+
 // structure is how an estimator splits a child's level.
 type structure string
 
@@ -58,31 +67,39 @@ func (o oracle) chance(topic string, beta float64) float64 { return o.c.chance(t
 func (o oracle) answered(string, float64, bool)            {}
 
 // stepRule is an update in the style of Elo in the service's structure, an
-// overall level and a topic offset, with the service's step and its variants:
-// a constant step, a floor under the overall level's step, and other first
-// steps.
+// overall level and a topic offset: each moves by its own step times the
+// surprise of the answer. The service's step is one such rule; so are a
+// constant step, a floor under the overall level's step, and a step worked
+// out from an uncertainty counted by answers, which never dies away. A limit
+// on how far one answer may move the level in a topic holds a step that is
+// large at first back from throwing a child about.
 type stepRule struct {
-	k0Theta float64
-	k0Delta float64
-	decay   float64
-	floor   float64 // the least the overall level's step may shrink to
-	theta   float64
-	delta   map[string]float64
-	answers int
-	inTopic map[string]int
+	overallStep, topicStep stepCurve
+	floor                  float64 // the least the overall level's step may shrink to
+	limit                  float64 // the most one answer may move the level in a topic
+	theta                  float64
+	delta                  map[string]float64
+	answers                int
+	inTopic                map[string]int
 }
 
-// The service's own constants, which a variant departs from one at a time.
+// The service's own constants, which a variant departs from.
 const (
 	serviceK0Theta = 0.2
 	serviceK0Delta = 0.4
 	serviceDecay   = 0.05
 )
 
+// The service's steps, as curves.
+var (
+	serviceOverallStep = stepCurve{first: serviceK0Theta, decay: serviceDecay}
+	serviceTopicStep   = stepCurve{first: serviceK0Delta, decay: serviceDecay}
+)
+
 func newStepRule(start float64) *stepRule {
 	return &stepRule{
-		k0Theta: serviceK0Theta, k0Delta: serviceK0Delta, decay: serviceDecay, theta: start,
-		delta: map[string]float64{}, inTopic: map[string]int{},
+		overallStep: serviceOverallStep, topicStep: serviceTopicStep, limit: noLimit,
+		theta: start, delta: map[string]float64{}, inTopic: map[string]int{},
 	}
 }
 
@@ -95,29 +112,32 @@ func (s *stepRule) chance(topic string, beta float64) float64 {
 	return rating.Guess + (1-rating.Guess)*logistic(s.level(topic)-beta)
 }
 
-// answered moves the overall level and the topic's offset, each by its step.
+// answered moves the overall level and the topic's offset, each by its step,
+// both held back together where they would move the level in the topic past
+// the limit.
 func (s *stepRule) answered(topic string, beta float64, correct bool) {
-	p := s.chance(topic, beta)
-	score := 0.0
-	if correct {
-		score = 1
-	}
-	surprise := score - p
-	kTheta := max(s.k0Theta/(1+s.decay*float64(s.answers)), s.floor)
-	kDelta := s.k0Delta / (1 + s.decay*float64(s.inTopic[topic]))
+	surprise := surpriseOf(correct, s.chance(topic, beta))
+	kTheta, kDelta := limited(max(s.overallStep.at(s.answers), s.floor), s.topicStep.at(s.inTopic[topic]), surprise, s.limit)
 	s.theta += kTheta * surprise
 	s.delta[topic] += kDelta * surprise
 	s.answers++
 	s.inTopic[topic]++
 }
 
-// counted takes an answer of the trial series in without moving a level: the
-// trial's own estimate stands, and the counts go on as the service's do.
-func (s *stepRule) counted(topic string) {
+// followed takes an answer of the trial series in without moving a level:
+// the series' own estimate stands, and the counts go on as the service's do.
+func (s *stepRule) followed(topic string, _ float64, _ bool, estimate float64) {
 	s.answers++
 	s.inTopic[topic]++
+	s.theta = estimate
 }
 
-// takeOver starts the rule from the overall level the trial series' estimate
-// set.
-func (s *stepRule) takeOver(estimate float64) { s.theta = estimate }
+// surpriseOf is how far an answer fell from the chance it was given: the score
+// less the chance.
+func surpriseOf(correct bool, chance float64) float64 {
+	score := 0.0
+	if correct {
+		score = 1
+	}
+	return score - chance
+}

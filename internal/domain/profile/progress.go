@@ -93,6 +93,10 @@ const (
 type Answer struct {
 	// AnsweredAt is when the answer arrived, or when the task was left.
 	AnsweredAt Time `json:"answered_at"`
+	// Before is where the child stood before this answer moved anything, so
+	// that what the answer moved can be told afterwards. A skipped task moved
+	// nothing and has none, and neither has an answer an earlier build wrote.
+	Before *Levels `json:"before,omitempty"`
 	// Chosen is the option the child picked, and Trap the trap behind it.
 	// Both are written only for a wrong letter: a right answer has no mistake
 	// to name, and "I don't know" chose no option.

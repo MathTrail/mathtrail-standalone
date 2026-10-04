@@ -235,6 +235,31 @@ func TestTheSchemaStatesTheCapsOfTheDetails(t *testing.T) {
 	}
 }
 
+// How much history the schema tells a reader the file keeps is how much
+// Validate lets it keep: the entries of the window, and the days the week is
+// told from.
+func TestTheSchemaStatesHowMuchHistoryIsKept(t *testing.T) {
+	t.Parallel()
+
+	var document struct {
+		Properties map[string]map[string]any `json:"properties"`
+	}
+	if err := json.Unmarshal(profile.Schema(), &document); err != nil {
+		t.Fatalf("the schema is not a JSON document: %v", err)
+	}
+	for _, tc := range []struct {
+		where string
+		want  int
+	}{
+		{"rating_days", profile.RatingDaysKept},
+		{"recent", profile.MaxRecent},
+	} {
+		if got := document.Properties[tc.where]["maxItems"]; got != float64(tc.want) {
+			t.Errorf("the schema states %s.maxItems as %v, want %d", tc.where, got, tc.want)
+		}
+	}
+}
+
 // walkSchema calls visit with every named property of a schema, at any depth.
 func walkSchema(node any, visit func(name string, node map[string]any)) {
 	switch node := node.(type) {
@@ -321,6 +346,9 @@ func TestTheSchemaTellsASkippedTaskFromAnAnswer(t *testing.T) {
 		{"a skipped task with a pace", "{" + where + `, "skipped": true, "pace": "slow"}`, false},
 		{"a skipped task with a trap", "{" + where + `, "skipped": true, "trap": "missed_case"}`, false},
 		{"an entry saying it was not skipped", "{" + where + `, "skipped": false, ` + outcome + "}", false},
+		{"an answer with the levels before it", "{" + where + ", " + outcome + `, "before": {"delta": 0.1, "theta": 2.5}}`, true},
+		{"a skipped task with the levels before it", "{" + where + `, "skipped": true, "before": {"delta": 0, "theta": 2.5}}`, false},
+		{"an answer with half the levels before it", "{" + where + ", " + outcome + `, "before": {"theta": 2.5}}`, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -337,6 +365,13 @@ func TestTheSchemaTellsASkippedTaskFromAnAnswer(t *testing.T) {
 // window.
 func withWindow(t *testing.T, p *profile.Profile, entry string) []byte {
 	t.Helper()
+	return withPart(t, p, "recent", "["+entry+"]")
+}
+
+// withPart is a profile as the file holds it, with one part of it, by its key,
+// written as raw says.
+func withPart(t *testing.T, p *profile.Profile, key, raw string) []byte {
+	t.Helper()
 
 	written, err := profile.Marshal(p)
 	if err != nil {
@@ -346,12 +381,47 @@ func withWindow(t *testing.T, p *profile.Profile, entry string) []byte {
 	if unread := json.Unmarshal(written, &file); unread != nil {
 		t.Fatalf("the file is not a JSON object: %v", unread)
 	}
-	file["recent"] = json.RawMessage("[" + entry + "]")
+	file[key] = json.RawMessage(raw)
 	edited, err := json.Marshal(file)
 	if err != nil {
 		t.Fatalf("json.Marshal() error = %v, want nil", err)
 	}
 	return edited
+}
+
+// The schema and the service hold a day of the history of the ratings to the
+// same rules: a day either reads, or the two refuse it together. A file the
+// service would write back that the schema refuses, or one the schema allows
+// that the service refuses, is two descriptions of one file drifting apart.
+func TestTheSchemaAndTheServiceHoldADayAlike(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name  string
+		day   string
+		holds bool
+	}{
+		{"a day", `{"date": "2026-09-20", "deltas": {"counting.gaps": 0.1}, "theta": 2.5}`, true},
+		{"a day before any topic was answered", `{"date": "2026-09-20", "deltas": {}, "theta": 2.5}`, true},
+		{"the first day after an answer the history missed", `{"date": "2026-09-20", "deltas": {}, "theta": 2.5, "unkept": "2026-09-18"}`, true},
+		{"a day whose corrections are null", `{"date": "2026-09-20", "deltas": null, "theta": 2.5}`, false},
+		{"a day with no corrections", `{"date": "2026-09-20", "theta": 2.5}`, false},
+		{"a correction of no topic", `{"date": "2026-09-20", "deltas": {"": 0.1}, "theta": 2.5}`, false},
+		{"a correction that is no number", `{"date": "2026-09-20", "deltas": {"counting.gaps": "0.1"}, "theta": 2.5}`, false},
+		{"a day with no date", `{"deltas": {}, "theta": 2.5}`, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			file := withPart(t, parseFixture(t, "dima"), "rating_days", "["+tc.day+"]")
+			if err := againstTheSchema(t, file); (err == nil) != tc.holds {
+				t.Errorf("the schema says %v about %s, want it to hold: %v", err, tc.day, tc.holds)
+			}
+			if _, err := profile.Parse(file); (err == nil) != tc.holds {
+				t.Errorf("Parse() error = %v about %s, want it read: %v", err, tc.day, tc.holds)
+			}
+		})
+	}
 }
 
 // againstTheSchema holds a file to the schema, read the way any reader of JSON

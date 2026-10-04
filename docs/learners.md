@@ -58,7 +58,7 @@ Each rule estimates where a child stands. The bench writes a rule's estimate int
 | Glicko-2 with guessing | `glicko2_floor/general`, `glicko2_floor/topics` | Glicko-2 over a chance that a child can guess, with one level, or with a level per topic |
 | The oracle | `oracle/both` | Stands where the child truly stands, in every topic, at every moment, and knows the child's true chance: **the ceiling** of every rule that learns of a child from answers |
 
-The step rules start from the trial series' estimate, as the service does; Glicko-2 and the oracle start from the first answer. Every rule runs on all nineteen generators: 152 cells.
+The step rules start from the trial series' estimate, as the service does; Glicko-2 and the oracle start from the first answer. These are the bench's own set of rules, `bench`, which a run is given unless it names another; the step chosen joins them once one is. Every rule runs on all nineteen generators: 152 cells. The other sets, which choose the step, are described under [The candidates of the step](#the-candidates-of-the-step).
 
 The oracle is the ceiling of the corridor at each miss of the model, and of mastery under the mastery rule the service has now, given a perfect estimate. It knows a child's level but not their slope or their floor (G6, G7). It is not a ceiling for a new mastery rule: to set the oracle beside one, the bench will need a way to put that rule in the service's place. It is compared with no rule as one, and the measures of what the child is shown leave it out: its rating moves only when the child does.
 
@@ -80,12 +80,12 @@ A topic is **truly mastered** at a level when the child's true chance on a task 
 
 R8 is read off the rule's own estimate, through the product's own `rating.Elo`, `rating.Shown` and `rating.Rank`, as the card and the progress screen would show it.
 
-Every number is read off all the children of its cell, with a 95 % interval from 2,000 resamples of the children. A comparison is the difference between two cells over the same children, with an interval from the same resamples taken in both. Four groups of comparisons are made on every run, in `comparisons.csv`:
+Every number is read off all the children of its cell, with a 95 % interval from 2,000 resamples of the children. A comparison is the difference between two cells over the same children, with an interval from the same resamples taken in both. Four groups of comparisons are made of the rules a run has, in `comparisons.csv`, the last two when the run has their rules:
 
 1. on G0, the service against every other rule but the oracle: R1 after 200 answers, R3, R4;
 2. on G2, the service against every other rule but the oracle: R6, R3;
 3. on G1, the service against no trial series: R7;
-4. the floor under the step against the service: R6 on G3, R1 after 200 answers on G0.
+4. the floor of 0.05 under the step against the service: R6 on G3, R1 after 200 answers on G0.
 
 A comparison is read as finding a difference when its interval leaves zero out. None is corrected for the others.
 
@@ -106,8 +106,9 @@ A candidate is chosen on the working seeds, in a decision run of **4,000 childre
   - on G2-half, the corridor, `r3_inside`, is at least the service's plus c* of the way from it to the oracle's. c* is the share of the way the goal of 35 % instead of 26 % closes on G2: c* = (0.35 − the service's corridor on G2) / (the oracle's on G2 − the service's), read once, on the run that wrote this criterion down, and fixed: c* = (0.35 − 0.257) / (0.605 − 0.257) = **0.27**. With the service at 36 % on G2-half and the oracle at 61 %, that asks for 42 % — where 1.35 times the service would ask for 48 %, a stricter goal than the one it carries over;
   - on G3, the share of children not caught up after the jump, `r6_jump_unsettled`, is at most 25 %.
 - **Not worse than the service,** read on the paired difference with the service on the same children: the worse end of its 95 % interval lies within the tolerance.
-  - On every generator, the error after 200 answers, `r1_rms_200`, the corridor, `r3_inside`, and false masteries, `r4_false`. On G0 the first two are the goals of no worse than now.
-  - The tolerance of a check is the larger of the author's — 0.01 logit for the error, 1 percentage point for the corridor, 2 for false masteries — and the bench's resolution on that check: 4.3 standard errors of the paired difference between the slow constant step and the service there, in the same run. A candidate exactly as good as the service passes such a check 99 times in 100: a tolerance finer than the bench resolves would fail good candidates by chance across some fifty checks.
+  - On every generator, the error after 200 answers, `r1_rms_200`, and the corridor, `r3_inside`. On G0 they are the goals of no worse than now.
+  - False masteries are not among them (R166). Under the service's rule of mastery they grow the closer an estimate follows the child: on G2-half from the service's 52 % to 54 % under the floor of 0.05, 56 % under the slow constant step, 59 % under the constant step and 73 % under the oracle. At the decision size such a check would fail every step that follows a learner better, the floor of 0.05 of the exit among them, for a fault of the rule of mastery, which is chosen next. They are shown for every rule in `scenarios.md`, and the choice of mastery holds them on every generator.
+  - The tolerance of a check is the larger of the author's — 0.01 logit for the error, 1 percentage point for the corridor — and the bench's resolution on that check: 4.3 standard errors of the paired difference between the slow constant step and the service there, in the same run. A candidate exactly as good as the service passes such a check 99 times in 100: a tolerance finer than the bench resolves would fail good candidates by chance across some forty checks.
   - A rough look reads them as no clear harm: a check fails only when the better end of the interval is beyond the tolerance too.
 - **The screen,** on G0 and G2-half, read on point estimates: in both windows, the card's move at the 95th percentile and the changes of the overall rank are no more than the service's in answers 6–20. Late in a run the child sees no more movement than a child sees at the start now, and a candidate's first cards after the trial series move no more than the service's do.
 
@@ -139,31 +140,102 @@ The rule of mastery is chosen in the same way, over the step already chosen, wit
 - **Constraints,** on point estimates:
   - false masteries are at most 20 %, on G0 and on G0-topics1, the widest spread of topics, on which a margin of mastery is chosen; they are read at the level a topic is held mastered at, the service's included, and never against the share the old reading gave;
   - the answers until a mastery the child has is declared, `r5_late_answers`, are at most 1.5 times the service's, on the same generators.
-- **Not worse than the service:** the share of masteries never declared, `r5_never`, with the tolerance of false masteries — or a rule would wait less only by declaring less — and every constraint of not worse and of the screen of the step.
+- **Not worse than the service:** false masteries, `r4_false`, on every generator, with a tolerance of 2 percentage points or the bench's resolution, whichever is larger, as for the step (R166); the share of masteries never declared, `r5_never`, with the same tolerance — or a rule would wait less only by declaring less; and every constraint of not worse and of the screen of the step.
 - **The score:** the share of the way to perfect — no false mastery and no wait — closed on false masteries and on the answers until mastery, with the weights of the step.
 - **Better, the choice, the confirmation and the exit** as for the step; the exit keeps the service's rule of mastery.
 
 The bench evaluates this part once the candidates of mastery are on it; the service's numbers for it are in `cells.csv` already.
 
+## The candidates of the step
+
+The candidates and the way they are searched and chosen, written down before any of them ran.
+
+### The main candidate: a step from an uncertainty counted by answers
+
+Each level — the overall one and each topic's offset — moves by its step times the surprise of the answer, and the step is κ·v, where v is how uncertain the level is. An answer narrows v as an answer at the middle of the corridor would, and adds q back: v ← v / (1 + I·v) + q. I = 0.15 is what an answer at a chance of 0.775 tells of the level, and κ = 0.927 how far a surprise of one moves the level for each unit of uncertainty there: the information and the gain of a Kalman filter at the corridor's middle, both read off the service's own chance. v is worked out from the counts of answers the profile keeps already, `ratings.answers` and `topics[t].answers`, so the step adds no field to the profile:
+
+- the overall level's v counts from the end of the trial series, where it stands at v_T, one number for every child;
+- a topic's counts from its first answer, where it stands at the spread of topics squared, s²;
+- with q > 0 the step never dies away but settles at κ·v*, where v* = q/2 + √(q²/4 + q/I) is where an answer takes away exactly q;
+- the limit L holds how far one answer may move the level in a topic, θ + δ: past it both steps are scaled down together, so that two failures in a row do not move a child a whole difficulty (D37 of the prototype).
+
+The service's step is the case q = 0 with gains of 0.6 and 1.2 and an uncertainty of a third before any answer, and the floor of О-53 is near the case of a small q. With q = 0 the bench works the step out by the service's own formula, K₀/(1 + a·n), rather than carrying v answer by answer, which rounds otherwise: the service's numbers give the service's step to the last bit, which a test holds on every generator, answer by answer. The step takes v before the answer; a filter's exact gain is κ·v/(1 + I·v), 15 % less at v = 1, so v_T is a number of the search, not the trial series' own spread.
+
+What the candidate adds to the service's rule is counted as q for the overall level, q for a topic and the limit, each where it is used; v_T and s stand where the service's first steps and its decay stand, and add none.
+
+### The backup: an uncertainty kept in the profile
+
+Each child keeps an uncertainty for the overall level and one for every topic, as the profile would have to store them. The overall level's starts at the end of the trial series from what the series' five answers tell at the level it found, on top of the start's spread of 2.5 — the expected information, not the curvature of the answers, which a guess can turn the wrong way; a topic's starts at s². An answer narrows them by what it tells at the chance the child had, adds q to each, and shares its surprise between the overall level and the topic by their uncertainties, as a Kalman filter shares it between two levels whose errors are independent. The same limit applies. It adds fields to the profile.
+
+### The comparisons, which the product does not take
+
+- **The full filter**: a Kalman filter over the overall level and every topic's offset at once, keeping how their errors go together, at the best main candidate's numbers: what that candidate's simplicity costs.
+- **The estimate over the whole history**: the most likely overall level and offsets given every answer at once — θ ~ N(start, 2.5²), as the trial series has it, δ ~ N(0, s²) — and nothing added for a child who changes: the least error a rule of answers can have on a child who stays put.
+- **Two speeds with a switch**: the service's step and the constant step 0.2/0.4 side by side, the slow one's levels the estimate's; a running sum of how much better the fast one has foretold the answers, never let below zero, moves the slow one onto the fast one's levels when it passes a threshold. A sum that forgets would not do: a jump of a level makes an answer only some hundredths of a nat likelier under the fast step, and a sum that forgets a tenth of itself an answer settles near half a nat. This is close to the "recent results" D17 of the prototype turned down, and is on the bench only to compare.
+- **Floors** of 0.02, 0.05 and 0.1 under the service's overall step, for the exit.
+
+Every candidate and comparison follows the trial series as the service does, and steps from the sixth answer.
+
+### How they are searched and chosen
+
+1. **The sweep** (`-rules sweep`) runs every point of a grid of the main candidate on children of its own — experiment `sweep`, so that the decision run measures what it was given on children it was not picked on — 300 children a cell, all nineteen generators, beside the service, the slow constant step, the oracle, and the two speeds at thresholds of 2, 4 and 8:
+   - v_T: 0.1, 0.17, 0.4, 1.0 — a first overall step after the series of 0.09, 0.16 (the service's), 0.37, 0.93;
+   - s: 0.35, 0.5, 0.7;
+   - q for the overall level: 0, 0.003, 0.01 — steady steps of none, 0.13 and 0.24;
+   - q for a topic: 0, 0.006, 0.03 — none, 0.19 and 0.43;
+   - L: none; 0.42, the card's move of 73 points, the service's at the start; 0.3.
+
+   The values stand on both sides of where the constraints give way — the rank's changes early, the card's move, the lag — so that if no candidate meets them, it is not for want of a grid that reaches them.
+2. **The sweep's best** is the main candidate of the highest score among those that meet every constraint as the sweep reads them, or, if none does, among those that miss the fewest.
+3. **The refinement** (`-rules refine`, the sweep's children) runs the points one number away from the sweep's best on finer ladders — v_T from 0.05 to 1.2, s from 0.25 to 1, q from 0 to 0.04 and to 0.06, L from 0.22 to none — that the sweep did not run, and the backup at the best's numbers and with each of its q one rung either way.
+4. **The nomination** for the decision run, read off the sweep and the refinement together:
+   - the five main candidates of the highest score that meet every constraint, and for each count of numbers added, 0 to 3, the best that does, so that the choice has the simpler ones to choose;
+   - if fewer than five meet every constraint, the best of those one constraint short, up to five in all;
+   - the best backup and the best two speeds;
+   - the full filter and the estimate over the whole history at the best main candidate's numbers;
+   - the best main candidate with each of its parts taken away: the limit, q for the overall level, q for a topic, all three at once, and the service's gains in place of the model's;
+   - the three floors.
+
+   The rule did not foresee a sweep in which no main candidate meets every constraint and none misses one alone, which is what the sweep and the refinement came to. In that case the order the sweep's best is found by — the fewest constraints missed, then the score — stands in for meeting them, for the main candidates, the best one, the backup and the two speeds alike: the five first, and the first for each count of numbers added. This was settled after the sweep and the refinement were read and before the decision run.
+5. **The decision run** (`-rules decision -children 4000`, the working children) reads the choice of "Choosing the step" itself and writes it in `criterion.md` under "The choice". Three readings of it are fixed here:
+   - the one nearest the service's rule is the one whose steps differ least from the service's: the mean difference of the overall level's steps over answers 6–200, plus that of a topic's over its first 40 answers;
+   - the backup's margin of 0.05 is read against the main step chosen; when no main step meets the constraints, a backup that meets them is chosen;
+   - when no floor meets the constraints of not worse and of the screen, the service's step stays.
+
+   For the chosen rule it writes, before the held-out children are drawn, the chance each constraint holds on as many new children.
+6. **The parts** of the chosen step, if it is not the one whose parts the decision run took away, are run on the working children as well (`-rules parts`).
+7. **The confirmation** (`-held-out -children 4000`) runs the chosen rule alone beside the service, the slow constant step and the oracle.
+
+A candidate exactly as good as the service fails at least one of the nineteen checks of the error about one time in six, each passing 99 times in 100, and the confirmation runs that risk again. The criterion was set so in T72.3; the bench only names it.
+
 ## The held-out seeds
 
-A run given `-held-out` draws from seeds kept for confirmation: seed 20261003, experiment `held-out`. It refuses `-seed` and `-experiment` beside it, and writes under `held-out` in the directory it is given, never over the working run. Nobody runs them before the step's confirmation: a set that has been looked at is held out no longer. A test proves that no child of any generator is drawn alike in the two sets.
+A run given `-held-out` draws from seeds kept for confirmation: seed 20261003, experiment `held-out`. It runs the confirmation alone — the chosen step beside the service, the slow constant step and the oracle — refuses to run before a step is chosen, refuses `-seed`, `-experiment` and any other `-rules` beside it, and writes under `held-out` in the directory it is given, never over the working run. Nobody runs them before the step's confirmation: a set that has been looked at is held out no longer.
+
+The sweep and its refinement draw children of their own too, the paper's seed under the experiment `sweep`, and refuse `-seed` and `-experiment` likewise. A test proves that no child of any generator is drawn alike in any two of the three sets — the working children, the held-out ones and the sweep's.
 
 ## Running it
 
-- `just learners` runs every cell, a thousand children each, writes `tools/learners/results/` over the run kept there, and prints the summary. It takes four to five minutes on the development machine.
-- Arguments go to the bench: `-children` and `-answers` (at least 200, the answer the comparisons read the error at), `-seed` and `-experiment` or `-held-out`, and `-out`. A quick look goes elsewhere, so that the run kept is a whole one: `just learners -children 100 -out /tmp/learners`. A decision run is `-children 4000`.
+- `just learners` runs the bench's own set, a thousand children a cell, writes `tools/learners/results/` over the run kept there, and prints the summary. It takes four to five minutes on the development machine.
+- Arguments go to the bench: `-children` and `-answers` (at least 200, the answer the comparisons read the error at), `-rules` and the set to run, `-seed` and `-experiment` or `-held-out`, and `-out`. A quick look goes elsewhere, so that the run kept is a whole one: `just learners -children 100 -out /tmp/learners`.
+- The sets other than the bench's write under a directory of their own within `-out`, `results/<set>`:
+  - `just learners -rules sweep -children 300` — about an hour on the development machine;
+  - `just learners -rules refine -children 300` — minutes, once the sweep's best is set;
+  - `just learners -rules decision -children 4000` — about an hour, once the candidates are nominated;
+  - `just learners -rules parts -children 4000`, if the chosen step needs its own parts taken away;
+  - `just learners -held-out -children 4000` — the confirmation, once, about ten minutes.
 - `just learners-test` runs the bench's tests with the race detector, and `just learners-lint` holds the module to what the service is held to. CI runs both on every pull request. A change to the product's `go.mod` is followed by `just learners-tidy`.
 
 ## The results
 
-`tools/learners/results/` keeps the whole run of the rule the service has now, as the line every change to the student model is measured from:
+`tools/learners/results/` keeps the whole run of the bench's own set, as the line every change to the student model is measured from, and beside it, each in its own directory, the runs the step was chosen by: `sweep/`, `refine/`, `decision/`, `held-out/` and, if it was needed, `parts/`. Every run writes:
 
 - `summary.md`, the numbers a change is judged by at a glance, for every rule: the error after 200 answers on G0, the share in the corridor on G0 and G2, the share of false masteries on G0, the lag on G2, and the share of G3's children not caught up after the jump;
-- `criterion.md` and `criterion.csv`, the criterion evaluated for every rule: each constraint with its value, interval, bound and verdict, whether its goal is reached, on the edge or not reached, and the score with its interval; beside them, the bench's resolution of each check of not worse;
-- `cells.csv`, every measure of every cell, with its interval;
+- `scenarios.md`, every rule on every generator, measure by measure: the error after 200 answers, the corridor, false masteries, the lag, the children not caught up after a jump or a drop, and the error of the overall level after ten answers;
+- `criterion.md` and `criterion.csv`, the criterion evaluated for every rule: the choice it comes to, or on the held-out children the confirmation; each constraint with its value, interval, bound and verdict, whether its goal is reached, on the edge or not reached, and the score with its interval; beside them, the bench's resolution of each check of not worse;
+- `cells.csv`, every measure of every cell, with its interval — but for the sweep and the refinement, where it would run to tens of megabytes and any run gives it again to the last digit, so it is not kept;
 - `comparisons.csv`, the four groups of comparisons;
-- `run.txt`, what the run was given and what computed it: the seed, the name, the children and answers, the service's version, Go's, and the processor's architecture.
+- `run.txt`, what the run was given and what computed it: the seed, the name, the children and answers, the set of rules, the service's version, Go's, and the processor's architecture.
 
 A change to the rule, the rating, the profile or the catalog's topics moves the numbers. `TestASmallRun` runs every cell with ten children and holds the run's `summary.md` and `criterion.md` to their snapshots in `tools/learners/testdata/`, so such a change fails `just learners-test` until they are rewritten with `go test -run TestASmallRun -update` in `tools/learners`; the rewritten snapshots, and a new whole run when the change is to the student model, are part of the change's review. The same run must give every row of `testdata/carried-over/`, the bench's numbers as it was carried over, which nothing rewrites: what is added to the bench leaves them as they were, and only a change to the service's own rule moves them. `TestStepRulesAreTheServicesUpdate` holds the bench's copy of the step to `rating.Update` at the service's constants, so a new step in the service fails it until the bench's copy follows.
 
