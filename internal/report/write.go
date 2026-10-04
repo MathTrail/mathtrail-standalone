@@ -43,7 +43,8 @@ func write(out io.Writer, c *counts) error {
 		{"Traces", c.tracesAbout(), c.tracesTable()},
 		{"The busiest minute", c.busyAbout(), c.busyTable()},
 		{"The rules of the log", "Every line of the service's is held to an event the service is decided to " +
-			"write, to the fields decided for that event, and to carrying nothing shaped like an email address. A " +
+			"write, to the fields decided for that event, to the form each field of the lines the children are " +
+			"counted from may hold, and to carrying nothing shaped like an email address. A " +
 			"line that breaks one is named by its event and its field, never by what it held: an event the table " +
 			"does not name is not named, since its words may be anything.", c.breachesTable()},
 	} {

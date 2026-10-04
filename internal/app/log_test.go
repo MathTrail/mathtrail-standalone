@@ -12,6 +12,7 @@ import (
 
 	"go.uber.org/zap/zaptest/observer"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/geoip/geoiptest"
 	"github.com/MathTrail/mathtrail-standalone/internal/report"
 )
 
@@ -21,7 +22,7 @@ import (
 var lessonEvents = []string{
 	// The service as it is built.
 	"content loaded", "seal keys loaded", "telemetry built", "solver sandbox built", "profile store",
-	"google sign-in", "limits set",
+	"google sign-in", "learner key", "country database", "limits set",
 	// Every request, whatever it asked for.
 	"http_request",
 	// The sign-in.
@@ -54,6 +55,43 @@ func TestTheLogOfAWholeLesson(t *testing.T) {
 	t.Run("nothing personal", func(t *testing.T) { wantNothingPersonal(t, lines, f.secrets, f.words) })
 	t.Run("only the fields of its event", func(t *testing.T) { wantOnlyTheFieldsOfTheirEvents(t, lines) })
 	t.Run("adds up in the report", func(t *testing.T) { wantTheLessonInTheReport(t, lines) })
+	t.Run("counts the child", func(t *testing.T) { wantTheChildCounted(t, lines) })
+}
+
+// wantTheChildCounted holds the line about the task handed out to counting
+// the child where the family is: the chat host by the family of hosts, the
+// country the parent's browser came back from Google in, and nothing the
+// parent did not say — the profile names no country. The answer's line counts
+// the topics mastered, none yet.
+func wantTheChildCounted(t *testing.T, lines []observer.LoggedEntry) {
+	t.Helper()
+
+	var accepted, recorded []map[string]any
+	for i := range lines {
+		switch lines[i].Message {
+		case "task_accepted":
+			accepted = append(accepted, lines[i].ContextMap())
+		case "answer_recorded":
+			recorded = append(recorded, lines[i].ContextMap())
+		}
+	}
+	if len(accepted) != 1 || len(recorded) != 1 {
+		t.Fatalf("the lesson left %d task_accepted and %d answer_recorded lines, want one of each", len(accepted), len(recorded))
+	}
+	for field, want := range map[string]any{
+		"host": "claude", "language": "en", "grade": int64(2), "signin_country": geoiptest.Country,
+		"country": "unknown", "region": "unknown",
+	} {
+		if got := accepted[0][field]; got != want {
+			t.Errorf("task_accepted %s = %v, want %v", field, got, want)
+		}
+	}
+	if got, want := recorded[0]["learner"], accepted[0]["learner"]; got != want {
+		t.Errorf("answer_recorded counts the child as %v and task_accepted as %v, want one name", got, want)
+	}
+	if got := recorded[0]["topics_mastered"]; got != int64(0) {
+		t.Errorf("answer_recorded topics_mastered = %v, want 0", got)
+	}
 }
 
 // wantTheLessonInTheReport holds the report to adding the lesson's own lines up
@@ -146,6 +184,11 @@ func wantOnlyTheFieldsOfTheirEvents(t *testing.T, lines []observer.LoggedEntry) 
 		}
 		for _, field := range strayFields(&lines[i]) {
 			t.Errorf("a %s line carries %s, a field nobody decided it may", lines[i].Message, field)
+		}
+		for field, value := range lines[i].ContextMap() {
+			if !report.Fits(lines[i].Message, field, value) {
+				t.Errorf("a %s line carries %v in %s, a value of no form the field may hold", lines[i].Message, value, field)
+			}
 		}
 	}
 	for _, event := range lessonEvents {

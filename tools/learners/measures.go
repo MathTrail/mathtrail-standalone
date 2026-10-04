@@ -88,29 +88,30 @@ type pairTrack struct {
 
 // childResult is everything measured on one child under one rule.
 type childResult struct {
-	errorRMS, errorMean map[int]float64
-	brier               float64
-	predicted, observed float64
-	answers             int
-	bins                [calibrationBins]bin
-	inside, below, over int
-	declared, wrongly   int
-	looselyWrong        int
-	late                map[topicLevel]*lateItem
-	lateItems           []*lateItem
-	lag                 float64
-	lagged              int
-	answeredTopics      topicSet
-	sinceJump           topicSet
-	jumpFollowed        int
-	jumpSettledFor      int
-	jumpDone            bool
-	placed              map[int]float64
-	wrongRun, longest   int
-	hardFirst           int
-	pairs               map[string]*pairTrack
-	reachable           int
-	screen              screenRecord
+	errorRMS, errorMean     map[int]float64
+	brier                   float64
+	predicted, observed     float64
+	answers                 int
+	bins                    [calibrationBins]bin
+	inside, below, over     int
+	declared, wrongly       int
+	looselyWrong, heldBelow int
+	atTask, wronglyAtTask   int
+	late                    map[topicLevel]*lateItem
+	lateItems               []*lateItem
+	lag                     float64
+	lagged                  int
+	answeredTopics          topicSet
+	sinceJump               topicSet
+	jumpFollowed            int
+	jumpSettledFor          int
+	jumpDone                bool
+	placed                  map[int]float64
+	wrongRun, longest       int
+	hardFirst               int
+	pairs                   map[string]*pairTrack
+	reachable               int
+	screen                  screenRecord
 }
 
 func newChildResult(*child) *childResult {
@@ -190,17 +191,31 @@ func (r *childResult) firstTasks(k int, truth float64, correct bool) {
 }
 
 // after measures what the answer did: whether it declared a topic mastered,
-// and whether rightly; how long a mastery the child has was left undeclared;
-// and the eligible attempts a false "mastered" is counted over.
+// and whether rightly, read at the level the topic is held mastered at, which
+// a rule may set below the task's; how long a mastery the child has was left
+// undeclared; and the eligible attempts a false "mastered" is counted over.
 func (r *childResult) after(s *session, brief *profile.Brief, recorded *profile.Recorded, o *observedAnswer, k int) {
 	topic, level := brief.TargetConcept, brief.GradeLevel
 	truth := s.c.truthAt(topic, level)
 	if recorded.Mastered {
 		r.declared++
-		if truth < masteredAt {
+		held := level
+		if at := s.p.Topics[topic].MasteredLevel; at != nil {
+			held = *at
+		}
+		heldTruth := s.c.truthAt(topic, held)
+		if held.Shift() < level.Shift() {
+			r.heldBelow++
+		} else {
+			r.atTask++
+			if heldTruth < masteredAt {
+				r.wronglyAtTask++
+			}
+		}
+		if heldTruth < masteredAt {
 			r.wrongly++
 		}
-		if truth < masteredLoosely {
+		if heldTruth < masteredLoosely {
 			r.looselyWrong++
 		}
 	}

@@ -48,3 +48,41 @@ func TestARequestIsCountedByTheHopThePlatformAppended(t *testing.T) {
 		})
 	}
 }
+
+// The sender is the same hop the count is keyed on, but whole: an IPv6
+// address is not cut to its network, since what it is read for is where it
+// was handed out rather than whose allowance it spends.
+func TestTheSenderIsTheAddressThePlatformSaw(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name      string
+		forwarded []string
+		peer      string
+		want      string
+	}{
+		{name: "a client's hops before the platform's", forwarded: []string{"10.0.0.1, 203.0.113.7"}, peer: "10.1.2.3:4567", want: "203.0.113.7"},
+		{name: "an IPv6 hop, whole", forwarded: []string{"2001:db8:1:2:3:4:5:6"}, peer: "10.1.2.3:4567", want: "2001:db8:1:2:3:4:5:6"},
+		{name: "IPv4 written as IPv6", forwarded: []string{"::ffff:203.0.113.7"}, peer: "10.1.2.3:4567", want: "203.0.113.7"},
+		{name: "no header", peer: "192.0.2.10:4567", want: "192.0.2.10"},
+		{name: "no header, and a connection of no address", peer: "a pipe", want: ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/oauth/callback", http.NoBody)
+			req.RemoteAddr = tc.peer
+			for _, line := range tc.forwarded {
+				req.Header.Add("X-Forwarded-For", line)
+			}
+			address, readable := Sender(req)
+			got := ""
+			if readable {
+				got = address.String()
+			}
+			if got != tc.want {
+				t.Errorf("Sender() = %q, readable: %v; want %q", got, readable, tc.want)
+			}
+		})
+	}
+}

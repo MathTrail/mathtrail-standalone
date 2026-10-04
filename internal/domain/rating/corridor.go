@@ -19,6 +19,11 @@ const (
 	CorridorMiddle = (corridorLow + corridorHigh) / 2
 )
 
+// CorridorWidth is how wide the corridor is on the scale the levels are measured
+// on: the distance from the hardest task a child should be meeting to the
+// easiest, which is also the step one rank takes.
+func CorridorWidth() float64 { return logit(corridorHigh) - logit(corridorLow) }
+
 // Fit says where the recommended point landed against the corridor. It is
 // needed because the corridor is narrower than the gap between two
 // difficulties of a level, so there is not always a point inside it.

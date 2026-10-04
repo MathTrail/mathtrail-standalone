@@ -54,6 +54,35 @@ func TestALineIsHeldToTheRulesOfTheLog(t *testing.T) {
 			}},
 		{"an event named like one", `{"message":"erin@home.example"}`,
 			[]breach{{event: unknownEvent, field: "message", rule: ruleEmail}, {event: unknownEvent, rule: ruleUnknownEvent}}},
+		{"a task handed out, counted as the service counts it",
+			`{"message":"task_accepted","topic":"logic.ordering","learner":"Ab3_x-9QzK1mN0pR","host":"claude","language":"pt",` +
+				`"grade":2,"cohort":"2026-10","country":"US","region":"US-TX","signin_country":"unknown"}`,
+			nil},
+		{"an answer and a topic mastered, counted as the service counts them",
+			`{"message":"answer_recorded","learner":"Ab3_x-9QzK1mN0pR","grade":6,"cohort":"2026-01","topics_mastered":0}`,
+			nil},
+		{"a profile's own identifier where the name it is counted under goes",
+			`{"message":"topic_mastered","learner":"3b241101-e2bb-4255-8caf-4136c566a962","topic":"logic.ordering","grade":3}`,
+			[]breach{{event: "topic_mastered", field: "learner", rule: ruleShape}}},
+		{"a country, a region and a host in words",
+			`{"message":"task_accepted","country":"Russia","region":"Texas","host":"Claude Desktop"}`,
+			[]breach{
+				{event: "task_accepted", field: "country", rule: ruleShape},
+				{event: "task_accepted", field: "host", rule: ruleShape},
+				{event: "task_accepted", field: "region", rule: ruleShape},
+			}},
+		{"a grade nobody is in, a month there is none of and topics mastered below none",
+			`{"message":"answer_recorded","grade":7,"cohort":"2026-13","topics_mastered":-1}`,
+			[]breach{
+				{event: "answer_recorded", field: "cohort", rule: ruleShape},
+				{event: "answer_recorded", field: "grade", rule: ruleShape},
+				{event: "answer_recorded", field: "topics_mastered", rule: ruleShape},
+			}},
+		{"a grade written as text", `{"message":"answer_recorded","grade":"2"}`,
+			[]breach{{event: "answer_recorded", field: "grade", rule: ruleShape}}},
+		{"a host that names a server, on a line no child is counted from",
+			`{"message":"cimd_fetch","host":"claude.ai","outcome":"ok"}`,
+			nil},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()

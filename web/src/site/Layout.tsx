@@ -1,6 +1,6 @@
 import type { ComponentChildren } from "preact";
 import type { Alternate } from "./addresses";
-import { markPath, siteName } from "./brand";
+import { markPath, sharingPictureSize, siteName } from "./brand";
 
 /**
  * Head is what a page tells a browser, a search engine and a chat about
@@ -13,6 +13,10 @@ export type Head = {
 	readonly description: string;
 	readonly canonical: string;
 	readonly alternates: readonly Alternate[];
+	/** image is the address of the picture a shared link to the page shows. */
+	readonly image: string;
+	/** imageAlt says what the picture shows, for whoever cannot see it. */
+	readonly imageAlt: string;
 };
 
 /**
@@ -58,6 +62,17 @@ export function Layout({
 				<meta property="og:title" content={head.title} />
 				<meta property="og:description" content={head.description} />
 				<meta property="og:url" content={head.canonical} />
+				<meta property="og:image" content={head.image} />
+				<meta property="og:image:alt" content={head.imageAlt} />
+				<meta
+					property="og:image:width"
+					content={String(sharingPictureSize.width)}
+				/>
+				<meta
+					property="og:image:height"
+					content={String(sharingPictureSize.height)}
+				/>
+				<meta name="twitter:card" content="summary_large_image" />
 				<link rel="icon" href={markPath} type="image/svg+xml" />
 				<link rel="stylesheet" href="/assets/tokens.css" />
 				<link rel="stylesheet" href="/assets/style.css" />

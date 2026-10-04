@@ -24,15 +24,18 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/cimd"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/drive"
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/geoip"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark"
+	"github.com/MathTrail/mathtrail-standalone/internal/learner"
 	"github.com/MathTrail/mathtrail-standalone/internal/ratelimit"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 	drivestore "github.com/MathTrail/mathtrail-standalone/internal/store/drive"
 	"github.com/MathTrail/mathtrail-standalone/internal/store/memory"
 	"github.com/MathTrail/mathtrail-standalone/internal/telemetry"
 	httpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/http"
+	"github.com/MathTrail/mathtrail-standalone/internal/transport/http/middleware"
 	mcpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/mcp"
 	oauthserver "github.com/MathTrail/mathtrail-standalone/internal/transport/oauth"
 	"github.com/MathTrail/mathtrail-standalone/internal/version"
@@ -185,6 +188,11 @@ func newContainer(ctx context.Context, cfg *config.Config, log *zap.Logger, reac
 	}
 	log.Info("google sign-in", zap.Bool("configured", google != nil))
 
+	counted, err := c.censusOf(cfg, log)
+	if err != nil {
+		return nil, err
+	}
+
 	// Each account, each address before a sign-in, the instance as a whole and
 	// each account's renewals at Google are held to a pace of their own; a
 	// child's day, to the tasks it holds.
@@ -206,6 +214,7 @@ func newContainer(ctx context.Context, cfg *config.Config, log *zap.Logger, reac
 		Google:    google,
 		Renewals:  paces.renewals,
 		SiteURL:   cfg.Site(),
+		CountryOf: counted.countryOf,
 		Now:       time.Now,
 	})
 	if err != nil {
@@ -215,18 +224,7 @@ func newContainer(ctx context.Context, cfg *config.Config, log *zap.Logger, reac
 	// The tools of the lesson seal a task's answer under the key ring above,
 	// with the purpose that keeps an answer apart from everything else it
 	// seals.
-	//
-	// The MCP endpoint lets a request in with an access token the
-	// authorization server issued, as the account the token signs in, and
-	// refuses any other by naming the resource's metadata, where a client
-	// begins a sign-in. The development sign-in refuses nobody instead: a
-	// request whose bearer credential is a name acts for an account of that
-	// name, and any other for one development account. The configuration
-	// refuses it on a deployment.
-	signIn := mcpserver.BearerSignIn(signInServer.Account, signInServer.ResourceMetadataURL)
-	if cfg.DevAuth {
-		signIn = mcpserver.DevSignIn
-	}
+	signIn := signInOf(cfg, signInServer)
 	log.Info("limits set",
 		zap.Int("user_per_min", cfg.RateUserPerMin),
 		zap.Int("ip_per_min", cfg.RateIPPerMin),
@@ -249,6 +247,8 @@ func newContainer(ctx context.Context, cfg *config.Config, log *zap.Logger, reac
 		Logger:      log,
 		Traces:      tel.TracerProvider(),
 		ProjectID:   cfg.GCPProjectID,
+		Learners:    counted.learners,
+		SiteURL:     cfg.Site(),
 	})
 	if err != nil {
 		return nil, err
@@ -321,6 +321,85 @@ func newPaces(cfg *config.Config) (*paces, error) {
 		return nil, err
 	}
 	return &paces{perAccount: perAccount, perAddress: perAddress, signIn: signIn, lessons: lessons, renewals: renewals}, nil
+}
+
+// signInOf is how the MCP endpoint lets a request in: with an access token
+// the authorization server issued, as the account the token signs in, refusing
+// any other by naming the resource's metadata, where a client begins a
+// sign-in. The development sign-in refuses nobody instead: a request whose
+// bearer credential is a name acts for an account of that name, and any other
+// for one development account. The configuration refuses it on a deployment.
+func signInOf(cfg *config.Config, server *oauthserver.Server) mcpserver.SignIn {
+	if cfg.DevAuth {
+		return mcpserver.DevSignIn
+	}
+	return mcpserver.BearerSignIn(server.Account, server.ResourceMetadataURL)
+}
+
+// census is what the lines that count the children need: the key the name a
+// child is counted under each month is derived from, and the country a request
+// came from, which the sign-in asks of the one request the parent's browser
+// makes.
+type census struct {
+	learners  *learner.Key
+	countryOf func(*http.Request) string
+}
+
+// censusOf builds what the lines that count the children need, and says what
+// it built. The database of countries is opened here and closed on the way
+// out: a file that does not open stops the process now, as the content does,
+// rather than at the first parent who signs in.
+func (c *Container) censusOf(cfg *config.Config, log *zap.Logger) (*census, error) {
+	learners, err := learnerKey(cfg)
+	if err != nil {
+		return nil, err
+	}
+	log.Info("learner key", zap.Bool("configured", cfg.LearnerKey != ""))
+	countryOf, err := c.countries(cfg, log)
+	if err != nil {
+		return nil, err
+	}
+	return &census{learners: learners, countryOf: countryOf}, nil
+}
+
+// learnerKey is the key the children are counted under in the log: the one
+// configured, or, on a machine given none, one the process makes for itself,
+// whose names mean something only while it runs. The configuration refuses
+// that on a deployment.
+func learnerKey(cfg *config.Config) (*learner.Key, error) {
+	if cfg.LearnerKey == "" {
+		return learner.RandomKey(), nil
+	}
+	return learner.NewKey(cfg.LearnerKey)
+}
+
+// countries opens the database of countries, when one is configured, and is
+// the country a request came from as the sign-in asks it: the address the
+// platform saw the request come from, looked up there. With none configured
+// it is nil, and no country is known.
+func (c *Container) countries(cfg *config.Config, log *zap.Logger) (func(*http.Request) string, error) {
+	if cfg.CountryDB == "" {
+		log.Info("country database", zap.Bool("configured", false))
+		return nil, nil
+	}
+	database, err := geoip.Open(cfg.CountryDB)
+	if err != nil {
+		return nil, err
+	}
+	c.closers = append(c.closers, func(context.Context) error { return database.Close() })
+	about := database.About()
+	log.Info("country database",
+		zap.Bool("configured", true),
+		zap.String("type", about.Type),
+		zap.String("built", about.Built.Format(time.DateOnly)),
+	)
+	return func(r *http.Request) string {
+		address, readable := middleware.Sender(r)
+		if !readable {
+			return ""
+		}
+		return database.Country(address)
+	}, nil
 }
 
 // googleSignIn is how a parent signs in with Google: through the service's own

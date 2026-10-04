@@ -11,7 +11,9 @@ import type { Scene } from "./scenes";
  * drives it: through the library's host side, over the messages between the
  * frame and this page. It is told the host's context, handed the scene's payload
  * — or, for a task caught being asked for, told the call as far as it got —
- * answered as the service would answer, and pressed as the child would press.
+ * answered as the service would answer, its pages opened in a tab of their own
+ * unless the scene says the host opens none or refuses them, and pressed as the
+ * child would press.
  * A frame whose page scrolls sideways is marked: the card has to fit any width
  * from a phone's up.
  */
@@ -38,7 +40,7 @@ export function HostedCard({
 		const host = new AppBridge(
 			null,
 			{ name: "preview", version: "1.0.0" },
-			{},
+			scene.links === "none" ? {} : { openLinks: {} },
 			{
 				hostContext: {
 					theme,
@@ -64,6 +66,13 @@ export function HostedCard({
 		host.onmessage = () =>
 			Promise.resolve(scene.refuseMessages ? { isError: true } : {});
 		host.onupdatemodelcontext = () => Promise.resolve({});
+		host.onopenlink = ({ url }) => {
+			if (scene.links === "refuse") {
+				return Promise.resolve({ isError: true });
+			}
+			window.open(url, "_blank", "noopener,noreferrer");
+			return Promise.resolve({});
+		};
 		host.addEventListener("sizechange", ({ height: drawn }) => {
 			if (drawn !== undefined) {
 				setHeight(drawn);

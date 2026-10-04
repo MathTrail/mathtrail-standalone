@@ -54,13 +54,14 @@ Each rule estimates where a child stands. The bench writes a rule's estimate int
 | Constant step | `constant/both` | The service's first step, never shrinking |
 | Slow constant step | `constant_slow/both` | Half the service's first step, never shrinking: 0.1 and 0.2 |
 | Floor under the step | `floor_0.05/both` | The service's step, the overall level's never below 0.05 |
+| Floor under the step, cautious mastery | `floor_0.05+cautious_z1/both` | The floor under the step, with the cautious estimate at z = 1 declaring mastery in the service's rule's place: the model the choices of the step and of mastery came to |
 | No trial series | `no_trial/both` | The service's step from the first answer, with no estimate of the trial series |
 | Glicko-2 with guessing | `glicko2_floor/general`, `glicko2_floor/topics` | Glicko-2 over a chance that a child can guess, with one level, or with a level per topic |
 | The oracle | `oracle/both` | Stands where the child truly stands, in every topic, at every moment, and knows the child's true chance: **the ceiling** of every rule that learns of a child from answers |
 
-The step rules start from the trial series' estimate, as the service does; Glicko-2 and the oracle start from the first answer. These are the bench's own set of rules, `bench`, which a run is given unless it names another; the step chosen joins them once one is, unless it is among them already, as the floor of 0.05 the choice came to is. Every rule runs on all nineteen generators: 152 cells. The other sets, which choose the step, are described under [The candidates of the step](#the-candidates-of-the-step).
+The step rules start from the trial series' estimate, as the service does; Glicko-2 and the oracle start from the first answer. These are the bench's own set of rules, `bench`, which a run is given unless it names another; the step chosen joins them once one is, unless it is among them already, as the floor of 0.05 the choice came to is, and so does the model of mastery chosen over it, `floor_0.05+cautious_z1`: that floor under the cautious estimate at z = 1. Every rule runs on all nineteen generators: 171 cells. The other sets, which choose the step and the rule of mastery, are described under [The candidates of the step](#the-candidates-of-the-step) and [The candidates of mastery](#the-candidates-of-mastery).
 
-The oracle is the ceiling of the corridor at each miss of the model, and of mastery under the mastery rule the service has now, given a perfect estimate. It knows a child's level but not their slope or their floor (G6, G7). It is not a ceiling for a new mastery rule: to set the oracle beside one, the bench will need a way to put that rule in the service's place. It is compared with no rule as one, and the measures of what the child is shown leave it out: its rating moves only when the child does.
+The oracle is the ceiling of the corridor at each miss of the model, and of mastery under the mastery rule the service has now, given a perfect estimate. It knows a child's level but not their slope or their floor (G6, G7). It is not a ceiling for a new rule of mastery: the oracle keeps the service's, while a rule of mastery takes the service's place under the step chosen (see [The candidates of mastery](#the-candidates-of-mastery)). It is compared with no rule as one, and the measures of what the child is shown leave it out: its rating moves only when the child does.
 
 ## The measures
 
@@ -71,7 +72,7 @@ A topic is **truly mastered** at a level when the child's true chance on a task 
 | R1 error of the level | `r1_rms_N`, `r1_mean_N` | Over the topics the child has answered, the root mean square and the mean of the estimate less the truth, after 5, 10, 20, 50, 100 and 200 answers |
 | R2 calibration | `r2_brier`, `r2_bias`, `r2_ece` | The Brier score of the rule's own chance against the answers, the chance it predicted less the share right, and the calibration error over ten bins |
 | R3 corridor | `r3_inside`, `r3_below_0.5`, `r3_above_0.95`, `r3_reachable` | The share of tasks whose true chance lies in 0.70–0.85, below 0.50 and above 0.95; and the share of tasks whose topic's ladder held a point at a true chance in 0.70–0.85 at all — the ceiling of the ladder itself, which no rule passes when the model misses nothing |
-| R4 false "mastered" | `r4_false`, `r4_false_0.70`, `r4_declared` | Of the masteries declared, the share whose topic was not truly mastered at its level, or not at 0.70; how many were declared |
+| R4 false "mastered" | `r4_false`, `r4_false_0.70`, `r4_declared`, `r4_below`, `r4_false_at_task` | Of the masteries declared, the share whose topic was not truly mastered at the level it is held mastered at, or not at 0.70; how many were declared; the share declared at a level below the task's, which the child is not shown; and the false share of those declared at the task's level |
 | R4b false "mastered" within m attempts | `r4b_3` … `r4b_50`, `r4b_chance_*` | The chance that a topic not truly mastered is declared mastered within its first m tasks set at a chance of at most 0.775, the ones mastery counts, and the true chances on those tasks |
 | R5 late mastery | `r5_late_answers`, `r5_never` | For a topic and level the child truly masters, the answers in the topic until the rule declares it, and the share never declared |
 | R6 lag | `r6_lag`, `r6_jump_answers`, `r6_jump_unsettled` | The estimate less the truth from the 101st answer on, below zero when the estimate lags behind; after a jump or a drop, the answers until the error stays under 0.5 for ten answers, and the share of children it never does for |
@@ -135,16 +136,227 @@ A candidate is chosen on the working seeds, in a decision run of **4,000 childre
 
 ### Choosing mastery
 
-The rule of mastery is chosen in the same way, over the step already chosen, with these constraints and this score.
+The rule of mastery is chosen in the same way, over the step already chosen, with these constraints and this score. **"The service" here is the baseline: the step chosen, the floor of 0.05, under the service's own rule of mastery** (R175). That measures what a rule of mastery gives by itself, rather than charging every candidate with what the floor already moves under the old rule — two points more masteries never declared to a child who learns, three more declared falsely. The baseline is also the exit.
 
 - **Constraints,** on point estimates:
-  - false masteries are at most 20 %, on G0 and on G0-topics1, the widest spread of topics, on which a margin of mastery is chosen; they are read at the level a topic is held mastered at, the service's included, and never against the share the old reading gave;
-  - the answers until a mastery the child has is declared, `r5_late_answers`, are at most 1.5 times the service's, on the same generators.
-- **Not worse than the service:** false masteries, `r4_false`, on every generator, with a tolerance of 2 percentage points or the bench's resolution, whichever is larger, as for the step (R166); the share of masteries never declared, `r5_never`, with the same tolerance — or a rule would wait less only by declaring less; and every constraint of not worse and of the screen of the step.
-- **The score:** the share of the way to perfect — no false mastery and no wait — closed on false masteries and on the answers until mastery, with the weights of the step.
-- **Better, the choice, the confirmation and the exit** as for the step; the exit keeps the service's rule of mastery.
+  - false masteries are at most 20 %, on G0 and on G0-topics1, the widest spread of topics, on which a margin of mastery is chosen; they are read at the level a topic is held mastered at, the baseline's included, and never against the share the old reading gave;
+  - the answers until a mastery the child has is declared, `r5_late_answers`, are at most 1.5 times the baseline's, on the same generators;
+  - the screen's, as for the step, against the baseline's numbers in answers 6–20, which are the service's: the floor does not act before the 60th answer.
+- **Not worse than the baseline:** false masteries, `r4_false`, on every generator, with a tolerance of 2 percentage points or the bench's resolution, whichever is larger, as for the step (R166); the share of masteries never declared, `r5_never`, with the same tolerance — or a rule would wait less only by declaring less — read on G0 and G0-topics1 alone, where the goals of mastery are (R175, decided by the author after the pilot): there whatever is left undeclared is the rule's own doing, while for a child who learns the step chosen trails the child, and a margin on top of the trail leaves masteries reached late in a run undeclared by its end, which is the step's to answer for; and the step's checks of not worse, the error after 200 answers and the corridor, which a rule of mastery moves by the topics it takes out of the rotation.
+- **The price of declaring only what is sure** (R182, decided by the author after the decision run): in the choice of mastery the error after 200 answers is read with a tolerance of 0.03 logit on every generator, and masteries never declared on G0-topics1 with 8 points; on G0 they keep 2 points, and the corridor and false masteries keep their tolerances. Each is what the cautious estimate cost in the decision run plus 4.3 of its standard errors, rounded up — 0.026 logit on G2-fading and 7.6 points — so that a rule costing as much passes a run of new children 99 times in 100, as every check of not worse lets a rule as good as the baseline through. They were set after the working children were seen, so the confirmation on the held-out children is what tests them.
+- **The score:** the share of the way from the baseline to perfect — no false mastery and no wait — closed on false masteries and on the answers until mastery, with the weights of the step.
+- **Better, the choice and the confirmation** as for the step. **The exit** is the baseline, kept as it is: the service's rule of mastery over the step chosen, which no check is asked of.
 
-The bench evaluates this part once the candidates of mastery are on it; the service's numbers for it are in `cells.csv` already.
+**The pilot.** Before the decision run, the candidates are run on the sweep's children, a thousand a cell (`-rules mastery-pilot`). A candidate is stopped there when, on some generator, the whole 95 % interval of its difference from the baseline in masteries never declared lies above 2 percentage points: the author's tolerance, not widened by the bench's resolution. If every candidate is stopped, the decision run waits for the author (R175).
+
+## The candidates of mastery
+
+The rules of mastery put forward, written down before any of them ran. A rule of mastery takes the service's place on the bench as an estimate does: after each answer, once the service has recorded it and the rule's estimate has taken it in, the rule judges it, and what it holds — the level each topic is mastered at and since when, both or neither — is written into the profile over what the service's own rule wrote there, since the profile is all the service's choice of tasks reads mastery from. What is measured is the rule's own verdict. The counts of answers and the topic's run of wrong answers are read off the profile, which keeps them alike under every rule. A test holds the service's own run of three, put in its place this way, to the service's rule on every answer of every generator, and one at an infinite margin holds the profile to no mastery at all.
+
+Every rule declares only after a right answer without the hint, with at least five answers in the topic, and only at a level above the one the topic is held at; every rule loses mastery after two wrong answers in a row, as the service's does. None is tuned: each is run as written here.
+
+- **A run of five** (`run5`): the service's rule with a run of five instead of three, with all its ways — the run grows before the topic's fifth answer, may complete on a right answer to an easy task, and is spent when it completes, whatever it earns. It adds no number.
+- **The cautious estimate** at z = 1.0, 1.28 and 1.64 (`cautious_z…`): the topic is mastered at the highest of its levels, at or below the task's, on whose middle task — difficulty 3 — a child at the estimate less z·√v answers at the corridor's middle, 0.775, or better. v is the uncertainty of the level in the topic from the counts the profile keeps: v = 1/(1/2.5² + I·n) + 1/(3 + I·m), with n the answers in all and m in the topic and I = 0.15 — the trial series' spread narrowed by every answer, plus the topic's uncertainty the service's step reads its first step from, narrowed by the topic's answers. These are the product's own numbers, so the rule adds z alone. The sum overstates v a little, since a topic's answers tell of the overall level too, which suits a cautious rule. The cautious estimate at no margin, z = 0, is run beside them and is no candidate: it shows what reading at the middle task costs apart from the margin.
+- **Wald's test at each level** (`wald`): for every level of the topic, the chance on its middle task at most 0.70 against at least 0.85, the corridor's bounds, with α = 0.05 and β = 0.2. Every wrong answer and every right and unaided one adds to each level's sum how much likelier it was for a child at the top of the corridor there than at its bottom, the task's own difficulty taken in; a sum that falls under ln(β / (1 − α)) starts again; past ln((1 − β) / α) = ln 16 the topic is mastered at the highest such level at or below the task's, whose sums at and below it are then spent. The sums have to be kept, so the rule adds fields to the profile, and two numbers: it is the backup, chosen over the main rule only by the margin of 0.05. A test holds a single test of it to its errors: at the corridor's bottom it lets a child through at most α / (1 − β) of the time, at its top it turns one away at most β / (1 − α) of it.
+
+The simplest of equals is the one adding the fewest numbers — the run of five none, the cautious estimate one, Wald's test two — then the one adding no field, then the nearest the service's rule: the run of five, then the cautious estimate, the smaller margin the nearer. Wald's test, which adds the most, is never weighed by its distance, and the reports show it none.
+
+A rule that declares at a level below the task's declares a mastery the child is not shown and the rotation does not act on, which still counts among the masteries read for falseness; `r4_below` is the share of those, so that a rule that keeps its false share down that way is seen to, and `r4_false_at_task` the false share of the masteries declared at the task's level, the ones the child is shown.
+
+### What the pilot came to
+
+The pilot, `results/mastery-pilot/`, a thousand of the sweep's children a cell, stopped every candidate on masteries never declared, read then on every generator. Against the baseline:
+
+| Rule | False, G0 / G0-topics1 | False among those shown, G0 | Answers until mastery, G0 | Never declared, G0 / G2-half | Generators clearly worse on never declared | Score |
+|---|---:|---:|---:|---:|---:|---:|
+| The baseline, the floor of 0.05 under the service's mastery | 65 % / 59 % | 65 % | 9.9 | 24 % / 19 % | — | 0 |
+| A run of five | 70 % / 57 % | 70 % | 11.9 | 76 % / 72 % | 19 | −0.13 |
+| The cautious estimate, z = 1.0 | 4 % / 6 % | 4 % | 4.7 | 18 % / 34 % | 6 | 0.69 |
+| The cautious estimate, z = 1.28 | 2.5 % / 4 % | 3 % | 4.9 | 23 % / 38 % | 7 | 0.68 |
+| The cautious estimate, z = 1.64 | 1 % / 3 % | 1.5 % | 5.0 | 30 % / 43 % | 12 | 0.68 |
+| Wald's test | 0.5 % / 0.5 % | 0.4 % | 11.0 | 61 % / 64 % | 19 | 0.38 |
+| The cautious estimate at no margin, no candidate | 16 % / 16 % | 20 % | 4.2 | 7 % / 18 % | 1 | 0.65 |
+
+The cautious estimate met every other constraint, and was stopped only on children who learn, jump or meet two hosts, and on the widest spread of topics at z = 1.28 and above: there the step chosen trails the child, and the margin comes on top of the trail. On children who stay put it leaves fewer masteries undeclared than the baseline. The author then had masteries never declared read on G0 and G0-topics1 alone, where the goals of mastery are (R175), and the pilot was run again with that reading before the decision run, and once more under the criterion as amended after it (R182); its numbers are those above, but for what the criterion reads of them. A run of five, which reads the task's level as the service's rule does, comes nowhere near 20 % false; Wald's test is as slow as it was expected to be.
+
+### What the decision run came to
+
+The decision run, `results/mastery/`, 4,000 of the working children a cell. **As the criterion was first written, no candidate met every constraint, and the exit was taken** — the baseline, the floor of 0.05 under the service's own rule of mastery, 65 % of whose masteries declared to a child who stays put are false. The cautious estimate met every goal and was stopped only by two costs, which the author then accepted (R182). **Read again under the amended criterion, the run chooses the cautious estimate at z = 1, `floor_0.05+cautious_z1`**: the one candidate that meets every constraint, closing 69 % of the way to perfect, ahead of z = 1.28 and 1.64 by 0.004 and 0.007, both intervals above zero.
+
+| Rule | False, G0 / G0-topics1 | False among those shown, G0 | Answers until mastery, G0 / G0-topics1 | Never declared, G0 / G0-topics1 | Constraints missed, as first written / amended | Score |
+|---|---:|---:|---:|---:|---:|---:|
+| The baseline | 64.6 % / 59.8 % | 64.6 % | 9.8 / 9.3 | 22.4 % / 20.8 % | 2 / 2, the goals of false masteries | 0 |
+| A run of five | 67.6 % / 57.6 % | 67.6 % | 12.1 / 11.1 | 76.6 % / 70.7 % | 18 / 18 | −0.119 |
+| **The cautious estimate, z = 1.0** | 3.7 % / 5.9 % | 3.3 % | 4.6 / 4.9 | 19.4 % / 26.1 % | 7 / **0** | 0.688 |
+| The cautious estimate, z = 1.28 | 2.3 % / 4.3 % | 2.5 % | 4.8 / 5.1 | 23.7 % / 30.0 % | 8 / 2 | 0.684 |
+| The cautious estimate, z = 1.64 | 1.1 % / 2.7 % | 1.6 % | 4.9 / 5.2 | 30.1 % / 35.1 % | 6 / 2 | 0.681 |
+| Wald's test | 0.7 % / 0.5 % | 0.5 % | 10.8 / 10.7 | 61.2 % / 61.5 % | 4 / 4 | 0.388 |
+| The cautious estimate at no margin, no candidate | 15.4 % / 16.8 % | 19.2 % | 4.2 / 4.3 | 6.6 % / 14.8 % | 14 / 0 | 0.654 |
+
+The goals ask for at most 20 % false, and at most 14.7 answers until mastery on G0 and 14.0 on G0-topics1.
+
+**The cautious estimate** meets every goal with room to spare: at z = 1 it cuts false masteries from 64.6 % of those declared to 3.7 %, and declares in half the answers. As the criterion was first written, two kinds of check stopped it, both of which the pilot, a rough look, had let through on the edge — the costs the amendment accepts:
+
+- **Not worse on the error after 200 answers,** on children who learn or change: at z = 1, 0.010 logit more on G2, 0.010 on G3, 0.013 on G4, 0.014 on G2-half and 0.018 on G2-fading — 1 to 3 % of their error — and 0.007 on G0-topics0.3, each interval's worse end past a tolerance of 0.010 to 0.013. At z = 1.28 the same six generators fail, at z = 1.64 four of them. On a child who stays put the error does not move: 0.488 under the baseline, 0.486 to 0.488 under every margin. The likely reading, which the numbers bear out: a rule of mastery moves the error only through the rotation, which sets no topic held mastered at the level its tasks come from as a new topic while another within reach is not. The cautious estimate declares the masteries a child has sooner and keeps them, so for a child who moves on, the estimates of the topics it set aside stay where they were. The more a rule declares, and the sooner, the more it costs: at no margin the error goes past the tolerance on fourteen generators, while Wald's test, which declares a third as many masteries as the baseline, errs less than the baseline on a child who stays put, 0.477.
+- **Masteries never declared, on G0-topics1,** the widest spread of topics: at z = 1, 26.1 % against the baseline's 20.8 %, 5.3 points more [4.2, 6.3] against a tolerance of 2. A topic far above the child's overall level starts from it, and its estimate less the margin clears the middle task late, or within 200 answers not at all. On G0 the cautious estimate at z = 1 leaves fewer undeclared than the baseline, 19.4 % against 22.4 %; at z = 1.28 and 1.64 it leaves more, past the 2 points kept there, and under the amended criterion they still miss that check and, on G0-topics1, the 8 points.
+
+**Wald's test** is the only candidate that meets the error as first written, and is stopped by masteries never declared — 61 % on G0 against the baseline's 22 % — and by the corridor on G3-drop and G0-topics1, a little under a point worse each. **A run of five** misses both goals of false masteries and is worse than the baseline on them on fourteen generators — it reads the task's level as the service's run does — and leaves 77 % of the masteries a child has undeclared on G0. **At no margin** the cautious estimate meets every constraint under the amended criterion, but it is no candidate, and closes 0.035 [0.032, 0.037] less of the way than z = 1: the margin is worth what it costs.
+
+**The confirmation**, `results/held-out/`, 4,000 held-out children a cell, the chosen model beside the baseline, the service, the slow constant step and the oracle: **confirmed**. It meets all 71 constraints and is better than the baseline, closing 0.690 [0.686, 0.695] of the way. On the held-out children it declares 3.8 % of its masteries falsely on G0 and 6.0 % on G0-topics1, against the baseline's 65.0 % and 60.1 %, in 4.7 and 4.9 answers against 9.9 and 9.2. Its costs come out as in the decision run: the error after 200 answers at most 0.015 logit more [0.011, 0.019], on G2 and G2-fading, and 5.4 points [4.3, 6.5] more masteries never declared on G0-topics1. The rule of mastery chosen is the cautious estimate at z = 1, over the floor of 0.05; the model of both joins the bench's own set. How the product takes it — the floor of the step and the cautious estimate, the masteries of the earlier rule cleared — is R187, and SPEC 2.2 and 2.5 hold its rules.
+
+#### Every generator, in the decision run of mastery
+
+The rules of mastery on every generator; every rule of the run, the service and the slow constant step among them, is in `results/mastery/scenarios.md`, and every number with its interval in `cells.csv`. The baseline is the floor of 0.05 under the service's rule of mastery; the others are the same step under a rule of mastery of their own.
+
+##### The masteries declared falsely, %
+
+| Generator | Baseline | Run of five | Cautious, z = 1 | z = 1.28 | z = 1.64 | Wald | z = 0, no candidate |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| G0 | 64.6 | 67.6 | 3.7 | 2.3 | 1.1 | 0.7 | 15.4 |
+| G1 | 61.5 | 64.2 | 0.6 | 0.3 | 0.1 | 0.3 | 5.6 |
+| G2 | 44.2 | 36.7 | 0.7 | 0.3 | 0.1 | 0.0 | 4.8 |
+| G3 | 53.4 | 50.5 | 2.1 | 1.2 | 0.5 | 0.1 | 11.4 |
+| G4 | 59.7 | 61.4 | 1.2 | 0.6 | 0.3 | 0.2 | 7.3 |
+| G5 | 63.3 | 65.5 | 3.8 | 2.4 | 1.2 | 0.6 | 15.1 |
+| G6 | 67.1 | 70.4 | 7.2 | 5.6 | 4.0 | 1.7 | 19.9 |
+| G7 | 64.6 | 66.1 | 4.1 | 2.4 | 1.2 | 0.6 | 15.8 |
+| G8 | 65.2 | 69.0 | 3.6 | 2.3 | 1.1 | 0.3 | 15.1 |
+| G0-exact | 66.2 | 68.0 | 3.9 | 2.3 | 1.1 | 0.7 | 16.1 |
+| G0-miss0.25 | 64.6 | 67.8 | 4.5 | 2.8 | 1.4 | 0.8 | 16.8 |
+| G0-miss1 | 63.2 | 65.5 | 3.4 | 2.3 | 1.2 | 0.6 | 13.7 |
+| G2-half | 54.3 | 51.1 | 1.7 | 0.9 | 0.4 | 0.1 | 9.9 |
+| G2-fading | 55.2 | 54.5 | 1.8 | 1.1 | 0.4 | 0.2 | 10.6 |
+| G3-drop | 72.3 | 79.1 | 6.4 | 4.7 | 3.2 | 4.3 | 21.4 |
+| G0-start0.5 | 68.3 | 70.3 | 2.3 | 1.3 | 0.6 | 0.6 | 14.0 |
+| G0-start2 | 62.4 | 65.3 | 3.4 | 2.1 | 1.1 | 0.7 | 14.3 |
+| G0-topics0.3 | 66.2 | 68.7 | 3.3 | 1.9 | 0.9 | 0.7 | 16.0 |
+| G0-topics1 | 59.8 | 57.6 | 5.9 | 4.2 | 2.7 | 0.5 | 16.8 |
+
+##### The masteries declared falsely among those the child is shown, at the task's level, %
+
+| Generator | Baseline | Run of five | Cautious, z = 1 | z = 1.28 | z = 1.64 | Wald | z = 0, no candidate |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| G0 | 64.6 | 67.6 | 3.3 | 2.5 | 1.6 | 0.5 | 19.2 |
+| G1 | 61.5 | 64.2 | 0.2 | 0.1 | 0.1 | 0.2 | 6.5 |
+| G2 | 44.2 | 36.7 | 0.7 | 0.5 | 0.2 | 0.0 | 5.4 |
+| G3 | 53.4 | 50.5 | 1.8 | 1.6 | 0.8 | 0.1 | 13.1 |
+| G4 | 59.7 | 61.4 | 1.0 | 0.7 | 0.4 | 0.1 | 9.4 |
+| G5 | 63.3 | 65.5 | 3.6 | 2.8 | 1.9 | 0.4 | 19.0 |
+| G6 | 67.1 | 70.4 | 7.3 | 6.6 | 5.6 | 2.3 | 23.3 |
+| G7 | 64.6 | 66.1 | 3.7 | 2.7 | 1.8 | 0.5 | 20.0 |
+| G8 | 65.2 | 69.0 | 3.4 | 2.6 | 1.7 | 0.4 | 19.1 |
+| G0-exact | 66.2 | 68.0 | 3.5 | 2.5 | 1.7 | 0.6 | 20.4 |
+| G0-miss0.25 | 64.6 | 67.8 | 4.2 | 3.2 | 2.2 | 0.6 | 21.0 |
+| G0-miss1 | 63.2 | 65.5 | 3.3 | 2.7 | 1.8 | 0.5 | 17.1 |
+| G2-half | 54.3 | 51.1 | 1.5 | 1.2 | 0.6 | 0.1 | 12.0 |
+| G2-fading | 55.2 | 54.5 | 1.6 | 1.1 | 0.7 | 0.2 | 13.2 |
+| G3-drop | 72.3 | 79.1 | 5.9 | 5.2 | 4.9 | 4.5 | 26.1 |
+| G0-start0.5 | 68.3 | 70.3 | 2.0 | 1.4 | 0.9 | 0.4 | 19.3 |
+| G0-start2 | 62.4 | 65.3 | 2.6 | 1.9 | 1.5 | 0.5 | 16.8 |
+| G0-topics0.3 | 66.2 | 68.7 | 3.1 | 2.2 | 1.3 | 0.7 | 20.7 |
+| G0-topics1 | 59.8 | 57.6 | 5.5 | 5.0 | 3.9 | 0.6 | 19.8 |
+
+##### The masteries declared below the task's level, which the child is not shown, %
+
+| Generator | Baseline | Run of five | Cautious, z = 1 | z = 1.28 | z = 1.64 | Wald | z = 0, no candidate |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| G0 | 0.0 | 0.0 | 55.0 | 53.0 | 46.4 | 57.3 | 30.4 |
+| G1 | 0.0 | 0.0 | 36.3 | 35.0 | 30.2 | 47.6 | 24.8 |
+| G2 | 0.0 | 0.0 | 56.9 | 54.7 | 39.9 | 59.2 | 21.5 |
+| G3 | 0.0 | 0.0 | 56.8 | 54.9 | 42.7 | 60.3 | 25.8 |
+| G4 | 0.0 | 0.0 | 57.3 | 54.8 | 47.2 | 56.9 | 32.8 |
+| G5 | 0.0 | 0.0 | 56.0 | 54.1 | 46.3 | 58.4 | 30.4 |
+| G6 | 0.0 | 0.0 | 55.4 | 53.4 | 46.8 | 57.4 | 31.2 |
+| G7 | 0.0 | 0.0 | 55.6 | 53.9 | 46.5 | 57.8 | 30.8 |
+| G8 | 0.0 | 0.0 | 55.9 | 53.8 | 46.9 | 58.7 | 31.4 |
+| G0-exact | 0.0 | 0.0 | 55.3 | 53.6 | 46.4 | 58.3 | 30.2 |
+| G0-miss0.25 | 0.0 | 0.0 | 55.3 | 53.1 | 46.0 | 58.1 | 30.3 |
+| G0-miss1 | 0.0 | 0.0 | 56.3 | 54.1 | 46.4 | 56.9 | 30.8 |
+| G2-half | 0.0 | 0.0 | 57.7 | 55.5 | 43.8 | 58.8 | 25.9 |
+| G2-fading | 0.0 | 0.0 | 56.5 | 54.5 | 43.8 | 59.0 | 26.7 |
+| G3-drop | 0.0 | 0.0 | 51.7 | 49.0 | 46.0 | 55.9 | 30.9 |
+| G0-start0.5 | 0.0 | 0.0 | 54.0 | 51.2 | 44.1 | 55.2 | 34.7 |
+| G0-start2 | 0.0 | 0.0 | 50.7 | 48.8 | 41.6 | 54.8 | 26.2 |
+| G0-topics0.3 | 0.0 | 0.0 | 55.0 | 53.0 | 46.1 | 55.7 | 30.6 |
+| G0-topics1 | 0.0 | 0.0 | 58.1 | 55.7 | 46.9 | 58.3 | 32.0 |
+
+##### The answers until a mastery the child has is declared
+
+| Generator | Baseline | Run of five | Cautious, z = 1 | z = 1.28 | z = 1.64 | Wald | z = 0, no candidate |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| G0 | 9.8 | 12.1 | 4.6 | 4.8 | 4.9 | 10.8 | 4.2 |
+| G1 | 9.6 | 10.9 | 4.5 | 4.8 | 5.3 | 11.3 | 3.9 |
+| G2 | 7.6 | 10.5 | 6.5 | 6.9 | 7.1 | 11.2 | 5.1 |
+| G3 | 8.4 | 10.7 | 5.7 | 6.1 | 6.2 | 11.0 | 4.7 |
+| G4 | 10.3 | 12.6 | 4.6 | 4.7 | 4.8 | 10.9 | 4.3 |
+| G5 | 10.0 | 12.0 | 4.7 | 4.9 | 5.0 | 10.8 | 4.2 |
+| G6 | 9.9 | 11.8 | 4.7 | 4.7 | 4.8 | 10.8 | 4.0 |
+| G7 | 9.9 | 12.1 | 4.7 | 4.8 | 4.9 | 10.9 | 4.2 |
+| G8 | 11.2 | 12.2 | 5.0 | 5.1 | 5.2 | 12.8 | 4.5 |
+| G0-exact | 9.8 | 11.8 | 4.6 | 4.8 | 4.9 | 10.8 | 4.1 |
+| G0-miss0.25 | 9.8 | 11.9 | 4.6 | 4.8 | 4.9 | 10.9 | 4.2 |
+| G0-miss1 | 10.0 | 12.1 | 4.7 | 4.8 | 4.9 | 10.9 | 4.3 |
+| G2-half | 8.7 | 11.2 | 5.9 | 6.1 | 6.3 | 11.1 | 4.8 |
+| G2-fading | 8.6 | 11.3 | 5.6 | 5.8 | 5.9 | 10.9 | 4.7 |
+| G3-drop | 10.0 | 11.3 | 3.7 | 3.7 | 3.7 | 10.3 | 3.7 |
+| G0-start0.5 | 9.9 | 11.5 | 4.1 | 4.2 | 4.5 | 10.8 | 3.8 |
+| G0-start2 | 9.7 | 11.7 | 5.0 | 5.1 | 5.2 | 10.9 | 4.2 |
+| G0-topics0.3 | 10.1 | 12.1 | 4.5 | 4.7 | 4.8 | 10.9 | 4.1 |
+| G0-topics1 | 9.3 | 11.1 | 4.9 | 5.1 | 5.2 | 10.7 | 4.3 |
+
+##### The masteries the child has that are never declared, %
+
+| Generator | Baseline | Run of five | Cautious, z = 1 | z = 1.28 | z = 1.64 | Wald | z = 0, no candidate |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| G0 | 22.4 | 76.6 | 19.4 | 23.7 | 30.1 | 61.2 | 6.6 |
+| G1 | 20.8 | 77.4 | 3.4 | 3.9 | 5.3 | 53.2 | 2.5 |
+| G2 | 13.2 | 64.2 | 39.0 | 42.5 | 46.6 | 66.8 | 24.9 |
+| G3 | 18.4 | 70.1 | 33.5 | 37.5 | 42.6 | 66.0 | 18.8 |
+| G4 | 24.8 | 77.6 | 30.2 | 34.8 | 40.7 | 68.0 | 14.4 |
+| G5 | 21.7 | 76.2 | 21.7 | 26.1 | 32.1 | 61.1 | 9.4 |
+| G6 | 23.7 | 77.5 | 18.1 | 23.2 | 29.8 | 61.8 | 6.5 |
+| G7 | 21.9 | 76.0 | 19.0 | 23.6 | 29.9 | 60.6 | 6.7 |
+| G8 | 39.9 | 87.4 | 19.3 | 24.1 | 30.2 | 79.8 | 6.5 |
+| G0-exact | 22.8 | 76.7 | 17.6 | 22.2 | 28.5 | 60.8 | 5.7 |
+| G0-miss0.25 | 22.3 | 76.7 | 18.4 | 22.9 | 29.3 | 60.7 | 6.0 |
+| G0-miss1 | 22.7 | 76.5 | 22.4 | 27.1 | 33.4 | 63.5 | 8.9 |
+| G2-half | 18.2 | 70.6 | 32.6 | 36.8 | 41.6 | 64.4 | 17.5 |
+| G2-fading | 18.1 | 71.2 | 29.0 | 33.0 | 38.1 | 62.6 | 13.4 |
+| G3-drop | 35.2 | 83.5 | 26.5 | 31.3 | 37.9 | 75.1 | 10.8 |
+| G0-start0.5 | 21.8 | 77.9 | 14.1 | 16.6 | 20.3 | 55.9 | 6.6 |
+| G0-start2 | 22.3 | 75.9 | 17.3 | 21.6 | 28.0 | 59.5 | 5.9 |
+| G0-topics0.3 | 22.6 | 77.9 | 16.9 | 21.3 | 27.6 | 60.7 | 4.8 |
+| G0-topics1 | 20.8 | 70.7 | 26.1 | 30.0 | 35.1 | 61.5 | 14.8 |
+
+##### The error after 200 answers, in logits
+
+| Generator | Baseline | Run of five | Cautious, z = 1 | z = 1.28 | z = 1.64 | Wald | z = 0, no candidate |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| G0 | 0.488 | 0.482 | 0.488 | 0.488 | 0.486 | 0.477 | 0.494 |
+| G1 | 0.500 | 0.493 | 0.502 | 0.499 | 0.495 | 0.485 | 0.512 |
+| G2 | 1.187 | 1.190 | 1.197 | 1.197 | 1.194 | 1.194 | 1.190 |
+| G3 | 0.717 | 0.712 | 0.727 | 0.725 | 0.722 | 0.708 | 0.727 |
+| G4 | 0.655 | 0.657 | 0.668 | 0.668 | 0.668 | 0.662 | 0.666 |
+| G5 | 0.545 | 0.543 | 0.544 | 0.544 | 0.543 | 0.540 | 0.546 |
+| G6 | 0.753 | 0.746 | 0.758 | 0.757 | 0.754 | 0.747 | 0.756 |
+| G7 | 0.559 | 0.555 | 0.563 | 0.564 | 0.559 | 0.554 | 0.570 |
+| G8 | 0.488 | 0.479 | 0.488 | 0.487 | 0.486 | 0.479 | 0.492 |
+| G0-exact | 0.472 | 0.466 | 0.477 | 0.477 | 0.475 | 0.464 | 0.482 |
+| G0-miss0.25 | 0.476 | 0.468 | 0.477 | 0.475 | 0.473 | 0.465 | 0.485 |
+| G0-miss1 | 0.539 | 0.535 | 0.543 | 0.543 | 0.542 | 0.535 | 0.547 |
+| G2-half | 0.724 | 0.727 | 0.738 | 0.738 | 0.734 | 0.729 | 0.732 |
+| G2-fading | 0.589 | 0.592 | 0.607 | 0.606 | 0.602 | 0.592 | 0.603 |
+| G3-drop | 0.601 | 0.560 | 0.556 | 0.553 | 0.552 | 0.543 | 0.590 |
+| G0-start0.5 | 0.483 | 0.478 | 0.485 | 0.484 | 0.482 | 0.475 | 0.493 |
+| G0-start2 | 0.503 | 0.496 | 0.504 | 0.504 | 0.502 | 0.496 | 0.511 |
+| G0-topics0.3 | 0.430 | 0.431 | 0.437 | 0.438 | 0.437 | 0.432 | 0.439 |
+| G0-topics1 | 0.728 | 0.714 | 0.715 | 0.713 | 0.709 | 0.691 | 0.736 |
+
+#### Remarks
+
+- The cautious estimate's gain was weighed against its costs by the author, after the decision run (2026-10-04, R182). At z = 1 it cuts false masteries from 65 % to 4 % of those declared, the ones the child is shown included, and declares a mastery in half the answers. It costs 0.01 to 0.02 logit of error, 1 to 3 %, on children who learn or change, through the topics it sets aside as mastered, and 5 points more masteries never declared on the widest spread of topics. The costs are paid: the criterion of mastery was amended to the price, and the held-out children, which no run had drawn, are the test of the choice the amendment let through.
+- If the error's cost comes from setting topics aside for good, as the likely reading has it, a topic held mastered could come back into the rotation now and then, for a child who moves on; that is a change to the rotation, not to the rule of mastery, and no candidate here tried it.
+- The cautious estimate declares more than half its masteries below the task's level (`r4_below`, 55 % on G0), which the child is not shown and the rotation does not act on. Its false share among the masteries the child is shown is as low as among all of them, 3.3 % on G0, so declaring those does not buy its low false share.
 
 ## The candidates of the step
 
@@ -226,7 +438,7 @@ A candidate exactly as good as the service fails at least one of the nineteen ch
 
 On the sweep's children the goals were a lag of at most 0.268, a corridor of at least 42.7 %, at most 25 % not caught up, and at most 3.1 changes of the rank in a hundred answers. The limit helps the learner as much as it calms the card: a wrong answer is a larger surprise than a right one, so holding back the large moves holds back mostly the moves down.
 
-**The decision run**, 4,000 children a cell on the working children, `results/decision/`: **no candidate meets every constraint, and the exit is taken — the floor of 0.05 under the overall level's step**, with a score of 0.056 [0.055, 0.058]. Of the other floors, 0.1 scores 0.161 but is worse than the service on the error after 200 answers on six generators (G4, G5, G6, G0-miss0.25, G0-start0.5, G0-topics0.3), and 0.02 meets every check but closes nothing of the way, 0.0001.
+**The decision run**, 4,000 children a cell on the working children, `results/decision/`: **no candidate meets every constraint, and the exit is taken — the floor of 0.05 under the overall level's step**, with a score of 0.056 [0.055, 0.058]. Of the other floors, 0.1 scores 0.161 but is worse than the service on the error after 200 answers on six generators (G4, G5, G6, G0-miss0.25, G0-start0.5, G0-topics0.3), and 0.02 meets every check but closes nothing of the way, 0.0001. The product takes the floor of 0.05 as R187 records it (SPEC 2.2).
 
 The best main candidate — v_T 0.13, s 0.7, q 0.003 and 0.006, the limit 0.3 — scores 0.255 [0.251, 0.259] and meets the goals of the lag, 0.212 against at most 0.276, and of the jump, 10 % not caught up against at most 25 %. It misses:
 
@@ -353,7 +565,7 @@ The rules the choice turned on, on every generator; every rule of the run is in 
 
 ## The held-out seeds
 
-A run given `-held-out` draws from seeds kept for confirmation: seed 20261003, experiment `held-out`. It runs the confirmation alone — the chosen step beside the service, the slow constant step and the oracle — refuses to run before a step is chosen, or when the step chosen is the exit, which is taken without a confirmation, refuses `-seed`, `-experiment` and any other `-rules` beside it, and writes under `held-out` in the directory it is given, never over the working run. Nobody runs them before the step's confirmation: a set that has been looked at is held out no longer.
+A run given `-held-out` draws from seeds kept for confirmation: seed 20261003, experiment `held-out`. It runs the confirmation alone — the model of mastery chosen beside the step it is chosen over, or, before one is, the step chosen; either beside the service, the slow constant step and the oracle — refuses to run before a step is chosen, or when the choice it would confirm came to its exit, which is taken without a confirmation, refuses `-seed`, `-experiment` and any other `-rules` beside it, and writes under `held-out` in the directory it is given, never over the working run. They were drawn once, for the model of mastery chosen (`results/held-out/`); the step's choice came to its exit, which needs no confirmation. A set that has been looked at is held out no longer, so no other choice is confirmed on them.
 
 The sweep and its refinement draw children of their own too, the paper's seed under the experiment `sweep`, and refuse `-seed` and `-experiment` likewise. A test proves that no child of any generator is drawn alike in any two of the three sets — the working children, the held-out ones and the sweep's.
 
@@ -366,12 +578,14 @@ The sweep and its refinement draw children of their own too, the paper's seed un
   - `just learners -rules refine -children 300` — minutes, once the sweep's best is set;
   - `just learners -rules decision -children 4000` — about an hour, once the candidates are nominated;
   - `just learners -rules parts -children 4000`, if the chosen step is a candidate whose parts the decision run did not take away;
-  - `just learners -held-out -children 4000` — the confirmation of a chosen candidate, once, about ten minutes; with the exit chosen, as it is now, it refuses.
+  - `just learners -rules mastery-pilot -children 1000` — the pilot of mastery, on the sweep's children, about three minutes;
+  - `just learners -rules mastery -children 4000` — the decision run of mastery, about a quarter of an hour;
+  - `just learners -held-out -children 4000` — the confirmation of the last candidate chosen, once, about ten minutes: the model of mastery chosen over the step. It was run for that model and is not run again.
 - `just learners-test` runs the bench's tests with the race detector, and `just learners-lint` holds the module to what the service is held to. CI runs both on every pull request. A change to the product's `go.mod` is followed by `just learners-tidy`.
 
 ## The results
 
-`tools/learners/results/` keeps the whole run of the bench's own set, as the line every change to the student model is measured from, and beside it, each in its own directory, the runs the step was chosen by: `sweep/`, `refine/` and `decision/` — and `parts/` and `held-out/` when a chosen candidate needs them, which the exit did not. Every run writes:
+`tools/learners/results/` keeps the whole run of the bench's own set, as the line every change to the student model is measured from, and beside it, each in its own directory, the runs the step was chosen by: `sweep/`, `refine/` and `decision/` — and `parts/` when a chosen candidate needs them, which the exit did not — and the runs the rule of mastery was chosen by: `mastery-pilot/`, `mastery/` and `held-out/`, the confirmation of the model chosen. Every run writes:
 
 - `summary.md`, the numbers a change is judged by at a glance, for every rule: the error after 200 answers on G0, the share in the corridor on G0 and G2, the share of false masteries on G0, the lag on G2, and the share of G3's children not caught up after the jump;
 - `scenarios.md`, every rule on every generator, measure by measure: the error after 200 answers, the corridor, false masteries, the lag, the children not caught up after a jump or a drop, and the error of the overall level after ten answers;

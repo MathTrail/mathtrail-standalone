@@ -54,49 +54,56 @@ func sameOrigin(origin string, public *url.URL) bool {
 		comparableHost(parsed.Host) == comparableHost(public.Host)
 }
 
-// clientAddress is who a request is counted as, before anybody has signed in:
-// the address it came from, as the platform saw it.
+// Sender is the address a request came from, as the platform saw it.
 //
 // That is the last entry of X-Forwarded-For, the hop the platform appends;
 // anything a client wrote into the header stands before it, so whatever a
 // client claims there is never read. A request that reached the process with
-// no such header — on a developer's machine, with no platform in front — is
-// counted by the address of its connection. An entry that is no address names
-// nobody, and the connection's address stands in for it.
+// no such header — on a developer's machine, with no platform in front — came
+// from the address of its connection. An entry that is no address names
+// nobody, and the connection's address stands in for it; it is false when that
+// is no address either.
+func Sender(r *http.Request) (netip.Addr, bool) {
+	if forwarded := r.Header.Values("X-Forwarded-For"); len(forwarded) > 0 {
+		hops := forwarded[len(forwarded)-1]
+		if address, readable := addressOf(hops[strings.LastIndexByte(hops, ',')+1:]); readable {
+			return address, true
+		}
+	}
+	return addressOf(r.RemoteAddr)
+}
+
+// clientAddress is who a request is counted as, before anybody has signed in:
+// the address it came from, as Sender reads it, or the connection's address
+// as it was written when nothing reads as one.
 //
 // An IPv6 address is counted by its /64, the network one household is given:
 // counted whole, a single household could spend a fresh allowance on every
 // address it has.
 func clientAddress(r *http.Request) string {
-	if forwarded := r.Header.Values("X-Forwarded-For"); len(forwarded) > 0 {
-		hops := forwarded[len(forwarded)-1]
-		if address, readable := addressOf(hops[strings.LastIndexByte(hops, ',')+1:]); readable {
-			return address
-		}
+	address, readable := Sender(r)
+	switch {
+	case !readable:
+		return r.RemoteAddr
+	case address.Is4():
+		return address.String()
 	}
-	if address, readable := addressOf(r.RemoteAddr); readable {
-		return address
-	}
-	return r.RemoteAddr
+	return netip.PrefixFrom(address, 64).Masked().String()
 }
 
-// addressOf reads one address, with a port after it or none, as the key it is
-// counted by.
-func addressOf(text string) (string, bool) {
+// addressOf reads one address, with a port after it or none, as plain IPv4 or
+// IPv6: an IPv4 address written as IPv6 is read as IPv4, and a zone is dropped.
+func addressOf(text string) (netip.Addr, bool) {
 	text = strings.TrimSpace(text)
 	address, err := netip.ParseAddr(text)
 	if err != nil {
 		withPort, portErr := netip.ParseAddrPort(text)
 		if portErr != nil {
-			return "", false
+			return netip.Addr{}, false
 		}
 		address = withPort.Addr()
 	}
-	address = address.Unmap().WithZone("")
-	if address.Is4() {
-		return address.String(), true
-	}
-	return netip.PrefixFrom(address, 64).Masked().String(), true
+	return address.Unmap().WithZone(""), true
 }
 
 // comparableHost is a host written the way two names for it are compared: in

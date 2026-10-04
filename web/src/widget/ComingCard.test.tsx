@@ -332,7 +332,7 @@ describe("a card a task asked for comes to", () => {
 		await pass(first);
 		press(buttonIn(root, "Comet Profile & progress"));
 		await pass(late);
-		press(foldIn(root, "Topics"));
+		press(foldIn(root, "Profile"));
 
 		await pass(moments.ask + late);
 		press(buttonIn(root, "Back to task"));
@@ -341,6 +341,6 @@ describe("a card a task asked for comes to", () => {
 		press(buttonIn(root, "Comet Profile & progress"));
 		await pass(late);
 
-		expect(foldIn(root, "Topics").getAttribute("aria-expanded")).toBe("true");
+		expect(foldIn(root, "Profile").getAttribute("aria-expanded")).toBe("true");
 	});
 });

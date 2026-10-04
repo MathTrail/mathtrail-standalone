@@ -1,0 +1,38 @@
+# The page "About", for a parent: who makes MathTrail — one family, each of us
+# under a role — and where to write. The children go by their place in the
+# family, never by name. The address and the link to the code are the footer's,
+# which the page fills in.
+
+title: About
+description: "MathTrail is made by one family: who does what, and how to reach us."
+
+hero:
+  title: MathTrail is made by one family
+  lead: There are four of us. One writes the code, one looks after everything else, one solves the problems first, and one is still looking around.
+
+# A card for each of us: who we are in the family, a role, and what we do,
+# under a heading a screen reader alone says.
+team:
+  title: Who we are
+  members:
+    - role: Full-Stack Babyholder
+      name: Dad
+      text: Writes the server, the task checks and the widget. Works in headphones and, as a rule, with someone in his arms.
+    - role: Chief Everything Officer
+      name: Mum
+      text: Looks after everything else, which is to say everything.
+    - role: Chief Task Cracker
+      name: Older son
+      text: Solves new problems first and says honestly where they are unclear.
+    - role: R&D Intern (Crash-Test)
+      name: Younger son
+      text: For now tests toys for strength. A couple of years to go before his first problem.
+
+contact:
+  title: Found a mistake, or have an idea?
+  # The address is written out in the sentence, as a link that writes to it;
+  # the issue is a link to the issues of the code.
+  lead: Write to us at {address} or {issue} — we read everything.
+  issue: open an issue on GitHub
+  write: Write to us
+  github: GitHub

@@ -99,6 +99,30 @@ func loaded(t *testing.T) *content.Content {
 	return c
 }
 
+// Every trap of the catalog says what an adult can do about it, in a sentence
+// of its own: the review of the progress hands it on as it is written.
+func TestEveryTrapAdvisesTheAdult(t *testing.T) {
+	t.Parallel()
+
+	c := loaded(t)
+	for _, id := range c.TrapIDs() {
+		advice, ok := c.TrapAdvice(id)
+		if !ok || advice == "" || !strings.HasSuffix(advice, ".") {
+			t.Errorf("TrapAdvice(%s) = %q, %v; want a sentence of advice", id, advice, ok)
+		}
+		if description, _ := c.TrapDescription(id); advice == description {
+			t.Errorf("TrapAdvice(%s) = %q, the mistake again; want what to do about it", id, advice)
+		}
+	}
+	want := "Before answering, draw a quick sketch: the posts as dots and the gaps between them, then count both."
+	if advice, _ := c.TrapAdvice("off_by_one"); advice != want {
+		t.Errorf("TrapAdvice(off_by_one) = %q, want %q", advice, want)
+	}
+	if advice, ok := c.TrapAdvice("forgot_a_case"); ok || advice != "" {
+		t.Errorf("TrapAdvice(forgot_a_case) = %q, %v; want nothing for a trap nobody wrote", advice, ok)
+	}
+}
+
 func TestCatalogsAreTheClosedLists(t *testing.T) {
 	t.Parallel()
 	c := loaded(t)
@@ -467,11 +491,16 @@ func TestWhatIsHandedOutIsACopy(t *testing.T) {
 		t.Error("editing the levels of a topic handed out changed the catalog")
 	}
 
-	// So are the topics a topic builds on.
+	// So are the topics a topic builds on, handed out with the topic or alone.
 	knights, _ := c.Topic("logic.knights_liars")
 	knights.BuildsOn[0] = "edited.by.a.caller"
 	if again, _ := c.Topic("logic.knights_liars"); again.BuildsOn[0] == "edited.by.a.caller" {
 		t.Error("editing the bases of a topic handed out changed the catalog")
+	}
+	bases := c.BasesOf("logic.knights_liars")
+	bases[0] = "edited.by.a.caller"
+	if again := c.BasesOf("logic.knights_liars"); again[0] == "edited.by.a.caller" {
+		t.Error("editing the bases handed out alone changed the catalog")
 	}
 
 	// A reference task holds its options in a map, and a map is shared however

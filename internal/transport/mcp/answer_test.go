@@ -80,6 +80,15 @@ func raceOnTheCard(t testing.TB, answered int) *profile.Profile {
 
 	p := fuzzProfile(t)
 	p.Ratings.Answers = answered
+	handOutTheRace(t, p, lessonDay)
+	return p
+}
+
+// handOutTheRace hands the race out for the request the profile has open, at
+// the moment given, as an accepted task is handed out.
+func handOutTheRace(t testing.TB, p *profile.Profile, at time.Time) {
+	t.Helper()
+
 	options, _ := raceTask(nil)["options"].(map[string]string)
 	distractors := map[string]profile.Distractor{}
 	for letter, wrong := range raceDistractors() {
@@ -89,10 +98,9 @@ func raceOnTheCard(t testing.TB, answered int) *profile.Profile {
 		Wording: raceQuestion, Options: options, Hint: "Who finished before Kim?",
 		Fingerprint: "the-race", InstructionsVersion: raceInstructions,
 	}, profile.TaskSecret{Answer: "C", Distractors: distractors, Solution: raceSolution, Solver: raceSolver},
-		sealer(t), lessonDay); err != nil {
+		sealer(t), at); err != nil {
 		t.Fatalf("Issue() error = %v, want the race on the card", err)
 	}
-	return p
 }
 
 // answerIt answers the task on the card with this id, as the card or the model

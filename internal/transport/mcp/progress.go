@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
@@ -35,8 +36,18 @@ type progressOut struct {
 	Recent         []recentOut        `json:"recent"`
 	Skipped        int                `json:"skipped"`
 	Mistakes       []mistakeOut       `json:"mistakes"`
+	Review         *reviewOut         `json:"review,omitempty"`
 	Recommendation *recommendationOut `json:"recommendation"`
 	Location       *locationOut       `json:"location,omitempty"`
+	Site           *siteOut           `json:"site,omitempty"`
+}
+
+// siteOut is the site the topics' pages are on, for a card to link a topic
+// to: its origin, and the languages it is written in, each page in every one.
+// A card builds a page's address itself, from the origin and a topic's slug.
+type siteOut struct {
+	URL       string   `json:"url"`
+	Languages []string `json:"languages"`
 }
 
 // standingOut is the overall rating, its rank out of how many ranks there are,
@@ -55,9 +66,12 @@ type standingOut struct {
 // rating, rank and share of the way through the rank, and how the rank stands
 // to the overall one, are null together: while the trial series runs, and
 // before its first answer; how it moved by its own answers is absent with
-// them. The skipped tasks are for the parent to see.
+// them. The skipped tasks are for the parent to see. Its slug names its page
+// on the site, which a card links to once the page is published.
 type topicOut struct {
 	Topic    string      `json:"topic"`
+	Slug     string      `json:"slug"`
+	SitePage bool        `json:"site_page"`
 	Rating   *int        `json:"rating"`
 	Rank     *int        `json:"rank"`
 	Share    *int        `json:"share"`
@@ -121,7 +135,12 @@ func (s *Service) getProgressTool() Tool {
 			"card draws the rank, not the rating's number: say the number yourself. The scale is one for grades 1 " +
 			"to 6, so an older child's number is higher. During the trial series — the first five tasks — there " +
 			"is no rating yet, only how many of the five are done. Call it only when someone asks to see the " +
-			"progress. Present it encouragingly and name one thing to practise next.",
+			"progress or what to work on: after the trial series it also reviews the topics for the adult — " +
+			"the strong ones, the ones to develop and what to do next, each step with its advice and its " +
+			"topic's page on the site, which you pass on only as given here. Tell the " +
+			"adult the review in plain words; a topic too early to judge is no verdict on it. To practise a " +
+			"topic it names, call next_task with that topic and a reason once the child wants a task. Present " +
+			"it encouragingly.",
 		ReadOnly:   true,
 		Idempotent: true,
 		DrawsCard:  true,
@@ -166,25 +185,29 @@ func (s *Service) readProgress(ctx context.Context, account store.Account) (Repl
 		return Reply[progressOut]{}, err
 	}
 
-	summary, err := progress.Of(p, s.content, profile.DateOf(s.now()))
+	today := profile.DateOf(s.now())
+	summary, err := progress.Of(p, s.content, today)
 	if err != nil {
 		return Reply[progressOut]{}, err
 	}
 	mistakes := progress.Mistakes(p.Recent, s.content, s.repeats)
+	review := progress.ReviewOf(p, s.content, &summary, mistakes, s.repeats, today)
 	return Reply[progressOut]{
-		Text: joined(s.progressText(p, &summary, mistakes), where),
+		Text: joined(s.progressText(p, &summary, mistakes, review), where),
 		Payload: progressOut{
 			Screen:         screenProgress,
 			LastAnswer:     lastAnswerOf(p),
 			Profile:        childOf(&p.Student),
 			Trial:          trialOf(summary.Trial),
 			Overall:        standingOf(summary.Overall, summary.Changes),
-			Topics:         topicsOf(summary.Topics),
+			Topics:         s.topicsOf(summary.Topics),
 			Recent:         recentOf(summary.Recent),
 			Skipped:        summary.Skipped,
 			Mistakes:       mistakesOf(mistakes),
+			Review:         reviewOf(review),
 			Recommendation: recommendationOf(&summary.Next),
 			Location:       location,
+			Site:           &siteOut{URL: s.site, Languages: slices.Clone(siteLanguages)},
 		},
 	}, nil
 }
@@ -228,11 +251,14 @@ func changeOf(change *progress.Change, withRating bool) *changeOut {
 	return out
 }
 
-func topicsOf(topics []progress.Topic) []topicOut {
+func (s *Service) topicsOf(topics []progress.Topic) []topicOut {
 	out := make([]topicOut, 0, len(topics))
 	for _, topic := range topics {
+		listed, _ := s.content.Topic(topic.ID)
 		entry := topicOut{
 			Topic:    topic.ID,
+			Slug:     listed.Slug,
+			SitePage: listed.SitePage,
 			Answers:  topic.Answers,
 			Correct:  topic.Correct,
 			Mastered: topic.Mastered,
@@ -271,7 +297,9 @@ func recentOf(entries []profile.Answer) []recentOut {
 }
 
 // progressText is the progress in words.
-func (s *Service) progressText(p *profile.Profile, summary *progress.Summary, mistakes []progress.Mistake) string {
+func (s *Service) progressText(
+	p *profile.Profile, summary *progress.Summary, mistakes []progress.Mistake, review *progress.Review,
+) string {
 	return joined(
 		"The progress of "+quoted(p.Student.Pseudonym)+".",
 		trialLine(summary.Trial),
@@ -280,6 +308,7 @@ func (s *Service) progressText(p *profile.Profile, summary *progress.Summary, mi
 		s.topicsText(summary.Topics),
 		s.recentText(summary.Recent, summary.Skipped),
 		s.mistakesText(mistakes),
+		s.reviewText(review, pageLanguage(&p.Student)),
 		s.nextText(&summary.Next),
 	)
 }

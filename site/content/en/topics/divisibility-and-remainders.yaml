@@ -1,0 +1,176 @@
+# The page of the topic of divisibility and remainders, for a parent. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. Each example's level, and the
+# answer its solver proves, are the site's data; an example here is worked
+# through to that answer. The traps are the topic's commonest, counted in its
+# reference tasks.
+
+title: Divisibility and remainders
+description: What problems about divisibility and remainders are, how they are solved, where children go wrong, and how to help at home.
+
+hero:
+  lead: >-
+    29 pupils go on a trip, and each car takes 4 of them. How many cars are
+    needed? In these tasks a child divides with a remainder and then decides
+    what the remainder means: one more car, a sweet left over, a place in the
+    next row. Rules of divisibility answer “does it divide?” without dividing
+    at all.
+  method: Write the number as full groups and what is left over
+  teaches: To read a remainder in the task's own words, and to test divisibility without dividing
+  # Fourteen counted out in threes: four full groups and two left over.
+  drawing: |2
+    ●●● ●●● ●●● ●●● ●●
+    14 = 4 × 3 + 2
+
+basis:
+  title: The rules of division
+  cards:
+    - mark: "<"
+      title: The remainder is smaller
+      text: >-
+        When dividing by 7, the remainder is 0, 1, 2 and so on up to 6. If it
+        comes out 7 or more, one more group fits.
+    - mark: "+1"
+      title: What the remainder means
+      text: >-
+        29 pupils in cars of 4 are 7 full cars and 1 pupil left over, so 8
+        cars are needed. The same division can be asked for 7, for 8 or for 1:
+        the question decides.
+    - mark: "9"
+      title: Rules of thumb
+      text: >-
+        A number divides by 2 when its last digit is even, by 5 when it ends in
+        0 or 5, and by 3 or by 9 when the sum of its digits does.
+
+idea:
+  title: Groups and what is left over
+  lead: Every whole number can be written as full groups and what is left over. The question decides which of the two it wants.
+  table:
+    head:
+      - The question
+      - The division
+      - The answer
+    rows:
+      - - How many cars of 4 seats do 29 pupils need?
+        - 29 = 7 × 4 + 1
+        - 8 cars
+      - - "29 sweets shared among 4 children: how many does each get?"
+        - 29 = 7 × 4 + 1
+        - 7 sweets each
+      - - How many of the 29 sweets are left over?
+        - 29 = 7 × 4 + 1
+        - 1 sweet
+  note:
+    title: Why it matters
+    text: >-
+      The division is the same in every row; only the meaning changes. A child
+      who divides correctly can still give the number of full groups when the
+      question asks for the remainder, or forget the car for the last pupil.
+
+method:
+  title: "How to solve: full groups and a remainder"
+  lead: >-
+    Write the number as full groups and what is left over. Then read the
+    question again and decide what it wants: the groups, the remainder, or one
+    group more. When it asks for the smallest number or the digit with some
+    property, try them in order. The examples below go from the simplest to an
+    olympiad's.
+  steps:
+    - Split into full groups and a remainder
+    - Decide what the question asks for
+    - Check the answer against the words
+
+examples:
+  - title: Buses for a trip
+    question: >-
+      150 pupils go on a school trip, and each bus has 40 seats. How many buses
+      are needed?
+    # Four buses: three full, and one with the 30 pupils left over.
+    drawing: |2
+      [40] [40] [40] [30]
+    steps:
+      - "Count the pupils out by 40: 150 = 3 × 40 + 30. Three buses are full, and 30 pupils are left."
+      - The 30 pupils need a bus too, even though it will not be full.
+      - 3 + 1 = 4 buses.
+    answer: 4 buses.
+    note:
+      title: Why not 3 or 30?
+      text: >-
+        3 is the number of full buses, and 30 is how many pupils ride in the
+        last one. The question asks for every bus that is needed.
+  - title: The star in 38*6
+    question: >-
+      Which digit must stand in place of the star in 38*6 so that the number
+      can be divided by 9 with nothing left over?
+    steps:
+      - A number divides by 9 exactly when the sum of its digits does.
+      - >-
+        The known digits add up to 3 + 8 + 6 = 17, and the star is a digit from
+        0 to 9, so the sum is somewhere from 17 to 26.
+      - "The only number from 17 to 26 that divides by 9 is 18, so the star is 1: 3816 = 9 × 424."
+    answer: The digit 1.
+    note:
+      title: And for 3?
+      text: >-
+        For 3 the sum must divide by 3: 18, 21 and 24 all do, so the star can
+        be 1, 4 or 7. The rule for 9 is stricter, and here it leaves one digit.
+  - title: A hundred twos
+    question: >-
+      A hundred twos are multiplied together: 2 × 2 × 2 × … × 2. What is the
+      last digit of the answer?
+    # How many twos are multiplied, above, and the last digit of the answer,
+    # below.
+    drawing: |2
+      1 2 3 4   5 6 7 8
+      2 4 8 6   2 4 8 6
+    steps:
+      - >-
+        Watch the last digit as the twos are multiplied one by one: 2, 4, 8,
+        16, 32, 64, 128, 256. The last digits go 2, 4, 8, 6 and then repeat.
+      - >-
+        The pattern is 4 long, and 100 = 25 × 4: the hundredth two ends the
+        25th round of the pattern, at its 4th place.
+      - The 4th place of the pattern is 6, so the answer ends in 6.
+    answer: "6."
+    note:
+      title: Remainders in disguise
+      text: >-
+        Only the remainder of 100 divided by 4 mattered: it said where in the
+        pattern the hundredth two lands. Remainders answer many questions about
+        things that repeat: last digits, days of the week, places in a ring.
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  remainder_vs_quotient:
+    shows: >-
+      The full groups and the remainder change places: the child gives the 30
+      pupils left over when the question asks for buses, or takes 25, the
+      number of full rounds of the pattern, for the place in it.
+    say: “Is the question about the full groups or about what is left over?”
+  off_by_one:
+    shows: >-
+      The answer is one group off: the bus for the last 30 pupils is forgotten,
+      3 instead of 4, or places in a pattern are counted from 0 instead of 1.
+    say: “Does what is left over need one more group?”
+  missed_case:
+    shows: >-
+      One case is found and the search stops: the star is 1, and the child
+      does not check whether 4 and 7 work too when the question is about 3.
+    say: “Has every digit from 0 to 9 been tried?”
+
+home:
+  - title: Sharing with a remainder
+    text: >-
+      Share sweets or cards among the family and say the result in two parts:
+      how many each one gets, and how many are left over.
+  - title: The digit test
+    text: >-
+      Make up big numbers and test them for 3 and for 9 by adding up their
+      digits, then divide on a calculator to see the rule work.
+  - title: Things that repeat
+    text: >-
+      Look for patterns that go round: the days of the week, the colours of a
+      necklace, the last digits of 3, 9, 27, 81. Ask what comes 50 steps on.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Give me a task about divisibility and remainders

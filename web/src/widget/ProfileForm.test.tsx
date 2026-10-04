@@ -174,6 +174,24 @@ describe("the form of the profile", () => {
 		expect(choices.map((choice) => choice.textContent)).toContain("French");
 	});
 
+	// Some two hundred and fifty countries are named and put in order for the
+	// list, which a phone feels when it is done at every key typed.
+	test("names the countries once, and not again at every key typed", async () => {
+		const names = vi.spyOn(Intl, "DisplayNames");
+		const { root } = await opened();
+		const countriesNamed = () =>
+			names.mock.calls.filter(([, options]) => options?.type === "region")
+				.length;
+		const once = countriesNamed();
+
+		for (const pseudonym of ["N", "No", "Nov", "Nova"]) {
+			typed(root, "Pseudonym", pseudonym);
+		}
+
+		expect(once).toBeGreaterThan(0);
+		expect(countriesNamed()).toBe(once);
+	});
+
 	test("shows a language the chat chose that no card speaks, as it is kept, and keeps it to choose again", async () => {
 		const { root } = await opened(
 			undefined,

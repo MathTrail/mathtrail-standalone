@@ -1,0 +1,200 @@
+# The page of the topic of figures on a square grid, for a parent. The topic's
+# name, its group, its grades and its traps' names are not here: they are the
+# card's words and the catalog's numbers. Each example's level, and the answer
+# its solver proves, are the site's data; an example here is worked through to
+# that answer. The traps are the topic's commonest, counted in its reference
+# tasks.
+
+title: Figures on a square grid
+description: What problems about area and perimeter on squared paper are, how they are solved, where children go wrong, and how to help at home.
+
+hero:
+  lead: >-
+    Draw a figure on squared paper: how many cells does it cover, and how long
+    is its border? In these tasks area is counted in cells and perimeter in
+    cell sides, and the two are easy to mix up: a rectangle can lose a corner
+    cell and keep its perimeter. Counting with nothing missed and nothing
+    counted twice is the whole skill.
+  method: Count the outside sides of every cell
+  teaches: To tell area from perimeter, and to count cells and sides without missing or repeating one
+  # An L of three cells: an area of 3 cells and a perimeter of 8 sides.
+  drawing: |2
+    +---+
+    |   |
+    +---+---+
+    |   |   |
+    +---+---+
+
+basis:
+  title: The rules of the grid
+  cards:
+    - mark: "□"
+      title: Area is cells
+      text: >-
+        The area of a figure on squared paper is the number of cells it covers.
+        Two half cells make one whole one.
+    - mark: "|"
+      title: Perimeter is sides
+      text: >-
+        The perimeter is the number of cell sides on the border. A side that two
+        cells of the figure share is inside, and does not count.
+    - mark: "≠"
+      title: Different things
+      text: >-
+        Two figures of the same area can have different perimeters: four cells
+        in a row have a perimeter of 10, and four in a square have 8.
+
+idea:
+  title: Count the outside sides
+  lead: Each cell has 4 sides. A side counts towards the perimeter only when no cell of the figure is on its other side.
+  table:
+    head:
+      - The figure
+      - Area, in cells
+      - Perimeter, in sides
+    rows:
+      - - 1 cell
+        - "1"
+        - "4"
+      - - 2 cells side by side
+        - "2"
+        - 4 + 4 − 2 = 6
+      - - 4 cells in a row
+        - "4"
+        - "10"
+      - - a square of 2 by 2
+        - "4"
+        - "8"
+  note:
+    title: Why it matters
+    text: >-
+      Children often count cells for the perimeter, or every side of every
+      cell, the shared ones twice. Counting only the sides that face outside
+      settles both.
+
+method:
+  title: "How to solve: walk round the border"
+  lead: >-
+    Draw the figure on squared paper. For the area, count the cells row by row.
+    For the perimeter, walk round the border and count the cell sides you
+    pass. When a figure is cut, list the pieces in an order that cannot miss
+    one or count one twice. The examples below go from the simplest to an
+    olympiad's.
+  steps:
+    - Draw the figure on squared paper
+    - Count cells for the area, outside sides for the perimeter
+    - Check with a second way of counting
+
+examples:
+  - title: A cross
+    question: >-
+      A cross is made of 5 cells: one in the middle and one on each of its four
+      sides. What is the perimeter of the cross, in cell sides?
+    # The cross of five cells.
+    drawing: |2
+          +---+
+          |   |
+      +---+---+---+
+      |   |   |   |
+      +---+---+---+
+          |   |
+          +---+
+    steps:
+      - Each of the 4 arms has 3 sides facing outside, so the arms give 4 × 3 = 12 sides.
+      - The middle cell has no side outside, since each of its sides touches an arm.
+      - So the perimeter is 12 cell sides.
+    answer: 12 cell sides.
+    note:
+      title: Another way to count
+      text: >-
+        5 cells have 5 × 4 = 20 sides. The 4 sides between the middle and the
+        arms are each counted twice, once from each cell, and they are inside:
+        20 − 2 × 4 = 12.
+  - title: A strip in two
+    question: >-
+      A strip of 2 by 4 cells is cut along the grid lines into two pieces of 4
+      cells each, and each piece must hold together. In how many different
+      ways can it be cut?
+    # The four cuts, with the two pieces of each in two shades.
+    drawing: |2
+      ████  ███░  ██░░  █░░░
+      ░░░░  █░░░  ██░░  ███░
+    steps:
+      - "A cut straight along the middle gives two rows of 4: 1 way."
+      - "A cut straight across the middle gives two squares of 2 by 2: 1 way."
+      - >-
+        A cut that goes across, then along, then across gives two L shapes, and
+        its step can go one way or the other: 2 ways. In all, 4 ways.
+    answer: 4 ways.
+    note:
+      title: Why not 8?
+      text: >-
+        Listing the pieces one at a time finds each cut twice, once for each of
+        its pieces. Deciding that the first piece holds the top left cell
+        counts each cut once.
+  - title: A diagonal
+    question: >-
+      A rectangle of 3 by 5 cells is drawn on squared paper, and a line is drawn
+      from one corner to the opposite one. How many cells does the line pass
+      through? A cell counts when the line crosses its inside, not when it only
+      touches a corner.
+    # The rectangle, and the cells the line passes through.
+    drawing: |2
+      ░ ░ ░ █ █
+      ░ █ █ █ ░
+      █ █ ░ ░ ░
+    steps:
+      - >-
+        Going from corner to corner, the line enters a new cell each time it
+        crosses a grid line inside the rectangle.
+      - >-
+        It crosses 4 lines going one way and 2 going the other, and never two
+        at once: 3 and 5 have no common divisor but 1, so the line meets no grid
+        corner on the way.
+      - It starts in 1 cell and enters 4 + 2 = 6 more, 7 cells in all.
+    answer: 7 cells.
+    note:
+      title: Through a corner
+      text: >-
+        In a rectangle of 4 by 6 cells the line passes through a grid corner,
+        where it crosses two lines at once and enters one cell, not two. It
+        passes through 4 + 6 − 2 = 8 cells: 2 is the largest number that divides
+        both 4 and 6.
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  double_count:
+    shows: >-
+      The same thing is counted twice: the sides the cells share are added to
+      the perimeter, or each cut of the strip is listed once for each of its
+      two pieces.
+    say: “Is any side, or any cut, counted from both sides?”
+  missed_case:
+    shows: >-
+      A case is missed: a cut whose step goes the other way, a piece of border
+      in an inner corner, or the dominoes that stand upright as well as those
+      that lie flat.
+    say: “Is there a way not yet tried, the other way round?”
+  ignored_condition:
+    shows: >-
+      A condition is lost: a piece that falls apart is counted as a piece, a
+      cell that touches only at a corner is counted as a neighbour, or the line
+      is said to pass through a cell it only touches.
+    say: “Does this piece, or this cell, really fit what the question says?”
+
+home:
+  - title: Squared paper
+    text: >-
+      Keep squared paper at hand and draw figures of 4 or 5 cells together.
+      Which one has the longest border? Which has the shortest?
+  - title: Walk the border
+    text: >-
+      Count a perimeter by walking a finger round the border, side by side.
+      Then count the outside sides of each cell, and check that the two agree.
+  - title: Cut and count
+    text: >-
+      Cut a paper strip into two pieces of the same size in as many ways as
+      you can find. Lay them out so that none is missed or repeated.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Give me a task about figures on a square grid

@@ -47,9 +47,12 @@ export type Topics = {
 	readonly groups: readonly Group[];
 };
 
-// groupName matches what a group may be called: lowercase words joined by
-// dashes, since the name is the anchor its part of a page is reached by.
-const groupName = /^[a-z]+(?:-[a-z]+)*$/;
+/**
+ * anchorName matches what a part of a page that an address reaches may be
+ * called, as a group of topics or a technique is: lowercase words joined by
+ * dashes, which no address has to escape.
+ */
+export const anchorName = /^[a-z]+(?:-[a-z]+)*$/;
 
 /**
  * readTopics reads the catalog's topics and the groups the site's data puts
@@ -121,6 +124,15 @@ export function readTopics(
 }
 
 /**
+ * gradesOfAll are the first and the last grade any topic of the catalog is
+ * taught at: the grades MathTrail is for.
+ */
+export function gradesOfAll(topics: Topics): [number, number] {
+	const grades = topics.all.flatMap((topic) => topic.grades);
+	return [Math.min(...grades), Math.max(...grades)];
+}
+
+/**
  * gradesOf is the first and the last grade of levels, each written as a span
  * of grades, as the catalog writes the levels a topic is taught at: 3-4.
  */
@@ -169,7 +181,7 @@ function checkGroups(
 // checkGroupName refuses a group's name that is no anchor, and one that an
 // anchor of the page of the topics already has: a topic's or another group's.
 function checkGroupName(id: string, anchors: ReadonlySet<string>): void {
-	if (!groupName.test(id)) {
+	if (!anchorName.test(id)) {
 		throw new Error(
 			`the group ${JSON.stringify(id)} is no anchor: a group is called by lowercase words joined by dashes`,
 		);

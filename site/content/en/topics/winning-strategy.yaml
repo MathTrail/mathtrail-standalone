@@ -1,0 +1,213 @@
+# The page of the topic of games with a winning strategy, for a parent. The
+# topic's name, its group, its grades and its traps' names are not here: they
+# are the card's words and the catalog's numbers. Each example's level, and the
+# answer its solver proves, are the site's data; an example here is worked
+# through to that answer. The traps are the topic's commonest, counted in its
+# reference tasks.
+
+title: Games with a winning strategy
+description: What problems about games and winning strategies are, how they are solved, where children go wrong, and how to help at home.
+
+hero:
+  lead: >-
+    There are 20 matches on the table, and the players take turns to take 1, 2
+    or 3 of them. Whoever takes the last match wins. Can the first player
+    always win? In these tasks a child looks for a plan that wins whatever the
+    other player does, and finds it by working back from the end of the game:
+    which positions lose for the player who has to move from them.
+  method: Work back from the end and find the losing positions
+  teaches: To find a plan that wins whatever the other player does
+  # Piles of 0 to 8 matches when a move takes 1, 2 or 3: those marked lose
+  # for the player about to move.
+  drawing: |2
+    matches  0 1 2 3 4 5 6 7 8
+    loses    ●       ●       ●
+
+basis:
+  title: The rules of games
+  cards:
+    - mark: "←"
+      title: From the end
+      text: >-
+        Start from the end of the game, where the winner is clear, and go back:
+        a position loses when every move from it leads to one that wins for the
+        other player.
+    - mark: "●"
+      title: Hand over a losing position
+      text: >-
+        A winning move leaves the other player a losing position. If there is
+        no such move, the position loses, however clever the player.
+    - mark: "="
+      title: Copy and mirror
+      text: >-
+        In many games the winner keeps things even, answering each move so that
+        the two moves add up to the same, or making the same move on the
+        mirrored side.
+
+idea:
+  title: Losing positions
+  lead: In the game of taking 1, 2 or 3 matches, where the last match wins, the positions that lose for the player about to move come every 4.
+  table:
+    head:
+      - Matches left
+      - The best move
+      - Why
+    rows:
+      - - 1, 2 or 3
+        - take them all
+        - the last match wins
+      - - "4"
+        - none wins
+        - after any move, the other player takes the rest
+      - - 5, 6 or 7
+        - take 1, 2 or 3 to leave 4
+        - the other player gets a losing 4
+      - - "8"
+        - none wins
+        - every move leaves 5, 6 or 7
+  note:
+    title: Why it matters
+    text: >-
+      Children often think the first player must win, or play hoping the other
+      player slips. A winning strategy works against the best play, and finding
+      it means thinking from the end, a habit worth far more than games.
+
+method:
+  title: "How to solve: from the end of the game"
+  lead: >-
+    Write the positions from the smallest up. Mark a position losing when
+    every move from it leads to a winning one, and winning when some move
+    leads to a losing one. The winning move from the start is the one that
+    leaves a losing position. The examples below go from the simplest to an
+    olympiad's.
+  steps:
+    - Start from the positions at the end
+    - Mark each one winning or losing, from the smallest up
+    - Find the move that leaves the other player a losing one
+
+examples:
+  - title: Sweets in a bowl
+    question: >-
+      There are 23 sweets in a bowl. Kim and Leo take turns, and Kim goes
+      first. Each takes 1, 2, 3 or 4 sweets. Whoever takes the last sweet wins.
+      How many sweets must Kim take first to be sure to win?
+    steps:
+      - >-
+        From the end: with 1 to 4 sweets left, the player to move takes them
+        all and wins. With 5 left, every move leaves 1 to 4 for the other
+        player, so 5 loses.
+      - >-
+        In the same way 10, 15 and 20 lose: whatever is taken from them, the
+        other player can bring the bowl down to the next multiple of 5.
+      - >-
+        So Kim takes 3 and leaves 20. Whatever Leo takes, Kim takes the rest of
+        5, leaving 15, 10, 5 and at last nothing.
+    answer: 3 sweets.
+    note:
+      title: Why not take 4?
+      text: >-
+        Taking 4 leaves 19, and Leo takes 4 to leave 15, a losing bowl for Kim.
+        Only the first move to a multiple of 5 wins against a player who makes
+        no mistakes.
+  - title: The king's walk
+    question: >-
+      A king stands in the bottom left corner of a 5 by 5 board. Two players
+      take turns to move it one square up, one square right, or one square
+      diagonally up and to the right. Whoever moves the king into the top right
+      corner wins. Who wins if both play as well as they can?
+    # The squares that lose for the player about to move, from the king's
+    # start at the bottom left to the corner at the top right.
+    drawing: |2
+      ● · ● · ●
+      · · · · ·
+      ● · ● · ●
+      · · · · ·
+      ● · ● · ●
+    steps:
+      - >-
+        Count how many rows and how many columns the king still has to go. From
+        a square one move from the corner, the player to move wins at once.
+      - >-
+        A square loses for the player to move when both counts are even: every
+        move makes one of them odd, and the other player can make both even
+        again.
+      - >-
+        The king starts 4 rows and 4 columns away, both even, so the first
+        player loses. The second keeps answering with a move to an even square,
+        and reaches the corner.
+    answer: The second player.
+    note:
+      title: Going first is not enough
+      text: >-
+        Here the first player loses whatever they do. In every new game it is
+        worth checking from the end before assuming that the first move wins.
+  - title: The daisy
+    question: >-
+      A daisy has 12 petals in a ring. Two players take turns to tear off either
+      one petal or two petals that grow next to each other, with no gap between
+      them. Whoever tears off the last petal wins. Who wins if both play as well
+      as they can?
+    # The daisy after the first two moves: one petal torn by each player,
+    # opposite each other, and two rows of five left.
+    drawing: |2
+         ○ ● ●
+       ●       ●
+      ●         ●
+       ●       ●
+         ● ● ○
+    steps:
+      - >-
+        Whatever the first player tears off, one petal or two, the ring opens
+        into a row of 11 or 10 petals.
+      - >-
+        The second player tears from the very middle of that row, one petal
+        from a row of 11 or two from a row of 10. Two equal rows are left, on
+        opposite sides.
+      - >-
+        From then on the second player copies every move in the other row.
+        Whenever the first player can move, so can the second, so the second
+        tears off the last petal.
+    answer: The second player.
+    note:
+      title: Why the middle?
+      text: >-
+        Splitting the row into two equal parts makes the position symmetric.
+        Copying cannot lose: the copy of a move is always allowed, because the
+        other row looks exactly the same.
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ignored_condition:
+    shows: >-
+      A rule of the game is lost: a move takes 5 sweets where at most 4 are
+      allowed, or the king steps left, which the rules forbid. A plan built on
+      a move that is not allowed wins nothing.
+    say: “Which moves do the rules allow?”
+  first_move_assumed:
+    shows: >-
+      Going first is taken to win by itself: “Kim starts, so Kim wins.” In many
+      games, like the king's walk, the first player loses whatever they do.
+    say: “And if the other player makes no mistakes?”
+  best_case_not_worst:
+    shows: >-
+      The plan works only if the other player slips: Kim takes 4 and hopes that
+      Leo then takes too few. A winning strategy has to answer the other
+      player's best move.
+    say: “What is the other player's best answer to that?”
+
+home:
+  - title: Play the matches game
+    text: >-
+      Play the game of taking 1, 2 or 3 matches from 15, and let the child go
+      first. Win a few times, then ask why the multiples of 4 keep coming back.
+  - title: Copy the move
+    text: >-
+      In any game on a symmetric board, try copying the other player's move on
+      the opposite side. Ask when the copy works and when it breaks.
+  - title: Swap sides
+    text: >-
+      When the child finds a winning plan, swap: now the child goes second.
+      Explaining why the plan loses from there is the deeper half of the topic.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Give me a task about games with a winning strategy

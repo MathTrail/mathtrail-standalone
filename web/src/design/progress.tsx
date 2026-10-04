@@ -2,6 +2,7 @@ import type { ComponentChildren } from "preact";
 import { useId } from "preact/hooks";
 import { classes } from "./classes";
 import { Icon, type IconName } from "./icons";
+import { type Linking, PageLink } from "./links";
 
 /**
  * SegmentTone is the ink a course is filled in: a step of the ramp a rank is
@@ -365,11 +366,13 @@ export function StatusDots({
  * RankRow is one topic of a list of ranks: what it is about, a mark when it is
  * mastered, a word of how it stands — or of how it moved, in the colour of the
  * move's way and after its arrow — and the name of its rank at the line's end,
- * and its course under them. Its id tells it apart from the others.
+ * and its course under them; and the address of the topic's page, when it has
+ * one to link to. Its id tells it apart from the others.
  */
 export type RankRow = {
 	id: string;
 	label: string;
+	href?: string;
 	mark?: { tone: StatusTone; label: string };
 	word?: string;
 	way?: MoveWay;
@@ -381,18 +384,21 @@ export type RankRow = {
  * RankList is a list of topics, each with its own course, under a line that
  * says what the courses show when there is one, and what their stripes are
  * when they are drawn with any. It carries its label, unless what it stands in
- * names it already — the title of a part folded away.
+ * names it already — the title of a part folded away. A topic with a page is
+ * named by a link to it, where the screen links pages at all.
  */
 export function RankList({
 	label,
 	note,
 	legend,
 	rows,
+	linking,
 }: {
 	label?: string;
 	note?: string;
 	legend?: ComponentChildren;
 	rows: readonly RankRow[];
+	linking?: Linking;
 }) {
 	return (
 		<section class="mt-list">
@@ -404,7 +410,17 @@ export function RankList({
 					<li key={row.id} class="mt-rank-row">
 						<div class="mt-rank-row-top">
 							<span class="mt-rank-row-start">
-								<span class="mt-row-label">{row.label}</span>
+								<span class="mt-row-label">
+									{row.href !== undefined && linking !== undefined ? (
+										<PageLink
+											label={row.label}
+											href={row.href}
+											linking={linking}
+										/>
+									) : (
+										row.label
+									)}
+								</span>
 								{row.mark !== undefined && (
 									<StatusMark tone={row.mark.tone} label={row.mark.label} />
 								)}

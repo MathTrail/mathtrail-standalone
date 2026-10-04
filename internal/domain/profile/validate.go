@@ -37,6 +37,12 @@ const (
 	// task's alike: the length every reader of a BCP 47 tag is asked to hold,
 	// and longer than any language a child is taught in needs.
 	MaxLanguageTag = 35
+	// MaxCountry is how long a country may be: its code in ISO 3166-1, two
+	// letters.
+	MaxCountry = 2
+	// MaxRegion is how long a region may be: its code in ISO 3166-2, the
+	// country's two letters, a hyphen and at most three more.
+	MaxRegion = 6
 	// MaxRecent is how many entries the history window holds, answers and
 	// skipped tasks together.
 	MaxRecent = 20

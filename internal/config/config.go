@@ -12,6 +12,8 @@
 package config
 
 import (
+	"bytes"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net"
@@ -22,10 +24,12 @@ import (
 	"time"
 
 	"github.com/spf13/viper"
+	"golang.org/x/net/idna"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/progress"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
+	"github.com/MathTrail/mathtrail-standalone/internal/learner"
 	"github.com/MathTrail/mathtrail-standalone/internal/telemetry/collector"
 )
 
@@ -197,6 +201,19 @@ type Config struct {
 	// and in no error message.
 	GoogleClientSecret string `mapstructure:"MATHTRAIL_GOOGLE_CLIENT_SECRET"`
 
+	// LearnerKey is the secret the name a child is counted under in the log is
+	// derived from, standard base64 of 32 random bytes. It is a secret of its
+	// own, never one of the sealing keys, and it is not rotated with them: a
+	// name that changed in the middle of a month would count one child twice.
+	// Required in a deployment; a developer's machine may go without, and its
+	// process then makes one that lasts as long as it does.
+	LearnerKey string `mapstructure:"MATHTRAIL_LEARNER_KEY"`
+
+	// CountryDB is the file of the database the country a parent signs in from
+	// is looked up in. Required in a deployment, whose image carries the file;
+	// a developer's machine may go without, and then no country is known.
+	CountryDB string `mapstructure:"MATHTRAIL_COUNTRY_DB"`
+
 	// SiteURL is the site's address, where the consent screen links the terms
 	// and the privacy policy.
 	SiteURL string `mapstructure:"MATHTRAIL_SITE_URL"`
@@ -242,9 +259,46 @@ func (c *Config) CloseTimeout() time.Duration { return c.ShutdownTimeout / 4 }
 // Origin is the public URL as a bare scheme and host, without a trailing slash.
 func (c *Config) Origin() string { return strings.TrimSuffix(c.PublicURL, "/") }
 
-// Site is the site's address as a bare scheme and host, without a trailing
-// slash.
-func (c *Config) Site() string { return strings.TrimSuffix(c.SiteURL, "/") }
+// Site is the site's origin as a browser writes it: its scheme and its host in
+// lower case, a name spelled in ASCII as IDNA spells it, and no port the
+// scheme implies nor a trailing slash. The consent screen, the progress and
+// the card that holds an address to the site's origin then name it alike.
+func (c *Config) Site() string {
+	parsed, err := url.Parse(c.SiteURL)
+	if err != nil {
+		return strings.TrimSuffix(c.SiteURL, "/")
+	}
+	scheme, host := strings.ToLower(parsed.Scheme), asciiHost(parsed.Hostname())
+	if port := parsed.Port(); port != "" && port != defaultPorts[scheme] {
+		return scheme + "://" + net.JoinHostPort(host, port)
+	}
+	if strings.Contains(host, ":") {
+		host = "[" + host + "]"
+	}
+	return scheme + "://" + host
+}
+
+// defaultPorts are the ports a browser leaves out of an origin, by scheme.
+var defaultPorts = map[string]string{"https": "443", "http": "80"}
+
+// browserNames is IDNA as a browser reads the host of an address: mapped as
+// for a lookup, the rules of mixed directions held, and none of the checks of
+// hyphens and of letters a registry makes, which no browser makes.
+var browserNames = idna.New(
+	idna.MapForLookup(), idna.BidiRule(), idna.CheckHyphens(false), idna.StrictDomainName(false), idna.Transitional(false),
+)
+
+// asciiHost is a host as a browser writes it in an origin: a name spelled as
+// IDNA spells it, which writes it in lower case, and the address of a machine
+// in lower case.
+func asciiHost(host string) string {
+	if net.ParseIP(host) == nil {
+		if ascii, err := browserNames.ToASCII(host); err == nil {
+			return ascii
+		}
+	}
+	return strings.ToLower(host)
+}
 
 // GoogleSignIn reports whether a Google client is configured, which is what a
 // parent signs in with.
@@ -296,6 +350,8 @@ func LoadFrom(environ []string) (*Config, error) {
 	v.SetDefault("MATHTRAIL_SEAL_KEY_PREVIOUS", "")
 	v.SetDefault("MATHTRAIL_GOOGLE_CLIENT_ID", "")
 	v.SetDefault("MATHTRAIL_GOOGLE_CLIENT_SECRET", "")
+	v.SetDefault("MATHTRAIL_LEARNER_KEY", "")
+	v.SetDefault("MATHTRAIL_COUNTRY_DB", "")
 	v.SetDefault("MATHTRAIL_SITE_URL", DefaultSiteURL)
 	v.SetDefault("MATHTRAIL_DEV_AUTH", false)
 	v.SetDefault("K_SERVICE", "")
@@ -394,7 +450,55 @@ func (c *Config) Validate() error {
 	if err := c.validateGoogle(); err != nil {
 		return err
 	}
-	return c.validateSiteURL()
+	if err := c.validateSiteURL(); err != nil {
+		return err
+	}
+	if err := c.validateLearnerKey(); err != nil {
+		return err
+	}
+	return c.validateCountryDB()
+}
+
+// validateLearnerKey refuses a secret the children could not be counted
+// under, naming the variable and never the value. A deployment needs one: a
+// key each instance made for itself would give one child a name on every
+// instance it reached. It has to be a secret of its own, because the same
+// bytes as a sealing key would mean a name that changed when that key was
+// rotated.
+func (c *Config) validateLearnerKey() error {
+	if c.LearnerKey == "" {
+		if c.Deployed() {
+			return fmt.Errorf("%w: MATHTRAIL_LEARNER_KEY must be set when K_SERVICE is set, to %d random bytes in standard base64",
+				ErrInvalid, learner.KeySize)
+		}
+		return nil
+	}
+	if _, err := learner.NewKey(c.LearnerKey); err != nil {
+		return fmt.Errorf("%w: MATHTRAIL_LEARNER_KEY: %w", ErrInvalid, err)
+	}
+	if sameSecret(c.LearnerKey, c.SealKeyCurrent) || sameSecret(c.LearnerKey, c.SealKeyPrevious) {
+		return fmt.Errorf("%w: MATHTRAIL_LEARNER_KEY must be a secret of its own, not one of the sealing keys", ErrInvalid)
+	}
+	return nil
+}
+
+// sameSecret reports whether two secrets in standard base64 are the same
+// bytes, whatever whitespace each was read with. A value that is no base64 is
+// the same as nothing.
+func sameSecret(one, other string) bool {
+	oneBytes, oneErr := base64.StdEncoding.Strict().DecodeString(strings.TrimSpace(one))
+	otherBytes, otherErr := base64.StdEncoding.Strict().DecodeString(strings.TrimSpace(other))
+	return oneErr == nil && otherErr == nil && len(oneBytes) > 0 && bytes.Equal(oneBytes, otherBytes)
+}
+
+// validateCountryDB refuses a deployment that could not tell where a parent
+// signs in from. Whether the file opens is the service's to find out as it
+// starts; off a deployment it may be left out, and no country is known.
+func (c *Config) validateCountryDB() error {
+	if c.Deployed() && c.CountryDB == "" {
+		return fmt.Errorf("%w: MATHTRAIL_COUNTRY_DB must be set when K_SERVICE is set", ErrInvalid)
+	}
+	return nil
 }
 
 // validateLogging refuses a level or a format the logger does not have, and
@@ -463,6 +567,11 @@ func validateOrigin(variable, address string) error {
 func (c *Config) validateSiteURL() error {
 	if err := validateOrigin("MATHTRAIL_SITE_URL", c.SiteURL); err != nil {
 		return err
+	}
+	if parsed, err := url.Parse(c.SiteURL); err == nil && net.ParseIP(parsed.Hostname()) == nil {
+		if _, err := browserNames.ToASCII(parsed.Hostname()); err != nil {
+			return fmt.Errorf("%w: MATHTRAIL_SITE_URL has a host IDNA cannot spell, which no browser opens: %q", ErrInvalid, c.SiteURL)
+		}
 	}
 	if c.Deployed() && !strings.HasPrefix(strings.ToLower(c.SiteURL), "https://") {
 		return fmt.Errorf("%w: MATHTRAIL_SITE_URL must use https when K_SERVICE is set: %q", ErrInvalid, c.SiteURL)

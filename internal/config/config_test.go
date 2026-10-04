@@ -33,6 +33,17 @@ var googleClient = []string{
 	"MATHTRAIL_GOOGLE_CLIENT_SECRET=a-secret-for-tests",
 }
 
+// learnerKey is the secret a deployment counts children under: a key of its
+// own, apart from both sealing keys.
+var learnerKey = base64.StdEncoding.EncodeToString(bytes.Repeat([]byte("learners"), 4))
+
+// counting is what else a deployment has to be given beside its Google client:
+// the key children are counted under and the database of countries.
+var counting = []string{
+	"MATHTRAIL_LEARNER_KEY=" + learnerKey,
+	"MATHTRAIL_COUNTRY_DB=/usr/share/mathtrail/dbip-country-lite.mmdb",
+}
+
 func TestDefaults(t *testing.T) {
 	t.Parallel()
 
@@ -281,10 +292,10 @@ func TestDecodeFailuresNameEveryBadVariable(t *testing.T) {
 func TestDeployed(t *testing.T) {
 	t.Parallel()
 
-	cfg, err := config.LoadFrom(withSealKey(append([]string{
+	cfg, err := config.LoadFrom(withSealKey(append(append([]string{
 		"K_SERVICE=mathtrail",
 		"MATHTRAIL_PUBLIC_URL=https://mathtrail.example",
-	}, googleClient...)...))
+	}, googleClient...), counting...)...))
 	if err != nil {
 		t.Fatalf("LoadFrom() error = %v, want nil", err)
 	}
@@ -575,6 +586,11 @@ func TestRefusals(t *testing.T) {
 			wantVar: "MATHTRAIL_SITE_URL",
 		},
 		{
+			name:    "the site on a host IDNA cannot spell",
+			environ: []string{"MATHTRAIL_SITE_URL=https://xn--zz.example"},
+			wantVar: "MATHTRAIL_SITE_URL",
+		},
+		{
 			name:    "the public url with an empty fragment",
 			environ: []string{"MATHTRAIL_PUBLIC_URL=https://mathtrail.example#"},
 			wantVar: "MATHTRAIL_PUBLIC_URL",
@@ -600,6 +616,53 @@ func TestRefusals(t *testing.T) {
 				"MATHTRAIL_PUBLIC_URL=https://mathtrail.example",
 			},
 			wantVar: "MATHTRAIL_LOG_FORMAT",
+		},
+		{
+			// A key each instance made for itself would give one child a name
+			// on every instance it reached.
+			name: "a deployment with no key to count children under",
+			environ: append([]string{
+				"K_SERVICE=mathtrail",
+				"MATHTRAIL_PUBLIC_URL=https://mathtrail.example",
+				"MATHTRAIL_COUNTRY_DB=/usr/share/mathtrail/dbip-country-lite.mmdb",
+			}, googleClient...),
+			wantVar: "MATHTRAIL_LEARNER_KEY",
+		},
+		{
+			name: "a deployment with no database of countries",
+			environ: append([]string{
+				"K_SERVICE=mathtrail",
+				"MATHTRAIL_PUBLIC_URL=https://mathtrail.example",
+				"MATHTRAIL_LEARNER_KEY=" + learnerKey,
+			}, googleClient...),
+			wantVar: "MATHTRAIL_COUNTRY_DB",
+		},
+		{
+			name:    "a key to count children under that is no key",
+			environ: []string{"MATHTRAIL_LEARNER_KEY=" + base64.StdEncoding.EncodeToString([]byte("too short"))},
+			wantVar: "MATHTRAIL_LEARNER_KEY",
+		},
+		{
+			// A blank value is a key given wrong, not a key left out: a machine
+			// handed one makes no key of its own in its place.
+			name:    "a key to count children under that is blank",
+			environ: []string{"MATHTRAIL_LEARNER_KEY= \n"},
+			wantVar: "MATHTRAIL_LEARNER_KEY",
+		},
+		{
+			// The same bytes as a sealing key would rename every child the day
+			// that key is rotated.
+			name:    "a key to count children under that is the sealing key",
+			environ: []string{"MATHTRAIL_LEARNER_KEY=" + sealKey + "\n"},
+			wantVar: "MATHTRAIL_LEARNER_KEY",
+		},
+		{
+			name: "a key to count children under that is the previous sealing key",
+			environ: []string{
+				"MATHTRAIL_SEAL_KEY_PREVIOUS=" + previousSealKey,
+				"MATHTRAIL_LEARNER_KEY=" + previousSealKey,
+			},
+			wantVar: "MATHTRAIL_LEARNER_KEY",
 		},
 	}
 
@@ -705,6 +768,45 @@ func TestARefusalNeverCarriesTheSealingKey(t *testing.T) {
 	}
 }
 
+// Off a deployment the key children are counted under and the database of
+// countries may both be left out; given, each is read as it is.
+func TestTheCountingIsRead(t *testing.T) {
+	t.Parallel()
+
+	cfg, err := config.LoadFrom(withSealKey())
+	if err != nil {
+		t.Fatalf("LoadFrom() error = %v, want nil", err)
+	}
+	if cfg.LearnerKey != "" || cfg.CountryDB != "" {
+		t.Errorf("LearnerKey of %d bytes, CountryDB = %q; want both empty when neither is given", len(cfg.LearnerKey), cfg.CountryDB)
+	}
+
+	cfg, err = config.LoadFrom(withSealKey(counting...))
+	if err != nil {
+		t.Fatalf("LoadFrom() error = %v, want nil", err)
+	}
+	if cfg.LearnerKey != learnerKey || cfg.CountryDB != "/usr/share/mathtrail/dbip-country-lite.mmdb" {
+		t.Errorf("LearnerKey is the one set: %v, CountryDB = %q; want both as given", cfg.LearnerKey == learnerKey, cfg.CountryDB)
+	}
+}
+
+// The key children are counted under is a secret like the sealing key, and a
+// refusal of it names the variable alone.
+func TestARefusalNeverCarriesTheLearnerKey(t *testing.T) {
+	t.Parallel()
+
+	nearlyAKey := base64.StdEncoding.EncodeToString([]byte("too short to count with"))
+	for _, value := range []string{nearlyAKey, sealKey} {
+		_, err := config.LoadFrom(withSealKey("MATHTRAIL_LEARNER_KEY=" + value))
+		if err == nil {
+			t.Fatal("LoadFrom() error = nil, want a refusal")
+		}
+		if strings.Contains(err.Error(), value) {
+			t.Errorf("error = %q, want it to carry nothing of the key", err)
+		}
+	}
+}
+
 // Telemetry is configured by four variables, and all four have a setting that
 // works without one being given.
 func TestTelemetryDefaults(t *testing.T) {
@@ -735,10 +837,10 @@ func TestTelemetryDefaults(t *testing.T) {
 func TestTelemetryFollowsTheDeployment(t *testing.T) {
 	t.Parallel()
 
-	deployed := append([]string{
+	deployed := append(append([]string{
 		"K_SERVICE=mathtrail",
 		"MATHTRAIL_PUBLIC_URL=https://mathtrail.example",
-	}, googleClient...)
+	}, googleClient...), counting...)
 
 	for _, c := range []struct {
 		name    string
@@ -824,5 +926,38 @@ func TestTheSignInIsRead(t *testing.T) {
 	if cfg.GoogleSignIn() || cfg.Site() != "https://mathtrail.example" {
 		t.Errorf("GoogleSignIn() = %v, Site() = %q; want no client and the site without its slash",
 			cfg.GoogleSignIn(), cfg.Site())
+	}
+}
+
+// The site is named as a browser writes its origin, whichever way it was
+// written: in lower case, a name in ASCII, and no port the scheme implies. A
+// card holds an address to that origin exactly, so another spelling would
+// leave the card with no link the words have.
+func TestTheSiteIsNamedAsABrowserWritesItsOrigin(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name, given, want string
+	}{
+		{"in capitals", "HTTPS://MathTrail.Example", "https://mathtrail.example"},
+		{"with the port https implies", "https://mathtrail.example:443/", "https://mathtrail.example"},
+		{"with a port of its own", "https://mathtrail.example:8443", "https://mathtrail.example:8443"},
+		{"a name in another script", "https://bücher.example", "https://xn--bcher-kva.example"},
+		{"a name with hyphens a registry would refuse", "https://My--Site.example", "https://my--site.example"},
+		{"a name in another script, with an underscore", "https://Bü_cher.example", "https://xn--b_cher-3ya.example"},
+		{"this machine, with the port http implies", "http://localhost:80", "http://localhost"},
+		{"this machine by its address", "http://[::1]:8000", "http://[::1]:8000"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			cfg, err := config.LoadFrom(withSealKey("MATHTRAIL_SITE_URL=" + tc.given))
+			if err != nil {
+				t.Fatalf("LoadFrom() error = %v, want nil", err)
+			}
+			if got := cfg.Site(); got != tc.want {
+				t.Errorf("Site() = %q, want %q", got, tc.want)
+			}
+		})
 	}
 }

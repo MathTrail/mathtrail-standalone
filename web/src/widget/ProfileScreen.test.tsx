@@ -66,9 +66,41 @@ describe("the profile's card", () => {
 			["Interests", "space, animals, football"],
 			["Not at school yet", "Division with a remainder"],
 			["Language of the lessons", "Swahili"],
+			[
+				"Country",
+				"Not set",
+				"Optional. Used only to count, without names, how many families each country has.",
+			],
 		]);
 		expect(root.textContent).not.toContain("Loses heart");
 		expect(root.querySelector(".mt-bar")).toBeNull();
+	});
+
+	test("names the country by the card's words for it, and a state of the United States by its name", async () => {
+		const { root } = await draw({
+			...inSwahili,
+			profile: { ...inSwahili.profile, country: "US", region: "US-TX" },
+		});
+
+		expect(fields(root, "Profile · for the parent").slice(-2)).toEqual([
+			[
+				"Country",
+				"United States",
+				"Optional. Used only to count, without names, how many families each country has.",
+			],
+			["State", "Texas"],
+		]);
+	});
+
+	test("shows by its code a state the file pairs with another country", async () => {
+		const { root } = await draw({
+			...inSwahili,
+			profile: { ...inSwahili.profile, country: "FR", region: "US-TX" },
+		});
+
+		expect(fields(root, "Profile · for the parent").slice(-1)).toEqual([
+			["State", "US-TX"],
+		]);
 	});
 
 	test("says where the profile's file is, and what the parent can do with it, each under the question it answers", async () => {

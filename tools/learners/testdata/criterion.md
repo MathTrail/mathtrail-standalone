@@ -21,6 +21,7 @@ No candidate meets every constraint and is better than the service. **The exit: 
 | no_trial/both | -0.258 [-0.416, -0.098] | 44 of 49 | 5 | 0 |
 | glicko2_floor/general | 0.226 [0.144, 0.306] | 42 of 49 | 7 | 0 |
 | glicko2_floor/topics | — | 29 of 49 | 16 | 4 |
+| floor_0.05+cautious_z1/both | 0.090 [0.031, 0.145] | 47 of 49 | 2 | 0 |
 | oracle/both (the ceiling) | 1.000 [0.893, 1.113] | 40 of 49 | 1 | 8 |
 
 ## Goals
@@ -48,6 +49,7 @@ Every rule's value against each goal's bound, and whether its interval reaches t
 | no_trial/both | 0.655, not reached | 0.366, not reached | 0.800, not reached | 73.000, on the edge | 4.000, on the edge | 36.000, reached | 0.392, reached | 74.000, on the edge | 6.000, on the edge | 36.000, reached | 1.373, on the edge |
 | glicko2_floor/general | 0.366, on the edge | 0.408, on the edge | 0.200, on the edge | 86.000, on the edge | 18.000, not reached | 20.000, reached | 3.922, on the edge | 82.000, on the edge | 12.667, not reached | 20.000, reached | 6.863, not reached |
 | glicko2_floor/topics | 0.514, not reached | 0.378, on the edge | 0.600, not reached | 324.000, not reached | — | 67.000, on the edge | — | 323.000, not reached | — | 54.000, reached | — |
+| floor_0.05+cautious_z1/both | 0.553, not reached | 0.378, on the edge | 0.100, on the edge | 74.000, on the edge | 6.667, on the edge | 41.000, reached | 3.725, on the edge | 72.000, on the edge | 2.000, on the edge | 38.000, reached | 1.961, on the edge |
 | oracle/both (the ceiling) | 0.000, reached | 0.602, reached | 0.000, reached | — | — | — | — | — | — | — | — |
 
 ## Not worse than the service
@@ -63,6 +65,7 @@ What of not worse each rule does not meet, or the run cannot read: its differenc
 | no_trial/both | 38 of 38 |  |
 | glicko2_floor/general | 37 of 38 | G0-topics1 r1_rms_200 0.527 [0.308, 0.801] against 0.258 |
 | glicko2_floor/topics | 27 of 38 | G0 r1_rms_200 0.334 [0.176, 0.494] against 0.107; G1 r1_rms_200 0.528 [0.290, 0.765] against 0.200; G3 r1_rms_200 0.635 [0.406, 0.867] against 0.248; G6 r3_inside -0.138 [-0.256, -0.048] against 0.037; G8 r1_rms_200 0.435 [0.298, 0.583] against 0.205; G0-exact r1_rms_200 0.350 [0.190, 0.539] against 0.170; G2-half r1_rms_200 0.546 [0.258, 0.863] against 0.216; G0-start0.5 r1_rms_200 0.336 [0.177, 0.517] against 0.167; G0-start2 r1_rms_200 0.353 [0.171, 0.555] against 0.114; G0-start2 r3_inside -0.110 [-0.168, -0.053] against 0.053; G0-topics0.3 r1_rms_200 0.465 [0.354, 0.576] against 0.267 |
+| floor_0.05+cautious_z1/both | 38 of 38 |  |
 | oracle/both (the ceiling) | 37 of 38 | G6 r3_inside -0.152 [-0.225, -0.085] against 0.037 |
 
 ## What the bench resolves

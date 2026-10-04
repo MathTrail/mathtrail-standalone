@@ -349,6 +349,56 @@ glicko2_floor,topics,not worse,not worse than the service,G0-topics0.3,r1_rms_20
 glicko2_floor,topics,not worse,not worse than the service,G0-topics0.3,r3_inside,0.0100,-0.0622,-0.0688,-0.0554,not met,not reached
 glicko2_floor,topics,not worse,not worse than the service,G0-topics1,r1_rms_200,0.0217,0.0881,0.0690,0.1074,not met,not reached
 glicko2_floor,topics,not worse,not worse than the service,G0-topics1,r3_inside,0.0100,-0.0048,-0.0110,0.0008,met,on the edge
+floor_0.05+cautious_z1,both,score,the share of the way to the ceiling,,,,0.0621,0.0572,0.0669,,
+floor_0.05+cautious_z1,both,goal,the lag at most 45 % of the service's,G2-half,r6_lag,0.2741,0.5377,0.5200,0.5555,not met,not reached
+floor_0.05+cautious_z1,both,goal,the corridor a share of the way to the ceiling,G2-half,r3_inside,0.4243,0.3747,0.3686,0.3806,not met,not reached
+floor_0.05+cautious_z1,both,goal,children not caught up after the jump at most 25 %,G3,r6_jump_unsettled,0.2500,0.5680,0.5380,0.6000,not met,not reached
+floor_0.05+cautious_z1,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G0,r8_move_p95_6_20,73.0000,73.0000,73.0000,74.0000,met,on the edge
+floor_0.05+cautious_z1,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G0,r8_rank_6_20,3.8133,3.8133,3.3467,4.2800,met,on the edge
+floor_0.05+cautious_z1,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G0,r8_move_p95_150_200,73.0000,41.0000,40.0000,41.0000,met,reached
+floor_0.05+cautious_z1,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G0,r8_rank_150_200,3.8133,1.6333,1.3863,1.8961,met,reached
+floor_0.05+cautious_z1,both,goal,the card's move in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,73.0000,73.0000,73.0000,met,reached
+floor_0.05+cautious_z1,both,goal,the rank's changes in answers 6–20 no more than the service's in answers 6–20,G2-half,r8_rank_6_20,3.6000,3.6000,3.1333,4.0800,met,on the edge
+floor_0.05+cautious_z1,both,goal,the card's move in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,40.0000,40.0000,41.0000,met,reached
+floor_0.05+cautious_z1,both,goal,the rank's changes in answers 150–200 no more than the service's in answers 6–20,G2-half,r8_rank_150_200,3.6000,1.6725,1.4314,1.9157,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G0,r1_rms_200,0.0199,-0.0113,-0.0185,-0.0037,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G0,r3_inside,0.0100,0.0040,0.0007,0.0073,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G1,r1_rms_200,0.0215,-0.0131,-0.0211,-0.0058,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G1,r3_inside,0.0100,0.0028,-0.0002,0.0060,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G2,r1_rms_200,0.0323,-0.2319,-0.2409,-0.2231,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G2,r3_inside,0.0100,0.0180,0.0154,0.0206,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G3,r1_rms_200,0.0296,-0.1087,-0.1184,-0.0993,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G3,r3_inside,0.0100,0.0152,0.0122,0.0182,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G4,r1_rms_200,0.0256,0.0162,0.0075,0.0241,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G4,r3_inside,0.0100,0.0049,0.0023,0.0076,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G5,r1_rms_200,0.0210,-0.0114,-0.0194,-0.0042,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G5,r3_inside,0.0100,0.0010,-0.0022,0.0043,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G6,r1_rms_200,0.0294,0.0078,-0.0014,0.0169,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G6,r3_inside,0.0100,0.0012,-0.0023,0.0044,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G7,r1_rms_200,0.0235,-0.0095,-0.0178,-0.0016,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G7,r3_inside,0.0100,0.0013,-0.0020,0.0049,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G8,r1_rms_200,0.0196,-0.0104,-0.0182,-0.0029,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G8,r3_inside,0.0100,0.0034,0.0003,0.0066,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G0-exact,r1_rms_200,0.0177,-0.0016,-0.0090,0.0057,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G0-exact,r3_inside,0.0152,-0.0016,-0.0089,0.0055,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G0-miss0.25,r1_rms_200,0.0180,0.0001,-0.0066,0.0076,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G0-miss0.25,r3_inside,0.0117,0.0051,0.0001,0.0100,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G0-miss1,r1_rms_200,0.0219,0.0024,-0.0054,0.0103,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G0-miss1,r3_inside,0.0100,0.0029,0.0009,0.0049,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G2-half,r1_rms_200,0.0266,-0.0966,-0.1052,-0.0887,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G2-half,r3_inside,0.0100,0.0173,0.0140,0.0204,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G2-fading,r1_rms_200,0.0251,-0.0490,-0.0573,-0.0409,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G2-fading,r3_inside,0.0100,0.0149,0.0118,0.0184,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G3-drop,r1_rms_200,0.0290,-0.1320,-0.1435,-0.1206,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G3-drop,r3_inside,0.0100,-0.0002,-0.0031,0.0025,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G0-start0.5,r1_rms_200,0.0185,-0.0045,-0.0124,0.0031,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G0-start0.5,r3_inside,0.0100,-0.0012,-0.0044,0.0020,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G0-start2,r1_rms_200,0.0216,-0.0147,-0.0222,-0.0068,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G0-start2,r3_inside,0.0100,0.0039,0.0007,0.0073,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G0-topics0.3,r1_rms_200,0.0192,0.0011,-0.0061,0.0083,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G0-topics0.3,r3_inside,0.0100,0.0052,0.0020,0.0084,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G0-topics1,r1_rms_200,0.0217,-0.0206,-0.0293,-0.0129,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the service,G0-topics1,r3_inside,0.0100,-0.0051,-0.0087,-0.0015,met,reached
 oracle,both,score,the share of the way to the ceiling,,,,1.0000,0.9873,1.0124,,
 oracle,both,goal,the lag at most 45 % of the service's,G2-half,r6_lag,0.2741,0.0000,0.0000,0.0000,met,reached
 oracle,both,goal,the corridor a share of the way to the ceiling,G2-half,r3_inside,0.4243,0.6054,0.6029,0.6079,met,reached

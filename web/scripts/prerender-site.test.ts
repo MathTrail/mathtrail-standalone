@@ -10,9 +10,13 @@ import {
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
+import { type DefaultTreeAdapterTypes, parse } from "parse5";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import catalog from "../../content/catalogs/topics.json";
+import data from "../../site/data.json";
 import { byCodeUnits } from "../src/i18n/order.ts";
+import english from "../src/site/locales/en.json";
+import russian from "../src/site/locales/ru.json";
 import { buildSite, givenTwice, main, readSources } from "./prerender-site.ts";
 
 const repository = join(import.meta.dirname, "..", "..");
@@ -37,9 +41,70 @@ const scripted: readonly string[] = [];
 
 // carded are the pages that draw a card of the widget, and load its styles.
 const carded: readonly string[] = [
+	"en/index.html",
 	"en/topics/index.html",
+	"en/why/index.html",
+	"ru/index.html",
 	"ru/topics/index.html",
+	"ru/why/index.html",
 ];
+
+// adding is the word of every button that asks a reader to add MathTrail, by
+// the language of its page.
+const adding: Readonly<Record<string, string>> = {
+	en: english["nav.add"],
+	ru: russian["nav.add"],
+};
+
+// localePages are the paths of the pages of every language below dir: all
+// but the apex, which has no language of its own.
+async function localePages(dir: string): Promise<string[]> {
+	return (await filesIn(dir)).filter(
+		(file) => file.endsWith(".html") && file.includes("/"),
+	);
+}
+
+// Link is one anchor of a page, as a browser reads it.
+type Link = { className: string; href: string; text: string };
+
+// linksIn are the HTML anchors of a page, in the order it has them, each with
+// the text it shows: parsed rather than matched, so that markup inside an
+// anchor is read as markup. A template's content is not walked: it is not part
+// of the page until a script puts it there.
+function linksIn(html: string): Link[] {
+	const links: Link[] = [];
+	const walk = (node: DefaultTreeAdapterTypes.Node): void => {
+		if (!("childNodes" in node)) {
+			return;
+		}
+		if (
+			"tagName" in node &&
+			node.tagName === "a" &&
+			node.namespaceURI === "http://www.w3.org/1999/xhtml"
+		) {
+			const value = (name: string) =>
+				node.attrs.find((attr) => attr.name === name)?.value ?? "";
+			links.push({
+				className: value("class"),
+				href: value("href"),
+				text: textIn(node),
+			});
+		}
+		for (const child of node.childNodes) {
+			walk(child);
+		}
+	};
+	walk(parse(html));
+	return links;
+}
+
+// textIn is all the text below node.
+function textIn(node: DefaultTreeAdapterTypes.Node): string {
+	if (node.nodeName === "#text" && "value" in node) {
+		return node.value;
+	}
+	return "childNodes" in node ? node.childNodes.map(textIn).join("") : "";
+}
 
 // urlsIn are the addresses every url() of a stylesheet names, sorted.
 function urlsIn(style: string): string[] {
@@ -87,29 +152,69 @@ describe("the site built from this repository", () => {
 		await rm(out, { recursive: true, force: true });
 	});
 
-	test("is its pages, its stylesheets, its font, its mark and the host's files, and nothing older", async () => {
+	test("is its pages, its stylesheets, its font, its mark, its sharing pictures and the host's files, and nothing older", async () => {
 		expect(await filesIn(out)).toEqual([
 			".nojekyll",
 			"CNAME",
 			"assets/card.css",
 			"assets/favicon.svg",
+			"assets/og-en.png",
+			"assets/og-ru.png",
 			"assets/onest-cyrillic-wght-normal.woff2",
 			"assets/onest-latin-wght-normal.woff2",
 			"assets/onest-license.txt",
 			"assets/style.css",
 			"assets/tokens.css",
+			"en/about/index.html",
 			"en/index.html",
 			"en/privacy/index.html",
+			"en/techniques/index.html",
 			"en/terms/index.html",
+			"en/topics/arithmetic-with-a-trick/index.html",
+			"en/topics/calendar-and-age/index.html",
+			"en/topics/clocks/index.html",
+			"en/topics/divisibility-and-remainders/index.html",
+			"en/topics/enumeration/index.html",
+			"en/topics/figures-on-a-grid/index.html",
+			"en/topics/gaps-and-boundaries/index.html",
 			"en/topics/index.html",
 			"en/topics/knights-and-liars/index.html",
+			"en/topics/ordering/index.html",
+			"en/topics/overlapping-groups/index.html",
+			"en/topics/parity-and-alternation/index.html",
+			"en/topics/parts-and-shares/index.html",
+			"en/topics/percentages/index.html",
+			"en/topics/pigeonhole-principle/index.html",
+			"en/topics/ratios-and-sharing/index.html",
+			"en/topics/weighing-and-pouring/index.html",
+			"en/topics/winning-strategy/index.html",
+			"en/why/index.html",
 			"index.html",
 			"robots.txt",
+			"ru/about/index.html",
 			"ru/index.html",
 			"ru/privacy/index.html",
+			"ru/techniques/index.html",
 			"ru/terms/index.html",
+			"ru/topics/arithmetic-with-a-trick/index.html",
+			"ru/topics/calendar-and-age/index.html",
+			"ru/topics/clocks/index.html",
+			"ru/topics/divisibility-and-remainders/index.html",
+			"ru/topics/enumeration/index.html",
+			"ru/topics/figures-on-a-grid/index.html",
+			"ru/topics/gaps-and-boundaries/index.html",
 			"ru/topics/index.html",
 			"ru/topics/knights-and-liars/index.html",
+			"ru/topics/ordering/index.html",
+			"ru/topics/overlapping-groups/index.html",
+			"ru/topics/parity-and-alternation/index.html",
+			"ru/topics/parts-and-shares/index.html",
+			"ru/topics/percentages/index.html",
+			"ru/topics/pigeonhole-principle/index.html",
+			"ru/topics/ratios-and-sharing/index.html",
+			"ru/topics/weighing-and-pouring/index.html",
+			"ru/topics/winning-strategy/index.html",
+			"ru/why/index.html",
 			"sitemap.xml",
 		]);
 	});
@@ -165,6 +270,41 @@ describe("the site built from this repository", () => {
 			]);
 			expect(html.includes("<script")).toBe(scripted.includes(page));
 			expect(html.includes('class="mt mt-widget')).toBe(carded.includes(page));
+		}
+	});
+
+	test("names on every page the sharing picture of its language, one the build serves at that address", async () => {
+		const pages = (await filesIn(out)).filter((file) => file.endsWith(".html"));
+		for (const page of pages) {
+			const html = await readFile(join(out, page), "utf8");
+			const locale = page.includes("/")
+				? page.slice(0, page.indexOf("/"))
+				: "en";
+			const named = [
+				...html.matchAll(/<meta property="og:image" content="([^"]+)"/g),
+			].map(([, address]) => address ?? "");
+
+			expect(named, page).toEqual([
+				`https://mathtrail.app/assets/og-${locale}.png`,
+			]);
+			const served = await readFile(
+				join(out, new URL(named[0] ?? "").pathname),
+			);
+			const kept = await readFile(
+				join(repository, "site", "assets", `og-${locale}.png`),
+			);
+			expect(served.equals(kept), page).toBe(true);
+			expect(html, page).toContain(
+				'<meta name="twitter:card" content="summary_large_image"/>',
+			);
+			expect(
+				[
+					...html.matchAll(/<meta property="og:image:alt" content="([^"]+)"/g),
+				].map(([, alt]) => alt),
+				page,
+			).toEqual([
+				locale === "ru" ? russian["share.picture"] : english["share.picture"],
+			]);
 		}
 	});
 
@@ -230,6 +370,135 @@ describe("the site built from this repository", () => {
 
 			expect(written.length).toBeGreaterThan(1);
 			expect(new Set(written).size).toBe(1);
+		}
+	});
+
+	test("closes the menu with the page about who makes it, and names that page in the footer before the documents, under the menu's word, in every language", async () => {
+		const locales = (await readdir(out, { withFileTypes: true }))
+			.filter((entry) => entry.isDirectory() && entry.name !== "assets")
+			.map((entry) => entry.name);
+		expect(locales).toEqual(expect.arrayContaining(["en", "ru"]));
+		for (const locale of locales) {
+			const html = await readFile(join(out, locale, "index.html"), "utf8");
+			const links = (list: string) => {
+				const nav = html.match(
+					new RegExp(`<nav class="${list}"[^>]*>(.*?)</nav>`, "s"),
+				);
+				if (nav === null) {
+					throw new Error(`${locale}/index.html has no ${list}`);
+				}
+				return [
+					...(nav[1] ?? "").matchAll(/<a href="([^"]+)"[^>]*>([^<]*)<\/a>/g),
+				].map(([, href, label]) => ({ href, label }));
+			};
+			const menu = links("s-navlinks");
+			const footer = links("s-footlinks");
+
+			expect(menu.at(-1)?.href).toBe(`/${locale}/about/`);
+			expect(footer.slice(0, 3).map(({ href }) => href)).toEqual([
+				`/${locale}/about/`,
+				`/${locale}/privacy/`,
+				`/${locale}/terms/`,
+			]);
+			expect(footer[0]?.label).toBe(menu.at(-1)?.label);
+		}
+	});
+
+	test("opens the menu with the home page's sections on a lesson and on connecting, on every page of every language", async () => {
+		const pages = await localePages(out);
+		expect(pages).not.toEqual([]);
+		for (const page of pages) {
+			const locale = page.slice(0, page.indexOf("/"));
+			const html = await readFile(join(out, page), "utf8");
+			const menu =
+				html.match(/<nav class="s-navlinks"[^>]*>(.*?)<\/nav>/s)?.[1] ?? "";
+
+			expect(
+				[...menu.matchAll(/<a href="([^"]+)"/g)]
+					.slice(0, 2)
+					.map(([, href]) => href),
+				page,
+			).toEqual([`/${locale}/#lesson`, `/${locale}/#connect`]);
+		}
+	});
+
+	test("leads every button that asks to add it, the header's first, to the home page's section on connecting, which the home page has", async () => {
+		const pages = await localePages(out);
+		for (const page of pages) {
+			const locale = page.slice(0, page.indexOf("/"));
+			const html = await readFile(join(out, page), "utf8");
+			const word = adding[locale] ?? "";
+			const buttons = linksIn(html).filter((link) => link.text.trim() === word);
+
+			expect(buttons[0]?.className, page).toContain("s-nav-action");
+			expect(
+				buttons.map((link) => link.href),
+				page,
+			).toEqual(buttons.map(() => `/${locale}/#connect`));
+		}
+		for (const locale of Object.keys(adding)) {
+			const home = await readFile(join(out, locale, "index.html"), "utf8");
+
+			expect(home).toContain(`<section id="lesson"`);
+			expect(home).toContain(`<section id="connect"`);
+		}
+	});
+
+	test("writes, on the page about who makes it, to the address the privacy policy names", async () => {
+		for (const locale of ["en", "ru"]) {
+			const addresses = async (page: string) =>
+				[
+					...(
+						await readFile(join(out, locale, page, "index.html"), "utf8")
+					).matchAll(/href="mailto:([^"]+)"/g),
+				].map(([, address]) => address);
+			const policy = await addresses("privacy");
+			const about = await addresses("about");
+
+			expect(about.length).toBeGreaterThan(1);
+			expect(new Set([...policy, ...about]).size).toBe(1);
+		}
+	});
+
+	test("shows on the page of the techniques every technique of the data, once among the links at its top and once as its card", async () => {
+		const ids = (data.techniques?.groups ?? []).flatMap((group) =>
+			group.techniques.map((technique) => technique.id),
+		);
+		expect(ids).not.toEqual([]);
+		for (const locale of ["en", "ru"]) {
+			const html = await readFile(
+				join(out, locale, "techniques", "index.html"),
+				"utf8",
+			);
+			const top = html.slice(
+				html.indexOf('class="s-panel s-overview"'),
+				html.indexOf("</nav>", html.indexOf('class="s-panel s-overview"')),
+			);
+
+			expect([...top.matchAll(/href="#([^"]+)"/g)].map(([, id]) => id)).toEqual(
+				ids,
+			);
+			expect(
+				[...html.matchAll(/<article id="([^"]+)" class="s-technique"/g)].map(
+					([, id]) => id,
+				),
+			).toEqual(ids);
+		}
+	});
+
+	test("leads every link within a page to a part the page has, and gives no two parts of a page one name", async () => {
+		const pages = (await filesIn(out)).filter((file) => file.endsWith(".html"));
+		expect(pages).not.toEqual([]);
+		for (const page of pages) {
+			const html = await readFile(join(out, page), "utf8");
+			const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(([, id]) => id);
+			const within = [...html.matchAll(/href="#([^"]+)"/g)].map(([, id]) => id);
+
+			expect(new Set(ids).size, page).toBe(ids.length);
+			expect(
+				within.filter((id) => !ids.includes(id)),
+				page,
+			).toEqual([]);
 		}
 	});
 

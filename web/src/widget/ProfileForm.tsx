@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "preact/hooks";
+import { useEffect, useMemo, useRef } from "preact/hooks";
 import {
 	Button,
 	CheckGroup,
@@ -12,10 +12,12 @@ import {
 	type Draft,
 	type Editing,
 	profileLimits,
+	withCountry,
 	withInterestAdded,
 } from "./editing";
-import { catalogSkills, languageName, skillName } from "./names";
+import { catalogSkills, countryName, languageName, skillName } from "./names";
 import type { Problem } from "./payload";
+import { countryCodes, regionsOf } from "./places";
 import { isKey, type Key, lessonLanguages, useWords } from "./words";
 
 /** Open is a form a parent is filling in, or one on its way to the service. */
@@ -24,8 +26,9 @@ type Open = Extract<Editing, { state: "open" | "saving" }>;
 /**
  * ProfileForm is the form the adult changes the child's details with, on the
  * card: the pseudonym, the grade, the interests, what the child has not met at
- * school yet, and the language of the lessons. The parent's notes are not
- * among them: they are said to the model, in the chat. What the service
+ * school yet, the language of the lessons, and the country the family lives
+ * in, with its state for the United States, which a parent may leave unsaid.
+ * The parent's notes are not among them: they are said to the model, in the chat. What the service
  * refused is said under each field it refused, and what became of the save
  * under the buttons. A form on its way takes no second save and no cancel, and
  * its fields take nothing typed: what it sends is what it shows.
@@ -52,6 +55,14 @@ export function ProfileForm({
 	useEffect(() => {
 		first.current?.focus({ preventScroll: true });
 	}, []);
+	// Some two hundred and fifty countries are named and put in order for their
+	// list, so it is drawn up again only when what it shows can change, and not
+	// at every key typed into another field.
+	const keptCountry = editing.from.country ?? "";
+	const countries = useMemo(
+		() => countryChoices(words, [keptCountry, draft.country]),
+		[words, keptCountry, draft.country],
+	);
 	return (
 		<form
 			class="mt-form"
@@ -119,6 +130,26 @@ export function ProfileForm({
 					problem={said.get("ui_language")}
 					onChange={(language) => onChange({ ...draft, language })}
 				/>
+				<SelectField
+					label={words.text("profile.country")}
+					value={draft.country}
+					choices={countries}
+					note={words.text("profile.country_note")}
+					problem={said.get("country")}
+					onChange={(country) => onChange(withCountry(draft, country))}
+				/>
+				{regionsOf(draft.country).length > 0 && (
+					<SelectField
+						label={words.text("profile.region")}
+						value={draft.region}
+						choices={regionChoices(words, draft.country, [
+							editing.from.region ?? "",
+							draft.region,
+						])}
+						problem={said.get("region")}
+						onChange={(region) => onChange({ ...draft, region })}
+					/>
+				)}
 			</fieldset>
 			<div class="mt-form-actions">
 				<div class="mt-btns">
@@ -195,6 +226,41 @@ function skillChoices(words: Words<Key>, kept: readonly string[]): Choice[] {
 		value: skill,
 		label: skillName(words, skill),
 	}));
+}
+
+// countryChoices are the countries a parent can say the family lives in: none
+// first, then each by the card's name for it and in the card's order of names —
+// and among them one of kept the list does not have, by its code, so that what
+// the profile says stays on the form.
+function countryChoices(words: Words<Key>, kept: readonly string[]): Choice[] {
+	const others = kept.filter(
+		(code) => code !== "" && !countryCodes.includes(code),
+	);
+	const collator = new Intl.Collator(words.locale);
+	const named = [...new Set([...countryCodes, ...others])]
+		.map((code) => ({ value: code, label: countryName(words, code) }))
+		.sort((one, other) => collator.compare(one.label, other.label));
+	return [{ value: "", label: words.text("profile.none") }, ...named];
+}
+
+// regionChoices are the regions of the country a parent can name: none first,
+// then each by its name in English, as the list names it, in the card's order
+// of names — and among them one of kept the list does not have, by its code.
+function regionChoices(
+	words: Words<Key>,
+	country: string,
+	kept: readonly string[],
+): Choice[] {
+	const regions = regionsOf(country);
+	const others = kept.filter(
+		(code) => code !== "" && !regions.some((region) => region.code === code),
+	);
+	const collator = new Intl.Collator(words.locale);
+	const named = [
+		...regions.map(({ code, name }) => ({ value: code, label: name })),
+		...others.map((code) => ({ value: code, label: code })),
+	].sort((one, other) => collator.compare(one.label, other.label));
+	return [{ value: "", label: words.text("profile.none") }, ...named];
 }
 
 // languageChoices are the languages of the lessons a parent can choose: the

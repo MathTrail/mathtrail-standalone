@@ -676,3 +676,28 @@ func TestATrialTaskSaysWhatItRestedOn(t *testing.T) {
 		t.Errorf("rationale = %q, want it to begin %q", got.Rationale, want)
 	}
 }
+
+// The topics counted as mastered are those Mastered says are: a topic mastered
+// below the level its tasks come from now is not one of them, and neither is a
+// topic nobody mastered.
+func TestTheMasteredTopicsAreCountedAsTheyAreShown(t *testing.T) {
+	t.Parallel()
+
+	p := child(t)
+	if got := tutor.MasteredTopics(p, threeTopics()); got != 0 {
+		t.Errorf("MasteredTopics() = %d for a child who mastered nothing, want 0", got)
+	}
+
+	mastered(p, "counting.gaps", rating.Grades12)
+	mastered(p, "logic.ordering", rating.Grades12)
+	if got := tutor.MasteredTopics(p, threeTopics()); got != 2 {
+		t.Errorf("MasteredTopics() = %d after two topics were mastered, want 2", got)
+	}
+
+	summary := p.Topics["counting.gaps"]
+	summary.Delta = 2.5 // the child's tasks in it now come from grades 3–4
+	p.Topics["counting.gaps"] = summary
+	if got := tutor.MasteredTopics(p, threeTopics()); got != 1 {
+		t.Errorf("MasteredTopics() = %d with one topic's tasks moved past where it was mastered, want 1", got)
+	}
+}

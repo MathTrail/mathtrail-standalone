@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"strings"
 )
 
@@ -14,11 +15,11 @@ const marginsShown = 8
 const fewEligible = 5
 
 // writeChoice writes what the criterion comes to: the candidates that meet
-// every constraint and are better than the service, A*, its equals and the
+// every constraint and are better than the baseline, A*, its equals and the
 // simplest of them, the backup set against it, or the exit; and how likely the
 // chosen rule's constraints are to hold on new children. A run of the
 // held-out children writes its confirmation instead.
-func writeChoice(b *strings.Builder, c *stepChoice) {
+func writeChoice(b *strings.Builder, c *criterionChoice) {
 	if c.confirming {
 		writeConfirmation(b, c)
 		return
@@ -29,12 +30,18 @@ func writeChoice(b *strings.Builder, c *stepChoice) {
 	}
 	writeEligible(b, c)
 	switch {
+	case c.chosen == nil && c.crit.exitIsBaseline:
+		fmt.Fprintf(b, "No candidate meets every constraint and is better than %[1]s, and the run lacks %[1]s, "+
+			"which is the exit: **nothing is chosen.**\n\n", c.crit.against)
 	case c.chosen == nil:
-		b.WriteString("No candidate meets every constraint and is better than the service, and no floor of the exit meets " +
-			"the constraints of not worse and of the screen: **the service's step stays.**\n\n")
+		fmt.Fprintf(b, "No candidate meets every constraint and is better than %s, and no floor of the exit meets "+
+			"the constraints of not worse and of the screen: **the service's step stays.**\n\n", c.crit.against)
+	case c.exit && c.crit.exitIsBaseline:
+		fmt.Fprintf(b, "No candidate meets every constraint and is better than %s. **The exit: %s**, %s itself, kept as it is.\n\n",
+			c.crit.against, ruleName(c.chosen.rule), c.crit.against)
 	case c.exit:
-		fmt.Fprintf(b, "No candidate meets every constraint and is better than the service. **The exit: %s**, the floor of the "+
-			"highest score, %s, among those that meet the constraints of not worse and of the screen.\n\n", ruleName(c.chosen.rule), interval3(c.chosen.score))
+		fmt.Fprintf(b, "No candidate meets every constraint and is better than %s. **The exit: %s**, the floor of the "+
+			"highest score, %s, among those that meet the constraints of not worse and of the screen.\n\n", c.crit.against, ruleName(c.chosen.rule), interval3(c.chosen.score))
 	default:
 		writeMain(b, c)
 	}
@@ -42,16 +49,16 @@ func writeChoice(b *strings.Builder, c *stepChoice) {
 	writeAgainstTop(b, c)
 }
 
-// writeAgainstTop lists the score of the main step of the highest score less
-// every other rule's, on the same children: what each part of the step gives,
+// writeAgainstTop lists the score of the main candidate of the highest score
+// less every other rule's, on the same children: what each part of it gives,
 // taken away, and how much more of the way it closes than a comparison.
-func writeAgainstTop(b *strings.Builder, c *stepChoice) {
+func writeAgainstTop(b *strings.Builder, c *criterionChoice) {
 	if c.top == nil || len(c.againstTop) == 0 {
 		return
 	}
-	fmt.Fprintf(b, "### Every rule against the main step of the highest score\n\nThe main step of the highest score, whatever it meets: %s, %s. "+
-		"Its score less every other rule's, on the same children:\n\n| Rule | Score | The highest main step's less this |\n|---|---:|---:|\n",
-		ruleName(c.top.rule), interval3(c.top.score))
+	fmt.Fprintf(b, "### Every rule against the %[1]s of the highest score\n\nThe %[1]s of the highest score, whatever it meets: %[2]s, %[3]s. "+
+		"Its score less every other rule's, on the same children:\n\n| Rule | Score | The highest %[1]s's less this |\n|---|---:|---:|\n",
+		c.crit.main, ruleName(c.top.rule), interval3(c.top.score))
 	for _, r := range c.againstTop {
 		fmt.Fprintf(b, "| %s | %s | %s |\n", ruleName(r.rc.rule), interval3(r.rc.score), interval3(r.difference))
 	}
@@ -59,15 +66,15 @@ func writeAgainstTop(b *strings.Builder, c *stepChoice) {
 }
 
 // writeEligible lists the candidates that meet every constraint and are
-// better than the service, the highest score first, and, when they are few,
+// better than the baseline, the highest score first, and, when they are few,
 // the candidates that miss one constraint alone.
-func writeEligible(b *strings.Builder, c *stepChoice) {
-	fmt.Fprintf(b, "Candidates that meet every constraint and are better than the service: %d.\n\n", len(c.eligible))
+func writeEligible(b *strings.Builder, c *criterionChoice) {
+	fmt.Fprintf(b, "Candidates that meet every constraint and are better than %s: %d.\n\n", c.crit.against, len(c.eligible))
 	if len(c.eligible) > 0 {
-		b.WriteString("| Rule | Kind | Score | Numbers added | Fields in the profile | Distance from the service's step |\n|---|---|---:|---:|---|---:|\n")
+		fmt.Fprintf(b, "| Rule | Kind | Score | Numbers added | Fields in the profile | Distance from %s |\n|---|---|---:|---:|---|---:|\n", c.crit.distanceFrom)
 		for _, rc := range c.eligible {
 			fmt.Fprintf(b, "| %s | %s | %s | %d | %s | %s |\n", ruleName(rc.rule), rc.rule.candidacy.kind, interval3(rc.score),
-				rc.rule.candidacy.added, yesOrNo(rc.rule.candidacy.fields), decimals3(rc.rule.candidacy.distance))
+				rc.rule.candidacy.added, yesOrNo(rc.rule.candidacy.fields), distanceText(rc.rule.candidacy.distance))
 		}
 		b.WriteString("\n")
 	}
@@ -81,12 +88,12 @@ func writeEligible(b *strings.Builder, c *stepChoice) {
 	b.WriteString("\n")
 }
 
-// writeMain writes how the main step and the choice were come to.
-func writeMain(b *strings.Builder, c *stepChoice) {
+// writeMain writes how the main candidate and the choice were come to.
+func writeMain(b *strings.Builder, c *criterionChoice) {
 	if c.best != nil {
-		fmt.Fprintf(b, "A*, the main step of the highest score: %s, %s.\n\n", ruleName(c.best.rule), interval3(c.best.score))
+		fmt.Fprintf(b, "A*, the %s of the highest score: %s, %s.\n\n", c.crit.main, ruleName(c.best.rule), interval3(c.best.score))
 		if len(c.equals) == 0 {
-			b.WriteString("No main step's score less A*'s holds nothing: A* has no equals.\n\n")
+			fmt.Fprintf(b, "No %s's score less A*'s holds nothing: A* has no equals.\n\n", c.crit.main)
 		} else {
 			b.WriteString("Its equals, whose score less A*'s holds nothing:\n\n")
 			for _, e := range c.equals {
@@ -95,28 +102,28 @@ func writeMain(b *strings.Builder, c *stepChoice) {
 			b.WriteString("\n")
 		}
 		m := c.main.rule.candidacy
-		fmt.Fprintf(b, "The simplest of them, the main step: %s — %d numbers added to the service's rule, %s, "+
-			"a distance of %s from the service's step.\n\n", ruleName(c.main.rule), m.added, fieldsPhrase(m.fields), decimals3(m.distance))
+		fmt.Fprintf(b, "The simplest of them, the %s: %s — %d numbers added to the service's rule, %s, "+
+			"a distance of %s from %s.\n\n", c.crit.main, ruleName(c.main.rule), m.added, fieldsPhrase(m.fields), distanceText(m.distance), c.crit.distanceFrom)
 	}
 	switch {
 	case c.backup == nil:
-		b.WriteString("No backup meets every constraint and is better than the service.\n\n")
+		fmt.Fprintf(b, "No backup meets every constraint and is better than %s.\n\n", c.crit.against)
 	case c.main == nil:
-		fmt.Fprintf(b, "No main step meets every constraint and is better than the service; the backup does: %s.\n\n", ruleName(c.backup.rc.rule))
+		fmt.Fprintf(b, "No %s meets every constraint and is better than %s; the backup does: %s.\n\n", c.crit.main, c.crit.against, ruleName(c.backup.rc.rule))
 	default:
 		verdict := "not chosen"
 		if c.chosen == c.backup.rc {
 			verdict = "chosen"
 		}
-		fmt.Fprintf(b, "The backup: %s, its score less the main step's %s, against a margin of %s: %s.\n\n",
-			ruleName(c.backup.rc.rule), interval3(c.backup.difference), decimals3(backupMargin), verdict)
+		fmt.Fprintf(b, "The backup: %s, its score less the %s's %s, against a margin of %s: %s.\n\n",
+			ruleName(c.backup.rc.rule), c.crit.main, interval3(c.backup.difference), decimals3(backupMargin), verdict)
 	}
 	fmt.Fprintf(b, "**The choice: %s.**\n\n", ruleName(c.chosen.rule))
 }
 
 // writeMargins lists the chosen rule's constraints the likeliest to fail on
 // new children, and the chance all of them hold.
-func writeMargins(b *strings.Builder, c *stepChoice) {
+func writeMargins(b *strings.Builder, c *criterionChoice) {
 	if c.chosen == nil || len(c.margins) == 0 {
 		return
 	}
@@ -132,9 +139,9 @@ func writeMargins(b *strings.Builder, c *stepChoice) {
 }
 
 // writeConfirmation writes whether the one candidate of a run of the
-// held-out children meets every constraint and is better than the service
+// held-out children meets every constraint and is better than the baseline
 // there.
-func writeConfirmation(b *strings.Builder, c *stepChoice) {
+func writeConfirmation(b *strings.Builder, c *criterionChoice) {
 	b.WriteString("## The confirmation\n\n")
 	if len(c.candidates) == 0 {
 		b.WriteString("The run has no candidate to confirm.\n\n")
@@ -142,10 +149,10 @@ func writeConfirmation(b *strings.Builder, c *stepChoice) {
 	}
 	for _, rc := range c.candidates {
 		missed := constraintsMissed(rc)
-		better := betterThanService(rc)
+		better := betterThanBaseline(rc)
 		fmt.Fprintf(b, "%s: %d of %d constraints met, the score %s.", ruleName(rc.rule), len(rc.readings)-missed, len(rc.readings), interval3(rc.score))
 		if missed == 0 && better {
-			b.WriteString(" **Confirmed:** it meets every constraint and is better than the service on the held-out children.\n\n")
+			fmt.Fprintf(b, " **Confirmed:** it meets every constraint and is better than %s on the held-out children.\n\n", c.crit.against)
 			continue
 		}
 		b.WriteString(" **Not confirmed:**")
@@ -153,7 +160,7 @@ func writeConfirmation(b *strings.Builder, c *stepChoice) {
 			fmt.Fprintf(b, " it misses %s;", missedOf(rc))
 		}
 		if !better {
-			b.WriteString(" its score is not above the service's with its whole interval;")
+			fmt.Fprintf(b, " its score is not above %s's with its whole interval;", c.crit.against)
 		}
 		b.WriteString(" the exit chosen on the working children is taken.\n\n")
 	}
@@ -173,6 +180,16 @@ func missedOf(rc *ruleCriterion) string {
 		}
 	}
 	return strings.Join(missed, "; ")
+}
+
+// distanceText is a candidate's distance from the service's rule as the
+// choice writes it: a dash for a rule that stands apart from it, farther than
+// any distance the choice could compare.
+func distanceText(distance float64) string {
+	if math.IsInf(distance, 1) {
+		return noNumber
+	}
+	return decimals3(distance)
 }
 
 func yesOrNo(yes bool) string {

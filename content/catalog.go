@@ -56,10 +56,13 @@ func (t *Topic) clone() Topic {
 
 // Trap is one entry of the trap catalog: the mistake behind a wrong option.
 // Every wrong option in every task names one, which is what turns a wrong
-// answer into a diagnosis instead of a tick in the wrong column.
+// answer into a diagnosis instead of a tick in the wrong column. Its advice is
+// what the adult beside a child who keeps making the mistake can do about it,
+// told in the review of the progress and never to the model writing a task.
 type Trap struct {
 	ID          string `json:"id"`
 	Description string `json:"description"`
+	Advice      string `json:"advice"`
 }
 
 // Skill is one entry of the skill catalog: something a child may not have met
@@ -253,7 +256,11 @@ func loadTraps(src fs.FS) ([]Trap, error) {
 	p := catalogProblems(file, len(traps))
 	seen := make(map[string]bool, len(traps))
 	for i, trap := range traps {
-		checkEntry(p, entryName("trap", i, trap.ID), trap.ID, trap.Description, seen)
+		where := entryName("trap", i, trap.ID)
+		checkEntry(p, where, trap.ID, trap.Description, seen)
+		if trap.Advice == "" {
+			p.addf("%s: the advice is empty", where)
+		}
 	}
 	return traps, p.err()
 }

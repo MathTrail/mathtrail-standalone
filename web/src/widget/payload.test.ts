@@ -247,6 +247,8 @@ describe("the screen a payload draws", () => {
 					interests: ["space", "animals", "football"],
 					excluded_skills: ["division_with_remainder"],
 					ui_language: "ru",
+					country: null,
+					region: null,
 				},
 				location: {
 					folder: "MathTrail",
@@ -257,6 +259,28 @@ describe("the screen a payload draws", () => {
 			},
 		});
 		expect(JSON.stringify(shown)).not.toContain("Loses heart");
+	});
+
+	test("of the profile from a service that kept no country reads as naming none", () => {
+		const { country: _, region: __, ...before } = profileRead.profile;
+		const shown = readScreen({ ...profileRead, profile: before });
+
+		expect(shown?.screen === "profile" && shown.profile.details).toMatchObject({
+			country: null,
+			region: null,
+		});
+	});
+
+	test("of the profile keeps the country and the state the adult gave", () => {
+		const shown = readScreen({
+			...profileRead,
+			profile: { ...profileRead.profile, country: "US", region: "US-TX" },
+		});
+
+		expect(shown?.screen === "profile" && shown.profile.details).toMatchObject({
+			country: "US",
+			region: "US-TX",
+		});
 	});
 
 	test("of the progress keeps how far through its rank the rating has come, each topic's rank, the total of the skips and where the file is", () => {
@@ -309,6 +333,51 @@ describe("the screen a payload draws", () => {
 
 		expect(readScreen(later)?.screen).toBe("progress");
 	});
+
+	test("of the progress reads its review, codes a later release adds among it", () => {
+		const later = {
+			...standing,
+			review: {
+				...standing.review,
+				strong: [{ topic: "logic.ordering", reasons: ["shining"] }],
+				steps: [{ kind: "dance", topic: "logic.ordering" }],
+			},
+		};
+
+		const shown = readScreen(later);
+		if (shown?.screen !== "progress") {
+			throw new Error(`the progress reads as ${shown?.screen}`);
+		}
+
+		expect(shown.report.review?.strong).toEqual([
+			{ topic: "logic.ordering", reasons: ["shining"] },
+		]);
+		expect(shown.report.review?.develop[0]).toEqual({
+			topic: "combinatorics.enumeration",
+			reasons: ["trap"],
+			trap: "missed_case",
+		});
+		expect(shown.report.review?.early).toEqual(["counting.gaps"]);
+		expect(shown.report.review?.steps).toEqual([
+			{ kind: "dance", topic: "logic.ordering" },
+		]);
+	});
+
+	test.each([
+		["the trial series", inTrial],
+		["a progress from before the review", standingBefore],
+		["a review that does not read", { ...standing, review: { strong: 3 } }],
+	])(
+		"of the progress has no review in %s, and reads all the same",
+		(_, payload) => {
+			const shown = readScreen(payload);
+
+			expect(shown?.screen).toBe("progress");
+			expect(
+				shown?.screen === "progress" && shown.report.review,
+			).toBeUndefined();
+		},
+	);
 
 	test("of the progress from before the map of mistakes is read with none", () => {
 		const before = Object.fromEntries(

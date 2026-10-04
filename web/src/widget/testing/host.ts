@@ -1,19 +1,27 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
 import { InMemoryTransport } from "@modelcontextprotocol/client";
-import type { McpUiHostContext } from "@modelcontextprotocol/ext-apps";
+import type {
+	McpUiHostCapabilities,
+	McpUiHostContext,
+} from "@modelcontextprotocol/ext-apps";
 import { AppBridge } from "@modelcontextprotocol/ext-apps/app-bridge";
 
 /**
  * openTestHost connects the library's own host side to a transport the widget
  * can be given, as a chat host would, and returns both. Nothing in between is
- * faked: what the widget receives went through the protocol.
+ * faked: what the widget receives went through the protocol. The host tells
+ * the widget what it can do as capabilities says, and by default that it can
+ * do nothing a widget may ask of a host.
  */
-export async function openTestHost(context: McpUiHostContext = {}) {
+export async function openTestHost(
+	context: McpUiHostContext = {},
+	capabilities: McpUiHostCapabilities = {},
+) {
 	const [hostSide, widgetSide] = InMemoryTransport.createLinkedPair();
 	const host = new AppBridge(
 		null,
 		{ name: "test-host", version: "1.0.0" },
-		{},
+		capabilities,
 		{ hostContext: context },
 	);
 	await host.connect(hostSide);
@@ -50,10 +58,16 @@ export async function deliver(
 export type ToolCall = { name: string; arguments: Record<string, unknown> };
 
 /**
+ * Opening is how a host answers a page the widget asks it to open: it opens
+ * it, it refuses it, or it fails to answer at all.
+ */
+export type Opening = "open" | "refuse" | "fail";
+
+/**
  * listenAsHost has host answer the widget as a chat host would: each tool call
- * the widget asks for is answered by tools, and each message for the chat and
- * each line for the model is taken. What was asked is kept, in order, for a
- * test to read.
+ * the widget asks for is answered by tools, each message for the chat and each
+ * line for the model is taken, and each page it asks to open is answered as
+ * opening says. What was asked is kept, in order, for a test to read.
  */
 export function listenAsHost(
 	host: AppBridge,
@@ -61,12 +75,25 @@ export function listenAsHost(
 	{
 		refuseMessages = false,
 		refuseModelLines = false,
-	}: { refuseMessages?: boolean; refuseModelLines?: boolean } = {},
+		opening = "open",
+	}: {
+		refuseMessages?: boolean;
+		refuseModelLines?: boolean;
+		opening?: Opening;
+	} = {},
 ) {
 	const heard = {
 		calls: [] as ToolCall[],
 		messages: [] as string[],
 		modelLines: [] as string[],
+		pages: [] as string[],
+	};
+	host.onopenlink = async ({ url }) => {
+		heard.pages.push(url);
+		if (opening === "fail") {
+			throw new Error("the host could not open the page");
+		}
+		return opening === "refuse" ? { isError: true } : {};
 	};
 	host.oncalltool = async (params) => {
 		const call = { name: params.name, arguments: params.arguments ?? {} };

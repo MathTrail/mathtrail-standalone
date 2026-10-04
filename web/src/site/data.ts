@@ -3,8 +3,11 @@ import topics from "../../../content/catalogs/topics.json";
 import traps from "../../../content/catalogs/traps.json";
 import file from "../../../site/data.json";
 import { type ProgressReport, readScreen } from "../widget/payload";
+import { type Home, homeFile, readHome } from "./home";
+import { readTechniques, type Techniques } from "./techniques";
 import { type CatalogTopic, gradesOf, readTopics, type Topics } from "./topics";
 import { type CatalogTrap, type ReferenceTask, rankTraps } from "./traps";
+import { readWhy, type Why, whyFile } from "./why";
 
 /**
  * Catalog is what the site reads of the service's content: its topics, its
@@ -17,16 +20,17 @@ export type Catalog = {
 };
 
 /**
- * Example is an example a topic's page works through, as far as no language
- * changes it: the first and the last grade of the level it is set at.
+ * Example is an example a page works through, as far as no language changes
+ * it: the first and the last grade of the level it is set at.
  */
 export type Example = { readonly grades: readonly [number, number] };
 
 /**
  * SiteData is what the site's pages draw that no language changes: the
  * catalog's topics with the groups they are shown in, each topic's traps, the
- * examples its page works through, and the progress of the child the site's
- * cards are drawn for, an invented one.
+ * examples its page works through, the progress of the child the site's
+ * cards are drawn for, an invented one, what the page "Why" shows — its card
+ * and the works it cites — and the techniques of the page of the techniques.
  */
 export type SiteData = {
 	readonly topics: Topics;
@@ -36,6 +40,12 @@ export type SiteData = {
 	readonly examples: ReadonlyMap<string, readonly Example[]>;
 	/** progress is a progress as the service sends it, but for the child's name. */
 	readonly progress: Sample;
+	/** why is what the page "Why" draws, when the data has it. */
+	readonly why?: Why;
+	/** home is what the home page draws, when the data has it. */
+	readonly home?: Home;
+	/** techniques are what the page of the techniques draws, when the data has them. */
+	readonly techniques?: Techniques;
 };
 
 // sample is a progress as the service sends it, whose profile is completed
@@ -49,22 +59,51 @@ type Sample = z.infer<typeof sample>;
 // numbers joined by dashes, the name of its file.
 const solverName = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+// exampleFile is an example as the site's data writes it: the level it is set
+// at, and the solver and the answer that prove it.
+const exampleFile = z.object({
+	level: z.string(),
+	solver: z.string().regex(solverName),
+	answer: z.string().min(1),
+});
+
+// techniquesFile is what the page of the techniques takes from the site's
+// data: its groups, each with its techniques in order — a technique's name,
+// the topics it leads to and its example — and the rows of its hint, each
+// with the techniques it suggests.
+const techniquesFile = z.object({
+	groups: z
+		.array(
+			z.object({
+				id: z.string(),
+				techniques: z
+					.array(
+						z.object({
+							id: z.string(),
+							topics: z.array(z.string()),
+							example: exampleFile,
+						}),
+					)
+					.min(1),
+			}),
+		)
+		.min(1),
+	cues: z.array(z.array(z.string()).min(1)).min(1),
+});
+
+/** TechniquesFile is what the page of the techniques takes from the site's data. */
+export type TechniquesFile = z.infer<typeof techniquesFile>;
+
 // dataFile is the shape of the site's data file: its groups, the examples of
-// the topics' pages — each with its level, and the solver and the answer that
-// prove it — and the progress its cards are drawn from.
+// the topics' pages, the progress its cards are drawn from, what the page
+// "Why" draws, and the techniques of the page of the techniques.
 const dataFile = z.object({
 	groups: z.array(z.object({ id: z.string(), topics: z.array(z.string()) })),
-	examples: z.record(
-		z.string(),
-		z.array(
-			z.object({
-				level: z.string(),
-				solver: z.string().regex(solverName),
-				answer: z.string().min(1),
-			}),
-		),
-	),
+	examples: z.record(z.string(), z.array(exampleFile)),
 	progress: sample,
+	why: whyFile.optional(),
+	home: homeFile.optional(),
+	techniques: techniquesFile.optional(),
 });
 
 /**
@@ -73,6 +112,8 @@ const dataFile = z.object({
  * whatever the child's name, and an example of a topic whose page is not
  * published, or at a level the topic is not taught at, so that a mistake in
  * the file stops the build rather than drawing a page with a part missing.
+ * What the home page and the page "Why" draw, and the techniques, are held
+ * to the catalog as well.
  */
 export function readSiteData(catalog: Catalog, data: unknown): SiteData {
 	const read = dataFile.safeParse(data);
@@ -86,6 +127,18 @@ export function readSiteData(catalog: Catalog, data: unknown): SiteData {
 			traps: ranked,
 			examples: readExamples(catalog.topics, read.data.examples),
 			progress: read.data.progress,
+			why:
+				read.data.why === undefined
+					? undefined
+					: readWhy(catalog, read.data.why),
+			home:
+				read.data.home === undefined
+					? undefined
+					: readHome(catalog, read.data.home),
+			techniques:
+				read.data.techniques === undefined
+					? undefined
+					: readTechniques(catalog.topics, read.data.techniques),
 		};
 		progressOf(site, "Comet");
 		return site;

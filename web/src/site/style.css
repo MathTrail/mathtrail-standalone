@@ -56,6 +56,8 @@
 	--s-soft: #f8fafd;
 	--s-trap: #ffdad6;
 	--s-on-trap: #8c1d18;
+	--s-right: #c4eed0;
+	--s-on-right: #0a3818;
 }
 
 *,
@@ -396,6 +398,36 @@ a:hover {
 	color: var(--s-accent-hover);
 }
 
+/* The one thing a part of a page asks a reader to do first: filled blue. */
+.s-btn-filled {
+	border-color: var(--s-accent);
+	background: var(--s-accent);
+	color: var(--s-page);
+}
+
+.s-btn-filled:hover {
+	border-color: var(--s-accent-hover);
+	background: var(--s-accent-hover);
+	color: var(--s-page);
+}
+
+/* The header's button, the one thing it asks a reader to do: a size smaller
+   than a page's own buttons, whose rules it comes after, and left out on a
+   phone, which has no room for it beside the menu — the menu leads to the
+   same place. */
+.s-nav-action {
+	min-block-size: 40px;
+	padding-inline: 20px;
+	font-size: 0.9375rem;
+	white-space: nowrap;
+}
+
+@media (max-width: 719px) {
+	.s-nav-action {
+		display: none;
+	}
+}
+
 /* The footer: white under a hairline, with the pages, the code and the
    address in grey. */
 .s-footer {
@@ -434,11 +466,6 @@ a:hover {
 .s-footlinks a:hover {
 	color: var(--s-accent);
 	text-decoration: underline;
-}
-
-.s-legal {
-	max-inline-size: var(--measure);
-	margin-block: 0;
 }
 
 /* A page a component draws: its sections one under another, each opening
@@ -493,6 +520,9 @@ a:hover {
 	gap: var(--space-24);
 }
 
+/* A word longer than a phone's width, such as a topic's name in Russian, is
+   hyphenated where the browser knows the language, and broken where it does
+   not, rather than pushing the page sideways. */
 .s-hero h1 {
 	margin: 0;
 	font-size: clamp(2.75rem, 1.6rem + 3.6vw, 4.25rem);
@@ -500,6 +530,8 @@ a:hover {
 	line-height: 1.04;
 	letter-spacing: -0.03em;
 	text-wrap: balance;
+	overflow-wrap: break-word;
+	hyphens: auto;
 }
 
 .s-hero .s-lead {
@@ -1391,7 +1423,1466 @@ a:hover {
 		padding: 16px;
 	}
 
+	/* On a phone an example's drawing is a size smaller: a line of twenty-odd
+	   characters then fits its panel on a screen 320 px wide, rather than
+	   scrolling inside it. */
+	.s-example-work .s-drawing {
+		font-size: 0.9375rem;
+	}
+
 	.s-ask-wrap {
 		padding-inline: var(--space-16);
+	}
+}
+
+/* The page "Why": a school sum beside an olympiad problem on the first
+   screen, the findings of research each with its work, the lesson and the
+   problem side by side, what a parent needs, the card of a wrong answer with
+   the chat under it, and the works the page cites. */
+.s-contrast {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-16);
+}
+
+.s-contrast-card {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-8);
+	padding: var(--space-24);
+	border-radius: 24px;
+	background: var(--s-page);
+}
+
+.s-contrast-label,
+.s-contrast-text,
+.s-contrast-sum,
+.s-contrast-note {
+	margin: 0;
+}
+
+.s-contrast-label,
+.s-contrast-note {
+	color: var(--s-muted);
+	font-size: 0.875rem;
+	font-weight: 500;
+}
+
+.s-contrast-sum {
+	font-size: 1.875rem;
+	font-weight: 500;
+	font-variant-numeric: tabular-nums;
+}
+
+.s-contrast-raised {
+	box-shadow:
+		0 1px 2px rgb(31 31 31 / 8%),
+		0 8px 24px rgb(31 31 31 / 8%);
+}
+
+.s-contrast .s-drawing {
+	padding: 12px 16px;
+	background: var(--s-soft);
+}
+
+.s-contrast figcaption {
+	color: var(--s-muted);
+	font-size: 0.875rem;
+	text-align: center;
+	text-wrap: balance;
+}
+
+.s-chip-right {
+	border-color: var(--s-right);
+	background: var(--s-right);
+	color: var(--s-on-right);
+}
+
+.s-chip-trap {
+	border-color: var(--s-trap);
+	background: var(--s-trap);
+	color: var(--s-on-trap);
+}
+
+.s-finding .s-cite {
+	margin: auto 0 0;
+	font-size: 0.875rem;
+	font-weight: 500;
+}
+
+.s-versus thead td {
+	border-block-end: 1px solid var(--s-line);
+	background: var(--s-soft);
+}
+
+.s-versus td.s-versus-olympiad {
+	background: var(--s-soft);
+}
+
+.s-versus thead th.s-versus-olympiad {
+	background: var(--s-accent-tint);
+	color: var(--s-on-tint);
+}
+
+/* Two parts side by side, one under the other on a narrow screen. */
+.s-split {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+	align-items: start;
+	gap: 56px;
+}
+
+.s-split-part {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-16);
+}
+
+.s-split-part .s-note {
+	margin: 0;
+}
+
+.s-label {
+	margin: var(--space-16) 0 0;
+	color: var(--s-muted);
+	font-size: 0.875rem;
+	font-weight: 600;
+}
+
+.s-unneeded {
+	padding: 0;
+	list-style: none;
+}
+
+.s-unneeded .s-chip::before {
+	content: "✕" / "";
+	margin-inline-end: var(--space-8);
+	color: var(--s-on-trap);
+}
+
+.s-needs,
+.s-points {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-16);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.s-need {
+	display: flex;
+	gap: var(--space-16);
+	padding: var(--space-24);
+	border-radius: 24px;
+	background: var(--s-tint);
+}
+
+.s-need .s-number {
+	inline-size: 36px;
+	block-size: 36px;
+	font-size: 0.9375rem;
+}
+
+.s-need h4,
+.s-point h3 {
+	margin: 0 0 var(--space-4);
+	font-size: 1.125rem;
+	font-weight: 600;
+	line-height: 1.35;
+}
+
+.s-explain {
+	margin-block-start: 40px;
+	padding: 32px;
+	border: 1px solid var(--s-line);
+	border-radius: 28px;
+}
+
+.s-explain h3 {
+	margin: 0;
+	font-size: 1.3125rem;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.s-quotes {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+	gap: var(--space-16);
+	margin: var(--space-24) 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.s-quote {
+	padding: 16px 20px;
+	border-radius: 20px;
+	border-start-start-radius: 4px;
+	background: var(--s-tint);
+	line-height: 1.5;
+}
+
+.s-points {
+	margin-block-start: 32px;
+}
+
+.s-point {
+	display: flex;
+	gap: var(--space-16);
+}
+
+.s-point + .s-point {
+	padding-block-start: var(--space-16);
+	border-block-start: 1px solid var(--s-hairline);
+}
+
+.s-lesson {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-24);
+}
+
+.s-lesson .s-hero-card {
+	inline-size: 100%;
+	margin: 0;
+}
+
+/* The chat under the card: the child's message at the end of the line, the
+   model's at its start, as a chat sets them. */
+.s-chat {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	inline-size: 100%;
+	max-inline-size: 400px;
+	margin: 0;
+}
+
+.s-chat figcaption {
+	color: var(--s-muted);
+	font-size: 0.8125rem;
+	text-align: center;
+}
+
+.s-message {
+	display: flex;
+	flex-direction: column;
+}
+
+.s-bubble {
+	max-inline-size: 85%;
+	margin: 0;
+	padding: 10px 16px;
+	border-radius: 18px;
+	font-size: 0.9375rem;
+	line-height: 1.5;
+}
+
+.s-message-child .s-bubble {
+	align-self: flex-end;
+	border-end-end-radius: 4px;
+	background: var(--s-accent-tint);
+	color: var(--s-on-tint);
+}
+
+.s-message-model .s-bubble {
+	align-self: flex-start;
+	border-end-start-radius: 4px;
+	background: var(--s-page);
+}
+
+.s-tiles-two {
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+}
+
+.s-code {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-16);
+	margin: 32px 0 0;
+	padding: 20px 24px;
+	border: 1px solid var(--s-line);
+	border-radius: 28px;
+}
+
+.s-ask-lead {
+	max-inline-size: 36em;
+	margin: 0;
+	color: var(--s-muted);
+	font-size: 1.0625rem;
+}
+
+.s-sources-title {
+	margin: 0;
+	font-size: 1.25rem;
+	font-weight: 600;
+}
+
+.s-sources ol {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-8);
+	margin: var(--space-16) 0 0;
+	padding-inline-start: 1.5em;
+	color: var(--s-muted);
+	font-size: 0.875rem;
+	line-height: 1.5;
+	overflow-wrap: anywhere;
+}
+
+@media (max-width: 479px) {
+	.s-explain,
+	.s-need {
+		padding: var(--space-16);
+	}
+
+	.s-contrast-card {
+		padding: var(--space-16);
+	}
+}
+
+/* The page of the techniques: the first screen's list of every technique by
+   its group, on the tinted panel, each a pill that leads to its part of the
+   page. */
+.s-overview {
+	display: flex;
+	flex-direction: column;
+	gap: 22px;
+}
+
+.s-overview-group {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.s-overview-title {
+	margin: 0;
+	color: var(--s-muted);
+	font-size: 0.875rem;
+	font-weight: 600;
+}
+
+.s-overview-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-8);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.s-technique-link {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-8);
+	padding: var(--space-8) 14px;
+	border-radius: var(--radius-pill);
+	background: var(--s-page);
+	color: var(--s-text);
+	font-size: 0.9375rem;
+	font-weight: 500;
+	text-decoration: none;
+}
+
+.s-technique-link:hover {
+	background: var(--s-accent-tint);
+	color: var(--s-on-tint);
+}
+
+.s-technique-link-number {
+	color: var(--s-accent);
+	font-size: 0.75rem;
+	font-weight: 600;
+}
+
+.s-tiles-four {
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+}
+
+.s-number-large {
+	inline-size: 40px;
+	block-size: 40px;
+	font-size: 1rem;
+}
+
+/* A technique: its card on the tinted panel, the problem on white, and the
+   solution folded under a pill until asked for. */
+.s-technique {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-20);
+	margin-block-start: 40px;
+	padding: clamp(16px, 4vw, 44px);
+	border-radius: 36px;
+	background: var(--s-tint);
+}
+
+.s-technique + .s-technique {
+	margin-block-start: var(--space-24);
+}
+
+.s-technique-head {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-12);
+	max-inline-size: 46em;
+}
+
+.s-technique-number {
+	color: var(--s-accent);
+	font-size: 1.125rem;
+	font-weight: 600;
+}
+
+.s-technique h3 {
+	margin: 0;
+	font-size: clamp(1.75rem, 1.3rem + 1.4vw, 2.25rem);
+	font-weight: 500;
+	line-height: 1.12;
+	letter-spacing: -0.02em;
+	overflow-wrap: break-word;
+	hyphens: auto;
+}
+
+.s-technique-aka {
+	margin: 0;
+	color: var(--s-muted);
+	font-size: 0.9375rem;
+}
+
+.s-technique-what {
+	margin: 0;
+	color: var(--s-muted);
+	font-size: 1.0625rem;
+	line-height: 1.6;
+	text-wrap: pretty;
+}
+
+.s-technique-when {
+	margin: 0;
+	font-size: 0.9375rem;
+	line-height: 1.55;
+}
+
+.s-technique-task {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-8);
+	padding: 20px 22px;
+	border-radius: 20px;
+	background: var(--s-page);
+}
+
+.s-technique-question {
+	margin: 0;
+	font-size: 1.125rem;
+	line-height: 1.56;
+}
+
+.s-solution-toggle {
+	display: inline-flex;
+	align-items: center;
+	min-block-size: var(--tap-target);
+	padding-inline: 20px;
+	border: 1px solid var(--s-outline);
+	border-radius: var(--radius-pill);
+	background: var(--s-page);
+	color: var(--s-accent);
+	font-size: 0.9375rem;
+	font-weight: 500;
+	cursor: pointer;
+	list-style: none;
+}
+
+.s-solution-toggle::-webkit-details-marker {
+	display: none;
+}
+
+.s-solution-toggle:hover,
+.s-solution[open] > .s-solution-toggle {
+	background: var(--s-accent-tint);
+	color: var(--s-on-tint);
+}
+
+.s-solution-body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-16);
+	margin-block-start: var(--space-16);
+}
+
+.s-technique-topics {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-8);
+	margin: 0;
+}
+
+.s-technique-topics-label {
+	color: var(--s-muted);
+	font-size: 0.875rem;
+}
+
+.s-technique-topics .s-chip {
+	background: var(--s-page);
+}
+
+.s-technique-topics .s-soon {
+	color: var(--s-dim);
+}
+
+.s-chip-link {
+	border-color: var(--s-page);
+	color: var(--s-accent);
+	text-decoration: none;
+}
+
+.s-chip-link:hover {
+	background: var(--s-accent-tint);
+	color: var(--s-on-tint);
+}
+
+/* A technique's drawing: a white panel beside the steps, laid out by the page
+   from the problem's numbers, small enough for a phone's width. */
+.s-figure {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-12);
+	min-inline-size: 0;
+	margin: 0;
+}
+
+.s-figure figcaption {
+	color: var(--s-muted);
+	font-size: 0.875rem;
+	line-height: 1.5;
+}
+
+.s-art {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	padding: var(--space-16);
+	border-radius: 24px;
+	background: var(--s-page);
+	font-size: 0.9375rem;
+	font-variant-numeric: tabular-nums;
+}
+
+.s-art-title {
+	margin: 0;
+	color: var(--s-muted);
+	font-size: 0.8125rem;
+	font-weight: 600;
+}
+
+.s-art-part {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding-block-start: 14px;
+	border-block-start: 1px dashed var(--s-line-strong);
+}
+
+.s-art-sum,
+.s-art-note {
+	margin: 0;
+}
+
+.s-art-note {
+	color: var(--s-muted);
+	font-size: 0.875rem;
+}
+
+.s-art-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin: 0;
+}
+
+.s-art-chip {
+	display: inline-block;
+	padding: 3px 10px;
+	border-radius: var(--radius-pill);
+	background: var(--s-tint);
+	font-size: 0.875rem;
+}
+
+.s-art-chip-accent {
+	background: var(--s-accent);
+	color: var(--s-page);
+}
+
+.s-art-accent {
+	color: var(--s-accent);
+	font-weight: 600;
+}
+
+.s-art-dot {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 34px;
+	block-size: 34px;
+	border-radius: 50%;
+	background: var(--s-accent-tint);
+	color: var(--s-on-tint);
+	font-weight: 600;
+}
+
+.s-art-dot-accent {
+	background: var(--s-accent);
+	color: var(--s-page);
+}
+
+/* Ages as bars: the sister's, the brother's with four years more, the two
+   bracketed with their sum; then the two equal halves. */
+.s-ages {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 10px;
+}
+
+.s-ages-name {
+	color: var(--s-muted);
+	font-size: 0.875rem;
+}
+
+.s-ages-bars {
+	display: flex;
+	gap: var(--space-4);
+	block-size: 40px;
+}
+
+.s-ages-bar,
+.s-ages-extra {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 10px;
+	font-weight: 600;
+}
+
+.s-ages-bar {
+	flex: 3;
+	background: var(--s-accent-tint);
+	color: var(--s-on-tint);
+}
+
+.s-ages-rest,
+.s-ages-extra {
+	flex: 1;
+}
+
+.s-ages-extra {
+	background: var(--s-accent);
+	color: var(--s-page);
+}
+
+.s-ages-halves .s-ages-bar {
+	flex: 1;
+}
+
+.s-ages-total {
+	display: flex;
+	grid-column: 3;
+	grid-row: 1 / span 2;
+	align-items: center;
+	align-self: stretch;
+	padding-inline-start: 10px;
+	border: 2px solid var(--s-outline);
+	border-inline-start: 0;
+	border-start-end-radius: 12px;
+	border-end-end-radius: 12px;
+	font-size: 1.125rem;
+	font-weight: 600;
+}
+
+/* The table of children and pets, a cross or a tick in every cell with the
+   step that put it there. */
+.s-pets {
+	display: grid;
+	grid-template-columns: auto repeat(3, minmax(0, 1fr));
+	align-items: center;
+	gap: 6px;
+}
+
+.s-pets-head {
+	color: var(--s-muted);
+	font-size: 0.75rem;
+	font-weight: 500;
+	text-align: center;
+	overflow-wrap: anywhere;
+}
+
+.s-pets-name {
+	font-weight: 500;
+}
+
+.s-pets-cell {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	block-size: 44px;
+	border-radius: 12px;
+	font-size: 1.125rem;
+	font-weight: 700;
+}
+
+.s-pets-no {
+	background: var(--s-trap);
+	color: var(--s-on-trap);
+}
+
+.s-pets-yes {
+	background: var(--s-right);
+	color: var(--s-on-right);
+}
+
+.s-pets-step {
+	position: absolute;
+	inset-block-start: 3px;
+	inset-inline-end: 6px;
+	font-size: 0.6875rem;
+	font-weight: 600;
+}
+
+/* Roads with their posts, against the gaps and the posts each has, and the
+   long road with the rule they show. */
+.s-posts {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto auto;
+	align-items: center;
+	column-gap: var(--space-8);
+}
+
+.s-posts-head {
+	color: var(--s-muted);
+	font-size: 0.6875rem;
+	font-weight: 600;
+	text-align: center;
+}
+
+.s-posts-name,
+.s-posts-road,
+.s-posts-count,
+.s-posts-rule {
+	align-self: stretch;
+	display: flex;
+	align-items: center;
+	padding-block: 10px;
+	border-block-start: 1px solid var(--s-hairline);
+}
+
+.s-posts-name {
+	color: var(--s-muted);
+	font-size: 0.875rem;
+	white-space: nowrap;
+}
+
+.s-posts-count {
+	justify-content: center;
+	font-size: 1rem;
+}
+
+.s-posts-rule {
+	color: var(--s-muted);
+	font-size: 0.8125rem;
+}
+
+.s-posts-last {
+	border-block-start: 2px solid var(--s-text);
+}
+
+.s-posts-name.s-posts-last {
+	color: var(--s-text);
+	font-weight: 600;
+}
+
+/* The posts stand on a line as long as the road they mark, so a longer road
+   draws longer. */
+.s-posts-line {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.s-posts-line::before {
+	position: absolute;
+	inset-block-start: 50%;
+	inset-inline: 0;
+	border-block-start: 2px solid var(--s-outline);
+	content: "";
+}
+
+.s-posts-post {
+	position: relative;
+	inline-size: 3px;
+	block-size: 22px;
+	border-radius: 2px;
+	background: var(--s-accent);
+}
+
+/* The tree of options: each first digit, and the numbers it begins. */
+.s-tree {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-8);
+}
+
+.s-tree-branch {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.s-tree-leaves {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	padding-inline-start: 12px;
+	border-inline-start: 2px solid var(--s-line-strong);
+}
+
+/* A story told forwards, and the way back. */
+.s-chain {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px var(--space-8);
+}
+
+.s-chain-step {
+	color: var(--s-muted);
+	font-size: 0.8125rem;
+}
+
+/* Heads, each with its legs: every one a hen's first, then four rabbits. */
+.s-heads {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-4);
+}
+
+.s-heads-head {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	inline-size: 18px;
+	block-size: 22px;
+	border-radius: 6px;
+	background: var(--s-accent-tint);
+	color: var(--s-on-tint);
+	font-size: 0.6875rem;
+	font-weight: 600;
+}
+
+.s-heads-rabbit {
+	background: var(--s-accent);
+	color: var(--s-page);
+}
+
+.s-heads-total {
+	margin-inline-start: 6px;
+	font-size: 0.875rem;
+	font-weight: 600;
+}
+
+/* Flags in fours, the one asked about ringed. Their colours are the
+   problem's, not the site's palette. */
+.s-flags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-8);
+}
+
+.s-flags-four {
+	display: inline-flex;
+	gap: 3px;
+	padding: var(--space-4);
+	border: 1px dashed var(--s-line-strong);
+	border-radius: 8px;
+}
+
+.s-flag {
+	inline-size: 12px;
+	block-size: 18px;
+	border-radius: 3px;
+}
+
+.s-flag-red {
+	background: #d93025;
+}
+
+.s-flag-yellow {
+	background: #f9ab00;
+}
+
+.s-flag-green {
+	background: #188038;
+}
+
+.s-flag-blue {
+	background: #1a73e8;
+}
+
+.s-flag-asked {
+	outline: 2px solid var(--s-text);
+	outline-offset: 2px;
+}
+
+/* Two ways of supposing: one to a contradiction, one that fits. */
+.s-ways {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+	gap: var(--space-12);
+}
+
+.s-way {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin: 0;
+	padding: var(--space-12);
+	border: 1px solid;
+	border-radius: 16px;
+	font-size: 0.875rem;
+	list-style: none;
+}
+
+.s-way-dead {
+	border-color: var(--s-trap);
+}
+
+.s-way-fits {
+	border-color: var(--s-right);
+}
+
+.s-way-start,
+.s-way-end {
+	font-weight: 600;
+}
+
+.s-way-dead .s-way-end {
+	color: var(--s-on-trap);
+}
+
+.s-way-fits .s-way-end {
+	color: var(--s-on-right);
+}
+
+/* The number line in two colours, and the colour of the cell after each
+   jump. */
+.s-line,
+.s-jumps,
+.s-holes,
+.s-strip {
+	display: grid;
+	gap: 3px;
+}
+
+.s-line,
+.s-strip {
+	grid-template-columns: repeat(9, minmax(0, 1fr));
+}
+
+.s-line-cell,
+.s-strip-cell {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	block-size: 32px;
+	border-radius: 8px;
+	font-size: 0.75rem;
+	font-weight: 600;
+}
+
+.s-line-even {
+	background: var(--s-accent-tint);
+	color: var(--s-on-tint);
+}
+
+.s-line-odd {
+	background: var(--s-accent);
+	color: var(--s-page);
+}
+
+.s-line-start {
+	outline: 2px solid var(--s-text);
+	outline-offset: 1px;
+}
+
+.s-jumps {
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	gap: var(--space-4);
+}
+
+.s-jumps-jump {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding-block: 6px;
+	border-radius: 10px;
+	font-size: 0.75rem;
+	font-weight: 600;
+}
+
+.s-jumps-number {
+	font-size: 0.875rem;
+}
+
+/* A die's numbers as holes, a throw in each, and the seventh throw in one
+   already taken. */
+.s-holes {
+	grid-template-columns: repeat(6, minmax(0, 1fr));
+	gap: 6px;
+}
+
+.s-hole {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-4);
+	padding-block: var(--space-8);
+	border: 1px solid var(--s-line-strong);
+	border-radius: 12px;
+}
+
+.s-hole-twice {
+	border-color: var(--s-accent);
+	background: var(--s-accent-tint);
+}
+
+.s-hole-face {
+	font-size: 0.875rem;
+	font-weight: 600;
+}
+
+.s-hole-throw {
+	inline-size: 10px;
+	block-size: 10px;
+	border-radius: 50%;
+	background: var(--s-on-tint);
+}
+
+.s-hole-seventh {
+	background: var(--s-accent);
+	outline: 2px solid var(--s-page);
+}
+
+/* The strip of nine cells, every counter numbered by its move. */
+.s-strip-cell {
+	border: 1px solid var(--s-line-strong);
+}
+
+.s-strip-first {
+	border-color: var(--s-accent);
+	background: var(--s-accent);
+	color: var(--s-page);
+}
+
+.s-strip-second {
+	border-color: var(--s-outline);
+	background: var(--s-outline);
+	color: var(--s-page);
+}
+
+/* The hint: what a problem says, beside the techniques it suggests, in two
+   columns where there is room and one under the other where there is not. */
+.s-cues {
+	margin-block-start: 40px;
+	overflow: hidden;
+	border: 1px solid var(--s-line);
+	border-radius: 28px;
+}
+
+.s-cues-head,
+.s-cue {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+	align-items: center;
+}
+
+.s-cues-head {
+	margin: 0;
+	border-block-end: 1px solid var(--s-line);
+	background: var(--s-soft);
+	color: var(--s-muted);
+	font-size: 0.875rem;
+	font-weight: 500;
+}
+
+.s-cues-head span {
+	padding: var(--space-16) var(--space-24);
+}
+
+.s-cues-list {
+	margin: 0;
+}
+
+.s-cue + .s-cue {
+	border-block-start: 1px solid var(--s-hairline);
+}
+
+.s-cue dt {
+	padding: var(--space-16) var(--space-24);
+	font-size: 1.0625rem;
+	line-height: 1.5;
+}
+
+.s-cue dd {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-8);
+	margin: 0;
+	padding: var(--space-12) var(--space-24);
+}
+
+.s-cue .s-technique-link {
+	background: var(--s-tint);
+}
+
+/* The page about who makes MathTrail: the first screen with no panel beside
+   it, a card for each of the family under the role it plays, and where to
+   write, in a frame with its buttons. */
+.s-team {
+	padding-block-start: 56px;
+}
+
+.s-team .s-tiles {
+	margin: 0;
+}
+
+.s-member-role {
+	align-self: flex-start;
+	margin: 0;
+}
+
+/* Where to write: the framed line of "Why", a size larger and on its own. */
+.s-contact {
+	gap: var(--space-24);
+	margin: 0;
+	padding: 32px;
+}
+
+.s-contact-copy {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-8);
+	max-inline-size: 640px;
+}
+
+.s-contact-title {
+	margin: 0;
+	font-size: 1.5rem;
+	font-weight: 600;
+	line-height: 1.25;
+}
+
+.s-contact-actions {
+	justify-content: flex-start;
+	margin: 0;
+}
+
+/* Beside no card, the first screen's words start at the top of their row. */
+@media (min-width: 992px) {
+	.s-about-hero .s-hero-copy {
+		padding-block-start: 0;
+	}
+}
+
+@media (max-width: 479px) {
+	.s-contact {
+		padding: var(--space-24);
+	}
+}
+
+/* The home page. Its first screen: the buttons under the promise, and a line
+   under them on where it works. */
+.s-hero-actions {
+	justify-content: flex-start;
+	margin: 0;
+}
+
+.s-hero-note {
+	margin: 0;
+	color: var(--s-muted);
+	font-size: 0.9375rem;
+}
+
+/* The line over a section's heading that says what part of the page it is. */
+.s-eyebrow {
+	margin: 0;
+	color: var(--s-accent);
+	font-size: 0.875rem;
+	font-weight: 600;
+}
+
+/* The chat a card stands in: a white frame under the chat's name, with the
+   parent's message above the card, and the model's messages tinted against
+   the white. */
+.s-frame {
+	inline-size: 100%;
+	max-inline-size: 440px;
+	overflow: hidden;
+	border: 1px solid var(--s-line);
+	border-radius: 24px;
+	background: var(--s-page);
+}
+
+.s-frame-head {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	margin: 0;
+	padding: 10px 16px;
+	border-block-end: 1px solid var(--s-line);
+	color: var(--s-muted);
+	font-size: 0.8125rem;
+	font-weight: 500;
+}
+
+.s-frame-body {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-12);
+	padding: var(--space-16);
+}
+
+.s-frame-body > .s-message {
+	align-self: stretch;
+}
+
+.s-frame .s-message-model .s-bubble {
+	background: var(--s-tint);
+}
+
+/* How a lesson goes: each step's words beside the card as it stands at that
+   step, one under the other on a narrow screen. Beside a card taller than
+   themselves, the words stay in sight while the card scrolls past. A step
+   within the one before it has a short line in place of a number. */
+.s-walk {
+	display: flex;
+	flex-direction: column;
+	gap: 72px;
+	margin: 56px 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.s-walk-step {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: var(--space-24);
+}
+
+.s-walk-copy {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-12);
+	max-inline-size: 560px;
+}
+
+.s-walk-copy h3 {
+	margin: 0;
+	font-size: clamp(1.5rem, 1.25rem + 0.6vw, 1.75rem);
+	font-weight: 500;
+	line-height: 1.2;
+	letter-spacing: -0.015em;
+}
+
+.s-walk-number {
+	color: var(--s-accent);
+	font-size: 1.125rem;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+.s-walk-within .s-walk-number {
+	inline-size: 24px;
+	block-size: 1px;
+	margin-block: 12px;
+	background: var(--s-line-strong);
+}
+
+.s-walk-card {
+	display: flex;
+	justify-content: center;
+}
+
+@media (min-width: 960px) {
+	.s-walk-step {
+		grid-template-columns: minmax(0, 1fr) 440px;
+		align-items: start;
+		gap: 80px;
+	}
+
+	.s-walk-copy {
+		position: sticky;
+		inset-block-start: calc(64px + var(--space-32));
+		padding-block-start: var(--space-32);
+	}
+}
+
+.s-walk-note {
+	margin-block-start: 56px;
+}
+
+/* Connecting: Claude's steps on a tinted panel, and ChatGPT's on a white one
+   beside them, one under the other on a narrow screen. */
+.s-connect {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	align-items: start;
+	gap: var(--space-24);
+	margin-block-start: 48px;
+}
+
+@media (min-width: 960px) {
+	.s-connect {
+		grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+	}
+}
+
+.s-connect-panel {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-20);
+	padding: 40px;
+	border-radius: 32px;
+	background: var(--s-tint);
+}
+
+.s-connect-muted {
+	border: 1px solid var(--s-line);
+	background: var(--s-page);
+}
+
+.s-connect-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-12);
+}
+
+.s-connect-head h3 {
+	margin: 0;
+	font-size: 1.75rem;
+	font-weight: 500;
+	line-height: 1.2;
+	letter-spacing: -0.015em;
+}
+
+.s-pill {
+	display: inline-flex;
+	align-items: center;
+	min-block-size: 28px;
+	padding-inline: 12px;
+	border: 1px solid var(--s-line-strong);
+	border-radius: var(--radius-pill);
+	color: var(--s-muted);
+	font-size: 0.8125rem;
+	font-weight: 600;
+}
+
+.s-pill-ok {
+	border-color: transparent;
+	background: var(--s-right);
+	color: var(--s-on-right);
+}
+
+.s-connect-steps {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-16);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.s-connect-steps li {
+	display: flex;
+	align-items: flex-start;
+	gap: 14px;
+}
+
+.s-connect-number {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 28px;
+	block-size: 28px;
+	border-radius: 50%;
+	background: var(--s-accent);
+	color: var(--s-page);
+	font-size: 0.8125rem;
+	font-weight: 600;
+}
+
+.s-connect-step {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	min-inline-size: 0;
+	padding-block-start: 2px;
+}
+
+.s-connect-text {
+	margin: 0;
+	font-size: 1.0625rem;
+	line-height: 1.55;
+}
+
+/* The connector's address in full: a click selects the whole of it, to be
+   copied as it stands. */
+.s-address {
+	display: block;
+	padding: 10px 18px;
+	border: 1px solid var(--s-line);
+	border-radius: var(--radius-pill);
+	background: var(--s-page);
+	font-family: var(--font-mono);
+	font-size: 0.875rem;
+	overflow-wrap: anywhere;
+	user-select: all;
+}
+
+.s-connect-note,
+.s-connect-need {
+	margin: 0;
+	color: var(--s-muted);
+	font-size: 0.9375rem;
+}
+
+.s-connect-need {
+	margin-block-start: var(--space-24);
+}
+
+@media (max-width: 719px) {
+	.s-connect-panel {
+		padding: var(--space-24);
+	}
+}
+
+/* On a phone the chat's frame keeps a narrower margin, so that the card in it
+   keeps the width a chat gives it. */
+@media (max-width: 479px) {
+	.s-frame-body {
+		padding: var(--space-8);
 	}
 }

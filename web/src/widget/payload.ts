@@ -254,12 +254,17 @@ export function readWaiting(payload: unknown): Waiting | undefined {
 const details = child.extend({
 	interests: z.array(z.string()),
 	excluded_skills: z.array(z.string()),
+	// A profile from a service from before the country was kept names none.
+	country: z.string().nullable().catch(null),
+	region: z.string().nullable().catch(null),
 });
 
 /**
  * Details are the child's profile as a card shows it: who the child is, what
- * the tasks may be dressed in, what the child has not met at school yet, and
- * the language of the lessons. The parent's notes are never among them.
+ * the tasks may be dressed in, what the child has not met at school yet, the
+ * language of the lessons, and the country and the region the family lives
+ * in, by their codes, or null for none given. The parent's notes are never
+ * among them.
  */
 export type Details = z.infer<typeof details>;
 
@@ -378,8 +383,8 @@ const move = z.object({
 // part of the progress a card can do without, never a reason to show none.
 const moves = z
 	.object({
-		last_task: move.nullable().catch(null),
-		week: move.nullable().catch(null),
+		last_task: z.nullable(move).catch(null),
+		week: z.nullable(move).catch(null),
 	})
 	.optional()
 	.catch(undefined);
@@ -395,6 +400,74 @@ export type Move = z.infer<typeof move>;
  * where the while cannot be told.
  */
 export type Moves = NonNullable<z.infer<typeof moves>>;
+
+// judged is a topic the review names: the topic, why it is named, by codes,
+// the trap its answers keep falling for, and whether a topic to develop has
+// begun to move. A code is read as any text, so that one a later release adds
+// leaves the card no reason it can say rather than no review.
+const judged = z.object({
+	topic: z.string(),
+	reasons: z.array(z.string()),
+	trap: z.string().optional(),
+	moving: z.boolean().optional(),
+});
+
+// step is a step the review advises: what it advises, by a code, the topic it
+// is for — none for the step that holds for every topic —, the trap whose
+// advice it is, and the strong topic a topic to begin builds on.
+const step = z.object({
+	kind: z.string(),
+	topic: z.string().optional(),
+	trap: z.string().optional(),
+	base: z.string().optional(),
+});
+
+// review is the review of the topics for the adult. A progress of the trial
+// series has none, and neither has one from before the review; one that does
+// not read is read as none, and the rest of the progress drawn all the same.
+const review = z
+	.object({
+		strong: z.array(judged),
+		develop: z.array(judged),
+		early: z.array(z.string()),
+		steps: z.array(step),
+	})
+	.optional()
+	.catch(undefined);
+
+// site is the site the topics' pages are on: its address and the languages it
+// is written in, each page in every one. A progress from before the links has
+// none, and one that does not read is read as none: the card links nothing.
+const site = z
+	.object({ url: z.string(), languages: z.array(z.string()) })
+	.optional()
+	.catch(undefined);
+
+/**
+ * Site is the site the topics' pages are on, as a progress names it: the
+ * address it gives, which a card checks before it links anything there, and
+ * the languages it is written in.
+ */
+export type Site = NonNullable<z.infer<typeof site>>;
+
+/**
+ * Judged is a topic the review names: the topic, why, by codes, the trap its
+ * answers keep falling for, and whether it has begun to move.
+ */
+export type Judged = z.infer<typeof judged>;
+
+/**
+ * ReviewStep is a step the review advises: its kind, the topic it is for, if
+ * it is for one, the trap whose advice it is, and the strong topic a topic to
+ * begin builds on.
+ */
+export type ReviewStep = z.infer<typeof step>;
+
+/**
+ * Review is the review of the topics for the adult: the strong topics, the
+ * ones to develop, the ones too early to judge, and the steps to take.
+ */
+export type Review = NonNullable<z.infer<typeof review>>;
 
 const progressReport = z.object({
 	screen: z.literal("progress"),
@@ -430,6 +503,11 @@ const progressReport = z.object({
 			mastered: z.boolean(),
 			skipped: z.number().int(),
 			change: moves,
+			// A progress from before the topics' pages has neither, and one
+			// that does not read is read as none: the topic is drawn with no
+			// link to its page.
+			slug: z.string().optional().catch(undefined),
+			site_page: z.boolean().optional().catch(undefined),
 		}),
 	),
 	recent: z.array(
@@ -447,10 +525,12 @@ const progressReport = z.object({
 	mistakes: z
 		.array(z.object({ trap: z.string(), times: z.number().int().positive() }))
 		.default([]),
+	review,
 	recommendation: recommendation.nullable(),
 	// Kept nowhere a person could open, or from before the progress said where
 	// the file is, a progress has no location, and the card no parent's data.
 	location: location.optional(),
+	site,
 });
 
 /**
@@ -458,8 +538,9 @@ const progressReport = z.object({
  * the overall rating with its rank and how far through it — or, while the
  * trial series runs, how far the series has got — the topics met or within
  * reach, each with a rank of its own, the latest answers and how many tasks
- * were left without one, the mistakes that keep coming back, what comes next,
- * the child's profile, and where its file is.
+ * were left without one, the mistakes that keep coming back, the review of the
+ * topics once the trial series is over, what comes next, the child's profile,
+ * and where its file is.
  */
 export type ProgressReport = z.infer<typeof progressReport>;
 

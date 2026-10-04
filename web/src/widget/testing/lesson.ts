@@ -181,8 +181,15 @@ export const failure: CallToolResult = {
  * progress — four topics met, each with its rank, one ahead of the overall
  * rank, two even with it and one behind it, one of them mastered, and a topic
  * within reach not met yet; the latest answers with one task left without an
- * answer, two mistakes that keep coming back, the topic worked over again
- * after a mistake next, and where the profile's file is.
+ * answer, two mistakes that keep coming back, the review of the topics, the
+ * topic worked over again after a mistake next, and where the profile's file
+ * is. Every topic's page is published on the site, which is written in English
+ * and Russian. The review is the one the service makes of these numbers: Ordering
+ * mastered and well above the overall level, risen over the week; Enumeration
+ * to develop for the mistake it keeps making, first since the rule sets it
+ * next, and Parity and alternation for standing low and falling over the
+ * week; Gaps and boundaries met too few times to judge; and a step for each
+ * topic to develop, the mistake that repeats most advised among them.
  */
 export const standing = {
 	screen: "progress",
@@ -198,12 +205,16 @@ export const standing = {
 		interests: ["space", "animals", "football"],
 		excluded_skills: ["division_with_remainder"],
 		ui_language: null,
+		country: null,
+		region: null,
 	},
 	trial: null,
 	overall: { rating: 1573, rank: 3, ranks: 11, share: 43 },
 	topics: [
 		{
 			topic: "logic.ordering",
+			slug: "ordering",
+			site_page: true,
 			rating: 1712,
 			rank: 4,
 			share: 27,
@@ -215,17 +226,21 @@ export const standing = {
 		},
 		{
 			topic: "combinatorics.enumeration",
+			slug: "enumeration",
+			site_page: true,
 			rating: 1627,
 			rank: 3,
 			share: 76,
 			compared: "even",
-			answers: 4,
+			answers: 5,
 			correct: 2,
 			mastered: false,
 			skipped: 1,
 		},
 		{
 			topic: "counting.gaps",
+			slug: "gaps-and-boundaries",
+			site_page: true,
 			rating: 1588,
 			rank: 3,
 			share: 53,
@@ -237,17 +252,21 @@ export const standing = {
 		},
 		{
 			topic: "parity.alternation",
+			slug: "parity-and-alternation",
+			site_page: true,
 			rating: 1480,
 			rank: 2,
 			share: 87,
 			compared: "behind",
-			answers: 2,
-			correct: 1,
+			answers: 5,
+			correct: 2,
 			mastered: false,
 			skipped: 0,
 		},
 		{
 			topic: "pigeonhole.basic",
+			slug: "pigeonhole-principle",
+			site_page: true,
 			rating: null,
 			rank: null,
 			share: null,
@@ -301,6 +320,28 @@ export const standing = {
 		{ trap: "missed_case", times: 3 },
 		{ trap: "double_count", times: 2 },
 	],
+	review: {
+		strong: [
+			{ topic: "logic.ordering", reasons: ["mastered", "high", "rose"] },
+		],
+		develop: [
+			{
+				topic: "combinatorics.enumeration",
+				reasons: ["trap"],
+				trap: "missed_case",
+			},
+			{ topic: "parity.alternation", reasons: ["low", "fell"] },
+		],
+		early: ["counting.gaps"],
+		steps: [
+			{
+				kind: "trap",
+				topic: "combinatorics.enumeration",
+				trap: "missed_case",
+			},
+			{ kind: "rhythm", topic: "parity.alternation" },
+		],
+	},
 	recommendation: {
 		topic: "combinatorics.enumeration",
 		grade_level: "3-4",
@@ -313,6 +354,7 @@ export const standing = {
 		link: "https://drive.google.com/file/d/profile/view",
 		others: [],
 	},
+	site: { url: "https://mathtrail.app", languages: ["en", "ru"] },
 };
 
 // The moves of each topic of moving, by its id.
@@ -409,13 +451,14 @@ export const atTheTop = {
 
 /**
  * inTrial is the progress of a child three tasks into the trial series: no
- * rating yet, nor a rank, no mistake made twice, a topic within reach not met
- * yet, and a new topic next.
+ * rating yet, nor a rank, nor a review, no mistake made twice, a topic within
+ * reach not met yet, and a new topic next.
  */
 export const inTrial = {
 	...standing,
 	trial: { answered: 3, of: 5 },
 	overall: null,
+	review: undefined,
 	topics: [
 		{
 			topic: "logic.ordering",

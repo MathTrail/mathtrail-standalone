@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/country"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 )
 
@@ -157,6 +158,8 @@ func TestARefusalNamesTheFieldAndNeverRepeatsIt(t *testing.T) {
 		{"a language of nobody's", profile.Edit{UILanguage: text("x-klingon")}, "ui_language"},
 		{"no language at all", profile.Edit{UILanguage: text("zxx")}, "ui_language"},
 		{"several languages", profile.Edit{UILanguage: text("mul")}, "ui_language"},
+		{"a country that is none", profile.Edit{Country: text(said)}, "country"},
+		{"a region that is none", profile.Edit{Country: text("US"), Region: text(said)}, "region"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -376,12 +379,12 @@ func TestTheLastAnswerIsTheEndOfTheWindow(t *testing.T) {
 // takes the call down, and an edit it lets through is always a profile the
 // file can be written as.
 func FuzzEdit(f *testing.F) {
-	f.Add("Comet", 3, "space", "fractions", "Reads slowly.\nLikes cats.", "pt-br")
-	f.Add("", 0, "", "", "", "")
-	f.Add("\a\u2028Otter\u0085", 7, "\t", "calculus", strings.Repeat("ж", profile.MaxNotes+1), "und")
-	f.Add(strings.Repeat("o", profile.MaxPseudonym+1), -1, strings.Repeat("a", 41), "negative_numbers", "\x00", "en_US")
+	f.Add("Comet", 3, "space", "fractions", "Reads slowly.\nLikes cats.", "pt-br", "us", "us-tx")
+	f.Add("", 0, "", "", "", "", "", "")
+	f.Add("\a\u2028Otter\u0085", 7, "\t", "calculus", strings.Repeat("ж", profile.MaxNotes+1), "und", "USA", "TX")
+	f.Add(strings.Repeat("o", profile.MaxPseudonym+1), -1, strings.Repeat("a", 41), "negative_numbers", "\x00", "en_US", "fr", "US-TX")
 
-	f.Fuzz(func(t *testing.T, pseudonym string, grade int, interest, skill, notes, language string) {
+	f.Fuzz(func(t *testing.T, pseudonym string, grade int, interest, skill, notes, language, place, region string) {
 		edit := profile.Edit{
 			Pseudonym:      &pseudonym,
 			Grade:          &grade,
@@ -389,10 +392,16 @@ func FuzzEdit(f *testing.F) {
 			ExcludedSkills: []string{skill},
 			Notes:          &notes,
 			UILanguage:     &language,
+			Country:        &place,
+			Region:         &region,
 		}
 		student, problems := profile.NewStudent(&edit, skills)
 		if len(problems) > 0 {
 			return
+		}
+		if (student.Country != "" && !country.Known(student.Country)) ||
+			(student.Region != "" && !country.KnownRegion(student.Country, student.Region)) {
+			t.Fatalf("an edit let through keeps the country %q and the region %q, not codes of the list", student.Country, student.Region)
 		}
 		p := profile.New(student, "fuzz", editedAt)
 		if err := p.Validate(); err != nil {

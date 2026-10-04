@@ -1,6 +1,7 @@
 package report
 
 import (
+	"math"
 	"regexp"
 	"slices"
 	"strconv"
@@ -29,6 +30,8 @@ var events = map[string][]string{
 	"solver sandbox built": {"steps", "timeout", "concurrency", "wait", "gomaxprocs", "memory_limit"},
 	"profile store":        {"in_drive"},
 	"google sign-in":       {"configured"},
+	"learner key":          {"configured"},
+	"country database":     {"configured", "type", "built"},
 	"limits set": {
 		"user_per_min", "ip_per_min", "instance_per_min", "renewal_per_min", "daily_tasks", "daily_failed", "trap_repeats",
 	},
@@ -69,7 +72,13 @@ var events = map[string][]string{
 		"attempt", "outcome", "primary", "failed", "minor_issues", "duration_ms", "solver_steps", "solver_ms",
 		"instructions_version", "user",
 	},
-	"task_accepted": {"topic", "level", "difficulty", "attempts", "seconds_since_request", "instructions_version", "user"},
+	// A task handed out, an answer and a topic mastered are what the children
+	// are counted from, and each names its child by the name it is counted
+	// under that month, which leads back to no child.
+	"task_accepted": {
+		"topic", "level", "difficulty", "attempts", "seconds_since_request", "instructions_version", "user",
+		"learner", "host", "language", "grade", "cohort", "country", "region", "signin_country",
+	},
 	// The chance beside the user is the child's rating, answer by answer, as
 	// far as two places of a chance tell it. The topic, the level, the
 	// difficulty and whether each answer was right let the rating be rebuilt
@@ -80,8 +89,10 @@ var events = map[string][]string{
 	"answer_recorded": {
 		"topic", "level", "difficulty", "correct", "trap", "hint_used", "confused", "pace",
 		"chance", "tutor_mode", "trial", "answers_bucket", "instructions_version", "user",
+		"learner", "grade", "cohort", "topics_mastered",
 	},
-	"limit_hit": {"limit", "count", "user"},
+	"topic_mastered": {"learner", "topic", "grade", "instructions_version", "user"},
+	"limit_hit":      {"limit", "count", "user"},
 
 	// The parent's Drive.
 	"drive_call":         {"op", "duration_ms", "retries", "outcome", "user"},
@@ -128,6 +139,76 @@ func Known(event string) bool {
 func Decided(event, field string) bool {
 	own, known := events[event]
 	return known && (slices.Contains(own, field) || slices.Contains(ofARequest, field) || slices.Contains(ofEveryLine, field))
+}
+
+// countedFrom are the events the children are counted from. They are the lines
+// kept the longest, so what each of their fields may hold is decided too.
+var countedFrom = []string{"task_accepted", "answer_recorded", "topic_mastered"}
+
+// shapes are the forms the text fields of the events the children are counted
+// from hold: a word of a closed list or a code of a fixed form, so that nothing
+// a person typed — a name, the words of a profile, an address — fits in one,
+// and an identifier logged by mistake, a profile's own among them, does not
+// fit the name a child is counted under. A form says what a code looks like
+// rather than which codes there are, so that the log of a build with a longer
+// list of countries reads as well as this one's.
+var shapes = map[string]*regexp.Regexp{
+	"learner":        regexp.MustCompile(`^[A-Za-z0-9_-]{16}$`),
+	"cohort":         regexp.MustCompile(`^\d{4}-(0[1-9]|1[012])$`),
+	"language":       regexp.MustCompile(`^([a-z]{2,3}|other)$`),
+	"host":           regexp.MustCompile(`^(claude|chatgpt|inspector|other|unknown)$`),
+	"country":        regexp.MustCompile(`^([A-Z]{2}|unknown|other)$`),
+	"signin_country": regexp.MustCompile(`^([A-Z]{2}|unknown|other)$`),
+	"region":         regexp.MustCompile(`^([A-Z]{2}-[A-Z0-9]{1,3}|unknown|other)$`),
+}
+
+// The numbers those events carry, each a whole number in its range: the grade
+// a parent can give, and how many topics a child has mastered, which no
+// catalog holds a thousand of.
+const (
+	lowestGrade, highestGrade = 1, 6
+	mostTopicsMastered        = 1000
+)
+
+// Fits says whether a value is one the field of the event may hold. Only the
+// fields of the events the children are counted from are held to a form; any
+// other field may hold whatever its event is decided to carry.
+func Fits(event, field string, value any) bool {
+	if !slices.Contains(countedFrom, event) {
+		return true
+	}
+	switch field {
+	case "grade":
+		return wholeWithin(value, lowestGrade, highestGrade)
+	case "topics_mastered":
+		return wholeWithin(value, 0, mostTopicsMastered)
+	}
+	shape, formed := shapes[field]
+	if !formed {
+		return true
+	}
+	text, isText := value.(string)
+	return isText && shape.MatchString(text)
+}
+
+// wholeWithin says whether a value is a whole number from low to high, as a
+// line read back from its text holds one or as a logger holds it.
+func wholeWithin(value any, low, high int64) bool {
+	var whole int64
+	switch number := value.(type) {
+	case float64:
+		if number != math.Trunc(number) {
+			return false
+		}
+		whole = int64(number)
+	case int64:
+		whole = number
+	case int:
+		whole = int64(number)
+	default:
+		return false
+	}
+	return whole >= low && whole <= high
 }
 
 // unescapes is how many times a text's percent-escapes are undone in search of

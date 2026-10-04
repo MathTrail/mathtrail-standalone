@@ -1,0 +1,721 @@
+rule,structure,kind,name,generator,metric,bound,value,low,high,verdict,mark
+shrinking,both,score,the share of the way to perfect,,,,0.0095,0.0075,0.0116,,
+shrinking,both,goal,masteries declared falsely at most 20 %,G0,r4_false,0.2000,0.6349,0.6265,0.6434,not met,not reached
+shrinking,both,goal,the answers until mastery at most 1.5 times the baseline's,G0,r5_late_answers,14.7274,9.9224,9.7982,10.0412,met,reached
+shrinking,both,goal,masteries declared falsely at most 20 %,G0-topics1,r4_false,0.2000,0.5899,0.5822,0.5976,not met,not reached
+shrinking,both,goal,the answers until mastery at most 1.5 times the baseline's,G0-topics1,r5_late_answers,13.9562,9.3292,9.2257,9.4416,met,reached
+shrinking,both,goal,the card's move in answers 6–20 no more than the baseline's in answers 6–20,G0,r8_move_p95_6_20,73.0000,73.0000,73.0000,73.0000,met,reached
+shrinking,both,goal,the rank's changes in answers 6–20 no more than the baseline's in answers 6–20,G0,r8_rank_6_20,3.6667,3.6667,3.4300,3.8917,met,on the edge
+shrinking,both,goal,the card's move in answers 150–200 no more than the baseline's in answers 6–20,G0,r8_move_p95_150_200,73.0000,37.0000,37.0000,37.0000,met,reached
+shrinking,both,goal,the rank's changes in answers 150–200 no more than the baseline's in answers 6–20,G0,r8_rank_150_200,3.6667,0.6779,0.5946,0.7608,met,reached
+shrinking,both,goal,the card's move in answers 6–20 no more than the baseline's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,73.0000,73.0000,73.0000,met,reached
+shrinking,both,goal,the rank's changes in answers 6–20 no more than the baseline's in answers 6–20,G2-half,r8_rank_6_20,3.6333,3.6333,3.4033,3.8767,met,on the edge
+shrinking,both,goal,the card's move in answers 150–200 no more than the baseline's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,36.0000,35.0000,36.0000,met,reached
+shrinking,both,goal,the rank's changes in answers 150–200 no more than the baseline's in answers 6–20,G2-half,r8_rank_150_200,3.6333,0.6044,0.5373,0.6804,met,reached
+shrinking,both,not worse,not worse than the baseline,G0,r1_rms_200,0.0300,0.0057,0.0030,0.0083,met,reached
+shrinking,both,not worse,not worse than the baseline,G0,r3_inside,0.0100,-0.0006,-0.0016,0.0004,met,reached
+shrinking,both,not worse,not worse than the baseline,G0,r4_false,0.0200,-0.0111,-0.0146,-0.0078,met,reached
+shrinking,both,not worse,not worse than the baseline,G0,r5_never,0.0200,-0.0082,-0.0137,-0.0025,met,reached
+shrinking,both,not worse,not worse than the baseline,G1,r1_rms_200,0.0300,0.0129,0.0100,0.0156,met,reached
+shrinking,both,not worse,not worse than the baseline,G1,r3_inside,0.0100,-0.0022,-0.0032,-0.0013,met,reached
+shrinking,both,not worse,not worse than the baseline,G1,r4_false,0.0200,-0.0078,-0.0108,-0.0046,met,reached
+shrinking,both,not worse,not worse than the baseline,G2,r1_rms_200,0.0300,0.2414,0.2377,0.2452,not met,not reached
+shrinking,both,not worse,not worse than the baseline,G2,r3_inside,0.0100,-0.0215,-0.0223,-0.0206,not met,not reached
+shrinking,both,not worse,not worse than the baseline,G2,r4_false,0.0200,-0.0305,-0.0337,-0.0273,met,reached
+shrinking,both,not worse,not worse than the baseline,G3,r1_rms_200,0.0300,0.1218,0.1181,0.1253,not met,not reached
+shrinking,both,not worse,not worse than the baseline,G3,r3_inside,0.0100,-0.0141,-0.0151,-0.0130,not met,not reached
+shrinking,both,not worse,not worse than the baseline,G3,r4_false,0.0200,-0.0223,-0.0257,-0.0189,met,reached
+shrinking,both,not worse,not worse than the baseline,G4,r1_rms_200,0.0300,-0.0009,-0.0039,0.0023,met,reached
+shrinking,both,not worse,not worse than the baseline,G4,r3_inside,0.0100,-0.0011,-0.0020,-0.0002,met,reached
+shrinking,both,not worse,not worse than the baseline,G4,r4_false,0.0200,-0.0089,-0.0125,-0.0052,met,reached
+shrinking,both,not worse,not worse than the baseline,G5,r1_rms_200,0.0300,0.0047,0.0019,0.0075,met,reached
+shrinking,both,not worse,not worse than the baseline,G5,r3_inside,0.0100,-0.0009,-0.0019,0.0002,met,reached
+shrinking,both,not worse,not worse than the baseline,G5,r4_false,0.0200,-0.0071,-0.0104,-0.0039,met,reached
+shrinking,both,not worse,not worse than the baseline,G6,r1_rms_200,0.0300,-0.0105,-0.0138,-0.0069,met,reached
+shrinking,both,not worse,not worse than the baseline,G6,r3_inside,0.0100,-0.0028,-0.0038,-0.0017,met,reached
+shrinking,both,not worse,not worse than the baseline,G6,r4_false,0.0200,-0.0018,-0.0053,0.0016,met,reached
+shrinking,both,not worse,not worse than the baseline,G7,r1_rms_200,0.0300,0.0081,0.0052,0.0110,met,reached
+shrinking,both,not worse,not worse than the baseline,G7,r3_inside,0.0100,-0.0020,-0.0031,-0.0010,met,reached
+shrinking,both,not worse,not worse than the baseline,G7,r4_false,0.0200,-0.0060,-0.0094,-0.0026,met,reached
+shrinking,both,not worse,not worse than the baseline,G8,r1_rms_200,0.0300,0.0066,0.0040,0.0091,met,reached
+shrinking,both,not worse,not worse than the baseline,G8,r3_inside,0.0100,-0.0020,-0.0030,-0.0010,met,reached
+shrinking,both,not worse,not worse than the baseline,G8,r4_false,0.0200,-0.0071,-0.0111,-0.0029,met,reached
+shrinking,both,not worse,not worse than the baseline,G0-exact,r1_rms_200,0.0300,0.0044,0.0017,0.0069,met,reached
+shrinking,both,not worse,not worse than the baseline,G0-exact,r3_inside,0.0100,-0.0008,-0.0028,0.0014,met,reached
+shrinking,both,not worse,not worse than the baseline,G0-exact,r4_false,0.0200,-0.0103,-0.0136,-0.0071,met,reached
+shrinking,both,not worse,not worse than the baseline,G0-miss0.25,r1_rms_200,0.0300,0.0040,0.0016,0.0067,met,reached
+shrinking,both,not worse,not worse than the baseline,G0-miss0.25,r3_inside,0.0100,-0.0002,-0.0017,0.0013,met,reached
+shrinking,both,not worse,not worse than the baseline,G0-miss0.25,r4_false,0.0200,-0.0078,-0.0112,-0.0045,met,reached
+shrinking,both,not worse,not worse than the baseline,G0-miss1,r1_rms_200,0.0300,0.0052,0.0022,0.0081,met,reached
+shrinking,both,not worse,not worse than the baseline,G0-miss1,r3_inside,0.0100,-0.0007,-0.0014,0.0000,met,reached
+shrinking,both,not worse,not worse than the baseline,G0-miss1,r4_false,0.0200,-0.0092,-0.0126,-0.0059,met,reached
+shrinking,both,not worse,not worse than the baseline,G2-half,r1_rms_200,0.0300,0.1107,0.1071,0.1143,not met,not reached
+shrinking,both,not worse,not worse than the baseline,G2-half,r3_inside,0.0100,-0.0140,-0.0150,-0.0129,not met,not reached
+shrinking,both,not worse,not worse than the baseline,G2-half,r4_false,0.0200,-0.0195,-0.0230,-0.0162,met,reached
+shrinking,both,not worse,not worse than the baseline,G2-fading,r1_rms_200,0.0300,0.0690,0.0655,0.0723,not met,not reached
+shrinking,both,not worse,not worse than the baseline,G2-fading,r3_inside,0.0100,-0.0094,-0.0104,-0.0082,not met,on the edge
+shrinking,both,not worse,not worse than the baseline,G2-fading,r4_false,0.0200,-0.0173,-0.0205,-0.0140,met,reached
+shrinking,both,not worse,not worse than the baseline,G3-drop,r1_rms_200,0.0300,0.0913,0.0872,0.0953,not met,not reached
+shrinking,both,not worse,not worse than the baseline,G3-drop,r3_inside,0.0100,-0.0055,-0.0065,-0.0044,met,reached
+shrinking,both,not worse,not worse than the baseline,G3-drop,r4_false,0.0200,-0.0029,-0.0063,0.0006,met,reached
+shrinking,both,not worse,not worse than the baseline,G0-start0.5,r1_rms_200,0.0300,0.0065,0.0039,0.0092,met,reached
+shrinking,both,not worse,not worse than the baseline,G0-start0.5,r3_inside,0.0100,-0.0012,-0.0023,-0.0002,met,reached
+shrinking,both,not worse,not worse than the baseline,G0-start0.5,r4_false,0.0200,-0.0056,-0.0090,-0.0024,met,reached
+shrinking,both,not worse,not worse than the baseline,G0-start2,r1_rms_200,0.0300,0.0115,0.0086,0.0143,met,reached
+shrinking,both,not worse,not worse than the baseline,G0-start2,r3_inside,0.0100,-0.0020,-0.0031,-0.0009,met,reached
+shrinking,both,not worse,not worse than the baseline,G0-start2,r4_false,0.0200,-0.0078,-0.0111,-0.0046,met,reached
+shrinking,both,not worse,not worse than the baseline,G0-topics0.3,r1_rms_200,0.0300,0.0070,0.0043,0.0096,met,reached
+shrinking,both,not worse,not worse than the baseline,G0-topics0.3,r3_inside,0.0100,-0.0017,-0.0028,-0.0007,met,reached
+shrinking,both,not worse,not worse than the baseline,G0-topics0.3,r4_false,0.0200,-0.0066,-0.0101,-0.0034,met,reached
+shrinking,both,not worse,not worse than the baseline,G0-topics1,r1_rms_200,0.0300,0.0110,0.0083,0.0137,met,reached
+shrinking,both,not worse,not worse than the baseline,G0-topics1,r3_inside,0.0100,0.0021,0.0010,0.0032,met,reached
+shrinking,both,not worse,not worse than the baseline,G0-topics1,r4_false,0.0200,-0.0085,-0.0119,-0.0053,met,reached
+shrinking,both,not worse,not worse than the baseline,G0-topics1,r5_never,0.0800,-0.0103,-0.0150,-0.0053,met,reached
+constant_slow,both,score,the share of the way to perfect,,,,0.0077,0.0046,0.0109,,
+constant_slow,both,goal,masteries declared falsely at most 20 %,G0,r4_false,0.2000,0.6556,0.6473,0.6639,not met,not reached
+constant_slow,both,goal,the answers until mastery at most 1.5 times the baseline's,G0,r5_late_answers,14.7274,9.5053,9.3869,9.6246,met,reached
+constant_slow,both,goal,masteries declared falsely at most 20 %,G0-topics1,r4_false,0.2000,0.6065,0.5986,0.6143,not met,not reached
+constant_slow,both,goal,the answers until mastery at most 1.5 times the baseline's,G0-topics1,r5_late_answers,13.9562,8.8449,8.7435,8.9529,met,reached
+constant_slow,both,goal,the card's move in answers 6–20 no more than the baseline's in answers 6–20,G0,r8_move_p95_6_20,73.0000,42.0000,42.0000,42.0000,met,reached
+constant_slow,both,goal,the rank's changes in answers 6–20 no more than the baseline's in answers 6–20,G0,r8_rank_6_20,3.6667,2.7367,2.5433,2.9367,met,reached
+constant_slow,both,goal,the card's move in answers 150–200 no more than the baseline's in answers 6–20,G0,r8_move_p95_150_200,73.0000,42.0000,42.0000,42.0000,met,reached
+constant_slow,both,goal,the rank's changes in answers 150–200 no more than the baseline's in answers 6–20,G0,r8_rank_150_200,3.6667,3.4422,3.2789,3.6127,met,reached
+constant_slow,both,goal,the card's move in answers 6–20 no more than the baseline's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,42.0000,42.0000,42.0000,met,reached
+constant_slow,both,goal,the rank's changes in answers 6–20 no more than the baseline's in answers 6–20,G2-half,r8_rank_6_20,3.6333,2.5983,2.4000,2.7967,met,reached
+constant_slow,both,goal,the card's move in answers 150–200 no more than the baseline's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,41.0000,41.0000,42.0000,met,reached
+constant_slow,both,goal,the rank's changes in answers 150–200 no more than the baseline's in answers 6–20,G2-half,r8_rank_150_200,3.6333,3.2235,3.0667,3.3848,met,reached
+constant_slow,both,not worse,not worse than the baseline,G0,r1_rms_200,0.0300,-0.0071,-0.0111,-0.0033,met,reached
+constant_slow,both,not worse,not worse than the baseline,G0,r3_inside,0.0100,0.0020,0.0004,0.0037,met,reached
+constant_slow,both,not worse,not worse than the baseline,G0,r4_false,0.0200,0.0097,0.0039,0.0155,met,reached
+constant_slow,both,not worse,not worse than the baseline,G0,r5_never,0.0200,0.0096,0.0019,0.0177,met,reached
+constant_slow,both,not worse,not worse than the baseline,G1,r1_rms_200,0.0300,-0.0115,-0.0154,-0.0076,met,reached
+constant_slow,both,not worse,not worse than the baseline,G1,r3_inside,0.0100,0.0035,0.0019,0.0051,met,reached
+constant_slow,both,not worse,not worse than the baseline,G1,r4_false,0.0200,0.0135,0.0074,0.0193,met,reached
+constant_slow,both,not worse,not worse than the baseline,G2,r1_rms_200,0.0300,-0.3072,-0.3130,-0.3015,met,reached
+constant_slow,both,not worse,not worse than the baseline,G2,r3_inside,0.0100,0.0463,0.0448,0.0479,met,reached
+constant_slow,both,not worse,not worse than the baseline,G2,r4_false,0.0200,0.0160,0.0109,0.0212,not met,on the edge
+constant_slow,both,not worse,not worse than the baseline,G3,r1_rms_200,0.0300,-0.1250,-0.1300,-0.1201,met,reached
+constant_slow,both,not worse,not worse than the baseline,G3,r3_inside,0.0100,0.0235,0.0219,0.0251,met,reached
+constant_slow,both,not worse,not worse than the baseline,G3,r4_false,0.0200,0.0123,0.0068,0.0180,met,reached
+constant_slow,both,not worse,not worse than the baseline,G4,r1_rms_200,0.0300,0.0000,-0.0048,0.0049,met,reached
+constant_slow,both,not worse,not worse than the baseline,G4,r3_inside,0.0100,0.0004,-0.0010,0.0018,met,reached
+constant_slow,both,not worse,not worse than the baseline,G4,r4_false,0.0200,0.0081,0.0024,0.0137,met,reached
+constant_slow,both,not worse,not worse than the baseline,G5,r1_rms_200,0.0300,0.0240,0.0197,0.0284,met,reached
+constant_slow,both,not worse,not worse than the baseline,G5,r3_inside,0.0100,-0.0030,-0.0046,-0.0014,met,reached
+constant_slow,both,not worse,not worse than the baseline,G5,r4_false,0.0200,0.0125,0.0072,0.0186,met,reached
+constant_slow,both,not worse,not worse than the baseline,G6,r1_rms_200,0.0300,-0.0005,-0.0059,0.0051,met,reached
+constant_slow,both,not worse,not worse than the baseline,G6,r3_inside,0.0100,0.0044,0.0026,0.0060,met,reached
+constant_slow,both,not worse,not worse than the baseline,G6,r4_false,0.0200,0.0065,0.0008,0.0120,met,reached
+constant_slow,both,not worse,not worse than the baseline,G7,r1_rms_200,0.0300,-0.0066,-0.0113,-0.0022,met,reached
+constant_slow,both,not worse,not worse than the baseline,G7,r3_inside,0.0100,0.0016,-0.0001,0.0032,met,reached
+constant_slow,both,not worse,not worse than the baseline,G7,r4_false,0.0200,0.0069,0.0014,0.0127,met,reached
+constant_slow,both,not worse,not worse than the baseline,G8,r1_rms_200,0.0300,-0.0079,-0.0123,-0.0040,met,reached
+constant_slow,both,not worse,not worse than the baseline,G8,r3_inside,0.0100,0.0008,-0.0007,0.0025,met,reached
+constant_slow,both,not worse,not worse than the baseline,G8,r4_false,0.0200,0.0143,0.0078,0.0209,not met,on the edge
+constant_slow,both,not worse,not worse than the baseline,G0-exact,r1_rms_200,0.0300,-0.0033,-0.0072,0.0007,met,reached
+constant_slow,both,not worse,not worse than the baseline,G0-exact,r3_inside,0.0100,-0.0008,-0.0041,0.0022,met,reached
+constant_slow,both,not worse,not worse than the baseline,G0-exact,r4_false,0.0200,0.0070,0.0013,0.0124,met,reached
+constant_slow,both,not worse,not worse than the baseline,G0-miss0.25,r1_rms_200,0.0300,-0.0049,-0.0086,-0.0011,met,reached
+constant_slow,both,not worse,not worse than the baseline,G0-miss0.25,r3_inside,0.0100,0.0032,0.0009,0.0056,met,reached
+constant_slow,both,not worse,not worse than the baseline,G0-miss0.25,r4_false,0.0200,0.0139,0.0084,0.0195,met,reached
+constant_slow,both,not worse,not worse than the baseline,G0-miss1,r1_rms_200,0.0300,-0.0135,-0.0175,-0.0095,met,reached
+constant_slow,both,not worse,not worse than the baseline,G0-miss1,r3_inside,0.0100,0.0015,0.0004,0.0026,met,reached
+constant_slow,both,not worse,not worse than the baseline,G0-miss1,r4_false,0.0200,0.0075,0.0017,0.0134,met,reached
+constant_slow,both,not worse,not worse than the baseline,G2-half,r1_rms_200,0.0300,-0.1182,-0.1230,-0.1132,met,reached
+constant_slow,both,not worse,not worse than the baseline,G2-half,r3_inside,0.0100,0.0249,0.0232,0.0264,met,reached
+constant_slow,both,not worse,not worse than the baseline,G2-half,r4_false,0.0200,0.0132,0.0079,0.0187,met,reached
+constant_slow,both,not worse,not worse than the baseline,G2-fading,r1_rms_200,0.0300,-0.0645,-0.0688,-0.0604,met,reached
+constant_slow,both,not worse,not worse than the baseline,G2-fading,r3_inside,0.0100,0.0183,0.0166,0.0199,met,reached
+constant_slow,both,not worse,not worse than the baseline,G2-fading,r4_false,0.0200,0.0182,0.0128,0.0238,not met,on the edge
+constant_slow,both,not worse,not worse than the baseline,G3-drop,r1_rms_200,0.0300,-0.0862,-0.0916,-0.0808,met,reached
+constant_slow,both,not worse,not worse than the baseline,G3-drop,r3_inside,0.0100,0.0068,0.0052,0.0084,met,reached
+constant_slow,both,not worse,not worse than the baseline,G3-drop,r4_false,0.0200,-0.0008,-0.0068,0.0051,met,reached
+constant_slow,both,not worse,not worse than the baseline,G0-start0.5,r1_rms_200,0.0300,-0.0075,-0.0113,-0.0035,met,reached
+constant_slow,both,not worse,not worse than the baseline,G0-start0.5,r3_inside,0.0100,0.0007,-0.0009,0.0024,met,reached
+constant_slow,both,not worse,not worse than the baseline,G0-start0.5,r4_false,0.0200,0.0040,-0.0019,0.0098,met,reached
+constant_slow,both,not worse,not worse than the baseline,G0-start2,r1_rms_200,0.0300,-0.0079,-0.0120,-0.0037,met,reached
+constant_slow,both,not worse,not worse than the baseline,G0-start2,r3_inside,0.0100,0.0018,0.0002,0.0034,met,reached
+constant_slow,both,not worse,not worse than the baseline,G0-start2,r4_false,0.0200,0.0122,0.0063,0.0178,met,reached
+constant_slow,both,not worse,not worse than the baseline,G0-topics0.3,r1_rms_200,0.0300,-0.0324,-0.0361,-0.0285,met,reached
+constant_slow,both,not worse,not worse than the baseline,G0-topics0.3,r3_inside,0.0100,0.0087,0.0072,0.0103,met,reached
+constant_slow,both,not worse,not worse than the baseline,G0-topics0.3,r4_false,0.0200,0.0107,0.0050,0.0165,met,reached
+constant_slow,both,not worse,not worse than the baseline,G0-topics1,r1_rms_200,0.0300,0.0661,0.0615,0.0706,not met,not reached
+constant_slow,both,not worse,not worse than the baseline,G0-topics1,r3_inside,0.0100,-0.0158,-0.0177,-0.0141,not met,not reached
+constant_slow,both,not worse,not worse than the baseline,G0-topics1,r4_false,0.0200,0.0081,0.0024,0.0138,met,reached
+constant_slow,both,not worse,not worse than the baseline,G0-topics1,r5_never,0.0800,0.0105,0.0026,0.0184,met,reached
+floor_0.05,both,score,the share of the way to perfect,,,,0.0000,0.0000,0.0000,,
+floor_0.05,both,goal,masteries declared falsely at most 20 %,G0,r4_false,0.2000,0.6460,0.6377,0.6542,not met,not reached
+floor_0.05,both,goal,the answers until mastery at most 1.5 times the baseline's,G0,r5_late_answers,14.7274,9.8183,9.7038,9.9344,met,reached
+floor_0.05,both,goal,masteries declared falsely at most 20 %,G0-topics1,r4_false,0.2000,0.5984,0.5910,0.6063,not met,not reached
+floor_0.05,both,goal,the answers until mastery at most 1.5 times the baseline's,G0-topics1,r5_late_answers,13.9562,9.3041,9.1920,9.4115,met,reached
+floor_0.05,both,goal,the card's move in answers 6–20 no more than the baseline's in answers 6–20,G0,r8_move_p95_6_20,73.0000,73.0000,73.0000,73.0000,met,reached
+floor_0.05,both,goal,the rank's changes in answers 6–20 no more than the baseline's in answers 6–20,G0,r8_rank_6_20,3.6667,3.6667,3.4383,3.9167,met,on the edge
+floor_0.05,both,goal,the card's move in answers 150–200 no more than the baseline's in answers 6–20,G0,r8_move_p95_150_200,73.0000,41.0000,41.0000,41.0000,met,reached
+floor_0.05,both,goal,the rank's changes in answers 150–200 no more than the baseline's in answers 6–20,G0,r8_rank_150_200,3.6667,1.6387,1.5152,1.7632,met,reached
+floor_0.05,both,goal,the card's move in answers 6–20 no more than the baseline's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,73.0000,73.0000,73.0000,met,reached
+floor_0.05,both,goal,the rank's changes in answers 6–20 no more than the baseline's in answers 6–20,G2-half,r8_rank_6_20,3.6333,3.6333,3.3983,3.8700,met,on the edge
+floor_0.05,both,goal,the card's move in answers 150–200 no more than the baseline's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,40.0000,40.0000,40.0000,met,reached
+floor_0.05,both,goal,the rank's changes in answers 150–200 no more than the baseline's in answers 6–20,G2-half,r8_rank_150_200,3.6333,1.5338,1.4230,1.6446,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0,r1_rms_200,0.0300,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0,r3_inside,0.0100,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0,r4_false,0.0200,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0,r5_never,0.0200,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G1,r1_rms_200,0.0300,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G1,r3_inside,0.0100,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G1,r4_false,0.0200,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G2,r1_rms_200,0.0300,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G2,r3_inside,0.0100,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G2,r4_false,0.0200,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G3,r1_rms_200,0.0300,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G3,r3_inside,0.0100,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G3,r4_false,0.0200,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G4,r1_rms_200,0.0300,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G4,r3_inside,0.0100,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G4,r4_false,0.0200,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G5,r1_rms_200,0.0300,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G5,r3_inside,0.0100,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G5,r4_false,0.0200,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G6,r1_rms_200,0.0300,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G6,r3_inside,0.0100,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G6,r4_false,0.0200,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G7,r1_rms_200,0.0300,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G7,r3_inside,0.0100,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G7,r4_false,0.0200,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G8,r1_rms_200,0.0300,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G8,r3_inside,0.0100,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G8,r4_false,0.0200,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0-exact,r1_rms_200,0.0300,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0-exact,r3_inside,0.0100,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0-exact,r4_false,0.0200,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0-miss0.25,r1_rms_200,0.0300,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0-miss0.25,r3_inside,0.0100,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0-miss0.25,r4_false,0.0200,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0-miss1,r1_rms_200,0.0300,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0-miss1,r3_inside,0.0100,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0-miss1,r4_false,0.0200,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G2-half,r1_rms_200,0.0300,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G2-half,r3_inside,0.0100,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G2-half,r4_false,0.0200,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G2-fading,r1_rms_200,0.0300,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G2-fading,r3_inside,0.0100,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G2-fading,r4_false,0.0200,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G3-drop,r1_rms_200,0.0300,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G3-drop,r3_inside,0.0100,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G3-drop,r4_false,0.0200,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0-start0.5,r1_rms_200,0.0300,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0-start0.5,r3_inside,0.0100,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0-start0.5,r4_false,0.0200,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0-start2,r1_rms_200,0.0300,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0-start2,r3_inside,0.0100,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0-start2,r4_false,0.0200,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0-topics0.3,r1_rms_200,0.0300,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0-topics0.3,r3_inside,0.0100,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0-topics0.3,r4_false,0.0200,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0-topics1,r1_rms_200,0.0300,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0-topics1,r3_inside,0.0100,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0-topics1,r4_false,0.0200,0.0000,0.0000,0.0000,met,reached
+floor_0.05,both,not worse,not worse than the baseline,G0-topics1,r5_never,0.0800,0.0000,0.0000,0.0000,met,reached
+floor_0.05+run5,both,score,the share of the way to perfect,,,,-0.1192,-0.1248,-0.1137,,
+floor_0.05+run5,both,goal,masteries declared falsely at most 20 %,G0,r4_false,0.2000,0.6756,0.6639,0.6871,not met,not reached
+floor_0.05+run5,both,goal,the answers until mastery at most 1.5 times the baseline's,G0,r5_late_answers,14.7274,12.0584,11.8643,12.2490,met,reached
+floor_0.05+run5,both,goal,masteries declared falsely at most 20 %,G0-topics1,r4_false,0.2000,0.5760,0.5652,0.5876,not met,not reached
+floor_0.05+run5,both,goal,the answers until mastery at most 1.5 times the baseline's,G0-topics1,r5_late_answers,13.9562,11.1468,10.9790,11.3165,met,reached
+floor_0.05+run5,both,goal,the card's move in answers 6–20 no more than the baseline's in answers 6–20,G0,r8_move_p95_6_20,73.0000,73.0000,73.0000,73.0000,met,reached
+floor_0.05+run5,both,goal,the rank's changes in answers 6–20 no more than the baseline's in answers 6–20,G0,r8_rank_6_20,3.6667,3.6667,3.4400,3.8950,met,on the edge
+floor_0.05+run5,both,goal,the card's move in answers 150–200 no more than the baseline's in answers 6–20,G0,r8_move_p95_150_200,73.0000,42.0000,41.0000,42.0000,met,reached
+floor_0.05+run5,both,goal,the rank's changes in answers 150–200 no more than the baseline's in answers 6–20,G0,r8_rank_150_200,3.6667,1.6333,1.5059,1.7672,met,reached
+floor_0.05+run5,both,goal,the card's move in answers 6–20 no more than the baseline's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,73.0000,73.0000,73.0000,met,reached
+floor_0.05+run5,both,goal,the rank's changes in answers 6–20 no more than the baseline's in answers 6–20,G2-half,r8_rank_6_20,3.6333,3.6333,3.3950,3.8767,met,on the edge
+floor_0.05+run5,both,goal,the card's move in answers 150–200 no more than the baseline's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,41.0000,40.0000,41.0000,met,reached
+floor_0.05+run5,both,goal,the rank's changes in answers 150–200 no more than the baseline's in answers 6–20,G2-half,r8_rank_150_200,3.6333,1.5922,1.4814,1.7132,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G0,r1_rms_200,0.0300,-0.0060,-0.0092,-0.0028,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G0,r3_inside,0.0100,0.0015,0.0002,0.0030,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G0,r4_false,0.0200,0.0296,0.0198,0.0397,not met,on the edge
+floor_0.05+run5,both,not worse,not worse than the baseline,G0,r5_never,0.0200,0.5416,0.5324,0.5504,not met,not reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G1,r1_rms_200,0.0300,-0.0076,-0.0109,-0.0043,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G1,r3_inside,0.0100,0.0017,0.0004,0.0030,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G1,r4_false,0.0200,0.0267,0.0152,0.0383,not met,on the edge
+floor_0.05+run5,both,not worse,not worse than the baseline,G2,r1_rms_200,0.0300,0.0036,0.0000,0.0073,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G2,r3_inside,0.0100,0.0014,0.0003,0.0026,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G2,r4_false,0.0200,-0.0756,-0.0851,-0.0659,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G3,r1_rms_200,0.0300,-0.0048,-0.0085,-0.0011,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G3,r3_inside,0.0100,0.0014,0.0002,0.0028,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G3,r4_false,0.0200,-0.0291,-0.0395,-0.0185,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G4,r1_rms_200,0.0300,0.0023,-0.0014,0.0058,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G4,r3_inside,0.0100,0.0019,0.0008,0.0032,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G4,r4_false,0.0200,0.0179,0.0076,0.0283,not met,on the edge
+floor_0.05+run5,both,not worse,not worse than the baseline,G5,r1_rms_200,0.0300,-0.0017,-0.0049,0.0017,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G5,r3_inside,0.0100,0.0008,-0.0006,0.0022,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G5,r4_false,0.0200,0.0225,0.0121,0.0323,not met,on the edge
+floor_0.05+run5,both,not worse,not worse than the baseline,G6,r1_rms_200,0.0300,-0.0071,-0.0110,-0.0031,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G6,r3_inside,0.0100,-0.0007,-0.0022,0.0008,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G6,r4_false,0.0200,0.0334,0.0229,0.0436,not met,not reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G7,r1_rms_200,0.0300,-0.0048,-0.0084,-0.0013,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G7,r3_inside,0.0100,0.0003,-0.0011,0.0017,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G7,r4_false,0.0200,0.0148,0.0046,0.0250,not met,on the edge
+floor_0.05+run5,both,not worse,not worse than the baseline,G8,r1_rms_200,0.0300,-0.0090,-0.0121,-0.0058,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G8,r3_inside,0.0100,-0.0010,-0.0023,0.0003,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G8,r4_false,0.0200,0.0380,0.0251,0.0510,not met,not reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G0-exact,r1_rms_200,0.0300,-0.0063,-0.0093,-0.0030,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G0-exact,r3_inside,0.0100,-0.0010,-0.0041,0.0020,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G0-exact,r4_false,0.0200,0.0179,0.0074,0.0280,not met,on the edge
+floor_0.05+run5,both,not worse,not worse than the baseline,G0-miss0.25,r1_rms_200,0.0300,-0.0077,-0.0110,-0.0044,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G0-miss0.25,r3_inside,0.0100,0.0012,-0.0008,0.0033,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G0-miss0.25,r4_false,0.0200,0.0313,0.0209,0.0413,not met,not reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G0-miss1,r1_rms_200,0.0300,-0.0042,-0.0075,-0.0009,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G0-miss1,r3_inside,0.0100,0.0010,0.0000,0.0019,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G0-miss1,r4_false,0.0200,0.0230,0.0129,0.0335,not met,on the edge
+floor_0.05+run5,both,not worse,not worse than the baseline,G2-half,r1_rms_200,0.0300,0.0027,-0.0008,0.0063,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G2-half,r3_inside,0.0100,0.0049,0.0035,0.0062,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G2-half,r4_false,0.0200,-0.0325,-0.0425,-0.0222,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G2-fading,r1_rms_200,0.0300,0.0024,-0.0008,0.0056,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G2-fading,r3_inside,0.0100,0.0042,0.0028,0.0056,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G2-fading,r4_false,0.0200,-0.0068,-0.0176,0.0036,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G3-drop,r1_rms_200,0.0300,-0.0405,-0.0451,-0.0358,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G3-drop,r3_inside,0.0100,-0.0070,-0.0083,-0.0057,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G3-drop,r4_false,0.0200,0.0681,0.0578,0.0779,not met,not reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G0-start0.5,r1_rms_200,0.0300,-0.0056,-0.0089,-0.0023,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G0-start0.5,r3_inside,0.0100,-0.0009,-0.0024,0.0004,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G0-start0.5,r4_false,0.0200,0.0204,0.0101,0.0302,not met,on the edge
+floor_0.05+run5,both,not worse,not worse than the baseline,G0-start2,r1_rms_200,0.0300,-0.0070,-0.0104,-0.0037,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G0-start2,r3_inside,0.0100,0.0004,-0.0011,0.0017,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G0-start2,r4_false,0.0200,0.0289,0.0183,0.0399,not met,on the edge
+floor_0.05+run5,both,not worse,not worse than the baseline,G0-topics0.3,r1_rms_200,0.0300,0.0006,-0.0026,0.0038,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G0-topics0.3,r3_inside,0.0100,0.0027,0.0012,0.0040,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G0-topics0.3,r4_false,0.0200,0.0246,0.0140,0.0347,not met,on the edge
+floor_0.05+run5,both,not worse,not worse than the baseline,G0-topics1,r1_rms_200,0.0300,-0.0149,-0.0183,-0.0114,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G0-topics1,r3_inside,0.0100,-0.0049,-0.0065,-0.0034,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G0-topics1,r4_false,0.0200,-0.0224,-0.0318,-0.0130,met,reached
+floor_0.05+run5,both,not worse,not worse than the baseline,G0-topics1,r5_never,0.0800,0.4985,0.4902,0.5068,not met,not reached
+floor_0.05+cautious_z1,both,score,the share of the way to perfect,,,,0.6882,0.6836,0.6929,,
+floor_0.05+cautious_z1,both,goal,masteries declared falsely at most 20 %,G0,r4_false,0.2000,0.0370,0.0342,0.0400,met,reached
+floor_0.05+cautious_z1,both,goal,the answers until mastery at most 1.5 times the baseline's,G0,r5_late_answers,14.7274,4.6367,4.5502,4.7276,met,reached
+floor_0.05+cautious_z1,both,goal,masteries declared falsely at most 20 %,G0-topics1,r4_false,0.2000,0.0595,0.0561,0.0628,met,reached
+floor_0.05+cautious_z1,both,goal,the answers until mastery at most 1.5 times the baseline's,G0-topics1,r5_late_answers,13.9562,4.9072,4.8184,4.9994,met,reached
+floor_0.05+cautious_z1,both,goal,the card's move in answers 6–20 no more than the baseline's in answers 6–20,G0,r8_move_p95_6_20,73.0000,73.0000,73.0000,73.0000,met,reached
+floor_0.05+cautious_z1,both,goal,the rank's changes in answers 6–20 no more than the baseline's in answers 6–20,G0,r8_rank_6_20,3.6667,3.6667,3.4417,3.8883,met,on the edge
+floor_0.05+cautious_z1,both,goal,the card's move in answers 150–200 no more than the baseline's in answers 6–20,G0,r8_move_p95_150_200,73.0000,41.0000,40.0000,41.0000,met,reached
+floor_0.05+cautious_z1,both,goal,the rank's changes in answers 150–200 no more than the baseline's in answers 6–20,G0,r8_rank_150_200,3.6667,1.6809,1.5529,1.8088,met,reached
+floor_0.05+cautious_z1,both,goal,the card's move in answers 6–20 no more than the baseline's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,73.0000,73.0000,73.0000,met,reached
+floor_0.05+cautious_z1,both,goal,the rank's changes in answers 6–20 no more than the baseline's in answers 6–20,G2-half,r8_rank_6_20,3.6333,3.6333,3.4017,3.8633,met,on the edge
+floor_0.05+cautious_z1,both,goal,the card's move in answers 150–200 no more than the baseline's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,40.0000,40.0000,40.0000,met,reached
+floor_0.05+cautious_z1,both,goal,the rank's changes in answers 150–200 no more than the baseline's in answers 6–20,G2-half,r8_rank_150_200,3.6333,1.6412,1.5221,1.7583,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0,r1_rms_200,0.0300,0.0003,-0.0033,0.0042,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0,r3_inside,0.0100,0.0035,0.0019,0.0051,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0,r4_false,0.0200,-0.6089,-0.6173,-0.6002,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0,r5_never,0.0200,-0.0304,-0.0429,-0.0181,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G1,r1_rms_200,0.0300,0.0020,-0.0016,0.0056,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G1,r3_inside,0.0100,0.0019,0.0005,0.0035,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G1,r4_false,0.0200,-0.6096,-0.6202,-0.5984,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G2,r1_rms_200,0.0300,0.0102,0.0065,0.0141,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G2,r3_inside,0.0100,-0.0027,-0.0040,-0.0015,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G2,r4_false,0.0200,-0.4357,-0.4441,-0.4271,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G3,r1_rms_200,0.0300,0.0098,0.0055,0.0143,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G3,r3_inside,0.0100,0.0027,0.0013,0.0040,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G3,r4_false,0.0200,-0.5136,-0.5224,-0.5050,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G4,r1_rms_200,0.0300,0.0129,0.0091,0.0169,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G4,r3_inside,0.0100,0.0029,0.0016,0.0042,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G4,r4_false,0.0200,-0.5847,-0.5933,-0.5755,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G5,r1_rms_200,0.0300,-0.0013,-0.0049,0.0023,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G5,r3_inside,0.0100,-0.0001,-0.0017,0.0015,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G5,r4_false,0.0200,-0.5946,-0.6030,-0.5860,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G6,r1_rms_200,0.0300,0.0046,0.0004,0.0087,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G6,r3_inside,0.0100,-0.0003,-0.0019,0.0013,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G6,r4_false,0.0200,-0.5986,-0.6073,-0.5903,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G7,r1_rms_200,0.0300,0.0035,-0.0005,0.0073,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G7,r3_inside,0.0100,0.0018,0.0003,0.0034,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G7,r4_false,0.0200,-0.6054,-0.6133,-0.5968,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G8,r1_rms_200,0.0300,0.0001,-0.0033,0.0036,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G8,r3_inside,0.0100,0.0005,-0.0010,0.0021,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G8,r4_false,0.0200,-0.6159,-0.6245,-0.6074,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0-exact,r1_rms_200,0.0300,0.0052,0.0019,0.0087,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0-exact,r3_inside,0.0100,0.0007,-0.0025,0.0041,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0-exact,r4_false,0.0200,-0.6231,-0.6319,-0.6154,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0-miss0.25,r1_rms_200,0.0300,0.0007,-0.0028,0.0042,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0-miss0.25,r3_inside,0.0100,0.0042,0.0017,0.0065,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0-miss0.25,r4_false,0.0200,-0.6017,-0.6092,-0.5931,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0-miss1,r1_rms_200,0.0300,0.0041,0.0002,0.0077,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0-miss1,r3_inside,0.0100,0.0017,0.0007,0.0028,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0-miss1,r4_false,0.0200,-0.5974,-0.6056,-0.5888,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G2-half,r1_rms_200,0.0300,0.0140,0.0101,0.0178,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G2-half,r3_inside,0.0100,0.0036,0.0022,0.0052,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G2-half,r4_false,0.0200,-0.5260,-0.5340,-0.5176,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G2-fading,r1_rms_200,0.0300,0.0182,0.0145,0.0219,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G2-fading,r3_inside,0.0100,0.0048,0.0033,0.0064,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G2-fading,r4_false,0.0200,-0.5331,-0.5417,-0.5247,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G3-drop,r1_rms_200,0.0300,-0.0447,-0.0496,-0.0396,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G3-drop,r3_inside,0.0100,-0.0069,-0.0083,-0.0054,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G3-drop,r4_false,0.0200,-0.6588,-0.6669,-0.6508,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0-start0.5,r1_rms_200,0.0300,0.0023,-0.0011,0.0058,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0-start0.5,r3_inside,0.0100,-0.0001,-0.0017,0.0014,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0-start0.5,r4_false,0.0200,-0.6596,-0.6667,-0.6521,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0-start2,r1_rms_200,0.0300,0.0007,-0.0029,0.0043,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0-start2,r3_inside,0.0100,0.0027,0.0011,0.0043,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0-start2,r4_false,0.0200,-0.5898,-0.5988,-0.5804,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0-topics0.3,r1_rms_200,0.0300,0.0070,0.0034,0.0104,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0-topics0.3,r3_inside,0.0100,0.0023,0.0008,0.0038,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0-topics0.3,r4_false,0.0200,-0.6292,-0.6373,-0.6208,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0-topics1,r1_rms_200,0.0300,-0.0135,-0.0176,-0.0092,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0-topics1,r3_inside,0.0100,-0.0037,-0.0053,-0.0019,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0-topics1,r4_false,0.0200,-0.5389,-0.5466,-0.5317,met,reached
+floor_0.05+cautious_z1,both,not worse,not worse than the baseline,G0-topics1,r5_never,0.0800,0.0529,0.0423,0.0634,met,reached
+floor_0.05+cautious_z1.28,both,score,the share of the way to perfect,,,,0.6842,0.6795,0.6890,,
+floor_0.05+cautious_z1.28,both,goal,masteries declared falsely at most 20 %,G0,r4_false,0.2000,0.0229,0.0207,0.0251,met,reached
+floor_0.05+cautious_z1.28,both,goal,the answers until mastery at most 1.5 times the baseline's,G0,r5_late_answers,14.7274,4.7662,4.6736,4.8603,met,reached
+floor_0.05+cautious_z1.28,both,goal,masteries declared falsely at most 20 %,G0-topics1,r4_false,0.2000,0.0425,0.0395,0.0453,met,reached
+floor_0.05+cautious_z1.28,both,goal,the answers until mastery at most 1.5 times the baseline's,G0-topics1,r5_late_answers,13.9562,5.0649,4.9664,5.1595,met,reached
+floor_0.05+cautious_z1.28,both,goal,the card's move in answers 6–20 no more than the baseline's in answers 6–20,G0,r8_move_p95_6_20,73.0000,73.0000,73.0000,73.0000,met,reached
+floor_0.05+cautious_z1.28,both,goal,the rank's changes in answers 6–20 no more than the baseline's in answers 6–20,G0,r8_rank_6_20,3.6667,3.6667,3.4400,3.9000,met,on the edge
+floor_0.05+cautious_z1.28,both,goal,the card's move in answers 150–200 no more than the baseline's in answers 6–20,G0,r8_move_p95_150_200,73.0000,41.0000,40.0000,41.0000,met,reached
+floor_0.05+cautious_z1.28,both,goal,the rank's changes in answers 150–200 no more than the baseline's in answers 6–20,G0,r8_rank_150_200,3.6667,1.7549,1.6240,1.8941,met,reached
+floor_0.05+cautious_z1.28,both,goal,the card's move in answers 6–20 no more than the baseline's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,73.0000,73.0000,73.0000,met,reached
+floor_0.05+cautious_z1.28,both,goal,the rank's changes in answers 6–20 no more than the baseline's in answers 6–20,G2-half,r8_rank_6_20,3.6333,3.6333,3.3950,3.8933,met,on the edge
+floor_0.05+cautious_z1.28,both,goal,the card's move in answers 150–200 no more than the baseline's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,40.0000,40.0000,40.0000,met,reached
+floor_0.05+cautious_z1.28,both,goal,the rank's changes in answers 150–200 no more than the baseline's in answers 6–20,G2-half,r8_rank_150_200,3.6333,1.6162,1.5083,1.7402,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0,r1_rms_200,0.0300,0.0003,-0.0032,0.0039,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0,r3_inside,0.0100,0.0033,0.0017,0.0049,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0,r4_false,0.0200,-0.6231,-0.6313,-0.6149,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0,r5_never,0.0200,0.0132,0.0009,0.0258,not met,on the edge
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G1,r1_rms_200,0.0300,-0.0009,-0.0046,0.0028,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G1,r3_inside,0.0100,0.0018,0.0002,0.0033,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G1,r4_false,0.0200,-0.6125,-0.6235,-0.6022,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G2,r1_rms_200,0.0300,0.0100,0.0059,0.0139,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G2,r3_inside,0.0100,-0.0024,-0.0036,-0.0011,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G2,r4_false,0.0200,-0.4389,-0.4473,-0.4306,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G3,r1_rms_200,0.0300,0.0084,0.0040,0.0127,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G3,r3_inside,0.0100,0.0032,0.0019,0.0046,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G3,r4_false,0.0200,-0.5222,-0.5310,-0.5134,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G4,r1_rms_200,0.0300,0.0133,0.0093,0.0173,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G4,r3_inside,0.0100,0.0026,0.0013,0.0039,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G4,r4_false,0.0200,-0.5903,-0.5987,-0.5816,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G5,r1_rms_200,0.0300,-0.0013,-0.0050,0.0026,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G5,r3_inside,0.0100,-0.0005,-0.0021,0.0011,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G5,r4_false,0.0200,-0.6090,-0.6177,-0.6006,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G6,r1_rms_200,0.0300,0.0033,-0.0009,0.0073,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G6,r3_inside,0.0100,-0.0006,-0.0022,0.0011,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G6,r4_false,0.0200,-0.6151,-0.6236,-0.6066,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G7,r1_rms_200,0.0300,0.0040,0.0002,0.0079,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G7,r3_inside,0.0100,0.0018,0.0002,0.0034,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G7,r4_false,0.0200,-0.6217,-0.6302,-0.6136,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G8,r1_rms_200,0.0300,-0.0005,-0.0041,0.0031,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G8,r3_inside,0.0100,0.0001,-0.0014,0.0016,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G8,r4_false,0.0200,-0.6288,-0.6371,-0.6203,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0-exact,r1_rms_200,0.0300,0.0044,0.0010,0.0079,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0-exact,r3_inside,0.0100,0.0006,-0.0028,0.0039,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0-exact,r4_false,0.0200,-0.6386,-0.6468,-0.6308,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0-miss0.25,r1_rms_200,0.0300,-0.0010,-0.0044,0.0024,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0-miss0.25,r3_inside,0.0100,0.0043,0.0020,0.0067,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0-miss0.25,r4_false,0.0200,-0.6184,-0.6264,-0.6105,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0-miss1,r1_rms_200,0.0300,0.0044,0.0006,0.0080,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0-miss1,r3_inside,0.0100,0.0016,0.0005,0.0027,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0-miss1,r4_false,0.0200,-0.6089,-0.6175,-0.6005,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G2-half,r1_rms_200,0.0300,0.0136,0.0099,0.0173,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G2-half,r3_inside,0.0100,0.0041,0.0026,0.0056,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G2-half,r4_false,0.0200,-0.5337,-0.5421,-0.5253,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G2-fading,r1_rms_200,0.0300,0.0168,0.0131,0.0204,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G2-fading,r3_inside,0.0100,0.0046,0.0030,0.0062,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G2-fading,r4_false,0.0200,-0.5410,-0.5498,-0.5326,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G3-drop,r1_rms_200,0.0300,-0.0476,-0.0526,-0.0423,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G3-drop,r3_inside,0.0100,-0.0073,-0.0088,-0.0059,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G3-drop,r4_false,0.0200,-0.6765,-0.6841,-0.6689,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0-start0.5,r1_rms_200,0.0300,0.0007,-0.0030,0.0042,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0-start0.5,r3_inside,0.0100,-0.0001,-0.0017,0.0015,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0-start0.5,r4_false,0.0200,-0.6695,-0.6765,-0.6628,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0-start2,r1_rms_200,0.0300,0.0012,-0.0023,0.0049,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0-start2,r3_inside,0.0100,0.0024,0.0008,0.0039,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0-start2,r4_false,0.0200,-0.6034,-0.6131,-0.5945,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0-topics0.3,r1_rms_200,0.0300,0.0078,0.0042,0.0114,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0-topics0.3,r3_inside,0.0100,0.0025,0.0010,0.0041,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0-topics0.3,r4_false,0.0200,-0.6434,-0.6515,-0.6347,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0-topics1,r1_rms_200,0.0300,-0.0154,-0.0194,-0.0113,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0-topics1,r3_inside,0.0100,-0.0042,-0.0061,-0.0024,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0-topics1,r4_false,0.0200,-0.5559,-0.5634,-0.5484,met,reached
+floor_0.05+cautious_z1.28,both,not worse,not worse than the baseline,G0-topics1,r5_never,0.0800,0.0915,0.0816,0.1019,not met,not reached
+floor_0.05+cautious_z1.64,both,score,the share of the way to perfect,,,,0.6808,0.6762,0.6853,,
+floor_0.05+cautious_z1.64,both,goal,masteries declared falsely at most 20 %,G0,r4_false,0.2000,0.0106,0.0092,0.0120,met,reached
+floor_0.05+cautious_z1.64,both,goal,the answers until mastery at most 1.5 times the baseline's,G0,r5_late_answers,14.7274,4.8559,4.7556,4.9612,met,reached
+floor_0.05+cautious_z1.64,both,goal,masteries declared falsely at most 20 %,G0-topics1,r4_false,0.2000,0.0271,0.0250,0.0295,met,reached
+floor_0.05+cautious_z1.64,both,goal,the answers until mastery at most 1.5 times the baseline's,G0-topics1,r5_late_answers,13.9562,5.2108,5.1068,5.3180,met,reached
+floor_0.05+cautious_z1.64,both,goal,the card's move in answers 6–20 no more than the baseline's in answers 6–20,G0,r8_move_p95_6_20,73.0000,73.0000,73.0000,73.0000,met,reached
+floor_0.05+cautious_z1.64,both,goal,the rank's changes in answers 6–20 no more than the baseline's in answers 6–20,G0,r8_rank_6_20,3.6667,3.6667,3.4417,3.8867,met,on the edge
+floor_0.05+cautious_z1.64,both,goal,the card's move in answers 150–200 no more than the baseline's in answers 6–20,G0,r8_move_p95_150_200,73.0000,41.0000,41.0000,41.0000,met,reached
+floor_0.05+cautious_z1.64,both,goal,the rank's changes in answers 150–200 no more than the baseline's in answers 6–20,G0,r8_rank_150_200,3.6667,1.6397,1.5142,1.7637,met,reached
+floor_0.05+cautious_z1.64,both,goal,the card's move in answers 6–20 no more than the baseline's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,73.0000,73.0000,73.0000,met,reached
+floor_0.05+cautious_z1.64,both,goal,the rank's changes in answers 6–20 no more than the baseline's in answers 6–20,G2-half,r8_rank_6_20,3.6333,3.6333,3.3983,3.8650,met,on the edge
+floor_0.05+cautious_z1.64,both,goal,the card's move in answers 150–200 no more than the baseline's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,40.0000,40.0000,40.0000,met,reached
+floor_0.05+cautious_z1.64,both,goal,the rank's changes in answers 150–200 no more than the baseline's in answers 6–20,G2-half,r8_rank_150_200,3.6333,1.6618,1.5466,1.7824,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0,r1_rms_200,0.0300,-0.0015,-0.0051,0.0022,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0,r3_inside,0.0100,0.0024,0.0008,0.0040,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0,r4_false,0.0200,-0.6354,-0.6436,-0.6267,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0,r5_never,0.0200,0.0771,0.0643,0.0892,not met,not reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G1,r1_rms_200,0.0300,-0.0053,-0.0089,-0.0017,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G1,r3_inside,0.0100,0.0017,0.0002,0.0033,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G1,r4_false,0.0200,-0.6139,-0.6250,-0.6032,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G2,r1_rms_200,0.0300,0.0068,0.0031,0.0107,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G2,r3_inside,0.0100,0.0010,-0.0003,0.0022,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G2,r4_false,0.0200,-0.4411,-0.4494,-0.4324,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G3,r1_rms_200,0.0300,0.0051,0.0010,0.0092,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G3,r3_inside,0.0100,0.0034,0.0020,0.0048,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G3,r4_false,0.0200,-0.5292,-0.5378,-0.5202,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G4,r1_rms_200,0.0300,0.0132,0.0093,0.0171,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G4,r3_inside,0.0100,0.0025,0.0013,0.0038,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G4,r4_false,0.0200,-0.5937,-0.6018,-0.5849,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G5,r1_rms_200,0.0300,-0.0023,-0.0061,0.0015,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G5,r3_inside,0.0100,-0.0000,-0.0016,0.0015,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G5,r4_false,0.0200,-0.6210,-0.6293,-0.6128,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G6,r1_rms_200,0.0300,0.0011,-0.0029,0.0054,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G6,r3_inside,0.0100,-0.0004,-0.0020,0.0010,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G6,r4_false,0.0200,-0.6311,-0.6400,-0.6227,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G7,r1_rms_200,0.0300,-0.0001,-0.0040,0.0039,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G7,r3_inside,0.0100,0.0011,-0.0005,0.0027,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G7,r4_false,0.0200,-0.6343,-0.6425,-0.6260,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G8,r1_rms_200,0.0300,-0.0018,-0.0056,0.0016,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G8,r3_inside,0.0100,0.0001,-0.0013,0.0015,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G8,r4_false,0.0200,-0.6415,-0.6505,-0.6330,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0-exact,r1_rms_200,0.0300,0.0023,-0.0011,0.0058,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0-exact,r3_inside,0.0100,-0.0010,-0.0042,0.0022,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0-exact,r4_false,0.0200,-0.6512,-0.6591,-0.6430,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0-miss0.25,r1_rms_200,0.0300,-0.0030,-0.0064,0.0005,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0-miss0.25,r3_inside,0.0100,0.0038,0.0014,0.0060,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0-miss0.25,r4_false,0.0200,-0.6321,-0.6404,-0.6236,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0-miss1,r1_rms_200,0.0300,0.0033,-0.0004,0.0071,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0-miss1,r3_inside,0.0100,0.0020,0.0010,0.0030,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0-miss1,r4_false,0.0200,-0.6200,-0.6284,-0.6117,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G2-half,r1_rms_200,0.0300,0.0098,0.0064,0.0136,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G2-half,r3_inside,0.0100,0.0054,0.0040,0.0069,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G2-half,r4_false,0.0200,-0.5389,-0.5471,-0.5308,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G2-fading,r1_rms_200,0.0300,0.0126,0.0090,0.0162,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G2-fading,r3_inside,0.0100,0.0054,0.0037,0.0068,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G2-fading,r4_false,0.0200,-0.5471,-0.5559,-0.5386,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G3-drop,r1_rms_200,0.0300,-0.0484,-0.0532,-0.0435,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G3-drop,r3_inside,0.0100,-0.0076,-0.0090,-0.0061,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G3-drop,r4_false,0.0200,-0.6907,-0.6984,-0.6826,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0-start0.5,r1_rms_200,0.0300,-0.0008,-0.0043,0.0028,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0-start0.5,r3_inside,0.0100,-0.0002,-0.0018,0.0014,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0-start0.5,r4_false,0.0200,-0.6766,-0.6839,-0.6700,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0-start2,r1_rms_200,0.0300,-0.0013,-0.0049,0.0023,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0-start2,r3_inside,0.0100,0.0031,0.0016,0.0046,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0-start2,r4_false,0.0200,-0.6134,-0.6228,-0.6041,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0-topics0.3,r1_rms_200,0.0300,0.0066,0.0030,0.0102,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0-topics0.3,r3_inside,0.0100,0.0018,0.0003,0.0033,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0-topics0.3,r4_false,0.0200,-0.6536,-0.6617,-0.6452,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0-topics1,r1_rms_200,0.0300,-0.0192,-0.0234,-0.0151,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0-topics1,r3_inside,0.0100,-0.0051,-0.0068,-0.0033,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0-topics1,r4_false,0.0200,-0.5713,-0.5789,-0.5640,met,reached
+floor_0.05+cautious_z1.64,both,not worse,not worse than the baseline,G0-topics1,r5_never,0.0800,0.1430,0.1328,0.1539,not met,not reached
+floor_0.05+wald,both,score,the share of the way to perfect,,,,0.3882,0.3840,0.3924,,
+floor_0.05+wald,both,goal,masteries declared falsely at most 20 %,G0,r4_false,0.2000,0.0067,0.0053,0.0082,met,reached
+floor_0.05+wald,both,goal,the answers until mastery at most 1.5 times the baseline's,G0,r5_late_answers,14.7274,10.8160,10.7153,10.9250,met,reached
+floor_0.05+wald,both,goal,masteries declared falsely at most 20 %,G0-topics1,r4_false,0.2000,0.0053,0.0041,0.0066,met,reached
+floor_0.05+wald,both,goal,the answers until mastery at most 1.5 times the baseline's,G0-topics1,r5_late_answers,13.9562,10.7131,10.6079,10.8184,met,reached
+floor_0.05+wald,both,goal,the card's move in answers 6–20 no more than the baseline's in answers 6–20,G0,r8_move_p95_6_20,73.0000,73.0000,73.0000,73.0000,met,reached
+floor_0.05+wald,both,goal,the rank's changes in answers 6–20 no more than the baseline's in answers 6–20,G0,r8_rank_6_20,3.6667,3.6667,3.4483,3.8900,met,on the edge
+floor_0.05+wald,both,goal,the card's move in answers 150–200 no more than the baseline's in answers 6–20,G0,r8_move_p95_150_200,73.0000,42.0000,42.0000,42.0000,met,reached
+floor_0.05+wald,both,goal,the rank's changes in answers 150–200 no more than the baseline's in answers 6–20,G0,r8_rank_150_200,3.6667,1.7230,1.6020,1.8510,met,reached
+floor_0.05+wald,both,goal,the card's move in answers 6–20 no more than the baseline's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,73.0000,73.0000,73.0000,met,reached
+floor_0.05+wald,both,goal,the rank's changes in answers 6–20 no more than the baseline's in answers 6–20,G2-half,r8_rank_6_20,3.6333,3.6333,3.4050,3.8817,met,on the edge
+floor_0.05+wald,both,goal,the card's move in answers 150–200 no more than the baseline's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,41.0000,40.0000,41.0000,met,reached
+floor_0.05+wald,both,goal,the rank's changes in answers 150–200 no more than the baseline's in answers 6–20,G2-half,r8_rank_150_200,3.6333,1.6515,1.5328,1.7716,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0,r1_rms_200,0.0300,-0.0107,-0.0140,-0.0072,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0,r3_inside,0.0100,0.0019,0.0004,0.0033,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0,r4_false,0.0200,-0.6392,-0.6472,-0.6310,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0,r5_never,0.0200,0.3875,0.3779,0.3970,not met,not reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G1,r1_rms_200,0.0300,-0.0151,-0.0184,-0.0116,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G1,r3_inside,0.0100,0.0017,0.0004,0.0031,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G1,r4_false,0.0200,-0.6124,-0.6235,-0.6013,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G2,r1_rms_200,0.0300,0.0075,0.0040,0.0110,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G2,r3_inside,0.0100,0.0036,0.0025,0.0047,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G2,r4_false,0.0200,-0.4422,-0.4503,-0.4339,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G3,r1_rms_200,0.0300,-0.0086,-0.0123,-0.0048,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G3,r3_inside,0.0100,0.0011,-0.0001,0.0024,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G3,r4_false,0.0200,-0.5335,-0.5422,-0.5246,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G4,r1_rms_200,0.0300,0.0068,0.0033,0.0105,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G4,r3_inside,0.0100,0.0017,0.0005,0.0029,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G4,r4_false,0.0200,-0.5948,-0.6037,-0.5863,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G5,r1_rms_200,0.0300,-0.0044,-0.0079,-0.0008,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G5,r3_inside,0.0100,0.0012,-0.0002,0.0026,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G5,r4_false,0.0200,-0.6263,-0.6353,-0.6177,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G6,r1_rms_200,0.0300,-0.0064,-0.0105,-0.0025,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G6,r3_inside,0.0100,-0.0014,-0.0028,0.0001,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G6,r4_false,0.0200,-0.6536,-0.6618,-0.6453,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G7,r1_rms_200,0.0300,-0.0054,-0.0091,-0.0017,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G7,r3_inside,0.0100,0.0005,-0.0010,0.0020,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G7,r4_false,0.0200,-0.6402,-0.6481,-0.6326,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G8,r1_rms_200,0.0300,-0.0095,-0.0127,-0.0063,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G8,r3_inside,0.0100,-0.0006,-0.0019,0.0006,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G8,r4_false,0.0200,-0.6492,-0.6575,-0.6409,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0-exact,r1_rms_200,0.0300,-0.0085,-0.0119,-0.0052,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0-exact,r3_inside,0.0100,-0.0022,-0.0051,0.0004,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0-exact,r4_false,0.0200,-0.6549,-0.6632,-0.6464,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0-miss0.25,r1_rms_200,0.0300,-0.0115,-0.0147,-0.0082,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0-miss0.25,r3_inside,0.0100,0.0009,-0.0012,0.0029,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0-miss0.25,r4_false,0.0200,-0.6388,-0.6467,-0.6305,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0-miss1,r1_rms_200,0.0300,-0.0040,-0.0074,-0.0007,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0-miss1,r3_inside,0.0100,0.0012,0.0001,0.0021,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0-miss1,r4_false,0.0200,-0.6260,-0.6344,-0.6173,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G2-half,r1_rms_200,0.0300,0.0043,0.0006,0.0076,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G2-half,r3_inside,0.0100,0.0078,0.0065,0.0093,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G2-half,r4_false,0.0200,-0.5421,-0.5503,-0.5339,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G2-fading,r1_rms_200,0.0300,0.0029,-0.0002,0.0061,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G2-fading,r3_inside,0.0100,0.0054,0.0039,0.0069,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G2-fading,r4_false,0.0200,-0.5495,-0.5578,-0.5411,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G3-drop,r1_rms_200,0.0300,-0.0581,-0.0630,-0.0534,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G3-drop,r3_inside,0.0100,-0.0087,-0.0101,-0.0074,not met,on the edge
+floor_0.05+wald,both,not worse,not worse than the baseline,G3-drop,r4_false,0.0200,-0.6803,-0.6886,-0.6714,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0-start0.5,r1_rms_200,0.0300,-0.0085,-0.0121,-0.0054,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0-start0.5,r3_inside,0.0100,-0.0001,-0.0015,0.0013,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0-start0.5,r4_false,0.0200,-0.6771,-0.6839,-0.6702,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0-start2,r1_rms_200,0.0300,-0.0074,-0.0108,-0.0040,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0-start2,r3_inside,0.0100,0.0008,-0.0007,0.0022,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0-start2,r4_false,0.0200,-0.6172,-0.6258,-0.6084,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0-topics0.3,r1_rms_200,0.0300,0.0013,-0.0021,0.0046,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0-topics0.3,r3_inside,0.0100,0.0021,0.0007,0.0035,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0-topics0.3,r4_false,0.0200,-0.6554,-0.6640,-0.6473,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0-topics1,r1_rms_200,0.0300,-0.0375,-0.0409,-0.0341,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0-topics1,r3_inside,0.0100,-0.0091,-0.0107,-0.0076,not met,on the edge
+floor_0.05+wald,both,not worse,not worse than the baseline,G0-topics1,r4_false,0.0200,-0.5931,-0.6004,-0.5857,met,reached
+floor_0.05+wald,both,not worse,not worse than the baseline,G0-topics1,r5_never,0.0800,0.4062,0.3978,0.4147,not met,not reached
+floor_0.05+cautious_z0,both,score,the share of the way to perfect,,,,0.6535,0.6489,0.6581,,
+floor_0.05+cautious_z0,both,goal,masteries declared falsely at most 20 %,G0,r4_false,0.2000,0.1541,0.1474,0.1611,met,reached
+floor_0.05+cautious_z0,both,goal,the answers until mastery at most 1.5 times the baseline's,G0,r5_late_answers,14.7274,4.1931,4.1283,4.2607,met,reached
+floor_0.05+cautious_z0,both,goal,masteries declared falsely at most 20 %,G0-topics1,r4_false,0.2000,0.1677,0.1619,0.1735,met,reached
+floor_0.05+cautious_z0,both,goal,the answers until mastery at most 1.5 times the baseline's,G0-topics1,r5_late_answers,13.9562,4.3176,4.2433,4.3931,met,reached
+floor_0.05+cautious_z0,both,goal,the card's move in answers 6–20 no more than the baseline's in answers 6–20,G0,r8_move_p95_6_20,73.0000,73.0000,73.0000,73.0000,met,reached
+floor_0.05+cautious_z0,both,goal,the rank's changes in answers 6–20 no more than the baseline's in answers 6–20,G0,r8_rank_6_20,3.6667,3.6667,3.4533,3.9100,met,on the edge
+floor_0.05+cautious_z0,both,goal,the card's move in answers 150–200 no more than the baseline's in answers 6–20,G0,r8_move_p95_150_200,73.0000,40.0000,40.0000,40.0000,met,reached
+floor_0.05+cautious_z0,both,goal,the rank's changes in answers 150–200 no more than the baseline's in answers 6–20,G0,r8_rank_150_200,3.6667,1.6652,1.5471,1.7873,met,reached
+floor_0.05+cautious_z0,both,goal,the card's move in answers 6–20 no more than the baseline's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,73.0000,73.0000,73.0000,met,reached
+floor_0.05+cautious_z0,both,goal,the rank's changes in answers 6–20 no more than the baseline's in answers 6–20,G2-half,r8_rank_6_20,3.6333,3.6333,3.4050,3.8800,met,on the edge
+floor_0.05+cautious_z0,both,goal,the card's move in answers 150–200 no more than the baseline's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,41.0000,40.0000,41.0000,met,reached
+floor_0.05+cautious_z0,both,goal,the rank's changes in answers 150–200 no more than the baseline's in answers 6–20,G2-half,r8_rank_150_200,3.6333,1.6010,1.4912,1.7176,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0,r1_rms_200,0.0300,0.0062,0.0024,0.0101,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0,r3_inside,0.0100,0.0041,0.0025,0.0058,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0,r4_false,0.0200,-0.4919,-0.5013,-0.4829,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0,r5_never,0.0200,-0.1585,-0.1697,-0.1475,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G1,r1_rms_200,0.0300,0.0117,0.0079,0.0157,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G1,r3_inside,0.0100,0.0054,0.0038,0.0070,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G1,r4_false,0.0200,-0.5597,-0.5706,-0.5489,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G2,r1_rms_200,0.0300,0.0034,-0.0006,0.0073,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G2,r3_inside,0.0100,0.0007,-0.0005,0.0020,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G2,r4_false,0.0200,-0.3939,-0.4016,-0.3853,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G3,r1_rms_200,0.0300,0.0104,0.0062,0.0148,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G3,r3_inside,0.0100,0.0040,0.0025,0.0054,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G3,r4_false,0.0200,-0.4208,-0.4296,-0.4119,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G4,r1_rms_200,0.0300,0.0109,0.0069,0.0150,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G4,r3_inside,0.0100,0.0023,0.0010,0.0037,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G4,r4_false,0.0200,-0.5238,-0.5332,-0.5143,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G5,r1_rms_200,0.0300,0.0014,-0.0024,0.0053,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G5,r3_inside,0.0100,-0.0000,-0.0018,0.0017,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G5,r4_false,0.0200,-0.4818,-0.4915,-0.4722,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G6,r1_rms_200,0.0300,0.0025,-0.0015,0.0067,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G6,r3_inside,0.0100,0.0016,-0.0001,0.0033,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G6,r4_false,0.0200,-0.4715,-0.4813,-0.4612,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G7,r1_rms_200,0.0300,0.0102,0.0063,0.0143,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G7,r3_inside,0.0100,0.0025,0.0009,0.0042,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G7,r4_false,0.0200,-0.4884,-0.4982,-0.4787,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G8,r1_rms_200,0.0300,0.0044,0.0008,0.0080,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G8,r3_inside,0.0100,0.0004,-0.0010,0.0019,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G8,r4_false,0.0200,-0.5015,-0.5115,-0.4924,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0-exact,r1_rms_200,0.0300,0.0094,0.0057,0.0131,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0-exact,r3_inside,0.0100,0.0012,-0.0027,0.0050,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0-exact,r4_false,0.0200,-0.5015,-0.5110,-0.4918,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0-miss0.25,r1_rms_200,0.0300,0.0085,0.0048,0.0121,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0-miss0.25,r3_inside,0.0100,0.0038,0.0014,0.0064,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0-miss0.25,r4_false,0.0200,-0.4784,-0.4873,-0.4694,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0-miss1,r1_rms_200,0.0300,0.0080,0.0042,0.0116,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0-miss1,r3_inside,0.0100,0.0016,0.0006,0.0026,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0-miss1,r4_false,0.0200,-0.4949,-0.5046,-0.4856,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G2-half,r1_rms_200,0.0300,0.0075,0.0037,0.0114,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G2-half,r3_inside,0.0100,0.0032,0.0016,0.0047,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G2-half,r4_false,0.0200,-0.4437,-0.4528,-0.4353,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G2-fading,r1_rms_200,0.0300,0.0142,0.0102,0.0180,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G2-fading,r3_inside,0.0100,0.0041,0.0025,0.0058,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G2-fading,r4_false,0.0200,-0.4453,-0.4547,-0.4363,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G3-drop,r1_rms_200,0.0300,-0.0106,-0.0160,-0.0053,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G3-drop,r3_inside,0.0100,-0.0008,-0.0024,0.0008,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G3-drop,r4_false,0.0200,-0.5088,-0.5174,-0.5007,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0-start0.5,r1_rms_200,0.0300,0.0096,0.0061,0.0132,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0-start0.5,r3_inside,0.0100,0.0020,0.0003,0.0035,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0-start0.5,r4_false,0.0200,-0.5433,-0.5520,-0.5342,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0-start2,r1_rms_200,0.0300,0.0078,0.0040,0.0116,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0-start2,r3_inside,0.0100,0.0028,0.0011,0.0044,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0-start2,r4_false,0.0200,-0.4807,-0.4905,-0.4709,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0-topics0.3,r1_rms_200,0.0300,0.0084,0.0047,0.0120,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0-topics0.3,r3_inside,0.0100,0.0013,-0.0002,0.0029,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0-topics0.3,r4_false,0.0200,-0.5022,-0.5120,-0.4920,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0-topics1,r1_rms_200,0.0300,0.0072,0.0027,0.0114,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0-topics1,r3_inside,0.0100,0.0019,-0.0001,0.0038,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0-topics1,r4_false,0.0200,-0.4307,-0.4383,-0.4229,met,reached
+floor_0.05+cautious_z0,both,not worse,not worse than the baseline,G0-topics1,r5_never,0.0800,-0.0604,-0.0709,-0.0493,met,reached
+oracle,both,score,the share of the way to perfect,,,,-0.0366,-0.0404,-0.0327,,
+oracle,both,goal,masteries declared falsely at most 20 %,G0,r4_false,0.2000,0.7498,0.7420,0.7583,not met,not reached
+oracle,both,goal,the answers until mastery at most 1.5 times the baseline's,G0,r5_late_answers,14.7274,6.4020,6.3227,6.4806,met,reached
+oracle,both,goal,masteries declared falsely at most 20 %,G0-topics1,r4_false,0.2000,0.7308,0.7232,0.7380,not met,not reached
+oracle,both,goal,the answers until mastery at most 1.5 times the baseline's,G0-topics1,r5_late_answers,13.9562,6.5470,6.4622,6.6335,met,reached
+oracle,both,goal,the card's move in answers 6–20 no more than the baseline's in answers 6–20,G0,r8_move_p95_6_20,73.0000,,,,unread,
+oracle,both,goal,the rank's changes in answers 6–20 no more than the baseline's in answers 6–20,G0,r8_rank_6_20,3.6667,,,,unread,
+oracle,both,goal,the card's move in answers 150–200 no more than the baseline's in answers 6–20,G0,r8_move_p95_150_200,73.0000,,,,unread,
+oracle,both,goal,the rank's changes in answers 150–200 no more than the baseline's in answers 6–20,G0,r8_rank_150_200,3.6667,,,,unread,
+oracle,both,goal,the card's move in answers 6–20 no more than the baseline's in answers 6–20,G2-half,r8_move_p95_6_20,73.0000,,,,unread,
+oracle,both,goal,the rank's changes in answers 6–20 no more than the baseline's in answers 6–20,G2-half,r8_rank_6_20,3.6333,,,,unread,
+oracle,both,goal,the card's move in answers 150–200 no more than the baseline's in answers 6–20,G2-half,r8_move_p95_150_200,73.0000,,,,unread,
+oracle,both,goal,the rank's changes in answers 150–200 no more than the baseline's in answers 6–20,G2-half,r8_rank_150_200,3.6333,,,,unread,
+oracle,both,not worse,not worse than the baseline,G0,r1_rms_200,0.0300,-0.4876,-0.4916,-0.4835,met,reached
+oracle,both,not worse,not worse than the baseline,G0,r3_inside,0.0100,0.1876,0.1849,0.1905,met,reached
+oracle,both,not worse,not worse than the baseline,G0,r4_false,0.0200,0.1038,0.0954,0.1122,not met,not reached
+oracle,both,not worse,not worse than the baseline,G0,r5_never,0.0200,0.4220,0.4088,0.4349,not met,not reached
+oracle,both,not worse,not worse than the baseline,G1,r1_rms_200,0.0300,-0.5003,-0.5047,-0.4959,met,reached
+oracle,both,not worse,not worse than the baseline,G1,r3_inside,0.0100,0.1805,0.1768,0.1845,met,reached
+oracle,both,not worse,not worse than the baseline,G1,r4_false,0.0200,0.0488,0.0411,0.0563,not met,not reached
+oracle,both,not worse,not worse than the baseline,G2,r1_rms_200,0.0300,-1.1869,-1.1954,-1.1789,met,reached
+oracle,both,not worse,not worse than the baseline,G2,r3_inside,0.0100,0.3233,0.3199,0.3267,met,reached
+oracle,both,not worse,not worse than the baseline,G2,r4_false,0.0200,0.2278,0.2210,0.2343,not met,not reached
+oracle,both,not worse,not worse than the baseline,G3,r1_rms_200,0.0300,-0.7168,-0.7242,-0.7099,met,reached
+oracle,both,not worse,not worse than the baseline,G3,r3_inside,0.0100,0.2629,0.2599,0.2657,met,reached
+oracle,both,not worse,not worse than the baseline,G3,r4_false,0.0200,0.1824,0.1743,0.1901,not met,not reached
+oracle,both,not worse,not worse than the baseline,G4,r1_rms_200,0.0300,-0.6551,-0.6609,-0.6493,met,reached
+oracle,both,not worse,not worse than the baseline,G4,r3_inside,0.0100,0.0829,0.0806,0.0852,met,reached
+oracle,both,not worse,not worse than the baseline,G4,r4_false,0.0200,0.1538,0.1442,0.1632,not met,not reached
+oracle,both,not worse,not worse than the baseline,G5,r1_rms_200,0.0300,-0.5449,-0.5504,-0.5392,met,reached
+oracle,both,not worse,not worse than the baseline,G5,r3_inside,0.0100,0.1973,0.1942,0.2005,met,reached
+oracle,both,not worse,not worse than the baseline,G5,r4_false,0.0200,0.1152,0.1056,0.1242,not met,not reached
+oracle,both,not worse,not worse than the baseline,G6,r1_rms_200,0.0300,-0.7533,-0.7647,-0.7421,met,reached
+oracle,both,not worse,not worse than the baseline,G6,r3_inside,0.0100,-0.0653,-0.0697,-0.0605,not met,not reached
+oracle,both,not worse,not worse than the baseline,G6,r4_false,0.0200,0.0179,0.0091,0.0270,not met,on the edge
+oracle,both,not worse,not worse than the baseline,G7,r1_rms_200,0.0300,-0.5595,-0.5646,-0.5545,met,reached
+oracle,both,not worse,not worse than the baseline,G7,r3_inside,0.0100,0.1373,0.1344,0.1402,met,reached
+oracle,both,not worse,not worse than the baseline,G7,r4_false,0.0200,0.0365,0.0277,0.0450,not met,not reached
+oracle,both,not worse,not worse than the baseline,G8,r1_rms_200,0.0300,-0.4880,-0.4919,-0.4841,met,reached
+oracle,both,not worse,not worse than the baseline,G8,r3_inside,0.0100,0.1842,0.1815,0.1869,met,reached
+oracle,both,not worse,not worse than the baseline,G8,r4_false,0.0200,0.0996,0.0908,0.1085,not met,not reached
+oracle,both,not worse,not worse than the baseline,G0-exact,r1_rms_200,0.0300,-0.4724,-0.4764,-0.4688,met,reached
+oracle,both,not worse,not worse than the baseline,G0-exact,r3_inside,0.0100,0.4270,0.4218,0.4323,met,reached
+oracle,both,not worse,not worse than the baseline,G0-exact,r4_false,0.0200,0.0905,0.0826,0.0986,not met,not reached
+oracle,both,not worse,not worse than the baseline,G0-miss0.25,r1_rms_200,0.0300,-0.4761,-0.4800,-0.4724,met,reached
+oracle,both,not worse,not worse than the baseline,G0-miss0.25,r3_inside,0.0100,0.3410,0.3369,0.3454,met,reached
+oracle,both,not worse,not worse than the baseline,G0-miss0.25,r4_false,0.0200,0.1004,0.0922,0.1083,not met,not reached
+oracle,both,not worse,not worse than the baseline,G0-miss1,r1_rms_200,0.0300,-0.5390,-0.5438,-0.5344,met,reached
+oracle,both,not worse,not worse than the baseline,G0-miss1,r3_inside,0.0100,0.0607,0.0592,0.0624,met,reached
+oracle,both,not worse,not worse than the baseline,G0-miss1,r4_false,0.0200,0.1144,0.1056,0.1228,not met,not reached
+oracle,both,not worse,not worse than the baseline,G2-half,r1_rms_200,0.0300,-0.7244,-0.7307,-0.7179,met,reached
+oracle,both,not worse,not worse than the baseline,G2-half,r3_inside,0.0100,0.2322,0.2290,0.2353,met,reached
+oracle,both,not worse,not worse than the baseline,G2-half,r4_false,0.0200,0.1876,0.1807,0.1941,not met,not reached
+oracle,both,not worse,not worse than the baseline,G2-fading,r1_rms_200,0.0300,-0.5891,-0.5948,-0.5838,met,reached
+oracle,both,not worse,not worse than the baseline,G2-fading,r3_inside,0.0100,0.2153,0.2121,0.2184,met,reached
+oracle,both,not worse,not worse than the baseline,G2-fading,r4_false,0.0200,0.1635,0.1560,0.1708,not met,not reached
+oracle,both,not worse,not worse than the baseline,G3-drop,r1_rms_200,0.0300,-0.6010,-0.6072,-0.5947,met,reached
+oracle,both,not worse,not worse than the baseline,G3-drop,r3_inside,0.0100,0.2101,0.2073,0.2128,met,reached
+oracle,both,not worse,not worse than the baseline,G3-drop,r4_false,0.0200,0.0647,0.0571,0.0726,not met,not reached
+oracle,both,not worse,not worse than the baseline,G0-start0.5,r1_rms_200,0.0300,-0.4832,-0.4872,-0.4791,met,reached
+oracle,both,not worse,not worse than the baseline,G0-start0.5,r3_inside,0.0100,0.1828,0.1802,0.1855,met,reached
+oracle,both,not worse,not worse than the baseline,G0-start0.5,r4_false,0.0200,0.0695,0.0619,0.0769,not met,not reached
+oracle,both,not worse,not worse than the baseline,G0-start2,r1_rms_200,0.0300,-0.5030,-0.5078,-0.4979,met,reached
+oracle,both,not worse,not worse than the baseline,G0-start2,r3_inside,0.0100,0.1847,0.1813,0.1879,met,reached
+oracle,both,not worse,not worse than the baseline,G0-start2,r4_false,0.0200,0.1084,0.1001,0.1166,not met,not reached
+oracle,both,not worse,not worse than the baseline,G0-topics0.3,r1_rms_200,0.0300,-0.4303,-0.4339,-0.4265,met,reached
+oracle,both,not worse,not worse than the baseline,G0-topics0.3,r3_inside,0.0100,0.1656,0.1626,0.1685,met,reached
+oracle,both,not worse,not worse than the baseline,G0-topics0.3,r4_false,0.0200,0.0978,0.0887,0.1074,not met,not reached
+oracle,both,not worse,not worse than the baseline,G0-topics1,r1_rms_200,0.0300,-0.7284,-0.7349,-0.7220,met,reached
+oracle,both,not worse,not worse than the baseline,G0-topics1,r3_inside,0.0100,0.2460,0.2435,0.2487,met,reached
+oracle,both,not worse,not worse than the baseline,G0-topics1,r4_false,0.0200,0.1324,0.1249,0.1401,not met,not reached
+oracle,both,not worse,not worse than the baseline,G0-topics1,r5_never,0.0800,0.4459,0.4344,0.4569,not met,not reached

@@ -128,18 +128,27 @@ type Storage interface {
 // Account is whose profile a call is about. Two accounts are the same account
 // when their identifiers are.
 type Account struct {
+	// Two accounts made alike hold different pointers, so == would answer
+	// that they differ. This makes the compiler refuse the question instead.
+	// It comes first: a field of no size at the end of a struct is given room
+	// of its own, which every copy of an account would carry.
+	_ [0]func()
 	// ID is the identifier the sign-in derived for the account. It keys what a
 	// store holds while the process runs and nothing durable, because it
 	// changes at the first sign-in after the keys it was derived with rotate.
 	ID string
+	// SignInCountry is the country the parent's browser signed in from, by its
+	// code in the list of countries, or empty when the sign-in does not say:
+	// one made before the country was kept, the development sign-in, or an
+	// address no country holds. No store reads it. It travels with the account
+	// because the account is what reaches every tool, and the line about a task
+	// handed out counts families by it.
+	SignInCountry string
 	// key opens somebody's files, so it sits behind a pointer nothing outside
 	// this package can name. Whatever prints or encodes a value by walking its
 	// fields then never reaches it: fmt writes a pointer it finds inside a
 	// value as an address, and encoding/json skips a field it cannot name.
 	key *key
-	// Two accounts made alike hold different pointers, so == would answer
-	// that they differ. This makes the compiler refuse the question instead.
-	_ [0]func()
 }
 
 // key is what reaches the place an account's profile is kept, and until when

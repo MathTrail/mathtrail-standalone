@@ -1,0 +1,112 @@
+# The home page, for a parent: what MathTrail is, why not just ask the chat,
+# how a lesson goes — the card of the widget at every step — and how to
+# connect. The grades, the names of the traps, the card's drawing, options and
+# rating, the connector's address and the card's own words are not here: they
+# are the catalog's numbers, the site's data, the widget's words and the
+# site's own.
+
+title: MathTrail — олимпиадная математика в вашем чате
+description: "Олимпиадная математика для детей в чате, которым вы и так пользуетесь: проверенные задачи, которые не кончаются, разбор каждой ошибки и память о том, как растёт ребёнок."
+
+hero:
+  free: Бесплатно
+  open: Открытый код
+  title: Олимпиадная математика — прямо в вашем чате.
+  # The promise, word for word as the README gives it.
+  lead: Бесконечный поток проверенных олимпиадных задач по математике для {range} классов, на любом языке, с разбором ошибки ребёнка и памятью о том, как он растёт.
+  see: Посмотреть занятие
+  note: Уже работает в Claude, в том числе на бесплатном тарифе. В ChatGPT — как только появится в каталоге приложений.
+  caption: Карточка такой, какой её рисует чат.
+
+# The frame a card stands in: the chat a parent already uses, with the
+# parent's message above the card.
+chat:
+  title: Ваш чат
+  ask: Дай новую задачу
+  progress: Как успехи у ребёнка?
+
+pillars:
+  title: Почему не спросить чат напрямую?
+  lead: Попросите чат «олимпиадную задачу для 2 класса» — и он может охотно выдать задачу без решения, с двумя верными вариантами или с ошибкой в арифметике. MathTrail оставляет текст модели, а за ним ставит программу.
+  items:
+    - title: Задачи не кончаются.
+      text: Каждая задача пишется под вашего ребёнка — тему, сложность, интересы, ошибки, которые он делает, — на языке вашего чата, а не берётся из готового банка на одном языке.
+    - title: Программа проверяет модель.
+      text: Задача доходит до ребёнка, только если прошла проверки — ровно один верный вариант, ответ подтверждён решателем, который перебирает все случаи, текст по силам классу, нет почти-повтора текста прежних задач, текстовый рисунок оформлен правильно.
+    - title: Ошибка — это диагноз.
+      # The traps are the catalog's, under the names the card gives them.
+      text: За каждым неверным вариантом стоит названная ловушка — «{first}», «{second}», «{third}», — и объяснение начинается с того, как рассуждал ребёнок, а не с правильного ответа.
+
+lesson:
+  eyebrow: Как проходит занятие
+  title: По одной задаче, прямо в вашем чате.
+  lead: Вы рядом, ребёнок нажимает. Рядом с каждым шагом — карточка такой, какой её в этот момент рисует чат.
+  # The steps in the order a lesson takes them, each beside its card.
+  steps:
+    generating:
+      title: Попросите задачу
+      text: Напишите «дай новую задачу». MathTrail выбирает тему и сложность, чат пишет задачу, а программа проверяет каждый ответ ещё до того, как задачу увидит ребёнок.
+    selected:
+      title: Ответ — одной кнопкой
+      text: Пять вариантов, от A до E. Нажатие сразу записывает ответ — до всяких объяснений, так что уговорить его стать верным не получится.
+    hint:
+      title: Застряли? Подсказка, а не ответ
+      text: Подсказка показывает, с чего начать, — нарисовать забор поменьше, — а ответ остаётся скрытым, пока ребёнок не выберет свой.
+    wrong:
+      title: Ошибка превращается в урок
+      text: За каждым неверным вариантом — известная ловушка. Карточка называет её со стороны ребёнка — «посчитаны промежутки, а не столбы» — и дальше разбирает решение по шагам.
+    question:
+      title: Спросить «почему» своими словами
+      text: Когда ответ записан, спросите в чате — «а почему столбов на один больше?» — и модель ответит именно про эту задачу.
+    progress:
+      title: Прогресс, который можно прочитать
+      text: "Достигнутый ранг и ранг по каждой теме, ошибки, которые повторяются, что дальше — и разбор для вас: что получается и что развивать."
+  log: Важно знать — журнал вызовов инструментов в чате показывает каждую задачу вместе с ответом. Пока ребёнок решает, держите его закрытым.
+  # The name of the child the cards show, an invented one.
+  child: Комета
+  # Two messages of the chat beneath a card answered wrong: the child's
+  # question and the model's reply. They are the site's words, never the card's.
+  chat:
+    label: Иллюстрация чата
+    child: Ребёнок
+    model: Модель
+    question: А почему столбов на один больше?
+    reply: Пройди вдоль забора слева. Каждый промежуток заканчивается столбом, так что 4 промежутка дают 4 столба, а первый столб стоит перед ними всеми. 4 + 1 = 5.
+
+# The task of the lesson: a variant of a reference task, never one word for
+# word.
+task:
+  question: Забор длиной 12 метров. Столбы стоят через каждые 3 метра, включая оба конца. Сколько всего столбов?
+  hint: Начни с забора поменьше — 6 метров, столб через каждые 3 метра. Нарисуй его и посчитай столбы.
+  # The trap behind the wrong option the steps pick, as the card says it.
+  trap: Посчитаны промежутки, а не столбы.
+  # The solution, a sentence for each step the card numbers.
+  solution: "12 : 3 = 4 промежутка. У прямого забора со столбами на обоих концах столбов на один больше, чем промежутков. 4 + 1 = 5 столбов."
+
+connect:
+  eyebrow: Подключение
+  title: Несколько шагов до первой задачи.
+  claude:
+    pill: Работает сейчас · и на бесплатном тарифе
+    # The steps of Claude's own help on custom connectors, as the README gives
+    # them; the address follows the third.
+    steps:
+      open: В Claude откройте {connectors}.
+      add: Нажмите **+** и выберите **Add custom connector**.
+      paste: "Вставьте адрес:"
+      sign: "Нажмите **Add**, затем **Connect** и войдите через Google. MathTrail попросит разрешения хранить один файл в вашем Google Диске — профиль ребёнка. Разрешите: без этого файла негде хранить прогресс, и вход не завершится."
+      chat: "В чате нажмите **+** → **Connectors**, включите MathTrail и напишите: «Давай задачу MathTrail»."
+    # Claude's own names for the page, the same in every language.
+    connectors: Customize → Connectors
+    note: На бесплатном тарифе можно подключить один свой коннектор.
+  chatgpt:
+    pill: Пока нет в каталоге
+    text: Бесплатные аккаунты ChatGPT добавляют приложения только из каталога ChatGPT. Как только MathTrail там появится, найдите его по названию, подключите и войдите через Google. Пока его там нет.
+    dev: "До тех пор режим разработчика ChatGPT добавляет приложение по адресу — на тарифах Plus, Pro, Business, Enterprise и Education, в веб-версии: включите его и добавьте приложение с адресом выше, как {openai}. MathTrail в ChatGPT ещё проверяется."
+    openai: описывает OpenAI
+  need: Нужен аккаунт Claude или ChatGPT и аккаунт Google; ребёнку — ни того, ни другого.
+
+ask:
+  title: Начните с одной задачи.
+  lead: Добавьте MathTrail в Claude и решите первую задачу вместе с ребёнком.
+  code: Код на GitHub

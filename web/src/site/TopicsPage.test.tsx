@@ -3,6 +3,7 @@ import { afterAll, describe, expect, test } from "vitest";
 import traps from "../../../content/catalogs/traps.json";
 import file from "../../../site/data.json";
 import { readSiteData } from "./data";
+import type { Frame } from "./frame";
 import { type Page, sitePages } from "./pages";
 import { renderSite } from "./render";
 
@@ -118,10 +119,17 @@ const pages = new Map<string, Page>([
 	["topics/beta", { draw: () => <p>Beta</p> }],
 ]);
 
+// A menu of the one page this site has.
+const frame: Frame = {
+	menu: [{ page: "topics", label: "nav.topics" }],
+	footer: ["privacy", "terms"],
+};
+
 const files = renderSite({
 	base: "https://example.test",
 	sources,
 	pages,
+	frame,
 	data,
 });
 

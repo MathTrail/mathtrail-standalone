@@ -29,6 +29,11 @@ comparison,metric,first,second,difference,low,high
 1,r4_false,shrinking/both/G0,glicko2_floor/topics/G0,0.0931,0.0775,0.1092
 2,r6_lag,shrinking/both/G2,glicko2_floor/topics/G2,0.0070,-0.0163,0.0303
 2,r3_inside,shrinking/both/G2,glicko2_floor/topics/G2,0.0102,0.0038,0.0167
+1,r1_rms_200,shrinking/both/G0,floor_0.05+cautious_z1/both/G0,0.0113,0.0041,0.0192
+1,r3_inside,shrinking/both/G0,floor_0.05+cautious_z1/both/G0,-0.0040,-0.0075,-0.0007
+1,r4_false,shrinking/both/G0,floor_0.05+cautious_z1/both/G0,0.5957,0.5786,0.6123
+2,r6_lag,shrinking/both/G2,floor_0.05+cautious_z1/both/G2,-0.1137,-0.1230,-0.1046
+2,r3_inside,shrinking/both/G2,floor_0.05+cautious_z1/both/G2,-0.0180,-0.0205,-0.0155
 3,r7_error_5,shrinking/both/G1,no_trial/both/G1,-1.2937,-1.3411,-1.2473
 3,r7_error_10,shrinking/both/G1,no_trial/both/G1,-1.1821,-1.2277,-1.1384
 3,r7_longest_wrong,shrinking/both/G1,no_trial/both/G1,-0.0150,-0.1020,0.0740

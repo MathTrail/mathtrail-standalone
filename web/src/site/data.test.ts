@@ -5,8 +5,16 @@ import file from "../../../site/data.json";
 import { progressOf, readSiteData, siteData } from "./data";
 import { siteDictionaries } from "./words";
 
-// catalog is the service's catalog of topics and traps, with no reference task.
-const catalog = { topics, traps, tasks: [] };
+// catalog is the service's catalog of topics and traps, with no reference task,
+// in which the page of knights and liars alone is published.
+const catalog = {
+	topics: topics.map((topic) => ({
+		...topic,
+		site_page: topic.id === "logic.knights_liars",
+	})),
+	traps,
+	tasks: [],
+};
 
 describe("the site's own data", () => {
 	const data = siteData();
@@ -61,8 +69,13 @@ describe("the site's own data", () => {
 });
 
 describe("the site's data", () => {
+	// knights is the site's data with the examples of that one page.
+	const knights = {
+		...file,
+		examples: { "logic.knights_liars": file.examples["logic.knights_liars"] },
+	};
 	// examples is the site's data with these examples of the topics' pages.
-	const examples = (given: unknown) => ({ ...file, examples: given });
+	const examples = (given: unknown) => ({ ...knights, examples: given });
 
 	test("sets each example at the grades of its level", () => {
 		const data = readSiteData(
@@ -90,14 +103,14 @@ describe("the site's data", () => {
 		[
 			"a progress the widget cannot draw",
 			{
-				...file,
+				...knights,
 				progress: { ...file.progress, overall: { rank: "third" } },
 			},
 			"site/data.json: the progress is no progress the widget can draw",
 		],
 		[
 			"a group that leaves a topic out",
-			{ ...file, groups: file.groups.slice(1) },
+			{ ...knights, groups: file.groups.slice(1) },
 			"site/data.json: the topic logic.ordering is in no group",
 		],
 		[
@@ -136,6 +149,64 @@ describe("the site's data", () => {
 				"logic.knights_liars": [{ level: "3-4", solver: "one", answer: "" }],
 			}),
 			'→ at examples["logic.knights_liars"][0].answer',
+		],
+		[
+			"a work the page Why cites whose DOI is no DOI",
+			{
+				...knights,
+				why: {
+					...file.why,
+					sources: {
+						...file.why.sources,
+						agarwal2020: {
+							...file.why.sources.agarwal2020,
+							doi: "aeaweb.org/articles?id=10.1257/aeri.20190457",
+						},
+					},
+				},
+			},
+			"→ at why.sources.agarwal2020.doi",
+		],
+		[
+			"a card on the page Why that the catalog would not set",
+			{
+				...knights,
+				why: { ...file.why, card: { ...file.why.card, grade: 9 } },
+			},
+			"site/data.json: the card on the page Why is set in grade 9, which counting.gaps is not taught in",
+		],
+		[
+			"a technique that leads to a topic the catalog does not have",
+			{
+				...knights,
+				techniques: {
+					groups: [
+						{
+							id: "see",
+							techniques: [
+								{
+									id: "draw",
+									topics: ["logic.tables"],
+									example: { level: "1-2", solver: "one", answer: "1" },
+								},
+							],
+						},
+					],
+					cues: [["draw"]],
+				},
+			},
+			"site/data.json: the technique draw leads to logic.tables, a topic the catalog does not have",
+		],
+		[
+			"a technique with no example to work through",
+			{
+				...knights,
+				techniques: {
+					groups: [{ id: "see", techniques: [{ id: "draw", topics: [] }] }],
+					cues: [["draw"]],
+				},
+			},
+			"→ at techniques.groups[0].techniques[0].example",
 		],
 	])("is refused for %s", (_, broken, want) => {
 		expect(() => readSiteData(catalog, broken)).toThrow(want);

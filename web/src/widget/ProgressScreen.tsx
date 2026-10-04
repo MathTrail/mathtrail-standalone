@@ -1,6 +1,7 @@
-import { useState } from "preact/hooks";
+import { useRef, useState } from "preact/hooks";
 import { Fold, Note } from "../design/blocks";
 import { ViewSwitch } from "../design/controls";
+import type { Linking } from "../design/links";
 import {
 	MoveCounts,
 	MoveLegend,
@@ -21,6 +22,7 @@ import type { Words } from "../i18n/words";
 import type { Host } from "./bridge";
 import { CardRoot } from "./CardRoot";
 import { type Folds, type Section, useFolds } from "./folds";
+import { type Anchor, pageAddress } from "./links";
 import {
 	type Moved,
 	moveOver,
@@ -36,6 +38,7 @@ import {
 import { listed, rankCount, rankName, topicName, trapName } from "./names";
 import { ParentData, ParentProfile } from "./ProfileScreen";
 import type { Details, Moves, ProgressReport, Recommendation } from "./payload";
+import { ReviewParts, reviewSaid, saysNothing } from "./review";
 import { countText, type Key, percentText, useWords } from "./words";
 
 /** recentShown is how many of the latest entries the progress lists. */
@@ -68,10 +71,12 @@ export function ProgressCard({
  * ProgressScreen is where the child stands: the rank reached and how far
  * through it — or, while the trial series runs, how far the series has got —
  * and what comes next, over the sections that fold away under their titles:
- * each topic met or within reach with a rank of its own, the mistakes that
- * keep coming back, the latest answers with how many tasks were left without
- * one, and the child's profile for the parent with what the parent can do
- * with the data. A section with nothing in it is not drawn; which sections are
+ * each topic met or within reach with a rank of its own; once the trial series
+ * is over, the review of the topics for the adult, the mistakes that keep
+ * coming back among it — while the series runs, in a section of their own —;
+ * the latest answers with how many tasks were left without one; and the
+ * child's profile for the parent with what the parent can do with the data.
+ * A section with nothing in it is not drawn; which sections are
  * open is told by folds, kept by whoever outlives the screen. Once the trial
  * series is over, a switch over the rank chooses the while the moves are drawn
  * over — since the last task, or over the week — as period tells, kept by
@@ -104,12 +109,28 @@ export function ProgressScreen({
 	const moves = report.trial === null ? report.overall?.change : undefined;
 	const shown =
 		moves === undefined ? undefined : periodShown(choice.chosen, moves);
-	const rows = topicRows(words, report, shown);
+	const pageAt = (topic: string, anchor: Anchor) =>
+		pageAddress(
+			report.site,
+			words.locale,
+			report.topics.find((listed) => listed.topic === topic) ?? {},
+			anchor,
+		);
+	const linking = useLinking(host, words.text("progress.link_refused"));
+	const rows = topicRows(words, report, shown).map((row) => ({
+		...row,
+		href: pageAt(row.id, ""),
+	}));
 	const [profile, setProfile] = useState(report.profile);
 	const skipped =
 		report.skipped ??
 		report.topics.reduce((sum, topic) => sum + topic.skipped, 0);
 	const latest = latestOf(words, report.recent);
+	const mistakes = mistakeRows(words, report.mistakes);
+	const review =
+		report.review === undefined
+			? undefined
+			: reviewSaid(words, report.review, mistakes, pageAt);
 	const folding = (section: Section) => ({
 		open: folds.open.has(section),
 		onToggle: () => folds.toggle(section),
@@ -175,15 +196,25 @@ export function ProgressScreen({
 								)
 							}
 							rows={rows}
+							linking={linking}
 						/>
 					</Fold>
 				)}
-				{report.mistakes.length > 0 && (
+				{review !== undefined && !saysNothing(review) && (
+					<Fold
+						title={words.text("review.title")}
+						summary={words.text("review.summary")}
+						{...folding("review")}
+					>
+						<ReviewParts said={review} linking={linking} />
+					</Fold>
+				)}
+				{review === undefined && mistakes.length > 0 && (
 					<Fold
 						title={words.text("progress.mistakes")}
 						{...folding("mistakes")}
 					>
-						<StatList rows={mistakeRows(words, report.mistakes)} framed />
+						<StatList rows={mistakes} framed />
 					</Fold>
 				)}
 				{latest.length > 0 && (
@@ -230,6 +261,41 @@ export function ProgressScreen({
 			</div>
 		</article>
 	);
+}
+
+// useLinking is how the screen opens a topic's page through the chat, or
+// undefined when the chat did not say it opens pages. A press asks the chat,
+// once at a time for an address, and a page it did not open is kept among the
+// refused for as long as the screen is drawn, its address shown to copy,
+// until a later press opens it.
+function useLinking(host: Host, note: string): Linking | undefined {
+	const [refused, setRefused] = useState<ReadonlySet<string>>(new Set());
+	const asking = useRef(new Set<string>());
+	if (!host.canOpenLinks()) {
+		return undefined;
+	}
+	return {
+		refused,
+		note,
+		open: (href) => {
+			if (asking.current.has(href)) {
+				return;
+			}
+			asking.current.add(href);
+			void host.openLink(href).then((opened) => {
+				asking.current.delete(href);
+				setRefused((was) => {
+					const next = new Set(was);
+					if (opened) {
+						next.delete(href);
+					} else {
+						next.add(href);
+					}
+					return next;
+				});
+			});
+		},
+	};
 }
 
 // Standing is the rank the child climbs: its name, the rank out of how many,

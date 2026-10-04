@@ -21,7 +21,7 @@ map:
       name: Foundations
       lead: Almost no prior knowledge.
     - step: Step 2
-      name: Techniques
+      name: Rules
       lead: Reasoning by hand becomes a rule.
     - step: Step 3
       name: Hard problems

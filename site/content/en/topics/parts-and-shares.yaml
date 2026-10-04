@@ -1,0 +1,182 @@
+# The page of the topic of parts and shares, for a parent. The topic's name,
+# its group, its grades and its traps' names are not here: they are the card's
+# words and the catalog's numbers. Each example's level, and the answer its
+# solver proves, are the site's data; an example here is worked through to that
+# answer. The traps are the topic's commonest, counted in its reference tasks.
+
+title: Parts and shares
+description: What problems about parts of a whole are, how they are solved, where children go wrong, and how to help at home.
+
+hero:
+  lead: >-
+    Ben eats a third of a pizza, and Ann eats half of what is left. Who ate
+    more? In these tasks a fraction is always a fraction of something, and most
+    of the difficulty is knowing of what: of the whole, or of what was left. A
+    strip of paper cut into equal parts shows it better than any rule.
+  method: Draw the whole as a strip and cut it into equal parts
+  teaches: To ask “a part of what?”, and to find the whole from its part
+  # Twelve in four equal groups: three of the groups are three quarters.
+  drawing: |2
+    ●●● ●●● ●●● ○○○
+    3/4 of 12 = 9
+
+basis:
+  title: The rules of parts
+  cards:
+    - mark: "?"
+      title: A part of what?
+      text: >-
+        A fraction is always a fraction of something. “A quarter of the rest”
+        and “a quarter of the whole” are different numbers, so first find what
+        the fraction is taken of.
+    - mark: "1/n"
+      title: Through one part
+      text: >-
+        To find 3/4 of 20, divide by 4 and take 3 parts: 15. To find the whole
+        when 3/4 of it is 15, divide by 3 for one part and take 4 parts: 20.
+    - mark: "1"
+      title: The parts make the whole
+      text: >-
+        What is given away and what is left together make one whole. If 1/3 and
+        1/4 are given away, 1 − 1/3 − 1/4 = 5/12 is left.
+
+idea:
+  title: What one part is worth
+  lead: Whatever the question, find what one part is worth first, then take as many parts as it needs.
+  table:
+    head:
+      - Given
+      - One part
+      - Asked for
+    rows:
+      - - 3/4 of 20
+        - "20 : 4 = 5"
+        - 3 parts, 15
+      - - 3/4 of a number is 15
+        - "15 : 3 = 5"
+        - the number, 4 parts, 20
+      - - 2/5 of a number is 14
+        - "14 : 2 = 7"
+        - the number, 5 parts, 35
+  note:
+    title: Why it matters
+    text: >-
+      Most mistakes with fractions are not in the sums but in the whole: the
+      share is taken of the wrong amount. Saying the whole out loud before each
+      step catches them.
+
+method:
+  title: "How to solve: draw a strip"
+  lead: >-
+    Draw the whole as a long strip and cut it into as many equal parts as the
+    fraction's bottom number says. When a share is taken of what is left, draw
+    what is left as a new strip. Then find what one part is worth. The examples
+    below go from the simplest to an olympiad's.
+  steps:
+    - Draw the whole as a strip
+    - Cut it into equal parts, and the rest again if needed
+    - Find one part, then the parts the question asks for
+
+examples:
+  - title: Rolls at the bakery
+    question: >-
+      A baker bakes 60 rolls. By noon he sells half of them, and by evening two
+      thirds of the rest. How many rolls are left?
+    steps:
+      - Half of 60 rolls is 30, so 30 rolls are left after noon.
+      - >-
+        Two thirds of the rest is two thirds of 30, not of 60: 30 : 3 × 2 = 20
+        rolls are sold in the evening.
+      - 30 − 20 = 10 rolls are left.
+    answer: 10 rolls.
+    note:
+      title: Two thirds of what?
+      text: >-
+        Two thirds of all 60 rolls would be 40, and 30 + 40 = 70 rolls is more
+        than the baker baked. “Two thirds of the rest” is a share of what is
+        left at that moment.
+  - title: A book in sevenths
+    question: >-
+      On Monday Tom reads 2/7 of a book, and on Tuesday 3/7 of it. Then 40
+      pages are left. How many pages are in the book?
+    # The book in sevenths: five read, and the two left are 40 pages.
+    drawing: |2
+      ■ ■ ■ ■ ■ □ □
+                40 pages
+    steps:
+      - In two days Tom reads 2/7 + 3/7 = 5/7 of the book, so 2/7 of it are left.
+      - "Those 2/7 are the 40 pages: one seventh is 40 : 2 = 20 pages."
+      - "The whole book is seven sevenths: 7 × 20 = 140 pages."
+    answer: 140 pages.
+    note:
+      title: Which part is 40?
+      text: >-
+        The 40 pages are what is left, 2/7 of the book, not the 5/7 Tom read.
+        Taken for the 5/7, they would make a book of 56 pages, with only 16
+        pages left in it.
+  - title: Eggs at the market
+    question: >-
+      Granny sells eggs at the market. The first buyer takes half of her eggs
+      and half an egg more. The second takes half of the eggs left and half an
+      egg more, and so does the third. Then all the eggs are sold, and nobody
+      broke an egg. How many eggs did Granny have?
+    # The eggs Granny has before each buyer, and after the last.
+    drawing: |2
+      7 → 3 → 1 → 0
+    steps:
+      - >-
+        Work from the end. The third buyer took half of the eggs and half an
+        egg more, and nothing was left: so half of the eggs was half an egg,
+        and Granny had 1 egg.
+      - >-
+        Before the second buyer the same: half of the eggs and half an egg more
+        left 1 egg, so half of them was one and a half, and there were 3 eggs.
+      - >-
+        Before the first buyer, half of the eggs was three and a half, so there
+        were 7. Check: 7 → 3 → 1 → 0.
+    answer: 7 eggs.
+    note:
+      title: Working backwards
+      text: >-
+        When each share is a part of what is left, the end is the easiest place
+        to start: there the amount is known. Each step back undoes one share:
+        add the half egg, then double.
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  part_whole_swap:
+    shows: >-
+      The share is taken of the wrong amount: two thirds of all 60 rolls
+      instead of the 30 left, or the 40 pages left are taken for the part Tom
+      read.
+    say: “Two thirds of what? Point to it on the strip.”
+  answered_other_question:
+    shows: >-
+      A number found on the way becomes the answer: the 20 rolls sold in the
+      evening instead of those left, or the 100 pages Tom read instead of the
+      whole book.
+    say: “What exactly does the question ask for?”
+  stopped_early:
+    shows: >-
+      The work stops one step short: one seventh of the book is found, 20
+      pages, and never turned into the whole book; or the rolls sold at noon
+      are taken away and the evening's are forgotten.
+    say: “Is that the answer, or a step on the way to it?”
+
+home:
+  - title: Cut it up together
+    text: >-
+      Cut an apple, a pizza or a sheet of paper into equal parts and name
+      them: halves, thirds, quarters. Then take some away and ask what part is
+      left.
+  - title: A part of what?
+    text: >-
+      When a fraction comes up in a recipe or a game, ask “a third of what?”.
+      The answer is often the whole task.
+  - title: The strip
+    text: >-
+      Draw the strip together for any sharing at home: a long rectangle cut
+      into equal cells. It works for every task in this topic.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Give me a task about parts and shares

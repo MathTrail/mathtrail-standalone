@@ -11,6 +11,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/checks"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/progress"
+	"github.com/MathTrail/mathtrail-standalone/internal/learner"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 )
 
@@ -32,6 +33,11 @@ type Service struct {
 	version  string
 	events   *lessonLog
 	tracer   trace.Tracer
+	// learners names each child in the lines that count children: one name a
+	// month, which leads back to no child.
+	learners *learner.Key
+	// site is the origin of the site the topics' pages are on.
+	site string
 }
 
 // Parts are what the tools of the lesson are built from.
@@ -64,6 +70,13 @@ type Parts struct {
 	Traces trace.TracerProvider
 	// ProjectID names the project a line's trace is filed under.
 	ProjectID string
+	// Learners is the key the name a child is counted under in a line is
+	// derived from.
+	Learners *learner.Key
+	// SiteURL is the origin of the site the topics' pages are on, as a browser
+	// writes it: the card links a topic there only at that exact origin, and
+	// the model's words name the same.
+	SiteURL string
 }
 
 // NewService builds what the tools work with, and refuses to build it without
@@ -97,6 +110,10 @@ func NewService(parts *Parts) (*Service, error) {
 		return nil, fmt.Errorf("%w: the tools need a logger", ErrSettings)
 	case parts.Traces == nil:
 		return nil, fmt.Errorf("%w: the tools need traces", ErrSettings)
+	case parts.Learners == nil:
+		return nil, fmt.Errorf("%w: the tools need the key children are counted under", ErrSettings)
+	case parts.SiteURL == "":
+		return nil, fmt.Errorf("%w: the tools need the site's address", ErrSettings)
 	}
 	return &Service{
 		store:    parts.Store,
@@ -113,7 +130,9 @@ func NewService(parts *Parts) (*Service, error) {
 			projectID:           parts.ProjectID,
 			instructionsVersion: parts.Content.InstructionsVersion(),
 		},
-		tracer: parts.Traces.Tracer(tracerScope),
+		tracer:   parts.Traces.Tracer(tracerScope),
+		learners: parts.Learners,
+		site:     parts.SiteURL,
 	}, nil
 }
 

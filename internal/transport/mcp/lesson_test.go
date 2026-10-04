@@ -21,6 +21,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark"
+	"github.com/MathTrail/mathtrail-standalone/internal/learner"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 	"github.com/MathTrail/mathtrail-standalone/internal/store/memory"
 	"github.com/MathTrail/mathtrail-standalone/internal/telemetry"
@@ -129,11 +130,26 @@ func lessonService(t *testing.T, h *harness, kept store.Storage, moving *clock, 
 		Logger:      h.log,
 		Traces:      h.traces,
 		ProjectID:   projectID,
+		Learners:    learners(t),
+		SiteURL:     config.DefaultSiteURL,
 	})
 	if err != nil {
 		t.Fatalf("NewService() error = %v", err)
 	}
 	return service
+}
+
+// learners is the key the children of these cases are counted under, the same
+// every time, so that a case can work out the name a line has to carry.
+func learners(t testing.TB) *learner.Key {
+	t.Helper()
+
+	secret := sha256.Sum256([]byte("the counting key of these cases"))
+	key, err := learner.NewKey(base64.StdEncoding.EncodeToString(secret[:]))
+	if err != nil {
+		t.Fatalf("learner.NewKey() error = %v", err)
+	}
+	return key
 }
 
 // sealer is the seal of these cases: a key ring made from a key of their own,

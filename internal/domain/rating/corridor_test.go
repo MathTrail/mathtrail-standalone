@@ -59,6 +59,7 @@ func TestTheCorridorIsNarrowerThanTheGapBetweenDifficulties(t *testing.T) {
 	corridor := rating.NewCorridor(0, youngestLevel())
 	width := corridor.BetaMax - corridor.BetaMin
 	nearly(t, width, 0.9555, tolerance, "the width of the corridor")
+	nearly(t, rating.CorridorWidth(), width, tolerance, "the width of the corridor the package names")
 	if width >= 1 {
 		t.Errorf("the corridor is %v wide, want it under the 1.0 between difficulties", width)
 	}

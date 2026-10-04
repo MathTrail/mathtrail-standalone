@@ -24,6 +24,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/drive/drivetest"
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/geoip/geoiptest"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth/googletest"
 	mcpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/mcp"
 )
@@ -109,6 +110,12 @@ func newFamily(t *testing.T) *family {
 	cfg := testConfig()
 	cfg.PublicURL = "https://" + f.served.Listener.Addr().String()
 	cfg.GoogleClientID, cfg.GoogleClientSecret = googletest.ClientID, googletest.ClientSecret
+	// The parent's browser comes back from Google at an address the database of
+	// countries puts in one; the children are counted under a key of the
+	// deployment's, which no line may carry either.
+	cfg.CountryDB = geoiptest.Write(t)
+	cfg.LearnerKey = learnerKey
+	f.keep(learnerKey, geoiptest.City)
 	// Named, so that every line names the trace it belongs to.
 	cfg.GCPProjectID = "a-project"
 	// A lesson played at the pace of a test, and a day with room for one task,
@@ -428,7 +435,8 @@ func (f *family) renewAndEnd() {
 // lines are every line the service wrote. The listener is closed first, which
 // waits for every request to be over: a line can be written after the answer
 // it tells of has left. Where the child's profile lies in the parent's Drive is
-// kept then too.
+// kept then too, and the identifier the profile gives the child, which the name
+// a child is counted under is derived from and must never stand in for.
 func (f *family) lines() []observer.LoggedEntry {
 	f.t.Helper()
 
@@ -438,6 +446,9 @@ func (f *family) lines() []observer.LoggedEntry {
 	f.served.Close()
 	for _, file := range f.drive.Files(googletest.AccessToken) {
 		f.keep(file.ID)
+		if kept, err := profile.Parse(file.Content); err == nil {
+			f.keep(kept.StudentID)
+		}
 	}
 	return f.logs.All()
 }

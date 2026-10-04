@@ -261,3 +261,31 @@ func firstDraws(t *testing.T, args ...string) (out string, draws map[float64]boo
 	}
 	return out, draws
 }
+
+// The pilot of mastery draws the sweep's children and writes under a
+// directory of its own, the decision run of mastery the working children; and
+// until a rule of mastery is chosen, the held-out children are run on nothing,
+// the step chosen being the exit. The test sets the seed and the name every
+// other test draws with, so it does not run beside them.
+func TestTheSetsOfMasteryDrawTheirChildren(t *testing.T) {
+	t.Cleanup(func() { masterSeed, experiment = paperSeed, paperExperiment })
+	for _, tc := range []struct {
+		set, directory, experiment string
+	}{
+		{"mastery-pilot", filepath.Join("results", "mastery-pilot"), sweepExperiment},
+		{"mastery", filepath.Join("results", "mastery"), paperExperiment},
+	} {
+		out, d, err := parse([]string{"-rules", tc.set}, io.Discard)
+		if err != nil || out != tc.directory || d.set != tc.set || experiment != tc.experiment {
+			t.Errorf("parse of %s = %q, %+v, %v with the experiment %s; want %s and %s", tc.set, out, d, err, experiment, tc.directory, tc.experiment)
+		}
+		if criterionOf(tc.set).choice != forMastery {
+			t.Errorf("a run of %s reads the step's criterion, want mastery's", tc.set)
+		}
+	}
+	if chosenMastery == "" {
+		if _, err := confirmationRules(); !errors.Is(err, errExitTaken) {
+			t.Errorf("the confirmation with the step's exit chosen and no rule of mastery: error %v, want %v", err, errExitTaken)
+		}
+	}
+}

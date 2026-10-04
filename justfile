@@ -11,6 +11,12 @@ MODULE := "github.com/MathTrail/mathtrail-standalone"
 # repository name that is not.
 TOOLCHAIN_IMAGE := "ghcr.io/mathtrail/mathtrail-standalone/toolchain"
 
+# Where the months of DB-IP's IP to Country Lite the runtime image carries are
+# kept, each an image of its own holding the file as DB-IP published it. DB-IP
+# keeps a month to download for about three months; a copy of our own keeps
+# every month an image was ever built with.
+COUNTRIES_IMAGE := "ghcr.io/mathtrail/mathtrail-standalone/dbip-country-lite"
+
 # Exact versions of the tools that only the full checks need. Each is a Go
 # program run straight from its module, so none of them is installed anywhere.
 GOVULNCHECK := "golang.org/x/vuln/cmd/govulncheck@v1.8.0"
@@ -386,6 +392,22 @@ _license-list:
 
     WEB
     node web/scripts/licenses.ts list
+    cat <<'DATA'
+
+    The data below ships in the image the server runs from, unchanged. Each
+    line is a license, the data at the exact version the image carries, and
+    where its maker publishes it. IP geolocation by DB-IP (https://db-ip.com),
+    under the Creative Commons Attribution 4.0 International License.
+
+    DATA
+    # The month of the database is the tag of the image the runtime image
+    # copies it from.
+    month=$(sed -n 's|^FROM {{ COUNTRIES_IMAGE }}:\([0-9-]*\)@.* AS countries$|\1|p' Dockerfile)
+    if [[ ! "$month" =~ ^[0-9]{4}-[0-9]{2}$ ]]; then
+        echo "the Dockerfile copies the database of countries from no month of {{ COUNTRIES_IMAGE }}" >&2
+        exit 1
+    fi
+    printf '%-13s %-46s %s\n' "CC-BY-4.0" "DB-IP IP to Country Lite ${month}" "https://db-ip.com/db/download/ip-to-country-lite"
 
 # -- Widget -----------------------------------------------------------------
 
@@ -643,6 +665,19 @@ site-serve port="8081": site
 ci-site: site
     npm run --silent check:site -- --base {{ SITE_BASE }} --dir ../{{ SITE_DIR }}
 
+# The pictures a shared link to the site shows, one for each language: its
+# home page as the site is built, laid out as a picture 1200 by 630 pixels and
+# photographed in Chromium, from the image the widget's layout is measured
+# in. They are written over site/assets/, for the change to be looked at
+# before it is kept; a change to the home page's first screen deserves new
+# ones.
+# Photograph the site's sharing pictures
+[working-directory('web')]
+site-og: site _playwright-pinned
+    docker run --rm --init --shm-size=1g --user "$(id -u):$(id -g)" -e HOME=/tmp \
+        -v "{{ justfile_directory() }}:{{ justfile_directory() }}" -w "{{ justfile_directory() }}/web" \
+        {{ PLAYWRIGHT_IMAGE }} node scripts/og.ts
+
 # -- Infrastructure ---------------------------------------------------------
 
 # Format the Terraform sources in place
@@ -681,8 +716,13 @@ ci-tf-apply:
 
     # The secrets come first, on their own. A revision cannot start until they
     # hold something, and what they hold is not described in this repository.
+    # The runtime's right to read the key the children are counted under comes
+    # with them, so that it has spread through the platform by the time the
+    # service is told to read it.
     tf apply -auto-approve -input=false \
         -target=google_secret_manager_secret.seal_key \
+        -target=google_secret_manager_secret.learner_key \
+        -target='google_secret_manager_secret_iam_member.runtime["learner_key"]' \
         -target=google_secret_manager_secret.google_client_secret
 
     # The project is read from the file that names it rather than from an
@@ -691,6 +731,7 @@ ci-tf-apply:
     project=$(just _project)
 
     seal_key=$(tf output -raw secret_seal_key)
+    learner_key=$(tf output -raw secret_learner_key)
     client_secret=$(tf output -raw secret_google_client)
 
     has_version() {
@@ -706,6 +747,16 @@ ci-tf-apply:
         echo "seal key: generating the first version"
         head -c 32 /dev/urandom | base64 | tr -d '\n' \
             | gcloud secrets versions add "$seal_key" --project="$project" --data-file=- > /dev/null
+    fi
+
+    # The key the children are counted under is made the same way, and once:
+    # it is never rotated with the sealing key.
+    if has_version "$learner_key"; then
+        echo "learner key: a version exists, leaving it alone"
+    else
+        echo "learner key: generating the first version"
+        head -c 32 /dev/urandom | base64 | tr -d '\n' \
+            | gcloud secrets versions add "$learner_key" --project="$project" --data-file=- > /dev/null
     fi
 
     # This one cannot be generated: it exists only in the Google console, and it
@@ -765,6 +816,69 @@ ci-toolchain-image:
 
     # The one thing on stdout, so that a caller can read it with a substitution.
     echo "{{ TOOLCHAIN_IMAGE }}@${digest}"
+
+# The month is DB-IP's: its file of that month, downloaded from DB-IP and kept
+# unchanged in an image holding nothing else, under the month as its tag. A tag
+# once published is never replaced, so the same month is the same bytes for as
+# long as anything builds from it, and the Dockerfile is pinned to it by tag and
+# digest like every other image. The image runs nothing, so one built for this
+# machine serves a build for any platform. Without a month, this month's.
+# Publish a month of the database of countries as an image, and pin the Dockerfile to it
+countries-publish month="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    month="{{ month }}"
+    if [ -z "$month" ]; then
+        month=$(date -u +%Y-%m)
+    fi
+    if [[ ! "$month" =~ ^[0-9]{4}-(0[1-9]|1[0-2])$ ]]; then
+        echo "countries-publish: $month is not a month written as YYYY-MM" >&2
+        exit 1
+    fi
+    reference="{{ COUNTRIES_IMAGE }}:${month}"
+
+    # docker is signed in to the registry with the token gh holds, in a
+    # configuration of this run's own, kept apart from the build's context:
+    # the token goes nowhere it would outlive the run, and a sign-in of the
+    # user's own is left as it was. The check below needs it as much as the
+    # push does, since a month not yet made public is hidden from a client
+    # that is not signed in.
+    temp=$(mktemp -d)
+    trap 'rm -rf "$temp"' EXIT
+    export DOCKER_CONFIG="$temp/docker"
+    work="$temp/context"
+    mkdir "$work"
+    user=$(gh api user --jq .login)
+    if ! signin=$(gh auth token | docker login "${reference%%/*}" --username "$user" --password-stdin 2>&1); then
+        echo "$signin" >&2
+        exit 1
+    fi
+
+    if docker buildx imagetools inspect "$reference" > /dev/null 2>&1; then
+        echo "$reference: published already, leaving it alone"
+    else
+        echo "dbip-country-lite ${month}"
+        curl -fsSL --proto "=https" --proto-redir "=https" --retry 3 --retry-all-errors \
+            -o "$work/countries.mmdb.gz" "https://download.db-ip.com/free/dbip-country-lite-${month}.mmdb.gz"
+        gunzip -c "$work/countries.mmdb.gz" > "$work/dbip-country-lite.mmdb"
+        rm "$work/countries.mmdb.gz"
+        printf 'FROM scratch\nCOPY dbip-country-lite.mmdb /dbip-country-lite.mmdb\n' \
+        | docker build \
+            --label "org.opencontainers.image.source=https://github.com/MathTrail/mathtrail-standalone" \
+            --label "org.opencontainers.image.licenses=CC-BY-4.0" \
+            --label "org.opencontainers.image.version=${month}" \
+            --label "org.opencontainers.image.description=IP to Country Lite by DB-IP (https://db-ip.com), the file of ${month}, unchanged, under CC BY 4.0" \
+            --tag "$reference" --file - "$work"
+        docker push "$reference"
+    fi
+
+    # The digest, not the tag: a tag can be moved, and a version here is exact.
+    digest=$(docker buildx imagetools inspect "$reference" | awk '/^Digest:/ { print $2 }')
+    sed -i "s|^FROM {{ COUNTRIES_IMAGE }}:.* AS countries$|FROM ${reference}@${digest} AS countries|" Dockerfile
+    git --no-pager diff -- Dockerfile
+    echo
+    echo "Then: just licenses, for the month the list names."
 
 # Raise the pinned version of the Claude Code CLI and its editor extension. The
 # version stays exact — this only removes the part where a person edits the same

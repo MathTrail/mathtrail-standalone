@@ -288,3 +288,33 @@ describe("the call that drew the card", () => {
 		expect(bridge.call()).toBe(before);
 	});
 });
+
+describe("the pages a card asks the host to open", () => {
+	test("are asked of a host that says it opens pages, and only of one", async () => {
+		const quiet = await openTestHost();
+		const silent = openBridge();
+		await silent.connect(quiet.widgetSide);
+
+		const opening = await openTestHost({}, { openLinks: {} });
+		const open = openBridge();
+		await open.connect(opening.widgetSide);
+
+		expect(silent.canOpenLinks()).toBe(false);
+		expect(open.canOpenLinks()).toBe(true);
+	});
+
+	test.each([
+		["opened", "opens it", "open" as const, true],
+		["not opened", "refuses it", "refuse" as const, false],
+		["not opened", "fails to answer", "fail" as const, false],
+	])("are told %s when the host %s", async (_, __, opening, opened) => {
+		const { host, widgetSide } = await openTestHost({}, { openLinks: {} });
+		const heard = listenAsHost(host, () => ({ content: [] }), { opening });
+		const bridge = openBridge();
+		await bridge.connect(widgetSide);
+
+		const address = "https://mathtrail.app/en/topics/clocks/#home";
+		await expect(bridge.openLink(address)).resolves.toBe(opened);
+		expect(heard.pages).toEqual([address]);
+	});
+});

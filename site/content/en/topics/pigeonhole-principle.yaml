@@ -1,0 +1,174 @@
+# The page of the topic of the pigeonhole principle, for a parent. The topic's
+# name, its group, its grades and its traps' names are not here: they are the
+# card's words and the catalog's numbers. Each example's level, and the answer
+# its solver proves, are the site's data; an example here is worked through to
+# that answer. The traps are the topic's commonest, counted in its reference
+# tasks.
+
+title: Pigeonhole principle
+description: What pigeonhole problems are, how they are solved, where children go wrong, and how to help at home.
+
+hero:
+  lead: >-
+    Five pigeons fly into four holes: some hole is bound to hold two of them.
+    In these tasks a child proves that something must happen however unlucky
+    the draw: two socks of one colour from a dark drawer, two birthdays in one
+    month. It is the first meeting with reasoning about the worst case rather
+    than the lucky one.
+  method: Play the worst luck through, then add one
+  teaches: To prove that something must happen, not just that it can
+  # Five pigeons in four holes: however they spread, one hole holds two.
+  drawing: |2
+         ● ● ● ● ●
+      [● ●] [●] [●] [●]
+
+basis:
+  title: The rules of the worst case
+  cards:
+    - mark: "●●"
+      title: More pigeons than holes
+      text: >-
+        If there are more pigeons than holes, some hole holds at least two.
+        Spread them as evenly as you like: one is always left over.
+    - mark: "?"
+      title: To be sure
+      text: >-
+        “To be sure” means whatever comes out of the bag. So imagine everything
+        going as badly as it can, and see how far bad luck can go.
+    - mark: "+1"
+      title: One more settles it
+      text: >-
+        When bad luck has run out, every colour drawn once and every hole
+        filled once, the next one is bound to give what you want.
+
+idea:
+  title: The worst luck, then one more
+  lead: Each question asks what is sure. The answer is how far bad luck can go, and one more.
+  table:
+    head:
+      - To be sure of
+      - Bad luck can give first
+      - So take
+    rows:
+      - - two born on the same day of the week
+        - one born on each of the 7 days
+        - 7 + 1 = 8 people
+      - - a red ball, from 6 blue and 4 red
+        - all 6 blue balls
+        - 6 + 1 = 7 balls
+      - - two red balls, from 6 blue and 4 red
+        - all 6 blue balls and one red
+        - 6 + 1 + 1 = 8 balls
+  note:
+    title: Why it matters
+    text: >-
+      Children often count on luck: “I might take two red ones straight away.”
+      A task that says “to be sure” asks what happens with the worst luck, and
+      that habit is worth more than any formula.
+
+method:
+  title: "How to solve: the worst luck, then one more"
+  lead: >-
+    Name the holes, such as colours, months or days of the week, and play the
+    worst luck through to its end: take everything that does not yet give what
+    the question wants. The next one is bound to. The examples below go from
+    the simplest to an olympiad's.
+  steps:
+    - Find the holes and the pigeons
+    - Play the worst luck to the end
+    - Add one, and check that it settles it
+
+examples:
+  - title: Sweets in a jar
+    question: >-
+      A jar holds 8 lemon sweets and 2 orange ones. Without looking, how many
+      sweets must Sasha take to be sure of an orange one?
+    steps:
+      - Sasha wants an orange sweet. The worst luck is lemon after lemon.
+      - >-
+        There are only 8 lemon sweets: after 8 of them, only orange ones are
+        left in the jar.
+      - "The 9th sweet is bound to be orange: 8 + 1 = 9."
+    answer: 9 sweets.
+  - title: Two black socks
+    question: >-
+      A drawer holds 8 black socks, 6 white ones and 2 striped ones, all mixed
+      up. In the dark, how many socks must Gleb take to be sure of two black
+      ones?
+    steps:
+      - >-
+        The worst luck: the socks that are not black come first. There are 6
+        white and 2 striped ones, 8 socks with no black one among them.
+      - >-
+        Bad luck can still go on: the next sock is black, but just one. That is
+        9 socks and only one black sock among them.
+      - >-
+        The 10th sock is bound to be black too, since only black socks are
+        left. So 10 socks.
+    answer: 10 socks.
+    note:
+      title: Why not 9?
+      text: >-
+        After all 6 white and 2 striped socks, bad luck has one more turn: a
+        single black sock. Two black ones are only sure with the 10th.
+  - title: Sums in a grid
+    question: >-
+      Each cell of a 2 by 2 grid holds 1, 2 or 3. Add up the two numbers of
+      each row, each column and each diagonal. Is it true that two of these six
+      sums are always equal?
+    # One way to fill the grid, to show what the sums are taken over.
+    drawing: |2
+          1   3
+          2   2
+    steps:
+      - >-
+        Count the holes: a sum of two numbers from 1, 2 and 3 is one of 2, 3,
+        4, 5 and 6, five values in all.
+      - "Count the pigeons: 2 rows, 2 columns and 2 diagonals give 6 sums."
+      - >-
+        Six sums and only five values: two of the sums must be equal, whatever
+        the numbers in the grid.
+    answer: Yes, always.
+    note:
+      title: The holes are not always boxes
+      text: >-
+        Here the holes are the values a sum can take, and the pigeons are the
+        lines of the grid. The art of these tasks is seeing what plays the
+        holes.
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  best_case_not_worst:
+    shows: >-
+      The child counts on luck: “If the first two socks are black, two are
+      enough.” The question says “to be sure”, and luck is what it rules out.
+    say: “And if you are as unlucky as can be?”
+  ignored_condition:
+    shows: >-
+      One word of the question gets lost: “two black socks” is read as “two
+      socks of one colour”, or “one of each colour” as “one colour”.
+    say: “Read the question again. What exactly must you be sure of?”
+  off_by_one:
+    shows: >-
+      The child plays the worst luck through and stops there, forgetting the
+      one more that settles it, or adds one too many.
+    say: “After the worst luck, what does the next one give?”
+
+home:
+  - title: Socks in the dark
+    text: >-
+      Put socks of two or three colours into a bag and take them out with
+      closed eyes: how many until a pair is certain? Try it several times.
+      Luck changes, and the answer does not.
+  - title: Must or can?
+    text: >-
+      When the child says “it could happen”, ask “and could it not?”. The
+      difference between “can” and “must” is the whole topic.
+  - title: Find the holes
+    text: >-
+      Look for holes in everyday counts together: seven days of the week,
+      twelve months, four seasons. “There are 30 of us: are two of us sure to
+      share a birthday month?”
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Give me a task on the pigeonhole principle

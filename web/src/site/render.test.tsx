@@ -391,13 +391,14 @@ describe("a locale's document", () => {
 		]);
 	});
 
-	test("says that the English text holds, when it is a translation", () => {
-		const legal = (path: string) => texts(page(files, path), ".s-legal");
+	test("holds nothing beside the mark and the links, in a translation as in English", () => {
+		const blocks = (path: string) =>
+			[...page(files, path).querySelectorAll("footer .s-wrap > *")].map(
+				(element) => element.className,
+			);
 
-		expect(legal("ru/privacy/index.html")).toEqual([
-			"Это перевод. При расхождении действует английская версия.",
-		]);
-		expect(legal("en/privacy/index.html")).toEqual([]);
+		expect(blocks("ru/privacy/index.html")).toEqual(["s-foot"]);
+		expect(blocks("en/privacy/index.html")).toEqual(["s-foot"]);
 	});
 });
 
@@ -608,15 +609,26 @@ describe("the apex", () => {
 
 describe("a language written right to left", () => {
 	// Arabic words for the site, made from the English ones so that every key
-	// is there with its slots, and Arabic texts made from the Russian ones.
+	// is there with its slots — a wording that changes with a number with a
+	// text for each of Arabic's plural categories — and Arabic texts made from
+	// the Russian ones.
+	const categories = new Intl.PluralRules("ar").resolvedOptions()
+		.pluralCategories;
+	const arabicText = (key: string, english: string) =>
+		[`نص ${key}`, ...(english.match(/\{[a-z]+\}/g) ?? [])].join(" ");
 	const arabic: Dictionary = Object.fromEntries(
 		[...Object.entries(dictionaries.get("en") ?? {})].map(([key, english]) => [
 			key,
 			key === "language.name"
 				? "العربية"
-				: [`نص ${key}`, ...(String(english).match(/\{[a-z]+\}/g) ?? [])].join(
-						" ",
-					),
+				: typeof english === "string"
+					? arabicText(key, english)
+					: Object.fromEntries(
+							categories.map((category) => [
+								category,
+								arabicText(key, english.other ?? ""),
+							]),
+						),
 		]),
 	);
 	const built = renderSite({
@@ -704,13 +716,13 @@ describe("a site that cannot be built", () => {
 						"ru",
 						Object.fromEntries(
 							Object.entries(dictionaries.get("ru") ?? {}).filter(
-								([key]) => key !== "footer.translation",
+								([key]) => key !== "footer.source",
 							),
 						),
 					],
 				]),
 			},
-			"footer.translation is missing",
+			"footer.source is missing",
 		],
 		[
 			"words English does not have",

@@ -45,6 +45,11 @@ output "secret_seal_key" {
   value       = google_secret_manager_secret.seal_key.secret_id
 }
 
+output "secret_learner_key" {
+  description = "The secret holding the key the children are counted under in the log, on the same condition."
+  value       = google_secret_manager_secret.learner_key.secret_id
+}
+
 output "secret_google_client" {
   description = "The secret holding the Google client secret, on the same condition."
   value       = google_secret_manager_secret.google_client_secret.secret_id

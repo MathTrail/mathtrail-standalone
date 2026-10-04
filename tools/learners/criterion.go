@@ -6,14 +6,15 @@ import (
 	"strconv"
 )
 
-// The criterion a new step for the rating is chosen by, written down before
-// any candidate ran, so that what the candidates turn out to give cannot shape
-// what they are judged by. A run reads it for every rule: the constraints a
-// candidate must meet, and its score, the share of the way from the service
-// to the ceiling it closes. The choice among the rules that meet it — the
-// best, its equals, the simplest of those, the backup, the exit, and the
-// confirmation on the held-out seeds — is read from these numbers by the
-// choice the run writes beside them.
+// The criteria a new step for the rating and a new rule of mastery are chosen
+// by, each written down before any of its candidates ran, so that what the
+// candidates turn out to give cannot shape what they are judged by. A run
+// reads its criterion for every rule: the constraints a candidate must meet,
+// and its score, the share of the way from the criterion's baseline it
+// closes. The choice among the rules that meet it — the best, its equals, the
+// simplest of those, the backup, the exit, and the confirmation on the
+// held-out seeds — is read from these numbers by the choice the run writes
+// beside them.
 
 // decisionChildren is how many children a cell needs for its criterion to
 // decide anything. A run of fewer is a rough look, and reads not worse as no
@@ -36,7 +37,7 @@ const (
 // The tolerances of not worse, as the author set them: the error after 200
 // answers in logits, the corridor as a share. A tolerance is held to no less
 // than resolutionWidths standard errors of the paired difference, which a
-// candidate exactly as good as the service stays within 99 times in 100: a
+// candidate exactly as good as the baseline stays within 99 times in 100: a
 // finer one would fail good candidates by chance across some forty checks.
 const (
 	errorTolerance    = 0.01
@@ -82,7 +83,7 @@ const (
 )
 
 // goal is a constraint read on a rule's own point estimate, against a bound
-// read off the service's cell, and the ceiling's for a share of the way.
+// read off the baseline's cell, and the ceiling's for a share of the way.
 type goal struct {
 	name      string
 	generator generator
@@ -97,13 +98,15 @@ type goal struct {
 }
 
 // notWorse is a constraint read on the paired difference between a rule and
-// the service, on the same children: the worse end of its interval lies
+// the baseline, on the same children: the worse end of its interval lies
 // within the tolerance.
 type notWorse struct {
 	generator      generator
 	metric         string
 	higherIsBetter bool
 	tolerance      float64
+	// only names the generators a measure is read on, when not every one.
+	only []generator
 }
 
 // badness is a measure the score reads, as a size less of which is better.
@@ -152,77 +155,11 @@ var scoredGenerators = []scoredGenerator{
 // the child who stays put, and the main learner.
 var screenGenerators = []generator{staticChildren, learningHalf}
 
-// goals are the step's goals: the main learner's lag and corridor, the jump,
-// and the screen.
-func goals() []goal {
-	all := []goal{
-		{
-			name: "the lag at most " + percentOf(lagShare) + " of the service's", generator: learningHalf, metric: "r6_lag", size: true, atMost: true,
-			bound: func(cr *criterionRun) (float64, bool) {
-				lag, has := cr.serviceValue(learningHalf, "r6_lag")
-				return lagShare * math.Abs(lag), has
-			},
-		},
-		{
-			name: "the corridor a share of the way to the ceiling", generator: learningHalf, metric: "r3_inside",
-			bound: func(cr *criterionRun) (float64, bool) {
-				service, hasService := cr.serviceValue(learningHalf, "r3_inside")
-				ceiling, hasCeiling := cr.ceilingValue(learningHalf, "r3_inside")
-				return service + corridorShare*(ceiling-service), hasService && hasCeiling
-			},
-		},
-		{
-			name: "children not caught up after the jump at most " + percentOf(unsettledMost), generator: jumping, metric: "r6_jump_unsettled", atMost: true,
-			bound: func(*criterionRun) (float64, bool) { return unsettledMost, true },
-		},
-	}
-	early, earlyLabel := screenWindows[0].name(), screenWindows[0].label()
-	for _, g := range screenGenerators {
-		for _, w := range screenWindows {
-			all = append(all,
-				goal{
-					name: "the card's move in answers " + w.label() + " no more than the service's in answers " + earlyLabel, generator: g,
-					metric: "r8_move_p95_" + w.name(), atMost: true, screen: true,
-					bound: func(cr *criterionRun) (float64, bool) { return cr.serviceValue(g, "r8_move_p95_"+early) },
-				},
-				goal{
-					name: "the rank's changes in answers " + w.label() + " no more than the service's in answers " + earlyLabel, generator: g,
-					metric: "r8_rank_" + w.name(), atMost: true, screen: true,
-					bound: func(cr *criterionRun) (float64, bool) { return cr.serviceValue(g, "r8_rank_"+early) },
-				},
-			)
-		}
-	}
-	return all
-}
-
-// stepNotWorse are the measures a step is held to no worse than the
-// service's on: the error after 200 answers and the corridor. The share of
-// masteries declared falsely is not among them: under the service's rule of
-// mastery it grows the closer an estimate follows the child, the ceiling's
-// most of all, so it would hold back every step that follows a child better;
-// the choice of the rule of mastery, read over the step chosen, holds it.
-var stepNotWorse = []notWorse{
-	{metric: "r1_rms_200", tolerance: errorTolerance},
-	{metric: "r3_inside", higherIsBetter: true, tolerance: corridorTolerance},
-}
-
-// notWorseChecks are the checks of not worse: every measure of stepNotWorse
-// on every generator.
-func notWorseChecks() []notWorse {
-	var all []notWorse
-	for _, g := range allGenerators {
-		for _, nw := range stepNotWorse {
-			nw.generator = g
-			all = append(all, nw)
-		}
-	}
-	return all
-}
-
-// criterionRun is a run as the criterion reads it: its cells and their
-// numbers, the service, the ceiling and the rule the bench's resolution is
-// measured with, and whether the run has the children a decision needs.
+// criterionRun is a run as a criterion reads it: its cells and their
+// numbers, the criterion, the baseline every comparison is with — the rule
+// the criterion names, the service for the step — the ceiling and the rule
+// the bench's resolution is measured with, and whether the run has the
+// children a decision needs.
 type criterionRun struct {
 	all       []cell
 	summaries [][]summary
@@ -230,7 +167,8 @@ type criterionRun struct {
 	ms        []metric
 	metricAt  map[string]int
 	cellAt    map[string]int
-	service   *rule
+	crit      *criterion
+	baseline  *rule
 	ceiling   *rule
 	measuring *rule
 	decides   bool
@@ -240,9 +178,9 @@ type criterionRun struct {
 // steps differently from the service, but not wildly.
 const measuringRule = "constant_slow"
 
-func newCriterionRun(all []cell, summaries [][]summary, results [][]vector, ms []metric, children int) *criterionRun {
+func newCriterionRun(all []cell, summaries [][]summary, results [][]vector, ms []metric, children int, crit *criterion) *criterionRun {
 	cr := &criterionRun{
-		all: all, summaries: summaries, results: results, ms: ms,
+		all: all, summaries: summaries, results: results, ms: ms, crit: crit,
 		metricAt: map[string]int{}, cellAt: map[string]int{}, decides: children >= decisionChildren,
 	}
 	for i, name := range metricNames(ms) {
@@ -251,8 +189,8 @@ func newCriterionRun(all []cell, summaries [][]summary, results [][]vector, ms [
 	for c := range all {
 		cr.cellAt[all[c].name()] = c
 		switch r := all[c].rule; {
-		case r.service:
-			cr.service = r
+		case r.name == crit.baseline && r.shape == both:
+			cr.baseline = r
 		case r.ceiling:
 			cr.ceiling = r
 		case r.name == measuringRule:
@@ -281,8 +219,8 @@ func (cr *criterionRun) summaryOf(r *rule, g generator, metric string) (summary,
 	return cr.summaries[c][i], true
 }
 
-func (cr *criterionRun) serviceValue(g generator, metric string) (float64, bool) {
-	s, has := cr.summaryOf(cr.service, g, metric)
+func (cr *criterionRun) baselineValue(g generator, metric string) (float64, bool) {
+	s, has := cr.summaryOf(cr.baseline, g, metric)
 	return s.value, has
 }
 
@@ -344,23 +282,23 @@ func sizeOf(s summary) (value, low, high float64) {
 	return value, 0, max(-s.low, s.high)
 }
 
-// pairedDifference is a rule's cell on a generator less the service's, on the
-// same children, with its interval, drawn on a stream named after what it
+// pairedDifference is a rule's cell on a generator less the baseline's, on
+// the same children, with its interval, drawn on a stream named after what it
 // reads.
 func (cr *criterionRun) pairedDifference(r *rule, g generator, metric string) (summary, bool) {
 	c, hasCell := cr.cellOf(r, g)
-	s, hasService := cr.cellOf(cr.service, g)
+	base, hasBase := cr.cellOf(cr.baseline, g)
 	i, hasMetric := cr.metricAt[metric]
-	if !hasCell || !hasService || !hasMetric {
+	if !hasCell || !hasBase || !hasMetric {
 		return summary{}, false
 	}
 	stream := seeded("criterion/"+cr.all[c].name()+"/"+metric, "bootstrap")
-	diff := compare(readerOf(i, cr.ms), cr.results[c], cr.results[s], stream)
+	diff := compare(readerOf(i, cr.ms), cr.results[c], cr.results[base], stream)
 	return diff, diff.has
 }
 
 // resolution is what the bench resolves on a check: the paired difference
-// between the measuring rule and the service on it, and the standard error
+// between the measuring rule and the baseline on it, and the standard error
 // that difference shows, if the run gives it.
 func (cr *criterionRun) resolution(nw notWorse) checkResolution {
 	res := checkResolution{check: nw}
@@ -383,20 +321,20 @@ func toleranceOf(nw notWorse, se float64, has bool) float64 {
 }
 
 // readNotWorse reads a check of not worse for a rule: the worse end of its
-// paired difference with the service within the tolerance, in a decision
-// run; in a rough look, the better end not past it. The service less itself
+// paired difference with the baseline within the tolerance, in a decision
+// run; in a rough look, the better end not past it. The baseline less itself
 // is nothing on every child, and the measuring rule's difference was read for
 // the check's resolution already, so neither is drawn again.
 func (cr *criterionRun) readNotWorse(r *rule, res *checkResolution) reading {
 	nw := res.check
 	rd := reading{
-		kind: notWorseKind, name: "not worse than the service", generator: nw.generator, metric: nw.metric,
+		kind: notWorseKind, name: "not worse than " + cr.crit.against, generator: nw.generator, metric: nw.metric,
 		bound: res.tolerance, higherIsBetter: nw.higherIsBetter, verdict: unread,
 	}
 	var diff summary
 	var has bool
 	switch r {
-	case cr.service:
+	case cr.baseline:
 		_, has = cr.summaryOf(r, nw.generator, nw.metric)
 		diff.has = has
 	case cr.measuring:
@@ -413,7 +351,7 @@ func (cr *criterionRun) readNotWorse(r *rule, res *checkResolution) reading {
 }
 
 // notWorseVerdict is the verdict and the mark of a paired difference with
-// the service held to a tolerance: met and reached when even its worse end is
+// the baseline held to a tolerance: met and reached when even its worse end is
 // within it; not met and not reached when even its better end is past it; and
 // on the edge between, which a decision run does not let through and a rough
 // look does.
@@ -434,8 +372,8 @@ func notWorseVerdict(diff summary, higherIsBetter bool, tolerance float64, decid
 }
 
 // scoreSheet is what a rule's score is read from: for every generator of the
-// score, the rule's and the service's children, and for every measure its
-// reader and the way from the service to the ceiling on it.
+// score, the rule's and the baseline's children, and for every measure its
+// reader and the way from the baseline to where the way ends on it.
 type scoreSheet struct {
 	parts []scorePart
 	total float64
@@ -443,9 +381,9 @@ type scoreSheet struct {
 
 // scorePart is one generator of a score.
 type scorePart struct {
-	weight        float64
-	rule, service []vector
-	terms         []scoreTerm
+	weight         float64
+	rule, baseline []vector
+	terms          []scoreTerm
 }
 
 // scoreTerm is one measure of a generator of a score.
@@ -456,24 +394,24 @@ type scoreTerm struct {
 }
 
 // sheetOf is the score sheet of a rule, or false when the run cannot read the
-// score: a cell is missing, a number the rule, the service or the ceiling
-// gives — the rule's own included, which a measure that means nothing under
-// the rule does not give — or a way of more than nothing.
+// score: a cell is missing, a number the rule, the baseline or the end of the
+// way gives — the rule's own included, which a measure that means nothing
+// under the rule does not give — or a way of more than nothing.
 func (cr *criterionRun) sheetOf(r *rule) (scoreSheet, bool) {
 	var sheet scoreSheet
-	for _, sg := range scoredGenerators {
+	for _, sg := range cr.crit.scored {
 		c, hasCell := cr.cellOf(r, sg.generator)
-		s, hasService := cr.cellOf(cr.service, sg.generator)
-		if !hasCell || !hasService {
+		base, hasBase := cr.cellOf(cr.baseline, sg.generator)
+		if !hasCell || !hasBase {
 			return scoreSheet{}, false
 		}
-		part := scorePart{weight: sg.weight, rule: cr.results[c], service: cr.results[s]}
+		part := scorePart{weight: sg.weight, rule: cr.results[c], baseline: cr.results[base]}
 		for _, b := range sg.measures {
 			_, hasOwn := cr.summaryOf(r, sg.generator, b.metric)
-			service, hasServiceValue := cr.serviceValue(sg.generator, b.metric)
-			ceiling, hasCeiling := cr.ceilingValue(sg.generator, b.metric)
-			way := b.size(service) - b.size(ceiling)
-			if !hasOwn || !hasServiceValue || !hasCeiling || way <= 0 {
+			start, hasStart := cr.baselineValue(sg.generator, b.metric)
+			end, hasEnd := cr.wayEnd(sg.generator, b)
+			way := b.size(start) - end
+			if !hasOwn || !hasStart || !hasEnd || way <= 0 {
 				return scoreSheet{}, false
 			}
 			part.terms = append(part.terms, scoreTerm{read: readerOf(cr.metricAt[b.metric], cr.ms), size: b.size, way: way})
@@ -484,6 +422,16 @@ func (cr *criterionRun) sheetOf(r *rule) (scoreSheet, bool) {
 	return sheet, true
 }
 
+// wayEnd is where a score's way ends on a measure: at the ceiling's size, or
+// at nothing, which is perfect, for a criterion whose way ends there.
+func (cr *criterionRun) wayEnd(g generator, b badness) (float64, bool) {
+	if cr.crit.toPerfect {
+		return 0, true
+	}
+	ceiling, has := cr.ceilingValue(g, b.metric)
+	return b.size(ceiling), has
+}
+
 // read is the score on a sample of each generator's children: the weighted
 // mean, over the generators, of the mean share of the way the rule closes on
 // its measures.
@@ -492,12 +440,12 @@ func (sheet *scoreSheet) read(samples [][]int) (float64, bool) {
 	for p, part := range sheet.parts {
 		closed := 0.0
 		for _, t := range part.terms {
-			service, hasService := t.read(part.service, samples[p])
+			base, hasBase := t.read(part.baseline, samples[p])
 			own, hasOwn := t.read(part.rule, samples[p])
-			if !hasService || !hasOwn {
+			if !hasBase || !hasOwn {
 				return 0, false
 			}
-			closed += (t.size(service) - t.size(own)) / t.way
+			closed += (t.size(base) - t.size(own)) / t.way
 		}
 		score += part.weight * closed / float64(len(part.terms))
 	}
@@ -505,7 +453,7 @@ func (sheet *scoreSheet) read(samples [][]int) (float64, bool) {
 }
 
 // scoreOf is a rule's score, with an interval from samples of each
-// generator's children drawn apart, the rule and the service on the same
+// generator's children drawn apart, the rule and the baseline on the same
 // children.
 func (cr *criterionRun) scoreOf(r *rule) summary {
 	sheet, has := cr.sheetOf(r)
@@ -532,7 +480,7 @@ type ruleCriterion struct {
 }
 
 // checkResolution is a check of not worse with what the bench resolves on it:
-// the measuring rule's paired difference with the service, its standard
+// the measuring rule's paired difference with the baseline, its standard
 // error, whether the run gives them, and the tolerance the check is read with.
 type checkResolution struct {
 	check     notWorse
@@ -545,7 +493,7 @@ type checkResolution struct {
 // readCriterion reads the criterion for every rule of a run, the rules at
 // once, and what the bench resolves on each check of not worse.
 func readCriterion(cr *criterionRun) ([]ruleCriterion, []checkResolution) {
-	checks := notWorseChecks()
+	checks := cr.crit.checks()
 	resolutions := make([]checkResolution, len(checks))
 	eachAtOnce(len(checks), func(i int) { resolutions[i] = cr.resolution(checks[i]) })
 	var ruleList []*rule
@@ -558,7 +506,7 @@ func readCriterion(cr *criterionRun) ([]ruleCriterion, []checkResolution) {
 	eachAtOnce(len(ruleList), func(i int) {
 		r := ruleList[i]
 		rc := ruleCriterion{rule: r, score: cr.scoreOf(r)}
-		for _, g := range goals() {
+		for _, g := range cr.crit.goals() {
 			rc.readings = append(rc.readings, cr.readGoal(r, g))
 		}
 		for c := range resolutions {
@@ -580,7 +528,7 @@ func containsRule(rules []*rule, r *rule) bool {
 	return false
 }
 
-// passChance is the chance a candidate exactly as good as the service passes
+// passChance is the chance a candidate exactly as good as the baseline passes
 // a check of not worse read with a tolerance, given the standard error of the
 // paired difference: in a decision run, that the worse end of its interval
 // stays within the tolerance; in a rough look, that its better end does.

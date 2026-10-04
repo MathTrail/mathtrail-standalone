@@ -1,0 +1,194 @@
+# The page of the topic of parity and alternation, for a parent. The topic's
+# name, its group, its grades and its traps' names are not here: they are the
+# card's words and the catalog's numbers. Each example's level, and the answer
+# its solver proves, are the site's data; an example here is worked through to
+# that answer. The traps are the topic's commonest, counted in its reference
+# tasks.
+
+title: Parity and alternation
+description: What problems about even and odd numbers and things that take turns are, how they are solved, where children go wrong, and how to help at home.
+
+hero:
+  lead: >-
+    Can 15 children stand in a ring, boy, girl, boy, girl, all the way round?
+    In these tasks even and odd answer the question without counting
+    everything or trying every way: which bank a ferry is at, whether a score
+    is possible, who makes the last move. For many children parity is the
+    first thing they meet that stays the same however the moves go.
+  method: Watch what each move does to even and odd
+  teaches: To answer “can it be?” without trying every way
+  # Two colours taking turns: black in the odd places, white in the even ones.
+  drawing: |2
+    ●  ○  ●  ○  ●  ○
+    1  2  3  4  5  6
+
+basis:
+  title: The rules of even and odd
+  cards:
+    - mark: "2"
+      title: Even splits into pairs
+      text: >-
+        An even number of things splits into pairs with none left over. An odd
+        number always leaves one without a pair.
+    - mark: "±"
+      title: Only the odd ones matter
+      text: >-
+        Even plus even is even, odd plus odd is even, and even plus odd is odd.
+        So whether a sum is even depends only on how many odd numbers are in
+        it.
+    - mark: "●○"
+      title: Taking turns
+      text: >-
+        When two things take turns, one stands in the odd places and the other
+        in the even ones. A ring can take turns all the way round only when it
+        has an even number of places.
+
+idea:
+  title: Count only the odd numbers
+  lead: To tell whether a sum is even, there is no need to add it up. Count how many odd numbers are in it.
+  table:
+    head:
+      - The sum
+      - Odd numbers in it
+      - The sum is
+    rows:
+      - - 4 + 6 + 8
+        - none
+        - even
+      - - 3 + 5
+        - "2"
+        - even
+      - - 3 + 5 + 7
+        - "3"
+        - odd
+      - - 1 + 2 + … + 10
+        - "5"
+        - odd
+  note:
+    title: Why it matters
+    text: >-
+      Many olympiad questions ask whether something can happen at all. Parity
+      can answer “no” without trying the ways: if every move keeps a number
+      even and the goal needs it odd, no move will ever get there.
+
+method:
+  title: "How to solve: follow even and odd"
+  lead: >-
+    Find a number in the task that is even or odd: a count, a sum, a place in a
+    row. See what each move or each step does to it, whether it changes or
+    stays, and compare the start with the goal. The examples below go from the
+    simplest to an olympiad's.
+  steps:
+    - Find what is even or odd
+    - See what each step does to it
+    - Compare the start with the goal
+
+examples:
+  - title: The ferry
+    question: >-
+      A ferry carries cars across a river and back, again and again. It starts
+      at the left bank. At which bank is it after crossing the river 7 times?
+    # The crossings after which the ferry is at each bank, 0 being the start.
+    drawing: |2
+       left    |  right
+      0 2 4 6  |  1 3 5
+    steps:
+      - After 1 crossing the ferry is at the right bank, and after 2 back at the left.
+      - >-
+        Every two crossings bring it back to where it started. So after an even
+        number of crossings it is at the left bank, and after an odd number at
+        the right.
+      - 7 is odd, so the ferry is at the right bank.
+    answer: At the right bank.
+    note:
+      title: Why not just count?
+      text: >-
+        For 7 crossings counting is quick. The rule answers for 100 crossings
+        just as fast, and it is the rule that the harder tasks need.
+  - title: Four darts
+    question: >-
+      Ben throws 4 darts at a target whose rings are worth 1, 3, 5 and 7
+      points, and every dart hits it. Ben says he scored 15 points. Can that be
+      true?
+    steps:
+      - Every ring is worth an odd number of points.
+      - >-
+        Two odd numbers add up to an even one. 4 darts are two pairs, and each
+        pair scores an even number, so the 4 darts together score an even
+        number.
+      - 15 is odd, so Ben cannot have scored it.
+    answer: No.
+    note:
+      title: And with 3 darts?
+      text: >-
+        Three odd numbers add up to an odd one, and 15 can happen: 5 + 5 + 5,
+        or 7 + 7 + 1.
+  - title: A spider on a cube
+    question: >-
+      A spider sits at a corner of a cube made of wire. Every minute it crawls
+      along one edge to the next corner. Can it be back at the corner it
+      started from after exactly 7 minutes?
+    # A cube whose corners take turns in colour: every edge joins a black
+    # corner and a white one.
+    drawing: |2
+        ○-------●
+       /|      /|
+      ●-------○ |
+      | ●-----|-○
+      |/      |/
+      ○-------●
+    steps:
+      - >-
+        Colour the corners: the start white, its neighbours black, their
+        neighbours white, and so on. As the drawing shows, every edge joins a
+        black corner and a white one.
+      - >-
+        So the colour changes every minute: after 1 minute the spider is on
+        black, after 2 on white, and after any odd number of minutes on black.
+      - 7 is odd, and the start is white. The spider cannot be back.
+    answer: No.
+    note:
+      title: And after 8 minutes?
+      text: >-
+        Yes: crawling along one edge and back four times brings it home. The
+        colours say when it cannot be done; that an even number of minutes is
+        enough still has to be shown.
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  wrong_parity:
+    shows: >-
+      Even and odd change places: the child decides that after 7 crossings the
+      ferry is back where it started, or that four odd numbers add up to an
+      odd one.
+    say: "“Try it small: where is the ferry after 1 crossing, after 2?”"
+  ignored_condition:
+    shows: >-
+      One condition of the task is lost: the child finds 15 points with three
+      darts and forgets that Ben threw four, or picks a number that fits one
+      clue and not the other.
+    say: “Read the task again. Does your answer fit every word of it?”
+  off_by_one:
+    shows: >-
+      A place in a row is counted one off: the start is taken for the first
+      crossing, or a row that begins and ends with a boy gets as many boys as
+      girls.
+    say: “Write out the first few. Which one is number 1?”
+
+home:
+  - title: Odd or even?
+    text: >-
+      Hide a handful of buttons in your fist and let the child guess: odd or
+      even? Then check together by putting the buttons in pairs.
+  - title: Who makes the 10th move?
+    text: >-
+      In any game where two players take turns, ask before the end: who will
+      make the 10th move? And the 15th? The answer comes from even and odd,
+      not from playing on.
+  - title: House numbers
+    text: >-
+      On a street, look at the house numbers: even on one side, odd on the
+      other. Which side will number 37 be on?
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Give me a task on parity

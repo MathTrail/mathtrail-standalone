@@ -1,0 +1,38 @@
+# The page "About", for a parent, in Russian: who makes MathTrail — one family,
+# each of us under a role — and where to write. The children go by their place
+# in the family, never by name. The address and the link to the code are the
+# footer's, which the page fills in.
+
+title: О нас
+description: "MathTrail делает одна семья: кто чем занят и как с нами связаться."
+
+hero:
+  title: MathTrail делает одна семья
+  lead: Нас четверо. Один пишет код, одна отвечает за всё остальное, один решает задачи первым, а один пока присматривается.
+
+# A card for each of us: who we are in the family, a role, and what we do,
+# under a heading a screen reader alone says.
+team:
+  title: Кто мы
+  members:
+    - role: Фулстек-укачиватель
+      name: Папа
+      text: Пишет сервер, проверки задач и виджет. Работает в наушниках и, как правило, с кем-то на руках.
+    - role: Главная по всему
+      name: Мама
+      text: Отвечает за всё остальное — то есть за всё.
+    - role: Главный по щёлканью задач
+      name: Старший
+      text: Первым решает новые задачи и честно говорит, где непонятно.
+    - role: Стажёр-тестировщик на зуб
+      name: Младший
+      text: Пока тестирует игрушки на прочность. До первой задачи — пара лет.
+
+contact:
+  title: Нашли ошибку или есть идея?
+  # The address is written out in the sentence, as a link that writes to it;
+  # the issue is a link to the issues of the code.
+  lead: Напишите нам на {address} или {issue} — мы читаем всё.
+  issue: откройте задачу на GitHub
+  write: Написать нам
+  github: GitHub

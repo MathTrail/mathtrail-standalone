@@ -20,17 +20,20 @@ type rivalry struct {
 	difference summary
 }
 
-// stepChoice is what the criterion of a run comes to. Of the candidates that
-// meet every constraint and are better than the service, the main step of the
-// highest score is A*, and the main steps whose score's difference from A*'s
-// holds nothing are its equals; the simplest of them is the main step chosen.
-// The best backup is chosen over it only by the margin, or where no main step
-// is there to choose. With no candidate, the exit is the floor of the highest
-// score among those that meet the constraints of not worse and of the screen;
-// with none of those, the service's step stays. A run of the held-out
-// children confirms its one candidate, or not.
-type stepChoice struct {
+// criterionChoice is what the criterion of a run comes to. Of the candidates
+// that meet every constraint and are better than the baseline, the main
+// candidate of the highest score is A*, and the main candidates whose score's
+// difference from A*'s holds nothing are its equals; the simplest of them is
+// the main candidate chosen. The best backup is chosen over it only by the
+// margin, or where no main candidate is there to choose. With no candidate,
+// the exit is taken: the baseline itself, for a criterion whose exit it is;
+// otherwise the floor of the highest score among those that meet the
+// constraints of not worse and of the screen, and with none of those, the
+// service's step stays. A run of the held-out children confirms its one
+// candidate, or not.
+type criterionChoice struct {
 	decides, confirming bool
+	crit                *criterion
 	candidates          []*ruleCriterion
 	eligible            []*ruleCriterion
 	nearMisses          []*ruleCriterion
@@ -54,16 +57,16 @@ type stepChoice struct {
 const nearMissCount = 10
 
 // choose reads the choice off a run's criterion.
-func (cr *criterionRun) choose(read []ruleCriterion, confirming bool) stepChoice {
-	c := stepChoice{decides: cr.decides, confirming: confirming}
+func (cr *criterionRun) choose(read []ruleCriterion, confirming bool) criterionChoice {
+	c := criterionChoice{decides: cr.decides, confirming: confirming, crit: cr.crit}
 	for i := range read {
 		rc := &read[i]
-		if !isCandidate(rc.rule) {
+		if !isCandidateIn(rc.rule, cr.crit.choice) {
 			continue
 		}
 		c.candidates = append(c.candidates, rc)
 		switch missed := constraintsMissed(rc); {
-		case missed == 0 && betterThanService(rc):
+		case missed == 0 && betterThanBaseline(rc):
 			c.eligible = append(c.eligible, rc)
 		case missed == 1:
 			c.nearMisses = append(c.nearMisses, rc)
@@ -76,7 +79,7 @@ func (cr *criterionRun) choose(read []ruleCriterion, confirming bool) stepChoice
 	c.chooseMain(cr)
 	c.weighBackup(cr)
 	if c.chosen == nil {
-		c.chooseExit(read)
+		c.chooseExit(cr, read)
 	}
 	if c.chosen != nil && !c.exit {
 		c.margins = marginsOf(c.chosen)
@@ -87,14 +90,15 @@ func (cr *criterionRun) choose(read []ruleCriterion, confirming bool) stepChoice
 	return c
 }
 
-// setAgainstTop finds the main step of the highest score, whatever it meets,
-// and sets it against every other rule but the service and the ceiling. Only
-// a decision run does: there the best step's parts are taken away, and a run
-// of every point of a grid would draw a bootstrap for every rule twice over.
-func (c *stepChoice) setAgainstTop(cr *criterionRun, read []ruleCriterion) {
+// setAgainstTop finds the main candidate of the highest score, whatever it
+// meets, and sets it against every other rule but the baseline and the
+// ceiling. Only a decision run does: there the best candidate's parts are
+// taken away, and a run of every point of a grid would draw a bootstrap for
+// every rule twice over.
+func (c *criterionChoice) setAgainstTop(cr *criterionRun, read []ruleCriterion) {
 	for i := range read {
 		rc := &read[i]
-		if rc.rule.candidacy != nil && rc.rule.candidacy.kind == mainCandidate && rc.score.has && (c.top == nil || rc.score.value > c.top.score.value) {
+		if isCandidateIn(rc.rule, cr.crit.choice) && rc.rule.candidacy.kind == mainCandidate && rc.score.has && (c.top == nil || rc.score.value > c.top.score.value) {
 			c.top = rc
 		}
 	}
@@ -103,21 +107,21 @@ func (c *stepChoice) setAgainstTop(cr *criterionRun, read []ruleCriterion) {
 	}
 	for i := range read {
 		rc := &read[i]
-		if rc == c.top || rc.rule.service || rc.rule.ceiling || !rc.score.has {
+		if rc == c.top || rc.rule == cr.baseline || rc.rule.ceiling || !rc.score.has {
 			continue
 		}
 		c.againstTop = append(c.againstTop, rivalry{rc: rc, difference: cr.scoreDifference(c.top.rule, rc.rule)})
 	}
 }
 
-// isCandidate says whether a rule is a candidate for the step, main or
-// backup, rather than for the exit or none.
-func isCandidate(r *rule) bool {
-	return r.candidacy != nil && r.candidacy.kind != exitCandidate
+// isCandidateIn says whether a rule is a candidate in a choice, main or
+// backup, rather than for its exit, for another choice, or none.
+func isCandidateIn(r *rule, choice choiceKind) bool {
+	return r.candidacy != nil && r.candidacy.choice == choice && r.candidacy.kind != exitCandidate
 }
 
 // chooseMain finds A*, its equals, and the simplest of them.
-func (c *stepChoice) chooseMain(cr *criterionRun) {
+func (c *criterionChoice) chooseMain(cr *criterionRun) {
 	for _, rc := range c.eligible {
 		if rc.rule.candidacy.kind != mainCandidate {
 			continue
@@ -144,7 +148,7 @@ func (c *stepChoice) chooseMain(cr *criterionRun) {
 
 // simpler says whether one candidate is simpler than another: it adds fewer
 // numbers to the service's rule, or as many and no field to the profile where
-// the other does, or as much of both and stands nearer the service's step.
+// the other does, or as much of both and stands nearer the service's rule.
 func simpler(a, b *candidacy) bool {
 	if a.added != b.added {
 		return a.added < b.added
@@ -158,7 +162,7 @@ func simpler(a, b *candidacy) bool {
 // weighBackup sets the best backup against the main step chosen, and chooses
 // it where it closes more of the way by the margin, or where there is no main
 // step to choose.
-func (c *stepChoice) weighBackup(cr *criterionRun) {
+func (c *criterionChoice) weighBackup(cr *criterionRun) {
 	for _, rc := range c.eligible {
 		if rc.rule.candidacy.kind != backupCandidate {
 			continue
@@ -176,12 +180,20 @@ func (c *stepChoice) weighBackup(cr *criterionRun) {
 	}
 }
 
-// chooseExit takes the floor of the highest score among those that meet the
-// constraints of not worse and of the screen; the goals do not apply to it.
-func (c *stepChoice) chooseExit(read []ruleCriterion) {
+// chooseExit takes the exit: for a criterion whose exit is its baseline, the
+// baseline, kept as it is; otherwise the floor of the highest
+// score among those that meet the constraints of not worse and of the screen,
+// to which the goals do not apply.
+func (c *criterionChoice) chooseExit(cr *criterionRun, read []ruleCriterion) {
 	for i := range read {
 		rc := &read[i]
-		if rc.rule.candidacy == nil || rc.rule.candidacy.kind != exitCandidate || !rc.score.has || !meetsNotWorseAndScreen(rc) {
+		if cr.crit.exitIsBaseline {
+			if rc.rule == cr.baseline {
+				c.chosen, c.exit = rc, true
+			}
+			continue
+		}
+		if rc.rule.candidacy == nil || rc.rule.candidacy.choice != cr.crit.choice || rc.rule.candidacy.kind != exitCandidate || !rc.score.has || !meetsNotWorseAndScreen(rc) {
 			continue
 		}
 		if c.chosen == nil || rc.score.value > c.chosen.score.value {
@@ -202,9 +214,9 @@ func constraintsMissed(rc *ruleCriterion) int {
 	return missed
 }
 
-// betterThanService says whether a rule's score lies above the service's,
+// betterThanBaseline says whether a rule's score lies above the baseline's,
 // none, with its whole interval.
-func betterThanService(rc *ruleCriterion) bool { return rc.score.has && rc.score.low > 0 }
+func betterThanBaseline(rc *ruleCriterion) bool { return rc.score.has && rc.score.low > 0 }
 
 // meetsNotWorseAndScreen says whether a rule meets every check of not worse
 // and every constraint of the screen.
@@ -277,7 +289,7 @@ func allHold(margins []margin) float64 {
 }
 
 // scoreDifference is one rule's score less another's, read on the same
-// samples of each generator's children, with its interval: the service's part
+// samples of each generator's children, with its interval: the baseline's part
 // of both cancels, and what is left is how much more of the way the first
 // closes on the same children.
 func (cr *criterionRun) scoreDifference(a, b *rule) summary {

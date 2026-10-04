@@ -9,7 +9,9 @@ require (
 	github.com/google/jsonschema-go v0.4.3
 	github.com/google/uuid v1.6.0
 	github.com/leanovate/gopter v0.2.11
+	github.com/maxmind/mmdbwriter v1.2.0
 	github.com/modelcontextprotocol/go-sdk v1.8.0
+	github.com/oschwald/maxminddb-golang/v2 v2.7.0
 	github.com/spf13/viper v1.21.0
 	go.opentelemetry.io/contrib/detectors/gcp v1.46.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.71.0
@@ -76,6 +78,7 @@ require (
 	go.opentelemetry.io/proto/otlp v1.11.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/arch v0.30.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/time v0.15.0 // indirect

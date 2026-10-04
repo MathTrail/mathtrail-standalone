@@ -43,6 +43,18 @@ export function address(locale: string, name: string): string {
 	return name === frontPage ? `/${locale}/` : `/${locale}/${name}/`;
 }
 
+/**
+ * sectionAddress is where the section with the id anchor is, on the page name
+ * of locale.
+ */
+export function sectionAddress(
+	locale: string,
+	name: string,
+	anchor: string,
+): string {
+	return `${address(locale, name)}#${anchor}`;
+}
+
 /** outputPath is the file that serves an address, below the site's root. */
 export function outputPath(served: string): string {
 	return `${served.slice(1)}index.html`;

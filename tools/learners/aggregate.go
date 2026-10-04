@@ -138,6 +138,8 @@ func metrics() []metric {
 		mean("r3_above_0.95", func(r *childResult) (float64, bool) { return float64(r.over) / float64(r.answers), r.answers > 0 }),
 		ratio("r4_false", func(r *childResult) (num, den float64) { return float64(r.wrongly), float64(r.declared) }),
 		ratio("r4_false_0.70", func(r *childResult) (num, den float64) { return float64(r.looselyWrong), float64(r.declared) }),
+		ratio("r4_below", func(r *childResult) (num, den float64) { return float64(r.heldBelow), float64(r.declared) }),
+		ratio("r4_false_at_task", func(r *childResult) (num, den float64) { return float64(r.wronglyAtTask), float64(r.atTask) }),
 		mean("r4_declared", func(r *childResult) (float64, bool) { return float64(r.declared), true }),
 		ratio("r5_late_answers", lateAnswers),
 		ratio("r5_never", neverDeclared),

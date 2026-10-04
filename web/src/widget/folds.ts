@@ -2,15 +2,21 @@ import { useReducer } from "preact/hooks";
 
 /**
  * Section is a part of the progress that folds away under its title: the
- * topics, the mistakes that repeat, the latest answers, and the profile.
+ * topics, the review of them — which holds the mistakes that repeat once the
+ * trial series is over —, the mistakes that repeat while it runs, the latest
+ * answers, and the profile.
  */
-export type Section = "topics" | "mistakes" | "recent" | "profile";
+export type Section = "topics" | "review" | "mistakes" | "recent" | "profile";
 
 /** Open is which sections of the progress are open. */
 export type Open = ReadonlySet<Section>;
 
-/** allFolded is the progress as it first opens: every section folded. */
-export const allFolded: Open = new Set();
+/**
+ * firstOpen is the progress as it first opens: the topics open, since where
+ * the child stands in each is what the progress is opened for, and every other
+ * section folded.
+ */
+export const firstOpen: Open = new Set(["topics"]);
 
 /**
  * foldsAfter is which sections are open once section is pressed: opened when
@@ -37,6 +43,6 @@ export type Folds = {
  * over it is closed and opened again.
  */
 export function useFolds(): Folds {
-	const [open, toggle] = useReducer(foldsAfter, allFolded);
+	const [open, toggle] = useReducer(foldsAfter, firstOpen);
 	return { open, toggle };
 }

@@ -5,6 +5,9 @@ import (
 	"strings"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"golang.org/x/text/language"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 )
 
 // other stands in a line or a span for any value outside the list it was held
@@ -76,6 +79,19 @@ func (s *Service) trapLabel(id string) string {
 		return id
 	}
 	return other
+}
+
+// languageLabel is the language a task was written in, by its primary subtag —
+// pt for pt-BR — or other. The language is read from the profile, which a
+// person can edit, so a line names it only when it is a tag the service would
+// keep itself.
+func languageLabel(tag string) string {
+	canonical, broken := profile.LanguageTag(tag)
+	if canonical == "" || broken.Code != "" {
+		return other
+	}
+	base, _ := language.Make(canonical).Base()
+	return base.String()
 }
 
 // topicLabel is a topic of the catalog, or other. The topic of an answer or of

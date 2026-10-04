@@ -1,0 +1,164 @@
+# The page of the topic of arithmetic with a trick, for a parent. The topic's
+# name, its group, its grades and its traps' names are not here: they are the
+# card's words and the catalog's numbers. Each example's level, and the answer
+# its solver proves, are the site's data; an example here is worked through to
+# that answer. The traps are the topic's commonest, counted in its reference
+# tasks.
+
+title: Arithmetic with a trick
+description: What problems about clever counting and “I thought of a number” are, how they are solved, where children go wrong, and how to help at home.
+
+hero:
+  lead: >-
+    What is 19 + 23 + 81 + 77? Added in order, it is three sums with carrying;
+    paired as 19 + 81 and 23 + 77, it is 100 + 100. In these tasks the
+    arithmetic is easy once the right order is found, and “I thought of a
+    number” puzzles are solved by undoing the steps from the end. The skill is
+    to look before counting.
+  method: Look for the easy order before counting
+  teaches: To regroup a sum or a product, and to undo a chain of steps from the end
+  # The sum regrouped into two easy hundreds.
+  drawing: |2
+    (19 + 81) + (23 + 77)
+       100    +    100
+
+basis:
+  title: The rules of clever counting
+  cards:
+    - mark: "↔"
+      title: Any order
+      text: >-
+        Numbers can be added or multiplied in any order and grouped any way:
+        25 × 9 × 4 is 25 × 4 × 9, which is 100 × 9.
+    - mark: "10"
+      title: Round numbers
+      text: >-
+        Look for pairs that make 10, 100 or 1000: 36 + 64, 25 × 4, 125 × 8. A
+        round number is easy to carry on with.
+    - mark: "←"
+      title: Undo from the end
+      text: >-
+        In “I thought of a number”, go back from the result and undo each step:
+        what was added is taken away, and what was doubled is halved.
+
+idea:
+  title: Look before you count
+  lead: The same sum can be long or short. Before counting, look for the pairs and groups that make it round.
+  table:
+    head:
+      - The task
+      - The easy way
+      - The answer
+    rows:
+      - - 19 + 23 + 81 + 77
+        - (19 + 81) + (23 + 77)
+        - "200"
+      - - 4 × 19 × 25
+        - (4 × 25) × 19
+        - "1900"
+      - - 1 + 2 + 3 + … + 10
+        - five pairs of 11, such as 1 + 10 and 2 + 9
+        - "55"
+  note:
+    title: Why it matters
+    text: >-
+      Olympiads give sums that are slow the long way on purpose: the task is to
+      notice the shortcut. A child who looks for pairs first learns to see how
+      a task is built, and that matters far beyond arithmetic.
+
+method:
+  title: "How to solve: look for round numbers"
+  lead: >-
+    Before counting, look at the whole task. Pair numbers that make round
+    ones, put factors that give 10 or 100 next to each other, and in a chain of
+    steps start from the end and undo them one by one. The examples below go
+    from the simplest to an olympiad's.
+  steps:
+    - Look at the whole task first
+    - Regroup into round numbers, or undo from the end
+    - Check the answer another way
+
+examples:
+  - title: Pairs that make ten
+    question: >-
+      What is 6 + 7 + 8 + 2 + 3 + 4?
+    steps:
+      - Look for pairs that make 10. Here there are three of them, 6 + 4, 7 + 3 and 8 + 2.
+      - Three tens make 30.
+      - "So 6 + 7 + 8 + 2 + 3 + 4 = 30, with no carrying at all."
+    answer: "30."
+    note:
+      title: The long way
+      text: >-
+        6 + 7 = 13, then 21, 23, 26 and 30. The answer is the same, but it takes
+        five steps instead of one, and every step is a chance to slip.
+  - title: A number to find
+    question: >-
+      Masha thought of a number. She doubled it, added 7 and divided the result
+      by 3. She got 9. What number did Masha think of?
+    steps:
+      - Go from the end and undo each step, the last one first.
+      - >-
+        She divided by 3 and got 9, so before that she had 9 × 3 = 27. She
+        added 7, so before that she had 27 − 7 = 20.
+      - "She doubled the number, so it was 20 : 2 = 10. Check: 10 × 2 + 7 = 27, and 27 : 3 = 9."
+    answer: "10."
+    note:
+      title: Undo in reverse order
+      text: >-
+        The last step done is the first one undone, as shoes come off before
+        socks. Undoing the steps in the order they were done gives a wrong
+        number.
+  - title: Two big products
+    question: >-
+      What is 2026 × 2026 − 2027 × 2025? Find it without multiplying the big
+      numbers.
+    steps:
+      - >-
+        Both products hide 2026 × 2025: 2026 × 2026 is 2026 × 2025 and one more
+        2026.
+      - And 2027 × 2025 is 2026 × 2025 and one more 2025.
+      - "So the difference is 2026 − 2025 = 1, and nothing big was multiplied."
+    answer: "1."
+    note:
+      title: Try it on small numbers
+      text: >-
+        The same works for any numbers: 5 × 5 − 6 × 4 = 25 − 24 = 1. Trying a
+        trick on small numbers first is the surest way to trust it.
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  stopped_early:
+    shows: >-
+      The work stops before the end: two of the three pairs are added and the
+      third forgotten, or one step of the chain is undone and its result given
+      as the answer.
+    say: “Is every number used, and every step undone?”
+  wrong_operation:
+    shows: >-
+      A step is undone with the same action instead of the opposite one: 7 is
+      added again instead of taken away, or 9 is divided by 3 instead of
+      multiplied.
+    say: “What undoes adding? What undoes dividing?”
+  number_from_text:
+    shows: >-
+      A number from the task becomes the answer: the 9 Masha got, or the 7 she
+      added, instead of the number she thought of.
+    say: “Is this the number she got, or the one she thought of?”
+
+home:
+  - title: Pairs to ten
+    text: >-
+      Write six or eight small numbers on cards and ask the child to find the
+      pairs that make 10 before adding them all up.
+  - title: Guess my number
+    text: >-
+      Play “I thought of a number” both ways: you give the steps and the
+      result and the child finds the number, then the child makes up the steps.
+  - title: Clever shopping
+    text: >-
+      In a shop, add up prices in a clever order: 99 is 100 less 1, and 49 and
+      51 make 100. Round first, put right after.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Give me a task on arithmetic with a trick

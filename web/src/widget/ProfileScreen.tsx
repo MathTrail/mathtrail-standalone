@@ -14,7 +14,7 @@ import {
 	notEditing,
 } from "./editing";
 import { useFocusKeptOnTheCard } from "./focus";
-import { languageName, listed, skillName } from "./names";
+import { countryName, languageName, listed, skillName } from "./names";
 import { ProfileForm } from "./ProfileForm";
 import {
 	type Details,
@@ -23,6 +23,7 @@ import {
 	type ProfileReport,
 	readEdited,
 } from "./payload";
+import { regionName } from "./places";
 import { countText, type Key, useWords } from "./words";
 
 /**
@@ -264,6 +265,22 @@ function detailFields(words: Words<Key>, details: Details): Field[] {
 					? words.text("profile.language_chat")
 					: languageName(words, details.ui_language),
 		},
+		{
+			term: words.text("profile.country"),
+			value:
+				details.country === null ? none : countryName(words, details.country),
+			note: words.text("profile.country_note"),
+		},
+		...(details.region === null
+			? []
+			: [
+					{
+						term: words.text("profile.region"),
+						value:
+							regionName(details.country ?? "", details.region) ??
+							details.region,
+					},
+				]),
 	];
 }
 

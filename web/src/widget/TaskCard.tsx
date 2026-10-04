@@ -42,9 +42,19 @@ import { type Key, useWords } from "./words";
 /**
  * TaskCard is the card a task is handed to the child on: the task, in the
  * frame every card of a lesson has, which opens the progress in the card and
- * comes back to the task as it was left.
+ * comes back to the task as it was left. The lesson on it begins at start: the
+ * task just handed out, with no answer given, unless start says how far it
+ * has got.
  */
-export function TaskCard({ handed, host }: { handed: HandedTask; host: Host }) {
+export function TaskCard({
+	handed,
+	host,
+	start,
+}: {
+	handed: HandedTask;
+	host: Host;
+	start?: Lesson;
+}) {
 	const words = useWords();
 	return (
 		<CardFrame
@@ -58,6 +68,7 @@ export function TaskCard({ handed, host }: { handed: HandedTask; host: Host }) {
 					host={host}
 					wide={wide}
 					grade={whose?.grade}
+					start={start}
 				/>
 			)}
 		</CardFrame>
@@ -71,21 +82,25 @@ export function TaskCard({ handed, host }: { handed: HandedTask; host: Host }) {
  * result below the task, in the same card; opens the hint; and asks for
  * another task, which goes to the chat for the model to write — the new task
  * comes in a card of its own, below, and this one says so and keeps its task.
+ * The lesson begins at start, the task just handed out unless it says
+ * otherwise.
  */
 export function TaskInCard({
 	handed,
 	host,
 	wide,
 	grade,
+	start = lessonStart,
 }: {
 	handed: HandedTask;
 	host: Host;
 	wide: boolean;
 	grade: number | undefined;
+	start?: Lesson;
 }) {
 	const { task } = handed;
 	const words = useWords();
-	const [lesson, dispatch] = useReducer(next, lessonStart);
+	const [lesson, dispatch] = useReducer(next, start);
 	const another = useChatRequest(host);
 	const outcome = useRef<HTMLDivElement>(null);
 	const nextTask = useRef<HTMLButtonElement>(null);

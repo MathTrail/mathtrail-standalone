@@ -5,12 +5,15 @@ import traps from "../../../content/catalogs/traps.json";
 import english from "../../locales/en.json";
 import {
 	catalogSkills,
+	countryName,
+	knownTrapName,
 	languageName,
 	listed,
 	rankCount,
 	rankName,
 	skillName,
 	topicName,
+	trapAdvice,
 	trapName,
 } from "./names";
 import { cardWords } from "./words";
@@ -33,6 +36,22 @@ describe("the catalogs' names", () => {
 		expect(Object.hasOwn(english, `trap.${id}`)).toBe(true);
 	});
 
+	// The advice is the same English sentence the service tells the model, so
+	// that there is one English for every language to be written from.
+	test.each(traps.map((trap) => [trap.id, trap.advice]))(
+		"the mistake %s has advice, in English the catalog's own",
+		(id, advice) => {
+			expect((english as Record<string, unknown>)[`advice.${id}`]).toBe(advice);
+		},
+	);
+
+	test("advise in the card's language, and not at all on a mistake the card has no advice for", () => {
+		expect(trapAdvice(inRussian, "missed_case")).toBe(
+			"Выписывать случаи в одном порядке, начиная с меньшего, и отмечать каждый, чтобы ни один не потерялся.",
+		);
+		expect(trapAdvice(inEnglish, "counted_the_cat")).toBeUndefined();
+	});
+
 	test("are said in the card's language", () => {
 		expect(topicName(inEnglish, "combinatorics.enumeration")).toBe(
 			"Enumeration",
@@ -47,6 +66,13 @@ describe("the catalogs' names", () => {
 		expect(trapName(inRussian, "double_count")).toBe(
 			"Одно и то же посчитано дважды",
 		);
+	});
+
+	test("the card has no words for have no name to say inside a sentence", () => {
+		expect(knownTrapName(inRussian, "double_count")).toBe(
+			"Одно и то же посчитано дважды",
+		);
+		expect(knownTrapName(inEnglish, "counted_the_cat")).toBeUndefined();
 	});
 
 	test("the card has no words for are called by their ids", () => {
@@ -101,6 +127,17 @@ describe("a language", () => {
 
 	test("that no tag names is shown as it is", () => {
 		expect(languageName(inEnglish, "not a tag")).toBe("not a tag");
+	});
+});
+
+describe("a country", () => {
+	test("is named in the card's language", () => {
+		expect(countryName(inEnglish, "US")).toBe("United States");
+		expect(countryName(inRussian, "FR")).toBe("Франция");
+	});
+
+	test("that no code names is shown as it is", () => {
+		expect(countryName(inEnglish, "not a code")).toBe("not a code");
 	});
 });
 

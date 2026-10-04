@@ -1,15 +1,15 @@
 import { describe, expect, test } from "vitest";
-import { allFolded, foldsAfter, type Open, type Section } from "./folds";
+import { firstOpen, foldsAfter, type Open, type Section } from "./folds";
 
 // pressed is which sections are open once each of sections is pressed in
 // turn, from a progress with every section folded.
 function pressed(...sections: Section[]): Open {
-	return sections.reduce(foldsAfter, allFolded);
+	return sections.reduce(foldsAfter, new Set<Section>());
 }
 
 describe("the sections of the progress", () => {
-	test("are all folded as it first opens", () => {
-		expect([...allFolded]).toEqual([]);
+	test("are all folded but the topics as it first opens", () => {
+		expect([...firstOpen]).toEqual(["topics"]);
 	});
 
 	test("open when pressed, and fold when pressed again", () => {

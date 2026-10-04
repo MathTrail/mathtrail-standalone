@@ -32,6 +32,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"sync"
 
@@ -157,9 +158,10 @@ func experimentInto(out string, d design, stdout io.Writer) error {
 	return nil
 }
 
-// newWorld is what every run shares: the shipped catalog, its topics and the
-// points of each topic's ladder, and a sealer with a key made for the run,
-// which seals the tasks as the service does.
+// newWorld is what every run shares: the shipped catalog, its topics, the
+// levels each topic is taught at, the lowest first, and the points of its
+// ladder, and a sealer with a key made for the run, which seals the tasks as
+// the service does.
 func newWorld(answers int) (*world, error) {
 	shipped, err := content.Load()
 	if err != nil {
@@ -174,11 +176,18 @@ func newWorld(answers int) (*world, error) {
 		return nil, fmt.Errorf("learners: make the key ring: %w", err)
 	}
 	topics := shipped.TopicIDs()
+	levels := make(map[string][]rating.GradeLevel, len(topics))
 	ladders := make(map[string][]rating.Point, len(topics))
 	for _, topic := range topics {
+		levels[topic] = slices.SortedStableFunc(slices.Values(shipped.LevelsOf(topic)), func(a, b rating.GradeLevel) int {
+			return cmp.Compare(a.Shift(), b.Shift())
+		})
 		ladders[topic] = rating.Points(shipped.LevelsOf(topic)...)
 	}
-	return &world{catalog: shipped, topics: topics, ladders: ladders, sealer: ring.For(seal.PurposeTaskAnswer), answers: answers}, nil
+	return &world{
+		catalog: shipped, topics: topics, levels: levels, ladders: ladders,
+		sealer: ring.For(seal.PurposeTaskAnswer), answers: answers,
+	}, nil
 }
 
 // job is one child of one cell.

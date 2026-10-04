@@ -17,6 +17,15 @@ function options(): Options {
 	};
 }
 
+// withPicture is page with the picture a shared link to it shows named in its
+// head.
+function withPicture(page: string, picture: string): string {
+	return page.replace(
+		"</head>",
+		`<meta property="og:image" content="${picture}"></head>`,
+	);
+}
+
 const made: string[] = [];
 
 // site writes a site that breaks no rule, changed by change, and returns its
@@ -41,6 +50,18 @@ afterEach(async () => {
 describe("check", () => {
 	test("passes a site with nothing wrong", async () => {
 		expect(await check(await site(), options())).toEqual([]);
+	});
+
+	test("passes a page whose shared link shows a picture the site serves", async () => {
+		const dir = await site((files) => {
+			files["en/index.html"] = withPicture(
+				pageAt("/en/", addresses),
+				`${base}/assets/og-en.png`,
+			);
+			files["assets/og-en.png"] = "png";
+		});
+
+		expect(await check(dir, options())).toEqual([]);
 	});
 
 	const broken: {
@@ -101,6 +122,39 @@ describe("check", () => {
 			},
 			rule: "head",
 			contains: "no title",
+		},
+		{
+			name: "a picture for a shared link the site does not have",
+			change: (files) => {
+				files["en/index.html"] = withPicture(
+					pageAt("/en/", addresses),
+					`${base}/assets/og-en.png`,
+				);
+			},
+			rule: "head",
+			contains: "is a file the site does not have",
+		},
+		{
+			name: "a picture for a shared link the site does not have, its property in capitals, before one it has",
+			change: (files) => {
+				files["en/index.html"] = withPicture(
+					withPicture(pageAt("/en/", addresses), `${base}/assets/og-en.png`),
+					`${base}/assets/style.css`,
+				).replace("og:image", "OG:image");
+			},
+			rule: "head",
+			contains: 'og-en.png", is a file the site does not have',
+		},
+		{
+			name: "a picture for a shared link on another origin",
+			change: (files) => {
+				files["en/index.html"] = withPicture(
+					pageAt("/en/", addresses),
+					"https://cdn.example.com/og-en.png",
+				);
+			},
+			rule: "head",
+			contains: `is not on ${base}`,
 		},
 		{
 			name: "a canonical that points at another page",

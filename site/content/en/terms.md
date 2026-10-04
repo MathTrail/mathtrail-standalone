@@ -5,7 +5,7 @@ description: What MathTrail promises, what it deliberately does not promise, and
 
 # Terms of use
 
-Last updated: 3 October 2026.
+Last updated: 4 October 2026.
 
 By adding MathTrail to your chat you accept what is written here. If you do not, do not add it. Questions go to [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com).
 
@@ -48,6 +48,8 @@ Access can be cut off if it is used this way.
 ## Your data
 
 Your child's profile lives in your own Google Drive, and the service stores nothing. What is collected, what reaches the chat's model and how to export or delete everything is set out in the [privacy policy](../privacy/).
+
+MathTrail may publish statistics about how it is used — how many children, how many tasks, in which countries — built only from totals in which no family and no child can be recognised.
 
 ## The code and the content
 

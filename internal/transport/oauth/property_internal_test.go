@@ -187,9 +187,10 @@ func TestIssuedTokensCarryTheirSession(t *testing.T) {
 	properties := gopter.NewProperties(nil)
 
 	properties.Property("the tokens handed out carry the session they were issued for", prop.ForAll(
-		func(user, client string, signedInAgo int64) bool {
+		func(user, client, country string, signedInAgo int64) bool {
 			grants := issuingAt(t, ring, googleStandIn{})
 			issuedFor := aSession(user, client, time.Duration(signedInAgo)*time.Second, time.Hour)
+			issuedFor.country = country
 			given, err := grants.issue(t.Context(), issuedFor)
 			if err != nil {
 				return false
@@ -200,14 +201,16 @@ func TestIssuedTokensCarryTheirSession(t *testing.T) {
 				return false
 			}
 			carried := sessionOf(&refresh)
-			return access.User == user && access.Client == client && access.GoogleAccessToken == issuedFor.google.accessToken &&
-				carried.user == user && carried.client == client && carried.resource == issuedFor.resource &&
-				carried.scope == issuedFor.scope && carried.signedInAt.Equal(issuedFor.signedInAt) &&
+			return access.User == user && access.Country == country && access.Client == client &&
+				access.GoogleAccessToken == issuedFor.google.accessToken &&
+				carried.user == user && carried.country == country && carried.client == client &&
+				carried.resource == issuedFor.resource && carried.scope == issuedFor.scope &&
+				carried.signedInAt.Equal(issuedFor.signedInAt) &&
 				carried.google.accessToken == issuedFor.google.accessToken &&
 				carried.google.accessExpiry.Equal(issuedFor.google.accessExpiry) &&
 				carried.google.refreshToken == issuedFor.google.refreshToken
 		},
-		gen.RegexMatch(`[A-Za-z0-9_-]{16}`), gen.RegexMatch(`[A-Za-z0-9_-]{43}`), gen.Int64Range(0, 80*24*3600),
+		gen.RegexMatch(`[A-Za-z0-9_-]{16}`), gen.RegexMatch(`[A-Za-z0-9_-]{43}`), gen.OneConstOf("", "NZ", "US"), gen.Int64Range(0, 80*24*3600),
 	))
 
 	properties.TestingRun(t)

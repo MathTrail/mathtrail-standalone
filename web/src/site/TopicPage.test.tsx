@@ -337,9 +337,10 @@ describe("a topic's page", () => {
 		}
 	});
 
-	test("asks for a task in the page's words and leads back to every topic, with no button to add the app yet", () => {
+	test("asks for a task in the page's words, leads to adding the app on the home page and back to every topic", () => {
 		expect(all(".s-ask-phrase")).toEqual(["Give me a task"]);
-		expect(all(".s-ask a", "href")).toEqual(["/en/topics/"]);
+		expect(all(".s-ask a", "href")).toEqual(["/en/#connect", "/en/topics/"]);
+		expect(all(".s-ask .s-btn-filled")).toEqual(["Add to Claude"]);
 	});
 
 	test("reads in full with no script, and loads no card's stylesheet", () => {

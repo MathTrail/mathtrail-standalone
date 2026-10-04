@@ -1,0 +1,180 @@
+# The page of the topic of ordering, for a parent. The topic's name, its
+# group, its grades and its traps' names are not here: they are the card's
+# words and the catalog's numbers. Each example's level, and the answer its
+# solver proves, are the site's data; an example here is worked through to that
+# answer. The traps are the topic's commonest, counted in its reference tasks.
+
+title: Ordering
+description: What ordering problems are, how they are solved, where children go wrong, and how to help at home.
+
+hero:
+  lead: >-
+    Who is taller, who is older, who came first? In these tasks a few
+    comparisons have to be joined into one order: by height, by age, by a
+    place in a queue or in a race. For many children this is the first chain
+    of reasoning, in which every clue is a link and none may be left out.
+  method: Draw a line and put everyone on it
+  teaches: To join clues into one picture, and to read a comparison both ways
+  # A line from the tallest to the shortest, as the solutions draw it.
+  drawing: |2
+       tallest ........ shortest
+        Ann > Ben > Kate > Dan
+
+basis:
+  title: The rules of a line
+  cards:
+    - mark: ">"
+      title: Every clue is an arrow
+      text: >-
+        “Ann is taller than Ben” puts Ann before Ben on the line. Whatever a
+        clue compares, height, age or a place in a race, it says who comes
+        first.
+    - mark: "<"
+      title: Read it both ways
+      text: >-
+        “Ben is shorter than Ann” says the same as “Ann is taller than Ben”.
+        Turn every clue round so that all of them point the same way before
+        they go on the line.
+    - mark: "…"
+      title: A chain goes on
+      text: >-
+        If Ann is taller than Ben and Ben is taller than Kate, then Ann is
+        taller than Kate as well, though no clue says so.
+
+idea:
+  title: Turn every clue the same way
+  lead: Build the line clue by clue, after turning each one into “taller than”.
+  table:
+    head:
+      - The clue
+      - Turned into “taller than”
+      - The line so far
+    rows:
+      - - “Ann is taller than Ben”
+        - Ann is taller than Ben
+        - Ann > Ben
+      - - “Kate is shorter than Ben”
+        - Ben is taller than Kate
+        - Ann > Ben > Kate
+      - - “Dan is shorter than Kate”
+        - Kate is taller than Dan
+        - Ann > Ben > Kate > Dan
+  note:
+    title: Why it matters
+    text: >-
+      Most mistakes here come from a clue read from the wrong end: “shorter”
+      taken for “taller”, “after” for “before”. A clue turned round before it
+      goes on the line cannot be misread.
+
+method:
+  title: "How to solve: draw the line"
+  lead: >-
+    Draw a line from the tallest to the shortest, or from the first to the
+    last, and put the clues on it one by one, the certain ones first. Whoever
+    cannot be placed yet waits for the next clue. The examples below go from
+    the simplest to an olympiad's.
+  steps:
+    - Turn every clue the same way
+    - Put the clues on the line, the certain ones first
+    - Read the answer, and check every clue against it
+
+examples:
+  - title: Three boats
+    question: >-
+      Three boats raced: a red, a blue and a green one. The red boat finished
+      after the blue one. The green boat finished before the blue one. Which
+      boat won?
+    steps:
+      - >-
+        Turn the first clue round: the red boat finished after the blue one,
+        so the blue one finished before the red one.
+      - >-
+        On the line, the first on the left: blue, then red. The green boat
+        finished before the blue one, so it goes in front of both: green,
+        blue, red.
+      - >-
+        The first on the line is the green boat. Check: red after blue, yes;
+        green before blue, yes.
+    answer: The green boat won.
+  - title: The canteen queue
+    question: >-
+      Five children stand in a queue at the canteen: Lena, Max, Nina, Oleg and
+      Pavel. Nina stands third. Oleg stands right behind Nina. Max stands
+      somewhere in front of Lena, and Lena is not last. Who stands last?
+    steps:
+      - >-
+        Put down what is certain: Nina is third, and Oleg, right behind her,
+        is fourth. Places 1, 2 and 5 are left for Max, Lena and Pavel.
+      - >-
+        Lena is not last, so she is first or second. Max stands somewhere in
+        front of her, so she cannot be first: Lena is second, and Max first.
+      - >-
+        The only place left, the fifth, is Pavel's. Check every clue: they all
+        hold.
+    answer: Pavel stands last.
+    note:
+      title: Every clue counts
+      text: >-
+        Without “Lena is not last”, Lena could stand last as well: the short
+        clue with “not” is the one that settles the queue.
+  - title: Six runners
+    question: >-
+      Six runners finished a race with no ties: Ada, Bob, Cid, Dot, Eli and
+      Fay. Bob finished right after Ada. Cid finished after Dot but before
+      Ada. Fay finished right before Eli, and Eli was not last. Dot was not
+      first. Who won?
+    steps:
+      - >-
+        Find the blocks: “Bob right after Ada” makes Ada-Bob, and “Fay right
+        before Eli” makes Fay-Eli. Dot, then Cid, then the block Ada-Bob go in
+        that order.
+      - >-
+        Dot was not first, so someone finished before her. Cid, Ada and Bob
+        all finished after Dot: only Fay and Eli can be in front of her, and
+        they come together.
+      - >-
+        So Fay-Eli opens the race: Fay, Eli, Dot, Cid, Ada, Bob. Eli is not
+        last, as the clue says. Every clue holds.
+    answer: Fay won.
+    note:
+      title: Blocks move together
+      text: >-
+        When a clue says “right after”, the two runners stand side by side
+        wherever they go. Treat them as one block, and six runners become four
+        things to place.
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  ignored_condition:
+    shows: >-
+      The child uses one clue and passes over another, often a short one with
+      “not”, and the line has room for a wrong answer.
+    say: “Which clue have you not used yet?”
+  reversed_relation:
+    shows: >-
+      “Kate is shorter than Ben” goes on the line as if Kate were taller: the
+      clue is read from the wrong end, and the answer comes out reversed.
+    say: “Who is taller, then? Say it the other way round.”
+  stopped_early:
+    shows: >-
+      The child finds that one is shorter than another and answers with that,
+      though the chain goes on: Ben is shorter than Ann, but Kate is shorter
+      still.
+    say: “Is there anyone further along the line?”
+
+home:
+  - title: Line up the family
+    text: >-
+      Line everyone up at home by height, then by age, and say each clue
+      aloud: “Dad is taller than Mum, so Dad stands first.”
+  - title: The line before the answer
+    text: >-
+      Ask for the line on paper before the answer. A drawing shows at once
+      whether a clue is missing or turned the wrong way.
+  - title: Say it the other way round
+    text: >-
+      Play a quick game: you say “the cat is smaller than the dog”, and the
+      child says it the other way round: “the dog is bigger than the cat”.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Give me a task on putting things in order

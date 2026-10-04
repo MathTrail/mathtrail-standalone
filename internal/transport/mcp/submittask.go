@@ -376,13 +376,13 @@ func (s *Service) hand(ctx context.Context, done *reviewed, program string) (Rep
 	if left != nil {
 		s.events.write(ctx, done.account, eventTaskSkipped, s.skippedFields(left.Topic, left.GradeLevel, left.Difficulty)...)
 	}
-	s.events.write(ctx, done.account, eventTaskAccepted,
+	s.events.write(ctx, done.account, eventTaskAccepted, append([]zap.Field{
 		zap.String("topic", issued.Topic),
 		zap.String("level", string(issued.GradeLevel)),
 		zap.Int("difficulty", issued.Difficulty),
 		zap.Int("attempts", done.attempt),
 		zap.Int64("seconds_since_request", int64(done.now.Sub(request.OpenedAt.Time)/time.Second)),
-	)
+	}, s.acceptedFields(ctx, p, done.account, issued, done.now)...)...)
 	reply := onTheCard(p, issued, fmt.Sprintf("Accepted at attempt %d: task %s is on the child's card. Where the "+
 		"card next_task drew shows it, %s Without a card, or if the child says the card shows no task, read out the "+
 		"question, the drawing and the options A to E below and nothing else, and give the hint only when the child "+

@@ -34,10 +34,13 @@ type flow struct {
 	consents sealer
 	codes    sealer
 	userID   func(account string) string
-	google   googleauth.SignIn
-	pages    *pages
-	events   *signInLog
-	now      func() time.Time
+	// countryOf is the country of the request the parent's browser comes
+	// back from Google with, empty when it is not known.
+	countryOf func(r *http.Request) string
+	google    googleauth.SignIn
+	pages     *pages
+	events    *signInLog
+	now       func() time.Time
 }
 
 // sendBack sends the parent's browser back to the client with the answer

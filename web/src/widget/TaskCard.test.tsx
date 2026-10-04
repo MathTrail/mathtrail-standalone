@@ -1,6 +1,10 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
+import { render } from "preact";
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
+import type { Host } from "./bridge";
+import { readAnswer } from "./payload";
+import { TaskCard } from "./TaskCard";
 import {
 	buttonIn,
 	drawCard as drawOnHost,
@@ -27,6 +31,7 @@ import {
 	toldAgain,
 	trialAnswer,
 } from "./testing/lesson";
+import { cardWords, WordsContext } from "./words";
 
 let root: HTMLElement;
 
@@ -702,8 +707,10 @@ describe("the progress", () => {
 		await vi.waitFor(() =>
 			expect(text(".mt-rank-name")).toBe("River crossing"),
 		);
-		expect(foldIn(root, "Topics").getAttribute("aria-expanded")).toBe("false");
+		expect(foldIn(root, "Topics").getAttribute("aria-expanded")).toBe("true");
+		expect(foldIn(root, "Profile").getAttribute("aria-expanded")).toBe("false");
 		press(foldIn(root, "Topics"));
+		press(foldIn(root, "Profile"));
 		press(button("Back to task"));
 
 		press(topLine());
@@ -711,8 +718,8 @@ describe("the progress", () => {
 			expect(text(".mt-rank-name")).toBe("River crossing"),
 		);
 
-		expect(foldIn(root, "Topics").getAttribute("aria-expanded")).toBe("true");
-		expect(foldIn(root, "Profile").getAttribute("aria-expanded")).toBe("false");
+		expect(foldIn(root, "Topics").getAttribute("aria-expanded")).toBe("false");
+		expect(foldIn(root, "Profile").getAttribute("aria-expanded")).toBe("true");
 		expect(heard.calls.map((call) => call.name)).toEqual([
 			"read_progress",
 			"read_progress",
@@ -802,6 +809,55 @@ describe("the replies", () => {
 		const list = root.querySelector(".mt-replies");
 		expect(list?.getAttribute("aria-live")).toBe("polite");
 		expect(list?.children).toHaveLength(0);
+	});
+});
+
+describe("a lesson begun with its answer in", () => {
+	test("shows the result as an answer recorded on the card does, and asks the host nothing", () => {
+		const recorded = readAnswer(answered(), fence.task.id);
+		if (recorded.kind !== "answered") {
+			throw new Error("the example is no answer recorded");
+		}
+		const asked: string[] = [];
+		const refuse = (what: string) => {
+			asked.push(what);
+			return Promise.reject(new Error(`${what} is not asked here`));
+		};
+		const host: Host = {
+			callTool: (name) => refuse(name),
+			sendMessage: () => refuse("a message"),
+			tellModel: () => refuse("a line for the model"),
+			canOpenLinks: () => false,
+			openLink: () => refuse("a page"),
+		};
+		root = document.createElement("div");
+		document.body.append(root);
+
+		act(() =>
+			render(
+				<WordsContext.Provider value={cardWords("en", undefined)}>
+					<TaskCard
+						handed={fence}
+						host={host}
+						start={{
+							hint: { open: false, used: false },
+							answer: { state: "answered", result: recorded.result },
+						}}
+					/>
+				</WordsContext.Provider>,
+				root,
+			),
+		);
+
+		expect(states()).toEqual(["muted", "wrong", "correct", "muted", "muted"]);
+		expect(text(".mt-options legend")).toBe("Answers");
+		expect(text(".mt-verdict-line")).toBe("Not quite — it's 5, not 4.");
+		expect(text(".mt-note-trap p")).toBe(
+			"Counted the gaps instead of the posts.",
+		);
+		expect(replies()).toHaveLength(1);
+		expect(shownButtons()).toEqual(["Another task"]);
+		expect(asked).toEqual([]);
 	});
 });
 

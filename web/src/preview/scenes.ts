@@ -1,5 +1,6 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
 import type { McpUiHostContext } from "@modelcontextprotocol/ext-apps";
+import topics from "../../../content/catalogs/topics.json";
 import type { CallStage } from "../widget/bridge";
 import { rankCount } from "../widget/names";
 import type { AnswerResult } from "../widget/payload";
@@ -39,14 +40,16 @@ import {
  * Scene is one state of a lesson on a card: the payload the card is drawn
  * from — a task handed to it, a task on its way, or a card a task did not come
  * to — or, for a task caught being asked for, how far its call has got; what the service
- * answers the card's calls with, whether the host takes its messages, what
- * the host keeps of the screen's edges, and what the child does on the card
- * to reach the state.
+ * answers the card's calls with, whether the host takes its messages, whether
+ * it opens pages — it says it does and opens them, unless links says it opens
+ * none or refuses each —, what the host keeps of the screen's edges, and what
+ * the child does on the card to reach the state.
  */
 export type Scene = {
 	name: string;
 	answers?: (tool: string) => Promise<CallToolResult>;
 	refuseMessages?: boolean;
+	links?: "none" | "refuse";
 	insets?: McpUiHostContext["safeAreaInsets"];
 	play?: (card: Document) => void;
 } & (
@@ -286,6 +289,33 @@ export function scenesIn(language: string): Scene[] {
 			play: inTurn(pickedPeriod("week"), everyFold),
 		},
 		{ name: "progress in the trial series", payload: inTrial, play: everyFold },
+		{
+			name: "progress, a chat that opens no links",
+			payload: moving,
+			links: "none",
+			play: everyFold,
+		},
+		{
+			name: "progress, a page the chat did not open",
+			payload: longProgress,
+			links: "refuse",
+			play: inTurn(everyFold, linkPressed("divisibility-and-remainders")),
+		},
+		{
+			name: "progress in the trial series, a mistake made twice",
+			payload: trialMistake,
+			play: everyFold,
+		},
+		{
+			name: "progress, a review with every part",
+			payload: reviewedInFull,
+			play: everyFold,
+		},
+		{
+			name: "progress, too early to judge",
+			payload: tooEarly,
+			play: everyFold,
+		},
 		{ name: "progress, long texts", payload: longProgress, play: everyFold },
 		{
 			name: "progress at the highest rank",
@@ -305,7 +335,25 @@ export function scenesIn(language: string): Scene[] {
 			},
 		},
 		{ name: "profile, a change refused", payload: profileRefused },
+		{
+			name: "profile, a family in the United States",
+			payload: placed(profileRead, "US", "US-TX"),
+		},
+		{
+			name: "profile, the longest name of a country",
+			payload: placed(profileRead, "GS", null),
+		},
 		{ name: "profile form", payload: standing, play: inTheForm() },
+		{
+			name: "profile form, a family in the United States",
+			payload: placed(standing, "US", "US-TX"),
+			play: inTheForm(),
+		},
+		{
+			name: "profile form, the longest name of a country",
+			payload: placed(standing, "GS", null),
+			play: inTheForm(),
+		},
 		{
 			name: "profile form, long texts",
 			payload: longProgress,
@@ -378,12 +426,25 @@ function topLine(card: Document) {
 	card.querySelector<HTMLElement>(".mt-bar")?.click();
 }
 
+// pages are the pages of the catalog's topics on the site, by the topic's id:
+// each its slug, and whether it is published.
+const pages: ReadonlyMap<string, { slug: string; site_page: boolean }> =
+	new Map(
+		topics.map((topic) => [
+			topic.id,
+			{ slug: topic.slug, site_page: topic.site_page },
+		]),
+	);
+
 // longProgress is the progress at every limit a card has to fit at its
 // narrowest: a pseudonym as long as a profile allows, every topic of the
 // catalog listed — every rank among them, each step of the ramp, and topics
-// not met yet — the next rank the one with the longest name, as many
-// interests, as long, as a profile holds, and the profile's file named at
-// length beside other files that hold one.
+// not met yet — the next rank the one with the longest name, a review naming
+// as many topics as it can, by the names that run longest across the
+// languages, whatever the topics above say of them, with every reason they can
+// have at once and the longest advice, as many interests, as long, as a
+// profile holds, and the profile's file named at length beside other files
+// that hold one. It is a card's limits, not a child's progress.
 const longProgress = {
 	...standing,
 	profile: {
@@ -416,7 +477,10 @@ const longProgress = {
 		"number.divisibility",
 		"logic.sets",
 		"games.strategy",
-	].map((topic, at) => rankedAt(topic, at)),
+	].map((topic, at) => ({
+		...rankedAt(topic, at),
+		...pages.get(topic),
+	})),
 	overall: {
 		rating: 2700,
 		rank: 10,
@@ -428,6 +492,43 @@ const longProgress = {
 		},
 	},
 	skipped: 8,
+	review: {
+		strong: ["games.strategy", "logic.sets", "algorithms.weighing_pouring"].map(
+			(topic) => ({ topic, reasons: ["mastered", "high", "rose"] }),
+		),
+		develop: [
+			{
+				topic: "ratio.sharing",
+				reasons: ["low", "hints", "trap", "fell"],
+				trap: "best_case_not_worst",
+				moving: true,
+			},
+			{
+				topic: "parity.alternation",
+				reasons: ["low", "hints", "trap", "fell"],
+				trap: "number_from_text",
+				moving: true,
+			},
+			{ topic: "geometry.grid", reasons: ["low", "failures"] },
+		],
+		early: [
+			"pigeonhole.basic",
+			"number.divisibility",
+			"logic.knights_liars",
+			"arithmetic.tricks",
+		],
+		steps: [
+			{ kind: "trap", topic: "ratio.sharing", trap: "best_case_not_worst" },
+			{
+				kind: "trap",
+				topic: "parity.alternation",
+				trap: "number_from_text",
+			},
+			{ kind: "practice", topic: "geometry.grid" },
+			{ kind: "trap", trap: "ratio_total_confusion" },
+			{ kind: "begin", topic: "number.divisibility", base: "games.strategy" },
+		],
+	},
 	// The window's twenty answers shared by the mistakes with the longest
 	// names: one behind eight of them, the rest behind two each.
 	mistakes: [
@@ -469,8 +570,10 @@ function rankedAt(topic: string, at: number) {
 			skipped: 0,
 		};
 	}
-	const rank = (at % 11) + 1;
-	const share = (at * 37) % 100;
+	const rank = (at % rankCount) + 1;
+	// The highest rank is drawn with the whole way behind it, as the service
+	// sends it.
+	const share = rank === rankCount ? 100 : (at * 37) % 100;
 	let compared = "even";
 	if (rank > 10) {
 		compared = "ahead";
@@ -518,6 +621,108 @@ function movedFrom(rank: number, share: number, by: number) {
 	}
 	return { ...before, moved };
 }
+
+// trialMistake is the progress of the trial series with a mistake made in two
+// of its three answers: no review yet, and the mistake in a section of its own.
+const trialMistake = {
+	...inTrial,
+	topics: inTrial.topics.map((topic) =>
+		topic.topic === "time.clocks" ? { ...topic, correct: 0 } : topic,
+	),
+	recent: inTrial.recent.map((entry) =>
+		entry.topic === "time.clocks" ? { ...entry, correct: false } : entry,
+	),
+	mistakes: [{ trap: "off_by_one", times: 2 }],
+};
+
+// reviewedInFull is how the ranks moved, with a review of every part a review
+// has: Ordering strong for each reason a topic can be, Enumeration to develop
+// for the mistake it keeps making, Parity and alternation for standing low and
+// falling, Gaps and boundaries for the hint, its last answer right; Clocks met
+// too few times to judge; and the steps of a trap, of a rhythm, of the tasks
+// tried without the hint, the mistake that repeats as often as the one
+// advised, for every topic, and Knights and liars to begin, not met yet and
+// built on Ordering.
+const reviewedInFull = {
+	...moving,
+	topics: [
+		...moving.topics,
+		{
+			topic: "time.clocks",
+			rating: 1400,
+			rank: 2,
+			share: 40,
+			compared: "behind",
+			answers: 2,
+			correct: 1,
+			mastered: false,
+			skipped: 0,
+		},
+		{
+			topic: "logic.knights_liars",
+			rating: null,
+			rank: null,
+			share: null,
+			compared: null,
+			answers: 0,
+			correct: 0,
+			mastered: false,
+			skipped: 0,
+			...pages.get("logic.knights_liars"),
+		},
+	],
+	mistakes: [
+		{ trap: "missed_case", times: 3 },
+		{ trap: "double_count", times: 3 },
+	],
+	review: {
+		strong: [
+			{ topic: "logic.ordering", reasons: ["mastered", "high", "rose"] },
+		],
+		develop: [
+			{
+				topic: "combinatorics.enumeration",
+				reasons: ["trap"],
+				trap: "missed_case",
+			},
+			{ topic: "parity.alternation", reasons: ["low", "fell"] },
+			{ topic: "counting.gaps", reasons: ["hints"], moving: true },
+		],
+		early: ["time.clocks"],
+		steps: [
+			{
+				kind: "trap",
+				topic: "combinatorics.enumeration",
+				trap: "missed_case",
+			},
+			{ kind: "rhythm", topic: "parity.alternation" },
+			{ kind: "unaided", topic: "counting.gaps" },
+			{ kind: "trap", trap: "double_count" },
+			{ kind: "begin", topic: "logic.knights_liars", base: "logic.ordering" },
+		],
+	},
+};
+
+// tooEarly is the progress just after the trial series: every topic met too
+// few times to judge — fewer answers than mastering one takes, and none
+// mastered —, and the mistake that repeats most advised for every topic.
+const tooEarly = {
+	...standing,
+	topics: standing.topics.map((topic) => ({
+		...topic,
+		answers: Math.min(topic.answers, 2),
+		correct: Math.min(topic.correct, 1),
+		mastered: false,
+	})),
+	review: {
+		strong: [],
+		develop: [],
+		early: standing.topics
+			.filter((topic) => topic.answers > 0)
+			.map((topic) => topic.topic),
+		steps: [{ kind: "trap", trap: "missed_case" }],
+	},
+};
 
 // withOverallWeek is how the ranks moved, with the overall rank's week told
 // as week says.
@@ -627,6 +832,19 @@ function comingFor(handed: typeof fence) {
 	};
 }
 
+// linkPressed presses the link to the page whose slug is slug, as a person
+// does; the first of them, where the page is linked twice.
+function linkPressed(slug: string) {
+	return (card: Document) => {
+		for (const link of card.querySelectorAll<HTMLAnchorElement>("a.mt-link")) {
+			if (link.getAttribute("href")?.includes(`/topics/${slug}/`)) {
+				link.click();
+				return;
+			}
+		}
+	};
+}
+
 // everyFold opens every section of the progress still folded, as a person
 // opening each in turn does: the sections it opened before stay open.
 function everyFold(card: Document) {
@@ -669,10 +887,24 @@ function renamed(card: Document) {
 	}
 }
 
-// inFrench chooses French for the lessons.
+// placed is a payload whose profile says where the family lives: the country,
+// by its code — South Georgia and the South Sandwich Islands, GS, has the
+// longest name of any in most languages — and the state, or none.
+function placed<T extends { profile: object }>(
+	payload: T,
+	country: string,
+	region: string | null,
+): T {
+	return { ...payload, profile: { ...payload.profile, country, region } };
+}
+
+// inFrench chooses French for the lessons, on the one list of the form that
+// offers languages: the form's lists are told apart by what they offer, since
+// their labels are in whatever language the card speaks.
 function inFrench(card: Document) {
-	const lists = card.querySelectorAll<HTMLSelectElement>(".mt-form select");
-	const language = lists[lists.length - 1];
+	const language = [
+		...card.querySelectorAll<HTMLSelectElement>(".mt-form select"),
+	].find((list) => list.querySelector('option[value="fr"]') !== null);
 	if (language !== undefined) {
 		language.value = "fr";
 		language.dispatchEvent(new Event("change", { bubbles: true }));

@@ -1,0 +1,169 @@
+# The page of the topic of percentages, for a parent. The topic's name, its
+# group, its grades and its traps' names are not here: they are the card's
+# words and the catalog's numbers. Each example's level, and the answer its
+# solver proves, are the site's data; an example here is worked through to that
+# answer. The traps are the topic's commonest, counted in its reference tasks.
+
+title: Percentages
+description: What problems about percentages are, how they are solved, where children go wrong, and how to help at home.
+
+hero:
+  lead: >-
+    A price falls by 20%, and then by 20% again. Has it fallen by 40%? In these
+    tasks a percent is a hundredth of something, and the whole difficulty is
+    the something: the old price or the new one, all the birds or only the
+    hens. A child who asks “percent of what?” before each step avoids most of
+    the mistakes.
+  method: Ask “percent of what?” before every step
+  teaches: To find what a percentage is taken of, and to notice when that changes
+  # From the whole to one tenth, and on to the percentage asked for.
+  drawing: |2
+    100% = 50
+     10% =  5
+     30% = 15
+
+basis:
+  title: The rules of percent
+  cards:
+    - mark: "1%"
+      title: One hundredth
+      text: >-
+        One percent is one hundredth of an amount. 100% is the whole amount,
+        and 50% is half of it.
+    - mark: "of?"
+      title: Percent of what?
+      text: >-
+        A percentage is always of something: the old price or the new one, all
+        the guests or only the girls. The same 10% of different amounts are
+        different numbers.
+    - mark: "10%"
+      title: Ten percent first
+      text: >-
+        10% is the amount divided by 10. From it, 20%, 30% or 5% are one step
+        away: 30% of 80 is 3 × 8 = 24.
+
+idea:
+  title: The base changes
+  lead: Each percentage is of the amount at that moment. When a price changes twice, the second change is of the new price.
+  table:
+    head:
+      - The step
+      - Taken of
+      - The price after it
+    rows:
+      - - 20% off
+        - 200, so 40 off
+        - "160"
+      - - 20% off again
+        - 160, so 32 off
+        - "128"
+      - - both together
+        - 200, so 72 off
+        - 36% off, not 40%
+  note:
+    title: Why it matters
+    text: >-
+      Shops, banks and the news speak in percentages, and the catch is always
+      what they are of. A child who asks “percent of what?” is ready for an
+      olympiad and for a shop alike.
+
+method:
+  title: "How to solve: name the hundred percent"
+  lead: >-
+    Before each step, say which amount is 100%. Find 1% or 10% of it, then the
+    percentage the task needs. When the amount changes, start again from the
+    new 100%. The examples below go from the simplest to an olympiad's.
+  steps:
+    - Name what is 100%
+    - Find 1% or 10% of it
+    - Take the percentage asked for, and check what it is of
+
+examples:
+  - title: Sports clubs
+    question: >-
+      A school has 300 pupils, and 35% of them go to a sports club. How many
+      pupils do not go to a sports club?
+    steps:
+      - "100% is all 300 pupils, so 1% is 300 : 100 = 3 pupils."
+      - Those who do not go to a club are 100% − 35% = 65% of the pupils.
+      - 65% is 65 × 3 = 195 pupils.
+    answer: 195 pupils.
+    note:
+      title: The other way
+      text: >-
+        35% of 300 is 35 × 3 = 105 pupils who go, and 300 − 105 = 195. Both
+        ways give the same answer; taking 65% at once saves a step.
+  - title: The price of a bike
+    question: >-
+      A bike costs 400 coins. In spring its price goes up by 25%, and in autumn
+      the new price goes down by 20%. What does the bike cost now?
+    # The price after each change, and each change under its arrow.
+    drawing: |2
+      400 → 500 → 400
+        +25%  −20%
+    steps:
+      - >-
+        In spring 100% is the old price, 400 coins: 25% of it is 100 coins, so
+        the bike costs 500.
+      - "In autumn 100% is the new price, 500 coins: 20% of it is 100 coins."
+      - 500 − 100 = 400. The bike costs 400 coins again.
+    answer: 400 coins.
+    note:
+      title: Why not 420?
+      text: >-
+        420 takes the autumn's 20% of the old price, 80 coins. But by autumn
+        the price was 500, and 20% of 500 is 100.
+  - title: Drying watermelons
+    question: >-
+      A farmer has 200 kg of watermelons that are 99% water. A week later they
+      have dried a little and are 98% water. How much do they weigh now?
+    steps:
+      - >-
+        What does not dry out is the part that is not water: 1% of 200 kg,
+        which is 2 kg. It stays 2 kg.
+      - A week later the water is 98%, so those 2 kg are 2% of the new weight.
+      - "2% is 2 kg, so 1% is 1 kg and 100% is 100 kg."
+    answer: 100 kg.
+    note:
+      title: Half the weight?
+      text: >-
+        Yes. The water fell only from 99% to 98%, but the part that is not
+        water doubled, from 1% to 2%. Those 2 kg stayed the same, so the whole
+        weight had to halve.
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  percent_wrong_base:
+    shows: >-
+      The percentage is taken of the wrong amount: the autumn's 20% of the old
+      price instead of the new one, or the 98% of the watermelons' old weight.
+    say: “Which amount is 100% right now?”
+  part_whole_swap:
+    shows: >-
+      A part is taken for the whole, or the whole for a part: the 2 kg that are
+      not water are given as the weight of the watermelons, or the whole school
+      is counted where the question asks about a part of it.
+    say: “Is this number a part, or the whole?”
+  answered_other_question:
+    shows: >-
+      A number found on the way becomes the answer: the 105 pupils who go to a
+      club when the question asks about those who do not, or the 100 coins the
+      price changed by instead of the price.
+    say: “What exactly does the question ask for?”
+
+home:
+  - title: Percent in a shop
+    text: >-
+      In a shop, find a price with a discount and work it out together: what
+      is 20% off 150? Start from 10%.
+  - title: Ten percent first
+    text: >-
+      Practise finding 10% of anything: of 80, of 350, of 1200. From 10%, most
+      other percentages are one step away.
+  - title: Percent of what?
+    text: >-
+      When you hear a percentage on the news or in an advert, ask together:
+      percent of what? Often nobody says.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Give me a task about percentages

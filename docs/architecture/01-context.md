@@ -49,7 +49,7 @@ flowchart LR
     subgraph gh["GitHub"]
         direction TB
         ga["Actions<br/>build, checks, deploy via WIF"]
-        pages["Pages<br/>privacy policy and terms"]
+        pages["Pages<br/>the site: the topics' pages,<br/>privacy policy and terms"]
     end
 
     adult <-- "chat" --> model
@@ -89,6 +89,7 @@ flowchart LR
     ga -- "image" --> ar
     ga -. "publishes the pages" .-> pages
     authsrv -. "links on the consent screen" .-> pages
+    appsrt -. "a topic's page, which the host opens<br/>when the card asks it to" .-> pages
 ```
 
 **How to read it:**
@@ -111,7 +112,7 @@ flowchart LR
 | Artifact Registry | The revision image by digest, with a cleanup policy for old images | 7 |
 | Cloud Logging | Where the structured stdout of Cloud Run lands, and where the aggregates are counted from (О-16) | 6 |
 | GitHub Actions | Build, checks, image publication and deploy through WIF, with no service-account keys | 7, 8 |
-| GitHub Pages | Privacy policy and terms; the Google consent screen and the directories link to them (О-19) | 6, 7, 8 |
+| GitHub Pages | The site: the privacy policy and the terms, which the Google consent screen and the directories link to (О-19), and the topics' pages, which the progress card asks the host to open and the words for the model name (R186) | 6, 7, 8 |
 
 Platforms outside v1 are deliberately absent from the diagram: Gemini and DeepSeek are dropped by the "no widgets and no MCP" rule, and Mistral Le Chat, Perplexity and Microsoft 365 Copilot are not considered for v1 (О-9, PRODUCT 9.2).
 

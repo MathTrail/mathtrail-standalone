@@ -119,7 +119,7 @@ export async function check(dir: string, options: Options): Promise<Finding[]> {
 		findings.push(
 			...links(page, files),
 			...external(page),
-			...head(page, pages, options),
+			...head(page, pages, files, options),
 			...weight(page, files, loads, options),
 		);
 	}
@@ -264,10 +264,12 @@ function external(page: Page): Finding[] {
 }
 
 // head reports a head that a search result, a shared link or a screen reader
-// cannot be built from.
+// cannot be built from. The picture a shared link shows is the site's own, a
+// file it serves: a link to it that leads nowhere shows a preview with none.
 function head(
 	page: Page,
 	pages: Map<string, Page>,
+	files: Map<string, number>,
 	options: Options,
 ): Finding[] {
 	const findings: Finding[] = [];
@@ -290,6 +292,12 @@ function head(
 	if (page.description === "") {
 		report("the page has no description");
 	}
+	for (const picture of page.images) {
+		const problem = pictureProblem(picture, page, files, options);
+		if (problem !== undefined) {
+			report(problem);
+		}
+	}
 
 	const canonical = options.base + page.address;
 	if (page.canonical !== canonical) {
@@ -309,6 +317,24 @@ function head(
 		}
 	}
 	return findings;
+}
+
+// pictureProblem is what is wrong with picture, one a shared link to page
+// shows, or undefined when it is a file the site serves.
+function pictureProblem(
+	picture: string,
+	page: Page,
+	files: Map<string, number>,
+	options: Options,
+): string | undefined {
+	const named = `the picture a shared link shows, "${picture}",`;
+	if (!picture.startsWith(`${options.base}/`)) {
+		return `${named} is not on ${options.base}`;
+	}
+	const file = resolveReference(picture.slice(options.base.length), page.file);
+	return files.has(file)
+		? undefined
+		: `${named} is a file the site does not have`;
 }
 
 // expectedAlternates works out which translations a page must point at, from

@@ -1,0 +1,183 @@
+# The page of the topic of overlapping groups, for a parent. The topic's name,
+# its group, its grades and its traps' names are not here: they are the card's
+# words and the catalog's numbers. Each example's level, and the answer its
+# solver proves, are the site's data; an example here is worked through to that
+# answer. The traps are the topic's commonest, counted in its reference tasks.
+
+title: Overlapping groups
+description: What problems about overlapping groups are, how they are solved, where children go wrong, and how to help at home.
+
+hero:
+  lead: >-
+    Some children go to the chess club, some to football, some to both, and
+    some to neither. In these tasks the groups overlap, and the trick is to
+    count everyone exactly once. Two circles drawn on paper turn a confusing
+    question into four numbers.
+  method: Draw the circles and start from the middle
+  teaches: To count without counting twice, and to say what each number means
+  # Two clubs that overlap: 7 in chess only, 3 in both, 9 in football only.
+  drawing: |2
+          chess     football
+      (   7   (   3   )   9   )
+
+basis:
+  title: The rules of two circles
+  cards:
+    - mark: "2×"
+      title: Added, counted twice
+      text: >-
+        Adding the two groups counts the children in both of them twice, once
+        in each. Take them away once, and everyone is counted once.
+    - mark: "0"
+      title: Some are in neither
+      text: >-
+        Nobody has to be in a group. The whole class is those in at least one
+        group and those in none.
+    - mark: "≤"
+      title: When the middle is not given
+      text: >-
+        If nobody says how many are in both groups, that number can only be
+        bounded: the more the groups share, the fewer children are in at least
+        one of them.
+
+idea:
+  title: Four parts of the picture
+  lead: >-
+    30 pupils: 14 sing in the choir, 11 go to the art club, and 4 do both.
+    Fill the picture from the middle out.
+  table:
+    head:
+      - The part
+      - How many
+      - How it is found
+    rows:
+      - - In both
+        - "4"
+        - given
+      - - Choir only
+        - 14 − 4 = 10
+        - the choir without those in both
+      - - Art only
+        - 11 − 4 = 7
+        - the art club without those in both
+      - - In neither
+        - 30 − 10 − 7 − 4 = 9
+        - everyone else
+  note:
+    title: Why it matters
+    text: >-
+      Most wrong answers come from adding the two groups and forgetting that
+      the middle was counted twice, or from giving “choir only” when the
+      question asked for the whole choir. Filling the picture from the middle
+      out prevents both.
+
+method:
+  title: "How to solve: from the middle out"
+  lead: >-
+    Draw two circles that overlap. Write the middle first, those in both, then
+    each circle without the middle, and last those outside. When the middle is
+    not given, try the values it could take and see which fit. The examples
+    below go from the simplest to an olympiad's.
+  steps:
+    - Draw the circles
+    - Fill the middle, then the rest
+    - Check that the parts add up to everyone
+
+examples:
+  - title: Sisters and brothers
+    question: >-
+      In a group of 24 children, 15 have a sister, 11 have a brother, and 6
+      have both a sister and a brother. How many children have neither?
+    # The two circles filled in, and those outside them.
+    drawing: |2
+           sister     brother
+         (  9  (  6  )  5  )
+             outside: 4
+    steps:
+      - >-
+        Draw two circles, “sister” and “brother”, that overlap. In the middle:
+        the 6 children who have both.
+      - "A sister only: 15 − 6 = 9. A brother only: 11 − 6 = 5."
+      - "In the circles: 9 + 6 + 5 = 20 children. Outside them: 24 − 20 = 4."
+    answer: 4 children.
+  - title: Apples and pears
+    question: >-
+      In a group of 25 children, 18 like apples and 16 like pears. What is the
+      smallest number of children who could like both?
+    steps:
+      - >-
+        To make the middle as small as it can be, keep the apple lovers and the
+        pear lovers apart as far as possible.
+      - >-
+        Apart they would need 18 + 16 = 34 places, and there are only 25
+        children: 34 − 25 = 9 of them must be in both circles.
+      - >-
+        9 can happen: 9 like only apples, 7 only pears and 9 both, 25 in all,
+        with nobody left out.
+    answer: 9 children.
+    note:
+      title: And at most?
+      text: >-
+        At most, all 16 pear lovers could like apples as well. The middle lies
+        between 9 and 16, and the question asked for the smaller end.
+  - title: Three subjects
+    question: >-
+      Each of 20 pupils likes at least one of three subjects: maths, reading
+      and art. 12 like maths, 10 like reading and 9 like art. Nobody likes all
+      three. How many pupils like exactly two subjects?
+    steps:
+      - >-
+        Add the three numbers: 12 + 10 + 9 = 31. A pupil who likes one subject
+        is counted once in this sum, and one who likes two is counted twice.
+      - >-
+        There are 20 pupils, so 31 − 20 = 11 counts are extra, one for each
+        pupil counted twice.
+      - >-
+        So 11 pupils like exactly two subjects. Check: 9 like one and 11 like
+        two, and 9 + 2 × 11 = 31.
+    answer: 11 pupils.
+    note:
+      title: Counting twice on purpose
+      text: >-
+        Here the trick is not the circles but the sum: each pupil adds one to it
+        for every subject they like. Olympiad tasks about groups often turn on
+        counting one thing in two ways.
+
+# The commonest traps of the topic's reference tasks, the commonest first.
+traps:
+  double_count:
+    shows: >-
+      The child adds the two groups, 15 and 11, and takes the sum for the
+      number of children: those in both groups are counted twice.
+    say: “Is anybody counted in both circles?”
+  answered_other_question:
+    shows: >-
+      The child finds a part of the picture and gives it as the answer, though
+      the question asked about another: “in both” instead of “in neither”, or
+      “choir only” instead of the whole choir.
+    say: “Point to the part of the picture the question asks about.”
+  missed_case:
+    shows: >-
+      A part of the picture is left out: one group is taken away from everyone
+      and the other forgotten, or those in all three groups are not added
+      back.
+    say: “Is every part of the picture filled in?”
+
+home:
+  - title: Two hoops on the floor
+    text: >-
+      Lay two hoops or two loops of string on the floor so that they overlap,
+      and sort toys into them: “red” and “soft”. A soft red bear goes in the
+      middle.
+  - title: Six who?
+    text: >-
+      When the child answers “six”, ask “six who?”. Six in both clubs and six
+      in neither are different answers.
+  - title: A family survey
+    text: >-
+      Ask the family two questions, such as who likes tea and who likes cocoa,
+      and draw the circles together. The middle is where the counting usually
+      goes wrong.
+
+# What a parent can write in the chat to get a task on this topic.
+ask: Give me a task about overlapping groups

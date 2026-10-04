@@ -1,0 +1,448 @@
+import { type Element, Window } from "happy-dom";
+import { afterAll, describe, expect, test } from "vitest";
+import topics from "../../../content/catalogs/topics.json";
+import traps from "../../../content/catalogs/traps.json";
+import file from "../../../site/data.json";
+import { trapName } from "../widget/names";
+import { cardWords } from "../widget/words";
+import {
+	chatGPTDeveloperModeURL,
+	claudeConnectorsURL,
+	connectorURL,
+	sourceURL,
+} from "./brand";
+import { frontPage } from "./content";
+import { readSiteData } from "./data";
+import type { Frame } from "./frame";
+import { connectSection, lessonSection } from "./home";
+import { type Page, sitePages } from "./pages";
+import { renderSite } from "./render";
+import { gradesOf } from "./topics";
+
+const browser = new Window({
+	settings: {
+		disableCSSFileLoading: true,
+		disableJavaScriptFileLoading: true,
+		handleDisabledFileLoadingAsSuccess: true,
+	},
+});
+
+afterAll(async () => {
+	await browser.happyDOM.close();
+});
+
+// own is the site's data with nothing changed in it, but no page of a topic
+// published: the home page draws its lesson's card, the traps it names and
+// the progress.
+const own = {
+	groups: file.groups,
+	examples: {},
+	progress: file.progress,
+	home: file.home,
+};
+
+// dataOf is the site's data over the service's catalog, read from file.
+const dataOf = (data: unknown) =>
+	readSiteData(
+		{
+			topics: topics.map((topic) => ({ ...topic, site_page: false })),
+			traps,
+			tasks: [],
+		},
+		data,
+	);
+
+// words are the page's words, the same in each language: every block the page
+// draws, with the slots it fills.
+const words = [
+	"title: Home",
+	"description: The home page.",
+	"hero:",
+	"  free: Free",
+	"  open: Open",
+	"  title: Olympiad maths",
+	"  lead: For grades {range}.",
+	"  see: See a lesson",
+	"  note: Works in Claude.",
+	"  caption: The card.",
+	"chat:",
+	"  title: Your chat",
+	"  ask: A task, please",
+	"  progress: How is it going?",
+	"pillars:",
+	"  title: Why not the chat",
+	"  lead: Because.",
+	"  items:",
+	"    - title: Endless",
+	"      text: Tasks.",
+	"    - title: Checked",
+	"      text: By a program.",
+	"    - title: A diagnosis",
+	"      text: Traps {first}; {second}; {third}.",
+	"lesson:",
+	"  eyebrow: A lesson",
+	"  title: One at a time",
+	"  lead: Step by step.",
+	"  steps:",
+	"    generating:",
+	"      title: Ask",
+	"      text: Type.",
+	"    selected:",
+	"      title: Answer",
+	"      text: Tap.",
+	"    hint:",
+	"      title: Stuck",
+	"      text: A way in.",
+	"    wrong:",
+	"      title: Wrong",
+	"      text: A trap.",
+	"    question:",
+	"      title: Why",
+	"      text: Ask in the chat.",
+	"    progress:",
+	"      title: Progress",
+	"      text: Ranks.",
+	"  log: The log shows the answer.",
+	"  child: Comet",
+	"  chat:",
+	"    label: An illustration",
+	"    child: The child",
+	"    model: The model",
+	"    question: Why one more?",
+	"    reply: Count the posts.",
+	"task:",
+	"  question: How many posts?",
+	"  hint: Draw a smaller fence.",
+	"  trap: Counted the gaps.",
+	"  solution: Four gaps. One more post. Five posts.",
+	"connect:",
+	"  eyebrow: Connect",
+	"  title: A few steps",
+	"  claude:",
+	"    pill: Works now",
+	"    steps:",
+	"      open: Open {connectors}.",
+	"      add: Press **+**.",
+	'      paste: "Paste:"',
+	"      sign: Sign in.",
+	"      chat: Switch it on.",
+	"    connectors: The connectors",
+	"    note: One connector.",
+	"  chatgpt:",
+	"    pill: Not yet",
+	"    text: Not listed.",
+	"    dev: As {openai}.",
+	"    openai: OpenAI describes",
+	"  need: Two accounts.",
+	"ask:",
+	"  title: Start",
+	"  lead: Add it.",
+	"  code: The code",
+].join("\n");
+
+// document is a document's text under its title.
+const document = (title: string) =>
+	`---\ntitle: ${title}\ndescription: D\n---\n\n# ${title}\n`;
+
+// sources are the site's texts: the home page's words in English and in
+// Russian, and the documents.
+const sources = new Map(
+	["en", "ru"].map((locale) => [
+		locale,
+		new Map([
+			["index.yaml", words],
+			["privacy.md", document("Privacy")],
+			["terms.md", document("Terms")],
+		]),
+	]),
+);
+
+// A frame shaped like the site's own over the one page this site has: the
+// menu opens with the home page's sections, and the header's button leads to
+// connecting.
+const frame: Frame = {
+	menu: [
+		{ page: frontPage, anchor: lessonSection, label: "nav.lesson" },
+		{ page: frontPage, anchor: connectSection, label: "nav.connect" },
+	],
+	action: { page: frontPage, anchor: connectSection, label: "nav.add" },
+	footer: ["privacy", "terms"],
+};
+
+// render builds the site over data, its home page the site's own.
+const render = (data = dataOf(own)) => {
+	const home = sitePages(data).get(frontPage);
+	if (home === undefined) {
+		throw new Error("the site's pages have no home page");
+	}
+	const pages = new Map<string, Page>([[frontPage, home]]);
+	return renderSite({
+		base: "https://example.test",
+		sources,
+		pages,
+		frame,
+		data,
+	});
+};
+
+const files = render();
+
+// pageIn is the home page in locale, read as a document.
+const pageIn = (locale: string) =>
+	new browser.DOMParser().parseFromString(
+		files.find(({ path }) => path === `${locale}/index.html`)?.data ?? "",
+		"text/html",
+	);
+
+const home = pageIn("en");
+
+// all are the values of name on every element selector finds.
+const all = (selector: string, name: string) =>
+	[...home.querySelectorAll(selector)].map(
+		(element) => element.getAttribute(name) ?? "",
+	);
+
+// texts are the words of every element selector finds.
+const texts = (selector: string) =>
+	[...home.querySelectorAll(selector)].map((element) => element.textContent);
+
+// the is the one element selector finds on the page.
+const the = (selector: string): Element => {
+	const found = home.querySelector(selector);
+	if (found === null) {
+		throw new Error(`the page has no ${selector}`);
+	}
+	return found;
+};
+
+// step is the step of the lesson at, counted from one, in the order the
+// page shows them.
+const step = (at: number): Element => {
+	const found = home.querySelectorAll(".s-walk-step")[at - 1];
+	if (found === undefined) {
+		throw new Error(`the lesson has no step ${at}`);
+	}
+	return found;
+};
+
+// statesIn are the options of the card in root, each by its letter and how
+// the card marks it.
+const statesIn = (root: Element) =>
+	[...root.querySelectorAll(".mt-option")].map(
+		(row) =>
+			`${row.querySelector(".mt-option-letter")?.textContent} ${row.getAttribute("data-state")}`,
+	);
+
+describe("the home page", () => {
+	test("reads in full with no script, its cards inert, and loads the cards' stylesheet", () => {
+		expect(home.querySelector("script")).toBeNull();
+		expect(all('link[rel="stylesheet"]', "href")).toContain("/assets/card.css");
+		expect(home.querySelectorAll(".s-card").length).toBe(7);
+		expect(home.querySelectorAll(".s-card:not([inert])").length).toBe(0);
+	});
+
+	test("names no build on any card, since the site is published before its release is tagged", () => {
+		expect(home.querySelector(".mt-head")).not.toBeNull();
+		expect(home.querySelector(".mt-version")).toBeNull();
+	});
+
+	test("names every part of itself once, though it draws seven cards", () => {
+		const ids = all("[id]", "id");
+
+		expect(new Set(ids).size).toBe(ids.length);
+	});
+
+	test("has the sections on a lesson and on connecting the header and the other pages lead to", () => {
+		expect(home.getElementById(lessonSection)?.tagName).toBe("SECTION");
+		expect(home.getElementById(connectSection)?.tagName).toBe("SECTION");
+		expect(all(".s-navlinks a", "href")).toEqual([
+			"/en/#lesson",
+			"/en/#connect",
+		]);
+		expect(all(".s-navlinks a[aria-current]", "href")).toEqual([]);
+		expect(all(".s-nav-action", "href")).toEqual(["/en/#connect"]);
+		expect(texts(".s-nav-action")).toEqual(["Add to Claude"]);
+	});
+
+	test("opens with the grades of the catalog, the way to add it and the way to see a lesson", () => {
+		const grades = topics.flatMap((topic) => gradesOf(topic.grade_levels));
+		const range = `${Math.min(...grades)}–${Math.max(...grades)}`;
+
+		expect(texts(".s-hero .s-chip")).toEqual([
+			"Free",
+			"Open",
+			`Grades ${range}`,
+		]);
+		expect(texts(".s-hero .s-lead")).toEqual([`For grades ${range}.`]);
+		expect(all(".s-hero-actions a", "href")).toEqual([
+			"/en/#connect",
+			"/en/#lesson",
+		]);
+		expect(texts(".s-hero-actions a")).toEqual([
+			"Add to Claude",
+			"See a lesson",
+		]);
+	});
+
+	test("shows beside its first screen the task as it arrives, in the chat under the parent's message", () => {
+		const hero = the(".s-hero-card");
+
+		expect(hero.querySelector(".s-frame .s-message-child")?.textContent).toBe(
+			"A task, please",
+		);
+		expect(statesIn(hero)).toEqual([
+			"A default",
+			"B default",
+			"C default",
+			"D default",
+			"E default",
+		]);
+		expect(hero.querySelector(".mt-note-hint")).toBeNull();
+		expect(hero.querySelector(".mt-diagram")?.textContent).toBe(
+			file.home.card.drawing,
+		);
+	});
+
+	test("names the catalog's traps a wrong option is tied to as the card names them", () => {
+		const card = cardWords("en", undefined);
+
+		expect(texts(".s-tiles .s-tile-text")[2]).toBe(
+			`Traps ${file.home.traps.map((id) => trapName(card, id)).join("; ")}.`,
+		);
+	});
+
+	test("goes through a lesson step by step, numbering each but those within the one before", () => {
+		expect(texts(".s-walk-copy h3")).toEqual([
+			"Ask",
+			"Answer",
+			"Stuck",
+			"Wrong",
+			"Why",
+			"Progress",
+		]);
+		expect(texts(".s-walk-number")).toEqual(["1", "2", "", "3", "", "4"]);
+		expect(home.querySelectorAll(".s-walk-within").length).toBe(2);
+	});
+
+	test("shows the task being written at the first step", () => {
+		expect(
+			step(1).querySelector('article[aria-label="Next task"]'),
+		).not.toBeNull();
+		expect(step(1).querySelectorAll(".mt-option").length).toBe(0);
+	});
+
+	test("shows the option the steps pick being checked at the second", () => {
+		expect(statesIn(step(2))).toEqual([
+			"A default",
+			`${file.home.card.choice} selected`,
+			"C default",
+			"D default",
+			"E default",
+		]);
+	});
+
+	test("shows the hint open, the answer still to give, within the second", () => {
+		expect(step(3).querySelector(".mt-note-hint")?.textContent).toContain(
+			"Draw a smaller fence.",
+		);
+		expect(statesIn(step(3))).not.toContain("C correct");
+	});
+
+	test("shows the wrong answer told, with its trap and the solution step by step, at the third", () => {
+		expect(statesIn(step(4))).toEqual([
+			"A muted",
+			"B wrong",
+			"C correct",
+			"D muted",
+			"E muted",
+		]);
+		expect(step(4).querySelector(".mt-note-trap")?.textContent).toContain(
+			"Counted the gaps.",
+		);
+		expect(step(4).querySelectorAll(".mt-steps li").length).toBe(3);
+	});
+
+	test("puts the question the child asks once the answer is in under the card, as messages of the chat labelled an illustration", () => {
+		const frame = step(5).querySelector(".s-frame-body");
+		const parts = [...(frame?.children ?? [])].map(
+			(part) => part.getAttribute("class") ?? "",
+		);
+
+		expect(parts).toEqual(["s-message s-message-child", "s-card", "s-chat"]);
+		expect(statesIn(step(5))).toContain("B wrong");
+		expect(step(5).querySelector(".s-chat figcaption")?.textContent).toBe(
+			"An illustration",
+		);
+		expect(
+			[...step(5).querySelectorAll(".s-chat .s-bubble")].map(
+				(bubble) => bubble.textContent,
+			),
+		).toEqual(["Why one more?", "Count the posts."]);
+	});
+
+	test("shows the progress at the last step, asked for by the parent, its topics and repeating mistakes open", () => {
+		expect(step(6).querySelector(".s-message-child")?.textContent).toBe(
+			"How is it going?",
+		);
+		expect(
+			[
+				...step(6).querySelectorAll('.mt-fold-button[aria-expanded="true"]'),
+			].map((button) => button.querySelector(".mt-fold-title")?.textContent),
+		).toEqual(["Topics", "Mistakes that repeat"]);
+	});
+
+	test("says the chat's log of tool calls shows the answer, in the section on a lesson", () => {
+		expect(
+			home.querySelector(`#${lessonSection} .s-walk-note`)?.textContent,
+		).toBe("The log shows the answer.");
+	});
+
+	test("connects to Claude step by step, the connector's address in full after the third", () => {
+		const steps = [...home.querySelectorAll(".s-connect-steps li")];
+
+		expect(
+			steps.map((li) => li.querySelector(".s-connect-text")?.textContent),
+		).toEqual([
+			"Open The connectors.",
+			"Press +.",
+			"Paste:",
+			"Sign in.",
+			"Switch it on.",
+		]);
+		expect(
+			steps.map((li) => li.querySelector("code")?.textContent ?? ""),
+		).toEqual(["", "", connectorURL, "", ""]);
+		expect(all(".s-address", "dir")).toEqual(["ltr"]);
+		expect(steps[0]?.querySelector("a")?.getAttribute("href")).toBe(
+			claudeConnectorsURL,
+		);
+	});
+
+	test("tells how ChatGPT adds it, as OpenAI describes", () => {
+		expect(all(".s-connect-muted a", "href")).toEqual([
+			chatGPTDeveloperModeURL,
+		]);
+	});
+
+	test("closes with the way to add it and the way to its code", () => {
+		expect(all(".s-ask a", "href")).toEqual(["/en/#connect", sourceURL]);
+		expect(texts(".s-ask a")).toEqual(["Add to Claude", "The code"]);
+	});
+
+	test("draws its cards in the page's language", () => {
+		expect(home.querySelector(".s-card .mt-badge")?.textContent).toBe(
+			"Olympiad coach · Grade 3",
+		);
+		expect(pageIn("ru").querySelector(".s-card .mt-badge")?.textContent).toBe(
+			"Олимпиадный тренер · 3 класс",
+		);
+	});
+
+	test("is refused when the site's data has nothing for it", () => {
+		const { home: _, ...without } = own;
+
+		expect(() => render(dataOf(without))).toThrow(
+			"site/data.json has nothing for the home page",
+		);
+	});
+});

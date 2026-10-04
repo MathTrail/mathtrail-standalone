@@ -1,6 +1,11 @@
 import type { ComponentChildren } from "preact";
 import { Footer, type FooterLink } from "./Footer";
-import { Header, type LanguageLink, type MenuLink } from "./Header";
+import {
+	type ActionLink,
+	Header,
+	type LanguageLink,
+	type MenuLink,
+} from "./Header";
 import { type Head, Layout } from "./Layout";
 
 /** PageFrame is what one page is set in besides its own words, as it draws it. */
@@ -8,10 +13,10 @@ export type PageFrame = {
 	/** home is the front page the mark leads to. */
 	readonly home: string;
 	readonly menu: readonly MenuLink[];
+	/** action is the one thing the header asks a reader to do, when it asks one. */
+	readonly action?: ActionLink;
 	readonly languages: readonly LanguageLink[];
 	readonly footer: readonly FooterLink[];
-	/** translated is true for a page in any language but English. */
-	readonly translated: boolean;
 };
 
 /**
@@ -36,13 +41,14 @@ export function SitePage({
 }) {
 	return (
 		<Layout head={head} card={card} style={style}>
-			<Header home={frame.home} menu={frame.menu} languages={frame.languages} />
-			<main class="s-main">{children}</main>
-			<Footer
+			<Header
 				home={frame.home}
-				links={frame.footer}
-				translated={frame.translated}
+				menu={frame.menu}
+				action={frame.action}
+				languages={frame.languages}
 			/>
+			<main class="s-main">{children}</main>
+			<Footer home={frame.home} links={frame.footer} />
 		</Layout>
 	);
 }

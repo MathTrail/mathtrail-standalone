@@ -87,7 +87,7 @@ type packageContents struct {
 	Brief               profile.Brief    `json:"brief"`
 	Corridor            packageCorridor  `json:"corridor"`
 	Topic               packageTopic     `json:"topic"`
-	Traps               []Trap           `json:"traps"`
+	Traps               []packageTrap    `json:"traps"`
 	Prohibitions        []Skill          `json:"prohibitions"`
 	Child               packageChild     `json:"child"`
 	Examples            []packageExample `json:"examples"`
@@ -116,6 +116,14 @@ type packageChance struct {
 	GradeLevel rating.GradeLevel `json:"grade_level"`
 	Difficulty int               `json:"difficulty"`
 	Chance     float64           `json:"chance"`
+}
+
+// packageTrap is a trap of the catalog as the model writing a task is shown
+// it: its id and what the mistake is. What an adult can do about it is not for
+// writing a task, and would weigh on every package.
+type packageTrap struct {
+	ID          string `json:"id"`
+	Description string `json:"description"`
 }
 
 // packageTopic is the topic of the brief, as the catalog describes it.
@@ -195,7 +203,7 @@ func (c *Content) contentsFor(request *Request) (packageContents, error) {
 		Brief:        request.Brief,
 		Corridor:     corridorOf(&request.Corridor),
 		Topic:        packageTopic{ID: topic.ID, Name: topic.Name, Description: topic.Description},
-		Traps:        c.traps,
+		Traps:        packageTraps(c.traps),
 		Prohibitions: prohibitions,
 		Child:        packageChild{Grade: request.Grade, Interests: request.Interests, Notes: request.Notes},
 		Limits: packageLimits{
@@ -331,4 +339,14 @@ func encode(contents *packageContents) ([]byte, error) {
 		return nil, fmt.Errorf("content: encode the package: %w", err)
 	}
 	return bytes.TrimSuffix(buffer.Bytes(), []byte("\n")), nil
+}
+
+// packageTraps are the traps of the catalog as a package shows them, in
+// catalog order.
+func packageTraps(traps []Trap) []packageTrap {
+	shown := make([]packageTrap, 0, len(traps))
+	for _, trap := range traps {
+		shown = append(shown, packageTrap{ID: trap.ID, Description: trap.Description})
+	}
+	return shown
 }

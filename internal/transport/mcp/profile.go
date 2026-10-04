@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/country"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/progress"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
@@ -53,6 +54,8 @@ type saveProfileIn struct {
 	ExcludedSkills []string `json:"excluded_skills,omitempty" jsonschema:"ids of skills the child has not met at school yet, from the list in this tool's description. The list replaces the one kept; an empty list clears it"`
 	Notes          *string  `json:"notes,omitempty" jsonschema:"what the adult wants known about the child, for pitching the words, at most 500 characters. An empty text clears it"`
 	UILanguage     *string  `json:"ui_language,omitempty" jsonschema:"the language of the lessons — the tasks, the cards and your words — as a BCP 47 tag, such as en, ru or pt-BR. An empty text makes them follow the chat's language"`
+	Country        *string  `json:"country,omitempty" jsonschema:"the country the family lives in, as an ISO 3166-1 alpha-2 code such as US or FR. It is kept only to count families by country: set it only when the adult says it of their own accord, and never ask for it. An empty text clears it, and the state with it"`
+	Region         *string  `json:"region,omitempty" jsonschema:"for a family in the United States, its state as an ISO 3166-2 code such as US-TX, set only when the adult says it of their own accord. An empty text clears it"`
 	StartOver      bool     `json:"start_over,omitempty" jsonschema:"true only when a result said the profile file cannot be read, was saved by a version of MathTrail this one cannot read, or is in the Google Drive bin, and the adult asked for a new profile instead. The old file is set aside, not deleted, and a new profile starts from the pseudonym and grade given. A profile this version can read is never started over"`
 }
 
@@ -65,6 +68,8 @@ func (in *saveProfileIn) edit() profile.Edit {
 		ExcludedSkills: in.ExcludedSkills,
 		Notes:          in.Notes,
 		UILanguage:     in.UILanguage,
+		Country:        in.Country,
+		Region:         in.Region,
 	}
 }
 
@@ -73,7 +78,8 @@ func (s *Service) getProfileTool() Tool {
 		Name:  "get_profile",
 		Title: "Get the child's profile",
 		Description: "Reads the child's profile — the pseudonym, the grade, the interests, the skills left out of " +
-			"the tasks, the adult's notes and the language of the lessons — and what the next task would be. " +
+			"the tasks, the adult's notes, the language of the lessons and the country and state the adult may have " +
+			"given — and what the next task would be. " +
 			"Call it when the adult asks about the profile; a task needs only next_task. It draws no card: the " +
 			"adult sees the profile, and changes it with a form, in the Profile section of the progress get_progress shows. " +
 			"When there is no profile yet it says so, as next_task does, and how to set one up with save_profile. " +
@@ -287,7 +293,24 @@ func (s *Service) detailsText(student *profile.Student) string {
 		"Interests: "+listed(quotedEach(student.Interests), ", ")+".",
 		"Left out of the tasks: "+listed(skills, "; ")+".",
 		language,
+		placeText(student),
 	)
+}
+
+// placeText says where the family lives, as far as the adult said: the country
+// by its code, and a state of the United States by its name as well. A region
+// the file pairs with a country it is not part of is given by its code alone.
+func placeText(student *profile.Student) string {
+	switch {
+	case student.Country == "":
+		return "No country is given."
+	case student.Region == "":
+		return "Country: " + student.Country + "."
+	}
+	if name := country.RegionName(student.Country, student.Region); name != "" {
+		return fmt.Sprintf("Country: %s, state: %s (%s).", student.Country, student.Region, name)
+	}
+	return fmt.Sprintf("Country: %s, region: %s.", student.Country, student.Region)
 }
 
 // notesText is the parent's notes as the model reads them, quoted: what the

@@ -40,7 +40,7 @@ func (f *flow) callback(w http.ResponseWriter, r *http.Request) {
 	}
 	dropCSRFCookie(w)
 
-	answer, end := f.finish(r.Context(), &request, query)
+	answer, end := f.finish(r.Context(), &request, query, f.countryOf(r))
 	f.events.calledBack(r.Context(), &request, &end)
 	f.sendBack(w, r, http.StatusFound, &request, answer)
 }
@@ -49,8 +49,9 @@ func (f *flow) callback(w http.ResponseWriter, r *http.Request) {
 // the error the client hears instead. A parent who declined at Google, or who
 // unticked the one file in their Drive the service keeps, has not allowed the
 // sign-in; anything else that stops it is a failure, Google's or this
-// server's.
-func (f *flow) finish(ctx context.Context, request *flight, query url.Values) (url.Values, ending) {
+// server's. The country is the one the parent's browser came back from, which
+// a finished sign-in carries on into the code.
+func (f *flow) finish(ctx context.Context, request *flight, query url.Values, country string) (url.Values, ending) {
 	switch {
 	case query.Get("error") == "access_denied":
 		return refused("access_denied", "the parent did not allow the sign-in at Google"),
@@ -80,7 +81,7 @@ func (f *flow) finish(ctx context.Context, request *flight, query url.Values) (u
 	}
 	// The account's own identifier at Google goes no further than here.
 	user := f.userID("google-sub:" + grant.Subject)
-	code, err := f.issueCode(request, &grant, user)
+	code, err := f.issueCode(request, &grant, user, country)
 	if err != nil {
 		return refused("server_error", "the sign-in could not be finished: try again"),
 			ending{outcome: "failed", reason: "internal", cause: err, ours: true}

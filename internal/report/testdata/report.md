@@ -1,6 +1,6 @@
 # What the log adds up to
 
-134 lines of the service's, from 2026-09-28 10:00:00 UTC to 2026-09-30 08:16:30 UTC. 2 more lines, not the service's, were left out.
+135 lines of the service's, from 2026-09-28 10:00:00 UTC to 2026-09-30 08:16:30 UTC. 2 more lines, not the service's, were left out.
 
 ## Tasks
 
@@ -101,7 +101,7 @@ The most a minute by the clock held, the minute a pace is counted over. An accou
 
 ## The rules of the log
 
-Every line of the service's is held to an event the service is decided to write, to the fields decided for that event, and to carrying nothing shaped like an email address. A line that breaks one is named by its event and its field, never by what it held: an event the table does not name is not named, since its words may be anything.
+Every line of the service's is held to an event the service is decided to write, to the fields decided for that event, to the form each field of the lines the children are counted from may hold, and to carrying nothing shaped like an email address. A line that breaks one is named by its event and its field, never by what it held: an event the table does not name is not named, since its words may be anything.
 
 | Event | Field | Rule | Lines |
 |---|---|---|---:|
@@ -109,4 +109,5 @@ Every line of the service's is held to an event the service is decided to write,
 | cimd_fetch | host | text shaped like an email address | 1 |
 | limit_hit | (withheld) | a field its event is not decided to carry | 1 |
 | limit_hit | (withheld) | text shaped like an email address | 1 |
+| task_accepted | country | a value its field may not hold | 1 |
 | tool_call | pseudonym | a field its event is not decided to carry | 1 |

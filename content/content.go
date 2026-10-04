@@ -152,6 +152,13 @@ func (c *Content) TrapDescription(id string) (string, bool) {
 	return trap.Description, ok
 }
 
+// TrapAdvice is what the trap catalog advises an adult to do about a trap, and
+// whether it has one by this id.
+func (c *Content) TrapAdvice(id string) (string, bool) {
+	trap, ok := c.trapByID[id]
+	return trap.Advice, ok
+}
+
 // HasSkill reports whether the skill catalog has this id.
 func (c *Content) HasSkill(id string) bool {
 	_, ok := c.skillByID[id]
@@ -195,6 +202,12 @@ func (c *Content) TopicIDs() []string {
 // them. A topic the catalog does not have is taught at none.
 func (c *Content) LevelsOf(topic string) []rating.GradeLevel {
 	return slices.Clone(c.topicByID[topic].GradeLevels)
+}
+
+// BasesOf lists the topics a topic builds on, in catalog order: none for a
+// foundation, and none for a topic the catalog does not have.
+func (c *Content) BasesOf(topic string) []string {
+	return slices.Clone(c.topicByID[topic].BuildsOn)
 }
 
 // TrapIDs lists the whole trap catalog in catalog order. It is the order two

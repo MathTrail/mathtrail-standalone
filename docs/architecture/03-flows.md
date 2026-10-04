@@ -198,6 +198,7 @@ sequenceDiagram
     participant MT as MathTrail
     participant D as Drive
     participant W as Widget card
+    participant S as The site
 
     A->>M: how am I doing
     M->>MT: get_progress
@@ -211,6 +212,10 @@ sequenceDiagram
     MT->>D: read the profile
     MT-->>W: the same progress, with the profile's fields and where its file is
     Note over W: drawn in the same card, "Back to task" returns to it — the model is not asked
+
+    A->>W: a topic's name, on a host that said it opens links
+    W->>S: ui/open-link — the host opens the topic's page, at the address the card built (R186)
+    Note over W: a host that refuses, fails or never answers leaves the address on the card, to copy
 
     A->>M: he has moved up to grade 3
     M->>MT: save_profile with the changed fields
