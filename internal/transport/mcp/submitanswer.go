@@ -88,10 +88,12 @@ func (s *Service) submitAnswerTool() Tool {
 	return Define(Spec{
 		Name:  "submit_answer",
 		Title: "Record the child's answer",
-		Description: "Records the child's answer to the task on the card, with the task's id: the letter of the " +
-			"option the child chose, A to E, or ? when the child says they do not know, which counts as a wrong " +
-			"answer. Pass hint_used when the child opened the hint first. Record the answer before you explain " +
-			"anything. The result says whether the answer was right, which option is, what went wrong on the way " +
+		Description: "Records an answer the child gives in the chat to the task on the card, with the task's id: the " +
+			"letter of the option the child chose, A to E, or ? when the child says they do not know, which counts " +
+			"as a wrong answer. Where cards are shown, an answer given on the card is recorded by the card itself: do " +
+			"not ask for one in the chat. Pass hint_used when the child opened the hint first. " +
+			"Record the answer before you explain anything. " +
+			"The result says whether the answer was right, which option is, what went wrong on the way " +
 			"to a wrong one and whether that mistake has come up before, the solution, and how the child's rating in the topic moved — during the trial series, " +
 			"how many of its tasks are done instead. An answer is recorded once: the same task answered again, on " +
 			"the card or by you, changes nothing and is told what was recorded the first time — the whole result " +
@@ -172,6 +174,16 @@ func (s *Service) recordedFields(p *profile.Profile, recorded *profile.Recorded,
 	)
 }
 
+// taughtOf is the levels the topic of the task on the card is taught at, which
+// its mastery is judged among; none when there is no task, which Record turns
+// away before it judges anything.
+func (s *Service) taughtOf(p *profile.Profile) []rating.GradeLevel {
+	if p.CurrentTask == nil {
+		return nil
+	}
+	return s.content.LevelsOf(p.CurrentTask.Topic)
+}
+
 // recordAnswer applies the answer inside a span of its own, which says how it
 // went in the words a line about it uses and in no others: whether it was
 // right, and the trap of the catalog it fell for. Neither letter reaches it, nor
@@ -180,7 +192,7 @@ func (s *Service) recordAnswer(ctx context.Context, p *profile.Profile, answer p
 	_, span := s.tracer.Start(ctx, "record_answer")
 	defer span.End()
 
-	recorded, err := p.Record(answer, s.sealer)
+	recorded, err := p.Record(answer, s.sealer, s.taughtOf(p))
 	switch {
 	case errors.Is(err, profile.ErrSealed):
 		span.SetStatus(codes.Error, "the task could not be opened")
@@ -400,10 +412,10 @@ func (s *Service) answerFields(recorded *profile.Recorded, answers int) []zap.Fi
 // chooserUnknown is who chose a task handed out before the card kept that.
 const chooserUnknown = "unknown"
 
-// chooserOf is who chose a task as a line names it: the rule or the model, and
-// unknown for a task that does not say.
+// chooserOf is who chose a task as a line names it: the rule, the model or a
+// person, and unknown for a task that does not say.
 func chooserOf(mode profile.TutorMode) string {
-	if mode == profile.TutorRule || mode == profile.TutorLLM {
+	if mode == profile.TutorRule || mode == profile.TutorLLM || mode == profile.TutorPerson {
 		return string(mode)
 	}
 	return chooserUnknown

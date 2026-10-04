@@ -31,7 +31,7 @@ Which screen a card shows is decided by the payload, not by the tool: `get_progr
 |---|---|---|---|---|---|
 | `get_profile` | the model | **no** — the profile is shown in the progress's Profile section (R148, R162) | 1 | 0 | always |
 | `save_profile` | the model | **no** — the model says in a sentence what was saved (R148) | 1 | 1 | the fields fail validation, or ask for what the profile already says |
-| `edit_profile` | the widget only, from the form in the progress's Profile section (R148, R162) | **no** — the card that called it shows the details saved | 1 | 1 | the fields fail validation, change nothing, or there is no profile — a form never makes one |
+| `edit_profile` | the widget only, from the form in the progress's Profile section (R148, R162), and with the topic of the lessons alone from the card of a task (R193) | **no** — the card that called it shows the details saved | 1 | 1 | the fields fail validation, change nothing, or there is no profile — a form never makes one |
 | `get_progress` | the model | yes — progress | 1 | 0 | always |
 | `read_progress` | the widget only, from the line at the top of a card (R91, R97) | **no** — the card that called it turns to its progress | 1 | 0 | always |
 | `next_task` | the model | yes — the task on its way, which turns into the task (R152) | 1 | 1 | a limit was hit, or the same open request is returned again |
@@ -87,7 +87,7 @@ sequenceDiagram
     M->>MT: next_task, with the chat language and, if it wants, its own topic or difficulty and a reason
     Note over W: the host draws the card as the call starts: "Preparing the next task…", the topic being picked
     MT->>D: read the profile
-    Note over MT: the daily and rate limits · the rule picks topic, goal and corridor ·<br/>the model's override is recorded as tutor_mode · the open request is written down:<br/>id, brief, attempts 0, started at
+    Note over MT: the daily and rate limits · the rule picks topic, goal and corridor ·<br/>the model's override, or a topic a person chose, is recorded as tutor_mode · the open request is written down:<br/>id, brief, attempts 0, started at
     MT->>D: write the profile
     MT-->>M: request open: get its package, write the task, hand it in
     MT-->>W: the task on its way — the request, whose card it is, its language, and no package

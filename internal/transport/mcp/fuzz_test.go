@@ -265,6 +265,10 @@ func FuzzEditArguments(f *testing.F) {
 		`{"grade":"three"}`,
 		`{"notes":"Loves comets."}`,
 		`{"start_over":true}`,
+		`{"lesson_topic":" time.clocks "}`,
+		`{"lesson_topic":""}`,
+		`{"lesson_topic":"astronomy.stars","grade":2}`,
+		`{"lesson_topic":7}`,
 		`{}`,
 	} {
 		f.Add(seed)

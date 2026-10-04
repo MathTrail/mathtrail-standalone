@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -49,7 +50,12 @@ func (e *emulator) post(t *testing.T, path string, body any) map[string]any {
 	if err != nil {
 		t.Fatalf("encode the request to %s: %v", path, err)
 	}
-	response, err := e.client.Post(e.base+path, "application/json", bytes.NewReader(sent))
+	request, err := http.NewRequestWithContext(t.Context(), http.MethodPost, e.base+path, bytes.NewReader(sent))
+	if err != nil {
+		t.Fatalf("POST %s: %v", path, err)
+	}
+	request.Header.Set("Content-Type", "application/json")
+	response, err := e.client.Do(request)
 	if err != nil {
 		t.Fatalf("POST %s: %v", path, err)
 	}
@@ -64,6 +70,20 @@ func (e *emulator) post(t *testing.T, path string, body any) map[string]any {
 	return answer
 }
 
+// columns are the names of the columns a query answers with.
+func (e *emulator) columns(t *testing.T, sql string) []string {
+	t.Helper()
+
+	answer := e.post(t, "/queries", map[string]any{"query": sql, "useLegacySql": false})
+	schema, _ := answer["schema"].(map[string]any)
+	fields, _ := schema["fields"].([]any)
+	names := make([]string, len(fields))
+	for i, field := range fields {
+		names[i], _ = field.(map[string]any)["name"].(string)
+	}
+	return names
+}
+
 // query runs SQL — a statement or a script — and is the rows it ends with,
 // each value as the API writes it, or "NULL".
 func (e *emulator) query(t *testing.T, sql string) [][]string {
@@ -73,10 +93,12 @@ func (e *emulator) query(t *testing.T, sql string) [][]string {
 	listed, _ := answer["rows"].([]any)
 	rows := make([][]string, 0, len(listed))
 	for _, row := range listed {
-		cells, _ := row.(map[string]any)["f"].([]any)
+		fields, _ := row.(map[string]any)
+		cells, _ := fields["f"].([]any)
 		values := make([]string, len(cells))
 		for i, cell := range cells {
-			values[i] = fmt.Sprint(cell.(map[string]any)["v"])
+			value, _ := cell.(map[string]any)
+			values[i] = fmt.Sprint(value["v"])
 			if values[i] == "<nil>" {
 				values[i] = "NULL"
 			}
@@ -86,8 +108,13 @@ func (e *emulator) query(t *testing.T, sql string) [][]string {
 	return rows
 }
 
-// spaces numbers the datasets each test makes, so that no two share any.
-var spaces atomic.Int64
+// spaces numbers the datasets each test makes, so that no two share any, and
+// run sets this run's apart from those of an earlier run against the same
+// emulator.
+var (
+	spaces atomic.Int64
+	run    = strconv.FormatInt(time.Now().UnixNano(), 36)
+)
 
 // space is a test's own datasets in the emulator — the raw lines, the counts
 // and the two sets of views — and the names the SQL is written with, filled in
@@ -104,7 +131,7 @@ func newSpace(t *testing.T) *space {
 	t.Helper()
 
 	e := emulatorOf(t)
-	prefix := fmt.Sprintf("t%d_", spaces.Add(1))
+	prefix := fmt.Sprintf("r%s_t%d_", run, spaces.Add(1))
 	for _, dataset := range []string{"logs", "impact", "public", "private"} {
 		e.post(t, "/datasets", map[string]any{"datasetReference": map[string]string{"projectId": project, "datasetId": prefix + dataset}})
 	}

@@ -224,7 +224,7 @@ func answerOne(t *testing.T, catalog tutor.Catalog, p *profile.Profile, number i
 	if !correct {
 		choice = "B"
 	}
-	if _, err := p.Record(profile.Answered{TaskID: id, Choice: choice, At: now.Add(2 * time.Minute)}, sealer); err != nil {
+	if _, err := p.Record(profile.Answered{TaskID: id, Choice: choice, At: now.Add(2 * time.Minute)}, sealer, catalog.LevelsOf(brief.TargetConcept)); err != nil {
 		t.Fatalf("Record() error = %v, want nil", err)
 	}
 	return correct

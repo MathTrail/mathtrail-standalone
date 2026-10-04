@@ -53,9 +53,16 @@ func (in *nextTaskIn) choice() tutor.Choice {
 // not have: a choice of the model's own, a reason, or — when the parent chose
 // no language for the lessons — another chat language. A language the parent
 // chose wins over the chat's, so the chat's then asks for nothing, whatever
-// the request was opened in.
-func (in *nextTaskIn) differsFrom(request *profile.OpenRequest, student *profile.Student) bool {
+// the request was opened in; and the topic the lessons are kept to, lesson,
+// asks for nothing either, nor does a reason given for it alone.
+func (in *nextTaskIn) differsFrom(request *profile.OpenRequest, student *profile.Student, lesson string) bool {
 	choice := in.choice()
+	if lesson != "" && choice.Topic == lesson {
+		choice.Topic = ""
+		if !choice.Made() {
+			choice.Reason = ""
+		}
+	}
 	language, broken := profile.LanguageTag(in.Language)
 	_, chosen := student.ChosenLanguage()
 	return choice.Made() || choice.Reason != "" ||
@@ -97,8 +104,9 @@ func (s *Service) nextTaskTool() Tool {
 			"Called again before the task of the open request is handed in, it hands back that request: hand in " +
 			"the task you wrote for it, or write it now, rather than asking again. A task on the child's card with " +
 			"no answer yet is recorded as skipped, so ask for a new one only when the child wants another. To set a " +
-			"topic, a level or a difficulty other than the rule's, pass it with a short reason. Never put the " +
-			"child's name in a task." +
+			"topic, a level or a difficulty other than the rule's, pass it with a short reason. While the profile " +
+			"keeps the lessons to a topic, lesson_topic, every task is on it once the trial series is over: pass no " +
+			"topic of your own then. Never put the child's name in a task." +
 			"\n\nTopics, by id, with the levels each is taught at:\n" + s.topicList(),
 		Idempotent: true,
 		DrawsCard:  true,
@@ -145,7 +153,7 @@ func (s *Service) openRequest(ctx context.Context, account store.Account, in nex
 
 	now := s.now()
 	if open := p.OpenRequest; open != nil && open.Awaited(s.window, now) {
-		return s.stillOpen(ctx, account, p, now, in.differsFrom(open, &p.Student))
+		return s.stillOpen(ctx, account, p, now, in.differsFrom(open, &p.Student, tutor.LessonTopic(p, s.content)))
 	}
 	if limit, count, reached := s.daily.reached(p.Daily.Today(now)); reached {
 		limitHit(ctx, s.events.logger, s.events.projectID, account.ID, limit, zap.Int("count", count))
@@ -186,7 +194,7 @@ func (s *Service) openRequest(ctx context.Context, account store.Account, in nex
 			"from with get_package and request_id %s, now, then hand the task in with submit_task and the same "+
 			"request_id. Where cards are shown, the child sees a card waiting for the task, and the task on it once "+
 			"it is accepted.", request.ID, request.Language, request.ID),
-			lessonLanguageText(&p.Student), forYouAlone, s.lastAnswerText(p), noPackageTool),
+			lessonLanguageText(&p.Student), s.lessonTopicText(p), forYouAlone, s.lastAnswerText(p), noPackageTool),
 		Payload: requestOut{
 			Screen: screenComing, RequestID: request.ID, LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student),
 			Language: request.Language,

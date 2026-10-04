@@ -43,6 +43,10 @@ const (
 	// MaxRegion is how long a region may be: its code in ISO 3166-2, the
 	// country's two letters, a hyphen and at most three more.
 	MaxRegion = 6
+	// MaxLessonTopic is how long the topic chosen for the lessons may be: a
+	// topic's id in the catalog, a family and a name joined by a dot, which
+	// none comes near.
+	MaxLessonTopic = 64
 	// MaxRecent is how many entries the history window holds, answers and
 	// skipped tasks together.
 	MaxRecent = 20
@@ -99,6 +103,9 @@ func (p *Profile) validate(most int) error {
 	}
 	if !isNumber(p.Ratings.Start) {
 		return fmt.Errorf("%w: ratings.start is %v, and a level is a number", ErrInvalid, p.Ratings.Start)
+	}
+	if p.Ratings.MasteryRule != "" && p.Ratings.MasteryRule != MasteryRuleCautious {
+		return fmt.Errorf("%w: ratings.mastery_rule is %q, want %s or none", ErrInvalid, p.Ratings.MasteryRule, MasteryRuleCautious)
 	}
 	if err := validateTopics(p.Topics); err != nil {
 		return err
@@ -322,8 +329,8 @@ func (t *CurrentTask) validate() error {
 			ErrInvalid, t.GradeLevel, rating.GradeLevels())
 	case len(t.Options) != solver.Count:
 		return fmt.Errorf("%w: current_task offers %d options, want %d", ErrInvalid, len(t.Options), solver.Count)
-	case t.TutorMode != "" && t.TutorMode != TutorRule && t.TutorMode != TutorLLM:
-		return fmt.Errorf("%w: current_task.tutor_mode is %q, want rule, llm or none", ErrInvalid, t.TutorMode)
+	case t.TutorMode != "" && !t.TutorMode.known():
+		return fmt.Errorf("%w: current_task.tutor_mode is %q, want rule, llm, person or none", ErrInvalid, t.TutorMode)
 	}
 	for place := range solver.Count {
 		if letter := solver.Letter(place); solver.Blank(t.Options[letter]) {
@@ -365,8 +372,8 @@ func (r *OpenRequest) validate() error {
 		return fmt.Errorf("%w: open_request has no opened_at, and the window is measured from it", ErrInvalid)
 	case r.Attempts < 0 || r.Attempts > MaxAttempts:
 		return fmt.Errorf("%w: open_request.attempts is %d, the limit is %d", ErrInvalid, r.Attempts, MaxAttempts)
-	case r.TutorMode != TutorRule && r.TutorMode != TutorLLM:
-		return fmt.Errorf("%w: open_request.tutor_mode is %q, want rule or llm", ErrInvalid, r.TutorMode)
+	case !r.TutorMode.known():
+		return fmt.Errorf("%w: open_request.tutor_mode is %q, want rule, llm or person", ErrInvalid, r.TutorMode)
 	case r.Brief.TargetConcept == "":
 		return fmt.Errorf("%w: open_request.brief names no topic", ErrInvalid)
 	case r.Brief.Difficulty < MinDifficulty || r.Brief.Difficulty > MaxDifficulty:

@@ -24,14 +24,21 @@ const asking: McpUiHostContext = {
 	toolInfo: toolInfoOf("next_task"),
 };
 
-// openOn starts the widget on a host with context, tells it nothing of the call
-// yet, and lets the card run its effects — Preact runs those of a card drawn
-// outside a test's act on a timer of its own — so that the card's own clock
-// starts now. The card that the answer draws is told its task is being
-// written whenever it asks.
-async function openOn(context: McpUiHostContext = asking) {
+// openOn starts the widget on a host with context, tells it the call's
+// arguments — a task asked for in the language given, or nothing of the call
+// when none is — and lets the card run its effects — Preact runs those of a
+// card drawn outside a test's act on a timer of its own — so that the card's
+// own clock starts now. The card that the answer draws is told its task is
+// being written whenever it asks.
+async function openOn(
+	context: McpUiHostContext = asking,
+	language: string | null = "en",
+) {
 	const opened = await openCard({ context, tools: () => writing() });
 	root = opened.root;
+	if (language !== null) {
+		await opened.host.sendToolInput({ arguments: { language } });
+	}
 	wait(100);
 	return opened.host;
 }
@@ -158,6 +165,65 @@ describe("a card a task is asked for on", () => {
 		expect(root.querySelector(".mt-gen")).not.toBeNull();
 	});
 
+	// The host's language may not be the lesson's: a parent reads Claude in
+	// English and holds the lesson in Russian. The wait speaks the language
+	// the task is asked in from its first word, and goes on in it once the
+	// service has named the same lesson's.
+	test("speaks the language the task is asked in, not the host's, and goes on in it", async () => {
+		const host = await openOn(asking, "ru");
+		wait(1000);
+
+		expect(text(".mt-gen-title")).toBe("Готовим следующую задачу…");
+
+		await host.sendToolResult({
+			content: [],
+			structuredContent: { ...coming, language: "ru" },
+		});
+
+		await vi.waitFor(() =>
+			expect(labels()[0]).toBe("Готово: Выбрали тему и сложность"),
+		);
+		expect(text(".mt-gen-title")).toBe("Готовим следующую задачу…");
+	});
+
+	test("speaks the language the task is asked in when the ask is refused", async () => {
+		const host = await openOn(asking, "ru");
+		wait(1000);
+
+		await host.sendToolResult({ content: [], structuredContent: limited });
+
+		await vi.waitFor(() =>
+			expect(text(".mt-verdict-line")).toMatch(
+				/^На сегодня новых задач больше нет/,
+			),
+		);
+	});
+
+	test("says nothing before the answer when the host does not say what the task is asked in", async () => {
+		const host = await openOn(asking, null);
+
+		wait(1000);
+		expect(root.querySelector(".mt-widget")).toBeNull();
+		wait(120_000);
+		expect(root.querySelector(".mt-widget")).toBeNull();
+
+		await host.sendToolResult({ content: [], structuredContent: coming });
+		await vi.waitFor(() =>
+			expect(text(".mt-gen-title")).toBe("Preparing the next task…"),
+		);
+	});
+
+	test("says in the host's language that the task was not finished, when it does not say what the task is asked in", async () => {
+		const host = await openOn(asking, null);
+		wait(1000);
+
+		await host.sendToolCancelled({ reason: "user action" });
+
+		await vi.waitFor(() =>
+			expect(text(".mt-verdict-line")).toBe("This task wasn't finished."),
+		);
+	});
+
 	test.each(["MathTrail:next_task", "mcp__MathTrail__next_task"])(
 		"knows the ask by its name under a host's prefix, as in %s",
 		async (name) => {
@@ -178,10 +244,10 @@ describe("a card drawn for anything else", () => {
 		["another tool", { toolInfo: toolInfoOf("get_progress") }],
 		["a host that does not say", {}],
 	])("draws nothing before its result, for %s", async (_, context) => {
-		const host = await openOn(context);
+		const host = await openOn(context, null);
 
 		await host.sendToolInput({
-			arguments: { task: { answer: "the-sealed-answer-C" } },
+			arguments: { language: "ru", task: { answer: "the-sealed-answer-C" } },
 		});
 		wait(1000);
 
@@ -189,7 +255,7 @@ describe("a card drawn for anything else", () => {
 	});
 
 	test("draws the task it is handed, for a task handed in from an earlier list of the tools", async () => {
-		const host = await openOn({ toolInfo: toolInfoOf("submit_task") });
+		const host = await openOn({ toolInfo: toolInfoOf("submit_task") }, null);
 
 		await host.sendToolResult({ content: [], structuredContent: fence });
 

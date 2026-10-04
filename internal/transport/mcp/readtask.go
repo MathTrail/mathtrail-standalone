@@ -30,6 +30,9 @@ type awaitedOut struct {
 	// Language is the lesson's: the task's once it is on the card, and the
 	// request's while it is being written.
 	Language string `json:"language,omitempty"`
+	// TopicChoice is what the card needs to keep the lessons to a topic, once
+	// the task is on it and the trial series is over.
+	TopicChoice *topicChoiceOut `json:"topic_choice,omitempty"`
 }
 
 func (s *Service) readTaskTool() Tool {
@@ -65,6 +68,9 @@ func (s *Service) taskAwaited(ctx context.Context, account store.Account, reques
 	case profile.TaskOnTheCard:
 		task := p.CurrentTask
 		awaited.Screen, awaited.Task, awaited.Language = screenTask, cardOf(task), task.Language
+		if awaited.TopicChoice, err = s.topicChoiceOf(p, s.now()); err != nil {
+			return Reply[awaitedOut]{}, fmt.Errorf("mcp: the choice of the topic: %w", err)
+		}
 		return Reply[awaitedOut]{Text: fmt.Sprintf("Task %s is on the child's card.", task.ID), Payload: awaited}, nil
 	case profile.TaskBeingWritten:
 		awaited.Screen, awaited.Refused, awaited.Language = screenComing, refused, p.OpenRequest.Language

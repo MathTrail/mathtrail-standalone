@@ -133,8 +133,6 @@ const words = [
 	"  title: Start",
 	"  lead: Together.",
 	"  topics: See the topics",
-	"sources:",
-	"  title: Sources",
 ].join("\n");
 
 // document is a document's text under its title.
@@ -250,26 +248,6 @@ describe("the page Why", () => {
 				link.getAttribute("href"),
 			),
 		).toEqual([doi(file.why.apps)]);
-	});
-
-	test("tells a screen reader its works are English, and a journal's name that is not", () => {
-		expect(new Set(all(".s-sources li", "lang"))).toEqual(new Set(["en"]));
-		expect(all(".s-sources li em", "lang")).toEqual(
-			[...file.why.findings, file.why.apps].map(
-				(id) =>
-					(
-						file.why.sources[id as keyof typeof file.why.sources] as {
-							journal_language?: string;
-						}
-					).journal_language ?? "",
-			),
-		);
-	});
-
-	test("lists exactly the works it cites, each linked by its DOI", () => {
-		expect(all(".s-sources li a", "href")).toEqual(
-			[...file.why.findings, file.why.apps].map(doi),
-		);
 	});
 
 	test("cites a work by its one or two authors, or the first of more, and its year", () => {

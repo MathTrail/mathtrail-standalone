@@ -1,6 +1,8 @@
 import { render } from "preact";
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { Icon, Mark } from "./icons";
+import { drawingAlone, drawingOf, drawnAlone } from "./testing/drawing";
 import { MessageHeader, ReplyCard, ThreadBar } from "./thread";
 
 const root = document.createElement("div");
@@ -97,7 +99,7 @@ describe("a header", () => {
 		expect(root.querySelector(".mt-head-versioned")).toBeNull();
 	});
 
-	test("says who speaks: MathTrail by its mark, the child by the avatar", () => {
+	test("says who speaks: MathTrail by its logo, the child by the avatar", () => {
 		draw(
 			<>
 				<MessageHeader author="app" name="MathTrail" />
@@ -105,12 +107,12 @@ describe("a header", () => {
 			</>,
 		);
 
-		const [app, person] = root.querySelectorAll(".mt-head");
-		expect(app?.querySelector("svg circle")?.getAttribute("fill")).toBe(
-			"var(--mark-fill)",
+		const [app, person] = [...root.querySelectorAll(".mt-head")].map((head) =>
+			head.querySelector("svg"),
 		);
-		expect(person?.querySelector("svg circle")?.getAttribute("fill")).toBe(
-			"var(--avatar-fill)",
+		expect(drawingOf(app ?? null)).toEqual(drawingAlone(<Mark size={32} />));
+		expect(person?.outerHTML).toBe(
+			drawnAlone(<Icon name="avatar" size={32} />),
 		);
 	});
 

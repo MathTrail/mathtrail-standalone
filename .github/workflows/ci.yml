@@ -179,6 +179,24 @@ jobs:
           path: web/layout/
           retention-days: 14
 
+  analytics:
+    name: The SQL of the counts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    # On the runner itself: the tests run the SQL against a BigQuery emulator
+    # the recipe starts in a container of its own, and the toolchain image has
+    # no docker client to start it with. Go is the version the module declares.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: false
+      - uses: ./.github/actions/just
+      - run: just analytics-test
+
   sonar:
     name: Static analysis
     needs: [test, widget]

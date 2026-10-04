@@ -19,9 +19,15 @@ export type CallStage = "started" | "cancelled";
 /**
  * Call is the tool call that drew the card, as far as the host has told of
  * it: the tool, by the name the host gives it, or undefined while the host
- * has named none, and how far the call has got.
+ * has named none; how far the call has got; and the language its arguments
+ * name, or undefined until the host has told them whole and when they name
+ * none.
  */
-export type Call = { tool: string | undefined; stage: CallStage };
+export type Call = {
+	tool: string | undefined;
+	stage: CallStage;
+	language: string | undefined;
+};
 
 /**
  * Bridge is the widget's side of its conversation with the chat host: the
@@ -32,9 +38,10 @@ export type Bridge = {
 	/** result is the latest result the host delivered, undefined before one. */
 	result(): ToolResult | undefined;
 	/**
-	 * call is the tool call that drew the card. Nothing of its arguments is
-	 * listened for: a task handed in carries its answer in them, and a host
-	 * with an earlier list of the tools still draws a card for that call.
+	 * call is the tool call that drew the card. Of its arguments only the
+	 * language they name is kept, which a card asked for a task speaks before
+	 * its result: a task handed in carries its answer in them, and a host with
+	 * an earlier list of the tools still draws a card for that call.
 	 */
 	call(): Call;
 	/**
@@ -44,8 +51,8 @@ export type Bridge = {
 	locale(): string | undefined;
 	/**
 	 * subscribe calls listener after each new result, each step of the call,
-	 * and each time the host may have named another locale, until it is
-	 * stopped.
+	 * the language its arguments name, and each time the host may have named
+	 * another locale, until it is stopped.
 	 */
 	subscribe(listener: () => void): () => void;
 	/**
@@ -109,7 +116,7 @@ export function openBridge(): Bridge & Host {
 	let latest: ToolResult | undefined;
 	// The call is replaced, never changed in place, and only when something of
 	// it changed: a card reading it redraws when it is another object.
-	let call: Call = { tool: undefined, stage: "started" };
+	let call: Call = { tool: undefined, stage: "started", language: undefined };
 	const listeners = new Set<() => void>();
 	const notify = () => {
 		for (const listener of listeners) {
@@ -117,7 +124,11 @@ export function openBridge(): Bridge & Host {
 		}
 	};
 	const callNow = (next: Call) => {
-		if (next.tool !== call.tool || next.stage !== call.stage) {
+		if (
+			next.tool !== call.tool ||
+			next.stage !== call.stage ||
+			next.language !== call.language
+		) {
 			call = next;
 			notify();
 		}
@@ -139,8 +150,22 @@ export function openBridge(): Bridge & Host {
 		latest = result;
 		notify();
 	});
-	// The arguments, whole or still coming, are not listened for at all, and
-	// the library drops what nobody listens for.
+	// Of the arguments told whole, the language they name and nothing else: a
+	// task handed in carries its answer in them. The arguments still coming are
+	// not listened for, since a language in them may be cut short, and the
+	// library drops what nobody listens for. A host tells the arguments before
+	// the result; told after it, they would turn a card already drawn to
+	// another language, so they are not taken.
+	app.addEventListener("toolinput", ({ arguments: told }) => {
+		const language = told?.language;
+		if (
+			latest === undefined &&
+			typeof language === "string" &&
+			language !== ""
+		) {
+			callNow({ ...call, language });
+		}
+	});
 	app.addEventListener("toolcancelled", () => {
 		callNow({ ...call, stage: "cancelled" });
 	});

@@ -36,6 +36,7 @@ const (
 // after "the answers".
 const (
 	leftModel   = "to tasks the model chose"
+	leftPerson  = "to tasks whose topic a person chose"
 	leftUnknown = "to tasks whose chooser is not known"
 	leftTrial   = "in the trial series"
 	leftHint    = "given with the hint"
@@ -43,17 +44,21 @@ const (
 )
 
 // leftOutInOrder is the order the report names the kinds left out in.
-var leftOutInOrder = []string{leftModel, leftUnknown, leftTrial, leftHint, leftOld}
+var leftOutInOrder = []string{leftModel, leftPerson, leftUnknown, leftTrial, leftHint, leftOld}
 
 // whyLeftOut is the kind of answer a line is that the weighing leaves out, or
 // nothing for one it takes. A line can be of several kinds; it is named by the
-// first of them it is asked about.
+// first of them it is asked about. The weighing is of the rule's own choices:
+// a topic a person chose is set at the rule's point too, but which topics are
+// chosen is the person's, and the tasks the rule chose are what it is judged by.
 func whyLeftOut(l *line) string {
 	switch {
 	case l.Chance == nil:
 		return leftOld
 	case l.TutorMode == string(profile.TutorLLM):
 		return leftModel
+	case l.TutorMode == string(profile.TutorPerson):
+		return leftPerson
 	case l.TutorMode != string(profile.TutorRule):
 		return leftUnknown
 	case l.Trial != 0:

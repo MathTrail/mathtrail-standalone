@@ -4,6 +4,7 @@ import { render } from "preact";
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test } from "vitest";
 import { Icon, type IconName, Mark } from "./icons";
+import { drawingOf } from "./testing/drawing";
 
 const root = document.createElement("div");
 
@@ -124,48 +125,6 @@ describe("the mark", () => {
 		}
 	});
 });
-
-// placeDecides are the attributes of a drawing's own element that the place it
-// is shown in decides: its size, its class and its words for a screen reader.
-const placeDecides = new Set([
-	"width",
-	"height",
-	"class",
-	"role",
-	"aria-hidden",
-	"aria-label",
-	"xmlns",
-]);
-
-// drawingOf is what an SVG draws, element by element: each element's name and
-// its attributes in order of name, with the names of its gradients and clips
-// replaced by their place among them, since a page names them as it needs.
-function drawingOf(svg: Element | null): string[] {
-	if (svg === null) {
-		return [];
-	}
-	const elements = [svg, ...svg.querySelectorAll("*")];
-	const places = new Map(
-		elements
-			.filter((element) => element.id !== "")
-			.map((element, place) => [element.id, `#${place}`]),
-	);
-	const placed = (value: string) =>
-		value.replace(
-			/url\(#([^)]+)\)/g,
-			(_, id: string) => `url(${places.get(id) ?? id})`,
-		);
-	return elements.map((element) => {
-		const attributes = [...element.attributes]
-			.filter(({ name }) => element !== svg || !placeDecides.has(name))
-			.map(
-				({ name, value }) =>
-					`${name}=${name === "id" ? places.get(value) : placed(value)}`,
-			)
-			.sort();
-		return `${element.tagName.toLowerCase()} ${attributes.join(" ")}`;
-	});
-}
 
 // referencesIn is every name a drawing points at with url(#…).
 function referencesIn(svg: Element): string[] {

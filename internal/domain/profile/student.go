@@ -29,6 +29,12 @@ type Student struct {
 	Grade int `json:"grade"`
 	// Interests are the settings a task is dressed in, rotated through.
 	Interests []string `json:"interests"`
+	// LessonTopic is the topic of the catalog the child or the adult chose to
+	// keep the lessons to, by its id, or empty while the rule chooses. Once the
+	// trial series is over, every task is on it until it is given back. The
+	// file is the parent's to edit, so a topic the catalog does not have counts
+	// as no choice where it is read.
+	LessonTopic string `json:"lesson_topic,omitempty"`
 	// Notes is free-form context about the child, written by the parent and
 	// read by the chat's model as tone and level. It never reaches the rule,
 	// so nothing written here can change which task the child is set or what
@@ -145,6 +151,7 @@ func (s *Student) problems() []Problem {
 		{Field: "excluded_skills", Broken: excludedSkillsRule(s.ExcludedSkills)},
 		{Field: "grade", Broken: gradeRule(s.Grade)},
 		{Field: "interests", Broken: interestsRule(s.Interests)},
+		{Field: "lesson_topic", Broken: lengthRule(s.LessonTopic, MaxLessonTopic)},
 		{Field: "notes", Broken: notesRule(s.Notes)},
 		{Field: "pseudonym", Broken: pseudonymRule(s.Pseudonym)},
 		{Field: "region", Broken: lengthRule(s.Region, MaxRegion)},
@@ -216,9 +223,9 @@ func languageRule(language *string) Broken {
 }
 
 // lengthRule holds a code to the length of the longest a code can be. The file
-// is held to nothing more of a country or a region: which codes there are is a
-// rule of the edit, and a code a person typed into the file by hand counts as
-// none where it is read.
+// is held to nothing more of a country, a region or the topic of the lessons:
+// which codes there are is a rule of the edit, and a code a person typed into
+// the file by hand counts as none where it is read.
 func lengthRule(code string, most int) Broken {
 	if count := utf8.RuneCountInString(code); count > most {
 		return Broken{CodeTooLong, fmt.Sprintf("must be at most %d characters, not %d", most, count)}

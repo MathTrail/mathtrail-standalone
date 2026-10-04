@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"maps"
+	"math"
 	"slices"
 	"strings"
 	"testing"
@@ -202,7 +203,7 @@ func TestAnAnswerHoldsItsProperties(t *testing.T) {
 			for p, choice := range map[*profile.Profile]string{unsure: profile.DontKnow, mistaken: wrongLetter} {
 				id := answeringAt(t, p, topic, point)
 				if _, err := p.Record(profile.Answered{TaskID: id, Choice: choice, HintUsed: hint, At: issued.Add(time.Minute)},
-					newSealer(t)); err != nil {
+					newSealer(t), everyLevel); err != nil {
 					return false
 				}
 			}
@@ -218,6 +219,86 @@ func TestAnAnswerHoldsItsProperties(t *testing.T) {
 	))
 
 	properties.TestingRun(t)
+}
+
+// However a topic goes, it is declared mastered only where the cautious
+// estimate puts the child: on a right and unaided answer, with five answers in
+// the topic, at a level no higher than the task's whose middle task the
+// child's level less how far it may be off clears. Once declared, mastery only
+// rises, and only two wrong answers in a row take it away.
+func TestMasteryHoldsItsProperties(t *testing.T) {
+	t.Parallel()
+
+	properties := gopter.NewProperties(nil)
+	steps := gopter.CombineGens(
+		gen.OneConstOf(rating.Grades12, rating.Grades34, rating.Grades56),
+		gen.IntRange(profile.MinDifficulty, profile.MaxDifficulty),
+		gen.Bool(), gen.Bool(),
+	).Map(func(values []any) answerStep {
+		return answerStep{
+			point:   rating.Point{GradeLevel: values[0].(rating.GradeLevel), Difficulty: values[1].(int)},
+			correct: values[2].(bool),
+			hint:    values[3].(bool),
+		}
+	})
+
+	properties.Property("declared where the cautious estimate clears, held until two failures in a row", prop.ForAll(
+		func(theta float64, answers int, lesson []answerStep) bool {
+			p := settled(t, theta, answers, 0, 0)
+			for number, step := range lesson {
+				before := p.Topics[masteredTopic]
+				recorded := answerAt(t, p, step.point, number+1, step.correct, step.hint)
+				if !keptByTheRule(p, &before, step, recorded) {
+					return false
+				}
+			}
+			return true
+		},
+		gen.Float64Range(-2, 7), gen.IntRange(0, 400), gen.SliceOfN(30, steps),
+	))
+
+	properties.TestingRun(t)
+}
+
+// answerStep is one answer of a generated lesson: where its task stood, and
+// whether the child got it right and took the hint.
+type answerStep struct {
+	point         rating.Point
+	correct, hint bool
+}
+
+// keptByTheRule says whether what an answer did to the mastery of its topic is
+// what the rule allows: a declaration only on a right and unaided answer with
+// five answers in the topic, above the level held and no higher than the
+// task's, at a level whose middle task the cautious level clears; a loss only
+// after two wrong answers in a row; and otherwise nothing moved.
+func keptByTheRule(p *profile.Profile, before *profile.Topic, step answerStep, recorded profile.Recorded) bool {
+	after := p.Topics[masteredTopic]
+	switch {
+	case recorded.Mastered:
+		level := *after.MasteredLevel
+		cautious := p.Ratings.Theta + after.Delta - math.Sqrt(rating.Uncertainty(p.Ratings.Answers, after.Answers))
+		middle := rating.Point{GradeLevel: level, Difficulty: (profile.MinDifficulty + profile.MaxDifficulty) / 2}
+		return step.correct && !step.hint && after.Answers >= profile.MasteryAnswers &&
+			level.Shift() <= step.point.GradeLevel.Shift() &&
+			(before.MasteredLevel == nil || before.MasteredLevel.Shift() < level.Shift()) &&
+			rating.Probability(cautious, middle.Beta()) >= rating.CorridorMiddle
+	case recorded.Unmastered:
+		return before.MasteredSince != nil && after.MasteredSince == nil && after.MasteredLevel == nil &&
+			after.WrongStreak >= profile.MasteryLostAfter
+	default:
+		return sameMastery(before, &after)
+	}
+}
+
+// sameMastery says whether a topic is mastered at the same level since the
+// same day as before, or is still not mastered.
+func sameMastery(before, after *profile.Topic) bool {
+	if before.MasteredSince == nil || after.MasteredSince == nil {
+		return before.MasteredSince == nil && after.MasteredSince == nil &&
+			before.MasteredLevel == nil && after.MasteredLevel == nil
+	}
+	return before.MasteredSince.Equal(after.MasteredSince.Time) && *before.MasteredLevel == *after.MasteredLevel
 }
 
 // However a lesson goes — tasks asked for, attempts turned down, tasks handed
@@ -353,12 +434,12 @@ func TestARefusalHoldsItsProperties(t *testing.T) {
 	known := profile.Codes()
 
 	properties.Property("each field once, by a code of the list, with its rule", prop.ForAll(
-		func(pseudonym string, grade int, interests, excluded []string, notes, language string) bool {
+		func(pseudonym string, grade int, interests, excluded []string, notes, language, topic string) bool {
 			edit := profile.Edit{
 				Pseudonym: &pseudonym, Grade: &grade, Interests: interests, ExcludedSkills: excluded,
-				Notes: &notes, UILanguage: &language,
+				Notes: &notes, UILanguage: &language, LessonTopic: &topic,
 			}
-			_, problems := profile.NewStudent(&edit, skills)
+			_, problems := profile.NewStudent(&edit, shipped)
 			named := map[string]bool{}
 			for _, problem := range problems {
 				if named[problem.Field] || !slices.Contains(known, problem.Code) || problem.Rule == "" {
@@ -372,6 +453,7 @@ func TestARefusalHoldsItsProperties(t *testing.T) {
 		gen.SliceOf(gen.AnyString()), gen.SliceOf(gen.OneGenOf(gen.OneConstOf("fractions", "negative_numbers", ""), gen.Identifier())),
 		gen.OneGenOf(gen.AnyString(), gen.Const(strings.Repeat("ж", profile.MaxNotes+1))),
 		gen.OneConstOf("", " ", "en", "pt-br", "und", "x-private", strings.Repeat("a", profile.MaxLanguageTag+1)),
+		gen.OneConstOf("", " ", "time.clocks", " logic.ordering ", "astronomy.stars", strings.Repeat("t", profile.MaxLessonTopic+1)),
 	))
 
 	properties.TestingRun(t)

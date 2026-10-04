@@ -44,6 +44,8 @@ flowchart LR
         sm["Secret Manager<br/>sealing keys,<br/>Google client secret"]
         ar["Artifact Registry<br/>image by digest"]
         clog["Cloud Logging<br/>instance stdout"]
+        bq["BigQuery<br/>the counts kept for years"]
+        studio["Data Studio<br/>a private and a public report"]
     end
 
     subgraph gh["GitHub"]
@@ -86,6 +88,8 @@ flowchart LR
     sm -. "secrets into env at startup" .-> boot
     ar -. "revision by digest" .-> boot
     logs -- "stdout" --> clog
+    clog -. "the lines a child is counted from, 62 days,<br/>counted every night" .-> bq
+    bq -. "views" .-> studio
     ga -- "image" --> ar
     ga -. "publishes the pages" .-> pages
     authsrv -. "links on the consent screen" .-> pages
@@ -110,7 +114,9 @@ flowchart LR
 | Google Drive API v3 | The only durable storage: a JSON profile in a visible folder of the parent's Drive (О-5) | 5, 7 |
 | Secret Manager | Sealing keys and the Google client secret; versions are pinned and read once per instance start (О-7) | 6, 7 |
 | Artifact Registry | The revision image by digest, with a cleanup policy for old images | 7 |
-| Cloud Logging | Where the structured stdout of Cloud Run lands, and where the aggregates are counted from (О-16) | 6 |
+| Cloud Logging | Where the structured stdout of Cloud Run lands, and where the aggregates are counted from (О-16). The lines a child is counted from are also kept 62 days in a bucket of their own, where a deployment keeps the counts (R192) | 6 |
+| BigQuery | The counts of how the service is used, kept for years for grant applications: a query counts the bucket's lines into them every night, and no table holds a name any child is counted under (SPEC 12.4, R192) | 6 |
+| Data Studio | Two reports of those counts: exact numbers for the owner, and, for anyone with the link, closed months with no group of fewer than ten children. Made by hand: no API makes a report | 6 |
 | GitHub Actions | Build, checks, image publication and deploy through WIF, with no service-account keys | 7, 8 |
 | GitHub Pages | The site: the privacy policy and the terms, which the Google consent screen and the directories link to (О-19), and the topics' pages, which the progress card asks the host to open and the words for the model name (R186) | 6, 7, 8 |
 

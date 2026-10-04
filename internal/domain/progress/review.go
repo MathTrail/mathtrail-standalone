@@ -102,6 +102,31 @@ type Review struct {
 	Steps   []Step
 }
 
+// SuggestedTopics is how many topics the review suggests when the lessons'
+// topic is chosen: a short row to pick from, beside every topic of the catalog.
+const SuggestedTopics = 3
+
+// Suggested are the topics the review's steps are for, in the order the steps
+// come — the ones to develop, then the one to begin —, each once and at most
+// SuggestedTopics of them: what the review advises working on, offered where a
+// topic for the lessons is chosen. No review, during the trial series, has
+// none.
+func (r *Review) Suggested() []string {
+	suggested := []string{}
+	if r == nil {
+		return suggested
+	}
+	for _, step := range r.Steps {
+		if len(suggested) == SuggestedTopics {
+			break
+		}
+		if step.Topic != "" && !slices.Contains(suggested, step.Topic) {
+			suggested = append(suggested, step.Topic)
+		}
+	}
+	return suggested
+}
+
 // Judged is a topic the review names: why, the trap its answers keep falling
 // for when that is a reason, and, for one to develop, whether its last answer
 // was right — a move has begun.

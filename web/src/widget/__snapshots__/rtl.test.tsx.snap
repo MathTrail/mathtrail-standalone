@@ -12,6 +12,7 @@ exports[`the screens in Arabic > a try that did not pass 1`] = `
       <svg
         aria-hidden="true"
         class="mt-icon"
+        fill="none"
         height="24"
         viewBox="0 0 24 24"
         width="24"
@@ -32,7 +33,7 @@ exports[`the screens in Arabic > a try that did not pass 1`] = `
         class="mt-icon mt-chevron"
         fill="none"
         height="16"
-        viewBox="0 0 16 16"
+        viewBox="0 0 24 24"
         width="16"
       />
     </button>
@@ -46,7 +47,7 @@ exports[`the screens in Arabic > a try that did not pass 1`] = `
           aria-hidden="true"
           class="mt-icon"
           height="32"
-          viewBox="0 0 32 32"
+          viewBox="0 0 48 48"
           width="32"
         />
         <div
@@ -114,7 +115,7 @@ exports[`the screens in Arabic > the first sign-in 1`] = `
         aria-hidden="true"
         class="mt-icon"
         height="32"
-        viewBox="0 0 32 32"
+        viewBox="0 0 48 48"
         width="32"
       />
       <div
@@ -334,7 +335,7 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
               class="mt-icon"
               fill="none"
               height="14"
-              viewBox="0 0 16 16"
+              viewBox="0 0 24 24"
               width="14"
             />
           </button>
@@ -357,7 +358,7 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
               class="mt-icon"
               fill="none"
               height="14"
-              viewBox="0 0 16 16"
+              viewBox="0 0 24 24"
               width="14"
             />
           </button>
@@ -380,7 +381,7 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
               class="mt-icon"
               fill="none"
               height="14"
-              viewBox="0 0 16 16"
+              viewBox="0 0 24 24"
               width="14"
             />
           </button>
@@ -2143,6 +2144,7 @@ exports[`the screens in Arabic > the profile, its cards chosen to be in Arabic 1
       <svg
         aria-hidden="true"
         class="mt-icon"
+        fill="none"
         height="32"
         viewBox="0 0 24 24"
         width="32"
@@ -2342,6 +2344,7 @@ exports[`the screens in Arabic > the progress 1`] = `
       <svg
         aria-hidden="true"
         class="mt-icon"
+        fill="none"
         height="32"
         viewBox="0 0 24 24"
         width="32"
@@ -2501,7 +2504,7 @@ exports[`the screens in Arabic > the progress 1`] = `
               class="mt-icon mt-chevron"
               fill="none"
               height="16"
-              viewBox="0 0 16 16"
+              viewBox="0 0 24 24"
               width="16"
             />
           </button>
@@ -2541,7 +2544,7 @@ exports[`the screens in Arabic > the progress 1`] = `
                         class="mt-icon"
                         fill="none"
                         height="16"
-                        viewBox="0 0 16 16"
+                        viewBox="0 0 24 24"
                         width="16"
                       />
                       تم إتقانه
@@ -3007,7 +3010,7 @@ exports[`the screens in Arabic > the progress 1`] = `
               class="mt-icon mt-chevron"
               fill="none"
               height="16"
-              viewBox="0 0 16 16"
+              viewBox="0 0 24 24"
               width="16"
             />
           </button>
@@ -3336,7 +3339,7 @@ exports[`the screens in Arabic > the progress 1`] = `
               class="mt-icon mt-chevron"
               fill="none"
               height="16"
-              viewBox="0 0 16 16"
+              viewBox="0 0 24 24"
               width="16"
             />
           </button>
@@ -3369,7 +3372,7 @@ exports[`the screens in Arabic > the progress 1`] = `
                     class="mt-icon"
                     fill="none"
                     height="16"
-                    viewBox="0 0 16 16"
+                    viewBox="0 0 24 24"
                     width="16"
                   />
                   خطأ
@@ -3394,7 +3397,7 @@ exports[`the screens in Arabic > the progress 1`] = `
                     class="mt-icon"
                     fill="none"
                     height="16"
-                    viewBox="0 0 16 16"
+                    viewBox="0 0 24 24"
                     width="16"
                   />
                   تم التخطي
@@ -3419,7 +3422,7 @@ exports[`the screens in Arabic > the progress 1`] = `
                     class="mt-icon"
                     fill="none"
                     height="16"
-                    viewBox="0 0 16 16"
+                    viewBox="0 0 24 24"
                     width="16"
                   />
                   صحيح
@@ -3444,7 +3447,7 @@ exports[`the screens in Arabic > the progress 1`] = `
                     class="mt-icon"
                     fill="none"
                     height="16"
-                    viewBox="0 0 16 16"
+                    viewBox="0 0 24 24"
                     width="16"
                   />
                   صحيح
@@ -3469,7 +3472,7 @@ exports[`the screens in Arabic > the progress 1`] = `
                     class="mt-icon"
                     fill="none"
                     height="16"
-                    viewBox="0 0 16 16"
+                    viewBox="0 0 24 24"
                     width="16"
                   />
                   خطأ
@@ -3516,7 +3519,7 @@ exports[`the screens in Arabic > the progress 1`] = `
               class="mt-icon mt-chevron"
               fill="none"
               height="16"
-              viewBox="0 0 16 16"
+              viewBox="0 0 24 24"
               width="16"
             />
           </button>
@@ -3690,6 +3693,7 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
       <svg
         aria-hidden="true"
         class="mt-icon"
+        fill="none"
         height="24"
         viewBox="0 0 24 24"
         width="24"
@@ -3710,7 +3714,7 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
         class="mt-icon mt-chevron"
         fill="none"
         height="16"
-        viewBox="0 0 16 16"
+        viewBox="0 0 24 24"
         width="16"
       />
     </button>
@@ -3724,7 +3728,7 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
           aria-hidden="true"
           class="mt-icon"
           height="32"
-          viewBox="0 0 32 32"
+          viewBox="0 0 48 48"
           width="32"
         />
         <div
@@ -3829,7 +3833,7 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
                   class="mt-icon"
                   fill="none"
                   height="16"
-                  viewBox="0 0 16 16"
+                  viewBox="0 0 24 24"
                   width="16"
                 />
                 إجابتك
@@ -3863,7 +3867,7 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
                   class="mt-icon"
                   fill="none"
                   height="16"
-                  viewBox="0 0 16 16"
+                  viewBox="0 0 24 24"
                   width="16"
                 />
                 الإجابة الصحيحة
@@ -3931,7 +3935,7 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
               aria-hidden="true"
               class="mt-icon"
               height="28"
-              viewBox="0 0 32 32"
+              viewBox="0 0 48 48"
               width="28"
             />
             <div
@@ -3955,7 +3959,7 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
                 class="mt-icon"
                 fill="none"
                 height="20"
-                viewBox="0 0 20 20"
+                viewBox="0 0 24 24"
                 width="20"
               />
               <span>
@@ -3973,7 +3977,7 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
                   class="mt-icon"
                   fill="none"
                   height="16"
-                  viewBox="0 0 16 16"
+                  viewBox="0 0 24 24"
                   width="16"
                 />
                 <span>
@@ -4109,7 +4113,7 @@ exports[`the screens in Arabic > the review of the progress, a page the chat did
         class="mt-icon mt-chevron"
         fill="none"
         height="16"
-        viewBox="0 0 16 16"
+        viewBox="0 0 24 24"
         width="16"
       />
     </button>
@@ -4447,7 +4451,7 @@ exports[`the screens in Arabic > the review of the progress, opened 1`] = `
         class="mt-icon mt-chevron"
         fill="none"
         height="16"
-        viewBox="0 0 16 16"
+        viewBox="0 0 24 24"
         width="16"
       />
     </button>
@@ -4724,6 +4728,7 @@ exports[`the screens in Arabic > the task 1`] = `
       <svg
         aria-hidden="true"
         class="mt-icon"
+        fill="none"
         height="24"
         viewBox="0 0 24 24"
         width="24"
@@ -4744,7 +4749,7 @@ exports[`the screens in Arabic > the task 1`] = `
         class="mt-icon mt-chevron"
         fill="none"
         height="16"
-        viewBox="0 0 16 16"
+        viewBox="0 0 24 24"
         width="16"
       />
     </button>
@@ -4758,7 +4763,7 @@ exports[`the screens in Arabic > the task 1`] = `
           aria-hidden="true"
           class="mt-icon"
           height="32"
-          viewBox="0 0 32 32"
+          viewBox="0 0 48 48"
           width="32"
         />
         <div
@@ -4970,7 +4975,7 @@ exports[`the screens in Arabic > the wait for a task asked for 1`] = `
         aria-hidden="true"
         class="mt-icon"
         height="32"
-        viewBox="0 0 32 32"
+        viewBox="0 0 48 48"
         width="32"
       />
       <div
@@ -5025,7 +5030,7 @@ exports[`the screens in Arabic > the wait for a task asked for 1`] = `
                     class="mt-icon mt-spin"
                     fill="none"
                     height="20"
-                    viewBox="0 0 20 20"
+                    viewBox="0 0 24 24"
                     width="20"
                   />
                 </span>
@@ -5053,7 +5058,7 @@ exports[`the screens in Arabic > the wait for a task asked for 1`] = `
                   class="mt-icon"
                   fill="none"
                   height="20"
-                  viewBox="0 0 20 20"
+                  viewBox="0 0 24 24"
                   width="20"
                 />
               </span>
@@ -5080,7 +5085,7 @@ exports[`the screens in Arabic > the wait for a task asked for 1`] = `
                   class="mt-icon"
                   fill="none"
                   height="20"
-                  viewBox="0 0 20 20"
+                  viewBox="0 0 24 24"
                   width="20"
                 />
               </span>
@@ -5107,7 +5112,7 @@ exports[`the screens in Arabic > the wait for a task asked for 1`] = `
                   class="mt-icon"
                   fill="none"
                   height="20"
-                  viewBox="0 0 20 20"
+                  viewBox="0 0 24 24"
                   width="20"
                 />
               </span>
@@ -5147,6 +5152,7 @@ exports[`the screens in Arabic > the wait for a task being written, a try turned
       <svg
         aria-hidden="true"
         class="mt-icon"
+        fill="none"
         height="24"
         viewBox="0 0 24 24"
         width="24"
@@ -5167,7 +5173,7 @@ exports[`the screens in Arabic > the wait for a task being written, a try turned
         class="mt-icon mt-chevron"
         fill="none"
         height="16"
-        viewBox="0 0 16 16"
+        viewBox="0 0 24 24"
         width="16"
       />
     </button>
@@ -5181,7 +5187,7 @@ exports[`the screens in Arabic > the wait for a task being written, a try turned
           aria-hidden="true"
           class="mt-icon"
           height="32"
-          viewBox="0 0 32 32"
+          viewBox="0 0 48 48"
           width="32"
         />
         <div
@@ -5238,7 +5244,7 @@ exports[`the screens in Arabic > the wait for a task being written, a try turned
                     class="mt-icon"
                     fill="none"
                     height="20"
-                    viewBox="0 0 20 20"
+                    viewBox="0 0 24 24"
                     width="20"
                   />
                 </span>
@@ -5268,7 +5274,7 @@ exports[`the screens in Arabic > the wait for a task being written, a try turned
                       class="mt-icon mt-spin"
                       fill="none"
                       height="20"
-                      viewBox="0 0 20 20"
+                      viewBox="0 0 24 24"
                       width="20"
                     />
                   </span>
@@ -5296,7 +5302,7 @@ exports[`the screens in Arabic > the wait for a task being written, a try turned
                     class="mt-icon"
                     fill="none"
                     height="20"
-                    viewBox="0 0 20 20"
+                    viewBox="0 0 24 24"
                     width="20"
                   />
                 </span>
@@ -5323,7 +5329,7 @@ exports[`the screens in Arabic > the wait for a task being written, a try turned
                     class="mt-icon"
                     fill="none"
                     height="20"
-                    viewBox="0 0 20 20"
+                    viewBox="0 0 24 24"
                     width="20"
                   />
                 </span>

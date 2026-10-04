@@ -434,7 +434,7 @@ func TestEveryStepOfTheLessonWritesAFileTheSchemaDescribes(t *testing.T) {
 	answer := func(choice string) func() error {
 		return func() error {
 			_, err := p.Record(profile.Answered{TaskID: p.CurrentTask.ID, Choice: choice, At: asked.Add(time.Minute)},
-				newSealer(t))
+				newSealer(t), everyLevel)
 			return err
 		}
 	}

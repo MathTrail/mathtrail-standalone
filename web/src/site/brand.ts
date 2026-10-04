@@ -33,9 +33,11 @@ export const issuesURL = `${sourceURL}/issues`;
 export const contactAddress = "altedtech.info@gmail.com";
 
 /**
- * markPath is where the product's mark is served. One file is both the icon a
+ * markPath is where the product's logo is served. One file is both the icon a
  * browser shows on the tab and the mark beside the name in the header, so the
- * two cannot drift apart.
+ * two cannot drift apart. The address never changes: an icon shown away from
+ * the site is kept by its address and fetched again only seldom, so a new
+ * address would leave the old icon showing.
  */
 export const markPath = "/assets/favicon.svg";
 

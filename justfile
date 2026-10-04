@@ -1165,6 +1165,58 @@ usage since="1h" service="mathtrail":
     echo "| Instance-seconds billed | $(printf '%.1f' "$billed") | |"
     echo "| Most instances that served in one minute | $(printf '%.1f' "$instances") | |"
 
+# The main numbers of the counts kept for years, the latest months first, as
+# a grant application states them: by default as the public views show them —
+# whole months, no group of fewer than ten children, every number to the
+# nearest five — so that they may go anywhere, and given private, every month
+# counted, the one under way among them, in exact numbers. Below the table,
+# the days no night counted: the nightly query tells its failures to nobody
+# but this. The SQL is in infra/analytics/impact/, where the tests of the
+# counts run it too; it reads BigQuery with bq, as the deployment the
+# Terraform configuration names.
+# The main numbers of the counts kept for years, for grant applications
+impact view="public" months="3":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if ! command -v bq > /dev/null; then
+        echo "impact: this environment has bq on x86_64 alone." >&2
+        exit 1
+    fi
+    months="{{ months }}"
+    if [[ ! "$months" =~ ^[1-9][0-9]?$ ]]; then
+        echo "impact: months is a whole number from 1 to 99, not $months" >&2
+        exit 1
+    fi
+    case "{{ view }}" in
+    public) about="As the public views show them: whole months of ten children or more, every number to the nearest five, and none of a group of fewer than ten." ;;
+    private) about="Exact numbers, for the owner: every month counted, the one under way among them." ;;
+    *)
+        echo "impact: the view is public or private, not {{ view }}" >&2
+        exit 1
+        ;;
+    esac
+    project=$(just _project)
+    # The names the SQL is written with, filled in as the tests fill them.
+    sql() {
+        sed -e "s/\${impact}/$project.impact/g" -e "s/\${public}/$project.impact_public/g" \
+            -e "s/\${private}/$project.impact_private/g" -e "s/\${months}/$months/g" "infra/analytics/impact/$1.sql"
+    }
+    read_rows() { bq --project_id="$project" --quiet query --nouse_legacy_sql --format=json --max_rows=1000 "$1"; }
+    echo "# The counts kept for years"
+    echo
+    echo "$about Children are counted by the month: a child is the same child all month, and the next month is counted afresh."
+    echo
+    echo "| Month | Children | New | In the US | Signed in from the US | Tasks | Answers | Tasks a child a week | Active days a child | Topics won |"
+    echo "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|"
+    read_rows "$(sql "{{ view }}")" | jq -r '.[] | "| " + ([.month, .learners, .new_learners, .in_us, .signed_in_from_us, .tasks, .answers, .tasks_per_child_week, .active_days_per_child, .topics_won] | map(. // "—") | join(" | ")) + " |"'
+    echo
+    gaps=$(read_rows "$(sql missing)" | jq -r '.[].day')
+    if [ -z "$gaps" ]; then
+        echo "Every day from the first counted to yesterday was counted."
+    else
+        echo "Days no night counted, to be made up by the next night while the raw lines still hold them: $(echo "$gaps" | paste -sd ' ')."
+    fi
+
 
 # -- Golden vectors from the prototype --------------------------------------
 

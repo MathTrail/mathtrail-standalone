@@ -76,26 +76,20 @@ export function doiAddress(source: Pick<Source, "doi">): string {
 	return doiResolver + source.doi.split("/").map(encodeURIComponent).join("/");
 }
 
-/** doiShown is source's DOI as a reader reads it: at its resolver, unescaped. */
-export function doiShown(source: Pick<Source, "doi">): string {
-	return doiResolver + source.doi;
-}
-
 /** WhyCard is the card of a wrong answer the page shows, but for its words. */
 export type WhyCard = WhyFile["card"];
 
 /**
  * Why is what the page "Why" draws from the site's data: the card, the topics
  * it names as examples by the slot each fills, the works its findings come
- * from in the order it shows them, the work behind what it says of children's
- * apps, and every work it cites, in the order it first cites them.
+ * from in the order it shows them, and the work behind what it says of
+ * children's apps.
  */
 export type Why = {
 	readonly card: WhyCard;
 	readonly topics: Readonly<Record<string, string>>;
 	readonly findings: readonly Source[];
 	readonly apps: Source;
-	readonly sources: readonly Source[];
 };
 
 export type { CardWords, WrongAnswer } from "./taskcard";
@@ -112,8 +106,7 @@ const whyTask = "site_why";
  * one that answers right, and one the widget could not draw. A topic named as
  * an example that the catalog does not have is refused: the page would show
  * its id. A finding of a work the data does not have is refused, and so is a
- * work no part of the page cites: it would be listed among the sources and
- * back nothing.
+ * work no part of the page cites: it would back nothing.
  */
 export function readWhy(catalog: CardCatalog, file: WhyFile): Why {
 	checkCard(catalog, file.card, whyCard);
@@ -147,7 +140,6 @@ export function readWhy(catalog: CardCatalog, file: WhyFile): Why {
 		topics: file.topics,
 		findings: file.findings.map(sourceOf),
 		apps: sourceOf(file.apps),
-		sources: [...new Set(cited)].map(sourceOf),
 	};
 }
 

@@ -56,6 +56,7 @@ type saveProfileIn struct {
 	UILanguage     *string  `json:"ui_language,omitempty" jsonschema:"the language of the lessons — the tasks, the cards and your words — as a BCP 47 tag, such as en, ru or pt-BR. An empty text makes them follow the chat's language"`
 	Country        *string  `json:"country,omitempty" jsonschema:"the country the family lives in, as an ISO 3166-1 alpha-2 code such as US or FR. It is kept only to count families by country: set it only when the adult says it of their own accord, and never ask for it. An empty text clears it, and the state with it"`
 	Region         *string  `json:"region,omitempty" jsonschema:"for a family in the United States, its state as an ISO 3166-2 code such as US-TX, set only when the adult says it of their own accord. An empty text clears it"`
+	LessonTopic    *string  `json:"lesson_topic,omitempty" jsonschema:"the topic to keep the lessons to, by its id from the list in the description of next_task: once the trial series is over, every task is on it until the choice is given back. Set it only when the child or the adult asks to keep to one topic; an empty text gives the choice back to the rule"`
 	StartOver      bool     `json:"start_over,omitempty" jsonschema:"true only when a result said the profile file cannot be read, was saved by a version of MathTrail this one cannot read, or is in the Google Drive bin, and the adult asked for a new profile instead. The old file is set aside, not deleted, and a new profile starts from the pseudonym and grade given. A profile this version can read is never started over"`
 }
 
@@ -70,6 +71,7 @@ func (in *saveProfileIn) edit() profile.Edit {
 		UILanguage:     in.UILanguage,
 		Country:        in.Country,
 		Region:         in.Region,
+		LessonTopic:    in.LessonTopic,
 	}
 }
 
@@ -189,7 +191,7 @@ func (s *Service) writeProfile(ctx context.Context, account store.Account, in *s
 func (s *Service) saveChange(ctx context.Context, account store.Account, p *profile.Profile, revision store.Revision,
 	edit *profile.Edit,
 ) (bool, []profile.Problem, error) {
-	changed, problems := p.Change(edit, s.content.HasSkill, s.version, s.now())
+	changed, problems := p.Change(edit, s.content, s.version, s.now())
 	if !changed {
 		return false, problems, nil
 	}
@@ -206,7 +208,7 @@ const sayWhatWasSaved = "No card shows the profile: tell the adult in a sentence
 // createProfile makes the first profile of an account. The grade decides
 // where the child starts on the ladder, once, here.
 func (s *Service) createProfile(ctx context.Context, account store.Account, edit *profile.Edit) (Reply[profileOut], error) {
-	student, problems := profile.NewStudent(edit, s.content.HasSkill)
+	student, problems := profile.NewStudent(edit, s.content)
 	if len(problems) > 0 {
 		return s.refusal(nil, problems)
 	}
@@ -222,7 +224,7 @@ func (s *Service) createProfile(ctx context.Context, account store.Account, edit
 // child starts again from the grade given, and the old file is set aside
 // rather than deleted.
 func (s *Service) startOver(ctx context.Context, account store.Account, edit *profile.Edit) (Reply[profileOut], error) {
-	student, problems := profile.NewStudent(edit, s.content.HasSkill)
+	student, problems := profile.NewStudent(edit, s.content)
 	if len(problems) > 0 {
 		return s.refusal(nil, problems)
 	}
@@ -243,8 +245,8 @@ func (s *Service) profileReply(p *profile.Profile, lead string) (Reply[profileOu
 	}
 	trial := progress.TrialOf(p)
 	return Reply[profileOut]{
-		Text: joined(lead, s.detailsText(&p.Student), notesText(p.Student.Notes), stillInText(p), trialLine(trial),
-			s.lastAnswerText(p), s.nextText(&next)),
+		Text: joined(lead, s.detailsText(&p.Student), notesText(p.Student.Notes), s.lessonTopicText(p), stillInText(p),
+			s.topicStillText(p), trialLine(trial), s.lastAnswerText(p), s.nextText(&next)),
 		Payload: profileOut{
 			Screen:         screenProfile,
 			LastAnswer:     lastAnswerOf(p),

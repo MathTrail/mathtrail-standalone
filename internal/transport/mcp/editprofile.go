@@ -16,7 +16,8 @@ const codeStaleProfile = "stale_profile"
 
 // editProfileIn is what the form on a card sends: the details the adult
 // changed, and no others, so that a change the model made in the chat while
-// the form was open is not written over. A field left out stays as it is. The
+// the form was open is not written over — or, from the card of a task, the
+// topic of the lessons alone. A field left out stays as it is. The
 // parent's notes and starting over are not among them, and the schema refuses
 // either: the notes are the adult's words to the model, said in the chat, and
 // starting over is for a file nothing can read, which no card shows.
@@ -28,6 +29,7 @@ type editProfileIn struct {
 	UILanguage     *string  `json:"ui_language,omitempty" jsonschema:"the language of the lessons, as a BCP 47 tag. An empty text makes them follow the chat's language"`
 	Country        *string  `json:"country,omitempty" jsonschema:"the country the family lives in, as an ISO 3166-1 alpha-2 code. An empty text clears it, and the state with it"`
 	Region         *string  `json:"region,omitempty" jsonschema:"for a family in the United States, its state as an ISO 3166-2 code. An empty text clears it"`
+	LessonTopic    *string  `json:"lesson_topic,omitempty" jsonschema:"the topic of the catalog to keep the lessons to, by its id: once the trial series is over, every task is on it. An empty text gives the choice back to the rule"`
 }
 
 // edit is the change the form asks for.
@@ -40,7 +42,15 @@ func (in *editProfileIn) edit() profile.Edit {
 		UILanguage:     in.UILanguage,
 		Country:        in.Country,
 		Region:         in.Region,
+		LessonTopic:    in.LessonTopic,
 	}
+}
+
+// topicAlone reports whether the change is the topic of the lessons and
+// nothing else: the choice made on the card of a task, rather than the form.
+func (in *editProfileIn) topicAlone() bool {
+	return in.LessonTopic != nil && in.Pseudonym == nil && in.Grade == nil && in.Interests == nil &&
+		in.ExcludedSkills == nil && in.UILanguage == nil && in.Country == nil && in.Region == nil
 }
 
 // editedOut is what edit_profile hands back to the card: the details as they
@@ -62,8 +72,8 @@ func (s *Service) editProfileTool() Tool {
 	return Define(Spec{
 		Name:  "edit_profile",
 		Title: "Change the child's profile from the card",
-		Description: "Changes the child's details from the form in the progress's Profile section: the fields sent, " +
-			"and no other. Only the card calls it.",
+		Description: "Changes the child's details from the form in the progress's Profile section, or the topic " +
+			"of the lessons chosen on the card of a task: the fields sent, and no other. Only the card calls it.",
 		Idempotent: true,
 		WidgetOnly: true,
 	}, s.editProfile)
@@ -108,9 +118,11 @@ func (s *Service) writeEdit(ctx context.Context, account store.Account, in *edit
 		reply.Payload.Problems, lines = problemsOf(problems)
 		reply.Payload.Status, reply.Payload.Code = statusRejected, codeInvalidProfile
 		reply.Text = "Nothing was saved: " + lines + "."
+	case changed && in.topicAlone():
+		reply.Text = s.topicChangedText(p)
 	case changed:
 		reply.Text = joined("The adult changed the child's profile with the form on a card.",
-			s.detailsText(&p.Student), stillInText(p))
+			s.detailsText(&p.Student), s.lessonTopicText(p), stillInText(p))
 	default:
 		reply.Text = "Nothing changed: the profile already says so."
 	}

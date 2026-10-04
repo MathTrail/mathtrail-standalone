@@ -49,10 +49,11 @@ func TestAChanceFallsInItsRange(t *testing.T) {
 
 // Only an answer to a task the rule chose, after the trial series and without
 // the hint, is weighed against its chance: the model's tasks, a task whose
-// chooser is not known, the trial series, the hint, and a line that carries no
-// chance or no range of answers — one written before lines carried them, or one
-// cut short — are left out of both tables. A whole number reads the
-// same as Cloud Logging gives it back, 0.0 for 0.
+// topic a person chose, a task whose chooser is not known, the trial series,
+// the hint, and a line that carries no chance or no range of answers — one
+// written before lines carried them, or one cut short — are left out of both
+// tables. A whole number reads the same as Cloud Logging gives it back, 0.0
+// for 0.
 func TestOnlyTheRulesAnswersAfterTheSeriesWithoutTheHintAreWeighed(t *testing.T) {
 	t.Parallel()
 
@@ -60,6 +61,7 @@ func TestOnlyTheRulesAnswersAfterTheSeriesWithoutTheHintAreWeighed(t *testing.T)
 		answerLine(0.8, true, "rule", 0, "6-20", false),
 		`{"message":"answer_recorded","correct":false,"hint_used":false,"chance":0.8,"tutor_mode":"rule","trial":0.0,"answers_bucket":"6-20","instructions_version":"v1"}`,
 		answerLine(0.8, true, "llm", 0, "6-20", false),
+		answerLine(0.8, true, "person", 0, "6-20", false),
 		answerLine(0.8, true, "unknown", 0, "6-20", false),
 		answerLine(0.6, false, "rule", 3, "", false),
 		answerLine(0.8, true, "rule", 0, "6-20", true),
@@ -72,7 +74,7 @@ func TestOnlyTheRulesAnswersAfterTheSeriesWithoutTheHintAreWeighed(t *testing.T)
 	if weighed == nil || weighed.answers != 2 || weighed.right != 1 || kept == nil || kept.answers != 2 {
 		t.Errorf("weighed %+v and %+v, want the rule's two answers in each table", weighed, kept)
 	}
-	want := map[string]int{leftModel: 1, leftUnknown: 1, leftTrial: 1, leftHint: 1, leftOld: 2}
+	want := map[string]int{leftModel: 1, leftPerson: 1, leftUnknown: 1, leftTrial: 1, leftHint: 1, leftOld: 2}
 	if !maps.Equal(c.answersLeftOut, want) {
 		t.Errorf("left out %v, want %v", c.answersLeftOut, want)
 	}
@@ -84,7 +86,7 @@ func TestEveryAnswerIsWeighedOnceInEachTableOrLeftOut(t *testing.T) {
 	t.Parallel()
 
 	answer := gopter.CombineGens(
-		gen.Float64Range(0.2, 1), gen.Bool(), gen.OneConstOf("rule", "llm", "unknown", ""),
+		gen.Float64Range(0.2, 1), gen.Bool(), gen.OneConstOf("rule", "llm", "person", "unknown", ""),
 		gen.IntRange(0, 5), gen.OneConstOf("", "6-20", "21-50", "201+"), gen.OneConstOf(false, true),
 	).Map(func(drawn []any) string {
 		chance, _ := drawn[0].(float64)

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"slices"
 	"strings"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
@@ -139,8 +138,9 @@ func (s *Service) getProgressTool() Tool {
 			"the strong ones, the ones to develop and what to do next, each step with its advice and its " +
 			"topic's page on the site, which you pass on only as given here. Tell the " +
 			"adult the review in plain words; a topic too early to judge is no verdict on it. To practise a " +
-			"topic it names, call next_task with that topic and a reason once the child wants a task. Present " +
-			"it encouragingly.",
+			"topic it names, call next_task with that topic and a reason once the child wants a task — or, while " +
+			"the lessons are kept to a topic someone chose, offer to change that choice with save_profile. " +
+			"Present it encouragingly.",
 		ReadOnly:   true,
 		Idempotent: true,
 		DrawsCard:  true,
@@ -207,7 +207,7 @@ func (s *Service) readProgress(ctx context.Context, account store.Account) (Repl
 			Review:         reviewOf(review),
 			Recommendation: recommendationOf(&summary.Next),
 			Location:       location,
-			Site:           &siteOut{URL: s.site, Languages: slices.Clone(siteLanguages)},
+			Site:           s.siteOut(),
 		},
 	}, nil
 }

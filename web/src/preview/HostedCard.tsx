@@ -82,9 +82,11 @@ export function HostedCard({
 		});
 		let taken = false;
 		host.addEventListener("initialized", async () => {
-			// A task caught being asked for is told as far as its call got, and
-			// never its result.
+			// A task caught being asked for is told its call's arguments — the
+			// lesson asked for in the language the page is shown in — and as far
+			// as the call got, and never its result.
 			if (scene.caught !== undefined) {
+				await host.sendToolInput({ arguments: { language: locale } });
 				if (scene.caught === "cancelled") {
 					await host.sendToolCancelled({});
 				}

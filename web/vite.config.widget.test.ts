@@ -11,7 +11,7 @@ import { Icon } from "./src/design/icons.tsx";
 import { pseudoLocale } from "./src/i18n/pseudo.ts";
 import config from "./vite.config.widget.ts";
 
-let out: string;
+let out: string | undefined;
 let files: string[];
 let page: string;
 
@@ -28,8 +28,12 @@ beforeAll(async () => {
 	page = await readFile(join(out, "widget.html"), "utf8");
 }, 60_000);
 
+// A build that could not even make its directory has nothing to take away,
+// and its own failure is the one to tell.
 afterAll(async () => {
-	await rm(out, { recursive: true, force: true });
+	if (out !== undefined) {
+		await rm(out, { recursive: true, force: true });
+	}
 });
 
 // The host runs the widget in a sandbox that lets it load nothing, so a build
@@ -53,42 +57,87 @@ test("the widget builds into one page that loads nothing from outside it", () =>
 });
 
 // The icons the card was first drawn with came from another app's design, and
-// the card draws its own. They are named here by the SHA-256 of their paths,
-// so that none of them is kept in the repository, not even as a test's words.
+// the card draws its own. Every part of their paths, from one move to the
+// next, is named here by its SHA-256, so that none of them is kept in the
+// repository, not even as a test's words, and an old part is found wherever it
+// is drawn: alone, inside a longer path, or put together with others.
 const borrowed = new Map([
-	["8d363870a61d2b688676f03646bed7a4a2157db375ed2dc97dd1f1393d47f5f8", "chevron-right"],
-	["a77c8a5184899b72e2a50aa706824dba812e5ab48844e40878a84de845a8449a", "chevron-left"],
+	[
+		"8d363870a61d2b688676f03646bed7a4a2157db375ed2dc97dd1f1393d47f5f8",
+		"chevron-right",
+	],
+	[
+		"a77c8a5184899b72e2a50aa706824dba812e5ab48844e40878a84de845a8449a",
+		"chevron-left",
+	],
 	["a03f5ab156762e7447dbec86b5e516649c5c435382f3018cd334fe53ca024db7", "check"],
-	["3fe400c78783024a37f5398e3353db4140d24f271a74a645d18041b7cff08f5a", "cross"],
-	["010fc08297ce23e950174653d97eb7fe80963b35c6f6738a93879e6cb8258e39", "hint"],
-	["41518db561fcc3c6d7f6c33754b1250c8bac205ec24fa041bd2a0b3c2124459f", "trap"],
-	["09131f29dfca5206a2517bf655bb4ab08b672255cf5a782750ac27ccadc06c6b", "the tick of a verdict and of a step done"],
-	["70e2d4b6b10859ff74f12e925a0203f0fb89755ac20e8f4f89bace77dfe3dd55", "the cross of a wrong verdict"],
-	["5b3a860e3b1261ed44a2db8e974880d0f3d9f16e0f03786e75a9084def496884", "the spinner's arc"],
-	["8092a7d0da337e475c4a0ee42802af970fe007a8c43656bbc3a10c94750e1694", "the card's mark"],
-	["8e610311a4122bfd986ea5a2863fd44d638e10fd6090dad35f7f014d6f0f1499", "the avatar"],
+	["9517c51141a3598e2ab41b6398aa8074466cf2b638050d138b1902fd0d59ab35", "cross"],
+	["cf085fb7d5cf054f8e0cecb70f1df319c1711a73f676f045a326fdfe225ff322", "cross"],
+	["5c4e3e41d8f78077e4a1d78a7921dc9a5bd15ce05b49cc4b2c12a7ee6fa5cdfc", "hint"],
+	["6aac2e08b22158c9b4328b4609053682a40be644f0923f4adcd9693d6d6df8b6", "hint"],
+	["b5be2f030588ff17d00bdc93886e6e3fee746d4bceaa8f317e9c690529437960", "hint"],
+	["81e7b4d3336a0e1ee91c9b5062757c93207bf5b5578c98a32fb15cce917a0cea", "trap"],
+	["a754ad7fc37cef7fc9c8a690e0d646ce480d28940e789bbf553fed22ab0ff68f", "trap"],
+	["292881d2bb9c531b4bc47f83cfc53abae4913ca2e6d7ac1599036d571616acdd", "trap"],
+	[
+		"09131f29dfca5206a2517bf655bb4ab08b672255cf5a782750ac27ccadc06c6b",
+		"the tick of a verdict and of a step done",
+	],
+	[
+		"1214a651c16133caba02417326b146d7beb4c6e98557223477272a0041fdb833",
+		"the cross of a wrong verdict",
+	],
+	[
+		"617d1ea1c20f6505f0a65a4410800995361394319cd5b1b8cd620f0571001ba4",
+		"the cross of a wrong verdict",
+	],
+	[
+		"5b3a860e3b1261ed44a2db8e974880d0f3d9f16e0f03786e75a9084def496884",
+		"the spinner's arc",
+	],
+	[
+		"8092a7d0da337e475c4a0ee42802af970fe007a8c43656bbc3a10c94750e1694",
+		"the card's mark",
+	],
+	[
+		"8e610311a4122bfd986ea5a2863fd44d638e10fd6090dad35f7f014d6f0f1499",
+		"the avatar",
+	],
 ]);
 
 test("the widget page draws none of the icons the first design took from another app", () => {
-	const drawn = pathsIn(page);
-	// The search finds what the card draws: the tick it draws now is among
-	// the paths it finds, so finding none of the old ones means something.
-	expect(drawn).toContain(pathOf(renderToString(h(Icon, { name: "check" }))));
+	const drawn = new Set(partsIn(page));
+	// The search finds what the card draws, so that finding none of the old
+	// parts means something: every part of the tick, a path of its own, and of
+	// a wrong verdict, a path the card puts together from a ring and a cross.
+	for (const name of ["check", "verdict-wrong"] as const) {
+		expect(
+			partsOf(pathOf(renderToString(h(Icon, { name })))).filter(
+				(part) => !drawn.has(part),
+			),
+		).toEqual([]);
+	}
 	expect(
-		drawn
-			.filter((d) => borrowed.has(sha256(d)))
-			.map((d) => `${borrowed.get(sha256(d))}: ${d}`),
+		[...drawn]
+			.map((part) => [borrowed.get(sha256(part)), part])
+			.filter(([name]) => name !== undefined)
+			.map(([name, part]) => `${name}: ${part}`),
 	).toEqual([]);
 });
 
-// pathsIn is every string of page that reads as the path of a drawing: a
-// quoted run of path commands and numbers, starting with a move.
-function pathsIn(text: string): string[] {
-	return [
-		...text.matchAll(/(["'`])([Mm][\d\s.,+\-MmLlHhVvCcSsQqTtAaZz]*)\1/g),
-	]
-		.map((match) => match[2] ?? "")
-		.filter((d) => /\d/.test(d));
+// partsIn is every part of a path the page could draw: each run of path
+// commands and numbers that starts with a move, quoted or written into a
+// template between the parts it is put together from, cut before each move.
+function partsIn(text: string): string[] {
+	return [...text.matchAll(/[Mm][\d\s.,+\-MmLlHhVvCcSsQqTtAaZz]*/g)]
+		.flatMap(([run]) => partsOf(run))
+		.filter((part) => /\d/.test(part));
+}
+
+// partsOf is a path cut before each of its moves, each part without the
+// spaces or commas that part it from the next.
+function partsOf(d: string): string[] {
+	return d.split(/(?=[Mm])/).map((part) => part.replace(/[\s,]+$/, ""));
 }
 
 // pathOf is the path a drawing's markup draws.

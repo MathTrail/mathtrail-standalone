@@ -28,11 +28,16 @@ const idleHost: Host = {
 
 // notDrawnForATask is the call of a host that names no tool: the card waits for
 // its result with nothing to show.
-const notDrawnForATask: Call = { tool: undefined, stage: "started" };
+const notDrawnForATask: Call = {
+	tool: undefined,
+	stage: "started",
+	language: undefined,
+};
 
 // heldBridge is a bridge whose results arrive, and whose host names its locale,
 // when the test says, so the card can be caught before, between and after them.
-function heldBridge(hostLocale?: string) {
+// The card is drawn for call.
+function heldBridge(hostLocale?: string, call: Call = notDrawnForATask) {
 	let latest: ToolResult | undefined;
 	let locale = hostLocale;
 	const listeners = new Set<() => void>();
@@ -43,7 +48,7 @@ function heldBridge(hostLocale?: string) {
 	};
 	const bridge: Bridge = {
 		result: () => latest,
-		call: () => notDrawnForATask,
+		call: () => call,
 		locale: () => locale,
 		subscribe(listener) {
 			listeners.add(listener);
@@ -393,6 +398,73 @@ describe("the card's language", () => {
 		);
 
 		expect(languageOfPage()).toEqual(["ru", "ltr"]);
+	});
+
+	// askedIn is a task asked for in a language of the lesson's own, as the
+	// host tells a card the arguments of the call it was drawn for.
+	const askedIn = (language: string): Call => ({
+		tool: "next_task",
+		stage: "started",
+		language,
+	});
+
+	test("is the one the task was asked in before the result, over the host's", () => {
+		const { bridge } = heldBridge("en-US", askedIn("ru"));
+
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
+
+		expect(languageOfPage()).toEqual(["ru", "ltr"]);
+	});
+
+	test("stays the one the task was asked in when the result names none", () => {
+		const { bridge, deliver } = heldBridge("en-US", askedIn("ru"));
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
+
+		act(() =>
+			deliver({
+				screen: "waiting",
+				status: "limited",
+				code: "limit_reached",
+				child: { pseudonym: "Otter", grade: 2, ui_language: null },
+			}),
+		);
+
+		expect(languageOfPage()).toEqual(["ru", "ltr"]);
+	});
+
+	// Only a task's ask names the lesson's language: what the arguments of
+	// another call name says nothing of the lesson.
+	test("is not one the arguments of another call name", () => {
+		const { bridge, deliver } = heldBridge("en-US", {
+			tool: "get_progress",
+			stage: "started",
+			language: "ru",
+		});
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
+
+		act(() => deliver({ screen: "first_run", profile: null }));
+
+		expect(languageOfPage()).toEqual(["en", "ltr"]);
+	});
+
+	// The lesson's language is the parent's choice when there is one, and the
+	// ask cannot know it: the wait asked in the chat's language goes on in the
+	// lesson's once the service names it.
+	test("is the result's over the one the task was asked in", () => {
+		const { bridge, deliver } = heldBridge("en-US", askedIn("ru"));
+		act(() => render(<WidgetApp bridge={bridge} host={idleHost} />, root));
+
+		act(() =>
+			deliver({
+				screen: "coming",
+				request_id: "req_1",
+				child: { pseudonym: "Otter", grade: 2, ui_language: "ar" },
+				language: "ar",
+				last_answer: null,
+			}),
+		);
+
+		expect(languageOfPage()).toEqual(["ar", "rtl"]);
 	});
 
 	test("is the host's when the widget has no words in the one the parent chose", () => {

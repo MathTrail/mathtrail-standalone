@@ -130,6 +130,7 @@ content/          catalogs, reference tasks and model instructions, embedded
 site/             the public site's texts per locale — a page's words in YAML, the privacy policy and the terms in Markdown — the data its pages draw that no language changes (data.json), the solvers that prove the answers of a topic's examples with the Go test that runs them, its mark, and the pictures a shared link to it shows
 web/              the widget's and the site's code: the widget is built into internal/widget/, the site into site/dist/, and tools/sitecheck/ judges a built site, knowing nothing of how it was built
 infra/terraform/  the Google Cloud project as code — not to be confused with internal/infra/
+infra/analytics/  the SQL of the counts kept for years — the tables, the nightly query, the views of two reports — and its tests against a BigQuery emulator
 research/         the research program: a separate Go module that imports the product, never the reverse
 tools/load/       the load tool: a Go module of its own that imports the product, never the reverse
 tools/learners/   the learners' bench: simulated children through the product's own rating, rule and profile; a Go module of its own, like tools/load

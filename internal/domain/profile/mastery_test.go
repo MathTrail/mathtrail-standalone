@@ -53,56 +53,142 @@ func answerAt(t *testing.T, p *profile.Profile, point rating.Point, number int, 
 		Choice:   choice,
 		HintUsed: hint,
 		At:       issued.Add(time.Duration(number) * time.Hour),
-	}, newSealer(t))
+	}, newSealer(t), everyLevel)
 	if err != nil {
 		t.Fatalf("Record() error = %v, want nil", err)
 	}
 	return recorded
 }
 
-// Five answers behind the topic, then three hard ones in a row with no hint.
-// Not before: a lucky start must not master a topic on the third task.
-func TestATopicIsMasteredByAStreakAndNotBefore(t *testing.T) {
-	t.Parallel()
+// settled is a child of so many answers at this level overall, standing in
+// the topic at this correction over so many of its own, in a file the
+// cautious estimate's masteries are kept in.
+func settled(t *testing.T, theta float64, answers int, delta float64, inTopic int) *profile.Profile {
+	t.Helper()
 
 	p := parseFixture(t, "sasha")
+	p.Ratings.Theta, p.Ratings.Answers = theta, answers
+	p.Ratings.MasteryRule = profile.MasteryRuleCautious
+	p.Topics[masteredTopic] = profile.Topic{Delta: delta, Answers: inTopic, Correct: inTopic, Traps: map[string]int{}}
+	return p
+}
 
-	// The run is there from the first answer, and mastery is not: the topic
-	// has nothing behind it yet.
-	for number := 1; number <= profile.MasteryStreak; number++ {
-		recorded := answerHard(t, p, number, true, false)
-		if recorded.Mastered {
-			t.Fatalf("the topic was mastered on answer %d, before it had %d behind it",
-				number, profile.MasteryAnswers)
-		}
-	}
-	if got := p.Topics[masteredTopic].TopStreak; got != profile.MasteryStreak {
-		t.Fatalf("top_streak = %d, want %d", got, profile.MasteryStreak)
-	}
-	if p.Topics[masteredTopic].MasteredSince != nil {
-		t.Fatal("the topic is mastered on three answers, want the count to hold it back")
-	}
+// masteredAt says at which level the topic is held mastered, and since when.
+func wantMasteredAt(t *testing.T, p *profile.Profile, level rating.GradeLevel, since time.Time) {
+	t.Helper()
 
-	// The fourth and fifth bring the count up, and the fifth is where both
-	// halves of the criterion are true at once.
-	if recorded := answerHard(t, p, 4, true, false); recorded.Mastered {
-		t.Fatal("the topic was mastered on the fourth answer")
+	topic := p.Topics[masteredTopic]
+	if topic.MasteredLevel == nil || *topic.MasteredLevel != level {
+		t.Errorf("mastered at %v, want %s", topic.MasteredLevel, level)
 	}
-	recorded := answerHard(t, p, 5, true, false)
-	if !recorded.Mastered {
-		t.Fatalf("the topic was not mastered on the fifth answer with a run of %d",
-			p.Topics[masteredTopic].TopStreak)
+	if want := profile.DateOf(since); topic.MasteredSince == nil || !topic.MasteredSince.Equal(want.Time) {
+		t.Errorf("mastered since %v, want %v", topic.MasteredSince, want)
 	}
-	if since := p.Topics[masteredTopic].MasteredSince; since == nil {
-		t.Error("the topic is mastered and the day is not written down")
-	} else if got := since.Format("2006-01-02"); got != "2026-09-04" {
-		t.Errorf("mastered_since = %s, want the day of the answer that earned it", got)
-	}
+}
 
-	// And it is earned once: the next correct answer says nothing new.
-	if next := answerHard(t, p, 6, true, false); next.Mastered {
-		t.Error("the topic was mastered a second time")
+// Worked example 4 of the specification, in its masteries: a child of 79
+// answers, at 1.2, in a topic at 0.5 over nine answers. A right answer to a
+// task of 3-4 masters the topic at 1-2, the highest level the cautious level
+// clears; one wrong answer after it is a slip, and a second in a row loses it.
+func TestTheWorkedExampleOfMastery(t *testing.T) {
+	t.Parallel()
+
+	p := settled(t, 1.2, 79, 0.5, 9)
+
+	first := answerAt(t, p, rating.Point{GradeLevel: rating.Grades34, Difficulty: 1}, 1, true, false)
+	if !first.Mastered {
+		t.Fatal("the first answer did not master the topic, want it mastered at 1-2")
 	}
+	wantMasteredAt(t, p, rating.Grades12, issued.Add(time.Hour))
+
+	if slip := answerAt(t, p, rating.Point{GradeLevel: rating.Grades12, Difficulty: 4}, 2, false, false); slip.Mastered || slip.Unmastered {
+		t.Errorf("one wrong answer: mastered %v, unmastered %v; want a slip that changes nothing", slip.Mastered, slip.Unmastered)
+	}
+	wantMasteredAt(t, p, rating.Grades12, issued.Add(time.Hour))
+
+	if second := answerAt(t, p, rating.Point{GradeLevel: rating.Grades12, Difficulty: 3}, 3, false, false); !second.Unmastered {
+		t.Error("two wrong answers in a row left the topic mastered")
+	}
+	if topic := p.Topics[masteredTopic]; topic.MasteredSince != nil || topic.MasteredLevel != nil {
+		t.Errorf("mastered since %v at %v after two wrong answers in a row, want both cleared", topic.MasteredSince, topic.MasteredLevel)
+	}
+}
+
+// A topic needs five answers behind it before anything is declared, however
+// sure the estimate is: a lucky start must not master a topic on the third
+// task. Then a right and unaided answer masters it — and a right answer with
+// the hint, or a wrong one, does not.
+func TestMasteryWaitsForFiveAnswersAndARightUnaidedOne(t *testing.T) {
+	t.Parallel()
+
+	easy := rating.Point{GradeLevel: rating.Grades12, Difficulty: 3}
+	for _, tc := range []struct {
+		name          string
+		correct, hint bool
+		mastered      bool
+	}{
+		{"right and unaided", true, false, true},
+		{"right with the hint", true, true, false},
+		{"wrong", false, false, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			p := settled(t, 3, 100, 0, 0)
+			for number := 1; number < profile.MasteryAnswers; number++ {
+				if recorded := answerAt(t, p, easy, number, true, false); recorded.Mastered {
+					t.Fatalf("answer %d mastered the topic, before it had %d behind it", number, profile.MasteryAnswers)
+				}
+			}
+			fifth := answerAt(t, p, easy, profile.MasteryAnswers, tc.correct, tc.hint)
+			if fifth.Mastered != tc.mastered {
+				t.Errorf("the fifth answer mastered the topic: %v, want %v", fifth.Mastered, tc.mastered)
+			}
+		})
+	}
+}
+
+// Mastery is held at the level declared and rises only: a right answer that
+// clears the level held again adds nothing; one to a task of a higher level
+// whose middle task the cautious level clears masters the topic there, with a
+// new day; and a right answer to a task below the level held moves nothing
+// down.
+func TestMasteryIsHeldAtItsLevelAndOnlyRises(t *testing.T) {
+	t.Parallel()
+
+	p := settled(t, 4.5, 200, 0, 9)
+	since, level := profile.DateOf(issued), rating.Grades12
+	topic := p.Topics[masteredTopic]
+	topic.MasteredSince, topic.MasteredLevel = &since, &level
+	p.Topics[masteredTopic] = topic
+
+	if again := answerAt(t, p, rating.Point{GradeLevel: rating.Grades12, Difficulty: 3}, 1, true, false); again.Mastered {
+		t.Error("a right answer at the level held mastered the topic again")
+	}
+	wantMasteredAt(t, p, rating.Grades12, issued)
+
+	if higher := answerAt(t, p, rating.Point{GradeLevel: rating.Grades34, Difficulty: 3}, 30, true, false); !higher.Mastered {
+		t.Fatal("a right answer at 3-4 the cautious level clears did not master the topic there")
+	}
+	wantMasteredAt(t, p, rating.Grades34, issued.Add(30*time.Hour))
+
+	if lower := answerAt(t, p, rating.Point{GradeLevel: rating.Grades12, Difficulty: 3}, 31, true, false); lower.Mastered {
+		t.Error("a right answer below the level held mastered the topic again")
+	}
+	wantMasteredAt(t, p, rating.Grades34, issued.Add(30*time.Hour))
+}
+
+// mastered is a child whose topic the cautious estimate has mastered, at the
+// level of their grade.
+func mastered(t *testing.T) *profile.Profile {
+	t.Helper()
+
+	p := settled(t, 3, 100, 0, 10)
+	since, level := profile.DateOf(issued), rating.Grades34
+	topic := p.Topics[masteredTopic]
+	topic.MasteredSince, topic.MasteredLevel = &since, &level
+	p.Topics[masteredTopic] = topic
+	return p
 }
 
 // One wrong answer is a slip. Two in a row are not, and the topic goes back
@@ -110,22 +196,15 @@ func TestATopicIsMasteredByAStreakAndNotBefore(t *testing.T) {
 func TestMasteryIsLostByTwoWrongAnswersAndNotOne(t *testing.T) {
 	t.Parallel()
 
-	p := parseFixture(t, "sasha")
-	for number := 1; number <= profile.MasteryAnswers; number++ {
-		answerHard(t, p, number, true, false)
-	}
-	if p.Topics[masteredTopic].MasteredSince == nil {
-		t.Fatal("the topic was not mastered, so there is nothing to lose")
-	}
-
-	if slip := answerHard(t, p, 6, false, false); slip.Unmastered {
+	p := mastered(t)
+	if slip := answerHard(t, p, 1, false, false); slip.Unmastered {
 		t.Fatal("one wrong answer undid the mastery, want a slip to cost nothing")
 	}
 	if p.Topics[masteredTopic].MasteredSince == nil {
 		t.Fatal("mastered_since was cleared by one wrong answer")
 	}
 
-	second := answerHard(t, p, 7, false, false)
+	second := answerHard(t, p, 2, false, false)
 	if !second.Unmastered {
 		t.Error("two wrong answers in a row left the topic mastered")
 	}
@@ -137,26 +216,37 @@ func TestMasteryIsLostByTwoWrongAnswersAndNotOne(t *testing.T) {
 	}
 }
 
-// A correct answer in between breaks the run of failures, so the two wrong
-// ones have to be consecutive rather than merely two.
-func TestACorrectAnswerBreaksTheRunOfFailures(t *testing.T) {
+// Any right answer ends a run of failures, an easy one too: the child did not
+// get it wrong twice in a row, which is all that losing mastery is about.
+func TestARightAnswerBreaksTheRunOfFailures(t *testing.T) {
 	t.Parallel()
 
-	p := parseFixture(t, "sasha")
-	for number := 1; number <= profile.MasteryAnswers; number++ {
-		answerHard(t, p, number, true, false)
-	}
+	for _, tc := range []struct {
+		name  string
+		right func(t *testing.T, p *profile.Profile, number int) profile.Recorded
+	}{
+		{"a hard one", func(t *testing.T, p *profile.Profile, number int) profile.Recorded {
+			t.Helper()
+			return answerHard(t, p, number, true, false)
+		}},
+		{"an easy one", func(t *testing.T, p *profile.Profile, number int) profile.Recorded {
+			t.Helper()
+			return answerEasy(t, p, number, true)
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	answerHard(t, p, 6, false, false)
-	answerHard(t, p, 7, true, false)
-	if got := p.Topics[masteredTopic].WrongStreak; got != 0 {
-		t.Errorf("wrong_streak = %d after a correct answer, want it cleared", got)
-	}
-	if lost := answerHard(t, p, 8, false, false); lost.Unmastered {
-		t.Error("the topic was unmastered by two failures with a correct answer between them")
-	}
-	if p.Topics[masteredTopic].MasteredSince == nil {
-		t.Error("mastered_since was cleared by failures that were not consecutive")
+			p := mastered(t)
+			answerHard(t, p, 1, false, false)
+			tc.right(t, p, 2)
+			if got := p.Topics[masteredTopic].WrongStreak; got != 0 {
+				t.Errorf("wrong_streak = %d after a right answer, want it cleared", got)
+			}
+			if lost := answerHard(t, p, 3, false, false); lost.Unmastered {
+				t.Error("the topic was unmastered by two failures with a right answer between them")
+			}
+		})
 	}
 }
 
@@ -176,166 +266,73 @@ func TestATopicThatWasNeverMasteredLosesNothing(t *testing.T) {
 	}
 }
 
-// Answering is not the criterion: a topic answered easily seven times over is
-// a topic nobody has learned anything about. The run is what says the child
-// can do the hard half of the corridor, and without it the count means nothing.
-func TestEasyAnswersNeverAddUpToMastery(t *testing.T) {
+// top_streak counts what the earlier rule counted, for a build of that rule
+// reading the file: right answers in a row at the middle of the corridor or
+// harder and unaided, held where they are by an easy or a hinted right answer,
+// ended by a wrong one, and spent once three of them complete in a topic of
+// five answers or more. A task of 5-6 is hard for a child of grade 4 however
+// the first answers move them, and one of 1-2 is easy.
+func TestTopStreakCountsWhatTheEarlierRuleCounted(t *testing.T) {
 	t.Parallel()
 
 	p := parseFixture(t, "sasha")
-	for number := 1; number <= profile.MasteryAnswers+2; number++ {
-		if earned := answerEasy(t, p, number, true); earned.Mastered {
-			t.Fatalf("easy answer %d mastered the topic", number)
+	hard := rating.Point{GradeLevel: rating.Grades56, Difficulty: 5}
+	easy := rating.Point{GradeLevel: rating.Grades12, Difficulty: 1}
+	for number, step := range []struct {
+		name          string
+		point         rating.Point
+		correct, hint bool
+		want          int
+	}{
+		{"a hard right answer", hard, true, false, 1},
+		{"a second one", hard, true, false, 2},
+		{"an easy right answer", easy, true, false, 2},
+		{"a hard right answer with the hint", hard, true, true, 2},
+		{"a third hard one, in a topic of five answers", hard, true, false, 0},
+		{"a hard right answer after it", hard, true, false, 1},
+		{"a wrong answer", hard, false, false, 0},
+	} {
+		answerAt(t, p, step.point, number+1, step.correct, step.hint)
+		if got := p.Topics[masteredTopic].TopStreak; got != step.want {
+			t.Errorf("top_streak = %d after %s, want %d", got, step.name, step.want)
 		}
 	}
-
-	topic := p.Topics[masteredTopic]
-	if topic.Answers < profile.MasteryAnswers {
-		t.Fatalf("the topic has %d answers, and the case needs at least %d", topic.Answers, profile.MasteryAnswers)
-	}
-	if topic.TopStreak != 0 {
-		t.Errorf("top_streak = %d after only easy answers, want none of them to count", topic.TopStreak)
-	}
-	if topic.MasteredSince != nil {
-		t.Error("the topic was mastered by answers that proved nothing")
-	}
 }
 
-// Any correct answer ends a run of failures, even one that earns nothing
-// toward mastery: the child did not get it wrong twice in a row, which is all
-// that losing mastery is about.
-func TestAnEasyCorrectAnswerAlsoBreaksTheRunOfFailures(t *testing.T) {
+// A file the earlier rule wrote holds its masteries, two in three of them
+// declared too soon. They count for nothing, and the first answer recorded
+// into the file clears every one and marks the file — before that answer is
+// judged, so the answer can master a topic by the cautious estimate itself.
+func TestTheMasteriesOfTheEarlierRuleAreCleared(t *testing.T) {
 	t.Parallel()
 
-	p := parseFixture(t, "sasha")
-	for number := 1; number <= profile.MasteryAnswers; number++ {
-		answerHard(t, p, number, true, false)
-	}
-	if p.Topics[masteredTopic].MasteredSince == nil {
-		t.Fatal("the topic was not mastered, so there is nothing to lose")
-	}
-
-	answerHard(t, p, 6, false, false)
-	answerEasy(t, p, 7, true)
-	if got := p.Topics[masteredTopic].WrongStreak; got != 0 {
-		t.Errorf("wrong_streak = %d after an easy correct answer, want it cleared", got)
-	}
-
-	if lost := answerHard(t, p, 8, false, false); lost.Unmastered {
-		t.Error("the topic was unmastered by two failures with a correct answer between them")
-	}
-}
-
-// Mastery is held at the level of the task whose answer earned it, and the
-// run that earned it is spent: mastering the topic again takes a run of its
-// own.
-func TestMasteryIsHeldAtTheLevelThatEarnedIt(t *testing.T) {
-	t.Parallel()
-
-	p := parseFixture(t, "sasha")
-	for number := 1; number <= profile.MasteryAnswers; number++ {
-		answerHard(t, p, number, true, false)
-	}
-	topic := p.Topics[masteredTopic]
-	if topic.MasteredSince == nil || topic.MasteredLevel == nil || *topic.MasteredLevel != rating.Grades34 {
-		t.Fatalf("mastered since %v at %v, want mastered at the level of the child's tasks, %s",
-			topic.MasteredSince, topic.MasteredLevel, rating.Grades34)
-	}
-	if topic.TopStreak != 0 {
-		t.Errorf("top_streak = %d after mastery, want the run spent", topic.TopStreak)
-	}
-}
-
-// A topic mastered at one level is mastered again at the next one by a run
-// completed there — which is what takes it out of the rotation again once its
-// tasks have moved up a level.
-func TestARunAtAHigherLevelMastersTheTopicThere(t *testing.T) {
-	t.Parallel()
-
-	p := parseFixture(t, "sasha")
-	p.Ratings.Answers = rating.TrialAnswers // past the series: the steps are the ordinary ones
-
-	younger := rating.Point{GradeLevel: rating.Grades12, Difficulty: 5}
-	number := 0
-	for ; number < profile.MasteryAnswers; number++ {
-		answerAt(t, p, younger, number+1, true, false)
-	}
-	if level := p.Topics[masteredTopic].MasteredLevel; level == nil || *level != rating.Grades12 {
-		t.Fatalf("mastered at %v, want %s after a run of its tasks", level, rating.Grades12)
-	}
-
-	own := rating.Point{GradeLevel: rating.Grades34, Difficulty: 5}
-	for run := 1; run <= profile.MasteryStreak; run++ {
-		number++
-		recorded := answerAt(t, p, own, number, true, false)
-		if recorded.Mastered != (run == profile.MasteryStreak) {
-			t.Errorf("answer %d of the run at %s: mastered %v, want mastery on answer %d of it and not before",
-				run, rating.Grades34, recorded.Mastered, profile.MasteryStreak)
-		}
-	}
-	topic := p.Topics[masteredTopic]
-	if topic.MasteredLevel == nil || *topic.MasteredLevel != rating.Grades34 {
-		t.Errorf("mastered at %v, want %s after a run of its own there", topic.MasteredLevel, rating.Grades34)
-	}
-	earned := profile.DateOf(issued.Add(time.Duration(number) * time.Hour))
-	if since := topic.MasteredSince; since == nil || !since.Equal(earned.Time) {
-		t.Errorf("mastered_since = %v, want %v, the day of the answer that earned it at the new level", since, earned)
-	}
-}
-
-// A run completed at a lower level than the one a topic is mastered at adds
-// nothing: the topic is already mastered where those tasks are, and mastery
-// never moves down a level. The case is set up rather than played out: a
-// child whose level fell after mastering the topic, one answer short of a run
-// of tasks of the level below.
-func TestARunBelowTheMasteredLevelAddsNothing(t *testing.T) {
-	t.Parallel()
-
-	p := parseFixture(t, "sasha")
-	p.Ratings.Answers, p.Ratings.Theta = rating.TrialAnswers, 1.0
+	p := settled(t, 3, 100, 0, 4)
+	p.Ratings.MasteryRule = ""
 	since, level := profile.DateOf(issued), rating.Grades34
-	p.Topics[masteredTopic] = profile.Topic{
-		Answers: 10, Correct: 8, MasteredSince: &since, MasteredLevel: &level,
-		TopStreak: profile.MasteryStreak - 1, Traps: map[string]int{},
+	p.Topics["logic.ordering"] = profile.Topic{Answers: 6, Correct: 6, MasteredSince: &since, MasteredLevel: &level, Traps: map[string]int{}}
+	if p.MasteriesStand() {
+		t.Fatal("a file not marked counts its masteries, want them counted for nothing")
 	}
 
-	younger := rating.Point{GradeLevel: rating.Grades12, Difficulty: 5}
-	recorded := answerAt(t, p, younger, 1, true, false)
-	if recorded.Probability > rating.CorridorMiddle {
-		t.Fatalf("the task had a chance of %v; the case needs it hard enough to count", recorded.Probability)
+	recorded := answerAt(t, p, rating.Point{GradeLevel: rating.Grades12, Difficulty: 3}, 1, true, false)
+	if !p.MasteriesStand() || p.Ratings.MasteryRule != profile.MasteryRuleCautious {
+		t.Errorf("mastery_rule = %q after an answer, want %q", p.Ratings.MasteryRule, profile.MasteryRuleCautious)
 	}
-	if recorded.Mastered {
-		t.Error("a run at a lower level mastered the topic again")
+	if earlier := p.Topics["logic.ordering"]; earlier.MasteredSince != nil || earlier.MasteredLevel != nil {
+		t.Errorf("the earlier rule's mastery survived the first answer: since %v at %v", earlier.MasteredSince, earlier.MasteredLevel)
 	}
-	if got := p.Topics[masteredTopic].MasteredLevel; got == nil || *got != rating.Grades34 {
-		t.Errorf("mastered at %v, want still %s", got, rating.Grades34)
+	if !recorded.Mastered {
+		t.Error("the answer that cleared the file did not master its own topic, want it judged by the cautious estimate")
 	}
 }
 
-// A run completed where the topic is already mastered earns nothing and is
-// spent all the same: mastering the topic a level up takes a run of its own
-// there, not one answer added to a run of the tasks below.
-func TestARunWhereTheTopicIsMasteredIsSpentToo(t *testing.T) {
+// A profile starts as the cautious estimate's: there is nothing in it to
+// clear.
+func TestANewProfileKeepsTheCautiousEstimatesMasteries(t *testing.T) {
 	t.Parallel()
 
-	p := parseFixture(t, "sasha")
-	p.Ratings.Answers, p.Ratings.Theta = rating.TrialAnswers, 1.0
-	since, level := profile.DateOf(issued), rating.Grades12
-	p.Topics[masteredTopic] = profile.Topic{
-		Answers: 10, Correct: 8, MasteredSince: &since, MasteredLevel: &level,
-		TopStreak: profile.MasteryStreak - 1, Traps: map[string]int{},
-	}
-
-	younger := rating.Point{GradeLevel: rating.Grades12, Difficulty: 5}
-	if completed := answerAt(t, p, younger, 1, true, false); completed.Mastered {
-		t.Fatal("a run at the level the topic is mastered at mastered it again")
-	}
-	if got := p.Topics[masteredTopic].TopStreak; got != 0 {
-		t.Errorf("top_streak = %d after a run completed where the topic is mastered, want it spent", got)
-	}
-
-	own := rating.Point{GradeLevel: rating.Grades34, Difficulty: 5}
-	if next := answerAt(t, p, own, 2, true, false); next.Mastered {
-		t.Errorf("one answer at %s mastered the topic there, want a run of its own", rating.Grades34)
+	p := profile.New(profile.Student{Pseudonym: "Comet", Grade: 3}, "test", issued)
+	if !p.MasteriesStand() {
+		t.Errorf("a new profile's mastery_rule is %q, want %q", p.Ratings.MasteryRule, profile.MasteryRuleCautious)
 	}
 }

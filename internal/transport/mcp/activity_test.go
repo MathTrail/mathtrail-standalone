@@ -172,11 +172,12 @@ func TestAChildIsCountedUnderOneNameAMonth(t *testing.T) {
 func TestATopicIsCountedAsMasteredEachTimeItIsWon(t *testing.T) {
 	t.Parallel()
 
-	p := raceOnTheCard(t, rating.TrialAnswers)
-	// A child the race is hard enough for to count towards a topic's run, one
-	// right answer short of mastering it.
-	p.Ratings.Theta = -1
-	p.Topics["logic.ordering"] = profile.Topic{Answers: 4, Correct: 4, TopStreak: profile.MasteryStreak - 1}
+	p := raceOnTheCard(t, 100)
+	// A child settled in the topic, whose level in it clears the middle of
+	// grades 1–2 less how far it may be off, and whom two wrong answers in a
+	// row move by too little to keep it from clearing it again.
+	p.Ratings.Theta = 2.05
+	p.Topics["logic.ordering"] = profile.Topic{Answers: 120, Correct: 120}
 	kept := keptAsIs(t, p)
 	h, session := lesson(t, kept)
 
@@ -187,13 +188,11 @@ func TestATopicIsCountedAsMasteredEachTimeItIsWon(t *testing.T) {
 		shown = append(shown, masteredIn(t, call(t, session, "read_progress", map[string]any{})))
 		raceAgain(t, kept, devAccount, lessonDay)
 	}
-	answer("C")                          // the run completes: mastered
-	answer("A")                          // a slip: still mastered
-	answer("A")                          // two wrong in a row: lost
-	answer("C")                          // a run begins again
-	answer("C")                          //
-	answer("C")                          // and completes: mastered again
-	wantShown := []int{1, 1, 0, 0, 0, 1} // the topics the progress calls mastered, after each answer
+	answer("C")                    // the level clears it: mastered
+	answer("A")                    // a slip: still mastered
+	answer("A")                    // two wrong in a row: lost
+	answer("C")                    // the level clears it still: mastered again
+	wantShown := []int{1, 1, 0, 1} // the topics the progress calls mastered, after each answer
 	if !slices.Equal(shown, wantShown) {
 		t.Fatalf("the progress shows %v topics mastered after each answer, want %v", shown, wantShown)
 	}
@@ -224,55 +223,39 @@ func TestATopicIsCountedAsMasteredEachTimeItIsWon(t *testing.T) {
 	}
 }
 
-// A run that earns a topic its mastery is counted only when it brings the
-// topic among those the progress calls mastered: not a run completed below
-// the level the topic's tasks come from now, which the progress does not call
-// mastered, and not one completed above the level the topic is shown mastered
-// at, which it already was.
+// A topic mastered is counted only when the answer brings it among the topics
+// the progress calls mastered: not when it is mastered below the level its
+// tasks come from now, which the progress does not call mastered. A topic the
+// progress calls mastered already is never mastered anew by one answer — the
+// level it would take clears the middle of a level its tasks do not come from
+// yet — so there is no second way for one mastery to be counted twice.
 func TestOnlyATopicTheProgressComesToCallMasteredIsCounted(t *testing.T) {
 	t.Parallel()
 
-	shownAt := rating.Grades12
-	for _, tc := range []struct {
-		name         string
-		theta, delta float64
-		level        rating.GradeLevel
-		difficulty   int
-		masteredAt   *rating.GradeLevel
-		wantShown    int
-	}{
-		{"a run completed below the level the topic's tasks come from now", 0.2, 1, rating.Grades12, 4, nil, 0},
-		{"a run completed above the level the topic is shown mastered at", -1, 0, rating.Grades34, 1, &shownAt, 1},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+	p := profile.New(profile.Student{Grade: 2, Pseudonym: "Otter", Interests: []string{"sport"}}, "test", lessonDay)
+	// A child whose level in the topic is past the tasks of grades 1–2, which
+	// it masters the topic at, and whose tasks in it now come from grades 3–4.
+	p.Ratings.Answers, p.Ratings.Theta = rating.TrialAnswers, 1.4
+	p.Topics["logic.ordering"] = profile.Topic{Answers: 4, Correct: 4, Delta: 1}
+	askForTheRaceAt(t, p, rating.Grades12, 4, lessonDay)
+	handOutTheRace(t, p, lessonDay)
+	kept := keptAsIs(t, p)
+	h, session := lesson(t, kept)
 
-			p := profile.New(profile.Student{Grade: 2, Pseudonym: "Otter", Interests: []string{"sport"}}, "test", lessonDay)
-			p.Ratings.Answers, p.Ratings.Theta = rating.TrialAnswers, tc.theta
-			topic := profile.Topic{Answers: 4, Correct: 4, TopStreak: profile.MasteryStreak - 1, Delta: tc.delta}
-			if tc.masteredAt != nil {
-				since := profile.DateOf(lessonDay.AddDate(0, 0, -3))
-				topic.MasteredSince, topic.MasteredLevel = &since, tc.masteredAt
-			}
-			p.Topics["logic.ordering"] = topic
-			askForTheRaceAt(t, p, tc.level, tc.difficulty, lessonDay)
-			handOutTheRace(t, p, lessonDay)
-			kept := keptAsIs(t, p)
-			h, session := lesson(t, kept)
+	answerIt(t, session, p.CurrentTask.ID, "C", false)
+	h.settle()
 
-			answerIt(t, session, p.CurrentTask.ID, "C", false)
-			h.settle()
-
-			if won := loadedOf(t, kept).Topics["logic.ordering"].MasteredLevel; won == nil || *won != tc.level {
-				t.Fatalf("the topic is mastered at %v, want the run to have mastered it at %s", won, tc.level)
-			}
-			if lines := linesOf(h, "topic_mastered"); len(lines) != 0 {
-				t.Errorf("topic_mastered lines = %d, want none", len(lines))
-			}
-			if got := theOnlyLine(t, h, "answer_recorded")["topics_mastered"]; got != int64(tc.wantShown) {
-				t.Errorf("answer_recorded topics_mastered = %v, want %d", got, tc.wantShown)
-			}
-		})
+	switch won := loadedOf(t, kept).Topics["logic.ordering"].MasteredLevel; {
+	case won == nil:
+		t.Fatalf("the topic is not mastered, want the answer to have mastered it at %s", rating.Grades12)
+	case *won != rating.Grades12:
+		t.Fatalf("the topic is mastered at %s, want %s", *won, rating.Grades12)
+	}
+	if lines := linesOf(h, "topic_mastered"); len(lines) != 0 {
+		t.Errorf("topic_mastered lines = %d, want none", len(lines))
+	}
+	if got := theOnlyLine(t, h, "answer_recorded")["topics_mastered"]; got != int64(0) {
+		t.Errorf("answer_recorded topics_mastered = %v, want 0, as the progress shows", got)
 	}
 }
 

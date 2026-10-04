@@ -22,6 +22,10 @@ const (
 	wrongTrap   = "off_by_one"
 )
 
+// everyLevel is what the mastery of a topic taught at every level is judged
+// among, as most topics of the catalog are.
+var everyLevel = rating.GradeLevels()
+
 // answering puts a task of this topic and difficulty on the card, at the level
 // of the child's own grade, so that a test can answer it.
 func answering(t *testing.T, p *profile.Profile, topic string, difficulty int) string {
@@ -70,7 +74,7 @@ func answeringAs(t *testing.T, p *profile.Profile, id, topic string, point ratin
 func give(t *testing.T, p *profile.Profile, id, choice string, at time.Time) profile.Recorded {
 	t.Helper()
 
-	recorded, err := p.Record(profile.Answered{TaskID: id, Choice: choice, At: at}, newSealer(t))
+	recorded, err := p.Record(profile.Answered{TaskID: id, Choice: choice, At: at}, newSealer(t), everyLevel)
 	if err != nil {
 		t.Fatalf("Record() error = %v, want nil", err)
 	}
@@ -254,7 +258,7 @@ func TestATaskWhoseSealWillNotOpenTakesNoAnswer(t *testing.T) {
 	id := answering(t, p, "counting.gaps", 3)
 	before := p.Ratings
 
-	_, err := p.Record(profile.Answered{TaskID: id, Choice: rightLetter, At: issued.Add(time.Minute)}, newOtherSealer(t))
+	_, err := p.Record(profile.Answered{TaskID: id, Choice: rightLetter, At: issued.Add(time.Minute)}, newOtherSealer(t), everyLevel)
 	if !errors.Is(err, profile.ErrSealed) {
 		t.Errorf("Record() error = %v, want %v", err, profile.ErrSealed)
 	}
@@ -276,13 +280,13 @@ func TestAnAnswerToSomethingElseIsRefused(t *testing.T) {
 	p := parseFixture(t, "dima")
 	before := p.Ratings
 
-	_, err := p.Record(profile.Answered{TaskID: "tsk_nothing", Choice: rightLetter, At: issued}, newSealer(t))
+	_, err := p.Record(profile.Answered{TaskID: "tsk_nothing", Choice: rightLetter, At: issued}, newSealer(t), everyLevel)
 	if !errors.Is(err, profile.ErrNoTask) {
 		t.Errorf("Record() error = %v, want %v", err, profile.ErrNoTask)
 	}
 
 	answering(t, p, "counting.gaps", 3)
-	_, err = p.Record(profile.Answered{TaskID: "tsk_answered_yesterday", Choice: rightLetter, At: issued}, newSealer(t))
+	_, err = p.Record(profile.Answered{TaskID: "tsk_answered_yesterday", Choice: rightLetter, At: issued}, newSealer(t), everyLevel)
 	if !errors.Is(err, profile.ErrOtherTask) {
 		t.Errorf("Record() error = %v, want %v", err, profile.ErrOtherTask)
 	}
@@ -395,7 +399,7 @@ func TestWhatCountsTowardMastering(t *testing.T) {
 			id := answering(t, p, topic, tc.difficulty)
 			recorded, err := p.Record(profile.Answered{
 				TaskID: id, Choice: tc.choice, HintUsed: tc.hint, At: issued.Add(time.Minute),
-			}, newSealer(t))
+			}, newSealer(t), everyLevel)
 			if err != nil {
 				t.Fatalf("Record() error = %v, want nil", err)
 			}
@@ -450,7 +454,7 @@ func TestAnAnswerNamingNoOptionIsRefused(t *testing.T) {
 			id := answering(t, p, "counting.gaps", 3)
 			before := p.Ratings
 
-			_, err := p.Record(profile.Answered{TaskID: id, Choice: choice, At: issued.Add(time.Minute)}, newSealer(t))
+			_, err := p.Record(profile.Answered{TaskID: id, Choice: choice, At: issued.Add(time.Minute)}, newSealer(t), everyLevel)
 			if !errors.Is(err, profile.ErrNoSuchOption) {
 				t.Errorf("Record() error = %v, want %v", err, profile.ErrNoSuchOption)
 			}
@@ -524,7 +528,7 @@ func TestAnAnswerToldAgainNeedsTheSeal(t *testing.T) {
 	give(t, p, id, rightLetter, issued.Add(time.Minute))
 	ratings, window := p.Ratings, len(p.Recent)
 
-	_, err := p.Record(profile.Answered{TaskID: id, Choice: rightLetter, At: issued.Add(time.Hour)}, newOtherSealer(t))
+	_, err := p.Record(profile.Answered{TaskID: id, Choice: rightLetter, At: issued.Add(time.Hour)}, newOtherSealer(t), everyLevel)
 	if !errors.Is(err, profile.ErrSealed) {
 		t.Errorf("Record() error = %v, want %v", err, profile.ErrSealed)
 	}
@@ -565,7 +569,7 @@ func TestOnlyAnAnswerRecordedHereIsToldAgain(t *testing.T) {
 			tc.edit(t, p, id)
 			ratings, window := p.Ratings, len(p.Recent)
 
-			told, err := p.Record(profile.Answered{TaskID: id, Choice: rightLetter, At: issued.Add(time.Hour)}, newSealer(t))
+			told, err := p.Record(profile.Answered{TaskID: id, Choice: rightLetter, At: issued.Add(time.Hour)}, newSealer(t), everyLevel)
 			if !errors.Is(err, profile.ErrSealed) || told.Right != "" || told.Solution != "" {
 				t.Errorf("Record() = %+v, %v; want %v and nothing told", told, err, profile.ErrSealed)
 			}
@@ -596,7 +600,7 @@ func TestAnAnswerTheTaskCannotBeSealedWithMovesNothing(t *testing.T) {
 	ratings, window, sealed := p.Ratings, len(p.Recent), p.CurrentTask.Sealed
 
 	answer := profile.Answered{TaskID: id, Choice: rightLetter, At: issued.Add(time.Minute)}
-	if _, err := p.Record(answer, sealsNoMore{newSealer(t)}); err == nil {
+	if _, err := p.Record(answer, sealsNoMore{newSealer(t)}, everyLevel); err == nil {
 		t.Fatal("Record() error = nil, want the sealing's failure")
 	}
 	if p.Ratings != ratings || len(p.Recent) != window || p.CurrentTask.Answered != nil || p.CurrentTask.Sealed != sealed {
@@ -607,13 +611,13 @@ func TestAnAnswerTheTaskCannotBeSealedWithMovesNothing(t *testing.T) {
 	}
 }
 
-// An answer says who chose its task, as the task kept it — the rule or the
-// model — and says nobody for a task handed out before the card kept that.
-// Told again, it says the same.
+// An answer says who chose its task, as the task kept it — the rule, the model
+// or the topic chosen for the lessons — and says nobody for a task handed out
+// before the card kept that. Told again, it says the same.
 func TestAnAnswerSaysWhoChoseItsTask(t *testing.T) {
 	t.Parallel()
 
-	for _, chose := range []profile.TutorMode{profile.TutorRule, profile.TutorLLM, ""} {
+	for _, chose := range []profile.TutorMode{profile.TutorRule, profile.TutorLLM, profile.TutorPerson, ""} {
 		t.Run(string(chose), func(t *testing.T) {
 			t.Parallel()
 

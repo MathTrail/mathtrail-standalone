@@ -2,12 +2,15 @@
 -- activity bucket keeps for 62 days, into tables that hold no name of any
 -- child and are kept for years.
 --
--- Every period whose first day the bucket still holds whole is counted again
--- from that day: a night that did not run is made up for by the next, and a
--- run made by hand counts what a night would. A period whose first day the
--- bucket no longer holds keeps the rows it was last counted to. A child is
--- counted under the name it has that month, and the children the load tool or
--- MCP Inspector handed a task to are not counted at all.
+-- A child is counted under the name it has that month, and the children the
+-- load tool or MCP Inspector handed a task to that month are not counted at
+-- all; so a period is counted whole only while the bucket holds every month a
+-- name in it was given for — what the exclusion has to read, from the first of
+-- each. While it does, every night counts the period again: a night that did
+-- not run is made up for by the next, and a run made by hand counts what a
+-- night would. Once it does not, the period keeps the rows it was last counted
+-- to, counted whole. A day or a week with no row yet is counted from what the
+-- bucket holds, which, the first days of the counting aside, is all of it.
 
 -- Yesterday: the last day whose lines are all in.
 DECLARE counted_until DATE DEFAULT DATE_SUB(CURRENT_DATE('UTC'), INTERVAL 1 DAY);
@@ -76,42 +79,29 @@ WHERE learner IN (
   WHERE event = 'task_accepted' AND host IN ('load', 'inspector')
 );
 
--- One night's counts land whole or not at all.
-BEGIN TRANSACTION;
-
--- Every day from the first the bucket holds whole to yesterday, a day with
--- nothing on it among them: a missing day is a night that never ran.
-DELETE FROM `${impact}.daily` WHERE day >= lines_from;
-INSERT INTO `${impact}.daily` (day, learners, learners_week, learners_month, tasks, answers, topics_won)
-SELECT
-  counted_day,
-  (SELECT COUNT(DISTINCT learner) FROM counted_lines
-    WHERE event = 'task_accepted' AND on_day = counted_day),
-  IF(DATE_SUB(counted_day, INTERVAL 6 DAY) < lines_from, NULL,
-    (SELECT COUNT(DISTINCT learner) FROM counted_lines
-      WHERE event = 'task_accepted' AND on_day BETWEEN DATE_SUB(counted_day, INTERVAL 6 DAY) AND counted_day)),
-  IF(DATE_TRUNC(counted_day, MONTH) < lines_from, NULL,
-    (SELECT COUNT(DISTINCT learner) FROM counted_lines
-      WHERE event = 'task_accepted' AND on_day BETWEEN DATE_TRUNC(counted_day, MONTH) AND counted_day)),
-  (SELECT COUNT(*) FROM counted_lines WHERE event = 'task_accepted' AND on_day = counted_day),
-  (SELECT COUNT(*) FROM counted_lines WHERE event = 'answer_recorded' AND on_day = counted_day),
-  (SELECT COUNT(*) FROM counted_lines WHERE event = 'topic_mastered' AND on_day = counted_day)
-FROM UNNEST(GENERATE_DATE_ARRAY(lines_from, counted_until)) AS counted_day;
-
 -- The children of each week and of each month, told apart by one thing at a
 -- time. A child is counted under the value of its latest task of the period,
 -- so that the values of a dimension add up to all and a child who moved from
 -- one host or grade to another is counted once.
-DELETE FROM `${impact}.learners_weekly` WHERE week >= weeks_from;
-INSERT INTO `${impact}.learners_weekly` (week, dimension, value, learners)
-SELECT latest.period, told.dimension, told.value, COUNT(*)
+CREATE TEMP TABLE told_apart AS
+SELECT latest.kind, latest.period, told.dimension, told.value
 FROM (
   SELECT
-    DATE_TRUNC(on_day, WEEK(MONDAY)) AS period,
-    host, language, grade, country, region, signin_country, cohort,
-    ROW_NUMBER() OVER (PARTITION BY DATE_TRUNC(on_day, WEEK(MONDAY)), learner ORDER BY written_at DESC) AS recency
-  FROM counted_lines
-  WHERE event = 'task_accepted' AND on_day >= weeks_from
+    kind, period, host, language, grade, country, region, signin_country, cohort,
+    ROW_NUMBER() OVER (PARTITION BY kind, period, learner ORDER BY written_at DESC) AS recency
+  FROM (
+    SELECT
+      'week' AS kind, DATE_TRUNC(on_day, WEEK(MONDAY)) AS period,
+      learner, written_at, host, language, grade, country, region, signin_country, cohort
+    FROM counted_lines
+    WHERE event = 'task_accepted'
+    UNION ALL
+    SELECT
+      'month' AS kind, DATE_TRUNC(on_day, MONTH) AS period,
+      learner, written_at, host, language, grade, country, region, signin_country, cohort
+    FROM counted_lines
+    WHERE event = 'task_accepted'
+  )
 ) AS latest,
 UNNEST([
   STRUCT('all' AS dimension, 'all' AS value),
@@ -123,32 +113,79 @@ UNNEST([
   STRUCT('signin_country' AS dimension, latest.signin_country AS value),
   STRUCT('cohort' AS dimension, latest.cohort AS value)
 ]) AS told
-WHERE latest.recency = 1
-GROUP BY latest.period, told.dimension, told.value;
+WHERE latest.recency = 1;
 
+-- One night's counts land whole or not at all.
+BEGIN TRANSACTION;
+
+-- Every day from the first the bucket holds whole to yesterday, a day with
+-- nothing on it among them: a missing day is a night that never ran. A day is
+-- counted again while the bucket holds the month of the first of the seven
+-- days to it, which is every name of its week and of its month. Each day is
+-- laid beside the children of the days that reach back to the start of its
+-- week or of its month, whichever is earlier, and the rest is joined on the
+-- day itself.
+DELETE FROM `${impact}.daily`
+WHERE day >= lines_from AND DATE_TRUNC(DATE_SUB(day, INTERVAL 6 DAY), MONTH) >= lines_from;
+INSERT INTO `${impact}.daily` (day, learners, learners_week, learners_month, tasks, answers, topics_won)
+WITH counted_days AS (
+  SELECT counted_day
+  FROM UNNEST(GENERATE_DATE_ARRAY(lines_from, counted_until)) AS counted_day
+  WHERE counted_day NOT IN (SELECT day FROM `${impact}.daily`)
+),
+children_days AS (
+  SELECT DISTINCT on_day, learner FROM counted_lines WHERE event = 'task_accepted'
+),
+reach AS (
+  SELECT
+    counted_days.counted_day,
+    COUNT(DISTINCT IF(children_days.on_day = counted_days.counted_day, children_days.learner, NULL)) AS learners,
+    COUNT(DISTINCT IF(children_days.on_day >= DATE_SUB(counted_days.counted_day, INTERVAL 6 DAY), children_days.learner, NULL)) AS learners_week,
+    COUNT(DISTINCT IF(children_days.on_day >= DATE_TRUNC(counted_days.counted_day, MONTH), children_days.learner, NULL)) AS learners_month
+  FROM counted_days
+  CROSS JOIN children_days
+  WHERE children_days.on_day <= counted_days.counted_day
+    AND children_days.on_day >= LEAST(DATE_SUB(counted_days.counted_day, INTERVAL 6 DAY), DATE_TRUNC(counted_days.counted_day, MONTH))
+  GROUP BY counted_days.counted_day
+),
+volume AS (
+  SELECT
+    on_day,
+    COUNTIF(event = 'task_accepted') AS tasks,
+    COUNTIF(event = 'answer_recorded') AS answers,
+    COUNTIF(event = 'topic_mastered') AS topics_won
+  FROM counted_lines
+  GROUP BY on_day
+)
+SELECT
+  counted_days.counted_day,
+  IFNULL(reach.learners, 0),
+  IF(DATE_SUB(counted_days.counted_day, INTERVAL 6 DAY) < lines_from, NULL, IFNULL(reach.learners_week, 0)),
+  IF(DATE_TRUNC(counted_days.counted_day, MONTH) < lines_from, NULL, IFNULL(reach.learners_month, 0)),
+  IFNULL(volume.tasks, 0),
+  IFNULL(volume.answers, 0),
+  IFNULL(volume.topics_won, 0)
+FROM counted_days
+LEFT JOIN reach ON reach.counted_day = counted_days.counted_day
+LEFT JOIN volume ON volume.on_day = counted_days.counted_day;
+
+-- A week is counted again while the bucket holds the month it begins in.
+DELETE FROM `${impact}.learners_weekly` WHERE DATE_TRUNC(week, MONTH) >= lines_from;
+INSERT INTO `${impact}.learners_weekly` (week, dimension, value, learners)
+SELECT period, dimension, value, COUNT(*)
+FROM told_apart
+WHERE kind = 'week'
+  AND period >= weeks_from
+  AND period NOT IN (SELECT week FROM `${impact}.learners_weekly`)
+GROUP BY period, dimension, value;
+
+-- A month is counted only whole, and again while the bucket holds it.
 DELETE FROM `${impact}.learners_monthly` WHERE month >= months_from;
 INSERT INTO `${impact}.learners_monthly` (month, dimension, value, learners)
-SELECT latest.period, told.dimension, told.value, COUNT(*)
-FROM (
-  SELECT
-    DATE_TRUNC(on_day, MONTH) AS period,
-    host, language, grade, country, region, signin_country, cohort,
-    ROW_NUMBER() OVER (PARTITION BY DATE_TRUNC(on_day, MONTH), learner ORDER BY written_at DESC) AS recency
-  FROM counted_lines
-  WHERE event = 'task_accepted' AND on_day >= months_from
-) AS latest,
-UNNEST([
-  STRUCT('all' AS dimension, 'all' AS value),
-  STRUCT('host' AS dimension, latest.host AS value),
-  STRUCT('language' AS dimension, latest.language AS value),
-  STRUCT('grade' AS dimension, IFNULL(CAST(latest.grade AS STRING), 'unknown') AS value),
-  STRUCT('country' AS dimension, latest.country AS value),
-  STRUCT('region' AS dimension, latest.region AS value),
-  STRUCT('signin_country' AS dimension, latest.signin_country AS value),
-  STRUCT('cohort' AS dimension, latest.cohort AS value)
-]) AS told
-WHERE latest.recency = 1
-GROUP BY latest.period, told.dimension, told.value;
+SELECT period, dimension, value, COUNT(*)
+FROM told_apart
+WHERE kind = 'month' AND period >= months_from
+GROUP BY period, dimension, value;
 
 -- How much each child of a month did: the tasks handed to it, and the days a
 -- task was, each in ranges.
@@ -179,20 +216,21 @@ UNNEST([
 GROUP BY per_child.period, measured.measure, measured.bucket;
 
 -- How the children of a month answered, by the months since their profile was
--- made, and how many topics each had mastered at most.
+-- made, and how many topics each had mastered at most. A child whose lines
+-- name no month its profile was made in has no months of use to be put under.
 DELETE FROM `${impact}.learning_monthly` WHERE month >= months_from;
 INSERT INTO `${impact}.learning_monthly` (month, tenure, learners, answers, correct, hinted, dont_know, mastered)
 SELECT period, tenure, COUNT(*), SUM(answers), SUM(correct), SUM(hinted), SUM(dont_know), SUM(mastered)
 FROM (
   SELECT
     period,
-    DATE_DIFF(period, SAFE.PARSE_DATE('%Y-%m', cohort), MONTH) AS tenure,
+    DATE_DIFF(period, made_in, MONTH) AS tenure,
     answers, correct, hinted, dont_know, mastered
   FROM (
     SELECT
       DATE_TRUNC(on_day, MONTH) AS period,
       learner,
-      MAX(cohort) AS cohort,
+      MIN(SAFE.PARSE_DATE('%Y-%m', cohort)) AS made_in,
       COUNT(*) AS answers,
       COUNTIF(correct) AS correct,
       COUNTIF(hinted) AS hinted,
@@ -225,12 +263,13 @@ GROUP BY period, topic;
 
 -- The traps the wrong answers of a month fell into: by topic and grade, by
 -- topic over every grade, and by grade over every topic, so that each row
--- counts its own children once.
+-- counts its own children once. An empty topic or grade means every one; an
+-- answer whose line names no grade is counted over every grade alone.
 DELETE FROM `${impact}.traps_monthly` WHERE month >= months_from;
 INSERT INTO `${impact}.traps_monthly` (month, topic, grade, trap, answers, learners)
 SELECT DATE_TRUNC(on_day, MONTH), topic, grade, trap, COUNT(*), COUNT(DISTINCT learner)
 FROM counted_lines
-WHERE event = 'answer_recorded' AND trap != '' AND on_day >= months_from
+WHERE event = 'answer_recorded' AND trap != '' AND grade IS NOT NULL AND on_day >= months_from
 GROUP BY 1, 2, 3, 4
 UNION ALL
 SELECT DATE_TRUNC(on_day, MONTH), topic, CAST(NULL AS INT64), trap, COUNT(*), COUNT(DISTINCT learner)
@@ -240,7 +279,7 @@ GROUP BY 1, 2, 4
 UNION ALL
 SELECT DATE_TRUNC(on_day, MONTH), CAST(NULL AS STRING), grade, trap, COUNT(*), COUNT(DISTINCT learner)
 FROM counted_lines
-WHERE event = 'answer_recorded' AND trap != '' AND on_day >= months_from
+WHERE event = 'answer_recorded' AND trap != '' AND grade IS NOT NULL AND on_day >= months_from
 GROUP BY 1, 3, 4;
 
 COMMIT TRANSACTION;

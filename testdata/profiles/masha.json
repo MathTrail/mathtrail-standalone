@@ -30,6 +30,7 @@
   "ratings": {
     "answers": 3,
     "consecutive_failures": 2,
+    "mastery_rule": "cautious",
     "start": 2.5,
     "theta": 2.2865258651273717
   },

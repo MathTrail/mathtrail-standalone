@@ -16,10 +16,10 @@ SELECT
   labels.label AS tenure,
   CAST(ROUND(SUM(categories.learners) / 5) * 5 AS INT64) AS learners,
   CAST(ROUND(SUM(categories.answers) / 5) * 5 AS INT64) AS answers,
-  ROUND(SUM(categories.correct) / SUM(categories.answers), 3) AS correct_share,
-  ROUND(SUM(categories.hinted) / SUM(categories.answers), 3) AS hint_share,
-  ROUND(SUM(categories.dont_know) / SUM(categories.answers), 3) AS dont_know_share,
-  ROUND(SUM(categories.mastered) / SUM(categories.learners), 1) AS topics_mastered_mean
+  ROUND(SAFE_DIVIDE(SUM(categories.correct), SUM(categories.answers)), 3) AS correct_share,
+  ROUND(SAFE_DIVIDE(SUM(categories.hinted), SUM(categories.answers)), 3) AS hint_share,
+  ROUND(SAFE_DIVIDE(SUM(categories.dont_know), SUM(categories.answers)), 3) AS dont_know_share,
+  ROUND(SAFE_DIVIDE(SUM(categories.mastered), SUM(categories.learners)), 1) AS topics_mastered_mean
 FROM categories
 JOIN labels ON labels.grp = categories.grp AND labels.value = categories.value
 GROUP BY categories.grp, labels.label

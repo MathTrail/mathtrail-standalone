@@ -21,10 +21,7 @@ describe("what the page Why takes from the site's own data", () => {
 
 	test("shows its findings in the data's order, each of a work it lists", () => {
 		expect(why.findings.map((source) => source.id)).toEqual(own.findings);
-		expect(why.sources.map((source) => source.id)).toEqual([
-			...own.findings,
-			own.apps,
-		]);
+		expect(why.apps.id).toBe(own.apps);
 	});
 
 	test("names as examples only topics of the catalog", () => {

@@ -935,7 +935,7 @@ func TestAnAnswerRecordedBeforeTheSealWasLostStillCounts(t *testing.T) {
 	t.Parallel()
 
 	p := raceOnTheCard(t, rating.TrialAnswers)
-	if _, err := p.Record(profile.Answered{TaskID: p.CurrentTask.ID, Choice: "C", At: lessonDay}, sealer(t)); err != nil {
+	if _, err := p.Record(profile.Answered{TaskID: p.CurrentTask.ID, Choice: "C", At: lessonDay}, sealer(t), rating.GradeLevels()); err != nil {
 		t.Fatalf("Record() error = %v, want the race answered", err)
 	}
 	p.CurrentTask.Sealed = "mt1.t.gone.sealed-by-a-key-nobody-has"

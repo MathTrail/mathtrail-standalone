@@ -4,6 +4,10 @@ version: "2"
 run:
   timeout: 5m
   tests: true
+  # The tests of the SQL of the counts run against an emulator only a recipe
+  # starts, so they stand behind a tag; the linter reads them all the same.
+  build-tags:
+    - analytics
 
 linters:
   default: standard # errcheck, govet, ineffassign, staticcheck, unused

@@ -152,6 +152,7 @@ describe("the screens in Arabic", () => {
 			context: { locale: "ar-EG", toolInfo: toolInfoOf("next_task") },
 		});
 		drawn = { root: opened.root, heard: opened.heard };
+		await opened.host.sendToolInput({ arguments: { language: "ar" } });
 		await vi.waitFor(() =>
 			expect(opened.root.querySelector(".mt-gen")).not.toBeNull(),
 		);
