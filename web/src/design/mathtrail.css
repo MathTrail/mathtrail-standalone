@@ -1169,6 +1169,42 @@
 .mt-advice-topic {
 	font-weight: 600;
 }
+/* A name that opens a page through the chat: in the accent and underlined,
+   the line thicker under a pointer that rests on it; and once the chat did
+   not open the page, its address under the name, as text to copy. */
+.mt-page-link {
+	display: inline-flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+}
+.mt-link {
+	color: var(--accent);
+	text-decoration-line: underline;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 3px;
+	overflow-wrap: break-word;
+}
+@media (hover: hover) {
+	.mt-link:hover {
+		text-decoration-thickness: 2px;
+	}
+}
+.mt-link-refused {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	font-size: 13px;
+	line-height: 18px;
+	font-weight: 400;
+	color: var(--text-muted);
+}
+.mt-link-address {
+	color: var(--text);
+	overflow-wrap: anywhere;
+	-webkit-user-select: all;
+	user-select: all;
+}
 /* A group of a profile's fields, in a frame: its label at the head with what
    can be done beside it, and each field on a line of its own — named at its
    start and told beside the name where the two fit, under it where they do

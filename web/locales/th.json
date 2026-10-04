@@ -114,6 +114,7 @@
 	"progress.legend_loss": "ถอยหลัง",
 	"progress.legend_week": "สัปดาห์ที่ผ่านมา",
 	"progress.legend_task": "นับจากโจทย์ล่าสุด",
+	"progress.link_refused": "แชทไม่ได้เปิดหน้านี้ ที่อยู่ของหน้า:",
 	"review.title": "สรุปผล",
 	"review.summary": "จุดแข็งและแผน",
 	"review.strong": "จุดแข็ง",

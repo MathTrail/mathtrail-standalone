@@ -8,7 +8,8 @@ locals {
     "run.googleapis.com",
     # Where its images are kept.
     "artifactregistry.googleapis.com",
-    # Where the sealing key and the client secret are kept.
+    # Where the sealing key, the key children are counted under and the client
+    # secret are kept.
     "secretmanager.googleapis.com",
     # The child's profile is a file in the parent's own Drive.
     "drive.googleapis.com",

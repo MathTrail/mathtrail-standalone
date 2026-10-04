@@ -1,4 +1,5 @@
 import type { ComponentChildren } from "preact";
+import { type Linking, PageLink } from "./links";
 
 /**
  * PartTone is the colour a part of a review is headed in: the green of what
@@ -85,17 +86,30 @@ export function NamedLine({ names, note }: { names: string; note: string }) {
 
 /**
  * AdviceStep is a step a review advises: the topic it is for, when it is for
- * one, and what to do. Its id tells it apart from the others, since two steps
- * may say the same.
+ * one, with the address of the part of its page the step is about, when it
+ * has one to link to, and what to do. Its id tells it apart from the others,
+ * since two steps may say the same.
  */
-export type AdviceStep = { id: string; topic?: string; text: string };
+export type AdviceStep = {
+	id: string;
+	topic?: string;
+	href?: string;
+	text: string;
+};
 
 /**
  * AdviceSteps are the steps a review advises, numbered in the order to take
- * them: each the topic it is for over what to do, or what to do alone when it
- * holds for every topic.
+ * them: each the topic it is for over what to do — a link to the topic's page
+ * where the screen links pages at all —, or what to do alone when it holds for
+ * every topic.
  */
-export function AdviceSteps({ steps }: { steps: readonly AdviceStep[] }) {
+export function AdviceSteps({
+	steps,
+	linking,
+}: {
+	steps: readonly AdviceStep[];
+	linking?: Linking;
+}) {
 	return (
 		<ol class="mt-advice">
 			{steps.map((step, at) => (
@@ -103,7 +117,17 @@ export function AdviceSteps({ steps }: { steps: readonly AdviceStep[] }) {
 					<span class="mt-step-num">{at + 1}</span>
 					<span class="mt-review-text">
 						{step.topic !== undefined && (
-							<span class="mt-advice-topic">{step.topic}</span>
+							<span class="mt-advice-topic">
+								{step.href !== undefined && linking !== undefined ? (
+									<PageLink
+										label={step.topic}
+										href={step.href}
+										linking={linking}
+									/>
+								) : (
+									step.topic
+								)}
+							</span>
 						)}
 						<span>{step.text}</span>
 					</span>

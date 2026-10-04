@@ -9,7 +9,9 @@ require (
 	github.com/google/jsonschema-go v0.4.3
 	github.com/google/uuid v1.6.0
 	github.com/leanovate/gopter v0.2.11
+	github.com/maxmind/mmdbwriter v1.2.0
 	github.com/modelcontextprotocol/go-sdk v1.8.0
+	github.com/oschwald/maxminddb-golang/v2 v2.7.0
 	github.com/spf13/viper v1.21.0
 	go.opentelemetry.io/contrib/detectors/gcp v1.46.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.71.0
@@ -55,10 +57,8 @@ require (
 	github.com/klauspost/cpuid/v2 v2.4.0 // indirect
 	github.com/leodido/go-urn v1.5.0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
-	github.com/maxmind/mmdbwriter v1.2.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/oschwald/maxminddb-golang/v2 v2.7.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/quic-go/quic-go v0.61.0 // indirect

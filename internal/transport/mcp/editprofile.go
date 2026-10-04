@@ -72,6 +72,8 @@ func (s *Service) editProfileTool() Tool {
 // editProfile makes the change the form on a card asks for. A form only ever
 // changes a profile that is there: one is made in the chat, where the adult
 // says they are the child's parent or tutor.
+//
+//nolint:gocritic // hugeParam: the frame hands every handler its arguments by value
 func (s *Service) editProfile(ctx context.Context, account store.Account, in editProfileIn) (Reply[editedOut], error) {
 	return afresh(ctx, func() (Reply[editedOut], error) { return s.writeEdit(ctx, account, &in) })
 }

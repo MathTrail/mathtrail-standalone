@@ -1,6 +1,7 @@
-import { useState } from "preact/hooks";
+import { useRef, useState } from "preact/hooks";
 import { Fold, Note } from "../design/blocks";
 import { ViewSwitch } from "../design/controls";
+import type { Linking } from "../design/links";
 import {
 	MoveCounts,
 	MoveLegend,
@@ -21,6 +22,7 @@ import type { Words } from "../i18n/words";
 import type { Host } from "./bridge";
 import { CardRoot } from "./CardRoot";
 import { type Folds, type Section, useFolds } from "./folds";
+import { type Anchor, pageAddress } from "./links";
 import {
 	type Moved,
 	moveOver,
@@ -107,7 +109,18 @@ export function ProgressScreen({
 	const moves = report.trial === null ? report.overall?.change : undefined;
 	const shown =
 		moves === undefined ? undefined : periodShown(choice.chosen, moves);
-	const rows = topicRows(words, report, shown);
+	const pageAt = (topic: string, anchor: Anchor) =>
+		pageAddress(
+			report.site,
+			words.locale,
+			report.topics.find((listed) => listed.topic === topic) ?? {},
+			anchor,
+		);
+	const linking = useLinking(host, words.text("progress.link_refused"));
+	const rows = topicRows(words, report, shown).map((row) => ({
+		...row,
+		href: pageAt(row.id, ""),
+	}));
 	const [profile, setProfile] = useState(report.profile);
 	const skipped =
 		report.skipped ??
@@ -117,7 +130,7 @@ export function ProgressScreen({
 	const review =
 		report.review === undefined
 			? undefined
-			: reviewSaid(words, report.review, mistakes);
+			: reviewSaid(words, report.review, mistakes, pageAt);
 	const folding = (section: Section) => ({
 		open: folds.open.has(section),
 		onToggle: () => folds.toggle(section),
@@ -183,6 +196,7 @@ export function ProgressScreen({
 								)
 							}
 							rows={rows}
+							linking={linking}
 						/>
 					</Fold>
 				)}
@@ -192,7 +206,7 @@ export function ProgressScreen({
 						summary={words.text("review.summary")}
 						{...folding("review")}
 					>
-						<ReviewParts said={review} />
+						<ReviewParts said={review} linking={linking} />
 					</Fold>
 				)}
 				{review === undefined && mistakes.length > 0 && (
@@ -247,6 +261,44 @@ export function ProgressScreen({
 			</div>
 		</article>
 	);
+}
+
+// useLinking is how the screen opens a topic's page through the chat, or
+// undefined when the chat did not say it opens pages. A press asks the chat,
+// once at a time for an address, and a page it did not open is kept among the
+// refused for as long as the screen is drawn, its address shown to copy,
+// until a later press opens it.
+function useLinking(host: Host, note: string): Linking | undefined {
+	const [refused, setRefused] = useState<ReadonlySet<string>>(new Set());
+	const asking = useRef(new Set<string>());
+	if (!host.canOpenLinks()) {
+		return undefined;
+	}
+	return {
+		refused,
+		note,
+		open: (href) => {
+			if (asking.current.has(href)) {
+				return;
+			}
+			asking.current.add(href);
+			void host
+				.openLink(href)
+				.catch(() => false)
+				.then((opened) => {
+					asking.current.delete(href);
+					setRefused((was) => {
+						const next = new Set(was);
+						if (opened) {
+							next.delete(href);
+						} else {
+							next.add(href);
+						}
+						return next;
+					});
+				});
+		},
+	};
 }
 
 // Standing is the rank the child climbs: its name, the rank out of how many,

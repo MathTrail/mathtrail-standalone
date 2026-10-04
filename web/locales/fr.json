@@ -122,6 +122,7 @@
 	"progress.legend_loss": "recul",
 	"progress.legend_week": "sur la dernière semaine",
 	"progress.legend_task": "depuis le dernier problème",
+	"progress.link_refused": "Le chat n’a pas ouvert la page. Son adresse\u00a0:",
 	"review.title": "Bilan",
 	"review.summary": "points forts et plan",
 	"review.strong": "Points forts",

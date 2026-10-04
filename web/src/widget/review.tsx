@@ -1,3 +1,4 @@
+import type { Linking } from "../design/links";
 import { StatList, type StatRow } from "../design/progress";
 import {
 	type AdviceStep,
@@ -8,6 +9,7 @@ import {
 	ReviewPart,
 } from "../design/review";
 import type { Words } from "../i18n/words";
+import type { Anchor } from "./links";
 import { knownTrapName, listed, topicName, trapAdvice } from "./names";
 import type { Judged, Review, ReviewStep } from "./payload";
 import { type Key, useWords } from "./words";
@@ -26,8 +28,16 @@ export type ReviewSaid = {
 };
 
 /**
+ * PageAt is the address of the part of a topic's page at anchor, or undefined
+ * when the card links nowhere for the topic.
+ */
+export type PageAt = (topic: string, anchor: Anchor) => string | undefined;
+
+/**
  * reviewSaid is the review in the card's words, with the mistakes that repeat
- * as their lines. What the card has no words for — a reason, a kind of step, a
+ * as their lines, and each step in a topic linked to the part of its page the
+ * step is about, by pageAt: a trap's advice to where its mistakes are told,
+ * the rest to how to help at home. What the card has no words for — a reason, a kind of step, a
  * mistake's advice, or a mistake's name inside a sentence, that a later release
  * adds — is left out rather than said wrong. A topic named for no reason the
  * card can say keeps its name, and a mistake that repeats is called by its id,
@@ -37,13 +47,16 @@ export function reviewSaid(
 	words: Words<Key>,
 	review: Review,
 	mistakes: StatRow[],
+	pageAt: PageAt,
 ): ReviewSaid {
 	return {
 		strong: review.strong.map((topic) => judgedRow(words, topic)),
 		develop: review.develop.map((topic) => judgedRow(words, topic)),
 		early: review.early.map((topic) => topicName(words, topic)),
 		mistakes,
-		steps: review.steps.flatMap((step, at) => adviceStep(words, step, at)),
+		steps: review.steps.flatMap((step, at) =>
+			adviceStep(words, step, at, pageAt),
+		),
 	};
 }
 
@@ -63,7 +76,13 @@ export function saysNothing(said: ReviewSaid): boolean {
  * what goes well, what to develop, what is too early to judge, the mistakes
  * that repeat, and what to do next. A part with nothing in it is not drawn.
  */
-export function ReviewParts({ said }: { said: ReviewSaid }) {
+export function ReviewParts({
+	said,
+	linking,
+}: {
+	said: ReviewSaid;
+	linking?: Linking;
+}) {
 	const words = useWords();
 	return (
 		<>
@@ -92,7 +111,7 @@ export function ReviewParts({ said }: { said: ReviewSaid }) {
 			)}
 			{said.steps.length > 0 && (
 				<ReviewPart tone="accent" label={words.text("review.next")}>
-					<AdviceSteps steps={said.steps} />
+					<AdviceSteps steps={said.steps} linking={linking} />
 				</ReviewPart>
 			)}
 		</>
@@ -160,16 +179,20 @@ function adviceStep(
 	words: Words<Key>,
 	step: ReviewStep,
 	at: number,
+	pageAt: PageAt,
 ): AdviceStep[] {
 	const text = stepSaid(words, step);
 	if (text === undefined) {
 		return [];
 	}
+	if (step.topic === undefined) {
+		return [{ id: String(at), text }];
+	}
 	return [
 		{
 			id: String(at),
-			topic:
-				step.topic === undefined ? undefined : topicName(words, step.topic),
+			topic: topicName(words, step.topic),
+			href: pageAt(step.topic, step.kind === "trap" ? "#traps" : "#home"),
 			text,
 		},
 	];

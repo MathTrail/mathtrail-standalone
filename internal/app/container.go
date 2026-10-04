@@ -188,15 +188,9 @@ func newContainer(ctx context.Context, cfg *config.Config, log *zap.Logger, reac
 	}
 	log.Info("google sign-in", zap.Bool("configured", google != nil))
 
-	// The children are counted in the log under names derived from a key of
-	// their own. A machine given none makes one for the process, whose names
-	// mean something only while it runs; the configuration refuses that on a
-	// deployment.
-	learners := learner.RandomKey()
-	if cfg.LearnerKey != "" {
-		if learners, err = learner.NewKey(cfg.LearnerKey); err != nil {
-			return nil, err
-		}
+	learners, err := learnerKey(cfg)
+	if err != nil {
+		return nil, err
 	}
 	log.Info("learner key", zap.Bool("configured", cfg.LearnerKey != ""))
 
@@ -348,6 +342,17 @@ func newPaces(cfg *config.Config) (*paces, error) {
 		return nil, err
 	}
 	return &paces{perAccount: perAccount, perAddress: perAddress, signIn: signIn, lessons: lessons, renewals: renewals}, nil
+}
+
+// learnerKey is the key the children are counted under in the log: the one
+// configured, or, on a machine given none, one the process makes for itself,
+// whose names mean something only while it runs. The configuration refuses
+// that on a deployment.
+func learnerKey(cfg *config.Config) (*learner.Key, error) {
+	if cfg.LearnerKey == "" {
+		return learner.RandomKey(), nil
+	}
+	return learner.NewKey(cfg.LearnerKey)
 }
 
 // countries opens the database of countries, when one is configured, and is

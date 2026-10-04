@@ -818,7 +818,7 @@ describe("the review", () => {
 			[
 				"3",
 				"Gaps and boundaries",
-				"A few more tasks in this topic\u00a0— MathTrail sets them at the child’s level.",
+				"A few more tasks in this topic\u00a0— MathTrail sets them at the child's level.",
 			],
 			["4", "Ordering", "Try each task without the hint first."],
 			[

@@ -122,6 +122,7 @@
 	"progress.legend_loss": "retroceso",
 	"progress.legend_week": "en la última semana",
 	"progress.legend_task": "desde el último problema",
+	"progress.link_refused": "El chat no abrió la página. Su dirección:",
 	"review.title": "Análisis",
 	"review.summary": "fortalezas y plan",
 	"review.strong": "Fortalezas",

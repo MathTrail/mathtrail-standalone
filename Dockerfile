@@ -19,6 +19,9 @@ COPY web/ ./
 # The design tokens live beside the page the build writes, in the package that
 # embeds both, and the widget's styles import them from there.
 COPY internal/widget/tokens.css /src/internal/widget/tokens.css
+# The countries a parent can choose on the form are the ones the service takes,
+# read from the one file both are built from.
+COPY internal/domain/country/places.json /src/internal/domain/country/places.json
 
 # The widget tells a host the build it came with.
 ARG VERSION=dev
@@ -53,11 +56,20 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
       -X github.com/MathTrail/mathtrail-standalone/internal/version.Date=${DATE}" \
     -o /server ./cmd/server
 
-# The runtime holds the binary, a certificate bundle and nothing else: no
-# shell, no package manager, and a non-root user by default (uid 65532).
+# The database of countries the sign-in looks an address up in: one month of
+# DB-IP's IP to Country Lite, kept unchanged in an image of its own and pinned
+# like any other. A new month is published and pinned with just
+# countries-publish.
+FROM ghcr.io/mathtrail/mathtrail-standalone/dbip-country-lite:2026-10@sha256:0000000000000000000000000000000000000000000000000000000000000000 AS countries
+
+# The runtime holds the binary, a certificate bundle and the database of
+# countries, and nothing else: no shell, no package manager, and a non-root
+# user by default (uid 65532).
 FROM gcr.io/distroless/static-debian13@sha256:58133991db06659feaabe0f4e97a35cebf15ef4ea08f8a4c6d2ee5f75e4aa6a0
 
 COPY --from=build /server /server
+COPY --from=countries /dbip-country-lite.mmdb /usr/share/mathtrail/dbip-country-lite.mmdb
+ENV MATHTRAIL_COUNTRY_DB=/usr/share/mathtrail/dbip-country-lite.mmdb
 
 USER nonroot:nonroot
 EXPOSE 8080

@@ -183,7 +183,8 @@ export const failure: CallToolResult = {
  * within reach not met yet; the latest answers with one task left without an
  * answer, two mistakes that keep coming back, the review of the topics, the
  * topic worked over again after a mistake next, and where the profile's file
- * is. The review is the one the service makes of these numbers: Ordering
+ * is. Every topic's page is published on the site, which is written in English
+ * and Russian. The review is the one the service makes of these numbers: Ordering
  * mastered and well above the overall level, risen over the week; Enumeration
  * to develop for the mistake it keeps making, first since the rule sets it
  * next, and Parity and alternation for standing low and falling over the
@@ -212,6 +213,8 @@ export const standing = {
 	topics: [
 		{
 			topic: "logic.ordering",
+			slug: "ordering",
+			site_page: true,
 			rating: 1712,
 			rank: 4,
 			share: 27,
@@ -223,6 +226,8 @@ export const standing = {
 		},
 		{
 			topic: "combinatorics.enumeration",
+			slug: "enumeration",
+			site_page: true,
 			rating: 1627,
 			rank: 3,
 			share: 76,
@@ -234,6 +239,8 @@ export const standing = {
 		},
 		{
 			topic: "counting.gaps",
+			slug: "gaps-and-boundaries",
+			site_page: true,
 			rating: 1588,
 			rank: 3,
 			share: 53,
@@ -245,6 +252,8 @@ export const standing = {
 		},
 		{
 			topic: "parity.alternation",
+			slug: "parity-and-alternation",
+			site_page: true,
 			rating: 1480,
 			rank: 2,
 			share: 87,
@@ -256,6 +265,8 @@ export const standing = {
 		},
 		{
 			topic: "pigeonhole.basic",
+			slug: "pigeonhole-principle",
+			site_page: true,
 			rating: null,
 			rank: null,
 			share: null,
@@ -343,6 +354,7 @@ export const standing = {
 		link: "https://drive.google.com/file/d/profile/view",
 		others: [],
 	},
+	site: { url: "https://mathtrail.app", languages: ["en", "ru"] },
 };
 
 // The moves of each topic of moving, by its id.

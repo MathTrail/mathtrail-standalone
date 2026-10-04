@@ -114,6 +114,7 @@
 	"progress.legend_loss": "退步",
 	"progress.legend_week": "近一周",
 	"progress.legend_task": "自上一题以来",
+	"progress.link_refused": "聊天没有打开该页面。它的地址：",
 	"review.title": "分析",
 	"review.summary": "强项与计划",
 	"review.strong": "强项",

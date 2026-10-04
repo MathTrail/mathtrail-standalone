@@ -118,6 +118,7 @@
 	"progress.legend_loss": "gerileme",
 	"progress.legend_week": "son haftada",
 	"progress.legend_task": "son sorudan beri",
+	"progress.link_refused": "Sohbet sayfayı açmadı. Adresi:",
 	"review.title": "Değerlendirme",
 	"review.summary": "güçlü yönler ve plan",
 	"review.strong": "Güçlü yönler",

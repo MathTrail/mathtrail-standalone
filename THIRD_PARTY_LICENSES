@@ -32,8 +32,10 @@ BSD-3-Clause  github.com/google/uuid                         https://github.com/
 BSD-3-Clause  github.com/grpc-ecosystem/grpc-gateway/v2      https://github.com/grpc-ecosystem/grpc-gateway/blob/v2.30.0/LICENSE
 MIT           github.com/leodido/go-urn                      https://github.com/leodido/go-urn/blob/v1.5.0/LICENSE
 MIT           github.com/mattn/go-isatty                     https://github.com/mattn/go-isatty/blob/v0.0.24/LICENSE
+Apache-2.0    github.com/maxmind/mmdbwriter                  https://github.com/maxmind/mmdbwriter/blob/v1.2.0/LICENSE-APACHE
 Apache-2.0    github.com/modelcontextprotocol/go-sdk         https://github.com/modelcontextprotocol/go-sdk/blob/v1.8.0/LICENSE
 MIT           github.com/modelcontextprotocol/go-sdk         https://github.com/modelcontextprotocol/go-sdk/blob/v1.8.0/LICENSE
+ISC           github.com/oschwald/maxminddb-golang/v2        https://github.com/oschwald/maxminddb-golang/blob/v2.7.0/LICENSE
 MIT           github.com/pelletier/go-toml/v2                https://github.com/pelletier/go-toml/blob/v2.4.3/LICENSE
 MIT           github.com/quic-go/qpack                       https://github.com/quic-go/qpack/blob/v0.6.0/LICENSE.md
 MIT           github.com/quic-go/quic-go                     https://github.com/quic-go/quic-go/blob/v0.61.0/LICENSE
@@ -75,6 +77,7 @@ BSD-3-Clause  go.starlark.net                                https://github.com/
 MIT           go.uber.org/multierr                           https://github.com/uber-go/multierr/blob/v1.10.0/LICENSE.txt
 MIT           go.uber.org/zap                                https://github.com/uber-go/zap/blob/v1.28.0/LICENSE
 MIT           go.yaml.in/yaml/v3                             https://github.com/yaml/go-yaml/blob/v3.0.5/LICENSE
+BSD-3-Clause  go4.org/netipx                                 https://github.com/go4org/netipx/blob/fdeea329fbba/LICENSE
 BSD-3-Clause  golang.org/x/crypto                            https://cs.opensource.google/go/x/crypto/+/v0.57.0:LICENSE
 BSD-3-Clause  golang.org/x/net                               https://cs.opensource.google/go/x/net/+/v0.59.0:LICENSE
 BSD-3-Clause  golang.org/x/oauth2                            https://cs.opensource.google/go/x/oauth2/+/v0.37.0:LICENSE
@@ -111,3 +114,10 @@ MIT           shebang-command@2.0.0                          https://www.npmjs.c
 MIT           shebang-regex@3.0.0                            https://www.npmjs.com/package/shebang-regex/v/3.0.0
 ISC           which@2.0.2                                    https://www.npmjs.com/package/which/v/2.0.2
 MIT           zod@4.6.5                                      https://www.npmjs.com/package/zod/v/4.6.5
+
+The data below ships in the image the server runs from, unchanged. Each
+line is a license, the data at the exact version the image carries, and
+where its maker publishes it. IP geolocation by DB-IP (https://db-ip.com),
+under the Creative Commons Attribution 4.0 International License.
+
+CC-BY-4.0     DB-IP IP to Country Lite 2026-10               https://db-ip.com/db/download/ip-to-country-lite

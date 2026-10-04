@@ -703,8 +703,13 @@ ci-tf-apply:
 
     # The secrets come first, on their own. A revision cannot start until they
     # hold something, and what they hold is not described in this repository.
+    # The runtime's right to read the key the children are counted under comes
+    # with them, so that it has spread through the platform by the time the
+    # service is told to read it.
     tf apply -auto-approve -input=false \
         -target=google_secret_manager_secret.seal_key \
+        -target=google_secret_manager_secret.learner_key \
+        -target='google_secret_manager_secret_iam_member.runtime["learner_key"]' \
         -target=google_secret_manager_secret.google_client_secret
 
     # The project is read from the file that names it rather than from an
@@ -713,6 +718,7 @@ ci-tf-apply:
     project=$(just _project)
 
     seal_key=$(tf output -raw secret_seal_key)
+    learner_key=$(tf output -raw secret_learner_key)
     client_secret=$(tf output -raw secret_google_client)
 
     has_version() {
@@ -728,6 +734,16 @@ ci-tf-apply:
         echo "seal key: generating the first version"
         head -c 32 /dev/urandom | base64 | tr -d '\n' \
             | gcloud secrets versions add "$seal_key" --project="$project" --data-file=- > /dev/null
+    fi
+
+    # The key the children are counted under is made the same way, and once:
+    # it is never rotated with the sealing key.
+    if has_version "$learner_key"; then
+        echo "learner key: a version exists, leaving it alone"
+    else
+        echo "learner key: generating the first version"
+        head -c 32 /dev/urandom | base64 | tr -d '\n' \
+            | gcloud secrets versions add "$learner_key" --project="$project" --data-file=- > /dev/null
     fi
 
     # This one cannot be generated: it exists only in the Google console, and it

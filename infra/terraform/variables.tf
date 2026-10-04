@@ -152,6 +152,12 @@ variable "seal_key_previous_version" {
   default     = ""
 }
 
+variable "learner_key_version" {
+  description = "The version of the secret the children are counted under in the log. It is never rotated with the sealing key, and only ever at the turn of a month in UTC: a name that changed in the middle of one would count a child twice."
+  type        = string
+  default     = "1"
+}
+
 variable "google_client_secret_version" {
   description = "The version of the Google client-secret secret the service authenticates with."
   type        = string

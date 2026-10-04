@@ -39,14 +39,16 @@ import {
  * Scene is one state of a lesson on a card: the payload the card is drawn
  * from — a task handed to it, a task on its way, or a card a task did not come
  * to — or, for a task caught being asked for, how far its call has got; what the service
- * answers the card's calls with, whether the host takes its messages, what
- * the host keeps of the screen's edges, and what the child does on the card
- * to reach the state.
+ * answers the card's calls with, whether the host takes its messages, whether
+ * it opens pages — it says it does and opens them, unless links says it opens
+ * none or refuses each —, what the host keeps of the screen's edges, and what
+ * the child does on the card to reach the state.
  */
 export type Scene = {
 	name: string;
 	answers?: (tool: string) => Promise<CallToolResult>;
 	refuseMessages?: boolean;
+	links?: "none" | "refuse";
 	insets?: McpUiHostContext["safeAreaInsets"];
 	play?: (card: Document) => void;
 } & (
@@ -287,6 +289,18 @@ export function scenesIn(language: string): Scene[] {
 		},
 		{ name: "progress in the trial series", payload: inTrial, play: everyFold },
 		{
+			name: "progress, a chat that opens no links",
+			payload: moving,
+			links: "none",
+			play: everyFold,
+		},
+		{
+			name: "progress, a page the chat did not open",
+			payload: longProgress,
+			links: "refuse",
+			play: inTurn(everyFold, linkPressed("divisibility-and-remainders")),
+		},
+		{
 			name: "progress in the trial series, a mistake made twice",
 			payload: trialMistake,
 			play: everyFold,
@@ -411,6 +425,28 @@ function topLine(card: Document) {
 	card.querySelector<HTMLElement>(".mt-bar")?.click();
 }
 
+// slugs are the slugs of the catalog's topics, each the name of its page on
+// the site, every one of them published.
+const slugs: Readonly<Record<string, string>> = {
+	"logic.ordering": "ordering",
+	"logic.knights_liars": "knights-and-liars",
+	"combinatorics.enumeration": "enumeration",
+	"counting.gaps": "gaps-and-boundaries",
+	"time.clocks": "clocks",
+	"time.calendar": "calendar-and-age",
+	"pigeonhole.basic": "pigeonhole-principle",
+	"parity.alternation": "parity-and-alternation",
+	"arithmetic.tricks": "arithmetic-with-a-trick",
+	"algorithms.weighing_pouring": "weighing-and-pouring",
+	"fractions.parts": "parts-and-shares",
+	"percent.basic": "percentages",
+	"ratio.sharing": "ratios-and-sharing",
+	"geometry.grid": "figures-on-a-grid",
+	"number.divisibility": "divisibility-and-remainders",
+	"logic.sets": "overlapping-groups",
+	"games.strategy": "winning-strategy",
+};
+
 // longProgress is the progress at every limit a card has to fit at its
 // narrowest: a pseudonym as long as a profile allows, every topic of the
 // catalog listed — every rank among them, each step of the ramp, and topics
@@ -452,7 +488,11 @@ const longProgress = {
 		"number.divisibility",
 		"logic.sets",
 		"games.strategy",
-	].map((topic, at) => rankedAt(topic, at)),
+	].map((topic, at) => ({
+		...rankedAt(topic, at),
+		slug: slugs[topic],
+		site_page: true,
+	})),
 	overall: {
 		rating: 2700,
 		rank: 10,
@@ -786,6 +826,19 @@ function comingFor(handed: typeof fence) {
 		request_id: "req_preview",
 		child: handed.child,
 		last_answer: null,
+	};
+}
+
+// linkPressed presses the link to the page whose slug is slug, as a person
+// does; the first of them, where the page is linked twice.
+function linkPressed(slug: string) {
+	return (card: Document) => {
+		for (const link of card.querySelectorAll<HTMLAnchorElement>("a.mt-link")) {
+			if (link.getAttribute("href")?.includes(`/topics/${slug}/`)) {
+				link.click();
+				return;
+			}
+		}
 	};
 }
 

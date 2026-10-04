@@ -20,7 +20,7 @@ locals {
 
 # The service keeps no state and calls no Google API of its own — the child's
 # profile is read with the parent's own credentials, not with this identity — so
-# it exists in order to be able to do as little as possible. It reads two
+# it exists in order to be able to do as little as possible. It reads three
 # secrets and writes its own telemetry; that is all it is ever granted.
 resource "google_service_account" "runtime" {
   account_id   = "${var.service_name}-run"
@@ -138,6 +138,17 @@ resource "google_cloud_run_v2_service" "service" {
           secret_key_ref {
             secret  = google_secret_manager_secret.seal_key.secret_id
             version = var.seal_key_version
+          }
+        }
+      }
+
+      env {
+        name = "MATHTRAIL_LEARNER_KEY"
+
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.learner_key.secret_id
+            version = var.learner_key_version
           }
         }
       }

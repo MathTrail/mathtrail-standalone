@@ -126,6 +126,7 @@
 	"progress.legend_loss": "spadek",
 	"progress.legend_week": "w ostatnim tygodniu",
 	"progress.legend_task": "od ostatniego zadania",
+	"progress.link_refused": "Czat nie otworzył strony. Jej adres:",
 	"review.title": "Analiza",
 	"review.summary": "mocne strony i plan",
 	"review.strong": "Mocne strony",

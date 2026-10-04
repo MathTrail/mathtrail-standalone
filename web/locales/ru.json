@@ -126,6 +126,7 @@
 	"progress.legend_loss": "потеря",
 	"progress.legend_week": "за неделю",
 	"progress.legend_task": "после последней задачи",
+	"progress.link_refused": "Чат не открыл страницу. Её адрес:",
 	"review.title": "Разбор",
 	"review.summary": "сильные стороны и план",
 	"review.strong": "Сильные стороны",

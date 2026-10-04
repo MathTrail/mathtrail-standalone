@@ -79,12 +79,12 @@ func Write(t *testing.T) string {
 		"10.0.0.0/8":      {"country": mmdbtype.Map{"iso_code": mmdbtype.String("DE")}},
 		"198.51.100.0/24": {"country": mmdbtype.Map{"iso_code": mmdbtype.String("ZZ")}},
 	} {
-		_, parsed, err := net.ParseCIDR(network)
-		if err != nil {
-			t.Fatalf("geoiptest: read the network %s: %v", network, err)
+		_, parsed, parseErr := net.ParseCIDR(network)
+		if parseErr != nil {
+			t.Fatalf("geoiptest: read the network %s: %v", network, parseErr)
 		}
-		if err := tree.Insert(parsed, record); err != nil {
-			t.Fatalf("geoiptest: put %s in the database: %v", network, err)
+		if insertErr := tree.Insert(parsed, record); insertErr != nil {
+			t.Fatalf("geoiptest: put %s in the database: %v", network, insertErr)
 		}
 	}
 

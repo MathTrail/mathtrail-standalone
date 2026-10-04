@@ -5,14 +5,25 @@ import { render } from "preact";
 import { act } from "preact/test-utils";
 import { expect, vi } from "vitest";
 import { start } from "../start";
-import { deliver, listenAsHost, openTestHost, type ToolCall } from "./host";
+import {
+	deliver,
+	listenAsHost,
+	type Opening,
+	openTestHost,
+	type ToolCall,
+} from "./host";
 
-/** CardOptions are what a test sets of the host a card is drawn on. */
+/**
+ * CardOptions are what a test sets of the host a card is drawn on. A host
+ * given links tells the card it opens pages, and answers each as links says;
+ * one given none says nothing of pages.
+ */
 type CardOptions = {
 	tools?: (call: ToolCall) => CallToolResult | Promise<CallToolResult>;
 	refuseMessages?: boolean;
 	refuseModelLines?: boolean;
 	context?: McpUiHostContext;
+	links?: Opening;
 };
 
 /**
@@ -122,9 +133,17 @@ export async function openCard({
 	refuseMessages = false,
 	refuseModelLines = false,
 	context = {},
+	links,
 }: CardOptions = {}): Promise<Drawn & { host: AppBridge }> {
-	const { host, widgetSide } = await openTestHost(context);
-	const heard = listenAsHost(host, tools, { refuseMessages, refuseModelLines });
+	const { host, widgetSide } = await openTestHost(
+		context,
+		links === undefined ? {} : { openLinks: {} },
+	);
+	const heard = listenAsHost(host, tools, {
+		refuseMessages,
+		refuseModelLines,
+		opening: links,
+	});
 	const root = document.createElement("div");
 	document.body.append(root);
 	await start(root, widgetSide);
