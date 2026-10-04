@@ -121,7 +121,12 @@ function readExamples(
 	return new Map(
 		Object.entries(examples).map(([id, listed]) => {
 			const topic = byId.get(id);
-			if (!topic?.site_page) {
+			if (topic === undefined) {
+				throw new Error(
+					`the examples of ${id} are of a topic the catalog does not have`,
+				);
+			}
+			if (!topic.site_page) {
 				throw new Error(
 					`the examples of ${id} are for a page the catalog does not publish`,
 				);

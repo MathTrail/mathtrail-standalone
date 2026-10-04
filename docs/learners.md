@@ -347,8 +347,8 @@ The rules the choice turned on, on every generator; every rule of the run is in 
 
 #### Remarks
 
-- The screen counts every change of the overall rank, a rating that crosses a rank's floor and back again among them. A step that keeps following a child moves the rating a little on every answer, and near a floor every such move can change the rank: on a child who stays put, every change of the best main step late in a run is that, since the child does not move. Whether the screen should count them, or the rank shown should keep still until the rating is clearly past a floor, is for the decision on the step (T72.6).
-- The tolerance on the error of a child who stays put, about a hundredth of a logit at the decision size, leaves little room for a lasting step: the floor of 0.1 already goes past it on six generators.
+- The screen counts every change of the overall rank, a rating that crosses a rank's floor and back again among them. A step that keeps following a child moves the rating a little on every answer, and near a floor every such move can change the rank: on a child who stays put, every change of the best main step late in a run is that, since the child does not move. They are counted, as the criterion says (decided 2026-10-04, by the author's leave): a rank shown with a margin, changing only once the rating is clearly past a floor, would calm the screen under any step, the service's own included, and is an improvement of the screen of its own, not a reason to choose the step again — the best main step misses the error and the corridor besides.
+- The tolerance on the error of a child who stays put, about a hundredth of a logit at the decision size, leaves little room for a lasting step: the floor of 0.1 already goes past it on six generators. It stays (decided 2026-10-04): it is the goal of no worse than the service's 0.495, and widening it once the candidates' numbers are known would fit the criterion to a candidate.
 - The nomination rule did not foresee a sweep in which no candidate missed one constraint alone; how it was read is written under "How they are searched and chosen".
 
 ## The held-out seeds

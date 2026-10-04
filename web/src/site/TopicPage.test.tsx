@@ -137,6 +137,7 @@ const words = [
 	"      K L",
 	"    steps:",
 	"      - Suppose A is a knight.",
+	"      - Then A is a liar.",
 	"    answer: A is a liar.",
 	"    note:",
 	"      title: Why so",
@@ -270,6 +271,17 @@ describe("a topic's page", () => {
 			"Example 1 · Grades 3–4",
 			"Example 2 · Grades 5–6",
 		]);
+	});
+
+	test("numbers the steps of the move and of each example in the page's own digits", () => {
+		expect(all(".s-moves .s-number")).toEqual(["1", "2"]);
+		expect(
+			[...knights.querySelectorAll(".s-example-steps")].map((steps) =>
+				[...steps.querySelectorAll(".s-number")].map(
+					(number) => number.textContent,
+				),
+			),
+		).toEqual([["1", "2"], ["1"]]);
 	});
 
 	test("draws an example's drawing and note only where the example has them", () => {

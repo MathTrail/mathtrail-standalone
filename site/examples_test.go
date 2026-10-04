@@ -53,24 +53,25 @@ func TestEveryExampleOnTheSiteProvesItsAnswer(t *testing.T) {
 	}
 }
 
-// A solver that no example names proves nothing a page shows: it was left
-// behind by an example taken off its page, or the data spells its example's
-// name another way, and that example went unproved.
-func TestEverySolverOnTheSiteBelongsToAnExample(t *testing.T) {
+// Every example has a solver of its own. A solver no example names proves
+// nothing a page shows: it was left behind by an example taken off its page,
+// or the data spells its example's name another way, and that example went
+// unproved. A solver two examples name proves at most one of them.
+func TestEverySolverOnTheSiteBelongsToOneExample(t *testing.T) {
 	t.Parallel()
 
-	named := map[string]bool{}
+	named := map[string]int{}
 	for topic, examples := range examplesOf(t) {
 		for _, example := range examples {
-			named[solverOf(topic, example)] = true
+			named[solverOf(topic, example)]++
 		}
 	}
 	err := filepath.WalkDir("solvers", func(path string, entry fs.DirEntry, err error) error {
 		if err != nil || entry.IsDir() {
 			return err
 		}
-		if !named[path] {
-			t.Errorf("%s: no example of the site's data names this solver", path)
+		if named[path] != 1 {
+			t.Errorf("%s: named by %d examples of data.json, want 1", path, named[path])
 		}
 		return nil
 	})
@@ -92,7 +93,7 @@ func examplesOf(t *testing.T) map[string][]example {
 		Examples map[string][]example `json:"examples"`
 	}
 	if err := json.Unmarshal(file, &data); err != nil {
-		t.Fatalf("data.json: %v", err)
+		t.Fatalf("Unmarshal(data.json) error = %v, want nil", err)
 	}
 	if len(data.Examples) == 0 {
 		t.Fatal("data.json names no example, so nothing here was tested")
@@ -121,10 +122,10 @@ func prove(t *testing.T, sandbox solver.Runner, path, answer string) {
 		t.Fatalf("Verdict() error = %v, want the run to happen", err)
 	}
 	if !agreement.Agreed() {
-		t.Fatalf("%s did not prove an answer: %s", path, agreement.Explain())
+		t.Fatalf("Verdict(%s) agreed on no answer, want %q: %s", path, answer, agreement.Explain())
 	}
 	if agreement.Letter != solver.Letter(0) {
-		t.Errorf("%s proves %q, the page says %q", path, options[solver.Place(agreement.Letter)], answer)
+		t.Errorf("Verdict(%s) = %q, want %q", path, options[solver.Place(agreement.Letter)], answer)
 	}
 }
 

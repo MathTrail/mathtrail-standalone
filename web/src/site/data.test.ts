@@ -112,7 +112,7 @@ describe("the site's data", () => {
 			examples({
 				"logic.tables": [{ level: "1-2", solver: "one", answer: "1" }],
 			}),
-			"site/data.json: the examples of logic.tables are for a page the catalog does not publish",
+			"site/data.json: the examples of logic.tables are of a topic the catalog does not have",
 		],
 		[
 			"an example at a level its topic is not taught at",

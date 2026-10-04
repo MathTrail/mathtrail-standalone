@@ -316,7 +316,7 @@ function Solving({
 						page={page}
 						at={key}
 						label={words.text("topic.example", {
-							number: numbers.format(at + 1),
+							number: at + 1,
 							grades: gradesText(words, example.grades),
 						})}
 					/>
@@ -339,6 +339,7 @@ function WorkedExample({
 	label: string;
 }) {
 	const words = useSiteWords();
+	const numbers = new Intl.NumberFormat(page.locale);
 	return (
 		<article class="s-example">
 			<p class="s-example-label">{label}</p>
@@ -346,8 +347,11 @@ function WorkedExample({
 			<p class="s-example-task">{page.text(`${at}.question`)}</p>
 			<div class="s-example-work">
 				<ol class="s-example-steps">
-					{page.list(`${at}.steps`).map((key) => (
+					{page.list(`${at}.steps`).map((key, step) => (
 						<li key={key} class="s-step">
+							<span class="s-number" aria-hidden="true">
+								{numbers.format(step + 1)}
+							</span>
 							<span>{page.text(key)}</span>
 						</li>
 					))}
