@@ -73,7 +73,8 @@ func settled(t *testing.T, theta float64, answers int, delta float64, inTopic in
 	return p
 }
 
-// masteredAt says at which level the topic is held mastered, and since when.
+// wantMasteredAt holds the topic to mastery at this level, since the day of
+// this moment.
 func wantMasteredAt(t *testing.T, p *profile.Profile, level rating.GradeLevel, since time.Time) {
 	t.Helper()
 
