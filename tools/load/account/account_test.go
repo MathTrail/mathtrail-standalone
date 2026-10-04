@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -50,7 +51,7 @@ type authority struct {
 	expiresIn int
 	bearers   []string
 	// renewed, when set, is called as a renewal of the tokens arrives, before
-	// it is answered.
+	// it is answered, with mu held: it must take nothing mu guards.
 	renewed func()
 }
 
@@ -550,9 +551,26 @@ func TestARenewedTokenThatCannotBeKeptIsUsedAndTold(t *testing.T) {
 	if err != nil || token != "access-2" {
 		t.Errorf("Token() = %q, %v; want the renewed access-2", token, err)
 	}
-	if loaded.Unkept() == nil {
-		t.Error("Unkept() = nil, want why the renewed token could not be kept")
+	if unkept := loaded.Unkept(); unkept == nil || !strings.Contains(unkept.Error(), "account: keep parent") {
+		t.Errorf("Unkept() = %v, want why the renewed token of parent could not be kept", unkept)
 	}
+	if left := namesIn(t, dir); !slices.Equal(left, []string{"parent.json"}) {
+		t.Errorf("the accounts' directory holds %q, want only parent.json: a draft left behind keeps the renewed tokens where nothing looks after them", left)
+	}
+}
+
+// namesIn are the names of everything in dir, in order.
+func namesIn(t *testing.T, dir string) []string {
+	t.Helper()
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatalf("ReadDir(%s) error = %v, want nil", dir, err)
+	}
+	names := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		names = append(names, entry.Name())
+	}
+	return names
 }
 
 // turnedAway asks at the address given, as something other than the parent's
