@@ -1,6 +1,11 @@
 package profile
 
-import "github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
+import (
+	"encoding/json"
+	"math"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
+)
 
 // RatingDaysKept is how many days the history of the ratings reaches back:
 // the week the progress tells the change over, seven dates in UTC with today
@@ -13,6 +18,30 @@ const RatingDaysKept = 7
 type Levels struct {
 	Delta float64 `json:"delta"`
 	Theta float64 `json:"theta"`
+}
+
+// UnmarshalJSON reads the levels. A number left out is read as no number at
+// all, which the levels are refused for as any level that is no number is,
+// rather than as zero: a level the child never stood at, and a move told from
+// it would be false.
+func (l *Levels) UnmarshalJSON(raw []byte) error {
+	var read struct {
+		Delta *float64 `json:"delta"`
+		Theta *float64 `json:"theta"`
+	}
+	if err := json.Unmarshal(raw, &read); err != nil {
+		return err
+	}
+	l.Delta, l.Theta = numberOrNone(read.Delta), numberOrNone(read.Theta)
+	return nil
+}
+
+// numberOrNone is the number read, or NaN for a number left out.
+func numberOrNone(read *float64) float64 {
+	if read == nil {
+		return math.NaN()
+	}
+	return *read
 }
 
 // RatingDay is where the child stood at the start of one day with answers:
@@ -33,6 +62,24 @@ type RatingDay struct {
 	// it and of the levels every answer kept, so a week that reaches back to
 	// this date has a start no day holds.
 	Unkept *Date `json:"unkept,omitempty"`
+}
+
+// UnmarshalJSON reads the day. An overall level left out is read as no number
+// at all, which the day is refused for as any level that is no number is,
+// rather than as zero: a level the child never stood at, and the week told
+// from it would be false.
+func (d *RatingDay) UnmarshalJSON(raw []byte) error {
+	type plain RatingDay
+	var read struct {
+		plain
+		Theta *float64 `json:"theta"`
+	}
+	if err := json.Unmarshal(raw, &read); err != nil {
+		return err
+	}
+	*d = RatingDay(read.plain)
+	d.Theta = numberOrNone(read.Theta)
+	return nil
 }
 
 // startTheDay keeps where the child stands as the start of day when the

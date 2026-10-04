@@ -29,6 +29,6 @@ export type Frame = {
  * page in turn, which seventeen topics would bury them under.
  */
 export const siteFrame: Frame = {
-	menu: [],
+	menu: [{ page: "topics", label: "nav.topics" }],
 	footer: ["privacy", "terms"],
 };

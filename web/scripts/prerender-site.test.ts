@@ -11,6 +11,7 @@ import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import catalog from "../../content/catalogs/topics.json";
 import { byCodeUnits } from "../src/i18n/order.ts";
 import { buildSite, givenTwice, main, readSources } from "./prerender-site.ts";
 
@@ -33,6 +34,12 @@ const fontFiles = [
 // scripted are the pages that may run a script: none, until the home page's
 // demo comes.
 const scripted: readonly string[] = [];
+
+// carded are the pages that draw a card of the widget, and load its styles.
+const carded: readonly string[] = [
+	"en/topics/index.html",
+	"ru/topics/index.html",
+];
 
 // urlsIn are the addresses every url() of a stylesheet names, sorted.
 function urlsIn(style: string): string[] {
@@ -84,6 +91,7 @@ describe("the site built from this repository", () => {
 		expect(await filesIn(out)).toEqual([
 			".nojekyll",
 			"CNAME",
+			"assets/card.css",
 			"assets/favicon.svg",
 			"assets/onest-cyrillic-wght-normal.woff2",
 			"assets/onest-latin-wght-normal.woff2",
@@ -93,11 +101,13 @@ describe("the site built from this repository", () => {
 			"en/index.html",
 			"en/privacy/index.html",
 			"en/terms/index.html",
+			"en/topics/index.html",
 			"index.html",
 			"robots.txt",
 			"ru/index.html",
 			"ru/privacy/index.html",
 			"ru/terms/index.html",
+			"ru/topics/index.html",
 			"sitemap.xml",
 		]);
 	});
@@ -146,8 +156,42 @@ describe("the site built from this repository", () => {
 				[...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map(
 					([, href]) => href,
 				),
-			).toEqual(["/assets/tokens.css", "/assets/style.css"]);
+			).toEqual([
+				"/assets/tokens.css",
+				"/assets/style.css",
+				...(carded.includes(page) ? ["/assets/card.css"] : []),
+			]);
 			expect(html.includes("<script")).toBe(scripted.includes(page));
+			expect(html.includes('class="mt mt-widget')).toBe(carded.includes(page));
+		}
+	});
+
+	test("builds the cards' stylesheet from the widget's own, loading nothing", async () => {
+		const card = await readFile(join(out, "assets", "card.css"), "utf8");
+
+		expect(card).toContain(".mt-widget");
+		expect(card).not.toMatch(/url\(|@import|https?:|data:/);
+	});
+
+	test("shows on the page of the topics every topic of the catalog, and every link between them", async () => {
+		for (const locale of ["en", "ru"]) {
+			const html = await readFile(
+				join(out, locale, "topics", "index.html"),
+				"utf8",
+			);
+			const cards = [
+				...html.matchAll(/<article id="([^"]+)" class="s-topic"/g),
+			];
+			const lines = [
+				...html.matchAll(/<g id="line-[^"]+" class="s-map-line"/g),
+			];
+
+			expect(cards.map(([, slug]) => slug ?? "").sort(byCodeUnits)).toEqual(
+				catalog.map((topic) => topic.slug).sort(byCodeUnits),
+			);
+			expect(lines).toHaveLength(
+				catalog.reduce((sum, topic) => sum + topic.builds_on.length, 0),
+			);
 		}
 	});
 

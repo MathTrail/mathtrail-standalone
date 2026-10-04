@@ -438,10 +438,38 @@ func decisionRules() ([]*rule, error) {
 }
 
 // chosenStep names the rule the decision run chose, as its criterion reads
-// the choice; empty until that run.
-const chosenStep = ""
+// the choice. No candidate met every constraint and was better than the
+// service, so the choice came to the exit: the floor of the highest score
+// among those that meet the constraints of not worse and of the screen.
+const chosenStep = "floor_0.05"
 
-var errNothingChosen = errors.New("learners: no step is chosen yet, so there is nothing to confirm or take apart")
+// The refusals of the runs that follow the choice: there is no step chosen
+// yet, or the one chosen is the exit, which is taken without a confirmation
+// and has no parts to take away, so the held-out children stay held out for a
+// candidate.
+var (
+	errNothingChosen = errors.New("learners: no step is chosen yet, so there is nothing to confirm or take apart")
+	errExitTaken     = errors.New("learners: the step chosen is the exit, which is taken without a confirmation and has no parts to take apart; the held-out children stay held out")
+)
+
+// chosenCandidate is the rule the decision run chose, when it is a candidate
+// rather than the exit.
+func chosenCandidate() (*rule, error) {
+	chosen, err := chosenRule()
+	if err != nil {
+		return nil, err
+	}
+	return confirmable(chosen)
+}
+
+// confirmable is a chosen rule as the runs that follow the choice take it: a
+// candidate as it is, the exit refused.
+func confirmable(r *rule) (*rule, error) {
+	if !isCandidate(r) {
+		return nil, errExitTaken
+	}
+	return r, nil
+}
 
 // chosenRule is the rule the decision run chose, among its own.
 func chosenRule() (*rule, error) {
@@ -461,7 +489,7 @@ func chosenRule() (*rule, error) {
 // working seeds when the chosen step is not the one whose parts the decision
 // run took away.
 func partsRules() ([]*rule, error) {
-	chosen, err := chosenRule()
+	chosen, err := chosenCandidate()
 	if err != nil {
 		return nil, err
 	}
@@ -480,7 +508,7 @@ func partsRules() ([]*rule, error) {
 // constant step and the ceiling: a set held out is confirmed on once, by one
 // candidate.
 func confirmationRules() ([]*rule, error) {
-	chosen, err := chosenRule()
+	chosen, err := chosenCandidate()
 	if err != nil {
 		return nil, err
 	}

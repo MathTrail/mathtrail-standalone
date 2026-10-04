@@ -11,7 +11,9 @@ export const published: readonly string[] = [
 	"/en/",
 	"/en/privacy/",
 	"/en/terms/",
+	"/en/topics/",
 	"/ru/",
 	"/ru/privacy/",
 	"/ru/terms/",
+	"/ru/topics/",
 ];

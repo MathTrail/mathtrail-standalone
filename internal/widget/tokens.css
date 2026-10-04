@@ -39,6 +39,11 @@
   --ramp-3: #b8860b;
   --ramp-4: #65a30d;
   --ramp-5: #15803d;
+  /* How a rank moved over a while: a gain, and a step back, drawn as stripes
+     on a course and written beside it, so they read as text does. The step
+     back is a coral, not the red of a wrong answer. */
+  --gain: #1f7a4c;
+  --loss: #b9472b;
   --avatar-fill: #ebe5da;
   --avatar-ink: #6f685c;
   --mark-fill: #23211d;
@@ -82,6 +87,8 @@
   --ramp-3: #fde047;
   --ramp-4: #a3e635;
   --ramp-5: #4ade80;
+  --gain: #5fd090;
+  --loss: #f08f78;
   --avatar-fill: #3a3731;
   --avatar-ink: #c9c2b4;
   --mark-fill: #f3eee4;
@@ -153,6 +160,8 @@
   --ramp-3: #fde047;
   --ramp-4: #a3e635;
   --ramp-5: #4ade80;
+  --gain: #5fd090;
+  --loss: #f08f78;
   --avatar-fill: #3a3731;
   --avatar-ink: #c9c2b4;
   --mark-fill: #f3eee4;

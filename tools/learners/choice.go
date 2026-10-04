@@ -40,6 +40,12 @@ type stepChoice struct {
 	chosen              *ruleCriterion
 	exit                bool
 	margins             []margin
+	// top is the main step of the highest score, whatever it meets, and
+	// againstTop its score less every other rule's, in a decision run: what
+	// each part of a step gives, and what a comparison gains or loses beside
+	// it.
+	top        *ruleCriterion
+	againstTop []rivalry
 }
 
 // nearMissCount is how many of the candidates that fail one constraint alone
@@ -72,10 +78,36 @@ func (cr *criterionRun) choose(read []ruleCriterion, confirming bool) stepChoice
 	if c.chosen == nil {
 		c.chooseExit(read)
 	}
-	if c.chosen != nil {
+	if c.chosen != nil && !c.exit {
 		c.margins = marginsOf(c.chosen)
 	}
+	if cr.decides && !confirming {
+		c.setAgainstTop(cr, read)
+	}
 	return c
+}
+
+// setAgainstTop finds the main step of the highest score, whatever it meets,
+// and sets it against every other rule but the service and the ceiling. Only
+// a decision run does: there the best step's parts are taken away, and a run
+// of every point of a grid would draw a bootstrap for every rule twice over.
+func (c *stepChoice) setAgainstTop(cr *criterionRun, read []ruleCriterion) {
+	for i := range read {
+		rc := &read[i]
+		if rc.rule.candidacy != nil && rc.rule.candidacy.kind == mainCandidate && rc.score.has && (c.top == nil || rc.score.value > c.top.score.value) {
+			c.top = rc
+		}
+	}
+	if c.top == nil {
+		return
+	}
+	for i := range read {
+		rc := &read[i]
+		if rc == c.top || rc.rule.service || rc.rule.ceiling || !rc.score.has {
+			continue
+		}
+		c.againstTop = append(c.againstTop, rivalry{rc: rc, difference: cr.scoreDifference(c.top.rule, rc.rule)})
+	}
 }
 
 // isCandidate says whether a rule is a candidate for the step, main or
@@ -193,8 +225,9 @@ type margin struct {
 	chance float64
 }
 
-// marginsOf are a rule's constraints by the chance each holds on new
-// children, the likeliest to fail first.
+// marginsOf are a chosen candidate's constraints by the chance each holds on
+// new children, the likeliest to fail first, read before its confirmation
+// draws them. The exit is taken without a confirmation, and has none.
 func marginsOf(rc *ruleCriterion) []margin {
 	var all []margin
 	for i := range rc.readings {

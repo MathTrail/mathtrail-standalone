@@ -37,8 +37,14 @@ func write(out io.Writer, c *counts) error {
 			"falls behind a learning child shows; below zero, worse.", c.keptUpTable()},
 		{"Limits reached", "A pace writes one line for a flood of refusals, and a day's ceiling one for every " +
 			"call it refused.", c.limitsTable()},
-		{"Tool calls", "Milliseconds are the service's own time for a call, its calls to Drive included.",
+		{"Tool calls", "Milliseconds are the service's own time for a call, its calls to Drive included; without " +
+			"Drive, the same less the time its calls to Drive took, tied to the call by the request they were made in.",
 			c.toolsTable()},
+		{"Traces", c.tracesAbout(), c.tracesTable()},
+		{"The busiest minute", c.busyAbout(), c.busyTable()},
+		{"The rules of the log", "Every line of the service's is held to an event the service is decided to " +
+			"write, to the fields decided for that event, and to carrying nothing shaped like an email address. A " +
+			"line that breaks one is named by its event and its field, never by what it held.", c.breachesTable()},
 	} {
 		fmt.Fprintf(&report, "\n## %s\n\n%s\n\n", section.title, section.about)
 		section.table.writeTo(&report)
@@ -134,6 +140,7 @@ func (c *counts) toolsTable() *table {
 	t := &table{columns: []string{
 		"Host", "Tool", "Calls", "Answered", "Refused", "Failed", "Invalid",
 		"Milliseconds, median", "Milliseconds, 95th percentile",
+		"Without Drive, median", "Without Drive, 95th percentile",
 	}, named: 2}
 	keys := slices.Collect(maps.Keys(c.tools))
 	slices.SortFunc(keys, func(a, b toolOf) int { return cmp.Or(cmp.Compare(a.host, b.host), cmp.Compare(a.tool, b.tool)) })
@@ -144,7 +151,100 @@ func (c *counts) toolsTable() *table {
 			cells = append(cells, number(called.outcomes[outcome]))
 		}
 		took := slices.Sorted(slices.Values(called.milliseconds))
-		t.add(append(cells, number(atRank(took, 50)), number(atRank(took, 95)))...)
+		own := slices.Sorted(slices.Values(called.own))
+		t.add(append(cells, number(atRank(took, 50)), number(atRank(took, 95)),
+			number(atRank(own, 50)), number(atRank(own, 95)))...)
+	}
+	return t
+}
+
+// tracesAbout says how to read the traces, and what share of them was kept
+// beside the share the telemetry was built to keep.
+func (c *counts) tracesAbout() string {
+	about := "A request's trace is kept or dropped as the request arrives. The spans of a kept trace are " +
+		"delivered before the request ends, and the measurements with whichever request finds them due, so a " +
+		"delivery that failed lost the spans of a kept trace, or the measurements. A delivery that ran out of " +
+		"time is past the deadline it is given."
+	t := &c.traces
+	if requests := t.kept + t.dropped; requests > 0 {
+		about += fmt.Sprintf(" %s of the %d requests that carried a trace kept it.",
+			strconv.FormatFloat(float64(t.kept)/float64(requests), 'f', 3, 64), requests)
+	}
+	switch {
+	case t.configured != nil:
+		about += fmt.Sprintf(" The telemetry was built to keep %s.", strconv.FormatFloat(*t.configured, 'f', -1, 64))
+	case t.built:
+		about += " The newest build of the telemetry among the lines exports nothing."
+	}
+	if untold := t.failed[ofUntold]; untold > 0 {
+		about += fmt.Sprintf(" Deliveries that failed for a request whose own line does not tell whether it kept its "+
+			"trace — a line not read, or an id requests of both kinds came with: %d, past the deadline %d.",
+			untold, t.late[ofUntold])
+	}
+	if t.broke > 0 {
+		about += fmt.Sprintf(" Lines that say the telemetry failed on its own, beside a delivery: %d.", t.broke)
+	}
+	return about
+}
+
+// tracesTable is how many requests kept their trace and how many dropped it,
+// and how many of their deliveries failed.
+func (c *counts) tracesTable() *table {
+	t := &table{columns: []string{"Trace", "Requests", "Deliveries failed", "Of them past the deadline"}, named: 1}
+	traced := &c.traces
+	if !traced.told() {
+		return t
+	}
+	t.add("kept", number(traced.kept), number(traced.failed[ofKept]), number(traced.late[ofKept]))
+	t.add("dropped", number(traced.dropped), number(traced.failed[ofDropped]), number(traced.late[ofDropped]))
+	return t
+}
+
+// busyAbout says how to read the busiest minute, how many instances the lines
+// of requests name, and how many requests the MCP endpoint was sent for each
+// tool call.
+func (c *counts) busyAbout() string {
+	about := "The most a minute by the clock held, the minute a pace is counted over. An account's pace counts " +
+		"every message it sends the MCP endpoint, and a tool call is the one a line names the account on; an " +
+		"instance's counts every request it is sent, at the MCP endpoint and at the sign-in apart."
+	b := &c.busy
+	switch instances := b.instances(); {
+	case instances == 1:
+		about += " The lines of requests name one instance."
+	case instances > 1:
+		about += fmt.Sprintf(" The lines of requests name %d instances.", instances)
+	case len(b.mcp)+len(b.others) > 0:
+		about += " The lines of requests name no instance: one process of a run on this machine wrote them."
+	}
+	if b.toolCalls > 0 && b.mcpRequests > 0 {
+		about += fmt.Sprintf(" The MCP endpoint was sent %s requests for each tool call.",
+			strconv.FormatFloat(float64(b.mcpRequests)/float64(b.toolCalls), 'f', 2, 64))
+	}
+	return about
+}
+
+// busyTable is the most a minute held of each thing a pace counts.
+func (c *counts) busyTable() *table {
+	t := &table{columns: []string{"What", "Most in a minute"}, named: 1}
+	b := &c.busy
+	if b.toolCalls+len(b.mcp)+len(b.others) == 0 {
+		return t
+	}
+	t.add("Tool calls of one account", number(mostOf(b.ofAccount)))
+	t.add("Requests to the MCP endpoint on one instance", number(mostOf(b.mcp)))
+	t.add("Other requests on one instance", number(mostOf(b.others)))
+	t.add("Requests to the MCP endpoint on all instances", number(mostOf(acrossInstances(b.mcp))))
+	return t
+}
+
+// breachesTable is every way the lines broke the rules of the log, by event,
+// field and rule.
+func (c *counts) breachesTable() *table {
+	t := &table{columns: []string{"Event", "Field", "Rule", "Lines"}, named: 3}
+	keys := slices.Collect(maps.Keys(c.breaches))
+	slices.SortFunc(keys, compareBreaches)
+	for _, key := range keys {
+		t.add(key.event, key.field, key.rule, number(c.breaches[key]))
 	}
 	return t
 }

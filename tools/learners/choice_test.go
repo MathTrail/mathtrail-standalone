@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"math"
 	"strings"
 	"testing"
@@ -187,5 +188,69 @@ func TestTheChanceAConstraintHoldsGrowsWithItsRoom(t *testing.T) {
 		if got := holdChance(&tc.rd); math.Abs(got-tc.want) > 1e-3 {
 			t.Errorf("%s: the chance it holds is %v, want %v", tc.name, got, tc.want)
 		}
+	}
+}
+
+// The exit is taken without a confirmation and has no parts to take apart:
+// the runs that follow the choice refuse it, and take a candidate as it is,
+// so that the held-out children stay held out for a candidate.
+func TestTheExitIsNeitherConfirmedNorTakenApart(t *testing.T) {
+	t.Parallel()
+	if _, err := confirmable(floorRule(0.05)); !errors.Is(err, errExitTaken) {
+		t.Errorf("confirming a floor: error %v, want %v", err, errExitTaken)
+	}
+	main := uncertainStep{afterSeries: 0.4, topicSpread: 0.5, limit: noLimit}.rule()
+	if got, err := confirmable(main); err != nil || got != main {
+		t.Errorf("confirming a main step: %v, %v; want it as it is", got, err)
+	}
+}
+
+// The chance a chosen candidate's constraints hold on new children is read
+// for every one of them, before its confirmation draws the children; the exit
+// is taken without a confirmation, and none is read for it.
+func TestOnlyACandidateHasItsChancesOnNewChildrenRead(t *testing.T) {
+	t.Parallel()
+	c, _ := choiceOf(t, map[string]float64{"floor": 0.4}, candidate("floor", exitCandidate, 1, false, 0))
+	if !c.exit || len(c.margins) != 0 {
+		t.Errorf("chose %s (the exit %v) with %d chances read, want the floor as the exit, with none", nameOf(c.chosen), c.exit, len(c.margins))
+	}
+	c, _ = choiceOf(t, map[string]float64{"main": 0.15}, candidate("main", mainCandidate, 1, false, 0))
+	if nameOf(c.chosen) != "main" || len(c.margins) != len(c.chosen.readings) {
+		t.Errorf("chose %s with %d chances read, want main with one for each of its constraints", nameOf(c.chosen), len(c.margins))
+	}
+}
+
+// In a decision run, the main step of the highest score, whatever either
+// meets, is set against every rule but the service and the ceiling, by its
+// score less theirs on the same children; the table says so, a row a rule.
+func TestEveryRuleIsSetAgainstTheHighestMainStep(t *testing.T) {
+	t.Parallel()
+	c, cr := choiceOf(t, map[string]float64{"top": 0.3, "part": 0.4, "comparison": 0.35},
+		candidate("top", mainCandidate, 1, false, 0), candidate("part", mainCandidate, 0, false, 0), &rule{name: "comparison", shape: both})
+	if nameOf(c.top) != "top" || len(c.againstTop) != 2 {
+		t.Fatalf("the highest main step %s, set against %d rules; want top, against 2", nameOf(c.top), len(c.againstTop))
+	}
+	for _, r := range c.againstTop {
+		if want := cr.scoreOf(c.top.rule).value - cr.scoreOf(r.rc.rule).value; !r.difference.has || math.Abs(r.difference.value-want) > 1e-12 {
+			t.Errorf("the top less %s: %+v, want %v", r.rc.rule.name, r.difference, want)
+		}
+	}
+	var b strings.Builder
+	writeChoice(&b, &c)
+	if want := "| comparison/both | 0.375 [0.375, 0.375] | 0.125 [0.125, 0.125] |"; !strings.Contains(b.String(), want) {
+		t.Errorf("the choice reads\n%s\nwant the row %s", b.String(), want)
+	}
+}
+
+// The step chosen is a rule of the decision run, and of the bench's own set:
+// a name that matched no rule would drop it from both without a word.
+func TestTheChosenStepIsARuleOfTheRuns(t *testing.T) {
+	t.Parallel()
+	chosen, err := chosenRule()
+	if err != nil || chosen.name != chosenStep {
+		t.Fatalf("the chosen step %q: %v, %v; want a rule of the decision run", chosenStep, chosen, err)
+	}
+	if !containsRule(benchRules(), chosen) {
+		t.Errorf("the bench's own set lacks the chosen step %s", chosenStep)
 	}
 }

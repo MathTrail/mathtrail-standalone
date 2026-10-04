@@ -73,6 +73,41 @@ func TestTheRampStandsOutFromTheCard(t *testing.T) {
 	}
 }
 
+// How a rank moved is written in words beside the course as well as drawn in
+// stripes on it, so a gain and a step back stand out from the card as text
+// must, at 4.5 to 1 at least, and from the course's empty track as a part of a
+// picture must, at 3 to 1 — in either theme, and the same for a viewer who
+// prefers the dark theme as for a host that names it.
+func TestTheMovesStandOutFromTheCardAndTheCourse(t *testing.T) {
+	t.Parallel()
+
+	tokens := widget.Tokens()
+	light := tokensOf(t, tokens, `:root, [data-theme="light"] {`)
+	dark := tokensOf(t, tokens, `[data-theme="dark"] {`)
+	preferred := tokensOf(t, tokens, `:root:not([data-theme="light"]) {`)
+	for _, name := range []string{"gain", "loss"} {
+		for _, theme := range []struct {
+			name   string
+			tokens map[string]string
+		}{{"light", light}, {"dark", dark}} {
+			colour := theme.tokens[name]
+			for _, against := range []struct {
+				what, token string
+				least       float64
+			}{{"the card", "surface", 4.5}, {"the course's track", "border", 3}} {
+				if got := contrast(t, colour, theme.tokens[against.token]); got < against.least {
+					t.Errorf("--%s in the %s theme is %q, %.2f to 1 against %s %s, want %.1f to 1 at least",
+						name, theme.name, colour, got, against.what, theme.tokens[against.token], against.least)
+				}
+			}
+		}
+		if preferred[name] != dark[name] {
+			t.Errorf("--%s is %q for a viewer who prefers the dark theme and %q for a host that names it, want one",
+				name, preferred[name], dark[name])
+		}
+	}
+}
+
 // declaration is one custom property of the tokens: its name and its value.
 var declaration = regexp.MustCompile(`--([a-z0-9-]+):\s*([^;]+);`)
 

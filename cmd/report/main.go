@@ -1,6 +1,7 @@
 // Command report adds up the service's log into the numbers it is written
-// for, reading the service's own lines on standard input and writing the
-// report in Markdown on standard output.
+// for, and holds every line to the rules of the log, reading the service's own
+// lines on standard input and writing the report in Markdown on standard
+// output.
 package main
 
 import (

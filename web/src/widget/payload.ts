@@ -362,6 +362,40 @@ export type Location = z.infer<typeof location>;
 // share is how far through a rank a rating has come, as a whole percent.
 const share = z.number().int().min(0).max(100);
 
+// move is how a rank moved over a while: where it stood before, as it was
+// drawn, and the word for the move. The word is read as any text, so that one
+// a later release adds draws no move rather than no card; the rating before,
+// which the card does not draw, is left unread.
+const move = z.object({
+	rank: z.number().int().positive().optional(),
+	share: share.optional(),
+	moved: z.string(),
+});
+
+// moves are how a rank moved since the last task and over the week, each null
+// where the while cannot be told. A while that does not read is read as one
+// that cannot be told, and moves that do not read as none at all: a move is a
+// part of the progress a card can do without, never a reason to show none.
+const moves = z
+	.object({
+		last_task: move.nullable().catch(null),
+		week: move.nullable().catch(null),
+	})
+	.optional()
+	.catch(undefined);
+
+/**
+ * Move is how a rank moved over a while, as a card reads it: where it stood
+ * before, and the word for the move.
+ */
+export type Move = z.infer<typeof move>;
+
+/**
+ * Moves are how a rank moved since the last task and over the week, each null
+ * where the while cannot be told.
+ */
+export type Moves = NonNullable<z.infer<typeof moves>>;
+
 const progressReport = z.object({
 	screen: z.literal("progress"),
 	profile: details,
@@ -376,6 +410,9 @@ const progressReport = z.object({
 			// with the step under way empty, as an earlier chat's card still
 			// is when it is drawn again.
 			share: share.optional(),
+			// A progress from before the moves, or one with nothing to tell of
+			// them, has none, and the card draws no move.
+			change: moves,
 		})
 		.nullable(),
 	topics: z.array(
@@ -392,6 +429,7 @@ const progressReport = z.object({
 			answers: z.number().int().nonnegative(),
 			mastered: z.boolean(),
 			skipped: z.number().int(),
+			change: moves,
 		}),
 	),
 	recent: z.array(

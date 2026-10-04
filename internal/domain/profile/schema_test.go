@@ -2,6 +2,7 @@ package profile_test
 
 import (
 	"encoding/json"
+	"errors"
 	"reflect"
 	"slices"
 	"strings"
@@ -389,38 +390,75 @@ func withPart(t *testing.T, p *profile.Profile, key, raw string) []byte {
 	return edited
 }
 
-// The schema and the service hold a day of the history of the ratings to the
-// same rules: a day either reads, or the two refuse it together. A file the
-// service would write back that the schema refuses, or one the schema allows
-// that the service refuses, is two descriptions of one file drifting apart.
-func TestTheSchemaAndTheServiceHoldADayAlike(t *testing.T) {
+// The schema and the service hold the history of the ratings to one contract:
+// whatever the schema allows, the service reads, and whatever the service
+// reads, it writes back in a shape the schema allows. The service reads a
+// little more — a null where a field may be left out reads as left out — and
+// refuses a number left out as a rule broken, never as bytes that are no
+// profile: a store rolls those back, and a file edited by hand would be lost.
+func TestTheSchemaAndTheServiceHoldTheHistoryAlike(t *testing.T) {
 	t.Parallel()
 
+	answer := `"answered_at": "2026-09-20T18:00:00Z", "confused": false, "correct": true, "difficulty": 2, ` +
+		`"grade_level": "1-2", "hint_used": false, "pace": "fast", "task_id": "tsk_1", "topic": "logic.ordering"`
 	for _, tc := range []struct {
-		name  string
-		day   string
-		holds bool
+		name    string
+		key     string // the part of the file the case writes
+		raw     string
+		allowed bool  // whether the schema allows the file
+		refused error // what the service refuses it as, or nil when it reads it
 	}{
-		{"a day", `{"date": "2026-09-20", "deltas": {"counting.gaps": 0.1}, "theta": 2.5}`, true},
-		{"a day before any topic was answered", `{"date": "2026-09-20", "deltas": {}, "theta": 2.5}`, true},
-		{"the first day after an answer the history missed", `{"date": "2026-09-20", "deltas": {}, "theta": 2.5, "unkept": "2026-09-18"}`, true},
-		{"a day whose corrections are null", `{"date": "2026-09-20", "deltas": null, "theta": 2.5}`, false},
-		{"a day with no corrections", `{"date": "2026-09-20", "theta": 2.5}`, false},
-		{"a correction of no topic", `{"date": "2026-09-20", "deltas": {"": 0.1}, "theta": 2.5}`, false},
-		{"a correction that is no number", `{"date": "2026-09-20", "deltas": {"counting.gaps": "0.1"}, "theta": 2.5}`, false},
-		{"a day with no date", `{"deltas": {}, "theta": 2.5}`, false},
+		{"a day", "rating_days", `[{"date": "2026-09-20", "deltas": {"counting.gaps": 0.1}, "theta": 2.5}]`, true, nil},
+		{"a day before any topic was answered", "rating_days", `[{"date": "2026-09-20", "deltas": {}, "theta": 2.5}]`, true, nil},
+		{"the first day after an answer the history missed", "rating_days",
+			`[{"date": "2026-09-20", "deltas": {}, "theta": 2.5, "unkept": "2026-09-18"}]`, true, nil},
+		{"a day whose missed answer is null", "rating_days",
+			`[{"date": "2026-09-20", "deltas": {}, "theta": 2.5, "unkept": null}]`, false, nil},
+		{"a day with no overall level", "rating_days", `[{"date": "2026-09-20", "deltas": {}}]`, false, profile.ErrInvalid},
+		{"a day whose corrections are null", "rating_days", `[{"date": "2026-09-20", "deltas": null, "theta": 2.5}]`, false, profile.ErrInvalid},
+		{"a day with no corrections", "rating_days", `[{"date": "2026-09-20", "theta": 2.5}]`, false, profile.ErrInvalid},
+		{"a correction of no topic", "rating_days", `[{"date": "2026-09-20", "deltas": {"": 0.1}, "theta": 2.5}]`, false, profile.ErrInvalid},
+		{"a day with no date", "rating_days", `[{"deltas": {}, "theta": 2.5}]`, false, profile.ErrInvalid},
+		{"no day at all", "rating_days", `[null]`, false, profile.ErrInvalid},
+		{"a correction that is no number", "rating_days",
+			`[{"date": "2026-09-20", "deltas": {"counting.gaps": "0.1"}, "theta": 2.5}]`, false, profile.ErrMalformed},
+		{"an answer with the levels before it", "recent", `[{` + answer + `, "before": {"delta": 0.1, "theta": 2.5}}]`, true, nil},
+		{"an answer whose levels before it are null", "recent", `[{` + answer + `, "before": null}]`, false, nil},
+		{"an answer with half the levels before it", "recent", `[{` + answer + `, "before": {"theta": 2.5}}]`, false, profile.ErrInvalid},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			file := withPart(t, parseFixture(t, "dima"), "rating_days", "["+tc.day+"]")
-			if err := againstTheSchema(t, file); (err == nil) != tc.holds {
-				t.Errorf("the schema says %v about %s, want it to hold: %v", err, tc.day, tc.holds)
+			file := withPart(t, parseFixture(t, "dima"), tc.key, tc.raw)
+			if err := againstTheSchema(t, file); (err == nil) != tc.allowed {
+				t.Errorf("the schema says %v about %s, want it allowed: %v", err, tc.raw, tc.allowed)
 			}
-			if _, err := profile.Parse(file); (err == nil) != tc.holds {
-				t.Errorf("Parse() error = %v about %s, want it read: %v", err, tc.day, tc.holds)
+			read, err := profile.Parse(file)
+			if tc.refused != nil {
+				if !errors.Is(err, tc.refused) {
+					t.Errorf("Parse() error = %v about %s, want %v", err, tc.raw, tc.refused)
+				}
+				return
 			}
+			if err != nil {
+				t.Fatalf("Parse() error = %v about %s, want it read", err, tc.raw)
+			}
+			wantWrittenAsTheSchemaAllows(t, read)
 		})
+	}
+}
+
+// wantWrittenAsTheSchemaAllows fails the test unless the profile is written
+// as a file the schema allows.
+func wantWrittenAsTheSchemaAllows(t *testing.T, p *profile.Profile) {
+	t.Helper()
+
+	written, err := profile.Marshal(p)
+	if err != nil {
+		t.Fatalf("Marshal() error = %v, want the profile written", err)
+	}
+	if broken := againstTheSchema(t, written); broken != nil {
+		t.Errorf("the profile is written as a file the schema refuses: %v", broken)
 	}
 }
 

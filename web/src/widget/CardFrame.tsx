@@ -6,6 +6,7 @@ import type { Host } from "./bridge";
 import { CardRoot } from "./CardRoot";
 import { FirstRunScreen } from "./FirstRunScreen";
 import { type Folds, useFolds } from "./folds";
+import { type PeriodChoice, usePeriod } from "./moves";
 import { ProgressScreen } from "./ProgressScreen";
 import { type Child, readScreen } from "./payload";
 import { type Progress, progressAfter } from "./progress";
@@ -42,6 +43,7 @@ export function CardFrame({
 		saved !== undefined && saved.over === child ? saved.child : child;
 	const [progress, dispatch] = useReducer(progressAfter, undefined);
 	const folds = useFolds();
+	const period = usePeriod();
 	const topBar = useRef<HTMLButtonElement>(null);
 	const backBar = useRef<HTMLButtonElement>(null);
 	const openings = useRef(0);
@@ -94,6 +96,7 @@ export function CardFrame({
 								wide={wide}
 								host={host}
 								folds={folds}
+								period={period}
 								onSaved={(changed) => setSaved({ over: child, child: changed })}
 							/>
 						</>
@@ -115,6 +118,7 @@ function ProgressOverCard({
 	wide,
 	host,
 	folds,
+	period,
 	onSaved,
 }: {
 	progress: Progress;
@@ -122,6 +126,7 @@ function ProgressOverCard({
 	wide: boolean;
 	host: Host;
 	folds: Folds;
+	period: PeriodChoice;
 	onSaved: (child: Child) => void;
 }) {
 	const words = useWords();
@@ -137,6 +142,7 @@ function ProgressOverCard({
 				wide={wide}
 				host={host}
 				folds={folds}
+				period={period}
 				onSaved={onSaved}
 			/>
 		);

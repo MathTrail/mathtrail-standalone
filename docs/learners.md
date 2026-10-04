@@ -58,7 +58,7 @@ Each rule estimates where a child stands. The bench writes a rule's estimate int
 | Glicko-2 with guessing | `glicko2_floor/general`, `glicko2_floor/topics` | Glicko-2 over a chance that a child can guess, with one level, or with a level per topic |
 | The oracle | `oracle/both` | Stands where the child truly stands, in every topic, at every moment, and knows the child's true chance: **the ceiling** of every rule that learns of a child from answers |
 
-The step rules start from the trial series' estimate, as the service does; Glicko-2 and the oracle start from the first answer. These are the bench's own set of rules, `bench`, which a run is given unless it names another; the step chosen joins them once one is. Every rule runs on all nineteen generators: 152 cells. The other sets, which choose the step, are described under [The candidates of the step](#the-candidates-of-the-step).
+The step rules start from the trial series' estimate, as the service does; Glicko-2 and the oracle start from the first answer. These are the bench's own set of rules, `bench`, which a run is given unless it names another; the step chosen joins them once one is, unless it is among them already, as the floor of 0.05 the choice came to is. Every rule runs on all nineteen generators: 152 cells. The other sets, which choose the step, are described under [The candidates of the step](#the-candidates-of-the-step).
 
 The oracle is the ceiling of the corridor at each miss of the model, and of mastery under the mastery rule the service has now, given a perfect estimate. It knows a child's level but not their slope or their floor (G6, G7). It is not a ceiling for a new mastery rule: to set the oracle beside one, the bench will need a way to put that rule in the service's place. It is compared with no rule as one, and the measures of what the child is shown leave it out: its rating moves only when the child does.
 
@@ -202,15 +202,158 @@ Every candidate and comparison follows the trial series as the service does, and
    - the backup's margin of 0.05 is read against the main step chosen; when no main step meets the constraints, a backup that meets them is chosen;
    - when no floor meets the constraints of not worse and of the screen, the service's step stays.
 
-   For the chosen rule it writes, before the held-out children are drawn, the chance each constraint holds on as many new children.
-6. **The parts** of the chosen step, if it is not the one whose parts the decision run took away, are run on the working children as well (`-rules parts`).
-7. **The confirmation** (`-held-out -children 4000`) runs the chosen rule alone beside the service, the slow constant step and the oracle.
+   For a chosen candidate it writes, before the held-out children are drawn, the chance each constraint holds on as many new children; the exit, taken without a confirmation, has none written.
+6. **The parts** of the chosen step, if it is not the one whose parts the decision run took away, are run on the working children as well (`-rules parts`). A floor taken as the exit has no parts to take away.
+7. **The confirmation** (`-held-out -children 4000`) runs the chosen rule alone beside the service, the slow constant step and the oracle. The exit is taken without one, so a run of the held-out children refuses once the choice comes to the exit: they stay held out for a candidate.
 
 A candidate exactly as good as the service fails at least one of the nineteen checks of the error about one time in six, each passing 99 times in 100, and the confirmation runs that risk again. The criterion was set so in T72.3; the bench only names it.
 
+### What the runs came to
+
+**The sweep and the refinement**, 300 children a cell on the sweep's children, `results/sweep/` and `results/refine/`: no main candidate met every constraint, and none missed one alone; the fewest any missed was three. What gives way shows across the grid. To follow the child who learns at half speed within the goal, the overall level needs some 0.003 of uncertainty added for every answer, a lasting step of 0.13; with it the overall rank changes about four times in a hundred answers late in a run, where the service's changes three times at the start and less than once late. Without it the rank stays still, and the goals of the learner and of the jump are missed. Averaged over the other numbers of the grid, 36 points each:
+
+| q for the overall level | Limit | Lag on G2-half | Corridor on G2-half | Not caught up on G3 | Rank changes, answers 6–20 | Rank changes, answers 150–200 |
+|---|---|---:|---:|---:|---:|---:|
+| 0 | none | −0.538 | 37.8 % | 61.7 % | 8.2 | 0.9 |
+| 0 | 0.42 | −0.526 | 38.2 % | 60.3 % | 7.3 | 0.9 |
+| 0 | 0.3 | −0.459 | 39.1 % | 53.2 % | 6.6 | 0.9 |
+| 0.003 | none | −0.342 | 41.0 % | 23.2 % | 8.8 | 4.1 |
+| 0.003 | 0.42 | −0.328 | 41.3 % | 22.4 % | 7.8 | 4.1 |
+| 0.003 | 0.3 | −0.211 | 42.2 % | 15.9 % | 7.1 | 4.2 |
+| 0.01 | none | −0.251 | 41.1 % | 11.5 % | 9.8 | 8.1 |
+| 0.01 | 0.42 | −0.189 | 41.7 % | 9.2 % | 8.8 | 8.0 |
+| 0.01 | 0.3 | +0.034 | 41.7 % | 4.8 % | 8.0 | 8.0 |
+
+On the sweep's children the goals were a lag of at most 0.268, a corridor of at least 42.7 %, at most 25 % not caught up, and at most 3.1 changes of the rank in a hundred answers. The limit helps the learner as much as it calms the card: a wrong answer is a larger surprise than a right one, so holding back the large moves holds back mostly the moves down.
+
+**The decision run**, 4,000 children a cell on the working children, `results/decision/`: **no candidate meets every constraint, and the exit is taken — the floor of 0.05 under the overall level's step**, with a score of 0.056 [0.055, 0.058]. Of the other floors, 0.1 scores 0.161 but is worse than the service on the error after 200 answers on six generators (G4, G5, G6, G0-miss0.25, G0-start0.5, G0-topics0.3), and 0.02 meets every check but closes nothing of the way, 0.0001.
+
+The best main candidate — v_T 0.13, s 0.7, q 0.003 and 0.006, the limit 0.3 — scores 0.255 [0.251, 0.259] and meets the goals of the lag, 0.212 against at most 0.276, and of the jump, 10 % not caught up against at most 25 %. It misses:
+
+- the corridor of the child who learns at half speed, by a hair: 41.8 % against at least 42.2 %;
+- the overall rank's changes late in a run: 4.6 in a hundred answers on G0 against the service's 3.7 at the start;
+- not worse on the error after 200 answers, on nine generators: on G0 0.512 against the service's 0.493, past a tolerance of about 0.013;
+- not worse on the corridor, on three generators.
+
+The backup scores 0.245 and meets the learner's goals — a lag of 0.245, 42.6 % in the corridor, 18 % not caught up — but its overall rank changes 12.6 times in a hundred answers early, against the service's 3.7: the uncertainty the five answers of the series leave is near 1, so its first steps are large.
+
+So the choice does not fail for want of a step that follows a learner. The step that does is held back by two constraints a lasting step meets head on: a child who stays put may not lose more than about a hundredth of a logit of accuracy, and the overall rank may not change more often late in a run than the service's does at the start.
+
+**What each part of the best main step gives**, its score less the score of the step without it: q for the overall level 0.192; the limit 0.065; the model's gains in place of the service's 0.048; q for a topic 0.016; all three of q, q and the limit 0.233. The paired intervals are in `results/decision/criterion.md`, under "Every rule against the main step of the highest score".
+
+**The comparisons.** The full filter on the best main step's numbers scores 0.197, less than the step it generalises: its exact gain is smaller than κ·v, so it follows the learner less, a lag of 0.328; the step's simplicity costs nothing here. The estimate over the whole history errs 0.464 on G0, against the service's 0.493: on a child who stays put, no rule of answers does much better than the service now. The two speeds, at a threshold of 2, score 0.106: 37 % not caught up after a jump against the service's 72 %, at an error of 0.514 on G0.
+
+**The confirmation** was not run: the exit is taken without one, so the held-out children have not been drawn and stay held out for a candidate.
+
+#### Every generator, in the decision run
+
+The rules the choice turned on, on every generator; every rule of the run is in `results/decision/scenarios.md`, and every number with its interval in `cells.csv`. "Best main step" is v_T 0.13, s 0.7, q 0.003 and 0.006, the limit 0.3; the backup, the full filter and the whole history take its numbers.
+
+##### The error after 200 answers, in logits
+
+| Generator | Service | Floor 0.05, the exit | Floor 0.1 | Best main step | Backup | Full filter | Whole history | Two speeds | Oracle |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| G0 | 0.493 | 0.488 | 0.496 | 0.512 | 0.495 | 0.497 | 0.464 | 0.514 | 0.000 |
+| G1 | 0.513 | 0.500 | 0.496 | 0.514 | 0.494 | 0.494 | 0.463 | 0.509 | 0.000 |
+| G2 | 1.428 | 1.187 | 0.860 | 0.664 | 0.762 | 0.774 | 1.248 | 0.880 | 0.000 |
+| G3 | 0.839 | 0.717 | 0.595 | 0.535 | 0.547 | 0.557 | 0.779 | 0.661 | 0.000 |
+| G4 | 0.654 | 0.655 | 0.668 | 0.625 | 0.614 | 0.637 | 0.630 | 0.679 | 0.000 |
+| G5 | 0.550 | 0.545 | 0.563 | 0.585 | 0.579 | 0.567 | 0.538 | 0.572 | 0.000 |
+| G6 | 0.743 | 0.753 | 0.780 | 0.740 | 0.707 | 0.746 | 0.732 | 0.785 | 0.000 |
+| G7 | 0.568 | 0.559 | 0.570 | 0.579 | 0.562 | 0.565 | 0.540 | 0.583 | 0.000 |
+| G8 | 0.495 | 0.488 | 0.497 | 0.517 | 0.493 | 0.498 | 0.467 | 0.519 | 0.000 |
+| G0-exact | 0.477 | 0.472 | 0.482 | 0.512 | 0.485 | 0.490 | 0.454 | 0.502 | 0.000 |
+| G0-miss0.25 | 0.480 | 0.476 | 0.488 | 0.510 | 0.489 | 0.490 | 0.455 | 0.503 | 0.000 |
+| G0-miss1 | 0.544 | 0.539 | 0.542 | 0.542 | 0.522 | 0.530 | 0.507 | 0.564 | 0.000 |
+| G2-half | 0.835 | 0.724 | 0.609 | 0.542 | 0.553 | 0.573 | 0.757 | 0.679 | 0.000 |
+| G2-fading | 0.658 | 0.589 | 0.532 | 0.511 | 0.499 | 0.513 | 0.590 | 0.582 | 0.000 |
+| G3-drop | 0.692 | 0.601 | 0.541 | 0.564 | 0.575 | 0.543 | 0.712 | 0.630 | 0.000 |
+| G0-start0.5 | 0.490 | 0.483 | 0.496 | 0.509 | 0.491 | 0.495 | 0.463 | 0.512 | 0.000 |
+| G0-start2 | 0.515 | 0.503 | 0.505 | 0.523 | 0.497 | 0.505 | 0.469 | 0.524 | 0.000 |
+| G0-topics0.3 | 0.437 | 0.430 | 0.443 | 0.473 | 0.449 | 0.453 | 0.414 | 0.459 | 0.000 |
+| G0-topics1 | 0.740 | 0.728 | 0.733 | 0.718 | 0.708 | 0.714 | 0.704 | 0.760 | 0.000 |
+
+##### The tasks in the corridor, %
+
+| Generator | Service | Floor 0.05, the exit | Floor 0.1 | Best main step | Backup | Full filter | Whole history | Two speeds | Oracle |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| G0 | 42.6 | 42.7 | 43.0 | 42.5 | 42.8 | 42.7 | 45.2 | 42.8 | 61.4 |
+| G1 | 35.1 | 35.3 | 35.9 | 36.0 | 36.5 | 35.9 | 38.0 | 35.7 | 53.4 |
+| G2 | 26.0 | 28.1 | 33.2 | 38.6 | 39.2 | 35.5 | 30.9 | 31.2 | 60.4 |
+| G3 | 33.6 | 35.0 | 37.6 | 40.0 | 39.7 | 38.5 | 36.4 | 35.9 | 61.3 |
+| G4 | 38.6 | 38.7 | 38.8 | 38.4 | 38.5 | 38.4 | 40.3 | 38.6 | 47.0 |
+| G5 | 40.8 | 40.9 | 40.8 | 40.3 | 40.3 | 40.5 | 42.4 | 40.8 | 60.6 |
+| G6 | 42.0 | 42.3 | 43.1 | 41.2 | 40.5 | 41.8 | 45.0 | 43.0 | 35.8 |
+| G7 | 42.4 | 42.6 | 42.8 | 42.5 | 42.8 | 42.6 | 44.9 | 42.5 | 56.3 |
+| G8 | 42.8 | 43.0 | 43.1 | 42.6 | 42.8 | 42.9 | 45.0 | 42.8 | 61.4 |
+| G0-exact | 54.3 | 54.4 | 54.3 | 52.9 | 53.1 | 53.6 | 58.1 | 54.3 | 97.1 |
+| G0-miss0.25 | 50.0 | 50.0 | 50.4 | 49.1 | 49.6 | 49.7 | 53.4 | 50.4 | 84.2 |
+| G0-miss1 | 29.6 | 29.7 | 29.8 | 30.0 | 30.3 | 29.9 | 30.7 | 29.6 | 35.7 |
+| G2-half | 35.6 | 37.0 | 39.4 | 41.8 | 42.6 | 40.4 | 39.2 | 37.7 | 60.2 |
+| G2-fading | 37.4 | 38.3 | 40.3 | 42.0 | 43.3 | 41.1 | 40.9 | 38.9 | 59.9 |
+| G3-drop | 38.8 | 39.4 | 40.3 | 38.4 | 37.9 | 38.9 | 39.7 | 39.6 | 60.4 |
+| G0-start0.5 | 43.3 | 43.4 | 43.5 | 43.2 | 43.2 | 43.4 | 45.5 | 43.4 | 61.7 |
+| G0-start2 | 39.5 | 39.7 | 40.1 | 39.9 | 40.4 | 40.0 | 42.3 | 40.0 | 58.2 |
+| G0-topics0.3 | 44.6 | 44.8 | 45.1 | 44.6 | 44.8 | 44.8 | 47.3 | 44.9 | 61.4 |
+| G0-topics1 | 37.3 | 37.0 | 37.0 | 36.5 | 36.6 | 36.7 | 38.6 | 37.0 | 61.7 |
+
+##### The estimate less the level from the 101st answer on, in logits
+
+| Generator | Service | Floor 0.05, the exit | Floor 0.1 | Best main step | Backup | Full filter | Whole history | Two speeds | Oracle |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| G0 | -0.129 | -0.127 | -0.118 | 0.020 | 0.025 | -0.041 | -0.075 | -0.127 | 0.000 |
+| G1 | -0.153 | -0.144 | -0.120 | 0.006 | 0.018 | -0.049 | -0.062 | -0.117 | 0.000 |
+| G2 | -1.105 | -0.983 | -0.734 | -0.467 | -0.532 | -0.621 | -0.932 | -0.774 | 0.000 |
+| G3 | -0.714 | -0.644 | -0.510 | -0.299 | -0.350 | -0.412 | -0.633 | -0.548 | 0.000 |
+| G4 | -0.491 | -0.495 | -0.504 | -0.371 | -0.372 | -0.424 | -0.466 | -0.513 | 0.000 |
+| G5 | -0.121 | -0.119 | -0.119 | 0.019 | 0.012 | -0.040 | -0.082 | -0.131 | 0.000 |
+| G6 | -0.234 | -0.239 | -0.266 | -0.118 | -0.096 | -0.174 | -0.223 | -0.273 | 0.000 |
+| G7 | -0.184 | -0.178 | -0.171 | -0.032 | -0.034 | -0.098 | -0.130 | -0.177 | 0.000 |
+| G8 | -0.117 | -0.114 | -0.107 | 0.034 | 0.032 | -0.028 | -0.065 | -0.117 | 0.000 |
+| G0-exact | -0.082 | -0.077 | -0.068 | 0.068 | 0.065 | 0.009 | -0.024 | -0.076 | 0.000 |
+| G0-miss0.25 | -0.085 | -0.084 | -0.078 | 0.055 | 0.057 | 0.002 | -0.037 | -0.080 | 0.000 |
+| G0-miss1 | -0.234 | -0.232 | -0.231 | -0.074 | -0.070 | -0.143 | -0.186 | -0.242 | 0.000 |
+| G2-half | -0.614 | -0.547 | -0.418 | -0.212 | -0.245 | -0.328 | -0.514 | -0.472 | 0.000 |
+| G2-fading | -0.481 | -0.428 | -0.319 | -0.132 | -0.152 | -0.233 | -0.381 | -0.355 | 0.000 |
+| G3-drop | 0.385 | 0.326 | 0.212 | 0.300 | 0.348 | 0.282 | 0.439 | 0.218 | 0.000 |
+| G0-start0.5 | -0.129 | -0.126 | -0.120 | 0.019 | 0.019 | -0.041 | -0.075 | -0.125 | 0.000 |
+| G0-start2 | -0.142 | -0.134 | -0.117 | 0.016 | 0.028 | -0.039 | -0.062 | -0.125 | 0.000 |
+| G0-topics0.3 | -0.117 | -0.112 | -0.101 | 0.036 | 0.036 | -0.027 | -0.066 | -0.114 | 0.000 |
+| G0-topics1 | -0.141 | -0.148 | -0.149 | -0.019 | -0.024 | -0.069 | -0.085 | -0.151 | 0.000 |
+
+##### The masteries declared falsely, %, for the choice of mastery
+
+| Generator | Service | Floor 0.05, the exit | Floor 0.1 | Best main step | Backup | Full filter | Whole history | Two speeds | Oracle |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| G0 | 63.5 | 64.6 | 66.1 | 69.1 | 70.9 | 67.5 | 66.1 | 64.0 | 75.0 |
+| G1 | 60.8 | 61.5 | 62.7 | 64.7 | 65.5 | 62.7 | 63.2 | 61.5 | 66.4 |
+| G2 | 41.2 | 44.2 | 47.8 | 50.8 | 50.7 | 48.6 | 44.8 | 44.6 | 67.0 |
+| G3 | 51.2 | 53.4 | 55.7 | 58.5 | 58.1 | 57.0 | 52.7 | 53.3 | 71.7 |
+| G4 | 58.8 | 59.7 | 61.1 | 63.8 | 64.8 | 62.4 | 60.0 | 58.3 | 75.0 |
+| G5 | 62.6 | 63.3 | 64.8 | 67.8 | 68.3 | 65.7 | 64.2 | 62.8 | 74.8 |
+| G6 | 66.9 | 67.1 | 68.3 | 71.5 | 72.4 | 69.8 | 68.0 | 66.8 | 68.9 |
+| G7 | 64.0 | 64.6 | 66.2 | 69.0 | 70.1 | 67.4 | 65.6 | 64.4 | 68.2 |
+| G8 | 64.5 | 65.2 | 67.4 | 69.7 | 70.8 | 68.8 | 66.6 | 65.3 | 75.2 |
+| G0-exact | 65.2 | 66.2 | 67.5 | 70.1 | 71.0 | 68.7 | 66.7 | 65.4 | 75.2 |
+| G0-miss0.25 | 63.9 | 64.6 | 66.2 | 69.1 | 70.2 | 67.9 | 65.8 | 64.5 | 74.7 |
+| G0-miss1 | 62.3 | 63.2 | 64.3 | 67.4 | 68.9 | 66.1 | 63.5 | 62.6 | 74.6 |
+| G2-half | 52.4 | 54.3 | 56.8 | 59.4 | 60.4 | 57.6 | 55.1 | 54.2 | 73.1 |
+| G2-fading | 53.4 | 55.2 | 57.5 | 60.9 | 62.1 | 58.7 | 56.5 | 55.0 | 71.5 |
+| G3-drop | 72.0 | 72.3 | 72.7 | 75.6 | 78.4 | 73.9 | 74.6 | 71.0 | 78.8 |
+| G0-start0.5 | 67.7 | 68.3 | 69.6 | 71.4 | 72.3 | 70.7 | 67.8 | 67.7 | 75.2 |
+| G0-start2 | 61.6 | 62.4 | 64.4 | 67.5 | 69.8 | 65.9 | 64.8 | 62.3 | 73.3 |
+| G0-topics0.3 | 65.6 | 66.2 | 67.7 | 70.5 | 71.9 | 68.8 | 66.5 | 66.0 | 76.0 |
+| G0-topics1 | 59.0 | 59.8 | 61.5 | 63.0 | 64.4 | 62.5 | 60.4 | 59.1 | 73.1 |
+
+#### Remarks
+
+- The screen counts every change of the overall rank, a rating that crosses a rank's floor and back again among them. A step that keeps following a child moves the rating a little on every answer, and near a floor every such move can change the rank: on a child who stays put, every change of the best main step late in a run is that, since the child does not move. Whether the screen should count them, or the rank shown should keep still until the rating is clearly past a floor, is for the decision on the step (T72.6).
+- The tolerance on the error of a child who stays put, about a hundredth of a logit at the decision size, leaves little room for a lasting step: the floor of 0.1 already goes past it on six generators.
+- The nomination rule did not foresee a sweep in which no candidate missed one constraint alone; how it was read is written under "How they are searched and chosen".
+
 ## The held-out seeds
 
-A run given `-held-out` draws from seeds kept for confirmation: seed 20261003, experiment `held-out`. It runs the confirmation alone — the chosen step beside the service, the slow constant step and the oracle — refuses to run before a step is chosen, refuses `-seed`, `-experiment` and any other `-rules` beside it, and writes under `held-out` in the directory it is given, never over the working run. Nobody runs them before the step's confirmation: a set that has been looked at is held out no longer.
+A run given `-held-out` draws from seeds kept for confirmation: seed 20261003, experiment `held-out`. It runs the confirmation alone — the chosen step beside the service, the slow constant step and the oracle — refuses to run before a step is chosen, or when the step chosen is the exit, which is taken without a confirmation, refuses `-seed`, `-experiment` and any other `-rules` beside it, and writes under `held-out` in the directory it is given, never over the working run. Nobody runs them before the step's confirmation: a set that has been looked at is held out no longer.
 
 The sweep and its refinement draw children of their own too, the paper's seed under the experiment `sweep`, and refuse `-seed` and `-experiment` likewise. A test proves that no child of any generator is drawn alike in any two of the three sets — the working children, the held-out ones and the sweep's.
 
@@ -222,13 +365,13 @@ The sweep and its refinement draw children of their own too, the paper's seed un
   - `just learners -rules sweep -children 300` — about an hour on the development machine;
   - `just learners -rules refine -children 300` — minutes, once the sweep's best is set;
   - `just learners -rules decision -children 4000` — about an hour, once the candidates are nominated;
-  - `just learners -rules parts -children 4000`, if the chosen step needs its own parts taken away;
-  - `just learners -held-out -children 4000` — the confirmation, once, about ten minutes.
+  - `just learners -rules parts -children 4000`, if the chosen step is a candidate whose parts the decision run did not take away;
+  - `just learners -held-out -children 4000` — the confirmation of a chosen candidate, once, about ten minutes; with the exit chosen, as it is now, it refuses.
 - `just learners-test` runs the bench's tests with the race detector, and `just learners-lint` holds the module to what the service is held to. CI runs both on every pull request. A change to the product's `go.mod` is followed by `just learners-tidy`.
 
 ## The results
 
-`tools/learners/results/` keeps the whole run of the bench's own set, as the line every change to the student model is measured from, and beside it, each in its own directory, the runs the step was chosen by: `sweep/`, `refine/`, `decision/`, `held-out/` and, if it was needed, `parts/`. Every run writes:
+`tools/learners/results/` keeps the whole run of the bench's own set, as the line every change to the student model is measured from, and beside it, each in its own directory, the runs the step was chosen by: `sweep/`, `refine/` and `decision/` — and `parts/` and `held-out/` when a chosen candidate needs them, which the exit did not. Every run writes:
 
 - `summary.md`, the numbers a change is judged by at a glance, for every rule: the error after 200 answers on G0, the share in the corridor on G0 and G2, the share of false masteries on G0, the lag on G2, and the share of G3's children not caught up after the jump;
 - `scenarios.md`, every rule on every generator, measure by measure: the error after 200 answers, the corridor, false masteries, the lag, the children not caught up after a jump or a drop, and the error of the overall level after ten answers;

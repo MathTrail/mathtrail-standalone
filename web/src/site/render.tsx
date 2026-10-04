@@ -16,11 +16,12 @@ import {
 	textOf,
 } from "./content";
 import { DocumentPage } from "./DocumentPage";
+import { type SiteData, siteData } from "./data";
 import type { FooterLink } from "./Footer";
 import { type Frame, siteFrame } from "./frame";
 import type { Head } from "./Layout";
 import { cname, robots, sitemap } from "./metadata";
-import { type PageComponent, pageComponents } from "./pages";
+import { type Page, sitePages } from "./pages";
 import { openReader } from "./reader";
 import { type PageFrame, SitePage } from "./SitePage";
 import { type SiteKey, SiteWords, siteDictionaries } from "./words";
@@ -36,36 +37,41 @@ export type SiteFile = { readonly path: string; readonly data: string };
  * every locale, the apex, and the files a crawler and the host read. It writes
  * nothing. The files come back sorted by path, so that two builds of the same
  * texts are the same bytes, and anything wrong with a text, a dictionary, the
- * frame or a page's component stops the build before a single file is
- * written. The stylesheets and the mark are not among them: they are built and
- * copied beside these.
+ * frame, a page's component or the site's data stops the build before a
+ * single file is written. The stylesheets and the mark are not among them:
+ * they are built and copied beside these.
  *
- * base is the origin the site is published on. The dictionaries, the pages'
- * components and the frame are the site's own unless a test hands it others.
+ * base is the origin the site is published on. The dictionaries, the pages a
+ * component draws, the frame and the data are the site's own unless a test
+ * hands it others.
  */
 export function renderSite({
 	base,
 	sources,
 	dictionaries = siteDictionaries,
-	components = pageComponents,
+	pages = sitePages,
 	frame = siteFrame,
+	data = siteData(),
 }: {
 	base: string;
 	sources: Sources;
 	dictionaries?: ReadonlyMap<string, Dictionary>;
-	components?: ReadonlyMap<string, PageComponent>;
+	pages?: ReadonlyMap<string, Page>;
 	frame?: Frame;
+	data?: SiteData;
 }): SiteFile[] {
 	const origin = parseBase(base);
 	const texts = readTexts(sources, fallbackLocale);
 	checkLanguages(dictionaries, texts.locales);
 	checkFrame(frame, texts.names);
+	checkTopicPages(data, texts.names);
 	const opened = new Map<string, Words<SiteKey>>();
 	const site: Site = {
 		texts,
 		base,
 		frame,
-		components,
+		pages,
+		data,
 		wordsOf(locale) {
 			let words = opened.get(locale);
 			if (words === undefined) {
@@ -95,14 +101,15 @@ export function renderSite({
 }
 
 // Site is what every page of a build is drawn from: the texts, the origin they
-// are published on, the frame and the pages' components, and the words of
-// each locale, which every locale with texts has, opened once for the whole
-// build.
+// are published on, the frame, the pages a component draws, the site's data,
+// and the words of each locale, which every locale with texts has, opened
+// once for the whole build.
 type Site = {
 	readonly texts: Texts;
 	readonly base: string;
 	readonly frame: Frame;
-	readonly components: ReadonlyMap<string, PageComponent>;
+	readonly pages: ReadonlyMap<string, Page>;
+	readonly data: SiteData;
 	readonly wordsOf: (locale: string) => Words<SiteKey>;
 };
 
@@ -126,7 +133,7 @@ function drawPage(site: Site, locale: string, name: string): string {
 	}
 	const file = `${locale}/${name}.yaml`;
 	const { page: reader, unread } = openReader(text.words, file, locale);
-	const Component = componentOf(site.components, name);
+	const { draw: Draw, card, style } = pageOf(site.pages, name);
 	const drawn = page(
 		words,
 		<SitePage
@@ -135,8 +142,10 @@ function drawPage(site: Site, locale: string, name: string): string {
 				description: reader.plain("description"),
 			})}
 			frame={frame}
+			card={card}
+			style={style?.(site.data)}
 		>
-			<Component page={reader} />
+			<Draw page={reader} data={site.data} />
 		</SitePage>,
 	);
 	const unshown = unread();
@@ -294,20 +303,42 @@ function checkFrame(frame: Frame, names: readonly string[]): void {
 	}
 }
 
-// componentOf is the component that draws the page name. Words that no
+// checkTopicPages holds the topics' pages to the catalog: a topic's page,
+// topics/<slug>, is published when the catalog says so, and is there whenever
+// it does, since the card links it from then on.
+function checkTopicPages(data: SiteData, names: readonly string[]): void {
+	const published = new Set(
+		data.topics.all
+			.filter((topic) => topic.sitePage)
+			.map((topic) => `topics/${topic.slug}`),
+	);
+	for (const name of names) {
+		if (name.startsWith("topics/") && !published.has(name)) {
+			throw new Error(
+				`the site has the page ${name}, and no topic of the catalog has its page published there`,
+			);
+		}
+	}
+	for (const name of published) {
+		if (!names.includes(name)) {
+			throw new Error(
+				`the catalog has the page ${name} published, and the site does not have it`,
+			);
+		}
+	}
+}
+
+// pageOf is the page a component draws by the name name. Words that no
 // component draws stop the build: they would be translated into every language
 // and published in none.
-function componentOf(
-	components: ReadonlyMap<string, PageComponent>,
-	name: string,
-): PageComponent {
-	const component = components.get(name);
-	if (component === undefined) {
+function pageOf(pages: ReadonlyMap<string, Page>, name: string): Page {
+	const found = pages.get(name);
+	if (found === undefined) {
 		throw new Error(
 			`the site has words for the page ${name}, and no component draws it`,
 		);
 	}
-	return component;
+	return found;
 }
 
 // page is a whole HTML document: the page drawn in its language's words,

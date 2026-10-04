@@ -23,6 +23,7 @@ import {
 	firstRunRefused,
 	inTrial,
 	limited,
+	moving,
 	notComing,
 	onTheCard,
 	profileRead,
@@ -318,6 +319,58 @@ describe("the screen a payload draws", () => {
 
 		expect(shown?.screen === "progress" && shown.report.mistakes).toEqual([]);
 	});
+
+	test("of the progress reads how the ranks moved over each while, and nothing of a rating before it the card does not draw", () => {
+		const shown = readScreen(moving);
+		if (shown?.screen !== "progress") {
+			throw new Error(`the progress reads as ${shown?.screen}`);
+		}
+
+		expect(shown.report.overall?.change).toEqual({
+			last_task: { rank: 3, share: 47, moved: "back" },
+			week: { rank: 2, share: 80, moved: "rank_up" },
+		});
+		expect(shown.report.topics[0]?.change).toEqual({
+			last_task: { rank: 4, share: 27, moved: "same" },
+			week: { rank: 3, share: 90, moved: "rank_up" },
+		});
+		expect(shown.report.topics[4]?.change).toBeUndefined();
+	});
+
+	test.each<[string, unknown, unknown]>([
+		[
+			"a while that does not read, as one that cannot be told",
+			{
+				last_task: { rank: 3, share: 47, moved: "back" },
+				week: { rank: "two", moved: "rank_up" },
+			},
+			{ last_task: { rank: 3, share: 47, moved: "back" }, week: null },
+		],
+		[
+			"a while left out, as one that cannot be told",
+			{ week: { moved: "new" } },
+			{ last_task: null, week: { moved: "new" } },
+		],
+		["moves that do not read, as none", "moved", undefined],
+		[
+			"a word a later release adds, as it is",
+			{ last_task: null, week: { rank: 3, share: 40, moved: "leap" } },
+			{ last_task: null, week: { rank: 3, share: 40, moved: "leap" } },
+		],
+	])(
+		"of the progress reads %s, and the progress with it",
+		(_, change, read) => {
+			const shown = readScreen({
+				...moving,
+				overall: { ...moving.overall, change },
+			});
+			if (shown?.screen !== "progress") {
+				throw new Error(`the progress reads as ${shown?.screen}`);
+			}
+
+			expect(shown.report.overall?.change).toEqual(read);
+		},
+	);
 
 	test("of the progress keeps of each mistake its name and how many times, and nothing of a task", () => {
 		const shown = readScreen({

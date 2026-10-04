@@ -1353,6 +1353,11 @@ exports[`the screens in Arabic > the progress 1`] = `
                     class="mt-rank-row-end"
                   >
                     <span
+                      class="mt-rank-word"
+                    >
+                      على المستوى نفسه
+                    </span>
+                    <span
                       class="mt-rank-row-name"
                     >
                       معبر النهر
@@ -1438,6 +1443,11 @@ exports[`the screens in Arabic > the progress 1`] = `
                   <span
                     class="mt-rank-row-end"
                   >
+                    <span
+                      class="mt-rank-word"
+                    >
+                      على المستوى نفسه
+                    </span>
                     <span
                       class="mt-rank-row-name"
                     >

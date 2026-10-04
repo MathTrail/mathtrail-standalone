@@ -20,6 +20,7 @@ import {
 	firstRun,
 	type Handed,
 	progress,
+	progressMoving,
 	repeatedAnswer,
 	rightAnswer,
 	staleAnswer,
@@ -679,6 +680,22 @@ describe("the progress", () => {
 		expect(heard.calls[1]?.arguments).toEqual({});
 	});
 
+	test("keeps the while chosen for the moves when it is opened again", async () => {
+		await drawCard(fence, ({ name }) =>
+			name === "read_progress" ? progressMoving : answered(),
+		);
+		press(topLine());
+		await vi.waitFor(() => expect(period("last_task")).not.toBeNull());
+		press(period("last_task") as HTMLElement);
+		press(button("Back to task"));
+
+		press(topLine());
+		await vi.waitFor(() => expect(period("last_task")).not.toBeNull());
+
+		expect(period("last_task")?.checked).toBe(true);
+		expect(period("week")?.checked).toBe(false);
+	});
+
 	test("is read afresh each time it is opened, its sections open as they were left", async () => {
 		const heard = await drawCard();
 		press(topLine());
@@ -787,3 +804,10 @@ describe("the replies", () => {
 		expect(list?.children).toHaveLength(0);
 	});
 });
+
+// period is the while named on the switch of the progress open over the card.
+function period(value: string): HTMLInputElement | null {
+	return root.querySelector<HTMLInputElement>(
+		`.mt-switch input[value="${value}"]`,
+	);
+}

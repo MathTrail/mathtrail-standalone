@@ -1,8 +1,9 @@
 import { Window } from "happy-dom";
 import { afterAll, describe, expect, test } from "vitest";
 import type { Dictionary } from "../i18n/words";
+import { readSiteData, siteData } from "./data";
 import type { Frame } from "./frame";
-import type { PageComponent, PageProps } from "./pages";
+import type { Page as Drawn, PageProps } from "./pages";
 import { renderSite, type SiteFile } from "./render";
 import { type SiteKey, siteDictionaries } from "./words";
 
@@ -29,8 +30,8 @@ function text(title: string, description: string, body: string): string {
 }
 
 // A small site in the shape of the real one, in English and Russian: the
-// front page and the two documents, a page a component draws, and a topic's
-// page below the topics.
+// front page and the two documents, a page a component draws, and a page
+// below another.
 const sources = new Map([
 	[
 		"en",
@@ -68,7 +69,7 @@ const sources = new Map([
 				].join("\n"),
 			],
 			[
-				"topics/sample.yaml",
+				"guides/sample.yaml",
 				"title: Sample\ndescription: A topic.\ndrawing: |\n  * *\n  |--3--|\n",
 			],
 		]),
@@ -102,7 +103,7 @@ const sources = new Map([
 				].join("\n"),
 			],
 			[
-				"topics/sample.yaml",
+				"guides/sample.yaml",
 				"title: Пример\ndescription: Тема.\ndrawing: |\n  * *\n  |--3--|\n",
 			],
 		]),
@@ -117,7 +118,7 @@ function Guide({ page }: PageProps) {
 			<p class="lead">
 				{page.text("lead", {
 					count: 17,
-					topics: <a href="../topics/sample/">{page.plain("topics")}</a>,
+					topics: <a href="../guides/sample/">{page.plain("topics")}</a>,
 				})}
 			</p>
 			<ul class="tips">
@@ -134,9 +135,9 @@ function Sample({ page }: PageProps) {
 	return <pre dir="ltr">{page.plain("drawing")}</pre>;
 }
 
-const components = new Map<string, PageComponent>([
-	["guide", Guide],
-	["topics/sample", Sample],
+const components = new Map<string, Drawn>([
+	["guide", { draw: Guide }],
+	["guides/sample", { draw: Sample }],
 ]);
 
 // The site's words, with the two the test's menu needs in both languages.
@@ -170,7 +171,7 @@ const frame: Frame = {
 	footer: ["privacy", "terms"],
 };
 
-const site = { base, sources, dictionaries, components, frame };
+const site = { base, sources, dictionaries, pages: components, frame };
 const files = renderSite(site);
 
 // page is the built file at path, read as a document.
@@ -201,16 +202,16 @@ function texts(doc: Page, selector: string): string[] {
 
 const pages = [
 	"en/guide/index.html",
+	"en/guides/sample/index.html",
 	"en/index.html",
 	"en/privacy/index.html",
 	"en/terms/index.html",
-	"en/topics/sample/index.html",
 	"index.html",
 	"ru/guide/index.html",
+	"ru/guides/sample/index.html",
 	"ru/index.html",
 	"ru/privacy/index.html",
 	"ru/terms/index.html",
-	"ru/topics/sample/index.html",
 ];
 
 describe("the site's files", () => {
@@ -390,7 +391,7 @@ describe("a page a component draws", () => {
 
 	test("draws its words in the frame, emphasis, slots and lists", () => {
 		expect(guide.querySelector("main .lead")?.innerHTML).toBe(
-			'<strong>17</strong> тем, и <a href="../topics/sample/">темы</a> — почитать.',
+			'<strong>17</strong> тем, и <a href="../guides/sample/">темы</a> — почитать.',
 		);
 		expect(
 			[...guide.querySelectorAll("main .tips li")].map(
@@ -402,16 +403,102 @@ describe("a page a component draws", () => {
 	});
 
 	test("lives below another page when its words do, drawn as they are written", () => {
-		const sample = page(files, "en/topics/sample/index.html");
+		const sample = page(files, "en/guides/sample/index.html");
 
 		expect(attributes(sample, 'link[rel="canonical"]', "href")).toEqual([
-			"https://example.test/en/topics/sample/",
+			"https://example.test/en/guides/sample/",
 		]);
 		expect(attributes(sample, ".s-seg a", "href")).toEqual([
-			"/en/topics/sample/",
-			"/ru/topics/sample/",
+			"/en/guides/sample/",
+			"/ru/guides/sample/",
 		]);
 		expect(sample.querySelector("main pre")?.textContent).toBe("* *\n|--3--|");
+	});
+});
+
+describe("a page that draws a card of the widget", () => {
+	const carded = renderSite({
+		...site,
+		pages: new Map([...components, ["guide", { draw: Guide, card: true }]]),
+	});
+
+	test("loads the cards' stylesheet after the site's own, and no other page does", () => {
+		expect(
+			attributes(
+				page(carded, "ru/guide/index.html"),
+				'link[rel="stylesheet"]',
+				"href",
+			),
+		).toEqual(["/assets/tokens.css", "/assets/style.css", "/assets/card.css"]);
+		expect(
+			attributes(
+				page(carded, "ru/privacy/index.html"),
+				'link[rel="stylesheet"]',
+				"href",
+			),
+		).toEqual(["/assets/tokens.css", "/assets/style.css"]);
+	});
+});
+
+describe("a topic's page", () => {
+	// catalogOf is a catalog of one topic, whose page is published or not.
+	const catalogOf = (published: boolean) =>
+		readSiteData(
+			[
+				{
+					id: "logic.sample",
+					slug: "sample",
+					grade_levels: ["3-4"],
+					builds_on: [],
+					site_page: published,
+				},
+			],
+			{
+				groups: [{ id: "logic", topics: ["logic.sample"] }],
+				progress: siteData().progress,
+			},
+		);
+	// withTopicPage is the site with the topic's page among its texts.
+	const withTopicPage = new Map(
+		[...sources].map(([locale, files]) => [
+			locale,
+			new Map([
+				...files,
+				[
+					"topics/sample.yaml",
+					"title: Sample\ndescription: A topic.\ndrawing: x\n",
+				],
+			]),
+		]),
+	);
+	const drawn = {
+		...site,
+		pages: new Map([...components, ["topics/sample", { draw: Sample }]]),
+	};
+
+	test("is drawn when the catalog says it is published", () => {
+		expect(
+			renderSite({
+				...drawn,
+				sources: withTopicPage,
+				data: catalogOf(true),
+			}).map(({ path }) => path),
+		).toContain("ru/topics/sample/index.html");
+	});
+
+	test.each([
+		[
+			"the catalog says it is published and the site does not have it",
+			{ data: catalogOf(true) },
+			"the catalog has the page topics/sample published, and the site does not have it",
+		],
+		[
+			"the site has it and the catalog does not say it is published",
+			{ sources: withTopicPage, data: catalogOf(false) },
+			"the site has the page topics/sample, and no topic of the catalog has its page published there",
+		],
+	])("is refused when %s", (_, change, want) => {
+		expect(() => renderSite({ ...drawn, ...change })).toThrow(want);
 	});
 });
 
@@ -507,11 +594,15 @@ describe("the apex", () => {
 
 describe("a language written right to left", () => {
 	// Arabic words for the site, made from the English ones so that every key
-	// is there, and Arabic texts made from the Russian ones.
+	// is there with its slots, and Arabic texts made from the Russian ones.
 	const arabic: Dictionary = Object.fromEntries(
-		[...Object.entries(dictionaries.get("en") ?? {})].map(([key]) => [
+		[...Object.entries(dictionaries.get("en") ?? {})].map(([key, english]) => [
 			key,
-			key === "language.name" ? "العربية" : `نص ${key}`,
+			key === "language.name"
+				? "العربية"
+				: [`نص ${key}`, ...(String(english).match(/\{[a-z]+\}/g) ?? [])].join(
+						" ",
+					),
 		]),
 	);
 	const built = renderSite({
@@ -623,17 +714,17 @@ describe("a site that cannot be built", () => {
 		],
 		[
 			"words no component draws",
-			{ components: new Map([["guide", Guide]]) },
-			"the site has words for the page topics/sample, and no component draws it",
+			{ pages: new Map([["guide", { draw: Guide }]]) },
+			"the site has words for the page guides/sample, and no component draws it",
 		],
 		[
 			"a page that reads a key its words do not have",
-			{ components: new Map([...components, ["guide", Misread]]) },
+			{ pages: new Map([...components, ["guide", { draw: Misread }]]) },
 			"en/guide.yaml: the page reads nope, which the file does not have",
 		],
 		[
 			"a page that never shows some of its words",
-			{ components: new Map([...components, ["guide", Skimmed]]) },
+			{ pages: new Map([...components, ["guide", { draw: Skimmed }]]) },
 			"en/guide.yaml: the page never shows tips.1, tips.2",
 		],
 		[

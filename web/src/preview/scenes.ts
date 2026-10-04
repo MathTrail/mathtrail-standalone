@@ -21,6 +21,7 @@ import {
 	inTrial,
 	limited,
 	longTexts,
+	moving,
 	notComing,
 	profileRead,
 	profileRefused,
@@ -237,7 +238,52 @@ export function scenesIn(language: string): Scene[] {
 			payload: { ...exhausted, child: handed.child },
 		},
 		{ name: "limit reached", payload: limited },
-		{ name: "progress, the model's card", payload: standing, play: everyFold },
+		{ name: "progress, the model's card", payload: moving, play: everyFold },
+		{
+			name: "progress since the last task",
+			payload: moving,
+			play: inTurn(pickedPeriod("last_task"), everyFold),
+		},
+		{
+			name: "progress, a step back over the week",
+			payload: withOverallWeek({
+				rating: 1590,
+				rank: 3,
+				share: 55,
+				moved: "back",
+			}),
+			play: everyFold,
+		},
+		{
+			name: "progress, a rank down over the week",
+			payload: withOverallWeek({
+				rating: 1670,
+				rank: 4,
+				share: 3,
+				moved: "rank_down",
+			}),
+			play: everyFold,
+		},
+		{
+			name: "progress, nothing moved over the week",
+			payload: stillOverTheWeek,
+			play: everyFold,
+		},
+		{
+			name: "progress, a topic new to the week",
+			payload: withNewTopic,
+			play: everyFold,
+		},
+		{
+			name: "progress, a week that cannot be told yet",
+			payload: weekUntold,
+			play: everyFold,
+		},
+		{
+			name: "progress, a week that cannot be told yet, chosen",
+			payload: weekUntold,
+			play: inTurn(pickedPeriod("week"), everyFold),
+		},
 		{ name: "progress in the trial series", payload: inTrial, play: everyFold },
 		{ name: "progress, long texts", payload: longProgress, play: everyFold },
 		{
@@ -351,7 +397,6 @@ const longProgress = {
 			"order_of_operations",
 		],
 	},
-	overall: { rating: 2700, rank: 10, ranks: 11, share: 23 },
 	topics: [
 		"logic.ordering",
 		"logic.knights_liars",
@@ -371,6 +416,16 @@ const longProgress = {
 		"logic.sets",
 		"games.strategy",
 	].map((topic, at) => rankedAt(topic, at)),
+	overall: {
+		rating: 2700,
+		rank: 10,
+		ranks: 11,
+		share: 23,
+		change: {
+			last_task: { rating: 2690, rank: 10, share: 17, moved: "forward" },
+			week: { rating: 2640, rank: 9, share: 86, moved: "rank_up" },
+		},
+	},
 	skipped: 8,
 	// The window's twenty answers shared by the mistakes with the longest
 	// names: one behind eight of them, the rest behind two each.
@@ -431,6 +486,127 @@ function rankedAt(topic: string, at: number) {
 		correct: 4,
 		mastered: at % 3 === 0,
 		skipped: at % 5 === 0 ? 2 : 0,
+		change: {
+			last_task: movedFrom(rank, share, [0.05, 0, -0.05][at % 3] ?? 0),
+			week:
+				at % 7 === 6
+					? { moved: "new" }
+					: movedFrom(rank, share, [0.6, 0.2, -0.2, -0.7, 0, 1.3][at % 6] ?? 0),
+		},
+	};
+}
+
+// movedFrom is a move to rank and share from where a rating stood by ranks
+// lower — a step back where by is below nothing — told the way the service
+// tells it: by the rank, and then by the share within one.
+function movedFrom(rank: number, share: number, by: number) {
+	const position = Math.min(Math.max(rank - 1 + share / 100 - by, 0), 10.99);
+	const before = {
+		rank: Math.floor(position) + 1,
+		share: Math.floor((position % 1) * 100),
+	};
+	let moved = "same";
+	if (before.rank !== rank) {
+		moved = before.rank < rank ? "rank_up" : "rank_down";
+	} else if (before.share !== share) {
+		moved = before.share < share ? "forward" : "back";
+	}
+	return { ...before, moved };
+}
+
+// withOverallWeek is how the ranks moved, with the overall rank's week told
+// as week says.
+function withOverallWeek(week: object) {
+	return {
+		...moving,
+		overall: {
+			...moving.overall,
+			change: { ...moving.overall.change, week },
+		},
+	};
+}
+
+// stillOverTheWeek is how the ranks moved, with nothing moved over the week:
+// the overall rank and every topic stood where they stand.
+const stillOverTheWeek = {
+	...moving,
+	overall: {
+		...moving.overall,
+		change: {
+			...moving.overall.change,
+			week: { rating: 1573, rank: 3, share: 43, moved: "same" },
+		},
+	},
+	topics: moving.topics.map((topic) =>
+		topic.rank === null
+			? topic
+			: {
+					...topic,
+					change: {
+						last_task: { rank: topic.rank, share: topic.share, moved: "same" },
+						week: { rank: topic.rank, share: topic.share, moved: "same" },
+					},
+				},
+	),
+};
+
+// withNewTopic is how the ranks moved, with Clocks first answered over the
+// week, and since the last task standing where it stands.
+const withNewTopic = {
+	...moving,
+	topics: [
+		...moving.topics,
+		{
+			topic: "time.clocks",
+			rating: 1400,
+			rank: 2,
+			share: 40,
+			compared: "behind",
+			answers: 1,
+			correct: 1,
+			mastered: false,
+			skipped: 0,
+			change: {
+				last_task: { rank: 2, share: 40, moved: "same" },
+				week: { moved: "new" },
+			},
+		},
+	],
+};
+
+// weekUntold is how the ranks moved, with the week one the history cannot
+// tell yet — answers kept before the service kept where they started — and
+// the last task told.
+const weekUntold = {
+	...moving,
+	overall: {
+		...moving.overall,
+		change: { ...moving.overall.change, week: null },
+	},
+	topics: moving.topics.map((topic) =>
+		topic.change === undefined
+			? topic
+			: { ...topic, change: { ...topic.change, week: null } },
+	),
+};
+
+// pickedPeriod picks the while the moves are drawn over on the progress's
+// switch.
+function pickedPeriod(period: "last_task" | "week") {
+	return (card: Document) => {
+		card
+			.querySelector<HTMLInputElement>(`.mt-switch-input[value="${period}"]`)
+			?.click();
+	};
+}
+
+// inTurn does each step in turn, each once the card has taken the one before
+// in.
+function inTurn(...steps: ((card: Document) => void)[]) {
+	return (card: Document) => {
+		steps.forEach((step, at) => {
+			setTimeout(() => step(card), at * 100);
+		});
 	};
 }
 

@@ -139,3 +139,11 @@ export const WordsContext = createContext<Words<Key>>(
 export function useWords(): Words<Key> {
 	return useContext(WordsContext);
 }
+
+/**
+ * countText is a whole number as the words' language writes one, in its
+ * digits.
+ */
+export function countText(words: Words<Key>, count: number): string {
+	return new Intl.NumberFormat(words.locale).format(count);
+}

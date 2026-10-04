@@ -3,7 +3,19 @@
 	"nav.language": "Язык",
 	"nav.pages": "Разделы сайта",
 	"nav.menu": "Меню",
+	"nav.topics": "Темы",
 	"footer.links": "Ссылки",
 	"footer.source": "GitHub",
-	"footer.translation": "Это перевод. При расхождении действует английская версия."
+	"footer.translation": "Это перевод. При расхождении действует английская версия.",
+	"group.logic": "Логика",
+	"group.counting": "Счёт и перебор",
+	"group.time": "Время",
+	"group.numbers": "Числа с подвохом",
+	"group.parts": "Части целого",
+	"group.games": "Стратегии и игры",
+	"topics.builds_on": "Опирается на: {topics}",
+	"topics.opens": "Открывает: {topics}",
+	"topics.grades": "{range} класс",
+	"topics.more": "Подробнее →",
+	"topics.soon": "Скоро"
 }

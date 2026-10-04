@@ -3,7 +3,19 @@
 	"nav.language": "Language",
 	"nav.pages": "Pages",
 	"nav.menu": "Menu",
+	"nav.topics": "Topics",
 	"footer.links": "Links",
 	"footer.source": "GitHub",
-	"footer.translation": "This is a translation. Where it differs from the English version, the English version prevails."
+	"footer.translation": "This is a translation. Where it differs from the English version, the English version prevails.",
+	"group.logic": "Logic",
+	"group.counting": "Counting and enumeration",
+	"group.time": "Time",
+	"group.numbers": "Numbers with a trick",
+	"group.parts": "Parts of a whole",
+	"group.games": "Strategies and games",
+	"topics.builds_on": "Builds on: {topics}",
+	"topics.opens": "Opens: {topics}",
+	"topics.grades": "Grades {range}",
+	"topics.more": "More →",
+	"topics.soon": "Soon"
 }

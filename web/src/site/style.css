@@ -50,6 +50,9 @@
 	--s-accent-hover: #0842a0;
 	--s-accent-tint: #d3e3fd;
 	--s-on-tint: #041e49;
+	--s-edge: #a9b6c8;
+	--s-line-soft: #dde3ea;
+	--s-dim: #9aa0a6;
 }
 
 *,
@@ -433,6 +436,420 @@ a:hover {
 .s-legal {
 	max-inline-size: var(--measure);
 	margin-block: 0;
+}
+
+/* A page a component draws: its sections one under another, each opening
+   with its heading and a line or two, and the last one keeping its distance
+   from the footer. */
+.s-section {
+	padding-block-start: 112px;
+}
+
+.s-section:last-child {
+	padding-block-end: var(--space-64);
+}
+
+.s-intro {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-16);
+	max-inline-size: 760px;
+}
+
+.s-intro h2 {
+	margin: 0;
+	font-size: clamp(2rem, 1.2rem + 2vw, 2.75rem);
+	font-weight: 500;
+	line-height: 1.12;
+	letter-spacing: -0.025em;
+	text-wrap: balance;
+}
+
+.s-intro-line {
+	margin: 0;
+	color: var(--s-muted);
+	font-size: 1.1875rem;
+	line-height: 1.55;
+	text-wrap: pretty;
+}
+
+/* The first screen: the page's heading and its words beside a card of the
+   widget on a tinted panel, one under the other on a narrow screen. */
+.s-hero {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr));
+	align-items: start;
+	gap: var(--space-64);
+	padding-block-start: 72px;
+}
+
+.s-hero-copy {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-24);
+}
+
+.s-hero h1 {
+	margin: 0;
+	font-size: clamp(2.75rem, 1.6rem + 3.6vw, 4.25rem);
+	font-weight: 500;
+	line-height: 1.04;
+	letter-spacing: -0.03em;
+	text-wrap: balance;
+}
+
+.s-hero .s-lead {
+	max-inline-size: 32em;
+	line-height: 1.5;
+	text-wrap: pretty;
+}
+
+.s-panel {
+	margin: 0;
+	padding: clamp(16px, 3vw, 32px);
+	border-radius: 36px;
+	background: var(--s-tint);
+}
+
+.s-hero-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 14px;
+}
+
+.s-hero-card figcaption {
+	color: var(--s-muted);
+	font-size: 0.875rem;
+	text-align: center;
+	text-wrap: balance;
+}
+
+/* A card of the widget drawn on a page keeps the look and the line height a
+   chat gives it, at the width of a phone's chat. */
+.s-card {
+	inline-size: 100%;
+	max-inline-size: 400px;
+	line-height: normal;
+}
+
+/* The map of the topics: a tinted panel, scrolled sideways where the screen is
+   narrower than the map. Its columns, boxes and lines are laid out when the
+   site is built, from left to right in every language, as a drawing is. */
+.s-map {
+	margin-block-start: 40px;
+	padding: clamp(16px, 3vw, 40px);
+	border-radius: 36px;
+	background: var(--s-tint);
+}
+
+.s-map-scroll {
+	overflow-x: auto;
+	scrollbar-width: thin;
+}
+
+.s-map-board {
+	margin-inline: auto;
+	direction: ltr;
+}
+
+.s-map-heads {
+	display: grid;
+	padding-block-end: var(--space-12);
+}
+
+.s-map-head {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+	padding-inline: var(--space-4);
+}
+
+.s-map-step {
+	margin: 0;
+	color: var(--s-accent);
+	font-size: 0.8125rem;
+	font-weight: 600;
+}
+
+.s-map-head h3 {
+	margin: 0;
+	font-size: 1.25rem;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+}
+
+.s-map-head-line {
+	margin: 0;
+	color: var(--s-muted);
+	font-size: 0.875rem;
+	line-height: 1.43;
+}
+
+.s-map-area {
+	position: relative;
+}
+
+.s-map-lines {
+	position: absolute;
+	inset: 0;
+	overflow: visible;
+}
+
+.s-map-line {
+	color: var(--s-edge);
+	stroke-width: 1.5;
+}
+
+.s-map-line path {
+	fill: none;
+	stroke: currentColor;
+}
+
+.s-map-line circle {
+	fill: currentColor;
+}
+
+.s-map-node {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	padding-inline: var(--space-16);
+	border: 1.5px solid var(--s-page);
+	border-radius: 16px;
+	background: var(--s-page);
+	color: var(--s-text);
+	font-size: 1rem;
+	font-weight: 500;
+	line-height: 1.375;
+	text-decoration: none;
+	transition:
+		background 0.15s,
+		border-color 0.15s,
+		color 0.15s;
+}
+
+.s-map-node:hover {
+	color: var(--s-text);
+}
+
+.s-map-node span:first-child {
+	display: -webkit-box;
+	overflow: hidden;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+}
+
+.s-map-node span:last-child {
+	opacity: 0.6;
+}
+
+.s-map-hint,
+.s-map-say {
+	inline-size: fit-content;
+	margin-block: var(--space-8) 0;
+	padding-block: 11px;
+	font-size: 0.9375rem;
+	line-height: 1.53;
+}
+
+.s-map-hint {
+	color: var(--s-muted);
+}
+
+.s-map-say {
+	display: none;
+	padding-inline: var(--space-20);
+	border-radius: 20px;
+	background: var(--s-page);
+}
+
+.s-map-say strong {
+	font-weight: 600;
+}
+
+/* While a topic is pointed at, the rest of the map steps back, the topic
+   itself is filled in, and its line of words takes the hint's place. Which
+   topics light as the first to learn and as what comes after is written with
+   the map, from the catalog's links. */
+.s-map:has(.s-map-node:is(:hover, :focus-visible)) .s-map-node {
+	color: var(--s-dim);
+}
+
+.s-map:has(.s-map-node:is(:hover, :focus-visible)) .s-map-line {
+	color: var(--s-line-soft);
+}
+
+.s-map:has(.s-map-node:is(:hover, :focus-visible))
+	.s-map-node:is(:hover, :focus-visible) {
+	border-color: var(--s-accent);
+	background: var(--s-accent);
+	color: var(--s-page);
+}
+
+.s-map:has(.s-map-node:is(:hover, :focus-visible)) .s-map-hint {
+	display: none;
+}
+
+.s-map-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-8) var(--space-20);
+	margin: var(--space-8) 0 0;
+	padding: var(--space-16) 0 0;
+	border-block-start: 1px solid var(--s-line-soft);
+	color: var(--s-muted);
+	font-size: 0.875rem;
+	list-style: none;
+}
+
+.s-map-legend li {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+}
+
+.s-map-legend li::before {
+	content: "";
+	inline-size: 14px;
+	block-size: 14px;
+	border-radius: 5px;
+}
+
+.s-map-first::before {
+	background: var(--s-accent-tint);
+}
+
+.s-map-topic::before {
+	background: var(--s-accent);
+}
+
+.s-map-then::before {
+	border: 1.5px solid var(--s-accent);
+	background: var(--s-page);
+}
+
+/* The groups of topics: pills that lead to them, then each group under its
+   heading with its topics' cards. */
+.s-pills {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-8);
+}
+
+.s-pills a {
+	padding: 10px 18px;
+	border: 1px solid var(--s-line-strong);
+	border-radius: var(--radius-pill);
+	color: var(--s-muted);
+	font-size: 0.9375rem;
+	font-weight: 500;
+	text-decoration: none;
+}
+
+.s-pills a:hover {
+	background: var(--s-tint);
+	color: var(--s-text);
+}
+
+.s-group {
+	display: flex;
+	flex-direction: column;
+	gap: 28px;
+	padding-block-start: 56px;
+}
+
+.s-group .s-intro h2 {
+	font-size: clamp(1.75rem, 1.2rem + 1.4vw, 2.25rem);
+	line-height: 1.15;
+	letter-spacing: -0.02em;
+}
+
+.s-group .s-intro-line {
+	font-size: 1.0625rem;
+}
+
+.s-topics {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr));
+	gap: var(--space-16);
+}
+
+.s-topic {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-8);
+	padding: 20px 20px 22px;
+	border-radius: 28px;
+	background: var(--s-tint);
+}
+
+.s-topic-drawing {
+	display: flex;
+	align-items: center;
+	min-block-size: 84px;
+	margin: 0 0 var(--space-8);
+	padding: 16px 18px;
+	overflow: hidden;
+	border-radius: 18px;
+	background: var(--s-page);
+	color: var(--s-muted);
+	font-family: var(--font-mono);
+	font-size: 0.875rem;
+	line-height: 1.57;
+	white-space: pre;
+}
+
+.s-topic h3 {
+	margin: 0;
+	padding-inline: var(--space-4);
+	font-size: 1.25rem;
+	font-weight: 600;
+	line-height: 1.3;
+	letter-spacing: -0.01em;
+}
+
+.s-topic-phrase,
+.s-topic-links,
+.s-topic-foot {
+	margin: 0;
+	padding-inline: var(--space-4);
+}
+
+.s-topic-phrase {
+	color: var(--s-muted);
+	font-size: 0.9375rem;
+	line-height: 1.53;
+}
+
+.s-topic-links {
+	color: var(--s-muted);
+	font-size: 0.875rem;
+}
+
+.s-topic .s-topic-foot {
+	display: flex;
+	justify-content: space-between;
+	gap: var(--space-12);
+	margin-block-start: auto;
+	padding-block-start: var(--space-8);
+	color: var(--s-muted);
+	font-size: 0.875rem;
+}
+
+.s-topic-foot a {
+	font-weight: 500;
+	text-decoration: none;
+}
+
+/* Beside a card taller than itself, the first screen's words stand a little
+   down from its top, as they do in the draft. */
+@media (min-width: 992px) {
+	.s-hero-copy {
+		padding-block-start: var(--space-64);
+	}
 }
 
 /* The draft's widths: the menu folds behind its button below 1100 px, and a

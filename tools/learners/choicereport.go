@@ -39,6 +39,23 @@ func writeChoice(b *strings.Builder, c *stepChoice) {
 		writeMain(b, c)
 	}
 	writeMargins(b, c)
+	writeAgainstTop(b, c)
+}
+
+// writeAgainstTop lists the score of the main step of the highest score less
+// every other rule's, on the same children: what each part of the step gives,
+// taken away, and how much more of the way it closes than a comparison.
+func writeAgainstTop(b *strings.Builder, c *stepChoice) {
+	if c.top == nil || len(c.againstTop) == 0 {
+		return
+	}
+	fmt.Fprintf(b, "### Every rule against the main step of the highest score\n\nThe main step of the highest score, whatever it meets: %s, %s. "+
+		"Its score less every other rule's, on the same children:\n\n| Rule | Score | The highest main step's less this |\n|---|---:|---:|\n",
+		ruleName(c.top.rule), interval3(c.top.score))
+	for _, r := range c.againstTop {
+		fmt.Fprintf(b, "| %s | %s | %s |\n", ruleName(r.rc.rule), interval3(r.rc.score), interval3(r.difference))
+	}
+	b.WriteString("\n")
 }
 
 // writeEligible lists the candidates that meet every constraint and are

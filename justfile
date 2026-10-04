@@ -918,15 +918,22 @@ ci-smoke url:
 
 # The report reads what the deployed service logged within the window given —
 # 1d, 7d, 30d, as far back as Cloud Logging keeps it — in the project the
-# Terraform configuration names, and only the lines it adds up. They are read
-# whole into a file of their own before anything is added up, so that a read
-# that fails — a sign-in that ran out, a right the account lacks — stops here
-# rather than passing for a log with nothing in it. Cloud Logging keeps a
-# line's own fields as the payload of an entry and moves its severity, its
-# time and its span out beside it, so those are put back before the report
-# reads the line. A log of a local run, such as `just play-server` writes, is
-# read as it is: go run ./cmd/report < that file.
-# Add up the deployed service's log: tasks asked for, accepted and refused, why, the time to write one, limits, tool calls
+# Terraform configuration names: every line the service wrote, since the report
+# holds each of them to the rules of the log as well as adding them up. The
+# platform's own record of each request is not the service's, and is left out.
+# The lines are read whole into a file of their own before anything is added
+# up, so that a read that fails — a sign-in that ran out, a right the account
+# lacks — stops here rather than passing for a log with nothing in it. Cloud
+# Logging keeps a line's own fields as the payload of an entry and moves its
+# severity, its time and its trace out beside it, so those are put back before
+# the report reads the line, and the instance that wrote it, which the entry's
+# labels name, is put beside them. An entry says a trace was kept only when it
+# was: one that names a trace and says nothing of it was dropped. The entries
+# are taken out of the file one at a time, so that a long window costs the
+# disk rather than the memory; a long window over a busy service is many pages
+# of the log, and is best read a day at a time. A log of a local run, such as
+# `just play-server` writes, is read as it is: go run ./cmd/report < that file.
+# Add up the deployed service's log: tasks, refusals, time to write one, limits, tool calls with and without Drive, traces, the busiest minute, the rules of the log
 report since="1d" service="mathtrail":
     #!/usr/bin/env bash
     set -euo pipefail
@@ -937,12 +944,86 @@ report since="1d" service="mathtrail":
     fi
     project=$(just _project)
     filter='resource.type="cloud_run_revision" AND resource.labels.service_name="{{ service }}"
-        AND jsonPayload.message=("task_requested" OR "task_submitted" OR "task_accepted" OR "limit_hit" OR "tool_call")'
+        AND NOT log_id("run.googleapis.com/requests")'
     entries=$(mktemp)
     trap 'rm -f "$entries"' EXIT
     gcloud logging read "$filter" --project="$project" --freshness="{{ since }}" --format=json > "$entries"
-    jq -c '.[] | .jsonPayload + {severity, time: .timestamp, "logging.googleapis.com/spanId": .spanId}' "$entries" \
+    jq -cn --stream 'fromstream(1 | truncate_stream(inputs))
+        | (.jsonPayload // {}) + ({
+            severity,
+            time: .timestamp,
+            "logging.googleapis.com/trace": .trace,
+            "logging.googleapis.com/spanId": .spanId,
+            "logging.googleapis.com/trace_sampled": (if .trace then (.traceSampled // false) else null end),
+            instance: .labels.instanceId
+        } | with_entries(select(.value != null)))' "$entries" \
         | go run ./cmd/report
+
+# What the platform counted of the deployed service within the window given —
+# 30m, 2h, 1d, 30d — as Cloud Monitoring keeps it: the processor and the
+# memory the instances were allocated, which is what the free tier is counted
+# in, the requests that reached them, the time they were billed for, and the
+# most instances that served in one minute. Each series is summed a minute at
+# a time; the instances that served are taken on average over each minute and
+# added up across revisions, so that counts taken at different moments of a
+# minute never add up to more than ran at once. The window is set against the
+# free tier of a month: 180,000 vCPU-seconds, 360,000 GiB-seconds and two
+# million requests. The platform shows a minute up to three minutes after it
+# ends, so a window that ends now may leave out its last minutes. The token
+# rides in a header read from a file descriptor, never on the command line.
+# What the deployed service used of Cloud Run within a window, against the free tier of a month
+usage since="1h" service="mathtrail":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if ! command -v gcloud > /dev/null; then
+        echo "usage: this environment has gcloud on x86_64 alone." >&2
+        exit 1
+    fi
+    since="{{ since }}"
+    if [[ ! "$since" =~ ^[1-9][0-9]{0,4}[mhd]$ ]]; then
+        echo "usage: a window is whole minutes, hours or days, such as 30m, 2h or 1d, not $since" >&2
+        exit 1
+    fi
+    case "$since" in
+    *m) seconds=$(( ${since%m} * 60 )) ;;
+    *h) seconds=$(( ${since%h} * 3600 )) ;;
+    *d) seconds=$(( ${since%d} * 86400 )) ;;
+    esac
+    project=$(just _project)
+    token=$(gcloud auth print-access-token)
+    now=$(date -u +%s)
+    end=$(date -u -d "@$now" +%Y-%m-%dT%H:%M:%SZ)
+    start=$(date -u -d "@$(( now - seconds ))" +%Y-%m-%dT%H:%M:%SZ)
+    series() {
+        curl -fsS --max-time 30 -G "https://monitoring.googleapis.com/v3/projects/$project/timeSeries" \
+            -H @<(printf 'Authorization: Bearer %s\n' "$token") \
+            --data-urlencode "filter=metric.type=\"run.googleapis.com/$1\" AND resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"{{ service }}\"${3:+ AND $3}" \
+            --data-urlencode "interval.startTime=$start" \
+            --data-urlencode "interval.endTime=$end" \
+            --data-urlencode "aggregation.alignmentPeriod=60s" \
+            --data-urlencode "aggregation.perSeriesAligner=$2" \
+            --data-urlencode "aggregation.crossSeriesReducer=REDUCE_SUM" \
+            --data-urlencode "view=FULL"
+    }
+    summed='[.timeSeries[]?.points[]?.value | (.doubleValue // (.int64Value | tonumber))] | add // 0'
+    most='[.timeSeries[]?.points[]?.value | (.doubleValue // (.int64Value | tonumber))] | max // 0'
+    vcpu=$(series container/cpu/allocation_time ALIGN_SUM | jq "$summed")
+    gib=$(series container/memory/allocation_time ALIGN_SUM | jq "$summed")
+    requests=$(series request_count ALIGN_SUM | jq "$summed")
+    billed=$(series container/billable_instance_time ALIGN_SUM | jq "$summed")
+    instances=$(series container/instance_count ALIGN_MEAN 'metric.labels.state="active"' | jq "$most")
+    share() { awk -v used="$1" -v free="$2" 'BEGIN { printf "%.3f %%", 100 * used / free }'; }
+    echo "# What the platform counted"
+    echo
+    echo "Cloud Run, the service {{ service }}, from $start to $end, as Cloud Monitoring counts it."
+    echo
+    echo "| | Used | Of a month's free tier |"
+    echo "|---|---:|---:|"
+    echo "| vCPU-seconds | $(printf '%.1f' "$vcpu") | $(share "$vcpu" 180000) |"
+    echo "| GiB-seconds | $(printf '%.1f' "$gib") | $(share "$gib" 360000) |"
+    echo "| Requests | $(printf '%.0f' "$requests") | $(share "$requests" 2000000) |"
+    echo "| Instance-seconds billed | $(printf '%.1f' "$billed") | |"
+    echo "| Most instances that served in one minute | $(printf '%.1f' "$instances") | |"
 
 
 # -- Golden vectors from the prototype --------------------------------------
