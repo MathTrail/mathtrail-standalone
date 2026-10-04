@@ -60,7 +60,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
 # DB-IP's IP to Country Lite, kept unchanged in an image of its own and pinned
 # like any other. A new month is published and pinned with just
 # countries-publish.
-FROM ghcr.io/mathtrail/mathtrail-standalone/dbip-country-lite:2026-10@sha256:0000000000000000000000000000000000000000000000000000000000000000 AS countries
+FROM ghcr.io/mathtrail/mathtrail-standalone/dbip-country-lite:2026-10@sha256:7b263f89896b0a802ac1f4e40280e092244b18e9590cf288e1933c99278dba6f AS countries
 
 # The runtime holds the binary, a certificate bundle and the database of
 # countries, and nothing else: no shell, no package manager, and a non-root
