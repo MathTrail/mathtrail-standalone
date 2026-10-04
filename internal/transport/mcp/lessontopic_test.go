@@ -200,6 +200,26 @@ func TestAskingAgainForTheTopicOfTheLessonsSetsNothingAside(t *testing.T) {
 	}
 }
 
+// A topic chosen while a request on another is open comes with the task after
+// it: the request is handed back as it was, and the model is told that its
+// topic was set aside and why.
+func TestAskingForTheTopicOfTheLessonsOverAnotherRequestSetsItAside(t *testing.T) {
+	t.Parallel()
+
+	kept := keptWith(t, "olya")
+	_, session := lesson(t, kept)
+	call(t, session, "next_task", map[string]any{"language": "en"})
+	p, _ := loadKept(t, kept)
+	lesson := "time.clocks"
+	if p.OpenRequest.Brief.TargetConcept == lesson {
+		lesson = "logic.ordering"
+	}
+	call(t, session, "save_profile", map[string]any{"lesson_topic": lesson})
+
+	again := textOf(t, call(t, session, "next_task", map[string]any{"language": "en", "topic": lesson}))
+	wantSaid(t, again, "is already open", "were not applied", "stays on its own topic")
+}
+
 // The card of a task is told the choice of the topic once the task is on it
 // and the trial series is over: the topic chosen, if any; the topics the
 // review's steps are for, as the progress tells them; and the site. A task of
@@ -293,7 +313,7 @@ func suggestedByTheProgress(t *testing.T, session *mcp.ClientSession) []string {
 		return suggested
 	}
 	for _, step := range read.Review.Steps {
-		if step.Topic != "" && !slices.Contains(suggested, step.Topic) && len(suggested) < 3 {
+		if step.Topic != "" && !slices.Contains(suggested, step.Topic) && len(suggested) < progress.SuggestedTopics {
 			suggested = append(suggested, step.Topic)
 		}
 	}

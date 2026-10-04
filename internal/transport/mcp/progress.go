@@ -185,13 +185,10 @@ func (s *Service) readProgress(ctx context.Context, account store.Account) (Repl
 		return Reply[progressOut]{}, err
 	}
 
-	today := profile.DateOf(s.now())
-	summary, err := progress.Of(p, s.content, today)
+	summary, mistakes, review, err := s.reviewed(p, profile.DateOf(s.now()))
 	if err != nil {
 		return Reply[progressOut]{}, err
 	}
-	mistakes := progress.Mistakes(p.Recent, s.content, s.repeats)
-	review := progress.ReviewOf(p, s.content, &summary, mistakes, s.repeats, today)
 	return Reply[progressOut]{
 		Text: joined(s.progressText(p, &summary, mistakes, review), where),
 		Payload: progressOut{
@@ -210,6 +207,20 @@ func (s *Service) readProgress(ctx context.Context, account store.Account) (Repl
 			Site:           s.siteOut(),
 		},
 	}, nil
+}
+
+// reviewed is where the child stands today, worked out once for every reader:
+// the summary of the progress, the mistakes that repeat, and the review of the
+// topics — none during the trial series —, which the progress tells and whose
+// suggestions the card of a task offers.
+func (s *Service) reviewed(p *profile.Profile, today profile.Date) (progress.Summary, []progress.Mistake, *progress.Review, error) {
+	summary, err := progress.Of(p, s.content, today)
+	if err != nil {
+		return progress.Summary{}, nil, nil, err
+	}
+	mistakes := progress.Mistakes(p.Recent, s.content, s.repeats)
+	review := progress.ReviewOf(p, s.content, &summary, mistakes, s.repeats, today)
+	return summary, mistakes, review, nil
 }
 
 func standingOf(overall *progress.Standing, changes progress.Changes) *standingOut {

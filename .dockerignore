@@ -13,6 +13,7 @@ testdata
 research
 tools
 site
+!site/data.json
 bin
 dist
 coverage.*

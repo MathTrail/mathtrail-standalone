@@ -1,7 +1,8 @@
 import { describe, expect, test } from "vitest";
 import topics from "../../../content/catalogs/topics.json";
 import { published } from "../../tools/sitecheck/published";
-import { type Anchor, pageAddress } from "./links";
+import { type Anchor, groupAddress, pageAddress } from "./links";
+import { topicGroups } from "./topicGroups";
 
 const site = { url: "https://mathtrail.app", languages: ["en", "ru"] };
 const gaps = { slug: "gaps-and-boundaries", site_page: true };
@@ -77,6 +78,38 @@ describe("the address of a topic's page", () => {
 						address?.slice("https://mathtrail.app".length),
 					);
 				}
+			}
+		}
+	});
+});
+
+describe("the address of a group of topics", () => {
+	test("is the site's page of topics in the card's language, at the group's part", () => {
+		expect(groupAddress(site, "ru", "time")).toBe(
+			"https://mathtrail.app/ru/topics/#time",
+		);
+		expect(groupAddress(site, "fr", "games")).toBe(
+			"https://mathtrail.app/en/topics/#games",
+		);
+	});
+
+	test.each([
+		["no site", undefined, "time"],
+		["a group that would turn the address", site, "time?child=Comet"],
+		["a group that names a path", site, "../privacy"],
+		["a site with a path", { ...site, url: "https://mathtrail.app/en" }, "time"],
+		["a site with no https", { ...site, url: "http://mathtrail.app" }, "time"],
+	])("is none for %s", (_, given, group) => {
+		expect(groupAddress(given, "en", group)).toBeUndefined();
+	});
+
+	test("is one the site keeps, for every group a card offers, in every language", () => {
+		for (const group of topicGroups) {
+			for (const language of site.languages) {
+				const address = groupAddress(site, language, group.id);
+				expect(published, `${group.id} ${language}`).toContain(
+					address?.slice("https://mathtrail.app".length),
+				);
 			}
 		}
 	});

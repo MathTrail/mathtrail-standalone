@@ -5,36 +5,46 @@ import { Icon, type IconName } from "./icons";
 
 /**
  * Button is the design's button, secondary unless it is the one thing to do
- * next. One that shows and hides something says whether it is shown. A
- * disabled button is out of use; a locked one ignores presses but keeps its
- * place in the tab order and the focus it has, so that a press answered in a
- * moment does not throw the focus away.
+ * next. One that shows and hides something says whether it is shown, and, when
+ * what it shows is apart from it, names it by its id. A disabled button is out
+ * of use; a locked one ignores presses but keeps its place in the tab order
+ * and the focus it has, so that a press answered in a moment does not throw
+ * the focus away. A class given is the button's own, beside the design's.
  */
 export function Button({
 	variant = "secondary",
 	expanded,
+	controls,
 	disabled = false,
 	locked = false,
 	onClick,
 	buttonRef,
+	className,
 	children,
 }: {
 	variant?: "primary" | "secondary";
 	expanded?: boolean;
+	controls?: string;
 	disabled?: boolean;
 	locked?: boolean;
 	onClick?: () => void;
 	buttonRef?: Ref<HTMLButtonElement>;
+	className?: string;
 	children: ComponentChildren;
 }) {
 	return (
 		<button
 			type="button"
 			ref={buttonRef}
-			class={classes("mt-btn", variant === "primary" && "mt-btn-primary")}
+			class={classes(
+				"mt-btn",
+				variant === "primary" && "mt-btn-primary",
+				className,
+			)}
 			disabled={disabled}
 			aria-disabled={locked ? "true" : undefined}
 			aria-expanded={expanded}
+			aria-controls={controls}
 			onClick={() => {
 				if (!locked) {
 					onClick?.();

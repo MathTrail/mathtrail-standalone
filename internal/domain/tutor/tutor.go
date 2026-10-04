@@ -78,6 +78,20 @@ type Choice struct {
 // or a difficulty of its own. A reason alone asks for nothing.
 func (c *Choice) Made() bool { return c.Topic != "" || c.GradeLevel != "" || c.Difficulty != 0 }
 
+// Beside is the choice as it stands beside the topic the lessons are kept to,
+// lesson: naming that topic asks for nothing, since it is set anyway, and a
+// reason left with nothing beside it explains nothing.
+func (c *Choice) Beside(lesson string) Choice {
+	beside := *c
+	if lesson != "" && beside.Topic == lesson {
+		beside.Topic = ""
+		if !beside.Made() {
+			beside.Reason = ""
+		}
+	}
+	return beside
+}
+
 // ChoiceError is a choice of the model's that no brief can be built from, with
 // every rule it breaks. A caller finds it with errors.As, to tell the model
 // what to change.
@@ -110,15 +124,18 @@ func (c *Choice) problems(catalog Catalog, suggested, chosen string) []profile.P
 		topic = chosen
 	}
 	if c.Topic != "" {
-		topic = c.Topic
 		switch {
 		case len(catalog.LevelsOf(c.Topic)) == 0:
+			topic = c.Topic
 			found = append(found, profile.Problem{Field: "topic", Broken: profile.Broken{
 				Code: profile.CodeNotInCatalog, Rule: "must be a topic of the catalog, by its id"}})
 		case chosen != "":
+			// The chosen topic is what will be set, so a level is held to it.
 			found = append(found, profile.Problem{Field: "topic", Broken: profile.Broken{
 				Code: profile.CodeNotOneOf, Rule: fmt.Sprintf("must be %s, the topic the child or the adult chose for "+
 					"the lessons, or left out; save_profile changes the choice when they ask", chosen)}})
+		default:
+			topic = c.Topic
 		}
 	}
 	if broken := c.levelRule(catalog, topic, suggested, chosen); broken.Code != "" {
@@ -149,7 +166,7 @@ func (c *Choice) levelRule(catalog Catalog, topic, suggested, chosen string) pro
 	case len(levels) == 0 || slices.Contains(levels, c.GradeLevel):
 		// An unknown topic is refused as a topic; its levels are nobody's.
 		return profile.Broken{}
-	case c.Topic == "" && chosen != "":
+	case chosen != "" && topic == chosen:
 		return profile.Broken{Code: profile.CodeNotTaught, Rule: fmt.Sprintf(
 			"must be a level the topic chosen for the lessons, %s, is taught at: %s", chosen, joined(levels))}
 	case c.Topic == "":
@@ -208,9 +225,7 @@ func Next(p *profile.Profile, catalog Catalog, choice Choice) (profile.Brief, pr
 
 	suggested, goal, because := choose(p, catalog, open)
 	chosen := LessonTopic(p, catalog)
-	if chosen != "" && choice.Topic == chosen {
-		choice.Topic = ""
-	}
+	choice = choice.Beside(chosen)
 	if problems := choice.problems(catalog, suggested, chosen); len(problems) > 0 {
 		return profile.Brief{}, "", &ChoiceError{Problems: problems}
 	}
@@ -236,17 +251,26 @@ func Next(p *profile.Profile, catalog Catalog, choice Choice) (profile.Brief, pr
 	}, mode, nil
 }
 
-// LessonTopic is the topic the lessons are kept to now: the one the child or
-// the adult chose, once the trial series is over and while the catalog has
-// it, or none. The series finds where the child stands by moving to a new
-// topic each time, so a choice made during it waits for its end; and the file
-// is the parent's to edit, so a topic the catalog has lost counts as none.
-func LessonTopic(p *profile.Profile, catalog Catalog) string {
+// ChosenTopic is the topic the child or the adult chose to keep the lessons
+// to, while the catalog has it, or none. The file is the parent's to edit, so
+// a topic the catalog does not have, or has since lost, counts as no choice.
+func ChosenTopic(p *profile.Profile, catalog Catalog) string {
 	topic := p.Student.LessonTopic
-	if topic == "" || p.Ratings.InTrial() || len(catalog.LevelsOf(topic)) == 0 {
+	if topic == "" || len(catalog.LevelsOf(topic)) == 0 {
 		return ""
 	}
 	return topic
+}
+
+// LessonTopic is the topic the lessons are kept to now: the one chosen, once
+// the trial series is over, or none. The series finds where the child stands
+// by moving to a new topic each time, so a choice made during it waits for its
+// end.
+func LessonTopic(p *profile.Profile, catalog Catalog) string {
+	if p.Ratings.InTrial() {
+		return ""
+	}
+	return ChosenTopic(p, catalog)
 }
 
 // WithinReach keeps the topics a child can be set now, in catalog order: those

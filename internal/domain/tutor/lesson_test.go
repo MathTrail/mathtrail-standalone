@@ -1,6 +1,7 @@
 package tutor_test
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -179,10 +180,69 @@ func TestTheRationaleKeepsTheChoiceBesideTheRule(t *testing.T) {
 		t.Fatalf("Next() = difficulty %d in %q by %q, %v; want the model's 5 on time.clocks", harder.Difficulty,
 			harder.TargetConcept, mode, err)
 	}
-	for _, say := range []string{"a stretch on purpose", "The lessons are kept to topic time.clocks", "Rule:"} {
+	// The rule's account names a point of its own topic, so the point the task
+	// stands at on the chosen one has to be said beside it.
+	stands := fmt.Sprintf("The task is difficulty 5 of grades %s", harder.GradeLevel)
+	for _, say := range []string{"a stretch on purpose", "The lessons are kept to topic time.clocks", stands, "Rule:"} {
 		if !strings.Contains(harder.Rationale, say) {
 			t.Errorf("rationale = %q, want it to carry %q", harder.Rationale, say)
 		}
+	}
+}
+
+// Naming the topic the lessons are kept to asks for nothing, and a reason left
+// with nothing beside it explains nothing; any other choice stands as made.
+func TestAChoiceBesideTheTopicOfTheLessons(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name  string
+		given tutor.Choice
+		want  tutor.Choice
+	}{
+		{"the same topic with a reason", tutor.Choice{Topic: "time.clocks", Reason: "because"}, tutor.Choice{}},
+		{"the same topic and a difficulty", tutor.Choice{Topic: "time.clocks", Difficulty: 4, Reason: "harder"},
+			tutor.Choice{Difficulty: 4, Reason: "harder"}},
+		{"another topic", tutor.Choice{Topic: "logic.ordering", Reason: "because"},
+			tutor.Choice{Topic: "logic.ordering", Reason: "because"}},
+	} {
+		if got := tc.given.Beside("time.clocks"); got != tc.want {
+			t.Errorf("%s: Beside() = %+v, want %+v", tc.name, got, tc.want)
+		}
+	}
+	asked := tutor.Choice{Topic: "time.clocks", Reason: "because"}
+	if got := asked.Beside(""); got != asked {
+		t.Errorf("Beside(no lesson topic) = %+v, want the choice as it was", got)
+	}
+}
+
+// A model that names another topic while the lessons are kept to one is told
+// so, and a level it names beside it is held to the topic that will be set —
+// the chosen one — so that the model is not refused a second time for it.
+func TestALevelBesideARefusedTopicIsHeldToTheChosenOne(t *testing.T) {
+	t.Parallel()
+
+	_, _, err := tutor.Next(keptTo(t, "percent.basic"), withAnOlderTopic(),
+		tutor.Choice{Topic: "time.clocks", GradeLevel: rating.Grades12, Reason: "easier"})
+	refused := refusal(t, err)
+	if got := fieldsOf(refused); len(got) != 2 || got[0] != "topic" || got[1] != "grade_level" ||
+		!strings.Contains(refused.Problems[1].Rule, "percent.basic") {
+		t.Errorf("refused %+v, want the topic and the level, the level held to percent.basic", refused.Problems)
+	}
+}
+
+// The point the task stands at is said once, whichever sentence says it.
+func TestTheRationaleSaysThePointOnce(t *testing.T) {
+	t.Parallel()
+
+	got, _, err := tutor.Next(keptTo(t, "time.clocks"), threeTopics(),
+		tutor.Choice{GradeLevel: rating.Grades34, Reason: "a step up"})
+	if err != nil {
+		t.Fatalf("Next() error = %v, want nil", err)
+	}
+	point := fmt.Sprintf("difficulty %d of grades %s", got.Difficulty, got.GradeLevel)
+	if n := strings.Count(got.Rationale, point); n != 1 {
+		t.Errorf("rationale = %q says %q %d times, want once", got.Rationale, point, n)
 	}
 }
 

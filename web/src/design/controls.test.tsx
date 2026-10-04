@@ -170,6 +170,23 @@ describe("a button", () => {
 		).toEqual(["true", "false", null]);
 	});
 
+	test("names what it shows apart from it, and carries a class of its own", () => {
+		draw(
+			<>
+				<Button expanded={false} controls="topics" className="mt-topic-button">
+					Topic
+				</Button>
+				<Button>Hint</Button>
+			</>,
+		);
+
+		const [opening, plain] = root.querySelectorAll("button");
+		expect(opening?.getAttribute("aria-controls")).toBe("topics");
+		expect(opening?.className).toBe("mt-btn mt-topic-button");
+		expect(plain?.hasAttribute("aria-controls")).toBe(false);
+		expect(plain?.className).toBe("mt-btn");
+	});
+
 	test("that is disabled or locked does nothing", () => {
 		const done = vi.fn();
 		draw(

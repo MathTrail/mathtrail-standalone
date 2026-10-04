@@ -196,16 +196,107 @@ func TestADayCountedWholeKeepsItsNumbersAsTheLinesGo(t *testing.T) {
 		t.Fatalf("the week of the seventeenth = %v, want one child, the Inspector's left out", countedWeek)
 	}
 
-	// The lines before the seventh go, as the bucket lets them go: the first
-	// day the bucket holds whole moves into the tenth's week, and the
-	// Inspector's task of the second is gone.
-	s.rows(t, fmt.Sprintf("DELETE FROM `${logs}` WHERE timestamp < TIMESTAMP '%s 00:00:00+00'", day(tenth.AddDate(0, 0, -3))))
-	s.countTheNight(t)
+	// The lines before the seventh go, as the bucket lets them go: the night
+	// after holds the month of the tenth's seven days and of the seventeenth's
+	// week no longer from its first day, and the Inspector's task of the
+	// second is gone.
+	gone := tenth.AddDate(0, 0, -3)
+	s.rows(t, fmt.Sprintf("DELETE FROM `${logs}` WHERE timestamp < TIMESTAMP '%s 00:00:00+00'", day(gone)))
+	s.countTheNightHolding(t, gone)
 	if again := s.rows(t, days); !equalRows(again, countedDay) {
 		t.Errorf("the tenth, once its lines began to go = %v, want it kept as %v", again, countedDay)
 	}
 	if again := s.rows(t, weeks); !equalRows(again, countedWeek) {
 		t.Errorf("the week of the seventeenth, once its month's lines began to go = %v, want it kept as %v", again, countedWeek)
+	}
+}
+
+// countingBeganOnAMonday writes the first line that names a child on the
+// Sunday before a Monday two weeks back or more, one that is not the first of
+// its month, and says that Monday: the counting begins on it, its week is
+// whole in the lines, and its month began before the counting did.
+func countingBeganOnAMonday(t *testing.T, s *space) time.Time {
+	t.Helper()
+
+	monday := today().AddDate(0, 0, -14)
+	for monday.Weekday() != time.Monday || monday.Day() == 1 {
+		monday = monday.AddDate(0, 0, -1)
+	}
+	s.write(t, accepted(learnerOf(999), noon(monday.AddDate(0, 0, -1)), nil))
+	return monday
+}
+
+// While the bucket holds every line since the counting began, every night
+// counts every day and every week again, the week under way among them: a
+// child whose task came after the night that first counted the week is
+// counted in it, and in its day, on the night after. The line written after
+// the first night stands for a day that came since.
+func TestAWeekCountedWhileUnderWayIsCountedAgain(t *testing.T) {
+	s := newSpace(t)
+	monday := countingBeganOnAMonday(t, s)
+	s.write(t, accepted(learnerOf(1), noon(monday.AddDate(0, 0, 1)), nil))
+	s.countTheNight(t)
+
+	thursday := monday.AddDate(0, 0, 3)
+	s.write(t, accepted(learnerOf(2), noon(thursday), nil))
+	s.countTheNight(t)
+
+	weeks := s.rows(t, fmt.Sprintf("SELECT week, learners FROM `${impact}.learners_weekly` WHERE dimension = 'all' AND week = DATE '%s'", day(monday)))
+	if want := [][]string{{day(monday), "2"}}; !equalRows(weeks, want) {
+		t.Errorf("the week = %v, want %v: the child of its Thursday as well", weeks, want)
+	}
+	days := s.rows(t, fmt.Sprintf("SELECT day, learners FROM `${impact}.daily` WHERE day = DATE '%s'", day(thursday)))
+	if want := [][]string{{day(thursday), "1"}}; !equalRows(days, want) {
+		t.Errorf("the Thursday = %v, want %v", days, want)
+	}
+}
+
+// While the bucket holds every line since the counting began, a child the
+// load tool or MCP Inspector reaches later is taken out of the days and the
+// week the nights before counted it in.
+func TestAChildLeftOutLaterIsTakenOutOfWhatWasCounted(t *testing.T) {
+	s := newSpace(t)
+	monday := countingBeganOnAMonday(t, s)
+	tuesday := monday.AddDate(0, 0, 1)
+	s.write(t,
+		accepted(learnerOf(1), noon(tuesday), nil),
+		accepted(learnerOf(2), noon(tuesday), nil),
+	)
+	s.countTheNight(t)
+
+	s.write(t, accepted(learnerOf(1), noon(monday.AddDate(0, 0, 4)), map[string]any{"host": "inspector"}))
+	s.countTheNight(t)
+
+	days := s.rows(t, fmt.Sprintf("SELECT day, learners, tasks FROM `${impact}.daily` WHERE day = DATE '%s'", day(tuesday)))
+	if want := [][]string{{day(tuesday), "1", "1"}}; !equalRows(days, want) {
+		t.Errorf("the Tuesday = %v, want %v: the Inspector's child left out", days, want)
+	}
+	weeks := s.rows(t, fmt.Sprintf("SELECT week, learners FROM `${impact}.learners_weekly` WHERE dimension = 'all' AND week = DATE '%s'", day(monday)))
+	if want := [][]string{{day(monday), "1"}}; !equalRows(weeks, want) {
+		t.Errorf("the week = %v, want %v: the Inspector's child left out", weeks, want)
+	}
+}
+
+// Once the bucket has let go of the first days of the counting, every night
+// counts every day it still holds whole, a day nobody had a task on among
+// them: a stretch with no line at all, longer than the bucket keeps lines,
+// leaves no day uncounted, and the day the lines came back on is counted.
+func TestAStretchWithNoLinesLeavesNoDayUncounted(t *testing.T) {
+	s := newSpace(t)
+	// The nights have counted since a hundred days back, the day of the last
+	// line before the stretch.
+	longAgo := today().AddDate(0, 0, -100)
+	s.rows(t, fmt.Sprintf("INSERT INTO `${impact}.daily` (day, learners, learners_week, learners_month, tasks, answers, topics_won) VALUES (DATE '%s', 1, 1, 1, 1, 0, 0)", day(longAgo)))
+	back := today().AddDate(0, 0, -5)
+	s.write(t, accepted(learnerOf(1), noon(back), nil))
+	s.countTheNight(t)
+
+	days := s.rows(t, fmt.Sprintf("SELECT day, learners FROM `${impact}.daily` WHERE day > DATE '%s' ORDER BY day", day(longAgo)))
+	if len(days) != heldWhole {
+		t.Fatalf("the night counted %d days, want %d: every day the bucket holds whole, to yesterday", len(days), heldWhole)
+	}
+	if row := rowOf(days, day(back)); len(row) < 2 || row[1] != "1" {
+		t.Errorf("the day the lines came back on = %v, want its one child", row)
 	}
 }
 

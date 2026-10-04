@@ -230,16 +230,15 @@ func TestMasteryHoldsItsProperties(t *testing.T) {
 	t.Parallel()
 
 	properties := gopter.NewProperties(nil)
-	steps := gopter.CombineGens(
-		gen.OneConstOf(rating.Grades12, rating.Grades34, rating.Grades56),
-		gen.IntRange(profile.MinDifficulty, profile.MaxDifficulty),
-		gen.Bool(), gen.Bool(),
-	).Map(func(values []any) answerStep {
-		return answerStep{
-			point:   rating.Point{GradeLevel: values[0].(rating.GradeLevel), Difficulty: values[1].(int)},
-			correct: values[2].(bool),
-			hint:    values[3].(bool),
-		}
+	levels := gen.OneConstOf(rating.Grades12, rating.Grades34, rating.Grades56)
+	difficulties := gen.IntRange(profile.MinDifficulty, profile.MaxDifficulty)
+	rights, hints := gen.Bool(), gen.Bool()
+	steps := gopter.CombineGens(levels, difficulties, rights, hints).Map(func(values []any) answerStep {
+		level, _ := values[0].(rating.GradeLevel)
+		difficulty, _ := values[1].(int)
+		correct, _ := values[2].(bool)
+		hint, _ := values[3].(bool)
+		return answerStep{point: rating.Point{GradeLevel: level, Difficulty: difficulty}, correct: correct, hint: hint}
 	})
 
 	properties.Property("declared where the cautious estimate clears, held until two failures in a row", prop.ForAll(
@@ -248,7 +247,7 @@ func TestMasteryHoldsItsProperties(t *testing.T) {
 			for number, step := range lesson {
 				before := p.Topics[masteredTopic]
 				recorded := answerAt(t, p, step.point, number+1, step.correct, step.hint)
-				if !keptByTheRule(p, &before, step, recorded) {
+				if !keptByTheRule(p, &before, step, &recorded) {
 					return false
 				}
 			}
@@ -272,7 +271,7 @@ type answerStep struct {
 // five answers in the topic, above the level held and no higher than the
 // task's, at a level whose middle task the cautious level clears; a loss only
 // after two wrong answers in a row; and otherwise nothing moved.
-func keptByTheRule(p *profile.Profile, before *profile.Topic, step answerStep, recorded profile.Recorded) bool {
+func keptByTheRule(p *profile.Profile, before *profile.Topic, step answerStep, recorded *profile.Recorded) bool {
 	after := p.Topics[masteredTopic]
 	switch {
 	case recorded.Mastered:

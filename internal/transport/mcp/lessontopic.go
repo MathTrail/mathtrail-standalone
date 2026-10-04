@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
-	"github.com/MathTrail/mathtrail-standalone/internal/domain/progress"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/tutor"
 )
 
@@ -29,13 +28,10 @@ func (s *Service) topicChoiceOf(p *profile.Profile, now time.Time) (*topicChoice
 	if p.Ratings.InTrial() {
 		return nil, nil
 	}
-	today := profile.DateOf(now)
-	summary, err := progress.Of(p, s.content, today)
+	_, _, review, err := s.reviewed(p, profile.DateOf(now))
 	if err != nil {
 		return nil, err
 	}
-	mistakes := progress.Mistakes(p.Recent, s.content, s.repeats)
-	review := progress.ReviewOf(p, s.content, &summary, mistakes, s.repeats, today)
 	return &topicChoiceOut{
 		Chosen:      given(tutor.LessonTopic(p, s.content)),
 		Recommended: review.Suggested(),
@@ -53,9 +49,9 @@ func (s *Service) siteOut() *siteOut {
 // to it yet. While the rule chooses — or the file names a topic the catalog
 // does not have — there is nothing to say.
 func (s *Service) lessonTopicText(p *profile.Profile) string {
-	topic := p.Student.LessonTopic
+	topic := tutor.ChosenTopic(p, s.content)
 	switch {
-	case topic == "" || !s.content.HasTopic(topic):
+	case topic == "":
 		return ""
 	case p.Ratings.InTrial():
 		return fmt.Sprintf("The child or the adult chose to keep the lessons to %s once the trial series is over: "+

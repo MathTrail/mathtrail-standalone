@@ -12,17 +12,12 @@ import {
 	type Editing,
 	editingAfter,
 	notEditing,
+	sendEdit,
 } from "./editing";
 import { useFocusKeptOnTheCard } from "./focus";
 import { countryName, languageName, listed, skillName } from "./names";
 import { ProfileForm } from "./ProfileForm";
-import {
-	type Details,
-	type EditOutcome,
-	type Location,
-	type ProfileReport,
-	readEdited,
-} from "./payload";
+import type { Details, Location, ProfileReport } from "./payload";
 import { regionName } from "./places";
 import { countText, type Key, useWords } from "./words";
 
@@ -133,7 +128,7 @@ export function ParentProfile({
 		}
 		sending.current = true;
 		dispatch({ type: "sent" });
-		const outcome = await sent(host, changes);
+		const outcome = await sendEdit(host, changes);
 		sending.current = false;
 		dispatch({ type: "answered", outcome });
 		if (outcome.kind === "saved") {
@@ -187,20 +182,6 @@ export function ParentProfile({
 					}
 				/>
 			);
-	}
-}
-
-// sent is how a change sent to the service ended. A call that never reached
-// the service, or whose answer never came back, is a change not saved.
-async function sent(
-	host: Host,
-	changes: Record<string, unknown>,
-): Promise<EditOutcome> {
-	try {
-		return readEdited(await host.callTool("edit_profile", changes));
-	} catch (error: unknown) {
-		console.error("widget: the change did not reach the service", error);
-		return { kind: "failed" };
 	}
 }
 

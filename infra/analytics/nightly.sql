@@ -4,31 +4,45 @@
 --
 -- A child is counted under the name it has that month, and the children the
 -- load tool or MCP Inspector handed a task to that month are not counted at
--- all; so a period is counted whole only while the bucket holds every month a
--- name in it was given for — what the exclusion has to read, from the first of
--- each. While it does, every night counts the period again: a night that did
--- not run is made up for by the next, and a run made by hand counts what a
--- night would. Once it does not, the period keeps the rows it was last counted
--- to, counted whole. A day or a week with no row yet is counted from what the
--- bucket holds, which, the first days of the counting aside, is all of it.
+-- all, so counting a period reads every line of every month a name in it was
+-- given for. While the bucket still holds every line since the counting began,
+-- every night counts every period again. Once it has begun to let lines go, a
+-- period is counted again only while the bucket holds those months from their
+-- first day, and then keeps the rows it was last counted to. Either way a
+-- night that did not run is made up for by the next, and a run made by hand
+-- counts what a night would; a day or a week with no row yet is counted from
+-- what the bucket holds.
 
 -- Yesterday: the last day whose lines are all in.
 DECLARE counted_until DATE DEFAULT DATE_SUB(CURRENT_DATE('UTC'), INTERVAL 1 DAY);
 
--- The first day the bucket holds whole: 60 of its 62 days back, and never
--- before the day after the first line that names a child — a build older than
--- the counting names none, and the day the counting arrived on may have begun
--- without it.
-DECLARE lines_from DATE DEFAULT (
-  SELECT GREATEST(
-    DATE_SUB(CURRENT_DATE('UTC'), INTERVAL 60 DAY),
-    DATE_ADD(IFNULL(MIN(DATE(timestamp, 'UTC')), CURRENT_DATE('UTC')), INTERVAL 1 DAY))
-  FROM `${logs}`
-  WHERE JSON_VALUE(json_payload.learner) IS NOT NULL
-);
+-- The first day the bucket still holds whole.
+DECLARE window_from DATE DEFAULT DATE_SUB(CURRENT_DATE('UTC'), INTERVAL ${window_days} DAY);
 
--- The first week and the first month that begin on that day or after it: an
--- earlier one would be counted from part of its days.
+-- The day the counting began: the first day a night counted, or, until one
+-- has, the day after the first line that names a child — a build older than
+-- the counting names none, and the day the counting arrived on may have begun
+-- without it. Empty while no line names a child.
+DECLARE counting_began DATE DEFAULT IFNULL(
+  (SELECT MIN(day) FROM `${impact}.daily`),
+  (SELECT DATE_ADD(MIN(DATE(timestamp, 'UTC')), INTERVAL 1 DAY) FROM `${logs}`
+    WHERE JSON_VALUE(json_payload.learner) IS NOT NULL));
+
+-- The first day counted: the bucket's first whole day, or the counting's first
+-- if that came later. A day after it with no line on it is a day nobody had a
+-- task, and is counted as one.
+DECLARE lines_from DATE DEFAULT GREATEST(window_from, IFNULL(counting_began, CURRENT_DATE('UTC')));
+
+-- The first day a month must begin on for the bucket to hold all of it: none
+-- while the bucket still holds every line since the counting began, when
+-- there is nothing before that to hold.
+DECLARE names_from DATE DEFAULT IF(
+  IFNULL(counting_began, CURRENT_DATE('UTC')) >= window_from,
+  DATE '1970-01-01',
+  lines_from);
+
+-- The first week and the first month that begin on the first day counted or
+-- after it: an earlier one would be counted from part of its days.
 DECLARE weeks_from DATE DEFAULT IF(
   DATE_TRUNC(lines_from, WEEK(MONDAY)) = lines_from,
   lines_from,
@@ -87,21 +101,15 @@ CREATE TEMP TABLE told_apart AS
 SELECT latest.kind, latest.period, told.dimension, told.value
 FROM (
   SELECT
-    kind, period, host, language, grade, country, region, signin_country, cohort,
-    ROW_NUMBER() OVER (PARTITION BY kind, period, learner ORDER BY written_at DESC) AS recency
-  FROM (
-    SELECT
-      'week' AS kind, DATE_TRUNC(on_day, WEEK(MONDAY)) AS period,
-      learner, written_at, host, language, grade, country, region, signin_country, cohort
-    FROM counted_lines
-    WHERE event = 'task_accepted'
-    UNION ALL
-    SELECT
-      'month' AS kind, DATE_TRUNC(on_day, MONTH) AS period,
-      learner, written_at, host, language, grade, country, region, signin_country, cohort
-    FROM counted_lines
-    WHERE event = 'task_accepted'
-  )
+    periods.kind, periods.period,
+    tasks.host, tasks.language, tasks.grade, tasks.country, tasks.region, tasks.signin_country, tasks.cohort,
+    ROW_NUMBER() OVER (PARTITION BY periods.kind, periods.period, tasks.learner ORDER BY tasks.written_at DESC) AS recency
+  FROM counted_lines AS tasks,
+  UNNEST([
+    STRUCT('week' AS kind, DATE_TRUNC(tasks.on_day, WEEK(MONDAY)) AS period),
+    STRUCT('month' AS kind, DATE_TRUNC(tasks.on_day, MONTH) AS period)
+  ]) AS periods
+  WHERE tasks.event = 'task_accepted'
 ) AS latest,
 UNNEST([
   STRUCT('all' AS dimension, 'all' AS value),
@@ -118,15 +126,14 @@ WHERE latest.recency = 1;
 -- One night's counts land whole or not at all.
 BEGIN TRANSACTION;
 
--- Every day from the first the bucket holds whole to yesterday, a day with
--- nothing on it among them: a missing day is a night that never ran. A day is
--- counted again while the bucket holds the month of the first of the seven
--- days to it, which is every name of its week and of its month. Each day is
--- laid beside the children of the days that reach back to the start of its
--- week or of its month, whichever is earlier, and the rest is joined on the
--- day itself.
+-- Every day from the first counted to yesterday, a day with nothing on it
+-- among them: a missing day is a night that never ran. A day is counted again
+-- while the bucket holds the month of the first of the seven days to it, which
+-- is every name of its week and of its month. Each day is laid beside the
+-- children of the days that reach back to the start of its week or of its
+-- month, whichever is earlier, and the rest is joined on the day itself.
 DELETE FROM `${impact}.daily`
-WHERE day >= lines_from AND DATE_TRUNC(DATE_SUB(day, INTERVAL 6 DAY), MONTH) >= lines_from;
+WHERE day >= lines_from AND DATE_TRUNC(DATE_SUB(day, INTERVAL 6 DAY), MONTH) >= names_from;
 INSERT INTO `${impact}.daily` (day, learners, learners_week, learners_month, tasks, answers, topics_won)
 WITH counted_days AS (
   SELECT counted_day
@@ -170,7 +177,7 @@ LEFT JOIN reach ON reach.counted_day = counted_days.counted_day
 LEFT JOIN volume ON volume.on_day = counted_days.counted_day;
 
 -- A week is counted again while the bucket holds the month it begins in.
-DELETE FROM `${impact}.learners_weekly` WHERE DATE_TRUNC(week, MONTH) >= lines_from;
+DELETE FROM `${impact}.learners_weekly` WHERE DATE_TRUNC(week, MONTH) >= names_from;
 INSERT INTO `${impact}.learners_weekly` (week, dimension, value, learners)
 SELECT period, dimension, value, COUNT(*)
 FROM told_apart

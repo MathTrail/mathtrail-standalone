@@ -54,15 +54,14 @@ func (in *nextTaskIn) choice() tutor.Choice {
 // no language for the lessons — another chat language. A language the parent
 // chose wins over the chat's, so the chat's then asks for nothing, whatever
 // the request was opened in; and the topic the lessons are kept to, lesson,
-// asks for nothing either, nor does a reason given for it alone.
+// asks for nothing either, nor does a reason given for it alone — on a request
+// opened on that topic, since one opened on another does not have it.
 func (in *nextTaskIn) differsFrom(request *profile.OpenRequest, student *profile.Student, lesson string) bool {
-	choice := in.choice()
-	if lesson != "" && choice.Topic == lesson {
-		choice.Topic = ""
-		if !choice.Made() {
-			choice.Reason = ""
-		}
+	if request.Brief.TargetConcept != lesson {
+		lesson = ""
 	}
+	asked := in.choice()
+	choice := asked.Beside(lesson)
 	language, broken := profile.LanguageTag(in.Language)
 	_, chosen := student.ChosenLanguage()
 	return choice.Made() || choice.Reason != "" ||
@@ -223,7 +222,8 @@ func (s *Service) stillOpen(ctx context.Context, account store.Account, p *profi
 		lead += " The arguments of this call were not applied: the request keeps what it was opened with."
 	}
 	return Reply[requestOut]{
-		Text: joined(lead, lessonLanguageText(&p.Student), stillInText(p), forYouAlone, s.lastAnswerText(p), noPackageTool),
+		Text: joined(lead, lessonLanguageText(&p.Student), stillInText(p), s.topicStillText(p), forYouAlone,
+			s.lastAnswerText(p), noPackageTool),
 		Payload: requestOut{
 			Screen: screenComing, RequestID: request.ID, AlreadyOpen: true, AgeSeconds: age, LastAnswer: lastAnswerOf(p),
 			Child: childLineOf(&p.Student), Language: request.Language,

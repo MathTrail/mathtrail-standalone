@@ -15,6 +15,10 @@ locals {
   # lines.
   events = jsondecode(file("${local.analytics}/events.json"))
 
+  # The days the bucket keeps the lines: enough to count the month before last
+  # again on its last night.
+  retention_days = 62
+
   # The names the SQL is written with, filled in by templatefile.
   names = {
     logs   = "${var.project_id}.${google_logging_linked_dataset.activity.link_id}._AllLogs"
@@ -46,13 +50,12 @@ resource "google_project_service" "analytics" {
   disable_on_destroy = false
 }
 
-# The raw lines, 62 days of them: enough to count the month before last again
-# on its last night. Analytics, once on, cannot be switched off.
+# The raw lines. Analytics, once on, cannot be switched off.
 resource "google_logging_project_bucket_config" "activity" {
   project          = var.project_id
   location         = var.region
   bucket_id        = "activity"
-  retention_days   = 62
+  retention_days   = local.retention_days
   enable_analytics = true
   description      = "The lines the children are counted from, kept 62 days and then counted for good."
 
@@ -172,7 +175,11 @@ resource "google_bigquery_data_transfer_config" "nightly" {
   service_account_name = google_service_account.counter.email
 
   params = {
-    query = templatefile("${local.analytics}/nightly.sql", local.names)
+    query = templatefile("${local.analytics}/nightly.sql", merge(local.names, {
+      # How many days back the bucket still holds whole: the days it keeps,
+      # less the one it is letting go of and one to spare.
+      window_days = local.retention_days - 2
+    }))
   }
 
   depends_on = [

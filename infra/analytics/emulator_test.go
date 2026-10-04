@@ -157,10 +157,24 @@ func newSpace(t *testing.T) *space {
 	return s
 }
 
+// heldWhole is how many days back the bucket holds whole, as Terraform tells
+// the nightly script: the 62 days it keeps, less two.
+const heldWhole = 60
+
 // countTheNight runs the nightly script.
 func (s *space) countTheNight(t *testing.T) {
 	t.Helper()
-	s.e.query(t, s.render(t, "nightly.sql", nil))
+	s.countTheNightHolding(t, today().AddDate(0, 0, -heldWhole))
+}
+
+// countTheNightHolding runs the nightly script as it runs once the bucket
+// holds whole only the days from the one given on: the night after the days
+// before it have gone, as they go once the bucket has kept them its time.
+func (s *space) countTheNightHolding(t *testing.T, from time.Time) {
+	t.Helper()
+
+	days := int(today().Sub(from).Hours() / 24)
+	s.e.query(t, s.render(t, "nightly.sql", map[string]string{"window_days": strconv.Itoa(days)}))
 }
 
 // makeViews makes every view, in the order Terraform makes them.
