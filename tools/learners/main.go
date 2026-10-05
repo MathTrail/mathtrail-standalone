@@ -29,8 +29,8 @@
 //
 //	learners [-out <directory>] [-children <n>] [-answers <n>] [-rules <set>] [-seed <n>] [-experiment <name>] [-held-out]
 //	learners guard [-update]
-//	learners page [-children <n>] -inputs <key> -out <file>
-//	learners page-file -numbers <file> -commit <hash> -date <time> -paper-commit <hash> [-paper <file>] -out <file>
+//	learners page -inputs <key> -out <file>
+//	learners page-file -numbers <file> -inputs <key> -commit <hash> -date <time> -paper-commit <hash> [-paper <file>] -out <file>
 package main
 
 import (

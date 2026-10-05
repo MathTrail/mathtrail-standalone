@@ -56,13 +56,15 @@ The file is not committed. It is made at build time, in `site/research/research.
 ```jsonc
 {
   "schema": 1,
-  "built_from": { "commit": "<40 hex>", "date": "<the commit's date>" },
+  "built_from": { "commit": "<40 hex>", "date": "<the commit's date, UTC>" },
   "bench": {
     "producer": "tools/learners page",
-    "inputs": "<sha256 of the inputs (§7)>",
+    "inputs": "<the key of the bench's build (§7)>",
     "seed": 20261001, "experiment": "E-A3", "children": 1000, "answers": 200,
     "interval": 0.95, "resamples": 2000,
-    "goal_parameters": { "lag_share": 0.45, "corridor_share": 0.27, "unsettled_most": 0.25, "false_most": 0.20, "late_times": 1.5 },
+    "error_after": 200,
+    "screen_windows": { "early": { "first": 6, "last": 20 }, "late": { "first": 150, "last": 200 } },
+    "goal_parameters": { "lag_share": 0.45, "corridor_share": 0.27, "unsettled_most": 0.25, "false_most": 0.2, "late_times": 1.5 },
     "rules": [ { "id": "shrinking/both", "role": "service" },
                { "id": "earlier/both", "role": "earlier" },
                { "id": "oracle/both", "role": "ceiling" } ],
@@ -71,53 +73,54 @@ The file is not committed. It is made at build time, in `site/research/research.
       "generator": "G2-half", "metric": "r6_lag", "unit": "logit", "read_as": "size", "better": "lower",
       "bound": { "value": 0.2420, "own": true },  // the file holds every number in full; rounded here
       "values": {
-        "service": { "value": 0.5377, "low": 0.5202, "high": 0.5556 },
-        "earlier": { "value": 0.6092, "low": 0.5896, "high": 0.6296 },
-        "ceiling": { "value": 0.0000, "low": 0.0000, "high": 0.0000 } },
-      "mark": "baseline" } ]
+        "service": { "value": 0.5377, "low": 0.5202, "high": 0.5556, "mark": "baseline" },
+        "earlier": { "value": 0.6092, "low": 0.5896, "high": 0.6296, "mark": "not_reached" },
+        "ceiling": { "of": "oracle", "value": 0, "low": 0, "high": 0 } } } ]
   },
   "product": {
     "topics": 17, "traps": 20, "checks": 9, "grades": { "first": 1, "last": 6 },
     "reference_tasks": { "total": 603, "by_level": { "1-2": 200, "3-4": 250, "5-6": 153 } },
-    "options": 5, "relabel": 2, "guess": 0.2,
-    "corridor": { "low": 0.70, "high": 0.85, "middle": 0.775 }, "trial_answers": 5
+    "options": 5, "relabel": 2, "relabelled": ["C", "D", "E", "A", "B"], "guess": 0.2,
+    "corridor": { "low": 0.7, "high": 0.85, "middle": 0.775 }, "trial_answers": 5
   },
   "paper": {
     "commit": "52ce86908135",
-    "files": [ { "lang": "en", "path": "/research/paper-a.en.pdf", "pages": 15, "bytes": 350493, "sha256": "…" } ]
+    "files": [ { "lang": "en", "path": "/assets/paper-a.en.pdf", "pages": 15, "bytes": 350493, "sha256": "…" } ]
   },
   "live": { "state": "coming" }
 }
 ```
 
+**Rows.** Each rule's number of a goal carries its own mark: `reached`, `on_the_edge`, `not_reached`, or `baseline` on the service's number against a bound of its own (§6). A row says whose its ceiling is, `oracle` or `perfect`. What a row does not have is `null` rather than left out, so every row has the same keys: a context row has no `criterion`, no `bound` and no marks, and a screen row has no ceiling. `error_after` and `screen_windows` give the answers the labels name, "after 200 answers" and "answers 150–200", since the words hold no digit (§9). `relabelled` is where each letter of the first run stands in the second, so the page draws thesis 02 from the solver's own relabelling.
+
 **Rules for the file:**
 
-- **Byte for byte the same** for the same inputs, on amd64, the architecture CI runs on. On arm64 Go fuses a multiplication and an addition into one step, and the last digits part.
-  - Numbers are written in full, in the shortest form that reads back to the same value (Go's `strconv.FormatFloat(v, 'g', -1, 64)`), and rounded only on the page, so the reader can recompute every mark exactly.
+- **Byte for byte the same** for the same inputs, on amd64, the architecture CI runs on, built at `GOAMD64` v1, Go's default, and run on a processor with FMA, as every runner is. At `GOAMD64` v3 Go fuses a multiplication and an addition into one step that rounds once, as it does on arm64, and `math.Exp`, which the rating's logistic calls, takes another path on a processor without FMA. In each case the last digits part.
+  - Numbers are written in full, in the shortest form that reads back to the same value, as Go's `encoding/json` writes them; it is the form JavaScript writes a number in, so the page can trace every `<data value>` to the file. They are rounded only on the page, so the reader can recompute every mark exactly. The file can hold no NaN: `encoding/json` refuses one.
   - There is no wall clock: the date is the commit's.
   - T73.2's check that two runs give the same bytes rests on this, on amd64.
 - **Values as the criterion reads them.** A goal on a size, such as the lag, holds the size of the value and of its interval, as the bench's criterion reads it (`sizeOf`: an interval across zero reads from zero). `read_as` names the reading, and `better` applies to it.
-- **One producer per block.** The bench's new command `page` writes `bench` and `product` (§6, §5). `just research-data` adds `paper` from the committed facts of the PDF and `live` from the snapshot, or `{"state": "coming"}` when there is none. T73.2 later writes the same file from `research.yml`: only the producer's name changes.
+- **Two producers.** The bench's command `page` writes `bench` and `product` (§6, §5) for one build of the bench, and its command `page-file` adds what the commit being built adds: `built_from`, `paper` from the committed facts of the PDF, and `live`, `{"state": "coming"}` until T72.15 brings the snapshot. `just research-data` runs both (§7). T73.2 later writes the same file from `research.yml`: only the producer's name changes.
 - **The reader refuses what does not add up:**
   - a mark that does not follow from the value, its interval, the bound and the direction;
   - product counts that disagree with the catalogs and reference tasks the site already reads;
   - a PDF the site does not ship, or one whose size or hash differs from its facts;
   - later, a live cell shown below the privacy thresholds, or a count not rounded as §11 says.
 - **One fixture of the whole file**, `site/research/testdata/research.json`, holds both sides to one shape.
-  - The assembler makes it from a run of ten children, a fixture of the PDF's facts and no live snapshot, with the commit fixed by the fixture.
-  - Its test makes the file again byte for byte; a meant change rewrites it with `-update`, and the diff is read in review.
-  - The reader's test parses the same file.
+  - The bench's test makes it from a run of ten children a cell, the fixture of the PDF's facts in `tools/learners/testdata/paper.json` and no live snapshot, with the commit and the key fixed by the test.
+  - The test makes the file again byte for byte and holds every mark in it to its numbers; a meant change, of the model or of the content, rewrites it with `-update`, and the diff is read in review.
+  - The site's reader of the file, which T72.13.2 writes, parses the same file in its own test.
   - A change of shape in any block fails one side or the other.
-  - The bytes hold on amd64 alone, so the fixture's test runs there and skips elsewhere, as the bench's carried-over check does. It refuses `-update` off amd64.
+  - The bytes hold on amd64 with FMA alone, so the fixture's test runs there and skips elsewhere, as the bench's carried-over check skips off amd64. It refuses `-update` anywhere else.
 
 ## 5. Where each number comes from
 
 | Number on the page | Source |
 |---|---|
 | Reference tasks, in all and by level; topics; traps | The content: `content/examples/*.json`, `content/catalogs/topics.json`, `traps.json`. The site already reads them (`siteData()`); `product` repeats them so the reader can hold the two to each other. |
-| Checks | `internal/domain/checks`, through a list it exports, `checks.Codes()`, held by a test to its constants. Today the nine codes are constants alone, which neither the bench nor TypeScript can count. |
-| Grades 1–6 | The catalog's grade levels. |
-| Options per task, the shift between the solver's two runs, the guess floor, the corridor, the trial series | The product's constants: `solver.Count`, the solver's relabelling (unexported today as `relabel`, so it gets an accessor), `rating.Guess`, the corridor's bounds (unexported but for its middle, so they get an accessor), `rating.TrialAnswers`. |
+| Checks | `internal/domain/checks`, through the list it exports, `checks.Codes()`, which a test holds to every code the package declares. |
+| Grades 1–6 | The first and the last school year the service is for, `profile.MinGrade` and `profile.MaxGrade`. |
+| Options per task, the shift between the solver's two runs, the guess floor, the corridor, the trial series | The product's constants: `solver.Count`; the shift as the solver's own relabelling gives it, where the first letter of the first run stands in the second (`solver.Relabelled`), so the solver keeps its constant to itself; `rating.Guess`; the corridor's bounds, `rating.CorridorLow` and `rating.CorridorHigh`, which the bench reads too rather than keeping copies, and its middle; `rating.TrialAnswers`. |
 | The worked example of thesis 02 | Its five option values are chosen by the text and marked as such (§9). The second run's letters are computed with the solver's own relabelling. |
 | The goals table | The bench's `page` run (§6). |
 | The paper's title | The paper: `research/paper-a/main.tex` for English, the first heading of `research/paper-a/draft.ru.md` for Russian. The words carry it, and a test holds the English words to `\title`. |
@@ -127,7 +130,7 @@ The file is not committed. It is made at build time, in `site/research/research.
 
 ## 6. The goals table
 
-**Where the numbers come from.** The bench gets a new rule set, `page`: eleven cells, those of the table and nothing else.
+**Where the numbers come from.** The bench gets a new command, `page`, which runs eleven cells, those of the table and nothing else. It is a command of its own, as the guard is, rather than a set of rules: the bench's own run puts every rule on all nineteen generators and reads comparisons these cells do not hold.
 
 | Rule | Generators |
 |---|---|
@@ -139,16 +142,18 @@ A cell's children and its intervals depend on nothing but its rule and its gener
 
 **Which goals.** A new `pageCriterion` reads both criteria's goals, those of the step and those of mastery, against the service as the baseline. Since R187 the baseline of mastery's criterion, the floor under the step, runs under the service's own mastery, so its cells are the service's. Rows:
 
-| Row | Generator, metric | Bound | Service's row |
+| Row | Generator, metric | Bound | Service's mark |
 |---|---|---|---|
-| The lag behind a child who learns | G2-half, `r6_lag` | 45 % of the service's lag | baseline |
-| Tasks in the corridor, a child who learns | G2-half, `r3_inside` | the service's, plus 27 % of the way to the ceiling | baseline |
-| Children not caught up after a jump | G3, `r6_jump_unsettled` | at most 25 % | a mark |
-| Masteries declared falsely | G0 and G0-topics1, `r4_false` | at most 20 % | a mark |
-| Answers until a mastery is declared | G0 and G0-topics1, `r5_late_answers` | 1.5 times the service's | baseline |
-| What the child is shown late in a run: the card's move and the rank's changes in answers 150–200 | G0 and G2-half, `r8_move_p95_150_200`, `r8_rank_150_200` | the service's in answers 6–20 | a mark |
-| *Context, no goal:* the error after 200 answers, a child who stays put | G0, `r1_rms_200` | — | — |
-| *Context, no goal:* tasks in the corridor, a child who stays put | G0, `r3_inside` | — | — |
+| The lag behind a child who learns, `lag` | G2-half, `r6_lag` | 45 % of the service's lag | baseline |
+| Tasks in the corridor, a child who learns, `corridor_learning` | G2-half, `r3_inside` | the service's, plus 27 % of the way to the ceiling | baseline |
+| Children not caught up after a jump, `jump_unsettled` | G3, `r6_jump_unsettled` | at most 25 % | a mark |
+| Masteries declared falsely, `false_mastery_static` and `false_mastery_wide` | G0 and G0-topics1, `r4_false` | at most 20 % | a mark |
+| Answers until a mastery is declared, `late_mastery_static` and `late_mastery_wide` | G0 and G0-topics1, `r5_late_answers` | 1.5 times the service's | baseline |
+| What the child is shown late in a run: the card's move and the rank's changes in answers 150–200, `card_move_*` and `rank_changes_*` | G0 and G2-half, `r8_move_p95_150_200`, `r8_rank_150_200` | the service's in answers 6–20 | a mark |
+| *Context, no goal:* the error after 200 answers, a child who stays put, `error_static` | G0, `r1_rms_200` | — | — |
+| *Context, no goal:* tasks in the corridor, a child who stays put, `corridor_static` | G0, `r3_inside` | — | — |
+
+Each goal is read by the bench's own `readGoal`, so the page bounds a goal exactly as the criterion does. A test holds the rows to the goals of both criteria, all of them once and none besides.
 
 The screen's goals for answers 6–20 are left out: their bound is the service's own value in the same window, so they could only ever say "baseline".
 
@@ -168,24 +173,18 @@ Some bounds are computed from the service's own value of the same measure, the s
 
 ## 7. The pipeline
 
-- **On every build.** The site's build job (`pages.yml`), before it builds the site:
-  - restores the bench's cache;
-  - runs `tools/learners page` when the cache misses;
-  - assembles `research.json` with `just research-data`;
-  - writes the goals table to the job's summary.
-- **The cache's key** is a hash of everything the cells depend on:
-  - the files of every package the bench builds from (`go list -deps`), the product's included;
-  - the embedded content;
-  - the bench's own sources, but not its `results/`;
-  - both `go.mod` and both `go.sum` files, since a module's `go` line sets the language and its defaults;
-  - the run's own parameters as the command line gives them: the rule set, the children, the answers, the seed and the experiment;
-  - the toolchain image's tag;
-  - the processor's architecture, since arm64 parts in the last digits.
+- **On every build.** The site's build job (`pages.yml`), before it builds the site, runs `just research-data`:
+  - it builds the bench and names its key;
+  - it takes the numbers kept under that key, or runs `tools/learners page` to compute them and keeps them under it, in `tools/learners/results/page/`, which git does not keep;
+  - it runs `tools/learners page-file`, which holds the numbers to the key, so that numbers of another build are never the page's, writes `research.json` from them and from the commit being built, and prints the goals table, which the job writes to its summary.
+- **The cache's key** is a hash of two things, and nothing else moves the numbers:
+  - **The bench's program**, built so that the same sources make the same bytes wherever they are built (`go build -trimpath -buildvcs=false`). The program holds everything the cells depend on: every package it links, the product's included; the content it embeds; the versions of its modules; the language version each module's `go` line sets; the compiler; the architecture and its level, `GOAMD64`. The run's own parameters are the command's defaults, which `just research-data` does not change: the paper's seed and run, a thousand children a cell, two hundred answers each. So they are in the program too. The program is not stamped with its commit, which would change the key on every commit.
+  - **Whether the processor has FMA**, which `math.Exp` decides as it runs, so that the same program can give other last digits on a processor without it.
 
-  Nothing else moves the numbers, and anything that does changes the key.
-- **On a pull request** the numbers are computed and shown in the summary but not published. The cache is restored and saved, so a pull request that leaves the model alone computes nothing.
-- **On a run that publishes** the numbers are computed again from its commit, with no cache restored: nothing an earlier run left behind reaches the site. That is a release, which `release.yml` starts after green CI on `main` (R195), and a build started by hand. The result is saved to the cache for the pull requests after it.
-- **Cost.** The eleven cells take about 3.4 processor-minutes: the whole run's 59 over its 190 cells, times eleven. On the four processors of a runner that is a minute or two, plus the bench's build. T72.13 measures it and writes the figure here.
+  A hash of the sources, which T72.12 drew up, would need a list of every file the cells depend on, and the toolchain image's tag would change the key whenever any tool in the image moved. The program is the whole list, and is what runs.
+- **On a pull request** the numbers are computed and shown in the summary but not published. The cache is restored and saved, so a pull request that leaves the model alone computes nothing. Go's own caches are restored on a pull request too.
+- **On a run that publishes** the numbers are computed again from its commit, with no cache restored: nothing an earlier run left behind reaches the site, Go's caches included. That is a release, which `release.yml` starts after green CI on `main` (R195), and a build started by hand. The run only asks whether numbers are kept under its key, and keeps its own when none are, for the pull requests after it: a key once kept is never written again.
+- **Cost.** The eleven cells took 18 seconds on the twenty processors of the machine T72.13.1 was built on, 3.8 processor-minutes, against the whole run's 59 over its 190 cells. On the four processors of a runner that is about a minute, plus the bench's build; the first pull request's summary gives the runner's own figure.
 - **Failure.** A failed computation fails the build, and the release publishes nothing: the site stays as it was. A release only follows a CI run in which the bench's tests and its guard passed.
 - **The guard holds the model, not the page's numbers.** T72.12 asked for the guard to hold the page's numbers to its bands.
   - It holds the service on every pull request (`ci.yml`), and the page's numbers come from the same code. A release only follows a green CI, so it never shows the numbers of a model the guard refused.
@@ -240,12 +239,13 @@ The rule is the paper's (`research/tools/handtyped`): a number reaches the text 
 ## 10. The paper on the page
 
 - **Title.** In English, "The Model Writes, the Service Checks: Olympiad-Style Maths Problems for Primary-School Children inside Chat Assistants". In Russian, the Russian draft's title. Both are words of `research.yaml`, the English held to `research/paper-a/main.tex` by a test.
-- **The PDF.** A recipe of T72.13, `just site-paper`:
-  - builds the named PDF with `just research paper-a`;
-  - refuses a paper whose sources still print `[Author]`, `[Affiliation]` or a `\TBD` — today the three of K05 and the artifact's DOI of K11;
-  - copies the PDF to `site/research/paper-a.en.pdf` and writes its pages, size, hash and the paper's commit to `site/research/paper.json`.
+- **The PDF.** A recipe of T72.13.1, `just site-paper`:
+  - refuses, before it builds anything, a paper whose sources still print `[Author]`, `[Affiliation]` or a `\TBD`. It reads `main.tex` and the sections and figures, but not the preamble, which defines `\TBD` and holds the anonymous build's own; a line that is a comment does not count, and a source it cannot read is refused as one that still prints a placeholder. Today it names six lines: the author, the affiliation, the three of K05 and the artifact's DOI of K11;
+  - builds the named PDF with `just research paper-a`, which runs the paper's own checks first;
+  - copies the PDF to `site/research/paper-a.en.pdf` and writes to `site/research/paper.json` its pages, as the build's log gives them, its size, held to the file's, its hash and the paper's commit.
 
-  Both are committed: CI builds no paper until T73.3 brings TeX Live into it. With no file, the page shows the title and "Code and data" but no PDF button.
+  Both are committed: CI builds no paper until T73.3 brings TeX Live into it. The site serves the PDF at `/assets/paper-a.en.pdf`: a folder `/research/` at the site's root would read to the site's build as a language. With no file, the page shows the title and "Code and data" but no PDF button.
+- **The paper's commit** on the page is the PDF's when the site ships one, and otherwise the one `research/evidence/product-stats.txt` names, the commit the paper's numbers were computed on. When the two part, the job's summary says that the PDF is due to be built again; the build does not fail on it.
 - **Every language** links the English PDF until T73.3 builds the Russian one.
 - **Indexing.** The PDF is open to search engines.
 - **Self-archiving.** Springer's self-archiving rules may limit which version can stay on the site once the paper is accepted; that is read when the venue decides.
@@ -278,9 +278,9 @@ The answers are those to tasks the rule chose, after the trial series and withou
 
 ## 12. What gets built, and what is left
 
-- **T72.13** builds the page. Under rule 12 it likely splits in two:
-  - the data: the bench's `page` set and command, `pageCriterion`, the golden file, the product's small exports, `just research-data` and `just site-paper`, and the step in `pages.yml`;
-  - the page: its components, its words in English and Russian, the drawings with their tables, the guard, the menu and the footer with the new measurement, `published.ts`, the README, and `docs/self-hosting.md`.
+- **T72.13** builds the page, in two parts under rule 12:
+  - **T72.13.1, the data:** the bench's commands `page` and `page-file`, `pageCriterion`, the fixture, the product's small exports, `just research-data` and `just site-paper`, and the step in `pages.yml`;
+  - **T72.13.2, the page:** its components, its words in English and Russian, the drawings with their tables, the guard, the menu and the footer with the new measurement, the copy of the PDF into the built site, `published.ts`, the README, and `docs/self-hosting.md`.
 - **T72.15** brings the live numbers: §11.
 - **T73.2–T73.4** move the making of `research.json` and of the PDFs into the research pipeline on merge to `main`; the file's shape and the page stay.
 

@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/MathTrail/mathtrail-standalone/content"
@@ -28,14 +29,25 @@ import (
 // its time.
 
 // pageCommandName is the word that runs the page's cells rather than the
-// bench.
-const pageCommandName = "page"
+// bench, and pageProducer how the page's data names what wrote its numbers.
+const (
+	pageCommandName = "page"
+	pageProducer    = "tools/learners " + pageCommandName
+)
 
 // pageChildren and pageAnswers are the size of the page's run: the paper's,
 // a thousand children a cell giving two hundred answers each.
 const (
 	pageChildren = 1000
 	pageAnswers  = 200
+)
+
+// The answers the page's labels name: the error is read after the last
+// checkpoint, and the screen over the last window, so a row's measure and
+// the label the page gives it come from the same number.
+var (
+	errorMetric = "r1_rms_" + strconv.Itoa(checkpoints[len(checkpoints)-1])
+	lateWindow  = screenWindows[len(screenWindows)-1]
 )
 
 // pageGenerators are the generators the page's goals are read on: the child
@@ -67,7 +79,7 @@ func pageCriterion() *criterion {
 // 6–20 are left out, since their bound is the service's own number of the
 // same window, which no reading of the service can do anything but reach.
 func pageGoals() []goal {
-	late := "_" + screenWindows[1].name()
+	late := "_" + lateWindow.name()
 	var all []goal
 	for _, g := range append(stepGoals(), masteryGoals()...) {
 		if g.screen && !strings.HasSuffix(g.metric, late) {
@@ -122,11 +134,11 @@ var pageRows = []pageRow{
 	{id: "false_mastery_wide", group: masteryGroup, generator: farTopics, metric: "r4_false", unit: "share", ceiling: perfectCeiling},
 	{id: "late_mastery_static", group: masteryGroup, generator: staticChildren, metric: "r5_late_answers", unit: "answers", ceiling: perfectCeiling, own: true},
 	{id: "late_mastery_wide", group: masteryGroup, generator: farTopics, metric: "r5_late_answers", unit: "answers", ceiling: perfectCeiling, own: true},
-	{id: "card_move_static", group: screenGroup, generator: staticChildren, metric: "r8_move_p95_150_200", unit: "points"},
-	{id: "rank_changes_static", group: screenGroup, generator: staticChildren, metric: "r8_rank_150_200", unit: "per_100_answers"},
-	{id: "card_move_learning", group: screenGroup, generator: learningHalf, metric: "r8_move_p95_150_200", unit: "points"},
-	{id: "rank_changes_learning", group: screenGroup, generator: learningHalf, metric: "r8_rank_150_200", unit: "per_100_answers"},
-	{id: "error_static", generator: staticChildren, metric: "r1_rms_200", unit: "logit", ceiling: oracleCeiling, better: lower},
+	{id: "card_move_static", group: screenGroup, generator: staticChildren, metric: "r8_move_p95_" + lateWindow.name(), unit: "points"},
+	{id: "rank_changes_static", group: screenGroup, generator: staticChildren, metric: "r8_rank_" + lateWindow.name(), unit: "per_100_answers"},
+	{id: "card_move_learning", group: screenGroup, generator: learningHalf, metric: "r8_move_p95_" + lateWindow.name(), unit: "points"},
+	{id: "rank_changes_learning", group: screenGroup, generator: learningHalf, metric: "r8_rank_" + lateWindow.name(), unit: "per_100_answers"},
+	{id: "error_static", generator: staticChildren, metric: errorMetric, unit: "logit", ceiling: oracleCeiling, better: lower},
 	{id: "corridor_static", generator: staticChildren, metric: "r3_inside", unit: "share", ceiling: oracleCeiling, better: higher},
 }
 
@@ -417,9 +429,9 @@ func benchBlockOf(cr *criterionRun, children int, inputs string) (benchBlock, er
 	if err != nil {
 		return benchBlock{}, err
 	}
-	early, late := screenWindows[0], screenWindows[1]
+	early, late := screenWindows[0], lateWindow
 	return benchBlock{
-		Producer: "tools/learners page", Inputs: inputs, Seed: masterSeed, Experiment: experiment,
+		Producer: pageProducer, Inputs: inputs, Seed: masterSeed, Experiment: experiment,
 		Children: children, Answers: pageAnswers, Interval: 1 - 2*tail, Resamples: resamples,
 		ErrorAfter:    checkpoints[len(checkpoints)-1],
 		ScreenWindows: screenWindowsOf{Early: answerSpan{First: early.first, Last: early.last}, Late: answerSpan{First: late.first, Last: late.last}},
@@ -500,12 +512,12 @@ var inputsKey = regexp.MustCompile(`^[0-9a-f]{64}$`)
 
 // pageCommand runs the page's cells and writes their numbers, with the
 // product's, to the file it is given. The numbers are those of the paper's
-// seed and run, which the command takes no flag to change: the page shows
-// the paper's children.
+// seed and run, a thousand children a cell, which the command takes no flag
+// to change: the key of the build is then all that names them, and numbers
+// kept under it are the page's whoever computed them.
 func pageCommand(args []string, stdout, stderr io.Writer) int {
 	flags := flag.NewFlagSet("learners page", flag.ContinueOnError)
 	flags.SetOutput(stderr)
-	children := flags.Int("children", pageChildren, "how many children each cell draws")
 	inputs := flags.String("inputs", "", "the key of what the numbers are computed from, 64 hexadecimal digits")
 	out := flags.String("out", "", "the file the numbers are written to")
 	if err := flags.Parse(args); err != nil {
@@ -515,9 +527,6 @@ func pageCommand(args []string, stdout, stderr io.Writer) int {
 	case flags.NArg() > 0:
 		fmt.Fprintf(stderr, "learners page: takes flags alone, and was given %q\n", flags.Args())
 		return 2
-	case *children < 1:
-		fmt.Fprintf(stderr, "learners page: -children is %d, want at least one\n", *children)
-		return 2
 	case !inputsKey.MatchString(*inputs):
 		fmt.Fprintf(stderr, "learners page: -inputs is %q, want the key of the build, 64 hexadecimal digits\n", *inputs)
 		return 2
@@ -525,7 +534,7 @@ func pageCommand(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "learners page: -out names no file to write the numbers to")
 		return 2
 	}
-	numbers, err := pageNumbersOf(*children, *inputs)
+	numbers, err := pageNumbersOf(pageChildren, *inputs)
 	if err == nil {
 		err = writeJSON(*out, numbers)
 	}
@@ -533,7 +542,7 @@ func pageCommand(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, err)
 		return 1
 	}
-	fmt.Fprintf(stdout, "learners page: %d cells of %d children, %d answers each, written to %s\n", len(pageCells()), *children, pageAnswers, *out)
+	fmt.Fprintf(stdout, "learners page: %d cells of %d children, %d answers each, written to %s\n", len(pageCells()), pageChildren, pageAnswers, *out)
 	return 0
 }
 

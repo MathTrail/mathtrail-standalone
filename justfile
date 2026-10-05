@@ -729,9 +729,12 @@ research-data:
     if [ -f "$numbers" ]; then
         echo "The bench's numbers are those kept for its build ${key:0:12}."
     else
+        # Numbers cut short by a run that stopped halfway would be kept as
+        # the build's: they take the key's name only once whole.
         mkdir -p tools/learners/results/page
         start=$SECONDS
-        bin/learners page -inputs "$key" -out "$numbers"
+        bin/learners page -inputs "$key" -out "$numbers.part"
+        mv "$numbers.part" "$numbers"
         echo "The bench's numbers were computed for its build ${key:0:12}, in $((SECONDS - start)) s."
     fi
     echo
@@ -744,7 +747,11 @@ research-data:
     if [ -f site/research/paper.json ]; then paper=(-paper site/research/paper.json); fi
     commit=$(git rev-parse HEAD)
     date=$(git log -1 --format=%cI)
-    bin/learners page-file -numbers "$numbers" -commit "$commit" -date "$date" \
+    if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+        echo "The tree holds changes its commit does not: the file names ${commit:0:12}, and its numbers are of the tree."
+        echo
+    fi
+    bin/learners page-file -numbers "$numbers" -inputs "$key" -commit "$commit" -date "$date" \
         -paper-commit "$paper_commit" "${paper[@]}" -out site/research/research.json
 
 # The key of what the page's numbers are computed from: a hash of the bench's
@@ -771,8 +778,16 @@ _research-inputs:
 site-paper:
     #!/usr/bin/env bash
     set -euo pipefail
-    left=$(grep -n -H -E '\[Author\]|\[Affiliation\]|\\TBD\{' research/paper-a/main.tex \
-        research/paper-a/sections/*.tex research/paper-a/figures/*.tex | grep -v -E '^[^:]+:[0-9]+:[[:space:]]*%' || true)
+    # grep says 1 when it finds nothing, and more when it cannot read a source:
+    # a source left unread is not a source with no placeholder.
+    found=0
+    lines=$(grep -n -H -E '\[Author\]|\[Affiliation\]|\\TBD\{' research/paper-a/main.tex \
+        research/paper-a/sections/*.tex research/paper-a/figures/*.tex) || found=$?
+    if [ "$found" -gt 1 ]; then
+        echo "site-paper: the paper's sources cannot all be read" >&2
+        exit 1
+    fi
+    left=$(printf '%s\n' "$lines" | grep -v -E '^[^:]+:[0-9]+:[[:space:]]*%' || true)
     if [ -n "$left" ]; then
         echo "$left" >&2
         echo "site-paper: the paper still prints a placeholder; until it holds none, the page shows its title alone" >&2

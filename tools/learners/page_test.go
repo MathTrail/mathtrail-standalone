@@ -8,9 +8,13 @@ import (
 	"path/filepath"
 	"runtime"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 
+	"golang.org/x/sys/cpu"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
 
@@ -323,8 +327,29 @@ func TestThePageCountsEveryReferenceTaskUnderItsLevel(t *testing.T) {
 	for _, n := range facts.ReferenceTasks.ByLevel {
 		sum += n
 	}
-	if sum != facts.ReferenceTasks.Total || len(facts.ReferenceTasks.ByLevel) != 3 {
+	if sum != facts.ReferenceTasks.Total || len(facts.ReferenceTasks.ByLevel) != len(rating.GradeLevels()) {
 		t.Errorf("the reference tasks by level %v add up to %d, want all %d", facts.ReferenceTasks.ByLevel, sum, facts.ReferenceTasks.Total)
+	}
+}
+
+// The page labels the error "after so many answers" and the screen "in
+// answers so many to so many" from the data, its words holding no digit, so a
+// row must read its measure at the very answers its label names.
+func TestThePageReadsItsMeasuresAtTheAnswersItsLabelsName(t *testing.T) {
+	t.Parallel()
+	bench, err := benchBlockOf(pageNumbersBy(spread), 2, keyOfBuild)
+	if err != nil {
+		t.Fatal(err)
+	}
+	after := "r1_rms_" + strconv.Itoa(bench.ErrorAfter)
+	late := "_" + strconv.Itoa(bench.ScreenWindows.Late.First) + "_" + strconv.Itoa(bench.ScreenWindows.Late.Last)
+	for _, row := range bench.Rows {
+		if strings.HasPrefix(row.Metric, "r1_rms_") && row.Metric != after {
+			t.Errorf("row %s reads %s, and its label names the error %s", row.ID, row.Metric, after)
+		}
+		if strings.HasPrefix(row.Metric, "r8_") && !strings.HasSuffix(row.Metric, late) {
+			t.Errorf("row %s reads %s, and its label names the answers %s", row.ID, row.Metric, late)
+		}
 	}
 }
 
@@ -351,7 +376,7 @@ func TestThePageCommandRefusesWhatItCannotRun(t *testing.T) {
 		says string
 	}{
 		{"words besides its flags", []string{"-inputs", keyOfBuild, "-out", out, "now"}, "flags alone"},
-		{"no children", []string{"-children", "0", "-inputs", keyOfBuild, "-out", out}, "-children"},
+		{"a run of other children", []string{"-children", "10", "-inputs", keyOfBuild, "-out", out}, "-children"},
 		{"no key", []string{"-out", out}, "-inputs"},
 		{"a key of another shape", []string{"-inputs", "abc", "-out", out}, "-inputs"},
 		{"no file", []string{"-inputs", keyOfBuild}, "-out"},
@@ -404,83 +429,123 @@ func smallNumbers(t *testing.T) *pageNumbers {
 	return &pageNumbers{Bench: bench, Product: product}
 }
 
+// fileOfText writes a file of a test and gives its path.
+func fileOfText(t *testing.T, dir, name, text string) string {
+	t.Helper()
+	path := filepath.Join(dir, name)
+	if err := os.WriteFile(path, []byte(text), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
+
 // The page's file vouches for what it says, so what it is made from is held
-// to its shape first: the commit, its date, the paper's commit and facts.
+// to its shape first: the numbers and the build they are of, the commit, its
+// date, the paper's commit and facts.
 func TestThePageFileRefusesWhatItCannotVouchFor(t *testing.T) {
 	t.Parallel()
-	numbers := numbersFile(t, smallNumbers(t))
+	small := smallNumbers(t)
+	numbers := numbersFile(t, small)
 	dir := t.TempDir()
-	write := func(name, text string) string {
-		path := filepath.Join(dir, name)
-		if err := os.WriteFile(path, []byte(text), 0o600); err != nil {
-			t.Fatal(err)
-		}
-		return path
-	}
-	good := pageFileArgs{numbers: numbers, commit: fixtureCommit, date: fixtureDate, paperCommit: paperCommitOf, out: "unused"}
+	good := pageFileArgs{numbers: numbers, inputs: keyOfBuild, commit: fixtureCommit, date: fixtureDate, paperCommit: paperCommitOf, out: "unused"}
 	file := `{"lang": "en", "path": "/assets/paper-a.en.pdf", "pages": 15, "bytes": 350493, "sha256": "` + strings.Repeat("ab", 32) + `"}`
+	facts := func(files string) string { return `{"commit": "52ce86908135", "files": [` + files + `]}` }
 	for _, tc := range []struct {
 		name string
-		edit func(a *pageFileArgs)
+		edit func(t *testing.T, a *pageFileArgs)
 	}{
-		{"a short commit", func(a *pageFileArgs) { a.commit = "0123456" }},
-		{"a date of another form", func(a *pageFileArgs) { a.date = "2026-10-05" }},
-		{"no paper's commit", func(a *pageFileArgs) { a.paperCommit = "" }},
-		{"no numbers", func(a *pageFileArgs) { a.numbers = filepath.Join(dir, "none.json") }},
-		{"numbers of another shape", func(a *pageFileArgs) { a.numbers = write("other.json", `{"bench": {}, "product": {}, "more": 1}`) }},
-		{"facts of another shape", func(a *pageFileArgs) {
-			a.paper = write("shape.json", `{"commit": "52ce86908135", "files": [`+file+`], "title": "x"}`)
+		{"a short commit", func(_ *testing.T, a *pageFileArgs) { a.commit = "0123456" }},
+		{"a date of another form", func(_ *testing.T, a *pageFileArgs) { a.date = "2026-10-05" }},
+		{"no paper's commit", func(_ *testing.T, a *pageFileArgs) { a.paperCommit = "" }},
+		{"no key", func(_ *testing.T, a *pageFileArgs) { a.inputs = "" }},
+		{"numbers of another build", func(_ *testing.T, a *pageFileArgs) { a.inputs = strings.Repeat("f", 64) }},
+		{"no numbers", func(_ *testing.T, a *pageFileArgs) { a.numbers = filepath.Join(dir, "none.json") }},
+		{"numbers of another shape", func(t *testing.T, a *pageFileArgs) {
+			a.numbers = fileOfText(t, dir, "other.json", `{"bench": {}, "product": {}, "more": 1}`)
 		}},
-		{"facts of no file", func(a *pageFileArgs) { a.paper = write("none-listed.json", `{"commit": "52ce86908135", "files": []}`) }},
-		{"a file outside the assets", func(a *pageFileArgs) {
-			a.paper = write("path.json", `{"commit": "52ce86908135", "files": [`+strings.Replace(file, "/assets/", "/research/", 1)+`]}`)
+		{"numbers with no product", func(t *testing.T, a *pageFileArgs) { a.numbers = numbersFile(t, &pageNumbers{Bench: small.Bench}) }},
+		{"numbers with a row missing", func(t *testing.T, a *pageFileArgs) {
+			cut := *small
+			cut.Bench.Rows = cut.Bench.Rows[1:]
+			a.numbers = numbersFile(t, &cut)
 		}},
-		{"a file of no pages", func(a *pageFileArgs) {
-			a.paper = write("pages.json", `{"commit": "52ce86908135", "files": [`+strings.Replace(file, `"pages": 15`, `"pages": 0`, 1)+`]}`)
+		{"facts of another shape", func(t *testing.T, a *pageFileArgs) {
+			a.paper = fileOfText(t, dir, "shape.json", `{"commit": "52ce86908135", "files": [`+file+`], "title": "x"}`)
 		}},
-		{"a file of no hash", func(a *pageFileArgs) {
-			a.paper = write("hash.json", `{"commit": "52ce86908135", "files": [`+strings.Replace(file, strings.Repeat("ab", 32), "ab", 1)+`]}`)
+		{"facts of no file", func(t *testing.T, a *pageFileArgs) { a.paper = fileOfText(t, dir, "none-listed.json", facts("")) }},
+		{"a file outside the assets", func(t *testing.T, a *pageFileArgs) {
+			a.paper = fileOfText(t, dir, "path.json", facts(strings.Replace(file, "/assets/", "/research/", 1)))
+		}},
+		{"a file of no pages", func(t *testing.T, a *pageFileArgs) {
+			a.paper = fileOfText(t, dir, "pages.json", facts(strings.Replace(file, `"pages": 15`, `"pages": 0`, 1)))
+		}},
+		{"a file of no hash", func(t *testing.T, a *pageFileArgs) {
+			a.paper = fileOfText(t, dir, "hash.json", facts(strings.Replace(file, strings.Repeat("ab", 32), "ab", 1)))
 		}},
 	} {
-		a := good
-		tc.edit(&a)
-		if _, _, err := pageFileOf(&a); err == nil {
-			t.Errorf("%s: made the file, want it refused", tc.name)
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			a := good
+			tc.edit(t, &a)
+			if _, _, err := pageFileOf(&a); err == nil {
+				t.Error("made the file, want it refused")
+			}
+		})
 	}
 	if _, _, err := pageFileOf(&good); err != nil {
 		t.Errorf("the good arguments: error %v, want the file made", err)
 	}
-	var stdout, stderr strings.Builder
-	if code := pageFileCommand([]string{"-numbers", numbers, "-out", filepath.Join(dir, "x.json"), "now"}, &stdout, &stderr); code != 2 {
-		t.Errorf("page-file with words besides its flags exited %d, want 2", code)
+	for _, tc := range []struct {
+		name string
+		args []string
+		code int
+	}{
+		{"words besides its flags", []string{"-numbers", numbers, "-out", filepath.Join(dir, "x.json"), "now"}, 2},
+		{"a flag of the wrong shape", []string{"-numbers", numbers, "-inputs", keyOfBuild, "-commit", "abc", "-date", fixtureDate,
+			"-paper-commit", paperCommitOf, "-out", filepath.Join(dir, "y.json")}, 2},
+		{"numbers of another build", []string{"-numbers", numbers, "-inputs", strings.Repeat("f", 64), "-commit", fixtureCommit,
+			"-date", fixtureDate, "-paper-commit", paperCommitOf, "-out", filepath.Join(dir, "z.json")}, 1},
+	} {
+		t.Run("the command, given "+tc.name, func(t *testing.T) {
+			t.Parallel()
+			var stdout, stderr strings.Builder
+			if code := pageFileCommand(tc.args, &stdout, &stderr); code != tc.code {
+				t.Errorf("exited %d, want %d: %s", code, tc.code, stderr.String())
+			}
+		})
 	}
 }
 
 // The page names the commit of the paper it links: the PDF's own when the
-// site ships one, the paper's numbers' otherwise, and says so when the two
-// part.
+// site ships one, the paper's numbers' otherwise, and the job's summary says
+// which it is, and when the two part.
 func TestThePageFileTakesThePapersCommitFromThePDFItShips(t *testing.T) {
 	t.Parallel()
 	numbers := numbersFile(t, smallNumbers(t))
 	for _, tc := range []struct {
-		name, paper, paperCommit, want string
-		files                          int
-		warns                          bool
+		name, paper, paperCommit, want, says string
+		files                                int
+		warns                                bool
 	}{
-		{"no PDF", "", "abcdef123456", "abcdef123456", 0, false},
-		{"a PDF of the paper's commit", fixturePaper, paperCommitOf, paperCommitOf, 1, false},
-		{"a PDF of an older commit", fixturePaper, "abcdef123456", paperCommitOf, 1, true},
+		{"no PDF", "", "abcdef123456", "abcdef123456", "The paper's numbers are of the commit abcdef123456.", 0, false},
+		{"a PDF of the paper's commit", fixturePaper, paperCommitOf, paperCommitOf, "built at the commit " + paperCommitOf + ".", 1, false},
+		{"a PDF of an older commit", fixturePaper, "abcdef123456", paperCommitOf, "built at the commit " + paperCommitOf + ".", 1, true},
 	} {
-		a := pageFileArgs{numbers: numbers, commit: fixtureCommit, date: fixtureDate, paperCommit: tc.paperCommit, paper: tc.paper}
-		file, warning, err := pageFileOf(&a)
-		if err != nil {
-			t.Fatalf("%s: error %v", tc.name, err)
-		}
-		if file.Paper.Commit != tc.want || len(file.Paper.Files) != tc.files || (warning != "") != tc.warns {
-			t.Errorf("%s: the paper's commit %s with %d files, warning %q; want %s with %d, warning %v",
-				tc.name, file.Paper.Commit, len(file.Paper.Files), warning, tc.want, tc.files, tc.warns)
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			a := pageFileArgs{numbers: numbers, inputs: keyOfBuild, commit: fixtureCommit, date: fixtureDate, paperCommit: tc.paperCommit, paper: tc.paper}
+			file, warning, err := pageFileOf(&a)
+			if err != nil {
+				t.Fatalf("error %v", err)
+			}
+			if file.Paper.Commit != tc.want || len(file.Paper.Files) != tc.files || (warning != "") != tc.warns {
+				t.Errorf("the paper's commit %s with %d files, warning %q; want %s with %d, warning %v",
+					file.Paper.Commit, len(file.Paper.Files), warning, tc.want, tc.files, tc.warns)
+			}
+			if report := goalsReport(&file, warning); !strings.Contains(report, tc.says) {
+				t.Errorf("the summary does not say %q:\n%s", tc.says, report)
+			}
+		})
 	}
 }
 
@@ -489,7 +554,7 @@ func TestThePageFileTakesThePapersCommitFromThePDFItShips(t *testing.T) {
 func TestTheGoalsTableShowsBothRulesWithTheirMarks(t *testing.T) {
 	t.Parallel()
 	numbers := numbersFile(t, smallNumbers(t))
-	file, _, err := pageFileOf(&pageFileArgs{numbers: numbers, commit: fixtureCommit, date: fixtureDate, paperCommit: paperCommitOf})
+	file, _, err := pageFileOf(&pageFileArgs{numbers: numbers, inputs: keyOfBuild, commit: fixtureCommit, date: fixtureDate, paperCommit: paperCommitOf})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -529,43 +594,52 @@ var fixtureOfThePage = filepath.Join("..", "..", "site", "research", "testdata",
 
 // errRewriteElsewhere is a fixture asked to be rewritten where its bytes do
 // not hold.
-var errRewriteElsewhere = errors.New("the page's fixture holds its bytes on amd64 alone, and is rewritten there")
+var errRewriteElsewhere = errors.New("the page's fixture holds its bytes on amd64 with FMA, built at GOAMD64 below v3, alone, and is rewritten there")
 
-// rewritable says whether the fixture can be rewritten on this architecture:
-// elsewhere the last digits of its numbers part, and a fixture rewritten
-// there would fail on every machine that keeps it.
-func rewritable(arch string) error {
-	if arch != "amd64" {
+// fixtureHolds says whether the fixture's bytes hold on a machine: on amd64,
+// built at a level at which Go fuses no multiplication with an addition, and
+// on a processor with FMA, by which math.Exp takes the path it takes on every
+// runner. Elsewhere the last digits of its numbers part, and a fixture
+// rewritten there would fail on every machine that keeps it.
+func fixtureHolds(arch string, fma, fused bool) error {
+	if arch != "amd64" || !fma || fused {
 		return errRewriteElsewhere
 	}
 	return nil
 }
 
-// The fixture is rewritten on amd64 alone.
-func TestTheFixtureIsRewrittenOnAmd64Alone(t *testing.T) {
+// The fixture is held and rewritten on amd64 with FMA, built unfused, alone.
+func TestTheFixtureHoldsOnAmd64WithFMAAlone(t *testing.T) {
 	t.Parallel()
-	if err := rewritable("arm64"); !errors.Is(err, errRewriteElsewhere) {
-		t.Errorf("rewritable(arm64) = %v, want %v", err, errRewriteElsewhere)
-	}
-	if err := rewritable("amd64"); err != nil {
-		t.Errorf("rewritable(amd64) = %v, want nil", err)
+	for _, tc := range []struct {
+		arch       string
+		fma, fused bool
+		holds      bool
+	}{
+		{"arm64", true, false, false},
+		{"amd64", false, false, false},
+		{"amd64", true, true, false},
+		{"amd64", true, false, true},
+	} {
+		if err := fixtureHolds(tc.arch, tc.fma, tc.fused); (err == nil) != tc.holds {
+			t.Errorf("fixtureHolds(%s, FMA %v, fused %v) = %v, want it to hold %v", tc.arch, tc.fma, tc.fused, err, tc.holds)
+		}
 	}
 }
 
 // A run of ten children a cell, the fixture of the paper's facts and a fixed
 // commit make the page's file of the fixture, byte for byte, and every mark
 // in it follows from its numbers. A change of the model or of the content
-// moves its numbers, which go test -update rewrites from the run, on amd64,
-// to be read before it is kept.
+// moves its numbers, which go test -update rewrites from the run, on amd64
+// with FMA, to be read before it is kept.
 func TestThePageFileIsItsFixture(t *testing.T) {
 	t.Parallel()
-	if *update {
-		if err := rewritable(runtime.GOARCH); err != nil {
-			t.Fatalf("%v, and this is %s", err, runtime.GOARCH)
-		}
+	here := fixtureHolds(runtime.GOARCH, cpu.X86.HasAVX && cpu.X86.HasFMA, fusedMultiplyAdd)
+	if *update && here != nil {
+		t.Fatalf("%v, and this is %s", here, runtime.GOARCH)
 	}
-	if runtime.GOARCH != "amd64" {
-		t.Skipf("the fixture's numbers were computed on amd64, and this is %s", runtime.GOARCH)
+	if here != nil {
+		t.Skipf("%v, and this is %s", here, runtime.GOARCH)
 	}
 	file := smallPageFile(t)
 	for _, row := range file.Bench.Rows {
@@ -596,7 +670,8 @@ func smallPageFile(t *testing.T) researchFile {
 		t.Fatal(err)
 	}
 	file, _, err := pageFileOf(&pageFileArgs{
-		numbers: numbersFile(t, &numbers), commit: fixtureCommit, date: fixtureDate, paperCommit: paperCommitOf, paper: fixturePaper,
+		numbers: numbersFile(t, &numbers), inputs: keyOfBuild, commit: fixtureCommit, date: fixtureDate, paperCommit: paperCommitOf,
+		paper: fixturePaper,
 	})
 	if err != nil {
 		t.Fatal(err)

@@ -83,9 +83,11 @@ var (
 // errPaperFacts is a file of the paper's facts the page cannot vouch for.
 var errPaperFacts = errors.New("learners page-file: the paper's facts cannot be read")
 
-// pageFileArgs are what the data file is made from.
+// pageFileArgs are what the data file is made from: the numbers of the page's
+// run and the key of the build they must be of, the commit and its date, and
+// the paper's commit and facts.
 type pageFileArgs struct {
-	numbers, commit, date, paperCommit, paper, out string
+	numbers, inputs, commit, date, paperCommit, paper, out string
 }
 
 // pageFileCommand makes the page's data file, and prints the goals it holds
@@ -95,6 +97,7 @@ func pageFileCommand(args []string, stdout, stderr io.Writer) int {
 	flags.SetOutput(stderr)
 	var a pageFileArgs
 	flags.StringVar(&a.numbers, "numbers", "", "the file of the page's numbers")
+	flags.StringVar(&a.inputs, "inputs", "", "the key of the build the numbers must be of")
 	flags.StringVar(&a.commit, "commit", "", "the commit the file is made from, its full hash")
 	flags.StringVar(&a.date, "date", "", "the commit's date, in RFC 3339")
 	flags.StringVar(&a.paperCommit, "paper-commit", "", "the commit the paper's numbers were computed on")
@@ -117,40 +120,34 @@ func pageFileCommand(args []string, stdout, stderr io.Writer) int {
 	}
 	if err != nil {
 		fmt.Fprintln(stderr, err)
+		if errors.Is(err, errPageFileUsage) {
+			return 2
+		}
 		return 1
 	}
 	fmt.Fprint(stdout, goalsReport(&file, warning))
 	return 0
 }
 
+// errPageFileUsage is a flag of a shape no file can be made from, which no
+// reading of the numbers would mend.
+var errPageFileUsage = errors.New("learners page-file")
+
 // pageFileOf makes the page's data file from what it is given, and says,
 // when the paper's PDF is of another commit than the paper's numbers, that it
 // is.
 func pageFileOf(a *pageFileArgs) (researchFile, string, error) {
-	if !commitHash.MatchString(a.commit) {
-		return researchFile{}, "", fmt.Errorf("learners page-file: -commit is %q, want a commit's full hash", a.commit)
-	}
-	date, err := time.Parse(time.RFC3339, a.date)
+	date, err := dateOfArguments(a)
 	if err != nil {
-		return researchFile{}, "", fmt.Errorf("learners page-file: -date is %q, want the commit's date in RFC 3339", a.date)
+		return researchFile{}, "", err
 	}
-	if !paperHash.MatchString(a.paperCommit) {
-		return researchFile{}, "", fmt.Errorf("learners page-file: -paper-commit is %q, want a commit's hash", a.paperCommit)
+	numbers, err := numbersOf(a)
+	if err != nil {
+		return researchFile{}, "", err
 	}
-	var numbers pageNumbers
-	if err = readStrictJSON(a.numbers, &numbers); err != nil {
-		return researchFile{}, "", fmt.Errorf("learners page-file: read the numbers: %w", err)
-	}
-	paper := paperBlock{Commit: a.paperCommit, Files: []paperFile{}}
-	warning := ""
-	if a.paper != "" {
-		if paper, err = readPaper(a.paper); err != nil {
-			return researchFile{}, "", err
-		}
-		if paper.Commit != a.paperCommit {
-			warning = fmt.Sprintf("The PDF on the site is of the paper at %s, and the paper's numbers are now of %s: "+
-				"the PDF is built again to follow them.", paper.Commit, a.paperCommit)
-		}
+	paper, warning, err := paperOf(a)
+	if err != nil {
+		return researchFile{}, "", err
 	}
 	return researchFile{
 		Schema:    researchSchema,
@@ -158,6 +155,68 @@ func pageFileOf(a *pageFileArgs) (researchFile, string, error) {
 		Bench:     numbers.Bench, Product: numbers.Product,
 		Paper: paper, Live: liveBlock{State: liveComing},
 	}, warning, nil
+}
+
+// dateOfArguments holds the flags to their shapes, and gives the commit's
+// date.
+func dateOfArguments(a *pageFileArgs) (time.Time, error) {
+	switch {
+	case !commitHash.MatchString(a.commit):
+		return time.Time{}, fmt.Errorf("%w: -commit is %q, want a commit's full hash", errPageFileUsage, a.commit)
+	case !paperHash.MatchString(a.paperCommit):
+		return time.Time{}, fmt.Errorf("%w: -paper-commit is %q, want a commit's hash", errPageFileUsage, a.paperCommit)
+	case !inputsKey.MatchString(a.inputs):
+		return time.Time{}, fmt.Errorf("%w: -inputs is %q, want the key of the build, 64 hexadecimal digits", errPageFileUsage, a.inputs)
+	}
+	date, err := time.Parse(time.RFC3339, a.date)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("%w: -date is %q, want the commit's date in RFC 3339", errPageFileUsage, a.date)
+	}
+	return date, nil
+}
+
+// numbersOf reads the numbers of the page's run, refusing numbers of another
+// build, and numbers that are not whole, which would otherwise be read as
+// zeros.
+func numbersOf(a *pageFileArgs) (pageNumbers, error) {
+	var numbers pageNumbers
+	if err := readStrictJSON(a.numbers, &numbers); err != nil {
+		return pageNumbers{}, fmt.Errorf("learners page-file: read the numbers: %w", err)
+	}
+	if numbers.Bench.Inputs != a.inputs {
+		return pageNumbers{}, fmt.Errorf("learners page-file: the numbers are of the build %q, and -inputs names %q: "+
+			"numbers of another build are not the page's", numbers.Bench.Inputs, a.inputs)
+	}
+	if !whole(&numbers) {
+		return pageNumbers{}, fmt.Errorf("learners page-file: %s holds not every row of the page's table and the product's counts", a.numbers)
+	}
+	return numbers, nil
+}
+
+// whole says whether numbers hold what a run of the page writes: every row of
+// its table, under its rules, and the product's counts.
+func whole(n *pageNumbers) bool {
+	return n.Bench.Producer == pageProducer && len(n.Bench.Rules) > 0 && len(n.Bench.Rows) == len(pageRows) &&
+		n.Product.Topics > 0 && n.Product.Traps > 0 && n.Product.Checks > 0 && n.Product.ReferenceTasks.Total > 0 &&
+		n.Product.Options > 0 && n.Product.Corridor.Low < n.Product.Corridor.High
+}
+
+// paperOf is the paper the page names, and a word when the PDF the site ships
+// is of another commit than the paper's numbers.
+func paperOf(a *pageFileArgs) (paperBlock, string, error) {
+	if a.paper == "" {
+		return paperBlock{Commit: a.paperCommit, Files: []paperFile{}}, "", nil
+	}
+	paper, err := readPaper(a.paper)
+	if err != nil {
+		return paperBlock{}, "", err
+	}
+	warning := ""
+	if paper.Commit != a.paperCommit {
+		warning = fmt.Sprintf("The PDF on the site is of the paper at %s, and the paper's numbers are now of %s: "+
+			"the PDF is due to be built again.", paper.Commit, a.paperCommit)
+	}
+	return paper, warning, nil
 }
 
 // readPaper reads the facts of the paper's files the site ships, refusing
@@ -227,7 +286,11 @@ func goalsReport(f *researchFile, warning string) string {
 	if len(f.Paper.Files) == 0 {
 		fmt.Fprintf(&b, "\nThe paper's numbers are of the commit %s. The site ships no PDF of it yet.\n", f.Paper.Commit)
 	} else {
-		fmt.Fprintf(&b, "\nThe paper's numbers are of the commit %s. The site ships %d PDF of it.\n", f.Paper.Commit, len(f.Paper.Files))
+		langs := make([]string, 0, len(f.Paper.Files))
+		for _, file := range f.Paper.Files {
+			langs = append(langs, file.Lang)
+		}
+		fmt.Fprintf(&b, "\nThe site ships the paper's PDF in %s, built at the commit %s.\n", strings.Join(langs, ", "), f.Paper.Commit)
 	}
 	if warning != "" {
 		fmt.Fprintf(&b, "\n**%s**\n", warning)
