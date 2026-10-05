@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { createHash } from "node:crypto";
 import {
 	mkdir,
 	mkdtemp,
@@ -61,8 +62,8 @@ const carded: readonly string[] = [
 ];
 
 // framed are the documents of the site a page frames rather than the pages
-// themselves: the coach's prototype is an application of its own, shipped as
-// the tool it was drawn in exported it, which no rule of a page holds.
+// themselves: the coach's prototype is an application of its own, the export
+// of the tool it was drawn in, which no rule of a page holds.
 const framed: readonly string[] = ["assets/coach-prototype.html"];
 
 // adding is the word of every button that asks a reader to add MathTrail, by
@@ -325,6 +326,20 @@ describe("the site built from this repository", () => {
 			const kept = await readFile(join(repository, "site", file));
 			expect(shipped.equals(kept), file).toBe(true);
 		}
+	});
+
+	// The prototype is a design tool's export, and a new export can bring back
+	// what was taken out of it, which only a reader sees. It is held to the hash
+	// it had when it was last read through, written here by hand, so that no
+	// export ships unread.
+	test("keeps the coach's prototype the one that was last read through", async () => {
+		const kept = await readFile(
+			join(repository, "site", "assets", "coach-prototype.html"),
+		);
+
+		expect(createHash("sha256").update(kept).digest("hex")).toBe(
+			"cd07c9658db2f82fb6103c47e327b9cf27ef3f87a5904d46b3f6278a4bd0666d",
+		);
 	});
 
 	test("serves no HTML but its pages and what they frame, and frames the coach's prototype on the coach's page alone", async () => {
@@ -618,7 +633,7 @@ describe("the site built from this repository", () => {
 		}
 	});
 
-	test("opens the menu with the home page's sections on a lesson and on connecting, and the coach's page after them, on every page of every language", async () => {
+	test("opens the menu with the coach's page and names no section of the home page, on every page of every language", async () => {
 		const pages = await localePages(out);
 		expect(pages).not.toEqual([]);
 		for (const page of pages) {
@@ -626,17 +641,15 @@ describe("the site built from this repository", () => {
 			const html = await readFile(join(out, page), "utf8");
 			const menu =
 				html.match(/<nav class="s-navlinks"[^>]*>(.*?)<\/nav>/s)?.[1] ?? "";
+			const links = [...menu.matchAll(/<a href="([^"]+)"/g)].map(
+				([, href]) => href,
+			);
 
+			expect(links[0], page).toBe(`/${locale}/coach/`);
 			expect(
-				[...menu.matchAll(/<a href="([^"]+)"/g)]
-					.slice(0, 3)
-					.map(([, href]) => href),
+				links.filter((href) => href?.includes("#")),
 				page,
-			).toEqual([
-				`/${locale}/#lesson`,
-				`/${locale}/#connect`,
-				`/${locale}/coach/`,
-			]);
+			).toEqual([]);
 		}
 	});
 

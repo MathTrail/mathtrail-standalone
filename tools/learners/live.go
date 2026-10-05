@@ -23,6 +23,10 @@ import (
 // were.
 type keptUp struct{ earlier, later part }
 
+// both says whether a child has answers in both ranges: the report reads each
+// range off such children alone.
+func (k keptUp) both() bool { return k.earlier.b > 0 && k.later.b > 0 }
+
 // heldOn is, at one answer in a topic after it was shown as mastered, how many
 // of a child's masteries were followed to it and how many it took back.
 type heldOn struct {
@@ -104,11 +108,21 @@ func heldOf(r *childResult) [report.TakenBackBy]heldOn {
 
 // liveMetrics are the numbers of the report that are a sum over what each
 // child brings: how far the answers of each range came out from their promise,
-// on average over the answers there, and how many masteries a child was shown.
+// on average over the answers there of the children with answers in both, and
+// how many masteries a child was shown.
 func liveMetrics() []metric {
+	inBoth := func(of func(k *keptUp) part) func(r *childResult) (num, den float64) {
+		return func(r *childResult) (num, den float64) {
+			if !r.keptUp.both() {
+				return 0, 0
+			}
+			in := of(&r.keptUp)
+			return in.a, in.b
+		}
+	}
 	return []metric{
-		ratio("r9_kept_up_6_50", func(r *childResult) (num, den float64) { return r.keptUp.earlier.a, r.keptUp.earlier.b }),
-		ratio("r9_kept_up_101_200", func(r *childResult) (num, den float64) { return r.keptUp.later.a, r.keptUp.later.b }),
+		ratio("r9_kept_up_6_50", inBoth(func(k *keptUp) part { return k.earlier })),
+		ratio("r9_kept_up_101_200", inBoth(func(k *keptUp) part { return k.later })),
 		mean("r10_shown", func(r *childResult) (float64, bool) { return float64(len(r.shown)), true }),
 	}
 }
@@ -132,7 +146,7 @@ func laterLessEarlier(children []vector, sample []int) (float64, bool) {
 	var both keptUp
 	for _, c := range sample {
 		in := children[c].keptUp
-		if in.earlier.b == 0 || in.later.b == 0 {
+		if !in.both() {
 			continue
 		}
 		both.earlier.a, both.earlier.b = both.earlier.a+in.earlier.a, both.earlier.b+in.earlier.b

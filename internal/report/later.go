@@ -59,6 +59,41 @@ func sideOf(named string) side {
 	return neither
 }
 
+// crossesAnEdge says whether a range of the child's answers, as the service
+// names it, holds answers on both sides of where one of the two ranges begins
+// or ends, and so is read in neither though part of it belongs to one: a range
+// the service writes only if it counts in other ranges than these. One open at
+// its end runs on past every edge after its first answer.
+func crossesAnEdge(named string) bool {
+	first, hasFirst := firstAnswerOf(named)
+	if !hasFirst {
+		return false
+	}
+	last, hasLast := lastAnswerOf(named)
+	if !hasLast {
+		last = math.MaxInt
+	}
+	for _, edge := range []int{EarlierTo, LaterFrom - 1, LaterTo} {
+		if first <= edge && edge < last {
+			return true
+		}
+	}
+	return false
+}
+
+// crossingEdges are the ranges of the child's answers the lines name that
+// cross where one of the two ranges begins or ends, in their order.
+func (c *counts) crossingEdges() []string {
+	var crossing []string
+	for key := range c.keptUp {
+		if crossesAnEdge(key.answers) && !slices.Contains(crossing, key.answers) {
+			crossing = append(crossing, key.answers)
+		}
+	}
+	slices.SortFunc(crossing, compareAnswerRanges)
+	return crossing
+}
+
 // pair is one child's answers in the two ranges.
 type pair struct{ earlier, later ofChild }
 
@@ -162,9 +197,10 @@ func compared(byChild map[string]*pair) comparison {
 	return result
 }
 
-// laterAbout says how to read the table of the later set against the earlier.
+// laterAbout says how to read the table of the later set against the earlier,
+// and names a range of answers the lines hold that neither range can take.
 func (c *counts) laterAbout() string {
-	return "The same answers once more, of the children with answers in two ranges of their own: earlier, from the " +
+	about := "The same answers once more, of the children with answers in two ranges of their own: earlier, from the " +
 		"first after the trial series to the " + ordinal(EarlierTo) + ", and later, from the " +
 		ordinal(LaterFrom) + " to the " + ordinal(LaterTo) + " — where a child of the learners' bench " +
 		"stops answering, so that the two can be laid side by side. Each child is set against itself: in each range " +
@@ -175,9 +211,15 @@ func (c *counts) laterAbout() string {
 		ordinal(LaterFrom) + " answer is left out rather than read against the children who went on. Above " +
 		"zero, the later answers came out right more often against their promise than the earlier: the estimate " +
 		"falls further behind as the answers pile up; below zero, it falls behind less, or runs ahead. " + everyHost +
-		" takes a version's hosts together; a child the load tool or MCP Inspector handed a task to is left out, and " +
-		"so are their calls. A range of fewer than " + strconv.Itoa(fewestAnswers) + " answers says " + tooFew +
+		" takes a version's hosts together, so a child who answered the two ranges in different hosts is set against " +
+		"itself there alone; a child the load tool or MCP Inspector handed a task to is left out, and so are their " +
+		"calls. A range of fewer than " + strconv.Itoa(fewestAnswers) + " answers says " + tooFew +
 		"; the numbers are to three places."
+	if crossing := c.crossingEdges(); len(crossing) > 0 {
+		about += " The lines name ranges of answers that cross where these begin or end, which neither takes: " +
+			inWords(crossing) + "."
+	}
+	return about
 }
 
 // laterTable is, for every group and every version's hosts together, the

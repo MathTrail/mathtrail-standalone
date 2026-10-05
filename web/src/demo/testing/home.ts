@@ -7,7 +7,7 @@ import file from "../../../../site/data.json";
 import { frontPage } from "../../site/content";
 import { readSiteData } from "../../site/data";
 import type { Frame } from "../../site/frame";
-import { connectSection, lessonSection } from "../../site/home";
+import { connectSection } from "../../site/home";
 import { type Page, sitePages } from "../../site/pages";
 import { renderSite } from "../../site/render";
 
@@ -18,13 +18,11 @@ const repository = join(import.meta.dirname, "..", "..", "..", "..");
 const documentOf = (title: string) =>
 	`---\ntitle: ${title}\ndescription: D\n---\n\n# ${title}\n`;
 
-// frame is the site's frame over the one page built here: the menu opens with
-// the home page's sections, and the header's button leads to connecting.
+// frame is the site's frame over the one page built here: the menu names
+// pages, none of which is built here, and the header's button leads to
+// connecting.
 const frame: Frame = {
-	menu: [
-		{ page: frontPage, anchor: lessonSection, label: "nav.lesson" },
-		{ page: frontPage, anchor: connectSection, label: "nav.connect" },
-	],
+	menu: [],
 	action: { page: frontPage, anchor: connectSection, label: "nav.add" },
 	footer: ["privacy", "terms"],
 };

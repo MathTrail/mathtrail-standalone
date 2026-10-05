@@ -181,6 +181,25 @@ func TestTheLaterLessTheEarlierSetsEachChildAgainstItself(t *testing.T) {
 	}
 }
 
+// Each range is read off the children with answers in both, as the report
+// reads it: a child with earlier answers alone brings nothing to either.
+func TestEachRangeIsReadOffTheChildrenWithAnswersInBoth(t *testing.T) {
+	t.Parallel()
+
+	both, earlierAlone := newChildResult(nil), newChildResult(nil)
+	both.keptUp = keptUp{earlier: part{a: 1, b: 4}, later: part{a: 2, b: 3}}
+	earlierAlone.keptUp = keptUp{earlier: part{a: -1, b: 2}}
+	for i, m := range liveMetrics()[:2] {
+		want := []part{both.keptUp.earlier, both.keptUp.later}[i]
+		if got := m.extract(both); got != want {
+			t.Errorf("%s brings %+v of a child with answers in both ranges, want %+v", m.name, got, want)
+		}
+		if got := m.extract(earlierAlone); got != (part{}) {
+			t.Errorf("%s brings %+v of a child with earlier answers alone, want nothing", m.name, got)
+		}
+	}
+}
+
 // What the report reads in the log as a mastery taken back is the service's
 // own losing of it: on any sequence of answers, a mastery followed since the
 // progress showed it is taken back on the very answer the service loses it on,

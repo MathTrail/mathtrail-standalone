@@ -3,7 +3,9 @@ import { render } from "preact";
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import type { Host } from "./bridge";
+import { OpensProgress } from "./CardFrame";
 import { cardWords } from "./dictionaries";
+import { ProgressOverCard } from "./ProgressOverCard";
 import { readAnswer } from "./payload";
 import { type Service, ServiceContext } from "./service";
 import { TaskCard } from "./TaskCard";
@@ -901,6 +903,7 @@ describe("a card drawn where a page answers for the service", () => {
 				return Promise.resolve(recorded);
 			},
 			taskStatus: () => Promise.resolve({ kind: "unknown" }),
+			readProgress: () => Promise.resolve({ kind: "failed" }),
 			saveEdit: () => Promise.resolve({ kind: "failed" }),
 		};
 		root = document.createElement("div");
@@ -922,6 +925,51 @@ describe("a card drawn where a page answers for the service", () => {
 			expect(text(".mt-verdict-line")).toBe("Not quite — it's 5, not 4."),
 		);
 		expect(answers).toEqual([["task_fence", "B", false]]);
+		expect(tools).toEqual([]);
+	});
+
+	test("reads the progress it opens through that service, and calls no tool", async () => {
+		const tools: string[] = [];
+		const host: Host = {
+			callTool: (name) => {
+				tools.push(name);
+				return Promise.reject(new Error("no tool is called on this page"));
+			},
+			sendMessage: () => Promise.resolve(),
+			tellModel: () => Promise.resolve(),
+			canOpenLinks: () => false,
+			openLink: () => Promise.resolve(false),
+		};
+		const page: Service = {
+			recordAnswer: () => Promise.resolve({ kind: "failed" }),
+			taskStatus: () => Promise.resolve({ kind: "unknown" }),
+			readProgress: () =>
+				Promise.resolve({ kind: "read", payload: progress.structuredContent }),
+			saveEdit: () => Promise.resolve({ kind: "failed" }),
+		};
+		root = document.createElement("div");
+		document.body.append(root);
+		act(() =>
+			render(
+				<WordsContext.Provider value={cardWords("en", undefined)}>
+					<ServiceContext.Provider value={page}>
+						<OpensProgress.Provider value={ProgressOverCard}>
+							<TaskCard handed={fence} host={host} />
+						</OpensProgress.Provider>
+					</ServiceContext.Provider>
+				</WordsContext.Provider>,
+				root,
+			),
+		);
+
+		press(topLine());
+
+		await vi.waitFor(() =>
+			expect(root.querySelector(".mt-bar-back")).not.toBeNull(),
+		);
+		await vi.waitFor(() =>
+			expect(root.querySelector(".mt-rank")).not.toBeNull(),
+		);
 		expect(tools).toEqual([]);
 	});
 });

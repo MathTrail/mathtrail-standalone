@@ -44,7 +44,7 @@ export const markPath = "/assets/favicon.svg";
 /**
  * coachPrototypePath is where the prototype of the coach is served: the coach
  * is a product of its own, still in the making, and its prototype is the
- * mockup a reader can try, as the tool it was drawn in exported it. The page
+ * mockup a reader can try, the export of the tool it was drawn in. The page
  * about the coach frames it, and it is kept in the site's own assets under the
  * same name.
  */

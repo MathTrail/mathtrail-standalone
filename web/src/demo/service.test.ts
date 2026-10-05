@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { type Choice, dontKnow, letters } from "../widget/choices";
+import { choices } from "../widget/choices";
 import { readAnswer, readHandedTask } from "../widget/payload";
 import { answered, fence, rightAnswer } from "../widget/testing/lesson";
 import type { DemoData } from "./data";
@@ -26,7 +26,6 @@ function fenceData(): DemoData {
 	) {
 		throw new Error("the fence is no task answered");
 	}
-	const choices: Choice[] = [...letters, dontKnow];
 	return {
 		locale: "en",
 		words: {},

@@ -17,9 +17,8 @@ export const prototypeSection = "prototype";
  * making, that leads a child through a problem on a tablet. It says what the
  * coach is, frames its prototype for a reader to try, and says what the
  * prototype only pretends to do yet. The page is the site's own and reads in
- * full without a script; the prototype in its frame is the mockup as the tool
- * it was drawn in exported it, and speaks English alone in every language of
- * the page.
+ * full without a script; the prototype in its frame is the export of the tool
+ * it was drawn in, and speaks English alone in every language of the page.
  */
 export function CoachPage({ page, data }: PageProps) {
 	return (

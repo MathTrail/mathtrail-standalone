@@ -1,5 +1,5 @@
 import type { Dictionary } from "../i18n/words";
-import { type Choice, dontKnow, letters } from "../widget/choices";
+import { type Choice, choices } from "../widget/choices";
 import type { AnswerResult, HandedTask } from "../widget/payload";
 
 /**
@@ -52,9 +52,6 @@ export function readDemoData(document: Document): DemoData | undefined {
 	}
 	return isDemoData(data) ? data : undefined;
 }
-
-// choices are every answer the card on the first screen can be given.
-const choices: readonly Choice[] = [...letters, dontKnow];
 
 // isDemoData says whether data has the shape of the demo's data: a language,
 // words, a task handed out with its id, and a result for every answer.

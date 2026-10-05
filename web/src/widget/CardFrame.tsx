@@ -17,6 +17,7 @@ import { type Folds, useFolds } from "./folds";
 import { type PeriodChoice, usePeriod } from "./moves";
 import type { Child } from "./payload";
 import { type Progress, progressAfter } from "./progress";
+import { useService } from "./service";
 import { useWords } from "./words";
 
 /**
@@ -70,6 +71,7 @@ export function CardFrame<C extends Child | undefined>({
 }) {
 	const words = useWords();
 	const ProgressView = useContext(OpensProgress);
+	const service = useService();
 	const [saved, setSaved] = useState<{
 		over: Child | undefined;
 		child: Child;
@@ -87,17 +89,12 @@ export function CardFrame<C extends Child | undefined>({
 		openings.current += 1;
 		const opening = openings.current;
 		dispatch({ type: "opened", opening });
-		try {
-			const read = await host.callTool("read_progress", {});
-			dispatch(
-				read.isError === true
-					? { type: "failed", opening }
-					: { type: "read", opening, payload: read.structuredContent },
-			);
-		} catch (error: unknown) {
-			console.error("widget: the progress did not arrive", error);
-			dispatch({ type: "failed", opening });
-		}
+		const read = await service.readProgress();
+		dispatch(
+			read.kind === "read"
+				? { type: "read", opening, payload: read.payload }
+				: { type: "failed", opening },
+		);
 	}
 
 	useFocusFollowsProgress(progress !== undefined, topBar, backBar);

@@ -399,10 +399,10 @@ _license-list:
     cat <<'COACH'
 
     The prototype of the coach on the site is the export of the tool it was
-    drawn in, shipped as it came, and it carries copies of its own of the
-    packages and the fonts below. Each line is a license, the copy at its exact
-    version, and where its maker publishes the license; the fonts' licence
-    travels beside the prototype on the site.
+    drawn in, shipped with two small pieces taken out of it, and it carries
+    copies of its own of the packages and the fonts below. Each line is a
+    license, the copy at its exact version, and where its maker publishes the
+    license; the fonts' licence travels beside the prototype on the site.
 
     MIT           react@18.3.1                                   https://www.npmjs.com/package/react/v/18.3.1
     MIT           react-dom@18.3.1                               https://www.npmjs.com/package/react-dom/v/18.3.1

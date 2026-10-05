@@ -417,8 +417,8 @@ a:hover {
 
 /* The header's button, the one thing it asks a reader to do: a size smaller
    than a page's own buttons, whose rules it comes after, and left out on a
-   phone, which has no room for it beside the menu — the menu leads to the
-   same place. */
+   phone, which has no room for it beside the menu; there the home page, a
+   press of the mark away, leads to the same place from its first screen. */
 .s-nav-action {
 	min-block-size: 40px;
 	padding-inline: 20px;
@@ -892,11 +892,11 @@ a:hover {
 	}
 }
 
-/* The menu folds behind its button below 1200 px: in Russian, the longer of
+/* The menu folds behind its button below 992 px: in Russian, the longer of
    the site's languages, its entries stop fitting in a row beside the mark and
-   the tools a little under that, with a scroll bar that takes room of its
+   the tools some way under that, with a scroll bar that takes room of its
    own. A phone keeps a narrower margin. */
-@media (max-width: 1199px) {
+@media (max-width: 991px) {
 	.s-navlinks {
 		display: none;
 	}

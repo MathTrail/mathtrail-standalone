@@ -62,10 +62,12 @@ type Staged = {
  * sight, stands the card of the step at the middle of the window, in place of
  * the one before it as the page scrolls. The cards are the ones the page was
  * built with, each moved into a layer of that column and back again, never
- * copied: still, as on the page, and silent to a screen reader, which reads
- * the steps. Each card is lined up in its frame as it is staged, once the
- * page's own typeface has come, and as the window changes size, a frame of the
- * window at a time. On a narrower window, or once the window narrows, every
+ * copied: still, as on the page. The column is hidden from a screen reader,
+ * which reads the steps, and their words say what each card shows; read after
+ * every step, the shown card's chat would be cut off from the step it belongs
+ * to. Each card is lined up in its frame, and the step at the middle found
+ * again, as the cards are staged, once the page's own typeface has come, and
+ * as the window changes size, a frame of the window at a time. On a narrower window, or once the window narrows, every
  * step keeps its own card, where the page put it. It returns what stops it and
  * puts the page back as it was.
  */
@@ -111,13 +113,9 @@ export function shareTheCard(document: Document, window: Window): () => void {
 	};
 
 	fitTheWidth();
-	// The chat's words are set in the page's own typeface, which may come after
-	// the cards were lined up, and set them taller.
-	void document.fonts?.ready.then(() => {
-		if (staged !== undefined) {
-			alignAll(staged);
-		}
-	});
+	// The page's own typeface may come after the cards were lined up and the
+	// step at the middle found, and set the words taller.
+	void document.fonts?.ready.then(resized);
 	wide.addEventListener("change", fitTheWidth);
 	window.addEventListener("scroll", follow, { passive: true });
 	window.addEventListener("resize", resized, { passive: true });
@@ -148,6 +146,7 @@ function stage(document: Document, list: HTMLElement): Staged {
 	box.className = "s-walk-staged";
 	const column = document.createElement("div");
 	column.className = "s-walk-stage";
+	column.setAttribute("aria-hidden", "true");
 	list.before(box);
 	box.append(list, column);
 	for (const { card } of shared) {

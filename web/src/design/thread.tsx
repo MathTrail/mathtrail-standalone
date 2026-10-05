@@ -47,7 +47,7 @@ export function ThreadBar(
  */
 export function NameBar({ name }: { name: string }) {
 	return (
-		<div class="mt-bar mt-bar-still">
+		<div class="mt-bar">
 			<Icon name="avatar" size={24} />
 			<span class="mt-bar-name">{name}</span>
 		</div>

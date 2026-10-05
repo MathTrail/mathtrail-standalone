@@ -242,6 +242,30 @@ describe("the card on the first screen, come alive", () => {
 		expect(storing).not.toHaveBeenCalled();
 	});
 
+	// A page and a script from two builds, one of them still in a cache, may
+	// meet: data the card cannot draw leaves the first screen as it was built.
+	test("gives the still card its place back when the live one cannot be drawn", () => {
+		const data = dataOf();
+		const broken = {
+			...data,
+			handed: {
+				...data.handed,
+				task: { ...data.handed.task, options: undefined },
+			},
+		} as unknown as DemoData;
+		const still = card();
+		vi.spyOn(console, "error").mockImplementation(() => {});
+
+		expect(() =>
+			act(() => {
+				bringHeroAlive(document, broken);
+			}),
+		).toThrow();
+
+		expect(card()).toBe(still);
+		expect(card()?.hasAttribute("inert")).toBe(true);
+	});
+
 	test("leaves a page whose first screen draws no card as it is", () => {
 		const data = dataOf();
 		document.querySelector(".s-hero-card")?.remove();

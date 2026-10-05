@@ -1,6 +1,6 @@
 import { renderToString } from "preact-render-to-string";
 import { afterEach, describe, expect, test } from "vitest";
-import { type Choice, dontKnow, letters } from "../widget/choices";
+import { choices, dontKnow } from "../widget/choices";
 import { readAnswer, readHandedTask } from "../widget/payload";
 import { answered, fence } from "../widget/testing/lesson";
 import { type DemoData, DemoDataScript, readDemoData } from "./data";
@@ -17,7 +17,6 @@ function example(): DemoData {
 	if (handed === undefined || told.kind !== "answered") {
 		throw new Error("the fence is no task answered");
 	}
-	const choices: Choice[] = [...letters, dontKnow];
 	return {
 		locale: "en",
 		words: { "task.hint": "Hint </script><!-- for nobody -->" },

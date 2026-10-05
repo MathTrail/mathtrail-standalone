@@ -6,6 +6,7 @@ import (
 	"math"
 	"math/rand/v2"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -68,6 +69,31 @@ func TestARangeOfAnswersIsEarlierLaterOrNeither(t *testing.T) {
 		if got := sideOf(named); got != want {
 			t.Errorf("sideOf(%q) = %d, want %d", named, got, want)
 		}
+	}
+}
+
+// A range of answers that holds answers on both sides of where one of the two
+// ranges begins or ends crosses an edge, as one the service would write only
+// if it counted in other ranges; the ranges it writes now cross none, and the
+// table's words name one that does.
+func TestARangeThatCrossesAnEdgeIsNamed(t *testing.T) {
+	t.Parallel()
+
+	for named, crosses := range map[string]bool{
+		"6-20": false, "21-50": false, "51-100": false, "101-200": false, "201+": false, "named otherwise": false,
+		"41-60": true, "91-110": true, "151-300": true, "151+": true,
+	} {
+		if got := crossesAnEdge(named); got != crosses {
+			t.Errorf("crossesAnEdge(%q) = %t, want %t", named, got, crosses)
+		}
+	}
+
+	c, g := weighing(), group{version: "v1", host: "claude"}
+	for _, answers := range []string{"6-20", "151-300", "101-150", "41-60"} {
+		weighedAt(c, g, "u1", answers, true)
+	}
+	if about := c.laterAbout(); !strings.HasSuffix(about, "which neither takes: 41-60 and 151-300.") {
+		t.Errorf("the table's words end %q, want them to name 41-60 and 151-300", about[max(len(about)-80, 0):])
 	}
 }
 

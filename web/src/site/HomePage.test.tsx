@@ -162,13 +162,10 @@ const sources = new Map(
 );
 
 // A frame shaped like the site's own over the one page this site has: the
-// menu opens with the home page's sections, and the header's button leads to
-// connecting.
+// menu names pages, none of which is built here, and the header's button
+// leads to connecting.
 const frame: Frame = {
-	menu: [
-		{ page: frontPage, anchor: lessonSection, label: "nav.lesson" },
-		{ page: frontPage, anchor: connectSection, label: "nav.connect" },
-	],
+	menu: [],
 	action: { page: frontPage, anchor: connectSection, label: "nav.add" },
 	footer: ["privacy", "terms"],
 };
@@ -300,14 +297,9 @@ describe("the home page", () => {
 		expect(new Set(ids).size).toBe(ids.length);
 	});
 
-	test("has the sections on a lesson and on connecting the header and the other pages lead to", () => {
+	test("has the sections on a lesson and on connecting the page and the header's button lead to", () => {
 		expect(home.getElementById(lessonSection)?.tagName).toBe("SECTION");
 		expect(home.getElementById(connectSection)?.tagName).toBe("SECTION");
-		expect(all(".s-navlinks a", "href")).toEqual([
-			"/en/#lesson",
-			"/en/#connect",
-		]);
-		expect(all(".s-navlinks a[aria-current]", "href")).toEqual([]);
 		expect(all(".s-nav-action", "href")).toEqual(["/en/#connect"]);
 		expect(texts(".s-nav-action")).toEqual(["Add to Claude"]);
 	});

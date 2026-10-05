@@ -145,6 +145,11 @@ describe("the steps of the lesson on a wide window", () => {
 			),
 		).toHaveLength(6);
 		expect(document.querySelector(".s-walk-step .s-walk-card")).toBeNull();
+		// The steps' words say what the cards show: the column that repeats them
+		// is no second reading for a screen reader.
+		expect(
+			document.querySelector(".s-walk-stage")?.getAttribute("aria-hidden"),
+		).toBe("true");
 		expect(document.querySelectorAll(".s-walk-card[data-shown]")).toHaveLength(
 			1,
 		);
@@ -280,7 +285,7 @@ describe("the shared card", () => {
 		expect(question.scrollTop).toBe(640);
 	});
 
-	test("is lined up again once the page's own typeface has come", async () => {
+	test("is lined up again, and the step at the middle found again, once the page's own typeface has come", async () => {
 		openHome("en");
 		standing(0);
 		let typeface = () => {};
@@ -292,18 +297,22 @@ describe("the shared card", () => {
 			},
 			configurable: true,
 		});
-		shareTheCard(document, windowOf(true).window);
+		const window = windowOf(true);
+		shareTheCard(document, window.window);
 		const question = questionFrame();
 		Object.defineProperty(question, "scrollHeight", {
 			value: 720,
 			configurable: true,
 		});
+		standing(4);
 
 		typeface();
 		await Promise.resolve();
 		await Promise.resolve();
+		window.runFrames();
 
 		expect(question.scrollTop).toBe(720);
+		expect(shown()?.querySelector(".s-chat")).not.toBeNull();
 		Reflect.deleteProperty(document, "fonts");
 	});
 

@@ -4,12 +4,20 @@ import type { Choice } from "./choices";
 import type { AnswerOutcome, EditOutcome, TaskStatus } from "./payload";
 
 /**
+ * ProgressRead is how a reading of the child's progress ended: the service's
+ * reply, which whoever draws it reads, or none worth reading.
+ */
+export type ProgressRead =
+	| { kind: "read"; payload: unknown }
+	| { kind: "failed" };
+
+/**
  * Service is what a card asks of MathTrail's service: to record the child's
- * answer to a task, to say how the task a card waits for stands, and to save a
- * change to the child's profile. In a chat each is a call of one of the
- * service's tools through the host, its reply read before the card sees it; a
- * page that shows a card live answers for the service itself, and calls
- * nobody.
+ * answer to a task, to say how the task a card waits for stands, to read the
+ * child's progress, and to save a change to the child's profile. In a chat
+ * each is a call of one of the service's tools through the host, its reply
+ * read before the card sees it; a page that shows a card live answers for the
+ * service itself, and calls nobody.
  */
 export type Service = {
 	/**
@@ -23,6 +31,8 @@ export type Service = {
 	): Promise<AnswerOutcome>;
 	/** taskStatus says how the task of the request requestId stands. */
 	taskStatus(requestId: string): Promise<TaskStatus>;
+	/** readProgress reads the child's progress as it stands. */
+	readProgress(): Promise<ProgressRead>;
 	/**
 	 * saveEdit saves changes to the child's profile, named as edit_profile
 	 * takes them, and says how it ended.
@@ -35,6 +45,7 @@ export type Service = {
 const unreached: Service = {
 	recordAnswer: () => Promise.resolve({ kind: "failed" }),
 	taskStatus: () => Promise.resolve({ kind: "unknown" }),
+	readProgress: () => Promise.resolve({ kind: "failed" }),
 	saveEdit: () => Promise.resolve({ kind: "failed" }),
 };
 

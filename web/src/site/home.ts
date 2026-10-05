@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { type Choice, dontKnow, type Letter, letters } from "../widget/choices";
+import {
+	type Choice,
+	choices,
+	dontKnow,
+	type Letter,
+	letters,
+} from "../widget/choices";
 import type { AnswerResult, HandedTask } from "../widget/payload";
 import { sectionAddress } from "./addresses";
 import { frontPage } from "./content";
@@ -208,14 +214,9 @@ export function homeResultsOf(card: HomeCard, said: HomeWords): HomeResults {
 			homeCard,
 		);
 	};
-	return {
-		A: resultOf("A"),
-		B: resultOf("B"),
-		C: resultOf("C"),
-		D: resultOf("D"),
-		E: resultOf("E"),
-		[dontKnow]: resultOf(dontKnow),
-	};
+	return Object.fromEntries(
+		choices.map((choice) => [choice, resultOf(choice)]),
+	) as HomeResults;
 }
 
 // trapWords are the words of the trap behind the wrong option letter, as the

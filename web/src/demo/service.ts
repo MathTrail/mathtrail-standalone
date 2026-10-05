@@ -17,8 +17,8 @@ export const checkingTakes = 1100;
  * the hint as the card says it was used, and the rating moved on from where
  * the answer before left it, as far as the data moves it. A task asked for is
  * still being written the first time its card asks, and handed out the next
- * time: the lesson's task again, under an id of its own. No change to a
- * profile is ever saved, since the page keeps none.
+ * time: the lesson's task again, under an id of its own. The page keeps no
+ * profile, so no progress is read and no change to one is ever saved.
  */
 export function demoService(data: DemoData): Service {
 	const asked = new Map<string, number>();
@@ -58,6 +58,7 @@ export function demoService(data: DemoData): Service {
 					: { kind: "task", handed: handedFor(data.handed, requestId) },
 			);
 		},
+		readProgress: () => Promise.resolve({ kind: "failed" }),
 		saveEdit: () => Promise.resolve({ kind: "failed" }),
 	};
 }

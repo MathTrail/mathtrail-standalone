@@ -98,6 +98,7 @@ export function HeroDemo({
  * keeps what it has. The live card's place is taken and the card drawn in it
  * in one step, which the page is not painted in the middle of: nobody sees a
  * card half drawn, and the card, drawn in the page, measures the room it has.
+ * A card that cannot be drawn gives the still one its place back.
  */
 export function bringHeroAlive(document: Document, data: DemoData): boolean {
 	const still = document.querySelector(".s-hero-card .s-card");
@@ -109,7 +110,12 @@ export function bringHeroAlive(document: Document, data: DemoData): boolean {
 	const live = document.createElement("div");
 	live.className = "s-card";
 	still.replaceWith(live);
-	render(<HeroDemo data={data} frame={frame} bubble={bubble} />, live);
+	try {
+		render(<HeroDemo data={data} frame={frame} bubble={bubble} />, live);
+	} catch (error: unknown) {
+		live.replaceWith(still);
+		throw error;
+	}
 	// The frame takes the focus when a card it holds gives way to the next.
 	frame.tabIndex = -1;
 	return true;

@@ -9,3 +9,6 @@ export const dontKnow = "?";
 
 /** Choice is an answer the child can give: an option, or "I don't know". */
 export type Choice = Letter | typeof dontKnow;
+
+/** choices are every answer the child can give, the options in their order. */
+export const choices: readonly Choice[] = [...letters, dontKnow];
