@@ -366,6 +366,49 @@ describe("the page Research", () => {
 		}
 	});
 
+	test("draws a row whose every number is nothing as empty bars, scaled to one rather than to nothing", () => {
+		const zero = { value: 0, low: 0, high: 0 };
+		const rows = fixture.bench.rows.map((row) =>
+			row.kind === "context"
+				? {
+						...row,
+						values: {
+							service: { ...zero, mark: null },
+							earlier: { ...zero, mark: null },
+							ceiling: { of: "oracle", ...zero },
+						},
+					}
+				: row,
+		);
+		const empty = pagesOf(
+			dataOf({ ...fixture, bench: { ...fixture.bench, rows } }),
+		).get("en") as Document;
+
+		const charts = [...empty.querySelectorAll(".s-research-chart")];
+		const styles = charts.flatMap((chart) =>
+			[...chart.querySelectorAll("[style]")].map(
+				(part) => part.getAttribute("style") ?? "",
+			),
+		);
+		expect(styles.filter((style) => style.includes("NaN"))).toEqual([]);
+		const drawnEmpty = charts.filter((chart) =>
+			[...chart.querySelectorAll("[style]")].every((part) =>
+				/^[\w-]+:0%(?:;[\w-]+:0%)*;?$/.test(
+					(part.getAttribute("style") ?? "").replace(/\s/g, ""),
+				),
+			),
+		);
+		expect(drawnEmpty).toHaveLength(
+			rows.filter((row) => row.kind === "context").length,
+		);
+	});
+
+	test("is not drawn from data that holds no numbers of it", () => {
+		expect(() => pagesOf(dataOf(undefined))).toThrow(
+			"the build was given no numbers for the page Research",
+		);
+	});
+
 	test("tells the commit, the date and the run its numbers come from", () => {
 		expect(texts(page, ".s-research-provenance code")).toEqual([
 			research.built_from.commit.slice(0, 12),

@@ -1001,6 +1001,25 @@ describe("the numbers of the page Research", () => {
 			await rm(parent, { recursive: true, force: true });
 		}
 	});
+
+	test("that cannot be read for a reason other than being missing fail the build with that reason", async () => {
+		const parent = await mkdtemp(join(tmpdir(), "parent-"));
+		try {
+			const folder = join(parent, "research.json");
+			await mkdir(folder);
+
+			await expect(
+				buildSite({
+					base: "https://mathtrail.app",
+					out: join(parent, "dist"),
+					research: folder,
+				}),
+			).rejects.toMatchObject({ code: "EISDIR" });
+			expect(await readdir(parent)).toEqual(["research.json"]);
+		} finally {
+			await rm(parent, { recursive: true, force: true });
+		}
+	});
 });
 
 describe("the paper the page Research offers", () => {
@@ -1081,6 +1100,14 @@ describe("the paper the page Research offers", () => {
 			said,
 		);
 	});
+
+	test("is refused with the reason it cannot be read when that is not its absence", async () => {
+		await mkdir(join(dir, "paper-c.en.pdf"));
+
+		await expect(
+			paperFiles(dir, [{ ...facts, path: "/assets/paper-c.en.pdf" }]),
+		).rejects.toMatchObject({ code: "EISDIR" });
+	});
 });
 
 describe("the pictures a shared link shows", () => {
@@ -1088,6 +1115,14 @@ describe("the pictures a shared link shows", () => {
 		const pictures = await sharingPictures(["en", "xx"]);
 
 		expect(pictures.map(({ path }) => path)).toEqual(["assets/og-en.png"]);
+	});
+
+	test("fail the build when one cannot be read for a reason other than being missing", async () => {
+		// The picture of this locale would sit below the English one, which is a
+		// file and not a directory.
+		await expect(sharingPictures(["en.png/xx"])).rejects.toMatchObject({
+			code: "ENOTDIR",
+		});
 	});
 });
 
