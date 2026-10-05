@@ -1,74 +1,8 @@
 import { render } from "preact";
 import { act } from "preact/test-utils";
-import { afterEach, describe, expect, test, vi } from "vitest";
-import { pseudoLocale } from "../i18n/pseudo";
-import {
-	cardWords,
-	dictionaries,
-	languageIn,
-	lessonLanguages,
-	ratingText,
-	useWords,
-	WordsContext,
-} from "./words";
-
-describe("a card's words", () => {
-	test.each([
-		["ru", "en-US", "ru"],
-		["en", "ru-RU", "en"],
-		[undefined, "ru-RU", "ru"],
-		["kk", "ru-RU", "ru"],
-		[undefined, "es-MX", "es"],
-		["pt-BR", "ru-RU", "pt"],
-		[undefined, "zh-CN", "zh-Hans"],
-		[undefined, "sw-KE", "en"],
-		[undefined, undefined, "en"],
-	])(
-		"with the language chosen %s and the host's %s are in %s",
-		(chosen, host, want) => {
-			expect(cardWords(chosen, host).locale).toBe(want);
-		},
-	);
-
-	test("say what their dictionary says, with the grade in its slot", () => {
-		const russian = cardWords("ru", undefined);
-
-		expect(russian.text("task.hint")).toBe("Подсказка");
-		expect(russian.text("child.grade", { grade: 3 })).toBe("3 класс");
-		expect(
-			cardWords(undefined, "en-GB").text("child.grade", { grade: 3 }),
-		).toBe("Grade 3");
-	});
-
-	test("are in every one of the twenty-two languages of v1", () => {
-		expect([...dictionaries.keys()]).toEqual(
-			expect.arrayContaining([
-				"en",
-				"zh-Hans",
-				"hi",
-				"es",
-				"ar",
-				"fr",
-				"bn",
-				"pt",
-				"ru",
-				"ur",
-				"id",
-				"de",
-				"ja",
-				"tr",
-				"ko",
-				"vi",
-				"it",
-				"fa",
-				"pl",
-				"uk",
-				"th",
-				"nl",
-			]),
-		);
-	});
-});
+import { afterEach, describe, expect, test } from "vitest";
+import { cardWords } from "./dictionaries";
+import { languageIn, ratingText, useWords, WordsContext } from "./words";
 
 describe("a rating", () => {
 	test.each([
@@ -79,7 +13,12 @@ describe("a rating", () => {
 	});
 
 	test("is written in the digits of the words' language", () => {
-		const bengali = { locale: "bn", dir: "ltr" as const, text: () => "" };
+		const bengali = {
+			locale: "bn",
+			dir: "ltr" as const,
+			text: () => "",
+			has: (_: string): _ is never => false,
+		};
 
 		expect(ratingText(bengali, 1573)).toBe("১৫৭৩");
 	});
@@ -194,41 +133,10 @@ describe("a component inside a card", () => {
 		expect(root.textContent).toBe("Подсказка");
 	});
 
-	test("speaks English outside any card", () => {
-		act(() => render(<Hint />, root));
-
-		expect(root.textContent).toBe("Hint");
-	});
-});
-
-describe("the pseudo-language", () => {
-	afterEach(() => {
-		vi.unstubAllEnvs();
-		vi.resetModules();
-	});
-
-	test("is spoken by the preview and the tests", () => {
-		expect(dictionaries.has(pseudoLocale)).toBe(true);
-	});
-
-	test("is left out of a build for production, which a host could ask it of", async () => {
-		vi.stubEnv("MODE", "production");
-		vi.resetModules();
-
-		const { dictionaries: shipped } = await import("./words");
-
-		expect(shipped.has(pseudoLocale)).toBe(false);
-		expect(shipped.has("en")).toBe(true);
-	});
-});
-
-describe("the languages of the lessons", () => {
-	// A language a card cannot speak would be one its task is written in and
-	// its buttons are not.
-	test("are every language the widget is written in, and never the pseudo-language", () => {
-		expect([...lessonLanguages].sort()).toEqual(
-			[...dictionaries.keys()].filter((tag) => tag !== pseudoLocale).sort(),
-		);
-		expect(lessonLanguages).toHaveLength(22);
+	// A card always speaks the words the place it is drawn in gives it: a
+	// component drawn outside any card is a mistake, and says so, rather than
+	// speak an English nobody chose.
+	test("is refused outside any card", () => {
+		expect(() => act(() => render(<Hint />, root))).toThrow(/outside any card/);
 	});
 });

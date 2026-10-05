@@ -1,22 +1,55 @@
-import type { ComponentChildren } from "preact";
-import { useEffect, useMemo, useReducer, useRef, useState } from "preact/hooks";
-import { Verdict } from "../design/blocks";
-import { MessageHeader, ThreadBar } from "../design/thread";
+import {
+	type ComponentChildren,
+	type ComponentType,
+	createContext,
+} from "preact";
+import {
+	useContext,
+	useEffect,
+	useReducer,
+	useRef,
+	useState,
+} from "preact/hooks";
+import { NameBar, ThreadBar } from "../design/thread";
 import type { Host } from "./bridge";
 import { CardRoot } from "./CardRoot";
-import { FirstRunScreen } from "./FirstRunScreen";
 import { type Folds, useFolds } from "./folds";
 import { type PeriodChoice, usePeriod } from "./moves";
-import { ProgressScreen } from "./ProgressScreen";
-import { type Child, readScreen } from "./payload";
+import type { Child } from "./payload";
 import { type Progress, progressAfter } from "./progress";
 import { useWords } from "./words";
 
 /**
+ * ProgressOver is what the progress drawn over a card is given: the reply to
+ * the card's reading of the progress as it stands, whose card it is, the width
+ * the card lays out for, its host, the sections open and the while chosen as
+ * the card keeps them, and where a change saved on the progress's form goes.
+ */
+export type ProgressOver = {
+	progress: Progress;
+	child: Child;
+	wide: boolean;
+	host: Host;
+	folds: Folds;
+	period: PeriodChoice;
+	onSaved: (child: Child) => void;
+};
+
+/**
+ * OpensProgress is what draws the child's progress over a card, given by the
+ * place the card is drawn in. The widget's page gives it; a page that shows a
+ * card has no profile to open, and gives none.
+ */
+export const OpensProgress = createContext<
+	ComponentType<ProgressOver> | undefined
+>(undefined);
+
+/**
  * CardFrame is what every card of a lesson has around what it shows: the width
  * it lays out for, handed to what it frames, and — on a card that knows whose
- * it is — the line at its top, which opens the child's progress over the card
- * and leads back to it as it was left, by the way back named in back. The
+ * it is — the line at its top, which says whose card it is and, where the place
+ * the card is drawn in opens the progress, opens the child's progress over the
+ * card and leads back to it as it was left, by the way back named in back. The
  * progress is read afresh at each opening, and its sections open as they were
  * left, for as long as the card is drawn. A change the parent saves on the
  * progress's form is the card's from then on — its line and what it frames
@@ -36,6 +69,7 @@ export function CardFrame<C extends Child | undefined>({
 	children: (wide: boolean, child: C | Child) => ComponentChildren;
 }) {
 	const words = useWords();
+	const ProgressView = useContext(OpensProgress);
 	const [saved, setSaved] = useState<{
 		over: Child | undefined;
 		child: Child;
@@ -73,101 +107,45 @@ export function CardFrame<C extends Child | undefined>({
 			{(wide) => (
 				<>
 					<div hidden={progress !== undefined}>
-						{whose !== undefined && (
-							<ThreadBar
-								name={whose.pseudonym}
-								action={words.text("task.profile_action")}
-								onClick={openProgress}
-								buttonRef={topBar}
-							/>
-						)}
+						{whose !== undefined &&
+							(ProgressView === undefined ? (
+								<NameBar name={whose.pseudonym} />
+							) : (
+								<ThreadBar
+									name={whose.pseudonym}
+									action={words.text("task.profile_action")}
+									onClick={openProgress}
+									buttonRef={topBar}
+								/>
+							))}
 						{children(wide, whose)}
 					</div>
-					{progress !== undefined && whose !== undefined && (
-						<>
-							<ThreadBar
-								variant="back"
-								label={back}
-								onClick={() => dispatch({ type: "closed" })}
-								buttonRef={backBar}
-							/>
-							<ProgressOverCard
-								progress={progress}
-								child={whose}
-								wide={wide}
-								host={host}
-								folds={folds}
-								period={period}
-								onSaved={(changed) => setSaved({ over: child, child: changed })}
-							/>
-						</>
-					)}
+					{progress !== undefined &&
+						whose !== undefined &&
+						ProgressView !== undefined && (
+							<>
+								<ThreadBar
+									variant="back"
+									label={back}
+									onClick={() => dispatch({ type: "closed" })}
+									buttonRef={backBar}
+								/>
+								<ProgressView
+									progress={progress}
+									child={whose}
+									wide={wide}
+									host={host}
+									folds={folds}
+									period={period}
+									onSaved={(changed) =>
+										setSaved({ over: child, child: changed })
+									}
+								/>
+							</>
+						)}
 				</>
 			)}
 		</CardRoot>
-	);
-}
-
-// ProgressOverCard is the progress shown in the card over what it showed: the
-// screen the reply names — the progress, its sections open as folds says, or
-// the first sign-in when the profile has gone since — and, until the reply is
-// in or when it does not read, whose progress it is and why none is shown. A
-// change saved on its form is handed to onSaved.
-function ProgressOverCard({
-	progress,
-	child,
-	wide,
-	host,
-	folds,
-	period,
-	onSaved,
-}: {
-	progress: Progress;
-	child: Child;
-	wide: boolean;
-	host: Host;
-	folds: Folds;
-	period: PeriodChoice;
-	onSaved: (child: Child) => void;
-}) {
-	const words = useWords();
-	const shown = useMemo(
-		() =>
-			progress.state === "read" ? readScreen(progress.payload) : undefined,
-		[progress],
-	);
-	if (shown?.screen === "progress") {
-		return (
-			<ProgressScreen
-				report={shown.report}
-				wide={wide}
-				host={host}
-				folds={folds}
-				period={period}
-				onSaved={onSaved}
-			/>
-		);
-	}
-	if (shown?.screen === "first_run") {
-		return <FirstRunScreen firstRun={shown.firstRun} wide={wide} />;
-	}
-	return (
-		<article
-			aria-label={words.text("progress.label")}
-			aria-busy={progress.state === "reading"}
-		>
-			<MessageHeader
-				author="person"
-				name={child.pseudonym}
-				badge={words.text("child.grade", { grade: child.grade })}
-				wide={wide}
-			/>
-			<div class="mt-progress">
-				{progress.state !== "reading" && (
-					<Verdict>{words.text("progress.failed")}</Verdict>
-				)}
-			</div>
-		</article>
 	);
 }
 

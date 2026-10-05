@@ -14,6 +14,7 @@ import type { Host } from "./bridge";
 import { CardFrame } from "./CardFrame";
 import { CardHeader } from "./CardRoot";
 import { type Request, RequestNote, useChatRequest } from "./ChatRequest";
+import { type Choice, dontKnow, type Letter, letters } from "./choices";
 import { useFocusKeptOnTheCard } from "./focus";
 import { LessonButtons } from "./LessonFoot";
 import {
@@ -27,15 +28,8 @@ import {
 	next,
 	optionStateOf,
 } from "./lesson";
-import {
-	type AnswerOutcome,
-	type Choice,
-	dontKnow,
-	type HandedTask,
-	type Letter,
-	letters,
-	readAnswer,
-} from "./payload";
+import type { HandedTask } from "./payload";
+import { useService } from "./service";
 import { TaskResult } from "./TaskResult";
 import {
 	TopicButton,
@@ -110,6 +104,7 @@ export function TaskInCard({
 	const { task } = handed;
 	const words = useWords();
 	const [lesson, dispatch] = useReducer(next, start);
+	const service = useService();
 	const another = useChatRequest(host);
 	const outcome = useRef<HTMLDivElement>(null);
 	const nextTask = useRef<HTMLButtonElement>(null);
@@ -132,7 +127,7 @@ export function TaskInCard({
 	}
 	// A choice asks for a task, so it waits for an answer or an ask already on
 	// its way, even one pressed in the same moment, before the card redraws.
-	const choosing = useTopicChoice(host, handed.topic_choice, {
+	const choosing = useTopicChoice(handed.topic_choice, {
 		busy: () => answering.current || another.busy(),
 		tell,
 		ask,
@@ -147,7 +142,7 @@ export function TaskInCard({
 		}
 		answering.current = true;
 		dispatch({ type: "picked", choice });
-		const told = await recordAnswer(host, task.id, choice, lesson.hint.used);
+		const told = await service.recordAnswer(task.id, choice, lesson.hint.used);
 		answering.current = false;
 		dispatch({ type: "told", outcome: told });
 		if (told.kind === "answered") {
@@ -385,28 +380,6 @@ function Outcome({
 			</Verdict>
 		</ReplyCard>
 	);
-}
-
-// recordAnswer sends the child's answer to the service and reads how it went.
-// An answer whose reply never came is one the card cannot call recorded; sent
-// again, it is either recorded then or told as the service recorded it.
-async function recordAnswer(
-	host: Host,
-	taskId: string,
-	choice: Choice,
-	hintUsed: boolean,
-): Promise<AnswerOutcome> {
-	try {
-		const result = await host.callTool("submit_answer", {
-			task_id: taskId,
-			answer: choice,
-			hint_used: hintUsed,
-		});
-		return readAnswer(result, taskId);
-	} catch (error: unknown) {
-		console.error("widget: the answer did not reach the service", error);
-		return { kind: "failed" };
-	}
 }
 
 // optionsOf are the task's five options as the card shows them, in the order

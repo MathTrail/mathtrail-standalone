@@ -1,0 +1,44 @@
+# The page "Coach", for a parent, in English: a product of its own, still in
+# the making, that leads a child through a problem on a tablet, and its
+# prototype to try in a frame. The prototype speaks English alone in every
+# language of the page and is never translated. The number of techniques on
+# the first screen's second button is the site's data.
+
+title: Coach
+description: We are making a coach for children aged 7 to 12, who solve olympiad problems on a tablet and think them through themselves. Try its prototype.
+
+hero:
+  badge: In development
+  title: Olympiad maths where the child does the thinking
+  lead: "We are making a coach for children aged 7 to 12. The child solves a problem on a tablet, drawing and writing on a canvas as in a notebook. A companion the child chose leads the way through four steps and asks guiding questions. The companion never gives the answer away: the child writes it."
+  try: Try the prototype
+
+# What the coach is about, a card for each idea, under a heading a screen
+# reader alone says.
+ideas:
+  title: What the coach will be like
+  items:
+    - title: Pólya's four steps
+      text: Understand → make a plan → solve → check. The steps are always in sight.
+    - title: A canvas like a notebook
+      text: The drawing is part of the solution. Hints come one at a time, with no options to pick from.
+    - title: A companion of the child's own
+      text: A fox, a robot, an owl, a cat, a dinosaur, or one the child draws.
+
+# The prototype in its frame: the frame's name for a screen reader, the line
+# under it, and the link that opens it alone.
+prototype:
+  frame: MathTrail — an interactive prototype
+  caption: An interactive prototype — try drawing a solution
+  open: Open full screen ↗
+
+# What the prototype is, and what it only pretends to do yet.
+notes:
+  title: This is a prototype
+  text: Everything can be clicked, and the canvas takes drawing with a mouse or a finger. For now the interface is in English.
+  imitated:
+    title: Only pretended for now
+    items:
+      - recognising handwriting and drawings
+      - the companion's voice
+      - problems from a photo

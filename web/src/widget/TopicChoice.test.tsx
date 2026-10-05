@@ -1,6 +1,7 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { cardWords } from "./dictionaries";
 import { buttonIn, drawCard, openCard, press, takeDown } from "./testing/card";
 import { deliver, type Opening, type ToolCall } from "./testing/host";
 import {
@@ -17,7 +18,6 @@ import {
 	topicWords,
 	withTopicChoice,
 } from "./testing/lesson";
-import { cardWords } from "./words";
 
 let root: HTMLElement;
 

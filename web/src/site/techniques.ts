@@ -30,6 +30,15 @@ export type Techniques = {
 };
 
 /**
+ * allTechniques are every technique of the page, group by group, in the order
+ * the page shows them: the order the page numbers them in, and how many there
+ * are wherever the site counts them.
+ */
+export function allTechniques(techniques: Techniques): readonly Technique[] {
+	return techniques.groups.flatMap((group) => group.techniques);
+}
+
+/**
  * readTechniques reads the techniques of the site's data beside the catalog's
  * topics. A technique is refused whose name is no anchor or another's, that
  * leads to a topic the catalog lacks, or whose example is set at a level none

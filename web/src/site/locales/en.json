@@ -6,6 +6,7 @@
 	"nav.topics": "Topics",
 	"nav.lesson": "How it works",
 	"nav.connect": "Connect",
+	"nav.coach": "Coach",
 	"nav.add": "Add to Claude",
 	"nav.why": "Why",
 	"nav.techniques": "Techniques",
@@ -46,5 +47,7 @@
 	"topic.before": "Learn first",
 	"topic.after": "Opens the way to",
 	"topic.ask": "Ask for a task on this topic",
-	"topic.all": "All topics"
+	"topic.all": "All topics",
+	"copy.action": "Copy",
+	"copy.done": "Copied"
 }

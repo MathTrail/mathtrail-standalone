@@ -1,0 +1,44 @@
+# The page "Coach", for a parent, in Russian: a product of its own, still in
+# the making, that leads a child through a problem on a tablet, and its
+# prototype to try in a frame. The prototype speaks English alone in every
+# language of the page and is never translated. The number of techniques on
+# the first screen's second button is the site's data.
+
+title: Тренер
+description: "Мы делаем тренера для детей 7–12 лет: ребёнок решает олимпиадные задачи на планшете и думает над ними сам. Попробуйте прототип."
+
+hero:
+  badge: В разработке
+  title: Олимпиадная математика, где ребёнок думает сам
+  lead: "Мы делаем тренера для детей 7–12 лет. Ребёнок решает задачу на планшете: рисует и пишет на холсте, как в тетради. Компаньон, которого он выбрал сам, ведёт по четырём шагам и задаёт наводящие вопросы. Готовый ответ компаньон не даёт: ответ ребёнок пишет сам."
+  try: Попробовать прототип
+
+# What the coach is about, a card for each idea, under a heading a screen
+# reader alone says.
+ideas:
+  title: Каким будет тренер
+  items:
+    - title: Четыре шага Пойа
+      text: Пойми → придумай план → реши → проверь. Шаги всегда видны.
+    - title: Холст как тетрадь
+      text: Рисунок — часть решения. Подсказки по одной, без вариантов ответа.
+    - title: Свой компаньон
+      text: Лиса, робот, сова, кошка, динозавр или свой, которого ребёнок нарисует сам.
+
+# The prototype in its frame: the frame's name for a screen reader, the line
+# under it, and the link that opens it alone.
+prototype:
+  frame: MathTrail — интерактивный прототип
+  caption: Интерактивный прототип — попробуйте нарисовать решение
+  open: Открыть на весь экран ↗
+
+# What the prototype is, and what it only pretends to do yet.
+notes:
+  title: Это прототип
+  text: Всё кликается, на холсте можно рисовать мышью или пальцем. Интерфейс пока на английском.
+  imitated:
+    title: Пока имитация
+    items:
+      - распознавание почерка и рисунка
+      - голос компаньона
+      - задачи с фотографии

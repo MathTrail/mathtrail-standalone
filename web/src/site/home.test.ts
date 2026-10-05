@@ -5,8 +5,10 @@ import file from "../../../site/data.json";
 import {
 	connectAddress,
 	type HomeCard,
+	type HomeWords,
 	homeAnswerOf,
 	homeFile,
+	homeResultsOf,
 	homeTaskOf,
 	readHome,
 } from "./home";
@@ -60,12 +62,17 @@ describe("what the home page takes from the site's own data", () => {
 });
 
 describe("the card on the home page", () => {
-	const said = {
+	const said: HomeWords = {
 		language: "ru",
 		child: "Комета",
 		question: "Сколько столбов?",
 		hint: "Нарисуй забор поменьше.",
-		trap: "Посчитаны промежутки.",
+		traps: {
+			A: "Назван шаг.",
+			B: "Посчитаны промежутки.",
+			D: "Умножено.",
+			E: "Взято из условия.",
+		},
 		solution: "Четыре и один.",
 	};
 
@@ -93,11 +100,51 @@ describe("the card on the home page", () => {
 		expect(result.correct_answer).toBe(own.card.correct);
 		expect(result.trap).toEqual({
 			id: own.card.traps[own.card.choice],
-			text: said.trap,
+			text: said.traps[own.card.choice],
 			repeated: false,
 		});
 		expect(result.solution).toBe(said.solution);
-		expect(result.rating).toEqual(own.card.rating);
+		expect(result.rating).toEqual({
+			before: own.card.rating.before,
+			after: own.card.rating.wrong,
+		});
+	});
+
+	// The card on the first screen takes any answer, so the page carries what
+	// the service would record of each, as the widget reads it.
+	test('has a result for every answer: each wrong option told its trap, the right one and "I don\'t know" none', () => {
+		const results = homeResultsOf(own.card, said);
+
+		expect(
+			Object.entries(results).map(([choice, result]) => [
+				choice,
+				result.choice,
+				result.correct,
+				result.trap?.id ?? null,
+				result.trap?.text ?? null,
+				result.rating?.after,
+			]),
+		).toEqual([
+			["A", "A", false, own.card.traps.A, said.traps.A, own.card.rating.wrong],
+			["B", "B", false, own.card.traps.B, said.traps.B, own.card.rating.wrong],
+			["C", "C", true, null, null, own.card.rating.right],
+			["D", "D", false, own.card.traps.D, said.traps.D, own.card.rating.wrong],
+			["E", "E", false, own.card.traps.E, said.traps.E, own.card.rating.wrong],
+			["?", "?", false, null, null, own.card.rating.wrong],
+		]);
+		for (const result of Object.values(results)) {
+			expect(result.correct_answer).toBe(own.card.correct);
+			expect(result.solution).toBe(said.solution);
+			expect(result.rating?.before).toBe(own.card.rating.before);
+		}
+	});
+
+	test("refuses a wrong option the page says nothing of", () => {
+		const { E: _, ...silent } = said.traps;
+
+		expect(() => homeResultsOf(own.card, { ...said, traps: silent })).toThrow(
+			"the home page says nothing of the trap behind its wrong option E",
+		);
 	});
 });
 
@@ -142,6 +189,16 @@ describe("what the home page takes from the data", () => {
 			"a card in a grade its topic is not taught in",
 			withCard({ topic: "fractions.parts" }),
 			"the card on the home page is set in grade 3, which fractions.parts is not taught in",
+		],
+		[
+			"a rating that a right answer does not raise",
+			withCard({ rating: { before: 1502, wrong: 1480, right: 1502 } }),
+			"the card on the home page moves its rating from 1502 to 1480 on a wrong answer and to 1502 on a right one: a right answer raises it, and a wrong one lowers it",
+		],
+		[
+			"a rating that a wrong answer does not lower",
+			withCard({ rating: { before: 1502, wrong: 1510, right: 1524 } }),
+			"a right answer raises it, and a wrong one lowers it",
 		],
 		[
 			"a card with an option missing",

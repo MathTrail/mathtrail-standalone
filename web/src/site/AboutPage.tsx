@@ -1,13 +1,24 @@
-import { contactAddress, issuesURL, sourceURL } from "./brand";
+import {
+	contactAddress,
+	familyMembers,
+	familyPhoto,
+	issuesURL,
+	photoPath,
+	portraitSize,
+	sourceURL,
+} from "./brand";
 import type { PageProps } from "./pages";
 import type { PageReader } from "./reader";
 
 /**
- * AboutPage is the page that says who makes MathTrail — one family, each of
- * them under a role, the children by their place in it rather than by name —
- * and where to write about a mistake or an idea: the address the privacy
- * policy names and the code on GitHub, the very ones the footer gives, and
- * the issues the code is discussed in.
+ * AboutPage is the page that says who makes MathTrail — one family, the four
+ * of them together beside the first words, then each of them on a card under
+ * a role, the children by their place in it rather than by name — and where
+ * to write about a mistake or an idea: the address the privacy policy names
+ * and the code on GitHub, the very ones the footer gives, and the issues the
+ * code is discussed in. Every photograph says what it shows, for whoever
+ * cannot see it, and the page states its size, so that nothing jumps as it
+ * arrives.
  */
 export function AboutPage({ page }: PageProps) {
 	return (
@@ -17,6 +28,14 @@ export function AboutPage({ page }: PageProps) {
 					<h1>{page.text("hero.title")}</h1>
 					<p class="s-lead">{page.text("hero.lead")}</p>
 				</div>
+				<div class="s-panel s-about-photo">
+					<img
+						src={photoPath(familyPhoto.name)}
+						width={familyPhoto.width}
+						height={familyPhoto.height}
+						alt={page.plain("hero.photo")}
+					/>
+				</div>
 			</section>
 			<Team page={page} />
 			<Contact page={page} />
@@ -24,12 +43,12 @@ export function AboutPage({ page }: PageProps) {
 	);
 }
 
-// Team is the family, a card for each of them in the order the words give:
-// an empty frame where a photograph would stand, for the page shows none of
-// the family's faces; the role they play, who they are in the family, and
-// what they do. The
-// section's heading is for a screen reader, which moves from card to card by
-// the names under it.
+// Team is the family, a card for each of them in their order: the portrait,
+// which loads as the reader nears it; the role they play, who they are in the
+// family, and what they do. Each one's words go by the name their portrait
+// does, so a card cannot set one of them over another's words. The section's
+// heading is for a screen reader, which moves from card to card by the names
+// under it.
 function Team({ page }: { page: PageReader }) {
 	return (
 		<section class="s-wrap s-section s-team" aria-labelledby="team">
@@ -37,16 +56,26 @@ function Team({ page }: { page: PageReader }) {
 				{page.text("team.title")}
 			</h2>
 			<ul class="s-tiles s-tiles-four">
-				{page.list("team.members").map((key) => (
-					<li key={key} class="s-tile s-member">
-						<div class="s-member-frame" />
-						<p class="s-chip s-chip-group s-member-role">
-							{page.text(`${key}.role`)}
-						</p>
-						<h3 class="s-member-name">{page.text(`${key}.name`)}</h3>
-						<p class="s-tile-text">{page.text(`${key}.text`)}</p>
-					</li>
-				))}
+				{familyMembers.map((member) => {
+					const key = `team.members.${member}`;
+					return (
+						<li key={member} class="s-tile s-member">
+							<img
+								class="s-member-photo"
+								src={photoPath(member)}
+								width={portraitSize.width}
+								height={portraitSize.height}
+								alt={page.plain(`${key}.photo`)}
+								loading="lazy"
+							/>
+							<p class="s-chip s-chip-group s-member-role">
+								{page.text(`${key}.role`)}
+							</p>
+							<h3 class="s-member-name">{page.text(`${key}.name`)}</h3>
+							<p class="s-tile-text">{page.text(`${key}.text`)}</p>
+						</li>
+					);
+				})}
 			</ul>
 		</section>
 	);

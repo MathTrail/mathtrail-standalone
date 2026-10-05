@@ -1,32 +1,48 @@
 # The page "About", for a parent, in Russian: who makes MathTrail — one family,
 # each of us under a role — and where to write. The children go by their place
-# in the family, never by name. The address and the link to the code are the
-# footer's, which the page fills in.
+# in the family, never by name, and each of us by the key our photograph goes
+# by. The address and the link to the code are the footer's, which the page
+# fills in.
 
 title: О нас
 description: "MathTrail делает одна семья: кто чем занят и как с нами связаться."
 
+# The first screen, beside the photograph of the four of us; photo says what
+# it shows, for whoever cannot see it.
 hero:
   title: MathTrail делает одна семья
-  lead: Нас четверо. Один пишет код, одна отвечает за всё остальное, один решает задачи первым, а один пока присматривается.
+  lead: >-
+    MathTrail — это проект, выросший из родительской заботы. Нас четверо: папа
+    собирает платформу, мама — за уют и порядок в проекте, наш старший непоседа
+    с горящими глазами щёлкает новые задачи, а младший — просто сладко сопит
+    рядом и напоминает, ради чего мы стараемся.
+  photo: Мы вчетвером за столом с шоколадным тортом, папа держит младшего на руках.
 
-# A card for each of us: who we are in the family, a role, and what we do,
-# under a heading a screen reader alone says.
+# A card for each of us: a role, who we are in the family, what we do, and
+# what our portrait shows, under a heading a screen reader alone says.
 team:
   title: Кто мы
   members:
-    - role: Фулстек-укачиватель
+    dad:
+      role: Фулстек-укачиватель
       name: Папа
-      text: Пишет сервер, проверки задач и виджет. Работает в наушниках и, как правило, с кем-то на руках.
-    - role: Главная по всему
+      text: Пишет код одной рукой, второй укачивает. Деплоит строго после дневного сна — иначе прод проснётся и заплачет.
+      photo: Папа с младшим в переноске на груди, на младшем детские наушники.
+    mum:
+      role: Главная по всему
       name: Мама
       text: Отвечает за всё остальное — то есть за всё.
-    - role: Главный по щёлканью задач
+      photo: Мама в бежевом жакете улыбается.
+    older-son:
+      role: Главный по щёлканью задач
       name: Старший
       text: Первым решает новые задачи и честно говорит, где непонятно.
-    - role: Стажёр-тестировщик на зуб
+      photo: Старший с яркой игрушкой на голове улыбается.
+    younger-son:
+      role: Стажёр-тестировщик на зуб
       name: Младший
       text: Пока тестирует игрушки на прочность. До первой задачи — пара лет.
+      photo: Младший лежит на животе на пушистом коврике, рядом плюшевый мишка.
 
 contact:
   title: Нашли ошибку или есть идея?

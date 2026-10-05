@@ -3,8 +3,8 @@ import { afterAll, afterEach, describe, expect, test, vi } from "vitest";
 import topics from "../../../content/catalogs/topics.json";
 import traps from "../../../content/catalogs/traps.json";
 import file from "../../../site/data.json";
+import { cardWords } from "../widget/dictionaries";
 import { trapName } from "../widget/names";
-import { cardWords } from "../widget/words";
 import {
 	chatGPTDeveloperModeURL,
 	claudeConnectorsURL,
@@ -113,7 +113,11 @@ const words = [
 	"task:",
 	"  question: How many posts?",
 	"  hint: Draw a smaller fence.",
-	"  trap: Counted the gaps.",
+	"  traps:",
+	"    a: Gave the gap.",
+	"    b: Counted the gaps.",
+	"    d: Multiplied.",
+	"    e: Took the length.",
 	"  solution: Four gaps. One more post. Five posts.",
 	"connect:",
 	"  eyebrow: Connect",
@@ -234,11 +238,22 @@ const statesIn = (root: Element) =>
 	);
 
 describe("the home page", () => {
-	test("reads in full with no script, its cards inert, and loads the cards' stylesheet", () => {
-		expect(home.querySelector("script")).toBeNull();
+	// The page reads in full as it is built: its one script brings it alive,
+	// and the data it carries for the script is JSON no browser runs.
+	test("reads in full as it is built, its cards inert, and loads the cards' stylesheet", () => {
+		expect(all("script", "type")).toEqual(["application/json", "module"]);
+		expect(all("script[src]", "src")).toEqual(["/assets/demo.js"]);
 		expect(all('link[rel="stylesheet"]', "href")).toContain("/assets/card.css");
 		expect(home.querySelectorAll(".s-card").length).toBe(7);
 		expect(home.querySelectorAll(".s-card:not([inert])").length).toBe(0);
+	});
+
+	// A page keeps no profile: a card on it says whose it is, and leads to no
+	// progress.
+	test("draws no card that offers the progress", () => {
+		expect(home.querySelectorAll(".s-card .mt-bar")).toHaveLength(6);
+		expect(home.querySelector(".s-card button.mt-bar")).toBeNull();
+		expect(home.querySelector(".s-card .mt-bar-action")).toBeNull();
 	});
 
 	describe("built", () => {
@@ -448,6 +463,25 @@ describe("the home page", () => {
 		expect(all(".s-address", "dir")).toEqual(["ltr"]);
 		expect(steps[0]?.querySelector("a")?.getAttribute("href")).toBe(
 			claudeConnectorsURL,
+		);
+	});
+
+	// A button that copies needs a script: the page keeps it in a template
+	// beside the address, which shows nothing until the demo puts it there.
+	test("keeps the button that copies the address beside it, unshown until the demo puts it", () => {
+		const kept = (
+			home.querySelector(".s-address + template[data-copy]") as unknown as {
+				content: Pick<Element, "querySelector">;
+			} | null
+		)?.content;
+
+		expect(home.querySelector(".s-copy")).toBeNull();
+		expect(kept?.querySelector(".s-copy")?.textContent).toBe("Copy");
+		expect(kept?.querySelector(".s-copy")?.getAttribute("data-done")).toBe(
+			"Copied",
+		);
+		expect(kept?.querySelector("[aria-live]")?.getAttribute("aria-live")).toBe(
+			"polite",
 		);
 	});
 

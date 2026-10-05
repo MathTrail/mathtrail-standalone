@@ -11,7 +11,8 @@ import {
 	waitAfter,
 	waitStart,
 } from "./coming";
-import { type Coming, readTaskStatus, type TaskStatus } from "./payload";
+import type { Coming } from "./payload";
+import { useService } from "./service";
 import { TaskInCard } from "./TaskCard";
 import { TaskWait } from "./TaskWait";
 import { moments } from "./waiting";
@@ -30,7 +31,7 @@ import { useWords } from "./words";
  */
 export function ComingCard({ coming, host }: { coming: Coming; host: Host }) {
 	const words = useWords();
-	const wait = useWaitFor(host, coming.requestId);
+	const wait = useWaitFor(coming.requestId);
 	const { task } = wait;
 	return (
 		<CardFrame
@@ -74,7 +75,8 @@ export function ComingCard({ coming, host }: { coming: Coming; host: Host }) {
 // each time the question before was answered, as often as the wait says, until
 // it is settled. A page out of sight asks nothing, and asks at once when it is
 // looked at again.
-function useWaitFor(host: Host, requestId: string): Wait {
+function useWaitFor(requestId: string): Wait {
+	const service = useService();
 	const [wait, dispatch] = useReducer(waitAfter, waitStart);
 	// latest is the wait as it stands, which the next question is timed by. A
 	// change of pace alone — the wait gone long — sets no question going afresh,
@@ -93,7 +95,7 @@ function useWaitFor(host: Host, requestId: string): Wait {
 				document.addEventListener("visibilitychange", whenSeen);
 				return;
 			}
-			const status = await statusOf(host, requestId);
+			const status = await service.taskStatus(requestId);
 			if (!gone) {
 				dispatch({ type: "answered", status });
 			}
@@ -114,7 +116,7 @@ function useWaitFor(host: Host, requestId: string): Wait {
 			clearTimeout(timer);
 			document.removeEventListener("visibilitychange", whenSeen);
 		};
-	}, [host, requestId, wait.answers, settled]);
+	}, [service, requestId, wait.answers, settled]);
 
 	useEffect(() => {
 		if (settled) {
@@ -128,17 +130,4 @@ function useWaitFor(host: Host, requestId: string): Wait {
 	}, [wait.news, settled]);
 
 	return wait;
-}
-
-// statusOf asks the service how the task of the request stands. A question
-// whose answer never came leaves it unknown, and is asked again later.
-async function statusOf(host: Host, requestId: string): Promise<TaskStatus> {
-	try {
-		return readTaskStatus(
-			await host.callTool("read_task", { request_id: requestId }),
-		);
-	} catch (error: unknown) {
-		console.error("widget: how the task stands did not arrive", error);
-		return { kind: "unknown" };
-	}
 }

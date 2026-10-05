@@ -1,5 +1,5 @@
-import { useId } from "preact/hooks";
 import { classes } from "./classes";
+import { useScopedId } from "./ids";
 
 // The icons are one set: each is drawn on a grid of 24, in lines of one width
 // rounded at their ends and corners and never filled, and in one colour — the
@@ -108,7 +108,7 @@ function Line({ d, tone }: { d: string; tone: string }) {
  * is decoration: the name beside it says whose it is.
  */
 export function Mark({ size = 32 }: { size?: number }) {
-	const id = useId();
+	const id = useScopedId();
 	const name = (part: string) => `${id}-${part}`;
 	const paint = (part: string) => `url(#${name(part)})`;
 	return (

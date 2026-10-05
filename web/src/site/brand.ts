@@ -42,6 +42,15 @@ export const contactAddress = "altedtech.info@gmail.com";
 export const markPath = "/assets/favicon.svg";
 
 /**
+ * coachPrototypePath is where the prototype of the coach is served: the coach
+ * is a product of its own, still in the making, and its prototype is the
+ * mockup a reader can try, as the tool it was drawn in exported it. The page
+ * about the coach frames it, and it is kept in the site's own assets under the
+ * same name.
+ */
+export const coachPrototypePath = "/assets/coach-prototype.html";
+
+/**
  * sharingPicturePath is where the picture a shared link to a page of locale
  * shows is served, one for each language of the site. It is kept in the
  * site's own assets under the same name.
@@ -52,3 +61,53 @@ export function sharingPicturePath(locale: string): string {
 
 /** sharingPictureSize is the size of a sharing picture, in pixels. */
 export const sharingPictureSize = { width: 1200, height: 630 } as const;
+
+/**
+ * photoDirectory is where the site's photographs are served from, and the
+ * directory of the site's own assets that keeps them. They are the family's
+ * own: the licence of the code does not cover them, and no crawler is let in.
+ */
+export const photoDirectory = "/assets/photos/";
+
+/** photoPath is where the photograph called name is served. */
+export function photoPath(name: string): string {
+	return `${photoDirectory}${name}.webp`;
+}
+
+/**
+ * Photo is one of the site's photographs: the name it is served by, and the
+ * size it is kept at, in pixels, which a page states so that a browser keeps
+ * its room before it arrives.
+ */
+export type Photo = {
+	readonly name: string;
+	readonly width: number;
+	readonly height: number;
+};
+
+/**
+ * familyPhoto is the four of the family together, beside the first words of
+ * the page "About": 3:4, as it was taken.
+ */
+export const familyPhoto: Photo = { name: "family", width: 900, height: 1200 };
+
+/**
+ * familyMembers are the family who make MathTrail, in the order the page
+ * "About" shows their cards, each by the name their words and their portrait
+ * go by: their place in the family, never their own name.
+ */
+export const familyMembers = [
+	"dad",
+	"mum",
+	"older-son",
+	"younger-son",
+] as const;
+
+/** portraitSize is the size of each of the family's portraits: 4:5. */
+export const portraitSize = { width: 960, height: 1200 } as const;
+
+/** photos are every photograph of the site: the family's, then each portrait. */
+export const photos: readonly Photo[] = [
+	familyPhoto,
+	...familyMembers.map((name) => ({ name, ...portraitSize })),
+];

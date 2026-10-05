@@ -1,15 +1,16 @@
 import type { ComponentChildren, RefObject } from "preact";
-import { useEffect, useId, useRef, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { classes } from "../design/classes";
 import { Button } from "../design/controls";
 import { Icon } from "../design/icons";
+import { useScopedId } from "../design/ids";
 import { type Linking, PageLink } from "../design/links";
 import type { Host } from "./bridge";
-import { sendEdit } from "./edits";
 import { useLinking } from "./linking";
 import { groupAddress } from "./links";
 import { groupName, topicName } from "./names";
 import type { TopicChoice } from "./payload";
+import { useService } from "./service";
 import { topicGroups } from "./topicGroups";
 import { type Key, useWords } from "./words";
 
@@ -67,7 +68,6 @@ function within(ms: number, promise: Promise<void>): Promise<void> {
  * button as it closes.
  */
 export function useTopicChoice(
-	host: Host,
 	offered: TopicChoice | undefined,
 	{
 		busy,
@@ -80,6 +80,7 @@ export function useTopicChoice(
 	},
 ): Choosing {
 	const words = useWords();
+	const service = useService();
 	const [state, setState] = useState<{
 		chosen: string | null;
 		open: boolean;
@@ -88,7 +89,7 @@ export function useTopicChoice(
 	const saving = useRef(false);
 	const button = useRef<HTMLButtonElement>(null);
 	const panel = useRef<HTMLElement>(null);
-	const panelId = useId();
+	const panelId = useScopedId();
 
 	useEffect(() => {
 		if (state.open) {
@@ -119,7 +120,7 @@ export function useTopicChoice(
 		}
 		saving.current = true;
 		setState((was) => ({ ...was, said: "saving" }));
-		const outcome = await sendEdit(host, { lesson_topic: topic ?? "" });
+		const outcome = await service.saveEdit({ lesson_topic: topic ?? "" });
 		if (outcome.kind !== "saved") {
 			saving.current = false;
 			setState((was) => ({
@@ -233,7 +234,7 @@ export function TopicPanel({
 }) {
 	const words = useWords();
 	const linking = useLinking(host, words.text("progress.link_refused"));
-	const title = useId();
+	const title = useScopedId();
 	const option = (topic: string) => {
 		const from = taughtFrom.get(topic) ?? 0;
 		return (

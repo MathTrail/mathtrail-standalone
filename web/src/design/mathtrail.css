@@ -275,10 +275,12 @@
 	background: var(--surface);
 	color: var(--text);
 	text-align: start;
+}
+button.mt-bar {
 	cursor: pointer;
 }
 @media (hover: hover) {
-	.mt-bar:hover {
+	button.mt-bar:hover {
 		background: var(--hover);
 	}
 }

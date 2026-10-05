@@ -27,6 +27,7 @@ export default defineConfig({
 				"tools/**/testing/**",
 				"src/preview/**",
 				"src/widget/main.ts",
+				"src/demo/main.tsx",
 				"scripts/drive.ts",
 				"scripts/layout.ts",
 				"scripts/screens.ts",

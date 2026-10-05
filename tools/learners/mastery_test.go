@@ -192,7 +192,7 @@ func TestAMasteryIsReadAtTheLevelItIsHeldAt(t *testing.T) {
 	held, since := rating.Grades12, profile.DateOf(firstDay)
 	summary.MasteredLevel, summary.MasteredSince = &held, &since
 	p.Topics["t"] = summary
-	s := &session{c: c, p: p, est: &stub{at: c.level("t")}}
+	s := &session{w: &world{catalog: oneTopic{}}, c: c, p: p, est: &stub{at: c.level("t")}}
 	r := newChildResult(c)
 	brief := profile.Brief{TargetConcept: "t", GradeLevel: rating.Grades34}
 	r.after(s, &brief, &profile.Recorded{Mastered: true}, &observedAnswer{}, 30)

@@ -112,21 +112,25 @@ type childResult struct {
 	pairs                   map[string]*pairTrack
 	reachable               int
 	screen                  screenRecord
+	keptUp                  keptUp
+	shown                   []*shownMastery
+	following               map[string]*shownMastery
 }
 
 func newChildResult(*child) *childResult {
 	return &childResult{
 		errorRMS: map[int]float64{}, errorMean: map[int]float64{}, placed: map[int]float64{},
-		late: map[topicLevel]*lateItem{}, pairs: map[string]*pairTrack{},
+		late: map[topicLevel]*lateItem{}, pairs: map[string]*pairTrack{}, following: map[string]*shownMastery{},
 	}
 }
 
 // observedAnswer is what is known of an answer before the rule takes it in —
-// the rule's level in the topic and overall among it — and whether the
-// profile held the task's topic mastered at its level or above before it.
+// the rule's level in the topic and overall among it — whether the profile
+// held the task's topic mastered at its level or above before it, and whether
+// the progress showed the topic mastered.
 type observedAnswer struct {
 	estimate, overall, truth, predicted, chance float64
-	correct, heldMastered                       bool
+	correct, heldMastered, shownBefore          bool
 }
 
 // observeBefore measures an answer at the moment the task is set: the rule's
@@ -140,6 +144,7 @@ func (s *session) observeBefore(brief *profile.Brief, beta, truth float64, corre
 		estimate: s.est.level(topic), overall: s.est.overall(), truth: s.c.level(topic),
 		predicted: s.est.chance(topic, beta), chance: truth,
 		correct: correct, heldMastered: masteredAtOrAbove(s.p, topic, brief.GradeLevel),
+		shownBefore: s.showsMastered(topic),
 	}
 	if s.reachable(topic) {
 		r.reachable++
@@ -193,7 +198,8 @@ func (r *childResult) firstTasks(k int, truth float64, correct bool) {
 // after measures what the answer did: whether it declared a topic mastered,
 // and whether rightly, read at the level the topic is held mastered at, which
 // a rule may set below the task's; how long a mastery the child has was left
-// undeclared; and the eligible attempts a false "mastered" is counted over.
+// undeclared; the eligible attempts a false "mastered" is counted over; and
+// what the report would read of it in the service's log.
 func (r *childResult) after(s *session, brief *profile.Brief, recorded *profile.Recorded, o *observedAnswer, k int) {
 	topic, level := brief.TargetConcept, brief.GradeLevel
 	truth := s.c.truthAt(topic, level)
@@ -223,6 +229,7 @@ func (r *childResult) after(s *session, brief *profile.Brief, recorded *profile.
 	r.followPair(topic, recorded, truth, o.chance)
 	r.followJump(s, topic, k)
 	r.screen.after(s, topic, o, k)
+	r.live(s, recorded, o)
 }
 
 // reachable says whether the topic's ladder holds a task whose true chance,

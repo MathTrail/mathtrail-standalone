@@ -35,6 +35,8 @@ func write(out io.Writer, c *counts) error {
 			"as 1 and a wrong one as 0, less the chance promised, on average, with the standard error of that " +
 			"mean. Above zero the child did better than the estimate promised, which is how an estimate that " +
 			"falls behind a learning child shows; below zero, worse.", c.keptUpTable()},
+		{"Later answers against earlier", c.laterAbout(), c.laterTable()},
+		{"Masteries taken back", c.masteriesAbout(), c.masteriesTable()},
 		{"Limits reached", "A pace writes one line for a flood of refusals, and a day's ceiling one for every " +
 			"call it refused.", c.limitsTable()},
 		{"Tool calls", "Milliseconds are the service's own time for a call, its calls to Drive included; without " +

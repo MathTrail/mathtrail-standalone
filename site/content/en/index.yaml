@@ -78,8 +78,13 @@ lesson:
 task:
   question: A fence is 12 metres long. Posts stand every 3 metres, including at both ends. How many posts are there?
   hint: Try a smaller fence first, 6 metres long, with a post every 3 metres. Draw it and count the posts.
-  # The trap behind the wrong option the steps pick, as the card says it.
-  trap: Counted the gaps instead of the posts.
+  # The trap behind each wrong option, as the card says it once that option
+  # is picked: the steps pick one, and the card on the first screen any.
+  traps:
+    a: Gave the gap between the posts, not the number of posts.
+    b: Counted the gaps instead of the posts.
+    d: Multiplied the length by the gap instead of dividing it.
+    e: Took the length of the fence from the question instead of counting the posts.
   # The solution, a sentence for each step the card numbers.
   solution: 12 ÷ 3 = 4 gaps. A straight fence with posts at both ends has one post more than gaps. 4 + 1 = 5 posts.
 

@@ -457,7 +457,7 @@
 				"E": "number_from_text"
 			},
 			"choice": "B",
-			"rating": { "before": 1502, "after": 1480 }
+			"rating": { "before": 1502, "wrong": 1480, "right": 1524 }
 		},
 		"traps": ["off_by_one", "missed_case", "double_count"]
 	}

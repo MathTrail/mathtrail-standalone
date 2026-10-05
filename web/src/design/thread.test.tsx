@@ -3,7 +3,7 @@ import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { Icon, Mark } from "./icons";
 import { drawingAlone, drawingOf, drawnAlone } from "./testing/drawing";
-import { MessageHeader, ReplyCard, ThreadBar } from "./thread";
+import { MessageHeader, NameBar, ReplyCard, ThreadBar } from "./thread";
 
 const root = document.createElement("div");
 
@@ -38,6 +38,16 @@ describe("the line at the top", () => {
 		const bar = root.querySelector("button.mt-bar");
 		expect(bar?.classList.contains("mt-bar-back")).toBe(true);
 		expect(bar?.textContent).toBe("Back to task");
+	});
+
+	test("where there is no progress to open names the child and offers nothing to press", () => {
+		draw(<NameBar name="Comet" />);
+
+		const bar = root.querySelector(".mt-bar");
+		expect(bar?.tagName.toLowerCase()).toBe("div");
+		expect(bar?.textContent).toBe("Comet");
+		expect(root.querySelector("button")).toBeNull();
+		expect(root.querySelector(".mt-bar-action, .mt-chevron")).toBeNull();
 	});
 });
 

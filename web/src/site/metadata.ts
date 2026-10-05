@@ -1,4 +1,5 @@
 import { address, alternatesOf } from "./addresses";
+import { coachPrototypePath, photoDirectory } from "./brand";
 import { frontPage, type Texts } from "./content";
 
 // The names the sitemap protocol gives its two vocabularies. They are names,
@@ -39,9 +40,16 @@ export function sitemap(texts: Texts, base: string, reference: string): string {
 	].join("\n");
 }
 
-/** robots lets every crawler in, and tells it where the sitemap is. */
+/**
+ * robots lets every crawler in but to the coach's prototype and the site's
+ * photographs, and tells it where the sitemap is. The prototype is a document
+ * the coach's page frames, not a page: found alone, it would stand in a search
+ * result with no word of what it is. The photographs are the family's,
+ * children's faces among them: the page that shows them is found by a
+ * search, and they are not found apart from it.
+ */
 export function robots(base: string): string {
-	return `User-agent: *\nAllow: /\n\nSitemap: ${base}/sitemap.xml\n`;
+	return `User-agent: *\nAllow: /\nDisallow: ${coachPrototypePath}\nDisallow: ${photoDirectory}\n\nSitemap: ${base}/sitemap.xml\n`;
 }
 
 /**

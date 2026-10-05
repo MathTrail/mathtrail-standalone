@@ -61,9 +61,9 @@ describe("the files a crawler and the host read", () => {
 		);
 	});
 
-	test("let every crawler in and point it at the sitemap", () => {
+	test("let every crawler in but to the coach's prototype and the photographs, and point it at the sitemap", () => {
 		expect(robots(base)).toBe(
-			"User-agent: *\nAllow: /\n\nSitemap: https://example.test/sitemap.xml\n",
+			"User-agent: *\nAllow: /\nDisallow: /assets/coach-prototype.html\nDisallow: /assets/photos/\n\nSitemap: https://example.test/sitemap.xml\n",
 		);
 	});
 

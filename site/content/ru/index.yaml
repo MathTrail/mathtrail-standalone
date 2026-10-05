@@ -78,8 +78,13 @@ lesson:
 task:
   question: Забор длиной 12 метров. Столбы стоят через каждые 3 метра, включая оба конца. Сколько всего столбов?
   hint: "Начни с забора поменьше: 6 метров, столб через каждые 3 метра. Нарисуй его и посчитай столбы."
-  # The trap behind the wrong option the steps pick, as the card says it.
-  trap: Посчитаны промежутки, а не столбы.
+  # The trap behind each wrong option, as the card says it once that option
+  # is picked: the steps pick one, and the card on the first screen any.
+  traps:
+    a: Назван шаг между столбами, а не число столбов.
+    b: Посчитаны промежутки, а не столбы.
+    d: Длина умножена на шаг, а не поделена на него.
+    e: Взята длина забора из условия, а столбы не посчитаны.
   # The solution, a sentence for each step the card numbers.
   solution: "12 : 3 = 4 промежутка. У прямого забора со столбами на обоих концах столбов на один больше, чем промежутков. 4 + 1 = 5 столбов."
 

@@ -1,5 +1,6 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
 import { describe, expect, test } from "vitest";
+import { letters } from "./choices";
 import {
 	type Answer,
 	canAnswer,
@@ -12,7 +13,7 @@ import {
 	next,
 	optionStateOf,
 } from "./lesson";
-import { type AnswerResult, letters } from "./payload";
+import type { AnswerResult } from "./payload";
 import {
 	answered,
 	dontKnowAnswer,

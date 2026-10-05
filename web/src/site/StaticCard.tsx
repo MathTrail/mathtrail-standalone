@@ -2,6 +2,7 @@ import type { ComponentChildren } from "preact";
 import type { Host } from "../widget/bridge";
 import { CardRoot } from "../widget/CardRoot";
 import { ComingCard } from "../widget/ComingCard";
+import { cardWords } from "../widget/dictionaries";
 import type { Open } from "../widget/folds";
 import type { Lesson } from "../widget/lesson";
 import { ProgressScreen } from "../widget/ProgressScreen";
@@ -13,7 +14,7 @@ import type {
 } from "../widget/payload";
 import { TaskCard } from "../widget/TaskCard";
 import { NamesBuild, versionGiven } from "../widget/version";
-import { cardWords, WordsContext } from "../widget/words";
+import { WordsContext } from "../widget/words";
 
 // stillHost answers nothing and opens nothing: a card drawn on a page has no
 // chat behind it, and being inert, it never asks.

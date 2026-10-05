@@ -80,7 +80,10 @@ A topic is **truly mastered** at a level when the child's true chance on a task 
 | R7 placement | `r7_error_5`, `r7_error_10`, `r7_longest_wrong`, `r7_hard_first` | The error of the overall level after 5 and 10 answers, the longest run of wrong answers among the first 15, and the share of the first 10 tasks whose true chance is below 0.50 |
 | R8 the screen | `r8_move_p95_W`, `r8_rank_W`, `r8_topic_rank_W` | What the child is shown, in two windows W of answers, 6–20 (`6_20`), the first after the trial series, which shows no rating, and 150–200 (`150_200`): how far the topic's rating on the card moves after an answer, `|before − after|` in rating points as the card shows them, at the 95th percentile of every answer in the window of every child of the cell; and how many times in a hundred answers the overall rank, on the progress screen, and the rank of the topic answered change |
 
-R8 is read off the rule's own estimate, through the product's own `rating.Elo`, `rating.Shown` and `rating.Rank`, as the card and the progress screen would show it.
+| R9 the later against the earlier | `r9_kept_up_6_50`, `r9_kept_up_101_200`, `r9_kept_up_later_less_earlier` | The answers after the trial series and without the hint: a right one as 1 and a wrong one as 0, less the chance the service promised, written to two places, on average over the answers 6–50 of the cell's children and over their answers 101–200; and the later less the earlier, over the children with answers in both |
+| R10 masteries taken back | `r10_shown`, `r10_taken_back_5`, `r10_taken_back_10` | How many topics a child was shown as mastered — on an answer that declared a mastery the progress shows, while it did not show the topic before —, and the share of them taken back, at the second wrong answer in a row in the topic, within the first 5 and 10 answers there after it, by Kaplan–Meier: a mastery the run stopped following earlier, at its end or at the topic shown as mastered again, counts for the answers it was followed through |
+
+R8 is read off the rule's own estimate, through the product's own `rating.Elo`, `rating.Shown` and `rating.Rank`, as the card and the progress screen would show it. R9 and R10 read the simulated children as the service's report reads the log of live ones — its tables "Later answers against earlier" and "Masteries taken back" (SPEC 12.4) —, so that the two can be laid side by side: see [Reading the live numbers](#reading-the-live-numbers). A mastery shown is the one the service writes `topic_mastered` for, read with `tutor.Mastered` before the answer and after it, and a property holds what the report reads as taken back to the service's own losing of the mastery, on any sequence of answers.
 
 Every number is read off all the children of its cell, with a 95 % interval from 2,000 resamples of the children. A comparison is the difference between two cells over the same children, with an interval from the same resamples taken in both. Four groups of comparisons are made of the rules a run has, in `comparisons.csv`, the last two when the run has their rules:
 
@@ -607,6 +610,56 @@ Rolled back, the student model turns the guard red. With the overall step's floo
 `just ci-learners -update` records the bands again. It is for a change meant to move the model, whose whole run has been read and whose reason is written down with it; the new `guard.csv` is read in the change's review, as a snapshot is, since recording turns a red guard green. The bands are recorded on amd64, where Go fuses no multiplication with an addition; elsewhere the last digits of the numbers may part from them, well within any band. A change elsewhere, to the catalog's topics say, that moves the numbers within their bands passes; one that moves them past, for better or for worse, is recorded again with its reason.
 
 The guard holds the numbers of a run to the bands by its measures alone, so the same check can read the service's cells of any run on these generators.
+
+## Reading the live numbers
+
+The floor under the overall step and the cautious estimate of mastery (R187) were chosen on simulated children. Two tables of the service's report hold them to live ones (SPEC 12.4, R199): each child's later answers set against its earlier, and the masteries taken back. R9 and R10 read the bench's children the same way, and this is how the two are laid side by side. The rule was written on 2026-10-05, before any live number was read, so that what the numbers turn out to be cannot shape how they are read, as the criterion was written before any candidate ran.
+
+What the bench reads of the service, from its own run (`results/`), a thousand children a cell, with 95 % intervals where the rule reads them:
+
+| Generator | Earlier, 6–50 | Later, 101–200 | Later less earlier | Masteries shown, a child | Taken back within 5 answers | Taken back within 10 answers |
+|---|---:|---:|---:|---:|---:|---:|
+| G0 | −0.011 | +0.002 | +0.013 [0.007, 0.019] | 3.7 | 17.6 % | 34.3 % [31.2, 38.1] |
+| G1 | −0.009 | +0.004 | +0.014 [0.008, 0.020] | 5.6 | 14.8 % | 32.8 % [29.8, 36.0] |
+| G2 | +0.021 | +0.106 | +0.084 [0.079, 0.089] | 4.9 | 6.6 % | 13.2 % [11.5, 15.0] |
+| G3 | −0.018 | +0.064 | +0.082 [0.076, 0.088] | 3.9 | 9.1 % | 19.1 % [16.2, 21.9] |
+| G4 | −0.032 | −0.003 | +0.029 [0.023, 0.035] | 3.3 | 18.5 % | 35.2 % [31.5, 39.1] |
+| G5 | −0.029 | −0.002 | +0.028 [0.021, 0.034] | 3.8 | 20.2 % | 38.2 % [34.7, 41.7] |
+| G6 | −0.018 | −0.007 | +0.011 [0.005, 0.017] | 3.6 | 20.1 % | 36.9 % [33.7, 40.0] |
+| G7 | −0.011 | −0.001 | +0.011 [0.005, 0.017] | 3.6 | 20.0 % | 40.7 % [37.0, 44.3] |
+| G8 | −0.014 | +0.003 | +0.017 [0.011, 0.024] | 3.6 | 17.8 % | 36.8 % [33.3, 40.7] |
+| G0-exact | −0.003 | +0.003 | +0.006 [0.000, 0.012] | 3.8 | 16.2 % | 33.9 % [30.4, 37.5] |
+| G0-miss0.25 | −0.017 | +0.001 | +0.018 [0.012, 0.024] | 3.7 | 17.4 % | 35.0 % [31.4, 38.8] |
+| G0-miss1 | −0.016 | −0.001 | +0.015 [0.009, 0.022] | 3.8 | 16.4 % | 35.8 % [32.0, 39.8] |
+| G2-half | +0.004 | +0.058 | +0.054 [0.048, 0.060] | 4.1 | 10.8 % | 22.0 % [19.5, 24.8] |
+| G2-fading | +0.002 | +0.041 | +0.039 [0.033, 0.045] | 3.9 | 12.1 % | 27.7 % [24.5, 31.0] |
+| G3-drop | −0.016 | −0.071 | −0.056 [−0.062, −0.049] | 4.2 | 31.3 % | 53.8 % [50.9, 57.0] |
+| G0-start0.5 | −0.014 | 0.000 | +0.014 [0.007, 0.019] | 3.7 | 18.6 % | 35.0 % [31.8, 38.4] |
+| G0-start2 | −0.013 | +0.004 | +0.017 [0.011, 0.024] | 4.5 | 15.9 % | 33.5 % [30.4, 37.1] |
+| G0-topics0.3 | −0.017 | −0.003 | +0.014 [0.008, 0.020] | 3.8 | 20.3 % | 36.5 % [33.2, 40.0] |
+| G0-topics1 | −0.026 | +0.003 | +0.029 [0.022, 0.035] | 3.5 | 20.3 % | 39.4 % [36.0, 43.0] |
+
+A child who stays put still comes out a little under its promise early on and nearer it later, so the difference is above zero without any learning: near the corridor's middle an estimate off either way costs more chance than it gives, and early on the estimate is further off. A true mastery is taken back now and then too: after it, the rule still sets tasks at the corridor's middle, where a child slips twice in a row now and then. So a third of the masteries shown to a child who stays put are taken back within ten answers, though only 3.6 % of those the service declares to such a child are false (R4).
+
+**When, and what.** The model came out in v0.2.6, rolled out on 2026-10-04. Once enough has gathered, the author runs `just report since=<whole days since then>`, at most 30, which is what the log keeps, and reads the rows of that release's instructions version over every host, `(every host)`.
+
+**The floor under the step.**
+
+- *Enough to read:* both ranges hold at least 20 children and 300 answers, and the standard error of the later less the earlier is at most a third of what parts G2 from G2-half on the bench: 0.010.
+- *The band* runs from the lowest difference among the generators whose children's levels do not move — G0 and its variants, G1, G4 to G8 —, 0.006 (G0-exact), to the main learner's, G2-half's 0.054, plus the spread of those generators, 0.023: from 0.006 to 0.077.
+- *It holds* when the live difference, two standard errors either way, meets the band.
+- *Above the band*, the difference less two errors past 0.077, children learn faster than the bench's, and the floor is chosen again.
+- *Below it*, the difference and two errors under 0.006, does not mean a lower floor. What is behind it is found first — forgetting, children who leave, a model whose miss grows with the level —, and the bench, given a generator that repeats it, decides which way the floor moves.
+
+**Mastery.**
+
+- *Enough to read:* at least 20 children and 100 masteries settled by the tenth answer, taken back by then or followed to it, and a standard error of the share of at most 0.03.
+- *It holds* when the live share taken back within ten answers, less two standard errors, is no higher than the highest of the service's on G0, G0-topics1 and G2-half: 39.4 % (G0-topics1).
+- *Above it*, masteries are taken back more often than on any child the margin was chosen on, and the margin z is chosen again.
+
+**Choosing again** is a decision of its own: a generator, on seeds of its own, that repeats the live number; the criterion run over floors of 0.02, 0.05 and 0.1, or over margins z, on 4,000 of its children; a confirmation on held-out seeds no run has looked at, since those the model was confirmed on are spent; and then the decision written, SPEC 2.2 or 2.5 brought to it, the guard's bands recorded again and the carried-over rows of the service rewritten by hand.
+
+**When thirty days are too few.** The log keeps a month. A longer window needs the counts kept for years to carry, by month and instructions version, each child's sums in the two ranges and the masteries at each of the first ten answers after they were shown; until they do, it waits.
 
 ## Running it
 

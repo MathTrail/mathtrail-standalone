@@ -1,74 +1,13 @@
 import { createContext } from "preact";
 import { useContext } from "preact/hooks";
-import english from "../../locales/en.json";
-import { chooseLocale } from "../i18n/lookup";
-import { pseudoLocale, pseudoWords } from "../i18n/pseudo";
-import {
-	type Dictionary,
-	dictionariesByTag,
-	openWords,
-	type Words,
-} from "../i18n/words";
+import type english from "../../locales/en.json";
+import type { Words } from "../i18n/words";
 
 /**
  * Key names a text of the widget: a key of its English words, which the words
  * of every other language have too.
  */
 export type Key = keyof typeof english;
-
-// written are the dictionaries of the languages the widget is written in, by
-// the tag their file is named after.
-const written: ReadonlyMap<string, Dictionary> = dictionariesByTag(
-	import.meta.glob<Dictionary>("../../locales/*.json", {
-		eager: true,
-		import: "default",
-	}),
-);
-
-/**
- * dictionaries are the widget's words in every language it speaks, by the tag
- * their file is named after. The page carries all of them: a card can load
- * nothing, so a language it does not carry is one it can never speak. The
- * preview and the widget's tests speak the pseudo-language too — English
- * stretched as a longer language stretches it, to see a card hold longer
- * words — and a build for production leaves it out, since a host could name
- * it. It is the build's mode that decides, not the environment it runs in.
- */
-export const dictionaries: ReadonlyMap<string, Dictionary> =
-	import.meta.env.MODE === "production"
-		? written
-		: new Map([...written, [pseudoLocale, pseudoWords(english)]]);
-
-const spoken: ReadonlySet<string> = new Set(dictionaries.keys());
-
-/**
- * lessonLanguages are the languages a parent can choose for the lessons on a
- * card: every one the widget is written in, so that a card of the lessons
- * speaks the language its task is written in. The pseudo-language is no
- * language a lesson is held in.
- */
-export const lessonLanguages: readonly string[] = [...written.keys()];
-
-/**
- * isKey says whether key names a text of the widget: one its English words
- * have, as the words of every other language do.
- */
-export function isKey(key: string): key is Key {
-	const english = dictionaries.get("en");
-	return english !== undefined && Object.hasOwn(english, key);
-}
-
-/**
- * cardWords are the words a card speaks: in the language its payload names
- * when the widget has words for it, in the host's otherwise, and in English
- * when it has words for neither.
- */
-export function cardWords(
-	named: string | undefined,
-	host: string | undefined,
-): Words<Key> {
-	return openWords<Key>(chooseLocale([named, host], spoken), dictionaries);
-}
 
 /**
  * languageIn is the language a card speaks, as its payload names it: the
@@ -128,16 +67,23 @@ export function percentText(words: Words<Key>, percent: number): string {
 }
 
 /**
- * WordsContext hands a card's words to everything drawn inside it. A component
- * drawn outside any card speaks English.
+ * WordsContext hands a card's words to everything drawn inside it. The place
+ * a card is drawn in gives them — the widget's page in the language its
+ * payload names, a page of the site in its own — and a component drawn
+ * outside any card has none: that is a mistake to mend, not a card to show in
+ * English.
  */
-export const WordsContext = createContext<Words<Key>>(
-	cardWords(undefined, undefined),
-);
+export const WordsContext = createContext<Words<Key> | undefined>(undefined);
 
 /** useWords are the words of the card a component is drawn in. */
 export function useWords(): Words<Key> {
-	return useContext(WordsContext);
+	const words = useContext(WordsContext);
+	if (words === undefined) {
+		throw new Error(
+			"widget: a component of a card was drawn outside any card, with no words to speak",
+		);
+	}
+	return words;
 }
 
 /**

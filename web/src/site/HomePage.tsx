@@ -1,9 +1,10 @@
 import type { ComponentChildren } from "preact";
+import { type DemoData, DemoDataScript } from "../demo/data";
+import { cardWords, dictionaries } from "../widget/dictionaries";
 import type { Section } from "../widget/folds";
 import { lessonStart } from "../widget/lesson";
 import { trapName } from "../widget/names";
 import type { HandedTask, ProgressReport } from "../widget/payload";
-import { cardWords } from "../widget/words";
 import { sectionAddress } from "./addresses";
 import {
 	chatGPTDeveloperModeURL,
@@ -18,7 +19,10 @@ import {
 	connectAddress,
 	connectSection,
 	type Home,
+	type HomeResults,
+	type HomeWords,
 	homeAnswerOf,
+	homeResultsOf,
 	homeTaskOf,
 	lessonSection,
 } from "./home";
@@ -39,14 +43,22 @@ import { gradesRange, gradesText, useSiteWords } from "./words";
 // mistakes that repeat.
 const progressOpen: ReadonlySet<Section> = new Set(["topics", "mistakes"]);
 
+// demoScript is where the home page's demo is served: one module, which the
+// site's build makes of web/src/demo.
+const demoScript = "/assets/demo.js";
+
 /**
  * HomePage is the site's front page, for a parent: what MathTrail is, beside
  * the card of a task as a chat draws it; why asking the chat alone is not
  * enough; how a lesson goes, step by step, each step beside the card as it
  * stands at that step; how to connect MathTrail; and a last call to start.
- * Nothing on it runs: every card is drawn once, when the site is built. The
- * grades are the catalog's, the names of the traps and the cards' words the
- * widget's, and the lesson's task the site's data said in the page's words.
+ * Every card is drawn when the site is built, and the page reads in full as
+ * it is drawn. Its demo, when it runs, brings the card on the first screen
+ * alive, gives the steps one card on a wide window and the connector's
+ * address a button that copies it; the page carries what the demo needs, so
+ * that it loads nothing else. The grades are the catalog's, the names of the
+ * traps and the cards' words the widget's, and the lesson's task the site's
+ * data said in the page's words.
  */
 export function HomePage({ page, data }: PageProps) {
 	const home = data.home;
@@ -72,30 +84,58 @@ export function HomePage({ page, data }: PageProps) {
 			/>
 			<Connect page={page} />
 			<Ask page={page} />
+			<DemoDataScript data={demoOf(page, lesson)} />
+			<script type="module" src={demoScript} />
 		</>
 	);
 }
 
+// demoOf is what the demo needs to bring the card on the first screen alive:
+// the widget's words in the page's language alone, the lesson's task, and
+// what the service would record of every answer to it.
+function demoOf(page: PageReader, lesson: LessonCards): DemoData {
+	const words = dictionaries.get(page.locale);
+	if (words === undefined) {
+		throw new Error(
+			`the widget has no words in ${page.locale}, the language of the home page its demo speaks`,
+		);
+	}
+	return {
+		locale: page.locale,
+		words,
+		handed: lesson.handed,
+		results: lesson.results,
+	};
+}
+
 // LessonCards are the lesson's task as its cards draw it: handed out, and
-// answered with the option the steps pick.
+// answered with the option the steps pick; and what the service would record
+// of every answer to it, which the demo answers with.
 type LessonCards = {
 	readonly handed: HandedTask;
 	readonly answered: WrongAnswer;
+	readonly results: HomeResults;
 };
 
 // lessonOf is the lesson's task of the site's data, said in the page's words.
 function lessonOf(page: PageReader, home: Home): LessonCards {
-	const said = {
+	const said: HomeWords = {
 		language: page.locale,
 		child: page.plain("lesson.child"),
 		question: page.plain("task.question"),
 		hint: page.plain("task.hint"),
-		trap: page.plain("task.trap"),
+		traps: Object.fromEntries(
+			Object.keys(home.card.traps).map((letter) => [
+				letter,
+				page.plain(`task.traps.${letter.toLowerCase()}`),
+			]),
+		),
 		solution: page.plain("task.solution"),
 	};
 	return {
 		handed: homeTaskOf(home.card, said),
 		answered: homeAnswerOf(home.card, said),
+		results: homeResultsOf(home.card, said),
 	};
 }
 
@@ -364,9 +404,12 @@ function Connect({ page }: { page: PageReader }) {
 										})}
 									</p>
 									{name === "paste" && (
-										<code class="s-address" dir="ltr">
-											{connectorURL}
-										</code>
+										<>
+											<code class="s-address" dir="ltr">
+												{connectorURL}
+											</code>
+											<CopyButton />
+										</>
 									)}
 								</div>
 							</li>
@@ -393,6 +436,21 @@ function Connect({ page }: { page: PageReader }) {
 			</div>
 			<p class="s-connect-need">{page.text("connect.need")}</p>
 		</section>
+	);
+}
+
+// CopyButton is the button that copies the address before it, kept in a
+// template: the demo puts it beside the address where the browser lets a page
+// copy, and a page read without the demo shows no button that does nothing.
+function CopyButton() {
+	const words = useSiteWords();
+	return (
+		<template data-copy="">
+			<button type="button" class="s-copy" data-done={words.text("copy.done")}>
+				{words.text("copy.action")}
+			</button>
+			<span class="s-hidden" aria-live="polite" />
+		</template>
 	);
 }
 

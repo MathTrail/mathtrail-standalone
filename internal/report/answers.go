@@ -281,8 +281,7 @@ func (c *counts) keptUpTable() *table {
 // after them, by name.
 func compareAnswerRanges(a, b string) int {
 	first := func(named string) int {
-		digits := named[:len(named)-len(strings.TrimLeft(named, "0123456789"))]
-		if n, err := strconv.Atoi(digits); err == nil {
+		if n, read := firstAnswerOf(named); read {
 			return n
 		}
 		return math.MaxInt
@@ -290,20 +289,45 @@ func compareAnswerRanges(a, b string) int {
 	return cmp.Or(cmp.Compare(first(a), first(b)), cmp.Compare(a, b))
 }
 
+// firstAnswerOf is the first of the child's answers a range holds, read from
+// its name as the service writes it: 6 of 6-20, 201 of 201+.
+func firstAnswerOf(named string) (int, bool) {
+	digits := named[:len(named)-len(strings.TrimLeft(named, "0123456789"))]
+	n, err := strconv.Atoi(digits)
+	return n, err == nil
+}
+
+// lastAnswerOf is the last of the child's answers a range holds, read from
+// its name: 20 of 6-20. A range open at its end, such as 201+, has none.
+func lastAnswerOf(named string) (int, bool) {
+	_, last, found := strings.Cut(named, "-")
+	if !found {
+		return 0, false
+	}
+	n, err := strconv.Atoi(last)
+	return n, err == nil
+}
+
 // hundredths is a share or a chance to two places.
 func hundredths(x float64) string { return strconv.FormatFloat(x, 'f', 2, 64) }
 
 // signed is a difference to two places, with its sign: above zero is a child
 // who did better than promised.
-func signed(x float64) string {
-	rounded := math.Round(x*100) / 100
+func signed(x float64) string { return signedTo(x, 2) }
+
+// signedTo is a difference to so many places, with its sign; one that rounds
+// to nothing has none.
+func signedTo(x float64, places int) string {
+	scale := math.Pow(10, float64(places))
+	rounded := math.Round(x*scale) / scale
+	written := strconv.FormatFloat(rounded, 'f', places, 64)
 	switch {
 	case rounded > 0:
-		return "+" + hundredths(rounded)
+		return "+" + written
 	case rounded < 0:
-		return hundredths(rounded)
+		return written
 	default:
-		return hundredths(0)
+		return strconv.FormatFloat(0, 'f', places, 64)
 	}
 }
 

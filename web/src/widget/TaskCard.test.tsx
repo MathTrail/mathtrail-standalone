@@ -3,7 +3,9 @@ import { render } from "preact";
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import type { Host } from "./bridge";
+import { cardWords } from "./dictionaries";
 import { readAnswer } from "./payload";
+import { type Service, ServiceContext } from "./service";
 import { TaskCard } from "./TaskCard";
 import {
 	buttonIn,
@@ -31,7 +33,7 @@ import {
 	toldAgain,
 	trialAnswer,
 } from "./testing/lesson";
-import { cardWords, WordsContext } from "./words";
+import { WordsContext } from "./words";
 
 let root: HTMLElement;
 
@@ -870,6 +872,57 @@ describe("a lesson begun with its answer in", () => {
 		expect(replies()).toHaveLength(1);
 		expect(shownButtons()).toEqual(["Another task"]);
 		expect(asked).toEqual([]);
+	});
+});
+
+describe("a card drawn where a page answers for the service", () => {
+	// A page that shows a card live answers for the service itself: the card
+	// asks the service it is given, and never calls a tool through a host.
+	test("records an answer through that service, and calls no tool", async () => {
+		const recorded = readAnswer(answered(), fence.task.id);
+		if (recorded.kind !== "answered") {
+			throw new Error("the example is no answer recorded");
+		}
+		const tools: string[] = [];
+		const host: Host = {
+			callTool: (name) => {
+				tools.push(name);
+				return Promise.reject(new Error("no tool is called on this page"));
+			},
+			sendMessage: () => Promise.resolve(),
+			tellModel: () => Promise.resolve(),
+			canOpenLinks: () => false,
+			openLink: () => Promise.resolve(false),
+		};
+		const answers: unknown[][] = [];
+		const page: Service = {
+			recordAnswer: (...given) => {
+				answers.push(given);
+				return Promise.resolve(recorded);
+			},
+			taskStatus: () => Promise.resolve({ kind: "unknown" }),
+			saveEdit: () => Promise.resolve({ kind: "failed" }),
+		};
+		root = document.createElement("div");
+		document.body.append(root);
+		act(() =>
+			render(
+				<WordsContext.Provider value={cardWords("en", undefined)}>
+					<ServiceContext.Provider value={page}>
+						<TaskCard handed={fence} host={host} />
+					</ServiceContext.Provider>
+				</WordsContext.Provider>,
+				root,
+			),
+		);
+
+		press(option("B"));
+
+		await vi.waitFor(() =>
+			expect(text(".mt-verdict-line")).toBe("Not quite — it's 5, not 4."),
+		);
+		expect(answers).toEqual([["task_fence", "B", false]]);
+		expect(tools).toEqual([]);
 	});
 });
 

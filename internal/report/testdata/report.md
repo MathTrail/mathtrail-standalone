@@ -1,6 +1,6 @@
 # What the log adds up to
 
-135 lines of the service's, from 2026-09-28 10:00:00 UTC to 2026-09-30 08:16:30 UTC. 2 more lines, not the service's, were left out.
+142 lines of the service's, from 2026-09-28 10:00:00 UTC to 2026-09-30 08:16:30 UTC. 2 more lines, not the service's, were left out.
 
 ## Tasks
 
@@ -41,7 +41,7 @@ Answers to tasks the rule chose, after the trial series and without the hint, by
 | Instructions | Host | Chance | Answers | Children | Promised | Came true |
 |---|---|---|---:|---:|---:|---:|
 | 88b63e22129c | claude | 0.70-0.77 | 3 | 3 | too few | too few |
-| 88b63e22129c | claude | 0.78-0.85 | 32 | 4 | 0.80 | 0.81 |
+| 88b63e22129c | claude | 0.78-0.85 | 35 | 4 | 0.80 | 0.77 |
 
 ## How the estimate keeps up
 
@@ -51,6 +51,25 @@ The same answers by which of the child's answers each was: a right answer as 1 a
 |---|---|---|---:|---:|---:|---:|
 | 88b63e22129c | claude | 6-20 | 32 | 4 | +0.01 | 0.04 |
 | 88b63e22129c | claude | 21-50 | 3 | 3 | too few | too few |
+| 88b63e22129c | claude | 101-200 | 3 | 2 | too few | too few |
+
+## Later answers against earlier
+
+The same answers once more, of the children with answers in two ranges of their own: earlier, from the first after the trial series to the 50th, and later, from the 101st to the 200th — where a child of the learners' bench stops answering, so that the two can be laid side by side. Each child is set against itself: in each range a right answer as 1 and a wrong one as 0, less the chance promised, on average over the answers there, and the later less the earlier, with its standard error counted by child, a child's answers in both ranges together. What leans the same way in both ranges falls out of the difference — the answers the weighing leaves out, a model that misses the difficulty it is asked for —, and a child who stopped before its 101st answer is left out rather than read against the children who went on. Above zero, the later answers came out right more often against their promise than the earlier: the estimate falls further behind as the answers pile up; below zero, it falls behind less, or runs ahead. (every host) takes a version's hosts together; a child the load tool or MCP Inspector handed a task to is left out, and so are their calls. A range of fewer than 30 answers says too few; the numbers are to three places.
+
+| Instructions | Host | Children | Answers earlier | Came true less promised, earlier | Answers later | Came true less promised, later | Later less earlier | Standard error |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| 88b63e22129c | claude | 2 | 18 | too few | 3 | too few | too few | too few |
+| 88b63e22129c | (every host) | 2 | 18 | too few | 3 | too few | too few | too few |
+
+## Masteries taken back
+
+Every topic a child was shown as mastered — a line of a topic mastered, read with the answer that earned it —, followed through the child's answers in that topic after it, whoever chose the task, those with the hint and "I don't know" among them. A mastery is taken back at the second wrong answer in a row there, as the service takes it back, and a right answer between ends the run; one the lines stop following first — at their end, or at the topic shown as mastered again, at a higher level — was not taken back while they followed it. The share taken back by the 10th answer counts a mastery followed for fewer answers for those it was followed for; its standard error is counted by child, the share worked out again without each child in turn. A child truly past a topic still slips twice in a row now and then, so the share is read beside the learners' bench, never alone. A share that fewer than 30 masteries settle — taken back by the 10th answer, or followed to it — says too few. (every host) takes a version's hosts together, and the load tool and MCP Inspector are left out, as in the table before.
+
+| Instructions | Host | Shown | Children | Taken back by the 5th answer | From the 6th to the 10th | After the 10th | Not taken back | Share taken back by the 10th | Standard error |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| 88b63e22129c | claude | 2 | 2 | 1 | 0 | 0 | 1 | too few | too few |
+| 88b63e22129c | (every host) | 2 | 2 | 1 | 0 | 0 | 1 | too few | too few |
 
 ## Limits reached
 
@@ -76,7 +95,7 @@ Milliseconds are the service's own time for a call, its calls to Drive included;
 | claude | get_progress | 1 | 1 | 0 | 0 | 0 | 400 | 400 | 70 | 70 |
 | claude | next_task | 3 | 2 | 1 | 0 | 0 | 100 | 120 | 100 | 120 |
 | claude | read_task | 2 | 2 | 0 | 0 | 0 | 70 | 90 | 20 | 30 |
-| claude | submit_answer | 39 | 39 | 0 | 0 | 0 | 80 | 80 | 80 | 80 |
+| claude | submit_answer | 42 | 42 | 0 | 0 | 0 | 80 | 80 | 80 | 80 |
 | claude | submit_task | 3 | 2 | 1 | 0 | 0 | 250 | 300 | 250 | 300 |
 
 ## Traces
@@ -105,7 +124,7 @@ The children the counts for grant applications are taken from, by the rules thos
 
 | Day | Children | Tasks | Answers | Topics won |
 |---|---:|---:|---:|---:|
-| 2026-09-29 | 2 | 2 | 1 | 1 |
+| 2026-09-29 | 2 | 2 | 1 | 2 |
 
 ## The rules of the log
 

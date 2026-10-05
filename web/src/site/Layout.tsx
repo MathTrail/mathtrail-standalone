@@ -30,9 +30,10 @@ export const cardStylesheet = "/assets/card.css";
  * page is always light, whatever the reader's system prefers: the site has one
  * look. It loads the design's tokens before its own styles, which read them,
  * then the cards' styles when it draws a card, then the rules of its own a
- * page's data writes, and it runs no script, so every page reads the same
- * with JavaScript off. The rules are the site's own, written when it is
- * built, and carried as they are.
+ * page's data writes. It runs no script of its own: a page reads the same
+ * with JavaScript off, and the one page with a script, the home page, names
+ * it itself. The rules are the site's own, written when it is built, and
+ * carried as they are.
  */
 export function Layout({
 	head,
