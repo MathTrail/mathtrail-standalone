@@ -114,9 +114,9 @@ type packageContents struct {
 
 // packageIdea is which idea of the topic the task is built on: the model lists
 // Of ideas of the topic at the brief's level, and builds the task on the one at
-// Number. Round is how many times the number has come round the list for this
-// child: from the second, the task is a variant of its idea, so that an idea
-// that comes round again is not the same task again.
+// Number. Round is which pass of the list the number is on for this child, the
+// first being 1: from the second, the task is a variant of its idea, so that an
+// idea that comes round again is not the same task again.
 type packageIdea struct {
 	Number int `json:"number"`
 	Of     int `json:"of"`

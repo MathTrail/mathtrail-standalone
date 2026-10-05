@@ -460,5 +460,24 @@
 			"rating": { "before": 1502, "wrong": 1480, "right": 1524 }
 		},
 		"traps": ["off_by_one", "missed_case", "double_count"]
+	},
+	"research": {
+		"sources": [
+			{
+				"id": "perelman",
+				"died": 1942,
+				"books": [
+					"firsthundred",
+					"secondhundred",
+					"living",
+					"arithmetic",
+					"quick"
+				]
+			},
+			{ "id": "ignatyev", "died": 1923, "books": ["wit"] },
+			{ "id": "dudeney", "died": 1930, "books": ["amusements", "canterbury"] },
+			{ "id": "loyd", "died": 1911, "books": ["cyclopedia"] },
+			{ "id": "carroll", "died": 1898, "books": ["tangled", "pillow"] }
+		]
 	}
 }

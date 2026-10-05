@@ -247,12 +247,16 @@ async function readFrames(
 ): Promise<Page[]> {
 	const pageFiles = new Set([...pages.values()].map((page) => page.file));
 	const frames = new Map<string, Page>();
-	let framers = [...pages.values()];
-	while (framers.length > 0) {
+	// readFramedBy reads what framers frame that is not read yet, and then what
+	// those frame in turn: what a frame frames is known once it is read.
+	const readFramedBy = async (framers: readonly Page[]): Promise<void> => {
 		const unread = [...new Set(framers.flatMap(framedBy))].filter(
 			(file) => files.has(file) && !pageFiles.has(file) && !frames.has(file),
 		);
-		framers = await Promise.all(
+		if (unread.length === 0) {
+			return;
+		}
+		const read = await Promise.all(
 			unread.map(async (file) =>
 				parsePage(
 					file,
@@ -260,10 +264,12 @@ async function readFrames(
 				),
 			),
 		);
-		for (const frame of framers) {
+		for (const frame of read) {
 			frames.set(frame.file, frame);
 		}
-	}
+		await readFramedBy(read);
+	};
+	await readFramedBy([...pages.values()]);
 	return [...frames.values()];
 }
 
@@ -598,12 +604,15 @@ function weightOf(
 	return total;
 }
 
-// importMarker finds in a script what loads another file as it runs: an
-// import written into the module, from a file or for what the file does, an
-// import called, and an export passed on from another module. A word that
+// importMarkers find in a script what loads another file as it runs: an
+// import written into the module from a file; one written for what the file
+// does, or called; and an export passed on from another module. A word that
 // begins with "import", and import.meta, load nothing.
-const importMarker =
-	/\bimport\s*(?:[\w$*{][^;]*?\bfrom\s*["'`]|["'`(])|\bexport\s*(?:\*|\{[^}]*\})[^;]*?\bfrom\s*["'`]/;
+const importMarkers: readonly RegExp[] = [
+	/\bimport\s*[\w$*{][^;]*?\bfrom\s*["'`]/,
+	/\bimport\s*["'`(]/,
+	/\bexport\s*(?:\*|\{[^}]*\})[^;]*?\bfrom\s*["'`]/,
+];
 
 // sendingWays are the usual ways a script sends something away or keeps it
 // in the reader's browser, each by its name and how it is written. They are
@@ -630,7 +639,7 @@ const sendingWays: readonly (readonly [string, RegExp])[] = [
 // script of the site never does.
 function scripts(read: Map<string, string>): Finding[] {
 	return [...read].flatMap(([file, text]): Finding[] => [
-		...(importMarker.test(text)
+		...(importMarkers.some((marker) => marker.test(text))
 			? [
 					{
 						path: file,

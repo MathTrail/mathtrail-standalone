@@ -28,7 +28,7 @@ permissions:
 # release carries, the patch counting up within it. A change that deserves a
 # new number raises it here, and the release after it is the line's first.
 env:
-  RELEASE_LINE: "0.2"
+  RELEASE_LINE: "0.3"
 
 defaults:
   run:

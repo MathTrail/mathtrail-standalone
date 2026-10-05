@@ -72,8 +72,11 @@ func (s *Service) packageOfRequest(ctx context.Context, account store.Account, r
 		return Reply[any]{}, err
 	}
 	return Reply[any]{
-		Text: joined(fmt.Sprintf("The package of request %s. Write one task in %s to it, and hand it in with "+
-			"submit_task and request_id %s.", request.ID, request.Language, request.ID),
+		Text: joined(fmt.Sprintf("The package of request %[1]s. Write one task to it, and hand it in with "+
+			"submit_task and request_id %[1]s. Write every text the child reads in %[2]s: the question, the "+
+			"options, the hint, the solution and the explanations, and the names in them. The package's reference "+
+			"tasks, solver templates and guide are in English whatever the language; the task is not.",
+			request.ID, request.Language),
 			lessonLanguageText(&p.Student), stillInText(p), forYouAlone) + packageText(pack),
 	}, nil
 }

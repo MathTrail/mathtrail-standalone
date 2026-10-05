@@ -8,6 +8,7 @@
 	"nav.add": "Добавить в Claude",
 	"nav.why": "Зачем",
 	"nav.techniques": "Приёмы",
+	"nav.research": "Исследование",
 	"nav.about": "О нас",
 	"share.picture": "Главная MathTrail: обещание и рядом карточка задачи, как её рисует чат.",
 	"cite.one": "{first}, {year}",
@@ -31,6 +32,78 @@
 		"few": "{count} приёма",
 		"many": "{count} приёмов",
 		"other": "{count} приёма"
+	},
+	"research.tasks": {
+		"one": "эталонная задача",
+		"few": "эталонные задачи",
+		"many": "эталонных задач",
+		"other": "эталонной задачи"
+	},
+	"research.checks": {
+		"one": "проверка",
+		"few": "проверки",
+		"many": "проверок",
+		"other": "проверки"
+	},
+	"research.passed": {
+		"one": "проверку",
+		"few": "проверки",
+		"many": "проверок",
+		"other": "проверки"
+	},
+	"research.topics": {
+		"one": "тема",
+		"few": "темы",
+		"many": "тем",
+		"other": "темы"
+	},
+	"research.traps": {
+		"one": "ловушка",
+		"few": "ловушки",
+		"many": "ловушек",
+		"other": "ловушки"
+	},
+	"research.pages": {
+		"one": "страница",
+		"few": "страницы",
+		"many": "страниц",
+		"other": "страницы"
+	},
+	"research.places": {
+		"one": "позицию",
+		"few": "позиции",
+		"many": "позиций",
+		"other": "позиции"
+	},
+	"research.trial": {
+		"one": "задачи",
+		"few": "задач",
+		"many": "задач",
+		"other": "задачи"
+	},
+	"research.answers": {
+		"one": "ответа",
+		"few": "ответов",
+		"many": "ответов",
+		"other": "ответа"
+	},
+	"research.given": {
+		"one": "ответ",
+		"few": "ответа",
+		"many": "ответов",
+		"other": "ответа"
+	},
+	"research.children": {
+		"one": "ребёнок",
+		"few": "ребёнка",
+		"many": "детей",
+		"other": "ребёнка"
+	},
+	"research.times": {
+		"one": "раз",
+		"few": "раза",
+		"many": "раз",
+		"other": "раза"
 	},
 	"topic.path": "Вы здесь",
 	"topic.method": "Главный приём",

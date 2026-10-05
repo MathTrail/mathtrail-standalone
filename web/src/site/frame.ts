@@ -31,11 +31,12 @@ export type Frame = {
  * publishes it, and the build refuses an entry whose page is not there, so the
  * menu never leads nowhere. The menu names pages, never the home page's
  * sections, which the home page leads through itself: the page of the coach,
- * a product of its own still in the making, opens it, and the page about who
- * makes the product closes it. The header asks a reader to add MathTrail to
- * Claude, which the home page's section on connecting tells how to do. The
- * footer names the page about who makes the product and the documents rather
- * than every page in turn, which seventeen topics would bury them under.
+ * a product of its own still in the making, opens it, and the page of the
+ * numbers behind the product and the page about who makes it close it. The
+ * header asks a reader to add MathTrail to Claude, which the home page's
+ * section on connecting tells how to do. The footer names the page of the
+ * numbers, the page about who makes the product and the documents rather than
+ * every page in turn, which seventeen topics would bury them under.
  */
 export const siteFrame: Frame = {
 	menu: [
@@ -43,8 +44,9 @@ export const siteFrame: Frame = {
 		{ page: "why", label: "nav.why" },
 		{ page: "topics", label: "nav.topics" },
 		{ page: "techniques", label: "nav.techniques" },
+		{ page: "research", label: "nav.research" },
 		{ page: "about", label: "nav.about" },
 	],
 	action: { page: frontPage, anchor: connectSection, label: "nav.add" },
-	footer: ["about", "privacy", "terms"],
+	footer: ["research", "about", "privacy", "terms"],
 };

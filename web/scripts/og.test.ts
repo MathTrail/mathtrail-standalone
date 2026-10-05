@@ -2,7 +2,9 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
+import fixture from "../../site/research/testdata/research.json";
 import { sharingPicturePath, sharingPictureSize } from "../src/site/brand.ts";
+import { siteData } from "../src/site/data.ts";
 import { renderSite } from "../src/site/render.tsx";
 import { pictureStyle } from "./og.ts";
 import { keptPictureOf, readSources } from "./prerender-site.ts";
@@ -37,7 +39,11 @@ describe("the sharing pictures", () => {
 	// back into the picture, and nothing would say so.
 	test("lay out only parts the home page draws, in every language", async () => {
 		const sources = await readSources(join(repository, "site", "content"));
-		const files = renderSite({ base: "https://mathtrail.app", sources });
+		const files = renderSite({
+			base: "https://mathtrail.app",
+			sources,
+			data: siteData(fixture),
+		});
 		const named = [
 			...new Set(
 				[...pictureStyle.matchAll(/\.(s-[a-z-]+)/g)].map(([, name]) => name),

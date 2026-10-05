@@ -20,22 +20,22 @@ The reference is the author's draft, `research/draft-ui/MathTrail - Исслед
 ## 2. Address and frame
 
 - **Address.** `/<locale>/research/`, words in `site/content/<locale>/research.yaml` (SPEC 8.12.2). Anchors: `#student-model`, `#live`, `#sources`, `#paper`.
-- **Menu and footer.** "Research" stands before "About" in the menu and first in the footer (SPEC 8.12.2, R202). R202 measured the fold with five entries. A sixth moves it, so T72.13 measures it again in Chromium and WebKit, in both languages, and records the new width. If the Russian «Исследование» moves the fold too far, the author chooses a shorter word.
+- **Menu and footer.** "Research" stands before "About" in the menu and first in the footer (SPEC 8.12.2, R202). R202 measured the fold with five entries. With the sixth, the menu stays in a row down to 1039 px in Russian and 976 px in English in Chromium, and down to 1024 px and 962 px in WebKit, so it folds below 1100 px and «Исследование» keeps its place (R209). `just site-fold` measures the width again whenever an entry or a language is added.
 - **Lists.** The addresses join `web/tools/sitecheck/published.ts`. The README links `/en/research/`.
 - **No script, nothing from elsewhere.** The page reads in full without a script and runs none (R160). It loads nothing from another origin, so the draft's unpkg React and its fonts' `preconnect` go.
 - **Fonts.** Onest only (R157): the draft's Source Serif 4 alone weighed 0.9 MB.
-- **Weight.** The shared stylesheets and fonts weigh about 96 KB; the page's HTML, with its tables and inline drawings, should weigh 40–80 KB. That is 140–180 KB in all, under the 300 KiB a page may weigh. The PDF is a link, not a resource the page fetches, so it does not count.
+- **Weight.** The shared stylesheets, fonts and icon weigh about 100 KB, the page's own rules some 4 KB of them; the page's HTML, with its tables and drawings, weighs 38 KB in English and 44 KB in Russian. That is about 140 KB in all, under the 300 KiB a page may weigh. The PDF is a link, not a resource the page fetches, so it does not count.
 - **Languages.** English and Russian now, the rest with T66b. Drawings are pinned left to right (`dir="ltr"`), as the topics' map is; tables and words follow the page's direction.
 
 ## 3. The page, section by section
 
 | Section | In the draft | On the site |
 |---|---|---|
-| Hero | The paper's title as the heading; a lead; "The whole paper · PDF, 16 pages" and "Code and data"; chips: 603 reference tasks · 9 checks · 17 topics · 20 traps · grades 1–6 · MIT | The same. The title is the paper's, in the page's language. The PDF button waits for a clean PDF (§10), and its page count comes from the file. Every chip's number comes from data (§5). "Code and data" leads to the repository. |
-| Four theses, 01–04 | The chat's model writes; the solver runs twice; the answer is sealed; a little harder, but within reach | The same, with each number from the product (§5) and the worked example's values marked as chosen by the text (§9). **Thesis 03 is corrected.** The draft says the answer is in neither the card nor the logs. In fact, `submit_task` draws the card, and MCP Apps hands the card that call's arguments, the key and the solution among them (K10). The card never shows them, but until the child answers they sit in its memory. The page says so. What the product does about it is open (§12). |
+| Hero | The paper's title as the heading; a lead; "The whole paper · PDF, 16 pages" and "Code and data"; chips: 603 reference tasks · 9 checks · 17 topics · 20 traps · grades 1–6 · MIT | The same. The title is the paper's, in the page's language. The PDF button waits for a clean PDF (§10), and its page count comes from the data: the draft's 16 pages are not the named PDF's 15. Every chip's number comes from data (§5). "Code and data" leads to the repository. |
+| Four theses, 01–04 | The chat's model writes; the solver runs twice; the answer is sealed; a little harder, but within reach | The same, with each number from the product (§5) and the worked example's values marked as chosen by the text (§9). The draft's counts in words, "nine checks", "five tasks", "by two", are numbers from the data. The code sharpens three claims: the service keeps nothing of the child between requests; the solver runs a second time only when its first run picked exactly one option; the rule asks for the task whose chance is nearest the middle of the corridor. **Thesis 03 stands as the draft has it.** Since R152 the card is drawn by `next_task`, which carries no task, and reads its task through `read_task`, which carries no answer, so before the child answers the answer is in nothing the service hands the card or the chat's model. The page adds what the seal does not reach, which is the chat itself: the model that wrote the task knows its answer, and the host's record of the tools called shows it to an adult who opens it (О-27). |
 | Student model, `#student-model` | A table: metric, now, goal, ceiling, new rule, mark. Its "now" was the rule before R187, and its "new rule" was empty | The goals table of §6: before R187, now, goal, ceiling and mark, with the run's provenance under it. |
 | Live data, `#live` | Promised → came true, came true less promised by answer count, the share right on the rule's tasks — all marked as simulated | The block's frame and a sentence that the numbers come once there are enough of them (§11). T72.15 fills it. |
-| Where the reference tasks came from, `#sources` | Public-domain books by author, with years; a flow from a book to a checked task; 603 tasks as a bar of 200 · 250 · 153 | The same. The books, their authors and years are curated data in `site/data.json` (`research.sources`), as "Why" keeps its works. The counts by level come from the content. |
+| Where the reference tasks came from, `#sources` | Public-domain books by author, with years; a flow from a book to a checked task; 603 tasks as a bar of 200 · 250 · 153 | The same. The books and their authors are curated data in `site/data.json` (`research.sources`), as "Why" keeps its works. A book is named by its title alone, and its author with the year they died: a first edition's year is not on record for every book, Perelman's ran through many editions, and in most of the world copyright runs out a set number of years after the author's death. The counts by level come from the content. |
 | The whole paper, `#paper` | What the paper holds, and its page count | The same, with the PDF and its page count once there is a clean PDF (§10). |
 
 **What leaves the draft:**
@@ -102,14 +102,17 @@ The file is not committed. It is made at build time, in `site/research/research.
 - **Values as the criterion reads them.** A goal on a size, such as the lag, holds the size of the value and of its interval, as the bench's criterion reads it (`sizeOf`: an interval across zero reads from zero). `read_as` names the reading, and `better` applies to it.
 - **Two producers.** The bench's command `page` writes `bench` and `product` (§6, §5) for one build of the bench, and its command `page-file` adds what the commit being built adds: `built_from`, `paper` from the committed facts of the PDF, and `live`, `{"state": "coming"}` until T72.15 brings the snapshot. `just research-data` runs both (§7). T73.2 later writes the same file from `research.yml`: only the producer's name changes.
 - **The reader refuses what does not add up:**
-  - a mark that does not follow from the value, its interval, the bound and the direction;
-  - product counts that disagree with the catalogs and reference tasks the site already reads;
-  - a PDF the site does not ship, or one whose size or hash differs from its facts;
+  - a mark that does not follow from the value, its interval, the bound and the direction, and "baseline" anywhere but on the service's number against a bound of its own, or missing there;
+  - product counts that disagree with the catalogs and reference tasks the site already reads, the tasks by level included;
+  - a constant that does not hold as the page states it: as many options as letters, the second run's letters the first's moved on by the shift, a shift that moves every letter, from 1 to one less than the options, the guess one option of all, and `0 < low < middle < high < 1`;
+  - rules without exactly the three roles, a row named twice, an interval whose ends are the wrong way round, and a number or a goal under zero, where a row's drawing starts;
+  - two files of the paper at one address, or files with no English one among them;
   - later, a live cell shown below the privacy thresholds, or a count not rounded as §11 says.
+- **The build refuses a PDF** that is not beside the data, or whose size or hash differs from its facts, as it copies the paper's files into the site (`paperFiles` in `web/scripts/prerender-site.ts`). The build reads the file from `--research`, `site/research/research.json` by default; with none there, or one a run cut short, it names `just research-data`, which makes it.
 - **One fixture of the whole file**, `site/research/testdata/research.json`, holds both sides to one shape.
   - The bench's test makes it from a run of ten children a cell, the fixture of the PDF's facts in `tools/learners/testdata/paper.json` and no live snapshot, with the commit and the key fixed by the test.
   - The test makes the file again byte for byte and holds every mark in it to its numbers; a meant change, of the model or of the content, rewrites it with `-update`, and the diff is read in review.
-  - The site's reader of the file, which T72.13.2 writes, parses the same file in its own test.
+  - The site's reader of the file, `web/src/site/research.ts`, parses the same file in its own test, and the site's build tests build from it.
   - A change of shape in any block fails one side or the other.
   - The bytes hold on amd64 with FMA alone, so the fixture's test runs there and skips elsewhere, as the bench's carried-over check skips off amd64. It refuses `-update` anywhere else.
 
@@ -123,9 +126,9 @@ The file is not committed. It is made at build time, in `site/research/research.
 | Options per task, the shift between the solver's two runs, the guess floor, the corridor, the trial series | The product's constants: `solver.Count`; the shift as the solver's own relabelling gives it, where the first letter of the first run stands in the second (`solver.Relabelled`), so the solver keeps its constant to itself; `rating.Guess`; the corridor's bounds, `rating.CorridorLow` and `rating.CorridorHigh`, which the bench reads too rather than keeping copies, and its middle; `rating.TrialAnswers`. |
 | The worked example of thesis 02 | Its five option values are chosen by the text and marked as such (§9). The second run's letters are computed with the solver's own relabelling. |
 | The goals table | The bench's `page` run (§6). |
-| The paper's title | The paper: `research/paper-a/main.tex` for English, the first heading of `research/paper-a/draft.ru.md` for Russian. The words carry it, and a test holds the English words to `\title`. |
-| The PDF's pages, size and hash | The PDF itself, read when it is copied into the site (§10). |
-| Books, authors and years | Curated data, `site/data.json` → `research.sources`. |
+| The paper's title | The paper: `research/paper-a/main.tex` for English, the first heading of `research/paper-a/draft.ru.md` for Russian. The words carry it, and a test holds the English words to `\title` and the Russian to that heading. |
+| The PDF's pages, size and hash | The PDF itself, read when `just site-paper` copies it beside the data (§10); the site's build holds the file to its size and hash. |
+| Books, their authors and the years the authors died | Curated data, `site/data.json` → `research.sources`: each author's id, the year they died and their books' ids, in the page's order. The names and the titles are words of `research.yaml`, under those ids. |
 | Live numbers | T72.15's public aggregates (§11). |
 
 ## 6. The goals table
@@ -198,14 +201,14 @@ Every chart is drawn at build time by the page's own Preact components, in SVG o
 
 | Chart | Drawn as | Its table |
 |---|---|---|
-| The goals | The table is the chart: a bar for each row, a whisker for the interval and a tick for the bound, hidden from screen readers, which read the cells | Itself |
+| The goals | The table is the chart: in each row a bar for the rule before R187 and one for the service, each with a whisker for its interval, and ticks for the bound and the oracle's ceiling, hidden from screen readers, which read the cells | Itself |
 | The reference tasks by level | A bar of three parts, each as wide as its count | Its labelled parts |
 | The theses' diagrams | HTML, as in the draft | — |
 | Later (T72.15): promised → came true | SVG: the diagonal, the corridor's band, a point per range of chance | Under it |
 | Later (T72.15): came true less promised, by answer count | HTML bars around zero | Under it |
 | Later (T72.15): the share right on the rule's tasks | One bar, with the corridor and the promised share | A row |
 
-**Numbers** are formatted with `Intl.NumberFormat(locale)`: shares as percentages, intervals with `formatRange` where the runtime has it, and tables in tabular figures.
+**Numbers** are formatted with `Intl.NumberFormat(locale)`, by the measure's unit (`ResearchNumbers.tsx`): shares as percentages with up to one decimal, logits with two, answers and changes a hundred answers with up to one, points whole, a chance with one to three decimals; years and the seed with no grouping, since they are names more than amounts. An interval is its two ends in the words' pattern `{low}–{high}`: `formatRange` writes an interval whose ends round alike as one approximate number, "≈0", where the table means "from 0 to 0". Tables use tabular figures.
 
 **Rejected:**
 
@@ -227,12 +230,13 @@ The versions and the behaviour are as their documentation states on 2026-10-05: 
 
 The rule is the paper's (`research/tools/handtyped`): a number reaches the text only from data, and a check finds any other.
 
-1. **Two components.**
-   - `<Num>` writes a number from data as `<data value="0.5377">0,538</data>`, or as a marked `<tspan>` inside SVG.
-   - `<Given>` marks a number the text chooses rather than reports: the worked example's option values, an axis's 0 and 1. Book years are data, not given.
-   - An identifier from data that holds digits but is no number is written in its own element: a commit's hash in `<code>`, a date in `<time datetime>`. The scan passes such an element only when its text is a value of the file: the commit the numbers were computed on, the paper's commit, the commit's date.
-2. **The words hold no digit.** A test fails on any digit in `research.yaml` outside an allowed name. Counts in a sentence come through slots with plural wordings, as on "Techniques".
-3. **The rendered page is scanned in every language.** Every text node is read, and so are the `title`, `aria-label` and `alt` attributes and the description. The scan skips scripts and styles, the two components' elements, and the names with digits of a list kept beside the page: XChaCha20-Poly1305, AIED 2027, Glicko-2. It fails on any run of digits in any script (`\p{Nd}`), since T66b brings languages with digits of their own.
+1. **Components** (`web/src/site/ResearchNumbers.tsx`).
+   - `<Num>` writes a number from data as `<data value="0.5377">0,538</data>`: the value as the file holds it, the text as the page's language writes it.
+   - `<Given>` marks a number the text chooses rather than reports, as `<span data-given>`: the worked example's option values, an axis's 0 and 1, a thesis's place. The authors' years are data, not given.
+   - `<Counted>` writes a count with its noun. The noun's plural wordings, in the site's dictionary, hold no `{count}`: the count picks the form and is written beside it as `<Num>`. A sentence of the words takes the two as slots of its own, `{count}` and `{noun}`, from `countSlots`, and places them as its language orders them; no verb of it agrees with the count, which the data may move to any number.
+   - An identifier from data that holds digits but is no number is written in its own element: a commit's hash in `<code>` by `<Commit>`, a date in `<time datetime>` by `<CommitDate>`. The scan passes such an element only when it stands for a value of the file: a code that begins the commit the numbers were computed on or the paper's commit, a time whose `datetime` is the commit's date.
+2. **The words hold no digit.** A test fails on any digit in either `research.yaml` outside an allowed name. Counts in a sentence come through slots, as on "Techniques".
+3. **The rendered page is scanned in every language** (`handTyped`, in `web/src/site/testing/`). It reads the page's `<title>`, its description and the tags a shared link shows, and in `<main>` every text node and the `title`, `aria-label` and `alt` attributes; the frame around `<main>` is the site's, the same on every page. The scan skips scripts and styles, `<data>`, what is marked as given, and the names with digits of a list kept beside the page's test, today XChaCha20-Poly1305 alone. It fails on any digit in any script (`\p{Nd}`), since T66b brings languages with digits of their own.
 4. **Every `<data value>` is traced** to a value of `research.json` or of the curated data.
 5. **A number changed in the data changes the page.** The test renders the page from its fixture and again with every number moved, and every `<data>` element must change.
 
@@ -244,7 +248,7 @@ The rule is the paper's (`research/tools/handtyped`): a number reaches the text 
   - builds the named PDF with `just research paper-a`, which runs the paper's own checks first;
   - copies the PDF to `site/research/paper-a.en.pdf` and writes to `site/research/paper.json` its pages, as the build's log gives them, its size, held to the file's, its hash and the paper's commit.
 
-  Both are committed: CI builds no paper until T73.3 brings TeX Live into it. The site serves the PDF at `/assets/paper-a.en.pdf`: a folder `/research/` at the site's root would read to the site's build as a language. With no file, the page shows the title and "Code and data" but no PDF button.
+  Both are committed: CI builds no paper until T73.3 brings TeX Live into it. The site serves the PDF at `/assets/paper-a.en.pdf`: a folder `/research/` at the site's root would read to the site's build as a language. The site's build copies it there from beside the data and refuses it when its size or hash is not the one its facts give (§4). With no file, the page shows the title and "Code and data" but no PDF button, and its section on the paper says the PDF comes once the paper names its authors and its archive.
 - **The paper's commit** on the page is the PDF's when the site ships one, and otherwise the one `research/evidence/product-stats.txt` names, the commit the paper's numbers were computed on. When the two part, the job's summary says that the PDF is due to be built again; the build does not fail on it.
 - **Every language** links the English PDF until T73.3 builds the Russian one.
 - **Indexing.** The PDF is open to search engines.
@@ -280,9 +284,9 @@ The answers are those to tasks the rule chose, after the trial series and withou
 
 - **T72.13** builds the page, in two parts under rule 12:
   - **T72.13.1, the data:** the bench's commands `page` and `page-file`, `pageCriterion`, the fixture, the product's small exports, `just research-data` and `just site-paper`, and the step in `pages.yml`;
-  - **T72.13.2, the page:** its components, its words in English and Russian, the drawings with their tables, the guard, the menu and the footer with the new measurement, the copy of the PDF into the built site, `published.ts`, the README, and `docs/self-hosting.md`.
+  - **T72.13.2, the page:** its components, its words in English and Russian, the drawings with their tables, the guard, the menu and the footer with the new measurement, the copy of the PDF into the built site, `published.ts`, the README, and `docs/self-hosting.md`. Built as this document says: the reader `web/src/site/research.ts`, the page in `ResearchPage.tsx` with its theses, its goals table and its numbers in components of their own, the authors in `site/data.json`, the guard of §9, the fold of R209 and its measure, `just site-fold`. `just site` makes the data before it builds.
 - **T72.15** brings the live numbers: §11.
-- **T73.2–T73.4** move the making of `research.json` and of the PDFs into the research pipeline on merge to `main`; the file's shape and the page stay.
+- **T73.2–T73.4** move the making of `research.json` and of the PDFs into the research pipeline on merge to `main`; the file's shape and the page stay. Once the build downloads the file, `just site` stops making it first, and the build's `--research` names the file downloaded.
 
 **Rejected:**
 - the bench's numbers committed and checked for freshness: a committed file cannot name the commit it was computed on, any change of the model's inputs would need the whole run and a ten-thousand-line diff, and an arm64 machine parts in the last digits;
@@ -297,9 +301,10 @@ The answers are those to tasks the rule chose, after the trial series and withou
 
 **Open for the author:**
 
-1. **The answer in the card's memory (K10).** The product's rule that the answer stays hidden does not hold for the card: the host hands it `submit_task`'s arguments, the key and the solution among them. Neither PRODUCT, SPEC nor the decisions record it. Thesis 03 says it as it is. Whether the product draws the card from another call, or records an accepted limitation, is a decision of its own.
-2. **The 2027 call.** When AIED publishes it, its rule on preprints is read again before the title and the PDF stay public.
-3. **The PDF waits** for authorship (K05) and for the artifact's DOI (K11).
+1. **The 2027 call.** When AIED publishes it, its rule on preprints is read again before the title and the PDF stay public.
+2. **The PDF waits** for authorship (K05) and for the artifact's DOI (K11).
+
+**Closed:** the answer in the card's memory (K10). The research found it at the paper's commit (S34, C099), the author accepted it on 2026-10-01 as a known limitation beside О-27, and T72.12 left it open here. R152, of 2026-10-03, had already removed it: `submit_task` draws no card, the card the service draws reads its task through `read_task`, and that carries no answer. A host that still draws a card from `submit_task`, from a list of the tools it fetched before R152, hands it that call's arguments, as its record of the tools called shows them, which О-27 leaves outside what the service hides. The paper reports the product at its own commit, `52ce869` of 2026-09-30, and so still describes the earlier card; the page describes the card as it is.
 
 **Not this task's, noted:** two copies of the draft.
 - `draft/ui/site/research.html`, among the site's drafts (R156), is the same page as `research/draft-ui/`, with other links and two script tags. This page is ported from the latter, and the former goes when the site's drafts do (T65).

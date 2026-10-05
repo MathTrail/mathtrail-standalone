@@ -1212,9 +1212,11 @@ button.mt-bar {
 .mt-advice-topic {
 	font-weight: 600;
 }
-/* A name that opens a page through the chat: in the accent and underlined,
-   the line thicker under a pointer that rests on it; and once the chat did
-   not open the page, its address under the name, as text to copy. */
+/* A name that opens a page through the chat: in the accent, and in nothing
+   else — no line under it, since each such name stands apart, at the head of
+   its row or its step and never inside a sentence, and its colour alone sets
+   it off; and once the chat did not open the page, its address under the
+   name, as text to copy. */
 .mt-page-link {
 	display: inline-flex;
 	flex-direction: column;
@@ -1222,15 +1224,8 @@ button.mt-bar {
 }
 .mt-link {
 	color: var(--accent);
-	text-decoration-line: underline;
-	text-decoration-thickness: 1px;
-	text-underline-offset: 3px;
+	text-decoration: none;
 	overflow-wrap: break-word;
-}
-@media (hover: hover) {
-	.mt-link:hover {
-		text-decoration-thickness: 2px;
-	}
 }
 .mt-link-refused {
 	display: flex;

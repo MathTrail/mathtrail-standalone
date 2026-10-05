@@ -126,6 +126,8 @@ Design points:
 - **Stateless.** The service stores nothing between requests. The child's profile is a JSON file in the parent's own Google Drive, and the answer to the current task is encrypted there.
 - **Self-contained.** It runs as a single Go binary on Google Cloud Run: no database, no queues, no other services.
 
+The paper about the service, and how its student model stands against its goals, in numbers computed anew from the code of each release, are on the site's [Research](https://mathtrail.app/en/research/) page.
+
 ## Why not just ask the chat directly?
 
 Ask a chat model for "an olympiad task for grade 2" and it will cheerfully hand you a task with no solution, with two correct options, or with the arithmetic wrong. MathTrail leaves the writing to the model and puts a program behind it:

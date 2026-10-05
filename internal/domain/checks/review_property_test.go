@@ -28,6 +28,7 @@ var faults = []struct {
 	apply func(*faulty)
 }{
 	{checks.CodeBadStructure, func(f *faulty) { f.draft.Brief.TargetConcept = "counting.gaps" }},
+	{checks.CodeWrongLanguage, func(f *faulty) { f.language = "ru" }},
 	{checks.CodeDistractorExplanations, func(f *faulty) {
 		f.draft.Task.Distractors["D"] = checks.Distractor{Trap: "wrong_operation", Text: "You missed one pair."}
 	}},
@@ -42,11 +43,13 @@ var faults = []struct {
 	{checks.CodeNearDuplicate, func(f *faulty) { f.copied = true }},
 }
 
-// broken is a task that passes, with the faults the bits of mask choose.
+// broken is a task that passes, with the faults the bits of mask choose. It is
+// asked for in no language, which holds it neither to letters nor to the
+// reading grade of English, so that a lesson in Russian is a fault of its own.
 func broken(mask int) scenario {
 	f := faulty{scenario: accepted()}
 	f.askedFor(rating.Grades12)
-	f.language = "ru"
+	f.language = ""
 	for i, fault := range faults {
 		if mask&(1<<i) != 0 {
 			fault.apply(&f)
@@ -106,6 +109,7 @@ func TestTheReviewHoldsItsProperties(t *testing.T) {
 func FuzzReview(f *testing.F) {
 	good := validDraft()
 	f.Add([]byte(jsonOf(f, good.Brief)), []byte(jsonOf(f, good.Task)), []byte(jsonOf(f, good.SelfCheck)), program, "3-4", "en")
+	f.Add([]byte(jsonOf(f, good.Brief)), []byte(jsonOf(f, good.Task)), []byte(jsonOf(f, good.SelfCheck)), program, "1-2", "ru")
 	f.Add([]byte("null"), []byte(`{"options":{"A":"x"},"question":" "}`), []byte("{"), "", "", "")
 	f.Add([]byte(`[]`), []byte(`{"question":"P is left of R.","drawing":"P───Q \n","drawing_structure":`+
 		`{"kind":"line","objects":[{"id":"R","label":"R"}]}}`),

@@ -24,7 +24,7 @@ import {
 	textOf,
 } from "./content";
 import { DocumentPage } from "./DocumentPage";
-import { type SiteData, siteData } from "./data";
+import type { SiteData } from "./data";
 import type { FooterLink } from "./Footer";
 import { type Frame, type MenuItem, siteFrame } from "./frame";
 import type { Head } from "./Layout";
@@ -49,23 +49,25 @@ export type SiteFile = { readonly path: string; readonly data: string };
  * single file is written. The stylesheets and the mark are not among them:
  * they are built and copied beside these.
  *
- * base is the origin the site is published on. The dictionaries, the frame,
- * the data and the pages a component draws — the site's own for that data —
- * are the site's unless a test hands it others.
+ * base is the origin the site is published on, and data the site's data, which
+ * only the build has whole: the numbers of the page "Research" are read from a
+ * file it is given. The dictionaries, the frame and the pages a component
+ * draws, the site's own for that data, are the site's unless a test hands it
+ * others.
  */
 export function renderSite({
 	base,
 	sources,
 	dictionaries = siteDictionaries,
 	frame = siteFrame,
-	data = siteData(),
+	data,
 	pages = sitePages(data),
 }: {
 	base: string;
 	sources: Sources;
 	dictionaries?: ReadonlyMap<string, Dictionary>;
 	frame?: Frame;
-	data?: SiteData;
+	data: SiteData;
 	pages?: ReadonlyMap<string, Page>;
 }): SiteFile[] {
 	const origin = parseBase(base);

@@ -41,8 +41,9 @@ const data = readSiteData(
 );
 
 // words are the page's words, the same in each language: the four of the
-// family, each with what their photograph shows, and a sentence that names
-// the address to write to.
+// family, each with what their photograph shows, written in an order their
+// cards do not keep, so that the cards are seen to follow the family's own;
+// and a sentence that names the address to write to.
 const words = [
 	"title: About",
 	"description: Who makes it.",
@@ -166,8 +167,8 @@ describe("the page about who makes MathTrail", () => {
 				card.querySelector(".s-tile-text")?.textContent,
 			]),
 		).toEqual([
-			[photoPath("dad"), "Dad, smiling.", "Builder", "Dad", "Writes the code."],
 			[photoPath("mum"), "Mum, laughing.", "Boss", "Mum", "Runs everything."],
+			[photoPath("dad"), "Dad, smiling.", "Builder", "Dad", "Writes the code."],
 			[
 				photoPath("older-son"),
 				"The older son, waving.",
@@ -212,8 +213,8 @@ describe("the page about who makes MathTrail", () => {
 		expect(texts(".s-team h2.s-hidden")).toEqual(["Who we are"]);
 		expect(all(".s-team", "aria-labelledby")).toEqual(["team"]);
 		expect(texts(".s-member h3")).toEqual([
-			"Dad",
 			"Mum",
+			"Dad",
 			"Older son",
 			"Younger son",
 		]);

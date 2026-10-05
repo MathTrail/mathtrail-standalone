@@ -53,7 +53,7 @@ var spacelessScripts = []string{"Hans", "Hant", "Hani", "Jpan", "Hira", "Kana", 
 // a word at a time. Only a task that came with no language is judged by its
 // letters.
 func unitFor(text, tag string) string {
-	if script, named := scriptOf(tag); named {
+	if script, confidence := scriptOf(tag); confidence != language.No {
 		if slices.Contains(spacelessScripts, script) {
 			return unitCharacters
 		}
@@ -71,31 +71,61 @@ func unitFor(text, tag string) string {
 // mathematics.
 var noWritingSystem = []string{"Zzzz", "Zyyy", "Zinh", "Zxxx", "Zsym", "Zsye", "Zmth"}
 
-// scriptOf is the script a task's language is written in: the one its tag
-// names, or the one its language — or failing that its place — is most likely
-// written in: Chinese in Han whether the tag says zh, cmn, yue or lzh, and so
-// is a language not determined in China. A tag names no script when it is no
-// tag, when it names nothing at all — "und", or private words alone — and when
-// no script can be told from what it does name, or only one of the codes that
-// stand in for none.
+// scriptOf is the script a task's language is written in, and how sure that
+// is: the one its tag names, or the one its language — or failing that its
+// place — is most likely written in: Chinese in Han whether the tag says zh,
+// cmn, yue or lzh, and so is a language not determined in China. A tag names
+// no script, with no confidence at all, when it is no tag, when it names
+// nothing at all — "und", or private words alone — and when no script can be
+// told from what it does name, or only one of the codes that stand in for
+// none.
 //
 // Whether a tag names anything is read from what it says, before anything is
 // inferred: asked for the language of "und", the tag library answers English,
 // its likeliest guess, and a Chinese task tagged "und" would be read a word at
 // a time.
-func scriptOf(tag string) (string, bool) {
+func scriptOf(tag string) (string, language.Confidence) {
 	parsed, err := language.Parse(tag)
 	if err != nil {
-		return "", false
+		return "", language.No
 	}
 	base, named, region := parsed.Raw()
 	if base.String() == "und" && named.String() == "Zzzz" && region.String() == "ZZ" {
+		return "", language.No
+	}
+	script, confidence := parsed.Script()
+	if slices.Contains(noWritingSystem, script.String()) {
+		return "", language.No
+	}
+	return script.String(), confidence
+}
+
+// severalScripts are languages written in more than one script in common use
+// that the tag library reports as sure of one, since the registry of tags
+// suppresses their script: Kazakh in Cyrillic and in Latin, Malay in Latin and
+// in Jawi, Punjabi in Gurmukhi and in Shahmukhi, Bosnian in Latin and in
+// Cyrillic.
+var severalScripts = []string{"kk", "ms", "pa", "bs"}
+
+// heldScript is the script the texts of a task are held to in its language,
+// and whether there is one: the script its tag names, or the one its language
+// is written in as a rule. A language written in several scripts in common use
+// and named without one has only a likely script, and a task in another of
+// them is no fault, so it is held to none: Serbian, Uzbek, Azerbaijani and
+// Mongolian, whose script the library only guesses, and the languages of
+// severalScripts, whose script it reports as sure. A guess is enough where the
+// lettering says so: Chinese, whose likely scripts, Simplified and
+// Traditional, are one set of characters.
+func heldScript(tag string) (string, bool) {
+	script, confidence := scriptOf(tag)
+	base, _ := language.Make(tag).Base()
+	held := confidence == language.Exact ||
+		confidence == language.High && !slices.Contains(severalScripts, base.String()) ||
+		confidence == language.Low && letterings[script].guessIsEnough
+	if !held {
 		return "", false
 	}
-	if script, _ := parsed.Script(); !slices.Contains(noWritingSystem, script.String()) {
-		return script.String(), true
-	}
-	return "", false
+	return script, true
 }
 
 // primarySubtag is the language a tag names, lowercased: "zh" of "zh-Hant-TW",

@@ -56,6 +56,7 @@ const dataWith = (examples: unknown) =>
 				{
 					id: "kl-1",
 					topic: "logic.knights_liars",
+					grade_level: "3-4",
 					distractors: {
 						B: { trap: "trusted_statement" },
 						C: { trap: "stopped_early" },
@@ -66,6 +67,7 @@ const dataWith = (examples: unknown) =>
 				{
 					id: "kl-2",
 					topic: "logic.knights_liars",
+					grade_level: "3-4",
 					distractors: {
 						B: { trap: "trusted_statement" },
 						C: { trap: "trusted_statement" },

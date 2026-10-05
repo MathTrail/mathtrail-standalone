@@ -183,3 +183,21 @@ describe("whether a page's words hold a part", () => {
 		]);
 	});
 });
+
+describe("a text a page leaves out for its data", () => {
+	test("counts as read, and draws nothing", () => {
+		const { page, unread } = reader("title: T\npaper: Open the PDF\n");
+
+		page.leaveOut("paper");
+
+		expect(unread()).toEqual(["title"]);
+	});
+
+	test("is refused when the file does not have it, as one the page would show", () => {
+		const { page } = reader("title: T\n");
+
+		expect(() => page.leaveOut("paper")).toThrow(
+			"en/sample.yaml: the page reads paper, which the file does not have",
+		);
+	});
+});

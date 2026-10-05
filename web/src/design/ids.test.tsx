@@ -67,7 +67,7 @@ describe("useScopedId", () => {
 		const onThePage = idsIn(page);
 		const onTheCard = idsIn(live);
 		expect(onThePage.length).toBeGreaterThan(0);
-		expect(onTheCard.length).toBe(onThePage.length);
+		expect(onTheCard).toHaveLength(onThePage.length);
 		expect(onTheCard.filter((id) => onThePage.includes(id))).toEqual([]);
 	});
 });
