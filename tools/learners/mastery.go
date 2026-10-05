@@ -217,8 +217,8 @@ func (w *wald) passed(a *masteryAnswer) (rating.GradeLevel, bool) {
 // it was for a child whose chance on the level's middle task is the
 // corridor's top than for one whose chance there is its bottom.
 func waldStep(sum float64, level rating.GradeLevel, beta float64, correct bool) float64 {
-	bottom := rating.Probability(middleTaskOf(level)+levelAt(corridorLow), beta)
-	top := rating.Probability(middleTaskOf(level)+levelAt(corridorHigh), beta)
+	bottom := rating.Probability(middleTaskOf(level)+levelAt(rating.CorridorLow), beta)
+	top := rating.Probability(middleTaskOf(level)+levelAt(rating.CorridorHigh), beta)
 	if correct {
 		return sum + math.Log(top/bottom)
 	}

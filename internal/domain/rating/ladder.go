@@ -127,5 +127,5 @@ func Start(grade int) float64 {
 // is the point standing in the corridor or easier than it. A higher level only
 // ever raises a chance, so a point in reach stays in reach as the child grows.
 func InReach(level float64, point Point) bool {
-	return Probability(level, point.Beta()) >= corridorLow
+	return Probability(level, point.Beta()) >= CorridorLow
 }

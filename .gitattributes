@@ -19,3 +19,7 @@ content/drawings/*.json text eol=lf
 # hold nearly all of it, and counts it as generated rather than as written here.
 # It comes after the default, which it would otherwise lose to.
 site/assets/coach-prototype.html -text -diff linguist-generated
+
+# The paper the page "Research" links is its PDF as the paper's build made it,
+# which Git keeps byte for byte, its size and hash vouched for on the page.
+site/research/*.pdf binary

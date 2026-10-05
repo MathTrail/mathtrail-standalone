@@ -254,9 +254,9 @@ type resultOut struct {
 	AlreadyAnswered bool   `json:"already_answered"`
 }
 
-// rate writes a card's rating down. "I don't know", or anything but one of the
-// five options, is no rating: it is refused, and the card says so and lets the
-// adult press an option instead.
+// rate writes a card's rating down. Anything but one of the five options is no
+// rating: it is refused, and the card says so and lets the adult press an
+// option instead.
 func (s *shower) rate(_ context.Context, req *mcp.CallToolRequest, in rateIn) (*mcp.CallToolResult, ratedOut, error) {
 	surface, number := fromTaskID(in.TaskID)
 	if number < 1 || number > len(s.set) || !slices.Contains(surfaces, surface) {

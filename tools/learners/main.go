@@ -20,10 +20,17 @@
 // four generators, its numbers held to the bands recorded with them, or the
 // bands recorded again.
 //
+// So is the page's: the cells of the table of goals on the site's page of the
+// research, the service, the rule before it and the ceiling, written with the
+// product's counts and constants. Its numbers make the page's data file
+// together with the commit being built and the paper's facts.
+//
 // Usage:
 //
 //	learners [-out <directory>] [-children <n>] [-answers <n>] [-rules <set>] [-seed <n>] [-experiment <name>] [-held-out]
 //	learners guard [-update]
+//	learners page [-children <n>] -inputs <key> -out <file>
+//	learners page-file -numbers <file> -commit <hash> -date <time> -paper-commit <hash> [-paper <file>] -out <file>
 package main
 
 import (
@@ -52,8 +59,15 @@ func main() {
 }
 
 func runCommand(args []string, stdout, stderr io.Writer) int {
-	if len(args) > 0 && args[0] == guardCommandName {
-		return guardCommand(args[1:], stdout, stderr)
+	if len(args) > 0 {
+		switch args[0] {
+		case guardCommandName:
+			return guardCommand(args[1:], stdout, stderr)
+		case pageCommandName:
+			return pageCommand(args[1:], stdout, stderr)
+		case pageFileCommandName:
+			return pageFileCommand(args[1:], stdout, stderr)
+		}
 	}
 	out, d, err := parse(args, stderr)
 	if err != nil {
@@ -76,7 +90,8 @@ var (
 	errHeldOutBesideRules = errors.New("learners: -held-out runs the confirmation of the chosen step, and takes no other -rules")
 	// errArguments gives a run words besides its flags, which it would
 	// otherwise pass over and run as if they were not there.
-	errArguments = errors.New("learners: a run takes flags alone; the guard runs as learners guard, before any flag")
+	errArguments = errors.New("learners: a run takes flags alone; the guard and the page's commands run as learners guard, " +
+		"learners page and learners page-file, before any flag")
 )
 
 // parse reads the command line: the directory the results are written to,

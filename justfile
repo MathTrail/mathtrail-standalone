@@ -713,6 +713,88 @@ site-photos dir: _playwright-pinned
         -v "$originals:/originals:ro" \
         {{ PLAYWRIGHT_IMAGE }} node scripts/photos.ts /originals
 
+# The page "Research" draws every number from one file made at build time:
+# the bench's numbers of the student model, computed from the commit being
+# built, with the product's counts and constants, the paper's facts and the
+# state of the live numbers. The numbers take minutes to compute, so they are
+# kept under the key of what moves them, and a build of the same bench takes
+# them as they were kept. The file is written to site/research/research.json,
+# which git does not keep, and the table of its goals is printed.
+# Make the data file of the page "Research"
+research-data:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    key=$(just _research-inputs)
+    numbers="tools/learners/results/page/$key.json"
+    if [ -f "$numbers" ]; then
+        echo "The bench's numbers are those kept for its build ${key:0:12}."
+    else
+        mkdir -p tools/learners/results/page
+        start=$SECONDS
+        bin/learners page -inputs "$key" -out "$numbers"
+        echo "The bench's numbers were computed for its build ${key:0:12}, in $((SECONDS - start)) s."
+    fi
+    echo
+    paper_commit=$(sed -n 's/^commit=//p' research/evidence/product-stats.txt)
+    if [ -z "$paper_commit" ]; then
+        echo "research-data: research/evidence/product-stats.txt names no commit of the paper" >&2
+        exit 1
+    fi
+    paper=()
+    if [ -f site/research/paper.json ]; then paper=(-paper site/research/paper.json); fi
+    commit=$(git rev-parse HEAD)
+    date=$(git log -1 --format=%cI)
+    bin/learners page-file -numbers "$numbers" -commit "$commit" -date "$date" \
+        -paper-commit "$paper_commit" "${paper[@]}" -out site/research/research.json
+
+# The key of what the page's numbers are computed from: a hash of the bench's
+# program, built so that the same sources make the same bytes wherever they
+# are built, and of whether the processor fuses a multiplication with an
+# addition, which math.Exp decides as it runs. The program holds every package
+# it links, the content it embeds, the versions of its modules, the compiler
+# and the processor it is built for. It is left in bin/learners.
+_research-inputs:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    (cd tools/learners && go build -trimpath -buildvcs=false -o ../../bin/learners .) >&2
+    fma="no fma"
+    if grep -q -w fma /proc/cpuinfo && grep -q -w avx /proc/cpuinfo; then fma=fma; fi
+    { sha256sum < bin/learners; echo "$fma"; } | sha256sum | cut -c1-64
+
+# The paper as the page "Research" links it: the named build, copied to
+# site/research/paper-a.en.pdf with its facts in site/research/paper.json,
+# both kept in git, since the site's build makes no paper. A paper that still
+# prints a placeholder, an author, an affiliation or a mark of something to
+# come, is refused before it is built: until it holds none, the page shows
+# its title alone.
+# Put the paper's PDF on the site, once it holds no placeholder
+site-paper:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    left=$(grep -n -H -E '\[Author\]|\[Affiliation\]|\\TBD\{' research/paper-a/main.tex \
+        research/paper-a/sections/*.tex research/paper-a/figures/*.tex | grep -v -E '^[^:]+:[0-9]+:[[:space:]]*%' || true)
+    if [ -n "$left" ]; then
+        echo "$left" >&2
+        echo "site-paper: the paper still prints a placeholder; until it holds none, the page shows its title alone" >&2
+        exit 1
+    fi
+    just research paper-a
+    pdf=research/paper-a/build/paper-a.pdf
+    read -r pages bytes < <(sed -n -E 's/^Output written on build\/paper-a\.pdf \(([0-9]+) pages?, ([0-9]+) bytes\)\.$/\1 \2/p' \
+        research/paper-a/build/paper-a.log) || true
+    if [ -z "${pages:-}" ] || [ "${bytes:-}" != "$(stat -c %s "$pdf")" ]; then
+        echo "site-paper: the build's log gives no pages and size of $pdf" >&2
+        exit 1
+    fi
+    commit=$(sed -n 's/^commit=//p' research/evidence/product-stats.txt)
+    mkdir -p site/research
+    cp "$pdf" site/research/paper-a.en.pdf
+    jq -n --arg commit "$commit" --argjson pages "$pages" --argjson bytes "$bytes" \
+        --arg sha256 "$(sha256sum < "$pdf" | cut -c1-64)" \
+        '{commit: $commit, files: [{lang: "en", path: "/assets/paper-a.en.pdf", pages: $pages, bytes: $bytes, sha256: $sha256}]}' \
+        > site/research/paper.json
+    echo "site-paper: $pages pages, $bytes bytes, of the paper at $commit"
+
 # -- Infrastructure ---------------------------------------------------------
 
 # Format the Terraform sources in place

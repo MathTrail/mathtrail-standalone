@@ -16,6 +16,11 @@ tools/learners/learners
 # megabytes, which a run gives again to the last digit
 tools/learners/results/sweep/cells.csv
 tools/learners/results/refine/cells.csv
+# The numbers of the page "Research", kept under the key of the bench's build
+# that computed them, and the page's data file made from them: both are made
+# from the commit being built, which a file kept in git could not name
+/tools/learners/results/page/
+/site/research/research.json
 # The drawings command's binary, when it is built at the root
 /drawings
 coverage.*
