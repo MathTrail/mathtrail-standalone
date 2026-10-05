@@ -210,6 +210,7 @@ func TestOnlyTheSignInIsHeldToThePaceOfAnAddress(t *testing.T) {
 	for _, route := range []struct{ method, path string }{
 		{http.MethodGet, "/.well-known/oauth-protected-resource/mcp"},
 		{http.MethodGet, "/.well-known/oauth-authorization-server"},
+		{http.MethodGet, httpserver.ChallengePath},
 		{http.MethodPost, "/oauth/register"},
 		{http.MethodGet, "/oauth/authorize"},
 		{http.MethodPost, "/oauth/consent"},

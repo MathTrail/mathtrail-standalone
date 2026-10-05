@@ -90,9 +90,39 @@ function eleven(...filled: string[]): string[] {
 	return [...filled, ...Array.from({ length: 11 - filled.length }, () => "0%")];
 }
 
+// gradeRuns are the runs of grades marked under the overall course, each as
+// the columns of ranks it spans, its words — a no-break space read as a
+// space — and whether the rank reached is in it.
+function gradeRuns(root: HTMLElement): [string | null, string, boolean][] {
+	return [...root.querySelectorAll(".mt-rank .mt-grades-runs td")].map(
+		(run) => [
+			run.getAttribute("colspan"),
+			(run.textContent ?? "").replace(/\s/g, " "),
+			run.hasAttribute("data-current"),
+		],
+	);
+}
+
+// withRuns is where Comet stands with these runs of grades marked under the
+// course instead of the service's: each a level, and the first and the last
+// rank of its run.
+function withRuns(runs: [string, number, number][]) {
+	return {
+		...standing,
+		overall: {
+			...standing.overall,
+			grades: runs.map(([level, first, last]) => ({
+				grade_level: level,
+				first_rank: first,
+				last_rank: last,
+			})),
+		},
+	};
+}
+
 // topics are the card's topics, each its name with its mark, how it stands
-// with its rank's name, the step of the ramp its course is drawn in, and how
-// far each step of the course is filled.
+// with its rank, the step of the ramp its course is drawn in, and how far
+// each step of the course is filled.
 function topics(root: HTMLElement): [string, string, string, string[]][] {
 	return [...root.querySelectorAll(".mt-rank-row")].map((row) => [
 		row.querySelector(".mt-rank-row-start")?.textContent ?? "",
@@ -205,34 +235,100 @@ function fieldsIn(group: Element | null | undefined): string[][] {
 }
 
 describe("the progress", () => {
-	test("names the rank reached over the rank out of how many, with no rating's number, its course filled as far as it has come, and the next rank", async () => {
+	test("tells the rank reached by its number, out of how many, with no rating's number, its course filled as far as it has come, and the next rank", async () => {
 		const { root } = await draw(standing);
 
 		const rank = root.querySelector("section.mt-rank");
 		expect(rank?.getAttribute("aria-label")).toBe("Overall rating");
-		expect(text(root, ".mt-rank-name")).toBe("River crossing");
-		expect(text(root, ".mt-rank-head .mt-meta")).toBe("rank 3 of 11");
+		expect(text(root, ".mt-rank-name")).toBe("Rank 3");
+		expect(text(root, ".mt-rank-head .mt-meta")).toBe("of 11");
 		expect(fills(rank)).toEqual(eleven("100%", "100%", "43%"));
 		expect(rank?.querySelector(".mt-segments")?.getAttribute("data-tone")).toBe(
 			"ink",
 		);
-		expect(text(root, ".mt-rank .mt-vh")).toBe(
+		expect(text(root, ".mt-rank .mt-segments .mt-vh")).toBe(
 			"43% of the way to the next rank",
 		);
 		expect(text(root, ".mt-rank-line")).toBe(
-			"Next rank — Hill. Right answers move the bar forward, mistakes a little back.",
+			"Next — rank 4. Right answers move the bar forward, mistakes a little back.",
 		);
 	});
 
 	test("at the highest rank draws the whole way behind it, and no rank to come", async () => {
 		const { root } = await draw(atTheTop);
 
-		expect(text(root, ".mt-rank-name")).toBe("Above the clouds");
+		expect(text(root, ".mt-rank-name")).toBe("Rank 11");
 		expect(fills(root.querySelector(".mt-rank"))).toEqual(
 			Array.from({ length: 11 }, () => "100%"),
 		);
 		expect(text(root, ".mt-rank-line")).toBe("This is the highest rank.");
-		expect(root.querySelector(".mt-rank .mt-vh")).toBeNull();
+		expect(root.querySelector(".mt-rank .mt-segments .mt-vh")).toBeNull();
+		expect(gradeRuns(root).map(([, , current]) => current)).toEqual([
+			false,
+			false,
+			true,
+		]);
+	});
+
+	test("marks under the course the grades whose tasks each run of ranks roughly matches, the run reached drawn stronger, with a note for the parent", async () => {
+		const { root } = await draw(standing);
+
+		expect(gradeRuns(root)).toEqual([
+			["4", "Gr. 1–2", true],
+			["3", "Gr. 3–4", false],
+			["4", "Gr. 5–6", false],
+		]);
+		expect(
+			root
+				.querySelector(".mt-rank .mt-grades-runs")
+				?.getAttribute("aria-hidden"),
+		).toBe("true");
+		expect(
+			[...root.querySelectorAll(".mt-rank .mt-grades .mt-vh li")].map(
+				(run) => run.textContent,
+			),
+		).toEqual([
+			"Ranks 1–4, the current one among them: tasks of grades 1–2.",
+			"Ranks 5–7: tasks of grades 3–4.",
+			"Ranks 8–11: tasks of grades 5–6.",
+		]);
+		expect(text(root, ".mt-rank .mt-grades-note")).toBe(
+			"For parents: the scale shows roughly which grades' tasks the child can manage. The tasks here are olympiad ones, so this is not a school mark.",
+		);
+		expect(root.querySelector(".mt-rank [style]")).toBeNull();
+	});
+
+	test.each([
+		["during the trial series", inTrial],
+		["from a progress that marks none", standingBefore],
+		[
+			"from runs with a rank left out",
+			withRuns([
+				["1-2", 1, 4],
+				["3-4", 6, 7],
+				["5-6", 8, 11],
+			]),
+		],
+		[
+			"from runs that stop short of the last rank",
+			withRuns([
+				["1-2", 1, 4],
+				["3-4", 5, 7],
+				["5-6", 8, 10],
+			]),
+		],
+		[
+			"from runs that take a rank twice",
+			withRuns([
+				["1-2", 1, 4],
+				["3-4", 4, 7],
+				["5-6", 8, 11],
+			]),
+		],
+	])("marks no grades %s", async (_, report) => {
+		const { root } = await draw(report);
+
+		expect(root.querySelector(".mt-grades")).toBeNull();
 	});
 
 	test("says whose it is, with no way back to a task it never had", async () => {
@@ -383,23 +479,13 @@ describe("the progress", () => {
 		expect(topics(root)).toEqual([
 			[
 				"OrderingMastered",
-				"aheadHill",
+				"aheadRank 4",
 				"2",
 				eleven("100%", "100%", "100%", "27%"),
 			],
-			["Enumeration", "evenRiver crossing", "1", eleven("100%", "100%", "76%")],
-			[
-				"Gaps and boundaries",
-				"evenRiver crossing",
-				"1",
-				eleven("100%", "100%", "53%"),
-			],
-			[
-				"Parity and alternation",
-				"behindForest path",
-				"1",
-				eleven("100%", "87%"),
-			],
+			["Enumeration", "evenRank 3", "1", eleven("100%", "100%", "76%")],
+			["Gaps and boundaries", "evenRank 3", "1", eleven("100%", "100%", "53%")],
+			["Parity and alternation", "behindRank 2", "1", eleven("100%", "87%")],
 			[
 				"Pigeonhole principle",
 				"no answers yet",
@@ -493,7 +579,7 @@ describe("the progress", () => {
 	test("from an earlier release still draws: its course with the step under way empty, its topics with no rank, the skips its topics count, and no data", async () => {
 		const { root } = await drawOpened(standingBefore);
 
-		expect(text(root, ".mt-rank-name")).toBe("River crossing");
+		expect(text(root, ".mt-rank-name")).toBe("Rank 3");
 		expect(fills(root.querySelector(".mt-rank"))).toEqual(
 			eleven("100%", "100%"),
 		);
@@ -616,8 +702,16 @@ describe("the progress", () => {
 			profile: { ...standing.profile, ui_language: "ru" },
 		});
 
-		expect(text(root, ".mt-rank-name")).toBe("Брод");
-		expect(text(root, ".mt-rank-head .mt-meta")).toBe("ранг 3 из 11");
+		expect(text(root, ".mt-rank-name")).toBe("Ранг 3");
+		expect(text(root, ".mt-rank-head .mt-meta")).toBe("из 11");
+		expect(gradeRuns(root).map(([, label]) => label)).toEqual([
+			"1–2 кл.",
+			"3–4 кл.",
+			"5–6 кл.",
+		]);
+		expect(text(root, ".mt-rank .mt-grades-note")).toBe(
+			"Для родителей: эта шкала примерно показывает, задачи каких классов ребёнку по силам. Задачи здесь олимпиадные, и это не школьная оценка.",
+		);
 		expect(sections(root).map(([title, summary]) => [title, summary])).toEqual([
 			["Темы", ""],
 			["Разбор", "сильные стороны и план"],
@@ -625,14 +719,14 @@ describe("the progress", () => {
 			["Профиль", "для родителя"],
 		]);
 		expect(text(root, ".mt-rank-line")).toBe(
-			"Следующий ранг — Холм. Верные ответы двигают полоску вперёд, ошибки — чуть назад.",
+			"Следующий — ранг 4. Верные ответы двигают полоску вперёд, ошибки — чуть назад.",
 		);
 		expect(text(root, ".mt-note-plain p")).toBe("Перебор, ещё раз");
 		expect(topics(root).map(([, standsAt]) => standsAt)).toEqual([
-			"впередиХолм",
-			"вровеньБрод",
-			"вровеньБрод",
-			"отстаётЛесная тропа",
+			"впередиРанг 4",
+			"вровеньРанг 3",
+			"вровеньРанг 3",
+			"отстаётРанг 2",
 			"ответов пока нет",
 		]);
 		expect(text(root, ".mt-list-note")).toBe(
@@ -1177,7 +1271,7 @@ describe("the moves", () => {
 			["week", true],
 		]);
 		expect(text(root, ".mt-rank-move")).toBe(
-			"↑Over the past week — a new rank: Forest path → River crossing",
+			"↑Over the past week — a new rank: 2 → 3",
 		);
 		expect(root.querySelector(".mt-rank-move")?.getAttribute("data-way")).toBe(
 			"gain",
@@ -1198,10 +1292,10 @@ describe("the moves", () => {
 			"",
 		]);
 		expect(topics(root).map(([name, end]) => [name, end])).toEqual([
-			["OrderingMastered", "↑new rankHill"],
-			["Enumeration", "↑forwardRiver crossing"],
-			["Gaps and boundaries", "evenRiver crossing"],
-			["Parity and alternation", "↓rank belowForest path"],
+			["OrderingMastered", "↑new rankRank 4"],
+			["Enumeration", "↑forwardRank 3"],
+			["Gaps and boundaries", "evenRank 3"],
+			["Parity and alternation", "↓rank belowRank 2"],
 			["Pigeonhole principle", "no answers yet"],
 		]);
 		// Ordering reached a new rank over the week: striped from where it stood
@@ -1235,10 +1329,10 @@ describe("the moves", () => {
 		// A step back of four points is drawn over a seventh of the step.
 		expect(stripes(root.querySelector(".mt-rank"))[2]).toBe("57%");
 		expect(topics(root).map(([, end]) => end)).toEqual([
-			"aheadHill",
-			"↓backRiver crossing",
-			"evenRiver crossing",
-			"behindForest path",
+			"aheadRank 4",
+			"↓backRank 3",
+			"evenRank 3",
+			"behindRank 2",
 			"no answers yet",
 		]);
 		expect(counted(root)).toEqual([["↓ 1"], "1 topic slipped back"]);
@@ -1262,10 +1356,10 @@ describe("the moves", () => {
 		);
 		expect(root.querySelector(".mt-segment-stripes")).toBeNull();
 		expect(topics(root).map(([, end]) => end)).toEqual([
-			"aheadHill",
-			"evenRiver crossing",
-			"evenRiver crossing",
-			"behindForest path",
+			"aheadRank 4",
+			"evenRank 3",
+			"evenRank 3",
+			"behindRank 2",
 			"no answers yet",
 		]);
 		expect(foldIn(root, "Topics").querySelector(".mt-move-counts")).toBeNull();
@@ -1294,9 +1388,7 @@ describe("the moves", () => {
 			],
 		});
 
-		expect(topics(root).map(([, end]) => end)).toEqual([
-			"↑new topicRiver crossing",
-		]);
+		expect(topics(root).map(([, end]) => end)).toEqual(["↑new topicRank 3"]);
 		expect(counted(root)).toEqual([["↑ 1"], "1 topic moved forward"]);
 	});
 
@@ -1312,7 +1404,7 @@ describe("the moves", () => {
 			},
 		});
 
-		expect(text(root, ".mt-rank-name")).toBe("River crossing");
+		expect(text(root, ".mt-rank-name")).toBe("Rank 3");
 		expect(text(root, ".mt-rank-move")).toBe("");
 		expect(stripes(root.querySelector(".mt-rank")).join("")).toBe("");
 	});

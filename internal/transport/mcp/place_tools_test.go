@@ -119,3 +119,42 @@ func text(held *string) string {
 	}
 	return *held
 }
+
+// signInPayload is whether the country of the sign-in is left out, as a
+// payload of the profile's tools carries it.
+type signInPayload struct {
+	Profile *struct {
+		SignInCountryOff bool `json:"signin_country_off"`
+	} `json:"profile"`
+	Changed bool `json:"changed"`
+}
+
+// The adult may have the country they sign in from left out of what is
+// counted, and counted again: the model sets it when asked, the form on the
+// card does too, and both the payload and the words say how it stands.
+func TestTheCountryOfTheSignInIsLeftOutWhenTheAdultAsks(t *testing.T) {
+	t.Parallel()
+
+	kept := memory.New()
+	_, session := lesson(t, kept)
+	const leftOut = "The country the adult signs in from is left out of what MathTrail counts."
+
+	made := call(t, session, "save_profile", map[string]any{"pseudonym": "Comet", "grade": 3, "signin_country_off": true})
+	if payload := payloadOf[signInPayload](t, made); payload.Profile == nil || !payload.Profile.SignInCountryOff {
+		t.Fatalf("payload = %+v, want the country of the sign-in left out", payload.Profile)
+	}
+	if words := textOf(t, made); !strings.Contains(words, leftOut) {
+		t.Errorf("the words are %q, want them to say the country of the sign-in is left out", words)
+	}
+	if p, _ := loadKept(t, kept); !p.Student.SignInCountryOff {
+		t.Error("kept: the country of the sign-in counted, want it left out")
+	}
+
+	counted := payloadOf[signInPayload](t, call(t, session, "edit_profile", map[string]any{"signin_country_off": false}))
+	if !counted.Changed || counted.Profile == nil || counted.Profile.SignInCountryOff {
+		t.Errorf("payload = %+v, want the country of the sign-in counted again", counted)
+	}
+	if words := textOf(t, call(t, session, "get_profile", map[string]any{})); strings.Contains(words, leftOut) {
+		t.Errorf("the words are %q, want nothing said of a country of the sign-in that is counted", words)
+	}
+}

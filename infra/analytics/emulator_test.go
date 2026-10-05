@@ -4,6 +4,7 @@ package analytics_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -120,22 +121,51 @@ var (
 // and the two sets of views — and the names the SQL is written with, filled in
 // as Terraform fills them.
 type space struct {
-	e     *emulator
-	names map[string]string
+	e      *emulator
+	prefix string
+	names  map[string]string
 }
 
-// newSpace makes a test's datasets: the raw lines in a table of the shape the
-// linked dataset of a log bucket has, the tables of the counts from their
-// schemas, and empty datasets for the views.
+// drop deletes a space's datasets with all they hold, once its test is over.
+// A dataset the emulator would not delete is logged, not failed: the test has
+// had its say, and the memory it leaves is what the next tests run out of.
+func (s *space) drop(t *testing.T) {
+	for _, dataset := range []string{"logs", "impact", "public", "private"} {
+		request, err := http.NewRequestWithContext(context.Background(), http.MethodDelete, s.e.base+"/datasets/"+s.prefix+dataset+"?deleteContents=true", http.NoBody)
+		if err != nil {
+			t.Logf("drop %s%s: %v", s.prefix, dataset, err)
+			continue
+		}
+		response, err := s.e.client.Do(request)
+		if err != nil {
+			t.Logf("drop %s%s: %v", s.prefix, dataset, err)
+			continue
+		}
+		_ = response.Body.Close()
+		if response.StatusCode >= http.StatusMultipleChoices {
+			t.Logf("drop %s%s: the emulator answered %s", s.prefix, dataset, response.Status)
+		}
+	}
+}
+
+// newSpace makes a test's datasets, and drops them once the test is over: the
+// emulator holds in memory what it has read, and too many tests' tables at once
+// run it out of room.
 func newSpace(t *testing.T) *space {
 	t.Helper()
 
-	e := emulatorOf(t)
+	s := namedSpace(t)
+	t.Cleanup(func() { s.drop(t) })
+	s.make(t)
+	return s
+}
+
+// namedSpace is a space of its own, its datasets named but not yet made.
+func namedSpace(t *testing.T) *space {
+	t.Helper()
+
 	prefix := fmt.Sprintf("r%s_t%d_", run, spaces.Add(1))
-	for _, dataset := range []string{"logs", "impact", "public", "private"} {
-		e.post(t, "/datasets", map[string]any{"datasetReference": map[string]string{"projectId": project, "datasetId": prefix + dataset}})
-	}
-	s := &space{e: e, names: map[string]string{
+	return &space{e: emulatorOf(t), prefix: prefix, names: map[string]string{
 		"logs":    project + "." + prefix + "logs._AllLogs",
 		"impact":  project + "." + prefix + "impact",
 		"public":  project + "." + prefix + "public",
@@ -143,6 +173,18 @@ func newSpace(t *testing.T) *space {
 		"events":  eventsList(t),
 		"fold":    read(t, "views/public/fold.sql"),
 	}}
+}
+
+// make makes a space's datasets: the raw lines in a table of the shape the
+// linked dataset of a log bucket has, the tables of the counts from their
+// schemas, and empty datasets for the views.
+func (s *space) make(t *testing.T) {
+	t.Helper()
+
+	e, prefix := s.e, s.prefix
+	for _, dataset := range []string{"logs", "impact", "public", "private"} {
+		e.post(t, "/datasets", map[string]any{"datasetReference": map[string]string{"projectId": project, "datasetId": prefix + dataset}})
+	}
 	e.query(t, "CREATE TABLE `"+s.names["logs"]+"` (timestamp TIMESTAMP, log_name STRING, insert_id STRING, json_payload JSON)")
 	for _, table := range tableNames(t) {
 		var fields []any
@@ -154,7 +196,6 @@ func newSpace(t *testing.T) *space {
 			"schema":         map[string]any{"fields": fields},
 		})
 	}
-	return s
 }
 
 // heldWhole is how many days back the bucket holds whole, as Terraform tells
@@ -191,11 +232,23 @@ func (s *space) makeViews(t *testing.T) {
 	for _, dimension := range dimensions {
 		view(s.names["public"]+".learners_by_"+dimension, "views/public/learners_by.sql", map[string]string{"dimension": dimension})
 	}
+	for _, name := range publicViews(t) {
+		view(s.names["public"]+"."+name, "views/public/"+name+".sql", nil)
+	}
+}
+
+// publicViews are the public views a file of their own makes: every file of
+// views/public but the parts the others are made with.
+func publicViews(t *testing.T) []string {
+	t.Helper()
+
+	var views []string
 	for _, file := range sqlFiles(t, "views/public") {
 		if name := strings.TrimSuffix(file, ".sql"); name != "fold" && name != "closed_months" && name != "learners_by" {
-			view(s.names["public"]+"."+name, "views/public/"+file, nil)
+			views = append(views, name)
 		}
 	}
+	return views
 }
 
 // rows are the rows of a query of the space's, its names filled in.
@@ -365,11 +418,13 @@ func accepted(learner string, at time.Time, given map[string]any) line {
 }
 
 // answered is the line of an answer of a child, right and with no hint unless
-// given otherwise.
+// given otherwise, to a task the rule chose at a chance of 0.77, among the
+// child's answers 6 to 20.
 func answered(learner string, at time.Time, given map[string]any) line {
 	return line{at: at, insertID: fmt.Sprintf("line-%d", lines.Add(1)), fields: fieldsOf("answer_recorded", learner, map[string]any{
 		"topic": "logic.ordering", "trap": "", "correct": true, "hint_used": false, "confused": false,
 		"grade": 2, "cohort": "2026-01", "topics_mastered": 0,
+		"chance": 0.77, "tutor_mode": "rule", "trial": 0, "answers_bucket": "6-20",
 	}, given)}
 }
 

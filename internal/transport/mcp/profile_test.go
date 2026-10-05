@@ -69,6 +69,7 @@ type progressPayload struct {
 		Rank   int             `json:"rank"`
 		Ranks  int             `json:"ranks"`
 		Share  int             `json:"share"`
+		Grades []gradesPayload `json:"grades"`
 		Change *changesPayload `json:"change"`
 	} `json:"overall"`
 	Topics []topicPayload `json:"topics"`
@@ -83,6 +84,14 @@ type progressPayload struct {
 	Location *struct {
 		File string `json:"file"`
 	} `json:"location"`
+}
+
+// gradesPayload is a grade level and the ranks it is matched with, as the
+// overall standing hands them a card.
+type gradesPayload struct {
+	GradeLevel string `json:"grade_level"`
+	FirstRank  int    `json:"first_rank"`
+	LastRank   int    `json:"last_rank"`
 }
 
 // topicPayload is one topic of the progress.
@@ -129,8 +138,12 @@ type trialPayload struct {
 // card that waits for it being already drawn; and the one that records an
 // answer, which the card calls as well as the model and which draws nothing,
 // since the card that sent the answer turns to its result. Handing a task in
-// is the one call that is not the same twice: each spends an attempt. Every
-// description is short enough to reach the model whole.
+// is the one call that is not the same twice: each spends an attempt. The five
+// that read change nothing; the two that write the profile replace what the
+// adult set, and are the only ones a host may take for destroying something;
+// the three of the lesson only add to its record. None reaches anything beyond
+// the parent's file. Every description is short enough to reach the model
+// whole.
 func TestTheToolsOfTheLessonAreListedAsTheyAreMeant(t *testing.T) {
 	t.Parallel()
 
@@ -149,8 +162,8 @@ func TestTheToolsOfTheLessonAreListedAsTheyAreMeant(t *testing.T) {
 
 	for _, want := range []listing{
 		{name: "get_profile", readOnly: true, idempotent: true},
-		{name: "save_profile", idempotent: true},
-		{name: "edit_profile", idempotent: true, widgetOnly: true},
+		{name: "save_profile", destructive: true, idempotent: true},
+		{name: "edit_profile", destructive: true, idempotent: true, widgetOnly: true},
 		{name: "get_progress", readOnly: true, idempotent: true, drawsCard: true},
 		{name: "read_progress", readOnly: true, idempotent: true, widgetOnly: true},
 		{name: "next_task", idempotent: true, drawsCard: true},
@@ -195,6 +208,7 @@ func TestTheAdultsToolsAreNotWhereALessonStarts(t *testing.T) {
 		{"save_profile", "No card is drawn: say in a sentence what was saved."},
 		{"get_progress", "Call it only when someone asks to see the progress"},
 		{"get_progress", "card draws the rank, not the rating's number: say the number yourself"},
+		{"get_progress", "that is for the adult, a rough guide and never a school mark or a verdict on the child"},
 	} {
 		if description, listed := described[want.name]; !listed || !strings.Contains(description, want.says) {
 			t.Errorf("%s is described as %q (listed: %v), want it listed and saying %q", want.name, description, listed, want.says)
@@ -205,12 +219,13 @@ func TestTheAdultsToolsAreNotWhereALessonStarts(t *testing.T) {
 // listing is how a tool is meant to be listed. wordsOnly marks the tool that
 // answers the model in words alone, and so declares no payload to check.
 type listing struct {
-	name       string
-	readOnly   bool
-	idempotent bool
-	drawsCard  bool
-	widgetOnly bool
-	wordsOnly  bool
+	name        string
+	readOnly    bool
+	destructive bool
+	idempotent  bool
+	drawsCard   bool
+	widgetOnly  bool
+	wordsOnly   bool
 }
 
 // hostKeeps is as much of a tool's description as a host is known to pass on to
@@ -218,17 +233,29 @@ type listing struct {
 // JavaScript counts them, and cuts the rest.
 const hostKeeps = 2048
 
-// wantListedAs holds a listed tool to its listing: its hints, its output
-// schema, whether a host draws a card for it and whether the model sees it —
-// and its description, which reaches the model whole.
+// wantListedAs holds a listed tool to its listing: its title, its hints, its
+// output schema, whether a host draws a card for it and whether the model sees
+// it — and its description, which reaches the model whole.
 func wantListedAs(t *testing.T, tool *mcp.Tool, want listing) {
 	t.Helper()
 
 	if length := len(utf16.Encode([]rune(tool.Description))); length > hostKeeps {
 		t.Errorf("the description is %d characters long, and a host may keep only the first %d of it", length, hostKeeps)
 	}
-	if hints := tool.Annotations; hints == nil || hints.ReadOnlyHint != want.readOnly || hints.IdempotentHint != want.idempotent {
-		t.Errorf("annotations = %+v, want read-only %v and idempotent %v", hints, want.readOnly, want.idempotent)
+	hints := tool.Annotations
+	if hints == nil {
+		hints = &mcp.ToolAnnotations{}
+	}
+	if hints.ReadOnlyHint != want.readOnly || hints.IdempotentHint != want.idempotent ||
+		hints.DestructiveHint == nil || *hints.DestructiveHint != want.destructive ||
+		hints.OpenWorldHint == nil || *hints.OpenWorldHint {
+		said, _ := json.Marshal(tool.Annotations)
+		t.Errorf("annotations = %s, want read-only %v, destructive %v, idempotent %v and closed to the world",
+			said, want.readOnly, want.destructive, want.idempotent)
+	}
+	if tool.Title == "" || hints.Title != tool.Title {
+		t.Errorf("title = %q and the annotations' title = %q, want one a person can read, the same in both",
+			tool.Title, hints.Title)
 	}
 
 	if hasSchema := tool.OutputSchema != nil; hasSchema == want.wordsOnly {
@@ -497,6 +524,7 @@ func TestTheProgressIsOneAnswerForTheModelAndTheCard(t *testing.T) {
 		payload.Overall.Share < 0 || payload.Overall.Share > 100 {
 		t.Errorf("overall = %+v, want a rank out of %d and a share of it", *payload.Overall, rating.Ranks)
 	}
+	matchesTheLevels(t, payload.Overall.Grades)
 	rated := 0
 	for _, topic := range payload.Topics {
 		if !topic.standsTogether() || (topic.Rating != nil) != (topic.Answers > 0) {
@@ -509,6 +537,23 @@ func TestTheProgressIsOneAnswerForTheModelAndTheCard(t *testing.T) {
 	}
 	if rated == 0 || rated == len(payload.Topics) {
 		t.Errorf("topics = %+v, want the topics met with their ranks and some within reach not met yet", payload.Topics)
+	}
+}
+
+// matchesTheLevels checks the runs of ranks a progress hands a card: one for
+// each level, in ladder order, each the ranks the level is matched with.
+func matchesTheLevels(t *testing.T, grades []gradesPayload) {
+	t.Helper()
+
+	levels := rating.GradeLevels()
+	if len(grades) != len(levels) {
+		t.Fatalf("overall grades = %+v, want a run of ranks for each of the %d levels", grades, len(levels))
+	}
+	for i, level := range levels {
+		want := gradesPayload{GradeLevel: string(level), FirstRank: level.FirstRank(), LastRank: level.LastRank()}
+		if grades[i] != want {
+			t.Errorf("grades[%d] = %+v, want %+v", i, grades[i], want)
+		}
 	}
 }
 
@@ -671,10 +716,13 @@ func TestTheWordsForTheModelSayWhatTheCardShows(t *testing.T) {
 			[]string{"Left out of the tasks: long_division_by_hand."}},
 		{"the overall rank and how far through it", keptWith(t, "olya"), "get_progress",
 			[]string{"Overall rating 1486, rank 2 of 11, 91% of the way to rank 3."}},
+		{"the grades each run of ranks matches", keptWith(t, "olya"), "get_progress",
+			[]string{"The card marks under the ranks the grades whose tasks each run of them roughly matches: " +
+				"ranks 1 to 4 grades 1-2, ranks 5 to 7 grades 3-4, ranks 8 to 11 grades 5-6; rank 2 is in the run of grades 1-2."}},
 		{"the highest rank", keptAs(t, "petya", func(p *profile.Profile) {
 			p.Ratings.Theta = 9
 		}), "get_progress",
-			[]string{"rank 11 of 11, the highest."}},
+			[]string{"rank 11 of 11, the highest.", "rank 11 is in the run of grades 5-6."}},
 		{"a topic's rank beside the overall one", keptAs(t, "petya", func(p *profile.Profile) {
 			for id, delta := range map[string]float64{"arithmetic.tricks": 1, "combinatorics.enumeration": -1} {
 				kept := p.Topics[id]

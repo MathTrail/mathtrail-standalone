@@ -2,7 +2,6 @@ import type { CallToolResult } from "@modelcontextprotocol/client";
 import type { McpUiHostContext } from "@modelcontextprotocol/ext-apps";
 import topics from "../../../content/catalogs/topics.json";
 import type { CallStage } from "../widget/bridge";
-import { rankCount } from "../widget/names";
 import type { AnswerResult } from "../widget/payload";
 import {
 	answered,
@@ -529,11 +528,25 @@ const pages: ReadonlyMap<string, { slug: string; site_page: boolean }> =
 		]),
 	);
 
+// rankCount is how many ranks there are, as the service counts them.
+const rankCount = standing.overall.ranks;
+
+// longRank is the overall rank of the long progress: the last of the
+// narrowest run of grades marked under the course, whose label is drawn bold
+// where it has the least room.
+const longRank = standing.overall.grades.reduce(
+	(narrowest, run) => {
+		const width = run.last_rank - run.first_rank;
+		return width < narrowest.width ? { width, last: run.last_rank } : narrowest;
+	},
+	{ width: Number.POSITIVE_INFINITY, last: 0 },
+).last;
+
 // longProgress is the progress at every limit a card has to fit at its
 // narrowest: a pseudonym as long as a profile allows, every topic of the
 // catalog listed — every rank among them, each step of the ramp, and topics
-// not met yet — the next rank the one with the longest name, a review naming
-// as many topics as it can, by the names that run longest across the
+// not met yet — the rank reached in the narrowest run of grades, a review
+// naming as many topics as it can, by the names that run longest across the
 // languages, whatever the topics above say of them, with every reason they can
 // have at once and the longest advice, as many interests, as long, as a
 // profile holds, and the profile's file named at length beside other files
@@ -575,13 +588,23 @@ const longProgress = {
 		...pages.get(topic),
 	})),
 	overall: {
-		rating: 2700,
-		rank: 10,
-		ranks: 11,
-		share: 23,
+		...standing.overall,
+		rating: ratingAt(longRank, 81),
+		rank: longRank,
+		share: 81,
 		change: {
-			last_task: { rating: 2690, rank: 10, share: 17, moved: "forward" },
-			week: { rating: 2640, rank: 9, share: 86, moved: "rank_up" },
+			last_task: {
+				rating: ratingAt(longRank, 75),
+				rank: longRank,
+				share: 75,
+				moved: "forward",
+			},
+			week: {
+				rating: ratingAt(longRank - 1, 91),
+				rank: longRank - 1,
+				share: 91,
+				moved: "rank_up",
+			},
 		},
 	},
 	skipped: 8,
@@ -645,10 +668,16 @@ const longProgress = {
 	},
 };
 
+// ratingAt is a rating the service shows at rank, share of the way through
+// it: the rank's floor, the first rank's counted from a step below the
+// second's, and as much of a step of 166 points again as the share says.
+function ratingAt(rank: number, share: number): number {
+	return 1168 + (rank - 1) * 166 + Math.floor(share * 1.66);
+}
+
 // rankedAt is the topic at place at of the long progress: the first fifteen
 // each a rank in turn, from the first to the last and again, the overall
-// rank's tenth ahead of, even with or behind them, and the last two not met
-// yet.
+// rank ahead of, even with or behind them, and the last two not met yet.
 function rankedAt(topic: string, at: number) {
 	if (at >= 15) {
 		return {
@@ -668,14 +697,14 @@ function rankedAt(topic: string, at: number) {
 	// sends it.
 	const share = rank === rankCount ? 100 : (at * 37) % 100;
 	let compared = "even";
-	if (rank > 10) {
+	if (rank > longRank) {
 		compared = "ahead";
-	} else if (rank < 10) {
+	} else if (rank < longRank) {
 		compared = "behind";
 	}
 	return {
 		topic,
-		rating: 1168 + (rank - 1) * 166 + Math.floor(share * 1.66),
+		rating: ratingAt(rank, share),
 		rank,
 		share,
 		compared,

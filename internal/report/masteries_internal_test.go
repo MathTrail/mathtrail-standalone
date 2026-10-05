@@ -1,6 +1,7 @@
 package report
 
 import (
+	"cmp"
 	"fmt"
 	"math"
 	"slices"
@@ -62,6 +63,16 @@ func asStated(masteries []shownMastery) []shownMastery {
 		stated[i] = mastery(m.child, m.Answers, m.TakenBackAt)
 	}
 	return stated
+}
+
+// sortedMasteries are masteries in one order whatever order they were counted
+// in.
+func sortedMasteries(masteries []shownMastery) []shownMastery {
+	sorted := asStated(masteries)
+	slices.SortFunc(sorted, func(a, b shownMastery) int {
+		return cmp.Or(cmp.Compare(a.child, b.child), cmp.Compare(a.Answers, b.Answers), cmp.Compare(a.TakenBackAt, b.TakenBackAt))
+	})
+	return sorted
 }
 
 // A mastery is taken back as the service takes it back, at the second wrong
@@ -257,6 +268,59 @@ func TestAShareOfTooFewSettledMasteriesSaysSo(t *testing.T) {
 		if wantTooFew := settled < fewestMasteries; saysTooFew != wantTooFew || row[8] != strconv.Itoa(settled) {
 			t.Errorf("%d settled masteries: the row reads %v, want them counted and too few: %t", settled, row, wantTooFew)
 		}
+	}
+}
+
+// Every version taken together counts each mastery once, under the version of
+// the answer that showed it: one taken back by an answer under a later
+// version is taken back under the version that showed it, and the masteries
+// of every version are summed in the last row.
+func TestEveryVersionCountsTheMasteriesOfEveryVersionOnce(t *testing.T) {
+	t.Parallel()
+
+	late := answerAt{user: "u3", call: "u3-late", topic: "counting.gaps", minute: 2}
+	lines := slices.Concat(
+		underVersion("v1", lesson("claude", "u1", "counting.gaps", 0, "WW")),
+		underVersion("v1", lesson("chatgpt", "u3", "counting.gaps", 0, "W")),
+		underVersion("v2", []string{late.line(), callLine(late.call, "chatgpt")}),
+		underVersion("v2", lesson("claude", "u2", "counting.gaps", 10, "RRRRRRRRRR")),
+	)
+
+	var got [][9]string
+	for _, row := range tallied(t, lines...).masteriesTable().rows {
+		got = append(got, [9]string(row[:9]))
+	}
+	want := [][9]string{
+		{"v1", "chatgpt", "1", "1", "1", "0", "0", "0", "1"},
+		{"v1", "claude", "1", "1", "1", "0", "0", "0", "1"},
+		{"v1", everyHost, "2", "2", "2", "0", "0", "0", "2"},
+		{"v2", "claude", "1", "1", "0", "0", "0", "1", "1"},
+		{"v2", everyHost, "1", "1", "0", "0", "0", "1", "1"},
+		{everyVersion, everyHost, "3", "3", "2", "0", "0", "1", "3"},
+	}
+	if !slices.Equal(got, want) {
+		t.Errorf("the rows read %v, want %v", got, want)
+	}
+}
+
+// The share taken back and its standard error are written to three places,
+// as the bands they are read against are. Forty children with one mastery
+// each — ten taken back at the second answer, ten followed through two
+// answers alone, ten taken back at the fourth and ten followed through all
+// ten — give a share of 3/4 · 1/2 taken from one, 0.625, and an error by child
+// of 0.0931, which two places would write as 0.62 and 0.09.
+func TestTheShareTakenBackAndItsErrorAreWrittenToThreePlaces(t *testing.T) {
+	t.Parallel()
+
+	var masteries []shownMastery
+	for i := range 10 {
+		masteries = append(masteries,
+			mastery(fmt.Sprintf("a%d", i), 2, 2), mastery(fmt.Sprintf("b%d", i), 2, 0),
+			mastery(fmt.Sprintf("c%d", i), 4, 4), mastery(fmt.Sprintf("d%d", i), 10, 0))
+	}
+	c := &counts{masteries: map[group][]shownMastery{claude: masteries}}
+	if got := c.masteriesTable().rows[0][8:11]; !slices.Equal(got, []string{"30", "0.625", "0.093"}) {
+		t.Errorf("the settled masteries, the share and its error read %v, want [30 0.625 0.093]", got)
 	}
 }
 

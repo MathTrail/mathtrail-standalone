@@ -1,10 +1,10 @@
 // The pictures of the widget the README shows: a task, the result of a wrong
-// answer and the progress, each in the light and the dark theme, as a phone 428
-// px wide shows them at twice its density. They are the preview's own scenes —
-// the widget's page, driven as a chat host drives it — photographed in
-// Chromium, so that the README shows the cards as they are rather than as they
-// were designed. The corners round the card are left clear, for a page of
-// either theme to show through.
+// answer and the progress, in the dark theme, as a phone 428 px wide shows them
+// at twice its density. They are the preview's own scenes — the widget's page,
+// driven as a chat host drives it — photographed in Chromium, so that the
+// README shows the cards as they are rather than as they were designed. The
+// README shows the dark theme to a reader of either, and the corners round the
+// card are left clear, for a page of either theme to show through.
 //
 //	node scripts/screens.ts
 //
@@ -28,8 +28,8 @@ export const shots: readonly Shot[] = [
 	{ scene: "progress, the model's card", file: "progress" },
 ];
 
-/** themes are the themes each scene is photographed in. */
-export const themes = ["light", "dark"] as const;
+/** theme is the theme every scene is photographed in. */
+const theme = "dark";
 
 /** width is how wide a card is photographed, in the pixels of a page. */
 export const width = 428;
@@ -37,14 +37,10 @@ export const width = 428;
 const screens = join(import.meta.dirname, "..", "..", "docs", "screens");
 
 /**
- * addressOf is the preview's address that shows one scene alone, in a theme,
- * in English, at the width photographed.
+ * addressOf is the preview's address that shows one scene alone, in the theme
+ * photographed, in English, at the width photographed.
  */
-export function addressOf(
-	base: string,
-	shot: Shot,
-	theme: (typeof themes)[number],
-): string {
+export function addressOf(base: string, shot: Shot): string {
 	const query = new URLSearchParams({
 		scene: shot.scene,
 		theme,
@@ -54,8 +50,8 @@ export function addressOf(
 	return `${base}preview.html?${query}`;
 }
 
-/** pictureOf is the file a scene's picture in a theme is written to. */
-export function pictureOf(shot: Shot, theme: (typeof themes)[number]): string {
+/** pictureOf is the file a scene's picture is written to. */
+export function pictureOf(shot: Shot): string {
 	return join(screens, `${shot.file}-${theme}.png`);
 }
 
@@ -72,23 +68,21 @@ async function main(): Promise<void> {
 		});
 		await stillClock(context);
 		const page = await context.newPage();
-		for (const theme of themes) {
-			for (const shot of shots) {
-				await page.goto(addressOf(preview.base, shot, theme));
-				const cards = await settled(page);
-				const card = cards.find((found) => found.scene === shot.scene);
-				if (card === undefined) {
-					throw new Error(`screens: the preview shows no scene ${shot.scene}`);
-				}
-				await card.element.screenshot({
-					path: pictureOf(shot, theme),
-					omitBackground: true,
-					style:
-						".preview-bar { visibility: hidden; } .preview { background: transparent !important; }",
-				});
-				console.log(`screens: ${shot.file}-${theme}.png`);
-				await letGo(cards);
+		for (const shot of shots) {
+			await page.goto(addressOf(preview.base, shot));
+			const cards = await settled(page);
+			const card = cards.find((found) => found.scene === shot.scene);
+			if (card === undefined) {
+				throw new Error(`screens: the preview shows no scene ${shot.scene}`);
 			}
+			await card.element.screenshot({
+				path: pictureOf(shot),
+				omitBackground: true,
+				style:
+					".preview-bar { visibility: hidden; } .preview { background: transparent !important; }",
+			});
+			console.log(`screens: ${shot.file}-${theme}.png`);
+			await letGo(cards);
 		}
 	} finally {
 		await browser.close();

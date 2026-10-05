@@ -43,7 +43,7 @@ func request(topic string, level rating.GradeLevel, difficulty, answers int) *co
 // packageParts are the parts a package has, and all it has: no pseudonym, no
 // history, nothing that is not asked for.
 var packageParts = []string{
-	"brief", "child", "corridor", "drawing_frames", "examples", "guide", "idea", "instructions_version", "language",
+	"brief", "child", "corridor", "drawing_frames", "examples", "guide", "idea", "language",
 	"limits", "prohibitions", "solver_templates", "topic", "traps",
 }
 
@@ -96,8 +96,7 @@ type shape struct {
 			Characters string `json:"characters"`
 		} `json:"drawing"`
 	} `json:"limits"`
-	Guide               string `json:"guide"`
-	InstructionsVersion string `json:"instructions_version"`
+	Guide string `json:"guide"`
 }
 
 // packageFor builds the package for a request and reads it back.
@@ -220,9 +219,6 @@ func TestAPackageCarriesTheChildAndWhatTheTaskIsHeldTo(t *testing.T) {
 	}
 	if guide, _ := shipped.Instruction("task_writing.md"); got.Guide != guide {
 		t.Error("the guide is not the one the content ships")
-	}
-	if got.InstructionsVersion != shipped.InstructionsVersion() {
-		t.Errorf("instructions version = %q, want %q", got.InstructionsVersion, shipped.InstructionsVersion())
 	}
 }
 

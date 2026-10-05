@@ -13,8 +13,12 @@ import (
 
 // widgetPolicy is what a host must be told about the page before it runs it:
 // no network, nothing loaded from anywhere, no frames and no base elsewhere —
-// four lists that are empty and said to be — and a visible border.
-const widgetPolicy = `{"ui":{"csp":{"baseUriDomains":[],"connectDomains":[],"frameDomains":[],"resourceDomains":[]},"prefersBorder":true}}`
+// four lists that are empty and said to be — and a visible border. Under
+// ChatGPT's own keys, the same lists, the site as the one origin a card's
+// links lead to, and the service's origin to make the page's sandbox from.
+const widgetPolicy = `{"openai/widgetCSP":{"connect_domains":[],"frame_domains":[],"redirect_domains":["` + siteOrigin +
+	`"],"resource_domains":[]},"openai/widgetDomain":"` + serviceOrigin + `",` +
+	`"ui":{"csp":{"baseUriDomains":[],"connectDomains":[],"frameDomains":[],"resourceDomains":[]},"prefersBorder":true}}`
 
 // metaJSON is a description's metadata as it goes out.
 func metaJSON(t *testing.T, meta mcp.Meta) string {

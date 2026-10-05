@@ -53,17 +53,21 @@ func (s *Service) countedFields(p *profile.Profile, now time.Time) []zap.Field {
 // acceptedFields are what the line about a task handed out adds to the child's
 // counted fields: which chat host it was handed out in, the language it was
 // written in, and where the family is — the country and the region the parent
-// gave, and the country the parent's browser signed in from. A country or a
-// region is a code of the list, unknown when nobody said, and other when the
-// file, edited by hand, names one the list does not have.
+// gave, and the country the parent's browser signed in from, unless the
+// parent asked for that one to be left out. A country or a region is a code of
+// the list, unknown when nobody said, and other when the file, edited by hand,
+// names one the list does not have.
 func (s *Service) acceptedFields(ctx context.Context, p *profile.Profile, account store.Account, task *profile.CurrentTask, now time.Time) []zap.Field {
-	return append(s.countedFields(p, now),
+	fields := append(s.countedFields(p, now),
 		zap.String("host", hostFrom(ctx)),
 		zap.String("language", languageLabel(task.Language)),
 		zap.String("country", countryLabel(p.Student.Country)),
 		zap.String("region", regionLabel(p.Student.Country, p.Student.Region)),
-		zap.String("signin_country", countryLabel(account.SignInCountry)),
 	)
+	if p.Student.SignInCountryOff {
+		return fields
+	}
+	return append(fields, zap.String("signin_country", countryLabel(account.SignInCountry)))
 }
 
 // countryLabel is a country of the list, unknown for none, or other.

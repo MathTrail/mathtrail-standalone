@@ -3,6 +3,8 @@ import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test } from "vitest";
 import { Icon, type IconName } from "./icons";
 import {
+	GradeLegend,
+	type GradeRun,
 	MoveCounts,
 	MoveLegend,
 	MoveLine,
@@ -25,6 +27,20 @@ afterEach(() => {
 function draw(element: preact.JSX.Element): void {
 	act(() => render(element, root));
 }
+
+// runs are three runs of a course of eleven steps, the course standing in the
+// first.
+const runs: GradeRun[] = [
+	{
+		first: 1,
+		last: 4,
+		label: "Gr. 1–2",
+		said: "Ranks 1–4, here.",
+		current: true,
+	},
+	{ first: 5, last: 7, label: "Gr. 3–4", said: "Ranks 5–7.", current: false },
+	{ first: 8, last: 11, label: "Gr. 5–6", said: "Ranks 8–11.", current: false },
+];
 
 // fills are how far each step of the course drawn is filled.
 function fills(): (string | null | undefined)[] {
@@ -193,15 +209,16 @@ describe("how a rank moved", () => {
 		expect(root.querySelector(".mt-rank-move")?.textContent).toBe("");
 	});
 
-	test("is told between the course and the next rank to reach", () => {
+	test("is told between the course, with what marks it, and the next rank to reach", () => {
 		draw(
 			<RankSummary
-				name="River crossing"
-				meta="rank 3 of 11"
-				line="Next rank — Hill."
+				name="Rank 3"
+				meta="of 11"
+				line="Next — rank 4."
 				move={<MoveLine text="moved" />}
 			>
 				<Segments of={11} filled={2} part={0.43} />
+				<GradeLegend of={11} runs={runs} note="For parents." />
 			</RankSummary>,
 		);
 
@@ -209,7 +226,13 @@ describe("how a rank moved", () => {
 			[...(root.querySelector(".mt-rank")?.children ?? [])].map(
 				(child) => child.className,
 			),
-		).toEqual(["mt-rank-head", "mt-segments", "mt-rank-move", "mt-rank-line"]);
+		).toEqual([
+			"mt-rank-head",
+			"mt-segments",
+			"mt-grades",
+			"mt-rank-move",
+			"mt-rank-line",
+		]);
 	});
 
 	test("is counted by the title of a list, each way that moved with its arrow, and the same in words for a screen reader", () => {
@@ -358,9 +381,9 @@ describe("a rank summary", () => {
 		draw(
 			<RankSummary
 				label="Overall rating"
-				name="River crossing"
-				meta="rank 3 of 11 · rating 1573"
-				line="Next rank — Hill."
+				name="Rank 3"
+				meta="of 11"
+				line="Next — rank 4."
 			>
 				<Segments of={11} filled={2} part={0.43} />
 			</RankSummary>,
@@ -368,15 +391,13 @@ describe("a rank summary", () => {
 
 		const summary = root.querySelector("section.mt-rank");
 		expect(summary?.getAttribute("aria-label")).toBe("Overall rating");
-		expect(summary?.querySelector(".mt-rank-name")?.textContent).toBe(
-			"River crossing",
-		);
+		expect(summary?.querySelector(".mt-rank-name")?.textContent).toBe("Rank 3");
 		expect(summary?.querySelector(".mt-rank-head .mt-meta")?.textContent).toBe(
-			"rank 3 of 11 · rating 1573",
+			"of 11",
 		);
 		expect(summary?.querySelectorAll("svg.mt-segment")).toHaveLength(11);
 		expect(summary?.querySelector(".mt-rank-line")?.textContent).toBe(
-			"Next rank — Hill.",
+			"Next — rank 4.",
 		);
 	});
 
@@ -393,6 +414,42 @@ describe("a rank summary", () => {
 	});
 });
 
+describe("a legend of grades", () => {
+	test("spans each run's steps of the course in a column of its own, marks the run the course stands in, and says each run for a screen reader instead", () => {
+		draw(<GradeLegend of={11} runs={runs} note="For parents." />);
+
+		const table = root.querySelector(".mt-grades > table.mt-grades-runs");
+		expect(table?.getAttribute("aria-hidden")).toBe("true");
+		expect(
+			table?.querySelector(":scope > colgroup > col")?.getAttribute("span"),
+		).toBe("11");
+		const cells = [
+			...(table?.querySelectorAll(":scope > tbody > tr > td") ?? []),
+		];
+		expect(
+			cells.map((cell) => [
+				cell.getAttribute("colspan"),
+				cell.querySelector(".mt-grades-bracket") !== null,
+				cell.querySelector(".mt-grades-label")?.textContent,
+				cell.hasAttribute("data-current"),
+			]),
+		).toEqual([
+			["4", true, "Gr. 1–2", true],
+			["3", true, "Gr. 3–4", false],
+			["4", true, "Gr. 5–6", false],
+		]);
+		expect(
+			[...root.querySelectorAll(".mt-grades > ul.mt-vh > li")].map(
+				(said) => said.textContent,
+			),
+		).toEqual(["Ranks 1–4, here.", "Ranks 5–7.", "Ranks 8–11."]);
+		expect(
+			root.querySelector(".mt-grades > .mt-grades-note")?.textContent,
+		).toBe("For parents.");
+		expect(root.querySelector("[style]")).toBeNull();
+	});
+});
+
 describe("a list of ranks", () => {
 	test("gives each topic its name, its mark, how it stands and its rank, over its own course", () => {
 		draw(
@@ -405,7 +462,7 @@ describe("a list of ranks", () => {
 						label: "Ordering",
 						mark: { tone: "correct", label: "Mastered" },
 						word: "ahead",
-						name: "Hill",
+						name: "Rank 4",
 						segments: { of: 11, filled: 3, part: 0.27, tone: 2 },
 					},
 					{
@@ -428,7 +485,7 @@ describe("a list of ranks", () => {
 		).toEqual(["OrderingMastered", "Pigeonhole principle"]);
 		expect(
 			rows.map((row) => row.querySelector(".mt-rank-row-end")?.textContent),
-		).toEqual(["aheadHill", "no answers yet"]);
+		).toEqual(["aheadRank 4", "no answers yet"]);
 		expect(
 			rows.map((row) =>
 				row.querySelector(".mt-segments")?.getAttribute("data-tone"),

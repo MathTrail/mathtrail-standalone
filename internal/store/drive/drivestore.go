@@ -18,11 +18,12 @@
 // meet in between; what is left is two instances writing within the moment of
 // one upload, which nothing in Drive's API lets a caller close.
 //
-// A file that goes wrong is dealt with where it lies. A damaged one is put
-// back to its last state that reads, from the history Drive keeps of it — a
-// state of each day is kept forever for that — or, when the parent asks for a
-// new start, set aside rather than deleted. One in the bin is left there for
-// the parent to restore. A call Drive asks to pause is tried again, twice.
+// A file that goes wrong is dealt with where it lies, and only as the parent
+// asks: a read tells of damage and changes nothing. A damaged file is put back
+// to its last state that reads, from the history Drive keeps of it — a state
+// of each day is kept forever for that, while Drive has room — or set aside
+// rather than deleted for a new start. One in the bin is left there for the
+// parent to restore. A call Drive asks to pause is tried again, twice.
 //
 // Every call to Drive leaves a span and a line: what was asked and how it
 // ended, and never which file, nor anything it holds.

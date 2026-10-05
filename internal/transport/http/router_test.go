@@ -143,6 +143,30 @@ func call(t *testing.T, method, path string) *httptest.ResponseRecorder {
 	return rec
 }
 
+// The token ChatGPT's directory proves the domain by is served as it was
+// given, in plain text and nothing else; a service given none has no such
+// address.
+func TestTheTokenOfChatGPTsIsServedAsItWasGiven(t *testing.T) {
+	t.Parallel()
+
+	rec := call(t, http.MethodGet, httpserver.ChallengePath)
+	if rec.Code != http.StatusOK || rec.Body.String() != challengeToken {
+		t.Errorf("GET %s = %d %q, want 200 and the token alone", httpserver.ChallengePath, rec.Code, rec.Body.String())
+	}
+	if got := rec.Header().Get("Content-Type"); got != "text/plain; charset=utf-8" {
+		t.Errorf("Content-Type = %q, want plain text", got)
+	}
+
+	none := endpoints()
+	none.Challenge = ""
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, httpserver.ChallengePath, http.NoBody)
+	rec = httptest.NewRecorder()
+	newRouterOf(t, none).ServeHTTP(rec, req)
+	if rec.Code != http.StatusNotFound {
+		t.Errorf("GET %s with no token = %d, want %d", httpserver.ChallengePath, rec.Code, http.StatusNotFound)
+	}
+}
+
 // A 405 must say which methods would have worked (RFC 9110). The framework
 // fills the header in; this is the test that notices if it stops.
 func TestA405SaysWhichMethodsWork(t *testing.T) {
@@ -163,8 +187,14 @@ func TestA405SaysWhichMethodsWork(t *testing.T) {
 // only add noise to them.
 func newRouter(t *testing.T) http.Handler {
 	t.Helper()
+	return newRouterOf(t, endpoints())
+}
 
-	router, err := httpserver.NewRouter(publicURL, endpoints(), roomy(t), zaptest.NewLogger(t), httpserver.Observability{
+// newRouterOf is the router serving the endpoints given.
+func newRouterOf(t *testing.T, served *httpserver.Endpoints) http.Handler {
+	t.Helper()
+
+	router, err := httpserver.NewRouter(publicURL, served, roomy(t), zaptest.NewLogger(t), httpserver.Observability{
 		Traces: tracenoop.NewTracerProvider(),
 		Meters: metricnoop.NewMeterProvider(),
 		Flush:  func(context.Context, bool) error { return nil },
@@ -199,8 +229,12 @@ func endpoints() *httpserver.Endpoints {
 		Token:            standIn(reachedToken),
 		Revoke:           standIn(reachedRevoke),
 		Busy:             busyPage,
+		Challenge:        challengeToken,
 	}
 }
+
+// challengeToken stands in for the token ChatGPT's directory gives.
+const challengeToken = "a-token-0f-ChatGPTs"
 
 // What each stand-in for the sign-in answers.
 const (

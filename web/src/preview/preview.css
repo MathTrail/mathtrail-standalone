@@ -10,11 +10,16 @@ body {
 	min-height: 100vh;
 	padding: 16px;
 }
+/* Each theme names its colour scheme, as a chat in that theme does: a browser
+   draws a frame whose page is of another scheme than the page around it on an
+   opaque backdrop, which would fill the corners round a dark card. */
 .preview-light {
+	color-scheme: light;
 	background: #f5f4ef;
 	color: #1f1e1b;
 }
 .preview-dark {
+	color-scheme: dark;
 	background: #141312;
 	color: #edebe6;
 }

@@ -106,6 +106,11 @@ func TestTheChildrenOfATestingToolAreLeftOut(t *testing.T) {
 	if want := [][]string{{"chatgpt", "1"}}; !equalRows(hosts, want) {
 		t.Errorf("the children of the month by host = %v, want %v", hosts, want)
 	}
+	for _, table := range []string{"chance_monthly", "kept_up_monthly"} {
+		if got := s.rows(t, "SELECT COUNT(*) FROM `${impact}."+table+"`"); !equalRows(got, [][]string{{"0"}}) {
+			t.Errorf("%s holds %v rows, want none: the one answer was the load tool's child's", table, got)
+		}
+	}
 }
 
 // A child is counted once in a week and in a month, under the value of its
@@ -387,6 +392,149 @@ func TestHowMuchAndHowWellTheChildrenDidIsCounted(t *testing.T) {
 		if got := monthly(check.table, check.columns); !equalRows(got, check.want) {
 			t.Errorf("%s = %v, want %v", check.table, got, check.want)
 		}
+	}
+}
+
+// The answers weighed against the chance promised are those the report
+// weighs: to tasks the rule chose, after the trial series and without the
+// hint, each with a chance and a range of the child's answers. A chance that
+// is no chance, not a number or out of nothing to one, weighs nothing and
+// stops nothing. Each case is a
+// child of its own whose answer names the case as its range, so that the table
+// says which were weighed; the child the load tool handed a task to is left
+// out as well.
+func TestTheAnswersWeighedAreThoseTheReportWeighs(t *testing.T) {
+	s := newSpace(t)
+	openedLongAgo(t, s)
+	yesterday := today().AddDate(0, 0, -1)
+
+	cases := []struct {
+		name    string
+		given   map[string]any
+		without string
+	}{
+		{name: "kept"},
+		{name: "no chance", without: "chance"},
+		{name: "chance not a number", given: map[string]any{"chance": "NaN"}},
+		{name: "chance past any", given: map[string]any{"chance": 1e300}},
+		{name: "chance over one", given: map[string]any{"chance": 1.5}},
+		{name: "llm", given: map[string]any{"tutor_mode": "llm"}},
+		{name: "person", given: map[string]any{"tutor_mode": "person"}},
+		{name: "unknown", given: map[string]any{"tutor_mode": "unknown"}},
+		{name: "no chooser", without: "tutor_mode"},
+		{name: "trial", given: map[string]any{"trial": 1}},
+		{name: "trial not a number", given: map[string]any{"trial": "NaN"}},
+		{name: "hint", given: map[string]any{"hint_used": true}},
+		{name: "load"},
+	}
+	var written []line
+	for i, c := range cases {
+		given := map[string]any{"answers_bucket": c.name}
+		for field, value := range c.given {
+			given[field] = value
+		}
+		answer := answered(learnerOf(i+1), noon(yesterday), given)
+		if c.without != "" {
+			delete(answer.fields, c.without)
+		}
+		written = append(written, answer)
+	}
+	// A trial answer as the service writes it names no range at all, and an
+	// answer whose range is empty falls in none.
+	trialAsWritten := answered(learnerOf(20), noon(yesterday), map[string]any{"trial": 2})
+	delete(trialAsWritten.fields, "answers_bucket")
+	written = append(written,
+		trialAsWritten,
+		answered(learnerOf(21), noon(yesterday), map[string]any{"answers_bucket": ""}),
+		accepted(learnerOf(len(cases)), noon(yesterday), map[string]any{"host": "load"}),
+	)
+	s.write(t, written...)
+	s.countTheNight(t)
+
+	month := day(firstOfMonth(yesterday))
+	byRange := s.rows(t, fmt.Sprintf("SELECT bucket, learners, answers FROM `${impact}.kept_up_monthly` WHERE month = DATE '%s' ORDER BY bucket", month))
+	if want := [][]string{{"kept", "1", "1"}}; !equalRows(byRange, want) {
+		t.Errorf("the answers weighed by the range of the child's answers = %v, want %v", byRange, want)
+	}
+	whole := s.rows(t, fmt.Sprintf("SELECT learners, answers FROM `${impact}.chance_monthly` WHERE month = DATE '%s' AND bucket IS NULL", month))
+	if want := [][]string{{"1", "1"}}; !equalRows(whole, want) {
+		t.Errorf("the answers weighed over every range of chance = %v, want %v", whole, want)
+	}
+}
+
+// Every chance is weighed in the range the report puts it in, read in
+// hundredths as the line writes it: 0.29, 0.57 and 0.58 times a hundred fall a
+// hair below the whole number and are rounded to it, not cut.
+func TestEveryChanceIsInTheRangeTheReportPutsItIn(t *testing.T) {
+	s := newSpace(t)
+	openedLongAgo(t, s)
+	yesterday := today().AddDate(0, 0, -1)
+
+	var written []line
+	for hundredths := 0; hundredths <= 100; hundredths++ {
+		at := yesterday.Add(time.Duration(hundredths) * time.Minute)
+		written = append(written, answered(learnerOf(1), at, map[string]any{"chance": float64(hundredths) / 100}))
+	}
+	s.write(t, written...)
+	s.countTheNight(t)
+
+	got := s.rows(t, fmt.Sprintf("SELECT IFNULL(bucket, 'every range'), answers, promised FROM `${impact}.chance_monthly` WHERE month = DATE '%s' ORDER BY 1", day(firstOfMonth(yesterday))))
+	// The chances 0.00 to 1.00, each once: 50 under 0.50, then 10, 10, 8, 8
+	// and the 15 over 0.85, each range's chances added up in hundredths.
+	want := [][]string{
+		{"0.50-0.59", "10", "545"},
+		{"0.60-0.69", "10", "645"},
+		{"0.70-0.77", "8", "588"},
+		{"0.78-0.85", "8", "652"},
+		{"every range", "101", "5050"},
+		{"over 0.85", "15", "1395"},
+		{"under 0.50", "50", "1225"},
+	}
+	if !equalRows(got, want) {
+		t.Errorf("the chances by range = %v, want %v", got, want)
+	}
+}
+
+// A child is counted once in each row its weighed answers fall in, and once
+// over every range, however many ranges they spread over. The sums the error
+// is read from take each child's margin — its right answers times a hundred
+// less its chances in hundredths — squared, and weighed by its answers.
+func TestAChildsWeighedAnswersAreCountedOnceInEachRow(t *testing.T) {
+	s := newSpace(t)
+	openedLongAgo(t, s)
+	yesterday := today().AddDate(0, 0, -1)
+
+	at := func(minute int) time.Time { return noon(yesterday).Add(time.Duration(minute) * time.Minute) }
+	s.write(t,
+		answered(learnerOf(1), at(0), map[string]any{"chance": 0.8}),
+		answered(learnerOf(1), at(1), map[string]any{"chance": 0.6, "correct": false}),
+		answered(learnerOf(1), at(2), map[string]any{"chance": 0.7, "answers_bucket": "21-50"}),
+		answered(learnerOf(2), at(3), map[string]any{"chance": 0.9, "correct": false}),
+	)
+	s.countTheNight(t)
+
+	month := day(firstOfMonth(yesterday))
+	keptUp := s.rows(t, fmt.Sprintf("SELECT bucket, learners, answers, correct, promised, margins_squared, answers_by_margins, answers_squared FROM `${impact}.kept_up_monthly` WHERE month = DATE '%s' ORDER BY bucket", month))
+	// In 6-20 the first child answered twice, right once, at 140 promised, a
+	// margin of -40, and the second once, wrong at 90, a margin of -90; in
+	// 21-50 the first child once, right at 70, a margin of 30.
+	wantKeptUp := [][]string{
+		{"21-50", "1", "1", "1", "70", "900", "30", "1"},
+		{"6-20", "2", "3", "1", "230", "9700", "-170", "5"},
+	}
+	if !equalRows(keptUp, wantKeptUp) {
+		t.Errorf("kept_up_monthly = %v, want %v", keptUp, wantKeptUp)
+	}
+	chances := s.rows(t, fmt.Sprintf("SELECT IFNULL(bucket, 'every range'), learners, answers, correct, promised FROM `${impact}.chance_monthly` WHERE month = DATE '%s' ORDER BY 1", month))
+	wantChances := [][]string{
+		{"0.60-0.69", "1", "1", "0", "60"},
+		{"0.70-0.77", "1", "1", "1", "70"},
+		{"0.78-0.85", "1", "1", "1", "80"},
+		{"every range", "2", "4", "2", "300"},
+		{"over 0.85", "1", "1", "0", "90"},
+	}
+	if !equalRows(chances, wantChances) {
+		t.Errorf("chance_monthly = %v, want %v", chances, wantChances)
 	}
 }
 

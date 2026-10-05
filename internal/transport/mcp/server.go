@@ -46,7 +46,22 @@ type Settings struct {
 	// Widget is the page every card is drawn by, served to a host as the
 	// widget's resource.
 	Widget string
+	// Origin is the service's public origin, which a host that gives each app
+	// a sandbox of its own makes the widget's from.
+	Origin string
+	// Site is the site's origin: where a host that lists the server sends a
+	// reader, and where its icon is; and the one origin a card's links lead
+	// to.
+	Site string
 }
+
+// description is what the server says it is, for a host that lists it.
+const description = "Olympiad-style maths for children in grades 1 to 6. The chat's model writes each task; " +
+	"MathTrail chooses its topic and difficulty, checks it before the child sees it, and keeps the child's " +
+	"progress in the parent's Google Drive."
+
+// siteIcon is where the site keeps its icon, which is the service's too.
+const siteIcon = "/assets/favicon.svg"
 
 // ErrSettings is returned when the endpoint is given settings it cannot be
 // served with; callers branch on it with errors.Is.
@@ -78,8 +93,29 @@ func (s *Settings) validate() error {
 		// A tool that draws a card would point the host at a page it cannot
 		// have, and the host would draw an empty frame for the child.
 		return fmt.Errorf("%w: Widget must be set", ErrSettings)
+	case s.Origin == "":
+		// A host would run the page in a sandbox it shares with other apps.
+		return fmt.Errorf("%w: Origin must be set", ErrSettings)
+	case s.Site == "":
+		// A host would warn before every link a card opens, and list the
+		// server with no site and no icon.
+		return fmt.Errorf("%w: Site must be set", ErrSettings)
 	}
 	return nil
+}
+
+// serverInfo is how the server names itself to a host: its name and build,
+// what it is, its site and its icon. A host that reads none but the name
+// loses nothing by the rest.
+func serverInfo(settings *Settings) *mcp.Implementation {
+	return &mcp.Implementation{
+		Name:        "mathtrail",
+		Title:       "MathTrail",
+		Version:     settings.Version,
+		Description: description,
+		WebsiteURL:  settings.Site,
+		Icons:       []mcp.Icon{{Source: settings.Site + siteIcon, MIMEType: "image/svg+xml", Sizes: []string{"any"}}},
+	}
 }
 
 // NewHandler builds the endpoint as it is served: the protocol, the tools, the
@@ -100,7 +136,7 @@ func NewHandler(settings *Settings, tools ...Tool) (http.Handler, error) {
 	}
 
 	server := mcp.NewServer(
-		&mcp.Implementation{Name: "mathtrail", Title: "MathTrail", Version: settings.Version},
+		serverInfo(settings),
 		&mcp.ServerOptions{
 			Instructions: settings.Instructions,
 			// Declared rather than left to the default, which also advertises
@@ -115,7 +151,7 @@ func NewHandler(settings *Settings, tools ...Tool) (http.Handler, error) {
 			},
 		},
 	)
-	AddWidget(server, WidgetURI, settings.Widget)
+	AddWidget(server, WidgetURI, settings.Widget, Sandbox{Origin: settings.Origin, Site: settings.Site})
 
 	names := make(map[string]struct{}, len(tools))
 	for _, tool := range tools {

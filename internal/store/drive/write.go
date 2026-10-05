@@ -100,18 +100,7 @@ func (s *driveStore) Save(ctx context.Context, account store.Account, p *profile
 	if err != nil {
 		return "", fmt.Errorf("drivestore: save: %w", err)
 	}
-	keep := firstOfTheDay(current, p)
-	if keep {
-		// Making room takes calls of its own, and another write may land in
-		// the meantime; the file is held to what the profile was computed
-		// from once more, so that between the last look and the write there
-		// is one upload again.
-		s.roomForOne(ctx, parent, id)
-		if _, err := s.unchanged(ctx, parent, account, id, read); err != nil {
-			return "", fmt.Errorf("drivestore: save: %w", err)
-		}
-	}
-	if err := s.upload(ctx, parent, id, p, raw, keep); err != nil {
+	if err := s.upload(ctx, parent, id, p, raw, firstOfTheDay(current, p)); err != nil {
 		return "", fmt.Errorf("drivestore: save: %w", err)
 	}
 	s.ids.wrote(account.ID, id, p.Revision)
@@ -131,10 +120,11 @@ func (s *driveStore) Save(ctx context.Context, account store.Account, p *profile
 // nothing: the file is forgotten, and the write refused as a conflict, so
 // that whoever made it reads again and finds where the profile is now.
 //
-// An upload asked to keep its revision that Drive refuses for a reason the
-// store has no word for — the most revisions it keeps, among them — is made
-// again without: the write matters more than the revision kept, and Drive did
-// not take the one it refused.
+// An upload asked to keep its revision that Drive refuses is made again
+// without, unless the refusal is one an upload without keeping would meet as
+// well (alsoWithoutKeeping): the write matters more than the revision kept,
+// Drive did not take the one it refused, and it does not document how it
+// refuses a revision past the most it keeps.
 func (s *driveStore) upload(ctx context.Context, parent parentsDrive, id string, p *profile.Profile, raw []byte, keep bool) error {
 	change := drive.Change{
 		Meta:    &drive.File{MimeType: fileType, AppProperties: map[string]string{schemaKey: strconv.Itoa(p.SchemaVersion)}},
@@ -142,7 +132,7 @@ func (s *driveStore) upload(ctx context.Context, parent parentsDrive, id string,
 		Keep:    keep,
 	}
 	changed, err := parent.update(ctx, id, &change)
-	if err != nil && keep && outcomeOf(err) == outcomeFailed {
+	if err != nil && keep && !alsoWithoutKeeping(err) {
 		change.Keep = false
 		changed, err = parent.update(ctx, id, &change)
 	}
@@ -161,6 +151,20 @@ func (s *driveStore) upload(ctx context.Context, parent parentsDrive, id string,
 	s.ids.forget(parent.account.ID, id)
 	s.watch.conflict(ctx, parent.account, p.Revision-1, p.Revision, why)
 	return fmt.Errorf("%w: the file stopped being the profile before the write", store.ErrConflict)
+}
+
+// alsoWithoutKeeping reports whether a refusal of an upload asked to keep its
+// revision is one an upload without keeping would meet as well: access taken
+// back or ending, the file gone, a full Drive, a pause Drive asked for past its
+// retries or Drive out of reach, or the time up. Any other refusal may be of
+// the keeping alone.
+func alsoWithoutKeeping(err error) bool {
+	switch outcomeOf(err) {
+	case outcomeTimeout, outcomeCanceled, outcomeExpired, outcomeNotFound, outcomeRevoked, outcomeRateLimited,
+		outcomeStorageFull, outcomeUnavailable:
+		return true
+	}
+	return false
 }
 
 // folder is the folder a new profile is made in: the one found by its marker —
@@ -188,11 +192,14 @@ func (s *driveStore) folder(ctx context.Context, parent parentsDrive) (string, e
 // firstOfTheDay reports whether a write is the first of its day, by the day
 // the file was last written on, as the file itself says: that write's
 // revision is kept forever, so that a damaged file can be put back to how it
-// was on each day it was used. A write lost to another changes nothing in the
-// file, so the next one still finds the day's first write to make; and a file
-// that does not say when it was written is kept, as one nothing is known of.
-// A write dated before the file's day — an instance whose clock runs behind
-// another's, around midnight — is no new day.
+// was on each day it was used — while Drive has room for it. Past the most it
+// keeps, the write is made without (upload), and nothing kept earlier is
+// deleted to make room: a write adds to the history and takes nothing from
+// it. A write lost to another changes nothing in the file, so the next one
+// still finds the day's first write to make; and a file that does not say
+// when it was written is kept, as one nothing is known of. A write dated
+// before the file's day — an instance whose clock runs behind another's,
+// around midnight — is no new day.
 func firstOfTheDay(current []byte, p *profile.Profile) bool {
 	var written struct {
 		UpdatedAt profile.Time `json:"updated_at"`
@@ -235,15 +242,4 @@ func (s *driveStore) unchanged(ctx context.Context, parent parentsDrive, account
 		return nil, fmt.Errorf("%w: the file changed after it was read", store.ErrConflict)
 	}
 	return current, nil
-}
-
-// roomForOne makes room for one more revision of the file kept forever, by
-// the history as Drive lists it now. A history Drive would not list leaves
-// the room as it is, and the write goes on.
-func (s *driveStore) roomForOne(ctx context.Context, parent parentsDrive, id string) {
-	history, err := parent.history(ctx, id)
-	if err != nil {
-		return
-	}
-	s.makeRoom(ctx, parent, id, history, 1)
 }

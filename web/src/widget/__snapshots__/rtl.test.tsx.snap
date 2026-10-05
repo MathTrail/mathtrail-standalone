@@ -2135,6 +2135,16 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
         اختياري. يُستخدم فقط لعدّ الأسر في كل بلد دون أسماء.
       </p>
     </div>
+    <label
+      class="mt-check"
+    >
+      <input
+        type="checkbox"
+      />
+      <span>
+        لا تُحتسب الدولة التي أسجّل الدخول منها
+      </span>
+    </label>
   </fieldset>
   <div
     class="mt-form-actions"
@@ -2415,12 +2425,12 @@ exports[`the screens in Arabic > the progress 1`] = `
           <span
             class="mt-rank-name"
           >
-            معبر النهر
+            المرحلة 3
           </span>
           <span
             class="mt-meta"
           >
-            المرحلة 3 من 11
+            من 11
           </span>
         </div>
         <div
@@ -2488,10 +2498,83 @@ exports[`the screens in Arabic > the progress 1`] = `
             height="6"
           />
         </div>
+        <div
+          class="mt-grades"
+        >
+          <table
+            aria-hidden="true"
+            class="mt-grades-runs"
+          >
+            <colgroup>
+              <col
+                span="11"
+              />
+            </colgroup>
+            <tbody>
+              <tr>
+                <td
+                  colspan="4"
+                  data-current=""
+                >
+                  <span
+                    class="mt-grades-bracket"
+                  />
+                  <span
+                    class="mt-grades-label"
+                  >
+                    الصف 1–2
+                  </span>
+                </td>
+                <td
+                  colspan="3"
+                >
+                  <span
+                    class="mt-grades-bracket"
+                  />
+                  <span
+                    class="mt-grades-label"
+                  >
+                    الصف 3–4
+                  </span>
+                </td>
+                <td
+                  colspan="4"
+                >
+                  <span
+                    class="mt-grades-bracket"
+                  />
+                  <span
+                    class="mt-grades-label"
+                  >
+                    الصف 5–6
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <ul
+            class="mt-vh"
+          >
+            <li>
+              المراحل 1–4، ومنها المرحلة الحالية: مسائل الصفوف 1–2.
+            </li>
+            <li>
+              المراحل 5–7: مسائل الصفوف 3–4.
+            </li>
+            <li>
+              المراحل 8–11: مسائل الصفوف 5–6.
+            </li>
+          </ul>
+          <p
+            class="mt-grades-note"
+          >
+            لولي الأمر: يبيّن هذا المقياس على وجه التقريب مسائل أي الصفوف في المتناول. المسائل هنا من نوع الأولمبياد، وهذه ليست درجة مدرسية.
+          </p>
+        </div>
         <p
           class="mt-rank-line"
         >
-          المرحلة التالية: التل. الإجابات الصحيحة تدفع الشريط إلى الأمام، والأخطاء تعيده قليلًا إلى الوراء.
+          المرحلة التالية: 4. الإجابات الصحيحة تدفع الشريط إلى الأمام، والأخطاء تعيده قليلًا إلى الوراء.
         </p>
       </section>
       <div
@@ -2595,7 +2678,7 @@ exports[`the screens in Arabic > the progress 1`] = `
                     <span
                       class="mt-rank-row-name"
                     >
-                      التل
+                      المرحلة 4
                     </span>
                   </span>
                 </div>
@@ -2686,7 +2769,7 @@ exports[`the screens in Arabic > the progress 1`] = `
                     <span
                       class="mt-rank-row-name"
                     >
-                      معبر النهر
+                      المرحلة 3
                     </span>
                   </span>
                 </div>
@@ -2777,7 +2860,7 @@ exports[`the screens in Arabic > the progress 1`] = `
                     <span
                       class="mt-rank-row-name"
                     >
-                      معبر النهر
+                      المرحلة 3
                     </span>
                   </span>
                 </div>
@@ -2868,7 +2951,7 @@ exports[`the screens in Arabic > the progress 1`] = `
                     <span
                       class="mt-rank-row-name"
                     >
-                      درب الغابة
+                      المرحلة 2
                     </span>
                   </span>
                 </div>

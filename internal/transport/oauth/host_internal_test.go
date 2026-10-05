@@ -47,7 +47,9 @@ func (h *signIn) serveResource(t *testing.T) {
 		Traces:              tracenoop.NewTracerProvider(),
 		Logger:              zap.NewNop(),
 		Widget:              "<!doctype html><title>the widget</title>",
-	}, mcpserver.Define(mcpserver.Spec{Name: "whoami", Title: "Who am I", Description: "Says whom a call acts for.", ReadOnly: true},
+		Origin:              "https://mcp.example",
+		Site:                "https://site.example",
+	}, mcpserver.Define(mcpserver.Spec{Name: "whoami", Title: "Who am I", Description: "Says whom a call acts for.", Effect: mcpserver.Reads},
 		func(_ context.Context, account store.Account, _ nothing) (mcpserver.Reply[whom], error) {
 			return mcpserver.Reply[whom]{Text: account.ID, Payload: whom{User: account.ID}}, nil
 		}))

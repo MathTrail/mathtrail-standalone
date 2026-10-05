@@ -2,7 +2,6 @@ package report
 
 import (
 	"fmt"
-	"maps"
 	"math"
 	"math/rand/v2"
 	"slices"
@@ -32,6 +31,31 @@ func (a answerAt) line() string {
 	return fmt.Sprintf(`{"message":"answer_recorded","time":%q,"topic":%q,"correct":%t,"hint_used":%t,"confused":%t,`+
 		`"chance":0.5,"tutor_mode":"rule","trial":0,"answers_bucket":%q,"instructions_version":"v1","request_id":%q,"user":%q}`,
 		lessonMinute(a.minute), a.topic, a.correct, a.hint, a.unknown, a.answers, a.call, a.user)
+}
+
+// underVersion is lines as a test writes them, each under a version of the
+// instructions of its own choosing rather than the one they name.
+func underVersion(version string, lines []string) []string {
+	moved := make([]string, len(lines))
+	for i, l := range lines {
+		moved[i] = strings.ReplaceAll(l, `"instructions_version":"v1"`, `"instructions_version":"`+version+`"`)
+	}
+	return moved
+}
+
+// sitting is the lines of four answers of a child in a range of its own,
+// through a host and under a version of the instructions, one a minute from
+// the minute given, right and wrong in turn.
+func sitting(user, host, version, answers string, minute int) []string {
+	var lines []string
+	for number := range 4 {
+		answered := answerAt{
+			user: user, call: fmt.Sprintf("%s-%d", user, minute+number), topic: "counting.gaps", answers: answers,
+			minute: minute + number, correct: number%2 == 0,
+		}
+		lines = append(lines, answered.line(), callLine(answered.call, host))
+	}
+	return underVersion(version, lines)
 }
 
 // callLine is the line of a tool call the host made, which names the host
@@ -244,38 +268,174 @@ func TestAComparisonOfTooFewAnswersSaysSo(t *testing.T) {
 	}
 }
 
-// The hosts of a version are set side by side and then taken together, and
-// what the load tool or MCP Inspector did is left out: their calls, and a
-// child either of them handed a task to, whichever host its answers came
-// through.
-func TestEveryHostTakesAVersionsHostsTogetherAndLeavesTestingOut(t *testing.T) {
+// The hosts of a version are set side by side and then taken together, every
+// version taken together after them all, and what the load tool or MCP
+// Inspector did is left out of every row: their calls, and a child either of
+// them handed a task to, whichever host its answers came through.
+func TestEveryHostAndThenEveryVersionComeLastAndTestingIsLeftOut(t *testing.T) {
 	t.Parallel()
 
 	var lines []string
-	for _, child := range []struct{ host, user string }{
-		{"claude", "u1"}, {"claude", "u2"}, {"chatgpt", "u3"}, {"load", "u4"}, {"claude", "tester"},
+	for _, child := range []struct {
+		host, version, user string
+		minute              int
+	}{
+		{"claude", "v2", "u1", 0}, {"claude", "v1", "u2", 10}, {"chatgpt", "v1", "u3", 20}, {"load", "v1", "u4", 30},
+		{"claude", "v1", "tester", 40},
 	} {
-		for number := range 4 {
-			for _, answered := range []answerAt{
-				{user: child.user, answers: "6-20", minute: number, correct: number%2 == 0},
-				{user: child.user, answers: "101-200", minute: 100 + number, correct: number%2 == 1},
-			} {
-				answered.call = fmt.Sprintf("%s-%d", child.user, answered.minute)
-				answered.topic = "counting.gaps"
-				lines = append(lines, answered.line(), callLine(answered.call, child.host))
-			}
-		}
+		lines = slices.Concat(lines,
+			sitting(child.user, child.host, child.version, "6-20", child.minute),
+			sitting(child.user, child.host, child.version, "101-200", 100+child.minute))
 	}
 	lines = append(lines, `{"message":"task_accepted","host":"inspector","user":"tester","request_id":"t1","instructions_version":"v1"}`)
 
-	children := map[string]string{}
-	var hosts []string
+	var got [][3]string
 	for _, row := range tallied(t, lines...).laterTable().rows {
-		hosts = append(hosts, row[1])
-		children[row[1]] = row[2]
+		got = append(got, [3]string{row[0], row[1], row[2]})
 	}
-	want := map[string]string{"chatgpt": "1", "claude": "2", everyHost: "3"}
-	if !slices.Equal(hosts, []string{"chatgpt", "claude", everyHost}) || !maps.Equal(children, want) {
-		t.Errorf("the rows are of hosts %v with children %v, want %v in that order", hosts, children, want)
+	want := [][3]string{
+		{"v2", "claude", "1"}, {"v2", everyHost, "1"}, {"v1", "chatgpt", "1"}, {"v1", "claude", "1"}, {"v1", everyHost, "2"},
+		{everyVersion, everyHost, "3"},
 	}
+	if !slices.Equal(got, want) {
+		t.Errorf("the rows are %v, want %v", got, want)
+	}
+}
+
+// Every version taken together sets a child against itself across versions:
+// a child whose earlier answers came under one version and its later under
+// another is set against itself there alone, whichever hosts the answers came
+// through, and a version's own rows read only the answers given under it.
+func TestEveryVersionSetsAChildAgainstItselfAcrossVersions(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name  string
+		lines []string
+		want  [][5]string
+	}{
+		{
+			"both ranges under one version",
+			slices.Concat(sitting("u1", "claude", "v1", "6-20", 0), sitting("u1", "claude", "v1", "101-200", 100)),
+			[][5]string{
+				{"v1", "claude", "1", "4", "4"}, {"v1", everyHost, "1", "4", "4"}, {everyVersion, everyHost, "1", "4", "4"},
+			},
+		},
+		{
+			"the ranges under two versions",
+			slices.Concat(sitting("u1", "claude", "v1", "6-20", 0), sitting("u1", "claude", "v2", "101-200", 100)),
+			[][5]string{{everyVersion, everyHost, "1", "4", "4"}},
+		},
+		{
+			"the ranges under two versions, through two hosts",
+			slices.Concat(sitting("u1", "claude", "v1", "6-20", 0), sitting("u1", "chatgpt", "v2", "101-200", 100)),
+			[][5]string{{everyVersion, everyHost, "1", "4", "4"}},
+		},
+		{
+			"one earlier range under each version",
+			slices.Concat(sitting("u1", "claude", "v1", "6-20", 0), sitting("u1", "claude", "v2", "21-50", 50),
+				sitting("u1", "claude", "v2", "101-200", 100)),
+			[][5]string{
+				{"v2", "claude", "1", "4", "4"}, {"v2", everyHost, "1", "4", "4"}, {everyVersion, everyHost, "1", "8", "4"},
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			var got [][5]string
+			for _, row := range tallied(t, tc.lines...).laterTable().rows {
+				got = append(got, [5]string{row[0], row[1], row[2], row[3], row[5]})
+			}
+			if !slices.Equal(got, tc.want) {
+				t.Errorf("the rows read %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
+// drawnSitting is a run of a child's answers in a topic as the property below
+// draws it: the version, host and child, the range of the child's answers it
+// falls in, whether each was right, and whether the first showed the topic
+// mastered.
+type drawnSitting struct {
+	version, host, user, topic, answers string
+	correct                             []bool
+	shows                               bool
+}
+
+// linesOf are the lines of the sittings drawn, each answer at a minute and in
+// a call of its own, with the task MCP Inspector handed the child it tests.
+func linesOf(sittings []drawnSitting) []string {
+	lines := []string{`{"message":"task_accepted","host":"inspector","user":"tester","request_id":"t1","instructions_version":"v1"}`}
+	minute := 0
+	for _, drawn := range sittings {
+		var own []string
+		for i, correct := range drawn.correct {
+			answered := answerAt{
+				user: drawn.user, call: fmt.Sprintf("c%d", minute), topic: drawn.topic, answers: drawn.answers,
+				minute: minute, correct: correct,
+			}
+			own = append(own, answered.line(), callLine(answered.call, drawn.host))
+			if i == 0 && drawn.shows {
+				own = append(own, masteredLine(drawn.user, answered.call, drawn.topic, minute))
+			}
+			minute++
+		}
+		lines = append(lines, underVersion(drawn.version, own)...)
+	}
+	return lines
+}
+
+// inOneVersion are the sittings with every version made the first.
+func inOneVersion(sittings []drawnSitting) []drawnSitting {
+	one := slices.Clone(sittings)
+	for i := range one {
+		one[i].version = "v1"
+	}
+	return one
+}
+
+// Every version taken together reads the lines as if they had one version:
+// whatever versions the answers and the masteries came under, the row of
+// every version sets each child against itself, and counts the masteries,
+// as one version's row over every host would were all the lines under it.
+func TestEveryVersionReadsTheLinesAsIfTheyHadOneVersion(t *testing.T) {
+	t.Parallel()
+
+	oneSitting := gopter.CombineGens(
+		gen.OneConstOf("v1", "v2", "v3"), gen.OneConstOf("claude", "chatgpt", "load"),
+		gen.OneConstOf("u1", "u2", "u3", "tester"), gen.OneConstOf("counting.gaps", "parity.alternation"),
+		gen.OneConstOf("6-20", "21-50", "51-100", "101-200"), gen.SliceOf(gen.Bool()), gen.Bool(),
+	).Map(func(drawn []any) drawnSitting {
+		version, _ := drawn[0].(string)
+		host, _ := drawn[1].(string)
+		user, _ := drawn[2].(string)
+		topic, _ := drawn[3].(string)
+		answers, _ := drawn[4].(string)
+		correct, _ := drawn[5].([]bool)
+		shows, _ := drawn[6].(bool)
+		return drawnSitting{version, host, user, topic, answers, correct, shows}
+	})
+	parameters := gopter.DefaultTestParameters()
+	parameters.MaxSize = 20
+	properties := gopter.NewProperties(parameters)
+	properties.Property("the row of every version is one version's row over every host", prop.ForAll(
+		func(sittings []drawnSitting) bool {
+			apart, err := readAll(strings.NewReader(strings.Join(linesOf(sittings), "\n")))
+			if err != nil {
+				return false
+			}
+			together, err := readAll(strings.NewReader(strings.Join(linesOf(inOneVersion(sittings)), "\n")))
+			if err != nil {
+				return false
+			}
+			asDrawn, asOne := tally(apart), tally(together)
+			pooled, one := group{version: everyVersion, host: everyHost}, group{version: "v1", host: everyHost}
+			return compared(asDrawn.pairsByGroup()[pooled]) == compared(asOne.pairsByGroup()[one]) &&
+				slices.Equal(sortedMasteries(asDrawn.masteriesByGroup()[pooled]), sortedMasteries(asOne.masteriesByGroup()[one]))
+		},
+		gen.SliceOf(oneSitting),
+	))
+	properties.TestingRun(t)
 }

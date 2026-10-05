@@ -47,6 +47,10 @@ type Student struct {
 	// chose to say — for the United States its state, such as US-TX — by its
 	// code in ISO 3166-2. Only a country the list names regions of has one.
 	Region string `json:"region,omitempty"`
+	// SignInCountryOff says the parent asked for the country their browser signs
+	// in from to be left out of what is counted. Absent, it is counted, as the
+	// privacy policy says.
+	SignInCountryOff bool `json:"signin_country_off,omitempty"`
 	// UILanguage is the language the parent chose for the lessons — the tasks,
 	// the cards and the model's words — or nil to follow the chat. The file
 	// keeps the name it was given when it set the cards' language alone.

@@ -1,10 +1,12 @@
 // @vitest-environment node
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { describe, expect, test } from "vitest";
 import { scenesIn } from "../src/preview/scenes.ts";
 import { previewWidths } from "../src/preview/widths.ts";
-import { addressOf, pictureOf, shots, themes, width } from "./screens.ts";
+import { addressOf, pictureOf, shots, width } from "./screens.ts";
+
+const root = join(import.meta.dirname, "..", "..");
 
 describe("the pictures of the README", () => {
 	// A scene the preview does not have, or a width it does not offer, would
@@ -17,13 +19,9 @@ describe("the pictures of the README", () => {
 		expect(previewWidths).toContain(width);
 	});
 
-	test("ask the preview for one scene alone, in its theme, in English, at the width photographed", () => {
+	test("ask the preview for one scene alone, in the dark theme, in English, at the width photographed", () => {
 		const address = new URL(
-			addressOf(
-				"http://127.0.0.1:5173/",
-				{ scene: "wrong", file: "wrong" },
-				"dark",
-			),
+			addressOf("http://127.0.0.1:5173/", { scene: "wrong", file: "wrong" }),
 		);
 		expect(address.pathname).toBe("/preview.html");
 		expect(Object.fromEntries(address.searchParams)).toEqual({
@@ -34,37 +32,29 @@ describe("the pictures of the README", () => {
 		});
 	});
 
-	test("are written to the files the README shows, one for each scene and theme", () => {
-		const files = themes.flatMap((theme) =>
-			shots.map((shot) =>
-				pictureOf(shot, theme).split("/").slice(-3).join("/"),
-			),
-		);
+	test("are written to the files the README shows, one for each scene", () => {
+		const files = shots.map((shot) => relative(root, pictureOf(shot)));
 		expect(files.sort()).toEqual([
 			"docs/screens/progress-dark.png",
-			"docs/screens/progress-light.png",
 			"docs/screens/task-dark.png",
-			"docs/screens/task-light.png",
 			"docs/screens/wrong-dark.png",
-			"docs/screens/wrong-light.png",
 		]);
 	});
 });
 
 describe("the README", () => {
 	// A picture written that the README does not show is a picture nobody sees,
-	// and one it shows that is not written is a picture gone stale.
-	test("shows every picture written, each in the theme of its page", () => {
-		const readme = readFileSync(
-			join(import.meta.dirname, "..", "..", "README.md"),
-			"utf8",
-		);
+	// and one it shows that is not written is a picture gone stale. Showing the
+	// pictures written and no other is also what shows a reader of a light page
+	// the dark theme: no lighter picture is left to choose.
+	test("shows every picture written and no other, at the width photographed", () => {
+		const readme = readFileSync(join(root, "README.md"), "utf8");
+		const shown = readme.match(/docs\/screens\/[^\s"'`),]+/g) ?? [];
+		const written = shots.map((shot) => relative(root, pictureOf(shot)));
+		expect(shown.sort()).toEqual(written.sort());
 		for (const shot of shots) {
 			expect(readme).toContain(
-				`<source media="(prefers-color-scheme: dark)" srcset="docs/screens/${shot.file}-dark.png">`,
-			);
-			expect(readme).toContain(
-				`<img src="docs/screens/${shot.file}-light.png" width="${width}"`,
+				`<img src="${relative(root, pictureOf(shot))}" width="${width}"`,
 			);
 		}
 	});

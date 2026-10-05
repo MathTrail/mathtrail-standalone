@@ -19,16 +19,19 @@ import (
 // kept, so an empty list clears it; an empty text clears the notes, the
 // country or the region, an empty language makes the lessons follow the chat's
 // language again, and an empty topic gives the choice of it back to the rule.
+// Whether the country the parent signs in from is left out of what is counted
+// is set as it is given.
 type Edit struct {
-	Pseudonym      *string
-	Grade          *int
-	Interests      []string
-	ExcludedSkills []string
-	Notes          *string
-	UILanguage     *string
-	Country        *string
-	Region         *string
-	LessonTopic    *string
+	Pseudonym        *string
+	Grade            *int
+	Interests        []string
+	ExcludedSkills   []string
+	Notes            *string
+	UILanguage       *string
+	Country          *string
+	Region           *string
+	LessonTopic      *string
+	SignInCountryOff *bool
 }
 
 // Catalog is what an edit holds the ids it is given to: the skills and the
@@ -88,6 +91,9 @@ func (s *Student) edited(e *Edit, known Catalog) (Student, []Problem) {
 	}
 	if e.Interests != nil {
 		next.Interests = typedList(e.Interests)
+	}
+	if e.SignInCountryOff != nil {
+		next.SignInCountryOff = *e.SignInCountryOff
 	}
 	found := slices.Concat(
 		next.editSkills(e.ExcludedSkills, known),
@@ -209,6 +215,7 @@ func (s *Student) copied() Student {
 func (s *Student) same(other *Student) bool {
 	return s.Pseudonym == other.Pseudonym && s.Grade == other.Grade && s.Notes == other.Notes &&
 		s.Country == other.Country && s.Region == other.Region && s.LessonTopic == other.LessonTopic &&
+		s.SignInCountryOff == other.SignInCountryOff &&
 		slices.Equal(s.Interests, other.Interests) &&
 		slices.Equal(sorted(s.ExcludedSkills), sorted(other.ExcludedSkills)) &&
 		sameLanguage(s.UILanguage, other.UILanguage)

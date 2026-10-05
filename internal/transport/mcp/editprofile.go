@@ -22,27 +22,29 @@ const codeStaleProfile = "stale_profile"
 // either: the notes are the adult's words to the model, said in the chat, and
 // starting over is for a file nothing can read, which no card shows.
 type editProfileIn struct {
-	Pseudonym      *string  `json:"pseudonym,omitempty" jsonschema:"what the child is called: a pseudonym, never a real name"`
-	Grade          *int     `json:"grade,omitempty" jsonschema:"the school year, 1 to 6"`
-	Interests      []string `json:"interests,omitempty" jsonschema:"what tasks may be dressed in. The list replaces the one kept; an empty list clears it"`
-	ExcludedSkills []string `json:"excluded_skills,omitempty" jsonschema:"ids of the skills the child has not met at school yet. The list replaces the one kept; an empty list clears it"`
-	UILanguage     *string  `json:"ui_language,omitempty" jsonschema:"the language of the lessons, as a BCP 47 tag. An empty text makes them follow the chat's language"`
-	Country        *string  `json:"country,omitempty" jsonschema:"the country the family lives in, as an ISO 3166-1 alpha-2 code. An empty text clears it, and the state with it"`
-	Region         *string  `json:"region,omitempty" jsonschema:"for a family in the United States, its state as an ISO 3166-2 code. An empty text clears it"`
-	LessonTopic    *string  `json:"lesson_topic,omitempty" jsonschema:"the topic of the catalog to keep the lessons to, by its id: once the trial series is over, every task is on it. An empty text gives the choice back to the rule"`
+	Pseudonym        *string  `json:"pseudonym,omitempty" jsonschema:"what the child is called: a pseudonym, never a real name"`
+	Grade            *int     `json:"grade,omitempty" jsonschema:"the school year, 1 to 6"`
+	Interests        []string `json:"interests,omitempty" jsonschema:"what tasks may be dressed in. The list replaces the one kept; an empty list clears it"`
+	ExcludedSkills   []string `json:"excluded_skills,omitempty" jsonschema:"ids of the skills the child has not met at school yet. The list replaces the one kept; an empty list clears it"`
+	UILanguage       *string  `json:"ui_language,omitempty" jsonschema:"the language of the lessons, as a BCP 47 tag. An empty text makes them follow the chat's language"`
+	Country          *string  `json:"country,omitempty" jsonschema:"the country the family lives in, as an ISO 3166-1 alpha-2 code. An empty text clears it, and the state with it"`
+	Region           *string  `json:"region,omitempty" jsonschema:"for a family in the United States, its state as an ISO 3166-2 code. An empty text clears it"`
+	LessonTopic      *string  `json:"lesson_topic,omitempty" jsonschema:"the topic of the catalog to keep the lessons to, by its id: once the trial series is over, every task is on it. An empty text gives the choice back to the rule"`
+	SignInCountryOff *bool    `json:"signin_country_off,omitempty" jsonschema:"true to leave the country the adult signs in from out of what is counted, false to count it again"`
 }
 
 // edit is the change the form asks for.
 func (in *editProfileIn) edit() profile.Edit {
 	return profile.Edit{
-		Pseudonym:      in.Pseudonym,
-		Grade:          in.Grade,
-		Interests:      in.Interests,
-		ExcludedSkills: in.ExcludedSkills,
-		UILanguage:     in.UILanguage,
-		Country:        in.Country,
-		Region:         in.Region,
-		LessonTopic:    in.LessonTopic,
+		Pseudonym:        in.Pseudonym,
+		Grade:            in.Grade,
+		Interests:        in.Interests,
+		ExcludedSkills:   in.ExcludedSkills,
+		UILanguage:       in.UILanguage,
+		Country:          in.Country,
+		Region:           in.Region,
+		LessonTopic:      in.LessonTopic,
+		SignInCountryOff: in.SignInCountryOff,
 	}
 }
 
@@ -50,7 +52,7 @@ func (in *editProfileIn) edit() profile.Edit {
 // nothing else: the choice made on the card of a task, rather than the form.
 func (in *editProfileIn) topicAlone() bool {
 	return in.LessonTopic != nil && in.Pseudonym == nil && in.Grade == nil && in.Interests == nil &&
-		in.ExcludedSkills == nil && in.UILanguage == nil && in.Country == nil && in.Region == nil
+		in.ExcludedSkills == nil && in.UILanguage == nil && in.Country == nil && in.Region == nil && in.SignInCountryOff == nil
 }
 
 // editedOut is what edit_profile hands back to the card: the details as they
@@ -73,7 +75,9 @@ func (s *Service) editProfileTool() Tool {
 		Name:  "edit_profile",
 		Title: "Change the child's profile from the card",
 		Description: "Changes the child's details from the form in the progress's Profile section, or the topic " +
-			"of the lessons chosen on the card of a task: the fields sent, and no other. Only the card calls it.",
+			"of the lessons chosen on the card of a task: the fields sent, and no other. Each field sent replaces " +
+			"what the profile's file in the adult's Google Drive kept. Only the card calls it.",
+		Effect:     Overwrites,
 		Idempotent: true,
 		WidgetOnly: true,
 	}, s.editProfile)

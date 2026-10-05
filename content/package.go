@@ -70,8 +70,9 @@ type Request struct {
 // JSON it receives: the brief, the idea of the topic the task is built on, the
 // corridor, the topic, every trap, what the task may not use, the child, three
 // reference tasks, the solver templates and the drawing frames of the topic,
-// the limits it is held to, the page on how to write it and the version of
-// what it is told.
+// the limits it is held to and the page on how to write it. The version of
+// what it is told is not among them: the model has no use for it, and the
+// service, which records it with every task, knows it already.
 //
 // There is no pseudonym in it, because the request has none to give: a task
 // has no use for the child's name, and the package is the one place it is easy
@@ -96,20 +97,19 @@ func (c *Content) Package(request *Request) ([]byte, error) {
 // rather than copying it: it is encoded as soon as it is gathered, nothing
 // writes to it, and only its encoding leaves.
 type packageContents struct {
-	Language            string           `json:"language"`
-	Brief               profile.Brief    `json:"brief"`
-	Idea                packageIdea      `json:"idea"`
-	Corridor            packageCorridor  `json:"corridor"`
-	Topic               packageTopic     `json:"topic"`
-	Traps               []packageTrap    `json:"traps"`
-	Prohibitions        []Skill          `json:"prohibitions"`
-	Child               packageChild     `json:"child"`
-	Examples            []packageExample `json:"examples"`
-	Templates           []string         `json:"solver_templates"`
-	Frames              []packageFrame   `json:"drawing_frames"`
-	Limits              packageLimits    `json:"limits"`
-	Guide               string           `json:"guide"`
-	InstructionsVersion string           `json:"instructions_version"`
+	Language     string           `json:"language"`
+	Brief        profile.Brief    `json:"brief"`
+	Idea         packageIdea      `json:"idea"`
+	Corridor     packageCorridor  `json:"corridor"`
+	Topic        packageTopic     `json:"topic"`
+	Traps        []packageTrap    `json:"traps"`
+	Prohibitions []Skill          `json:"prohibitions"`
+	Child        packageChild     `json:"child"`
+	Examples     []packageExample `json:"examples"`
+	Templates    []string         `json:"solver_templates"`
+	Frames       []packageFrame   `json:"drawing_frames"`
+	Limits       packageLimits    `json:"limits"`
+	Guide        string           `json:"guide"`
 }
 
 // packageIdea is which idea of the topic the task is built on: the model lists
@@ -250,10 +250,9 @@ func (c *Content) contentsFor(request *Request) (packageContents, error) {
 				Width: drawn.Width, Height: drawn.Height, SpaceRun: drawn.SpaceRun, Characters: checks.DrawingCharacters,
 			},
 		},
-		Templates:           c.templatePrograms(topic.ID),
-		Frames:              c.framesFor(topic.ID),
-		Guide:               c.instructions[guideName],
-		InstructionsVersion: c.instructionsVersion,
+		Templates: c.templatePrograms(topic.ID),
+		Frames:    c.framesFor(topic.ID),
+		Guide:     c.instructions[guideName],
 	}
 	examples := c.examplesFor(request.Brief.TargetConcept, level, request.Brief.Difficulty, request.Answers)
 	contents.Examples = make([]packageExample, 0, len(examples)) // a topic with none is shown an empty list, not null

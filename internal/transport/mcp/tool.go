@@ -27,8 +27,9 @@ type Spec struct {
 	Title string
 	// Description tells the model when and how to call the tool.
 	Description string
-	// ReadOnly says the tool changes nothing.
-	ReadOnly bool
+	// Effect is what the tool does to the parent's file. Every tool says it:
+	// the hints a host asks a person's permission by are made from it.
+	Effect Effect
 	// Idempotent says a repeated call with the same arguments changes nothing
 	// the first one did not.
 	Idempotent bool
@@ -41,6 +42,29 @@ type Spec struct {
 	// the one showing what it answers.
 	WidgetOnly bool
 }
+
+// Effect is what a tool does to the parent's file, said once, so that the two
+// hints a host reads of it — that the tool only reads, and that it may destroy
+// something — can never disagree. No tool reaches anything beyond that file.
+type Effect int
+
+const (
+	// effectUnsaid is a tool that has not said what it does, which no tool is
+	// let be.
+	effectUnsaid Effect = iota
+	// Reads changes nothing, whatever it finds: a damaged file is told, not
+	// mended.
+	Reads
+	// Adds writes only what adds to the record of the lessons — a request, an
+	// attempt, a task handed out or skipped, an answer — with the ratings and
+	// counts that follow from it. It never replaces what the adult set, and
+	// never deletes a state of the file.
+	Adds
+	// Overwrites replaces what the adult set, or puts an earlier state of the
+	// file back over the one it holds: what it replaces is gone from the
+	// profile.
+	Overwrites
+)
 
 // Handler does one tool's work for one call, for the account the call acts
 // for.
@@ -74,9 +98,15 @@ func (d definition[In, Out]) name() string { return d.spec.Name }
 // a schema from; that is a mistake in the tool's definition, and it is told as
 // a refusal to build the endpoint rather than as a crash.
 func (d definition[In, Out]) add(server *mcp.Server) (err error) {
-	if d.spec.WidgetOnly && d.spec.DrawsCard {
+	switch {
+	case d.spec.WidgetOnly && d.spec.DrawsCard:
 		// A host would draw a second card under the one that asked.
 		return fmt.Errorf("%w: tool %q is for a card alone and cannot draw one", ErrSettings, d.spec.Name)
+	case d.spec.Title == "":
+		// A host shows the title when it asks a person about a call.
+		return fmt.Errorf("%w: tool %q has no title a person can read", ErrSettings, d.spec.Name)
+	case d.spec.Effect == effectUnsaid:
+		return fmt.Errorf("%w: tool %q does not say what it does to the parent's file", ErrSettings, d.spec.Name)
 	}
 	defer func() {
 		if recovered := recover(); recovered != nil {
@@ -89,9 +119,11 @@ func (d definition[In, Out]) add(server *mcp.Server) (err error) {
 
 // tool is the definition a host lists.
 //
-// Every tool changes nothing but the parent's own file and reaches nothing
-// beyond it, so neither hint is left to its default of true. Every tool also
-// says it wants the one scope a token grants, where a host that reads such a
+// Every hint is said, none left to the default a host would read into its
+// absence. A tool only reads when its effect says so, and may destroy
+// something only when it overwrites; and since no tool reaches anything beyond
+// the parent's own file, none is open to the world. Every tool also says it
+// wants the one scope a token grants, where a host that reads such a
 // declaration looks for it.
 //
 // A tool that draws a card names the widget's page twice: under the key hosts
@@ -99,7 +131,7 @@ func (d definition[In, Out]) add(server *mcp.Server) (err error) {
 // helper for such tools writes both. A tool for a card alone says who may see
 // it, which a host reads as keeping it from the model.
 func (d definition[In, Out]) tool() *mcp.Tool {
-	no := false
+	no, destructive := false, d.spec.Effect == Overwrites
 	meta := mcp.Meta{
 		"securitySchemes": []map[string]any{{"type": "oauth2", "scopes": []string{Scope}}},
 	}
@@ -120,9 +152,9 @@ func (d definition[In, Out]) tool() *mcp.Tool {
 		Description: d.spec.Description,
 		Annotations: &mcp.ToolAnnotations{
 			Title:           d.spec.Title,
-			ReadOnlyHint:    d.spec.ReadOnly,
+			ReadOnlyHint:    d.spec.Effect == Reads,
 			IdempotentHint:  d.spec.Idempotent,
-			DestructiveHint: &no,
+			DestructiveHint: &destructive,
 			OpenWorldHint:   &no,
 		},
 		Meta: meta,

@@ -267,9 +267,9 @@ func (c *counts) keptUpTable() *table {
 		cell := c.keptUp[key]
 		mean, standardError := tooFew, tooFew
 		if cell.answers >= fewestAnswers {
-			mean, standardError = signed(cell.mean()), oneChild
+			mean, standardError = signedTo(cell.mean(), 3), oneChild
 			if byChild, read := cell.standardError(); read {
-				standardError = hundredths(byChild)
+				standardError = thousandths(byChild)
 			}
 		}
 		t.add(key.version, key.host, key.answers, number(cell.answers), number(len(cell.byChild)), mean, standardError)
@@ -313,6 +313,9 @@ func lastAnswerOf(named string) (int, bool) {
 
 // hundredths is a share or a chance to two places.
 func hundredths(x float64) string { return strconv.FormatFloat(x, 'f', 2, 64) }
+
+// thousandths is a share, or a standard error, to three places.
+func thousandths(x float64) string { return strconv.FormatFloat(x, 'f', 3, 64) }
 
 // signed is a difference to two places, with its sign: above zero is a child
 // who did better than promised.

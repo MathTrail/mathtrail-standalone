@@ -14,8 +14,6 @@ import {
 	knownTrapName,
 	languageName,
 	listed,
-	rankCount,
-	rankName,
 	skillName,
 	topicName,
 	trapAdvice,
@@ -122,22 +120,6 @@ describe("the groups of topics", () => {
 
 	test("the card has no words for are called by their ids", () => {
 		expect(groupName(inEnglish, "puzzles")).toBe("puzzles");
-	});
-});
-
-describe("the ranks", () => {
-	test("are as many as the card counts, eleven, each named", () => {
-		expect(rankCount).toBe(11);
-		for (let rank = 1; rank <= rankCount; rank++) {
-			expect(Object.hasOwn(english, `rank.${rank}`)).toBe(true);
-		}
-		expect(Object.hasOwn(english, `rank.${rankCount + 1}`)).toBe(false);
-		expect(rankName(inEnglish, 3)).toBe("River crossing");
-		expect(rankName(inRussian, 11)).toBe("Над облаками");
-	});
-
-	test("a card has no name for are called by their numbers", () => {
-		expect(rankName(inEnglish, 12)).toBe("12");
 	});
 });
 

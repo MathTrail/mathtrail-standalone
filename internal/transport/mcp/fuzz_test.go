@@ -57,6 +57,8 @@ func FuzzToolArguments(f *testing.F) {
 			Traces:              tracenoop.NewTracerProvider(),
 			Logger:              zap.New(core),
 			Widget:              page,
+			Origin:              serviceOrigin,
+			Site:                siteOrigin,
 		}, tools()[0])
 		if err != nil {
 			t.Fatalf("NewHandler() error = %v, want nil", err)
@@ -161,6 +163,8 @@ func callOn(t *testing.T, p *profile.Profile, tool, arguments string) map[string
 		Traces:              tracenoop.NewTracerProvider(),
 		Logger:              zap.New(core),
 		Widget:              page,
+		Origin:              serviceOrigin,
+		Site:                siteOrigin,
 	}, slices.Concat(service.ProfileTools(), service.TaskTools())...)
 	if err != nil {
 		t.Fatalf("NewHandler() error = %v, want nil", err)

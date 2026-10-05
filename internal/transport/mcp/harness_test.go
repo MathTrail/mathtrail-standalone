@@ -53,6 +53,10 @@ const (
 	instructions        = "You coach one child through short maths tasks."
 	// page stands in for the widget every card is drawn by.
 	page = "<!doctype html><title>the widget</title>"
+	// serviceOrigin and siteOrigin stand in for the service's public origin
+	// and the site's.
+	serviceOrigin = "https://mcp.example"
+	siteOrigin    = "https://site.example"
 )
 
 // sayIn is what the tools of these cases take.
@@ -88,40 +92,40 @@ func tools() []mcpserver.Tool {
 	return []mcpserver.Tool{
 		mcpserver.Define(mcpserver.Spec{
 			Name: "echo", Title: "Echo", Description: "Says back what it was given.",
-			ReadOnly: true, Idempotent: true, DrawsCard: true,
+			Effect: mcpserver.Reads, Idempotent: true, DrawsCard: true,
 		}, func(ctx context.Context, account store.Account, in sayIn) (mcpserver.Reply[sayOut], error) {
 			// Whatever a tool does is recorded inside the tool's own span.
 			_, work := trace.SpanFromContext(ctx).TracerProvider().Tracer("test").Start(ctx, "work")
 			work.End()
 			return mcpserver.Reply[sayOut]{Text: "said: " + in.Say, Payload: sayOut{Said: in.Say, For: account.ID}}, nil
 		}),
-		mcpserver.Define(mcpserver.Spec{Name: "refuse", Title: "Refuse"},
+		mcpserver.Define(mcpserver.Spec{Name: "refuse", Title: "Refuse", Effect: mcpserver.Reads},
 			func(_ context.Context, account store.Account, in sayIn) (mcpserver.Reply[sayOut], error) {
 				return mcpserver.Reply[sayOut]{
 					Text:    "refused",
 					Payload: sayOut{Status: "rejected", Said: in.Say, For: account.ID},
 				}, nil
 			}),
-		mcpserver.Define(mcpserver.Spec{Name: "nest", Title: "Nest"},
+		mcpserver.Define(mcpserver.Spec{Name: "nest", Title: "Nest", Effect: mcpserver.Reads},
 			func(_ context.Context, account store.Account, in sayIn) (mcpserver.Reply[nestedOut], error) {
 				return mcpserver.Reply[nestedOut]{
 					Text:    "nested",
 					Payload: nestedOut{Inner: sayOut{Status: "rejected", Said: in.Say, For: account.ID}},
 				}, nil
 			}),
-		mcpserver.Define(mcpserver.Spec{Name: "fail", Title: "Fail"},
+		mcpserver.Define(mcpserver.Spec{Name: "fail", Title: "Fail", Effect: mcpserver.Reads},
 			func(_ context.Context, _ store.Account, in sayIn) (mcpserver.Reply[sayOut], error) {
 				return mcpserver.Reply[sayOut]{}, fmt.Errorf("drive: the file of %s is gone", in.Say)
 			}),
-		mcpserver.Define(mcpserver.Spec{Name: "slow", Title: "Slow"},
+		mcpserver.Define(mcpserver.Spec{Name: "slow", Title: "Slow", Effect: mcpserver.Reads},
 			func(_ context.Context, _ store.Account, in sayIn) (mcpserver.Reply[sayOut], error) {
 				return mcpserver.Reply[sayOut]{}, fmt.Errorf("drive: reading %s: %w", in.Say, context.DeadlineExceeded)
 			}),
-		mcpserver.Define(mcpserver.Spec{Name: "explode", Title: "Explode"},
+		mcpserver.Define(mcpserver.Spec{Name: "explode", Title: "Explode", Effect: mcpserver.Reads},
 			func(_ context.Context, _ store.Account, in sayIn) (mcpserver.Reply[sayOut], error) {
 				panic("the tool knew " + in.Say)
 			}),
-		mcpserver.Define(mcpserver.Spec{Name: "break", Title: "Break"},
+		mcpserver.Define(mcpserver.Spec{Name: "break", Title: "Break", Effect: mcpserver.Reads},
 			func(context.Context, store.Account, sayIn) (mcpserver.Reply[brokenOut], error) {
 				return mcpserver.Reply[brokenOut]{Text: "broken"}, nil
 			}),
@@ -203,6 +207,8 @@ func (h *harness) start(t *testing.T, signIn mcpserver.SignIn, served ...mcpserv
 		Logger:              h.log,
 		ProjectID:           projectID,
 		Widget:              page,
+		Origin:              serviceOrigin,
+		Site:                siteOrigin,
 	}, served...)
 	if err != nil {
 		t.Fatalf("NewHandler() error = %v, want nil", err)

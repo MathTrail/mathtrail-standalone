@@ -263,6 +263,8 @@ func newContainer(ctx context.Context, cfg *config.Config, log *zap.Logger, reac
 		Logger:              log,
 		ProjectID:           cfg.GCPProjectID,
 		Widget:              widget.Page(),
+		Origin:              cfg.Origin(),
+		Site:                cfg.Site(),
 	}, slices.Concat(lesson.ProfileTools(), lesson.TaskTools())...)
 	if err != nil {
 		return nil, err
@@ -280,6 +282,7 @@ func newContainer(ctx context.Context, cfg *config.Config, log *zap.Logger, reac
 		Token:            signInServer.Token,
 		Revoke:           signInServer.Revoke,
 		Busy:             signInServer.Busy,
+		Challenge:        cfg.OpenAIChallenge,
 	}, httpserver.Limits{PerAddress: paces.perAddress, Instance: paces.signIn}, log, httpserver.Observability{
 		Traces:    tel.TracerProvider(),
 		Meters:    tel.MeterProvider(),

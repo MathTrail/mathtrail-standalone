@@ -72,7 +72,11 @@ SELECT
   IFNULL(JSON_VALUE(json_payload.correct) = 'true', FALSE) AS correct,
   IFNULL(JSON_VALUE(json_payload.hint_used) = 'true', FALSE) AS hinted,
   IFNULL(JSON_VALUE(json_payload.confused) = 'true', FALSE) AS dont_know,
-  SAFE_CAST(SAFE_CAST(JSON_VALUE(json_payload.topics_mastered) AS FLOAT64) AS INT64) AS topics_mastered
+  SAFE_CAST(SAFE_CAST(JSON_VALUE(json_payload.topics_mastered) AS FLOAT64) AS INT64) AS topics_mastered,
+  SAFE_CAST(ROUND(SAFE_CAST(JSON_VALUE(json_payload.chance) AS FLOAT64) * 100) AS INT64) AS chance,
+  IFNULL(JSON_VALUE(json_payload.tutor_mode), '') AS tutor_mode,
+  IF(JSON_VALUE(json_payload.trial) IS NULL, 0, SAFE_CAST(SAFE_CAST(JSON_VALUE(json_payload.trial) AS FLOAT64) AS INT64)) AS trial,
+  IFNULL(JSON_VALUE(json_payload.answers_bucket), '') AS answers_range
 FROM (
   SELECT
     timestamp,
@@ -92,6 +96,24 @@ WHERE learner IN (
   SELECT learner FROM counted_lines
   WHERE event = 'task_accepted' AND host IN ('load', 'inspector')
 );
+
+-- The answers weighed against the chance a task was handed out at, as the
+-- report weighs them: to tasks the rule chose, after the trial series and
+-- without the hint, each with its chance in hundredths and the range of the
+-- child's answers it falls in. A line the report could not read weighs
+-- nothing here either, and a chance out of nothing to a hundred hundredths,
+-- which the report would put in its first range or its last, weighs nothing
+-- rather than stopping the night.
+CREATE TEMP TABLE weighed AS
+SELECT DATE_TRUNC(on_day, MONTH) AS period, learner, chance, answers_range, correct
+FROM counted_lines
+WHERE event = 'answer_recorded'
+  AND on_day >= months_from
+  AND chance BETWEEN 0 AND 100
+  AND tutor_mode = 'rule'
+  AND trial = 0
+  AND NOT hinted
+  AND answers_range != '';
 
 -- The children of each week and of each month, told apart by one thing at a
 -- time. A child is counted under the value of its latest task of the period,
@@ -288,5 +310,48 @@ SELECT DATE_TRUNC(on_day, MONTH), CAST(NULL AS STRING), grade, trap, COUNT(*), C
 FROM counted_lines
 WHERE event = 'answer_recorded' AND trap != '' AND grade IS NOT NULL AND on_day >= months_from
 GROUP BY 1, 3, 4;
+
+-- How the answers weighed came out against the chance promised: by the range
+-- of that chance, in the report's ranges, and over every range, so that each
+-- row counts its own children once. An empty range means every one.
+DELETE FROM `${impact}.chance_monthly` WHERE month >= months_from;
+INSERT INTO `${impact}.chance_monthly` (month, bucket, learners, answers, correct, promised)
+SELECT
+  period,
+  CASE
+    WHEN chance <= 49 THEN 'under 0.50'
+    WHEN chance <= 59 THEN '0.50-0.59'
+    WHEN chance <= 69 THEN '0.60-0.69'
+    WHEN chance <= 77 THEN '0.70-0.77'
+    WHEN chance <= 85 THEN '0.78-0.85'
+    ELSE 'over 0.85' END,
+  COUNT(DISTINCT learner), COUNT(*), COUNTIF(correct), SUM(chance)
+FROM weighed
+GROUP BY 1, 2
+UNION ALL
+SELECT period, CAST(NULL AS STRING), COUNT(DISTINCT learner), COUNT(*), COUNTIF(correct), SUM(chance)
+FROM weighed
+GROUP BY 1;
+
+-- How far the answers weighed came out from the chance promised, by the range
+-- of the child's answers they fall in: the sums a public view reads the mean
+-- and its standard error by child from, with no child named. A child's margin
+-- is its right answers times a hundred less its chances in hundredths.
+DELETE FROM `${impact}.kept_up_monthly` WHERE month >= months_from;
+INSERT INTO `${impact}.kept_up_monthly` (month, bucket, learners, answers, correct, promised, margins_squared, answers_by_margins, answers_squared)
+SELECT
+  period, answers_range, COUNT(*), SUM(answers), SUM(correct), SUM(promised),
+  SUM(margin * margin), SUM(answers * margin), SUM(answers * answers)
+FROM (
+  SELECT
+    period, answers_range, learner,
+    COUNT(*) AS answers,
+    COUNTIF(correct) AS correct,
+    SUM(chance) AS promised,
+    100 * COUNTIF(correct) - SUM(chance) AS margin
+  FROM weighed
+  GROUP BY period, answers_range, learner
+)
+GROUP BY period, answers_range;
 
 COMMIT TRANSACTION;

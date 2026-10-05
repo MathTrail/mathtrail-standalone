@@ -39,7 +39,7 @@ func twoAccounts(_ context.Context, token string) (store.Account, time.Time, err
 
 // counting is a tool that counts the calls that reach it.
 func counting(reached *atomic.Int32) mcpserver.Tool {
-	return mcpserver.Define(mcpserver.Spec{Name: "count", Title: "Count", Description: "Counts the calls that reach it."},
+	return mcpserver.Define(mcpserver.Spec{Name: "count", Title: "Count", Description: "Counts the calls that reach it.", Effect: mcpserver.Reads},
 		func(_ context.Context, account store.Account, _ sayIn) (mcpserver.Reply[sayOut], error) {
 			reached.Add(1)
 			return mcpserver.Reply[sayOut]{Text: "counted", Payload: sayOut{For: account.ID}}, nil

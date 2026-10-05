@@ -519,8 +519,8 @@ func TestDrivesRefusalsAreToldInTheStoresWords(t *testing.T) {
 	t.Parallel()
 
 	refusals := []error{
-		store.ErrNotFound, store.ErrConflict, store.ErrCorrupted, store.ErrAccessRevoked, store.ErrAccessExpired,
-		store.ErrInBin, store.ErrBehind, store.ErrRestored, store.ErrStorageFull, store.ErrUnavailable,
+		store.ErrNotFound, store.ErrConflict, store.ErrCorrupted, store.ErrDamaged, store.ErrAccessRevoked,
+		store.ErrAccessExpired, store.ErrInBin, store.ErrBehind, store.ErrStorageFull, store.ErrUnavailable,
 	}
 	for _, tc := range []struct {
 		name string
@@ -537,12 +537,9 @@ func TestDrivesRefusalsAreToldInTheStoresWords(t *testing.T) {
 			want:  store.ErrAccessRevoked,
 		},
 		{
-			name: "a file too large for any profile, with nothing to put it back from",
-			spoil: func(t *testing.T, f *fixture) {
-				plant(t, f.fake, miaToken, oversized)
-				f.fake.Purge(miaToken, f.profileFile(t, miaToken).ID)
-			},
-			want: store.ErrCorrupted,
+			name:  "a file too large for any profile",
+			spoil: func(t *testing.T, f *fixture) { plant(t, f.fake, miaToken, oversized) },
+			want:  store.ErrDamaged,
 		},
 		{
 			name: "a pause Drive asks for, and goes on asking for",

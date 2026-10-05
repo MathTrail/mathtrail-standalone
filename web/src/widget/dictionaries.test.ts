@@ -24,6 +24,18 @@ describe("the widget's words", () => {
 			expect(disagreements(english, words, tag)).toEqual([]);
 		},
 	);
+
+	test("tell a rank by its number, with no name of its own", () => {
+		expect(
+			Object.keys(english).filter((key) => key.startsWith("rank.")),
+		).toEqual([]);
+		expect(cardWords("en", undefined).text("progress.rank", { rank: 3 })).toBe(
+			"Rank 3",
+		);
+		expect(cardWords("ru", undefined).text("progress.rank", { rank: 11 })).toBe(
+			"Ранг 11",
+		);
+	});
 });
 
 describe("a card's words", () => {

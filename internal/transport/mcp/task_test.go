@@ -190,7 +190,6 @@ type requestPayload struct {
 	} `json:"problems"`
 	RequestID   string `json:"request_id"`
 	AlreadyOpen bool   `json:"already_open"`
-	AgeSeconds  int    `json:"age_seconds"`
 	Child       *struct {
 		Pseudonym string `json:"pseudonym"`
 		Grade     int    `json:"grade"`
@@ -999,15 +998,14 @@ func TestAskingAgainGivesTheSameRequest(t *testing.T) {
 
 	moving.advance(30 * time.Second)
 	again := call(t, session, "next_task", map[string]any{"language": "ru", "topic": "time.clocks", "reason": "clocks"})
-	if card := wantComing(t, again); card.RequestID != first.ID || !card.AlreadyOpen || card.AgeSeconds != 30 ||
-		card.Language != "en" {
-		t.Errorf("next_task asked again = %+v, want request %s open for 30 seconds, in English", card, first.ID)
+	if card := wantComing(t, again); card.RequestID != first.ID || !card.AlreadyOpen || card.Language != "en" {
+		t.Errorf("next_task asked again = %+v, want request %s open already, in English", card, first.ID)
 	}
-	if text := textOf(t, again); !strings.Contains(text, "Request "+first.ID+" is already open, since 30 seconds ago") ||
+	if text := textOf(t, again); !strings.Contains(text, "Request "+first.ID+" is already open, in en.") ||
 		!strings.Contains(text, "If you have written its task, hand it in") ||
 		!strings.Contains(text, "If you have not, a turn cut short say, the task is yours to write: get its package with get_package") ||
 		!strings.Contains(text, "not applied") || strings.Contains(text, "Package:") {
-		t.Errorf("the words are %q, want the request open for 30 seconds, its task asked for if written and its "+
+		t.Errorf("the words are %q, want the request open already, its task asked for if written and its "+
 			"package fetched if not, the choice not applied, and no package", text)
 	}
 	if p, now := loadKept(t, kept); now != revision || p.OpenRequest.Brief.TargetConcept != "logic.ordering" {

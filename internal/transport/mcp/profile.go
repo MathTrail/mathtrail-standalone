@@ -48,30 +48,42 @@ type detailsOut struct {
 // schema: the library that checks a schema quotes back the text that broke
 // it, and the checks of the profile say what is wrong without doing so.
 type saveProfileIn struct {
-	Pseudonym      *string  `json:"pseudonym,omitempty" jsonschema:"what the child is called: a pseudonym of at most 32 characters, never a real name. Required to create the profile"`
-	Grade          *int     `json:"grade,omitempty" jsonschema:"the school year, 1 to 6. Required to create the profile. It sets where the first tasks start; changed later it is only a label"`
-	Interests      []string `json:"interests,omitempty" jsonschema:"what tasks may be dressed in, at most 10 of at most 40 characters each. The list replaces the one kept; an empty list clears it"`
-	ExcludedSkills []string `json:"excluded_skills,omitempty" jsonschema:"ids of skills the child has not met at school yet, from the list in this tool's description. The list replaces the one kept; an empty list clears it"`
-	Notes          *string  `json:"notes,omitempty" jsonschema:"what the adult wants known about the child, for pitching the words, at most 500 characters. An empty text clears it"`
-	UILanguage     *string  `json:"ui_language,omitempty" jsonschema:"the language of the lessons — the tasks, the cards and your words — as a BCP 47 tag, such as en, ru or pt-BR. An empty text makes them follow the chat's language"`
-	Country        *string  `json:"country,omitempty" jsonschema:"the country the family lives in, as an ISO 3166-1 alpha-2 code such as US or FR. It is kept only to count families by country: set it only when the adult says it of their own accord, and never ask for it. An empty text clears it, and the state with it"`
-	Region         *string  `json:"region,omitempty" jsonschema:"for a family in the United States, its state as an ISO 3166-2 code such as US-TX, set only when the adult says it of their own accord. An empty text clears it"`
-	LessonTopic    *string  `json:"lesson_topic,omitempty" jsonschema:"the topic to keep the lessons to, by its id from the list in the description of next_task: once the trial series is over, every task is on it until the choice is given back. Set it only when the child or the adult asks to keep to one topic; an empty text gives the choice back to the rule"`
-	StartOver      bool     `json:"start_over,omitempty" jsonschema:"true only when a result said the profile file cannot be read, was saved by a version of MathTrail this one cannot read, or is in the Google Drive bin, and the adult asked for a new profile instead. The old file is set aside, not deleted, and a new profile starts from the pseudonym and grade given. A profile this version can read is never started over"`
+	Pseudonym        *string  `json:"pseudonym,omitempty" jsonschema:"what the child is called: a pseudonym of at most 32 characters, never a real name. Required to create the profile"`
+	Grade            *int     `json:"grade,omitempty" jsonschema:"the school year, 1 to 6. Required to create the profile. It sets where the first tasks start; changed later it is only a label"`
+	Interests        []string `json:"interests,omitempty" jsonschema:"what tasks may be dressed in, at most 10 of at most 40 characters each. The list replaces the one kept; an empty list clears it"`
+	ExcludedSkills   []string `json:"excluded_skills,omitempty" jsonschema:"ids of skills the child has not met at school yet, from the list in this tool's description. The list replaces the one kept; an empty list clears it"`
+	Notes            *string  `json:"notes,omitempty" jsonschema:"what the adult wants known about the child, for pitching the words, at most 500 characters. An empty text clears it"`
+	UILanguage       *string  `json:"ui_language,omitempty" jsonschema:"the language of the lessons — the tasks, the cards and your words — as a BCP 47 tag, such as en, ru or pt-BR. An empty text makes them follow the chat's language"`
+	Country          *string  `json:"country,omitempty" jsonschema:"the country the family lives in, as an ISO 3166-1 alpha-2 code such as US or FR. It is kept only to count families by country: set it only when the adult says it of their own accord, and never ask for it. An empty text clears it, and the state with it"`
+	Region           *string  `json:"region,omitempty" jsonschema:"for a family in the United States, its state as an ISO 3166-2 code such as US-TX, set only when the adult says it of their own accord. An empty text clears it"`
+	LessonTopic      *string  `json:"lesson_topic,omitempty" jsonschema:"the topic to keep the lessons to, by its id from the list in the description of next_task: once the trial series is over, every task is on it until the choice is given back. Set it only when the child or the adult asks to keep to one topic; an empty text gives the choice back to the rule"`
+	SignInCountryOff *bool    `json:"signin_country_off,omitempty" jsonschema:"true to leave the country the adult signs in from out of what MathTrail counts, false to count it again. Set it only when the adult asks"`
+	StartOver        bool     `json:"start_over,omitempty" jsonschema:"true only when a result said the profile file cannot be read, was saved by a version of MathTrail this one cannot read, or is in the Google Drive bin, and the adult asked for a new profile instead. The old file is set aside, not deleted, and a new profile starts from the pseudonym and grade given. A profile this version can read is never started over"`
+	Restore          bool     `json:"restore,omitempty" jsonschema:"true only when a result said the profile file is damaged and the adult agreed to put it back: the file returns to its latest earlier version that can be read, and anything saved after that version is lost. Pass nothing else with it"`
+}
+
+// restoreAlone reports whether putting the file back is all the arguments
+// ask for: what the adult agreed to is the file as it was, and nothing
+// changed on top of it.
+func (in *saveProfileIn) restoreAlone() bool {
+	return in.Pseudonym == nil && in.Grade == nil && in.Interests == nil && in.ExcludedSkills == nil && in.Notes == nil &&
+		in.UILanguage == nil && in.Country == nil && in.Region == nil && in.LessonTopic == nil && in.SignInCountryOff == nil &&
+		!in.StartOver
 }
 
 // edit is the change the arguments ask for.
 func (in *saveProfileIn) edit() profile.Edit {
 	return profile.Edit{
-		Pseudonym:      in.Pseudonym,
-		Grade:          in.Grade,
-		Interests:      in.Interests,
-		ExcludedSkills: in.ExcludedSkills,
-		Notes:          in.Notes,
-		UILanguage:     in.UILanguage,
-		Country:        in.Country,
-		Region:         in.Region,
-		LessonTopic:    in.LessonTopic,
+		Pseudonym:        in.Pseudonym,
+		Grade:            in.Grade,
+		Interests:        in.Interests,
+		ExcludedSkills:   in.ExcludedSkills,
+		Notes:            in.Notes,
+		UILanguage:       in.UILanguage,
+		Country:          in.Country,
+		Region:           in.Region,
+		LessonTopic:      in.LessonTopic,
+		SignInCountryOff: in.SignInCountryOff,
 	}
 }
 
@@ -81,13 +93,13 @@ func (s *Service) getProfileTool() Tool {
 		Title: "Get the child's profile",
 		Description: "Reads the child's profile — the pseudonym, the grade, the interests, the skills left out of " +
 			"the tasks, the adult's notes, the language of the lessons and the country and state the adult may have " +
-			"given — and what the next task would be. " +
+			"given — and what the next task would be. It changes nothing. " +
 			"Call it when the adult asks about the profile; a task needs only next_task. It draws no card: the " +
 			"adult sees the profile, and changes it with a form, in the Profile section of the progress get_progress shows. " +
 			"When there is no profile yet it says so, as next_task does, and how to set one up with save_profile. " +
 			"Every result carries last_answer, the last answer the child gave, maybe on a card without you: read it " +
 			"before you say anything about the current task.",
-		ReadOnly:   true,
+		Effect:     Reads,
 		Idempotent: true,
 	}, s.getProfile)
 }
@@ -96,12 +108,13 @@ func (s *Service) saveProfileTool() Tool {
 	return Define(Spec{
 		Name:  "save_profile",
 		Title: "Save the child's profile",
-		Description: "Creates the child's profile, or changes it. Pass only what changes; a field left out stays " +
-			"as it is. To create the profile, pseudonym and grade are required. The pseudonym is what the child is " +
-			"called: never a real name, a birth date or a school. The grade only sets where the first tasks start; " +
-			"changed later it moves no rating. No card is drawn: say in a sentence what was saved. When a field " +
-			"breaks a rule, nothing is saved and the result names the field and the rule.\n\nSkills that can be " +
-			"left out of the tasks, by id:\n" + s.skillList(),
+		Description: "Creates the child's profile, or changes it, in its file in the adult's Google Drive: each " +
+			"field given replaces what was kept. Pass only what changes; a field left out stays as it is. To create " +
+			"the profile, pseudonym and grade are required. No card is drawn: say in a sentence what was saved. " +
+			"When a field breaks a rule, nothing is saved and the result names the field and the rule. start_over " +
+			"and restore replace the whole profile, and keep the old file in Drive.\n\nSkills that can be left out " +
+			"of the tasks, by id:\n" + s.skillList(),
+		Effect:     Overwrites,
 		Idempotent: true,
 	}, s.saveProfile)
 }
@@ -157,6 +170,9 @@ func (s *Service) saveProfile(ctx context.Context, account store.Account, in sav
 // writeProfile is one read of the profile and the write the arguments ask of
 // what it finds.
 func (s *Service) writeProfile(ctx context.Context, account store.Account, in *saveProfileIn) (Reply[profileOut], error) {
+	if in.Restore {
+		return s.restoreProfile(ctx, account, in)
+	}
 	edit := in.edit()
 	p, revision, err := s.store.Load(ctx, account)
 	switch {
@@ -236,6 +252,42 @@ func (s *Service) startOver(ctx context.Context, account store.Account, edit *pr
 		"Drive, renamed as set aside.", sayWhatWasSaved))
 }
 
+// codeRestoreAlone is the refusal of putting the file back beside anything
+// else. It spends nothing, and nothing is done.
+const codeRestoreAlone = "restore_alone"
+
+// restoreProfile puts a damaged profile file back to its latest earlier
+// version that reads, as the adult agreed to, and does nothing else: a call
+// that asks for more beside it is refused whole. A profile that reads by now
+// — mended since the adult was told — is never put back over, and is told as
+// it is.
+func (s *Service) restoreProfile(ctx context.Context, account store.Account, in *saveProfileIn) (Reply[profileOut], error) {
+	if !in.restoreAlone() {
+		return Reply[profileOut]{
+			Text: "Nothing was done: restore is passed alone. Call save_profile again with restore set to true and " +
+				"nothing else.",
+			Payload: profileOut{Screen: screenProfile, Status: statusRejected, Code: codeRestoreAlone},
+		}, nil
+	}
+	p, _, err := s.store.Restore(ctx, account)
+	switch {
+	case errors.Is(err, store.ErrNotFound):
+		return Reply[profileOut]{Text: firstRunText, Payload: profileOut{Screen: screenFirstRun}}, nil
+	case errors.Is(err, store.ErrConflict):
+		// Mended since, by the parent or another instance — or changed while
+		// its history was read: a file that reads is told as that, and one
+		// that does not is put back again, from a fresh read (afresh).
+		if read, _, loadErr := s.store.Load(ctx, account); loadErr == nil {
+			return s.profileReply(read, "The profile can be read, so nothing was put back.")
+		}
+		return Reply[profileOut]{}, fmt.Errorf("mcp: put the profile back: %w", err)
+	case err != nil:
+		return Reply[profileOut]{}, fmt.Errorf("mcp: put the profile back: %w", err)
+	}
+	return s.profileReply(p, "The damaged profile file was put back to its latest earlier version that can be read; "+
+		"anything saved after that version is lost. No card shows the profile: tell the adult in a sentence what happened.")
+}
+
 // profileReply is a profile as the two tools of the profile hand it back: the
 // details, with the parent's notes, which only the model is told.
 func (s *Service) profileReply(p *profile.Profile, lead string) (Reply[profileOut], error) {
@@ -296,7 +348,17 @@ func (s *Service) detailsText(student *profile.Student) string {
 		"Left out of the tasks: "+listed(skills, "; ")+".",
 		language,
 		placeText(student),
+		signInText(student),
 	)
+}
+
+// signInText says that the country the adult signs in from is left out of
+// what is counted, when the adult asked for it to be, and nothing otherwise.
+func signInText(student *profile.Student) string {
+	if !student.SignInCountryOff {
+		return ""
+	}
+	return "The country the adult signs in from is left out of what MathTrail counts."
 }
 
 // placeText says where the family lives, as far as the adult said: the country

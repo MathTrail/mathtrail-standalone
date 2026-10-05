@@ -34,7 +34,8 @@ func write(out io.Writer, c *counts) error {
 		{"How the estimate keeps up", "The same answers by which of the child's answers each was: a right answer " +
 			"as 1 and a wrong one as 0, less the chance promised, on average, with the standard error of that " +
 			"mean. Above zero the child did better than the estimate promised, which is how an estimate that " +
-			"falls behind a learning child shows; below zero, worse.", c.keptUpTable()},
+			"falls behind a learning child shows; below zero, worse. The numbers are to three places, so that the rows " +
+			"of two versions can be set side by side.", c.keptUpTable()},
 		{"Later answers against earlier", c.laterAbout(), c.laterTable()},
 		{"Masteries taken back", c.masteriesAbout(), c.masteriesTable()},
 		{"Limits reached", "A pace writes one line for a flood of refusals, and a day's ceiling one for every " +

@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/cimd"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth/googletest"
 )
 
@@ -169,6 +170,38 @@ func TestACodeIsRefusedToAnybodyElse(t *testing.T) {
 			wantRefused(t, h, &answer, tc.status, tc.code, eventAuthToken, tc.reason)
 			noLineCarries(t, h, googletest.AccessToken, googletest.RefreshToken, googletest.Subject, code)
 		})
+	}
+}
+
+// A client of its own document on the parent's computer is sent back to the
+// port it chose at the sign-in, which its document cannot name, and its code
+// is worth tokens for that port alone: the exchange names the address the code
+// went to, port and all, or is refused.
+func TestAPortChosenAtTheSignInIsTheCodesAlone(t *testing.T) {
+	t.Parallel()
+
+	const (
+		listed  = "http://127.0.0.1/callback"
+		chosen  = "http://127.0.0.1:52011/callback"
+		another = "http://127.0.0.1:52012/callback"
+	)
+	h := newSignIn(t)
+	h.documents.fetched = cimd.Fetched{Document: cimd.Document{
+		ClientID: hostDocument, ClientName: hostName, RedirectURIs: []string{listed},
+	}}
+	h.documents.err = nil
+	parent := h.browser(t)
+	back := parent.get(h.google.Allow(h.toGoogleAt(parent, h.authorizeURL(hostDocument, url.Values{"redirect_uri": {chosen}}))))
+	address, err := url.Parse(back.location)
+	if err != nil || address.Scheme+"://"+address.Host+address.Path != chosen || address.Query().Get("code") == "" {
+		t.Fatalf("the parent was sent back to %q, want a code at %s", back.location, chosen)
+	}
+	code := address.Query().Get("code")
+
+	refused := h.exchange(t, code, hostDocument, url.Values{"redirect_uri": {another}})
+	wantRefused(t, h, &refused, http.StatusBadRequest, "invalid_grant", eventAuthToken, "redirect_uri")
+	if answer := h.exchange(t, code, hostDocument, url.Values{"redirect_uri": {chosen}}); answer.status != http.StatusOK {
+		t.Errorf("POST /oauth/token at the port chosen = %d %v, want the host's tokens", answer.status, answer.fields)
 	}
 }
 

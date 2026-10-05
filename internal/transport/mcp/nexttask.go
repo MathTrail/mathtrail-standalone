@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"go.uber.org/zap"
 
@@ -74,7 +73,7 @@ func (in *nextTaskIn) differsFrom(request *profile.OpenRequest, student *profile
 // the payload nor the words, since the card reads both: the model fetches it
 // with get_package. A host may show the model the payload in place of the
 // words, so what the model acts on is here as well — the request, whether it
-// was open already and since when, and the last answer.
+// was open already, and the last answer.
 type requestOut struct {
 	Screen      string       `json:"screen"`
 	Status      string       `json:"status,omitempty"`
@@ -82,7 +81,6 @@ type requestOut struct {
 	Problems    []problemOut `json:"problems,omitempty"`
 	RequestID   string       `json:"request_id,omitempty"`
 	AlreadyOpen bool         `json:"already_open,omitempty"`
-	AgeSeconds  int          `json:"age_seconds,omitempty"`
 	LastAnswer  *answerLine  `json:"last_answer"`
 	Child       *childLine   `json:"child"`
 	// Language is the request's, which the card's words are in while it waits
@@ -105,8 +103,10 @@ func (s *Service) nextTaskTool() Tool {
 			"no answer yet is recorded as skipped, so ask for a new one only when the child wants another. To set a " +
 			"topic, a level or a difficulty other than the rule's, pass it with a short reason. While the profile " +
 			"keeps the lessons to a topic, lesson_topic, every task is on it once the trial series is over: pass no " +
-			"topic of your own then. Never put the child's name in a task." +
+			"topic of your own then. Never put the child's name in a task. It writes to the profile's file in the " +
+			"adult's Google Drive the request it opens, and the unanswered task it records as skipped." +
 			"\n\nTopics, by id, with the levels each is taught at:\n" + s.topicList(),
+		Effect:     Adds,
 		Idempotent: true,
 		DrawsCard:  true,
 	}, s.nextTask)
@@ -152,7 +152,7 @@ func (s *Service) openRequest(ctx context.Context, account store.Account, in nex
 
 	now := s.now()
 	if open := p.OpenRequest; open != nil && open.Awaited(s.window, now) {
-		return s.stillOpen(ctx, account, p, now, in.differsFrom(open, &p.Student, tutor.LessonTopic(p, s.content)))
+		return s.stillOpen(ctx, account, p, in.differsFrom(open, &p.Student, tutor.LessonTopic(p, s.content)))
 	}
 	if limit, count, reached := s.daily.reached(p.Daily.Today(now)); reached {
 		limitHit(ctx, s.events.logger, s.events.projectID, account.ID, limit, zap.Int("count", count))
@@ -206,18 +206,17 @@ func (s *Service) openRequest(ctx context.Context, account store.Account, in nex
 // for the same three attempts. So the words ask for the task written for it
 // first, and only then send a model that has not written it — or has lost what
 // to write it from — for the package. Nothing is written.
-func (s *Service) stillOpen(ctx context.Context, account store.Account, p *profile.Profile, now time.Time, ignored bool) (Reply[requestOut], error) {
+func (s *Service) stillOpen(ctx context.Context, account store.Account, p *profile.Profile, ignored bool) (Reply[requestOut], error) {
 	request := p.OpenRequest
 	if err := s.canPackage(p, request); err != nil {
 		return Reply[requestOut]{}, err
 	}
 	s.events.write(ctx, account, eventTaskRequested, requestFields(request, true)...)
 
-	age := max(0, int(now.Sub(request.OpenedAt.Time)/time.Second))
-	lead := fmt.Sprintf("Request %s is already open, since %d seconds ago, in %s. If you have written its task, "+
-		"hand it in with submit_task and request_id %s. If you have not, a turn cut short say, the task is yours "+
-		"to write: get its package with get_package and the same request_id. Do not ask for another.",
-		request.ID, age, request.Language, request.ID)
+	lead := fmt.Sprintf("Request %[1]s is already open, in %[2]s. If you have written its task, hand it in with "+
+		"submit_task and request_id %[1]s. If you have not, a turn cut short say, the task is yours to write: get "+
+		"its package with get_package and the same request_id. Do not ask for another.",
+		request.ID, request.Language)
 	if ignored {
 		lead += " The arguments of this call were not applied: the request keeps what it was opened with."
 	}
@@ -225,7 +224,7 @@ func (s *Service) stillOpen(ctx context.Context, account store.Account, p *profi
 		Text: joined(lead, lessonLanguageText(&p.Student), stillInText(p), s.topicStillText(p), forYouAlone,
 			s.lastAnswerText(p), noPackageTool),
 		Payload: requestOut{
-			Screen: screenComing, RequestID: request.ID, AlreadyOpen: true, AgeSeconds: age, LastAnswer: lastAnswerOf(p),
+			Screen: screenComing, RequestID: request.ID, AlreadyOpen: true, LastAnswer: lastAnswerOf(p),
 			Child: childLineOf(&p.Student), Language: request.Language,
 		},
 	}, nil

@@ -82,6 +82,10 @@ type Endpoints struct {
 	// Busy is the page a parent's browser is shown when their address, or
 	// the sign-in as a whole, is past its pace.
 	Busy http.Handler
+	// Challenge is the token ChatGPT's plugin directory proves the service's
+	// domain by, or empty, and then the address it reads it from is not
+	// served.
+	Challenge string
 }
 
 // ErrEndpoints is returned when the router is given an address or endpoints it
@@ -250,10 +254,14 @@ func NewRouter(publicURL string, endpoints *Endpoints, limits Limits, logger *za
 	// the refusal of the endpoint points, and not at the root: a document there
 	// would describe the host, which is not the resource. The authorization
 	// server's issuer has no path, so its metadata sits at the one place a
-	// client asks.
+	// client asks. The token ChatGPT's directory proves the domain by is a
+	// document of the same kind, served only when the service was given one.
 	documents := router.Group("", middleware.Limit(logger, obs.ProjectID, middleware.TooMany, address))
 	documents.GET("/.well-known/oauth-protected-resource/mcp", gin.WrapH(endpoints.ResourceMetadata))
 	documents.GET("/.well-known/oauth-authorization-server", gin.WrapH(endpoints.ServerMetadata))
+	if endpoints.Challenge != "" {
+		documents.GET(ChallengePath, challenge(endpoints.Challenge))
+	}
 
 	// The parent's way through a sign-in, in their browser: the request a
 	// host sends them with, the consent screen's answer, and Google's. A
@@ -280,6 +288,18 @@ func NewRouter(publicURL string, endpoints *Endpoints, limits Limits, logger *za
 	renewals.POST("/oauth/token", gin.WrapH(endpoints.Token))
 
 	return router, nil
+}
+
+// ChallengePath is where ChatGPT's plugin directory reads the token that
+// proves the service's domain is the plugin's.
+const ChallengePath = "/.well-known/openai-apps-challenge"
+
+// challenge answers with the token as it is: plain text, and nothing else, as
+// the directory asks for it.
+func challenge(token string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Data(http.StatusOK, "text/plain; charset=utf-8", []byte(token))
+	}
 }
 
 func notFound(c *gin.Context) {

@@ -854,6 +854,64 @@ button.mt-bar {
 [dir="rtl"] .mt-segment {
 	transform: scaleX(-1);
 }
+/* Runs of a course's steps marked under it, for the parent: a bracket under
+   each run, as wide as its steps, with its words under it, and a note under
+   them all. The runs are the cells of a table, one column a step; a bracket
+   gives up half the course's gap on each side it shares with another, so its
+   ends keep to the steps' edges. The run the course stands in is drawn
+   stronger. */
+.mt-grades {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-block-start: -2px;
+}
+.mt-grades-runs {
+	width: 100%;
+	table-layout: fixed;
+	border-collapse: collapse;
+}
+.mt-grades-runs td {
+	padding: 0;
+	vertical-align: top;
+	text-align: center;
+}
+.mt-grades-bracket {
+	display: block;
+	height: 5px;
+	margin-inline: 2px;
+	box-sizing: border-box;
+	border: 1px solid var(--border-strong);
+	border-block-start: none;
+	border-radius: 0 0 3px 3px;
+}
+.mt-grades-runs td:first-child .mt-grades-bracket {
+	margin-inline-start: 0;
+}
+.mt-grades-runs td:last-child .mt-grades-bracket {
+	margin-inline-end: 0;
+}
+.mt-grades-runs td[data-current] .mt-grades-bracket {
+	border-color: var(--pressed-border);
+}
+.mt-grades-label {
+	display: block;
+	margin-block-start: 4px;
+	font-size: 12px;
+	line-height: 16px;
+	color: var(--text-muted);
+	overflow-wrap: anywhere;
+}
+.mt-grades-runs td[data-current] .mt-grades-label {
+	font-weight: 600;
+	color: var(--text);
+}
+.mt-grades-note {
+	margin: 0;
+	font-size: 12px;
+	line-height: 17px;
+	color: var(--text-muted);
+}
 /* How a rank moved over a while: a line under the course, in the colour of
    the move's way and after its arrow, or plain where nothing moved; and the
    same colours for a topic's word of its move, and for the counts by the

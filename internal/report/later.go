@@ -27,9 +27,20 @@ const (
 	LaterTo   = 200
 )
 
-// everyHost stands for the hosts of a version taken together. It is no word
-// the service writes, so that it is never taken for a client's name.
-const everyHost = "(every host)"
+// everyHost stands for the hosts of a version taken together, and
+// everyVersion for every version the lines hold taken together, over every
+// host. Neither is a word the service writes, so that neither is ever taken
+// for a client's name or a version.
+const (
+	everyHost    = "(every host)"
+	everyVersion = "(every version)"
+)
+
+// rowsOf are the rows of a table a group's numbers count in: the group's own,
+// its version's over every host, and every version's over every host.
+func rowsOf(g group) []group {
+	return []group{g, {version: g.version, host: everyHost}, {version: everyVersion, host: everyHost}}
+}
 
 // side is which of the two ranges a range of the child's answers is wholly
 // within, if either.
@@ -97,10 +108,11 @@ func (c *counts) crossingEdges() []string {
 // pair is one child's answers in the two ranges.
 type pair struct{ earlier, later ofChild }
 
-// pairsByGroup are, for every group and for every version's hosts together,
-// each child's answers in the two ranges, from the cells of how the estimate
-// keeps up. A host that hands a task to no child a family has, a child such a
-// host handed a task to, and an answer that names no child are left out.
+// pairsByGroup are, for every group, for every version's hosts together and
+// for every version together, each child's answers in the two ranges, from
+// the cells of how the estimate keeps up. A host that hands a task to no child
+// a family has, a child such a host handed a task to, and an answer that names
+// no child are left out.
 func (c *counts) pairsByGroup() map[group]map[string]*pair {
 	pairs := map[group]map[string]*pair{}
 	for key, cell := range c.keptUp {
@@ -108,11 +120,11 @@ func (c *counts) pairsByGroup() map[group]map[string]*pair {
 		if within == neither || slices.Contains(notChildren, key.host) {
 			continue
 		}
-		for _, g := range []group{key.group, {version: key.version, host: everyHost}} {
-			if pairs[g] == nil {
-				pairs[g] = map[string]*pair{}
+		for _, row := range rowsOf(key.group) {
+			if pairs[row] == nil {
+				pairs[row] = map[string]*pair{}
 			}
-			c.addChildren(pairs[g], cell, within)
+			c.addChildren(pairs[row], cell, within)
 		}
 	}
 	return pairs
@@ -211,9 +223,13 @@ func (c *counts) laterAbout() string {
 		ordinal(LaterFrom) + " answer is left out rather than read against the children who went on. Above " +
 		"zero, the later answers came out right more often against their promise than the earlier: the estimate " +
 		"falls further behind as the answers pile up; below zero, it falls behind less, or runs ahead. " + everyHost +
-		" takes a version's hosts together, so a child who answered the two ranges in different hosts is set against " +
-		"itself there alone; a child the load tool or MCP Inspector handed a task to is left out, and so are their " +
-		"calls. A range of fewer than " + strconv.Itoa(fewestAnswers) + " answers says " + tooFew +
+		" takes a version's hosts together, and " + everyVersion + ", last, every version these lines hold, over every " +
+		"host: a child who answered the two ranges in different hosts is set against itself in those two rows alone, " +
+		"and one who answered them under different versions in the last alone. That row reads one student model " +
+		"only where no release among its versions changed the model, and a change of the instructions that moved " +
+		"how the chat's model hits the difficulty it is asked for leans it, since a child's earlier answers fall more " +
+		"under the older versions. A child the load tool or MCP Inspector handed a task to is left out of every row, " +
+		"and so are their calls. A range of fewer than " + strconv.Itoa(fewestAnswers) + " answers says " + tooFew +
 		"; the numbers are to three places."
 	if crossing := c.crossingEdges(); len(crossing) > 0 {
 		about += " The lines name ranges of answers that cross where these begin or end, which neither takes: " +
@@ -222,10 +238,10 @@ func (c *counts) laterAbout() string {
 	return about
 }
 
-// laterTable is, for every group and every version's hosts together, the
-// children who answered in both ranges, their answers in each, how far each
-// range came out from its promise, and the later less the earlier with its
-// standard error.
+// laterTable is, for every group, every version's hosts together and every
+// version together, the children who answered in both ranges, their answers
+// in each, how far each range came out from its promise, and the later less
+// the earlier with its standard error.
 func (c *counts) laterTable() *table {
 	t := &table{columns: []string{
 		"Instructions", "Host", "Children", "Answers earlier", "Came true less promised, earlier",
@@ -247,7 +263,7 @@ func (c *counts) laterTable() *table {
 		if result.earlier.answers >= fewestAnswers && result.later.answers >= fewestAnswers {
 			difference, standardError = signedTo(result.difference, 3), oneChild
 			if result.hasError {
-				standardError = strconv.FormatFloat(result.standardError, 'f', 3, 64)
+				standardError = thousandths(result.standardError)
 			}
 		}
 		t.add(g.version, g.host, number(result.children), number(result.earlier.answers), earlierMean,
@@ -257,17 +273,22 @@ func (c *counts) laterTable() *table {
 }
 
 // compareRows orders the rows of a table by version, in the order the versions
-// first appear, then by host, with a version's hosts taken together last.
+// first appear, then by host, with a version's hosts taken together last, and
+// every version taken together after them all.
 func (c *counts) compareRows(a, b group) int {
-	together := func(g group) int {
-		if g.host == everyHost {
-			return 1
-		}
-		return 0
-	}
 	return cmp.Or(
+		cmp.Compare(lastIf(a.version == everyVersion), lastIf(b.version == everyVersion)),
 		cmp.Compare(slices.Index(c.versions, a.version), slices.Index(c.versions, b.version)),
-		cmp.Compare(together(a), together(b)),
+		cmp.Compare(lastIf(a.host == everyHost), lastIf(b.host == everyHost)),
 		cmp.Compare(a.host, b.host),
 	)
+}
+
+// lastIf is the place in an order of a row that comes after those it is
+// compared with when last holds.
+func lastIf(last bool) int {
+	if last {
+		return 1
+	}
+	return 0
 }

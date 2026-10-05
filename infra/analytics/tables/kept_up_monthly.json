@@ -1,0 +1,11 @@
+[
+  {"name": "month", "type": "DATE", "mode": "REQUIRED", "description": "The first day of the calendar month, in UTC."},
+  {"name": "bucket", "type": "STRING", "mode": "REQUIRED", "description": "The range of the child's answers the answer falls in, as the line names it: 6-20, 21-50, 51-100, 101-200 or 201+."},
+  {"name": "learners", "type": "INTEGER", "mode": "REQUIRED", "description": "The children whose answers were weighed."},
+  {"name": "answers", "type": "INTEGER", "mode": "REQUIRED", "description": "The answers weighed against the chance promised: to tasks the rule chose, after the trial series, without the hint."},
+  {"name": "correct", "type": "INTEGER", "mode": "REQUIRED", "description": "The answers that were right."},
+  {"name": "promised", "type": "INTEGER", "mode": "REQUIRED", "description": "The chances the tasks were handed out at, in hundredths, added up."},
+  {"name": "margins_squared", "type": "INTEGER", "mode": "REQUIRED", "description": "Over the children, the square of each one's margin: its right answers times a hundred less its chances in hundredths."},
+  {"name": "answers_by_margins", "type": "INTEGER", "mode": "REQUIRED", "description": "Over the children, each one's answers times its margin."},
+  {"name": "answers_squared", "type": "INTEGER", "mode": "REQUIRED", "description": "Over the children, the square of each one's answers."}
+]

@@ -224,6 +224,7 @@ The rest have the defaults the service is meant to run with. The ones a deployme
 | `MATHTRAIL_SOLVER_STEPS` | `25000000` | How far one solver may run; a higher ceiling needs more `memory` |
 | `MATHTRAIL_TELEMETRY` | `auto` | Whether traces and metrics are sent: from a deployment, anywhere, or nowhere |
 | `MATHTRAIL_LOG_LEVEL` | `info` | How much the service logs |
+| `MATHTRAIL_OPENAI_CHALLENGE` | empty | The token ChatGPT's plugin directory gives when you submit your copy, which the service then serves, as it is, at `/.well-known/openai-apps-challenge` on its own domain; empty, that address is not served. At most 512 characters of visible ASCII. It proves the domain is yours, and is not a secret |
 
 ## What nothing in this repository owns
 
@@ -348,8 +349,8 @@ A copy that has to show how much it is used — for a grant application, say —
 
 The reports are made by hand, in [Data Studio](https://datastudio.google.com) (formerly Looker Studio), signed in as the project's owner:
 
-1. **The private one.** Create a report and add data from BigQuery: the project, the dataset `impact_private`, one view at a time — `daily`, `weeks`, `months`, `learners`, `dose`, `learning`, `topics`, `traps`. Share it with nobody.
-2. **The public one.** Create another from the views of `impact_public` — `months`, `learners_by_*`, `learning`, `topics`, `traps_by_topic`, `traps_by_grade`. In each data source, set *Data credentials* to the owner's, so that a viewer reads the views without a Google account of the project's. Write on the report, where the countries are shown, "IP geolocation by [DB-IP](https://db-ip.com)": the database the country of the sign-in comes from asks for it wherever what it found is shown. Share it as *Anyone on the internet with the link can view*.
+1. **The private one.** Create a report and add data from BigQuery: the project, the dataset `impact_private`, one view at a time — `daily`, `weeks`, `months`, `learners`, `dose`, `learning`, `topics`, `traps`, `chances`, `kept_up`. Share it with nobody.
+2. **The public one.** Create another from the views of `impact_public` — `months`, `learners_by_*`, `learning`, `topics`, `traps_by_topic`, `traps_by_grade`, `chances`, `chances_total`, `kept_up`. In each data source, set *Data credentials* to the owner's, so that a viewer reads the views without a Google account of the project's. Write on the report, where the countries are shown, "IP geolocation by [DB-IP](https://db-ip.com)": the database the country of the sign-in comes from asks for it wherever what it found is shown. Share it as *Anyone on the internet with the link can view*.
 3. **Link the public one** from the site and the `README.md`.
 
 Leave the reports' data freshness at its default: a report then reads BigQuery a few times a day however many people open it.

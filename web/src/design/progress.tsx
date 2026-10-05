@@ -194,8 +194,9 @@ function fillOf(step: number, filled: number, part: number): number {
 /**
  * RankSummary is where the child stands, large: the name of the step reached,
  * the line that places it — the step out of how many —, the course drawn under
- * them, how it moved where that is told, and a line of what comes next. A
- * label names it for a screen reader where the name does not.
+ * them with whatever marks it, how it moved where that is told, and a line of
+ * what comes next. A label names it for a screen reader where the name does
+ * not.
  */
 export function RankSummary({
 	label,
@@ -222,6 +223,69 @@ export function RankSummary({
 			{move}
 			<p class="mt-rank-line">{line}</p>
 		</section>
+	);
+}
+
+/**
+ * GradeRun is a run of a course's steps and what it is matched with: its
+ * first and its last step, counted from 1; the short words drawn under it;
+ * the words a screen reader says of it; and whether the course stands in it.
+ */
+export type GradeRun = {
+	first: number;
+	last: number;
+	label: string;
+	said: string;
+	current: boolean;
+};
+
+/**
+ * GradeLegend marks runs of a course's steps under the course: a bracket
+ * under each run, as wide as its steps, with its words under it, the run the
+ * course stands in drawn stronger, and a note under them all. A card sets no
+ * style on an element, so the runs are the cells of a table as wide as the
+ * course, one column a step, each cell spanning its run; a bracket stops
+ * short of the next by half the course's gap on each inner side, which keeps
+ * its ends within a fraction of a pixel of the steps' edges. The table is a
+ * drawing, and a screen reader reads each run's words instead.
+ */
+export function GradeLegend({
+	of,
+	runs,
+	note,
+}: {
+	of: number;
+	runs: readonly GradeRun[];
+	note: string;
+}) {
+	return (
+		<div class="mt-grades">
+			<table class="mt-grades-runs" aria-hidden="true">
+				<colgroup>
+					<col span={of} />
+				</colgroup>
+				<tbody>
+					<tr>
+						{runs.map((run) => (
+							<td
+								key={run.first}
+								colSpan={run.last - run.first + 1}
+								data-current={run.current ? "" : undefined}
+							>
+								<span class="mt-grades-bracket" />
+								<span class="mt-grades-label">{run.label}</span>
+							</td>
+						))}
+					</tr>
+				</tbody>
+			</table>
+			<ul class="mt-vh">
+				{runs.map((run) => (
+					<li key={run.first}>{run.said}</li>
+				))}
+			</ul>
+			<p class="mt-grades-note">{note}</p>
+		</div>
 	);
 }
 
