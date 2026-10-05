@@ -421,16 +421,16 @@ function head(
 
 // canonicalProblem is what is wrong with the address page names as its own, or
 // undefined when nothing is. A page names the address it is served at. The
-// apex alone may send its reader on instead, to a page of the site, and then
-// stands for that page and names its address: a page of a language that sends
-// its reader on is a translation the language has lost.
+// apex alone may send its reader on at once instead, to another page of the
+// site, and then stands for that page and names its address: a page of a
+// language that sends its reader on is a translation the language has lost.
 function canonicalProblem(
 	page: Page,
 	pages: Map<string, Page>,
 	options: Options,
 ): string | undefined {
 	const served = options.base + page.address;
-	if (page.refresh === "") {
+	if (!page.refresh) {
 		return page.canonical === served
 			? undefined
 			: `canonical is "${page.canonical}", and the page is served at "${served}"`;
@@ -440,12 +440,11 @@ function canonicalProblem(
 		return `${sends}, and only the apex may: a page of a language is read in it`;
 	}
 	const target = URL.parse(page.refresh, served);
-	if (
-		target === null ||
-		target.origin !== options.base ||
-		!pages.has(target.pathname)
-	) {
+	if (target?.origin !== options.base || !pages.has(target.pathname)) {
 		return `${sends}, which is no page of the site`;
+	}
+	if (target.pathname === page.address) {
+		return `${sends}, which is the page itself: it would reload for ever`;
 	}
 	return page.canonical === target.href
 		? undefined
@@ -479,7 +478,7 @@ function expectedAlternates(
 	pages: Map<string, Page>,
 	options: Options,
 ): [string, string][] {
-	if (page.refresh !== "") {
+	if (page.refresh) {
 		return [];
 	}
 	const alternates: [string, string][] = localesOf(pages)

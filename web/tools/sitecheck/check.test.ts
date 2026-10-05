@@ -239,6 +239,14 @@ describe("check", () => {
 			contains: `sends its reader on to "https://other.example/en/", which is no page of the site`,
 		},
 		{
+			name: "a page that sends its reader on to itself",
+			change: (files) => {
+				files["index.html"] = redirectAt("/");
+			},
+			rule: "head",
+			contains: `sends its reader on to "/", which is the page itself`,
+		},
+		{
 			name: "a page of a language that sends its reader on",
 			change: (files) => {
 				files["ru/index.html"] = redirectAt("/en/").replace(

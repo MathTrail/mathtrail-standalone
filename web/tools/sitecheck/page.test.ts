@@ -98,13 +98,17 @@ describe("parsePage", () => {
 			title: "Page",
 			description: "The page.",
 			canonical: "https://example.test/en/",
-			refresh: "",
+			refresh: undefined,
 		});
 		expect([...page.alternates]).toEqual([["ru", "https://example.test/ru/"]]);
 		expect(page.references.map((ref) => ref.value)).toEqual([
 			"/assets/demo.css",
 		]);
 	});
+
+	// noBreak is a space HTML does not skip as white space, as a browser reads a
+	// refresh.
+	const noBreak = String.fromCodePoint(0xa0);
 
 	test.for([
 		["0; url=/en/", "/en/"],
@@ -120,23 +124,29 @@ describe("parsePage", () => {
 		// A refresh that names no address only reloads the page.
 		["0", ""],
 		["5", ""],
-		// A browser does not refresh at all without the time, or with anything
-		// but a separator after it.
-		["url=/en/", ""],
-		["; url=/en/", ""],
-		["0x; url=/en/", ""],
-		["", ""],
-	] as const)(
-		"reads a refresh of %j as sending the reader on at once to %j",
-		([content, want]) => {
-			const page = parsePage(
-				"index.html",
-				`<!DOCTYPE html><html><head><meta http-equiv="Refresh" content="${content.replaceAll('"', "&quot;")}"></head></html>`,
-			);
+		// A browser does not refresh at all without the time, with anything but
+		// a separator after it, or past a space that is not HTML's.
+		["url=/en/", undefined],
+		["; url=/en/", undefined],
+		["0x; url=/en/", undefined],
+		[`0${noBreak}url=/en/`, undefined],
+		[`${noBreak}0; url=/en/`, undefined],
+		["", undefined],
+	] as const)("reads a refresh of %j as doing %j", ([content, want]) => {
+		expect(parsePage("index.html", refreshing(content)).refresh).toBe(want);
+	});
 
-			expect(page.refresh).toBe(want);
-		},
-	);
+	test("acts on the first refresh a browser acts on, as a browser does", () => {
+		expect(
+			parsePage("index.html", refreshing("5", "0; url=/en/")).refresh,
+		).toBe("");
+		expect(
+			parsePage("index.html", refreshing("0; url=/en/", "5")).refresh,
+		).toBe("/en/");
+		expect(
+			parsePage("index.html", refreshing("url=/ru/", "0; url=/en/")).refresh,
+		).toBe("/en/");
+	});
 
 	test("reads the head and sorts every reference by what the browser does with it", () => {
 		const page = parsePage(
@@ -185,3 +195,13 @@ describe("parsePage", () => {
 		]);
 	});
 });
+
+// refreshing is a page whose head holds a refresh with each of contents, in
+// order.
+function refreshing(...contents: string[]): string {
+	const metas = contents.map(
+		(content) =>
+			`<meta http-equiv="Refresh" content="${content.replaceAll('"', "&quot;")}">`,
+	);
+	return `<!DOCTYPE html><html><head>${metas.join("")}</head></html>`;
+}

@@ -155,7 +155,7 @@ func prove(t *testing.T, sandbox solver.Runner, path, answer string) {
 
 // serviceSandbox is the sandbox a submitted solver runs in, with the limits
 // the deployed service uses — all but the wait for a slot, which no example
-// is about, and the clock under the race detector.
+// is about, and the clock, which the race detector stretches.
 func serviceSandbox(t *testing.T) solver.Runner {
 	t.Helper()
 

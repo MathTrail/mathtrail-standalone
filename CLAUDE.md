@@ -116,7 +116,7 @@ internal/
     country/      the countries, and the states of the United States, a family can say it lives in, by their ISO 3166 codes
   infra/          everything that talks to the outside world
     seal/
-    starlark/     runs the solver the model wrote, within its limits; starlarktest/ watches its slots in tests
+    starlark/     runs the solver the model wrote, within its limits; starlarktest/ watches its slots in tests and sets the clock a test gives a run
     drive/        reaches the files in a parent's Drive, one request per call; drivetest/ stands in for Drive in tests
     cimd/         fetches a client's metadata document, reaching public addresses only
     googleauth/   signs a parent in with Google and proves who it was, renews the grant and ends it; googletest/ stands in for Google in tests

@@ -638,7 +638,7 @@ func testConfig() *config.Config {
 		SolverSteps:        config.DefaultSolverSteps,
 		SolverTimeout:      starlarktest.Clock(config.DefaultSolverTimeout), // stretched under the race detector
 		SolverConcurrency:  config.DefaultSolverConcurrency,
-		SolverWait:         config.DefaultSolverWait,
+		SolverWait:         starlarktest.Clock(config.DefaultSolverWait), // still longer than a run, as in the service
 		RequestWindow:      config.DefaultRequestWindow,
 		RateUserPerMin:     config.DefaultRateUserPerMin,
 		RateIPPerMin:       config.DefaultRateIPPerMin,
