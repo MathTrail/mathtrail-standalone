@@ -149,6 +149,7 @@ func (r *reviewer) Judge(examined Examined, against Against) (Outcome, error) {
 
 	var found findings
 	found.add(slices.Concat(examined.read, Structure(draft, against.Asked, r.content)), "")
+	found.add(r.language(task, against))
 	found.add(r.explanations(draft, against))
 	found.add(r.drawingFormat(task), "")
 	found.add(r.drawingMatch(task))
@@ -183,6 +184,15 @@ func (f *findings) add(problems []Problem, unchecked string) {
 	if unchecked != "" {
 		f.unchecked = append(f.unchecked, unchecked)
 	}
+}
+
+// language checks that what the child reads is written in the letters of the
+// lesson's language.
+func (r *reviewer) language(task *Task, against Against) (problems []Problem, unchecked string) {
+	if task == nil {
+		return nil, "the language of the task was not checked: that needs a task that can be read"
+	}
+	return Language(task, against.Language), ""
 }
 
 // explanations checks the explanations behind the wrong options.

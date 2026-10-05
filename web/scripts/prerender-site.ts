@@ -6,6 +6,7 @@
 //
 //	node scripts/prerender-site.ts --base https://mathtrail.app --out ../site/dist
 
+import { createHash } from "node:crypto";
 import {
 	mkdir,
 	mkdtemp,
@@ -16,7 +17,7 @@ import {
 } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
-import { dirname, join, relative, resolve, sep } from "node:path";
+import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import { parseArgs } from "node:util";
 import { build, createServer } from "vite";
 import {
@@ -27,6 +28,7 @@ import {
 	sharingPicturePath,
 } from "../src/site/brand.ts";
 import type { SiteFile } from "../src/site/render.tsx";
+import type { PaperFile } from "../src/site/research.ts";
 
 const web = join(import.meta.dirname, "..");
 const repository = join(web, "..");
@@ -45,6 +47,11 @@ export type SiteOptions = {
 	out: string;
 	/** content is the directory of the site's texts, one directory per locale. */
 	content?: string;
+	/**
+	 * research is the file of the numbers of the page "Research", made from the
+	 * commit being built; the files of the paper it names are kept beside it.
+	 */
+	research?: string;
 };
 
 /**
@@ -95,18 +102,26 @@ type Made = { readonly path: string; readonly data: string | Buffer };
  * buildSite builds the site into out: the pages its texts make, the
  * stylesheet and the font files it names, the font's licence, the design's
  * tokens, the mark, the pictures a shared link shows, the family's
- * photographs, and the coach's prototype with the licence of the fonts it
- * carries. Every file is made before anything is written, so a build that
- * fails at any step leaves the last one where it was.
+ * photographs, the paper the page "Research" offers, and the coach's
+ * prototype with the licence of the fonts it carries. Every file is made
+ * before anything is written, so a build that fails at any step leaves the
+ * last one where it was.
  */
 export async function buildSite({
 	base,
 	out,
 	content = join(repository, "site", "content"),
+	research = join(repository, "site", "research", "research.json"),
 }: SiteOptions): Promise<void> {
 	const sources = await readSources(content);
+	const { pages, papers } = await drawPages(
+		base,
+		sources,
+		await readResearchData(research),
+	);
 	const files: Made[] = [
-		...(await drawPages(base, sources)),
+		...pages,
+		...(await paperFiles(dirname(research), papers)),
 		...(await sharingPictures([...sources.keys()])),
 		// The family's photographs go out as they are kept, each under the name
 		// the page that shows it serves it by.
@@ -193,6 +208,65 @@ async function replaceable(
 		entries.length === 0 ||
 		(entries.includes(".nojekyll") &&
 			entries.every((entry) => written.has(entry)))
+	);
+}
+
+// readResearchData reads the file of the numbers of the page "Research",
+// which the build cannot do without: the page has no number of its own.
+async function readResearchData(path: string): Promise<unknown> {
+	let text: string;
+	try {
+		text = await readFile(path, "utf8");
+	} catch (error) {
+		if (isMissing(error)) {
+			throw new Error(
+				`${path}, the numbers of the page Research, is not there: just research-data makes it from the commit being built`,
+			);
+		}
+		throw error;
+	}
+	try {
+		return JSON.parse(text);
+	} catch (error) {
+		throw new Error(
+			`${path}, the numbers of the page Research, is not whole: just research-data makes it again`,
+			{ cause: error },
+		);
+	}
+}
+
+/**
+ * paperFiles are the files of the paper the page "Research" offers, each taken
+ * from dir, beside the file of the page's numbers, and held to the size and
+ * the hash those numbers give it: the page vouches for the file it links, and
+ * would otherwise offer another.
+ */
+export async function paperFiles(
+	dir: string,
+	papers: readonly PaperFile[],
+): Promise<Made[]> {
+	return Promise.all(
+		papers.map(async (paper) => {
+			const name = basename(paper.path);
+			let data: Buffer;
+			try {
+				data = await readFile(join(dir, name));
+			} catch (error) {
+				if (isMissing(error)) {
+					throw new Error(
+						`${name}, which the page Research offers, is not beside its numbers in ${dir}`,
+					);
+				}
+				throw error;
+			}
+			const hash = createHash("sha256").update(data).digest("hex");
+			if (data.length !== paper.bytes || hash !== paper.sha256) {
+				throw new Error(
+					`${name} beside the numbers of the page Research is not the file they vouch for: ${data.length} bytes of the hash ${hash}, and they give ${paper.bytes} bytes of ${paper.sha256}`,
+				);
+			}
+			return { path: paper.path.slice(1), data };
+		}),
 	);
 }
 
@@ -291,14 +365,16 @@ async function buildStyles(): Promise<Made[]> {
 	}
 }
 
-// drawPages draws every page of the site in memory. The components are read
-// through Vite, as the tests and the widget's build read them — TSX, the
-// dictionaries' JSON, the glob that finds them — by a server that serves
-// nothing and watches nothing.
+// drawPages draws every page of the site in memory, from the site's data and
+// the numbers of the page "Research", and says which files of the paper that
+// page offers. The components are read through Vite, as the tests and the
+// widget's build read them — TSX, the dictionaries' JSON, the glob that finds
+// them — by a server that serves nothing and watches nothing.
 async function drawPages(
 	base: string,
 	sources: Map<string, Map<string, string>>,
-): Promise<SiteFile[]> {
+	research: unknown,
+): Promise<{ pages: SiteFile[]; papers: readonly PaperFile[] }> {
 	const server = await createServer({
 		configFile: siteConfig,
 		logLevel: "warn",
@@ -310,14 +386,21 @@ async function drawPages(
 		const { renderSite } = (await server.ssrLoadModule(
 			"/src/site/render.tsx",
 		)) as typeof import("../src/site/render.tsx");
-		return renderSite({ base, sources });
+		const { siteData } = (await server.ssrLoadModule(
+			"/src/site/data.ts",
+		)) as typeof import("../src/site/data.ts");
+		const data = siteData(research);
+		return {
+			pages: renderSite({ base, sources, data }),
+			papers: data.research?.paper.files ?? [],
+		};
 	} finally {
 		await server.close();
 	}
 }
 
 const usage =
-	"usage: node scripts/prerender-site.ts --base <origin> --out <directory>";
+	"usage: node scripts/prerender-site.ts --base <origin> --out <directory> [--research <file>]";
 
 /**
  * main builds the site a command line asks for and returns the command's exit
@@ -329,11 +412,15 @@ export async function main(
 	out: (line: string) => void,
 	err: (line: string) => void,
 ): Promise<number> {
-	let values: { base?: string; out?: string };
+	let values: { base?: string; out?: string; research?: string };
 	try {
 		({ values } = parseArgs({
 			args,
-			options: { base: { type: "string" }, out: { type: "string" } },
+			options: {
+				base: { type: "string" },
+				out: { type: "string" },
+				research: { type: "string" },
+			},
 		}));
 	} catch {
 		err(usage);
@@ -344,7 +431,12 @@ export async function main(
 		return 2;
 	}
 	try {
-		await buildSite({ base: values.base, out: resolve(values.out) });
+		await buildSite({
+			base: values.base,
+			out: resolve(values.out),
+			research:
+				values.research === undefined ? undefined : resolve(values.research),
+		});
 	} catch (error) {
 		err(
 			`site: ${error instanceof Error ? error.message : "it cannot be built"}`,

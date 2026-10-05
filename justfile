@@ -666,10 +666,11 @@ ci-licenses:
 # -- Site -------------------------------------------------------------------
 
 # The site is drawn by the widget's own toolchain, from the texts in
-# site/content/, and judged by a checker that knows nothing of how it was drawn.
+# site/content/ and the numbers of the page "Research", made first, and judged
+# by a checker that knows nothing of how it was drawn.
 # Build the site into site/dist/
 [working-directory('web')]
-site: web-install
+site: web-install research-data
     npm run --silent build:site -- --base {{ SITE_BASE }} --out ../{{ SITE_DIR }}
 
 # Build the site and serve it, so a page can be read the way a visitor reads it
@@ -694,6 +695,19 @@ site-og: site _playwright-pinned
     docker run --rm --init --shm-size=1g --user "$(id -u):$(id -g)" -e HOME=/tmp \
         -v "{{ justfile_directory() }}:{{ justfile_directory() }}" -w "{{ justfile_directory() }}/web" \
         {{ PLAYWRIGHT_IMAGE }} node scripts/og.ts
+
+# The width the site's menu folds at: for every language of the site, in
+# Chromium with a classic scroll bar and in WebKit, the narrowest width at
+# which the menu's entries stay in a row beside the mark and the tools, over
+# the site as it is built, from the image the widget's layout is measured in.
+# It changes nothing: the fold in the site's stylesheet is set from it, an
+# entry more or a language more wanting it measured again.
+# Measure the width the site's menu folds at
+[working-directory('web')]
+site-fold: site _playwright-pinned
+    docker run --rm --init --shm-size=1g --user "$(id -u):$(id -g)" -e HOME=/tmp \
+        -v "{{ justfile_directory() }}:{{ justfile_directory() }}" -w "{{ justfile_directory() }}/web" \
+        {{ PLAYWRIGHT_IMAGE }} node scripts/fold.ts
 
 # The site's photographs, made from their originals in dir: one file for each,
 # under the photograph's name — family, dad, mum, older-son, younger-son — as

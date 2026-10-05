@@ -22,16 +22,16 @@ hero:
 team:
   title: Who we are
   members:
+    mum:
+      role: Chief Everything Officer
+      name: Mum
+      text: The author of the idea and the project's lead designer. Sets out the product requirements and looks after everything else too, which is to say absolutely everything!
+      photo: Mum in a beige jacket, smiling.
     dad:
       role: Full-Stack Babyholder
       name: Dad
       text: Writes code with one hand and rocks the baby with the other. Deploys strictly after the afternoon nap, or production wakes up and cries.
       photo: Dad with the younger son in a carrier on his chest, the baby in ear defenders.
-    mum:
-      role: Chief Everything Officer
-      name: Mum
-      text: Looks after everything else, which is to say everything.
-      photo: Mum in a beige jacket, smiling.
     older-son:
       role: Chief Task Cracker
       name: Older son

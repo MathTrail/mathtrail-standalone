@@ -1,7 +1,7 @@
 // Package checks decides whether a task the chat's model handed in can be
-// given to a child: whether it is in the format and agrees with what was asked
-// for, and whether it repeats a task the child has had or copies an example
-// the model was shown.
+// given to a child: whether it is in the format, written in the letters of the
+// lesson's language and agrees with what was asked for, and whether it repeats
+// a task the child has had or copies an example the model was shown.
 //
 // It is pure computation. The caller brings the submission, the catalogs and
 // what the profile remembers; the package says what is wrong, in words the
@@ -23,6 +23,12 @@ const (
 	// CodeBadStructure is a submission out of the format, or one that does
 	// not agree with what the open request asked for.
 	CodeBadStructure Code = "bad_structure"
+	// CodeWrongLanguage is a text the child reads that is not written in the
+	// letters of the lesson's language: the question, the hint, the solution,
+	// or the explanations behind the wrong options taken together, most of it
+	// in other letters. Two languages written in the same letters are not told
+	// apart.
+	CodeWrongLanguage Code = "wrong_language"
 	// CodeDistractorExplanations is an explanation behind a wrong option that
 	// cannot tell a child what went wrong: a copy of another, of the solution
 	// or the hint, of the catalog, or too short to say anything.
@@ -57,9 +63,9 @@ const (
 // run, and so the order their refusals are reported in.
 func Codes() []Code {
 	return []Code{
-		CodeBadStructure, CodeDistractorExplanations, CodeDrawingFormat, CodeDrawingMismatch,
-		CodeReadability, CodeSolverError, CodeSolverDisagrees, CodeSelfCheckBlocking,
-		CodeNearDuplicate,
+		CodeBadStructure, CodeWrongLanguage, CodeDistractorExplanations, CodeDrawingFormat,
+		CodeDrawingMismatch, CodeReadability, CodeSolverError, CodeSolverDisagrees,
+		CodeSelfCheckBlocking, CodeNearDuplicate,
 	}
 }
 

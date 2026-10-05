@@ -96,6 +96,31 @@ func TestEveryReferenceTaskExplainsItsWrongOptions(t *testing.T) {
 	}
 }
 
+// The reference tasks are in English, and every one of them is written in the
+// letters a task in English is held to: their labels, numbers and names cost
+// none of them a refusal, as they would cost the task a model writes.
+func TestEveryReferenceTaskIsWrittenInTheLettersOfEnglish(t *testing.T) {
+	t.Parallel()
+
+	embedded, err := content.Load()
+	if err != nil {
+		t.Fatalf("Load() error = %v, want nil", err)
+	}
+	for _, example := range embedded.Examples() {
+		distractors := make(map[string]checks.Distractor, len(example.Distractors))
+		for letter, distractor := range example.Distractors {
+			distractors[letter] = checks.Distractor{Trap: distractor.Trap, Text: distractor.Text}
+		}
+		task := &checks.Task{
+			Question: example.Question, Options: example.Options, Hint: example.Hint, Solution: example.Solution,
+			Distractors: distractors,
+		}
+		for _, problem := range checks.Language(task, "en") {
+			t.Errorf("%s: %s", example.ID, problem.Message)
+		}
+	}
+}
+
 // The reference tasks of grades 5–6 were written for this service, so they
 // are held to what a task the model writes is held to wherever it applies to
 // them: a hint, and sentences a child of grade 5 can read — the youngest the

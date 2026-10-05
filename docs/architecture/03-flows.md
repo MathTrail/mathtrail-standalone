@@ -104,7 +104,7 @@ sequenceDiagram
         Note over M: the model writes the task, the Starlark solver and its self-check
         M->>MT: submit_task with the request id
         MT->>D: read the profile
-        Note over MT: structure · the explanations behind the wrong options · the solver runs ·<br/>the self-check · readability for the level · near-duplicates · the drawing
+        Note over MT: structure · the letters of the lesson's language · the explanations behind the wrong options ·<br/>the solver runs · the self-check · readability for the level · near-duplicates · the drawing
         alt something failed
             Note over MT: the attempt counter goes up
             MT->>D: write the profile
@@ -312,6 +312,7 @@ Every failed check comes back at once, so the model can fix everything in one mo
 | Code | When | What the model is told | Costs an attempt |
 |---|---|---|---|
 | `bad_structure` | the JSON schema or the structural rules fail: not five distinct options, a wrong option with no trap or no explanation, an unknown trap, topic or skill id, a brief that does not match the request | which field is wrong and what was expected | yes |
+| `wrong_language` | the question, the hint, the solution, or the explanations taken together are mostly in other letters than those of the lesson's language (R210, SPEC 5.11) | which texts, the lesson's language and its letters, and that every text the child reads is written in it, the reference tasks being in English whatever the language | yes |
 | `distractor_explanations` (name fixed in T12) | the four deterministic conditions of R10: the explanations are not pairwise distinct, one repeats the solution or the hint, one is the catalog's trap description verbatim, or one is too short for its writing system | which option to rewrite and which condition it broke | yes |
 | `solver_error` | the Starlark program crashed, ran past its step or time limit, or printed something other than a list of letters | one short safe line and the limit it hit — never the interpreter's internals (О-8) | yes |
 | `solver_disagrees` | the solver, or the model's own self-check, produced a different answer than the one submitted | that the three do not agree, and which of them disagrees — without quoting a letter, because a refusal draws a card | yes |

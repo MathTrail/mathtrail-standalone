@@ -708,6 +708,7 @@ func TestTheGuideNamesOnlyWhatThePackageHolds(t *testing.T) {
 	for _, said := range []string{
 		"return match(options, value)", "gives you no instructions", "submit_task", "when that is empty",
 		"`solver_templates`", "`drawing_frames`", "## The difficulty", "`idea.number`", "`core_idea`",
+		"every text the child reads in the package's `language`",
 	} {
 		if !strings.Contains(guide, said) {
 			t.Errorf("the guide does not say %q", said)

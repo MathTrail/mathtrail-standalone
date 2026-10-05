@@ -37,6 +37,13 @@ export type PageReader = {
 	 * others do not, which the page still has to read to show.
 	 */
 	has(key: string): boolean;
+	/**
+	 * leaveOut counts the text under key as read and draws nothing: for a text
+	 * the page shows for some of its data and not for the rest, such as a
+	 * button to a file the site does not ship yet. The file is still held to
+	 * the key, so a text the page would show once the data changes is there.
+	 */
+	leaveOut(key: string): void;
 };
 
 /**
@@ -111,6 +118,9 @@ export function openReader(
 				words.has(key) ||
 				[...words.keys()].some((name) => name.startsWith(prefix))
 			);
+		},
+		leaveOut(key) {
+			take(key);
 		},
 	};
 	return {

@@ -6,6 +6,7 @@ function task(topic: string, ...named: string[]): ReferenceTask {
 	return {
 		id: `${topic}-${named.join("-")}`,
 		topic,
+		grade_level: "3-4",
 		distractors: Object.fromEntries(
 			named.map((trap, at) => ["BCDE"[at] ?? "", { trap }]),
 		),

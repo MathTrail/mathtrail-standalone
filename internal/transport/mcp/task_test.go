@@ -82,6 +82,38 @@ func raceOn(request *profile.OpenRequest) map[string]any {
 	}
 }
 
+// raceInRussianOn is the race as a model writes it for a lesson in Russian:
+// everything the child reads, and the names the solver matches, in Russian;
+// what only the service reads is left as it was.
+func raceInRussianOn(request *profile.OpenRequest) map[string]any {
+	race := raceOn(request)
+	race["task"] = map[string]any{
+		"core_idea":              "Order three runners from two comparisons.",
+		"design_thought_process": "Plot: a race. Traps: a reversed comparison, stopping early.",
+		"question": "Аня, Бен и Кира бежали наперегонки. Бен прибежал раньше Киры. Аня прибежала позже Киры. " +
+			"Кто прибежал первым?",
+		"options":        map[string]string{"A": "Аня", "B": "Кира", "C": "Бен", "D": "Никто", "E": "Все вместе"},
+		"correct_answer": "C",
+		"hint":           "Кто прибежал раньше Киры?",
+		"solution":       "Бен прибежал раньше Киры, а Кира раньше Ани. Значит, первым прибежал Бен.",
+		"distractors": map[string]map[string]string{
+			"A": {"trap": raceTraps[0], "text": "Аня прибежала позже Киры, она последняя."},
+			"B": {"trap": raceTraps[1], "text": "Кира в середине: Бен её обогнал."},
+			"D": {"trap": raceTraps[2], "text": "В любом забеге кто-то приходит первым."},
+			"E": {"trap": raceTraps[3], "text": "Все трое прибежали друг за другом."},
+		},
+	}
+	race["solver"] = `def solve(options):
+    firsts = []
+    for order in permutations(["Аня", "Бен", "Кира"]):
+        place = {name: i for i, name in enumerate(order)}
+        if place["Бен"] < place["Кира"] and place["Кира"] < place["Аня"]:
+            firsts.append(order[0])
+    return match(options, firsts[0])
+`
+	return race
+}
+
 // raceTask is the race as the model writes it, with these explanations behind
 // its wrong options.
 func raceTask(distractors map[string]map[string]string) map[string]any {
@@ -1242,7 +1274,7 @@ func TestALessonIsHeldInTheLanguageTheParentChose(t *testing.T) {
 	}
 
 	refused := payloadOf[handedInPayload](t, call(t, session, "submit_task", broken(request)))
-	handed := payloadOf[handedInPayload](t, call(t, session, "submit_task", raceOn(request)))
+	handed := payloadOf[handedInPayload](t, call(t, session, "submit_task", raceInRussianOn(request)))
 	for _, card := range []handedInPayload{refused, handed} {
 		if card.Child == nil || card.Child.UILanguage == nil || *card.Child.UILanguage != russian {
 			t.Errorf("the %s card is for %+v, want the language the parent chose, %s", card.Screen, card.Child, russian)
@@ -1253,6 +1285,41 @@ func TestALessonIsHeldInTheLanguageTheParentChose(t *testing.T) {
 	}
 	if handed.Screen != "task" || handed.Task == nil || handed.Task.Language != russian || handed.Language != russian {
 		t.Errorf("the task's card is %q in %q with %+v, want the task and its card in %s", handed.Screen, handed.Language, handed.Task, russian)
+	}
+}
+
+// The package tells the model to write every text the child reads in the
+// lesson's language, and a task written in other letters is refused for them
+// alone: an attempt is spent, the model is told the lesson's language and its
+// letters, and the card waits on in that language. The same race written in
+// the lesson's language is then taken.
+func TestATaskInOtherLettersThanTheLessonsIsRefused(t *testing.T) {
+	t.Parallel()
+
+	russian := "ru"
+	kept := keptAsIs(t, profile.New(profile.Student{
+		Grade: 2, Pseudonym: "Otter", Interests: []string{"sport"}, UILanguage: &russian,
+	}, "test", lessonDay))
+	_, session := lesson(t, kept)
+	request := askForTheRace(t, session, kept)
+	if lead := leadOf(fetchPackage(t, session, request.ID)); !strings.Contains(lead, "Write every text the child reads in "+russian+":") {
+		t.Errorf("get_package says %q, want the model told to write every text the child reads in %s", lead, russian)
+	}
+
+	refused := payloadOf[handedInPayload](t, call(t, session, "submit_task", raceOn(request)))
+	if refused.Status != "rejected" || refused.Code != "wrong_language" || refused.Screen != "waiting" ||
+		refused.Language != russian || refused.AttemptsLeft == nil || *refused.AttemptsLeft != 2 {
+		t.Errorf("submit_task = %+v, want the race in English refused for its letters, two attempts left "+
+			"and the card waiting in %s", refused, russian)
+	}
+	if len(refused.Reasons) != 1 || refused.Reasons[0].Code != "wrong_language" ||
+		!strings.Contains(strings.Join(refused.Reasons[0].Messages, " "), "not in Cyrillic letters, which ru, the language of the lesson") {
+		t.Errorf("reasons = %+v, want the letters alone, named with the lesson's language", refused.Reasons)
+	}
+
+	handed := payloadOf[handedInPayload](t, call(t, session, "submit_task", raceInRussianOn(request)))
+	if handed.Screen != "task" || handed.Task == nil || handed.Task.Language != russian {
+		t.Errorf("the race in Russian draws %q with %+v, want the task taken in %s", handed.Screen, handed.Task, russian)
 	}
 }
 

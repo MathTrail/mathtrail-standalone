@@ -97,8 +97,8 @@ export const familyPhoto: Photo = { name: "family", width: 900, height: 1200 };
  * go by: their place in the family, never their own name.
  */
 export const familyMembers = [
-	"dad",
 	"mum",
+	"dad",
 	"older-son",
 	"younger-son",
 ] as const;

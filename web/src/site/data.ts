@@ -4,6 +4,7 @@ import traps from "../../../content/catalogs/traps.json";
 import file from "../../../site/data.json";
 import { type ProgressReport, readScreen } from "../widget/payload";
 import { type Home, homeFile, readHome } from "./home";
+import { type Research, readResearch, researchSources } from "./research";
 import { readTechniques, type Techniques } from "./techniques";
 import { type CatalogTopic, gradesOf, readTopics, type Topics } from "./topics";
 import { type CatalogTrap, type ReferenceTask, rankTraps } from "./traps";
@@ -30,7 +31,8 @@ export type Example = { readonly grades: readonly [number, number] };
  * catalog's topics with the groups they are shown in, each topic's traps, the
  * examples its page works through, the progress of the child the site's
  * cards are drawn for, an invented one, what the page "Why" shows — its card
- * and the works it cites — and the techniques of the page of the techniques.
+ * and the works it cites — the techniques of the page of the techniques, and
+ * the numbers of the page "Research".
  */
 export type SiteData = {
 	readonly topics: Topics;
@@ -46,6 +48,11 @@ export type SiteData = {
 	readonly home?: Home;
 	/** techniques are what the page of the techniques draws, when the data has them. */
 	readonly techniques?: Techniques;
+	/**
+	 * research is what the page "Research" draws, when the build was given the
+	 * file of its numbers.
+	 */
+	readonly research?: Research;
 };
 
 // sample is a progress as the service sends it, whose profile is completed
@@ -96,7 +103,8 @@ export type TechniquesFile = z.infer<typeof techniquesFile>;
 
 // dataFile is the shape of the site's data file: its groups, the examples of
 // the topics' pages, the progress its cards are drawn from, what the page
-// "Why" draws, and the techniques of the page of the techniques.
+// "Why" draws, the techniques of the page of the techniques, and the authors
+// the page "Research" names.
 const dataFile = z.object({
 	groups: z.array(z.object({ id: z.string(), topics: z.array(z.string()) })),
 	examples: z.record(z.string(), z.array(exampleFile)),
@@ -104,6 +112,7 @@ const dataFile = z.object({
 	why: whyFile.optional(),
 	home: homeFile.optional(),
 	techniques: techniquesFile.optional(),
+	research: researchSources.optional(),
 });
 
 /**
@@ -113,32 +122,43 @@ const dataFile = z.object({
  * published, or at a level the topic is not taught at, so that a mistake in
  * the file stops the build rather than drawing a page with a part missing.
  * What the home page and the page "Why" draw, and the techniques, are held
- * to the catalog as well.
+ * to the catalog as well, and so are the numbers of the page "Research", when
+ * the build is given them.
  */
-export function readSiteData(catalog: Catalog, data: unknown): SiteData {
+export function readSiteData(
+	catalog: Catalog,
+	data: unknown,
+	research?: unknown,
+): SiteData {
 	const read = dataFile.safeParse(data);
 	if (!read.success) {
 		throw new Error(`site/data.json: ${z.prettifyError(read.error)}`);
 	}
+	const site = readParts(catalog, read.data);
+	return research === undefined
+		? site
+		: {
+				...site,
+				research: readResearch(catalog, read.data.research, research),
+			};
+}
+
+// readParts reads every part of the site's data the pages draw, a mistake in
+// any of them named as the data file's.
+function readParts(catalog: Catalog, data: z.infer<typeof dataFile>): SiteData {
 	const ranked = rankTraps(catalog.traps, catalog.tasks);
 	try {
 		const site = {
-			topics: readTopics(catalog.topics, read.data.groups),
+			topics: readTopics(catalog.topics, data.groups),
 			traps: ranked,
-			examples: readExamples(catalog.topics, read.data.examples),
-			progress: read.data.progress,
-			why:
-				read.data.why === undefined
-					? undefined
-					: readWhy(catalog, read.data.why),
-			home:
-				read.data.home === undefined
-					? undefined
-					: readHome(catalog, read.data.home),
+			examples: readExamples(catalog.topics, data.examples),
+			progress: data.progress,
+			why: data.why === undefined ? undefined : readWhy(catalog, data.why),
+			home: data.home === undefined ? undefined : readHome(catalog, data.home),
 			techniques:
-				read.data.techniques === undefined
+				data.techniques === undefined
 					? undefined
-					: readTechniques(catalog.topics, read.data.techniques),
+					: readTechniques(catalog.topics, data.techniques),
 		};
 		progressOf(site, "Comet");
 		return site;
@@ -156,12 +176,16 @@ const referenceTasks: readonly ReferenceTask[] = Object.values(
 	),
 ).flat();
 
+/** siteCatalog is the service's catalogs and reference tasks, as the site reads them. */
+export const siteCatalog: Catalog = { topics, traps, tasks: referenceTasks };
+
 /**
- * siteData reads the data of this site: its own file, and the service's
- * catalogs and reference tasks.
+ * siteData reads the data of this site: its own file, the service's catalogs
+ * and reference tasks, and, when the build is given it, the file of the
+ * numbers of the page "Research".
  */
-export function siteData(): SiteData {
-	return readSiteData({ topics, traps, tasks: referenceTasks }, file);
+export function siteData(research?: unknown): SiteData {
+	return readSiteData(siteCatalog, file, research);
 }
 
 // readExamples reads the examples of the topics' pages: each of a topic of the

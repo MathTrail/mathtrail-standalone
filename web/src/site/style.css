@@ -873,12 +873,12 @@ a:hover {
 	}
 }
 
-/* The menu folds behind its button below 992 px: in Russian, the longer of
-   the site's languages, its entries stop fitting in a row beside the mark and
-   the tools some way under that, with a scroll bar that takes room of its
-   own; an entry more wants the width measured again. A phone keeps a
-   narrower margin. */
-@media (max-width: 991px) {
+/* The menu folds behind its button below 1100 px: in Russian, the longer of
+   the site's languages, its six entries stop fitting in a row beside the mark
+   and the tools some way under that, with a scroll bar that takes room of its
+   own; an entry more wants the width measured again, as scripts/fold.ts
+   measures it. A phone keeps a narrower margin. */
+@media (max-width: 1099px) {
 	.s-navlinks {
 		display: none;
 	}
@@ -2752,6 +2752,298 @@ a:hover {
 .s-coach-imitated {
 	padding: 0;
 	list-style: none;
+}
+
+/* The page of the research. Its heading is the paper's title, the part after
+   the colon under the rest in a quieter weight; beside no card, its words
+   start at the top of their row. */
+@media (min-width: 992px) {
+	.s-research-hero .s-hero-copy {
+		padding-block-start: 0;
+	}
+}
+
+.s-research-subtitle {
+	display: block;
+	margin-block-start: var(--space-12);
+	color: var(--s-muted);
+	font-size: 0.5em;
+	font-weight: 400;
+	line-height: 1.3;
+}
+
+/* Four theses, each with its place, its words and its drawing. */
+.s-research-theses {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr));
+	gap: var(--space-24);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.s-research-thesis {
+	padding: var(--space-24);
+	border: 1px solid var(--s-line);
+	border-radius: 28px;
+}
+
+.s-research-place {
+	margin: 0;
+	color: var(--s-accent);
+	font-weight: 600;
+}
+
+.s-research-caption,
+.s-research-note,
+.s-research-provenance {
+	color: var(--s-muted);
+	font-size: 0.9375rem;
+}
+
+.s-research-runs,
+.s-research-goals,
+.s-research-levels,
+.s-research-tick {
+	font-variant-numeric: tabular-nums;
+}
+
+.s-research-runs tr th,
+.s-research-runs tr td {
+	padding: 6px 10px;
+	text-align: center;
+}
+
+.s-research-right {
+	border-radius: 8px;
+	background: var(--s-right);
+	color: var(--s-on-right);
+}
+
+.s-research-sealed {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+	gap: var(--space-12);
+}
+
+.s-research-sealed > div {
+	padding: var(--space-16);
+	border-radius: 20px;
+	background: var(--s-tint);
+}
+
+.s-research-sealed > .s-research-locked {
+	background: var(--s-paper);
+}
+
+.s-research-label {
+	margin: 0;
+	font-size: 0.875rem;
+	font-weight: 600;
+}
+
+.s-research-formula {
+	font-size: 1.125rem;
+	font-style: italic;
+}
+
+/* The chance of a right answer from nothing to certain: the corridor as a
+   band, the guess and the corridor's ends as ticks under the line. */
+.s-research-axis {
+	position: relative;
+	block-size: 32px;
+	margin-block: var(--space-16) 40px;
+	border-block-end: 2px solid var(--s-line-strong);
+}
+
+.s-research-band {
+	position: absolute;
+	inset-block: 0;
+	background: var(--s-accent-tint);
+}
+
+.s-research-tick {
+	position: absolute;
+	inset-block-start: 100%;
+	padding-block-start: var(--space-4);
+	translate: -50% 0;
+	font-size: 0.8125rem;
+}
+
+/* The table of goals: a row's name with its unit and its drawing, each
+   number with its interval and its mark. */
+.s-research-goals th[scope="rowgroup"] {
+	color: var(--s-accent);
+	font-size: 0.875rem;
+}
+
+.s-research-goals th[scope="row"] {
+	min-inline-size: 240px;
+	white-space: normal;
+}
+
+.s-research-measure,
+.s-research-unit,
+.s-research-number,
+.s-research-interval,
+.s-research-rule,
+.s-research-own {
+	display: block;
+}
+
+.s-research-unit,
+.s-research-interval,
+.s-research-rule,
+.s-research-own {
+	color: var(--s-muted);
+	font-size: 0.875rem;
+	font-weight: 400;
+}
+
+/* A mark is a pill in the colours of its kind, and the baseline keeps the
+   pill's own, which say nothing for or against. The pill's rule comes later
+   in the sheet, so a mark names both its classes to win over it. */
+.s-research-mark.s-research-reached,
+.s-research-mark.s-research-not_reached,
+.s-research-mark.s-research-on_the_edge {
+	border-color: transparent;
+}
+
+.s-research-mark.s-research-reached {
+	background: var(--s-right);
+	color: var(--s-on-right);
+}
+
+.s-research-mark.s-research-not_reached {
+	background: var(--s-trap);
+	color: var(--s-on-trap);
+}
+
+.s-research-mark.s-research-on_the_edge {
+	background: var(--s-wip);
+	color: var(--s-on-wip);
+}
+
+/* A row's drawing: a bar for each rule with its interval as a whisker, the
+   goal as a dashed tick and the oracle's ceiling as a dotted one. */
+.s-research-chart {
+	position: relative;
+	display: block;
+	inline-size: 200px;
+	margin-block-start: var(--space-8);
+}
+
+.s-research-bar {
+	position: relative;
+	display: block;
+	block-size: 8px;
+	margin-block: var(--space-4);
+}
+
+.s-research-fill,
+.s-research-whisker,
+.s-research-bound,
+.s-research-ceiling {
+	position: absolute;
+}
+
+.s-research-fill {
+	inset-block: 0;
+	inset-inline-start: 0;
+	border-radius: 4px;
+	background: var(--s-dim);
+}
+
+.s-research-bar-service .s-research-fill {
+	background: var(--s-accent);
+}
+
+.s-research-whisker {
+	inset-block-start: 3px;
+	block-size: 2px;
+	background: var(--s-text);
+}
+
+.s-research-bound,
+.s-research-ceiling {
+	inset-block: -2px;
+	border-inline-start: 2px dashed var(--s-on-trap);
+}
+
+.s-research-ceiling {
+	border-inline-start: 2px dotted var(--s-on-right);
+}
+
+.s-research-legend {
+	display: grid;
+	gap: var(--space-8);
+	margin-block-start: var(--space-24);
+}
+
+.s-research-legend > div {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: var(--space-8);
+}
+
+.s-research-legend dt {
+	font-weight: 600;
+}
+
+.s-research-legend dd {
+	margin: 0;
+	color: var(--s-muted);
+}
+
+.s-research-live {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-12);
+}
+
+/* The authors of the books the reference tasks come from, and the reference
+   tasks by level as a bar, each part as wide as its count. */
+.s-research-authors {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+	gap: var(--space-16);
+	margin: var(--space-24) 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.s-research-author {
+	margin: 0;
+	font-weight: 600;
+}
+
+.s-research-died {
+	color: var(--s-muted);
+	font-weight: 400;
+}
+
+.s-research-books {
+	margin: var(--space-4) 0 0;
+	padding-inline-start: 1.1em;
+	color: var(--s-muted);
+}
+
+.s-research-levels {
+	display: flex;
+	gap: var(--space-4);
+	margin: var(--space-12) 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.s-research-levels li {
+	min-inline-size: 0;
+	padding: var(--space-8) var(--space-12);
+	border-radius: 12px;
+	background: var(--s-accent-tint);
+	color: var(--s-on-tint);
+	font-size: 0.875rem;
 }
 
 /* The home page. Its first screen: the buttons under the promise, and a line

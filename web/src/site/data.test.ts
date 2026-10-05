@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import topics from "../../../content/catalogs/topics.json";
 import traps from "../../../content/catalogs/traps.json";
 import file from "../../../site/data.json";
+import fixture from "../../../site/research/testdata/research.json";
 import { progressOf, readSiteData, siteData } from "./data";
 import { siteDictionaries } from "./words";
 
@@ -65,6 +66,26 @@ describe("the site's own data", () => {
 			"trusted_statement",
 			"stopped_early",
 		]);
+	});
+
+	test("holds no numbers of the page Research when the build gives it none", () => {
+		expect(data.research).toBeUndefined();
+	});
+
+	test("holds the numbers of the page Research the build gives it, with the authors of the books the reference tasks come from", () => {
+		const research = siteData(fixture).research;
+
+		expect(research?.bench.rows.length).toBe(fixture.bench.rows.length);
+		expect(research?.authors.map(({ id }) => id)).toEqual([
+			"perelman",
+			"ignatyev",
+			"dudeney",
+			"loyd",
+			"carroll",
+		]);
+		for (const author of research?.authors ?? []) {
+			expect(author.books.length).toBeGreaterThan(0);
+		}
 	});
 });
 

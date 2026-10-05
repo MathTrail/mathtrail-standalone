@@ -16,6 +16,7 @@ import { type DefaultTreeAdapterTypes, parse } from "parse5";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import catalog from "../../content/catalogs/topics.json";
 import data from "../../site/data.json";
+import fixture from "../../site/research/testdata/research.json";
 import widgetEnglish from "../locales/en.json";
 import widgetRussian from "../locales/ru.json";
 import { byCodeUnits } from "../src/i18n/order.ts";
@@ -28,6 +29,7 @@ import {
 	givenTwice,
 	keptPhotoOf,
 	main,
+	paperFiles,
 	readSources,
 	sharingPictures,
 } from "./prerender-site.ts";
@@ -194,6 +196,24 @@ async function filesIn(dir: string): Promise<string[]> {
 		.sort(byCodeUnits);
 }
 
+// research is the file of the numbers of the page Research every build of
+// these tests is given: the bench's fixture, with no file of the paper to
+// ship, since none is kept beside it.
+let research = "";
+
+beforeAll(async () => {
+	const dir = await mkdtemp(join(tmpdir(), "research-"));
+	research = join(dir, "research.json");
+	await writeFile(
+		research,
+		JSON.stringify({ ...fixture, paper: { ...fixture.paper, files: [] } }),
+	);
+});
+
+afterAll(async () => {
+	await rm(dirname(research), { recursive: true, force: true });
+});
+
 // command runs the build's command line, and is what it said and the code it
 // ended with.
 async function command(args: string[]) {
@@ -216,7 +236,14 @@ describe("the site built from this repository", () => {
 		await mkdir(join(out, "en", "gone"), { recursive: true });
 		await writeFile(join(out, "en", "gone", "index.html"), "old");
 		expect(
-			await command(["--base", "https://mathtrail.app", "--out", out]),
+			await command([
+				"--base",
+				"https://mathtrail.app",
+				"--out",
+				out,
+				"--research",
+				research,
+			]),
 		).toEqual({ code: 0, said: [`site: built into ${out}`] });
 	}, 60_000);
 
@@ -249,6 +276,7 @@ describe("the site built from this repository", () => {
 			"en/coach/index.html",
 			"en/index.html",
 			"en/privacy/index.html",
+			"en/research/index.html",
 			"en/techniques/index.html",
 			"en/terms/index.html",
 			"en/topics/arithmetic-with-a-trick/index.html",
@@ -276,6 +304,7 @@ describe("the site built from this repository", () => {
 			"ru/coach/index.html",
 			"ru/index.html",
 			"ru/privacy/index.html",
+			"ru/research/index.html",
 			"ru/techniques/index.html",
 			"ru/terms/index.html",
 			"ru/topics/arithmetic-with-a-trick/index.html",
@@ -615,7 +644,7 @@ describe("the site built from this repository", () => {
 		}
 	});
 
-	test("closes the menu with the page about who makes it, and names that page in the footer before the documents, under the menu's word, in every language", async () => {
+	test("closes the menu with the research and the page about who makes it, and names both in the footer before the documents, under the menu's words, in every language", async () => {
 		const locales = (await readdir(out, { withFileTypes: true }))
 			.filter((entry) => entry.isDirectory() && entry.name !== "assets")
 			.map((entry) => entry.name);
@@ -636,13 +665,19 @@ describe("the site built from this repository", () => {
 			const menu = links("s-navlinks");
 			const footer = links("s-footlinks");
 
-			expect(menu.at(-1)?.href).toBe(`/${locale}/about/`);
-			expect(footer.slice(0, 3).map(({ href }) => href)).toEqual([
+			expect(menu.slice(-2).map(({ href }) => href)).toEqual([
+				`/${locale}/research/`,
+				`/${locale}/about/`,
+			]);
+			expect(footer.slice(0, 4).map(({ href }) => href)).toEqual([
+				`/${locale}/research/`,
 				`/${locale}/about/`,
 				`/${locale}/privacy/`,
 				`/${locale}/terms/`,
 			]);
-			expect(footer[0]?.label).toBe(menu.at(-1)?.label);
+			expect(footer.slice(0, 2).map(({ label }) => label)).toEqual(
+				menu.slice(-2).map(({ label }) => label),
+			);
 		}
 	});
 
@@ -790,7 +825,14 @@ describe("the site built from this repository", () => {
 		const before = await filesIn(out);
 
 		expect(
-			await command(["--base", "https://mathtrail.app/", "--out", out]),
+			await command([
+				"--base",
+				"https://mathtrail.app/",
+				"--out",
+				out,
+				"--research",
+				research,
+			]),
 		).toEqual({
 			code: 1,
 			said: ['site: the base URL "https://mathtrail.app/" ends in a slash'],
@@ -806,7 +848,12 @@ describe("the site built from this repository", () => {
 			await writeFile(join(broken, "en", "index.md"), "# no front matter\n");
 
 			await expect(
-				buildSite({ base: "https://mathtrail.app", out, content: broken }),
+				buildSite({
+					base: "https://mathtrail.app",
+					out,
+					content: broken,
+					research,
+				}),
 			).rejects.toThrow("en/index.md: front matter must open");
 			expect(await filesIn(out)).toEqual(before);
 		} finally {
@@ -826,6 +873,8 @@ describe("a directory that holds something else", () => {
 				"https://mathtrail.app",
 				"--out",
 				elsewhere,
+				"--research",
+				research,
 			]);
 
 			expect(code).toBe(1);
@@ -855,6 +904,8 @@ describe("a directory that holds something else", () => {
 				"https://mathtrail.app",
 				"--out",
 				other,
+				"--research",
+				research,
 			]);
 
 			expect(code).toBe(1);
@@ -881,7 +932,14 @@ describe("a directory that does not exist yet", () => {
 			const fresh = join(parent, "dist");
 
 			expect(
-				await command(["--base", "https://mathtrail.app/", "--out", fresh]),
+				await command([
+					"--base",
+					"https://mathtrail.app/",
+					"--out",
+					fresh,
+					"--research",
+					research,
+				]),
 			).toEqual({
 				code: 1,
 				said: ['site: the base URL "https://mathtrail.app/" ends in a slash'],
@@ -897,12 +955,132 @@ describe("a directory that does not exist yet", () => {
 		try {
 			const fresh = join(parent, "dist");
 
-			await buildSite({ base: "https://mathtrail.app", out: fresh });
+			await buildSite({ base: "https://mathtrail.app", out: fresh, research });
 			expect(await readdir(fresh)).toContain(".nojekyll");
 		} finally {
 			await rm(parent, { recursive: true, force: true });
 		}
 	}, 60_000);
+});
+
+describe("the numbers of the page Research", () => {
+	test("are what a build cannot do without, and the build names the recipe that makes them", async () => {
+		const parent = await mkdtemp(join(tmpdir(), "parent-"));
+		try {
+			await expect(
+				buildSite({
+					base: "https://mathtrail.app",
+					out: join(parent, "dist"),
+					research: join(parent, "research.json"),
+				}),
+			).rejects.toThrow(
+				"the numbers of the page Research, is not there: just research-data makes it",
+			);
+			expect(await readdir(parent)).toEqual([]);
+		} finally {
+			await rm(parent, { recursive: true, force: true });
+		}
+	});
+
+	test("are refused when a run cut them short, and the build names the recipe that makes them again", async () => {
+		const parent = await mkdtemp(join(tmpdir(), "parent-"));
+		try {
+			const cut = join(parent, "research.json");
+			await writeFile(cut, JSON.stringify(fixture).slice(0, 100));
+
+			await expect(
+				buildSite({
+					base: "https://mathtrail.app",
+					out: join(parent, "dist"),
+					research: cut,
+				}),
+			).rejects.toThrow(
+				`${cut}, the numbers of the page Research, is not whole: just research-data makes it again`,
+			);
+		} finally {
+			await rm(parent, { recursive: true, force: true });
+		}
+	});
+});
+
+describe("the paper the page Research offers", () => {
+	let dir = "";
+	const pdf = Buffer.from("%PDF-1.7 a paper\n");
+	const facts = {
+		lang: "en",
+		path: "/assets/paper-a.en.pdf",
+		pages: 1,
+		bytes: pdf.length,
+		sha256: createHash("sha256").update(pdf).digest("hex"),
+	};
+
+	beforeAll(async () => {
+		dir = await mkdtemp(join(tmpdir(), "paper-"));
+		await writeFile(join(dir, "paper-a.en.pdf"), pdf);
+	});
+
+	afterAll(async () => {
+		await rm(dir, { recursive: true, force: true });
+	});
+
+	test("is shipped as the very file kept beside the numbers, where they say the site serves it", async () => {
+		expect(await paperFiles(dir, [facts])).toEqual([
+			{ path: "assets/paper-a.en.pdf", data: pdf },
+		]);
+	});
+
+	test("is not shipped when the numbers name no file of it", async () => {
+		expect(await paperFiles(dir, [])).toEqual([]);
+	});
+
+	test("is copied into the site a build makes, at the address its page links", async () => {
+		const parent = await mkdtemp(join(tmpdir(), "parent-"));
+		try {
+			const numbers = join(dir, "research.json");
+			await writeFile(
+				numbers,
+				JSON.stringify({
+					...fixture,
+					paper: { ...fixture.paper, files: [facts] },
+				}),
+			);
+			const out = join(parent, "dist");
+
+			await buildSite({
+				base: "https://mathtrail.app",
+				out,
+				research: numbers,
+			});
+			expect(await readFile(join(out, facts.path))).toEqual(pdf);
+			expect(
+				await readFile(join(out, "en", "research", "index.html"), "utf8"),
+			).toContain(`href="${facts.path}"`);
+		} finally {
+			await rm(parent, { recursive: true, force: true });
+		}
+	}, 60_000);
+
+	test.each([
+		[
+			"is not beside the numbers",
+			{ path: "/assets/paper-b.en.pdf" },
+			"paper-b.en.pdf, which the page Research offers, is not beside its numbers",
+		],
+		[
+			"is of another size",
+			{ bytes: pdf.length + 1 },
+			"is not the file they vouch for",
+		],
+		[
+			"is of another hash",
+			{ sha256: "0".repeat(64) },
+			"is not the file they vouch for",
+		],
+	])("is refused when the file %s", async (_, changed, said) => {
+		await expect(paperFiles(dir, [{ ...facts, ...changed }])).rejects.toThrow(
+			said,
+		);
+	});
 });
 
 describe("the pictures a shared link shows", () => {

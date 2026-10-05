@@ -232,6 +232,8 @@ var refusals = []struct {
 		checks.CodeBadStructure, "not the topic this task was asked for"},
 	{"a brief that drops an excluded skill", func(s *scenario) { s.draft.Brief.ExcludedSkills = []string{} },
 		checks.CodeBadStructure, `dropped "division_with_remainder"`},
+	{"a task in another language than the lesson's", func(s *scenario) { s.language = "ru" },
+		checks.CodeWrongLanguage, "mostly not in Cyrillic letters, which ru, the language of the lesson, is written in"},
 	{"two explanations saying the same", func(s *scenario) {
 		s.draft.Task.Distractors["D"] = checks.Distractor{Trap: "wrong_operation", Text: "You missed one pair."}
 	}, checks.CodeDistractorExplanations, "say the same thing"},
@@ -300,7 +302,7 @@ func TestEachRefusalHasItsCode(t *testing.T) {
 	}
 }
 
-// All nine refusals at once come back all nine, in the order the checks run:
+// All ten refusals at once come back all ten, in the order the checks run:
 // the first is the one an attempt is counted by.
 func TestEveryFailedCheckIsReportedInItsOrder(t *testing.T) {
 	t.Parallel()
@@ -317,9 +319,9 @@ func TestEveryFailedCheckIsReportedInItsOrder(t *testing.T) {
 	outcome := broken.review(t)
 
 	want := []checks.Code{
-		checks.CodeBadStructure, checks.CodeDistractorExplanations, checks.CodeDrawingFormat, checks.CodeDrawingMismatch,
-		checks.CodeReadability, checks.CodeSolverError, checks.CodeSolverDisagrees, checks.CodeSelfCheckBlocking,
-		checks.CodeNearDuplicate,
+		checks.CodeBadStructure, checks.CodeWrongLanguage, checks.CodeDistractorExplanations, checks.CodeDrawingFormat,
+		checks.CodeDrawingMismatch, checks.CodeReadability, checks.CodeSolverError, checks.CodeSolverDisagrees,
+		checks.CodeSelfCheckBlocking, checks.CodeNearDuplicate,
 	}
 	if codes := codesOf(&outcome); !slices.Equal(codes, want) {
 		t.Fatalf("codes = %v, want %v", codes, want)
@@ -393,6 +395,7 @@ func TestWhatCouldNotBeReadIsNotChecked(t *testing.T) {
 	outcome := missing.review(t)
 
 	for _, want := range []string{
+		"the language of the task was not checked",
 		"the explanations behind the wrong options were not checked", "readability was not checked",
 		"the solver was not run", "the answers were not compared", "the self-check was not checked",
 		"the question was not compared with earlier tasks",
@@ -571,10 +574,11 @@ func TestAMinorIssueIsCountedByItsType(t *testing.T) {
 	}
 }
 
-// Whether the Flesch–Kincaid grade applies is the language's to say: English
-// words in a task declared Russian are held to sentence length alone, as the
-// prototype held its tasks in Russian.
-func TestATaskInRussianIsNotHeldToFleschKincaid(t *testing.T) {
+// Whether the Flesch–Kincaid grade applies is the language's to say, and it
+// measures English alone: English words in a task declared Russian are refused
+// for their letters, and not for a reading grade a Russian task is never held
+// to.
+func TestATaskDeclaredRussianIsHeldToItsLettersAndNotToFleschKincaid(t *testing.T) {
 	t.Parallel()
 
 	hard := accepted()
@@ -587,8 +591,59 @@ func TestATaskInRussianIsNotHeldToFleschKincaid(t *testing.T) {
 		t.Errorf("in English: codes = %v, want only %q", codes, checks.CodeReadability)
 	}
 	hard.language = "ru"
-	if russian := hard.review(t); !russian.Accepted() {
-		t.Errorf("in Russian: problems %v, want the task accepted", russian.Problems)
+	russian := hard.review(t)
+	if codes := codesOf(&russian); !slices.Equal(codes, []checks.Code{checks.CodeWrongLanguage}) {
+		t.Errorf("declared Russian: codes = %v, want only %q", codes, checks.CodeWrongLanguage)
+	}
+}
+
+// russianDraft is the task of validDraft as a model writes it for a lesson in
+// Russian: what the child reads is in Russian, and what only the service
+// reads — the idea, the plan, the self-check — is left in English.
+func russianDraft() checks.Draft {
+	draft := validDraft()
+	draft.Task.Question = "Четыре космических корабля стыкуются парами. Сколько разных пар у них может получиться?"
+	draft.Task.Options = map[string]string{
+		"A": "четыре пары", "B": "пять пар", "C": "шесть пар", "D": "восемь пар", "E": "двенадцать пар",
+	}
+	draft.Task.Hint = "Со сколькими кораблями может состыковаться первый корабль?"
+	draft.Task.Solution = "Выпишем все пары: их 6."
+	draft.Task.Distractors = map[string]checks.Distractor{
+		"A": {Trap: "number_from_text", Text: "4 — это число кораблей."},
+		"B": {Trap: "missed_case", Text: "Одна пара пропущена."},
+		"D": {Trap: "wrong_operation", Text: "Число кораблей удвоено зря."},
+		"E": {Trap: "double_count", Text: "Каждая пара посчитана дважды."},
+	}
+	return draft
+}
+
+// A task is held to the letters of the language it was asked for in: written
+// in them, or asked for in no language, it passes; written in other letters,
+// it is refused for that and nothing else.
+func TestATaskIsHeldToTheLettersOfItsLesson(t *testing.T) {
+	t.Parallel()
+
+	for _, test := range []struct {
+		name     string
+		draft    checks.Draft
+		answer   string
+		language string
+		want     []checks.Code
+	}{
+		{"Russian in a lesson in Russian", russianDraft(), "шесть пар", "ru", nil},
+		{"Russian asked for in no language", russianDraft(), "шесть пар", "", nil},
+		{"English in a lesson in Russian", validDraft(), "six pairs", "ru", []checks.Code{checks.CodeWrongLanguage}},
+		{"Russian in a lesson in English", russianDraft(), "шесть пар", "en", []checks.Code{checks.CodeWrongLanguage}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			task := scenario{draft: test.draft, runner: &working{value: test.answer}, language: test.language}
+			outcome := task.review(t)
+			if codes := codesOf(&outcome); !slices.Equal(codes, test.want) {
+				t.Errorf("codes = %v, want %v: %v", codes, test.want, outcome.Problems)
+			}
+		})
 	}
 }
 

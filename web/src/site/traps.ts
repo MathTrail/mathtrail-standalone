@@ -3,11 +3,13 @@ export type CatalogTrap = { readonly id: string };
 
 /**
  * ReferenceTask is a reference task of the service's content as the site reads
- * it: its id, its topic, and the trap each of its wrong options names.
+ * it: its id, its topic, the level it is set at, and the trap each of its
+ * wrong options names.
  */
 export type ReferenceTask = {
 	readonly id: string;
 	readonly topic: string;
+	readonly grade_level: string;
 	readonly distractors: Readonly<Record<string, { readonly trap: string }>>;
 };
 
