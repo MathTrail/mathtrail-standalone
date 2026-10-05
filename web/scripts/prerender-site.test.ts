@@ -394,7 +394,7 @@ describe("the site built from this repository", () => {
 		const copies = block("ext_resources") as { id: string; uuid: string }[];
 		const template = block("template") as string;
 		const carried = Object.values(manifest)
-			.filter(({ mime }) => /^text\/|javascript|json|xml/.test(mime))
+			.filter(({ mime }) => /^(?:text\/|.*(?:javascript|json|xml))/.test(mime))
 			.map(({ data, compressed }) => {
 				const bytes = Buffer.from(data, "base64");
 				return (compressed ? gunzipSync(bytes) : bytes).toString("utf8");
