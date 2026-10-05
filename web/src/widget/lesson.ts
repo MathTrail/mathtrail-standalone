@@ -1,5 +1,5 @@
 import type { OptionState } from "../design/controls";
-import { type Choice, dontKnow, type Letter } from "./choices";
+import { dontKnow, type Letter } from "./choices";
 import type { AnswerOutcome, AnswerResult } from "./payload";
 
 /**
@@ -10,7 +10,7 @@ import type { AnswerOutcome, AnswerResult } from "./payload";
  */
 export type Answer =
 	| { state: "open" }
-	| { state: "checking"; choice: Choice }
+	| { state: "checking"; choice: Letter }
 	| { state: "answered"; result: AnswerResult }
 	| { state: "closed" }
 	| { state: "failed" };
@@ -32,7 +32,7 @@ export const lessonStart: Lesson = {
 
 /** LessonEvent is something that happens on a task card. */
 export type LessonEvent =
-	| { type: "picked"; choice: Choice }
+	| { type: "picked"; choice: Letter }
 	| { type: "told"; outcome: AnswerOutcome }
 	| { type: "hint toggled" };
 

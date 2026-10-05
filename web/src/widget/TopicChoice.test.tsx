@@ -153,7 +153,6 @@ describe("the button that chooses the topic", () => {
 		await draw();
 
 		expect(shownButtons()).toEqual([
-			"I don't know",
 			"Hint",
 			"Another task",
 			"Topic: the coach chooses",
@@ -181,7 +180,7 @@ describe("the button that chooses the topic", () => {
 		expect(root.querySelector(".mt-topic-button")).toBeNull();
 		expect(root.querySelector(".mt-topic-panel")).toBeNull();
 		expect(root.querySelector(".mt-topic-chip")).toBeNull();
-		expect(shownButtons()).toEqual(["I don't know", "Hint", "Another task"]);
+		expect(shownButtons()).toEqual(["Hint", "Another task"]);
 	});
 
 	test("is not on a card whose task is closed", async () => {
@@ -653,7 +652,7 @@ describe("a topic chosen", () => {
 		expect(choice("Clocks").getAttribute("aria-disabled")).toBe("true");
 		expect(option("A").getAttribute("aria-disabled")).toBe("true");
 		expect(button("Another task").getAttribute("aria-disabled")).toBe("true");
-		expect(button("I don't know").getAttribute("aria-disabled")).toBe("true");
+		expect(button("Hint").getAttribute("aria-disabled")).toBe("true");
 		expect(topicButton().getAttribute("aria-disabled")).toBe("true");
 		await vi.waitFor(() =>
 			expect(heard.calls.map((call) => call.name)).toEqual(["edit_profile"]),

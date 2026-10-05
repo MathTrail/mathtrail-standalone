@@ -5006,12 +5006,6 @@ exports[`the screens in Arabic > the task 1`] = `
         class="mt-btns"
       >
         <button
-          class="mt-btn"
-          type="button"
-        >
-          لا أعرف
-        </button>
-        <button
           aria-expanded="false"
           class="mt-btn"
           type="button"
@@ -5300,12 +5294,6 @@ exports[`the screens in Arabic > the task on the topic chosen, its choice of the
       <div
         class="mt-btns"
       >
-        <button
-          class="mt-btn"
-          type="button"
-        >
-          لا أعرف
-        </button>
         <button
           aria-expanded="false"
           class="mt-btn"

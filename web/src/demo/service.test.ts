@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { choices } from "../widget/choices";
+import { letters } from "../widget/choices";
 import { readAnswer, readHandedTask } from "../widget/payload";
 import { answered, fence, rightAnswer } from "../widget/testing/lesson";
 import type { DemoData } from "./data";
@@ -31,7 +31,7 @@ function fenceData(): DemoData {
 		words: {},
 		handed,
 		results: Object.fromEntries(
-			choices.map((choice) => [
+			letters.map((choice) => [
 				choice,
 				choice === "C" ? right.result : { ...wrong.result, choice },
 			]),

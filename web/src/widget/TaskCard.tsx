@@ -14,7 +14,7 @@ import type { Host } from "./bridge";
 import { CardFrame } from "./CardFrame";
 import { CardHeader } from "./CardRoot";
 import { type Request, RequestNote, useChatRequest } from "./ChatRequest";
-import { type Choice, dontKnow, type Letter, letters } from "./choices";
+import { type Letter, letters } from "./choices";
 import { useFocusKeptOnTheCard } from "./focus";
 import { LessonButtons } from "./LessonFoot";
 import {
@@ -78,11 +78,11 @@ export function TaskCard({
 
 /**
  * TaskInCard is a task inside the frame of the card it is on, under the
- * card's header with the grade given. The child answers by pressing an option
- * or "I don't know", which records the answer straight away, and reads the
- * result below the task, in the same card; opens the hint; and asks for
- * another task, which goes to the chat for the model to write — the new task
- * comes in a card of its own, below, and this one says so and keeps its task.
+ * card's header with the grade given. The child answers by pressing an option,
+ * which records the answer straight away, and reads the result below the
+ * task, in the same card; opens the hint; and asks for another task, which
+ * goes to the chat for the model to write — the new task comes in a card of
+ * its own, below, and this one says so and keeps its task.
  * A task handed out with the choice of the topic offers it too: a topic to
  * keep the lessons to, or the coach's choice, saved and then asked for as
  * another task is. The lesson begins at start, the task just handed out unless
@@ -108,9 +108,9 @@ export function TaskInCard({
 	const another = useChatRequest(host);
 	const outcome = useRef<HTMLDivElement>(null);
 	const nextTask = useRef<HTMLButtonElement>(null);
-	// An answer is sent once. From the moment it is on its way the options and
-	// the buttons that could give another are locked, and a second press that
-	// comes before the card has redrawn to lock them is turned away here.
+	// An answer is sent once. From the moment it is on its way the options are
+	// locked, and a second press that comes before the card has redrawn to lock
+	// them is turned away here.
 	const answering = useRef(false);
 	// held is the line the model was given on this card that no message has
 	// carried to it yet. The host keeps one line and reads it with the next
@@ -136,7 +136,7 @@ export function TaskInCard({
 	// task it asks for would race the answer.
 	const saving = choosing.said === "saving";
 
-	async function answer(choice: Choice) {
+	async function answer(choice: Letter) {
 		if (answering.current || choosing.busy()) {
 			return;
 		}
@@ -217,7 +217,6 @@ export function TaskInCard({
 							another={another.state}
 							saving={saving}
 							nextTask={nextTask}
-							onDontKnow={() => answer(dontKnow)}
 							onHint={() => dispatch({ type: "hint toggled" })}
 							onAnother={askForAnother}
 						/>
@@ -269,7 +268,7 @@ function TaskBody({
 	lesson: Lesson;
 	inTask: Said;
 	locked: boolean;
-	onAnswer: (choice: Choice) => void;
+	onAnswer: (choice: Letter) => void;
 	chip: ComponentChildren;
 }) {
 	const words = useWords();
@@ -317,7 +316,6 @@ function TaskActions({
 	another,
 	saving,
 	nextTask,
-	onDontKnow,
 	onHint,
 	onAnother,
 }: {
@@ -325,7 +323,6 @@ function TaskActions({
 	another: Request;
 	saving: boolean;
 	nextTask: Ref<HTMLButtonElement>;
-	onDontKnow: () => void;
 	onHint: () => void;
 	onAnother: () => void;
 }) {
@@ -349,7 +346,6 @@ function TaskActions({
 			locked={lesson.answer.state === "checking" || saving}
 			anotherSending={anotherSending}
 			hintOpen={lesson.hint.open}
-			onDontKnow={onDontKnow}
 			onHint={onHint}
 			onAnother={onAnother}
 		/>

@@ -4,11 +4,10 @@ export const letters = ["A", "B", "C", "D", "E"] as const;
 /** Letter names one of a task's five options. */
 export type Letter = (typeof letters)[number];
 
-/** dontKnow is the answer "I don't know": a wrong answer that chose no option. */
+/**
+ * dontKnow is the answer "I don't know": a wrong answer that chose no option.
+ * A card has no button for it: the child says it in the chat, and the model
+ * records it. A card shows it only as the answer recorded first, told back to
+ * an option pressed after it.
+ */
 export const dontKnow = "?";
-
-/** Choice is an answer the child can give: an option, or "I don't know". */
-export type Choice = Letter | typeof dontKnow;
-
-/** choices are every answer the child can give, the options in their order. */
-export const choices: readonly Choice[] = [...letters, dontKnow];

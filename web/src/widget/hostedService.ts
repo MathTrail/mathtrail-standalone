@@ -1,5 +1,5 @@
 import type { Host } from "./bridge";
-import type { Choice } from "./choices";
+import type { Letter } from "./choices";
 import {
 	type AnswerOutcome,
 	type EditOutcome,
@@ -34,7 +34,7 @@ export function serviceThrough(host: Host): Service {
 async function recordAnswer(
 	host: Host,
 	taskId: string,
-	choice: Choice,
+	choice: Letter,
 	hintUsed: boolean,
 ): Promise<AnswerOutcome> {
 	try {

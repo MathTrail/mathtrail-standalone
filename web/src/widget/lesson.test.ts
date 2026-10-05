@@ -145,11 +145,6 @@ describe("an option", () => {
 			["default", "selected", "default", "default", "default"],
 		],
 		[
-			'while "I don\'t know" is checked',
-			{ state: "checking", choice: "?" },
-			["default", "default", "default", "default", "default"],
-		],
-		[
 			"after a wrong B",
 			{ state: "answered", result: wrong },
 			["muted", "wrong", "correct", "muted", "muted"],

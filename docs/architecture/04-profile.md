@@ -137,12 +137,12 @@ One entry per topic the child has ever been given, keyed by the catalog's topic 
 | `answered_at` | RFC 3339 UTC | When |
 | `correct` | boolean | The only thing the rating formula reads (О-33) |
 | `chosen`, `trap` | letter, trap id | Only on a wrong answer to a letter: which option and the trap behind it. An "I don't know" has neither (R93) |
-| `hint_used`, `confused` | booleans | The hint was opened, or "I don't know" was pressed instead of an answer. The hint changes the next step, never the rating (О-33); "I don't know" is recorded as a wrong answer, with no `chosen` and no `trap` (R93) |
+| `hint_used`, `confused` | booleans | The hint was opened, or the answer was "I don't know", said in the chat instead of an option (R208). The hint changes the next step, never the rating (О-33); "I don't know" is recorded as a wrong answer, with no `chosen` and no `trap` (R93) |
 | `pace` | `fast`, `normal`, `slow` | Measured by the server from `issued_at` to the answer, not by the client's clock |
 | `skipped` | boolean | The task was left without an answer when a new one was asked for — `next_task` records it (R98). Such an entry carries the task's id, topic, level and difficulty, and `answered_at` as the moment it was left — and none of `correct`, `chosen`, `trap`, `hint_used`, `confused`, `pace` or `before` |
 | `before` | `{delta, theta}` | Where the child stood before this answer moved anything: θ and the correction of the answer's topic, at full precision. What the progress tells moved since the last answer is measured from it (SPEC 2.10, R165). Absent from a skipped task, which moved nothing, and from an answer an earlier build wrote |
 
-Unlike the prototype, an answered entry's `correct` is never null: "I don't know" shows the solution, so it is an answer, and a wrong one (R93), marked by `confused` rather than by a third outcome. A skipped task is the one entry with no outcome, and every reader that learns from answers — the rating, the trial series, the misconception map, the streaks, the rule's "last answer" — passes over it; only the progress screen reads it (R98).
+Unlike the prototype, an answered entry's `correct` is never null: "I don't know" is answered with the solution, so it is an answer, and a wrong one (R93), marked by `confused` rather than by a third outcome. A skipped task is the one entry with no outcome, and every reader that learns from answers — the rating, the trial series, the misconception map, the streaks, the rule's "last answer" — passes over it; only the progress screen reads it (R98).
 
 ### The days of the ratings
 

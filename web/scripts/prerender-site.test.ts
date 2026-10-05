@@ -473,7 +473,7 @@ describe("the site built from this repository", () => {
 		expect(apex).not.toMatch(/rel="stylesheet"|<script|<style/);
 	});
 
-	test("carries on the home page what its demo needs: the lesson's task, the widget's words in the page's language alone, and an answer for every choice", async () => {
+	test("carries on the home page what its demo needs: the lesson's task, the widget's words in the page's language alone, and an answer for every option", async () => {
 		for (const [locale, words] of [
 			["en", widgetEnglish],
 			["ru", widgetRussian],
@@ -488,7 +488,7 @@ describe("the site built from this repository", () => {
 			expect(demo.locale).toBe(locale);
 			expect(demo.words).toEqual(words);
 			expect(demo.handed.task.id).toBe("site_home");
-			expect(Object.keys(demo.results)).toEqual(["A", "B", "C", "D", "E", "?"]);
+			expect(Object.keys(demo.results)).toEqual(["A", "B", "C", "D", "E"]);
 		}
 	});
 

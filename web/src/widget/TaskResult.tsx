@@ -16,9 +16,10 @@ import { type Key, ratingText, useWords } from "./words";
  * TaskResult is MathTrail's reply once an answer is recorded, told below the
  * task: how the answer went, the trap behind a wrong option, the solution step
  * by step, and how the rating in the topic moved — or, while the trial series
- * runs, how far it has got. "I don't know" is told the solution with no
- * verdict, and the rating all the same, since it counts as a wrong answer.
- * Everything comes from what the service recorded, which is the answer a
+ * runs, how far it has got. "I don't know", which the child said in the chat
+ * before pressing an option here, is told the solution with no verdict, and
+ * the rating all the same, since it counts as a wrong answer. Everything
+ * comes from what the service recorded, which is the answer the chat, a
  * second tab or an earlier press gave when it was not this card's.
  */
 export function TaskResult({

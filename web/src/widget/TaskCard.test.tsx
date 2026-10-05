@@ -136,7 +136,7 @@ describe("a task card", () => {
 		]);
 		expect(text(".mt-options legend")).toBe("Pick one answer");
 		expect(root.querySelector(".mt-note-hint")).toBeNull();
-		expect(shownButtons()).toEqual(["I don't know", "Hint", "Another task"]);
+		expect(shownButtons()).toEqual(["Hint", "Another task"]);
 	});
 
 	test("names in its header the build the widget came with, by its number", async () => {
@@ -222,19 +222,6 @@ describe("an answer", () => {
 		});
 	});
 
-	test('of "I don\'t know" is recorded as ?', async () => {
-		const heard = await drawCard(fence, () => dontKnowAnswer);
-
-		press(button("I don't know"));
-
-		await vi.waitFor(() => expect(heard.calls).toHaveLength(1));
-		expect(heard.calls[0]?.arguments).toEqual({
-			task_id: "task_fence",
-			answer: "?",
-			hint_used: false,
-		});
-	});
-
 	test("is shown being checked, and is sent once however often it is pressed", async () => {
 		const reply = pending();
 		const heard = await drawCard(fence, () => reply.result);
@@ -242,7 +229,6 @@ describe("an answer", () => {
 		press(option("B"));
 		press(option("B"));
 		press(option("C"));
-		press(button("I don't know"));
 
 		await vi.waitFor(() => expect(heard.calls).toHaveLength(1));
 		expect(option("B").dataset.state).toBe("selected");
@@ -260,7 +246,6 @@ describe("an answer", () => {
 		act(() => {
 			option("B").click();
 			option("C").click();
-			button("I don't know").click();
 		});
 
 		await vi.waitFor(() => expect(replies()).toHaveLength(1));
@@ -336,22 +321,24 @@ describe("an answer", () => {
 		expect(text(".mt-note-plain p")).toBe("1502 → 1519");
 	});
 
-	test('of "I don\'t know" shows the solution with no verdict, and the rating it cost', async () => {
-		await drawCard(fence, () => dontKnowAnswer);
-		const idk = button("I don't know");
+	test('of "I don\'t know", said in the chat, is shown to an option pressed after it: the solution with no verdict, and the rating it cost', async () => {
+		const heard = await drawCard(fence, () => dontKnowAnswer);
 
-		press(idk);
+		press(option("B"));
 
 		await vi.waitFor(() => expect(replies()).toHaveLength(1));
 		expect(states()).toEqual(["muted", "muted", "correct", "muted", "muted"]);
+		expect(text(".mt-reply-body > p")).toBe(
+			"This task was answered before — here is that answer.",
+		);
 		expect(text(".mt-verdict-line")).toBe("Here's how to solve it.");
 		expect(root.querySelector(".mt-verdict-line svg")).toBeNull();
 		expect(root.querySelectorAll(".mt-steps li")).toHaveLength(3);
 		expect(text(".mt-note-plain p")).toBe("1502 → 1488");
-		// The button pressed is gone: the focus goes to the one thing left to
-		// do, while the replies read the result out.
-		expect(idk.isConnected).toBe(false);
-		expect(document.activeElement).toBe(button("Another task"));
+		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(1));
+		expect(heard.modelLines[0]).toBe(
+			'Task task_fence has its answer recorded: "I don\'t know", which counts as a wrong answer; the right option is C. The card shows the solution. In a language with grammatical gender, word it so it does not show whether the child is a boy or a girl: praise the step, not the child, and keep to the present tense.',
+		);
 	});
 
 	test("keeps the focus on the option pressed", async () => {
@@ -361,6 +348,24 @@ describe("an answer", () => {
 
 		await vi.waitFor(() => expect(replies()).toHaveLength(1));
 		expect(document.activeElement).toBe(option("B"));
+	});
+
+	test("that takes away the button holding the focus hands the focus to the one thing left to do", async () => {
+		await drawCard();
+		const hint = button("Hint");
+
+		// A browser that gives a pressed option no focus leaves it where it
+		// was, on a button that goes once the answer is in.
+		act(() => {
+			hint.focus();
+			option("B").click();
+		});
+
+		await vi.waitFor(() => expect(replies()).toHaveLength(1));
+		// The focus goes to the one thing left to do, while the replies read
+		// the result out.
+		expect(hint.isConnected).toBe(false);
+		expect(document.activeElement).toBe(button("Another task"));
 	});
 
 	test("in the trial series shows how far it has got instead of a rating", async () => {
@@ -391,9 +396,14 @@ describe("an answer", () => {
 
 	test("to a task no longer being solved closes the task, and asks for no other", async () => {
 		await drawCard(fence, () => staleAnswer);
-		const idk = button("I don't know");
+		const hint = button("Hint");
 
-		press(idk);
+		// A browser that gives a pressed option no focus leaves it on a button,
+		// and the buttons go once the task is closed.
+		act(() => {
+			hint.focus();
+			option("B").click();
+		});
 
 		await vi.waitFor(() => expect(replies()).toHaveLength(1));
 		expect(text(".mt-verdict-line")).toBe(
@@ -402,6 +412,7 @@ describe("an answer", () => {
 		expect(option("A").getAttribute("aria-disabled")).toBe("true");
 		// Another task asked for here would skip the one on the newer card.
 		expect(shownButtons()).toEqual([]);
+		expect(hint.isConnected).toBe(false);
 		expect(document.activeElement).toBe(
 			root.querySelector(".mt-replies > [tabindex='-1']"),
 		);

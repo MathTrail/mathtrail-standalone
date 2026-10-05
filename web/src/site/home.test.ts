@@ -110,9 +110,9 @@ describe("the card on the home page", () => {
 		});
 	});
 
-	// The card on the first screen takes any answer, so the page carries what
+	// The card on the first screen takes any option, so the page carries what
 	// the service would record of each, as the widget reads it.
-	test('has a result for every answer: each wrong option told its trap, the right one and "I don\'t know" none', () => {
+	test("has a result for every option: each wrong one told its trap, the right one none", () => {
 		const results = homeResultsOf(own.card, said);
 
 		expect(
@@ -130,7 +130,6 @@ describe("the card on the home page", () => {
 			["C", "C", true, null, null, own.card.rating.right],
 			["D", "D", false, own.card.traps.D, said.traps.D, own.card.rating.wrong],
 			["E", "E", false, own.card.traps.E, said.traps.E, own.card.rating.wrong],
-			["?", "?", false, null, null, own.card.rating.wrong],
 		]);
 		for (const result of Object.values(results)) {
 			expect(result.correct_answer).toBe(own.card.correct);

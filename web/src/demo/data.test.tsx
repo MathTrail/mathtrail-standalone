@@ -1,6 +1,6 @@
 import { renderToString } from "preact-render-to-string";
 import { afterEach, describe, expect, test } from "vitest";
-import { choices, dontKnow } from "../widget/choices";
+import { letters } from "../widget/choices";
 import { readAnswer, readHandedTask } from "../widget/payload";
 import { answered, fence } from "../widget/testing/lesson";
 import { type DemoData, DemoDataScript, readDemoData } from "./data";
@@ -22,7 +22,7 @@ function example(): DemoData {
 		words: { "task.hint": "Hint </script><!-- for nobody -->" },
 		handed,
 		results: Object.fromEntries(
-			choices.map((choice) => [choice, { ...told.result, choice }]),
+			letters.map((choice) => [choice, { ...told.result, choice }]),
 		) as DemoData["results"],
 	};
 }
@@ -53,9 +53,9 @@ describe("the demo's data", () => {
 		expect(readDemoData(document)).toBeUndefined();
 	});
 
-	test("is none when an answer has no result", () => {
+	test("is none when an option has no result", () => {
 		const { results, ...rest } = example();
-		const { [dontKnow]: _, ...some } = results;
+		const { E: _, ...some } = results;
 		document.body.innerHTML = renderToString(
 			<DemoDataScript data={{ ...rest, results: some } as DemoData} />,
 		);
