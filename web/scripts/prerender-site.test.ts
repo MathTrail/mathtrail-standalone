@@ -29,6 +29,7 @@ import {
 	keptPhotoOf,
 	main,
 	readSources,
+	sharingPictures,
 } from "./prerender-site.ts";
 
 const repository = join(import.meta.dirname, "..", "..");
@@ -889,6 +890,26 @@ describe("a directory that does not exist yet", () => {
 		} finally {
 			await rm(parent, { recursive: true, force: true });
 		}
+	});
+
+	test("is made by a build that succeeds", async () => {
+		const parent = await mkdtemp(join(tmpdir(), "parent-"));
+		try {
+			const fresh = join(parent, "dist");
+
+			await buildSite({ base: "https://mathtrail.app", out: fresh });
+			expect(await readdir(fresh)).toContain(".nojekyll");
+		} finally {
+			await rm(parent, { recursive: true, force: true });
+		}
+	}, 60_000);
+});
+
+describe("the pictures a shared link shows", () => {
+	test("are those of the languages that have one, and a language with none yet still builds", async () => {
+		const pictures = await sharingPictures(["en", "xx"]);
+
+		expect(pictures.map(({ path }) => path)).toEqual(["assets/og-en.png"]);
 	});
 });
 

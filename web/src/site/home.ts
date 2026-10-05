@@ -181,7 +181,7 @@ export function homeResultsOf(card: HomeCard, said: HomeWords): HomeResults {
 		const trap = right
 			? null
 			: {
-					id: card.traps[choice] ?? "",
+					id: trapOf(card, choice),
 					text: trapWords(said, choice),
 					repeated: false,
 				};
@@ -208,6 +208,19 @@ export function homeResultsOf(card: HomeCard, said: HomeWords): HomeResults {
 	return Object.fromEntries(
 		letters.map((letter) => [letter, resultOf(letter)]),
 	) as HomeResults;
+}
+
+// trapOf is the trap of the catalog the card names behind the wrong option
+// letter. readHome refuses a card that leaves one without, and so does this,
+// rather than record an answer behind no trap.
+function trapOf(card: HomeCard, letter: Letter): string {
+	const trap = card.traps[letter];
+	if (trap === undefined) {
+		throw new Error(
+			`${homeCard} leaves its wrong option ${letter} without a trap`,
+		);
+	}
+	return trap;
 }
 
 // trapWords are the words of the trap behind the wrong option letter, as the

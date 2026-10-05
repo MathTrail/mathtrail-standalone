@@ -274,11 +274,11 @@ const htmlSpaces = new Set(
 // alone, so "0.5" is at once.
 function refreshOf(content: string): string | undefined {
 	const input = withoutLeadingSpace(content);
-	const seconds = /^\d*/.exec(input)?.[0] ?? "";
+	const seconds = input.slice(0, input.search(/\D|$/));
 	if (seconds === "" && !input.startsWith(".")) {
 		return undefined;
 	}
-	let rest = input.slice((/^[\d.]*/.exec(input)?.[0] ?? "").length);
+	let rest = input.slice(input.search(/[^\d.]|$/));
 	const separated =
 		rest === "" ||
 		rest.startsWith(";") ||

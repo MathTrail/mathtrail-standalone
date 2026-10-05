@@ -236,12 +236,16 @@ export function keptPhotoOf(photo: Photo): string {
 	return join(repository, "site", photoPath(photo.name).slice(1));
 }
 
-// sharingPictures are the pictures a shared link to a page shows, one for each
-// language of the site that has one, kept in the site's assets under the name
-// they are served by. A language with none yet still builds, since a picture
-// is photographed from a site already built; its pages name a picture the site
-// does not have, and a check of the site refuses to publish them so.
-async function sharingPictures(locales: readonly string[]): Promise<Made[]> {
+/**
+ * sharingPictures are the pictures a shared link to a page shows, one for
+ * each language of the site that has one, kept in the site's assets under the
+ * name they are served by. A language with none yet still builds, since a
+ * picture is photographed from a site already built; its pages name a picture
+ * the site does not have, and a check of the site refuses to publish them so.
+ */
+export async function sharingPictures(
+	locales: readonly string[],
+): Promise<Made[]> {
 	const kept = await Promise.all(
 		locales.map(async (locale): Promise<Made | undefined> => {
 			try {

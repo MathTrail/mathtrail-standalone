@@ -145,6 +145,16 @@ describe("the card on the home page", () => {
 			"the home page says nothing of the trap behind its wrong option E",
 		);
 	});
+
+	test("refuses a wrong option the card names no trap behind", () => {
+		const { E: _, ...untrapped } = own.card.traps;
+
+		expect(() =>
+			homeResultsOf({ ...own.card, traps: untrapped }, said),
+		).toThrow(
+			"the card on the home page leaves its wrong option E without a trap",
+		);
+	});
 });
 
 describe("what the home page takes from the data", () => {
