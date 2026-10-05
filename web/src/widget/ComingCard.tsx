@@ -35,6 +35,9 @@ export function ComingCard({ coming, host }: { coming: Coming; host: Host }) {
 	const wait = useWaitFor(coming.requestId);
 	const finishing = useFinishing(wait);
 	const task = finishing === undefined ? wait.task : undefined;
+	// The wait's news is of a task still awaited: a task that has come answers
+	// it.
+	const awaited = wait.task === undefined;
 	return (
 		<CardFrame
 			child={coming.child}
@@ -49,8 +52,8 @@ export function ComingCard({ coming, host }: { coming: Coming; host: Host }) {
 						<CardHeader grade={whose.grade} wide={wide} />
 						<TaskWait
 							phase={finishing ?? "writing"}
-							rewriting={finishing === undefined && wait.refused > 0}
-							slow={finishing === undefined && wait.slow}
+							rewriting={awaited && wait.refused > 0}
+							slow={awaited && wait.slow}
 							ended={
 								shows(wait) === "not coming"
 									? { said: "waiting.stale", next: "waiting.next_below" }
@@ -134,19 +137,19 @@ function useWaitFor(requestId: string): Wait {
 	return wait;
 }
 
-// Ticked is how far a card has ticked off the rest of the course since its
-// task came: the checks, the task ready, and the course done.
-type Ticked = "checked" | "ready" | "done";
+// Finish is a step of the course a card ticks off once its task has come.
+type Finish = Extract<Phase, "checked" | "ready">;
 
 // useFinishing is the phase of the course a card shows between its task coming
 // and the task taking the course's place: the checks passed at once, the task
 // ready a beat later, held a moment so that it is seen. It is nothing while the
-// task is awaited and once the course is done, and nothing at all for a card
-// that never saw the task being written — one drawn again with an earlier
-// chat, its task there at the first question —, which shows its task at once.
-function useFinishing(wait: Wait): Phase | undefined {
-	const come = wait.task !== undefined && wait.seenWriting;
-	const [ticked, setTicked] = useState<Ticked>("checked");
+// task is awaited and once the course is done, and nothing at all when the
+// card's first answer brought the task — a card drawn again with an earlier
+// chat —, which shows it at once: only a card that has waited has a course to
+// finish.
+function useFinishing(wait: Wait): Finish | undefined {
+	const come = wait.task !== undefined && wait.answers > 1;
+	const [ticked, setTicked] = useState<Finish | "done">("checked");
 
 	useEffect(() => {
 		if (!come) {

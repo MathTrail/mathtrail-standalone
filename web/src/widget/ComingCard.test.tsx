@@ -167,6 +167,21 @@ describe("a card a task asked for comes to", () => {
 		expect(text(".mt-verdict-line")).toBe("Correct! It's 5.");
 	});
 
+	test("ticks off the course for a task that comes after questions that went unanswered", async () => {
+		await drawn(answering(failure, onTheCard));
+
+		await pass(first + moments.askSlowly + first);
+		expect(labels()).toEqual([
+			"Done: Picked topic and difficulty",
+			"Done: Writing the task",
+			"Done: Checking every answer",
+			"Waiting: Ready",
+		]);
+
+		await pass(finished);
+		expect(text(".mt-task-text")).toBe(fence.task.question);
+	});
+
 	test("shows its task at once when the task is there at its first question, as on a card drawn again with an earlier chat", async () => {
 		await drawn(answering(onTheCard));
 

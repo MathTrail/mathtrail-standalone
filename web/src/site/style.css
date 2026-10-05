@@ -895,7 +895,8 @@ a:hover {
 /* The menu folds behind its button below 992 px: in Russian, the longer of
    the site's languages, its entries stop fitting in a row beside the mark and
    the tools some way under that, with a scroll bar that takes room of its
-   own. A phone keeps a narrower margin. */
+   own; an entry more wants the width measured again. A phone keeps a
+   narrower margin. */
 @media (max-width: 991px) {
 	.s-navlinks {
 		display: none;

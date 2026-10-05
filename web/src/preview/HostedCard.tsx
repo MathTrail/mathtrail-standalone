@@ -60,9 +60,17 @@ export function HostedCard({
 				},
 			},
 		);
-		host.oncalltool = (params) =>
-			scene.answers?.(params.name) ??
-			Promise.reject(new Error("no service here"));
+		// asked counts the calls the card has made of each tool, so that a scene
+		// can answer a card's first question otherwise than the ones after it.
+		const asked = new Map<string, number>();
+		host.oncalltool = (params) => {
+			const before = asked.get(params.name) ?? 0;
+			asked.set(params.name, before + 1);
+			return (
+				scene.answers?.(params.name, before) ??
+				Promise.reject(new Error("no service here"))
+			);
+		};
 		host.onmessage = () =>
 			Promise.resolve(scene.refuseMessages ? { isError: true } : {});
 		host.onupdatemodelcontext = () => Promise.resolve({});

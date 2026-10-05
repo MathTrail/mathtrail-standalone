@@ -659,7 +659,9 @@ A child who stays put still comes out a little under its promise early on and ne
 
 **Choosing again** is a decision of its own: a generator, on seeds of its own, that repeats the live number; the criterion run over floors of 0.02, 0.05 and 0.1, or over margins z, on 4,000 of its children; a confirmation on held-out seeds no run has looked at, since those the model was confirmed on are spent; and then the decision written, SPEC 2.2 or 2.5 brought to it, the guard's bands recorded again and the carried-over rows of the service rewritten by hand.
 
-**When thirty days are too few.** The log keeps a month. A longer window needs the counts kept for years to carry, by month and instructions version, each child's sums in the two ranges and the masteries at each of the first ten answers after they were shown; until they do, it waits.
+**What ends a window.** The instructions version is a hash of the instructions, the solver's templates and the drawing frames. A release that changes any of them starts a new version, and a child's answers then fall into two rows the report does not pair across. A release that changes the student model itself — the rating, the rule or mastery — leaves the version as it is, and one row would hold two models. The window of a reading ends at the first such release, unless the report learns to take the versions that run the same model together.
+
+**When thirty days are too few.** A child is set against itself only within a window that holds both its ranges. The log keeps every line a month. A deployment that keeps the counts for grants also keeps the lines of answers and masteries whole, `user` among their fields, in the bucket `activity` for 62 days, which `just report` does not read yet; it holds no tool call, so only the rows over every host could be read from it. The tables kept for years hold no identifier at all and cannot pair a child. A reading past thirty days is a decision of its own: `just report` taught to read the bucket, pairs gathered from successive windows, or a comparison without pairs, with the lean of the children who stay named.
 
 ## Running it
 

@@ -1,3 +1,4 @@
+import type { SVGAttributes } from "preact";
 import { classes } from "./classes";
 import { useScopedId } from "./ids";
 
@@ -100,14 +101,79 @@ function Line({ d, tone }: { d: string; tone: string }) {
 	);
 }
 
+// Ink is the colour one part of the logo runs through, from its colour at the
+// top to its colour at the bottom.
+type Ink = { readonly from: string; readonly to: string };
+
+// Look is one of the logo's two drawings: the theme it is shown in, its tile,
+// and the inks of the ribbon's four parts and of the star.
+type Look = {
+	readonly theme: "light" | "dark";
+	readonly tile: SVGAttributes<SVGRectElement>;
+	readonly blueLeg: Ink;
+	readonly blueBand: Ink;
+	readonly greenLeg: Ink;
+	readonly greenBand: Ink;
+	readonly star: Ink;
+};
+
+// onDark is the very drawing the site serves as its icon: the ribbon and the
+// star on a dark navy tile.
+const onDark: Look = {
+	theme: "dark",
+	tile: { width: "48", height: "48", rx: "6", fill: "#0c1a33" },
+	blueLeg: { from: "#3d8ef3", to: "#2766d6" },
+	blueBand: { from: "#76bcff", to: "#4791f0" },
+	greenLeg: { from: "#b9e276", to: "#76c05b" },
+	greenBand: { from: "#86ce69", to: "#57ae55" },
+	star: { from: "#ffcd6e", to: "#f5a238" },
+};
+
+// onLight is the same ribbon and star on a white tile under a hairline that
+// stays within the square, the lightest of their inks deepened, so that the
+// tops of the bands and of the green leg, and the star, hold on a light
+// ground.
+const onLight: Look = {
+	theme: "light",
+	tile: {
+		x: "0.75",
+		y: "0.75",
+		width: "46.5",
+		height: "46.5",
+		rx: "5.5",
+		fill: "#ffffff",
+		stroke: "#d6dce6",
+		"stroke-width": "1.5",
+	},
+	blueLeg: onDark.blueLeg,
+	blueBand: { from: "#5aa8f7", to: "#3b7fe3" },
+	greenLeg: { from: "#8fcf55", to: "#4fa648" },
+	greenBand: { from: "#6fc35a", to: "#3f9a45" },
+	star: { from: "#ffb938", to: "#ec8a12" },
+};
+
 /**
- * Mark is MathTrail's logo, the very drawing the site serves as its icon: one
- * ribbon folded into an M on a dark tile, and a star over it. A card loads
- * nothing from outside itself, so it draws the logo in place, and names its
- * gradients and its clip apart from those of any other logo on the page. It
- * is decoration: the name beside it says whose it is.
+ * Mark is MathTrail's logo — one ribbon folded into an M, and a star over it —
+ * drawn for either theme, of which the theme's tokens show one: in the dark
+ * theme the very drawing the site serves as its icon, on a dark tile, and in
+ * the light theme the same ribbon and star on a white tile, whose dark tile
+ * would weigh on a light card. A card loads nothing from outside itself, so it
+ * draws the logo in place. It is decoration: the name beside it says whose it
+ * is.
  */
 export function Mark({ size = 32 }: { size?: number }) {
+	return (
+		<>
+			<MarkIn look={onLight} size={size} />
+			<MarkIn look={onDark} size={size} />
+		</>
+	);
+}
+
+// MarkIn is the logo as one look draws it, named after that look's theme so
+// that the theme's tokens can show it alone; it names its gradients and its
+// clip apart from those of any other logo on the page.
+function MarkIn({ look, size }: { look: Look; size: number }) {
 	const id = useScopedId();
 	const name = (part: string) => `${id}-${part}`;
 	const paint = (part: string) => `url(#${name(part)})`;
@@ -116,7 +182,7 @@ export function Mark({ size = 32 }: { size?: number }) {
 			width={size}
 			height={size}
 			viewBox="0 0 48 48"
-			class="mt-icon"
+			class={`mt-icon mt-mark-${look.theme}`}
 			aria-hidden="true"
 		>
 			<defs>
@@ -127,39 +193,29 @@ export function Mark({ size = 32 }: { size?: number }) {
 					id={name("blue-leg")}
 					top={17.95}
 					bottom={36.4}
-					from="#3d8ef3"
-					to="#2766d6"
+					ink={look.blueLeg}
 				/>
 				<Gradient
 					id={name("blue-band")}
 					top={17.95}
 					bottom={33.38}
-					from="#76bcff"
-					to="#4791f0"
+					ink={look.blueBand}
 				/>
 				<Gradient
 					id={name("green-leg")}
 					top={21.99}
 					bottom={36.4}
-					from="#b9e276"
-					to="#76c05b"
+					ink={look.greenLeg}
 				/>
 				<Gradient
 					id={name("green-band")}
 					top={21.99}
 					bottom={33.38}
-					from="#86ce69"
-					to="#57ae55"
+					ink={look.greenBand}
 				/>
-				<Gradient
-					id={name("star")}
-					top={11.3}
-					bottom={19.9}
-					from="#ffcd6e"
-					to="#f5a238"
-				/>
+				<Gradient id={name("star")} top={11.3} bottom={19.9} ink={look.star} />
 			</defs>
-			<rect width="48" height="48" rx="6" fill="#0c1a33" />
+			<rect {...look.tile} />
 			<g fill="none" stroke-width="6.9" stroke-linecap="round">
 				<path
 					d="M8.61 42.44L20.2 21.4"
@@ -189,20 +245,18 @@ export function Mark({ size = 32 }: { size?: number }) {
 	);
 }
 
-// Gradient runs one part of the logo from its colour at the top to its colour
-// at the bottom, measured on the logo's own grid.
+// Gradient runs one part of the logo through its ink, from the top to the
+// bottom given, measured on the logo's own grid.
 function Gradient({
 	id,
 	top,
 	bottom,
-	from,
-	to,
+	ink: { from, to },
 }: {
 	id: string;
 	top: number;
 	bottom: number;
-	from: string;
-	to: string;
+	ink: Ink;
 }) {
 	return (
 		<linearGradient

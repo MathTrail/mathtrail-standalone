@@ -108,6 +108,34 @@ func TestTheMovesStandOutFromTheCardAndTheCourse(t *testing.T) {
 	}
 }
 
+// Each theme shows one of the logo's two drawings: the light theme the one on
+// a white tile, and the dark theme the site's icon itself, alike for a host
+// that names it and for a viewer who prefers it.
+func TestEachThemeShowsOneDrawingOfTheLogo(t *testing.T) {
+	t.Parallel()
+
+	tokens := widget.Tokens()
+	for _, theme := range []struct {
+		name, opening, shown, hidden string
+	}{
+		{"light", `:root, [data-theme="light"] {`, "mark-light", "mark-dark"},
+		{"dark", `[data-theme="dark"] {`, "mark-dark", "mark-light"},
+		{"preferred dark", `:root:not([data-theme="light"]) {`, "mark-dark", "mark-light"},
+	} {
+		t.Run(theme.name, func(t *testing.T) {
+			t.Parallel()
+
+			properties := tokensOf(t, tokens, theme.opening)
+			if got := properties[theme.shown]; got != "block" {
+				t.Errorf("--%s in the %s theme is %q, want block", theme.shown, theme.name, got)
+			}
+			if got := properties[theme.hidden]; got != "none" {
+				t.Errorf("--%s in the %s theme is %q, want none", theme.hidden, theme.name, got)
+			}
+		})
+	}
+}
+
 // declaration is one custom property of the tokens: its name and its value.
 var declaration = regexp.MustCompile(`--([a-z0-9-]+):\s*([^;]+);`)
 

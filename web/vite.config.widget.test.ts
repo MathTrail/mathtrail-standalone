@@ -56,6 +56,14 @@ test("the widget builds into one page that loads nothing from outside it", () =>
 	expect(page).not.toContain(pseudoLocale);
 });
 
+// The card draws the logo once for each theme, and the theme's tokens show
+// one: a page that lost the rule binding a drawing to its token would show
+// both, side by side.
+test("the widget page shows one drawing of the logo in each theme", () => {
+	expect(page).toMatch(/\.mt-mark-light\s*\{\s*display:\s*var\(--mark-light\)/);
+	expect(page).toMatch(/\.mt-mark-dark\s*\{\s*display:\s*var\(--mark-dark\)/);
+});
+
 // solversIn are the names of the solvers a part of the site's data names, at
 // any depth: the solvers that prove its examples' answers.
 function solversIn(part: unknown): string[] {
