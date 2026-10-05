@@ -20,15 +20,17 @@ func TestATextIsCountedAsAChildReadsIt(t *testing.T) {
 	}{
 		{"Chinese naming two children in Latin letters", "Tom和Mary谁高？", chinese.letters, 3, 5},
 		{"points named in Latin capitals", "AB = 3, BC = 4. Найди AC.", cyrillic, 1, 1},
-		{"an accent written as a mark of its own", "cafe\u0301 au lait", letterings["Latn"].letters, 3, 3},
+		{"an accent written as a mark of its own, inside its word", "nai\u0308ve", letterings["Latn"].letters, 1, 1},
 		{"a vowel sign and a virama inside a word", "नमस्ते", letterings["Deva"].letters, 1, 1},
 		{"the mark of a long vowel, which every script shares", "ケーキ", letterings["Jpan"].letters, 2, 2},
 		{"full-width capitals", "ＡＢ", cyrillic, 0, 0},
 		{"a number, a Greek letter and a Latin one", "2πr", cyrillic, 0, 0},
 		{"a Latin name with a Cyrillic ending", "Tomу", cyrillic, 1, 2},
 		{"a Persian word held apart without a space", "می\u200cسازند", letterings["Arab"].letters, 2, 2},
-		{"English", "Three robots sit", cyrillic, 0, 3},
+		{"English, its short words left out", "Three robots sit", cyrillic, 0, 2},
+		{"a product and the orders of three letters", "Площадь равна ab. Порядки: abc, acb, bac.", cyrillic, 3, 3},
 		{"single letters", "x I a", cyrillic, 0, 0},
+		{"units of measure among Japanese characters", "5cmと3cm", letterings["Jpan"].letters, 1, 1},
 		{"nothing", "", cyrillic, 0, 0},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -53,14 +55,18 @@ func TestATagHoldsATaskToAScriptOnlyWhereTheLibraryIsSure(t *testing.T) {
 	}{
 		{"ru", "Cyrl", true}, {"ru-RU", "Cyrl", true}, {"en-GB", "Latn", true}, {"ja", "Jpan", true},
 		{"ko", "Kore", true}, {"zh-Hans", "Hans", true}, {"zh", "Hans", true}, {"zh-TW", "Hant", true},
-		{"yue", "Hant", true}, {"cmn", "Hans", true}, {"sr-Latn", "Latn", true}, {"kk", "Cyrl", true},
-		{"sr", "", false}, {"uz", "", false}, {"az", "", false}, {"mn", "", false}, {"pa-PK", "", false},
+		{"yue", "Hant", true}, {"cmn", "Hans", true}, {"sr-Latn", "Latn", true}, {"kk-Cyrl", "Cyrl", true},
+		{"kk", "", false}, {"ms", "", false}, {"pa", "", false}, {"bs", "", false}, {"sr", "", false}, {"uz", "", false}, {"az", "", false}, {"mn", "", false}, {"pa-PK", "", false},
 		{"kk-CN", "", false}, {"und", "", false}, {"mul", "", false}, {"x-abc", "", false}, {"", "", false},
 		{"not a tag", "", false},
 	} {
-		if script, held := heldScript(test.tag); script != test.script || held != test.held {
-			t.Errorf("heldScript(%q) = %q, %v, want %q, %v", test.tag, script, held, test.script, test.held)
-		}
+		t.Run(test.tag, func(t *testing.T) {
+			t.Parallel()
+
+			if script, held := heldScript(test.tag); script != test.script || held != test.held {
+				t.Errorf("heldScript(%q) = %q, %v, want %q, %v", test.tag, script, held, test.script, test.held)
+			}
+		})
 	}
 }
 

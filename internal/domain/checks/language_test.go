@@ -46,6 +46,11 @@ func TestATextIsHeldToTheLettersOfItsLesson(t *testing.T) {
 		{"two names among Russian words", "ru", "Кто выше, Tom или Mary?", false},
 		{"two names that outweigh the Russian", "ru", "Tom или Mary?", true},
 		{"names and Russian half and half", "ru", "Сравни Tom и Mary.", false},
+		{"the orders of three letters", "ru", "Выпишем все порядки: abc, acb, bac, bca, cab, cba. Их 6.", false},
+		{"Korean, its script named", "ko-Hang", languagesOfTheCards["ko"], false},
+		{"English in a lesson in Korean, its script named", "ko-Hang", liveEnglish, true},
+		{"Japanese in hiragana, its script named", "ja-Hira", "ふねは なんくみ できますか？", false},
+		{"English in a lesson in Japanese hiragana", "ja-Hira", liveEnglish, true},
 		{"Ukrainian", "uk", "Скільки пар можуть утворити чотири кораблі?", false},
 		{"English in a lesson in Ukrainian", "uk", liveEnglish, true},
 		{"Arabic", "ar", "كم زوجًا يمكن أن تكوّن أربع سفن؟", false},
@@ -89,37 +94,65 @@ func TestALessonHeldToNoScriptRefusesNothing(t *testing.T) {
 
 	serbianInLatin := "Koliko parova mogu da naprave četiri broda?"
 	serbianInCyrillic := "Колико парова могу да направе четири брода?"
+	kazakhInLatin := "Tört kemeden neshe jup quraluǵa bolady?"
 	for _, test := range []struct {
-		language, question string
-		refused            bool
+		name, language, question string
+		refused                  bool
 	}{
-		{"", liveEnglish, false}, {"und", liveEnglish, false}, {"mul", liveEnglish, false},
-		{"zxx", liveEnglish, false}, {"x-abc", liveEnglish, false}, {"und-Zyyy", liveEnglish, false},
-		{"not a tag", liveEnglish, false}, {"el", liveEnglish, false}, {"he", liveEnglish, false},
-		{"sr", serbianInLatin, false}, {"sr", serbianInCyrillic, false},
-		{"uz", serbianInCyrillic, false}, {"az", serbianInCyrillic, false}, {"mn", liveEnglish, false},
-		{"pa-PK", liveEnglish, false}, {"kk-CN", liveEnglish, false},
-		{"sr-Latn", serbianInLatin, false}, {"sr-Latn", serbianInCyrillic, true},
-		{"sr-Cyrl", serbianInCyrillic, false}, {"sr-Cyrl", serbianInLatin, true},
+		{"no tag", "", liveEnglish, false},
+		{"a language not determined", "und", liveEnglish, false},
+		{"several languages", "mul", liveEnglish, false},
+		{"no language at all", "zxx", liveEnglish, false},
+		{"private words alone", "x-abc", liveEnglish, false},
+		{"several scripts in common use", "und-Zyyy", liveEnglish, false},
+		{"no tag at all", "not a tag", liveEnglish, false},
+		{"Greek, a script of no language of the cards", "el", liveEnglish, false},
+		{"Hebrew, a script of no language of the cards", "he", liveEnglish, false},
+		{"Serbian in Latin, its script not named", "sr", serbianInLatin, false},
+		{"Serbian in Cyrillic, its script not named", "sr", serbianInCyrillic, false},
+		{"Uzbek, its script not named", "uz", serbianInCyrillic, false},
+		{"Azerbaijani, its script not named", "az", serbianInCyrillic, false},
+		{"Mongolian, its script not named", "mn", liveEnglish, false},
+		{"Punjabi of Pakistan", "pa-PK", liveEnglish, false},
+		{"Kazakh of China", "kk-CN", liveEnglish, false},
+		{"Kazakh in Latin, its script not named", "kk", kazakhInLatin, false},
+		{"Kazakh in Latin, Cyrillic named", "kk-Cyrl", kazakhInLatin, true},
+		{"Bosnian in Cyrillic, its script not named", "bs", serbianInCyrillic, false},
+		{"Malay, its script not named", "ms", "كاڤل ايمڤت", false},
+		{"Serbian in Latin, as named", "sr-Latn", serbianInLatin, false},
+		{"Serbian in Cyrillic, Latin named", "sr-Latn", serbianInCyrillic, true},
+		{"Serbian in Cyrillic, as named", "sr-Cyrl", serbianInCyrillic, false},
+		{"Serbian in Latin, Cyrillic named", "sr-Cyrl", serbianInLatin, true},
 	} {
-		if got := refusedIn(asking(test.question), test.language); got != test.refused {
-			t.Errorf("Language(%q, %q) refused %v, want %v", test.question, test.language, got, test.refused)
-		}
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := refusedIn(asking(test.question), test.language); got != test.refused {
+				t.Errorf("Language(%q, %q) refused %v, want %v", test.question, test.language, got, test.refused)
+			}
+		})
 	}
 }
 
 // A text with nothing a child reads as a word of a language — numbers, signs,
-// labels, a symbol — says nothing about the language it is in, and neither
-// does a task that could not be read.
+// labels, units of measure, a symbol — says nothing about the language it is
+// in, and neither does a task that could not be read.
 func TestATextWithNothingToCountIsNotRefused(t *testing.T) {
 	t.Parallel()
 
-	for _, text := range []string{"", "   ", "AB = 3, BC = 4, CD = 5.", "x + y = 12", "2πr", "ＡＢ＝３", "ー", "7 · 8 = 56", "I"} {
-		for _, language := range []string{"ru", "zh", "en"} {
-			if refusedIn(asking(text), language) {
-				t.Errorf("Language(%q, %q) refused, want nothing to count and nothing refused", text, language)
+	for _, text := range []string{
+		"", "   ", "AB = 3, BC = 4, CD = 5.", "x + y = 12", "2πr", "ＡＢ＝３", "ー", "7 · 8 = 56", "I",
+		"5 cm + 3 cm = ? cm", "2 kg 300 g", "1 km 200 m", "45 min", "250 ml", "12 cm²", "9 am", "5 ft", "S = ab",
+	} {
+		t.Run(text, func(t *testing.T) {
+			t.Parallel()
+
+			for _, language := range []string{"ru", "zh", "en"} {
+				if refusedIn(asking(text), language) {
+					t.Errorf("Language(%q, %q) refused, want nothing to count and nothing refused", text, language)
+				}
 			}
-		}
+		})
 	}
 	if problems := checks.Language(nil, "ru"); problems != nil {
 		t.Errorf("Language(nil) = %v, want nothing: a task that could not be read is the structure's to refuse", problems)
@@ -163,12 +196,16 @@ func TestEveryLanguageTheCardsSpeakIsHeldToItsLetters(t *testing.T) {
 	t.Parallel()
 
 	for language, question := range languagesOfTheCards {
-		if refusedIn(asking(question), language) {
-			t.Errorf("a question in %s is refused in a lesson in %s, want it let through", language, language)
-		}
-		if !refusedIn(asking(georgian), language) {
-			t.Errorf("a question in Georgian is let through in a lesson in %s, want it refused", language)
-		}
+		t.Run(language, func(t *testing.T) {
+			t.Parallel()
+
+			if refusedIn(asking(question), language) {
+				t.Errorf("a question in %s is refused in a lesson in %s, want it let through", language, language)
+			}
+			if !refusedIn(asking(georgian), language) {
+				t.Errorf("a question in Georgian is let through in a lesson in %s, want it refused", language)
+			}
+		})
 	}
 }
 
@@ -280,9 +317,13 @@ func TestLanguagesWrittenInTheSameLettersAreNotToldApart(t *testing.T) {
 		{"de", liveEnglish},
 		{"ja", languagesOfTheCards["zh-Hans"]},
 	} {
-		if refusedIn(asking(test.question), test.language) {
-			t.Errorf("Language(%q, %q) refused, want letters the lesson shares let through", test.question, test.language)
-		}
+		t.Run(test.language, func(t *testing.T) {
+			t.Parallel()
+
+			if refusedIn(asking(test.question), test.language) {
+				t.Errorf("Language(%q, %q) refused, want letters the lesson shares let through", test.question, test.language)
+			}
+		})
 	}
 }
 

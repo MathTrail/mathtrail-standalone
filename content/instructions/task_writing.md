@@ -5,7 +5,7 @@ You write one olympiad-style task for the child this package is for. The package
 ## The task
 
 - Write it at the level and the difficulty of the brief, `brief.grade_level` and `brief.difficulty`, as hard as "The difficulty" below says. The reference tasks show that level, that difficulty and the kind of reasoning the topic asks for; they are not tasks to tell again. Yours is none of them: not one of them with a new story, new names or new numbers.
-- Write every text the child reads in the package's `language`: the question, the options, the hint, the solution and the explanations, and the names in them. The reference tasks, the solver templates and this page are in English whatever the language; they show how a task is built, not its words. A question, a hint, a solution or a set of explanations written mostly in other letters than those of `language` is refused; labels in Latin capitals and numbers are not counted.
+- Write every text the child reads in the package's `language`: the question, the options, the hint, the solution and the explanations, and the names in them. The reference tasks, the solver templates and this page are in English whatever the language; the task is not. A question, a hint, a solution or a set of explanations written mostly in other letters than those of `language` is refused; labels in Latin capitals, numbers and short symbols in small Latin letters, such as x, ab or cm, are not counted.
 - Use words and a story that suit a child of `child.grade`. The grade is the child's age and nothing more: a child may be set a task of a younger or an older level than their grade, and the task stays of its own level.
 - Build it on the idea `idea` picks, so that a child who practises a topic meets its ideas rather than one of them again and again. Open `core_idea` with a numbered list of exactly `idea.of` problems of this topic at the brief's level, each on an idea of its own and none on the idea of a reference task, the best known first. Then build the task on the one at `idea.number`, and on no other, even if another looks a better fit. Set it at the brief's difficulty, as "The difficulty" says: one idea can be set easier or harder. When `idea.round` is 1, write the idea in its usual form; from 2 on, write a variant of it, so that an idea that comes round again is not the same task again: ask for what the usual form gives, or count something else.
 - Go on in `core_idea` with the mathematics and why the answer is what it is, then `design_thought_process`: the plot, and the trap each wrong option comes from.
@@ -43,31 +43,31 @@ Hand the task in with `submit_task`, together with the request id you were given
     "grade_level": "1-2",
     "difficulty": 2,
     "setting": "sport",
-    "traps_to_use": ["reversed_relation", "ignored_condition"],
+    "traps_to_use": ["off_by_one", "reversed_relation"],
     "excluded_skills": [],
     "constraints": [],
     "rationale": "A topic the child has not met yet."
   },
   "task": {
-    "core_idea": "Ideas of ordering at 1-2, none a reference task's, the best known first: 1 overtaking a runner in a race; 2 two orders at once, by height and by age; 3 two of the same height; 4 two are each taller than a third; 5 seats round a table; 6 a see-saw; 7 arrivals by the clock; 8 a line that turns round; 9 towers of blocks; 10 one child moving to the end of a line. Idea 4, round 1: Ivy and Rosa are each taller than Jade, so Jade is the shortest, though which of the two is taller is never said.",
-    "design_thought_process": "A team photo, lined up by height. One wrong option turns \"taller\" into \"shorter\", one forgets that Rosa is taller too, one names the two taller girls, and one gives up because Ivy and Rosa are never compared.",
-    "question": "Ivy, Rosa and Jade line up by height for a team photo. Ivy is taller than Jade. Rosa is taller than Jade too. Who is the shortest?",
-    "options": {"A": "Ivy", "B": "Rosa", "C": "Jade", "D": "Ivy and Rosa", "E": "It cannot be told"},
-    "correct_answer": "C",
-    "hint": "Who is taller than Jade?",
-    "solution": "Both Ivy and Rosa are taller than Jade. So Jade is shorter than both of them, and she is the shortest.",
+    "core_idea": "Ideas of ordering at 1-2, none a reference task's, the best known first: 1 overtaking a runner in a race; 2 two orders at once, by height and by age; 3 two of the same height; 4 two are each taller than a third; 5 seats round a table; 6 a see-saw; 7 arrivals by the clock; 8 a line that turns round; 9 towers of blocks; 10 one child moving to the end of a line. Idea 1, round 1: a runner who overtakes the one in second place takes that place, and is second, not first.",
+    "design_thought_process": "Sports day, a race. One wrong option thinks passing the second runner makes Tom first, one moves him back, one makes him last, and one gives up because the other runners are not named.",
+    "question": "Tom runs in a race. He overtakes the runner in second place. In which place is Tom now?",
+    "options": {"A": "First", "B": "Second", "C": "Third", "D": "Last", "E": "It cannot be told"},
+    "correct_answer": "B",
+    "hint": "Whose place does Tom take when he passes that runner?",
+    "solution": "Tom was just behind the runner in second place, so he was third. Passing that runner puts Tom in second place. The leader is still in front of him.",
     "distractors": {
-      "A": {"trap": "reversed_relation", "text": "Ivy is taller than Jade, not shorter."},
-      "B": {"trap": "ignored_condition", "text": "Rosa is taller than Jade as well."},
-      "D": {"trap": "answered_other_question", "text": "Those two are the taller ones."},
-      "E": {"trap": "answered_other_question", "text": "Only the shortest one was asked for."}
+      "A": {"trap": "off_by_one", "text": "Tom has not passed the leader."},
+      "C": {"trap": "reversed_relation", "text": "Overtaking moves Tom forward, not back."},
+      "D": {"trap": "ignored_condition", "text": "Tom has just passed a runner."},
+      "E": {"trap": "answered_other_question", "text": "Only Tom's place is asked for."}
     }
   },
-  "solver": "def solve(options):\n    shortest = []\n    for order in permutations([\"Ivy\", \"Rosa\", \"Jade\"]):\n        height = {name: i for i, name in enumerate(order)}\n        if height[\"Ivy\"] > height[\"Jade\"] and height[\"Rosa\"] > height[\"Jade\"]:\n            if order[0] not in shortest:\n                shortest.append(order[0])\n    if len(shortest) != 1:\n        return match(options, \"It cannot be told\")\n    return match(options, shortest[0])\n",
+  "solver": "def solve(options):\n    places = []\n    for runners in range(3, 8):\n        line = list(range(1, runners + 1))\n        tom = line[2]\n        line.remove(tom)\n        line.insert(1, tom)\n        place = line.index(tom) + 1\n        if place not in places:\n            places.append(place)\n    if len(places) != 1:\n        return match(options, \"It cannot be told\")\n    names = {1: \"First\", 2: \"Second\", 3: \"Third\"}\n    return match(options, names[places[0]])\n",
   "self_check": {
     "issues": [],
-    "option_check": {"A": "Ivy is taller than Jade.", "B": "Rosa is taller than Jade.", "C": "Jade is shorter than both.", "D": "That names two, and one is asked for.", "E": "Only who is tallest cannot be told."},
-    "final_answer": "C"
+    "option_check": {"A": "The leader is still ahead.", "B": "Tom takes the second place.", "C": "Tom moved forward, not back.", "D": "Tom is ahead of the runner he passed.", "E": "The place can be told: second."},
+    "final_answer": "B"
   }
 }
 ```

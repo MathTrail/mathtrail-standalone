@@ -100,25 +100,32 @@ func scriptOf(tag string) (string, language.Confidence) {
 	return script.String(), confidence
 }
 
-// hanScripts are the codes Chinese is written under: Simplified, Traditional,
-// and Han whichever of the two.
-var hanScripts = []string{"Hans", "Hant", "Hani"}
+// severalScripts are languages written in more than one script in common use
+// that the tag library reports as sure of one, since the registry of tags
+// suppresses their script: Kazakh in Cyrillic and in Latin, Malay in Latin and
+// in Jawi, Punjabi in Gurmukhi and in Shahmukhi, Bosnian in Latin and in
+// Cyrillic.
+var severalScripts = []string{"kk", "ms", "pa", "bs"}
 
 // heldScript is the script the texts of a task are held to in its language,
 // and whether there is one: the script its tag names, or the one its language
-// is written in as a rule. A language written in several scripts in common
-// use — Serbian, Uzbek, Azerbaijani, Mongolian — has only a likely one, and a
-// task in another of them is no fault, so it is held to none. Chinese is the
-// exception: its likely scripts, Simplified and Traditional, are one set of
-// characters, and a task in either is written in it.
+// is written in as a rule. A language written in several scripts in common use
+// and named without one has only a likely script, and a task in another of
+// them is no fault, so it is held to none: Serbian, Uzbek, Azerbaijani and
+// Mongolian, whose script the library only guesses, and the languages of
+// severalScripts, whose script it reports as sure. A guess is enough where the
+// lettering says so: Chinese, whose likely scripts, Simplified and
+// Traditional, are one set of characters.
 func heldScript(tag string) (string, bool) {
 	script, confidence := scriptOf(tag)
-	switch {
-	case confidence == language.Exact, confidence == language.High,
-		confidence == language.Low && slices.Contains(hanScripts, script):
-		return script, true
+	base, _ := language.Make(tag).Base()
+	held := confidence == language.Exact ||
+		confidence == language.High && !slices.Contains(severalScripts, base.String()) ||
+		confidence == language.Low && letterings[script].guessIsEnough
+	if !held {
+		return "", false
 	}
-	return "", false
+	return script, true
 }
 
 // primarySubtag is the language a tag names, lowercased: "zh" of "zh-Hant-TW",

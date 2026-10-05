@@ -675,6 +675,47 @@ func TestTheGuidesExampleIsATaskTheChecksAccept(t *testing.T) {
 	}
 }
 
+// The guide's example shows the model the list it writes before it chooses: as
+// many ideas as a package asks for, numbered from 1, and the task built on the
+// one at the number a child's first task of a topic is given. A list of another
+// length, or a task on another idea, would teach the model the very thing it
+// is told not to do.
+func TestTheGuidesExampleListsTheIdeasAPackageAsksFor(t *testing.T) {
+	t.Parallel()
+
+	shipped := loaded(t)
+	guide, _ := shipped.Instruction("task_writing.md")
+	block := regexp.MustCompile("(?s)```json\n(.*?)\n```").FindStringSubmatch(guide)
+	if block == nil {
+		t.Fatal("the guide has no example in a json block")
+	}
+	var example struct {
+		Brief profile.Brief `json:"brief"`
+		Task  struct {
+			CoreIdea string `json:"core_idea"`
+		} `json:"task"`
+	}
+	if err := json.Unmarshal([]byte(block[1]), &example); err != nil {
+		t.Fatalf("read the guide's example: %v", err)
+	}
+	_, pack := packageFor(t, shipped, request(example.Brief.TargetConcept, example.Brief.GradeLevel, example.Brief.Difficulty, 0))
+
+	listed := regexp.MustCompile(`(?:^|[:;]) (\d+) `).FindAllStringSubmatch(example.Task.CoreIdea, -1)
+	if len(listed) != pack.Idea.Of {
+		t.Errorf("the example lists %d ideas, want the %d a package asks for", len(listed), pack.Idea.Of)
+	}
+	for i, item := range listed {
+		if item[1] != fmt.Sprint(i+1) {
+			t.Errorf("idea %d of the example's list is numbered %s, want the list numbered from 1", i+1, item[1])
+		}
+	}
+	picked := regexp.MustCompile(`Idea (\d+), round (\d+):`).FindStringSubmatch(example.Task.CoreIdea)
+	if len(picked) != 3 || picked[1] != fmt.Sprint(pack.Idea.Number) || picked[2] != fmt.Sprint(pack.Idea.Round) {
+		t.Errorf("the example builds on %q, want idea %d, round %d, as a child's first task of a topic is given",
+			picked, pack.Idea.Number, pack.Idea.Round)
+	}
+}
+
 // The guide points the model at parts of the package by name, and at the
 // difficulty every reference task carries. Every such name is a part the
 // package has, so that a rename on one side cannot leave the other pointing at

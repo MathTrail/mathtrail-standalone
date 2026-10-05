@@ -1,6 +1,7 @@
 package checks_test
 
 import (
+	"slices"
 	"strings"
 	"testing"
 
@@ -15,27 +16,28 @@ import (
 // lesson's letters never turns a pass into a refusal, nor one in other letters
 // a refusal into a pass.
 
-// genLatinWord is a word in Latin letters that is read as a word: two letters
-// or more, and not in capitals.
-func genLatinWord() gopter.Gen { return gen.RegexMatch(`[a-z]{2,8}`) }
+// genLatinWords are words in Latin letters that are read as words: four letters
+// or more, none of them capitals, so that none is a symbol such as ab or cm.
+func genLatinWords() gopter.Gen { return gen.SliceOf(gen.RegexMatch(`[a-z]{4,8}`)) }
 
-// genCyrillicWord is a word in Cyrillic letters.
-func genCyrillicWord() gopter.Gen {
-	return gen.RegexMatch(`[a-h]{1,7}`).Map(func(word string) string { return cyrillic([]string{word})[0] })
-}
+// genCyrillicWords are words in Cyrillic letters.
+func genCyrillicWords() gopter.Gen { return gen.SliceOf(gen.RegexMatch(`[a-h]{1,7}`)).Map(cyrillic) }
 
-// genWordsIn are a few words of one generator, at least one.
-func genWordsIn(word gopter.Gen) gopter.Gen {
-	return gen.SliceOfN(8, word).SuchThat(func(words []string) bool { return len(words) > 0 })
+// some are words of a generator, at least one of them.
+func some(words gopter.Gen) gopter.Gen {
+	return words.SuchThat(func(words []string) bool { return len(words) > 0 })
 }
 
 // genSymbols are what a task writes among its words and a child reads in no
 // language: labels in Latin capitals, numbers, single Latin and Greek letters,
-// signs, full-width capitals and the mark of a long vowel.
+// units of measure, signs, full-width capitals and the mark of a long vowel.
+// They come from one list rather than from several generators, since a slice
+// of gopter's is held to the sieve of its first element, and the sieves of
+// several generators would throw most slices away.
 func genSymbols() gopter.Gen {
-	return gen.SliceOfN(8, gen.OneGenOf(
-		gen.RegexMatch(`[A-Z]{1,4}`), gen.RegexMatch(`[0-9]{1,3}`), gen.RegexMatch(`[a-z]`),
-		gen.OneConstOf("π", "α", "+", "=", "·", "?", "ＡＢ", "ー"),
+	return gen.SliceOf(gen.OneConstOf(
+		"AB", "XYZ", "Q", "C1", "12", "7", "2026", "x", "n", "I", "π", "α", "cm", "kg", "min", "+", "=", "·", "?",
+		"ＡＢ", "ー",
 	))
 }
 
@@ -66,7 +68,7 @@ func TestTheLanguageCheckHoldsItsProperties(t *testing.T) {
 			func(words, symbols []string) bool {
 				return !refusedIn(asking(among(words, symbols)), "ru")
 			},
-			genWordsIn(genCyrillicWord()), genSymbols(),
+			genCyrillicWords(), genSymbols(),
 		))
 
 	properties.Property("a text with none of the lesson's letters is refused in every lesson written in others",
@@ -79,19 +81,19 @@ func TestTheLanguageCheckHoldsItsProperties(t *testing.T) {
 				}
 				return refusedIn(asking(among(cyrillicWords, symbols)), "en")
 			},
-			genWordsIn(genLatinWord()), genWordsIn(genCyrillicWord()), genSymbols(),
+			some(genLatinWords()), some(genCyrillicWords()), genSymbols(),
 		))
 
 	properties.Property("a word in the lesson's letters never turns a pass into a refusal, "+
 		"nor one in other letters a refusal into a pass",
 		prop.ForAll(
-			func(words []string, own, other string) bool {
-				text := strings.Join(words, " ")
+			func(own, other, oneOwn, oneOther []string) bool {
+				text := strings.Join(append(slices.Clone(own), other...), " ")
 				before := refusedIn(asking(text), "ru")
-				return (before || !refusedIn(asking(text+" "+own), "ru")) &&
-					(!before || refusedIn(asking(text+" "+other), "ru"))
+				return (before || !refusedIn(asking(text+" "+oneOwn[0]), "ru")) &&
+					(!before || refusedIn(asking(text+" "+oneOther[0]), "ru"))
 			},
-			genWordsIn(gen.OneGenOf(genCyrillicWord(), genLatinWord())), genCyrillicWord(), genLatinWord(),
+			genCyrillicWords(), genLatinWords(), some(genCyrillicWords()), some(genLatinWords()),
 		))
 
 	properties.TestingRun(t)
