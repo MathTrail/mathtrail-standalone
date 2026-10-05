@@ -1,12 +1,13 @@
 # Writing a task
 
-You write one olympiad-style task for the child this package is for. The package holds everything you need: the brief, the child, reference tasks, sample solvers, drawing frames, every trap, what the task may not use, and the limits it is held to. This page says how the task is written, handed in and checked.
+You write one olympiad-style task for the child this package is for. The package holds everything you need: the brief, the idea to build the task on, the child, reference tasks, sample solvers, drawing frames, every trap, what the task may not use, and the limits it is held to. This page says how the task is written, handed in and checked.
 
 ## The task
 
-- Write it at the level and the difficulty of the brief, `brief.grade_level` and `brief.difficulty`: the reference tasks are of that level, so take their structure, never their story or their numbers, and make it as hard as "The difficulty" below says. They are in English whatever the language.
+- Write it at the level and the difficulty of the brief, `brief.grade_level` and `brief.difficulty`, as hard as "The difficulty" below says. The reference tasks show that level, that difficulty and the kind of reasoning the topic asks for; they are not tasks to tell again. Yours is none of them: not one of them with a new story, new names or new numbers. They are in English whatever the language.
 - Write it in the package's `language`, in words and a story that suit a child of `child.grade`. The grade is the child's age and nothing more: a child may be set a task of a younger or an older level than their grade, and the task stays of its own level.
-- Start from `core_idea`, the mathematics and why the answer is what it is, then `design_thought_process`: the plot, and the trap each wrong option comes from.
+- Build it on the idea `idea` picks, so that a child who practises a topic meets its ideas rather than one of them again and again. Open `core_idea` with a numbered list of exactly `idea.of` problems of this topic at the brief's level, each on an idea of its own and none on the idea of a reference task, the best known first. Then build the task on the one at `idea.number`, and on no other, even if another looks a better fit. Set it at the brief's difficulty, as "The difficulty" says: one idea can be set easier or harder. When `idea.round` is 1, write the idea in its usual form; from 2 on, write a variant of it, so that an idea that comes round again is not the same task again: ask for what the usual form gives, or count something else.
+- Go on in `core_idea` with the mathematics and why the answer is what it is, then `design_thought_process`: the plot, and the trap each wrong option comes from.
 - Dress it in the brief's `setting`, or, when that is empty, in one of your own, written into `setting`. Everything needed is in the text, and nothing depends on outside facts.
 - Five different options, `A` to `E`, exactly one right. The card shows each option with its letter, and a drawing labels its points with the same Latin capitals, so "C" could be an option or a point: the question, the hint, the solution and the explanations name an option by its value, never by its letter. Every wrong option comes from a trap: in `distractors`, give it a trap id from `traps` and a `text` telling the child what went wrong, in about six words of its own — not the solution, not the hint, not the trap's description.
 - `hint` is one leading question or a first step, and never gives the answer away. `solution` goes step by step, the way a tutor explains it to a child of this grade.
@@ -41,30 +42,30 @@ Hand the task in with `submit_task`, together with the request id you were given
     "grade_level": "1-2",
     "difficulty": 2,
     "setting": "sport",
-    "traps_to_use": ["reversed_relation", "stopped_early"],
+    "traps_to_use": ["reversed_relation", "ignored_condition"],
     "excluded_skills": [],
     "constraints": [],
     "rationale": "A topic the child has not met yet."
   },
   "task": {
-    "core_idea": "Two comparisons fix the order of three runners.",
-    "design_thought_process": "A race. One wrong option reverses a comparison, another stops after the first clue.",
-    "question": "Ann, Ben and Kim ran a race. Ben finished before Kim. Ann finished after Kim. Who finished first?",
-    "options": {"A": "Ann", "B": "Kim", "C": "Ben", "D": "Nobody", "E": "All three together"},
+    "core_idea": "Ideas of ordering at 1-2, none a reference task's, the best known first: 1 overtaking a runner in a race; 2 two orders at once, by height and by age; 3 two of the same height; 4 two are each taller than a third; 5 seats round a table; 6 a see-saw; 7 arrivals by the clock; 8 a line that turns round; 9 towers of blocks; 10 one child moving to the end of a line. Idea 4, round 1: Ivy and Rosa are each taller than Jade, so Jade is the shortest, though which of the two is taller is never said.",
+    "design_thought_process": "A team photo, lined up by height. One wrong option turns \"taller\" into \"shorter\", one forgets that Rosa is taller too, one names the two taller girls, and one gives up because Ivy and Rosa are never compared.",
+    "question": "Ivy, Rosa and Jade line up by height for a team photo. Ivy is taller than Jade. Rosa is taller than Jade too. Who is the shortest?",
+    "options": {"A": "Ivy", "B": "Rosa", "C": "Jade", "D": "Ivy and Rosa", "E": "It cannot be told"},
     "correct_answer": "C",
-    "hint": "Who finished before Kim?",
-    "solution": "Ben is before Kim, and Kim is before Ann. So Ben is first.",
+    "hint": "Who is taller than Jade?",
+    "solution": "Both Ivy and Rosa are taller than Jade. So Jade is shorter than both of them, and she is the shortest.",
     "distractors": {
-      "A": {"trap": "reversed_relation", "text": "Ann finished after Kim, so she is last."},
-      "B": {"trap": "stopped_early", "text": "Kim is in the middle: Ben beat her."},
-      "D": {"trap": "ignored_condition", "text": "In a race someone always finishes first."},
-      "E": {"trap": "answered_other_question", "text": "They finished one after another."}
+      "A": {"trap": "reversed_relation", "text": "Ivy is taller than Jade, not shorter."},
+      "B": {"trap": "ignored_condition", "text": "Rosa is taller than Jade as well."},
+      "D": {"trap": "answered_other_question", "text": "Those two are the taller ones."},
+      "E": {"trap": "answered_other_question", "text": "Only the shortest one was asked for."}
     }
   },
-  "solver": "def solve(options):\n    firsts = []\n    for order in permutations([\"Ann\", \"Ben\", \"Kim\"]):\n        place = {name: i for i, name in enumerate(order)}\n        if place[\"Ben\"] < place[\"Kim\"] and place[\"Kim\"] < place[\"Ann\"]:\n            firsts.append(order[0])\n    return match(options, firsts[0])\n",
+  "solver": "def solve(options):\n    shortest = []\n    for order in permutations([\"Ivy\", \"Rosa\", \"Jade\"]):\n        height = {name: i for i, name in enumerate(order)}\n        if height[\"Ivy\"] > height[\"Jade\"] and height[\"Rosa\"] > height[\"Jade\"]:\n            if order[0] not in shortest:\n                shortest.append(order[0])\n    if len(shortest) != 1:\n        return match(options, \"It cannot be told\")\n    return match(options, shortest[0])\n",
   "self_check": {
     "issues": [],
-    "option_check": {"A": "Ann is last.", "B": "Kim is second.", "C": "Ben is first.", "D": "Someone was first.", "E": "Nobody tied."},
+    "option_check": {"A": "Ivy is taller than Jade.", "B": "Rosa is taller than Jade.", "C": "Jade is shorter than both.", "D": "That names two, and one is asked for.", "E": "Only who is tallest cannot be told."},
     "final_answer": "C"
   }
 }

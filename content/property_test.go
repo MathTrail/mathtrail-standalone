@@ -20,10 +20,12 @@ import (
 )
 
 // The properties here name what has to hold for every input rather than for the
-// handful of inputs somebody thought of. Two things in this package have that
+// handful of inputs somebody thought of. Four things in this package have that
 // shape: the version of the instructions, which must depend on the content and
-// on nothing else, and the copies handed out of the content, which must share
-// no memory with it.
+// on nothing else; the copies handed out of the content, which must share no
+// memory with it; the catalog of traps, which is read only when every trap has
+// its advice; and the idea a package names, which must go through the whole
+// list before it comes back.
 
 // instructionFilesFrom turns generated texts into a set of files whose names
 // differ, the way a directory listing always hands them over. Two files of one
@@ -295,6 +297,42 @@ func TestATrapCatalogReadsOnlyWithEveryTrapsAdvice(t *testing.T) {
 			return (err == nil) == every
 		},
 		gen.SliceOfN(len(traps), gen.Bool()),
+	))
+	properties.TestingRun(t)
+}
+
+// The idea a package names is what moves a model with no memory of the tasks
+// before along its list of a topic's ideas. Whatever the count it is given — a
+// file can hold any — it names a place on the list, the tasks of one round come
+// to every place once, and the next round comes to them again in the same
+// order.
+func TestTheIdeaHoldsItsProperties(t *testing.T) {
+	t.Parallel()
+
+	properties := gopter.NewProperties(nil)
+	properties.Property("the number is always a place on the list", prop.ForAll(
+		func(tasks int) bool {
+			idea := ideaOf(tasks)
+			return idea.Of == ideasPerList && idea.Number >= 1 && idea.Number <= idea.Of && idea.Round >= 1
+		},
+		gen.Int(),
+	))
+	properties.Property("a list's worth of tasks in a row comes to every place once", prop.ForAll(
+		func(start int) bool {
+			met := map[int]bool{}
+			for tasks := start; tasks < start+ideasPerList; tasks++ {
+				met[ideaOf(tasks).Number] = true
+			}
+			return len(met) == ideasPerList
+		},
+		gen.IntRange(0, 1<<30),
+	))
+	properties.Property("a list's worth of tasks later comes the same place, a round on", prop.ForAll(
+		func(tasks int) bool {
+			now, later := ideaOf(tasks), ideaOf(tasks+ideasPerList)
+			return later.Number == now.Number && later.Round == now.Round+1
+		},
+		gen.IntRange(0, 1<<30),
 	))
 	properties.TestingRun(t)
 }

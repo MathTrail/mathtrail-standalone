@@ -69,9 +69,9 @@ export type Alternate = { readonly hreflang: string; readonly url: string };
 /**
  * alternatesOf lists every translation of the page name — every locale has
  * every page — plus the x-default a reader with no matching language is sent
- * to. For a front page that is the apex, which hands the reader every
- * language; for anything else it is the reference locale's version, the copy
- * every other is translated from.
+ * to: the reference locale's version, the copy every other is translated from.
+ * A front page is no exception, since the apex only sends its reader on to the
+ * reference locale's.
  */
 export function alternatesOf(
 	texts: Pick<Texts, "locales">,
@@ -84,9 +84,6 @@ export function alternatesOf(
 			hreflang: locale,
 			url: base + address(locale, name),
 		})),
-		{
-			hreflang: "x-default",
-			url: name === frontPage ? `${base}/` : base + address(reference, name),
-		},
+		{ hreflang: "x-default", url: base + address(reference, name) },
 	];
 }

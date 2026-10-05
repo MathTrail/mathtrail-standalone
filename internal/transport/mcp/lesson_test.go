@@ -21,6 +21,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark"
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark/starlarktest"
 	"github.com/MathTrail/mathtrail-standalone/internal/learner"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 	"github.com/MathTrail/mathtrail-standalone/internal/store/memory"
@@ -39,13 +40,14 @@ import (
 var shipped = sync.OnceValues(content.Load)
 
 // sandbox is the sandbox the solvers of these cases run in: the service's own,
-// with the limits a deployment starts with but for the wait for a slot, built
-// once. Every case of the package shares it, many at a time, and how long a
-// queue of their runs may stand is not what any of them is about.
+// with the limits a deployment starts with but for the wait for a slot and the
+// clock under the race detector, built once. Every case of the package shares
+// it, many at a time, and how long a queue of their runs may stand is not what
+// any of them is about.
 var sandbox = sync.OnceValues(func() (solver.Runner, error) {
 	return starlark.New(starlark.Limits{
 		Steps:       config.DefaultSolverSteps,
-		Timeout:     config.DefaultSolverTimeout,
+		Timeout:     starlarktest.Clock(config.DefaultSolverTimeout),
 		Concurrency: config.DefaultSolverConcurrency,
 		Wait:        time.Minute,
 	})

@@ -436,8 +436,8 @@ describe("the site built from this repository", () => {
 		expect(urlsIn(style)).toEqual(fontFiles.map((file) => `/assets/${file}`));
 	});
 
-	test("loads on every page the tokens, then the styles, and a script only on a page allowed one", async () => {
-		const pages = await pagesIn(out);
+	test("loads on every page of a language the tokens, then the styles, and a script only on a page allowed one", async () => {
+		const pages = await localePages(out);
 		expect(pages).not.toEqual([]);
 		for (const page of pages) {
 			const html = await readFile(join(out, page), "utf8");
@@ -459,6 +459,18 @@ describe("the site built from this repository", () => {
 			).toEqual(scripted.includes(page) ? ["/assets/demo.js"] : []);
 			expect(html.includes('class="mt mt-widget')).toBe(carded.includes(page));
 		}
+	});
+
+	test("sends a reader of the bare domain on to the English front page, loading nothing first", async () => {
+		const apex = await readFile(join(out, "index.html"), "utf8");
+
+		expect(apex).toContain(
+			'<meta http-equiv="refresh" content="0; url=/en/"/>',
+		);
+		expect(apex).toContain(
+			'<link rel="canonical" href="https://mathtrail.app/en/"/>',
+		);
+		expect(apex).not.toMatch(/rel="stylesheet"|<script|<style/);
 	});
 
 	test("carries on the home page what its demo needs: the lesson's task, the widget's words in the page's language alone, and an answer for every choice", async () => {

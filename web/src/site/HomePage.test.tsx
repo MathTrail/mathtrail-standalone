@@ -241,8 +241,8 @@ describe("the home page", () => {
 		expect(all("script", "type")).toEqual(["application/json", "module"]);
 		expect(all("script[src]", "src")).toEqual(["/assets/demo.js"]);
 		expect(all('link[rel="stylesheet"]', "href")).toContain("/assets/card.css");
-		expect(home.querySelectorAll(".s-card").length).toBe(7);
-		expect(home.querySelectorAll(".s-card:not([inert])").length).toBe(0);
+		expect(home.querySelectorAll(".s-card")).toHaveLength(7);
+		expect(home.querySelectorAll(".s-card:not([inert])")).toHaveLength(0);
 	});
 
 	// A page keeps no profile: a card on it says whose it is, and leads to no
@@ -361,14 +361,14 @@ describe("the home page", () => {
 			"Progress",
 		]);
 		expect(texts(".s-walk-number")).toEqual(["1", "2", "", "3", "", "4"]);
-		expect(home.querySelectorAll(".s-walk-within").length).toBe(2);
+		expect(home.querySelectorAll(".s-walk-within")).toHaveLength(2);
 	});
 
 	test("shows the task being written at the first step", () => {
 		expect(
 			step(1).querySelector('article[aria-label="Next task"]'),
 		).not.toBeNull();
-		expect(step(1).querySelectorAll(".mt-option").length).toBe(0);
+		expect(step(1).querySelectorAll(".mt-option")).toHaveLength(0);
 	});
 
 	test("shows the option the steps pick being checked at the second", () => {
@@ -399,7 +399,7 @@ describe("the home page", () => {
 		expect(step(4).querySelector(".mt-note-trap")?.textContent).toContain(
 			"Counted the gaps.",
 		);
-		expect(step(4).querySelectorAll(".mt-steps li").length).toBe(3);
+		expect(step(4).querySelectorAll(".mt-steps li")).toHaveLength(3);
 	});
 
 	test("puts the question the child asks once the answer is in under the card, as messages of the chat labelled an illustration", () => {

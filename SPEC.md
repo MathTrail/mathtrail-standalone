@@ -168,7 +168,7 @@ The solver is not one of these fields. It is a file of its own, `content/example
 |---|---|---|
 | `id` | yes | `<topic abbreviation>-<level>-d<difficulty>-<number>`, unique across the content |
 | `topic`, `grade_level`, `difficulty` | yes | Ids from the catalogs; difficulty 1–5 inside the level |
-| `question` | yes | English. The model writes in the lesson's language; the examples set the idea and the structure, not the language |
+| `question` | yes | English. The model writes in the lesson's language; the examples set the level, how hard a task of it is and the kind of reasoning, not an idea to tell again and not the language |
 | `drawing`, `drawing_structure` | no | A text drawing and its structural description, wherever the task has a picture in it (R68). The format is section 4, the frames are T36b |
 | `options` | yes | Exactly five, all different |
 | `correct_answer` | yes | Exactly one letter |
@@ -565,6 +565,7 @@ Returned by `get_package`, for the request `next_task` opened, never rendered as
 | Part | What it is | Size |
 |---|---|---|
 | The brief | 4.2, built by the rule or adjusted by the model (section 3) | ~0.6 KB, and up to 300 characters more for the model's reason when it chose (7.2) |
+| The idea | Which idea of the topic the task is built on: `number`, its place on the list of `of` ideas — ten, none a reference task's — the model writes out in `core_idea` before it chooses, and `round`, how many times that list has come round for this child, from the second a variant of the idea. The tasks of the topic the child has left behind, answered or skipped, set both (R205) | small |
 | The corridor | The recommended point — its level and difficulty — with its marker, the corridor as a β interval, and the chance of a correct answer at every point of the topic (2.3) | ~0.9 KB for a topic of three levels |
 | The topic | Its id, name and description from the catalog | small |
 | The traps | The whole catalog of 20, with descriptions — the two in the brief are a recommendation, and the model needs the others to choose an alternative that fits its plot | ~2 KB |
@@ -573,11 +574,11 @@ Returned by `get_package`, for the request `next_task` opened, never rendered as
 | Three reference tasks | 4.1.1, each without its id, level and solver: the solver is not shown (1.5) | ~3.6 KB |
 | Solver templates | One or two for this topic from `content/solvers/<topic>/`, each the solver of one of its reference tasks generalised (6.7), marked as samples one may depart from (О-43, R08, R64). A topic with no reference tasks has none yet, and the part is an empty list | 1–2.5 KB |
 | Drawing frames | The frames of `content/drawings/` made for this topic, each a drawing with `#` where a number goes and Latin capitals for its labels, what it is for and how it is filled, and its structure (4.4, О-44, R09, R66). A topic without frames gets an empty list | 0.6–2 KB |
-| The guide | One page, `content/instructions/task_writing.md`: how the task is written, what grows with the difficulty inside a level, the notes framed as information (4.1.2), the fields to hand back with one worked example that itself passes every check, the page about the solver (6.7), the rules of the drawing (4.4) and the self-check's checklist (4.5) | ~11.9 KB |
+| The guide | One page, `content/instructions/task_writing.md`: how the task is written, what grows with the difficulty inside a level, the notes framed as information (4.1.2), the fields to hand back with one worked example that itself passes every check, the page about the solver (6.7), the rules of the drawing (4.4) and the self-check's checklist (4.5) | ~13.7 KB |
 | The limits | The readability limits of the brief's level (1.1) and the drawing limits (5.4), the characters a drawing may use among them | small |
 | The instructions version | The hash of the instructions, the solver templates and the drawing frames, which every log line about this task will carry (О-21, R64, R66) | small |
 
-**The budget is 64 KB, and nothing is dropped to meet it** (R65). It is a ceiling against a package growing unnoticed, not a target: a package is a few thousand tokens of the chat's own context, paid for out of the family's message limit, but that context only gets cheaper, and a sample solver or a reference task left out of a rare profile's package would buy a few hundred tokens with the quality of the task. With the solver templates, the drawing frames and the drawings of the reference tasks in, a child with an ordinary profile — two interests, a sentence of notes, two skills left out — gets 22.3 KB on average across the catalog and 28.0 KB at most. For a child at every limit the profile sets (04-profile) — notes of 500 characters, ten interests of forty, all twenty-five skills excluded — each task chosen by the model with the longest reason `next_task` takes, 300 characters (7.2), a package is 25.9 KB on average in Latin letters and 31.5 KB at most; the same limits reach 32.8 KB in Cyrillic, 34.0 KB in Chinese or Japanese, 35.3 KB in characters of four bytes and 36.2 KB in the characters JSON has to escape, six bytes for every one typed. A test holds every one of those packages — every topic at every level it is taught at, every difficulty and turn of the reference tasks, each with the chances of all fifteen points and the rationale the rule writes around the longest reason — to the budget.
+**The budget is 64 KB, and nothing is dropped to meet it** (R65). It is a ceiling against a package growing unnoticed, not a target: a package is a few thousand tokens of the chat's own context, paid for out of the family's message limit, but that context only gets cheaper, and a sample solver or a reference task left out of a rare profile's package would buy a few hundred tokens with the quality of the task. With the solver templates, the drawing frames and the drawings of the reference tasks in, a child with an ordinary profile — two interests, a sentence of notes, two skills left out — gets 24.2 KB on average across the catalog and 29.8 KB at most. For a child at every limit the profile sets (04-profile) — notes of 500 characters, ten interests of forty, all twenty-five skills excluded — each task chosen by the model with the longest reason `next_task` takes, 300 characters (7.2), a package is 27.7 KB on average in Latin letters and 33.4 KB at most; the same limits reach 34.6 KB in Cyrillic, 35.8 KB in Chinese or Japanese, 37.1 KB in characters of four bytes and 38.1 KB in the characters JSON has to escape, six bytes for every one typed. A test holds every one of those packages — every topic at every level it is taught at, every difficulty and turn of the reference tasks, each with the chances of all fifteen points and the rationale the rule writes around the longest reason — to the budget.
 
 On a repeat attempt the package is not sent again: `submit_task` answers with the refusal codes, and the model already has everything else in its context (03-flows).
 
@@ -585,7 +586,7 @@ On a repeat attempt the package is not sent again: `submit_task` answers with th
 
 Three examples of the brief's topic and level: of the requested difficulty first, then the nearest difficulty, then the next nearest, then the level below (1.6). Where more than three are available — every grade 1–4 cell has five — the three rotate by `ratings.answers`, so a child asking for the same topic twice does not get the same examples twice (the prototype's D43). At `5-6` a cell holds exactly three and the rotation has nothing to do.
 
-Reference tasks are in English whatever the lesson's language: they carry the idea, the structure and the trap labelling, not the wording (1.5).
+Reference tasks are in English whatever the lesson's language: they carry the level, how hard a task of it is, the kind of reasoning and the trap labelling, not the wording. Nor an idea to tell again: a task is none of them, and is built on the idea the package names (4.1, R205).
 
 ### 4.1.2 The notes about the child are data, not instructions
 
@@ -619,7 +620,7 @@ What `submit_task` carries, together with the request id, the brief, the solver 
 
 | Field | Type | Why it exists |
 |---|---|---|
-| `core_idea` | string | The mathematical core before the plot: the idea and why the answer is what it is. Writing from the idea outwards works better than writing a story and hoping (the prototype's research/03) |
+| `core_idea` | string | The mathematical core before the plot: the list of the topic's ideas the package's idea picks from (4.1), the idea picked, and why the answer is what it is. Writing from the idea outwards works better than writing a story and hoping (the prototype's research/03) |
 | `design_thought_process` | string | How the plot and the traps were chosen. Not shown to anybody; it makes the model state its reasoning before committing to it |
 | `question` | string | The wording the child reads, in the lesson's language |
 | `drawing`, `drawing_structure` | string, object | Optional — 4.4 |
@@ -1454,14 +1455,14 @@ Two designs, each with a reference of its own (R156). The card — every screen 
 
 | Page | Address | Its words | Task |
 |---|---|---|---|
-| The apex: the product's name and its languages | `/` | The site's dictionaries | T19, T66 |
+| The apex: sends the reader on to the English home page at once, loading no stylesheet, font or picture, and names it as its canonical; the language is switched there (R206) | `/` | The English home page's title and line | T19, T66 |
 | Home: the promise, how a lesson goes, how to connect | `/<locale>/` | `index.yaml` | T66a.1, T66a.2 |
 | The coach, a product of the author's own still in the making, and its prototype to try | `/<locale>/coach/` | `coach.yaml` | T75.14 |
 | Why olympiad maths, what research has found about it, and why MathTrail | `/<locale>/why/` | `why.yaml` | T75.10 |
 | The topics, and how they link | `/<locale>/topics/` | `topics.yaml` | T75.4 |
 | A topic of the catalog | `/<locale>/topics/<slug>/` | `topics/<slug>.yaml` | T75.5–T75.9 |
 | The techniques of problem solving, each worked through on a problem | `/<locale>/techniques/` | `techniques.yaml` | T75.12 |
-| Research: the numbers behind the product | `/<locale>/research/` | `research.yaml` | T72.12, T72.13 |
+| Research: the numbers behind the product, every one from data (`docs/research-page.md`, R204; its draft is `research/draft-ui/`) | `/<locale>/research/` | `research.yaml` | T72.12, T72.13, T72.15 |
 | About: who makes MathTrail, and where to write | `/<locale>/about/` | `about.yaml` | T75.11, T75.13 |
 | The privacy policy and the terms of use | `/<locale>/privacy/`, `/<locale>/terms/` | `privacy.md`, `terms.md` | T19a, T61 |
 
@@ -1963,7 +1964,7 @@ Added while writing the instructions for the model (T36.2):
 
 Added in the review of the package for the model (T36.1):
 
-29. **The model's reason for a choice of its own has no limit yet.** `next_task` puts the model's `reason` into the brief's `rationale` (3.4), and the brief travels in the package whole. Nothing caps its length, so neither the budget of 4.1 nor its test can count it. T44 gives `reason` a limit in the tool's input schema, and the budget test counts the longest rationale that limit allows. **For:** T44, which defines `next_task` — the remark first named T43, whose tools take no `reason`. **Settled in T44:** a reason is at most 300 characters (`tutor.MaxReason`), checked by the rule in its own words rather than in the input schema, whose library would quote the reason back (remark 36). The budget test builds every package of a child at the limits around the rationale the rule writes with the longest reason, in the same script, and the heaviest is 36.2 KB (4.1).
+29. **The model's reason for a choice of its own has no limit yet.** `next_task` puts the model's `reason` into the brief's `rationale` (3.4), and the brief travels in the package whole. Nothing caps its length, so neither the budget of 4.1 nor its test can count it. T44 gives `reason` a limit in the tool's input schema, and the budget test counts the longest rationale that limit allows. **For:** T44, which defines `next_task` — the remark first named T43, whose tools take no `reason`. **Settled in T44:** a reason is at most 300 characters (`tutor.MaxReason`), checked by the rule in its own words rather than in the input schema, whose library would quote the reason back (remark 36). The budget test builds every package of a child at the limits around the rationale the rule writes with the longest reason, in the same script, and the heaviest is 38.1 KB (4.1).
 30. **A profile with no excluded skills must say so with `[]`.** The rule copies `student.excluded_skills` into the brief as it stands, so a profile holding `null` there gives a brief holding `null`. The model, told to hand the brief back as it received it, hands back `null`, and the structure check (5.2) refuses a missing list — an attempt lost on every task. Either the profile is written with an empty list, or the rule turns `null` into one. **For:** T41, T43. **Not for T41:** the endpoint has no say in what a profile holds, so this stays with T43, whose `save_profile` writes the profile. **Settled in T43:** both hold — a profile is made and edited with empty lists, never null, and the rule copies the skills into a list of its own, so a `null` a parent typed into the file by hand still reaches the model as `[]`.
 
 Added with the solver templates (T36a):

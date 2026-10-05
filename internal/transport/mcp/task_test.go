@@ -1125,6 +1125,34 @@ func TestAnUnansweredTaskIsSkippedByTheNextAsk(t *testing.T) {
 	}
 }
 
+// The package names the idea of the topic its task is built on by the tasks
+// of the topic the child has left behind, answered or skipped: a task skipped
+// by the next ask moves the next one on to another idea, as an answer does.
+func TestThePackageNamesTheIdeaByTheTopicsTasksLeftBehind(t *testing.T) {
+	t.Parallel()
+
+	p := raceOnTheCard(t, rating.TrialAnswers)
+	if p.Topics == nil {
+		p.Topics = map[string]profile.Topic{}
+	}
+	ordering := p.Topics["logic.ordering"]
+	ordering.Answers, ordering.Correct, ordering.Skipped = 12, 9, 3
+	p.Topics["logic.ordering"] = ordering
+	_, session := lesson(t, keptAsIs(t, p))
+
+	// The race on the card is left for another race: the sixteenth task of the
+	// topic, and the second time round the list.
+	coming := wantComing(t, call(t, session, "next_task", raceChoice))
+	type idea struct{ Number, Of, Round int }
+	var got idea
+	if err := json.Unmarshal(packageIn(t, fetchPackage(t, session, coming.RequestID))["idea"], &got); err != nil {
+		t.Fatalf("read the package's idea: %v", err)
+	}
+	if want := (idea{Number: 7, Of: 10, Round: 2}); got != want {
+		t.Errorf("idea = %+v after 12 answers, 3 skips and the race left, want %+v", got, want)
+	}
+}
+
 // Nothing that gives the answer away leaves the seal before the child has
 // answered: not in the payload a card draws, not in the words for the model,
 // not in the open part of the profile, not on a span and not in a line. A card

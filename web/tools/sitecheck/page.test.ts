@@ -86,6 +86,7 @@ describe("parsePage", () => {
 				`<link rel="alternate" hreflang="ru" href="https://example.test/ru/">`,
 				`</head><body><template>`,
 				`<meta name="description" content="Another page.">`,
+				`<meta http-equiv="refresh" content="0; url=/elsewhere/">`,
 				`<link rel="canonical" href="https://example.test/elsewhere/">`,
 				`<link rel="alternate" hreflang="fr" href="https://example.test/fr/">`,
 				`<link rel="stylesheet" href="/assets/demo.css">`,
@@ -97,12 +98,45 @@ describe("parsePage", () => {
 			title: "Page",
 			description: "The page.",
 			canonical: "https://example.test/en/",
+			refresh: "",
 		});
 		expect([...page.alternates]).toEqual([["ru", "https://example.test/ru/"]]);
 		expect(page.references.map((ref) => ref.value)).toEqual([
 			"/assets/demo.css",
 		]);
 	});
+
+	test.for([
+		["0; url=/en/", "/en/"],
+		["0;URL='/en/'", "/en/"],
+		[' 0 , url = "/en/" ', "/en/"],
+		["0; /en/", "/en/"],
+		["0;url='/en/", "/en/"],
+		// A browser counts whole seconds alone.
+		["0.5; url=https://example.test/en/", "https://example.test/en/"],
+		[".5; url=/en/", "/en/"],
+		// A refresh that waits first shows its page before it leaves.
+		["5; url=/en/", ""],
+		// A refresh that names no address only reloads the page.
+		["0", ""],
+		["5", ""],
+		// A browser does not refresh at all without the time, or with anything
+		// but a separator after it.
+		["url=/en/", ""],
+		["; url=/en/", ""],
+		["0x; url=/en/", ""],
+		["", ""],
+	] as const)(
+		"reads a refresh of %j as sending the reader on at once to %j",
+		([content, want]) => {
+			const page = parsePage(
+				"index.html",
+				`<!DOCTYPE html><html><head><meta http-equiv="Refresh" content="${content.replaceAll('"', "&quot;")}"></head></html>`,
+			);
+
+			expect(page.refresh).toBe(want);
+		},
+	);
 
 	test("reads the head and sorts every reference by what the browser does with it", () => {
 		const page = parsePage(

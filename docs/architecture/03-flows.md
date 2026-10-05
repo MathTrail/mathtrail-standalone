@@ -93,7 +93,7 @@ sequenceDiagram
     MT-->>W: the task on its way — the request, whose card it is, its language, and no package
     M->>MT: get_package with the request id
     MT->>D: read the profile
-    MT-->>M: the package — brief, corridor, three reference tasks, the traps,<br/>the prohibitions, the formats, the solver templates, the drawing frames,<br/>the checklist and the instructions version
+    MT-->>M: the package — brief, the idea to build on, corridor, three reference tasks,<br/>the traps, the prohibitions, the formats, the solver templates, the drawing frames,<br/>the checklist and the instructions version
     Note over M,W: no card is drawn from the package: the reference tasks carry their answers
 
     par the card asks how the task stands, every few seconds

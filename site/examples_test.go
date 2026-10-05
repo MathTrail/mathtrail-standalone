@@ -17,6 +17,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/config"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark"
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark/starlarktest"
 )
 
 // example is what the site's data says of one example on a page that a
@@ -154,13 +155,13 @@ func prove(t *testing.T, sandbox solver.Runner, path, answer string) {
 
 // serviceSandbox is the sandbox a submitted solver runs in, with the limits
 // the deployed service uses — all but the wait for a slot, which no example
-// is about.
+// is about, and the clock under the race detector.
 func serviceSandbox(t *testing.T) solver.Runner {
 	t.Helper()
 
 	sandbox, err := starlark.New(starlark.Limits{
 		Steps:       config.DefaultSolverSteps,
-		Timeout:     config.DefaultSolverTimeout,
+		Timeout:     starlarktest.Clock(config.DefaultSolverTimeout),
 		Concurrency: config.DefaultSolverConcurrency,
 		Wait:        time.Minute,
 	})

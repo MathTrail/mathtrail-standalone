@@ -65,8 +65,10 @@ type Topic struct {
 	// reach has been mastered.
 	MasteredSince *Date `json:"mastered_since"`
 	// Skipped is how many tasks of this topic were left without an answer when
-	// another was asked for. Nothing that computes reads it: it is for the
-	// parent, who can see from it that hard tasks are being leafed past.
+	// another was asked for. No rating reads it: it is for the parent, who can
+	// see from it that hard tasks are being leafed past, and, added to the
+	// answers, it counts the tasks of the topic the child has been through,
+	// which picks the idea of the topic the next one is built on.
 	Skipped int `json:"skipped,omitzero"`
 	// TopStreak is the run of correct answers at the harder half of the
 	// corridor with no hint — the run the earlier rule mastered a topic by.

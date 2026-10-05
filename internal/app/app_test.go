@@ -26,6 +26,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/config"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/seal"
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark/starlarktest"
 	"github.com/MathTrail/mathtrail-standalone/internal/ratelimit"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
 	mcpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/mcp"
@@ -635,7 +636,7 @@ func testConfig() *config.Config {
 		ShutdownTimeout:    time.Second,
 		SealKeyCurrent:     sealKey,
 		SolverSteps:        config.DefaultSolverSteps,
-		SolverTimeout:      config.DefaultSolverTimeout,
+		SolverTimeout:      starlarktest.Clock(config.DefaultSolverTimeout), // stretched under the race detector
 		SolverConcurrency:  config.DefaultSolverConcurrency,
 		SolverWait:         config.DefaultSolverWait,
 		RequestWindow:      config.DefaultRequestWindow,

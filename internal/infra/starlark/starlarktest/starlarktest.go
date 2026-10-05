@@ -3,6 +3,7 @@
 // slots came back once a run is over. It asks nothing of the sandbox that a
 // caller could not: it runs programs, as any caller does — one that ends as
 // soon as it has a slot, and one that keeps its slot until the sandbox stops it.
+// It also sets the clock a test gives a run, which the race detector stretches.
 package starlarktest
 
 import (

@@ -212,7 +212,7 @@ describe("the page Why", () => {
 			),
 		).toEqual(["A muted", "B wrong", "C correct", "D muted", "E muted"]);
 		expect(why.querySelector(".s-card .mt-note-trap")).not.toBeNull();
-		expect(why.querySelectorAll(".s-card .mt-steps li").length).toBe(3);
+		expect(why.querySelectorAll(".s-card .mt-steps li")).toHaveLength(3);
 	});
 
 	test("draws its card in the page's language", () => {

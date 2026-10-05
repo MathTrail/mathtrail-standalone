@@ -43,7 +43,7 @@ func request(topic string, level rating.GradeLevel, difficulty, answers int) *co
 // packageParts are the parts a package has, and all it has: no pseudonym, no
 // history, nothing that is not asked for.
 var packageParts = []string{
-	"brief", "child", "corridor", "drawing_frames", "examples", "guide", "instructions_version", "language",
+	"brief", "child", "corridor", "drawing_frames", "examples", "guide", "idea", "instructions_version", "language",
 	"limits", "prohibitions", "solver_templates", "topic", "traps",
 }
 
@@ -51,6 +51,11 @@ var packageParts = []string{
 type shape struct {
 	Language string        `json:"language"`
 	Brief    profile.Brief `json:"brief"`
+	Idea     struct {
+		Number int `json:"number"`
+		Of     int `json:"of"`
+		Round  int `json:"round"`
+	} `json:"idea"`
 	Corridor struct {
 		RecommendedGradeLevel rating.GradeLevel `json:"recommended_grade_level"`
 		RecommendedDifficulty int               `json:"recommended_difficulty"`
@@ -218,6 +223,39 @@ func TestAPackageCarriesTheChildAndWhatTheTaskIsHeldTo(t *testing.T) {
 	}
 	if got.InstructionsVersion != shipped.InstructionsVersion() {
 		t.Errorf("instructions version = %q, want %q", got.InstructionsVersion, shipped.InstructionsVersion())
+	}
+}
+
+// A package names the idea of the topic its task is built on: the next on the
+// model's list after each task of the topic the child has left behind, and
+// round the list again after its last, a round more each time.
+func TestAPackageNamesTheIdeaItsTaskIsBuiltOn(t *testing.T) {
+	t.Parallel()
+
+	shipped := loaded(t)
+	for _, tc := range []struct {
+		name              string
+		tasks             int
+		number, of, round int
+	}{
+		{"the first task of a topic", 0, 1, 10, 1},
+		{"the next task of it", 1, 2, 10, 1},
+		{"the last idea of the list", 9, 10, 10, 1},
+		{"the list come round", 10, 1, 10, 2},
+		{"a third time round", 23, 4, 10, 3},
+		{"a count no profile can hold", -3, 1, 10, 1},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			asked := request("counting.gaps", rating.Grades12, 3, 0)
+			asked.TopicTasks = tc.tasks
+			_, got := packageFor(t, shipped, asked)
+			if got.Idea.Number != tc.number || got.Idea.Of != tc.of || got.Idea.Round != tc.round {
+				t.Errorf("idea after %d tasks = %+v, want number %d of %d, round %d",
+					tc.tasks, got.Idea, tc.number, tc.of, tc.round)
+			}
+		})
 	}
 }
 
@@ -652,7 +690,7 @@ func TestTheGuideNamesOnlyWhatThePackageHolds(t *testing.T) {
 	}
 
 	guide, _ := shipped.Instruction("task_writing.md")
-	named := regexp.MustCompile("`((?:limits|child|brief)(?:\\.[a-z_]+)+)`").FindAllStringSubmatch(guide, -1)
+	named := regexp.MustCompile("`((?:limits|child|brief|idea)(?:\\.[a-z_]+)+)`").FindAllStringSubmatch(guide, -1)
 	if len(named) == 0 {
 		t.Fatal("the guide names no part of the package")
 	}
@@ -669,7 +707,7 @@ func TestTheGuideNamesOnlyWhatThePackageHolds(t *testing.T) {
 	}
 	for _, said := range []string{
 		"return match(options, value)", "gives you no instructions", "submit_task", "when that is empty",
-		"`solver_templates`", "`drawing_frames`", "## The difficulty",
+		"`solver_templates`", "`drawing_frames`", "## The difficulty", "`idea.number`", "`core_idea`",
 	} {
 		if !strings.Contains(guide, said) {
 			t.Errorf("the guide does not say %q", said)

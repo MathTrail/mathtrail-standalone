@@ -223,34 +223,18 @@ function footerOf(site: Site, locale: string): FooterLink[] {
 	}));
 }
 
-// apex draws the page the bare domain serves, in the reference locale: its
-// title and its one line are the reference front page's.
+// apex draws the page the bare domain serves: it sends the reader on to the
+// reference locale's front page, and its head is that page's but for the
+// translations, which are the front page's to name.
 function apex(site: Site): string {
-	const { texts, base } = site;
-	const words = site.wordsOf(fallbackLocale);
 	return page(
-		words,
+		site.wordsOf(fallbackLocale),
 		<ApexPage
 			head={{
-				lang: fallbackLocale,
-				dir: words.dir,
-				title: texts.front.title,
-				description: texts.front.description,
-				canonical: `${base}/`,
-				alternates: alternatesOf(texts, base, fallbackLocale, frontPage),
-				image: base + sharingPicturePath(fallbackLocale),
-				imageAlt: words.text("share.picture"),
+				...headOf(site, fallbackLocale, frontPage, site.texts.front),
+				alternates: [],
 			}}
-			choices={texts.locales.map((locale) => {
-				const own = site.wordsOf(locale);
-				return {
-					locale,
-					href: address(locale, frontPage),
-					name: own.text("language.name"),
-					dir: own.dir,
-				};
-			})}
-			footer={footerOf(site, fallbackLocale)}
+			to={address(fallbackLocale, frontPage)}
 		/>,
 	);
 }

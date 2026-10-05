@@ -126,12 +126,12 @@ export function readWhy(catalog: CardCatalog, file: WhyFile): Why {
 		}
 		return { ...work, id };
 	};
-	const cited = [...file.findings, file.apps];
+	const cited = new Set([...file.findings, file.apps]);
 	if (new Set(file.findings).size !== file.findings.length) {
 		throw new Error("the page Why shows a finding twice");
 	}
 	for (const id of Object.keys(file.sources)) {
-		if (!cited.includes(id)) {
+		if (!cited.has(id)) {
 			throw new Error(`the source ${id} is cited nowhere on the page Why`);
 		}
 	}

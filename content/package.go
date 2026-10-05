@@ -25,6 +25,13 @@ const PackageBudget = 64 * 1024
 // examplesPerPackage is how many reference tasks a package shows.
 const examplesPerPackage = 3
 
+// ideasPerList is how many ideas of a topic the model lists before it writes a
+// task of it, and so how many tasks of one topic the number moves through
+// before it comes back to the same place on the list. The list is the model's
+// own, written afresh in every chat, so the number moves the model along it
+// rather than promising which idea comes.
+const ideasPerList = 10
+
 // guideName is the page every package carries: how a task is written, handed
 // in and checked.
 const guideName = "task_writing.md"
@@ -52,13 +59,19 @@ type Request struct {
 	// reference tasks a package shows, so that a child asking for the same
 	// topic twice does not get the same examples twice.
 	Answers int
+	// TopicTasks is how many tasks of the brief's topic the child has left
+	// behind, answered or skipped. It picks the idea of the topic the task is
+	// built on, so that tasks of one topic go through its ideas one after
+	// another instead of coming back to the same one.
+	TopicTasks int
 }
 
 // Package is everything the model is handed to write one task from, as the
-// JSON it receives: the brief, the corridor, the topic, every trap, what the
-// task may not use, the child, three reference tasks, the solver templates and
-// the drawing frames of the topic, the limits it is held to, the page on how
-// to write it and the version of what it is told.
+// JSON it receives: the brief, the idea of the topic the task is built on, the
+// corridor, the topic, every trap, what the task may not use, the child, three
+// reference tasks, the solver templates and the drawing frames of the topic,
+// the limits it is held to, the page on how to write it and the version of
+// what it is told.
 //
 // There is no pseudonym in it, because the request has none to give: a task
 // has no use for the child's name, and the package is the one place it is easy
@@ -85,6 +98,7 @@ func (c *Content) Package(request *Request) ([]byte, error) {
 type packageContents struct {
 	Language            string           `json:"language"`
 	Brief               profile.Brief    `json:"brief"`
+	Idea                packageIdea      `json:"idea"`
 	Corridor            packageCorridor  `json:"corridor"`
 	Topic               packageTopic     `json:"topic"`
 	Traps               []packageTrap    `json:"traps"`
@@ -96,6 +110,27 @@ type packageContents struct {
 	Limits              packageLimits    `json:"limits"`
 	Guide               string           `json:"guide"`
 	InstructionsVersion string           `json:"instructions_version"`
+}
+
+// packageIdea is which idea of the topic the task is built on: the model lists
+// Of ideas of the topic at the brief's level, and builds the task on the one at
+// Number. Round is how many times the number has come round the list for this
+// child: from the second, the task is a variant of its idea, so that an idea
+// that comes round again is not the same task again.
+type packageIdea struct {
+	Number int `json:"number"`
+	Of     int `json:"of"`
+	Round  int `json:"round"`
+}
+
+// ideaOf is the idea of a topic the next task is built on, after the tasks of
+// the topic the child has left behind: the next on the list each time, and
+// round again after the last. A model in a new chat sees none of the tasks
+// written before, and left to itself reaches for the same favourite idea every
+// time; a number that moves with every task is what moves it along the list.
+func ideaOf(tasks int) packageIdea {
+	tasks = max(tasks, 0) // a count read from a file is not trusted to be positive
+	return packageIdea{Number: tasks%ideasPerList + 1, Of: ideasPerList, Round: tasks/ideasPerList + 1}
 }
 
 // packageCorridor is the point of the ladder the rule recommends for the child
@@ -201,6 +236,7 @@ func (c *Content) contentsFor(request *Request) (packageContents, error) {
 	contents := packageContents{
 		Language:     request.Language,
 		Brief:        request.Brief,
+		Idea:         ideaOf(request.TopicTasks),
 		Corridor:     corridorOf(&request.Corridor),
 		Topic:        packageTopic{ID: topic.ID, Name: topic.Name, Description: topic.Description},
 		Traps:        packageTraps(c.traps),

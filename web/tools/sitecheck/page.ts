@@ -46,6 +46,11 @@ export type Page = {
 	canonical: string;
 	/** alternates are the translations the page names, by their hreflang. */
 	alternates: Map<string, string>;
+	/**
+	 * refresh is the address the page sends its reader on to by itself, as its
+	 * head names it, empty when it sends them nowhere.
+	 */
+	refresh: string;
 	references: Reference[];
 	/** ids are the anchors a link may lead to within the page. */
 	ids: Set<string>;
@@ -170,6 +175,7 @@ export function parsePage(file: string, html: string): Page {
 		images: [],
 		canonical: "",
 		alternates: new Map(),
+		refresh: "",
 		references: [],
 		ids: new Set(),
 	};
@@ -217,8 +223,8 @@ function readElement(element: Element, page: Page, inTemplate: boolean): void {
 }
 
 // readOwn takes what only the page's own elements give it: an anchor, its
-// language and direction, its title, its description and the pictures a
-// shared link to it shows.
+// language and direction, its title, its description, the pictures a shared
+// link to it shows, and the address it sends its reader on to by itself.
 function readOwn(element: Element, page: Page): void {
 	const id = attribute(element, "id");
 	if (id !== "") {
@@ -241,9 +247,40 @@ function readOwn(element: Element, page: Page): void {
 				page.description = attribute(element, "content").trim();
 			} else if (attribute(element, "property").toLowerCase() === "og:image") {
 				page.images.push(attribute(element, "content").trim());
+			} else if (attribute(element, "http-equiv").toLowerCase() === "refresh") {
+				page.refresh = refreshAddress(attribute(element, "content"));
 			}
 			break;
 	}
+}
+
+// refreshAddress is the address a refresh's content sends the reader on to at
+// once, read the way a browser reads it: "0; url=/en/" sends them to /en/. It
+// is empty when a browser would not refresh at all, as for "url=/en/" with no
+// time; when the refresh only reloads the page; and when it waits first, since
+// a page seen before it leaves is a page to judge as it is. A browser counts
+// the whole seconds alone, so "0.5" is at once.
+function refreshAddress(content: string): string {
+	const input = content.trimStart();
+	const seconds = /^\d*/.exec(input)?.[0] ?? "";
+	if (seconds === "" && !input.startsWith(".")) {
+		return "";
+	}
+	let rest = input.slice((/^[\d.]*/.exec(input)?.[0] ?? "").length);
+	if (Number(seconds) !== 0 || (rest !== "" && !/^[;,\s]/.test(rest))) {
+		return "";
+	}
+	rest = rest.trimStart();
+	if (rest.startsWith(";") || rest.startsWith(",")) {
+		rest = rest.slice(1).trimStart();
+	}
+	rest = rest.replace(/^url\s*=\s*/i, "");
+	const quote = rest.charAt(0);
+	if (quote === '"' || quote === "'") {
+		const end = rest.indexOf(quote, 1);
+		rest = rest.slice(1, end < 0 ? undefined : end);
+	}
+	return rest.trim();
 }
 
 // textOf is the text an element holds directly.

@@ -186,7 +186,7 @@ async function replaceable(
 	try {
 		entries = await readdir(out);
 	} catch (error) {
-		return error instanceof Error && "code" in error && error.code === "ENOENT";
+		return isMissing(error);
 	}
 	const written = new Set(files.map(({ path }) => path.split("/")[0]));
 	return (
@@ -194,6 +194,12 @@ async function replaceable(
 		(entries.includes(".nojekyll") &&
 			entries.every((entry) => written.has(entry)))
 	);
+}
+
+// isMissing says whether an error is the one the file system gives for a path
+// that does not exist.
+function isMissing(error: unknown): boolean {
+	return error instanceof Error && "code" in error && error.code === "ENOENT";
 }
 
 /**
@@ -236,22 +242,22 @@ export function keptPhotoOf(photo: Photo): string {
 // is photographed from a site already built; its pages name a picture the site
 // does not have, and a check of the site refuses to publish them so.
 async function sharingPictures(locales: readonly string[]): Promise<Made[]> {
-	const kept: Made[] = [];
-	for (const locale of locales) {
-		try {
-			kept.push({
-				path: sharingPicturePath(locale).slice(1),
-				data: await readFile(keptPictureOf(locale)),
-			});
-		} catch (error) {
-			if (
-				!(error instanceof Error && "code" in error && error.code === "ENOENT")
-			) {
+	const kept = await Promise.all(
+		locales.map(async (locale): Promise<Made | undefined> => {
+			try {
+				return {
+					path: sharingPicturePath(locale).slice(1),
+					data: await readFile(keptPictureOf(locale)),
+				};
+			} catch (error) {
+				if (isMissing(error)) {
+					return undefined;
+				}
 				throw error;
 			}
-		}
-	}
-	return kept;
+		}),
+	);
+	return kept.filter((picture) => picture !== undefined);
 }
 
 // buildStyles builds the site's stylesheets and the home page's demo into a

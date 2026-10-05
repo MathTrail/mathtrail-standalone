@@ -15,10 +15,11 @@ import (
 )
 
 // Example is one reference task. Reference tasks are what the model is shown
-// before it writes its own: they carry the shape, the style and above all the
-// way a trap is attached to every wrong option. They are in English whatever
-// the language of the chat, because what they carry is the structure and not
-// the wording.
+// before it writes its own: they carry the level, how hard a task of it is, the
+// kind of reasoning the topic asks for and above all the way a trap is
+// attached to every wrong option — not a task to be told again in a new story.
+// They are in English whatever the language of the chat, because what they
+// carry is not the wording.
 type Example struct {
 	ID         string            `json:"id"`
 	Topic      string            `json:"topic"`
