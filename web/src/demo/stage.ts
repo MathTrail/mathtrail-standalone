@@ -32,12 +32,8 @@ export function stepAtMiddle(
 		if (box.height === 0) {
 			return;
 		}
-		const off =
-			box.top > middle
-				? box.top - middle
-				: box.bottom < middle
-					? middle - box.bottom
-					: 0;
+		// How far the middle is from the step: nothing when it falls in it.
+		const off = Math.max(box.top - middle, middle - box.bottom, 0);
 		if (off < distance) {
 			distance = off;
 			nearest = at;
@@ -156,7 +152,7 @@ function stage(document: Document, list: HTMLElement): Staged {
 		shared,
 		undo: () => {
 			for (const { card, step } of shared) {
-				card.removeAttribute("data-shown");
+				card.toggleAttribute("data-shown", false);
 				step.append(card);
 			}
 			box.before(list);

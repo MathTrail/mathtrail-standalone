@@ -26,7 +26,7 @@ export function DemoDataScript({ data }: { data: DemoData }) {
 			type="application/json"
 			data-demo=""
 			dangerouslySetInnerHTML={{
-				__html: JSON.stringify(data).replace(/</g, "\\u003c"),
+				__html: JSON.stringify(data).replaceAll("<", String.raw`\u003c`),
 			}}
 		/>
 	);

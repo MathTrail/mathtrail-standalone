@@ -104,6 +104,28 @@ const homeTask = "site_home";
  */
 export function readHome(catalog: CardCatalog, file: HomeFile): Home {
 	const { card } = file;
+	checkTraps(catalog, card);
+	const { before, wrong, right } = card.rating;
+	if (!(right > before && before > wrong)) {
+		throw new Error(
+			`${homeCard} moves its rating from ${before} to ${wrong} on a wrong answer and to ${right} on a right one: a right answer raises it, and a wrong one lowers it`,
+		);
+	}
+	for (const trap of file.traps) {
+		if (!catalog.traps.some(({ id }) => id === trap)) {
+			throw new Error(
+				`the home page names ${trap} as an example, a trap the catalog does not have`,
+			);
+		}
+	}
+	checkCard(catalog, factsOf(card), homeCard);
+	return { card, traps: file.traps };
+}
+
+// checkTraps refuses card unless a trap of the catalog stands behind each of
+// its wrong options and behind nothing else: neither the right option nor a
+// letter that is no option.
+function checkTraps(catalog: CardCatalog, card: HomeCard): void {
 	for (const letter of letters) {
 		const trap = card.traps[letter];
 		if (letter === card.correct) {
@@ -129,21 +151,6 @@ export function readHome(catalog: CardCatalog, file: HomeFile): Home {
 			);
 		}
 	}
-	const { before, wrong, right } = card.rating;
-	if (!(right > before && before > wrong)) {
-		throw new Error(
-			`${homeCard} moves its rating from ${before} to ${wrong} on a wrong answer and to ${right} on a right one: a right answer raises it, and a wrong one lowers it`,
-		);
-	}
-	for (const trap of file.traps) {
-		if (!catalog.traps.some(({ id }) => id === trap)) {
-			throw new Error(
-				`the home page names ${trap} as an example, a trap the catalog does not have`,
-			);
-		}
-	}
-	checkCard(catalog, factsOf(card), homeCard);
-	return { card, traps: file.traps };
 }
 
 /**
