@@ -90,7 +90,7 @@ Project context lives in these files, not in chat history.
   - The pseudonym never goes into task text.
 - **The answer stays hidden** until the child answers. It must not appear in widget payloads, in unsealed fields of the Drive file or in logs.
 - **Secrets** live only in environment variables, a local `.env` (never committed) or Secret Manager. No keys, tokens or client secrets in the repository.
-- **Licenses.** The code and the content are MIT. Only add dependencies with MIT-compatible licenses, and keep the third-party license list current. The name MathTrail is not licensed to forks (О-4).
+- **Licenses.** The code and the content are MIT, but for the family's photographs on the site's page "About", which are the family's own, all rights reserved (R200). Only add dependencies with MIT-compatible licenses, and keep the third-party license list current. The name MathTrail is not licensed to forks (О-4).
 
 ## Architecture and code standards
 

@@ -43,10 +43,11 @@ export function sitemap(texts: Texts, base: string, reference: string): string {
 /**
  * robots lets every crawler in but to the coach's prototype and the site's
  * photographs, and tells it where the sitemap is. The prototype is a document
- * the coach's page frames, not a page: found alone, it would stand in a search
- * result with no word of what it is. The photographs are the family's,
- * children's faces among them: the page that shows them is found by a
- * search, and they are not found apart from it.
+ * the coach's page frames, not a page: read alone, it would make a search
+ * result with no word of what it is, though its address may still be listed
+ * from the links to it. The photographs are the family's, children's faces
+ * among them: the page that shows them is found by a search, and they are not
+ * found apart from it.
  */
 export function robots(base: string): string {
 	return `User-agent: *\nAllow: /\nDisallow: ${coachPrototypePath}\nDisallow: ${photoDirectory}\n\nSitemap: ${base}/sitemap.xml\n`;

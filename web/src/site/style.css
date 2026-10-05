@@ -2602,7 +2602,6 @@ a:hover {
 .s-member-photo {
 	display: block;
 	inline-size: calc(100% + 16px);
-	max-inline-size: none;
 	block-size: auto;
 	margin: 0 -8px 10px;
 	border-radius: 16px;
@@ -2694,7 +2693,9 @@ a:hover {
    shrinks to fit it. The frame keeps the tablet's proportions, 1272 by 932, so
    that on a narrow screen no empty band stays under it; the two pixels over
    are the prototype's own background, and they keep a last row it rounds up
-   from bringing a scroll bar into the frame. */
+   from bringing a scroll bar into the frame. A browser with no container
+   units keeps the proportions by the frame's aspect ratio, which gives the
+   two pixels at the widest. */
 .s-prototype-section {
 	max-inline-size: 1320px;
 	padding-block-start: 88px;
@@ -2719,6 +2720,7 @@ a:hover {
 .s-prototype iframe {
 	display: block;
 	inline-size: 100%;
+	aspect-ratio: 1272 / 934;
 	block-size: calc(100cqi * 932 / 1272 + 2px);
 	border: 0;
 }

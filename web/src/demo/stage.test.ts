@@ -87,6 +87,10 @@ function windowOf(wide: boolean, height = 800) {
 		scrollWithFrameDue() {
 			fire("scroll");
 		},
+		changeSizeWithFrameDue() {
+			fire("resize");
+		},
+		runFrames,
 		cancelled,
 	};
 }
@@ -107,6 +111,18 @@ function standing(at: number): void {
 			height: 400,
 		} as DOMRect);
 	});
+}
+
+// questionFrame is the frame of the chat the question under the answer's card
+// stands in, once the steps share one card.
+function questionFrame(): HTMLElement {
+	const frame = document.querySelectorAll<HTMLElement>(
+		".s-walk-stage .s-frame-body",
+	)[4];
+	if (frame === undefined) {
+		throw new Error("the stage has no frame for the question");
+	}
+	return frame;
 }
 
 // shown is the card the steps share, as shown.
@@ -243,6 +259,68 @@ describe("the shared card", () => {
 
 		expect(question.scrollTop).toBe(640);
 		expect(shown()?.querySelector(".s-chat")).not.toBeNull();
+	});
+
+	test("is lined up in the window's next frame, once however often the window changes size before it", () => {
+		openHome("en");
+		standing(4);
+		const window = windowOf(true);
+		shareTheCard(document, window.window);
+		const question = questionFrame();
+		Object.defineProperty(question, "scrollHeight", {
+			value: 640,
+			configurable: true,
+		});
+
+		window.changeSizeWithFrameDue();
+		window.changeSizeWithFrameDue();
+		expect(question.scrollTop).toBe(0);
+		window.runFrames();
+
+		expect(question.scrollTop).toBe(640);
+	});
+
+	test("is lined up again once the page's own typeface has come", async () => {
+		openHome("en");
+		standing(0);
+		let typeface = () => {};
+		Object.defineProperty(document, "fonts", {
+			value: {
+				ready: new Promise<void>((resolve) => {
+					typeface = resolve;
+				}),
+			},
+			configurable: true,
+		});
+		shareTheCard(document, windowOf(true).window);
+		const question = questionFrame();
+		Object.defineProperty(question, "scrollHeight", {
+			value: 720,
+			configurable: true,
+		});
+
+		typeface();
+		await Promise.resolve();
+		await Promise.resolve();
+
+		expect(question.scrollTop).toBe(720);
+		Reflect.deleteProperty(document, "fonts");
+	});
+
+	test("shows a step's own card when a step before it has none", () => {
+		openHome("en");
+		steps()[2]?.querySelector(".s-walk-card")?.remove();
+		standing(3);
+
+		shareTheCard(document, windowOf(true).window);
+
+		// The answer told, and not the question asked under it, which tells
+		// the same answer.
+		expect(shown()?.querySelector(".mt-note-trap")).not.toBeNull();
+		expect(shown()?.querySelector(".s-chat")).toBeNull();
+		expect(
+			document.querySelectorAll(".s-walk-stage > .s-walk-card"),
+		).toHaveLength(5);
 	});
 
 	test("stopped while a frame is due, lets the frame go", () => {

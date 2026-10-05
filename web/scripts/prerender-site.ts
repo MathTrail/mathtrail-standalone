@@ -111,7 +111,7 @@ export async function buildSite({
 		// The family's photographs go out as they are kept, each under the name
 		// the page that shows it serves it by.
 		...(await Promise.all(
-			photos.slice(1).map(async (photo) => ({
+			photos.map(async (photo) => ({
 				path: photoPath(photo.name).slice(1),
 				data: await readFile(keptPhotoOf(photo)),
 			})),

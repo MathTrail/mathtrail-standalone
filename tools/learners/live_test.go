@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math"
+	"slices"
 	"testing"
 
 	"github.com/leanovate/gopter"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
+	"github.com/MathTrail/mathtrail-standalone/internal/report"
 )
 
 // oneTopic is a catalog of one topic, "t", taught at the first two grade
@@ -63,14 +65,16 @@ func TestAMasteryShownIsFollowedAsTheReportFollowsIt(t *testing.T) {
 
 	for _, tc := range []struct {
 		name, outcomes string
-		want           []shownMastery
+		// want is each mastery shown: the answers that followed it, and the
+		// one it was taken back at, none when it was not.
+		want [][2]int
 	}{
-		{"two wrong in a row", "RWW", []shownMastery{{followed: 3, takenBackAt: 3, wrongInARow: 2}}},
-		{"a right answer between", "WRWR", []shownMastery{{followed: 4}}},
-		{"answers after it was taken back", "WWRRW", []shownMastery{{followed: 2, takenBackAt: 2, wrongInARow: 2}}},
-		{"shown again", "RWSWW", []shownMastery{{followed: 3}, {followed: 2, takenBackAt: 2, wrongInARow: 2}}},
-		{"another topic", "WxxW", []shownMastery{{followed: 2, takenBackAt: 2, wrongInARow: 2}}},
-		{"no answer after it", "", []shownMastery{{}}},
+		{"two wrong in a row", "RWW", [][2]int{{3, 3}}},
+		{"a right answer between", "WRWR", [][2]int{{4, 0}}},
+		{"answers after it was taken back", "WWRRW", [][2]int{{2, 2}}},
+		{"shown again", "RWSWW", [][2]int{{3, 0}, {2, 2}}},
+		{"another topic", "WxxW", [][2]int{{2, 2}}},
+		{"no answer after it", "", [][2]int{{0, 0}}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -84,12 +88,12 @@ func TestAMasteryShownIsFollowedAsTheReportFollowsIt(t *testing.T) {
 				}
 				r.followShown(topic, outcome == 'R' || outcome == 'S', outcome == 'S')
 			}
-			var got []shownMastery
+			var got [][2]int
 			for _, m := range r.shown {
-				got = append(got, *m)
+				got = append(got, [2]int{m.Answers, m.TakenBackAt})
 			}
-			if fmt.Sprint(got) != fmt.Sprint(tc.want) {
-				t.Errorf("after %q the masteries are %+v, want %+v", tc.outcomes, got, tc.want)
+			if !slices.Equal(got, tc.want) {
+				t.Errorf("after %q the masteries are %v, want %v", tc.outcomes, got, tc.want)
 			}
 		})
 	}
@@ -143,17 +147,17 @@ func TestTheShareTakenBackIsReadAsTheReportReadsIt(t *testing.T) {
 	t.Parallel()
 
 	var children []vector
-	for _, m := range []shownMastery{{followed: 2, takenBackAt: 2}, {followed: 2}, {followed: 4, takenBackAt: 4}, {followed: 10}} {
+	for _, m := range []report.Followed{{Answers: 2, TakenBackAt: 2}, {Answers: 2}, {Answers: 4, TakenBackAt: 4}, {Answers: 10}} {
 		r := newChildResult(nil)
-		r.shown = []*shownMastery{&m}
+		r.shown = []*report.Followed{&m}
 		children = append(children, vector{held: heldOf(r)})
 	}
-	for within, want := range map[int]float64{takenBackBy: 5.0 / 8, 3: 1.0 / 4} {
+	for within, want := range map[int]float64{report.TakenBackBy: 5.0 / 8, 3: 1.0 / 4} {
 		if got, read := takenBackWithin(within)(children, everyone(len(children))); !read || math.Abs(got-want) > 1e-12 {
 			t.Errorf("taken back within %d answers: %v (read: %t), want %v", within, got, read, want)
 		}
 	}
-	if _, read := takenBackWithin(takenBackBy)(nil, nil); read {
+	if _, read := takenBackWithin(report.TakenBackBy)(nil, nil); read {
 		t.Error("no masteries read a share, want none")
 	}
 }
@@ -220,7 +224,7 @@ func takenBackAsTheServiceLosesIt(w *world, seq *sequence) (why string, taken in
 			return err.Error(), taken
 		}
 		s.result.live(s, &recorded, &before)
-		tookBack := followed != nil && followed.takenBackAt > 0
+		tookBack := followed != nil && followed.TakenBackAt > 0
 		if tookBack {
 			taken++
 		}

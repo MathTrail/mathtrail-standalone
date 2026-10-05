@@ -465,11 +465,13 @@ describe("the site built from this repository", () => {
 		}
 	});
 
-	// A script is weighed whole, as one file: the demo carries none of the
-	// widget's dictionaries, which the page carries in its own language, and
-	// none of the libraries a card in a chat reads the service and the host
-	// with, since the page answers for both. The topics' names it does carry,
-	// in the catalog the card's choice of a topic reads its grades from.
+	// A script is weighed whole, as one file: the list of the files the build
+	// makes holds that, and the site's checker refuses a script that imports.
+	// The demo carries none of the widget's dictionaries, which the page
+	// carries in its own language, and none of the libraries a card in a chat
+	// reads the service and the host with, since the page answers for both.
+	// The topics' names it does carry, in the catalog the card's choice of a
+	// topic reads its grades from.
 	test("builds the demo into one file, with no dictionary of the widget, no zod and nothing of a host's library", async () => {
 		const demo = await readFile(join(out, "assets", "demo.js"), "utf8");
 		const named = new Set(catalog.map((topic) => topic.name));
@@ -480,7 +482,6 @@ describe("the site built from this repository", () => {
 			),
 		);
 
-		expect(demo).not.toMatch(/\bimport\s*(?:[\w$*{]|["'(])/);
 		expect(demo).not.toContain("_zod");
 		expect(demo).not.toContain("ui/initialize");
 		expect(long.filter((said) => demo.includes(said))).toEqual([]);

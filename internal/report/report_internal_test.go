@@ -233,6 +233,21 @@ func TestAReportOfNoLinesSaysSo(t *testing.T) {
 	}
 }
 
+// A whole number is written as English counts with it, the teens with th
+// whatever their last digit.
+func TestAnOrdinalTakesItsEnglishEnding(t *testing.T) {
+	t.Parallel()
+
+	for n, want := range map[int]string{
+		1: "1st", 2: "2nd", 3: "3rd", 4: "4th", 10: "10th", 11: "11th", 12: "12th", 13: "13th",
+		21: "21st", 22: "22nd", 23: "23rd", 50: "50th", 101: "101st", 111: "111th", 112: "112th", 200: "200th",
+	} {
+		if got := ordinal(n); got != want {
+			t.Errorf("ordinal(%d) = %q, want %q", n, got, want)
+		}
+	}
+}
+
 // The nearest-rank percentile of a few values, where it can be worked out by
 // hand.
 func TestAPercentileIsTheNearestRank(t *testing.T) {

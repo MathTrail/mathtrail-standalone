@@ -3,14 +3,20 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { photoDirectory, photoPath, photos } from "../src/site/brand.ts";
-import { cropOf, originalOf, pictureOnly } from "./photos.ts";
+import {
+	type Photo,
+	photoDirectory,
+	photoPath,
+	photos,
+} from "../src/site/brand.ts";
+import { cropOf, makePhotos, originalOf, pictureOnly } from "./photos.ts";
 import { keptPhotoOf } from "./prerender-site.ts";
 
 const repository = join(import.meta.dirname, "..", "..");
 
-// Chunk is one chunk of a WebP file: its name and what it holds.
-type Chunk = { name: string; data: Buffer };
+// Chunk is one chunk of a WebP file: its name, what it holds, and whether the
+// file holds all of it, as much as its size says.
+type Chunk = { name: string; data: Buffer; whole: boolean };
 
 // chunksOf are the chunks of a WebP file after its header, in order.
 function chunksOf(webp: Buffer): Chunk[] {
@@ -20,6 +26,7 @@ function chunksOf(webp: Buffer): Chunk[] {
 		chunks.push({
 			name: webp.toString("latin1", at, at + 4),
 			data: webp.subarray(at + 8, at + 8 + size),
+			whole: at + 8 + size <= webp.length,
 		});
 		at += 8 + size + (size % 2);
 	}
@@ -78,9 +85,9 @@ describe("the site's photographs", () => {
 			expect(file.toString("latin1", 8, 12), photo.name).toBe("WEBP");
 			const chunks = chunksOf(file);
 			expect(
-				chunks.map(({ name }) => name),
+				chunks.map(({ name, whole }) => [name, whole]),
 				photo.name,
-			).toEqual(["VP8 "]);
+			).toEqual([["VP8 ", true]]);
 			expect(sizeOf(chunks[0]?.data ?? Buffer.alloc(0)), photo.name).toEqual({
 				width: photo.width,
 				height: photo.height,
@@ -136,34 +143,102 @@ describe("making a photograph", () => {
 			pictureOnly(webp(chunk("ALPH", Buffer.from("alpha")), image)),
 		).toThrow("ALPH");
 	});
+
+	test("refuses a file whose image is cut short of the size its chunk states", () => {
+		const whole = webp(chunk("VP8 ", Buffer.from("a frame")));
+
+		expect(() => pictureOnly(whole.subarray(0, whole.length - 3))).toThrow(
+			"cut short",
+		);
+	});
 });
 
 describe("the originals of the photographs", () => {
-	let dir = "";
+	// mixed holds originals of two photographs, one of them twice, and a file
+	// no original is; every holds one of each photograph; lacking, every one
+	// but the last.
+	let mixed = "";
+	let every = "";
+	let lacking = "";
+	const last = photos.at(-1)?.name ?? "";
 
 	beforeAll(async () => {
-		dir = await mkdtemp(join(tmpdir(), "originals-"));
-		for (const file of ["dad.JPG", "mum.png", "mum.txt", "family.png"]) {
-			await writeFile(join(dir, file), "");
+		mixed = await mkdtemp(join(tmpdir(), "originals-"));
+		for (const file of [
+			"dad.JPG",
+			"mum.png",
+			"mum.txt",
+			"family.png",
+			"family.webp",
+		]) {
+			await writeFile(join(mixed, file), "");
 		}
-		await writeFile(join(dir, "family.webp"), "");
+		every = await mkdtemp(join(tmpdir(), "originals-"));
+		lacking = await mkdtemp(join(tmpdir(), "originals-"));
+		for (const { name } of photos) {
+			await writeFile(join(every, `${name}.png`), "");
+			if (name !== last) {
+				await writeFile(join(lacking, `${name}.png`), "");
+			}
+		}
 	});
 
 	afterAll(async () => {
-		await rm(dir, { recursive: true, force: true });
+		for (const dir of [mixed, every, lacking]) {
+			await rm(dir, { recursive: true, force: true });
+		}
 	});
 
 	test("are found by the photograph's name, whatever kind of picture each is", async () => {
-		expect(await originalOf(dir, "dad")).toBe(join(dir, "dad.JPG"));
-		expect(await originalOf(dir, "mum")).toBe(join(dir, "mum.png"));
+		expect(await originalOf(mixed, "dad")).toBe(join(mixed, "dad.JPG"));
+		expect(await originalOf(mixed, "mum")).toBe(join(mixed, "mum.png"));
 	});
 
 	test("are refused when a photograph has none, or more than one", async () => {
-		await expect(originalOf(dir, "older-son")).rejects.toThrow(
+		await expect(originalOf(mixed, "older-son")).rejects.toThrow(
 			"no original of older-son",
 		);
-		await expect(originalOf(dir, "family")).rejects.toThrow(
+		await expect(originalOf(mixed, "family")).rejects.toThrow(
 			"2 originals of family",
 		);
+	});
+
+	test("make every photograph before any is kept, each as it was drawn", async () => {
+		const kept: [string, string][] = [];
+		const made = await makePhotos(
+			every,
+			async (_, photo) => Buffer.from(`drawn ${photo.name}`),
+			async (photo: Photo, file: Buffer) => {
+				kept.push([photo.name, file.toString()]);
+			},
+		);
+
+		expect(kept).toEqual(photos.map(({ name }) => [name, `drawn ${name}`]));
+		expect(made).toEqual(
+			photos.map(({ name }) => `${photoPath(name)} from ${name}.png`),
+		);
+	});
+
+	// A run that stops on the last photograph would otherwise leave the kept
+	// ones half new and half old, made from two sets of originals.
+	test("keep none of the photographs when the last of them cannot be made", async () => {
+		const kept: string[] = [];
+		const keep = async (photo: Photo) => {
+			kept.push(photo.name);
+		};
+		const drawn = async (_: string, photo: Photo) => {
+			if (photo.name === last) {
+				throw new Error(`${last} cannot be drawn`);
+			}
+			return Buffer.from("drawn");
+		};
+
+		await expect(makePhotos(every, drawn, keep)).rejects.toThrow(
+			"cannot be drawn",
+		);
+		await expect(
+			makePhotos(lacking, async () => Buffer.from("drawn"), keep),
+		).rejects.toThrow(`no original of ${last}`);
+		expect(kept).toEqual([]);
 	});
 });

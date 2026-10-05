@@ -645,16 +645,22 @@ describe("a script the site serves", () => {
 		files["assets/chunk.js"] = "";
 	};
 
-	test("passes when it is one file that sends and keeps nothing", async () => {
-		const dir = await site(
-			scripted('document.querySelector("main");console.log(import.meta.url);'),
-		);
+	test.each([
+		["names nothing it loads", 'document.querySelector("main");'],
+		["reads where it runs from", "console.log(import.meta.url);"],
+		[
+			"says words that begin with import",
+			'var important="x",imports=[];e.importNode(n);console.log(important,imports);',
+		],
+	])("passes when it %s", async (_, text) => {
+		const dir = await site(scripted(text));
 
 		expect(await check(dir, options())).toEqual([]);
 	});
 
 	test.each([
 		["imports a module", 'import{a}from"./chunk.js";a();'],
+		["imports a module by its name", 'import a from "./chunk.js";a();'],
 		["imports a module for what it does", 'import"./chunk.js";'],
 		["imports everything of a module", 'import*as c from"./chunk.js";c;'],
 		["calls for a module", 'import("./chunk.js").then(()=>{});'],
@@ -677,20 +683,24 @@ describe("a script the site serves", () => {
 	);
 
 	test.each([
-		"fetch(",
-		"XMLHttpRequest",
-		"sendBeacon",
-		"WebSocket",
-		"EventSource",
-		"localStorage",
-		"sessionStorage",
-		"indexedDB",
-		"document.cookie",
-	])("is refused when it names %s", async (name) => {
-		const dir = await site(scripted(`window.${name};`));
+		["fetch", "fetch(u);"],
+		["fetch", "const f=globalThis.fetch;f(u);"],
+		["fetch", 'window["fetch"](u);'],
+		["XMLHttpRequest", "new XMLHttpRequest;"],
+		["sendBeacon", "navigator.sendBeacon(u);"],
+		["WebSocket", "new WebSocket(u);"],
+		["EventSource", "new EventSource(u);"],
+		["new Image", "new Image().src=u;"],
+		["serviceWorker", "navigator.serviceWorker.register(u);"],
+		["localStorage", "localStorage.setItem(k,v);"],
+		["sessionStorage", "sessionStorage.setItem(k,v);"],
+		["indexedDB", "indexedDB.open(k);"],
+		["cookie", "document.cookie=v;"],
+	])("is refused when it names %s, as in %s", async (name, text) => {
+		const dir = await site(scripted(text));
 
-		expect(lineOf((await check(dir, options()))[0] as Finding)).toBe(
+		expect((await check(dir, options())).map(lineOf)).toEqual([
 			`assets/demo.js: script: the script names ${name}, and a script of the site stores nothing and sends nothing`,
-		);
+		]);
 	});
 });

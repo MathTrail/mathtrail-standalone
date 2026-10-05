@@ -245,14 +245,12 @@ async function readFrames(
 	files: Map<string, number>,
 	pages: Map<string, Page>,
 ): Promise<Page[]> {
+	const pageFiles = new Set([...pages.values()].map((page) => page.file));
 	const frames = new Map<string, Page>();
 	let framers = [...pages.values()];
 	while (framers.length > 0) {
 		const unread = [...new Set(framers.flatMap(framedBy))].filter(
-			(file) =>
-				files.has(file) &&
-				posix.basename(file) !== indexFile &&
-				!frames.has(file),
+			(file) => files.has(file) && !pageFiles.has(file) && !frames.has(file),
 		);
 		framers = await Promise.all(
 			unread.map(async (file) =>
@@ -567,28 +565,34 @@ function weightOf(
 }
 
 // importMarker finds in a script what loads another file as it runs: an
-// import written into the module or called, and an export passed on from
-// another module. import.meta loads nothing, and is not one.
+// import written into the module, from a file or for what the file does, an
+// import called, and an export passed on from another module. A word that
+// begins with "import", and import.meta, load nothing.
 const importMarker =
-	/\bimport\s*(?:[\w$*{]|["'(])|\bexport\s*(?:\*|\{[^}]*\})\s*from\b/;
+	/\bimport\s*(?:[\w$*{][^;]*?\bfrom\s*["'`]|["'`(])|\bexport\s*(?:\*|\{[^}]*\})[^;]*?\bfrom\s*["'`]/;
 
-// sendingNames are what a script reaches for to send something away or to
-// keep something in the reader's browser.
-const sendingNames = [
-	"fetch(",
-	"XMLHttpRequest",
-	"sendBeacon",
-	"WebSocket",
-	"EventSource",
-	"localStorage",
-	"sessionStorage",
-	"indexedDB",
-	"document.cookie",
+// sendingWays are the usual ways a script sends something away or keeps it
+// in the reader's browser, each by its name and how it is written. They are
+// found by their names, the same as a script written by hand or by a bundler
+// says them: a script could still hide one, and a reader of its source is the
+// last check.
+const sendingWays: readonly (readonly [string, RegExp])[] = [
+	["fetch", /\bfetch\b/],
+	["XMLHttpRequest", /\bXMLHttpRequest\b/],
+	["sendBeacon", /\bsendBeacon\b/],
+	["WebSocket", /\bWebSocket\b/],
+	["EventSource", /\bEventSource\b/],
+	["new Image", /\bnew\s+Image\b/],
+	["serviceWorker", /\bserviceWorker\b/],
+	["localStorage", /\blocalStorage\b/],
+	["sessionStorage", /\bsessionStorage\b/],
+	["indexedDB", /\bindexedDB\b/],
+	["cookie", /\bcookie\b/],
 ];
 
 // scripts reports a script that loads another file, which the checker does
 // not follow, so that neither its weight nor its address would be checked;
-// and a script that reaches for a way to send or keep something, which a
+// and a script that names a usual way to send or keep something, which a
 // script of the site never does.
 function scripts(read: Map<string, string>): Finding[] {
 	return [...read].flatMap(([file, text]): Finding[] => [
@@ -602,9 +606,9 @@ function scripts(read: Map<string, string>): Finding[] {
 					},
 				]
 			: []),
-		...sendingNames
-			.filter((name) => text.includes(name))
-			.map((name) => ({
+		...sendingWays
+			.filter(([, written]) => written.test(text))
+			.map(([name]) => ({
 				path: file,
 				rule: "script" as const,
 				message: `the script names ${name}, and a script of the site stores nothing and sends nothing`,

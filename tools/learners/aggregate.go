@@ -5,6 +5,8 @@ import (
 	"math/rand/v2"
 	"slices"
 	"strconv"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/report"
 )
 
 // The interval every number is reported with: a 95 % percentile bootstrap
@@ -48,7 +50,7 @@ type vector struct {
 	attempts [longestChain]atAttempt
 	moves    [len(screenWindows)][]uint16
 	keptUp   keptUp
-	held     [takenBackBy]heldOn
+	held     [report.TakenBackBy]heldOn
 }
 
 // atAttempt is, at one eligible attempt, how many of a child's topics made it

@@ -14,8 +14,8 @@
 
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { basename, dirname, extname, join, parse } from "node:path";
-import { chromium } from "playwright-core";
-import { photoPath, photos } from "../src/site/brand.ts";
+import { chromium, type Page } from "playwright-core";
+import { type Photo, photoPath, photos } from "../src/site/brand.ts";
 import { keptPhotoOf } from "./prerender-site.ts";
 
 /** quality is how near a photograph's WebP stays to its original, from 0 to 1. */
@@ -97,6 +97,11 @@ export function pictureOnly(webp: Buffer): Buffer {
 	for (let at = 12; at + 8 <= webp.length; ) {
 		const name = webp.toString("latin1", at, at + 4);
 		const size = webp.readUInt32LE(at + 4);
+		if (at + 8 + size > webp.length) {
+			throw new Error(
+				`photos: the browser wrote a chunk ${name} cut short of its size`,
+			);
+		}
 		// A chunk of an odd size is followed by a byte that pads it.
 		const end = at + 8 + size + (size % 2);
 		if (name === "VP8 " || name === "VP8L") {
@@ -119,6 +124,50 @@ export function pictureOnly(webp: Buffer): Buffer {
 	header.writeUInt32LE(4 + image.length, 4);
 	header.write("WEBP", 8, "latin1");
 	return Buffer.concat([header, image]);
+}
+
+/**
+ * Drawer makes the file of a photograph from its original, given as a data
+ * URL: cropped, scaled and encoded.
+ */
+export type Drawer = (data: string, photo: Photo) => Promise<Buffer>;
+
+/** Keeper writes the file of a photograph over the one the site keeps. */
+export type Keeper = (photo: Photo, file: Buffer) => Promise<void>;
+
+/**
+ * makePhotos makes every photograph of the site from its original in dir with
+ * draw, and only once all of them are made keeps them with keep, so that a run
+ * that cannot make one of them — an original missing or too small, a picture
+ * the browser cannot draw — leaves every kept photograph as it was. It is each
+ * photograph's address and the original it was made from.
+ */
+export async function makePhotos(
+	dir: string,
+	draw: Drawer,
+	keep: Keeper = keepPhoto,
+): Promise<string[]> {
+	const made: { photo: Photo; file: Buffer; original: string }[] = [];
+	for (const photo of photos) {
+		const original = await originalOf(dir, photo.name);
+		const type = originalTypes[extname(original).toLowerCase()];
+		const data = `data:${type};base64,${(await readFile(original)).toString("base64")}`;
+		made.push({ photo, file: await draw(data, photo), original });
+	}
+	for (const { photo, file } of made) {
+		await keep(photo, file);
+	}
+	return made.map(
+		({ photo, original }) =>
+			`${photoPath(photo.name)} from ${basename(original)}`,
+	);
+}
+
+// keepPhoto writes file over the photograph the site keeps.
+async function keepPhoto(photo: Photo, file: Buffer): Promise<void> {
+	const kept = keptPhotoOf(photo);
+	await mkdir(dirname(kept), { recursive: true });
+	await writeFile(kept, file);
 }
 
 // measure is the size of the picture data holds, as the browser decodes it.
@@ -170,34 +219,32 @@ async function draw(job: {
 // cannot write WebP replaces with PNG's.
 const webpData = "data:image/webp;base64,";
 
+// drawerIn is a Drawer that crops, scales and encodes in page: the crop is
+// worked out here from the size the browser decodes, and the picture alone is
+// kept of what the browser writes.
+function drawerIn(page: Page): Drawer {
+	return async (data, photo) => {
+		const crop = cropOf(await page.evaluate(measure, data), photo);
+		const drawn = await page.evaluate(draw, {
+			data,
+			crop,
+			width: photo.width,
+			height: photo.height,
+			quality,
+		});
+		if (!drawn.startsWith(webpData)) {
+			throw new Error("photos: the browser wrote no WebP");
+		}
+		return pictureOnly(Buffer.from(drawn.slice(webpData.length), "base64"));
+	};
+}
+
 async function main(dir: string): Promise<void> {
 	const browser = await chromium.launch();
 	try {
-		const page = await browser.newPage();
-		for (const photo of photos) {
-			const original = await originalOf(dir, photo.name);
-			const type = originalTypes[extname(original).toLowerCase()];
-			const data = `data:${type};base64,${(await readFile(original)).toString("base64")}`;
-			const crop = cropOf(await page.evaluate(measure, data), photo);
-			const drawn = await page.evaluate(draw, {
-				data,
-				crop,
-				width: photo.width,
-				height: photo.height,
-				quality,
-			});
-			if (!drawn.startsWith(webpData)) {
-				throw new Error("photos: the browser wrote no WebP");
-			}
-			const kept = keptPhotoOf(photo);
-			await mkdir(dirname(kept), { recursive: true });
-			await writeFile(
-				kept,
-				pictureOnly(Buffer.from(drawn.slice(webpData.length), "base64")),
-			);
-			console.log(
-				`photos: ${photoPath(photo.name)} from ${basename(original)}`,
-			);
+		const made = await makePhotos(dir, drawerIn(await browser.newPage()));
+		for (const line of made) {
+			console.log(`photos: ${line}`);
 		}
 	} finally {
 		await browser.close();

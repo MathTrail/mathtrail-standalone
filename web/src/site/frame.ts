@@ -1,5 +1,5 @@
 import { frontPage } from "./content";
-import { connectSection, lessonSection } from "./home";
+import { connectSection } from "./home";
 import type { SiteKey } from "./words";
 
 /**
@@ -29,18 +29,16 @@ export type Frame = {
 /**
  * siteFrame is the site's own. A page joins the menu with the task that
  * publishes it, and the build refuses an entry whose page is not there, so the
- * menu never leads nowhere. The home page's sections on a lesson and on
- * connecting open the menu, the page of the coach, a product of its own still
- * in the making, comes right after them, and the page about who makes the
- * product closes it; the header asks a reader to add MathTrail to Claude,
- * which the home page's section on connecting tells how to do. The footer
- * names the page about who makes the product and the documents rather than
- * every page in turn, which seventeen topics would bury them under.
+ * menu never leads nowhere. The menu names pages, never the home page's
+ * sections, which the home page leads through itself: the page of the coach,
+ * a product of its own still in the making, opens it, and the page about who
+ * makes the product closes it. The header asks a reader to add MathTrail to
+ * Claude, which the home page's section on connecting tells how to do. The
+ * footer names the page about who makes the product and the documents rather
+ * than every page in turn, which seventeen topics would bury them under.
  */
 export const siteFrame: Frame = {
 	menu: [
-		{ page: frontPage, anchor: lessonSection, label: "nav.lesson" },
-		{ page: frontPage, anchor: connectSection, label: "nav.connect" },
 		{ page: "coach", label: "nav.coach" },
 		{ page: "why", label: "nav.why" },
 		{ page: "topics", label: "nav.topics" },

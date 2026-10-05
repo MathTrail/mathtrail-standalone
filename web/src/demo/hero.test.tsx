@@ -19,6 +19,7 @@ afterEach(() => {
 	}
 	document.body.innerHTML = "";
 	vi.restoreAllMocks();
+	vi.unstubAllGlobals();
 	vi.useRealTimers();
 });
 
@@ -104,6 +105,33 @@ describe("the card on the first screen, come alive", () => {
 		expect(card()?.hasAttribute("inert")).toBe(false);
 		expect(card()?.querySelector(".mt-widget")?.textContent).toBe(words);
 		expect(shape(card()?.querySelector(".mt-widget"))).toEqual(made);
+	});
+
+	// A card follows the room it is given, measured where it stands: a
+	// browser gives an element out of the document none of the page's tokens,
+	// and a card drawn apart from the page would find no width to measure by.
+	test("is drawn in the page, and measures the room it has there, as a card in a chat does", () => {
+		const observed: Element[] = [];
+		vi.stubGlobal(
+			"ResizeObserver",
+			class {
+				observe(target: Element) {
+					observed.push(target);
+				}
+				disconnect() {}
+			},
+		);
+		vi.spyOn(globalThis, "getComputedStyle").mockImplementation(
+			(element) =>
+				({
+					getPropertyValue: (name: string) =>
+						name === "--widget-wide" && element.isConnected ? "640px" : "",
+				}) as CSSStyleDeclaration,
+		);
+
+		alive();
+
+		expect(observed).toEqual([card()?.querySelector(".mt-widget")]);
 	});
 
 	test("checks a wrong option a moment, then tells it with the trap behind it and the solution", async () => {

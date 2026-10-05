@@ -6,6 +6,7 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
+	"github.com/MathTrail/mathtrail-standalone/internal/report"
 )
 
 // The lines the measures are read against.
@@ -113,14 +114,14 @@ type childResult struct {
 	reachable               int
 	screen                  screenRecord
 	keptUp                  keptUp
-	shown                   []*shownMastery
-	following               map[string]*shownMastery
+	shown                   []*report.Followed
+	following               map[string]*report.Followed
 }
 
 func newChildResult(*child) *childResult {
 	return &childResult{
 		errorRMS: map[int]float64{}, errorMean: map[int]float64{}, placed: map[int]float64{},
-		late: map[topicLevel]*lateItem{}, pairs: map[string]*pairTrack{}, following: map[string]*shownMastery{},
+		late: map[topicLevel]*lateItem{}, pairs: map[string]*pairTrack{}, following: map[string]*report.Followed{},
 	}
 }
 

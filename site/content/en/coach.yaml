@@ -29,7 +29,7 @@ ideas:
 # under it, and the link that opens it alone.
 prototype:
   frame: MathTrail — an interactive prototype
-  caption: An interactive prototype — try drawing a solution
+  caption: "An interactive prototype: try drawing a solution"
   open: Open full screen ↗
 
 # What the prototype is, and what it only pretends to do yet.

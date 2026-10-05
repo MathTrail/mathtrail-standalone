@@ -162,8 +162,11 @@ func (k *keptUp) standardError() (float64, bool) {
 
 // answer weighs an answer against the chance its task was handed out at, by
 // that chance and by how many answers the child had given, or counts it among
-// those the two tables leave out.
+// those the two tables leave out. A line the log repeated is weighed once.
 func (c *counts) answer(l *line, g group) {
+	if l.repeat {
+		return
+	}
 	if why := whyLeftOut(l); why != "" {
 		c.answersLeftOut[why]++
 		return
@@ -209,7 +212,7 @@ func (c *counts) promisesAbout() string {
 	about := "Answers to tasks the rule chose, after the trial series and without the hint, by the chance of a " +
 		"right answer each task was handed out at: how many there were, from how many children, the chance " +
 		"promised on average, and the share that came out right. A cell of fewer than " +
-		strconv.Itoa(fewestAnswers) + " answers says " + tooFew + "."
+		strconv.Itoa(fewestAnswers) + " answers says " + tooFew + ", and a line the log repeated is weighed once."
 	var left []string
 	for _, why := range leftOutInOrder {
 		if n := c.answersLeftOut[why]; n > 0 {

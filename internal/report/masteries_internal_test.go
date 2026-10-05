@@ -47,6 +47,23 @@ func lesson(host, user, topic string, minute int, outcomes string) []string {
 // claude is the group the lessons of these tests are counted in.
 var claude = group{version: "v1", host: "claude"}
 
+// mastery is a mastery as a test states it: the child it was shown to, the
+// answers that followed it, and the one it was taken back at, none when it was
+// not.
+func mastery(child string, answers, takenBackAt int) shownMastery {
+	return shownMastery{child: child, Followed: Followed{Answers: answers, TakenBackAt: takenBackAt}}
+}
+
+// asStated is each mastery as a test states it, without the run of wrong
+// answers it last stood at.
+func asStated(masteries []shownMastery) []shownMastery {
+	stated := make([]shownMastery, len(masteries))
+	for i, m := range masteries {
+		stated[i] = mastery(m.child, m.Answers, m.TakenBackAt)
+	}
+	return stated
+}
+
 // A mastery is taken back as the service takes it back, at the second wrong
 // answer in a row in its topic: a wrong answer with the hint and "I don't
 // know" are wrong answers, a right answer with the hint ends the run as any
@@ -59,19 +76,19 @@ func TestAMasteryIsTakenBackAtTheSecondWrongAnswerInARow(t *testing.T) {
 		name, outcomes string
 		want           shownMastery
 	}{
-		{"two wrong in a row", "RWW", shownMastery{child: "u1", followed: 3, takenBackAt: 3}},
-		{"a right answer between", "WRWR", shownMastery{child: "u1", followed: 4}},
-		{"wrong with the hint", "hW", shownMastery{child: "u1", followed: 2, takenBackAt: 2}},
-		{"I don't know", "W?", shownMastery{child: "u1", followed: 2, takenBackAt: 2}},
-		{"right with the hint between", "WHW", shownMastery{child: "u1", followed: 3}},
-		{"answers after it was taken back", "WWRRW", shownMastery{child: "u1", followed: 2, takenBackAt: 2}},
-		{"no answer after it", "", shownMastery{child: "u1"}},
+		{"two wrong in a row", "RWW", mastery("u1", 3, 3)},
+		{"a right answer between", "WRWR", mastery("u1", 4, 0)},
+		{"wrong with the hint", "hW", mastery("u1", 2, 2)},
+		{"I don't know", "W?", mastery("u1", 2, 2)},
+		{"right with the hint between", "WHW", mastery("u1", 3, 0)},
+		{"answers after it was taken back", "WWRRW", mastery("u1", 2, 2)},
+		{"no answer after it", "", mastery("u1", 0, 0)},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
 			got := tallied(t, lesson("claude", "u1", "counting.gaps", 0, tc.outcomes)...).masteries[claude]
-			if !slices.Equal(got, []shownMastery{tc.want}) {
+			if !slices.Equal(asStated(got), []shownMastery{tc.want}) {
 				t.Errorf("after %q the masteries are %+v, want %+v", tc.outcomes, got, tc.want)
 			}
 		})
@@ -95,8 +112,8 @@ func TestOnlyTheChildsAnswersInTheTopicFollowItsMastery(t *testing.T) {
 		}
 	}
 
-	want := []shownMastery{{child: "u1", followed: 3}}
-	if got := tallied(t, lines...).masteries[claude]; !slices.Equal(got, want) {
+	want := []shownMastery{mastery("u1", 3, 0)}
+	if got := tallied(t, lines...).masteries[claude]; !slices.Equal(asStated(got), want) {
 		t.Errorf("the masteries are %+v, want %+v", got, want)
 	}
 }
@@ -107,8 +124,8 @@ func TestATopicShownAgainEndsTheMasteryBeforeIt(t *testing.T) {
 	t.Parallel()
 
 	lines := slices.Concat(lesson("claude", "u1", "counting.gaps", 0, "RW"), lesson("claude", "u1", "counting.gaps", 3, "WW"))
-	want := []shownMastery{{child: "u1", followed: 3}, {child: "u1", followed: 2, takenBackAt: 2}}
-	if got := tallied(t, lines...).masteries[claude]; !slices.Equal(got, want) {
+	want := []shownMastery{mastery("u1", 3, 0), mastery("u1", 2, 2)}
+	if got := tallied(t, lines...).masteries[claude]; !slices.Equal(asStated(got), want) {
 		t.Errorf("the masteries are %+v, want %+v", got, want)
 	}
 }
@@ -135,8 +152,8 @@ func TestAMasteryIsFollowedInTheOrderTheAnswersWereGiven(t *testing.T) {
 
 	lines := lesson("claude", "u1", "counting.gaps", 0, "WRWW")
 	slices.Reverse(lines)
-	want := []shownMastery{{child: "u1", followed: 4, takenBackAt: 4}}
-	if got := tallied(t, lines...).masteries[claude]; !slices.Equal(got, want) {
+	want := []shownMastery{mastery("u1", 4, 4)}
+	if got := tallied(t, lines...).masteries[claude]; !slices.Equal(asStated(got), want) {
 		t.Errorf("the masteries are %+v, want %+v", got, want)
 	}
 }
@@ -157,8 +174,8 @@ func TestTestingIsLeftOutAndARepeatIsFollowedOnce(t *testing.T) {
 	}
 
 	c := tallied(t, lines...)
-	want := []shownMastery{{child: "u1", followed: 3}}
-	if got := c.masteries[claude]; len(c.masteries) != 1 || !slices.Equal(got, want) {
+	want := []shownMastery{mastery("u1", 3, 0)}
+	if got := c.masteries[claude]; len(c.masteries) != 1 || !slices.Equal(asStated(got), want) {
 		t.Errorf("the masteries are %+v, want only %+v", c.masteries, want)
 	}
 }
@@ -174,16 +191,17 @@ func TestTheShareTakenBackCountsAMasteryForTheAnswersItWasFollowed(t *testing.T)
 	t.Parallel()
 
 	masteries := []shownMastery{
-		{child: "u1", followed: 2, takenBackAt: 2},
-		{child: "u2", followed: 2},
-		{child: "u3", followed: 4, takenBackAt: 4},
-		{child: "u4", followed: 10},
+		mastery("u1", 2, 2),
+		mastery("u2", 2, 0),
+		mastery("u3", 4, 4),
+		mastery("u4", 10, 0),
 	}
-	if got := 1 - heldThrough(masteries, takenBackBy); math.Abs(got-5.0/8) > 1e-12 {
-		t.Errorf("the share taken back by the %dth answer is %.4f, want %.4f", takenBackBy, got, 5.0/8)
+	on := heldOnOf(masteries)
+	if got := 1 - on.held(); math.Abs(got-5.0/8) > 1e-12 {
+		t.Errorf("the share taken back by the %dth answer is %.4f, want %.4f", TakenBackBy, got, 5.0/8)
 	}
-	if got := settledBy(masteries, takenBackBy); got != 3 {
-		t.Errorf("%d masteries are settled by the %dth answer, want 3", got, takenBackBy)
+	if got := settledBy(masteries, TakenBackBy); got != 3 {
+		t.Errorf("%d masteries are settled by the %dth answer, want 3", got, TakenBackBy)
 	}
 }
 
@@ -196,8 +214,8 @@ func TestTheErrorOfTheShareTakenBackIsCountedByChild(t *testing.T) {
 	t.Parallel()
 
 	masteries := []shownMastery{
-		{child: "u1", followed: 2, takenBackAt: 2}, {child: "u1", followed: 3, takenBackAt: 3},
-		{child: "u2", followed: 10}, {child: "u2", followed: 12},
+		mastery("u1", 2, 2), mastery("u1", 3, 3),
+		mastery("u2", 10, 0), mastery("u2", 12, 0),
 	}
 	if got, read := takenBackError(masteries); !read || math.Abs(got-0.5) > 1e-12 {
 		t.Errorf("the error by child is %.4f (read: %t), want 0.5", got, read)
@@ -217,27 +235,27 @@ func TestTheErrorOfTheShareTakenBackIsCountedByChild(t *testing.T) {
 
 // A share that fewer masteries settle than the table reads says so, and one
 // that as many settle shows it, however many more were shown and not
-// followed far enough to settle.
+// followed far enough to settle; the row counts the settled ones either way.
 func TestAShareOfTooFewSettledMasteriesSaysSo(t *testing.T) {
 	t.Parallel()
 
 	for _, settled := range []int{fewestMasteries - 1, fewestMasteries} {
 		var masteries []shownMastery
 		for i := range settled {
-			m := shownMastery{child: fmt.Sprintf("u%d", i%3), followed: takenBackBy + i%3}
+			m := mastery(fmt.Sprintf("u%d", i%3), TakenBackBy+i%3, 0)
 			if i%2 == 0 {
-				m.followed, m.takenBackAt = 2+i%9, 2+i%9
+				m.Answers, m.TakenBackAt = 2+i%9, 2+i%9
 			}
 			masteries = append(masteries, m)
 		}
 		for i := range 5 {
-			masteries = append(masteries, shownMastery{child: fmt.Sprintf("u%d", i), followed: 3})
+			masteries = append(masteries, mastery(fmt.Sprintf("u%d", i), 3, 0))
 		}
 		c := &counts{masteries: map[group][]shownMastery{claude: masteries}}
 		row := c.masteriesTable().rows[0]
-		saysTooFew := row[8] == tooFew && row[9] == tooFew
-		if wantTooFew := settled < fewestMasteries; saysTooFew != wantTooFew {
-			t.Errorf("%d settled masteries: the row reads %v, want too few: %t", settled, row, wantTooFew)
+		saysTooFew := row[9] == tooFew && row[10] == tooFew
+		if wantTooFew := settled < fewestMasteries; saysTooFew != wantTooFew || row[8] != strconv.Itoa(settled) {
+			t.Errorf("%d settled masteries: the row reads %v, want them counted and too few: %t", settled, row, wantTooFew)
 		}
 	}
 }
@@ -274,7 +292,7 @@ func TestEveryMasteryShownIsCountedOnceAndTakenBackByARun(t *testing.T) {
 			}
 			c := tally(read)
 			for _, m := range c.masteries[claude] {
-				if m.takenBackAt != 0 && (m.takenBackAt != m.followed || m.takenBackAt < profile.MasteryLostAfter) {
+				if m.TakenBackAt != 0 && (m.TakenBackAt != m.Answers || m.TakenBackAt < profile.MasteryLostAfter) {
 					return false
 				}
 			}

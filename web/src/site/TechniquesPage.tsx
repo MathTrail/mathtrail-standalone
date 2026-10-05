@@ -86,7 +86,9 @@ function Hero({
 				<h1>{page.text("hero.title")}</h1>
 				<p class="s-lead">
 					{page.text("hero.lead", {
-						count: words.text("techniques.count", { count: numbers.size }),
+						count: words.text("techniques.count", {
+							count: allTechniques(techniques).length,
+						}),
 					})}
 				</p>
 				<p class="s-intro-line">{page.text("hero.advice")}</p>

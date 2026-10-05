@@ -5,47 +5,23 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/tutor"
+	"github.com/MathTrail/mathtrail-standalone/internal/report"
 )
 
 // The numbers the service's report reads off the log of live children, read
 // off the simulated ones the same way, so that the two can be laid side by
 // side: the later answers set against the earlier, and how soon a topic a
 // child was shown as mastered is taken back. Each is read as the report reads
-// a line of the log — the chance written to two places, the range of answers
-// as the service names it, a mastery as the progress shows it — so that a
-// difference between the bench and the live children is the children's, not
-// the reading's.
-
-// The ranges of the child's answers the later are set against the earlier
-// in, as the report names them: from the first after the trial series to the
-// 50th, and from the 101st to the 200th.
-const (
-	earlierTo = 50
-	laterFrom = 101
-	laterTo   = 200
-)
-
-// The answers in a topic after it was shown as mastered that the share taken
-// back is read within, as the report reads it: the first few, and the first
-// ten.
-const (
-	takenBackEarly = 5
-	takenBackBy    = 10
-)
+// a line of the log — the chance written to two places, the ranges of answers
+// and the following of a mastery the report's own, a mastery shown as the
+// progress shows it — so that a difference between the bench and the live
+// children is the children's, not the reading's.
 
 // keptUp is how a child's answers in the two ranges came out from the chance
 // they were promised: for each range, the differences — a right answer as 1,
 // a wrong one as 0, less the chance — summed, over how many answers there
 // were.
 type keptUp struct{ earlier, later part }
-
-// shownMastery is a topic a child was shown as mastered, as the report follows
-// it through the log: how many of the child's answers in the topic it was
-// followed through, at which of them it was taken back, none when it was not,
-// and the run of wrong answers in the topic it stands at.
-type shownMastery struct {
-	followed, takenBackAt, wrongInARow int
-}
 
 // heldOn is, at one answer in a topic after it was shown as mastered, how many
 // of a child's masteries were followed to it and how many it took back.
@@ -78,9 +54,9 @@ func (r *childResult) keepUp(recorded *profile.Recorded, answers int) {
 	}
 	var in *part
 	switch {
-	case answers <= earlierTo:
+	case answers <= report.EarlierTo:
 		in = &r.keptUp.earlier
-	case answers >= laterFrom && answers <= laterTo:
+	case answers >= report.LaterFrom && answers <= report.LaterTo:
 		in = &r.keptUp.later
 	default:
 		return
@@ -95,25 +71,15 @@ func (r *childResult) keepUp(recorded *profile.Recorded, answers int) {
 
 // followShown follows the masteries a child was shown through its answers, as
 // the report follows them through the log. An answer in a topic whose mastery
-// is followed moves it on, and takes it back at the second wrong answer in a
-// row: a right answer, with the hint or without, ends the run. An answer that
-// shows the topic mastered starts following it, and ends the mastery the topic
-// was shown before, which was not taken back.
+// is followed moves it on, and may take it back, which ends the following. An
+// answer that shows the topic mastered starts following it, and ends the
+// mastery the topic was shown before, which was not taken back.
 func (r *childResult) followShown(topic string, correct, shown bool) {
-	if m := r.following[topic]; m != nil {
-		m.followed++
-		if correct {
-			m.wrongInARow = 0
-		} else {
-			m.wrongInARow++
-		}
-		if m.wrongInARow >= profile.MasteryLostAfter {
-			m.takenBackAt = m.followed
-			delete(r.following, topic)
-		}
+	if m := r.following[topic]; m != nil && m.Answer(correct) {
+		delete(r.following, topic)
 	}
 	if shown {
-		m := &shownMastery{}
+		m := &report.Followed{}
 		r.following[topic] = m
 		r.shown = append(r.shown, m)
 	}
@@ -123,14 +89,14 @@ func (r *childResult) followShown(topic string, correct, shown bool) {
 // taken back is read within: a mastery counts at each answer it was followed
 // to, and is taken back at the one it was taken back at. One the run stopped
 // following early counts for the answers it was followed through.
-func heldOf(r *childResult) [takenBackBy]heldOn {
-	var on [takenBackBy]heldOn
+func heldOf(r *childResult) [report.TakenBackBy]heldOn {
+	var on [report.TakenBackBy]heldOn
 	for _, m := range r.shown {
-		for j := range min(m.followed, takenBackBy) {
+		for j := range min(m.Answers, report.TakenBackBy) {
 			on[j].followed++
 		}
-		if m.takenBackAt > 0 && m.takenBackAt <= takenBackBy {
-			on[m.takenBackAt-1].takenBack++
+		if m.TakenBackAt > 0 && m.TakenBackAt <= report.TakenBackBy {
+			on[m.TakenBackAt-1].takenBack++
 		}
 	}
 	return on
@@ -153,8 +119,8 @@ func liveMetrics() []metric {
 func livePooled() []pooled {
 	return []pooled{
 		{name: "r9_kept_up_later_less_earlier", read: laterLessEarlier},
-		{name: "r10_taken_back_5", read: takenBackWithin(takenBackEarly)},
-		{name: "r10_taken_back_10", read: takenBackWithin(takenBackBy)},
+		{name: "r10_taken_back_5", read: takenBackWithin(report.TakenBackEarly)},
+		{name: "r10_taken_back_10", read: takenBackWithin(report.TakenBackBy)},
 	}
 }
 

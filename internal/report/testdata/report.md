@@ -36,7 +36,7 @@ An attempt is counted by one check, the first its refusal names, and fails that 
 
 ## Chances and what came of them
 
-Answers to tasks the rule chose, after the trial series and without the hint, by the chance of a right answer each task was handed out at: how many there were, from how many children, the chance promised on average, and the share that came out right. A cell of fewer than 30 answers says too few. Left out of this table and the next are the answers to tasks the model chose (1), in the trial series (1), given with the hint (1) and on lines that carry no chance or no range of answers (1). Answers given with the hint, and tasks left unanswered — 2 in these lines, of every kind — are mostly ones that looked too hard, so the share right reads a little high by what they take away.
+Answers to tasks the rule chose, after the trial series and without the hint, by the chance of a right answer each task was handed out at: how many there were, from how many children, the chance promised on average, and the share that came out right. A cell of fewer than 30 answers says too few, and a line the log repeated is weighed once. Left out of this table and the next are the answers to tasks the model chose (1), in the trial series (1), given with the hint (1) and on lines that carry no chance or no range of answers (1). Answers given with the hint, and tasks left unanswered — 2 in these lines, of every kind — are mostly ones that looked too hard, so the share right reads a little high by what they take away.
 
 | Instructions | Host | Chance | Answers | Children | Promised | Came true |
 |---|---|---|---:|---:|---:|---:|
@@ -64,12 +64,12 @@ The same answers once more, of the children with answers in two ranges of their 
 
 ## Masteries taken back
 
-Every topic a child was shown as mastered — a line of a topic mastered, read with the answer that earned it —, followed through the child's answers in that topic after it, whoever chose the task, those with the hint and "I don't know" among them. A mastery is taken back at the second wrong answer in a row there, as the service takes it back, and a right answer between ends the run; one the lines stop following first — at their end, or at the topic shown as mastered again, at a higher level — was not taken back while they followed it. The share taken back by the 10th answer counts a mastery followed for fewer answers for those it was followed for; its standard error is counted by child, the share worked out again without each child in turn. A child truly past a topic still slips twice in a row now and then, so the share is read beside the learners' bench, never alone. A share that fewer than 30 masteries settle — taken back by the 10th answer, or followed to it — says too few. (every host) takes a version's hosts together, and the load tool and MCP Inspector are left out, as in the table before.
+Every topic a child was shown as mastered — a line of a topic mastered, read with the answer that earned it —, followed through the child's answers in that topic after it, whoever chose the task, those with the hint and "I don't know" among them. A mastery is taken back at the second wrong answer in a row there, as the service takes it back, and a right answer between ends the run; one the lines stop following first — at their end, or at the topic shown as mastered again, at a higher level — was not taken back while they followed it. A mastery is settled by the 10th answer once it is taken back by then or followed to it. The share taken back by the 10th answer counts a mastery followed for fewer answers for those it was followed for; its standard error is counted by child, the share worked out again without each child in turn. A child truly past a topic still slips twice in a row now and then, so the share is read beside the learners' bench, never alone. A share that fewer than 30 settled masteries stand behind says too few. (every host) takes a version's hosts together, and the load tool and MCP Inspector are left out, as in the table before.
 
-| Instructions | Host | Shown | Children | Taken back by the 5th answer | From the 6th to the 10th | After the 10th | Not taken back | Share taken back by the 10th | Standard error |
-|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| 88b63e22129c | claude | 2 | 2 | 1 | 0 | 0 | 1 | too few | too few |
-| 88b63e22129c | (every host) | 2 | 2 | 1 | 0 | 0 | 1 | too few | too few |
+| Instructions | Host | Shown | Children | Taken back by the 5th answer | From the 6th to the 10th | After the 10th | Not taken back | Settled by the 10th | Share taken back by the 10th | Standard error |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 88b63e22129c | claude | 2 | 2 | 1 | 0 | 0 | 1 | 2 | too few | too few |
+| 88b63e22129c | (every host) | 2 | 2 | 1 | 0 | 0 | 1 | 2 | too few | too few |
 
 ## Limits reached
 

@@ -46,11 +46,13 @@ export function stepAtMiddle(
 	return nearest;
 }
 
-// Staged is a lesson whose steps share one card: the steps, the card of each
-// in its layer, and how to put them all back.
+// Shared is a step whose card stands in the shared column, and that card.
+type Shared = { readonly step: HTMLElement; readonly card: HTMLElement };
+
+// Staged is a lesson whose steps share one card: every step with a card, in
+// order, and how to put the cards back.
 type Staged = {
-	readonly steps: readonly HTMLElement[];
-	readonly layers: readonly HTMLElement[];
+	readonly shared: readonly Shared[];
 	readonly undo: () => void;
 };
 
@@ -61,9 +63,11 @@ type Staged = {
  * the one before it as the page scrolls. The cards are the ones the page was
  * built with, each moved into a layer of that column and back again, never
  * copied: still, as on the page, and silent to a screen reader, which reads
- * the steps. On a narrower window, or once the window narrows, every step
- * keeps its own card, where the page put it. It returns what stops it and puts
- * the page back as it was.
+ * the steps. Each card is lined up in its frame as it is staged, once the
+ * page's own typeface has come, and as the window changes size, a frame of the
+ * window at a time. On a narrower window, or once the window narrows, every
+ * step keeps its own card, where the page put it. It returns what stops it and
+ * puts the page back as it was.
  */
 export function shareTheCard(document: Document, window: Window): () => void {
 	const list = document.querySelector<HTMLElement>("#lesson .s-walk");
@@ -73,6 +77,7 @@ export function shareTheCard(document: Document, window: Window): () => void {
 	const wide = window.matchMedia(sharedFrom);
 	let staged: Staged | undefined;
 	let frame = 0;
+	let realign = false;
 
 	const follow = () => {
 		if (staged === undefined || frame !== 0) {
@@ -80,29 +85,39 @@ export function shareTheCard(document: Document, window: Window): () => void {
 		}
 		frame = window.requestAnimationFrame(() => {
 			frame = 0;
-			if (staged !== undefined) {
-				show(staged, window);
+			if (staged === undefined) {
+				return;
 			}
+			if (realign) {
+				realign = false;
+				alignAll(staged);
+			}
+			show(staged, window);
 		});
 	};
 	const fitTheWidth = () => {
 		if (wide.matches && staged === undefined) {
 			staged = stage(document, list);
 			show(staged, window);
-			alignAll(staged.layers);
+			alignAll(staged);
 		} else if (!wide.matches && staged !== undefined) {
 			staged.undo();
 			staged = undefined;
 		}
 	};
 	const resized = () => {
-		if (staged !== undefined) {
-			alignAll(staged.layers);
-		}
+		realign = true;
 		follow();
 	};
 
 	fitTheWidth();
+	// The chat's words are set in the page's own typeface, which may come after
+	// the cards were lined up, and set them taller.
+	void document.fonts?.ready.then(() => {
+		if (staged !== undefined) {
+			alignAll(staged);
+		}
+	});
 	wide.addEventListener("change", fitTheWidth);
 	window.addEventListener("scroll", follow, { passive: true });
 	window.addEventListener("resize", resized, { passive: true });
@@ -120,33 +135,28 @@ export function shareTheCard(document: Document, window: Window): () => void {
 
 // stage moves the card of every step of list into a layer of a column beside
 // the steps, and returns the staged lesson: a list may hold nothing but its
-// steps, so the steps and the column go into a box of their own.
+// steps, so the steps and the column go into a box of their own. A step with
+// no card keeps its place among the steps, and shows none.
 function stage(document: Document, list: HTMLElement): Staged {
-	const steps = [
+	const shared = [
 		...list.querySelectorAll<HTMLElement>(":scope > .s-walk-step"),
-	];
+	].flatMap((step): Shared[] => {
+		const card = step.querySelector<HTMLElement>(":scope > .s-walk-card");
+		return card === null ? [] : [{ step, card }];
+	});
 	const box = document.createElement("div");
 	box.className = "s-walk-staged";
 	const column = document.createElement("div");
 	column.className = "s-walk-stage";
 	list.before(box);
 	box.append(list, column);
-	const layers: HTMLElement[] = [];
-	const homes: { card: HTMLElement; step: HTMLElement }[] = [];
-	for (const step of steps) {
-		const card = step.querySelector<HTMLElement>(":scope > .s-walk-card");
-		if (card === null) {
-			continue;
-		}
-		homes.push({ card, step });
-		layers.push(card);
+	for (const { card } of shared) {
 		column.append(card);
 	}
 	return {
-		steps,
-		layers,
+		shared,
 		undo: () => {
-			for (const { card, step } of homes) {
+			for (const { card, step } of shared) {
 				card.removeAttribute("data-shown");
 				step.append(card);
 			}
@@ -156,22 +166,22 @@ function stage(document: Document, list: HTMLElement): Staged {
 	};
 }
 
-// show shows the layer of the step at the middle of the window, and hides the
+// show shows the card of the step at the middle of the window, and hides the
 // rest.
 function show(staged: Staged, window: Window): void {
 	const at = stepAtMiddle(
-		staged.steps.map((step) => step.getBoundingClientRect()),
+		staged.shared.map(({ step }) => step.getBoundingClientRect()),
 		window.innerHeight,
 	);
-	staged.layers.forEach((layer, index) => {
-		layer.toggleAttribute("data-shown", index === (at ?? 0));
+	staged.shared.forEach(({ card }, index) => {
+		card.toggleAttribute("data-shown", index === (at ?? 0));
 	});
 }
 
-// alignAll shows in each layer the part of its card that its step speaks of.
-function alignAll(layers: readonly HTMLElement[]): void {
-	for (const layer of layers) {
-		align(layer);
+// alignAll shows in each card's frame the part its step speaks of.
+function alignAll(staged: Staged): void {
+	for (const { card } of staged.shared) {
+		align(card);
 	}
 }
 

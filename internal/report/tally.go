@@ -138,10 +138,11 @@ func tally(in *input) *counts {
 		}
 	}
 	c.versions = inOrder(firstSeen)
-	c.testing = testingUsers(lines)
-	c.masteries = shownMasteries(lines, hosts, c.testing)
+	testedUsers, testedLearners := testChildren(lines)
+	c.testing = testedUsers
+	c.masteries = shownMasteries(lines, hosts, testedUsers)
 	c.traces, c.busy, c.breaches = tracesOf(lines), busyOf(lines), in.breaches
-	c.children = childrenByDay(lines)
+	c.children = childrenByDay(lines, testedLearners)
 	return c
 }
 

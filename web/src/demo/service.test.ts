@@ -55,6 +55,33 @@ describe("the service the demo answers for", () => {
 		});
 	});
 
+	// A child who answers again is rated from where the answer before left
+	// the rating, as the service rates a child.
+	test("moves the rating on from where the answer before left it", async () => {
+		const data = fenceData();
+		const service = demoService(data);
+		const recorded: unknown[] = [];
+		void service.recordAnswer("task_1", "B", false).then((told) => {
+			recorded.push(told.kind === "answered" ? told.result.rating : told);
+		});
+		await vi.advanceTimersByTimeAsync(checkingTakes);
+		void service.recordAnswer("task_2", "C", false).then((told) => {
+			recorded.push(told.kind === "answered" ? told.result.rating : told);
+		});
+		await vi.advanceTimersByTimeAsync(checkingTakes);
+
+		const wrong = data.results.B.rating;
+		const right = data.results.C.rating;
+		if (wrong === null || right === null) {
+			throw new Error("the fence's answers move no rating");
+		}
+		const afterWrong = wrong.after;
+		expect(recorded).toEqual([
+			{ before: wrong.before, after: afterWrong },
+			{ before: afterWrong, after: afterWrong + right.after - right.before },
+		]);
+	});
+
 	test("says a task asked for is being written, then hands it out: the lesson's task, under an id of its own", async () => {
 		const data = fenceData();
 		const service = demoService(data);

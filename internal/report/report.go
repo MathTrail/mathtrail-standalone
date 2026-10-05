@@ -4,12 +4,13 @@
 // one, whether the chance of a right answer a task was handed out at came
 // true, whether the estimate of a child keeps up as the answers pile up — the
 // same child's later answers set against its earlier ones —, how soon a topic
-// a child was shown as mastered is taken back, which limits were reached, how the tools answered and how long they took
-// beside their calls to Drive, what became of the traces, and how busy the
-// busiest minute was — by the version of the instructions a task was written
-// to and by the chat host that called. It also holds every line to the rules
-// of the log: an event the service is decided to write, the fields decided
-// for it, and nothing shaped like an email address.
+// a child was shown as mastered is taken back, which limits were reached, how
+// the tools answered and how long they took beside their calls to Drive, what
+// became of the traces, and how busy the busiest minute was — by the version
+// of the instructions a task was written to and by the chat host that called.
+// It also holds every line to the rules of the log: an event the service is
+// decided to write, the fields decided for it, and nothing shaped like an
+// email address.
 //
 // It reads the service's own lines, one JSON object each: a log of a local run
 // as the service wrote it, or the payloads of the entries Cloud Logging keeps,

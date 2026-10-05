@@ -707,7 +707,7 @@ site-og: site _playwright-pinned
 site-photos dir: _playwright-pinned
     #!/usr/bin/env bash
     set -euo pipefail
-    originals=$(cd "{{ invocation_directory() }}" && realpath "{{ dir }}")
+    originals=$(cd {{ quote(invocation_directory()) }} && realpath -- {{ quote(dir) }})
     docker run --rm --init --shm-size=1g --user "$(id -u):$(id -g)" -e HOME=/tmp \
         -v "{{ justfile_directory() }}:{{ justfile_directory() }}" -w "{{ justfile_directory() }}/web" \
         -v "$originals:/originals:ro" \

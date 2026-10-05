@@ -16,14 +16,15 @@ import (
 // alone, so that the children who stop before the later range are not read as
 // an estimate that falls behind.
 
-// The two ranges of the child's answers set against each other. The earlier
+// The two ranges of the child's answers set against each other: the last
+// answer of the earlier, and the first and the last of the later. The earlier
 // ends before the overall level's step comes to its floor; the later stays
 // past it, and ends where a child of the learners' bench stops answering, so
 // that the live numbers and the bench's can be laid side by side.
 const (
-	earlierTo = 50
-	laterFrom = 101
-	laterTo   = 200
+	EarlierTo = 50
+	LaterFrom = 101
+	LaterTo   = 200
 )
 
 // everyHost stands for the hosts of a version taken together. It is no word
@@ -50,9 +51,9 @@ func sideOf(named string) side {
 	switch {
 	case !hasFirst || !hasLast:
 		return neither
-	case last <= earlierTo:
+	case last <= EarlierTo:
 		return earlier
-	case first >= laterFrom && last <= laterTo:
+	case first >= LaterFrom && last <= LaterTo:
 		return later
 	}
 	return neither
@@ -164,14 +165,14 @@ func compared(byChild map[string]*pair) comparison {
 // laterAbout says how to read the table of the later set against the earlier.
 func (c *counts) laterAbout() string {
 	return "The same answers once more, of the children with answers in two ranges of their own: earlier, from the " +
-		"first after the trial series to the " + strconv.Itoa(earlierTo) + "th, and later, from the " +
-		strconv.Itoa(laterFrom) + "st to the " + strconv.Itoa(laterTo) + "th — where a child of the learners' bench " +
+		"first after the trial series to the " + ordinal(EarlierTo) + ", and later, from the " +
+		ordinal(LaterFrom) + " to the " + ordinal(LaterTo) + " — where a child of the learners' bench " +
 		"stops answering, so that the two can be laid side by side. Each child is set against itself: in each range " +
 		"a right answer as 1 and a wrong one as 0, less the chance promised, on average over the answers there, and " +
 		"the later less the earlier, with its standard error counted by child, a child's answers in both ranges " +
 		"together. What leans the same way in both ranges falls out of the difference — the answers the weighing " +
 		"leaves out, a model that misses the difficulty it is asked for —, and a child who stopped before its " +
-		strconv.Itoa(laterFrom) + "st answer is left out rather than read against the children who went on. Above " +
+		ordinal(LaterFrom) + " answer is left out rather than read against the children who went on. Above " +
 		"zero, the later answers came out right more often against their promise than the earlier: the estimate " +
 		"falls further behind as the answers pile up; below zero, it falls behind less, or runs ahead. " + everyHost +
 		" takes a version's hosts together; a child the load tool or MCP Inspector handed a task to is left out, and " +
