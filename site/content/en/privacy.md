@@ -62,11 +62,12 @@ To count how many children use MathTrail each day, week and month without knowin
 
 - a **counting name** for the child: a code made, with a key of the service's own, from the profile's identifier and the calendar month. It stays the same for one month and is different the next, and nothing about the child — the identifier, the pseudonym, anything else — can be worked out from it;
 - the chat (Claude, ChatGPT or another), the language of the task, the grade, the month the profile was made, and how many topics are mastered;
-- the **country**, and the **state** in the United States, if you gave them in the profile, and the **country you signed in from**, each as a short code.
+- the **country**, and the **state** in the United States, if you gave them in the profile, and the **country you signed in from**, each as a short code;
+- for an answer, whether it was right, whether the hint was used, the **chance** of a right answer the service expected of its task, who chose the task (the service's rule, the chat or you), whether it was one of the first answers that find the level the child starts at, and, after those, the range the child's count of answers was in, such as 6 to 20.
 
 Like every line about your sessions, these lines also carry an opaque code standing for your account: made with the service's own key from your Google account, it is neither your Google ID nor your email, and it changes at the first sign-in after that key is replaced. While the lines of two months are both kept, that code is what could join a child's two counting names.
 
-These lines are kept for at most 62 days. What is kept after that are totals — how many children, how many tasks, in which countries: totals for each day, totals for each week and each month told apart by one thing at a time, such as the country or the grade, and, for each month, the traps that wrong answers fell into, by topic and grade. They hold no identifier of any kind. A total counts a group of children, and a group may be a single child; a total of fewer than ten is never shown publicly.
+These lines are kept for at most 62 days. What is kept after that are totals — how many children, how many tasks, in which countries: totals for each day, totals for each week and each month told apart by one thing at a time, such as the country or the grade, and, for each month, the traps that wrong answers fell into, by topic and grade, and how the answers to the tasks the service chose came out against the chance it expected, by that chance and by how many answers the child had given. They hold no identifier of any kind. A total counts a group of children, and a group may be a single child; a total of fewer than ten is never shown publicly.
 
 The logs never contain the pseudonym, the text of a task, an answer, an email address, a token, the child's identifier, or the address a request came from.
 

@@ -274,10 +274,13 @@ func (s *Service) restoreProfile(ctx context.Context, account store.Account, in 
 	case errors.Is(err, store.ErrNotFound):
 		return Reply[profileOut]{Text: firstRunText, Payload: profileOut{Screen: screenFirstRun}}, nil
 	case errors.Is(err, store.ErrConflict):
-		if p, _, err = s.store.Load(ctx, account); err != nil {
-			return Reply[profileOut]{}, fmt.Errorf("mcp: read the profile: %w", err)
+		// Mended since, by the parent or another instance — or changed while
+		// its history was read: a file that reads is told as that, and one
+		// that does not is put back again, from a fresh read (afresh).
+		if read, _, loadErr := s.store.Load(ctx, account); loadErr == nil {
+			return s.profileReply(read, "The profile can be read, so nothing was put back.")
 		}
-		return s.profileReply(p, "The profile can be read, so nothing was put back.")
+		return Reply[profileOut]{}, fmt.Errorf("mcp: put the profile back: %w", err)
 	case err != nil:
 		return Reply[profileOut]{}, fmt.Errorf("mcp: put the profile back: %w", err)
 	}

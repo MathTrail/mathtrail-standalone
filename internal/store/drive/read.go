@@ -39,8 +39,9 @@ func (s *driveStore) Load(ctx context.Context, account store.Account) (*profile.
 // as. The file this instance remembers may have been set aside by another
 // since — damaged, or of a newer build — with a new profile started in its
 // place, so one that does not read is searched for once more: a file is told
-// unreadable, and damage mended, only once the marker says it is still the
-// profile.
+// unreadable, or put back, only once the marker says it is still the profile.
+// A file this instance put back that the search finds still damaged may be
+// read early, and is read once more after a moment.
 func (s *driveStore) current(ctx context.Context, parent parentsDrive) (fileRead, *profile.Profile, error) {
 	read, err := s.read(ctx, parent)
 	if err != nil {
@@ -48,11 +49,44 @@ func (s *driveStore) current(ctx context.Context, parent parentsDrive) (fileRead
 	}
 	p, err := store.ParseAt(read.raw, s.now())
 	if (errors.Is(err, store.ErrCorrupted) || errors.Is(err, profile.ErrNewer)) && read.remembered {
+		remembered := read
 		s.ids.forget(parent.account.ID, read.id)
 		if read, err = s.searchAndRead(ctx, parent); err != nil {
 			return fileRead{}, nil, err
 		}
 		p, err = store.ParseAt(read.raw, s.now())
+		if errors.Is(err, store.ErrDamaged) && remembered.mended && read.id == remembered.id {
+			return s.damagedAfterMending(ctx, parent, remembered)
+		}
+	}
+	return read, p, err
+}
+
+// damagedAfterMending reads once more, after a moment, a file this instance
+// put back that reads as damage: the damage may be what it was put back from,
+// read early, since Drive does not promise that a read right after a write sees
+// it. One that has caught up is remembered with the write again. One that still
+// reads as damage is refused as behind, once — the search before it has let the
+// write go, so the next call takes the file as it is: the parent who agreed to
+// have the file put back hears of damage again only once nothing says it is an
+// early read.
+func (s *driveStore) damagedAfterMending(ctx context.Context, parent parentsDrive, early fileRead) (fileRead, *profile.Profile, error) {
+	if err := s.sleep(ctx, recheck); err != nil {
+		return fileRead{}, nil, err
+	}
+	raw, err := parent.download(ctx, early.id)
+	read := fileRead{id: early.id, raw: raw, remembered: true, written: early.written}
+	if failed := read.took(err); failed != nil {
+		return fileRead{}, nil, s.refused(parent, early.id, failed)
+	}
+	p, err := store.ParseAt(read.raw, s.now())
+	if errors.Is(err, store.ErrDamaged) {
+		s.watch.staleRead(ctx, parent.account, early.written, 0, staleBehind)
+		return fileRead{}, nil, fmt.Errorf("%w: the file reads as the damage put back at %d", store.ErrBehind, early.written)
+	}
+	if err == nil {
+		s.ids.wrote(parent.account.ID, early.id, early.written)
+		s.watch.staleRead(ctx, parent.account, early.written, p.Revision, staleCaughtUp)
 	}
 	return read, p, err
 }
@@ -70,6 +104,8 @@ type fileRead struct {
 	// written is the profile's number this instance last wrote to the file,
 	// or none.
 	written int
+	// mended says that write put back a damaged file.
+	mended bool
 }
 
 // tooLarge is the state of a file too large to read, told apart from the
@@ -92,7 +128,7 @@ func (s *driveStore) read(ctx context.Context, parent parentsDrive) (fileRead, e
 	if known, remembered := s.ids.recall(parent.account.ID, s.now()); remembered {
 		raw, err := parent.download(ctx, known.file)
 		if !errors.Is(err, drive.ErrNotFound) {
-			read := fileRead{id: known.file, raw: raw, remembered: true, written: known.written}
+			read := fileRead{id: known.file, raw: raw, remembered: true, written: known.written, mended: known.mended}
 			return read, refusalOf(read.took(err))
 		}
 		// The file went from under the memory — deleted for good, or no longer

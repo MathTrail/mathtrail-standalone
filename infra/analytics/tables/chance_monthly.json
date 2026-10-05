@@ -1,0 +1,8 @@
+[
+  {"name": "month", "type": "DATE", "mode": "REQUIRED", "description": "The first day of the calendar month, in UTC."},
+  {"name": "bucket", "type": "STRING", "mode": "NULLABLE", "description": "The range of the chance of a right answer the task was handed out at, as the report names it: under 0.50, 0.50-0.59, 0.60-0.69, 0.70-0.77, 0.78-0.85 or over 0.85. Empty means every range."},
+  {"name": "learners", "type": "INTEGER", "mode": "REQUIRED", "description": "The children whose answers were weighed."},
+  {"name": "answers", "type": "INTEGER", "mode": "REQUIRED", "description": "The answers weighed against the chance promised: to tasks the rule chose, after the trial series, without the hint."},
+  {"name": "correct", "type": "INTEGER", "mode": "REQUIRED", "description": "The answers that were right."},
+  {"name": "promised", "type": "INTEGER", "mode": "REQUIRED", "description": "The chances the tasks were handed out at, in hundredths, added up."}
+]

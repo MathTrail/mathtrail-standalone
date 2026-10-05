@@ -264,17 +264,17 @@ The live block shows the same measures as `just report` (R153), counted for good
 
 The answers are those to tasks the rule chose, after the trial series and without the hint. The ranges of chance are the report's six, and the answer counts are the report's ranges from 6 on; the draft's "1–5" is the trial series, which is left out. Every host is taken together, and the children of the load tool and MCP Inspector are left out.
 
-- **What it needs.** The `answer_recorded` lines in the `activity` bucket already carry `chance`, `tutor_mode`, `trial`, `hint_used` and `answers_bucket`, all the report's filter reads; only the `impact` tables lack them. So T67.2's nightly query gains two tables, by month and instructions version:
-  - `chance_monthly`: children, answers, right answers and the chances promised, summed;
-  - `kept_up_monthly`: children, answers, and the sums from which the mean and its error by child are computed with no child named.
-- **Privacy, by R192:**
+- **What it needs** (built in T72.15.1, R221). The `answer_recorded` lines in the `activity` bucket carry `chance`, `tutor_mode`, `trial`, `hint_used` and `answers_bucket`, all the report's filter reads, and T67.2's nightly query now reads them too. It weighs the answers the report weighs and counts them into two tables by month and range, every instructions version together, since the version changes with nearly every release while the model does not (R212):
+  - `chance_monthly`, by the report's six ranges of chance and over every range: the children, the answers, the right ones and the chances promised, in hundredths;
+  - `kept_up_monthly`, by the range of the child's answers: the same, and the sums from which the mean and its error by child are computed with no child named.
+- **Privacy, by R192 and R221:**
   - closed months only, each month on its own and never a running total, which would give a small month away by subtraction;
-  - a cell is shown only behind at least ten children and thirty answers;
-  - the groups of a month that fall short — a version, a range — fold into `(others)`, topped up from the smallest until the fold itself clears both thresholds, as R192 folds the public views. So no hidden group can be had by subtracting the shown ones from a month's whole;
-  - counts are rounded to five;
-  - a hidden cell shows neither a count nor a share.
+  - a range, or a month over every range, is shown only behind at least ten children and thirty answers;
+  - no range is folded into `(others)`: a child's answers fall in many ranges, and `(others)` would count a child more than once. A hidden range is left out, as a topic of fewer than ten children is, and its answers can be had roughly from the month's whole less the ranges shown, to within the rounding to five, but never its children;
+  - counts are rounded to five, and shares, means and errors are given to three places;
+  - a hidden range shows neither a count nor a share.
 
-  T72.12's "ten answers" yields to R192's ten children.
+  The public views are `chances`, `chances_total` and `kept_up` in `impact_public`. T72.12's "ten answers" yields to R192's ten children.
 - **States:** coming, too few, ready. R187 rolled out on 2026-10-04, so October mixes two models. The first whole month is November, and its numbers come in December 2026 at the earliest.
 - **Into the build: a monthly snapshot, decided at the start of T72.15.** A recipe like `just impact`, with the author's own credentials, writes `site/research/live.json` with the deployment, the months and the views read. It is committed by a pull request each month.
   - The snapshot needs no credentials in CI and gives the numbers a second look in review.

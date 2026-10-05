@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -32,14 +34,16 @@ func TestTheLinesKeptToBeCountedAreTheLinesChildrenAreCountedFrom(t *testing.T) 
 }
 
 // columnWords are the only words a column of a table kept for years may be
-// called: periods, what a group is told apart by, and counts. A column called
-// anything else — the name a child is counted under, an account, a request —
-// is refused here before any table holds it.
+// called: periods, what a group is told apart by, counts, and the sums a mean
+// and its error are read from. A column called anything else — the name a
+// child is counted under, an account, a request — is refused here before any
+// table holds it.
 var columnWords = []string{
 	"day", "week", "month",
 	"dimension", "value", "measure", "bucket", "tenure", "topic", "grade", "trap",
 	"learners", "learners_week", "learners_month", "tasks", "answers", "topics_won",
 	"correct", "hinted", "dont_know", "mastered", "won", "winners",
+	"promised", "margins_squared", "answers_by_margins", "answers_squared",
 }
 
 // Every column of every table the counts are kept in for years is a word of
@@ -68,6 +72,32 @@ func TestATableKeptForYearsHoldsCountsAlone(t *testing.T) {
 				t.Errorf("%s has a column %q, which is no word of the counts", filepath.Base(schema), column.Name)
 			}
 		}
+	}
+}
+
+// The night counts the answers weighed against the chance promised in the
+// ranges this package counts them in, so that the counts kept for years and
+// the report read a chance alike: the same highest chance in hundredths for
+// each range, under the same name, and the last for every chance past them.
+func TestTheNightCountsChancesInTheReportsRanges(t *testing.T) {
+	t.Parallel()
+
+	raw, err := os.ReadFile(filepath.Join(analytics, "nightly.sql"))
+	if err != nil {
+		t.Fatalf("read the night: %v", err)
+	}
+	var counted []chanceRange
+	for _, found := range regexp.MustCompile(`WHEN chance <= (\d+) THEN '([^']+)'`).FindAllStringSubmatch(string(raw), -1) {
+		upTo, _ := strconv.Atoi(found[1])
+		counted = append(counted, chanceRange{upTo: upTo, named: found[2]})
+	}
+	last := regexp.MustCompile(`WHEN chance <= \d+ THEN '[^']+'\s+ELSE '([^']+)' END`).FindStringSubmatch(string(raw))
+	if last == nil {
+		t.Fatal("the night names no range for a chance past the last it bounds")
+	}
+	counted = append(counted, chanceRange{upTo: 100, named: last[1]})
+	if !slices.Equal(counted, chanceRanges) {
+		t.Errorf("the night counts chances in %v, want the report's %v", counted, chanceRanges)
 	}
 }
 

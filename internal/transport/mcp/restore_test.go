@@ -1,13 +1,17 @@
 package mcpserver_test
 
 import (
+	"context"
+	"fmt"
 	"maps"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/drive/drivetest"
+	"github.com/MathTrail/mathtrail-standalone/internal/store"
 )
 
 // fileWithHistory is a profile file in the Drive whose latest state is the
@@ -107,5 +111,44 @@ func TestARestoreOfAReadableProfilePutsNothingBack(t *testing.T) {
 	}
 	if calls := fake.Calls(); calls["update"] != 0 || calls["keep"] != 0 || calls["delete"] != 0 {
 		t.Errorf("a restore not made cost %v, want nothing written", calls)
+	}
+}
+
+// changedWhilePutBack is a store whose damaged file changes, to other damage,
+// while the first putting back reads its history: that one finds the file
+// changed, and reads find it damaged until the second has put it back.
+type changedWhilePutBack struct {
+	store.Storage
+	restores atomic.Int32
+}
+
+func (s *changedWhilePutBack) Load(ctx context.Context, account store.Account) (*profile.Profile, store.Revision, error) {
+	if s.restores.Load() < 2 {
+		return nil, "", fmt.Errorf("%w: half a file", store.ErrDamaged)
+	}
+	return s.Storage.Load(ctx, account)
+}
+
+func (s *changedWhilePutBack) Restore(ctx context.Context, account store.Account) (*profile.Profile, store.Revision, error) {
+	if s.restores.Add(1) == 1 {
+		return nil, "", fmt.Errorf("%w: the file changed while its history was read", store.ErrConflict)
+	}
+	return s.Storage.Load(ctx, account)
+}
+
+// A damaged file that changes, to other damage, while it is put back is put
+// back again from a fresh read: the adult agreed once, and is not asked again.
+func TestAFileChangedWhileItIsPutBackIsPutBackAgain(t *testing.T) {
+	t.Parallel()
+
+	kept := &changedWhilePutBack{Storage: keptWith(t, "masha")}
+	_, session := lesson(t, kept)
+
+	result := call(t, session, "save_profile", map[string]any{"restore": true})
+	if text := textOf(t, result); result.IsError || !strings.HasPrefix(text, "The damaged profile file was put back") {
+		t.Errorf("save_profile with restore = %q, want the file put back on the second try", text)
+	}
+	if got := kept.restores.Load(); got != 2 {
+		t.Errorf("the file was put back %d times, want twice: once found changed, once put back", got)
 	}
 }

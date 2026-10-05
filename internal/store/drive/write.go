@@ -120,10 +120,11 @@ func (s *driveStore) Save(ctx context.Context, account store.Account, p *profile
 // nothing: the file is forgotten, and the write refused as a conflict, so
 // that whoever made it reads again and finds where the profile is now.
 //
-// An upload asked to keep its revision that Drive refuses for a reason the
-// store has no word for — the most revisions it keeps, among them — is made
-// again without: the write matters more than the revision kept, and Drive did
-// not take the one it refused.
+// An upload asked to keep its revision that Drive refuses is made again
+// without, unless the refusal is one an upload without keeping would meet as
+// well (alsoWithoutKeeping): the write matters more than the revision kept,
+// Drive did not take the one it refused, and it does not document how it
+// refuses a revision past the most it keeps.
 func (s *driveStore) upload(ctx context.Context, parent parentsDrive, id string, p *profile.Profile, raw []byte, keep bool) error {
 	change := drive.Change{
 		Meta:    &drive.File{MimeType: fileType, AppProperties: map[string]string{schemaKey: strconv.Itoa(p.SchemaVersion)}},
@@ -131,7 +132,7 @@ func (s *driveStore) upload(ctx context.Context, parent parentsDrive, id string,
 		Keep:    keep,
 	}
 	changed, err := parent.update(ctx, id, &change)
-	if err != nil && keep && outcomeOf(err) == outcomeFailed {
+	if err != nil && keep && !alsoWithoutKeeping(err) {
 		change.Keep = false
 		changed, err = parent.update(ctx, id, &change)
 	}
@@ -150,6 +151,20 @@ func (s *driveStore) upload(ctx context.Context, parent parentsDrive, id string,
 	s.ids.forget(parent.account.ID, id)
 	s.watch.conflict(ctx, parent.account, p.Revision-1, p.Revision, why)
 	return fmt.Errorf("%w: the file stopped being the profile before the write", store.ErrConflict)
+}
+
+// alsoWithoutKeeping reports whether a refusal of an upload asked to keep its
+// revision is one an upload without keeping would meet as well: access taken
+// back or ending, the file gone, a full Drive, a pause Drive asked for past its
+// retries or Drive out of reach, or the time up. Any other refusal may be of
+// the keeping alone.
+func alsoWithoutKeeping(err error) bool {
+	switch outcomeOf(err) {
+	case outcomeTimeout, outcomeCanceled, outcomeExpired, outcomeNotFound, outcomeRevoked, outcomeRateLimited,
+		outcomeStorageFull, outcomeUnavailable:
+		return true
+	}
+	return false
 }
 
 // folder is the folder a new profile is made in: the one found by its marker —

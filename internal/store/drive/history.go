@@ -90,10 +90,10 @@ func (s *driveStore) recover(ctx context.Context, parent parentsDrive, id, damag
 	if err != nil {
 		return nil, "", s.refused(parent, id, err)
 	}
-	s.makeRoom(ctx, parent, id, history, recent+1)
-	tried := 0
+	tried, picked := 0, candidates(history)
+	s.makeRoom(ctx, parent, id, history, unkept(picked))
 	var unsure error
-	for _, candidate := range candidates(history) {
+	for _, candidate := range picked {
 		tried++
 		raw, err := s.earlier(ctx, parent, id, candidate)
 		switch {
@@ -114,6 +114,18 @@ func (s *driveStore) recover(ctx context.Context, parent parentsDrive, id, damag
 	}
 	s.watch.recovered(ctx, parent.account, tried, 0, recoveredNothing)
 	return nil, "", fmt.Errorf("%w: no earlier state of the file reads", store.ErrCorrupted)
+}
+
+// unkept is how many of the revisions a recovery tries are not kept forever
+// yet: the room it makes before it keeps them.
+func unkept(revisions []drive.Revision) int {
+	count := 0
+	for _, revision := range revisions {
+		if !revision.KeepForever {
+			count++
+		}
+	}
+	return count
 }
 
 // stopsRecovery reports whether an error stops a recovery rather than passing
@@ -166,7 +178,7 @@ func (s *driveStore) restore(ctx context.Context, parent parentsDrive, id, damag
 	if err := s.upload(ctx, parent, id, p, raw, false); err != nil {
 		return nil, "", err
 	}
-	s.ids.wrote(parent.account.ID, id, p.Revision)
+	s.ids.mended(parent.account.ID, id, p.Revision)
 	s.watch.recovered(ctx, parent.account, tried, p.Revision, recoveredRestored)
 	return p, revisionOf(id, p.Revision, raw), nil
 }

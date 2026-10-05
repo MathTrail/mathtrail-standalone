@@ -114,6 +114,84 @@ func TestADamagedFileIsPutBackWhenAsked(t *testing.T) {
 	}
 }
 
+// putBackThenEarly puts a damaged file back, and has Drive answer the next
+// downloads of it with the damage, as many times as given: Drive does not
+// promise that a read right after a write sees it. It answers the profile put
+// back.
+func (f *fixture) putBackThenEarly(t *testing.T, downloads int) *profile.Profile {
+	t.Helper()
+
+	f.create(t, mia, child("Mia"))
+	plant(t, f.fake, miaToken, damage)
+	restored, _, err := f.storage.Restore(t.Context(), mia)
+	if err != nil {
+		t.Fatalf("Restore() error = %v, want nil", err)
+	}
+	f.fake.Lag(miaToken, f.profileFile(t, miaToken).ID, downloads)
+	f.waits.taken()
+	return restored
+}
+
+// A file just put back that reads as the damage it was put back from, as it
+// remembers it and as the search finds it, is read once more after a moment
+// by the instance that put it back, rather than told as damage the parent
+// would be asked about again.
+func TestAFileJustPutBackIsReadAgainRatherThanCalledDamaged(t *testing.T) {
+	t.Parallel()
+
+	f := newFixture(t, 5*time.Second)
+	restored := f.putBackThenEarly(t, 2)
+
+	if got, _ := f.loaded(t, f.storage, mia); got.Revision != restored.Revision {
+		t.Errorf("Load() = revision %d, want the profile put back, %d", got.Revision, restored.Revision)
+	}
+	f.staleReadSaid(t, "caught_up")
+}
+
+// A file just put back that still reads as the damage after a moment is told
+// as an early read — make the call again — once, and the next read takes the
+// file as it is.
+func TestAFileJustPutBackStillEarlyIsToldAsBehindOnce(t *testing.T) {
+	t.Parallel()
+
+	f := newFixture(t, 5*time.Second)
+	restored := f.putBackThenEarly(t, 3)
+
+	if _, _, err := f.storage.Load(t.Context(), mia); !errors.Is(err, store.ErrBehind) {
+		t.Fatalf("Load() still early: error = %v, want %v", err, store.ErrBehind)
+	}
+	f.staleReadSaid(t, "behind")
+	if got, _ := f.loaded(t, f.storage, mia); got.Revision != restored.Revision {
+		t.Errorf("Load() once the reads caught up = revision %d, want %d", got.Revision, restored.Revision)
+	}
+}
+
+// A file put back that has since been damaged again and set aside by another
+// instance, for a new start, is no early read: the search finds the profile
+// started in its place, and nothing waits.
+func TestAFilePutBackAndSetAsideSinceGivesWayToTheNewProfile(t *testing.T) {
+	t.Parallel()
+
+	f := newFixture(t, 5*time.Second)
+	f.create(t, mia, child("Mia"))
+	plant(t, f.fake, miaToken, damage)
+	if _, _, err := f.storage.Restore(t.Context(), mia); err != nil {
+		t.Fatalf("Restore() error = %v, want nil", err)
+	}
+	plant(t, f.fake, miaToken, damage)
+	if _, err := f.instance(t, 5*time.Second).StartOver(t.Context(), mia, child("Mia anew")); err != nil {
+		t.Fatalf("StartOver() on another instance error = %v, want nil", err)
+	}
+	f.waits.taken()
+
+	if got, _ := f.loaded(t, f.storage, mia); got.Student.Pseudonym != "Mia anew" {
+		t.Errorf("Load() = %q, want the profile started in place of the one set aside", got.Student.Pseudonym)
+	}
+	if waited := f.waits.taken(); len(waited) != 0 {
+		t.Errorf("Load() waited %v, want no wait for a file set aside", waited)
+	}
+}
+
 // A run of damage longer than the latest revisions a recovery reads leaves
 // the state kept forever for its day, and that is what the file is put back
 // to.
@@ -388,26 +466,47 @@ func TestARecoveryThatCouldNotLookSaysWhy(t *testing.T) {
 	}
 }
 
-// An upload asked to keep its revision that Drive refuses for a reason the
-// store has no word for is made again without: the write lands, unkept.
+// An upload asked to keep its revision that Drive refuses is made again
+// without, and lands unkept, whatever the refusal — Drive does not say how it
+// refuses a revision past the most it keeps — but for one an upload without
+// keeping would meet as well, such as a full Drive.
 func TestAKeptUploadDriveRefusesIsMadeWithoutKeeping(t *testing.T) {
 	t.Parallel()
 
-	f := newFixture(t, 5*time.Second)
-	f.create(t, mia, child("Mia"))
-	p, read := f.loaded(t, f.storage, mia)
-	written := movedAt(p, "Mia the next day", moment.Add(24*time.Hour))
-	want := fileOf(t, written)
-	f.fake.Fail(drivetest.Update, http.StatusBadRequest, "badRequest")
-	f.fake.ResetCalls()
+	for _, tc := range []struct {
+		name   string
+		status int
+		reason string
+		lands  bool
+	}{
+		{"a refusal the store has no word for", http.StatusBadRequest, "badRequest", true},
+		{"a refusal for a reason of its own", http.StatusForbidden, "keepForeverLimitReached", true},
+		{"a refusal the store names for something else", http.StatusForbidden, "downloadRestrictedForRevision", true},
+		{"a full Drive", http.StatusForbidden, "storageQuotaExceeded", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	f.saved(t, f.storage, mia, written, read)
-	file := f.profileFile(t, miaToken)
-	if !bytes.Equal(file.Content, want) || len(keptForever(file)) != 0 {
-		t.Errorf("the file holds %s, with %d revisions kept forever, want the write landed and nothing kept", file.Content, len(keptForever(file)))
-	}
-	if got := f.fake.Calls()["update"]; got != 2 {
-		t.Errorf("the upload was sent %d times, want twice: once kept, and once without", got)
+			f := newFixture(t, 5*time.Second)
+			f.create(t, mia, child("Mia"))
+			p, read := f.loaded(t, f.storage, mia)
+			written := movedAt(p, "Mia the next day", moment.Add(24*time.Hour))
+			want := fileOf(t, written)
+			f.fake.Fail(drivetest.Update, tc.status, tc.reason)
+			f.fake.ResetCalls()
+
+			_, err := f.storage.Save(t.Context(), mia, written, read)
+			file := f.profileFile(t, miaToken)
+			if landed := bytes.Equal(file.Content, want); landed != tc.lands || (err == nil) != tc.lands {
+				t.Errorf("Save() error = %v, and the write landed: %v; want it landed: %v", err, landed, tc.lands)
+			}
+			if kept := len(keptForever(file)); kept != 0 {
+				t.Errorf("%d revisions are kept forever, want none: Drive refused the one asked for", kept)
+			}
+			if got, want := f.fake.Calls()["update"], map[bool]int{true: 2, false: 1}[tc.lands]; got != want {
+				t.Errorf("the upload was sent %d times, want %d", got, want)
+			}
+		})
 	}
 }
 
@@ -462,6 +561,11 @@ func TestARecoveryAtTheMostRevisionsKeptMakesRoom(t *testing.T) {
 	if kept := keptForever(file); len(kept) > 200 {
 		t.Errorf("%d revisions are kept forever, want at most two hundred", len(kept))
 	}
+	// Of the revisions it reads, only the state before the damage was not
+	// kept: one deleted makes its room, and none more is taken.
+	if got := f.fake.Calls()["delete"]; got != 1 {
+		t.Errorf("revisions deleted to make room = %d, want the one the revision kept to read needs", got)
+	}
 }
 
 // A revision Drive refuses to keep, for a reason the store has no word for,
@@ -488,11 +592,13 @@ func TestARevisionAlreadyGoneIsAsGoodAsDeleted(t *testing.T) {
 
 	f := newFixture(t, 5*time.Second)
 	good := fileOf(t, child("Mia"))
-	history := make([]drivetest.Revision, 0, 199)
-	for range 197 {
+	history := make([]drivetest.Revision, 0, 203)
+	for range 200 {
 		history = append(history, drivetest.Revision{Content: []byte("{}"), KeepForever: true})
 	}
-	history = append(history, drivetest.Revision{Content: good}, drivetest.Revision{Content: damage})
+	// Two states not kept yet, which a recovery reads: room for both.
+	history = append(history, drivetest.Revision{Content: good}, drivetest.Revision{Content: good},
+		drivetest.Revision{Content: damage})
 	f.fake.Put(miaToken, &drivetest.File{Name: fileName, MimeType: fileType, AppProperties: maps.Clone(profileMarker), Revisions: history})
 	f.fake.Fail(drivetest.DeleteRevision, http.StatusNotFound, "notFound")
 	f.fake.ResetCalls()

@@ -21,12 +21,14 @@ const (
 )
 
 // remembered is what an instance knows of an account's profile: the file that
-// holds it, when a search found that file, and the profile's number this
-// instance last wrote there — none, when it wrote nothing.
+// holds it, when a search found that file, the profile's number this instance
+// last wrote there — none, when it wrote nothing — and whether that write put
+// back a damaged file.
 type remembered struct {
 	file    string
 	learnt  time.Time
 	written int
+	mended  bool
 }
 
 // fileIDs remembers which file holds whose profile while the instance runs,
@@ -76,7 +78,7 @@ func (c *fileIDs) remember(account, file string, now time.Time) {
 	}
 	entry := remembered{file: file, learnt: now}
 	if isKnown && known.file == file {
-		entry.written = known.written
+		entry.written, entry.mended = known.written, known.mended
 	}
 	c.entries[account] = entry
 }
@@ -86,10 +88,23 @@ func (c *fileIDs) remember(account, file string, now time.Time) {
 // not caught up with the write. It changes nothing when another file is
 // remembered by now.
 func (c *fileIDs) wrote(account, file string, counter int) {
+	c.note(account, file, counter, false)
+}
+
+// mended records the profile's number this instance just wrote over a damaged
+// file to put it back: a read of the file that comes back as damage may be one
+// from before the write, as one that comes back with an earlier number is.
+func (c *fileIDs) mended(account, file string, counter int) {
+	c.note(account, file, counter, true)
+}
+
+// note records a write of this instance to the file it remembers, and whether
+// the write put back a damaged file.
+func (c *fileIDs) note(account, file string, counter int, mended bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if entry, known := c.entries[account]; known && entry.file == file {
-		entry.written = counter
+		entry.written, entry.mended = counter, mended
 		c.entries[account] = entry
 	}
 }
