@@ -611,7 +611,8 @@ a:hover {
 	position: relative;
 }
 
-.s-map-lines {
+.s-map-lines,
+.s-research-plot svg {
 	position: absolute;
 	inset: 0;
 	overflow: visible;
@@ -2804,7 +2805,8 @@ a:hover {
 .s-research-runs,
 .s-research-goals,
 .s-research-levels,
-.s-research-tick {
+.s-research-tick,
+.s-research-live {
 	font-variant-numeric: tabular-nums;
 }
 
@@ -2954,7 +2956,8 @@ a:hover {
 	background: var(--s-dim);
 }
 
-.s-research-bar-service .s-research-fill {
+.s-research-bar-service .s-research-fill,
+.s-research-axis .s-research-fill {
 	background: var(--s-accent);
 }
 
@@ -3000,6 +3003,44 @@ a:hover {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-12);
+}
+
+/* The live numbers: a measure's drawing beside its table, one under the other
+   on a narrow screen, the table as wide as its column allows. */
+.s-research-figure {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+	align-items: start;
+	gap: var(--space-24) var(--space-32);
+}
+
+.s-research-figure .s-table-frame {
+	margin-block-start: 0;
+}
+
+.s-research-figure .s-table {
+	min-inline-size: 0;
+}
+
+/* A point for each range of chance, on a square whose two axes share their
+   scale, so that a promise kept lies on its diagonal. */
+.s-research-plot {
+	position: relative;
+	aspect-ratio: 1;
+	max-inline-size: 300px;
+	margin-block: var(--space-16) 40px;
+	margin-inline-start: 40px;
+	border-block-end: 2px solid var(--s-line-strong);
+	border-inline-start: 2px solid var(--s-line-strong);
+	color: var(--s-accent);
+}
+
+.s-research-y {
+	position: absolute;
+	inset-inline-end: 100%;
+	padding-inline-end: var(--space-4);
+	translate: 0 -50%;
+	font-size: 0.8125rem;
 }
 
 /* The authors of the books the reference tasks come from, and the reference

@@ -26,6 +26,7 @@ func TestTheSignInIsServedAtItsOwnPaths(t *testing.T) {
 		{http.MethodGet, "example.com", "/oauth/authorize", http.StatusOK, reachedAuthorize},
 		{http.MethodPost, "example.com", "/oauth/consent", http.StatusOK, reachedConsent},
 		{http.MethodGet, "example.com", "/oauth/callback", http.StatusOK, reachedCallback},
+		{http.MethodGet, "example.com", "/oauth/drive", http.StatusOK, reachedDrive},
 		{http.MethodPost, "example.com", "/oauth/token", http.StatusOK, reachedToken},
 		{http.MethodPost, "example.com", "/oauth/revoke", http.StatusOK, reachedRevoke},
 
@@ -34,6 +35,7 @@ func TestTheSignInIsServedAtItsOwnPaths(t *testing.T) {
 		{http.MethodPost, "service-abc.a.run.app", "/oauth/register", http.StatusNotFound, ""},
 		{http.MethodGet, "service-abc.a.run.app", "/oauth/authorize", http.StatusNotFound, ""},
 		{http.MethodGet, "service-abc.a.run.app", "/oauth/callback", http.StatusNotFound, ""},
+		{http.MethodGet, "service-abc.a.run.app", "/oauth/drive", http.StatusNotFound, ""},
 		{http.MethodPost, "service-abc.a.run.app", "/oauth/token", http.StatusNotFound, ""},
 		{http.MethodPost, "service-abc.a.run.app", "/oauth/revoke", http.StatusNotFound, ""},
 		{http.MethodGet, "example.com", "/.well-known/oauth-authorization-server/", http.StatusNotFound, ""},
@@ -76,6 +78,7 @@ func TestASignInPathSaysWhichMethodItTakes(t *testing.T) {
 		{http.MethodPost, "/oauth/authorize", "GET"},
 		{http.MethodGet, "/oauth/consent", "POST"},
 		{http.MethodPost, "/oauth/callback", "GET"},
+		{http.MethodPost, "/oauth/drive", "GET"},
 		{http.MethodGet, "/oauth/token", "POST"},
 		{http.MethodGet, "/oauth/revoke", "POST"},
 	} {

@@ -1,8 +1,20 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, test } from "vitest";
 import fixture from "../../../site/research/testdata/research.json";
 import { letters } from "../widget/choices";
 import { siteCatalog } from "./data";
-import { markFrom, readResearch } from "./research";
+import { markFrom, privacyFloor, readResearch } from "./research";
+
+// repository is the root of the repository, whose SQL the page's rule is held
+// to.
+const repository = join(
+	dirname(fileURLToPath(import.meta.url)),
+	"..",
+	"..",
+	"..",
+);
 
 // authors are the authors the site's data names for the page.
 const authors = {
@@ -388,5 +400,201 @@ describe("the paper's files on the page", () => {
 		});
 
 		expect(read(edited).paper.files).toEqual([]);
+	});
+});
+
+describe("the live numbers on the page", () => {
+	// shownNothing is live numbers of a state that shows none of them.
+	const shownNothing = { total: null, chances: [], kept_up: [] };
+
+	test.each([
+		[
+			"still to come",
+			(file: typeof fixture) =>
+				Object.assign(
+					file.live,
+					{ state: "coming", month: null },
+					shownNothing,
+				),
+			"coming",
+		],
+		[
+			"too few",
+			(file: typeof fixture) =>
+				Object.assign(file.live, { state: "too_few" }, shownNothing),
+			"too_few",
+		],
+		["shown", () => undefined, "ready"],
+	])("are read when %s", (_, edit, state) => {
+		expect(read(changed(edit)).live.state).toBe(state);
+	});
+
+	test.each([
+		[
+			"a month of too few children",
+			(file: typeof fixture) => {
+				file.live.total.learners = 5;
+			},
+			"the month stands on 5 children and 1235 answers, and the rule shows nothing under 10 and 30",
+		],
+		[
+			"a range of too few children",
+			(file: typeof fixture) => {
+				Object.assign(file.live.chances[0] ?? {}, { learners: 5 });
+			},
+			"the range of chance 0.5–0.59 stands on 5 children",
+		],
+		[
+			"a range of too few answers",
+			(file: typeof fixture) => {
+				Object.assign(file.live.kept_up[0] ?? {}, { answers: 25 });
+			},
+			"the range of answers from 6 stands on 45 children and 25 answers",
+		],
+		[
+			"counts not rounded to five",
+			(file: typeof fixture) => {
+				Object.assign(file.live.kept_up[0] ?? {}, { answers: 551 });
+			},
+			"the range of answers from 6 counts 45 children and 551 answers, which are not rounded to 5",
+		],
+		[
+			"a range of more answers than its month",
+			(file: typeof fixture) => {
+				Object.assign(file.live.chances[2] ?? {}, { answers: 1240 });
+			},
+			"the range of chance 0.7–0.77 counts 40 children and 1240 answers, more than its month's 45 and 1235",
+		],
+		[
+			"ranges of chance out of order",
+			(file: typeof fixture) => {
+				file.live.chances.reverse();
+			},
+			"the range of chance 0.7–0.77 is out of order or overlaps the one before it",
+		],
+		[
+			"a promise outside its range of chance",
+			(file: typeof fixture) => {
+				Object.assign(file.live.chances[1] ?? {}, { promised_mean: 0.7 });
+			},
+			"the range of chance 0.6–0.69 promises 0.7 on average, outside the chances it holds",
+		],
+		[
+			"ranges of answers that overlap",
+			(file: typeof fixture) => {
+				Object.assign(file.live.kept_up[1] ?? {}, { first: 20 });
+			},
+			"the range of answers from 20 is out of order or overlaps the one before it",
+		],
+		[
+			"a range of every answer before another",
+			(file: typeof fixture) => {
+				Object.assign(file.live.kept_up[1] ?? {}, { last: null });
+			},
+			"the range of answers from 51 is out of order or overlaps the one before it",
+		],
+		[
+			"a range of answers that ends before it begins",
+			(file: typeof fixture) => {
+				Object.assign(file.live.kept_up[2] ?? {}, { last: 40 });
+			},
+			"the range of answers from 51 is out of order or overlaps the one before it",
+		],
+	])("are refused when they show %s", (_, edit, said) => {
+		expect(() => read(changed(edit))).toThrow(`research.json: ${said}`);
+	});
+
+	test("are read whatever trial series the service runs now: a month counted under a shorter one keeps its ranges", () => {
+		const longer = changed((file) => {
+			file.product.trial_answers = 6;
+		});
+
+		expect(read(longer).live.kept_up[0]?.first).toBe(6);
+	});
+
+	test("are held to the rule of the public views, as their SQL writes it", () => {
+		for (const view of ["chances.sql", "chances_total.sql", "kept_up.sql"]) {
+			const sql = readFileSync(
+				join(repository, "infra", "analytics", "views", "public", view),
+				"utf8",
+			);
+			expect(sql, view).toContain(
+				`learners >= ${privacyFloor.learners} AND counted.answers >= ${privacyFloor.answers}`,
+			);
+			expect(sql, view).toMatch(
+				new RegExp(
+					`ROUND\\([\\w.]+ / ${privacyFloor.rounded_to}\\) \\* ${privacyFloor.rounded_to}`,
+				),
+			);
+		}
+	});
+
+	test.each([
+		["fewer children", { learners: 9 }],
+		["fewer answers", { answers: 25 }],
+		["counts rounded less", { rounded_to: 1 }],
+	])(
+		"are refused when their rule asks for %s than the public views'",
+		(_, weaker) => {
+			const edited = changed((file) => {
+				Object.assign(file.live.rule, weaker);
+			});
+
+			expect(() => read(edited)).toThrow(
+				/^research\.json: the live numbers are shown on .*, and the public views show none under 10 and 30, counted to 5$/,
+			);
+		},
+	);
+
+	test.each([
+		[
+			"still to come, of a month",
+			(file: typeof fixture) =>
+				Object.assign(file.live, { state: "coming" }, shownNothing),
+		],
+		[
+			"too few, with a total",
+			(file: typeof fixture) =>
+				Object.assign(file.live, {
+					state: "too_few",
+					chances: [],
+					kept_up: [],
+				}),
+		],
+		[
+			"too few, with ranges",
+			(file: typeof fixture) =>
+				Object.assign(file.live, { state: "too_few", total: null }),
+		],
+		[
+			"shown, with no total",
+			(file: typeof fixture) => Object.assign(file.live, { total: null }),
+		],
+		[
+			"of a month of no calendar",
+			(file: typeof fixture) => Object.assign(file.live, { month: "2026-13" }),
+		],
+		[
+			"with a share past all",
+			(file: typeof fixture) => {
+				Object.assign(file.live.chances[0] ?? {}, { correct_share: 1.2 });
+			},
+		],
+		[
+			"with a margin past one",
+			(file: typeof fixture) => {
+				Object.assign(file.live.kept_up[0] ?? {}, {
+					came_true_less_promised: -1.5,
+				});
+			},
+		],
+		[
+			"with an error under nothing",
+			(file: typeof fixture) => {
+				Object.assign(file.live.kept_up[0] ?? {}, { standard_error: -0.01 });
+			},
+		],
+	])("are refused when they are %s", (_, edit) => {
+		expect(() => read(changed(edit))).toThrow(/^research\.json: .*live/s);
 	});
 });

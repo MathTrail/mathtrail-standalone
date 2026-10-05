@@ -40,6 +40,25 @@ func TestAUserIDFollowsTheCurrentKey(t *testing.T) {
 	}
 }
 
+// During a rotation an account is known by two identifiers: the one the
+// current key derives, which a sign-in is given now, and the one a sign-in
+// made before the rotation was given, under the key that was current then.
+// Outside a rotation there is one.
+func TestAnAccountIsKnownByWhatItsTokensMayCarry(t *testing.T) {
+	t.Parallel()
+
+	const account = "google-sub:110169484474386276334"
+	before := newRing(t, keyNamed("current"), "").UserID(account)
+	rotated := newRing(t, keyNamed("next"), keyNamed("current"))
+
+	if got, want := rotated.UserIDs(account), []string{rotated.UserID(account), before}; len(got) != 2 || got[0] != want[0] || got[1] != want[1] {
+		t.Errorf("UserIDs() during a rotation = %q, want %q", got, want)
+	}
+	if got := newRing(t, keyNamed("current"), "").UserIDs(account); len(got) != 1 || got[0] != before {
+		t.Errorf("UserIDs() outside a rotation = %q, want %q alone", got, before)
+	}
+}
+
 // An identifier says nothing of the account it was made from.
 func TestAUserIDShowsNothingOfTheAccount(t *testing.T) {
 	t.Parallel()

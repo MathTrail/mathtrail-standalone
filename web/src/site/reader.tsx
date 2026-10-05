@@ -38,10 +38,11 @@ export type PageReader = {
 	 */
 	has(key: string): boolean;
 	/**
-	 * leaveOut counts the text under key as read and draws nothing: for a text
-	 * the page shows for some of its data and not for the rest, such as a
-	 * button to a file the site does not ship yet. The file is still held to
-	 * the key, so a text the page would show once the data changes is there.
+	 * leaveOut counts the text under key, or every text of the section under
+	 * key, as read and draws nothing: for words the page shows for some of its
+	 * data and not for the rest, such as a button to a file the site does not
+	 * ship yet. The file is still held to the key, so the words the page would
+	 * show once the data changes are there.
 	 */
 	leaveOut(key: string): void;
 };
@@ -120,7 +121,16 @@ export function openReader(
 			);
 		},
 		leaveOut(key) {
-			take(key);
+			const prefix = `${key}.`;
+			const section = [...words.keys()].filter((name) =>
+				name.startsWith(prefix),
+			);
+			if (section.length === 0) {
+				take(key);
+			}
+			for (const name of section) {
+				read.add(name);
+			}
 		},
 	};
 	return {

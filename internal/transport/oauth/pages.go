@@ -36,12 +36,13 @@ type fragment struct {
 	Link   string
 }
 
-// pages draws the pages of a sign-in: the consent screen, and the page a
-// sign-in stops at. They are the service's own, outside any chat, and drawn
-// with the design's tokens inlined — the policy they are served under loads
-// nothing.
+// pages draws the pages of a sign-in: the consent screen, the page that asks a
+// parent back to Google for the Drive, and the page a sign-in stops at. They
+// are the service's own, outside any chat, and drawn with the design's tokens
+// inlined — the policy they are served under loads nothing.
 type pages struct {
 	consent *template.Template
+	drive   *template.Template
 	refusal *template.Template
 	words   map[string]string
 	style   template.CSS
@@ -54,6 +55,10 @@ func newPages(files fs.FS, site string) (*pages, error) {
 	consent, err := template.ParseFS(files, "pages/consent.html", "pages/phrase.html")
 	if err != nil {
 		return nil, fmt.Errorf("oauth: read the consent page: %w", err)
+	}
+	drive, err := template.ParseFS(files, "pages/drive.html")
+	if err != nil {
+		return nil, fmt.Errorf("oauth: read the page that asks for the Drive: %w", err)
 	}
 	refusal, err := template.ParseFS(files, "pages/refusal.html", "pages/phrase.html")
 	if err != nil {
@@ -75,6 +80,7 @@ func newPages(files fs.FS, site string) (*pages, error) {
 
 	return &pages{
 		consent: consent,
+		drive:   drive,
 		refusal: refusal,
 		words:   words,
 		// Both stylesheets are the service's own, embedded when it is built:
@@ -94,6 +100,9 @@ type consentScreen struct {
 	request string
 	// google is where allowing sends the parent next, when anywhere.
 	google string
+	// reviewer is whether the screen offers a directory's reviewer the
+	// password that signs them in as the demo account.
+	reviewer bool
 }
 
 // consentView is the consent screen as its template reads it.
@@ -106,6 +115,7 @@ type consentView struct {
 	Loopback bool
 	Legal    []fragment
 	Request  string
+	Reviewer bool
 }
 
 // showConsent draws the consent screen. It names the client as the client
@@ -132,6 +142,39 @@ func (p *pages) showConsent(w http.ResponseWriter, screen consentScreen) error {
 			"terms":   {Text: p.words["consent.terms"], Link: p.site + "/" + pageLanguage + "/terms/"},
 			"privacy": {Text: p.words["consent.privacy"], Link: p.site + "/" + pageLanguage + "/privacy/"},
 		}),
+		Request:  screen.request,
+		Reviewer: screen.reviewer,
+	}, screen.google, screen.redirectURI)
+}
+
+// driveScreen is what the page that asks a parent back to Google for the
+// Drive posts, and where its form leads.
+type driveScreen struct {
+	// redirectURI is where the parent is sent back to when they cancel.
+	redirectURI string
+	// request is the sealed request the page posts back.
+	request string
+	// google is where going back sends the parent.
+	google string
+}
+
+// driveView is the page that asks for the Drive as its template reads it.
+type driveView struct {
+	Lang    string
+	Style   template.CSS
+	Words   map[string]string
+	Request string
+}
+
+// showDrive draws the page that asks a parent who left Google's box for the
+// Drive unticked to go back and tick it. Its form is answered as the consent
+// screen's is, so it may lead where that one does: on to Google, or back to
+// the client when the parent cancels.
+func (p *pages) showDrive(w http.ResponseWriter, screen driveScreen) error {
+	return p.write(w, http.StatusOK, p.drive, driveView{
+		Lang:    pageLanguage,
+		Style:   p.style,
+		Words:   p.words,
 		Request: screen.request,
 	}, screen.google, screen.redirectURI)
 }
@@ -236,6 +279,7 @@ var (
 	stoppedUnconfigured = stop{http.StatusServiceUnavailable, "unconfigured", "temporarily_unavailable"}
 	stoppedFailed       = stop{http.StatusInternalServerError, "failed", "server_error"}
 	stoppedBusy         = stop{http.StatusTooManyRequests, "busy", "temporarily_unavailable"}
+	stoppedPassword     = stop{http.StatusForbidden, "password", "access_denied"}
 )
 
 // refusalView is a page a sign-in stops at, as its template reads it.

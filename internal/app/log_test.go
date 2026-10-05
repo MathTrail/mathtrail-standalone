@@ -12,7 +12,9 @@ import (
 
 	"go.uber.org/zap/zaptest/observer"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/config"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/geoip/geoiptest"
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth/googletest"
 	"github.com/MathTrail/mathtrail-standalone/internal/report"
 )
 
@@ -22,7 +24,7 @@ import (
 var lessonEvents = []string{
 	// The service as it is built.
 	"content loaded", "seal keys loaded", "telemetry built", "solver sandbox built", "profile store",
-	"google sign-in", "learner key", "country database", "limits set",
+	"google sign-in", "reviewer sign-in", "learner key", "country database", "limits set",
 	// Every request, whatever it asked for.
 	"http_request",
 	// The sign-in.
@@ -53,9 +55,63 @@ func TestTheLogOfAWholeLesson(t *testing.T) {
 	lines := f.lines()
 
 	t.Run("nothing personal", func(t *testing.T) { wantNothingPersonal(t, lines, f.secrets, f.words) })
-	t.Run("only the fields of its event", func(t *testing.T) { wantOnlyTheFieldsOfTheirEvents(t, lines) })
+	t.Run("only the fields of its event", func(t *testing.T) { wantOnlyTheFieldsOfTheirEvents(t, lines, lessonEvents) })
 	t.Run("adds up in the report", func(t *testing.T) { wantTheLessonInTheReport(t, lines) })
 	t.Run("counts the child", func(t *testing.T) { wantTheChildCounted(t, lines) })
+}
+
+// The same lesson, held by a directory's reviewer who signed in with the
+// reviewers' password as the demo account: every line holds to the same two
+// rules — the password and the demo account's grant among what none may
+// carry — and the lines a child is counted from name no child, since the demo
+// account's is none. The host ending its access ends nothing at Google.
+func TestTheLogOfAReviewersLesson(t *testing.T) {
+	t.Parallel()
+
+	f := newFamilyWith(t, func(cfg *config.Config) {
+		cfg.ReviewerPassword = reviewerPassword
+		cfg.ReviewerGrant = `{"subject":"` + googletest.Subject + `","refresh_token":"` + googletest.RefreshToken + `"}`
+	})
+	f.signInAsReviewer(reviewerPassword)
+	f.presentAStrangersToken()
+	f.holdALesson()
+	f.renewAndEnd()
+	lines := f.lines()
+
+	t.Run("nothing personal", func(t *testing.T) { wantNothingPersonal(t, lines, f.secrets, f.words) })
+	t.Run("only the fields of its event", func(t *testing.T) {
+		// A reviewer's sign-in never comes back from Google.
+		wantOnlyTheFieldsOfTheirEvents(t, lines, slices.DeleteFunc(slices.Clone(lessonEvents), func(event string) bool {
+			return event == "auth_callback"
+		}))
+	})
+	t.Run("counts no child", func(t *testing.T) { wantNoChildCounted(t, lines) })
+	if revoked := f.google.Revocations(); len(revoked) != 0 {
+		t.Errorf("Google was asked to end a grant %d times, want the demo account's left alone", len(revoked))
+	}
+}
+
+// reviewerPassword is the reviewers' password of the reviewer's lesson.
+const reviewerPassword = "Xk3-vQ9_tLm2Wp7Rz4Yb8Nc1Jd6Hf5Gs"
+
+// wantNoChildCounted holds the lines a child is counted from to naming no
+// child: they are written, as a family's are, and carry no name to count by.
+func wantNoChildCounted(t *testing.T, lines []observer.LoggedEntry) {
+	t.Helper()
+
+	counted := 0
+	for i := range lines {
+		switch lines[i].Message {
+		case "task_accepted", "answer_recorded", "topic_mastered":
+			counted++
+			if learner, named := lines[i].ContextMap()["learner"]; named {
+				t.Errorf("a %s line names the demo account's child %v, want no name", lines[i].Message, learner)
+			}
+		}
+	}
+	if counted < 2 {
+		t.Errorf("the lesson left %d lines a child is counted from, want its task and its answer", counted)
+	}
 }
 
 // wantTheChildCounted holds the line about the task handed out to counting
@@ -170,16 +226,16 @@ func wantNothingPersonal(t *testing.T, lines []observer.LoggedEntry, secrets, wo
 	}
 }
 
-// wantOnlyTheFieldsOfTheirEvents holds every line to an event the lesson is
-// known to leave and to that event's fields, and every such event to a line of
-// the lesson, so that none is listed for nothing.
-func wantOnlyTheFieldsOfTheirEvents(t *testing.T, lines []observer.LoggedEntry) {
+// wantOnlyTheFieldsOfTheirEvents holds every line to an event of those the
+// lesson is known to leave and to that event's fields, and every such event to
+// a line of the lesson, so that none is listed for nothing.
+func wantOnlyTheFieldsOfTheirEvents(t *testing.T, lines []observer.LoggedEntry, events []string) {
 	t.Helper()
 
 	seen := map[string]bool{}
 	for i := range lines {
 		seen[lines[i].Message] = true
-		if !slices.Contains(lessonEvents, lines[i].Message) || !report.Known(lines[i].Message) {
+		if !slices.Contains(events, lines[i].Message) || !report.Known(lines[i].Message) {
 			t.Errorf("a line of %q, which the lesson is not known to leave: %v", lines[i].Message, lines[i].ContextMap())
 		}
 		for _, field := range strayFields(&lines[i]) {
@@ -191,7 +247,7 @@ func wantOnlyTheFieldsOfTheirEvents(t *testing.T, lines []observer.LoggedEntry) 
 			}
 		}
 	}
-	for _, event := range lessonEvents {
+	for _, event := range events {
 		if !seen[event] {
 			t.Errorf("the lesson left no %s line, want the event it is listed for", event)
 		}

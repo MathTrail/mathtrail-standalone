@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in to MathTrail</title>
+<style>…</style>
+</head>
+<body>
+<main class="auth">
+<p class="auth-brand">MathTrail</p>
+<h1>Tick the box for Google Drive</h1>
+<p>On Google&#39;s screen, the box that lets MathTrail keep its file in your Google Drive was left unticked. That one file is where your child&#39;s progress is saved, so MathTrail cannot work without it. It sees no other file in your Drive.</p>
+<p>Press “Back to Google” and tick the box about your Google Drive files. Google words it in your account&#39;s language; in English it reads “See, edit, create, and delete only the specific Google Drive files you use with this app”.</p>
+<form method="post" action="/oauth/consent">
+<input type="hidden" name="request" value="mt1.s.KEYID.the-sealed-request">
+<div class="auth-actions">
+<button type="submit" name="decision" value="again" class="auth-primary">Back to Google</button>
+<button type="submit" name="decision" value="cancel" class="auth-secondary">Cancel</button>
+</div>
+</form>
+</main>
+</body>
+</html>

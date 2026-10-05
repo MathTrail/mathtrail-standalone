@@ -118,6 +118,93 @@ func TestATaskHandedOutIsCountedByTheCountryOfItsSignIn(t *testing.T) {
 	}
 }
 
+// The demo account a directory's reviewers sign in to counts no child: its
+// task handed out, its answer and its topic mastered are written as for any
+// child, and none of them carries the name a child is counted under, which is
+// what the counts are made from. Any other account is counted as before.
+func TestTheDemoAccountsChildIsCountedNowhere(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name    string
+		demo    []string
+		counted bool
+	}{
+		{"the demo account", []string{vouchedUser}, false},
+		{"the demo account, signed in before a rotation", []string{"its-identifier-now", vouchedUser}, false},
+		{"a parent's beside it", []string{"the-demo-account"}, true},
+	} {
+		t.Run(tc.name+", a task handed out", func(t *testing.T) {
+			t.Parallel()
+
+			h, session, kept := demoLesson(t, tc.demo, profile.New(profile.Student{
+				Grade: 2, Pseudonym: "Otter", Interests: []string{"sport"},
+			}, "test", lessonDay))
+			asked := call(t, session, "next_task", raceChoice)
+			p, _, err := kept.Load(context.Background(), store.NewAccount(vouchedUser, "", time.Time{}))
+			if err != nil || p.OpenRequest == nil {
+				t.Fatalf("next_task = %q, and the profile holds no request: %v", textOf(t, asked), err)
+			}
+			wantOnTheCard(t, call(t, session, "submit_task", raceOn(p.OpenRequest)))
+			h.settle()
+
+			wantNamed(t, "task_accepted", theOnlyLine(t, h, "task_accepted"), tc.counted)
+		})
+		t.Run(tc.name+", an answer that masters its topic", func(t *testing.T) {
+			t.Parallel()
+
+			// A child whose right answer masters the topic, as in the case of
+			// a topic counted as mastered.
+			p := raceOnTheCard(t, 100)
+			p.Ratings.Theta = 2.05
+			p.Topics["logic.ordering"] = profile.Topic{Answers: 120, Correct: 120}
+			h, session, _ := demoLesson(t, tc.demo, p)
+			answerIt(t, session, p.CurrentTask.ID, "C", false)
+			h.settle()
+
+			for _, event := range []string{"answer_recorded", "topic_mastered"} {
+				wantNamed(t, event, theOnlyLine(t, h, event), tc.counted)
+			}
+		})
+	}
+}
+
+// demoLesson serves the tools of a lesson to the account the token signs in,
+// whose profile is the one given, on a service told the identifiers of the
+// demo account given.
+func demoLesson(t *testing.T, demo []string, p *profile.Profile) (*harness, *mcp.ClientSession, store.Storage) {
+	t.Helper()
+
+	account := store.NewAccount(vouchedUser, "", time.Time{})
+	kept := memory.New()
+	if _, err := kept.Create(context.Background(), account, p); err != nil {
+		t.Fatalf("keep the profile: %v", err)
+	}
+	h := newHarness(t)
+	service := lessonService(t, h, kept, &clock{at: lessonDay}, nil, func(parts *mcpserver.Parts) { parts.DemoAccounts = demo })
+	h.start(t, mcpserver.BearerSignIn(readerOf(account), metadata), slices.Concat(service.ProfileTools(), service.TaskTools())...)
+	session, err := h.connectWith(t, vouchedToken)
+	if err != nil {
+		t.Fatalf("connectWith() error = %v, want nil", err)
+	}
+	return h, session, kept
+}
+
+// wantNamed holds a line that counts a child to naming the child, or to
+// naming nobody when it is the demo account's, and to carrying everything else
+// its event may either way.
+func wantNamed(t *testing.T, event string, fields map[string]any, counted bool) {
+	t.Helper()
+
+	if _, named := fields["learner"]; named != counted {
+		t.Errorf("%s names its child: %v, want %v", event, named, counted)
+	}
+	if fields["grade"] != int64(2) {
+		t.Errorf("%s grade = %v, want the line written as for any child", event, fields["grade"])
+	}
+	wantCounted(t, event, fields)
+}
+
 // The language a task is written in is read from the profile, which a person
 // can edit, and the file is held to no list of languages. A task asked for in
 // whatever was typed there by hand — the child's pseudonym, say — is counted

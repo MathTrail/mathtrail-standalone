@@ -113,13 +113,14 @@ func (l *signInLog) authorized(ctx context.Context, request *flight, query url.V
 	l.write(ctx, eventAuthAuthorize, fields...)
 }
 
-// consented leaves the line of the parent's answer on the consent screen.
-func (l *signInLog) consented(ctx context.Context, request *flight, outcome string) {
-	fields := requestFields(request)
-	l.write(ctx, eventAuthConsent, append(fields, zap.String("outcome", outcome))...)
+// consented leaves the line of the answer on the consent screen: the parent's,
+// or the reviewer's sign-in and how it ended.
+func (l *signInLog) consented(ctx context.Context, request *flight, end *ending) {
+	l.ended(ctx, eventAuthConsent, requestFields(request), end)
 }
 
-// calledBack leaves the line of a sign-in's end.
+// calledBack leaves the line of Google's answer: the sign-in's end, or the
+// parent asked back to Google for the Drive.
 func (l *signInLog) calledBack(ctx context.Context, request *flight, end *ending) {
 	l.ended(ctx, eventAuthCallback, requestFields(request), end)
 }

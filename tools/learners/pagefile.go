@@ -16,9 +16,9 @@ import (
 
 // The page's data file joins the numbers of the page's run with what the
 // commit being built adds to them: the commit itself, the facts of the paper
-// the page links, and the state of the live numbers. Kept apart from the run,
-// the file can be made for every commit from numbers computed once for the
-// same build of the bench.
+// the page links, and the live numbers of the snapshot committed with it.
+// Kept apart from the run, the file can be made for every commit from numbers
+// computed once for the same build of the bench.
 
 // pageFileCommandName is the word that makes the page's data file.
 const pageFileCommandName = "page-file"
@@ -26,9 +26,6 @@ const pageFileCommandName = "page-file"
 // researchSchema is the version of the data file's shape, which its reader
 // holds it to.
 const researchSchema = 1
-
-// liveComing is the state of live numbers that have not come yet.
-const liveComing = "coming"
 
 // researchFile is the page's data file: every number the page shows, from
 // one place.
@@ -66,11 +63,6 @@ type paperFile struct {
 	SHA256 string `json:"sha256"`
 }
 
-// liveBlock is the state of the live numbers.
-type liveBlock struct {
-	State string `json:"state"`
-}
-
 // The shapes of what the file is made from.
 var (
 	commitHash = regexp.MustCompile(`^[0-9a-f]{40}([0-9a-f]{24})?$`)
@@ -84,10 +76,10 @@ var (
 var errPaperFacts = errors.New("learners page-file: the paper's facts cannot be read")
 
 // pageFileArgs are what the data file is made from: the numbers of the page's
-// run and the key of the build they must be of, the commit and its date, and
-// the paper's commit and facts.
+// run and the key of the build they must be of, the commit and its date, the
+// paper's commit and facts, and the snapshot of the live numbers.
 type pageFileArgs struct {
-	numbers, inputs, commit, date, paperCommit, paper, out string
+	numbers, inputs, commit, date, paperCommit, paper, live, out string
 }
 
 // pageFileCommand makes the page's data file, and prints the goals it holds
@@ -102,6 +94,7 @@ func pageFileCommand(args []string, stdout, stderr io.Writer) int {
 	flags.StringVar(&a.date, "date", "", "the commit's date, in RFC 3339")
 	flags.StringVar(&a.paperCommit, "paper-commit", "", "the commit the paper's numbers were computed on")
 	flags.StringVar(&a.paper, "paper", "", "the facts of the paper's files the site ships, if it ships any")
+	flags.StringVar(&a.live, "live", "", "the snapshot of the live numbers, if one was taken")
 	flags.StringVar(&a.out, "out", "", "the file the data is written to")
 	if err := flags.Parse(args); err != nil {
 		return 2
@@ -149,11 +142,15 @@ func pageFileOf(a *pageFileArgs) (researchFile, string, error) {
 	if err != nil {
 		return researchFile{}, "", err
 	}
+	live, err := liveOf(a.live)
+	if err != nil {
+		return researchFile{}, "", err
+	}
 	return researchFile{
 		Schema:    researchSchema,
 		BuiltFrom: builtFrom{Commit: a.commit, Date: date.UTC().Format(time.RFC3339)},
 		Bench:     numbers.Bench, Product: numbers.Product,
-		Paper: paper, Live: liveBlock{State: liveComing},
+		Paper: paper, Live: live,
 	}, warning, nil
 }
 
@@ -247,9 +244,15 @@ func readStrictJSON(path string, v any) error {
 	if err != nil {
 		return err
 	}
+	return decodeStrictJSON(path, data, v)
+}
+
+// decodeStrictJSON decodes data, the bytes of the file at path, into v as
+// readStrictJSON reads them.
+func decodeStrictJSON(path string, data []byte, v any) error {
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	if err = decoder.Decode(v); err != nil {
+	if err := decoder.Decode(v); err != nil {
 		return fmt.Errorf("%s: %w", path, err)
 	}
 	if decoder.More() {
@@ -259,8 +262,8 @@ func readStrictJSON(path string, v any) error {
 }
 
 // goalsReport is the page's table of goals as Markdown: what the run was,
-// every row under each rule with its mark, and what the page says of the
-// paper.
+// every row under each rule with its mark, what the page says of the paper,
+// and the state of its live numbers.
 func goalsReport(f *researchFile, warning string) string {
 	var b strings.Builder
 	bench := &f.Bench
@@ -292,6 +295,7 @@ func goalsReport(f *researchFile, warning string) string {
 		}
 		fmt.Fprintf(&b, "\nThe site ships the paper's PDF in %s, built at the commit %s.\n", strings.Join(langs, ", "), f.Paper.Commit)
 	}
+	b.WriteString(liveReport(&f.Live))
 	if warning != "" {
 		fmt.Fprintf(&b, "\n**%s**\n", warning)
 	}

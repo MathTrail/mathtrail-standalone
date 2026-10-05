@@ -83,7 +83,7 @@ func wordsAskedFor(t *testing.T) []string {
 	t.Helper()
 
 	var asked []string
-	for _, name := range []string{"consent.html", "refusal.html"} {
+	for _, name := range []string{"consent.html", "drive.html", "refusal.html"} {
 		page, err := fs.ReadFile(pageFiles, "pages/"+name)
 		if err != nil {
 			t.Fatalf("reading %s: %v", name, err)
@@ -92,7 +92,7 @@ func wordsAskedFor(t *testing.T) []string {
 			asked = append(asked, found[1])
 		}
 	}
-	for _, stopped := range []stop{stoppedRequest, stoppedClient, stoppedRedirect, stoppedExpired, stoppedCookie, stoppedUnconfigured, stoppedFailed, stoppedBusy} {
+	for _, stopped := range []stop{stoppedRequest, stoppedClient, stoppedRedirect, stoppedExpired, stoppedCookie, stoppedUnconfigured, stoppedFailed, stoppedBusy, stoppedPassword} {
 		asked = append(asked, "refusal."+stopped.page+".heading", "refusal."+stopped.page+".text")
 	}
 	return append(asked, "consent.heading", "consent.return", "consent.legal", "consent.terms", "consent.privacy", "refusal.code")
@@ -330,9 +330,29 @@ func TestThePagesLookAsTheReviewLastSawThem(t *testing.T) {
 	if err := pagesOf(t).showRefusal(refusal, stoppedCookie); err != nil {
 		t.Fatalf("showRefusal() error = %v, want nil", err)
 	}
+	withReviewer := httptest.NewRecorder()
+	if err := pagesOf(t).showConsent(withReviewer, consentScreen{
+		client:      "Claude",
+		redirectURI: "https://claude.ai/api/mcp/auth_callback",
+		request:     "mt1.s.KEYID.the-sealed-request",
+		google:      "https://accounts.google.com/o/oauth2/v2/auth?state=mt1.s.KEYID.the-sealed-request",
+		reviewer:    true,
+	}); err != nil {
+		t.Fatalf("showConsent() error = %v, want nil", err)
+	}
+	drive := httptest.NewRecorder()
+	if err := pagesOf(t).showDrive(drive, driveScreen{
+		redirectURI: "https://claude.ai/api/mcp/auth_callback",
+		request:     "mt1.s.KEYID.the-sealed-request",
+		google:      "https://accounts.google.com/o/oauth2/v2/auth?state=mt1.s.KEYID.the-sealed-request",
+	}); err != nil {
+		t.Fatalf("showDrive() error = %v, want nil", err)
+	}
 	for name, answer := range map[string]*httptest.ResponseRecorder{
-		"consent.en.html": consentFor(t, "Claude", "https://claude.ai/api/mcp/auth_callback"),
-		"refusal.en.html": refusal,
+		"consent.en.html":          consentFor(t, "Claude", "https://claude.ai/api/mcp/auth_callback"),
+		"consent.reviewer.en.html": withReviewer,
+		"drive.en.html":            drive,
+		"refusal.en.html":          refusal,
 	} {
 		matchesSnapshot(t, name, style.ReplaceAllString(answer.Body.String(), "<style>…</style>"))
 	}
@@ -396,6 +416,7 @@ func TestPagesThatCannotBeReadStopTheService(t *testing.T) {
 		dropped  []string
 	}{
 		{name: "no consent screen", dropped: []string{"pages/consent.html"}},
+		{name: "no page that asks for the Drive", dropped: []string{"pages/drive.html"}},
 		{name: "a refusal that does not parse", replaced: map[string]string{"pages/refusal.html": "{{ if }}"}},
 		{name: "no stylesheet", dropped: []string{"pages/pages.css"}},
 		{name: "no words", dropped: []string{"pages/en.json"}},

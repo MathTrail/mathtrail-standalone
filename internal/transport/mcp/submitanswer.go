@@ -151,13 +151,12 @@ func (s *Service) answer(ctx context.Context, account store.Account, in submitAn
 		return Reply[answeredOut]{}, fmt.Errorf("mcp: save the profile: %w", err)
 	}
 	version := p.CurrentTask.InstructionsVersion
-	s.events.writeFor(ctx, account, version, eventAnswerRecorded, s.recordedFields(p, &recorded, now)...)
+	s.events.writeFor(ctx, account, version, eventAnswerRecorded, s.recordedFields(p, account, &recorded, now)...)
 	if recorded.Mastered && !masteredBefore && tutor.Mastered(p, s.content, recorded.Topic) {
-		s.events.writeFor(ctx, account, version, eventTopicMastered,
-			zap.String("learner", s.learners.Of(p.StudentID, now)),
+		s.events.writeFor(ctx, account, version, eventTopicMastered, append(s.learnerFields(p, account, now),
 			zap.String("topic", s.topicLabel(recorded.Topic)),
 			zap.Int("grade", p.Student.Grade),
-		)
+		)...)
 	}
 	return s.told(p, &recorded), nil
 }
@@ -168,10 +167,10 @@ func (s *Service) answer(ctx context.Context, account store.Account, in submitAn
 // rather than one added up from the lines about topics mastered, since a topic
 // is lost as well as won, and a topic can count again without an answer when
 // the child's level in it falls back to where it was mastered.
-func (s *Service) recordedFields(p *profile.Profile, recorded *profile.Recorded, now time.Time) []zap.Field {
+func (s *Service) recordedFields(p *profile.Profile, account store.Account, recorded *profile.Recorded, now time.Time) []zap.Field {
 	return slices.Concat(
 		s.answerFields(recorded, p.Ratings.Answers),
-		s.countedFields(p, now),
+		s.countedFields(p, account, now),
 		[]zap.Field{zap.Int("topics_mastered", tutor.MasteredTopics(p, s.content))},
 	)
 }

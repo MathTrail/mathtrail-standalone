@@ -1,5 +1,6 @@
 import { sourceURL } from "./brand";
 import type { PageProps } from "./pages";
+import { LiveNumbers } from "./ResearchLive";
 import { StudentModel } from "./ResearchModel";
 import { Counted, countSlots, Num } from "./ResearchNumbers";
 import { Theses } from "./ResearchTheses";
@@ -22,10 +23,11 @@ export const researchSections = {
 /**
  * ResearchPage is the page of the numbers behind the product: the paper's
  * title and its PDF; four things the paper shows; the student model against
- * its goals; the live numbers, once there are enough of them; where the
- * reference tasks came from; and the whole paper. Every number it shows is
- * its data's, computed from the commit the site is built from, or marked as
- * one its text chooses.
+ * its goals; the live numbers of the latest month counted whole, once there
+ * are enough of them; where the reference tasks came from; and the whole
+ * paper. Every number it shows is its data's, computed from the commit the
+ * site is built from or taken from the snapshot committed with it, or marked
+ * as one its text chooses.
  */
 export function ResearchPage({ page, data }: PageProps) {
 	const research = data.research;
@@ -44,7 +46,7 @@ export function ResearchPage({ page, data }: PageProps) {
 				page={page}
 				research={research}
 			/>
-			<Live page={page} />
+			<LiveNumbers id={researchSections.live} page={page} research={research} />
 			<Sources page={page} research={research} />
 			<Paper page={page} paper={paper} />
 		</>
@@ -148,28 +150,6 @@ function PaperButton({
 		>
 			{page.text(at, countSlots(words, paper.pages, "research.pages"))}
 		</a>
-	);
-}
-
-// Live is the block of the live numbers: what it will show, once there are
-// enough of them to show without telling a child apart.
-function Live({ page }: { page: PageReader }) {
-	return (
-		<section class="s-wrap s-section" id={researchSections.live}>
-			<div class="s-intro">
-				<h2>{page.text("live.title")}</h2>
-				<p class="s-intro-line">{page.text("live.lead")}</p>
-			</div>
-			<div class="s-panel s-research-live">
-				<p class="s-badge">{page.text("live.badge")}</p>
-				<ul>
-					{page.list("live.measures").map((key) => (
-						<li key={key}>{page.text(key)}</li>
-					))}
-				</ul>
-				<p>{page.text("live.when")}</p>
-			</div>
-		</section>
 	);
 }
 

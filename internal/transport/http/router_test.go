@@ -226,6 +226,7 @@ func endpoints() *httpserver.Endpoints {
 		Authorize:        standIn(reachedAuthorize),
 		Consent:          standIn(reachedConsent),
 		Callback:         standIn(reachedCallback),
+		Drive:            standIn(reachedDrive),
 		Token:            standIn(reachedToken),
 		Revoke:           standIn(reachedRevoke),
 		Busy:             busyPage,
@@ -244,6 +245,7 @@ const (
 	reachedAuthorize        = "reached the authorization request"
 	reachedConsent          = "reached the consent screen's answer"
 	reachedCallback         = "reached Google's answer"
+	reachedDrive            = "reached the page that asks for the Drive"
 	reachedToken            = "reached the token endpoint"
 	reachedRevoke           = "reached the revocation"
 	reachedBusy             = "reached the busy page"

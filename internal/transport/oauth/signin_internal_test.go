@@ -1,11 +1,15 @@
 package oauthserver
 
 import (
+	"html"
 	"net/http"
 	"net/url"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
+
+	"go.uber.org/zap/zapcore"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth/googletest"
 )
@@ -295,8 +299,6 @@ func TestACallbackTellsTheHostWhatWentWrong(t *testing.T) {
 			error: "server_error", outcome: "failed", reason: "no_refresh"},
 		{name: "our own client refused", answer: googletest.Answer{Status: http.StatusUnauthorized, ErrorCode: "invalid_client"},
 			error: "server_error", outcome: "failed", reason: "client_refused"},
-		{name: "the Drive permission unticked", answer: googletest.Answer{Scope: "openid"},
-			error: "access_denied", outcome: "denied", reason: "no_drive"},
 		{name: "Google's own error", back: func(back string) string {
 			return respelled(respelled(back, "code", func(string) string { return "" }), "error", func(string) string { return "server_error" })
 		}, error: "server_error", outcome: "failed", reason: "google_error"},
@@ -320,45 +322,252 @@ func TestACallbackTellsTheHostWhatWentWrong(t *testing.T) {
 				answer.Get("state") != hostState || answer.Get("iss") != h.served.URL {
 				t.Errorf("the host was sent %v, want %s explained, with its state and this issuer", answer, tc.error)
 			}
-			endedAs(t, h, tc.outcome, tc.reason, tc.back == nil && tc.reason != "no_drive")
+			endedAs(t, h, tc.outcome, tc.reason, tc.back == nil)
 		})
 	}
 }
 
-// The parent who unticked the one file the service keeps in their Drive has
-// not allowed the sign-in, and the host is told why in words it can show.
-func TestASignInWithoutTheDriveSaysWhy(t *testing.T) {
+// A parent who left Google's box for the Drive unticked — Google leaves it so
+// until they tick it — is sent on to a page that asks them to go back and tick
+// it, and the host hears nothing of it. The page has an address of its own,
+// which carries the request and no code of Google's; the browser keeps its
+// sign-in's cookie for the ten minutes of the way back; the line of it is no
+// warning; and the page's form leads on to Google or back to the host alone.
+func TestAParentWhoLeftTheDriveUntickedIsAskedAgain(t *testing.T) {
+	t.Parallel()
+
+	h := newSignIn(t)
+	parent := h.browser(t)
+	first := h.toGoogle(parent, h.register(hostRedirect, hostName))
+	firstCookie := parent.cookie("/oauth/callback", csrfCookie)
+	h.google.Misbehave(&googletest.Answer{Scope: "openid"})
+
+	sent := parent.get(h.google.Allow(first))
+	if sent.status != http.StatusSeeOther || !strings.HasPrefix(sent.location, DrivePath+"?request=") || strings.Contains(sent.location, "code=") {
+		t.Fatalf("GET /oauth/callback without the Drive = %d to %q, want 303 to the page that asks for it", sent.status, sent.location)
+	}
+	if cookie := setCookie(t, sent, csrfCookie); cookie.Value != firstCookie || cookie.MaxAge != int(flightLifetime/time.Second) {
+		t.Errorf("%s at the callback = %+v, want the sign-in's own, for the ten minutes of a sign-in", csrfCookie, cookie)
+	}
+	endedAs(t, h, "retry", "no_drive", false)
+	if line := h.logs.FilterMessage(eventAuthCallback).All()[0]; line.Level != zapcore.InfoLevel {
+		t.Errorf("auth_callback retry is at %s, want info", line.Level)
+	}
+
+	page := parent.get(h.served.URL + sent.location)
+	if page.status != http.StatusOK || !strings.Contains(page.body, html.EscapeString(pageWords(t)["drive.box"])) {
+		t.Fatalf("GET %s = %d, want the page that asks for the Drive", DrivePath, page.status)
+	}
+	if policy := page.header.Get("Content-Security-Policy"); !strings.Contains(policy, "form-action 'self' "+h.google.URL+" https://host.example;") {
+		t.Errorf("the page's policy = %q, want its form let on to Google and to the host alone", policy)
+	}
+}
+
+// untickedAtGoogle takes a parent from the host's request through Google, where
+// they leave the box for the Drive unticked, and is the address of the page
+// they are sent on to and the address Google was first asked at. Google
+// behaves again after.
+func (h *signIn) untickedAtGoogle(parent *browser) (page, first string) {
+	h.t.Helper()
+
+	first = h.toGoogle(parent, h.register(hostRedirect, hostName))
+	h.google.Misbehave(&googletest.Answer{Scope: "openid"})
+	sent := parent.get(h.google.Allow(first))
+	h.google.Misbehave(&googletest.Answer{})
+	if sent.status != http.StatusSeeOther || !strings.HasPrefix(sent.location, DrivePath+"?") {
+		h.t.Fatalf("GET /oauth/callback without the Drive = %d to %q, want 303 to the page that asks for it", sent.status, sent.location)
+	}
+	return h.served.URL + sent.location, first
+}
+
+// The page that asks for the Drive, reloaded or returned to from Google's
+// screen, is drawn again and asks Google nothing: Google's answer was read
+// once, at the callback, whose address the browser does not keep.
+func TestThePageForTheDriveIsDrawnAgainAndSpendsNothing(t *testing.T) {
+	t.Parallel()
+
+	h := newSignIn(t)
+	parent := h.browser(t)
+	page, _ := h.untickedAtGoogle(parent)
+	var asked atomic.Int32
+	h.google.Misbehave(&googletest.Answer{Meanwhile: func() { asked.Add(1) }})
+
+	for range 2 {
+		if drawn := parent.get(page); drawn.status != http.StatusOK {
+			t.Fatalf("GET %s = %d, want the page drawn", DrivePath, drawn.status)
+		}
+	}
+	if n := asked.Load(); n != 0 {
+		t.Errorf("drawing the page asked Google %d times, want none", n)
+	}
+}
+
+// The page that asks for the Drive is drawn only for a request this server
+// sealed, still under way, asked for once, in the browser it was begun in;
+// anything else stops at a page of refusal, as at every step.
+func TestThePageForTheDriveRefusesWhatItCannotTrust(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name   string
+		spoil  func(t *testing.T, h *signIn, parent *browser, page string) (*browser, string)
+		reason string
+	}{
+		{"a request changed on its way", func(_ *testing.T, _ *signIn, parent *browser, page string) (*browser, string) {
+			return parent, respelled(page, "request", func(sealed string) string {
+				return sealed[:len(sealed)-2] + flipped(sealed[len(sealed)-2:])
+			})
+		}, "unknown_request"},
+		{"a request given twice", func(_ *testing.T, _ *signIn, parent *browser, page string) (*browser, string) {
+			return parent, page + "&request=another"
+		}, "invalid_request"},
+		{"a browser with no cookie", func(t *testing.T, h *signIn, _ *browser, page string) (*browser, string) {
+			return h.browser(t), page
+		}, "cookie"},
+		{"a request past its ten minutes", func(_ *testing.T, h *signIn, parent *browser, page string) (*browser, string) {
+			h.clock.advance(flightLifetime + time.Second)
+			return parent, page
+		}, "expired"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			h := newSignIn(t)
+			parent := h.browser(t)
+			page, _ := h.untickedAtGoogle(parent)
+			parent, page = tc.spoil(t, h, parent, page)
+
+			refused := parent.get(page)
+			if refused.status != http.StatusBadRequest || refused.location != "" {
+				t.Errorf("GET %s = %d to %q, want 400 and no redirect", DrivePath, refused.status, refused.location)
+			}
+			if lines := h.lines(eventAuthReject); len(lines) != 1 || lines[0]["step"] != stepDrive || lines[0]["reason"] != tc.reason {
+				t.Errorf("auth_reject lines = %v, want one at the page for %s", lines, tc.reason)
+			}
+		})
+	}
+}
+
+// Going back to Google from that page is a way through Google of its own, with
+// a verifier and a nonce of its own, and approves nothing, since the page
+// names no client; once the box is ticked, the host is handed the code its own
+// request asked for, and the sign-in is over.
+func TestAParentWhoTicksTheDriveOnTheWayBackSignsIn(t *testing.T) {
+	t.Parallel()
+
+	h := newSignIn(t)
+	parent := h.browser(t)
+	page, first := h.untickedAtGoogle(parent)
+
+	again := parent.post(h.served.URL+"/oauth/consent", url.Values{"request": {requestOn(t, parent.get(page))}, "decision": {"again"}})
+	if again.status != http.StatusSeeOther || !strings.HasPrefix(again.location, h.google.URL+"/auth?") {
+		t.Fatalf("POST /oauth/consent from the page = %d to %q, want 303 to Google", again.status, again.location)
+	}
+	if strings.Contains(strings.Join(again.header.Values("Set-Cookie"), "\n"), consentCookie) {
+		t.Errorf("going back to Google set %s, want nothing approved", consentCookie)
+	}
+	if lines := h.lines(eventAuthConsent); len(lines) != 2 || lines[1]["outcome"] != "again" {
+		t.Errorf("auth_consent lines = %v, want the second one again", lines)
+	}
+	for _, name := range []string{"code_challenge", "nonce"} {
+		if mustParse(t, again.location).Query().Get(name) == mustParse(t, first).Query().Get(name) {
+			t.Errorf("the way back to Google carries the first way's %s, want one of its own", name)
+		}
+	}
+
+	answer := answerAt(t, parent.get(h.google.Allow(again.location)))
+	if answer.Get("state") != hostState || answer.Get("iss") != h.served.URL || answer.Has("error") {
+		t.Fatalf("the host was sent %v, want a code with its own state and this issuer", answer)
+	}
+	if code := h.opened(answer.Get("code")); code.Challenge != googletest.ChallengeOf(hostVerifier) ||
+		code.RedirectURI != hostRedirect || code.User != h.ring.UserID("google-sub:"+googletest.Subject) {
+		t.Errorf("the code opens into %+v, want the parent's, for the host's own request", code)
+	}
+	if parent.cookie("/oauth/callback", csrfCookie) != "" {
+		t.Error("the sign-in cookie outlived the sign-in")
+	}
+	if lines := h.lines(eventAuthCallback); len(lines) != 2 || lines[1]["outcome"] != "ok" {
+		t.Errorf("auth_callback lines = %v, want the second one ok", lines)
+	}
+}
+
+// A parent who returns from that page to Google's screen with the browser's own
+// Back, and ticks the box there, finishes the first way: the browser still
+// holds the cookie it is tied to, and the host is handed its code.
+func TestAParentWhoGoesBackByTheBrowserSignsInToo(t *testing.T) {
+	t.Parallel()
+
+	h := newSignIn(t)
+	parent := h.browser(t)
+	_, first := h.untickedAtGoogle(parent)
+
+	answer := answerAt(t, parent.get(h.google.Allow(first)))
+	if answer.Get("state") != hostState || !answer.Has("code") {
+		t.Errorf("the host was sent %v, want a code with its own state", answer)
+	}
+}
+
+// A parent who cancels on the page that asks for the Drive is sent back to the
+// host, which hears they declined; the sign-in is over, and its line says it
+// was the Drive they declined.
+func TestAParentWhoCancelsForTheDriveSendsTheHostAway(t *testing.T) {
+	t.Parallel()
+
+	h := newSignIn(t)
+	parent := h.browser(t)
+	page, _ := h.untickedAtGoogle(parent)
+
+	cancelled := parent.post(h.served.URL+"/oauth/consent", url.Values{"request": {requestOn(t, parent.get(page))}, "decision": {"cancel"}})
+	answer := answerAt(t, cancelled)
+	if answer.Get("error") != "access_denied" || answer.Has("code") ||
+		answer.Get("state") != hostState || answer.Get("iss") != h.served.URL {
+		t.Errorf("the host was sent %v, want access_denied with its state and this issuer", answer)
+	}
+	if parent.cookie("/oauth/consent", csrfCookie) != "" {
+		t.Error("the sign-in cookie outlived the sign-in")
+	}
+	if lines := h.lines(eventAuthConsent); len(lines) != 2 || lines[1]["outcome"] != "denied" || lines[1]["reason"] != "no_drive" {
+		t.Errorf("auth_consent lines = %v, want the second one denied for the Drive", lines)
+	}
+}
+
+// The way back to Google has the ten minutes of a sign-in of its own: a parent
+// who took most of them the first time has them all again to tick the box.
+func TestTheWayBackToGoogleHasItsOwnTenMinutes(t *testing.T) {
 	t.Parallel()
 
 	h := newSignIn(t)
 	parent := h.browser(t)
 	back := h.google.Allow(h.toGoogle(parent, h.register(hostRedirect, hostName)))
 	h.google.Misbehave(&googletest.Answer{Scope: "openid"})
+	h.clock.advance(flightLifetime - time.Minute)
+	sent := parent.get(back)
 
-	answer := answerAt(t, parent.get(back))
-	if answer.Get("error") != "access_denied" || !strings.Contains(answer.Get("error_description"), "Google Drive") {
-		t.Errorf("the host was sent %v, want access_denied that names Google Drive", answer)
+	h.google.Misbehave(&googletest.Answer{})
+	h.clock.advance(flightLifetime - time.Minute)
+	page := parent.get(h.served.URL + sent.location)
+	again := parent.post(h.served.URL+"/oauth/consent", url.Values{"request": {requestOn(t, page)}, "decision": {"again"}})
+	if again.status != http.StatusSeeOther {
+		t.Fatalf("POST /oauth/consent, %v after the host's request = %d, want 303 to Google",
+			2*(flightLifetime-time.Minute), again.status)
+	}
+	if answer := answerAt(t, parent.get(h.google.Allow(again.location))); !answer.Has("code") {
+		t.Errorf("the host was sent %v, want a code", answer)
 	}
 }
 
 // The grant Google gave without the Drive is left as it is. Ending it at
 // Google would end every grant of the parent's at this service, the chats
-// they have already connected included, for a sign-in they only declined.
+// they have already connected included.
 func TestAGrantWithoutTheDriveIsLeftAtGoogle(t *testing.T) {
 	t.Parallel()
 
 	h := newSignIn(t)
-	parent := h.browser(t)
-	back := h.google.Allow(h.toGoogle(parent, h.register(hostRedirect, hostName)))
-	h.google.Misbehave(&googletest.Answer{Scope: "openid"})
+	h.untickedAtGoogle(h.browser(t))
 
-	if answer := answerAt(t, parent.get(back)); answer.Get("error") != "access_denied" {
-		t.Errorf("the host was sent %v, want access_denied", answer)
-	}
 	if got := h.google.Revocations(); len(got) != 0 {
 		t.Errorf("Google was asked to end the grant with %q, want the grant left alone", got)
 	}
-	endedAs(t, h, "denied", "no_drive", false)
 }
 
 // Where no Google sign-in is configured, the consent screen is still shown,

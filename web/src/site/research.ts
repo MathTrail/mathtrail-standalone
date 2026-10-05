@@ -5,8 +5,9 @@ import { gradesOf } from "./topics";
 
 // The page "Research" shows numbers it does not compute: the student model's,
 // as the learners' bench computes them from the commit being built, the
-// product's counts and constants, and the paper's facts, all in one file made
-// at build time. The file is read here whole, and every number the page draws
+// product's counts and constants, the paper's facts, and the live numbers of
+// real children in the latest month counted whole, all in one file made at
+// build time. The file is read here whole, and every number the page draws
 // is held to what it says of the others, so that a file of another shape, or
 // one whose numbers do not add up, stops the build rather than drawing a page
 // that says what the data does not.
@@ -89,6 +90,71 @@ const paperFile = z.strictObject({
 	sha256: z.string().regex(/^[0-9a-f]{64}$/),
 });
 
+// The live numbers: a month, as a year and a month; a count of a cell; and a
+// share or a chance, from nothing to all.
+const month = z.string().regex(/^\d{4}-(?:0[1-9]|1[0-2])$/);
+const shown = z.number().int().nonnegative();
+const share = z.number().min(0).max(1);
+
+// What a cell of the live numbers stands on, and how its answers came out
+// against the chance promised.
+const counts = { learners: shown, answers: shown };
+const weighed = { promised_mean: share, correct_share: share };
+
+const liveRule = z.strictObject({
+	learners: count,
+	answers: count,
+	rounded_to: count,
+});
+
+const chanceCell = z.strictObject({
+	from: share,
+	to: share,
+	...counts,
+	...weighed,
+});
+
+const answersCell = z.strictObject({
+	first: count,
+	last: count.nullable(),
+	...counts,
+	came_true_less_promised: z.number().min(-1).max(1),
+	standard_error: z.number().nonnegative(),
+});
+
+// nothing is what live numbers that show none have of them.
+const nothing = {
+	total: z.null(),
+	chances: z.array(chanceCell).max(0),
+	kept_up: z.array(answersCell).max(0),
+};
+
+// live is the live numbers in each of their states: still to come, before a
+// month is counted whole; too few, when its children were too few for any of
+// its numbers to be shown; and shown.
+const live = z.discriminatedUnion("state", [
+	z.strictObject({
+		state: z.literal("coming"),
+		rule: liveRule,
+		month: z.null(),
+		...nothing,
+	}),
+	z.strictObject({
+		state: z.literal("too_few"),
+		rule: liveRule,
+		month,
+		...nothing,
+	}),
+	z.strictObject({
+		state: z.literal("ready"),
+		rule: liveRule,
+		month,
+		total: z.strictObject({ ...counts, ...weighed }),
+		chances: z.array(chanceCell),
+		kept_up: z.array(answersCell),
+	}),
+]);
+
 // researchFile is the shape of the file, which the bench writes: a key it does
 // not write, or one it leaves out, is refused, as the bench refuses on its side
 // a file of a shape it does not know.
@@ -142,7 +208,7 @@ const researchFile = z.strictObject({
 		trial_answers: count,
 	}),
 	paper: z.strictObject({ commit: paperCommit, files: z.array(paperFile) }),
-	live: z.strictObject({ state: z.literal("coming") }),
+	live,
 });
 
 /** ResearchFile is the file as the bench writes it. */
@@ -153,6 +219,18 @@ export type Row = ResearchFile["bench"]["rows"][number];
 
 /** PaperFile is a file of the paper the site ships. */
 export type PaperFile = z.infer<typeof paperFile>;
+
+/** Live is the live numbers, in one of their states. */
+export type Live = ResearchFile["live"];
+
+/** LiveShown is the live numbers of a month whose numbers are shown. */
+export type LiveShown = Extract<Live, { state: "ready" }>;
+
+/** ChanceCell is a range of the chance promised, with how it came out. */
+export type ChanceCell = LiveShown["chances"][number];
+
+/** AnswersCell is a range of the child's answers, with how it came out. */
+export type AnswersCell = LiveShown["kept_up"][number];
 
 /**
  * researchSources is the shape of the part of the site's data the page
@@ -206,9 +284,10 @@ export type Research = ResearchFile & {
  * readResearch reads the data of the page "Research" beside the catalog the
  * site reads and the authors the site's data names. A file of another shape
  * is refused, and so is one whose marks do not follow from its numbers, whose
- * counts disagree with the catalog, or whose constants contradict what the
- * page says of them: so many options, the letters shifted so far, a guess of
- * one option in all of them, a corridor around its middle.
+ * counts disagree with the catalog, whose constants contradict what the page
+ * says of them (so many options, the letters shifted so far, a guess of one
+ * option in all of them, a corridor around its middle), or whose live numbers
+ * show a cell their own rule hides.
  */
 export function readResearch(
 	catalog: Catalog,
@@ -226,6 +305,7 @@ export function readResearch(
 		checkCounts(catalog, file.product);
 		checkConstants(file.product);
 		checkPaper(file.paper.files);
+		checkLive(file.live);
 	} catch (error) {
 		const said = error instanceof Error ? error.message : "it cannot be read";
 		throw new Error(`research.json: ${said}`, { cause: error });
@@ -425,6 +505,96 @@ function checkPaper(files: readonly PaperFile[]): void {
 			"the paper's files hold none in English, which every language links",
 		);
 	}
+}
+
+/**
+ * privacyFloor is the weakest rule the page shows live numbers by: the rule of
+ * the public views they are read from, as their SQL writes it. A file that
+ * carries a weaker one is refused, so that no file can lower what the page
+ * shows below what the views would.
+ */
+export const privacyFloor = {
+	learners: 10,
+	answers: 30,
+	rounded_to: 5,
+} as const;
+
+// checkLive refuses live numbers whose rule is weaker than the views', that
+// show what their rule hides, or whose ranges cannot be so: out of order or
+// overlapping, or a promise outside its range of chance.
+function checkLive(live: Live): void {
+	const { rule } = live;
+	if (
+		rule.learners < privacyFloor.learners ||
+		rule.answers < privacyFloor.answers ||
+		rule.rounded_to % privacyFloor.rounded_to !== 0
+	) {
+		throw new Error(
+			`the live numbers are shown on ${rule.learners} children and ${rule.answers} answers, counted to ${rule.rounded_to}, and the public views show none under ${privacyFloor.learners} and ${privacyFloor.answers}, counted to ${privacyFloor.rounded_to}`,
+		);
+	}
+	if (live.state !== "ready") {
+		return;
+	}
+	const shownByTheRule = shownBy(live);
+	shownByTheRule("the month", live.total);
+	live.chances.forEach((cell, at) => {
+		const name = `the range of chance ${cell.from}–${cell.to}`;
+		shownByTheRule(name, cell);
+		const before = live.chances[at - 1];
+		if (
+			cell.to < cell.from ||
+			(before !== undefined && cell.from <= before.to)
+		) {
+			throw new Error(`${name} is out of order or overlaps the one before it`);
+		}
+		if (cell.promised_mean < cell.from || cell.promised_mean > cell.to) {
+			throw new Error(
+				`${name} promises ${cell.promised_mean} on average, outside the chances it holds`,
+			);
+		}
+	});
+	live.kept_up.forEach((cell, at) => {
+		const name = `the range of answers from ${cell.first}`;
+		shownByTheRule(name, cell);
+		const before = live.kept_up[at - 1];
+		if (
+			(cell.last !== null && cell.last < cell.first) ||
+			(before !== undefined &&
+				(before.last === null || cell.first <= before.last))
+		) {
+			throw new Error(`${name} is out of order or overlaps the one before it`);
+		}
+	});
+}
+
+// shownBy is the check that a cell of live numbers is one their rule shows: on
+// the rule's children and answers or more, rounded to its multiple, and
+// counting no more than its month.
+function shownBy({
+	rule,
+	total,
+}: LiveShown): (
+	name: string,
+	cell: { readonly learners: number; readonly answers: number },
+) => void {
+	return (name, { learners, answers }) => {
+		if (learners < rule.learners || answers < rule.answers) {
+			throw new Error(
+				`${name} stands on ${learners} children and ${answers} answers, and the rule shows nothing under ${rule.learners} and ${rule.answers}`,
+			);
+		}
+		if (learners % rule.rounded_to !== 0 || answers % rule.rounded_to !== 0) {
+			throw new Error(
+				`${name} counts ${learners} children and ${answers} answers, which are not rounded to ${rule.rounded_to}`,
+			);
+		}
+		if (learners > total.learners || answers > total.answers) {
+			throw new Error(
+				`${name} counts ${learners} children and ${answers} answers, more than its month's ${total.learners} and ${total.answers}`,
+			);
+		}
+	};
 }
 
 // levelsOf are the levels of the reference tasks, from the lowest, each with

@@ -30,6 +30,7 @@ var events = map[string][]string{
 	"solver sandbox built": {"steps", "timeout", "concurrency", "wait", "gomaxprocs", "memory_limit"},
 	"profile store":        {"in_drive"},
 	"google sign-in":       {"configured"},
+	"reviewer sign-in":     {"configured"},
 	"learner key":          {"configured"},
 	"country database":     {"configured", "type", "built"},
 	"limits set": {
@@ -52,7 +53,7 @@ var events = map[string][]string{
 	"cimd_fetch":     {"host", "cached", "duration_ms", "outcome"},
 	"auth_reject":    {"step", "reason", "error"},
 	"auth_authorize": {"registration", "redirect_host", "resource", "scope", "outcome", "reason"},
-	"auth_consent":   {"registration", "redirect_host", "outcome"},
+	"auth_consent":   {"registration", "redirect_host", "outcome", "reason", "user", "error"},
 	"auth_callback":  {"registration", "redirect_host", "outcome", "reason", "user", "error"},
 	"auth_token":     {"registration", "resource", "outcome", "reason", "user", "error"},
 	"auth_bearer":    {"outcome", "reason"},
