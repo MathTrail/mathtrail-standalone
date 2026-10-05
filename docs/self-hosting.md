@@ -224,6 +224,7 @@ The rest have the defaults the service is meant to run with. The ones a deployme
 | `MATHTRAIL_SOLVER_STEPS` | `25000000` | How far one solver may run; a higher ceiling needs more `memory` |
 | `MATHTRAIL_TELEMETRY` | `auto` | Whether traces and metrics are sent: from a deployment, anywhere, or nowhere |
 | `MATHTRAIL_LOG_LEVEL` | `info` | How much the service logs |
+| `MATHTRAIL_OPENAI_CHALLENGE` | empty | The token ChatGPT's plugin directory gives when you submit your copy, which the service then serves, as it is, at `/.well-known/openai-apps-challenge` on its own domain; empty, that address is not served. At most 512 characters of visible ASCII. It proves the domain is yours, and is not a secret |
 
 ## What nothing in this repository owns
 

@@ -26,9 +26,9 @@ const (
 	kindStorageFull = "storage_full"
 	kindUnavailable = "drive_unavailable"
 	kindCorrupted   = "corrupted"
+	kindDamaged     = "damaged"
 	kindInBin       = "in_bin"
 	kindBehind      = "behind"
-	kindRestored    = "restored"
 	kindNewer       = "newer"
 	kindUnsupported = "unsupported"
 )
@@ -124,9 +124,18 @@ var failures = []struct {
 		sentence: "Google Drive is not answering at the moment, so nothing was saved. Make the same call again in a minute; if it keeps failing, tell the adult that Google Drive is having trouble.",
 	},
 	{
-		// The file cannot be read, and was not put back: no earlier state of
-		// it reads, or it is a profile that breaks a rule, which is never
-		// rolled back on the service's say. The two ways out are the parent's.
+		// The file is no profile at all, and nothing was changed: putting an
+		// earlier state back loses what came after it, so it waits for the
+		// parent's word. Looked for before the corruption it is a kind of.
+		cause:    store.ErrDamaged,
+		kind:     kindDamaged,
+		sentence: "The child's profile file in the adult's Google Drive is damaged and cannot be read, so nothing was done. Tell the adult. If they agree, call save_profile with restore set to true and nothing else: it puts the file back to its latest earlier version that can be read, and anything saved after that version is lost. If they would rather start a new profile, call save_profile with start_over set to true, a pseudonym and the grade. Either way the damaged file is kept in Drive, not deleted.",
+	},
+	{
+		// The file cannot be read, and there is nothing to put back: no
+		// earlier state of it reads, or it is a profile that breaks a rule,
+		// which is never rolled back on the service's say. The two ways out
+		// are the parent's.
 		cause:    store.ErrCorrupted,
 		kind:     kindCorrupted,
 		sentence: "The child's profile file in the adult's Google Drive cannot be read, so nothing was done. Tell the adult. They can restore an earlier version of the file from its version history in Google Drive and then make the same call again, or start a new profile: call save_profile with start_over set to true, a pseudonym and the grade. The file that cannot be read is kept in Drive, not deleted.",
@@ -140,13 +149,6 @@ var failures = []struct {
 		cause:    store.ErrBehind,
 		kind:     kindBehind,
 		sentence: "The child's profile is still being saved in Google Drive, so nothing was done. Make the same call again in a moment.",
-	},
-	{
-		// The call found the file damaged and put it back to a state that
-		// reads: that is all it did, and the parent should hear of it.
-		cause:    store.ErrRestored,
-		kind:     kindRestored,
-		sentence: "The child's profile file in the adult's Google Drive was damaged, so MathTrail put it back to its latest earlier version that can be read; anything saved after that version is lost. Tell the adult what happened, then make the same call again.",
 	},
 	{
 		// A newer build's file that no rollout explains: edited by hand, or

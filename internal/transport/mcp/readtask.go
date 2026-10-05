@@ -41,7 +41,7 @@ func (s *Service) readTaskTool() Tool {
 		Title: "Read how the awaited task stands, for the card",
 		Description: "How the task a card drawn by next_task waits for stands: still being written, on the " +
 			"child's card, or not coming. Only the card calls it.",
-		ReadOnly:   true,
+		Effect:     Reads,
 		Idempotent: true,
 		WidgetOnly: true,
 	}, s.readTask)

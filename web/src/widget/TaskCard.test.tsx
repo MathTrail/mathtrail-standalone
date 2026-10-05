@@ -645,9 +645,7 @@ describe("another task", () => {
 
 		press(topLine());
 
-		await vi.waitFor(() =>
-			expect(text(".mt-rank-name")).toBe("River crossing"),
-		);
+		await vi.waitFor(() => expect(text(".mt-rank-name")).toBe("Rank 3"));
 		press(button("Back to task"));
 		expect(text(".mt-task-text")).toBe(fence.task.question);
 		expect(text(".mt-action-note")).toBe(
@@ -694,9 +692,7 @@ describe("the progress", () => {
 
 		press(topLine());
 
-		await vi.waitFor(() =>
-			expect(text(".mt-rank-name")).toBe("River crossing"),
-		);
+		await vi.waitFor(() => expect(text(".mt-rank-name")).toBe("Rank 3"));
 		expect(document.activeElement).toBe(button("Back to task"));
 		expect(root.querySelector(".mt-widget > div")?.hasAttribute("hidden")).toBe(
 			true,
@@ -731,9 +727,7 @@ describe("the progress", () => {
 	test("is read afresh each time it is opened, its sections open as they were left", async () => {
 		const heard = await drawCard();
 		press(topLine());
-		await vi.waitFor(() =>
-			expect(text(".mt-rank-name")).toBe("River crossing"),
-		);
+		await vi.waitFor(() => expect(text(".mt-rank-name")).toBe("Rank 3"));
 		expect(foldIn(root, "Topics").getAttribute("aria-expanded")).toBe("true");
 		expect(foldIn(root, "Profile").getAttribute("aria-expanded")).toBe("false");
 		press(foldIn(root, "Topics"));
@@ -741,9 +735,7 @@ describe("the progress", () => {
 		press(button("Back to task"));
 
 		press(topLine());
-		await vi.waitFor(() =>
-			expect(text(".mt-rank-name")).toBe("River crossing"),
-		);
+		await vi.waitFor(() => expect(text(".mt-rank-name")).toBe("Rank 3"));
 
 		expect(foldIn(root, "Topics").getAttribute("aria-expanded")).toBe("false");
 		expect(foldIn(root, "Profile").getAttribute("aria-expanded")).toBe("true");
@@ -760,9 +752,7 @@ describe("the progress", () => {
 				: editSaved({ pseudonym: "Star", grade: 4 }),
 		);
 		press(topLine());
-		await vi.waitFor(() =>
-			expect(text(".mt-rank-name")).toBe("River crossing"),
-		);
+		await vi.waitFor(() => expect(text(".mt-rank-name")).toBe("Rank 3"));
 		unfold(root, "Profile");
 		press(button("Edit"));
 		const box = root.querySelector<HTMLInputElement>(".mt-form .mt-input");

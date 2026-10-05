@@ -43,6 +43,47 @@ func plainLoopback(host string) bool {
 	return strings.EqualFold(host, "localhost") || host == "127.0.0.1" || host == "::1"
 }
 
+// loopbackOrigins are how an address on the parent's own computer begins when
+// its port is the client's to choose: plain http, to one of the three names
+// a client listening there gives it, written as clients write them.
+var loopbackOrigins = []string{"http://localhost", "http://127.0.0.1", "http://[::1]"}
+
+// sameButThePort reports whether two addresses on the parent's own computer
+// are the same but for their ports: each begins with one of loopbackOrigins,
+// and has a port of digits after it or none, and the rest of the two is the
+// same byte for byte.
+func sameButThePort(registered, requested string) bool {
+	first, isFirst := withoutPort(registered)
+	second, isSecond := withoutPort(requested)
+	return isFirst && isSecond && first == second
+}
+
+// withoutPort is an address on the parent's own computer with its port taken
+// out, and whether it is one: one of loopbackOrigins, a colon and a port of
+// one to five digits or no port at all, and then a path, a query or nothing —
+// so that a host that merely begins like the computer's, such as
+// localhost.example, is no address of it.
+func withoutPort(uri string) (string, bool) {
+	for _, origin := range loopbackOrigins {
+		rest, isOrigin := strings.CutPrefix(uri, origin)
+		if !isOrigin {
+			continue
+		}
+		if port, hasPort := strings.CutPrefix(rest, ":"); hasPort {
+			digits := len(port) - len(strings.TrimLeft(port, "0123456789"))
+			if digits == 0 || digits > 5 {
+				return "", false
+			}
+			rest = port[digits:]
+		}
+		if rest != "" && rest[0] != '/' && rest[0] != '?' {
+			return "", false
+		}
+		return origin + rest, true
+	}
+	return "", false
+}
+
 // toThisComputer reports whether an address sends the parent back to the
 // computer their browser runs on, however the address names it: as written,
 // or as IDNA spells it for a browser to look up, which reads a name or an

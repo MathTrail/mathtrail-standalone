@@ -591,6 +591,21 @@ func TestRefusals(t *testing.T) {
 			wantVar: "MATHTRAIL_SITE_URL",
 		},
 		{
+			name:    "a token of ChatGPT's with a space inside",
+			environ: []string{"MATHTRAIL_OPENAI_CHALLENGE=a token"},
+			wantVar: "MATHTRAIL_OPENAI_CHALLENGE",
+		},
+		{
+			name:    "a token of ChatGPT's in letters past ASCII",
+			environ: []string{"MATHTRAIL_OPENAI_CHALLENGE=töken"},
+			wantVar: "MATHTRAIL_OPENAI_CHALLENGE",
+		},
+		{
+			name:    "a token of ChatGPT's too long to be one",
+			environ: []string{"MATHTRAIL_OPENAI_CHALLENGE=" + strings.Repeat("a", 513)},
+			wantVar: "MATHTRAIL_OPENAI_CHALLENGE",
+		},
+		{
 			name:    "the public url with an empty fragment",
 			environ: []string{"MATHTRAIL_PUBLIC_URL=https://mathtrail.example#"},
 			wantVar: "MATHTRAIL_PUBLIC_URL",
@@ -957,6 +972,33 @@ func TestTheSiteIsNamedAsABrowserWritesItsOrigin(t *testing.T) {
 			}
 			if got := cfg.Site(); got != tc.want {
 				t.Errorf("Site() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+// The token ChatGPT's directory checks the domain by is read as it is given,
+// but for the line break a value read out of a file ends with; none is served
+// unless one is set.
+func TestTheTokenOfChatGPTsIsReadAsItIsGiven(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name, given, want string
+	}{
+		{"none", "", ""},
+		{"a token", "Ab0-_.~xyz", "Ab0-_.~xyz"},
+		{"a token read out of a file", "Ab0-_.~xyz\n", "Ab0-_.~xyz"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			cfg, err := config.LoadFrom(withSealKey("MATHTRAIL_OPENAI_CHALLENGE=" + tc.given))
+			if err != nil {
+				t.Fatalf("LoadFrom() error = %v, want nil", err)
+			}
+			if cfg.OpenAIChallenge != tc.want {
+				t.Errorf("OpenAIChallenge = %q, want %q", cfg.OpenAIChallenge, tc.want)
 			}
 		})
 	}

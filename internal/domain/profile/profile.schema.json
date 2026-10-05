@@ -143,6 +143,10 @@
           "type": "string",
           "maxLength": 6
         },
+        "signin_country_off": {
+          "description": "Whether the parent asked for the country their browser signs in from to be left out of what is counted. Absent, it is counted.",
+          "type": "boolean"
+        },
         "ui_language": {
           "description": "A BCP 47 tag overriding the interface language, or null to follow the chat.",
           "type": ["string", "null"],

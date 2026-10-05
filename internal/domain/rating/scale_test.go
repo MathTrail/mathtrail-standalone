@@ -34,6 +34,69 @@ func TestWhereEachGradeStartsOnTheScale(t *testing.T) {
 	}
 }
 
+// Under the ranks the progress marks which grades' tasks each run of them
+// roughly stands for: a run begins at the rank the children of its grades
+// start in — the youngest at the first rank — and ends where the next begins.
+func TestTheRanksEachGradeLevelIsMatchedWith(t *testing.T) {
+	t.Parallel()
+
+	for level, want := range map[rating.GradeLevel]struct{ first, last int }{
+		rating.Grades12: {1, 4},
+		rating.Grades34: {5, 7},
+		rating.Grades56: {8, 11},
+		"":              {0, 0},
+		"7-8":           {0, 0},
+	} {
+		if first, last := level.FirstRank(), level.LastRank(); first != want.first || last != want.last {
+			t.Errorf("level %q is matched with ranks %d to %d, want %d to %d", level, first, last, want.first, want.last)
+		}
+	}
+	for rank, want := range map[int]rating.GradeLevel{
+		1: rating.Grades12, 4: rating.Grades12, 5: rating.Grades34, 7: rating.Grades34, 8: rating.Grades56, 11: rating.Grades56,
+	} {
+		if got, ok := rating.GradeLevelOfRank(rank); !ok || got != want {
+			t.Errorf("rank %d is matched with level %q (found %v), want %q", rank, got, ok, want)
+		}
+	}
+}
+
+// The levels share the ranks out: their runs follow one another in ladder
+// order from the first rank to the last, and no number outside the ranks is
+// matched with any of them.
+func TestTheGradeLevelsShareTheRanksOut(t *testing.T) {
+	t.Parallel()
+
+	next := 1
+	for _, level := range rating.GradeLevels() {
+		if first, last := level.FirstRank(), level.LastRank(); first != next || last < first {
+			t.Errorf("level %s is matched with ranks %d to %d, want a run from rank %d", level, first, last, next)
+		}
+		next = level.LastRank() + 1
+	}
+	if next != rating.Ranks+1 {
+		t.Errorf("the runs end at rank %d, want %d", next-1, rating.Ranks)
+	}
+	for _, rank := range []int{-1, 0, rating.Ranks + 1} {
+		if level, ok := rating.GradeLevelOfRank(rank); ok {
+			t.Errorf("rank %d is matched with level %s, want none", rank, level)
+		}
+	}
+}
+
+// A child of every grade starts in a rank matched with the level of that
+// grade, so the mark under the course agrees with where the child began.
+func TestEveryGradeStartsInTheRunOfItsLevel(t *testing.T) {
+	t.Parallel()
+
+	for grade := 1; grade <= 6; grade++ {
+		want, _ := rating.GradeLevelOf(grade)
+		rank := rating.Rank(rating.Elo(rating.Start(grade)))
+		if got, ok := rating.GradeLevelOfRank(rank); !ok || got != want {
+			t.Errorf("grade %d starts in rank %d, matched with %q (found %v), want %q", grade, rank, got, ok, want)
+		}
+	}
+}
+
 // The ranks, boundary by boundary. Each step is one corridor wide, counted
 // from the rating the youngest children start at, so such a child is at the
 // bottom of the third rank with two below and eight above.

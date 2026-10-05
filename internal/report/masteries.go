@@ -266,14 +266,14 @@ func takenBackWhen(masteries []shownMastery) (early, middle, late, held int) {
 	return early, middle, late, held
 }
 
-// masteriesByGroup are the masteries shown, by group and by every version's
-// hosts together.
+// masteriesByGroup are the masteries shown, by group, by every version's hosts
+// together and by every version together.
 func (c *counts) masteriesByGroup() map[group][]shownMastery {
 	byGroup := map[group][]shownMastery{}
 	for g, masteries := range c.masteries {
-		together := group{version: g.version, host: everyHost}
-		byGroup[g] = append(byGroup[g], masteries...)
-		byGroup[together] = append(byGroup[together], masteries...)
+		for _, row := range rowsOf(g) {
+			byGroup[row] = append(byGroup[row], masteries...)
+		}
 	}
 	return byGroup
 }
@@ -289,15 +289,18 @@ func (c *counts) masteriesAbout() string {
 		"back by then or followed to it. The share taken back by the " + ordinal(TakenBackBy) + " answer counts a " +
 		"mastery followed for fewer answers for those it was followed for; its standard error is counted by child, " +
 		"the share worked out again without each child in turn. A child truly past a topic still slips twice in a " +
-		"row now and then, so the share is read beside the learners' bench, never alone. A share that fewer than " +
+		"row now and then, so the share is read beside the learners' bench, never alone. A mastery counts under the " +
+		"version of the answer that showed it, and is followed whatever the version of the answers after it. The " +
+		"share and its standard error are to three places, and a share that fewer than " +
 		strconv.Itoa(fewestMasteries) + " settled masteries stand behind says " + tooFew + ". " + everyHost +
-		" takes a version's hosts together, and the load tool and MCP Inspector are left out, as in the table before."
+		" takes a version's hosts together, and " + everyVersion + ", last, every version's; the load tool and MCP " +
+		"Inspector are left out, as in the table before."
 }
 
-// masteriesTable is, for every group and every version's hosts together, the
-// masteries shown, the children shown them, when they were taken back, those
-// settled by the tenth answer, and the share taken back by then with its
-// standard error.
+// masteriesTable is, for every group, every version's hosts together and every
+// version together, the masteries shown, the children shown them, when they
+// were taken back, those settled by the tenth answer, and the share taken back
+// by then with its standard error.
 func (c *counts) masteriesTable() *table {
 	t := &table{columns: []string{
 		"Instructions", "Host", "Shown", "Children", "Taken back by the " + ordinal(TakenBackEarly) + " answer",
@@ -317,9 +320,9 @@ func (c *counts) masteriesTable() *table {
 		share, standardError := tooFew, tooFew
 		if settled >= fewestMasteries {
 			on := heldOnOf(masteries)
-			share, standardError = hundredths(1-on.held()), oneChild
+			share, standardError = thousandths(1-on.held()), oneChild
 			if byChild, read := takenBackError(masteries); read {
-				standardError = hundredths(byChild)
+				standardError = thousandths(byChild)
 			}
 		}
 		t.add(g.version, g.host, number(len(masteries)), number(len(children)), number(early), number(middle),

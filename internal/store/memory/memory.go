@@ -158,6 +158,23 @@ func (m *memoryStore) StartOver(ctx context.Context, account store.Account, p *p
 	return m.put(account, raw, p.Revision), nil
 }
 
+// Restore puts nothing back: a store in memory keeps no earlier state of a
+// file. A damaged one is said to have none that reads, and everything else is
+// refused as Restore refuses it wherever the profile is kept.
+func (m *memoryStore) Restore(ctx context.Context, account store.Account) (*profile.Profile, store.Revision, error) {
+	if err := ready(ctx, account); err != nil {
+		return nil, "", fmt.Errorf("memory: restore: %w", err)
+	}
+	_, _, err := m.Load(ctx, account)
+	switch {
+	case err == nil:
+		return nil, "", fmt.Errorf("memory: restore: %w: the profile can be read", store.ErrConflict)
+	case errors.Is(err, store.ErrDamaged):
+		return nil, "", fmt.Errorf("memory: restore: %w: no earlier state of the file is kept", store.ErrCorrupted)
+	}
+	return nil, "", fmt.Errorf("memory: restore: %w", err)
+}
+
 // find is the account's file, when it has one.
 func (m *memoryStore) find(account store.Account) (file, bool) {
 	m.mu.Lock()

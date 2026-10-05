@@ -499,13 +499,13 @@ web-layout *args: _playwright-pinned
         -v "{{ justfile_directory() }}:{{ justfile_directory() }}" -w "{{ justfile_directory() }}/web" \
         {{ PLAYWRIGHT_IMAGE }} node scripts/layout.ts {{ args }}
 
-# The README's pictures of a task, a wrong answer and the progress, each in the
-# light and the dark theme: the preview's own scenes, photographed in Chromium
-# from the image the layout is measured in, as a phone 428 px wide shows them
-# at twice its density. They are written over docs/screens/, for the change to
-# be looked at before it is kept. The cards name the newest release this tree
-# follows, rather than the changes on top of it nobody has released; a clone
-# that holds no release is refused, rather than photographed as "dev".
+# The README's pictures of a task, a wrong answer and the progress, in the dark
+# theme: the preview's own scenes, photographed in Chromium from the image the
+# layout is measured in, as a phone 428 px wide shows them at twice its density.
+# They are written over docs/screens/, for the change to be looked at before it
+# is kept. The cards name the newest release this tree follows, rather than the
+# changes on top of it nobody has released; a clone that holds no release is
+# refused, rather than photographed as "dev".
 # Photograph the widget for the README
 [working-directory('web')]
 web-screens: _playwright-pinned

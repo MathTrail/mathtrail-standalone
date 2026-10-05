@@ -15,12 +15,12 @@ const (
 	// recent is how many of the latest revisions before a damaged one a
 	// recovery tries, beside the latest one kept forever.
 	recent = 4
-	// maxKept is how many revisions of the profile's file are kept forever.
-	// The first write of each day keeps one; past this many the earliest are
-	// deleted, since Drive keeps at most two hundred so and a revision kept
-	// forever can be let go of only by deleting it. That is a hundred days of
-	// use to put a damaged file back from.
-	maxKept = 100
+	// maxKept is how many revisions of a file Drive keeps forever at most.
+	// The first write of each day asks for its own to be kept; once this many
+	// are, Drive refuses, and the write is made without (upload). No write
+	// deletes one to make room: only a recovery does, since it has to keep the
+	// revisions it reads, and the parent asked for it.
+	maxKept = 200
 )
 
 // candidates are the revisions a recovery tries, in the order it tries them:
@@ -46,15 +46,38 @@ func candidates(history []drive.Revision) []drive.Revision {
 	return picked
 }
 
+func (s *driveStore) Restore(ctx context.Context, account store.Account) (*profile.Profile, store.Revision, error) {
+	if err := ready(ctx, account); err != nil {
+		return nil, "", fmt.Errorf("drivestore: restore: %w", err)
+	}
+	parent := s.driveOf(account)
+	read, _, err := s.current(ctx, parent)
+	switch {
+	case err == nil:
+		// Mended since the parent was told, or never damaged: a profile that
+		// reads is never put back over.
+		return nil, "", fmt.Errorf("drivestore: restore: %w: the profile can be read", store.ErrConflict)
+	case !errors.Is(err, store.ErrDamaged):
+		return nil, "", fmt.Errorf("drivestore: restore: %w", err)
+	}
+	p, revision, err := s.recover(ctx, parent, read.id, read.state())
+	if err != nil {
+		return nil, "", fmt.Errorf("drivestore: restore: %w", err)
+	}
+	return p, revision, nil
+}
+
 // recover puts a damaged file back to the latest earlier state of it that
-// reads, as a new revision — nothing is deleted, so a recovery made wrongly
-// can be undone from the same history — and answers ErrRestored; or answers
-// ErrCorrupted when no state it tries reads. The damage is the state the file
-// was read in, and the file is written only while it still holds it.
+// reads, as a new revision — nothing is deleted from the file, so a recovery
+// made wrongly can be undone from the same history — and answers the profile
+// put back; or answers ErrCorrupted when no state it tries reads. The damage
+// is the state the file was read in, and the file is written only while it
+// still holds it.
 //
 // Drive gives what an earlier revision held only once it is kept forever, so
-// each one tried is kept first, room made for them beforehand. They stay
-// kept, and the earliest are deleted with the others past maxKept.
+// each one tried is kept first, room made for them beforehand: the earliest
+// kept are deleted when the ones tried would not otherwise fit within maxKept.
+// They stay kept.
 //
 // A recovery that could not look is not one that found nothing: a history
 // Drive would not list, a Drive out of reach, or one too full to keep a
@@ -62,10 +85,10 @@ func candidates(history []drive.Revision) []drive.Revision {
 // start for it. A revision Drive no longer has, will not give, or that does
 // not read is passed over; one Drive refused for a reason the store has no
 // word for is passed over too, and then nothing is said to be unreadable.
-func (s *driveStore) recover(ctx context.Context, parent parentsDrive, id, damage string) error {
+func (s *driveStore) recover(ctx context.Context, parent parentsDrive, id, damage string) (*profile.Profile, store.Revision, error) {
 	history, err := parent.history(ctx, id)
 	if err != nil {
-		return s.refused(parent, id, err)
+		return nil, "", s.refused(parent, id, err)
 	}
 	s.makeRoom(ctx, parent, id, history, recent+1)
 	tried := 0
@@ -75,7 +98,7 @@ func (s *driveStore) recover(ctx context.Context, parent parentsDrive, id, damag
 		raw, err := s.earlier(ctx, parent, id, candidate)
 		switch {
 		case stopsRecovery(refusalOf(err)):
-			return refusalOf(err)
+			return nil, "", refusalOf(err)
 		case outcomeOf(err) == outcomeFailed:
 			unsure = err
 			continue
@@ -87,10 +110,10 @@ func (s *driveStore) recover(ctx context.Context, parent parentsDrive, id, damag
 		}
 	}
 	if unsure != nil {
-		return fmt.Errorf("drivestore: a revision could not be read: %w", unsure)
+		return nil, "", fmt.Errorf("drivestore: a revision could not be read: %w", unsure)
 	}
 	s.watch.recovered(ctx, parent.account, tried, 0, recoveredNothing)
-	return fmt.Errorf("%w: no earlier state of the file reads", store.ErrCorrupted)
+	return nil, "", fmt.Errorf("%w: no earlier state of the file reads", store.ErrCorrupted)
 }
 
 // stopsRecovery reports whether an error stops a recovery rather than passing
@@ -123,36 +146,38 @@ func (s *driveStore) earlier(ctx context.Context, parent parentsDrive, id string
 // as it was, unless the file changed while its history was read — mended by
 // the parent, or written by another instance — in which case what it holds
 // now is what counts, and reading again finds it.
-func (s *driveStore) restore(ctx context.Context, parent parentsDrive, id, damage string, raw []byte, p *profile.Profile, tried int) error {
+func (s *driveStore) restore(ctx context.Context, parent parentsDrive, id, damage string, raw []byte, p *profile.Profile,
+	tried int,
+) (*profile.Profile, store.Revision, error) {
 	giveBack, err := s.turns.take(ctx, parent.account.ID)
 	if err != nil {
-		return err
+		return nil, "", err
 	}
 	defer giveBack()
 
 	current, err := parent.download(ctx, id)
 	now := fileRead{id: id, raw: current}
 	if failed := now.took(err); failed != nil {
-		return s.refused(parent, id, failed)
+		return nil, "", s.refused(parent, id, failed)
 	}
 	if now.state() != damage {
-		return fmt.Errorf("%w: the file changed while its history was read", store.ErrConflict)
+		return nil, "", fmt.Errorf("%w: the file changed while its history was read", store.ErrConflict)
 	}
 	if err := s.upload(ctx, parent, id, p, raw, false); err != nil {
-		return err
+		return nil, "", err
 	}
 	s.ids.wrote(parent.account.ID, id, p.Revision)
 	s.watch.recovered(ctx, parent.account, tried, p.Revision, recoveredRestored)
-	return fmt.Errorf("%w: put back to the state numbered %d", store.ErrRestored, p.Revision)
+	return p, revisionOf(id, p.Revision, raw), nil
 }
 
 // makeRoom deletes the earliest revisions of the file kept forever, as the
 // history lists them, so that room more can be kept within maxKept: Drive
-// keeps at most two hundred so, and lets go of one only when it is deleted.
-// It runs before the calls that keep one, which might otherwise be refused
-// for want of room. A revision already gone is as good as deleted. What goes
-// wrong here goes wrong quietly, with the lines of the calls to say so: what
-// follows goes on, and the next day's first write makes room again.
+// lets go of one only when it is deleted. It runs before a recovery keeps the
+// revisions it reads, which might otherwise be refused for want of room. A
+// revision already gone is as good as deleted. What goes wrong here goes wrong
+// quietly, with the lines of the calls to say so: the recovery goes on, and a
+// revision it cannot keep is passed over.
 func (s *driveStore) makeRoom(ctx context.Context, parent parentsDrive, id string, history []drive.Revision, room int) {
 	kept := slices.DeleteFunc(slices.Clone(history), func(r drive.Revision) bool { return !r.KeepForever })
 	if len(kept)+room <= maxKept {

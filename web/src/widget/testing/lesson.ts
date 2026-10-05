@@ -134,7 +134,6 @@ export function answered(fields: Partial<AnswerResult> = {}): CallToolResult {
 			task_id: result.task_id,
 			topic: result.topic,
 			correct: result.correct,
-			answered_at: "2026-09-29T12:00:00Z",
 		},
 		result,
 	});
@@ -210,18 +209,20 @@ export const failure: CallToolResult = {
 
 /**
  * standing is where Comet stands after the trial series: the design's own
- * progress — four topics met, each with its rank, one ahead of the overall
- * rank, two even with it and one behind it, one of them mastered, and a topic
- * within reach not met yet; the latest answers with one task left without an
- * answer, two mistakes that keep coming back, the review of the topics, the
- * topic worked over again after a mistake next, and where the profile's file
- * is. Every topic's page is published on the site, which is written in English
- * and Russian. The review is the one the service makes of these numbers: Ordering
- * mastered and well above the overall level, risen over the week; Enumeration
- * to develop for the mistake it keeps making, first since the rule sets it
- * next, and Parity and alternation for standing low and falling over the
- * week; Gaps and boundaries met too few times to judge; and a step for each
- * topic to develop, the mistake that repeats most advised among them.
+ * progress — the grades the ranks are matched with marked under the overall
+ * course, as the service matches them, four topics met, each with its rank,
+ * one ahead of the overall rank, two even with it and one behind it, one of
+ * them mastered, and a topic within reach not met yet; the latest answers with
+ * one task left without an answer, two mistakes that keep coming back, the
+ * review of the topics, the topic worked over again after a mistake next, and
+ * where the profile's file is. Every topic's page is published on the site,
+ * which is written in English and Russian. The review is the one the service
+ * makes of these numbers: Ordering mastered and well above the overall level,
+ * risen over the week; Enumeration to develop for the mistake it keeps making,
+ * first since the rule sets it next, and Parity and alternation for standing
+ * low and falling over the week; Gaps and boundaries met too few times to
+ * judge; and a step for each topic to develop, the mistake that repeats most
+ * advised among them.
  */
 export const standing = {
 	screen: "progress",
@@ -229,7 +230,6 @@ export const standing = {
 		task_id: "task_fence",
 		topic: "combinatorics.enumeration",
 		correct: false,
-		answered_at: "2026-09-29T12:00:00Z",
 	},
 	profile: {
 		pseudonym: "Comet",
@@ -239,9 +239,20 @@ export const standing = {
 		ui_language: null,
 		country: null,
 		region: null,
+		signin_country_off: false,
 	},
 	trial: null,
-	overall: { rating: 1573, rank: 3, ranks: 11, share: 43 },
+	overall: {
+		rating: 1573,
+		rank: 3,
+		ranks: 11,
+		share: 43,
+		grades: [
+			{ grade_level: "1-2", first_rank: 1, last_rank: 4 },
+			{ grade_level: "3-4", first_rank: 5, last_rank: 7 },
+			{ grade_level: "5-6", first_rank: 8, last_rank: 11 },
+		],
+	},
 	topics: [
 		{
 			topic: "logic.ordering",
@@ -314,37 +325,31 @@ export const standing = {
 			topic: "combinatorics.enumeration",
 			correct: false,
 			skipped: false,
-			answered_at: "2026-09-29T12:00:00Z",
 		},
 		{
 			topic: "combinatorics.enumeration",
 			correct: null,
 			skipped: true,
-			answered_at: "2026-09-29T11:50:00Z",
 		},
 		{
 			topic: "counting.gaps",
 			correct: true,
 			skipped: false,
-			answered_at: "2026-09-29T11:40:00Z",
 		},
 		{
 			topic: "logic.ordering",
 			correct: true,
 			skipped: false,
-			answered_at: "2026-09-29T11:30:00Z",
 		},
 		{
 			topic: "parity.alternation",
 			correct: false,
 			skipped: false,
-			answered_at: "2026-09-29T11:20:00Z",
 		},
 		{
 			topic: "logic.ordering",
 			correct: true,
 			skipped: false,
-			answered_at: "2026-09-29T11:10:00Z",
 		},
 	],
 	skipped: 1,
@@ -447,8 +452,9 @@ export const progressMoving = toolResult(moving);
 
 /**
  * standingBefore is where Comet stands, as a progress from before the topics
- * had ranks of their own says it: no share of the rank, no rank of a topic, no
- * topic not met yet, no total of the skips and no word of where the file is.
+ * had ranks of their own says it: no share of the rank, no grades marked under
+ * it, no rank of a topic, no topic not met yet, no total of the skips and no
+ * word of where the file is.
  * A card of an earlier chat, drawn again, is drawn from one.
  */
 export const standingBefore = {
@@ -478,7 +484,7 @@ export const standingBefore = {
  */
 export const atTheTop = {
 	...standing,
-	overall: { rating: 2905, rank: 11, ranks: 11, share: 100 },
+	overall: { ...standing.overall, rating: 2905, rank: 11, share: 100 },
 };
 
 /**
@@ -543,19 +549,16 @@ export const inTrial = {
 			topic: "time.clocks",
 			correct: true,
 			skipped: false,
-			answered_at: "2026-09-29T11:30:00Z",
 		},
 		{
 			topic: "counting.gaps",
 			correct: false,
 			skipped: false,
-			answered_at: "2026-09-29T11:20:00Z",
 		},
 		{
 			topic: "logic.ordering",
 			correct: true,
 			skipped: false,
-			answered_at: "2026-09-29T11:10:00Z",
 		},
 	],
 	mistakes: [],

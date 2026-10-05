@@ -14,6 +14,17 @@ const WidgetURI = "ui://mathtrail/app.html"
 // a document to show.
 const widgetMIME = "text/html;profile=mcp-app"
 
+// Sandbox is where a host runs the widget's page, and where the page may send
+// the person reading it.
+type Sandbox struct {
+	// Origin is the service's public origin, which a host that gives each app
+	// a sandbox of its own makes the page's from. Empty, no host is told one.
+	Origin string
+	// Site is the one origin a card's links lead to. Empty, they lead nowhere
+	// a host is told of.
+	Site string
+}
+
 // AddWidget serves page as the widget's resource at uri: the service's own
 // page at WidgetURI, or a copy another server draws its cards with, at an
 // address of its own, so that it is drawn as the service's cards are.
@@ -22,15 +33,15 @@ const widgetMIME = "text/html;profile=mcp-app"
 // where it is listed, and with the page where it is read. A host takes what
 // came with the page and falls back to the listing, and the library copies
 // neither onto the other.
-func AddWidget(server *mcp.Server, uri, page string) {
+func AddWidget(server *mcp.Server, uri, page string, sandbox Sandbox) {
 	server.AddResource(&mcp.Resource{
 		URI:      uri,
 		Name:     "widget",
 		Title:    "MathTrail",
 		MIMEType: widgetMIME,
-		Meta:     widgetMeta(),
+		Meta:     widgetMeta(sandbox),
 	}, func(context.Context, *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
-		return widgetRead(uri, page), nil
+		return widgetRead(uri, page, sandbox), nil
 	})
 }
 
@@ -39,13 +50,13 @@ func AddWidget(server *mcp.Server, uri, page string) {
 // library writes into whatever a handler returns — the address, the type, the
 // cache hint, the server's own name — so a result shared between reads would
 // be written by several of them at once.
-func widgetRead(uri, page string) *mcp.ReadResourceResult {
+func widgetRead(uri, page string, sandbox Sandbox) *mcp.ReadResourceResult {
 	return &mcp.ReadResourceResult{
 		Contents: []*mcp.ResourceContents{{
 			URI:      uri,
 			MIMEType: widgetMIME,
 			Text:     page,
-			Meta:     widgetMeta(),
+			Meta:     widgetMeta(sandbox),
 		}},
 	}
 }
@@ -56,17 +67,39 @@ func widgetRead(uri, page string) *mcp.ReadResourceResult {
 // empty lists rather than left out: the page may reach no network, load
 // nothing from anywhere, frame nothing and set its base nowhere else. A widget
 // that cannot reach the network cannot leak what it holds, and what it holds
-// is a child's task. It asks for no permission and for no origin of its own,
-// and for a visible border: a card is a task, and a boundary is what makes it
-// read as one.
-func widgetMeta() mcp.Meta {
-	return mcp.Meta{"ui": map[string]any{
-		"csp": map[string]any{
-			"connectDomains":  []string{},
-			"resourceDomains": []string{},
-			"frameDomains":    []string{},
-			"baseUriDomains":  []string{},
+// is a child's task. It asks for no permission, and for a visible border: a
+// card is a task, and a boundary is what makes it read as one.
+//
+// ChatGPT reads the same policy under a key of its own, which also names the
+// origins a card's links may open without a warning first: the site's alone.
+// It runs the page in a sandbox made from the origin it is given, under a key
+// of its own as well. The standard key for that origin is left unset: Claude
+// makes the sandbox's origin itself, and draws no card for a page that names
+// another.
+func widgetMeta(sandbox Sandbox) mcp.Meta {
+	redirects := []string{}
+	if sandbox.Site != "" {
+		redirects = append(redirects, sandbox.Site)
+	}
+	meta := mcp.Meta{
+		"ui": map[string]any{
+			"csp": map[string]any{
+				"connectDomains":  []string{},
+				"resourceDomains": []string{},
+				"frameDomains":    []string{},
+				"baseUriDomains":  []string{},
+			},
+			"prefersBorder": true,
 		},
-		"prefersBorder": true,
-	}}
+		"openai/widgetCSP": map[string]any{
+			"connect_domains":  []string{},
+			"resource_domains": []string{},
+			"frame_domains":    []string{},
+			"redirect_domains": redirects,
+		},
+	}
+	if sandbox.Origin != "" {
+		meta["openai/widgetDomain"] = sandbox.Origin
+	}
+	return meta
 }

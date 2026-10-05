@@ -13,14 +13,15 @@ import (
 )
 
 // The properties here name what has to hold for every child rather than for
-// the ten in the worked examples. Five things in this package have that shape:
+// the ten in the worked examples. Six things in this package have that shape:
 // the curve, which must never leave the band between guessing and certainty;
 // the corridor, which promises to hold at most one difficulty of a level and
 // to recommend the nearest of the points it is given whether or not it holds
 // any; an answer, which may move a rating only in the direction it argues for
 // and only as far as the step allows; the estimate of the trial series, which
-// only answers may move away from the start; and the ranks, which never fall
-// as the rating rises.
+// only answers may move away from the start; the ranks, which never fall as
+// the rating rises; and the grades the ranks are matched with, which give
+// every rank drawn one level and never a younger one as the rating rises.
 
 // genLevel covers far more than a child ever reaches: the ladder runs from −2
 // to +7, and a property that only held there would be a property of the ladder
@@ -405,6 +406,37 @@ func TestTheRanksHoldTheirProperties(t *testing.T) {
 			return (rating.Share(elo) == 100) == (rating.Rank(elo) == rating.Ranks)
 		},
 		gen.Float64Range(-1e6, 1e6),
+	))
+
+	properties.TestingRun(t)
+}
+
+func TestTheGradesOfTheRanksHoldTheirProperties(t *testing.T) {
+	t.Parallel()
+
+	properties := gopter.NewProperties(nil)
+	levels := rating.GradeLevels()
+
+	properties.Property("every rank drawn lies in the run of exactly one level", prop.ForAll(
+		func(elo float64) bool {
+			rank, runs := rating.Rank(elo), 0
+			for _, level := range levels {
+				if level.FirstRank() <= rank && rank <= level.LastRank() {
+					runs++
+				}
+			}
+			return runs == 1
+		},
+		gen.Float64Range(-1e6, 1e6),
+	))
+
+	properties.Property("the level a rank is matched with is never a younger one as the rating rises", prop.ForAll(
+		func(elo, gain float64) bool {
+			before, found := rating.GradeLevelOfRank(rating.Rank(elo))
+			after, foundHigher := rating.GradeLevelOfRank(rating.Rank(elo + math.Abs(gain)))
+			return found && foundHigher && slices.Index(levels, after) >= slices.Index(levels, before)
+		},
+		gen.Float64Range(-1e6, 1e6), gen.Float64Range(0, 4000),
 	))
 
 	properties.TestingRun(t)

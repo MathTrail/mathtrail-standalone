@@ -330,6 +330,19 @@ func TestOnlyAChangeTouchesTheProfile(t *testing.T) {
 	if changed, _ := p.Change(&topic, shipped, "1.2.4", later); changed {
 		t.Error("Change(the same topic again) changed the profile, want nothing changed")
 	}
+
+	// So is leaving the country of the sign-in out of the counts: turning it
+	// on is a change, turning it on again is none, and turning it off is one.
+	for _, step := range []struct {
+		off, changes bool
+	}{{true, true}, {true, false}, {false, true}} {
+		off := step.off
+		changed, problems := p.Change(&profile.Edit{SignInCountryOff: &off}, shipped, "1.2.4", later)
+		if changed != step.changes || len(problems) > 0 || p.Student.SignInCountryOff != step.off {
+			t.Errorf("Change(the country of the sign-in left out: %v) = %v, %v and left out: %v; want changed: %v",
+				step.off, changed, problems, p.Student.SignInCountryOff, step.changes)
+		}
+	}
 }
 
 // The grade decides where a child starts, once. Changed later it is a label:

@@ -14,7 +14,8 @@ import (
 func TestEveryReadOfTheWidgetGetsAResultOfItsOwn(t *testing.T) {
 	t.Parallel()
 
-	first, second := widgetRead(WidgetURI, "<p>the page</p>"), widgetRead(WidgetURI, "<p>the page</p>")
+	sandbox := Sandbox{Origin: "https://mcp.example", Site: "https://site.example"}
+	first, second := widgetRead(WidgetURI, "<p>the page</p>", sandbox), widgetRead(WidgetURI, "<p>the page</p>", sandbox)
 	want, err := json.Marshal(second)
 	if err != nil {
 		t.Fatalf("the result does not marshal: %v", err)
@@ -28,6 +29,9 @@ func TestEveryReadOfTheWidgetGetsAResultOfItsOwn(t *testing.T) {
 	ui["prefersBorder"] = false
 	csp, _ := ui["csp"].(map[string]any)
 	csp["connectDomains"] = []string{"https://elsewhere.example"}
+	widgetCSP, _ := first.Contents[0].Meta["openai/widgetCSP"].(map[string]any)
+	redirects, _ := widgetCSP["redirect_domains"].([]string)
+	redirects[0] = "https://elsewhere.example"
 
 	got, err := json.Marshal(second)
 	if err != nil {

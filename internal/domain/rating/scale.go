@@ -79,6 +79,52 @@ func Share(elo float64) int {
 	return (max(Shown(elo), floor) - floor) * 100 / rankStep
 }
 
+// FirstRank is the first of the ranks the progress matches with this level's
+// grades, telling a parent roughly whose tasks a rank stands for: the rank a
+// child of the level starts in, worked out from where the level stands rather
+// than written down, so that the match follows the ladder wherever its levels
+// are moved. The youngest level is matched from the first rank, since the
+// ranks below where its children start lie below every level. A level that
+// is none of the three is matched with no rank, and its first is zero.
+func (l GradeLevel) FirstRank() int {
+	switch place := l.place(); {
+	case place < 0:
+		return 0
+	case place == 0:
+		return 1
+	default:
+		return Rank(Elo(Start(l.FirstGrade())))
+	}
+}
+
+// LastRank is the last of the ranks matched with this level's grades: the one
+// before the next level's first, so that the levels share the ranks out with
+// none left over and none matched twice, and the last of all for the oldest.
+// A level that is none of the three is matched with no rank, and its last is
+// zero.
+func (l GradeLevel) LastRank() int {
+	switch place := l.place(); {
+	case place < 0:
+		return 0
+	case place == len(gradeLevels)-1:
+		return Ranks
+	default:
+		return gradeLevels[place+1].FirstRank() - 1
+	}
+}
+
+// GradeLevelOfRank is the level whose grades a rank is matched with. A rank
+// outside 1 to Ranks has none, and the caller is told so rather than handed
+// the nearest one.
+func GradeLevelOfRank(rank int) (GradeLevel, bool) {
+	for _, level := range gradeLevels {
+		if level.FirstRank() <= rank && rank <= level.LastRank() {
+			return level, true
+		}
+	}
+	return "", false
+}
+
 // floorOf is the lowest rating drawn in rank, one step above the floor of the
 // rank before, counted from the rating the youngest children start at. The
 // first rank has no floor of its own: the one this gives it is where the way

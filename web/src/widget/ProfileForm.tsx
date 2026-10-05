@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from "preact/hooks";
 import {
 	Button,
+	Checkbox,
 	CheckGroup,
 	ChipsField,
 	type Choice,
@@ -28,7 +29,8 @@ type Open = Extract<Editing, { state: "open" | "saving" }>;
  * ProfileForm is the form the adult changes the child's details with, on the
  * card: the pseudonym, the grade, the interests, what the child has not met at
  * school yet, the language of the lessons, and the country the family lives
- * in, with its state for the United States, which a parent may leave unsaid.
+ * in, with its state for the United States, which a parent may leave unsaid,
+ * and whether the country they sign in from is left out of what is counted.
  * The parent's notes are not among them: they are said to the model, in the chat. What the service
  * refused is said under each field it refused, and what became of the save
  * under the buttons. A form on its way takes no second save and no cancel, and
@@ -151,6 +153,13 @@ export function ProfileForm({
 						onChange={(region) => onChange({ ...draft, region })}
 					/>
 				)}
+				<Checkbox
+					label={words.text("profile.signin_country_off")}
+					checked={draft.signInCountryOff}
+					onChange={(signInCountryOff) =>
+						onChange({ ...draft, signInCountryOff })
+					}
+				/>
 			</fieldset>
 			<div class="mt-form-actions">
 				<div class="mt-btns">

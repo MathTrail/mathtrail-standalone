@@ -91,7 +91,7 @@ function chosen(root: HTMLElement, label: string, value: string): void {
 	});
 }
 
-// ticked presses the tick of the skill named label.
+// ticked presses the tick named label: a skill's, or another of the form's.
 function ticked(root: HTMLElement, label: string): void {
 	const tick = [...form(root).querySelectorAll(".mt-check")].find(
 		(found) => found.textContent === label,
@@ -147,7 +147,9 @@ describe("the form of the profile", () => {
 				)
 				.map((tick) => tick.textContent),
 		).toEqual(["Division with a remainder"]);
-		expect(form(root).querySelectorAll(".mt-check")).toHaveLength(25);
+		expect(form(root).querySelectorAll(".mt-checks .mt-check")).toHaveLength(
+			25,
+		);
 		expect(
 			field<HTMLSelectElement>(root, "Language of the lessons").value,
 		).toBe("");
@@ -231,7 +233,9 @@ describe("the form of the profile", () => {
 		expect(juggling?.querySelector<HTMLInputElement>("input")?.checked).toBe(
 			false,
 		);
-		expect(form(root).querySelectorAll(".mt-check")).toHaveLength(26);
+		expect(form(root).querySelectorAll(".mt-checks .mt-check")).toHaveLength(
+			26,
+		);
 	});
 
 	test("saves only what changed, by the card's own tool, shows it at once and tells the model", async () => {
@@ -311,6 +315,16 @@ describe("the form of the profile", () => {
 		expect(heard.calls[0]?.arguments).toEqual({
 			excluded_skills: ["fractions"],
 		});
+	});
+
+	test("leaves the country of the sign-in out of the counts when ticked, and sends it", async () => {
+		const { root, heard } = await opened(() => editSaved());
+
+		ticked(root, "Don't count the country I sign in from");
+		press(buttonIn(root, "Save"));
+
+		await vi.waitFor(() => expect(heard.calls).toHaveLength(1));
+		expect(heard.calls[0]?.arguments).toEqual({ signin_country_off: true });
 	});
 
 	test("keeps what was typed while its section is folded and opened again", async () => {

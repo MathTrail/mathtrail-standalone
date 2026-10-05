@@ -22,6 +22,7 @@ const details: Details = {
 	ui_language: null,
 	country: null,
 	region: null,
+	signin_country_off: false,
 };
 
 // drafted is the draft of the details with what a case changes in it.
@@ -54,8 +55,12 @@ describe("a draft", () => {
 			language: "",
 			country: "",
 			region: "",
+			signInCountryOff: false,
 		});
 		expect(draftOf({ ...details, ui_language: "fr" }).language).toBe("fr");
+		expect(
+			draftOf({ ...details, signin_country_off: true }).signInCountryOff,
+		).toBe(true);
 		expect(
 			draftOf({ ...details, country: "US", region: "US-TX" }),
 		).toMatchObject({ country: "US", region: "US-TX" });
@@ -138,6 +143,18 @@ describe("the changes of a draft", () => {
 		expect(
 			changesOf({ ...details, ui_language: "fr" }, drafted({ language: "" })),
 		).toEqual({ ui_language: "" });
+	});
+
+	test("leave the country of the sign-in out, and count it again", () => {
+		expect(changesOf(details, drafted({ signInCountryOff: true }))).toEqual({
+			signin_country_off: true,
+		});
+		expect(
+			changesOf(
+				{ ...details, signin_country_off: true },
+				drafted({ signInCountryOff: false }),
+			),
+		).toEqual({ signin_country_off: false });
 	});
 });
 

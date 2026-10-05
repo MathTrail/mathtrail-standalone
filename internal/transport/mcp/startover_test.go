@@ -42,9 +42,9 @@ func setAsideIn(fake *drivetest.Drive) [][]byte {
 	return aside
 }
 
-// A file nothing can read, with nothing earlier to put it back from, is told
-// as damage with its two ways out; the adult asks for a new start, and a new
-// profile starts while the damaged file is set aside.
+// A damaged file is told as damage with its two ways out. Put back, it has
+// nothing earlier that reads, which is told too; the adult asks for a new
+// start, and a new profile starts while the damaged file is set aside.
 func TestAProfileNothingCanReadIsStartedOverWhenTheAdultAsks(t *testing.T) {
 	t.Parallel()
 
@@ -55,10 +55,12 @@ func TestAProfileNothingCanReadIsStartedOverWhenTheAdultAsks(t *testing.T) {
 	d := instanceOverDrive(t, fake)
 
 	told := call(t, d.session, "get_profile", map[string]any{})
-	wantOurSentence(t, told, "The child's profile file in the adult's Google Drive cannot be read")
-	if text := textOf(t, told); !strings.Contains(text, "start_over") {
-		t.Errorf("the damage is told as %q, want the new start offered", text)
+	wantOurSentence(t, told, "The child's profile file in the adult's Google Drive is damaged")
+	if text := textOf(t, told); !strings.Contains(text, "restore") || !strings.Contains(text, "start_over") {
+		t.Errorf("the damage is told as %q, want putting it back and a new start offered", text)
 	}
+	nothingEarlier := call(t, d.session, "save_profile", map[string]any{"restore": true})
+	wantOurSentence(t, nothingEarlier, "The child's profile file in the adult's Google Drive cannot be read")
 
 	started := call(t, d.session, "save_profile", startOver("Otter", 2))
 	if text := textOf(t, started); started.IsError || !strings.HasPrefix(text, "A new profile is started.") {

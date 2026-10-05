@@ -284,7 +284,10 @@ func TestAKeptDocumentSaysSoInItsLine(t *testing.T) {
 func TestARedirectMatchesOnlyExactly(t *testing.T) {
 	t.Parallel()
 
-	client := &Client{RedirectURIs: []string{"https://claude.ai/api/mcp/auth_callback", "http://localhost:3000/callback"}}
+	client := &Client{
+		RedirectURIs: []string{"https://claude.ai/api/mcp/auth_callback", "http://localhost:3000/callback"},
+		Registration: registrationDCR,
+	}
 	for _, tc := range []struct {
 		uri       string
 		redirects bool
@@ -301,11 +304,62 @@ func TestARedirectMatchesOnlyExactly(t *testing.T) {
 		{"https://claude.ai/api/mcp/auth%5Fcallback", false},
 		{"https://claude.ai/api/mcp/auth_callback.evil.example", false},
 		{"http://localhost:3001/callback", false},
+		{"http://localhost/callback", false},
 		{"http://127.0.0.1:3000/callback", false},
 		{"", false},
 	} {
 		if got := client.Redirects(tc.uri); got != tc.redirects {
 			t.Errorf("Redirects(%q) = %v, want %v", tc.uri, got, tc.redirects)
+		}
+	}
+}
+
+// A client that names itself by its document runs on the parent's computer
+// and listens on whatever port the computer hands it at the sign-in: an
+// address there that its document lists with no port, or another, is matched
+// on any port, and on nothing else that differs. A client registered here
+// named its port, and is held to it.
+func TestADocumentsAddressOnTheParentsComputerMatchesOnAnyPort(t *testing.T) {
+	t.Parallel()
+
+	registered := []string{
+		"https://claude.ai/api/mcp/auth_callback", "http://localhost/callback", "http://127.0.0.1/callback",
+		"http://[::1]:8080/cb?x=1",
+	}
+	document := &Client{RedirectURIs: registered, Registration: registrationCIMD}
+	registration := &Client{RedirectURIs: registered, Registration: registrationDCR}
+	for _, tc := range []struct {
+		uri       string
+		redirects bool
+	}{
+		{"http://localhost:3118/callback", true},
+		{"http://127.0.0.1:52011/callback", true},
+		{"http://127.0.0.1:1/callback", true},
+		{"http://[::1]:65535/cb?x=1", true},
+		{"http://[::1]/cb?x=1", true},
+
+		{"http://localhost:3118/callback/", false},
+		{"http://localhost:3118/Callback", false},
+		{"http://localhost:3118/callback?next=1", false},
+		{"http://localhost:3118", false},
+		{"http://LOCALHOST:3118/callback", false},
+		{"https://localhost:3118/callback", false},
+		{"http://localhost.evil.example:3118/callback", false},
+		{"http://localhost:3118@evil.example/callback", false},
+		{"http://localhost:/callback", false},
+		{"http://localhost:123456/callback", false},
+		{"http://localhost:31a8/callback", false},
+		{"http://localhost:3118/callback#x", false},
+		{"http://127.0.0.2:3118/callback", false},
+		{"http://0x7f.1:3118/callback", false},
+		{"http://[::1]:8081/cb?x=2", false},
+		{"https://claude.ai:443/api/mcp/auth_callback", false},
+	} {
+		if got := document.Redirects(tc.uri); got != tc.redirects {
+			t.Errorf("for a client of its own document, Redirects(%q) = %v, want %v", tc.uri, got, tc.redirects)
+		}
+		if got := registration.Redirects(tc.uri); got {
+			t.Errorf("for a client registered here, Redirects(%q) = true, want false: it is held to the port it registered", tc.uri)
 		}
 	}
 }

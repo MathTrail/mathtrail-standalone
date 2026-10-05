@@ -51,14 +51,24 @@ type siteOut struct {
 
 // standingOut is the overall rating, its rank out of how many ranks there are,
 // so that a card need not know the number, and how far through the rank it has
-// come, as a whole percent; and how it moved since the last answer and over
-// the week, absent where neither can be told.
+// come, as a whole percent; the grade levels with the ranks each is matched
+// with, which a card marks under the ranks for the parent; and how it moved
+// since the last answer and over the week, absent where neither can be told.
 type standingOut struct {
 	Rating int         `json:"rating"`
 	Rank   int         `json:"rank"`
 	Ranks  int         `json:"ranks"`
 	Share  int         `json:"share"`
+	Grades []gradesOut `json:"grades"`
 	Change *changesOut `json:"change,omitempty"`
+}
+
+// gradesOut is a grade level, named as it is everywhere ("3-4"), and the first
+// and the last of the ranks its grades are matched with.
+type gradesOut struct {
+	GradeLevel string `json:"grade_level"`
+	FirstRank  int    `json:"first_rank"`
+	LastRank   int    `json:"last_rank"`
 }
 
 // topicOut is one topic the child has met, or the rule could set now. Its
@@ -106,10 +116,9 @@ type changeOut struct {
 // recentOut is one of the latest entries: an answer, or a task left without
 // one, which is marked skipped and says nothing of right or wrong.
 type recentOut struct {
-	Topic      string `json:"topic"`
-	Correct    *bool  `json:"correct"`
-	Skipped    bool   `json:"skipped"`
-	AnsweredAt string `json:"answered_at"`
+	Topic   string `json:"topic"`
+	Correct *bool  `json:"correct"`
+	Skipped bool   `json:"skipped"`
 }
 
 // mistakeOut is a trap the child keeps falling for among the latest answers:
@@ -132,16 +141,18 @@ func (s *Service) getProgressTool() Tool {
 			"also tells what moved since the last answer and over the last seven days, each topic by its own " +
 			"answers: say a step back gently, as part of learning, never as a score against the child. Its " +
 			"card draws the rank, not the rating's number: say the number yourself. The scale is one for grades 1 " +
-			"to 6, so an older child's number is higher. During the trial series — the first five tasks — there " +
-			"is no rating yet, only how many of the five are done. Call it only when someone asks to see the " +
-			"progress or what to work on: after the trial series it also reviews the topics for the adult — " +
-			"the strong ones, the ones to develop and what to do next, each step with its advice and its " +
-			"topic's page on the site, which you pass on only as given here. Tell the " +
+			"to 6, so an older child's number is higher. Under the ranks the card marks which grades' tasks each " +
+			"run of them roughly matches: that is for the adult, a rough guide and never a school mark or a " +
+			"verdict on the child, since the tasks are olympiad ones. During the trial series — the first five " +
+			"tasks — there is no rating yet, only how many of the five are done. Call it only when someone " +
+			"asks to see the progress or what to work on: after the trial series it also reviews the topics " +
+			"for the adult — the strong ones, the ones to develop and what to do next, each step with its " +
+			"advice and its topic's page on the site, which you pass on only as given here. Tell the " +
 			"adult the review in plain words; a topic too early to judge is no verdict on it. To practise a " +
 			"topic it names, call next_task with that topic and a reason once the child wants a task — or, while " +
 			"the lessons are kept to a topic someone chose, offer to change that choice with save_profile. " +
-			"Present it encouragingly.",
-		ReadOnly:   true,
+			"Present it encouragingly. Calling it changes nothing.",
+		Effect:     Reads,
 		Idempotent: true,
 		DrawsCard:  true,
 	}, s.progress)
@@ -153,7 +164,7 @@ func (s *Service) readProgressTool() Tool {
 		Title: "Read the child's progress for the card",
 		Description: "The progress get_progress shows, for a card that opens it inside itself. " +
 			"Only the card calls it.",
-		ReadOnly:   true,
+		Effect:     Reads,
 		Idempotent: true,
 		WidgetOnly: true,
 	}, s.progress)
@@ -232,8 +243,20 @@ func standingOf(overall *progress.Standing, changes progress.Changes) *standingO
 		Rank:   overall.Rank,
 		Ranks:  rating.Ranks,
 		Share:  overall.Share,
+		Grades: gradesOf(),
 		Change: changesOf(changes, true),
 	}
+}
+
+// gradesOf are the grade levels in ladder order, each with the ranks it is
+// matched with.
+func gradesOf() []gradesOut {
+	levels := rating.GradeLevels()
+	out := make([]gradesOut, 0, len(levels))
+	for _, level := range levels {
+		out = append(out, gradesOut{GradeLevel: string(level), FirstRank: level.FirstRank(), LastRank: level.LastRank()})
+	}
+	return out
 }
 
 // changesOf is how a standing moved, with its earlier rating where it is one
@@ -297,7 +320,7 @@ func mistakesOf(mistakes []progress.Mistake) []mistakeOut {
 func recentOf(entries []profile.Answer) []recentOut {
 	out := make([]recentOut, 0, len(entries))
 	for i := range entries {
-		entry := recentOut{Topic: entries[i].Topic, Skipped: entries[i].Skipped, AnsweredAt: moment(entries[i].AnsweredAt)}
+		entry := recentOut{Topic: entries[i].Topic, Skipped: entries[i].Skipped}
 		if !entries[i].Skipped {
 			correct := entries[i].Correct
 			entry.Correct = &correct
@@ -324,17 +347,41 @@ func (s *Service) progressText(
 	)
 }
 
-// standingText is the overall rating in words: its rank, and how far through
-// the rank it has come, or nothing while the trial series runs.
+// standingText is the overall rating in words: its rank, how far through the
+// rank it has come, and which grades' tasks the ranks roughly match, or
+// nothing while the trial series runs.
 func standingText(overall *progress.Standing) string {
 	if overall == nil {
 		return ""
 	}
+	return joined(rankText(overall), gradesText(overall.Rank))
+}
+
+// rankText is the overall rating with its rank in words, and how far through
+// the rank it has come; at the highest rank, which has no next one to come
+// towards, it says the rank is the highest.
+func rankText(overall *progress.Standing) string {
 	if overall.Rank == rating.Ranks {
 		return fmt.Sprintf("Overall rating %d, rank %d of %d, the highest.", overall.Rating, overall.Rank, rating.Ranks)
 	}
 	return fmt.Sprintf("Overall rating %d, rank %d of %d, %d%% of the way to rank %d.",
 		overall.Rating, overall.Rank, rating.Ranks, overall.Share, overall.Rank+1)
+}
+
+// gradesText is which grades' tasks each run of ranks roughly matches, as the
+// card marks it under the ranks, and the run the rank is in.
+func gradesText(rank int) string {
+	levels := rating.GradeLevels()
+	runs := make([]string, 0, len(levels))
+	for _, level := range levels {
+		runs = append(runs, fmt.Sprintf("ranks %d to %d grades %s", level.FirstRank(), level.LastRank(), level))
+	}
+	words := "The card marks under the ranks the grades whose tasks each run of them roughly matches: " +
+		strings.Join(runs, ", ")
+	if level, matched := rating.GradeLevelOfRank(rank); matched {
+		words += fmt.Sprintf("; rank %d is in the run of grades %s", rank, level)
+	}
+	return words + "."
 }
 
 // topicMoves are the topics' moves the words name, in the order they name

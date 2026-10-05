@@ -17,9 +17,7 @@ const attempts = 3
 // makes them again from a fresh read when the store says the profile moved on
 // in between: somebody else — another tab, another instance, the parent by
 // hand — wrote it, which is a conflict, or deleted it for good before the
-// write, which the store finds as no profile. A read the store could not
-// finish for the same reason — a damaged file mended while it was being put
-// back — is made again too.
+// write, which the store finds as no profile.
 //
 // Nothing the first run computed is sent again. Every run reads what is there
 // now and decides from it, so what the other writer did already is found done

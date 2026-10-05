@@ -20,8 +20,9 @@ export const profileLimits = {
 /**
  * Draft is the form as the adult fills it in: each detail the form changes,
  * the interest still being typed, the language of the lessons, the chat's
- * being the empty text, and the country and the region, none being the empty
- * text.
+ * being the empty text, the country and the region, none being the empty
+ * text, and whether the country the parent signs in from is left out of what
+ * is counted.
  */
 export type Draft = {
 	pseudonym: string;
@@ -32,6 +33,7 @@ export type Draft = {
 	language: string;
 	country: string;
 	region: string;
+	signInCountryOff: boolean;
 };
 
 /** draftOf is the form as it opens: the details as they stand. */
@@ -45,6 +47,7 @@ export function draftOf(details: Details): Draft {
 		language: details.ui_language ?? "",
 		country: details.country ?? "",
 		region: details.region ?? "",
+		signInCountryOff: details.signin_country_off,
 	};
 }
 
@@ -112,6 +115,9 @@ export function changesOf(
 	}
 	if (draft.region !== (details.region ?? "")) {
 		changes.region = draft.region;
+	}
+	if (draft.signInCountryOff !== details.signin_country_off) {
+		changes.signin_country_off = draft.signInCountryOff;
 	}
 	return changes;
 }

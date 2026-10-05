@@ -67,6 +67,25 @@ func TestAToolIsListedAsItWasDefined(t *testing.T) {
 	}
 }
 
+// A host that lists the server is told, beside its name and build, what it is,
+// where its site is and the site's icon.
+func TestTheServerSaysWhatItIsAndWhereItsSiteIs(t *testing.T) {
+	t.Parallel()
+
+	info := serve(t, mcpserver.DevSignIn).connect(t, "").InitializeResult().ServerInfo
+	if info == nil || info.Name != "mathtrail" || info.Title != "MathTrail" || info.Version != "test" ||
+		info.Description == "" || info.WebsiteURL != siteOrigin {
+		t.Fatalf("serverInfo = %+v, want MathTrail's name, build and description, and its site %s", info, siteOrigin)
+	}
+	icons, err := json.Marshal(info.Icons)
+	if err != nil {
+		t.Fatalf("the icons do not marshal: %v", err)
+	}
+	if got, want := string(icons), `[{"src":"`+siteOrigin+`/assets/favicon.svg","mimeType":"image/svg+xml","sizes":["any"]}]`; got != want {
+		t.Errorf("icons = %s, want %s", got, want)
+	}
+}
+
 // A call is answered with words for the model and a payload for a widget, for
 // the account that signed in, and it leaves one line saying what it was.
 func TestACallIsAnsweredAndLeavesOneLine(t *testing.T) {
@@ -587,6 +606,8 @@ func TestAnEndpointThatCouldNotBeServedIsNotBuilt(t *testing.T) {
 			Traces:              tracenoop.NewTracerProvider(),
 			Logger:              zap.NewNop(),
 			Widget:              page,
+			Origin:              serviceOrigin,
+			Site:                siteOrigin,
 		}
 	}
 	withoutSignIn := settings()
@@ -605,18 +626,33 @@ func TestAnEndpointThatCouldNotBeServedIsNotBuilt(t *testing.T) {
 	withoutVersion.InstructionsVersion = ""
 	withoutWidget := settings()
 	withoutWidget.Widget = ""
+	withoutOrigin := settings()
+	withoutOrigin.Origin = ""
+	withoutSite := settings()
+	withoutSite.Site = ""
 	echo := tools()[0]
-	loose := mcpserver.Define(mcpserver.Spec{Name: "loose", Title: "Loose"},
+	loose := mcpserver.Define(mcpserver.Spec{Name: "loose", Title: "Loose", Effect: mcpserver.Reads},
 		func(context.Context, store.Account, string) (mcpserver.Reply[sayOut], error) {
 			return mcpserver.Reply[sayOut]{}, nil
 		})
-	misnamed := mcpserver.Define(mcpserver.Spec{Name: "next task", Title: "Next task"},
+	misnamed := mcpserver.Define(mcpserver.Spec{Name: "next task", Title: "Next task", Effect: mcpserver.Reads},
 		func(context.Context, store.Account, sayIn) (mcpserver.Reply[sayOut], error) {
 			return mcpserver.Reply[sayOut]{}, nil
 		})
 	// A tool for a card alone that drew a card of its own would put a second
 	// card under the one that asked.
-	twice := mcpserver.Define(mcpserver.Spec{Name: "twice", Title: "Twice", WidgetOnly: true, DrawsCard: true},
+	twice := mcpserver.Define(mcpserver.Spec{Name: "twice", Title: "Twice", Effect: mcpserver.Reads, WidgetOnly: true, DrawsCard: true},
+		func(context.Context, store.Account, sayIn) (mcpserver.Reply[sayOut], error) {
+			return mcpserver.Reply[sayOut]{}, nil
+		})
+	// A host shows a tool's title when it asks a person about a call, and
+	// asks by what the tool says it does: a tool that says neither is not
+	// served.
+	untitled := mcpserver.Define(mcpserver.Spec{Name: "untitled", Effect: mcpserver.Reads},
+		func(context.Context, store.Account, sayIn) (mcpserver.Reply[sayOut], error) {
+			return mcpserver.Reply[sayOut]{}, nil
+		})
+	unsaid := mcpserver.Define(mcpserver.Spec{Name: "unsaid", Title: "Unsaid"},
 		func(context.Context, store.Account, sayIn) (mcpserver.Reply[sayOut], error) {
 			return mcpserver.Reply[sayOut]{}, nil
 		})
@@ -636,10 +672,14 @@ func TestAnEndpointThatCouldNotBeServedIsNotBuilt(t *testing.T) {
 		{name: "no instructions", settings: withoutInstructions, want: "Instructions"},
 		{name: "no version of the instructions", settings: withoutVersion, want: "InstructionsVersion"},
 		{name: "no widget", settings: withoutWidget, want: "Widget"},
+		{name: "no origin of the service", settings: withoutOrigin, want: "Origin"},
+		{name: "no site", settings: withoutSite, want: "Site"},
 		{name: "two tools of one name", settings: settings(), tools: []mcpserver.Tool{echo, echo}, want: `"echo"`},
 		{name: "a name no tool can have", settings: settings(), tools: []mcpserver.Tool{misnamed}, want: `"next task"`},
 		{name: "arguments that are not an object", settings: settings(), tools: []mcpserver.Tool{loose}, want: `"loose"`},
-		{name: "a tool for a card that draws one", settings: settings(), tools: []mcpserver.Tool{twice}, want: `"twice"`},
+		{name: "a tool for a card that draws one", settings: settings(), tools: []mcpserver.Tool{twice}, want: `"twice" is for a card alone`},
+		{name: "a tool with no title", settings: settings(), tools: []mcpserver.Tool{untitled}, want: `"untitled" has no title`},
+		{name: "a tool that does not say what it does", settings: settings(), tools: []mcpserver.Tool{unsaid}, want: `"unsaid" does not say what it does`},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

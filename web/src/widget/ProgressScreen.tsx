@@ -2,6 +2,8 @@ import { useState } from "preact/hooks";
 import { Fold, Note } from "../design/blocks";
 import { ViewSwitch } from "../design/controls";
 import {
+	GradeLegend,
+	type GradeRun,
 	MoveCounts,
 	MoveLegend,
 	MoveLine,
@@ -35,7 +37,7 @@ import {
 	usePeriod,
 	wayOf,
 } from "./moves";
-import { listed, rankCount, rankName, topicName, trapName } from "./names";
+import { listed, topicName, trapName } from "./names";
 import { ParentData, ParentProfile } from "./ProfileScreen";
 import type { Details, Moves, ProgressReport, Recommendation } from "./payload";
 import { ReviewParts, reviewSaid, saysNothing } from "./review";
@@ -43,6 +45,13 @@ import { countText, type Key, percentText, useWords } from "./words";
 
 /** recentShown is how many of the latest entries the progress lists. */
 const recentShown = 5;
+
+/**
+ * rankCount is how many ranks there are. A topic's course is drawn out of them
+ * while the trial series runs, before an overall rating says how many there
+ * are.
+ */
+const rankCount = 11;
 
 /**
  * ProgressCard is the card of the child's progress, drawn when the model
@@ -270,12 +279,13 @@ export function ProgressScreen({
 	);
 }
 
-// Standing is the rank the child climbs: its name, the rank out of how many,
-// the course of the ranks filled as far as the rating has come — striped
-// where it moved over the while shown, with a line of how —, and the next
-// rank to reach; or, while the trial series is still finding where the child
-// stands, how many of its tasks are done, with no rank yet to show. The
-// rating's number is the model's to say, and the answer's result shows it.
+// Standing is the rank the child climbs: the rank by its number, out of how
+// many, the course of the ranks filled as far as the rating has come — striped
+// where it moved over the while shown, with a line of how —, the grades whose
+// tasks each run of ranks roughly matches marked under it for the parent, and
+// the next rank to reach; or, while the trial series is still finding where
+// the child stands, how many of its tasks are done, with no rank yet to show.
+// The rating's number is the model's to say, and the answer's result shows it.
 function Standing({
 	report,
 	moves,
@@ -309,20 +319,16 @@ function Standing({
 		moves === undefined || shown === undefined
 			? undefined
 			: readingOf(moveOver(moves, shown));
+	const runs = gradeRunsOf(words, overall);
 	return (
 		<RankSummary
 			label={words.text("progress.overall_label")}
-			name={rankName(words, overall.rank)}
-			meta={words.text("progress.rank_line", {
-				rank: overall.rank,
-				total: overall.ranks,
-			})}
+			name={words.text("progress.rank", { rank: overall.rank })}
+			meta={words.text("progress.rank_of", { total: overall.ranks })}
 			line={
 				top
 					? words.text("progress.top_rank")
-					: words.text("progress.next_rank", {
-							name: rankName(words, overall.rank + 1),
-						})
+					: words.text("progress.next_rank", { rank: overall.rank + 1 })
 			}
 			move={
 				reading !== undefined &&
@@ -344,8 +350,67 @@ function Standing({
 							})
 				}
 			/>
+			{runs !== undefined && (
+				<GradeLegend
+					of={overall.ranks}
+					runs={runs}
+					note={words.text("progress.grades_note")}
+				/>
+			)}
 		</RankSummary>
 	);
+}
+
+// gradeRunsOf are the runs of ranks the progress marks under the course, each
+// with the grades whose tasks it roughly matches, in words, and whether the
+// rank reached is in it; or undefined when the progress marks none, or marks
+// runs that do not take the ranks one after another from the first to the
+// last: a run drawn in the wrong place would tell the parent something false.
+function gradeRunsOf(
+	words: Words<Key>,
+	overall: NonNullable<ProgressReport["overall"]>,
+): GradeRun[] | undefined {
+	const { grades, rank, ranks } = overall;
+	if (grades === undefined || !takeTheRanksInTurn(grades, ranks)) {
+		return undefined;
+	}
+	return grades.map((run) => {
+		const { from, to } = gradesOf(run.grade_level);
+		const current = run.first_rank <= rank && rank <= run.last_rank;
+		return {
+			first: run.first_rank,
+			last: run.last_rank,
+			label: words.text("progress.grades", { from, to }),
+			said: words.text(
+				current ? "progress.grades_ranks_here" : "progress.grades_ranks",
+				{ first: run.first_rank, last: run.last_rank, from, to },
+			),
+			current,
+		};
+	});
+}
+
+// gradesOf are the first and the last grade of a level, named as the service
+// names it: "3-4". The payload lets no other name through.
+function gradesOf(level: string): { from: number; to: number } {
+	const [from, to] = level.split("-");
+	return { from: Number(from), to: Number(to) };
+}
+
+// takeTheRanksInTurn tells whether runs take the ranks one after another, from
+// the first rank to the last, each run at least one rank long.
+function takeTheRanksInTurn(
+	runs: readonly { first_rank: number; last_rank: number }[],
+	ranks: number,
+): boolean {
+	let next = 1;
+	for (const run of runs) {
+		if (run.first_rank !== next || run.last_rank < run.first_rank) {
+			return false;
+		}
+		next = run.last_rank + 1;
+	}
+	return runs.length > 0 && next === ranks + 1;
 }
 
 // The words of each while's line, by what it says: how the rank moved, that
@@ -388,10 +453,7 @@ function moveLineOf(
 		case "moved":
 			return {
 				way: wayOf(reading.moved),
-				text: words.text(said[reading.moved], {
-					from: rankName(words, reading.rank),
-					to: rankName(words, rank),
-				}),
+				text: words.text(said[reading.moved], { from: reading.rank, to: rank }),
 			};
 		default:
 			return {};
@@ -451,7 +513,7 @@ function topicRows(
 				reading,
 				word: moved?.word ?? comparedWord(words, topic.compared),
 				way: moved?.way,
-				name: rankName(words, topic.rank),
+				name: words.text("progress.rank", { rank: topic.rank }),
 				segments: {
 					of: ranks,
 					filled: topic.rank - 1,

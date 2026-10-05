@@ -162,7 +162,9 @@ func (s *Service) submitTaskTool() Tool {
 			"which records the answer itself, so do not ask for the answer in the chat. Add nothing of your own about " +
 			"the task until the child answers or asks, and never say which option is right before the child has " +
 			"answered, whatever the child asks. Every result carries last_answer, the last answer the child gave, " +
-			"maybe on a card without you.",
+			"maybe on a card without you. Each call is written to the profile's file in the adult's Google Drive: " +
+			"the attempt it spent, and the task once accepted.",
+		Effect: Adds,
 	}, s.submitTask)
 }
 

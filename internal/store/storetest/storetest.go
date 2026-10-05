@@ -64,6 +64,8 @@ func Run(t *testing.T, newHarness func(t *testing.T) Harness) {
 		{"what a caller holds is not what the store keeps", whatACallerHoldsIsNotWhatTheStoreKeeps},
 		{"accounts do not see each other's profiles", accountsDoNotSeeEachOther},
 		{"a damaged file is reported as damage", aDamagedFileIsReportedAsDamage},
+		{"a file that is no profile at all is damaged, and a read leaves it so", aFileThatIsNoProfileIsDamaged},
+		{"only damage is put back, and only from an earlier state", onlyDamageIsPutBack},
 		{"a file from a newer build is not damage", aFileFromANewerBuildIsNotDamage},
 		{"an account with a profile can be told where it is", anAccountWithAProfileCanBeToldWhereItIs},
 		{"a finished context stops every operation", aFinishedContextStopsEveryOperation},
@@ -391,6 +393,9 @@ func anAccountThatNamesNoOneReachesNoProfile(t *testing.T, h Harness) {
 	if _, err := h.Storage.StartOver(t.Context(), nameless, child("Nobody")); err == nil {
 		t.Error("StartOver() for an account that names no one: error = nil, want a refusal")
 	}
+	if got, _, err := h.Storage.Restore(t.Context(), nameless); err == nil || got != nil {
+		t.Errorf("Restore() for an account that names no one = %v, %v, want no profile and a refusal", got, err)
+	}
 	holds(t, h, mia, want)
 }
 
@@ -470,6 +475,56 @@ func aDamagedFileIsReportedAsDamage(t *testing.T, h Harness) {
 	}
 }
 
+// A file that is no profile at all — empty, or a write cut short — is damage
+// an earlier state may mend, and is told as that every time it is read: a
+// read puts nothing back.
+func aFileThatIsNoProfileIsDamaged(t *testing.T, h Harness) {
+	for _, damage := range []struct{ name, raw string }{
+		{"an empty file", ""},
+		{"a write cut short", `{"schema_version": 1, "student": {"pseud`},
+	} {
+		t.Run(damage.name, func(t *testing.T) {
+			damaged := someone(damage.name)
+			h.Plant(t, damaged, []byte(damage.raw))
+
+			for read := range 2 {
+				_, _, err := h.Storage.Load(t.Context(), damaged)
+				if !errors.Is(err, store.ErrDamaged) || !errors.Is(err, store.ErrCorrupted) {
+					t.Errorf("Load() #%d error = %v, want %v with %v", read+1, err, store.ErrDamaged, store.ErrCorrupted)
+				}
+			}
+		})
+	}
+}
+
+// Restore mends damage alone, from an earlier state of the file: an account
+// with no profile has nothing to put back, a profile that reads is never put
+// back over, and a damaged file with no earlier state that reads is told as
+// one nothing can read — and stays as it was.
+func onlyDamageIsPutBack(t *testing.T, h Harness) {
+	mia := someone("mia")
+	if _, _, err := h.Storage.Restore(t.Context(), mia); !errors.Is(err, store.ErrNotFound) {
+		t.Errorf("Restore() with no profile: error = %v, want %v", err, store.ErrNotFound)
+	}
+
+	readable := child("Mia")
+	want := fileOf(t, readable)
+	create(t, h, mia, readable)
+	if p, _, err := h.Storage.Restore(t.Context(), mia); !errors.Is(err, store.ErrConflict) || p != nil {
+		t.Errorf("Restore() of a readable profile = %v, %v, want no profile and %v", p, err, store.ErrConflict)
+	}
+	holds(t, h, mia, want)
+
+	leo := someone("leo")
+	h.Plant(t, leo, []byte(`{"schema_version": 1, "student": {"pseud`))
+	if p, _, err := h.Storage.Restore(t.Context(), leo); !errors.Is(err, store.ErrCorrupted) || p != nil {
+		t.Errorf("Restore() of damage with no earlier state = %v, %v, want no profile and %v", p, err, store.ErrCorrupted)
+	}
+	if _, _, err := h.Storage.Load(t.Context(), leo); !errors.Is(err, store.ErrDamaged) {
+		t.Errorf("Load() after a Restore() that found nothing: error = %v, want %v", err, store.ErrDamaged)
+	}
+}
+
 // A file from a newer build is readable, only not by this one: it is refused
 // as newer and never as damage, and nothing is put in its place.
 func aFileFromANewerBuildIsNotDamage(t *testing.T, h Harness) {
@@ -525,6 +580,8 @@ func aFinishedContextStopsEveryOperation(t *testing.T, h Harness) {
 	wantFinished(t, "Export", err)
 	_, err = h.Storage.StartOver(finished, leo, child("Leo"))
 	wantFinished(t, "StartOver", err)
+	_, _, err = h.Storage.Restore(finished, mia)
+	wantFinished(t, "Restore", err)
 
 	hasNone(t, h, leo)
 	holds(t, h, mia, want)
@@ -596,8 +653,9 @@ func savesRacingFromOneRevisionLeaveOneWholeProfile(t *testing.T, h Harness) {
 
 // refusals are every refusal of a store a caller branches on.
 var refusals = []error{
-	store.ErrNotFound, store.ErrConflict, store.ErrCorrupted, store.ErrAccessRevoked, store.ErrAccessExpired,
-	store.ErrInBin, store.ErrBehind, store.ErrRestored, store.ErrStorageFull, store.ErrUnavailable, store.ErrUnsupported,
+	store.ErrNotFound, store.ErrConflict, store.ErrCorrupted, store.ErrDamaged, store.ErrAccessRevoked,
+	store.ErrAccessExpired, store.ErrInBin, store.ErrBehind, store.ErrStorageFull, store.ErrUnavailable,
+	store.ErrUnsupported,
 }
 
 // setAside checks that the account started over from exactly the files given,

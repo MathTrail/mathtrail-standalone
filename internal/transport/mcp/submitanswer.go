@@ -97,7 +97,9 @@ func (s *Service) submitAnswerTool() Tool {
 			"to a wrong one and whether that mistake has come up before, the solution, and how the child's rating in the topic moved — during the trial series, " +
 			"how many of its tasks are done instead. An answer is recorded once: the same task answered again, on " +
 			"the card or by you, changes nothing and is told what was recorded the first time — the whole result " +
-			"while the task is on the card, and whether it was right once the next task has been asked for.",
+			"while the task is on the card, and whether it was right once the next task has been asked for. The " +
+			"answer is written to the profile's file in the adult's Google Drive, with the ratings it moves.",
+		Effect:     Adds,
 		Idempotent: true,
 	}, s.submitAnswer)
 }

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/progress"
@@ -51,10 +50,9 @@ type noArguments struct{}
 // missed the card's message learns from its next call that the child has
 // answered, and how.
 type answerLine struct {
-	TaskID     string `json:"task_id"`
-	Topic      string `json:"topic"`
-	Correct    bool   `json:"correct"`
-	AnsweredAt string `json:"answered_at"`
+	TaskID  string `json:"task_id"`
+	Topic   string `json:"topic"`
+	Correct bool   `json:"correct"`
 }
 
 // lastAnswerOf is the last answer of a profile, or nil when there has been
@@ -64,12 +62,7 @@ func lastAnswerOf(p *profile.Profile) *answerLine {
 	if !answered {
 		return nil
 	}
-	return &answerLine{
-		TaskID:     answer.TaskID,
-		Topic:      answer.Topic,
-		Correct:    answer.Correct,
-		AnsweredAt: moment(answer.AnsweredAt),
-	}
+	return &answerLine{TaskID: answer.TaskID, Topic: answer.Topic, Correct: answer.Correct}
 }
 
 // problemOut is one field that broke a rule: the field, the code of the rule,
@@ -109,18 +102,22 @@ type childOut struct {
 	// LessonTopic is the topic the child or the adult keeps the lessons to,
 	// by its id, as the file names it; null while the rule chooses.
 	LessonTopic *string `json:"lesson_topic"`
+	// SignInCountryOff says the country the adult signs in from is left out
+	// of what is counted.
+	SignInCountryOff bool `json:"signin_country_off"`
 }
 
 func childOf(s *profile.Student) *childOut {
 	return &childOut{
-		Pseudonym:      s.Pseudonym,
-		Grade:          s.Grade,
-		Interests:      append([]string{}, s.Interests...),
-		ExcludedSkills: append([]string{}, s.ExcludedSkills...),
-		UILanguage:     s.UILanguage,
-		Country:        given(s.Country),
-		Region:         given(s.Region),
-		LessonTopic:    given(s.LessonTopic),
+		Pseudonym:        s.Pseudonym,
+		Grade:            s.Grade,
+		Interests:        append([]string{}, s.Interests...),
+		ExcludedSkills:   append([]string{}, s.ExcludedSkills...),
+		UILanguage:       s.UILanguage,
+		Country:          given(s.Country),
+		Region:           given(s.Region),
+		LessonTopic:      given(s.LessonTopic),
+		SignInCountryOff: s.SignInCountryOff,
 	}
 }
 
@@ -222,9 +219,6 @@ func locationOf(location *store.Location) *locationOut {
 	}
 	return out
 }
-
-// moment is a moment as a payload writes it: RFC 3339, in UTC.
-func moment(t profile.Time) string { return t.UTC().Format(time.RFC3339) }
 
 // The words below are for the model, in English: it relays them in the chat's
 // own language, and without a card they are the whole of what the child and

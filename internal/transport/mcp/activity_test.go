@@ -70,36 +70,51 @@ func TestATaskHandedOutIsCountedWhereTheFamilyIs(t *testing.T) {
 }
 
 // The country a parent signed in from travels with the account the sign-in
-// lets a call in as, and the task handed out is counted by it.
+// lets a call in as, and the task handed out is counted by it — unless the
+// parent asked for it to be left out of what is counted, and then the line
+// carries no country of the sign-in at all.
 func TestATaskHandedOutIsCountedByTheCountryOfItsSignIn(t *testing.T) {
 	t.Parallel()
 
-	account := store.NewAccount(vouchedUser, "", time.Time{})
-	account.SignInCountry = "NZ"
-	kept := memory.New()
-	if _, err := kept.Create(context.Background(), account, profile.New(profile.Student{
-		Grade: 2, Pseudonym: "Otter", Interests: []string{"sport"},
-	}, "test", lessonDay)); err != nil {
-		t.Fatalf("keep the profile: %v", err)
-	}
-	h := newHarness(t)
-	service := lessonService(t, h, kept, &clock{at: lessonDay}, nil)
-	h.start(t, mcpserver.BearerSignIn(readerOf(account), metadata), slices.Concat(service.ProfileTools(), service.TaskTools())...)
-	session, err := h.connectWith(t, vouchedToken)
-	if err != nil {
-		t.Fatalf("connectWith() error = %v, want nil", err)
-	}
+	for _, tc := range []struct {
+		name    string
+		leftOut bool
+		want    any
+	}{
+		{"counted", false, "NZ"},
+		{"left out by the parent", true, nil},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	asked := call(t, session, "next_task", raceChoice)
-	p, _, err := kept.Load(context.Background(), account)
-	if err != nil || p.OpenRequest == nil {
-		t.Fatalf("next_task = %q, and the profile holds no request: %v", textOf(t, asked), err)
-	}
-	wantOnTheCard(t, call(t, session, "submit_task", raceOn(p.OpenRequest)))
-	h.settle()
+			account := store.NewAccount(vouchedUser, "", time.Time{})
+			account.SignInCountry = "NZ"
+			kept := memory.New()
+			if _, err := kept.Create(context.Background(), account, profile.New(profile.Student{
+				Grade: 2, Pseudonym: "Otter", Interests: []string{"sport"}, SignInCountryOff: tc.leftOut,
+			}, "test", lessonDay)); err != nil {
+				t.Fatalf("keep the profile: %v", err)
+			}
+			h := newHarness(t)
+			service := lessonService(t, h, kept, &clock{at: lessonDay}, nil)
+			h.start(t, mcpserver.BearerSignIn(readerOf(account), metadata), slices.Concat(service.ProfileTools(), service.TaskTools())...)
+			session, err := h.connectWith(t, vouchedToken)
+			if err != nil {
+				t.Fatalf("connectWith() error = %v, want nil", err)
+			}
 
-	if got := theOnlyLine(t, h, "task_accepted")["signin_country"]; got != "NZ" {
-		t.Errorf("task_accepted signin_country = %v, want NZ", got)
+			asked := call(t, session, "next_task", raceChoice)
+			p, _, err := kept.Load(context.Background(), account)
+			if err != nil || p.OpenRequest == nil {
+				t.Fatalf("next_task = %q, and the profile holds no request: %v", textOf(t, asked), err)
+			}
+			wantOnTheCard(t, call(t, session, "submit_task", raceOn(p.OpenRequest)))
+			h.settle()
+
+			if got := theOnlyLine(t, h, "task_accepted")["signin_country"]; got != tc.want {
+				t.Errorf("task_accepted signin_country = %v, want %v", got, tc.want)
+			}
+		})
 	}
 }
 

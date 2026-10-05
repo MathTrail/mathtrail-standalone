@@ -287,6 +287,7 @@ describe("the screen a payload draws", () => {
 					ui_language: "ru",
 					country: null,
 					region: null,
+					signin_country_off: false,
 				},
 				location: {
 					folder: "MathTrail",
@@ -319,6 +320,21 @@ describe("the screen a payload draws", () => {
 			country: "US",
 			region: "US-TX",
 		});
+	});
+
+	test("of the profile says whether the country of the sign-in is left out, and one from before it could be counts it", () => {
+		const { signin_country_off: _, ...before } = profileRead.profile;
+		const read = (profile: object) => {
+			const shown = readScreen({ ...profileRead, profile });
+			return shown?.screen === "profile"
+				? shown.profile.details.signin_country_off
+				: undefined;
+		};
+
+		expect(read({ ...profileRead.profile, signin_country_off: true })).toBe(
+			true,
+		);
+		expect(read(before)).toBe(false);
 	});
 
 	test("of the progress keeps how far through its rank the rating has come, each topic's rank, the total of the skips and where the file is", () => {
@@ -363,6 +379,45 @@ describe("the screen a payload draws", () => {
 			expect(shown.report.recommendation?.topic).toBe(
 				"combinatorics.enumeration",
 			);
+		},
+	);
+
+	test("of the progress keeps the grades each run of ranks is matched with", () => {
+		const shown = readScreen(standing);
+		if (shown?.screen !== "progress") {
+			throw new Error(`the progress reads as ${shown?.screen}`);
+		}
+
+		expect(shown.report.overall?.grades).toEqual([
+			{ grade_level: "1-2", first_rank: 1, last_rank: 4 },
+			{ grade_level: "3-4", first_rank: 5, last_rank: 7 },
+			{ grade_level: "5-6", first_rank: 8, last_rank: 11 },
+		]);
+	});
+
+	test.each<[string, unknown]>([
+		[
+			"a level named otherwise",
+			[{ grade_level: "grades 1 and 2", first_rank: 1, last_rank: 4 }],
+		],
+		[
+			"a rank that is no whole number",
+			[{ grade_level: "1-2", first_rank: 1.5, last_rank: 4 }],
+		],
+		["no list at all", "1-2: 1-4"],
+	])(
+		"of the progress reads grades with %s as none, and the rest of it all the same",
+		(_, grades) => {
+			const shown = readScreen({
+				...standing,
+				overall: { ...standing.overall, grades },
+			});
+			if (shown?.screen !== "progress") {
+				throw new Error(`the progress reads as ${shown?.screen}`);
+			}
+
+			expect(shown.report.overall?.grades).toBeUndefined();
+			expect(shown.report.overall?.rank).toBe(3);
 		},
 	);
 

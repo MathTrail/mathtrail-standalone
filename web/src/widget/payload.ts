@@ -286,13 +286,16 @@ const details = child.extend({
 	// A profile from a service from before the country was kept names none.
 	country: z.string().nullable().catch(null),
 	region: z.string().nullable().catch(null),
+	// One from before the country of the sign-in could be left out counts it.
+	signin_country_off: z.boolean().catch(false),
 });
 
 /**
  * Details are the child's profile as a card shows it: who the child is, what
  * the tasks may be dressed in, what the child has not met at school yet, the
- * language of the lessons, and the country and the region the family lives
- * in, by their codes, or null for none given. The parent's notes are never
+ * language of the lessons, the country and the region the family lives in, by
+ * their codes, or null for none given, and whether the country the parent
+ * signs in from is left out of what is counted. The parent's notes are never
  * among them.
  */
 export type Details = z.infer<typeof details>;
@@ -501,6 +504,20 @@ const progressReport = z.object({
 			// with the step under way empty, as an earlier chat's card still
 			// is when it is drawn again.
 			share: share.optional(),
+			// The grade levels, each with the ranks its grades are matched
+			// with, which the card marks under the course for the parent. A
+			// progress from before the marks has none, and marks that do not
+			// read are read as none: the course is drawn unmarked.
+			grades: z
+				.array(
+					z.object({
+						grade_level: z.string().regex(/^\d+-\d+$/),
+						first_rank: z.number().int().positive(),
+						last_rank: z.number().int().positive(),
+					}),
+				)
+				.optional()
+				.catch(undefined),
 			// A progress from before the moves, or one with nothing to tell of
 			// them, has none, and the card draws no move.
 			change: moves,
@@ -553,12 +570,12 @@ const progressReport = z.object({
 
 /**
  * ProgressReport is where the child stands, as the progress screen shows it:
- * the overall rating with its rank and how far through it — or, while the
- * trial series runs, how far the series has got — the topics met or within
- * reach, each with a rank of its own, the latest answers and how many tasks
- * were left without one, the mistakes that keep coming back, the review of the
- * topics once the trial series is over, what comes next, the child's profile,
- * and where its file is.
+ * the overall rating with its rank, how far through it, and the grades the
+ * ranks are matched with — or, while the trial series runs, how far the
+ * series has got — the topics met or within reach, each with a rank of its
+ * own, the latest answers and how many tasks were left without one, the
+ * mistakes that keep coming back, the review of the topics once the trial
+ * series is over, what comes next, the child's profile, and where its file is.
  */
 export type ProgressReport = z.infer<typeof progressReport>;
 

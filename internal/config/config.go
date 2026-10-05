@@ -218,6 +218,11 @@ type Config struct {
 	// and the privacy policy.
 	SiteURL string `mapstructure:"MATHTRAIL_SITE_URL"`
 
+	// OpenAIChallenge is the token ChatGPT's plugin directory gives to prove
+	// the service's domain is the plugin's, served as it is at the address the
+	// directory reads it from. Empty, that address is not served.
+	OpenAIChallenge string `mapstructure:"MATHTRAIL_OPENAI_CHALLENGE"`
+
 	// DevAuth replaces the Google sign-in with a stub. It is refused whenever
 	// K_SERVICE is set.
 	DevAuth bool `mapstructure:"MATHTRAIL_DEV_AUTH"`
@@ -353,6 +358,7 @@ func LoadFrom(environ []string) (*Config, error) {
 	v.SetDefault("MATHTRAIL_LEARNER_KEY", "")
 	v.SetDefault("MATHTRAIL_COUNTRY_DB", "")
 	v.SetDefault("MATHTRAIL_SITE_URL", DefaultSiteURL)
+	v.SetDefault("MATHTRAIL_OPENAI_CHALLENGE", "")
 	v.SetDefault("MATHTRAIL_DEV_AUTH", false)
 	v.SetDefault("K_SERVICE", "")
 
@@ -395,6 +401,7 @@ func LoadFrom(environ []string) (*Config, error) {
 	// would refuse a client whose name or secret carried one.
 	cfg.GoogleClientID = strings.TrimSpace(cfg.GoogleClientID)
 	cfg.GoogleClientSecret = strings.TrimSpace(cfg.GoogleClientSecret)
+	cfg.OpenAIChallenge = strings.TrimSpace(cfg.OpenAIChallenge)
 
 	if err := cfg.Validate(); err != nil {
 		return nil, err
@@ -404,59 +411,47 @@ func LoadFrom(environ []string) (*Config, error) {
 
 // Validate reports the first problem it finds, naming the variable behind it.
 func (c *Config) Validate() error {
+	for _, check := range []func() error{
+		c.validatePort,
+		c.validatePublicURL,
+		c.validateSealKeys,
+		c.validateLogging,
+		c.validateTimeouts,
+		c.validateSolver,
+		c.validateLimits,
+		c.validateTrapRepeats,
+		c.validateTelemetry,
+		c.validateDevAuth,
+		c.validateGoogle,
+		c.validateSiteURL,
+		c.validateLearnerKey,
+		c.validateCountryDB,
+		c.validateOpenAIChallenge,
+	} {
+		if err := check(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// validatePort refuses a port the server could not listen on.
+func (c *Config) validatePort() error {
 	port, err := strconv.Atoi(c.Port)
 	if err != nil || port < 1 || port > 65535 {
 		return fmt.Errorf("%w: PORT must be a number from 1 to 65535, got %q", ErrInvalid, c.Port)
 	}
+	return nil
+}
 
-	if err := c.validatePublicURL(); err != nil {
-		return err
-	}
-
-	if err := c.validateSealKeys(); err != nil {
-		return err
-	}
-
-	if err := c.validateLogging(); err != nil {
-		return err
-	}
-
-	if err := c.validateTimeouts(); err != nil {
-		return err
-	}
-
-	if err := c.validateSolver(); err != nil {
-		return err
-	}
-
-	if err := c.validateLimits(); err != nil {
-		return err
-	}
-
-	if err := c.validateTrapRepeats(); err != nil {
-		return err
-	}
-
-	if err := c.validateTelemetry(); err != nil {
-		return err
-	}
-
-	// The one switch that trades safety for convenience, and the one place it
-	// is stopped: in a deployment it is refused outright, not warned about.
+// validateDevAuth refuses the development sign-in in a deployment. It is the
+// one switch that trades safety for convenience, and the one place it is
+// stopped: in a deployment it is refused outright, not warned about.
+func (c *Config) validateDevAuth() error {
 	if c.DevAuth && c.Deployed() {
 		return fmt.Errorf("%w: MATHTRAIL_DEV_AUTH must not be set when K_SERVICE is set", ErrInvalid)
 	}
-
-	if err := c.validateGoogle(); err != nil {
-		return err
-	}
-	if err := c.validateSiteURL(); err != nil {
-		return err
-	}
-	if err := c.validateLearnerKey(); err != nil {
-		return err
-	}
-	return c.validateCountryDB()
+	return nil
 }
 
 // validateLearnerKey refuses a secret the children could not be counted
@@ -497,6 +492,22 @@ func sameSecret(one, other string) bool {
 func (c *Config) validateCountryDB() error {
 	if c.Deployed() && c.CountryDB == "" {
 		return fmt.Errorf("%w: MATHTRAIL_COUNTRY_DB must be set when K_SERVICE is set", ErrInvalid)
+	}
+	return nil
+}
+
+// maxOpenAIChallenge bounds the token the service serves, so that a value
+// pasted by mistake — a whole file, say — is refused rather than served.
+const maxOpenAIChallenge = 512
+
+// validateOpenAIChallenge refuses a value that cannot be the token, without
+// repeating it: the token is served as it is, so anything but visible ASCII —
+// a space or a line break inside it — would be served too, and found only
+// when the directory read something else than it gave.
+func (c *Config) validateOpenAIChallenge() error {
+	visible := !strings.ContainsFunc(c.OpenAIChallenge, func(r rune) bool { return r <= ' ' || r > '~' })
+	if len(c.OpenAIChallenge) > maxOpenAIChallenge || !visible {
+		return fmt.Errorf("%w: MATHTRAIL_OPENAI_CHALLENGE must be at most %d characters of visible ASCII", ErrInvalid, maxOpenAIChallenge)
 	}
 	return nil
 }

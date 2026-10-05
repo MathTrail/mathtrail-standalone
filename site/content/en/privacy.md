@@ -5,7 +5,7 @@ description: What MathTrail knows about your child, where it is kept, and how to
 
 # Privacy policy
 
-Last updated: 4 October 2026.
+Last updated: 5 October 2026.
 
 MathTrail is a free, open-source project. Questions about this policy or about your child's data go to [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com).
 
@@ -75,6 +75,8 @@ Separately, Google Cloud Run keeps the standard request logs any service on it p
 ### The country you sign in from
 
 When you sign in, Google sends your browser back to MathTrail, and at that one moment the service looks up which country your browser's address belongs to, in DB-IP's free IP-to-Country database — a file the service keeps on its own server, so nothing is sent to DB-IP or anyone else. Only the two-letter code of the country is kept, sealed inside the token your chat holds; the address itself is neither stored nor written down. An address that belongs to no country, such as one of a private network, gives no country. Your chat's own requests come from its servers, not from you, so the country stays the one of your last sign-in.
+
+You can have this country left out of what is counted: tick "Don't count the country I sign in from" in the form of the profile, or ask in the chat. From then on no line the service writes carries it, until you untick the box.
 
 IP geolocation by [DB-IP](https://db-ip.com), under the [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/) licence.
 

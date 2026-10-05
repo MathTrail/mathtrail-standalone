@@ -13,9 +13,12 @@ import (
 //
 // A file that is not JSON, is not a profile, or is of an older shape this build
 // knows no way up from is damage: ErrCorrupted, with the reason beside it.
-// Nothing will ever read it as it stands, and what helps is an earlier state of
-// it. A file written by a newer build is not damage and keeps profile.ErrNewer:
-// the build that wrote it reads it perfectly well, and what helps is waiting.
+// Nothing will ever read it as it stands. One that is no profile at all is
+// ErrDamaged as well, and what helps is an earlier state of it; one that is a
+// profile breaking a rule is never rolled back, since a newer build or the
+// parent may have written it. A file written by a newer build is not damage
+// and keeps profile.ErrNewer: the build that wrote it reads it perfectly well,
+// and what helps is waiting.
 func Parse(raw []byte) (*profile.Profile, error) {
 	p, err := profile.Parse(raw)
 	switch {
@@ -23,6 +26,8 @@ func Parse(raw []byte) (*profile.Profile, error) {
 		return p, nil
 	case errors.Is(err, profile.ErrNewer):
 		return nil, err
+	case errors.Is(err, profile.ErrMalformed):
+		return nil, fmt.Errorf("%w: %w", ErrDamaged, err)
 	default:
 		return nil, fmt.Errorf("%w: %w", ErrCorrupted, err)
 	}

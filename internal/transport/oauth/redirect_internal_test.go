@@ -2,6 +2,7 @@ package oauthserver
 
 import (
 	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -140,6 +141,64 @@ func TestAHostIsWrittenInASCII(t *testing.T) {
 			}
 		})
 	}
+}
+
+// An address on the parent's computer is told by how it begins and by what
+// follows: a port of one to five digits or none, and then a path, a query or
+// nothing. A host that merely begins like the computer's is no such address,
+// and neither is one that hides another host behind the port.
+func TestAnAddressOnTheParentsComputerLosesItsPortAlone(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		uri, want string
+		here      bool
+	}{
+		{"http://localhost:3118/callback", "http://localhost/callback", true},
+		{"http://127.0.0.1/callback", "http://127.0.0.1/callback", true},
+		{"http://[::1]:8080?x=1", "http://[::1]?x=1", true},
+		{"http://localhost", "http://localhost", true},
+
+		{"http://localhost.example/callback", "", false},
+		{"http://127.0.0.1.example/callback", "", false},
+		{"http://localhost:3118@evil.example/callback", "", false},
+		{"http://localhost:/callback", "", false},
+		{"http://localhost:123456/callback", "", false},
+		{"https://localhost:3118/callback", "", false},
+	} {
+		if got, here := withoutPort(tc.uri); got != tc.want || here != tc.here {
+			t.Errorf("withoutPort(%q) = %q, %v; want %q, %v", tc.uri, got, here, tc.want, tc.here)
+		}
+	}
+}
+
+// Leaving the port of an address on the parent's computer to the client never
+// sends the parent anywhere else: whatever follows the beginning of such an
+// address, one that matches a document's address but for its port reaches
+// the computer the browser runs on.
+func TestAnyPortStaysOnTheParentsComputer(t *testing.T) {
+	t.Parallel()
+
+	client := &Client{
+		RedirectURIs: []string{"http://localhost/callback", "http://127.0.0.1/callback", "http://[::1]/callback"},
+		Registration: registrationCIMD,
+	}
+	properties := gopter.NewProperties(nil)
+	properties.Property("an address let through on another port is on the parent's computer", prop.ForAll(
+		func(origin, rest string) bool {
+			uri := origin + rest
+			return !client.Redirects(uri) || toThisComputer(uri)
+		},
+		gen.OneConstOf("http://localhost", "http://127.0.0.1", "http://[::1]"),
+		gen.OneGenOf(gen.AnyString(), gen.RegexMatch(`^:[0-9]{1,6}[/?@.:#a-z]{0,3}callback$`)),
+	))
+	properties.Property("any port from 0 to 65535 is let through", prop.ForAll(
+		func(port uint16) bool {
+			return client.Redirects("http://127.0.0.1:" + strconv.Itoa(int(port)) + "/callback")
+		},
+		gen.UInt16(),
+	))
+	properties.TestingRun(t)
 }
 
 // A host reaches a line of the log and the consent screen in printable ASCII

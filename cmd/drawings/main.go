@@ -137,7 +137,9 @@ func newServer(set []sample, log *zap.Logger) *mcp.Server {
 			Capabilities: &mcp.ServerCapabilities{Tools: &mcp.ToolCapabilities{}, Resources: &mcp.ResourceCapabilities{}},
 		},
 	)
-	mcpserver.AddWidget(server, widgetURI, widget.Page())
+	// Run behind a tunnel for a look, it has no origin of its own to name, and
+	// its cards link nowhere.
+	mcpserver.AddWidget(server, widgetURI, widget.Page(), mcpserver.Sandbox{})
 	shows := &shower{set: set, log: log}
 	no := false
 	mcp.AddTool(server, &mcp.Tool{

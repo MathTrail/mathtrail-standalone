@@ -42,9 +42,18 @@ type Client struct {
 
 // Redirects reports whether a sign-in may send the parent back to an address:
 // only when the client registered exactly that address — the same string,
-// byte for byte, with no prefix, no normalisation and no pattern.
+// byte for byte, with no prefix, no normalisation and no pattern — but for
+// the port of an address on the parent's own computer, which a client that
+// names itself by its document leaves to the moment of the sign-in. Such a
+// client runs on the parent's computer and listens on whatever port the
+// computer hands it then, so its document can name none; a client registered
+// here names the port it registered with.
 func (c *Client) Redirects(uri string) bool {
-	return slices.Contains(c.RedirectURIs, uri)
+	if slices.Contains(c.RedirectURIs, uri) {
+		return true
+	}
+	return c.Registration == registrationCIMD && redirectable(uri) &&
+		slices.ContainsFunc(c.RedirectURIs, func(registered string) bool { return sameButThePort(registered, uri) })
 }
 
 // errUnknownClient is a client identifier that stands for no client a parent

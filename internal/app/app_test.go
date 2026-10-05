@@ -29,6 +29,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark/starlarktest"
 	"github.com/MathTrail/mathtrail-standalone/internal/ratelimit"
 	"github.com/MathTrail/mathtrail-standalone/internal/store"
+	httpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/http"
 	mcpserver "github.com/MathTrail/mathtrail-standalone/internal/transport/mcp"
 	"github.com/MathTrail/mathtrail-standalone/internal/widget"
 )
@@ -431,8 +432,23 @@ func decodeAnswer(t *testing.T, rec *httptest.ResponseRecorder, into any) {
 	}
 }
 
+// The container serves the token ChatGPT's directory proves the domain by,
+// when it was configured with one.
+func TestContainerServesTheTokenItWasGiven(t *testing.T) {
+	t.Parallel()
+
+	cfg := testConfig()
+	cfg.OpenAIChallenge = "a-token-0f-ChatGPTs"
+	rec := serveOne(t, containerFrom(t, cfg), http.MethodGet, httpserver.ChallengePath, "")
+	if rec.Code != http.StatusOK || rec.Body.String() != cfg.OpenAIChallenge {
+		t.Errorf("GET %s = %d %q, want 200 and the token configured", httpserver.ChallengePath, rec.Code, rec.Body.String())
+	}
+}
+
 // The container serves the widget the binary carries — the build, or the
-// placeholder where none ran — as the page every card is drawn by.
+// placeholder where none ran — as the page every card is drawn by, and tells a
+// host the service's origin to make its sandbox from and the site as where its
+// links lead.
 func TestContainerServesTheWidgetItCarries(t *testing.T) {
 	t.Parallel()
 
@@ -455,6 +471,12 @@ func TestContainerServesTheWidgetItCarries(t *testing.T) {
 		Result struct {
 			Contents []struct {
 				Text string `json:"text"`
+				Meta struct {
+					Domain string `json:"openai/widgetDomain"`
+					CSP    struct {
+						Redirects []string `json:"redirect_domains"`
+					} `json:"openai/widgetCSP"`
+				} `json:"_meta"`
 			} `json:"contents"`
 		} `json:"result"`
 	}
@@ -468,6 +490,10 @@ func TestContainerServesTheWidgetItCarries(t *testing.T) {
 	if got, want := contents[0].Text, widget.Page(); got != want {
 		t.Errorf("page served = %d bytes starting %q, want the %d bytes the binary carries, starting %q",
 			len(got), got[:min(len(got), 40)], len(want), want[:min(len(want), 40)])
+	}
+	if meta := contents[0].Meta; meta.Domain != cfg.Origin() || !slices.Equal(meta.CSP.Redirects, []string{cfg.Site()}) {
+		t.Errorf("the page's sandbox is %q and its links lead to %q, want %q and %q alone",
+			meta.Domain, meta.CSP.Redirects, cfg.Origin(), cfg.Site())
 	}
 }
 
@@ -520,6 +546,42 @@ func TestContainerServesTheToolsOfTheLesson(t *testing.T) {
 				call.tool, payload, words)
 		case !call.inWords && (payload == nil || payload.Screen != "first_run"):
 			t.Errorf("%s shows %+v, want the first_run screen: nothing is kept yet", call.tool, payload)
+		}
+	}
+}
+
+// A host reads a tool's hints off the wire, and takes a hint left out for its
+// default — that the tool writes, may destroy something and reaches the open
+// world. The container lists every tool with a title and with every hint said
+// outright.
+func TestEveryToolIsListedWithItsTitleAndEveryHint(t *testing.T) {
+	t.Parallel()
+
+	cfg := testConfig()
+	cfg.DevAuth = true
+	container := containerFrom(t, cfg)
+
+	var listed struct {
+		Result struct {
+			Tools []struct {
+				Name        string                     `json:"name"`
+				Title       string                     `json:"title"`
+				Annotations map[string]json.RawMessage `json:"annotations"`
+			} `json:"tools"`
+		} `json:"result"`
+	}
+	askEndpoint(t, container, `{"jsonrpc":"2.0","id":1,"method":"tools/list"}`, &listed)
+	if len(listed.Result.Tools) == 0 {
+		t.Fatal("no tool is listed, want the tools of the lesson")
+	}
+	for _, tool := range listed.Result.Tools {
+		if tool.Title == "" {
+			t.Errorf("%s is listed with no title", tool.Name)
+		}
+		for _, hint := range []string{"readOnlyHint", "destructiveHint", "idempotentHint", "openWorldHint"} {
+			if said := string(tool.Annotations[hint]); said != "true" && said != "false" {
+				t.Errorf("%s lists %s as %q, want true or false said outright", tool.Name, hint, said)
+			}
 		}
 	}
 }

@@ -38,10 +38,10 @@ func (s *Service) getPackageTool() Tool {
 		Title: "Get the package to write the task from",
 		Description: "Returns the package to write the task of an open request from: the brief — the topic, the " +
 			"level and the difficulty the rule sets — with reference tasks, and the page on how to write and hand in " +
-			"a task. Call it with the request_id next_task gave, as soon as next_task has answered; write the task " +
-			"to the package, and hand it in with submit_task and the same request_id. The package is for you alone: " +
-			"show the child nothing of it.",
-		ReadOnly:   true,
+			"a task. It changes nothing. Call it with the request_id next_task gave, as soon as next_task has " +
+			"answered; write the task to the package, and hand it in with submit_task and the same request_id. " +
+			"The package is for you alone: show the child nothing of it.",
+		Effect:     Reads,
 		Idempotent: true,
 	}, s.getPackage)
 }

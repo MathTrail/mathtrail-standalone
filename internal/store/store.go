@@ -34,13 +34,19 @@ var (
 	// be created. Nothing was written, and the caller reads again.
 	ErrConflict = errors.New("store: the stored profile is not the one expected")
 	// ErrCorrupted means there is a file and it cannot be read as a profile:
-	// one that is no profile at all and has no earlier state that reads, or a
-	// profile that breaks a rule, which is never rolled back since a newer
-	// build or the parent may have written it. A file written by a newer
-	// build of the service at a newer version is not corrupted: it is refused
-	// with profile.ErrNewer instead — and ErrUnsupported beside it once no
-	// rollout could explain it (RolloutWindow).
+	// one that is no profile at all — ErrDamaged, a kind of this — or a profile
+	// that breaks a rule, which is never rolled back since a newer build or
+	// the parent may have written it. A file written by a newer build of the
+	// service at a newer version is not corrupted: it is refused with
+	// profile.ErrNewer instead — and ErrUnsupported beside it once no rollout
+	// could explain it (RolloutWindow).
 	ErrCorrupted = errors.New("store: the profile cannot be read")
+	// ErrDamaged means the file is no profile at all — not JSON, not of a
+	// profile's shape, or larger than any profile. It is a kind of
+	// ErrCorrupted, and errors.Is finds both in it. An earlier state of the
+	// file may still read: Restore puts the latest one back, when the parent
+	// asks. Nothing else mends it, and no read does.
+	ErrDamaged = fmt.Errorf("%w: the file is no profile at all", ErrCorrupted)
 	// ErrAccessRevoked means the account no longer lets the service reach the
 	// profile: the parent took the permission back. Signing in again is what
 	// helps.
@@ -57,10 +63,6 @@ var (
 	// instance wrote itself, and went on doing so when asked again. Nothing
 	// was done, and the call is made again in a moment.
 	ErrBehind = errors.New("store: the profile read is behind one already written")
-	// ErrRestored means the file was damaged and has been put back to its last
-	// state that reads. Nothing else was done: the caller says so, since what
-	// came after that state is gone, and reads again.
-	ErrRestored = errors.New("store: the profile was damaged and has been restored")
 	// ErrStorageFull means there is no room left where the profile is kept, so
 	// nothing was written.
 	ErrStorageFull = errors.New("store: no room left for the profile")
@@ -76,21 +78,31 @@ var (
 	ErrUnavailable = errors.New("store: the profile could not be reached")
 )
 
-// Storage keeps one profile per account.
+// Storage keeps one profile per account. It does two jobs, each an interface
+// of its own, as an io.ReadWriter is two: it reads and writes the profile
+// (Profiles), and mends one that cannot be read when the parent asks for it
+// (Recovery).
 //
 // Two things are refused before anything is looked at. An account that names
 // no one reaches no one's profile, whatever its token would open. A profile
 // that breaks its own rules is never written: Create and Save refuse it with
 // profile.ErrInvalid, whatever the store holds, and leave it as it was.
 type Storage interface {
+	Profiles
+	Recovery
+}
+
+// Profiles reads and writes the profile of an account.
+type Profiles interface {
 	// Load reads the account's profile and the revision it was read at.
 	// ErrNotFound means the account has none, ErrCorrupted that it has a file
-	// nothing can read, and profile.ErrNewer that a newer build wrote it —
-	// with ErrUnsupported beside it once no rollout could explain it. A
-	// store that keeps a file's history may also answer ErrRestored, having
-	// put a damaged file back to its last readable state, or ErrConflict,
-	// having found it changed while it did; and one that keeps a bin,
-	// ErrInBin.
+	// nothing can read — with ErrDamaged beside it when the file is no profile
+	// at all — and profile.ErrNewer that a newer build wrote it, with
+	// ErrUnsupported beside it once no rollout could explain it. A store that
+	// keeps a bin may also answer ErrInBin.
+	//
+	// A read changes nothing, whatever it finds: a damaged file is told, and
+	// left as it is for the parent to decide about.
 	Load(ctx context.Context, account Account) (*profile.Profile, Revision, error)
 	// Create keeps the first profile of an account. An account that has one
 	// already, readable or not, answers ErrConflict and keeps what it has: a
@@ -111,6 +123,24 @@ type Storage interface {
 	// themselves. The file is the export: there is no second copy of it, and
 	// no format of its own.
 	Export(ctx context.Context, account Account) (Location, error)
+}
+
+// Recovery mends a profile that cannot be read, and only because the parent
+// asked: the file is put back to an earlier state of it, or set aside for a
+// new profile. Neither deletes the file.
+type Recovery interface {
+	// Restore puts a damaged file back to the latest earlier state of it that
+	// reads, as a new state of the file, and answers the profile put back and
+	// the revision it now has. What came after that state is lost, which is
+	// why it is made only when the parent asked.
+	//
+	// It mends damage alone — a file Load answers with ErrDamaged. A profile
+	// that reads now, mended or never damaged, is ErrConflict and left as it
+	// is. A file with no earlier state that reads, or none kept — a store that
+	// keeps no history — is ErrCorrupted. Anything else Load would refuse —
+	// no profile, one in the bin, one of a newer build, one that breaks a
+	// rule — is refused the same way, and nothing is rolled back.
+	Restore(ctx context.Context, account Account) (*profile.Profile, Revision, error)
 	// StartOver keeps a new profile in place of one this build cannot read —
 	// damaged, or of a newer build — which the parent asked to start again
 	// from. The file it replaces is set aside
