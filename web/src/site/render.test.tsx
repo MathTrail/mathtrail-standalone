@@ -272,7 +272,7 @@ describe("every page", () => {
 		},
 	);
 
-	test.each(pages)(
+	test.each(pages.filter((path) => path !== "index.html"))(
 		"%s is light, and loads the tokens before the styles that read them",
 		(path) => {
 			const doc = page(files, path);
@@ -568,42 +568,35 @@ describe("the menu", () => {
 describe("the apex", () => {
 	const apex = page(files, "index.html");
 
-	test("is the reference locale's front page in what it tells a search engine", () => {
+	test("sends the reader on at once to the reference locale's front page", () => {
+		expect(attributes(apex, 'meta[http-equiv="refresh"]', "content")).toEqual([
+			"0; url=/en/",
+		]);
+		expect(attributes(apex, "a", "href")).toEqual(["/en/"]);
+		expect(texts(apex, "a")).toEqual(["MathTrail"]);
+	});
+
+	test("stands for that front page in what it tells a search engine and a chat", () => {
 		expect(apex.documentElement.lang).toBe("en");
 		expect(apex.title).toBe("MathTrail");
 		expect(attributes(apex, 'meta[name="description"]', "content")).toEqual([
 			"Olympiad maths in your chat.",
 		]);
 		expect(attributes(apex, 'link[rel="canonical"]', "href")).toEqual([
-			"https://example.test/",
-		]);
-		expect(attributes(apex, 'link[rel="alternate"]', "href")).toEqual([
 			"https://example.test/en/",
-			"https://example.test/ru/",
-			"https://example.test/",
 		]);
-	});
-
-	test("hands the reader every language, each in its own name", () => {
-		expect(texts(apex, ".s-choices a")).toEqual(["English", "Русский"]);
-		expect(attributes(apex, ".s-choices a", "href")).toEqual(["/en/", "/ru/"]);
-		expect(attributes(apex, ".s-choices a", "lang")).toEqual(["en", "ru"]);
-		expect(texts(apex, ".s-lead")).toEqual(["Olympiad maths in your chat."]);
-	});
-
-	test("offers no switch and no menu, since it is every language's doorway", () => {
-		expect(apex.querySelector(".s-seg")).toBeNull();
-		expect(apex.querySelector(".s-navlinks")).toBeNull();
-		expect(apex.querySelector("details")).toBeNull();
-	});
-
-	test("closes with the English documents", () => {
-		expect(attributes(apex, ".s-footlinks a", "href")).toEqual([
-			"/en/privacy/",
-			"/en/terms/",
-			"https://github.com/MathTrail/mathtrail-standalone",
-			"mailto:altedtech.info@gmail.com",
+		expect(attributes(apex, 'meta[property="og:url"]', "content")).toEqual([
+			"https://example.test/en/",
 		]);
+		expect(attributes(apex, 'link[rel="alternate"]', "href")).toEqual([]);
+	});
+
+	test("loads nothing that would keep the refresh waiting", () => {
+		expect(attributes(apex, "link[href]", "rel")).toEqual([
+			"canonical",
+			"icon",
+		]);
+		expect(apex.querySelectorAll("script, style, [src]")).toHaveLength(0);
 	});
 });
 
@@ -639,21 +632,6 @@ describe("a language written right to left", () => {
 
 	test("lays its pages out right to left", () => {
 		expect(page(built, "ar/index.html").documentElement.dir).toBe("rtl");
-	});
-
-	test("names itself on the apex the way it runs", () => {
-		const apex = page(built, "index.html");
-
-		expect(texts(apex, ".s-choices a")).toEqual([
-			"العربية",
-			"English",
-			"Русский",
-		]);
-		expect(attributes(apex, ".s-choices a", "dir")).toEqual([
-			"rtl",
-			"ltr",
-			"ltr",
-		]);
 	});
 });
 

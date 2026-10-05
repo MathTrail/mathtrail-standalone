@@ -178,7 +178,7 @@ export function scenesIn(language: string): Scene[] {
 			answers: () => never,
 			play: option("B"),
 		},
-		{ name: "hint", payload: handed, play: button(1) },
+		{ name: "hint", payload: handed, play: button(0) },
 		{ name: "wrong", payload: handed, answers: service(), play: option("B") },
 		{
 			name: "wrong, a mistake made before",
@@ -200,14 +200,15 @@ export function scenesIn(language: string): Scene[] {
 			play: option("C"),
 		},
 		{
-			name: "I don't know",
+			name: "I don't know, said in the chat",
 			payload: handed,
 			answers: service({
 				choice: "?",
 				trap: null,
 				rating: { before: 1502, after: 1488 },
+				already_answered: true,
 			}),
-			play: button(0),
+			play: option("B"),
 		},
 		{
 			name: "trial series, 3 of 5",
@@ -254,12 +255,12 @@ export function scenesIn(language: string): Scene[] {
 			answers: service(),
 			play: progressUnfolded,
 		},
-		{ name: "another task asked", payload: handed, play: button(2) },
+		{ name: "another task asked", payload: handed, play: button(1) },
 		{
 			name: "another task, the ask not sent",
 			payload: handed,
 			refuseMessages: true,
-			play: button(2),
+			play: button(1),
 		},
 		{ name: "a task being asked for", caught: "started" },
 		{ name: "a task asked for, then stopped", caught: "cancelled" },
@@ -481,9 +482,8 @@ function option(letter: string) {
 	};
 }
 
-// button presses the card's button at place: 0 "I don't know", 1 the hint,
-// 2 another task. They are found by place because their words change with
-// the language.
+// button presses the card's button at place: 0 the hint, 1 another task.
+// They are found by place because their words change with the language.
 function button(place: number) {
 	return (card: Document) => {
 		card.querySelectorAll<HTMLElement>(".mt-btns .mt-btn")[place]?.click();

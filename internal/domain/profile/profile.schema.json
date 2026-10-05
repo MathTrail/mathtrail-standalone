@@ -203,7 +203,7 @@
           "format": "date"
         },
         "skipped": {
-          "description": "Tasks of this topic left without an answer when another was asked for. Nothing that computes reads it; the progress screen shows it to the parent. Absent means none.",
+          "description": "Tasks of this topic left without an answer when another was asked for. No rating reads it: the progress screen shows it to the parent, and, added to the answers, it counts the tasks of the topic the child has been through, which picks the idea of the topic the next one is built on. Absent means none.",
           "type": "integer",
           "minimum": 0
         },

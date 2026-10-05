@@ -1,0 +1,515 @@
+{
+  "schema": 1,
+  "built_from": {
+    "commit": "0123456789abcdef0123456789abcdef01234567",
+    "date": "2026-10-05T00:00:00Z"
+  },
+  "bench": {
+    "producer": "tools/learners page",
+    "inputs": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "seed": 20261001,
+    "experiment": "E-A3",
+    "children": 10,
+    "answers": 200,
+    "interval": 0.95,
+    "resamples": 2000,
+    "error_after": 200,
+    "screen_windows": {
+      "early": {
+        "first": 6,
+        "last": 20
+      },
+      "late": {
+        "first": 150,
+        "last": 200
+      }
+    },
+    "goal_parameters": {
+      "lag_share": 0.45,
+      "corridor_share": 0.27,
+      "unsettled_most": 0.25,
+      "false_most": 0.2,
+      "late_times": 1.5
+    },
+    "rules": [
+      {
+        "id": "shrinking/both",
+        "role": "service"
+      },
+      {
+        "id": "earlier/both",
+        "role": "earlier"
+      },
+      {
+        "id": "oracle/both",
+        "role": "ceiling"
+      }
+    ],
+    "rows": [
+      {
+        "id": "lag",
+        "kind": "goal",
+        "criterion": "step",
+        "generator": "G2-half",
+        "metric": "r6_lag",
+        "unit": "logit",
+        "read_as": "size",
+        "better": "lower",
+        "bound": {
+          "value": 0.24874822056565066,
+          "own": true
+        },
+        "values": {
+          "service": {
+            "value": 0.5527738234792237,
+            "low": 0.37804823465282283,
+            "high": 0.7172643239947916,
+            "mark": "baseline"
+          },
+          "earlier": {
+            "value": 0.6911604933080401,
+            "low": 0.4797559345898946,
+            "high": 0.881627003462796,
+            "mark": "not_reached"
+          },
+          "ceiling": {
+            "of": "oracle",
+            "value": 0,
+            "low": 0,
+            "high": 0
+          }
+        }
+      },
+      {
+        "id": "corridor_learning",
+        "kind": "goal",
+        "criterion": "step",
+        "generator": "G2-half",
+        "metric": "r3_inside",
+        "unit": "share",
+        "read_as": "value",
+        "better": "higher",
+        "bound": {
+          "value": 0.43956000000000006,
+          "own": true
+        },
+        "values": {
+          "service": {
+            "value": 0.378,
+            "low": 0.324,
+            "high": 0.4345,
+            "mark": "baseline"
+          },
+          "earlier": {
+            "value": 0.332,
+            "low": 0.2655,
+            "high": 0.39749999999999996,
+            "mark": "not_reached"
+          },
+          "ceiling": {
+            "of": "oracle",
+            "value": 0.6060000000000001,
+            "low": 0.5874999999999999,
+            "high": 0.6245
+          }
+        }
+      },
+      {
+        "id": "jump_unsettled",
+        "kind": "goal",
+        "criterion": "step",
+        "generator": "G3",
+        "metric": "r6_jump_unsettled",
+        "unit": "share",
+        "read_as": "value",
+        "better": "lower",
+        "bound": {
+          "value": 0.25,
+          "own": false
+        },
+        "values": {
+          "service": {
+            "value": 0.1,
+            "low": 0,
+            "high": 0.3,
+            "mark": "on_the_edge"
+          },
+          "earlier": {
+            "value": 0.7,
+            "low": 0.4,
+            "high": 1,
+            "mark": "not_reached"
+          },
+          "ceiling": {
+            "of": "oracle",
+            "value": 0,
+            "low": 0,
+            "high": 0
+          }
+        }
+      },
+      {
+        "id": "false_mastery_static",
+        "kind": "goal",
+        "criterion": "mastery",
+        "generator": "G0",
+        "metric": "r4_false",
+        "unit": "share",
+        "read_as": "value",
+        "better": "lower",
+        "bound": {
+          "value": 0.2,
+          "own": false
+        },
+        "values": {
+          "service": {
+            "value": 0.03125,
+            "low": 0,
+            "high": 0.07407407407407407,
+            "mark": "reached"
+          },
+          "earlier": {
+            "value": 0.7407407407407407,
+            "low": 0.6528925619834711,
+            "high": 0.8269230769230769,
+            "mark": "not_reached"
+          },
+          "ceiling": {
+            "of": "perfect",
+            "value": 0,
+            "low": 0,
+            "high": 0
+          }
+        }
+      },
+      {
+        "id": "false_mastery_wide",
+        "kind": "goal",
+        "criterion": "mastery",
+        "generator": "G0-topics1",
+        "metric": "r4_false",
+        "unit": "share",
+        "read_as": "value",
+        "better": "lower",
+        "bound": {
+          "value": 0.2,
+          "own": false
+        },
+        "values": {
+          "service": {
+            "value": 0.09411764705882353,
+            "low": 0.007751937984496124,
+            "high": 0.1978021978021978,
+            "mark": "reached"
+          },
+          "earlier": {
+            "value": 0.6320754716981132,
+            "low": 0.5454545454545454,
+            "high": 0.7282608695652174,
+            "mark": "not_reached"
+          },
+          "ceiling": {
+            "of": "perfect",
+            "value": 0,
+            "low": 0,
+            "high": 0
+          }
+        }
+      },
+      {
+        "id": "late_mastery_static",
+        "kind": "goal",
+        "criterion": "mastery",
+        "generator": "G0",
+        "metric": "r5_late_answers",
+        "unit": "answers",
+        "read_as": "value",
+        "better": "lower",
+        "bound": {
+          "value": 6.8059701492537314,
+          "own": true
+        },
+        "values": {
+          "service": {
+            "value": 4.537313432835821,
+            "low": 3.712121212121212,
+            "high": 5.609375,
+            "mark": "baseline"
+          },
+          "earlier": {
+            "value": 8.246376811594203,
+            "low": 7.1525423728813555,
+            "high": 9.414634146341463,
+            "mark": "not_reached"
+          },
+          "ceiling": {
+            "of": "perfect",
+            "value": 0,
+            "low": 0,
+            "high": 0
+          }
+        }
+      },
+      {
+        "id": "late_mastery_wide",
+        "kind": "goal",
+        "criterion": "mastery",
+        "generator": "G0-topics1",
+        "metric": "r5_late_answers",
+        "unit": "answers",
+        "read_as": "value",
+        "better": "lower",
+        "bound": {
+          "value": 6.2019230769230775,
+          "own": true
+        },
+        "values": {
+          "service": {
+            "value": 4.134615384615385,
+            "low": 2.5762711864406778,
+            "high": 5.508196721311475,
+            "mark": "baseline"
+          },
+          "earlier": {
+            "value": 7.508474576271187,
+            "low": 5.980392156862745,
+            "high": 8.885245901639344,
+            "mark": "on_the_edge"
+          },
+          "ceiling": {
+            "of": "perfect",
+            "value": 0,
+            "low": 0,
+            "high": 0
+          }
+        }
+      },
+      {
+        "id": "card_move_static",
+        "kind": "goal",
+        "criterion": "screen",
+        "generator": "G0",
+        "metric": "r8_move_p95_150_200",
+        "unit": "points",
+        "read_as": "value",
+        "better": "lower",
+        "bound": {
+          "value": 74,
+          "own": false
+        },
+        "values": {
+          "service": {
+            "value": 41,
+            "low": 37,
+            "high": 45,
+            "mark": "reached"
+          },
+          "earlier": {
+            "value": 36,
+            "low": 33,
+            "high": 40,
+            "mark": "reached"
+          },
+          "ceiling": null
+        }
+      },
+      {
+        "id": "rank_changes_static",
+        "kind": "goal",
+        "criterion": "screen",
+        "generator": "G0",
+        "metric": "r8_rank_150_200",
+        "unit": "per_100_answers",
+        "read_as": "value",
+        "better": "lower",
+        "bound": {
+          "value": 6.666666666666667,
+          "own": false
+        },
+        "values": {
+          "service": {
+            "value": 3.7254901960784315,
+            "low": 0.5882352941176471,
+            "high": 7.843137254901961,
+            "mark": "on_the_edge"
+          },
+          "earlier": {
+            "value": 0.39215686274509803,
+            "low": 0,
+            "high": 1.176470588235294,
+            "mark": "reached"
+          },
+          "ceiling": null
+        }
+      },
+      {
+        "id": "card_move_learning",
+        "kind": "goal",
+        "criterion": "screen",
+        "generator": "G2-half",
+        "metric": "r8_move_p95_150_200",
+        "unit": "points",
+        "read_as": "value",
+        "better": "lower",
+        "bound": {
+          "value": 72,
+          "own": false
+        },
+        "values": {
+          "service": {
+            "value": 38,
+            "low": 34,
+            "high": 40,
+            "mark": "reached"
+          },
+          "earlier": {
+            "value": 36,
+            "low": 32,
+            "high": 38,
+            "mark": "reached"
+          },
+          "ceiling": null
+        }
+      },
+      {
+        "id": "rank_changes_learning",
+        "kind": "goal",
+        "criterion": "screen",
+        "generator": "G2-half",
+        "metric": "r8_rank_150_200",
+        "unit": "per_100_answers",
+        "read_as": "value",
+        "better": "lower",
+        "bound": {
+          "value": 2,
+          "own": false
+        },
+        "values": {
+          "service": {
+            "value": 1.96078431372549,
+            "low": 0,
+            "high": 4.705882352941176,
+            "mark": "on_the_edge"
+          },
+          "earlier": {
+            "value": 1.1764705882352942,
+            "low": 0,
+            "high": 3.5294117647058827,
+            "mark": "on_the_edge"
+          },
+          "ceiling": null
+        }
+      },
+      {
+        "id": "error_static",
+        "kind": "context",
+        "criterion": null,
+        "generator": "G0",
+        "metric": "r1_rms_200",
+        "unit": "logit",
+        "read_as": "value",
+        "better": "lower",
+        "bound": null,
+        "values": {
+          "service": {
+            "value": 0.471344853237195,
+            "low": 0.42128471376952376,
+            "high": 0.5146664307155481,
+            "mark": null
+          },
+          "earlier": {
+            "value": 0.5181125750865107,
+            "low": 0.47141983356446876,
+            "high": 0.564555539989261,
+            "mark": null
+          },
+          "ceiling": {
+            "of": "oracle",
+            "value": 0,
+            "low": 0,
+            "high": 0
+          }
+        }
+      },
+      {
+        "id": "corridor_static",
+        "kind": "context",
+        "criterion": null,
+        "generator": "G0",
+        "metric": "r3_inside",
+        "unit": "share",
+        "read_as": "value",
+        "better": "higher",
+        "bound": null,
+        "values": {
+          "service": {
+            "value": 0.4605,
+            "low": 0.43550000000000005,
+            "high": 0.4835,
+            "mark": null
+          },
+          "earlier": {
+            "value": 0.46299999999999997,
+            "low": 0.42849999999999994,
+            "high": 0.5,
+            "mark": null
+          },
+          "ceiling": {
+            "of": "oracle",
+            "value": 0.613,
+            "low": 0.5905,
+            "high": 0.6349999999999999
+          }
+        }
+      }
+    ]
+  },
+  "product": {
+    "topics": 17,
+    "traps": 20,
+    "checks": 9,
+    "grades": {
+      "first": 1,
+      "last": 6
+    },
+    "reference_tasks": {
+      "total": 603,
+      "by_level": {
+        "1-2": 200,
+        "3-4": 250,
+        "5-6": 153
+      }
+    },
+    "options": 5,
+    "relabel": 2,
+    "relabelled": [
+      "C",
+      "D",
+      "E",
+      "A",
+      "B"
+    ],
+    "guess": 0.2,
+    "corridor": {
+      "low": 0.7,
+      "high": 0.85,
+      "middle": 0.775
+    },
+    "trial_answers": 5
+  },
+  "paper": {
+    "commit": "52ce86908135",
+    "files": [
+      {
+        "lang": "en",
+        "path": "/assets/paper-a.en.pdf",
+        "pages": 15,
+        "bytes": 350493,
+        "sha256": "6cdeaedc835a58845dc88dd7ffeafaf6d98bd711a2f3c0839b3f6cbbffd311ba"
+      }
+    ]
+  },
+  "live": {
+    "state": "coming"
+  }
+}

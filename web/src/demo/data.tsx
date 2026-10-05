@@ -1,18 +1,18 @@
 import type { Dictionary } from "../i18n/words";
-import { type Choice, choices } from "../widget/choices";
+import { type Letter, letters } from "../widget/choices";
 import type { AnswerResult, HandedTask } from "../widget/payload";
 
 /**
  * DemoData is what the home page hands its demo, written into the page when
  * the site is built: the language the page is in, the widget's words in that
  * language alone, the lesson's task as a card is handed it, and what the
- * service would record of every answer the card can be given.
+ * service would record of every option the card can be answered with.
  */
 export type DemoData = {
 	readonly locale: string;
 	readonly words: Dictionary;
 	readonly handed: HandedTask;
-	readonly results: Readonly<Record<Choice, AnswerResult>>;
+	readonly results: Readonly<Record<Letter, AnswerResult>>;
 };
 
 /**
@@ -54,7 +54,7 @@ export function readDemoData(document: Document): DemoData | undefined {
 }
 
 // isDemoData says whether data has the shape of the demo's data: a language,
-// words, a task handed out with its id, and a result for every answer.
+// words, a task handed out with its id, and a result for every option.
 function isDemoData(data: unknown): data is DemoData {
 	if (!isObject(data)) {
 		return false;
@@ -67,7 +67,7 @@ function isDemoData(data: unknown): data is DemoData {
 		isObject(handed.task) &&
 		typeof handed.task.id === "string" &&
 		isObject(results) &&
-		choices.every((choice) => isObject(results[choice]))
+		letters.every((letter) => isObject(results[letter]))
 	);
 }
 

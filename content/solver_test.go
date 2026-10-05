@@ -11,6 +11,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/config"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark"
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark/starlarktest"
 )
 
 // Every reference task claims an answer, and until it carries a solver that is
@@ -19,10 +20,12 @@ import (
 //
 // It runs each solver the way a submitted one is run — the same sandbox, the
 // same dialect and helpers, the same two runs under rotated labels, and the
-// limits the deployed service uses. That makes the reference tasks the
-// regression suite of the sandbox as well: a limit moved by a hand that did not
-// mean to move it is caught here, against hundreds of real programs, rather
-// than by a child.
+// limits the deployed service uses, its clock given room under the race
+// detector. That makes the reference tasks the regression suite of the sandbox
+// as well: a limit moved by a hand that did not mean to move it is caught here,
+// against hundreds of real programs, rather than by a child. A moved step limit
+// is caught on any run, a moved clock exactly only without the detector: under
+// it, only once the clock has moved several times over.
 func TestEveryReferenceTaskProvesItsOwnAnswer(t *testing.T) {
 	t.Parallel()
 
@@ -312,15 +315,15 @@ func TestEveryTopicHasASolverTemplate(t *testing.T) {
 }
 
 // serviceSandbox is the sandbox a submitted solver runs in, with the limits
-// the deployed service uses — all but the wait for a slot. These cases put
-// runs on one sandbox many at a time, and how long a queue of them may stand
-// is not what any of them is about.
+// the deployed service uses — all but the wait for a slot, and the clock
+// under the race detector. These cases put runs on one sandbox many at a time,
+// and how long a queue of them may stand is not what any of them is about.
 func serviceSandbox(t *testing.T) solver.Runner {
 	t.Helper()
 
 	sandbox, err := starlark.New(starlark.Limits{
 		Steps:       config.DefaultSolverSteps,
-		Timeout:     config.DefaultSolverTimeout,
+		Timeout:     starlarktest.Clock(config.DefaultSolverTimeout),
 		Concurrency: config.DefaultSolverConcurrency,
 		Wait:        time.Minute,
 	})
@@ -406,7 +409,7 @@ func (c *costs) add(id string, agreement solver.Agreement) {
 func (c *costs) report(t *testing.T) {
 	t.Helper()
 
-	t.Logf("%d runs; most steps %d (%s) of %d allowed; longest %v (%s) of %v allowed; %d at or past a tenth of the budget%s",
+	t.Logf("%d runs; most steps %d (%s) of %d allowed; longest %v (%s) of the %v the service allows; %d at or past a tenth of the budget%s",
 		c.runs,
 		c.mostSteps, c.stepsBy, uint64(config.DefaultSolverSteps),
 		c.longest.Round(time.Microsecond), c.longestBy, config.DefaultSolverTimeout,

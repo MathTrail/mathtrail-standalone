@@ -85,11 +85,11 @@ describe("a page's translations", () => {
 		ru: ["index", "privacy"],
 	});
 
-	test("of a front page send a reader with no match to the apex", () => {
+	test("of a front page send a reader with no match to the reference locale's, not to the apex", () => {
 		expect(alternatesOf(texts, base, "en", "index")).toEqual([
 			{ hreflang: "en", url: "https://example.test/en/" },
 			{ hreflang: "ru", url: "https://example.test/ru/" },
-			{ hreflang: "x-default", url: "https://example.test/" },
+			{ hreflang: "x-default", url: "https://example.test/en/" },
 		]);
 	});
 

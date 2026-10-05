@@ -1,6 +1,6 @@
 import { address, alternatesOf } from "./addresses";
 import { coachPrototypePath, photoDirectory } from "./brand";
-import { frontPage, type Texts } from "./content";
+import type { Texts } from "./content";
 
 // The names the sitemap protocol gives its two vocabularies. They are names,
 // not addresses anything is fetched from, and the protocol spells them with
@@ -9,9 +9,10 @@ const sitemapVocabulary = "http://www.sitemaps.org/schemas/sitemap/0.9";
 const xhtmlVocabulary = "http://www.w3.org/1999/xhtml";
 
 /**
- * sitemap lists every address the site serves, each with its translations, so
+ * sitemap lists every page of every locale, each with its translations, so
  * that a crawler learns the whole matrix of languages from one file. The apex
- * comes first, then every locale's pages.
+ * is not among them: it only sends its reader on to the reference locale's
+ * front page, which is.
  */
 export function sitemap(texts: Texts, base: string, reference: string): string {
 	const entry = (served: string, name: string): string =>
@@ -25,7 +26,7 @@ export function sitemap(texts: Texts, base: string, reference: string): string {
 			"  </url>",
 		].join("\n");
 
-	const entries = [entry(`${base}/`, frontPage)];
+	const entries: string[] = [];
 	for (const locale of texts.locales) {
 		for (const name of texts.names) {
 			entries.push(entry(base + address(locale, name), name));

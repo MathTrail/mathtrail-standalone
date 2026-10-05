@@ -160,11 +160,16 @@ export const rightAnswer = answered({
 	rating: { before: 1502, after: 1519 },
 });
 
-/** dontKnowAnswer is the fence answered "I don't know", a wrong answer with no trap. */
+/**
+ * dontKnowAnswer is the fence answered "I don't know" in the chat, a wrong
+ * answer with no trap, told again to a card that sends another answer: a card
+ * has no button for it, and that is the only way it reaches one.
+ */
 export const dontKnowAnswer = answered({
 	choice: "?",
 	trap: null,
 	rating: { before: 1502, after: 1488 },
+	already_answered: true,
 });
 
 /** trialAnswer is a wrong answer given as the third task of the trial series. */

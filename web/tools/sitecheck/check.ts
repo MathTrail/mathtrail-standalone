@@ -401,11 +401,9 @@ function head(
 		}
 	}
 
-	const canonical = options.base + page.address;
-	if (page.canonical !== canonical) {
-		report(
-			`canonical is "${page.canonical}", and the page is served at "${canonical}"`,
-		);
+	const canonical = canonicalProblem(page, pages, options);
+	if (canonical !== undefined) {
+		report(canonical);
 	}
 
 	for (const [hreflang, url] of expectedAlternates(page, pages, options)) {
@@ -419,6 +417,38 @@ function head(
 		}
 	}
 	return findings;
+}
+
+// canonicalProblem is what is wrong with the address page names as its own, or
+// undefined when nothing is. A page names the address it is served at. The
+// apex alone may send its reader on at once instead, to another page of the
+// site, and then stands for that page and names its address: a page of a
+// language that sends its reader on is a translation the language has lost.
+function canonicalProblem(
+	page: Page,
+	pages: Map<string, Page>,
+	options: Options,
+): string | undefined {
+	const served = options.base + page.address;
+	if (!page.refresh) {
+		return page.canonical === served
+			? undefined
+			: `canonical is "${page.canonical}", and the page is served at "${served}"`;
+	}
+	const sends = `the page sends its reader on to "${page.refresh}"`;
+	if (page.locale !== "") {
+		return `${sends}, and only the apex may: a page of a language is read in it`;
+	}
+	const target = URL.parse(page.refresh, served);
+	if (target?.origin !== options.base || !pages.has(target.pathname)) {
+		return `${sends}, which is no page of the site`;
+	}
+	if (target.pathname === page.address) {
+		return `${sends}, which is the page itself: it would reload for ever`;
+	}
+	return page.canonical === target.href
+		? undefined
+		: `canonical is "${page.canonical}", and the page sends its reader on to "${target.href}"`;
 }
 
 // pictureProblem is what is wrong with picture, one a shared link to page
@@ -440,20 +470,24 @@ function pictureProblem(
 }
 
 // expectedAlternates works out which translations a page must point at, from
-// the pages the site has, and where its x-default leads.
+// the pages the site has, and where its x-default leads: to the reference
+// locale's version of the page. A page that sends its reader on has no
+// translations of its own to name: they are the page's it stands for.
 function expectedAlternates(
 	page: Page,
 	pages: Map<string, Page>,
 	options: Options,
 ): [string, string][] {
+	if (page.refresh) {
+		return [];
+	}
 	const alternates: [string, string][] = localesOf(pages)
 		.filter((locale) => pages.has(address(locale, page.name)))
 		.map((locale) => [locale, options.base + address(locale, page.name)]);
-	const fallback =
-		page.name === ""
-			? `${options.base}/`
-			: options.base + address(options.referenceLocale, page.name);
-	return [...alternates, ["x-default", fallback]];
+	return [
+		...alternates,
+		["x-default", options.base + address(options.referenceLocale, page.name)],
+	];
 }
 
 // translations reports a locale missing a page the reference locale has, which

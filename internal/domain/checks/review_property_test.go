@@ -13,14 +13,6 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
 
-// order is the order the checks run in, and so the order their refusals are
-// reported in.
-var order = []checks.Code{
-	checks.CodeBadStructure, checks.CodeDistractorExplanations, checks.CodeDrawingFormat, checks.CodeDrawingMismatch,
-	checks.CodeReadability, checks.CodeSolverError, checks.CodeSolverDisagrees, checks.CodeSelfCheckBlocking,
-	checks.CodeNearDuplicate,
-}
-
 // faulty is a task that passes, being broken one fault at a time. What more
 // than one fault touches — the drawing, the question — is settled once they
 // have all been applied.
@@ -145,6 +137,7 @@ func FuzzReview(f *testing.F) {
 func keepsItsRules(t *testing.T, outcome *checks.Outcome) {
 	t.Helper()
 
+	order := checks.Codes()
 	rank := -1
 	for _, problem := range outcome.Problems {
 		at := slices.Index(order, problem.Code)

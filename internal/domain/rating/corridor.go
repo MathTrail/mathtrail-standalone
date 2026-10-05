@@ -6,23 +6,23 @@ import (
 )
 
 const (
-	// corridorLow and corridorHigh bound the chance of a correct answer a
+	// CorridorLow and CorridorHigh bound the chance of a correct answer a
 	// child should be meeting: hard enough to be worth doing, easy enough to
 	// be done. Below the floor a child mostly fails and stops; above the
 	// ceiling nothing new is learned.
-	corridorLow  = 0.70
-	corridorHigh = 0.85
+	CorridorLow  = 0.70
+	CorridorHigh = 0.85
 
 	// CorridorMiddle is what the recommendation aims at, and the line an
 	// answer has to be at or below to count toward mastering a topic: at the
 	// middle of the band or harder, and not the easy half of it.
-	CorridorMiddle = (corridorLow + corridorHigh) / 2
+	CorridorMiddle = (CorridorLow + CorridorHigh) / 2
 )
 
 // CorridorWidth is how wide the corridor is on the scale the levels are measured
 // on: the distance from the hardest task a child should be meeting to the
 // easiest, which is also the step one rank takes.
-func CorridorWidth() float64 { return logit(corridorHigh) - logit(corridorLow) }
+func CorridorWidth() float64 { return logit(CorridorHigh) - logit(CorridorLow) }
 
 // Fit says where the recommended point landed against the corridor. It is
 // needed because the corridor is narrower than the gap between two
@@ -83,8 +83,8 @@ func NewCorridor(level float64, points []Point) Corridor {
 		// this child's chance would be exactly the ceiling, and exactly the
 		// floor. A higher chance means an easier task, so the ceiling gives
 		// the lower bound.
-		BetaMin: level - logit(corridorHigh),
-		BetaMax: level - logit(corridorLow),
+		BetaMin: level - logit(CorridorHigh),
+		BetaMax: level - logit(CorridorLow),
 		Fit:     FitUnknown,
 	}
 	ordered := slices.Clone(points)
@@ -104,7 +104,7 @@ func NewCorridor(level float64, points []Point) Corridor {
 		probability := Probability(level, point.Beta())
 		corridor.Chances = append(corridor.Chances, Chance{Point: point, Probability: probability})
 
-		if corridorLow <= probability && probability <= corridorHigh {
+		if CorridorLow <= probability && probability <= CorridorHigh {
 			corridor.Inside = append(corridor.Inside, point)
 		}
 		// Ties go toward the corridor. Two points equally far from the middle
@@ -126,9 +126,9 @@ func fitOf(chance float64) Fit {
 	switch {
 	case math.IsNaN(chance):
 		return FitUnknown
-	case chance < corridorLow:
+	case chance < CorridorLow:
 		return FitTooHard
-	case chance > corridorHigh:
+	case chance > CorridorHigh:
 		return FitTooEasy
 	default:
 		return FitInside

@@ -1,6 +1,6 @@
 import { createContext } from "preact";
 import { useContext } from "preact/hooks";
-import type { Choice } from "./choices";
+import type { Letter } from "./choices";
 import type { AnswerOutcome, EditOutcome, TaskStatus } from "./payload";
 
 /**
@@ -21,12 +21,12 @@ export type ProgressRead =
  */
 export type Service = {
 	/**
-	 * recordAnswer records choice as the answer to the task taskId, with
-	 * whether the hint was open, and says how it ended.
+	 * recordAnswer records the option choice as the answer to the task taskId,
+	 * with whether the hint was open, and says how it ended.
 	 */
 	recordAnswer(
 		taskId: string,
-		choice: Choice,
+		choice: Letter,
 		hintUsed: boolean,
 	): Promise<AnswerOutcome>;
 	/** taskStatus says how the task of the request requestId stands. */

@@ -159,7 +159,7 @@ describe("a button", () => {
 			<>
 				<Button expanded>Hide hint</Button>
 				<Button expanded={false}>Hint</Button>
-				<Button>I don't know</Button>
+				<Button>Another task</Button>
 			</>,
 		);
 

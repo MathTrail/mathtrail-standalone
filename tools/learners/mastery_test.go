@@ -136,8 +136,8 @@ func TestWaldsTestErrsAsItWasBuiltTo(t *testing.T) {
 		wrongToPass bool
 		most        float64
 	}{
-		{"at the bottom", levelAt(corridorLow), true, waldAlpha / (1 - waldBeta)},
-		{"at the top", levelAt(corridorHigh), false, waldBeta / (1 - waldAlpha)},
+		{"at the bottom", levelAt(rating.CorridorLow), true, waldAlpha / (1 - waldBeta)},
+		{"at the top", levelAt(rating.CorridorHigh), false, waldBeta / (1 - waldAlpha)},
 	} {
 		child := middleTaskOf(level) + tc.above
 		wrongly, undecided := 0, 0

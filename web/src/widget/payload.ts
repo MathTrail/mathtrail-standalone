@@ -97,6 +97,9 @@ export function readHandedTask(payload: unknown): HandedTask | undefined {
 const answerResult = z.object({
 	task_id: z.string(),
 	topic: z.string(),
+	// A card sends a letter alone, but the service tells an answer recorded
+	// before as it was recorded: "I don't know" said in the chat comes back to
+	// the option pressed after it.
 	choice: z.union([letter, z.literal(dontKnow)]),
 	correct: z.boolean(),
 	correct_answer: letter,

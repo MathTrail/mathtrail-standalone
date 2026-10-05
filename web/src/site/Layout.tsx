@@ -52,29 +52,7 @@ export function Layout({
 				<meta charset="utf-8" />
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
 				<meta name="color-scheme" content="light" />
-				<title>{head.title}</title>
-				<meta name="description" content={head.description} />
-				<link rel="canonical" href={head.canonical} />
-				{head.alternates.map(({ hreflang, url }) => (
-					<link key={hreflang} rel="alternate" hreflang={hreflang} href={url} />
-				))}
-				<meta property="og:type" content="website" />
-				<meta property="og:site_name" content={siteName} />
-				<meta property="og:title" content={head.title} />
-				<meta property="og:description" content={head.description} />
-				<meta property="og:url" content={head.canonical} />
-				<meta property="og:image" content={head.image} />
-				<meta property="og:image:alt" content={head.imageAlt} />
-				<meta
-					property="og:image:width"
-					content={String(sharingPictureSize.width)}
-				/>
-				<meta
-					property="og:image:height"
-					content={String(sharingPictureSize.height)}
-				/>
-				<meta name="twitter:card" content="summary_large_image" />
-				<link rel="icon" href={markPath} type="image/svg+xml" />
+				<PageHead head={head} />
 				<link rel="stylesheet" href="/assets/tokens.css" />
 				<link rel="stylesheet" href="/assets/style.css" />
 				{card && <link rel="stylesheet" href={cardStylesheet} />}
@@ -84,5 +62,40 @@ export function Layout({
 			</head>
 			<body>{children}</body>
 		</html>
+	);
+}
+
+/**
+ * PageHead is what a page's head says about the page: its title and
+ * description, its address and its translations, the picture a shared link to
+ * it shows, and its icon.
+ */
+export function PageHead({ head }: { head: Head }) {
+	return (
+		<>
+			<title>{head.title}</title>
+			<meta name="description" content={head.description} />
+			<link rel="canonical" href={head.canonical} />
+			{head.alternates.map(({ hreflang, url }) => (
+				<link key={hreflang} rel="alternate" hreflang={hreflang} href={url} />
+			))}
+			<meta property="og:type" content="website" />
+			<meta property="og:site_name" content={siteName} />
+			<meta property="og:title" content={head.title} />
+			<meta property="og:description" content={head.description} />
+			<meta property="og:url" content={head.canonical} />
+			<meta property="og:image" content={head.image} />
+			<meta property="og:image:alt" content={head.imageAlt} />
+			<meta
+				property="og:image:width"
+				content={String(sharingPictureSize.width)}
+			/>
+			<meta
+				property="og:image:height"
+				content={String(sharingPictureSize.height)}
+			/>
+			<meta name="twitter:card" content="summary_large_image" />
+			<link rel="icon" href={markPath} type="image/svg+xml" />
+		</>
 	);
 }

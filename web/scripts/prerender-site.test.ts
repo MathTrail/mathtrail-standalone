@@ -29,6 +29,7 @@ import {
 	keptPhotoOf,
 	main,
 	readSources,
+	sharingPictures,
 } from "./prerender-site.ts";
 
 const repository = join(import.meta.dirname, "..", "..");
@@ -436,8 +437,8 @@ describe("the site built from this repository", () => {
 		expect(urlsIn(style)).toEqual(fontFiles.map((file) => `/assets/${file}`));
 	});
 
-	test("loads on every page the tokens, then the styles, and a script only on a page allowed one", async () => {
-		const pages = await pagesIn(out);
+	test("loads on every page of a language the tokens, then the styles, and a script only on a page allowed one", async () => {
+		const pages = await localePages(out);
 		expect(pages).not.toEqual([]);
 		for (const page of pages) {
 			const html = await readFile(join(out, page), "utf8");
@@ -461,7 +462,19 @@ describe("the site built from this repository", () => {
 		}
 	});
 
-	test("carries on the home page what its demo needs: the lesson's task, the widget's words in the page's language alone, and an answer for every choice", async () => {
+	test("sends a reader of the bare domain on to the English front page, loading nothing first", async () => {
+		const apex = await readFile(join(out, "index.html"), "utf8");
+
+		expect(apex).toContain(
+			'<meta http-equiv="refresh" content="0; url=/en/"/>',
+		);
+		expect(apex).toContain(
+			'<link rel="canonical" href="https://mathtrail.app/en/"/>',
+		);
+		expect(apex).not.toMatch(/rel="stylesheet"|<script|<style/);
+	});
+
+	test("carries on the home page what its demo needs: the lesson's task, the widget's words in the page's language alone, and an answer for every option", async () => {
 		for (const [locale, words] of [
 			["en", widgetEnglish],
 			["ru", widgetRussian],
@@ -476,7 +489,7 @@ describe("the site built from this repository", () => {
 			expect(demo.locale).toBe(locale);
 			expect(demo.words).toEqual(words);
 			expect(demo.handed.task.id).toBe("site_home");
-			expect(Object.keys(demo.results)).toEqual(["A", "B", "C", "D", "E", "?"]);
+			expect(Object.keys(demo.results)).toEqual(["A", "B", "C", "D", "E"]);
 		}
 	});
 
@@ -877,6 +890,26 @@ describe("a directory that does not exist yet", () => {
 		} finally {
 			await rm(parent, { recursive: true, force: true });
 		}
+	});
+
+	test("is made by a build that succeeds", async () => {
+		const parent = await mkdtemp(join(tmpdir(), "parent-"));
+		try {
+			const fresh = join(parent, "dist");
+
+			await buildSite({ base: "https://mathtrail.app", out: fresh });
+			expect(await readdir(fresh)).toContain(".nojekyll");
+		} finally {
+			await rm(parent, { recursive: true, force: true });
+		}
+	}, 60_000);
+});
+
+describe("the pictures a shared link shows", () => {
+	test("are those of the languages that have one, and a language with none yet still builds", async () => {
+		const pictures = await sharingPictures(["en", "xx"]);
+
+		expect(pictures.map(({ path }) => path)).toEqual(["assets/og-en.png"]);
 	});
 });
 

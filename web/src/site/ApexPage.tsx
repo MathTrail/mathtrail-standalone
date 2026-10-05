@@ -1,60 +1,30 @@
 import { siteName } from "./brand";
-import type { FooterLink } from "./Footer";
-import type { Head } from "./Layout";
-import { SitePage } from "./SitePage";
-import { useSiteWords } from "./words";
+import { type Head, PageHead } from "./Layout";
 
 /**
- * Choice is one language the apex offers: where its front page is, and the
- * language's own name for itself, written the way it runs.
+ * ApexPage is the page the bare domain serves: it sends the reader on at once
+ * to the front page at to, whose header switches the language. The host serves
+ * files and answers no redirect of its own, so the page refreshes to the front
+ * page, which needs no script. A refresh comes due once the page has loaded,
+ * so it loads no stylesheet, no font and no picture: it is gone as soon as it
+ * is read, and its icon, which a browser fetches aside, keeps nothing waiting.
+ * Its one link is all a reader whose browser holds the refresh back needs. Its
+ * head says what the front page says, for a chat or a directory that previews
+ * the bare domain without following the refresh, and names the front page as
+ * the page it stands for.
  */
-export type Choice = {
-	readonly locale: string;
-	readonly href: string;
-	readonly name: string;
-	readonly dir: "ltr" | "rtl";
-};
-
-/**
- * ApexPage is the page the bare domain serves. It is a doorway rather than a
- * translation: it names the product, says in one line what it is, and hands
- * the reader the languages it exists in, each in its own name, with no menu
- * and no switch of its own. A redirect would be cheaper, but the apex is the
- * address the product is listed under, and a redirect is a poor thing to list.
- */
-export function ApexPage({
-	head,
-	choices,
-	footer,
-}: {
-	head: Head;
-	choices: readonly Choice[];
-	footer: readonly FooterLink[];
-}) {
-	const words = useSiteWords();
+export function ApexPage({ head, to }: { head: Head; to: string }) {
 	return (
-		<SitePage
-			head={head}
-			frame={{ home: "/", menu: [], languages: [], footer }}
-		>
-			<div class="s-wrap s-apex">
-				<h1>{siteName}</h1>
-				<p class="s-lead">{head.description}</p>
-				<nav class="s-choices" aria-label={words.text("nav.language")}>
-					{choices.map(({ locale, href, name, dir }) => (
-						<a
-							key={locale}
-							class="s-btn"
-							href={href}
-							hreflang={locale}
-							lang={locale}
-							dir={dir}
-						>
-							{name}
-						</a>
-					))}
-				</nav>
-			</div>
-		</SitePage>
+		<html lang={head.lang} dir={head.dir}>
+			<head>
+				<meta charset="utf-8" />
+				<meta name="viewport" content="width=device-width, initial-scale=1" />
+				<meta http-equiv="refresh" content={`0; url=${to}`} />
+				<PageHead head={head} />
+			</head>
+			<body>
+				<a href={to}>{siteName}</a>
+			</body>
+		</html>
 	);
 }

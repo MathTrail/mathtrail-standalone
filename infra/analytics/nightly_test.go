@@ -321,7 +321,7 @@ func TestANightCountedAgainGivesTheSameRows(t *testing.T) {
 	if again := everyRow(t, s); !slices.EqualFunc(again, first, slices.Equal) {
 		t.Errorf("the second night counted\n%v\nwant the first night's\n%v", again, first)
 	}
-	if row := rowOf(first, "daily "+day(longAgo)); row == nil {
+	if rowOf(first, "daily "+day(longAgo)) == nil {
 		t.Errorf("the day %s, which the lines no longer hold, lost its row", day(longAgo))
 	}
 }

@@ -93,7 +93,7 @@ sequenceDiagram
     MT-->>W: the task on its way — the request, whose card it is, its language, and no package
     M->>MT: get_package with the request id
     MT->>D: read the profile
-    MT-->>M: the package — brief, corridor, three reference tasks, the traps,<br/>the prohibitions, the formats, the solver templates, the drawing frames,<br/>the checklist and the instructions version
+    MT-->>M: the package — brief, the idea to build on, corridor, three reference tasks,<br/>the traps, the prohibitions, the formats, the solver templates, the drawing frames,<br/>the checklist and the instructions version
     Note over M,W: no card is drawn from the package: the reference tasks carry their answers
 
     par the card asks how the task stands, every few seconds
@@ -147,7 +147,7 @@ sequenceDiagram
     K->>W: types a question in the card's field — "why isn't it 6?"
     W->>M: ui/message — the child's words (R91)
     M-->>K: the answer in the chat, under the card
-    Note over K,W: "I don't know" instead of an answer goes the same way as C:<br/>submit_answer with "?", a wrong answer with no trap (R93)
+    Note over K,M: the card has no "I don't know": the child says it in the chat, and the model<br/>records it with submit_answer "?", a wrong answer with no trap (R93, R208)
 ```
 
 **The button records before anything is explained.** The order in the diagram is the requirement: the press calls the tool, the tool writes the profile, and only then is anything said to anybody. Nothing about the recording depends on the model noticing (О-42) — and it must not, because the two mechanisms that tell the model what happened, `ui/message` and `ui/update-model-context`, were only confirmed in T03 as far as "the call returns without an error"; that they land in the conversation has not been seen with human eyes yet. If both silently do nothing, the child still gets the result screen, the ratings are still updated, and the model catches up on its next call, because every tool result carries the outcome of the last answer.
@@ -156,7 +156,7 @@ sequenceDiagram
 
 The obvious alternative is worse: having the widget send a chat message after every answer would keep the model in step by construction, and would spend a turn of the conversation each time. On a free tier those turns are the scarce resource this whole design protects (PRODUCT 6), and a button that costs none of them is the point of О-42.
 
-**"Hint" costs nothing extra, and "I don't know" is an answer.** The hint is part of the task the model submitted, so the widget already has it and reveals it with no call at all; that it was opened travels with the answer. "I don't know", pressed before answering, shows the solution, so it is recorded like any answer — `submit_answer` with `?`, a wrong answer for the rating, with no trap (R93). A question about the task is asked in the chat, before the answer or after; the model answers there, and nothing is recorded (R91, R145). Before the answer it helps without giving the answer away, as its instructions require for anything said about an open task; after it, the chat is where the child asks why.
+**"Hint" costs nothing extra, and "I don't know" is an answer.** The hint is part of the task the model submitted, so the widget already has it and reveals it with no call at all; that it was opened travels with the answer. "I don't know" has no button on the card: the child says it in the chat, and the model records it like any answer — `submit_answer` with `?`, a wrong answer for the rating, with no trap — and then goes through the solution (R93, R208). A question about the task is asked in the chat, before the answer or after; the model answers there, and nothing is recorded (R91, R145). Before the answer it helps without giving the answer away, as its instructions require for anything said about an open task; after it, the chat is where the child asks why.
 
 ## Scenario 4. The same lesson as text
 
@@ -337,10 +337,10 @@ Two rules about the wording of all of them: they are written for a model that ha
 | 3.1 The parent connects the app, signs in, grants storage | 02-auth; scenario 1 |
 | 3.1 The profile is created: pseudonym, grade, interests, constraints | Scenario 1, `save_profile` |
 | 3.1 The child sees a waiting screen while the first task is written | Scenario 1's last step, "The waiting screen and Another task" |
-| 3.2 The card: wording, drawing, five answer buttons with their letters (R90), I don't know, Hint, Another task, a question field | Scenario 2's last step; scenario 3 for the three buttons |
+| 3.2 The card: wording, drawing, five answer buttons with their letters (R90), Hint, Another task (R208) | Scenario 2's last step; scenario 3 for the buttons |
 | 3.3 Pressing a button records the answer before any explanation | Scenario 3, and the paragraph under it |
 | 3.3 Correct — brief praise; wrong — the trap first, then the solution | Scenario 3 and 4: the payload of `submit_answer` is the same in both modes |
-| 3.3 "I don't know", and a question about the task answered in the chat (R91, R93) | Scenario 3, the last two steps |
+| 3.3 "I don't know" said in the chat, and a question about the task answered there (R91, R93, R208) | Scenario 3, the last two steps |
 | 3.4 The next task at the press of a button, with a waiting screen | "The waiting screen and Another task" |
 | 3.5 Progress: ratings, ranks, mastered topics, recent answers, one topic to practise | Scenario 5 |
 | 3.6 The profile: the parent views and edits | Scenario 5 |

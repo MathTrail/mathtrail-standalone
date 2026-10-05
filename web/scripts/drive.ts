@@ -109,21 +109,54 @@ const mostTicks = 280;
  */
 export async function settled(page: Page): Promise<Settled[]> {
 	let before: string[] = [];
+	let why = "";
 	for (let tick = 0; tick < mostTicks; tick++) {
 		await page.clock.runFor(100);
 		const cards = await cardsOf(page);
 		const markups = await Promise.all(cards.map(markupOf));
-		const still =
-			markups.length === before.length &&
-			markups.every((markup, at) => markup !== "" && markup === before[at]);
-		if (cards.length > 0 && still) {
+		why = unsettled(
+			cards.map(({ scene }) => scene),
+			markups,
+			before,
+		);
+		if (why === "") {
 			return cards.map((card, at) => ({ ...card, markup: markups[at] ?? "" }));
 		}
 		await letGo(cards);
 		before = markups;
 		await page.waitForTimeout(100);
 	}
-	throw new Error("drive: the cards never settled");
+	throw new Error(`drive: the cards never settled: ${why}`);
+}
+
+/**
+ * unsettled says what keeps the cards of a page from settling at a tick, given
+ * their scenes, what each holds and what each held a tick before: no card at
+ * all, cards that came or went in between, or by scene the cards with nothing
+ * drawn and those still changing. It says nothing once every card is drawn and
+ * holds what it held.
+ */
+export function unsettled(
+	scenes: readonly string[],
+	markups: readonly string[],
+	before: readonly string[],
+): string {
+	if (scenes.length === 0) {
+		return "no card on the page";
+	}
+	if (markups.length !== before.length) {
+		return `cards came or went: ${before.length} a tick before, ${markups.length} now`;
+	}
+	const blank = scenes.filter((_, at) => markups[at] === "");
+	const changing = scenes.filter(
+		(_, at) => markups[at] !== "" && markups[at] !== before[at],
+	);
+	return [
+		blank.length > 0 ? `nothing drawn in ${blank.join(", ")}` : "",
+		changing.length > 0 ? `still changing: ${changing.join(", ")}` : "",
+	]
+		.filter((part) => part !== "")
+		.join("; ");
 }
 
 /** letGo lets go of the elements the cards held on to. */

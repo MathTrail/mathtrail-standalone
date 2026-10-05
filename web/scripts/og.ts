@@ -52,7 +52,7 @@ async function main(): Promise<void> {
 	// The languages are the site's texts', as its build reads them.
 	const locales = [
 		...(await readSources(join(repository, "site", "content"))).keys(),
-	].sort();
+	].sort((a, b) => a.localeCompare(b));
 	const server = await preview({
 		configFile: join(web, "vite.config.site.ts"),
 		logLevel: "warn",

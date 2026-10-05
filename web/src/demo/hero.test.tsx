@@ -147,13 +147,10 @@ describe("the card on the first screen, come alive", () => {
 		expect(card()?.querySelectorAll(".mt-steps li").length).toBeGreaterThan(0);
 	});
 
-	test.each([
-		["the right option", () => press(option("C"))],
-		["I don't know", () => press(button("I don't know"))],
-	])("answers %s with no trap, and the solution", async (_, give) => {
+	test("answers the right option with no trap, and the solution", async () => {
 		alive();
 
-		give();
+		press(option("C"));
 		await passing(checkingTakes);
 
 		expect(option("C").dataset.state).toBe("correct");

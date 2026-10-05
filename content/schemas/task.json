@@ -16,7 +16,7 @@
   ],
   "properties": {
     "core_idea": {
-      "description": "The mathematical core before the plot: the idea, and why the answer is what it is.",
+      "description": "The mathematical core before the plot: the list of the topic's ideas the package's idea number picks from, the idea picked, and why the answer is what it is.",
       "type": "string",
       "minLength": 1
     },

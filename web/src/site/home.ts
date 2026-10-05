@@ -1,11 +1,5 @@
 import { z } from "zod";
-import {
-	type Choice,
-	choices,
-	dontKnow,
-	type Letter,
-	letters,
-} from "../widget/choices";
+import { type Letter, letters } from "../widget/choices";
 import type { AnswerResult, HandedTask } from "../widget/payload";
 import { sectionAddress } from "./addresses";
 import { frontPage } from "./content";
@@ -171,29 +165,26 @@ export function homeAnswerOf(card: HomeCard, said: HomeWords): WrongAnswer {
 
 /**
  * HomeResults are what the service would record of every answer the card on
- * the first screen can be given, by the choice: each option, and "I don't
- * know".
+ * the first screen can be given, by the option chosen.
  */
-export type HomeResults = Readonly<Record<Choice, AnswerResult>>;
+export type HomeResults = Readonly<Record<Letter, AnswerResult>>;
 
 /**
  * homeResultsOf is what the service would record of every answer to the
  * lesson's task, with the words said, as the widget reads each: the trap
  * behind a wrong option and its words, the solution, and the rating after a
- * right answer or a wrong one. "I don't know" is a wrong answer that names no
- * trap.
+ * right answer or a wrong one.
  */
 export function homeResultsOf(card: HomeCard, said: HomeWords): HomeResults {
-	const resultOf = (choice: Choice): AnswerResult => {
+	const resultOf = (choice: Letter): AnswerResult => {
 		const right = choice === card.correct;
-		const trap =
-			right || choice === dontKnow
-				? null
-				: {
-						id: card.traps[choice] ?? "",
-						text: trapWords(said, choice),
-						repeated: false,
-					};
+		const trap = right
+			? null
+			: {
+					id: trapOf(card, choice),
+					text: trapWords(said, choice),
+					repeated: false,
+				};
 		return recordedOf(
 			{
 				task_id: homeTask,
@@ -215,8 +206,21 @@ export function homeResultsOf(card: HomeCard, said: HomeWords): HomeResults {
 		);
 	};
 	return Object.fromEntries(
-		choices.map((choice) => [choice, resultOf(choice)]),
+		letters.map((letter) => [letter, resultOf(letter)]),
 	) as HomeResults;
+}
+
+// trapOf is the trap of the catalog the card names behind the wrong option
+// letter. readHome refuses a card that leaves one without, and so does this,
+// rather than record an answer behind no trap.
+function trapOf(card: HomeCard, letter: Letter): string {
+	const trap = card.traps[letter];
+	if (trap === undefined) {
+		throw new Error(
+			`${homeCard} leaves its wrong option ${letter} without a trap`,
+		);
+	}
+	return trap;
 }
 
 // trapWords are the words of the trap behind the wrong option letter, as the

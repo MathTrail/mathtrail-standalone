@@ -348,25 +348,6 @@ a:hover {
 	font-size: 0.9em;
 }
 
-/* The apex is a doorway, not a page to read: the name large in the middle, a
-   line under it, and the languages as buttons. */
-.s-apex {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: var(--space-24);
-	padding-block: var(--space-120) var(--space-64);
-	text-align: center;
-}
-
-.s-apex h1 {
-	margin: 0;
-	font-size: clamp(2.75rem, 1.8rem + 4vw, 4.5rem);
-	font-weight: 500;
-	line-height: 1.05;
-	letter-spacing: -0.03em;
-}
-
 .s-lead {
 	max-inline-size: 36ch;
 	margin: 0;

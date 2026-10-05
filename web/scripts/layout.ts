@@ -208,7 +208,13 @@ async function measuredOn(page: Page, base: string, shown: Shown) {
 		if (moment.after !== "") {
 			await page.clock.fastForward(moment.after);
 		}
-		const cards = await settled(page);
+		const cards = await settled(page).catch((error: unknown) => {
+			const said =
+				error instanceof Error ? error.message : "the cards never settled";
+			throw new Error(`layout: ${pageOf(shown)}, ${moment.name}: ${said}`, {
+				cause: error,
+			});
+		});
 		for (const [at, card] of cards.entries()) {
 			const findings = (await card.frame.evaluate<Finding[]>(measuring)).filter(
 				(finding) => !allowed(finding),
@@ -294,8 +300,13 @@ async function measuredIn(
 }
 
 // cardOf names the card a measurement was made on.
-function cardOf({ engine, language, width, scene }: Measured): string {
-	return `${engine} ${language} ${width}px, ${scene}`;
+function cardOf(measured: Measured): string {
+	return `${pageOf(measured)}, ${measured.scene}`;
+}
+
+// pageOf names a page of the preview: its engine, its language and its width.
+function pageOf({ engine, language, width }: Shown): string {
+	return `${engine} ${language} ${width}px`;
 }
 
 /**

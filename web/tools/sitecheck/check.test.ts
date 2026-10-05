@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
 import { check, type Finding, lineOf, type Options } from "./check.ts";
-import { base, pageAt, siteAt, writeSite } from "./testing/site.ts";
+import { base, pageAt, redirectAt, siteAt, writeSite } from "./testing/site.ts";
 
 const addresses = ["/", "/en/", "/ru/"];
 
@@ -198,6 +198,88 @@ describe("check", () => {
 			contains: "canonical is",
 		},
 		{
+			name: "a page that sends its reader on and names itself as its canonical",
+			change: (files) => {
+				files["index.html"] = redirectAt("/en/").replace(
+					`href="${base}/en/"`,
+					`href="${base}/"`,
+				);
+			},
+			rule: "head",
+			contains: `canonical is "${base}/", and the page sends its reader on to "${base}/en/"`,
+		},
+		{
+			name: "a page that sends its reader on to a page the site does not have",
+			change: (files) => {
+				files["index.html"] = redirectAt("/fr/");
+			},
+			rule: "head",
+			contains: `sends its reader on to "/fr/", which is no page of the site`,
+		},
+		{
+			name: "a page that sends its reader on to a page the site does not have, by its whole address",
+			change: (files) => {
+				files["index.html"] = redirectAt("/fr/").replace(
+					"url=/fr/",
+					`url=${base}/fr/`,
+				);
+			},
+			rule: "head",
+			contains: `sends its reader on to "${base}/fr/", which is no page of the site`,
+		},
+		{
+			name: "a page that sends its reader on to another origin",
+			change: (files) => {
+				files["index.html"] = redirectAt("/en/").replace(
+					"url=/en/",
+					"url=https://other.example/en/",
+				);
+			},
+			rule: "head",
+			contains: `sends its reader on to "https://other.example/en/", which is no page of the site`,
+		},
+		{
+			name: "a page that sends its reader on to itself",
+			change: (files) => {
+				files["index.html"] = redirectAt("/");
+			},
+			rule: "head",
+			contains: `sends its reader on to "/", which is the page itself`,
+		},
+		{
+			name: "a page of a language that sends its reader on",
+			change: (files) => {
+				files["ru/index.html"] = redirectAt("/en/").replace(
+					`lang="en"`,
+					`lang="ru"`,
+				);
+			},
+			rule: "head",
+			contains: `sends its reader on to "/en/", and only the apex may`,
+		},
+		{
+			name: "an apex that waits before it sends its reader on, judged as the page it is",
+			change: (files) => {
+				files["index.html"] = redirectAt("/en/").replace(
+					`content="0;`,
+					`content="5;`,
+				);
+			},
+			rule: "head",
+			contains: `canonical is "${base}/en/", and the page is served at "${base}/"`,
+		},
+		{
+			name: "a front page that sends a reader with no matching language to the apex",
+			change: (files) => {
+				files["ru/index.html"] = pageAt("/ru/", addresses).replace(
+					`hreflang="x-default" href="${base}/en/"`,
+					`hreflang="x-default" href="${base}/"`,
+				);
+			},
+			rule: "head",
+			contains: `alternate for "x-default" is "${base}/", and that page is at "${base}/en/"`,
+		},
+		{
 			name: "a lang that disagrees with the address",
 			change: (files) => {
 				files["ru/index.html"] = pageAt("/ru/", addresses).replace(
@@ -385,7 +467,7 @@ describe("check", () => {
 		expect(
 			(await check(dir, options())).filter(({ rule }) => rule === "weight"),
 		).toEqual(
-			["en/index.html", "index.html", "ru/index.html"].map((path) => ({
+			["en/index.html", "ru/index.html"].map((path) => ({
 				path,
 				rule: "weight",
 				message: expect.stringContaining("and the budget is 4096"),

@@ -14,7 +14,9 @@ type Draft struct {
 
 // Task is the task as the model writes it.
 type Task struct {
-	// CoreIdea is the mathematics before the plot.
+	// CoreIdea is the mathematics before the plot: the ideas of the topic the
+	// package's number picks from, the one it picks, and why the answer is
+	// what it is.
 	CoreIdea string `json:"core_idea"`
 	// DesignThoughtProcess is how the plot and the traps were chosen. Nobody
 	// reads it; writing it is what makes the model plan before committing.

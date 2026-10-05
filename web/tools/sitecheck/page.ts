@@ -46,6 +46,13 @@ export type Page = {
 	canonical: string;
 	/** alternates are the translations the page names, by their hreflang. */
 	alternates: Map<string, string>;
+	/**
+	 * refresh is what the page's first refresh that a browser acts on does — a
+	 * browser acts on no other: the address it sends the reader on to at once,
+	 * or empty when it reloads the page or waits first. It is undefined when the
+	 * page has no refresh a browser acts on.
+	 */
+	refresh: string | undefined;
 	references: Reference[];
 	/** ids are the anchors a link may lead to within the page. */
 	ids: Set<string>;
@@ -170,6 +177,7 @@ export function parsePage(file: string, html: string): Page {
 		images: [],
 		canonical: "",
 		alternates: new Map(),
+		refresh: undefined,
 		references: [],
 		ids: new Set(),
 	};
@@ -217,8 +225,8 @@ function readElement(element: Element, page: Page, inTemplate: boolean): void {
 }
 
 // readOwn takes what only the page's own elements give it: an anchor, its
-// language and direction, its title, its description and the pictures a
-// shared link to it shows.
+// language and direction, its title, its description, the pictures a shared
+// link to it shows, and what its refresh does.
 function readOwn(element: Element, page: Page): void {
 	const id = attribute(element, "id");
 	if (id !== "") {
@@ -241,9 +249,72 @@ function readOwn(element: Element, page: Page): void {
 				page.description = attribute(element, "content").trim();
 			} else if (attribute(element, "property").toLowerCase() === "og:image") {
 				page.images.push(attribute(element, "content").trim());
+			} else if (
+				attribute(element, "http-equiv").toLowerCase() === "refresh" &&
+				page.refresh === undefined
+			) {
+				page.refresh = refreshOf(attribute(element, "content"));
 			}
 			break;
 	}
+}
+
+// htmlSpaces are the characters HTML skips as white space: tab, line feed, form
+// feed, carriage return and space, and no other.
+const htmlSpaces = new Set(
+	[9, 10, 12, 13, 32].map((code) => String.fromCodePoint(code)),
+);
+
+// refreshOf is what a refresh with content does, read the way a browser reads
+// it: the address it sends the reader on to at once, as /en/ for "0; url=/en/",
+// or empty when it only reloads the page or waits first, since a page seen
+// before it leaves is a page to judge as it is. It is undefined when a browser
+// would not act on the content at all, as on "url=/en/" with no time, and then
+// a later refresh of the page may still count. A browser counts whole seconds
+// alone, so "0.5" is at once.
+function refreshOf(content: string): string | undefined {
+	const input = withoutLeadingSpace(content);
+	const seconds = input.slice(0, input.search(/\D|$/));
+	if (seconds === "" && !input.startsWith(".")) {
+		return undefined;
+	}
+	let rest = input.slice(input.search(/[^\d.]|$/));
+	const separated =
+		rest === "" ||
+		rest.startsWith(";") ||
+		rest.startsWith(",") ||
+		htmlSpaces.has(rest.charAt(0));
+	if (!separated) {
+		return undefined;
+	}
+	if (Number(seconds) !== 0) {
+		return "";
+	}
+	rest = withoutLeadingSpace(rest);
+	if (rest.startsWith(";") || rest.startsWith(",")) {
+		rest = withoutLeadingSpace(rest.slice(1));
+	}
+	if (rest.slice(0, 3).toLowerCase() === "url") {
+		const named = withoutLeadingSpace(rest.slice(3));
+		if (named.startsWith("=")) {
+			rest = withoutLeadingSpace(named.slice(1));
+		}
+	}
+	const quote = rest.charAt(0);
+	if (quote === '"' || quote === "'") {
+		const end = rest.indexOf(quote, 1);
+		rest = rest.slice(1, end < 0 ? undefined : end);
+	}
+	return rest;
+}
+
+// withoutLeadingSpace is text without the white space HTML skips at its start.
+function withoutLeadingSpace(text: string): string {
+	let at = 0;
+	while (htmlSpaces.has(text.charAt(at))) {
+		at++;
+	}
+	return text.slice(at);
 }
 
 // textOf is the text an element holds directly.

@@ -38,7 +38,7 @@ The grade only says where the first tasks start. The first five tasks are a tria
 
 ## The answer
 
-- On a card, the child answers with a button, "I don't know" among them, and the answer is recorded without you. The card then tells you in one line, with the child's next message, which option was chosen and whether it was right.
+- On a card, the child answers by pressing an option, and the answer is recorded without you. The card then tells you in one line, with the child's next message, which option was chosen and whether it was right. A card has no "I don't know": a child who does not know says so in the chat, and you record it as `?`, even while the card shows the task.
 - When the child answers in the chat, record it with `submit_answer`: the task id, the letter or `?`, and whether the hint was used. `?` counts as a wrong answer. Recording an answer twice does no harm: the second call changes nothing and says what the first recorded.
 - A question about the task before the answer — "I don't understand" among them — gets help without the answer, and nothing is recorded.
 - After a right answer, go through the solution if the child wants it.

@@ -3,7 +3,10 @@
 # runs inside the same toolchain image as every other check, so a page built
 # here and a page built on a laptop come from the same Node and the same
 # packages, and are judged by the same checker; the deployment itself runs on
-# the runner, because that is where the Pages API is reachable.
+# the runner, because that is where the Pages API is reachable. Before the
+# site, the build makes the data of the page "Research": the numbers of the
+# student model, computed by the bench from the commit it builds, and their
+# table in the job's summary.
 name: Pages
 
 on:
@@ -79,10 +82,50 @@ jobs:
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+    env:
+      # Fixed places for what Go downloads and builds, so that the paths the job
+      # caches and the paths Go reads are the same ones.
+      GOMODCACHE: /tmp/go/mod
+      GOCACHE: /tmp/go/build
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.version }}
+      # What Go downloads and builds, on a pull request alone: a run that
+      # publishes builds the bench from nothing an earlier run left behind.
+      - if: github.event_name == 'pull_request'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            /tmp/go/mod
+            /tmp/go/build
+          key: go-site-${{ hashFiles('go.sum', 'tools/learners/go.sum') }}
+          restore-keys: go-
+      - name: Build the bench and name what the page's numbers are computed from
+        id: research
+        run: |
+          key=$(just _research-inputs)
+          echo "key=$key" >> "$GITHUB_OUTPUT"
+      # A pull request takes the numbers kept for the same build of the bench. A
+      # run that publishes only asks whether they are kept, and computes its own
+      # from the commit it builds.
+      - name: Take the page's numbers kept for this build
+        id: numbers
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: tools/learners/results/page
+          key: research-${{ steps.research.outputs.key }}
+          lookup-only: ${{ github.event_name != 'pull_request' }}
+      - name: Make the data of the page "Research" and show its goals
+        run: just research-data | tee -a "$GITHUB_STEP_SUMMARY"
+      # A key once kept is never written again, so only numbers no run has kept
+      # are kept: a release's go to every pull request after it.
+      - name: Keep the page's numbers for the runs after this one
+        if: steps.numbers.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: tools/learners/results/page
+          key: research-${{ steps.research.outputs.key }}
       - name: Build the site and hold it to its own rules
         env:
           # The release the cards on the pages name; empty, they name none.

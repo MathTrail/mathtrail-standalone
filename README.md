@@ -26,14 +26,14 @@ The screens below are the widget itself, photographed by a script from the scene
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screens/task-dark.png">
-  <img src="docs/screens/task-light.png" width="428" alt="The MathTrail card with a task. The top line reads Comet, the child's pseudonym, and Profile & progress. The card is signed MathTrail, Olympiad coach · Grade 3, beside the release it runs: the word version over the number, in a small frame. The task: a fence is 12 meters long, posts stand every 3 meters, including both ends; how many posts are there? Below it, a text drawing of the fence, then Pick one answer and five options, A 3, B 4, C 5, D 6 and E 12. At the bottom, three buttons, I don't know, Hint and Another task, and at the end of the row, Topic: the coach chooses, with an arrow that opens the choice of the topic.">
+  <img src="docs/screens/task-light.png" width="428" alt="The MathTrail card with a task. The top line reads Comet, the child's pseudonym, and Profile & progress. The card is signed MathTrail, Olympiad coach · Grade 3, beside the release it runs: the word version over the number, in a small frame. The task: a fence is 12 meters long, posts stand every 3 meters, including both ends; how many posts are there? Below it, a text drawing of the fence, then Pick one answer and five options, A 3, B 4, C 5, D 6 and E 12. At the bottom, two buttons, Hint and Another task, and at the end of the row, Topic: the coach chooses, with an arrow that opens the choice of the topic.">
 </picture>
 
 A child asks in the chat for a new task, and it arrives as a card:
 
 - **The task.** The chat's model wrote it, and the service let it through only after its checks. The drawing is plain text, laid out left to right in any language.
 - **Five options, A to E.** The answer is not in the card: it is sealed in the parent's Drive until the child picks one.
-- **Help that stays the child's own.** Hint shows a leading question or a first step, which the model wrote with the task. I don't know counts as a wrong answer and shows the solution. Another task skips this one. A question about the task is asked in the chat, and the model helps without giving the answer away.
+- **Help that stays the child's own.** Hint shows a leading question or a first step, which the model wrote with the task. Another task skips this one. A question about the task is asked in the chat, and the model helps without giving the answer away; a child who says "I don't know" there gets the solution, and it counts as a wrong answer.
 - **A topic of the child's own.** Once the first five tasks have found where the child stands, Topic, at the end of the row, keeps the next tasks to one topic the child or the adult picks — the ones the progress suggests first, then every topic in its group — or gives the choice back to the coach. Asking in the chat does the same.
 - **The top line.** It shows the child's pseudonym, never a real name, and opens the progress screen.
 

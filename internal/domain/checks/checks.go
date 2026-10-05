@@ -53,6 +53,16 @@ const (
 	CodeNearDuplicate Code = "near_duplicate"
 )
 
+// Codes are every reason a submission is refused, in the order the checks
+// run, and so the order their refusals are reported in.
+func Codes() []Code {
+	return []Code{
+		CodeBadStructure, CodeDistractorExplanations, CodeDrawingFormat, CodeDrawingMismatch,
+		CodeReadability, CodeSolverError, CodeSolverDisagrees, CodeSelfCheckBlocking,
+		CodeNearDuplicate,
+	}
+}
+
 // Problem is one thing wrong with a submission. Every problem found is
 // reported at once, so that the model can fix all of them in one more
 // attempt rather than one per attempt.

@@ -11,8 +11,6 @@ import (
 
 // The lines the measures are read against.
 const (
-	corridorLow     = 0.70
-	corridorHigh    = 0.85
 	masteredAt      = 0.775
 	masteredLoosely = 0.70
 	tooHard         = 0.50
@@ -161,11 +159,11 @@ func (s *session) observeBefore(brief *profile.Brief, beta, truth float64, corre
 	b := &r.bins[min(calibrationBins-1, int(o.predicted*calibrationBins))]
 	b.predicted, b.observed, b.n = b.predicted+o.predicted, b.observed+score, b.n+1
 	switch {
-	case truth < corridorLow:
+	case truth < rating.CorridorLow:
 		if truth < tooHard {
 			r.below++
 		}
-	case truth <= corridorHigh:
+	case truth <= rating.CorridorHigh:
 		r.inside++
 	case truth > tooEasy:
 		r.over++
@@ -238,7 +236,7 @@ func (r *childResult) after(s *session, brief *profile.Brief, recorded *profile.
 // have handed out a task in it, whatever it knew of the child.
 func (s *session) reachable(topic string) bool {
 	for _, point := range s.w.ladders[topic] {
-		if chance := s.c.chance(topic, point.Beta()); chance >= corridorLow && chance <= corridorHigh {
+		if chance := s.c.chance(topic, point.Beta()); chance >= rating.CorridorLow && chance <= rating.CorridorHigh {
 			return true
 		}
 	}

@@ -123,7 +123,7 @@ One entry per topic the child has ever been given, keyed by the catalog's topic 
 | `wrong_streak` | integer | Wrong answers in a row in this topic, which is what mastery is lost by. It is counted rather than read back out of `recent` for the same reason `top_streak` is: the window is pruned, and a run that has to be exact cannot be read from something that forgets |
 | `mastered_since` | date or null | Set when the cautious estimate declares the topic mastered (SPEC 2.5); the progress screen reads it |
 | `mastered_level` | level or null | The level mastery is held at — `1-2`, `3-4` or `5-6`: the highest level of the topic, at or below the task's, the cautious estimate cleared — set and cleared together with `mastered_since`. A topic counts as mastered only while its recommended point stays at this level or below, so mastery at `1-2` does not keep a topic out of the rotation once its tasks come from `3-4`; a mastery declared at a higher level moves it up, and nothing moves it down (SPEC 2.5) |
-| `skipped` | integer | Tasks of this topic left without an answer when a new one was asked for (R98). Nothing that computes reads it; the progress screen shows it to the parent |
+| `skipped` | integer | Tasks of this topic left without an answer when a new one was asked for (R98). No rating reads it: the progress screen shows it to the parent, and, added to `answers`, it counts the tasks of the topic the child has been through, which picks the idea of the topic the next task is built on (R205) |
 | `traps` | map of trap id → count | How often this child fell for each trap in this topic, ever. The rule picks the two most frequent (prototype 5.7). The map of misconceptions counts the history window instead, so that a mistake the child has left behind drops off it (R136) |
 
 ### The history window
@@ -137,12 +137,12 @@ One entry per topic the child has ever been given, keyed by the catalog's topic 
 | `answered_at` | RFC 3339 UTC | When |
 | `correct` | boolean | The only thing the rating formula reads (О-33) |
 | `chosen`, `trap` | letter, trap id | Only on a wrong answer to a letter: which option and the trap behind it. An "I don't know" has neither (R93) |
-| `hint_used`, `confused` | booleans | The hint was opened, or "I don't know" was pressed instead of an answer. The hint changes the next step, never the rating (О-33); "I don't know" is recorded as a wrong answer, with no `chosen` and no `trap` (R93) |
+| `hint_used`, `confused` | booleans | The hint was opened, or the answer was "I don't know", said in the chat instead of an option (R208). The hint changes the next step, never the rating (О-33); "I don't know" is recorded as a wrong answer, with no `chosen` and no `trap` (R93) |
 | `pace` | `fast`, `normal`, `slow` | Measured by the server from `issued_at` to the answer, not by the client's clock |
 | `skipped` | boolean | The task was left without an answer when a new one was asked for — `next_task` records it (R98). Such an entry carries the task's id, topic, level and difficulty, and `answered_at` as the moment it was left — and none of `correct`, `chosen`, `trap`, `hint_used`, `confused`, `pace` or `before` |
 | `before` | `{delta, theta}` | Where the child stood before this answer moved anything: θ and the correction of the answer's topic, at full precision. What the progress tells moved since the last answer is measured from it (SPEC 2.10, R165). Absent from a skipped task, which moved nothing, and from an answer an earlier build wrote |
 
-Unlike the prototype, an answered entry's `correct` is never null: "I don't know" shows the solution, so it is an answer, and a wrong one (R93), marked by `confused` rather than by a third outcome. A skipped task is the one entry with no outcome, and every reader that learns from answers — the rating, the trial series, the misconception map, the streaks, the rule's "last answer" — passes over it; only the progress screen reads it (R98).
+Unlike the prototype, an answered entry's `correct` is never null: "I don't know" is answered with the solution, so it is an answer, and a wrong one (R93), marked by `confused` rather than by a third outcome. A skipped task is the one entry with no outcome, and every reader that learns from answers — the rating, the trial series, the misconception map, the streaks, the rule's "last answer" — passes over it; only the progress screen reads it (R98).
 
 ### The days of the ratings
 

@@ -320,9 +320,10 @@ func TestANumberWithNoIntervalCountsAsNone(t *testing.T) {
 	}
 }
 
-// update rewrites the summary's snapshot from the run the test makes, for the
-// change to be read before it is kept.
-var update = flag.Bool("update", false, "rewrite testdata/summary.md from the run the test makes")
+// update rewrites the snapshots of a small run and the fixture of the page's
+// data file from the runs the tests make, for the change to be read before it
+// is kept.
+var update = flag.Bool("update", false, "rewrite the snapshots in testdata and the page's fixture from the runs the tests make")
 
 // A run given neither a seed nor a name draws the children the paper's run
 // drew, the same as one given its seed and name outright, and a run given

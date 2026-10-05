@@ -607,7 +607,7 @@ The bands are kept in `tools/learners/testdata/guard.csv`: each number's value a
 
 Rolled back, the student model turns the guard red. With the overall step's floor taken away, the lag on G2 comes to −1.127, past the band of −1.065 to −0.932, and the children not caught up after a jump to 70.3 %, past 41.7 to 65.0 %. With mastery by a run of three, the masteries declared falsely come to 65.1 %, past 1.8 to 5.4 %, and the answers until a mastery to 9.9, past 4.1 to 5.3.
 
-`just ci-learners -update` records the bands again. It is for a change meant to move the model, whose whole run has been read and whose reason is written down with it; the new `guard.csv` is read in the change's review, as a snapshot is, since recording turns a red guard green. The bands are recorded on amd64, where Go fuses no multiplication with an addition; elsewhere the last digits of the numbers may part from them, well within any band. A change elsewhere, to the catalog's topics say, that moves the numbers within their bands passes; one that moves them past, for better or for worse, is recorded again with its reason.
+`just ci-learners -update` records the bands again. It is for a change meant to move the model, whose whole run has been read and whose reason is written down with it; the new `guard.csv` is read in the change's review, as a snapshot is, since recording turns a red guard green. The bands are recorded on amd64, built at `GOAMD64` v1, Go's default, where Go fuses no multiplication with an addition, and on a processor with FMA, on which `math.Exp` takes the same path as on every runner; elsewhere the last digits of the numbers may part from them, well within any band. A change elsewhere, to the catalog's topics say, that moves the numbers within their bands passes; one that moves them past, for better or for worse, is recorded again with its reason.
 
 The guard holds the numbers of a run to the bands by its measures alone, so the same check can read the service's cells of any run on these generators.
 
@@ -676,6 +676,11 @@ A child who stays put still comes out a little under its promise early on and ne
   - `just learners -rules mastery -children 4000` — the decision run of mastery, about a quarter of an hour;
   - `just learners -held-out -children 4000` — the confirmation of the last candidate chosen, once, about ten minutes: the model of mastery chosen over the step. It was run for that model and is not run again.
 - `just ci-learners` runs [the guard](#the-guard), a few seconds on the development machine, and prints its table; `just ci-learners -update` records its bands again.
+- `just research-data` makes the data of the site's page "Research" (`docs/research-page.md`), in about twenty seconds on the development machine, or at once when the numbers of the same build of the bench are kept. It runs two commands of the bench:
+  - `learners page -inputs <key> -out <file>` runs the eleven cells of the page's table, the service and the rule before it on G0, G0-topics1, G2-half and G3 and the oracle on G0, G2-half and G3, a thousand children a cell on the paper's seeds, and writes their numbers, each goal read as the criteria read it, with the product's counts and constants;
+  - `learners page-file` holds them to the key of the build they must be of, writes from them `site/research/research.json`, with the commit being built and the paper's facts, and prints the table of goals.
+
+  The numbers are kept in `tools/learners/results/page/`, under the key of the build that computed them, and not in git.
 - `just learners-test` runs the bench's tests with the race detector, and `just learners-lint` holds the module to what the service is held to. CI runs both, and the guard, on every pull request. A change to the product's `go.mod` is followed by `just learners-tidy`.
 
 ## The results
@@ -693,4 +698,4 @@ A change to the rule, the rating, the profile or the catalog's topics moves the 
 
 ## The paper's numbers
 
-A run given neither `-seed` nor `-experiment` draws the children of the paper's run: seed 20261001, experiment E-A3. Until the service's rule changed, the bench's cells and the comparisons it shares with the research run repeated `research/experiments/learnersim/results` to the last digit on amd64, so the summary's first row was the paper's account of the service's rule. The floor of the step and the cautious estimate (R187) moved them; the research run keeps the paper's account, on the product at `v0.1.53`. On arm64 the last digits may differ, since Go fuses a multiplication and an addition there into one step that rounds once.
+A run given neither `-seed` nor `-experiment` draws the children of the paper's run: seed 20261001, experiment E-A3. Until the service's rule changed, the bench's cells and the comparisons it shares with the research run repeated `research/experiments/learnersim/results` to the last digit on amd64, so the summary's first row was the paper's account of the service's rule. The floor of the step and the cautious estimate (R187) moved them; the research run keeps the paper's account, on the product at `v0.1.53`. On arm64 the last digits may differ, since Go fuses a multiplication and an addition there into one step that rounds once, as it does on amd64 at `GOAMD64` v3 and above; so may they on a processor without FMA, on which `math.Exp` takes another path.

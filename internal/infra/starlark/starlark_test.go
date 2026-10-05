@@ -8,14 +8,16 @@ import (
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark"
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/starlark/starlarktest"
 )
 
 // options are the five texts of a task whose answer is six.
 var options = solver.Options{"4", "5", "6", "8", "12"}
 
-// limits are what a run gets unless a test is about a limit itself.
+// limits are what a run gets unless a test is about a limit itself, on the
+// clock a test gives a run.
 func limits() starlark.Limits {
-	return starlark.Limits{Steps: 25_000_000, Timeout: 2 * time.Second, Concurrency: 4, Wait: time.Minute}
+	return starlark.Limits{Steps: 25_000_000, Timeout: starlarktest.Clock(2 * time.Second), Concurrency: 4, Wait: time.Minute}
 }
 
 func sandbox(t *testing.T, limits starlark.Limits) solver.Runner {
