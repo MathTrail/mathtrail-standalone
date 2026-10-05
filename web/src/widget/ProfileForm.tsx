@@ -8,6 +8,7 @@ import {
 	TextField,
 } from "../design/controls";
 import type { Words } from "../i18n/words";
+import { catalogSkills, lessonLanguages } from "./dictionaries";
 import {
 	type Draft,
 	type Editing,
@@ -15,10 +16,10 @@ import {
 	withCountry,
 	withInterestAdded,
 } from "./editing";
-import { catalogSkills, countryName, languageName, skillName } from "./names";
+import { countryName, languageName, skillName } from "./names";
 import type { Problem } from "./payload";
 import { countryCodes, regionsOf } from "./places";
-import { isKey, type Key, lessonLanguages, useWords } from "./words";
+import { type Key, useWords } from "./words";
 
 /** Open is a form a parent is filling in, or one on its way to the service. */
 type Open = Extract<Editing, { state: "open" | "saving" }>;
@@ -179,7 +180,7 @@ function problemsSaid(
 	for (const { field, code } of problems) {
 		if (!said.has(field)) {
 			const key = `problem.${code}`;
-			said.set(field, words.text(isKey(key) ? key : "problem.other"));
+			said.set(field, words.text(words.has(key) ? key : "problem.other"));
 		}
 	}
 	return said;

@@ -58,6 +58,10 @@
 	--s-on-trap: #8c1d18;
 	--s-right: #c4eed0;
 	--s-on-right: #0a3818;
+	--s-paper: #f4f2ec;
+	--s-wip: #fbf3dd;
+	--s-on-wip: #6b4e12;
+	--s-wip-dot: #c9982f;
 }
 
 *,
@@ -413,8 +417,8 @@ a:hover {
 
 /* The header's button, the one thing it asks a reader to do: a size smaller
    than a page's own buttons, whose rules it comes after, and left out on a
-   phone, which has no room for it beside the menu — the menu leads to the
-   same place. */
+   phone, which has no room for it beside the menu; there the home page, a
+   press of the mark away, leads to the same place from its first screen. */
 .s-nav-action {
 	min-block-size: 40px;
 	padding-inline: 20px;
@@ -888,9 +892,12 @@ a:hover {
 	}
 }
 
-/* The draft's widths: the menu folds behind its button below 1100 px, and a
-   phone keeps a narrower margin. */
-@media (max-width: 1099px) {
+/* The menu folds behind its button below 992 px: in Russian, the longer of
+   the site's languages, its entries stop fitting in a row beside the mark and
+   the tools some way under that, with a scroll bar that takes room of its
+   own; an entry more wants the width measured again. A phone keeps a
+   narrower margin. */
+@media (max-width: 991px) {
 	.s-navlinks {
 		display: none;
 	}
@@ -2536,9 +2543,33 @@ a:hover {
 	background: var(--s-tint);
 }
 
-/* The page about who makes MathTrail: the first screen with no panel beside
-   it, a card for each of the family under the role it plays, and where to
-   write, in a frame with its buttons. */
+/* The page about who makes MathTrail: the first screen's words beside the
+   family's photograph, centred on each other, the photograph on a panel of
+   its own and under the words on a narrow screen; a card for each of the
+   family with their portrait, under the role they play; and where to write,
+   in a frame with its buttons. */
+.s-about-hero {
+	align-items: center;
+}
+
+.s-about-hero .s-hero-copy {
+	padding-block-start: 0;
+}
+
+.s-about-photo {
+	justify-self: center;
+	inline-size: 100%;
+	max-inline-size: 480px;
+	padding: clamp(12px, 2vw, 20px);
+}
+
+.s-about-photo img {
+	display: block;
+	inline-size: 100%;
+	block-size: auto;
+	border-radius: 24px;
+}
+
 .s-team {
 	padding-block-start: 56px;
 }
@@ -2563,16 +2594,17 @@ a:hover {
 	}
 }
 
-/* The frame sits closer to the card's edge than the words, its corners
-   following the card's own. */
+/* The portrait sits closer to the card's edge than the words, its corners
+   following the card's own; until it arrives, its room is kept white. */
 .s-member {
 	padding: 12px 20px 32px;
 }
 
-.s-member-frame {
-	aspect-ratio: 4 / 3;
+.s-member-photo {
+	display: block;
+	inline-size: calc(100% + 16px);
+	block-size: auto;
 	margin: 0 -8px 10px;
-	border: 1.5px dashed var(--s-line-strong);
 	border-radius: 16px;
 	background: var(--s-page);
 }
@@ -2611,7 +2643,7 @@ a:hover {
 
 /* Beside no card, the first screen's words start at the top of their row. */
 @media (min-width: 992px) {
-	.s-about-hero .s-hero-copy {
+	.s-coach-hero .s-hero-copy {
 		padding-block-start: 0;
 	}
 }
@@ -2620,6 +2652,125 @@ a:hover {
 	.s-contact {
 		padding: var(--space-24);
 	}
+}
+
+/* The page of the coach. Its first screen keeps its words to the draft's
+   width, under a badge that says the coach is still in the making, in the
+   gold the prototype gives the coach's own words; the three ideas follow
+   close under it. */
+.s-coach-hero .s-hero-copy {
+	max-inline-size: 860px;
+}
+
+.s-badge {
+	display: inline-flex;
+	align-items: center;
+	align-self: flex-start;
+	gap: var(--space-8);
+	margin: 0;
+	padding: 7px 14px;
+	border-radius: var(--radius-pill);
+	background: var(--s-wip);
+	color: var(--s-on-wip);
+	font-size: 0.875rem;
+	font-weight: 600;
+}
+
+.s-badge::before {
+	content: "";
+	flex: none;
+	inline-size: 8px;
+	block-size: 8px;
+	border-radius: var(--radius-round);
+	background: var(--s-wip-dot);
+}
+
+.s-coach-ideas {
+	margin-block-start: 56px;
+}
+
+/* The prototype on paper of its own colour, in a white frame wider than the
+   site's other parts, though narrower than the prototype's tablet, which
+   shrinks to fit it. The frame keeps the tablet's proportions, 1272 by 932, so
+   that on a narrow screen no empty band stays under it; the two pixels over
+   are the prototype's own background, and they keep a last row it rounds up
+   from bringing a scroll bar into the frame. A browser with no container
+   units keeps the proportions by the frame's aspect ratio, which gives the
+   two pixels at the widest. */
+.s-prototype-section {
+	max-inline-size: 1320px;
+	padding-block-start: 88px;
+}
+
+.s-paper {
+	padding: clamp(12px, 2.4vw, 28px);
+	border-radius: 40px;
+	background: var(--s-paper);
+}
+
+.s-prototype {
+	container-type: inline-size;
+	overflow: hidden;
+	border-radius: 28px;
+	background: var(--s-page);
+	box-shadow:
+		0 1px 3px rgb(60 64 67 / 12%),
+		0 12px 40px rgb(60 64 67 / 10%);
+}
+
+.s-prototype iframe {
+	display: block;
+	inline-size: 100%;
+	aspect-ratio: 1272 / 934;
+	block-size: calc(100cqi * 932 / 1272 + 2px);
+	border: 0;
+}
+
+.s-prototype-caption {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-12) var(--space-24);
+	margin: 0;
+	padding: 20px 12px 4px;
+	font-size: 1.0625rem;
+	font-weight: 500;
+}
+
+.s-prototype-caption a {
+	font-size: 0.9375rem;
+}
+
+/* What the prototype is and what it only pretends to do yet: the two parts of
+   a framed box close under the prototype, side by side while each has room
+   and one under the other when not. */
+.s-prototype-notes {
+	padding-block-start: 56px;
+}
+
+.s-coach-notes {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+	align-items: start;
+	gap: var(--space-24) 48px;
+	margin: 0;
+	padding: clamp(24px, 4vw, 36px);
+}
+
+.s-coach-note {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-8);
+}
+
+.s-coach-note .s-label {
+	margin: 0;
+}
+
+.s-coach-imitated {
+	padding: 0;
+	list-style: none;
 }
 
 /* The home page. Its first screen: the buttons under the promise, and a line
@@ -2750,6 +2901,77 @@ a:hover {
 	}
 }
 
+/* With the page's script, the steps of a lesson share one card on a wide
+   window: the steps run down the start column, each tall enough for the card
+   to change as it passes the middle of the window, and the card of the step at
+   the middle stands in the end column, which stays in sight. The card giving
+   way fades as the next one comes, and at once for a reader who asks for less
+   motion. The chat's frame is shorter than a tall card, which the script
+   aligns in it. Below that width every step keeps its own card. */
+@media (min-width: 960px) {
+	.s-walk-staged {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 440px;
+		align-items: start;
+		gap: 80px;
+	}
+
+	.s-walk-staged .s-walk {
+		gap: 0;
+	}
+
+	.s-walk-staged .s-walk-step {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		min-block-size: 66vh;
+	}
+
+	.s-walk-staged .s-walk-within {
+		min-block-size: 52vh;
+	}
+
+	.s-walk-staged .s-walk-step:last-child {
+		min-block-size: 76vh;
+	}
+
+	.s-walk-staged .s-walk-copy {
+		position: static;
+		padding-block-start: 0;
+	}
+
+	.s-walk-stage {
+		position: sticky;
+		inset-block-start: calc(64px + var(--space-32));
+		display: grid;
+	}
+
+	.s-walk-stage > .s-walk-card {
+		grid-area: 1 / 1;
+		opacity: 0;
+		visibility: hidden;
+		transition:
+			opacity 160ms ease,
+			visibility 160ms;
+	}
+
+	.s-walk-stage > .s-walk-card[data-shown] {
+		opacity: 1;
+		visibility: visible;
+	}
+
+	.s-walk-stage .s-frame-body {
+		max-block-size: calc(100vh - 64px - 2 * var(--space-32) - 48px);
+		overflow: hidden;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.s-walk-stage > .s-walk-card {
+		transition: none;
+	}
+}
+
 .s-walk-note {
 	margin-block-start: 56px;
 }
@@ -2873,6 +3095,45 @@ a:hover {
 	font-size: 0.875rem;
 	overflow-wrap: anywhere;
 	user-select: all;
+}
+
+/* With the page's script, the address and the button that copies it share the
+   address's pill. */
+.s-address-row {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	padding-block: 4px;
+	padding-inline: 18px 4px;
+	border: 1px solid var(--s-line);
+	border-radius: var(--radius-pill);
+	background: var(--s-page);
+}
+
+.s-address-row .s-address {
+	flex: 1;
+	min-inline-size: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+}
+
+.s-copy {
+	flex-shrink: 0;
+	min-block-size: 44px;
+	padding-inline: 16px;
+	border: 1px solid var(--s-outline);
+	border-radius: var(--radius-pill);
+	background: var(--s-page);
+	color: var(--s-accent);
+	font: inherit;
+	font-size: 0.9375rem;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.s-copy:hover {
+	background: var(--s-tint);
 }
 
 .s-connect-note,

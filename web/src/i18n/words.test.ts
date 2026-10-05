@@ -150,6 +150,22 @@ describe("in the build that ships, words", () => {
 
 		expect(openWords("en", dictionaries).text("times")).toBe("{count} times");
 	});
+
+	test.each([
+		["their own language has", "pt-BR", "greeting", true],
+		["a language they fall back on has", "pt-BR", "distance", true],
+		["only English has, when English is among them", "ru", "english", true],
+		["no language of theirs has", "ru", "nowhere", false],
+	])("have a key %s", (_, locale, key, want) => {
+		expect(openWords(locale, dictionaries).has(key)).toBe(want);
+	});
+
+	test("given one language alone have no key it lacks, whatever English has", () => {
+		const russianAlone = new Map([["ru", dictionaries.get("ru") ?? {}]]);
+
+		expect(openWords("ru", russianAlone).has("times")).toBe(true);
+		expect(openWords("ru", russianAlone).has("english")).toBe(false);
+	});
 });
 
 describe("dictionaries a glob found", () => {

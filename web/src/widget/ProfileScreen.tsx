@@ -13,12 +13,12 @@ import {
 	editingAfter,
 	notEditing,
 } from "./editing";
-import { sendEdit } from "./edits";
 import { useFocusKeptOnTheCard } from "./focus";
 import { countryName, languageName, listed, skillName } from "./names";
 import { ProfileForm } from "./ProfileForm";
 import type { Details, Location, ProfileReport } from "./payload";
 import { regionName } from "./places";
+import { useService } from "./service";
 import { countText, type Key, useWords } from "./words";
 
 /**
@@ -110,6 +110,7 @@ export function ParentProfile({
 	onSaved: (details: Details) => void;
 }) {
 	const words = useWords();
+	const service = useService();
 	const [editing, dispatch] = useReducer(editingAfter, notEditing);
 	const sending = useRef(false);
 	const edit = useRef<HTMLButtonElement>(null);
@@ -128,7 +129,7 @@ export function ParentProfile({
 		}
 		sending.current = true;
 		dispatch({ type: "sent" });
-		const outcome = await sendEdit(host, changes);
+		const outcome = await service.saveEdit(changes);
 		sending.current = false;
 		dispatch({ type: "answered", outcome });
 		if (outcome.kind === "saved") {

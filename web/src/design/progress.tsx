@@ -1,7 +1,7 @@
 import type { ComponentChildren } from "preact";
-import { useId } from "preact/hooks";
 import { classes } from "./classes";
 import { Icon, type IconName } from "./icons";
+import { useScopedId } from "./ids";
 import { type Linking, PageLink } from "./links";
 
 /**
@@ -97,7 +97,7 @@ function StripedStep({
 	stripes: number;
 	way: MoveWay;
 }) {
-	const pattern = useId();
+	const pattern = useScopedId();
 	return (
 		<svg class="mt-segment" height="6" aria-hidden="true">
 			<defs>

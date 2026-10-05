@@ -49,6 +49,13 @@
 	display: block;
 	flex-shrink: 0;
 }
+/* The logo is drawn for either theme, and the theme's tokens show one. */
+.mt-mark-light {
+	display: var(--mark-light);
+}
+.mt-mark-dark {
+	display: var(--mark-dark);
+}
 @keyframes mt-spin {
 	to {
 		transform: rotate(360deg);
@@ -275,10 +282,12 @@
 	background: var(--surface);
 	color: var(--text);
 	text-align: start;
+}
+button.mt-bar {
 	cursor: pointer;
 }
 @media (hover: hover) {
-	.mt-bar:hover {
+	button.mt-bar:hover {
 		background: var(--hover);
 	}
 }

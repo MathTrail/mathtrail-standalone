@@ -42,14 +42,15 @@ import {
  * Scene is one state of a lesson on a card: the payload the card is drawn
  * from — a task handed to it, a task on its way, or a card a task did not come
  * to — or, for a task caught being asked for, how far its call has got; what the service
- * answers the card's calls with, whether the host takes its messages, whether
+ * answers the card's calls with, told how many calls of the same tool the card
+ * made before, whether the host takes its messages, whether
  * it opens pages — it says it does and opens them, unless links says it opens
  * none or refuses each —, what the host keeps of the screen's edges, and what
  * the child does on the card to reach the state.
  */
 export type Scene = {
 	name: string;
-	answers?: (tool: string) => Promise<CallToolResult>;
+	answers?: (tool: string, before: number) => Promise<CallToolResult>;
 	refuseMessages?: boolean;
 	links?: "none" | "refuse";
 	insets?: McpUiHostContext["safeAreaInsets"];
@@ -271,6 +272,20 @@ export function scenesIn(language: string): Scene[] {
 			name: "a try turned down, a new one being written",
 			payload: comingFor(handed),
 			answers: () => Promise.resolve(writing(1)),
+		},
+		{
+			name: "a task written, its course ticked off as it comes",
+			payload: comingFor(handed),
+			answers: (tool, before) => {
+				if (tool !== "read_task") {
+					return service()(tool);
+				}
+				return Promise.resolve(
+					before === 0
+						? writing()
+						: { content: [], structuredContent: { ...handed } },
+				);
+			},
 		},
 		{
 			name: "the task come to the card that waited",

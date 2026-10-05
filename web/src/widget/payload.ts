@@ -1,19 +1,8 @@
 import type { CallToolResult } from "@modelcontextprotocol/client";
 import * as z from "zod";
+import { dontKnow, letters } from "./choices";
 
-const letter = z.enum(["A", "B", "C", "D", "E"]);
-
-/** Letter names one of a task's five options. */
-export type Letter = z.infer<typeof letter>;
-
-/** letters are the options' letters, in the order the card shows them. */
-export const letters: readonly Letter[] = letter.options;
-
-/** dontKnow is the answer "I don't know": a wrong answer that chose no option. */
-export const dontKnow = "?";
-
-/** Choice is an answer the child can give: an option, or "I don't know". */
-export type Choice = Letter | typeof dontKnow;
+const letter = z.enum(letters);
 
 const child = z.object({
 	pseudonym: z.string(),

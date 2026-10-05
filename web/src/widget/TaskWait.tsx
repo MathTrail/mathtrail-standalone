@@ -10,13 +10,14 @@ export type Ending = { said: Key; next: Key };
 
 /**
  * TaskWait is the wait for a task as a card shows it: the usual course of a
- * task as far as the card can see it, and the news of the wait — a try the
- * checks turned down, with a new one being written, or the wait gone long —
- * or, once the wait is over with no task, the word that ends it in the
- * course's place. Nothing on it moves but the step under way, and there is
- * nothing to press. A screen reader hears each step from the list, and the
- * news from a place beside it, on the page from the start, so that each is
- * heard once.
+ * task as far as the card knows it — the steps it saw taken, and, once the
+ * task has come, the checks it passed and the task ready —, and the news of
+ * the wait — a try the checks turned down, with a new one being written, or
+ * the wait gone long — or, once the wait is over with no task, the word that
+ * ends it in the course's place. Nothing on it moves but the step under way,
+ * when one is, and there is nothing to press. A screen reader hears each step
+ * from the list, and the news from a place beside it, on the page from the
+ * start, so that each is heard once.
  */
 export function TaskWait({
 	phase,

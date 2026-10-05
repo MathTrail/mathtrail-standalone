@@ -1,5 +1,12 @@
 import { z } from "zod";
-import { type HandedTask, type Letter, letters } from "../widget/payload";
+import {
+	type Choice,
+	choices,
+	dontKnow,
+	type Letter,
+	letters,
+} from "../widget/choices";
+import type { AnswerResult, HandedTask } from "../widget/payload";
 import { sectionAddress } from "./addresses";
 import { frontPage } from "./content";
 import {
@@ -9,6 +16,7 @@ import {
 	type CardWords,
 	checkCard,
 	handedOf,
+	recordedOf,
 	type TaskWords,
 	type WrongAnswer,
 } from "./taskcard";
@@ -19,8 +27,9 @@ import {
  * grade its task is set in, its drawing — numbers and lines, which read alike
  * in every language — its five options and the right one, the catalog's trap
  * behind each wrong option, the wrong option the lesson's steps pick, and the
- * rating in the topic before and after that answer. And the three traps it
- * names as examples of what a wrong option is tied to.
+ * rating in the topic before an answer, after a wrong one and after a right
+ * one. And the three traps it names as examples of what a wrong option is
+ * tied to.
  */
 export const homeFile = z.object({
 	card: z.object({
@@ -34,7 +43,11 @@ export const homeFile = z.object({
 			(value) => letters.includes(value as Letter),
 			"the option the steps pick is a letter A to E",
 		),
-		rating: z.object({ before: z.number(), after: z.number() }),
+		rating: z.object({
+			before: z.number(),
+			wrong: z.number(),
+			right: z.number(),
+		}),
 	}),
 	traps: z.tuple([z.string(), z.string(), z.string()]),
 });
@@ -56,11 +69,11 @@ export type Home = {
 
 /**
  * HomeWords are the words of the lesson's task in the page's language: whose
- * card it is, the task, its hint, the trap behind the option the steps pick,
- * and the solution.
+ * card it is, the task, its hint, the trap behind each wrong option by its
+ * letter, and the solution.
  */
 export type HomeWords = TaskWords & {
-	readonly trap: string;
+	readonly traps: Readonly<Record<string, string>>;
 	readonly solution: string;
 };
 
@@ -122,6 +135,12 @@ export function readHome(catalog: CardCatalog, file: HomeFile): Home {
 			);
 		}
 	}
+	const { before, wrong, right } = card.rating;
+	if (!(right > before && before > wrong)) {
+		throw new Error(
+			`${homeCard} moves its rating from ${before} to ${wrong} on a wrong answer and to ${right} on a right one: a right answer raises it, and a wrong one lowers it`,
+		);
+	}
 	for (const trap of file.traps) {
 		if (!catalog.traps.some(({ id }) => id === trap)) {
 			throw new Error(
@@ -146,8 +165,70 @@ export function homeTaskOf(card: HomeCard, said: HomeWords): HandedTask {
  * option the steps pick, as the widget reads a wrong answer recorded.
  */
 export function homeAnswerOf(card: HomeCard, said: HomeWords): WrongAnswer {
-	const words: CardWords = said;
+	const words: CardWords = { ...said, trap: trapWords(said, card.choice) };
 	return answerOf(factsOf(card), words, homeTask, homeCard);
+}
+
+/**
+ * HomeResults are what the service would record of every answer the card on
+ * the first screen can be given, by the choice: each option, and "I don't
+ * know".
+ */
+export type HomeResults = Readonly<Record<Choice, AnswerResult>>;
+
+/**
+ * homeResultsOf is what the service would record of every answer to the
+ * lesson's task, with the words said, as the widget reads each: the trap
+ * behind a wrong option and its words, the solution, and the rating after a
+ * right answer or a wrong one. "I don't know" is a wrong answer that names no
+ * trap.
+ */
+export function homeResultsOf(card: HomeCard, said: HomeWords): HomeResults {
+	const resultOf = (choice: Choice): AnswerResult => {
+		const right = choice === card.correct;
+		const trap =
+			right || choice === dontKnow
+				? null
+				: {
+						id: card.traps[choice] ?? "",
+						text: trapWords(said, choice),
+						repeated: false,
+					};
+		return recordedOf(
+			{
+				task_id: homeTask,
+				topic: card.topic,
+				choice,
+				correct: right,
+				correct_answer: card.correct,
+				trap,
+				solution: said.solution,
+				hint_used: false,
+				rating: {
+					before: card.rating.before,
+					after: right ? card.rating.right : card.rating.wrong,
+				},
+				trial: null,
+				already_answered: false,
+			},
+			homeCard,
+		);
+	};
+	return Object.fromEntries(
+		choices.map((choice) => [choice, resultOf(choice)]),
+	) as HomeResults;
+}
+
+// trapWords are the words of the trap behind the wrong option letter, as the
+// page says them. A wrong option the page has no words for stops the build.
+function trapWords(said: HomeWords, letter: string): string {
+	const words = said.traps[letter];
+	if (words === undefined) {
+		throw new Error(
+			`the home page says nothing of the trap behind its wrong option ${letter}`,
+		);
+	}
+	return words;
 }
 
 // factsOf are the facts of the card, with the trap behind the option the steps
@@ -161,6 +242,6 @@ function factsOf(card: HomeCard): CardFacts {
 		choice: card.choice,
 		correct: card.correct,
 		trap: card.traps[card.choice] ?? "",
-		rating: card.rating,
+		rating: { before: card.rating.before, after: card.rating.wrong },
 	};
 }

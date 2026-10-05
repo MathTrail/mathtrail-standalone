@@ -66,7 +66,12 @@ async function main(): Promise<void> {
 		}
 		const browser = await chromium.launch();
 		try {
+			// The picture is of the page as it is built: no script of the site is
+			// fetched, since one that ran first would decide what the picture shows
+			// by how fast it ran. The browser's own scripting stays on, since it is
+			// what lays the picture out.
 			const page = await browser.newPage({ viewport: sharingPictureSize });
+			await page.route("**/*.js", (route) => route.abort());
 			for (const locale of locales) {
 				const answer = await page.goto(new URL(`${locale}/`, base).href);
 				if (!answer?.ok()) {

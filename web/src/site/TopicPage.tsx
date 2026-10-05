@@ -1,6 +1,7 @@
 import type { Words } from "../i18n/words";
+import { cardWords } from "../widget/dictionaries";
 import { topicName, trapName } from "../widget/names";
-import { cardWords, type Key } from "../widget/words";
+import type { Key } from "../widget/words";
 import { address } from "./addresses";
 import type { Example, SiteData } from "./data";
 import { connectAddress } from "./home";

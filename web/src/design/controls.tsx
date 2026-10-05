@@ -1,7 +1,8 @@
 import type { ComponentChildren, Ref } from "preact";
-import { useEffect, useId, useRef } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 import { classes } from "./classes";
 import { Icon, type IconName } from "./icons";
+import { useScopedId } from "./ids";
 
 /**
  * Button is the design's button, secondary unless it is the one thing to do
@@ -269,7 +270,7 @@ export function TextField({
 	onEnter?: () => void;
 	inputRef?: Ref<HTMLInputElement>;
 }) {
-	const id = useId();
+	const id = useScopedId();
 	const told = toldUnder(id, { note, problem });
 	return (
 		<div class="mt-form-field">
@@ -330,7 +331,7 @@ export function SelectField({
 	choices: readonly Choice[];
 	onChange: (value: string) => void;
 }) {
-	const id = useId();
+	const id = useScopedId();
 	const told = toldUnder(id, { note, problem });
 	return (
 		<div class="mt-form-field">
@@ -394,7 +395,7 @@ export function ChipsField({
 	onAdd: () => void;
 	onRemove: (chip: string) => void;
 }) {
-	const id = useId();
+	const id = useScopedId();
 	const full = chips.length >= most;
 	const told = toldUnder(id, { note: full ? fullNote : undefined, problem });
 	const input = useRef<HTMLInputElement>(null);
@@ -486,7 +487,7 @@ export function CheckGroup({
 	problem?: string;
 	onChange: (value: string[]) => void;
 }) {
-	const id = useId();
+	const id = useScopedId();
 	const told = toldUnder(id, { problem });
 	const ticked = new Set(value);
 	return (
@@ -538,7 +539,7 @@ export function ViewSwitch<Value extends string>({
 	value: Value;
 	onChange: (value: Value) => void;
 }) {
-	const name = useId();
+	const name = useScopedId();
 	return (
 		<fieldset class="mt-switch">
 			<legend class="mt-vh">{legend}</legend>

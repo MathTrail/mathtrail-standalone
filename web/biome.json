@@ -16,6 +16,26 @@
 	},
 	"overrides": [
 		{
+			"includes": ["src/design/**", "src/widget/**", "!src/design/ids.ts"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"paths": {
+									"preact/hooks": {
+										"importNames": ["useId"],
+										"message": "A card's ids come from useScopedId in design/ids.ts: a card drawn live on a page beside cards drawn at build time would otherwise take ids they already hold."
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		{
 			"includes": ["tools/sitecheck/**"],
 			"linter": {
 				"rules": {

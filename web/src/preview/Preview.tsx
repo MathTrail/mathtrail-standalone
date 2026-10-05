@@ -1,5 +1,5 @@
 import { useMemo, useState } from "preact/hooks";
-import { dictionaries } from "../widget/words";
+import { dictionaries } from "../widget/dictionaries";
 import { HostedCard } from "./HostedCard";
 import { scenesIn } from "./scenes";
 import { previewWidths } from "./widths";

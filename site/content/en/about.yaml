@@ -1,32 +1,47 @@
 # The page "About", for a parent: who makes MathTrail — one family, each of us
 # under a role — and where to write. The children go by their place in the
-# family, never by name. The address and the link to the code are the footer's,
-# which the page fills in.
+# family, never by name, and each of us by the key our photograph goes by. The
+# address and the link to the code are the footer's, which the page fills in.
 
 title: About
 description: "MathTrail is made by one family: who does what, and how to reach us."
 
+# The first screen, beside the photograph of the four of us; photo says what
+# it shows, for whoever cannot see it.
 hero:
   title: MathTrail is made by one family
-  lead: There are four of us. One writes the code, one looks after everything else, one solves the problems first, and one is still looking around.
+  lead: >-
+    MathTrail grew out of a parent's care. There are four of us: Dad builds the
+    platform, Mum keeps the project cosy and in order, our restless older son,
+    eyes alight, cracks the new problems, and the younger one just snuffles
+    sweetly nearby and reminds us what it is all for.
+  photo: The four of us at a table with a chocolate cake, Dad holding the younger son.
 
-# A card for each of us: who we are in the family, a role, and what we do,
-# under a heading a screen reader alone says.
+# A card for each of us: a role, who we are in the family, what we do, and
+# what our portrait shows, under a heading a screen reader alone says.
 team:
   title: Who we are
   members:
-    - role: Full-Stack Babyholder
+    dad:
+      role: Full-Stack Babyholder
       name: Dad
-      text: Writes the server, the task checks and the widget. Works in headphones and, as a rule, with someone in his arms.
-    - role: Chief Everything Officer
+      text: Writes code with one hand and rocks the baby with the other. Deploys strictly after the afternoon nap, or production wakes up and cries.
+      photo: Dad with the younger son in a carrier on his chest, the baby in ear defenders.
+    mum:
+      role: Chief Everything Officer
       name: Mum
       text: Looks after everything else, which is to say everything.
-    - role: Chief Task Cracker
+      photo: Mum in a beige jacket, smiling.
+    older-son:
+      role: Chief Task Cracker
       name: Older son
       text: Solves new problems first and says honestly where they are unclear.
-    - role: R&D Intern (Crash-Test)
+      photo: The older son with a bright toy on his head, smiling.
+    younger-son:
+      role: R&D Intern (Crash-Test)
       name: Younger son
       text: For now tests toys for strength. A couple of years to go before his first problem.
+      photo: The younger son on his tummy on a soft rug, a teddy bear beside him.
 
 contact:
   title: Found a mistake, or have an idea?

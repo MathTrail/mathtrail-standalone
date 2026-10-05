@@ -1,7 +1,8 @@
 // The site's build. It reads the texts in site/content/<locale>/ — the
 // documents' Markdown and the pages' words — draws every page with the site's
-// components, builds the stylesheet with the font it sets, and writes the whole
-// site into the one directory a static host publishes.
+// components, builds the stylesheet with the font it sets and the home page's
+// demo, and writes the whole site into the one directory a static host
+// publishes.
 //
 //	node scripts/prerender-site.ts --base https://mathtrail.app --out ../site/dist
 
@@ -18,7 +19,13 @@ import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { parseArgs } from "node:util";
 import { build, createServer } from "vite";
-import { sharingPicturePath } from "../src/site/brand.ts";
+import {
+	coachPrototypePath,
+	type Photo,
+	photoPath,
+	photos,
+	sharingPicturePath,
+} from "../src/site/brand.ts";
 import type { SiteFile } from "../src/site/render.tsx";
 
 const web = join(import.meta.dirname, "..");
@@ -87,9 +94,10 @@ type Made = { readonly path: string; readonly data: string | Buffer };
 /**
  * buildSite builds the site into out: the pages its texts make, the
  * stylesheet and the font files it names, the font's licence, the design's
- * tokens, the mark and the pictures a shared link shows. Every file is made
- * before anything is written, so a build that fails at any step leaves the
- * last one where it was.
+ * tokens, the mark, the pictures a shared link shows, the family's
+ * photographs, and the coach's prototype with the licence of the fonts it
+ * carries. Every file is made before anything is written, so a build that
+ * fails at any step leaves the last one where it was.
  */
 export async function buildSite({
 	base,
@@ -100,6 +108,14 @@ export async function buildSite({
 	const files: Made[] = [
 		...(await drawPages(base, sources)),
 		...(await sharingPictures([...sources.keys()])),
+		// The family's photographs go out as they are kept, each under the name
+		// the page that shows it serves it by.
+		...(await Promise.all(
+			photos.map(async (photo) => ({
+				path: photoPath(photo.name).slice(1),
+				data: await readFile(keptPhotoOf(photo)),
+			})),
+		)),
 		...(await buildStyles()),
 		// The tokens are the very file the widget and the sign-in pages read,
 		// so the site takes its fonts and sizes from where they do; the mark is
@@ -120,6 +136,20 @@ export async function buildSite({
 			path: "assets/onest-license.txt",
 			data: await readFile(
 				require.resolve("@fontsource-variable/onest/LICENSE"),
+			),
+		},
+		// The coach's prototype goes out byte for byte as it is kept, and the
+		// licence of the fonts inside it travels with it, as the licence asks.
+		{
+			path: coachPrototypePath.slice(1),
+			data: await readFile(
+				join(repository, "site", coachPrototypePath.slice(1)),
+			),
+		},
+		{
+			path: "assets/noto-license.txt",
+			data: await readFile(
+				join(repository, "site", "assets", "noto-license.txt"),
 			),
 		},
 	];
@@ -192,6 +222,14 @@ export function keptPictureOf(locale: string): string {
 	return join(repository, "site", sharingPicturePath(locale).slice(1));
 }
 
+/**
+ * keptPhotoOf is the file a photograph of the site is kept in: the site's own
+ * assets, under the name its page serves it by.
+ */
+export function keptPhotoOf(photo: Photo): string {
+	return join(repository, "site", photoPath(photo.name).slice(1));
+}
+
 // sharingPictures are the pictures a shared link to a page shows, one for each
 // language of the site that has one, kept in the site's assets under the name
 // they are served by. A language with none yet still builds, since a picture
@@ -216,8 +254,8 @@ async function sharingPictures(locales: readonly string[]): Promise<Made[]> {
 	return kept;
 }
 
-// buildStyles builds the site's stylesheet into a directory of its own and
-// reads back what the build made there.
+// buildStyles builds the site's stylesheets and the home page's demo into a
+// directory of their own and reads back what the build made there.
 async function buildStyles(): Promise<Made[]> {
 	const dir = await mkdtemp(join(tmpdir(), "site-styles-"));
 	try {

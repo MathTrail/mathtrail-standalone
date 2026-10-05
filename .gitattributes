@@ -12,3 +12,10 @@ content/drawings/*.json text eol=lf
 
 # Default: let Git normalise line endings
 * text=auto
+
+# The coach's prototype on the site is the export of the tool it was drawn in,
+# with two small pieces taken out of it, and it ships byte for byte as it is
+# kept: Git keeps its bytes as they are, shows no diff of the two lines that
+# hold nearly all of it, and counts it as generated rather than as written here.
+# It comes after the default, which it would otherwise lose to.
+site/assets/coach-prototype.html -text -diff linguist-generated

@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef } from "preact/hooks";
+import { useEffect, useReducer, useRef, useState } from "preact/hooks";
 import type { Host } from "./bridge";
 import { CardFrame } from "./CardFrame";
 import { CardHeader } from "./CardRoot";
@@ -11,10 +11,11 @@ import {
 	waitAfter,
 	waitStart,
 } from "./coming";
-import { type Coming, readTaskStatus, type TaskStatus } from "./payload";
+import type { Coming } from "./payload";
+import { useService } from "./service";
 import { TaskInCard } from "./TaskCard";
 import { TaskWait } from "./TaskWait";
-import { moments } from "./waiting";
+import { moments, type Phase } from "./waiting";
 import { useWords } from "./words";
 
 /**
@@ -22,16 +23,21 @@ import { useWords } from "./words";
  * task is asked for, and waits for it: it asks the service how the task
  * stands, and shows the task being written — and a try the checks turned
  * down, with a new one being written, and the wait gone long — until the task
- * is on the card, and then turns into it, in the same frame, the progress
- * opened over it left open. A task that is not coming is said so, in words
- * true whatever ended its request — the tries spent, the request replaced, or
- * the task gone from the card long since, for a card drawn again with an
- * earlier chat: no task is here, and where the next one comes.
+ * is on the card. It then ticks off the rest of the course, the checks the
+ * task passed and the task ready, and turns into the task, in the same frame,
+ * the progress opened over it left open. A task that is not coming is said
+ * so, in words true whatever ended its request — the tries spent, the request
+ * replaced, or the task gone from the card long since, for a card drawn again
+ * with an earlier chat: no task is here, and where the next one comes.
  */
 export function ComingCard({ coming, host }: { coming: Coming; host: Host }) {
 	const words = useWords();
-	const wait = useWaitFor(host, coming.requestId);
-	const { task } = wait;
+	const wait = useWaitFor(coming.requestId);
+	const finishing = useFinishing(wait);
+	const task = finishing === undefined ? wait.task : undefined;
+	// The wait's news is of a task still awaited: a task that has come answers
+	// it.
+	const awaited = wait.task === undefined;
 	return (
 		<CardFrame
 			child={coming.child}
@@ -45,9 +51,9 @@ export function ComingCard({ coming, host }: { coming: Coming; host: Host }) {
 					<article aria-label={words.text("waiting.label")}>
 						<CardHeader grade={whose.grade} wide={wide} />
 						<TaskWait
-							phase="writing"
-							rewriting={wait.refused > 0}
-							slow={wait.slow}
+							phase={finishing ?? "writing"}
+							rewriting={awaited && wait.refused > 0}
+							slow={awaited && wait.slow}
 							ended={
 								shows(wait) === "not coming"
 									? { said: "waiting.stale", next: "waiting.next_below" }
@@ -74,7 +80,8 @@ export function ComingCard({ coming, host }: { coming: Coming; host: Host }) {
 // each time the question before was answered, as often as the wait says, until
 // it is settled. A page out of sight asks nothing, and asks at once when it is
 // looked at again.
-function useWaitFor(host: Host, requestId: string): Wait {
+function useWaitFor(requestId: string): Wait {
+	const service = useService();
 	const [wait, dispatch] = useReducer(waitAfter, waitStart);
 	// latest is the wait as it stands, which the next question is timed by. A
 	// change of pace alone — the wait gone long — sets no question going afresh,
@@ -93,7 +100,7 @@ function useWaitFor(host: Host, requestId: string): Wait {
 				document.addEventListener("visibilitychange", whenSeen);
 				return;
 			}
-			const status = await statusOf(host, requestId);
+			const status = await service.taskStatus(requestId);
 			if (!gone) {
 				dispatch({ type: "answered", status });
 			}
@@ -114,7 +121,7 @@ function useWaitFor(host: Host, requestId: string): Wait {
 			clearTimeout(timer);
 			document.removeEventListener("visibilitychange", whenSeen);
 		};
-	}, [host, requestId, wait.answers, settled]);
+	}, [service, requestId, wait.answers, settled]);
 
 	useEffect(() => {
 		if (settled) {
@@ -130,15 +137,34 @@ function useWaitFor(host: Host, requestId: string): Wait {
 	return wait;
 }
 
-// statusOf asks the service how the task of the request stands. A question
-// whose answer never came leaves it unknown, and is asked again later.
-async function statusOf(host: Host, requestId: string): Promise<TaskStatus> {
-	try {
-		return readTaskStatus(
-			await host.callTool("read_task", { request_id: requestId }),
+// Finish is a step of the course a card ticks off once its task has come.
+type Finish = Extract<Phase, "checked" | "ready">;
+
+// useFinishing is the phase of the course a card shows between its task coming
+// and the task taking the course's place: the checks passed at once, the task
+// ready a beat later, held a moment so that it is seen. It is nothing while the
+// task is awaited and once the course is done, and nothing at all when the
+// card's first answer brought the task — a card drawn again with an earlier
+// chat —, which shows it at once: only a card that has waited has a course to
+// finish.
+function useFinishing(wait: Wait): Finish | undefined {
+	const come = wait.task !== undefined && wait.answers > 1;
+	const [ticked, setTicked] = useState<Finish | "done">("checked");
+
+	useEffect(() => {
+		if (!come) {
+			return;
+		}
+		const ready = setTimeout(() => setTicked("ready"), moments.beat);
+		const done = setTimeout(
+			() => setTicked("done"),
+			moments.beat + moments.held,
 		);
-	} catch (error: unknown) {
-		console.error("widget: how the task stands did not arrive", error);
-		return { kind: "unknown" };
-	}
+		return () => {
+			clearTimeout(ready);
+			clearTimeout(done);
+		};
+	}, [come]);
+
+	return come && ticked !== "done" ? ticked : undefined;
 }

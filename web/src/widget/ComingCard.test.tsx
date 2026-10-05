@@ -42,6 +42,10 @@ const first = firstAskIn(coming.request_id);
 // frame that brought the answer to the one before.
 const late = 300;
 
+// finished is how long a card takes, once its task has come, to tick off the
+// rest of the course before the task takes the course's place.
+const finished = moments.beat + moments.held;
+
 // answering answers the card's questions with the statuses given, one for each
 // question, the last again for every question after it; and the other tools a
 // card calls as the service would.
@@ -129,10 +133,26 @@ describe("a card a task asked for comes to", () => {
 		expect(card.asked()).toHaveLength(5);
 	});
 
-	test("turns into the task once it is on the card, asks no more, and the task is answered on it", async () => {
+	test("ticks off the checks and the task ready once the task is on the card, then turns into it, asks no more, and the task is answered on it", async () => {
 		const card = await drawn(answering(writing(), onTheCard));
 
-		await pass(first + moments.ask + late);
+		await pass(first + moments.ask);
+		expect(labels()).toEqual([
+			"Done: Picked topic and difficulty",
+			"Done: Writing the task",
+			"Done: Checking every answer",
+			"Waiting: Ready",
+		]);
+		await pass(moments.beat);
+		expect(labels()).toEqual([
+			"Done: Picked topic and difficulty",
+			"Done: Writing the task",
+			"Done: Checking every answer",
+			"Done: Ready",
+		]);
+		expect(root.querySelector(".mt-task-text")).toBeNull();
+
+		await pass(moments.held);
 		expect(text(".mt-task-text")).toBe(fence.task.question);
 		expect(root.querySelector(".mt-gen")).toBeNull();
 		await pass(moments.askSlowly * 4);
@@ -147,6 +167,30 @@ describe("a card a task asked for comes to", () => {
 		expect(text(".mt-verdict-line")).toBe("Correct! It's 5.");
 	});
 
+	test("ticks off the course for a task that comes after questions that went unanswered", async () => {
+		await drawn(answering(failure, onTheCard));
+
+		await pass(first + moments.askSlowly + first);
+		expect(labels()).toEqual([
+			"Done: Picked topic and difficulty",
+			"Done: Writing the task",
+			"Done: Checking every answer",
+			"Waiting: Ready",
+		]);
+
+		await pass(finished);
+		expect(text(".mt-task-text")).toBe(fence.task.question);
+	});
+
+	test("shows its task at once when the task is there at its first question, as on a card drawn again with an earlier chat", async () => {
+		await drawn(answering(onTheCard));
+
+		await pass(first);
+
+		expect(text(".mt-task-text")).toBe(fence.task.question);
+		expect(root.querySelector(".mt-gen")).toBeNull();
+	});
+
 	test("says a try was turned down while a new one is written", async () => {
 		await drawn(answering(writing(1)));
 
@@ -155,6 +199,15 @@ describe("a card a task asked for comes to", () => {
 		expect(news()).toBe(
 			"A try didn't pass the checks; a new one is being written.",
 		);
+		expect(root.querySelector(".mt-gen")).not.toBeNull();
+	});
+
+	test("drops the word of a try turned down once the task has come", async () => {
+		await drawn(answering(writing(1), onTheCard));
+
+		await pass(first + moments.ask);
+
+		expect(news()).toBe("");
 		expect(root.querySelector(".mt-gen")).not.toBeNull();
 	});
 
@@ -262,6 +315,8 @@ describe("a card a task asked for comes to", () => {
 		);
 		deliver(onTheCard);
 		await pass(late);
+		expect(news()).toBe("");
+		await pass(finished);
 
 		expect(text(".mt-task-text")).toBe(fence.task.question);
 		expect(card.asked()).toHaveLength(before + 1);
@@ -318,7 +373,7 @@ describe("a card a task asked for comes to", () => {
 		await pass(late);
 		expect(buttonIn(root, "Back")).toBeTruthy();
 
-		await pass(moments.ask + late);
+		await pass(moments.ask + late + finished);
 		press(buttonIn(root, "Back to task"));
 		await pass(0);
 
@@ -334,7 +389,7 @@ describe("a card a task asked for comes to", () => {
 		await pass(late);
 		press(foldIn(root, "Profile"));
 
-		await pass(moments.ask + late);
+		await pass(moments.ask + late + finished);
 		press(buttonIn(root, "Back to task"));
 		await pass(0);
 		expect(text(".mt-task-text")).toBe(fence.task.question);

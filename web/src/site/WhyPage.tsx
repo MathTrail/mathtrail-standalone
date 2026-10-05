@@ -1,6 +1,6 @@
 import type { Words } from "../i18n/words";
+import { cardWords } from "../widget/dictionaries";
 import { topicName } from "../widget/names";
-import { cardWords } from "../widget/words";
 import { address } from "./addresses";
 import { sourceURL } from "./brand";
 import { ChildAsks } from "./Chat";

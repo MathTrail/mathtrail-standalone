@@ -90,6 +90,11 @@ type counts struct {
 	keptUp         map[keptUpIn]*keptUp
 	answersLeftOut map[string]int
 	skipped        int
+	// testing are the children a host of notChildren handed a task to, and
+	// masteries the topics the other children were shown as mastered, as
+	// their answers after followed them.
+	testing   map[string]bool
+	masteries map[group][]shownMastery
 	// traces is what became of the traces and their deliveries, busy how busy
 	// the busiest minute was, and breaches every way the lines broke the rules
 	// of the log.
@@ -133,8 +138,11 @@ func tally(in *input) *counts {
 		}
 	}
 	c.versions = inOrder(firstSeen)
+	testedUsers, testedLearners := testChildren(lines)
+	c.testing = testedUsers
+	c.masteries = shownMasteries(lines, hosts, testedUsers)
 	c.traces, c.busy, c.breaches = tracesOf(lines), busyOf(lines), in.breaches
-	c.children = childrenByDay(lines)
+	c.children = childrenByDay(lines, testedLearners)
 	return c
 }
 

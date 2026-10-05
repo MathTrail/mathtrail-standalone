@@ -115,6 +115,17 @@ MIT           shebang-regex@3.0.0                            https://www.npmjs.c
 ISC           which@2.0.2                                    https://www.npmjs.com/package/which/v/2.0.2
 MIT           zod@4.6.5                                      https://www.npmjs.com/package/zod/v/4.6.5
 
+The prototype of the coach on the site is the export of the tool it was
+drawn in, shipped with two small pieces taken out of it, and it carries
+copies of its own of the packages and the fonts below. Each line is a
+license, the copy at its exact version, and where its maker publishes the
+license; the fonts' licence travels beside the prototype on the site.
+
+MIT           react@18.3.1                                   https://www.npmjs.com/package/react/v/18.3.1
+MIT           react-dom@18.3.1                               https://www.npmjs.com/package/react-dom/v/18.3.1
+OFL-1.1       Noto Sans 2.015                                https://github.com/notofonts/latin-greek-cyrillic/blob/NotoSans-v2.015/OFL.txt
+OFL-1.1       Noto Serif 2.015                               https://github.com/notofonts/latin-greek-cyrillic/blob/NotoSerif-v2.015/OFL.txt
+
 The data below ships in the image the server runs from, unchanged. Each
 line is a license, the data at the exact version the image carries, and
 where its maker publishes it. IP geolocation by DB-IP (https://db-ip.com),

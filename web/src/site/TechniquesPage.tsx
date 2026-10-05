@@ -1,5 +1,5 @@
+import { cardWords } from "../widget/dictionaries";
 import { topicName } from "../widget/names";
-import { cardWords } from "../widget/words";
 import { address } from "./addresses";
 import type { SiteData } from "./data";
 import { connectAddress } from "./home";
@@ -7,7 +7,7 @@ import type { PageProps } from "./pages";
 import type { PageReader } from "./reader";
 import { Solution } from "./Solution";
 import { TechniqueDrawing } from "./TechniqueDrawings";
-import type { Technique, Techniques } from "./techniques";
+import { allTechniques, type Technique, type Techniques } from "./techniques";
 import { gradesText, useSiteWords } from "./words";
 
 /**
@@ -61,9 +61,10 @@ function numbersOf(
 ): ReadonlyMap<string, string> {
 	const two = new Intl.NumberFormat(page.locale, { minimumIntegerDigits: 2 });
 	return new Map(
-		techniques.groups
-			.flatMap((group) => group.techniques)
-			.map((technique, at) => [technique.id, two.format(at + 1)]),
+		allTechniques(techniques).map((technique, at) => [
+			technique.id,
+			two.format(at + 1),
+		]),
 	);
 }
 
@@ -85,7 +86,9 @@ function Hero({
 				<h1>{page.text("hero.title")}</h1>
 				<p class="s-lead">
 					{page.text("hero.lead", {
-						count: words.text("techniques.count", { count: numbers.size }),
+						count: words.text("techniques.count", {
+							count: allTechniques(techniques).length,
+						}),
 					})}
 				</p>
 				<p class="s-intro-line">{page.text("hero.advice")}</p>

@@ -396,6 +396,19 @@ _license-list:
 
     WEB
     node web/scripts/licenses.ts list
+    cat <<'COACH'
+
+    The prototype of the coach on the site is the export of the tool it was
+    drawn in, shipped with two small pieces taken out of it, and it carries
+    copies of its own of the packages and the fonts below. Each line is a
+    license, the copy at its exact version, and where its maker publishes the
+    license; the fonts' licence travels beside the prototype on the site.
+
+    MIT           react@18.3.1                                   https://www.npmjs.com/package/react/v/18.3.1
+    MIT           react-dom@18.3.1                               https://www.npmjs.com/package/react-dom/v/18.3.1
+    OFL-1.1       Noto Sans 2.015                                https://github.com/notofonts/latin-greek-cyrillic/blob/NotoSans-v2.015/OFL.txt
+    OFL-1.1       Noto Serif 2.015                               https://github.com/notofonts/latin-greek-cyrillic/blob/NotoSerif-v2.015/OFL.txt
+    COACH
     cat <<'DATA'
 
     The data below ships in the image the server runs from, unchanged. Each
@@ -681,6 +694,24 @@ site-og: site _playwright-pinned
     docker run --rm --init --shm-size=1g --user "$(id -u):$(id -g)" -e HOME=/tmp \
         -v "{{ justfile_directory() }}:{{ justfile_directory() }}" -w "{{ justfile_directory() }}/web" \
         {{ PLAYWRIGHT_IMAGE }} node scripts/og.ts
+
+# The site's photographs, made from their originals in dir: one file for each,
+# under the photograph's name — family, dad, mum, older-son, younger-son — as
+# PNG, JPEG or WebP. Each is cropped to its shape, scaled to its size and
+# written as WebP holding the picture alone, by Chromium from the image the
+# widget's layout is measured in. The originals are only read; the photographs
+# are written over site/assets/photos/, for the change to be looked at before
+# it is kept.
+# Make the site's photographs from their originals
+[working-directory('web')]
+site-photos dir: _playwright-pinned
+    #!/usr/bin/env bash
+    set -euo pipefail
+    originals=$(cd {{ quote(invocation_directory()) }} && realpath -- {{ quote(dir) }})
+    docker run --rm --init --shm-size=1g --user "$(id -u):$(id -g)" -e HOME=/tmp \
+        -v "{{ justfile_directory() }}:{{ justfile_directory() }}" -w "{{ justfile_directory() }}/web" \
+        -v "$originals:/originals:ro" \
+        {{ PLAYWRIGHT_IMAGE }} node scripts/photos.ts /originals
 
 # -- Infrastructure ---------------------------------------------------------
 

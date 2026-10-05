@@ -47,6 +47,10 @@
   --page: #f5f4ef;
   --page-sunk: #ebe9e2;
   --shadow-frame: 0 1px 2px rgba(31,30,27,0.06), 0 16px 40px rgba(31,30,27,0.10);
+  /* Which of the logo's two drawings the theme shows: the one on a white
+     tile, or the site's icon itself, on a dark one. */
+  --mark-light: block;
+  --mark-dark: none;
 }
 [data-theme="dark"] {
   --surface: #1d1c1a;
@@ -88,6 +92,8 @@
   --page: #141312;
   --page-sunk: #1b1a18;
   --shadow-frame: 0 1px 2px rgba(0,0,0,0.5), 0 16px 40px rgba(0,0,0,0.45);
+  --mark-light: none;
+  --mark-dark: block;
 }
 :root {
   --space-4: 4px;
@@ -157,5 +163,7 @@
   --page: #141312;
   --page-sunk: #1b1a18;
   --shadow-frame: 0 1px 2px rgba(0,0,0,0.5), 0 16px 40px rgba(0,0,0,0.45);
+  --mark-light: none;
+  --mark-dark: block;
 }
 }

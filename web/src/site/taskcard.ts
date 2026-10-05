@@ -1,8 +1,7 @@
+import { type Letter, letters } from "../widget/choices";
 import {
 	type AnswerResult,
 	type HandedTask,
-	type Letter,
-	letters,
 	readAnswer,
 	readHandedTask,
 } from "../widget/payload";
@@ -169,32 +168,42 @@ export function answerOf(
 	where: string,
 ): WrongAnswer {
 	const handed = handedOf(card, { ...said, hint: "" }, id, where);
-	const told = readAnswer(
+	const result = recordedOf(
 		{
-			content: [],
-			structuredContent: {
-				screen: "result",
-				result: {
-					task_id: id,
-					topic: card.topic,
-					choice: card.choice,
-					correct: false,
-					correct_answer: card.correct,
-					trap: { id: card.trap, text: said.trap, repeated: false },
-					solution: said.solution,
-					hint_used: false,
-					rating: card.rating,
-					trial: null,
-					already_answered: false,
-				},
-			},
+			task_id: id,
+			topic: card.topic,
+			choice: card.choice,
+			correct: false,
+			correct_answer: card.correct,
+			trap: { id: card.trap, text: said.trap, repeated: false },
+			solution: said.solution,
+			hint_used: false,
+			rating: card.rating,
+			trial: null,
+			already_answered: false,
 		},
-		id,
+		where,
+	);
+	return { handed, result };
+}
+
+/**
+ * recordedOf is result as the widget reads an answer the service recorded for
+ * the task it names. A result the widget's own reader refuses stops the
+ * build; where names the card in what it says.
+ */
+export function recordedOf(
+	result: { readonly task_id: string } & Readonly<Record<string, unknown>>,
+	where: string,
+): AnswerResult {
+	const told = readAnswer(
+		{ content: [], structuredContent: { screen: "result", result } },
+		result.task_id,
 	);
 	if (told.kind !== "answered") {
 		throw new Error(
 			`${where} holds no answer the widget can draw: its choice and its right option are letters A to E`,
 		);
 	}
-	return { handed, result: told.result };
+	return told.result;
 }

@@ -3,10 +3,12 @@ import skills from "../../../content/catalogs/skills.json";
 import topics from "../../../content/catalogs/topics.json";
 import traps from "../../../content/catalogs/traps.json";
 import english from "../../locales/en.json";
+import russian from "../../locales/ru.json";
+import { openWords } from "../i18n/words";
 import siteEnglish from "../site/locales/en.json";
 import siteRussian from "../site/locales/ru.json";
+import { cardWords, catalogSkills } from "./dictionaries";
 import {
-	catalogSkills,
 	countryName,
 	groupName,
 	knownTrapName,
@@ -20,7 +22,7 @@ import {
 	trapName,
 } from "./names";
 import { topicGroups } from "./topicGroups";
-import { cardWords } from "./words";
+import type { Key } from "./words";
 
 const inEnglish = cardWords("en", undefined);
 const inRussian = cardWords("ru", undefined);
@@ -83,6 +85,21 @@ describe("the catalogs' names", () => {
 		expect(topicName(inEnglish, "logic.unknown")).toBe("logic.unknown");
 		expect(skillName(inEnglish, "juggling")).toBe("juggling");
 		expect(trapName(inEnglish, "counted_the_cat")).toBe("counted_the_cat");
+	});
+
+	// A page of the site gives a card the words of its own language alone,
+	// with no English behind them: a name is asked of the words the card was
+	// given, never of a dictionary the card did not get.
+	test("are asked of the words the card was given, whatever English has", () => {
+		const russianAlone = openWords<Key>("ru", new Map([["ru", russian]]));
+		const nameless = openWords<Key>("ru", new Map([["ru", {}]]));
+
+		expect(topicName(russianAlone, "combinatorics.enumeration")).toBe(
+			"Перебор",
+		);
+		expect(topicName(nameless, "combinatorics.enumeration")).toBe(
+			"combinatorics.enumeration",
+		);
 	});
 });
 

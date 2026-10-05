@@ -13,8 +13,38 @@ function options(): Options {
 		base,
 		referenceLocale: "en",
 		maxPageBytes: 4096,
+		maxFrameBytes: 4096,
+		photos: "/assets/photos/",
 		published: addresses,
 	};
+}
+
+// showing makes the English front page show the picture at src, and gives the
+// site a picture past the budget in its photo directory and in another one
+// whose name only begins the same.
+function showing(src: string) {
+	return (files: Record<string, string>): void => {
+		files["en/index.html"] = pageAt("/en/", addresses).replace(
+			"</body>",
+			`<img src="${src}" alt="Us"></body>`,
+		);
+		files["assets/photos/us.webp"] = "x".repeat(8192);
+		files["assets/photos-old/us.webp"] = "x".repeat(8192);
+	};
+}
+
+// framing makes the page at each of framers frame the document at src.
+function framing(
+	files: Record<string, string>,
+	src: string,
+	framers: readonly string[] = ["/en/"],
+): void {
+	for (const address of framers) {
+		files[`${address.slice(1)}index.html`] = pageAt(address, addresses).replace(
+			"</body>",
+			`<iframe src="${src}" title="Demo"></iframe></body>`,
+		);
+	}
 }
 
 // withPicture is page with the picture a shared link to it shows named in its
@@ -213,6 +243,43 @@ describe("check", () => {
 			contains: "the budget is 4096",
 		},
 		{
+			name: "a framed document past a budget of its own",
+			change: (files) => {
+				framing(files, "/assets/demo.html");
+				files["assets/demo.html"] = "x".repeat(5000);
+			},
+			rule: "weight",
+			contains:
+				"assets/demo.html: weight: a page frames it, and with what it loads it comes to 5000 bytes; the budget of a framed document is 4096",
+		},
+		{
+			name: "a frame of a file the site does not have",
+			change: (files) => {
+				framing(files, "/assets/gone.html");
+			},
+			rule: "link",
+			contains: `<iframe src="/assets/gone.html"> leads to assets/gone.html`,
+		},
+		{
+			name: "a framed document that loads from another origin",
+			change: (files) => {
+				framing(files, "/assets/demo.html");
+				files["assets/demo.html"] =
+					'<script src="https://cdn.example.test/x.js"></script>';
+			},
+			rule: "external",
+			contains: `assets/demo.html: external: <script src="https://cdn.example.test/x.js"> loads from another origin`,
+		},
+		{
+			name: "a file a framed document loads that the site does not have",
+			change: (files) => {
+				framing(files, "/assets/demo.html");
+				files["assets/demo.html"] = '<img src="missing.png" alt="">';
+			},
+			rule: "link",
+			contains: `assets/demo.html: link: <img src="missing.png"> leads to assets/missing.png`,
+		},
+		{
 			name: "a font a stylesheet loads that the site does not have",
 			change: (files) => {
 				files["assets/style.css"] =
@@ -327,6 +394,113 @@ describe("check", () => {
 		expect(await check(dir, { ...options(), maxPageBytes: 6000 })).toEqual([]);
 	});
 
+	test("weighs a framed document apart from the page that frames it", async () => {
+		const dir = await site((files) => {
+			framing(files, "/assets/demo.html");
+			files["assets/demo.html"] = "x".repeat(8000);
+		});
+
+		expect(await check(dir, { ...options(), maxFrameBytes: 8192 })).toEqual([]);
+	});
+
+	test("weighs a framed document once, however many pages frame it", async () => {
+		const dir = await site((files) => {
+			framing(files, "/assets/demo.html", ["/en/", "/ru/"]);
+			files["assets/demo.html"] = "x".repeat(5000);
+		});
+
+		expect(
+			(await check(dir, options())).filter(({ rule }) => rule === "weight"),
+		).toEqual([
+			{
+				path: "assets/demo.html",
+				rule: "weight",
+				message: expect.stringContaining("comes to 5000 bytes"),
+			},
+		]);
+	});
+
+	test("weighs what a framed document loads with it, and what it frames in turn apart from it", async () => {
+		const demo = '<img src="pic.png" alt=""><iframe src="inner.html"></iframe>';
+		const dir = await site((files) => {
+			framing(files, "/assets/demo.html");
+			files["assets/demo.html"] = demo;
+			files["assets/pic.png"] = "x".repeat(4100);
+			files["assets/inner.html"] = "x".repeat(5000);
+		});
+
+		expect(
+			(await check(dir, options())).filter(({ rule }) => rule === "weight"),
+		).toEqual([
+			{
+				path: "assets/demo.html",
+				rule: "weight",
+				message: expect.stringContaining(
+					`comes to ${demo.length + 4100} bytes`,
+				),
+			},
+			{
+				path: "assets/inner.html",
+				rule: "weight",
+				message: expect.stringContaining("comes to 5000 bytes"),
+			},
+		]);
+	});
+
+	test("weighs a page without the photographs it shows, which are worth their weight", async () => {
+		const dir = await site(showing("/assets/photos/us.webp"));
+
+		expect(await check(dir, options())).toEqual([]);
+	});
+
+	test("weighs a page with any other picture it shows, and with every one when it is given no photo directory", async () => {
+		const weighed = (findings: Finding[]) =>
+			findings.map(({ path, rule }) => `${path}: ${rule}`);
+
+		expect(
+			weighed(
+				await check(
+					await site(showing("/assets/photos-old/us.webp")),
+					options(),
+				),
+			),
+		).toEqual(["en/index.html: weight"]);
+		expect(
+			weighed(
+				await check(await site(showing("/assets/photos/us.webp")), {
+					...options(),
+					photos: "",
+				}),
+			),
+		).toEqual(["en/index.html: weight"]);
+	});
+
+	test("judges a page that another page frames as a page, not as a frame", async () => {
+		const dir = await site((files) => {
+			framing(files, "/ru/");
+		});
+
+		expect(await check(dir, { ...options(), maxFrameBytes: 64 })).toEqual([]);
+	});
+
+	test("reads nothing in a framed file that is no HTML, and weighs it by its size", async () => {
+		const picture =
+			'<img src="https://cdn.example.test/x.png" alt=""><a href="gone.html">';
+		const dir = await site((files) => {
+			framing(files, "/assets/picture.png");
+			files["assets/picture.png"] = picture;
+		});
+
+		expect(await check(dir, options())).toEqual([]);
+		expect(await check(dir, { ...options(), maxFrameBytes: 16 })).toEqual([
+			{
+				path: "assets/picture.png",
+				rule: "weight",
+				message: expect.stringContaining(`comes to ${picture.length} bytes`),
+			},
+		]);
+	});
+
 	test("leaves an address of another origin in a stylesheet to the stylesheet rule", async () => {
 		const dir = await site((files) => {
 			files["assets/style.css"] =
@@ -433,6 +607,18 @@ describe("check", () => {
 			options: { ...options(), published: [...addresses, "/en/privacy"] },
 			message: `published address "/en/privacy" is no page's address`,
 		},
+		{
+			name: "a photo directory with no slash at its end, which would take in its namesakes",
+			files: siteAt(addresses),
+			options: { ...options(), photos: "/assets/photos" },
+			message: `photo directory "/assets/photos" is no directory of the site`,
+		},
+		{
+			name: "a photo directory that does not start at the site's root",
+			files: siteAt(addresses),
+			options: { ...options(), photos: "assets/photos/" },
+			message: `photo directory "assets/photos/" is no directory of the site`,
+		},
 	];
 
 	test.for(unreadable)(
@@ -445,4 +631,76 @@ describe("check", () => {
 			await expect(check(dir, options)).rejects.toThrow(message);
 		},
 	);
+});
+
+describe("a script the site serves", () => {
+	// scripted makes the English front page run the script at /assets/demo.js,
+	// which says text.
+	const scripted = (text: string) => (files: Record<string, string>) => {
+		files["en/index.html"] = pageAt("/en/", addresses).replace(
+			"</body>",
+			'<script type="module" src="/assets/demo.js"></script></body>',
+		);
+		files["assets/demo.js"] = text;
+		files["assets/chunk.js"] = "";
+	};
+
+	test.each([
+		["names nothing it loads", 'document.querySelector("main");'],
+		["reads where it runs from", "console.log(import.meta.url);"],
+		[
+			"says words that begin with import",
+			'var important="x",imports=[];e.importNode(n);console.log(important,imports);',
+		],
+	])("passes when it %s", async (_, text) => {
+		const dir = await site(scripted(text));
+
+		expect(await check(dir, options())).toEqual([]);
+	});
+
+	test.each([
+		["imports a module", 'import{a}from"./chunk.js";a();'],
+		["imports a module by its name", 'import a from "./chunk.js";a();'],
+		["imports a module for what it does", 'import"./chunk.js";'],
+		["imports everything of a module", 'import*as c from"./chunk.js";c;'],
+		["calls for a module", 'import("./chunk.js").then(()=>{});'],
+		["passes a module on", 'export*from"./chunk.js";'],
+		["passes names of a module on", 'export{a}from"./chunk.js";'],
+	])(
+		"is refused when it %s, which the checker does not follow",
+		async (_, text) => {
+			const dir = await site(scripted(text));
+
+			expect(await check(dir, options())).toEqual([
+				{
+					path: "assets/demo.js",
+					rule: "script",
+					message:
+						"the script loads another file, which the checker does not follow: a script of the site is one file, weighed whole",
+				},
+			]);
+		},
+	);
+
+	test.each([
+		["fetch", "fetch(u);"],
+		["fetch", "const f=globalThis.fetch;f(u);"],
+		["fetch", 'window["fetch"](u);'],
+		["XMLHttpRequest", "new XMLHttpRequest;"],
+		["sendBeacon", "navigator.sendBeacon(u);"],
+		["WebSocket", "new WebSocket(u);"],
+		["EventSource", "new EventSource(u);"],
+		["new Image", "new Image().src=u;"],
+		["serviceWorker", "navigator.serviceWorker.register(u);"],
+		["localStorage", "localStorage.setItem(k,v);"],
+		["sessionStorage", "sessionStorage.setItem(k,v);"],
+		["indexedDB", "indexedDB.open(k);"],
+		["cookie", "document.cookie=v;"],
+	])("is refused when it names %s, as in %s", async (name, text) => {
+		const dir = await site(scripted(text));
+
+		expect((await check(dir, options())).map(lineOf)).toEqual([
+			`assets/demo.js: script: the script names ${name}, and a script of the site stores nothing and sends nothing`,
+		]);
+	});
 });

@@ -45,7 +45,14 @@ exports[`the screens in Arabic > a try that did not pass 1`] = `
       >
         <svg
           aria-hidden="true"
-          class="mt-icon"
+          class="mt-icon mt-mark-light"
+          height="32"
+          viewBox="0 0 48 48"
+          width="32"
+        />
+        <svg
+          aria-hidden="true"
+          class="mt-icon mt-mark-dark"
           height="32"
           viewBox="0 0 48 48"
           width="32"
@@ -123,7 +130,14 @@ exports[`the screens in Arabic > the first sign-in 1`] = `
     >
       <svg
         aria-hidden="true"
-        class="mt-icon"
+        class="mt-icon mt-mark-light"
+        height="32"
+        viewBox="0 0 48 48"
+        width="32"
+      />
+      <svg
+        aria-hidden="true"
+        class="mt-icon mt-mark-dark"
         height="32"
         viewBox="0 0 48 48"
         width="32"
@@ -3746,7 +3760,14 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
       >
         <svg
           aria-hidden="true"
-          class="mt-icon"
+          class="mt-icon mt-mark-light"
+          height="32"
+          viewBox="0 0 48 48"
+          width="32"
+        />
+        <svg
+          aria-hidden="true"
+          class="mt-icon mt-mark-dark"
           height="32"
           viewBox="0 0 48 48"
           width="32"
@@ -3963,7 +3984,14 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
           >
             <svg
               aria-hidden="true"
-              class="mt-icon"
+              class="mt-icon mt-mark-light"
+              height="28"
+              viewBox="0 0 48 48"
+              width="28"
+            />
+            <svg
+              aria-hidden="true"
+              class="mt-icon mt-mark-dark"
               height="28"
               viewBox="0 0 48 48"
               width="28"
@@ -4791,7 +4819,14 @@ exports[`the screens in Arabic > the task 1`] = `
       >
         <svg
           aria-hidden="true"
-          class="mt-icon"
+          class="mt-icon mt-mark-light"
+          height="32"
+          viewBox="0 0 48 48"
+          width="32"
+        />
+        <svg
+          aria-hidden="true"
+          class="mt-icon mt-mark-dark"
           height="32"
           viewBox="0 0 48 48"
           width="32"
@@ -5046,7 +5081,14 @@ exports[`the screens in Arabic > the task on the topic chosen, its choice of the
       >
         <svg
           aria-hidden="true"
-          class="mt-icon"
+          class="mt-icon mt-mark-light"
+          height="32"
+          viewBox="0 0 48 48"
+          width="32"
+        />
+        <svg
+          aria-hidden="true"
+          class="mt-icon mt-mark-dark"
           height="32"
           viewBox="0 0 48 48"
           width="32"
@@ -5309,7 +5351,7 @@ exports[`the screens in Arabic > the task on the topic chosen, its choice of the
         </button>
       </div>
       <section
-        aria-labelledby="P0-2"
+        aria-labelledby="P0-3"
         class="mt-topic-panel"
         id="P0-0"
       >
@@ -5321,7 +5363,7 @@ exports[`the screens in Arabic > the task on the topic chosen, its choice of the
           >
             <h2
               class="mt-topic-title"
-              id="P0-2"
+              id="P0-3"
             >
               ما موضوع المسألة التالية؟
             </h2>
@@ -5956,7 +5998,14 @@ exports[`the screens in Arabic > the wait for a task asked for 1`] = `
     >
       <svg
         aria-hidden="true"
-        class="mt-icon"
+        class="mt-icon mt-mark-light"
+        height="32"
+        viewBox="0 0 48 48"
+        width="32"
+      />
+      <svg
+        aria-hidden="true"
+        class="mt-icon mt-mark-dark"
         height="32"
         viewBox="0 0 48 48"
         width="32"
@@ -6178,7 +6227,14 @@ exports[`the screens in Arabic > the wait for a task being written, a try turned
       >
         <svg
           aria-hidden="true"
-          class="mt-icon"
+          class="mt-icon mt-mark-light"
+          height="32"
+          viewBox="0 0 48 48"
+          width="32"
+        />
+        <svg
+          aria-hidden="true"
+          class="mt-icon mt-mark-dark"
           height="32"
           viewBox="0 0 48 48"
           width="32"

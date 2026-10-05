@@ -3,8 +3,8 @@ import { afterAll, describe, expect, test } from "vitest";
 import topics from "../../../content/catalogs/topics.json";
 import traps from "../../../content/catalogs/traps.json";
 import file from "../../../site/data.json";
+import { cardWords } from "../widget/dictionaries";
 import { topicName } from "../widget/names";
-import { cardWords } from "../widget/words";
 import { readSiteData } from "./data";
 import type { Frame } from "./frame";
 import { type Page, sitePages } from "./pages";
@@ -191,6 +191,15 @@ const doi = (id: string) =>
 describe("the page Why", () => {
 	test("reads in full with no script", () => {
 		expect(why.querySelector("script")).toBeNull();
+	});
+
+	// A page keeps no profile: its card says whose it is, and leads to no
+	// progress.
+	test("draws a card that offers no progress", () => {
+		expect(why.querySelector(".s-card .mt-bar")?.tagName.toLowerCase()).toBe(
+			"div",
+		);
+		expect(why.querySelector(".s-card .mt-bar-action")).toBeNull();
 	});
 
 	test("draws the widget's own card of a wrong answer, inert, and loads its stylesheet", () => {

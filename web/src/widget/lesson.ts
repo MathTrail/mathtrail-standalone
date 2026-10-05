@@ -1,11 +1,6 @@
 import type { OptionState } from "../design/controls";
-import {
-	type AnswerOutcome,
-	type AnswerResult,
-	type Choice,
-	dontKnow,
-	type Letter,
-} from "./payload";
+import { type Choice, dontKnow, type Letter } from "./choices";
+import type { AnswerOutcome, AnswerResult } from "./payload";
 
 /**
  * Answer is where the child's answer to the task stands: not given yet; sent

@@ -149,3 +149,5 @@ A copy runs in a Google Cloud project of your own, within its free tier, on a do
 The code and the bundled content — the catalogs, the reference tasks and the instructions for the model — are released under the [MIT License](LICENSE). The licenses of the dependencies are listed in [THIRD_PARTY_LICENSES](THIRD_PARTY_LICENSES).
 
 **The MIT License grants no rights to the name MathTrail or to its logos.** A fork that runs publicly goes by a name of its own.
+
+**Nor does it cover the photographs of the family** on the site's page "About", in `site/assets/photos/`: they are the family's own, all rights reserved, and a fork does not use them.

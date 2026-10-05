@@ -1,16 +1,21 @@
 import { useEffect, useLayoutEffect, useMemo, useState } from "preact/hooks";
 import type { Words } from "../i18n/words";
 import type { Bridge, Call, Host } from "./bridge";
+import { OpensProgress } from "./CardFrame";
 import { ChoosingCard } from "./ChoosingCard";
 import { ComingCard } from "./ComingCard";
+import { cardWords } from "./dictionaries";
 import { FirstRunCard } from "./FirstRunScreen";
+import { serviceThrough } from "./hostedService";
 import { ProfileCard } from "./ProfileScreen";
+import { ProgressOverCard } from "./ProgressOverCard";
 import { ProgressCard } from "./ProgressScreen";
 import { readScreen } from "./payload";
+import { ServiceContext } from "./service";
 import { TaskCard } from "./TaskCard";
 import { UnreadableCard } from "./UnreadableCard";
 import { WaitingCard } from "./WaitingCard";
-import { cardWords, type Key, languageIn, WordsContext } from "./words";
+import { type Key, languageIn, WordsContext } from "./words";
 
 /**
  * WidgetApp is the card a tool's result is drawn as, in the words of the
@@ -35,6 +40,9 @@ export function WidgetApp({ bridge, host }: { bridge: Bridge; host: Host }) {
 			cardWords(languageIn(result?.structuredContent) ?? askedIn, hostLocale),
 		[result, askedIn, hostLocale],
 	);
+	// One service for as long as the host is the same: a card's wait asks it
+	// afresh whenever it changes.
+	const service = useMemo(() => serviceThrough(host), [host]);
 	useDocumentLanguage(words);
 	if (result === undefined) {
 		return asked ? (
@@ -48,7 +56,11 @@ export function WidgetApp({ bridge, host }: { bridge: Bridge; host: Host }) {
 	}
 	return (
 		<WordsContext.Provider value={words}>
-			<Screen payload={result.structuredContent} host={host} />
+			<ServiceContext.Provider value={service}>
+				<OpensProgress.Provider value={ProgressOverCard}>
+					<Screen payload={result.structuredContent} host={host} />
+				</OpensProgress.Provider>
+			</ServiceContext.Provider>
 		</WordsContext.Provider>
 	);
 }

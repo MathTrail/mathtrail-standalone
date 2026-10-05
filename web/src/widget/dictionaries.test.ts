@@ -1,6 +1,7 @@
-import { describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { disagreements } from "../i18n/dictionaries";
-import { dictionaries } from "./words";
+import { pseudoLocale } from "../i18n/pseudo";
+import { cardWords, dictionaries, lessonLanguages } from "./dictionaries";
 
 describe("the widget's words", () => {
 	const english = dictionaries.get("en") ?? {};
@@ -23,4 +24,94 @@ describe("the widget's words", () => {
 			expect(disagreements(english, words, tag)).toEqual([]);
 		},
 	);
+});
+
+describe("a card's words", () => {
+	test.each([
+		["ru", "en-US", "ru"],
+		["en", "ru-RU", "en"],
+		[undefined, "ru-RU", "ru"],
+		["kk", "ru-RU", "ru"],
+		[undefined, "es-MX", "es"],
+		["pt-BR", "ru-RU", "pt"],
+		[undefined, "zh-CN", "zh-Hans"],
+		[undefined, "sw-KE", "en"],
+		[undefined, undefined, "en"],
+	])(
+		"with the language chosen %s and the host's %s are in %s",
+		(chosen, host, want) => {
+			expect(cardWords(chosen, host).locale).toBe(want);
+		},
+	);
+
+	test("say what their dictionary says, with the grade in its slot", () => {
+		const russian = cardWords("ru", undefined);
+
+		expect(russian.text("task.hint")).toBe("Подсказка");
+		expect(russian.text("child.grade", { grade: 3 })).toBe("3 класс");
+		expect(
+			cardWords(undefined, "en-GB").text("child.grade", { grade: 3 }),
+		).toBe("Grade 3");
+	});
+
+	test("are in every one of the twenty-two languages of v1", () => {
+		expect([...dictionaries.keys()]).toEqual(
+			expect.arrayContaining([
+				"en",
+				"zh-Hans",
+				"hi",
+				"es",
+				"ar",
+				"fr",
+				"bn",
+				"pt",
+				"ru",
+				"ur",
+				"id",
+				"de",
+				"ja",
+				"tr",
+				"ko",
+				"vi",
+				"it",
+				"fa",
+				"pl",
+				"uk",
+				"th",
+				"nl",
+			]),
+		);
+	});
+});
+
+describe("the pseudo-language", () => {
+	afterEach(() => {
+		vi.unstubAllEnvs();
+		vi.resetModules();
+	});
+
+	test("is spoken by the preview and the tests", () => {
+		expect(dictionaries.has(pseudoLocale)).toBe(true);
+	});
+
+	test("is left out of a build for production, which a host could ask it of", async () => {
+		vi.stubEnv("MODE", "production");
+		vi.resetModules();
+
+		const { dictionaries: shipped } = await import("./dictionaries");
+
+		expect(shipped.has(pseudoLocale)).toBe(false);
+		expect(shipped.has("en")).toBe(true);
+	});
+});
+
+describe("the languages of the lessons", () => {
+	// A language a card cannot speak would be one its task is written in and
+	// its buttons are not.
+	test("are every language the widget is written in, and never the pseudo-language", () => {
+		expect([...lessonLanguages].sort()).toEqual(
+			[...dictionaries.keys()].filter((tag) => tag !== pseudoLocale).sort(),
+		);
+		expect(lessonLanguages).toHaveLength(22);
+	});
 });

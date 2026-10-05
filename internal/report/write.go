@@ -35,6 +35,8 @@ func write(out io.Writer, c *counts) error {
 			"as 1 and a wrong one as 0, less the chance promised, on average, with the standard error of that " +
 			"mean. Above zero the child did better than the estimate promised, which is how an estimate that " +
 			"falls behind a learning child shows; below zero, worse.", c.keptUpTable()},
+		{"Later answers against earlier", c.laterAbout(), c.laterTable()},
+		{"Masteries taken back", c.masteriesAbout(), c.masteriesTable()},
 		{"Limits reached", "A pace writes one line for a flood of refusals, and a day's ceiling one for every " +
 			"call it refused.", c.limitsTable()},
 		{"Tool calls", "Milliseconds are the service's own time for a call, its calls to Drive included; without " +
@@ -321,6 +323,23 @@ var inACell = strings.NewReplacer("|", `\|`, "\r\n", " ", "\n", " ", "\r", " ")
 
 // number is a whole number as the report writes it.
 func number[T int | int64](n T) string { return strconv.FormatInt(int64(n), 10) }
+
+// ordinal is a whole number as English counts with it: 1st, 2nd, 3rd, 4th,
+// 11th, 101st.
+func ordinal(n int) string {
+	suffix := "th"
+	if n%100 < 11 || n%100 > 13 {
+		switch n % 10 {
+		case 1:
+			suffix = "st"
+		case 2:
+			suffix = "nd"
+		case 3:
+			suffix = "rd"
+		}
+	}
+	return strconv.Itoa(n) + suffix
+}
 
 // moment is a moment as the report writes it, in UTC to the second.
 func moment(at time.Time) string { return at.UTC().Format("2006-01-02 15:04:05 UTC") }

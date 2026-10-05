@@ -4,7 +4,7 @@ import { disagreements } from "../i18n/dictionaries";
 import { fallbackLocale } from "../i18n/lookup";
 import { byCodeUnits } from "../i18n/order";
 import { type Dictionary, openWords, type Words } from "../i18n/words";
-import { cardWords } from "../widget/words";
+import { cardWords } from "../widget/dictionaries";
 import { ApexPage } from "./ApexPage";
 import {
 	address,

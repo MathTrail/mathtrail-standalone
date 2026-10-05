@@ -7,12 +7,8 @@ import {
 } from "../design/blocks";
 import type { Said } from "../design/controls";
 import { ReplyCard } from "../design/thread";
-import {
-	type AnswerResult,
-	dontKnow,
-	type HandedTask,
-	type Letter,
-} from "./payload";
+import { dontKnow, type Letter } from "./choices";
+import type { AnswerResult, HandedTask } from "./payload";
 import { stepsOf } from "./steps";
 import { type Key, ratingText, useWords } from "./words";
 

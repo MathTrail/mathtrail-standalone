@@ -41,6 +41,19 @@ export function ThreadBar(
 	);
 }
 
+/**
+ * NameBar is the line at the top of a card that leads nowhere: whose card it
+ * is, on a card drawn where there is no progress to open.
+ */
+export function NameBar({ name }: { name: string }) {
+	return (
+		<div class="mt-bar">
+			<Icon name="avatar" size={24} />
+			<span class="mt-bar-name">{name}</span>
+		</div>
+	);
+}
+
 /** Badge is a short label in a pill: the child's grade in a card's header. */
 export function Badge({ children }: { children: ComponentChildren }) {
 	return <span class="mt-badge">{children}</span>;

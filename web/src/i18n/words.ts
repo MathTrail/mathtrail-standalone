@@ -27,6 +27,12 @@ export type Words<Key extends string> = {
 	readonly dir: "ltr" | "rtl";
 	/** text is what the words say for key, with its slots filled. */
 	text(key: Key, slots?: Slots): string;
+	/**
+	 * has says whether the words say anything for key, in their own language
+	 * or in one they fall back on: a key built from data, such as a topic's
+	 * name, is asked about before it is said.
+	 */
+	has(key: string): key is Key;
 };
 
 /**
@@ -99,6 +105,9 @@ export function openWords<Key extends string>(
 				return key;
 			}
 			return fill(source, said(source, key, slots.count), slots);
+		},
+		has(key): key is Key {
+			return sources.some(({ dictionary }) => Object.hasOwn(dictionary, key));
 		},
 	};
 }

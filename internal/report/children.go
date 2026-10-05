@@ -27,15 +27,9 @@ type childrenOn struct {
 // counted from, by the rules the counts kept for years follow, so that the two
 // can be laid side by side: a line with no name to count a child by is not
 // counted, nor one the log repeated, nor a child the hosts of notChildren
-// handed a task to. A child is counted by the name it has that month, which is
-// all a line knows of it.
-func childrenByDay(lines []line) map[time.Time]*childrenOn {
-	left := map[string]bool{}
-	for i := range lines {
-		if l := &lines[i]; l.Message == eventTaskAccepted && slices.Contains(notChildren, l.Host) {
-			left[l.Learner] = true
-		}
-	}
+// handed a task to, given by the name it is counted under. A child is counted
+// by the name it has that month, which is all a line knows of it.
+func childrenByDay(lines []line, left map[string]bool) map[time.Time]*childrenOn {
 	days := map[time.Time]*childrenOn{}
 	for i := range lines {
 		l := &lines[i]
@@ -59,6 +53,26 @@ func childrenByDay(lines []line) map[time.Time]*childrenOn {
 		}
 	}
 	return days
+}
+
+// testChildren are the children a host of notChildren handed a task to, by
+// the account the line names and by the name the child is counted under that
+// month: whatever else such a child did is no child's either.
+func testChildren(lines []line) (users, learners map[string]bool) {
+	users, learners = map[string]bool{}, map[string]bool{}
+	for i := range lines {
+		l := &lines[i]
+		if l.Message != eventTaskAccepted || !slices.Contains(notChildren, l.Host) {
+			continue
+		}
+		if l.User != "" {
+			users[l.User] = true
+		}
+		if l.Learner != "" {
+			learners[l.Learner] = true
+		}
+	}
+	return users, learners
 }
 
 // dayOf is the day a moment falls on in UTC.

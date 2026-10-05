@@ -4,8 +4,7 @@
 	"nav.pages": "Разделы сайта",
 	"nav.menu": "Меню",
 	"nav.topics": "Темы",
-	"nav.lesson": "Как это работает",
-	"nav.connect": "Подключить",
+	"nav.coach": "Тренер",
 	"nav.add": "Добавить в Claude",
 	"nav.why": "Зачем",
 	"nav.techniques": "Приёмы",
@@ -48,5 +47,7 @@
 	"topic.before": "Сначала",
 	"topic.after": "Открывает",
 	"topic.ask": "Попросите задачу на эту тему",
-	"topic.all": "Все темы"
+	"topic.all": "Все темы",
+	"copy.action": "Копировать",
+	"copy.done": "Скопировано"
 }

@@ -3,7 +3,15 @@ import { afterAll, describe, expect, test } from "vitest";
 import topics from "../../../content/catalogs/topics.json";
 import traps from "../../../content/catalogs/traps.json";
 import file from "../../../site/data.json";
-import { contactAddress, issuesURL, sourceURL } from "./brand";
+import {
+	contactAddress,
+	familyMembers,
+	familyPhoto,
+	issuesURL,
+	photoPath,
+	portraitSize,
+	sourceURL,
+} from "./brand";
 import { readSiteData } from "./data";
 import type { Frame } from "./frame";
 import { type Page, sitePages } from "./pages";
@@ -32,23 +40,39 @@ const data = readSiteData(
 	{ groups: file.groups, examples: {}, progress: file.progress },
 );
 
-// words are the page's words, the same in each language: two of the family,
-// and a sentence that names the address to write to.
+// words are the page's words, the same in each language: the four of the
+// family, each with what their photograph shows, and a sentence that names
+// the address to write to.
 const words = [
 	"title: About",
 	"description: Who makes it.",
 	"hero:",
 	"  title: Made by one family",
-	"  lead: There are two of us.",
+	"  lead: There are four of us.",
+	"  photo: All four of us.",
 	"team:",
 	"  title: Who we are",
 	"  members:",
-	"    - role: Builder",
+	"    dad:",
+	"      role: Builder",
 	"      name: Dad",
 	"      text: Writes the code.",
-	"    - role: Boss",
+	"      photo: Dad, smiling.",
+	"    mum:",
+	"      role: Boss",
 	"      name: Mum",
 	"      text: Runs everything.",
+	"      photo: Mum, laughing.",
+	"    older-son:",
+	"      role: Tester",
+	"      name: Older son",
+	"      text: Solves first.",
+	"      photo: The older son, waving.",
+	"    younger-son:",
+	"      role: Intern",
+	"      name: Younger son",
+	"      text: Sleeps.",
+	"      photo: The younger son, asleep.",
 	"contact:",
 	"  title: Found a mistake?",
 	"  lead: Write to {address}, or {issue}.",
@@ -61,11 +85,11 @@ const words = [
 const document = (title: string) =>
 	`---\ntitle: ${title}\ndescription: D\n---\n\n# ${title}\n`;
 
-// sourcesWith are the site's texts, with the page's words in English and in
-// Russian, which are these unless others are given.
-const sourcesWith = (russian = words) =>
+// sourcesWith are the site's texts, with the page's words in Russian and in
+// English, which are these unless others are given.
+const sourcesWith = (russian = words, english = words) =>
 	new Map(
-		Object.entries({ en: words, ru: russian }).map(([locale, said]) => [
+		Object.entries({ en: english, ru: russian }).map(([locale, said]) => [
 			locale,
 			new Map([
 				["index.md", document("Home")],
@@ -113,37 +137,92 @@ const texts = (selector: string) =>
 	[...about.querySelectorAll(selector)].map((element) => element.textContent);
 
 describe("the page about who makes MathTrail", () => {
-	test("reads in full with no script, and draws no card and no picture", () => {
+	test("reads in full with no script, and draws no card of the widget", () => {
 		expect(about.querySelector("script")).toBeNull();
 		expect(all('link[rel="stylesheet"]', "href")).not.toContain(
 			"/assets/card.css",
 		);
-		expect(about.querySelector("main img")).toBeNull();
 	});
 
-	test("shows a card for each of the family, in the words' order: the role, who it is, what they do", () => {
+	test("shows the four of the family together beside its first words, at the size the photograph is kept, saying what it shows", () => {
+		const photo = about.querySelector(".s-about-hero .s-about-photo img");
+
+		expect(photo?.getAttribute("src")).toBe(photoPath("family"));
+		expect([
+			photo?.getAttribute("width"),
+			photo?.getAttribute("height"),
+		]).toEqual([String(familyPhoto.width), String(familyPhoto.height)]);
+		expect(photo?.getAttribute("alt")).toBe("All four of us.");
+		expect(photo?.hasAttribute("loading")).toBe(false);
+	});
+
+	test("shows a card for each of the family, in their order: the portrait, the role, who it is, what they do", () => {
 		expect(
 			[...about.querySelectorAll(".s-member")].map((card) => [
+				card.querySelector(".s-member-photo")?.getAttribute("src"),
+				card.querySelector(".s-member-photo")?.getAttribute("alt"),
 				card.querySelector(".s-member-role")?.textContent,
 				card.querySelector(".s-member-name")?.textContent,
 				card.querySelector(".s-tile-text")?.textContent,
 			]),
 		).toEqual([
-			["Builder", "Dad", "Writes the code."],
-			["Boss", "Mum", "Runs everything."],
+			[photoPath("dad"), "Dad, smiling.", "Builder", "Dad", "Writes the code."],
+			[photoPath("mum"), "Mum, laughing.", "Boss", "Mum", "Runs everything."],
+			[
+				photoPath("older-son"),
+				"The older son, waving.",
+				"Tester",
+				"Older son",
+				"Solves first.",
+			],
+			[
+				photoPath("younger-son"),
+				"The younger son, asleep.",
+				"Intern",
+				"Younger son",
+				"Sleeps.",
+			],
 		]);
+	});
+
+	test("keeps each portrait's room at the size it is kept, and loads it as the reader nears it", () => {
+		const portraits = [...about.querySelectorAll(".s-member-photo")];
+
+		expect(portraits).toHaveLength(familyMembers.length);
+		for (const portrait of portraits) {
+			expect([
+				portrait.getAttribute("width"),
+				portrait.getAttribute("height"),
+				portrait.getAttribute("loading"),
+			]).toEqual([
+				String(portraitSize.width),
+				String(portraitSize.height),
+				"lazy",
+			]);
+		}
+	});
+
+	test("shows no picture in the page but the family's photographs", () => {
+		expect(all("main img", "src")).toEqual(
+			["family", ...familyMembers].map(photoPath),
+		);
 	});
 
 	test("names each of the family in a heading under one a screen reader alone hears", () => {
 		expect(texts(".s-team h2.s-hidden")).toEqual(["Who we are"]);
 		expect(all(".s-team", "aria-labelledby")).toEqual(["team"]);
-		expect(texts(".s-member h3")).toEqual(["Dad", "Mum"]);
+		expect(texts(".s-member h3")).toEqual([
+			"Dad",
+			"Mum",
+			"Older son",
+			"Younger son",
+		]);
 		expect(
 			[...about.querySelectorAll(".s-member")].map((card) =>
 				[...card.children].map((part) => part.getAttribute("class")),
 			)[0],
 		).toEqual([
-			"s-member-frame",
+			"s-member-photo",
 			"s-chip s-chip-group s-member-role",
 			"s-member-name",
 			"s-tile-text",
@@ -192,6 +271,27 @@ describe("the page about who makes MathTrail", () => {
 		const lacking = words.replace("      name: Mum\n", "");
 
 		expect(lacking).not.toBe(words);
-		expect(() => render(sourcesWith(lacking))).toThrow("team.members.2.name");
+		expect(() => render(sourcesWith(lacking))).toThrow("team.members.mum.name");
+	});
+
+	test("is refused when a photograph says nothing of what it shows", () => {
+		const silent = words.replace("      photo: Mum, laughing.\n", "");
+
+		expect(silent).not.toBe(words);
+		expect(() => render(sourcesWith(silent, silent))).toThrow(
+			"team.members.mum.photo",
+		);
+	});
+
+	test("is refused when its words name one of the family the page does not know", () => {
+		const stranger = words.replace(
+			"contact:",
+			"    cousin:\n      role: Guest\n      name: Cousin\n      text: Visits.\n      photo: A cousin.\ncontact:",
+		);
+
+		expect(stranger).not.toBe(words);
+		expect(() => render(sourcesWith(stranger, stranger))).toThrow(
+			"the page never shows team.members.cousin.role",
+		);
 	});
 });

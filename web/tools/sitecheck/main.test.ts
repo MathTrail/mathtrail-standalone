@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
@@ -91,6 +91,55 @@ describe("the checker's command line", () => {
 		expect(out.join("\n")).toContain("the budget is 64");
 	});
 
+	test("holds a framed document to the budget it is given", async () => {
+		const dir = await publishable();
+		const front = join(dir, "en", "index.html");
+		await writeFile(
+			front,
+			(await readFile(front, "utf8")).replace(
+				"</body>",
+				'<iframe src="/assets/demo.html" title="Demo"></iframe></body>',
+			),
+		);
+		await writeFile(join(dir, "assets", "demo.html"), "x".repeat(100));
+
+		const framed = await command(["--base", base, "--dir", dir]);
+		const tight = await command([
+			"--base",
+			base,
+			"--dir",
+			dir,
+			"--max-frame-bytes",
+			"64",
+		]);
+
+		expect(framed.code).toBe(0);
+		expect(tight.code).toBe(1);
+		expect(tight.out.join("\n")).toContain(
+			"the budget of a framed document is 64",
+		);
+	});
+
+	test("weighs a page without the photographs the site keeps, and with a picture kept elsewhere", async () => {
+		const dir = await publishable();
+		const front = join(dir, "en", "index.html");
+		const page = await readFile(front, "utf8");
+		const heavy = "x".repeat(400 * 1024);
+		await mkdir(join(dir, "assets", "photos"), { recursive: true });
+		await writeFile(join(dir, "assets", "photos", "us.webp"), heavy);
+		await writeFile(join(dir, "assets", "us.webp"), heavy);
+		const showing = async (src: string) => {
+			await writeFile(
+				front,
+				page.replace("</body>", `<img src="${src}" alt="Us"></body>`),
+			);
+			return (await command(["--base", base, "--dir", dir])).code;
+		};
+
+		expect(await showing("/assets/photos/us.webp")).toBe(0);
+		expect(await showing("/assets/us.webp")).toBe(1);
+	});
+
 	test.for([
 		["no base", ["--dir", "site"]],
 		["no directory", ["--base", base]],
@@ -106,6 +155,14 @@ describe("the checker's command line", () => {
 		[
 			"a budget written other than in decimal digits",
 			["--base", base, "--dir", "site", "--max-page-bytes", "1e3"],
+		],
+		[
+			"a frame's budget that is no number of bytes",
+			["--base", base, "--dir", "site", "--max-frame-bytes", "lots"],
+		],
+		[
+			"an empty frame's budget, which would turn its rule off",
+			["--base", base, "--dir", "site", "--max-frame-bytes", ""],
 		],
 	] as const)("explains its usage for %s", async ([, args]) => {
 		const { code, out, err } = await command([...args]);

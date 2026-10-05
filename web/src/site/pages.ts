@@ -1,5 +1,6 @@
 import type { VNode } from "preact";
 import { AboutPage } from "./AboutPage";
+import { CoachPage } from "./CoachPage";
 import { frontPage } from "./content";
 import type { SiteData } from "./data";
 import { HomePage } from "./HomePage";
@@ -31,7 +32,8 @@ export type Page = {
 /**
  * sitePages are the pages a component draws, by the name their words' file
  * has in every language: index for index.yaml, the front page, why for
- * why.yaml, topics for topics.yaml, about for about.yaml, and topics/<slug> for
+ * why.yaml, topics for topics.yaml, about for about.yaml, coach for coach.yaml,
+ * the page of a product of its own still in the making, and topics/<slug> for
  * the page of a topic of the catalog, which one template draws for every topic.
  * Which topics have a page is for their words to say, and for the catalog to
  * agree with; a file of words that no component draws stops the build.
@@ -43,6 +45,7 @@ export function sitePages(data: SiteData): ReadonlyMap<string, Page> {
 		["topics", { draw: TopicsPage, card: true, style: topicsStyle }],
 		["techniques", { draw: TechniquesPage }],
 		["about", { draw: AboutPage }],
+		["coach", { draw: CoachPage }],
 		...data.topics.all.map((topic): [string, Page] => [
 			`topics/${topic.slug}`,
 			topicPage(topic),

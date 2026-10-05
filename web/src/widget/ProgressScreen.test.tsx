@@ -1,6 +1,7 @@
 import { render } from "preact";
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { cardWords } from "./dictionaries";
 import { ProgressScreen } from "./ProgressScreen";
 import { readScreen } from "./payload";
 import {
@@ -21,6 +22,7 @@ import {
 	standing,
 	standingBefore,
 } from "./testing/lesson";
+import { WordsContext } from "./words";
 
 let drawn: Drawn | undefined;
 
@@ -1348,12 +1350,14 @@ describe("a progress screen nobody outlives", () => {
 		}
 		act(() =>
 			render(
-				<ProgressScreen
-					report={report.report}
-					wide={false}
-					host={stillHost}
-					folds={{ open: new Set(), toggle: () => {} }}
-				/>,
+				<WordsContext.Provider value={cardWords("en", undefined)}>
+					<ProgressScreen
+						report={report.report}
+						wide={false}
+						host={stillHost}
+						folds={{ open: new Set(), toggle: () => {} }}
+					/>
+				</WordsContext.Provider>,
 				root,
 			),
 		);

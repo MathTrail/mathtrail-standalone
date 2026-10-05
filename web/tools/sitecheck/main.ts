@@ -8,10 +8,22 @@ import { check, lineOf, type Options } from "./check.ts";
 import { published } from "./published.ts";
 
 const usage =
-	"usage: node tools/sitecheck/main.ts --base <origin> --dir <directory> [--reference-locale <locale>] [--max-page-bytes <bytes>]";
+	"usage: node tools/sitecheck/main.ts --base <origin> --dir <directory> [--reference-locale <locale>] [--max-page-bytes <bytes>] [--max-frame-bytes <bytes>]";
 
 /** defaultMaxPageBytes is what a page may weigh with everything it loads. */
 export const defaultMaxPageBytes = 300 * 1024;
+
+/**
+ * defaultMaxFrameBytes is what a document a page frames may weigh with
+ * everything it loads.
+ */
+export const defaultMaxFrameBytes = 2 * 1024 * 1024;
+
+/**
+ * photoDirectory is where the site keeps its photographs, which a page is
+ * weighed without.
+ */
+export const photoDirectory = "/assets/photos/";
 
 /**
  * main judges the site a command line names and returns the command's exit
@@ -57,6 +69,7 @@ function optionsOf(args: string[]): (Options & { dir: string }) | undefined {
 		dir?: string;
 		"reference-locale"?: string;
 		"max-page-bytes"?: string;
+		"max-frame-bytes"?: string;
 	};
 	try {
 		({ values } = parseArgs({
@@ -66,19 +79,22 @@ function optionsOf(args: string[]): (Options & { dir: string }) | undefined {
 				dir: { type: "string" },
 				"reference-locale": { type: "string" },
 				"max-page-bytes": { type: "string" },
+				"max-frame-bytes": { type: "string" },
 			},
 		}));
 	} catch {
 		return undefined;
 	}
-	// A budget is a count of bytes in decimal digits: an empty value would read as
-	// zero, which turns the weight rule off rather than failing.
-	const budget = values["max-page-bytes"] ?? String(defaultMaxPageBytes);
-	const maxPageBytes = /^\d+$/.test(budget) ? Number(budget) : Number.NaN;
+	const maxPageBytes = bytesOf(values["max-page-bytes"], defaultMaxPageBytes);
+	const maxFrameBytes = bytesOf(
+		values["max-frame-bytes"],
+		defaultMaxFrameBytes,
+	);
 	if (
 		values.base === undefined ||
 		values.dir === undefined ||
-		!Number.isSafeInteger(maxPageBytes)
+		!Number.isSafeInteger(maxPageBytes) ||
+		!Number.isSafeInteger(maxFrameBytes)
 	) {
 		return undefined;
 	}
@@ -87,8 +103,19 @@ function optionsOf(args: string[]): (Options & { dir: string }) | undefined {
 		dir: values.dir,
 		referenceLocale: values["reference-locale"] ?? "en",
 		maxPageBytes,
+		maxFrameBytes,
+		photos: photoDirectory,
 		published,
 	};
+}
+
+// bytesOf reads a budget from the command line, or takes the default when the
+// line names none. A budget is a count of bytes in decimal digits: an empty
+// value would read as zero, which turns its rule off rather than failing, so
+// anything else reads as no number at all.
+function bytesOf(value: string | undefined, fallback: number): number {
+	const budget = value ?? String(fallback);
+	return /^\d+$/.test(budget) ? Number(budget) : Number.NaN;
 }
 
 if (import.meta.main) {

@@ -2,8 +2,10 @@
 // crawler or a reviewer would otherwise each find broken separately: a link
 // that leads nowhere, a page that quietly fetches from somebody else's domain,
 // a head that a search result cannot be built from, a locale that lost a page,
-// a page that grew past its budget, an address the site handed out and lost,
-// and a page it serves without having listed it among the addresses it keeps.
+// a page, or a document a page frames, that grew past its budget, an address
+// the site handed out and lost, a page it serves without having listed it
+// among the addresses it keeps, and a script that loads more than itself, or
+// sends or keeps something.
 //
 // It reads the finished directory and nothing of what drew it, so it keeps
 // judging the same way whatever builds the site.
@@ -29,10 +31,25 @@ export type Options = {
 	/** referenceLocale is the locale whose pages every other locale must have. */
 	referenceLocale: string;
 	/**
-	 * maxPageBytes caps a page together with the local files it pulls in, and
-	 * the files its stylesheets pull in; zero leaves the size unchecked.
+	 * maxPageBytes caps a page together with the local files it pulls in, but
+	 * for a document it frames, and the files its stylesheets pull in; zero
+	 * leaves the size unchecked.
 	 */
 	maxPageBytes: number;
+	/**
+	 * maxFrameBytes caps a document a page frames, together with what it pulls
+	 * in. A frame holds an application of its own, which a reader meets in the
+	 * page rather than as part of it, so it is weighed apart from the page; zero
+	 * leaves the size unchecked.
+	 */
+	maxFrameBytes: number;
+	/**
+	 * photos is the directory of the site's photographs, from its root, such
+	 * as "/assets/photos/". A photograph is worth its weight, so a page is
+	 * weighed without the ones it shows; empty weighs them with the page, as
+	 * any other file.
+	 */
+	photos: string;
 	/**
 	 * published are the addresses the site has handed out and must keep: a
 	 * page's, or an anchor on one, such as "/en/#connect". Every page the site
@@ -47,6 +64,7 @@ export type Rule =
 	| "head"
 	| "link"
 	| "published"
+	| "script"
 	| "translation"
 	| "weight";
 
@@ -78,6 +96,11 @@ const foreignMarkers = ["http://", "https://", "url(//"];
 // address, which ends in a slash, and perhaps one anchor on it.
 const pageAddress = /^\/(?:[^#?]*\/)?(?:#[^#?]+)?$/;
 
+// directoryAddress matches a directory of the site, from its root: it begins
+// and ends with a slash, so that it holds what lies below it and nothing whose
+// name merely begins the same.
+const directoryAddress = /^\/(?:[^/#?]+\/)+$/;
+
 /**
  * check judges the built site in dir and returns every finding, sorted by file,
  * rule and message; none means the site is publishable. It throws when the site
@@ -101,6 +124,11 @@ export async function check(dir: string, options: Options): Promise<Finding[]> {
 	if (misread !== undefined) {
 		throw new Error(`published address "${misread}" is no page's address`);
 	}
+	if (options.photos !== "" && !directoryAddress.test(options.photos)) {
+		throw new Error(
+			`photo directory "${options.photos}" is no directory of the site: it begins and ends with a slash`,
+		);
+	}
 
 	const files = await readSizes(dir);
 	const [pages, sheets] = await Promise.all([
@@ -114,6 +142,7 @@ export async function check(dir: string, options: Options): Promise<Finding[]> {
 	}
 
 	const loads = loadsOf(sheets);
+	const frames = await readFrames(dir, files, pages);
 	const findings: Finding[] = [];
 	for (const page of pages.values()) {
 		findings.push(
@@ -123,10 +152,20 @@ export async function check(dir: string, options: Options): Promise<Finding[]> {
 			...weight(page, files, loads, options),
 		);
 	}
+	// A document a page frames is held to what a page is held to about the
+	// files it reaches for, and to a budget of its own; it needs no head.
+	for (const frame of frames) {
+		findings.push(
+			...links(frame, files),
+			...external(frame),
+			...frameWeight(frame, files, loads, options),
+		);
+	}
 	findings.push(
 		...stylesheetLinks(loads, files),
 		...translations(pages, options),
 		...stylesheets(sheets),
+		...scripts(await readScripts(dir, files)),
 		...publishedAddresses(files, pages, options),
 		...unlisted(pages, options),
 	);
@@ -181,6 +220,53 @@ async function readPages(
 	return pages;
 }
 
+// frameElements are the elements whose address is a document of its own,
+// which a reader meets inside the page rather than as a part of it.
+const frameElements = new Set(["iframe"]);
+
+// framedBy lists the files of the site a document frames.
+function framedBy(document: Page): string[] {
+	return document.references
+		.filter((ref) => frameElements.has(ref.element) && !isExternal(ref.value))
+		.map((ref) => resolveReference(ref.value, document.file))
+		.filter((target) => target !== "");
+}
+
+// markupFile matches the names of the files a frame holds as HTML; any other
+// file a page frames, such as a picture, loads nothing by itself.
+const markupFile = /\.html?$/i;
+
+// readFrames parses every document a page frames, and every one those frame in
+// turn, once each. A page that another frames is judged as a page already, and
+// a frame that leads nowhere is the link rule's to name, so neither is read;
+// nor is a framed file that is no HTML, which is weighed by its own size.
+async function readFrames(
+	dir: string,
+	files: Map<string, number>,
+	pages: Map<string, Page>,
+): Promise<Page[]> {
+	const pageFiles = new Set([...pages.values()].map((page) => page.file));
+	const frames = new Map<string, Page>();
+	let framers = [...pages.values()];
+	while (framers.length > 0) {
+		const unread = [...new Set(framers.flatMap(framedBy))].filter(
+			(file) => files.has(file) && !pageFiles.has(file) && !frames.has(file),
+		);
+		framers = await Promise.all(
+			unread.map(async (file) =>
+				parsePage(
+					file,
+					markupFile.test(file) ? await readFile(join(dir, file), "utf8") : "",
+				),
+			),
+		);
+		for (const frame of framers) {
+			frames.set(frame.file, frame);
+		}
+	}
+	return [...frames.values()];
+}
+
 // readStylesheets reads every stylesheet of the site, by its file.
 async function readStylesheets(
 	dir: string,
@@ -189,6 +275,22 @@ async function readStylesheets(
 	const read = await Promise.all(
 		[...files.keys()]
 			.filter((file) => file.endsWith(".css"))
+			.map(
+				async (file) =>
+					[file, await readFile(join(dir, file), "utf8")] as const,
+			),
+	);
+	return new Map(read);
+}
+
+// readScripts reads every script of the site, by its file.
+async function readScripts(
+	dir: string,
+	files: Map<string, number>,
+): Promise<Map<string, string>> {
+	const read = await Promise.all(
+		[...files.keys()]
+			.filter((file) => file.endsWith(".js"))
 			.map(
 				async (file) =>
 					[file, await readFile(join(dir, file), "utf8")] as const,
@@ -374,9 +476,8 @@ function translations(pages: Map<string, Page>, options: Options): Finding[] {
 		});
 }
 
-// weight reports a page that, with everything it pulls in, costs its reader
-// more than the budget allows: its own files, and every file its stylesheets
-// load in turn — each font subset they declare, as if all were fetched.
+// weight reports a page that, with everything it pulls in but the site's
+// photographs, costs its reader more than the budget allows.
 function weight(
 	page: Page,
 	files: Map<string, number>,
@@ -386,12 +487,63 @@ function weight(
 	if (options.maxPageBytes === 0) {
 		return [];
 	}
-	const counted = new Set([page.file]);
-	for (const ref of page.references) {
-		if (!ref.subresource || isExternal(ref.value)) {
+	const total = weightOf(page, files, loads, options.photos);
+	if (total <= options.maxPageBytes) {
+		return [];
+	}
+	return [
+		{
+			path: page.file,
+			rule: "weight",
+			message: `the page and what it loads come to ${total} bytes, and the budget is ${options.maxPageBytes}`,
+		},
+	];
+}
+
+// frameWeight reports a document a page frames that, with everything it pulls
+// in, costs its reader more than a framed document's budget allows.
+function frameWeight(
+	frame: Page,
+	files: Map<string, number>,
+	loads: Map<string, Load[]>,
+	options: Options,
+): Finding[] {
+	if (options.maxFrameBytes === 0) {
+		return [];
+	}
+	const total = weightOf(frame, files, loads, options.photos);
+	if (total <= options.maxFrameBytes) {
+		return [];
+	}
+	return [
+		{
+			path: frame.file,
+			rule: "weight",
+			message: `a page frames it, and with what it loads it comes to ${total} bytes; the budget of a framed document is ${options.maxFrameBytes}`,
+		},
+	];
+}
+
+// weightOf is what a document costs its reader: its own file, every file it
+// loads but for a document it frames, which is weighed on its own, and every
+// file its stylesheets load in turn — each font subset they declare, as if all
+// were fetched. A photograph below the directory photos is no part of it.
+function weightOf(
+	document: Page,
+	files: Map<string, number>,
+	loads: Map<string, Load[]>,
+	photos: string,
+): number {
+	const counted = new Set([document.file]);
+	for (const ref of document.references) {
+		if (
+			!ref.subresource ||
+			frameElements.has(ref.element) ||
+			isExternal(ref.value)
+		) {
 			continue;
 		}
-		const target = resolveReference(ref.value, page.file);
+		const target = resolveReference(ref.value, document.file);
 		if (target !== "") {
 			counted.add(target);
 		}
@@ -405,18 +557,63 @@ function weight(
 	}
 	let total = 0;
 	for (const file of counted) {
-		total += files.get(file) ?? 0;
+		if (photos === "" || !`/${file}`.startsWith(photos)) {
+			total += files.get(file) ?? 0;
+		}
 	}
-	if (total <= options.maxPageBytes) {
-		return [];
-	}
-	return [
-		{
-			path: page.file,
-			rule: "weight",
-			message: `the page and what it loads come to ${total} bytes, and the budget is ${options.maxPageBytes}`,
-		},
-	];
+	return total;
+}
+
+// importMarker finds in a script what loads another file as it runs: an
+// import written into the module, from a file or for what the file does, an
+// import called, and an export passed on from another module. A word that
+// begins with "import", and import.meta, load nothing.
+const importMarker =
+	/\bimport\s*(?:[\w$*{][^;]*?\bfrom\s*["'`]|["'`(])|\bexport\s*(?:\*|\{[^}]*\})[^;]*?\bfrom\s*["'`]/;
+
+// sendingWays are the usual ways a script sends something away or keeps it
+// in the reader's browser, each by its name and how it is written. They are
+// found by their names, the same as a script written by hand or by a bundler
+// says them: a script could still hide one, and a reader of its source is the
+// last check.
+const sendingWays: readonly (readonly [string, RegExp])[] = [
+	["fetch", /\bfetch\b/],
+	["XMLHttpRequest", /\bXMLHttpRequest\b/],
+	["sendBeacon", /\bsendBeacon\b/],
+	["WebSocket", /\bWebSocket\b/],
+	["EventSource", /\bEventSource\b/],
+	["new Image", /\bnew\s+Image\b/],
+	["serviceWorker", /\bserviceWorker\b/],
+	["localStorage", /\blocalStorage\b/],
+	["sessionStorage", /\bsessionStorage\b/],
+	["indexedDB", /\bindexedDB\b/],
+	["cookie", /\bcookie\b/],
+];
+
+// scripts reports a script that loads another file, which the checker does
+// not follow, so that neither its weight nor its address would be checked;
+// and a script that names a usual way to send or keep something, which a
+// script of the site never does.
+function scripts(read: Map<string, string>): Finding[] {
+	return [...read].flatMap(([file, text]): Finding[] => [
+		...(importMarker.test(text)
+			? [
+					{
+						path: file,
+						rule: "script" as const,
+						message:
+							"the script loads another file, which the checker does not follow: a script of the site is one file, weighed whole",
+					},
+				]
+			: []),
+		...sendingWays
+			.filter(([, written]) => written.test(text))
+			.map(([name]) => ({
+				path: file,
+				rule: "script" as const,
+				message: `the script names ${name}, and a script of the site stores nothing and sends nothing`,
+			})),
+	]);
 }
 
 // stylesheets reports a stylesheet that reaches for another origin. A font or an

@@ -228,8 +228,23 @@ func TestAReportOfNoLinesSaysSo(t *testing.T) {
 		t.Fatalf("Run() error = %v, want nil", err)
 	}
 	if got := out.String(); !strings.Contains(got, "No lines of the service's were read.") ||
-		strings.Count(got, "None in these lines.") != 11 || strings.Contains(got, "|") {
+		strings.Count(got, "None in these lines.") != 13 || strings.Contains(got, "|") {
 		t.Errorf("the report of no lines is\n%s\nwant it to say there are none, and no table", got)
+	}
+}
+
+// A whole number is written as English counts with it, the teens with th
+// whatever their last digit.
+func TestAnOrdinalTakesItsEnglishEnding(t *testing.T) {
+	t.Parallel()
+
+	for n, want := range map[int]string{
+		1: "1st", 2: "2nd", 3: "3rd", 4: "4th", 10: "10th", 11: "11th", 12: "12th", 13: "13th",
+		21: "21st", 22: "22nd", 23: "23rd", 50: "50th", 101: "101st", 111: "111th", 112: "112th", 200: "200th",
+	} {
+		if got := ordinal(n); got != want {
+			t.Errorf("ordinal(%d) = %q, want %q", n, got, want)
+		}
 	}
 }
 

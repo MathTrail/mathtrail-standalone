@@ -5,6 +5,8 @@ import (
 	"math/rand/v2"
 	"slices"
 	"strconv"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/report"
 )
 
 // The interval every number is reported with: a 95 % percentile bootstrap
@@ -38,14 +40,17 @@ type metric struct {
 func placesOverall(r *rule) bool { return r.shape != topics }
 
 // vector is what one child brings to every metric, in the order of metrics(),
-// with its calibration bins, its topics' eligible attempts and the moves of
-// the card's rating in each window: all of a child a summary needs, kept
-// small.
+// with its calibration bins, its topics' eligible attempts, the moves of the
+// card's rating in each window, its answers in the two ranges the report sets
+// against each other and its masteries shown at each answer after: all of a
+// child a summary needs, kept small.
 type vector struct {
 	parts    []part
 	bins     [calibrationBins]bin
 	attempts [longestChain]atAttempt
 	moves    [len(screenWindows)][]uint16
+	keptUp   keptUp
+	held     [report.TakenBackBy]heldOn
 }
 
 // atAttempt is, at one eligible attempt, how many of a child's topics made it
@@ -56,7 +61,10 @@ type atAttempt struct {
 }
 
 func vectorOf(r *childResult, all []metric) vector {
-	v := vector{parts: make([]part, len(all)), bins: r.bins, attempts: attemptsOf(r), moves: r.screen.moves}
+	v := vector{
+		parts: make([]part, len(all)), bins: r.bins, attempts: attemptsOf(r), moves: r.screen.moves,
+		keptUp: r.keptUp, held: heldOf(r),
+	}
 	for i, m := range all {
 		v.parts[i] = m.extract(r)
 	}
@@ -163,7 +171,7 @@ func metrics() []metric {
 			shown(mean("r8_topic_rank_"+w.name(), rankChanges(at, true))),
 		)
 	}
-	return all
+	return append(all, liveMetrics()...)
 }
 
 func overallOnly(m metric) metric {
@@ -332,7 +340,7 @@ func pooledMetrics() []pooled {
 	for at, w := range screenWindows {
 		all = append(all, pooled{name: "r8_move_p95_" + w.name(), read: movesAt(at, 95), applies: notCeiling})
 	}
-	return all
+	return append(all, livePooled()...)
 }
 
 // readerOf is the reader of the metric at index i, or of a pooled number when

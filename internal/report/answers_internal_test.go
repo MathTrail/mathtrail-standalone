@@ -30,6 +30,30 @@ func answerLine(chance float64, correct bool, chooser string, trial int, answers
 		correct, hint, chance, chooser, trial, inRange)
 }
 
+// apart gives each line a request of its own, so that lines alike are answers
+// of their own rather than one line the log repeated.
+func apart(lines []string) []string {
+	answers := make([]string, len(lines))
+	for i, l := range lines {
+		answers[i] = strings.TrimSuffix(l, "}") + fmt.Sprintf(`,"request_id":"a%d"}`, i)
+	}
+	return answers
+}
+
+// A line the log repeated is weighed once, as the log is read: the same
+// answer handed over twice, weighed or left out, counts once, and two answers
+// alike in requests of their own count twice.
+func TestALineTheLogRepeatedIsWeighedOnce(t *testing.T) {
+	t.Parallel()
+
+	weighed, leftOut := answerLine(0.8, true, "rule", 0, "6-20", false), answerLine(0.8, true, "llm", 0, "6-20", false)
+	c := tallied(t, slices.Concat([]string{weighed, weighed, leftOut, leftOut}, apart([]string{weighed, weighed}))...)
+	g := group{version: "v1", host: callNotRead}
+	if got := c.keptUp[keptUpIn{g, "6-20"}].answers; got != 3 || c.answersLeftOut[leftModel] != 1 {
+		t.Errorf("weighed %d answers and left out %v, want 3 and one to tasks the model chose", got, c.answersLeftOut)
+	}
+}
+
 // A chance falls in the range that holds it to two places, as the line writes
 // it: the corridor's two ranges meet at its middle, and a chance past the last
 // range is counted in it.
@@ -100,7 +124,7 @@ func TestEveryAnswerIsWeighedOnceInEachTableOrLeftOut(t *testing.T) {
 	properties := gopter.NewProperties(nil)
 	properties.Property("each answer is in one cell of each table, or left out of both", prop.ForAll(
 		func(lines []string) bool {
-			read, err := readAll(strings.NewReader(strings.Join(lines, "\n")))
+			read, err := readAll(strings.NewReader(strings.Join(apart(lines), "\n")))
 			if err != nil || len(read.lines) != len(lines) {
 				return false
 			}
@@ -156,7 +180,7 @@ func TestACellOfTooFewAnswersSaysSo(t *testing.T) {
 	t.Parallel()
 
 	for _, answers := range []int{fewestAnswers - 1, fewestAnswers} {
-		c := tallied(t, slices.Repeat([]string{answerLine(0.8, true, "rule", 0, "6-20", false)}, answers)...)
+		c := tallied(t, apart(slices.Repeat([]string{answerLine(0.8, true, "rule", 0, "6-20", false)}, answers))...)
 		promised, kept := c.promisesTable().rows[0], c.keptUpTable().rows[0]
 		saysTooFew := slices.Equal(promised[5:], []string{tooFew, tooFew}) && slices.Equal(kept[5:], []string{tooFew, tooFew})
 		if wantTooFew := answers < fewestAnswers; saysTooFew != wantTooFew {

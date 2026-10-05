@@ -2,13 +2,15 @@
 // are written for: how many tasks were asked for, handed in, accepted and
 // refused, at which attempt and why, how long the chat's model took to write
 // one, whether the chance of a right answer a task was handed out at came
-// true, and whether the estimate of a child keeps up as the answers pile up,
-// which limits were reached, how the tools answered and how long they took
-// beside their calls to Drive, what became of the traces, and how busy the
-// busiest minute was — by the version of the instructions a task was written
-// to and by the chat host that called. It also holds every line to the rules
-// of the log: an event the service is decided to write, the fields decided
-// for it, and nothing shaped like an email address.
+// true, whether the estimate of a child keeps up as the answers pile up — the
+// same child's later answers set against its earlier ones —, how soon a topic
+// a child was shown as mastered is taken back, which limits were reached, how
+// the tools answered and how long they took beside their calls to Drive, what
+// became of the traces, and how busy the busiest minute was — by the version
+// of the instructions a task was written to and by the chat host that called.
+// It also holds every line to the rules of the log: an event the service is
+// decided to write, the fields decided for it, and nothing shaped like an
+// email address.
 //
 // It reads the service's own lines, one JSON object each: a log of a local run
 // as the service wrote it, or the payloads of the entries Cloud Logging keeps,
@@ -94,11 +96,13 @@ type line struct {
 	// A limit reached.
 	Limit string `json:"limit"`
 
-	// An answer: the child's account, whether it was right and came after the
-	// hint, the chance its task was handed out at, who chose the task, which
-	// answer of the trial series it was, and, after the series, which of the
-	// child's answers it was, as a range.
+	// An answer: the child's account, the topic of its task, whether it was
+	// right and came after the hint, the chance its task was handed out at,
+	// who chose the task, which answer of the trial series it was, and, after
+	// the series, which of the child's answers it was, as a range. A topic
+	// mastered names the topic too.
 	User          string   `json:"user"`
+	Topic         string   `json:"topic"`
 	Correct       bool     `json:"correct"`
 	HintUsed      bool     `json:"hint_used"`
 	Chance        *float64 `json:"chance"`

@@ -174,13 +174,7 @@ describe("a card of a wrong answer drawn on a page", () => {
 		await vi.waitFor(() =>
 			expect(root.querySelector(".mt-replies .mt-reply")).not.toBeNull(),
 		);
-		const page = answeredStill();
-		const chat = root.querySelector(".mt-widget");
-
-		expect(page.querySelector(".mt-widget")?.textContent).toBe(
-			chat?.textContent,
-		);
-		expect(shape(page.querySelector(".mt-widget"))).toEqual(shape(chat));
+		sameCard(answeredStill(), root);
 	});
 
 	test("names the release the site was built from, as a chat names it", () => {
@@ -258,11 +252,46 @@ function optionIn(root: HTMLElement, letter: string): HTMLButtonElement {
 }
 
 // sameCard holds a card drawn on a page to the card a chat drew, the build it
-// names included.
+// names included, but for the line at its top: a page keeps no profile, so
+// that line says whose card it is and leads nowhere.
 function sameCard(page: ReturnType<typeof pageOf>, root: HTMLElement) {
 	const chat = root.querySelector(".mt-widget");
-	expect(page.querySelector(".mt-widget")?.textContent).toBe(chat?.textContent);
-	expect(shape(page.querySelector(".mt-widget"))).toEqual(shape(chat));
+	expect(belowTheLine(page.querySelector(".mt-widget"))).toEqual(
+		belowTheLine(chat),
+	);
+	expect(topLine(page)).toEqual({
+		tag: "div",
+		text: chat?.querySelector(".mt-bar-name")?.textContent,
+		action: false,
+	});
+}
+
+// Copied is a part of a card that can be copied and taken apart, whichever
+// document it was read into.
+type Copied = Part & {
+	cloneNode(deep: boolean): unknown;
+	textContent: string | null;
+};
+
+// belowTheLine is a card's text and what it is made of, with the line at its
+// top taken out.
+function belowTheLine(card: Copied | null | undefined) {
+	const copy = card?.cloneNode(true) as
+		| (Copied & { querySelector(selector: string): { remove(): void } | null })
+		| undefined;
+	copy?.querySelector(".mt-bar")?.remove();
+	return { text: copy?.textContent, shape: shape(copy) };
+}
+
+// topLine is the line at the top of a card drawn on a page: the element it is,
+// what it says, and whether it offers the way to the progress.
+function topLine(page: ReturnType<typeof pageOf>) {
+	const line = page.querySelector(".mt-widget .mt-bar");
+	return {
+		tag: line?.tagName.toLowerCase(),
+		text: line?.textContent,
+		action: line?.querySelector(".mt-bar-action, .mt-chevron") != null,
+	};
 }
 
 describe("a card of a task drawn on a page from where its lesson stands", () => {

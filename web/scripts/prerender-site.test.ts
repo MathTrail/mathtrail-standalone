@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { createHash } from "node:crypto";
 import {
 	mkdir,
 	mkdtemp,
@@ -10,14 +11,25 @@ import {
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
+import { gunzipSync } from "node:zlib";
 import { type DefaultTreeAdapterTypes, parse } from "parse5";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import catalog from "../../content/catalogs/topics.json";
 import data from "../../site/data.json";
+import widgetEnglish from "../locales/en.json";
+import widgetRussian from "../locales/ru.json";
 import { byCodeUnits } from "../src/i18n/order.ts";
+import { photoDirectory, photoPath, photos } from "../src/site/brand.ts";
 import english from "../src/site/locales/en.json";
 import russian from "../src/site/locales/ru.json";
-import { buildSite, givenTwice, main, readSources } from "./prerender-site.ts";
+import { photoDirectory as checkedPhotoDirectory } from "../tools/sitecheck/main.ts";
+import {
+	buildSite,
+	givenTwice,
+	keptPhotoOf,
+	main,
+	readSources,
+} from "./prerender-site.ts";
 
 const repository = join(import.meta.dirname, "..", "..");
 
@@ -35,9 +47,9 @@ const fontFiles = [
 	"onest-latin-wght-normal.woff2",
 ];
 
-// scripted are the pages that may run a script: none, until the home page's
-// demo comes.
-const scripted: readonly string[] = [];
+// scripted are the pages that may run a script: the home pages, whose demo
+// brings their cards alive.
+const scripted: readonly string[] = ["en/index.html", "ru/index.html"];
 
 // carded are the pages that draw a card of the widget, and load its styles.
 const carded: readonly string[] = [
@@ -49,6 +61,11 @@ const carded: readonly string[] = [
 	"ru/why/index.html",
 ];
 
+// framed are the documents of the site a page frames rather than the pages
+// themselves: the coach's prototype is an application of its own, the export
+// of the tool it was drawn in, which no rule of a page holds.
+const framed: readonly string[] = ["assets/coach-prototype.html"];
+
 // adding is the word of every button that asks a reader to add MathTrail, by
 // the language of its page.
 const adding: Readonly<Record<string, string>> = {
@@ -56,12 +73,37 @@ const adding: Readonly<Record<string, string>> = {
 	ru: russian["nav.add"],
 };
 
+// pagesIn are the paths of the pages below dir: every HTML file but a document
+// a page frames.
+async function pagesIn(dir: string): Promise<string[]> {
+	return (await filesIn(dir)).filter(
+		(file) => file.endsWith(".html") && !framed.includes(file),
+	);
+}
+
 // localePages are the paths of the pages of every language below dir: all
 // but the apex, which has no language of its own.
 async function localePages(dir: string): Promise<string[]> {
-	return (await filesIn(dir)).filter(
-		(file) => file.endsWith(".html") && file.includes("/"),
-	);
+	return (await pagesIn(dir)).filter((file) => file.includes("/"));
+}
+
+// framesIn are the addresses of the documents a page frames, in the order it
+// frames them: parsed rather than matched, as the page's links are.
+function framesIn(html: string): string[] {
+	const frames: string[] = [];
+	const walk = (node: DefaultTreeAdapterTypes.Node): void => {
+		if (!("childNodes" in node)) {
+			return;
+		}
+		if ("tagName" in node && node.tagName === "iframe") {
+			frames.push(node.attrs.find((attr) => attr.name === "src")?.value ?? "");
+		}
+		for (const child of node.childNodes) {
+			walk(child);
+		}
+	};
+	walk(parse(html));
+	return frames;
 }
 
 // Link is one anchor of a page, as a browser reads it.
@@ -96,6 +138,35 @@ function linksIn(html: string): Link[] {
 	};
 	walk(parse(html));
 	return links;
+}
+
+// Image is one picture a page shows, by the attributes it is drawn with.
+type Image = { src: string; width: string; height: string; alt: string };
+
+// imagesIn are the pictures a page shows, in the order it has them: parsed
+// rather than matched, as the page's links are.
+function imagesIn(html: string): Image[] {
+	const images: Image[] = [];
+	const walk = (node: DefaultTreeAdapterTypes.Node): void => {
+		if (!("childNodes" in node)) {
+			return;
+		}
+		if ("tagName" in node && node.tagName === "img") {
+			const value = (name: string) =>
+				node.attrs.find((attr) => attr.name === name)?.value ?? "";
+			images.push({
+				src: value("src"),
+				width: value("width"),
+				height: value("height"),
+				alt: value("alt"),
+			});
+		}
+		for (const child of node.childNodes) {
+			walk(child);
+		}
+	};
+	walk(parse(html));
+	return images;
 }
 
 // textIn is all the text below node.
@@ -152,20 +223,29 @@ describe("the site built from this repository", () => {
 		await rm(out, { recursive: true, force: true });
 	});
 
-	test("is its pages, its stylesheets, its font, its mark, its sharing pictures and the host's files, and nothing older", async () => {
+	test("is its pages, its stylesheets, its font, its mark, its sharing pictures, the family's photographs, the coach's prototype and the host's files, and nothing older", async () => {
 		expect(await filesIn(out)).toEqual([
 			".nojekyll",
 			"CNAME",
 			"assets/card.css",
+			"assets/coach-prototype.html",
+			"assets/demo.js",
 			"assets/favicon.svg",
+			"assets/noto-license.txt",
 			"assets/og-en.png",
 			"assets/og-ru.png",
 			"assets/onest-cyrillic-wght-normal.woff2",
 			"assets/onest-latin-wght-normal.woff2",
 			"assets/onest-license.txt",
+			"assets/photos/dad.webp",
+			"assets/photos/family.webp",
+			"assets/photos/mum.webp",
+			"assets/photos/older-son.webp",
+			"assets/photos/younger-son.webp",
 			"assets/style.css",
 			"assets/tokens.css",
 			"en/about/index.html",
+			"en/coach/index.html",
 			"en/index.html",
 			"en/privacy/index.html",
 			"en/techniques/index.html",
@@ -192,6 +272,7 @@ describe("the site built from this repository", () => {
 			"index.html",
 			"robots.txt",
 			"ru/about/index.html",
+			"ru/coach/index.html",
 			"ru/index.html",
 			"ru/privacy/index.html",
 			"ru/techniques/index.html",
@@ -239,6 +320,108 @@ describe("the site built from this repository", () => {
 		);
 	});
 
+	test("ships the coach's prototype as the very file the site keeps, and the licence of its fonts beside it", async () => {
+		for (const file of [...framed, "assets/noto-license.txt"]) {
+			const shipped = await readFile(join(out, file));
+			const kept = await readFile(join(repository, "site", file));
+			expect(shipped.equals(kept), file).toBe(true);
+		}
+	});
+
+	// The prototype is a design tool's export, and a new export can bring back
+	// what was taken out of it, which only a reader sees. It is held to the hash
+	// it had when it was last read through, written here by hand, so that no
+	// export ships unread.
+	test("keeps the coach's prototype the one that was last read through", async () => {
+		const kept = await readFile(
+			join(repository, "site", "assets", "coach-prototype.html"),
+		);
+
+		expect(createHash("sha256").update(kept).digest("hex")).toBe(
+			"cd07c9658db2f82fb6103c47e327b9cf27ef3f87a5904d46b3f6278a4bd0666d",
+		);
+	});
+
+	test("serves no HTML but its pages and what they frame, and frames the coach's prototype on the coach's page alone", async () => {
+		const documents = (await filesIn(out)).filter((file) =>
+			file.endsWith(".html"),
+		);
+		expect(
+			documents.filter(
+				(file) => file !== "index.html" && !file.endsWith("/index.html"),
+			),
+		).toEqual(framed);
+
+		const framing: Record<string, string[]> = {};
+		for (const page of await pagesIn(out)) {
+			const frames = framesIn(await readFile(join(out, page), "utf8"));
+			if (frames.length > 0) {
+				framing[page] = frames;
+			}
+		}
+		expect(framing).toEqual({
+			"en/coach/index.html": ["/assets/coach-prototype.html"],
+			"ru/coach/index.html": ["/assets/coach-prototype.html"],
+		});
+	});
+
+	// The prototype unpacks itself in the browser from data it carries, much of
+	// it compressed, so the checker of the site, which reads markup alone, sees
+	// none of the addresses inside it. The site promises to load nothing from
+	// another origin, so every address the prototype names, in its page and in
+	// every text it carries, must be one it never loads from: a namespace of
+	// XML, the page a message of React's errors points to, or the address of a
+	// copy it carries, which its runtime asks for by that address and is given
+	// the copy. Its runtime fetches more only for an import: Babel from another
+	// origin to compile a component imported by address, and a file of the
+	// prototype's own for a component imported by name. It imports neither.
+	test("holds the coach's prototype to the site's own origin: every address it names is one it never loads from", async () => {
+		const prototype = await readFile(
+			join(repository, "site", "assets", "coach-prototype.html"),
+			"utf8",
+		);
+		const block = (type: string): unknown => {
+			const open = `<script type="__bundler/${type}">`;
+			const start = prototype.indexOf(open) + open.length;
+			return JSON.parse(
+				prototype.slice(start, prototype.indexOf("</script>", start)),
+			);
+		};
+		const manifest = block("manifest") as Record<
+			string,
+			{ mime: string; compressed?: boolean; data: string }
+		>;
+		const copies = block("ext_resources") as { id: string; uuid: string }[];
+		const template = block("template") as string;
+		const carried = Object.values(manifest)
+			.filter(({ mime }) => /^(?:text\/|.*(?:javascript|json|xml))/.test(mime))
+			.map(({ data, compressed }) => {
+				const bytes = Buffer.from(data, "base64");
+				return (compressed ? gunzipSync(bytes) : bytes).toString("utf8");
+			});
+		const babel = "https://unpkg.com/@babel/standalone@7.29.0/babel.min.js";
+		const neverLoaded = (address: string) =>
+			address.startsWith("http://www.w3.org/") ||
+			address.startsWith("https://reactjs.org/docs/error-decoder.html") ||
+			address === babel ||
+			copies.some(({ id }) => id === address);
+
+		expect(carried).not.toEqual([]);
+		expect(copies).not.toEqual([]);
+		expect(copies.filter(({ uuid }) => !Object.hasOwn(manifest, uuid))).toEqual(
+			[],
+		);
+		for (const text of [prototype, ...carried]) {
+			const named = [
+				...text.matchAll(/[a-z][a-z0-9+.-]*:\/\/[a-z0-9][^\s"'`\\<>)]*/gi),
+			].map(([address]) => address);
+			expect(named.filter((address) => !neverLoaded(address))).toEqual([]);
+			expect(text).not.toMatch(/(?:src|href)=\\?["']\/\//);
+			expect(text).not.toContain("url(//");
+		}
+		expect(template).not.toMatch(/<(?:x|dc)-import\b/i);
+	});
+
 	test("builds the site's own stylesheet, with no copy of the tokens inside it", async () => {
 		const style = await readFile(join(out, "assets", "style.css"), "utf8");
 
@@ -254,7 +437,7 @@ describe("the site built from this repository", () => {
 	});
 
 	test("loads on every page the tokens, then the styles, and a script only on a page allowed one", async () => {
-		const pages = (await filesIn(out)).filter((file) => file.endsWith(".html"));
+		const pages = await pagesIn(out);
 		expect(pages).not.toEqual([]);
 		for (const page of pages) {
 			const html = await readFile(join(out, page), "utf8");
@@ -269,12 +452,58 @@ describe("the site built from this repository", () => {
 				...(carded.includes(page) ? ["/assets/card.css"] : []),
 			]);
 			expect(html.includes("<script")).toBe(scripted.includes(page));
+			expect(
+				[...html.matchAll(/<script type="module" src="([^"]+)"/g)].map(
+					([, src]) => src,
+				),
+			).toEqual(scripted.includes(page) ? ["/assets/demo.js"] : []);
 			expect(html.includes('class="mt mt-widget')).toBe(carded.includes(page));
 		}
 	});
 
+	test("carries on the home page what its demo needs: the lesson's task, the widget's words in the page's language alone, and an answer for every choice", async () => {
+		for (const [locale, words] of [
+			["en", widgetEnglish],
+			["ru", widgetRussian],
+		] as const) {
+			const html = await readFile(join(out, locale, "index.html"), "utf8");
+			const [, carried] =
+				/<script type="application\/json" data-demo>([^<]*)<\/script>/.exec(
+					html,
+				) ?? [];
+			const demo = JSON.parse(carried ?? "null");
+
+			expect(demo.locale).toBe(locale);
+			expect(demo.words).toEqual(words);
+			expect(demo.handed.task.id).toBe("site_home");
+			expect(Object.keys(demo.results)).toEqual(["A", "B", "C", "D", "E", "?"]);
+		}
+	});
+
+	// A script is weighed whole, as one file: the list of the files the build
+	// makes holds that, and the site's checker refuses a script that imports.
+	// The demo carries none of the widget's dictionaries, which the page
+	// carries in its own language, and none of the libraries a card in a chat
+	// reads the service and the host with, since the page answers for both.
+	// The topics' names it does carry, in the catalog the card's choice of a
+	// topic reads its grades from.
+	test("builds the demo into one file, with no dictionary of the widget, no zod and nothing of a host's library", async () => {
+		const demo = await readFile(join(out, "assets", "demo.js"), "utf8");
+		const named = new Set(catalog.map((topic) => topic.name));
+		const long = [widgetEnglish, widgetRussian].flatMap((words) =>
+			Object.values(words).filter(
+				(said): said is string =>
+					typeof said === "string" && said.length > 24 && !named.has(said),
+			),
+		);
+
+		expect(demo).not.toContain("_zod");
+		expect(demo).not.toContain("ui/initialize");
+		expect(long.filter((said) => demo.includes(said))).toEqual([]);
+	});
+
 	test("names on every page the sharing picture of its language, one the build serves at that address", async () => {
-		const pages = (await filesIn(out)).filter((file) => file.endsWith(".html"));
+		const pages = await pagesIn(out);
 		for (const page of pages) {
 			const html = await readFile(join(out, page), "utf8");
 			const locale = page.includes("/")
@@ -404,7 +633,7 @@ describe("the site built from this repository", () => {
 		}
 	});
 
-	test("opens the menu with the home page's sections on a lesson and on connecting, on every page of every language", async () => {
+	test("opens the menu with the coach's page and names no section of the home page, on every page of every language", async () => {
 		const pages = await localePages(out);
 		expect(pages).not.toEqual([]);
 		for (const page of pages) {
@@ -412,13 +641,15 @@ describe("the site built from this repository", () => {
 			const html = await readFile(join(out, page), "utf8");
 			const menu =
 				html.match(/<nav class="s-navlinks"[^>]*>(.*?)<\/nav>/s)?.[1] ?? "";
+			const links = [...menu.matchAll(/<a href="([^"]+)"/g)].map(
+				([, href]) => href,
+			);
 
+			expect(links[0], page).toBe(`/${locale}/coach/`);
 			expect(
-				[...menu.matchAll(/<a href="([^"]+)"/g)]
-					.slice(0, 2)
-					.map(([, href]) => href),
+				links.filter((href) => href?.includes("#")),
 				page,
-			).toEqual([`/${locale}/#lesson`, `/${locale}/#connect`]);
+			).toEqual([]);
 		}
 	});
 
@@ -460,6 +691,46 @@ describe("the site built from this repository", () => {
 		}
 	});
 
+	test("ships the family's photographs as the very files the site keeps", async () => {
+		for (const photo of photos) {
+			const shipped = await readFile(join(out, photoPath(photo.name)));
+			const kept = await readFile(keptPhotoOf(photo));
+			expect(shipped.equals(kept), photo.name).toBe(true);
+		}
+	});
+
+	test("shows on the page about who makes it, in every language, each of the family's photographs at its size, saying what it shows", async () => {
+		for (const locale of ["en", "ru"]) {
+			const shown = imagesIn(
+				await readFile(join(out, locale, "about", "index.html"), "utf8"),
+			).filter(({ src }) => src.startsWith(photoDirectory));
+
+			expect(
+				shown.map(({ src, width, height }) => [src, width, height]),
+				locale,
+			).toEqual(
+				photos.map(({ name, width, height }) => [
+					photoPath(name),
+					String(width),
+					String(height),
+				]),
+			);
+			for (const { src, alt } of shown) {
+				expect(alt.trim(), `${locale} ${src}`).not.toBe("");
+			}
+			expect(new Set(shown.map(({ alt }) => alt)).size, locale).toBe(
+				shown.length,
+			);
+		}
+	});
+
+	// The checker of the site weighs a page without the photographs it shows,
+	// and knows where they are only by its own word: were the site to keep
+	// them elsewhere, every page that shows one would weigh them after all.
+	test("keeps its photographs where its checker weighs them apart from the page", () => {
+		expect(checkedPhotoDirectory).toBe(photoDirectory);
+	});
+
 	test("shows on the page of the techniques every technique of the data, once among the links at its top and once as its card", async () => {
 		const ids = (data.techniques?.groups ?? []).flatMap((group) =>
 			group.techniques.map((technique) => technique.id),
@@ -487,7 +758,7 @@ describe("the site built from this repository", () => {
 	});
 
 	test("leads every link within a page to a part the page has, and gives no two parts of a page one name", async () => {
-		const pages = (await filesIn(out)).filter((file) => file.endsWith(".html"));
+		const pages = await pagesIn(out);
 		expect(pages).not.toEqual([]);
 		for (const page of pages) {
 			const html = await readFile(join(out, page), "utf8");

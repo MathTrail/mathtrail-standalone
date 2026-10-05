@@ -1,6 +1,6 @@
+import { cardWords } from "../widget/dictionaries";
 import type { Section } from "../widget/folds";
 import { listed, topicName } from "../widget/names";
-import { cardWords } from "../widget/words";
 import { progressOf, type SiteData } from "./data";
 import type { PageProps } from "./pages";
 import type { PageReader } from "./reader";

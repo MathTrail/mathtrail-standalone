@@ -85,16 +85,22 @@ describe("an icon", () => {
 });
 
 describe("the mark", () => {
-	test("is decoration beside the name it stands with", () => {
+	test("is decoration beside the name it stands with, drawn once for each theme", () => {
 		draw(<Mark />);
 
-		const mark = root.querySelector("svg");
-		expect(mark?.getAttribute("aria-hidden")).toBe("true");
-		expect(mark?.hasAttribute("role")).toBe(false);
-		expect(mark?.getAttribute("width")).toBe("32");
+		const marks = [...root.querySelectorAll("svg")];
+		expect(marks.map((mark) => mark.getAttribute("class"))).toEqual([
+			"mt-icon mt-mark-light",
+			"mt-icon mt-mark-dark",
+		]);
+		for (const mark of marks) {
+			expect(mark.getAttribute("aria-hidden")).toBe("true");
+			expect(mark.hasAttribute("role")).toBe(false);
+			expect(mark.getAttribute("width")).toBe("32");
+		}
 	});
 
-	test("draws the logo the site serves as its icon", () => {
+	test("draws for the dark theme the logo the site serves as its icon", () => {
 		const served = new DOMParser().parseFromString(
 			readFileSync(
 				join(import.meta.dirname, "../../../site/assets/favicon.svg"),
@@ -104,7 +110,45 @@ describe("the mark", () => {
 		).documentElement;
 		draw(<Mark size={48} />);
 
-		expect(drawingOf(root.querySelector("svg"))).toEqual(drawingOf(served));
+		expect(drawingOf(root.querySelector(".mt-mark-dark"))).toEqual(
+			drawingOf(served),
+		);
+	});
+
+	test("draws for the light theme the same ribbon and star on a white tile, its hairline all within the square", () => {
+		draw(<Mark size={48} />);
+		const light = root.querySelector(".mt-mark-light");
+		const tile = light?.querySelector(":scope > rect");
+		const at = (name: string) => Number(tile?.getAttribute(name));
+
+		expect(shapesOf(light)).toEqual(
+			shapesOf(root.querySelector(".mt-mark-dark")),
+		);
+		expect(tile?.getAttribute("fill")).toBe("#ffffff");
+		expect(tile?.getAttribute("stroke")).toMatch(/^#[0-9a-f]{6}$/);
+		// A line is drawn on its shape's edge, half of it outside: the tile
+		// stands that far in from the square, so all of the hairline shows.
+		const half = at("stroke-width") / 2;
+		expect(half).toBeGreaterThan(0);
+		expect([at("x"), at("y")]).toEqual([half, half]);
+		expect([
+			at("x") + at("width") + half,
+			at("y") + at("height") + half,
+		]).toEqual([48, 48]);
+	});
+
+	test("lightens no ink of the site's icon for the light theme, and deepens its palest, so that they hold on a white tile", () => {
+		draw(<Mark size={48} />);
+		const light = inksOf(root.querySelector(".mt-mark-light"));
+		const dark = inksOf(root.querySelector(".mt-mark-dark"));
+
+		expect(light).toHaveLength(dark.length);
+		light.forEach((ink, at) => {
+			expect(luminance(ink)).toBeLessThanOrEqual(luminance(dark[at] ?? ""));
+		});
+		expect(Math.max(...light.map(luminance))).toBeLessThan(
+			Math.max(...dark.map(luminance)),
+		);
 	});
 
 	test("names its gradients and its clip apart from another mark's", () => {
@@ -125,6 +169,34 @@ describe("the mark", () => {
 		}
 	});
 });
+
+// shapesOf are the lines a drawing of the mark draws its ribbon and its star
+// with, in their order.
+function shapesOf(svg: Element | null): (string | null)[] {
+	return [...(svg?.querySelectorAll("path") ?? [])].map((path) =>
+		path.getAttribute("d"),
+	);
+}
+
+// inksOf are the colours a drawing of the mark runs its parts through, from
+// the top and the bottom of each, in their order.
+function inksOf(svg: Element | null): string[] {
+	return [...(svg?.querySelectorAll("stop") ?? [])].map(
+		(stop) => stop.getAttribute("stop-color") ?? "",
+	);
+}
+
+// luminance is how light a colour written #rrggbb is to the eye, from 0 for
+// black to 1 for white.
+function luminance(colour: string): number {
+	const [red = 0, green = 0, blue = 0] = [1, 3, 5].map((at) => {
+		const channel = Number.parseInt(colour.slice(at, at + 2), 16) / 255;
+		return channel <= 0.04045
+			? channel / 12.92
+			: ((channel + 0.055) / 1.055) ** 2.4;
+	});
+	return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+}
 
 // referencesIn is every name a drawing points at with url(#…).
 function referencesIn(svg: Element): string[] {

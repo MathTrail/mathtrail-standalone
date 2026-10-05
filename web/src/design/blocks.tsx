@@ -1,8 +1,8 @@
 import type { ComponentChildren } from "preact";
-import { useId } from "preact/hooks";
 import { classes } from "./classes";
 import type { Said } from "./controls";
 import { Icon } from "./icons";
+import { useScopedId } from "./ids";
 
 /**
  * Diagram is a task's text drawing: a grid of characters whose meaning is
@@ -128,7 +128,7 @@ export function Fold({
 	onToggle: () => void;
 	children: ComponentChildren;
 }) {
-	const body = useId();
+	const body = useScopedId();
 	return (
 		<div class="mt-fold">
 			<h2 class="mt-fold-head">
