@@ -40,5 +40,5 @@ disable_default_url = true
 analytics = true
 
 # The reviewers' sign-in, by the versions of its two secrets.
-reviewer_password_version = "1"
-reviewer_grant_version    = "2"
+reviewer_password_version = "2"
+reviewer_grant_version    = "3"
