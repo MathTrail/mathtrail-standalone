@@ -35,8 +35,9 @@ export type Frame = {
  * numbers behind the product and the page about who makes it close it. The
  * header asks a reader to add MathTrail to Claude, which the home page's
  * section on connecting tells how to do. The footer names the page of the
- * numbers, the page about who makes the product and the documents rather than
- * every page in turn, which seventeen topics would bury them under.
+ * numbers, the page about who makes the product, the help and the documents
+ * rather than every page in turn, which seventeen topics would bury them
+ * under.
  */
 export const siteFrame: Frame = {
 	menu: [
@@ -48,5 +49,5 @@ export const siteFrame: Frame = {
 		{ page: "about", label: "nav.about" },
 	],
 	action: { page: frontPage, anchor: connectSection, label: "nav.add" },
-	footer: ["research", "about", "privacy", "terms"],
+	footer: ["research", "about", "help", "privacy", "terms"],
 };

@@ -10,5 +10,10 @@ module "analytics" {
   region       = var.region
   service_name = var.service_name
 
+  # Only a job GitHub runs in the environment live-numbers, which only main may
+  # run in, borrows the snapshot's reader: the pool maps a token's subject, and
+  # a job's subject names the environment it runs in.
+  snapshot_reader = "principal://iam.googleapis.com/projects/${data.google_project.this.number}/locations/global/workloadIdentityPools/${var.workload_identity_pool_id}/subject/${var.github_oidc_subject_prefix}:environment:live-numbers"
+
   depends_on = [google_project_service.enabled]
 }

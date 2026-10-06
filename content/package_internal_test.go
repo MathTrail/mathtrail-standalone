@@ -64,6 +64,110 @@ func TestTheExamplesAreTheNearestToTheDifficulty(t *testing.T) {
 	}
 }
 
+// drawnCell is a cell whose tasks of these ids carry a drawing.
+func drawnCell(counts map[int]int, drawn ...string) []Example {
+	pool := cell(counts)
+	for i := range pool {
+		if slices.Contains(drawn, pool[i].ID) {
+			pool[i].Drawing = "●──●"
+		}
+	}
+	return pool
+}
+
+func TestAPackageShowsATaskThatDrawsWhereThePoolHasOne(t *testing.T) {
+	t.Parallel()
+
+	for _, test := range []struct {
+		name                string
+		counts              map[int]int
+		drawn               []string
+		difficulty, answers int
+		want                []string
+	}{
+		{"one of those picked draws: they stay", map[int]int{3: 5}, []string{"d3-2"}, 3, 0,
+			[]string{"d3-1", "d3-2", "d3-3"}},
+		{"none of those picked draws: the last gives way", map[int]int{3: 5}, []string{"d3-5"}, 3, 0,
+			[]string{"d3-1", "d3-2", "d3-5"}},
+		{"the task that draws nearest the difficulty", map[int]int{1: 1, 3: 5, 4: 1}, []string{"d1-1", "d4-1"}, 3, 0,
+			[]string{"d3-1", "d3-2", "d4-1"}},
+		{"of two equally near, the easier", map[int]int{2: 1, 3: 5, 4: 1}, []string{"d2-1", "d4-1"}, 3, 0,
+			[]string{"d3-1", "d3-2", "d2-1"}},
+		{"tasks that draw at one difficulty take turns", map[int]int{3: 5, 4: 2}, []string{"d4-1", "d4-2"}, 3, 1,
+			[]string{"d3-2", "d3-3", "d4-2"}},
+		{"nothing draws: the picked stay", map[int]int{3: 5}, nil, 3, 0, []string{"d3-1", "d3-2", "d3-3"}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			pool := drawnCell(test.counts, test.drawn...)
+			picked := nearest(pool, test.difficulty, test.answers)
+			if got := idsOf(withADrawnTask(picked, pool, test.difficulty, test.answers)); !slices.Equal(got, test.want) {
+				t.Errorf("withADrawnTask(%v) = %v, want %v", idsOf(picked), got, test.want)
+			}
+		})
+	}
+}
+
+// drawingPool is a pool with so many tasks at each difficulty from 1 on, the
+// tasks whose flag is set carrying a drawing.
+func drawingPool(counts []int, drawn []bool) []Example {
+	sizes := map[int]int{}
+	for i, count := range counts {
+		sizes[i+1] = count
+	}
+	pool := cell(sizes)
+	for i := range pool {
+		if i < len(drawn) && drawn[i] {
+			pool[i].Drawing = "●──●"
+		}
+	}
+	return pool
+}
+
+// Whatever the pool and wherever the turns have come to, the tasks a package
+// shows are those nearest picks, but for the last of them where none of those
+// draws, and no task is shown twice.
+func TestATaskThatDrawsIsShownWheneverThePoolHasOne(t *testing.T) {
+	t.Parallel()
+
+	shown := func(counts []int, drawn []bool, difficulty, answers int) (picked, got []Example, pool []Example) {
+		pool = drawingPool(counts, drawn)
+		picked = nearest(pool, difficulty, answers)
+		return picked, withADrawnTask(picked, pool, difficulty, answers), pool
+	}
+	properties := gopter.NewProperties(nil)
+	for _, property := range []struct {
+		name  string
+		holds func(picked, got, pool []Example) bool
+	}{
+		{"as many tasks as nearest picks", func(picked, got, _ []Example) bool { return len(got) == len(picked) }},
+		{"all but the last as nearest picks them", func(picked, got, _ []Example) bool {
+			return len(got) == 0 || slices.Equal(idsOf(got[:len(got)-1]), idsOf(picked[:len(picked)-1]))
+		}},
+		{"a pick that draws is kept as it is", func(picked, got, _ []Example) bool {
+			return !anyDraws(picked) || slices.Equal(idsOf(got), idsOf(picked))
+		}},
+		{"a task that draws is shown whenever the pool has one", func(_, got, pool []Example) bool {
+			return anyDraws(got) == anyDraws(pool)
+		}},
+		{"no task is shown twice", func(_, got, _ []Example) bool {
+			return len(slices.Compact(slices.Sorted(slices.Values(idsOf(got))))) == len(got)
+		}},
+	} {
+		properties.Property(property.name, prop.ForAll(
+			func(counts []int, drawn []bool, difficulty, answers int) bool {
+				return property.holds(shown(counts, drawn, difficulty, answers))
+			},
+			gen.SliceOfN(5, gen.IntRange(0, 5)),
+			gen.SliceOfN(25, gen.Bool()),
+			gen.IntRange(1, 5),
+			gen.IntRange(-1_000_000, 1_000_000),
+		))
+	}
+	properties.TestingRun(t)
+}
+
 // A topic with nothing at the level of the brief is shown the level below; one
 // with nothing at or below it, and a level there is not, are shown nothing.
 func TestTheLevelBelowStandsInForAnEmptyOne(t *testing.T) {

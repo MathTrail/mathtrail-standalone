@@ -1161,6 +1161,15 @@
     "grade_level": "3-4",
     "difficulty": 2,
     "question": "Kim, Lea and Mo sit on chairs number 1, 2 and 3. Mo is not on chair 2. Lea sits on the chair whose number is one more than Mo's. Kim is not on chair 1. Who sits on chair 2?",
+    "drawing": "1  2  3\n●──●──●",
+    "drawing_structure": {
+      "kind": "row",
+      "objects": [
+        {"id": "chair_1", "label": "1"},
+        {"id": "chair_2", "label": "2"},
+        {"id": "chair_3", "label": "3"}
+      ]
+    },
     "options": {
       "A": "Kim",
       "B": "Mo",
@@ -1929,6 +1938,15 @@
     "grade_level": "5-6",
     "difficulty": 4,
     "question": "Seven bikes stand in a rack with slots numbered 1 to 7 from the left. Hana's bike is in slot 3. There are exactly three bikes between Ivo's bike and Jon's bike. Kai's bike is right next to Jon's, on its right. Lea's bike is to the right of Hana's but to the left of Ivo's. The other two bikes belong to Max and Ned. In which slot is Ivo's bike?",
+    "drawing": "1  2  3  4  5  6  7\n●──●──●──●──●──●──●",
+    "drawing_structure": {
+      "kind": "row",
+      "objects": [
+        {"id": "slot_1", "label": "1"},
+        {"id": "slot_3", "label": "3"},
+        {"id": "slot_7", "label": "7"}
+      ]
+    },
     "options": {
       "A": "1",
       "B": "6",

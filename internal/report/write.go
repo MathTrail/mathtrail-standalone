@@ -15,6 +15,11 @@ import (
 // them.
 var toolOutcomes = []string{"ok", "refused", "failed", "invalid"}
 
+// notLogged stands for a count no line of a group says anything about, such
+// as the drawings of tasks accepted before the service said whether there was
+// one. A blank cell would read as none.
+const notLogged = "(not logged)"
+
 // write writes the report: what the lines span, then a table for each thing
 // they count, each under a sentence that says how to read it.
 func write(out io.Writer, c *counts) error {
@@ -27,7 +32,12 @@ func write(out io.Writer, c *counts) error {
 		{"Tasks", "Asked for counts the requests opened; handed in, the attempts judged, of which the checks " +
 			"refused some; out of attempts, the requests whose last attempt was refused.", c.tasksTable()},
 		{"Accepted tasks", "The attempts an accepted task took, and the seconds from its request to its " +
-			"acceptance: the time the chat's model took to write it.", c.acceptedTable()},
+			"acceptance: the time the chat's model took to write it. With a drawing counts the tasks that came " +
+			"with one; where only some lines of a group say whether they did, it counts among those, as 2 of 3, and " +
+			"where none says, it is not logged.", c.acceptedTable()},
+		{"Drawings by topic", "The tasks accepted on each topic whose line says whether they came with a " +
+			"drawing, and how many of them did. A line written before the service said so is left out.",
+			c.drawingsTable()},
 		{"Why attempts were refused", "An attempt is counted by one check, the first its refusal names, and " +
 			"fails that check and any others beside it.", c.refusalsTable()},
 		{"Chances and what came of them", c.promisesAbout(), c.promisesTable()},
@@ -101,7 +111,7 @@ func (c *counts) tasksTable() *table {
 // and how long they took to write.
 func (c *counts) acceptedTable() *table {
 	t := &table{columns: []string{
-		"Instructions", "Host", "Accepted", "At the first attempt", "Attempts, mean",
+		"Instructions", "Host", "Accepted", "With a drawing", "At the first attempt", "Attempts, mean",
 		"Seconds, median", "Seconds, 90th percentile", "Seconds, longest",
 	}, named: 2}
 	for _, g := range c.groups() {
@@ -109,10 +119,34 @@ func (c *counts) acceptedTable() *table {
 		if len(counted.attempts) == 0 {
 			continue
 		}
+		drawn := notLogged
+		switch {
+		case counted.told == len(counted.attempts):
+			drawn = number(counted.drawn)
+		case counted.told > 0:
+			drawn = fmt.Sprintf("%d of %d", counted.drawn, counted.told)
+		}
 		seconds := slices.Sorted(slices.Values(counted.seconds))
-		t.add(g.version, g.host, number(len(counted.attempts)), number(countOf(counted.attempts, 1)),
+		t.add(g.version, g.host, number(len(counted.attempts)), drawn, number(countOf(counted.attempts, 1)),
 			strconv.FormatFloat(mean(counted.attempts), 'f', 1, 64),
 			number(atRank(seconds, 50)), number(atRank(seconds, 90)), number(atRank(seconds, 100)))
+	}
+	return t
+}
+
+// drawingsTable is, under each version and on each topic, the tasks accepted
+// whose line says whether they came with a drawing, and how many of them did.
+func (c *counts) drawingsTable() *table {
+	t := &table{columns: []string{"Instructions", "Topic", "Accepted", "With a drawing"}, named: 2}
+	keys := slices.Collect(maps.Keys(c.drawings))
+	slices.SortFunc(keys, func(a, b drawnOn) int {
+		return cmp.Or(
+			cmp.Compare(slices.Index(c.versions, a.version), slices.Index(c.versions, b.version)),
+			cmp.Compare(a.topic, b.topic),
+		)
+	})
+	for _, key := range keys {
+		t.add(key.version, key.topic, number(c.drawings[key].accepted), number(c.drawings[key].drawn))
 	}
 	return t
 }

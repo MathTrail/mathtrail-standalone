@@ -299,17 +299,6 @@ func fill(t *testing.T, sql string, names map[string]string) string {
 	})
 }
 
-// read is a file of this package's.
-func read(t *testing.T, file string) string {
-	t.Helper()
-
-	raw, err := os.ReadFile(filepath.FromSlash(file))
-	if err != nil {
-		t.Fatalf("read %s: %v", file, err)
-	}
-	return string(raw)
-}
-
 // eventsList is the list of events the lines are copied for, as the SQL takes
 // it: the names in quotes, one after another.
 func eventsList(t *testing.T) string {

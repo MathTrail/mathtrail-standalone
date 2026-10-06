@@ -15,13 +15,22 @@ Asked for counts the requests opened; handed in, the attempts judged, of which t
 
 ## Accepted tasks
 
-The attempts an accepted task took, and the seconds from its request to its acceptance: the time the chat's model took to write it.
+The attempts an accepted task took, and the seconds from its request to its acceptance: the time the chat's model took to write it. With a drawing counts the tasks that came with one; where only some lines of a group say whether they did, it counts among those, as 2 of 3, and where none says, it is not logged.
 
-| Instructions | Host | Accepted | At the first attempt | Attempts, mean | Seconds, median | Seconds, 90th percentile | Seconds, longest |
-|---|---|---:|---:|---:|---:|---:|---:|
-| 0a1b2c3d4e5f | claude | 1 | 0 | 2.0 | 95 | 95 | 95 |
-| 88b63e22129c | (call not read) | 1 | 1 | 1.0 | 70 | 70 | 70 |
-| 88b63e22129c | claude | 1 | 1 | 1.0 | 40 | 40 | 40 |
+| Instructions | Host | Accepted | With a drawing | At the first attempt | Attempts, mean | Seconds, median | Seconds, 90th percentile | Seconds, longest |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| 0a1b2c3d4e5f | claude | 1 | (not logged) | 0 | 2.0 | 95 | 95 | 95 |
+| 88b63e22129c | (call not read) | 1 | 1 | 1 | 1.0 | 70 | 70 | 70 |
+| 88b63e22129c | claude | 1 | 0 | 1 | 1.0 | 40 | 40 | 40 |
+
+## Drawings by topic
+
+The tasks accepted on each topic whose line says whether they came with a drawing, and how many of them did. A line written before the service said so is left out.
+
+| Instructions | Topic | Accepted | With a drawing |
+|---|---|---:|---:|
+| 88b63e22129c | logic.ordering | 1 | 0 |
+| 88b63e22129c | parity.alternation | 1 | 1 |
 
 ## Why attempts were refused
 

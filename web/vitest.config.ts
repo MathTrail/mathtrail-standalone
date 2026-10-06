@@ -20,7 +20,7 @@ export default defineConfig({
 			// pictures of the README and the driving of the preview they share
 			// run in real browsers against the preview, and nowhere else, as the
 			// measure of the width the site's menu folds at runs against the
-			// built site.
+			// built site and the directories' icons are drawn from the logo.
 			include: ["src/**/*.{ts,tsx}", "scripts/**/*.ts", "tools/**/*.ts"],
 			exclude: [
 				"**/*.test.{ts,tsx}",
@@ -32,6 +32,7 @@ export default defineConfig({
 				"src/demo/main.tsx",
 				"scripts/drive.ts",
 				"scripts/fold.ts",
+				"scripts/icons.ts",
 				"scripts/layout.ts",
 				"scripts/screens.ts",
 			],

@@ -1,0 +1,109 @@
+{
+	"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+	"name": "mathtrail",
+	"version": "1.0.0",
+	"description": "MathTrail gives a child in grades 1 to 6 olympiad-style maths tasks in a lesson a parent or tutor runs in the chat. The chat's model writes each task; MathTrail picks its topic and difficulty from the child's answers, checks it with a program before the child sees it, and shows it on a card with five options. A wrong answer is explained from the mistake behind it, and the child's progress, under a pseudonym, is kept in one file in the parent's Google Drive.",
+	"author": {
+		"name": "[Company]",
+		"email": "altedtech.info@gmail.com",
+		"url": "https://mathtrail.app/en/"
+	},
+	"homepage": "https://mathtrail.app/en/",
+	"repository": "https://github.com/MathTrail/mathtrail-standalone",
+	"license": "MIT",
+	"keywords": ["maths", "olympiad", "education", "parents", "tutors"],
+	"extensions": {
+		"com.openai": {
+			"interface": {
+				"displayName": "MathTrail",
+				"shortDescription": "Olympiad maths for your child",
+				"longDescription": "MathTrail is for parents and tutors who want to give a child in grades 1 to 6 olympiad-style maths: tasks that ask for an idea rather than a drill.\n\nHow a lesson goes. You ask in the chat for a task. The chat's own model writes it, and MathTrail checks it with a program before your child sees it: exactly one of the five options is right, a solver that tries every case reproduces the answer, the wording suits the grade, the task is not a near copy of an earlier one, and any text drawing is well formed. The task then appears on a card, and your child, sitting beside you, answers by tapping an option. Checked means exactly these checks: whether the wording and the solution agree in meaning is checked by the model itself.\n\nAfter an answer. A wrong answer is explained from the mistake behind it, such as counting the posts of a fence instead of its gaps, and then step by step. The card has a hint for when your child wants one.\n\nWhat MathTrail keeps track of. The first five tasks find where your child stands; after them, MathTrail chooses each task's topic and difficulty from the answers. Ask how your child is doing to see the rank in each topic, what moved over the past week, the mistakes that repeat and what to practise next.\n\nYour child's data. You sign in with Google, and your child needs no account. The profile is one file in your own Google Drive, under a pseudonym you choose, never a real name. MathTrail can reach only the files it created there, and keeps no database of its own.\n\nLimits. Up to 20 new tasks a day. A task takes a minute or two to write and check. MathTrail is not a homework solver, and it covers grades 1 to 6 only. Its code is open source under the MIT License.",
+				"developerName": "[Company]",
+				"category": "Education & Research",
+				"capabilities": [
+					"Picks each task's topic and difficulty from the child's answers",
+					"Checks every task the chat writes before the child sees it",
+					"Shows each task on a card with five options, a hint and the next task",
+					"Records the answer tapped on the card before any explanation",
+					"Explains a wrong answer from the mistake behind it, then the solution",
+					"Shows progress by topic, the mistakes that repeat and what to practise next",
+					"Keeps the child's profile in one file in the parent's Google Drive"
+				],
+				"websiteURL": "https://mathtrail.app/en/",
+				"supportURL": "https://mathtrail.app/en/help/",
+				"privacyPolicyURL": "https://mathtrail.app/en/privacy/",
+				"termsOfServiceURL": "https://mathtrail.app/en/terms/",
+				"defaultPrompt": [
+					"Let's do a MathTrail task.",
+					"How is my child doing in MathTrail?",
+					"Set up a MathTrail profile for my child."
+				],
+				"composerIcon": "./assets/logo.png",
+				"composerIconDark": "./assets/logo-dark.png",
+				"logo": "./assets/logo.png",
+				"logoDark": "./assets/logo-dark.png"
+			},
+			"review": {
+				"test_cases": {
+					"positive": [
+						{
+							"description": "A task the chat writes and MathTrail checks, shown on a card without its answer.",
+							"prompt": "Let's do a MathTrail task.",
+							"tools_triggered": "next_task, get_package, submit_task",
+							"expected_behavior": "A card appears at once and shows that the task is being prepared. Within a minute or two the task arrives on it, with five options, a hint and Another task. Neither the card nor the chat's messages show the right option until the child answers; the chat's log of tool calls, which shows the task as the model handed it in, is the one place it appears."
+						},
+						{
+							"description": "With the task of the first case on the card and not yet answered, an answer of I don't know given in the chat, recorded before anything is explained.",
+							"prompt": "We don't know this one.",
+							"tools_triggered": "submit_answer",
+							"expected_behavior": "The answer is recorded as I don't know and counted as wrong. Then the chat gives the right option and goes through the solution step by step, and offers another task."
+						},
+						{
+							"description": "A task on a topic the adult names.",
+							"prompt": "Give us a task on gaps and boundaries.",
+							"tools_triggered": "next_task, get_package, submit_task",
+							"expected_behavior": "A task on gaps and boundaries, such as the posts and the gaps of a fence, arrives on a card as in the first case."
+						},
+						{
+							"description": "The child's progress, shown to the adult.",
+							"prompt": "How is my child doing?",
+							"tools_triggered": "get_progress",
+							"expected_behavior": "A card shows the overall rank and the rank in each topic, what moved since the last task and over the past week, a review of strengths, topics to develop and next steps, and the mistakes that repeat. The chat sums it up for the adult in a few sentences."
+						},
+						{
+							"description": "A change to the profile the adult asks for.",
+							"prompt": "Change my child's interests to space and dinosaurs.",
+							"tools_triggered": "save_profile",
+							"expected_behavior": "ChatGPT may ask to confirm, since saving replaces the interests kept before. The chat says in one sentence what was saved, and nothing else in the profile changes."
+						}
+					],
+					"negative": [
+						{
+							"description": "A homework problem: MathTrail is not a homework solver, so no MathTrail tool is called, and the chat answers it on its own or points to a MathTrail task instead.",
+							"prompt": "Solve this homework for me: 3x + 5 = 20."
+						},
+						{
+							"description": "A grade outside 1 to 6: MathTrail's tasks stop at grade 6, so the grade is not changed and nothing is saved, and the chat says which grades MathTrail covers.",
+							"prompt": "Set my child's grade to 8."
+						},
+						{
+							"description": "The answer asked for before the child has answered: MathTrail keeps it hidden until the child answers on the card, so the chat does not tell it and offers the hint instead.",
+							"prompt": "Tell me which option is right before my child answers."
+						}
+					]
+				},
+				"commerce": false,
+				"commerce_description": "MathTrail sells nothing and takes no payments."
+			},
+			"publication": {
+				"release_notes": "First release in the ChatGPT directory. A parent or tutor runs a lesson of olympiad-style maths for a child in grades 1 to 6: the chat writes each task, and MathTrail checks it, shows it on a card, records the answer, explains a wrong one from the mistake behind it and keeps the progress in the parent's Google Drive.",
+				"translations": {
+					"ru-RU": {
+						"subtitle": "Олимпиадные задачи для ребёнка",
+						"description": "MathTrail для родителей и репетиторов, которые хотят дать ребёнку 1–6 классов олимпиадную математику: задачи, где нужна идея, а не натаскивание.\n\nКак идёт урок. Вы просите в чате задачу. Её пишет модель самого чата, а MathTrail проверяет её программой, прежде чем ребёнок её увидит: верен ровно один из пяти вариантов, решатель, который перебирает все случаи, получает тот же ответ, текст подходит классу, задача не повторяет почти дословно одну из прежних, а текстовый рисунок, если он есть, сделан по правилам. Потом задача появляется на карточке, и ребёнок рядом с вами отвечает, нажимая на вариант. Слово «проверена» означает здесь ровно эти проверки, а согласуются ли условие и решение по смыслу, проверяет сама модель.\n\nПосле ответа. Неверный ответ разбирается от ошибки, которая за ним стоит, например когда считают столбики забора вместо промежутков, а потом по шагам. На карточке есть подсказка на случай, когда ребёнку она нужна.\n\nЧто MathTrail помнит. Первые пять задач определяют, где ребёнок сейчас, а после них MathTrail выбирает тему и сложность каждой задачи по ответам. Спросите, как успехи у ребёнка, и вы увидите ранг в каждой теме, что сдвинулось за неделю, повторяющиеся ошибки и что тренировать дальше.\n\nДанные ребёнка. Вы входите через Google, а ребёнку аккаунт не нужен. Профиль лежит одним файлом в вашем Google Диске под псевдонимом, который вы выбираете, а не под настоящим именем. MathTrail видит там только созданные им самим файлы и своей базы данных не держит.\n\nОграничения. До 20 новых задач в день. Задача пишется и проверяется минуту-другую. MathTrail не решает домашние задания и охватывает только 1–6 классы. Его код открыт под лицензией MIT."
+					}
+				}
+			}
+		}
+	}
+}
