@@ -99,7 +99,7 @@ connect:
       open: В Claude откройте {connectors}.
       add: Нажмите **+** и выберите **Add custom connector**.
       paste: "Вставьте адрес:"
-      sign: "Нажмите **Add**, затем **Connect** и войдите через Google. MathTrail попросит разрешения хранить один файл в вашем Google Диске — профиль ребёнка. На экране Google поставьте галочку у Google Диска. Google оставляет её пустой, а без этого файла прогрессу негде храниться."
+      sign: "Нажмите **Add**, затем **Connect** и войдите через Google. MathTrail попросит разрешения хранить один файл в вашем Google Диске — профиль ребёнка. Разрешите это на экране Google: без этого файла прогрессу негде храниться."
       chat: "В чате нажмите **+** → **Connectors**, включите MathTrail и напишите: «Давай задачу MathTrail»."
     # Claude's own names for the page, the same in every language.
     connectors: Customize → Connectors

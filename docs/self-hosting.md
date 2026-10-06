@@ -81,13 +81,13 @@ The progress links each topic's name to its page on this site, and the words for
 
 ## 5. The Google sign-in
 
-The parent signs in with Google, and the service asks Google for exactly two things: a verified identifier, and room for one file of its own in the parent's Drive. It is configured in the Google Cloud console, under **Google Auth Platform**, on its four pages.
+The parent signs in with Google, and the service asks Google for exactly one thing: room for one file of its own in the parent's Drive. It then asks Google whom the access token of that permission was issued for, which is how it knows who signed in. It is configured in the Google Cloud console, under **Google Auth Platform**, on its four pages.
 
 **Branding.** The name people see on the consent screen, a support email, a developer contact email, and three links: the home page, the privacy policy and the terms of your site, which for this deployment are `https://mathtrail.app/en/`, `https://mathtrail.app/en/privacy/` and `https://mathtrail.app/en/terms/`. Add the top private domain of those links — `mathtrail.app` here — as an authorized domain: one entry covers both the site on the apex and the service on its subdomain. Leave the logo out unless you mean to have the app reviewed: uploading one sends it to Google's brand verification.
 
 **Audience.** User type **External**, publishing status **In production**. Not Testing: there only the test users listed on that page may sign in at all, and a consent expires seven days after it is given and takes the refresh token with it, so every parent would be signed out once a week.
 
-**Data access.** Two scopes and no others: `openid`, which is what makes the identifier verified, and `https://www.googleapis.com/auth/drive.file`, which reaches only the files the app itself created plus anything the parent hands it explicitly. Both are non-sensitive, so publishing needs no app verification at all; brand verification is the separate, lighter process that makes the app's own name and logo appear on the consent screen instead of the project's name.
+**Data access.** One scope and no other: `https://www.googleapis.com/auth/drive.file`, which reaches only the files the app itself created plus anything the parent hands it explicitly. Not `openid` beside it: once a request asks for a sign-in too, Google shows the Drive with a box it leaves unticked, and a parent who presses on past it grants the sign-in alone. The scope is non-sensitive, so publishing needs no app verification at all; brand verification is the separate, lighter process that makes the app's own name and logo appear on the consent screen instead of the project's name.
 
 **Clients.** One client, type **Web application**, with a single authorized redirect URI — `https://<your host>/oauth/callback`, no trailing slash. No authorized JavaScript origins: the sign-in is a redirect the service performs, never a script inside a page. The client id goes into `prod.auto.tfvars`.
 

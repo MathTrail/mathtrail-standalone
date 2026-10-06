@@ -55,7 +55,7 @@ func (f *flow) drive(w http.ResponseWriter, r *http.Request) {
 	}
 	screen := driveScreen{redirectURI: request.RedirectURI, request: sealed}
 	if f.google != nil {
-		screen.google = f.google.AuthURL(sealed, request.Verifier, request.Nonce)
+		screen.google = f.google.AuthURL(sealed, request.Verifier)
 	}
 	if err := f.pages.showDrive(w, screen); err != nil {
 		f.events.failed(r.Context(), stepDrive, err)
@@ -73,7 +73,7 @@ func (f *flow) backToGoogle(w http.ResponseWriter, r *http.Request, request *fli
 	}
 	f.events.consented(r.Context(), request, &ending{outcome: "again"})
 	//nolint:gosec // Google's own address, carrying the request this server sealed
-	http.Redirect(w, r, f.google.AuthURL(sealed, request.Verifier, request.Nonce), http.StatusSeeOther)
+	http.Redirect(w, r, f.google.AuthURL(sealed, request.Verifier), http.StatusSeeOther)
 }
 
 // cancelForDrive ends the sign-in of a parent who cancelled on the page that

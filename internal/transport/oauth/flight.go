@@ -49,9 +49,8 @@ type flight struct {
 	Challenge    string `json:"code_challenge"`
 	Resource     string `json:"resource"`
 	Scope        string `json:"scope"`
-	// Verifier and Nonce are what this server proves and expects at Google.
+	// Verifier is what this server proves at Google.
 	Verifier string `json:"verifier"`
-	Nonce    string `json:"nonce"`
 	// Cookie is the digest of the cookie the browser was given, which is the
 	// only place the cookie is compared with.
 	Cookie    string `json:"cookie"`
@@ -81,11 +80,10 @@ func (f *flow) sealFlight(request *flight) (string, error) {
 }
 
 // readyForGoogle readies a request for a way through Google of its own: a
-// verifier and a nonce towards Google, and the time a sign-in may take, from
-// now. It is the request sealed: the state Google carries back.
+// verifier towards Google, and the time a sign-in may take, from now. It is
+// the request sealed: the state Google carries back.
 func (f *flow) readyForGoogle(request *flight) (string, error) {
 	request.Verifier = randomValue(verifierBytes)
-	request.Nonce = randomValue(nonceBytes)
 	request.StartedAt = f.now().Unix()
 	return f.sealFlight(request)
 }

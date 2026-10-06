@@ -57,7 +57,7 @@ Works now, on the free plan too:
 1. In Claude, open [Customize → Connectors](https://claude.ai/customize/connectors).
 2. Press **+** and choose **Add custom connector**.
 3. Paste the address: `https://mcp.mathtrail.app/mcp`
-4. Press **Add**, then **Connect**, and sign in with Google. MathTrail asks to keep one file in your Google Drive — your child's profile. On Google's screen, tick the box for Google Drive: Google leaves it unticked, and without that file there is nowhere to keep the progress.
+4. Press **Add**, then **Connect**, and sign in with Google. MathTrail asks to keep one file in your Google Drive — your child's profile. Allow it on Google's screen: without that file there is nowhere to keep the progress.
 5. In a chat, press **+** → **Connectors**, switch MathTrail on and say: "Let's do a MathTrail task."
 
 The free plan allows one custom connector. A connector added on claude.ai or in Claude Desktop is in Claude's mobile apps too, on the same account.

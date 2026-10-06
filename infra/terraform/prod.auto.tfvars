@@ -34,3 +34,7 @@ disable_default_url = true
 # The counts of how the service is used, kept for grant applications, as the
 # privacy policy at mathtrail.app says.
 analytics = true
+
+# The reviewers' sign-in, by the versions of its two secrets.
+reviewer_password_version = "1"
+reviewer_grant_version    = "2"

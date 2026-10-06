@@ -178,7 +178,7 @@ func (f *family) signIn() {
 	if err != nil || allowed.status != http.StatusSeeOther || !strings.HasPrefix(allowed.location, f.google.URL) {
 		f.t.Fatalf("POST /oauth/consent = %d to %q, want 303 to Google", allowed.status, allowed.location)
 	}
-	f.keep(toGoogle.Query().Get("state"), toGoogle.Query().Get("code_challenge"), toGoogle.Query().Get("nonce"))
+	f.keep(toGoogle.Query().Get("state"), toGoogle.Query().Get("code_challenge"))
 
 	fromGoogle := f.google.Allow(allowed.location)
 	called, err := url.Parse(fromGoogle)

@@ -49,7 +49,7 @@ func (f *flow) consent(w http.ResponseWriter, r *http.Request) {
 		}
 		f.events.consented(r.Context(), &request, &ending{outcome: "allowed"})
 		//nolint:gosec // Google's own address, carrying the request this server sealed
-		http.Redirect(w, r, f.google.AuthURL(sealed, request.Verifier, request.Nonce), http.StatusSeeOther)
+		http.Redirect(w, r, f.google.AuthURL(sealed, request.Verifier), http.StatusSeeOther)
 	case "deny":
 		dropCSRFCookie(w)
 		f.events.consented(r.Context(), &request, &ending{outcome: "denied"})
