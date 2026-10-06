@@ -3,9 +3,11 @@ package httpserver_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -194,15 +196,52 @@ func newRouter(t *testing.T) http.Handler {
 func newRouterOf(t *testing.T, served *httpserver.Endpoints) http.Handler {
 	t.Helper()
 
-	router, err := httpserver.NewRouter(publicURL, served, roomy(t), zaptest.NewLogger(t), httpserver.Observability{
-		Traces: tracenoop.NewTracerProvider(),
-		Meters: metricnoop.NewMeterProvider(),
-		Flush:  func(context.Context, bool) error { return nil },
-	})
+	router, err := httpserver.NewRouter(publicURL, served, roomy(t), zaptest.NewLogger(t), quiet())
 	if err != nil {
 		t.Fatalf("NewRouter() error = %v, want nil", err)
 	}
 	return router
+}
+
+// quiet is telemetry that keeps nothing.
+func quiet() httpserver.Observability {
+	return httpserver.Observability{
+		Traces: tracenoop.NewTracerProvider(),
+		Meters: metricnoop.NewMeterProvider(),
+		Flush:  func(context.Context, bool) error { return nil },
+	}
+}
+
+// A router missing a handler is refused, the handler named, rather than
+// mounted to fail at its first request.
+func TestARouterMissingAHandlerIsRefused(t *testing.T) {
+	t.Parallel()
+
+	for name, remove := range map[string]func(*httpserver.Endpoints){
+		"Health":           func(e *httpserver.Endpoints) { e.Health = nil },
+		"MCP":              func(e *httpserver.Endpoints) { e.MCP = nil },
+		"ResourceMetadata": func(e *httpserver.Endpoints) { e.ResourceMetadata = nil },
+		"ServerMetadata":   func(e *httpserver.Endpoints) { e.ServerMetadata = nil },
+		"Register":         func(e *httpserver.Endpoints) { e.Register = nil },
+		"Authorize":        func(e *httpserver.Endpoints) { e.Authorize = nil },
+		"Consent":          func(e *httpserver.Endpoints) { e.Consent = nil },
+		"Callback":         func(e *httpserver.Endpoints) { e.Callback = nil },
+		"Drive":            func(e *httpserver.Endpoints) { e.Drive = nil },
+		"Token":            func(e *httpserver.Endpoints) { e.Token = nil },
+		"Revoke":           func(e *httpserver.Endpoints) { e.Revoke = nil },
+		"Busy":             func(e *httpserver.Endpoints) { e.Busy = nil },
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			served := endpoints()
+			remove(served)
+			_, err := httpserver.NewRouter(publicURL, served, roomy(t), zaptest.NewLogger(t), quiet())
+			if !errors.Is(err, httpserver.ErrEndpoints) || !strings.Contains(err.Error(), name+" must be set") {
+				t.Errorf("NewRouter() without %s: error = %v, want ErrEndpoints naming it", name, err)
+			}
+		})
+	}
 }
 
 // publicURL is the address the router under test serves. Its host is the one a
