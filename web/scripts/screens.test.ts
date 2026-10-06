@@ -4,7 +4,7 @@ import { join, relative } from "node:path";
 import { describe, expect, test } from "vitest";
 import { scenesIn } from "../src/preview/scenes.ts";
 import { previewWidths } from "../src/preview/widths.ts";
-import { addressOf, pictureOf, shots, width } from "./screens.ts";
+import { addressOf, pictureOf, shots, shownAt, width } from "./screens.ts";
 
 const root = join(import.meta.dirname, "..", "..");
 
@@ -32,30 +32,28 @@ describe("the pictures of the README", () => {
 		});
 	});
 
-	test("are written to the files the README shows, one for each scene", () => {
+	test("are written into web/screens/, one for each scene", () => {
 		const files = shots.map((shot) => relative(root, pictureOf(shot)));
 		expect(files.sort()).toEqual([
-			"docs/screens/progress-dark.png",
-			"docs/screens/task-dark.png",
-			"docs/screens/wrong-dark.png",
+			"web/screens/progress-dark.png",
+			"web/screens/task-dark.png",
+			"web/screens/wrong-dark.png",
 		]);
 	});
 });
 
 describe("the README", () => {
 	// A picture written that the README does not show is a picture nobody sees,
-	// and one it shows that is not written is a picture gone stale. Showing the
+	// and one it shows that is not written is a picture missing from the page,
+	// whether HTML or Markdown asks for it, and at whatever address. Showing the
 	// pictures written and no other is also what shows a reader of a light page
 	// the dark theme: no lighter picture is left to choose.
 	test("shows every picture written and no other, at the width photographed", () => {
 		const readme = readFileSync(join(root, "README.md"), "utf8");
-		const shown = readme.match(/docs\/screens\/[^\s"'`),]+/g) ?? [];
-		const written = shots.map((shot) => relative(root, pictureOf(shot)));
-		expect(shown.sort()).toEqual(written.sort());
+		const shown = readme.match(/[^\s"'`()<>[\]]*screens\/[a-z-]+\.png/g) ?? [];
+		expect(shown.sort()).toEqual(shots.map(shownAt).sort());
 		for (const shot of shots) {
-			expect(readme).toContain(
-				`<img src="${relative(root, pictureOf(shot))}" width="${width}"`,
-			);
+			expect(readme).toContain(`<img src="${shownAt(shot)}" width="${width}"`);
 		}
 	});
 });

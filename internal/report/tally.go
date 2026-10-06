@@ -47,7 +47,18 @@ type tasks struct {
 	// to write it.
 	attempts []int
 	seconds  []int64
+	// told counts the tasks accepted whose line says whether they came with a
+	// drawing, and drawn those of them that did.
+	told, drawn int
 }
+
+// drawnOn is a topic as the tasks of one version of the instructions were
+// written on it.
+type drawnOn struct{ version, topic string }
+
+// drawings is how many tasks of a topic were accepted with a line that says
+// whether they came with a drawing, and how many of them did.
+type drawings struct{ accepted, drawn int }
 
 // refusedBy is a check that refused attempts, under a version of the
 // instructions.
@@ -79,6 +90,7 @@ type counts struct {
 	// appear: a newer version comes after an older one.
 	versions []string
 	tasks    map[group]*tasks
+	drawings map[drawnOn]*drawings
 	refusals map[refusedBy]*refusals
 	limits   map[string]int
 	tools    map[toolOf]*calls
@@ -112,7 +124,7 @@ func tally(in *input) *counts {
 	lines := in.lines
 	c := &counts{
 		lines: len(lines), others: in.others, unreadable: in.unreadable,
-		tasks: map[group]*tasks{}, refusals: map[refusedBy]*refusals{},
+		tasks: map[group]*tasks{}, drawings: map[drawnOn]*drawings{}, refusals: map[refusedBy]*refusals{},
 		limits: map[string]int{}, tools: map[toolOf]*calls{},
 		promises: map[promisedIn]*cameTrue{}, keptUp: map[keptUpIn]*keptUp{}, answersLeftOut: map[string]int{},
 	}
@@ -204,6 +216,29 @@ func (c *counts) task(l *line, counted *tasks) {
 	case eventTaskAccepted:
 		counted.attempts = append(counted.attempts, int(l.Attempts))
 		counted.seconds = append(counted.seconds, int64(l.SecondsSinceRequest))
+		c.drawing(l, counted)
+	}
+}
+
+// drawing counts whether an accepted task came with a drawing, for its group
+// and for its topic. A line that does not say is counted neither way, so that
+// the tasks accepted before the service said so read as unknown rather than
+// as drawn by none.
+func (c *counts) drawing(l *line, counted *tasks) {
+	if l.Drawing == nil {
+		return
+	}
+	key := drawnOn{version: l.InstructionsVersion, topic: l.Topic}
+	onTopic, found := c.drawings[key]
+	if !found {
+		onTopic = &drawings{}
+		c.drawings[key] = onTopic
+	}
+	counted.told++
+	onTopic.accepted++
+	if *l.Drawing {
+		counted.drawn++
+		onTopic.drawn++
 	}
 }
 

@@ -40,6 +40,11 @@ output "deploy_service_account" {
   value       = google_service_account.deployer.email
 }
 
+output "live_service_account" {
+  description = "The identity that reads the snapshot of the live numbers of the site's page \"Research\". Empty where the deployment keeps no counts."
+  value       = try(module.analytics[0].snapshot_reader_email, "")
+}
+
 output "secret_seal_key" {
   description = "The secret holding the sealing key. It has to hold a version before a revision can start."
   value       = google_secret_manager_secret.seal_key.secret_id

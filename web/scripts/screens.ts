@@ -9,8 +9,11 @@
 //	node scripts/screens.ts
 //
 // It runs where the browsers are, inside the image of the pinned Playwright
-// release, and writes over the pictures in docs/screens/.
+// release, and writes the pictures anew into web/screens/. The README shows
+// them from a branch of their own, where they are published under the names
+// they are written under.
 
+import { mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { chromium } from "playwright-core";
 import { letGo, served, settled, stillClock } from "./drive.ts";
@@ -34,7 +37,16 @@ const theme = "dark";
 /** width is how wide a card is photographed, in the pixels of a page. */
 export const width = 428;
 
-const screens = join(import.meta.dirname, "..", "..", "docs", "screens");
+const screens = join(import.meta.dirname, "..", "screens");
+
+/**
+ * published is the address of the branch the README shows the pictures from.
+ * The branch holds the newest pictures alone. GitHub shows a README a picture
+ * from this address within minutes of a change, where a picture from
+ * elsewhere comes from a copy it keeps.
+ */
+const published =
+	"https://raw.githubusercontent.com/MathTrail/mathtrail-standalone/screens/";
 
 /**
  * addressOf is the preview's address that shows one scene alone, in the theme
@@ -50,12 +62,26 @@ export function addressOf(base: string, shot: Shot): string {
 	return `${base}preview.html?${query}`;
 }
 
+/** nameOf is the name a scene's picture is written and published under. */
+function nameOf(shot: Shot): string {
+	return `${shot.file}-${theme}.png`;
+}
+
 /** pictureOf is the file a scene's picture is written to. */
 export function pictureOf(shot: Shot): string {
-	return join(screens, `${shot.file}-${theme}.png`);
+	return join(screens, nameOf(shot));
+}
+
+/** shownAt is the address the README shows a scene's picture at. */
+export function shownAt(shot: Shot): string {
+	return `${published}${nameOf(shot)}`;
 }
 
 async function main(): Promise<void> {
+	// Whatever the folder holds is published, so a picture of a scene no longer
+	// photographed must not outlive the run that stopped photographing it.
+	await rm(screens, { recursive: true, force: true });
+	await mkdir(screens, { recursive: true });
 	const preview = await served();
 	const browser = await chromium.launch();
 	try {
@@ -81,7 +107,7 @@ async function main(): Promise<void> {
 				style:
 					".preview-bar { visibility: hidden; } .preview { background: transparent !important; }",
 			});
-			console.log(`screens: ${shot.file}-${theme}.png`);
+			console.log(`screens: ${nameOf(shot)}`);
 			await letGo(cards);
 		}
 	} finally {

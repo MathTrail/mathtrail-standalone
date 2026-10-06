@@ -143,6 +143,50 @@ func TestTheTwoGroupsFrameFilledAtItsExtremesPassesTheDrawingChecks(t *testing.T
 	}
 }
 
+// The compact row and the piles of a game, drawn as large as their purposes
+// allow — ten objects with labels of two digits, a track cut short in its
+// middle, a pile of twenty — still pass the drawing checks: the frames promise
+// them, so the width has to hold them.
+func TestTheRowAndThePilesAtTheirLargestPassTheDrawingChecks(t *testing.T) {
+	t.Parallel()
+
+	for _, test := range []struct {
+		name    string
+		kind    string
+		drawing []string
+		labels  []string
+	}{
+		{
+			name:    "ten objects labelled 10 to 19",
+			kind:    "row",
+			drawing: []string{"10 11 12 13 14 15 16 17 18 19", "●──●──●──●──●──●──●──●──●──●"},
+			labels:  []string{"10", "11", "12", "13", "14", "15", "16", "17", "18", "19"},
+		},
+		{
+			name:    "a track to 22 cut short in its middle",
+			kind:    "row",
+			drawing: []string{"1  2  3  4     19 20 21 22", "●──●──●──●─...─●──●──●──●"},
+			labels:  []string{"1", "2", "3", "4", "19", "20", "21", "22"},
+		},
+		{
+			name:    "a pile of twenty",
+			kind:    "piles",
+			drawing: []string{"A 20 ●●●●● ●●●●● ●●●●● ●●●●●", "B  3 ●●●"},
+			labels:  []string{"A", "B"},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			structure := &checks.DrawingStructure{Kind: test.kind}
+			for _, label := range test.labels {
+				structure.Objects = append(structure.Objects, checks.DrawingObject{ID: label, Label: label})
+			}
+			holdsToTheDrawingChecks(t, "", strings.Join(test.drawing, "\n"), structure)
+		})
+	}
+}
+
 // blankPlaces leaves every place for a number in a line blank, and draws a
 // border through a place that sits in one.
 func blankPlaces(_ *testing.T, line string) string {

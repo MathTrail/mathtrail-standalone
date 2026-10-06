@@ -161,9 +161,8 @@ func TestTheSnapshotShowsWhatThePublicViewsShow(t *testing.T) {
 	}
 }
 
-// The snapshot's SQL names the public views and nothing else: it is read with
-// those alone filled in, and a table it could name beside them holds what no
-// rule has made fit to show.
+// The snapshot's SQL names the public views and nothing else: a table it could
+// name beside them holds what no rule has made fit to show.
 func TestTheSnapshotReadsThePublicViewsAlone(t *testing.T) {
 	t.Parallel()
 
@@ -171,5 +170,15 @@ func TestTheSnapshotReadsThePublicViewsAlone(t *testing.T) {
 		if named[1] != "public" {
 			t.Errorf("the snapshot's SQL names ${%s}, want ${public} alone", named[1])
 		}
+	}
+}
+
+// The snapshot is one value in one column, live, the name the table it is
+// kept in is read by.
+func TestTheSnapshotIsOneValueNamedLive(t *testing.T) {
+	s := counted(t)
+
+	if got := s.e.columns(t, s.render(t, snapshotSQL, nil)); !slices.Equal(got, []string{"live"}) {
+		t.Errorf("the snapshot's SQL answers with the columns %v, want [live] alone", got)
 	}
 }

@@ -5,9 +5,9 @@ description: What MathTrail promises, what it deliberately does not promise, and
 
 # Terms of use
 
-Last updated: 4 October 2026.
+Last updated: 6 October 2026.
 
-By adding MathTrail to your chat you accept what is written here. If you do not, do not add it. Questions go to [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com).
+By adding MathTrail to your chat you accept what is written here. If you do not, do not add it. Questions go to [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com), and how to connect it and what to do when something looks wrong is on the [help page](../help/).
 
 ## What MathTrail is
 
@@ -19,7 +19,7 @@ It is not a homework solver and not a drill of a school syllabus, and it is not 
 
 An adult — a parent or a tutor — who is old enough to use the chat platform they are using. Claude and ChatGPT each set their own age rules, and those apply to you first. The child does not sign in and has no account.
 
-**The adult runs the lesson.** You open the task, read it with the child if they need it, and decide when to stop. MathTrail chooses the topic and the difficulty; it does not supervise anybody.
+**The adult runs the lesson.** You type in the chat, and your child, beside you, answers by tapping an option on the card. You open the task, read it with the child if they need it, and decide when to stop. MathTrail chooses the topic and the difficulty; it does not supervise anybody. The chat platforms do not let you make your account available to anyone else, so do not leave your child alone in the chat.
 
 ## What "checked" means
 

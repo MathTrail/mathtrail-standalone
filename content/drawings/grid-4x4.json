@@ -1,6 +1,6 @@
 {
   "purpose": "A 4 by 4 square grid, rows A to D and columns 1 to 4, so that the question can name a cell as C3. Fill a cell with █ or put a capital label in it; a figure smaller than the grid leaves the other cells empty.",
-  "topics": ["geometry.grid", "combinatorics.enumeration"],
+  "topics": ["geometry.grid", "combinatorics.enumeration", "parity.alternation"],
   "drawing": [
     "    1   2   3   4",
     "  ┌───┬───┬───┬───┐",

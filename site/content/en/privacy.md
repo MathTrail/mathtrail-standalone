@@ -7,7 +7,7 @@ description: What MathTrail knows about your child, where it is kept, and how to
 
 Last updated: 6 October 2026.
 
-MathTrail is a free, open-source project. Questions about this policy or about your child's data go to [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com).
+MathTrail is a free, open-source project. Questions about this policy or about your child's data go to [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com). How to connect it, and what to do when something looks wrong, is on the [help page](../help/).
 
 ## The short version
 
@@ -27,6 +27,10 @@ MathTrail runs no language model of its own. The model that writes the tasks is 
 ## Who signs in
 
 Only an adult — a parent or a tutor. The child has no account and no sign-in of their own. The chat platforms set their own age rules: Claude is for adults, and ChatGPT requires a parent's consent for teenagers. MathTrail is not aimed at children using a chat by themselves.
+
+## Children
+
+MathTrail's tasks are for children in grades 1 to 6, roughly six to twelve years old. It is meant to be used with the adult typing in the chat while the child, beside them, answers by tapping an option on the card. The child has no account. The profile holds what the adult gives about the child, under a pseudonym, together with the child's answers, in the adult's own file; what the service's logs keep of those answers, and for how long, is set out below.
 
 ## What is stored, and where
 
@@ -58,20 +62,20 @@ Your Google sign-in is not stored either: it is encrypted and placed inside the 
 
 The service writes counts, not content: whether a task was accepted or rejected, why it was rejected, how long it took, how many attempts it needed, whether a limit was hit, and which version of the instructions was used.
 
-To count how many children use MathTrail each day, week and month without knowing who any of them is, the lines about a task given, an answer and a topic mastered also carry:
+To count how many children use MathTrail each day, week and month without knowing who any of them is, the lines about a task given, an answer and a topic mastered carry, between them:
 
 - a **counting name** for the child: a code made, with a key of the service's own, from the profile's identifier and the calendar month. It stays the same for one month and is different the next, and nothing about the child — the identifier, the pseudonym, anything else — can be worked out from it;
 - the chat (Claude, ChatGPT or another), the language of the task, the grade, the month the profile was made, and how many topics are mastered;
-- the **country**, and the **state** in the United States, if you gave them in the profile, and the **country you signed in from**, each as a short code;
-- for an answer, whether it was right, whether the hint was used, the **chance** of a right answer the service expected of its task, who chose the task (the service's rule, the chat or you), whether it was one of the first answers that find the level the child starts at, and, after those, the range the child's count of answers was in, such as 6 to 20.
+- on the line about a task given, the **country**, and the **state** in the United States, if you gave them in the profile, and the **country you signed in from**, each as a short code;
+- for an answer, its topic, level and difficulty, whether it was right, the trap behind a wrong one, whether the hint was used, whether it was "I don't know", how quickly it came (within a minute, within three, or later), the **chance** of a right answer the service expected of its task, who chose the task (the service's rule, the chat or you), whether it was one of the first answers that find the level the child starts at, and, after those, the range the child's count of answers was in, such as 6 to 20.
 
-Like every line about your sessions, these lines also carry an opaque code standing for your account: made with the service's own key from your Google account, it is neither your Google ID nor your email, and it changes at the first sign-in after that key is replaced. While the lines of two months are both kept, that code is what could join a child's two counting names.
+Like every line about your sessions, these lines also carry an opaque code standing for your account: made with the service's own key from your Google account, it is neither your Google ID nor your email, and it changes at the first sign-in after that key is replaced. While the lines of two months are both kept, that code is what could join a child's two counting names. It also makes the lines about answers, while they are kept, a record of your child's answers one by one: right or wrong, never the letter chosen.
 
 These lines are kept for at most 62 days. What is kept after that are totals — how many children, how many tasks, in which countries: totals for each day, totals for each week and each month told apart by one thing at a time, such as the country or the grade, and, for each month, the traps that wrong answers fell into, by topic and grade, and how the answers to the tasks the service chose came out against the chance it expected, by that chance and by how many answers the child had given. They hold no identifier of any kind. A total counts a group of children, and a group may be a single child; a total of fewer than ten is never shown publicly.
 
-The logs never contain the pseudonym, the text of a task, an answer, an email address, a token, the child's identifier, or the address a request came from.
+The logs never contain the pseudonym, the text of a task, the letter of an answer, an email address, a token, the child's identifier, or the address a request came from.
 
-Separately, Google Cloud Run keeps the standard request logs any service on it produces — time, path, response status and the address the request came from — for the platform's own retention period. Those hold no profile data, no task text and no answers.
+Separately, Google Cloud Run keeps the standard record of every request to any service on it: the time, the address it came from, what the browser says it is, the page that sent it, the full address asked for, the status, and the size and duration of the answer. During a sign-in, the address asked for carries what the chat and Google put in it: Google's one-time sign-in code, which only the service can redeem, the domain of a Google Workspace account, and the email address the chat suggests signing in with, if it suggests one. That record holds no profile data, no task text and no answers, and it is kept for 30 days.
 
 ### The country you sign in from
 
@@ -80,6 +84,26 @@ When you sign in, Google sends your browser back to MathTrail, and at that one m
 You can have this country left out of what is counted: tick "Don't count the country I sign in from" in the form of the profile, or ask in the chat. From then on no line the service writes carries it, until you untick the box.
 
 IP geolocation by [DB-IP](https://db-ip.com), under the [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/) licence.
+
+## What each of these is for
+
+- **The profile** — to choose each task and its difficulty, to show the progress and to keep the daily limit.
+- **The sign-in and the code of your account** — to reach your one file and nothing else, and to keep the limits of each account.
+- **The countries** — only to count how many families each country has. You may leave both out.
+- **The logs** — to run the service, to find faults and to see how the tasks hold up.
+- **The totals** — to know how MathTrail is used and how well its tasks fit children. They are shown only as totals of ten children or more, on this site's page "Research" and in applications for grants.
+
+## How long each is kept
+
+- **The profile file** — until you delete it. A deleted file waits in Drive's bin for 30 days unless you empty it. Drive keeps earlier versions of the file in its version history for a while, and MathTrail asks it to keep for good the first version of each day the profile changed, at most two hundred of them.
+- **The token your chat holds** — 15 minutes, renewed for up to 30 days at a time and for at most 90 days from the sign-in.
+- **The two cookies of the sign-in** — 10 minutes for the one that ties a sign-in together, and 180 days for the one that remembers the apps you approved.
+- **The service's logs, and Cloud Run's record of requests** — 30 days.
+- **The copy of the lines children are counted from** — 62 days.
+- **Traces** of how long requests took — 30 days. They cover about one request in ten, with the address, the browser, the path and the query blanked out.
+- **Measurements** of the service's work, such as how many calls succeeded — 24 months. They hold nothing about a child.
+- **The totals** — for years. They hold no identifier of any kind.
+- **This website's access logs and your conversations** — as long as GitHub and your chat provider keep them, under their own policies.
 
 ## Google sign-in and Drive
 
@@ -96,9 +120,13 @@ The token the service issues to your chat is valid for 15 minutes and is renewed
 
 ## What reaches the chat's model
 
-When your chat asks for a task, MathTrail sends back the material the model needs to write one: the topic, the difficulty, example tasks, the formats to follow — and **the free-form notes you wrote about the child**, if you wrote any, because they are what lets the model pitch the wording at the right level.
+Everything a MathTrail tool returns is read by the chat's model, and so reaches your chat provider with the rest of the conversation. Over a lesson that is nearly everything the profile holds:
 
-Write those notes accordingly: they leave for the chat provider along with everything else in that message. The pseudonym does not go with them, and the rest of the profile — the ratings, the history, the answers — stays out of it.
+- **the profile and the progress** — the pseudonym, the grade, the interests, the skills kept out, the notes you wrote, the language of the lessons, the country and state if you gave them, the topic the lessons are kept to, the ratings and how they moved, the topics mastered, the latest answers, the mistakes that repeat, and where the profile's file is in your Drive, with its link;
+- **the material for a task** — the topic, the difficulty, example tasks, the formats to follow, the grade, the interests and **the free-form notes you wrote about the child**, which are what lets the model pitch the wording at the right level;
+- **an answer** — whether it was right, the right option, the trap behind a wrong one and the solution.
+
+Write the notes accordingly: they leave for the chat provider with everything else. The child's identifier is in no result, and the pseudonym never goes into the text of a task.
 
 The text of the task itself is written by the model and travels back through MathTrail's checks.
 
@@ -133,12 +161,12 @@ Deleting the file and revoking access are independent, and doing both leaves not
 
 ## Who else is involved
 
-- **Google** — the sign-in and Drive, where your file lives.
-- **Google Cloud** — where the service runs (Cloud Run), and where the totals above are kept (BigQuery).
-- **GitHub Pages** — where this website is served from; GitHub records its own access logs for it.
-- **Your chat provider** — Anthropic for Claude, OpenAI for ChatGPT.
+- **Google** — the sign-in and Drive, where your file lives ([Google's privacy policy](https://policies.google.com/privacy)).
+- **Google Cloud** — where the service runs (Cloud Run), and where the totals above are kept (BigQuery) ([Google Cloud's privacy notice](https://cloud.google.com/terms/cloud-privacy-notice)).
+- **GitHub Pages** — where this website is served from; GitHub records its own access logs for it ([GitHub's privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement)).
+- **Your chat provider** — Anthropic for Claude ([Anthropic's privacy policy](https://www.anthropic.com/legal/privacy)), OpenAI for ChatGPT ([OpenAI's privacy policy](https://openai.com/policies/privacy-policy/)).
 
-There is nobody else.
+The people who run MathTrail can read the service's logs and the totals in Google Cloud, which hold what is described above and nothing more. There is nobody else.
 
 ## Changes
 

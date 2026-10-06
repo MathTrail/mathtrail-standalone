@@ -5,6 +5,13 @@
     "grade_level": "1-2",
     "difficulty": 1,
     "question": "A cartoon starts at 4 o'clock and lasts 1 hour. At what time does it end?",
+    "drawing": "        12\n    11   │   1\n  10     │     2\n 9       ●       3\n  8       \\     4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "4"}
+      ]
+    },
     "options": {
       "A": "1 o'clock",
       "B": "5 o'clock",
@@ -39,6 +46,13 @@
     "grade_level": "1-2",
     "difficulty": 1,
     "question": "Lunch is at 12 o'clock. Tom's walk starts 2 hours before lunch. At what time does the walk start?",
+    "drawing": "        12\n    11   │   1\n  10     │     2\n 9       ●       3\n  8             4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "12"}
+      ]
+    },
     "options": {
       "A": "9 o'clock",
       "B": "11 o'clock",
@@ -73,6 +87,13 @@
     "grade_level": "1-2",
     "difficulty": 1,
     "question": "A film starts at 3 o'clock and ends at 5 o'clock. How many hours long is the film?",
+    "drawing": "        12\n    11   │   1\n  10     │     2\n 9       ●──     3\n  8             4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "3"}
+      ]
+    },
     "options": {
       "A": "1",
       "B": "3",
@@ -107,6 +128,13 @@
     "grade_level": "1-2",
     "difficulty": 1,
     "question": "It is 7 o'clock. What time will it be in half an hour?",
+    "drawing": "        12\n    11   │   1\n  10     │     2\n 9       ●       3\n  8     /       4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "7"}
+      ]
+    },
     "options": {
       "A": "6:30",
       "B": "7:15",
@@ -141,6 +169,13 @@
     "grade_level": "1-2",
     "difficulty": 1,
     "question": "A lesson starts at 10:00 and lasts 45 minutes. At what time does it end?",
+    "drawing": "        12\n    11   │   1\n  10    \\│     2\n 9       ●       3\n  8             4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "10"}
+      ]
+    },
     "options": {
       "A": "10:45",
       "B": "9:15",
@@ -175,6 +210,13 @@
     "grade_level": "1-2",
     "difficulty": 2,
     "question": "A bus leaves at 9:30 and arrives at 10:00. How many minutes does the trip take?",
+    "drawing": "        12\n    11       1\n  10           2\n 9     ──●       3\n  8      │      4\n    7    │    5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "9"}
+      ]
+    },
     "options": {
       "A": "10",
       "B": "60",
@@ -209,6 +251,13 @@
     "grade_level": "1-2",
     "difficulty": 2,
     "question": "Tim went to bed at 9 o'clock in the evening and got up at 7 o'clock in the morning. How many hours did he sleep?",
+    "drawing": "        12\n    11   │   1\n  10     │     2\n 9     ──●       3\n  8             4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "9"}
+      ]
+    },
     "options": {
       "A": "2",
       "B": "3",
@@ -243,6 +292,13 @@
     "grade_level": "1-2",
     "difficulty": 2,
     "question": "The clock shows 5:45. What time will it be in 15 minutes?",
+    "drawing": "        12\n    11       1\n  10           2\n 9   ────●       3\n  8       \\     4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "5"}
+      ]
+    },
     "options": {
       "A": "5:30",
       "B": "5:60",
@@ -311,6 +367,13 @@
     "grade_level": "1-2",
     "difficulty": 2,
     "question": "Anna's watch is 10 minutes fast. It shows 8:20. What is the real time?",
+    "drawing": "        12\n    11       1\n  10           2\n 9       ●       3\n  8     / \\     4\n    7      \\  5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "8"}
+      ]
+    },
     "options": {
       "A": "8:00",
       "B": "8:10",
@@ -345,6 +408,13 @@
     "grade_level": "1-2",
     "difficulty": 3,
     "question": "A cartoon lasts 25 minutes and ends at 5:10. At what time did it start?",
+    "drawing": "        12\n    11     / 1\n  10      /    2\n 9       ●       3\n  8       \\     4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "5"}
+      ]
+    },
     "options": {
       "A": "4:15",
       "B": "4:55",
@@ -379,6 +449,13 @@
     "grade_level": "1-2",
     "difficulty": 3,
     "question": "Lessons start at 8:30. There are 3 lessons of 40 minutes, with a 10-minute break between every two lessons. At what time does the third lesson end?",
+    "drawing": "        12\n    11       1\n  10           2\n 9       ●       3\n  8     /│      4\n    7    │    5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "8"}
+      ]
+    },
     "options": {
       "A": "9:70",
       "B": "10:00",
@@ -413,6 +490,13 @@
     "grade_level": "1-2",
     "difficulty": 3,
     "question": "Now it is 11:40. What time was it 50 minutes ago?",
+    "drawing": "        12\n    11       1\n  10    \\      2\n 9       ●       3\n  8     /       4\n    7  /      5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "11"}
+      ]
+    },
     "options": {
       "A": "10:50",
       "B": "10:10",
@@ -481,6 +565,13 @@
     "grade_level": "1-2",
     "difficulty": 3,
     "question": "Kolya walks to school in 20 minutes. He must arrive by 8:15. What is the latest time he can leave home?",
+    "drawing": "        12\n    11       1\n  10           2\n 9       ●────   3\n  8     /       4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "8"}
+      ]
+    },
     "options": {
       "A": "7:45",
       "B": "7:95",
@@ -515,6 +606,13 @@
     "grade_level": "1-2",
     "difficulty": 4,
     "question": "Kate's watch is 5 minutes slow, and Tom's watch is 5 minutes fast. Tom's watch shows 3:10. What does Kate's watch show?",
+    "drawing": "        12\n    11     / 1\n  10      /    2\n 9       ●──     3\n  8             4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "3"}
+      ]
+    },
     "options": {
       "A": "3:05",
       "B": "3:10",
@@ -549,6 +647,13 @@
     "grade_level": "1-2",
     "difficulty": 4,
     "question": "A film starts at 6:40 and lasts 1 hour 30 minutes. At what time does it end?",
+    "drawing": "        12\n    11       1\n  10           2\n 9       ●       3\n  8     /│      4\n    7  /      5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "6"}
+      ]
+    },
     "options": {
       "A": "8:10",
       "B": "5:10",
@@ -617,6 +722,13 @@
     "grade_level": "1-2",
     "difficulty": 4,
     "question": "Masha started her homework at 4:50 and finished at 6:10. How long did it take?",
+    "drawing": "        12\n    11 \\     1\n  10    \\      2\n 9       ●       3\n  8       \\     4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "4"}
+      ]
+    },
     "options": {
       "A": "40 minutes",
       "B": "1 hour 10 minutes",
@@ -651,6 +763,13 @@
     "grade_level": "1-2",
     "difficulty": 4,
     "question": "A train leaves at 11:45. The trip takes 35 minutes. At what time does the train arrive?",
+    "drawing": "        12\n    11       1\n  10    \\      2\n 9   ────●       3\n  8             4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "11"}
+      ]
+    },
     "options": {
       "A": "11:10",
       "B": "11:80",
@@ -719,6 +838,13 @@
     "grade_level": "1-2",
     "difficulty": 5,
     "question": "A merry-go-round ride lasts 5 minutes, and there is a 2-minute break before every next ride. The first ride starts at 3:00. At what time does the fourth ride end?",
+    "drawing": "        12\n    11   │   1\n  10     │     2\n 9       ●──     3\n  8             4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "3"}
+      ]
+    },
     "options": {
       "A": "3:05",
       "B": "3:26",
@@ -753,6 +879,13 @@
     "grade_level": "1-2",
     "difficulty": 5,
     "question": "Tom's clock goes 2 minutes too fast every hour. He sets it right at 8:00 in the morning. What does it show when the real time is 12:00 noon?",
+    "drawing": "        12\n    11   │   1\n  10     │     2\n 9       ●       3\n  8     /       4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "8"}
+      ]
+    },
     "options": {
       "A": "11:52",
       "B": "12:02",
@@ -787,6 +920,13 @@
     "grade_level": "1-2",
     "difficulty": 5,
     "question": "A film started at 5:35 and ended at 7:15. How many minutes long was it?",
+    "drawing": "        12\n    11       1\n  10           2\n 9       ●       3\n  8     / \\     4\n    7  /      5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "5"}
+      ]
+    },
     "options": {
       "A": "60",
       "B": "120",
@@ -821,6 +961,13 @@
     "grade_level": "1-2",
     "difficulty": 5,
     "question": "Mum puts a cake in the oven at 4:50. It must bake for 1 hour 25 minutes. At what time should she take it out?",
+    "drawing": "        12\n    11 \\     1\n  10    \\      2\n 9       ●       3\n  8       \\     4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "4"}
+      ]
+    },
     "options": {
       "A": "3:25",
       "B": "5:15",
@@ -855,6 +1002,13 @@
     "grade_level": "3-4",
     "difficulty": 1,
     "question": "A lesson starts at 10:55 and lasts 45 minutes. At what time does it end?",
+    "drawing": "        12\n    11 \\     1\n  10    \\      2\n 9       ●       3\n  8             4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "10"}
+      ]
+    },
     "options": {
       "A": "10:10",
       "B": "10:100",
@@ -957,6 +1111,13 @@
     "grade_level": "3-4",
     "difficulty": 1,
     "question": "Masha went to sleep at 21:30 and woke up at 7:00 the next morning. How long did she sleep?",
+    "drawing": "        12\n    11   │   1\n  10     │     2\n 9       ●       3\n  8     /       4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "7"}
+      ]
+    },
     "options": {
       "A": "8 hours 30 minutes",
       "B": "9 hours 30 minutes",
@@ -1025,6 +1186,13 @@
     "grade_level": "3-4",
     "difficulty": 2,
     "question": "A watch loses 3 minutes every hour. It was set right at 9:00. What does it show when the real time is 13:00?",
+    "drawing": "        12\n    11   │   1\n  10     │     2\n 9     ──●       3\n  8             4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "9"}
+      ]
+    },
     "options": {
       "A": "12:45",
       "B": "12:57",
@@ -1059,6 +1227,13 @@
     "grade_level": "3-4",
     "difficulty": 2,
     "question": "A bus leaves every 12 minutes. The first bus leaves at 6:00. At what time does the sixth bus leave?",
+    "drawing": "        12\n    11   │   1\n  10     │     2\n 9       ●       3\n  8      │      4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "6"}
+      ]
+    },
     "options": {
       "A": "7:00",
       "B": "6:48",
@@ -1127,6 +1302,13 @@
     "grade_level": "3-4",
     "difficulty": 2,
     "question": "School starts at 8:00. Each lesson lasts 45 minutes, and after each lesson there is a 10-minute break. How many lessons end before 12:00?",
+    "drawing": "        12\n    11   │   1\n  10     │     2\n 9       ●       3\n  8     /       4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "8"}
+      ]
+    },
     "options": {
       "A": "3",
       "B": "5",
@@ -1161,6 +1343,13 @@
     "grade_level": "3-4",
     "difficulty": 2,
     "question": "A plane takes off at 22:40 and lands at 1:15 the next day. How long is the flight?",
+    "drawing": "        12\n    11       1\n  10      /    2\n 9       ●────   3\n  8             4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "1"}
+      ]
+    },
     "options": {
       "A": "2 hours 25 minutes",
       "B": "2 hours 75 minutes",
@@ -1229,6 +1418,13 @@
     "grade_level": "3-4",
     "difficulty": 3,
     "question": "One clock is 7 minutes fast, and another is 5 minutes slow. The fast clock shows 10:02. What does the slow clock show?",
+    "drawing": "        12\n    11   │   1\n  10    \\│     2\n 9       ●       3\n  8             4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "10"}
+      ]
+    },
     "options": {
       "A": "9:55",
       "B": "9:50",
@@ -1331,6 +1527,13 @@
     "grade_level": "3-4",
     "difficulty": 3,
     "question": "From 9:15 to 11:45 a school has 3 lessons of the same length, with a 15-minute break between every two lessons. How many minutes long is one lesson?",
+    "drawing": "        12\n    11       1\n  10           2\n 9     ──●────   3\n  8             4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "9"}
+      ]
+    },
     "options": {
       "A": "30",
       "B": "35",
@@ -1365,6 +1568,13 @@
     "grade_level": "3-4",
     "difficulty": 4,
     "question": "A clock gains 3 minutes every hour. It was set right at 8:00. Now the clock shows 12:12. What is the real time?",
+    "drawing": "        12\n    11     / 1\n  10     │/    2\n 9       ●       3\n  8             4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "12"}
+      ]
+    },
     "options": {
       "A": "11:48",
       "B": "12:00",
@@ -1399,6 +1609,13 @@
     "grade_level": "3-4",
     "difficulty": 4,
     "question": "Trains leave a station every 25 minutes, starting at 6:10. How many trains leave from 7:00 to 9:00, counting a train that leaves exactly at 7:00?",
+    "drawing": "        12\n    11     / 1\n  10      /    2\n 9       ●       3\n  8      │      4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "6"}
+      ]
+    },
     "options": {
       "A": "4",
       "B": "6",
@@ -1535,6 +1752,13 @@
     "grade_level": "3-4",
     "difficulty": 5,
     "question": "A wall clock with 12 hours on its face goes 6 minutes too fast every day. At noon today it shows the right time. After how many days will it next show the right time?",
+    "drawing": "        12\n    11   │   1\n  10     │     2\n 9       ●       3\n  8             4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "12"}
+      ]
+    },
     "options": {
       "A": "10",
       "B": "12",
@@ -1775,6 +1999,13 @@
     "grade_level": "5-6",
     "difficulty": 2,
     "question": "A plane takes off at 10:00 local time and flies for 3 hours. In the city where it lands, the clocks show 4 hours less than where it took off. What is the local time when it lands?",
+    "drawing": "        12\n    11   │   1\n  10    \\│     2\n 9       ●       3\n  8             4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "10"}
+      ]
+    },
     "options": {
       "A": "13:00",
       "B": "9:00",
@@ -1810,6 +2041,14 @@
     "grade_level": "5-6",
     "difficulty": 3,
     "question": "Train A leaves at 22:35 and arrives at 6:10. Train B leaves at 23:50 and arrives at 7:05. Which trip is longer, and by how many minutes?",
+    "drawing": "┌───┬───────┬───────┐\n│ A │ 22:35 │  6:10 │\n├───┼───────┼───────┤\n│ B │ 23:50 │  7:05 │\n└───┴───────┴───────┘",
+    "drawing_structure": {
+      "kind": "timetable",
+      "objects": [
+        {"id": "A", "label": "A"},
+        {"id": "B", "label": "B"}
+      ]
+    },
     "options": {
       "A": "Train B, by 20 minutes",
       "B": "Train A, by 20 minutes",
@@ -1950,6 +2189,13 @@
     "grade_level": "5-6",
     "difficulty": 4,
     "question": "Lena sets her watch right at 8:00 at home. The watch gains 5 minutes in every hour of real time. She flies to a city whose clocks show 3 hours more than at home. When she lands later that day, her watch shows 21:00. What is the local time in that city?",
+    "drawing": "        12\n    11   │   1\n  10     │     2\n 9       ●       3\n  8     /       4\n    7         5\n         6",
+    "drawing_structure": {
+      "kind": "clock",
+      "objects": [
+        {"id": "hour", "label": "8"}
+      ]
+    },
     "options": {
       "A": "0:00",
       "B": "17:00",

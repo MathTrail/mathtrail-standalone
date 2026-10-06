@@ -307,8 +307,9 @@ func twoPlaces(x float64) float64 { return math.Round(x*100) / 100 }
 // examplesFor are the reference tasks a package shows for a topic at a level:
 // those of the requested difficulty first, then of the nearest, then of the
 // next nearest, taken from that level — or, where the topic has nothing at
-// that level, from the level below. Within one difficulty the tasks take turns
-// by the child's answer count.
+// that level, from the level below — with one that draws among them wherever
+// the level has one. Within one difficulty the tasks take turns by the child's
+// answer count.
 func (c *Content) examplesFor(topic string, level rating.GradeLevel, difficulty, answers int) []Example {
 	for known := level.Known(); known; level, known = levelBelow(level) {
 		var pool []Example
@@ -318,10 +319,44 @@ func (c *Content) examplesFor(topic string, level rating.GradeLevel, difficulty,
 			}
 		}
 		if len(pool) > 0 {
-			return nearest(pool, difficulty, answers)
+			return withADrawnTask(nearest(pool, difficulty, answers), pool, difficulty, answers)
 		}
 	}
 	return nil
+}
+
+// withADrawnTask is the tasks picked for a package with one that draws among
+// them, where the pool has one: a model shown no drawing writes none, even in
+// a topic with frames to draw from. When none of those picked draws, the last
+// of them gives way to the task that draws nearest the difficulty, and tasks
+// that draw at one difficulty take turns by the answer count, as all tasks of
+// a difficulty do.
+func withADrawnTask(picked, pool []Example, difficulty, answers int) []Example {
+	if len(picked) == 0 || anyDraws(picked) {
+		return picked
+	}
+	var drawn []Example
+	for i := range pool {
+		if pool[i].draws() {
+			drawn = append(drawn, pool[i])
+		}
+	}
+	if len(drawn) == 0 {
+		return picked
+	}
+	shown := slices.Clone(picked)
+	shown[len(shown)-1] = nearest(drawn, difficulty, answers)[0]
+	return shown
+}
+
+// anyDraws says whether any of some reference tasks carries a drawing.
+func anyDraws(tasks []Example) bool {
+	for i := range tasks {
+		if tasks[i].draws() {
+			return true
+		}
+	}
+	return false
 }
 
 // nearest are the three tasks of a pool nearest to a difficulty. Tasks of one

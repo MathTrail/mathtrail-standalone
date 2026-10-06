@@ -23,4 +23,6 @@ coverage.*
 internal/widget/widget.html
 web/coverage
 web/layout
+web/screens
 draft
+plugin

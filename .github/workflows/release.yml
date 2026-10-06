@@ -1,9 +1,10 @@
 # What a green main produces: the server built for the architectures it runs on,
 # the sums of what was built, and a signature for each of them, and then the
-# service deployed and the site published from the release's tag. What matters
-# in the release is that anybody can check that a binary came from this
-# repository, from this workflow, at this commit; what matters in the delivery
-# and the site after it is that both name the release the service runs.
+# service deployed, the site published and the README's pictures photographed
+# from the release's tag. What matters in the release is that anybody can check
+# that a binary came from this repository, from this workflow, at this commit;
+# what matters in the delivery, the site and the pictures after it is that all
+# three name the release the service runs.
 #
 # Nobody tags anything by hand: the version is the next patch of the line the
 # releases are numbered in, and the tag is created with the release. The button
@@ -145,12 +146,12 @@ jobs:
               echo "newest=true" >> "$GITHUB_OUTPUT"
           else
               echo "newest=false" >> "$GITHUB_OUTPUT"
-              echo "main ends at $tip now: $TARGET is released, and neither deployed nor its site published"
+              echo "main ends at $tip now: $TARGET is released, and neither deployed nor its site and pictures published"
           fi
 
-  # A delivery or a site that failed is started again with "Re-run failed
-  # jobs": run again with all jobs, the release job would publish the same
-  # commit once more, under the next number.
+  # A delivery, a site or pictures that failed are started again with "Re-run
+  # failed jobs": run again with all jobs, the release job would publish the
+  # same commit once more, under the next number.
   deploy:
     name: Deploy the release
     needs: release
@@ -191,3 +192,104 @@ jobs:
     uses: ./.github/workflows/pages.yml
     with:
       version: ${{ needs.release.outputs.version }}
+
+  # The README's pictures of the release: its cards, photographed from its tag
+  # once the release is delivered, so that the version they name is the one the
+  # service runs. A picture kept in main could never name it, since the merge
+  # that brings a picture in is itself released under the next number. The
+  # pictures live on a branch of their own instead, which the README shows them
+  # from; a delivery or a photograph that fails leaves there the pictures of
+  # the release before.
+  screens:
+    name: Photograph the release for the README
+    needs: [release, deploy]
+    if: needs.release.outputs.newest == 'true'
+    # This job stays on the runner: the browsers run in an image of their own,
+    # which needs a Docker daemon. It runs the widget's packages and a browser,
+    # so it holds no right to write anything: the job after it publishes.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.release.outputs.version }}
+          persist-credentials: false
+      - uses: ./.github/actions/just
+      # The preview the cards are photographed in is the widget's own page,
+      # served from its sources.
+      - uses: ./.github/actions/node
+      - name: Photograph the cards
+        env:
+          VERSION: ${{ needs.release.outputs.version }}
+        run: just web-screens "$VERSION"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: screens
+          path: web/screens/
+          if-no-files-found: error
+          retention-days: 1
+
+  # The token that may write to the repository is held by this job alone,
+  # which runs none of the repository's packages.
+  screens-publish:
+    name: Publish the README's pictures
+    needs: [release, screens]
+    # One at a time, so that two never read the branch at once; one still
+    # waiting gives its place to a newer one, as the site's publications do.
+    concurrency:
+      group: screens
+      cancel-in-progress: false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      # Writing the branch the README shows the pictures from.
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.release.outputs.version }}
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: screens
+          path: ${{ runner.temp }}/screens
+      # The branch's commit names the release its pictures are of, and a
+      # release older than that leaves them alone: a job run again once a
+      # newer release is delivered would otherwise put the older pictures back.
+      # The files come from a job that ran the widget's packages, so only a
+      # picture's plain name is taken. One commit with no parent, holding the
+      # pictures alone, then takes the branch's place, so the branch never
+      # grows a history of pictures nobody shows any more.
+      - name: Publish the pictures on the branch the README shows them from
+        env:
+          VERSION: ${{ needs.release.outputs.version }}
+          PICTURES: ${{ runner.temp }}/screens
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          set -euo pipefail
+          shown=""
+          if [ -n "$(git ls-remote origin refs/heads/screens)" ]; then
+              git fetch -q --depth 1 origin refs/heads/screens
+              shown="$(git log -1 --format=%s FETCH_HEAD | sed -n 's/^The README.s pictures of //p')"
+          fi
+          if [ -n "$shown" ] && [ "$(printf '%s\n' "$shown" "$VERSION" | sort -V | tail -1)" != "$VERSION" ]; then
+              echo "the branch holds the pictures of $shown, newer than $VERSION, and keeps them"
+              exit 0
+          fi
+          entries=""
+          for picture in "$PICTURES"/*; do
+              name="${picture##*/}"
+              if [[ ! "$name" =~ ^[a-z][a-z-]*\.png$ ]]; then
+                  echo "screens: refusing a file that is no picture of the README: $name" >&2
+                  exit 1
+              fi
+              entries+="$(printf '100644 blob %s\t%s' "$(git hash-object -w "$picture")" "$name")"$'\n'
+          done
+          tree="$(printf '%s' "$entries" | git mktree)"
+          commit="$(git commit-tree "$tree" -m "The README's pictures of $VERSION")"
+          git push --force origin "$commit:refs/heads/screens"
+          git ls-tree --name-only "$commit"
