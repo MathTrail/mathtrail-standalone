@@ -106,7 +106,7 @@ func (s *stepRule) answered(topic string, beta float64, correct bool) {
 	if correct {
 		score = 1
 	}
-	surprise := score - p
+	surprise := score - p*1.01
 	if s.weigh {
 		surprise *= (p - s.guess) / (p * (1 - s.guess))
 	}
