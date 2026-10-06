@@ -28,7 +28,26 @@ const (
 // different one once a rotation has made another key current: whoever holds
 // an identifier keeps it, and the next sign-in is given the new one.
 func (r *KeyRing) UserID(account string) string {
-	mac := hmac.New(sha256.New, r.current.userID)
+	return userIDUnder(r.current.userID, account)
+}
+
+// UserIDs are every identifier an account may be known by while the ring's
+// keys open what they sealed: the one the current key derives, first, and
+// during a rotation the one the previous key derived, which a sign-in made
+// before the rotation still carries in its tokens. Once that key leaves the
+// ring, its tokens open no more, and its identifier is nobody's.
+func (r *KeyRing) UserIDs(account string) []string {
+	ids := []string{r.UserID(account)}
+	if r.previous != nil {
+		ids = append(ids, userIDUnder(r.previous.userID, account))
+	}
+	return ids
+}
+
+// userIDUnder is an account's identifier under one key's subkey of user
+// identifiers.
+func userIDUnder(subkey []byte, account string) string {
+	mac := hmac.New(sha256.New, subkey)
 	mac.Write([]byte(account))
 	return base64.RawURLEncoding.EncodeToString(mac.Sum(nil))[:userIDLength]
 }

@@ -1,5 +1,5 @@
 name: deployment target
-description: Puts the facts a delivery needs into the environment, read from the files that record them.
+description: Puts the facts a workflow needs into the environment, read from the files that record them.
 
 runs:
   using: composite
@@ -15,7 +15,7 @@ runs:
             exit 1
         fi
 
-        # The two facts a delivery needs before it can sign in, and therefore
+        # The facts a workflow needs before it can sign in, and therefore
         # before there is any state to read them from. Comments and blank lines
         # are dropped: the environment file accepts neither.
         grep -E '^[A-Z][A-Z0-9_]*=' "$target" >> "$GITHUB_ENV"

@@ -215,6 +215,7 @@ func TestOnlyTheSignInIsHeldToThePaceOfAnAddress(t *testing.T) {
 		{http.MethodGet, "/oauth/authorize"},
 		{http.MethodPost, "/oauth/consent"},
 		{http.MethodGet, "/oauth/callback"},
+		{http.MethodGet, "/oauth/drive"},
 		{http.MethodPost, "/oauth/token"},
 		{http.MethodPost, "/oauth/revoke"},
 	} {
@@ -295,6 +296,7 @@ func TestAPersonIsShownAPageAndAProgramIsAnswered(t *testing.T) {
 		{http.MethodGet, "/oauth/authorize", true},
 		{http.MethodPost, "/oauth/consent", true},
 		{http.MethodGet, "/oauth/callback", true},
+		{http.MethodGet, "/oauth/drive", true},
 		{http.MethodPost, "/oauth/register", false},
 		{http.MethodPost, "/oauth/token", false},
 		{http.MethodPost, "/oauth/revoke", false},

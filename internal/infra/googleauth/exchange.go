@@ -2,9 +2,10 @@ package googleauth
 
 import (
 	"context"
-	"crypto/subtle"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -12,9 +13,13 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// maxTokenInfo is the most of Google's word about an access token that is
+// read: a handful of short fields.
+const maxTokenInfo = 4 << 10
+
 // Exchange trades Google's code for the grant, and accepts the grant only
-// with an ID token that proves who signed in and belongs to this request.
-func (g *google) Exchange(ctx context.Context, code, verifier, nonce string) (Grant, error) {
+// once Google has said whom its access token was issued for.
+func (g *google) Exchange(ctx context.Context, code, verifier string) (Grant, error) {
 	ctx, cancel := context.WithTimeout(ctx, callTimeout)
 	defer cancel()
 
@@ -31,13 +36,14 @@ func (g *google) Exchange(ctx context.Context, code, verifier, nonce string) (Gr
 		return Grant{}, fmt.Errorf("%w: an access token with no lifetime", ErrUnavailable)
 	}
 	expiry := sent.Add(time.Duration(token.ExpiresIn) * time.Second)
-
-	subject, err := g.identity(ctx, token, nonce)
-	if err != nil {
-		return Grant{}, err
-	}
+	// Google is not asked about a grant that would be refused anyway.
 	if token.RefreshToken == "" {
 		return Grant{}, ErrNoRefresh
+	}
+
+	subject, err := g.identity(ctx, token.AccessToken)
+	if err != nil {
+		return Grant{}, err
 	}
 	// A missing scope is no scope granted, which leaves the caller nothing to
 	// accept.
@@ -51,24 +57,53 @@ func (g *google) Exchange(ctx context.Context, code, verifier, nonce string) (Gr
 	}, nil
 }
 
-// identity is who signed in, read from the ID token that came with the grant
-// once the token is proven Google's, for this client, still good, and issued
-// for this very request: its nonce is the one the request was sent with.
-func (g *google) identity(ctx context.Context, token *oauth2.Token, nonce string) (string, error) {
-	// A missing ID token is read as an empty one, which the verifier refuses
-	// like any other that is not a signed token.
-	raw, _ := token.Extra("id_token").(string)
-	verified, err := g.verifier.Verify(ctx, raw)
+// tokenInfo is what Google says of an access token, as far as the sign-in
+// reads it: the client the token was issued to, and the account it was issued
+// for.
+type tokenInfo struct {
+	Audience string `json:"aud"`
+	Subject  string `json:"sub"`
+}
+
+// identity is who signed in: the account Google says the access token was
+// issued for, once Google has said it was issued to this client. Google
+// failing, or asking for a pause, is Google not answering, and so is an
+// answer that is not its word about a token; any other refusal is Google
+// calling the token none of its own.
+func (g *google) identity(ctx context.Context, accessToken string) (string, error) {
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, g.tokenInfoURL, http.NoBody)
 	if err != nil {
-		return "", fmt.Errorf("%w: %w", ErrIdentity, err)
+		return "", fmt.Errorf("googleauth: ask whom the token is for: %w", err)
 	}
-	if subtle.ConstantTimeCompare([]byte(verified.Nonce), []byte(nonce)) != 1 {
-		return "", fmt.Errorf("%w: the nonce is not this request's", ErrIdentity)
+	// The token goes in a header rather than in the address, which the hops
+	// on the way may keep and a failed call repeats in its error. The
+	// question is put as Google's own client library puts it: a form posted
+	// with nothing in it but that header.
+	request.Header.Set("Authorization", "Bearer "+accessToken)
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	response, err := g.client.Do(request)
+	if err != nil {
+		return "", fmt.Errorf("%w: %w", ErrUnavailable, err)
 	}
-	if verified.Subject == "" {
+	defer func() { _ = response.Body.Close() }()
+
+	switch status := response.StatusCode; {
+	case status >= http.StatusInternalServerError, status == http.StatusTooManyRequests:
+		return "", fmt.Errorf("%w: status %d", ErrUnavailable, status)
+	case status != http.StatusOK:
+		return "", fmt.Errorf("%w: status %d", ErrIdentity, status)
+	}
+	var info tokenInfo
+	if err := json.NewDecoder(io.LimitReader(response.Body, maxTokenInfo)).Decode(&info); err != nil {
+		return "", fmt.Errorf("%w: %w", ErrUnavailable, err)
+	}
+	switch {
+	case info.Audience != g.oauth.ClientID:
+		return "", fmt.Errorf("%w: the token was issued to another client", ErrIdentity)
+	case info.Subject == "":
 		return "", fmt.Errorf("%w: no subject", ErrIdentity)
 	}
-	return verified.Subject, nil
+	return info.Subject, nil
 }
 
 // refusalOf is what a failed call to the token endpoint means. Google failing,

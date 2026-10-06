@@ -24,8 +24,10 @@ type ending struct {
 // callback answers Google's redirect: the parent comes back with Google's code,
 // or with Google's refusal. The request comes back sealed in the state, and it
 // is held to the browser it was begun in before anything else is read. From
-// then on the sign-in is over whatever happens: the cookie is taken back, and
-// the client hears how it ended at its own address.
+// then on the sign-in is over whatever happens — the cookie is taken back, and
+// the client hears how it ended at its own address — but for a parent who
+// left Google's box for the Drive unticked, who is asked to go back and tick
+// it.
 func (f *flow) callback(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 
@@ -38,16 +40,21 @@ func (f *flow) callback(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	dropCSRFCookie(w)
 
 	answer, end := f.finish(r.Context(), &request, query, f.countryOf(r))
 	f.events.calledBack(r.Context(), &request, &end)
+	if end.outcome == outcomeRetry {
+		f.askForDrive(w, r, &request)
+		return
+	}
+	dropCSRFCookie(w)
 	f.sendBack(w, r, http.StatusFound, &request, answer)
 }
 
 // finish is how a sign-in Google answered ends: in a code for the client, or in
-// the error the client hears instead. A parent who declined at Google, or who
-// unticked the one file in their Drive the service keeps, has not allowed the
+// the error the client hears instead — or in no answer yet and the outcome
+// retry, when the parent left Google's box for the one file the service keeps
+// in their Drive unticked. A parent who declined at Google has not allowed the
 // sign-in; anything else that stops it is a failure, Google's or this
 // server's. The country is the one the parent's browser came back from, which
 // a finished sign-in carries on into the code.
@@ -67,20 +74,21 @@ func (f *flow) finish(ctx context.Context, request *flight, query url.Values, co
 			ending{outcome: "failed", reason: "unconfigured"}
 	}
 
-	grant, err := f.google.Exchange(ctx, query.Get("code"), request.Verifier, request.Nonce)
+	grant, err := f.google.Exchange(ctx, query.Get("code"), request.Verifier)
 	if err != nil {
 		return exchangeFailed(err)
 	}
 	if !slices.Contains(grant.Scopes, googleauth.ScopeDriveFile) {
-		// The grant is left as Google gave it. Ending it at Google would end
-		// every grant of the parent's at this service, the chats they have
-		// already connected included, for a sign-in they only declined.
-		return refused("access_denied",
-				"MathTrail needs to keep its own file in the parent's Google Drive: sign in again and allow it"),
-			ending{outcome: "denied", reason: "no_drive"}
+		// Asked for alone, the Drive is no box on Google's screen, and a grant
+		// without it is not expected. One that comes all the same is a box
+		// left unticked: the parent is asked again rather than the client
+		// told. The grant is left as Google gave it: ending it at Google would
+		// end every grant of the parent's at this service, the chats they
+		// have already connected included.
+		return nil, ending{outcome: outcomeRetry, reason: "no_drive"}
 	}
 	// The account's own identifier at Google goes no further than here.
-	user := f.userID("google-sub:" + grant.Subject)
+	user := f.userID(googleAccount(grant.Subject))
 	code, err := f.issueCode(request, &grant, user, country)
 	if err != nil {
 		return refused("server_error", "the sign-in could not be finished: try again"),
@@ -88,6 +96,12 @@ func (f *flow) finish(ctx context.Context, request *flight, query url.Values, co
 	}
 	return url.Values{"code": {code}}, ending{outcome: "ok", user: user}
 }
+
+// googleAccount is an account at Google as its identifier here is derived
+// from: the provider, then Google's own identifier for it. A parent's sign-in
+// and the reviewers' derive the demo account's alike only while both name it
+// so.
+func googleAccount(subject string) string { return "google-sub:" + subject }
 
 // exchangeFailed is what the client hears when Google's code could not be
 // exchanged for a sign-in, and why, for the line.

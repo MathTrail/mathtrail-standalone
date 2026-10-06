@@ -40,6 +40,11 @@ output "deploy_service_account" {
   value       = google_service_account.deployer.email
 }
 
+output "live_service_account" {
+  description = "The identity that reads the snapshot of the live numbers of the site's page \"Research\". Empty where the deployment keeps no counts."
+  value       = try(module.analytics[0].snapshot_reader_email, "")
+}
+
 output "secret_seal_key" {
   description = "The secret holding the sealing key. It has to hold a version before a revision can start."
   value       = google_secret_manager_secret.seal_key.secret_id
@@ -53,4 +58,14 @@ output "secret_learner_key" {
 output "secret_google_client" {
   description = "The secret holding the Google client secret, on the same condition."
   value       = google_secret_manager_secret.google_client_secret.secret_id
+}
+
+output "secret_reviewer_password" {
+  description = "The secret holding the password a directory's reviewers sign in with. Empty until a version is added by hand; the service reads it only once reviewer_password_version names one."
+  value       = google_secret_manager_secret.reviewer_password.secret_id
+}
+
+output "secret_reviewer_grant" {
+  description = "The secret holding the demo account's grant at Google, on the same condition, with reviewer_grant_version."
+  value       = google_secret_manager_secret.reviewer_grant.secret_id
 }

@@ -1,0 +1,249 @@
+# The live numbers of the page "Research", brought to the site once a month with
+# nobody at a keyboard. A scheduled query keeps a snapshot of the public views of
+# the counts every day; this reads it, holds it to the views' rule with the bench
+# and, when it differs from the snapshot main holds, has a GitHub App of the
+# repository's own open a pull request with it, which merges itself once the
+# required checks pass. The release after the merge publishes the site.
+#
+# Each job holds one credential at most: the one that reads holds the token
+# Google trusts and runs nothing of the repository's but the read; the one that
+# runs the bench holds none; the one that opens the pull request holds the App's
+# key and runs nothing of the repository's. The workflow's own token opens no
+# pull request: one it opened would wait for a person to approve its checks, and
+# a merge it turned on would start neither the checks on main nor the release.
+name: Live numbers
+
+on:
+  # The second of the month to the fifth: by the second the night has counted
+  # the month before whole, and the snapshot is taken again after every night.
+  # The days after it take up what a failed run or a late night left, and a run
+  # that finds the snapshot on main already does nothing. Not on the hour, when
+  # schedules are delayed.
+  schedule:
+    - cron: "47 6 2-5 * *"
+  workflow_dispatch:
+    inputs:
+      deliver:
+        description: "Open the pull request when the snapshot differs from the one main holds. Unticked, the run only shows it."
+        type: boolean
+        default: true
+  # A change to this file is rehearsed before it is merged, with nothing read
+  # and nothing delivered: the button to run a workflow by hand is there only
+  # once the workflow is on main.
+  pull_request:
+    paths:
+      - '.github/workflows/live.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  read:
+    name: Read the snapshot
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    # Only main may run in this environment, and the identity that reads the
+    # snapshot lets in a job of this environment alone.
+    environment: live-numbers
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      snapshot: ${{ steps.read.outputs.snapshot }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/just
+      - uses: ./.github/actions/deployment-target
+
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_LIVE_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+        with:
+          version: ${{ env.GCLOUD_VERSION }}
+
+      # The reader may read the snapshot and nothing it is made from: asked for a
+      # row of the exact counts, it must be denied access, or nothing is read.
+      # Only the reason is shown: an answer with the row would be the exact
+      # counts, in a log anyone may read.
+      - name: The reader is refused the exact counts
+        run: |
+          project=$(just _project)
+          reason=$(curl -s -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+              "https://bigquery.googleapis.com/bigquery/v2/projects/$project/datasets/impact/tables/daily/data?maxResults=1" |
+              jq -r '.error.errors[0].reason // "none"')
+          if [ "$reason" != accessDenied ]; then
+              echo "The snapshot's reader was not denied the exact counts: the answer's reason is $reason." >&2
+              exit 1
+          fi
+          echo "The snapshot's reader is denied the exact counts (accessDenied)." >> "$GITHUB_STEP_SUMMARY"
+
+      - id: read
+        name: Read it as a run by hand reads it
+        run: |
+          just _live-read
+          echo "snapshot=$(base64 -w0 site/research/live.json)" >> "$GITHUB_OUTPUT"
+
+  check:
+    name: Hold it to the rule
+    needs: read
+    # On a pull request nothing is read, and the snapshot main holds, if any, is
+    # held to the rule in its place.
+    if: ${{ !cancelled() && needs.read.result != 'failure' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    outputs:
+      changed: ${{ steps.compare.outputs.changed }}
+      base: ${{ steps.compare.outputs.base }}
+      old: ${{ steps.compare.outputs.old }}
+      new: ${{ steps.compare.outputs.new }}
+      content: ${{ steps.compare.outputs.content }}
+      month: ${{ steps.compare.outputs.month }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The bench is built from its own module, with the Go that module declares.
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: tools/learners/go.mod
+          cache: false
+
+      - uses: ./.github/actions/just
+
+      - name: Put the snapshot read in place
+        if: needs.read.result == 'success'
+        env:
+          SNAPSHOT: ${{ needs.read.outputs.snapshot }}
+        run: base64 -d <<< "$SNAPSHOT" > site/research/live.json
+
+      # Under bash the pipe keeps the recipe's exit as the step's own.
+      - run: just _live-check | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - id: compare
+        name: Against the snapshot main holds
+        if: needs.read.result == 'success'
+        run: |
+          file=site/research/live.json
+          old=$(git rev-parse --verify --quiet "HEAD:$file" || true)
+          new=$(git hash-object "$file")
+          changed=true
+          if [ "$old" = "$new" ]; then changed=false; fi
+          {
+              echo "changed=$changed"
+              echo "base=$(git rev-parse HEAD)"
+              echo "old=$old"
+              echo "new=$new"
+              echo "content=$(base64 -w0 "$file")"
+              echo "month=$(jq -r '.month // ""' "$file")"
+          } >> "$GITHUB_OUTPUT"
+          {
+              echo
+              if [ "$changed" = false ]; then
+                  echo "Main holds this snapshot already."
+              elif [ -z "$old" ]; then
+                  echo "Main holds no snapshot; this one would be its first:"
+                  echo '```json'
+                  cat "$file"
+                  echo '```'
+              else
+                  echo "Against the snapshot main holds:"
+                  echo '```diff'
+                  git diff --no-color -- "$file"
+                  echo '```'
+              fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deliver:
+    name: Deliver it by a pull request that merges itself
+    needs: check
+    # Only main is delivered, whatever the environments' rules: a snapshot read
+    # on a branch would carry the branch's commits into main with it.
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || inputs.deliver)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    # The App's key is a secret of this environment alone, which only main may
+    # run in; neither job before this one can reach it.
+    environment: live-numbers-delivery
+    # Everything here is done as the App; the workflow's own token gets nothing.
+    permissions: {}
+    steps:
+      - id: app
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.LIVE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.LIVE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Open, keep or close the pull request of the snapshot
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          APP: ${{ steps.app.outputs.app-slug }}
+          CHANGED: ${{ needs.check.outputs.changed }}
+          BASE: ${{ needs.check.outputs.base }}
+          OLD: ${{ needs.check.outputs.old }}
+          NEW: ${{ needs.check.outputs.new }}
+          CONTENT: ${{ needs.check.outputs.content }}
+          MONTH: ${{ needs.check.outputs.month }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          # With no comparison there is nothing to keep, close or open.
+          if [ "$CHANGED" != true ] && [ "$CHANGED" != false ]; then
+              echo "The snapshot was not compared with the one main holds." >&2
+              exit 1
+          fi
+          repo=$GITHUB_REPOSITORY branch=live-numbers-snapshot path=site/research/live.json
+          open=$(gh pr list --repo "$repo" --app "$APP" --head "$branch" --json number --jq '.[0].number // empty')
+          if [ -n "$open" ]; then
+              carried=$(gh api "repos/$repo/contents/$path?ref=$branch" --jq .sha || true)
+              parent=$(gh api "repos/$repo/commits/$branch" --jq '.parents[0].sha')
+              # A rerun while the pull request waits for its checks leaves it be.
+              if [ "$CHANGED" = true ] && [ "$carried" = "$NEW" ] && [ "$parent" = "$BASE" ]; then
+                  if [ "$(gh pr view "$open" --repo "$repo" --json autoMergeRequest --jq '.autoMergeRequest != null')" != true ]; then
+                      gh pr merge "$open" --repo "$repo" --auto --squash
+                  fi
+                  echo "Pull request #$open already carries this snapshot." >> "$GITHUB_STEP_SUMMARY"
+                  exit 0
+              fi
+              # Any other carries an older snapshot, or this one on an older main:
+              # it never lands after the one this run read.
+              if [ "$CHANGED" = true ]; then
+                  why="Replaced by the snapshot $RUN read."
+              else
+                  why="Main already holds the snapshot $RUN read."
+              fi
+              gh pr close "$open" --repo "$repo" --comment "$why"
+          fi
+          # A branch a pull request closed by hand left behind goes first.
+          gh api -X DELETE "repos/$repo/git/refs/heads/$branch" > /dev/null 2>&1 || true
+          if [ "$CHANGED" != true ]; then
+              echo "Main holds this snapshot: nothing to deliver." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+          fi
+          title="Live numbers of the page \"Research\": ${MONTH:-no month counted whole yet}"
+          # The commit the snapshot was held to the rule on, and the snapshot as its
+          # one change, made through the API, so that GitHub signs it as the App's.
+          gh api -X POST "repos/$repo/git/refs" -f ref="refs/heads/$branch" -f sha="$BASE" > /dev/null
+          put=(-X PUT "repos/$repo/contents/$path" -f message="$title" -f content="$CONTENT" -f branch="$branch")
+          if [ -n "$OLD" ]; then put+=(-f sha="$OLD"); fi
+          gh api "${put[@]}" > /dev/null
+          url=$(gh pr create --repo "$repo" --base main --head "$branch" --title "$title" \
+              --body "The snapshot of the live numbers that $RUN read and held to the rule of the public views. It merges itself once the required checks pass, and the release after it publishes the site.")
+          gh pr merge "$url" --auto --squash
+          echo "Delivered by $url." >> "$GITHUB_STEP_SUMMARY"

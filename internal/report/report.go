@@ -88,10 +88,12 @@ type line struct {
 	Primary string   `json:"primary"`
 	Failed  []string `json:"failed"`
 
-	// An accepted task: the attempts it took, and the seconds from the request
-	// to the task.
+	// An accepted task: the attempts it took, the seconds from the request to
+	// the task, and whether it came with a drawing, which a line written
+	// before the service said so leaves unsaid.
 	Attempts            whole `json:"attempts"`
 	SecondsSinceRequest whole `json:"seconds_since_request"`
+	Drawing             *bool `json:"drawing"`
 
 	// A limit reached.
 	Limit string `json:"limit"`

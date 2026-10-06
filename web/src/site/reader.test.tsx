@@ -200,4 +200,14 @@ describe("a text a page leaves out for its data", () => {
 			"en/sample.yaml: the page reads paper, which the file does not have",
 		);
 	});
+
+	test("may be a whole section, every text of which counts as read, and none it only begins like", () => {
+		const { page, unread } = reader(
+			"title: T\nready:\n  month: M\n  chances:\n    title: C\nreadiness: R\n",
+		);
+
+		page.leaveOut("ready");
+
+		expect(unread()).toEqual(["title", "readiness"]);
+	});
 });

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth"
+	"github.com/MathTrail/mathtrail-standalone/internal/ratelimit"
 )
 
 // CallbackPath is where Google sends the parent back to, under the issuer:
@@ -19,6 +20,7 @@ const (
 	stepAuthorize = "authorize"
 	stepConsent   = "consent"
 	stepCallback  = "callback"
+	stepDrive     = "drive"
 )
 
 // flow is a parent's way through a sign-in: the host's request, the consent
@@ -38,9 +40,14 @@ type flow struct {
 	// back from Google with, empty when it is not known.
 	countryOf func(r *http.Request) string
 	google    googleauth.SignIn
-	pages     *pages
-	events    *signInLog
-	now       func() time.Time
+	// reviewer is the sign-in of a directory's reviewers, nil when there is
+	// none, and renewals the pace its renewals at Google are held to, the
+	// pace of every account's.
+	reviewer *reviewerSignIn
+	renewals ratelimit.Limiter
+	pages    *pages
+	events   *signInLog
+	now      func() time.Time
 }
 
 // sendBack sends the parent's browser back to the client with the answer

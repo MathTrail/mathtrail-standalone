@@ -23,6 +23,20 @@
 </div>
 </form>
 <p class="auth-small">{{ template "phrase" .Legal }}</p>
+{{- if .Reviewer }}
+<details class="auth-reviewer">
+<summary>{{ index .Words "consent.reviewer" }}</summary>
+<form method="post" action="/oauth/consent">
+<input type="hidden" name="request" value="{{ .Request }}">
+<p>{{ index .Words "consent.reviewer_text" }}</p>
+<label for="reviewer-password">{{ index .Words "consent.reviewer_password" }}</label>
+<input type="password" id="reviewer-password" name="password" autocomplete="current-password" required>
+<div class="auth-actions">
+<button type="submit" name="decision" value="reviewer" class="auth-secondary">{{ index .Words "consent.reviewer_sign_in" }}</button>
+</div>
+</form>
+</details>
+{{- end }}
 </main>
 </body>
 </html>

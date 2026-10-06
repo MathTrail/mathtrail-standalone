@@ -75,6 +75,8 @@ type Endpoints struct {
 	Consent http.Handler
 	// Callback answers Google's redirect at the end of a sign-in.
 	Callback http.Handler
+	// Drive draws the page that asks a parent back to Google for the Drive.
+	Drive http.Handler
 	// Token issues a host's tokens.
 	Token http.Handler
 	// Revoke ends a host's grant.
@@ -112,6 +114,8 @@ func (e *Endpoints) validate() error {
 		return fmt.Errorf("%w: Consent must be set", ErrEndpoints)
 	case e.Callback == nil:
 		return fmt.Errorf("%w: Callback must be set", ErrEndpoints)
+	case e.Drive == nil:
+		return fmt.Errorf("%w: Drive must be set", ErrEndpoints)
 	case e.Token == nil:
 		return fmt.Errorf("%w: Token must be set", ErrEndpoints)
 	case e.Revoke == nil:
@@ -264,12 +268,14 @@ func NewRouter(publicURL string, endpoints *Endpoints, limits Limits, logger *za
 	}
 
 	// The parent's way through a sign-in, in their browser: the request a
-	// host sends them with, the consent screen's answer, and Google's. A
-	// refusal there is a page in the parent's language.
+	// host sends them with, the consent screen's answer, Google's, and the
+	// page that asks them back to Google for the Drive. A refusal there is a
+	// page in the parent's language.
 	browser := router.Group("", middleware.Limit(logger, obs.ProjectID, middleware.Page(endpoints.Busy), address, instance))
 	browser.GET("/oauth/authorize", gin.WrapH(endpoints.Authorize))
 	browser.POST("/oauth/consent", gin.WrapH(endpoints.Consent))
 	browser.GET("/oauth/callback", gin.WrapH(endpoints.Callback))
+	browser.GET("/oauth/drive", gin.WrapH(endpoints.Drive))
 
 	// What the host does from its own server: it registers, and ends the grant
 	// when the parent disconnects.

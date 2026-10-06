@@ -2,6 +2,7 @@ package mcpserver
 
 import (
 	"context"
+	"slices"
 	"time"
 
 	"go.uber.org/zap"
@@ -42,12 +43,21 @@ func hostFrom(ctx context.Context) string {
 // gave, and the month the profile was made in, which is when the child started.
 // Nothing here leads back to a child: the name is a keyed digest that changes
 // with the month, and the grade and the month are what many children share.
-func (s *Service) countedFields(p *profile.Profile, now time.Time) []zap.Field {
-	return []zap.Field{
-		zap.String("learner", s.learners.Of(p.StudentID, now)),
+func (s *Service) countedFields(p *profile.Profile, account store.Account, now time.Time) []zap.Field {
+	return append(s.learnerFields(p, account, now),
 		zap.Int("grade", p.Student.Grade),
 		zap.String("cohort", p.CreatedAt.Format(cohortLayout)),
+	)
+}
+
+// learnerFields are the name the child is counted under this month — none for
+// the demo account's child, which is no child: a line without the name counts
+// nobody.
+func (s *Service) learnerFields(p *profile.Profile, account store.Account, now time.Time) []zap.Field {
+	if slices.Contains(s.demo, account.ID) {
+		return nil
 	}
+	return []zap.Field{zap.String("learner", s.learners.Of(p.StudentID, now))}
 }
 
 // acceptedFields are what the line about a task handed out adds to the child's
@@ -58,7 +68,7 @@ func (s *Service) countedFields(p *profile.Profile, now time.Time) []zap.Field {
 // the list, unknown when nobody said, and other when the file, edited by hand,
 // names one the list does not have.
 func (s *Service) acceptedFields(ctx context.Context, p *profile.Profile, account store.Account, task *profile.CurrentTask, now time.Time) []zap.Field {
-	fields := append(s.countedFields(p, now),
+	fields := append(s.countedFields(p, account, now),
 		zap.String("host", hostFrom(ctx)),
 		zap.String("language", languageLabel(task.Language)),
 		zap.String("country", countryLabel(p.Student.Country)),

@@ -99,6 +99,28 @@ func rangeOfChance(chance float64) int {
 	return len(chanceRanges) - 1
 }
 
+// ChanceRange is a range of the chance a task was handed out at, as the
+// report counts an answer in it: its name, and the lowest and the highest
+// chance it holds, in hundredths, as the line writes a chance.
+type ChanceRange struct {
+	Name     string
+	From, To int
+}
+
+// ChanceRanges are the ranges the report counts a chance in, from the lowest,
+// each beginning one hundredth past the range before it. They are made afresh
+// on every call, so that nothing done with them changes what the report
+// counts.
+func ChanceRanges() []ChanceRange {
+	ranges := make([]ChanceRange, len(chanceRanges))
+	from := 0
+	for i, r := range chanceRanges {
+		ranges[i] = ChanceRange{Name: r.named, From: from, To: r.upTo}
+		from = r.upTo + 1
+	}
+	return ranges
+}
+
 // promisedIn is a cell of the table of chances: a group, and a range of the
 // chance a task was handed out at.
 type promisedIn struct {

@@ -1,12 +1,12 @@
 # Running your own copy
 
-MathTrail is MIT-licensed and holds nothing of its own: every deployment is one Cloud Run service, one Artifact Registry repository, three secrets and a domain, in a Google Cloud project you control, beside a small site on GitHub Pages that carries its privacy policy and terms. This page is how that gets created — and almost none of it is done by hand. The repository describes the deployment, and its workflows deliver it.
+MathTrail is MIT-licensed and holds nothing of its own: every deployment is one Cloud Run service, one Artifact Registry repository, five secrets — two of them empty until a copy lets a directory's reviewers in — and a domain, in a Google Cloud project you control, beside a small site on GitHub Pages that carries its privacy policy and terms. This page is how that gets created — and almost none of it is done by hand. The repository describes the deployment, and its workflows deliver it.
 
 The name is not part of the licence: a copy that runs publicly goes by a name of its own ([below](#a-name-of-your-own)).
 
 ## What is done by hand, ever
 
-Five things, once — four because no API can do them, and the settings of the repository itself — and a sixth for a copy that keeps the counts of how it is used:
+Five things, once — four because no API can do them, and the settings of the repository itself — and two more for a copy that keeps the counts of how it is used:
 
 1. **The bootstrap**, below: the project, the bucket its state lives in and the identity the pipeline signs in as. A pipeline cannot create the door it walks in by. Once — and again on the day that identity needs a right it was not given, which is its own section further down.
 2. **The Google consent screen and one OAuth client.** Google has no API for either.
@@ -14,6 +14,7 @@ Five things, once — four because no API can do them, and the settings of the r
 4. **The OAuth client's secret**, pasted into the repository's secrets. It is the one value that exists nowhere but the Google console.
 5. **The repository's settings**: the fork's workflows enabled, GitHub Pages published from them on the site's domain, and that domain verified for Pages.
 6. **The two reports of the counts**, in Data Studio (formerly Looker Studio), where `analytics` is on: Data Studio has no API that makes a report ([below](#the-counts-kept-for-years)).
+7. **The GitHub App that brings the live numbers to the site**, with its two environments, where `analytics` is on: GitHub makes an App only for a person on its pages ([below](#the-counts-kept-for-years)).
 
 Everything else — enabling APIs, the registry and its cleanup, the secrets, the service, the domain mapping, the spend alert, the counts kept for years, the image and every roll-out after it — happens when a change reaches the main branch, or when the workflow is started by hand from a branch. The site is published the same way, by a workflow of its own.
 
@@ -34,15 +35,18 @@ What each workflow needs in a copy:
 - **`deploy.yml`**, the delivery, needs everything below.
 - **`pages.yml`**, the site, needs Pages published from GitHub Actions — step 4. `release.yml` runs it with every release; on a pull request it only builds and checks the site.
 - **`ci.yml`**, the checks, needs nothing to run. Two of its steps report to this repository's projects: the SonarCloud job, which fails on `main` without a `SONAR_TOKEN` — give it a project of your own in `sonar-project.properties`, or remove it — and the Codecov upload, which fails nothing without a token of yours.
-- **`release.yml`** needs green checks: it runs once `ci.yml` has passed on `main`, publishes a release and then runs `deploy.yml` and `pages.yml` with it, side by side — so a SonarCloud job left failing stops every release, and every delivery and every publication of the site with it.
+- **`release.yml`** needs green checks: it runs once `ci.yml` has passed on `main`, publishes a release and then runs `deploy.yml` and `pages.yml` with it, side by side — so a SonarCloud job left failing stops every release, and every delivery and every publication of the site with it. Once the release is delivered it photographs the release's cards and writes the pictures over the branch `screens`; the README shows this repository's pictures, since its addresses name it, until you point them at your own, there and in `published` in `web/scripts/screens.ts`, which its test holds the README to.
 - **`codeql.yml`** and **`scorecard.yml`** need nothing.
 - **`load.yml`** needs nothing, and spends runner minutes once a week; disable it if nobody reads its reports.
+- **`live.yml`** brings the live numbers of the page "Research" to `main` once a month. It needs the counts kept for years, a GitHub App of your own and two environments ([below](#the-counts-kept-for-years)), and fails every month without them: disable it until your copy has them.
 
 The checks and the site's build run inside the toolchain image this repository publishes, which anybody may pull. A copy that changes `.devcontainer/Dockerfile` publishes an image of its own from both workflows, so `TOOLCHAIN_IMAGE` in the `justfile` then has to name a registry the copy may write to.
 
 ### A name of your own
 
 MathTrail is this project's name, and the licence does not pass it on: a copy that runs publicly goes by a name of its own. The name is in the words people read — the widget's dictionaries in `web/locales/`, the sign-in pages in `internal/transport/oauth/pages/`, what the tools tell the model in `internal/transport/mcp/` and `content/instructions/`, the server's name in the protocol, the folder and the file in a parent's Drive, and the site. `git grep -i mathtrail` finds every place, along with names nobody reads — the module path `github.com/MathTrail/…` in the Go imports, the names of the cloud resources — which can stay.
+
+What this deployment gives the chats' directories is under its name too: the texts of its listings in `docs/listing.md`, and the package for ChatGPT's directory in `plugin/`, with its icons. A copy that lists itself writes its own. One that does not removes the folder, with the recipes `plugin-icons` and `plugin-zip`, the script `web/scripts/icons.ts` with its test, and the folder's line in `.dockerignore`.
 
 ## 2. Say what the deployment is
 
@@ -52,7 +56,7 @@ Three files in the repository, and nothing about the deployment lives anywhere e
 |---|---|
 | `infra/terraform/prod.auto.tfvars` | project, region, host, OAuth client id, repository and its owner id, pool id — everything except the billing account |
 | `infra/terraform/backend.hcl` | the bucket the state lives in |
-| `infra/ci.env` | the two facts a workflow needs before it can sign in — filled from what the bootstrap prints |
+| `infra/ci.env` | the facts a workflow needs before it can sign in — two from what the bootstrap prints, and, where the counts are kept, the identity that reads the live numbers |
 
 Every value in them is this deployment's: replace each one with yours, the repository and its owner's id included. None of it is secret: the client id travels in every authorization request, and the federated pool is guarded by a condition on the repository rather than by the secrecy of its name. Changing where this repository deploys is a pull request, which is the point.
 
@@ -70,7 +74,7 @@ It creates the project and links billing, enables the handful of APIs without wh
 
 Google publishes a consent screen only with a home page, a privacy policy and terms of use to link to, and the service's own consent page links the last two, at `/en/privacy/` and `/en/terms/` of the site. The ones in `site/` are this deployment's: they name its operator and the address that answers parents' questions. A copy publishes its own.
 
-1. **The texts.** Rewrite `site/content/<locale>/privacy.md` and `terms.md` for your copy, in every language the site carries: the contact, the operator, and every sentence that stops being true of a copy. The English text is the one that prevails. Rewrite `about.yaml` too, since the page says who makes the service and yours is made by you, and `index.yaml`, the home page, which tells a parent how to add the service to a chat. The photographs on the page "About" are the family of this deployment's author, which the MIT License does not cover: put your own in their place in `site/assets/photos/`, which `just site-photos` makes from your originals under the names `web/src/site/brand.ts` gives them. Who is on the page is the list `familyMembers` in `brand.ts`, each with words under their name in every `about.yaml` and a portrait of their own. To show no photographs, take them off `web/src/site/AboutPage.tsx` and their `photo` texts out of every `about.yaml`, then remove `photos` and what names it from `brand.ts`, `site/assets/photos/`, `web/scripts/photos.ts` with its test, and the lines of the build's test that name the photographs. The page "Coach" shows a product of this deployment's author, not of yours: remove it with its prototype. That is `coach.yaml` in every language; `web/src/site/CoachPage.tsx` with its test; the page in `web/src/site/pages.ts`, its entry in the menu in `web/src/site/frame.ts` and its word, `nav.coach`, in `web/src/site/locales/`; `coachPrototypePath` in `web/src/site/brand.ts`, and the line of `robots` in `web/src/site/metadata.ts` that names it, with its test; the prototype and its fonts' licence in `site/assets/`, and their lines in `web/scripts/prerender-site.ts` and in its test, which also names the page; the page's addresses in `web/tools/sitecheck/published.ts`; the prototype's lines in `.gitattributes`, `.github/workflows/codeql.yml` and `sonar-project.properties`; and the prototype's section of the license list, in the `justfile`'s `_license-list`, before `just licenses` writes the list again. The page "Research" names the paper this deployment's authors wrote about MathTrail and offers its PDF once there is one: the paper is their work, so take out its title and its PDF. The title is `hero.title` and `hero.subtitle` in every `research.yaml`: give the page a heading of your own there, and take out of `web/src/site/ResearchPage.test.tsx` the test that holds them to the paper's sources. The PDF is `site/research/paper-a.en.pdf` with its facts, `site/research/paper.json`: without them the page offers none. The rest of the page says what the service does, and its numbers are your copy's own, computed by `just research-data` from the code being built. To show no page "Research" at all, remove `research.yaml` in every language; `web/src/site/ResearchPage.tsx`, `ResearchTheses.tsx`, `ResearchModel.tsx`, `ResearchNumbers.tsx` and `research.ts`, with their tests and `web/src/site/testing/handtyped.ts`; the page in `web/src/site/pages.ts`, its entries in the menu and the footer in `web/src/site/frame.ts`, and its words, `nav.research` and the `research.*` counts, in `web/src/site/locales/`; `research` in `site/data.json` and what reads it in `web/src/site/data.ts`; the build's `--research` and the paper's copy in `web/scripts/prerender-site.ts`, with the lines of its test and of `web/scripts/og.test.ts` that give them; `research-data` among what `site` makes first in the `justfile`, and the steps of `.github/workflows/pages.yml` that make the data; and the page's addresses in `web/tools/sitecheck/published.ts`. The name the header shows, the link to the code, the address that answers questions, which the footer and the page "About" write out, and the connector's address the home page gives are in `web/src/site/brand.ts` — a test of the build holds the address that answers questions to the one the privacy policy names — and the footer's other words in `web/src/site/locales/`. The pictures a shared link to the site shows are its home page in each language, kept in `site/assets/`: `just site-og` photographs yours once the texts are. `just site-serve` shows the site on this machine before anybody else sees it.
+1. **The texts.** Rewrite `site/content/<locale>/privacy.md`, `terms.md` and `help.md` for your copy, in every language the site carries: the contact, the operator, and every sentence that stops being true of a copy. The help names the connector's address and this repository's issues and security advisories too. The English text is the one that prevails. Rewrite `about.yaml` too, since the page says who makes the service and yours is made by you, and `index.yaml`, the home page, which tells a parent how to add the service to a chat. The photographs on the page "About" are the family of this deployment's author, which the MIT License does not cover: put your own in their place in `site/assets/photos/`, which `just site-photos` makes from your originals under the names `web/src/site/brand.ts` gives them. Who is on the page is the list `familyMembers` in `brand.ts`, each with words under their name in every `about.yaml` and a portrait of their own. To show no photographs, take them off `web/src/site/AboutPage.tsx` and their `photo` texts out of every `about.yaml`, then remove `photos` and what names it from `brand.ts`, `site/assets/photos/`, `web/scripts/photos.ts` with its test, and the lines of the build's test that name the photographs. The page "Coach" shows a product of this deployment's author, not of yours: remove it with its prototype. That is `coach.yaml` in every language; `web/src/site/CoachPage.tsx` with its test; the page in `web/src/site/pages.ts`, its entry in the menu in `web/src/site/frame.ts` and its word, `nav.coach`, in `web/src/site/locales/`; `coachPrototypePath` in `web/src/site/brand.ts`, and the line of `robots` in `web/src/site/metadata.ts` that names it, with its test; the prototype and its fonts' licence in `site/assets/`, and their lines in `web/scripts/prerender-site.ts` and in its test, which also names the page; the page's addresses in `web/tools/sitecheck/published.ts`; the prototype's lines in `.gitattributes`, `.github/workflows/codeql.yml` and `sonar-project.properties`; and the prototype's section of the license list, in the `justfile`'s `_license-list`, before `just licenses` writes the list again. The page "Research" names the paper this deployment's authors wrote about MathTrail and offers its PDF once there is one: the paper is their work, so take out its title and its PDF. The title is `hero.title` and `hero.subtitle` in every `research.yaml`: give the page a heading of your own there, and take out of `web/src/site/ResearchPage.test.tsx` the test that holds them to the paper's sources. The PDF is `site/research/paper-a.en.pdf` with its facts, `site/research/paper.json`: without them the page offers none. The rest of the page says what the service does, and its numbers are your copy's own, computed by `just research-data` from the code being built. Its live numbers are this deployment's children's, from the snapshot `site/research/live.json`: remove it, and the page says they are still to come until your copy's own `live.yml` brings one ([below](#the-counts-kept-for-years)). To show no page "Research" at all, remove `research.yaml` in every language; `web/src/site/ResearchPage.tsx`, `ResearchTheses.tsx`, `ResearchModel.tsx`, `ResearchLive.tsx`, `ResearchNumbers.tsx` and `research.ts`, with their tests and `web/src/site/testing/handtyped.ts`; `site/research/live.json`; the recipe `site-live` that takes it, with `_live-read` and `_live-check`, which it runs, and the workflow `live.yml`, which runs them too; the snapshot's SQL in `infra/analytics/site/` and its table and reader in `infra/terraform/analytics/snapshot.tf`, with their tests and what names them in the Terraform configuration and `infra/ci.env`; the page in `web/src/site/pages.ts`, its entries in the menu and the footer in `web/src/site/frame.ts`, and its words, `nav.research` and the `research.*` counts, in `web/src/site/locales/`; `research` in `site/data.json` and what reads it in `web/src/site/data.ts`; the build's `--research` and the paper's copy in `web/scripts/prerender-site.ts`, with the lines of its test and of `web/scripts/og.test.ts` that give them; `research-data` among what `site` makes first in the `justfile`, and the steps of `.github/workflows/pages.yml` that make the data; and the page's addresses in `web/tools/sitecheck/published.ts`. The name the header shows, the link to the code, the address that answers questions, which the footer and the page "About" write out, and the connector's address the home page gives are in `web/src/site/brand.ts` — a test of the build holds the address that answers questions to the one the privacy policy names — and the footer's other words in `web/src/site/locales/`. The pictures a shared link to the site shows are its home page in each language, kept in `site/assets/`: `just site-og` photographs yours once the texts are. `just site-serve` shows the site on this machine before anybody else sees it.
 2. **The address.** `SITE_BASE` in the `justfile` is the origin the site is published on, and every absolute address on the site is built from it. The service learns the same origin from `MATHTRAIL_SITE_URL`, [in `settings`](#the-services-environment).
 3. **Pages.** In the repository's **Settings → Pages**, choose **GitHub Actions** as the source and enter your domain as the custom domain: a site published by a workflow is given its domain there, and the `CNAME` file the build writes is ignored. Verify the domain for Pages first, in your account's or organisation's settings, as GitHub recommends, so that no other repository can claim it.
 4. **The DNS records.** For an apex domain, the four A and four AAAA records in [GitHub's list](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site); for a subdomain, a CNAME to `<owner>.github.io`. Once Pages offers it, turn on **Enforce HTTPS**: until then the policy is served over plain HTTP as well.
@@ -81,13 +85,13 @@ The progress links each topic's name to its page on this site, and the words for
 
 ## 5. The Google sign-in
 
-The parent signs in with Google, and the service asks Google for exactly two things: a verified identifier, and room for one file of its own in the parent's Drive. It is configured in the Google Cloud console, under **Google Auth Platform**, on its four pages.
+The parent signs in with Google, and the service asks Google for exactly one thing: room for one file of its own in the parent's Drive. It then asks Google whom the access token of that permission was issued for, which is how it knows who signed in. It is configured in the Google Cloud console, under **Google Auth Platform**, on its four pages.
 
 **Branding.** The name people see on the consent screen, a support email, a developer contact email, and three links: the home page, the privacy policy and the terms of your site, which for this deployment are `https://mathtrail.app/en/`, `https://mathtrail.app/en/privacy/` and `https://mathtrail.app/en/terms/`. Add the top private domain of those links — `mathtrail.app` here — as an authorized domain: one entry covers both the site on the apex and the service on its subdomain. Leave the logo out unless you mean to have the app reviewed: uploading one sends it to Google's brand verification.
 
 **Audience.** User type **External**, publishing status **In production**. Not Testing: there only the test users listed on that page may sign in at all, and a consent expires seven days after it is given and takes the refresh token with it, so every parent would be signed out once a week.
 
-**Data access.** Two scopes and no others: `openid`, which is what makes the identifier verified, and `https://www.googleapis.com/auth/drive.file`, which reaches only the files the app itself created plus anything the parent hands it explicitly. Both are non-sensitive, so publishing needs no app verification at all; brand verification is the separate, lighter process that makes the app's own name and logo appear on the consent screen instead of the project's name.
+**Data access.** One scope and no other: `https://www.googleapis.com/auth/drive.file`, which reaches only the files the app itself created plus anything the parent hands it explicitly. Not `openid` beside it: once a request asks for a sign-in too, Google shows the Drive with a box it leaves unticked, and a parent who presses on past it grants the sign-in alone. The scope is non-sensitive, so publishing needs no app verification at all; brand verification is the separate, lighter process that makes the app's own name and logo appear on the consent screen instead of the project's name.
 
 **Clients.** One client, type **Web application**, with a single authorized redirect URI — `https://<your host>/oauth/callback`, no trailing slash. No authorized JavaScript origins: the sign-in is a redirect the service performs, never a script inside a page. The client id goes into `prod.auto.tfvars`.
 
@@ -177,6 +181,7 @@ gcloud artifacts repositories describe mathtrail --location=us-central1
 | `google_oauth_client_id` | — | The Google OAuth client of the sign-in |
 | `github_repository` | — | `owner/name` of the repository allowed to deploy |
 | `github_owner_id` | — | The numeric id of that owner; the pool's condition is built from it |
+| `github_oidc_subject_prefix` | empty | Where `analytics` is on: how GitHub begins the subject of the repository's tokens, which `gh api repos/OWNER/NAME/actions/oidc/customization/sub --jq .sub_claim_prefix` prints. The identity that reads the live numbers is lent to the jobs of one environment by the subject they are given ([below](#the-counts-kept-for-years)) |
 | `workload_identity_pool_id` | `mathtrail-github` | The pool created by the bootstrap, in which a workflow's token is exchanged |
 | `region` | `us-central1` | Has to offer domain mappings and be a first-tier region |
 | `service_name` | `mathtrail` | Names the service, its images, its secrets and its identities |
@@ -191,6 +196,7 @@ gcloud artifacts repositories describe mathtrail --location=us-central1
 | `seal_key_previous_version` | empty | The version still accepted while a key is being rotated |
 | `learner_key_version` | `1` | The secret version the children are counted under in the log; never rotated with the sealing key, and only at the turn of a month |
 | `google_client_secret_version` | `1` | The secret version the sign-in authenticates with |
+| `reviewer_password_version`, `reviewer_grant_version` | empty | The secret versions of the reviewers' sign-in, set together or not at all; empty, the service is given neither and the sign-in is off ([below](#the-reviewers-sign-in)) |
 | `analytics` | `false` | Whether the counts of how the service is used are kept for years: the lines they are made from kept 62 days in a log bucket of their own, counted every night into BigQuery, and views for two reports ([below](#the-counts-kept-for-years)). Turn it on once your privacy policy says so |
 | `settings` | `{}` | Extra environment variables of the service — the site's address, ceilings and timeouts, never a secret. The solver slots and `GOMEMLIMIT` follow `cpu` and `memory`, and are refused here |
 | `budget_amount`, `budget_currency` | `1`, `USD` | Where the spend alert fires |
@@ -202,7 +208,7 @@ gcloud artifacts repositories describe mathtrail --location=us-central1
 The service reads its configuration from environment variables alone; every one of them, with its default and what reads it, is in [section 11.2 of the spec](../SPEC.md#112-the-environment). A deployment described here sets them three ways:
 
 - **From the variables above**, by Terraform: `MATHTRAIL_PUBLIC_URL` from `public_host`, `MATHTRAIL_GOOGLE_CLIENT_ID` from `google_oauth_client_id`, `MATHTRAIL_GCP_PROJECT_ID` from `project_id`, `MATHTRAIL_SOLVER_CONCURRENCY` from `cpu`, and `GOMEMLIMIT` from `memory`. `PORT` and `K_SERVICE` come from Cloud Run itself.
-- **From Secret Manager**, read by Cloud Run as an instance starts: `MATHTRAIL_SEAL_KEY_CURRENT`, `MATHTRAIL_SEAL_KEY_PREVIOUS` during a rotation, `MATHTRAIL_LEARNER_KEY` and `MATHTRAIL_GOOGLE_CLIENT_SECRET`.
+- **From Secret Manager**, read by Cloud Run as an instance starts: `MATHTRAIL_SEAL_KEY_CURRENT`, `MATHTRAIL_SEAL_KEY_PREVIOUS` during a rotation, `MATHTRAIL_LEARNER_KEY` and `MATHTRAIL_GOOGLE_CLIENT_SECRET`, and `MATHTRAIL_REVIEWER_PASSWORD` with `MATHTRAIL_REVIEWER_GRANT` once their versions are named.
 - **From the image**, which sets it: `MATHTRAIL_COUNTRY_DB`, the database of countries the image carries.
 - **Through `settings`**, everything else. One of them a copy has to set, because its default is this deployment's site:
 
@@ -229,10 +235,11 @@ The rest have the defaults the service is meant to run with. The ones a deployme
 ## What nothing in this repository owns
 
 - **The project's billing.** Linked by the bootstrap, owned by whoever pays.
-- **The values of the secrets.** Two are generated by the pipeline and read by nobody; the third is pasted once. None is ever in the state.
+- **The values of the secrets.** Two are generated by the pipeline and read by nobody; the third is pasted once; the reviewers' two are made by two recipes, when a copy wants them. None is ever in the state.
 - **The months of the database of countries.** Each is published from a developer's machine with `just countries-publish`, as an image of its own; see below.
 - **The Google OAuth client and the consent screen.** No API exists; they are the reason step 5 is done by hand.
 - **The two reports of the counts.** Data Studio has no API that makes a report; they are made by hand, [below](#the-counts-kept-for-years).
+- **The App that brings the live numbers to the site, its key and its two environments.** Made by hand, [below](#the-counts-kept-for-years); the key is a secret of one environment alone.
 - **Domain ownership and DNS.** At the registrar and in Search Console.
 - **The site's Pages settings.** Its source and its domain, in the repository's settings.
 - **The pool the pipeline signs in through.** Created by the bootstrap, deliberately outside Terraform.
@@ -243,7 +250,7 @@ The intent is $0, and inside the free allowance it is $0 — but the allowance i
 
 - **Cloud Run** beyond the monthly free requests, vCPU-seconds and GiB-seconds, or beyond the free egress from North America. `min_instance_count` is 0 and CPU is allocated only during requests, so an idle service costs nothing; a service that is being used a great deal does not stay free.
 - **Artifact Registry** beyond half a gigabyte of images. The cleanup policies keep the repository small; a deployment that pushes many images a day should check that they are working.
-- **Secret Manager** beyond six active versions or the monthly free accesses. A version is read once per instance start, and the rotation keeps at most four versions live: three of the sealing key and the one key the children are counted under.
+- **Secret Manager** beyond six active versions or the monthly free accesses. A version is read once per instance start, and the rotation keeps at most four versions live: three of the sealing key and the one key the children are counted under. The reviewers' sign-in adds two while it is on, and each new password or grant one more until the version it replaces is destroyed.
 - **Cloud Logging** beyond the free monthly ingestion. With `analytics` on, the lines the children are counted from are taken in twice, into the default bucket and into their own, and kept there past 30 days at $0.01 a GiB a month: kilobytes a day.
 - **BigQuery** beyond 1 TiB of queries and 10 GiB of storage a month, with `analytics` on. The nightly query reads megabytes and the tables hold kilobytes; a report reads them through its own cache. Google's price list names no charge for a scheduled query beyond its query, and the spend alert is what would tell otherwise.
 - **Cloud Trace** beyond 2.5 million spans a month. The platform's own traces of incoming requests are not billed at all; these are the spans the service adds inside them, and the sampler is what keeps their number a fraction of the requests.
@@ -325,6 +332,58 @@ Tokens sealed with the previous key keep working until they expire on their own,
 
 The lines a child is counted from name the child by a name that holds for a calendar month, derived from `mathtrail-learner-key` (section 12.1 of the spec). It is not rotated with the sealing key, and it is best never rotated: a new key gives every child a new name, and a month that sees both counts every child twice. If it has to be, do it at the turn of a month in UTC — add a version as for the sealing key, and set `learner_key_version` to it.
 
+## The reviewers' sign-in
+
+A directory that reviews a copy before listing it asks for an account its reviewers can sign in with at once, with a profile already filled. Google may ask a reviewer signing in from another country or device to confirm it is them, and ChatGPT's review turns away an app whose reviewer meets such a step. So the consent screen can offer a directory's reviewer, folded under the parent's way in, a password in place of Google, which signs them in as one demo account whose grant at Google the service holds (decision R222). It is off unless both of its secrets are set. It reaches nothing but the demo account's own file, and the demo account's lines count no child, so nothing a reviewer does reaches the counts kept for years.
+
+**Turning it on.**
+
+1. Make a Google account for the demo profile, and keep its 2-Step Verification on: only you ever sign in to it at Google. Check that the app is **In production** (section 5): an app in Testing loses every refresh token after seven days.
+2. Deliver a commit that has the two secrets in it, so that they exist, empty.
+3. Capture the demo account's grant, in a terminal of the devcontainer:
+
+   ```bash
+   just reviewer-grant
+   ```
+
+   Open the address it prints in a browser signed in as the demo account, and allow both permissions. Google sends the browser back to the service, which cannot read the request and says the link is not right: paste the address of that page into the terminal. The recipe exchanges the code with the client secret from Secret Manager and adds the account's identifier and its refresh token as a version of `mathtrail-reviewer-grant`, printing nothing of either. Secret Manager says which version it made.
+4. Make the password:
+
+   ```bash
+   just reviewer-password
+   ```
+
+   It is 32 random characters, added as a version of `mathtrail-reviewer-password` and shown once: keep it in a password manager, and give it to the directories in their review forms, never anywhere else.
+5. Name both versions in `prod.auto.tfvars`, and merge:
+
+   ```hcl
+   reviewer_password_version = "1"
+   reviewer_grant_version    = "1"
+   ```
+
+   The service's start says `reviewer sign-in` with `configured` true, and the consent screen shows "Reviewing MathTrail for a directory?".
+
+Fill the demo profile by signing in through that line yourself, in a chat, before the review. Its 20 tasks a day are shared by every reviewer, and the day starts at 00:00 UTC, so do not fill it on the day a review may begin. The progress shows a change over the past week only while the last answer is at most six days old, so answer a few tasks in the days before a review. Sign in through the line once yourself before a review begins as well: a grant that has ended shows only when somebody signs in.
+
+**Changing the password.** Run `just reviewer-password` again, name the new version and merge. A reviewer signed in before keeps their session to its own end, up to 90 days.
+
+**Destroying an old version** of either secret waits until the deployment reads the new one. Until then, the revision serving names the old version, and Cloud Run reads a secret as an instance starts. With that version destroyed, no new instance can start, and the service goes down once the running ones stop. A revision from before the change names it too, so the service can no longer be rolled back to one. If it was destroyed first, put the new version in service at once:
+
+```bash
+gcloud run services update mathtrail --region=us-central1 \
+  --update-secrets=MATHTRAIL_REVIEWER_PASSWORD=mathtrail-reviewer-password:N
+```
+
+For the grant, the pair is `MATHTRAIL_REVIEWER_GRANT=mathtrail-reviewer-grant:N`. Then merge the new version before anything else is deployed: a deployment from a commit that still names the old version brings the failure back.
+
+**Cutting every reviewer off at once.** Remove MathTrail's access in the demo account's Google account, under the apps connected to it. Every session ends at its next renewal, within the hour, and the sign-in fails until the grant is captured again with `just reviewer-grant`.
+
+**When the sign-in fails.** Google stops honouring the grant when it goes unused for six months, when MathTrail's access is removed in the demo account, or once the account has a hundred newer refresh tokens for the app. The reviewer's chat then fails to connect, and the line `auth_consent` says `failed` with `grant_ended`, at error level. Capture the grant again, name the new version, and merge. On 2026-10-06 the grant also stopped within hours of the demo account's password being changed, with MathTrail still among the account's connected apps and no other cause known ([the live report](live/14-reviewer-access.md)). Google documents that for Gmail's scopes alone, but capture the grant again whenever that password changes.
+
+**Rotating the sealing key** changes nothing here: while the previous key is kept, the demo account is known by the identifiers of both keys, so a reviewer's session begun before the rotation is still the demo account's.
+
+**Turning it off.** Empty both versions in `prod.auto.tfvars` and merge; the consent screen no longer offers the line.
+
 ## The database of countries
 
 The country a parent signs in from is looked up in DB-IP's IP to Country Lite, which DB-IP publishes once a month under the Creative Commons Attribution 4.0 licence and keeps to download for about three months. The runtime image copies one month of it from an image of this repository's own, pinned in the `Dockerfile` by tag and digest, so that a build never depends on how long DB-IP keeps a month. Publishing a newer month needs `docker`, and `gh` signed in with the right to write packages (`gh auth refresh -h github.com -s write:packages`). Nothing has to be signed in to GHCR by hand: the recipe signs `docker` in with the token `gh` holds, in a configuration of its own that it deletes when it ends, so the token is never written to `~/.docker`:
@@ -342,10 +401,11 @@ A binary run without the image needs the file itself: download a month from DB-I
 
 A copy that has to show how much it is used — for a grant application, say — sets `analytics = true` in its tfvars, once its privacy policy says what is kept (this repository's does). The service writes the lines either way; what the switch adds is keeping their counts. Section 12.4 of the spec says what is counted and shown, and decision R192 of [decisions.md](decisions.md) why.
 
-- **What the delivery creates.** A log bucket, `activity`, that keeps the lines the children are counted from for 62 days, and the sink that copies them into it; its link to BigQuery, `activity_logs`; the dataset `impact`, whose tables are the counts and the only thing kept for years; a scheduled query that fills them every night at half past one in UTC, run by an identity of its own that may read the lines, write the counts and nothing else; and two datasets of views, `impact_private` with exact numbers and `impact_public` with no group of fewer than ten children.
-- **Before the first delivery with it**, run the bootstrap again: the applying identity needs two roles more ([below](#when-the-bootstrap-changes)). The first apply may stop at the scheduled query while the rights of its identity spread through the platform; start the delivery again.
+- **What the delivery creates.** A log bucket, `activity`, that keeps the lines the children are counted from for 62 days, and the sink that copies them into it; its link to BigQuery, `activity_logs`; the dataset `impact`, whose tables are the counts and the only thing kept for years; a scheduled query that fills them every night at half past one in UTC, run by an identity of its own that may read the lines, write the counts and nothing else; and two datasets of views, `impact_private` with exact numbers and `impact_public` with no group of fewer than ten children. For the page "Research", a second scheduled query, run every day at half past two by the same identity, keeps the snapshot of the live numbers, one row of the public views, in the table `live` of a dataset of its own, `impact_site`; and an identity, `<service_name>-live`, may read that dataset and nothing else, and only a job of the GitHub environment `live-numbers` may borrow it.
+- **Before the first delivery with it**, run the bootstrap again: the applying identity needs two roles more ([below](#when-the-bootstrap-changes)). The first apply may stop at a scheduled query while the rights of its identity spread through the platform; start the delivery again.
 - **A night that did not run** is made up for by the next: every night counts again every period the bucket still holds whole. A run started by hand in the console (BigQuery → Scheduled queries → Run now) does the same. Nothing tells you of a failure but the numbers themselves, and `just impact` lists the days no night counted.
 - **The numbers.** `just impact` prints the main numbers of the latest months as the public views show them, and `just impact private` the exact ones. `just analytics-test` runs the SQL against a BigQuery emulator before it ever reaches the project.
+- **The page "Research"** shows the latest month counted whole of how the answers came out against the chance promised, from the snapshot committed as `site/research/live.json`; the site's build reads no BigQuery. The workflow `live.yml` brings it from the second day of each month, when the night has counted the month before, running every day to the fifth so that a failed run or a late night is taken up. It reads the snapshot as `<service_name>-live`, holds it to the rule of the public views with the bench and, when it differs from the one `main` holds, has a GitHub App of your own open a pull request with it, which merges itself once the required checks pass; the release after the merge publishes the site. It runs by hand too, and, with *deliver* unticked, only shows what it read. `just site-live` reads the same table with your own credentials and writes the file, to look at before it is delivered. GitHub mails a failed run to whoever caused it, and the checks of the App's pull request and the runs after its merge are the App's: watch the repository's pull requests and releases.
 
 The reports are made by hand, in [Data Studio](https://datastudio.google.com) (formerly Looker Studio), signed in as the project's owner:
 
@@ -354,6 +414,14 @@ The reports are made by hand, in [Data Studio](https://datastudio.google.com) (f
 3. **Link the public one** from the site and the `README.md`.
 
 Leave the reports' data freshness at its default: a report then reads BigQuery a few times a day however many people open it.
+
+What `live.yml` needs is made by hand too, once, before it first runs on `main`. An environment a workflow names is otherwise made by its first run, with no rule on which branch may run in it.
+
+1. **The App.** In the settings of the account or organisation that owns your copy, *Developer settings → GitHub Apps → New GitHub App*: any name and homepage, the webhook off, the repository permissions *Contents: Read and write* and *Pull requests: Read and write* and no others, installable on this account only. Note its client ID, and generate a private key.
+2. **Install it** on your copy alone.
+3. **The environments.** In the repository's *Settings → Environments*, make `live-numbers` and `live-numbers-delivery`, and limit each one's deployment branches to `main`. Give `live-numbers-delivery` the secret `LIVE_APP_PRIVATE_KEY`, the whole private key file, and the variable `LIVE_APP_CLIENT_ID`; then delete the key file you downloaded.
+4. **Auto-merge.** *Settings → General → Pull Requests → Allow auto-merge*. If the rules of `main` ask for an approval, the App's pull request waits for one; with none asked, nothing but the required checks stands between the App and `main`, so keep its key in that one environment.
+5. **`infra/ci.env`.** `GCP_LIVE_SERVICE_ACCOUNT` is the reader's address, which `terraform output live_service_account` prints once the delivery has made it.
 
 ## When the pipeline is not available
 

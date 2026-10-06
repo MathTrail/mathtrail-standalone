@@ -18,8 +18,8 @@ func signedIn(t *testing.T, google *googletest.Server) googleauth.SignIn {
 	t.Helper()
 
 	signIn := signInAt(t, google)
-	code := codeIn(t, google.Allow(signIn.AuthURL(state, verifier, nonce)))
-	if _, err := signIn.Exchange(t.Context(), code, verifier, nonce); err != nil {
+	code := codeIn(t, google.Allow(signIn.AuthURL(state, verifier)))
+	if _, err := signIn.Exchange(t.Context(), code, verifier); err != nil {
 		t.Fatalf("Exchange() error = %v, want the grant", err)
 	}
 	return signIn
@@ -93,8 +93,8 @@ func TestAnAccessTokensLifeIsCountedFromTheRequest(t *testing.T) {
 	}
 
 	sent := moving.read()
-	code := codeIn(t, google.Allow(signIn.AuthURL(state, verifier, nonce)))
-	grant, err := signIn.Exchange(t.Context(), code, verifier, nonce)
+	code := codeIn(t, google.Allow(signIn.AuthURL(state, verifier)))
+	grant, err := signIn.Exchange(t.Context(), code, verifier)
 	if err != nil {
 		t.Fatalf("Exchange() error = %v, want the grant", err)
 	}

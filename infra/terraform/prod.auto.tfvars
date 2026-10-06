@@ -27,6 +27,10 @@ github_owner_id   = "261630499"
 # exchanged for Google ones.
 workload_identity_pool_id = "mathtrail-github"
 
+# How GitHub begins the subject of this repository's tokens: its owner and its
+# name, each with its numeric id.
+github_oidc_subject_prefix = "repo:MathTrail@261630499/mathtrail-standalone@1373391176"
+
 # Turned on once the domain answers, so that the platform's own address for the
 # service stops resolving and one entrance is left.
 disable_default_url = true
@@ -34,3 +38,7 @@ disable_default_url = true
 # The counts of how the service is used, kept for grant applications, as the
 # privacy policy at mathtrail.app says.
 analytics = true
+
+# The reviewers' sign-in, by the versions of its two secrets.
+reviewer_password_version = "2"
+reviewer_grant_version    = "3"

@@ -1,6 +1,6 @@
 {
   "purpose": "A 3 by 3 square grid, rows A to C and columns 1 to 3, so that the question can name a cell as B2. Fill a cell with █ or put a capital label in it. A path along the lines starts and ends at corners: put a label beside each of those corners.",
-  "topics": ["geometry.grid", "combinatorics.enumeration"],
+  "topics": ["geometry.grid", "combinatorics.enumeration", "parity.alternation"],
   "drawing": [
     "    1   2   3",
     "  ┌───┬───┬───┐",

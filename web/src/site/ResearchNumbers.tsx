@@ -10,8 +10,9 @@ import { type SiteKey, useSiteWords } from "./words";
 /**
  * NumberForm is how a number of the page is written: a count; a share, as a
  * percentage; a measure in logits, in answers, in points or in changes a
- * hundred answers; a chance; and a year or a seed, which are names more than
- * amounts and keep their digits together.
+ * hundred answers; a chance; an end of a range of chance, to two decimals; a
+ * difference of chances, with its sign; and a year or a seed, which are names
+ * more than amounts and keep their digits together.
  */
 export type NumberForm =
 	| "count"
@@ -21,6 +22,8 @@ export type NumberForm =
 	| "points"
 	| "per_100_answers"
 	| "chance"
+	| "hundredths"
+	| "signed"
 	| "year"
 	| "seed";
 
@@ -33,6 +36,12 @@ const formats: Readonly<Record<NumberForm, Intl.NumberFormatOptions>> = {
 	points: { maximumFractionDigits: 0 },
 	per_100_answers: { maximumFractionDigits: 1 },
 	chance: { minimumFractionDigits: 1, maximumFractionDigits: 3 },
+	hundredths: { minimumFractionDigits: 2, maximumFractionDigits: 2 },
+	signed: {
+		signDisplay: "exceptZero",
+		minimumFractionDigits: 1,
+		maximumFractionDigits: 3,
+	},
 	year: { useGrouping: false },
 	seed: { useGrouping: false },
 };
@@ -99,6 +108,24 @@ export function CommitDate({ date }: { readonly date: string }) {
 			}).format(new Date(date))}
 		</time>
 	);
+}
+
+/**
+ * monthWritten is a month of the page's data, given as a year and a month, as
+ * the language of locale names it.
+ */
+export function monthWritten(locale: string, month: string): string {
+	return new Intl.DateTimeFormat(locale, {
+		month: "long",
+		year: "numeric",
+		timeZone: "UTC",
+	}).format(new Date(`${month}-01T00:00:00Z`));
+}
+
+/** Month writes a month of the page's data, as the page's language names it. */
+export function Month({ month }: { readonly month: string }) {
+	const { locale } = useSiteWords();
+	return <time dateTime={month}>{monthWritten(locale, month)}</time>;
 }
 
 /**

@@ -23,14 +23,15 @@
 // So is the page's: the cells of the table of goals on the site's page of the
 // research, the service, the rule before it and the ceiling, written with the
 // product's counts and constants. Its numbers make the page's data file
-// together with the commit being built and the paper's facts.
+// together with the commit being built, the paper's facts and the snapshot of
+// the live numbers.
 //
 // Usage:
 //
 //	learners [-out <directory>] [-children <n>] [-answers <n>] [-rules <set>] [-seed <n>] [-experiment <name>] [-held-out]
 //	learners guard [-update]
 //	learners page -inputs <key> -out <file>
-//	learners page-file -numbers <file> -inputs <key> -commit <hash> -date <time> -paper-commit <hash> [-paper <file>] -out <file>
+//	learners page-file -numbers <file> -inputs <key> -commit <hash> -date <time> -paper-commit <hash> [-paper <file>] [-live <file>] -out <file>
 package main
 
 import (

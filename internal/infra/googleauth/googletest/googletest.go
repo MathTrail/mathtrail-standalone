@@ -1,8 +1,8 @@
 // Package googletest stands in for Google's sign-in, as far as the service can
 // see it: a token endpoint that holds a code to the request it was issued
-// for and renews the grant it gave, the keys its ID tokens are signed with,
-// the endpoint that ends a grant, and a parent who allows or declines what a
-// request asks for.
+// for and renews the grant it gave, the endpoint that says whom an access
+// token was issued for, the endpoint that ends a grant, and a parent who
+// allows or declines what a request asks for.
 //
 // It is test code that lives in a package rather than a test file, because
 // the tests of more than one package sign a parent in, and a test file cannot
@@ -10,21 +10,19 @@
 package googletest
 
 import (
-	"crypto/rand"
-	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"slices"
 	"strconv"
+	"strings"
 	"sync"
 	"testing"
 	"time"
-
-	"github.com/go-jose/go-jose/v4"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth"
 )
@@ -48,27 +46,6 @@ const (
 	ExpiresIn = 3599
 )
 
-// publishedKeyID names the key this Google publishes.
-const publishedKeyID = "published"
-
-// The keys of these sign-ins: the one this Google publishes, and one nobody
-// published. Each takes a moment to make, so each is made once.
-var (
-	publishedKey = sync.OnceValue(newKey)
-	strangersKey = sync.OnceValue(newKey)
-)
-
-func newKey() *rsa.PrivateKey {
-	key, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		panic(err)
-	}
-	return key
-}
-
-// StrangersKey is a key this Google never published.
-func StrangersKey() *rsa.PrivateKey { return strangersKey() }
-
 // Answer is how this Google answers, which a case changes to make it misbehave
 // in one way. The zero Answer is Google behaving.
 type Answer struct {
@@ -81,27 +58,26 @@ type Answer struct {
 	// Lifetime is how many seconds an access token is good for, in place of
 	// ExpiresIn.
 	Lifetime int
-	// NoRefresh, NoIDToken and NoLifetime leave the refresh token, the ID
-	// token or the access token's lifetime out.
+	// NoRefresh and NoLifetime leave the refresh token or the access token's
+	// lifetime out.
 	NoRefresh  bool
-	NoIDToken  bool
 	NoLifetime bool
 	// Rotate answers a renewal with another refresh token.
 	Rotate bool
 	// RevokeStatus and RevokeError answer a revocation with a refusal instead.
 	RevokeStatus int
 	RevokeError  string
-	// NoSubject leaves out of the ID token who signed in.
-	NoSubject bool
-	// SignedBy and KeyID sign the ID token with another key, under a name.
-	SignedBy *rsa.PrivateKey
-	KeyID    string
-	// Issuer, Audience and Nonce put other values in the ID token.
-	Issuer   string
-	Audience string
-	Nonce    string
-	// ExpiresAt is when the ID token stops being good.
-	ExpiresAt time.Time
+	// InfoStatus answers the question of whom a token is for with a refusal
+	// of that status instead, and InfoNotJSON with a page that is no answer
+	// of Google's at all.
+	InfoStatus  int
+	InfoNotJSON bool
+	// Audience names another client as the one the token was issued to,
+	// NoAudience leaves that client out, and NoSubject leaves out the account
+	// the token was issued for.
+	Audience   string
+	NoAudience bool
+	NoSubject  bool
 	// Meanwhile runs while a token request is at this Google, before it is
 	// answered: whatever a case needs to happen on the way, such as time
 	// passing.
@@ -111,7 +87,7 @@ type Answer struct {
 // asked is what a sign-in asked Google for, as this Google keeps it for the
 // code it issued.
 type asked struct {
-	challenge, nonce, redirectURI, scope string
+	challenge, redirectURI, scope string
 }
 
 // Server is the stand-in for Google. It gives one grant, whose tokens are the
@@ -127,18 +103,19 @@ type Server struct {
 	answer      Answer
 	ended       bool
 	renewals    int
+	questions   int
 	revocations []string
 }
 
-// New starts a stand-in for Google, whose ID tokens are dated by the clock
-// given, and stops it when the test ends.
+// New starts a stand-in for Google, which dates what it says of its tokens by
+// the clock given, and stops it when the test ends.
 func New(t testing.TB, now func() time.Time) *Server {
 	t.Helper()
 
 	google := &Server{t: t, now: now, codes: map[string]asked{}}
 	routes := http.NewServeMux()
 	routes.HandleFunc("POST /token", google.token)
-	routes.HandleFunc("GET /keys", google.keys)
+	routes.HandleFunc("POST /tokeninfo", google.tokenInfo)
 	routes.HandleFunc("POST /revoke", google.revoke)
 	google.Server = httptest.NewServer(routes)
 	t.Cleanup(google.Close)
@@ -148,11 +125,10 @@ func New(t testing.TB, now func() time.Time) *Server {
 // Endpoints are where this Google is.
 func (g *Server) Endpoints() googleauth.Endpoints {
 	return googleauth.Endpoints{
-		Issuer: g.URL,
-		Auth:   g.URL + "/auth",
-		Token:  g.URL + "/token",
-		Keys:   g.URL + "/keys",
-		Revoke: g.URL + "/revoke",
+		Auth:      g.URL + "/auth",
+		Token:     g.URL + "/token",
+		TokenInfo: g.URL + "/tokeninfo",
+		Revoke:    g.URL + "/revoke",
 	}
 }
 
@@ -162,6 +138,14 @@ func (g *Server) Renewals() int {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	return g.renewals
+}
+
+// Questions is how many times this Google was asked whom an access token was
+// issued for.
+func (g *Server) Questions() int {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	return g.questions
 }
 
 // Revocations are the tokens this Google was asked to end a grant with, in
@@ -183,7 +167,6 @@ func (g *Server) Allow(address string) string {
 	code := "a-code-" + strconv.Itoa(len(g.codes)+1)
 	g.codes[code] = asked{
 		challenge:   query.Get("code_challenge"),
-		nonce:       query.Get("nonce"),
 		redirectURI: query.Get("redirect_uri"),
 		scope:       query.Get("scope"),
 	}
@@ -273,9 +256,6 @@ func (g *Server) exchange(w http.ResponseWriter, r *http.Request, how *Answer) {
 	if how.NoLifetime {
 		delete(body, "expires_in")
 	}
-	if !how.NoIDToken {
-		body["id_token"] = g.idToken(request, how)
-	}
 	writeJSON(w, http.StatusOK, body)
 }
 
@@ -298,13 +278,62 @@ func (g *Server) renew(w http.ResponseWriter, r *http.Request, how *Answer) {
 		"access_token": RenewedAccessToken,
 		"expires_in":   lifetime(how),
 		"token_type":   "Bearer",
-		"scope":        googleauth.ScopeOpenID + " " + googleauth.ScopeDriveFile,
+		"scope":        googleauth.ScopeDriveFile,
 	}
 	if how.Rotate {
 		body["refresh_token"] = RotatedRefreshToken
 	}
 	if how.NoLifetime {
 		delete(body, "expires_in")
+	}
+	writeJSON(w, http.StatusOK, body)
+}
+
+// tokenInfo says whom an access token of the grant was issued for, and to
+// which client, while the grant lasts. It takes the question as Google's own
+// client library puts it — a form posted with the token in the Authorization
+// header — and refuses any other question, and any other token, as Google
+// refuses a token it does not know.
+func (g *Server) tokenInfo(w http.ResponseWriter, r *http.Request) {
+	token, bearer := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
+	asForm := r.Header.Get("Content-Type") == "application/x-www-form-urlencoded"
+	g.mu.Lock()
+	how := g.answer
+	g.questions++
+	ofTheGrant := bearer && asForm && !g.ended && (token == AccessToken || token == RenewedAccessToken)
+	g.mu.Unlock()
+
+	switch {
+	case how.InfoStatus != 0:
+		w.WriteHeader(how.InfoStatus)
+		return
+	case !ofTheGrant:
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid_token", "error_description": "Invalid Value"})
+		return
+	case how.InfoNotJSON:
+		// The server names the page's type from its first bytes.
+		_, _ = io.WriteString(w, "<html><body>a page that is no answer of Google's</body></html>")
+		return
+	}
+	// Google writes every value as a string, numbers included.
+	body := map[string]string{
+		"azp":         ClientID,
+		"aud":         ClientID,
+		"sub":         Subject,
+		"scope":       googleauth.ScopeDriveFile,
+		"exp":         strconv.FormatInt(g.now().Add(ExpiresIn*time.Second).Unix(), 10),
+		"expires_in":  strconv.Itoa(ExpiresIn),
+		"access_type": "offline",
+	}
+	if how.Audience != "" {
+		body["azp"], body["aud"] = how.Audience, how.Audience
+	}
+	if how.NoAudience {
+		delete(body, "azp")
+		delete(body, "aud")
+	}
+	if how.NoSubject {
+		delete(body, "sub")
 	}
 	writeJSON(w, http.StatusOK, body)
 }
@@ -338,70 +367,6 @@ func lifetime(how *Answer) int {
 		return how.Lifetime
 	}
 	return ExpiresIn
-}
-
-// idToken is the ID token of a sign-in: this Google's, for the service's
-// client, good for an hour and carrying the request's nonce, unless the
-// answer says otherwise.
-func (g *Server) idToken(request asked, how *Answer) string {
-	claims := map[string]any{
-		"iss":   g.URL,
-		"aud":   ClientID,
-		"sub":   Subject,
-		"iat":   g.now().Unix(),
-		"exp":   g.now().Add(time.Hour).Unix(),
-		"nonce": request.nonce,
-	}
-	for claim, value := range map[string]string{"iss": how.Issuer, "aud": how.Audience, "nonce": how.Nonce} {
-		if value != "" {
-			claims[claim] = value
-		}
-	}
-	if !how.ExpiresAt.IsZero() {
-		claims["exp"] = how.ExpiresAt.Unix()
-	}
-	if how.NoSubject {
-		delete(claims, "sub")
-	}
-	key, keyID := publishedKey(), publishedKeyID
-	if how.SignedBy != nil {
-		key, keyID = how.SignedBy, how.KeyID
-	}
-	return g.sign(key, keyID, claims)
-}
-
-func (g *Server) keys(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, jose.JSONWebKeySet{Keys: []jose.JSONWebKey{{
-		Key: &publishedKey().PublicKey, KeyID: publishedKeyID, Algorithm: string(jose.RS256), Use: "sig",
-	}}})
-}
-
-// sign makes a JWT of the claims, signed with the key under the key id.
-func (g *Server) sign(key *rsa.PrivateKey, keyID string, claims map[string]any) string {
-	signer, err := jose.NewSigner(jose.SigningKey{
-		Algorithm: jose.RS256,
-		Key:       jose.JSONWebKey{Key: key, KeyID: keyID},
-	}, (&jose.SignerOptions{}).WithType("JWT"))
-	if err != nil {
-		g.t.Errorf("NewSigner() error = %v, want nil", err)
-		return ""
-	}
-	payload, err := json.Marshal(claims)
-	if err != nil {
-		g.t.Errorf("encoding the claims: %v", err)
-		return ""
-	}
-	signed, err := signer.Sign(payload)
-	if err != nil {
-		g.t.Errorf("Sign() error = %v, want nil", err)
-		return ""
-	}
-	compact, err := signed.CompactSerialize()
-	if err != nil {
-		g.t.Errorf("CompactSerialize() error = %v, want nil", err)
-		return ""
-	}
-	return compact
 }
 
 // ChallengeOf is the S256 challenge of a verifier (RFC 7636).

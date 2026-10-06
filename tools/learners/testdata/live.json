@@ -1,0 +1,69 @@
+{
+  "month": "2026-11",
+  "total": {
+    "learners": 45,
+    "answers": 1235,
+    "promised_mean": 0.754,
+    "correct_share": 0.734
+  },
+  "chances": [
+    {
+      "chance": "0.50-0.59",
+      "learners": 10,
+      "answers": 45,
+      "promised_mean": 0.556,
+      "correct_share": 0.533
+    },
+    {
+      "chance": "0.60-0.69",
+      "learners": 15,
+      "answers": 120,
+      "promised_mean": 0.652,
+      "correct_share": 0.617
+    },
+    {
+      "chance": "0.70-0.77",
+      "learners": 40,
+      "answers": 610,
+      "promised_mean": 0.741,
+      "correct_share": 0.725
+    },
+    {
+      "chance": "0.78-0.85",
+      "learners": 35,
+      "answers": 405,
+      "promised_mean": 0.806,
+      "correct_share": 0.79
+    }
+  ],
+  "kept_up": [
+    {
+      "answers_range": "6-20",
+      "learners": 45,
+      "answers": 550,
+      "came_true_less_promised": -0.016,
+      "standard_error": 0.009
+    },
+    {
+      "answers_range": "21-50",
+      "learners": 30,
+      "answers": 410,
+      "came_true_less_promised": -0.021,
+      "standard_error": 0.014
+    },
+    {
+      "answers_range": "51-100",
+      "learners": 15,
+      "answers": 210,
+      "came_true_less_promised": -0.034,
+      "standard_error": 0.022
+    },
+    {
+      "answers_range": "101-200",
+      "learners": 10,
+      "answers": 55,
+      "came_true_less_promised": 0.018,
+      "standard_error": 0.041
+    }
+  ]
+}

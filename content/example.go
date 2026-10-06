@@ -26,8 +26,8 @@ type Example struct {
 	GradeLevel rating.GradeLevel `json:"grade_level"`
 	Difficulty int               `json:"difficulty"`
 	Question   string            `json:"question"`
-	// Drawing and DrawingStructure are set only where the topic needs a
-	// picture, and they are set together: a drawing with no structure cannot be
+	// Drawing and DrawingStructure are set only where the task has something
+	// to see, and they are set together: a drawing with no structure cannot be
 	// checked against the wording.
 	Drawing          string            `json:"drawing,omitempty"`
 	DrawingStructure *DrawingStructure `json:"drawing_structure,omitempty"`
@@ -411,6 +411,9 @@ func (e *Example) clone() Example {
 	copied.DrawingStructure = e.DrawingStructure.clone()
 	return copied
 }
+
+// draws says whether a reference task carries a drawing.
+func (e *Example) draws() bool { return e.Drawing != "" }
 
 // clone copies a drawing's structure together with its objects, their values
 // and its relations, so that nothing in the copy reaches back into the content

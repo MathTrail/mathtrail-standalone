@@ -101,8 +101,9 @@ func lessonWith(t *testing.T, kept store.Storage, moving *clock, runner solver.R
 
 // lessonService is the tools of the lesson over kept, recording into the
 // harness, on a clock the case moves, and in a sandbox of the case's own when
-// it hands one in rather than nil.
-func lessonService(t *testing.T, h *harness, kept store.Storage, moving *clock, runner solver.Runner) *mcpserver.Service {
+// it hands one in rather than nil — with whatever else a case changes in
+// their parts.
+func lessonService(t *testing.T, h *harness, kept store.Storage, moving *clock, runner solver.Runner, changes ...func(*mcpserver.Parts)) *mcpserver.Service {
 	t.Helper()
 
 	loaded, err := shipped()
@@ -119,7 +120,7 @@ func lessonService(t *testing.T, h *harness, kept store.Storage, moving *clock, 
 	if err != nil {
 		t.Fatalf("ObserveSolver() error = %v", err)
 	}
-	service, err := mcpserver.NewService(&mcpserver.Parts{
+	parts := &mcpserver.Parts{
 		Store:       kept,
 		Content:     loaded,
 		Reviewer:    checks.NewReviewer(loaded, observed, checks.DefaultDrawingLimits()),
@@ -134,7 +135,11 @@ func lessonService(t *testing.T, h *harness, kept store.Storage, moving *clock, 
 		ProjectID:   projectID,
 		Learners:    learners(t),
 		SiteURL:     config.DefaultSiteURL,
-	})
+	}
+	for _, change := range changes {
+		change(parts)
+	}
+	service, err := mcpserver.NewService(parts)
 	if err != nil {
 		t.Fatalf("NewService() error = %v", err)
 	}

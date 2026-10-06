@@ -33,9 +33,10 @@ type queryValue struct {
 //
 // The words are the protocols' own: OAuth 2.0 and its extensions for PKCE,
 // resource indicators and registration, OpenID Connect, and the scopes this
-// service and Google's sign-in speak — ours is mcp, Google's are openid and
-// drive.file, with the ones Google may add to an answer beside them. A scope
-// this service starts to use is written as "other" until it is added here.
+// service and Google's sign-in speak — ours is mcp, Google's is drive.file,
+// with the sign-in's own and the ones Google may add to an answer beside it. A
+// scope this service starts to use is written as "other" until it is added
+// here.
 var loggedQueryKeys = map[string]queryValue{
 	"client_id":             {},
 	"code_challenge_method": {words: []string{"S256", "plain"}},

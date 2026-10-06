@@ -71,6 +71,26 @@ func TestAChanceFallsInItsRange(t *testing.T) {
 	}
 }
 
+// The ranges given out hold every chance from nothing to certain once, each in
+// the range the report counts it in, under the report's name for it.
+func TestTheChanceRangesGivenOutHoldEveryChanceOnce(t *testing.T) {
+	t.Parallel()
+
+	ranges := ChanceRanges()
+	for hundredths := 0; hundredths <= 100; hundredths++ {
+		var holding []string
+		for _, r := range ranges {
+			if r.From <= hundredths && hundredths <= r.To {
+				holding = append(holding, r.Name)
+			}
+		}
+		want := chanceRanges[rangeOfChance(float64(hundredths)/100)].named
+		if len(holding) != 1 || holding[0] != want {
+			t.Errorf("a chance of %d hundredths is held by %v, want by %s alone", hundredths, holding, want)
+		}
+	}
+}
+
 // Only an answer to a task the rule chose, after the trial series and without
 // the hint, is weighed against its chance: the model's tasks, a task whose
 // topic a person chose, a task whose chooser is not known, the trial series,

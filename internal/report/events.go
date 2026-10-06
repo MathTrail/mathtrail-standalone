@@ -30,6 +30,7 @@ var events = map[string][]string{
 	"solver sandbox built": {"steps", "timeout", "concurrency", "wait", "gomaxprocs", "memory_limit"},
 	"profile store":        {"in_drive"},
 	"google sign-in":       {"configured"},
+	"reviewer sign-in":     {"configured"},
 	"learner key":          {"configured"},
 	"country database":     {"configured", "type", "built"},
 	"limits set": {
@@ -52,7 +53,7 @@ var events = map[string][]string{
 	"cimd_fetch":     {"host", "cached", "duration_ms", "outcome"},
 	"auth_reject":    {"step", "reason", "error"},
 	"auth_authorize": {"registration", "redirect_host", "resource", "scope", "outcome", "reason"},
-	"auth_consent":   {"registration", "redirect_host", "outcome"},
+	"auth_consent":   {"registration", "redirect_host", "outcome", "reason", "user", "error"},
 	"auth_callback":  {"registration", "redirect_host", "outcome", "reason", "user", "error"},
 	"auth_token":     {"registration", "resource", "outcome", "reason", "user", "error"},
 	"auth_bearer":    {"outcome", "reason"},
@@ -76,7 +77,7 @@ var events = map[string][]string{
 	// are counted from, and each names its child by the name it is counted
 	// under that month, which leads back to no child.
 	"task_accepted": {
-		"topic", "level", "difficulty", "attempts", "seconds_since_request", "instructions_version", "user",
+		"topic", "level", "difficulty", "attempts", "seconds_since_request", "drawing", "instructions_version", "user",
 		"learner", "host", "language", "grade", "cohort", "country", "region", "signin_country",
 	},
 	// The chance beside the user is the child's rating, answer by answer, as
@@ -182,6 +183,11 @@ func Fits(event, field string, value any) bool {
 		return wholeWithin(value, lowestGrade, highestGrade)
 	case "topics_mastered":
 		return wholeWithin(value, 0, mostTopicsMastered)
+	case "drawing":
+		// Whether the task came with a drawing, and never the drawing itself,
+		// which is the task's text.
+		_, isBool := value.(bool)
+		return isBool
 	}
 	shape, formed := shapes[field]
 	if !formed {

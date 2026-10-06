@@ -21,6 +21,7 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/app"
+	"github.com/MathTrail/mathtrail-standalone/internal/config"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/drive/drivetest"
@@ -94,6 +95,12 @@ type family struct {
 // sign-in and Drive, to a family that has not signed in yet.
 func newFamily(t *testing.T) *family {
 	t.Helper()
+	return newFamilyWith(t, func(*config.Config) {})
+}
+
+// newFamilyWith is newFamily, on a configuration a case changes.
+func newFamilyWith(t *testing.T, change func(*config.Config)) *family {
+	t.Helper()
 
 	f := &family{t: t, google: googletest.New(t, time.Now), drive: drivetest.New(t)}
 	f.keep(parentEmail, pseudonym, interest, notes, reason, strangersToken, familyAddress, hostAddress,
@@ -122,6 +129,7 @@ func newFamily(t *testing.T) *family {
 	// so that the lesson reaches the day's limit.
 	cfg.RateUserPerMin = 600
 	cfg.DailyTasks = 1
+	change(cfg)
 
 	core, logs := observer.New(zapcore.DebugLevel)
 	f.logs = logs
@@ -163,30 +171,14 @@ func (f *family) keep(values ...string) {
 func (f *family) signIn() {
 	f.t.Helper()
 
-	var registered struct {
-		ClientID string `json:"client_id"`
-	}
-	f.asHost("/oauth/register", "application/json", `{"redirect_uris":["`+hostRedirect+`"],`+
-		`"client_name":"Claude for `+parentEmail+`","contacts":["`+parentEmail+`"]}`, http.StatusCreated, &registered)
-	f.clientID = registered.ClientID
-	f.keep(f.clientID)
-
-	if refused := f.browse(http.MethodGet, f.authorizeURL("https://10.0.0.1/"+parentEmail+"/client"), nil); refused.status != http.StatusBadRequest {
-		f.t.Fatalf("a client on a private network: status %d, want the page that refuses it", refused.status)
-	}
-
-	screen := f.browse(http.MethodGet, f.authorizeURL(f.clientID), nil)
-	request := consentRequest.FindStringSubmatch(screen.body)
-	if screen.status != http.StatusOK || request == nil {
-		f.t.Fatalf("GET /oauth/authorize = %d, want the consent screen with a request to post back", screen.status)
-	}
-	f.keep(request[1])
-	allowed := f.browse(http.MethodPost, "/oauth/consent", url.Values{"request": {request[1]}, "decision": {"allow"}})
+	f.register()
+	request := f.toConsent()
+	allowed := f.browse(http.MethodPost, "/oauth/consent", url.Values{"request": {request}, "decision": {"allow"}})
 	toGoogle, err := url.Parse(allowed.location)
 	if err != nil || allowed.status != http.StatusSeeOther || !strings.HasPrefix(allowed.location, f.google.URL) {
 		f.t.Fatalf("POST /oauth/consent = %d to %q, want 303 to Google", allowed.status, allowed.location)
 	}
-	f.keep(toGoogle.Query().Get("state"), toGoogle.Query().Get("code_challenge"), toGoogle.Query().Get("nonce"))
+	f.keep(toGoogle.Query().Get("state"), toGoogle.Query().Get("code_challenge"))
 
 	fromGoogle := f.google.Allow(allowed.location)
 	called, err := url.Parse(fromGoogle)
@@ -199,9 +191,75 @@ func (f *family) signIn() {
 	if err != nil || toHost.Query().Get("code") == "" {
 		f.t.Fatalf("the callback = %d to %q, want the parent sent back to the host with a code", back.status, back.location)
 	}
-	code := toHost.Query().Get("code")
-	f.keep(code)
+	f.exchange(toHost.Query().Get("code"))
+}
 
+// signInAsReviewer is a directory's reviewer signing in as the demo account:
+// the host registers itself, the reviewer types a password that is not the
+// reviewers' and is stopped, then types theirs on the same consent screen and
+// is sent back to the host, which trades the code for the tokens. Google is
+// asked for nothing but a renewal of the demo account's grant.
+func (f *family) signInAsReviewer(password string) {
+	f.t.Helper()
+
+	f.register()
+	request := f.toConsent()
+	mistyped := password + "x"
+	f.keep(password, mistyped)
+	if stopped := f.browse(http.MethodPost, "/oauth/consent", url.Values{
+		"request": {request}, "decision": {"reviewer"}, "password": {mistyped},
+	}); stopped.status != http.StatusForbidden {
+		f.t.Fatalf("a password not the reviewers': status %d, want the page that says so", stopped.status)
+	}
+	back := f.browse(http.MethodPost, "/oauth/consent", url.Values{
+		"request": {request}, "decision": {"reviewer"}, "password": {password},
+	})
+	toHost, err := url.Parse(back.location)
+	if err != nil || toHost.Query().Get("code") == "" {
+		f.t.Fatalf("POST /oauth/consent = %d to %q, want the reviewer sent back to the host with a code", back.status, back.location)
+	}
+	f.exchange(toHost.Query().Get("code"))
+}
+
+// register is the host registering itself with the service. On the way a
+// client that names itself by an address on a private network is turned away
+// before its document is asked for.
+func (f *family) register() {
+	f.t.Helper()
+
+	var registered struct {
+		ClientID string `json:"client_id"`
+	}
+	f.asHost("/oauth/register", "application/json", `{"redirect_uris":["`+hostRedirect+`"],`+
+		`"client_name":"Claude for `+parentEmail+`","contacts":["`+parentEmail+`"]}`, http.StatusCreated, &registered)
+	f.clientID = registered.ClientID
+	f.keep(f.clientID)
+
+	if refused := f.browse(http.MethodGet, f.authorizeURL("https://10.0.0.1/"+parentEmail+"/client"), nil); refused.status != http.StatusBadRequest {
+		f.t.Fatalf("a client on a private network: status %d, want the page that refuses it", refused.status)
+	}
+}
+
+// toConsent takes the browser from the host's request to the consent screen,
+// and is the sealed request the screen posts back.
+func (f *family) toConsent() string {
+	f.t.Helper()
+
+	screen := f.browse(http.MethodGet, f.authorizeURL(f.clientID), nil)
+	request := consentRequest.FindStringSubmatch(screen.body)
+	if screen.status != http.StatusOK || request == nil {
+		f.t.Fatalf("GET /oauth/authorize = %d, want the consent screen with a request to post back", screen.status)
+	}
+	f.keep(request[1])
+	return request[1]
+}
+
+// exchange is the host's server trading the code the browser brought back for
+// the tokens.
+func (f *family) exchange(code string) {
+	f.t.Helper()
+
+	f.keep(code)
 	var tokens struct {
 		Access  string `json:"access_token"`
 		Refresh string `json:"refresh_token"`
@@ -444,10 +502,14 @@ func (f *family) lines() []observer.LoggedEntry {
 		_ = f.session.Close()
 	}
 	f.served.Close()
-	for _, file := range f.drive.Files(googletest.AccessToken) {
-		f.keep(file.ID)
-		if kept, err := profile.Parse(file.Content); err == nil {
-			f.keep(kept.StudentID)
+	// A parent's sign-in reaches Drive with the token Google gave it, and a
+	// reviewer's with the one Google renewed the demo account's grant for.
+	for _, token := range []string{googletest.AccessToken, googletest.RenewedAccessToken} {
+		for _, file := range f.drive.Files(token) {
+			f.keep(file.ID)
+			if kept, err := profile.Parse(file.Content); err == nil {
+				f.keep(kept.StudentID)
+			}
 		}
 	}
 	return f.logs.All()

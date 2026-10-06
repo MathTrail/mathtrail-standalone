@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+
+	oauthserver "github.com/MathTrail/mathtrail-standalone/internal/transport/oauth"
 )
 
 // With a Google client configured, a parent is shown the consent screen and,
@@ -67,5 +69,18 @@ func TestContainerSendsAParentOnToGoogle(t *testing.T) {
 	}
 	if got := google.Query().Get("client_id"); got != cfg.GoogleClientID {
 		t.Errorf("Google is asked for the client %q, want %q", got, cfg.GoogleClientID)
+	}
+}
+
+// The page that asks a parent back to Google for the Drive is served where the
+// callback sends them: asked for with no sign-in's request, it is refused at a
+// page of the sign-in's own rather than at a path nobody serves.
+func TestContainerServesThePageForTheDrive(t *testing.T) {
+	t.Parallel()
+
+	container := containerFrom(t, testConfig())
+	refused := serveOne(t, container, http.MethodGet, oauthserver.DrivePath+"?request=not-a-request", "")
+	if refused.Code != http.StatusBadRequest || !strings.Contains(refused.Body.String(), "invalid_request") {
+		t.Errorf("GET %s = %d, want the sign-in's page of refusal", oauthserver.DrivePath, refused.Code)
 	}
 }

@@ -5,6 +5,13 @@
     "grade_level": "5-6",
     "difficulty": 2,
     "question": "There are 10 stones on a table. Ann and Ben take turns, and Ann goes first. On each turn a player takes 1 or 2 stones. The player who takes the last stone wins. Ben plays as well as he can. How many stones should Ann take on her first turn to be sure to win?",
+    "drawing": "10 ●●●●● ●●●●●",
+    "drawing_structure": {
+      "kind": "piles",
+      "objects": [
+        {"id": "pile", "label": "10", "value": 10}
+      ]
+    },
     "options": {
       "A": "2",
       "B": "1",
@@ -40,6 +47,16 @@
     "grade_level": "5-6",
     "difficulty": 2,
     "question": "Kate and Leo count up to 22 together, and Kate starts. She says 1, 2 or 3. After that, each of them in turn adds 1, 2 or 3 to the last number said, and nobody may go past 22. Whoever says 22 wins. Leo plays as well as he can. What number should Kate say first?",
+    "drawing": "1  2  3  4     19 20 21 22\n●──●──●──●─...─●──●──●──●",
+    "drawing_structure": {
+      "kind": "row",
+      "objects": [
+        {"id": "one", "label": "1"},
+        {"id": "two", "label": "2"},
+        {"id": "three", "label": "3"},
+        {"id": "goal", "label": "22"}
+      ]
+    },
     "options": {
       "A": "3",
       "B": "4",
@@ -145,6 +162,14 @@
     "grade_level": "5-6",
     "difficulty": 3,
     "question": "Lily and Sam play with two jars of coins, one with 3 coins and one with 5. Lily moves first, and then they take it in turns. A move is to take one or more coins out of one jar. Taking the last coin wins the game. Sam makes no mistakes. Which opening move lets Lily win for sure?",
+    "drawing": " 3 ●●●\n 5 ●●●●●",
+    "drawing_structure": {
+      "kind": "piles",
+      "objects": [
+        {"id": "small_jar", "label": "3", "value": 3},
+        {"id": "big_jar", "label": "5", "value": 5}
+      ]
+    },
     "options": {
       "A": "3 from the jar of 3",
       "B": "1 from the jar of 5",
@@ -250,6 +275,14 @@
     "grade_level": "5-6",
     "difficulty": 4,
     "question": "Two rows of counters lie on a table, one of 2 and one of 4. Rosa and Jack take turns, and Rosa goes first. On each turn a player either takes any number of counters from one row, or takes the same number from both rows at once. At least one counter must be taken. Whoever takes the last counter wins. Jack plays as well as he can. Which first move lets Rosa be sure to win?",
+    "drawing": " 2 ●●\n 4 ●●●●",
+    "drawing_structure": {
+      "kind": "piles",
+      "objects": [
+        {"id": "short_row", "label": "2", "value": 2},
+        {"id": "long_row", "label": "4", "value": 4}
+      ]
+    },
     "options": {
       "A": "3 from the row of 4",
       "B": "2 from the row of 4",

@@ -92,10 +92,11 @@ func Open(target Target, timeout time.Duration) *Service {
 // told by its status: served, held back by a pace, or a status the service
 // should not give.
 func (s *Service) Fetch(ctx context.Context, path, from string) Answer {
+	// Timed from before the deadline is set, as a call is.
+	answer := Answer{Tool: path, Started: time.Now()}
 	ctx, cancel := context.WithTimeout(ctx, s.timeout)
 	defer cancel()
 
-	answer := Answer{Tool: path, Started: time.Now()}
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, strings.TrimSuffix(s.target.URL, "/")+path, http.NoBody)
 	if err == nil {
 		if from != "" {
@@ -204,12 +205,14 @@ func (c *Child) Close() error {
 // is opened first when the child has none, and the call and the opening share
 // the one deadline.
 func (c *Child) Call(ctx context.Context, tool string, arguments any) Answer {
+	// The call is timed from before its deadline is set, so that a call the
+	// deadline cut off never reads as shorter than the deadline.
+	answer := Answer{Tool: tool, Started: time.Now()}
 	ctx, cancel := context.WithTimeout(ctx, c.service.timeout)
 	defer cancel()
 	seen := &worst{}
 	ctx = context.WithValue(ctx, worstKey{}, seen)
 
-	answer := Answer{Tool: tool, Started: time.Now()}
 	session, err := c.open(ctx)
 	if err == nil {
 		answer.Result, err = session.CallTool(ctx, &mcp.CallToolParams{Name: tool, Arguments: arguments})

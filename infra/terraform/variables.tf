@@ -56,7 +56,7 @@ variable "github_repository" {
 }
 
 variable "github_owner_id" {
-  description = "The numeric id of the account or organisation that owns the repository, from https://api.github.com/users/<owner>. A name can be given up and taken by somebody else; a number cannot. Nothing here reads it — it is the condition the federated pool is created with — and it lives beside the rest of the deployment's facts so that there is one place to read them from."
+  description = "The numeric id of the account or organisation that owns the repository, from https://api.github.com/users/<owner>. A name can be given up and taken by somebody else; a number cannot. It is the condition the federated pool is created with, outside this configuration, which only holds github_oidc_subject_prefix to it; it lives beside the rest of the deployment's facts so that there is one place to read them from."
   type        = string
 
   validation {
@@ -69,6 +69,27 @@ variable "workload_identity_pool_id" {
   description = "The federated pool the repository's tokens are exchanged in. It exists before this configuration is ever applied — it is how the apply itself signs in — so it is named here rather than created."
   type        = string
   default     = "mathtrail-github"
+}
+
+variable "github_oidc_subject_prefix" {
+  description = "How GitHub begins the subject of the repository's tokens, as `gh api repos/OWNER/NAME/actions/oidc/customization/sub --jq .sub_claim_prefix` prints it. The identity that reads the snapshot of the live numbers is borrowed by the subject of one environment's jobs alone, so the counts need it."
+  type        = string
+  default     = ""
+
+  # GitHub names the repository in the subject by its name alone or, where the
+  # repository asks for a subject no later owner of its name can be given, by
+  # its name and id: repo:OWNER/NAME or repo:OWNER@OWNER_ID/NAME@REPO_ID. Names
+  # on GitHub ignore case, so the comparison does too.
+  validation {
+    condition = !var.analytics || anytrue([
+      lower(var.github_oidc_subject_prefix) == lower("repo:${var.github_repository}"),
+      can(regex("^[0-9]+$", trimprefix(
+        lower(var.github_oidc_subject_prefix),
+        lower("repo:${replace(var.github_repository, "/", "@${var.github_owner_id}/")}@"),
+      ))),
+    ])
+    error_message = "github_oidc_subject_prefix is what GitHub prints as the sub_claim_prefix of github_repository's tokens: repo:OWNER/NAME, or repo:OWNER@OWNER_ID/NAME@REPO_ID with github_owner_id. The counts need it."
+  }
 }
 
 variable "service_name" {
@@ -164,6 +185,23 @@ variable "google_client_secret_version" {
   default     = "1"
 }
 
+variable "reviewer_password_version" {
+  description = "The version of the secret holding the password a directory's reviewers sign in with, as the demo account. Empty, the service is given none, and the reviewers' sign-in is off."
+  type        = string
+  default     = ""
+}
+
+variable "reviewer_grant_version" {
+  description = "The version of the secret holding the demo account's grant at Google, which the reviewers' sign-in renews. Set together with reviewer_password_version, or not at all."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = (var.reviewer_grant_version == "") == (var.reviewer_password_version == "")
+    error_message = "reviewer_grant_version and reviewer_password_version are set together, or not at all: the service refuses to start with half a sign-in."
+  }
+}
+
 variable "settings" {
   description = "Extra environment variables, for the ceilings and timeouts the binary otherwise defaults to. Never a secret: these values are readable in the state and in the deployed revision. The two the size of an instance decides, its solver slots and the runtime's memory limit, are set from cpu and memory and cannot be set here."
   type        = map(string)
@@ -172,6 +210,11 @@ variable "settings" {
   validation {
     condition     = length(setintersection(keys(var.settings), ["GOMEMLIMIT", "MATHTRAIL_SOLVER_CONCURRENCY"])) == 0
     error_message = "GOMEMLIMIT and MATHTRAIL_SOLVER_CONCURRENCY follow memory and cpu; set those instead."
+  }
+
+  validation {
+    condition     = length(setintersection(keys(var.settings), ["MATHTRAIL_REVIEWER_PASSWORD", "MATHTRAIL_REVIEWER_GRANT"])) == 0
+    error_message = "MATHTRAIL_REVIEWER_PASSWORD and MATHTRAIL_REVIEWER_GRANT are secrets: they come from Secret Manager, by reviewer_password_version and reviewer_grant_version."
   }
 }
 

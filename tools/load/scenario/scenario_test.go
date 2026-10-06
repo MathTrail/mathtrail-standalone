@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"slices"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -207,21 +208,27 @@ func TestARunAskedToStopIsThePartThatRan(t *testing.T) {
 	}
 }
 
-// A task the service accepted counts, even when the run is stopped in the
-// pause after it, before the child gets to answer it.
+// A task the service accepted counts, even when the run is stopped right after
+// it, before the child gets to answer it.
 func TestATaskAcceptedJustBeforeTheRunStopsCounts(t *testing.T) {
 	t.Parallel()
 
 	ctx, stop := context.WithCancel(t.Context())
 	defer stop()
+	var handedIn atomic.Bool
 	target := inFront(t, servicetest.Start(t, "MATHTRAIL_RATE_USER_PER_MIN=600"), func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			next.ServeHTTP(w, r)
-			if r.Header.Get("Mcp-Name") == "submit_task" {
-				// Well after the answer is back, and well before the pause after
-				// it is over.
-				time.AfterFunc(300*time.Millisecond, stop)
+			// The run stops at the child's first call after the hand-in: the
+			// task has counted by then, and the child has not answered it. No
+			// clock decides it, so a slow machine cannot let a second task in.
+			tool := r.Header.Get("Mcp-Name")
+			if tool != "" && handedIn.Load() {
+				stop()
 			}
+			if tool == "submit_task" {
+				handedIn.Store(true)
+			}
+			next.ServeHTTP(w, r)
 		})
 	})
 	o := lessonAtOnce(t)

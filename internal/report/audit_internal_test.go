@@ -56,8 +56,11 @@ func TestALineIsHeldToTheRulesOfTheLog(t *testing.T) {
 			[]breach{{event: unknownEvent, field: "message", rule: ruleEmail}, {event: unknownEvent, rule: ruleUnknownEvent}}},
 		{"a task handed out, counted as the service counts it",
 			`{"message":"task_accepted","topic":"logic.ordering","learner":"Ab3_x-9QzK1mN0pR","host":"claude","language":"pt",` +
-				`"grade":2,"cohort":"2026-10","country":"US","region":"US-TX","signin_country":"unknown"}`,
+				`"grade":2,"cohort":"2026-10","country":"US","region":"US-TX","signin_country":"unknown","drawing":true}`,
 			nil},
+		{"the drawing itself where whether there was one goes",
+			`{"message":"task_accepted","topic":"counting.gaps","drawing":"A  B  C\n●──●──●"}`,
+			[]breach{{event: "task_accepted", field: "drawing", rule: ruleShape}}},
 		{"an answer and a topic mastered, counted as the service counts them",
 			`{"message":"answer_recorded","learner":"Ab3_x-9QzK1mN0pR","grade":6,"cohort":"2026-01","topics_mastered":0}`,
 			nil},

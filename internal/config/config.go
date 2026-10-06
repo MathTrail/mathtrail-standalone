@@ -14,8 +14,10 @@ package config
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/url"
 	"os"
@@ -223,6 +225,17 @@ type Config struct {
 	// directory reads it from. Empty, that address is not served.
 	OpenAIChallenge string `mapstructure:"MATHTRAIL_OPENAI_CHALLENGE"`
 
+	// ReviewerPassword is what a directory's reviewer types on the consent
+	// screen in place of signing in with Google, to be signed in as the demo
+	// account. A secret: it belongs in no log line and in no error message.
+	// Set together with ReviewerGrant, or not at all, and the reviewer's
+	// sign-in is off.
+	ReviewerPassword string `mapstructure:"MATHTRAIL_REVIEWER_PASSWORD"`
+	// ReviewerGrant is the demo account's grant at Google, which the
+	// reviewer's sign-in renews: a JSON object of the account's subject and
+	// its refresh token. A secret like the password.
+	ReviewerGrant string `mapstructure:"MATHTRAIL_REVIEWER_GRANT"`
+
 	// DevAuth replaces the Google sign-in with a stub. It is refused whenever
 	// K_SERVICE is set.
 	DevAuth bool `mapstructure:"MATHTRAIL_DEV_AUTH"`
@@ -309,6 +322,50 @@ func asciiHost(host string) string {
 // parent signs in with.
 func (c *Config) GoogleSignIn() bool { return c.GoogleClientID != "" }
 
+// DemoGrant is the demo account's grant at Google, as ReviewerGrant carries
+// it.
+type DemoGrant struct {
+	// Subject is the account's own identifier at Google.
+	Subject string `json:"subject"`
+	// RefreshToken is what a new access token for the account is asked for
+	// with.
+	RefreshToken string `json:"refresh_token"`
+}
+
+// ReviewerSignIn is the demo account's grant the reviewer's sign-in renews,
+// or nil when that sign-in is off: it is on when the password and the grant
+// are both set. A grant that does not read is an error, which Validate
+// refuses before anything asks for it.
+func (c *Config) ReviewerSignIn() (*DemoGrant, error) {
+	if c.ReviewerPassword == "" || c.ReviewerGrant == "" {
+		return nil, nil
+	}
+	grant, err := demoGrantOf(c.ReviewerGrant)
+	if err != nil {
+		return nil, fmt.Errorf("%w: MATHTRAIL_REVIEWER_GRANT: %w", ErrInvalid, err)
+	}
+	return &grant, nil
+}
+
+// demoGrantOf reads the demo account's grant: one JSON object and nothing
+// after it, refusing one that names no account or no refresh token, without
+// repeating either: both are secrets.
+func demoGrantOf(raw string) (DemoGrant, error) {
+	var grant DemoGrant
+	decoder := json.NewDecoder(strings.NewReader(raw))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&grant); err != nil {
+		return DemoGrant{}, errors.New("not a JSON object of subject and refresh_token")
+	}
+	if _, err := decoder.Token(); !errors.Is(err, io.EOF) {
+		return DemoGrant{}, errors.New("something follows the JSON object")
+	}
+	if strings.TrimSpace(grant.Subject) == "" || strings.TrimSpace(grant.RefreshToken) == "" {
+		return DemoGrant{}, errors.New("subject and refresh_token must both be set")
+	}
+	return grant, nil
+}
+
 // Load reads the process environment.
 func Load() (*Config, error) { return LoadFrom(os.Environ()) }
 
@@ -359,6 +416,8 @@ func LoadFrom(environ []string) (*Config, error) {
 	v.SetDefault("MATHTRAIL_COUNTRY_DB", "")
 	v.SetDefault("MATHTRAIL_SITE_URL", DefaultSiteURL)
 	v.SetDefault("MATHTRAIL_OPENAI_CHALLENGE", "")
+	v.SetDefault("MATHTRAIL_REVIEWER_PASSWORD", "")
+	v.SetDefault("MATHTRAIL_REVIEWER_GRANT", "")
 	v.SetDefault("MATHTRAIL_DEV_AUTH", false)
 	v.SetDefault("K_SERVICE", "")
 
@@ -402,6 +461,8 @@ func LoadFrom(environ []string) (*Config, error) {
 	cfg.GoogleClientID = strings.TrimSpace(cfg.GoogleClientID)
 	cfg.GoogleClientSecret = strings.TrimSpace(cfg.GoogleClientSecret)
 	cfg.OpenAIChallenge = strings.TrimSpace(cfg.OpenAIChallenge)
+	cfg.ReviewerPassword = strings.TrimSpace(cfg.ReviewerPassword)
+	cfg.ReviewerGrant = strings.TrimSpace(cfg.ReviewerGrant)
 
 	if err := cfg.Validate(); err != nil {
 		return nil, err
@@ -427,6 +488,7 @@ func (c *Config) Validate() error {
 		c.validateLearnerKey,
 		c.validateCountryDB,
 		c.validateOpenAIChallenge,
+		c.validateReviewer,
 	} {
 		if err := check(); err != nil {
 			return err
@@ -508,6 +570,46 @@ func (c *Config) validateOpenAIChallenge() error {
 	visible := !strings.ContainsFunc(c.OpenAIChallenge, func(r rune) bool { return r <= ' ' || r > '~' })
 	if len(c.OpenAIChallenge) > maxOpenAIChallenge || !visible {
 		return fmt.Errorf("%w: MATHTRAIL_OPENAI_CHALLENGE must be at most %d characters of visible ASCII", ErrInvalid, maxOpenAIChallenge)
+	}
+	return nil
+}
+
+// The bounds of the reviewer's password: long enough that no pace of guesses
+// comes near it, and short enough that a value pasted by mistake — a whole
+// file, say — is refused rather than taken.
+const (
+	MinReviewerPassword = 24
+	MaxReviewerPassword = 128
+)
+
+// validateReviewer refuses a reviewer's sign-in that could not sign anybody
+// in, naming the variable and never the value. Half of it is refused, as half
+// a Google client is: a secret that never arrived. The password is visible
+// ASCII, which a form and a password manager carry unchanged, where a letter
+// of another script may arrive composed otherwise than it was set. The grant
+// is renewed at Google, so a Google client is needed beside it. A deployment
+// may have it: unlike the development sign-in, it signs in one account alone,
+// the demo account, and only whoever was given the password.
+func (c *Config) validateReviewer() error {
+	password, grant := c.ReviewerPassword != "", c.ReviewerGrant != ""
+	switch {
+	case !password && !grant:
+		return nil
+	case !grant:
+		return fmt.Errorf("%w: MATHTRAIL_REVIEWER_GRANT must be set with MATHTRAIL_REVIEWER_PASSWORD", ErrInvalid)
+	case !password:
+		return fmt.Errorf("%w: MATHTRAIL_REVIEWER_PASSWORD must be set with MATHTRAIL_REVIEWER_GRANT", ErrInvalid)
+	}
+	visible := !strings.ContainsFunc(c.ReviewerPassword, func(r rune) bool { return r <= ' ' || r > '~' })
+	if len(c.ReviewerPassword) < MinReviewerPassword || len(c.ReviewerPassword) > MaxReviewerPassword || !visible {
+		return fmt.Errorf("%w: MATHTRAIL_REVIEWER_PASSWORD must be %d to %d characters of visible ASCII",
+			ErrInvalid, MinReviewerPassword, MaxReviewerPassword)
+	}
+	if _, err := demoGrantOf(c.ReviewerGrant); err != nil {
+		return fmt.Errorf("%w: MATHTRAIL_REVIEWER_GRANT: %w", ErrInvalid, err)
+	}
+	if !c.GoogleSignIn() {
+		return fmt.Errorf("%w: MATHTRAIL_REVIEWER_GRANT needs MATHTRAIL_GOOGLE_CLIENT_ID: the grant is renewed at Google", ErrInvalid)
 	}
 	return nil
 }

@@ -182,11 +182,10 @@ func newContainer(ctx context.Context, cfg *config.Config, log *zap.Logger, reac
 	}
 	log.Info("profile store", zap.Bool("in_drive", !cfg.DevAuth))
 
-	google, err := googleSignIn(cfg, reach.signIn)
+	google, reviewer, err := signInsOf(cfg, reach.signIn, log)
 	if err != nil {
 		return nil, err
 	}
-	log.Info("google sign-in", zap.Bool("configured", google != nil))
 
 	counted, err := c.censusOf(cfg, log)
 	if err != nil {
@@ -215,6 +214,7 @@ func newContainer(ctx context.Context, cfg *config.Config, log *zap.Logger, reac
 		Renewals:  paces.renewals,
 		SiteURL:   cfg.Site(),
 		CountryOf: counted.countryOf,
+		Reviewer:  reviewer,
 		Now:       time.Now,
 	})
 	if err != nil {
@@ -235,20 +235,21 @@ func newContainer(ctx context.Context, cfg *config.Config, log *zap.Logger, reac
 		zap.Int("trap_repeats", cfg.TrapRepeats),
 	)
 	lesson, err := mcpserver.NewService(&mcpserver.Parts{
-		Store:       c.Store,
-		Content:     embedded,
-		Reviewer:    c.Reviewer,
-		Sealer:      ring.For(seal.PurposeTaskAnswer),
-		Window:      cfg.RequestWindow,
-		Daily:       mcpserver.Daily{Tasks: cfg.DailyTasks, Failed: cfg.DailyFailed},
-		TrapRepeats: cfg.TrapRepeats,
-		Now:         time.Now,
-		Version:     version.Version,
-		Logger:      log,
-		Traces:      tel.TracerProvider(),
-		ProjectID:   cfg.GCPProjectID,
-		Learners:    counted.learners,
-		SiteURL:     cfg.Site(),
+		Store:        c.Store,
+		Content:      embedded,
+		Reviewer:     c.Reviewer,
+		Sealer:       ring.For(seal.PurposeTaskAnswer),
+		Window:       cfg.RequestWindow,
+		Daily:        mcpserver.Daily{Tasks: cfg.DailyTasks, Failed: cfg.DailyFailed},
+		TrapRepeats:  cfg.TrapRepeats,
+		Now:          time.Now,
+		Version:      version.Version,
+		Logger:       log,
+		Traces:       tel.TracerProvider(),
+		ProjectID:    cfg.GCPProjectID,
+		Learners:     counted.learners,
+		DemoAccounts: signInServer.DemoAccounts,
+		SiteURL:      cfg.Site(),
 	})
 	if err != nil {
 		return nil, err
@@ -279,6 +280,7 @@ func newContainer(ctx context.Context, cfg *config.Config, log *zap.Logger, reac
 		Authorize:        signInServer.Authorize,
 		Consent:          signInServer.Consent,
 		Callback:         signInServer.Callback,
+		Drive:            signInServer.Drive,
 		Token:            signInServer.Token,
 		Revoke:           signInServer.Revoke,
 		Busy:             signInServer.Busy,
@@ -324,6 +326,16 @@ func newPaces(cfg *config.Config) (*paces, error) {
 		return nil, err
 	}
 	return &paces{perAccount: perAccount, perAddress: perAddress, signIn: signIn, lessons: lessons, renewals: renewals}, nil
+}
+
+// reviewerSignIn is the sign-in of a directory's reviewers as the demo account,
+// or nil when the deployment configures none.
+func reviewerSignIn(cfg *config.Config) (*oauthserver.Reviewer, error) {
+	grant, err := cfg.ReviewerSignIn()
+	if grant == nil || err != nil {
+		return nil, err
+	}
+	return &oauthserver.Reviewer{Password: cfg.ReviewerPassword, Subject: grant.Subject, RefreshToken: grant.RefreshToken}, nil
 }
 
 // signInOf is how the MCP endpoint lets a request in: with an access token
@@ -403,6 +415,23 @@ func (c *Container) countries(cfg *config.Config, log *zap.Logger) (func(*http.R
 		}
 		return database.Country(address)
 	}, nil
+}
+
+// signInsOf are the two ways in a sign-in has, and it says which it has: a
+// parent's, through Google, and a directory's reviewer's, by the reviewers'
+// password.
+func signInsOf(cfg *config.Config, endpoints googleauth.Endpoints, log *zap.Logger) (googleauth.SignIn, *oauthserver.Reviewer, error) {
+	google, err := googleSignIn(cfg, endpoints)
+	if err != nil {
+		return nil, nil, err
+	}
+	log.Info("google sign-in", zap.Bool("configured", google != nil))
+	reviewer, err := reviewerSignIn(cfg)
+	if err != nil {
+		return nil, nil, err
+	}
+	log.Info("reviewer sign-in", zap.Bool("configured", reviewer != nil))
+	return google, reviewer, nil
 }
 
 // googleSignIn is how a parent signs in with Google: through the service's own

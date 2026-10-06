@@ -39,7 +39,7 @@ flowchart LR
 
     subgraph google["Google Cloud and the parent's Google account"]
         direction TB
-        goauth["Google OAuth<br/>openid, drive.file"]
+        goauth["Google OAuth<br/>drive.file"]
         gdrive["Drive API v3<br/>JSON profile in a visible folder"]
         sm["Secret Manager<br/>sealing keys,<br/>Google client secret"]
         ar["Artifact Registry<br/>image by digest"]
@@ -110,7 +110,7 @@ flowchart LR
 | Host model | Writes the task, the solver, the explanation and the self-check, and runs the lesson in text mode. The service makes no LLM calls itself | 4.1, 4.3 |
 | The host's MCP Apps runtime | Renders the widget in a sandboxed iframe, passes it the locale, the platform and the container size, and forwards tool calls made from the widget | 4.2, 9.3 |
 | Client ID Metadata Document | Since 2026-07-28 the primary way a client registers: the `client_id` is an HTTPS URL, and our authorization server fetches the document from it (R03). DCR stays as a fallback | 9.3 |
-| Google OAuth | The parent's sign-in, the `openid` and `drive.file` scopes, refresh and revocation | 6, 7, 9.3 |
+| Google OAuth | The parent's sign-in, the `drive.file` scope alone, refresh and revocation | 6, 7, 9.3 |
 | Google Drive API v3 | The only durable storage: a JSON profile in a visible folder of the parent's Drive (О-5) | 5, 7 |
 | Secret Manager | Sealing keys and the Google client secret; versions are pinned and read once per instance start (О-7) | 6, 7 |
 | Artifact Registry | The revision image by digest, with a cleanup policy for old images | 7 |
@@ -233,7 +233,7 @@ The acceptance check for this task: every requirement in sections 4–7 belongs 
 
 - **Only tool results go out to the host model:** the child's profile (pseudonym, grade, interests, constraints, notes), the brief, the reference tasks, the catalogs and the task text. No personal data about the child is there by construction — only the pseudonym (PRODUCT 5). The structured result is assumed to land in the model's context in full, so internal fields and the answer are never in it (О-39).
 - **The answer to the current task does not leave** before the child answers: it sits sealed in the profile file and reaches neither the widget nor the model's plain text (О-25). One exception is stated openly: the model wrote the task and its answer itself, so the adult will see both in the host's tool-call log — that is outside the threat model (О-27).
-- **Only the parent's own requests go to Google:** a sign-in with the `openid` and `drive.file` scopes, and reading and writing one file with the parent's own token. We hold no service-level access to anybody's files.
+- **Only the parent's own requests go to Google:** a sign-in with the `drive.file` scope alone, and reading and writing one file with the parent's own token. We hold no service-level access to anybody's files.
 - **We go nowhere else ourselves:** no LLM API, no third-party services. The one outbound request that is not to Google is fetching the Client ID Metadata Document over HTTPS — which is exactly why it gets its own SSRF protection (T47).
 - **Untrusted model code never leaves the sandbox:** the Starlark solver has no network, no files and no time beyond its limit (О-8).
 - **Nothing personal reaches the logs:** aggregates only — tool, outcome, rejection reason, duration, attempts, instructions version (О-16).

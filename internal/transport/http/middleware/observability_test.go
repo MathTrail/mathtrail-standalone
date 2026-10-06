@@ -650,6 +650,7 @@ func endpoints() *httpserver.Endpoints {
 		Authorize:        http.NotFoundHandler(),
 		Consent:          http.NotFoundHandler(),
 		Callback:         http.NotFoundHandler(),
+		Drive:            http.NotFoundHandler(),
 		Token:            http.NotFoundHandler(),
 		Revoke:           http.NotFoundHandler(),
 		Busy:             http.NotFoundHandler(),
