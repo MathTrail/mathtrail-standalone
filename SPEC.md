@@ -1455,7 +1455,7 @@ Every row's text column is the `content` of the same result that draws the scree
 
 ## 8.12 The design
 
-Two designs, each with a reference of its own (R156). The card — every screen of the widget — is drawn by its own code, and the site follows the author's draft, `draft/ui/site/`, with the product's facts wherever the two disagree. They share the tokens' sizes; neither takes the other's look (R142, R157).
+Two designs, each with a reference of its own (R156). The card — every screen of the widget — is drawn by its own code, and so is the site, ported from the author's draft with the product's facts wherever the two disagreed. They share the tokens' sizes; neither takes the other's look (R142, R157).
 
 ### 8.12.1 The card
 
@@ -1490,7 +1490,7 @@ Two designs, each with a reference of its own (R156). The card — every screen 
 
 ### 8.12.2 The site
 
-**Its reference** is the author's draft, `draft/ui/site/` (R156): six pages drawn in a design tool, each a self-unpacking HTML file that opens in a browser — the home page in English and Russian, and "Why", "Topics", a topic's page ("Knights and liars"), "Techniques" (R181) and "Research" in Russian alone. It fixes what the pages are, their sections and their order, the Russian words and the look; the English words are written anew from it and are the source. It is deleted once every page of it is ported (T65). "About" follows a draft of its own, which the author keeps outside the repository with the originals of its photographs: with its photographs, and without the children's names (R183, R200). "Coach" followed a draft of its own, `draft/ui/couch/`, removed once ported, whose prototype the page frames (R198).
+**Its reference** is its code: the pages in `web/src/site/` and their words in `site/`, seen in the site `just site` builds (R156). They were ported from the author's draft, `draft/ui/site/`: six pages drawn in a design tool, each a self-unpacking HTML file that opens in a browser — the home page in English and Russian, and "Why", "Topics", a topic's page ("Knights and liars"), "Techniques" (R181) and "Research" in Russian alone. The draft fixed what the pages are, their sections and their order, the Russian words and the look; the English words were written anew from it and are the source. Once every page of it was ported, on 2026-10-06, it was removed, and it is in the history up to `66680ac`. "About" follows a draft of its own, which the author keeps outside the repository with the originals of its photographs: with its photographs, and without the children's names (R183, R200). "Coach" followed a draft of its own, `draft/ui/couch/`, removed once ported, whose prototype the page frames (R198).
 
 **The pages and their addresses** (R158):
 

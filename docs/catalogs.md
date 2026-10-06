@@ -327,7 +327,7 @@ Each row: an identifier, the requirement in the platform's words where they matt
 
 ## 8. The gaps
 
-The audit of 2026-09-30, item by item, then the gaps found since. "Open" means a task or a question still owns it. T87, the submission, starts once every row that names a requirement of Claude's, a CL row, is closed or accepted as it is, as the author decided on 2026-10-06; the rows of ChatGPT's alone wait for T63 and T71.6. T71.6 starts only when every row is closed or accepted.
+The audit of 2026-09-30, item by item, then the gaps found since. "Open" means a task or a question still owns it. T87, the submission, starts once every CL row that another task owns, and the part of Claude's in every gap, is closed or accepted as it is, as the author decided on 2026-10-06; what T87 owns it does on the way, and the parts of ChatGPT's wait for T63 and T71.6. T71.6 starts only when every row is closed or accepted.
 
 | # | Gap | Verdict | Rows | Owner | State |
 |---|---|---|---|---|---|
@@ -340,7 +340,7 @@ The audit of 2026-09-30, item by item, then the gaps found since. "Open" means a
 | 7 | The pace by address against the hosts' servers (remark 60) | Confirmed; counted in §8.1 | CL-36, GPT-44 | T71.2 | Closed in T71.2 (R219) |
 | 8 | Claude's health indicator counting a refused `submit_task` | Dropped: a refusal is an ordinary result, and the badge leaves out errors a tool returns in its own result. New: the badge counts sign-ins refused (§8.2) | CL-47 | §10 | Closed |
 | 9 | Claude's warning on the card's `ui/message` (finding 1 of report 05) | Unknown: no page describes it | CL-42 | §10; T87 sees it | Accepted on 2026-10-06: the submission goes ahead, and T87 sees it after publication |
-| 10 | The form's questions: a "company" for one developer, a support address, public documentation, ChatGPT's countries | Confirmed | CL-06, CL-13, GPT-05, GPT-14 | О-65; T71.4; T71.6 | Open: the support address and the documentation closed in T71.4.1 (R229); the company, ALT EdTech, named in T71.5 by О-65 and verified at OpenAI in T71.6; ChatGPT's countries, T71.6 |
+| 10 | The form's questions: a "company" for one developer, a support address, public documentation, ChatGPT's countries | Confirmed | CL-06, CL-13, GPT-05, GPT-14 | О-65; T71.4; T87; T71.6 | Open: the support address and the documentation closed in T71.4.1 (R229); the company, ALT EdTech, named in T71.5 by О-65, entered in Claude's form in T87 and verified at OpenAI in T71.6; ChatGPT's countries, T71.6 |
 | 11 | The card's links to topic pages (T74.6) against the rules on links | Fine with two settings: Claude's allowed link URIs and ChatGPT's `redirect_domains` | CL-12, CL-41, GPT-47 | T71.4; T71.2 | Closed: ChatGPT's `redirect_domains` set in T71.2 (R216); Claude's allowed link URI, `https://mathtrail.app`, written in T71.4.2 ([listing](listing.md)) |
 | 12 | The Coach page in the menu (T75.14, R198) against the rules on advertising | Confirmed as a risk | CL-28, GPT-24 | О-64 | Accepted on 2026-10-06: the menu stays as it is |
 | 13 | Claude Code's loopback redirect on a port of its own | New | CL-34 | T71.2: accept any port for a client that names itself by a document, or say Claude Code is not supported | Closed in T71.2: any port for a client of its own document (R218) |
