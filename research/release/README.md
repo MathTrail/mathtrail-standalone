@@ -43,6 +43,8 @@ diff -r -x provenance.txt experiments/learnersim/results "$ea3"
 ea4=$(mktemp -d)
 go run ./experiments/perf -out "$ea4"
 diff experiments/perf/results/packages.csv "$ea4/packages.csv"
+grep '^package' experiments/perf/results/numbers.txt > "$ea4/shipped-package-lines"
+grep '^package' "$ea4/numbers.txt" | diff "$ea4/shipped-package-lines" -
 ```
 
 `reading.csv` holds verdicts on a sample of the out-of-scope cases: whether each case is the defect its operator is named after. No program makes them: they were recorded by the AI assistant that ran the experiment, and the paper does not report them. The run reads them from its output directory and adds them to its tables; without the file it leaves those entries out, and everything else comes out the same.

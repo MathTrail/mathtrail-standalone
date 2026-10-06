@@ -1,0 +1,42 @@
+name: page data
+description: >-
+  Makes the data of the page "Research" from the commit checked out: the
+  bench's numbers, kept under the key of the bench's build, and
+  site/research/research.json, with the table of its goals in the job's summary.
+
+inputs:
+  restore:
+    description: >-
+      Take the numbers kept for the same build of the bench rather than compute
+      them. A run that publishes computes its own, and only asks whether they are
+      kept.
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - id: bench
+      name: Build the bench and name what the page's numbers are computed from
+      shell: bash
+      run: |
+        key=$(just _research-inputs)
+        echo "key=$key" >> "$GITHUB_OUTPUT"
+    - id: numbers
+      name: Take the page's numbers kept for this build
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: tools/learners/results/page
+        key: research-${{ steps.bench.outputs.key }}
+        lookup-only: ${{ inputs.restore != 'true' }}
+    - name: Make the data of the page "Research" and show its goals
+      shell: bash
+      run: just research-data | tee -a "$GITHUB_STEP_SUMMARY"
+    # A key once kept is never written again, so only numbers no run has kept
+    # are kept: a release's go to every pull request after it.
+    - name: Keep the page's numbers for the runs after this one
+      if: steps.numbers.outputs.cache-hit != 'true'
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: tools/learners/results/page
+        key: research-${{ steps.bench.outputs.key }}

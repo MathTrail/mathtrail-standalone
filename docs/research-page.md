@@ -1,6 +1,6 @@
 # The "Research" page
 
-The site's page of the numbers behind the product (О-57): what the paper about MathTrail found, how the student model stands against its goals, and where the reference tasks came from. This document decides how the page is built and where every number on it comes from (T72.12, R204). T72.13 builds the page from it, and T72.15 brings the live numbers. T73.2–T73.4 move the making of its data into the research pipeline on merge to `main`, and keep its shape.
+The site's page of the numbers behind the product (О-57): what the paper about MathTrail found, how the student model stands against its goals, and where the reference tasks came from. This document decides how the page is built and where every number on it comes from (T72.12, R204). T72.13 builds the page from it, and T72.15 brings the live numbers. T73.2–T73.4 move the making of its data into the research pipeline on merge to `main`, and keep its shape: since T73.2 a release's data is made by `research.yml` (R234).
 
 The reference is the author's draft, `research/draft-ui/MathTrail - Исследование.html`: a self-unpacking page from a design tool, in Russian. Its markup is line 387 of the file, a JSON string (`sed -n 387p F | jq -r .`). The draft is ported, not copied: the site rebuilds it from its own components, in its own look, with every number from data.
 
@@ -56,7 +56,7 @@ The theses and the sources keep the draft's order and substance. Their words are
 
 **`research.json`** holds every number of the page. The page's code reads it through one reader, `web/src/site/research.ts`, which checks it with zod as `data.ts` checks the site's data.
 
-The file is not committed. It is made at build time, in `site/research/research.json`, which `.gitignore` lists. In CI the file is made in the site's build job (§7). Locally, `just research-data` makes it. Two kinds of input sit committed beside it in `site/research/`: the clean PDF with its facts (§10), and the live snapshot (§11).
+The file is not committed. It is made at build time, in `site/research/research.json`, which `.gitignore` lists. For a release it is made by the research's run of the same commit and handed to the site's build; on a pull request, and when the site is published by hand, the site's build job makes it (§7). Locally, `just research-data` makes it. Two kinds of input sit committed beside it in `site/research/`: the clean PDF with its facts (§10), and the live snapshot (§11).
 
 ```jsonc
 {
@@ -112,7 +112,7 @@ The file is not committed. It is made at build time, in `site/research/research.
   - There is no wall clock: the date is the commit's.
   - T73.2's check that two runs give the same bytes rests on this, on amd64.
 - **Values as the criterion reads them.** A goal on a size, such as the lag, holds the size of the value and of its interval, as the bench's criterion reads it (`sizeOf`: an interval across zero reads from zero). `read_as` names the reading, and `better` applies to it.
-- **Two producers.** The bench's command `page` writes `bench` and `product` (§6, §5) for one build of the bench, and its command `page-file` adds what the commit being built adds: `built_from`, `paper` from the committed facts of the PDF, and `live` from the committed snapshot of the live numbers, or still to come with none (§11). `just research-data` runs both (§7). T73.2 later writes the same file from `research.yml`: only the producer's name changes.
+- **Two producers.** The bench's command `page` writes `bench` and `product` (§6, §5) for one build of the bench, and its command `page-file` adds what the commit being built adds: `built_from`, `paper` from the committed facts of the PDF, and `live` from the committed snapshot of the live numbers, or still to come with none (§11). `just research-data` runs both (§7). Since T73.2 a release's file is written by `research.yml` with the same recipe, so the producer stays the bench's `page` and the file is the same byte for byte.
 - **The reader refuses what does not add up:**
   - a mark that does not follow from the value, its interval, the bound and the direction, and "baseline" anywhere but on the service's number against a bound of its own, or missing there;
   - product counts that disagree with the catalogs and reference tasks the site already reads, the tasks by level included;
@@ -205,7 +205,7 @@ Some bounds are computed from the service's own value of the same measure, the s
   - It holds the service on every pull request (`ci.yml`), and the page's numbers come from the same code. A release only follows a green CI, so it never shows the numbers of a model the guard refused.
   - The page's own numbers are not held to the bands themselves: the bands are drawn for the guard's 300 children, and the page reads 1,000.
   - The page never shows the guard's numbers.
-- **Handover.** T73.2 makes the research pipeline the one producer of this file on merge; `pages.yml` then downloads it rather than making it. The file's shape stays.
+- **Handover (T73.2, R234).** A release's file is made by `research.yml`, called by `release.yml` with the release's tag, after the experiments of paper A were held to their results. It computes the bench's numbers from the commit with no cache restored, as above, and hands `research.json` on with the paper's `numbers.tex` as the artifact `research-data`. `pages.yml`, called with `research: true`, downloads it, holds its `built_from.commit` to the commit it builds, and makes no data of its own. On a pull request and when the site is published by hand, `pages.yml` makes the file as above. The file's shape stays.
 
 ## 8. Drawing
 
@@ -322,7 +322,9 @@ The answers are those to tasks the rule chose, after the trial series and withou
   - **T72.15.1, the counts:** the nightly query's weighing, the two tables, the public and the private views, and the privacy policy;
   - **T72.15.2, the page:** the snapshot's SQL and `just site-live`, `page-file -live` with the made-up snapshot of the fixture, the reader's three states, and the block with its drawings, tables and words;
   - **T72.15.3, the schedule:** the snapshot's table and the identity that reads it, `just site-live` reading that table, and `live.yml` with its App.
-- **T73.2–T73.4** move the making of `research.json` and of the PDFs into the research pipeline on merge to `main`; the file's shape and the page stay. Once the build downloads the file, `just site` stops making it first, and the build's `--research` names the file downloaded.
+- **T73.2–T73.4** move the making of `research.json` and of the PDFs into the research pipeline on merge to `main`; the file's shape and the page stay.
+  - **T73.2, the data (R234):** `research.yml` holds the experiments to their results and makes `research.json` and `numbers.tex` from the release's commit. `pages.yml` downloads the data for a release and makes it on a pull request, and builds the site from the data in place with `just _site-build _site-check`, while `just site` still makes the data first. The build reads it at its default `--research`, beside the PDF it names, and the bench's steps both workflows run are one action, `.github/actions/page-data`.
+  - **T73.3 and T73.4** build the PDFs from those numbers and publish them with the page.
 
 **Rejected:**
 - the bench's numbers committed and checked for freshness: a committed file cannot name the commit it was computed on, any change of the model's inputs would need the whole run and a ten-thousand-line diff, and an arm64 machine parts in the last digits;

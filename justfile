@@ -672,8 +672,13 @@ ci-licenses:
 # site/content/ and the numbers of the page "Research", made first, and judged
 # by a checker that knows nothing of how it was drawn.
 # Build the site into site/dist/
+site: research-data _site-build
+
+# The site drawn from the numbers of the page "Research" already in
+# site/research/research.json, made by research-data or handed over by the run
+# that made them; the build names the recipe when there are none.
 [working-directory('web')]
-site: web-install research-data
+_site-build: web-install
     npm run --silent build:site -- --base {{ SITE_BASE }} --out ../{{ SITE_DIR }}
 
 # Build the site and serve it, so a page can be read the way a visitor reads it
@@ -682,8 +687,11 @@ site-serve port="8081": site
     npm run --silent preview:site -- --outDir ../{{ SITE_DIR }} --host 0.0.0.0 --port {{ port }} --strictPort
 
 # Build the site and refuse it if anything about it is wrong
+ci-site: site _site-check
+
+# The site in site/dist/ held to its own rules.
 [working-directory('web')]
-ci-site: site
+_site-check:
     npm run --silent check:site -- --base {{ SITE_BASE }} --dir ../{{ SITE_DIR }}
 
 # The pictures a shared link to the site shows, one for each language: its
@@ -784,9 +792,14 @@ _research-inputs:
     #!/usr/bin/env bash
     set -euo pipefail
     (cd tools/learners && go build -trimpath -buildvcs=false -o ../../bin/learners .) >&2
-    fma="no fma"
-    if grep -q -w fma /proc/cpuinfo && grep -q -w avx /proc/cpuinfo; then fma=fma; fi
-    { sha256sum < bin/learners; echo "$fma"; } | sha256sum | cut -c1-64
+    { sha256sum < bin/learners; just _fma; } | sha256sum | cut -c1-64
+
+# Whether the processor fuses a multiplication with an addition, which math.Exp
+# decides as it runs and which moves the last digits of what it gives: fma, or
+# no fma.
+_fma:
+    #!/usr/bin/env bash
+    if grep -q -w fma /proc/cpuinfo && grep -q -w avx /proc/cpuinfo; then echo fma; else echo "no fma"; fi
 
 # The paper as the page "Research" links it: the named build, copied to
 # site/research/paper-a.en.pdf with its facts in site/research/paper.json,
