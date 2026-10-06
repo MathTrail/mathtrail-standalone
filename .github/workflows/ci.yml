@@ -73,11 +73,12 @@ jobs:
           path: |
             /tmp/go/mod
             /tmp/go/build
-          key: go-${{ hashFiles('go.sum', 'tools/load/go.sum', 'tools/learners/go.sum') }}
+          key: go-${{ hashFiles('go.sum', 'tools/load/go.sum', 'tools/learners/go.sum', 'research/go.sum') }}
           restore-keys: go-
       - run: just ci-lint
       - run: just load-lint
       - run: just learners-lint
+      - run: just research ci-lint
 
   test:
     name: Tests
@@ -96,7 +97,7 @@ jobs:
           path: |
             /tmp/go/mod
             /tmp/go/build
-          key: go-${{ hashFiles('go.sum', 'tools/load/go.sum', 'tools/learners/go.sum') }}
+          key: go-${{ hashFiles('go.sum', 'tools/load/go.sum', 'tools/learners/go.sum', 'research/go.sum') }}
           restore-keys: go-
       - run: just ci-test
       - name: Send the coverage profile to Codecov
@@ -117,6 +118,52 @@ jobs:
       - run: just load-test
       - run: just learners-test
 
+  research-test:
+    name: Research tests
+    needs: toolchain
+    runs-on: ubuntu-24.04
+    # A job of its own: one experiment's test simulates a whole tournament,
+    # which takes minutes under the race detector, and beside the service's
+    # tests it would hold up every run's verdict.
+    timeout-minutes: 30
+    container:
+      image: ${{ needs.toolchain.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # A cache of its own: what this job builds, the product at the version
+      # the research requires among it, no other job builds, and the cache the
+      # other jobs share is kept by whichever of them finishes first.
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            /tmp/go/mod
+            /tmp/go/build
+          key: go-research-${{ hashFiles('research/go.sum') }}
+          restore-keys: |
+            go-research-
+            go-
+      - run: just research ci-test
+      # The profile named is sent alone, under the module's flag, rather than
+      # beside whatever else the action would find to send.
+      - name: Send the research module's coverage to Codecov
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: research/coverage.out
+          flags: research
+          disable_search: true
+          slug: MathTrail/mathtrail-standalone
+          fail_ci_if_error: false
+      - name: Keep the research module's coverage profile
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage-research
+          path: research/coverage.out
+          retention-days: 14
+
   learners-guard:
     name: Student model guard
     needs: toolchain
@@ -134,7 +181,7 @@ jobs:
           path: |
             /tmp/go/mod
             /tmp/go/build
-          key: go-${{ hashFiles('go.sum', 'tools/load/go.sum', 'tools/learners/go.sum') }}
+          key: go-${{ hashFiles('go.sum', 'tools/load/go.sum', 'tools/learners/go.sum', 'research/go.sum') }}
           restore-keys: go-
       # The guard's table goes to the run's summary, and the pipe keeps the
       # guard's own exit as the step's: a number outside its band fails it.
@@ -220,9 +267,41 @@ jobs:
       - uses: ./.github/actions/just
       - run: just analytics-test
 
+  paper:
+    name: Paper A and its evidence
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    # On the runner itself: the paper is typeset, and the research's scripts
+    # checked, in images of their own, and the toolchain image has no docker
+    # client to start them with. Go is the version the research module declares.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The whole history: the paper's claims are proven at the commit it
+          # describes, which a shallow clone does not hold.
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: research/go.mod
+          cache: false
+      - uses: ./.github/actions/just
+      - run: just research ci-paper
+      # The builds and their logs are kept when the paper fails: they show the
+      # page that ran over, or the line that ran past the margins.
+      - name: Keep the paper's builds
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: paper-a
+          path: |
+            research/paper-a/build/*.pdf
+            research/paper-a/build/*.log
+          retention-days: 14
+
   sonar:
     name: Static analysis
-    needs: [test, widget]
+    needs: [test, widget, research-test]
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     # This one stays on the runner: the scanner installs itself here and has no
@@ -240,6 +319,10 @@ jobs:
         with:
           name: coverage-widget
           path: web/coverage
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: coverage-research
+          path: research
       # A pull request's run has the token only when it was given the secret:
       # not one from a fork, nor one Dependabot starts while the token is not
       # among the secrets kept for Dependabot. Such a run is not analysed, since
@@ -269,7 +352,7 @@ jobs:
           path: |
             /tmp/go/mod
             /tmp/go/build
-          key: go-${{ hashFiles('go.sum', 'tools/load/go.sum', 'tools/learners/go.sum') }}
+          key: go-${{ hashFiles('go.sum', 'tools/load/go.sum', 'tools/learners/go.sum', 'research/go.sum') }}
           restore-keys: go-
       - run: just ci-mocks-check
 
@@ -290,7 +373,7 @@ jobs:
           path: |
             /tmp/go/mod
             /tmp/go/build
-          key: go-${{ hashFiles('go.sum', 'tools/load/go.sum', 'tools/learners/go.sum') }}
+          key: go-${{ hashFiles('go.sum', 'tools/load/go.sum', 'tools/learners/go.sum', 'research/go.sum') }}
           restore-keys: go-
       - run: just ci-vuln
       - run: just ci-licenses
@@ -316,7 +399,7 @@ jobs:
           path: |
             /tmp/go/mod
             /tmp/go/build
-          key: go-${{ hashFiles('go.sum', 'tools/load/go.sum', 'tools/learners/go.sum') }}
+          key: go-${{ hashFiles('go.sum', 'tools/load/go.sum', 'tools/learners/go.sum', 'research/go.sum') }}
           restore-keys: go-
       - run: just ci-secrets
 

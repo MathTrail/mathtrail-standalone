@@ -49,7 +49,7 @@ func TestAParentSignsInFromTheHostToTheCode(t *testing.T) {
 
 	code := h.opened(answer.Get("code"))
 	want := grantCode{
-		User:               h.ring.UserID("google-sub:" + googletest.Subject),
+		User:               h.ring.UserID("google-drive:" + googletest.PermissionID),
 		Client:             digestOf(clientID),
 		RedirectURI:        hostRedirect,
 		Challenge:          googletest.ChallengeOf(hostVerifier),
@@ -79,7 +79,7 @@ func TestASignInLeavesItsLinesAndNothingOfItsSecrets(t *testing.T) {
 	for event, want := range map[string]map[string]any{
 		eventAuthAuthorize: {"outcome": "consent", "registration": registrationDCR, "redirect_host": "host.example", "resource": "given", "scope": "mcp"},
 		eventAuthConsent:   {"outcome": "allowed", "registration": registrationDCR, "redirect_host": "host.example"},
-		eventAuthCallback:  {"outcome": "ok", "registration": registrationDCR, "user": h.ring.UserID("google-sub:" + googletest.Subject)},
+		eventAuthCallback:  {"outcome": "ok", "registration": registrationDCR, "user": h.ring.UserID("google-drive:" + googletest.PermissionID)},
 	} {
 		lines := h.lines(event)
 		if len(lines) != 1 {
@@ -92,7 +92,7 @@ func TestASignInLeavesItsLinesAndNothingOfItsSecrets(t *testing.T) {
 			}
 		}
 	}
-	noLineCarries(t, h, hostState, answer.Get("code"), googletest.AccessToken, googletest.RefreshToken, googletest.Subject, clientID)
+	noLineCarries(t, h, hostState, answer.Get("code"), googletest.AccessToken, googletest.RefreshToken, googletest.PermissionID, clientID)
 }
 
 // noLineCarries fails for every field of every line that carries one of the
@@ -293,7 +293,7 @@ func TestACallbackTellsTheHostWhatWentWrong(t *testing.T) {
 			error: "server_error", outcome: "failed", reason: "code_refused"},
 		{name: "Google failing", answer: googletest.Answer{Status: http.StatusServiceUnavailable},
 			error: "server_error", outcome: "failed", reason: "google_unavailable"},
-		{name: "an identity not proven", answer: googletest.Answer{Audience: "another.apps.googleusercontent.com"},
+		{name: "an identity not proven", answer: googletest.Answer{NoPermissionID: true},
 			error: "server_error", outcome: "failed", reason: "identity"},
 		{name: "no lasting access", answer: googletest.Answer{NoRefresh: true},
 			error: "server_error", outcome: "failed", reason: "no_refresh"},
@@ -479,7 +479,7 @@ func TestAParentWhoTicksTheDriveOnTheWayBackSignsIn(t *testing.T) {
 		t.Fatalf("the host was sent %v, want a code with its own state and this issuer", answer)
 	}
 	if code := h.opened(answer.Get("code")); code.Challenge != googletest.ChallengeOf(hostVerifier) ||
-		code.RedirectURI != hostRedirect || code.User != h.ring.UserID("google-sub:"+googletest.Subject) {
+		code.RedirectURI != hostRedirect || code.User != h.ring.UserID("google-drive:"+googletest.PermissionID) {
 		t.Errorf("the code opens into %+v, want the parent's, for the host's own request", code)
 	}
 	if parent.cookie("/oauth/callback", csrfCookie) != "" {

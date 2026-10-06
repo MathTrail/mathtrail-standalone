@@ -122,7 +122,7 @@ func TestAHostSignsInRenewsAndSignsInAgain(t *testing.T) {
 			signIns := 0
 			session, tokens := h.connectHost(t, tc.registration, &signIns)
 
-			user := h.ring.UserID("google-sub:" + googletest.Subject)
+			user := h.ring.UserID("google-drive:" + googletest.PermissionID)
 			if got := whoAmI(t, session); got != user || signIns != 1 {
 				t.Fatalf("after one sign-in the tool acted for %q, having signed in %d times; want %q once", got, signIns, user)
 			}

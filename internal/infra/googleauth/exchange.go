@@ -7,18 +7,27 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"slices"
 	"strings"
 	"time"
 
 	"golang.org/x/oauth2"
+
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/drive"
 )
 
-// maxTokenInfo is the most of Google's word about an access token that is
-// read: a handful of short fields.
-const maxTokenInfo = 4 << 10
+// maxAbout is the most of Drive's word about an account that is read: one
+// short field.
+const maxAbout = 4 << 10
+
+// aboutFields is all Drive is asked of the account an access token reaches it
+// as: the identifier its permissions know the account by. Drive refuses a
+// question of its about resource that does not say what it asks.
+const aboutFields = "user(permissionId)"
 
 // Exchange trades Google's code for the grant, and accepts the grant only
-// once Google has said whom its access token was issued for.
+// once it reaches the parent's Drive and Drive has said whose it is.
 func (g *google) Exchange(ctx context.Context, code, verifier string) (Grant, error) {
 	ctx, cancel := context.WithTimeout(ctx, callTimeout)
 	defer cancel()
@@ -36,74 +45,78 @@ func (g *google) Exchange(ctx context.Context, code, verifier string) (Grant, er
 		return Grant{}, fmt.Errorf("%w: an access token with no lifetime", ErrUnavailable)
 	}
 	expiry := sent.Add(time.Duration(token.ExpiresIn) * time.Second)
-	// Google is not asked about a grant that would be refused anyway.
+	// Drive is not asked about a grant that would be refused anyway, and
+	// cannot be about one that does not reach it. A missing scope is no
+	// scope granted.
 	if token.RefreshToken == "" {
 		return Grant{}, ErrNoRefresh
 	}
+	scope, _ := token.Extra("scope").(string)
+	if !slices.Contains(strings.Fields(scope), ScopeDriveFile) {
+		return Grant{}, ErrNoDrive
+	}
 
-	subject, err := g.identity(ctx, token.AccessToken)
+	permissionID, err := g.driveUser(ctx, token.AccessToken)
 	if err != nil {
 		return Grant{}, err
 	}
-	// A missing scope is no scope granted, which leaves the caller nothing to
-	// accept.
-	scope, _ := token.Extra("scope").(string)
 	return Grant{
-		Subject:      subject,
+		PermissionID: permissionID,
 		AccessToken:  token.AccessToken,
 		Expiry:       expiry,
 		RefreshToken: token.RefreshToken,
-		Scopes:       strings.Fields(scope),
 	}, nil
 }
 
-// tokenInfo is what Google says of an access token, as far as the sign-in
-// reads it: the client the token was issued to, and the account it was issued
-// for.
-type tokenInfo struct {
-	Audience string `json:"aud"`
-	Subject  string `json:"sub"`
+// about is what Drive says of the account an access token reaches it as, as
+// far as the sign-in reads it.
+type about struct {
+	User struct {
+		PermissionID string `json:"permissionId"`
+	} `json:"user"`
 }
 
-// identity is who signed in: the account Google says the access token was
-// issued for, once Google has said it was issued to this client. Google
-// failing, or asking for a pause, is Google not answering, and so is an
-// answer that is not its word about a token; any other refusal is Google
-// calling the token none of its own.
-func (g *google) identity(ctx context.Context, accessToken string) (string, error) {
-	request, err := http.NewRequestWithContext(ctx, http.MethodPost, g.tokenInfoURL, http.NoBody)
+// driveUser is who signed in: the account Drive says the access token reaches
+// it as, by its permission ID. An answer that is not Drive's word about an
+// account is Google not answering.
+func (g *google) driveUser(ctx context.Context, accessToken string) (string, error) {
+	address := g.aboutURL + "?" + url.Values{"fields": {aboutFields}}.Encode()
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, address, http.NoBody)
 	if err != nil {
-		return "", fmt.Errorf("googleauth: ask whom the token is for: %w", err)
+		return "", fmt.Errorf("googleauth: ask whose Drive the token reaches: %w", err)
 	}
 	// The token goes in a header rather than in the address, which the hops
-	// on the way may keep and a failed call repeats in its error. The
-	// question is put as Google's own client library puts it: a form posted
-	// with nothing in it but that header.
+	// on the way may keep and a failed call repeats in its error.
 	request.Header.Set("Authorization", "Bearer "+accessToken)
-	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	response, err := g.client.Do(request)
 	if err != nil {
 		return "", fmt.Errorf("%w: %w", ErrUnavailable, err)
 	}
 	defer func() { _ = response.Body.Close() }()
 
-	switch status := response.StatusCode; {
-	case status >= http.StatusInternalServerError, status == http.StatusTooManyRequests:
-		return "", fmt.Errorf("%w: status %d", ErrUnavailable, status)
-	case status != http.StatusOK:
-		return "", fmt.Errorf("%w: status %d", ErrIdentity, status)
+	if response.StatusCode != http.StatusOK {
+		return "", driveRefused(drive.RefusalOf(response))
 	}
-	var info tokenInfo
-	if err := json.NewDecoder(io.LimitReader(response.Body, maxTokenInfo)).Decode(&info); err != nil {
+	var answer about
+	if err := json.NewDecoder(io.LimitReader(response.Body, maxAbout)).Decode(&answer); err != nil {
 		return "", fmt.Errorf("%w: %w", ErrUnavailable, err)
 	}
-	switch {
-	case info.Audience != g.oauth.ClientID:
-		return "", fmt.Errorf("%w: the token was issued to another client", ErrIdentity)
-	case info.Subject == "":
-		return "", fmt.Errorf("%w: no subject", ErrIdentity)
+	if answer.User.PermissionID == "" {
+		return "", fmt.Errorf("%w: no permission ID", ErrIdentity)
 	}
-	return info.Subject, nil
+	return answer.User.PermissionID, nil
+}
+
+// driveRefused is what a refusal of the question of whose Drive a token
+// reaches means, told as Drive's refusals are. Drive failing, or asking for a
+// pause, is Google not answering. Any other refusal is Drive not saying who
+// signed in: a token Google does not honour, one that grants nothing of Drive,
+// or an account Drive is kept from, as a domain's administrator may keep it.
+func driveRefused(refusal error) error {
+	if errors.Is(refusal, drive.ErrRateLimited) || errors.Is(refusal, drive.ErrUnavailable) {
+		return fmt.Errorf("%w: %w", ErrUnavailable, refusal)
+	}
+	return fmt.Errorf("%w: %w", ErrIdentity, refusal)
 }
 
 // refusalOf is what a failed call to the token endpoint means. Google failing,

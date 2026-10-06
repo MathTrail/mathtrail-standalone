@@ -331,11 +331,11 @@ func (d *Drive) serve(kind string, serve handler) http.HandlerFunc {
 		}
 		switch {
 		case !signed || token == "" || revoked:
-			refuse(w, http.StatusUnauthorized, "authError", "Invalid Credentials")
+			Refuse(w, http.StatusUnauthorized, "authError", "Invalid Credentials")
 		case planned != nil && planned.stall:
 			<-r.Context().Done()
 		case planned != nil:
-			refuse(w, planned.status, planned.reason, "Refused, as the test asked.")
+			Refuse(w, planned.status, planned.reason, "Refused, as the test asked.")
 		default:
 			serve(w, r, token)
 		}
@@ -374,7 +374,7 @@ func (d *Drive) visible(token, id string) *File {
 // service's own, and Drive's answer to it would say less.
 func (d *Drive) malformed(w http.ResponseWriter, format string, args ...any) {
 	d.t.Errorf("drivetest: "+format, args...)
-	refuse(w, http.StatusBadRequest, "badRequest", "Bad Request")
+	Refuse(w, http.StatusBadRequest, "badRequest", "Bad Request")
 }
 
 // copied is a file that shares nothing with the one it was copied from.
@@ -417,9 +417,9 @@ func sameRevision(a, b Revision) bool {
 		bytes.Equal(a.Content, b.Content)
 }
 
-// refuse answers a call the way Drive refuses one: a status, and the reason
+// Refuse answers a call the way Drive refuses one: a status, and the reason
 // in Drive's error format.
-func refuse(w http.ResponseWriter, status int, reason, message string) {
+func Refuse(w http.ResponseWriter, status int, reason, message string) {
 	writeJSON(w, status, map[string]any{"error": map[string]any{
 		"code":    status,
 		"message": message,

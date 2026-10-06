@@ -4,7 +4,7 @@
 	"version": "1.0.0",
 	"description": "MathTrail gives a child in grades 1 to 6 olympiad-style maths tasks in a lesson a parent or tutor runs in the chat. The chat's model writes each task; MathTrail picks its topic and difficulty from the child's answers, checks it with a program before the child sees it, and shows it on a card with five options. A wrong answer is explained from the mistake behind it, and the child's progress, under a pseudonym, is kept in one file in the parent's Google Drive.",
 	"author": {
-		"name": "[Company]",
+		"name": "ALT EdTech",
 		"email": "altedtech.info@gmail.com",
 		"url": "https://mathtrail.app/en/"
 	},
@@ -18,7 +18,7 @@
 				"displayName": "MathTrail",
 				"shortDescription": "Olympiad maths for your child",
 				"longDescription": "MathTrail is for parents and tutors who want to give a child in grades 1 to 6 olympiad-style maths: tasks that ask for an idea rather than a drill.\n\nHow a lesson goes. You ask in the chat for a task. The chat's own model writes it, and MathTrail checks it with a program before your child sees it: exactly one of the five options is right, a solver that tries every case reproduces the answer, the wording suits the grade, the task is not a near copy of an earlier one, and any text drawing is well formed. The task then appears on a card, and your child, sitting beside you, answers by tapping an option. Checked means exactly these checks: whether the wording and the solution agree in meaning is checked by the model itself.\n\nAfter an answer. A wrong answer is explained from the mistake behind it, such as counting the posts of a fence instead of its gaps, and then step by step. The card has a hint for when your child wants one.\n\nWhat MathTrail keeps track of. The first five tasks find where your child stands; after them, MathTrail chooses each task's topic and difficulty from the answers. Ask how your child is doing to see the rank in each topic, what moved over the past week, the mistakes that repeat and what to practise next.\n\nYour child's data. You sign in with Google, and your child needs no account. The profile is one file in your own Google Drive, under a pseudonym you choose, never a real name. MathTrail can reach only the files it created there, and keeps no database of its own.\n\nLimits. Up to 20 new tasks a day. A task takes a minute or two to write and check. MathTrail is not a homework solver, and it covers grades 1 to 6 only. Its code is open source under the MIT License.",
-				"developerName": "[Company]",
+				"developerName": "ALT EdTech",
 				"category": "Education & Research",
 				"capabilities": [
 					"Picks each task's topic and difficulty from the child's answers",

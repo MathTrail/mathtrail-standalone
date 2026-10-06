@@ -3,6 +3,9 @@
 # never see it, and these recipes neither touch nor check the product. Tools the
 # root already pins (govulncheck, go-licenses, the license allow-list) are read
 # from the root justfile rather than repeated, so both modules use one version.
+# The module's own ci-* recipes are the checks a change to it must pass:
+# ci-lint and ci-test need Go, golangci-lint and the module proxy, and ci-paper
+# needs Docker, the repository's history and the network besides.
 
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
@@ -21,10 +24,26 @@ default:
 test:
     go test ./... -race -count=1
 
+# The profile is written in this module's folder, apart from the product's. One
+# experiment's test simulates a whole tournament, which under the race detector
+# takes some four minutes on a fast machine and more on a slow one, so go test's
+# default limit of ten minutes is raised rather than left to cut it short.
+[doc('Tests of the research module, with the race detector and a coverage profile in coverage.out')]
+ci-test:
+    go test ./... -race -count=1 -timeout=20m -coverprofile=coverage.out -covermode=atomic
+
+[doc("The module's formatting and lint, its dependencies' licenses, and their versions beside the product's")]
+ci-lint: _lint-go licenses deps-check
+
+[doc('ShellCheck over the scripts, every claim of the evidence ledger, and paper A built and checked')]
+ci-paper: _lint-scripts ledger-check paper-a
+
 # Formatting is checked here rather than through the root's fmt-check, which
 # walks the whole repository and would fail a research task on product files.
 [doc('gofmt -s and golangci-lint over this module, ShellCheck over its scripts')]
-lint:
+lint: _lint-go _lint-scripts
+
+_lint-go:
     #!/usr/bin/env bash
     set -euo pipefail
     unformatted=$(gofmt -s -l .)
@@ -34,6 +53,10 @@ lint:
         exit 1
     fi
     golangci-lint run ./...
+
+_lint-scripts:
+    #!/usr/bin/env bash
+    set -euo pipefail
     mapfile -t scripts < <(find . \( -path ./.cache -o -path ./release/build \) -prune -o -name '*.sh' -print | LC_ALL=C sort)
     docker run --rm -v "$PWD:/mnt:ro" -w /mnt {{ SHELLCHECK }} -x "${scripts[@]}"
 
@@ -241,6 +264,11 @@ cli-trial client model *flags:
 # latexmk and BibTeX. Nothing of it is installed in the devcontainer.
 TEXLIVE := "texlive/texlive:TL2025-historic@sha256:f25ee2dcd00f58198f918064f4a1c8562410b33e84155bd55b02b419d73d9391"
 
+# The pages the venue allows a paper, its references included. The builds the
+# venue receives, the anonymous one and the submission, may not run longer; the
+# named build, with the authors, may.
+PAPER_A_PAGES := "14"
+
 # The files every number of the paper is computed in or taken from, as
 # name=path: the product's facts, and the numbers of the works it cites. An
 # experiment adds its own results here once they exist.
@@ -250,13 +278,13 @@ NUMBERS := "product=evidence/product-stats.txt ledger=evidence/ledger-numbers.tx
 # up. A web address, or the project's name, in any value is hidden as well.
 IDENTIFYING := "commit"
 
-[doc('Build paper A: its numbers, checks of its names and its anonymity, then the named and the anonymous PDF, each checked for its citations')]
-paper-a: _paper-a-ledger _paper-a-numbers _paper-a-names _paper-a-handtyped _paper-a-anonymity (_paper-a-latex "paper-a") (_paper-a-latex "paper-a-anonymous" '\def\Anonymous{}')
+[doc('Build paper A: its numbers, checks of its names and its anonymity, then the named and the anonymous PDF, each checked for its citations and its margins, and the anonymous one for its pages')]
+paper-a: _paper-a-ledger _paper-a-numbers _paper-a-names _paper-a-handtyped _paper-a-anonymity (_paper-a-latex "paper-a") (_paper-a-latex "paper-a-anonymous" '\def\Anonymous{}' PAPER_A_PAGES)
     @echo "paper-a/build/paper-a.pdf and paper-a/build/paper-a-anonymous.pdf"
 
 # What goes to the venue: the anonymous PDF, refused while any TBD is left.
 [doc('Build the anonymous PDF for submission; fails while any TBD is left')]
-paper-a-final: _paper-a-ledger _paper-a-numbers _paper-a-names _paper-a-handtyped _paper-a-anonymity (_paper-a-latex "paper-a-submission" '\def\Anonymous{}\def\Final{}')
+paper-a-final: _paper-a-ledger _paper-a-numbers _paper-a-names _paper-a-handtyped _paper-a-anonymity (_paper-a-latex "paper-a-submission" '\def\Anonymous{}\def\Final{}' PAPER_A_PAGES)
     @echo "paper-a/build/paper-a-submission.pdf"
 
 # The numbers the product's claims state reach the paper only as the claims
@@ -294,10 +322,15 @@ _paper-a-handtyped:
 # A build that hides the system is then read back: the bibliography must not
 # name the project or its repositories, which no check of the text can see.
 #
+# Every build's log is read last. No line may run past the margins, which TeX
+# reports as an overfull box, and a build given a number of pages may not run
+# longer. The log is the last pass's, the one that wrote the PDF: the size it
+# records must be the PDF's, or the pages it gives are another PDF's.
+#
 # The PDF carries the pinned commit's date rather than the moment of the build,
 # so the same sources make the same file.
 [positional-arguments]
-_paper-a-latex jobname pretex='':
+_paper-a-latex jobname pretex='' pages='':
     #!/usr/bin/env bash
     set -euo pipefail
     date=$(sed -n 's/^commit_date=//p' evidence/product-stats.txt)
@@ -307,10 +340,12 @@ _paper-a-latex jobname pretex='':
     fi
     pretex=()
     if [ -n "$2" ]; then pretex=("-usepretex=$2"); fi
+    # TeX breaks the lines of its log at 79 characters unless told otherwise,
+    # and the log is read below line by line.
     latex() {
         local job=$1
         shift
-        docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
+        docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -e max_print_line=10000 \
             -e SOURCE_DATE_EPOCH="$(date -u -d "$date" +%s)" -e FORCE_SOURCE_DATE=1 -e BIBINPUTS=/research/literature: \
             -v "$PWD:/research" -w /research/paper-a {{ TEXLIVE }} \
             latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir=build "-jobname=$job" "${pretex[@]}" "$@" main.tex
@@ -322,6 +357,26 @@ _paper-a-latex jobname pretex='':
     if [ -n "$2" ] && [ -f "paper-a/build/$1.bbl" ]; then
         if grep -n -i -E 'mathtrail|llm-taskgen-prototype' "paper-a/build/$1.bbl"; then
             echo "the anonymous build's bibliography names the project or its repositories" >&2
+            exit 1
+        fi
+    fi
+    log="paper-a/build/$1.log" pdf="paper-a/build/$1.pdf"
+    if grep -n -E '^Overfull \\[hv]box' "$log" >&2; then
+        echo "$1: the lines above run past the margins" >&2
+        exit 1
+    fi
+    if [ -n "$3" ]; then
+        read -r pages bytes < <(sed -n -E "s/^Output written on build\/$1\.pdf \(([0-9]+) pages?, ([0-9]+) bytes\)\.$/\1 \2/p" "$log") || true
+        if [ -z "${pages:-}" ]; then
+            echo "$1: the log gives no pages of $pdf" >&2
+            exit 1
+        fi
+        if [ "$bytes" != "$(stat -c %s "$pdf")" ]; then
+            echo "$1: the log is of another build than $pdf, which it records as $bytes bytes" >&2
+            exit 1
+        fi
+        if [ "$pages" -gt "$3" ]; then
+            echo "$1: $pages pages, where the venue allows $3" >&2
             exit 1
         fi
     fi

@@ -38,13 +38,15 @@ go.work.sum
 node_modules/
 
 # The widget as the web build leaves it, the coverage of its tests, what the
-# measure of its layout found, pictures and all, and the README's pictures of
-# it, which are published on a branch of their own: each is made anew, never
-# committed. The placeholder beside the widget is committed.
+# measure of its layout found, pictures and all, the README's pictures of it,
+# which are published on a branch of their own, and the pictures of it a
+# directory's listing is given by hand: each is made anew, never committed.
+# The placeholder beside the widget is committed.
 /internal/widget/widget.html
 /web/coverage/
 /web/layout/
 /web/screens/
+/web/listing/
 
 # Rendered site: rebuilt by just site, never committed.
 /site/dist/

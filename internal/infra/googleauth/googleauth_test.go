@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http/httptest"
 	"net/url"
-	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -108,8 +107,8 @@ func TestTheParentIsSentToGoogleForTheDriveAlone(t *testing.T) {
 }
 
 // A code the parent came back with is worth the grant: the tokens Drive is
-// called with, dated by this clock, the scopes granted, and who signed in, as
-// Google says of the access token.
+// called with, dated by this clock, and who signed in, as Drive names the
+// account the access token reaches it as.
 func TestACodeIsWorthTheGrant(t *testing.T) {
 	t.Parallel()
 
@@ -121,32 +120,31 @@ func TestACodeIsWorthTheGrant(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Exchange() error = %v, want the grant", err)
 	}
-	if grant.Subject != googletest.Subject || grant.AccessToken != googletest.AccessToken || grant.RefreshToken != googletest.RefreshToken {
-		t.Errorf("Exchange() = %+v, want the fake's subject and tokens", grant)
+	if grant.PermissionID != googletest.PermissionID || grant.AccessToken != googletest.AccessToken || grant.RefreshToken != googletest.RefreshToken {
+		t.Errorf("Exchange() = %+v, want the fake's account at Drive and tokens", grant)
 	}
 	if want := someDay.Add(googletest.ExpiresIn * time.Second); !grant.Expiry.Equal(want) {
 		t.Errorf("Exchange() expiry = %v, want %v", grant.Expiry, want)
 	}
-	if want := []string{googleauth.ScopeDriveFile}; !slices.Equal(grant.Scopes, want) {
-		t.Errorf("Exchange() scopes = %q, want %q", grant.Scopes, want)
-	}
 	if asked := google.Questions(); asked != 1 {
-		t.Errorf("Questions() = %d, want 1: Google asked once whom the token is for", asked)
+		t.Errorf("Questions() = %d, want 1: Drive asked once whose the token is", asked)
 	}
 }
 
-// A grant refused for what the exchange brought — no refresh token, or an
-// access token with no lifetime — is refused before Google is asked whom its
-// token is for.
+// A grant refused for what the exchange brought — no refresh token, an access
+// token with no lifetime, or no Drive — is refused before Drive is asked whose
+// it is.
 func TestARefusedGrantIsNotAskedAbout(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []struct {
 		name string
 		how  googletest.Answer
+		want error
 	}{
-		{"no refresh token", googletest.Answer{NoRefresh: true}},
-		{"no lifetime for the access token", googletest.Answer{NoLifetime: true}},
+		{"no refresh token", googletest.Answer{NoRefresh: true}, googleauth.ErrNoRefresh},
+		{"no lifetime for the access token", googletest.Answer{NoLifetime: true}, googleauth.ErrUnavailable},
+		{"the Drive left out", googletest.Answer{Scope: "openid"}, googleauth.ErrNoDrive},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -156,32 +154,13 @@ func TestARefusedGrantIsNotAskedAbout(t *testing.T) {
 			code := codeIn(t, google.Allow(signIn.AuthURL(state, verifier)))
 			google.Misbehave(&tc.how)
 
-			if _, err := signIn.Exchange(t.Context(), code, verifier); err == nil {
-				t.Fatal("Exchange() error = nil, want the grant refused")
+			if _, err := signIn.Exchange(t.Context(), code, verifier); !errors.Is(err, tc.want) {
+				t.Fatalf("Exchange() error = %v, want %v", err, tc.want)
 			}
 			if asked := google.Questions(); asked != 0 {
-				t.Errorf("Questions() = %d, want 0: Google asked nothing about a grant refused anyway", asked)
+				t.Errorf("Questions() = %d, want 0: Drive asked nothing about a grant refused anyway", asked)
 			}
 		})
-	}
-}
-
-// Google may grant fewer scopes than were asked for; the grant says what was
-// granted and leaves the verdict to the caller.
-func TestAGrantSaysWhichScopesWereGranted(t *testing.T) {
-	t.Parallel()
-
-	google := newGoogle(t)
-	signIn := signInAt(t, google)
-	code := codeIn(t, google.Allow(signIn.AuthURL(state, verifier)))
-	google.Misbehave(&googletest.Answer{Scope: "openid"})
-
-	grant, err := signIn.Exchange(t.Context(), code, verifier)
-	if err != nil {
-		t.Fatalf("Exchange() error = %v, want the grant", err)
-	}
-	if !slices.Equal(grant.Scopes, []string{"openid"}) {
-		t.Errorf("Exchange() scopes = %q, want openid alone", grant.Scopes)
 	}
 }
 
@@ -207,14 +186,15 @@ func TestAnExchangeGoneWrongIsRefused(t *testing.T) {
 		{name: "Google failing", how: googletest.Answer{Status: 503, ErrorCode: "temporarily_unavailable"}, want: googleauth.ErrUnavailable},
 		{name: "no refresh token", how: googletest.Answer{NoRefresh: true}, want: googleauth.ErrNoRefresh},
 		{name: "no lifetime for the access token", how: googletest.Answer{NoLifetime: true}, want: googleauth.ErrUnavailable},
-		{name: "the token called none of Google's", how: googletest.Answer{InfoStatus: 400}, want: googleauth.ErrIdentity},
-		{name: "a refusal of another kind", how: googletest.Answer{InfoStatus: 401}, want: googleauth.ErrIdentity},
-		{name: "an answer that names no client", how: googletest.Answer{NoAudience: true}, want: googleauth.ErrIdentity},
-		{name: "Google failing to say whom the token is for", how: googletest.Answer{InfoStatus: 503}, want: googleauth.ErrUnavailable},
-		{name: "Google asking for a pause before it says", how: googletest.Answer{InfoStatus: 429}, want: googleauth.ErrUnavailable},
-		{name: "a page that is no answer of Google's", how: googletest.Answer{InfoNotJSON: true}, want: googleauth.ErrUnavailable},
-		{name: "another client's token", how: googletest.Answer{Audience: "another.apps.googleusercontent.com"}, want: googleauth.ErrIdentity},
-		{name: "nobody who signed in", how: googletest.Answer{NoSubject: true}, want: googleauth.ErrIdentity},
+		{name: "the Drive left out", how: googletest.Answer{Scope: "openid"}, want: googleauth.ErrNoDrive},
+		{name: "the token called none of Google's", how: googletest.Answer{AboutStatus: 401, AboutReason: "authError"}, want: googleauth.ErrIdentity},
+		{name: "Drive asking for a pause", how: googletest.Answer{AboutStatus: 403, AboutReason: "userRateLimitExceeded"}, want: googleauth.ErrUnavailable},
+		{name: "Drive asking for a pause by the other status", how: googletest.Answer{AboutStatus: 429, AboutReason: "rateLimitExceeded"}, want: googleauth.ErrUnavailable},
+		{name: "Drive failing to say whose the token is", how: googletest.Answer{AboutStatus: 503, AboutReason: "backendError"}, want: googleauth.ErrUnavailable},
+		{name: "Drive kept from the account", how: googletest.Answer{AboutStatus: 403, AboutReason: "domainPolicy"}, want: googleauth.ErrIdentity},
+		{name: "a refusal of another kind", how: googletest.Answer{AboutStatus: 400, AboutReason: "badRequest"}, want: googleauth.ErrIdentity},
+		{name: "a page that is no answer of Drive's", how: googletest.Answer{AboutNotJSON: true}, want: googleauth.ErrUnavailable},
+		{name: "nobody who signed in", how: googletest.Answer{NoPermissionID: true}, want: googleauth.ErrIdentity},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -249,17 +229,17 @@ func TestAGoogleThatDoesNotAnswerIsUnavailable(t *testing.T) {
 	}
 }
 
-// A Google that gave the grant but cannot be asked whom its token is for is
-// Google not answering too, and the failure — which names the address it
-// failed to reach — repeats no token: the token went in a header.
-func TestAGoogleThatCannotSayWhomTheTokenIsForIsUnavailable(t *testing.T) {
+// A Google that gave the grant but whose Drive cannot be asked whose the token
+// is, is Google not answering too, and the failure — which names the address
+// it failed to reach — repeats no token: the token went in a header.
+func TestADriveThatCannotSayWhoseTheTokenIsIsUnavailable(t *testing.T) {
 	t.Parallel()
 
 	google := newGoogle(t)
 	nobody := httptest.NewServer(nil)
 	nobody.Close()
 	given := settings(google)
-	given.Endpoints.TokenInfo = nobody.URL + "/tokeninfo"
+	given.Endpoints.About = nobody.URL + "/drive/v3/about"
 	signIn, err := googleauth.New(given)
 	if err != nil {
 		t.Fatalf("New() error = %v, want nil", err)
@@ -288,7 +268,7 @@ func TestASignInWithSomethingMissingIsRefused(t *testing.T) {
 		{"no client", func(s *googleauth.Settings) { s.ClientID = "" }, "ClientID"},
 		{"no secret", func(s *googleauth.Settings) { s.ClientSecret = "" }, "ClientSecret"},
 		{"no way back", func(s *googleauth.Settings) { s.RedirectURL = "" }, "RedirectURL"},
-		{"nobody to ask whom a token is for", func(s *googleauth.Settings) { s.Endpoints.TokenInfo = "" }, "Endpoints"},
+		{"nobody to ask whose Drive a token reaches", func(s *googleauth.Settings) { s.Endpoints.About = "" }, "Endpoints"},
 		{"no way to end a grant", func(s *googleauth.Settings) { s.Endpoints.Revoke = "" }, "Endpoints"},
 		{"no clock", func(s *googleauth.Settings) { s.Now = nil }, "Now"},
 	} {

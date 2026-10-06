@@ -129,6 +129,30 @@ export function scenesIn(language: string): Scene[] {
 			answers: service(),
 			play: option("B"),
 		},
+		// The same task with its row of posts cut short, as a row the child
+		// counts is drawn, so that the count, which is the answer, cannot be read
+		// off the card before the child answers; and the progress with its
+		// review alone open, a card short enough to take in at once.
+		{
+			name: "task after the trial series, its row cut short",
+			payload: rowCut(offering),
+		},
+		{
+			name: "hint after the trial series, its row cut short",
+			payload: rowCut(offering),
+			play: button(0),
+		},
+		{
+			name: "wrong after the trial series, its row cut short",
+			payload: rowCut(offering),
+			answers: service(),
+			play: option("B"),
+		},
+		{
+			name: "progress, the review open",
+			payload: reviewedInFull,
+			play: reviewAlone,
+		},
 		{
 			name: "topic choice open",
 			payload: offering,
@@ -479,6 +503,30 @@ function option(letter: string) {
 			}
 		}
 	};
+}
+
+// rowCut is a task with its row of posts drawn cut short, its middle left
+// out, as a task is drawn whose posts the child counts: the count cannot be
+// read off the drawing before the child answers.
+function rowCut(payload: typeof fence): typeof fence {
+	return {
+		...payload,
+		task: { ...payload.task, drawing: "|--3--|--3-- ... --3--|\n" },
+	};
+}
+
+// reviewAlone leaves the review the one section of the progress open, each
+// section opened or folded by its title. The review is known by the parts it
+// holds, which a folded section keeps drawn, because the titles' words change
+// with the language.
+function reviewAlone(card: Document) {
+	for (const section of card.querySelectorAll(".mt-fold")) {
+		const title = section.querySelector<HTMLElement>(".mt-fold-button");
+		const review = section.querySelector(".mt-review-part") !== null;
+		if ((title?.getAttribute("aria-expanded") === "true") !== review) {
+			title?.click();
+		}
+	}
 }
 
 // button presses the card's button at place: 0 the hint, 1 another task.

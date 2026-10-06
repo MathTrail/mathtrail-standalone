@@ -4,7 +4,7 @@ import { join, relative } from "node:path";
 import { describe, expect, test } from "vitest";
 import { scenesIn } from "../src/preview/scenes.ts";
 import { previewWidths } from "../src/preview/widths.ts";
-import { addressOf, pictureOf, shots, shownAt, width } from "./screens.ts";
+import { pictureOf, shots, shownAt, width } from "./screens.ts";
 
 const root = join(import.meta.dirname, "..", "..");
 
@@ -19,21 +19,18 @@ describe("the pictures of the README", () => {
 		expect(previewWidths).toContain(width);
 	});
 
-	test("ask the preview for one scene alone, in the dark theme, in English, at the width photographed", () => {
-		const address = new URL(
-			addressOf("http://127.0.0.1:5173/", { scene: "wrong", file: "wrong" }),
-		);
-		expect(address.pathname).toBe("/preview.html");
-		expect(Object.fromEntries(address.searchParams)).toEqual({
-			scene: "wrong",
-			theme: "dark",
-			lang: "en",
-			widths: "428",
-		});
+	test("are each of its scene, in the dark theme, at the width photographed", () => {
+		for (const shot of shots) {
+			expect(pictureOf(shot)).toMatchObject({
+				scene: shot.scene,
+				theme: "dark",
+				width: 428,
+			});
+		}
 	});
 
 	test("are written into web/screens/, one for each scene", () => {
-		const files = shots.map((shot) => relative(root, pictureOf(shot)));
+		const files = shots.map((shot) => relative(root, pictureOf(shot).path));
 		expect(files.sort()).toEqual([
 			"web/screens/progress-dark.png",
 			"web/screens/task-dark.png",

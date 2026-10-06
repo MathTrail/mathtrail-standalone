@@ -121,17 +121,16 @@ func (googleStandIn) AuthURL(state, _ string) string {
 }
 
 func (googleStandIn) Exchange(_ context.Context, code, _ string) (googleauth.Grant, error) {
-	scopes := []string{googleauth.ScopeDriveFile}
 	switch code {
 	case "allowed":
 	case "drive-unticked":
-		scopes = nil
+		return googleauth.Grant{}, googleauth.ErrNoDrive
 	default:
 		return googleauth.Grant{}, googleauth.ErrCodeRefused
 	}
 	return googleauth.Grant{
-		Subject: "a-subject", AccessToken: "an-access-token", RefreshToken: "a-refresh-token",
-		Expiry: testDay.Add(time.Hour), Scopes: scopes,
+		PermissionID: "a-permission-id", AccessToken: "an-access-token", RefreshToken: "a-refresh-token",
+		Expiry: testDay.Add(time.Hour),
 	}, nil
 }
 

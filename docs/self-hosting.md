@@ -46,7 +46,7 @@ The checks and the site's build run inside the toolchain image this repository p
 
 MathTrail is this project's name, and the licence does not pass it on: a copy that runs publicly goes by a name of its own. The name is in the words people read — the widget's dictionaries in `web/locales/`, the sign-in pages in `internal/transport/oauth/pages/`, what the tools tell the model in `internal/transport/mcp/` and `content/instructions/`, the server's name in the protocol, the folder and the file in a parent's Drive, and the site. `git grep -i mathtrail` finds every place, along with names nobody reads — the module path `github.com/MathTrail/…` in the Go imports, the names of the cloud resources — which can stay.
 
-What this deployment gives the chats' directories is under its name too: the texts of its listings in `docs/listing.md`, and the package for ChatGPT's directory in `plugin/`, with its icons. A copy that lists itself writes its own. One that does not removes the folder, with the recipes `plugin-icons` and `plugin-zip`, the script `web/scripts/icons.ts` with its test, and the folder's line in `.dockerignore`.
+What this deployment gives the chats' directories is under its name too: the texts of its listings in `docs/listing.md`, the pictures of its listing in Claude's directory, which `just listing-shots` takes from the preview, and the package for ChatGPT's directory in `plugin/`, with its icons. A copy that lists itself makes its own. One that does not removes the folder, with the recipes `plugin-icons`, `plugin-zip` and `listing-shots`, the scripts `web/scripts/icons.ts` and `web/scripts/listing.ts` with their tests, and the lines that name the folder, the scripts or their pictures in `.dockerignore`, `.gitignore`, `web/vitest.config.ts` and `sonar-project.properties`.
 
 ## 2. Say what the deployment is
 
@@ -85,7 +85,7 @@ The progress links each topic's name to its page on this site, and the words for
 
 ## 5. The Google sign-in
 
-The parent signs in with Google, and the service asks Google for exactly one thing: room for one file of its own in the parent's Drive. It then asks Google whom the access token of that permission was issued for, which is how it knows who signed in. It is configured in the Google Cloud console, under **Google Auth Platform**, on its four pages.
+The parent signs in with Google, and the service asks Google for exactly one thing: room for one file of its own in the parent's Drive. It then asks Drive whose Drive the access token of that permission reaches, which is how it knows who signed in. It is configured in the Google Cloud console, under **Google Auth Platform**, on its four pages.
 
 **Branding.** The name people see on the consent screen, a support email, a developer contact email, and three links: the home page, the privacy policy and the terms of your site, which for this deployment are `https://mathtrail.app/en/`, `https://mathtrail.app/en/privacy/` and `https://mathtrail.app/en/terms/`. Add the top private domain of those links — `mathtrail.app` here — as an authorized domain: one entry covers both the site on the apex and the service on its subdomain. Leave the logo out unless you mean to have the app reviewed: uploading one sends it to Google's brand verification.
 
@@ -364,6 +364,8 @@ A directory that reviews a copy before listing it asks for an account its review
    The service's start says `reviewer sign-in` with `configured` true, and the consent screen shows "Reviewing MathTrail for a directory?".
 
 Fill the demo profile by signing in through that line yourself, in a chat, before the review. Its 20 tasks a day are shared by every reviewer, and the day starts at 00:00 UTC, so do not fill it on the day a review may begin. The progress shows a change over the past week only while the last answer is at most six days old, so answer a few tasks in the days before a review. Sign in through the line once yourself before a review begins as well: a grant that has ended shows only when somebody signs in.
+
+**Never connect the demo account through Google.** A parent's account is known by its identifier at Drive, and the demo account by the identifier at Google its grant names, so the demo account signed in with Google is a parent's account like any other: its lessons are counted, and disconnecting that chat ends every grant of the demo account at MathTrail, the reviewers' among them. Fill and check the demo profile through the reviewers' line alone.
 
 **Changing the password.** Run `just reviewer-password` again, name the new version and merge. A reviewer signed in before keeps their session to its own end, up to 90 days.
 

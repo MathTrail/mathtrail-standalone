@@ -15,8 +15,7 @@
 
 import { mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
-import { chromium } from "playwright-core";
-import { letGo, served, settled, stillClock } from "./drive.ts";
+import { type Picture, photograph } from "./drive.ts";
 
 /** Shot is a scene of the preview, and the file its pictures are named by. */
 export type Shot = { scene: string; file: string };
@@ -48,28 +47,17 @@ const screens = join(import.meta.dirname, "..", "screens");
 const published =
 	"https://raw.githubusercontent.com/MathTrail/mathtrail-standalone/screens/";
 
-/**
- * addressOf is the preview's address that shows one scene alone, in the theme
- * photographed, in English, at the width photographed.
- */
-export function addressOf(base: string, shot: Shot): string {
-	const query = new URLSearchParams({
-		scene: shot.scene,
-		theme,
-		lang: "en",
-		widths: `${width}`,
-	});
-	return `${base}preview.html?${query}`;
-}
-
 /** nameOf is the name a scene's picture is written and published under. */
 function nameOf(shot: Shot): string {
 	return `${shot.file}-${theme}.png`;
 }
 
-/** pictureOf is the file a scene's picture is written to. */
-export function pictureOf(shot: Shot): string {
-	return join(screens, nameOf(shot));
+/**
+ * pictureOf is how a scene is photographed: in the theme and at the width
+ * photographed, into the file its picture is written to.
+ */
+export function pictureOf(shot: Shot): Picture {
+	return { scene: shot.scene, theme, width, path: join(screens, nameOf(shot)) };
 }
 
 /** shownAt is the address the README shows a scene's picture at. */
@@ -82,38 +70,7 @@ async function main(): Promise<void> {
 	// photographed must not outlive the run that stopped photographing it.
 	await rm(screens, { recursive: true, force: true });
 	await mkdir(screens, { recursive: true });
-	const preview = await served();
-	const browser = await chromium.launch();
-	try {
-		// The spinner of a card that checks an answer turns; a card shown to a
-		// reader who asks for no motion holds it still for the picture.
-		const context = await browser.newContext({
-			viewport: { width: 1280, height: 900 },
-			deviceScaleFactor: 2,
-			reducedMotion: "reduce",
-		});
-		await stillClock(context);
-		const page = await context.newPage();
-		for (const shot of shots) {
-			await page.goto(addressOf(preview.base, shot));
-			const cards = await settled(page);
-			const card = cards.find((found) => found.scene === shot.scene);
-			if (card === undefined) {
-				throw new Error(`screens: the preview shows no scene ${shot.scene}`);
-			}
-			await card.element.screenshot({
-				path: pictureOf(shot),
-				omitBackground: true,
-				style:
-					".preview-bar { visibility: hidden; } .preview { background: transparent !important; }",
-			});
-			console.log(`screens: ${nameOf(shot)}`);
-			await letGo(cards);
-		}
-	} finally {
-		await browser.close();
-		await preview.close();
-	}
+	await photograph("screens", shots.map(pictureOf));
 }
 
 if (import.meta.main) {

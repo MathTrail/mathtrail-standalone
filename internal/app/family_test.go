@@ -105,7 +105,7 @@ func newFamilyWith(t *testing.T, change func(*config.Config)) *family {
 	f := &family{t: t, google: googletest.New(t, time.Now), drive: drivetest.New(t)}
 	f.keep(parentEmail, pseudonym, interest, notes, reason, strangersToken, familyAddress, hostAddress,
 		hostName, hostState, hostVerifier, googletest.ChallengeOf(hostVerifier), sealKey,
-		googletest.ClientSecret, googletest.Subject, googletest.AccessToken, googletest.RefreshToken,
+		googletest.ClientSecret, googletest.Subject, googletest.PermissionID, googletest.AccessToken, googletest.RefreshToken,
 		googletest.RenewedAccessToken, googletest.RotatedRefreshToken)
 	f.keep(raceWords()...)
 	f.words = append(slices.Collect(maps.Values(raceOptions)), profile.DontKnow)

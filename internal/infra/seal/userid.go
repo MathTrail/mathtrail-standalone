@@ -18,10 +18,10 @@ const (
 
 // UserID is the identifier an account is known by in this service, derived
 // from the account's own identifier at the provider it signed in with, which
-// the caller names with the provider in front — "google-sub:" and Google's
-// subject. The provider's identifier stands for a real person wherever that
-// provider signs them in, so it is kept nowhere and written nowhere; this one
-// says nothing about it.
+// the caller names with the provider in front — "google-drive:" and the
+// account's identifier at Drive, say. The provider's identifier stands for a
+// real person wherever that provider knows them, so it is kept nowhere and
+// written nowhere; this one says nothing about it.
 //
 // It is a keyed digest under a subkey of the current key alone. The same
 // account gets the same identifier for as long as that key is current, and a

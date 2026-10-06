@@ -7,7 +7,7 @@ description: What MathTrail knows about your child, where it is kept, and how to
 
 Last updated: 6 October 2026.
 
-MathTrail is a free, open-source project. Questions about this policy or about your child's data go to [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com). How to connect it, and what to do when something looks wrong, is on the [help page](../help/).
+MathTrail is a free, open-source project, made and run by ALT EdTech. Questions about this policy or about your child's data go to [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com). How to connect it, and what to do when something looks wrong, is on the [help page](../help/).
 
 ## The short version
 

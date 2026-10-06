@@ -44,7 +44,7 @@ func TestAHostEndsItsGrantAtGoogle(t *testing.T) {
 			if got := h.google.Revocations(); !slices.Equal(got, []string{tc.google}) {
 				t.Errorf("Google was asked to end the grant with %q, want %q", got, tc.google)
 			}
-			user := h.ring.UserID("google-sub:" + googletest.Subject)
+			user := h.ring.UserID("google-drive:" + googletest.PermissionID)
 			if lines := h.lines(eventAuthRevoke); len(lines) != 1 || lines[0]["outcome"] != "revoked" ||
 				lines[0]["token"] != tc.kind || lines[0]["user"] != user {
 				t.Errorf("auth_revoke lines = %v, want one line of the %s token revoked", lines, tc.kind)
@@ -53,7 +53,7 @@ func TestAHostEndsItsGrantAtGoogle(t *testing.T) {
 			h.clock.advance(time.Hour)
 			renewed := h.renew(t, refresh, client, nil)
 			wantRefused(t, h, &renewed, http.StatusBadRequest, "invalid_grant", eventAuthRefresh, "grant_ended")
-			noLineCarries(t, h, googletest.AccessToken, googletest.RefreshToken, googletest.Subject, access, refresh)
+			noLineCarries(t, h, googletest.AccessToken, googletest.RefreshToken, googletest.PermissionID, access, refresh)
 		})
 	}
 }

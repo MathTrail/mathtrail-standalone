@@ -44,6 +44,7 @@ just ci-web     # what the checks run for the widget in web/: formatting, lint, 
 just load-test  # the load tool in tools/load, a Go module of its own: its tests; just load-lint for the rest
 just learners-test  # the learners' bench in tools/learners, a Go module of its own: its tests; just learners-lint for the rest
 just ci-learners    # the bench's guard: the service's student model against the bands it was recorded with
+just research ci-lint ci-test ci-paper  # the research module in research/, a Go module of its own: its lint, its tests, and paper A with its evidence
 ```
 
 ## What a change has to satisfy
@@ -52,8 +53,8 @@ The conventions are written down in [`CLAUDE.md`](CLAUDE.md) — it is addressed
 
 The short version:
 
-- **`just ci-lint` and `just ci-test` are green**, and `just ci-web` too when the widget changed, `just load-lint` and `just load-test` when the load tool did, and `just learners-lint`, `just learners-test` and `just ci-learners` when the learners' bench or what it runs did — the rating, the rule, the profile, the catalog's topics. They are what the pull request checks run, so a failure here is a failure there.
-- **Tests come with the change.** A pull request that drops below 90% coverage of the lines it touches cannot be merged. A new check is not considered covered until its test has been seen to fail with the check switched off.
+- **`just ci-lint` and `just ci-test` are green**, and `just ci-web` too when the widget changed, `just load-lint` and `just load-test` when the load tool did, and `just learners-lint`, `just learners-test` and `just ci-learners` when the learners' bench or what it runs did — the rating, the rule, the profile, the catalog's topics — and `just research ci-lint`, `just research ci-test` and `just research ci-paper` when the research module did. They are what the pull request checks run, so a failure here is a failure there.
+- **Tests come with the change.** A pull request that drops below 90% coverage of the service's lines it touches cannot be merged; the research module's coverage is shown apart and decides nothing. A new check is not considered covered until its test has been seen to fail with the check switched off.
 - **English everywhere in the repository**: code, every comment, configuration and documents.
 - **Nothing personal reaches a log.** Log lines carry aggregates — never a task, an answer, a pseudonym or a profile.
 - **The answer stays hidden** until the child has answered: not in a widget payload, not in an open field of the profile, not in a log.

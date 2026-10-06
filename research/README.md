@@ -37,14 +37,21 @@ What later tasks will create is listed too, with the task that writes it.
 
 - **What it is.** Code for experiments and tools lives in a separate Go module, `github.com/MathTrail/mathtrail-standalone/research`. It imports the product's packages, including those under `internal/`, at `v0.1.53`, the tag on the commit the paper's experiments were run on (Q87), so experiments exercise the product's own code as the paper describes it, rather than a copy of it or whatever the working tree holds now. The product never imports the research module.
 - **What the product's tooling sees.**
-  - The product's `ci-*` recipes, the pre-commit hook's build and tests, CodeQL (which builds `./...` from the root) and SonarCloud (`research/**` excluded from sources and tests) do not see the module.
+  - The product's `ci-*` recipes and the pre-commit hook's build and tests do not see the module.
   - Anything that walks files rather than Go packages does: `just fmt` and `just fmt-check` (gofmt over the whole tree), the pre-commit hook's gofmt, and gitleaks.
-  - CI runs none of the research checks (Q25). Every research task that touches code therefore starts with `just research test`, so a product change that broke an experiment is caught at the next research task.
+  - CI runs the module's own checks on every pull request and every commit of `main`, and a red one blocks the merge as the product's do (R231):
+    - `just research ci-lint` in the toolchain image, beside the product's lint;
+    - `just research ci-test` in the toolchain image too, as a check of its own, "Research tests", since one experiment's test takes minutes under the race detector;
+    - `just research ci-paper` on the runner, as the check "Paper A and its evidence", since it needs Docker, the whole history and the network.
+  - CodeQL builds the module after the product and reports on its code. Its coverage goes to Codecov under the flag `research`, which decides nothing, and to SonarCloud, which reads all but `draft-ui/`.
 - **Checks**, run from the repository root:
 
   ```sh
   just research test          # tests, with the race detector
   just research lint          # gofmt -s and golangci-lint over this module, ShellCheck over its scripts
+  just research ci-lint       # what a change must pass with Go and golangci-lint: gofmt -s and golangci-lint, licenses, deps-check
+  just research ci-test       # the tests, with a coverage profile in coverage.out
+  just research ci-paper      # what a change must pass with Docker: ShellCheck, ledger-check, paper-a
   just research vuln          # govulncheck, pinned by the product's justfile
   just research licenses      # go-licenses against the product's allow-list (R21)
   just research tidy          # go.sum after the product's go.mod changed
@@ -52,7 +59,7 @@ What later tasks will create is listed too, with the task that writes it.
   just research ledger-check  # every claim, product and prototype, still proven; both tables up to date
   just research seed-check    # every link of the prototype's notes is in literature/seed.bib
   just research citecheck     # every entry of literature/refs.bib as Crossref or DataCite records it
-  just research paper-a       # paper A: its numbers, its citations and names checked, the named and the anonymous PDF
+  just research paper-a       # paper A: its numbers, its citations and names checked, the named and the anonymous PDF, no line past the margins and the anonymous one in 14 pages
   just research paper-a-final # the anonymous PDF for submission; fails while a TBD is left
   just research paper-a-figure-check  # a changed CSV changes a figure; the same sources make the same PDF
   just research timestamp FILE        # freeze a protocol: its SHA-256, and an OpenTimestamps proof as FILE.ots beside it; FILE is a path inside research/, such as experiments/PROTOCOL-A-offline.md

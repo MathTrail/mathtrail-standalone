@@ -88,7 +88,7 @@ func (d *Drive) downloadRevision(w http.ResponseWriter, r *http.Request, token s
 		revisionNotFound(w, wanted)
 	case !revision.KeepForever:
 		// The reason as the example in Drive's guide to its errors spells it.
-		refuse(w, http.StatusForbidden, "download_restricted_for_revision",
+		Refuse(w, http.StatusForbidden, "download_restricted_for_revision",
 			"This revision cannot be downloaded by the authenticated user.")
 	default:
 		w.Header().Set("Content-Type", "application/octet-stream")
@@ -131,7 +131,7 @@ func (d *Drive) keepRevision(w http.ResponseWriter, r *http.Request, token strin
 		revisionNotFound(w, wanted)
 		return
 	case !*asked.KeepForever && file.Revisions[at].KeepForever:
-		refuse(w, http.StatusBadRequest, "illegalKeepForeverModification",
+		Refuse(w, http.StatusBadRequest, "illegalKeepForeverModification",
 			"Bad Request. Cannot update a revision to false that is marked as keepForever.")
 		return
 	case *asked.KeepForever && !file.Revisions[at].KeepForever && file.kept() >= maxKept:
@@ -249,11 +249,11 @@ func (rev *Revision) pick(fields []string) map[string]any {
 // keeps. Drive's documentation does not say how it refuses one, so the
 // stand-in refuses it as a request Drive would not take.
 func refuseKeeping(w http.ResponseWriter) {
-	refuse(w, http.StatusBadRequest, "badRequest", "At most "+strconv.Itoa(maxKept)+" revisions can be kept forever.")
+	Refuse(w, http.StatusBadRequest, "badRequest", "At most "+strconv.Itoa(maxKept)+" revisions can be kept forever.")
 }
 
 // revisionNotFound answers a call about a revision the file does not have,
 // naming it in the sentence, as Drive does.
 func revisionNotFound(w http.ResponseWriter, id string) {
-	refuse(w, http.StatusNotFound, "notFound", fmt.Sprintf("Revision not found: %s.", id))
+	Refuse(w, http.StatusNotFound, "notFound", fmt.Sprintf("Revision not found: %s.", id))
 }

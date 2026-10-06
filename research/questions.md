@@ -60,6 +60,7 @@ A decision can be revised by a later task on new facts; the revision is a new en
   - the comment on `go.work` now explains the nested module.
 
   Codecov needs no change: the product's coverage profile comes from `go test ./...` at the root, which never includes the research module.
+- **Revised by the product's T73.1 (R231, 2026-10-06):** SonarCloud reads the module, all but `draft-ui/`, as the product's plan asks. Its findings join the New Code the product's plan clears before every task, and its coverage decides nothing. Codecov counts the module under the flag `research`, which decides nothing either.
 - **Who and when:** executor, S00, 2026-09-25.
 - **Blocks:** all tasks.
 - **Sources:** `.dockerignore`, `.gitignore`, `sonar-project.properties`, `codecov.yml`.
@@ -85,6 +86,7 @@ A decision can be revised by a later task on new facts; the revision is a new en
   - a separate, non-required workflow — it cannot be tried out locally tonight, and a half-working workflow marks every commit red;
   - no CI for now.
 - **Decision:** no CI for now. Every research task that touches code starts with `just research test`, so a break is caught at the next research task rather than in production. Revisit at S37, when the module holds its first real experiment: a separate workflow triggered by changes to `research/**` or `internal/**`.
+- **Revised by the product's T73.1 (R231, 2026-10-06):** since Q87 the module requires the product at `v0.1.53`, so no change to the product's code can break an experiment, and what made a job in the product's CI unwelcome is gone. Its checks turn red on a change to the research, or to the tooling the two modules share, such as the linter's configuration, which that change keeps green for the research as it does for the product's other modules. The product's CI runs them on every pull request, and a red one blocks the merge, by the author's choice.
 - **Who and when:** executor, S00, 2026-09-25.
 - **Blocks:** S08, S37 onwards.
 - **Sources:** `.github/workflows/ci.yml`, `.github/workflows/codeql.yml`.
@@ -814,7 +816,7 @@ A decision can be revised by a later task on new facts; the revision is a new en
   - `deps-check` compares this module's versions with those of the product at the version required, read where Go keeps it, rather than with the working tree's.
   - The artifact keeps building from the product it ships: `assemble.sh` points the module at it with a `replace` of its own.
   - What the product does now is measured by the learners' bench, `tools/learners`, which follows the product as it changes.
-  - Left to T73.1: the module's checks in CI, its coverage, and how the module would hold both sets of numbers if an experiment ever needed the live product.
+  - Left to T73.1: the module's checks in CI, its coverage, and how the module would hold both sets of numbers if an experiment ever needed the live product. Done by T73.1 (R231): the checks run in the product's CI and block a merge; the coverage is shown under the flag `research` and decides nothing; and an experiment that needs the live product belongs to the learners' bench, while paper A's numbers stay at its pin.
 - **Who and when:** the author, 2026-10-04; done by the executor of T72.7.
 - **Blocks:** nothing; the product's rating may change.
 - **Sources:** Q21, Q73, Q84; the product's RUN.md, T72.7 and T73.1; `go.mod`; `justfile` (`_provenance`, `deps-check`); `release/assemble.sh`.
