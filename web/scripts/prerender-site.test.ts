@@ -274,6 +274,7 @@ describe("the site built from this repository", () => {
 			"assets/tokens.css",
 			"en/about/index.html",
 			"en/coach/index.html",
+			"en/help/index.html",
 			"en/index.html",
 			"en/privacy/index.html",
 			"en/research/index.html",
@@ -302,6 +303,7 @@ describe("the site built from this repository", () => {
 			"robots.txt",
 			"ru/about/index.html",
 			"ru/coach/index.html",
+			"ru/help/index.html",
 			"ru/index.html",
 			"ru/privacy/index.html",
 			"ru/research/index.html",
@@ -644,7 +646,7 @@ describe("the site built from this repository", () => {
 		}
 	});
 
-	test("closes the menu with the research and the page about who makes it, and names both in the footer before the documents, under the menu's words, in every language", async () => {
+	test("closes the menu with the research and the page about who makes it, and names both in the footer before the help and the documents, under the menu's words, in every language", async () => {
 		const locales = (await readdir(out, { withFileTypes: true }))
 			.filter((entry) => entry.isDirectory() && entry.name !== "assets")
 			.map((entry) => entry.name);
@@ -669,9 +671,10 @@ describe("the site built from this repository", () => {
 				`/${locale}/research/`,
 				`/${locale}/about/`,
 			]);
-			expect(footer.slice(0, 4).map(({ href }) => href)).toEqual([
+			expect(footer.slice(0, 5).map(({ href }) => href)).toEqual([
 				`/${locale}/research/`,
 				`/${locale}/about/`,
+				`/${locale}/help/`,
 				`/${locale}/privacy/`,
 				`/${locale}/terms/`,
 			]);
@@ -723,7 +726,7 @@ describe("the site built from this repository", () => {
 		}
 	});
 
-	test("writes, on the page about who makes it, to the address the privacy policy names", async () => {
+	test("writes, on the page about who makes it and on the help, to the address the privacy policy names", async () => {
 		for (const locale of ["en", "ru"]) {
 			const addresses = async (page: string) =>
 				[
@@ -733,9 +736,11 @@ describe("the site built from this repository", () => {
 				].map(([, address]) => address);
 			const policy = await addresses("privacy");
 			const about = await addresses("about");
+			const help = await addresses("help");
 
 			expect(about.length).toBeGreaterThan(1);
-			expect(new Set([...policy, ...about]).size).toBe(1);
+			expect(help.length).toBeGreaterThan(1);
+			expect(new Set([...policy, ...about, ...help]).size).toBe(1);
 		}
 	});
 

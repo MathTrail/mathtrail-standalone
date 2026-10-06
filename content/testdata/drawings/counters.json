@@ -1,0 +1,14 @@
+{
+  "from": "game-56-d4-2",
+  "drawing": [
+    " 2 ●●",
+    " 4 ●●●●"
+  ],
+  "drawing_structure": {
+    "kind": "piles",
+    "objects": [
+      {"id": "short_row", "label": "2", "value": 2},
+      {"id": "long_row", "label": "4", "value": 4}
+    ]
+  }
+}

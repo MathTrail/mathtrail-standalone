@@ -1,5 +1,5 @@
 {
-  "purpose": "Objects in a row, such as posts, trees or children in a queue, with the gaps between them. Label the objects the question names, and write a gap's length over its ##, right-aligned. Add or remove objects without changing the spacing; a row too long for the width keeps its first objects and its last, with ... between them.",
+  "purpose": "Objects in a row, such as posts, trees or children in a queue, with the gaps between them. Label the objects the question names, and write a gap's length over its ##, right-aligned. Add or remove objects without changing the spacing; a row too long for the width keeps its first objects and its last, with ... between them. A row whose objects or gaps the child is asked to count is always cut short this way, so that the count cannot be read off it.",
   "topics": ["counting.gaps", "logic.ordering", "parity.alternation"],
   "drawing": [
     "A     B     C     D",

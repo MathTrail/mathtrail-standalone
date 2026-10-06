@@ -69,6 +69,55 @@ func TestATaskHandedOutIsCountedWhereTheFamilyIs(t *testing.T) {
 	}
 }
 
+// A task handed out says whether it came with a drawing, as a yes or a no and
+// never as the drawing, which is the task's own text.
+func TestATaskHandedOutSaysWhetherItCameWithADrawing(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name string
+		hand func(*profile.OpenRequest) map[string]any
+		want bool
+	}{
+		{"in words alone", raceOn, false},
+		{"with a drawing", drawnRaceOn, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			kept := racer(t)
+			h, session := lesson(t, kept)
+			if handed := call(t, session, "submit_task", tc.hand(askForTheRace(t, session, kept))); handed.IsError {
+				t.Fatalf("submit_task failed: %s", textOf(t, handed))
+			}
+			h.settle()
+
+			fields := theOnlyLine(t, h, "task_accepted")
+			if got := fields["drawing"]; got != tc.want {
+				t.Errorf("task_accepted drawing = %v, want %v", got, tc.want)
+			}
+			wantCounted(t, "task_accepted", fields)
+		})
+	}
+}
+
+// drawnRaceOn is the race handed in with its three runners drawn, each named
+// in the question by the label the drawing gives it.
+func drawnRaceOn(request *profile.OpenRequest) map[string]any {
+	race := raceOn(request)
+	task, _ := race["task"].(map[string]any)
+	task["question"] = "Ann (A), Ben (B) and Kim (K) ran a race. Ben finished before Kim. Ann finished after Kim. " +
+		"Who finished first?"
+	task["drawing"] = "A  B  K\n●  ●  ●"
+	task["drawing_structure"] = map[string]any{
+		"kind": "runners",
+		"objects": []map[string]string{
+			{"id": "ann", "label": "A"}, {"id": "ben", "label": "B"}, {"id": "kim", "label": "K"},
+		},
+	}
+	return race
+}
+
 // The country a parent signed in from travels with the account the sign-in
 // lets a call in as, and the task handed out is counted by it — unless the
 // parent asked for it to be left out of what is counted, and then the line

@@ -1,7 +1,8 @@
 // published are the addresses the site has handed out: the consent screen of
-// the sign-in points at two of them, and a listing points at the apex. A build
-// that dropped one would break a link somebody else holds, and nothing on the
-// site need still link to it for the link rule to notice. An anchor linked from
+// the sign-in points at two of them, a listing at the apex, and the forms of
+// the chats' directories are to point at the help. A build that dropped one
+// would break a link somebody else holds, and nothing on the site need still
+// link to it for the link rule to notice. An anchor linked from
 // outside its page is held the same way, written after its page's address, and
 // its page must still hold an element with that id. The list is written by
 // hand, address by address, and never worked out from the site's texts, so that
@@ -13,6 +14,7 @@ export const published: readonly string[] = [
 	"/en/#connect",
 	"/en/about/",
 	"/en/coach/",
+	"/en/help/",
 	"/en/privacy/",
 	"/en/research/",
 	"/en/research/#student-model",
@@ -85,6 +87,7 @@ export const published: readonly string[] = [
 	"/ru/#connect",
 	"/ru/about/",
 	"/ru/coach/",
+	"/ru/help/",
 	"/ru/privacy/",
 	"/ru/research/",
 	"/ru/research/#student-model",

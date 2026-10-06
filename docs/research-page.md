@@ -17,6 +17,7 @@ The reference is the author's draft, `research/draft-ui/MathTrail - Исслед
 | 7 | CI computes the bench's numbers from the commit it builds, and they are never committed. The other inputs are small committed files: the PDF's facts, the monthly live snapshot (§11), and the curated books. |
 | 8 | The live block comes later, in a task of its own (T72.15). Until then the page shows the block's frame and says the data is still to come. T72.15.2 brought it (§11). |
 | 9 | The live block's styles go into the shared stylesheet, which every page loads, rather than one of the page's own. Should the heaviest page pass its budget, the author decides again. |
+| 10 | The live snapshot comes with nobody at a keyboard (2026-10-05). A scheduled query keeps it, and once a month a GitHub App of the repository's own brings it to `main` by a pull request that merges itself (2026-10-06, §11, R226). |
 
 ## 2. Address and frame
 
@@ -140,7 +141,7 @@ The file is not committed. It is made at build time, in `site/research/research.
 | The paper's title | The paper: `research/paper-a/main.tex` for English, the first heading of `research/paper-a/draft.ru.md` for Russian. The words carry it, and a test holds the English words to `\title` and the Russian to that heading. |
 | The PDF's pages, size and hash | The PDF itself, read when `just site-paper` copies it beside the data (§10); the site's build holds the file to its size and hash. |
 | Books, their authors and the years the authors died | Curated data, `site/data.json` → `research.sources`: each author's id, the year they died and their books' ids, in the page's order. The names and the titles are words of `research.yaml`, under those ids. |
-| Live numbers | The public views of the counts kept for years, through the monthly snapshot `site/research/live.json` (§11). |
+| Live numbers | The public views of the counts kept for years, through the snapshot a scheduled query keeps of them every day in `impact_site.live`, committed once a month as `site/research/live.json` (§11). |
 
 ## 6. The goals table
 
@@ -292,11 +293,14 @@ The answers are those to tasks the rule chose, after the trial series and withou
   - *ready*, when it shows its total, with whichever ranges its views show, or none.
 
   The block shows the latest month counted whole even when an earlier one showed more: each month stands on its own (R192), and an older month is never passed off as the latest. R187 rolled out on 2026-10-04, and the counts began in October, which is therefore never counted whole. So the first month is November, and its numbers come in December 2026 at the earliest.
-- **Into the build: a monthly snapshot, decided at the start of T72.15.** `just site-live` reads the public views with bq, as the deployment the Terraform configuration names, with the credentials of whoever runs it, and writes `site/research/live.json`. It is committed by a pull request each month, from the month's second day, when the night has counted the month before.
-  - The SQL, `infra/analytics/site/live.sql`, reads `closed_months`, `chances_total`, `chances` and `kept_up` and nothing else. It gives the whole snapshot as one value of JSON (`TO_JSON_STRING`), since bq writes every number of a row as a string, with the ranges from the lowest. Terraform makes nothing of it; the tests of the counts run it against the emulator and hold its keys to those the bench reads.
+- **Into the build: a monthly snapshot, decided at the start of T72.15 and taken with nobody at a keyboard since T72.15.3 (R226).**
+  - The SQL, `infra/analytics/site/live.sql`, reads `closed_months`, `chances_total`, `chances` and `kept_up` and nothing else. It gives the whole snapshot as one value of JSON (`TO_JSON_STRING`) in one column, `live`, with the ranges from the lowest, since bq writes every number of a row as a string. The tests of the counts run it against the emulator and hold its keys to those the bench reads; a test that needs no emulator holds the scheduled query, the recipe and the workflow to the one table they share.
+  - A scheduled query, run by the counter every day at 02:30 UTC, an hour after the night, replaces with that one row the table `impact_site.live`. The identity `mathtrail-live` may read that dataset and nothing else, and may run no query. Only a job of the GitHub environment `live-numbers`, which only `main` may run in, may borrow it.
+  - `just site-live` reads the table with `bq head`, as the deployment the Terraform configuration names, with the credentials of whoever runs it, writes `site/research/live.json` and holds it to the rule with the bench. It refuses a table the scheduled query has not written for two days: the query has stopped, and the row may be of a month before the latest one counted whole.
+  - The workflow `live.yml` does the same every day from the month's second, when the night has counted the month before, to its fifth, which take up a failed run or a late night, and when run by hand. Its first job reads the snapshot as `mathtrail-live` and checks that the exact counts refuse that identity. Its second holds the snapshot to the rule and compares it with the one `main` holds. Its third, when they differ, has a GitHub App of the repository's own open a pull request with it, which merges itself once the required checks pass, and the release after the merge publishes the site. Each job holds one credential at most.
   - The snapshot holds the month, the month's total and the ranges shown, named as the views name them, with every key in every state. It names no deployment: the page shows none, and the recipe prints the one it read.
-  - The snapshot needs no credentials in CI and gives the numbers a second look in review.
-  - The alternative, reading BigQuery from `pages.yml` through Workload Identity, needs its own task. `impact_public` is not an authorized view today, so its reader could read the exact `impact` tables. The identity pool binds by repository alone, and the build job runs npm, which should not hold `id-token: write`.
+  - The site's build needs no credentials. Each snapshot is a commit of its own, and the summary of the run that delivered it shows how it differs from the one before.
+  - Reading BigQuery from `pages.yml` was rejected: its build runs npm, which should not hold `id-token: write`.
 - **Into the page's data.** The bench's `page-file -live` reads the snapshot strictly and refuses one that shows what the rule hides or what no month could give:
   - a cell under ten children or thirty answers, a count not rounded to five, or one above its month's;
   - a range of chance the report does not count in, one there twice, or a promise outside its range;
@@ -307,16 +311,17 @@ The answers are those to tasks the rule chose, after the trial series and withou
 
   It names each range by what it spans (§4), and a test holds its rule to the literals of the views' SQL. It does not hold a range of answers to the trial series of the commit being built: a month counted under another trial series would be refused by a commit that changed it. The site's reader checks the cells again by the rule in the data, and refuses a rule weaker than the views', which a test holds to their SQL too (§4).
 - **On the page.** Three drawings, each with its table (§8); the month by `<Month>`; the rule, the trial series and the corridor through the data, since the words hold no digit (§9). The styles are in the shared stylesheet (§1, decision 9).
-- **Forks.** A fork's live numbers are its own deployment's: it removes `site/research/live.json` and takes its own (`docs/self-hosting.md`).
+- **Forks.** A fork's live numbers are its own deployment's: it removes `site/research/live.json` and takes its own, and it either sets up an App of its own for `live.yml` or turns that workflow off (`docs/self-hosting.md`).
 
 ## 12. What gets built, and what is left
 
 - **T72.13** builds the page, in two parts under rule 12:
   - **T72.13.1, the data:** the bench's commands `page` and `page-file`, `pageCriterion`, the fixture, the product's small exports, `just research-data` and `just site-paper`, and the step in `pages.yml`;
   - **T72.13.2, the page:** its components, its words in English and Russian, the drawings with their tables, the guard, the menu and the footer with the new measurement, the copy of the PDF into the built site, `published.ts`, the README, and `docs/self-hosting.md`. Built as this document says: the reader `web/src/site/research.ts`, the page in `ResearchPage.tsx` with its theses, its goals table and its numbers in components of their own, the authors in `site/data.json`, the guard of §9, the fold of R209 and its measure, `just site-fold`. `just site` makes the data before it builds.
-- **T72.15** brought the live numbers, in two parts (§11):
+- **T72.15** brought the live numbers, in three parts (§11):
   - **T72.15.1, the counts:** the nightly query's weighing, the two tables, the public and the private views, and the privacy policy;
-  - **T72.15.2, the page:** the snapshot's SQL and `just site-live`, `page-file -live` with the made-up snapshot of the fixture, the reader's three states, and the block with its drawings, tables and words.
+  - **T72.15.2, the page:** the snapshot's SQL and `just site-live`, `page-file -live` with the made-up snapshot of the fixture, the reader's three states, and the block with its drawings, tables and words;
+  - **T72.15.3, the schedule:** the snapshot's table and the identity that reads it, `just site-live` reading that table, and `live.yml` with its App.
 - **T73.2–T73.4** move the making of `research.json` and of the PDFs into the research pipeline on merge to `main`; the file's shape and the page stay. Once the build downloads the file, `just site` stops making it first, and the build's `--research` names the file downloaded.
 
 **Rejected:**
@@ -332,6 +337,7 @@ The answers are those to tasks the rule chose, after the trial series and withou
 - a floor under the live block's month: October, which mixes two models, is never counted whole;
 - the latest month that showed numbers rather than the latest counted whole, which would pass an older month off as the latest;
 - the deployment named in the snapshot, which the page never shows;
+- the snapshot taken by hand each month, authorized views on `impact` for its reader, and a branch of data outside `main` (R226);
 - a check that the ranges shown add up to no more than their month, which honest numbers fail, since each range is rounded to five on its own.
 
 **Open for the author:**

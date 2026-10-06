@@ -56,7 +56,7 @@ variable "github_repository" {
 }
 
 variable "github_owner_id" {
-  description = "The numeric id of the account or organisation that owns the repository, from https://api.github.com/users/<owner>. A name can be given up and taken by somebody else; a number cannot. Nothing here reads it — it is the condition the federated pool is created with — and it lives beside the rest of the deployment's facts so that there is one place to read them from."
+  description = "The numeric id of the account or organisation that owns the repository, from https://api.github.com/users/<owner>. A name can be given up and taken by somebody else; a number cannot. It is the condition the federated pool is created with, outside this configuration, which only holds github_oidc_subject_prefix to it; it lives beside the rest of the deployment's facts so that there is one place to read them from."
   type        = string
 
   validation {
@@ -69,6 +69,27 @@ variable "workload_identity_pool_id" {
   description = "The federated pool the repository's tokens are exchanged in. It exists before this configuration is ever applied — it is how the apply itself signs in — so it is named here rather than created."
   type        = string
   default     = "mathtrail-github"
+}
+
+variable "github_oidc_subject_prefix" {
+  description = "How GitHub begins the subject of the repository's tokens, as `gh api repos/OWNER/NAME/actions/oidc/customization/sub --jq .sub_claim_prefix` prints it. The identity that reads the snapshot of the live numbers is borrowed by the subject of one environment's jobs alone, so the counts need it."
+  type        = string
+  default     = ""
+
+  # GitHub names the repository in the subject by its name alone or, where the
+  # repository asks for a subject no later owner of its name can be given, by
+  # its name and id: repo:OWNER/NAME or repo:OWNER@OWNER_ID/NAME@REPO_ID. Names
+  # on GitHub ignore case, so the comparison does too.
+  validation {
+    condition = !var.analytics || anytrue([
+      lower(var.github_oidc_subject_prefix) == lower("repo:${var.github_repository}"),
+      can(regex("^[0-9]+$", trimprefix(
+        lower(var.github_oidc_subject_prefix),
+        lower("repo:${replace(var.github_repository, "/", "@${var.github_owner_id}/")}@"),
+      ))),
+    ])
+    error_message = "github_oidc_subject_prefix is what GitHub prints as the sub_claim_prefix of github_repository's tokens: repo:OWNER/NAME, or repo:OWNER@OWNER_ID/NAME@REPO_ID with github_owner_id. The counts need it."
+  }
 }
 
 variable "service_name" {

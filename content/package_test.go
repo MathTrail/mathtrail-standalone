@@ -318,16 +318,17 @@ func showsTasksOf(t *testing.T, shipped *content.Content, examples []map[string]
 // The reference tasks a package shows are the topic's own at the level of the
 // brief and the requested difficulty, and they come as a model is to see them:
 // without the id, the topic and the level the package already names, and
-// without the solver the model is not shown.
+// without the solver the model is not shown. The topic is one with no
+// drawings, so that none of the three is there for its drawing alone.
 func TestAPackageShowsReferenceTasksAsTheModelIsToSeeThem(t *testing.T) {
 	t.Parallel()
 
 	shipped := loaded(t)
-	_, got := packageFor(t, shipped, request("counting.gaps", rating.Grades12, 3, 0))
+	_, got := packageFor(t, shipped, request("arithmetic.tricks", rating.Grades12, 3, 0))
 
 	var questions []string
 	for _, task := range shipped.Examples() {
-		if task.Topic == "counting.gaps" && task.GradeLevel == rating.Grades12 && task.Difficulty == 3 {
+		if task.Topic == "arithmetic.tricks" && task.GradeLevel == rating.Grades12 && task.Difficulty == 3 {
 			questions = append(questions, task.Question)
 		}
 	}
@@ -343,6 +344,62 @@ func TestAPackageShowsReferenceTasksAsTheModelIsToSeeThem(t *testing.T) {
 			if _, there := example[hidden]; there {
 				t.Errorf("an example carries %q, which the model is not shown", hidden)
 			}
+		}
+	}
+}
+
+// A package shows a reference task that draws wherever its topic has one at
+// the level of the brief, whatever the difficulty and wherever the turns have
+// come to: a model shown no drawing writes none. The task comes with the
+// structure its drawing is checked by, and without what the model is not shown.
+func TestAPackageShowsATaskThatDrawsWhereItsLevelHasOne(t *testing.T) {
+	t.Parallel()
+
+	shipped := loaded(t)
+	type place struct {
+		topic string
+		level rating.GradeLevel
+	}
+	drawsAt := map[place]bool{}
+	for _, task := range shipped.Examples() {
+		if task.Drawing != "" {
+			drawsAt[place{task.Topic, task.GradeLevel}] = true
+		}
+	}
+	if len(drawsAt) == 0 {
+		t.Fatal("no reference task draws, so nothing here was tested")
+	}
+	for at := range drawsAt {
+		for difficulty := 1; difficulty <= 5; difficulty++ {
+			for answers := range 5 {
+				_, got := packageFor(t, shipped, request(at.topic, at.level, difficulty, answers))
+				wantATaskThatDraws(t, got.Examples,
+					fmt.Sprintf("%s at %s, difficulty %d, after %d answers", at.topic, at.level, difficulty, answers))
+			}
+		}
+	}
+}
+
+// wantATaskThatDraws fails unless one of the examples a package shows draws,
+// with the structure its drawing is checked by and nothing the model is not
+// shown.
+func wantATaskThatDraws(t *testing.T, examples []map[string]json.RawMessage, where string) {
+	t.Helper()
+
+	drawn := slices.IndexFunc(examples, func(example map[string]json.RawMessage) bool {
+		_, there := example["drawing"]
+		return there
+	})
+	if drawn < 0 {
+		t.Errorf("%s: no example draws", where)
+		return
+	}
+	if _, there := examples[drawn]["drawing_structure"]; !there {
+		t.Errorf("%s: an example draws without its drawing_structure", where)
+	}
+	for _, hidden := range []string{"id", "topic", "grade_level", "solver"} {
+		if _, there := examples[drawn][hidden]; there {
+			t.Errorf("%s: an example that draws carries %q, which the model is not shown", where, hidden)
 		}
 	}
 }

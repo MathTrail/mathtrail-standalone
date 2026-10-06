@@ -95,6 +95,40 @@ func TestACallIsKnownByItsSpanBeforeItsRequest(t *testing.T) {
 	}
 }
 
+// The drawings of a group are counted among the tasks whose lines say whether
+// they came with one: where only some say, the count stands beside how many
+// said, so that it is not read against every task accepted, and where none
+// says, no count is made up.
+func TestADrawingIsCountedAmongTheLinesThatSaySo(t *testing.T) {
+	t.Parallel()
+
+	accepted := func(drawing string) string {
+		return `{"message":"task_accepted","topic":"logic.ordering","attempts":1,"seconds_since_request":10,` +
+			`"instructions_version":"v1"` + drawing + `}`
+	}
+	for _, test := range []struct {
+		name  string
+		lines []string
+		want  string
+	}{
+		{"every line says", []string{accepted(`,"drawing":true`), accepted(`,"drawing":false`)}, "1"},
+		{"some lines say", []string{accepted(`,"drawing":true`), accepted(""), accepted(`,"drawing":false`)}, "1 of 2"},
+		{"no line says", []string{accepted(""), accepted("")}, notLogged},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			rows := tallied(t, test.lines...).acceptedTable().rows
+			if len(rows) != 1 {
+				t.Fatalf("accepted tasks in %d rows, want 1", len(rows))
+			}
+			if got := rows[0][3]; got != test.want {
+				t.Errorf("with a drawing = %q, want %q", got, test.want)
+			}
+		})
+	}
+}
+
 // A request handed back while it is still open is the request already
 // counted, not another one.
 func TestARequestHandedBackIsNotAskedForAgain(t *testing.T) {
@@ -228,7 +262,7 @@ func TestAReportOfNoLinesSaysSo(t *testing.T) {
 		t.Fatalf("Run() error = %v, want nil", err)
 	}
 	if got := out.String(); !strings.Contains(got, "No lines of the service's were read.") ||
-		strings.Count(got, "None in these lines.") != 13 || strings.Contains(got, "|") {
+		strings.Count(got, "None in these lines.") != 14 || strings.Contains(got, "|") {
 		t.Errorf("the report of no lines is\n%s\nwant it to say there are none, and no table", got)
 	}
 }

@@ -515,6 +515,17 @@
     "grade_level": "3-4",
     "difficulty": 4,
     "question": "On an island, knights always tell the truth and liars always lie. Every islander is a knight or a liar. Five islanders stand in a row. The first says: 'Exactly 1 of us is a liar.' The second says: 'Exactly 2 of us are liars.' The third says: 'Exactly 3 of us are liars.' The fourth says: 'Exactly 4 of us are liars.' The fifth says: 'Exactly 5 of us are liars.' How many knights are there?",
+    "drawing": "1  2  3  4  5\n●──●──●──●──●",
+    "drawing_structure": {
+      "kind": "row",
+      "objects": [
+        {"id": "first", "label": "1"},
+        {"id": "second", "label": "2"},
+        {"id": "third", "label": "3"},
+        {"id": "fourth", "label": "4"},
+        {"id": "fifth", "label": "5"}
+      ]
+    },
     "options": {
       "A": "0",
       "B": "1",
@@ -753,6 +764,15 @@
     "grade_level": "3-4",
     "difficulty": 5,
     "question": "On an island, knights always tell the truth and liars always lie. Every islander is a knight or a liar. Six islanders stand in a row. The first says: 'At least 1 of us is a liar.' The second says: 'At least 2 of us are liars.' And so on: the sixth says: 'At least 6 of us are liars.' How many knights are there?",
+    "drawing": "1  2  3  4  5  6\n●──●──●──●──●──●",
+    "drawing_structure": {
+      "kind": "row",
+      "objects": [
+        {"id": "first", "label": "1"},
+        {"id": "second", "label": "2"},
+        {"id": "sixth", "label": "6"}
+      ]
+    },
     "options": {
       "A": "0",
       "B": "2",
@@ -1065,6 +1085,16 @@
     "grade_level": "5-6",
     "difficulty": 4,
     "question": "On an island, knights always tell the truth and liars always lie. Every islander is a knight or a liar. A traveller asked four islanders: 'How many knights are there among you four?' The first answered 1, the second 2, and the third and the fourth both answered 3. At least one of the four is a knight. How many knights are there among them?",
+    "drawing": "1  2  3  3\n●──●──●──●",
+    "drawing_structure": {
+      "kind": "row",
+      "objects": [
+        {"id": "first", "label": "1"},
+        {"id": "second", "label": "2"},
+        {"id": "third", "label": "3"},
+        {"id": "fourth", "label": "3"}
+      ]
+    },
     "options": {
       "A": "3",
       "B": "4",

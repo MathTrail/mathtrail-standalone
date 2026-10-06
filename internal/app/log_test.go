@@ -186,7 +186,8 @@ func wantTheLessonInTheReport(t *testing.T, lines []observer.LoggedEntry) {
 
 	for _, row := range []string{
 		"| " + version + " | claude | 1 | 2 | 1 | 0 |",
-		"| " + version + " | claude | 1 | 0 | 2.0 |",
+		"| " + version + " | claude | 1 | 0 | 0 | 2.0 |",
+		"| " + version + " | logic.ordering | 1 | 0 |",
 		"| " + version + " | bad_structure | 1 | 1 |",
 		"| daily_tasks | 1 |",
 		"| claude | next_task | 3 | 2 | 1 | 0 | 0 |",

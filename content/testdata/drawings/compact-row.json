@@ -1,0 +1,15 @@
+{
+  "from": "ord-34-d2-5",
+  "drawing": [
+    "1  2  3",
+    "●──●──●"
+  ],
+  "drawing_structure": {
+    "kind": "row",
+    "objects": [
+      {"id": "chair_1", "label": "1"},
+      {"id": "chair_2", "label": "2"},
+      {"id": "chair_3", "label": "3"}
+    ]
+  }
+}

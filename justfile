@@ -502,16 +502,19 @@ web-layout *args: _playwright-pinned
 # The README's pictures of a task, a wrong answer and the progress, in the dark
 # theme: the preview's own scenes, photographed in Chromium from the image the
 # layout is measured in, as a phone 428 px wide shows them at twice its density.
-# They are written over docs/screens/, for the change to be looked at before it
-# is kept. The cards name the newest release this tree follows, rather than the
-# changes on top of it nobody has released; a clone that holds no release is
-# refused, rather than photographed as "dev".
-# Photograph the widget for the README
+# They are written anew into web/screens/, which git keeps out; the README
+# shows the ones published on the branch screens. The cards name the version
+# given, or else the newest release this tree follows, rather than the changes
+# on top of it nobody has released; a clone that holds no release is refused,
+# rather than photographed as "dev". The version reaches the script as an
+# argument, never as its text.
+# Photograph the widget for the README, naming the version given or the newest release
 [working-directory('web')]
-web-screens: _playwright-pinned
+[positional-arguments]
+web-screens version="": _playwright-pinned
     #!/usr/bin/env bash
     set -euo pipefail
-    release=$(git describe --tags --abbrev=0)
+    release="${1:-$(git describe --tags --abbrev=0)}"
     docker run --rm --init --shm-size=1g --user "$(id -u):$(id -g)" -e HOME=/tmp \
         -e VITE_VERSION="$release" \
         -v "{{ justfile_directory() }}:{{ justfile_directory() }}" -w "{{ justfile_directory() }}/web" \
@@ -830,16 +833,23 @@ site-paper:
 # The live numbers of the page "Research" as the public views of the counts
 # kept for years show them: the latest month counted whole, its answers over
 # every range of the chance promised, and the ranges of chance and of the
-# child's answers the views' rule lets them show. They are read with bq, as
+# child's answers the views' rule lets them show. A scheduled query keeps them
+# every day as the one row of a table of its own, which this reads with bq, as
 # the deployment the Terraform configuration names, with the credentials of
-# whoever runs it, and written to site/research/live.json, which git keeps,
-# since no build of the site reads BigQuery. A month is counted whole by the
-# night after it ends, so a snapshot taken from the next month's second day
-# holds it. The page's data takes the snapshot in when there is one, and the
-# page says the numbers are still to come when there is none. The SQL is in
-# infra/analytics/site/, where the tests of the counts run it too.
-# Take a snapshot of the live numbers of the page "Research"
-site-live:
+# whoever runs it, writes to site/research/live.json and holds to the rule
+# with the bench. A month is counted whole by the night after it ends, so a
+# snapshot taken from the next month's second day holds it. The page's data
+# takes the snapshot in when there is one, and the page says the numbers are
+# still to come when there is none. The SQL is in infra/analytics/site/, where
+# the tests of the counts run it too.
+# Read the snapshot of the live numbers of the page "Research" and check it
+site-live: _live-read _live-check
+
+# The snapshot's one row, read from its table as a table is browsed, which
+# runs no query, into site/research/live.json. A table the scheduled query has
+# not written for two days is refused: the query has stopped, and the row may
+# be of a month before the latest one counted whole.
+_live-read:
     #!/usr/bin/env bash
     set -euo pipefail
     if ! command -v bq > /dev/null; then
@@ -847,23 +857,45 @@ site-live:
         exit 1
     fi
     project=$(just _project)
-    # The SQL goes to bq on its input: given as an argument, a query that
-    # begins with a comment, as every file of it does, is read as a flag.
-    snapshot=$(just _analytics-sql "$project" site/live.sql |
-        bq --project_id="$project" --quiet query --nouse_legacy_sql --format=json | jq '.[0].live | fromjson')
+    table="$project:impact_site.live"
+    # bq says what went wrong on its output, where the table is otherwise, such
+    # as that there is no table before the scheduled query's first run.
+    if ! shown=$(bq --project_id="$project" --quiet --format=json show "$table"); then
+        echo "site-live: $shown" >&2
+        exit 1
+    fi
+    written=$(jq '.lastModifiedTime | tonumber / 1000 | floor' <<< "$shown")
+    if (( $(date +%s) - written > 2 * 24 * 60 * 60 )); then
+        echo "site-live: $table was last written on $(date -u -d "@$written" '+%F at %H:%M UTC')," \
+            "more than two days ago: the scheduled query that keeps it has stopped" >&2
+        exit 1
+    fi
+    snapshot=$(bq --project_id="$project" --quiet --format=json head --max_rows=1 "$table" |
+        jq '.[0].live | fromjson')
     printf '%s\n' "$snapshot" > site/research/live.json
+    echo "site-live: read from $table into site/research/live.json"
+
+# The snapshot in site/research/live.json held to the rule of the public views
+# by the bench, and what it shows; with no snapshot there, what the page says
+_live-check:
+    #!/usr/bin/env bash
+    set -euo pipefail
     # The page's data is made from the snapshot at once, so that a snapshot the
     # bench refuses is refused now rather than by the next build of the site.
     if ! just research-data > /dev/null; then
-        echo "site-live: the page's data could not be made with the snapshot now in" \
+        echo "site-live: the page's data could not be made with the snapshot in" \
             "site/research/live.json, for the reason above" >&2
         exit 1
+    fi
+    if [ ! -f site/research/live.json ]; then
+        echo "site-live: there is no snapshot, so the page says the numbers are still to come"
+        exit 0
     fi
     said=$(jq -r 'if .month == null then "no month is counted whole yet"
         elif .total == null then "\(.month) had too few children for any number to be shown"
         else "\(.month): \(.total.learners) children and \(.total.answers) answers, with \(.chances | length) ranges of chance and \(.kept_up | length) of the child'"'"'s answers shown" end' \
         site/research/live.json)
-    echo "site-live: $said; read from $project into site/research/live.json"
+    echo "site-live: $said"
 
 # -- Infrastructure ---------------------------------------------------------
 
@@ -1135,6 +1167,49 @@ reviewer-grant service="mathtrail":
     fi
     subject="$subject" refresh="$refresh" jq -cjn '{subject: env.subject, refresh_token: env.refresh}' \
         | gcloud secrets versions add "{{ service }}-reviewer-grant" --project="$project" --data-file=-
+
+# -- The directories --------------------------------------------------------
+
+# The icons a listing in the chats' directories shows: the site's logo drawn
+# square, 1024 pixels a side with its corners clear, once as it is and once
+# with a rim around its tile for a dark page, photographed in Chromium from the
+# image the widget's layout is measured in. They are written over
+# plugin/assets/, for the change to be looked at before it is kept; a change
+# to the logo deserves new ones.
+# Draw the directories' icons from the site's logo
+[working-directory('web')]
+plugin-icons: _playwright-pinned
+    docker run --rm --init --shm-size=1g --user "$(id -u):$(id -g)" -e HOME=/tmp \
+        -v "{{ justfile_directory() }}:{{ justfile_directory() }}" -w "{{ justfile_directory() }}/web" \
+        {{ PLAYWRIGHT_IMAGE }} node scripts/icons.ts
+
+# The package ChatGPT's directory takes: a ZIP of plugin/, its manifest, the
+# server's address and the icons, checked first by the package's own test. It
+# refuses while the manifest names the developer by its placeholder, and while
+# the privacy policy or the terms of any language do not name that developer,
+# since the directory asks the public pages to name the same publisher as the
+# submission. The ZIP goes to bin/, with what else is built here and kept out
+# of git.
+# Check the ChatGPT package and build its ZIP
+plugin-zip:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    developer=$(jq -r '.extensions["com.openai"].interface.developerName' plugin/plugin.json)
+    if [ "$developer" = "[Company]" ]; then
+        echo "plugin-zip: plugin/plugin.json names the developer [Company]: put the verified name in its place first." >&2
+        exit 1
+    fi
+    for page in site/content/*/privacy.md site/content/*/terms.md; do
+        if ! grep -qwF -- "$developer" "$page"; then
+            echo "plugin-zip: $page does not name $developer, the developer the package names." >&2
+            exit 1
+        fi
+    done
+    go test ./plugin/ -count=1
+    mkdir -p bin
+    rm -f bin/mathtrail-plugin.zip
+    (cd plugin && zip -X -D -q -r ../bin/mathtrail-plugin.zip plugin.json mcp.json assets)
+    unzip -l bin/mathtrail-plugin.zip
 
 # -- Container --------------------------------------------------------------
 

@@ -6,6 +6,8 @@
 -- lies within it, and a range of answers by its first answer. Before a month
 -- is counted whole there is no month, and a month of too few children shows
 -- neither its answers nor a range. It reads the public views and nothing else.
+-- Every day a scheduled query keeps its one row in a table of its own, whose
+-- one column, live, is the name the snapshot is read by.
 WITH latest AS (
   SELECT MAX(month) AS month FROM `${public}.closed_months`
 )
