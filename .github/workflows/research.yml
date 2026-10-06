@@ -1,0 +1,193 @@
+# The research's data, made from one commit. Paper A's experiments are held to
+# the results the repository keeps, and from the same commit come the numbers
+# the paper prints and the data of the site's page "Research". An experiment is
+# run again only when its program or its results changed: a key names both,
+# and a run that reproduced them keeps a mark under it. A release's run hands
+# the paper's numbers and the page's data on, as one artifact, to the steps
+# after it; on a pull request only the experiments are held to their results.
+name: Research
+
+on:
+  # A release, named by its tag: everything is made from that tag.
+  workflow_call:
+    inputs:
+      version:
+        description: "The release whose commit the data is made from."
+        type: string
+        required: true
+  # By hand, on any branch, with every experiment run again when asked.
+  workflow_dispatch:
+    inputs:
+      again:
+        description: "Run every experiment again, whatever reproductions are kept."
+        type: boolean
+        default: false
+  pull_request:
+
+permissions:
+  contents: read
+  # The toolchain image the data is made in.
+  packages: read
+
+# A new push replaces a pull request's run. A run started by hand waits in a
+# queue of its own, so that it never takes the place of a release's run, whose
+# site waits for it: called by a release, the run carries the release's
+# workflow and event, a release started by hand among them.
+concurrency:
+  group: research-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Git refuses a repository whose files belong to somebody else, which is what a
+  # checkout inside a container looks like to it.
+  GIT_CONFIG_COUNT: "1"
+  GIT_CONFIG_KEY_0: safe.directory
+  GIT_CONFIG_VALUE_0: "*"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  reproduce:
+    name: Reproduce ${{ matrix.experiment }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    # On the runner itself, with the Go the research module declares: the
+    # toolchain image follows the product's Go, and the paper's experiments are
+    # built by the paper's.
+    strategy:
+      fail-fast: false
+      matrix:
+        experiment: [faultinject, learnersim, perf]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.version }}
+          persist-credentials: false
+      # What Go downloads and builds is kept by the research's dependencies: it
+      # speeds the build and changes no byte of the program, whose key is its
+      # own bytes.
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: research/go.mod
+          cache-dependency-path: research/go.sum
+      - uses: ./.github/actions/just
+      - id: key
+        name: Name what the results are reproduced from
+        env:
+          EXPERIMENT: ${{ matrix.experiment }}
+        run: |
+          key=$(just research experiment-key "$EXPERIMENT")
+          if [ -z "$key" ]; then
+              echo "No key was made for $EXPERIMENT." >&2
+              exit 1
+          fi
+          echo "key=$key" >> "$GITHUB_OUTPUT"
+      # A mark is kept only by a run that reproduced the results under its key.
+      # A pull request's marks are its own, and main trusts only marks main kept.
+      - id: mark
+        name: Ask whether these results were reproduced by this program
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/reproduced
+          key: reproduced-${{ matrix.experiment }}-${{ steps.key.outputs.key }}
+      - name: Name the run that reproduced them
+        if: steps.mark.outputs.cache-hit == 'true' && !inputs.again
+        run: cat "$RUNNER_TEMP/reproduced/note" >> "$GITHUB_STEP_SUMMARY"
+      # Under bash the pipe keeps the recipe's exit as the step's own.
+      - name: Run the experiment again and hold it to its results
+        if: steps.mark.outputs.cache-hit != 'true' || inputs.again
+        env:
+          EXPERIMENT: ${{ matrix.experiment }}
+        run: just research reproduce "$EXPERIMENT" "$RUNNER_TEMP/run" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Keep what the run wrote
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: reproduced-${{ matrix.experiment }}
+          path: ${{ runner.temp }}/run
+          retention-days: 14
+      - name: Note the run that reproduced them
+        if: steps.mark.outputs.cache-hit != 'true'
+        env:
+          EXPERIMENT: ${{ matrix.experiment }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/reproduced"
+          echo "$EXPERIMENT: these results were reproduced by $RUN, at $(git rev-parse --short HEAD)." > "$RUNNER_TEMP/reproduced/note"
+      - name: Keep the mark
+        if: steps.mark.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/reproduced
+          key: reproduced-${{ matrix.experiment }}-${{ steps.key.outputs.key }}
+
+  toolchain:
+    name: Toolchain image
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.image.outputs.reference }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.version }}
+      - uses: ./.github/actions/just
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: image
+        run: echo "reference=$(just ci-toolchain-image)" >> "$GITHUB_OUTPUT"
+
+  data:
+    name: The paper's numbers and the page's data
+    needs: [toolchain, reproduce]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    # In the image the site is built in, so that the bench's build, and the key
+    # its numbers are kept under, are those of the site's own builds.
+    container:
+      image: ${{ needs.toolchain.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.version }}
+      # The numbers are computed from this commit with nothing an earlier run
+      # kept, and kept for the pull requests after it when no run kept them.
+      - name: Make the data of the page "Research"
+        uses: ./.github/actions/page-data
+      - name: Write the numbers the paper prints
+        run: just research _paper-a-numbers
+      - name: Name what is handed on
+        run: |
+          processor=$(sed -n 's/^machine_processor=//p' research/experiments/perf/results/numbers.txt)
+          {
+              echo
+              echo "Handed on as research-data:"
+              echo
+              echo '```'
+              sha256sum site/research/research.json research/paper-a/generated/numbers.tex
+              echo '```'
+              echo
+              echo "E-A4's times are those of the run the paper describes, on $processor."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: research-data
+          path: |
+            site/research/research.json
+            research/paper-a/generated/numbers.tex
+          retention-days: 7
+          # A job run again replaces what its first attempt handed on.
+          overwrite: true

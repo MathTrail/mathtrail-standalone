@@ -555,6 +555,53 @@ _provenance out:
     printf 'commit=%s\npin=%s\ncode_under_test=%s\nstarlark=%s\nstarlark_at_pin=%s\ngo=%s\n' \
         "$(git -C .. rev-parse HEAD)" "$pin" "$tested" "$starlark" "$pinned" "$(go env GOVERSION)" > "$out/provenance.txt"
 
+# An experiment's program, built alike wherever it is built: with no C, for the
+# plainest amd64, and with no path or version control stamped in. Its bytes then
+# name everything a run of it depends on: its own code, the product at the
+# version this module requires with the content it embeds, the modules it links
+# and the Go that built it.
+_experiment-build name:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    case {{ quote(name) }} in
+        faultinject | learnersim | perf) ;;
+        *) echo "there is no experiment {{ name }}: faultinject, learnersim or perf" >&2; exit 2 ;;
+    esac
+    mkdir -p bin
+    CGO_ENABLED=0 GOAMD64=v1 go build -trimpath -buildvcs=false -o bin/{{ name }} ./experiments/{{ name }} >&2
+
+# Runs with the same key give the same bytes. The key holds the program, whether
+# the processor has FMA, which decides the last digits math.Exp gives, the
+# comparison, and every result the run is held to, so that a result changed by
+# hand changes the key too.
+[doc("The key of an experiment's reproduction: its program, the processor, the comparison and the results it is held to")]
+experiment-key name: (_experiment-build name)
+    #!/usr/bin/env bash
+    set -euo pipefail
+    {
+        echo {{ quote(name) }}
+        sha256sum < bin/{{ name }}
+        {{ ROOT }} _fma
+        sha256sum < experiments/reproduce.sh
+        find experiments/{{ name }}/results -maxdepth 1 -type f ! -name provenance.txt -print0 | LC_ALL=C sort -z | xargs -0 sha256sum
+    } | sha256sum | cut -c1-64
+
+# The run writes into dir, a path from research/ when it is relative, and left
+# in place; with no dir, into a directory of its own that is removed after it.
+[doc("Run an experiment of paper A again and compare what it writes with its results: every file of E-A1 and E-A3, E-A4's package sizes")]
+reproduce name dir='': (_experiment-build name)
+    #!/usr/bin/env bash
+    set -euo pipefail
+    run={{ quote(dir) }}
+    if [ -z "$run" ]; then
+        run=$(mktemp -d)
+        trap 'rm -rf "$run"' EXIT
+    fi
+    start=$SECONDS
+    experiments/reproduce.sh {{ quote(name) }} experiments/{{ name }}/results "$run" bin/{{ name }}
+    processor=$(sed -n '/^model name/{s/^model name[[:space:]]*: //p;q}' /proc/cpuinfo)
+    echo "{{ name }}: $((SECONDS - start)) s on ${processor:-$(go env GOARCH)}, $(go env GOVERSION)"
+
 # -- The artifact of paper A ---------------------------------------------------
 
 # The product at the ledger's pin with its reference tasks, and the experiments

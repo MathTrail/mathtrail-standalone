@@ -1,8 +1,9 @@
 # What a green main produces: the server built for the architectures it runs on,
 # the sums of what was built, and a signature for each of them, and then the
-# service deployed, the site published and the README's pictures photographed
-# from the release's tag. What matters in the release is that anybody can check
-# that a binary came from this repository, from this workflow, at this commit;
+# service deployed, the research's data made and the site published with it,
+# and the README's pictures photographed from the release's tag. What matters
+# in the release is that anybody can check that a binary came from this
+# repository, from this workflow, at this commit;
 # what matters in the delivery, the site and the pictures after it is that all
 # three name the release the service runs.
 #
@@ -170,15 +171,33 @@ jobs:
     # for the first apply of a deployment.
     secrets: inherit
 
-  # The site of the release goes out beside its delivery rather than after it.
-  # The site is published sooner than the service is rolled out, so the
-  # privacy policy and the topics' pages a card links to are online before the
-  # service that points at them; and neither holds the other back when it
-  # fails. The cards on the site name the release a little before the chats
-  # run it, and, when a delivery fails, until the next one succeeds.
+  # The research's data of the release: paper A's experiments held to the
+  # results the release's commit keeps, and from that commit the numbers the
+  # paper prints and the data of the page "Research", handed to the site as one
+  # artifact. When it fails the site is not published, and the service is
+  # delivered all the same.
+  research:
+    name: Make the release's research data
+    needs: release
+    if: needs.release.outputs.newest == 'true'
+    permissions:
+      contents: read
+      # The toolchain image the data is made in, published when it is new.
+      packages: write
+    uses: ./.github/workflows/research.yml
+    with:
+      version: ${{ needs.release.outputs.version }}
+
+  # The site of the release goes out beside its delivery rather than after it,
+  # once the research's data of the same commit is made. The site is published
+  # about when the service is rolled out, so the privacy policy and the topics'
+  # pages a card links to are online with the service that points at them; and
+  # neither holds the other back when it fails. The cards on the site name the
+  # release about when the chats run it, and, when a delivery fails, until the
+  # next one succeeds.
   site:
     name: Publish the release's site
-    needs: release
+    needs: [release, research]
     # The same newest commit of main the delivery takes: the site never goes
     # back to older pages either.
     if: needs.release.outputs.newest == 'true'
@@ -192,6 +211,7 @@ jobs:
     uses: ./.github/workflows/pages.yml
     with:
       version: ${{ needs.release.outputs.version }}
+      research: true
 
   # The README's pictures of the release: its cards, photographed from its tag
   # once the release is delivered, so that the version they name is the one the

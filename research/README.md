@@ -44,6 +44,7 @@ What later tasks will create is listed too, with the task that writes it.
     - `just research ci-test` in the toolchain image too, as a check of its own, "Research tests", since one experiment's test takes minutes under the race detector;
     - `just research ci-paper` on the runner, as the check "Paper A and its evidence", since it needs Docker, the whole history and the network.
   - CodeQL builds the module after the product and reports on its code. Its coverage goes to Codecov under the flag `research`, which decides nothing, and to SonarCloud, which reads all but `draft-ui/`.
+  - `.github/workflows/research.yml` holds the experiments of paper A to the results kept here (R234). On every pull request and every release, the checks "Reproduce faultinject", "Reproduce learnersim" and "Reproduce perf" run an experiment again whenever its program or its results changed, as `just research reproduce` does, and a run that gives other bytes is red. E-A4's times stay those of the run the paper describes, and only its package sizes are compared. A release then makes the paper's `numbers.tex` and the data of the site's page "Research" from the same commit and hands both to the site.
 - **Checks**, run from the repository root:
 
   ```sh
@@ -52,6 +53,8 @@ What later tasks will create is listed too, with the task that writes it.
   just research ci-lint       # what a change must pass with Go and golangci-lint: gofmt -s and golangci-lint, licenses, deps-check
   just research ci-test       # the tests, with a coverage profile in coverage.out
   just research ci-paper      # what a change must pass with Docker: ShellCheck, ledger-check, paper-a
+  just research reproduce faultinject  # run an experiment again and hold it to its results: every file of E-A1 and E-A3, E-A4's package sizes
+  just research experiment-key faultinject  # the key a reproduction is kept under: the program, the processor, the comparison and the results
   just research vuln          # govulncheck, pinned by the product's justfile
   just research licenses      # go-licenses against the product's allow-list (R21)
   just research tidy          # go.sum after the product's go.mod changed
