@@ -295,34 +295,22 @@ exports[`the screens in Arabic > the form of the profile, refused field by field
         class="mt-input mt-select"
         id="P0-5"
       >
-        <option
-          value="1"
-        >
+        <option>
           1
         </option>
-        <option
-          value="2"
-        >
+        <option>
           2
         </option>
-        <option
-          value="3"
-        >
+        <option>
           3
         </option>
-        <option
-          value="4"
-        >
+        <option>
           4
         </option>
-        <option
-          value="5"
-        >
+        <option>
           5
         </option>
-        <option
-          value="6"
-        >
+        <option>
           6
         </option>
       </select>

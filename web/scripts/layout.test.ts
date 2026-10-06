@@ -1,4 +1,6 @@
 // @vitest-environment node
+import { Window } from "happy-dom";
+import { h, render } from "preact";
 import { describe, expect, test } from "vitest";
 import {
 	allowed,
@@ -10,6 +12,7 @@ import {
 	shareOf,
 	told,
 	unoffered,
+	valuesOf,
 	widthOf,
 } from "./layout.ts";
 
@@ -184,5 +187,21 @@ describe("a run shared out in shards", () => {
 				new Set([320, 360, 640]),
 			);
 		}
+	});
+});
+
+describe("the values a list offers", () => {
+	test("are its options' own, where Preact writes no attribute for them", () => {
+		// The preview's list of languages, each option named by its value.
+		const { document } = new Window();
+		const list = document.createElement("select");
+		const tags = ["en", "ar", "zh-Hans"];
+		render(
+			tags.map((tag) => h("option", { key: tag, value: tag }, tag)),
+			list as unknown as HTMLSelectElement,
+		);
+		expect(
+			valuesOf([...list.options] as unknown as HTMLOptionElement[]),
+		).toEqual(tags);
 	});
 });
