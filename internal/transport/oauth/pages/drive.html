@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="{{ .Lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ index .Words "consent.title" }}</title>
+<style>{{ .Style }}</style>
+</head>
+<body>
+<main class="auth">
+<p class="auth-brand">MathTrail</p>
+<h1>{{ index .Words "drive.heading" }}</h1>
+<p>{{ index .Words "drive.text" }}</p>
+<p>{{ index .Words "drive.box" }}</p>
+<form method="post" action="/oauth/consent">
+<input type="hidden" name="request" value="{{ .Request }}">
+<div class="auth-actions">
+<button type="submit" name="decision" value="again" class="auth-primary">{{ index .Words "drive.again" }}</button>
+<button type="submit" name="decision" value="cancel" class="auth-secondary">{{ index .Words "drive.cancel" }}</button>
+</div>
+</form>
+</main>
+</body>
+</html>

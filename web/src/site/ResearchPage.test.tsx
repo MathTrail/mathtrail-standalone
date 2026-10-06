@@ -126,6 +126,47 @@ const page = pages.get("en") as Document;
 const russianPage = pages.get("ru") as Document;
 const unshipped = pagesOf(withoutPaper);
 
+// shownNothing is what live numbers that show none have of them.
+const shownNothing = { total: null, chances: [], kept_up: [] };
+
+// The page with its live numbers in each of their other states: still to
+// come; too few in the latest month; a month shown with none of its ranges;
+// and a month shown with the range of every answer past the others.
+const coming = pagesOf(
+	dataOf({
+		...fixture,
+		live: { ...fixture.live, state: "coming", month: null, ...shownNothing },
+	}),
+);
+const tooFew = pagesOf(
+	dataOf({
+		...fixture,
+		live: { ...fixture.live, state: "too_few", ...shownNothing },
+	}),
+);
+const noRanges = pagesOf(
+	dataOf({ ...fixture, live: { ...fixture.live, chances: [], kept_up: [] } }),
+);
+const openRange = pagesOf(
+	dataOf({
+		...fixture,
+		live: {
+			...fixture.live,
+			kept_up: [
+				...fixture.live.kept_up,
+				{
+					first: 201,
+					last: null,
+					learners: 10,
+					answers: 30,
+					came_true_less_promised: 0.05,
+					standard_error: 0.06,
+				},
+			],
+		},
+	}),
+);
+
 // values are the values of every element selector finds on a page.
 const values = (on: Document, selector: string) =>
 	[...on.querySelectorAll(selector)].map(
@@ -272,6 +313,7 @@ describe("the page Research", () => {
 			".s-research-axis",
 			".s-research-formula",
 			".s-research-chart",
+			".s-research-plot",
 		]) {
 			const drawn = [...russianPage.querySelectorAll(selector)];
 			expect(drawn.length).toBeGreaterThan(0);
@@ -359,7 +401,9 @@ describe("the page Research", () => {
 	});
 
 	test("hides its bars from a screen reader, which reads the cells", () => {
-		const charts = [...page.querySelectorAll(".s-research-chart")];
+		const charts = [
+			...page.querySelectorAll(`#${researchSections.model} .s-research-chart`),
+		];
 		expect(charts).toHaveLength(research.bench.rows.length);
 		for (const chart of charts) {
 			expect(chart.getAttribute("aria-hidden")).toBe("true");
@@ -384,7 +428,9 @@ describe("the page Research", () => {
 			dataOf({ ...fixture, bench: { ...fixture.bench, rows } }),
 		).get("en") as Document;
 
-		const charts = [...empty.querySelectorAll(".s-research-chart")];
+		const charts = [
+			...empty.querySelectorAll(`#${researchSections.model} .s-research-chart`),
+		];
 		const styles = charts.flatMap((chart) =>
 			[...chart.querySelectorAll("[style]")].map(
 				(part) => part.getAttribute("style") ?? "",
@@ -444,10 +490,196 @@ describe("the page Research", () => {
 		).toEqual(research.levels.map(({ count }) => `flex-grow:${count}`));
 	});
 
-	test("says in its live block that the numbers are still to come, and shows none", () => {
-		const live = page.querySelector(`#${researchSections.live}`);
+	test("says in its live block that the numbers are still to come, with the rule they come by, and shows none", () => {
+		const live = (coming.get("en") as Document).querySelector(
+			`#${researchSections.live}`,
+		);
 		expect(live?.querySelector(".s-badge")?.textContent).toBe("Coming");
-		expect(live?.querySelectorAll("data").length).toBe(0);
+		expect(values(live as unknown as Document, "data")).toEqual(
+			[
+				research.live.rule.learners,
+				research.live.rule.answers,
+				research.live.rule.rounded_to,
+			].map(String),
+		);
+		expect(live?.querySelectorAll("time, table, svg").length).toBe(0);
+	});
+
+	test.each([
+		["en", "Too few yet", "November 2026"],
+		["ru", "Пока мало", "ноябрь 2026 г."],
+	])(
+		"says in %s that the latest month had too few children, and names the month",
+		(locale, badge, month) => {
+			const live = (tooFew.get(locale) as Document).querySelector(
+				`#${researchSections.live}`,
+			);
+			expect(live?.querySelector(".s-badge")?.textContent).toBe(badge);
+			const time = live?.querySelector("time");
+			expect(time?.getAttribute("datetime")).toBe(research.live.month);
+			expect(time?.textContent).toBe(month);
+			expect(live?.querySelectorAll("table, svg").length).toBe(0);
+		},
+	);
+
+	test("lists every range of a month shown in the data's order, each with what it promised and what came true", () => {
+		const live = research.live;
+		if (live.state !== "ready") {
+			throw new Error("the fixture's live numbers are of no month shown");
+		}
+		const rowsOf = (title: string) =>
+			[
+				...page.querySelectorAll(
+					`section[aria-labelledby="${title}"] tbody tr`,
+				),
+			].map((row) => values(row as unknown as Document, "data"));
+		expect(rowsOf("live-chances")).toEqual(
+			live.chances.map((cell) =>
+				[
+					cell.from,
+					cell.to,
+					cell.promised_mean,
+					cell.correct_share,
+					cell.answers,
+					cell.learners,
+				].map(String),
+			),
+		);
+		expect(rowsOf("live-kept-up")).toEqual(
+			live.kept_up.map((cell) =>
+				[
+					cell.first,
+					cell.last,
+					cell.came_true_less_promised,
+					cell.standard_error,
+					cell.answers,
+					cell.learners,
+				].map(String),
+			),
+		);
+		expect(rowsOf("live-share")).toEqual([
+			[
+				live.total.correct_share,
+				live.total.promised_mean,
+				live.total.answers,
+				live.total.learners,
+			].map(String),
+		]);
+	});
+
+	test("draws each range of chance as a point, across at its promise and up at its share, on axes of one scale from four tenths", () => {
+		const live = research.live;
+		if (live.state !== "ready") {
+			throw new Error("the fixture's live numbers are of no month shown");
+		}
+		const scaled = (x: number) => ((x - 0.4) / 0.6) * 100;
+		const points = [...page.querySelectorAll(".s-research-plot circle")].map(
+			(point) => [
+				Number(point.getAttribute("cx")),
+				Number(point.getAttribute("cy")),
+			],
+		);
+		expect(points).toHaveLength(live.chances.length);
+		live.chances.forEach((cell, at) => {
+			expect(points[at]?.[0]).toBeCloseTo(scaled(cell.promised_mean));
+			expect(points[at]?.[1]).toBeCloseTo(100 - scaled(cell.correct_share));
+		});
+		expect(texts(page, ".s-research-plot .s-research-tick")).toEqual(["1.0"]);
+		expect(texts(page, ".s-research-plot .s-research-y")).toEqual([
+			"0.4",
+			"1.0",
+		]);
+	});
+
+	test("draws a margin below its promise to the left of nothing, and one above it to the right", () => {
+		const fills = [
+			...page.querySelectorAll(
+				`#${researchSections.live} .s-research-chart .s-research-fill`,
+			),
+		].map((fill) => {
+			const style = fill.getAttribute("style") ?? "";
+			const start = Number(/inset-inline-start:\s*([\d.]+)%/.exec(style)?.[1]);
+			const size = Number(/inline-size:\s*([\d.]+)%/.exec(style)?.[1]);
+			return [start, start + size];
+		});
+		const live = research.live;
+		if (live.state !== "ready") {
+			throw new Error("the fixture's live numbers are of no month shown");
+		}
+		expect(fills).toHaveLength(live.kept_up.length);
+		live.kept_up.forEach((cell, at) => {
+			const [start, end] = fills[at] ?? [];
+			if (cell.came_true_less_promised < 0) {
+				expect(start).toBeLessThan(50);
+				expect(end).toBeCloseTo(50);
+			} else {
+				expect(start).toBeCloseTo(50);
+				expect(end).toBeGreaterThan(50);
+			}
+		});
+	});
+
+	test("draws the month's share right as a bar, with a dashed tick at the chance promised", () => {
+		const live = research.live;
+		if (live.state !== "ready") {
+			throw new Error("the fixture's live numbers are of no month shown");
+		}
+		const axis = page.querySelector(
+			`#${researchSections.live} .s-research-axis`,
+		);
+		const styleOf = (selector: string) =>
+			(axis?.querySelector(selector)?.getAttribute("style") ?? "").replace(
+				/\s/g,
+				"",
+			);
+		expect(styleOf(".s-research-fill")).toContain(
+			`inline-size:${live.total.correct_share * 100}%`,
+		);
+		expect(styleOf(".s-research-bound")).toContain(
+			`inset-inline-start:${live.total.promised_mean * 100}%`,
+		);
+	});
+
+	test("says of a month shown with no range of either kind that none holds enough children, and draws the share alone", () => {
+		const live = (noRanges.get("en") as Document).querySelector(
+			`#${researchSections.live}`,
+		);
+		expect(texts(live as unknown as Document, ".s-research-caption")).toEqual(
+			expect.arrayContaining([
+				"This month no range of the chance promised holds enough children to be shown.",
+				"This month no range of the child's answers holds enough children to be shown.",
+			]),
+		);
+		expect(live?.querySelectorAll("circle, .s-research-chart").length).toBe(0);
+		expect(live?.querySelectorAll(".s-research-axis").length).toBe(1);
+	});
+
+	test.each([
+		["en", "201 and on"],
+		["ru", "201 и дальше"],
+	])(
+		"names in %s the range of every answer past the others by its first",
+		(locale, named) => {
+			const rows = [
+				...(openRange.get(locale) as Document).querySelectorAll(
+					'section[aria-labelledby="live-kept-up"] tbody th',
+				),
+			];
+			expect(rows.at(-1)?.textContent?.trim()).toBe(named);
+		},
+	);
+
+	test("hides its live drawings from a screen reader, which reads the tables", () => {
+		const live = page.querySelector(`#${researchSections.live}`);
+		const drawings = [
+			...(live?.querySelectorAll(
+				".s-research-plot, .s-research-plot svg, .s-research-chart, .s-research-axis",
+			) ?? []),
+		];
+		expect(drawings.length).toBeGreaterThan(0);
+		for (const drawing of drawings) {
+			expect(drawing.getAttribute("aria-hidden")).toBe("true");
+		}
 	});
 
 	test("has the anchors other pages lead to", () => {
@@ -476,8 +708,16 @@ describe("the numbers on the page Research", () => {
 			research.built_from.commit,
 			research.paper.commit,
 			research.built_from.date,
+			research.live.month ?? "",
 		]);
-		for (const [locale, each] of [...pages, ...unshipped]) {
+		for (const [locale, each] of [
+			...pages,
+			...unshipped,
+			...coming,
+			...tooFew,
+			...noRanges,
+			...openRange,
+		]) {
 			expect(handTyped(each, { names, values: commits }), locale).toEqual([]);
 		}
 	});

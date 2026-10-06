@@ -54,3 +54,13 @@ output "secret_google_client" {
   description = "The secret holding the Google client secret, on the same condition."
   value       = google_secret_manager_secret.google_client_secret.secret_id
 }
+
+output "secret_reviewer_password" {
+  description = "The secret holding the password a directory's reviewers sign in with. Empty until a version is added by hand; the service reads it only once reviewer_password_version names one."
+  value       = google_secret_manager_secret.reviewer_password.secret_id
+}
+
+output "secret_reviewer_grant" {
+  description = "The secret holding the demo account's grant at Google, on the same condition, with reviewer_grant_version."
+  value       = google_secret_manager_secret.reviewer_grant.secret_id
+}

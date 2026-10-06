@@ -1,6 +1,7 @@
 package oauthserver
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -33,6 +34,13 @@ func TestASignInThatFailsHereSaysSo(t *testing.T) {
 				_, request := h.toConsent(parent, h.register(hostRedirect, hostName))
 				return parent.post(h.served.URL+"/oauth/consent", url.Values{"request": {request}, "decision": {"allow"}})
 			}, stepConsent},
+		{"the way back to Google for the Drive cannot be sealed", func(*signIn) {},
+			func(t *testing.T, h *signIn, parent *browser) reply {
+				back := h.google.Allow(h.toGoogle(parent, h.register(hostRedirect, hostName)))
+				h.google.Misbehave(&googletest.Answer{Scope: "openid"})
+				h.server.flow.flights = sealsNothingNew{h.server.flow.flights}
+				return parent.get(back)
+			}, stepCallback},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -49,6 +57,14 @@ func TestASignInThatFailsHereSaysSo(t *testing.T) {
 			}
 		})
 	}
+}
+
+// sealsNothingNew opens what the sealer it wraps sealed, and seals nothing, as
+// a key ring that failed in the middle of a sign-in would.
+type sealsNothingNew struct{ sealer }
+
+func (sealsNothingNew) Seal([]byte, ...string) (string, error) {
+	return "", errors.New("sealing failed")
 }
 
 // A code that cannot be sealed is a failure of the server's: the host hears
@@ -199,6 +215,13 @@ func TestAPageThatCannotBeDrawnIsAFailureOfOurs(t *testing.T) {
 			h.server.flow.flights = brokenSealer{}
 			return parent.get(h.authorizeURL(h.register(hostRedirect, hostName), nil))
 		}, stepAuthorize, "internal", []string{"sealing failed", "draw the page"}},
+		{"the page that asks for the Drive", func(h *signIn, parent *browser) reply {
+			broken := h.server.flow.pages
+			h.server.flow.pages = pagesOf(h.t)
+			page, _ := h.untickedAtGoogle(parent)
+			h.server.flow.pages = broken
+			return parent.get(page)
+		}, stepDrive, "internal", []string{"draw the page"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -221,6 +244,7 @@ func pagesThatCannotBeDrawn(t *testing.T) *pages {
 
 	broken, err := newPages(pageFilesWith(t, map[string]string{
 		"pages/consent.html": "{{ .NoSuchField }}",
+		"pages/drive.html":   "{{ .NoSuchField }}",
 		"pages/refusal.html": "{{ .NoSuchField }}",
 	}), testSite)
 	if err != nil {

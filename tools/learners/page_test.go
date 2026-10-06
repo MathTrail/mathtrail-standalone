@@ -404,6 +404,10 @@ const (
 // fixturePaper is the fixture of the paper's facts.
 var fixturePaper = filepath.Join("testdata", "paper.json")
 
+// fixtureLive is the snapshot of the live numbers the fixture is made with:
+// a month whose numbers are shown, made up.
+var fixtureLive = filepath.Join("testdata", "live.json")
+
 // numbersFile writes a run's numbers where the page's file is made from.
 func numbersFile(t *testing.T, numbers *pageNumbers) string {
 	t.Helper()
@@ -482,6 +486,10 @@ func TestThePageFileRefusesWhatItCannotVouchFor(t *testing.T) {
 		{"a file of no hash", func(t *testing.T, a *pageFileArgs) {
 			a.paper = fileOfText(t, dir, "hash.json", facts(strings.Replace(file, strings.Repeat("ab", 32), "ab", 1)))
 		}},
+		{"a snapshot of the live numbers that is not there", func(_ *testing.T, a *pageFileArgs) { a.live = filepath.Join(dir, "no-live.json") }},
+		{"a snapshot of the live numbers of another shape", func(t *testing.T, a *pageFileArgs) {
+			a.live = fileOfText(t, dir, "live-shape.json", `{"month": null, "total": null, "chances": [], "kept_up": [], "more": 1}`)
+		}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -505,6 +513,8 @@ func TestThePageFileRefusesWhatItCannotVouchFor(t *testing.T) {
 			"-paper-commit", paperCommitOf, "-out", filepath.Join(dir, "y.json")}, 2},
 		{"numbers of another build", []string{"-numbers", numbers, "-inputs", strings.Repeat("f", 64), "-commit", fixtureCommit,
 			"-date", fixtureDate, "-paper-commit", paperCommitOf, "-out", filepath.Join(dir, "z.json")}, 1},
+		{"a snapshot of the live numbers that is not there", []string{"-numbers", numbers, "-inputs", keyOfBuild, "-commit", fixtureCommit,
+			"-date", fixtureDate, "-paper-commit", paperCommitOf, "-live", filepath.Join(dir, "no-live.json"), "-out", filepath.Join(dir, "w.json")}, 1},
 	} {
 		t.Run("the command, given "+tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -627,11 +637,12 @@ func TestTheFixtureHoldsOnAmd64WithFMAAlone(t *testing.T) {
 	}
 }
 
-// A run of ten children a cell, the fixture of the paper's facts and a fixed
-// commit make the page's file of the fixture, byte for byte, and every mark
-// in it follows from its numbers. A change of the model or of the content
-// moves its numbers, which go test -update rewrites from the run, on amd64
-// with FMA, to be read before it is kept.
+// A run of ten children a cell, the fixtures of the paper's facts and of the
+// live numbers' snapshot and a fixed commit make the page's file of the
+// fixture, byte for byte, and every mark in it follows from its numbers. A
+// change of the model or of the content moves its numbers, which go test
+// -update rewrites from the run, on amd64 with FMA, to be read before it is
+// kept.
 func TestThePageFileIsItsFixture(t *testing.T) {
 	t.Parallel()
 	here := fixtureHolds(runtime.GOARCH, cpu.X86.HasAVX && cpu.X86.HasFMA, fusedMultiplyAdd)
@@ -662,7 +673,8 @@ func TestThePageFileIsItsFixture(t *testing.T) {
 }
 
 // smallPageFile is the page's file of a run of ten children a cell, with the
-// fixture of the paper's facts and the fixture's commit.
+// fixtures of the paper's facts and of the live numbers' snapshot, and the
+// fixture's commit.
 func smallPageFile(t *testing.T) researchFile {
 	t.Helper()
 	numbers, err := pageNumbersOf(10, keyOfBuild)
@@ -671,7 +683,7 @@ func smallPageFile(t *testing.T) researchFile {
 	}
 	file, _, err := pageFileOf(&pageFileArgs{
 		numbers: numbersFile(t, &numbers), inputs: keyOfBuild, commit: fixtureCommit, date: fixtureDate, paperCommit: paperCommitOf,
-		paper: fixturePaper,
+		paper: fixturePaper, live: fixtureLive,
 	})
 	if err != nil {
 		t.Fatal(err)

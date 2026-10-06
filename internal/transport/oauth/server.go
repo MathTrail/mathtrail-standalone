@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
@@ -68,6 +69,10 @@ type Settings struct {
 	// the servers of their chat. Nil where no database of countries is
 	// configured, and no country is then known.
 	CountryOf func(r *http.Request) string
+	// Reviewer is the sign-in of a directory's reviewers, as the demo account.
+	// Nil where none is configured, and the consent screen then offers none.
+	// It needs Google, which renews the demo account's grant.
+	Reviewer *Reviewer
 	// Now is the clock everything the server issues is dated by, and a fetch
 	// is timed by.
 	Now func() time.Time
@@ -100,6 +105,19 @@ func (s *Settings) validate() error {
 	if !isOrigin(s.SiteURL) {
 		return fmt.Errorf("%w: SiteURL must be a scheme and a host alone", ErrSettings)
 	}
+	return s.validateReviewer()
+}
+
+// validateReviewer refuses a reviewer's sign-in that could sign nobody in.
+func (s *Settings) validateReviewer() error {
+	switch {
+	case s.Reviewer == nil:
+		return nil
+	case s.Reviewer.Password == "", s.Reviewer.Subject == "", s.Reviewer.RefreshToken == "":
+		return fmt.Errorf("%w: Reviewer must name a password, a subject and a refresh token", ErrSettings)
+	case s.Google == nil:
+		return fmt.Errorf("%w: Reviewer needs Google, which renews its grant", ErrSettings)
+	}
 	return nil
 }
 
@@ -129,6 +147,9 @@ type Server struct {
 	Consent http.Handler
 	// Callback answers Google's redirect with the code the client exchanges.
 	Callback http.Handler
+	// Drive draws the page that asks a parent who left Google's box for the
+	// Drive unticked to go back and tick it, at DrivePath.
+	Drive http.Handler
 	// Token issues a host's tokens, for a code or a refresh token
 	// (RFC 6749 4.1.3 and 6).
 	Token http.Handler
@@ -145,6 +166,12 @@ type Server struct {
 	// ResourceMetadataURL is the address of the resource's metadata, which a
 	// refusal of the resource names.
 	ResourceMetadataURL string
+	// DemoAccounts are the identifiers of the account the reviewers' sign-in
+	// signs in as — the one a sign-in is given now, and during a rotation of
+	// the keys the one a sign-in made before it carries — or none where no
+	// such sign-in is configured. Its child is no child, and its answers are a
+	// reviewer's: whatever counts the children leaves it out.
+	DemoAccounts []string
 
 	clients *clients
 	flow    *flow
@@ -178,6 +205,7 @@ func New(settings *Settings) (*Server, error) {
 	if countryOf == nil {
 		countryOf = func(*http.Request) string { return "" }
 	}
+	reviewer := newReviewerSignIn(settings.Reviewer, settings.Seal.UserIDs)
 	signIn := &flow{
 		issuer:    issuer,
 		resource:  issuer + resourcePath,
@@ -189,6 +217,8 @@ func New(settings *Settings) (*Server, error) {
 		userID:    settings.Seal.UserID,
 		countryOf: countryOf,
 		google:    settings.Google,
+		reviewer:  reviewer,
+		renewals:  settings.Renewals,
 		pages:     screens,
 		events:    events,
 		now:       settings.Now,
@@ -203,6 +233,7 @@ func New(settings *Settings) (*Server, error) {
 		refresh:  settings.Seal.For(seal.PurposeRefresh),
 		google:   settings.Google,
 		renewals: settings.Renewals,
+		demo:     demoUsers(reviewer),
 		events:   events,
 		now:      settings.Now,
 	}
@@ -213,11 +244,13 @@ func New(settings *Settings) (*Server, error) {
 		Authorize:           http.HandlerFunc(signIn.authorize),
 		Consent:             http.HandlerFunc(signIn.consent),
 		Callback:            http.HandlerFunc(signIn.callback),
+		Drive:               http.HandlerFunc(signIn.drive),
 		Token:               http.HandlerFunc(grants.serveToken),
 		Revoke:              http.HandlerFunc(grants.serveRevoke),
 		Busy:                http.HandlerFunc(screens.busy),
 		Account:             grants.account,
 		ResourceMetadataURL: issuer + resourceMetadataPath,
+		DemoAccounts:        slices.Clone(demoUsers(reviewer)),
 		clients:             known,
 		flow:                signIn,
 		tokens:              grants,

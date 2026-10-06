@@ -119,7 +119,6 @@ func (f *flow) requestOf(query url.Values, client *Client) (*flight, *refusal) {
 		Challenge:    query.Get("code_challenge"),
 		Resource:     f.resource,
 		Scope:        f.scope,
-		StartedAt:    f.now().Unix(),
 	}
 	resources := query["resource"]
 	switch {
@@ -145,9 +144,7 @@ func (f *flow) requestOf(query url.Values, client *Client) (*flight, *refusal) {
 func (f *flow) begin(w http.ResponseWriter, r *http.Request, client *Client, request *flight, query url.Values) {
 	cookie := randomValue(cookieBytes)
 	request.Cookie = digestOf(cookie)
-	request.Verifier = randomValue(verifierBytes)
-	request.Nonce = randomValue(nonceBytes)
-	sealed, err := f.sealFlight(request)
+	sealed, err := f.readyForGoogle(request)
 	if err != nil {
 		f.fail(w, r, stepAuthorize, err)
 		return
@@ -165,7 +162,7 @@ func (f *flow) begin(w http.ResponseWriter, r *http.Request, client *Client, req
 		return
 	}
 
-	screen := consentScreen{client: client.Name, redirectURI: request.RedirectURI, request: sealed}
+	screen := consentScreen{client: client.Name, redirectURI: request.RedirectURI, request: sealed, reviewer: f.reviewer != nil}
 	if f.google != nil {
 		screen.google = f.google.AuthURL(sealed, request.Verifier, request.Nonce)
 	}

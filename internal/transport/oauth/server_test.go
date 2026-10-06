@@ -124,6 +124,9 @@ func TestAServerWithSomethingMissingIsRefused(t *testing.T) {
 		{"a site with an empty fragment", func(s *oauthserver.Settings) { s.SiteURL = site + "#" }, "SiteURL"},
 		{"no site", func(s *oauthserver.Settings) { s.SiteURL = "" }, "SiteURL"},
 		{"a site with a path", func(s *oauthserver.Settings) { s.SiteURL = site + "/en/" }, "SiteURL"},
+		{"a reviewer's sign-in with no Google to renew its grant", func(s *oauthserver.Settings) {
+			s.Reviewer = &oauthserver.Reviewer{Password: "a-reviewers-password-of-24", Subject: "1", RefreshToken: "1//a"}
+		}, "Reviewer needs Google"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()

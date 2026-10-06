@@ -34,8 +34,11 @@ type tokens struct {
 	refresh  sealer
 	google   googleauth.SignIn
 	renewals ratelimit.Limiter
-	events   *signInLog
-	now      func() time.Time
+	// demo are the identifiers of the demo account reviewers sign in as, none
+	// when no reviewer's sign-in is configured.
+	demo   []string
+	events *signInLog
+	now    func() time.Time
 }
 
 // tokenAnswer is a host's tokens as the token endpoint hands them over

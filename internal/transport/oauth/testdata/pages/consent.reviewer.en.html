@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in to MathTrail</title>
+<style>…</style>
+</head>
+<body>
+<main class="auth">
+<p class="auth-brand">MathTrail</p>
+<h1>Connect <strong><bdi>Claude</bdi></strong> to MathTrail?</h1>
+<p>After you sign in, you will be sent back to <strong><bdi>claude.ai/api/mcp/auth_callback</bdi></strong>.</p>
+<p>Google will then ask you to sign in. On its screen, tick the box for Google Drive: MathTrail keeps one file of its own there, where your child&#39;s progress is saved, and sees no other file.</p>
+<form method="post" action="/oauth/consent">
+<input type="hidden" name="request" value="mt1.s.KEYID.the-sealed-request">
+<div class="auth-actions">
+<button type="submit" name="decision" value="allow" class="auth-primary">Allow</button>
+<button type="submit" name="decision" value="deny" class="auth-secondary">Cancel</button>
+</div>
+</form>
+<p class="auth-small">By allowing, you accept MathTrail&#39;s <a href="https://site.example/en/terms/" target="_blank" rel="noopener noreferrer">terms of use</a> and <a href="https://site.example/en/privacy/" target="_blank" rel="noopener noreferrer">privacy policy</a>.</p>
+<details class="auth-reviewer">
+<summary>Reviewing MathTrail for a directory?</summary>
+<form method="post" action="/oauth/consent">
+<input type="hidden" name="request" value="mt1.s.KEYID.the-sealed-request">
+<p>Sign in with the reviewer&#39;s password from the review form, in place of Google. It opens the demo profile kept for review.</p>
+<label for="reviewer-password">Reviewer&#39;s password</label>
+<input type="password" id="reviewer-password" name="password" autocomplete="current-password" required>
+<div class="auth-actions">
+<button type="submit" name="decision" value="reviewer" class="auth-secondary">Sign in as the reviewer</button>
+</div>
+</form>
+</details>
+</main>
+</body>
+</html>

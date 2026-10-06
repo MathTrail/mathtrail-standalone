@@ -44,6 +44,14 @@ var counting = []string{
 	"MATHTRAIL_COUNTRY_DB=/usr/share/mathtrail/dbip-country-lite.mmdb",
 }
 
+// The reviewer's sign-in of these tests: a password of thirty-two characters,
+// as the recipe that makes one makes it, and a grant made up for the demo
+// account, which no Google ever issued.
+const (
+	reviewerPassword = "Xk3-vQ9_tLm2Wp7Rz4Yb8Nc1Jd6Hf5Gs"
+	demoGrant        = `{"subject":"110169484474386276334","refresh_token":"1//a-refresh-token"}`
+)
+
 func TestDefaults(t *testing.T) {
 	t.Parallel()
 
@@ -611,6 +619,108 @@ func TestRefusals(t *testing.T) {
 			wantVar: "MATHTRAIL_PUBLIC_URL",
 		},
 		{
+			name:    "a reviewer's password with no grant to sign in as",
+			environ: append([]string{"MATHTRAIL_REVIEWER_PASSWORD=" + reviewerPassword}, googleClient...),
+			wantVar: "MATHTRAIL_REVIEWER_GRANT must be set with MATHTRAIL_REVIEWER_PASSWORD",
+		},
+		{
+			name:    "a grant to sign in as with no reviewer's password",
+			environ: append([]string{"MATHTRAIL_REVIEWER_GRANT=" + demoGrant}, googleClient...),
+			wantVar: "MATHTRAIL_REVIEWER_PASSWORD must be set with MATHTRAIL_REVIEWER_GRANT",
+		},
+		{
+			name: "a reviewer's password too short to hold off guessing",
+			environ: append([]string{
+				"MATHTRAIL_REVIEWER_PASSWORD=" + reviewerPassword[:config.MinReviewerPassword-1],
+				"MATHTRAIL_REVIEWER_GRANT=" + demoGrant,
+			}, googleClient...),
+			wantVar: "MATHTRAIL_REVIEWER_PASSWORD",
+		},
+		{
+			name: "a reviewer's password too long to be one",
+			environ: append([]string{
+				"MATHTRAIL_REVIEWER_PASSWORD=" + strings.Repeat("a", config.MaxReviewerPassword+1),
+				"MATHTRAIL_REVIEWER_GRANT=" + demoGrant,
+			}, googleClient...),
+			wantVar: "MATHTRAIL_REVIEWER_PASSWORD",
+		},
+		{
+			name: "a reviewer's password with a space inside",
+			environ: append([]string{
+				"MATHTRAIL_REVIEWER_PASSWORD=" + reviewerPassword[:12] + " " + reviewerPassword[12:],
+				"MATHTRAIL_REVIEWER_GRANT=" + demoGrant,
+			}, googleClient...),
+			wantVar: "MATHTRAIL_REVIEWER_PASSWORD",
+		},
+		{
+			// A letter a browser may send composed otherwise than it was set.
+			name: "a reviewer's password in letters past ASCII",
+			environ: append([]string{
+				"MATHTRAIL_REVIEWER_PASSWORD=" + reviewerPassword + "é",
+				"MATHTRAIL_REVIEWER_GRANT=" + demoGrant,
+			}, googleClient...),
+			wantVar: "MATHTRAIL_REVIEWER_PASSWORD",
+		},
+		{
+			name: "a grant that is no JSON",
+			environ: append([]string{
+				"MATHTRAIL_REVIEWER_PASSWORD=" + reviewerPassword,
+				"MATHTRAIL_REVIEWER_GRANT=1//a-refresh-token",
+			}, googleClient...),
+			wantVar: "MATHTRAIL_REVIEWER_GRANT",
+		},
+		{
+			name: "a grant that names no account",
+			environ: append([]string{
+				"MATHTRAIL_REVIEWER_PASSWORD=" + reviewerPassword,
+				`MATHTRAIL_REVIEWER_GRANT={"refresh_token":"1//a-refresh-token"}`,
+			}, googleClient...),
+			wantVar: "MATHTRAIL_REVIEWER_GRANT",
+		},
+		{
+			name: "a grant with no refresh token",
+			environ: append([]string{
+				"MATHTRAIL_REVIEWER_PASSWORD=" + reviewerPassword,
+				`MATHTRAIL_REVIEWER_GRANT={"subject":"110169484474386276334","refresh_token":" "}`,
+			}, googleClient...),
+			wantVar: "MATHTRAIL_REVIEWER_GRANT",
+		},
+		{
+			name: "a grant with a field nobody reads",
+			environ: append([]string{
+				"MATHTRAIL_REVIEWER_PASSWORD=" + reviewerPassword,
+				`MATHTRAIL_REVIEWER_GRANT={"subject":"110169484474386276334","refresh_token":"1//a","scope":"openid"}`,
+			}, googleClient...),
+			wantVar: "MATHTRAIL_REVIEWER_GRANT",
+		},
+		{
+			name: "a grant followed by another",
+			environ: append([]string{
+				"MATHTRAIL_REVIEWER_PASSWORD=" + reviewerPassword,
+				"MATHTRAIL_REVIEWER_GRANT=" + demoGrant + demoGrant,
+			}, googleClient...),
+			wantVar: "MATHTRAIL_REVIEWER_GRANT",
+		},
+		{
+			// A bracket that closes nothing is no more a grant than another
+			// grant after it.
+			name: "a grant followed by a bracket",
+			environ: append([]string{
+				"MATHTRAIL_REVIEWER_PASSWORD=" + reviewerPassword,
+				"MATHTRAIL_REVIEWER_GRANT=" + demoGrant + "]",
+			}, googleClient...),
+			wantVar: "MATHTRAIL_REVIEWER_GRANT",
+		},
+		{
+			// The grant is renewed at Google, with the service's own client.
+			name: "a reviewer's sign-in with no Google client to renew its grant",
+			environ: []string{
+				"MATHTRAIL_REVIEWER_PASSWORD=" + reviewerPassword,
+				"MATHTRAIL_REVIEWER_GRANT=" + demoGrant,
+			},
+			wantVar: "MATHTRAIL_GOOGLE_CLIENT_ID",
+		},
+		{
 			// The whole point of the switch: in a deployment it is refused,
 			// not warned about.
 			name: "dev auth in a deployment",
@@ -972,6 +1082,87 @@ func TestTheSiteIsNamedAsABrowserWritesItsOrigin(t *testing.T) {
 			}
 			if got := cfg.Site(); got != tc.want {
 				t.Errorf("Site() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+// The reviewer's sign-in is off unless both its secrets are given.
+func TestTheReviewersSignInIsOffUnlessGiven(t *testing.T) {
+	t.Parallel()
+
+	cfg, err := config.LoadFrom(withSealKey(googleClient...))
+	if err != nil {
+		t.Fatalf("LoadFrom() error = %v, want nil", err)
+	}
+	if grant, err := cfg.ReviewerSignIn(); grant != nil || err != nil {
+		t.Errorf("ReviewerSignIn() = %v, %v with neither secret given, want it off", grant, err)
+	}
+}
+
+// Given, the reviewer's secrets are read without the line break a secret read
+// out of a file ends with — on a deployment as well, unlike the development
+// sign-in — and the grant is read into the demo account's subject and refresh
+// token.
+func TestTheReviewersSignInIsRead(t *testing.T) {
+	t.Parallel()
+
+	deployment := append([]string{
+		"K_SERVICE=mathtrail",
+		"MATHTRAIL_PUBLIC_URL=https://mathtrail.example",
+		"MATHTRAIL_REVIEWER_PASSWORD=" + reviewerPassword + "\n",
+		"MATHTRAIL_REVIEWER_GRANT=" + demoGrant + "\n",
+	}, slices.Concat(googleClient, counting)...)
+	cfg, err := config.LoadFrom(withSealKey(deployment...))
+	if err != nil {
+		t.Fatalf("LoadFrom() error = %v, want nil", err)
+	}
+	if cfg.ReviewerPassword != reviewerPassword {
+		t.Errorf("ReviewerPassword is a password of %d bytes, want the one given without its newline", len(cfg.ReviewerPassword))
+	}
+	grant, err := cfg.ReviewerSignIn()
+	if want := (config.DemoGrant{Subject: "110169484474386276334", RefreshToken: "1//a-refresh-token"}); err != nil || grant == nil || *grant != want {
+		t.Errorf("ReviewerSignIn() = %+v, %v, want %+v", grant, err, want)
+	}
+}
+
+// A configuration made by hand, past Validate, hears of a grant that does not
+// read rather than finding the reviewer's sign-in quietly off.
+func TestAGrantThatDoesNotReadIsAnError(t *testing.T) {
+	t.Parallel()
+
+	unread := &config.Config{ReviewerPassword: reviewerPassword, ReviewerGrant: "1//a-refresh-token"}
+	if grant, err := unread.ReviewerSignIn(); grant != nil || !errors.Is(err, config.ErrInvalid) {
+		t.Errorf("ReviewerSignIn() of a grant that does not read = %v, %v, want ErrInvalid", grant, err)
+	}
+}
+
+// The reviewer's password and the demo account's grant are secrets, and a
+// refusal of either names its variable alone.
+func TestARefusalNeverCarriesTheReviewersSecrets(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name, password, grant string
+	}{
+		{"a password too short", reviewerPassword[:20], demoGrant},
+		{"a grant that names no account", reviewerPassword, `{"refresh_token":"1//a-refresh-token"}`},
+		{"a grant that is no JSON", reviewerPassword, "1//a-refresh-token"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := config.LoadFrom(withSealKey(append([]string{
+				"MATHTRAIL_REVIEWER_PASSWORD=" + tc.password,
+				"MATHTRAIL_REVIEWER_GRANT=" + tc.grant,
+			}, googleClient...)...))
+			if err == nil {
+				t.Fatal("LoadFrom() error = nil, want a refusal")
+			}
+			for _, secret := range []string{tc.password, "1//a-refresh-token", "110169484474386276334"} {
+				if strings.Contains(err.Error(), secret) {
+					t.Errorf("error = %q, want it to carry nothing of the secrets", err)
+				}
 			}
 		})
 	}

@@ -14,3 +14,15 @@ targetRules = ["generic-api-key"]
 condition = "AND"
 paths = ['''(^|/)research/(literature|tools/citecheck)/''']
 regexes = ['''^[a-z]+[0-9]{4}[a-z]+$''']
+
+# The tests of the reviewers' sign-in share one password, made up as the recipe
+# that makes a real one makes it: thirty-two random characters, which the
+# generic rule for API keys reads as a key. The exception names that one
+# password in those three tests alone; the real one lives in Secret Manager and
+# reaches the service through its environment, never through the repository.
+[[allowlists]]
+description = "The made-up password of the reviewers' sign-in in its tests"
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''^internal/(app/log_test|config/config_test|transport/oauth/reviewer_internal_test)\.go$''']
+regexes = ['''^Xk3-vQ9_tLm2Wp7Rz4Yb8Nc1Jd6Hf5Gs$''']

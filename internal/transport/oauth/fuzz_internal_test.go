@@ -112,7 +112,8 @@ func knownServer(t testing.TB) (*Server, *documents) {
 const fuzzedRedirect = "https://host.example/cb"
 
 // googleStandIn answers as Google does, with no network: the address it sends
-// a parent to carries the request, and the code "allowed" is worth a grant.
+// a parent to carries the request, the code "allowed" is worth a grant, and
+// the code "drive-unticked" one without the Drive.
 type googleStandIn struct{}
 
 func (googleStandIn) AuthURL(state, _, _ string) string {
@@ -120,12 +121,17 @@ func (googleStandIn) AuthURL(state, _, _ string) string {
 }
 
 func (googleStandIn) Exchange(_ context.Context, code, _, _ string) (googleauth.Grant, error) {
-	if code != "allowed" {
+	scopes := []string{googleauth.ScopeOpenID, googleauth.ScopeDriveFile}
+	switch code {
+	case "allowed":
+	case "drive-unticked":
+		scopes = scopes[:1]
+	default:
 		return googleauth.Grant{}, googleauth.ErrCodeRefused
 	}
 	return googleauth.Grant{
 		Subject: "a-subject", AccessToken: "an-access-token", RefreshToken: "a-refresh-token",
-		Expiry: testDay.Add(time.Hour), Scopes: []string{googleauth.ScopeOpenID, googleauth.ScopeDriveFile},
+		Expiry: testDay.Add(time.Hour), Scopes: scopes,
 	}, nil
 }
 
@@ -142,6 +148,13 @@ func (googleStandIn) Revoke(context.Context, string) error { return nil }
 // the stand-in for Google.
 func fuzzedServer(f *testing.F) (server *Server, clientID string) {
 	f.Helper()
+	return fuzzedServerWith(f, nil)
+}
+
+// fuzzedServerWith is a fuzzed server whose consent screen also signs the
+// reviewer given in, when one is.
+func fuzzedServerWith(f *testing.F, reviewer *Reviewer) (server *Server, clientID string) {
+	f.Helper()
 
 	server, err := New(&Settings{
 		PublicURL: testIssuer,
@@ -152,6 +165,7 @@ func fuzzedServer(f *testing.F) (server *Server, clientID string) {
 		Renewals:  ratelimittest.Roomy(f),
 		Google:    googleStandIn{},
 		SiteURL:   testSite,
+		Reviewer:  reviewer,
 		Now:       func() time.Time { return testDay },
 	})
 	if err != nil {
@@ -166,7 +180,8 @@ func fuzzedServer(f *testing.F) (server *Server, clientID string) {
 
 // leadsOnlyWhereItMay fails an answer that is anything but a page or a way on
 // to one of the places a sign-in may send the parent: Google, or the address
-// the client registered, told who answered.
+// the client registered, told who answered — or the page that asks for the
+// Drive.
 func leadsOnlyWhereItMay(t *testing.T, answer *httptest.ResponseRecorder, input string) {
 	t.Helper()
 
@@ -174,6 +189,10 @@ func leadsOnlyWhereItMay(t *testing.T, answer *httptest.ResponseRecorder, input 
 	case http.StatusOK, http.StatusBadRequest:
 		if answer.Header().Get("Location") != "" {
 			t.Errorf("a page for %q leads to %q", input, answer.Header().Get("Location"))
+		}
+	case http.StatusSeeOther:
+		if location := answer.Header().Get("Location"); !strings.HasPrefix(location, DrivePath+"?") {
+			t.Errorf("%q leads to %q, want the page that asks for the Drive", input, location)
 		}
 	case http.StatusFound:
 		location := answer.Header().Get("Location")
@@ -235,6 +254,7 @@ func FuzzCallback(f *testing.F) {
 	state := url.Values{"state": {sealed}}.Encode()
 	for _, seed := range []struct{ query, cookie string }{
 		{state + "&code=allowed", "the-cookie"},
+		{state + "&code=drive-unticked", "the-cookie"},
 		{state + "&code=refused", "the-cookie"},
 		{state + "&error=access_denied", "the-cookie"},
 		{state + "&code=allowed", "another-cookie"},
@@ -254,6 +274,105 @@ func FuzzCallback(f *testing.F) {
 		leadsOnlyWhereItMay(t, answer, query)
 		if strings.HasPrefix(answer.Header().Get("Location"), "https://accounts.example/") {
 			t.Errorf("the callback for %q sends the parent to Google again", query)
+		}
+	})
+}
+
+// Whatever the page that asks for the Drive is asked for, with whatever
+// cookie, it is drawn or refused at a page: it sends the parent nowhere, and
+// never fails as the server's.
+func FuzzDrive(f *testing.F) {
+	server, clientID := fuzzedServer(f)
+	sealed, err := server.flow.sealFlight(&flight{
+		Client: digestOf(clientID), Registration: registrationDCR, RedirectURI: fuzzedRedirect, State: "s",
+		Challenge: "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM", Resource: testIssuer + "/mcp", Scope: "mcp",
+		Verifier: "v", Nonce: "n", Cookie: digestOf("the-cookie"), StartedAt: testDay.Unix(),
+	})
+	if err != nil {
+		f.Fatalf("sealFlight() error = %v, want nil", err)
+	}
+	request := url.Values{"request": {sealed}}.Encode()
+	for _, seed := range []struct{ query, cookie string }{
+		{request, "the-cookie"},
+		{request, "another-cookie"},
+		{request + "&request=another", "the-cookie"},
+		{"request=mt1.s.x.y", "the-cookie"},
+		{"%zz", ""},
+		{"", ""},
+	} {
+		f.Add(seed.query, seed.cookie)
+	}
+
+	f.Fuzz(func(t *testing.T, query, cookie string) {
+		asked := httptest.NewRequestWithContext(t.Context(), http.MethodGet, DrivePath, http.NoBody)
+		asked.URL.RawQuery = query
+		asked.Header.Set("Cookie", csrfCookie+"="+cookie)
+		answer := httptest.NewRecorder()
+		server.Drive.ServeHTTP(answer, asked)
+		if (answer.Code != http.StatusOK && answer.Code != http.StatusBadRequest) || answer.Header().Get("Location") != "" {
+			t.Errorf("GET %s?%s = %d to %q, want a page and no redirect", DrivePath, query, answer.Code, answer.Header().Get("Location"))
+		}
+	})
+}
+
+// Whatever a consent screen posts, with whatever cookie, it is answered with a
+// page, or sent on to Google or back to the address the client registered —
+// never anywhere else, and never with a failure of the server's — and only
+// the reviewer's own password sends a code back with it.
+func FuzzConsent(f *testing.F) {
+	server, clientID := fuzzedServerWith(f, &Reviewer{Password: reviewerPassword, Subject: demoSubject, RefreshToken: "a-refresh-token"})
+	sealed, err := server.flow.sealFlight(&flight{
+		Client: digestOf(clientID), Registration: registrationDCR, RedirectURI: fuzzedRedirect, State: "s",
+		Challenge: "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM", Resource: testIssuer + "/mcp", Scope: "mcp",
+		Verifier: "v", Nonce: "n", Cookie: digestOf("the-cookie"), StartedAt: testDay.Unix(),
+	})
+	if err != nil {
+		f.Fatalf("sealFlight() error = %v, want nil", err)
+	}
+	form := func(decision, password string) string {
+		return url.Values{"request": {sealed}, "decision": {decision}, "password": {password}}.Encode()
+	}
+	for _, seed := range []struct{ body, cookie string }{
+		{form("allow", ""), "the-cookie"},
+		{form("again", ""), "the-cookie"},
+		{form("cancel", ""), "the-cookie"},
+		{form("deny", ""), "the-cookie"},
+		{form("reviewer", reviewerPassword), "the-cookie"},
+		{form("reviewer", "a-guess"), "the-cookie"},
+		{form("reviewer", reviewerPassword), "another-cookie"},
+		{form("reviewer", reviewerPassword) + "&password=a-guess", "the-cookie"},
+		{"request=mt1.s.x.y&decision=reviewer&password=" + reviewerPassword, "the-cookie"},
+		{"%zz", ""},
+		{"", ""},
+	} {
+		f.Add(seed.body, seed.cookie)
+	}
+
+	f.Fuzz(func(t *testing.T, body, cookie string) {
+		request := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/oauth/consent", strings.NewReader(body))
+		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		request.Header.Set("Cookie", csrfCookie+"="+cookie)
+		answer := httptest.NewRecorder()
+		server.Consent.ServeHTTP(answer, request)
+
+		location := answer.Header().Get("Location")
+		switch {
+		case answer.Code >= http.StatusInternalServerError:
+			t.Errorf("status = %d for %q, want no failure of the server's", answer.Code, body)
+		case answer.Code != http.StatusSeeOther:
+			if location != "" {
+				t.Errorf("a page for %q leads to %q", body, location)
+			}
+		case strings.HasPrefix(location, "https://accounts.example/auth?"):
+		case strings.HasPrefix(location, fuzzedRedirect+"?"):
+			back, err := url.Parse(location)
+			posted, _ := url.ParseQuery(body)
+			admitted := posted.Get("decision") == "reviewer" && posted.Get("password") == reviewerPassword
+			if err != nil || (back.Query().Has("code") && !admitted) {
+				t.Errorf("%q is sent back to %q, want a code only for the reviewer's password", body, location)
+			}
+		default:
+			t.Errorf("%q leads to %q, want Google or the client's own address", body, location)
 		}
 	})
 }

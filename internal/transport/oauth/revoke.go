@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth"
@@ -32,10 +33,12 @@ type held struct {
 // cannot take back a token it issued, so revoking only its own would change
 // nothing: the grant is ended at Google, the one place it can end, and every
 // token of it ends there with it — the tokens of any other chat the parent
-// connected included. A token none of this server's is answered as revoked,
-// as the protocol asks, since there is nothing a client could do about it;
-// which kind of token the client says it sent is only a hint, and needs no
-// reading, since either kind is tried.
+// connected included. The demo account's grant is the one exception, since
+// the reviewers' sign-in goes on renewing it: a token of it ends nothing, and
+// expires as a token does. A token none of this server's is answered as
+// revoked, as the protocol asks, since there is nothing a client could do
+// about it; which kind of token the client says it sent is only a hint, and
+// needs no reading, since either kind is tried.
 func (t *tokens) serveRevoke(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 
@@ -60,6 +63,14 @@ func (t *tokens) serveRevoke(w http.ResponseWriter, r *http.Request) {
 		refused = invalidGrant("the token was issued to another client", "client")
 		t.events.revoked(r.Context(), registration, token.kind, &ending{outcome: "refused", reason: refused.reason, user: token.user})
 		writeRefusal(w, t.issuer, refused)
+		return
+	case slices.Contains(t.demo, token.user):
+		// The demo account's grant is the one the reviewers' sign-in renews.
+		// Ended at Google, it would end that sign-in for every reviewer until
+		// it is captured again — and a reviewer disconnects once the review is
+		// over.
+		t.events.revoked(r.Context(), registration, token.kind, &ending{outcome: "ignored", reason: "demo_account", user: token.user})
+		w.WriteHeader(http.StatusOK)
 		return
 	case !token.googleEnds.IsZero() && !token.googleEnds.After(t.now()):
 		// Google no longer honours the token inside, which can end nothing:

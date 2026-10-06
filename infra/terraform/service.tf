@@ -171,6 +171,38 @@ resource "google_cloud_run_v2_service" "service" {
         }
       }
 
+      # The sign-in of a directory's reviewers, given to the service only once
+      # a version of each of its secrets is named.
+      dynamic "env" {
+        for_each = var.reviewer_password_version == "" ? [] : [var.reviewer_password_version]
+
+        content {
+          name = "MATHTRAIL_REVIEWER_PASSWORD"
+
+          value_source {
+            secret_key_ref {
+              secret  = google_secret_manager_secret.reviewer_password.secret_id
+              version = env.value
+            }
+          }
+        }
+      }
+
+      dynamic "env" {
+        for_each = var.reviewer_grant_version == "" ? [] : [var.reviewer_grant_version]
+
+        content {
+          name = "MATHTRAIL_REVIEWER_GRANT"
+
+          value_source {
+            secret_key_ref {
+              secret  = google_secret_manager_secret.reviewer_grant.secret_id
+              version = env.value
+            }
+          }
+        }
+      }
+
       dynamic "env" {
         for_each = var.settings
 

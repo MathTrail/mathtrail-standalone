@@ -2,6 +2,7 @@ package mcpserver
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"go.opentelemetry.io/otel/trace"
@@ -36,6 +37,9 @@ type Service struct {
 	// learners names each child in the lines that count children: one name a
 	// month, which leads back to no child.
 	learners *learner.Key
+	// demo are the identifiers of the account a directory's reviewers sign in
+	// as, whose child those lines leave out; none when there is none.
+	demo []string
 	// site is the origin of the site the topics' pages are on.
 	site string
 }
@@ -73,6 +77,13 @@ type Parts struct {
 	// Learners is the key the name a child is counted under in a line is
 	// derived from.
 	Learners *learner.Key
+	// DemoAccounts are the identifiers of the account a directory's reviewers
+	// sign in as — the one a sign-in is given now, and during a rotation of
+	// the keys the one a sign-in made before it carries — or none when there
+	// is no such account. Its child is no child, and its answers — a
+	// reviewer's, or wrong on purpose to fill its progress — are no child's:
+	// the lines that count the children name nobody for it.
+	DemoAccounts []string
 	// SiteURL is the origin of the site the topics' pages are on, as a browser
 	// writes it: the card links a topic there only at that exact origin, and
 	// the model's words name the same.
@@ -132,6 +143,7 @@ func NewService(parts *Parts) (*Service, error) {
 		},
 		tracer:   parts.Traces.Tracer(tracerScope),
 		learners: parts.Learners,
+		demo:     slices.Clone(parts.DemoAccounts),
 		site:     parts.SiteURL,
 	}, nil
 }

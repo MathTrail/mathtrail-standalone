@@ -164,6 +164,23 @@ variable "google_client_secret_version" {
   default     = "1"
 }
 
+variable "reviewer_password_version" {
+  description = "The version of the secret holding the password a directory's reviewers sign in with, as the demo account. Empty, the service is given none, and the reviewers' sign-in is off."
+  type        = string
+  default     = ""
+}
+
+variable "reviewer_grant_version" {
+  description = "The version of the secret holding the demo account's grant at Google, which the reviewers' sign-in renews. Set together with reviewer_password_version, or not at all."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = (var.reviewer_grant_version == "") == (var.reviewer_password_version == "")
+    error_message = "reviewer_grant_version and reviewer_password_version are set together, or not at all: the service refuses to start with half a sign-in."
+  }
+}
+
 variable "settings" {
   description = "Extra environment variables, for the ceilings and timeouts the binary otherwise defaults to. Never a secret: these values are readable in the state and in the deployed revision. The two the size of an instance decides, its solver slots and the runtime's memory limit, are set from cpu and memory and cannot be set here."
   type        = map(string)
@@ -172,6 +189,11 @@ variable "settings" {
   validation {
     condition     = length(setintersection(keys(var.settings), ["GOMEMLIMIT", "MATHTRAIL_SOLVER_CONCURRENCY"])) == 0
     error_message = "GOMEMLIMIT and MATHTRAIL_SOLVER_CONCURRENCY follow memory and cpu; set those instead."
+  }
+
+  validation {
+    condition     = length(setintersection(keys(var.settings), ["MATHTRAIL_REVIEWER_PASSWORD", "MATHTRAIL_REVIEWER_GRANT"])) == 0
+    error_message = "MATHTRAIL_REVIEWER_PASSWORD and MATHTRAIL_REVIEWER_GRANT are secrets: they come from Secret Manager, by reviewer_password_version and reviewer_grant_version."
   }
 }
 

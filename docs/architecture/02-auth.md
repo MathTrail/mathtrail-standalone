@@ -25,8 +25,9 @@ One process wears two hats: it is the **authorization server** the host signs in
 | `/.well-known/oauth-authorization-server` | GET | RFC 8414 metadata; the issuer has no path component, so this one URL is enough | public |
 | `/oauth/register` | POST | RFC 7591 registration, kept as the fallback for a host without CIMD (R03); stateless — the record is sealed into the `client_id` itself | public |
 | `/oauth/authorize` | GET | validates the client, the redirect URI, PKCE, `resource` and `scope`; shows the consent screen or goes straight on to Google | the parent's browser |
-| `/oauth/consent` | POST | the parent's approval of this client; the only thing it adds is a cookie entry | CSRF cookie |
-| `/oauth/callback` | GET | Google's redirect target: verifies the state and the cookie, exchanges Google's code, looks the country of the parent's browser up, issues **our** code | CSRF cookie |
+| `/oauth/consent` | POST | the parent's approval of this client, and the only thing it adds is a cookie entry — or, where it is configured, the reviewers' password, which signs a directory's reviewer in as the demo account without Google (R222) | CSRF cookie |
+| `/oauth/callback` | GET | Google's redirect target: verifies the state and the cookie, exchanges Google's code, looks the country of the parent's browser up, issues **our** code — or, when the parent left Google's box for the Drive unticked, sends them on to `/oauth/drive` (R224) | CSRF cookie |
+| `/oauth/drive` | GET | the page that asks a parent who left Google's box for the Drive unticked to go back and tick it, for the request its address carries; its form is answered by `/oauth/consent` | CSRF cookie |
 | `/oauth/token` | POST | `authorization_code` and `refresh_token` | PKCE / the refresh token |
 | `/oauth/revoke` | POST | RFC 7009; revokes the grant at Google | the token itself |
 | `/mcp` | GET, POST | the protected resource | Bearer |
@@ -105,10 +106,28 @@ sequenceDiagram
     G-->>P: 302 to /oauth/callback with Google's code and our state
     P->>MT: GET /oauth/callback
 
-    Note over MT: unseal the state · SHA-256 of the cookie equals the hash inside it ·<br/>drop the cookie
+    Note over MT: unseal the state · SHA-256 of the cookie equals the hash inside it
     MT->>G: POST /token: Google's code, our verifier, our client secret
     G-->>MT: access_token, refresh_token, id_token
-    Note over MT: verify the ID token against the cached JWKS: iss, aud, exp, nonce ·<br/>drive.file among the granted scopes<br/>user_id = HMAC(k_userid, sub) — the sub itself goes no further
+    Note over MT: verify the ID token against the cached JWKS: iss, aud, exp, nonce
+
+    opt drive.file is not among the granted scopes — Google leaves its box unticked
+        Note over MT: the context sealed anew: a fresh verifier and nonce, ten minutes
+        MT-->>P: 303 to /oauth/drive with the context, no code of Google's<br/>Set-Cookie __Host-mt_csrf, the same value, ten minutes more
+        P->>MT: GET /oauth/drive
+        MT-->>P: the page that asks the parent to go back and tick the box —<br/>drawn again on a reload, Google asked nothing
+        P->>MT: POST /oauth/consent with the context and the cookie, decision=again
+        MT-->>P: 303 to Google, nothing approved — or, on decision=cancel, to redirect_uri with access_denied
+        P->>G: sign-in and consent again, the box ticked
+        G-->>P: 302 to /oauth/callback with Google's code and our state
+        P->>MT: GET /oauth/callback
+        Note over MT: the state and the cookie checked as before
+        MT->>G: POST /token: Google's code, our verifier, our client secret
+        G-->>MT: access_token, refresh_token, id_token
+        Note over MT: the ID token verified as before · drive.file granted
+    end
+
+    Note over MT: drop the cookie · user_id = HMAC(k_userid, sub) — the sub itself goes no further
     MT-->>P: 302 to redirect_uri with code=mt1.c.KID.SEALED,<br/>the host's own state, and iss=https://mathtrail.example
     P->>H: the browser hands the code back to the host
 
@@ -119,6 +138,27 @@ sequenceDiagram
 ```
 
 **Why the consent page exists.** We proxy a sign-in to a third party, which is the textbook confused-deputy setup: without a screen of our own, a stranger's client could ride on a browser that is already signed in to Google and never be seen by the parent. So a client the browser has not approved gets one page before Google is involved at all, and the page names the client and the **hostname of its redirect URI** — the specification asks for the hostname specifically, because a client name is only a string the client chose for itself. A `localhost`-only redirect URI gets an extra warning line: the metadata document cannot prove who is listening on a loopback port. The page loads nothing and cannot be framed, and its form may be sent to this server and on to the two places it leads: Google, and the client when the parent declines (SPEC 9.2). The host is shown in its ASCII form, the one a browser goes to, so that a name spelled with a lookalike letter of another script cannot pass for a familiar one; the client's name is shown without controls and without the invisible marks that reorder or hide text, and both are isolated from the text around them.
+
+**A directory's reviewer.** Where the reviewers' sign-in is configured — two secrets, the password and the demo account's grant at Google — the consent page also offers, folded under the parent's way in, a password in place of Google (R222):
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant R as The reviewer's browser
+    participant H as Host, the MCP client
+    participant MT as MathTrail
+    participant G as Google
+
+    Note over R,MT: the consent page, with the password folded under the parent's way in
+    R->>MT: POST /oauth/consent: decision=reviewer, the password,<br/>the sealed context and the cookie
+    Note over MT: the cookie matches the hash inside the context ·<br/>the password's SHA-256 is the reviewers', compared in constant time —<br/>a wrong one is a page, and Google is asked nothing
+    MT->>G: POST /token, grant_type=refresh_token: the demo account's refresh token
+    G-->>MT: access_token
+    MT-->>R: 303 to redirect_uri with code=mt1.c.KID.SEALED for the demo account —<br/>no country, no approval remembered, the cookie dropped
+    R->>H: the browser hands the code back to the host
+```
+
+The code is the one a sign-in through Google ends in, and the host goes on as it does after one. Google asks the reviewer nothing, so no check of Google's can stand in the way of a reviewer signing in from another country or device. The demo account's user identifier is derived from its `sub` as a parent's is — under each key of the ring, so that a session begun before a rotation is still the demo account's —, its tokens are never ended at Google by a revocation (diagram 4), and its lines count no child.
 
 **Why `prompt=consent` on every sign-in.** Google returns a refresh token only on the first authorization, and a stateless service has nowhere to keep one from last time. Sending `prompt=consent` makes every sign-in yield its own refresh token. The costs are honest and worth writing down: the parent sees Google's permission screen on every connection, and the account's 100-refresh-token ceiling means that after a hundred sign-ins the oldest grant dies without a warning. Both belong in the privacy policy and the first-sign-in description (T19).
 
@@ -136,7 +176,7 @@ A parameter given twice is refused as `invalid_request` — at a page before the
 
 Whatever is recorded in step 4 becomes the audience of the tokens issued from this request, and is what the bearer check compares against on every later call — that is the whole of the `resource` → `aud` binding RFC 8707 asks for, and the reason a token issued for somebody else's server cannot be spent on ours.
 
-**Errors.** Until the redirect URI has been matched exactly, nothing is redirected anywhere: a bad `client_id` or a bad `redirect_uri` renders an error page. After it matches, errors go back to the client as an OAuth error response with `state` and `iss`, including the parent declining at Google, which comes back as `access_denied`. A parent who unticks the Drive permission on Google's screen has not allowed the sign-in either, and the client hears `access_denied` with a description that says why (R110, SPEC remark 52). A request or an answer that cannot be tied to this browser — no cookie, another cookie, a `state` this server did not seal, or one past its ten minutes — renders a page as well: the redirect URI inside it is not to be trusted to be this parent's.
+**Errors.** Until the redirect URI has been matched exactly, nothing is redirected anywhere: a bad `client_id` or a bad `redirect_uri` renders an error page. After it matches, errors go back to the client as an OAuth error response with `state` and `iss`, including the parent declining at Google, which comes back as `access_denied`. A grant without the Drive permission is not an error the client hears: asked together with `openid`, `drive.file` is a box Google leaves unticked until the parent ticks it, so the parent is sent on to a page that asks them to go back to Google and tick it, at an address of its own that carries no code of Google's, and the client hears `access_denied` only if they cancel there (R224, SPEC remark 52). The consent screen asks for the box to be ticked before the parent meets it. A request or an answer that cannot be tied to this browser — no cookie, another cookie, a `state` this server did not seal, or one past its ten minutes — renders a page as well: the redirect URI inside it is not to be trusted to be this parent's.
 
 ### 3. Calling tools, and refreshing
 
@@ -204,7 +244,7 @@ sequenceDiagram
 
 Two consequences to state out loud. First, a stateless server cannot invalidate a token it has already issued, so a revoke that touched only our own tokens would be theatre; revoking at Google is the only thing that actually ends access, and it ends the **whole** grant — if the parent has the app connected in two hosts, disconnecting one disconnects both. Second, a Google token that has been revoked leaves our own token cryptographically valid but useless, so a Drive `401` is translated into a `401` of ours with a `WWW-Authenticate` challenge: the host then starts a new sign-in on its own. The status of a call leaves with its result, so the call that met the refusal decides it. ChatGPT starts its sign-in from a challenge in a failed result instead, and answers a `401` in the middle of a call with words alone, so it is answered `200` with the failure, whose `_meta["mcp/www_authenticate"]` carries the same challenge; every host gets that `_meta`, and a host is told by the name its client gives. A Google token that would end before a call to Drive could finish is answered the same way, before Drive is asked anything (R118).
 
-**What `/revoke` does.** It takes `token` and `client_id`, and reads a token of either kind whatever its own end, since a token past its end may still name a grant alive at Google. A token issued to another client is `invalid_grant`. The grant is ended at Google with Google's refresh token from our refresh token, and with Google's access token from our access token — Google ends the whole grant either way. An access token whose Google token inside has ended can end nothing, and is answered `200` with nothing asked of Google — the refresh token is what ends such a grant — as is a token that is none of ours, as RFC 7009 asks; Google not answering is `503`, the grant not ended, which the host may try again after. The callback leaves as it is the grant of a parent who unticked the Drive permission: Google ends a parent's grants at a service together, and ending it would disconnect the chats they had already connected (R114).
+**What `/revoke` does.** It takes `token` and `client_id`, and reads a token of either kind whatever its own end, since a token past its end may still name a grant alive at Google. A token issued to another client is `invalid_grant`. The grant is ended at Google with Google's refresh token from our refresh token, and with Google's access token from our access token — Google ends the whole grant either way. An access token whose Google token inside has ended can end nothing, and is answered `200` with nothing asked of Google — the refresh token is what ends such a grant — as is a token that is none of ours, as RFC 7009 asks; Google not answering is `503`, the grant not ended, which the host may try again after. The callback leaves as it is the grant of a parent who unticked the Drive permission: Google ends a parent's grants at a service together, and ending it would disconnect the chats they had already connected (R114). For the same reason a token of the demo account ends nothing at Google and is answered `200`: its grant is the one the reviewers' sign-in renews, and ending it would end that sign-in for every reviewer (R222).
 
 ## Tokens and cookies
 
@@ -287,6 +327,7 @@ The acceptance question for this task is whether one can see that the server sto
 | The country the parent signed in from | inside the tokens, as a code; the address it was looked up from is kept nowhere | with the token |
 | The child's profile and the current task | a JSON file in the parent's Google Drive (О-5) | until the parent deletes it |
 | Sealing keys | Secret Manager, read into the instance once at startup | the version's lifetime |
+| The reviewers' password, and the demo account's grant at Google that it renews | Secret Manager, read into the instance once at startup, where the reviewers' sign-in is configured (R222) | the version's lifetime, and the grant's at Google |
 | Rate-limit counters | the instance's memory (О-15, О-24) | minutes |
 | CIMD documents and Google's JWKS | the instance's memory cache | their cache headers |
 
@@ -306,6 +347,8 @@ Restart the service, or start a second instance, and nothing above is lost or ha
 | **CSRF on the callback** | the `__Host-mt_csrf` cookie nonce bound by hash into the sealed `state`; no cookie, or a mismatch, and the callback refuses without redirecting | a browser that blocks cookies cannot sign in, and is told so |
 | **Audience confusion, token pass-through** | the audience is checked on every request against the configured canonical resource with `oauthex.MatchesResource`; Google's token never reaches the host, and a token we did not seal cannot be unsealed at all | — |
 | **Abuse of the endpoints open before sign-in** | a pace for each address on every endpoint of the sign-in and on both its documents — the last hop of `X-Forwarded-For`, an IPv6 address by its /64 — and behind the endpoints, not the documents, a pace of the sign-in's own, apart from the lessons'; answered `429` with `Retry-After`, and in a parent's browser with a page in their language; the CIMD cache; and body and time caps on every fetch (R121) | the per-instance counting of О-24 applies here too; and the hosts' own servers, which call the token, registration and revocation endpoints and the documents, share their few addresses among every family of a host (SPEC remark 60) |
+| **Guessing the reviewers' password** | 32 random characters, made by `just reviewer-password`; the consent step held to the pace of an address and of the instance, as every step of the browser is; the password compared as its digest, in the same time whether it matches or not; the demo account's renewals at Google held to the account's pace, as every account's are; nothing offered where the sign-in is not configured (R222) | none in practice: 20 guesses a minute come nowhere near 32 random characters |
+| **A leaked reviewers' password** | it signs in the demo account alone, whose one file is a demo profile with no child behind it; a new version replaces it, and ending the grant in the demo account's Google account cuts every reviewer's session short (R222) | sessions already given last to their own end, up to 90 days, unless the grant is ended |
 | **Secrets in the logs** | the fields are fixed: client id, redirect URI, resource, requested and granted scope, key id, outcome and the derived user id — never a token, a code, a verifier, a cookie, an ID token, a `sub` or an email address (О-16) | — |
 
 One methodological point carries over from T04 and applies to every acceptance run that touches sign-in: the model never sees any of this. A step-up, a refresh, a 401 and a retry all happen between the host and us, and in the model's context there is a single successful call. The server log is the only trustworthy account of what happened.
@@ -317,7 +360,7 @@ One methodological point carries over from T04 and applies to every acceptance r
 | 6 OAuth 2.1 with PKCE | "The parent signs in": `code_challenge_method=S256` required at `/oauth/authorize`, verified at `/oauth/token`; `code_challenge_methods_supported: ["S256"]` in the metadata |
 | 6 Short-lived tokens | "Tokens and cookies": 60 s for a code, 15 min for an access token, with a 90-day ceiling on a refresh chain |
 | 6 A token check on every request | "Calling tools": `auth.RequireBearerToken` with our verifier — unseal, purpose, expiry with skew, audience |
-| 6 The OAuth state and the Google tokens are not stored on the server (О-7) | "Where the state lives" — every row is a cookie, a token, Google or Drive |
+| 6 The OAuth state and the Google tokens are not stored on the server (О-7) | "Where the state lives" — every row is a cookie, a token, Google or Drive, and the one Google grant Secret Manager keeps is the demo account's, for the reviewers' sign-in, never a family's (R222) |
 | 6 The encryption key lives in Secret Manager (О-7) | "Sealing and the key ring": pinned versions in environment variables, read once at startup |
 | 6 No secrets in the repository | the Google client secret and the sealing keys are environment variables only; the repository holds neither |
 | 6 Per-user limits keyed by the sign-in token | "The identifier used for limits" |

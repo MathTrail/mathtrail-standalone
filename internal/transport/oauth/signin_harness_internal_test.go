@@ -69,13 +69,13 @@ type signIn struct {
 // newSignIn builds a server whose sign-in goes to a stand-in for Google.
 func newSignIn(t *testing.T) *signIn {
 	t.Helper()
-	return build(t, true, testDay)
+	return build(t, true, testDay, nil)
 }
 
 // newSignInWithoutGoogle builds a server with no Google sign-in configured.
 func newSignInWithoutGoogle(t *testing.T) *signIn {
 	t.Helper()
-	return build(t, false, testDay)
+	return build(t, false, testDay, nil)
 }
 
 // newSignInNow builds a server whose clock starts at the real time: the check
@@ -83,10 +83,18 @@ func newSignInWithoutGoogle(t *testing.T) *signIn {
 // judges a token by the real clock.
 func newSignInNow(t *testing.T) *signIn {
 	t.Helper()
-	return build(t, true, time.Now())
+	return build(t, true, time.Now(), nil)
 }
 
-func build(t *testing.T, withGoogle bool, start time.Time) *signIn {
+// newSignInWithReviewer builds a server whose consent screen also signs a
+// directory's reviewer in as the demo account given, beside the parents who
+// sign in with Google.
+func newSignInWithReviewer(t *testing.T, reviewer *Reviewer) *signIn {
+	t.Helper()
+	return build(t, true, testDay, reviewer)
+}
+
+func build(t *testing.T, withGoogle bool, start time.Time, reviewer *Reviewer) *signIn {
 	t.Helper()
 
 	routes := http.NewServeMux()
@@ -109,6 +117,7 @@ func build(t *testing.T, withGoogle bool, start time.Time) *signIn {
 		Logger:    zap.New(core),
 		Renewals:  ratelimittest.Roomy(t),
 		SiteURL:   testSite,
+		Reviewer:  reviewer,
 		Now:       h.clock.Now,
 	}
 	if withGoogle {
@@ -133,6 +142,7 @@ func build(t *testing.T, withGoogle bool, start time.Time) *signIn {
 	routes.Handle("GET /oauth/authorize", server.Authorize)
 	routes.Handle("POST /oauth/consent", server.Consent)
 	routes.Handle("GET /oauth/callback", server.Callback)
+	routes.Handle("GET "+DrivePath, server.Drive)
 	routes.Handle("POST /oauth/token", server.Token)
 	routes.Handle("POST /oauth/revoke", server.Revoke)
 	routes.Handle("GET /.well-known/oauth-protected-resource/mcp", server.ResourceMetadata)

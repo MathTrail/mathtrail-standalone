@@ -730,10 +730,11 @@ site-photos dir: _playwright-pinned
 # The page "Research" draws every number from one file made at build time:
 # the bench's numbers of the student model, computed from the commit being
 # built, with the product's counts and constants, the paper's facts and the
-# state of the live numbers. The numbers take minutes to compute, so they are
-# kept under the key of what moves them, and a build of the same bench takes
-# them as they were kept. The file is written to site/research/research.json,
-# which git does not keep, and the table of its goals is printed.
+# live numbers of the snapshot taken of them, when there is one. The numbers
+# take minutes to compute, so they are kept under the key of what moves them,
+# and a build of the same bench takes them as they were kept. The file is
+# written to site/research/research.json, which git does not keep, and the
+# table of its goals is printed.
 # Make the data file of the page "Research"
 research-data:
     #!/usr/bin/env bash
@@ -759,6 +760,8 @@ research-data:
     fi
     paper=()
     if [ -f site/research/paper.json ]; then paper=(-paper site/research/paper.json); fi
+    live=()
+    if [ -f site/research/live.json ]; then live=(-live site/research/live.json); fi
     commit=$(git rev-parse HEAD)
     date=$(git log -1 --format=%cI)
     if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
@@ -766,7 +769,7 @@ research-data:
         echo
     fi
     bin/learners page-file -numbers "$numbers" -inputs "$key" -commit "$commit" -date "$date" \
-        -paper-commit "$paper_commit" "${paper[@]}" -out site/research/research.json
+        -paper-commit "$paper_commit" "${paper[@]}" "${live[@]}" -out site/research/research.json
 
 # The key of what the page's numbers are computed from: a hash of the bench's
 # program, built so that the same sources make the same bytes wherever they
@@ -823,6 +826,44 @@ site-paper:
         '{commit: $commit, files: [{lang: "en", path: "/assets/paper-a.en.pdf", pages: $pages, bytes: $bytes, sha256: $sha256}]}' \
         > site/research/paper.json
     echo "site-paper: $pages pages, $bytes bytes, of the paper at $commit"
+
+# The live numbers of the page "Research" as the public views of the counts
+# kept for years show them: the latest month counted whole, its answers over
+# every range of the chance promised, and the ranges of chance and of the
+# child's answers the views' rule lets them show. They are read with bq, as
+# the deployment the Terraform configuration names, with the credentials of
+# whoever runs it, and written to site/research/live.json, which git keeps,
+# since no build of the site reads BigQuery. A month is counted whole by the
+# night after it ends, so a snapshot taken from the next month's second day
+# holds it. The page's data takes the snapshot in when there is one, and the
+# page says the numbers are still to come when there is none. The SQL is in
+# infra/analytics/site/, where the tests of the counts run it too.
+# Take a snapshot of the live numbers of the page "Research"
+site-live:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if ! command -v bq > /dev/null; then
+        echo "site-live: this environment has bq on x86_64 alone." >&2
+        exit 1
+    fi
+    project=$(just _project)
+    # The SQL goes to bq on its input: given as an argument, a query that
+    # begins with a comment, as every file of it does, is read as a flag.
+    snapshot=$(just _analytics-sql "$project" site/live.sql |
+        bq --project_id="$project" --quiet query --nouse_legacy_sql --format=json | jq '.[0].live | fromjson')
+    printf '%s\n' "$snapshot" > site/research/live.json
+    # The page's data is made from the snapshot at once, so that a snapshot the
+    # bench refuses is refused now rather than by the next build of the site.
+    if ! just research-data > /dev/null; then
+        echo "site-live: the page's data could not be made with the snapshot now in" \
+            "site/research/live.json, for the reason above" >&2
+        exit 1
+    fi
+    said=$(jq -r 'if .month == null then "no month is counted whole yet"
+        elif .total == null then "\(.month) had too few children for any number to be shown"
+        else "\(.month): \(.total.learners) children and \(.total.answers) answers, with \(.chances | length) ranges of chance and \(.kept_up | length) of the child'"'"'s answers shown" end' \
+        site/research/live.json)
+    echo "site-live: $said; read from $project into site/research/live.json"
 
 # -- Infrastructure ---------------------------------------------------------
 
@@ -943,6 +984,17 @@ ci-tf-apply:
     tf apply -auto-approve -input=false
     tf output
 
+# A file of the SQL of the counts kept for years, by its path under
+# infra/analytics/, with the names it is written with filled in as the tests
+# fill them, for the project of the deployment: its three datasets, and the
+# months to read where the file asks for them
+_analytics-sql project file months="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    project="{{ project }}"
+    sed -e "s/\${impact}/$project.impact/g" -e "s/\${public}/$project.impact_public/g" \
+        -e "s/\${private}/$project.impact_private/g" -e "s/\${months}/{{ months }}/g" "infra/analytics/{{ file }}"
+
 # The project the deployment lives in, as the Terraform configuration names it
 _project:
     #!/usr/bin/env bash
@@ -958,6 +1010,105 @@ _project:
         exit 1
     fi
     echo "$project"
+
+# The password a directory's reviewers sign in with: thirty-two random letters,
+# digits, dashes and underscores, added as a version of its secret and shown
+# once on the terminal, for a password manager and the review forms. It is
+# written to no file. The deployment reads it once reviewer_password_version
+# names the version Secret Manager reports.
+# Make the reviewers' password, keep it in Secret Manager, and show it once
+reviewer-password service="mathtrail":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if ! command -v gcloud > /dev/null; then
+        echo "reviewer-password: this environment has gcloud on x86_64 alone." >&2
+        exit 1
+    fi
+    project=$(just _project)
+    password=$(head -c 24 /dev/urandom | base64 | tr '+/' '-_')
+    printf '%s' "$password" | gcloud secrets versions add "{{ service }}-reviewer-password" --project="$project" --data-file=-
+    echo "The reviewers' password, shown this once: $password"
+
+# The reviewers' sign-in renews the demo account's grant at Google, and this
+# captures that grant with the service's own client. The address it prints
+# asks Google for the grant and sends the browser back to the service's
+# callback, which cannot read the request and leaves the code unspent; the
+# address the browser lands on is pasted back here. The code is exchanged with
+# the client's secret, read from Secret Manager, and the account's subject and
+# refresh token are added as a version of the grant's secret. None of them is
+# printed, written to a file, or put on a command line. The deployment reads
+# the grant once reviewer_grant_version names the version Secret Manager
+# reports.
+# Capture the demo account's grant at Google for the reviewers' sign-in, into Secret Manager
+reviewer-grant service="mathtrail":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if ! command -v gcloud > /dev/null; then
+        echo "reviewer-grant: this environment has gcloud on x86_64 alone." >&2
+        exit 1
+    fi
+    project=$(just _project)
+    named="{{ TF_DIR }}/prod.auto.tfvars"
+    setting() { sed -n "s/^[[:space:]]*$1[[:space:]]*=[[:space:]]*\"\([^\"]*\)\".*/\1/p" "$named" | head -1; }
+    client_id=$(setting google_oauth_client_id)
+    host=$(setting public_host)
+    if [ -z "$client_id" ] || [ -z "$host" ]; then
+        echo "reviewer-grant: $named names no google_oauth_client_id or no public_host." >&2
+        exit 1
+    fi
+    random() { head -c "$1" /dev/urandom | base64 | tr '+/' '-_' | tr -d '=\n'; }
+    verifier=$(random 32)
+    state=$(random 16)
+    challenge=$(printf '%s' "$verifier" | openssl dgst -sha256 -binary | base64 | tr '+/' '-_' | tr -d '=\n')
+    redirect="https://$host/oauth/callback"
+    query=$(jq -rn --arg client "$client_id" --arg redirect "$redirect" --arg challenge "$challenge" --arg state "$state" '
+        {client_id: $client, redirect_uri: $redirect, response_type: "code",
+         scope: "openid https://www.googleapis.com/auth/drive.file", access_type: "offline", prompt: "consent",
+         code_challenge: $challenge, code_challenge_method: "S256", state: $state}
+        | to_entries | map("\(.key)=\(.value | @uri)") | join("&")')
+    echo "Open this address in a browser signed in as the demo account, and allow both permissions:"
+    echo
+    echo "https://accounts.google.com/o/oauth2/v2/auth?$query"
+    echo
+    echo "The browser lands on a MathTrail page saying the link is not right. Paste its address here."
+    read -r -p "address: " landed
+    decoded() { local value="${1//+/ }"; printf '%b' "${value//%/\\x}"; }
+    param() { tr '&' '\n' <<< "${landed#*\?}" | sed -n "s/^$1=//p" | head -1; }
+    if [ "$(decoded "$(param state)")" != "$state" ] || [ -n "$(param error)" ] || [ -z "$(param code)" ]; then
+        echo "reviewer-grant: that is not the address this request came back to with a code." >&2
+        exit 1
+    fi
+    code=$(decoded "$(param code)")
+    client_secret=$(gcloud secrets versions access latest --secret="{{ service }}-google-client-secret" --project="$project")
+    answer=$(code="$code" client_secret="$client_secret" verifier="$verifier" \
+        jq -rn --arg client "$client_id" --arg redirect "$redirect" '
+            {code: env.code, client_id: $client, client_secret: env.client_secret, redirect_uri: $redirect,
+             grant_type: "authorization_code", code_verifier: env.verifier}
+            | to_entries | map("\(.key)=\(.value | @uri)") | join("&")' \
+        | curl -sS --max-time 30 -X POST https://oauth2.googleapis.com/token \
+            -H 'Content-Type: application/x-www-form-urlencoded' --data-binary @-)
+    refresh=$(jq -r '.refresh_token // empty' <<< "$answer")
+    identity=$(jq -r '.id_token // empty' <<< "$answer")
+    if [ -z "$refresh" ] || [ -z "$identity" ]; then
+        echo "reviewer-grant: Google gave no grant: $(jq -r '.error // "no answer"' <<< "$answer")" >&2
+        exit 1
+    fi
+    if [[ " $(jq -r '.scope // empty' <<< "$answer") " != *" https://www.googleapis.com/auth/drive.file "* ]]; then
+        echo "reviewer-grant: the Drive permission was not allowed. Run this again and leave it ticked." >&2
+        exit 1
+    fi
+    # The ID token came straight from Google's token endpoint, over a
+    # connection this recipe opened, so its claims are read without checking
+    # its signature.
+    payload=$(cut -d. -f2 <<< "$identity" | tr '_-' '/+')
+    while [ $(( ${#payload} % 4 )) -ne 0 ]; do payload="$payload="; done
+    subject=$(base64 -d <<< "$payload" | jq -r '.sub // empty')
+    if [ -z "$subject" ]; then
+        echo "reviewer-grant: Google's ID token names no account." >&2
+        exit 1
+    fi
+    subject="$subject" refresh="$refresh" jq -cjn '{subject: env.subject, refresh_token: env.refresh}' \
+        | gcloud secrets versions add "{{ service }}-reviewer-grant" --project="$project" --data-file=-
 
 # -- Container --------------------------------------------------------------
 
@@ -1338,21 +1489,21 @@ impact view="public" months="3":
         ;;
     esac
     project=$(just _project)
-    # The names the SQL is written with, filled in as the tests fill them.
-    sql() {
-        sed -e "s/\${impact}/$project.impact/g" -e "s/\${public}/$project.impact_public/g" \
-            -e "s/\${private}/$project.impact_private/g" -e "s/\${months}/$months/g" "infra/analytics/impact/$1.sql"
+    # The SQL goes to bq on its input: given as an argument, a query that
+    # begins with a comment, as every file of it does, is read as a flag.
+    read_rows() {
+        just _analytics-sql "$project" "impact/$1.sql" "$months" |
+            bq --project_id="$project" --quiet query --nouse_legacy_sql --format=json --max_rows=1000
     }
-    read_rows() { bq --project_id="$project" --quiet query --nouse_legacy_sql --format=json --max_rows=1000 "$1"; }
     echo "# The counts kept for years"
     echo
     echo "$about Children are counted by the month: a child is the same child all month, and the next month is counted afresh."
     echo
     echo "| Month | Children | New | In the US | Signed in from the US | Tasks | Answers | Tasks a child a week | Active days a child | Topics won |"
     echo "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|"
-    read_rows "$(sql "{{ view }}")" | jq -r '.[] | "| " + ([.month, .learners, .new_learners, .in_us, .signed_in_from_us, .tasks, .answers, .tasks_per_child_week, .active_days_per_child, .topics_won] | map(. // "—") | join(" | ")) + " |"'
+    read_rows "{{ view }}" | jq -r '.[] | "| " + ([.month, .learners, .new_learners, .in_us, .signed_in_from_us, .tasks, .answers, .tasks_per_child_week, .active_days_per_child, .topics_won] | map(. // "—") | join(" | ")) + " |"'
     echo
-    gaps=$(read_rows "$(sql missing)" | jq -r '.[].day')
+    gaps=$(read_rows missing | jq -r '.[].day')
     if [ -z "$gaps" ]; then
         echo "Every day from the first counted to yesterday was counted."
     else
