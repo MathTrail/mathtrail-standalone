@@ -9,7 +9,7 @@ import { useLayoutEffect, useState } from "preact/hooks";
  * than written here a second time. Where there is nothing to measure with, the
  * card is narrow: the layout that fits everywhere.
  */
-export function useWide(element: RefObject<HTMLElement>): boolean {
+export function useWide(element: RefObject<HTMLElement | null>): boolean {
 	const [wide, setWide] = useState(false);
 	useLayoutEffect(() => {
 		const target = element.current;
