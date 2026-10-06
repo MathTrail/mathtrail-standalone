@@ -265,9 +265,7 @@ async function measuredIn(
 		await page.goto(`${base}preview.html`);
 		const offered = await page
 			.locator('select[aria-label="Language"] option')
-			.evaluateAll((options) =>
-				options.map((option) => option.getAttribute("value") ?? ""),
-			);
+			.evaluateAll(valuesOf);
 		const offeredWidths = await page
 			.locator('input[type="checkbox"][value]')
 			.evaluateAll((boxes) =>
@@ -307,6 +305,16 @@ function cardOf(measured: Measured): string {
 // pageOf names a page of the preview: its engine, its language and its width.
 function pageOf({ engine, language, width }: Shown): string {
 	return `${engine} ${language} ${width}px`;
+}
+
+/**
+ * valuesOf are the values a list's options offer, read from each option
+ * itself: where an option's value is its text, as each of the preview's
+ * languages is, Preact writes no value attribute, and the option reads its
+ * value from the text. It runs in the page, so it uses nothing from outside.
+ */
+export function valuesOf(options: HTMLOptionElement[]): string[] {
+	return options.map((option) => option.value);
 }
 
 /**

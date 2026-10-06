@@ -1022,11 +1022,12 @@ function placed<T extends { profile: object }>(
 
 // inFrench chooses French for the lessons, on the one list of the form that
 // offers languages: the form's lists are told apart by what they offer, since
-// their labels are in whatever language the card speaks.
+// their labels are in whatever language the card speaks. An option's value is
+// read from the option, since one whose value is its text has no attribute.
 function inFrench(card: Document) {
 	const language = [
 		...card.querySelectorAll<HTMLSelectElement>(".mt-form select"),
-	].find((list) => list.querySelector('option[value="fr"]') !== null);
+	].find((list) => [...list.options].some((option) => option.value === "fr"));
 	if (language !== undefined) {
 		language.value = "fr";
 		language.dispatchEvent(new Event("change", { bubbles: true }));
