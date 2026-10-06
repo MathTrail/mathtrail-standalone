@@ -1,21 +1,42 @@
-# What Codecov does with the coverage profile the tests upload. The profile
-# itself is produced by the test run; nothing here measures anything.
+# What Codecov does with the coverage profiles the tests upload. The profiles
+# themselves are produced by the test runs; nothing here measures anything.
 
 coverage:
   status:
-    # The whole repository may not quietly slide downwards. The allowance is
-    # there because a refactor that deletes covered code moves the number a
-    # little through no fault of its own.
+    # The service may not quietly slide downwards. The allowance is there
+    # because a refactor that deletes covered code moves the number a little
+    # through no fault of its own.
     project:
       default:
         target: auto
         threshold: 1%
-    # New and changed lines are held to a higher standard than the average of
-    # everything written before them: this is the number that decides whether a
-    # change arrives with the tests that prove it.
+        paths:
+          - "!research/"
+      research:
+        flags:
+          - research
+        informational: true
+    # New and changed lines of the service are held to a higher standard than
+    # the average of everything written before them: this is the number that
+    # decides whether a change arrives with the tests that prove it.
+    #
+    # The research module's coverage is shown under its flag and decides
+    # nothing: its tests must pass for a change to be merged, but its
+    # experiments and the paper's tools are held to no share of their lines.
     patch:
       default:
         target: 90%
+        paths:
+          - "!research/"
+      research:
+        flags:
+          - research
+        informational: true
+
+flags:
+  research:
+    paths:
+      - research/
 
 # The contract every store is held to, the stand-ins for Google's sign-in and
 # for Google Drive, the paces tests are held to, the watch on the solver's slots
@@ -24,10 +45,6 @@ coverage:
 # shared between packages. Like any
 # test it measures rather than being measured: the lines that report a failure
 # never run while the code under test behaves.
-#
-# The research module is a Go module of its own with checks of its own, and
-# none of its tests run with the service's: until they do, its code is not
-# counted, so that nothing it adds or removes moves the service's number.
 ignore:
   - "internal/store/storetest"
   - "internal/infra/googleauth/googletest"
@@ -35,7 +52,6 @@ ignore:
   - "internal/ratelimit/ratelimittest"
   - "internal/infra/starlark/starlarktest"
   - "internal/infra/geoip/geoiptest"
-  - "research"
 
 comment:
   layout: "condensed_header, diff, files"

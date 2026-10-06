@@ -57,7 +57,7 @@ func TestACodeIsWorthTheHostsTokens(t *testing.T) {
 		t.Errorf("answer = %v, want a Bearer token for mcp, good for 900 seconds", answer.fields)
 	}
 
-	user := h.ring.UserID("google-sub:" + googletest.Subject)
+	user := h.ring.UserID("google-drive:" + googletest.PermissionID)
 	access := h.openedAccess(t, answer.field("access_token"))
 	wantAccess := accessGrant{
 		User: user, Client: digestOf(client), Resource: h.served.URL + "/mcp", Scope: "mcp",
@@ -82,7 +82,7 @@ func TestACodeIsWorthTheHostsTokens(t *testing.T) {
 		lines[0]["registration"] != registrationDCR || lines[0]["resource"] != "given" {
 		t.Errorf("auth_token lines = %v, want one ok line naming the user", lines)
 	}
-	noLineCarries(t, h, googletest.AccessToken, googletest.RefreshToken, googletest.Subject, answer.field("access_token"), answer.field("refresh_token"))
+	noLineCarries(t, h, googletest.AccessToken, googletest.RefreshToken, googletest.PermissionID, answer.field("access_token"), answer.field("refresh_token"))
 }
 
 // A host need not repeat what the code already holds: OAuth 2.1 leaves the
@@ -168,7 +168,7 @@ func TestACodeIsRefusedToAnybodyElse(t *testing.T) {
 			h.clock.advance(tc.after)
 			answer := h.exchange(t, code, client, changed)
 			wantRefused(t, h, &answer, tc.status, tc.code, eventAuthToken, tc.reason)
-			noLineCarries(t, h, googletest.AccessToken, googletest.RefreshToken, googletest.Subject, code)
+			noLineCarries(t, h, googletest.AccessToken, googletest.RefreshToken, googletest.PermissionID, code)
 		})
 	}
 }

@@ -1,8 +1,8 @@
 // Package googletest stands in for Google's sign-in, as far as the service can
 // see it: a token endpoint that holds a code to the request it was issued
-// for and renews the grant it gave, the endpoint that says whom an access
-// token was issued for, the endpoint that ends a grant, and a parent who
-// allows or declines what a request asks for.
+// for and renews the grant it gave, Drive's word about whose Drive an access
+// token reaches, the endpoint that ends a grant, and a parent who allows or
+// declines what a request asks for.
 //
 // It is test code that lives in a package rather than a test file, because
 // the tests of more than one package sign a parent in, and a test file cannot
@@ -24,6 +24,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/MathTrail/mathtrail-standalone/internal/infra/drive/drivetest"
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth"
 )
 
@@ -34,7 +35,13 @@ import (
 const (
 	ClientID     = "mathtrail.apps.googleusercontent.com"
 	ClientSecret = "a-secret-for-tests"
-	Subject      = "110169484474386276334"
+	// Subject is Google's own identifier of the account that signs in, which
+	// a grant captured with a sign-in's scope names; this Google says it
+	// nowhere, as Google says it of no grant of the Drive alone.
+	Subject = "110169484474386276334"
+	// PermissionID is the same account's identifier at Drive, which Drive
+	// names whose Drive an access token of the grant reaches by.
+	PermissionID = "07193482659013748265"
 	AccessToken  = "ya29.an-access-token"
 	RefreshToken = "1//a-refresh-token"
 	// RenewedAccessToken is the access token a renewal gives.
@@ -67,17 +74,14 @@ type Answer struct {
 	// RevokeStatus and RevokeError answer a revocation with a refusal instead.
 	RevokeStatus int
 	RevokeError  string
-	// InfoStatus answers the question of whom a token is for with a refusal
-	// of that status instead, and InfoNotJSON with a page that is no answer
-	// of Google's at all.
-	InfoStatus  int
-	InfoNotJSON bool
-	// Audience names another client as the one the token was issued to,
-	// NoAudience leaves that client out, and NoSubject leaves out the account
-	// the token was issued for.
-	Audience   string
-	NoAudience bool
-	NoSubject  bool
+	// AboutStatus and AboutReason answer the question of whose Drive a token
+	// reaches with a refusal of that status and reason instead, AboutNotJSON
+	// with a page that is no answer of Drive's at all, and NoPermissionID
+	// with an answer that names no account.
+	AboutStatus    int
+	AboutReason    string
+	AboutNotJSON   bool
+	NoPermissionID bool
 	// Meanwhile runs while a token request is at this Google, before it is
 	// answered: whatever a case needs to happen on the way, such as time
 	// passing.
@@ -98,9 +102,12 @@ type Server struct {
 	t   testing.TB
 	now func() time.Time
 
-	mu          sync.Mutex
-	codes       map[string]asked
+	mu    sync.Mutex
+	codes map[string]asked
+	// answer is how this Google answers, and drive whether the grant it gave
+	// last was granted the Drive.
 	answer      Answer
+	drive       bool
 	ended       bool
 	renewals    int
 	questions   int
@@ -115,7 +122,7 @@ func New(t testing.TB, now func() time.Time) *Server {
 	google := &Server{t: t, now: now, codes: map[string]asked{}}
 	routes := http.NewServeMux()
 	routes.HandleFunc("POST /token", google.token)
-	routes.HandleFunc("POST /tokeninfo", google.tokenInfo)
+	routes.HandleFunc("GET /drive/v3/about", google.about)
 	routes.HandleFunc("POST /revoke", google.revoke)
 	google.Server = httptest.NewServer(routes)
 	t.Cleanup(google.Close)
@@ -125,10 +132,10 @@ func New(t testing.TB, now func() time.Time) *Server {
 // Endpoints are where this Google is.
 func (g *Server) Endpoints() googleauth.Endpoints {
 	return googleauth.Endpoints{
-		Auth:      g.URL + "/auth",
-		Token:     g.URL + "/token",
-		TokenInfo: g.URL + "/tokeninfo",
-		Revoke:    g.URL + "/revoke",
+		Auth:   g.URL + "/auth",
+		Token:  g.URL + "/token",
+		About:  g.URL + "/drive/v3/about",
+		Revoke: g.URL + "/revoke",
 	}
 }
 
@@ -140,8 +147,8 @@ func (g *Server) Renewals() int {
 	return g.renewals
 }
 
-// Questions is how many times this Google was asked whom an access token was
-// issued for.
+// Questions is how many times this Google was asked whose Drive an access
+// token reaches.
 func (g *Server) Questions() int {
 	g.mu.Lock()
 	defer g.mu.Unlock()
@@ -237,18 +244,20 @@ func (g *Server) exchange(w http.ResponseWriter, r *http.Request, how *Answer) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid_grant"})
 		return
 	}
+	granted := request.scope
+	if how.Scope != "" {
+		granted = how.Scope
+	}
 	g.mu.Lock()
 	g.ended = false
+	g.drive = slices.Contains(strings.Fields(granted), googleauth.ScopeDriveFile)
 	g.mu.Unlock()
 
 	body := map[string]any{
 		"access_token": AccessToken,
 		"expires_in":   lifetime(how),
 		"token_type":   "Bearer",
-		"scope":        request.scope,
-	}
-	if how.Scope != "" {
-		body["scope"] = how.Scope
+		"scope":        granted,
 	}
 	if !how.NoRefresh {
 		body["refresh_token"] = RefreshToken
@@ -289,53 +298,38 @@ func (g *Server) renew(w http.ResponseWriter, r *http.Request, how *Answer) {
 	writeJSON(w, http.StatusOK, body)
 }
 
-// tokenInfo says whom an access token of the grant was issued for, and to
-// which client, while the grant lasts. It takes the question as Google's own
-// client library puts it — a form posted with the token in the Authorization
-// header — and refuses any other question, and any other token, as Google
-// refuses a token it does not know.
-func (g *Server) tokenInfo(w http.ResponseWriter, r *http.Request) {
+// about says, as Drive's about resource does, whose Drive an access token of
+// the grant reaches, while the grant lasts. It knows the one question the
+// sign-in asks, the account's permission ID with the token in the
+// Authorization header, and refuses any other as Drive refuses a question
+// that does not say what it asks. A token Google does not know is refused as
+// Drive refuses it, and so is one whose grant was not given the Drive.
+func (g *Server) about(w http.ResponseWriter, r *http.Request) {
 	token, bearer := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
-	asForm := r.Header.Get("Content-Type") == "application/x-www-form-urlencoded"
 	g.mu.Lock()
 	how := g.answer
 	g.questions++
-	ofTheGrant := bearer && asForm && !g.ended && (token == AccessToken || token == RenewedAccessToken)
+	ofTheGrant := bearer && !g.ended && (token == AccessToken || token == RenewedAccessToken)
+	reachesDrive := g.drive
 	g.mu.Unlock()
 
 	switch {
-	case how.InfoStatus != 0:
-		w.WriteHeader(how.InfoStatus)
-		return
+	case how.AboutStatus != 0:
+		drivetest.Refuse(w, how.AboutStatus, how.AboutReason, "A refusal of this Google's.")
 	case !ofTheGrant:
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid_token", "error_description": "Invalid Value"})
-		return
-	case how.InfoNotJSON:
+		drivetest.Refuse(w, http.StatusUnauthorized, "authError", "Invalid Credentials")
+	case !reachesDrive:
+		drivetest.Refuse(w, http.StatusForbidden, "insufficientPermissions", "Insufficient Permission")
+	case r.URL.Query().Get("fields") != "user(permissionId)":
+		drivetest.Refuse(w, http.StatusBadRequest, "required", "The 'fields' parameter is required for this method.")
+	case how.AboutNotJSON:
 		// The server names the page's type from its first bytes.
-		_, _ = io.WriteString(w, "<html><body>a page that is no answer of Google's</body></html>")
-		return
+		_, _ = io.WriteString(w, "<html><body>a page that is no answer of Drive's</body></html>")
+	case how.NoPermissionID:
+		writeJSON(w, http.StatusOK, map[string]any{"user": map[string]string{}})
+	default:
+		writeJSON(w, http.StatusOK, map[string]any{"user": map[string]string{"permissionId": PermissionID}})
 	}
-	// Google writes every value as a string, numbers included.
-	body := map[string]string{
-		"azp":         ClientID,
-		"aud":         ClientID,
-		"sub":         Subject,
-		"scope":       googleauth.ScopeDriveFile,
-		"exp":         strconv.FormatInt(g.now().Add(ExpiresIn*time.Second).Unix(), 10),
-		"expires_in":  strconv.Itoa(ExpiresIn),
-		"access_type": "offline",
-	}
-	if how.Audience != "" {
-		body["azp"], body["aud"] = how.Audience, how.Audience
-	}
-	if how.NoAudience {
-		delete(body, "azp")
-		delete(body, "aud")
-	}
-	if how.NoSubject {
-		delete(body, "sub")
-	}
-	writeJSON(w, http.StatusOK, body)
 }
 
 // revoke ends the grant, given any token of it. A token of a grant already

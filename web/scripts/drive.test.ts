@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, test } from "vitest";
-import { unsettled } from "./drive.ts";
+import { addressOf, unsettled } from "./drive.ts";
 
 describe("what kept the cards from settling", () => {
 	test("names by scene the cards with nothing drawn and those still changing", () => {
@@ -47,5 +47,25 @@ describe("what kept the cards from settling", () => {
 		expect(unsettled(["task"], ["<p>1</p>"], [""])).toBe(
 			"still changing: task",
 		);
+	});
+});
+
+describe("the address of a picture", () => {
+	test("asks the preview for its scene alone, in its theme, in English, at its width", () => {
+		const address = new URL(
+			addressOf("http://127.0.0.1:5173/", {
+				scene: "wrong after the trial series",
+				theme: "light",
+				width: 640,
+				path: "wrong.png",
+			}),
+		);
+		expect(address.pathname).toBe("/preview.html");
+		expect(Object.fromEntries(address.searchParams)).toEqual({
+			scene: "wrong after the trial series",
+			theme: "light",
+			lang: "en",
+			widths: "640",
+		});
 	});
 });

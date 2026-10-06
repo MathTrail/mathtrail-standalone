@@ -48,6 +48,12 @@ jobs:
 
       - run: go build ./...
 
+      # The research module is a Go module of its own, which the root's build
+      # does not reach; it builds against the product at the version it
+      # requires, and only its own code is reported.
+      - run: go build ./...
+        working-directory: research
+
       - uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
         with:
           category: /language:go

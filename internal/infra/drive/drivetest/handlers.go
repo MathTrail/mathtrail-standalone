@@ -121,7 +121,7 @@ func (d *Drive) download(w http.ResponseWriter, r *http.Request, token string) {
 	case file == nil:
 		notFound(w, id)
 	case file.MimeType == drive.FolderType:
-		refuse(w, http.StatusForbidden, "fileNotDownloadable", "Only files with binary content can be downloaded.")
+		Refuse(w, http.StatusForbidden, "fileNotDownloadable", "Only files with binary content can be downloaded.")
 	default:
 		w.Header().Set("Content-Type", file.MimeType)
 		w.WriteHeader(http.StatusOK)
@@ -213,7 +213,7 @@ func (d *Drive) update(w http.ResponseWriter, r *http.Request, token string) {
 		return
 	}
 	if meta.Parents != nil {
-		refuse(w, http.StatusForbidden, "fieldNotWritable", "The resource body includes fields which are not directly writable.")
+		Refuse(w, http.StatusForbidden, "fieldNotWritable", "The resource body includes fields which are not directly writable.")
 		return
 	}
 	id := r.PathValue("id")
@@ -265,7 +265,7 @@ func (d *Drive) rename(w http.ResponseWriter, r *http.Request, token string) {
 		return
 	}
 	if meta.Parents != nil {
-		refuse(w, http.StatusForbidden, "fieldNotWritable", "The resource body includes fields which are not directly writable.")
+		Refuse(w, http.StatusForbidden, "fieldNotWritable", "The resource body includes fields which are not directly writable.")
 		return
 	}
 	id := r.PathValue("id")
@@ -398,5 +398,5 @@ func pageSize(given string) (int, error) {
 // notFound answers a call about a file the service may not see, the way Drive
 // does: naming the file in its sentence, which a caller must never repeat.
 func notFound(w http.ResponseWriter, id string) {
-	refuse(w, http.StatusNotFound, "notFound", "File not found: "+id+".")
+	Refuse(w, http.StatusNotFound, "notFound", "File not found: "+id+".")
 }

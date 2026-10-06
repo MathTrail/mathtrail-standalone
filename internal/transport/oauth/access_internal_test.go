@@ -34,7 +34,7 @@ func TestAnAccessTokenSignsItsAccountIn(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Account() error = %v, want the account", err)
 	}
-	if want := h.ring.UserID("google-sub:" + googletest.Subject); account.ID != want {
+	if want := h.ring.UserID("google-drive:" + googletest.PermissionID); account.ID != want {
 		t.Errorf("Account() = %q, want %q", account.ID, want)
 	}
 	if account.Token() != googletest.AccessToken {
@@ -146,7 +146,7 @@ func TestATokenOutlivesARotationOfItsKey(t *testing.T) {
 	h := newSignIn(t)
 	client := h.register(hostRedirect, hostName)
 	access, refresh := h.tokensFor(t, client)
-	user := h.ring.UserID("google-sub:" + googletest.Subject)
+	user := h.ring.UserID("google-drive:" + googletest.PermissionID)
 
 	rotated := h.serverUnder(t, keyOf('n'), keyOf('k'))
 	if account, _, err := rotated.Account(t.Context(), access); err != nil || account.ID != user {

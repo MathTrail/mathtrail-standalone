@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
-	"slices"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/infra/googleauth"
 )
@@ -75,10 +74,8 @@ func (f *flow) finish(ctx context.Context, request *flight, query url.Values, co
 	}
 
 	grant, err := f.google.Exchange(ctx, query.Get("code"), request.Verifier)
-	if err != nil {
-		return exchangeFailed(err)
-	}
-	if !slices.Contains(grant.Scopes, googleauth.ScopeDriveFile) {
+	switch {
+	case errors.Is(err, googleauth.ErrNoDrive):
 		// Asked for alone, the Drive is no box on Google's screen, and a grant
 		// without it is not expected. One that comes all the same is a box
 		// left unticked: the parent is asked again rather than the client
@@ -86,9 +83,11 @@ func (f *flow) finish(ctx context.Context, request *flight, query url.Values, co
 		// end every grant of the parent's at this service, the chats they
 		// have already connected included.
 		return nil, ending{outcome: outcomeRetry, reason: "no_drive"}
+	case err != nil:
+		return exchangeFailed(err)
 	}
-	// The account's own identifier at Google goes no further than here.
-	user := f.userID(googleAccount(grant.Subject))
+	// The account's own identifier at Drive goes no further than here.
+	user := f.userID(driveAccount(grant.PermissionID))
 	code, err := f.issueCode(request, &grant, user, country)
 	if err != nil {
 		return refused("server_error", "the sign-in could not be finished: try again"),
@@ -97,11 +96,10 @@ func (f *flow) finish(ctx context.Context, request *flight, query url.Values, co
 	return url.Values{"code": {code}}, ending{outcome: "ok", user: user}
 }
 
-// googleAccount is an account at Google as its identifier here is derived
-// from: the provider, then Google's own identifier for it. A parent's sign-in
-// and the reviewers' derive the demo account's alike only while both name it
-// so.
-func googleAccount(subject string) string { return "google-sub:" + subject }
+// driveAccount is a parent's account as its identifier here is derived from:
+// the provider, then the account's identifier at Drive, the one a grant of the
+// Drive alone can learn.
+func driveAccount(permissionID string) string { return "google-drive:" + permissionID }
 
 // exchangeFailed is what the client hears when Google's code could not be
 // exchanged for a sign-in, and why, for the line.

@@ -11,7 +11,7 @@ By adding MathTrail to your chat you accept what is written here. If you do not,
 
 ## What MathTrail is
 
-A free app for Claude and ChatGPT that gives a child in grades 1–6 a stream of olympiad maths tasks. It is free, and it stays free.
+A free app for Claude and ChatGPT that gives a child in grades 1–6 a stream of olympiad maths tasks. It is free, and it stays free. It is made and run by ALT EdTech.
 
 It is not a homework solver and not a drill of a school syllabus, and it is not a replacement for a teacher.
 

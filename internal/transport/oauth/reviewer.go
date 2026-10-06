@@ -22,7 +22,7 @@ type Reviewer struct {
 	// written nowhere.
 	Password string
 	// Subject is the demo account's own identifier at Google, which the
-	// account the reviewer signs in as is derived from, as a parent's is.
+	// account the reviewer signs in as is derived from.
 	Subject string
 	// RefreshToken is the demo account's grant at Google, renewed for each
 	// sign-in of a reviewer. A secret like the password.
@@ -53,6 +53,14 @@ func newReviewerSignIn(reviewer *Reviewer, userIDs func(account string) []string
 		refreshToken: reviewer.RefreshToken,
 	}
 }
+
+// googleAccount is the demo account as its identifier here is derived from:
+// the provider, then Google's own identifier for the account, which the grant
+// the reviewers' sign-in renews names. A parent's account is derived from its
+// identifier at Drive instead, so the demo account signed in through Google is
+// not known as the demo account, and ending that sign-in ends its grants at
+// Google, the reviewers' among them.
+func googleAccount(subject string) string { return "google-sub:" + subject }
 
 // demoUsers are the identifiers the demo account is known by, or none when
 // there is no reviewer's sign-in.

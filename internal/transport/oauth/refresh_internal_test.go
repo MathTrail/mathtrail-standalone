@@ -48,11 +48,11 @@ func TestARefreshTokenIsWorthNewTokens(t *testing.T) {
 		t.Errorf("Google renewed the grant %d times, want none", got)
 	}
 
-	user := h.ring.UserID("google-sub:" + googletest.Subject)
+	user := h.ring.UserID("google-drive:" + googletest.PermissionID)
 	if lines := h.lines(eventAuthRefresh); len(lines) != 1 || lines[0]["outcome"] != "ok" || lines[0]["user"] != user {
 		t.Errorf("auth_refresh lines = %v, want one ok line naming the user", lines)
 	}
-	noLineCarries(t, h, googletest.AccessToken, googletest.RefreshToken, googletest.Subject, refresh, answer.field("access_token"), answer.field("refresh_token"))
+	noLineCarries(t, h, googletest.AccessToken, googletest.RefreshToken, googletest.PermissionID, refresh, answer.field("access_token"), answer.field("refresh_token"))
 }
 
 // The Google token inside a host's tokens is renewed at Google when under seven
@@ -375,7 +375,7 @@ func TestRenewalsAtGoogleAreHeldToTheAccountsPace(t *testing.T) {
 	if got := h.google.Renewals(); got != 1 {
 		t.Errorf("Google renewed the grant %d times, want 1", got)
 	}
-	user := h.ring.UserID("google-sub:" + googletest.Subject)
+	user := h.ring.UserID("google-drive:" + googletest.PermissionID)
 	if lines := h.lines(eventLimitHit); len(lines) != 1 || lines[0]["limit"] != limitRenewals || lines[0]["user"] != user {
 		t.Errorf("limit_hit lines = %v, want one naming %s and the user %s", lines, limitRenewals, user)
 	}

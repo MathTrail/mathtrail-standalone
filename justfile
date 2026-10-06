@@ -1183,6 +1183,19 @@ plugin-icons: _playwright-pinned
         -v "{{ justfile_directory() }}:{{ justfile_directory() }}" -w "{{ justfile_directory() }}/web" \
         {{ PLAYWRIGHT_IMAGE }} node scripts/icons.ts
 
+# The pictures of the card a listing in Claude's directory shows: a task, its
+# hint, a wrong answer explained and the progress's review, photographed from
+# the widget's preview in Chromium, from the image the widget's layout is
+# measured in, 1280 pixels wide and with the card's version left out. They are
+# written into web/listing/, which git keeps out, to be uploaded by hand with
+# the prompts docs/listing.md gives them.
+# Photograph the card for Claude's directory
+[working-directory('web')]
+listing-shots: _playwright-pinned
+    docker run --rm --init --shm-size=1g --user "$(id -u):$(id -g)" -e HOME=/tmp \
+        -v "{{ justfile_directory() }}:{{ justfile_directory() }}" -w "{{ justfile_directory() }}/web" \
+        {{ PLAYWRIGHT_IMAGE }} node scripts/listing.ts
+
 # The package ChatGPT's directory takes: a ZIP of plugin/, its manifest, the
 # server's address and the icons, checked first by the package's own test. It
 # refuses while the manifest names the developer by its placeholder, and while

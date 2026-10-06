@@ -11,8 +11,8 @@ Every length below is counted by the package's test: `go test ./plugin/ -run Lim
 
 ## Before submission
 
-1. Replace `[Company]` with the name the developer is verified under (О-65): in the `company` block below, and in `plugin/plugin.json`, in `author.name` and in `developerName`. The package's test holds the three equal.
-2. Name the same publisher in the privacy policy and in the terms, in every language of the site, as their operator. ChatGPT asks that the public pages "identify the same publisher as the submission" (GPT-05), and `just plugin-zip` refuses until both name it.
+1. The developer is ALT EdTech (О-65), named on 2026-10-06: in the `company` block below, and in `plugin/plugin.json`, in `author.name` and in `developerName`. The package's test holds the three equal. ChatGPT shows the name OpenAI verifies, so if its verification names another, all three change together, and with them the privacy policy and the terms of item 2 (T71.6).
+2. The privacy policy and the terms name ALT EdTech as the maker of MathTrail, in every language of the site. ChatGPT asks that the public pages "identify the same publisher as the submission" (GPT-05), and `just plugin-zip` refuses while they do not name the package's developer.
 3. Refresh the demo profile and run the reviewer's scenario with the examples below (T82).
 4. Build the ChatGPT package with `just plugin-zip`, and raise `version` in `plugin/plugin.json` for every new ZIP.
 
@@ -32,7 +32,7 @@ The one-liner, at most 200 characters:
 Olympiad-style maths for grades 1–6 in a lesson a parent or tutor runs: Claude writes each task, MathTrail checks it before the child answers on a card, and keeps the progress.
 ```
 
-The description, at most 2,000 characters. Anthropic cannot edit it after publication.
+The description, at most 2,000 characters. Anthropic does not edit it; after publication it changes only by a listing edit, which a reviewer approves.
 
 ```text claude-description
 MathTrail is for parents and tutors who want to give a child in grades 1 to 6 olympiad-style maths: tasks that ask for an idea rather than a drill.
@@ -52,7 +52,7 @@ The categories, one to five, from the portal's own list, which its documentation
 Education
 ```
 
-- **The slug**, locked once published (T71.5 chooses): `mathtrail`.
+- **The slug**, locked once published, chosen by the author on 2026-10-06: `mathtrail`.
 - **Documentation:** https://mathtrail.app/en/help/ (CL-13, R229).
 - **Privacy policy:** https://mathtrail.app/en/privacy/ (CL-20).
 - **Support contact:** altedtech.info@gmail.com (CL-21).
@@ -67,7 +67,7 @@ Education
 ### Company (CL-06)
 
 ```text company
-[Company]
+ALT EdTech
 ```
 
 - **Website:** https://mathtrail.app
@@ -100,11 +100,11 @@ OAuth 2.1 with PKCE, by a client ID metadata document or by dynamic client regis
 
 ### Screenshots (CL-11)
 
-PNG, at least 1000 pixels wide, three to five, of the card alone and without the prompt in the picture; T71.5 takes them. Each picture's prompt is given beside it. No picture shows an answer before the child has answered, or the chat's log of tool calls (О-27).
+PNG, at least 1000 pixels wide, three to five, of the card alone and without the prompt in the picture. `just listing-shots` takes them from the widget's preview into `web/listing/`, 1280 pixels wide, with the card's version left out and the task's row of posts cut short, in the order and the themes below (R232). Each picture's prompt is given beside it. No picture shows an answer before the child has answered, or the chat's log of tool calls (О-27).
 
 1. "Let's do a MathTrail task." The card with the task and its five options, in the light theme.
-2. The same card with the hint open, in the dark theme.
-3. A wrong answer tapped: the card names the mistake and shows the solution, in the light theme.
+2. "Let's do a MathTrail task.", then Hint tapped on the card. The same card with the hint open, in the dark theme.
+3. "Let's do a MathTrail task.", then a wrong option tapped on the card. The card names the mistake and shows the solution, in the light theme.
 4. "How is my child doing?" The progress with its review open, in the dark theme.
 
 ## ChatGPT

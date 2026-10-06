@@ -3,12 +3,13 @@
 // it has become what its scene makes of it, on a clock that moves only when it
 // is moved. What measures the cards and what photographs them share it.
 
-import { join } from "node:path";
-import type {
-	BrowserContext,
-	ElementHandle,
-	Frame,
-	Page,
+import { basename, join } from "node:path";
+import {
+	type BrowserContext,
+	chromium,
+	type ElementHandle,
+	type Frame,
+	type Page,
 } from "playwright-core";
 import { createServer } from "vite";
 
@@ -162,4 +163,76 @@ export function unsettled(
 /** letGo lets go of the elements the cards held on to. */
 export async function letGo(cards: Card[]): Promise<void> {
 	await Promise.all(cards.map(({ element }) => element.dispose()));
+}
+
+/** density is how many pixels of a picture stand for one of the page. */
+export const density = 2;
+
+/**
+ * Picture is a card of the preview to photograph: its scene, in a theme and
+ * at a width, and the file the picture is written to.
+ */
+export type Picture = {
+	scene: string;
+	theme: "light" | "dark";
+	width: number;
+	path: string;
+};
+
+/**
+ * addressOf is the address of the preview served at base that shows the scene
+ * of picture alone, in its theme, in English, at its width.
+ */
+export function addressOf(base: string, picture: Picture): string {
+	const query = new URLSearchParams({
+		scene: picture.scene,
+		theme: picture.theme,
+		lang: "en",
+		widths: `${picture.width}`,
+	});
+	return `${base}preview.html?${query}`;
+}
+
+/**
+ * photograph serves the preview and photographs, in Chromium and at density,
+ * the card of each picture's scene: the card alone, its corners left clear,
+ * with the preview's own bar and ground left out and whatever of the card
+ * hidden names. Each picture is written to its file and logged under who.
+ */
+export async function photograph(
+	who: string,
+	pictures: readonly Picture[],
+	hidden = "",
+): Promise<void> {
+	const preview = await served();
+	const browser = await chromium.launch();
+	try {
+		// The spinner of a card that checks an answer turns; a card shown to a
+		// reader who asks for no motion holds it still for the picture.
+		const context = await browser.newContext({
+			viewport: { width: 1280, height: 900 },
+			deviceScaleFactor: density,
+			reducedMotion: "reduce",
+		});
+		await stillClock(context);
+		const page = await context.newPage();
+		for (const picture of pictures) {
+			await page.goto(addressOf(preview.base, picture));
+			const cards = await settled(page);
+			const card = cards.find((found) => found.scene === picture.scene);
+			if (card === undefined) {
+				throw new Error(`${who}: the preview shows no scene ${picture.scene}`);
+			}
+			await card.element.screenshot({
+				path: picture.path,
+				omitBackground: true,
+				style: `.preview-bar { visibility: hidden; } .preview { background: transparent !important; } ${hidden}`,
+			});
+			console.log(`${who}: ${basename(picture.path)}`);
+			await letGo(cards);
+		}
+	} finally {
+		await browser.close();
+		await preview.close();
+	}
 }

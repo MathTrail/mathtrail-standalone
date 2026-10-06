@@ -250,7 +250,7 @@ func (f *files) send(ctx context.Context, token string, call *request, read func
 	}()
 
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
-		return fmt.Errorf("drive: %s: %w", call.op, refusalOf(resp))
+		return fmt.Errorf("drive: %s: %w", call.op, RefusalOf(resp))
 	}
 	switch err := read(resp.Body); {
 	case errors.Is(err, ErrTooLarge):

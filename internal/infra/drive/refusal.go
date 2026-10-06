@@ -15,14 +15,15 @@ const maxRefusal = 64 << 10
 // maxReason is the longest word of Drive's list of reasons a refusal names.
 const maxReason = 64
 
-// refusalOf says which refusal an answer of Drive's is: by its status, and for
+// RefusalOf says which refusal an answer of Drive's is: by its status, and for
 // a 403 by the reason Drive gives, because Drive answers 403 for a pause it
 // asks for, a Drive that is full, a token that grants nothing of Drive, a file
 // the service may no longer reach and a revision it gives no content of. A
 // refusal that is none of those is told by its status and the first reason
 // Drive gave. The sentence Drive writes beside a reason is never read: it
-// names the file.
-func refusalOf(resp *http.Response) error {
+// names the file. It reads the refusal of any call to Drive's API, of its
+// files and of its about resource alike.
+func RefusalOf(resp *http.Response) error {
 	var answer struct {
 		Error struct {
 			Errors []struct {
