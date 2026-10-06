@@ -36,8 +36,8 @@ export type Choosing = {
 	toggle: () => void;
 	close: () => void;
 	pick: (topic: string | null) => void;
-	button: RefObject<HTMLButtonElement>;
-	panel: RefObject<HTMLElement>;
+	button: RefObject<HTMLButtonElement | null>;
+	panel: RefObject<HTMLElement | null>;
 	panelId: string;
 };
 
