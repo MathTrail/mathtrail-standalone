@@ -2,6 +2,7 @@ package googleauth_test
 
 import (
 	"errors"
+	"net/http/httptest"
 	"net/url"
 	"slices"
 	"strings"
@@ -18,14 +19,13 @@ const (
 	callback = "https://mcp.example/oauth/callback"
 	state    = "mt1.s.KID.the-sealed-request"
 	verifier = "a-verifier-of-forty-three-characters-or-more-000"
-	nonce    = "a-nonce-of-this-request"
 )
 
 // someDay is when these sign-ins happen.
 var someDay = time.Date(2026, 9, 28, 12, 0, 0, 0, time.UTC)
 
-// newGoogle stands in for Google, with ID tokens dated by the clock of these
-// cases.
+// newGoogle stands in for Google, which dates what it says of its tokens by
+// the clock of these cases.
 func newGoogle(t *testing.T) *googletest.Server {
 	t.Helper()
 
@@ -65,15 +65,16 @@ func signInAt(t *testing.T, google *googletest.Server) googleauth.SignIn {
 	return signIn
 }
 
-// The parent is sent to Google with both scopes, for a refresh token that
-// Google gives only with its consent screen shown, and with what binds the
-// answer to this request: the state, the challenge of the verifier and the
-// nonce.
-func TestTheParentIsSentToGoogleForBothScopes(t *testing.T) {
+// The parent is sent to Google for the Drive alone — a request for more than
+// one scope shows each but a sign-in's with a box Google leaves unticked — and
+// for a refresh token that Google gives only with its consent screen shown,
+// with what binds the answer to this request: the state and the challenge of
+// the verifier.
+func TestTheParentIsSentToGoogleForTheDriveAlone(t *testing.T) {
 	t.Parallel()
 
 	google := newGoogle(t)
-	address, err := url.Parse(signInAt(t, google).AuthURL(state, verifier, nonce))
+	address, err := url.Parse(signInAt(t, google).AuthURL(state, verifier))
 	if err != nil {
 		t.Fatalf("AuthURL() does not parse: %v", err)
 	}
@@ -85,13 +86,12 @@ func TestTheParentIsSentToGoogleForBothScopes(t *testing.T) {
 		"response_type":         "code",
 		"client_id":             googletest.ClientID,
 		"redirect_uri":          callback,
-		"scope":                 "openid https://www.googleapis.com/auth/drive.file",
+		"scope":                 "https://www.googleapis.com/auth/drive.file",
 		"state":                 state,
 		"access_type":           "offline",
 		"prompt":                "consent",
 		"code_challenge":        googletest.ChallengeOf(verifier),
 		"code_challenge_method": "S256",
-		"nonce":                 nonce,
 	} {
 		if got := query.Get(parameter); got != want {
 			t.Errorf("AuthURL() %s = %q, want %q", parameter, got, want)
@@ -100,18 +100,24 @@ func TestTheParentIsSentToGoogleForBothScopes(t *testing.T) {
 	if query.Has("client_secret") {
 		t.Error("AuthURL() carries the client secret, want it sent to the token endpoint alone")
 	}
+	// Scopes granted before would be asked for again beside the Drive, and
+	// bring the box back.
+	if query.Has("include_granted_scopes") {
+		t.Error("AuthURL() asks for the scopes granted before, want the Drive alone")
+	}
 }
 
 // A code the parent came back with is worth the grant: the tokens Drive is
-// called with, dated by this clock, the scopes granted, and who signed in.
+// called with, dated by this clock, the scopes granted, and who signed in, as
+// Google says of the access token.
 func TestACodeIsWorthTheGrant(t *testing.T) {
 	t.Parallel()
 
 	google := newGoogle(t)
 	signIn := signInAt(t, google)
-	code := codeIn(t, google.Allow(signIn.AuthURL(state, verifier, nonce)))
+	code := codeIn(t, google.Allow(signIn.AuthURL(state, verifier)))
 
-	grant, err := signIn.Exchange(t.Context(), code, verifier, nonce)
+	grant, err := signIn.Exchange(t.Context(), code, verifier)
 	if err != nil {
 		t.Fatalf("Exchange() error = %v, want the grant", err)
 	}
@@ -121,26 +127,60 @@ func TestACodeIsWorthTheGrant(t *testing.T) {
 	if want := someDay.Add(googletest.ExpiresIn * time.Second); !grant.Expiry.Equal(want) {
 		t.Errorf("Exchange() expiry = %v, want %v", grant.Expiry, want)
 	}
-	if want := []string{googleauth.ScopeOpenID, googleauth.ScopeDriveFile}; !slices.Equal(grant.Scopes, want) {
+	if want := []string{googleauth.ScopeDriveFile}; !slices.Equal(grant.Scopes, want) {
 		t.Errorf("Exchange() scopes = %q, want %q", grant.Scopes, want)
+	}
+	if asked := google.Questions(); asked != 1 {
+		t.Errorf("Questions() = %d, want 1: Google asked once whom the token is for", asked)
 	}
 }
 
-// Google lets a parent untick a permission; the grant says what was granted
-// and leaves the verdict to the caller.
+// A grant refused for what the exchange brought — no refresh token, or an
+// access token with no lifetime — is refused before Google is asked whom its
+// token is for.
+func TestARefusedGrantIsNotAskedAbout(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name string
+		how  googletest.Answer
+	}{
+		{"no refresh token", googletest.Answer{NoRefresh: true}},
+		{"no lifetime for the access token", googletest.Answer{NoLifetime: true}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			google := newGoogle(t)
+			signIn := signInAt(t, google)
+			code := codeIn(t, google.Allow(signIn.AuthURL(state, verifier)))
+			google.Misbehave(&tc.how)
+
+			if _, err := signIn.Exchange(t.Context(), code, verifier); err == nil {
+				t.Fatal("Exchange() error = nil, want the grant refused")
+			}
+			if asked := google.Questions(); asked != 0 {
+				t.Errorf("Questions() = %d, want 0: Google asked nothing about a grant refused anyway", asked)
+			}
+		})
+	}
+}
+
+// Google may grant fewer scopes than were asked for; the grant says what was
+// granted and leaves the verdict to the caller.
 func TestAGrantSaysWhichScopesWereGranted(t *testing.T) {
 	t.Parallel()
 
 	google := newGoogle(t)
 	signIn := signInAt(t, google)
-	code := codeIn(t, google.Allow(signIn.AuthURL(state, verifier, nonce)))
+	code := codeIn(t, google.Allow(signIn.AuthURL(state, verifier)))
 	google.Misbehave(&googletest.Answer{Scope: "openid"})
 
-	grant, err := signIn.Exchange(t.Context(), code, verifier, nonce)
+	grant, err := signIn.Exchange(t.Context(), code, verifier)
 	if err != nil {
 		t.Fatalf("Exchange() error = %v, want the grant", err)
 	}
-	if !slices.Equal(grant.Scopes, []string{googleauth.ScopeOpenID}) {
+	if !slices.Equal(grant.Scopes, []string{"openid"}) {
 		t.Errorf("Exchange() scopes = %q, want openid alone", grant.Scopes)
 	}
 }
@@ -155,7 +195,6 @@ func TestAnExchangeGoneWrongIsRefused(t *testing.T) {
 		how      googletest.Answer
 		code     string
 		verifier string
-		nonce    string
 		want     error
 	}{
 		{name: "an expired code", how: googletest.Answer{Status: 400, ErrorCode: "invalid_grant"}, want: googleauth.ErrCodeRefused},
@@ -166,15 +205,15 @@ func TestAnExchangeGoneWrongIsRefused(t *testing.T) {
 		{name: "our client not let use a code", how: googletest.Answer{Status: 400, ErrorCode: "unauthorized_client"}, want: googleauth.ErrClient},
 		{name: "Google asking for a pause", how: googletest.Answer{Status: 429}, want: googleauth.ErrUnavailable},
 		{name: "Google failing", how: googletest.Answer{Status: 503, ErrorCode: "temporarily_unavailable"}, want: googleauth.ErrUnavailable},
-		{name: "no ID token", how: googletest.Answer{NoIDToken: true}, want: googleauth.ErrIdentity},
-		{name: "a signature nobody published", how: googletest.Answer{SignedBy: googletest.StrangersKey(), KeyID: "stranger"}, want: googleauth.ErrIdentity},
-		{name: "a stranger's key under Google's id", how: googletest.Answer{SignedBy: googletest.StrangersKey(), KeyID: "published"}, want: googleauth.ErrIdentity},
-		{name: "another issuer", how: googletest.Answer{Issuer: "https://accounts.example"}, want: googleauth.ErrIdentity},
-		{name: "another client's token", how: googletest.Answer{Audience: "another.apps.googleusercontent.com"}, want: googleauth.ErrIdentity},
-		{name: "another request's nonce", how: googletest.Answer{Nonce: "another-nonce"}, want: googleauth.ErrIdentity},
-		{name: "an ID token expired past the skew", how: googletest.Answer{ExpiresAt: someDay.Add(-61 * time.Second)}, want: googleauth.ErrIdentity},
 		{name: "no refresh token", how: googletest.Answer{NoRefresh: true}, want: googleauth.ErrNoRefresh},
 		{name: "no lifetime for the access token", how: googletest.Answer{NoLifetime: true}, want: googleauth.ErrUnavailable},
+		{name: "the token called none of Google's", how: googletest.Answer{InfoStatus: 400}, want: googleauth.ErrIdentity},
+		{name: "a refusal of another kind", how: googletest.Answer{InfoStatus: 401}, want: googleauth.ErrIdentity},
+		{name: "an answer that names no client", how: googletest.Answer{NoAudience: true}, want: googleauth.ErrIdentity},
+		{name: "Google failing to say whom the token is for", how: googletest.Answer{InfoStatus: 503}, want: googleauth.ErrUnavailable},
+		{name: "Google asking for a pause before it says", how: googletest.Answer{InfoStatus: 429}, want: googleauth.ErrUnavailable},
+		{name: "a page that is no answer of Google's", how: googletest.Answer{InfoNotJSON: true}, want: googleauth.ErrUnavailable},
+		{name: "another client's token", how: googletest.Answer{Audience: "another.apps.googleusercontent.com"}, want: googleauth.ErrIdentity},
 		{name: "nobody who signed in", how: googletest.Answer{NoSubject: true}, want: googleauth.ErrIdentity},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -182,11 +221,10 @@ func TestAnExchangeGoneWrongIsRefused(t *testing.T) {
 
 			google := newGoogle(t)
 			signIn := signInAt(t, google)
-			code := codeIn(t, google.Allow(signIn.AuthURL(state, verifier, nonce)))
+			code := codeIn(t, google.Allow(signIn.AuthURL(state, verifier)))
 			google.Misbehave(&tc.how)
 
-			proof, expected := or(tc.verifier, verifier), or(tc.nonce, nonce)
-			grant, err := signIn.Exchange(t.Context(), or(tc.code, code), proof, expected)
+			grant, err := signIn.Exchange(t.Context(), or(tc.code, code), or(tc.verifier, verifier))
 			if !errors.Is(err, tc.want) {
 				t.Fatalf("Exchange() = %+v, %v; want %v", grant, err, tc.want)
 			}
@@ -197,32 +235,43 @@ func TestAnExchangeGoneWrongIsRefused(t *testing.T) {
 	}
 }
 
-// Google's clock and this one may disagree by a minute: an ID token Google
-// still calls good is not refused for it.
-func TestAnIDTokenIsJudgedWithAMinuteOfSkew(t *testing.T) {
-	t.Parallel()
-
-	google := newGoogle(t)
-	signIn := signInAt(t, google)
-	code := codeIn(t, google.Allow(signIn.AuthURL(state, verifier, nonce)))
-	google.Misbehave(&googletest.Answer{ExpiresAt: someDay.Add(-59 * time.Second)})
-
-	if _, err := signIn.Exchange(t.Context(), code, verifier, nonce); err != nil {
-		t.Errorf("Exchange() error = %v, want an ID token 59 s past its end accepted", err)
-	}
-}
-
 // A Google nobody can reach is Google not answering, not a refused code.
 func TestAGoogleThatDoesNotAnswerIsUnavailable(t *testing.T) {
 	t.Parallel()
 
 	google := newGoogle(t)
 	signIn := signInAt(t, google)
-	code := codeIn(t, google.Allow(signIn.AuthURL(state, verifier, nonce)))
+	code := codeIn(t, google.Allow(signIn.AuthURL(state, verifier)))
 	google.Close()
 
-	if _, err := signIn.Exchange(t.Context(), code, verifier, nonce); !errors.Is(err, googleauth.ErrUnavailable) {
+	if _, err := signIn.Exchange(t.Context(), code, verifier); !errors.Is(err, googleauth.ErrUnavailable) {
 		t.Errorf("Exchange() error = %v, want %v", err, googleauth.ErrUnavailable)
+	}
+}
+
+// A Google that gave the grant but cannot be asked whom its token is for is
+// Google not answering too, and the failure — which names the address it
+// failed to reach — repeats no token: the token went in a header.
+func TestAGoogleThatCannotSayWhomTheTokenIsForIsUnavailable(t *testing.T) {
+	t.Parallel()
+
+	google := newGoogle(t)
+	nobody := httptest.NewServer(nil)
+	nobody.Close()
+	given := settings(google)
+	given.Endpoints.TokenInfo = nobody.URL + "/tokeninfo"
+	signIn, err := googleauth.New(given)
+	if err != nil {
+		t.Fatalf("New() error = %v, want nil", err)
+	}
+	code := codeIn(t, google.Allow(signIn.AuthURL(state, verifier)))
+
+	_, err = signIn.Exchange(t.Context(), code, verifier)
+	if !errors.Is(err, googleauth.ErrUnavailable) {
+		t.Fatalf("Exchange() error = %v, want %v", err, googleauth.ErrUnavailable)
+	}
+	if !strings.Contains(err.Error(), nobody.URL) || strings.Contains(err.Error(), googletest.AccessToken) {
+		t.Errorf("Exchange() error = %q, want the address it failed to reach and no token", err)
 	}
 }
 
@@ -239,7 +288,7 @@ func TestASignInWithSomethingMissingIsRefused(t *testing.T) {
 		{"no client", func(s *googleauth.Settings) { s.ClientID = "" }, "ClientID"},
 		{"no secret", func(s *googleauth.Settings) { s.ClientSecret = "" }, "ClientSecret"},
 		{"no way back", func(s *googleauth.Settings) { s.RedirectURL = "" }, "RedirectURL"},
-		{"no keys", func(s *googleauth.Settings) { s.Endpoints.Keys = "" }, "Endpoints"},
+		{"nobody to ask whom a token is for", func(s *googleauth.Settings) { s.Endpoints.TokenInfo = "" }, "Endpoints"},
 		{"no way to end a grant", func(s *googleauth.Settings) { s.Endpoints.Revoke = "" }, "Endpoints"},
 		{"no clock", func(s *googleauth.Settings) { s.Now = nil }, "Now"},
 	} {
@@ -276,9 +325,9 @@ func TestAWrongSecretIsOurClientRefused(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New() error = %v, want nil", err)
 	}
-	code := codeIn(t, google.Allow(signIn.AuthURL(state, verifier, nonce)))
+	code := codeIn(t, google.Allow(signIn.AuthURL(state, verifier)))
 
-	if _, err := signIn.Exchange(t.Context(), code, verifier, nonce); !errors.Is(err, googleauth.ErrClient) {
+	if _, err := signIn.Exchange(t.Context(), code, verifier); !errors.Is(err, googleauth.ErrClient) {
 		t.Errorf("Exchange() error = %v, want %v", err, googleauth.ErrClient)
 	}
 }

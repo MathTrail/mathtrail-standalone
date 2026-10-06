@@ -15,11 +15,10 @@ const (
 	// maxHostState is the longest state a host may send: it rides in the
 	// request sealed into the address Google is sent, and back again.
 	maxHostState = 1024
-	// verifierBytes and nonceBytes are how many random bytes this server's
-	// own verifier and nonce towards Google are made of: a verifier of 43
-	// characters, the shortest RFC 7636 allows, and a nonce of 128 bits.
+	// verifierBytes is how many random bytes this server's own verifier
+	// towards Google is made of: a verifier of 43 characters, the shortest
+	// RFC 7636 allows.
 	verifierBytes = 32
-	nonceBytes    = 16
 )
 
 // authorize answers an authorization request (RFC 6749 4.1.1) with the
@@ -158,13 +157,13 @@ func (f *flow) begin(w http.ResponseWriter, r *http.Request, client *Client, req
 		}
 		f.events.authorized(r.Context(), request, query, "to_google", "")
 		//nolint:gosec // Google's own address, carrying the request this server sealed
-		http.Redirect(w, r, f.google.AuthURL(sealed, request.Verifier, request.Nonce), http.StatusFound)
+		http.Redirect(w, r, f.google.AuthURL(sealed, request.Verifier), http.StatusFound)
 		return
 	}
 
 	screen := consentScreen{client: client.Name, redirectURI: request.RedirectURI, request: sealed, reviewer: f.reviewer != nil}
 	if f.google != nil {
-		screen.google = f.google.AuthURL(sealed, request.Verifier, request.Nonce)
+		screen.google = f.google.AuthURL(sealed, request.Verifier)
 	}
 	if err := f.pages.showConsent(w, screen); err != nil {
 		f.events.failed(r.Context(), stepAuthorize, err)

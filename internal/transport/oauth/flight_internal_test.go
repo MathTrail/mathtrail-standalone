@@ -50,7 +50,6 @@ func aRequest(started time.Time) *flight {
 		Resource:     testIssuer + resourcePath,
 		Scope:        "mcp",
 		Verifier:     "a-verifier",
-		Nonce:        "a-nonce",
 		Cookie:       digestOf("a-cookie"),
 		StartedAt:    started.Unix(),
 	}
@@ -317,11 +316,11 @@ func TestAnApprovalOfTheParentsComputerCountsForNothing(t *testing.T) {
 
 // genFlight produces a request under way with every field chosen freely.
 func genFlight() gopter.Gen {
-	return gen.SliceOfN(10, gen.AnyString()).Map(func(fields []string) *flight {
+	return gen.SliceOfN(9, gen.AnyString()).Map(func(fields []string) *flight {
 		return &flight{
 			Client: fields[0], Registration: fields[1], RedirectURI: fields[2], State: fields[3],
 			Challenge: fields[4], Resource: fields[5], Scope: fields[6], Verifier: fields[7],
-			Nonce: fields[8], Cookie: fields[9], StartedAt: testDay.Unix(),
+			Cookie: fields[8], StartedAt: testDay.Unix(),
 		}
 	})
 }

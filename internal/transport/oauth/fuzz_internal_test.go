@@ -116,16 +116,16 @@ const fuzzedRedirect = "https://host.example/cb"
 // the code "drive-unticked" one without the Drive.
 type googleStandIn struct{}
 
-func (googleStandIn) AuthURL(state, _, _ string) string {
+func (googleStandIn) AuthURL(state, _ string) string {
 	return "https://accounts.example/auth?" + url.Values{"state": {state}}.Encode()
 }
 
-func (googleStandIn) Exchange(_ context.Context, code, _, _ string) (googleauth.Grant, error) {
-	scopes := []string{googleauth.ScopeOpenID, googleauth.ScopeDriveFile}
+func (googleStandIn) Exchange(_ context.Context, code, _ string) (googleauth.Grant, error) {
+	scopes := []string{googleauth.ScopeDriveFile}
 	switch code {
 	case "allowed":
 	case "drive-unticked":
-		scopes = scopes[:1]
+		scopes = nil
 	default:
 		return googleauth.Grant{}, googleauth.ErrCodeRefused
 	}
@@ -245,7 +245,7 @@ func FuzzCallback(f *testing.F) {
 	request := &flight{
 		Client: digestOf(clientID), Registration: registrationDCR, RedirectURI: fuzzedRedirect, State: "s",
 		Challenge: "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM", Resource: testIssuer + "/mcp", Scope: "mcp",
-		Verifier: "v", Nonce: "n", Cookie: digestOf("the-cookie"), StartedAt: testDay.Unix(),
+		Verifier: "v", Cookie: digestOf("the-cookie"), StartedAt: testDay.Unix(),
 	}
 	sealed, err := server.flow.sealFlight(request)
 	if err != nil {
@@ -286,7 +286,7 @@ func FuzzDrive(f *testing.F) {
 	sealed, err := server.flow.sealFlight(&flight{
 		Client: digestOf(clientID), Registration: registrationDCR, RedirectURI: fuzzedRedirect, State: "s",
 		Challenge: "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM", Resource: testIssuer + "/mcp", Scope: "mcp",
-		Verifier: "v", Nonce: "n", Cookie: digestOf("the-cookie"), StartedAt: testDay.Unix(),
+		Verifier: "v", Cookie: digestOf("the-cookie"), StartedAt: testDay.Unix(),
 	})
 	if err != nil {
 		f.Fatalf("sealFlight() error = %v, want nil", err)
@@ -324,7 +324,7 @@ func FuzzConsent(f *testing.F) {
 	sealed, err := server.flow.sealFlight(&flight{
 		Client: digestOf(clientID), Registration: registrationDCR, RedirectURI: fuzzedRedirect, State: "s",
 		Challenge: "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM", Resource: testIssuer + "/mcp", Scope: "mcp",
-		Verifier: "v", Nonce: "n", Cookie: digestOf("the-cookie"), StartedAt: testDay.Unix(),
+		Verifier: "v", Cookie: digestOf("the-cookie"), StartedAt: testDay.Unix(),
 	})
 	if err != nil {
 		f.Fatalf("sealFlight() error = %v, want nil", err)

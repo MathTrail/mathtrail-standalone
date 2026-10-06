@@ -293,7 +293,7 @@ func TestACallbackTellsTheHostWhatWentWrong(t *testing.T) {
 			error: "server_error", outcome: "failed", reason: "code_refused"},
 		{name: "Google failing", answer: googletest.Answer{Status: http.StatusServiceUnavailable},
 			error: "server_error", outcome: "failed", reason: "google_unavailable"},
-		{name: "an identity not proven", answer: googletest.Answer{Nonce: "another-nonce"},
+		{name: "an identity not proven", answer: googletest.Answer{Audience: "another.apps.googleusercontent.com"},
 			error: "server_error", outcome: "failed", reason: "identity"},
 		{name: "no lasting access", answer: googletest.Answer{NoRefresh: true},
 			error: "server_error", outcome: "failed", reason: "no_refresh"},
@@ -327,12 +327,13 @@ func TestACallbackTellsTheHostWhatWentWrong(t *testing.T) {
 	}
 }
 
-// A parent who left Google's box for the Drive unticked — Google leaves it so
-// until they tick it — is sent on to a page that asks them to go back and tick
-// it, and the host hears nothing of it. The page has an address of its own,
-// which carries the request and no code of Google's; the browser keeps its
-// sign-in's cookie for the ten minutes of the way back; the line of it is no
-// warning; and the page's form leads on to Google or back to the host alone.
+// A parent whose sign-in Google answers without the Drive — as it does when a
+// box for it on its screen is left unticked — is sent on to a page that asks
+// them to go back and tick it, and the host hears nothing of it. The page has
+// an address of its own, which carries the request and no code of Google's;
+// the browser keeps its sign-in's cookie for the ten minutes of the way back;
+// the line of it is no warning; and the page's form leads on to Google or back
+// to the host alone.
 func TestAParentWhoLeftTheDriveUntickedIsAskedAgain(t *testing.T) {
 	t.Parallel()
 
@@ -449,9 +450,9 @@ func TestThePageForTheDriveRefusesWhatItCannotTrust(t *testing.T) {
 }
 
 // Going back to Google from that page is a way through Google of its own, with
-// a verifier and a nonce of its own, and approves nothing, since the page
-// names no client; once the box is ticked, the host is handed the code its own
-// request asked for, and the sign-in is over.
+// a verifier of its own, and approves nothing, since the page names no client;
+// once the box is ticked, the host is handed the code its own request asked
+// for, and the sign-in is over.
 func TestAParentWhoTicksTheDriveOnTheWayBackSignsIn(t *testing.T) {
 	t.Parallel()
 
@@ -469,10 +470,8 @@ func TestAParentWhoTicksTheDriveOnTheWayBackSignsIn(t *testing.T) {
 	if lines := h.lines(eventAuthConsent); len(lines) != 2 || lines[1]["outcome"] != "again" {
 		t.Errorf("auth_consent lines = %v, want the second one again", lines)
 	}
-	for _, name := range []string{"code_challenge", "nonce"} {
-		if mustParse(t, again.location).Query().Get(name) == mustParse(t, first).Query().Get(name) {
-			t.Errorf("the way back to Google carries the first way's %s, want one of its own", name)
-		}
+	if mustParse(t, again.location).Query().Get("code_challenge") == mustParse(t, first).Query().Get("code_challenge") {
+		t.Error("the way back to Google carries the first way's code_challenge, want one of its own")
 	}
 
 	answer := answerAt(t, parent.get(h.google.Allow(again.location)))

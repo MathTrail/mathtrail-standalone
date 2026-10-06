@@ -12,7 +12,7 @@ Written against the documents, not from memory (CLAUDE.md, "How we work"), all r
 
 - **MCP authorization 2026-07-28** — `basic/authorization/{index,authorization-server-discovery,client-registration,security-considerations}.mdx` from the `modelcontextprotocol/modelcontextprotocol` repository. What it pins for us: RFC 9728 protected resource metadata is mandatory; an authorization server must offer RFC 8414 or OpenID Connect discovery; Client ID Metadata Documents are the primary registration path and DCR is deprecated but retained; the `resource` parameter of RFC 8707 is mandatory in both the authorization and the token request; `iss` in the authorization response is SHOULD, and a server that sends it must advertise `authorization_response_iss_parameter_supported`; PKCE S256; exact redirect URI matching; refresh token rotation for public clients; SSRF, confused-deputy and open-redirect requirements.
 - **The live behaviour of Claude** — the T04 spike: CIMD used for real (`client_id: https://claude.ai/oauth/mcp-oauth-client-metadata`), the exact canonical `resource`, refreshes driven by `expires_in` rather than by a 401, a full automatic step-up on HTTP 403, and a "Connect" button in the tool card when every token is gone. ChatGPT is still unverified — its column in the T04 matrix is empty until T63.
-- **Google OAuth 2.0 for web server applications** and **Google OpenID Connect**, plus the live discovery document at `https://accounts.google.com/.well-known/openid-configuration`: authorization endpoint `https://accounts.google.com/o/oauth2/v2/auth`, token endpoint `https://oauth2.googleapis.com/token`, revocation endpoint `https://oauth2.googleapis.com/revoke`, JWKS at `https://www.googleapis.com/oauth2/v3/certs`, `code_challenge_methods_supported: ["plain", "S256"]` — so PKCE works towards Google too. Three facts shape the design below: a refresh token "is only returned on the first authorization" unless `prompt=consent` is sent; revoking any token revokes the whole grant ("If the token is an access token and it has a corresponding refresh token, the refresh token will also be revoked"); and there is a limit of 100 refresh tokens per Google Account per OAuth client ID, past which the oldest is invalidated silently.
+- **Google OAuth 2.0 for web server applications** and **Google OpenID Connect**, plus the live discovery document at `https://accounts.google.com/.well-known/openid-configuration`: authorization endpoint `https://accounts.google.com/o/oauth2/v2/auth`, token endpoint `https://oauth2.googleapis.com/token`, revocation endpoint `https://oauth2.googleapis.com/revoke`, `code_challenge_methods_supported: ["plain", "S256"]` — so PKCE works towards Google too — and, from Google Cloud's page on token types, the tokeninfo endpoint `https://oauth2.googleapis.com/tokeninfo`, which names the account (`sub`) and the client (`aud`) an access token was issued for. Four facts shape the design below: a request that asks for a sign-in scope beside another, or for more than one other, shows a box beside each of the others, which Google leaves unticked, while a request for one scope that is not a sign-in's shows none (Google's page on granular permissions; R225); a refresh token "is only returned on the first authorization" unless `prompt=consent` is sent; revoking any token revokes the whole grant ("If the token is an access token and it has a corresponding refresh token, the refresh token will also be revoked"); and there is a limit of 100 refresh tokens per Google Account per OAuth client ID, past which the oldest is invalidated silently.
 - **The go-sdk v1.8.0 helpers** we build on (R01), verified with `go doc`: `auth.ProtectedResourceMetadataHandler`, `auth.RequireBearerToken` with `RequireBearerTokenOptions{ResourceMetadataURL, Scopes, ClockSkew}`, `auth.TokenVerifier` returning `auth.TokenInfo{Scopes, Expiration, UserID, Extra}`, and `oauthex.MatchesResource` for the audience comparison.
 
 ## Roles and endpoints
@@ -26,7 +26,7 @@ One process wears two hats: it is the **authorization server** the host signs in
 | `/oauth/register` | POST | RFC 7591 registration, kept as the fallback for a host without CIMD (R03); stateless — the record is sealed into the `client_id` itself | public |
 | `/oauth/authorize` | GET | validates the client, the redirect URI, PKCE, `resource` and `scope`; shows the consent screen or goes straight on to Google | the parent's browser |
 | `/oauth/consent` | POST | the parent's approval of this client, and the only thing it adds is a cookie entry — or, where it is configured, the reviewers' password, which signs a directory's reviewer in as the demo account without Google (R222) | CSRF cookie |
-| `/oauth/callback` | GET | Google's redirect target: verifies the state and the cookie, exchanges Google's code, looks the country of the parent's browser up, issues **our** code — or, when the parent left Google's box for the Drive unticked, sends them on to `/oauth/drive` (R224) | CSRF cookie |
+| `/oauth/callback` | GET | Google's redirect target: verifies the state and the cookie, exchanges Google's code, asks Google whom its access token was issued for, looks the country of the parent's browser up, issues **our** code — or, when the parent left Google's box for the Drive unticked, sends them on to `/oauth/drive` (R224) | CSRF cookie |
 | `/oauth/drive` | GET | the page that asks a parent who left Google's box for the Drive unticked to go back and tick it, for the request its address carries; its form is answered by `/oauth/consent` | CSRF cookie |
 | `/oauth/token` | POST | `authorization_code` and `refresh_token` | PKCE / the refresh token |
 | `/oauth/revoke` | POST | RFC 7009; revokes the grant at Google | the token itself |
@@ -91,7 +91,7 @@ sequenceDiagram
 
     Note over MT: client_id in the document equals the URL · redirect_uri matches one<br/>registered value exactly · resource equals our canonical URI ·<br/>scope is a subset of mcp · code_challenge_method is S256
 
-    Note over MT: seal the request context: client, redirect_uri, the host's state,<br/>code_challenge, resource, scope, our own PKCE verifier and nonce for Google,<br/>and the hash of a fresh cookie nonce
+    Note over MT: seal the request context: client, redirect_uri, the host's state,<br/>code_challenge, resource, scope, our own PKCE verifier for Google,<br/>and the hash of a fresh cookie nonce
 
     alt this client is not in the consent cookie, or it sends the parent back to their own computer
         MT-->>P: the consent page — client name, the redirect host and path,<br/>what Google will be asked for, links to the policy and the terms,<br/>with the sealed context in a hidden field<br/>Set-Cookie __Host-mt_csrf, HttpOnly Secure SameSite=Lax, 10 minutes
@@ -102,17 +102,19 @@ sequenceDiagram
         MT-->>P: Set-Cookie __Host-mt_csrf, 302 to Google
     end
 
-    P->>G: sign-in and consent: scope=openid drive.file,<br/>access_type=offline, prompt=consent, PKCE S256, nonce,<br/>state=the sealed context
+    P->>G: sign-in and consent: scope=drive.file alone, which Google shows<br/>with no box, access_type=offline, prompt=consent, PKCE S256,<br/>state=the sealed context
     G-->>P: 302 to /oauth/callback with Google's code and our state
     P->>MT: GET /oauth/callback
 
     Note over MT: unseal the state · SHA-256 of the cookie equals the hash inside it
     MT->>G: POST /token: Google's code, our verifier, our client secret
-    G-->>MT: access_token, refresh_token, id_token
-    Note over MT: verify the ID token against the cached JWKS: iss, aud, exp, nonce
+    G-->>MT: access_token, refresh_token, the scope granted
+    MT->>G: POST /tokeninfo, the access token in the Authorization header
+    G-->>MT: aud, sub
+    Note over MT: aud is our client · sub names the account
 
-    opt drive.file is not among the granted scopes — Google leaves its box unticked
-        Note over MT: the context sealed anew: a fresh verifier and nonce, ten minutes
+    opt drive.file is not among the granted scopes — not expected, since Google shows no box for it
+        Note over MT: the context sealed anew: a fresh verifier, ten minutes
         MT-->>P: 303 to /oauth/drive with the context, no code of Google's<br/>Set-Cookie __Host-mt_csrf, the same value, ten minutes more
         P->>MT: GET /oauth/drive
         MT-->>P: the page that asks the parent to go back and tick the box —<br/>drawn again on a reload, Google asked nothing
@@ -123,8 +125,8 @@ sequenceDiagram
         P->>MT: GET /oauth/callback
         Note over MT: the state and the cookie checked as before
         MT->>G: POST /token: Google's code, our verifier, our client secret
-        G-->>MT: access_token, refresh_token, id_token
-        Note over MT: the ID token verified as before · drive.file granted
+        G-->>MT: access_token, refresh_token, the scope granted
+        Note over MT: Google asked whom the token is for, as before · drive.file granted
     end
 
     Note over MT: drop the cookie · user_id = HMAC(k_userid, sub) — the sub itself goes no further
@@ -176,7 +178,7 @@ A parameter given twice is refused as `invalid_request` — at a page before the
 
 Whatever is recorded in step 4 becomes the audience of the tokens issued from this request, and is what the bearer check compares against on every later call — that is the whole of the `resource` → `aud` binding RFC 8707 asks for, and the reason a token issued for somebody else's server cannot be spent on ours.
 
-**Errors.** Until the redirect URI has been matched exactly, nothing is redirected anywhere: a bad `client_id` or a bad `redirect_uri` renders an error page. After it matches, errors go back to the client as an OAuth error response with `state` and `iss`, including the parent declining at Google, which comes back as `access_denied`. A grant without the Drive permission is not an error the client hears: asked together with `openid`, `drive.file` is a box Google leaves unticked until the parent ticks it, so the parent is sent on to a page that asks them to go back to Google and tick it, at an address of its own that carries no code of Google's, and the client hears `access_denied` only if they cancel there (R224, SPEC remark 52). The consent screen asks for the box to be ticked before the parent meets it. A request or an answer that cannot be tied to this browser — no cookie, another cookie, a `state` this server did not seal, or one past its ten minutes — renders a page as well: the redirect URI inside it is not to be trusted to be this parent's.
+**Errors.** Until the redirect URI has been matched exactly, nothing is redirected anywhere: a bad `client_id` or a bad `redirect_uri` renders an error page. After it matches, errors go back to the client as an OAuth error response with `state` and `iss`, including the parent declining at Google, which comes back as `access_denied`. A grant without the Drive permission is not an error the client hears. Asked for alone, `drive.file` is no box on Google's screen, so such a grant is not expected (R225); one that comes all the same sends the parent on to a page that asks them to go back to Google and tick the box, at an address of its own that carries no code of Google's, and the client hears `access_denied` only if they cancel there (R224, SPEC remark 52). The consent screen tells the parent, before they meet Google's screen, that Google will ask them to let MathTrail keep its one file in their Drive. A request or an answer that cannot be tied to this browser — no cookie, another cookie, a `state` this server did not seal, or one past its ten minutes — renders a page as well: the redirect URI inside it is not to be trusted to be this parent's.
 
 ### 3. Calling tools, and refreshing
 
@@ -256,7 +258,7 @@ Everything below is opaque to the client: a purpose tag, a key id and one AEAD c
 | Access token `mt1.a.` | user id, the sign-in's country, client id, resource (the audience), scope, Google access token and its expiry, issued-at, expiry | purpose `access` | 15 min, and never past the Google token inside it minus 3 min — the resource's minute of allowance, a minute of clocks, and a minute of the tool calling Drive; the Google token's life is counted from the moment it was asked for (R117) | the host's token store |
 | Refresh token `mt1.r.` | user id, the sign-in's country, client id, resource, scope, Google refresh token, Google access token and its expiry, the original sign-in time, issued-at, expiry | purpose `refresh` | 30 days sliding, at most 90 days from the original sign-in | the host's token store |
 | DCR registration, the `client_id` itself `mt1.d.` | redirect URIs, client name, created-at | purpose `client` | as long as the key that sealed it is still loaded | the host's client store |
-| The request context, our `state` towards Google `mt1.s.` | the digest of the client id and how the client is known, redirect URI, the host's own `state`, `code_challenge`, resource, scope, our PKCE verifier and nonce for Google, the hash of the cookie nonce, issued-at | purpose `state` | 10 min | the URL at Google, and the parent's browser |
+| The request context, our `state` towards Google `mt1.s.` | the digest of the client id and how the client is known, redirect URI, the host's own `state`, `code_challenge`, resource, scope, our PKCE verifier for Google, the hash of the cookie nonce, issued-at | purpose `state` | 10 min | the URL at Google, and the parent's browser |
 | CSRF cookie `__Host-mt_csrf` | 32 random bytes, nothing else | not sealed — it is compared by hash | 10 min | the parent's browser, HttpOnly Secure SameSite=Lax, path `/`: the prefix keeps it to this host alone, so that no site under the same domain can set one in its place |
 | Consent cookie `__Host-mt_consent` `mt1.k.` | the fingerprints of the newest 20 approved clients, `SHA-256(client_id + redirect_uri)` with each part's length in front, and when each was approved; never one whose redirect is on the parent's own computer | purpose `consent` | 180 days | the parent's browser, HttpOnly Secure SameSite=Lax, path `/`, the same prefix |
 | The sealed block of the current task | the answer, the trap texts, the solution, the solver code (О-25) | purpose `task-answer` | until the next task is asked for — an answered task keeps it, to tell its answer again when the same answer is sent twice — or the key that sealed it is retired | the profile file in the parent's Drive (T09) |
@@ -301,7 +303,7 @@ The one request of a sign-in that comes from the parent's own browser rather tha
 
 ## Scopes
 
-Our own scope set is one scope, `mcp`, advertised in `scopes_supported` and in the 401 challenge. Towards Google we ask for exactly two: `openid`, for a verified `sub` in the ID token, and `https://www.googleapis.com/auth/drive.file`, the per-file scope that needs no restricted-scope review (PRODUCT 9.3). Google's scopes are never visible to the host: the host's token is ours, and it is about our resource.
+Our own scope set is one scope, `mcp`, advertised in `scopes_supported` and in the 401 challenge. Towards Google we ask for exactly one: `https://www.googleapis.com/auth/drive.file`, the per-file scope that needs no restricted-scope review (PRODUCT 9.3). It is asked for alone: once a request asks for more than one scope, a sign-in's counted, Google shows every scope that is not a sign-in's with a box it leaves unticked, and a parent who presses on past the box has not granted that scope. With no `openid`, no ID token comes back, so who signed in is asked of Google's tokeninfo endpoint with the access token of the grant (R225). Google's scopes are never visible to the host: the host's token is ours, and it is about our resource.
 
 With one scope, no tool can ever answer `insufficient_scope`, so v1 issues no step-up challenge. If a later version ever needs one, R04 already settled how: HTTP 403 with a `WWW-Authenticate` header — Claude completes the whole step-up on that, automatically, while the `_meta["mcp/www_authenticate"]` route alone is ignored — with `_meta` added alongside for ChatGPT, never instead. Tools still carry the `securitySchemes` annotation in `_meta` so a host can see what they require (T41, T47).
 
@@ -320,7 +322,7 @@ The acceptance question for this task is whether one can see that the server sto
 | Client registration | the client's own metadata document, or sealed into the `client_id` we issued | not ours to keep |
 | Consent given to a client | the sealed `__Host-mt_consent` cookie in the parent's browser | 180 days |
 | The in-flight authorization request | the sealed `state` in the URL, bound to a nonce cookie | 10 min |
-| The PKCE verifier and nonce we use towards Google | inside that same sealed `state` | 10 min |
+| The PKCE verifier we use towards Google | inside that same sealed `state` | 10 min |
 | Google's access and refresh tokens | sealed inside our code, access and refresh tokens, held by the host | their own lifetimes |
 | The signed-in session | the host's token store; we hold no session at all | at most 90 days |
 | The user identifier for limits | inside the tokens; derived, never stored | with the token |
@@ -329,7 +331,7 @@ The acceptance question for this task is whether one can see that the server sto
 | Sealing keys | Secret Manager, read into the instance once at startup | the version's lifetime |
 | The reviewers' password, and the demo account's grant at Google that it renews | Secret Manager, read into the instance once at startup, where the reviewers' sign-in is configured (R222) | the version's lifetime, and the grant's at Google |
 | Rate-limit counters | the instance's memory (О-15, О-24) | minutes |
-| CIMD documents and Google's JWKS | the instance's memory cache | their cache headers |
+| CIMD documents | the instance's memory cache | their cache headers |
 
 Restart the service, or start a second instance, and nothing above is lost or has to be synchronised. That is the whole reason the design looks like this.
 
@@ -344,6 +346,7 @@ Restart the service, or start a second instance, and nothing above is lost or ha
 | **Open redirect** | exact string matching of `redirect_uri` against the registered list, with no prefixes and no wildcards — the port of an address on the parent's own computer aside, for a client of its own document, which leads nowhere but that computer (R218); before that match nothing is redirected, errors render as a page; after it, an error goes back to the client once this browser has approved it at that address, or when the address is on the parent's own computer, which sends nobody elsewhere — anybody may register a client at an address of their choosing (RFC 9700 4.11.2); `iss` on every authorization response, including errors | a parent who declines on the consent screen is sent back to the address the screen named |
 | **Confused deputy** — a stranger's client riding a browser already signed in to Google | our own consent screen before Google for any client this browser has not approved; the screen names the client and where it sends the parent back — its host and its path, since a familiar host may serve pages anybody publishes — with an extra warning for an address on the parent's own computer, which is asked about every time: nothing proves which program listens there (RFC 8252 8.6) | a parent who approves without reading. The screen keeps the decision theirs, which is all a screen can do |
 | **Mix-up between authorization servers** | `iss` in every authorization response and `authorization_response_iss_parameter_supported: true` in the metadata (RFC 9207) | — |
+| **A false word about who signed in** — no ID token, and so no signature, vouches for the account | the account is what Google's tokeninfo endpoint says of the access token the exchange has just given: Google's own address, written into the code rather than configured, reached over TLS, and its `aud` must be our client. A wrong name there opens no child's file, which is reached with Google's Drive token, and that token comes over the same kind of connection from Google's token endpoint (R225) | whoever could answer in Google's place over TLS could hand over a Drive token of their own choosing as well |
 | **CSRF on the callback** | the `__Host-mt_csrf` cookie nonce bound by hash into the sealed `state`; no cookie, or a mismatch, and the callback refuses without redirecting | a browser that blocks cookies cannot sign in, and is told so |
 | **Audience confusion, token pass-through** | the audience is checked on every request against the configured canonical resource with `oauthex.MatchesResource`; Google's token never reaches the host, and a token we did not seal cannot be unsealed at all | — |
 | **Abuse of the endpoints open before sign-in** | a pace for each address on every endpoint of the sign-in and on both its documents — the last hop of `X-Forwarded-For`, an IPv6 address by its /64 — and behind the endpoints, not the documents, a pace of the sign-in's own, apart from the lessons'; answered `429` with `Retry-After`, and in a parent's browser with a page in their language; the CIMD cache; and body and time caps on every fetch (R121) | the per-instance counting of О-24 applies here too; and the hosts' own servers, which call the token, registration and revocation endpoints and the documents, share their few addresses among every family of a host (SPEC remark 60) |

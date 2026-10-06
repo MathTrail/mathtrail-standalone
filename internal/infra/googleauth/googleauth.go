@@ -1,13 +1,18 @@
 // Package googleauth signs a parent in with Google.
 //
 // Towards Google the service is an ordinary OAuth client. It sends the
-// parent's browser to Google's consent screen with the two scopes it needs —
-// who the parent is, and the files it creates in their Drive — and trades the
-// code Google sends back for the grant. Who signed in is read from the ID
-// token that comes with the grant, and only once the token's signature has
-// been checked against the keys Google publishes: the token arrives over a
-// connection the service opened itself, and the signature is what makes it
-// Google's word rather than whatever answered there.
+// parent's browser to Google's consent screen with the one scope it needs —
+// the files it creates in their Drive, and no other — and trades the code
+// Google sends back for the grant. The scope is asked for alone: once a
+// request asks for more than one scope, a sign-in's counted, Google shows
+// every scope that is not a sign-in's with a box it leaves unticked, and a
+// parent who presses on past the box has not granted that scope.
+//
+// Who signed in is asked of Google: its tokeninfo endpoint names the account
+// an access token was issued for, and the client it was issued to. The token
+// asked about is the one the exchange of this request's code has just given,
+// and Google's word about it comes over a connection the service opened
+// itself to Google, as the grant did.
 //
 // After the sign-in the grant is renewed with its refresh token, for as long
 // as Google honours it, and revoked when the parent disconnects.
@@ -20,49 +25,39 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
 )
 
-// The scopes asked of Google: who the parent is, and the files the service
-// creates in their Drive — no other file.
-const (
-	ScopeOpenID    = "openid"
-	ScopeDriveFile = "https://www.googleapis.com/auth/drive.file"
-)
+// ScopeDriveFile is the one scope asked of Google: the files the service
+// creates in the parent's Drive — no other file.
+const ScopeDriveFile = "https://www.googleapis.com/auth/drive.file"
 
-const (
-	// callTimeout is how long one call to Google may take: an exchange of a
-	// code, a renewal, a revocation, or a fetch of the keys its ID tokens are
-	// signed with.
-	callTimeout = 10 * time.Second
-	// clockSkew is how far Google's clock and this one may disagree about
-	// when an ID token stops being good.
-	clockSkew = 60 * time.Second
-)
+// callTimeout is how long one call to Google may take: an exchange of a code
+// with the question of whom its access token is for, a renewal, or a
+// revocation.
+const callTimeout = 10 * time.Second
 
 // Endpoints are where a provider's sign-in is.
 type Endpoints struct {
-	// Issuer is who its ID tokens say issued them.
-	Issuer string
 	// Auth is where the parent's browser is sent to sign in.
 	Auth string
 	// Token is where a code is exchanged for the grant.
 	Token string
-	// Keys is where the keys its ID tokens are signed with are published.
-	Keys string
+	// TokenInfo is where an access token is asked about: whom it was issued
+	// for, and to which client.
+	TokenInfo string
 	// Revoke is where a grant is ended.
 	Revoke string
 }
 
-// Accounts are Google's own endpoints, as its discovery document at
-// https://accounts.google.com/.well-known/openid-configuration names them.
+// Accounts are Google's own endpoints: those its discovery document at
+// https://accounts.google.com/.well-known/openid-configuration names, and the
+// tokeninfo endpoint its documentation of access tokens names.
 var Accounts = Endpoints{ //nolint:gosec // Google's published endpoints, not a credential
-	Issuer: "https://accounts.google.com",
-	Auth:   "https://accounts.google.com/o/oauth2/v2/auth",
-	Token:  "https://oauth2.googleapis.com/token",
-	Keys:   "https://www.googleapis.com/oauth2/v3/certs",
-	Revoke: "https://oauth2.googleapis.com/revoke",
+	Auth:      "https://accounts.google.com/o/oauth2/v2/auth",
+	Token:     "https://oauth2.googleapis.com/token",
+	TokenInfo: "https://oauth2.googleapis.com/tokeninfo",
+	Revoke:    "https://oauth2.googleapis.com/revoke",
 }
 
 // Settings are what the sign-in is built from.
@@ -77,7 +72,7 @@ type Settings struct {
 	RedirectURL string
 	// Endpoints are where the sign-in is: Accounts, unless a test stands in.
 	Endpoints Endpoints
-	// Now is the clock an ID token is judged by and a grant is dated by.
+	// Now is the clock a grant is dated by.
 	Now func() time.Time
 }
 
@@ -95,9 +90,8 @@ func (s *Settings) validate() error {
 		return fmt.Errorf("%w: ClientSecret must be set", ErrSettings)
 	case s.RedirectURL == "":
 		return fmt.Errorf("%w: RedirectURL must be set", ErrSettings)
-	case s.Endpoints.Issuer == "", s.Endpoints.Auth == "", s.Endpoints.Token == "", s.Endpoints.Keys == "",
-		s.Endpoints.Revoke == "":
-		return fmt.Errorf("%w: Endpoints must name all five", ErrSettings)
+	case s.Endpoints.Auth == "", s.Endpoints.Token == "", s.Endpoints.TokenInfo == "", s.Endpoints.Revoke == "":
+		return fmt.Errorf("%w: Endpoints must name all four", ErrSettings)
 	case s.Now == nil:
 		return fmt.Errorf("%w: Now must be set", ErrSettings)
 	}
@@ -110,14 +104,14 @@ func (s *Settings) validate() error {
 // grant's end.
 type SignIn interface {
 	// AuthURL is the address the parent's browser is sent to. The state
-	// comes back unchanged with the browser; the verifier's challenge and
-	// the nonce bind what comes back to this one request.
-	AuthURL(state, verifier, nonce string) string
+	// comes back unchanged with the browser; the verifier's challenge binds
+	// the code it comes back with to this one request.
+	AuthURL(state, verifier string) string
 	// Exchange trades the code the browser came back with for the grant,
 	// proving the verifier the request was made with, and accepts it only
-	// with an ID token that is Google's, for this client, still good, and
-	// carrying the nonce.
-	Exchange(ctx context.Context, code, verifier, nonce string) (Grant, error)
+	// once Google has said whom its access token was issued for, and that
+	// it was issued to this client.
+	Exchange(ctx context.Context, code, verifier string) (Grant, error)
 	// Refresh asks Google for a new access token with the grant's refresh
 	// token.
 	Refresh(ctx context.Context, refreshToken string) (Renewal, error)
@@ -139,8 +133,9 @@ type Grant struct {
 	Expiry time.Time
 	// RefreshToken is what a new access token is asked for with.
 	RefreshToken string
-	// Scopes are the scopes the parent granted, which may be fewer than the
-	// ones asked for: Google lets a parent untick a permission.
+	// Scopes are the scopes Google says it granted, which the caller holds
+	// to what it needs: Google may grant fewer than were asked for, as it
+	// does when a parent leaves a box on its screen unticked.
 	Scopes []string
 }
 
@@ -168,11 +163,11 @@ var (
 	// fixed.
 	ErrClient = errors.New("googleauth: Google refused the service's client")
 	// ErrUnavailable means Google could not be asked, or did not answer the
-	// way its token endpoint does.
+	// way its endpoints do.
 	ErrUnavailable = errors.New("googleauth: Google did not answer")
-	// ErrIdentity means the answer does not prove who signed in: no ID
-	// token, a signature that is not Google's, a token for another client,
-	// one expired, or one without the nonce of this request.
+	// ErrIdentity means Google did not vouch for who signed in: it called the
+	// access token none of its own, said it was issued to another client, or
+	// named no account.
 	ErrIdentity = errors.New("googleauth: the identity is not proven")
 	// ErrNoRefresh means the grant carries no refresh token, without which
 	// the sign-in would end with its first access token.
@@ -191,24 +186,19 @@ var (
 
 // google is the sign-in at a provider with Google's endpoints.
 type google struct {
-	oauth     *oauth2.Config
-	verifier  *oidc.IDTokenVerifier
-	client    *http.Client
-	revokeURL string
-	now       func() time.Time
+	oauth        *oauth2.Config
+	client       *http.Client
+	tokenInfoURL string
+	revokeURL    string
+	now          func() time.Time
 }
 
-// New builds the sign-in, or refuses settings it could not work with. The
-// keys ID tokens are checked against are fetched when the first one arrives,
-// kept, and fetched again when one arrives signed with a key not yet seen —
-// which is how Google's rotation of its keys reaches the service.
+// New builds the sign-in, or refuses settings it could not work with.
 func New(settings *Settings) (SignIn, error) {
 	if err := settings.validate(); err != nil {
 		return nil, err
 	}
-	client := &http.Client{Timeout: callTimeout}
 	endpoints := settings.Endpoints
-	keys := oidc.NewRemoteKeySet(oidc.ClientContext(context.Background(), client), endpoints.Keys)
 	return &google{
 		oauth: &oauth2.Config{
 			ClientID:     settings.ClientID,
@@ -219,29 +209,22 @@ func New(settings *Settings) (SignIn, error) {
 				AuthStyle: oauth2.AuthStyleInParams,
 			},
 			RedirectURL: settings.RedirectURL,
-			Scopes:      []string{ScopeOpenID, ScopeDriveFile},
+			Scopes:      []string{ScopeDriveFile},
 		},
-		verifier: oidc.NewVerifier(endpoints.Issuer, keys, &oidc.Config{
-			ClientID: settings.ClientID,
-			// The token is judged a minute behind this clock, so that one
-			// Google's clock calls good is not refused for the minute the
-			// two may disagree by.
-			Now: func() time.Time { return settings.Now().Add(-clockSkew) },
-		}),
-		client:    client,
-		revokeURL: endpoints.Revoke,
-		now:       settings.Now,
+		client:       &http.Client{Timeout: callTimeout},
+		tokenInfoURL: endpoints.TokenInfo,
+		revokeURL:    endpoints.Revoke,
+		now:          settings.Now,
 	}, nil
 }
 
-// AuthURL asks Google for both scopes, and for a refresh token on every
+// AuthURL asks Google for the one scope, and for a refresh token on every
 // sign-in: Google gives one only when the parent is shown its consent
 // screen, and the service keeps nothing from a sign-in before.
-func (g *google) AuthURL(state, verifier, nonce string) string {
+func (g *google) AuthURL(state, verifier string) string {
 	return g.oauth.AuthCodeURL(state,
 		oauth2.AccessTypeOffline,
 		oauth2.SetAuthURLParam("prompt", "consent"),
 		oauth2.S256ChallengeOption(verifier),
-		oidc.Nonce(nonce),
 	)
 }

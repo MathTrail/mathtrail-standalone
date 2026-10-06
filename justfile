@@ -1070,27 +1070,53 @@ reviewer-grant service="mathtrail":
     echo
     echo "https://accounts.google.com/o/oauth2/v2/auth?$query"
     echo
-    echo "The browser lands on a MathTrail page saying the link is not right. Paste its address here."
-    read -r -p "address: " landed
+    echo "The browser lands on a MathTrail page saying the link is not right. Paste its address here at once:"
+    echo "the code in it lasts a few minutes, and the address is not shown again as it is pasted."
+    read -r -s -p "address: " landed
+    echo
+    # What was pasted is told back without its query, which holds the code: an
+    # address, and whether a code came with it.
+    case "$landed" in
+    *\?*code=*) echo "received: ${landed%%\?*}, with a code" ;;
+    *\?*) echo "received: ${landed%%\?*}, with no code" ;;
+    *) echo "received: no address" ;;
+    esac
     decoded() { local value="${1//+/ }"; printf '%b' "${value//%/\\x}"; }
     param() { tr '&' '\n' <<< "${landed#*\?}" | sed -n "s/^$1=//p" | head -1; }
-    if [ "$(decoded "$(param state)")" != "$state" ] || [ -n "$(param error)" ] || [ -z "$(param code)" ]; then
+    # A backslash is in no address Google sends back, and decoded would read
+    # it as an escape.
+    if [[ "$landed" == *\\* ]] || [[ "$landed" != *\?* ]] ||
+        [ "$(decoded "$(param state)")" != "$state" ] || [ -n "$(param error)" ] || [ -z "$(param code)" ]; then
         echo "reviewer-grant: that is not the address this request came back to with a code." >&2
         exit 1
     fi
     code=$(decoded "$(param code)")
     client_secret=$(gcloud secrets versions access latest --secret="{{ service }}-google-client-secret" --project="$project")
+    # The form is written with no line break after it, which would otherwise
+    # end the last field, the verifier, and Google would refuse the code.
     answer=$(code="$code" client_secret="$client_secret" verifier="$verifier" \
-        jq -rn --arg client "$client_id" --arg redirect "$redirect" '
+        jq -jn --arg client "$client_id" --arg redirect "$redirect" '
             {code: env.code, client_id: $client, client_secret: env.client_secret, redirect_uri: $redirect,
              grant_type: "authorization_code", code_verifier: env.verifier}
             | to_entries | map("\(.key)=\(.value | @uri)") | join("&")' \
         | curl -sS --max-time 30 -X POST https://oauth2.googleapis.com/token \
             -H 'Content-Type: application/x-www-form-urlencoded' --data-binary @-)
+    # Google answers with one JSON object; anything else — a page of a proxy,
+    # say, or nothing — is no grant, and is read no further.
+    if ! jq -e 'type == "object"' > /dev/null 2>&1 <<< "$answer"; then
+        echo "reviewer-grant: Google gave no grant: its answer is not a JSON object." >&2
+        exit 1
+    fi
     refresh=$(jq -r '.refresh_token // empty' <<< "$answer")
     identity=$(jq -r '.id_token // empty' <<< "$answer")
     if [ -z "$refresh" ] || [ -z "$identity" ]; then
-        echo "reviewer-grant: Google gave no grant: $(jq -r '.error // "no answer"' <<< "$answer")" >&2
+        error=$(jq -r '.error // empty | tostring' <<< "$answer")
+        reason=$(jq -r '[.error, .error_description] | map(select(. != null) | tostring) | join(": ")' <<< "$answer")
+        echo "reviewer-grant: Google gave no grant: ${reason:-an answer with neither a grant nor an error}" >&2
+        if [ "$error" = "invalid_grant" ]; then
+            echo "Google refuses a code that has expired, that was used before, or that this request does not match." >&2
+            echo "Run this again, and paste the address as soon as the page shows." >&2
+        fi
         exit 1
     fi
     if [[ " $(jq -r '.scope // empty' <<< "$answer") " != *" https://www.googleapis.com/auth/drive.file "* ]]; then

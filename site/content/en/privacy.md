@@ -5,7 +5,7 @@ description: What MathTrail knows about your child, where it is kept, and how to
 
 # Privacy policy
 
-Last updated: 5 October 2026.
+Last updated: 6 October 2026.
 
 MathTrail is a free, open-source project. Questions about this policy or about your child's data go to [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com).
 
@@ -83,10 +83,9 @@ IP geolocation by [DB-IP](https://db-ip.com), under the [Creative Commons Attrib
 
 ## Google sign-in and Drive
 
-Signing in asks Google for two things:
+Signing in asks Google for one permission, **`drive.file`**. It is the narrow Drive permission: it grants access **only to files this app itself created**. MathTrail cannot see, list or open anything else in your Drive, including files you made yourself.
 
-- **`openid`** — to know that the sign-in succeeded;
-- **`drive.file`** — the narrow Drive permission. It grants access **only to files this app itself created**. MathTrail cannot see, list or open anything else in your Drive, including files you made yourself.
+To know whose sign-in it was, the service then asks Google which Google account gave that permission. Google tells it the account's identifier, not your email, and the service keeps only the code it makes from that identifier, described above.
 
 Two consequences are worth knowing in advance, because they look like faults and are not:
 

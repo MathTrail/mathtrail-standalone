@@ -74,16 +74,17 @@ func (f *flow) finish(ctx context.Context, request *flight, query url.Values, co
 			ending{outcome: "failed", reason: "unconfigured"}
 	}
 
-	grant, err := f.google.Exchange(ctx, query.Get("code"), request.Verifier, request.Nonce)
+	grant, err := f.google.Exchange(ctx, query.Get("code"), request.Verifier)
 	if err != nil {
 		return exchangeFailed(err)
 	}
 	if !slices.Contains(grant.Scopes, googleauth.ScopeDriveFile) {
-		// Google leaves the box unticked until the parent ticks it, so the
-		// parent is asked again rather than the client told. The grant is
-		// left as Google gave it: ending it at Google would end every grant
-		// of the parent's at this service, the chats they have already
-		// connected included.
+		// Asked for alone, the Drive is no box on Google's screen, and a grant
+		// without it is not expected. One that comes all the same is a box
+		// left unticked: the parent is asked again rather than the client
+		// told. The grant is left as Google gave it: ending it at Google would
+		// end every grant of the parent's at this service, the chats they
+		// have already connected included.
 		return nil, ending{outcome: outcomeRetry, reason: "no_drive"}
 	}
 	// The account's own identifier at Google goes no further than here.
