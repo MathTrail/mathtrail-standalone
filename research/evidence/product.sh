@@ -12,6 +12,9 @@ source "$(dirname "${BASH_SOURCE[0]}")/facts.sh"
 commit=${1:?usage: product.sh <commit>}
 unpack "$(git rev-parse --absolute-git-dir)" "$commit"
 
+# The name go test tells a test file from the code by.
+test_file='*_test.go'
+
 # The public name a reader finds the commit under.
 emit repository github.com/MathTrail/mathtrail-standalone
 emit commit "${full:0:12}"
@@ -33,7 +36,7 @@ done
 n=$(find content/examples/solvers -maxdepth 1 -name '*.star' | count_matching .)
 emit reference_solvers "$n"
 n=$(jq -r '.[].id' content/examples/*.json | while read -r id; do
-    [ -f "content/examples/solvers/$id.star" ] || echo "$id"
+    [[ -f "content/examples/solvers/$id.star" ]] || echo "$id"
 done | count_matching .)
 emit reference_tasks_without_solver "$n"
 
@@ -67,7 +70,7 @@ emit check_codes "$n"
 # rule that chooses the next task reads neither by name; a count above zero
 # means it started to.
 pace_or_confused='[a-z]Pace|(^|[^A-Za-z])[Pp]ace|[Cc]onfused|DontKnow'
-n=$(find internal/domain/tutor -name '*.go' ! -name '*_test.go' -exec cat {} + | count_matching "$pace_or_confused")
+n=$(find internal/domain/tutor -name '*.go' ! -name "$test_file" -exec cat {} + | count_matching "$pace_or_confused")
 emit pace_or_confused_lines_in_rule "$n"
 
 # Model providers. The chat's model writes every task and the service calls no
@@ -95,19 +98,19 @@ emit widget_languages "$n"
 terraform_value() {
     local LC_ALL=C name=$1 file value set=""
     for file in infra/terraform/terraform.tfvars infra/terraform/*.auto.tfvars; do
-        [ -f "$file" ] || continue
+        [[ -f "$file" ]] || continue
         # A quoted value, or a bare one up to a space or a comment.
         value=$(sed -n -e "s/^$name *= *\"\([^\"]*\)\".*$/\1/p" \
             -e "s/^$name *= *\([^ \"#][^ #]*\).*$/\1/p" "$file" | tail -n 1)
-        if [ -n "$value" ]; then
+        if [[ -n "$value" ]]; then
             set=$value
         fi
     done
-    if [ -n "$set" ]; then
+    if [[ -n "$set" ]]; then
         echo "$set"
         return
     fi
-    awk -v name="$1" '
+    awk -v name="$name" '
         $0 == "variable \"" name "\" {" { inside = 1; next }
         inside && /^}/ { exit }
         inside && /^  default *=/ { sub(/^  default *= */, ""); gsub(/"/, ""); print; exit }
@@ -122,9 +125,10 @@ done
 # a Test, Fuzz or Benchmark name taking *testing.T, *testing.F or *testing.B,
 # where what follows the prefix does not start with a lower-case letter.
 # TestMain takes *testing.M and is no test of its own.
-test_sources() { find internal cmd content -name '*_test.go' -exec cat {} +; }
+test_sources() { find internal cmd content -name "$test_file" -exec cat {} +; }
 functions() {
-    test_sources | count_matching "^func $1([^a-z( ][^( ]*)?\([A-Za-z_][A-Za-z0-9_]* \*testing\.$2\)"
+    local prefix=$1 kind=$2
+    test_sources | count_matching "^func $prefix([^a-z( ][^( ]*)?\([A-Za-z_][A-Za-z0-9_]* \*testing\.$kind\)"
 }
 n=$(functions Test T)
 emit test_functions "$n"
@@ -134,9 +138,9 @@ n=$(functions Benchmark B)
 emit benchmark_functions "$n"
 n=$(test_sources | count_matching '\.Property\(')
 emit gopter_properties "$n"
-n=$(find internal cmd content -name '*_test.go' | count_matching .)
+n=$(find internal cmd content -name "$test_file" | count_matching .)
 emit test_files "$n"
-n=$(find internal cmd content -name '*.go' ! -name '*_test.go' -exec cat {} + | count_matching .)
+n=$(find internal cmd content -name '*.go' ! -name "$test_file" -exec cat {} + | count_matching .)
 emit go_nonblank_lines_code "$n"
 n=$(test_sources | count_matching .)
 emit go_nonblank_lines_tests "$n"
@@ -154,7 +158,7 @@ emit coverage_statements "$n"
 
 # The tools the MCP endpoint defines: each is one Define(Spec{...}), and the
 # card's page, a resource, is not among them.
-n=$(find internal/transport/mcp -name '*.go' ! -name '*_test.go' -exec cat {} + | count_matching 'Define\(Spec\{')
+n=$(find internal/transport/mcp -name '*.go' ! -name "$test_file" -exec cat {} + | count_matching 'Define\(Spec\{')
 emit mcp_tools "$n"
 
 # The model's own numbers: the constants of the rating, the checks, the solver,
@@ -162,13 +166,15 @@ emit mcp_tools "$n"
 # them, such as the corridor's bounds on the difficulty scale. A test written
 # into each package of the unpacked commit prints them as key=value lines. It is
 # written only now, after every count above, so that no count includes it, and
-# it goes with the temporary tree.
+# it goes with the temporary tree. Every such test takes a *testing.T and prints
+# with fmt, so both packages are imported for it; a probe names the other
+# packages its test uses.
 probe() {
     local dir=$1 package=$2 imports=$3 body=$4 lines
-    printf 'package %s\n\nimport (\n%s\n)\n\nfunc TestResearchFacts(t *testing.T) {\n%s\n}\n' \
+    printf 'package %s\n\nimport (\n"fmt"; "testing"; %s\n)\n\nfunc TestResearchFacts(t *testing.T) {\n%s\n}\n' \
         "$package" "$imports" "$body" > "$dir/zz_research_facts_test.go"
     lines=$(go test -count=1 -run '^TestResearchFacts$' -v "./$dir" | grep -E '^[a-z0-9_]+=' || true)
-    if [ -z "$lines" ]; then
+    if [[ -z "$lines" ]]; then
         echo "${0##*/}: the probe in $dir printed nothing" >&2
         exit 1
     fi
@@ -177,7 +183,7 @@ probe() {
     done <<<"$lines"
 }
 
-probe internal/domain/rating rating '"fmt"; "math"; "strings"; "testing"' '
+probe internal/domain/rating rating '"math"; "strings"' '
 	further := func(p float64) float64 { return p*(1-Guess)/(p-Guess) - 1 }
 	fmt.Printf("guess_floor=%g\nstep_theta=%g\nstep_delta=%g\nstep_decay=%g\n", Guess, k0Theta, k0Delta, decay)
 	fmt.Printf("middle_difficulty=%d\ndifficulties=%d\nlevel_shift=%g\n", middleDifficulty, Difficulties, levelShift)
@@ -198,7 +204,7 @@ probe internal/domain/rating rating '"fmt"; "math"; "strings"; "testing"' '
 	fmt.Printf("trial_answers=%d\ntrial_prior_spread=%g\n", TrialAnswers, startSpread)
 	fmt.Printf("elo_base=%d\nelo_points=%.0f\n", eloBase, eloScale*math.Ln10)'
 
-probe internal/domain/checks checks '"fmt"; "math"; "testing"; "github.com/MathTrail/mathtrail-standalone/internal/domain/rating"' '
+probe internal/domain/checks checks '"math"; "github.com/MathTrail/mathtrail-standalone/internal/domain/rating"' '
 	for i, level := range []rating.GradeLevel{rating.Grades12, rating.Grades34, rating.Grades56} {
 		fmt.Printf("sentence_words_%d=%d\n", i+1, sentenceLimits[level].words)
 	}
@@ -206,26 +212,26 @@ probe internal/domain/checks checks '"fmt"; "math"; "testing"; "github.com/MathT
 	fmt.Printf("sketch_positions=%d\nsketch_bits=%g\nsketch_bytes=%d\n", sketchSize, math.Log2(positionValues), sketchBytes)
 	fmt.Printf("drawing_width=%d\ndrawing_height=%d\n", DefaultDrawingLimits().Width, DefaultDrawingLimits().Height)'
 
-probe internal/domain/solver solver '"fmt"; "testing"' '
+probe internal/domain/solver solver '' '
 	fmt.Printf("options=%d\nlabel_shift=%d\n", Count, relabel)'
 
-probe internal/infra/starlark starlark '"fmt"; "testing"' '
+probe internal/infra/starlark starlark '' '
 	fmt.Printf("bytes_per_step=%d\n", bytesPerStep)'
 
-probe internal/config config '"fmt"; "testing"' '
+probe internal/config config '' '
 	fmt.Printf("solver_steps=%d\nsolver_seconds=%g\nsolver_wait_seconds=%g\n",
 		DefaultSolverSteps, DefaultSolverTimeout.Seconds(), DefaultSolverWait.Seconds())'
 
-probe internal/domain/profile profile '"fmt"; "testing"' '
+probe internal/domain/profile profile '' '
 	fmt.Printf("grade_min=%d\ngrade_max=%d\ndifficulty_min=%d\n", MinGrade, MaxGrade, MinDifficulty)
 	fmt.Printf("max_attempts=%d\nfingerprints_kept=%d\n", MaxAttempts, MaxFingerprints)
 	fmt.Printf("mastery_answers=%d\nmastery_streak=%d\nmastery_lost_after=%d\n", MasteryAnswers, MasteryStreak, MasteryLostAfter)'
 
-probe internal/domain/tutor tutor '"fmt"; "testing"' '
+probe internal/domain/tutor tutor '' '
 	fmt.Printf("brief_traps=%d\n", Traps)'
 
-probe content content '"fmt"; "testing"' '
+probe content content '' '
 	fmt.Printf("package_examples=%d\npackage_budget_kib=%d\n", examplesPerPackage, PackageBudget/1024)'
 
-probe internal/transport/mcp mcpserver '"fmt"; "testing"' '
+probe internal/transport/mcp mcpserver '' '
 	fmt.Printf("mcp_revision=%s\n", supportedVersions[0])'

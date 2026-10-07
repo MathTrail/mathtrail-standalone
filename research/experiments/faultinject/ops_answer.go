@@ -187,6 +187,10 @@ func solverFindsNothing(ctx context.Context, runner solver.Runner, m *mutant) (b
 	return first.Status == solver.StatusOK && len(first.Letters) == 0, nil
 }
 
+// solveDefinition opens the definition of solve, the function a solver is run
+// through.
+const solveDefinition = "def solve("
+
 // intoSolve inserts lines as the first statement of the solver's solve, each
 // indented as the body is and by its own indentation besides.
 func intoSolve(lines ...string) func(m *maker) (mutant, bool) {
@@ -206,7 +210,7 @@ func intoSolve(lines ...string) func(m *maker) (mutant, bool) {
 func insertIntoSolve(source string, lines []string) (string, bool) {
 	all := strings.Split(source, "\n")
 	for i, line := range all {
-		if !strings.HasPrefix(line, "def solve(") {
+		if !strings.HasPrefix(line, solveDefinition) {
 			continue
 		}
 		indent, found := bodyIndent(all[i+1:])
@@ -246,10 +250,10 @@ func unparsedSolver(m *maker) (mutant, bool) {
 // unnamedSolver renames solve, so that there is nothing to call.
 func unnamedSolver(m *maker) (mutant, bool) {
 	sub := m.start()
-	if !strings.Contains(sub.Solver, "def solve(") {
+	if !strings.Contains(sub.Solver, solveDefinition) {
 		return mutant{}, false
 	}
-	sub.Solver = strings.Replace(sub.Solver, "def solve(", "def solve_injected(", 1)
+	sub.Solver = strings.Replace(sub.Solver, solveDefinition, "def solve_injected(", 1)
 	return mutant{Sub: sub}, true
 }
 

@@ -73,6 +73,7 @@ var events = map[string][]string{
 	"solver_run":   {"status", "steps", "duration_ms", "instructions_version", "user"},
 	"task_submitted": {
 		"attempt", "outcome", "primary", "failed", "minor_issues", "duration_ms", "solver_steps", "solver_ms",
+		"task_bytes", "self_check_bytes", "solver_bytes", "core_idea_bytes", "total_bytes", "retired", "mended",
 		"instructions_version", "user",
 	},
 	// A task handed out, an answer and a topic mastered are what the children

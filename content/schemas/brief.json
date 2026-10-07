@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Brief",
-  "description": "What task the child is to get now. The deterministic rule writes it, the model may adjust the plot and the traps, and it comes back with the finished task. Ids are checked against the catalogs by the service, not by this schema.",
+  "description": "What task the child is to get now. The deterministic rule writes it and the package hands it to the model; the finished task is handed in without it, since the request it was written for keeps it. Ids are checked against the catalogs by the service, not by this schema.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -33,12 +33,11 @@
       "enum": [1, 2, 3, 4, 5]
     },
     "setting": {
-      "description": "The plot of the task: one of the child's interests, or the model's own choice when there are none.",
-      "type": "string",
-      "minLength": 1
+      "description": "The plot of the task: one of the child's interests, or empty when there are none, and the model then chooses one.",
+      "type": "string"
     },
     "traps_to_use": {
-      "description": "Trap ids the wrong options are built from. The rule suggests two; the model may swap them for others from the trap catalog.",
+      "description": "Trap ids the rule suggests building the wrong options from, two as a rule; a wrong option may come from any trap of the catalog.",
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
@@ -56,7 +55,7 @@
       "items": { "type": "string", "minLength": 1 }
     },
     "rationale": {
-      "description": "One sentence: what the choice rests on, and the model's reason where it departed from the rule.",
+      "description": "One sentence: what the choice rests on.",
       "type": "string",
       "minLength": 1
     }

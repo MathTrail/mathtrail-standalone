@@ -60,21 +60,6 @@ type TaskSecret struct {
 	Version int `json:"version"`
 }
 
-// SealTask puts the part of the task on the card that gives its answer away
-// beyond reach, tied to this child and this task, as it stands: unanswered,
-// or answered with the letter it was given.
-func (p *Profile) SealTask(sealer Sealer, secret TaskSecret) error {
-	if p.CurrentTask == nil {
-		return ErrNoTask
-	}
-	value, err := sealSecret(sealer, secret, p.binding())
-	if err != nil {
-		return err
-	}
-	p.CurrentTask.Sealed = value
-	return nil
-}
-
 // sealSecret is a task's secret sealed against a binding.
 func sealSecret(sealer Sealer, secret TaskSecret, binding []string) (string, error) {
 	secret.Version = SecretVersion

@@ -64,12 +64,10 @@ var (
 // raceQuestion is the race's wording, which the child reads.
 const raceQuestion = "Ann, Ben and Kim ran a race. Ben finished before Kim. Ann finished after Kim. Who finished first?"
 
-// raceOn is the race handed in for a request, the brief handed back as it was
-// received.
+// raceOn is the race handed in for a request.
 func raceOn(request *profile.OpenRequest) map[string]any {
 	return map[string]any{
 		"request_id": request.ID,
-		"brief":      request.Brief,
 		"task":       raceTask(raceDistractors()),
 		"solver":     raceSolver,
 		"self_check": map[string]any{
@@ -88,8 +86,7 @@ func raceOn(request *profile.OpenRequest) map[string]any {
 func raceInRussianOn(request *profile.OpenRequest) map[string]any {
 	race := raceOn(request)
 	race["task"] = map[string]any{
-		"core_idea":              "Order three runners from two comparisons.",
-		"design_thought_process": "Plot: a race. Traps: a reversed comparison, stopping early.",
+		"core_idea": "Order three runners from two comparisons.",
 		"question": "Аня, Бен и Кира бежали наперегонки. Бен прибежал раньше Киры. Аня прибежала позже Киры. " +
 			"Кто прибежал первым?",
 		"options":        map[string]string{"A": "Аня", "B": "Кира", "C": "Бен", "D": "Никто", "E": "Все вместе"},
@@ -118,14 +115,13 @@ func raceInRussianOn(request *profile.OpenRequest) map[string]any {
 // its wrong options.
 func raceTask(distractors map[string]map[string]string) map[string]any {
 	return map[string]any{
-		"core_idea":              "Order three runners from two comparisons.",
-		"design_thought_process": "Plot: a race. Traps: a reversed comparison, stopping early.",
-		"question":               raceQuestion,
-		"options":                map[string]string{"A": "Ann", "B": "Kim", "C": "Ben", "D": "Nobody", "E": "All at once"},
-		"correct_answer":         "C",
-		"hint":                   "Who finished before Kim?",
-		"solution":               raceSolution,
-		"distractors":            distractors,
+		"core_idea":      "Order three runners from two comparisons.",
+		"question":       raceQuestion,
+		"options":        map[string]string{"A": "Ann", "B": "Kim", "C": "Ben", "D": "Nobody", "E": "All at once"},
+		"correct_answer": "C",
+		"hint":           "Who finished before Kim?",
+		"solution":       raceSolution,
+		"distractors":    distractors,
 	}
 }
 
@@ -595,44 +591,36 @@ func TestAPartSentAsAStringOfItsJSONIsReadForIt(t *testing.T) {
 	request := askForTheRace(t, session, kept)
 
 	worded := raceOn(request)
-	worded["brief"] = "the brief as it came"
+	worded["self_check"] = "the check as it came"
 	refused := payloadOf[handedInPayload](t, call(t, session, "submit_task", worded))
 	if refused.Code != "bad_structure" || len(refused.Reasons) == 0 ||
-		!slices.Contains(refused.Reasons[0].Messages, "brief must be a JSON object") {
-		t.Errorf("a brief of words = %+v, want it refused as no object", refused)
+		!slices.Contains(refused.Reasons[0].Messages, "self_check must be a JSON object") {
+		t.Errorf("a self-check of words = %+v, want it refused as no object", refused)
 	}
 
 	// JSON with a fault in it is told as broken JSON: the model can mend that,
 	// and cannot send the part as anything but a string.
 	faulty := raceOn(request)
-	faulty["brief"] = `{"setting":"park",}`
+	faulty["self_check"] = `{"issues":[],}`
 	refused = payloadOf[handedInPayload](t, call(t, session, "submit_task", faulty))
 	if refused.Code != "bad_structure" || len(refused.Reasons) == 0 ||
-		!slices.Contains(refused.Reasons[0].Messages, "brief is not valid JSON") {
-		t.Errorf("a brief of broken JSON = %+v, want it refused as broken JSON", refused)
+		!slices.Contains(refused.Reasons[0].Messages, "self_check is not valid JSON") {
+		t.Errorf("a self-check of broken JSON = %+v, want it refused as broken JSON", refused)
 	}
 
-	// A whole number written as 2.0 reads as 2 in a part sent as JSON; so it
-	// does in a part sent as a string of it.
-	race := partsAsStrings(t, raceOn(request))
-	brief, isText := race["brief"].(string)
-	if !isText || !strings.Contains(brief, `"difficulty":2`) {
-		t.Fatalf("the brief as a string = %v, want its difficulty in it", race["brief"])
-	}
-	race["brief"] = strings.Replace(brief, `"difficulty":2`, `"difficulty":2.0`, 1)
-	accepted := payloadOf[handedInPayload](t, call(t, session, "submit_task", race))
+	accepted := payloadOf[handedInPayload](t, call(t, session, "submit_task", partsAsStrings(t, raceOn(request))))
 	if accepted.Screen != "task" || accepted.Task == nil || accepted.Task.Question != raceQuestion {
 		t.Errorf("the race with its parts as strings = %+v, want it on the card", accepted)
 	}
 }
 
-// partsAsStrings is a task handed in with its brief, task and self-check each
-// sent as a string of its JSON, as a client may send a part whose schema names
-// no type.
+// partsAsStrings is a task handed in with its task and self-check each sent as
+// a string of its JSON, as a client may send a part whose schema names no
+// type.
 func partsAsStrings(t testing.TB, race map[string]any) map[string]any {
 	t.Helper()
 
-	for _, part := range []string{"brief", "task", "self_check"} {
+	for _, part := range []string{"task", "self_check"} {
 		encoded, err := json.Marshal(race[part])
 		if err != nil {
 			t.Fatalf("encode the %s: %v", part, err)
@@ -674,28 +662,44 @@ func TestTheThirdRefusalClosesTheRequest(t *testing.T) {
 	}
 }
 
-// The task handed in has to be the one asked for: the topic, the level and the
-// difficulty the request recorded, and every skill the child has not met kept
-// out. A program that crashes is a solver that did not run.
-func TestATaskIsHeldToWhatWasAskedFor(t *testing.T) {
+// A program that crashes is a solver that did not run, and the task is refused
+// for it.
+func TestAProgramThatCrashesIsASolverThatDidNotRun(t *testing.T) {
+	t.Parallel()
+
+	kept := racer(t)
+	_, session := lesson(t, kept)
+	race := raceOn(askForTheRace(t, session, kept))
+	race["solver"] = "def solve(options):\n    return 1 // 0\n"
+
+	if got := payloadOf[handedInPayload](t, call(t, session, "submit_task", race)); got.Code != "solver_error" {
+		t.Errorf("submit_task = %+v, want it refused with solver_error", got)
+	}
+}
+
+// A task is held to the brief its request keeps, whatever brief comes with it:
+// one handed back, as a chat begun with the guide that asked for it still does,
+// is read past — another difficulty, a skill let back in, words, broken JSON —
+// and the task stands on the card where the request asked, the skills the
+// child has not met kept out.
+func TestABriefHandedBackIsReadPastWhateverItSays(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []struct {
-		name   string
-		change func(race map[string]any, asked profile.Brief)
-		code   string
+		name  string
+		brief func(asked profile.Brief) any
 	}{
-		{"another difficulty", func(race map[string]any, asked profile.Brief) {
-			asked.Difficulty = 3
-			race["brief"] = asked
-		}, "bad_structure"},
-		{"a skill the child has not met let back in", func(race map[string]any, asked profile.Brief) {
+		{"as it was received", func(asked profile.Brief) any { return asked }},
+		{"another difficulty", func(asked profile.Brief) any {
+			asked.Difficulty = 4
+			return asked
+		}},
+		{"a skill the child has not met let back in", func(asked profile.Brief) any {
 			asked.ExcludedSkills = []string{}
-			race["brief"] = asked
-		}, "bad_structure"},
-		{"a program that crashes", func(race map[string]any, _ profile.Brief) {
-			race["solver"] = "def solve(options):\n    return 1 // 0\n"
-		}, "solver_error"},
+			return asked
+		}},
+		{"words", func(profile.Brief) any { return "the brief as it came" }},
+		{"broken JSON", func(profile.Brief) any { return `{"setting":"park",}` }},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -704,12 +708,93 @@ func TestATaskIsHeldToWhatWasAskedFor(t *testing.T) {
 			_, session := lesson(t, kept)
 			request := askForTheRace(t, session, kept)
 			race := raceOn(request)
-			tc.change(race, request.Brief)
+			race["brief"] = tc.brief(request.Brief)
 
-			if got := payloadOf[handedInPayload](t, call(t, session, "submit_task", race)); got.Code != tc.code {
-				t.Errorf("submit_task = %+v, want it refused with %s", got, tc.code)
+			got := payloadOf[handedInPayload](t, call(t, session, "submit_task", race))
+			if got.Screen != "task" || got.Task == nil || got.Attempt != 1 {
+				t.Fatalf("submit_task = %+v, want the race on the card at the first attempt", got)
+			}
+			p, _ := loadKept(t, kept)
+			if task := p.CurrentTask; task.Difficulty != request.Brief.Difficulty || task.GradeLevel != request.Brief.GradeLevel ||
+				task.Topic != request.Brief.TargetConcept {
+				t.Errorf("the task on the card stands at %s %s %d, want where the request asked", task.Topic,
+					task.GradeLevel, task.Difficulty)
 			}
 		})
+	}
+}
+
+// A chat begun with the guide that asked for the brief and the plan still
+// hands them in: the task is accepted at the first attempt, as one handed in
+// without them is.
+func TestAHandInOfAChatBegunBeforeIsAccepted(t *testing.T) {
+	t.Parallel()
+
+	kept := racer(t)
+	_, session := lesson(t, kept)
+	request := askForTheRace(t, session, kept)
+	race := raceOn(request)
+	race["brief"] = request.Brief
+	task, _ := race["task"].(map[string]any)
+	task["design_thought_process"] = "Plot: a race. Traps: a reversed comparison, stopping early."
+
+	got := payloadOf[handedInPayload](t, call(t, session, "submit_task", race))
+	if got.Screen != "task" || got.Task == nil || got.Attempt != 1 {
+		t.Errorf("submit_task = %+v, want the race on the card at the first attempt", got)
+	}
+}
+
+// submit_task names the brief as an argument to leave out: it is no longer one
+// the tool needs, and the library refuses an argument its schema does not name
+// before the tool runs, so it stays named for a chat that still sends it.
+func TestSubmitTaskNamesTheBriefAsAnArgumentToLeaveOut(t *testing.T) {
+	t.Parallel()
+
+	_, session := lesson(t, racer(t))
+	listed, err := session.ListTools(t.Context(), nil)
+	if err != nil {
+		t.Fatalf("ListTools() error = %v, want nil", err)
+	}
+	var schema struct {
+		Required   []string `json:"required"`
+		Properties map[string]struct {
+			Description string `json:"description"`
+		} `json:"properties"`
+	}
+	for _, tool := range listed.Tools {
+		if tool.Name != "submit_task" {
+			continue
+		}
+		raw, err := json.Marshal(tool.InputSchema)
+		if err != nil || json.Unmarshal(raw, &schema) != nil {
+			t.Fatalf("read submit_task's schema %s: %v", raw, err)
+		}
+	}
+	if want := []string{"request_id", "self_check", "solver", "task"}; !slices.Equal(slices.Sorted(slices.Values(schema.Required)), want) {
+		t.Errorf("required = %v, want %v", schema.Required, want)
+	}
+	if brief, named := schema.Properties["brief"]; !named || !strings.HasPrefix(brief.Description, "leave it out") {
+		t.Errorf("brief = %+v, named %v, want it named as one to leave out", brief, named)
+	}
+}
+
+// An argument submit_task does not name is still refused, before the tool runs:
+// nothing is spent and nothing written.
+func TestAnArgumentSubmitTaskDoesNotNameIsRefused(t *testing.T) {
+	t.Parallel()
+
+	kept := racer(t)
+	_, session := lesson(t, kept)
+	request := askForTheRace(t, session, kept)
+	_, revision := loadKept(t, kept)
+	race := raceOn(request)
+	race["bogus"] = 1
+
+	if got := call(t, session, "submit_task", race); !got.IsError {
+		t.Errorf("submit_task with an argument it does not name = %+v, want it refused", got)
+	}
+	if p, now := loadKept(t, kept); now != revision || p.OpenRequest == nil || p.OpenRequest.Attempts != 0 {
+		t.Errorf("the profile holds the request %+v, want nothing spent or written", p.OpenRequest)
 	}
 }
 
@@ -1178,12 +1263,12 @@ func TestThePackageNamesTheIdeaByTheTopicsTasksLeftBehind(t *testing.T) {
 	// The race on the card is left for another race: the sixteenth task of the
 	// topic, and the second time round the list.
 	coming := wantComing(t, call(t, session, "next_task", raceChoice))
-	type idea struct{ Number, Of, Round int }
+	type idea struct{ Number, Round int }
 	var got idea
 	if err := json.Unmarshal(packageIn(t, fetchPackage(t, session, coming.RequestID))["idea"], &got); err != nil {
 		t.Fatalf("read the package's idea: %v", err)
 	}
-	if want := (idea{Number: 7, Of: 10, Round: 2}); got != want {
+	if want := (idea{Number: 7, Round: 2}); got != want {
 		t.Errorf("idea = %+v after 12 answers, 3 skips and the race left, want %+v", got, want)
 	}
 }
@@ -1871,5 +1956,131 @@ func TestARequestNoPackageCanBeBuiltForWritesNothing(t *testing.T) {
 				t.Error("the profile was written, want nothing written")
 			}
 		})
+	}
+}
+
+// submittedLine is the one line a hand-in left, its fields as the log keeps
+// them.
+func submittedLine(t *testing.T, h *harness) map[string]any {
+	t.Helper()
+
+	h.settle()
+	lines := linesOf(h, "task_submitted")
+	if len(lines) != 1 {
+		t.Fatalf("task_submitted lines = %d, want 1", len(lines))
+	}
+	return lines[0].ContextMap()
+}
+
+// namesOf is a list of names as a line keeps it.
+func namesOf(value any) []string {
+	var names []string
+	listed, _ := value.([]any)
+	for _, name := range listed {
+		if text, isText := name.(string); isText {
+			names = append(names, text)
+		}
+	}
+	return names
+}
+
+// The line of a hand-in says how large it was, part by part, and not a word of
+// it: the whole is its parts together, the core idea is measured inside the
+// task, and nothing was retired or mended.
+func TestTheLineOfAHandInMeasuresItsParts(t *testing.T) {
+	t.Parallel()
+
+	kept := racer(t)
+	h, session := lesson(t, kept)
+	call(t, session, "submit_task", raceOn(askForTheRace(t, session, kept)))
+
+	line := submittedLine(t, h)
+	task, selfCheck, program := bytesOf(t, line, "task_bytes"), bytesOf(t, line, "self_check_bytes"), bytesOf(t, line, "solver_bytes")
+	if task == 0 || selfCheck == 0 || program != int64(len(raceSolver)) ||
+		bytesOf(t, line, "core_idea_bytes") != int64(len("Order three runners from two comparisons.")) ||
+		bytesOf(t, line, "total_bytes") != task+selfCheck+program {
+		t.Errorf("task_submitted = %v, want every part measured and the whole their sum", line)
+	}
+	if retired, mended := namesOf(line["retired"]), namesOf(line["mended"]); retired != nil || mended != nil {
+		t.Errorf("retired %v, mended %v, want neither", retired, mended)
+	}
+	for field, value := range line {
+		if said := fmt.Sprint(value); strings.Contains(said, "Ann") || strings.Contains(said, raceSolution) {
+			t.Errorf("task_submitted.%s = %q, a word of the task", field, said)
+		}
+	}
+}
+
+// A task that could not be read has no idea to measure: the line of its
+// hand-in measures the task and leaves the idea's size out, rather than write
+// it as nought among the sizes of ideas that were written.
+func TestTheLineOfAHandInThatCannotBeReadMeasuresNoIdea(t *testing.T) {
+	t.Parallel()
+
+	kept := racer(t)
+	h, session := lesson(t, kept)
+	race := raceOn(askForTheRace(t, session, kept))
+	race["task"] = []any{"not", "a", "task"}
+	call(t, session, "submit_task", race)
+
+	line := submittedLine(t, h)
+	if size, measured := line["core_idea_bytes"]; measured || bytesOf(t, line, "task_bytes") == 0 {
+		t.Errorf("task_submitted has the task's size %v and an idea of %v bytes, want the task measured and no idea",
+			line["task_bytes"], size)
+	}
+}
+
+// The line of a hand-in from a chat begun with an earlier guide names what the
+// format no longer reads that came with it, and counts the brief in the whole.
+func TestTheLineOfAHandInFromBeforeNamesWhatWasRetired(t *testing.T) {
+	t.Parallel()
+
+	kept := racer(t)
+	h, session := lesson(t, kept)
+	request := askForTheRace(t, session, kept)
+	race := raceOn(request)
+	race["brief"] = request.Brief
+	task, _ := race["task"].(map[string]any)
+	task["design_thought_process"] = "Plot: a race."
+	call(t, session, "submit_task", race)
+
+	line := submittedLine(t, h)
+	if retired := namesOf(line["retired"]); !slices.Equal(retired, []string{"brief", "task.design_thought_process"}) {
+		t.Errorf("retired = %v, want the brief and the plan", retired)
+	}
+	parts := bytesOf(t, line, "task_bytes") + bytesOf(t, line, "self_check_bytes") + bytesOf(t, line, "solver_bytes")
+	if total := bytesOf(t, line, "total_bytes"); total <= parts {
+		t.Errorf("total_bytes = %d, want the brief among it beside the parts' %d", total, parts)
+	}
+}
+
+// bytesOf is a size the line of a hand-in carries, and fails the test naming
+// the field when the line carries no size there.
+func bytesOf(t *testing.T, line map[string]any, field string) int64 {
+	t.Helper()
+
+	size, isSize := line[field].(int64)
+	if !isSize {
+		t.Fatalf("task_submitted.%s = %v, want a size in bytes", field, line[field])
+	}
+	return size
+}
+
+// The line of a hand-in names the fields read as they were meant, by their
+// names alone.
+func TestTheLineOfAHandInNamesWhatWasMended(t *testing.T) {
+	t.Parallel()
+
+	kept := racer(t)
+	h, session := lesson(t, kept)
+	race := raceOn(askForTheRace(t, session, kept))
+	task, _ := race["task"].(map[string]any)
+	task["correct_answer"] = " c"
+	if got := payloadOf[handedInPayload](t, call(t, session, "submit_task", race)); got.Screen != "task" {
+		t.Fatalf("submit_task = %+v, want the race accepted as it was meant", got)
+	}
+
+	if mended := namesOf(submittedLine(t, h)["mended"]); !slices.Equal(mended, []string{"task.correct_answer"}) {
+		t.Errorf("mended = %v, want the answer named", mended)
 	}
 }

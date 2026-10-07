@@ -1,0 +1,38 @@
+{
+  "1-2": [
+    "Trees or posts in a row and the gaps between them: one gap fewer than the trees.",
+    "Cutting a ribbon or a log: one cut fewer than the pieces.",
+    "Pages read from one page to another, both ends counted.",
+    "Going up from one floor to another: one flight fewer than the floor reached.",
+    "A fence of posts a given distance apart: the length from the first post to the last.",
+    "Sawing a log when each cut takes the same time: the time for all the pieces.",
+    "A child counted from the front and from the back of a queue: how many are in it.",
+    "Steps between floors: the steps of one flight times the flights climbed.",
+    "Beads on a closed necklace: as many gaps as beads.",
+    "A clock striking: the time from the first stroke to the last counted in gaps."
+  ],
+  "3-4": [
+    "Trees along a road a given distance apart: the length of the row, or the number of trees.",
+    "A log cut into pieces of a given length: the cuts, and the time they take.",
+    "Whole numbers from one number to another, both ends counted.",
+    "A building's floors and flights: the steps from one floor to another.",
+    "A closed ring of beads or posts: as many gaps as objects.",
+    "A bell ringing at equal spaces: the time for more rings from the time for a few.",
+    "A pupil counted from the left and from the right: the length of the row.",
+    "Posts along a fence with a post at each end, and the same fence closed into a ring.",
+    "A train of carriages with links between them, and the length of the whole train.",
+    "Pages numbered on both sides of the sheets: how many sheets a run of pages takes."
+  ],
+  "5-6": [
+    "A cake or a sheet cut along lines in two directions: the pieces from the cuts.",
+    "Trees planted on a rectangular grid of rows, with a tree at every corner.",
+    "Children in a circle, numbered in turn: who stands opposite whom.",
+    "Tearing a sheet of stamps into single stamps: each tear splits one piece into two.",
+    "Strips around the panes of a window: shared sides counted once.",
+    "Lamps along a closed path put up again at a new spacing: which places keep a lamp.",
+    "Posts round a square or rectangular field, with a post at each corner.",
+    "Two paths touching at one point, like a figure eight, and posts along both.",
+    "Laps of a running track and the markers passed between two points.",
+    "A rope folded several times and cut through once: how many pieces fall apart."
+  ]
+}

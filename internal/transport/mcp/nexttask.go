@@ -118,9 +118,8 @@ func (s *Service) nextTaskTool() Tool {
 			"Never put the child's name in a task. It writes to the profile's file in the adult's Google Drive the " +
 			"request it opens, the task it hands out and the unanswered task it records as skipped." +
 			"\n\nTopics, by id, with the levels each is taught at:\n" + s.topicList(),
-		Effect:     Adds,
-		Idempotent: true,
-		DrawsCard:  true,
+		Effect:    Adds,
+		DrawsCard: true,
 	}, s.nextTask)
 }
 

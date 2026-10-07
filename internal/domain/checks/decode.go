@@ -9,27 +9,66 @@ import (
 	"reflect"
 	"slices"
 	"strings"
-
-	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 )
 
-// Decode reads what the model handed in — the brief, the task and the
-// self-check, each as the JSON it arrived as — and reports everything about
-// the format it cannot accept: a part that is missing or is not an object, a
-// member the format does not have, a value of the wrong type.
+// retiredMembers are the members the format once had and no longer reads, by
+// the path of the object that held them: a chat begun with the guide that
+// asked for them still writes them, and is not to lose an attempt for it. A
+// member of that name anywhere else is a stray like any other.
+var retiredMembers = map[string][]string{
+	"task": {"design_thought_process"},
+}
+
+// Decode reads what the model handed in — the task and the self-check, each
+// as the JSON it arrived as — and reports everything about the format it
+// cannot accept: a part that is missing or is not an object, a member the
+// format does not have, a value of the wrong type.
 //
 // A member the format does not have is refused rather than read past, because
 // a misspelt field is one the model believes it filled in. Every such member
-// is named, not only the first, so that one more attempt can fix them all.
-func Decode(brief, task, selfCheck json.RawMessage) (Draft, []Problem) {
+// is named, not only the first, so that one more attempt can fix them all. The
+// one exception is a member the format has retired, which is read past and
+// named in the draft. A slip of how a value is written whose meaning is beyond
+// doubt is mended rather than refused, and named in the draft too.
+func Decode(task, selfCheck json.RawMessage) (Draft, []Problem) {
 	var (
 		draft    Draft
 		problems []Problem
+		mended   []string
 	)
-	draft.Brief, problems = decodePart[profile.Brief]("brief", brief, problems)
+	task, numbered := optionsAsText(task)
+	if numbered {
+		mended = append(mended, mendedOptions)
+	}
+	selfCheck, listed := issuesListed(selfCheck)
+	if listed {
+		mended = append(mended, mendedIssues)
+	}
 	draft.Task, problems = decodePart[Task]("task", task, problems)
 	draft.SelfCheck, problems = decodePart[SelfCheck]("self_check", selfCheck, problems)
+	draft.Retired = retiredIn("task", task)
+	for _, field := range mendLetters(&draft) {
+		if !slices.Contains(mended, field) {
+			mended = append(mended, field)
+		}
+	}
+	draft.Mended = mended
 	return draft, distinct(problems)
+}
+
+// retiredIn names the retired members a part holds, by their paths.
+func retiredIn(name string, raw json.RawMessage) []string {
+	var members map[string]json.RawMessage
+	if json.Unmarshal(raw, &members) != nil {
+		return nil
+	}
+	var found []string
+	for _, member := range retiredMembers[name] {
+		if _, held := members[member]; held {
+			found = append(found, name+"."+member)
+		}
+	}
+	return found
 }
 
 // decodePart reads one part of a submission, or reports why it cannot. A part
@@ -95,7 +134,10 @@ func strayMembers(raw json.RawMessage, format reflect.Type, path string) []Probl
 	var found []Problem
 	for _, name := range slices.Sorted(maps.Keys(members)) {
 		field, known := fields[name]
-		if !known {
+		switch {
+		case !known && slices.Contains(retiredMembers[path], name):
+			continue
+		case !known:
 			found = append(found, structural("%s has a member the format does not have: %q", path, name))
 			continue
 		}

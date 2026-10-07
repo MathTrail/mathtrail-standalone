@@ -237,7 +237,6 @@ const staleRequest = "req_00000000-0000-4000-8000-000000000000"
 func HandInStale(ctx context.Context, child *session.Child, task *Task) session.Answer {
 	return child.Call(ctx, "submit_task", map[string]any{
 		"request_id": staleRequest,
-		"brief":      map[string]any{},
 		"task":       task.Body,
 		"solver":     task.Solver,
 		"self_check": task.SelfCheck,

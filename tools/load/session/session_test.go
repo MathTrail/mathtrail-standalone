@@ -552,7 +552,6 @@ func TestTheBusyRefusalIsToldApart(t *testing.T) {
 	// looked at, and runs until its clock stops it.
 	stale := map[string]any{
 		"request_id": "req_00000000-0000-0000-0000-000000000000",
-		"brief":      map[string]any{},
 		"task":       map[string]any{"options": map[string]string{"A": "4", "B": "5", "C": "6", "D": "8", "E": "12"}},
 		"solver":     "def solve(options):\n    while True:\n        pass\n    return []\n",
 		"self_check": map[string]any{},

@@ -1,6 +1,7 @@
 package mcpserver_test
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 	"time"
@@ -27,18 +28,16 @@ const relayQuestion = "Ivy, Joe and Lea swam in the pool. Joe swam before Lea. I
 // relaySolution would give the relay away before the child has answered.
 const relaySolution = "Joe swam before Lea, and Lea swam before Ivy, so Joe swam first."
 
-// relayOn is the relay handed in for a request, the brief handed back as it
-// was received.
+// relayOn is the relay handed in for a request.
 func relayOn(request *profile.OpenRequest) map[string]any {
 	relay := raceOn(request)
 	relay["task"] = map[string]any{
-		"core_idea":              "Order three swimmers from two comparisons.",
-		"design_thought_process": "Plot: a swim. Traps: a reversed comparison, stopping early.",
-		"question":               relayQuestion,
-		"options":                map[string]string{"A": "Ivy", "B": "Lea", "C": "Joe", "D": "Nobody", "E": "All at once"},
-		"correct_answer":         "C",
-		"hint":                   "Who swam before Lea?",
-		"solution":               relaySolution,
+		"core_idea":      "Order three swimmers from two comparisons.",
+		"question":       relayQuestion,
+		"options":        map[string]string{"A": "Ivy", "B": "Lea", "C": "Joe", "D": "Nobody", "E": "All at once"},
+		"correct_answer": "C",
+		"hint":           "Who swam before Lea?",
+		"solution":       relaySolution,
 		"distractors": map[string]map[string]string{
 			"A": {"trap": raceTraps[0], "text": "Ivy swam after Lea, so she was the last to swim."},
 			"B": {"trap": raceTraps[1], "text": "Lea is in the middle: Joe swam before her."},
@@ -832,5 +831,49 @@ func TestTheRequestAheadIsHandedBackAsItWasOpened(t *testing.T) {
 		"The arguments of this call were not applied")
 	if p, now := loadKept(t, kept); now != revision || p.OpenRequest.Brief.Difficulty != 2 {
 		t.Errorf("the request is %+v, want it as it was opened, and nothing written", p.OpenRequest)
+	}
+}
+
+// A task written ahead while the child works on the task on the card comes
+// after that task, so it is built on the idea after the one that task was
+// built on, the two being of one topic, and is shown the reference tasks the
+// next task is shown once the child has answered: the package of the same
+// request, fetched again after the answer, names the same idea and shows the
+// same reference tasks.
+func TestATaskWrittenAheadIsBuiltOnTheIdeaAfterTheTaskOnTheCard(t *testing.T) {
+	t.Parallel()
+
+	kept := racer(t)
+	_, session := lesson(t, kept)
+	race := askForTheRace(t, session, kept)
+	ofTheRace := packageIn(t, fetchPackage(t, session, race.ID))
+	if text := textOf(t, call(t, session, "submit_task", raceOn(race))); !strings.HasPrefix(text, "Accepted") {
+		t.Fatalf("submit_task for the race said %q, want it accepted", text)
+	}
+
+	ahead := packageIn(t, prepared(t, session, aheadChoice))
+	request := aheadOpen(t, kept)
+	answered(t, answerIt(t, session, profile.TaskIDFor(race.ID), "C", false))
+	afterTheAnswer := packageIn(t, fetchPackage(t, session, request.ID))
+
+	type idea struct {
+		Number, Round int
+		Text          string
+	}
+	var raced, next idea
+	if err := json.Unmarshal(ofTheRace["idea"], &raced); err != nil {
+		t.Fatalf("read the race's idea: %v", err)
+	}
+	if err := json.Unmarshal(ahead["idea"], &next); err != nil {
+		t.Fatalf("read the idea of the task written ahead: %v", err)
+	}
+	if next.Number != raced.Number+1 || next.Round != raced.Round || next.Text == raced.Text {
+		t.Errorf("the task written ahead is built on %+v, want the idea after the race's, %+v", next, raced)
+	}
+	for _, part := range []string{"idea", "examples"} {
+		if string(afterTheAnswer[part]) != string(ahead[part]) {
+			t.Errorf("after the answer the package's %s is %s, want the one written ahead from, %s",
+				part, afterTheAnswer[part], ahead[part])
+		}
 	}
 }

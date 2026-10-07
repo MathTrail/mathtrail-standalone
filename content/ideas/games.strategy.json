@@ -1,0 +1,14 @@
+{
+  "5-6": [
+    "Taking 1 or 2 stones in turn: who takes the last stone with the right play.",
+    "Taking 1, 2 or 3 matches when the one who takes the last match loses.",
+    "Taking from a pile only amounts of a fixed set, such as 1, 3 or 4: a table of winning and losing positions.",
+    "Two piles of coins, any number taken from one pile in turn: equal piles and who wins.",
+    "Breaking a bar into small squares in turn: the number of breaks is fixed, so who makes the last.",
+    "Signs plus and minus put in turn between numbers: whether the result is odd or even is fixed before the game starts.",
+    "A king moved towards a corner of a board in turn: the squares to leave the other player on.",
+    "Coins in a row, one taken from either end in turn: how the first player makes sure of at least half.",
+    "Symmetry: copying the other player's moves, such as coins placed on a round table, to win.",
+    "Writing the digits of a three-digit number in turn: whether the last player can make it divisible by 3."
+  ]
+}

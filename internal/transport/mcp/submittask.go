@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -31,53 +32,84 @@ const (
 	codeTaskKept = "task_kept"
 )
 
-// submitTaskIn is what submit_task takes. The three parts of the task are
-// taken as whatever JSON arrived and read by the checks, in words of their
-// own: the library that holds arguments to a schema quotes back what broke it,
-// and the answer of this tool is read by the model and may be drawn on a card.
+// submitTaskIn is what submit_task takes. The two parts of the task are taken
+// as whatever JSON arrived and read by the checks, in words of their own: the
+// library that holds arguments to a schema quotes back what broke it, and the
+// answer of this tool is read by the model and may be drawn on a card.
+//
+// The brief is retired: the task is held to the brief its request keeps. It
+// stays an argument, one to leave out, because the library refuses an argument
+// its schema does not name before the tool runs, and a chat begun with the
+// guide that asked for the brief still sends it.
 type submitTaskIn struct {
 	RequestID string `json:"request_id" jsonschema:"the id of the request next_task or prepare_task opened"`
-	Brief     any    `json:"brief" jsonschema:"the brief of the package as you received it, as a JSON object: you may change its setting, traps_to_use and constraints, and say why in its rationale"`
+	Brief     any    `json:"brief,omitempty" jsonschema:"leave it out: the brief stays with the request, and one sent is read past"`
 	Task      any    `json:"task" jsonschema:"the task as a JSON object, written as the guide in the package describes"`
 	Solver    string `json:"solver" jsonschema:"the Starlark program that proves the answer, written as the guide in the package describes"`
 	SelfCheck any    `json:"self_check" jsonschema:"your own check of the task as a JSON object, written as the guide in the package describes"`
 }
 
-// submission is the task as the checks read it: its three parts as the JSON
+// submission is the task as the checks read it: its two parts as the JSON
 // they arrived as, and the program.
 func (in *submitTaskIn) submission() (*checks.Submission, error) {
-	parts := make([]json.RawMessage, 0, 3)
-	for _, part := range []any{in.Brief, in.Task, in.SelfCheck} {
-		raw, err := partJSON(part)
-		if err != nil {
-			return nil, fmt.Errorf("mcp: read the task: %w", err)
-		}
-		parts = append(parts, raw)
+	task, err := partJSON(in.Task)
+	if err != nil {
+		return nil, fmt.Errorf("mcp: read the task: %w", err)
 	}
-	return &checks.Submission{Brief: parts[0], Task: parts[1], SelfCheck: parts[2], Solver: in.Solver}, nil
+	selfCheck, err := partJSON(in.SelfCheck)
+	if err != nil {
+		return nil, fmt.Errorf("mcp: read the self-check: %w", err)
+	}
+	return &checks.Submission{Task: task, SelfCheck: selfCheck, Solver: in.Solver}, nil
+}
+
+// handedIn is how large a hand-in was, part by part, in bytes of the JSON the
+// checks read — never a word of it — and whether the brief the format retired
+// came with it.
+type handedIn struct {
+	task, selfCheck, solver, brief int
+	withBrief                      bool
+}
+
+// measured is how large the hand-in in was, its parts as the checks read them.
+func measured(in *submitTaskIn, submission *checks.Submission) handedIn {
+	size := handedIn{
+		task: len(submission.Task), selfCheck: len(submission.SelfCheck), solver: len(in.Solver),
+		withBrief: in.Brief != nil,
+	}
+	if !size.withBrief {
+		return size
+	}
+	if brief, err := partJSON(in.Brief); err == nil {
+		size.brief = len(brief)
+	}
+	return size
 }
 
 // partJSON is a part of the task as the JSON it is. A client may send a part
 // whose schema names no type as a string holding the JSON rather than as the
 // JSON itself, and the model cannot choose otherwise: such a string is read for
 // the JSON it holds, decoded into the same plain values as a part sent as JSON
-// — a number as a float — so that the checks see the same task either way. A
-// string that opens as an object or a list but does not decode is handed on as
-// it is, so that the checks say its JSON is broken rather than that it is no
-// object; any other string stays the string it is, for the checks to refuse.
+// — a number as a float, as the protocol's library reads one before the
+// service sees it — so that the checks see the same task either way. A number
+// so reaches the checks in the shortest form a float is written in: an option
+// the model wrote as the number 2.50 is mended to the text 2.5. A string that
+// opens as an object or a list but does not decode is handed on as it is, so
+// that the checks say its JSON is broken rather than that it is no object; any
+// other string stays the string it is, for the checks to refuse.
 func partJSON(part any) (json.RawMessage, error) {
 	text, isText := part.(string)
 	if !isText {
-		return json.Marshal(part)
+		return encoded(part)
 	}
 	var held any
 	if json.Unmarshal([]byte(text), &held) == nil {
-		return json.Marshal(held)
+		return encoded(held)
 	}
 	if opened := strings.TrimSpace(text); strings.HasPrefix(opened, "{") || strings.HasPrefix(opened, "[") {
 		return json.RawMessage(text), nil
 	}
-	return json.Marshal(text)
+	return encoded(text)
 }
 
 // handedInOut is what submit_task hands back: the task on the child's card, or
@@ -182,6 +214,7 @@ func (s *Service) submitTask(ctx context.Context, account store.Account, in subm
 	if err != nil {
 		return Reply[handedInOut]{}, err
 	}
+	size := measured(&in, submission)
 	examined, err := s.examine(ctx, submission)
 	if err != nil {
 		return Reply[handedInOut]{}, err
@@ -193,12 +226,16 @@ func (s *Service) submitTask(ctx context.Context, account store.Account, in subm
 			zap.Int64("duration_ms", run.Duration.Milliseconds()),
 		)
 	}
-	return afresh(ctx, func() (Reply[handedInOut], error) { return s.review(ctx, account, &in, examined, started) })
+	return afresh(ctx, func() (Reply[handedInOut], error) {
+		return s.review(ctx, account, &in, examined, size, started)
+	})
 }
 
 // review is one read of the profile, the judgement of the examined task
 // against what it holds, and the write of how the review went.
-func (s *Service) review(ctx context.Context, account store.Account, in *submitTaskIn, examined checks.Examined, started time.Time) (Reply[handedInOut], error) {
+func (s *Service) review(ctx context.Context, account store.Account, in *submitTaskIn, examined checks.Examined,
+	size handedIn, started time.Time,
+) (Reply[handedInOut], error) {
 	p, revision, err := s.store.Load(ctx, account)
 	switch {
 	case errors.Is(err, store.ErrNotFound):
@@ -223,7 +260,7 @@ func (s *Service) review(ctx context.Context, account store.Account, in *submitT
 	}
 	done := &reviewed{
 		account: account, profile: p, revision: revision, outcome: &outcome, attempt: request.Attempts + 1,
-		now: now, started: started,
+		now: now, started: started, size: size,
 	}
 
 	switch {
@@ -321,6 +358,8 @@ type reviewed struct {
 	now      time.Time
 	// started is when the call began, for how long the review took.
 	started time.Time
+	// size is how large the hand-in was.
+	size handedIn
 }
 
 // record writes the profile the review changed, over the revision it was read
@@ -334,7 +373,7 @@ func (s *Service) record(ctx context.Context, done *reviewed) error {
 	}
 	event := done.outcome.Event()
 	s.events.write(ctx, done.account, eventTaskSubmitted,
-		submittedFields(done.attempt, &event, time.Since(done.started))...)
+		submittedFields(done.attempt, &event, &done.size, done.outcome.Draft.Task, time.Since(done.started))...)
 	return nil
 }
 
@@ -548,12 +587,18 @@ func reasonsText(outcome *checks.Outcome) string {
 	return strings.Join(lines, "\n")
 }
 
-// submittedFields are what the line about a review keeps of it: codes, counts
-// and costs, and not a word of the task.
-func submittedFields(attempt int, event *checks.Submitted, took time.Duration) []zap.Field {
+// submittedFields are what the line about a review keeps of it: codes, counts,
+// costs and sizes, the fields the hand-in was read past or mended in by their
+// names, and not a word of the task. task is the task as it was read, whose
+// idea is measured as a part of it.
+func submittedFields(attempt int, event *checks.Submitted, size *handedIn, task *checks.Task, took time.Duration) []zap.Field {
 	failed := make([]string, 0, len(event.Failed))
 	for _, code := range event.Failed {
 		failed = append(failed, string(code))
+	}
+	retired := slices.Clone(event.Retired)
+	if size.withBrief {
+		retired = append([]string{"brief"}, retired...)
 	}
 	return []zap.Field{
 		zap.Int("attempt", attempt),
@@ -564,5 +609,24 @@ func submittedFields(attempt int, event *checks.Submitted, took time.Duration) [
 		zap.Int64("duration_ms", took.Milliseconds()),
 		zap.Uint64("solver_steps", event.SolverSteps),
 		zap.Int64("solver_ms", event.SolverTime.Milliseconds()),
+		zap.Int("task_bytes", size.task),
+		zap.Int("self_check_bytes", size.selfCheck),
+		zap.Int("solver_bytes", size.solver),
+		coreIdeaSize(task),
+		zap.Int("total_bytes", size.task+size.selfCheck+size.solver+size.brief),
+		zap.Strings("retired", retired),
+		zap.Strings("mended", event.Mended),
 	}
+}
+
+// coreIdeaSize is the bytes the task's idea takes in the task's JSON, its
+// quotation marks aside, as the parts are measured, or nothing when the task
+// could not be read at all: such a task has no idea to measure, which is not
+// an idea of no length.
+func coreIdeaSize(task *checks.Task) zap.Field {
+	if task == nil {
+		return zap.Skip()
+	}
+	text, _ := encoded(task.CoreIdea) // a string always encodes
+	return zap.Int("core_idea_bytes", len(text)-len(`""`))
 }

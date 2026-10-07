@@ -6,7 +6,6 @@
   "additionalProperties": false,
   "required": [
     "core_idea",
-    "design_thought_process",
     "question",
     "options",
     "correct_answer",
@@ -16,12 +15,7 @@
   ],
   "properties": {
     "core_idea": {
-      "description": "The mathematical core before the plot: the list of the topic's ideas the package's idea number picks from, the idea picked, and why the answer is what it is.",
-      "type": "string",
-      "minLength": 1
-    },
-    "design_thought_process": {
-      "description": "How the plot and the traps were chosen. Shown to nobody; it makes the reasoning explicit before the task is committed to.",
+      "description": "The mathematics the task turns on, before the plot, in one or two sentences in English: the idea the package names and why the answer is what it is.",
       "type": "string",
       "minLength": 1
     },

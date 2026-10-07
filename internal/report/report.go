@@ -89,6 +89,16 @@ type line struct {
 	Attempt whole    `json:"attempt"`
 	Primary string   `json:"primary"`
 	Failed  []string `json:"failed"`
+	// A hand-in: how large it was, part by part, in bytes, which a line written
+	// before the service measured them leaves unsaid; what the format no longer
+	// reads that came all the same; and the fields read as they were meant.
+	TaskBytes      *whole   `json:"task_bytes"`
+	SelfCheckBytes *whole   `json:"self_check_bytes"`
+	SolverBytes    *whole   `json:"solver_bytes"`
+	CoreIdeaBytes  *whole   `json:"core_idea_bytes"`
+	TotalBytes     *whole   `json:"total_bytes"`
+	Retired        []string `json:"retired"`
+	Mended         []string `json:"mended"`
 
 	// An accepted task: the attempts it took, the seconds from the request to
 	// the task, and whether it came with a drawing, which a line written

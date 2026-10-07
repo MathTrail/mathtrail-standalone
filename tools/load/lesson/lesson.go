@@ -31,11 +31,10 @@ type Choice struct {
 	Reason     string
 }
 
-// Request is a request the service opened: its id, and the brief a task
-// written for it hands back as it was received.
+// Request is a request the service opened, by its id. The request keeps the
+// brief its package carries, so a task is handed in without it.
 type Request struct {
-	ID    string
-	Brief json.RawMessage
+	ID string
 }
 
 // Card is a task on a child's card, as submit_task handed it.
@@ -49,9 +48,8 @@ type Card struct {
 // language is the language every task of the load is written in.
 const language = "en"
 
-// interest is what every child of the load is interested in. A brief's
-// setting is made of the child's interests, and a brief with none would be
-// handed back refused.
+// interest is what every child of the load is interested in, which the
+// setting of a brief is made of.
 const interest = "sport"
 
 // Start opens the child's profile: it reads what is there, and saves the
@@ -154,7 +152,6 @@ func await(ctx context.Context, child *session.Child, request Request, should fu
 func HandIn(ctx context.Context, child *session.Child, request Request, task *Task, student Student) (Card, session.Answer) {
 	answer := child.Call(ctx, "submit_task", map[string]any{
 		"request_id": request.ID,
-		"brief":      request.Brief,
 		"task":       task.Body,
 		"solver":     task.Solver,
 		"self_check": task.SelfCheck,
@@ -208,8 +205,8 @@ const packageMark = "\n\nPackage:\n"
 var requestID = regexp.MustCompile(`\breq_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b`)
 
 // ReadRequest reads the request the words of get_package hand the package of,
-// as a model reads them: the id the words before the package name, and the
-// brief of the package after them.
+// as a model reads them: the id the words before the package name. A package
+// with no brief after them is no package a task could be written to.
 func ReadRequest(words string) (Request, error) {
 	lead, pack, found := strings.Cut(words, packageMark)
 	if !found {
@@ -228,5 +225,5 @@ func ReadRequest(words string) (Request, error) {
 	if len(parts.Brief) == 0 || string(parts.Brief) == "null" {
 		return Request{}, errors.New("lesson: the package carries no brief")
 	}
-	return Request{ID: id, Brief: parts.Brief}, nil
+	return Request{ID: id}, nil
 }

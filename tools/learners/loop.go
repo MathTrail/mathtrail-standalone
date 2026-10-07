@@ -36,6 +36,11 @@ type rule struct {
 	// trial marks a rule that starts after the service's trial series, whose
 	// estimator follows the series until then.
 	trial bool
+	// ahead marks the service's path with the next task written ahead, as the
+	// service writes it once a task is on the card: chosen while the child
+	// still works on the task before it, and handed out after that answer,
+	// whatever it was.
+	ahead bool
 	// ceiling marks a rule that knows what no rule of answers can: where the
 	// child truly stands. It shows how far a rule could go, and is no rule to
 	// choose or to compare with as one.
@@ -61,8 +66,9 @@ type world struct {
 	answers int
 }
 
-// session is one child under one rule, and the rule's mastery in the
-// service's place, if it has one of its own.
+// session is one child under one rule, the rule's mastery in the service's
+// place, if it has one of its own, and the next task, once a rule that writes
+// it ahead has chosen it.
 type session struct {
 	w         *world
 	r         *rule
@@ -70,8 +76,15 @@ type session struct {
 	p         *profile.Profile
 	est       estimator
 	mastering *mastering
+	ahead     *chosen
 	now       time.Time
 	result    *childResult
+}
+
+// chosen is a brief, and who chose it.
+type chosen struct {
+	brief profile.Brief
+	mode  profile.TutorMode
 }
 
 // run gives a child every answer of a session under a rule and says what the
@@ -113,7 +126,7 @@ func (s *session) step(k int) error {
 	if s.writes(k) {
 		s.writeLevels()
 	}
-	brief, mode, err := tutor.Next(s.p, s.w.catalog, tutor.Choice{})
+	brief, mode, err := s.next()
 	if err != nil {
 		return err
 	}
@@ -132,6 +145,17 @@ func (s *session) step(k int) error {
 	s.result.checkpoint(s, k)
 	s.advance(k)
 	return nil
+}
+
+// next is the brief of the task the child gets now: the one chosen while the
+// child worked on the task before it, under a rule that writes the next task
+// ahead, or else the one the service's rule chooses now.
+func (s *session) next() (profile.Brief, profile.TutorMode, error) {
+	if ahead := s.ahead; ahead != nil {
+		s.ahead = nil
+		return ahead.brief, ahead.mode, nil
+	}
+	return tutor.Next(s.p, s.w.catalog, tutor.Choice{})
 }
 
 // writeLevels puts the rule's estimate into the profile, where the service's
@@ -161,7 +185,28 @@ func (s *session) take(brief *profile.Brief, mode profile.TutorMode, draws *answ
 }
 
 // answer issues the task and records the child's answer as the service does.
+// A rule that writes the next task ahead chooses it in between, while the
+// child works on this one, as the service does once a task is on the card.
 func (s *session) answer(brief *profile.Brief, mode profile.TutorMode, draws *answerDraws, correct, hint bool) (profile.Recorded, error) {
+	task, choice, err := s.issue(brief, mode, draws, correct)
+	if err != nil {
+		return profile.Recorded{}, err
+	}
+	if s.r.ahead {
+		next, nextMode, err := tutor.Ahead(s.p, s.w.catalog, tutor.Choice{})
+		if err != nil {
+			return profile.Recorded{}, err
+		}
+		s.ahead = &chosen{brief: next, mode: nextMode}
+	}
+	s.now = s.now.Add(answerTime)
+	return s.p.Record(profile.Answered{TaskID: task.ID, Choice: choice, HintUsed: hint, At: s.now}, s.w.sealer, s.w.levels[brief.TargetConcept])
+}
+
+// issue puts the task on the child's card as the service does, and is the
+// task and the option the child chooses: the key when the answer is to be
+// right, and else the wrong option the draws name.
+func (s *session) issue(brief *profile.Brief, mode profile.TutorMode, draws *answerDraws, correct bool) (*profile.CurrentTask, string, error) {
 	s.p.Ask(brief, mode, "en", s.now)
 	letters := solver.Letters()
 	key := letters[draws.key]
@@ -177,14 +222,13 @@ func (s *session) answer(brief *profile.Brief, mode profile.TutorMode, draws *an
 	}
 	task, err := s.p.Issue(written, secret, s.w.sealer, s.now)
 	if err != nil {
-		return profile.Recorded{}, err
+		return nil, "", err
 	}
 	choice := key
 	if !correct {
 		choice = wrong[draws.wrong]
 	}
-	s.now = s.now.Add(answerTime)
-	return s.p.Record(profile.Answered{TaskID: task.ID, Choice: choice, HintUsed: hint, At: s.now}, s.w.sealer, s.w.levels[brief.TargetConcept])
+	return task, choice, nil
 }
 
 // learn takes the answer into the rule's estimate. A rule that starts after

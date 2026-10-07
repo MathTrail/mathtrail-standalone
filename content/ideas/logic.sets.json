@@ -1,0 +1,14 @@
+{
+  "5-6": [
+    "Two clubs with some pupils in both: how many are in neither.",
+    "Every child likes one fruit or both: how many like both.",
+    "Two places visited, each child at least one: how many visited both.",
+    "The smallest overlap of two groups within a fixed total.",
+    "The largest number who could belong to neither group.",
+    "Two languages learnt, each pupil at least one: how many learn only one.",
+    "Three groups with given overlaps: how many belong to all three.",
+    "The largest possible overlap of two groups.",
+    "Those in exactly one of two groups, from the totals.",
+    "Answers to two yes-or-no questions counted in a table: the missing count."
+  ]
+}

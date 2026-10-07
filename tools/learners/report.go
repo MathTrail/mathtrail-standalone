@@ -172,12 +172,16 @@ type comparison struct {
 	result                       summary
 }
 
-// primaryComparisons are the comparisons a run makes of its rules, in four
-// groups: the service against every other rule of the run but the ceiling on
-// children who stay put (1) and on children who learn (2), the service against
-// no trial series on children placed far off (3), and the floor under the step
-// against the service on children who jump and on children who stay put (4),
-// the last two when the run has those rules. A run without the service, a
+// primaryComparisons are the comparisons a run makes of its rules, in five
+// groups: the service against every other rule of the run but the ceiling —
+// its own path with the next task written ahead among them — on children who
+// stay put (1) and on children who learn (2), the service against no trial
+// series on children placed far off (3), the floor under the step against the
+// service on children who jump and on children who stay put (4), and the
+// service against its path written ahead on how often the overall rank
+// changes, early and late in a run, for children who stay put and for those
+// who learn at half speed, and on the lag and the corridor of the latter (5),
+// the last three when the run has those rules. A run without the service, a
 // cell or a metric a comparison names that the run does not have, or a
 // comparison the run gives no values for, is an error, not a comparison
 // quietly left out.
@@ -190,7 +194,7 @@ func primaryComparisons(all []cell, results [][]vector, ms []metric) ([]comparis
 			ruleList = append(ruleList, all[c].rule)
 		}
 	}
-	if !slices.ContainsFunc(ruleList, func(r *rule) bool { return r.service }) {
+	if !slices.ContainsFunc(ruleList, func(r *rule) bool { return sameRule(r, serviceRule()) }) {
 		return nil, errors.New("learners: the primary comparisons set the rules against the service's, which the run lacks")
 	}
 	for i, name := range metricNames(ms) {
@@ -201,7 +205,7 @@ func primaryComparisons(all []cell, results [][]vector, ms []metric) ([]comparis
 		return slices.ContainsFunc(ruleList, func(r *rule) bool { return r.name == name })
 	}
 	for _, r := range ruleList {
-		if r.service || r.ceiling {
+		if sameRule(r, serviceRule()) || r.ceiling {
 			continue
 		}
 		cp.add("1", service(staticChildren), r.name+"/"+string(r.shape)+"/"+string(staticChildren), "r1_rms_200", "r3_inside", "r4_false")
@@ -213,6 +217,11 @@ func primaryComparisons(all []cell, results [][]vector, ms []metric) ([]comparis
 	if has("floor_0.05") {
 		cp.add("4", "floor_0.05/both/"+string(jumping), service(jumping), "r6_jump_answers")
 		cp.add("4", "floor_0.05/both/"+string(staticChildren), service(staticChildren), "r1_rms_200")
+	}
+	if ahead := aheadRule(); has(ahead.name) {
+		cell := func(g generator) string { return ahead.name + "/" + string(ahead.shape) + "/" + string(g) }
+		cp.add("5", service(staticChildren), cell(staticChildren), "r8_rank_6_20", "r8_rank_150_200")
+		cp.add("5", service(learningHalf), cell(learningHalf), "r6_lag", "r3_inside", "r8_rank_6_20", "r8_rank_150_200")
 	}
 	if len(cp.missing) > 0 {
 		return nil, fmt.Errorf("learners: the primary comparisons name what the run lacks: %s", strings.Join(cp.missing, "; "))

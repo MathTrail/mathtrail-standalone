@@ -114,10 +114,12 @@ func (s *Service) noPackage(p *profile.Profile, now time.Time) Reply[any] {
 
 // packageFor is what the model is handed to write the request's task from: the
 // brief the request keeps, the chances around it for this child now, the child
-// as the task is to be pitched at them, and how far through the topic's ideas
-// the child's tasks of it have come.
+// as the task is to be pitched at them, and how far the child has come — the
+// answers the reference tasks turn with and the tasks of the topic its idea
+// moves with, the task on the card among them when the request is for the
+// task after it.
 func (s *Service) packageFor(p *profile.Profile, request *profile.OpenRequest) ([]byte, error) {
-	topic := p.Topics[request.Brief.TargetConcept]
+	answers, topicTasks := tutor.Behind(p, request.Brief.TargetConcept, request.Ahead)
 	pack, err := s.content.Package(&content.Request{
 		Language:   request.Language,
 		Brief:      request.Brief,
@@ -125,8 +127,8 @@ func (s *Service) packageFor(p *profile.Profile, request *profile.OpenRequest) (
 		Grade:      p.Student.Grade,
 		Interests:  p.Student.Interests,
 		Notes:      p.Student.Notes,
-		Answers:    p.Ratings.Answers,
-		TopicTasks: topic.Answers + topic.Skipped,
+		Answers:    answers,
+		TopicTasks: topicTasks,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("mcp: build the package: %w", err)

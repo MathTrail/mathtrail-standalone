@@ -1,0 +1,38 @@
+{
+  "1-2": [
+    "Pairs from two groups, such as one hat and one scarf, every hat with every scarf.",
+    "Handshakes or phone calls among a few friends, each pair once.",
+    "Two-digit numbers written with given digits, with or without a digit used twice.",
+    "Lines of three or four children, with one of them kept in one place.",
+    "Routes through a middle stop: the roads of each part of the way multiplied.",
+    "Paying a small amount with coins of two or three values, the order of the coins not mattering.",
+    "Two-digit numbers whose digits add up to a given number.",
+    "Towers of three blocks of different colours, with one colour kept off the bottom.",
+    "Cones of two scoops from a few flavours, when the order of the scoops matters and when it does not.",
+    "Flags of two or three stripes, neighbouring stripes in different colours."
+  ],
+  "3-4": [
+    "Games or cards among a group: every pair once, or every pair twice.",
+    "Three-digit numbers from given digits, all different or with repeats allowed.",
+    "Choosing two or three things from a few, when the order does not matter.",
+    "Paths on a grid that only go right and up.",
+    "Ways to pay an amount with coins of three values.",
+    "How many numbers in a range contain a given digit, or how many times a digit is written.",
+    "A team with a captain: the members chosen, and then one of them to lead.",
+    "Lines with a rule: someone at an end, or two people never side by side.",
+    "Codes of letters and digits, or of digits written in increasing order.",
+    "Working back: the number of players from the number of games they played."
+  ],
+  "5-6": [
+    "Menus and outfits with one combination that is not allowed.",
+    "Dominoes and other pairs of numbers, a double counted once.",
+    "Two dice: the ways the pair can show a given total.",
+    "Round trips: there and back, with and without the same road twice.",
+    "Fences and flags of several parts, neighbouring parts in different colours and one end fixed.",
+    "Robot paths across a board, some squares blocked.",
+    "Numbers with conditions on their digits: all different, odd, or a given digit sum.",
+    "Seats in a row with two rules at once, such as sitting together and not at an end.",
+    "Teams under conditions: someone must be in, and two refuse to be together.",
+    "Rectangles or squares of every size in a small grid of cells."
+  ]
+}

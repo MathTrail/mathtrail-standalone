@@ -1,6 +1,7 @@
 package mcpserver
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -230,11 +231,22 @@ func locationOf(location *store.Location) *locationOut {
 // wrote it, the joiners of a script or an emoji among it; a quotation mark or a
 // backslash inside is escaped.
 func quoted(text string) string {
-	var out strings.Builder
+	out, _ := encoded(text) // a string always encodes
+	return string(out)
+}
+
+// encoded is a value as JSON with its characters as they are. The escapes
+// that keep <, > and & out of a web page would show a code where the parent
+// wrote a sign, and weigh six bytes for one in the measure of a hand-in;
+// nothing here is put in a page.
+func encoded(value any) (json.RawMessage, error) {
+	var out bytes.Buffer
 	encoder := json.NewEncoder(&out)
 	encoder.SetEscapeHTML(false)
-	_ = encoder.Encode(text) // a string always encodes
-	return strings.TrimSuffix(out.String(), "\n")
+	if err := encoder.Encode(value); err != nil {
+		return nil, err
+	}
+	return bytes.TrimSuffix(out.Bytes(), []byte("\n")), nil
 }
 
 // quotedEach is every text of a list the parent wrote, each quoted.

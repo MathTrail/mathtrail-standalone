@@ -358,7 +358,7 @@ func TestADocumentsAddressOnTheParentsComputerMatchesOnAnyPort(t *testing.T) {
 		if got := document.Redirects(tc.uri); got != tc.redirects {
 			t.Errorf("for a client of its own document, Redirects(%q) = %v, want %v", tc.uri, got, tc.redirects)
 		}
-		if got := registration.Redirects(tc.uri); got {
+		if registration.Redirects(tc.uri) {
 			t.Errorf("for a client registered here, Redirects(%q) = true, want false: it is held to the port it registered", tc.uri)
 		}
 	}

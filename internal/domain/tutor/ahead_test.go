@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/leanovate/gopter"
 	"github.com/leanovate/gopter/gen"
@@ -154,4 +155,130 @@ func dressedAhead(p *profile.Profile, awaited bool) string {
 		answers++
 	}
 	return interests[answers%len(interests)]
+}
+
+// The task on the card counts as behind the child only for a task written
+// ahead of its answer: once among the answers, and once among the tasks of its
+// own topic, never of another's.
+func TestATaskWrittenAheadCountsTheTaskOnTheCardBehindTheChild(t *testing.T) {
+	t.Parallel()
+
+	awaited := func(topic string) *profile.CurrentTask { return &profile.CurrentTask{ID: "task_on_card", Topic: topic} }
+	for _, tc := range []struct {
+		name                string
+		card                *profile.CurrentTask
+		ahead               bool
+		answers, topicTasks int
+	}{
+		{"written ahead of the answer to a task of the topic", awaited("counting.gaps"), true, 8, 5},
+		{"written ahead of the answer to a task of another topic", awaited("logic.ordering"), true, 8, 4},
+		{"written ahead once the task on the card has its answer", &profile.CurrentTask{
+			ID: "task_on_card", Topic: "counting.gaps", Answered: &profile.Given{Choice: "B"},
+		}, true, 7, 4},
+		{"written ahead with no task on the card", nil, true, 7, 4},
+		{"asked for rather than written ahead", awaited("counting.gaps"), false, 7, 4},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			p := settled(t)
+			p.Ratings.Answers = 7
+			p.Topics["counting.gaps"] = profile.Topic{Answers: 3, Skipped: 1, Traps: map[string]int{}}
+			p.CurrentTask = tc.card
+
+			answers, topicTasks := tutor.Behind(p, "counting.gaps", tc.ahead)
+			if answers != tc.answers || topicTasks != tc.topicTasks {
+				t.Errorf("Behind() = %d answers and %d tasks of the topic, want %d and %d",
+					answers, topicTasks, tc.answers, tc.topicTasks)
+			}
+		})
+	}
+}
+
+// What a task written ahead counts behind the child is what the next task
+// counts once the child has answered the task on the card, so that its
+// package names the same idea and shows the same reference tasks before that
+// answer as after it. A skip leaves the tasks of every topic where they were
+// too, since a task left behind is counted among them.
+func TestATaskWrittenAheadCountsTheSameBeforeTheAnswerToTheCardAsAfter(t *testing.T) {
+	t.Parallel()
+
+	c := stepped()
+	sealer, err := taskSeal()
+	if err != nil {
+		t.Fatalf("build the seal: %v", err)
+	}
+	properties := gopter.NewProperties(nil)
+	properties.Property("the answer to the task on the card moves no count", prop.ForAll(
+		func(s *seed, choice string) bool {
+			p := s.build()
+			task := onTheCardFromTheRule(t, p, c, sealer)
+			before := countedAhead(p, c)
+			answer := profile.Answered{TaskID: task.ID, Choice: choice, At: day.Add(2 * time.Minute)}
+			if _, err := p.Record(answer, sealer, c.LevelsOf(task.Topic)); err != nil {
+				t.Errorf("Record() error = %v, want nil", err)
+				return false
+			}
+			return reflect.DeepEqual(countedAhead(p, c), before)
+		},
+		genSeed(),
+		gen.OneConstOf("B", "C"),
+	))
+	properties.Property("a skip of it moves no topic's tasks", prop.ForAll(
+		func(s *seed) bool {
+			p := s.build()
+			onTheCardFromTheRule(t, p, c, sealer)
+			before := countedAhead(p, c)
+			if _, skipped := p.Skip(day.Add(2 * time.Minute)); !skipped {
+				return false
+			}
+			after := countedAhead(p, c)
+			for topic, counted := range before {
+				if after[topic].topicTasks != counted.topicTasks {
+					return false
+				}
+			}
+			return true
+		},
+		genSeed(),
+	))
+	properties.TestingRun(t)
+}
+
+// behind is what Behind counts.
+type behind struct{ answers, topicTasks int }
+
+// countedAhead is what a task written ahead counts behind the child, for each
+// topic of the catalog.
+func countedAhead(p *profile.Profile, c tutor.Catalog) map[string]behind {
+	counted := make(map[string]behind, len(c.TopicIDs()))
+	for _, topic := range c.TopicIDs() {
+		answers, topicTasks := tutor.Behind(p, topic, true)
+		counted[topic] = behind{answers, topicTasks}
+	}
+	return counted
+}
+
+// onTheCardFromTheRule puts on the card the task the rule sets next, sealed as
+// the service seals a task, for the child to answer: C is right and B a slip.
+func onTheCardFromTheRule(t *testing.T, p *profile.Profile, c tutor.Catalog, sealer profile.Sealer) *profile.CurrentTask {
+	t.Helper()
+
+	next, mode, err := tutor.Next(p, c, tutor.Choice{})
+	if err != nil {
+		t.Fatalf("Next() error = %v, want nil", err)
+	}
+	p.Ask(&next, mode, "en", day)
+	task, err := p.Issue(&profile.Written{
+		Wording: "a task", Options: map[string]string{"A": "1", "B": "2", "C": "3", "D": "4", "E": "5"},
+		Hint: "hint", Fingerprint: "sketch", InstructionsVersion: "v",
+	}, profile.TaskSecret{
+		Answer:      "C",
+		Distractors: map[string]profile.Distractor{"B": {Trap: next.TrapsToUse[0], Text: "a slip"}},
+		Solution:    "the solution",
+	}, sealer, day)
+	if err != nil {
+		t.Fatalf("Issue() error = %v, want nil", err)
+	}
+	return task
 }

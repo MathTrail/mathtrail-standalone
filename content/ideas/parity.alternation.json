@@ -1,0 +1,38 @@
+{
+  "1-2": [
+    "Even and odd numbers: which number of a list is even.",
+    "Beads in a repeating pattern of two colours: the colour of a given bead.",
+    "Children in pairs: how many are left without a pair.",
+    "A lamp switched on and off again and again: on or off after a given press.",
+    "Odd house numbers along a street: the number of a given house.",
+    "Even numbers in a range: how many there are.",
+    "A circle of boys and girls standing in turn: how many of each.",
+    "A frog jumping two stones at a time: which stones it can land on.",
+    "Sweets shared equally between two friends and between some other number of friends.",
+    "Doors that open and shut in turn: which door is open at the end."
+  ],
+  "3-4": [
+    "The sum of two numbers is odd: what the other number can be.",
+    "How many odd numbers there are in a range.",
+    "A repeating pattern of three: the colour of a far-off bead.",
+    "A product of two numbers is odd: what that says about both of them.",
+    "A traffic light's repeating sequence: the colour at a given step.",
+    "Several items at an odd price: which totals are possible.",
+    "The sum of the odd numbers against the sum of the even numbers in a range.",
+    "A circle of children: whether boys and girls can take turns all the way round.",
+    "Coins turned over two at a time: the fewest moves to show all heads.",
+    "A sum of many odd numbers: even or odd by how many there are."
+  ],
+  "5-6": [
+    "Steps that add or multiply: which numbers can be reached.",
+    "A knight on a chessboard: the colour of its square after some moves.",
+    "A sum of many numbers is odd: how many of them can be even.",
+    "Adding 1 to two numbers at a time: the fewest steps to make them all equal.",
+    "Dominoes on a board with two corners cut off: how many fit.",
+    "A walk on a grid of squares: whether it can end where it began after an odd number of steps.",
+    "Frogs jumping over one another on a line: which places are possible.",
+    "Switching three lamps in a row at a time: whether all of them can be on.",
+    "Bugs crawling to neighbouring squares: how many squares can be left empty.",
+    "Handshakes at a party: how many people shook an odd number of hands."
+  ]
+}

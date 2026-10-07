@@ -167,7 +167,7 @@ func TestTheToolsOfTheLessonAreListedAsTheyAreMeant(t *testing.T) {
 		{name: "edit_profile", destructive: true, idempotent: true, widgetOnly: true},
 		{name: "get_progress", readOnly: true, idempotent: true, drawsCard: true},
 		{name: "read_progress", readOnly: true, idempotent: true, widgetOnly: true},
-		{name: "next_task", idempotent: true, drawsCard: true},
+		{name: "next_task", drawsCard: true},
 		{name: "get_package", readOnly: true, idempotent: true, wordsOnly: true},
 		{name: "prepare_task", idempotent: true, wordsOnly: true},
 		{name: "submit_task"},

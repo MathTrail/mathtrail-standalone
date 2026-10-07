@@ -25,11 +25,9 @@ const PackageBudget = 64 * 1024
 // examplesPerPackage is how many reference tasks a package shows.
 const examplesPerPackage = 3
 
-// ideasPerList is how many ideas of a topic the model lists before it writes a
-// task of it, and so how many tasks of one topic the number moves through
-// before it comes back to the same place on the list. The list is the model's
-// own, written afresh in every chat, so the number moves the model along it
-// rather than promising which idea comes.
+// ideasPerList is how many ideas of a topic its list holds at each level the
+// topic is taught at, and so how many tasks of the topic go by before an idea
+// comes round again.
 const ideasPerList = 10
 
 // guideName is the page every package carries: how a task is written, handed
@@ -112,25 +110,27 @@ type packageContents struct {
 	Guide        string           `json:"guide"`
 }
 
-// packageIdea is which idea of the topic the task is built on: the model lists
-// Of ideas of the topic at the brief's level, and builds the task on the one at
-// Number. Round is which pass of the list the number is on for this child, the
-// first being 1: from the second, the task is a variant of its idea, so that an
-// idea that comes round again is not the same task again.
+// packageIdea is the idea of the topic the task is built on: Text says it, and
+// Number is its place on the topic's list at the brief's level. Round is which
+// pass of the list the number is on for this child, the first being 1: from
+// the second, the task is a variant of its idea, so that an idea that comes
+// round again is not the same task again.
 type packageIdea struct {
-	Number int `json:"number"`
-	Of     int `json:"of"`
-	Round  int `json:"round"`
+	Number int    `json:"number"`
+	Round  int    `json:"round"`
+	Text   string `json:"text"`
 }
 
-// ideaOf is the idea of a topic the next task is built on, after the tasks of
-// the topic the child has left behind: the next on the list each time, and
-// round again after the last. A model in a new chat sees none of the tasks
-// written before, and left to itself reaches for the same favourite idea every
-// time; a number that moves with every task is what moves it along the list.
-func ideaOf(tasks int) packageIdea {
+// ideaOf is the idea on a topic's list the next task is built on, after the
+// tasks of the topic the child has left behind: the next on the list each
+// time, and round again after the last. A model in a new chat sees none of the
+// tasks written before, and left to itself reaches for the same favourite idea
+// every time; an idea named for it, a step further with every task, is what
+// moves it along the topic.
+func ideaOf(list []string, tasks int) packageIdea {
 	tasks = max(tasks, 0) // a count read from a file is not trusted to be positive
-	return packageIdea{Number: tasks%ideasPerList + 1, Of: ideasPerList, Round: tasks/ideasPerList + 1}
+	place := tasks % len(list)
+	return packageIdea{Number: place + 1, Round: tasks/len(list) + 1, Text: list[place]}
 }
 
 // packageCorridor is the point of the ladder the rule recommends for the child
@@ -236,7 +236,7 @@ func (c *Content) contentsFor(request *Request) (packageContents, error) {
 	contents := packageContents{
 		Language:     request.Language,
 		Brief:        request.Brief,
-		Idea:         ideaOf(request.TopicTasks),
+		Idea:         ideaOf(c.ideas[topic.ID][level], request.TopicTasks),
 		Corridor:     corridorOf(&request.Corridor),
 		Topic:        packageTopic{ID: topic.ID, Name: topic.Name, Description: topic.Description},
 		Traps:        packageTraps(c.traps),

@@ -35,7 +35,6 @@ const (
 	raceAnswer   = "C"
 	raceSolution = "Ben is before Kim, and Kim is before Ann. So Ben is first."
 	raceIdea     = "Order three runners from two comparisons."
-	racePlan     = "Plot: a race. Traps: a reversed comparison, stopping early."
 )
 
 // raceExplained is what the child who chose each wrong option is told, and the
@@ -55,14 +54,13 @@ var raceChecked = map[string]string{
 // raceTask is the race as the model hands it in.
 func raceTask() map[string]any {
 	return map[string]any{
-		"core_idea":              raceIdea,
-		"design_thought_process": racePlan,
-		"question":               raceQuestion,
-		"options":                raceOptions,
-		"correct_answer":         raceAnswer,
-		"hint":                   raceHint,
-		"solution":               raceSolution,
-		"distractors":            raceExplained,
+		"core_idea":      raceIdea,
+		"question":       raceQuestion,
+		"options":        raceOptions,
+		"correct_answer": raceAnswer,
+		"hint":           raceHint,
+		"solution":       raceSolution,
+		"distractors":    raceExplained,
 	}
 }
 
@@ -77,7 +75,7 @@ func raceSelfCheck() map[string]any {
 // The options are a word or two each, too short to look for inside other
 // text; a line must not carry one as a value of its own.
 func raceWords() []string {
-	words := []string{raceQuestion, raceHint, raceSolution, raceIdea, racePlan}
+	words := []string{raceQuestion, raceHint, raceSolution, raceIdea}
 	for line := range strings.Lines(raceSolver) {
 		if said := strings.TrimSpace(line); strings.ContainsAny(said, `"[`) {
 			words = append(words, said)

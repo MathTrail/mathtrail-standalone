@@ -24,10 +24,11 @@ type Content interface {
 	ReferenceQuestions(level rating.GradeLevel) []string
 }
 
-// Submission is a task as it is handed in: its three parts as the JSON they
+// Submission is a task as it is handed in: its two parts as the JSON they
 // arrived as, and the source of the program that is to prove its answer.
+// Where the task stands is not among them: the request it is handed in for
+// keeps that.
 type Submission struct {
-	Brief     json.RawMessage
 	Task      json.RawMessage
 	SelfCheck json.RawMessage
 	Solver    string
@@ -39,8 +40,8 @@ type Submission struct {
 // asked for, whoever it is for.
 type Against struct {
 	// Asked is the brief the open request recorded, and a task is not judged
-	// without it: nothing else shows that it is the task that was asked for,
-	// and its level is what the wording is read against.
+	// without it: its level is what the wording is read against, and the
+	// questions of its reference tasks are what the task must not copy.
 	Asked *profile.Brief
 	// Language is what the task is written in, as the request recorded it.
 	Language string
@@ -51,10 +52,9 @@ type Against struct {
 // Examined is a submission read and its solver run: the half of a review that
 // takes time and needs nothing from the profile.
 type Examined struct {
-	// finished says Examine got to the end: any other value of this type has
-	// nothing in it to judge.
-	finished bool
-	draft    Draft
+	// draft is the submission as it was read, and nil in any value Examine
+	// did not finish: such a value has nothing in it to judge.
+	draft *Draft
 	// read is what reading the submission refused.
 	read []Problem
 	// answer is what the runs of the solver came to, and nil when there were
@@ -119,8 +119,8 @@ func NewReviewer(content Content, runner solver.Runner, limits DrawingLimits) Re
 }
 
 func (r *reviewer) Examine(ctx context.Context, submission *Submission) (Examined, error) {
-	draft, read := Decode(submission.Brief, submission.Task, submission.SelfCheck)
-	examined := Examined{finished: true, draft: draft, read: read}
+	draft, read := Decode(submission.Task, submission.SelfCheck)
+	examined := Examined{draft: &draft, read: read}
 
 	options, complete := optionsOf(draft.Task)
 	if !complete {
@@ -140,15 +140,15 @@ func (r *reviewer) Examine(ctx context.Context, submission *Submission) (Examine
 // about a fault that is not there would send it looking in the wrong place.
 func (r *reviewer) Judge(examined Examined, against Against) (Outcome, error) {
 	switch {
-	case !examined.finished:
+	case examined.draft == nil:
 		return Outcome{}, errors.New("checks: judge: the submission was not examined")
 	case against.Asked == nil:
 		return Outcome{}, errors.New("checks: judge: no brief of an open request to hold the task against")
 	}
-	draft, task := examined.draft, examined.draft.Task
+	draft, task := *examined.draft, examined.draft.Task
 
 	var found findings
-	found.add(slices.Concat(examined.read, Structure(draft, against.Asked, r.content)), "")
+	found.add(slices.Concat(examined.read, Structure(draft, r.content)), "")
 	found.add(r.language(task, against))
 	found.add(r.explanations(draft, against))
 	found.add(r.drawingFormat(task), "")

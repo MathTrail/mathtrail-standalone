@@ -18,6 +18,13 @@ import (
 func fixtureRegistries(t *testing.T) Registries {
 	t.Helper()
 	serve := func(dir, prefix string) http.HandlerFunc {
+		// The records are read through a root, so that no path a request
+		// holds can reach a file outside them.
+		records, err := os.OpenRoot(filepath.Join("testdata", dir))
+		if err != nil {
+			t.Fatalf("open the %s records: %v", dir, err)
+		}
+		t.Cleanup(func() { _ = records.Close() })
 		return func(w http.ResponseWriter, r *http.Request) {
 			doi := strings.TrimPrefix(r.URL.Path, prefix)
 			if strings.HasPrefix(doi, "10.5555/fail") {
@@ -25,7 +32,7 @@ func fixtureRegistries(t *testing.T) Registries {
 				return
 			}
 			name := strings.ReplaceAll(strings.ToLower(doi), "/", "_") + ".json"
-			body, err := os.ReadFile(filepath.Join("testdata", dir, name))
+			body, err := records.ReadFile(name)
 			if err != nil {
 				http.NotFound(w, r)
 				return

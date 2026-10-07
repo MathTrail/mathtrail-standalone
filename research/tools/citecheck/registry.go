@@ -139,26 +139,7 @@ func (r Registries) datacite(ctx context.Context, doi string) (Work, error) {
 		return Work{}, fmt.Errorf("datacite: %w", err)
 	}
 	var answer struct {
-		Data struct {
-			Attributes struct {
-				DOI    string
-				Titles []struct {
-					Title     string
-					TitleType string `json:"titleType"`
-				}
-				Creators []struct {
-					Name       string
-					GivenName  string `json:"givenName"`
-					FamilyName string `json:"familyName"`
-				}
-				PublicationYear json.RawMessage `json:"publicationYear"`
-				Publisher       string
-				Container       struct{ Title string }
-				Types           struct {
-					ResourceTypeGeneral string `json:"resourceTypeGeneral"`
-				}
-			}
-		}
+		Data struct{ Attributes dataCiteAttributes }
 	}
 	if err := json.Unmarshal(body, &answer); err != nil {
 		return Work{}, fmt.Errorf("datacite: read the record of %s: %w", doi, err)
@@ -185,6 +166,27 @@ func (r Registries) datacite(ctx context.Context, doi string) (Work, error) {
 		work.Venues = []string{clean(a.Container.Title)}
 	}
 	return work, nil
+}
+
+// dataCiteAttributes is what a DataCite record says of a work, as far as a
+// Work is read from it.
+type dataCiteAttributes struct {
+	DOI    string
+	Titles []struct {
+		Title     string
+		TitleType string `json:"titleType"`
+	}
+	Creators []struct {
+		Name       string
+		GivenName  string `json:"givenName"`
+		FamilyName string `json:"familyName"`
+	}
+	PublicationYear json.RawMessage `json:"publicationYear"`
+	Publisher       string
+	Container       struct{ Title string }
+	Types           struct {
+		ResourceTypeGeneral string `json:"resourceTypeGeneral"`
+	}
 }
 
 // dataCitePerson splits a creator the way Crossref would: DataCite gives the

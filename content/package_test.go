@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"os"
 	"reflect"
 	"regexp"
 	"slices"
@@ -52,9 +53,9 @@ type shape struct {
 	Language string        `json:"language"`
 	Brief    profile.Brief `json:"brief"`
 	Idea     struct {
-		Number int `json:"number"`
-		Of     int `json:"of"`
-		Round  int `json:"round"`
+		Number int    `json:"number"`
+		Round  int    `json:"round"`
+		Text   string `json:"text"`
 	} `json:"idea"`
 	Corridor struct {
 		RecommendedGradeLevel rating.GradeLevel `json:"recommended_grade_level"`
@@ -223,33 +224,35 @@ func TestAPackageCarriesTheChildAndWhatTheTaskIsHeldTo(t *testing.T) {
 }
 
 // A package names the idea of the topic its task is built on: the next on the
-// model's list after each task of the topic the child has left behind, and
-// round the list again after its last, a round more each time.
+// topic's list at the brief's level after each task of the topic the child has
+// left behind, and round the list again after its last, a round more each
+// time.
 func TestAPackageNamesTheIdeaItsTaskIsBuiltOn(t *testing.T) {
 	t.Parallel()
 
 	shipped := loaded(t)
+	listed := ideasOf(t, "counting.gaps")[rating.Grades34]
 	for _, tc := range []struct {
-		name              string
-		tasks             int
-		number, of, round int
+		name          string
+		tasks         int
+		number, round int
 	}{
-		{"the first task of a topic", 0, 1, 10, 1},
-		{"the next task of it", 1, 2, 10, 1},
-		{"the last idea of the list", 9, 10, 10, 1},
-		{"the list come round", 10, 1, 10, 2},
-		{"a third time round", 23, 4, 10, 3},
-		{"a count no profile can hold", -3, 1, 10, 1},
+		{"the first task of a topic", 0, 1, 1},
+		{"the next task of it", 1, 2, 1},
+		{"the last idea of the list", 9, 10, 1},
+		{"the list come round", 10, 1, 2},
+		{"a third time round", 23, 4, 3},
+		{"a count no profile can hold", -3, 1, 1},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			asked := request("counting.gaps", rating.Grades12, 3, 0)
+			asked := request("counting.gaps", rating.Grades34, 3, 0)
 			asked.TopicTasks = tc.tasks
 			_, got := packageFor(t, shipped, asked)
-			if got.Idea.Number != tc.number || got.Idea.Of != tc.of || got.Idea.Round != tc.round {
-				t.Errorf("idea after %d tasks = %+v, want number %d of %d, round %d",
-					tc.tasks, got.Idea, tc.number, tc.of, tc.round)
+			if got.Idea.Number != tc.number || got.Idea.Round != tc.round || got.Idea.Text != listed[tc.number-1] {
+				t.Errorf("idea after %d tasks = %+v, want number %d, round %d, the list's %q",
+					tc.tasks, got.Idea, tc.number, tc.round, listed[tc.number-1])
 			}
 		})
 	}
@@ -686,8 +689,10 @@ func TestTheCorridorIsStatedToTwoPlaces(t *testing.T) {
 }
 
 // The example the guide works through is a task the checks accept, run in the
-// sandbox the service runs solvers in: an example that failed them would
-// teach the model to fail them too.
+// sandbox the service runs solvers in, as written: an example that failed them
+// would teach the model to fail them too, and one the service had to mend, or
+// one carrying what the format no longer reads, would teach it to write what
+// is only put up with.
 func TestTheGuidesExampleIsATaskTheChecksAccept(t *testing.T) {
 	t.Parallel()
 
@@ -699,7 +704,6 @@ func TestTheGuidesExampleIsATaskTheChecksAccept(t *testing.T) {
 	}
 	var example struct {
 		Language  string          `json:"language"`
-		Brief     json.RawMessage `json:"brief"`
 		Task      json.RawMessage `json:"task"`
 		Solver    string          `json:"solver"`
 		SelfCheck json.RawMessage `json:"self_check"`
@@ -707,33 +711,43 @@ func TestTheGuidesExampleIsATaskTheChecksAccept(t *testing.T) {
 	if err := json.Unmarshal([]byte(block[1]), &example); err != nil {
 		t.Fatalf("read the guide's example: %v", err)
 	}
-	var brief profile.Brief
-	if err := json.Unmarshal(example.Brief, &brief); err != nil {
-		t.Fatalf("read the example's brief: %v", err)
-	}
 
 	reviewer := checks.NewReviewer(shipped, serviceSandbox(t), checks.DefaultDrawingLimits())
 	examined, err := reviewer.Examine(t.Context(), &checks.Submission{
-		Brief: example.Brief, Task: example.Task, SelfCheck: example.SelfCheck, Solver: example.Solver,
+		Task: example.Task, SelfCheck: example.SelfCheck, Solver: example.Solver,
 	})
 	if err != nil {
 		t.Fatalf("Examine() error = %v", err)
 	}
-	outcome, err := reviewer.Judge(examined, checks.Against{Asked: &brief, Language: example.Language})
+	outcome, err := reviewer.Judge(examined, checks.Against{Asked: guideExampleAsked(), Language: example.Language})
 	if err != nil {
 		t.Fatalf("Judge() error = %v", err)
 	}
 	if !outcome.Accepted() {
 		t.Errorf("the guide's example is refused: %v, unchecked %v", outcome.Problems, outcome.Unchecked)
 	}
+	if len(outcome.Draft.Mended) != 0 || len(outcome.Draft.Retired) != 0 {
+		t.Errorf("the guide's example is mended %v and carries retired %v, want it read as written",
+			outcome.Draft.Mended, outcome.Draft.Retired)
+	}
 }
 
-// The guide's example shows the model the list it writes before it chooses: as
-// many ideas as a package asks for, numbered from 1, and the task built on the
-// one at the number a child's first task of a topic is given. A list of another
-// length, or a task on another idea, would teach the model the very thing it
-// is told not to do.
-func TestTheGuidesExampleListsTheIdeasAPackageAsksFor(t *testing.T) {
+// guideExampleAsked is the brief the guide's example is written to: the first
+// task of ordering a child of grades 1–2 meets, at difficulty 2.
+func guideExampleAsked() *profile.Brief {
+	return &profile.Brief{
+		PedagogicalGoal: profile.GoalNewTopic, TargetConcept: "logic.ordering", GradeLevel: rating.Grades12,
+		Difficulty: 2, Setting: "sport", TrapsToUse: []string{"off_by_one", "reversed_relation"},
+		ExcludedSkills: []string{}, Constraints: []string{}, Rationale: "A topic the child has not met yet.",
+	}
+}
+
+// The guide introduces its example by the idea a package names for its brief,
+// the first on the topic's list as a child's first task of a topic is given,
+// and the example's core idea says the mathematics in a sentence or two, as
+// the guide asks. An example on another idea, or one whose core idea runs on,
+// would teach the model the very thing it is told not to do.
+func TestTheGuidesExampleIsBuiltOnTheIdeaItsPackageNames(t *testing.T) {
 	t.Parallel()
 
 	shipped := loaded(t)
@@ -743,30 +757,39 @@ func TestTheGuidesExampleListsTheIdeasAPackageAsksFor(t *testing.T) {
 		t.Fatal("the guide has no example in a json block")
 	}
 	var example struct {
-		Brief profile.Brief `json:"brief"`
-		Task  struct {
+		Task struct {
 			CoreIdea string `json:"core_idea"`
 		} `json:"task"`
 	}
 	if err := json.Unmarshal([]byte(block[1]), &example); err != nil {
 		t.Fatalf("read the guide's example: %v", err)
 	}
-	_, pack := packageFor(t, shipped, request(example.Brief.TargetConcept, example.Brief.GradeLevel, example.Brief.Difficulty, 0))
+	asked := guideExampleAsked()
+	_, pack := packageFor(t, shipped, request(asked.TargetConcept, asked.GradeLevel, asked.Difficulty, 0))
 
-	listed := regexp.MustCompile(`(?:^|[:;]) (\d+) `).FindAllStringSubmatch(example.Task.CoreIdea, -1)
-	if len(listed) != pack.Idea.Of {
-		t.Errorf("the example lists %d ideas, want the %d a package asks for", len(listed), pack.Idea.Of)
+	if !strings.Contains(guide, `"`+pack.Idea.Text+`"`) {
+		t.Errorf("the guide does not introduce its example by the idea its package names, %q", pack.Idea.Text)
 	}
-	for i, item := range listed {
-		if item[1] != fmt.Sprint(i+1) {
-			t.Errorf("idea %d of the example's list is numbered %s, want the list numbered from 1", i+1, item[1])
-		}
+	sentences := regexp.MustCompile(`[.!?](?:\s|$)`).FindAllString(example.Task.CoreIdea, -1)
+	if len(sentences) < 1 || len(sentences) > 2 {
+		t.Errorf("the example's core idea runs to %d sentences, want one or two: %q", len(sentences), example.Task.CoreIdea)
 	}
-	picked := regexp.MustCompile(`Idea (\d+), round (\d+):`).FindStringSubmatch(example.Task.CoreIdea)
-	if len(picked) != 3 || picked[1] != fmt.Sprint(pack.Idea.Number) || picked[2] != fmt.Sprint(pack.Idea.Round) {
-		t.Errorf("the example builds on %q, want idea %d, round %d, as a child's first task of a topic is given",
-			picked, pack.Idea.Number, pack.Idea.Round)
+}
+
+// ideasOf reads the ideas of a topic from the content's own file, the way
+// whoever writes them reads them.
+func ideasOf(t *testing.T, topic string) map[rating.GradeLevel][]string {
+	t.Helper()
+
+	raw, err := os.ReadFile("ideas/" + topic + ".json")
+	if err != nil {
+		t.Fatalf("read the ideas of %s: %v", topic, err)
 	}
+	var lists map[rating.GradeLevel][]string
+	if err := json.Unmarshal(raw, &lists); err != nil {
+		t.Fatalf("parse the ideas of %s: %v", topic, err)
+	}
+	return lists
 }
 
 // The guide points the model at parts of the package by name, and at the
@@ -801,7 +824,8 @@ func TestTheGuideNamesOnlyWhatThePackageHolds(t *testing.T) {
 	}
 	for _, said := range []string{
 		"return match(options, value)", "gives you no instructions", "submit_task", "when that is empty",
-		"`solver_templates`", "`drawing_frames`", "## The difficulty", "`idea.number`", "`core_idea`",
+		"`solver_templates`", "`drawing_frames`", "## The difficulty", "`idea.text`", "`idea.round`", "`core_idea`",
+		"Only `prohibitions` come before it",
 		"every text the child reads in the package's `language`",
 	} {
 		if !strings.Contains(guide, said) {

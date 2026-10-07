@@ -95,7 +95,7 @@ sequenceDiagram
     MT-->>W: the task on its way — the request, whose card it is, its language, and no package
     M->>MT: get_package with the request id
     MT->>D: read the profile
-    MT-->>M: the package — brief, the idea to build on, corridor, three reference tasks,<br/>the traps, the prohibitions, the formats, the solver templates, the drawing frames,<br/>the checklist and the instructions version
+    MT-->>M: the package — brief, the idea to build on in words, corridor, three reference tasks,<br/>the traps, the prohibitions, the formats, the solver templates, the drawing frames,<br/>the checklist and the guide
     Note over M,W: no card is drawn from the package: the reference tasks carry their answers
 
     par the card asks how the task stands, every few seconds
@@ -104,9 +104,9 @@ sequenceDiagram
         MT-->>W: being written, and how many tries were turned down
     and at most three attempts
         Note over M: the model writes the task, the Starlark solver and its self-check
-        M->>MT: submit_task with the request id
+        M->>MT: submit_task with the request id: the task, its solver and its self-check, no brief
         MT->>D: read the profile
-        Note over MT: structure · the letters of the lesson's language · the explanations behind the wrong options ·<br/>the solver runs · the self-check · readability for the level · near-duplicates · the drawing
+        Note over MT: slips of form mended · structure · the letters of the lesson's language · the explanations behind the wrong options ·<br/>the solver runs · the self-check · readability for the level · near-duplicates · the drawing
         alt something failed
             Note over MT: the attempt counter goes up
             MT->>D: write the profile
@@ -250,7 +250,7 @@ sequenceDiagram
     Note over M,W: the task is on the card; the model goes on in the same turn
     M->>MT: prepare_task, with the chat language
     MT->>D: read the profile
-    Note over MT: nothing kept and nothing being written · the day has room ·<br/>the rule builds the brief it would build now,<br/>one interest further on while the task on the card waits for its answer ·<br/>a request ahead is written down
+    Note over MT: nothing kept and nothing being written · the day has room ·<br/>the rule builds the brief it would build now,<br/>one interest further on while the task on the card waits for its answer,<br/>and its package counts that task as behind the child ·<br/>a request ahead is written down
     MT->>D: write the profile
     MT-->>M: the request ahead and its package: say nothing about this task
     Note over M: the model writes the next task while the child works on the one on the card
@@ -369,7 +369,7 @@ Every failed check comes back at once, so the model can fix everything in one mo
 
 | Code | When | What the model is told | Costs an attempt |
 |---|---|---|---|
-| `bad_structure` | the JSON schema or the structural rules fail: not five distinct options, a wrong option with no trap or no explanation, an unknown trap, topic or skill id, a brief that does not match the request | which field is wrong and what was expected | yes |
+| `bad_structure` | the JSON schema or the structural rules fail: not five distinct options, a wrong option with no trap or no explanation, an unknown trap id, a member the format does not have | which field is wrong and what was expected | yes |
 | `wrong_language` | the question, the hint, the solution, or the explanations taken together are mostly in other letters than those of the lesson's language (R210, SPEC 5.11) | which texts, the lesson's language and its letters, and that every text the child reads is written in it, the reference tasks being in English whatever the language | yes |
 | `distractor_explanations` (name fixed in T12) | the four deterministic conditions of R10: the explanations are not pairwise distinct, one repeats the solution or the hint, one is the catalog's trap description verbatim, or one is too short for its writing system | which option to rewrite and which condition it broke | yes |
 | `solver_error` | the Starlark program crashed, ran past its step or time limit, or printed something other than a list of letters | one short safe line and the limit it hit — never the interpreter's internals (О-8) | yes |

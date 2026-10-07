@@ -1,0 +1,45 @@
+name: site
+description: >-
+  Builds the site from the data of the page "Research" in site/research, with
+  the paper's PDF beside it when the data names one, and holds the site to its
+  own rules.
+
+inputs:
+  version:
+    description: The build the cards on the pages name; empty, they name none.
+    required: false
+    default: ""
+  research:
+    description: >-
+      Take the page's data, and the paper's PDF it names, from the artifact
+      research-data of the same run, held to the commit checked out, rather
+      than find the data in place.
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Take the page's data and the paper the research made
+      if: inputs.research == 'true'
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: research-data
+        path: site/research
+    # Data another job made could be of another commit, and would put that
+    # commit's numbers and paper on the pages.
+    - name: Hold the data to the commit the site is built from
+      if: inputs.research == 'true'
+      shell: bash
+      run: |
+        made=$(node -p 'require("./site/research/research.json").built_from.commit')
+        if [ "$made" != "$(git rev-parse HEAD)" ]; then
+            echo "The page's data was made from $made, and the site is built from $(git rev-parse HEAD)." >&2
+            exit 1
+        fi
+    # The site is built from the data in place, which is never made again here.
+    - name: Build the site and hold it to its own rules
+      shell: bash
+      env:
+        VITE_VERSION: ${{ inputs.version }}
+      run: just _site-build _site-check

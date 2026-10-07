@@ -24,8 +24,9 @@ import (
 // shape: the version of the instructions, which must depend on the content and
 // on nothing else; the copies handed out of the content, which must share no
 // memory with it; the catalog of traps, which is read only when every trap has
-// its advice; and the idea a package names, which must go through the whole
-// list before it comes back.
+// its advice; and the ideas of a topic, a list of which is read only when it
+// holds none twice, and which a package must name the whole list of before it
+// comes back.
 
 // instructionFilesFrom turns generated texts into a set of files whose names
 // differ, the way a directory listing always hands them over. Two files of one
@@ -302,37 +303,74 @@ func TestATrapCatalogReadsOnlyWithEveryTrapsAdvice(t *testing.T) {
 }
 
 // The idea a package names is what moves a model with no memory of the tasks
-// before along its list of a topic's ideas. Whatever the count it is given — a
-// file can hold any — it names a place on the list, the tasks of one round come
-// to every place once, and the next round comes to them again in the same
-// order.
+// before along a topic's ideas. Whatever the count it is given — a file can
+// hold any — it names an idea of the list by its place on it, the tasks of one
+// round come to every idea once, and the next round comes to them again in the
+// same order.
 func TestTheIdeaHoldsItsProperties(t *testing.T) {
 	t.Parallel()
 
+	list := sampleIdeas(rating.Grades12)
 	properties := gopter.NewProperties(nil)
-	properties.Property("the number is always a place on the list", prop.ForAll(
+	properties.Property("the idea named is the one at its place on the list", prop.ForAll(
 		func(tasks int) bool {
-			idea := ideaOf(tasks)
-			return idea.Of == ideasPerList && idea.Number >= 1 && idea.Number <= idea.Of && idea.Round >= 1
+			idea := ideaOf(list, tasks)
+			return idea.Number >= 1 && idea.Number <= len(list) && idea.Text == list[idea.Number-1] && idea.Round >= 1
 		},
 		gen.Int(),
 	))
-	properties.Property("a list's worth of tasks in a row comes to every place once", prop.ForAll(
+	properties.Property("a list's worth of tasks in a row comes to every idea once", prop.ForAll(
 		func(start int) bool {
-			met := map[int]bool{}
+			met := map[string]bool{}
 			for tasks := start; tasks < start+ideasPerList; tasks++ {
-				met[ideaOf(tasks).Number] = true
+				met[ideaOf(list, tasks).Text] = true
 			}
 			return len(met) == ideasPerList
 		},
 		gen.IntRange(0, 1<<30),
 	))
-	properties.Property("a list's worth of tasks later comes the same place, a round on", prop.ForAll(
+	properties.Property("a list's worth of tasks later comes the same idea, a round on", prop.ForAll(
 		func(tasks int) bool {
-			now, later := ideaOf(tasks), ideaOf(tasks+ideasPerList)
-			return later.Number == now.Number && later.Round == now.Round+1
+			now, later := ideaOf(list, tasks), ideaOf(list, tasks+ideasPerList)
+			return later.Number == now.Number && later.Text == now.Text && later.Round == now.Round+1
 		},
 		gen.IntRange(0, 1<<30),
+	))
+	properties.TestingRun(t)
+}
+
+// A list is what a package names an idea from, so it is taken only when it
+// holds as many ideas as a list does and none of them twice — the same idea
+// in other capitals or with other spaces is said twice too.
+func TestAListOfIdeasIsTakenOnlyAsIdeasEachOfItsOwn(t *testing.T) {
+	t.Parallel()
+
+	const pool = 100 // ideas a list is drawn from, so that most lists hold none twice
+	// spelling writes an idea of the pool in one of three ways a reader takes
+	// for the same idea.
+	spelling := func(pick int) string {
+		idea := fmt.Sprintf("Idea number %d", pick/3)
+		switch pick % 3 {
+		case 1:
+			return strings.ToUpper(idea)
+		case 2:
+			return "  " + strings.ReplaceAll(idea, " ", "   ") + " "
+		}
+		return idea
+	}
+	properties := gopter.NewProperties(nil)
+	properties.Property("a list is taken when it holds a list's worth of ideas and none twice", prop.ForAll(
+		func(picks []int, length int) bool {
+			list, ideas := make([]string, length), map[int]bool{}
+			for i, pick := range picks[:length] {
+				list[i], ideas[pick/3] = spelling(pick), true
+			}
+			p := &problems{file: ideasDir}
+			checkIdeas(p, rating.Grades12, list)
+			return (p.err() == nil) == (length == ideasPerList && len(ideas) == length)
+		},
+		gen.SliceOfN(ideasPerList+1, gen.IntRange(0, 3*pool-1)),
+		gen.IntRange(ideasPerList-1, ideasPerList+1),
 	))
 	properties.TestingRun(t)
 }

@@ -21,6 +21,10 @@ tools/learners/results/refine/cells.csv
 # from the commit being built, which a file kept in git could not name
 /tools/learners/results/page/
 /site/research/research.json
+# The paper's PDF the page offers, with its facts: the PDF prints the commit it
+# is built from, which a file kept in git could not name
+/site/research/paper-a.en.pdf
+/site/research/paper.json
 # The drawings command's binary, when it is built at the root
 /drawings
 coverage.*

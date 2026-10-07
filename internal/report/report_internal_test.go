@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"flag"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -126,6 +127,73 @@ func TestADrawingIsCountedAmongTheLinesThatSaySo(t *testing.T) {
 				t.Errorf("with a drawing = %q, want %q", got, test.want)
 			}
 		})
+	}
+}
+
+// handedInLine is a hand-in of this whole size, in bytes, with what it retired
+// and what was mended in it, its other parts a quarter of the whole each.
+func handedInLine(total int, retired, mended string) string {
+	return fmt.Sprintf(`{"message":"task_submitted","attempt":1,"outcome":"accepted","failed":[],`+
+		`"task_bytes":%d,"self_check_bytes":%d,"solver_bytes":%d,"core_idea_bytes":%d,"total_bytes":%d,`+
+		`"retired":[%s],"mended":[%s],"instructions_version":"v1"}`,
+		total/4, total/4, total/4, total/8, total, retired, mended)
+}
+
+// A hand-in is measured by its parts: the median of each, and the whole's 90th
+// percentile, for each group and format.
+func TestAHandInIsMeasuredByItsParts(t *testing.T) {
+	t.Parallel()
+
+	rows := tallied(t, handedInLine(1000, "", ""), handedInLine(2000, "", ""), handedInLine(4000, "", "")).
+		handInsTable().rows
+	want := []string{"v1", callNotRead, formatNow, "3", "0", "500", "500", "500", "250", "2000", "4000"}
+	if len(rows) != 1 || !slices.Equal(rows[0], want) {
+		t.Errorf("hand-ins = %v, want one row %v", rows, want)
+	}
+}
+
+// A hand-in of the format before — one that brought what the format no longer
+// reads — is counted apart from one of the format asked for now, so that the
+// size of the one does not hide the size of the other.
+func TestAHandInOfTheFormatBeforeIsCountedApart(t *testing.T) {
+	t.Parallel()
+
+	rows := tallied(t, handedInLine(2000, "", ""), handedInLine(5000, `"brief","task.design_thought_process"`, "")).
+		handInsTable().rows
+	if len(rows) != 2 || rows[0][2] != formatBefore || rows[0][9] != "5000" || rows[1][2] != formatNow ||
+		rows[1][9] != "2000" {
+		t.Errorf("hand-ins = %v, want the format before at 5000 apart from the format now at 2000", rows)
+	}
+}
+
+// A hand-in whose line was written before hand-ins were measured says nothing
+// of its size, and is counted as not logged rather than as nothing at all.
+func TestALineWrittenBeforeHandInsWereMeasuredIsNotLogged(t *testing.T) {
+	t.Parallel()
+
+	rows := tallied(t,
+		`{"message":"task_submitted","attempt":1,"outcome":"accepted","failed":[],"instructions_version":"v1"}`,
+	).handInsTable().rows
+	if len(rows) != 1 || rows[0][2] != notLogged || rows[0][3] != "1" || rows[0][9] != notLogged {
+		t.Errorf("hand-ins = %v, want one counted, its size not logged", rows)
+	}
+}
+
+// What was mended is counted by its field, the field mended most often first.
+func TestWhatWasMendedIsCountedByItsField(t *testing.T) {
+	t.Parallel()
+
+	c := tallied(t,
+		handedInLine(2000, "", `"task.correct_answer"`),
+		handedInLine(2000, "", `"task.correct_answer","self_check.issues"`),
+		handedInLine(2000, "", ""),
+	)
+	want := [][]string{{"v1", "task.correct_answer", "2"}, {"v1", "self_check.issues", "1"}}
+	if rows := c.mendsTable().rows; !slices.EqualFunc(rows, want, slices.Equal[[]string]) {
+		t.Errorf("mends = %v, want %v", rows, want)
+	}
+	if row := c.handInsTable().rows[0]; row[4] != "2" {
+		t.Errorf("hand-ins mended = %s, want 2 of the 3", row[4])
 	}
 }
 
@@ -262,7 +330,7 @@ func TestAReportOfNoLinesSaysSo(t *testing.T) {
 		t.Fatalf("Run() error = %v, want nil", err)
 	}
 	if got := out.String(); !strings.Contains(got, "No lines of the service's were read.") ||
-		strings.Count(got, "None in these lines.") != 16 || strings.Contains(got, "|") {
+		strings.Count(got, "None in these lines.") != 18 || strings.Contains(got, "|") {
 		t.Errorf("the report of no lines is\n%s\nwant it to say there are none, and no table", got)
 	}
 }

@@ -140,7 +140,7 @@ model:
     run: "{children} for each rule and kind of child, {answers} from each, drawn from the seed {seed}."
     intervals: Each interval holds {interval} of the bootstrap's {resamples} resamples.
     nobody: No child and no language model took part.
-    paper: The paper reports the rule as it stood at its own commit, {commit}. This page follows the service as it runs now, so the two differ.
+    paper: The paper reports the rule as it stood at the commit its numbers were computed on, {commit}. This page follows the service as it runs now, so the two differ.
 
 live:
   title: Live data

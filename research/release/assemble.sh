@@ -23,7 +23,7 @@ anonymous) name=paper-a-artifact-anonymous ;;
 esac
 
 prototype_clone=.cache/llm-taskgen-prototype.git
-if [ "$flavour" = anonymous ] && [ ! -d "$prototype_clone" ]; then
+if [[ "$flavour" == anonymous && ! -d "$prototype_clone" ]]; then
     # Without the clone the prototype's commits could not be told from other
     # hexadecimal words, and would ship unmasked.
     echo "assemble.sh: the anonymous artifact needs the prototype's clone: run just research prototype-fetch" >&2
@@ -46,14 +46,14 @@ mkdir -p "$tree"
 # The product, as the pinned commit holds it. The research plan the commit
 # carries is the plan of that day, in Russian, and not part of the artifact.
 product=(.)
-if [ "$flavour" = anonymous ]; then
+if [[ "$flavour" == anonymous ]]; then
     # Only the packages the experiments and their tests import: the rest of the
     # product — its server, site, cloud project and documents — names its makers
     # in ways no replacement can be trusted to catch. A failing go list must not
     # leave a tree with no code, so it runs on its own before its output is read.
     deps=$(go list -deps -test -f '{{with .Module}}{{.Path}}{{end}} {{.ImportPath}}' ./experiments/...)
     mapfile -t product < <(awk -v m="$product_module" '$1 == m && $2 != m { print substr($2, length(m) + 2) }' <<<"$deps" | LC_ALL=C sort -u)
-    if [ "${#product[@]}" -eq 0 ]; then
+    if [[ "${#product[@]}" -eq 0 ]]; then
         echo "assemble.sh: go list found no package of the product the experiments import" >&2
         exit 1
     fi
@@ -90,7 +90,7 @@ git -C .. show "$full:LICENSE" >"$tree/research/LICENSE"
 # backup — out of what was just copied.
 stray=$(find "$tree/research" -type f ! \( -name '*.go' -o -name '*.md' -o -name '*.ots' -o -name '*.json' \
     -o -name '*.txt' -o -name '*.csv' -o -name '*.tex' -o -name '*.sh' -o -name go.mod -o -name go.sum -o -name LICENSE \))
-if [ -n "$stray" ]; then
+if [[ -n "$stray" ]]; then
     echo "assemble.sh: files of no kind the artifact ships:" >&2
     echo "$stray" >&2
     exit 1
@@ -123,7 +123,7 @@ commits_in() {
     shift
     words=$(grep -rhoaP '(?<![0-9A-Fa-f])[0-9A-Fa-f]{7,40}(?![0-9A-Fa-f])' "$dir" |
         tr 'A-F' 'a-f' | grep '[a-f]' | LC_ALL=C sort -u || true)
-    if [ -z "$words" ]; then return 0; fi
+    if [[ -z "$words" ]]; then return 0; fi
     for repo in "$@"; do
         awk '{ print $0 "^{commit} " $0 }' <<<"$words" |
             git -C "$repo" cat-file --batch-check='%(objectname) %(rest)' |
@@ -132,7 +132,7 @@ commits_in() {
 }
 
 stamp=$(git -C .. show -s --format=%ct "$full")
-if [ "$flavour" = anonymous ]; then
+if [[ "$flavour" == anonymous ]]; then
     mapfile -t commits < <(commits_in "$out" .. "$prototype_clone")
     mapfile -t texts < <(grep -rlI '' "$out")
     COMMITS="${commits[*]}" perl -CSD -pi -e '
@@ -164,7 +164,7 @@ if [ "$flavour" = anonymous ]; then
         exit 1
     fi
     left=$(commits_in "$out" .. "$prototype_clone")
-    if [ -n "$left" ]; then
+    if [[ -n "$left" ]]; then
         echo "assemble.sh: the anonymous artifact still names commits: ${left//$'\n'/ }" >&2
         exit 1
     fi
@@ -179,7 +179,7 @@ if [ "$flavour" = anonymous ]; then
     digits=$(grep -rhoaP '(?<![0-9A-Fa-f])[0-9]{7,40}(?![0-9A-Fa-f])' "$out" | LC_ALL=C sort -u || true)
     prefixes=$(awk 'NR == FNR { known[$0]; next } NF { for (k in known) if (index(k, $0) == 1) { print; break } }' \
         <(echo "$known") <(echo "$digits"))
-    if [ -n "$prefixes" ]; then
+    if [[ -n "$prefixes" ]]; then
         echo "assemble.sh: these numbers begin the hash of a commit the research names: ${prefixes//$'\n'/ }" >&2
         exit 1
     fi

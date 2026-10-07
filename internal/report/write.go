@@ -45,6 +45,14 @@ func write(out io.Writer, c *counts) error {
 			"of the lessons, another topic the lessons are kept to, a skill kept out since, another place a person " +
 			"asked for, or another version of the instructions. Written says whether the task had been written and " +
 			"kept, or was still being written.", c.letGoTable()},
+		{"Hand-ins by their parts", "How large the tasks handed in were, in bytes of the JSON the checks read: " +
+			"the task, the self-check, the solver, the core idea inside the task, and the whole, the brief among " +
+			"it when one came. Format now is a hand-in of the form the guide asks for; before, one that also " +
+			"brought what the form no longer reads, from a chat begun with an earlier guide. Mended counts the " +
+			"hand-ins with a field read as it was meant rather than as it was written.", c.handInsTable()},
+		{"What was mended", "The fields read as they were meant rather than as they were written — a letter in " +
+			"another case, an option written as a number, no issues written as null — by how many hand-ins.",
+			c.mendsTable()},
 		{"Drawings by topic", "The tasks accepted on each topic whose line says whether they came with a " +
 			"drawing, and how many of them did. A line written before the service said so is left out.",
 			c.drawingsTable()},
@@ -180,6 +188,63 @@ func (c *counts) acceptedTable() *table {
 		t.add(g.version, g.host, number(len(counted.attempts)), drawn, number(countOf(counted.attempts, 1)),
 			strconv.FormatFloat(mean(counted.attempts), 'f', 1, 64),
 			number(atRank(seconds, 50)), number(atRank(seconds, 90)), number(atRank(seconds, 100)))
+	}
+	return t
+}
+
+// handInsTable is, for each group and format, how large its hand-ins were:
+// the median of every part, and the whole's 90th percentile.
+func (c *counts) handInsTable() *table {
+	t := &table{columns: []string{
+		"Instructions", "Host", "Format", "Hand-ins", "Mended", "Task, median", "Self-check, median",
+		"Solver, median", "Core idea, median", "Whole, median", "Whole, 90th percentile",
+	}, named: 3}
+	keys := slices.Collect(maps.Keys(c.handIns))
+	slices.SortFunc(keys, func(a, b handInOf) int {
+		return cmp.Or(
+			cmp.Compare(slices.Index(c.versions, a.version), slices.Index(c.versions, b.version)),
+			cmp.Compare(a.host, b.host),
+			cmp.Compare(a.format, b.format),
+		)
+	})
+	for _, key := range keys {
+		counted := c.handIns[key]
+		total := slices.Sorted(slices.Values(counted.total))
+		t.add(key.version, key.host, key.format, number(counted.count), number(counted.mended),
+			medianOf(counted.task), medianOf(counted.selfCheck), medianOf(counted.solver), medianOf(counted.coreIdea),
+			medianOf(total), rankOf(total, 90))
+	}
+	return t
+}
+
+// medianOf is the middle of sizes, or not logged when there are none.
+func medianOf(sizes []int64) string {
+	return rankOf(slices.Sorted(slices.Values(sizes)), 50)
+}
+
+// rankOf is the size at a rank of sorted sizes, or not logged when there are
+// none.
+func rankOf(sorted []int64, rank int) string {
+	if len(sorted) == 0 {
+		return notLogged
+	}
+	return number(atRank(sorted, rank))
+}
+
+// mendsTable is, under each version, the fields read as they were meant, the
+// field read so most often first.
+func (c *counts) mendsTable() *table {
+	t := &table{columns: []string{"Instructions", "Field", "Hand-ins"}, named: 2}
+	keys := slices.Collect(maps.Keys(c.mends))
+	slices.SortFunc(keys, func(a, b mendOf) int {
+		return cmp.Or(
+			cmp.Compare(slices.Index(c.versions, a.version), slices.Index(c.versions, b.version)),
+			cmp.Compare(c.mends[b], c.mends[a]),
+			cmp.Compare(a.field, b.field),
+		)
+	})
+	for _, key := range keys {
+		t.add(key.version, key.field, number(c.mends[key]))
 	}
 	return t
 }

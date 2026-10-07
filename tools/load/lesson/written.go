@@ -18,7 +18,6 @@ type Task struct {
 // Body is a task in the shape the model hands it in.
 type Body struct {
 	CoreIdea    string                `json:"core_idea"`
-	Design      string                `json:"design_thought_process"`
 	Question    string                `json:"question"`
 	Options     map[string]string     `json:"options"`
 	Correct     string                `json:"correct_answer"`
@@ -74,7 +73,6 @@ func race() Task {
 		Choice: ordering,
 		Body: Body{
 			CoreIdea: "Order three runners from two comparisons.",
-			Design:   "Plot: a race. Traps: a reversed comparison, stopping early.",
 			Question: "Ann, Ben and Kim ran a race. Ben finished before Kim. Ann finished after Kim. Who finished first?",
 			Options:  map[string]string{"A": "Ann", "B": "Kim", "C": "Ben", "D": "Nobody", "E": "All at once"},
 			Correct:  "C",
@@ -111,7 +109,6 @@ func heights() Task {
 		Choice: ordering,
 		Body: Body{
 			CoreIdea: "Find the tallest of three children from two comparisons.",
-			Design:   "Plot: children standing in a row. Traps: stopping at the middle child, swapping taller and shorter.",
 			Question: "Bob, Gus and Hal stand in a row. Bob is taller than Gus. Hal is shorter than Gus. Who is the tallest?",
 			Options:  map[string]string{"A": "Gus", "B": "Hal", "C": "Bob", "D": "All the same", "E": "Nobody"},
 			Correct:  "C",
@@ -149,7 +146,6 @@ func ages() Task {
 		Choice: ordering,
 		Body: Body{
 			CoreIdea: "Find the youngest of three friends from two comparisons.",
-			Design:   "Plot: three friends and their ages. Traps: taking the oldest, stopping at the middle one.",
 			Question: "Liz is older than Pam. Pam is older than Dan. Who is the youngest?",
 			Options:  map[string]string{"A": "Liz", "B": "Pam", "C": "Dan", "D": "Liz and Dan", "E": "They are twins"},
 			Correct:  "C",
@@ -187,7 +183,6 @@ func queue() Task {
 		Choice: ordering,
 		Body: Body{
 			CoreIdea: "Place three children in a line from two clues.",
-			Design:   "Plot: a line at a shop. Traps: mixing up the front and the back, stopping at the middle.",
 			Question: "Joe, Kit and Ned wait in a line. Kit stands behind Joe. Ned stands in front of Joe. Who is at the back?",
 			Options:  map[string]string{"A": "Joe", "B": "Ned", "C": "Kit", "D": "Nobody", "E": "Joe and Kit"},
 			Correct:  "C",
@@ -225,7 +220,6 @@ func cats() Task {
 		Choice: ordering,
 		Body: Body{
 			CoreIdea: "Find the middle of three places from two clues about left and right.",
-			Design:   "Plot: cats asleep on a sofa. Traps: taking an end for the middle, mixing up left and right.",
 			Question: "Three cats sleep on a sofa. The black cat lies to the left of the white cat. The grey cat lies to the right of the white cat. Which cat lies in the middle?",
 			Options:  map[string]string{"A": "Black", "B": "White", "C": "Grey", "D": "None of them", "E": "All three"},
 			Correct:  "B",

@@ -41,7 +41,7 @@ PLAY_DIR := env("MATHTRAIL_PLAY_DIR", home_directory() / "mathtrail-play")
 PLAY_MODEL := env("MATHTRAIL_PLAY_MODEL", "claude-sonnet-5")
 # The lesson's tools as a chat's model calls them. The ones only a card calls
 # are not among them.
-PLAY_TOOLS := "mcp__mathtrail__get_profile mcp__mathtrail__save_profile mcp__mathtrail__get_progress mcp__mathtrail__next_task mcp__mathtrail__get_package mcp__mathtrail__submit_task mcp__mathtrail__submit_answer"
+PLAY_TOOLS := "mcp__mathtrail__get_profile mcp__mathtrail__save_profile mcp__mathtrail__get_progress mcp__mathtrail__next_task mcp__mathtrail__get_package mcp__mathtrail__prepare_task mcp__mathtrail__submit_task mcp__mathtrail__submit_answer"
 # The Inspector shares this environment's network, so that it reaches the local
 # server at its own address, and it listens on the loopback alone rather than on
 # every interface its image asks for. Secrets it would keep — the tokens of a
@@ -803,45 +803,66 @@ _fma:
 
 # The paper as the page "Research" links it: the named build, copied to
 # site/research/paper-a.en.pdf with its facts in site/research/paper.json,
-# both kept in git, since the site's build makes no paper. A paper that still
-# prints a placeholder, an author, an affiliation or a mark of something to
-# come, is refused before it is built: until it holds none, the page shows
-# its title alone. A paper built while the research's tree held changes no
-# commit has is refused once built: the PDF prints the commit it is built
-# from, and that commit must make it.
+# which git does not keep: the PDF prints the commit it is built from. A paper
+# that still prints a placeholder, an author, an affiliation or a mark of
+# something to come, is refused before it is built: until it holds none, the
+# page shows its title alone.
 # Put the paper's PDF on the site, once it holds no placeholder
 site-paper:
     #!/usr/bin/env bash
     set -euo pipefail
-    # grep says 1 when it finds nothing, and more when it cannot read a source:
-    # a source left unread is not a source with no placeholder.
-    found=0
-    lines=$(grep -n -H -E '\[Author\]|\[Affiliation\]|\\TBD\{' research/paper-a/main.tex \
-        research/paper-a/sections/*.tex research/paper-a/figures/*.tex) || found=$?
-    if [ "$found" -gt 1 ]; then
-        echo "site-paper: the paper's sources cannot all be read" >&2
-        exit 1
-    fi
-    left=$(printf '%s\n' "$lines" | grep -v -E '^[^:]+:[0-9]+:[[:space:]]*%' || true)
+    left=$(just _paper-placeholders)
     if [ -n "$left" ]; then
         echo "$left" >&2
         echo "site-paper: the paper still prints a placeholder; until it holds none, the page shows its title alone" >&2
         exit 1
     fi
     just research paper-a
-    # The PDF prints the version it was built at, which must be a commit's and
-    # still the tree's: changes no commit has, made before the build or while
-    # it ran, leave no commit that makes the PDF.
+    just _paper-to-site
+
+# The lines of the paper's sources that still print a placeholder, an author,
+# an affiliation or a mark of something to come, and nothing once none is
+# left. They are the lines of the paper's text, its sections and its figures,
+# but not of the preamble, which defines the mark and holds the anonymous
+# build's own; a line that is a comment does not count. A source left unread
+# is not a source with no placeholder, so one that cannot be read fails.
+_paper-placeholders:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # grep says 1 when it finds nothing, and more when it cannot read a source.
+    found=0
+    lines=$(grep -n -H -E '\[Author\]|\[Affiliation\]|\\TBD\{' research/paper-a/main.tex \
+        research/paper-a/sections/*.tex research/paper-a/figures/*.tex) || found=$?
+    if [ "$found" -gt 1 ]; then
+        echo "_paper-placeholders: the paper's sources cannot all be read" >&2
+        exit 1
+    fi
+    if [ -n "$lines" ]; then
+        printf '%s\n' "$lines" | grep -v -E '^[^:]+:[0-9]+:[[:space:]]*%' || true
+    fi
+
+# The named build of the paper, as the site offers it: copied to
+# site/research/paper-a.en.pdf, with its facts in site/research/paper.json,
+# which are its pages, as the build's log gives them, its size, held to the
+# file's, its hash and the commit the paper's numbers were computed on. The
+# PDF prints the commit it is built from, which must make it, so a paper built
+# while the research's tree held changes no commit has is refused.
+_paper-to-site:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # The version must be a commit's and still the tree's: changes no commit
+    # has, made before the build or while it ran, leave no commit that makes
+    # the PDF.
     version=$(just research _paper-a-version)
     if [[ $version == *", modified" ]] || ! grep -q -x -F "Paper A: Version of $version." research/paper-a/build/paper-a.log; then
-        echo "site-paper: research/ holds changes no commit has; commit them, and the paper names that commit" >&2
+        echo "_paper-to-site: research/ holds changes no commit has; commit them, and the paper names that commit" >&2
         exit 1
     fi
     pdf=research/paper-a/build/paper-a.pdf
     read -r pages bytes < <(sed -n -E 's/^Output written on build\/paper-a\.pdf \(([0-9]+) pages?, ([0-9]+) bytes\)\.$/\1 \2/p' \
         research/paper-a/build/paper-a.log) || true
     if [ -z "${pages:-}" ] || [ "${bytes:-}" != "$(stat -c %s "$pdf")" ]; then
-        echo "site-paper: the build's log gives no pages and size of $pdf" >&2
+        echo "_paper-to-site: the build's log gives no pages and size of $pdf" >&2
         exit 1
     fi
     commit=$(sed -n 's/^commit=//p' research/evidence/product-stats.txt)
@@ -851,7 +872,7 @@ site-paper:
         --arg sha256 "$(sha256sum < "$pdf" | cut -c1-64)" \
         '{commit: $commit, files: [{lang: "en", path: "/assets/paper-a.en.pdf", pages: $pages, bytes: $bytes, sha256: $sha256}]}' \
         > site/research/paper.json
-    echo "site-paper: $pages pages, $bytes bytes, of the paper at $commit"
+    echo "The paper's PDF for the site: $pages pages, $bytes bytes, of the paper at $commit."
 
 # The live numbers of the page "Research" as the public views of the counts
 # kept for years show them: the latest month counted whole, its answers over

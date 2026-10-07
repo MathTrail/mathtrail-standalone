@@ -259,6 +259,7 @@ func TestATopicIDWithADigitIsAccepted(t *testing.T) {
 	src := contentCopy(t)
 	withEntry(t, src, topicsFile,
 		`{"id":"geometry.shapes_2d","name":"Shapes on a grid","description":"Figures made of cells.","grade_levels":["5-6"],"slug":"shapes-2d","builds_on":[],"site_page":false}`)
+	withIdeas(t, src, "geometry.shapes_2d", rating.Grades56)
 	if _, err := load(src); err != nil {
 		t.Fatalf("load: %v", err)
 	}
@@ -272,6 +273,7 @@ func TestATopicMayBuildOnOneListedAfterIt(t *testing.T) {
 	src := contentCopy(t)
 	withEntry(t, src, topicsFile,
 		`{"id":"logic.seating","name":"Seating","description":"Who stands where.","grade_levels":["1-2"],"slug":"seating","builds_on":["logic.ordering"],"site_page":false}`)
+	withIdeas(t, src, "logic.seating", rating.Grades12)
 	c, err := load(src)
 	if err != nil {
 		t.Fatalf("load: %v", err)

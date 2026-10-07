@@ -223,12 +223,19 @@ func writeJSON(w http.ResponseWriter, status int, body any) {
 }
 
 // following is a parent whose browser opens the address shown and follows
-// the service all the way back to this computer.
+// the service all the way back to this computer, where it is shown a page.
+// The sign-in may be over before the browser has read that page, so the
+// browser is not stopped when the test returns but waited for, and what it
+// met is told before the test ends.
 func following(t *testing.T) account.Browser {
 	t.Helper()
+	var browsing sync.WaitGroup
+	t.Cleanup(browsing.Wait)
 	return account.Browser{Show: func(address string) {
-		go func() {
-			request, err := http.NewRequestWithContext(t.Context(), http.MethodGet, address, http.NoBody)
+		browsing.Go(func() {
+			ctx, cancel := context.WithTimeout(context.Background(), patience)
+			defer cancel()
+			request, err := http.NewRequestWithContext(ctx, http.MethodGet, address, http.NoBody)
 			if err != nil {
 				t.Errorf("the browser could not read %s: %v", address, err)
 				return
@@ -238,12 +245,16 @@ func following(t *testing.T) account.Browser {
 				t.Errorf("the browser could not open %s: %v", address, err)
 				return
 			}
-			said, _ := io.ReadAll(response.Body)
+			said, err := io.ReadAll(response.Body)
 			_ = response.Body.Close()
-			if response.Request.URL.Path != "/callback" {
+			if err != nil {
+				t.Errorf("the browser could not read the page at %s: %v", response.Request.URL, err)
+				return
+			}
+			if response.Request.URL.Path != "/callback" || response.StatusCode != http.StatusOK {
 				t.Errorf("the browser stopped at %s with %d: %s", response.Request.URL, response.StatusCode, said)
 			}
-		}()
+		})
 	}}
 }
 
@@ -296,12 +307,18 @@ func TestSignInTakesAnAddressPasted(t *testing.T) {
 	a := newAuthority(t, 900)
 	pasted, paste := io.Pipe()
 	defer func() { _ = paste.Close() }()
+	// The browser is waited for when the test ends rather than stopped, so
+	// that what it met is told before the test is over.
+	var browsing sync.WaitGroup
+	t.Cleanup(browsing.Wait)
 	browser := account.Browser{
 		Show: func(address string) {
-			go func() {
+			browsing.Go(func() {
 				// The browser follows the service, but not back to this computer.
 				noFollow := &http.Client{CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
-				request, err := http.NewRequestWithContext(t.Context(), http.MethodGet, address, http.NoBody)
+				ctx, cancel := context.WithTimeout(context.Background(), patience)
+				defer cancel()
+				request, err := http.NewRequestWithContext(ctx, http.MethodGet, address, http.NoBody)
 				if err != nil {
 					t.Errorf("the browser could not read %s: %v", address, err)
 					return
@@ -313,7 +330,7 @@ func TestSignInTakesAnAddressPasted(t *testing.T) {
 				}
 				_ = response.Body.Close()
 				_, _ = fmt.Fprintf(paste, "not an address\n%s\n", response.Header.Get("Location"))
-			}()
+			})
 		},
 		Pasted: pasted,
 	}
@@ -436,11 +453,15 @@ func TestAccountsAreKeptInTheUsersConfiguration(t *testing.T) {
 	}
 }
 
+// patience is how long a test waits for a sign-in, and for the browser that
+// serves it, before it fails rather than hangs.
+const patience = 20 * time.Second
+
 // soon is a context that ends long before the sign-in would give up by itself,
 // so that a sign-in nobody came back to fails the test rather than hanging it.
 func soon(t *testing.T) context.Context {
 	t.Helper()
-	ctx, cancel := context.WithTimeout(t.Context(), 20*time.Second)
+	ctx, cancel := context.WithTimeout(t.Context(), patience)
 	t.Cleanup(cancel)
 	return ctx
 }

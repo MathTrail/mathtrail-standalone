@@ -293,7 +293,7 @@ func goalsReport(f *researchFile, warning string) string {
 		for _, file := range f.Paper.Files {
 			langs = append(langs, file.Lang)
 		}
-		fmt.Fprintf(&b, "\nThe site ships the paper's PDF in %s, built at the commit %s.\n", strings.Join(langs, ", "), f.Paper.Commit)
+		fmt.Fprintf(&b, "\nThe site ships the paper's PDF in %s, whose numbers are of the commit %s.\n", strings.Join(langs, ", "), f.Paper.Commit)
 	}
 	b.WriteString(liveReport(&f.Live))
 	if warning != "" {

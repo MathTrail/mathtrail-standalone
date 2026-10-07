@@ -100,7 +100,7 @@ function Thesis({
 	place: number;
 	page: PageReader;
 	at: string;
-	slots?: Parameters<PageReader["text"]>[1];
+	slots?: NonNullable<Parameters<PageReader["text"]>[1]>;
 	children: ComponentChildren;
 }) {
 	return (

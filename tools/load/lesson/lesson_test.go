@@ -36,26 +36,21 @@ func childOf(t *testing.T, target session.Target, name string) *session.Child {
 }
 
 // The request is read out of the words of get_package the way a model reads
-// it: the id its words name before the package, and the brief of the package.
+// it: the id its words name before the package, which carries a brief.
 func TestTheRequestIsReadOutOfTheWords(t *testing.T) {
 	t.Parallel()
 
 	const id = "req_0f8fad5b-d9cb-469f-a165-70867728950e"
 	const pack = "\n\nPackage:\n" + `{"brief":{"topic":"logic.ordering"},"guide":"write a task"}`
-	for _, test := range []struct {
-		name, words string
-		wantBrief   string
-	}{
+	for _, test := range []struct{ name, words string }{
 		{
-			name:      "the package of a request",
-			words:     "The package of request " + id + ". Write one task in en to it, and hand it in with submit_task and request_id " + id + "." + pack,
-			wantBrief: `{"topic":"logic.ordering"}`,
+			name:  "the package of a request",
+			words: "The package of request " + id + ". Write one task in en to it, and hand it in with submit_task and request_id " + id + "." + pack,
 		},
 		{
 			name: "the package after a word about the language",
 			words: "The package of request " + id + ".\n" +
 				"The parent chose ru for the lessons: talk to the child in it, and every task is written in it." + pack,
-			wantBrief: `{"topic":"logic.ordering"}`,
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -67,9 +62,6 @@ func TestTheRequestIsReadOutOfTheWords(t *testing.T) {
 			}
 			if request.ID != id {
 				t.Errorf("ID = %q, want %q", request.ID, id)
-			}
-			if string(request.Brief) != test.wantBrief {
-				t.Errorf("Brief = %s, want %s", request.Brief, test.wantBrief)
 			}
 		})
 	}
@@ -317,7 +309,7 @@ func TestAWrittenTaskIsHandedInUnderTheNamesTheServiceReads(t *testing.T) {
 		t.Fatalf("json.Unmarshal() error = %v", err)
 	}
 	for _, name := range []string{
-		"core_idea", "design_thought_process", "question", "options", "correct_answer", "hint", "solution", "distractors",
+		"core_idea", "question", "options", "correct_answer", "hint", "solution", "distractors",
 	} {
 		if _, found := parts[name]; !found {
 			t.Errorf("the task carries no %q: %s", name, written)

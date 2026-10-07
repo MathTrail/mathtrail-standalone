@@ -253,13 +253,20 @@ func (w *way) serve(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	came := cameBackWith(query)
-	w.bring(came)
-	rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	// The page goes out whole before the sign-in hears what the browser
+	// brought: once it has, it may be over, and close the way back, before a
+	// page written after it reaches the browser. The code is still to be
+	// exchanged and the session still to open, so only a refusal is certain
+	// here, and how the sign-in ends is the terminal's to say.
+	page := "Close this tab and go back to the terminal: it says whether the sign-in went through.\n"
 	if came.err != nil {
-		_, _ = io.WriteString(rw, "The sign-in did not go through. Go back to the terminal to see why.\n")
-		return
+		page = "The sign-in did not go through. Go back to the terminal to see why.\n"
 	}
-	_, _ = io.WriteString(rw, "Signed in. Close this tab and go back to the terminal.\n")
+	rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	rw.Header().Set("Content-Length", strconv.Itoa(len(page)))
+	_, _ = io.WriteString(rw, page)
+	_ = http.NewResponseController(rw).Flush()
+	w.bring(came)
 }
 
 // read takes an address pasted, one to a line, and brings back the first that

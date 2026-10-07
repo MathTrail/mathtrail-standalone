@@ -1,6 +1,6 @@
 # The "Research" page
 
-The site's page of the numbers behind the product (О-57): what the paper about MathTrail found, how the student model stands against its goals, and where the reference tasks came from. This document decides how the page is built and where every number on it comes from (T72.12, R204). T72.13 builds the page from it, and T72.15 brings the live numbers. T73.2–T73.4 move the making of its data into the research pipeline on merge to `main`, and keep its shape: since T73.2 a release's data is made by `research.yml` (R234).
+The site's page of the numbers behind the product (О-57): what the paper about MathTrail found, how the student model stands against its goals, and where the reference tasks came from. This document decides how the page is built and where every number on it comes from (T72.12, R204). T72.13 builds the page from it, and T72.15 brings the live numbers. T73.2–T73.4 move the making of its data into the research pipeline on merge to `main`, and keep its shape: since T73.2 a release's data is made by `research.yml` (R234), and since T73.4 the paper's PDF beside it and a pull request's site too (R248).
 
 The reference is the author's draft, `research/draft-ui/MathTrail - Исследование.html`: a self-unpacking page from a design tool, in Russian. Its markup is line 387 of the file, a JSON string (`sed -n 387p F | jq -r .`). The draft is ported, not copied: the site rebuilds it from its own components, in its own look, with every number from data.
 
@@ -14,7 +14,7 @@ The reference is the author's draft, `research/draft-ui/MathTrail - Исслед
 | 4 | Search engines may index the PDF from the start. |
 | 5 | The model's goals are bounded against the current service, as the bench's criterion bounds them: the bar is for the next rule. |
 | 6 | Where a goal's bound is computed from the service's own value of the same measure, the service's row says "baseline" rather than a mark. |
-| 7 | CI computes the bench's numbers from the commit it builds, and they are never committed. The other inputs are small committed files: the PDF's facts, the monthly live snapshot (§11), and the curated books. |
+| 7 | CI computes the bench's numbers from the commit it builds, and they are never committed. The other inputs are small committed files: the monthly live snapshot (§11) and the curated books. The PDF and its facts were to be committed too, until T73.4 had the release's run build them (R248). |
 | 8 | The live block comes later, in a task of its own (T72.15). Until then the page shows the block's frame and says the data is still to come. T72.15.2 brought it (§11). |
 | 9 | The live block's styles go into the shared stylesheet, which every page loads, rather than one of the page's own. Should the heaviest page pass its budget, the author decides again. The Russian home page passed it in release v0.3.13, and the author raised the budget by half, to 450 KiB (2026-10-07, R240). |
 | 10 | The live snapshot comes with nobody at a keyboard (2026-10-05). A scheduled query keeps it, and once a month a GitHub App of the repository's own brings it to `main` by a pull request that merges itself (2026-10-06, §11, R226). |
@@ -56,7 +56,7 @@ The theses and the sources keep the draft's order and substance. Their words are
 
 **`research.json`** holds every number of the page. The page's code reads it through one reader, `web/src/site/research.ts`, which checks it with zod as `data.ts` checks the site's data.
 
-The file is not committed. It is made at build time, in `site/research/research.json`, which `.gitignore` lists. For a release it is made by the research's run of the same commit and handed to the site's build; on a pull request, and when the site is published by hand, the site's build job makes it (§7). Locally, `just research-data` makes it. Two kinds of input sit committed beside it in `site/research/`: the clean PDF with its facts (§10), and the live snapshot (§11).
+The file is not committed. It is made at build time, in `site/research/research.json`, which `.gitignore` lists. For a release and for a pull request it is made by the research's run of the same commit, which hands it to the site's build with the clean PDF beside it (§10); when the site is published by hand, the site's build job makes it (§7). Locally, `just research-data` makes it. One kind of input sits committed beside it in `site/research/`, the live snapshot (§11). The clean PDF and its facts lie there once a run has made them, and git ignores them (§10).
 
 ```jsonc
 {
@@ -112,7 +112,7 @@ The file is not committed. It is made at build time, in `site/research/research.
   - There is no wall clock: the date is the commit's.
   - T73.2's check that two runs give the same bytes rests on this, on amd64.
 - **Values as the criterion reads them.** A goal on a size, such as the lag, holds the size of the value and of its interval, as the bench's criterion reads it (`sizeOf`: an interval across zero reads from zero). `read_as` names the reading, and `better` applies to it.
-- **Two producers.** The bench's command `page` writes `bench` and `product` (§6, §5) for one build of the bench, and its command `page-file` adds what the commit being built adds: `built_from`, `paper` from the committed facts of the PDF, and `live` from the committed snapshot of the live numbers, or still to come with none (§11). `just research-data` runs both (§7). Since T73.2 a release's file is written by `research.yml` with the same recipe, so the producer stays the bench's `page` and the file is the same byte for byte.
+- **Two producers.** The bench's command `page` writes `bench` and `product` (§6, §5) for one build of the bench, and its command `page-file` adds what the commit being built adds: `built_from`, `paper` from the facts of the PDF the paper's run wrote (§10), and `live` from the committed snapshot of the live numbers, or still to come with none (§11). `just research-data` runs both (§7). Since T73.2 a release's file, and since T73.4 a pull request's, is written by `research.yml` with the same recipe, so the producer stays the bench's `page` and the file is the same byte for byte.
 - **The reader refuses what does not add up:**
   - a mark that does not follow from the value, its interval, the bound and the direction, and "baseline" anywhere but on the service's number against a bound of its own, or missing there;
   - product counts that disagree with the catalogs and reference tasks the site already reads, the tasks by level included;
@@ -139,7 +139,7 @@ The file is not committed. It is made at build time, in `site/research/research.
 | The worked example of thesis 02 | Its five option values are chosen by the text and marked as such (§9). The second run's letters are computed with the solver's own relabelling. |
 | The goals table | The bench's `page` run (§6). |
 | The paper's title | The paper: `research/paper-a/main.tex` for English, the first heading of `research/paper-a/draft.ru.md` for Russian. The words carry it, and a test holds the English words to `\title` and the Russian to that heading. |
-| The PDF's pages, size and hash | The PDF itself, read when `just site-paper` copies it beside the data (§10); the site's build holds the file to its size and hash. |
+| The PDF's pages, size and hash | The PDF itself, read when the paper's run copies it beside the data, or `just site-paper` on a laptop (§10); the site's build holds the file to its size and hash. |
 | Books, their authors and the years the authors died | Curated data, `site/data.json` → `research.sources`: each author's id, the year they died and their books' ids, in the page's order. The names and the titles are words of `research.yaml`, under those ids. |
 | Live numbers | The public views of the counts kept for years, through the snapshot a scheduled query keeps of them every day in `impact_site.live`, committed once a month as `site/research/live.json` (§11). |
 
@@ -184,11 +184,11 @@ Some bounds are computed from the service's own value of the same measure, the s
 - The screen's late window is not, since its bound is the service's value in another window, a measure of its own.
 - The rule before R187 gets marks everywhere: no bound is its own.
 
-**Provenance.** Under the table: the commit the numbers were computed on, the seed, the children per cell and the answers per child, and that no child and no language model took part. One more line says that the paper reports the rule as it stood at its own commit, `52ce869`. This page follows the service as it runs, so the two differ.
+**Provenance.** Under the table: the commit the numbers were computed on, the seed, the children per cell and the answers per child, and that no child and no language model took part. One more line says that the paper reports the rule as it stood at the commit its numbers were computed on, `52ce869`. The PDF's version names another, the commit the PDF was built from (R239), so the line names the commit by what it is rather than as the paper's own (R248). This page follows the service as it runs, so the two differ.
 
 ## 7. The pipeline
 
-- **On every build.** The site's build job (`pages.yml`), before it builds the site, runs `just research-data`:
+- **On every build.** Before the site is built, `just research-data` runs, in the research's job "The page's data" for a release and for a pull request, and in the site's build job (`pages.yml`) for a site published by hand:
   - it builds the bench and names its key;
   - it takes the numbers kept under that key, or runs `tools/learners page` to compute them and keeps them under it, in `tools/learners/results/page/`, which git does not keep;
   - it runs `tools/learners page-file`, which holds the numbers to the key, so that numbers of another build are never the page's, writes `research.json` from them, from the commit being built and from the committed snapshot of the live numbers, and prints the goals table with a line on the live numbers, which the job writes to its summary.
@@ -205,7 +205,7 @@ Some bounds are computed from the service's own value of the same measure, the s
   - It holds the service on every pull request (`ci.yml`), and the page's numbers come from the same code. A release only follows a green CI, so it never shows the numbers of a model the guard refused.
   - The page's own numbers are not held to the bands themselves: the bands are drawn for the guard's 300 children, and the page reads 1,000.
   - The page never shows the guard's numbers.
-- **Handover (T73.2, R234).** A release's file is made by `research.yml`, called by `release.yml` with the release's tag, after the experiments of paper A were held to their results. It computes the bench's numbers from the commit with no cache restored, as above, and hands `research.json` on with the paper's `numbers.tex` as the artifact `research-data`. `pages.yml`, called with `research: true`, downloads it, holds its `built_from.commit` to the commit it builds, and makes no data of its own. On a pull request and when the site is published by hand, `pages.yml` makes the file as above. The file's shape stays.
+- **Handover (T73.2, R234; T73.4, R248).** A release's file is made by `research.yml`, called by `release.yml` with the release's tag. The experiments of paper A are held to their results, the job "Paper A" builds the paper, and the job "The page's data" computes the bench's numbers from the commit with no cache restored, as above. It takes the paper's facts in once the paper prints no placeholder (§10), and hands `research.json` on with the PDF as the artifact `research-data`. `pages.yml`, called with `research: true`, downloads it into `site/research/`, holds its `built_from.commit` to the commit it builds, and makes no data of its own. A pull request's run makes the file the same way, with the bench's numbers restored, and its job "Build the site" builds the site from the artifact with the steps a release's build takes (`.github/actions/site`), publishing nothing. When the site is published by hand, `pages.yml` makes the file as above, with no PDF. The file's shape stays.
 
 ## 8. Drawing
 
@@ -255,14 +255,14 @@ The rule is the paper's (`research/tools/handtyped`): a number reaches the text 
 ## 10. The paper on the page
 
 - **Title.** In English, "The Model Writes, the Service Checks: Olympiad-Style Maths Problems for Primary-School Children inside Chat Assistants". In Russian, the Russian draft's title. Both are words of `research.yaml`, the English held to `research/paper-a/main.tex` by a test.
-- **The PDF.** A recipe of T72.13.1, `just site-paper`:
-  - refuses, before it builds anything, a paper whose sources still print `[Author]`, `[Affiliation]` or a `\TBD`. It reads `main.tex` and the sections and figures, but not the preamble, which defines `\TBD` and holds the anonymous build's own; a line that is a comment does not count, and a source it cannot read is refused as one that still prints a placeholder. Today it names six lines: the author, the affiliation, the three of K05 and the artifact's DOI of K11;
-  - builds the named PDF with `just research paper-a`, which runs the paper's own checks first;
-  - refuses the PDF when the research's tree held changes no commit has, before the build or while it ran: the PDF prints the commit it is built from, which must make it (R239);
-  - copies the PDF to `site/research/paper-a.en.pdf` and writes to `site/research/paper.json` its pages, as the build's log gives them, its size, held to the file's, its hash and the paper's commit.
+- **The PDF.** The research's job "Paper A" makes it on every release and every pull request (R239, R248):
+  - it builds the named PDF with `just research paper-a`, which runs the paper's own checks first, beside the anonymous one;
+  - `just _paper-to-site` refuses the PDF when the research's tree held changes no commit has, before the build or while it ran, since the PDF prints the commit it is built from, which must make it (R239). It copies the PDF to `site/research/paper-a.en.pdf` and writes to `site/research/paper.json` its pages, as the build's log gives them, its size, held to the file's, its hash and the commit the paper's numbers were computed on;
+  - `just _paper-placeholders` names the lines of the paper's sources that still print `[Author]`, `[Affiliation]` or a `\TBD`. It reads `main.tex` and the sections and figures, but not the preamble, which defines `\TBD` and holds the anonymous build's own; a line that is a comment does not count, and a source it cannot read fails it. Today it names six lines: the author, the affiliation, the three of K05 and the artifact's DOI of K11;
+  - only when it names none does the job hand the PDF and its facts on to the page's data (§7). The run's summary says which it is, with the lines that hold the PDF back.
 
-  Both are committed. CI builds the paper on every pull request as a check (R231) and on every release from that release's numbers (R239), but neither run copies a PDF to the site until T73.4. The site serves the PDF at `/assets/paper-a.en.pdf`: a folder `/research/` at the site's root would read to the site's build as a language. The site's build copies it there from beside the data and refuses it when its size or hash is not the one its facts give (§4). With no file, the page shows the title and "Code and data" but no PDF button, and its section on the paper says the PDF comes once the paper names its authors and its archive.
-- **The paper's commit** on the page is the PDF's when the site ships one, and otherwise the one `research/evidence/product-stats.txt` names, the commit the paper's numbers were computed on. When the two part, the job's summary says that the PDF is due to be built again; the build does not fail on it. It is the commit the paper describes, which its text prints, and not the one its version names: that is the commit the PDF is built from, a later one (R239).
+  Neither file is committed. `just site-paper` makes both for a site built on a laptop, and refuses a paper that still prints a placeholder before it builds it. The site serves the PDF at `/assets/paper-a.en.pdf`: a folder `/research/` at the site's root would read to the site's build as a language. The site's build copies it there from beside the data and refuses it when its size or hash is not the one its facts give (§4). With no file, the page shows the title and "Code and data" but no PDF button, and its section on the paper says the PDF comes once the paper names its authors and its archive.
+- **The paper's commit** on the page is the PDF's when the site ships one, and otherwise the one `research/evidence/product-stats.txt` names, the commit the paper's numbers were computed on. A release's run writes the PDF's facts from that same file, so the two part only for a PDF made on a laptop and left beside the data, and then the summary of `just research-data` says that the PDF is due to be built again; the build does not fail on it. It is the commit the paper describes, which its text prints, and not the one its version names: that is the commit the PDF is built from, a later one (R239). The page names it as the commit the paper's numbers were computed on (R248).
 - **Every language** links the English PDF: no Russian PDF is built (R239).
 - **Indexing.** The PDF is open to search engines.
 - **Self-archiving.** Springer's self-archiving rules may limit which version can stay on the site once the paper is accepted; that is read when the venue decides.
@@ -326,7 +326,7 @@ The answers are those to tasks the rule chose, after the trial series and withou
 - **T73.2–T73.4** move the making of `research.json` and of the PDFs into the research pipeline on merge to `main`; the file's shape and the page stay.
   - **T73.2, the data (R234):** `research.yml` holds the experiments to their results and makes `research.json` and `numbers.tex` from the release's commit. `pages.yml` downloads the data for a release and makes it on a pull request, and builds the site from the data in place with `just _site-build _site-check`, while `just site` still makes the data first. The build reads it at its default `--research`, beside the PDF it names, and the bench's steps both workflows run are one action, `.github/actions/page-data`.
   - **T73.3, the paper (R239):** a release builds the named and the anonymous PDF from those numbers, with the checks of every pull request, the named one printing its version, and hands them on as `paper-a`. No Russian PDF is built.
-  - **T73.4** publishes the paper with the page.
+  - **T73.4, the paper on the page (R248):** `research.yml` builds the paper before the page's data, which takes the clean PDF in, and a pull request builds its site from the same run without publishing it. The PDF and its facts are no longer committed, and the page names the commit the paper's numbers were computed on.
 
 **Rejected:**
 - the bench's numbers committed and checked for freshness: a committed file cannot name the commit it was computed on, any change of the model's inputs would need the whole run and a ten-thousand-line diff, and an arm64 machine parts in the last digits;

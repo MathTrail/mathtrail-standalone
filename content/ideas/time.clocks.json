@@ -1,0 +1,38 @@
+{
+  "1-2": [
+    "Whole hours: when a cartoon or a walk starts or ends.",
+    "Half hours and quarter hours added to a time.",
+    "How long something lasts, from its start and its end.",
+    "Sleep across midnight: from a time in the evening to a time in the morning.",
+    "A bus trip in minutes, from leaving to arriving.",
+    "A clock that strikes the hours: how many strokes in a few hours.",
+    "A time some minutes before or after a given time, crossing the hour.",
+    "Two activities one after another, with a break between them.",
+    "Which of two films is longer, from their start and end times.",
+    "A timer for cooking: when to start so that the food is ready at a given time."
+  ],
+  "3-4": [
+    "A lesson or a trip across the hour, in hours and minutes.",
+    "Minutes in a few hours and a half.",
+    "Sleep from a time at night to a time in the morning, on the 24-hour clock.",
+    "A clock that strikes the hours and once at every half hour: the strokes in a day.",
+    "A watch that loses or gains minutes every hour: what it shows later.",
+    "A bus leaving every few minutes: when the bus of a given number leaves.",
+    "A time a while ago: hours and minutes taken away, crossing the hour.",
+    "A school day of lessons with breaks between them: when it ends.",
+    "The 24-hour clock and the 12-hour clock: the same moment written both ways.",
+    "Two clocks set at the same time, one fast and one slow: the difference after some hours."
+  ],
+  "5-6": [
+    "A night shift with breaks: how long it lasts across midnight.",
+    "Phoning between time zones: the time at the other end.",
+    "A flight across time zones: the local times of take-off and landing.",
+    "Two night trains: which trip is longer, and by how much.",
+    "Two buses on one route, one every 12 minutes and one every 18: when they next leave together.",
+    "A film shown twice with a break between: when the second showing ends.",
+    "A flight there and back: the time in the air and the difference between the zones.",
+    "A watch that gains a few minutes each hour: the true time when it shows a given time.",
+    "Two clocks, one gaining and one losing: when they show the same time again.",
+    "The angle between the hands of a clock at a given time."
+  ]
+}
