@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
-import { main } from "./main.ts";
+import { defaultMaxPageBytes, main } from "./main.ts";
 import { published } from "./published.ts";
 import { base, siteAt, writeSite } from "./testing/site.ts";
 
@@ -124,7 +124,7 @@ describe("the checker's command line", () => {
 		const dir = await publishable();
 		const front = join(dir, "en", "index.html");
 		const page = await readFile(front, "utf8");
-		const heavy = "x".repeat(400 * 1024);
+		const heavy = "x".repeat(defaultMaxPageBytes);
 		await mkdir(join(dir, "assets", "photos"), { recursive: true });
 		await writeFile(join(dir, "assets", "photos", "us.webp"), heavy);
 		await writeFile(join(dir, "assets", "us.webp"), heavy);
