@@ -12,7 +12,7 @@ afterEach(() => {
 describe("the service of a card drawn where nothing answers for it", () => {
 	// A card drawn still on a page asks nobody: every question it could ask
 	// ends as one the service never answered.
-	test("records no answer, knows no task's standing, reads no progress and saves no change", async () => {
+	test("records no answer, knows no task's standing, takes no task, reads no progress and saves no change", async () => {
 		let asked: Service | undefined;
 		function Card() {
 			asked = useService();
@@ -27,6 +27,7 @@ describe("the service of a card drawn where nothing answers for it", () => {
 			kind: "failed",
 		});
 		expect(await asked.taskStatus("req_1")).toEqual({ kind: "unknown" });
+		expect(await asked.takeTask("task_fence")).toEqual({ kind: "failed" });
 		expect(await asked.readProgress()).toEqual({ kind: "failed" });
 		expect(await asked.saveEdit({ lesson_topic: "" })).toEqual({
 			kind: "failed",

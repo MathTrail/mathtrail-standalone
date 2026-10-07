@@ -18,7 +18,9 @@ export const checkingTakes = 1100;
  * the answer before left it, as far as the data moves it. A task asked for is
  * still being written the first time its card asks, and handed out the next
  * time: the lesson's task again, under an id of its own. The page keeps no
- * profile, so no progress is read and no change to one is ever saved.
+ * profile, so no progress is read and no change to one is ever saved; and it
+ * keeps no task written ahead, so the card takes none, and asks the chat for
+ * the next task instead, as a card does where the service gives it none.
  */
 export function demoService(data: DemoData): Service {
 	const asked = new Map<string, number>();
@@ -58,6 +60,7 @@ export function demoService(data: DemoData): Service {
 					: { kind: "task", handed: handedFor(data.handed, requestId) },
 			);
 		},
+		takeTask: () => Promise.resolve({ kind: "failed" }),
 		readProgress: () => Promise.resolve({ kind: "failed" }),
 		saveEdit: () => Promise.resolve({ kind: "failed" }),
 	};

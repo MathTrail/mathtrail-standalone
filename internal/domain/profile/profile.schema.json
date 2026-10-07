@@ -49,6 +49,10 @@
     "ratings": {
       "$ref": "#/$defs/ratings"
     },
+    "ready_task": {
+      "description": "The next task, written ahead while the child worked on the one on the card and kept until they ask for another. Absent when no task is kept, and never beside an open request.",
+      "$ref": "#/$defs/readyTask"
+    },
     "recent": {
       "description": "The history window, oldest first: answers and skipped tasks together. When an entry has to go, the oldest goes, unless it is one of the five latest answers, and then the oldest skipped task goes instead.",
       "type": "array",
@@ -334,6 +338,14 @@
       "type": "object",
       "required": ["attempts", "brief", "id", "language", "opened_at", "tutor_mode"],
       "properties": {
+        "ahead": {
+          "description": "True when the task is written ahead, to be kept until the child asks for it; absent for a task the child is waiting for.",
+          "type": "boolean"
+        },
+        "asked": {
+          "description": "True when a person asked for the topic, the level or the difficulty the task is set at.",
+          "type": "boolean"
+        },
         "attempts": {
           "description": "How many times the model has handed something back.",
           "type": "integer",
@@ -343,7 +355,15 @@
         "brief": { "$ref": "#/$defs/brief" },
         "id": { "type": "string", "minLength": 1 },
         "language": { "type": "string" },
+        "lesson_topic": {
+          "description": "The topic the lessons were kept to when a request ahead was opened; absent when they were kept to none.",
+          "type": "string"
+        },
         "opened_at": { "type": "string", "format": "date-time" },
+        "taken_after": {
+          "description": "The task a card asked for the next one after, when this request answers a card's ask.",
+          "type": "string"
+        },
         "tutor_mode": {
           "description": "Who chose the topic and the difficulty: the rule, the model with a reason of its own, or a person — the child or the adult, who chose the topic of the lessons, the rule setting the rest.",
           "type": "string",
@@ -399,6 +419,10 @@
           "description": "The answer the task was given, absent while the child is still working on it. The task stays on the card with it until the next task is asked for, so that the same answer sent again is told what was recorded.",
           "$ref": "#/$defs/given"
         },
+        "asked": {
+          "description": "True when a person asked for the topic, the level or the difficulty the task is set at; the task written ahead after it is set the same.",
+          "type": "boolean"
+        },
         "difficulty": { "type": "integer", "minimum": 1, "maximum": 5 },
         "drawing": {
           "description": "The picture in text, when the task has one.",
@@ -410,6 +434,10 @@
         "id": { "type": "string", "minLength": 1 },
         "instructions_version": { "type": "string" },
         "issued_at": { "type": "string", "format": "date-time" },
+        "kept": {
+          "description": "True when the task was written ahead and kept until the child asked for the next one, rather than written while they waited.",
+          "type": "boolean"
+        },
         "language": { "type": "string" },
         "options": {
           "description": "The five the child chooses between.",
@@ -422,6 +450,10 @@
           "type": "string",
           "minLength": 1
         },
+        "taken_after": {
+          "description": "The task a card asked for the next one after, when a card asked for this one.",
+          "type": "string"
+        },
         "topic": { "type": "string", "minLength": 1 },
         "tutor_mode": {
           "description": "Who chose the topic and the difficulty, as the task's request had it: rule, llm or person. A task handed out before it was kept has none.",
@@ -429,6 +461,88 @@
           "enum": ["rule", "llm", "person"]
         },
         "wording": { "type": "string", "minLength": 1 }
+      }
+    },
+    "readyTask": {
+      "description": "A task written ahead and accepted by the checks, waiting for the child to ask for the next task: everything the card will show, one sealed string, what the task was written for and how its writing went.",
+      "type": "object",
+      "required": [
+        "attempts",
+        "difficulty",
+        "excluded_skills",
+        "fingerprint",
+        "grade_level",
+        "hint",
+        "id",
+        "instructions_version",
+        "language",
+        "opened_at",
+        "options",
+        "sealed",
+        "topic",
+        "tutor_mode",
+        "wording",
+        "written_at"
+      ],
+      "properties": {
+        "attempts": {
+          "description": "How many hand-ins its writing took, the accepted one among them.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        },
+        "difficulty": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "drawing": {
+          "description": "The picture in text, when the task has one.",
+          "type": "string"
+        },
+        "excluded_skills": {
+          "description": "The skills the task was asked to keep out.",
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "fingerprint": { "type": "string" },
+        "grade_level": { "$ref": "#/$defs/gradeLevel" },
+        "hint": { "type": "string" },
+        "id": {
+          "description": "The id the task will have on the card, which its seal is tied to.",
+          "type": "string",
+          "minLength": 1
+        },
+        "instructions_version": { "type": "string" },
+        "language": { "type": "string", "minLength": 1 },
+        "lesson_topic": {
+          "description": "The topic the lessons were kept to when the task was asked for; absent when they were kept to none.",
+          "type": "string"
+        },
+        "opened_at": {
+          "description": "When its request was opened, which the time its writing took is counted from.",
+          "type": "string",
+          "format": "date-time"
+        },
+        "options": {
+          "description": "The five the child will choose between.",
+          "type": "object",
+          "required": ["A", "B", "C", "D", "E"],
+          "additionalProperties": { "type": "string" }
+        },
+        "sealed": {
+          "description": "The answer, the explanation behind every wrong option, the solution and the solver, sealed as those of the task on the card are.",
+          "type": "string",
+          "minLength": 1
+        },
+        "topic": { "type": "string", "minLength": 1 },
+        "tutor_mode": {
+          "description": "Who chose the topic and the difficulty, as the task's request had it.",
+          "type": "string",
+          "enum": ["rule", "llm", "person"]
+        },
+        "wording": { "type": "string", "minLength": 1 },
+        "written_at": {
+          "description": "When the checks accepted it.",
+          "type": "string",
+          "format": "date-time"
+        }
       }
     },
     "given": {

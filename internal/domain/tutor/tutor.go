@@ -218,12 +218,32 @@ func joined(levels []rating.GradeLevel) string {
 // practised records that a failure just happened and something else was asked
 // for, which is a fact about the child rather than a defect.
 func Next(p *profile.Profile, catalog Catalog, choice Choice) (profile.Brief, profile.TutorMode, error) {
+	return brief(p, catalog, choice, false)
+}
+
+// Ahead builds the brief for the task after the one on the card, which the
+// model writes ahead, and says who chose it. It is the brief Next builds now.
+// While the child still works on the task on the card it is chosen before
+// that answer, which the next brief ahead then takes in, and dressed one
+// interest further on: the interests are taken in turn by the answers behind
+// the child, and the answer to the task on the card is not behind them yet, so
+// two tasks in a row would otherwise be dressed alike. Once that task has its
+// answer, the task written ahead is simply the next one.
+func Ahead(p *profile.Profile, catalog Catalog, choice Choice) (profile.Brief, profile.TutorMode, error) {
+	return brief(p, catalog, choice, true)
+}
+
+// brief is the brief of Next, or of Ahead when ahead is set.
+func brief(p *profile.Profile, catalog Catalog, choice Choice, ahead bool) (profile.Brief, profile.TutorMode, error) {
 	open := WithinReach(p, catalog)
 	if len(open) == 0 {
 		return profile.Brief{}, "", errors.New("tutor: the catalog has no topic taught at any level")
 	}
 
-	suggested, goal, because := choose(p, catalog, open)
+	// awaited says the answer to the task on the card is still to come, so the
+	// task written ahead comes one answer later than the count says.
+	awaited := ahead && p.InFlight() != nil
+	suggested, goal, because := choose(p, catalog, open, awaited)
 	chosen := LessonTopic(p, catalog)
 	choice = choice.Beside(chosen)
 	if problems := choice.problems(catalog, suggested, chosen); len(problems) > 0 {
@@ -235,6 +255,10 @@ func Next(p *profile.Profile, catalog Catalog, choice Choice) (profile.Brief, pr
 	ruled := CorridorIn(p, catalog, suggested)
 	topic, point, mode := apply(p, catalog, &choice, suggested, chosen, &ruled)
 
+	said := rationale(goal, because, &ruled, &choice, chosen, point)
+	if ahead {
+		said = writtenAhead(awaited) + said
+	}
 	return profile.Brief{
 		Constraints: []string{},
 		Difficulty:  point.Difficulty,
@@ -244,11 +268,21 @@ func Next(p *profile.Profile, catalog Catalog, choice Choice) (profile.Brief, pr
 		ExcludedSkills:  append([]string{}, p.Student.ExcludedSkills...),
 		GradeLevel:      point.GradeLevel,
 		PedagogicalGoal: goal,
-		Rationale:       rationale(goal, because, &ruled, &choice, chosen, point),
-		Setting:         setting(p),
+		Rationale:       said,
+		Setting:         setting(p, awaited),
 		TargetConcept:   topic,
 		TrapsToUse:      traps(p, topic, point.GradeLevel, catalog),
 	}, mode, nil
+}
+
+// writtenAhead is what the rationale of a task written ahead opens with: that
+// it was written before the answer to the task on the card, while that answer
+// is awaited, or else before the child asked for it.
+func writtenAhead(awaited bool) string {
+	if awaited {
+		return "Written ahead, before the answer to the task on the card. "
+	}
+	return "Written ahead, before the child asks for it. "
 }
 
 // ChosenTopic is the topic the child or the adult chose to keep the lessons
@@ -304,8 +338,9 @@ func WithinReach(p *profile.Profile, catalog Catalog) []string {
 }
 
 // choose picks the topic and the goal, and says in words what the choice
-// rested on.
-func choose(p *profile.Profile, catalog Catalog, open []string) (topic string, goal profile.Goal, because string) {
+// rested on: for the next task, or for the one after the task on the card when
+// its answer is awaited.
+func choose(p *profile.Profile, catalog Catalog, open []string, awaited bool) (topic string, goal profile.Goal, because string) {
 	// A failure is worked over again, on the topic of the last answer — unless
 	// the child is in the trial series, which is finding where they stand and
 	// moves to a new topic each time, or the topic has gone out of reach. A
@@ -317,7 +352,7 @@ func choose(p *profile.Profile, catalog Catalog, open []string) (topic string, g
 	now := "no failure now"
 	switch {
 	case p.Ratings.InTrial():
-		now = fmt.Sprintf("trial series, task %d of %d", max(p.Ratings.Answers, 0)+1, rating.TrialAnswers)
+		now = trialText(p.Ratings.Answers, awaited)
 		if p.Ratings.ConsecutiveFailures > 0 {
 			now += ", which does not go over a failure"
 		}
@@ -352,6 +387,21 @@ func choose(p *profile.Profile, catalog Catalog, open []string) (topic string, g
 			fmt.Sprintf("%s; every topic within reach is mastered, and %s is the one %s", now, topic, when)
 	}
 	return topic, profile.GoalNewTopic, fmt.Sprintf("%s; %s is the unmastered topic within reach %s", now, topic, when)
+}
+
+// trialText says which task of the trial series is being chosen, answered
+// being how many the child has answered: the next one, or the one after the
+// task on the card when its answer is awaited — which the series may not
+// reach, its last task being the one on the card.
+func trialText(answered int, awaited bool) string {
+	task := max(answered, 0) + 1
+	if awaited {
+		task++
+	}
+	if task > rating.TrialAnswers {
+		return "the last task of the trial series is on the card"
+	}
+	return fmt.Sprintf("trial series, task %d of %d", task, rating.TrialAnswers)
 }
 
 // unmastered keeps the topics the child has still to master where they stand,
@@ -470,21 +520,27 @@ func CorridorIn(p *profile.Profile, catalog Catalog, topic string) rating.Corrid
 }
 
 // setting is what the task is dressed in: the interests taken in turn, by the
-// number of answers behind the child. The count never goes backwards, which is
-// what the window of recent answers cannot promise — it is pruned, and a
-// rotation over it would quietly start repeating.
+// number of answers behind the child — one more for a task written ahead while
+// the answer to the task on the card is awaited, whose turn comes after that
+// answer. The count never goes backwards, which is what the window of recent
+// answers cannot promise — it is pruned, and a rotation over it would quietly
+// start repeating.
 //
 // No interests, no setting: the model picks something itself.
-func setting(p *profile.Profile) string {
+func setting(p *profile.Profile, awaited bool) string {
 	interests := p.Student.Interests
 	if len(interests) == 0 {
 		return ""
+	}
+	answers := p.Ratings.Answers
+	if awaited {
+		answers++
 	}
 	// The count comes from a file a person can open and edit, so it can be
 	// anything at all. A remainder of a negative number is negative in Go, and
 	// a rule that reached past the front of the list over that would take the
 	// request down: nonsense in is a setting out, not a panic.
-	turn := p.Ratings.Answers % len(interests)
+	turn := answers % len(interests)
 	if turn < 0 {
 		turn += len(interests)
 	}

@@ -135,9 +135,16 @@ const answeredMark = "answered"
 func (p *Profile) binding() []string {
 	task := p.CurrentTask
 	if task.Answered == nil {
-		return []string{p.StudentID, task.ID}
+		return unansweredBinding(p.StudentID, task.ID)
 	}
 	return answeredBinding(p.StudentID, task.ID, task.Answered.Choice)
+}
+
+// unansweredBinding is the binding of a task still waiting for its answer: on
+// the card, or kept ready to be handed out under the same id, which is why a
+// kept task opens on the card as it is.
+func unansweredBinding(studentID, taskID string) []string {
+	return []string{studentID, taskID}
 }
 
 // answeredBinding is the binding of a task answered with a letter.

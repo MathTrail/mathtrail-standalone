@@ -53,7 +53,10 @@ func (s *Service) readTask(ctx context.Context, account store.Account, in readTa
 }
 
 // taskAwaited is one read of the profile, and how the task of the request
-// asked about stands in it. Nothing is written.
+// asked about stands in it. Nothing is written. A task kept ready comes to the
+// card that asks for the next task, never to one waiting for the request it
+// was written for — no card waits for a request written ahead — so such a
+// card is told none is coming, as for a request that is over.
 func (s *Service) taskAwaited(ctx context.Context, account store.Account, requestID string) (Reply[awaitedOut], error) {
 	p, _, err := s.store.Load(ctx, account)
 	switch {

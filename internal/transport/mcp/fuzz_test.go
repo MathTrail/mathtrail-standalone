@@ -89,10 +89,11 @@ func FuzzToolArguments(f *testing.F) {
 const fuzzRequest = "req_fuzz"
 
 // The arguments of the tools of a task are written by the chat's model as much
-// as any, and the whole way runs behind them: the rule, the package, the
-// checks, the sandbox, the seal and the store. Whatever arrives is answered —
-// a task asked for or handed in, a refusal, or arguments that do not fit — and
-// never as a failure of ours.
+// as any — or by a card a host stands between — and the whole way runs behind
+// them: the rule, the package, the checks, the sandbox, the seal and the
+// store. Whatever arrives is answered — a task asked for, got ready, taken or
+// handed in, a refusal, or arguments that do not fit — and never as a failure
+// of ours.
 func FuzzTaskArguments(f *testing.F) {
 	request := openRace(f)
 	race, err := json.Marshal(raceOn(request))
@@ -121,6 +122,13 @@ func FuzzTaskArguments(f *testing.F) {
 		{2, `{"request_id":"req_\u0000","extra":true}`},
 		{3, `{"request_id":"` + request.ID + `"}`},
 		{3, `{"request_id":["req_fuzz"]}`},
+		{4, `{"language":"en"}`},
+		{4, `{"language":"en","topic":"logic.ordering","grade_level":"1-2","difficulty":2,"reason":"a race"}`},
+		{4, `{"language":"ru","difficulty":0,"reason":""}`},
+		{4, `{"topic":"nowhere","grade_level":"9-10"}`},
+		{5, `{"task_id":"` + fuzzTask + `"}`},
+		{5, `{"task_id":""}`},
+		{5, `{"task_id":7}`},
 	} {
 		f.Add(seed.tool, seed.arguments)
 	}
@@ -133,7 +141,7 @@ func FuzzTaskArguments(f *testing.F) {
 			}
 			arguments = string(quoted)
 		}
-		tools := []string{"next_task", "submit_task", "get_package", "read_task"}
+		tools := []string{"next_task", "submit_task", "get_package", "read_task", "prepare_task", "take_task"}
 		tool := tools[int(pick)%len(tools)]
 
 		if line := callOn(t, fuzzProfile(t), tool, arguments); line["outcome"] == "failed" {

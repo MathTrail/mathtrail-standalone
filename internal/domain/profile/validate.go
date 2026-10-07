@@ -120,16 +120,25 @@ func (p *Profile) validate(most int) error {
 		return fmt.Errorf("%w: task_fingerprints holds %d, the limit is %d",
 			ErrInvalid, len(p.TaskFingerprints), MaxFingerprints)
 	}
-	if err := p.CurrentTask.validate(); err != nil {
-		return err
-	}
-	if err := p.OpenRequest.validate(); err != nil {
+	if err := p.validateTasks(); err != nil {
 		return err
 	}
 	if err := p.Daily.validate(); err != nil {
 		return err
 	}
 	return p.countsUpTo(most)
+}
+
+// validateTasks checks the tasks the file holds: the one on the card, the one
+// kept ready and the one being written.
+func (p *Profile) validateTasks() error {
+	if err := p.CurrentTask.validate(); err != nil {
+		return err
+	}
+	if err := p.ReadyTask.validate(); err != nil {
+		return err
+	}
+	return p.OpenRequest.validate()
 }
 
 // validateHeader checks what the file says of itself: its shape, whose it is,
@@ -327,17 +336,60 @@ func (t *CurrentTask) validate() error {
 	case !t.GradeLevel.Known():
 		return fmt.Errorf("%w: current_task.grade_level is %q, want one of %v",
 			ErrInvalid, t.GradeLevel, rating.GradeLevels())
-	case len(t.Options) != solver.Count:
-		return fmt.Errorf("%w: current_task offers %d options, want %d", ErrInvalid, len(t.Options), solver.Count)
 	case t.TutorMode != "" && !t.TutorMode.Known():
 		return fmt.Errorf("%w: current_task.tutor_mode is %q, want rule, llm, person or none", ErrInvalid, t.TutorMode)
 	}
-	for place := range solver.Count {
-		if letter := solver.Letter(place); solver.Blank(t.Options[letter]) {
-			return fmt.Errorf("%w: current_task.options shows nothing under %q", ErrInvalid, letter)
-		}
+	if err := validateOptions("current_task", t.Options); err != nil {
+		return err
 	}
 	return t.Answered.validate()
+}
+
+// validateOptions checks that a task offers its five options, each showing
+// something: a blank one could be chosen by nobody, and its letter would be
+// the answer by elimination or a choice the card cannot show.
+func validateOptions(field string, options map[string]string) error {
+	if len(options) != solver.Count {
+		return fmt.Errorf("%w: %s offers %d options, want %d", ErrInvalid, field, len(options), solver.Count)
+	}
+	for place := range solver.Count {
+		if letter := solver.Letter(place); solver.Blank(options[letter]) {
+			return fmt.Errorf("%w: %s.options shows nothing under %q", ErrInvalid, field, letter)
+		}
+	}
+	return nil
+}
+
+// validate checks a task kept ready as the task on the card is checked, but
+// for what only a task handed out has — the moment it was handed out and an
+// answer — and with how its writing went: when its request was opened, when
+// it was accepted, and an attempt the checks could have accepted it at.
+func (r *ReadyTask) validate() error {
+	if r == nil {
+		return nil
+	}
+	switch {
+	case r.ID == "" || r.Topic == "" || r.Wording == "":
+		return fmt.Errorf("%w: ready_task needs an id, a topic and a wording", ErrInvalid)
+	case r.Language == "":
+		return fmt.Errorf("%w: ready_task has no language, and it is written in one", ErrInvalid)
+	case r.Sealed == "":
+		return fmt.Errorf("%w: ready_task.sealed is empty; a task with nothing sealed has its answer in the open", ErrInvalid)
+	case r.OpenedAt.IsZero() || r.WrittenAt.IsZero():
+		return fmt.Errorf("%w: ready_task needs an opened_at and a written_at, which its writing is timed by", ErrInvalid)
+	case r.Attempts < 1 || r.Attempts > MaxAttempts:
+		return fmt.Errorf("%w: ready_task.attempts is %d, and a task is accepted at an attempt from 1 to %d",
+			ErrInvalid, r.Attempts, MaxAttempts)
+	case r.Difficulty < MinDifficulty || r.Difficulty > MaxDifficulty:
+		return fmt.Errorf("%w: ready_task.difficulty is %d, the difficulties are %d to %d",
+			ErrInvalid, r.Difficulty, MinDifficulty, MaxDifficulty)
+	case !r.GradeLevel.Known():
+		return fmt.Errorf("%w: ready_task.grade_level is %q, want one of %v",
+			ErrInvalid, r.GradeLevel, rating.GradeLevels())
+	case !r.TutorMode.Known():
+		return fmt.Errorf("%w: ready_task.tutor_mode is %q, want rule, llm or person", ErrInvalid, r.TutorMode)
+	}
+	return validateOptions("ready_task", r.Options)
 }
 
 // validate checks the answer a task keeps: what it tells again has to be an

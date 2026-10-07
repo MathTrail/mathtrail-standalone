@@ -79,8 +79,10 @@ type line struct {
 	Client     string `json:"client"`
 	DurationMS whole  `json:"duration_ms"`
 
-	// A request for a task, whether it was one already open.
+	// A request for a task, whether it was one already open, and whether it
+	// was for a task written ahead.
 	AlreadyOpen bool `json:"already_open"`
+	Ahead       bool `json:"ahead"`
 
 	// An attempt at a task: which of a request's attempts it was, the check it
 	// is counted by, and every check it failed.
@@ -94,6 +96,14 @@ type line struct {
 	Attempts            whole `json:"attempts"`
 	SecondsSinceRequest whole `json:"seconds_since_request"`
 	Drawing             *bool `json:"drawing"`
+	// A task handed out: whether it was written ahead and kept, and whether a
+	// card took it rather than the model asking for it in the chat.
+	Ready  bool `json:"ready"`
+	ByCard bool `json:"by_card"`
+	// A task written ahead and let go: why, and whether it had been written
+	// and kept or was still being written.
+	Reason  string `json:"reason"`
+	Written bool   `json:"written"`
 
 	// A limit reached.
 	Limit string `json:"limit"`

@@ -12,6 +12,7 @@ import {
 	modelLineOf,
 	next,
 	optionStateOf,
+	recordedResult,
 } from "./lesson";
 import type { AnswerResult } from "./payload";
 import {
@@ -93,6 +94,22 @@ describe("an answer", () => {
 			open,
 		);
 	});
+
+	test("recorded keeps its result once the task is found closed, and none given is closed with none", () => {
+		const recorded = lessonAfter(
+			{ type: "picked", choice: "B" },
+			{ type: "told", outcome: { kind: "answered", result: wrong } },
+			{ type: "closed" },
+		);
+		expect(recorded.answer).toEqual({ state: "closed", result: wrong });
+		expect(recordedResult(recorded.answer)).toEqual(wrong);
+		expect(canAnswer(recorded)).toBe(false);
+
+		const unanswered = lessonAfter({ type: "closed" });
+		expect(unanswered.answer).toEqual({ state: "closed" });
+		expect(recordedResult(unanswered.answer)).toBeUndefined();
+		expect(canAnswer(unanswered)).toBe(false);
+	});
 });
 
 describe("the hint", () => {
@@ -163,6 +180,11 @@ describe("an option", () => {
 			"of a closed task",
 			{ state: "closed" },
 			["default", "default", "default", "default", "default"],
+		],
+		[
+			"of a task closed after a wrong B",
+			{ state: "closed", result: wrong },
+			["muted", "wrong", "correct", "muted", "muted"],
 		],
 	])("stands %s", (_, answer, want) => {
 		expect(stateOf(answer)).toEqual(want);

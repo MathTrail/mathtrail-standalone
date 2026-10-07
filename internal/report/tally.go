@@ -15,6 +15,8 @@ const (
 	eventTaskRequested  = "task_requested"
 	eventTaskSubmitted  = "task_submitted"
 	eventTaskAccepted   = "task_accepted"
+	eventTaskKept       = "task_kept"
+	eventTaskDropped    = "task_dropped"
 	eventTaskSkipped    = "task_skipped"
 	eventAnswerRecorded = "answer_recorded"
 	eventLimitHit       = "limit_hit"
@@ -50,6 +52,19 @@ type tasks struct {
 	// told counts the tasks accepted whose line says whether they came with a
 	// drawing, and drawn those of them that did.
 	told, drawn int
+	// ahead counts the requests opened for a task written ahead, kept the
+	// tasks written ahead and kept, and letGo those let go, kept or still being
+	// written, once the lesson moved away from them. ready counts the tasks
+	// handed out that had been kept, and byCard the tasks a card took, kept
+	// or waited for.
+	ahead, kept, letGo, ready, byCard int
+}
+
+// letGoFor is why tasks written ahead were let go, under a version of the
+// instructions, and whether they had been written and kept.
+type letGoFor struct {
+	version, reason string
+	written         bool
 }
 
 // drawnOn is a topic as the tasks of one version of the instructions were
@@ -92,6 +107,7 @@ type counts struct {
 	tasks    map[group]*tasks
 	drawings map[drawnOn]*drawings
 	refusals map[refusedBy]*refusals
+	letGo    map[letGoFor]int
 	limits   map[string]int
 	tools    map[toolOf]*calls
 	// promises and keptUp are the answers weighed against the chance their
@@ -125,6 +141,7 @@ func tally(in *input) *counts {
 	c := &counts{
 		lines: len(lines), others: in.others, unreadable: in.unreadable,
 		tasks: map[group]*tasks{}, drawings: map[drawnOn]*drawings{}, refusals: map[refusedBy]*refusals{},
+		letGo:  map[letGoFor]int{},
 		limits: map[string]int{}, tools: map[toolOf]*calls{},
 		promises: map[promisedIn]*cameTrue{}, keptUp: map[keptUpIn]*keptUp{}, answersLeftOut: map[string]int{},
 	}
@@ -139,7 +156,7 @@ func tally(in *input) *counts {
 			c.toolCall(l, drive)
 		case eventLimitHit:
 			c.limits[l.Limit]++
-		case eventTaskRequested, eventTaskSubmitted, eventTaskAccepted:
+		case eventTaskRequested, eventTaskSubmitted, eventTaskAccepted, eventTaskKept, eventTaskDropped:
 			seenAt(firstSeen, l.InstructionsVersion, l.Time)
 			c.task(l, c.tasksOf(group{version: l.InstructionsVersion, host: hostOf(hosts, l.call())}))
 		case eventAnswerRecorded:
@@ -200,8 +217,12 @@ func (c *counts) toolCall(l *line, drive map[string]int64) {
 func (c *counts) task(l *line, counted *tasks) {
 	switch l.Message {
 	case eventTaskRequested:
-		if !l.AlreadyOpen {
-			counted.asked++
+		if l.AlreadyOpen {
+			return
+		}
+		counted.asked++
+		if l.Ahead {
+			counted.ahead++
 		}
 	case eventTaskSubmitted:
 		counted.handedIn++
@@ -217,6 +238,17 @@ func (c *counts) task(l *line, counted *tasks) {
 		counted.attempts = append(counted.attempts, int(l.Attempts))
 		counted.seconds = append(counted.seconds, int64(l.SecondsSinceRequest))
 		c.drawing(l, counted)
+		if l.Ready {
+			counted.ready++
+		}
+		if l.ByCard {
+			counted.byCard++
+		}
+	case eventTaskKept:
+		counted.kept++
+	case eventTaskDropped:
+		counted.letGo++
+		c.letGo[letGoFor{version: l.InstructionsVersion, reason: l.Reason, written: l.Written}]++
 	}
 }
 

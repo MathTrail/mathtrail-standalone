@@ -26,6 +26,12 @@ afterEach(() => {
 });
 
 const inEnglish = cardWords("en", undefined);
+
+// takeFence is the card asking for the next task after the fence. The service
+// of these cases takes none, so the card asks twice — tookNone — and then the
+// chat, as it always did.
+const takeFence = { name: "take_task", arguments: { task_id: "task_fence" } };
+const tookNone = [takeFence, takeFence];
 const inRussian = cardWords("ru", undefined);
 
 // service answers the card's calls as the service would: a topic chosen saved
@@ -369,9 +375,10 @@ describe("the panel of topics", () => {
 		press(older);
 
 		await vi.waitFor(() =>
-			expect(heard.calls).toEqual([
-				{ name: "edit_profile", arguments: { lesson_topic: "logic.sets" } },
-			]),
+			expect(heard.calls[0]).toEqual({
+				name: "edit_profile",
+				arguments: { lesson_topic: "logic.sets" },
+			}),
 		);
 	});
 
@@ -462,9 +469,16 @@ describe("a topic chosen", () => {
 		expect(heard.messages[0]).toMatch(/^Another task.— on the topic “Clocks”$/);
 		expect(heard.calls).toEqual([
 			{ name: "edit_profile", arguments: { lesson_topic: "time.clocks" } },
+			...tookNone,
 		]);
 		expect(heard.modelLines).toEqual([topicWords]);
-		expect(heard.order).toEqual(["call", "model line", "message"]);
+		expect(heard.order).toEqual([
+			"call",
+			"model line",
+			"call",
+			"call",
+			"message",
+		]);
 		expect(panel().hidden).toBe(true);
 		expect(topicButton().textContent).toBe("Topic: Clocks");
 		expect(document.activeElement).toBe(topicButton());
@@ -487,6 +501,7 @@ describe("a topic chosen", () => {
 		);
 		expect(heard.calls).toEqual([
 			{ name: "edit_profile", arguments: { lesson_topic: "" } },
+			...tookNone,
 		]);
 		expect(topicButton().textContent).toBe("Topic: the coach chooses");
 	});
@@ -549,7 +564,13 @@ describe("a topic chosen", () => {
 		press(choice("Clocks"));
 
 		await vi.waitFor(() => expect(opened.heard.messages).toHaveLength(1));
-		expect(opened.heard.order).toEqual(["call", "model line", "message"]);
+		expect(opened.heard.order).toEqual([
+			"call",
+			"model line",
+			"call",
+			"call",
+			"message",
+		]);
 	});
 
 	test("carries to the model the line of an answer no message has carried yet", async () => {
@@ -660,7 +681,11 @@ describe("a topic chosen", () => {
 		saved.arrive(topicSaved("time.clocks"));
 
 		await vi.waitFor(() => expect(heard.messages).toHaveLength(1));
-		expect(heard.calls.map((call) => call.name)).toEqual(["edit_profile"]);
+		expect(heard.calls.map((call) => call.name)).toEqual([
+			"edit_profile",
+			"take_task",
+			"take_task",
+		]);
 		expect(heard.messages[0]).toContain("Clocks");
 	});
 
@@ -691,7 +716,11 @@ describe("a topic chosen", () => {
 		});
 
 		await vi.waitFor(() => expect(heard.messages).toHaveLength(1));
-		expect(heard.calls.map((call) => call.name)).toEqual(["edit_profile"]);
+		expect(heard.calls.map((call) => call.name)).toEqual([
+			"edit_profile",
+			"take_task",
+			"take_task",
+		]);
 		expect(heard.messages[0]).toContain("Clocks");
 		expect(root.querySelector(".mt-verdict-line")).toBeNull();
 	});
@@ -705,7 +734,7 @@ describe("a topic chosen", () => {
 		press(choice("Clocks"));
 
 		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
-		expect(heard.calls).toEqual([]);
+		expect(heard.calls).toEqual(tookNone);
 	});
 
 	test("once the answer is in, locks the next task while it is saved", async () => {
@@ -739,7 +768,7 @@ describe("a topic chosen", () => {
 		});
 
 		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
-		expect(heard.calls).toEqual([]);
+		expect(heard.calls).toEqual(tookNone);
 		expect(topicButton().textContent).toBe("Topic: the coach chooses");
 	});
 
@@ -754,10 +783,10 @@ describe("a topic chosen", () => {
 		press(choice("Percentages"));
 
 		await vi.waitFor(() => expect(heard.messages).toHaveLength(1));
-		expect(heard.calls.at(-1)).toEqual({
-			name: "edit_profile",
-			arguments: { lesson_topic: "percent.basic" },
-		});
+		expect(heard.calls.slice(-3)).toEqual([
+			{ name: "edit_profile", arguments: { lesson_topic: "percent.basic" } },
+			...tookNone,
+		]);
 	});
 });
 
@@ -814,6 +843,7 @@ describe("the mark of the topic chosen", () => {
 		);
 		expect(heard.calls).toEqual([
 			{ name: "edit_profile", arguments: { lesson_topic: "" } },
+			...tookNone,
 		]);
 		expect(root.querySelector(".mt-topic-chip")).toBeNull();
 		expect(topicButton().textContent).toBe("Topic: the coach chooses");
@@ -849,7 +879,7 @@ describe("the mark of the topic chosen", () => {
 		press(cross);
 
 		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
-		expect(heard.calls).toEqual([]);
+		expect(heard.calls).toEqual(tookNone);
 	});
 
 	test("that is not saved stays, and says so", async () => {

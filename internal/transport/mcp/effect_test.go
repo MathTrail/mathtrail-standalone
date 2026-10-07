@@ -196,7 +196,8 @@ func TestAToolThatReadsChangesNothing(t *testing.T) {
 
 // A tool that only adds to the record of the lessons takes nothing from it:
 // a task answered, or left on the card and skipped by the next one asked for,
-// leaves the adult's settings as they were set, and deletes no state Drive
+// the next one got ready ahead, or taken by the card, leaves the adult's
+// settings as they were set, and deletes no state Drive
 // keeps of the file — not even once Drive keeps the most it will, when the
 // day's first write lands without keeping its own.
 func TestAToolThatAddsTakesNothingAway(t *testing.T) {
@@ -221,6 +222,20 @@ func TestAToolThatAddsTakesNothingAway(t *testing.T) {
 			last: func(string) (string, map[string]any) { return "next_task", raceChoice },
 			added: func(p *profile.Profile) bool {
 				return p.Topics["logic.ordering"].Skipped == 1 && p.CurrentTask == nil
+			},
+		},
+		{
+			name:  "the next task got ready ahead",
+			last:  func(string) (string, map[string]any) { return "prepare_task", aheadChoice },
+			added: func(p *profile.Profile) bool { return p.OpenRequest != nil && p.OpenRequest.Ahead },
+		},
+		{
+			name: "the next task taken by the card",
+			last: func(taskID string) (string, map[string]any) {
+				return "take_task", map[string]any{"task_id": taskID}
+			},
+			added: func(p *profile.Profile) bool {
+				return p.Topics["logic.ordering"].Skipped == 1 && p.OpenRequest != nil && p.OpenRequest.TakenAfter != ""
 			},
 		},
 	} {

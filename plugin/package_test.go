@@ -29,10 +29,10 @@ const (
 )
 
 // modelTools are the tools the chat's model calls, as the service registers
-// them; the card's own three are not among them, since no prompt triggers one.
+// them; the card's own four are not among them, since no prompt triggers one.
 var modelTools = []string{
 	"get_profile", "save_profile", "get_progress",
-	"next_task", "get_package", "submit_task", "submit_answer",
+	"next_task", "get_package", "prepare_task", "submit_task", "submit_answer",
 }
 
 // manifest is plugin.json as the Agent Plugins format and OpenAI's extension

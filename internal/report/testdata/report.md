@@ -1,6 +1,6 @@
 # What the log adds up to
 
-142 lines of the service's, from 2026-09-28 10:00:00 UTC to 2026-09-30 08:16:30 UTC. 2 more lines, not the service's, were left out.
+153 lines of the service's, from 2026-09-28 10:00:00 UTC to 2026-09-30 08:16:30 UTC. 2 more lines, not the service's, were left out.
 
 ## Tasks
 
@@ -11,17 +11,33 @@ Asked for counts the requests opened; handed in, the attempts judged, of which t
 | 0a1b2c3d4e5f | chatgpt | 1 | 3 | 3 | 1 |
 | 0a1b2c3d4e5f | claude | 1 | 2 | 1 | 0 |
 | 88b63e22129c | (call not read) | 0 | 1 | 0 | 0 |
-| 88b63e22129c | claude | 1 | 1 | 0 | 0 |
+| 88b63e22129c | claude | 3 | 2 | 0 | 0 |
 
 ## Accepted tasks
 
-The attempts an accepted task took, and the seconds from its request to its acceptance: the time the chat's model took to write it. With a drawing counts the tasks that came with one; where only some lines of a group say whether they did, it counts among those, as 2 of 3, and where none says, it is not logged.
+The attempts an accepted task took, and the seconds from its request to its acceptance: the time the chat's model took to write it — for a task written ahead, the time its writing took, though the child had it at once. With a drawing counts the tasks that came with one; where only some lines of a group say whether they did, it counts among those, as 2 of 3, and where none says, it is not logged.
 
 | Instructions | Host | Accepted | With a drawing | At the first attempt | Attempts, mean | Seconds, median | Seconds, 90th percentile | Seconds, longest |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
 | 0a1b2c3d4e5f | claude | 1 | (not logged) | 0 | 2.0 | 95 | 95 | 95 |
 | 88b63e22129c | (call not read) | 1 | 1 | 1 | 1.0 | 70 | 70 | 70 |
-| 88b63e22129c | claude | 1 | 0 | 1 | 1.0 | 40 | 40 | 40 |
+| 88b63e22129c | claude | 2 | 1 | 2 | 1.0 | 35 | 40 | 40 |
+
+## Tasks written ahead
+
+Asked ahead counts the requests opened for the next task while the child worked on the one on the card, and kept the tasks written for them and kept. Handed out ready counts the tasks handed out that had been kept, out of all handed out; taken by the card, the tasks a card took itself, kept or waited for; let go, the tasks written ahead, kept or still being written, that the lesson moved away from before they were handed out.
+
+| Instructions | Host | Asked ahead | Kept | Handed out ready | Taken by the card | Let go |
+|---|---|---:|---:|---:|---:|---:|
+| 88b63e22129c | claude | 2 | 1 | 1 of 2 | 1 | 1 |
+
+## Why tasks written ahead were let go
+
+The reason the lesson moved away from a task: another language of the lessons, another topic the lessons are kept to, a skill kept out since, another place a person asked for, or another version of the instructions. Written says whether the task had been written and kept, or was still being written.
+
+| Instructions | Reason | Written | Let go |
+|---|---|---|---:|
+| 88b63e22129c | language | being written | 1 |
 
 ## Drawings by topic
 
@@ -29,6 +45,7 @@ The tasks accepted on each topic whose line says whether they came with a drawin
 
 | Instructions | Topic | Accepted | With a drawing |
 |---|---|---:|---:|
+| 88b63e22129c | counting.gaps | 1 | 1 |
 | 88b63e22129c | logic.ordering | 1 | 0 |
 | 88b63e22129c | parity.alternation | 1 | 1 |
 
@@ -104,10 +121,12 @@ Milliseconds are the service's own time for a call, its calls to Drive included;
 | chatgpt | submit_task | 3 | 0 | 3 | 0 | 0 | 310 | 320 | 310 | 320 |
 | claude | get_profile | 1 | 1 | 0 | 0 | 0 | 5 | 5 | 5 | 5 |
 | claude | get_progress | 1 | 1 | 0 | 0 | 0 | 400 | 400 | 70 | 70 |
-| claude | next_task | 3 | 2 | 1 | 0 | 0 | 100 | 120 | 100 | 120 |
+| claude | next_task | 4 | 3 | 1 | 0 | 0 | 100 | 300 | 100 | 300 |
+| claude | prepare_task | 2 | 2 | 0 | 0 | 0 | 150 | 150 | 150 | 150 |
 | claude | read_task | 2 | 2 | 0 | 0 | 0 | 70 | 90 | 20 | 30 |
 | claude | submit_answer | 42 | 42 | 0 | 0 | 0 | 80 | 80 | 80 | 80 |
-| claude | submit_task | 3 | 2 | 1 | 0 | 0 | 250 | 300 | 250 | 300 |
+| claude | submit_task | 4 | 3 | 1 | 0 | 0 | 240 | 300 | 240 | 300 |
+| claude | take_task | 1 | 1 | 0 | 0 | 0 | 1620 | 1620 | 1620 | 1620 |
 
 ## Traces
 
@@ -120,7 +139,7 @@ A request's trace is kept or dropped as the request arrives. The spans of a kept
 
 ## The busiest minute
 
-The most a minute by the clock held, the minute a pace is counted over. An account's pace counts every message it sends the MCP endpoint, and a tool call is the one a line names the account on; an instance's counts every request it is sent, at the MCP endpoint and at the sign-in apart. The lines of requests name 2 instances. The MCP endpoint was sent 0.07 requests for each tool call.
+The most a minute by the clock held, the minute a pace is counted over. An account's pace counts every message it sends the MCP endpoint, and a tool call is the one a line names the account on; an instance's counts every request it is sent, at the MCP endpoint and at the sign-in apart. The lines of requests name 2 instances. The MCP endpoint was sent 0.06 requests for each tool call.
 
 | What | Most in a minute |
 |---|---:|
@@ -135,7 +154,7 @@ The children the counts for grant applications are taken from, by the rules thos
 
 | Day | Children | Tasks | Answers | Topics won |
 |---|---:|---:|---:|---:|
-| 2026-09-29 | 2 | 2 | 1 | 2 |
+| 2026-09-29 | 2 | 3 | 1 | 2 |
 
 ## The rules of the log
 

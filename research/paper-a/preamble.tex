@@ -28,6 +28,24 @@
   \newcommand{\ArtifactURL}{\url{https://github.com/MathTrail/mathtrail-standalone}}
 \fi
 
+% -- The version of the paper ---------------------------------------------------
+% The named build prints the version of the paper, the date and the short hash
+% of the commit it is built from, which the build writes to
+% generated/version.tex; a footnote with no mark, at the foot of the first
+% page, carries it, so that the title holds nothing but the title, and the log
+% names it, where the build reads it back. The anonymous build never reads the
+% file, so it prints nothing that leads to the repository: a \Version written
+% into the text stops it.
+\ifanonymous
+  \def\VersionText{}
+\else
+  \input{generated/version}
+  \edef\VersionText{Version of \Version.}
+  \typeout{Paper A: \VersionText}
+\fi
+\newcommand{\VersionFootnote}{\ifx\VersionText\empty\else
+  \begingroup\renewcommand{\thefootnote}{}\footnotetext{\VersionText}\endgroup\fi}
+
 % -- Numbers ------------------------------------------------------------------
 % No number in the paper is typed by hand. Each comes from a file a script
 % computed, through generated/numbers.tex, which the build writes from those
@@ -122,9 +140,11 @@
 
 % -- Marks for what a later task supplies -----------------------------------------
 % A TBD prints boldly in every draft so it cannot pass unseen. The build for
-% submission, made with \def\Final{} as well, refuses to finish while one is left.
+% submission, made with \def\Final{} as well, refuses to finish while one is
+% left. It first writes the TBD on a line of its own, "PAPER-A-TBD: " and what
+% is left, where what the submission waits for is read back.
 \ifdefined\Final
-  \newcommand{\TBD}[1]{\PackageError{paper-a}{TBD left: #1}{Finish it before the paper is submitted.}}
+  \newcommand{\TBD}[1]{\typeout{PAPER-A-TBD: #1}\PackageError{paper-a}{TBD left: #1}{Finish it before the paper is submitted.}}
 \else
   \newcommand{\TBD}[1]{\textbf{[TBD: #1]}}
 \fi

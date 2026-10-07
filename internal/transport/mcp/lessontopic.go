@@ -64,8 +64,8 @@ func (s *Service) lessonTopicText(p *profile.Profile) string {
 
 // topicChangedText is what the model is told when the card changed the topic
 // of the lessons and nothing else: what the next tasks are on now, and that a
-// task already being written keeps its own. The child's message asking for the
-// next task follows it.
+// task already being written keeps its own. The card then asks for the next
+// task itself, and its words asking the chat to get it ready follow these.
 func (s *Service) topicChangedText(p *profile.Profile) string {
 	lead := "On the card, the choice of the topic of the lessons was given back to the rule: it chooses the " +
 		"topic of every task again."
@@ -73,15 +73,18 @@ func (s *Service) topicChangedText(p *profile.Profile) string {
 		lead = "On the card, the child or the adult chose the topic of the lessons."
 	}
 	return joined(lead, s.lessonTopicText(p), s.topicStillText(p),
-		"Do not explain the choice or say why the next task comes; ask for it with next_task when the child does.")
+		"Do not explain the choice or say why the next task comes. The card asks for the next task itself: when "+
+			"its words asking to get the next task ready come, call prepare_task, which hands you the package of "+
+			"the task it waits for; when the child asks in the chat instead, call next_task.")
 }
 
-// topicStillText says that the task being written keeps the topic it was asked
-// on, when the lessons are now kept to another: a request open is handed back
-// as it was, and the topic chosen starts with the task after it.
+// topicStillText says that the task the child waits for keeps the topic it was
+// asked on, when the lessons are now kept to another: a request open is handed
+// back as it was, and the topic chosen starts with the task after it. A task
+// being written ahead keeps nothing: it is let go once the next task is taken.
 func (s *Service) topicStillText(p *profile.Profile) string {
-	lesson, request := tutor.LessonTopic(p, s.content), p.OpenRequest
-	if lesson == "" || request == nil || !request.Awaited(s.window, s.now()) || request.Brief.TargetConcept == lesson {
+	lesson, request := tutor.LessonTopic(p, s.content), s.waitedOpen(p, s.now())
+	if lesson == "" || request == nil || request.Brief.TargetConcept == lesson {
 		return ""
 	}
 	return fmt.Sprintf("The task being written now stays on its own topic; the one after it comes on %s.", s.topicName(lesson))

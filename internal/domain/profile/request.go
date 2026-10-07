@@ -29,21 +29,27 @@ const (
 	// TaskBeingWritten is a request still waited for: its task has not been
 	// handed out yet.
 	TaskBeingWritten TaskState = "being_written"
+	// TaskKept is the request's task written ahead and kept ready: it comes to
+	// a card when the child asks for the next task.
+	TaskKept TaskState = "kept"
 	// TaskOnTheCard is the request's task on the child's card, answered or not.
 	TaskOnTheCard TaskState = "on_the_card"
 	// TaskNotComing is a request whose task will not be on the card: it ran out
-	// of attempts or of time, a newer request replaced it, or its task has left
-	// the card.
+	// of attempts or of time, a newer request replaced it, its task kept ready
+	// no longer fitted the lesson, or its task has left the card.
 	TaskNotComing TaskState = "not_coming"
 )
 
 // TaskFor says how the task written for a request stands, and, while it is
 // being written, how many of its attempts the checks have turned down. A task
-// handed out closes its request, so the task on the card is looked for first:
-// it is all that is left of the request.
+// kept or handed out closes its request, so the task is looked for first: it
+// is all that is left of the request.
 func (p *Profile) TaskFor(requestID string, window time.Duration, now time.Time) (state TaskState, refused int) {
 	if task := p.CurrentTask; task != nil && task.ID == TaskIDFor(requestID) {
 		return TaskOnTheCard, 0
+	}
+	if ready := p.ReadyTask; ready != nil && ready.ID == TaskIDFor(requestID) {
+		return TaskKept, 0
 	}
 	if request := p.OpenRequest; request != nil && request.ID == requestID && request.Awaited(window, now) {
 		return TaskBeingWritten, request.Attempts
@@ -69,8 +75,11 @@ func (r *OpenRequest) Awaited(window time.Duration, now time.Time) bool {
 // Ask records that the model has been asked for a task: the request it hands
 // the task back against, with the brief it was given, the language the task
 // is to be written in and nothing handed back yet. A request open before it is
-// replaced, since the caller has decided nobody waits for it any more.
+// replaced, since the caller has decided nobody waits for it any more; and a
+// task kept ready is let go, since asking for one to be written means the kept
+// one is not to be handed out.
 func (p *Profile) Ask(brief *Brief, mode TutorMode, language string, now time.Time) *OpenRequest {
+	p.ReadyTask = nil
 	p.OpenRequest = &OpenRequest{
 		Brief:     *brief,
 		ID:        "req_" + uuid.NewString(),
@@ -117,15 +126,13 @@ type Written struct {
 // Issue hands the task written for the open request to the child. It becomes
 // the task on the card, standing where the request asked, with everything that
 // gives its answer away sealed, and under the id the request gives it; the
-// request is closed. The task's fingerprint
-// joins those of the tasks already given, the oldest leaving when there are
-// too many, the topic records the day, and the day's count of accepted tasks —
-// the unit of the daily limit — goes up.
+// request is closed, and the task is handed out as handOut says.
 //
 // A task still on the card — which only a file edited by hand holds beside an
-// open request, since asking for a task takes the one before it off the card —
-// is replaced: when it has no answer it is recorded as skipped, like any other
-// task left without one, and when it has one there is nothing left to record.
+// open request the child waits for, since asking for a task takes the one
+// before it off the card — is replaced: when it has no answer it is recorded as
+// skipped, like any other task left without one, and when it has one there is
+// nothing left to record.
 //
 // Nothing changes if the task cannot be sealed: a task on the card with its
 // answer in the open is worse than none.
@@ -135,8 +142,8 @@ func (p *Profile) Issue(written *Written, secret TaskSecret, sealer Sealer, now 
 		return nil, ErrNoRequest
 	}
 
-	previous, flying := p.CurrentTask, p.InFlight()
-	p.CurrentTask = &CurrentTask{
+	task := &CurrentTask{
+		Asked:               request.Asked,
 		Difficulty:          request.Brief.Difficulty,
 		Drawing:             written.Drawing,
 		Fingerprint:         written.Fingerprint,
@@ -147,28 +154,40 @@ func (p *Profile) Issue(written *Written, secret TaskSecret, sealer Sealer, now 
 		IssuedAt:            At(now),
 		Language:            request.Language,
 		Options:             maps.Clone(written.Options),
+		TakenAfter:          request.TakenAfter,
 		Topic:               request.Brief.TargetConcept,
 		TutorMode:           request.TutorMode,
 		Wording:             written.Wording,
 	}
-	if err := p.SealTask(sealer, secret); err != nil {
-		p.CurrentTask = previous
+	sealed, err := sealSecret(sealer, secret, unansweredBinding(p.StudentID, task.ID))
+	if err != nil {
 		return nil, err
 	}
+	task.Sealed = sealed
 
-	if flying != nil {
+	p.OpenRequest = nil
+	p.handOut(task, now)
+	return p.CurrentTask, nil
+}
+
+// handOut puts a task on the child's card. The task left there without an
+// answer is recorded as skipped. The new task's fingerprint joins those of the
+// tasks already given, the oldest leaving when there are too many; its topic
+// records the day; and the day's count of accepted tasks — the unit of the
+// daily limit — goes up.
+func (p *Profile) handOut(task *CurrentTask, now time.Time) {
+	if flying := p.InFlight(); flying != nil {
 		p.leave(flying, now)
 	}
-	p.OpenRequest = nil
-	p.TaskFingerprints = append(p.TaskFingerprints, written.Fingerprint)
+	p.CurrentTask = task
+	p.TaskFingerprints = append(p.TaskFingerprints, task.Fingerprint)
 	if extra := len(p.TaskFingerprints) - MaxFingerprints; extra > 0 {
 		p.TaskFingerprints = slices.Clone(p.TaskFingerprints[extra:])
 	}
-	topic := p.Topics[p.CurrentTask.Topic]
+	topic := p.Topics[task.Topic]
 	topic.LastIssued = DateOf(now)
-	p.putTopic(p.CurrentTask.Topic, &topic)
+	p.putTopic(task.Topic, &topic)
 	p.CountAccepted(now)
-	return p.CurrentTask, nil
 }
 
 // Skip takes the task off the card: the child asked for another. A task left

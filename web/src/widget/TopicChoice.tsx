@@ -6,6 +6,7 @@ import { Icon } from "../design/icons";
 import { useScopedId } from "../design/ids";
 import { type Linking, PageLink } from "../design/links";
 import type { Host } from "./bridge";
+import { lineWait, within } from "./ChatRequest";
 import { useLinking } from "./linking";
 import { groupAddress } from "./links";
 import { groupName, topicName } from "./names";
@@ -40,20 +41,6 @@ export type Choosing = {
 	panel: RefObject<HTMLElement | null>;
 	panelId: string;
 };
-
-// lineWait is how long a choice waits for the host to take the model's line
-// before the child's message goes, in milliseconds.
-const lineWait = 500;
-
-// within is promise, waited for no longer than ms.
-function within(ms: number, promise: Promise<void>): Promise<void> {
-	return Promise.race([
-		promise,
-		new Promise<void>((resolve) => {
-			setTimeout(resolve, ms);
-		}),
-	]);
-}
 
 /**
  * useTopicChoice is the choice of the topic on a card that offers it: the

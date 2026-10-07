@@ -278,7 +278,59 @@ export function scenesIn(language: string): Scene[] {
 			answers: service(),
 			play: progressUnfolded,
 		},
-		{ name: "another task asked", payload: handed, play: button(1) },
+		{
+			name: "another task asked of the chat, none taken",
+			payload: handed,
+			play: button(1),
+		},
+		{
+			name: "another task taken at once, written ahead",
+			payload: handed,
+			answers: (tool) =>
+				tool === "take_task"
+					? Promise.resolve(takenFrom(nextOf(handed)))
+					: service()(tool),
+			play: button(1),
+		},
+		{
+			name: "another task taken while it is being written",
+			payload: handed,
+			answers: (tool) => {
+				if (tool === "take_task") {
+					return Promise.resolve(takenFrom(comingFor(handed)));
+				}
+				return tool === "read_task"
+					? Promise.resolve(writing())
+					: service()(tool);
+			},
+			play: button(1),
+		},
+		{
+			name: "another task taken, the day over",
+			payload: handed,
+			answers: (tool) =>
+				tool === "take_task"
+					? Promise.resolve(takenFrom({ ...limited, child: handed.child }))
+					: service()(tool),
+			play: button(1),
+		},
+		{
+			name: "another task taken, this card's task over",
+			payload: handed,
+			answers: (tool) =>
+				tool === "take_task"
+					? Promise.resolve(
+							takenFrom({
+								screen: "waiting",
+								status: "stale",
+								code: "stale_task",
+								child: handed.child,
+								last_answer: null,
+							}),
+						)
+					: service()(tool),
+			play: button(1),
+		},
 		{
 			name: "another task, the ask not sent",
 			payload: handed,
@@ -987,6 +1039,21 @@ function inTurn(...steps: ((card: Document) => void)[]) {
 		steps.forEach((step, at) => {
 			setTimeout(() => step(card), (at + 1) * 100);
 		});
+	};
+}
+
+// nextOf is the task written ahead after handed: the same task under an id of
+// its own, as the card would take it.
+function nextOf(handed: typeof fence): typeof fence {
+	return { ...handed, task: { ...handed.task, id: `${handed.task.id}_next` } };
+}
+
+// takenFrom is the service's answer to a card that takes the next task, with
+// this payload.
+function takenFrom(payload: object): CallToolResult {
+	return {
+		content: [],
+		structuredContent: payload as Record<string, unknown>,
 	};
 }
 

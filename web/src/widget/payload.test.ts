@@ -6,6 +6,7 @@ import {
 	readEdited,
 	readHandedTask,
 	readScreen,
+	readTaken,
 	readTaskStatus,
 	readWaiting,
 } from "./payload";
@@ -24,6 +25,7 @@ import {
 	inTrial,
 	limited,
 	moving,
+	nextFence,
 	notComing,
 	onTheCard,
 	profileRead,
@@ -34,6 +36,10 @@ import {
 	staleWait,
 	standing,
 	standingBefore,
+	takenAtOnce,
+	takenComing,
+	takenLimited,
+	takenOver,
 	toldAgain,
 	withTopicChoice,
 	writing,
@@ -188,12 +194,61 @@ describe("an answer sent from the card", () => {
 	});
 });
 
+describe("the next task a card took", () => {
+	test("written ahead is read as the task now on the card", () => {
+		expect(readTaken(takenAtOnce)).toEqual({
+			kind: "task",
+			handed: readHandedTask({ ...nextFence, language: "en" }),
+		});
+	});
+
+	test("still being written is read as the request the card is to wait for", () => {
+		expect(readTaken(takenComing)).toEqual({
+			kind: "coming",
+			coming: { requestId: "req_next_fence", child: fence.child },
+		});
+	});
+
+	test("on a day with no room for another is read as the day's end", () => {
+		expect(readTaken(takenLimited)).toEqual({ kind: "limit" });
+	});
+
+	test("after a task no longer the one being solved is read as this task over", () => {
+		expect(readTaken(takenOver)).toEqual({ kind: "over" });
+	});
+
+	test.each([
+		["a failure of the service", failure],
+		["an answer recorded", answered()],
+		[
+			"a refused try, which no take answers with",
+			{ content: [], structuredContent: refused },
+		],
+		[
+			"nothing a card draws",
+			{ content: [], structuredContent: { screen: "nowhere" } },
+		],
+	])("is not taken from %s", (_, result) => {
+		expect(readTaken(result)).toEqual({ kind: "failed" });
+	});
+});
+
 describe("a wait for the next task", () => {
 	test.each([
 		["a task refused, with attempts left", refused, "refused"],
 		["a task handed in for no open request", staleWait, "stale"],
 		["the model's last attempt refused", exhausted, "exhausted"],
 		["an ask no request could be opened from", askRefused, "stale"],
+		[
+			"a task written ahead and kept, with none on the card",
+			{
+				screen: "waiting",
+				code: "task_kept",
+				child: fence.child,
+				last_answer: null,
+			},
+			"stale",
+		],
 	])("after %s is read with whose card it is", (_, payload, kind) => {
 		expect(readWaiting(payload)).toEqual({ kind, child: fence.child });
 	});

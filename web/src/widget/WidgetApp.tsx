@@ -3,16 +3,15 @@ import type { Words } from "../i18n/words";
 import type { Bridge, Call, Host } from "./bridge";
 import { OpensProgress } from "./CardFrame";
 import { ChoosingCard } from "./ChoosingCard";
-import { ComingCard } from "./ComingCard";
 import { cardWords } from "./dictionaries";
 import { FirstRunCard } from "./FirstRunScreen";
 import { serviceThrough } from "./hostedService";
+import { LessonCard } from "./LessonCard";
 import { ProfileCard } from "./ProfileScreen";
 import { ProgressOverCard } from "./ProgressOverCard";
 import { ProgressCard } from "./ProgressScreen";
 import { readScreen } from "./payload";
 import { ServiceContext } from "./service";
-import { TaskCard } from "./TaskCard";
 import { UnreadableCard } from "./UnreadableCard";
 import { WaitingCard } from "./WaitingCard";
 import { type Key, languageIn, WordsContext } from "./words";
@@ -65,11 +64,12 @@ export function WidgetApp({ bridge, host }: { bridge: Bridge; host: Host }) {
 	);
 }
 
-// Screen is the card a payload draws: a task handed to the child, a new card
-// for each task; a task on its way, a new card for each request; a card a task
-// did not come to, a new one for each payload that says so; the progress, the
-// profile or the first sign-in. A payload that names none of them, or does not
-// read as the one it names, draws a card that says so.
+// Screen is the card a payload draws: a task handed to the child, or a task on
+// its way — the card of a lesson, a new one for each payload, which moves on in
+// place as the child takes the next task on it; a card a task did not come to,
+// a new one for each payload that says so; the progress, the profile or the
+// first sign-in. A payload that names none of them, or does not read as the
+// one it names, draws a card that says so.
 function Screen({ payload, host }: { payload: unknown; host: Host }) {
 	const shown = useMemo(() => readScreen(payload), [payload]);
 	// A payload told again is the same card; another one starts it afresh.
@@ -77,17 +77,17 @@ function Screen({ payload, host }: { payload: unknown; host: Host }) {
 	switch (shown?.screen) {
 		case "task":
 			return (
-				<TaskCard
-					key={shown.handed.task.id}
-					handed={shown.handed}
+				<LessonCard
+					key={said}
+					start={{ kind: "task", handed: shown.handed }}
 					host={host}
 				/>
 			);
 		case "coming":
 			return (
-				<ComingCard
-					key={shown.coming.requestId}
-					coming={shown.coming}
+				<LessonCard
+					key={said}
+					start={{ kind: "coming", coming: shown.coming }}
 					host={host}
 				/>
 			);

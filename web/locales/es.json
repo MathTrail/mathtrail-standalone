@@ -11,6 +11,7 @@
 	"task.hide_hint": "Ocultar pista",
 	"task.another": "Otro problema",
 	"task.another_coming": "Cuando la petición llegue al chat, el problema nuevo aparecerá más abajo, en una tarjeta nueva.",
+	"task.ready_next": "Prepara el siguiente problema",
 	"task.replies": "Respuestas",
 	"task.drawing": "Dibujo",
 	"chat.not_sent": "No se envió: prueba otra vez",

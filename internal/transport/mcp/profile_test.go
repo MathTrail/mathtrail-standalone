@@ -125,25 +125,26 @@ type trialPayload struct {
 	Of       int `json:"of"`
 }
 
-// A host lists the ten tools of the lesson as they are meant: two that draw a
-// card, under both keys a host reads — the progress, and the task asked for,
-// whose card waits for it and turns into it; the two of the profile, which the
-// model reads and writes in words, drawing nothing: the profile has a section
-// of the progress; three that only a card calls, kept from the model
-// and drawing nothing — the progress opened inside a card, the change the form
-// on it sends, and how the task a card waits for stands; the one that hands the
-// model what to write a task from, which draws nothing and declares no
-// payload, since what it hands over is for the model alone and travels in its
-// words; the one that takes the task written, which draws nothing either, the
-// card that waits for it being already drawn; and the one that records an
-// answer, which the card calls as well as the model and which draws nothing,
-// since the card that sent the answer turns to its result. Handing a task in
-// is the one call that is not the same twice: each spends an attempt. The five
-// that read change nothing; the two that write the profile replace what the
-// adult set, and are the only ones a host may take for destroying something;
-// the three of the lesson only add to its record. None reaches anything beyond
-// the parent's file. Every description is short enough to reach the model
-// whole.
+// A host lists the twelve tools of the lesson as they are meant: two that draw
+// a card, under both keys a host reads — the progress, and the task asked for,
+// whose card shows the task written ahead at once or waits for the one being
+// written and turns into it; the two of the profile, which the model reads and
+// writes in words, drawing nothing: the profile has a section of the progress;
+// four that only a card calls, kept from the model and drawing nothing — the
+// progress opened inside a card, the change the form on it sends, how the task
+// a card waits for stands, and the next task a card takes itself; the two that
+// hand the model what to write a task from, which draw nothing and declare no
+// payload, since what they hand over is for the model alone and travels in
+// their words — one of them opening the request for the task written ahead;
+// the one that takes the task written, which draws nothing either, the card
+// that waits for it being already drawn; and the one that records an answer,
+// which the card calls as well as the model and which draws nothing, since the
+// card that sent the answer turns to its result. Handing a task in is the one
+// call that is not the same twice: each spends an attempt. The five that read
+// change nothing; the two that write the profile replace what the adult set,
+// and are the only ones a host may take for destroying something; the five of
+// the lesson only add to its record. None reaches anything beyond the parent's
+// file. Every description is short enough to reach the model whole.
 func TestTheToolsOfTheLessonAreListedAsTheyAreMeant(t *testing.T) {
 	t.Parallel()
 
@@ -156,8 +157,8 @@ func TestTheToolsOfTheLessonAreListedAsTheyAreMeant(t *testing.T) {
 	for _, tool := range listed.Tools {
 		byName[tool.Name] = tool
 	}
-	if len(byName) != 10 {
-		t.Errorf("%d tools are listed, want the ten of the lesson", len(byName))
+	if len(byName) != 12 {
+		t.Errorf("%d tools are listed, want the twelve of the lesson", len(byName))
 	}
 
 	for _, want := range []listing{
@@ -168,7 +169,9 @@ func TestTheToolsOfTheLessonAreListedAsTheyAreMeant(t *testing.T) {
 		{name: "read_progress", readOnly: true, idempotent: true, widgetOnly: true},
 		{name: "next_task", idempotent: true, drawsCard: true},
 		{name: "get_package", readOnly: true, idempotent: true, wordsOnly: true},
+		{name: "prepare_task", idempotent: true, wordsOnly: true},
 		{name: "submit_task"},
+		{name: "take_task", idempotent: true, widgetOnly: true},
 		{name: "read_task", readOnly: true, idempotent: true, widgetOnly: true},
 		{name: "submit_answer", idempotent: true},
 	} {

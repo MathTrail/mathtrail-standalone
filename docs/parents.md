@@ -4,7 +4,7 @@ For the parent or tutor who connected MathTrail. Everything MathTrail knows abou
 
 ## Where it is
 
-In your Google Drive, in a folder named **MathTrail**, the file **`mathtrail-profile.json`**. That one file is the whole profile: the pseudonym, the grade, the interests, the country and state if you gave them, the topic the lessons are kept to if one was chosen, the ratings and where they stood over the last seven days, a summary of past answers and the task on the card. Ask the chat where your child's profile is, and MathTrail gives it the folder, the file and a link; the *Profile and progress* card shows where it is, in its *Profile* section, under *Your data*.
+In your Google Drive, in a folder named **MathTrail**, the file **`mathtrail-profile.json`**. That one file is the whole profile: the pseudonym, the grade, the interests, the country and state if you gave them, the topic the lessons are kept to if one was chosen, the ratings and where they stood over the last seven days, a summary of past answers, the task on the card, and the next task, written ahead while your child solves. Ask the chat where your child's profile is, and MathTrail gives it the folder, the file and a link; the *Profile and progress* card shows where it is, in its *Profile* section, under *Your data*.
 
 The service keeps nothing between requests: no database, no copy of the file, and no pseudonym, task or answer in its logs. What the file holds, field by field, is in the [privacy policy](https://mathtrail.app/en/privacy/).
 
@@ -15,7 +15,7 @@ Two more kinds of file can turn up in the folder:
 
 ## Take it with you
 
-Download `mathtrail-profile.json` from Drive like any other file. That is the whole export: plain JSON, readable in any text editor. One part of it is sealed — the answer, the solution and the explanations of the task on the card, encrypted so that nobody reads them before the child answers.
+Download `mathtrail-profile.json` from Drive like any other file. That is the whole export: plain JSON, readable in any text editor. One part of it is sealed — the answer, the solution and the explanations of the task on the card, and of the next task written ahead, encrypted so that nobody reads them before the child answers.
 
 Earlier states of the file are in its version history in Drive, and any of them can be downloaded from there. MathTrail asks Drive to keep the first version of each day the profile changed for good, while Drive has room: it keeps at most two hundred versions of one file that way. A lesson never deletes one.
 

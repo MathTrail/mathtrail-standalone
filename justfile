@@ -806,7 +806,9 @@ _fma:
 # both kept in git, since the site's build makes no paper. A paper that still
 # prints a placeholder, an author, an affiliation or a mark of something to
 # come, is refused before it is built: until it holds none, the page shows
-# its title alone.
+# its title alone. A paper built while the research's tree held changes no
+# commit has is refused once built: the PDF prints the commit it is built
+# from, and that commit must make it.
 # Put the paper's PDF on the site, once it holds no placeholder
 site-paper:
     #!/usr/bin/env bash
@@ -827,6 +829,14 @@ site-paper:
         exit 1
     fi
     just research paper-a
+    # The PDF prints the version it was built at, which must be a commit's and
+    # still the tree's: changes no commit has, made before the build or while
+    # it ran, leave no commit that makes the PDF.
+    version=$(just research _paper-a-version)
+    if [[ $version == *", modified" ]] || ! grep -q -x -F "Paper A: Version of $version." research/paper-a/build/paper-a.log; then
+        echo "site-paper: research/ holds changes no commit has; commit them, and the paper names that commit" >&2
+        exit 1
+    fi
     pdf=research/paper-a/build/paper-a.pdf
     read -r pages bytes < <(sed -n -E 's/^Output written on build\/paper-a\.pdf \(([0-9]+) pages?, ([0-9]+) bytes\)\.$/\1 \2/p' \
         research/paper-a/build/paper-a.log) || true

@@ -344,8 +344,8 @@ func (s *Service) notOnTheCard(p *profile.Profile, taskID string) Reply[answered
 			"card since, and nothing was recorded now.", answer.TaskID, howItWent(answer.Correct))
 	}
 	var current string
-	switch task, request := p.CurrentTask, p.OpenRequest; {
-	case task == nil && request != nil && request.Awaited(s.window, s.now()):
+	switch task, request := p.CurrentTask, s.waitedOpen(p, s.now()); {
+	case task == nil && request != nil:
 		current = fmt.Sprintf("There is no task on the card yet: request %s is open, and its task is still to be "+
 			"handed in with submit_task.", request.ID)
 	case task == nil:

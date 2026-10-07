@@ -10,7 +10,7 @@ The reference is the author's draft, `research/draft-ui/MathTrail - Исслед
 |---|---|
 | 1 | The paper's title is on the page from its first release, though the paper is under double-blind review. The AIED 2026 call accepted preprints that follow Springer's policies. The 2027 call, the one the paper goes to, was not out on 2026-10-02 (`research/paper-a/submission.md`), so this is read again when it is: a named preprint, once indexed, cannot be withdrawn. |
 | 2 | The PDF is the named build, and only once it holds no placeholder. Today it prints `[Author]`, `[Affiliation]`, three `[TBD: K05 …]` blocks and `[TBD: K11: the artifact's DOI]`, so the page has no PDF button until authorship (K05) is filled and the artifact has its DOI (K11). The build refuses a PDF that still holds a placeholder. |
-| 3 | Every language links the English PDF until T73.3 builds the Russian one on merge. |
+| 3 | Every language links the English PDF. No Russian PDF is built (the author, 2026-10-07; T73.3, R239). |
 | 4 | Search engines may index the PDF from the start. |
 | 5 | The model's goals are bounded against the current service, as the bench's criterion bounds them: the bar is for the next rule. |
 | 6 | Where a goal's bound is computed from the service's own value of the same measure, the service's row says "baseline" rather than a mark. |
@@ -258,11 +258,12 @@ The rule is the paper's (`research/tools/handtyped`): a number reaches the text 
 - **The PDF.** A recipe of T72.13.1, `just site-paper`:
   - refuses, before it builds anything, a paper whose sources still print `[Author]`, `[Affiliation]` or a `\TBD`. It reads `main.tex` and the sections and figures, but not the preamble, which defines `\TBD` and holds the anonymous build's own; a line that is a comment does not count, and a source it cannot read is refused as one that still prints a placeholder. Today it names six lines: the author, the affiliation, the three of K05 and the artifact's DOI of K11;
   - builds the named PDF with `just research paper-a`, which runs the paper's own checks first;
+  - refuses the PDF when the research's tree held changes no commit has, before the build or while it ran: the PDF prints the commit it is built from, which must make it (R239);
   - copies the PDF to `site/research/paper-a.en.pdf` and writes to `site/research/paper.json` its pages, as the build's log gives them, its size, held to the file's, its hash and the paper's commit.
 
-  Both are committed: CI builds no paper until T73.3 brings TeX Live into it. The site serves the PDF at `/assets/paper-a.en.pdf`: a folder `/research/` at the site's root would read to the site's build as a language. The site's build copies it there from beside the data and refuses it when its size or hash is not the one its facts give (§4). With no file, the page shows the title and "Code and data" but no PDF button, and its section on the paper says the PDF comes once the paper names its authors and its archive.
-- **The paper's commit** on the page is the PDF's when the site ships one, and otherwise the one `research/evidence/product-stats.txt` names, the commit the paper's numbers were computed on. When the two part, the job's summary says that the PDF is due to be built again; the build does not fail on it.
-- **Every language** links the English PDF until T73.3 builds the Russian one.
+  Both are committed. CI builds the paper on every pull request as a check (R231) and on every release from that release's numbers (R239), but neither run copies a PDF to the site until T73.4. The site serves the PDF at `/assets/paper-a.en.pdf`: a folder `/research/` at the site's root would read to the site's build as a language. The site's build copies it there from beside the data and refuses it when its size or hash is not the one its facts give (§4). With no file, the page shows the title and "Code and data" but no PDF button, and its section on the paper says the PDF comes once the paper names its authors and its archive.
+- **The paper's commit** on the page is the PDF's when the site ships one, and otherwise the one `research/evidence/product-stats.txt` names, the commit the paper's numbers were computed on. When the two part, the job's summary says that the PDF is due to be built again; the build does not fail on it. It is the commit the paper describes, which its text prints, and not the one its version names: that is the commit the PDF is built from, a later one (R239).
+- **Every language** links the English PDF: no Russian PDF is built (R239).
 - **Indexing.** The PDF is open to search engines.
 - **Self-archiving.** Springer's self-archiving rules may limit which version can stay on the site once the paper is accepted; that is read when the venue decides.
 - **Forks.** A fork removes the paper's PDF and title, which are the authors' work: `docs/self-hosting.md` says so, as it does for the coach's page.
@@ -324,7 +325,8 @@ The answers are those to tasks the rule chose, after the trial series and withou
   - **T72.15.3, the schedule:** the snapshot's table and the identity that reads it, `just site-live` reading that table, and `live.yml` with its App.
 - **T73.2–T73.4** move the making of `research.json` and of the PDFs into the research pipeline on merge to `main`; the file's shape and the page stay.
   - **T73.2, the data (R234):** `research.yml` holds the experiments to their results and makes `research.json` and `numbers.tex` from the release's commit. `pages.yml` downloads the data for a release and makes it on a pull request, and builds the site from the data in place with `just _site-build _site-check`, while `just site` still makes the data first. The build reads it at its default `--research`, beside the PDF it names, and the bench's steps both workflows run are one action, `.github/actions/page-data`.
-  - **T73.3 and T73.4** build the PDFs from those numbers and publish them with the page.
+  - **T73.3, the paper (R239):** a release builds the named and the anonymous PDF from those numbers, with the checks of every pull request, the named one printing its version, and hands them on as `paper-a`. No Russian PDF is built.
+  - **T73.4** publishes the paper with the page.
 
 **Rejected:**
 - the bench's numbers committed and checked for freshness: a committed file cannot name the commit it was computed on, any change of the model's inputs would need the whole run and a ten-thousand-line diff, and an arm64 machine parts in the last digits;
