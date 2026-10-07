@@ -3825,7 +3825,6 @@ exports[`the screens in Arabic > the result of a wrong answer 1`] = `
     </button>
     <article
       aria-label="مسألة"
-      tabindex="-1"
     >
       <header
         class="mt-head mt-head-versioned"
@@ -4885,7 +4884,6 @@ exports[`the screens in Arabic > the task 1`] = `
     </button>
     <article
       aria-label="مسألة"
-      tabindex="-1"
     >
       <header
         class="mt-head mt-head-versioned"
@@ -5142,7 +5140,6 @@ exports[`the screens in Arabic > the task on the topic chosen, its choice of the
     </button>
     <article
       aria-label="مسألة"
-      tabindex="-1"
     >
       <header
         class="mt-head mt-head-versioned"

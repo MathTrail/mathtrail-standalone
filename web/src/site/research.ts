@@ -22,9 +22,8 @@ const count = z.number().int().positive();
 // interval is a number with the ends of its interval.
 const interval = { value: z.number(), low: z.number(), high: z.number() };
 
-// The marks a rule's number of a goal is given: the bench's own, and the
-// baseline's, which only the service carries, against a bound read off its
-// own number.
+// The marks the service's number of a goal is given: the bench's own, and
+// the baseline, against a bound read off its own number.
 const benchMark = z.enum(["reached", "on_the_edge", "not_reached"]);
 const serviceMark = z.enum([
 	"reached",
@@ -33,7 +32,7 @@ const serviceMark = z.enum([
 	"baseline",
 ]);
 
-/** Mark is the mark a rule's number of a goal is given. */
+/** Mark is the mark the service's number of a goal is given. */
 export type Mark = z.infer<typeof serviceMark>;
 
 /** marks are every mark the page names, in the order its legend gives them. */
@@ -42,9 +41,6 @@ export const marks: readonly Mark[] = serviceMark.options;
 const ceiling = z
 	.strictObject({ of: z.enum(["oracle", "perfect"]), ...interval })
 	.nullable();
-
-/** ceilingKinds are the ceilings a row is bounded by, in the legend's order. */
-export const ceilingKinds = ["oracle", "perfect"] as const;
 
 // What every row says of the measure it is.
 const measure = {
@@ -63,7 +59,6 @@ const goalRow = z.strictObject({
 	bound: z.strictObject({ value: z.number(), own: z.boolean() }),
 	values: z.strictObject({
 		service: z.strictObject({ ...interval, mark: serviceMark }),
-		earlier: z.strictObject({ ...interval, mark: benchMark }),
 		ceiling,
 	}),
 });
@@ -75,7 +70,6 @@ const contextRow = z.strictObject({
 	bound: z.null(),
 	values: z.strictObject({
 		service: z.strictObject({ ...interval, mark: z.null() }),
-		earlier: z.strictObject({ ...interval, mark: z.null() }),
 		ceiling,
 	}),
 });
@@ -172,17 +166,10 @@ const researchFile = z.strictObject({
 		resamples: count,
 		error_after: count,
 		screen_windows: z.strictObject({ early: span, late: span }),
-		goal_parameters: z.strictObject({
-			lag_share: z.number(),
-			corridor_share: z.number(),
-			unsettled_most: z.number(),
-			false_most: z.number(),
-			late_times: z.number(),
-		}),
 		rules: z.array(
 			z.strictObject({
 				id: z.string(),
-				role: z.enum(["service", "earlier", "ceiling"]),
+				role: z.enum(["service", "ceiling"]),
 			}),
 		),
 		rows: z.array(z.discriminatedUnion("kind", [goalRow, contextRow])).min(1),
@@ -345,13 +332,13 @@ export function markFrom(
 	return high < bound ? "not_reached" : "on_the_edge";
 }
 
-// checkRules refuses rules that do not give each part once: the service, the
-// rule before it, and the ceiling.
+// checkRules refuses rules that do not give each part once: the service and
+// the ceiling.
 function checkRules(rules: ResearchFile["bench"]["rules"]): void {
 	const roles = rules.map(({ role }) => role);
-	if (roles.length !== 3 || new Set(roles).size !== 3) {
+	if (roles.length !== 2 || new Set(roles).size !== 2) {
 		throw new Error(
-			`the rules play ${roles.join(", ")}, and want the service, the rule before it and the ceiling, each once`,
+			`the rules play ${roles.join(", ")}, and want the service and the ceiling, each once`,
 		);
 	}
 }
@@ -376,11 +363,7 @@ function checkRows(rows: readonly Row[]): void {
 // checkNumbers refuses an interval of a row whose ends are the wrong way
 // round, and a number of the row under zero, where its drawing starts.
 function checkNumbers(row: Row): void {
-	for (const ends of [
-		row.values.service,
-		row.values.earlier,
-		row.values.ceiling,
-	]) {
+	for (const ends of [row.values.service, row.values.ceiling]) {
 		if (ends === null) {
 			continue;
 		}
@@ -402,21 +385,15 @@ function checkNumbers(row: Row): void {
 	}
 }
 
-// checkMarks refuses marks of a goal's row that its numbers do not give.
+// checkMarks refuses a mark of a goal's row that its numbers do not give.
 function checkMarks(row: Extract<Row, { kind: "goal" }>): void {
-	const { service, earlier } = row.values;
-	const serviceWant = row.bound.own
+	const { service } = row.values;
+	const want = row.bound.own
 		? "baseline"
 		: markFrom(row.better, row.bound.value, service);
-	if (service.mark !== serviceWant) {
+	if (service.mark !== want) {
 		throw new Error(
-			`the service is marked ${service.mark} on ${row.id}, and its numbers give ${serviceWant}`,
-		);
-	}
-	const earlierWant = markFrom(row.better, row.bound.value, earlier);
-	if (earlier.mark !== earlierWant) {
-		throw new Error(
-			`the rule before is marked ${earlier.mark} on ${row.id}, and its numbers give ${earlierWant}`,
+			`the service is marked ${service.mark} on ${row.id}, and its numbers give ${want}`,
 		);
 	}
 }

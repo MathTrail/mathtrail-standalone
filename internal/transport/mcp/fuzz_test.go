@@ -128,9 +128,6 @@ func FuzzTaskArguments(f *testing.F) {
 		{4, `{"language":"en","topic":"logic.ordering","grade_level":"1-2","difficulty":2,"reason":"a race"}`},
 		{4, `{"language":"ru","difficulty":0,"reason":""}`},
 		{4, `{"topic":"nowhere","grade_level":"9-10"}`},
-		{5, `{"task_id":"` + fuzzTask + `"}`},
-		{5, `{"task_id":""}`},
-		{5, `{"task_id":7}`},
 	} {
 		f.Add(seed.tool, seed.arguments)
 	}
@@ -143,7 +140,7 @@ func FuzzTaskArguments(f *testing.F) {
 			}
 			arguments = string(quoted)
 		}
-		tools := []string{"next_task", "submit_task", "get_package", "read_task", "prepare_task", "take_task"}
+		tools := []string{"next_task", "submit_task", "get_package", "read_task", "prepare_task"}
 		tool := tools[int(pick)%len(tools)]
 
 		if line := callOn(t, fuzzProfile(t), tool, arguments); line["outcome"] == "failed" {

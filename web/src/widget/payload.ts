@@ -232,46 +232,6 @@ export function readTaskStatus(result: CallToolResult): TaskStatus {
 	}
 }
 
-/**
- * TakeOutcome is how the next task a card took stands: on the card at once,
- * written ahead; on its way, with the card to wait for it; none, the day
- * having no room for another; none, the card's task no longer being the one
- * being solved; or not taken at all, and to be asked of the chat instead.
- */
-export type TakeOutcome =
-	| { kind: "task"; handed: HandedTask }
-	| { kind: "coming"; coming: Coming }
-	| { kind: "limit" }
-	| { kind: "over" }
-	| { kind: "failed" };
-
-/**
- * readTaken is the next task a card took, read from what the service answered
- * the card with. A failure of the service, and anything that does not read as
- * a task, a wait or a refusal the card can act on, is a task not taken.
- */
-export function readTaken(result: CallToolResult): TakeOutcome {
-	if (result.isError === true) {
-		return { kind: "failed" };
-	}
-	const shown = readScreen(result.structuredContent);
-	switch (shown?.screen) {
-		case "task":
-			return { kind: "task", handed: shown.handed };
-		case "coming":
-			return { kind: "coming", coming: shown.coming };
-		case "waiting":
-			if (shown.waiting.kind === "limit") {
-				return { kind: "limit" };
-			}
-			return shown.waiting.kind === "stale"
-				? { kind: "over" }
-				: { kind: "failed" };
-		default:
-			return { kind: "failed" };
-	}
-}
-
 const waiting = z.object({
 	screen: z.literal("waiting"),
 	status: z.string().optional(),
@@ -313,8 +273,9 @@ export function readWaiting(payload: unknown): Waiting | undefined {
 		return { kind: "exhausted", child: whose };
 	}
 	// A task asked for with arguments no request could be opened from had no
-	// try to fail, and a task written ahead and kept comes to the card that
-	// asks for it: no task comes to this card, as to one whose request is over.
+	// try to fail, and a task written ahead and kept comes on the card next_task
+	// draws when the child asks for it: no task comes to this card, as to one
+	// whose request is over.
 	if (
 		status === "stale" ||
 		code === "invalid_arguments" ||

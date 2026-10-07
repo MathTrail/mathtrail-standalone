@@ -19,9 +19,9 @@ const (
 	minimumCharacters = 6
 )
 
-// TrapDescriber is what the explanation check has to know about the trap
-// catalog. It is declared here, by the side that needs it, and it speaks in
-// identifiers.
+// TrapDescriber is what the structure and the explanation checks have to know
+// about the trap catalog. It is declared here, by the side that needs it, and
+// it speaks in identifiers.
 type TrapDescriber interface {
 	// TrapDescription is how the catalog describes a trap, and whether it has
 	// one by this id.

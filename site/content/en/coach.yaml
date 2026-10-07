@@ -12,6 +12,10 @@ hero:
   title: Olympiad maths where the child does the thinking
   lead: "We are making a coach for children aged 7 to 12. The child solves a problem on a tablet, drawing and writing on a canvas as in a notebook. A companion the child chose leads the way through four steps and asks guiding questions. The companion never gives the answer away: the child writes it."
   try: Try the prototype
+  # A screen of the prototype beside the words: what it shows, for whoever
+  # cannot see it, and the line under it.
+  screen: "The MathTrail prototype: the child chooses a companion"
+  caption: "A screen of the prototype: the child chooses who to solve with. Try it below."
 
 # What the coach is about, a card for each idea, under a heading a screen
 # reader alone says.

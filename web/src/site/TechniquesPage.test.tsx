@@ -332,10 +332,7 @@ describe("the page of the techniques", () => {
 	});
 
 	test("closes with the way to add the app on the home page, and to every topic", () => {
-		expect(all(".s-ask .s-btn", "href")).toEqual([
-			"/en/#connect",
-			"/en/topics/",
-		]);
+		expect(all(".s-ask .s-btn", "href")).toEqual(["/#connect", "/en/topics/"]);
 	});
 
 	test("is refused when the words give the hint another number of rows than the data", () => {

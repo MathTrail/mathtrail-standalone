@@ -5,6 +5,7 @@ import traps from "../../../content/catalogs/traps.json";
 import file from "../../../site/data.json";
 import { cardWords } from "../widget/dictionaries";
 import { trapName } from "../widget/names";
+import { address, outputPath } from "./addresses";
 import {
 	chatGPTDeveloperModeURL,
 	claudeConnectorsURL,
@@ -188,10 +189,13 @@ const render = (data = dataOf(own)) => {
 
 const files = render();
 
+// homeFile is the file the home page in locale is served from.
+const homeFile = (locale: string) => outputPath(address(locale, frontPage));
+
 // pageIn is the home page in locale, read as a document.
 const pageIn = (locale: string) =>
 	new browser.DOMParser().parseFromString(
-		files.find(({ path }) => path === `${locale}/index.html`)?.data ?? "",
+		files.find(({ path }) => path === homeFile(locale))?.data ?? "",
 		"text/html",
 	);
 
@@ -263,7 +267,7 @@ describe("the home page", () => {
 		const homeBuiltWith = (version: string) => {
 			vi.stubEnv("VITE_VERSION", version);
 			return new browser.DOMParser().parseFromString(
-				render().find(({ path }) => path === "en/index.html")?.data ?? "",
+				render().find(({ path }) => path === homeFile("en"))?.data ?? "",
 				"text/html",
 			);
 		};
@@ -300,7 +304,7 @@ describe("the home page", () => {
 	test("has the sections on a lesson and on connecting the page and the header's button lead to", () => {
 		expect(home.getElementById(lessonSection)?.tagName).toBe("SECTION");
 		expect(home.getElementById(connectSection)?.tagName).toBe("SECTION");
-		expect(all(".s-nav-action", "href")).toEqual(["/en/#connect"]);
+		expect(all(".s-nav-action", "href")).toEqual(["/#connect"]);
 		expect(texts(".s-nav-action")).toEqual(["Add to Claude"]);
 	});
 
@@ -314,10 +318,7 @@ describe("the home page", () => {
 			`Grades ${range}`,
 		]);
 		expect(texts(".s-hero .s-lead")).toEqual([`For grades ${range}.`]);
-		expect(all(".s-hero-actions a", "href")).toEqual([
-			"/en/#connect",
-			"/en/#lesson",
-		]);
+		expect(all(".s-hero-actions a", "href")).toEqual(["/#connect", "/#lesson"]);
 		expect(texts(".s-hero-actions a")).toEqual([
 			"Add to Claude",
 			"See a lesson",
@@ -484,7 +485,7 @@ describe("the home page", () => {
 	});
 
 	test("closes with the way to add it and the way to its code", () => {
-		expect(all(".s-ask a", "href")).toEqual(["/en/#connect", sourceURL]);
+		expect(all(".s-ask a", "href")).toEqual(["/#connect", sourceURL]);
 		expect(texts(".s-ask a")).toEqual(["Add to Claude", "The code"]);
 	});
 

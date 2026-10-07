@@ -433,7 +433,7 @@ func (s *Service) hand(ctx context.Context, done *reviewed, program string) (Rep
 		s.events.write(ctx, done.account, eventTaskSkipped, s.skippedFields(left.Topic, left.GradeLevel, left.Difficulty)...)
 	}
 	s.events.write(ctx, done.account, eventTaskAccepted, s.acceptedLine(ctx, p, done.account, issued, &handedOut{
-		attempts: done.attempt, written: done.now.Sub(request.OpenedAt.Time), byCard: request.TakenAfter != "",
+		attempts: done.attempt, written: done.now.Sub(request.OpenedAt.Time),
 	}, done.now)...)
 	reply := onTheCard(p, issued, fmt.Sprintf("Accepted at attempt %d: task %s is on the child's card. %s Never say "+
 		"which option is right before the child has answered. %s", done.attempt, issued.ID, onTheCardText, aheadNextText))
@@ -472,10 +472,10 @@ func (s *Service) keep(ctx context.Context, done *reviewed, program string) (Rep
 // child asks for the next task, and that it is to say nothing about it. The
 // payload keeps the shape a card is drawn from: the task the child is working
 // on, when there is one, and else a card no task comes to — the task kept
-// comes to the card that asks for it.
+// comes on the card next_task draws when the child asks for it.
 func (s *Service) keptReply(p *profile.Profile, lead string) Reply[handedInOut] {
-	text := joined(lead, "It reaches the child's card the moment the child asks for the next task. Say nothing "+
-		"about it to the child, and ask for no other task: the child is working on the one on the card.",
+	text := joined(lead, "It comes on the card next_task draws the moment the child asks for the next task. "+
+		"Say nothing about it to the child, and ask for no other task: the child is working on the one on the card.",
 		s.lastAnswerText(p))
 	payload := handedInOut{
 		Screen: screenWaiting, Code: codeTaskKept, LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student),

@@ -92,9 +92,9 @@ func (p *Profile) AskAhead(brief *Brief, mode TutorMode, language, lesson string
 // asked for the next task before it was handed in, so it goes to the card once
 // it is. Its window starts again, as a task's asked for now does: the model is
 // sent to write it now, and the card waits for it from now on, however long it
-// lay open ahead. takenAfter is the task a card asked after, when a card asked.
-func (r *OpenRequest) Await(takenAfter string, now time.Time) {
-	r.Ahead, r.TakenAfter, r.OpenedAt = false, takenAfter, At(now)
+// lay open ahead.
+func (r *OpenRequest) Await(now time.Time) {
+	r.Ahead, r.OpenedAt = false, At(now)
 }
 
 // Keep puts the task written for the open request aside, for the child to be
@@ -139,10 +139,8 @@ func (p *Profile) Keep(written *Written, secret TaskSecret, sealer Sealer, now t
 // It becomes the task on the card as it was written, under its own id and with
 // its own seal, and it is handed out as any task is: the one left on the card
 // without an answer is recorded as skipped, its fingerprint joins the tasks
-// given, its topic records the day, and the day's count of tasks goes up. It
-// is marked kept, and takenAfter is the task a card asked after, when a card
-// asked.
-func (p *Profile) HandOutReady(takenAfter string, now time.Time) (*CurrentTask, error) {
+// given, its topic records the day, and the day's count of tasks goes up.
+func (p *Profile) HandOutReady(now time.Time) (*CurrentTask, error) {
 	ready := p.ReadyTask
 	if ready == nil {
 		return nil, ErrNoReadyTask
@@ -156,11 +154,9 @@ func (p *Profile) HandOutReady(takenAfter string, now time.Time) (*CurrentTask, 
 		ID:                  ready.ID,
 		InstructionsVersion: ready.InstructionsVersion,
 		IssuedAt:            At(now),
-		Kept:                true,
 		Language:            ready.Language,
 		Options:             maps.Clone(ready.Options),
 		Sealed:              ready.Sealed,
-		TakenAfter:          takenAfter,
 		Topic:               ready.Topic,
 		TutorMode:           ready.TutorMode,
 		Wording:             ready.Wording,

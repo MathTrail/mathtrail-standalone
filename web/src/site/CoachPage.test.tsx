@@ -2,7 +2,7 @@ import { Window } from "happy-dom";
 import { afterAll, describe, expect, test } from "vitest";
 import traps from "../../../content/catalogs/traps.json";
 import file from "../../../site/data.json";
-import { coachPrototypePath } from "./brand";
+import { coachPrototypePath, coachScreenPath, coachScreenSize } from "./brand";
 import { prototypeSection } from "./CoachPage";
 import { readSiteData } from "./data";
 import type { Frame } from "./frame";
@@ -94,6 +94,8 @@ const words = [
 	"  title: Where the child thinks",
 	"  lead: We are making a coach.",
 	"  try: Try the prototype",
+	"  screen: The child choosing a companion",
+	"  caption: Try it below",
 	"ideas:",
 	"  title: What it is about",
 	"  items:",
@@ -203,6 +205,25 @@ describe("the page of the coach", () => {
 		).toBe("3 приёма");
 	});
 
+	test("shows a screen of the prototype beside its words, at its own size and from the start, said in words for whoever cannot see it, leading to the prototype", () => {
+		const screen = coach.querySelectorAll(".s-coach-hero figure");
+		expect(screen).toHaveLength(1);
+		expect(
+			[...(screen[0]?.querySelectorAll("a") ?? [])].map((link) =>
+				link.getAttribute("href"),
+			),
+		).toEqual([`#${prototypeSection}`]);
+		const image = screen[0]?.querySelector("a > img");
+		expect(image?.getAttribute("src")).toBe(coachScreenPath);
+		expect(image?.getAttribute("width")).toBe(String(coachScreenSize.width));
+		expect(image?.getAttribute("height")).toBe(String(coachScreenSize.height));
+		expect(image?.getAttribute("alt")).toBe("The child choosing a companion");
+		expect(image?.hasAttribute("loading")).toBe(false);
+		expect(screen[0]?.querySelector("figcaption")?.textContent).toBe(
+			"Try it below",
+		);
+	});
+
 	test("shows each idea as a card under a heading a screen reader alone hears", () => {
 		expect(texts("h2#ideas.s-hidden")).toEqual(["What it is about"]);
 		expect(
@@ -234,12 +255,17 @@ describe("the page of the coach", () => {
 		expect(open?.textContent).toBe("Open full screen");
 	});
 
-	test("frames the same prototype in every language", () => {
+	test("frames the same prototype, and shows the same screen of it, in every language", () => {
 		expect(
 			[...read("ru").querySelectorAll("iframe")].map((frame) =>
 				frame.getAttribute("src"),
 			),
 		).toEqual([coachPrototypePath]);
+		expect(
+			[...read("ru").querySelectorAll(".s-coach-hero img")].map((image) =>
+				image.getAttribute("src"),
+			),
+		).toEqual([coachScreenPath]);
 	});
 
 	test("says what the prototype is, and what it only pretends to do yet", () => {

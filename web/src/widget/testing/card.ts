@@ -16,11 +16,12 @@ import {
 /**
  * CardOptions are what a test sets of the host a card is drawn on. A host
  * given links tells the card it opens pages, and answers each as links says;
- * one given none says nothing of pages.
+ * one given none says nothing of pages. A host that refuses messages refuses
+ * every one, or, given a number, that many of the first.
  */
 type CardOptions = {
 	tools?: (call: ToolCall) => CallToolResult | Promise<CallToolResult>;
-	refuseMessages?: boolean;
+	refuseMessages?: boolean | number;
 	refuseModelLines?: boolean;
 	context?: McpUiHostContext;
 	links?: Opening;

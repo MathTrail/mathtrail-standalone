@@ -109,29 +109,6 @@ func keepTheRelay(t *testing.T, session *mcp.ClientSession, kept store.Storage) 
 	return race, profile.TaskIDFor(ahead.ID)
 }
 
-// takenPayload is what take_task hands the card that asked.
-type takenPayload struct {
-	Screen    string `json:"screen"`
-	Status    string `json:"status"`
-	Code      string `json:"code"`
-	RequestID string `json:"request_id"`
-	Task      *struct {
-		ID       string `json:"id"`
-		Question string `json:"question"`
-	} `json:"task"`
-	Child *struct {
-		Pseudonym string `json:"pseudonym"`
-	} `json:"child"`
-	Language string `json:"language"`
-}
-
-// take is what take_task hands the card that showed taskID.
-func take(t *testing.T, session *mcp.ClientSession, taskID string) takenPayload {
-	t.Helper()
-
-	return payloadOf[takenPayload](t, call(t, session, "take_task", map[string]any{"task_id": taskID}))
-}
-
 // The first task of a lesson is written when it is asked for, as ever, and its
 // acceptance sends the model on to get the next one ready. That one is
 // written ahead and kept, sealed, while the child works on the first: it is
@@ -191,7 +168,7 @@ func TestTheTaskKeptComesAtOnceWhenTheChildAsksInTheChat(t *testing.T) {
 	race, relay := keepTheRelay(t, session, kept)
 
 	asked := call(t, session, "next_task", map[string]any{"language": "en"})
-	card := payloadOf[takenPayload](t, asked)
+	card := payloadOf[requestPayload](t, asked)
 	if card.Screen != "task" || card.Task == nil || card.Task.ID != relay || card.Task.Question != relayQuestion ||
 		card.Language != "en" {
 		t.Fatalf("next_task = %+v, want the relay on the card at once", card)
@@ -211,130 +188,24 @@ func TestTheTaskKeptComesAtOnceWhenTheChildAsksInTheChat(t *testing.T) {
 	}
 	h.settle()
 	accepted := linesOf(h, "task_accepted")
-	if len(accepted) != 2 || accepted[1].ContextMap()["ready"] != true || accepted[1].ContextMap()["by_card"] != false {
-		t.Errorf("the relay's task_accepted = %v, want it ready and asked for in the chat", accepted)
+	if len(accepted) != 2 || accepted[1].ContextMap()["ready"] != true {
+		t.Errorf("the relay's task_accepted = %v, want it ready", accepted)
 	}
-}
-
-// A card takes the task kept itself, when the child asks for another on it:
-// the task is on that same card at once, and the line says so. Asked again —
-// its answer lost on the way — the card is told the same, and nothing more is
-// written; a card whose task is not the one on the card any more is told its
-// task is over.
-func TestACardTakesTheTaskKeptItself(t *testing.T) {
-	t.Parallel()
-
-	kept := racer(t)
-	h, session := lesson(t, kept)
-	race, relay := keepTheRelay(t, session, kept)
-	raceID := profile.TaskIDFor(race.ID)
-	call(t, session, "submit_answer", map[string]any{"task_id": raceID, "answer": "C"})
-
-	taken := take(t, session, raceID)
-	if taken.Screen != "task" || taken.Task == nil || taken.Task.ID != relay || taken.Child == nil {
-		t.Fatalf("take_task = %+v, want the relay on the card", taken)
-	}
-	p, revision := loadKept(t, kept)
-	if p.CurrentTask.ID != relay || p.CurrentTask.TakenAfter != raceID || p.ReadyTask != nil {
-		t.Errorf("the profile holds %+v, want the relay taken after the race", p.CurrentTask)
-	}
-
-	if again := take(t, session, raceID); again.Screen != "task" || again.Task == nil || again.Task.ID != relay {
-		t.Errorf("take_task asked again = %+v, want the relay told again", again)
-	}
-	if _, now := loadKept(t, kept); now != revision {
-		t.Error("take_task asked again wrote the profile")
-	}
-	if over := take(t, session, "tsk_long_gone"); over.Screen != "waiting" || over.Status != "stale" || over.Code != "stale_task" {
-		t.Errorf("take_task from a card whose task is over = %+v, want it told so", over)
-	}
-
-	h.settle()
-	accepted := linesOf(h, "task_accepted")
-	if len(accepted) != 2 || accepted[1].ContextMap()["ready"] != true || accepted[1].ContextMap()["by_card"] != true {
-		t.Errorf("the relay's task_accepted = %v, want it ready and taken by the card", accepted)
-	}
-	if skipped := linesOf(h, "task_skipped"); len(skipped) != 0 {
-		t.Errorf("task_skipped lines = %d, want none: the race was answered", len(skipped))
-	}
-}
-
-// A child who asks for another on the card while the task after it is still
-// being written ahead waits for it on that card: the request is waited for
-// now, the task the card showed without an answer is skipped, and the task
-// goes to the card once accepted — the model sent on to write the next.
-func TestACardWaitsForTheTaskStillBeingWrittenAhead(t *testing.T) {
-	t.Parallel()
-
-	kept := racer(t)
-	h, session := lesson(t, kept)
-	race := raceHandedOut(t, session, kept)
-	raceID := profile.TaskIDFor(race.ID)
-	prepared(t, session, aheadChoice)
-	ahead := aheadOpen(t, kept)
-
-	taken := take(t, session, raceID)
-	if taken.Screen != "coming" || taken.RequestID != ahead.ID || taken.Language != "en" {
-		t.Fatalf("take_task = %+v, want the card waiting for the request ahead", taken)
-	}
-	p, _ := loadKept(t, kept)
-	if p.OpenRequest == nil || p.OpenRequest.Ahead || p.OpenRequest.TakenAfter != raceID || p.CurrentTask != nil {
-		t.Fatalf("the profile holds %+v and %+v, want the request waited for after the race, the race off the card",
-			p.OpenRequest, p.CurrentTask)
-	}
-	if waiting := awaited(t, session, ahead.ID); waiting.Screen != "coming" {
-		t.Errorf("read_task = %+v, want the task being written", waiting)
-	}
-
-	handed := call(t, session, "submit_task", relayOn(p.OpenRequest))
-	wantSaid(t, textOf(t, handed), "Accepted at attempt 1: task "+profile.TaskIDFor(ahead.ID)+" is on the child's card.",
-		"Now call prepare_task")
-	if shown := awaited(t, session, ahead.ID); shown.Screen != "task" || shown.Task == nil || shown.Task.Question != relayQuestion {
-		t.Errorf("read_task once the relay is accepted = %+v, want it on the card", shown)
-	}
-	if again := take(t, session, raceID); again.Screen != "task" || again.Task == nil || again.Task.ID != profile.TaskIDFor(ahead.ID) {
-		t.Errorf("take_task asked again = %+v, want the relay it brought", again)
-	}
-
-	h.settle()
-	wantLessonLines(t, h, map[string]int{"task_skipped": 1, "task_accepted": 2, "task_kept": 0})
-	if accepted := linesOf(h, "task_accepted")[1].ContextMap(); accepted["ready"] != false || accepted["by_card"] != true {
-		t.Errorf("the relay's task_accepted = %v, want it written while the card waited", accepted)
-	}
-}
-
-// With nothing written ahead, a card that asks for another opens a request by
-// the rule and waits for it on the spot: the model, sent to get the next task
-// ready, is handed that request's package, the task the card waits for.
-func TestACardWithNothingWrittenAheadWaitsForATaskByTheRule(t *testing.T) {
-	t.Parallel()
-
-	kept := racer(t)
-	_, session := lesson(t, kept)
-	race := raceHandedOut(t, session, kept)
-	raceID := profile.TaskIDFor(race.ID)
-	call(t, session, "submit_answer", map[string]any{"task_id": raceID, "answer": "C"})
-
-	taken := take(t, session, raceID)
-	p, _ := loadKept(t, kept)
-	if taken.Screen != "coming" || p.OpenRequest == nil || taken.RequestID != p.OpenRequest.ID ||
-		p.OpenRequest.Ahead || p.OpenRequest.TakenAfter != raceID || p.OpenRequest.TutorMode != profile.TutorRule {
-		t.Fatalf("take_task = %+v with the request %+v, want a request by the rule the card waits for", taken, p.OpenRequest)
-	}
-	words := prepared(t, session, map[string]any{"language": "en"})
-	if !strings.HasPrefix(words, "Request "+p.OpenRequest.ID+" is open, and the child waits for its task on the card") {
-		t.Errorf("prepare_task says %q, want the package of the task the card waits for", leadOf(words))
+	if _, byCard := accepted[len(accepted)-1].ContextMap()["by_card"]; byCard {
+		t.Errorf("the relay's task_accepted = %v, want no word of a card taking it", accepted)
 	}
 }
 
 // A child who asks for another in the chat while the next task is still being
 // written ahead waits for that one: next_task draws a card waiting for it,
-// and the model finishes it rather than starting another.
+// the task the card before showed without an answer is skipped, and the model
+// finishes the task rather than starting another. Once handed in, it goes to
+// that card, written while the child waited.
 func TestAskingInTheChatWaitsForTheTaskBeingWrittenAhead(t *testing.T) {
 	t.Parallel()
 
 	kept := racer(t)
-	_, session := lesson(t, kept)
+	h, session := lesson(t, kept)
 	raceHandedOut(t, session, kept)
 	prepared(t, session, aheadChoice)
 	ahead := aheadOpen(t, kept)
@@ -345,8 +216,22 @@ func TestAskingInTheChatWaitsForTheTaskBeingWrittenAhead(t *testing.T) {
 		t.Errorf("next_task = %+v, want the card waiting for the request ahead", coming)
 	}
 	wantSaid(t, textOf(t, asked), "its task was being written ahead, and now the child waits for it")
-	if p, _ := loadKept(t, kept); p.OpenRequest == nil || p.OpenRequest.Ahead || p.CurrentTask != nil {
-		t.Errorf("the profile holds %+v and %+v, want the request waited for and the race skipped", p.OpenRequest, p.CurrentTask)
+	p, _ := loadKept(t, kept)
+	if p.OpenRequest == nil || p.OpenRequest.Ahead || p.CurrentTask != nil {
+		t.Fatalf("the profile holds %+v and %+v, want the request waited for and the race skipped", p.OpenRequest, p.CurrentTask)
+	}
+
+	handed := call(t, session, "submit_task", relayOn(p.OpenRequest))
+	wantSaid(t, textOf(t, handed), "Accepted at attempt 1: task "+profile.TaskIDFor(ahead.ID)+" is on the child's card.",
+		"Now call prepare_task")
+	if shown := awaited(t, session, ahead.ID); shown.Screen != "task" || shown.Task == nil || shown.Task.Question != relayQuestion {
+		t.Errorf("read_task once the relay is accepted = %+v, want it on the card next_task drew", shown)
+	}
+	h.settle()
+	wantLessonLines(t, h, map[string]int{"task_skipped": 1, "task_accepted": 2, "task_kept": 0})
+	accepted := linesOf(h, "task_accepted")[1].ContextMap()
+	if _, byCard := accepted["by_card"]; accepted["ready"] != false || byCard {
+		t.Errorf("the relay's task_accepted = %v, want it written while the child waited, with no word of a card", accepted)
 	}
 }
 
@@ -520,43 +405,9 @@ func TestOneMoreLikeATaskNoLongerSetIsTheRules(t *testing.T) {
 	}
 }
 
-// The model is told the words of a task kept that a card took, which it did
-// not see come; not those of a task it handed in itself while the card waited,
-// which it did.
-func TestTheModelIsToldOfATaskKeptThatACardTook(t *testing.T) {
-	t.Parallel()
-
-	t.Run("kept", func(t *testing.T) {
-		t.Parallel()
-
-		kept := racer(t)
-		_, session := lesson(t, kept)
-		race, relay := keepTheRelay(t, session, kept)
-		take(t, session, profile.TaskIDFor(race.ID))
-
-		wantSaid(t, prepared(t, session, map[string]any{"language": "en"}),
-			"The child took task "+relay+" on the card, written ahead", relayQuestion)
-	})
-	t.Run("written while the card waited", func(t *testing.T) {
-		t.Parallel()
-
-		kept := racer(t)
-		_, session := lesson(t, kept)
-		race := raceHandedOut(t, session, kept)
-		prepared(t, session, aheadChoice)
-		take(t, session, profile.TaskIDFor(race.ID))
-		p, _ := loadKept(t, kept)
-		call(t, session, "submit_task", relayOn(p.OpenRequest))
-
-		if words := prepared(t, session, map[string]any{"language": "en"}); strings.Contains(words, "The child took task") {
-			t.Errorf("prepare_task says %q, want nothing of the task the model handed in itself", leadOf(words))
-		}
-	})
-}
-
 // A topic chosen on the card while the next task is being written ahead on
 // another tells the model nothing of that task keeping its topic: it is let go
-// once the card takes the next task.
+// once the next task is asked for.
 func TestATopicChosenWhileATaskIsWrittenAheadKeepsNothingOfIt(t *testing.T) {
 	t.Parallel()
 
@@ -662,7 +513,7 @@ func TestATaskKeptIsHandedOutForAnAskItFits(t *testing.T) {
 	_, session := lesson(t, kept)
 	_, relay := keepTheRelay(t, session, kept)
 
-	card := payloadOf[takenPayload](t, call(t, session, "next_task", map[string]any{
+	card := payloadOf[requestPayload](t, call(t, session, "next_task", map[string]any{
 		"language": "en", "topic": "logic.ordering", "reason": "The child wants another ordering task.",
 	}))
 	if card.Screen != "task" || card.Task == nil || card.Task.ID != relay {
@@ -670,23 +521,22 @@ func TestATaskKeptIsHandedOutForAnAskItFits(t *testing.T) {
 	}
 }
 
-// A topic chosen on the card lets go of a task kept on another: the card that
-// then takes the next task waits on the spot for one on the topic chosen,
-// asked for by the rule.
+// A topic chosen on the card lets go of a task kept on another: the next task
+// asked for, on the card next_task draws, is one on the topic chosen.
 func TestATopicChosenOnTheCardLetsGoOfATaskKeptOnAnother(t *testing.T) {
 	t.Parallel()
 
 	kept := keptWith(t, "olya")
 	h, session := lesson(t, kept)
-	race, _ := keepTheRelay(t, session, kept)
+	keepTheRelay(t, session, kept)
 	call(t, session, "edit_profile", map[string]any{"lesson_topic": "time.clocks"})
 
-	taken := take(t, session, profile.TaskIDFor(race.ID))
+	coming := wantComing(t, call(t, session, "next_task", map[string]any{"language": "en"}))
 	p, _ := loadKept(t, kept)
-	if taken.Screen != "coming" || p.OpenRequest == nil || p.OpenRequest.Brief.TargetConcept != "time.clocks" ||
+	if p.OpenRequest == nil || coming.RequestID != p.OpenRequest.ID || p.OpenRequest.Brief.TargetConcept != "time.clocks" ||
 		p.OpenRequest.TutorMode != profile.TutorPerson || p.ReadyTask != nil {
-		t.Fatalf("take_task = %+v with the request %+v, want the card waiting for a task on the topic chosen",
-			taken, p.OpenRequest)
+		t.Fatalf("next_task = %+v with the request %+v, want a new card waiting for a task on the topic chosen",
+			coming, p.OpenRequest)
 	}
 	h.settle()
 	if dropped := linesOf(h, "task_dropped"); len(dropped) != 1 || dropped[0].ContextMap()["reason"] != "lesson_topic" {
@@ -695,7 +545,7 @@ func TestATopicChosenOnTheCardLetsGoOfATaskKeptOnAnother(t *testing.T) {
 }
 
 // However a lesson goes — a task asked for in the chat, the next one got
-// ready, a task handed in for whatever request is open, the card taking the
+// ready, a task handed in for whatever request is open, the card's ask for the
 // next task, an answer, time passing — the profile never keeps a task ready
 // beside a request open, and the day counts each task handed out once.
 func TestATaskIsNeverKeptBesideARequestOpen(t *testing.T) {
@@ -749,8 +599,8 @@ func genLessonStep() gopter.Gen {
 // lessonStep does one thing a lesson does, as the model and the card do it:
 // ask for a task in the chat, get the next one ready, hand a task in for the
 // request open — the tasks given forgotten, so that the same one passes again —
-// take the next task on the card, answer the task on the card, or let six
-// minutes pass.
+// ask for the next task as the card's button does, in words alone, answer the
+// task on the card, or let six minutes pass.
 func lessonStep(t *testing.T, session *mcp.ClientSession, kept store.Storage, moving *clock, step int) {
 	t.Helper()
 
@@ -768,9 +618,7 @@ func lessonStep(t *testing.T, session *mcp.ClientSession, kept store.Storage, mo
 			call(t, session, "submit_task", relayOn(p.OpenRequest))
 		}
 	case 3:
-		if p.CurrentTask != nil {
-			call(t, session, "take_task", map[string]any{"task_id": p.CurrentTask.ID})
-		}
+		call(t, session, "next_task", map[string]any{"language": "en"})
 	case 4:
 		if p.CurrentTask != nil {
 			call(t, session, "submit_answer", map[string]any{"task_id": p.CurrentTask.ID, "answer": "C"})
@@ -780,10 +628,9 @@ func lessonStep(t *testing.T, session *mcp.ClientSession, kept store.Storage, mo
 	}
 }
 
-// A day with no room for another task hands nothing out, kept or not: a card
-// that takes the next one is told the day is over, the model asking in the
-// chat is told so too, and the task kept waits for the next day, as the task
-// on the card stays where it is.
+// A day with no room for another task hands nothing out, kept or not: the
+// model asking in the chat is told the day is over, and the task kept waits for
+// the next day, as the task on the card stays where it is.
 func TestADayWithNoRoomHandsOutNoTaskKept(t *testing.T) {
 	t.Parallel()
 
@@ -794,10 +641,6 @@ func TestADayWithNoRoomHandsOutNoTaskKept(t *testing.T) {
 		p.Daily = profile.Daily{Date: profile.DateOf(lessonDay), Accepted: 20}
 	})
 
-	if taken := take(t, session, profile.TaskIDFor(race.ID)); taken.Screen != "waiting" || taken.Status != "limited" ||
-		taken.Code != "limit_reached" {
-		t.Errorf("take_task on a full day = %+v, want the day's end", taken)
-	}
 	if asked := payloadOf[requestPayload](t, call(t, session, "next_task", map[string]any{"language": "en"})); asked.Status != "limited" {
 		t.Errorf("next_task on a full day = %+v, want the day's end", asked)
 	}
@@ -806,8 +649,8 @@ func TestADayWithNoRoomHandsOutNoTaskKept(t *testing.T) {
 		t.Errorf("the profile keeps %+v with %+v on the card, want the relay kept and the race on the card", p.ReadyTask, p.CurrentTask)
 	}
 	h.settle()
-	if hit := linesOf(h, "limit_hit"); len(hit) != 2 {
-		t.Errorf("limit_hit lines = %d, want one for each refusal", len(hit))
+	if hit := linesOf(h, "limit_hit"); len(hit) != 1 {
+		t.Errorf("limit_hit lines = %d, want one for the refusal", len(hit))
 	}
 }
 

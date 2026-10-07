@@ -31,7 +31,7 @@ A child asks in the chat for a new task, and it arrives as a card:
 - **The task.** The chat's model wrote it, and the service let it through only after its checks. The drawing is plain text, laid out left to right in any language.
 - **Five options, A to E.** The answer is not in the card: it is sealed in the parent's Drive until the child picks one.
 - **Help that stays the child's own.** Hint shows a leading question or a first step, which the model wrote with the task. Another task skips this one. A question about the task is asked in the chat, and the model helps without giving the answer away; a child who says "I don't know" there gets the solution, and it counts as a wrong answer.
-- **The next one, at once.** While the child solves, the chat's model writes the next task ahead, sealed in the same file, and Another task brings it at once, in the same card.
+- **The next one, at once.** While the child solves, the chat's model writes the next task ahead, sealed in the same file. Another task asks the chat for it, and the new card the chat draws below shows it at once.
 - **A topic of the child's own.** Once the first five tasks have found where the child stands, Topic, at the end of the row, keeps the next tasks to one topic the child or the adult picks — the ones the progress suggests first, then every topic in its group — or gives the choice back to the coach. Asking in the chat does the same.
 - **The top line.** It shows the child's pseudonym, never a real name, and opens the progress screen.
 

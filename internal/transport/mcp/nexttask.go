@@ -68,10 +68,9 @@ func (in *nextTaskIn) differsFrom(request *profile.OpenRequest, student *profile
 		(!chosen && broken.Code == "" && language != "" && language != request.Language)
 }
 
-// requestOut is what a card that asked for the next task is handed — the card
-// next_task draws, and a card that took the next task itself: the task kept,
-// on the card at once, with what the card needs to keep the lessons to a
-// topic; or the request a task is on its way for, with whom it is for and the
+// requestOut is what the card next_task draws is handed: the task kept, on
+// the card at once, with what the card needs to keep the lessons to a topic;
+// or the request a task is on its way for, with whom it is for and the
 // language it is written in; or why no task comes. The package to write the
 // task from is in neither the payload nor the words, since the card reads
 // both: the model fetches it with get_package. A host may show the model the
@@ -258,18 +257,23 @@ func (s *Service) serveReady(ctx context.Context, account store.Account, p *prof
 	if left := p.InFlight(); left != nil {
 		lead = fmt.Sprintf("Task %s, left on the child's card without an answer, is recorded as skipped.", left.ID)
 	}
-	task, err := s.handOutReady(ctx, account, p, revision, "", asked, now)
+	task, err := s.handOutReady(ctx, account, p, revision, asked, now)
 	if err != nil {
 		return Reply[requestOut]{}, err
 	}
-	reply, err := s.cardWith(p, task, now)
+	choice, err := s.topicChoiceOf(p, now)
 	if err != nil {
-		return Reply[requestOut]{}, err
+		return Reply[requestOut]{}, fmt.Errorf("mcp: the choice of the topic: %w", err)
 	}
-	reply.Text = joined(lead, fmt.Sprintf("Task %s, written ahead, is on the child's card now. %s Never say which "+
-		"option is right before the child has answered. %s", task.ID, onTheCardText, aheadNextText),
-		lessonLanguageText(&p.Student)) + "\n\n" + taskWords(task)
-	return reply, nil
+	return Reply[requestOut]{
+		Text: joined(lead, fmt.Sprintf("Task %s, written ahead, is on the child's card now. %s Never say which "+
+			"option is right before the child has answered. %s", task.ID, onTheCardText, aheadNextText),
+			lessonLanguageText(&p.Student)) + "\n\n" + taskWords(task),
+		Payload: requestOut{
+			Screen: screenTask, Task: cardOf(task), TopicChoice: choice, LastAnswer: lastAnswerOf(p),
+			Child: childLineOf(&p.Student), Language: task.Language,
+		},
+	}, nil
 }
 
 // awaitAhead has the card next_task draws wait for the task being written
@@ -279,7 +283,7 @@ func (s *Service) serveReady(ctx context.Context, account store.Account, p *prof
 func (s *Service) awaitAhead(ctx context.Context, account store.Account, p *profile.Profile, revision store.Revision,
 	asked bool, now time.Time,
 ) (Reply[requestOut], error) {
-	request, skipped, err := s.waitForAhead(ctx, account, p, revision, "", asked, now)
+	request, skipped, err := s.waitForAhead(ctx, account, p, revision, asked, now)
 	if err != nil {
 		return Reply[requestOut]{}, err
 	}
@@ -398,8 +402,7 @@ func (s *Service) skippedFields(topic string, level rating.GradeLevel, difficult
 }
 
 // requestFields are what the line about a request keeps of it: where the task
-// is to stand, why, who chose it, whether it is written ahead, and whether a
-// card asked for it.
+// is to stand, why, who chose it, and whether it is written ahead.
 func requestFields(request *profile.OpenRequest, alreadyOpen bool) []zap.Field {
 	return []zap.Field{
 		zap.String("topic", request.Brief.TargetConcept),
@@ -409,6 +412,5 @@ func requestFields(request *profile.OpenRequest, alreadyOpen bool) []zap.Field {
 		zap.String("tutor_mode", string(request.TutorMode)),
 		zap.Bool("already_open", alreadyOpen),
 		zap.Bool("ahead", request.Ahead),
-		zap.Bool("by_card", request.TakenAfter != ""),
 	}
 }

@@ -229,15 +229,6 @@ func TestAToolThatAddsTakesNothingAway(t *testing.T) {
 			last:  func(string) (string, map[string]any) { return "prepare_task", aheadChoice },
 			added: func(p *profile.Profile) bool { return p.OpenRequest != nil && p.OpenRequest.Ahead },
 		},
-		{
-			name: "the next task taken by the card",
-			last: func(taskID string) (string, map[string]any) {
-				return "take_task", map[string]any{"task_id": taskID}
-			},
-			added: func(p *profile.Profile) bool {
-				return p.Topics["logic.ordering"].Skipped == 1 && p.OpenRequest != nil && p.OpenRequest.TakenAfter != ""
-			},
-		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()

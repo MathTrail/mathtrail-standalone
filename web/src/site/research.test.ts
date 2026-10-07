@@ -102,11 +102,16 @@ describe("the data of the page Research", () => {
 				Object.assign(file.built_from, { commit: "0123456" }),
 		],
 		[
-			"the rule before called the baseline",
+			"a rule's numbers beside the service's",
 			(file: typeof fixture) =>
-				Object.assign(rowOf(file, "jump_unsettled").values.earlier, {
-					mark: "baseline",
+				Object.assign(rowOf(file, "jump_unsettled").values, {
+					earlier: { value: 0.7, low: 0.68, high: 0.73, mark: "not_reached" },
 				}),
+		],
+		[
+			"a rule more than the service and the ceiling",
+			(file: typeof fixture) =>
+				file.bench.rules.push({ id: "earlier/both", role: "service" }),
 		],
 		[
 			"a PDF served elsewhere than the assets",
@@ -136,18 +141,6 @@ describe("the marks of the page's goals", () => {
 			expect(markFrom(better, bound, ends)).toBe(mark);
 		},
 	);
-
-	test("are refused when the rule before is marked otherwise than its numbers give", () => {
-		const edited = changed((file) => {
-			Object.assign(rowOf(file, "jump_unsettled").values.earlier, {
-				mark: "reached",
-			});
-		});
-
-		expect(() => read(edited)).toThrow(
-			"research.json: the rule before is marked reached on jump_unsettled, and its numbers give not_reached",
-		);
-	});
 
 	test("are refused when the service is marked otherwise than its numbers give", () => {
 		const edited = changed((file) => {
@@ -240,7 +233,7 @@ describe("the rows of the page's table", () => {
 		});
 
 		expect(() => read(edited)).toThrow(
-			"research.json: the rules play service, service, ceiling",
+			"research.json: the rules play service, service, and want the service and the ceiling, each once",
 		);
 	});
 });

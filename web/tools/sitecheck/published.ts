@@ -1,17 +1,20 @@
 // published are the addresses the site has handed out: the consent screen of
-// the sign-in points at two of them, a listing at the apex, and the forms of
-// the chats' directories are to point at the help. A build that dropped one
-// would break a link somebody else holds, and nothing on the site need still
-// link to it for the link rule to notice. An anchor linked from
+// the sign-in points at two of them, a listing at the bare domain, and the
+// forms of the chats' directories are to point at the help. A build that
+// dropped one would break a link somebody else holds, and nothing on the site
+// need still link to it for the link rule to notice. An anchor linked from
 // outside its page is held the same way, written after its page's address, and
 // its page must still hold an element with that id. The list is written by
 // hand, address by address, and never worked out from the site's texts, so that
 // a page going missing from them cannot take its address off the list.
 export const published: readonly string[] = [
 	"/",
+	"/#lesson",
+	"/#connect",
+	// Where the English front page was served before the bare domain. The
+	// address sends its reader on there, and a refresh carries no anchor, so
+	// the front page's anchors are held at the bare domain.
 	"/en/",
-	"/en/#lesson",
-	"/en/#connect",
 	"/en/about/",
 	"/en/coach/",
 	"/en/help/",
@@ -21,6 +24,7 @@ export const published: readonly string[] = [
 	"/en/research/#live",
 	"/en/research/#sources",
 	"/en/research/#paper",
+	"/en/service/",
 	"/en/techniques/",
 	"/en/terms/",
 	"/en/topics/",
@@ -94,6 +98,7 @@ export const published: readonly string[] = [
 	"/ru/research/#live",
 	"/ru/research/#sources",
 	"/ru/research/#paper",
+	"/ru/service/",
 	"/ru/techniques/",
 	"/ru/terms/",
 	"/ru/topics/",

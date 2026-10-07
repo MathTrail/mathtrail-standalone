@@ -73,8 +73,10 @@ export type Asked = "call" | "message" | "model line" | "page";
  * listenAsHost has host answer the widget as a chat host would: each tool call
  * the widget asks for is answered by tools, each message for the chat and each
  * line for the model is taken, and each page it asks to open is answered as
- * opening says. What was asked is kept, in order, for a test to read: each
- * kind on its own, and the kinds as they came, one after another.
+ * opening says. A host that refuses messages refuses every one, or, given a
+ * number, that many of the first. What was asked is kept, in order, for a test
+ * to read: each kind on its own, and the kinds as they came, one after
+ * another.
  */
 export function listenAsHost(
 	host: AppBridge,
@@ -84,7 +86,7 @@ export function listenAsHost(
 		refuseModelLines = false,
 		opening = "open",
 	}: {
-		refuseMessages?: boolean;
+		refuseMessages?: boolean | number;
 		refuseModelLines?: boolean;
 		opening?: Opening;
 	} = {},
@@ -113,7 +115,11 @@ export function listenAsHost(
 	host.onmessage = async (params) => {
 		heard.messages.push(textOf(params.content));
 		heard.order.push("message");
-		return refuseMessages ? { isError: true } : {};
+		const refused =
+			typeof refuseMessages === "number"
+				? heard.messages.length <= refuseMessages
+				: refuseMessages;
+		return refused ? { isError: true } : {};
 	};
 	host.onupdatemodelcontext = async (params) => {
 		heard.modelLines.push(textOf(params.content ?? []));

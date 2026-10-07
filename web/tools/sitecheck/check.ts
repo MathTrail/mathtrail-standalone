@@ -52,7 +52,7 @@ export type Options = {
 	photos: string;
 	/**
 	 * published are the addresses the site has handed out and must keep: a
-	 * page's, or an anchor on one, such as "/en/#connect". Every page the site
+	 * page's, or an anchor on one, such as "/ru/#connect". Every page the site
 	 * serves is among them.
 	 */
 	published: readonly string[];
@@ -131,18 +131,28 @@ export async function check(dir: string, options: Options): Promise<Finding[]> {
 	}
 
 	const files = await readSizes(dir);
+	const reference = options.referenceLocale;
 	const [pages, sheets] = await Promise.all([
-		readPages(dir, files),
+		readPages(dir, files, reference),
 		readStylesheets(dir, files),
 	]);
-	if (!pages.has(address(options.referenceLocale, ""))) {
+	const front = pages.get("/");
+	if (front === undefined) {
 		throw new Error(
-			`reference locale "${options.referenceLocale}" has no front page`,
+			`the site has no page at its bare domain, the front page of reference locale "${reference}"`,
+		);
+	}
+	// The bare domain's page is the reference locale's by its address alone,
+	// so the language it says it is in is what shows a site built with another
+	// reference locale. One that says none is the head rule's to name.
+	if (front.lang !== "" && front.lang !== reference) {
+		throw new Error(
+			`reference locale "${reference}" is not the site's: the page at its bare domain is in "${front.lang}"`,
 		);
 	}
 
 	const loads = loadsOf(sheets);
-	const frames = await readFrames(dir, files, pages);
+	const frames = await readFrames(dir, files, pages, reference);
 	const findings: Finding[] = [];
 	for (const page of pages.values()) {
 		findings.push(
@@ -201,16 +211,18 @@ async function readSizes(dir: string): Promise<Map<string, number>> {
 	return sizes;
 }
 
-// readPages parses every page of the site, by the address it is served at.
+// readPages parses every page of the site, by the address it is served at;
+// the bare domain's is the front page of reference.
 async function readPages(
 	dir: string,
 	files: Map<string, number>,
+	reference: string,
 ): Promise<Map<string, Page>> {
 	const parsed = await Promise.all(
 		[...files.keys()]
 			.filter((file) => posix.basename(file) === indexFile)
 			.map(async (file) =>
-				parsePage(file, await readFile(join(dir, file), "utf8")),
+				parsePage(file, await readFile(join(dir, file), "utf8"), reference),
 			),
 	);
 	const pages = new Map(parsed.map((page) => [page.address, page]));
@@ -244,6 +256,7 @@ async function readFrames(
 	dir: string,
 	files: Map<string, number>,
 	pages: Map<string, Page>,
+	reference: string,
 ): Promise<Page[]> {
 	const pageFiles = new Set([...pages.values()].map((page) => page.file));
 	const frames = new Map<string, Page>();
@@ -261,6 +274,7 @@ async function readFrames(
 				parsePage(
 					file,
 					markupFile.test(file) ? await readFile(join(dir, file), "utf8") : "",
+					reference,
 				),
 			),
 		);
@@ -386,7 +400,7 @@ function head(
 
 	if (page.lang === "") {
 		report("<html> carries no lang");
-	} else if (page.locale !== "" && page.lang !== page.locale) {
+	} else if (page.lang !== page.locale) {
 		report(
 			`<html lang="${page.lang}"> disagrees with the locale "${page.locale}" the page is served under`,
 		);
@@ -407,7 +421,7 @@ function head(
 		}
 	}
 
-	const canonical = canonicalProblem(page, pages, options);
+	const canonical = canonicalProblem(page, options);
 	if (canonical !== undefined) {
 		report(canonical);
 	}
@@ -426,35 +440,34 @@ function head(
 }
 
 // canonicalProblem is what is wrong with the address page names as its own, or
-// undefined when nothing is. A page names the address it is served at. The
-// apex alone may send its reader on at once instead, to another page of the
-// site, and then stands for that page and names its address: a page of a
+// undefined when nothing is. A page served where the site serves its
+// language's version of it names that address and is read there: a page of a
 // language that sends its reader on is a translation the language has lost.
-function canonicalProblem(
-	page: Page,
-	pages: Map<string, Page>,
-	options: Options,
-): string | undefined {
+// A page served anywhere else is at an address the site handed out before
+// the page moved: it sends its reader on at once to where the page is served
+// now, and names that address as its own.
+function canonicalProblem(page: Page, options: Options): string | undefined {
 	const served = options.base + page.address;
-	if (!page.refresh) {
+	const home = address(page.locale, page.name, options.referenceLocale);
+	const sends = `the page sends its reader on to "${page.refresh}"`;
+	if (page.address === home) {
+		if (page.refresh) {
+			return `${sends}, and a page of a language is read where it is served`;
+		}
 		return page.canonical === served
 			? undefined
 			: `canonical is "${page.canonical}", and the page is served at "${served}"`;
 	}
-	const sends = `the page sends its reader on to "${page.refresh}"`;
-	if (page.locale !== "") {
-		return `${sends}, and only the apex may: a page of a language is read in it`;
+	const now = options.base + home;
+	if (!page.refresh) {
+		return `the page is served at "${served}", an address it moved from to "${now}", and does not send its reader on there`;
 	}
-	const target = URL.parse(page.refresh, served);
-	if (target?.origin !== options.base || !pages.has(target.pathname)) {
-		return `${sends}, which is no page of the site`;
+	if (URL.parse(page.refresh, served)?.href !== now) {
+		return `${sends}, and the page has moved to "${now}"`;
 	}
-	if (target.pathname === page.address) {
-		return `${sends}, which is the page itself: it would reload for ever`;
-	}
-	return page.canonical === target.href
+	return page.canonical === now
 		? undefined
-		: `canonical is "${page.canonical}", and the page sends its reader on to "${target.href}"`;
+		: `canonical is "${page.canonical}", and the page sends its reader on to "${now}"`;
 }
 
 // pictureProblem is what is wrong with picture, one a shared link to page
@@ -487,13 +500,12 @@ function expectedAlternates(
 	if (page.refresh) {
 		return [];
 	}
+	const reference = options.referenceLocale;
+	const at = (locale: string) => address(locale, page.name, reference);
 	const alternates: [string, string][] = localesOf(pages)
-		.filter((locale) => pages.has(address(locale, page.name)))
-		.map((locale) => [locale, options.base + address(locale, page.name)]);
-	return [
-		...alternates,
-		["x-default", options.base + address(options.referenceLocale, page.name)],
-	];
+		.filter((locale) => pages.has(at(locale)))
+		.map((locale) => [locale, options.base + at(locale)]);
+	return [...alternates, ["x-default", options.base + at(reference)]];
 }
 
 // translations reports a locale missing a page the reference locale has, which
@@ -509,7 +521,8 @@ function translations(pages: Map<string, Page>, options: Options): Finding[] {
 			return reference
 				.filter((name) => !has.has(name))
 				.map((name) => ({
-					path: address(locale, name).slice(1) + indexFile,
+					path:
+						address(locale, name, options.referenceLocale).slice(1) + indexFile,
 					rule: "translation",
 					message: `locale "${locale}" is missing a page that "${options.referenceLocale}" has`,
 				}));
@@ -729,9 +742,7 @@ function unlisted(pages: Map<string, Page>, options: Options): Finding[] {
 function localesOf(pages: Map<string, Page>): string[] {
 	const locales = new Set<string>();
 	for (const page of pages.values()) {
-		if (page.locale !== "") {
-			locales.add(page.locale);
-		}
+		locales.add(page.locale);
 	}
 	return [...locales].sort(byCodeUnits);
 }
@@ -747,9 +758,13 @@ function namesOf(pages: Map<string, Page>, locale: string): Set<string> {
 	return names;
 }
 
-// address is the path a locale's page is served at.
-function address(locale: string, name: string): string {
-	return name === "" ? `/${locale}/` : `/${locale}/${name}/`;
+// address is the path a locale's page is served at: the front page of
+// reference, the locale every other is translated from, is the bare domain.
+function address(locale: string, name: string, reference: string): string {
+	if (name !== "") {
+		return `/${locale}/${name}/`;
+	}
+	return locale === reference ? "/" : `/${locale}/`;
 }
 
 // isOrigin reports whether base is an origin written as a browser writes one: a

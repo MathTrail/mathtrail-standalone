@@ -18,9 +18,8 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
 
-// The page's table reads eleven cells: the service and the rule before it on
-// the four generators its goals are read on, and the ceiling on the three it
-// bounds a step on. A cell more costs the build time for nothing; a cell less
+// The page's table reads seven cells: the service on the four generators its
+// goals are read on, and the ceiling on the three it bounds a step on. A cell more costs the build time for nothing; a cell less
 // leaves a row unread.
 func TestThePageRunsTheCellsOfItsTableAndNoOthers(t *testing.T) {
 	t.Parallel()
@@ -30,17 +29,14 @@ func TestThePageRunsTheCellsOfItsTableAndNoOthers(t *testing.T) {
 	}
 	want := []string{
 		"shrinking/both/G0", "shrinking/both/G0-topics1", "shrinking/both/G2-half", "shrinking/both/G3",
-		"earlier/both/G0", "earlier/both/G0-topics1", "earlier/both/G2-half", "earlier/both/G3",
 		"oracle/both/G0", "oracle/both/G2-half", "oracle/both/G3",
 	}
 	if !slices.Equal(got, want) {
 		t.Fatalf("pageCells() = %q, want %q", got, want)
 	}
 	for _, row := range pageRows {
-		for _, r := range []string{"shrinking/both/", "earlier/both/"} {
-			if !slices.Contains(got, r+string(row.generator)) {
-				t.Errorf("row %s is read on %s, which the page's run has no cell %s%s for", row.id, row.generator, r, row.generator)
-			}
+		if !slices.Contains(got, "shrinking/both/"+string(row.generator)) {
+			t.Errorf("row %s is read on %s, which the page's run has no cell of the service for", row.id, row.generator)
 		}
 		if row.ceiling == oracleCeiling && !slices.Contains(got, "oracle/both/"+string(row.generator)) {
 			t.Errorf("row %s takes its ceiling from the oracle on %s, which the page's run does not run", row.id, row.generator)
@@ -108,14 +104,11 @@ func pageNumbersBy(numbers func(r *rule, g generator, metric string) summary) *c
 
 // spread is a number with an interval around it, which the oracle has well
 // off zero for every measure, the false masteries and the wait included, and
-// each rule at its own distance, the lag behind the child.
+// further off than the service, the lag behind the child.
 func spread(r *rule, g generator, metric string) summary {
 	v := 0.3 + 0.01*float64(len(metric)+len(g))
-	switch {
-	case r.ceiling:
+	if r.ceiling {
 		v += 0.2
-	case r.name == earlierRule:
-		v += 0.1
 	}
 	if metric == "r6_lag" {
 		v = -v
@@ -158,13 +151,12 @@ func TestThePageCallsABoundItsOwnExactlyWhenTheServicesNumberMovesIt(t *testing.
 }
 
 // The service's mark is "baseline" on a bound of its own and a mark of the
-// bench's everywhere else; the rule before it is held to every bound as a
-// candidate would be.
+// bench's everywhere else.
 func TestThePageMarksTheServiceAsTheBaselineWhereTheBoundIsItsOwn(t *testing.T) {
 	t.Parallel()
 	for i, row := range rowsBy(t, spread) {
 		if pageRows[i].group == "" {
-			if row.Values.Service.Mark != nil || row.Values.Earlier.Mark != nil || row.Bound != nil {
+			if row.Values.Service.Mark != nil || row.Bound != nil {
 				t.Errorf("row %s is shown for context, and has a bound or a mark: %+v", row.ID, row)
 			}
 			continue
@@ -172,14 +164,11 @@ func TestThePageMarksTheServiceAsTheBaselineWhereTheBoundIsItsOwn(t *testing.T) 
 		if service := *row.Values.Service.Mark; (service == markBaseline) != pageRows[i].own {
 			t.Errorf("row %s: the service's mark is %q, and the bound's own is %v", row.ID, service, pageRows[i].own)
 		}
-		if earlier := *row.Values.Earlier.Mark; earlier == markBaseline || earlier == "" {
-			t.Errorf("row %s: the earlier rule's mark is %q, want one of the bench's", row.ID, earlier)
-		}
 	}
 }
 
-// A row of a goal shows each rule's number as the bench's criterion reads it,
-// the lag as its size, and the mark the criterion gives it.
+// A row of a goal shows the service's number as the bench's criterion reads
+// it, the lag as its size, and the mark the criterion gives it.
 func TestThePageReadsEveryGoalAsTheCriterionReadsIt(t *testing.T) {
 	t.Parallel()
 	cr := pageNumbersBy(spread)
@@ -201,27 +190,18 @@ func TestThePageReadsEveryGoalAsTheCriterionReadsIt(t *testing.T) {
 	}
 }
 
-// wantReadAsTheCriterion holds a goal's row to the criterion's reading of each
-// rule's number: its value and interval, the bound, and the mark, which on the
-// service may be the baseline instead.
+// wantReadAsTheCriterion holds a goal's row to the criterion's reading of the
+// service's number: its value and interval, the bound, and the mark, which may
+// be the baseline instead.
 func wantReadAsTheCriterion(t *testing.T, cr *criterionRun, row *pageRowData, g goal) {
 	t.Helper()
-	for _, tc := range []struct {
-		name string
-		r    *rule
-		got  pageValue
-	}{
-		{"the service", cr.baseline, row.Values.Service},
-		{"the rule before it", ruleOf(cr, earlierRule), row.Values.Earlier},
-	} {
-		want := cr.readGoal(tc.r, g)
-		if tc.got.Value != want.value || tc.got.Low != want.low || tc.got.High != want.high || row.Bound.Value != want.bound {
-			t.Errorf("row %s, %s: %v [%v, %v] against %v, want %v [%v, %v] against %v",
-				row.ID, tc.name, tc.got.Value, tc.got.Low, tc.got.High, row.Bound.Value, want.value, want.low, want.high, want.bound)
-		}
-		if *tc.got.Mark != markBaseline && *tc.got.Mark != pageMarks[want.mark] {
-			t.Errorf("row %s, %s: marked %q, want %q", row.ID, tc.name, *tc.got.Mark, pageMarks[want.mark])
-		}
+	got, want := row.Values.Service, cr.readGoal(cr.baseline, g)
+	if got.Value != want.value || got.Low != want.low || got.High != want.high || row.Bound.Value != want.bound {
+		t.Errorf("row %s: %v [%v, %v] against %v, want %v [%v, %v] against %v",
+			row.ID, got.Value, got.Low, got.High, row.Bound.Value, want.value, want.low, want.high, want.bound)
+	}
+	if *got.Mark != markBaseline && *got.Mark != pageMarks[want.mark] {
+		t.Errorf("row %s: marked %q, want %q", row.ID, *got.Mark, pageMarks[want.mark])
 	}
 }
 
@@ -255,13 +235,13 @@ func TestThePageRefusesARowItCannotRead(t *testing.T) {
 	t.Parallel()
 	for _, row := range pageRows {
 		_, err := rowsOf(pageNumbersBy(func(r *rule, g generator, metric string) summary {
-			if r.name == earlierRule && g == row.generator && metric == row.metric {
+			if r.service && g == row.generator && metric == row.metric {
 				return summary{}
 			}
 			return spread(r, g, metric)
 		}))
 		if !errors.Is(err, errPageRow) {
-			t.Errorf("row %s with no number of the rule before it: error %v, want %v", row.id, err, errPageRow)
+			t.Errorf("row %s with no number of the service: error %v, want %v", row.id, err, errPageRow)
 		}
 	}
 }
@@ -559,9 +539,9 @@ func TestThePageFileTakesThePapersCommitFromThePDFItShips(t *testing.T) {
 	}
 }
 
-// The table of goals in the job's summary shows each row under both rules,
-// with their marks, and what it was read against.
-func TestTheGoalsTableShowsBothRulesWithTheirMarks(t *testing.T) {
+// The table of goals in the job's summary shows each row with the service's
+// mark, and what it was read against.
+func TestTheGoalsTableShowsTheServiceWithItsMarks(t *testing.T) {
 	t.Parallel()
 	numbers := numbersFile(t, smallNumbers(t))
 	file, _, err := pageFileOf(&pageFileArgs{numbers: numbers, inputs: keyOfBuild, commit: fixtureCommit, date: fixtureDate, paperCommit: paperCommitOf})
@@ -575,13 +555,11 @@ func TestTheGoalsTableShowsBothRulesWithTheirMarks(t *testing.T) {
 			t.Errorf("the table has no row %s:\n%s", row.ID, report)
 			continue
 		}
-		for _, v := range []pageValue{row.Values.Service, row.Values.Earlier} {
-			if v.Mark != nil && !strings.Contains(line, strings.ReplaceAll(*v.Mark, "_", " ")) {
-				t.Errorf("row %s does not show the mark %s: %s", row.ID, *v.Mark, line)
-			}
+		if v := row.Values.Service; v.Mark != nil && !strings.Contains(line, strings.ReplaceAll(*v.Mark, "_", " ")) {
+			t.Errorf("row %s does not show the mark %s: %s", row.ID, *v.Mark, line)
 		}
 	}
-	for _, want := range []string{"shrinking/both", "earlier/both", "oracle/both", "the PDF is old", short(fixtureCommit)} {
+	for _, want := range []string{"shrinking/both", "oracle/both", "the PDF is old", short(fixtureCommit)} {
 		if !strings.Contains(report, want) {
 			t.Errorf("the table does not say %q:\n%s", want, report)
 		}
@@ -713,42 +691,36 @@ func keepFixture(t *testing.T, made []byte) {
 }
 
 // marksThatDoNotFollow are the marks of a row that its numbers do not give:
-// a goal's mark is read on the whole interval against the bound, on the side
-// the row calls better, and the baseline stands only on the service, against
-// a bound of its own.
+// the service's mark is the baseline exactly against a bound of its own, and
+// elsewhere is read on the whole interval against the bound, on the side the
+// row calls better.
 func marksThatDoNotFollow(row *pageRowData) []string {
 	if row.Bound == nil {
 		return nil
 	}
-	var problems []string
-	for _, rv := range []struct {
-		whose   string
-		v       pageValue
-		service bool
-	}{{"the service", row.Values.Service, true}, {"the rule before it", row.Values.Earlier, false}} {
-		mark := *rv.v.Mark
-		if mark == markBaseline {
-			if !rv.service || !row.Bound.Own {
-				problems = append(problems, rv.whose+" is marked the baseline against a bound not its own")
-			}
-			continue
+	v := row.Values.Service
+	mark := *v.Mark
+	if row.Bound.Own {
+		if mark != markBaseline {
+			return []string{"the service is marked " + mark + " against a bound of its own, want the baseline"}
 		}
-		low, high, bound := rv.v.Low, rv.v.High, row.Bound.Value
-		if row.Better == higher {
-			low, high, bound = -rv.v.High, -rv.v.Low, -bound
-		}
-		want := markOnTheEdge
-		switch {
-		case high <= bound:
-			want = markReached
-		case low > bound:
-			want = markNotReached
-		}
-		if mark != want {
-			problems = append(problems, rv.whose+" is marked "+mark+", and its numbers give "+want)
-		}
+		return nil
 	}
-	return problems
+	low, high, bound := v.Low, v.High, row.Bound.Value
+	if row.Better == higher {
+		low, high, bound = -v.High, -v.Low, -bound
+	}
+	want := markOnTheEdge
+	switch {
+	case high <= bound:
+		want = markReached
+	case low > bound:
+		want = markNotReached
+	}
+	if mark != want {
+		return []string{"the service is marked " + mark + ", and its numbers give " + want}
+	}
+	return nil
 }
 
 func readBytes(t *testing.T, path string) []byte {

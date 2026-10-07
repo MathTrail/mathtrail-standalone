@@ -17,8 +17,10 @@ describe("resolveReference", () => {
 		["?q=1", "en/index.html", ""],
 		// A file with an extension is that file.
 		["/assets/style.css", "en/privacy/index.html", "assets/style.css"],
-		// The apex.
+		// The bare domain, with an anchor or a query on it as well.
 		["/", "en/index.html", "index.html"],
+		["/#connect", "en/why/index.html", "index.html"],
+		["/?from=footer", "en/index.html", "index.html"],
 		// Relative addresses are read from the page's own directory.
 		["privacy/", "en/index.html", "en/privacy/index.html"],
 		["../terms/", "en/privacy/index.html", "en/terms/index.html"],
@@ -54,8 +56,10 @@ describe("isExternal", () => {
 
 describe("locate", () => {
 	test.for([
-		["index.html", { locale: "", name: "", address: "/" }],
+		// The bare domain's is the reference locale's front page.
+		["index.html", { locale: "en", name: "", address: "/" }],
 		["en/index.html", { locale: "en", name: "", address: "/en/" }],
+		["ru/index.html", { locale: "ru", name: "", address: "/ru/" }],
 		[
 			"en/privacy/index.html",
 			{ locale: "en", name: "privacy", address: "/en/privacy/" },
@@ -69,7 +73,15 @@ describe("locate", () => {
 			},
 		],
 	] as const)("places %s", ([file, want]) => {
-		expect(locate(file)).toEqual(want);
+		expect(locate(file, "en")).toEqual(want);
+	});
+
+	test("places the bare domain's file in the reference locale it is given", () => {
+		expect(locate("index.html", "ru")).toEqual({
+			locale: "ru",
+			name: "",
+			address: "/",
+		});
 	});
 });
 
@@ -92,6 +104,7 @@ describe("parsePage", () => {
 				`<link rel="stylesheet" href="/assets/demo.css">`,
 				`</template></body></html>`,
 			].join(""),
+			"en",
 		);
 
 		expect(page).toMatchObject({
@@ -133,18 +146,21 @@ describe("parsePage", () => {
 		[`${noBreak}0; url=/en/`, undefined],
 		["", undefined],
 	] as const)("reads a refresh of %j as doing %j", ([content, want]) => {
-		expect(parsePage("index.html", refreshing(content)).refresh).toBe(want);
+		expect(parsePage("index.html", refreshing(content), "en").refresh).toBe(
+			want,
+		);
 	});
 
 	test("acts on the first refresh a browser acts on, as a browser does", () => {
 		expect(
-			parsePage("index.html", refreshing("5", "0; url=/en/")).refresh,
+			parsePage("index.html", refreshing("5", "0; url=/en/"), "en").refresh,
 		).toBe("");
 		expect(
-			parsePage("index.html", refreshing("0; url=/en/", "5")).refresh,
+			parsePage("index.html", refreshing("0; url=/en/", "5"), "en").refresh,
 		).toBe("/en/");
 		expect(
-			parsePage("index.html", refreshing("url=/ru/", "0; url=/en/")).refresh,
+			parsePage("index.html", refreshing("url=/ru/", "0; url=/en/"), "en")
+				.refresh,
 		).toBe("/en/");
 	});
 
@@ -168,6 +184,7 @@ describe("parsePage", () => {
 				`<svg><title>A map</title></svg>`,
 				`</body></html>`,
 			].join(""),
+			"en",
 		);
 
 		expect(page).toMatchObject({

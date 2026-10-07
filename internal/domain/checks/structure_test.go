@@ -18,11 +18,6 @@ type catalog struct {
 	traps map[string]string // id to description
 }
 
-func (c catalog) HasTrap(id string) bool {
-	_, known := c.traps[id]
-	return known
-}
-
 func (c catalog) TrapDescription(id string) (string, bool) {
 	description, known := c.traps[id]
 	return description, known

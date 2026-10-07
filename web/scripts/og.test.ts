@@ -3,11 +3,12 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import fixture from "../../site/research/testdata/research.json";
+import { outputPath } from "../src/site/addresses.ts";
 import { sharingPicturePath, sharingPictureSize } from "../src/site/brand.ts";
 import { siteData } from "../src/site/data.ts";
 import { renderSite } from "../src/site/render.tsx";
 import { pictureStyle } from "./og.ts";
-import { keptPictureOf, readSources } from "./prerender-site.ts";
+import { homeOf, keptPictureOf, readSources } from "./prerender-site.ts";
 
 const repository = join(import.meta.dirname, "..", "..");
 
@@ -52,7 +53,8 @@ describe("the sharing pictures", () => {
 		expect(named).not.toEqual([]);
 		for (const locale of sources.keys()) {
 			const home =
-				files.find(({ path }) => path === `${locale}/index.html`)?.data ?? "";
+				files.find(({ path }) => path === outputPath(homeOf(locale)))?.data ??
+				"";
 			const classes = new Set(
 				[...home.matchAll(/class="([^"]*)"/g)].flatMap(([, value]) =>
 					(value ?? "").split(" "),

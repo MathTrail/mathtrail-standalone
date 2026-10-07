@@ -13,7 +13,6 @@ import (
 // The checks read the catalogs through interfaces of their own, and the content
 // of the binary is what answers them.
 var (
-	_ checks.Catalog       = (*content.Content)(nil)
 	_ checks.TrapDescriber = (*content.Content)(nil)
 	_ checks.Content       = (*content.Content)(nil)
 )
@@ -43,7 +42,7 @@ func TestTheReferenceQuestionsAreThoseOfTheLevel(t *testing.T) {
 
 // The answers are the catalogs' own: an id they list is known, and one they
 // do not — including one of another catalog — is not.
-func TestTheCatalogsAnswerTheStructureCheck(t *testing.T) {
+func TestTheCatalogsKnowTheirOwnIDs(t *testing.T) {
 	t.Parallel()
 
 	embedded, err := content.Load()

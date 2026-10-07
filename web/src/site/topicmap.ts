@@ -1,3 +1,4 @@
+import { rule } from "./headrules";
 import type { Topic, Topics } from "./topics";
 
 /**
@@ -236,11 +237,4 @@ export function lightRules(topics: Topics, map: TopicMap): string {
 	]
 		.filter((written) => written !== "")
 		.join("\n");
-}
-
-// rule is one rule of selectors, or nothing when there are none.
-function rule(selectors: readonly string[], declarations: string): string {
-	return selectors.length === 0
-		? ""
-		: `${selectors.join(",\n")}{${declarations}}`;
 }

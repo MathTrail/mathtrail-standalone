@@ -21,9 +21,8 @@ import (
 )
 
 // The page's run computes the numbers the site's page of the research shows
-// of the student model: the service, the rule before its floor and its
-// cautious mastery, and the ceiling, on the cells of the page's table and no
-// others, each goal read as the bench's own criterion reads it. A cell's
+// of the student model: the service and the ceiling, on the cells of the
+// page's table and no others, each goal read as the bench's own criterion reads it. A cell's
 // children and intervals depend on its rule and its generator alone, so these
 // cells give the numbers of the whole run to the last digit, in a fraction of
 // its time.
@@ -58,12 +57,11 @@ var pageGenerators = []generator{staticChildren, farTopics, learningHalf, jumpin
 // mastery's ceiling is perfection, which needs no run.
 var ceilingGenerators = []generator{staticChildren, learningHalf, jumping}
 
-// pageCells are the cells of the page's table and no others: the service and
-// the rule before it on every generator of the goals, the ceiling on those it
-// bounds.
+// pageCells are the cells of the page's table and no others: the service on
+// every generator of the goals, the ceiling on those it bounds.
 func pageCells() []cell {
 	return append(
-		cellsOn([]*rule{serviceRule(), earlierServiceRule()}, pageGenerators),
+		cellsOn([]*rule{serviceRule()}, pageGenerators),
 		cellsOn([]*rule{ceilingRule()}, ceilingGenerators)...,
 	)
 }
@@ -168,21 +166,20 @@ type pageNumbers struct {
 }
 
 // benchBlock is the bench's part of the page's data: what the run was, the
-// goals' parameters, the rules and the rows of the table.
+// rules and the rows of the table.
 type benchBlock struct {
-	Producer       string          `json:"producer"`
-	Inputs         string          `json:"inputs"`
-	Seed           uint64          `json:"seed"`
-	Experiment     string          `json:"experiment"`
-	Children       int             `json:"children"`
-	Answers        int             `json:"answers"`
-	Interval       float64         `json:"interval"`
-	Resamples      int             `json:"resamples"`
-	ErrorAfter     int             `json:"error_after"`
-	ScreenWindows  screenWindowsOf `json:"screen_windows"`
-	GoalParameters goalParameters  `json:"goal_parameters"`
-	Rules          []pageRule      `json:"rules"`
-	Rows           []pageRowData   `json:"rows"`
+	Producer      string          `json:"producer"`
+	Inputs        string          `json:"inputs"`
+	Seed          uint64          `json:"seed"`
+	Experiment    string          `json:"experiment"`
+	Children      int             `json:"children"`
+	Answers       int             `json:"answers"`
+	Interval      float64         `json:"interval"`
+	Resamples     int             `json:"resamples"`
+	ErrorAfter    int             `json:"error_after"`
+	ScreenWindows screenWindowsOf `json:"screen_windows"`
+	Rules         []pageRule      `json:"rules"`
+	Rows          []pageRowData   `json:"rows"`
 }
 
 // screenWindowsOf are the two windows of answers the screen is read over: the
@@ -196,15 +193,6 @@ type screenWindowsOf struct {
 type answerSpan struct {
 	First int `json:"first"`
 	Last  int `json:"last"`
-}
-
-// goalParameters are the numbers the goals are written with.
-type goalParameters struct {
-	LagShare      float64 `json:"lag_share"`
-	CorridorShare float64 `json:"corridor_share"`
-	UnsettledMost float64 `json:"unsettled_most"`
-	FalseMost     float64 `json:"false_most"`
-	LateTimes     float64 `json:"late_times"`
 }
 
 // pageRule is a rule of the page's run and the part it plays on the page.
@@ -235,11 +223,10 @@ type pageBound struct {
 	Own   bool    `json:"own"`
 }
 
-// pageValues are a row's numbers under each rule, the ceiling's when the row
-// has one.
+// pageValues are a row's numbers: the service's, and the ceiling's when the
+// row has one.
 type pageValues struct {
 	Service pageValue    `json:"service"`
-	Earlier pageValue    `json:"earlier"`
 	Ceiling *pageCeiling `json:"ceiling"`
 }
 
@@ -303,7 +290,6 @@ var errPageRow = errors.New("learners page: a row has no number")
 // rowsOf reads every row of the page's table off a run read by the page's
 // criterion.
 func rowsOf(cr *criterionRun) ([]pageRowData, error) {
-	earlier := ruleOf(cr, earlierRule)
 	goals := pageGoals()
 	rows := make([]pageRowData, 0, len(pageRows))
 	for i := range pageRows {
@@ -315,11 +301,11 @@ func rowsOf(cr *criterionRun) ([]pageRowData, error) {
 		at := slices.IndexFunc(goals, func(g goal) bool { return g.generator == row.generator && g.metric == row.metric })
 		switch {
 		case row.group == "":
-			data, err = contextRowOf(cr, earlier, row)
+			data, err = contextRowOf(cr, row)
 		case at < 0:
 			err = fmt.Errorf("%w: %s holds no goal of either criterion", errPageRow, row.id)
 		default:
-			data, err = goalRowOf(cr, earlier, row, goals[at])
+			data, err = goalRowOf(cr, row, goals[at])
 		}
 		if err != nil {
 			return nil, err
@@ -329,21 +315,11 @@ func rowsOf(cr *criterionRun) ([]pageRowData, error) {
 	return rows, nil
 }
 
-// ruleOf is the run's rule of this name.
-func ruleOf(cr *criterionRun, name string) *rule {
-	for c := range cr.all {
-		if cr.all[c].rule.name == name {
-			return cr.all[c].rule
-		}
-	}
-	return nil
-}
-
-// goalRowOf reads a goal's row: the service's and the earlier rule's numbers
-// as the criterion reads them, each with its mark, and the ceiling.
-func goalRowOf(cr *criterionRun, earlier *rule, row *pageRow, g goal) (pageRowData, error) {
-	service, earlierReading := cr.readGoal(cr.baseline, g), cr.readGoal(earlier, g)
-	if service.verdict == unread || earlierReading.verdict == unread {
+// goalRowOf reads a goal's row: the service's number as the criterion reads
+// it, with its mark, and the ceiling.
+func goalRowOf(cr *criterionRun, row *pageRow, g goal) (pageRowData, error) {
+	service := cr.readGoal(cr.baseline, g)
+	if service.verdict == unread {
 		return pageRowData{}, fmt.Errorf("%w: %s on %s", errPageRow, row.metric, row.generator)
 	}
 	ceiling, err := ceilingOf(cr, row, g.size)
@@ -354,7 +330,6 @@ func goalRowOf(cr *criterionRun, earlier *rule, row *pageRow, g goal) (pageRowDa
 	if row.own {
 		serviceMark = markBaseline
 	}
-	earlierMark := pageMarks[earlierReading.mark]
 	better := lower
 	if !g.atMost {
 		better = higher
@@ -365,18 +340,16 @@ func goalRowOf(cr *criterionRun, earlier *rule, row *pageRow, g goal) (pageRowDa
 		Bound: &pageBound{Value: service.bound, Own: row.own},
 		Values: pageValues{
 			Service: pageValue{Value: service.value, Low: service.low, High: service.high, Mark: &serviceMark},
-			Earlier: pageValue{Value: earlierReading.value, Low: earlierReading.low, High: earlierReading.high, Mark: &earlierMark},
 			Ceiling: ceiling,
 		},
 	}, nil
 }
 
-// contextRowOf reads a row shown for context: every rule's number as it is,
+// contextRowOf reads a row shown for context: the service's number as it is,
 // with no bound and no mark.
-func contextRowOf(cr *criterionRun, earlier *rule, row *pageRow) (pageRowData, error) {
+func contextRowOf(cr *criterionRun, row *pageRow) (pageRowData, error) {
 	service, hasService := cr.summaryOf(cr.baseline, row.generator, row.metric)
-	before, hasBefore := cr.summaryOf(earlier, row.generator, row.metric)
-	if !hasService || !hasBefore {
+	if !hasService {
 		return pageRowData{}, fmt.Errorf("%w: %s on %s", errPageRow, row.metric, row.generator)
 	}
 	ceiling, err := ceilingOf(cr, row, false)
@@ -388,7 +361,6 @@ func contextRowOf(cr *criterionRun, earlier *rule, row *pageRow) (pageRowData, e
 		Unit: row.unit, ReadAs: readingOf(false), Better: row.better,
 		Values: pageValues{
 			Service: pageValue{Value: service.value, Low: service.low, High: service.high},
-			Earlier: pageValue{Value: before.value, Low: before.low, High: before.high},
 			Ceiling: ceiling,
 		},
 	}, nil
@@ -435,12 +407,8 @@ func benchBlockOf(cr *criterionRun, children int, inputs string) (benchBlock, er
 		Children: children, Answers: pageAnswers, Interval: 1 - 2*tail, Resamples: resamples,
 		ErrorAfter:    checkpoints[len(checkpoints)-1],
 		ScreenWindows: screenWindowsOf{Early: answerSpan{First: early.first, Last: early.last}, Late: answerSpan{First: late.first, Last: late.last}},
-		GoalParameters: goalParameters{
-			LagShare: lagShare, CorridorShare: corridorShare, UnsettledMost: unsettledMost, FalseMost: falseMost, LateTimes: lateTimes,
-		},
 		Rules: []pageRule{
 			{ID: ruleID(serviceRule()), Role: "service"},
-			{ID: ruleID(earlierServiceRule()), Role: "earlier"},
 			{ID: ruleID(ceilingRule()), Role: "ceiling"},
 		},
 		Rows: rows,

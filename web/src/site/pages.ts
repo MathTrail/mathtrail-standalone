@@ -6,6 +6,8 @@ import type { SiteData } from "./data";
 import { HomePage } from "./HomePage";
 import { ResearchPage } from "./ResearchPage";
 import type { PageReader } from "./reader";
+import { ServicePage } from "./ServicePage";
+import { serviceRules } from "./service";
 import { TechniquesPage } from "./TechniquesPage";
 import { topicPage } from "./TopicPage";
 import { TopicsPage, topicsStyle } from "./TopicsPage";
@@ -35,7 +37,8 @@ export type Page = {
  * has in every language: index for index.yaml, the front page, why for
  * why.yaml, topics for topics.yaml, about for about.yaml, coach for coach.yaml,
  * the page of a product of its own still in the making, research for
- * research.yaml, the page of the numbers behind the product, and topics/<slug>
+ * research.yaml, the page of the numbers behind the product, service for
+ * service.yaml, the page of how the service works, and topics/<slug>
  * for the page of a topic of the catalog, which one template draws for every
  * topic.
  * Which topics have a page is for their words to say, and for the catalog to
@@ -50,6 +53,7 @@ export function sitePages(data: SiteData): ReadonlyMap<string, Page> {
 		["about", { draw: AboutPage }],
 		["coach", { draw: CoachPage }],
 		["research", { draw: ResearchPage }],
+		["service", { draw: ServicePage, style: serviceRules }],
 		...data.topics.all.map((topic): [string, Page] => [
 			`topics/${topic.slug}`,
 			topicPage(topic),

@@ -17,7 +17,6 @@ import (
 // Content is what a review needs of what the service ships: the catalogs a
 // task is checked against, and the reference tasks it must not copy.
 type Content interface {
-	Catalog
 	TrapDescriber
 	// ReferenceQuestions are the questions of the reference tasks of this
 	// level.

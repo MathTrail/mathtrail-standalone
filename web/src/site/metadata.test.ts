@@ -20,16 +20,16 @@ const texts = readTexts(
 );
 
 describe("the files a crawler and the host read", () => {
-	test("list every page with its translations in the sitemap, and not the apex, which only sends its reader on", () => {
-		expect(sitemap(texts, base, "en")).toBe(
+	test("list every page with its translations in the sitemap, the English front page at the bare domain and not at the address it moved from, which only sends its reader on", () => {
+		expect(sitemap(texts, base)).toBe(
 			[
 				'<?xml version="1.0" encoding="UTF-8"?>',
 				'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
 				"  <url>",
-				"    <loc>https://example.test/en/</loc>",
-				'    <xhtml:link rel="alternate" hreflang="en" href="https://example.test/en/"/>',
+				"    <loc>https://example.test/</loc>",
+				'    <xhtml:link rel="alternate" hreflang="en" href="https://example.test/"/>',
 				'    <xhtml:link rel="alternate" hreflang="ru" href="https://example.test/ru/"/>',
-				'    <xhtml:link rel="alternate" hreflang="x-default" href="https://example.test/en/"/>',
+				'    <xhtml:link rel="alternate" hreflang="x-default" href="https://example.test/"/>',
 				"  </url>",
 				"  <url>",
 				"    <loc>https://example.test/en/topics/sample/</loc>",
@@ -39,9 +39,9 @@ describe("the files a crawler and the host read", () => {
 				"  </url>",
 				"  <url>",
 				"    <loc>https://example.test/ru/</loc>",
-				'    <xhtml:link rel="alternate" hreflang="en" href="https://example.test/en/"/>',
+				'    <xhtml:link rel="alternate" hreflang="en" href="https://example.test/"/>',
 				'    <xhtml:link rel="alternate" hreflang="ru" href="https://example.test/ru/"/>',
-				'    <xhtml:link rel="alternate" hreflang="x-default" href="https://example.test/en/"/>',
+				'    <xhtml:link rel="alternate" hreflang="x-default" href="https://example.test/"/>',
 				"  </url>",
 				"  <url>",
 				"    <loc>https://example.test/ru/topics/sample/</loc>",

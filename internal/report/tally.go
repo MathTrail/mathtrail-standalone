@@ -56,7 +56,7 @@ type tasks struct {
 	// tasks written ahead and kept, and letGo those let go, kept or still being
 	// written, once the lesson moved away from them. ready counts the tasks
 	// handed out that had been kept, and byCard the tasks a card took, kept
-	// or waited for.
+	// or waited for, while a release let a card take one into its own place.
 	ahead, kept, letGo, ready, byCard int
 }
 

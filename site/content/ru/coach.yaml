@@ -12,6 +12,10 @@ hero:
   title: Олимпиадная математика, где ребёнок думает сам
   lead: "Мы делаем тренера для детей 7–12 лет. Ребёнок решает задачу на планшете: рисует и пишет на холсте, как в тетради. Компаньон, которого он выбрал сам, ведёт по четырём шагам и задаёт наводящие вопросы. Готовый ответ компаньон не даёт: ответ ребёнок пишет сам."
   try: Попробовать прототип
+  # A screen of the prototype beside the words: what it shows, for whoever
+  # cannot see it, and the line under it.
+  screen: "Прототип MathTrail: ребёнок выбирает компаньона"
+  caption: "Экран прототипа: ребёнок выбирает, с кем решать. Попробуйте ниже."
 
 # What the coach is about, a card for each idea, under a heading a screen
 # reader alone says.

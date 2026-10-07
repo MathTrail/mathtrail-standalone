@@ -291,7 +291,7 @@ describe("the page Why", () => {
 	});
 
 	test("leads to connecting on the home page, and to every topic", () => {
-		expect(all(".s-ask a", "href")).toEqual(["/en/#connect", "/en/topics/"]);
+		expect(all(".s-ask a", "href")).toEqual(["/#connect", "/en/topics/"]);
 		expect(why.querySelector(".s-ask .s-btn-filled")?.textContent).toBe(
 			"Add to Claude",
 		);

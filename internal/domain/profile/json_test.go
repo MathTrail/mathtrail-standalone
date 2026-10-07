@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"strconv"
 	"strings"
 	"testing"
@@ -57,6 +58,67 @@ func TestUnknownFieldsAreDroppedRatherThanKept(t *testing.T) {
 	}
 	if !bytes.Equal(written, readFixture(t, "dima")) {
 		t.Error("reading a file with an unknown field changed the rest of it")
+	}
+}
+
+// leftIn puts keys into objects of a written file, as a build that wrote them
+// would have left them there: left maps each object's key to what goes into it.
+func leftIn(t *testing.T, written []byte, left map[string]map[string]any) []byte {
+	t.Helper()
+
+	var document map[string]json.RawMessage
+	if err := json.Unmarshal(written, &document); err != nil {
+		t.Fatalf("parse the file: %v", err)
+	}
+	for part, keys := range left {
+		var object map[string]any
+		if err := json.Unmarshal(document[part], &object); err != nil {
+			t.Fatalf("parse %s: %v", part, err)
+		}
+		maps.Copy(object, keys)
+		raw, err := json.Marshal(object)
+		if err != nil {
+			t.Fatalf("marshal %s: %v", part, err)
+		}
+		document[part] = raw
+	}
+
+	out, err := json.Marshal(document)
+	if err != nil {
+		t.Fatalf("marshal the document: %v", err)
+	}
+	return out
+}
+
+// A file written while a card could take the next task into its own place
+// still reads. What the take left in it, the task a card asked after on the
+// request and on the task and the mark of a task kept, is read past and gone
+// from the file once it is written again.
+func TestAFileFromWhenACardTookTheNextTaskIsReadPastIt(t *testing.T) {
+	t.Parallel()
+
+	p := parseFixture(t, "masha")
+	brief := briefOn("counting.gaps")
+	p.Ask(&brief, profile.TutorRule, "en", asked)
+	written, err := profile.Marshal(p)
+	if err != nil {
+		t.Fatalf("Marshal() error = %v, want nil", err)
+	}
+	before := leftIn(t, written, map[string]map[string]any{
+		"current_task": {"taken_after": "tsk_the_card_asked_after", "kept": true},
+		"open_request": {"taken_after": "tsk_the_card_asked_after"},
+	})
+
+	read, err := profile.Parse(before)
+	if err != nil {
+		t.Fatalf("Parse() error = %v, want what a card's take left read past", err)
+	}
+	again, err := profile.Marshal(read)
+	if err != nil {
+		t.Fatalf("Marshal() error = %v, want nil", err)
+	}
+	if !bytes.Equal(again, written) {
+		t.Errorf("the file written again is\n%s\nwant it as it was without what the take left:\n%s", again, written)
 	}
 }
 

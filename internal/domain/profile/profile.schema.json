@@ -360,10 +360,6 @@
           "type": "string"
         },
         "opened_at": { "type": "string", "format": "date-time" },
-        "taken_after": {
-          "description": "The task a card asked for the next one after, when this request answers a card's ask.",
-          "type": "string"
-        },
         "tutor_mode": {
           "description": "Who chose the topic and the difficulty: the rule, the model with a reason of its own, or a person — the child or the adult, who chose the topic of the lessons, the rule setting the rest.",
           "type": "string",
@@ -434,10 +430,6 @@
         "id": { "type": "string", "minLength": 1 },
         "instructions_version": { "type": "string" },
         "issued_at": { "type": "string", "format": "date-time" },
-        "kept": {
-          "description": "True when the task was written ahead and kept until the child asked for the next one, rather than written while they waited.",
-          "type": "boolean"
-        },
         "language": { "type": "string" },
         "options": {
           "description": "The five the child chooses between.",
@@ -449,10 +441,6 @@
           "description": "The answer, the explanation behind every wrong option, the solution and the solver, as one opaque string. Nothing about it changes shape with the answer.",
           "type": "string",
           "minLength": 1
-        },
-        "taken_after": {
-          "description": "The task a card asked for the next one after, when a card asked for this one.",
-          "type": "string"
         },
         "topic": { "type": "string", "minLength": 1 },
         "tutor_mode": {

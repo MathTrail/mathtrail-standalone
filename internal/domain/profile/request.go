@@ -154,7 +154,6 @@ func (p *Profile) Issue(written *Written, secret TaskSecret, sealer Sealer, now 
 		IssuedAt:            At(now),
 		Language:            request.Language,
 		Options:             maps.Clone(written.Options),
-		TakenAfter:          request.TakenAfter,
 		Topic:               request.Brief.TargetConcept,
 		TutorMode:           request.TutorMode,
 		Wording:             written.Wording,

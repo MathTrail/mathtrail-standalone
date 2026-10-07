@@ -174,8 +174,8 @@ func askForTheRace(t *testing.T, session *mcp.ClientSession, kept store.Storage)
 	return p.OpenRequest
 }
 
-// requestPayload is what next_task hands the card it draws: a task on its way,
-// or why no request was opened.
+// requestPayload is what next_task hands the card it draws: the task written
+// ahead, on it at once; a task on its way; or why no request was opened.
 type requestPayload struct {
 	Screen   string `json:"screen"`
 	Status   string `json:"status"`
@@ -186,7 +186,11 @@ type requestPayload struct {
 	} `json:"problems"`
 	RequestID   string `json:"request_id"`
 	AlreadyOpen bool   `json:"already_open"`
-	Child       *struct {
+	Task        *struct {
+		ID       string `json:"id"`
+		Question string `json:"question"`
+	} `json:"task"`
+	Child *struct {
 		Pseudonym string `json:"pseudonym"`
 		Grade     int    `json:"grade"`
 	} `json:"child"`

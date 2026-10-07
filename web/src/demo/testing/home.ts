@@ -4,6 +4,7 @@ import { Window } from "happy-dom";
 import topics from "../../../../content/catalogs/topics.json";
 import traps from "../../../../content/catalogs/traps.json";
 import file from "../../../../site/data.json";
+import { address, outputPath } from "../../site/addresses";
 import { frontPage } from "../../site/content";
 import { readSiteData } from "../../site/data";
 import type { Frame } from "../../site/frame";
@@ -69,7 +70,7 @@ function builtHome(locale: string): string {
 		pages: new Map<string, Page>([[frontPage, home]]),
 		frame,
 		data,
-	}).find(({ path }) => path === `${locale}/index.html`);
+	}).find(({ path }) => path === outputPath(address(locale, frontPage)));
 	if (built === undefined) {
 		throw new Error(`the site has no home page in ${locale}`);
 	}

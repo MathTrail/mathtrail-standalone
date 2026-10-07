@@ -30,7 +30,11 @@ export type Page = {
 	file: string;
 	/** address is the path the file is served at, such as "/en/privacy/". */
 	address: string;
-	/** locale is the first segment of the path, empty for the apex. */
+	/**
+	 * locale is the language the page is of: the first segment of its path, or
+	 * the reference locale for the bare domain's page, which is that locale's
+	 * front page.
+	 */
 	locale: string;
 	/** name is the page within its locale, empty for the locale's front page. */
 	name: string;
@@ -87,8 +91,13 @@ const srcElements = new Set([
 /**
  * locate works out where a file sits in the site from its path alone: the
  * first segment is the locale, and the rest up to the index file is the page.
+ * The bare domain's file is the front page of reference, the locale every
+ * other is translated from.
  */
-export function locate(file: string): {
+export function locate(
+	file: string,
+	reference: string,
+): {
 	locale: string;
 	name: string;
 	address: string;
@@ -97,7 +106,7 @@ export function locate(file: string): {
 		.slice(0, file.length - indexFile.length)
 		.replace(/\/$/, "");
 	if (trimmed === "") {
-		return { locale: "", name: "", address: "/" };
+		return { locale: reference, name: "", address: "/" };
 	}
 	const slash = trimmed.indexOf("/");
 	if (slash < 0) {
@@ -135,17 +144,16 @@ export function isExternal(value: string): boolean {
  */
 export function resolveReference(value: string, fromFile: string): string {
 	const cut = value.search(/[#?]/);
-	let target = cut < 0 ? value : value.slice(0, cut);
-	if (target === "") {
+	const asked = cut < 0 ? value : value.slice(0, cut);
+	if (asked === "") {
 		return "";
 	}
-	target = target.startsWith("/")
-		? cleaned(target.slice(1))
-		: cleaned(posix.join(posix.dirname(fromFile), target));
-	if (value.endsWith("/") || extension(target) === "") {
-		target = cleaned(posix.join(target, indexFile));
-	}
-	return target;
+	const target = asked.startsWith("/")
+		? cleaned(asked.slice(1))
+		: cleaned(posix.join(posix.dirname(fromFile), asked));
+	return asked.endsWith("/") || extension(target) === ""
+		? cleaned(posix.join(target, indexFile))
+		: target;
 }
 
 // cleaned is a path with its dots resolved and no trailing slash, the way a
@@ -165,11 +173,14 @@ function extension(path: string): string {
 	return dot < 0 ? "" : last.slice(dot);
 }
 
-/** parsePage reads one built HTML file of the site. */
-export function parsePage(file: string, html: string): Page {
+/**
+ * parsePage reads one built HTML file of the site, whose bare domain serves
+ * the front page of the reference locale.
+ */
+export function parsePage(file: string, html: string, reference: string): Page {
 	const page: Page = {
 		file,
-		...locate(file),
+		...locate(file, reference),
 		lang: "",
 		dir: "",
 		title: "",

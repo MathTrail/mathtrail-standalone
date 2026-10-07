@@ -4,7 +4,7 @@ import {
 	type ActionLink,
 	Header,
 	type LanguageLink,
-	type MenuLink,
+	type MenuEntry,
 } from "./Header";
 import { type Head, Layout } from "./Layout";
 
@@ -12,7 +12,7 @@ import { type Head, Layout } from "./Layout";
 export type PageFrame = {
 	/** home is the front page the mark leads to. */
 	readonly home: string;
-	readonly menu: readonly MenuLink[];
+	readonly menu: readonly MenuEntry[];
 	/** action is the one thing the header asks a reader to do, when it asks one. */
 	readonly action?: ActionLink;
 	readonly languages: readonly LanguageLink[];

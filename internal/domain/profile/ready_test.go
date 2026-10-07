@@ -103,7 +103,7 @@ func TestAKeptTaskIsHandedOutAsItWasWritten(t *testing.T) {
 	ready := *kept
 
 	handed := keptAt.Add(time.Minute)
-	task, err := p.HandOutReady("tsk_on_the_card_before", handed)
+	task, err := p.HandOutReady(handed)
 	if err != nil {
 		t.Fatalf("HandOutReady() error = %v, want nil", err)
 	}
@@ -116,11 +116,9 @@ func TestAKeptTaskIsHandedOutAsItWasWritten(t *testing.T) {
 		ID:                  ready.ID,
 		InstructionsVersion: ready.InstructionsVersion,
 		IssuedAt:            profile.At(handed),
-		Kept:                true,
 		Language:            ready.Language,
 		Options:             ready.Options,
 		Sealed:              ready.Sealed,
-		TakenAfter:          "tsk_on_the_card_before",
 		Topic:               ready.Topic,
 		TutorMode:           ready.TutorMode,
 		Wording:             ready.Wording,
@@ -182,7 +180,7 @@ func TestNothingIsKeptOrHandedOutFromNothing(t *testing.T) {
 	if _, err := p.Keep(written(), secret(), newSealer(t), keptAt); !errors.Is(err, profile.ErrNoRequest) {
 		t.Errorf("Keep() error = %v, want %v", err, profile.ErrNoRequest)
 	}
-	if _, err := p.HandOutReady("", keptAt); !errors.Is(err, profile.ErrNoReadyTask) {
+	if _, err := p.HandOutReady(keptAt); !errors.Is(err, profile.ErrNoReadyTask) {
 		t.Errorf("HandOutReady() error = %v, want %v", err, profile.ErrNoReadyTask)
 	}
 	if p.ReadyTask != nil || p.CurrentTask != nil {
@@ -227,8 +225,7 @@ func TestAskingForATaskNowLetsTheKeptOneGo(t *testing.T) {
 }
 
 // A child who asks for the next task while it is still being written ahead
-// waits for it: once handed in it goes to the card, not aside, and it says
-// which card asked, as does the task it brings.
+// waits for it: once handed in it goes to the card, not aside.
 func TestARequestAheadIsWaitedForOnceTheChildAsks(t *testing.T) {
 	t.Parallel()
 
@@ -243,17 +240,16 @@ func TestARequestAheadIsWaitedForOnceTheChildAsks(t *testing.T) {
 		t.Fatal("a request ahead is not marked as one")
 	}
 
-	request.Await("tsk_the_card_asked_after", asked)
-	if request.Ahead || request.TakenAfter != "tsk_the_card_asked_after" {
-		t.Errorf("the request awaited is %+v, want it waited for, after the card's task", *request)
+	request.Await(asked)
+	if request.Ahead {
+		t.Errorf("the request awaited is %+v, want it waited for", *request)
 	}
 	task, err := p.Issue(written(), secret(), sealer, keptAt)
 	if err != nil {
 		t.Fatalf("Issue() error = %v, want nil", err)
 	}
-	if task.TakenAfter != "tsk_the_card_asked_after" || task.ID != profile.TaskIDFor(request.ID) {
-		t.Errorf("the task handed out is %s after %q, want %s after the card's task",
-			task.ID, task.TakenAfter, profile.TaskIDFor(request.ID))
+	if task.ID != profile.TaskIDFor(request.ID) || p.ReadyTask != nil {
+		t.Errorf("the task handed out is %s, kept %v, want %s on the card", task.ID, p.ReadyTask, profile.TaskIDFor(request.ID))
 	}
 }
 
@@ -272,7 +268,7 @@ func TestARequestAheadWaitedForStartsItsWindowAgain(t *testing.T) {
 	}
 
 	waited := asked.Add(window - time.Minute)
-	request.Await("", waited)
+	request.Await(waited)
 	if handedIn := waited.Add(2 * time.Minute); !request.Awaited(window, handedIn) {
 		t.Errorf("the request waited for since %v is over at %v, want its window started again", waited, handedIn)
 	}
@@ -306,7 +302,7 @@ func TestAKeptTaskStandsAsKept(t *testing.T) {
 	if state, _ := p.TaskFor(request.ID, requestWindow, keptAt); state != profile.TaskKept {
 		t.Errorf("TaskFor() = %s, want %s", state, profile.TaskKept)
 	}
-	if _, err := p.HandOutReady("", keptAt); err != nil {
+	if _, err := p.HandOutReady(keptAt); err != nil {
 		t.Fatalf("HandOutReady() error = %v, want nil", err)
 	}
 	if state, _ := p.TaskFor(request.ID, requestWindow, keptAt); state != profile.TaskOnTheCard {

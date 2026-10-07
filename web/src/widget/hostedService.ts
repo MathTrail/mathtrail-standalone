@@ -5,9 +5,7 @@ import {
 	type EditOutcome,
 	readAnswer,
 	readEdited,
-	readTaken,
 	readTaskStatus,
-	type TakeOutcome,
 	type TaskStatus,
 } from "./payload";
 import type { ProgressRead, Service } from "./service";
@@ -17,15 +15,14 @@ import type { ProgressRead, Service } from "./service";
  * a call of one of the service's tools through host, and its reply read as
  * the card reads what the service says. A call that never reached the
  * service, or whose reply never came back, ends as one the service never
- * answered — an answer not recorded, a task's standing unknown, no task
- * taken, no progress read, a change not saved — and is worth asking again.
+ * answered — an answer not recorded, a task's standing unknown, no progress
+ * read, a change not saved — and is worth asking again.
  */
 export function serviceThrough(host: Host): Service {
 	return {
 		recordAnswer: (taskId, choice, hintUsed) =>
 			recordAnswer(host, taskId, choice, hintUsed),
 		taskStatus: (requestId) => taskStatus(host, requestId),
-		takeTask: (taskId) => takeTask(host, taskId),
 		readProgress: () => readProgress(host),
 		saveEdit: (changes) => saveEdit(host, changes),
 	};
@@ -63,27 +60,6 @@ async function taskStatus(host: Host, requestId: string): Promise<TaskStatus> {
 	} catch (error: unknown) {
 		console.error("widget: how the task stands did not arrive", error);
 		return { kind: "unknown" };
-	}
-}
-
-// takeTask asks the service for the next task, for the card that shows the
-// task taskId. A take that failed — its answer lost on the way, or the service
-// failing once the task was handed out — may have taken a task the card never
-// saw, which the chat, asked instead, would skip. So it is asked once more:
-// the service tells the same task rather than skip it.
-async function takeTask(host: Host, taskId: string): Promise<TakeOutcome> {
-	const taken = await takeOnce(host, taskId);
-	return taken.kind === "failed" ? takeOnce(host, taskId) : taken;
-}
-
-// takeOnce is one ask for the next task. A call whose answer never came reads
-// as a take that failed.
-async function takeOnce(host: Host, taskId: string): Promise<TakeOutcome> {
-	try {
-		return readTaken(await host.callTool("take_task", { task_id: taskId }));
-	} catch (error: unknown) {
-		console.error("widget: the next task did not arrive", error);
-		return { kind: "failed" };
 	}
 }
 

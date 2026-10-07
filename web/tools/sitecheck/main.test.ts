@@ -93,7 +93,7 @@ describe("the checker's command line", () => {
 
 	test("holds a framed document to the budget it is given", async () => {
 		const dir = await publishable();
-		const front = join(dir, "en", "index.html");
+		const front = join(dir, "index.html");
 		await writeFile(
 			front,
 			(await readFile(front, "utf8")).replace(
@@ -122,7 +122,7 @@ describe("the checker's command line", () => {
 
 	test("weighs a page without the photographs the site keeps, and with a picture kept elsewhere", async () => {
 		const dir = await publishable();
-		const front = join(dir, "en", "index.html");
+		const front = join(dir, "index.html");
 		const page = await readFile(front, "utf8");
 		const heavy = "x".repeat(defaultMaxPageBytes);
 		await mkdir(join(dir, "assets", "photos"), { recursive: true });

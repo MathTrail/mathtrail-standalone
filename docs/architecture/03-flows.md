@@ -38,11 +38,10 @@ Which screen a card shows is decided by the payload, not by the tool: `get_progr
 | `get_package` | the model | **no** — the package is for the model alone (R152) | 1 | 0 | always |
 | `prepare_task` | the model | **no** — the package is for the model alone (R235) | 1 | 1 | nothing is to be written ahead and nothing let go, or a request open is handed back |
 | `submit_task` | the model | **no** — the card `next_task` drew turns into the task (R152); a task written ahead is kept | 1 | 1 | the request id is stale |
-| `take_task` | the widget only, from the card of a task (R236) | **no** — the card that called it turns into what it took | 1 | 1 | the card took its task before, its task is over, or the day has no room |
 | `read_task` | the widget only, from a card that waits for a task (R152) | **no** — the card that called it turns into its task | 1 | 0 | always |
 | `submit_answer` | the **widget**, or the model in text mode | **no** — the card turns itself over | 1 | 1 | this task was already answered |
 
-One full task costs four reads and three writes — `next_task`, `get_package`, `submit_task`, `submit_answer` —, one more pair for each rejected attempt, and one read for each question the card asks while it waits: every four seconds while the task is written, about fifteen for a minute's wait (R152). A task written ahead costs as much — `prepare_task` in place of the two of the ask, `submit_task`, and `take_task` or `next_task` when it is handed out, `submit_answer` —, but its writing lies outside the child's wait: a task kept reaches the card for one read and one write (R235, R236). Opening the progress from a card costs one read more, and the search and the folder's name that say where the profile's file is (R147). Everything between the read and the write is pure computation: the rule, the checks, the Starlark solver and the ratings never touch the network (01-context).
+One full task costs four reads and three writes — `next_task`, `get_package`, `submit_task`, `submit_answer` —, one more pair for each rejected attempt, and one read for each question the card asks while it waits: every four seconds while the task is written, about fifteen for a minute's wait (R152). A task written ahead costs as much — `prepare_task` in place of the two of the ask, `submit_task`, and `next_task` when it is handed out, `submit_answer` —, but its writing lies outside the child's wait: a task kept reaches the new card for one read and one write (R235, R252). Opening the progress from a card costs one read more, and the search and the folder's name that say where the profile's file is (R147). Everything between the read and the write is pure computation: the rule, the checks, the Starlark solver and the ratings never touch the network (01-context).
 
 ## Scenario 1. First sign-in
 
@@ -246,6 +245,7 @@ sequenceDiagram
     participant MT as MathTrail
     participant D as Drive
     participant W as Widget card
+    participant N as New card
 
     Note over M,W: the task is on the card; the model goes on in the same turn
     M->>MT: prepare_task, with the chat language
@@ -261,29 +261,30 @@ sequenceDiagram
     MT-->>M: kept: say nothing about it, and ask for no other task
 
     K->>W: "Another task"
-    W->>MT: take_task with the id of the task on the card
+    W-->>M: "Another task", in the card's language, as the child's message
+    Note over W: the host has the ask: the card is done with —<br/>options locked, buttons gone, the new task "will come below"
+    M->>MT: next_task, with the chat language
     MT->>D: read the profile
     Note over MT: the task kept still fits the lesson · it becomes the task on the card,<br/>its id and seal unchanged · the task left unanswered is skipped · the day's counter goes up
     MT->>D: write the profile
-    MT-->>W: the task — the card shows it at once, in its own place
-    W-->>M: a line: the card took this task (read with the next message)
-    W-->>M: "Get the next task ready", in the card's language, as the child's message
+    MT-->>N: the task — the card the host drew for next_task shows it at once
+    MT-->>M: the words read the task out and send the model on
     M->>MT: prepare_task — and the next task is written ahead again
 ```
 
-The first task of a lesson is asked for and written as scenario 2 shows, unless one kept from an earlier sitting still fits; then the model goes straight on to write the next one ahead. A child who asks for another in the chat has the task kept handed out by `next_task`, on the card it draws at once, and the model writes the one after it. A child who presses "Another task" while the next task is still being written waits for it in the same card: `take_task` makes the request one the child waits for, and the task goes to that card once it is accepted. With nothing kept and nothing being written, `take_task` opens a request by the rule, and the card waits for it the same way, the card's words sending the model to write it (R236).
+The first task of a lesson is asked for and written as scenario 2 shows, unless one kept from an earlier sitting still fits; then the model goes straight on to write the next one ahead. A child who asks for another, in the chat or with "Another task" on the card, has the task kept handed out by `next_task`, on the new card it draws, at once, and the model writes the one after it (R252). A child who asks while the next task is still being written waits for it on the new card: `next_task` makes the request ahead one the child waits for, and the task goes to that card once it is accepted. With nothing kept and nothing being written, `next_task` opens a request as scenario 2 shows.
 
 A task kept is handed out whatever the answer before it was, and let go, its request too, once the lesson has moved away from what it was written for: another language of the lessons, another topic the lessons are kept to, a skill kept out since, another place a person asked for, or — for a task kept — another version of the instructions (SPEC 3.7, R237).
 
 ## The waiting screen and "Another task"
 
-The child presses "Another task" — on the result screen, or on the task card itself, where PRODUCT 4.2 also puts it. The card first takes the next task itself (scenario 6, R236): the task written ahead, at once, or the one being written, waited for in the card's place. A day with no room for another is said under the task, which stays to be answered, and a card whose task is no longer the one being solved shows it closed, with the result of an answer recorded on it. A take that fails is asked once more, since one whose answer was lost may have handed out a task that the chat, asked instead, would skip. Only where the card can take none even then — a host that refuses the card's call, or one that answers with nothing a card can show — does the ask go through the chat, and three things then happen, in this order:
+The child presses "Another task" — on the result screen, or on the task card itself, where PRODUCT 4.2 also puts it. Every next task comes on a new card, asked for in the chat (R252), and three things then happen, in this order:
 
-1. **The card keeps its task and says that, once the ask reaches the chat, the new one will come below**, in a card of its own (R145). It does not turn to a waiting screen: a host may hold the card's message for the person to send, and a card cannot see whether it went, so a wait drawn there could tick off steps while nothing is being written. While the ask is on its way the button takes no second press; once the host has it, it may be pressed again.
-2. **The press reaches the model** through `ui/message`, because generating a task is the model's job and only the model can start it. This is the one step with no fallback inside the product: if a host does not deliver widget messages, the adult types "next task" in the chat and everything else is identical. A host that refuses the message says so, and the card says the ask was not sent and takes it again. T03 got as far as "the call succeeds"; T46 and T62–T63 are where it is confirmed for real.
-3. **The model calls `next_task`**, and the card the host draws for that call, as the call starts, is the wait (R152): it knows it is a task's card from the host's `toolInfo`, and shows "Preparing the next task…" a moment after it is drawn, the topic being picked. The model then gets the package with `get_package`, writes the task and hands it in with `submit_task`, which draws no card. Meanwhile the card, handed the request by `next_task`'s result, asks `read_task` how the task stands — a moment after it is drawn, then every four seconds — and shows it being written, and a try the checks turned down with a new one being written; once the task is accepted, the next question finds it on the card, and the card turns into it.
+1. **The card keeps its task and says that, once the ask reaches the chat, the new one will come below**, in a card of its own (R145). It does not turn to a waiting screen: a host may hold the card's message for the person to send, and a card cannot see whether it went, so a wait drawn there could tick off steps while nothing is being written. While the ask is on its way the button takes no second press and the options none, since an answer would race the ask. Once the host has it, the card is done with: its options stay locked, its buttons and its choice of the topic are gone, and what it says of the new task takes the focus, since a second ask would skip the task the new card brings (R252).
+2. **The press reaches the model** through `ui/message`, because generating a task is the model's job and only the model can start it. This is the one step with no fallback inside the product: if a host does not deliver widget messages, the adult types "next task" in the chat and everything else is identical. A host that refuses the message says so, and the card says the ask was not sent and is given back, to ask again. T03 got as far as "the call succeeds"; T46 and T62–T63 are where it is confirmed for real. Claude puts the message in its input and waits for the person to press Enter (`docs/live/07-acceptance-claude.md`, finding 5).
+3. **The model calls `next_task`**, and the card the host draws for that call is where the new task comes. A task kept that still fits is on it at once, and the result sends the model on to write the one after it (scenario 6). Otherwise that card, drawn as the call starts, is the wait (R152): it knows it is a task's card from the host's `toolInfo`, and shows "Preparing the next task…" a moment after it is drawn, the topic being picked. The model then gets the package with `get_package`, writes the task and hands it in with `submit_task`, which draws no card. Meanwhile the card, handed the request by `next_task`'s result, asks `read_task` how the task stands — a moment after it is drawn, then every four seconds — and shows it being written, and a try the checks turned down with a new one being written; once the task is accepted, the next question finds it on the card, and the card turns into it.
 
-**A topic chosen on the card is "Another task" with one step before it** (R194). Once the trial series is over, the task's card ends its row with the topic's button, and the choice it opens — or the cross of the mark above a task given on the topic chosen — first saves the choice with `edit_profile`, the topic alone (SPEC 3.6); once it is saved, the card gives the model the service's line of it with `ui/update-model-context`, and only then takes the next task as the button does — a task kept on another topic is let go, so the card waits for one on the topic chosen, and the model, sent to get it ready, finds the choice in the profile (R236). Where the card can take none, it sends the ask, in the child's words with the topic's name, by `ui/message`, as the button does. A choice not saved sends nothing: the card says so under the choice, and the child may choose again. A request already open keeps its topic; the choice starts with the task after it.
+**A topic chosen on the card is "Another task" with one step before it** (R194). Once the trial series is over, the task's card ends its row with the topic's button, and the choice it opens — or the cross of the mark above a task given on the topic chosen — first saves the choice with `edit_profile`, the topic alone (SPEC 3.6); once it is saved, the card gives the model the service's line of it with `ui/update-model-context`, and only then sends the ask, in the child's words with the topic's name, by `ui/message`, as the button does — so the model reads the line with the ask, and `next_task` finds the choice in the profile; a task kept on another topic is let go, and the new card waits for one on the topic chosen (R237). The card is then done with, as after the button (R252). A choice not saved sends nothing: the card says so under the choice, and the child may choose again. A request already open keeps its topic; the choice starts with the task after it.
 
 A card cannot learn of a call that did not draw it ("One payload, two readers"), so it asks, and each question is a Drive read: about fifteen for a minute's wait, one at a time, none while the page is out of sight. The rejection of such a card in R134 and R146 counted on a wait that starts with the hand-in; the author's live check of 2026-10-03 found the hand-in a minute after the ask (R152).
 
@@ -326,8 +327,8 @@ stateDiagram-v2
     ahead --> ahead: submit_task rejected, attempts left
     ahead --> kept: submit_task accepted — sealed, nothing counted
     ahead --> none: three rejections, the window passed, or let go
-    ahead --> waited: next_task or take_task while it is written — the child waits for it
-    kept --> issued: next_task or take_task — handed out, counted
+    ahead --> waited: next_task while it is written — the child waits for it
+    kept --> issued: next_task — handed out, counted
     kept --> none: let go — the lesson moved away from it, or a task asked for now
 ```
 

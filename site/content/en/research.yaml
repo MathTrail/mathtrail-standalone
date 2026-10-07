@@ -2,13 +2,24 @@ title: Research
 description: The numbers behind MathTrail. How its checks keep a task from a child until nothing in it is wrong, how its student model stands against its goals, and where its reference tasks come from.
 
 hero:
-  title: "The Model Writes, the Service Checks:"
-  subtitle: Olympiad-Style Maths Problems for Primary-School Children inside Chat Assistants
+  title: The model writes,
+  title_end: the service checks.
   lead: How MathTrail lets a task reach a child only once it has passed {count} {noun}, and what the checks do not see.
   paper: The whole paper · PDF, {count} {noun}
   code: Code and data
+  flow:
+    task: task
+    example: A fence {length} m long has a post every {gap} m, both ends included. How many posts are there?
+    solver: solver
+    sum: "{length} ÷ {gap} + {one} = {posts} → {letter}"
+    hands_in: the task and its solver
+    back: refused, sent back
+    twice: the solver runs twice
+    asks: one right option · words the grade can read · no repeat of earlier tasks
+    passed: passed every check
+    sealed: the answer sealed until the child answers
   grades: Grades {first}–{last}
-  licence: Open code, MIT
+  licence: open code, MIT
 
 theses:
   title: Four things the paper shows
@@ -16,17 +27,17 @@ theses:
     title: The chat's model writes
     text: Every task is written by the model of the chat a family already uses, in the child's language and around a story close to the child. MathTrail calls no model of its own. It is a small deterministic service that keeps nothing of a child between requests.
     model: The chat's model
-    model_does: writes the task
+    model_does: writes
     service: MathTrail
-    service_does: checks it
+    service_does: checks
     child: The child
-    child_does: solves it
+    child_does: solves
   twice:
     title: The solver runs twice
     text: With the task, the model writes a short program that works the answer out and names the letter of the right option. The service runs it, moves the letters {count} {noun} on, so that {from} becomes {to}, and runs it again. A program that works the answer out finds it in its new place, and one that wrote the letter by hand does not. The second run comes once the first picks a single option.
-    picks: Picks
     first: First run
     second: Second run, letters moved
+    picks: → {letter}
     caption: A program that wrote “{letter}” by hand points at {value} in the second run, and the task is refused.
   sealed:
     title: The answer is sealed
@@ -35,122 +46,100 @@ theses:
     seen: the question · the drawing · the options · the hint
     hidden: Sealed until the answer
     kept: the answer · the solution · the explanations
-    cipher: XChaCha20-Poly1305, bound to the child and to the task.
+    cipher: XChaCha20-Poly1305 · bound to the child and the task
     outside: What the seal does not reach is the chat itself. The model that wrote the task knows its answer, and the chat's own record of the tools it called shows it to an adult who opens it.
   reach:
     title: A little harder, but within reach
     text: The student model predicts how likely a child is to solve a task, and the service asks for the one whose chance is nearest {middle}, the middle of the corridor from {low} to {high}. A new child first takes a trial series of {trial}, which finds where to start.
-    guess: c = {guess}, one of {options} options guessed.
-    corridor: The band is the corridor the next task is chosen in.
+    guess: c = {guess}, one of {options} guessed
+    corridor: the corridor aimed at
 
 model:
   title: The student model against its goals
   lead: How closely the service follows a child, how well it keeps tasks within reach, how surely it declares a topic mastered, and what the child is shown late in a run. The numbers are the bench's, on simulated children, computed from the code this site is built from.
-  columns:
-    measure: Measure
-    earlier: The rule before
-    service: The service now
-    goal: The goal
-    ceiling: The ceiling
+  run:
+    commit: commit {commit} · {date}
+    size: "{children} × {answers}"
+    seed: seed {seed}
+  paper: The paper reports the rule as it stood at the commit its numbers were computed on, {commit}. This page follows the service as it runs now, so the two differ.
+  key:
+    service: the service now
+    interval: "{interval} interval"
+    goal: the goal
+    ceiling: the ceiling, an estimate that knows where the child stands
   groups:
     step: How the estimate follows a child
     mastery: How mastery is declared
     screen: What the child is shown late in a run
+    screen_note: answers {first}–{last} · the goal is no more than in answers {earlyfirst}–{earlylast}
     context: For comparison, with no goal
   rows:
     lag:
       name: The lag behind a child who learns
-      unit: logits, less is better
-      goal: "{lag} of the service's lag"
+      unit: logits, less is better · the best possible is {best}
     corridor_learning:
-      name: Tasks in the corridor, a child who learns
-      unit: a share of tasks, more is better
-      goal: the service's, and {corridor} of the way to the ceiling
+      name: Tasks in the corridor {low}–{high}
+      unit: a child who learns · a share of tasks, more is better
     jump_unsettled:
-      name: Children not caught up after a jump
+      name: Not caught up after a jump
       unit: a share of children, less is better
-      goal: set in advance
     false_mastery_static:
       name: Masteries declared falsely
       unit: a share of the masteries declared, less is better
-      goal: set in advance
     false_mastery_wide:
       name: Masteries declared falsely, topics far apart
       unit: a share of the masteries declared, less is better
-      goal: set in advance
     late_mastery_static:
       name: Answers until a mastery is declared
       unit: answers, less is better
-      goal: "{times} the service's"
     late_mastery_wide:
       name: Answers until a mastery is declared, topics far apart
       unit: answers, less is better
-      goal: "{times} the service's"
     card_move_static:
-      name: How far the card's rating moves, answers {first}–{last}
+      name: How far the rating moves
       unit: points on most answers, less is better
-      goal: the service's in answers {earlyfirst}–{earlylast}
     rank_changes_static:
-      name: How often the rank changes, answers {first}–{last}
+      name: How often the rank changes
       unit: changes a hundred answers, less is better
-      goal: the service's in answers {earlyfirst}–{earlylast}
     card_move_learning:
-      name: How far the card's rating moves for a child who learns, answers {first}–{last}
+      name: The rating, a child who learns
       unit: points on most answers, less is better
-      goal: the service's in answers {earlyfirst}–{earlylast}
     rank_changes_learning:
-      name: How often the rank changes for a child who learns, answers {first}–{last}
+      name: The rank, a child who learns
       unit: changes a hundred answers, less is better
-      goal: the service's in answers {earlyfirst}–{earlylast}
     error_static:
       name: The error of the estimate after {after}
-      unit: logits, less is better
+      unit: a child who stays put · logits, less is better
     corridor_static:
-      name: Tasks in the corridor, a child who stays put
-      unit: a share of tasks, more is better
+      name: Tasks in the corridor {low}–{high}
+      unit: a child who stays put · a share of tasks, more is better
   interval: "{low}–{high}"
+  goal_at_most: goal ≤ {bound}
+  goal_at_least: goal ≥ {bound}
+  ceiling: ceiling {value}
   marks:
     reached:
       name: Reached
-      means: the whole interval lies on the better side of the goal.
+      means: The whole interval lies on the better side of the goal.
     on_the_edge:
       name: On the edge
-      means: the interval holds the goal.
+      means: The interval holds the goal.
     not_reached:
       name: Not reached
-      means: the whole interval lies on the worse side of the goal.
+      means: The whole interval lies on the worse side of the goal.
     baseline:
       name: Baseline
-      means: the goal is drawn from the service's own number, so it is the bar for the next rule rather than a test of this one.
-  ceilings:
-    oracle:
-      name: The oracle
-      means: an estimate that knows where the child stands, which no rule of answers can, and so the most any rule could reach.
-    perfect:
-      name: Perfection
-      means: no mastery declared falsely and no wait. The oracle keeps the service's rule of mastery, so it is no ceiling there.
-  none: None
-  at_most: at most {bound}
-  at_least: at least {bound}
-  own: read off the service's own number
-  earlier: The rule before is the service as it was until its step got a floor and its masteries a margin of caution.
-  provenance:
-    title: Where the numbers come from
-    commit: Computed from the commit {commit} of {date}, by the bench of simulated children in this repository.
-    run: "{children} for each rule and kind of child, {answers} from each, drawn from the seed {seed}."
-    intervals: Each interval holds {interval} of the bootstrap's {resamples} resamples.
-    nobody: No child and no language model took part.
-    paper: The paper reports the rule as it stood at the commit its numbers were computed on, {commit}. This page follows the service as it runs now, so the two differ.
+      means: The goal is drawn from the service's own number, so it is the bar for the next rule rather than a test of this one.
 
 live:
   title: Live data
   lead: Whether the model's promises come true for real children, one month at a time. The numbers come from the log of answers, with no names and no task's text.
   rule: A range is shown only when it holds {children} or more and {answers} or more, and every count in it is rounded to a multiple of {rounded}. A smaller range is left out rather than folded in with another.
+  measures:
+    chances: Promised → came true
+    kept_up: Came true − promised, by the number of answers
+    share: The share right on the rule's tasks
   frame:
-    measures:
-      - Promised against what came true, by the chance promised
-      - What came true less what was promised, by the child's number of answers
-      - The share answered right on the tasks the rule chose
     coming:
       badge: Coming
       when: The numbers come once a whole month is counted, early in the month after it.
@@ -167,15 +156,16 @@ live:
       answers: Answers
       children: Children
     chances:
-      title: Promised against what came true
       none: This month no range of the chance promised holds enough children to be shown.
       shown:
         caption: Each range of the chance promised is a point, the larger the more answers it holds. On the dashed diagonal the promise came true, and the band is the corridor the rule chooses tasks in.
-        axes: Across is the chance promised and up is the share answered right, both on one scale.
+        up: ↑ the share right
+        across: the chance promised →
+        ideal: promise kept
+        band: corridor
         range: "{from}–{to}"
         heading: Chance promised
     kept_up:
-      title: What came true less what was promised, by the child's answers
       none: This month no range of the child's answers holds enough children to be shown.
       shown:
         caption: A right answer counts as one and a wrong one as nothing, the chance promised is taken from it, and the difference is averaged over the answers. Right of the dashed line the children did better than promised, and a whisker reaches one standard error either way, counted by child.
@@ -185,18 +175,12 @@ live:
         margin: Came true less promised
         error: Standard error
     share:
-      title: The share right on the rule's tasks
-      caption: The rule asks for the task whose chance is nearest {middle}, the middle of the corridor from {low} to {high}. The bar is the share answered right, and the dashed tick is the chance promised on average.
+      expected: expected ≈ {middle}, the corridor's middle
+      caption: The rule asks for the task whose chance is nearest {middle}, the middle of the corridor from {low} to {high}. The point is the share answered right, and the dashed line is the corridor's middle.
 
 sources:
   title: Where the reference tasks came from
   lead: Ideas are not protected by copyright, and texts are. So from a book only a task's idea and its answer are taken, and the wording, the story, the options and the traps are written anew.
-  flow:
-    - A problem book in the public domain
-    - The idea and the answer
-    - Claude writes the task in its own words
-    - A solver and the traps are added
-    - We check it
   authors:
     perelman:
       name: Yakov Perelman
@@ -224,11 +208,11 @@ sources:
       books:
         tangled: A Tangled Tale
         pillow: Pillow Problems
-  died: died {year}
+  died: † {year}
   public: In the public domain
   public_note: The copyright in these books has run out. They belong to everyone, and anyone may use them for free.
   total: In all, {count} {noun}
-  each: Each has a solver and a trap behind every wrong option.
+  each: each with a solver and a trap behind every wrong option
   level: "{count} · grades {first}–{last}"
   note: The style follows the Soviet collections. A reference task has no field for its source, so the author of a task's idea cannot be named.
 
@@ -236,5 +220,5 @@ paper:
   title: The whole paper
   ready: Its methods, tables, protocols, limitations and ethics, in English.
   waiting: Its methods, tables, protocols, limitations and ethics. The PDF comes once the paper names its authors and its archive.
-  open: Open the PDF · {count} {noun}
+  open: Open the PDF
   code: Code on GitHub

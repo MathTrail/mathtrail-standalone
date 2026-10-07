@@ -53,12 +53,11 @@ func (s *Service) prepareTaskTool() Tool {
 		Description: "Gets the next task ready. It hands you the package of the task to write now: the one the " +
 			"child's card waits for, when there is one; otherwise the next task, which you write ahead while the " +
 			"child works on the one on the card, and which is kept, sealed, until the child asks for another — then " +
-			"it reaches the card at once. When the next task is written already, or the day has no room for " +
-			"another, it says there is nothing to write. Call it once a task is on the card, when the card's words " +
-			"\"Get the next task ready\" come in the chat, in the card's language, and as the last step of every " +
-			"turn of a lesson. Always pass language, the language of the chat. Your own idea of what the child needs " +
-			"next — an easier task after several misses, say — goes here, as topic, grade_level or difficulty with " +
-			"a short reason, and shapes the task written ahead. Write the task to the package and hand it in with " +
+			"next_task puts it, at once, on the card it draws. When the next task is written already, or the day " +
+			"has no room for another, it says there is nothing to write. Call it once a task is on the card, and as " +
+			"the last step of every turn of a lesson. Always pass language, the language of the chat. Your own " +
+			"idea of what the child needs next — an easier task after several misses, say — goes here, as topic, " +
+			"grade_level or difficulty with a short reason, and shapes the task written ahead. Write the task to the package and hand it in with " +
 			"submit_task and its request_id. Say nothing to the child about a task written ahead, and never put the " +
 			"child's name in a task. It writes to the profile's file in the adult's Google Drive the request it " +
 			"opens for the task written ahead, and lets go of a task kept that no longer fits the lesson.",
@@ -132,8 +131,8 @@ func (s *Service) prepared(p *profile.Profile, in *prepareTaskIn, language strin
 	}
 	if p.ReadyTask != nil {
 		return Reply[any]{Text: joined("The next task is written already, and kept for the child until they ask "+
-			"for another: there is nothing to write now. Say nothing about it to the child.", s.lastAnswerText(p)) +
-			takenText(p)}, nil, nil
+			"for another: there is nothing to write now. Say nothing about it to the child.",
+			s.lastAnswerText(p))}, nil, nil
 	}
 	if _, _, reached := s.daily.reached(p.Daily.Today(now)); reached {
 		return Reply[any]{Text: joined("The child's tasks for today are over: there is nothing to write ahead, and "+
@@ -194,8 +193,8 @@ func aheadLead(request *profile.OpenRequest) string {
 }
 
 // packageWords are the words prepare_task hands the model the package of a
-// request in: the lead, what the task is written in, the task the child took
-// on the card when the model did not see it come, and the package.
+// request in: the lead, what the task is written in, the last answer, and the
+// package.
 func (s *Service) packageWords(p *profile.Profile, request *profile.OpenRequest, lead string) (Reply[any], error) {
 	pack, err := s.packageFor(p, request)
 	if err != nil {
@@ -203,7 +202,7 @@ func (s *Service) packageWords(p *profile.Profile, request *profile.OpenRequest,
 	}
 	return Reply[any]{
 		Text: joined(lead, writtenInText(request), lessonLanguageText(&p.Student), s.lastAnswerText(p)) +
-			takenText(p) + packageText(pack),
+			packageText(pack),
 	}, nil
 }
 
