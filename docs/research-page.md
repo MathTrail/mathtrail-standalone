@@ -16,7 +16,7 @@ The reference is the author's draft, `research/draft-ui/MathTrail - Исслед
 | 6 | Where a goal's bound is computed from the service's own value of the same measure, the service's row says "baseline" rather than a mark. |
 | 7 | CI computes the bench's numbers from the commit it builds, and they are never committed. The other inputs are small committed files: the PDF's facts, the monthly live snapshot (§11), and the curated books. |
 | 8 | The live block comes later, in a task of its own (T72.15). Until then the page shows the block's frame and says the data is still to come. T72.15.2 brought it (§11). |
-| 9 | The live block's styles go into the shared stylesheet, which every page loads, rather than one of the page's own. Should the heaviest page pass its budget, the author decides again. |
+| 9 | The live block's styles go into the shared stylesheet, which every page loads, rather than one of the page's own. Should the heaviest page pass its budget, the author decides again. The Russian home page passed it in release v0.3.13, and the author raised the budget by half, to 450 KiB (2026-10-07, R240). |
 | 10 | The live snapshot comes with nobody at a keyboard (2026-10-05). A scheduled query keeps it, and once a month a GitHub App of the repository's own brings it to `main` by a pull request that merges itself (2026-10-06, §11, R226). |
 
 ## 2. Address and frame
@@ -26,7 +26,7 @@ The reference is the author's draft, `research/draft-ui/MathTrail - Исслед
 - **Lists.** The addresses join `web/tools/sitecheck/published.ts`. The README links `/en/research/`.
 - **No script, nothing from elsewhere.** The page reads in full without a script and runs none (R160). It loads nothing from another origin, so the draft's unpkg React and its fonts' `preconnect` go.
 - **Fonts.** Onest only (R157): the draft's Source Serif 4 alone weighed 0.9 MB.
-- **Weight.** The shared stylesheets, fonts and icon weigh about 102 KB, the page's own rules some 5 KB of them. The page's HTML, with its tables and drawings, weighs 38 KB in English and 45 KB in Russian while the live numbers are still to come, and 46 KB and 53 KB with a month shown. That is at most about 155 KB in all, under the 300 KiB a page may weigh. The live block's rules, 0.7 KB, sit in the shared stylesheet, which the Russian home page, the heaviest page of the site, loads too: with them it weighs 304,828 bytes, 2,372 under its budget. The PDF is a link, not a resource the page fetches, so it does not count.
+- **Weight.** The shared stylesheets, fonts and icon weigh about 102 KB, the page's own rules some 5 KB of them. The page's HTML, with its tables and drawings, weighs 38 KB in English and 45 KB in Russian while the live numbers are still to come, and 46 KB and 53 KB with a month shown. That is at most about 155 KB in all, under the 450 KiB a page may weigh (R240). The live block's rules, 0.7 KB, sit in the shared stylesheet, which the Russian home page, the heaviest page of the site, loads too: with them it weighed 304,828 bytes, 2,372 under the 300 KiB of the time. In release v0.3.13 it came to 307,632 bytes, past that budget, and the author raised it by half (R240). The PDF is a link, not a resource the page fetches, so it does not count.
 - **Languages.** English and Russian now, the rest with T66b. Drawings are pinned left to right (`dir="ltr"`), as the topics' map is; tables and words follow the page's direction.
 
 ## 3. The page, section by section
