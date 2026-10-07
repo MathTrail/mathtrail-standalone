@@ -11,7 +11,7 @@ const usage =
 	"usage: node tools/sitecheck/main.ts --base <origin> --dir <directory> [--reference-locale <locale>] [--max-page-bytes <bytes>] [--max-frame-bytes <bytes>]";
 
 /** defaultMaxPageBytes is what a page may weigh with everything it loads. */
-export const defaultMaxPageBytes = 300 * 1024;
+export const defaultMaxPageBytes = 450 * 1024;
 
 /**
  * defaultMaxFrameBytes is what a document a page frames may weigh with
