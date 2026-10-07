@@ -20,7 +20,7 @@ anonymous) name=paper-a-artifact-anonymous ;;
     ;;
 esac
 tarball=$PWD/release/build/$name.tar.gz
-if [ ! -f "$tarball" ]; then
+if [[ ! -f "$tarball" ]]; then
     echo "check.sh: $tarball is missing; assemble the artifact first" >&2
     exit 1
 fi
@@ -40,5 +40,5 @@ for experiment in faultinject learnersim perf; do
         differ=1
     fi
 done
-if [ "$differ" -ne 0 ]; then exit 1; fi
+if [[ "$differ" -ne 0 ]]; then exit 1; fi
 echo "the $flavour artifact reproduces E-A1 and E-A3 byte for byte, and E-A4's package sizes"

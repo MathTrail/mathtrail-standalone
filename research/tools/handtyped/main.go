@@ -52,10 +52,24 @@ func run(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "usage: handtyped -names <file> [-labels <figure.tex> ...] <file.tex> [<file.tex> ...]")
 		return 2
 	}
-	names, err := readNames(*namesPath)
+	count, err := check(*namesPath, figures, flags.Args(), stdout)
 	if err != nil {
 		fmt.Fprintln(stderr, "handtyped:", err)
 		return 1
+	}
+	if count > 0 {
+		fmt.Fprintf(stderr, "handtyped: %d numbers typed by hand: print each through a macro of computed numbers, or mark one the text chooses with \\given\n", count)
+		return 1
+	}
+	return 0
+}
+
+// check prints every number typed by hand in the figures, read for their words
+// alone, and in the papers, each with its file and line, and counts them.
+func check(namesPath string, figures, papers []string, stdout io.Writer) (int, error) {
+	names, err := readNames(namesPath)
+	if err != nil {
+		return 0, err
 	}
 	count := 0
 	read := func(path string, words func(string) string) error {
@@ -69,24 +83,18 @@ func run(args []string, stdout, stderr io.Writer) int {
 		}
 		return nil
 	}
-	whole := func(text string) string { return text }
 	for _, path := range figures {
 		if err := read(path, FigureWords); err != nil {
-			fmt.Fprintln(stderr, "handtyped:", err)
-			return 1
+			return 0, err
 		}
 	}
-	for _, path := range flags.Args() {
+	whole := func(text string) string { return text }
+	for _, path := range papers {
 		if err := read(path, whole); err != nil {
-			fmt.Fprintln(stderr, "handtyped:", err)
-			return 1
+			return 0, err
 		}
 	}
-	if count > 0 {
-		fmt.Fprintf(stderr, "handtyped: %d numbers typed by hand: print each through a macro of computed numbers, or mark one the text chooses with \\given\n", count)
-		return 1
-	}
-	return 0
+	return count, nil
 }
 
 // bareNumbers are numbers as a paper writes them, with no name around them; a

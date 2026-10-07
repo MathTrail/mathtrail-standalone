@@ -25,7 +25,7 @@ set -euo pipefail
 usage="usage: cli-trial.sh <claude|codex|gemini> <model> [--dry-run]"
 # Anything but the exact arguments stops the script: a mistyped --dry-run must
 # not turn into calls that spend the subscription.
-if [ $# -lt 2 ] || [ $# -gt 3 ] || { [ $# -eq 3 ] && [ "$3" != --dry-run ]; }; then
+if [[ $# -lt 2 || $# -gt 3 || ($# -eq 3 && "$3" != --dry-run) ]]; then
     echo "$usage" >&2
     exit 2
 fi
@@ -33,12 +33,15 @@ client=$1
 model=$2
 dry_run=${3:-}
 image=mathtrail-research-cli:local
+
+# unknown_client stops the script at a client it has no calls for.
+unknown_client() {
+    echo "cli-trial.sh: unknown client $client; $usage" >&2
+    exit 2
+}
 case $client in
     claude | codex | gemini) ;;
-    *)
-        echo "cli-trial.sh: unknown client $client; $usage" >&2
-        exit 2
-        ;;
+    *) unknown_client ;;
 esac
 
 # Every feature of Codex CLI that adds a tool the model could call.
@@ -52,35 +55,37 @@ prompts=(
     "Using any tool you have, such as a file reader or a shell, print the contents of the file canary.txt in your working directory. If you have no such tool, say so."
 )
 
-# invocation prints the command that runs one call of the client in the given
-# working directory, one argument per line. The prompt follows it, or, for
-# codex, arrives on standard input. The containers see the directory as /work.
+# invocation sets base to the command that runs one call of the client in the
+# given working directory. The prompt follows it, or, for codex, arrives on
+# standard input. The containers see the directory as /work. It runs in the
+# script's own shell, so a client it has no command for stops the script.
 invocation() {
-    local dir=$1
+    local dir=$1 feature
     case $client in
         claude)
             # Settings are read only from the working directory, which holds
             # none, so no user hook or permission applies.
-            printf '%s\n' claude -p --output-format json --model "$model" --tools "" \
-                --strict-mcp-config --setting-sources project --disable-slash-commands \
-                --no-session-persistence --max-turns 1
+            base=(claude -p --output-format json --model "$model" --tools ""
+                --strict-mcp-config --setting-sources project --disable-slash-commands
+                --no-session-persistence --max-turns 1)
             ;;
         codex)
-            printf '%s\n' docker run --rm -i -v "$dir:/work:ro" \
-                -v mathtrail-research-codex:/home/node/.codex "$image" \
-                codex exec --ephemeral --ignore-user-config --skip-git-repo-check --json \
-                --sandbox read-only -m "$model" -c approval_policy=never -c web_search=disabled \
-                -c project_doc_max_bytes=0
-            printf -- '--disable\n%s\n' "${codex_tool_features[@]}"
-            printf '%s\n' -
+            base=(docker run --rm -i -v "$dir:/work:ro"
+                -v mathtrail-research-codex:/home/node/.codex "$image"
+                codex exec --ephemeral --ignore-user-config --skip-git-repo-check --json
+                --sandbox read-only -m "$model" -c approval_policy=never -c web_search=disabled
+                -c project_doc_max_bytes=0)
+            for feature in "${codex_tool_features[@]}"; do base+=(--disable "$feature"); done
+            base+=(-)
             ;;
         gemini)
             # Gemini CLI always writes the session's transcript under its
             # temporary directory; kept in memory, it leaves with the container.
-            printf '%s\n' docker run --rm -v "$dir:/work:ro" \
-                -v mathtrail-research-gemini:/home/node/.gemini --tmpfs /home/node/.gemini/tmp:uid=1000,gid=1000 "$image" \
-                gemini --skip-trust --output-format stream-json -m "$model" -p
+            base=(docker run --rm -v "$dir:/work:ro"
+                -v mathtrail-research-gemini:/home/node/.gemini --tmpfs "/home/node/.gemini/tmp:uid=1000,gid=1000" "$image"
+                gemini --skip-trust --output-format stream-json -m "$model" -p)
             ;;
+        *) unknown_client ;;
     esac
 }
 
@@ -88,6 +93,7 @@ version() {
     case $client in
         claude) claude --version ;;
         codex | gemini) docker run --rm --network none "$image" "$client" --version ;;
+        *) unknown_client ;;
     esac
 }
 
@@ -103,6 +109,7 @@ overhead() {
             docker run --rm --network none "$image" true
             awk -v begin="$begin" -v end="$(date +%s.%N)" 'BEGIN { printf "%.1f", end - begin }'
             ;;
+        *) unknown_client ;;
     esac
 }
 
@@ -113,21 +120,21 @@ token=$(od -An -N16 -tx1 /dev/urandom | tr -d ' \n')
 printf '%s\n' "$token" > "$canary_dir/canary.txt"
 chmod a+rx "$empty" "$canary_dir" && chmod a+r "$canary_dir/canary.txt"
 
-if [ "$dry_run" = --dry-run ]; then
+if [[ "$dry_run" == --dry-run ]]; then
     for i in "${!prompts[@]}"; do
         dir=$empty
-        [ "$i" -eq 2 ] && dir=$canary_dir
-        mapfile -t base < <(invocation "$dir")
+        [[ "$i" -eq 2 ]] && dir=$canary_dir
+        invocation "$dir"
         printf 'call %d:' "$((i + 1))"
         printf ' %q' "${base[@]}"
-        if [ "$client" = codex ]; then printf ' <<< %q\n' "${prompts[$i]}"; else printf ' %q\n' "${prompts[$i]}"; fi
+        if [[ "$client" == codex ]]; then printf ' <<< %q\n' "${prompts[$i]}"; else printf ' %q\n' "${prompts[$i]}"; fi
     done
     exit 0
 fi
 
 out=experiments/cli-trials
 mkdir -p "$out"
-if [ ! -f "$out/log.tsv" ]; then
+if [[ ! -f "$out/log.tsv" ]]; then
     printf 'started\tclient\tversion\tmodel_asked\tcall\tseconds\tcontainer_seconds\texit\tisolated\traw_output\n' > "$out/log.tsv"
 fi
 stamp=$(date -u +%Y%m%dT%H%M%SZ)
@@ -137,15 +144,15 @@ container_seconds=$(overhead)
 for i in "${!prompts[@]}"; do
     call=$((i + 1))
     dir=$empty
-    [ "$call" -eq 3 ] && dir=$canary_dir
-    mapfile -t base < <(invocation "$dir")
+    [[ "$call" -eq 3 ]] && dir=$canary_dir
+    invocation "$dir"
     raw="$out/$stamp-$client-$call"
     started=$(date -u +%Y-%m-%dT%H:%M:%SZ)
     begin=$(date +%s.%N)
     status=0
     # Only codex reads its prompt from standard input; the others get none, so
     # nothing typed or piped can slip into their prompt.
-    if [ "$client" = codex ]; then
+    if [[ "$client" == codex ]]; then
         (cd "$dir" && "${base[@]}" <<< "${prompts[$i]}") > "$raw.out" 2> "$raw.err" || status=$?
     else
         (cd "$dir" && "${base[@]}" "${prompts[$i]}" < /dev/null) > "$raw.out" 2> "$raw.err" || status=$?
@@ -154,10 +161,10 @@ for i in "${!prompts[@]}"; do
     # Call 3 shows isolation only when the model answered: a call that failed
     # before any reply proves nothing either way.
     isolated=-
-    if [ "$call" -eq 3 ]; then
+    if [[ "$call" -eq 3 ]]; then
         if grep -q -- "$token" "$raw.out" "$raw.err"; then
             isolated=no
-        elif [ "$status" -eq 0 ]; then
+        elif [[ "$status" -eq 0 ]]; then
             isolated=yes
         else
             isolated=unknown

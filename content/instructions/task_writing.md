@@ -5,11 +5,11 @@ You write one olympiad-style task for the child this package is for. The package
 ## The task
 
 - Write it at the level and the difficulty of the brief, `brief.grade_level` and `brief.difficulty`, as hard as "The difficulty" below says. The reference tasks show that level, that difficulty and the kind of reasoning the topic asks for; they are not tasks to tell again. Yours is none of them: not one of them with a new story, new names or new numbers.
-- Write every text the child reads in the package's `language`: the question, the options, the hint, the solution and the explanations, and the names in them. The reference tasks, the solver templates and this page are in English whatever the language; the task is not. A question, a hint, a solution or a set of explanations written mostly in other letters than those of `language` is refused; labels in Latin capitals, numbers and short symbols in small Latin letters, such as x, ab or cm, are not counted.
+- Write every text the child reads in the package's `language`: the question, the options, the hint, the solution and the explanations, and the names in them. The reference tasks, the solver templates and this page are in English whatever the language; the task is not. A question, a hint, a solution or a set of explanations written mostly in other letters than those of `language` is refused; labels in Latin capitals, numbers and short symbols in small Latin letters, such as x, ab or cm, are not counted. `core_idea` and the self-check never reach the child: write them in English, whatever the language.
 - Use words and a story that suit a child of `child.grade`. The grade is the child's age and nothing more: a child may be set a task of a younger or an older level than their grade, and the task stays of its own level.
-- Build it on the idea `idea` picks, so that a child who practises a topic meets its ideas rather than one of them again and again. Open `core_idea` with a numbered list of exactly `idea.of` problems of this topic at the brief's level, each on an idea of its own and none on the idea of a reference task, the best known first. Then build the task on the one at `idea.number`, and on no other, even if another looks a better fit. Set it at the brief's difficulty, as "The difficulty" says: one idea can be set easier or harder. When `idea.round` is 1, write the idea in its usual form; from 2 on, write a variant of it, so that an idea that comes round again is not the same task again: ask for what the usual form gives, or count something else.
-- Go on in `core_idea` with the mathematics and why the answer is what it is, then `design_thought_process`: the plot, and the trap each wrong option comes from.
-- Dress it in the brief's `setting`, or, when that is empty, in one of your own, written into `setting`. Everything needed is in the text, and nothing depends on outside facts.
+- Build it on the idea of the topic the package names in `idea.text`, so that a child who practises a topic meets its ideas rather than one of them again and again. Write the task on that idea straight away, without weighing others, even if another looks a better fit. Only `prohibitions` come before it: when the idea cannot be written without something there, build the task on another idea of the topic that needs none of it. Set it at the brief's difficulty, as "The difficulty" says: one idea can be set easier or harder. When `idea.round` is 1, write the idea in its usual form; from 2 on, write a variant of it, so that an idea that comes round again is not the same task again: ask for what the usual form gives, or count something else. When a reference task is built on the same idea, ask something else of it, as a variant does: a new story or new numbers alone would make it that task again.
+- In `core_idea`, say in one or two sentences the mathematics the task turns on and why the answer is what it is.
+- Dress it in the brief's `setting`, or, when that is empty, in a setting of your own. Everything needed is in the text, and nothing depends on outside facts.
 - Five different options, `A` to `E`, exactly one right. The card shows each option with its letter, and a drawing labels its points with the same Latin capitals, so "C" could be an option or a point: the question, the hint, the solution and the explanations name an option by its value, never by its letter. Every wrong option comes from a trap: in `distractors`, give it a trap id from `traps` and a `text` telling the child what went wrong, in about six words of its own — not the solution, not the hint, not the trap's description.
 - `hint` is one leading question or a first step, and never gives the answer away. `solution` goes step by step, the way a tutor explains it to a child of this grade.
 - Use nothing in `prohibitions`, in the question or in a trap.
@@ -33,24 +33,12 @@ A harder task is not a longer story or bigger numbers: keep the numbers and the 
 
 ## Handing it in
 
-Hand the task in with `submit_task`, together with the request id you were given. Return the brief as you received it; you may change its `setting`, `traps_to_use` and `constraints`, and say why in `rationale`. A complete example, which draws nothing, since a picture of the race would show the very place it asks about:
+Hand the task in with `submit_task`, together with the request id you were given; the brief stays with the request, so do not send it back. A complete example follows. Its brief is a child's first task of ordering at grades 1–2, at difficulty 2 and in the setting "sport", so its idea is the first on the topic's list there, in round 1: "A runner who overtakes the one in a place takes that place, not the place ahead of it." It draws nothing, since a picture of the race would show the very place it asks about:
 
 ```json
 {
-  "brief": {
-    "pedagogical_goal": "new_topic",
-    "target_concept": "logic.ordering",
-    "grade_level": "1-2",
-    "difficulty": 2,
-    "setting": "sport",
-    "traps_to_use": ["off_by_one", "reversed_relation"],
-    "excluded_skills": [],
-    "constraints": [],
-    "rationale": "A topic the child has not met yet."
-  },
   "task": {
-    "core_idea": "Ideas of ordering at 1-2, none a reference task's, the best known first: 1 overtaking a runner in a race; 2 two orders at once, by height and by age; 3 two of the same height; 4 two are each taller than a third; 5 seats round a table; 6 a see-saw; 7 arrivals by the clock; 8 a line that turns round; 9 towers of blocks; 10 one child moving to the end of a line. Idea 1, round 1: a runner who overtakes the one in second place takes that place, and is second, not first.",
-    "design_thought_process": "Sports day, a race. One wrong option thinks passing the second runner makes Tom first, one moves him back, one makes him last, and one gives up because the other runners are not named.",
+    "core_idea": "A runner who overtakes the one in second place takes that place, so Tom is second, not first: the leader is still ahead.",
     "question": "Tom runs in a race. He overtakes the runner in second place. In which place is Tom now?",
     "options": {"A": "First", "B": "Second", "C": "Third", "D": "Last", "E": "It cannot be told"},
     "correct_answer": "B",

@@ -60,6 +60,31 @@ type tasks struct {
 	ahead, kept, letGo, ready, byCard int
 }
 
+// handInOf is whose hand-ins are measured together: a group, and the format
+// they came in — the one asked for now, the one before with what it retired,
+// or not told, in a line written before hand-ins were measured.
+type handInOf struct {
+	group
+	format string
+}
+
+// The formats a hand-in is counted under.
+const (
+	formatNow    = "now"
+	formatBefore = "before"
+)
+
+// handIns are how large the hand-ins of one kind were, part by part, in bytes,
+// and how many of them had a field read as it was meant.
+type handIns struct {
+	task, selfCheck, solver, coreIdea, total []int64
+	count, mended                            int
+}
+
+// mendOf is a field read as it was meant, under a version of the
+// instructions.
+type mendOf struct{ version, field string }
+
 // letGoFor is why tasks written ahead were let go, under a version of the
 // instructions, and whether they had been written and kept.
 type letGoFor struct {
@@ -105,6 +130,8 @@ type counts struct {
 	// appear: a newer version comes after an older one.
 	versions []string
 	tasks    map[group]*tasks
+	handIns  map[handInOf]*handIns
+	mends    map[mendOf]int
 	drawings map[drawnOn]*drawings
 	refusals map[refusedBy]*refusals
 	letGo    map[letGoFor]int
@@ -140,7 +167,8 @@ func tally(in *input) *counts {
 	lines := in.lines
 	c := &counts{
 		lines: len(lines), others: in.others, unreadable: in.unreadable,
-		tasks: map[group]*tasks{}, drawings: map[drawnOn]*drawings{}, refusals: map[refusedBy]*refusals{},
+		tasks: map[group]*tasks{}, handIns: map[handInOf]*handIns{}, mends: map[mendOf]int{},
+		drawings: map[drawnOn]*drawings{}, refusals: map[refusedBy]*refusals{},
 		letGo:  map[letGoFor]int{},
 		limits: map[string]int{}, tools: map[toolOf]*calls{},
 		promises: map[promisedIn]*cameTrue{}, keptUp: map[keptUpIn]*keptUp{}, answersLeftOut: map[string]int{},
@@ -158,7 +186,11 @@ func tally(in *input) *counts {
 			c.limits[l.Limit]++
 		case eventTaskRequested, eventTaskSubmitted, eventTaskAccepted, eventTaskKept, eventTaskDropped:
 			seenAt(firstSeen, l.InstructionsVersion, l.Time)
-			c.task(l, c.tasksOf(group{version: l.InstructionsVersion, host: hostOf(hosts, l.call())}))
+			g := group{version: l.InstructionsVersion, host: hostOf(hosts, l.call())}
+			c.task(l, c.tasksOf(g))
+			if l.Message == eventTaskSubmitted {
+				c.handIn(l, g)
+			}
 		case eventAnswerRecorded:
 			seenAt(firstSeen, l.InstructionsVersion, l.Time)
 			c.answer(l, group{version: l.InstructionsVersion, host: hostOf(hosts, l.call())})
@@ -173,6 +205,44 @@ func tally(in *input) *counts {
 	c.traces, c.busy, c.breaches = tracesOf(lines), busyOf(lines), in.breaches
 	c.children = childrenByDay(lines, testedLearners)
 	return c
+}
+
+// handIn counts how large a hand-in was, and what in it was read as meant, for
+// its group and the format it came in.
+func (c *counts) handIn(l *line, g group) {
+	key := handInOf{group: g, format: formatNow}
+	switch {
+	case l.TotalBytes == nil:
+		key.format = notLogged
+	case len(l.Retired) > 0:
+		key.format = formatBefore
+	}
+	counted, found := c.handIns[key]
+	if !found {
+		counted = &handIns{}
+		c.handIns[key] = counted
+	}
+	counted.count++
+	if len(l.Mended) > 0 {
+		counted.mended++
+	}
+	for _, field := range l.Mended {
+		c.mends[mendOf{version: g.version, field: field}]++
+	}
+	if l.TotalBytes == nil {
+		return
+	}
+	for _, part := range []struct {
+		into *[]int64
+		size *whole
+	}{
+		{&counted.task, l.TaskBytes}, {&counted.selfCheck, l.SelfCheckBytes}, {&counted.solver, l.SolverBytes},
+		{&counted.coreIdea, l.CoreIdeaBytes}, {&counted.total, l.TotalBytes},
+	} {
+		if part.size != nil {
+			*part.into = append(*part.into, int64(*part.size))
+		}
+	}
 }
 
 // seenAt keeps the earliest moment a version is seen at. A line with no time

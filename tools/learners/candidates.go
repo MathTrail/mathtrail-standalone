@@ -335,6 +335,18 @@ func withCalibration(own []*rule) []*rule {
 	return append(all, ceilingRule())
 }
 
+// aheadRule is the service's path with the next task written ahead.
+func aheadRule() *rule {
+	return &rule{name: "shrinking_ahead", shape: both, service: true, ahead: true}
+}
+
+// aheadRules are the set that runs the service's path twice, on the same
+// children: as the next task is chosen when the child asks for it, and as it
+// is written ahead — chosen before the answer to the task on the card and
+// handed out whatever that answer — beside the slow constant step and the
+// ceiling. It shows what writing ahead does to the student model.
+func aheadRules() ([]*rule, error) { return withCalibration([]*rule{aheadRule()}), nil }
+
 // sweepExperiment names the children the sweep and its refinement draw: their
 // own, so that the candidates put forward are measured in the decision run on
 // children they were not picked on.
@@ -617,7 +629,9 @@ const (
 
 // ruleSets are the sets a run can be given: the bench's own, the sweep and
 // its refinement on children of their own, the decision run, the parts of the
-// chosen step, and the confirmation on the held-out children.
+// chosen step, the pilot and the decision run of mastery, the service's path
+// with the next task written ahead, and the confirmation on the held-out
+// children.
 func ruleSets() []ruleSet {
 	return []ruleSet{
 		{name: benchSet, rules: func() ([]*rule, error) { return benchRules(), nil }},
@@ -627,6 +641,7 @@ func ruleSets() []ruleSet {
 		{name: "parts", rules: partsRules, directory: "parts"},
 		{name: "mastery-pilot", rules: masteryRules, seed: paperSeed, experiment: sweepExperiment, directory: "mastery-pilot", criterion: masteryCriterion},
 		{name: "mastery", rules: masteryRules, directory: "mastery", criterion: masteryCriterion},
+		{name: "ahead", rules: aheadRules, directory: "ahead"},
 		{
 			name: confirmationSet, rules: confirmationRules, seed: heldOutSeed, experiment: heldOutExperiment, directory: heldOutDirectory,
 			criterion: confirmationCriterion,

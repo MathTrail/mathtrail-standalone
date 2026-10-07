@@ -22,12 +22,12 @@ type faulty struct {
 }
 
 // faults are one way each to fail every check, none of them in the way of
-// another: a brief for another topic leaves the task itself whole.
+// another: an idea left unsaid leaves the task itself whole.
 var faults = []struct {
 	code  checks.Code
 	apply func(*faulty)
 }{
-	{checks.CodeBadStructure, func(f *faulty) { f.draft.Brief.TargetConcept = "counting.gaps" }},
+	{checks.CodeBadStructure, func(f *faulty) { f.draft.Task.CoreIdea = "" }},
 	{checks.CodeWrongLanguage, func(f *faulty) { f.language = "ru" }},
 	{checks.CodeDistractorExplanations, func(f *faulty) {
 		f.draft.Task.Distractors["D"] = checks.Distractor{Trap: "wrong_operation", Text: "You missed one pair."}
@@ -108,19 +108,19 @@ func TestTheReviewHoldsItsProperties(t *testing.T) {
 // out of the format.
 func FuzzReview(f *testing.F) {
 	good := validDraft()
-	f.Add([]byte(jsonOf(f, good.Brief)), []byte(jsonOf(f, good.Task)), []byte(jsonOf(f, good.SelfCheck)), program, "3-4", "en")
-	f.Add([]byte(jsonOf(f, good.Brief)), []byte(jsonOf(f, good.Task)), []byte(jsonOf(f, good.SelfCheck)), program, "1-2", "ru")
-	f.Add([]byte("null"), []byte(`{"options":{"A":"x"},"question":" "}`), []byte("{"), "", "", "")
-	f.Add([]byte(`[]`), []byte(`{"question":"P is left of R.","drawing":"P───Q \n","drawing_structure":`+
+	f.Add([]byte(jsonOf(f, good.Task)), []byte(jsonOf(f, good.SelfCheck)), program, "3-4", "en")
+	f.Add([]byte(jsonOf(f, good.Task)), []byte(jsonOf(f, good.SelfCheck)), program, "1-2", "ru")
+	f.Add([]byte(`{"options":{"A":"x"},"question":" "}`), []byte("{"), "", "", "")
+	f.Add([]byte(`{"question":"P is left of R.","drawing":"P───Q \n","drawing_structure":`+
 		`{"kind":"line","objects":[{"id":"R","label":"R"}]}}`),
 		[]byte(`{"issues":[{"type":"ambiguous","severity":"blocking","comment":"C"}],"final_answer":"B"}`),
 		"x", "9-10", "en-GB")
 
-	f.Fuzz(func(t *testing.T, brief, task, selfCheck []byte, source, level, language string) {
+	f.Fuzz(func(t *testing.T, task, selfCheck []byte, source, level, language string) {
 		reviewer := checks.NewReviewer(shipped{catalog: testCatalog, references: []string{good.Task.Question}},
 			&working{value: "six pairs"}, checks.DefaultDrawingLimits())
 		examined, err := reviewer.Examine(t.Context(),
-			&checks.Submission{Brief: brief, Task: task, SelfCheck: selfCheck, Solver: source})
+			&checks.Submission{Task: task, SelfCheck: selfCheck, Solver: source})
 		if err != nil {
 			t.Fatalf("Examine() error = %v with a sandbox that never fails", err)
 		}

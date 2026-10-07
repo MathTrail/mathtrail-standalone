@@ -1,0 +1,26 @@
+{
+  "3-4": [
+    "A statement no islander can ever make, such as 'I am a liar'.",
+    "One islander speaks about himself and another together: 'we are both liars', or 'at least one of us is a liar'.",
+    "A chain of accusations, each islander saying the next one is a liar.",
+    "Three islanders, each saying how many liars there are among the three.",
+    "A round table where everyone says a neighbour is a liar: how many knights can sit there.",
+    "A row in which everyone says something about the islander in front or behind.",
+    "An islander asked whether another is a knight: what the answer tells about each of them.",
+    "Two islanders saying the same sentence, and what follows for both of them.",
+    "'Ben and I are of the same kind' said by one of two islanders: what it shows about the other.",
+    "A sentence about a plain fact, such as a sum or the days of a week, that sorts the speakers into knights and liars."
+  ],
+  "5-6": [
+    "Several islanders each saying how many knights there are, every number different.",
+    "What another islander would answer if asked: a statement about a statement.",
+    "A circle where each says both neighbours are liars: the fewest and the most knights possible.",
+    "A third kind of islander, who lies and tells the truth in turn.",
+    "'Exactly one of us is a knight' said by several islanders at once.",
+    "A question to which every islander, knight or liar, gives the same answer.",
+    "Statements joined by 'or' and 'and', such as 'I am a liar or Ben is a knight'.",
+    "A row of islanders, each saying how many liars stand to the left of them.",
+    "The fewest questions that tell the knights from the liars among a few islanders.",
+    "'Most of us are liars' said by some of the islanders in a group: how many knights the group can have."
+  ]
+}

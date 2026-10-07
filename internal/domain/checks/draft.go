@@ -1,26 +1,27 @@
 package checks
 
-import "github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
-
-// Draft is a submission read into the format: the brief handed back, the task
-// and the self-check. Each is nil when it could not be read at all, and then
-// nothing that needs it is checked — a refusal about a field of a task that is
-// not there would send the model looking in the wrong place.
+// Draft is a submission read into the format: the task and the self-check.
+// Each is nil when it could not be read at all, and then nothing that needs
+// it is checked — a refusal about a field of a task that is not there would
+// send the model looking in the wrong place.
 type Draft struct {
-	Brief     *profile.Brief
 	Task      *Task
 	SelfCheck *SelfCheck
+	// Retired names the members the format once had and no longer reads that
+	// came all the same, by their paths: a chat begun with the guide that
+	// asked for them still writes them.
+	Retired []string
+	// Mended names the fields read as the model meant them rather than as it
+	// wrote them, each once: a letter in another case, an option written as a
+	// number, no issues written as null.
+	Mended []string
 }
 
 // Task is the task as the model writes it.
 type Task struct {
-	// CoreIdea is the mathematics before the plot: the ideas of the topic the
-	// package's number picks from, the one it picks, and why the answer is
-	// what it is.
+	// CoreIdea is the mathematics before the plot, in a sentence or two: the
+	// idea the package names, and why the answer is what it is.
 	CoreIdea string `json:"core_idea"`
-	// DesignThoughtProcess is how the plot and the traps were chosen. Nobody
-	// reads it; writing it is what makes the model plan before committing.
-	DesignThoughtProcess string `json:"design_thought_process"`
 	// Question is the wording the child reads.
 	Question string `json:"question"`
 	// Drawing and DrawingStructure come together or not at all.

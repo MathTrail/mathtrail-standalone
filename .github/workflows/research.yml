@@ -1,11 +1,11 @@
 # The research's data, made from one commit. Paper A's experiments are held to
-# the results the repository keeps, and from the same commit come the numbers
-# the paper prints and the data of the site's page "Research". An experiment is
-# run again only when its program or its results changed: a key names both,
-# and a run that reproduced them keeps a mark under it. A release's run hands
-# the paper's numbers and the page's data on, as one artifact, to the steps
-# after it, and builds paper A from those numbers as another; on a pull
-# request only the experiments are held to their results.
+# the results the repository keeps, paper A is built from them, and from the
+# same commit comes the data of the site's page "Research", which takes the
+# paper's PDF in once the paper prints no placeholder. An experiment is run
+# again only when its program or its results changed: a key names both, and a
+# run that reproduced them keeps a mark under it. A release's run hands the
+# page's data and the PDF on, as one artifact, to the site's build after it; a
+# pull request's run builds the site from them itself, and publishes nothing.
 name: Research
 
 on:
@@ -126,7 +126,6 @@ jobs:
 
   toolchain:
     name: Toolchain image
-    if: github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
@@ -147,61 +146,16 @@ jobs:
       - id: image
         run: echo "reference=$(just ci-toolchain-image)" >> "$GITHUB_OUTPUT"
 
-  data:
-    name: The paper's numbers and the page's data
-    needs: [toolchain, reproduce]
-    if: github.event_name != 'pull_request'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    # In the image the site is built in, so that the bench's build, and the key
-    # its numbers are kept under, are those of the site's own builds.
-    container:
-      image: ${{ needs.toolchain.outputs.image }}
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ inputs.version }}
-      # The numbers are computed from this commit with nothing an earlier run
-      # kept, and kept for the pull requests after it when no run kept them.
-      - name: Make the data of the page "Research"
-        uses: ./.github/actions/page-data
-      - name: Write the numbers the paper prints
-        run: just research _paper-a-numbers
-      - name: Name what is handed on
-        run: |
-          processor=$(sed -n 's/^machine_processor=//p' research/experiments/perf/results/numbers.txt)
-          {
-              echo
-              echo "Handed on as research-data:"
-              echo
-              echo '```'
-              sha256sum site/research/research.json research/paper-a/generated/numbers.tex
-              echo '```'
-              echo
-              echo "E-A4's times are those of the run the paper describes, on $processor."
-          } >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: research-data
-          path: |
-            site/research/research.json
-            research/paper-a/generated/numbers.tex
-          retention-days: 7
-          # A job run again replaces what its first attempt handed on.
-          overwrite: true
-
   paper:
-    name: Paper A, built from those numbers
-    needs: data
-    if: github.event_name != 'pull_request'
+    name: Paper A
+    needs: reproduce
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     # On the runner itself: the paper is typeset in an image of its own, and the
     # toolchain image has no docker client to start it with. Go is the version
     # the research module declares.
+    outputs:
+      clean: ${{ steps.site.outputs.clean }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -215,11 +169,6 @@ jobs:
           go-version-file: research/go.mod
           cache-dependency-path: research/go.sum
       - uses: ./.github/actions/just
-      - name: Take the numbers the data job made
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: research-data
-          path: ${{ runner.temp }}/data
       # One run of both recipes holds the paper to its checks once. The
       # submission is built last, and refuses a TBD left in the text: the build
       # writes the first on a line of its own, "PAPER-A-TBD: " and what is left,
@@ -234,12 +183,31 @@ jobs:
               if [ -z "$waits" ]; then exit 1; fi
               echo "The paper for submission waits, as the text still holds a TBD: $waits." >> "$GITHUB_STEP_SUMMARY"
           fi
-      # The build wrote the numbers again from the same files, and they must be
-      # the same bytes: the paper prints the numbers the data job made.
-      - name: Hold the paper's numbers to those the data job made
-        run: cmp research/paper-a/generated/numbers.tex "$RUNNER_TEMP/data/research/paper-a/generated/numbers.tex"
+      # Every run makes the named PDF ready for the site, and hands it on only
+      # once the paper prints no placeholder: until then the page shows the
+      # paper's title alone.
+      - id: site
+        name: Make the named paper ready for the site, and hand it on once it prints no placeholder
+        run: |
+          just _paper-to-site
+          left=$(just _paper-placeholders)
+          if [ -z "$left" ]; then
+              echo "clean=true" >> "$GITHUB_OUTPUT"
+              echo "The named PDF goes to the site with the page's data." >> "$GITHUB_STEP_SUMMARY"
+          else
+              echo "clean=false" >> "$GITHUB_OUTPUT"
+              {
+                  echo
+                  echo "The page shows the paper's title alone, as the paper still prints $(wc -l <<< "$left") placeholders:"
+                  echo
+                  echo '```'
+                  echo "$left"
+                  echo '```'
+              } >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Name what is handed on
         run: |
+          processor=$(sed -n 's/^machine_processor=//p' research/experiments/perf/results/numbers.txt)
           {
               echo
               echo "Paper A, version of $(just research _paper-a-version), handed on as paper-a:"
@@ -251,12 +219,25 @@ jobs:
                   echo "$(sha256sum < "$pdf" | cut -c1-64)  $job.pdf, $pages pages"
               done
               echo '```'
+              echo
+              echo "E-A4's times are those of the run the paper describes, on $processor."
           } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: paper-a
           path: research/paper-a/build/*.pdf
           retention-days: 7
+          overwrite: true
+      - name: Hand the named paper on to the page's data
+        if: steps.site.outputs.clean == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: paper-a-site
+          path: |
+            site/research/paper-a.en.pdf
+            site/research/paper.json
+          retention-days: 7
+          if-no-files-found: error
           overwrite: true
       # The builds and their logs are kept when the paper fails: they show the
       # page that ran over, or the line that ran past the margins.
@@ -269,3 +250,105 @@ jobs:
             research/paper-a/build/*.pdf
             research/paper-a/build/*.log
           retention-days: 14
+
+  data:
+    name: The page's data
+    needs: [toolchain, paper]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    # In the image the site is built in, so that the bench's build, and the key
+    # its numbers are kept under, are those of the site's own builds.
+    container:
+      image: ${{ needs.toolchain.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    env:
+      # Fixed places for what Go downloads and builds, so that the paths the job
+      # caches and the paths Go reads are the same ones.
+      GOMODCACHE: /tmp/go/mod
+      GOCACHE: /tmp/go/build
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.version }}
+          persist-credentials: false
+      # What Go downloads and builds, on a pull request alone: a release builds
+      # the bench from nothing an earlier run left behind.
+      - if: github.event_name == 'pull_request'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            /tmp/go/mod
+            /tmp/go/build
+          key: go-site-${{ hashFiles('go.sum', 'tools/learners/go.sum') }}
+          restore-keys: go-
+      # The paper's facts go into the page's data beside the bench's numbers.
+      - name: Take the named paper the site offers
+        if: needs.paper.outputs.clean == 'true'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: paper-a-site
+          path: site/research
+      # A pull request takes the numbers kept for the same build of the bench.
+      # A release computes them from its commit with nothing an earlier run
+      # kept, and keeps them for the pull requests after it when no run kept
+      # them.
+      - name: Make the data of the page "Research"
+        uses: ./.github/actions/page-data
+        with:
+          restore: ${{ github.event_name == 'pull_request' }}
+      - name: Name what is handed on
+        run: |
+          handed=(site/research/research.json)
+          if [ -f site/research/paper-a.en.pdf ]; then handed+=(site/research/paper-a.en.pdf); fi
+          {
+              echo
+              echo "Handed on as research-data:"
+              echo
+              echo '```'
+              sha256sum "${handed[@]}"
+              echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      # Both lie in site/research, which the artifact holds as its root.
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: research-data
+          path: |
+            site/research/research.json
+            site/research/paper-a.en.pdf
+          retention-days: 7
+          if-no-files-found: error
+          # A job run again replaces what its first attempt handed on.
+          overwrite: true
+
+  # A pull request's site is built as a release's is, from the data and the
+  # paper of the same run, and published by no one.
+  site:
+    name: Build the site
+    needs: [toolchain, data]
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    container:
+      image: ${{ needs.toolchain.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The whole history with its tags, which the build is named by.
+          fetch-depth: 0
+          persist-credentials: false
+      # A release's cards draw the version they are given, so a pull request's
+      # name its build as a build between releases names itself, and its pages
+      # weigh what a release's do.
+      - id: build
+        name: Name the build
+        run: echo "version=$(git describe --tags --always)" >> "$GITHUB_OUTPUT"
+      - name: Build the site
+        uses: ./.github/actions/site
+        with:
+          research: true
+          version: ${{ steps.build.outputs.version }}

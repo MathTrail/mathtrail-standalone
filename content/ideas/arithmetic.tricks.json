@@ -1,0 +1,38 @@
+{
+  "1-2": [
+    "Adding numbers in pairs that make ten.",
+    "I thought of a number and added to it: undo the addition.",
+    "I thought of a number and took away from it: undo the subtraction.",
+    "Adding a number and its partner to a round number first.",
+    "Adding the same number again and again: counting the groups.",
+    "Two steps done to a hidden number: undo them in reverse order.",
+    "Adding nines as tens and taking the ones back.",
+    "Sums of numbers that can be grouped into equal pairs.",
+    "Taking away by counting up from the smaller number.",
+    "A missing number in a sum, found by taking away."
+  ],
+  "3-4": [
+    "Multiplying in a clever order: 25 with 4, 5 with 2.",
+    "I thought of a number and multiplied it: undo the multiplication.",
+    "Adding in pairs that make a round hundred.",
+    "Adding 999, 99 and 9 as round numbers, less one each.",
+    "The sum of consecutive odd numbers.",
+    "I thought of a number and did two steps: undo them in reverse order.",
+    "Multiplying by 9 or 11 as by 10, with a small change.",
+    "The sum of a run of numbers, its first and last paired.",
+    "Taking away a sum: subtracting each part in turn.",
+    "Doubling and halving: one factor doubled and the other halved."
+  ],
+  "5-6": [
+    "Sums of 1, 11, 111 and so on, column by column.",
+    "A chain of operations on a hidden number, undone from the end.",
+    "Products grouped into tens, hundreds and thousands.",
+    "A number trick that gives the same answer whatever the number thought of.",
+    "A number plus a part of itself gives a total: find the number.",
+    "A two-digit number and the number with its digits swapped.",
+    "The sum of all the digits of all the numbers in a range.",
+    "A difference of two squares, as a sum times a difference.",
+    "Fractions of a number added together, such as a half and a third of it.",
+    "A long sum of alternating plus and minus signs, taken in pairs."
+  ]
+}

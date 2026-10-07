@@ -538,8 +538,8 @@ func TestThePageFileTakesThePapersCommitFromThePDFItShips(t *testing.T) {
 		warns                                bool
 	}{
 		{"no PDF", "", "abcdef123456", "abcdef123456", "The paper's numbers are of the commit abcdef123456.", 0, false},
-		{"a PDF of the paper's commit", fixturePaper, paperCommitOf, paperCommitOf, "built at the commit " + paperCommitOf + ".", 1, false},
-		{"a PDF of an older commit", fixturePaper, "abcdef123456", paperCommitOf, "built at the commit " + paperCommitOf + ".", 1, true},
+		{"a PDF of the paper's commit", fixturePaper, paperCommitOf, paperCommitOf, "PDF in en, whose numbers are of the commit " + paperCommitOf + ".", 1, false},
+		{"a PDF of an older commit", fixturePaper, "abcdef123456", paperCommitOf, "PDF in en, whose numbers are of the commit " + paperCommitOf + ".", 1, true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()

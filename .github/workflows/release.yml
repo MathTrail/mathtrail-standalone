@@ -172,10 +172,10 @@ jobs:
     secrets: inherit
 
   # The research's data of the release: paper A's experiments held to the
-  # results the release's commit keeps, and from that commit the numbers the
-  # paper prints and the data of the page "Research", handed to the site as one
-  # artifact, and the paper built from those numbers. When any of it fails the
-  # site is not published, and the service is delivered all the same.
+  # results the release's commit keeps, paper A built from them, and from that
+  # commit the data of the page "Research", with the paper's PDF once it prints
+  # no placeholder, handed to the site as one artifact. When any of it fails
+  # the site is not published, and the service is delivered all the same.
   research:
     name: Make the release's research data
     needs: release
@@ -189,12 +189,12 @@ jobs:
       version: ${{ needs.release.outputs.version }}
 
   # The site of the release goes out beside its delivery rather than after it,
-  # once the research's data of the same commit is made. The site is published
-  # about when the service is rolled out, so the privacy policy and the topics'
-  # pages a card links to are online with the service that points at them; and
-  # neither holds the other back when it fails. The cards on the site name the
-  # release about when the chats run it, and, when a delivery fails, until the
-  # next one succeeds.
+  # once the research's data and paper of the same commit are made. The site
+  # is published about when the service is rolled out, so the privacy policy
+  # and the topics' pages a card links to are online with the service that
+  # points at them; and neither holds the other back when it fails. The cards
+  # on the site name the release about when the chats run it, and, when a
+  # delivery fails, until the next one succeeds.
   site:
     name: Publish the release's site
     needs: [release, research]

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Self-check",
-  "description": "The model's own pass over the task it wrote, handed in together with it. It is one of the reasons a task can be refused, and the only one that can see an ambiguity.",
+  "description": "The model's own pass over the task it wrote, handed in together with it and written in English whatever the lesson's language, since the child never sees it. It is one of the reasons a task can be refused, and the only one that can see an ambiguity.",
   "type": "object",
   "additionalProperties": false,
   "required": ["issues", "option_check", "final_answer"],

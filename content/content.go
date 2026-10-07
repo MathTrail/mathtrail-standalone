@@ -1,8 +1,8 @@
 // Package content holds everything the service ships that is not code: the
 // closed catalogs of topics, traps and skills, the reference tasks the model is
-// shown, the sample solvers it starts its own from, the frames its drawings
-// start from, the JSON schemas of what it has to hand back, and the
-// instructions it works from.
+// shown, the ideas of each topic its tasks are built on, the sample solvers it
+// starts its own from, the frames its drawings start from, the JSON schemas of
+// what it has to hand back, and the instructions it works from.
 //
 // All of it is compiled into the binary, so a running service cannot drift from
 // the content it was built with, and Load checks the whole set once at startup.
@@ -24,7 +24,7 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 )
 
-//go:embed catalogs drawings examples instructions schemas solvers
+//go:embed catalogs drawings examples ideas instructions schemas solvers
 var files embed.FS
 
 // Content is the checked content of the binary. Nothing in it changes after
@@ -38,6 +38,8 @@ type Content struct {
 	examples  []Example
 	templates map[string][]Template
 	frames    []Frame
+	// ideas are the ideas of each topic, by its id and then by level.
+	ideas map[string]map[rating.GradeLevel][]string
 
 	topicByID map[string]Topic
 	trapByID  map[string]Trap
@@ -85,8 +87,11 @@ func load(src fs.FS) (*Content, error) {
 	if c.templates, err = loadTemplates(src, c.topicByID, c.examples); err != nil {
 		return nil, err
 	}
-	var frameFiles []instructionFile
+	var frameFiles, ideaFiles []instructionFile
 	if c.frames, frameFiles, err = loadFrames(src, c.topicByID); err != nil {
+		return nil, err
+	}
+	if c.ideas, ideaFiles, err = loadIdeas(src, c.topics); err != nil {
 		return nil, err
 	}
 	if c.schemas, err = loadSchemas(src); err != nil {
@@ -101,7 +106,7 @@ func load(src fs.FS) (*Content, error) {
 	for _, file := range instructions {
 		c.instructions[file.name] = file.text
 	}
-	c.instructionsVersion = instructionsVersion(slices.Concat(instructions, versioned(c.templates), frameFiles))
+	c.instructionsVersion = instructionsVersion(slices.Concat(instructions, versioned(c.templates), frameFiles, ideaFiles))
 
 	return c, nil
 }

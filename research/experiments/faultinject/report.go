@@ -385,16 +385,27 @@ func classNumbers(rows []caseRow) []string {
 		belongs := func(row *caseRow) bool { return row.Operator.Class == class }
 		refused := counted(rows, belongs, func(row *caseRow) bool { return row.Verdict.Refused() })
 		expected := counted(rows, belongs, (*caseRow).expected)
-		values := refused.exact()
-		lines = append(lines,
-			key+"_cases="+strconv.Itoa(refused.total),
-			key+"_refused_percent="+values[0],
-			key+"_refused_low="+values[1],
-			key+"_refused_high="+values[2],
-			key+"_expected_percent="+expected.percent(),
-		)
+		lines = append(lines, casesLine(key, refused))
+		lines = append(lines, refusedLines(key, refused)...)
+		lines = append(lines, key+"_expected_percent="+expected.percent())
 	}
 	return lines
+}
+
+// casesLine is the number of valid cases a share is counted over, under a key.
+func casesLine(key string, s share) string {
+	return key + "_cases=" + strconv.Itoa(s.total)
+}
+
+// refusedLines are the share of the valid cases any check refused, under a
+// key: its percentage and the two ends of its exact interval.
+func refusedLines(key string, refused share) []string {
+	values := refused.exact()
+	return []string{
+		key + "_refused_percent=" + values[0],
+		key + "_refused_low=" + values[1],
+		key + "_refused_high=" + values[2],
+	}
 }
 
 // refusedByOneCheck says whether one and the same check, alone, refused every
@@ -430,33 +441,26 @@ func operatorNumbers(rows []caseRow, op *operator, read map[string]share) []stri
 	belongs := func(row *caseRow) bool { return row.Operator.ID == op.ID }
 	if op.Kind == outOfScope {
 		refused := counted(rows, belongs, func(row *caseRow) bool { return row.Verdict.Refused() })
-		values := refused.exact()
-		lines := []string{
-			key + "_cases=" + strconv.Itoa(refused.total), key + "_refused_percent=" + values[0],
-			key + "_refused_low=" + values[1], key + "_refused_high=" + values[2],
-		}
+		lines := append([]string{casesLine(key, refused)}, refusedLines(key, refused)...)
 		if verdicts, found := read[op.ID]; found {
 			lines = append(lines, key+"_read="+strconv.Itoa(verdicts.total), key+"_equivalent="+strconv.Itoa(verdicts.hits))
 		}
 		return lines
 	}
 	expected := counted(rows, belongs, (*caseRow).expected)
-	lines := []string{key + "_cases=" + strconv.Itoa(expected.total), key + "_expected_percent=" + expected.percent()}
+	lines := []string{casesLine(key, expected), key + "_expected_percent=" + expected.percent()}
 	if op.Kind != discovery {
 		return lines
 	}
 	values := expected.exact()
 	refused := counted(rows, belongs, func(row *caseRow) bool { return row.Verdict.Refused() })
-	byAny := refused.exact()
 	lines = append(lines,
 		key+"_expected_low="+values[1],
 		key+"_expected_high="+values[2],
 		key+"_missed="+strconv.Itoa(expected.total-expected.hits),
 		key+"_refused="+strconv.Itoa(refused.hits),
-		key+"_refused_percent="+byAny[0],
-		key+"_refused_low="+byAny[1],
-		key+"_refused_high="+byAny[2],
 	)
+	lines = append(lines, refusedLines(key, refused)...)
 	return append(lines, missesByTopic(rows, op, key)...)
 }
 
@@ -475,7 +479,7 @@ func missesByTopic(rows []caseRow, op *operator, key string) []string {
 	for _, topic := range topics {
 		inTopic := counted(rows, func(row *caseRow) bool { return row.Operator.ID == op.ID && row.Host.Topic == topic }, (*caseRow).expected)
 		prefix := key + "_" + numberKey(topic)
-		lines = append(lines, prefix+"_cases="+strconv.Itoa(inTopic.total), prefix+"_missed="+strconv.Itoa(inTopic.total-inTopic.hits))
+		lines = append(lines, casesLine(prefix, inTopic), prefix+"_missed="+strconv.Itoa(inTopic.total-inTopic.hits))
 	}
 	return lines
 }

@@ -11,7 +11,7 @@
 set -euo pipefail
 
 usage="usage: reproduce.sh faultinject|learnersim|perf <shipped> <run> <command>..."
-if [ $# -lt 4 ]; then
+if [[ $# -lt 4 ]]; then
     echo "$usage" >&2
     exit 2
 fi
@@ -25,20 +25,21 @@ faultinject | learnersim | perf) ;;
     ;;
 esac
 # What an earlier run left would be compared as if this run had written it.
-if [ -e "$run" ] && [ -n "$(ls -A "$run")" ]; then
+if [[ -e "$run" && -n "$(ls -A "$run")" ]]; then
     echo "reproduce.sh: $run is not empty" >&2
     exit 2
 fi
 mkdir -p "$run"
 # The verdicts of the case-by-case reading are recorded by a reader, not made
 # by the run; the run reads them from where it writes.
-if [ "$experiment" = faultinject ]; then cp "$shipped/reading.csv" "$run/"; fi
+if [[ "$experiment" == faultinject ]]; then cp "$shipped/reading.csv" "$run/"; fi
 "$@" -out "$run"
 
 differ=()
 # same compares a file the run wrote with the one shipped, by name.
 same() {
-    if ! cmp -s "$shipped/$1" "$run/$1"; then differ+=("$1"); fi
+    local file=$1
+    if ! cmp -s "$shipped/$file" "$run/$file"; then differ+=("$file"); fi
 }
 case $experiment in
 perf)
@@ -61,7 +62,7 @@ perf)
     what="every file of its results"
     ;;
 esac
-if [ ${#differ[@]} -ne 0 ]; then
+if [[ ${#differ[@]} -ne 0 ]]; then
     echo "reproduce.sh: $experiment wrote other bytes than $shipped holds, in:" >&2
     printf '  %s\n' "${differ[@]}" >&2
     exit 1

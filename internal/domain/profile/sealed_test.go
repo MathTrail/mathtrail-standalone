@@ -145,17 +145,14 @@ func TestATaskSealedByAKeyThatIsGoneCannotBeRead(t *testing.T) {
 	}
 }
 
-// Nothing to seal, and nothing to open, when there is no task in flight.
-func TestSealingNeedsATaskInFlight(t *testing.T) {
+// Nothing to open when there is no task in flight.
+func TestOpeningNeedsATaskInFlight(t *testing.T) {
 	t.Parallel()
 
 	p := parseFixture(t, "dima")
 	p.CurrentTask = nil
 	sealer := newSealer(t)
 
-	if err := p.SealTask(sealer, secret()); !errors.Is(err, profile.ErrNoTask) {
-		t.Errorf("SealTask() error = %v, want %v", err, profile.ErrNoTask)
-	}
 	if _, err := p.OpenTask(sealer); !errors.Is(err, profile.ErrNoTask) {
 		t.Errorf("OpenTask() error = %v, want %v", err, profile.ErrNoTask)
 	}

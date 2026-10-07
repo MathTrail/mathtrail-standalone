@@ -7,8 +7,6 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
-	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
 
@@ -16,121 +14,23 @@ import (
 // service ships. It is declared here, by the side that needs it, and it speaks
 // in identifiers.
 type Catalog interface {
-	// HasTopic says whether the topic catalog has this id.
-	HasTopic(id string) bool
 	// HasTrap says whether the trap catalog has this id.
 	HasTrap(id string) bool
-	// HasSkill says whether the skill catalog has this id.
-	HasSkill(id string) bool
 }
 
-// Structure checks a draft against the format and against the brief the open
-// request was opened with: the task is the one that was asked for, the ids it
-// names exist, and nothing the child's profile excludes was quietly dropped.
-// The brief of the request, asked, is never nil: it is what the brief handed
-// back is held against.
+// Structure checks a draft against the format: every text the child or the
+// model relies on is there, the ids it names exist, and the self-check says
+// all it has to. Where the task stands — its topic, level and difficulty — is
+// not the draft's to say: the request it is handed in for keeps that.
 //
 // A part the draft could not read is not checked; Decode has already said why.
-func Structure(draft Draft, asked *profile.Brief, catalog Catalog) []Problem {
+func Structure(draft Draft, catalog Catalog) []Problem {
 	var problems []Problem
-	if draft.Brief != nil {
-		problems = append(problems, checkBrief(draft.Brief, asked, catalog)...)
-	}
 	if draft.Task != nil {
 		problems = append(problems, checkTask(draft.Task, catalog)...)
 	}
 	if draft.SelfCheck != nil {
 		problems = append(problems, checkSelfCheck(draft.SelfCheck)...)
-	}
-	return problems
-}
-
-// checkBrief checks the brief handed back. The topic, the level and the
-// difficulty are the ones the request recorded: a model that wants others asks
-// for them when it asks for the task, and the request then records its choice.
-func checkBrief(brief, asked *profile.Brief, catalog Catalog) []Problem {
-	var problems []Problem
-
-	switch brief.PedagogicalGoal {
-	case profile.GoalReinforce, profile.GoalNewTopic:
-	default:
-		problems = append(problems, structural("brief.pedagogical_goal must be %q or %q",
-			profile.GoalReinforce, profile.GoalNewTopic))
-	}
-
-	switch {
-	case brief.TargetConcept == "":
-		problems = append(problems, structural("brief.target_concept is missing or empty"))
-	case !catalog.HasTopic(brief.TargetConcept):
-		problems = append(problems, structural("brief.target_concept %q is not a topic in the catalog", brief.TargetConcept))
-	case brief.TargetConcept != asked.TargetConcept:
-		problems = append(problems, structural("brief.target_concept is not the topic this task was asked for; "+
-			"a different topic is chosen when asking for the task, not when handing it in"))
-	}
-
-	switch {
-	case !brief.GradeLevel.Known():
-		problems = append(problems, structural("brief.grade_level must be one of %s", quotedLevels()))
-	case brief.GradeLevel != asked.GradeLevel:
-		problems = append(problems, structural("brief.grade_level is not the level this task was asked for; "+
-			"a different level is chosen when asking for the task, not when handing it in"))
-	}
-
-	switch {
-	case brief.Difficulty < profile.MinDifficulty || brief.Difficulty > profile.MaxDifficulty:
-		problems = append(problems, structural("brief.difficulty must be a whole number from %d to %d",
-			profile.MinDifficulty, profile.MaxDifficulty))
-	case brief.Difficulty != asked.Difficulty:
-		problems = append(problems, structural("brief.difficulty is not the difficulty this task was asked for; "+
-			"a different difficulty is chosen when asking for the task, not when handing it in"))
-	}
-
-	problems = append(problems, required("brief.setting", brief.Setting)...)
-	problems = append(problems, required("brief.rationale", brief.Rationale)...)
-
-	switch {
-	case brief.TrapsToUse == nil:
-		problems = append(problems, structural("brief.traps_to_use is missing"))
-	case len(brief.TrapsToUse) == 0:
-		problems = append(problems, structural("brief.traps_to_use must name at least one trap"))
-	}
-	problems = append(problems, catalogIDs("brief.traps_to_use", "trap", brief.TrapsToUse, catalog.HasTrap)...)
-
-	if brief.ExcludedSkills == nil {
-		problems = append(problems, structural("brief.excluded_skills is missing; an empty list says there are none"))
-	}
-	problems = append(problems, catalogIDs("brief.excluded_skills", "skill", brief.ExcludedSkills, catalog.HasSkill)...)
-	for _, skill := range asked.ExcludedSkills {
-		if !slices.Contains(brief.ExcludedSkills, skill) {
-			problems = append(problems, structural("brief.excluded_skills dropped %q, which the child's profile excludes; "+
-				"skills may be added to the list, never removed", skill))
-		}
-	}
-
-	if brief.Constraints == nil {
-		problems = append(problems, structural("brief.constraints is missing; an empty list says there are none"))
-	}
-	for i, constraint := range brief.Constraints {
-		if solver.Blank(constraint) {
-			problems = append(problems, structural("brief.constraints.%d is empty", i))
-		}
-	}
-	return problems
-}
-
-// catalogIDs checks a list of ids against one catalog: each is known, and none
-// is named twice.
-func catalogIDs(field, kind string, ids []string, known func(string) bool) []Problem {
-	var problems []Problem
-	seen := make(map[string]bool, len(ids))
-	for _, id := range ids {
-		switch {
-		case seen[id]:
-			problems = append(problems, structural("%s names %q twice", field, id))
-		case !known(id):
-			problems = append(problems, structural("%s names %q, which is not a %s in the catalog", field, id, kind))
-		}
-		seen[id] = true
 	}
 	return problems
 }
@@ -154,7 +54,6 @@ const (
 func checkTask(task *Task, catalog Catalog) []Problem {
 	var problems []Problem
 	problems = append(problems, required("task.core_idea", task.CoreIdea)...)
-	problems = append(problems, required("task.design_thought_process", task.DesignThoughtProcess)...)
 	problems = append(problems, required("task.question", task.Question)...)
 	problems = append(problems, required("task.hint", task.Hint)...)
 	problems = append(problems, required("task.solution", task.Solution)...)
@@ -389,15 +288,4 @@ func several(count int, one, many string) string {
 		return one
 	}
 	return fmt.Sprintf("%d %s", count, many)
-}
-
-// quotedLevels are the three levels as a refusal names them: "1-2", "3-4" or
-// "5-6".
-func quotedLevels() string {
-	levels := rating.GradeLevels()
-	quoted := make([]string, 0, len(levels))
-	for _, level := range levels {
-		quoted = append(quoted, fmt.Sprintf("%q", level))
-	}
-	return strings.Join(quoted[:len(quoted)-1], ", ") + " or " + quoted[len(quoted)-1]
 }

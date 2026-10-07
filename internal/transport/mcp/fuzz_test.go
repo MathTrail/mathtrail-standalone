@@ -117,6 +117,8 @@ func FuzzTaskArguments(f *testing.F) {
 		{1, strings.Replace(string(race), `"correct_answer":"C"`, `"correct_answer":"A"`, 1)},
 		{1, `{"request_id":"req_fuzz","brief":"a string","task":[1,2],"solver":"","self_check":null}`},
 		{1, `{"request_id":"req_fuzz","brief":{},"task":{"options":{"A":1}},"solver":"def solve(options): return","self_check":{}}`},
+		{1, strings.Replace(string(race), `"core_idea":`, `"design_thought_process":"a plan","core_idea":`, 1)},
+		{1, strings.Replace(string(race), `"request_id":`, `"bogus":1,"request_id":`, 1)},
 		{1, `{}`},
 		{2, `{"request_id":"` + request.ID + `"}`},
 		{2, `{"request_id":"req_\u0000","extra":true}`},

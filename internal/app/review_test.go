@@ -25,7 +25,7 @@ func TestTheContainersReviewerAcceptsAGoodTask(t *testing.T) {
 
 	reviewer := newTestContainer(t).Reviewer
 	examined, err := reviewer.Examine(t.Context(), &checks.Submission{
-		Brief: marshal(t, brief), Task: marshal(t, raceTask()), SelfCheck: marshal(t, raceSelfCheck()), Solver: raceSolver,
+		Task: marshal(t, raceTask()), SelfCheck: marshal(t, raceSelfCheck()), Solver: raceSolver,
 	})
 	if err != nil {
 		t.Fatalf("Examine() error = %v, want nil", err)

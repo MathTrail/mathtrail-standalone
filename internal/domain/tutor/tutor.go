@@ -57,7 +57,7 @@ type Catalog interface {
 
 // MaxReason is how long the model's reason for a choice of its own may be, in
 // characters: a sentence or two. It travels in the brief, and with the brief
-// in every package of the request and back with every attempt.
+// in every package of the request.
 const MaxReason = 300
 
 // Choice is what the model asked for instead of what the rule suggested. Its
@@ -240,9 +240,7 @@ func brief(p *profile.Profile, catalog Catalog, choice Choice, ahead bool) (prof
 		return profile.Brief{}, "", errors.New("tutor: the catalog has no topic taught at any level")
 	}
 
-	// awaited says the answer to the task on the card is still to come, so the
-	// task written ahead comes one answer later than the count says.
-	awaited := ahead && p.InFlight() != nil
+	awaited := awaits(p, ahead)
 	suggested, goal, because := choose(p, catalog, open, awaited)
 	chosen := LessonTopic(p, catalog)
 	choice = choice.Beside(chosen)
@@ -262,9 +260,8 @@ func brief(p *profile.Profile, catalog Catalog, choice Choice, ahead bool) (prof
 	return profile.Brief{
 		Constraints: []string{},
 		Difficulty:  point.Difficulty,
-		// An empty list rather than none: the model hands the brief back as it
-		// received it, and a list left out is refused where an empty one says
-		// there are no skills to keep out.
+		// An empty list rather than none, so that the brief in the package says
+		// there are no skills to keep out rather than leaving a null to guess at.
 		ExcludedSkills:  append([]string{}, p.Student.ExcludedSkills...),
 		GradeLevel:      point.GradeLevel,
 		PedagogicalGoal: goal,
@@ -273,6 +270,37 @@ func brief(p *profile.Profile, catalog Catalog, choice Choice, ahead bool) (prof
 		TargetConcept:   topic,
 		TrapsToUse:      traps(p, topic, point.GradeLevel, catalog),
 	}, mode, nil
+}
+
+// awaits says a task is written ahead of the answer to the task on the card.
+// That task comes before it, whatever answer it gets, so whatever counts what
+// the child has left behind counts the task on the card among it already: the
+// interest the task is dressed in, its place in the trial series, and the idea
+// and the reference tasks of its package are what they will be once that
+// answer is in.
+func awaits(p *profile.Profile, ahead bool) bool {
+	return ahead && p.InFlight() != nil
+}
+
+// Behind is how many answers the child has given and how many tasks of a
+// topic they have left behind, answered or skipped, as a task of that topic
+// written now counts them: with the task on the card among them when the task
+// is written ahead of its answer. A package built from them names a task
+// written ahead the idea after the one the task on the card was built on, when
+// the two share a topic, and the same idea and reference tasks before that
+// answer as after it. A skip of the task on the card moves no answer, so after
+// one the reference tasks are those of the answers before it, while the idea
+// stays: a task skipped is among the tasks of its topic.
+func Behind(p *profile.Profile, topic string, ahead bool) (answers, topicTasks int) {
+	stats := p.Topics[topic]
+	answers, topicTasks = p.Ratings.Answers, stats.Answers+stats.Skipped
+	if awaits(p, ahead) {
+		answers++
+		if p.InFlight().Topic == topic {
+			topicTasks++
+		}
+	}
+	return answers, topicTasks
 }
 
 // writtenAhead is what the rationale of a task written ahead opens with: that

@@ -3,7 +3,6 @@ package tutor_test
 import (
 	"crypto/sha256"
 	"encoding/base64"
-	"fmt"
 	"math"
 	"math/rand/v2"
 	"sync"
@@ -168,7 +167,7 @@ func lessonOf(t *testing.T, catalog tutor.Catalog, grade int, truth float64, ser
 
 	run := 0
 	for number := range lesson {
-		correct := answerOne(t, catalog, p, number, truth, now, random)
+		correct := answerOne(t, catalog, p, truth, now, random)
 		if correct {
 			run = 0
 		} else {
@@ -183,13 +182,14 @@ func lessonOf(t *testing.T, catalog tutor.Catalog, grade int, truth float64, ser
 	return placed, longest
 }
 
-// answerOne sets the child the rule's next task, answers it by the chance a
-// child of this true level has at it, and records the answer.
-func answerOne(t *testing.T, catalog tutor.Catalog, p *profile.Profile, number int, truth float64,
+// answerOne sets the child the rule's next task, as the service hands one out,
+// answers it by the chance a child of this true level has at it, and records
+// the answer.
+func answerOne(t *testing.T, catalog tutor.Catalog, p *profile.Profile, truth float64,
 	now time.Time, random *rand.Rand) bool {
 	t.Helper()
 
-	brief, _, err := tutor.Next(p, catalog, tutor.Choice{})
+	brief, mode, err := tutor.Next(p, catalog, tutor.Choice{})
 	if err != nil {
 		t.Fatalf("Next() error = %v, want nil", err)
 	}
@@ -197,26 +197,18 @@ func answerOne(t *testing.T, catalog tutor.Catalog, p *profile.Profile, number i
 	if err != nil {
 		t.Fatalf("build the seal: %v", err)
 	}
-	id := fmt.Sprintf("tsk_%02d", number)
-	p.CurrentTask = &profile.CurrentTask{
-		Difficulty: brief.Difficulty, Fingerprint: "sketch", GradeLevel: brief.GradeLevel, Hint: "hint",
-		ID: id, InstructionsVersion: "v", IssuedAt: profile.At(now), Language: "en",
-		Options: map[string]string{"A": "1", "B": "2", "C": "3", "D": "4", "E": "5"},
-		Topic:   brief.TargetConcept, Wording: "a task",
-	}
-	if err := p.SealTask(sealer, profile.TaskSecret{
+	p.Ask(&brief, mode, "en", now)
+	task, err := p.Issue(&profile.Written{
+		Wording: "a task", Options: map[string]string{"A": "1", "B": "2", "C": "3", "D": "4", "E": "5"},
+		Hint: "hint", Fingerprint: "sketch", InstructionsVersion: "v",
+	}, profile.TaskSecret{
 		Answer:      "C",
 		Distractors: map[string]profile.Distractor{"B": {Trap: brief.TrapsToUse[0], Text: "a slip"}},
 		Solution:    "the solution",
-	}); err != nil {
-		t.Fatalf("SealTask() error = %v, want nil", err)
+	}, sealer, now)
+	if err != nil {
+		t.Fatalf("Issue() error = %v, want nil", err)
 	}
-	summary := p.Topics[brief.TargetConcept]
-	summary.LastIssued = profile.DateOf(now)
-	if summary.Traps == nil {
-		summary.Traps = map[string]int{}
-	}
-	p.Topics[brief.TargetConcept] = summary
 
 	point := rating.Point{GradeLevel: brief.GradeLevel, Difficulty: brief.Difficulty}
 	correct := random.Float64() < rating.Probability(truth, point.Beta())
@@ -224,7 +216,7 @@ func answerOne(t *testing.T, catalog tutor.Catalog, p *profile.Profile, number i
 	if !correct {
 		choice = "B"
 	}
-	if _, err := p.Record(profile.Answered{TaskID: id, Choice: choice, At: now.Add(2 * time.Minute)}, sealer, catalog.LevelsOf(brief.TargetConcept)); err != nil {
+	if _, err := p.Record(profile.Answered{TaskID: task.ID, Choice: choice, At: now.Add(2 * time.Minute)}, sealer, catalog.LevelsOf(brief.TargetConcept)); err != nil {
 		t.Fatalf("Record() error = %v, want nil", err)
 	}
 	return correct

@@ -1,0 +1,38 @@
+{
+  "1-2": [
+    "Socks or balls of two colours taken out in the dark: how many to be sure of a pair.",
+    "Apples taken out in the dark: how many to be sure of one of a given colour.",
+    "Rabbits in cages: at least how many in the fullest cage.",
+    "Many marbles of three colours: how many to be sure of two of one colour.",
+    "Children choosing between two games: at least how many chose the same one.",
+    "Children and the months of a year: at least how many share a month.",
+    "Number cards 1 to 5, many of each: how many to be sure of two with the same number.",
+    "Pencils of a few colours: how many to be sure of one of every colour.",
+    "Sweets shared among children: at least how many the child with the most gets.",
+    "Children's birthdays and the days of a week: when two must share a day."
+  ],
+  "3-4": [
+    "Black and white socks in the dark: how many for a pair.",
+    "Pupils and months: at least how many share a birthday month.",
+    "Balls of two colours: how many to be sure of two of one given colour.",
+    "Pencils of several colours, the same number of each: how many for one of every colour.",
+    "A yes-or-no question: whether two of a group must share a month.",
+    "Balls with a different number of each colour: how many for two of one colour.",
+    "Pupils and the days of a week: at least how many share a day.",
+    "Taking out to be sure of one given colour when every other colour can come first.",
+    "Cards numbered 1 to 10: how many to be sure two of them add up to a given sum.",
+    "Left and right gloves of a few colours: how many to be sure of a pair."
+  ],
+  "5-6": [
+    "Rolling a die: how many rolls to be sure one number comes three times.",
+    "Socks of several colours in two sizes: how many for a matching pair.",
+    "Pupils with two marks each: at least how many share both marks.",
+    "Coins of different values: how many to be sure of a given amount.",
+    "Digit sums of two-digit numbers: how many numbers to be sure two share a sum.",
+    "Whole numbers on a board: how many to be sure two differ by a multiple of a given number.",
+    "Seasons of birth and boys or girls: how many pupils to be sure of three of one kind.",
+    "Whole numbers: how many to be sure three of them add up to a multiple of 3.",
+    "Numbers from 1 to 10: how many to choose to be sure one divides another.",
+    "Points in a square: how many to be sure two lie in the same small square."
+  ]
+}

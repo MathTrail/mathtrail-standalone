@@ -86,6 +86,12 @@ type Submitted struct {
 	SolverSteps uint64
 	// SolverTime is how long they took, together.
 	SolverTime time.Duration
+	// Retired names the members the format no longer reads that came all the
+	// same, by their paths.
+	Retired []string
+	// Mended names the fields read as the model meant them rather than as it
+	// wrote them, never what was written in them.
+	Mended []string
 }
 
 // Event is what the log keeps of this review. An outcome Judge did not return
@@ -95,7 +101,10 @@ func (o *Outcome) Event() Submitted {
 	if !o.judged {
 		return Submitted{}
 	}
-	event := Submitted{Outcome: outcomeAccepted, Primary: o.Primary(), MinorIssues: slices.Clone(o.MinorIssues)}
+	event := Submitted{
+		Outcome: outcomeAccepted, Primary: o.Primary(), MinorIssues: slices.Clone(o.MinorIssues),
+		Retired: slices.Clone(o.Draft.Retired), Mended: slices.Clone(o.Draft.Mended),
+	}
 	if !o.Accepted() {
 		event.Outcome = outcomeRejected
 	}

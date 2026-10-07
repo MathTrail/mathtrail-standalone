@@ -373,7 +373,7 @@ func (f *family) writeTheRace() (taskID string) {
 	})
 	requestID := opened(t, words)
 	_, packed := f.call("get_package", map[string]any{"request_id": requestID})
-	brief := briefOf(t, packed)
+	wantPackage(t, packed)
 	awaited := map[string]any{"request_id": requestID}
 	if waiting, _ := f.call("read_task", awaited); waiting.Screen != "coming" {
 		t.Fatalf("the card is told %q, want the task being written", waiting.Screen)
@@ -381,10 +381,10 @@ func (f *family) writeTheRace() (taskID string) {
 	if _, again := f.call("next_task", map[string]any{"language": "en"}); !strings.Contains(again, "Request "+requestID+" is already open") {
 		t.Fatalf("next_task asked again says %q, want the request still open handed back", again)
 	}
-	if refused, _ := f.call("submit_task", race(requestID, brief, false)); refused.Status != "rejected" {
+	if refused, _ := f.call("submit_task", race(requestID, false)); refused.Status != "rejected" {
 		t.Fatalf("a race with no hint is %q, want it refused", refused.Status)
 	}
-	handed, _ := f.call("submit_task", race(requestID, brief, true))
+	handed, _ := f.call("submit_task", race(requestID, true))
 	if handed.Screen != "task" || handed.Task == nil {
 		t.Fatalf("the race shows %q, want it on the child's card", handed.Screen)
 	}
@@ -444,9 +444,9 @@ func opened(t *testing.T, words string) (requestID string) {
 	return id[1]
 }
 
-// briefOf is the brief of the package get_package's words carry, as a model
-// reads it to hand back with the task.
-func briefOf(t *testing.T, words string) json.RawMessage {
+// wantPackage holds get_package's words to carry the package of the request,
+// its brief in it, which the model writes the task to.
+func wantPackage(t *testing.T, words string) {
 	t.Helper()
 
 	_, pack, found := strings.Cut(words, "Package:\n")
@@ -456,19 +456,15 @@ func briefOf(t *testing.T, words string) json.RawMessage {
 	if !found || json.Unmarshal([]byte(pack), &contents) != nil || contents.Brief == nil {
 		t.Fatalf("get_package says %q, want the package of the request", words)
 	}
-	return contents.Brief
 }
 
-// race is the race handed in for a request, the brief handed back as it was
-// received — or, not whole, without its hint.
-func race(requestID string, brief json.RawMessage, whole bool) map[string]any {
+// race is the race handed in for a request — or, not whole, without its hint.
+func race(requestID string, whole bool) map[string]any {
 	task := raceTask()
 	if !whole {
 		task["hint"] = ""
 	}
-	return map[string]any{
-		"request_id": requestID, "brief": brief, "task": task, "solver": raceSolver, "self_check": raceSelfCheck(),
-	}
+	return map[string]any{"request_id": requestID, "task": task, "solver": raceSolver, "self_check": raceSelfCheck()}
 }
 
 // renewAndEnd is the host's server renewing the access the parent gave, and

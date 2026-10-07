@@ -1,7 +1,8 @@
 // Package checks decides whether a task the chat's model handed in can be
 // given to a child: whether it is in the format, written in the letters of the
-// lesson's language and agrees with what was asked for, and whether it repeats
-// a task the child has had or copies an example the model was shown.
+// lesson's language and read at the level that was asked for, whether its
+// answer is proved, and whether it repeats a task the child has had or copies
+// an example the model was shown.
 //
 // It is pure computation. The caller brings the submission, the catalogs and
 // what the profile remembers; the package says what is wrong, in words the
@@ -20,8 +21,7 @@ import (
 type Code string
 
 const (
-	// CodeBadStructure is a submission out of the format, or one that does
-	// not agree with what the open request asked for.
+	// CodeBadStructure is a submission out of the format.
 	CodeBadStructure Code = "bad_structure"
 	// CodeWrongLanguage is a text the child reads that is not written in the
 	// letters of the lesson's language: the question, the hint, the solution,

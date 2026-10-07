@@ -1,0 +1,14 @@
+{
+  "5-6": [
+    "The perimeter of a figure of cells, counting the sides on the outside.",
+    "The area left when the corners of a square of cells are taken away.",
+    "Cells named by row and column: the figure they make and its perimeter.",
+    "A figure of cells, and its area in square metres from the side of a cell.",
+    "Dominoes on a small board: how many ways to place one.",
+    "A square cut into equal squares: the area of a part from its cells.",
+    "A bar of squares broken along its lines: the pieces and the breaks.",
+    "Two rectangles of cells that overlap: the area they cover together.",
+    "The largest square of cells that fits in a figure.",
+    "A figure of cells cut into equal parts along the lines of its cells."
+  ]
+}

@@ -62,6 +62,9 @@ type scenario struct {
 	references   []string
 	fingerprints []string
 	language     string
+	// level is the level the request was opened at; the zero value is the
+	// level of the brief the structure tests ask with.
+	level rating.GradeLevel
 }
 
 // accepted is the well-formed draft of the structure tests with a solver that
@@ -70,10 +73,9 @@ func accepted() scenario {
 	return scenario{draft: validDraft(), runner: &working{value: "six pairs"}, language: "en"}
 }
 
-// askedFor has the request opened for a task of this level, and the draft hand
-// its brief back as it was received.
+// askedFor has the request opened for a task of this level.
 func (s *scenario) askedFor(level rating.GradeLevel) {
-	s.draft.Brief.GradeLevel = level
+	s.level = level
 }
 
 // review hands the scenario's draft in as the JSON a model would send, and
@@ -88,8 +90,8 @@ func (s *scenario) review(t *testing.T) checks.Outcome {
 		t.Fatalf("Examine() error = %v", err)
 	}
 	request := asked()
-	if s.draft.Brief != nil {
-		request.GradeLevel = s.draft.Brief.GradeLevel
+	if s.level != "" {
+		request.GradeLevel = s.level
 	}
 	outcome, err := reviewer.Judge(examined, checks.Against{
 		Asked: request, Language: s.language, Fingerprints: s.fingerprints,
@@ -104,8 +106,7 @@ func (s *scenario) review(t *testing.T) checks.Outcome {
 func submissionOf(t *testing.T, draft checks.Draft) *checks.Submission {
 	t.Helper()
 	return &checks.Submission{
-		Brief: jsonOf(t, draft.Brief), Task: jsonOf(t, draft.Task), SelfCheck: jsonOf(t, draft.SelfCheck),
-		Solver: program,
+		Task: jsonOf(t, draft.Task), SelfCheck: jsonOf(t, draft.SelfCheck), Solver: program,
 	}
 }
 
@@ -228,10 +229,8 @@ var refusals = []struct {
 	code   checks.Code
 	want   string
 }{
-	{"a brief for another topic", func(s *scenario) { s.draft.Brief.TargetConcept = "counting.gaps" },
-		checks.CodeBadStructure, "not the topic this task was asked for"},
-	{"a brief that drops an excluded skill", func(s *scenario) { s.draft.Brief.ExcludedSkills = []string{} },
-		checks.CodeBadStructure, `dropped "division_with_remainder"`},
+	{"a core idea left unsaid", func(s *scenario) { s.draft.Task.CoreIdea = "" },
+		checks.CodeBadStructure, "task.core_idea"},
 	{"a task in another language than the lesson's", func(s *scenario) { s.language = "ru" },
 		checks.CodeWrongLanguage, "mostly not in Cyrillic letters, which ru, the language of the lesson, is written in"},
 	{"two explanations saying the same", func(s *scenario) {
@@ -302,6 +301,39 @@ func TestEachRefusalHasItsCode(t *testing.T) {
 	}
 }
 
+// A task whose letters and options were mended is judged as the task it meant,
+// the solver run on the options as their text: it passes every check, and the
+// log names what was mended.
+func TestAMendedTaskIsJudgedAsTheTaskItMeant(t *testing.T) {
+	t.Parallel()
+
+	draft := validDraft()
+	var task map[string]any
+	if err := json.Unmarshal(jsonOf(t, draft.Task), &task); err != nil {
+		t.Fatalf("read the task: %v", err)
+	}
+	task["options"] = map[string]any{"A": 4, "B": 5, "C": 6, "D": 8, "E": 12}
+	task["correct_answer"] = "c"
+
+	reviewer := checks.NewReviewer(shipped{catalog: testCatalog}, &working{value: "6"}, checks.DefaultDrawingLimits())
+	examined, err := reviewer.Examine(t.Context(), &checks.Submission{
+		Task: jsonOf(t, task), SelfCheck: jsonOf(t, draft.SelfCheck), Solver: program,
+	})
+	if err != nil {
+		t.Fatalf("Examine() error = %v", err)
+	}
+	outcome, err := reviewer.Judge(examined, checks.Against{Asked: asked(), Language: "en"})
+	if err != nil {
+		t.Fatalf("Judge() error = %v", err)
+	}
+	if !outcome.Accepted() {
+		t.Fatalf("problems %v, unchecked %v, want the task accepted as it was meant", outcome.Problems, outcome.Unchecked)
+	}
+	if mended := outcome.Event().Mended; !slices.Equal(mended, []string{"task.options", "task.correct_answer"}) {
+		t.Errorf("Mended = %v, want the options and the answer named", mended)
+	}
+}
+
 // All ten refusals at once come back all ten, in the order the checks run:
 // the first is the one an attempt is counted by.
 func TestEveryFailedCheckIsReportedInItsOrder(t *testing.T) {
@@ -333,9 +365,9 @@ func TestEveryFailedCheckIsReportedInItsOrder(t *testing.T) {
 
 // A fault of the structure keeps from running only the checks it took the
 // input of. Five options missing one is nothing to run a solver on, so the
-// solver is not run and the model is told so; a brief asking for another topic
-// leaves the task itself whole, and everything else about it is checked in
-// the same attempt.
+// solver is not run and the model is told so; an idea left unsaid leaves the
+// task itself whole, and everything else about it is checked in the same
+// attempt.
 func TestAStructuralFaultBlocksOnlyWhatItBroke(t *testing.T) {
 	t.Parallel()
 
@@ -355,15 +387,15 @@ func TestAStructuralFaultBlocksOnlyWhatItBroke(t *testing.T) {
 	}
 
 	crash = &scripted{result: solver.Result{Status: solver.StatusError}}
-	elsewhere := accepted()
-	elsewhere.runner = crash
-	elsewhere.draft.Brief.TargetConcept = "counting.gaps"
-	elsewhere.draft.Task.Question += longSentence
-	elsewhere.askedFor(rating.Grades12)
-	outcome = elsewhere.review(t)
+	unsaid := accepted()
+	unsaid.runner = crash
+	unsaid.draft.Task.CoreIdea = ""
+	unsaid.draft.Task.Question += longSentence
+	unsaid.askedFor(rating.Grades12)
+	outcome = unsaid.review(t)
 	want := []checks.Code{checks.CodeBadStructure, checks.CodeReadability, checks.CodeSolverError}
 	if codes := codesOf(&outcome); !slices.Equal(codes, want) || crash.runs != 1 {
-		t.Errorf("another topic: codes = %v after %d runs, want %v after one", codes, crash.runs, want)
+		t.Errorf("no core idea: codes = %v after %d runs, want %v after one", codes, crash.runs, want)
 	}
 }
 

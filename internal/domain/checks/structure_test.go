@@ -15,12 +15,8 @@ import (
 // catalog is a catalog written out in the test, so that what the checks are
 // measured against is in one place and small enough to read.
 type catalog struct {
-	topics, skills []string
-	traps          map[string]string // id to description
+	traps map[string]string // id to description
 }
-
-func (c catalog) HasTopic(id string) bool { return slices.Contains(c.topics, id) }
-func (c catalog) HasSkill(id string) bool { return slices.Contains(c.skills, id) }
 
 func (c catalog) HasTrap(id string) bool {
 	_, known := c.traps[id]
@@ -33,8 +29,6 @@ func (c catalog) TrapDescription(id string) (string, bool) {
 }
 
 var testCatalog = catalog{
-	topics: []string{"combinatorics.enumeration", "counting.gaps"},
-	skills: []string{"division_with_remainder", "fractions"},
 	traps: map[string]string{
 		"number_from_text": "Takes a number from the question as the answer.",
 		"missed_case":      "Leaves out one of the cases.",
@@ -64,11 +58,9 @@ func asked() *profile.Brief {
 // than numbers, so that a refusal quoting one would be caught by a search.
 func validDraft() checks.Draft {
 	return checks.Draft{
-		Brief: asked(),
 		Task: &checks.Task{
-			CoreIdea:             "Unordered pairs among 4 objects: 6.",
-			DesignThoughtProcess: "Plot: docking.",
-			Question:             "Four spaceships dock in pairs. How many different pairs can they make?",
+			CoreIdea: "Unordered pairs among 4 objects: 6.",
+			Question: "Four spaceships dock in pairs. How many different pairs can they make?",
 			Options: map[string]string{
 				"A": "four pairs", "B": "five pairs", "C": "six pairs", "D": "eight pairs", "E": "twelve pairs",
 			},
@@ -96,7 +88,7 @@ func validDraft() checks.Draft {
 func TestAWellFormedDraftPasses(t *testing.T) {
 	t.Parallel()
 
-	if problems := checks.Structure(validDraft(), asked(), testCatalog); len(problems) != 0 {
+	if problems := checks.Structure(validDraft(), testCatalog); len(problems) != 0 {
 		t.Fatalf("Structure() = %v, want no problems", problems)
 	}
 }
@@ -133,30 +125,8 @@ var prototypeBreakages = []breakage{
 }
 
 // formatBreakages break the rest of the format, beyond what the prototype's
-// tests did: the brief agrees with the request, the ids exist, and every part
-// is complete.
+// tests did: the ids exist, and every part is complete.
 var formatBreakages = []breakage{
-	{"a goal the format does not have", func(d *checks.Draft) { d.Brief.PedagogicalGoal = "revise" }, "brief.pedagogical_goal"},
-	{"a topic nobody has", func(d *checks.Draft) { d.Brief.TargetConcept = "geometry.spheres" }, "not a topic in the catalog"},
-	{"a topic the request was not for", func(d *checks.Draft) { d.Brief.TargetConcept = "counting.gaps" }, "not the topic this task was asked for"},
-	{"a difficulty off the scale", func(d *checks.Draft) { d.Brief.Difficulty = 6 }, "from 1 to 5"},
-	{"a difficulty the request was not for", func(d *checks.Draft) { d.Brief.Difficulty = 4 }, "not the difficulty this task was asked for"},
-	{"no level", func(d *checks.Draft) { d.Brief.GradeLevel = "" }, `brief.grade_level must be one of "1-2", "3-4" or "5-6"`},
-	{"a level there is not", func(d *checks.Draft) { d.Brief.GradeLevel = "7-8" }, "brief.grade_level must be one of"},
-	{"a level the request was not for", func(d *checks.Draft) { d.Brief.GradeLevel = rating.Grades12 }, "not the level this task was asked for"},
-	{"no setting", func(d *checks.Draft) { d.Brief.Setting = " " }, "brief.setting"},
-	{"no rationale", func(d *checks.Draft) { d.Brief.Rationale = "" }, "brief.rationale"},
-	{"traps left out", func(d *checks.Draft) { d.Brief.TrapsToUse = nil }, "brief.traps_to_use is missing"},
-	{"no trap at all", func(d *checks.Draft) { d.Brief.TrapsToUse = []string{} }, "at least one trap"},
-	{"a trap nobody has", func(d *checks.Draft) { d.Brief.TrapsToUse = []string{"guessed"} }, `names "guessed", which is not a trap`},
-	{"a trap named twice", func(d *checks.Draft) { d.Brief.TrapsToUse = []string{"missed_case", "missed_case"} }, "twice"},
-	{"excluded skills left out", func(d *checks.Draft) { d.Brief.ExcludedSkills = nil }, "brief.excluded_skills is missing"},
-	{"an excluded skill dropped", func(d *checks.Draft) { d.Brief.ExcludedSkills = []string{} }, `dropped "division_with_remainder"`},
-	{"a skill nobody has", func(d *checks.Draft) {
-		d.Brief.ExcludedSkills = []string{"division_with_remainder", "juggling"}
-	}, `names "juggling", which is not a skill`},
-	{"constraints left out", func(d *checks.Draft) { d.Brief.Constraints = nil }, "brief.constraints is missing"},
-	{"an empty constraint", func(d *checks.Draft) { d.Brief.Constraints = []string{"short", " "} }, "brief.constraints.1 is empty"},
 	{"an option that shows nothing", func(d *checks.Draft) { d.Task.Options["E"] = "\u200c\u200b" },
 		"task.options has an empty option"},
 	{"options that are one number written two ways", func(d *checks.Draft) {
@@ -175,7 +145,6 @@ var formatBreakages = []breakage{
 	{"no question", func(d *checks.Draft) { d.Task.Question = "" }, "task.question"},
 	{"a question that shows nothing", func(d *checks.Draft) { d.Task.Question = "\u200b\u2060" }, "task.question"},
 	{"no core idea", func(d *checks.Draft) { d.Task.CoreIdea = "" }, "task.core_idea"},
-	{"no design thought", func(d *checks.Draft) { d.Task.DesignThoughtProcess = "" }, "task.design_thought_process"},
 	{"no solution", func(d *checks.Draft) { d.Task.Solution = "\n" }, "task.solution"},
 	{"no explanations at all", func(d *checks.Draft) { d.Task.Distractors = nil }, "task.distractors is missing"},
 	{"an explanation with no trap", func(d *checks.Draft) {
@@ -229,7 +198,7 @@ func TestABrokenDraftIsRefusedByName(t *testing.T) {
 
 			draft := validDraft()
 			test.change(&draft)
-			problems := checks.Structure(draft, asked(), testCatalog)
+			problems := checks.Structure(draft, testCatalog)
 			if !mentions(problems, test.want) {
 				t.Fatalf("Structure() = %v, want a problem mentioning %q", problems, test.want)
 			}
@@ -259,7 +228,7 @@ func TestNoRefusalQuotesAnOption(t *testing.T) {
 
 			draft := validDraft()
 			test.change(&draft)
-			for _, problem := range checks.Structure(draft, asked(), testCatalog) {
+			for _, problem := range checks.Structure(draft, testCatalog) {
 				if quoted := quotedOption(problem.Message, options); quoted != "" {
 					t.Errorf("%q quotes %q", problem.Message, quoted)
 				}
@@ -293,9 +262,6 @@ func TestEveryFaultyEntryIsReported(t *testing.T) {
 		change func(*checks.Draft)
 		want   []string
 	}{
-		{"two empty constraints", func(d *checks.Draft) {
-			d.Brief.Constraints = []string{" ", "short", ""}
-		}, []string{"brief.constraints.0 is empty", "brief.constraints.2 is empty"}},
 		{"two drawn objects with no label", func(d *checks.Draft) {
 			d.Task.Drawing = "A--B--C"
 			d.Task.DrawingStructure = &checks.DrawingStructure{
@@ -325,7 +291,7 @@ func TestEveryFaultyEntryIsReported(t *testing.T) {
 
 			draft := validDraft()
 			test.change(&draft)
-			problems := checks.Structure(draft, asked(), testCatalog)
+			problems := checks.Structure(draft, testCatalog)
 			for _, want := range test.want {
 				if !mentions(problems, want) {
 					t.Errorf("Structure() = %v, want a problem mentioning %q", problems, want)
@@ -343,7 +309,7 @@ func TestAnUnknownTrapIsNamedOnce(t *testing.T) {
 	draft.Task.Distractors["A"] = checks.Distractor{Trap: "guessed", Text: "A guess."}
 	draft.Task.Distractors["B"] = checks.Distractor{Trap: "guessed", Text: "Another guess."}
 	named := 0
-	for _, problem := range checks.Structure(draft, asked(), testCatalog) {
+	for _, problem := range checks.Structure(draft, testCatalog) {
 		if strings.Contains(problem.Message, `"guessed"`) {
 			named++
 		}
@@ -353,9 +319,8 @@ func TestAnUnknownTrapIsNamedOnce(t *testing.T) {
 	}
 }
 
-// What the format allows is not refused: a skill the model adds, traps swapped
-// for others from the catalog, a self-check that could not solve the task, and
-// a drawing that comes with its structure.
+// What the format allows is not refused: a self-check that could not solve the
+// task, a minor issue, and a drawing that comes with its structure.
 func TestWhatTheFormatAllowsPasses(t *testing.T) {
 	t.Parallel()
 
@@ -363,11 +328,6 @@ func TestWhatTheFormatAllowsPasses(t *testing.T) {
 		name   string
 		change func(*checks.Draft)
 	}{
-		{"a skill added to the excluded ones", func(d *checks.Draft) {
-			d.Brief.ExcludedSkills = []string{"division_with_remainder", "fractions"}
-		}},
-		{"traps swapped for others", func(d *checks.Draft) { d.Brief.TrapsToUse = []string{"off_by_one"} }},
-		{"a constraint", func(d *checks.Draft) { d.Brief.Constraints = []string{"at most three sentences"} }},
 		{"an unsolvable verdict", func(d *checks.Draft) { d.SelfCheck.FinalAnswer = "UNSOLVABLE" }},
 		{"a minor issue", func(d *checks.Draft) {
 			d.SelfCheck.Issues = []checks.Issue{{Type: "too_hard_for_grade", Severity: "minor", Comment: "Close to the edge."}}
@@ -386,7 +346,7 @@ func TestWhatTheFormatAllowsPasses(t *testing.T) {
 
 			draft := validDraft()
 			test.change(&draft)
-			if problems := checks.Structure(draft, asked(), testCatalog); len(problems) != 0 {
+			if problems := checks.Structure(draft, testCatalog); len(problems) != 0 {
 				t.Fatalf("Structure() = %v, want no problems", problems)
 			}
 		})
@@ -399,7 +359,7 @@ func TestWhatTheFormatAllowsPasses(t *testing.T) {
 func TestAPartThatCouldNotBeReadIsNotCheckedAgain(t *testing.T) {
 	t.Parallel()
 
-	if problems := checks.Structure(checks.Draft{}, asked(), testCatalog); len(problems) != 0 {
+	if problems := checks.Structure(checks.Draft{}, testCatalog); len(problems) != 0 {
 		t.Fatalf("Structure(empty draft) = %v, want no problems", problems)
 	}
 }
@@ -439,12 +399,12 @@ func TestATextLongerThanACardHoldsIsRefused(t *testing.T) {
 
 			atTheLimit := validDraft()
 			tc.set(&atTheLimit, strings.Repeat("я", tc.longest))
-			if problems := checks.Structure(atTheLimit, asked(), testCatalog); len(problems) != 0 {
+			if problems := checks.Structure(atTheLimit, testCatalog); len(problems) != 0 {
 				t.Errorf("Structure() at %d characters = %v, want no problems", tc.longest, problems)
 			}
 			past := validDraft()
 			tc.set(&past, strings.Repeat("я", tc.longest+1))
-			if problems := checks.Structure(past, asked(), testCatalog); !mentions(problems, tc.want) {
+			if problems := checks.Structure(past, testCatalog); !mentions(problems, tc.want) {
 				t.Errorf("Structure() at %d characters = %v, want a problem mentioning %q", tc.longest+1, problems, tc.want)
 			}
 		})

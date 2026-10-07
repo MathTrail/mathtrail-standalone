@@ -37,9 +37,12 @@ type service struct {
 	p *profile.Profile
 }
 
-func (s service) overall() float64               { return s.p.Ratings.Theta }
-func (s service) level(topic string) float64     { return s.p.LevelIn(topic) }
-func (s service) answered(string, float64, bool) {}
+func (s service) overall() float64           { return s.p.Ratings.Theta }
+func (s service) level(topic string) float64 { return s.p.LevelIn(topic) }
+func (s service) answered(string, float64, bool) {
+	// Nothing to take in: the service's own code has recorded the answer in the
+	// profile already.
+}
 func (s service) chance(topic string, beta float64) float64 {
 	return rating.Probability(s.level(topic), beta)
 }

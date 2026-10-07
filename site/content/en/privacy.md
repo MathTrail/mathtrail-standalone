@@ -61,7 +61,7 @@ Your Google sign-in is not stored either: it is encrypted and placed inside the 
 
 ### In the logs
 
-The service writes counts, not content: whether a task was accepted or rejected, why it was rejected, how long it took, how many attempts it needed, whether a limit was hit, and which version of the instructions was used.
+The service writes counts, not content: whether a task was accepted or rejected, why it was rejected, how long it took, how many attempts it needed, how many bytes each part of the task the chat handed in took, whether a limit was hit, and which version of the instructions was used.
 
 To count how many children use MathTrail each day, week and month without knowing who any of them is, the lines about a task given, an answer and a topic mastered carry, between them:
 

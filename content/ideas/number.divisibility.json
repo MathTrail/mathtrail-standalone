@@ -1,0 +1,14 @@
+{
+  "5-6": [
+    "A division with a remainder: the number that was divided.",
+    "Pages in a range whose numbers divide by a given number.",
+    "A loop of stations: where a train is after a given number of stops.",
+    "Seats numbered row by row: the row and the place of a given seat.",
+    "The smallest number that leaves the same remainder for several divisors.",
+    "The remainder of a long number of repeated digits divided by 9 or by 3.",
+    "Sharing as equally as possible: the most that can be left over.",
+    "The rule of 3 or 9: which digit makes a number divide.",
+    "The last digit of a power, from the cycle of last digits.",
+    "The number of divisors of a number."
+  ]
+}

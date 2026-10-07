@@ -1,0 +1,26 @@
+{
+  "3-4": [
+    "Two jugs and a tap: a given amount by filling, emptying and pouring.",
+    "A balance and two weights: which loads can be weighed in one weighing.",
+    "Three coins, one of them a lighter fake: find it in one weighing.",
+    "Pouring from a bucket into a jug until the jug is full: what is left.",
+    "Weights on both pans of a balance: an amount weighed out in one go.",
+    "Nine coins, one of them a lighter fake: the fewest weighings to find it.",
+    "Three parcels of different weights: two weighings that put them in order.",
+    "A heavier fake among a few coins: which weighing tells which it is.",
+    "Sharing water equally with jugs that have no marks.",
+    "Flour weighed out in halves: one bag split again and again on a balance."
+  ],
+  "5-6": [
+    "Three buckets and a tap: the steps to a given amount.",
+    "Four parcels of different weights: the fewest weighings to put them in order.",
+    "A balance that holds only a few items on each pan, with one lighter fake.",
+    "Three sacks weighed two at a time: the weight of each from the three weighings.",
+    "Two fakes among a few coins: how many weighings find both.",
+    "One lighter fake among nine rings: what a given first weighing tells.",
+    "Stones of different weights: the fewest weighings to find the heaviest.",
+    "A fake that may be lighter or heavier, among a few coins.",
+    "A full jug shared into two equal halves with two smaller jugs.",
+    "Weights that go up in powers of two or of three: which loads one set can weigh."
+  ]
+}

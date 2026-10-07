@@ -21,13 +21,18 @@ unpack() {
 
 # emit prints one fact, and refuses one that came out empty.
 emit() {
-    if [ -z "$2" ]; then
-        echo "${0##*/}: no value for $1" >&2
+    local key=$1 value=$2
+    if [[ -z "$value" ]]; then
+        echo "${0##*/}: no value for $key" >&2
         exit 1
     fi
-    printf '%s=%s\n' "$1" "$2"
+    printf '%s=%s\n' "$key" "$value"
 }
 
-# count_matching counts the lines of its input that match; no line matching is
-# a count of zero, not a failure.
-count_matching() { grep -cE -- "$1" || true; }
+# count_matching counts the lines of its input that match. grep fails when no
+# line does, but a count of zero is no failure: the function always succeeds.
+count_matching() {
+    local pattern=$1
+    grep -cE -- "$pattern" || true
+    return 0
+}

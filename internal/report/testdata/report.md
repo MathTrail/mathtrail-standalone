@@ -39,6 +39,27 @@ The reason the lesson moved away from a task: another language of the lessons, a
 |---|---|---|---:|
 | 88b63e22129c | language | being written | 1 |
 
+## Hand-ins by their parts
+
+How large the tasks handed in were, in bytes of the JSON the checks read: the task, the self-check, the solver, the core idea inside the task, and the whole, the brief among it when one came. Format now is a hand-in of the form the guide asks for; before, one that also brought what the form no longer reads, from a chat begun with an earlier guide. Mended counts the hand-ins with a field read as it was meant rather than as it was written.
+
+| Instructions | Host | Format | Hand-ins | Mended | Task, median | Self-check, median | Solver, median | Core idea, median | Whole, median | Whole, 90th percentile |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| 0a1b2c3d4e5f | chatgpt | (not logged) | 3 | 0 | (not logged) | (not logged) | (not logged) | (not logged) | (not logged) | (not logged) |
+| 0a1b2c3d4e5f | claude | (not logged) | 2 | 0 | (not logged) | (not logged) | (not logged) | (not logged) | (not logged) | (not logged) |
+| 88b63e22129c | (call not read) | now | 1 | 1 | 1480 | 230 | 520 | 120 | 2230 | 2230 |
+| 88b63e22129c | claude | before | 1 | 0 | 2900 | 520 | 810 | 1060 | 4960 | 4960 |
+| 88b63e22129c | claude | now | 1 | 0 | 1650 | 250 | 690 | 140 | 2590 | 2590 |
+
+## What was mended
+
+The fields read as they were meant rather than as they were written — a letter in another case, an option written as a number, no issues written as null — by how many hand-ins.
+
+| Instructions | Field | Hand-ins |
+|---|---|---:|
+| 88b63e22129c | self_check.final_answer | 1 |
+| 88b63e22129c | task.correct_answer | 1 |
+
 ## Drawings by topic
 
 The tasks accepted on each topic whose line says whether they came with a drawing, and how many of them did. A line written before the service said so is left out.

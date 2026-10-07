@@ -1,0 +1,38 @@
+{
+  "1-2": [
+    "A runner who overtakes the one in a place takes that place, not the place ahead of it.",
+    "Two orders of the same children at once, by height and by age, and a question that mixes them.",
+    "Two children of the same height in a chain of comparisons, so that one comparison is a tie.",
+    "Two children each taller than a third, so that the shortest is known and the tallest is not.",
+    "Seats round a table: who sits on whose left and on whose right.",
+    "A see-saw: the heavier child goes down, and two see-saws order three children by weight.",
+    "Arrivals by the clock: who came first and who came last from the time each child arrived.",
+    "A line that turns round, so that the first becomes the last and every place counts from the other end.",
+    "Towers of blocks compared in pairs: which tower is the tallest, and which comes second.",
+    "One child leaves a line and joins it again at the end: who is first, and who stands in front of whom now."
+  ],
+  "3-4": [
+    "A chain of five comparisons with one given backwards, so that it has to be turned round before it is read.",
+    "Places at the finish told by how many runners finished ahead of or behind each one.",
+    "A line in which the number of children in front of someone is a given multiple of the number behind.",
+    "Known weights or heights matched to names from comparisons, one of them fixed by its number.",
+    "A row with exactly some people between two of them, and a second clue that fixes both places.",
+    "Overtakings during a race: the places at the finish after a sequence of passes.",
+    "Two queues merged into one, each keeping its own order, with clues about who goes before whom.",
+    "Seats round a round table: neighbours on the left and on the right, and who sits opposite whom.",
+    "A tournament ranked from 'won more games than' clues, with one result given in points.",
+    "Four comparisons of which exactly one is false: the order that makes the other three true."
+  ],
+  "5-6": [
+    "Places in a contest from statements in which each speaker tells one true half and one false half.",
+    "Slots numbered along a rack, with distances between items given counting from both sides.",
+    "A queue that changes: people leave, join or swap places, and the order at the end is asked.",
+    "Heights or ages given as differences, such as 3 cm taller: the order and the largest gap.",
+    "Seats round a circle with clues about neighbours: how many seatings fit every clue.",
+    "A ranking rebuilt from the results of every pair in a round-robin tournament.",
+    "Two rankings of the same people by two measures, and who stands between whom in both.",
+    "A place counted from both ends of a long line, such as fifth from the front and eighth from the back.",
+    "The order of events in a day from clues about before, after and at the same time.",
+    "The one order that fits every clue, and how many orders fit once one clue is dropped."
+  ]
+}

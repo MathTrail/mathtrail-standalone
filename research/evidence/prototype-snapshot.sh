@@ -25,7 +25,7 @@ root=$(git rev-parse --show-toplevel)
 # compare it by, and a run would put a report of what is left in place of the
 # evidence the copies once gave.
 for copy in prototype docs/prototype; do
-    if [ ! -d "$root/$copy" ]; then
+    if [[ ! -d "$root/$copy" ]]; then
         echo "prototype-snapshot: $copy/ is gone; the evidence it gave stands as it was written" >&2
         exit 1
     fi
@@ -65,7 +65,7 @@ while IFS= read -r -d '' local; do
     # endings, or a copy that differs only in them would pass as a match.
     blob=$(git hash-object --no-filters "$root/$local")
     expected=${public:+${blob_at[$public]:-}}
-    if [ -n "$expected" ] && [ "$expected" = "$blob" ]; then
+    if [[ -n "$expected" && "$expected" == "$blob" ]]; then
         matching=$((matching + 1))
         printf '%s\t%s\tmatch\n' "$local" "$public" >> "$work/report"
         continue
