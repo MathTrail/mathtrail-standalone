@@ -21,11 +21,41 @@ const familyChatGPT = "chatgpt"
 // supportedVersions are the protocol versions the library speaks, newest first.
 var supportedVersions = mcp.SupportedProtocolVersions()
 
-// toolLabel is the name of a tool this endpoint defines, or other. A call may
-// name any tool at all, and a name a caller chose is not written down.
+// toolLabel is the name of a tool this endpoint defines, or of one it took
+// away, or other. A call may name any tool at all, and a name a caller chose
+// is not written down.
 func (b *boundary) toolLabel(name string) string {
-	if _, defined := b.tools[name]; defined {
+	if _, defined := b.tools[name]; defined || slices.Contains(retiredTools, name) {
 		return name
+	}
+	return other
+}
+
+// retiredTools are tools a release took away whose calls may still come: a
+// card of an earlier chat, drawn from the page it was drawn from then, calls
+// what that page knew. Their lines name them, so that such calls can be seen
+// dying away, and the name goes once the log has shown none for a month.
+var retiredTools = []string{"take_task"}
+
+// screens are the screens a payload of this service draws, as its lines may
+// name them.
+var screens = []string{screenTask, screenComing, screenWaiting, screenResult, screenProgress, screenProfile, screenFirstRun}
+
+// payloadCodes are the codes a payload of this service gives at its top,
+// saying why it draws what it draws, as its lines may name them.
+var payloadCodes = []string{
+	codeStaleRequest, codeStaleTask, codeStaleProfile, codeAttemptsExhausted, codeTaskKept, codeInvalidArguments,
+	codeLimitReached, codeInvalidProfile, codeRestoreAlone,
+}
+
+// wordOf is the word as it stands when the list has it, other when the list
+// does not, and nothing for no word.
+func wordOf(word string, list []string) string {
+	switch {
+	case word == "":
+		return ""
+	case slices.Contains(list, word):
+		return word
 	}
 	return other
 }

@@ -23,10 +23,11 @@ export function paperFor(
 }
 
 /**
- * Hero is the first screen: the heading, what the page shows, the way to the
- * paper and to the code, beside a drawing of the way a task goes from the
- * chat's model through the checks to the child; and under them the counts the
- * page rests on.
+ * Hero is the first screen: a badge that says the page is written for
+ * technical readers, the heading, what the page shows, the way to the paper
+ * and to the code, beside a drawing of the way a task goes from the chat's
+ * model through the checks to the child; and under them the counts the page
+ * rests on.
  */
 export function Hero({
 	page,
@@ -43,6 +44,7 @@ export function Hero({
 		<section class="s-wrap s-research-wrap s-research-top">
 			<div class="s-research-hero">
 				<div class="s-research-hero-copy">
+					<p class="s-badge s-badge-tech">{page.text("hero.badge")}</p>
 					<h1>
 						<span>{page.text("hero.title")}</span>{" "}
 						<span>{page.text("hero.title_end")}</span>

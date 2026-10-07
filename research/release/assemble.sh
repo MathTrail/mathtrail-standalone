@@ -113,6 +113,13 @@ tool=$(just --justfile ../justfile --evaluate GO_LICENSES)
         --ignore "$module" --ignore "$product_module" 2>/dev/null |
         LC_ALL=C sort | awk -F, '{ printf "%-13s %-45s %s\n", $3, $1, $2 }'
 } >"$tree/research/THIRD_PARTY_LICENSES"
+# A module go-licenses could not look up, or a licence it could not name, is
+# written as Unknown with no error: the list would then change with the
+# network, and the same sources would make another artifact.
+if grep -n -w Unknown "$tree/research/THIRD_PARTY_LICENSES" >&2; then
+    echo "assemble.sh: go-licenses named no licence or no address for the modules above" >&2
+    exit 1
+fi
 
 # commits_in prints, lower-cased, every run of 7 to 40 hexadecimal characters
 # in the files under a directory, binary ones included, that names a commit of
@@ -154,7 +161,7 @@ if [[ "$flavour" == anonymous ]]; then
     # The checks fail closed: binary files are searched too, file names as well
     # as contents, and a name or commit that survived stops the artifact.
     # Cyrillic is matched byte for byte, so each spelling is listed as it is.
-    if grep -rnaiP 'math[-_ ]?trail|llm[-_]taskgen|r[iy]azanov|rjazanov' "$out" ||
+    if grep -rnaiP 'math[-_ ]?trail|llm[-_]taskgen|r[iy]azanov|rjazanov|altedtech' "$out" ||
         grep -rnaF -e Матрейл -e Маттрейл -e МатТрейл -e матрейл -e маттрейл -e Рязанов -e рязанов "$out"; then
         echo "assemble.sh: the anonymous artifact still names the system or its authors (above)" >&2
         exit 1

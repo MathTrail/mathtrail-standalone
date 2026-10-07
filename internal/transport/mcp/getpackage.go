@@ -67,6 +67,7 @@ func (s *Service) packageOfRequest(ctx context.Context, account store.Account, r
 	if request == nil || request.ID != requestID || !request.Awaited(s.window, now) {
 		return s.noPackage(p, now), nil
 	}
+	noteTaskRequest(ctx, request.ID)
 	pack, err := s.packageFor(p, request)
 	if err != nil {
 		return Reply[any]{}, err

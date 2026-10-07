@@ -235,6 +235,15 @@ describe("the page Research", () => {
 		expect(heading(russianPage)).toBe(head(russianTitle));
 	});
 
+	test("says on its first screen that it is written for technical readers, in every language", () => {
+		expect(texts(page, ".s-research-hero-copy .s-badge-tech")).toEqual([
+			"For technical readers",
+		]);
+		expect(texts(russianPage, ".s-research-hero-copy .s-badge-tech")).toEqual([
+			"Для технических специалистов",
+		]);
+	});
+
 	test("counts its facts and its lead from the data", () => {
 		const { product } = research;
 		expect(values(page, ".s-research-facts data")).toEqual(

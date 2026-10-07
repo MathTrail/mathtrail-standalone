@@ -1,9 +1,16 @@
 package mcpserver
 
 import (
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"path/filepath"
 	"regexp"
+	"slices"
+	"strconv"
 	"strings"
 	"testing"
+	"unicode"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
@@ -114,4 +121,110 @@ func FuzzLanguageLabel(f *testing.F) {
 			t.Fatalf("languageLabel(%q) = %q, want a primary language subtag or %q", tag, got, other)
 		}
 	})
+}
+
+// A line names a screen or a code only when its list has it, so a screen or a
+// code declared and left out of the list is one every line calls other.
+func TestTheListsOfScreensAndCodesHoldEveryOneDeclared(t *testing.T) {
+	t.Parallel()
+
+	declared := declaredWords(t)
+	cases := []struct {
+		prefix string
+		list   []string
+	}{
+		{prefix: "screen", list: screens},
+		{prefix: "code", list: payloadCodes},
+	}
+	for _, tc := range cases {
+		t.Run(tc.prefix, func(t *testing.T) {
+			t.Parallel()
+
+			want := declared[tc.prefix]
+			if len(want) == 0 {
+				t.Fatalf("the package declares no %s, want its constants", tc.prefix)
+			}
+			got := slices.Sorted(slices.Values(tc.list))
+			if !slices.Equal(got, want) {
+				t.Errorf("the list of %ss = %v, want every one declared, once: %v", tc.prefix, got, want)
+			}
+		})
+	}
+}
+
+// declaredWords are the text constants of the package's own source whose names
+// start with screen or code, by that prefix and sorted, read as written rather
+// than through the lists they are held to.
+func declaredWords(t *testing.T) map[string][]string {
+	t.Helper()
+
+	files, err := filepath.Glob("*.go")
+	if err != nil {
+		t.Fatalf("list the package's files: %v", err)
+	}
+	words := map[string][]string{}
+	fset := token.NewFileSet()
+	for _, name := range files {
+		if strings.HasSuffix(name, "_test.go") {
+			continue
+		}
+		file, err := parser.ParseFile(fset, name, nil, 0)
+		if err != nil {
+			t.Fatalf("parse %s: %v", name, err)
+		}
+		for _, decl := range file.Decls {
+			wordsIn(t, decl, words)
+		}
+	}
+	for prefix := range words {
+		slices.Sort(words[prefix])
+	}
+	return words
+}
+
+// wordsIn adds the words one declaration holds to those found so far.
+func wordsIn(t *testing.T, decl ast.Decl, words map[string][]string) {
+	t.Helper()
+
+	general, isGeneral := decl.(*ast.GenDecl)
+	if !isGeneral || general.Tok != token.CONST {
+		return
+	}
+	for _, spec := range general.Specs {
+		value, isValue := spec.(*ast.ValueSpec)
+		if !isValue {
+			continue
+		}
+		for i, ident := range value.Names {
+			if prefix, word, isWord := wordDeclared(t, ident, value, i); isWord {
+				words[prefix] = append(words[prefix], word)
+			}
+		}
+	}
+}
+
+// wordDeclared is the prefix and the text of one constant named screen… or
+// code… and given a text, and nothing for any other constant.
+func wordDeclared(t *testing.T, ident *ast.Ident, spec *ast.ValueSpec, i int) (prefix, word string, isWord bool) {
+	t.Helper()
+
+	if i >= len(spec.Values) {
+		return "", "", false
+	}
+	literal, isLiteral := spec.Values[i].(*ast.BasicLit)
+	if !isLiteral || literal.Kind != token.STRING {
+		return "", "", false
+	}
+	for _, prefix := range []string{"screen", "code"} {
+		rest, named := strings.CutPrefix(ident.Name, prefix)
+		if !named || rest == "" || !unicode.IsUpper(rune(rest[0])) {
+			continue
+		}
+		text, err := strconv.Unquote(literal.Value)
+		if err != nil {
+			t.Fatalf("read %s: %v", ident.Name, err)
+		}
+		return prefix, text, true
+	}
+	return "", "", false
 }

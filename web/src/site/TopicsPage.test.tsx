@@ -133,11 +133,17 @@ const files = renderSite({
 	data,
 });
 
+// pageAt is the built page at path, read as a document.
+function pageAt(path: string) {
+	const file = files.find((candidate) => candidate.path === path);
+	if (file === undefined) {
+		throw new Error(`the site has no ${path}`);
+	}
+	return new browser.DOMParser().parseFromString(file.data, "text/html");
+}
+
 // topics is the page of the topics in English, read as a document.
-const topics = new browser.DOMParser().parseFromString(
-	files.find(({ path }) => path === "en/topics/index.html")?.data ?? "",
-	"text/html",
-);
+const topics = pageAt("en/topics/index.html");
 
 // all are the values of name on every element selector finds.
 const all = (selector: string, name: string) =>
@@ -225,5 +231,12 @@ describe("the page of the topics", () => {
 	test("is the menu's entry, marked as the page being read", () => {
 		expect(all(".s-navlinks a", "href")).toEqual(["/en/topics/"]);
 		expect(all(".s-navlinks a", "aria-current")).toEqual(["page"]);
+	});
+
+	test("stays the menu's marked entry on a topic's page, as the page that one lies under", () => {
+		const beta = pageAt("en/topics/beta/index.html");
+		const entry = beta.querySelector(".s-navlinks a");
+
+		expect(entry?.getAttribute("aria-current")).toBe("true");
 	});
 });

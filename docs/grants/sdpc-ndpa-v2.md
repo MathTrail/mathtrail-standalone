@@ -24,7 +24,7 @@ Under this model the school provides no Student Data. The table says what MathTr
 | Category | Element | | What exactly |
 |---|---|---|---|
 | Application technology metadata | IP addresses of users, use of cookies | R | At every sign-in the adult's address is looked up for its country, which the tokens and the log lines then carry. The service writes the address nowhere: it is held only in the memory of the instance that answers, as the key of a counter of the pace of requests. Cloud Run's request log records it for 30 days. Two cookies, needed for the sign-in alone |
-| | Other application technology metadata | R | An opaque code for the adult's account, in the service's log |
+| | Other application technology metadata | R | An opaque code for the adult's account, and a random code for each task, which joins up the calls it took, in the service's log |
 | Application use statistics | Metadata on user interaction with the application | R | What each request did, with, for each answer, whether it was right, the trap behind a wrong one, whether the hint was used and the child's chance of success; on three kinds of line, a name the child is counted under for one calendar month. In the log for 30 days, and a copy for 62 |
 | Assessment | Other assessment data | R | The child's answers to the tasks: right or wrong, the trap behind a wrong one, whether the hint was used; in the profile, and one by one in the log |
 | | Standardized test scores, observation data, voice recordings | No | |

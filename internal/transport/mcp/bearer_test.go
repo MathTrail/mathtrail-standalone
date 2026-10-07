@@ -71,15 +71,20 @@ func (h *harness) connectAs(t *testing.T, name, token string) (*mcp.ClientSessio
 func (h *harness) connectThrough(t *testing.T, name string, through http.RoundTripper) (*mcp.ClientSession, error) {
 	t.Helper()
 
+	open := newOpenAnswers()
 	client := mcp.NewClient(&mcp.Implementation{Name: name, Version: "1.0.0"}, nil)
 	session, err := client.Connect(t.Context(), &mcp.StreamableClientTransport{
 		Endpoint:             h.server.URL + "/mcp",
-		HTTPClient:           &http.Client{Transport: through},
+		HTTPClient:           &http.Client{Transport: answerCounter{base: through, open: open}},
 		DisableStandaloneSSE: true,
 		MaxRetries:           -1,
 	}, nil)
 	if err == nil {
-		t.Cleanup(func() { _ = session.Close() })
+		sessionAnswers.Store(session, open)
+		t.Cleanup(func() {
+			sessionAnswers.Delete(session)
+			_ = session.Close()
+		})
 	}
 	return session, err
 }

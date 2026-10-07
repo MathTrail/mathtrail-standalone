@@ -177,6 +177,27 @@ type observedCall struct {
 	client   string
 	user     string
 	panic    []zap.Field
+	note     *callNote
+}
+
+// noteKey holds the note a call's tool leaves for the call's line. It is a
+// type of its own, so that nothing else a context carries can be taken for it.
+type noteKey struct{}
+
+// callNote is what a tool tells its call's line that the result does not: the
+// task request the call was about.
+type callNote struct {
+	taskRequest string
+}
+
+// noteTaskRequest records the task request a call was about, for the call's
+// line, so that the calls a task took can be joined up. A tool gives it only
+// an id the profile holds, never an argument as it came, so the line carries
+// an id this service made.
+func noteTaskRequest(ctx context.Context, id string) {
+	if note, noting := ctx.Value(noteKey{}).(*callNote); noting {
+		note.taskRequest = id
+	}
 }
 
 // begin opens the call's span as a child of the request's, and returns the
@@ -212,11 +233,12 @@ func (b *boundary) begin(ctx context.Context, req *mcp.CallToolRequest) (context
 		tool:     tool,
 		protocol: protocol,
 		client:   clientFamily(req.ClientInfo()),
+		note:     &callNote{},
 	}
 	if account, signedIn := accountFrom(ctx); signedIn {
 		call.user = account.ID
 	}
-	return spanned, call
+	return context.WithValue(spanned, noteKey{}, call.note), call
 }
 
 // panicked answers a call whose handling panicked, as a failure of ours, and
@@ -276,6 +298,15 @@ func (b *boundary) callFields(ctx context.Context, call *observedCall, ended ver
 	if ended.kind != "" {
 		fields = append(fields, zap.String("error", ended.kind))
 	}
+	if ended.screen != "" {
+		fields = append(fields, zap.String("screen", ended.screen))
+	}
+	if ended.code != "" {
+		fields = append(fields, zap.String("code", ended.code))
+	}
+	if call.note.taskRequest != "" {
+		fields = append(fields, zap.String("task_request", call.note.taskRequest))
+	}
 	return slices.Concat(fields, call.panic, callerFields(ctx, call.user, b.projectID))
 }
 
@@ -298,6 +329,10 @@ type verdict struct {
 	status string
 	// kind is why a call failed or was invalid.
 	kind string
+	// screen and code are what an answer's payload gives at its top: the
+	// screen it draws, and the code that says why, as the service writes them.
+	screen string
+	code   string
 }
 
 // judge reads how a call ended from what the protocol is about to send.
@@ -329,27 +364,44 @@ func judge(result mcp.Result, err error) verdict {
 		// The library refused the arguments before any tool saw them.
 		return verdict{outcome: outcomeInvalid, kind: kindArguments}
 	}
-	if status, refused := refusal(answered); refused {
-		return verdict{outcome: outcomeRefused, status: status}
+	top := topOf(answered)
+	screen, code := wordOf(top.Screen, screens), wordOf(top.Code, payloadCodes)
+	if status, refused := refusal(top); refused {
+		return verdict{outcome: outcomeRefused, status: status, screen: screen, code: code}
 	}
-	return verdict{outcome: outcomeOK}
+	return verdict{outcome: outcomeOK, screen: screen, code: code}
 }
 
-// refusal reads the status a result gives itself at the top of its payload,
+// payloadTop is what a result's payload gives at its top: the status that
+// makes it a refusal, the screen it draws and the code that says why. The
+// screen and the code are held to the words the service writes, so that what
+// a call answered can be told from its line — how a task a card waits for
+// stands, among other things.
+type payloadTop struct {
+	Status string `json:"status"`
+	Screen string `json:"screen"`
+	Code   string `json:"code"`
+}
+
+// topOf reads the top of a result's payload, once for the whole verdict; a
+// result whose payload is not JSON, or does not read as one, gives nothing.
+func topOf(result *mcp.CallToolResult) payloadTop {
+	payload, isJSON := result.StructuredContent.(json.RawMessage)
+	if !isJSON {
+		return payloadTop{}
+	}
+	var top payloadTop
+	if json.Unmarshal(payload, &top) != nil {
+		return payloadTop{}
+	}
+	return top
+}
+
+// refusal is the status a result gives itself at the top of its payload,
 // when that status is one of the refusals a model can act on. That field is
 // what makes a result a refusal, for the model and the widget as much as here,
 // so it is read rather than reported a second time by the tool.
-func refusal(result *mcp.CallToolResult) (string, bool) {
-	payload, isJSON := result.StructuredContent.(json.RawMessage)
-	if !isJSON {
-		return "", false
-	}
-	var top struct {
-		Status string `json:"status"`
-	}
-	if json.Unmarshal(payload, &top) != nil {
-		return "", false
-	}
+func refusal(top payloadTop) (string, bool) {
 	switch top.Status {
 	case statusRejected, statusLimited, statusStale:
 		return top.Status, true

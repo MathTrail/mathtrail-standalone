@@ -132,7 +132,11 @@ func (s *Service) answer(ctx context.Context, account store.Account, in submitAn
 	}
 	now := s.now()
 	masteredBefore := p.CurrentTask != nil && tutor.Mastered(p, s.content, p.CurrentTask.Topic)
-	recorded, err := s.recordAnswer(ctx, p, profile.Answered{TaskID: in.TaskID, Choice: choice, HintUsed: in.HintUsed, At: now})
+	given := profile.Answered{TaskID: in.TaskID, Choice: choice, HintUsed: in.HintUsed, At: now}
+	recorded, err := s.recordAnswer(ctx, p, given)
+	if err == nil {
+		noteTaskRequest(ctx, profile.RequestIDFor(p.CurrentTask.ID))
+	}
 	switch {
 	case errors.Is(err, profile.ErrNoTask), errors.Is(err, profile.ErrOtherTask):
 		return s.notOnTheCard(p, in.TaskID), nil
@@ -144,21 +148,59 @@ func (s *Service) answer(ctx context.Context, account store.Account, in submitAn
 		return s.told(p, &recorded), nil
 	}
 
-	// The line is written once the file holds the answer, so that an answer
-	// whose write lost to another is not counted when it is sent again.
+	// The answer is written after the reply, which the card does not wait for,
+	// and its lines once the file holds it, so that an answer whose write lost
+	// to another is not counted when it is sent again.
 	p.Touch(s.version, now)
-	if _, err := s.store.Save(ctx, account, p, revision); err != nil {
-		return Reply[answeredOut]{}, fmt.Errorf("mcp: save the profile: %w", err)
+	reply := s.told(p, &recorded)
+	err = s.writeAfterAnswer(ctx, &lateWrite{
+		tool: "submit_answer", account: account, profile: p, revision: revision,
+		again: s.recordAgain(account, given, now), landed: s.answerLines(account, p, &recorded, masteredBefore, now),
+	})
+	if err != nil {
+		return Reply[answeredOut]{}, err
 	}
-	version := p.CurrentTask.InstructionsVersion
-	s.events.writeFor(ctx, account, version, eventAnswerRecorded, s.recordedFields(p, account, &recorded, now)...)
-	if recorded.Mastered && !masteredBefore && tutor.Mastered(p, s.content, recorded.Topic) {
-		s.events.writeFor(ctx, account, version, eventTopicMastered, append(s.learnerFields(p, account, now),
-			zap.String("topic", s.topicLabel(recorded.Topic)),
-			zap.Int("grade", p.Student.Grade),
-		)...)
+	return reply, nil
+}
+
+// recordAgain is the answer recorded once more, on a fresh read of the
+// profile, as a change: unless the task on the card has this answer already,
+// which then stands, or has another, or is no longer the task answered — the
+// answer the call told is then not the one the file keeps.
+func (s *Service) recordAgain(account store.Account, given profile.Answered, now time.Time) change {
+	return func(p *profile.Profile) (made, error) {
+		masteredBefore := p.CurrentTask != nil && tutor.Mastered(p, s.content, p.CurrentTask.Topic)
+		recorded, err := p.Record(given, s.sealer, s.taughtOf(p))
+		switch {
+		case errors.Is(err, profile.ErrNoTask), errors.Is(err, profile.ErrOtherTask):
+			return made{state: gone}, nil
+		case err != nil:
+			return made{}, fmt.Errorf("mcp: record the answer again: %w", err)
+		case recorded.Again && recorded.Choice != given.Choice:
+			return made{state: gone}, nil
+		case recorded.Again:
+			return made{state: already}, nil
+		}
+		p.Touch(s.version, now)
+		return made{state: changed, landed: s.answerLines(account, p, &recorded, masteredBefore, now)}, nil
 	}
-	return s.told(p, &recorded), nil
+}
+
+// answerLines are the lines an answer recorded leaves once the file holds it:
+// the answer, and the topic mastered when the answer is what mastered it.
+func (s *Service) answerLines(account store.Account, p *profile.Profile, recorded *profile.Recorded,
+	masteredBefore bool, now time.Time,
+) func(context.Context) {
+	return func(ctx context.Context) {
+		version := p.CurrentTask.InstructionsVersion
+		s.events.writeFor(ctx, account, version, eventAnswerRecorded, s.recordedFields(p, account, recorded, now)...)
+		if recorded.Mastered && !masteredBefore && tutor.Mastered(p, s.content, recorded.Topic) {
+			s.events.writeFor(ctx, account, version, eventTopicMastered, append(s.learnerFields(p, account, now),
+				zap.String("topic", s.topicLabel(recorded.Topic)),
+				zap.Int("grade", p.Student.Grade),
+			)...)
+		}
+	}
 }
 
 // recordedFields are what the line about an answer carries: how it went, the

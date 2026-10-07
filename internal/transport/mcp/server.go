@@ -119,7 +119,9 @@ func serverInfo(settings *Settings) *mcp.Implementation {
 }
 
 // NewHandler builds the endpoint as it is served: the protocol, the tools, the
-// frame around every call and the sign-in in front of all of it.
+// frame around every call and the sign-in in front of all of it. A request is
+// held open after its answer until the writes its calls left for after the
+// answer are done.
 //
 // The protocol is served without sessions. Every request carries what the
 // server needs to answer it, so any instance can answer any request and none
@@ -179,5 +181,5 @@ func NewHandler(settings *Settings, tools ...Tool) (http.Handler, error) {
 			MaxRequestBodyBytes: maxRequestBody,
 		},
 	)
-	return neverStored(settings.SignIn(oneMessage(protocol))), nil
+	return neverStored(settings.SignIn(holdOpen(oneMessage(protocol)))), nil
 }

@@ -18,15 +18,28 @@ const (
 	deadlineExceededWords = "deadline exceeded"
 )
 
-// driveTimes is how long the calls to Drive of each request took together, in
-// milliseconds, by the request they were made in. A call whose line names no
-// request is tied to no call.
+// driveTimes is how long the calls to Drive of each request took together
+// before the request's tool call answered, in milliseconds, by the request
+// they were made in. A write made after the answer is no part of the call's
+// time: the call had answered by then. A call whose line names no request is
+// tied to no call.
 func driveTimes(lines []line) map[string]int64 {
+	answered := map[string]time.Time{}
+	for i := range lines {
+		if request := lines[i].request(); lines[i].Message == eventToolCall && request != "" {
+			answered[request] = lines[i].Time
+		}
+	}
 	spent := map[string]int64{}
 	for i := range lines {
-		if request := lines[i].request(); lines[i].Message == eventDriveCall && request != "" {
-			spent[request] += int64(lines[i].DurationMS)
+		request := lines[i].request()
+		if lines[i].Message != eventDriveCall || request == "" {
+			continue
 		}
+		if at, found := answered[request]; found && lines[i].Time.After(at) {
+			continue
+		}
+		spent[request] += int64(lines[i].DurationMS)
 	}
 	return spent
 }

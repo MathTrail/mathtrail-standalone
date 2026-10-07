@@ -70,6 +70,7 @@ func (s *Service) taskAwaited(ctx context.Context, account store.Account, reques
 	awaited := awaitedOut{LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student)}
 	switch state, refused := p.TaskFor(requestID, s.window, s.now()); state {
 	case profile.TaskOnTheCard:
+		noteTaskRequest(ctx, requestID)
 		task := p.CurrentTask
 		awaited.Screen, awaited.Task, awaited.Language = screenTask, cardOf(task), task.Language
 		if awaited.TopicChoice, err = s.topicChoiceOf(p, s.now()); err != nil {
@@ -77,6 +78,7 @@ func (s *Service) taskAwaited(ctx context.Context, account store.Account, reques
 		}
 		return Reply[awaitedOut]{Text: fmt.Sprintf("Task %s is on the child's card.", task.ID), Payload: awaited}, nil
 	case profile.TaskBeingWritten:
+		noteTaskRequest(ctx, requestID)
 		awaited.Screen, awaited.Refused, awaited.Language = screenComing, refused, p.OpenRequest.Language
 		return Reply[awaitedOut]{Text: "The task is still being written.", Payload: awaited}, nil
 	}

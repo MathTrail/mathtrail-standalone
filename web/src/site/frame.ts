@@ -12,6 +12,8 @@ export type MenuItem = {
 	/** anchor names a section of the page, such as the home page's connect. */
 	readonly anchor?: string;
 	readonly label: SiteKey;
+	/** wip marks a page still in the making, which the menu says it is. */
+	readonly wip?: boolean;
 };
 
 /**
@@ -32,7 +34,8 @@ export type MenuGroup = {
  */
 export type Frame = {
 	readonly menu: readonly (MenuItem | MenuGroup)[];
-	readonly action?: MenuItem;
+	/** action is a button rather than an entry: no tag says it is in beta. */
+	readonly action?: Omit<MenuItem, "wip">;
 	readonly footer: readonly string[];
 };
 
@@ -46,18 +49,18 @@ export function menuItems(menu: Frame["menu"]): MenuItem[] {
  * publishes it, and the build refuses an entry whose page is not there, so the
  * menu never leads nowhere. The menu names pages, never the home page's
  * sections, which the home page leads through itself: the page of the coach,
- * a product of its own still in the making, opens it; the technical pages,
- * the numbers behind the product and how the service works, held together as
- * pages not written for parents, and the page about who makes it close it.
- * The header asks a reader to add MathTrail to Claude, which the home page's
- * section on connecting tells how to do. The footer names the page of the
- * numbers, the page about who makes the product, the help and the documents
- * rather than every page in turn, which seventeen topics would bury them
- * under.
+ * a product of its own still in the making and marked so, opens it; the
+ * technical pages, the numbers behind the product and how the service works,
+ * held together as pages not written for parents, and the page about who
+ * makes it close it. The header asks a reader to add MathTrail to Claude,
+ * which the home page's section on connecting tells how to do. The footer
+ * names the page of the numbers, the page about who makes the product, the
+ * help and the documents rather than every page in turn, which seventeen
+ * topics would bury them under.
  */
 export const siteFrame: Frame = {
 	menu: [
-		{ page: "coach", label: "nav.coach" },
+		{ page: "coach", label: "nav.coach", wip: true },
 		{ page: "why", label: "nav.why" },
 		{ page: "topics", label: "nav.topics" },
 		{ page: "techniques", label: "nav.techniques" },

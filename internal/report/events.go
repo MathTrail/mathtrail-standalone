@@ -63,7 +63,10 @@ var events = map[string][]string{
 	// The lesson.
 	"tool_call": {
 		"tool", "outcome", "status", "error", "duration_ms", "instructions_version", "protocol_version", "client",
-		"user", "panic", "stack",
+		"screen", "code", "task_request", "user", "panic", "stack",
+	},
+	"write_after_answer": {
+		"tool", "outcome", "error", "attempts", "duration_ms", "instructions_version", "user", "panic", "stack",
 	},
 	"mcp_panic": {"panic", "stack", "method", "user"},
 	"task_requested": {

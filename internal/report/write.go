@@ -46,6 +46,11 @@ func write(out io.Writer, c *counts) error {
 			"of the lessons, another topic the lessons are kept to, a skill kept out since, another place a person " +
 			"asked for, or another version of the instructions. Written says whether the task had been written and " +
 			"kept, or was still being written.", c.letGoTable()},
+		{"Tasks written ahead, handed out", "How long next_task took when it handed out a task written ahead, " +
+			"which the card shows the moment the call answers: the whole call, and the same less its calls to Drive " +
+			"made before it answered. The hand-out is written after the answer and is part of neither; a call is " +
+			"counted whether that write went through or not, since the card drew the task all the same.",
+			c.handOutsTable()},
 		{"Hand-ins by their parts", "How large the tasks handed in were, in bytes of the JSON the checks read: " +
 			"the task, the self-check, the solver, the core idea inside the task, and the whole, the brief among " +
 			"it when one came. Format now is a hand-in of the form the guide asks for; before, one that also " +
@@ -69,9 +74,19 @@ func write(out io.Writer, c *counts) error {
 		{"Masteries taken back", c.masteriesAbout(), c.masteriesTable()},
 		{"Limits reached", "A pace writes one line for a flood of refusals, and a day's ceiling one for every " +
 			"call it refused.", c.limitsTable()},
-		{"Tool calls", "Milliseconds are the service's own time for a call, its calls to Drive included; without " +
-			"Drive, the same less the time its calls to Drive took, tied to the call by the request they were made in.",
+		{"Tool calls", "Milliseconds are the service's own time for a call, from its start to its answer, its calls " +
+			"to Drive included; without Drive, the same less the time its calls to Drive took before it answered, " +
+			"tied to the call by the request they were made in. A write made after the answer is in neither.",
 			c.toolsTable()},
+		{"Writes after the answer", "The writes the child need not wait for — a task written ahead handed out, " +
+			"an answer recorded — are made once the call has answered, while its request is held open; here by " +
+			"the version of the instructions and the tool. Written counts those written as they were made; remade, " +
+			"those made again on a fresh read, because another writer had changed the file meanwhile or it could " +
+			"not be reached; already, those another writer had made; lost, those the file no longer allowed, so " +
+			"that what the call answered is not what the file holds; failed, those that could not be written. " +
+			"Milliseconds run from the hand-over, as the call answers, to the write's end. Calls " +
+			"elsewhere meanwhile counts the calls of the same account that began on another instance while a " +
+			"write was under way: such a call read the file as it was before the write.", c.lateTable()},
 		{"Traces", c.tracesAbout(), c.tracesTable()},
 		{"The busiest minute", c.busyAbout(), c.busyTable()},
 		{"Children, a day at a time", "The children the counts for grant applications are taken from, by the rules " +

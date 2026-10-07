@@ -3,6 +3,7 @@ package mcpserver
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/rand/v2"
 	"time"
 
@@ -33,12 +34,8 @@ func afresh[Out any](ctx context.Context, run func() (Reply[Out], error)) (Reply
 		if !movedOn || attempt == attempts {
 			return reply, err
 		}
-		waiting := time.NewTimer(pause())
-		select {
-		case <-waiting.C:
-		case <-ctx.Done():
-			waiting.Stop()
-			return Reply[Out]{}, errors.Join(err, ctx.Err())
+		if waited := sleep(ctx, pause()); waited != nil {
+			return Reply[Out]{}, errors.Join(err, waited)
 		}
 	}
 }
@@ -47,4 +44,16 @@ func afresh[Out any](ctx context.Context, run func() (Reply[Out], error)) (Reply
 func pause() time.Duration {
 	//nolint:gosec // the spread only keeps two writers apart; nothing depends on guessing it
 	return 50*time.Millisecond + rand.N(100*time.Millisecond)
+}
+
+// sleep waits for d, or until ctx ends.
+func sleep(ctx context.Context, d time.Duration) error {
+	timer := time.NewTimer(d)
+	defer timer.Stop()
+	select {
+	case <-timer.C:
+		return nil
+	case <-ctx.Done():
+		return fmt.Errorf("mcp: wait before trying again: %w", ctx.Err())
+	}
 }

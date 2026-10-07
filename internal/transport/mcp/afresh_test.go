@@ -2,6 +2,7 @@ package mcpserver_test
 
 import (
 	"context"
+	"fmt"
 	"slices"
 	"strings"
 	"sync"
@@ -9,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/profile"
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/rating"
@@ -85,26 +87,118 @@ func TestAWriteThatLostIsMadeAgainFromWhatWon(t *testing.T) {
 	}
 }
 
-// An answer another tab recorded while this one was on its way is found
-// recorded when the call reads again, and told as it was: it counts once.
-func TestAnAnswerRecordedByAnotherTabMeanwhileCountsOnce(t *testing.T) {
+// An answer another instance recorded while this one's write was on its way
+// counts once. Each tab read the task without an answer, and was told its own
+// recorded, since a call answers before it writes; the write that comes second
+// finds the answer recorded, and leaves no line of it.
+func TestAnAnswerRecordedOnAnotherInstanceMeanwhileCountsOnce(t *testing.T) {
 	t.Parallel()
 
 	p := raceOnTheCard(t, rating.TrialAnswers)
 	raced := racingOver(keptAsIs(t, p))
 	h, session := lesson(t, raced)
+	other, otherTab := lesson(t, raced)
 	answer := map[string]any{"task_id": p.CurrentTask.ID, "answer": "C"}
 
-	held, landed := raceTwoCalls(t, h, session, raced, "submit_answer", answer, answer)
-	if told := answered(t, landed); told.AlreadyAnswered {
-		t.Errorf("the tab that landed was told %+v, want the answer recorded anew", told)
-	}
-	if told := answered(t, held); !told.AlreadyAnswered {
-		t.Errorf("the tab that was overtaken was told %+v, want the answer told again", told)
-	}
+	first := callEarly(t, session, "submit_answer", answer)
+	<-raced.reached
+	second := call(t, otherTab, "submit_answer", answer)
+	close(raced.letGo)
 	h.settle()
-	if lines := linesOf(h, "answer_recorded"); len(lines) != 1 {
-		t.Errorf("answer_recorded lines = %d, want the one answer", len(lines))
+	other.settle()
+
+	for _, told := range []*mcp.CallToolResult{first, second} {
+		if got := answered(t, told); got.AlreadyAnswered {
+			t.Errorf("a tab was told %+v, want the answer recorded, as it read the task without one", got)
+		}
+	}
+	if lines := linesOf(other, "answer_recorded"); len(lines) != 1 {
+		t.Errorf("answer_recorded lines of the instance that wrote first = %d, want 1", len(lines))
+	}
+	if lines := linesOf(h, "answer_recorded"); len(lines) != 0 {
+		t.Errorf("answer_recorded lines of the instance whose write came second = %d, want none", len(lines))
+	}
+	if outcome := lateOutcome(t, h, "submit_answer"); outcome != "already" {
+		t.Errorf("the write that came second went %q, want already", outcome)
+	}
+}
+
+// unreached is a store another tab gets to first while the first write cannot
+// reach the file: that write is held until the case has had other calls write
+// in between, and then fails as Drive out of reach, having written nothing.
+type unreached struct{ *racing }
+
+func (u unreached) Save(ctx context.Context, account store.Account, p *profile.Profile, expected store.Revision) (store.Revision, error) {
+	first := false
+	u.once.Do(func() { first = true })
+	if first {
+		close(u.reached)
+		<-u.letGo
+		return "", fmt.Errorf("%w: no answer in time", store.ErrUnavailable)
+	}
+	return u.Storage.Save(ctx, account, p, expected)
+}
+
+// A write that could not reach the file, and finds on the fresh read the same
+// answer recorded by another instance on top of a change of its own, does not
+// take that answer for its own: the file holds it at another number than the
+// write gave the profile, so the write leaves no line, and the answer counts
+// once.
+func TestAnUnreachedWriteDoesNotCountAnotherInstancesAnswer(t *testing.T) {
+	t.Parallel()
+
+	p := raceOnTheCard(t, rating.TrialAnswers)
+	raced := unreached{racingOver(keptAsIs(t, p))}
+	h, session := lesson(t, raced)
+	other, otherTab := lesson(t, raced)
+	answer := map[string]any{"task_id": p.CurrentTask.ID, "answer": "C"}
+
+	callEarly(t, session, "submit_answer", answer)
+	<-raced.reached
+	call(t, otherTab, "save_profile", map[string]any{"notes": "Likes puzzles."})
+	call(t, otherTab, "submit_answer", answer)
+	close(raced.letGo)
+	h.settle()
+	other.settle()
+
+	if lines := linesOf(other, "answer_recorded"); len(lines) != 1 {
+		t.Errorf("answer_recorded lines of the instance that wrote the answer = %d, want 1", len(lines))
+	}
+	if lines := linesOf(h, "answer_recorded"); len(lines) != 0 {
+		t.Errorf("answer_recorded lines of the instance whose write did not reach the file = %d, want none", len(lines))
+	}
+	if outcome := lateOutcome(t, h, "submit_answer"); outcome != "already" {
+		t.Errorf("the write that did not reach the file went %q, want already", outcome)
+	}
+}
+
+// Another answer to the same task, recorded on another instance while this
+// one's write was on its way, keeps the task: each tab was told its own answer
+// recorded, the file holds the one written first, and the write that came
+// second is lost, which its line says, as a warning.
+func TestAnotherAnswerRecordedOnAnotherInstanceMeanwhileLosesTheWrite(t *testing.T) {
+	t.Parallel()
+
+	p := raceOnTheCard(t, rating.TrialAnswers)
+	raced := racingOver(keptAsIs(t, p))
+	h, session := lesson(t, raced)
+	other, otherTab := lesson(t, raced)
+
+	callEarly(t, session, "submit_answer", map[string]any{"task_id": p.CurrentTask.ID, "answer": "C"})
+	<-raced.reached
+	call(t, otherTab, "submit_answer", map[string]any{"task_id": p.CurrentTask.ID, "answer": "A"})
+	close(raced.letGo)
+	h.settle()
+	other.settle()
+
+	if kept, _ := loadKept(t, raced); kept.CurrentTask.Answered == nil || kept.CurrentTask.Answered.Choice != "A" {
+		t.Errorf("the file holds the answer %+v, want A, written first", kept.CurrentTask.Answered)
+	}
+	if line := lateLine(t, h, "submit_answer"); line["outcome"] != "lost" || line["level"] != zapcore.WarnLevel {
+		t.Errorf("the write that came second = %v, want lost, as a warning", line)
+	}
+	if lines := linesOf(h, "answer_recorded"); len(lines) != 0 {
+		t.Errorf("answer_recorded lines of the instance whose write came second = %d, want none", len(lines))
 	}
 }
 
@@ -207,12 +301,12 @@ func TestAProfileDeletedBeforeTheWriteIsToldAsGone(t *testing.T) {
 
 	p := raceOnTheCard(t, rating.TrialAnswers)
 	_, session := lesson(t, &vanishing{Storage: keptAsIs(t, p)})
-	result := answerIt(t, session, p.CurrentTask.ID, "C", false)
+	result := call(t, session, "next_task", raceChoice)
 	if result.IsError {
-		t.Fatalf("submit_answer for a profile deleted meanwhile failed: %s", textOf(t, result))
+		t.Fatalf("next_task for a profile deleted meanwhile failed: %s", textOf(t, result))
 	}
-	if told := payloadOf[answerPayload](t, result); told.Screen != "first_run" || told.Status != "stale" {
-		t.Errorf("submit_answer for a profile deleted meanwhile = %+v, want the first run", told)
+	if told := payloadOf[requestPayload](t, result); told.Screen != "first_run" {
+		t.Errorf("next_task for a profile deleted meanwhile = %+v, want the first run", told)
 	}
 }
 

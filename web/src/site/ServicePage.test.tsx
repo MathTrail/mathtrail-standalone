@@ -178,6 +178,15 @@ describe("the page of the service", () => {
 		expect(texts("head style")).toEqual([serviceRules()]);
 	});
 
+	test("says on its first screen that it is written for technical readers, in every language", () => {
+		expect(texts(".s-service-hero .s-badge-tech")).toEqual([
+			"For technical readers",
+		]);
+		expect(texts(".s-service-hero .s-badge-tech", russianService)).toEqual([
+			"Для технических специалистов",
+		]);
+	});
+
 	test("says how the service works on its first screen, beside the service in three tiers", () => {
 		expect(texts(".s-service-hero h1")).toEqual(["How the service works"]);
 		expect(texts(".s-service-chips .s-chip")).toHaveLength(5);

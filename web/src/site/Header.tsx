@@ -4,12 +4,15 @@ import { useSiteWords } from "./words";
 
 /**
  * MenuLink is one entry of the menu as a page draws it: where it leads, under
- * which word, and whether it is the page being read.
+ * which word, how it stands to the page being read — that page itself, the
+ * page that one lies under, as the page of the topics is to a topic's own, or
+ * neither — and whether its page is still in the making.
  */
 export type MenuLink = {
 	readonly href: string;
 	readonly label: string;
-	readonly current: boolean;
+	readonly current: "page" | "parent" | undefined;
+	readonly wip: boolean;
 };
 
 /**
@@ -142,11 +145,27 @@ function Menu({
 	);
 }
 
-// MenuAnchor is one link of the menu, marked when it is the page being read.
-function MenuAnchor({ link: { href, label, current } }: { link: MenuLink }) {
+// MenuAnchor is one link of the menu, marked when it is the page being read,
+// and marked as the menu's current entry, not as the page, when the page
+// being read lies under it. The link to a page still in the making says so in
+// a tag beside its word, a word of its own in the link's text, which a screen
+// reader reads with it.
+function MenuAnchor({ link }: { link: MenuLink }) {
+	const words = useSiteWords();
+	const { href, label, current, wip } = link;
 	return (
-		<a href={href} aria-current={current ? "page" : undefined}>
+		<a
+			href={href}
+			class={wip ? "s-nav-wip" : undefined}
+			aria-current={current === "parent" ? "true" : current}
+		>
 			{label}
+			{wip && (
+				<>
+					{" "}
+					<span class="s-nav-tag">{words.text("nav.beta")}</span>
+				</>
+			)}
 		</a>
 	);
 }

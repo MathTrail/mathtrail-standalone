@@ -20,10 +20,10 @@ Task S66 of [RUN.md](../RUN.md). Paper A goes to AIED 2027, main track, full pap
 
 | Item | Where | Status |
 |---|---|---|
-| No TBD left: `just research paper-a-final` refuses to finish while one is | The anonymous text has one, the anonymised artifact link, which `paper-a/preamble.tex` takes once it exists (K11); the named version keeps the artifact's DOI (K11) and its credits (K05) | waits for K11 and K05 |
+| No TBD left: `just research paper-a-final` refuses to finish while one is | The anonymous text has one, the anonymised artifact link, which `paper-a/preamble.tex` takes once it exists (K11); the named version keeps the artifact's DOI (K11) | waits for K11 |
 | The abstract within the 150–250 words the LNCS template asks for ([template](https://www.overleaf.com/latex/templates/springer-lecture-notes-in-computer-science/kzwwpvhwnvfj)) | Abstract | met (S64) |
 | An anonymous artifact link for the review | `\ArtifactURL` of the anonymous build; the artifact is `just research release anonymous` (Q84), hosted where K11 decides | waits for K11 |
-| The credits of the final version: CRediT roles, acknowledgements and funding, competing interests | The named build's credits block (K05) | waits for K05 |
+| The credits of the final version: acknowledgements and funding, and the disclosure of interests the `llncs` class makes mandatory | The named build's credits block, by the author's answer to K05 of 2026-10-07: no external funding and no competing interests. The paper has one author, so it carries no CRediT statement | met |
 
 ## Right before submitting
 

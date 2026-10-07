@@ -23,7 +23,13 @@ import (
 // every profile they write. Every tool reads the profile, computes and writes
 // it back through these and nothing else.
 type Service struct {
+	// store is the profile's store as the tools reach it, each operation once
+	// the writes after the answer this instance began for its account are done;
+	// direct is the same store reached at once, which those writes themselves
+	// go through.
 	store    store.Storage
+	direct   store.Storage
+	pending  *pending
 	content  *content.Content
 	reviewer checks.Reviewer
 	sealer   profile.Sealer
@@ -126,8 +132,11 @@ func NewService(parts *Parts) (*Service, error) {
 	case parts.SiteURL == "":
 		return nil, fmt.Errorf("%w: the tools need the site's address", ErrSettings)
 	}
+	later := newPending()
 	return &Service{
-		store:    parts.Store,
+		store:    settled{Storage: parts.Store, pending: later},
+		direct:   parts.Store,
+		pending:  later,
 		content:  parts.Content,
 		reviewer: parts.Reviewer,
 		sealer:   parts.Sealer,

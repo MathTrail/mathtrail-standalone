@@ -555,18 +555,22 @@ func TestATaskThatCannotBeCheckedLeavesTheCard(t *testing.T) {
 	wantFailed(t, h, "submit_answer", "sealed")
 }
 
-// An answer whose write lost to another made in between is told so, and is
-// not counted: the line about it is written once the file holds it.
+// An answer whose write keeps losing to other writes is told recorded, since
+// the call answers before it writes, and is not counted: its write is given up
+// after three tries, as a warning, and the line about the answer is written
+// only once the file holds it.
 func TestAnAnswerWhoseWriteLostIsNotCounted(t *testing.T) {
 	t.Parallel()
 
 	p := raceOnTheCard(t, rating.TrialAnswers)
 	h, session := lesson(t, conflicted{keptAsIs(t, p)})
-	wantOurSentence(t, answerIt(t, session, p.CurrentTask.ID, "C", false),
-		"The child's profile was changed somewhere else at the same moment")
+	answered(t, answerIt(t, session, p.CurrentTask.ID, "C", false))
 
 	h.settle()
-	wantFailed(t, h, "submit_answer", "conflict")
+	line := lateLine(t, h, "submit_answer")
+	if line["outcome"] != "failed" || line["error"] != "conflict" || fmt.Sprint(line["attempts"]) != "3" {
+		t.Errorf("the answer's write = %v, want failed for a conflict after 3 tries", line)
+	}
 	if lines := linesOf(h, "answer_recorded"); len(lines) != 0 {
 		t.Errorf("answer_recorded lines = %d for an answer that was not kept, want none", len(lines))
 	}

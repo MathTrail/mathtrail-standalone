@@ -141,8 +141,8 @@ sequenceDiagram
     W->>MT: submit_answer — task id, option C, hint flag
     MT->>D: read the profile
     Note over MT: this is the current task · it has not been answered before ·<br/>pace from the time it was handed out · θ and δ updated from correctness alone (О-33) ·<br/>the sealed block is opened only now
-    MT->>D: write the profile
     MT-->>W: right or wrong, the correct letter, the trap behind C,<br/>the solution step by step, the rating before and after
+    MT->>D: write the profile — after the answer, in the same request (R255)
     Note over W: the result screen — the child gets the full diagnosis<br/>even if the model never says another word
     W->>M: ui/update-model-context — one line about what just happened
     K->>W: types a question in the card's field — "why isn't it 6?"
@@ -151,7 +151,7 @@ sequenceDiagram
     Note over K,M: the card has no "I don't know": the child says it in the chat, and the model<br/>records it with submit_answer "?", a wrong answer with no trap (R93, R208)
 ```
 
-**The button records before anything is explained.** The order in the diagram is the requirement: the press calls the tool, the tool writes the profile, and only then is anything said to anybody. Nothing about the recording depends on the model noticing (О-42) — and it must not, because the two mechanisms that tell the model what happened, `ui/message` and `ui/update-model-context`, were only confirmed in T03 as far as "the call returns without an error"; that they land in the conversation has not been seen with human eyes yet. If both silently do nothing, the child still gets the result screen, the ratings are still updated, and the model catches up on its next call, because every tool result carries the outcome of the last answer.
+**The button records before anything is explained.** The order in the diagram is the requirement: the press calls the tool, the tool records the answer in the profile and answers the card from it, and the write lands in the same request a moment later, while the card shows the result (R255); only then is anything said to the model, which reads it with the child's next message. Nothing about the recording depends on the model noticing (О-42) — and it must not, because the two mechanisms that tell the model what happened, `ui/message` and `ui/update-model-context`, were only confirmed in T03 as far as "the call returns without an error"; that they land in the conversation has not been seen with human eyes yet. If both silently do nothing, the child still gets the result screen, the ratings are still updated, and the model catches up on its next call, because every tool result carries the outcome of the last answer.
 
 **The model may not state the task's state from memory.** If `ui/update-model-context` is the mechanism that fails, the child is already reading the result screen while the model's context still holds an unanswered task — and a child who then types "but why is that the answer?" would be answered from a picture two minutes out of date. The compensating control is a rule in the instructions (T36): before saying anything about the current task — praising it, explaining it, offering the next one — the model calls a tool and reads the state back. Every tool result carries the outcome of the last recorded answer for exactly this reason, so one call is enough and no round trip is wasted.
 
@@ -266,10 +266,10 @@ sequenceDiagram
     M->>MT: next_task, with the chat language
     MT->>D: read the profile
     Note over MT: the task kept still fits the lesson · it becomes the task on the card,<br/>its id and seal unchanged · the task left unanswered is skipped · the day's counter goes up
-    MT->>D: write the profile
     MT-->>N: the task — the card the host drew for next_task shows it at once
     MT-->>M: the words read the task out and send the model on
-    M->>MT: prepare_task — and the next task is written ahead again
+    MT->>D: write the profile — after the answer, in the same request (R255)
+    M->>MT: prepare_task — waits for that write on this instance, and the next task is written ahead again
 ```
 
 The first task of a lesson is asked for and written as scenario 2 shows, unless one kept from an earlier sitting still fits; then the model goes straight on to write the next one ahead. A child who asks for another, in the chat or with "Another task" on the card, has the task kept handed out by `next_task`, on the new card it draws, at once, and the model writes the one after it (R252). A child who asks while the next task is still being written waits for it on the new card: `next_task` makes the request ahead one the child waits for, and the task goes to that card once it is accepted. With nothing kept and nothing being written, `next_task` opens a request as scenario 2 shows.
@@ -345,7 +345,8 @@ The service keeps no memory between calls, so every "only once" rule is a field 
 | An attempt is submitted against an old request | `submit_task` carries the request id; anything but the open one — and the open one once it has waited past the abandonment window — is `stale_request`, and no attempt is spent. When the child already has a task, the card that refusal draws shows it: a task handed in twice, the answer to the first gone astray, must not turn the card the child is working on into a wait |
 | A fourth attempt | The counter lives in the open request, not in the model's memory, so it survives a restart, another instance and a forgetful model |
 | The same task is answered twice — the child presses a button and the model also calls the tool | `submit_answer` is keyed by the task id: the first call records, any later one returns the same recorded result and writes nothing. Ratings move once. The task keeps the answer it was given until the next task is asked for, which is how a later call can tell the same result again (04-profile, R101) |
-| Two tabs or two devices answer at once | The same key, plus the revision check on the write (T10, T51): the loser retries, sees the answer already recorded, and returns it |
+| Two tabs or two devices answer at once | The same key, plus the revision check on the write (T10, T51): the loser retries, sees the answer already recorded, and returns it. An answer is written after the call has answered (R255), so a tab whose write loses has already shown its result; its write, made again on a fresh read, finds the answer recorded and leaves no line |
+| A call reads the file while the write a call before it left for after its answer is still on its way | On one instance the call waits for the writes of its account begun before it, and reads what the answer said. On another, within about 1.7 s, it reads the file as it was: `prepare_task` writes nothing ahead that turn, and a hand-out or an answer may be lost, which its line says as a warning (R255) |
 | The same task text comes back later | The fingerprints of past tasks are kept in the profile and the near-duplicate check runs inside `submit_task` (T32); the profile holds fingerprints, not texts (О-40) |
 
 ## The daily counters

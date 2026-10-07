@@ -565,6 +565,24 @@ describe("the menu", () => {
 		expect(doc.querySelector(".s-navlinks")).toBeNull();
 		expect(doc.querySelector("details")).toBeNull();
 	});
+
+	test("tags a page still in the making as in beta, beside its word", () => {
+		const making = renderSite({
+			...site,
+			frame: {
+				...frame,
+				menu: [{ page: "guide", label: "nav.guide" as SiteKey, wip: true }],
+			},
+		});
+		const doc = page(making, "ru/guide/index.html");
+
+		expect(attributes(doc, ".s-navlinks a", "class")).toEqual(["s-nav-wip"]);
+		expect(attributes(doc, ".s-navlinks a", "aria-current")).toEqual(["page"]);
+		expect(texts(doc, ".s-navlinks a .s-nav-tag")).toEqual(["Beta"]);
+		expect(texts(doc, ".s-navlinks a")).toEqual(["Гид Beta"]);
+		expect(texts(doc, ".s-menu-list a .s-nav-tag")).toEqual(["Beta"]);
+		expect(guide.querySelector(".s-nav-tag")).toBeNull();
+	});
 });
 
 describe("a group of the menu", () => {

@@ -32,7 +32,7 @@ var lessonEvents = []string{
 	"auth_bearer", "auth_refresh", "auth_revoke",
 	// The lesson.
 	"tool_call", "drive_call", "task_requested", "solver_run", "task_submitted", "task_accepted", "answer_recorded",
-	"limit_hit",
+	"write_after_answer", "limit_hit",
 }
 
 // A whole lesson, read line by line. A family signs in through the consent

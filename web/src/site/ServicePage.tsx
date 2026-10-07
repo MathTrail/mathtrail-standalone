@@ -42,12 +42,14 @@ export function ServicePage({ page }: PageProps) {
 	);
 }
 
-// Hero is the first screen: the heading, what the service is, the chips of
-// what it is built as, and beside them the service in three tiers.
+// Hero is the first screen: a badge that says the page is written for
+// technical readers, the heading, what the service is, the chips of what it
+// is built as, and beside them the service in three tiers.
 function Hero({ page }: { page: PageReader }) {
 	return (
 		<section class="s-wrap s-hero s-service-hero">
 			<div class="s-hero-copy">
+				<p class="s-badge s-badge-tech">{page.text("hero.badge")}</p>
 				<h1>{page.text("hero.title")}</h1>
 				<p class="s-lead">{page.text("hero.lead")}</p>
 				<ul class="s-chips s-service-chips">

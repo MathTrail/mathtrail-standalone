@@ -144,32 +144,39 @@ func (s *Service) waitForAhead(ctx context.Context, account store.Account, p *pr
 	return request, skipped, nil
 }
 
-// handOutReady hands the kept task to the child, who asked for the next one,
-// writes the profile, and leaves the lines of the hand-out: the task left on
-// the card without an answer, skipped, and the task kept, accepted now, as
-// ready. asked says a person asked for where the task stands, which the task
-// kept stood at: the task written ahead after it is then one more like it.
-func (s *Service) handOutReady(ctx context.Context, account store.Account, p *profile.Profile, revision store.Revision,
-	asked bool, now time.Time,
-) (*profile.CurrentTask, error) {
-	ready, left := *p.ReadyTask, p.InFlight()
-	task, err := p.HandOutReady(now)
-	if err != nil {
-		return nil, fmt.Errorf("mcp: hand out the task kept: %w", err)
+// handOutKept is the hand-out of the kept task taskID to the child, who asked
+// for the next one, as a change any read of the profile can be given: the task
+// kept becomes the one on the card, and the one left there without an answer
+// is skipped. A profile with that task on the card already holds the change,
+// and one that no longer keeps it allows it no more. Once the file holds the
+// change, the lines of the hand-out are left: the task skipped, and the task
+// kept, accepted now, as ready. asked says a person asked for where the task
+// stands, which the task kept stood at: the task written ahead after it is
+// then one more like it.
+func (s *Service) handOutKept(account store.Account, taskID string, asked bool, now time.Time) change {
+	return func(p *profile.Profile) (made, error) {
+		switch {
+		case p.CurrentTask != nil && p.CurrentTask.ID == taskID:
+			return made{state: already}, nil
+		case p.ReadyTask == nil || p.ReadyTask.ID != taskID:
+			return made{state: gone}, nil
+		}
+		ready, left := *p.ReadyTask, p.InFlight()
+		task, err := p.HandOutReady(now)
+		if err != nil {
+			return made{}, fmt.Errorf("mcp: hand out the task kept: %w", err)
+		}
+		task.Asked = asked
+		p.Touch(s.version, now)
+		return made{state: changed, landed: func(ctx context.Context) {
+			if left != nil {
+				s.events.write(ctx, account, eventTaskSkipped, s.skippedFields(left.Topic, left.GradeLevel, left.Difficulty)...)
+			}
+			s.events.write(ctx, account, eventTaskAccepted, s.acceptedLine(ctx, p, account, task, &handedOut{
+				attempts: ready.Attempts, written: ready.WrittenAt.Sub(ready.OpenedAt.Time), ready: true,
+			}, now)...)
+		}}, nil
 	}
-	task.Asked = asked
-	p.Touch(s.version, now)
-	if _, err := s.store.Save(ctx, account, p, revision); err != nil {
-		return nil, fmt.Errorf("mcp: save the profile: %w", err)
-	}
-
-	if left != nil {
-		s.events.write(ctx, account, eventTaskSkipped, s.skippedFields(left.Topic, left.GradeLevel, left.Difficulty)...)
-	}
-	s.events.write(ctx, account, eventTaskAccepted, s.acceptedLine(ctx, p, account, task, &handedOut{
-		attempts: ready.Attempts, written: ready.WrittenAt.Sub(ready.OpenedAt.Time), ready: true,
-	}, now)...)
-	return task, nil
 }
 
 // handedOut is how a task handed out came to the child: the attempts and the

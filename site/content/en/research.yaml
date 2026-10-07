@@ -2,6 +2,7 @@ title: Research
 description: The numbers behind MathTrail. How its checks keep a task from a child until nothing in it is wrong, how its student model stands against its goals, and where its reference tasks come from.
 
 hero:
+  badge: For technical readers
   title: The model writes,
   title_end: the service checks.
   lead: How MathTrail lets a task reach a child only once it has passed {count} {noun}, and what the checks do not see.
