@@ -20,9 +20,9 @@
 // four generators, its numbers held to the bands recorded with them, or the
 // bands recorded again.
 //
-// So is the page's: the cells of the table of goals on the site's page of the
-// research, the service, the rule before it and the ceiling, written with the
-// product's counts and constants. Its numbers make the page's data file
+// So is the page's: the cells of the board of goals on the site's page of the
+// research, the service and the ceiling, written with the product's counts
+// and constants. Its numbers make the page's data file
 // together with the commit being built, the paper's facts and the snapshot of
 // the live numbers.
 //

@@ -279,57 +279,15 @@ export function scenesIn(language: string): Scene[] {
 			play: progressUnfolded,
 		},
 		{
-			name: "another task asked of the chat, none taken",
+			name: "another task asked, the card done with",
 			payload: handed,
 			play: button(1),
 		},
 		{
-			name: "another task taken at once, written ahead",
+			name: "another task asked once the answer is in, the card done with",
 			payload: handed,
-			answers: (tool) =>
-				tool === "take_task"
-					? Promise.resolve(takenFrom(nextOf(handed)))
-					: service()(tool),
-			play: button(1),
-		},
-		{
-			name: "another task taken while it is being written",
-			payload: handed,
-			answers: (tool) => {
-				if (tool === "take_task") {
-					return Promise.resolve(takenFrom(comingFor(handed)));
-				}
-				return tool === "read_task"
-					? Promise.resolve(writing())
-					: service()(tool);
-			},
-			play: button(1),
-		},
-		{
-			name: "another task taken, the day over",
-			payload: handed,
-			answers: (tool) =>
-				tool === "take_task"
-					? Promise.resolve(takenFrom({ ...limited, child: handed.child }))
-					: service()(tool),
-			play: button(1),
-		},
-		{
-			name: "another task taken, this card's task over",
-			payload: handed,
-			answers: (tool) =>
-				tool === "take_task"
-					? Promise.resolve(
-							takenFrom({
-								screen: "waiting",
-								status: "stale",
-								code: "stale_task",
-								child: handed.child,
-								last_answer: null,
-							}),
-						)
-					: service()(tool),
-			play: button(1),
+			answers: service(),
+			play: inTurn(option("B"), onceAnswered(button(0))),
 		},
 		{
 			name: "another task, the ask not sent",
@@ -581,8 +539,9 @@ function reviewAlone(card: Document) {
 	}
 }
 
-// button presses the card's button at place: 0 the hint, 1 another task.
-// They are found by place because their words change with the language.
+// button presses the card's button at place: 0 the hint, 1 another task; once
+// the answer is in, 0 the next task. They are found by place because their
+// words change with the language.
 function button(place: number) {
 	return (card: Document) => {
 		card.querySelectorAll<HTMLElement>(".mt-btns .mt-btn")[place]?.click();
@@ -1042,18 +1001,20 @@ function inTurn(...steps: ((card: Document) => void)[]) {
 	};
 }
 
-// nextOf is the task written ahead after handed: the same task under an id of
-// its own, as the card would take it.
-function nextOf(handed: typeof fence): typeof fence {
-	return { ...handed, task: { ...handed.task, id: `${handed.task.id}_next` } };
-}
-
-// takenFrom is the service's answer to a card that takes the next task, with
-// this payload.
-function takenFrom(payload: object): CallToolResult {
-	return {
-		content: [],
-		structuredContent: payload as Record<string, unknown>,
+// onceAnswered does step once the card shows the result of the answer pressed
+// before it, which the service sends back a moment later, and the buttons
+// under the task with it. It gives up after ten seconds, the scene left as
+// the answer leaves it.
+function onceAnswered(step: (card: Document) => void) {
+	return (card: Document) => {
+		const tried = (left: number) => {
+			if (card.querySelector(".mt-verdict-line") !== null) {
+				step(card);
+			} else if (left > 0) {
+				setTimeout(() => tried(left - 1), 50);
+			}
+		};
+		tried(200);
 	};
 }
 

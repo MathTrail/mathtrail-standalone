@@ -1,19 +1,18 @@
 import type { OptionState } from "../design/controls";
 import { dontKnow, type Letter } from "./choices";
-import type { AnswerOutcome, AnswerResult, TakeOutcome } from "./payload";
+import type { AnswerOutcome, AnswerResult } from "./payload";
 
 /**
  * Answer is where the child's answer to the task stands: not given yet; sent
- * and being checked; recorded, with what the service said of it; closed,
- * because the task is no longer the one being solved — refused, or recorded
- * before, its result still there to read; or lost on its way, and free to be
- * given again.
+ * and being checked; recorded, with what the service said of it; refused,
+ * because the task is no longer the one being solved; or lost on its way, and
+ * free to be given again.
  */
 export type Answer =
 	| { state: "open" }
 	| { state: "checking"; choice: Letter }
 	| { state: "answered"; result: AnswerResult }
-	| { state: "closed"; result?: AnswerResult }
+	| { state: "closed" }
 	| { state: "failed" };
 
 /**
@@ -31,16 +30,11 @@ export const lessonStart: Lesson = {
 	answer: { state: "open" },
 };
 
-/**
- * LessonEvent is something that happens on a task card: an option picked, an
- * answer told, the hint opened or closed, or the task found closed — another
- * task took its place, asked for elsewhere.
- */
+/** LessonEvent is something that happens on a task card. */
 export type LessonEvent =
 	| { type: "picked"; choice: Letter }
 	| { type: "told"; outcome: AnswerOutcome }
-	| { type: "hint toggled" }
-	| { type: "closed" };
+	| { type: "hint toggled" };
 
 /**
  * next is the lesson after event. An event that cannot happen where the
@@ -61,27 +55,7 @@ export function next(lesson: Lesson, event: LessonEvent): Lesson {
 			return canAnswer(lesson)
 				? { ...lesson, hint: toggled(lesson.hint) }
 				: lesson;
-		case "closed":
-			return { ...lesson, answer: closedOver(lesson.answer) };
 	}
-}
-
-// closedOver is the answer of a task found closed: one recorded keeps its
-// result, for the child to read what they did.
-function closedOver(answer: Answer): Answer {
-	return answer.state === "answered"
-		? { state: "closed", result: answer.result }
-		: { state: "closed" };
-}
-
-/**
- * recordedResult is the result of the answer recorded, which the card shows
- * — after the task is closed too — or undefined while there is none.
- */
-export function recordedResult(answer: Answer): AnswerResult | undefined {
-	return answer.state === "answered" || answer.state === "closed"
-		? answer.result
-		: undefined;
 }
 
 // toggled is the hint shown if it was hidden and hidden if it was shown, used
@@ -134,9 +108,8 @@ function answerAfter(outcome: AnswerOutcome): Answer {
  * its way.
  */
 export function optionStateOf(answer: Answer, letter: Letter): OptionState {
-	const result = recordedResult(answer);
-	if (result !== undefined) {
-		const { correct_answer: right, choice } = result;
+	if (answer.state === "answered") {
+		const { correct_answer: right, choice } = answer.result;
 		if (letter === right) {
 			return "correct";
 		}
@@ -184,20 +157,4 @@ function recordedLineOf(result: AnswerResult): string {
 		return `${line} The child has made this mistake before among the latest answers: end your explanation with one short reminder of it, in your own words, that the child can keep in mind next time.`;
 	}
 	return line;
-}
-
-/**
- * takenLineOf is the one line the model is told once the card took the next
- * task, with the child's message asking for the next one to be got ready: the
- * task now on the card, written ahead — which the model may not have seen
- * coming, and must not take off the card with a task asked for in the chat —
- * or the request the card waits for, whose task the model is to write.
- */
-export function takenLineOf(
-	taken: Extract<TakeOutcome, { kind: "task" | "coming" }>,
-): string {
-	if (taken.kind === "task") {
-		return `The child asked for another task on the card, and the card took task ${taken.handed.task.id}, written ahead: the child is working on it now. Say nothing about it until the child answers or asks. Get the next task ready with prepare_task, never next_task, which would take this one off the card.`;
-	}
-	return `The child asked for another task on the card, which waits on the spot for the task of request ${taken.coming.requestId}. Write it with prepare_task, which hands you its package, never next_task; say nothing about it until it is on the card.`;
 }

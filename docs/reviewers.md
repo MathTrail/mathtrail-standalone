@@ -32,7 +32,7 @@ In a chat with MathTrail switched on:
 1. **A task.** Say "Let's do a MathTrail task." A card shows that the task is being written; the model takes a minute or two. Then the card shows the task and five options, and the model goes on to write the next task ahead, saying nothing about it.
 2. **An answer.** Choose an option on the card, or type the answer in the chat. A wrong answer is explained from the mistake it reflects, and then step by step; "I don't know" is an answer too.
 3. **The hint.** Press **Hint** on the card before answering.
-4. **Another task.** Press **Another task**: the task written ahead appears at once in the same card, and the chat's input gets "Get the next task ready", which asks the model to write the one after it. Or ask for one in the chat, or ask for a topic: "Let's practise counting."
+4. **Another task.** Press **Another task**: the card puts its words in the chat — in Claude, press Enter to send them —, the task written ahead appears at once on a new card below, and the model writes the one after it. Or ask for one in the chat, or ask for a topic: "Let's practise counting."
 5. **The progress.** Say "Show the progress." The card shows each topic's rank, what moved since the last task and over the past week, the **Review** — strengths, topics to develop and what to do next — and **Mistakes that repeat**.
 6. **The profile.** Say "Show the profile", and change the interests or the grade.
 

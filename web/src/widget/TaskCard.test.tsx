@@ -13,12 +13,11 @@ import {
 	buttonIn,
 	drawCard as drawOnHost,
 	foldIn,
-	openCard,
 	press,
 	takeDown,
 	unfold,
 } from "./testing/card";
-import { deliver, type ToolCall } from "./testing/host";
+import type { ToolCall } from "./testing/host";
 import {
 	answered,
 	dontKnowAnswer,
@@ -28,20 +27,13 @@ import {
 	fenceInRussian,
 	firstRun,
 	type Handed,
-	nextFence,
-	onTheCard,
 	progress,
 	progressMoving,
 	repeatedAnswer,
 	rightAnswer,
 	staleAnswer,
-	takenAtOnce,
-	takenComing,
-	takenLimited,
-	takenOver,
 	toldAgain,
 	trialAnswer,
-	writing,
 } from "./testing/lesson";
 import { WordsContext } from "./words";
 
@@ -64,7 +56,7 @@ async function drawCard(
 	payload: Handed = fence,
 	tools: (call: ToolCall) => CallToolResult | Promise<CallToolResult> = service,
 	options: {
-		refuseMessages?: boolean;
+		refuseMessages?: boolean | number;
 		refuseModelLines?: boolean;
 		args?: Record<string, unknown>;
 	} = {},
@@ -476,9 +468,9 @@ describe("a card whose host lets it down", () => {
 		expect(text(".mt-verdict-line")).toBe("Not quite — it's 5, not 4.");
 	});
 
-	test("says the ask for another task did not reach the chat, and takes it again", async () => {
+	test("says the ask for another task did not reach the chat, gives the card back, and takes it again", async () => {
 		const logged = vi.spyOn(console, "error").mockImplementation(() => {});
-		const heard = await drawCard(fence, service, { refuseMessages: true });
+		const heard = await drawCard(fence, service, { refuseMessages: 1 });
 
 		press(button("Another task"));
 
@@ -487,14 +479,26 @@ describe("a card whose host lets it down", () => {
 			expect(text(".mt-action-note")).toBe("Not sent — try again"),
 		);
 		expect(logged).toHaveBeenCalled();
+		// The chat did not take the ask, so the card is not done with: its
+		// buttons are back, and its options can be pressed again.
 		expect(button("Another task").getAttribute("aria-disabled")).toBeNull();
-		expect(root.querySelector(".mt-option")).not.toBeNull();
+		expect(button("Hint").getAttribute("aria-disabled")).toBeNull();
+		for (const letter of ["A", "B", "C", "D", "E"]) {
+			expect(option(letter).getAttribute("aria-disabled")).toBeNull();
+		}
 
 		press(button("Another task"));
 
 		await vi.waitFor(() =>
 			expect(heard.messages).toEqual(["Another task", "Another task"]),
 		);
+		await vi.waitFor(() =>
+			expect(text(".mt-action-note")).toBe(
+				"Once the ask reaches the chat, the new task will come below, in a new card.",
+			),
+		);
+		expect(root.querySelector(".mt-btns")).toBeNull();
+		expect(option("A").getAttribute("aria-disabled")).toBe("true");
 	});
 
 	test("says the progress did not load when the call is lost", async () => {
@@ -584,11 +588,8 @@ describe("the hint", () => {
 	});
 });
 
-// takeFence is the card asking the service for the next task after the fence.
-const takeFence = { name: "take_task", arguments: { task_id: "task_fence" } };
-
 describe("another task", () => {
-	test("is asked of the chat where the card can take none, while the card keeps its task and says where the new one will come", async () => {
+	test("is asked of the chat, and the card, its ask taken, keeps its task, locks it and asks nothing more", async () => {
 		const heard = await drawCard();
 
 		press(button("Another task"));
@@ -603,18 +604,22 @@ describe("another task", () => {
 		// task stays, and nothing claims to be under way.
 		expect(root.querySelector(".mt-gen")).toBeNull();
 		expect(text(".mt-task-text")).toBe(fence.task.question);
-		expect(root.querySelector(".mt-option")).not.toBeNull();
 		expect(root.textContent).not.toContain("Sent to the chat");
-		// The button pressed keeps the focus, and once the chat has the ask it
-		// may be pressed again: a host may hold the message for the person to
-		// send, and the card cannot see whether it went.
-		expect(document.activeElement).toBe(button("Another task"));
-		expect(button("Another task").getAttribute("aria-disabled")).toBeNull();
-		// The service took nothing the card can show, asked twice.
-		expect(heard.calls).toEqual([takeFence, takeFence]);
+		// The next task comes below, on a card of its own: this one is done
+		// with, its options locked and its buttons gone, and what it says of
+		// the task to come holds the focus the pressed button had.
+		expect(root.querySelector(".mt-btns")).toBeNull();
+		for (const letter of ["A", "B", "C", "D", "E"]) {
+			expect(option(letter).getAttribute("aria-disabled")).toBe("true");
+		}
+		expect(text(".mt-options legend")).toBe("Answers");
+		const note = root.querySelector(".mt-action-note");
+		expect(note?.getAttribute("tabindex")).toBe("-1");
+		expect(document.activeElement).toBe(note);
+		expect(heard.calls).toEqual([]);
 	});
 
-	test("is asked for once while the ask is on its way, and again once the chat has it", async () => {
+	test("is asked for once while the ask is on its way, and never again once the chat has it", async () => {
 		const heard = await drawCard();
 		const another = button("Another task");
 
@@ -628,12 +633,28 @@ describe("another task", () => {
 			),
 		);
 		expect(heard.messages).toEqual(["Another task"]);
+		expect(() => button("Another task")).toThrow();
+	});
 
-		press(button("Another task"));
+	test("turns away an answer pressed in the same moment after it, the options locked while the ask is on its way", async () => {
+		const heard = await drawCard();
 
-		await vi.waitFor(() =>
-			expect(heard.messages).toEqual(["Another task", "Another task"]),
-		);
+		act(() => {
+			button("Another task").click();
+			option("B").click();
+		});
+		expect(option("B").getAttribute("aria-disabled")).toBe("true");
+
+		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
+		expect(heard.calls).toEqual([]);
+		expect(replies()).toHaveLength(0);
+		expect(states()).toEqual([
+			"default",
+			"default",
+			"default",
+			"default",
+			"default",
+		]);
 	});
 
 	test("is not asked for while an answer pressed in the same moment is on its way", async () => {
@@ -663,11 +684,8 @@ describe("another task", () => {
 		expect(text(".mt-action-note")).toBe(
 			"Once the ask reaches the chat, the new task will come below, in a new card.",
 		);
-		expect(heard.calls.map((call) => call.name)).toEqual([
-			"take_task",
-			"take_task",
-			"read_progress",
-		]);
+		expect(root.querySelector(".mt-btns")).toBeNull();
+		expect(heard.calls.map((call) => call.name)).toEqual(["read_progress"]);
 	});
 
 	test("is asked for in the card's language", async () => {
@@ -695,238 +713,7 @@ describe("another task", () => {
 			),
 		);
 		expect(text(".mt-verdict-line")).toBe("Not quite — it's 5, not 4.");
-	});
-});
-
-// taking answers the card's calls as the service would where the next task
-// is taken with taken: the progress read, an answer recorded as the wrong B,
-// and the next task as taken says.
-function taking(
-	taken: CallToolResult | (() => CallToolResult | Promise<CallToolResult>),
-	others: (
-		call: ToolCall,
-	) => CallToolResult | Promise<CallToolResult> = service,
-) {
-	return (call: ToolCall) => {
-		if (call.name !== "take_task") {
-			return others(call);
-		}
-		return typeof taken === "function" ? taken() : taken;
-	};
-}
-
-describe("the next task, taken on the card", () => {
-	test("written ahead takes this card's place at once, the model told of it and the chat asked to get the next one ready", async () => {
-		const heard = await drawCard(fence, taking(takenAtOnce));
-
-		press(button("Another task"));
-
-		await vi.waitFor(() =>
-			expect(text(".mt-task-text")).toBe(nextFence.task.question),
-		);
-		expect(heard.calls).toEqual([takeFence]);
-		await vi.waitFor(() =>
-			expect(heard.messages).toEqual(["Get the next task ready"]),
-		);
-		expect(heard.modelLines.at(-1)).toContain(
-			"the card took task task_next_fence, written ahead",
-		);
-		expect(heard.modelLines.at(-1)).toContain("never next_task");
-		expect(heard.order).toEqual(["call", "model line", "message"]);
-		// Nothing of the task before is left on the card, and the new one can be
-		// answered at once.
-		expect(replies()).toEqual([]);
-		expect(option("A").getAttribute("aria-disabled")).toBeNull();
-		expect(document.activeElement).toBe(root.querySelector("article"));
-	});
-
-	test("takes along to the model the line of an answer no message has carried yet", async () => {
-		const heard = await drawCard(fence, taking(takenAtOnce));
-		press(option("B"));
-		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(1));
-
-		press(button("Another task"));
-
-		await vi.waitFor(() => expect(heard.messages).toHaveLength(1));
-		const carried = heard.modelLines.at(-1) ?? "";
-		expect(carried).toContain("Task task_fence has its answer recorded: B");
-		expect(carried).toContain("the card took task task_next_fence");
-	});
-
-	test("still being written is waited for in this card's place, and comes to it", async () => {
-		let asked = 0;
-		const heard = await drawCard(
-			fence,
-			taking(takenComing, (call) => {
-				if (call.name === "read_task") {
-					asked += 1;
-					return asked === 1
-						? writing()
-						: { ...onTheCard, structuredContent: { ...nextFence } };
-				}
-				return service(call);
-			}),
-		);
-
-		press(button("Another task"));
-
-		await vi.waitFor(() =>
-			expect(root.querySelector(".mt-gen")).not.toBeNull(),
-		);
-		await vi.waitFor(() =>
-			expect(heard.messages).toEqual(["Get the next task ready"]),
-		);
-		expect(heard.modelLines.at(-1)).toContain(
-			"waits on the spot for the task of request req_next_fence",
-		);
-		await vi.waitFor(
-			() => expect(text(".mt-task-text")).toBe(nextFence.task.question),
-			{ timeout: 15000 },
-		);
-		expect(heard.calls.filter((call) => call.name === "read_task")[0]).toEqual({
-			name: "read_task",
-			arguments: { request_id: "req_next_fence" },
-		});
-	}, 20000);
-
-	test("on a day with no room for another says so under the task, which stays to be answered, and asks nothing of the chat", async () => {
-		const heard = await drawCard(fence, taking(takenLimited));
-
-		press(button("Another task"));
-
-		await vi.waitFor(() =>
-			expect(text(".mt-verdict-line")).toBe(
-				"There are no more new tasks today\u00a0— there will be more tomorrow.",
-			),
-		);
-		expect(heard.messages).toEqual([]);
-		expect(text(".mt-task-text")).toBe(fence.task.question);
-
-		press(option("B"));
-
-		await vi.waitFor(() => expect(replies()).toHaveLength(2));
-		expect(text(".mt-verdict-line")).toBe("Not quite — it's 5, not 4.");
-		expect(states()).toEqual(["muted", "wrong", "correct", "muted", "muted"]);
-	});
-
-	test("after a task no longer the one being solved shows this one closed, and asks nothing of the chat", async () => {
-		const heard = await drawCard(fence, taking(takenOver));
-
-		press(button("Another task"));
-
-		await vi.waitFor(() =>
-			expect(text(".mt-verdict-line")).toBe(
-				"This task is closed. The newest task is further down the chat.",
-			),
-		);
-		expect(root.querySelector(".mt-foot")).toBeNull();
-		expect(text(".mt-task-text")).toBe(fence.task.question);
-		expect(heard.messages).toEqual([]);
-	});
-
-	test("after a task answered and no longer the one being solved keeps what was recorded, and shows it closed", async () => {
-		await drawCard(fence, taking(takenOver));
-		press(option("B"));
-		await vi.waitFor(() => expect(replies()).toHaveLength(1));
-
-		press(button("Another task"));
-
-		await vi.waitFor(() =>
-			expect(
-				[...root.querySelectorAll(".mt-verdict-line")].map(
-					(line) => line.textContent,
-				),
-			).toEqual([
-				"Not quite — it's 5, not 4.",
-				"This task is closed. The newest task is further down the chat.",
-			]),
-		);
-		expect(states()).toEqual(["muted", "wrong", "correct", "muted", "muted"]);
-		expect(root.querySelector(".mt-foot")).toBeNull();
-	});
-
-	test.each([
-		[
-			"its answer is lost on the way",
-			(): CallToolResult => {
-				throw new Error("the host went away");
-			},
-		],
-		["the service fails", () => failure],
-	])(
-		"that fails because %s is asked once more, and the task the first ask took comes to this card",
-		async (_, fails) => {
-			vi.spyOn(console, "error").mockImplementation(() => {});
-			let takes = 0;
-			const heard = await drawCard(
-				fence,
-				taking(() => (takes++ === 0 ? fails() : takenAtOnce)),
-			);
-
-			press(button("Another task"));
-
-			await vi.waitFor(() =>
-				expect(text(".mt-task-text")).toBe(nextFence.task.question),
-			);
-			expect(heard.calls).toEqual([takeFence, takeFence]);
-			await vi.waitFor(() =>
-				expect(heard.messages).toEqual(["Get the next task ready"]),
-			);
-			vi.restoreAllMocks();
-		},
-	);
-
-	test("taken keeps the card locked while the model is told of it, so a press meanwhile takes nothing more and asks the chat once", async () => {
-		const opened = await openCard({ tools: taking(takenAtOnce) });
-		root = opened.root;
-		let toldNow: () => void = () => {};
-		opened.host.onupdatemodelcontext = async () => {
-			opened.heard.order.push("model line");
-			await new Promise<void>((resolve) => {
-				toldNow = resolve;
-			});
-			return {};
-		};
-		await deliver(opened.host, fence);
-		await vi.waitFor(() =>
-			expect(root.querySelector(".mt-option")).not.toBeNull(),
-		);
-
-		press(button("Another task"));
-		await vi.waitFor(() =>
-			expect(opened.heard.order).toEqual(["call", "model line"]),
-		);
-		expect(button("Another task").getAttribute("aria-disabled")).toBe("true");
-		expect(option("A").getAttribute("aria-disabled")).toBe("true");
-		press(button("Another task"));
-		toldNow();
-
-		await vi.waitFor(() =>
-			expect(text(".mt-task-text")).toBe(nextFence.task.question),
-		);
-		expect(opened.heard.calls).toEqual([takeFence]);
-		expect(opened.heard.messages).toEqual(["Get the next task ready"]);
-	});
-
-	test("is taken once while it is on its way, the card locked meanwhile", async () => {
-		const arriving = pending();
-		const heard = await drawCard(
-			fence,
-			taking(() => arriving.result),
-		);
-
-		act(() => {
-			button("Another task").click();
-			button("Another task").click();
-		});
-		expect(button("Another task").getAttribute("aria-disabled")).toBe("true");
-		expect(option("A").getAttribute("aria-disabled")).toBe("true");
-		arriving.arrive(takenAtOnce);
-
-		await vi.waitFor(() =>
-			expect(text(".mt-task-text")).toBe(nextFence.task.question),
-		);
-		expect(heard.calls).toEqual([takeFence]);
+		expect(root.querySelector(".mt-btns")).toBeNull();
 	});
 });
 
@@ -1152,7 +939,6 @@ describe("a card drawn where a page answers for the service", () => {
 				return Promise.resolve(recorded);
 			},
 			taskStatus: () => Promise.resolve({ kind: "unknown" }),
-			takeTask: () => Promise.resolve({ kind: "failed" }),
 			readProgress: () => Promise.resolve({ kind: "failed" }),
 			saveEdit: () => Promise.resolve({ kind: "failed" }),
 		};
@@ -1193,7 +979,6 @@ describe("a card drawn where a page answers for the service", () => {
 		const page: Service = {
 			recordAnswer: () => Promise.resolve({ kind: "failed" }),
 			taskStatus: () => Promise.resolve({ kind: "unknown" }),
-			takeTask: () => Promise.resolve({ kind: "failed" }),
 			readProgress: () =>
 				Promise.resolve({ kind: "read", payload: progress.structuredContent }),
 			saveEdit: () => Promise.resolve({ kind: "failed" }),

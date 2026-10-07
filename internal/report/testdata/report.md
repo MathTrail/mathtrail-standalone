@@ -25,7 +25,7 @@ The attempts an accepted task took, and the seconds from its request to its acce
 
 ## Tasks written ahead
 
-Asked ahead counts the requests opened for the next task while the child worked on the one on the card, and kept the tasks written for them and kept. Handed out ready counts the tasks handed out that had been kept, out of all handed out; taken by the card, the tasks a card took itself, kept or waited for; let go, the tasks written ahead, kept or still being written, that the lesson moved away from before they were handed out.
+Asked ahead counts the requests opened for the next task while the child worked on the one on the card, and kept the tasks written for them and kept. Handed out ready counts the tasks handed out that had been kept, out of all handed out; taken by the card, the tasks a card took into its own place, kept or waited for, which only an earlier release let a card do; let go, the tasks written ahead, kept or still being written, that the lesson moved away from before they were handed out.
 
 | Instructions | Host | Asked ahead | Kept | Handed out ready | Taken by the card | Let go |
 |---|---|---:|---:|---:|---:|---:|

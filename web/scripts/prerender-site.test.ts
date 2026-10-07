@@ -21,7 +21,13 @@ import widgetEnglish from "../locales/en.json";
 import widgetRussian from "../locales/ru.json";
 import { byCodeUnits } from "../src/i18n/order.ts";
 import { address, outputPath } from "../src/site/addresses.ts";
-import { photoDirectory, photoPath, photos } from "../src/site/brand.ts";
+import {
+	coachScreenPath,
+	coachScreenSize,
+	photoDirectory,
+	photoPath,
+	photos,
+} from "../src/site/brand.ts";
 import { frontPage } from "../src/site/content.ts";
 import english from "../src/site/locales/en.json";
 import russian from "../src/site/locales/ru.json";
@@ -51,6 +57,7 @@ const font = dirname(
 const fontFiles = [
 	"onest-cyrillic-wght-normal.woff2",
 	"onest-latin-wght-normal.woff2",
+	"onest-symbols-wght-normal.woff2",
 ];
 
 // scripted are the pages that may run a script: the home pages, whose demo
@@ -270,12 +277,13 @@ describe("the site built from this repository", () => {
 		await rm(out, { recursive: true, force: true });
 	});
 
-	test("is its pages, its stylesheets, its font, its mark, its sharing pictures, the family's photographs, the coach's prototype and the host's files, and nothing older", async () => {
+	test("is its pages, its stylesheets, its font, its mark, its sharing pictures, the family's photographs, the coach's prototype with a screen of it and the host's files, and nothing older", async () => {
 		expect(await filesIn(out)).toEqual([
 			".nojekyll",
 			"CNAME",
 			"assets/card.css",
 			"assets/coach-prototype.html",
+			"assets/coach-screen.png",
 			"assets/demo.js",
 			"assets/favicon.svg",
 			"assets/noto-license.txt",
@@ -284,6 +292,7 @@ describe("the site built from this repository", () => {
 			"assets/onest-cyrillic-wght-normal.woff2",
 			"assets/onest-latin-wght-normal.woff2",
 			"assets/onest-license.txt",
+			"assets/onest-symbols-wght-normal.woff2",
 			"assets/photos/dad.webp",
 			"assets/photos/family.webp",
 			"assets/photos/mum.webp",
@@ -297,6 +306,7 @@ describe("the site built from this repository", () => {
 			"en/index.html",
 			"en/privacy/index.html",
 			"en/research/index.html",
+			"en/service/index.html",
 			"en/techniques/index.html",
 			"en/terms/index.html",
 			"en/topics/arithmetic-with-a-trick/index.html",
@@ -326,6 +336,7 @@ describe("the site built from this repository", () => {
 			"ru/index.html",
 			"ru/privacy/index.html",
 			"ru/research/index.html",
+			"ru/service/index.html",
 			"ru/techniques/index.html",
 			"ru/terms/index.html",
 			"ru/topics/arithmetic-with-a-trick/index.html",
@@ -371,8 +382,12 @@ describe("the site built from this repository", () => {
 		);
 	});
 
-	test("ships the coach's prototype as the very file the site keeps, and the licence of its fonts beside it", async () => {
-		for (const file of [...framed, "assets/noto-license.txt"]) {
+	test("ships the coach's prototype and its screen as the very files the site keeps, and the licence of the prototype's fonts beside them", async () => {
+		for (const file of [
+			...framed,
+			coachScreenPath.slice(1),
+			"assets/noto-license.txt",
+		]) {
 			const shipped = await readFile(join(out, file));
 			const kept = await readFile(join(repository, "site", file));
 			expect(shipped.equals(kept), file).toBe(true);
@@ -391,6 +406,21 @@ describe("the site built from this repository", () => {
 		expect(createHash("sha256").update(kept).digest("hex")).toBe(
 			"cd07c9658db2f82fb6103c47e327b9cf27ef3f87a5904d46b3f6278a4bd0666d",
 		);
+	});
+
+	// The page states the size of the prototype's screen, so that a browser keeps
+	// its room before it arrives; a picture of another size would make the first
+	// screen jump as it does.
+	test("keeps the coach's screen a PNG of the size the page states", async () => {
+		const screen = await readFile(
+			join(repository, "site", coachScreenPath.slice(1)),
+		);
+
+		expect(screen.subarray(1, 4).toString("latin1")).toBe("PNG");
+		expect({
+			width: screen.readUInt32BE(16),
+			height: screen.readUInt32BE(20),
+		}).toEqual(coachScreenSize);
 	});
 
 	test("serves no HTML but its pages and what they frame, and frames the coach's prototype on the coach's page alone", async () => {
@@ -674,7 +704,7 @@ describe("the site built from this repository", () => {
 		}
 	});
 
-	test("closes the menu with the research and the page about who makes it, and names both in the footer before the help and the documents, under the menu's words, in every language", async () => {
+	test("closes the menu with the technical pages, the research and the service held together under their word, then the page about who makes it, and names the research and that page in the footer before the help and the documents, under the menu's words, in every language", async () => {
 		const locales = (await readdir(out, { withFileTypes: true }))
 			.filter((entry) => entry.isDirectory() && entry.name !== "assets")
 			.map((entry) => entry.name);
@@ -694,11 +724,22 @@ describe("the site built from this repository", () => {
 			};
 			const menu = links("s-navlinks");
 			const footer = links("s-footlinks");
+			const group = html.match(
+				/<nav class="s-navlinks"[^>]*>.*?<span class="s-nav-group" role="group" aria-label="([^"]*)">(.*?)<\/span>/s,
+			);
+			const words = locale === "ru" ? russian : english;
 
-			expect(menu.slice(-2).map(({ href }) => href)).toEqual([
+			expect(menu.slice(-3).map(({ href }) => href)).toEqual([
 				`/${locale}/research/`,
+				`/${locale}/service/`,
 				`/${locale}/about/`,
 			]);
+			expect(group?.[1]).toBe(words["nav.technical"]);
+			expect(
+				[...(group?.[2] ?? "").matchAll(/<a href="([^"]+)"/g)].map(
+					([, href]) => href,
+				),
+			).toEqual([`/${locale}/research/`, `/${locale}/service/`]);
 			expect(footer.slice(0, 5).map(({ href }) => href)).toEqual([
 				`/${locale}/research/`,
 				`/${locale}/about/`,
@@ -707,7 +748,7 @@ describe("the site built from this repository", () => {
 				`/${locale}/terms/`,
 			]);
 			expect(footer.slice(0, 2).map(({ label }) => label)).toEqual(
-				menu.slice(-2).map(({ label }) => label),
+				[menu.at(-3), menu.at(-1)].map((link) => link?.label),
 			);
 		}
 	});
@@ -1246,7 +1287,11 @@ describe("the site's stylesheet, as it is written", () => {
 		expect(declared).toEqual([
 			{ subset: "latin", range: ranges.latin },
 			{ subset: "cyrillic", range: ranges.cyrillic },
+			{ subset: "symbols", range: "U+2190,U+2192" },
 		]);
+		expect(ranges.symbols?.split(",")).toEqual(
+			expect.arrayContaining(["U+2190", "U+2192"]),
+		);
 	});
 
 	test("sets its text in its own font, the system's behind it", () => {

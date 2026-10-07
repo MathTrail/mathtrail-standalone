@@ -2,7 +2,7 @@
 
 The site's page of the numbers behind the product (О-57): what the paper about MathTrail found, how the student model stands against its goals, and where the reference tasks came from. This document decides how the page is built and where every number on it comes from (T72.12, R204). T72.13 builds the page from it, and T72.15 brings the live numbers. T73.2–T73.4 move the making of its data into the research pipeline on merge to `main`, and keep its shape: since T73.2 a release's data is made by `research.yml` (R234), and since T73.4 the paper's PDF beside it and a pull request's site too (R248).
 
-The reference is the author's draft, `research/draft-ui/MathTrail - Исследование.html`: a self-unpacking page from a design tool, in Russian. Its markup is line 387 of the file, a JSON string (`sed -n 387p F | jq -r .`). The draft is ported, not copied: the site rebuilds it from its own components, in its own look, with every number from data.
+The reference is the author's draft, `research/draft-ui/MathTrail - Исследование.html`: a self-unpacking page from a design tool, in Russian, the second of that name, of 2026-10-07 (R250). Its markup is line 382 of the file, a JSON string (`sed -n 382p F | jq -r .`). The first draft, of 2026-10-03, is in the history up to `29205e2`. The draft is ported, not copied: the site rebuilds it from its own components, with every number from data and every word from `research.yaml`, but since R250 in the draft's own look, its sizes, rules and colours, rather than the rest of the site's.
 
 ## 1. What the author decided (2026-10-05)
 
@@ -18,39 +18,40 @@ The reference is the author's draft, `research/draft-ui/MathTrail - Исслед
 | 8 | The live block comes later, in a task of its own (T72.15). Until then the page shows the block's frame and says the data is still to come. T72.15.2 brought it (§11). |
 | 9 | The live block's styles go into the shared stylesheet, which every page loads, rather than one of the page's own. Should the heaviest page pass its budget, the author decides again. The Russian home page passed it in release v0.3.13, and the author raised the budget by half, to 450 KiB (2026-10-07, R240). |
 | 10 | The live snapshot comes with nobody at a keyboard (2026-10-05). A scheduled query keeps it, and once a month a GitHub App of the repository's own brings it to `main` by a pull request that merges itself (2026-10-06, §11, R226). |
+| 11 | The page takes the second draft whole, its look as well as its parts, and shows the service's numbers alone: the rule before R187 leaves the page and its data (2026-10-07, R250). |
+| 12 | The words of a paragraph both pages have stay the site's, which were written for accuracy and in whole sentences; the draft's new labels are taken as they are. Under the student model stand the draft's one line of the run and one sentence on the paper's commit, and the line on the bootstrap's resamples and the one that no child took part go. Until a month is counted whole, the live block shows the draft's three columns empty, under "Coming", rather than its simulated numbers (2026-10-07, R250). |
 
 ## 2. Address and frame
 
 - **Address.** `/<locale>/research/`, words in `site/content/<locale>/research.yaml` (SPEC 8.12.2). Anchors: `#student-model`, `#live`, `#sources`, `#paper`.
-- **Menu and footer.** "Research" stands before "About" in the menu and first in the footer (SPEC 8.12.2, R202). R202 measured the fold with five entries. With the sixth, the menu stays in a row down to 1039 px in Russian and 976 px in English in Chromium, and down to 1024 px and 962 px in WebKit, so it folds below 1100 px and «Исследование» keeps its place (R209). `just site-fold` measures the width again whenever an entry or a language is added.
+- **Menu and footer.** "Research" stands before "About" in the menu and first in the footer (SPEC 8.12.2, R202). R202 measured the fold with five entries. With the sixth, the menu stays in a row down to 1039 px in Russian and 976 px in English in Chromium, and down to 1024 px and 962 px in WebKit, so it folds below 1100 px and «Исследование» keeps its place (R209). `just site-fold` measures the width again whenever an entry or a language is added. Since R251 "Research" shares a capsule of the menu with "Service", the technical pages, the page being read dark in it, and the menu with its seven entries folds below 1180 px: it stays in a row down to 1121 px in Russian and 1057 px in English in Chromium, 1107 px and 1043 px in WebKit.
 - **Lists.** The addresses join `web/tools/sitecheck/published.ts`. The README links `/en/research/`.
 - **No script, nothing from elsewhere.** The page reads in full without a script and runs none (R160). It loads nothing from another origin, so the draft's unpkg React and its fonts' `preconnect` go.
 - **Fonts.** Onest only (R157): the draft's Source Serif 4 alone weighed 0.9 MB.
-- **Weight.** The shared stylesheets, fonts and icon weigh about 102 KB, the page's own rules some 5 KB of them. The page's HTML, with its tables and drawings, weighs 38 KB in English and 45 KB in Russian while the live numbers are still to come, and 46 KB and 53 KB with a month shown. That is at most about 155 KB in all, under the 450 KiB a page may weigh (R240). The live block's rules, 0.7 KB, sit in the shared stylesheet, which the Russian home page, the heaviest page of the site, loads too: with them it weighed 304,828 bytes, 2,372 under the 300 KiB of the time. In release v0.3.13 it came to 307,632 bytes, past that budget, and the author raised it by half (R240). The PDF is a link, not a resource the page fetches, so it does not count.
+- **Weight.** Since R250 the page's own rules weigh some 24 KB in the shared stylesheet, against some 5 KB before. With everything it loads, the page weighs 178,727 bytes in English and 183,457 in Russian while the live numbers are still to come, under the 450 KiB a page may weigh (R240). Every page loads the shared stylesheet, so each grows by the same 19 KB: the Russian home page, the heaviest page of the site, came to 346,233 bytes on 2026-10-07. In release v0.3.13 it had come to 307,632 bytes, past the 300 KiB of the time, and the author raised the budget by half (R240). The PDF is a link, not a resource the page fetches, so it does not count.
 - **Languages.** English and Russian now, the rest with T66b. Drawings are pinned left to right (`dir="ltr"`), as the topics' map is; tables and words follow the page's direction.
 
 ## 3. The page, section by section
 
 | Section | In the draft | On the site |
 |---|---|---|
-| Hero | The paper's title as the heading; a lead; "The whole paper · PDF, 16 pages" and "Code and data"; chips: 603 reference tasks · 9 checks · 17 topics · 20 traps · grades 1–6 · MIT | The same. The title is the paper's, in the page's language. The PDF button waits for a clean PDF (§10), and its page count comes from the data: the draft's 16 pages are not the named PDF's 15. Every chip's number comes from data (§5). "Code and data" leads to the repository. |
-| Four theses, 01–04 | The chat's model writes; the solver runs twice; the answer is sealed; a little harder, but within reach | The same, with each number from the product (§5) and the worked example's values marked as chosen by the text (§9). The draft's counts in words, "nine checks", "five tasks", "by two", are numbers from the data. The code sharpens three claims: the service keeps nothing of the child between requests; the solver runs a second time only when its first run picked exactly one option; the rule asks for the task whose chance is nearest the middle of the corridor. **Thesis 03 stands as the draft has it.** Since R152 the card is drawn by `next_task`, which carries no task, and reads its task through `read_task`, which carries no answer, so before the child answers the answer is in nothing the service hands the card or the chat's model. The page adds what the seal does not reach, which is the chat itself: the model that wrote the task knows its answer, and the host's record of the tools called shows it to an adult who opens it (О-27). |
-| Student model, `#student-model` | A table: metric, now, goal, ceiling, new rule, mark. Its "now" was the rule before R187, and its "new rule" was empty | The goals table of §6: before R187, now, goal, ceiling and mark, with the run's provenance under it. |
-| Live data, `#live` | Promised → came true, came true less promised by answer count, the share right on the rule's tasks — all marked as simulated | The same three measures of the latest month counted whole, one under another, each drawn beside its table (§8): a point for each range of chance on a square, a bar from nothing for each range of the child's answers, and one bar of the share right over the corridor. Before a month is counted whole, and when its children were too few, a frame says so and what the block will show. Every state names the rule a range is shown by (§11). |
-| Where the reference tasks came from, `#sources` | Public-domain books by author, with years; a flow from a book to a checked task; 603 tasks as a bar of 200 · 250 · 153 | The same. The books and their authors are curated data in `site/data.json` (`research.sources`), as "Why" keeps its works. A book is named by its title alone, and its author with the year they died: a first edition's year is not on record for every book, Perelman's ran through many editions, and in most of the world copyright runs out a set number of years after the author's death. The counts by level come from the content. |
-| The whole paper, `#paper` | What the paper holds, and its page count | The same, with the PDF and its page count once there is a clean PDF (§10). |
+| Hero | "The model writes, the service checks." in two lines, the second bold; a lead; "The whole paper · PDF, 16 pages" and "Code and data"; beside them a drawing of a task's way: the chat's model writes the fence's task and its solver, MathTrail runs ten checks, the solver twice, and sends a task that fails one back along a dashed line, and the child solves one that passes, its answer sealed; under a rule, 603 reference tasks · 10 checks · 17 topics · 20 traps · grades 1–6 · open code, MIT | The same. The heading is the paper's title up to its colon, in the page's language, and a test holds it to the paper. The PDF button waits for a clean PDF (§10), and its page count comes from the data. The drawing's fence, its numbers and its five options are chosen by the text and marked so (§9); its options are thesis 02's, and a test holds the fence's posts to the right one. The number of checks and of their cells come from the data (§5). "Code and data" leads to the repository. |
+| Four theses, 01–04 | The chat's model writes; the solver runs twice; the answer is sealed; a little harder, but within reach. Each a row between rules: its place, its words, its drawing | The same, with each number from the product (§5) and the worked task's values marked as chosen by the text (§9). The draft's counts in words, "five tasks", "by two", are numbers from the data. The code sharpens three claims: the service keeps nothing of the child between requests; the solver runs a second time only when its first run picked exactly one option; the rule asks for the task whose chance is nearest the middle of the corridor. **Thesis 03 stands as the draft has it.** Since R152 the card is drawn by `next_task`, which carries no task, and reads its task through `read_task`, which carries no answer, so before the child answers the answer is in nothing the service hands the card or the chat's model. The page adds what the seal does not reach, which is the chat itself: the model that wrote the task knows its answer, and the host's record of the tools called shows it to an adult who opens it (О-27). |
+| Student model, `#student-model` | One line of the run; a key; the measures in groups, each a row of its name, unit and mark, a bar of the service's number with its interval, the goal's dashed line and the ceiling's dotted one, and the number; a legend of three marks | The board of §6, with one sentence on the paper's commit under the line of the run. |
+| Live data, `#live` | Promised → came true, came true less promised by answer count, the share right on the rule's tasks, side by side — all marked as simulated | The same three measures of the latest month counted whole, side by side (§8): a point for each range of chance on a square, a bar from nothing for each range of the child's answers, and the share right, large, as a point over the corridor. Each drawing is hidden from a screen reader, which reads a table of its numbers the eye does not see. Before a month is counted whole, and when its children were too few, the three columns stand empty under a badge that says so. Every state names the rule a range is shown by (§11). |
+| Where the reference tasks came from, `#sources` | Public-domain books by author, a row each, with the year each died; that they belong to everyone; 603 tasks as a bar of 200 · 250 · 153 | The same. The books and their authors are curated data in `site/data.json` (`research.sources`), as "Why" keeps its works. A book is named by its whole title, and its author with the year they died: a first edition's year is not on record for every book, Perelman's ran through many editions, and in most of the world copyright runs out a set number of years after the author's death. The counts by level come from the content. |
+| The whole paper, `#paper` | What the paper holds, and its page count, between two rules | The same, with the PDF once there is a clean PDF (§10); the page count stands on the first screen's button. |
 
 **What leaves the draft:**
-- the "expected" band beside the estimate's error, which no data gives;
-- the simulated live charts and their counts, which were not rounded as public counts must be;
-- "the last 30 days", which R192's closed months replace;
-- the live block's small groups folded into "Others", which R221 replaces by leaving a range of too few children out;
+- the simulated live charts and their counts, which were not rounded as public counts must be: the columns stand empty until a month is counted whole;
 - the live block's range of answers 1–5, the trial series, whose answers are weighed against no chance;
-- the three live charts side by side, which stand one under another so that each has its table beside it, and the share right as a large number, which its bar and its row replace;
-- the empty "new rule" column: the rule it waited for shipped in R187, so the table compares before and now;
-- the draft's own menu and footer, and Source Serif 4.
+- the draft's wording of a paragraph the site's page already had, which stays as the site wrote it (decision 12), and of a book's title, which stays whole;
+- a digit in the words: "1-й запуск" is "the first run", "смен на 100 ответов" changes "a hundred answers" (§9);
+- the draft's own menu and footer, and its fonts' `preconnect`.
 
-The theses and the sources keep the draft's order and substance. Their words are written anew in English from the Russian and are the source, as for every page (R159).
+**What the site adds:** a sentence on the paper's commit under the line of the run (decision 12); the mark "on the edge" in the legend whenever a row holds it, since the legend names the marks the rows hold; the oracle's "best possible" on the lag's row only, as the draft has it; and a row of the board laid out as two lines on a narrow screen, its name and number over its bar, rather than a board 680 px wide that scrolls sideways.
+
+The words are written anew in English from the Russian and are the source, as for every page (R159).
 
 ## 4. The data file
 
@@ -69,9 +70,7 @@ The file is not committed. It is made at build time, in `site/research/research.
     "interval": 0.95, "resamples": 2000,
     "error_after": 200,
     "screen_windows": { "early": { "first": 6, "last": 20 }, "late": { "first": 150, "last": 200 } },
-    "goal_parameters": { "lag_share": 0.45, "corridor_share": 0.27, "unsettled_most": 0.25, "false_most": 0.2, "late_times": 1.5 },
     "rules": [ { "id": "shrinking/both", "role": "service" },
-               { "id": "earlier/both", "role": "earlier" },
                { "id": "oracle/both", "role": "ceiling" } ],
     "rows": [ {
       "id": "lag", "kind": "goal", "criterion": "step",
@@ -79,7 +78,6 @@ The file is not committed. It is made at build time, in `site/research/research.
       "bound": { "value": 0.2420, "own": true },  // the file holds every number in full; rounded here
       "values": {
         "service": { "value": 0.5377, "low": 0.5202, "high": 0.5556, "mark": "baseline" },
-        "earlier": { "value": 0.6092, "low": 0.5896, "high": 0.6296, "mark": "not_reached" },
         "ceiling": { "of": "oracle", "value": 0, "low": 0, "high": 0 } } } ]
   },
   "product": {
@@ -101,7 +99,7 @@ The file is not committed. It is made at build time, in `site/research/research.
 }
 ```
 
-**Rows.** Each rule's number of a goal carries its own mark: `reached`, `on_the_edge`, `not_reached`, or `baseline` on the service's number against a bound of its own (§6). A row says whose its ceiling is, `oracle` or `perfect`. What a row does not have is `null` rather than left out, so every row has the same keys: a context row has no `criterion`, no `bound` and no marks, and a screen row has no ceiling. `error_after` and `screen_windows` give the answers the labels name, "after 200 answers" and "answers 150–200", since the words hold no digit (§9). `relabelled` is where each letter of the first run stands in the second, so the page draws thesis 02 from the solver's own relabelling.
+**Rows.** The service's number of a goal carries its mark: `reached`, `on_the_edge`, `not_reached`, or `baseline` on the service's number against a bound of its own (§6). A row says whose its ceiling is, `oracle` or `perfect`. What a row does not have is `null` rather than left out, so every row has the same keys: a context row has no `criterion`, no `bound` and no marks, and a screen row has no ceiling. `error_after` and `screen_windows` give the answers the labels name, "after 200 answers" and "answers 150–200", since the words hold no digit (§9). `relabelled` is where each letter of the first run stands in the second, so the page draws thesis 02 from the solver's own relabelling.
 
 **Live numbers.** `live` has the same keys in every state, and what a state has no value for is `null` or empty: `coming` has no month, `too_few` has a month with no total and no range, and `ready` has the month's total and the ranges its views show, from the lowest. A range is named by the numbers it spans, the chances `from` and `to` or the answers `first` and `last`, with no `last` for the range of every answer past the others: the views name a range in words and digits, "under 0.50" or "6-20", which the page's words cannot hold. `rule` is the rule the public views show a cell by, so the words name it through the data.
 
@@ -117,7 +115,7 @@ The file is not committed. It is made at build time, in `site/research/research.
   - a mark that does not follow from the value, its interval, the bound and the direction, and "baseline" anywhere but on the service's number against a bound of its own, or missing there;
   - product counts that disagree with the catalogs and reference tasks the site already reads, the tasks by level included;
   - a constant that does not hold as the page states it: as many options as letters, the second run's letters the first's moved on by the shift, a shift that moves every letter, from 1 to one less than the options, the guess one option of all, and `0 < low < middle < high < 1`;
-  - rules without exactly the three roles, a row named twice, an interval whose ends are the wrong way round, and a number or a goal under zero, where a row's drawing starts;
+  - rules without exactly the two roles, the service and the ceiling, a row named twice, an interval whose ends are the wrong way round, and a number or a goal under zero, where a row's drawing starts;
   - two files of the paper at one address, or files with no English one among them;
   - live numbers whose rule is weaker than the public views', which a test holds to their SQL; whose state their numbers do not give; with a cell under their rule, not rounded to it, or counting more than its month; with ranges out of order or overlapping; or with a promise outside its range of chance (§11).
 - **The build refuses a PDF** that is not beside the data, or whose size or hash differs from its facts, as it copies the paper's files into the site (`paperFiles` in `web/scripts/prerender-site.ts`). The build reads the file from `--research`, `site/research/research.json` by default; with none there, or one a run cut short, it names `just research-data`, which makes it.
@@ -136,22 +134,23 @@ The file is not committed. It is made at build time, in `site/research/research.
 | Checks | `internal/domain/checks`, through the list it exports, `checks.Codes()`, which a test holds to every code the package declares. |
 | Grades 1–6 | The first and the last school year the service is for, `profile.MinGrade` and `profile.MaxGrade`. |
 | Options per task, the shift between the solver's two runs, the guess floor, the corridor, the trial series | The product's constants: `solver.Count`; the shift as the solver's own relabelling gives it, where the first letter of the first run stands in the second (`solver.Relabelled`), so the solver keeps its constant to itself; `rating.Guess`; the corridor's bounds, `rating.CorridorLow` and `rating.CorridorHigh`, which the bench reads too rather than keeping copies, and its middle; `rating.TrialAnswers`. |
-| The worked example of thesis 02 | Its five option values are chosen by the text and marked as such (§9). The second run's letters are computed with the solver's own relabelling. |
-| The goals table | The bench's `page` run (§6). |
+| The worked task of the first screen and of thesis 02 | The fence's length and gap and the five option values are chosen by the text and marked as such (§9); the fence's posts are its right option. The second run's letters are computed with the solver's own relabelling. |
+| The student model's board | The bench's `page` run (§6). |
 | The paper's title | The paper: `research/paper-a/main.tex` for English, the first heading of `research/paper-a/draft.ru.md` for Russian. The words carry it, and a test holds the English words to `\title` and the Russian to that heading. |
 | The PDF's pages, size and hash | The PDF itself, read when the paper's run copies it beside the data, or `just site-paper` on a laptop (§10); the site's build holds the file to its size and hash. |
 | Books, their authors and the years the authors died | Curated data, `site/data.json` → `research.sources`: each author's id, the year they died and their books' ids, in the page's order. The names and the titles are words of `research.yaml`, under those ids. |
 | Live numbers | The public views of the counts kept for years, through the snapshot a scheduled query keeps of them every day in `impact_site.live`, committed once a month as `site/research/live.json` (§11). |
 
-## 6. The goals table
+## 6. The student model's board
 
-**Where the numbers come from.** The bench gets a new command, `page`, which runs eleven cells, those of the table and nothing else. It is a command of its own, as the guard is, rather than a set of rules: the bench's own run puts every rule on all nineteen generators and reads comparisons these cells do not hold.
+**Where the numbers come from.** The bench gets a new command, `page`, which runs seven cells, those of the board and nothing else. It is a command of its own, as the guard is, rather than a set of rules: the bench's own run puts every rule on all nineteen generators and reads comparisons these cells do not hold.
 
 | Rule | Generators |
 |---|---|
 | The service, `shrinking/both` | G0, G0-topics1, G2-half, G3 |
-| The rule before R187, `earlier/both` | G0, G0-topics1, G2-half, G3 |
 | The ceiling, `oracle/both` | G0, G2-half, G3 |
+
+Until R250 it ran four more, the rule before R187 on the service's four generators, for a column the page no longer has.
 
 A cell's children and its intervals depend on nothing but its rule and its generator: the children are drawn from seeds named after the generator, and every interval from a stream named after its cell and metric. So these cells give exactly the numbers of the whole run, to the last digit.
 
@@ -172,7 +171,7 @@ Each goal is read by the bench's own `readGoal`, so the page bounds a goal exact
 
 The screen's goals for answers 6–20 are left out: their bound is the service's own value in the same window, so they could only ever say "baseline".
 
-**Columns.** Before R187 (the earlier rule), now (the service), the goal, the ceiling and the mark. The ceiling is the oracle's for the step's measures. For mastery's measures it is perfection, no false mastery and no wait, since the oracle keeps the service's mastery and is no ceiling for it (`docs/learners.md`). The oracle shows no screen.
+**Rows.** Each measure is a row: its name, its unit and the service's mark; a bar from nothing of the service's number, its interval a darker band over it, the goal a dashed line and the oracle's ceiling a dotted one, each labelled with its number; and the number with its interval. The bar runs to all for a share, and otherwise to one, or past one to the least of one, two and five times a power of ten that holds the interval, the goal and the ceiling (`barScale`): one for logits, ten for answers, a hundred for points, five for changes a hundred answers, as the draft draws them. A label alone stands after its line, or before it past the bar's middle. Two labels turn away from each other when each has three tenths of the bar to stand in; otherwise each takes its side as a label alone does, and the ceiling's drops to a second row under the bar wherever the two could meet (`linePlaces`). The ceiling is the oracle's for the step's measures. For mastery's measures it is perfection, no false mastery and no wait, since the oracle keeps the service's mastery and is no ceiling for it (`docs/learners.md`). The oracle shows no screen. A ceiling at nothing draws no line, and perfection draws none: the lag's row says instead, in its unit, that the best possible is the oracle's nothing, as the draft has it. The board's key names the ceiling only while a bar draws one.
 
 **Marks.** A goal is read on the value and its 95 % interval, by the bench's own rule:
 - **reached** when the whole interval is on the right side of the bound;
@@ -182,9 +181,10 @@ The screen's goals for answers 6–20 are left out: their bound is the service's
 Some bounds are computed from the service's own value of the same measure, the same generator and metric: `own` in the data. There the service's mark is decided in advance: a share of its own value is never reached, and a multiple of it always is. So its row says **baseline**, and the page says plainly that such a goal is the bar for the next rule.
 - The lag, the corridor of a child who learns and the answers until a mastery are such goals.
 - The screen's late window is not, since its bound is the service's value in another window, a measure of its own.
-- The rule before R187 gets marks everywhere: no bound is its own.
 
-**Provenance.** Under the table: the commit the numbers were computed on, the seed, the children per cell and the answers per child, and that no child and no language model took part. One more line says that the paper reports the rule as it stood at the commit its numbers were computed on, `52ce869`. The PDF's version names another, the commit the PDF was built from (R239), so the line names the commit by what it is rather than as the paper's own (R248). This page follows the service as it runs, so the two differ.
+The legend under the board explains the marks the rows hold, in the draft's words: "baseline" is «Планка» in Russian.
+
+**Provenance.** Over the board, in one line: the commit the numbers were computed on and its date, the children per cell and the answers per child, and the seed. The board's key names the interval's 95 %, and the lead says that the children are simulated. One more line says that the paper reports the rule as it stood at the commit its numbers were computed on, `52ce869`. The PDF's version names another, the commit the PDF was built from (R239), so the line names the commit by what it is rather than as the paper's own (R248). This page follows the service as it runs, so the two differ.
 
 ## 7. The pipeline
 
@@ -199,7 +199,7 @@ Some bounds are computed from the service's own value of the same measure, the s
   A hash of the sources, which T72.12 drew up, would need a list of every file the cells depend on, and the toolchain image's tag would change the key whenever any tool in the image moved. The program is the whole list, and is what runs.
 - **On a pull request** the numbers are computed and shown in the summary but not published. The cache is restored and saved, so a pull request that leaves the model alone computes nothing. Go's own caches are restored on a pull request too.
 - **On a run that publishes** the numbers are computed again from its commit, with no cache restored: nothing an earlier run left behind reaches the site, Go's caches included. That is a release, which `release.yml` starts after green CI on `main` (R195), and a build started by hand. The run only asks whether numbers are kept under its key, and keeps its own when none are, for the pull requests after it: a key once kept is never written again.
-- **Cost.** The eleven cells took 18 seconds on the twenty processors of the machine T72.13.1 was built on, 3.8 processor-minutes, against the whole run's 59 over its 190 cells. On the four processors of a runner that is about a minute, plus the bench's build; the first pull request's summary gives the runner's own figure.
+- **Cost.** The seven cells took 10 seconds on the twenty processors of the machine R250 was built on, about two processor-minutes; the eleven of T72.13.1 had taken 18 seconds there, against the whole run's 59 processor-minutes over its 190 cells. On the four processors of a runner that is well under a minute, plus the bench's build.
 - **Failure.** A failed computation fails the build, and the release publishes nothing: the site stays as it was. A release only follows a CI run in which the bench's tests and its guard passed.
 - **The guard holds the model, not the page's numbers.** T72.12 asked for the guard to hold the page's numbers to its bands.
   - It holds the service on every pull request (`ci.yml`), and the page's numbers come from the same code. A release only follows a green CI, so it never shows the numbers of a model the guard refused.
@@ -213,12 +213,14 @@ Every chart is drawn at build time by the page's own Preact components, in SVG o
 
 | Chart | Drawn as | Its table |
 |---|---|---|
-| The goals | The table is the chart: in each row a bar for the rule before R187 and one for the service, each with a whisker for its interval, and ticks for the bound and the oracle's ceiling, hidden from screen readers, which read the cells | Itself |
+| The student model | A bar in each row of the board (§6): the fill, the interval's band and the lines hidden from screen readers, which read the labels of the goal and the ceiling and the number beside the bar | Its rows |
 | The reference tasks by level | A bar of three parts, each as wide as its count | Its labelled parts |
-| The theses' diagrams | HTML, as in the draft | — |
-| Live: promised → came true | SVG on a square whose two axes share their scale, from four tenths, or from the lowest tenth drawn, to one: the dashed diagonal where a promise comes true, the corridor's band, and a point per range of chance, the larger the more answers it holds | Beside it |
-| Live: came true less promised, by the child's answers | The table is the chart: in each row an HTML bar from nothing, the dashed line in the middle, with a whisker of one standard error either way, hidden from screen readers, which read the cells | Itself |
-| Live: the share right on the rule's tasks | One HTML bar over the corridor's band, with a dashed tick at the chance promised on average | A row beside it |
+| The first screen's way of a task, the theses' diagrams | HTML, as in the draft | — |
+| Live: promised → came true | A square whose two axes share their scale, from four tenths, or from the lowest tenth drawn, to one: the dashed diagonal where a promise comes true in SVG, the corridor's band, and a point per range of chance, the larger the more answers it holds, joined by a line within each run of ranges that meet, never across a range the month leaves out | Under it, hidden from the eye |
+| Live: came true less promised, by the child's answers | A row for each range: its answers, an HTML bar from nothing, the dashed line in the middle, with a whisker of one standard error either way, and its number | Under it, hidden from the eye |
+| Live: the share right on the rule's tasks | The share, large, and a point on a bar from nothing to one, over the corridor's band and a dashed line at its middle | Under it, hidden from the eye |
+
+Each live drawing is hidden from screen readers, and its table, which a screen reader reads, is hidden from the eye (`s-hidden`): the draft sets the three side by side, with no room for a table beside each.
 
 **Numbers** are formatted with `Intl.NumberFormat(locale)`, by the measure's unit (`ResearchNumbers.tsx`): shares as percentages with up to one decimal, logits with two, answers and changes a hundred answers with up to one, points whole, a chance with one to three decimals, an end of a range of chance with two, and a difference of chances, came true less promised, with its sign; years and the seed with no grouping, since they are names more than amounts. The live numbers' month is named by `<Month>` as the page's language names a month, in a `<time datetime>` of the month. An interval is its two ends in the words' pattern `{low}–{high}`: `formatRange` writes an interval whose ends round alike as one approximate number, "≈0", where the table means "from 0 to 0". Tables use tabular figures.
 
@@ -244,7 +246,7 @@ The rule is the paper's (`research/tools/handtyped`): a number reaches the text 
 
 1. **Components** (`web/src/site/ResearchNumbers.tsx`).
    - `<Num>` writes a number from data as `<data value="0.5377">0,538</data>`: the value as the file holds it, the text as the page's language writes it.
-   - `<Given>` marks a number the text chooses rather than reports, as `<span data-given>`: the worked example's option values, an axis's 0 and 1, a thesis's place. The authors' years are data, not given.
+   - `<Given>` marks a number the text chooses rather than reports, as `<span data-given>`: the worked task's fence and option values, an axis's 0 and 1, a thesis's place. The fence's sum is written in a `<span>` rather than `<code>`, which the scan reads as a commit. The authors' years are data, not given.
    - `<Counted>` writes a count with its noun. The noun's plural wordings, in the site's dictionary, hold no `{count}`: the count picks the form and is written beside it as `<Num>`. A sentence of the words takes the two as slots of its own, `{count}` and `{noun}`, from `countSlots`, and places them as its language orders them; no verb of it agrees with the count, which the data may move to any number.
    - An identifier from data that holds digits but is no number is written in its own element: a commit's hash in `<code>` by `<Commit>`, a date in `<time datetime>` by `<CommitDate>`, the live numbers' month in `<time datetime>` by `<Month>`. The scan passes such an element only when it stands for a value of the file: a code that begins the commit the numbers were computed on or the paper's commit, a time whose `datetime` is the commit's date or the live numbers' month.
 2. **The words hold no digit.** A test fails on any digit in either `research.yaml` outside an allowed name. Counts in a sentence come through slots, as on "Techniques".
@@ -254,7 +256,7 @@ The rule is the paper's (`research/tools/handtyped`): a number reaches the text 
 
 ## 10. The paper on the page
 
-- **Title.** In English, "The Model Writes, the Service Checks: Olympiad-Style Maths Problems for Primary-School Children inside Chat Assistants". In Russian, the Russian draft's title. Both are words of `research.yaml`, the English held to `research/paper-a/main.tex` by a test.
+- **Title.** In English, "The Model Writes, the Service Checks: Olympiad-Style Maths Problems for Primary-School Children inside Chat Assistants". In Russian, the Russian draft's title. The page's heading is the title up to its colon, in two lines as the draft sets it (R250); a test holds the English to `research/paper-a/main.tex` and the Russian to the Russian draft's heading.
 - **The PDF.** The research's job "Paper A" makes it on every release and every pull request (R239, R248):
   - it builds the named PDF with `just research paper-a`, which runs the paper's own checks first, beside the anonymous one;
   - `just _paper-to-site` refuses the PDF when the research's tree held changes no commit has, before the build or while it ran, since the PDF prints the commit it is built from, which must make it (R239). It copies the PDF to `site/research/paper-a.en.pdf` and writes to `site/research/paper.json` its pages, as the build's log gives them, its size, held to the file's, its hash and the commit the paper's numbers were computed on;
@@ -311,7 +313,7 @@ The answers are those to tasks the rule chose, after the trial series and withou
   - a key it does not know, and a key it leaves out, which would read as nothing.
 
   It names each range by what it spans (§4), and a test holds its rule to the literals of the views' SQL. It does not hold a range of answers to the trial series of the commit being built: a month counted under another trial series would be refused by a commit that changed it. The site's reader checks the cells again by the rule in the data, and refuses a rule weaker than the views', which a test holds to their SQL too (§4).
-- **On the page.** Three drawings, each with its table (§8); the month by `<Month>`; the rule, the trial series and the corridor through the data, since the words hold no digit (§9). The styles are in the shared stylesheet (§1, decision 9).
+- **On the page.** Three drawings side by side, each with its table hidden from the eye (§8); the month by `<Month>`; the rule, the trial series and the corridor through the data, since the words hold no digit (§9). The styles are in the shared stylesheet (§1, decision 9).
 - **Forks.** A fork's live numbers are its own deployment's: it removes `site/research/live.json` and takes its own, and it either sets up an App of its own for `live.yml` or turns that workflow off (`docs/self-hosting.md`).
 
 ## 12. What gets built, and what is left
@@ -327,6 +329,7 @@ The answers are those to tasks the rule chose, after the trial series and withou
   - **T73.2, the data (R234):** `research.yml` holds the experiments to their results and makes `research.json` and `numbers.tex` from the release's commit. `pages.yml` downloads the data for a release and makes it on a pull request, and builds the site from the data in place with `just _site-build _site-check`, while `just site` still makes the data first. The build reads it at its default `--research`, beside the PDF it names, and the bench's steps both workflows run are one action, `.github/actions/page-data`.
   - **T73.3, the paper (R239):** a release builds the named and the anonymous PDF from those numbers, with the checks of every pull request, the named one printing its version, and hands them on as `paper-a`. No Russian PDF is built.
   - **T73.4, the paper on the page (R248):** `research.yml` builds the paper before the page's data, which takes the clean PDF in, and a pull request builds its site from the same run without publishing it. The PDF and its facts are no longer committed, and the page names the commit the paper's numbers were computed on.
+- **R250, the second draft (2026-10-07):** the page's components and its rules in the shared stylesheet are drawn anew after the draft, with the first screen's way of a task, the theses as rows, the board of §6 and the live block's three columns; the bench's `page` runs seven cells, and `research.json` loses the rule before R187 and the goals' parameters, which no word of the page names any more.
 
 **Rejected:**
 - the bench's numbers committed and checked for freshness: a committed file cannot name the commit it was computed on, any change of the model's inputs would need the whole run and a ten-thousand-line diff, and an arm64 machine parts in the last digits;
@@ -337,6 +340,9 @@ The answers are those to tasks the rule chose, after the trial series and withou
 - the report's own numbers on the page, which are exact and unrounded;
 - the page's own numbers held to the guard's bands, which are drawn for 300 children: the guard holds the model on every pull request instead;
 - "the last 30 days" in the live block;
+- the rule before R187 beside the service (R250): the author found the two columns too much, and the bench's own run keeps the comparison;
+- the draft's simulated live numbers until a month is counted whole (R250);
+- a board 680 px wide that scrolls sideways on a narrow screen, as the draft's does (R250);
 - shares behind ten answers rather than ten children;
 - a floor under the live block's month: October, which mixes two models, is never counted whole;
 - the latest month that showed numbers rather than the latest counted whole, which would pass an older month off as the latest;

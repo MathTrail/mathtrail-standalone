@@ -98,10 +98,6 @@ type OpenRequest struct {
 	// OpenedAt starts the window after which an unfinished request counts as
 	// abandoned.
 	OpenedAt Time `json:"opened_at"`
-	// TakenAfter is the task a card asked for the next one after, when it was
-	// a card's ask that this request answers: the same ask made again finds
-	// it rather than skipping the task it brings.
-	TakenAfter string `json:"taken_after,omitempty"`
 	// TutorMode is who chose the topic and the difficulty.
 	TutorMode TutorMode `json:"tutor_mode"`
 }
@@ -145,10 +141,6 @@ type CurrentTask struct {
 	// IssuedAt is when the task was handed out, and the pace is measured from
 	// it.
 	IssuedAt Time `json:"issued_at"`
-	// Kept says the task was written ahead and kept until the child asked for
-	// the next one, rather than written while they waited: the model that did
-	// not ask for it may not have seen it come.
-	Kept bool `json:"kept,omitempty"`
 	// Language is what the task is written in.
 	Language string `json:"language"`
 	// Options are the ones the child chooses between, keyed by letter.
@@ -157,10 +149,6 @@ type CurrentTask struct {
 	// string. Nothing about it changes shape with the answer: its length says
 	// nothing, and it is opened only by an answer to this task.
 	Sealed string `json:"sealed"`
-	// TakenAfter is the task a card asked for the next one after, when a card
-	// asked for this one: the same ask made again, its answer lost on the way,
-	// is told this task rather than skipping it.
-	TakenAfter string `json:"taken_after,omitempty"`
 	// Topic is the catalog id of what is being asked.
 	Topic string `json:"topic"`
 	// TutorMode is who chose the task's topic and difficulty, as its request

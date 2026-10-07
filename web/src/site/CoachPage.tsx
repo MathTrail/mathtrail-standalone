@@ -1,5 +1,5 @@
 import { address } from "./addresses";
-import { coachPrototypePath } from "./brand";
+import { coachPrototypePath, coachScreenPath, coachScreenSize } from "./brand";
 import type { SiteData } from "./data";
 import type { PageProps } from "./pages";
 import type { PageReader } from "./reader";
@@ -8,7 +8,8 @@ import { useSiteWords } from "./words";
 
 /**
  * prototypeSection is the anchor of the part of the page that frames the
- * prototype, which the first screen's button leads to.
+ * prototype, which the first screen's button and its screen of the prototype
+ * lead to.
  */
 export const prototypeSection = "prototype";
 
@@ -42,7 +43,10 @@ function techniqueCount(data: SiteData): number {
 
 // Hero is the first screen: a badge that says the coach is in the making, the
 // heading and what the coach does, then the way to its prototype further down
-// and to the techniques it plans with.
+// and to the techniques it plans with; beside them, a screen of the prototype,
+// which leads to it too, with a line under it. The screen is the first
+// screen's own picture, so it loads with the page rather than once a reader
+// comes near it.
 function Hero({ page, techniques }: { page: PageReader; techniques: number }) {
 	const words = useSiteWords();
 	return (
@@ -60,6 +64,17 @@ function Hero({ page, techniques }: { page: PageReader; techniques: number }) {
 					</a>
 				</p>
 			</div>
+			<figure class="s-coach-screen">
+				<a href={`#${prototypeSection}`}>
+					<img
+						src={coachScreenPath}
+						width={coachScreenSize.width}
+						height={coachScreenSize.height}
+						alt={page.plain("hero.screen")}
+					/>
+				</a>
+				<figcaption>{page.text("hero.caption")}</figcaption>
+			</figure>
 		</section>
 	);
 }

@@ -140,7 +140,7 @@ const components = new Map<string, Drawn>([
 	["guides/sample", { draw: Sample }],
 ]);
 
-// The site's words, with the two the test's menu needs in both languages.
+// The site's words, with the three the test's menus need in both languages.
 const dictionaries = new Map([
 	...siteDictionaries,
 	[
@@ -149,6 +149,7 @@ const dictionaries = new Map([
 			...siteDictionaries.get("en"),
 			"nav.guide": "Guide",
 			"nav.connect": "Connect",
+			"nav.sample": "Sample",
 		},
 	],
 	[
@@ -157,6 +158,7 @@ const dictionaries = new Map([
 			...siteDictionaries.get("ru"),
 			"nav.guide": "Гид",
 			"nav.connect": "Подключить",
+			"nav.sample": "Пример",
 		},
 	],
 ]);
@@ -565,6 +567,68 @@ describe("the menu", () => {
 	});
 });
 
+describe("a group of the menu", () => {
+	// grouped is the site with its two pages held together in the menu.
+	const grouped = renderSite({
+		...site,
+		frame: {
+			...frame,
+			menu: [
+				{
+					label: "nav.technical",
+					items: [
+						{ page: "guide", label: "nav.guide" as SiteKey },
+						{ page: "guides/sample", label: "nav.sample" as SiteKey },
+					],
+				},
+			],
+		},
+	});
+	const guide = page(grouped, "ru/guide/index.html");
+
+	test("holds its pages together in the menu's row, under the word a screen reader says for them", () => {
+		expect(attributes(guide, ".s-navlinks > .s-nav-group", "role")).toEqual([
+			"group",
+		]);
+		expect(
+			attributes(guide, ".s-navlinks > .s-nav-group", "aria-label"),
+		).toEqual(["Технические страницы"]);
+		expect(attributes(guide, ".s-navlinks .s-nav-group a", "href")).toEqual([
+			"/ru/guide/",
+			"/ru/guides/sample/",
+		]);
+		expect(texts(guide, ".s-navlinks .s-nav-group a")).toEqual([
+			"Гид",
+			"Пример",
+		]);
+	});
+
+	test("marks the page being read among its pages", () => {
+		expect(
+			attributes(guide, ".s-navlinks .s-nav-group a", "aria-current"),
+		).toEqual(["page", ""]);
+		expect(
+			attributes(
+				page(grouped, "ru/guides/sample/index.html"),
+				".s-navlinks .s-nav-group a",
+				"aria-current",
+			),
+		).toEqual(["", "page"]);
+	});
+
+	test("is drawn the same in the folded menu", () => {
+		expect(
+			attributes(guide, ".s-menu-list > .s-nav-group", "aria-label"),
+		).toEqual(["Технические страницы"]);
+		expect(attributes(guide, ".s-menu-list .s-nav-group a", "href")).toEqual(
+			attributes(guide, ".s-navlinks .s-nav-group a", "href"),
+		);
+		expect(
+			attributes(guide, ".s-menu-list .s-nav-group a", "aria-current"),
+		).toEqual(["page", ""]);
+	});
+});
+
 describe("the bare domain", () => {
 	const front = page(files, "index.html");
 
@@ -761,6 +825,31 @@ describe("a site that cannot be built", () => {
 				},
 			},
 			"the menu leads to the page why, which the site does not have",
+		],
+		[
+			"a group of the menu with a page the site does not have",
+			{
+				frame: {
+					...frame,
+					menu: [
+						{
+							label: "nav.technical" as SiteKey,
+							items: [{ page: "why", label: "nav.guide" as SiteKey }],
+						},
+					],
+				},
+			},
+			"the menu leads to the page why, which the site does not have",
+		],
+		[
+			"a group of the menu with no page",
+			{
+				frame: {
+					...frame,
+					menu: [{ label: "nav.technical" as SiteKey, items: [] }],
+				},
+			},
+			"the menu's group nav.technical holds no page",
 		],
 		[
 			"a footer that leads to a page the site does not have",

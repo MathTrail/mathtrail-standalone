@@ -94,7 +94,7 @@ func costOf(t *testing.T, fake *drivetest.Drive, session *mcp.ClientSession, too
 // sure nothing changed it in between, and writes it. A whole task — asked for,
 // its package fetched, handed in, answered — is ten calls on a warm instance,
 // and each look the card waiting for it takes is one more. A task written
-// ahead costs the same writes, and a card takes it for one read and one write.
+// ahead costs the same writes, and next_task hands it out for one write.
 // The profile's own tool and the progress also say where the file is, which
 // takes a search and the folder's name.
 func TestEveryToolStaysWithinItsDriveBudget(t *testing.T) {
@@ -164,14 +164,14 @@ func TestEveryToolStaysWithinItsDriveBudget(t *testing.T) {
 		t.Errorf("submit_answer given again cost %v, want %v", got, read)
 	}
 
-	aheadStaysWithinItsBudget(t, fake, warm, p.CurrentTask.ID)
+	aheadStaysWithinItsBudget(t, fake, warm)
 }
 
 // aheadStaysWithinItsBudget holds the next task, written ahead after the task
 // on the card, to the Drive budget: its request opened, its package handed
-// back while it is written, it kept, nothing more to write, and a card taking
-// it — and told the same when it asks again.
-func aheadStaysWithinItsBudget(t *testing.T, fake *drivetest.Drive, warm *overDrive, onTheCard string) {
+// back while it is written, it kept, nothing more to write, and next_task
+// handing it out on the card it draws.
+func aheadStaysWithinItsBudget(t *testing.T, fake *drivetest.Drive, warm *overDrive) {
 	t.Helper()
 
 	session := warm.session
@@ -198,12 +198,8 @@ func aheadStaysWithinItsBudget(t *testing.T, fake *drivetest.Drive, warm *overDr
 	if got := costOf(t, fake, session, "prepare_task", aheadChoice); !maps.Equal(got, read) {
 		t.Errorf("prepare_task with a task kept cost %v, want %v", got, read)
 	}
-	took := map[string]any{"task_id": onTheCard}
-	if got := costOf(t, fake, session, "take_task", took); !maps.Equal(got, write) {
-		t.Errorf("take_task taking the task kept cost %v, want %v", got, write)
-	}
-	if got := costOf(t, fake, session, "take_task", took); !maps.Equal(got, read) {
-		t.Errorf("take_task asked again cost %v, want %v", got, read)
+	if got := costOf(t, fake, session, "next_task", map[string]any{"language": "en"}); !maps.Equal(got, write) {
+		t.Errorf("next_task handing out the task kept cost %v, want %v", got, write)
 	}
 }
 

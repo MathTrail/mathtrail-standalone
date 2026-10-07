@@ -24,21 +24,10 @@
         "last": 200
       }
     },
-    "goal_parameters": {
-      "lag_share": 0.45,
-      "corridor_share": 0.27,
-      "unsettled_most": 0.25,
-      "false_most": 0.2,
-      "late_times": 1.5
-    },
     "rules": [
       {
         "id": "shrinking/both",
         "role": "service"
-      },
-      {
-        "id": "earlier/both",
-        "role": "earlier"
       },
       {
         "id": "oracle/both",
@@ -65,12 +54,6 @@
             "low": 0.37804823465282283,
             "high": 0.7172643239947916,
             "mark": "baseline"
-          },
-          "earlier": {
-            "value": 0.6911604933080401,
-            "low": 0.4797559345898946,
-            "high": 0.881627003462796,
-            "mark": "not_reached"
           },
           "ceiling": {
             "of": "oracle",
@@ -100,12 +83,6 @@
             "high": 0.4345,
             "mark": "baseline"
           },
-          "earlier": {
-            "value": 0.332,
-            "low": 0.2655,
-            "high": 0.39749999999999996,
-            "mark": "not_reached"
-          },
           "ceiling": {
             "of": "oracle",
             "value": 0.6060000000000001,
@@ -133,12 +110,6 @@
             "low": 0,
             "high": 0.3,
             "mark": "on_the_edge"
-          },
-          "earlier": {
-            "value": 0.7,
-            "low": 0.4,
-            "high": 1,
-            "mark": "not_reached"
           },
           "ceiling": {
             "of": "oracle",
@@ -168,12 +139,6 @@
             "high": 0.07407407407407407,
             "mark": "reached"
           },
-          "earlier": {
-            "value": 0.7407407407407407,
-            "low": 0.6528925619834711,
-            "high": 0.8269230769230769,
-            "mark": "not_reached"
-          },
           "ceiling": {
             "of": "perfect",
             "value": 0,
@@ -201,12 +166,6 @@
             "low": 0.007751937984496124,
             "high": 0.1978021978021978,
             "mark": "reached"
-          },
-          "earlier": {
-            "value": 0.6320754716981132,
-            "low": 0.5454545454545454,
-            "high": 0.7282608695652174,
-            "mark": "not_reached"
           },
           "ceiling": {
             "of": "perfect",
@@ -236,12 +195,6 @@
             "high": 5.609375,
             "mark": "baseline"
           },
-          "earlier": {
-            "value": 8.246376811594203,
-            "low": 7.1525423728813555,
-            "high": 9.414634146341463,
-            "mark": "not_reached"
-          },
           "ceiling": {
             "of": "perfect",
             "value": 0,
@@ -269,12 +222,6 @@
             "low": 2.5762711864406778,
             "high": 5.508196721311475,
             "mark": "baseline"
-          },
-          "earlier": {
-            "value": 7.508474576271187,
-            "low": 5.980392156862745,
-            "high": 8.885245901639344,
-            "mark": "on_the_edge"
           },
           "ceiling": {
             "of": "perfect",
@@ -304,12 +251,6 @@
             "high": 45,
             "mark": "reached"
           },
-          "earlier": {
-            "value": 36,
-            "low": 33,
-            "high": 40,
-            "mark": "reached"
-          },
           "ceiling": null
         }
       },
@@ -333,12 +274,6 @@
             "high": 7.843137254901961,
             "mark": "on_the_edge"
           },
-          "earlier": {
-            "value": 0.39215686274509803,
-            "low": 0,
-            "high": 1.176470588235294,
-            "mark": "reached"
-          },
           "ceiling": null
         }
       },
@@ -360,12 +295,6 @@
             "value": 38,
             "low": 34,
             "high": 40,
-            "mark": "reached"
-          },
-          "earlier": {
-            "value": 36,
-            "low": 32,
-            "high": 38,
             "mark": "reached"
           },
           "ceiling": null
@@ -391,12 +320,6 @@
             "high": 4.705882352941176,
             "mark": "on_the_edge"
           },
-          "earlier": {
-            "value": 1.1764705882352942,
-            "low": 0,
-            "high": 3.5294117647058827,
-            "mark": "on_the_edge"
-          },
           "ceiling": null
         }
       },
@@ -415,12 +338,6 @@
             "value": 0.471344853237195,
             "low": 0.42128471376952376,
             "high": 0.5146664307155481,
-            "mark": null
-          },
-          "earlier": {
-            "value": 0.5181125750865107,
-            "low": 0.47141983356446876,
-            "high": 0.564555539989261,
             "mark": null
           },
           "ceiling": {
@@ -446,12 +363,6 @@
             "value": 0.4605,
             "low": 0.43550000000000005,
             "high": 0.4835,
-            "mark": null
-          },
-          "earlier": {
-            "value": 0.46299999999999997,
-            "low": 0.42849999999999994,
-            "high": 0.5,
             "mark": null
           },
           "ceiling": {

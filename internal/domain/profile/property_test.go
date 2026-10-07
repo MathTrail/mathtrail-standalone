@@ -442,11 +442,11 @@ func (w *lessonWalk) takeAhead(step int, open *profile.OpenRequest, awaited bool
 			_, _ = w.p.Keep(written(), secret(), w.sealer, w.now)
 		}
 	case 9:
-		_, _ = w.p.HandOutReady("", w.now)
+		_, _ = w.p.HandOutReady(w.now)
 	case 10:
 		if awaited && open.Ahead {
 			w.p.Skip(w.now)
-			open.Await("", w.now)
+			open.Await(w.now)
 			// Its window starts again: the child waits for it from now on.
 			w.asked(open)
 		}

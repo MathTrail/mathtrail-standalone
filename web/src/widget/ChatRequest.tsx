@@ -1,22 +1,7 @@
+import type { Ref } from "preact";
 import { useRef, useState } from "preact/hooks";
 import type { Host } from "./bridge";
 import { type Key, useWords } from "./words";
-
-/**
- * lineWait is how long a card waits for the host to take the model's line
- * before the child's message goes, in milliseconds.
- */
-export const lineWait = 500;
-
-/** within is promise, waited for no longer than ms. */
-export function within(ms: number, promise: Promise<void>): Promise<void> {
-	return Promise.race([
-		promise,
-		new Promise<void>((resolve) => {
-			setTimeout(resolve, ms);
-		}),
-	]);
-}
 
 /**
  * Request is where something a card asked the chat for stands: not asked
@@ -64,9 +49,19 @@ export function useChatRequest(host: Host): {
  * in the words given for it, or not, to be asked again. A host that takes a
  * message may still hold it for the person to send, so an ask whose result
  * the card can name says that rather than that it was sent. It is on the page
- * before it says anything, so that a screen reader hears it when it does.
+ * before it says anything, so that a screen reader hears it when it does, and
+ * it takes the focus, through noteRef, once the ask is taken and the button
+ * pressed for it gone.
  */
-export function RequestNote({ state, taken }: { state: Request; taken: Key }) {
+export function RequestNote({
+	state,
+	taken,
+	noteRef,
+}: {
+	state: Request;
+	taken: Key;
+	noteRef?: Ref<HTMLParagraphElement>;
+}) {
 	const words = useWords();
 	let note = "";
 	if (state === "sent") {
@@ -75,7 +70,12 @@ export function RequestNote({ state, taken }: { state: Request; taken: Key }) {
 		note = words.text("chat.not_sent");
 	}
 	return (
-		<p class="mt-action-note" aria-live="polite">
+		<p
+			class="mt-action-note"
+			aria-live="polite"
+			ref={noteRef}
+			tabIndex={state === "sent" ? -1 : undefined}
+		>
 			{note}
 		</p>
 	);

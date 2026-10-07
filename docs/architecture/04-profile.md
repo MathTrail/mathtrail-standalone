@@ -14,7 +14,6 @@ Field names below are the working schema; T26 fixes them in Go and ships the mig
 flowchart LR
     nt["next_task"]
     pt["prepare_task"]
-    tt["take_task<br/>the card's button"]
     st["submit_task"]
     sa["submit_answer"]
     sp["save_profile"]
@@ -40,9 +39,8 @@ flowchart LR
     nt --> req
     nt --> rec
     nt --> top
-    nt & tt --> cur
-    nt & tt --> rdy
-    tt --> req
+    nt --> cur
+    nt --> rdy
     pt --> req
     pt --> rdy
     st --> rdy
@@ -56,7 +54,7 @@ flowchart LR
     sa --> rec
     sa --> days
     sa --> cur
-    sp & ep & nt & pt & tt & st & sa --> svc
+    sp & ep & nt & pt & st & sa --> svc
 
     kid -.-> rule
     rat -.-> rule
@@ -180,7 +178,7 @@ Two hundred is ten days of heavy use at twenty tasks a day. Beyond that a child 
 | Field | Type | Why |
 |---|---|---|
 | `id` | string | `submit_task` must carry it; anything else is `stale_request` |
-| `opened_at` | RFC 3339 UTC | The abandonment window: 15 minutes by default, `MATHTRAIL_REQUEST_WINDOW` (SPEC 11.2). A request ahead that the child comes to wait for starts it again (R236) |
+| `opened_at` | RFC 3339 UTC | The abandonment window: 15 minutes by default, `MATHTRAIL_REQUEST_WINDOW` (SPEC 11.2). A request ahead that the child comes to wait for starts it again (R252) |
 | `attempts` | integer 0–3 | The counter the model cannot forget its way around |
 | `tutor_mode` | `rule`, `llm` or `person` | Whether the model kept the rule's topic and difficulty or chose its own with a reason, or the task is on the topic a person keeps the lessons to (SPEC 3.6) — the comparison the prototype's D43 set up |
 | `language` | BCP 47 tag | The language of the chat, so the task is written in it (О-14) |
@@ -188,7 +186,6 @@ Two hundred is ten days of heavy use at twenty tasks a day. Beyond that a child 
 | `ahead` | boolean, absent when false | The task is written ahead and kept once accepted, rather than handed to a child who waits for it (R235) |
 | `asked` | boolean, absent when false | A person asked for the topic, the level or the difficulty, so the task written ahead after it is set the same (R237) |
 | `lesson_topic` | string, absent for none | The topic the lessons were kept to when a request ahead was opened, which the task kept is held to (SPEC 3.7) |
-| `taken_after` | string, absent when no card asked | The task a card asked for the next one after: the same ask made again finds this request rather than skipping the task it brings (R236) |
 
 ### The current task
 
@@ -203,8 +200,7 @@ Two hundred is ten days of heavy use at twenty tasks a day. Beyond that a child 
 | `instructions_version` | open | Which version of the instructions produced this task, so the result's log line can carry it (О-21) |
 | `tutor_mode` | open, absent on a task handed out before it was kept | Who chose the task — `rule`, `llm` or `person` — as its request had it, so that the line about its answer can say whether the chance being weighed is the rule's (R153) |
 | `fingerprint` | open | Added to `task_fingerprints` when the task is handed out |
-| `asked`, `taken_after` | open, absent when false or none | As the request had them: a person asked for the task, and the task a card took it after (R236, R237). A task kept takes `asked` from the ask it is handed out to |
-| `kept` | open, absent when false | The task was written ahead and kept until the child asked for the next one, rather than written while they waited: the model is told the words of a task kept that a card took, which it did not see come, and of no other (R236) |
+| `asked` | open, absent when false | As the request had it: a person asked for the task (R237). A task kept takes `asked` from the ask it is handed out to |
 | `wording`, `drawing`, `options`, `hint` | open | Exactly what the card shows and what the model was given back |
 | `sealed` | sealed | `mt1.t.<kid>.<ciphertext>` — the answer, the trap id and the explanation behind each wrong option, the solution and the solver program |
 
@@ -231,7 +227,7 @@ It moves nothing about the child until it is handed out: not the fingerprints, n
 
 `daily` — `{ "date": "2026-09-20", "accepted": 7, "failed": 1 }`. Two counters and the day they belong to. It lives in the file because it must be shared by every instance (О-15, О-24).
 
-- `accepted` — the daily generation limit. Its unit is an accepted task (О-35), counted as it is handed out: checked in `next_task`, `take_task` and `prepare_task`, raised in `submit_task`, or in `next_task` and `take_task` when they hand out a task kept (03-flows, R235).
+- `accepted` — the daily generation limit. Its unit is an accepted task (О-35), counted as it is handed out: checked in `next_task` and `prepare_task`, raised in `submit_task`, or in `next_task` when it hands out a task kept (03-flows, R235).
 - `failed` — the ceiling on failed generations: raised whenever a request ends in `attempts_exhausted`, checked in `next_task`, five a day by default, `MATHTRAIL_DAILY_FAILED` (SPEC 11.2). It exists because О-35 deliberately lets a refusal cost nothing, which on its own leaves a failing model free to loop for ever; the reasoning is in 03-flows and the decision is R15.
 
 The date is a **UTC** date. The service has no reliable idea of the family's timezone, and for once that costs very little: the product shows no rhythm of practice at all — no streaks, no "solved today", nothing to break (R13, О-49) — so an early rollover in the Americas makes the limit *looser* for one evening and never stricter. Taking the offset from the widget, which knows the browser's timezone, would make it exact; it is an improvement, not a debt.
@@ -308,7 +304,7 @@ What grows without a bound of its own is the per-topic summary, which gains an e
 - **Nor did leaving the country of the sign-in out.** `student.signin_country_off` is optional and left out while that country is counted: a file without it reads as before. An older build reads past it and drops it when it writes, so a tick given while two revisions are live can be lost and has to be given again, and that build counts the country meanwhile (R220).
 - **Nor did the topic of the lessons, though a new chooser came with it.** `student.lesson_topic` is optional and left out while the rule chooses. `tutor_mode` gained `person`, which an older build refuses, so a file holding it is one that build cannot read; it came on 2026-10-04 with no profile in any Drive, the author having deleted every one, so nothing written before it was ever read by a build that refuses it (R193).
 - **Nor did the rule of mastery** (R187). The counters keep meaning how many answers there were; the cautious estimate reads them as the uncertainty's n and m beside the step. `mastered_since` and `mastered_level` keep meaning the day and the level a topic is held mastered at, declared now by the cautious estimate. `top_streak` is counted as it was, though no rule reads it, so a file means to an older build what it did: removing it, or no longer counting it, would change what a file of version 1 holds. `ratings.mastery_rule` is optional and marks a file whose masteries the cautious estimate declared; a file without it counts none mastered until its next answer clears them. An older build reads past it and drops it when it writes, so after a rollback and a new rollout the masteries the older build declared are cleared again — they are the earlier rule's.
-- **Nor did the task written ahead** (R235). `ready_task`, and `ahead`, `asked`, `kept`, `lesson_topic` and `taken_after` on the request and the current task, are optional and left out when unset: a file without them reads as before. An older build reads past them and drops them when it writes, so after a rollback a task kept is lost, and a request written ahead is handed out to the card as one the child waits for.
+- **Nor did the task written ahead** (R235). `ready_task`, and `ahead`, `asked` and `lesson_topic` on the request and the current task, are optional and left out when unset: a file without them reads as before. An older build reads past them and drops them when it writes, so after a rollback a task kept is lost, and a request written ahead is handed out to the card as one the child waits for. A file written while a card could take a task may still hold `taken_after` and `kept`, which nothing reads any more: they are read past and dropped at the next write (R252).
 - **The sealed block carries its own version** inside the ciphertext and is migrated or dropped on its own: a task on the card is worth less than a profile.
 - Unknown fields at the current version are ignored on read and are not written back — forward compatibility is the refusal above, not a bag of leftovers.
 

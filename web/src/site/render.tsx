@@ -26,7 +26,8 @@ import {
 import { DocumentPage } from "./DocumentPage";
 import type { SiteData } from "./data";
 import type { FooterLink } from "./Footer";
-import { type Frame, type MenuItem, siteFrame } from "./frame";
+import { type Frame, type MenuItem, menuItems, siteFrame } from "./frame";
+import type { MenuLink } from "./Header";
 import type { Head } from "./Layout";
 import { MovedPage } from "./MovedPage";
 import { cname, robots, sitemap } from "./metadata";
@@ -188,22 +189,28 @@ function headOf(
 }
 
 // frameOf is the frame the page name of a locale is set in: its menu, the
-// page itself marked — a section of it is not the page — the header's button,
-// every language of the site to switch to, and the pages the footer leads to.
+// page itself marked, in a group of the menu as well — a section of it is not
+// the page — the header's button, every language of the site to switch to,
+// and the pages the footer leads to.
 function frameOf(site: Site, locale: string, name: string): PageFrame {
 	const words = site.wordsOf(locale);
 	const hrefOf = ({ page, anchor }: MenuItem) =>
 		anchor === undefined
 			? address(locale, page)
 			: sectionAddress(locale, page, anchor);
+	const linkOf = (item: MenuItem): MenuLink => ({
+		href: hrefOf(item),
+		label: words.text(item.label),
+		current: item.anchor === undefined && item.page === name,
+	});
 	const { action } = site.frame;
 	return {
 		home: address(locale, frontPage),
-		menu: site.frame.menu.map((item) => ({
-			href: hrefOf(item),
-			label: words.text(item.label),
-			current: item.anchor === undefined && item.page === name,
-		})),
+		menu: site.frame.menu.map((entry) =>
+			"items" in entry
+				? { label: words.text(entry.label), links: entry.items.map(linkOf) }
+				: linkOf(entry),
+		),
 		action:
 			action === undefined
 				? undefined
@@ -303,14 +310,20 @@ function checkCardLanguage(locale: string): void {
 }
 
 // checkFrame refuses a menu or a footer that leads to a page the site does not
-// have: a page joins them with the task that publishes it.
+// have: a page joins them with the task that publishes it. A group of the
+// menu holds a page at least, or the header would draw an empty frame.
 function checkFrame(frame: Frame, names: readonly string[]): void {
 	if (frame.action !== undefined && !names.includes(frame.action.page)) {
 		throw new Error(
 			`the header's button leads to the page ${frame.action.page}, which the site does not have`,
 		);
 	}
-	for (const { page } of frame.menu) {
+	for (const entry of frame.menu) {
+		if ("items" in entry && entry.items.length === 0) {
+			throw new Error(`the menu's group ${entry.label} holds no page`);
+		}
+	}
+	for (const { page } of menuItems(frame.menu)) {
 		if (!names.includes(page)) {
 			throw new Error(
 				`the menu leads to the page ${page}, which the site does not have`,

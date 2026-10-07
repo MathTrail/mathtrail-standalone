@@ -26,12 +26,6 @@ afterEach(() => {
 });
 
 const inEnglish = cardWords("en", undefined);
-
-// takeFence is the card asking for the next task after the fence. The service
-// of these cases takes none, so the card asks twice — tookNone — and then the
-// chat, as it always did.
-const takeFence = { name: "take_task", arguments: { task_id: "task_fence" } };
-const tookNone = [takeFence, takeFence];
 const inRussian = cardWords("ru", undefined);
 
 // service answers the card's calls as the service would: a topic chosen saved
@@ -58,6 +52,7 @@ async function draw(
 	options: {
 		tools?: (call: ToolCall) => CallToolResult | Promise<CallToolResult>;
 		links?: Opening;
+		refuseMessages?: boolean | number;
 		refuseModelLines?: boolean;
 	} = {},
 ) {
@@ -144,10 +139,27 @@ const pressedIn = () =>
 		),
 	].map((name) => name.textContent);
 const topicNote = () => text(".mt-topic-note");
-const requestNote = () =>
-	text(".mt-foot > .mt-action-note:not(.mt-topic-note)");
+// askNote is what the card says of its ask for another task.
+const askNote = () =>
+	root.querySelector(".mt-foot > .mt-action-note:not(.mt-topic-note)");
+const requestNote = () => askNote()?.textContent;
 const anotherComing =
 	"Once the ask reaches the chat, the new task will come below, in a new card.";
+const notSent = "Not sent — try again";
+
+// expectDoneWith checks that the chat took the card's ask for another task, and
+// the card is done with: it keeps its task, its options are locked, its
+// buttons and its choice of the topic are gone, and what it says of the task
+// to come has the focus.
+async function expectDoneWith() {
+	await vi.waitFor(() => expect(requestNote()).toBe(anotherComing));
+	expect(text(".mt-task-text")).toBe(fence.task.question);
+	expect(option("A").getAttribute("aria-disabled")).toBe("true");
+	expect(root.querySelector(".mt-btns")).toBeNull();
+	expect(root.querySelector(".mt-topic-panel")).toBeNull();
+	expect(askNote()?.getAttribute("tabindex")).toBe("-1");
+	expect(document.activeElement).toBe(askNote());
+}
 
 // open opens the panel as a person does.
 function open(): void {
@@ -375,10 +387,9 @@ describe("the panel of topics", () => {
 		press(older);
 
 		await vi.waitFor(() =>
-			expect(heard.calls[0]).toEqual({
-				name: "edit_profile",
-				arguments: { lesson_topic: "logic.sets" },
-			}),
+			expect(heard.calls).toEqual([
+				{ name: "edit_profile", arguments: { lesson_topic: "logic.sets" } },
+			]),
 		);
 	});
 
@@ -455,7 +466,7 @@ describe("the panel of topics", () => {
 });
 
 describe("a topic chosen", () => {
-	test("is saved, told to the model, and then asked for in the child's words, and the button names it", async () => {
+	test("is saved, told to the model, and then asked for in the child's words, which the card ends on", async () => {
 		const heard = await draw();
 		open();
 
@@ -469,23 +480,34 @@ describe("a topic chosen", () => {
 		expect(heard.messages[0]).toMatch(/^Another task.— on the topic “Clocks”$/);
 		expect(heard.calls).toEqual([
 			{ name: "edit_profile", arguments: { lesson_topic: "time.clocks" } },
-			...tookNone,
 		]);
 		expect(heard.modelLines).toEqual([topicWords]);
-		expect(heard.order).toEqual([
-			"call",
-			"model line",
-			"call",
-			"call",
-			"message",
-		]);
+		expect(heard.order).toEqual(["call", "model line", "message"]);
+		// The new task comes below, in a card of its own.
+		await expectDoneWith();
+	});
+
+	test("whose ask the chat did not take stays chosen, named on its button, and is asked for again", async () => {
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		const heard = await draw(withTopicChoice(fence), { refuseMessages: 1 });
+		open();
+
+		press(choice("Clocks"));
+
+		await vi.waitFor(() => expect(requestNote()).toBe(notSent));
+		expect(heard.messages).toHaveLength(1);
 		expect(panel().hidden).toBe(true);
 		expect(topicButton().textContent).toBe("Topic: Clocks");
-		expect(document.activeElement).toBe(topicButton());
-		await vi.waitFor(() => expect(requestNote()).toBe(anotherComing));
+		expect(topicButton().getAttribute("aria-disabled")).toBeNull();
+		expect(option("A").getAttribute("aria-disabled")).toBeNull();
 		expect(topicNote()).toBe("");
-		// The card keeps its task: the new one comes below, in a card of its own.
-		expect(text(".mt-task-text")).toBe(fence.task.question);
+
+		press(button("Another task"));
+
+		await vi.waitFor(() => expect(heard.messages).toHaveLength(2));
+		expect(heard.messages[1]).toBe("Another task");
+		expect(heard.calls.map((call) => call.name)).toEqual(["edit_profile"]);
+		await expectDoneWith();
 	});
 
 	test("given back to the coach asks for a task the coach chooses", async () => {
@@ -501,9 +523,8 @@ describe("a topic chosen", () => {
 		);
 		expect(heard.calls).toEqual([
 			{ name: "edit_profile", arguments: { lesson_topic: "" } },
-			...tookNone,
 		]);
-		expect(topicButton().textContent).toBe("Topic: the coach chooses");
+		await expectDoneWith();
 	});
 
 	test("again, with nothing changed, tells the model nothing and asks for the task all the same", async () => {
@@ -528,8 +549,9 @@ describe("a topic chosen", () => {
 		expect(heard.modelLines).toEqual([]);
 	});
 
-	test("is asked for on a host that never answers the line for the model, and the card is free again", async () => {
-		const opened = await openCard({ tools: service });
+	test("is asked for on a host that never answers the line for the model, and leaves the card free once the ask is refused", async () => {
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		const opened = await openCard({ tools: service, refuseMessages: true });
 		root = opened.root;
 		opened.host.onupdatemodelcontext = () => new Promise(() => {});
 		await deliver(opened.host, withTopicChoice(fence));
@@ -541,10 +563,13 @@ describe("a topic chosen", () => {
 		press(choice("Clocks"));
 
 		await vi.waitFor(() => expect(opened.heard.messages).toHaveLength(1));
+		// The chat did not take the ask, so the card is given back, no longer
+		// saving the topic.
 		await vi.waitFor(() =>
 			expect(topicButton().getAttribute("aria-disabled")).toBeNull(),
 		);
 		expect(option("A").getAttribute("aria-disabled")).toBeNull();
+		expect(topicNote()).toBe("");
 	});
 
 	test("is asked for once the host has taken the line for the model", async () => {
@@ -564,13 +589,7 @@ describe("a topic chosen", () => {
 		press(choice("Clocks"));
 
 		await vi.waitFor(() => expect(opened.heard.messages).toHaveLength(1));
-		expect(opened.heard.order).toEqual([
-			"call",
-			"model line",
-			"call",
-			"call",
-			"message",
-		]);
+		expect(opened.heard.order).toEqual(["call", "model line", "message"]);
 	});
 
 	test("carries to the model the line of an answer no message has carried yet", async () => {
@@ -585,18 +604,19 @@ describe("a topic chosen", () => {
 		expect(heard.modelLines[1]).toBe(`${heard.modelLines[0]}\n\n${topicWords}`);
 	});
 
-	test("carries no line a message has carried already", async () => {
-		const heard = await draw();
+	test("carries to the model the line of an answer an ask the chat refused did not carry", async () => {
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		const heard = await draw(withTopicChoice(fence), { refuseMessages: 1 });
 		press(option("B"));
 		await vi.waitFor(() => expect(heard.modelLines).toHaveLength(1));
 		press(button("Another task"));
-		await vi.waitFor(() => expect(heard.messages).toHaveLength(1));
+		await vi.waitFor(() => expect(requestNote()).toBe(notSent));
 		open();
 
 		press(choice("Clocks"));
 
 		await vi.waitFor(() => expect(heard.messages).toHaveLength(2));
-		expect(heard.modelLines[1]).toBe(topicWords);
+		expect(heard.modelLines[1]).toBe(`${heard.modelLines[0]}\n\n${topicWords}`);
 	});
 
 	test("is asked for on a host that keeps no line for the model", async () => {
@@ -681,11 +701,7 @@ describe("a topic chosen", () => {
 		saved.arrive(topicSaved("time.clocks"));
 
 		await vi.waitFor(() => expect(heard.messages).toHaveLength(1));
-		expect(heard.calls.map((call) => call.name)).toEqual([
-			"edit_profile",
-			"take_task",
-			"take_task",
-		]);
+		expect(heard.calls.map((call) => call.name)).toEqual(["edit_profile"]);
 		expect(heard.messages[0]).toContain("Clocks");
 	});
 
@@ -716,11 +732,7 @@ describe("a topic chosen", () => {
 		});
 
 		await vi.waitFor(() => expect(heard.messages).toHaveLength(1));
-		expect(heard.calls.map((call) => call.name)).toEqual([
-			"edit_profile",
-			"take_task",
-			"take_task",
-		]);
+		expect(heard.calls.map((call) => call.name)).toEqual(["edit_profile"]);
 		expect(heard.messages[0]).toContain("Clocks");
 		expect(root.querySelector(".mt-verdict-line")).toBeNull();
 	});
@@ -734,7 +746,7 @@ describe("a topic chosen", () => {
 		press(choice("Clocks"));
 
 		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
-		expect(heard.calls).toEqual(tookNone);
+		expect(heard.calls).toEqual([]);
 	});
 
 	test("once the answer is in, locks the next task while it is saved", async () => {
@@ -768,8 +780,8 @@ describe("a topic chosen", () => {
 		});
 
 		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
-		expect(heard.calls).toEqual(tookNone);
-		expect(topicButton().textContent).toBe("Topic: the coach chooses");
+		expect(heard.calls).toEqual([]);
+		await expectDoneWith();
 	});
 
 	test("can be chosen once the answer is in", async () => {
@@ -783,10 +795,10 @@ describe("a topic chosen", () => {
 		press(choice("Percentages"));
 
 		await vi.waitFor(() => expect(heard.messages).toHaveLength(1));
-		expect(heard.calls.slice(-3)).toEqual([
-			{ name: "edit_profile", arguments: { lesson_topic: "percent.basic" } },
-			...tookNone,
-		]);
+		expect(heard.calls.at(-1)).toEqual({
+			name: "edit_profile",
+			arguments: { lesson_topic: "percent.basic" },
+		});
 	});
 });
 
@@ -802,12 +814,16 @@ describe("the mark of the topic chosen", () => {
 	});
 
 	test("is not above a task the rule gave, once its own topic is chosen on it", async () => {
-		const heard = await draw();
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		// The chat does not take the ask, so the card is given back, and with it
+		// the place the mark would stand.
+		const heard = await draw(withTopicChoice(fence), { refuseMessages: true });
 		open();
 
 		press(choice("Gaps and boundaries"));
 
 		await vi.waitFor(() => expect(heard.messages).toHaveLength(1));
+		await vi.waitFor(() => expect(requestNote()).toBe(notSent));
 		expect(topicButton().textContent).toBe("Topic: Gaps and boundaries");
 		expect(root.querySelector(".mt-topic-chip")).toBeNull();
 	});
@@ -843,11 +859,21 @@ describe("the mark of the topic chosen", () => {
 		);
 		expect(heard.calls).toEqual([
 			{ name: "edit_profile", arguments: { lesson_topic: "" } },
-			...tookNone,
 		]);
 		expect(root.querySelector(".mt-topic-chip")).toBeNull();
+		await expectDoneWith();
+	});
+
+	test("given back with its cross, whose ask the chat did not take, names the coach on the button", async () => {
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		const heard = await draw(onGaps, { refuseMessages: true });
+
+		press(button("Give the choice of the topic back to the coach"));
+
+		await vi.waitFor(() => expect(heard.messages).toHaveLength(1));
+		await vi.waitFor(() => expect(requestNote()).toBe(notSent));
+		expect(root.querySelector(".mt-topic-chip")).toBeNull();
 		expect(topicButton().textContent).toBe("Topic: the coach chooses");
-		expect(document.activeElement).toBe(topicButton());
 	});
 
 	test("takes no press of its cross while an answer is checked", async () => {
@@ -870,7 +896,7 @@ describe("the mark of the topic chosen", () => {
 		expect(heard.messages).toEqual([]);
 	});
 
-	test("takes no press of its cross while an ask for another task is on its way", async () => {
+	test("takes no press of its cross while an ask for another task is on its way, and is gone once the chat has it", async () => {
 		const heard = await draw(onGaps);
 		const cross = button("Give the choice of the topic back to the coach");
 
@@ -879,7 +905,9 @@ describe("the mark of the topic chosen", () => {
 		press(cross);
 
 		await vi.waitFor(() => expect(heard.messages).toEqual(["Another task"]));
-		expect(heard.calls).toEqual(tookNone);
+		expect(heard.calls).toEqual([]);
+		await expectDoneWith();
+		expect(root.querySelector(".mt-topic-chip")).toBeNull();
 	});
 
 	test("that is not saved stays, and says so", async () => {

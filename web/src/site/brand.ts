@@ -51,6 +51,20 @@ export const markPath = "/assets/favicon.svg";
 export const coachPrototypePath = "/assets/coach-prototype.html";
 
 /**
+ * coachScreenPath is where a screen of the coach's prototype is served: the
+ * child choosing a companion, as the author photographed it for the first
+ * screen of the page about the coach. It is kept in the site's own assets
+ * under the same name.
+ */
+export const coachScreenPath = "/assets/coach-screen.png";
+
+/**
+ * coachScreenSize is the size of the prototype's screen, in pixels, which the
+ * page states so that a browser keeps its room before it arrives.
+ */
+export const coachScreenSize = { width: 909, height: 540 } as const;
+
+/**
  * sharingPicturePath is where the picture a shared link to a page of locale
  * shows is served, one for each language of the site. It is kept in the
  * site's own assets under the same name.

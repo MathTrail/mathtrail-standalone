@@ -107,7 +107,8 @@ type line struct {
 	SecondsSinceRequest whole `json:"seconds_since_request"`
 	Drawing             *bool `json:"drawing"`
 	// A task handed out: whether it was written ahead and kept, and whether a
-	// card took it rather than the model asking for it in the chat.
+	// card took it into its own place, which only a line from a release that let
+	// a card do so says.
 	Ready  bool `json:"ready"`
 	ByCard bool `json:"by_card"`
 	// A task written ahead and let go: why, and whether it had been written

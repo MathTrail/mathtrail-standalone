@@ -13,6 +13,18 @@ export type MenuLink = {
 };
 
 /**
+ * MenuLinkGroup is entries of the menu a page draws held together, under the
+ * word a screen reader says for them.
+ */
+export type MenuLinkGroup = {
+	readonly label: string;
+	readonly links: readonly MenuLink[];
+};
+
+/** MenuEntry is one entry of the menu as a page draws it, or a group of them. */
+export type MenuEntry = MenuLink | MenuLinkGroup;
+
+/**
  * ActionLink is the one thing the header asks a reader to do: where it leads,
  * and the words of its button.
  */
@@ -45,7 +57,7 @@ export function Header({
 	languages = [],
 }: {
 	home: string;
-	menu?: readonly MenuLink[];
+	menu?: readonly MenuEntry[];
 	action?: ActionLink;
 	languages?: readonly LanguageLink[];
 }) {
@@ -97,24 +109,45 @@ export function Brand({
 	);
 }
 
-// Menu is the menu's links, the page being read marked, wherever the header
-// draws them.
+// Menu is the menu's links, the page being read marked and a group's links
+// held together, wherever the header draws them.
 function Menu({
 	class: name,
 	links,
 }: {
 	class: string;
-	links: readonly MenuLink[];
+	links: readonly MenuEntry[];
 }) {
 	const words = useSiteWords();
 	return (
 		<nav class={name} aria-label={words.text("nav.pages")}>
-			{links.map(({ href, label, current }) => (
-				<a key={href} href={href} aria-current={current ? "page" : undefined}>
-					{label}
-				</a>
-			))}
+			{links.map((entry) =>
+				"links" in entry ? (
+					// biome-ignore lint/a11y/useSemanticElements: a fieldset groups a form's controls and draws its legend above them, and these are links in the menu's row
+					<span
+						key={entry.label}
+						class="s-nav-group"
+						role="group"
+						aria-label={entry.label}
+					>
+						{entry.links.map((link) => (
+							<MenuAnchor key={link.href} link={link} />
+						))}
+					</span>
+				) : (
+					<MenuAnchor key={entry.href} link={entry} />
+				),
+			)}
 		</nav>
+	);
+}
+
+// MenuAnchor is one link of the menu, marked when it is the page being read.
+function MenuAnchor({ link: { href, label, current } }: { link: MenuLink }) {
+	return (
+		<a href={href} aria-current={current ? "page" : undefined}>
+			{label}
+		</a>
 	);
 }
 

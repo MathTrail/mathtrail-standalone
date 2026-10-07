@@ -78,9 +78,15 @@ func TestTheCardKeepsTheLessonsToATopicAndGivesItBack(t *testing.T) {
 	}
 	words := textOf(t, chosen)
 	wantSaid(t, words, "On the card, the child or the adult chose the topic of the lessons.",
-		"keeps the lessons to Clocks", "Do not explain the choice")
+		"keeps the lessons to Clocks", "Do not explain the choice", "ask for it with next_task when the child does")
 	if strings.Contains(words, "with the form") {
 		t.Errorf("the words %q tell of the form, want the choice on the card of a task", words)
+	}
+	// The card asks the chat for a task on the topic chosen, which only next_task
+	// puts on a card of its own: getting one ready would write it ahead, for no
+	// card to show.
+	if strings.Contains(words, "prepare_task") {
+		t.Errorf("the words %q send the model to prepare_task, want it to ask for the task with next_task", words)
 	}
 
 	back := call(t, session, "edit_profile", map[string]any{"lesson_topic": ""})

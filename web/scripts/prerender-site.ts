@@ -23,6 +23,7 @@ import { build, createServer } from "vite";
 import { fallbackLocale } from "../src/i18n/lookup.ts";
 import {
 	coachPrototypePath,
+	coachScreenPath,
 	type Photo,
 	photoPath,
 	photos,
@@ -154,13 +155,18 @@ export async function buildSite({
 				require.resolve("@fontsource-variable/onest/LICENSE"),
 			),
 		},
-		// The coach's prototype goes out byte for byte as it is kept, and the
-		// licence of the fonts inside it travels with it, as the licence asks.
+		// The coach's prototype and the screen of it the page shows go out byte
+		// for byte as they are kept, and the licence of the fonts inside the
+		// prototype travels with it, as the licence asks.
 		{
 			path: coachPrototypePath.slice(1),
 			data: await readFile(
 				join(repository, "site", coachPrototypePath.slice(1)),
 			),
+		},
+		{
+			path: coachScreenPath.slice(1),
+			data: await readFile(join(repository, "site", coachScreenPath.slice(1))),
 		},
 		{
 			path: "assets/noto-license.txt",

@@ -15,10 +15,10 @@ import (
 
 // The next task is written ahead: once a task is on the card, the model writes
 // the one after it while the child works, and the service keeps it, sealed,
-// until the child asks for another — then it reaches the card at once. What
-// the tools that ask for a task, take one for a card and write one ahead share
-// is here: the lesson as it stands, which a task written ahead has to fit;
-// letting go of one that no longer does; and handing out the task kept.
+// until the child asks for another — then it comes at once, on the card the ask
+// draws. What the tools that ask for a task and write one ahead share is here:
+// the lesson as it stands, which a task written ahead has to fit; letting go of
+// one that no longer does; and handing out the task kept.
 
 // aheadNextText sends the model on to write the next task ahead, once a task
 // is on the card.
@@ -120,16 +120,15 @@ func (s *Service) waitedOpen(p *profile.Profile, now time.Time) *profile.OpenReq
 // waitForAhead makes the task being written ahead the one the child waits
 // for: they asked for the next task before it was handed in. The task left on
 // the card without an answer is recorded as skipped, the profile written, and
-// the lines left: the task skipped, and the request, waited for now.
-// takenAfter is the task a card asked after, when a card asked; asked says a
-// person asked for where the task stands. It is the request, and the task
-// skipped, when there was one.
+// the lines left: the task skipped, and the request, waited for now. asked
+// says a person asked for where the task stands. It is the request, and the
+// task skipped, when there was one.
 func (s *Service) waitForAhead(ctx context.Context, account store.Account, p *profile.Profile, revision store.Revision,
-	takenAfter string, asked bool, now time.Time,
+	asked bool, now time.Time,
 ) (*profile.OpenRequest, *profile.Answer, error) {
 	left, wasSkipped := p.Skip(now)
 	request := p.OpenRequest
-	request.Await(takenAfter, now)
+	request.Await(now)
 	request.Asked = asked
 	p.Touch(s.version, now)
 	if _, err := s.store.Save(ctx, account, p, revision); err != nil {
@@ -148,15 +147,13 @@ func (s *Service) waitForAhead(ctx context.Context, account store.Account, p *pr
 // handOutReady hands the kept task to the child, who asked for the next one,
 // writes the profile, and leaves the lines of the hand-out: the task left on
 // the card without an answer, skipped, and the task kept, accepted now, as
-// ready, and as taken by a card when one asked — takenAfter, the task that
-// card showed, says so — or asked for in the chat. asked says a person asked
-// for where the task stands, which the task kept stood at: the task written
-// ahead after it is then one more like it.
+// ready. asked says a person asked for where the task stands, which the task
+// kept stood at: the task written ahead after it is then one more like it.
 func (s *Service) handOutReady(ctx context.Context, account store.Account, p *profile.Profile, revision store.Revision,
-	takenAfter string, asked bool, now time.Time,
+	asked bool, now time.Time,
 ) (*profile.CurrentTask, error) {
 	ready, left := *p.ReadyTask, p.InFlight()
-	task, err := p.HandOutReady(takenAfter, now)
+	task, err := p.HandOutReady(now)
 	if err != nil {
 		return nil, fmt.Errorf("mcp: hand out the task kept: %w", err)
 	}
@@ -170,19 +167,17 @@ func (s *Service) handOutReady(ctx context.Context, account store.Account, p *pr
 		s.events.write(ctx, account, eventTaskSkipped, s.skippedFields(left.Topic, left.GradeLevel, left.Difficulty)...)
 	}
 	s.events.write(ctx, account, eventTaskAccepted, s.acceptedLine(ctx, p, account, task, &handedOut{
-		attempts: ready.Attempts, written: ready.WrittenAt.Sub(ready.OpenedAt.Time), ready: true, byCard: takenAfter != "",
+		attempts: ready.Attempts, written: ready.WrittenAt.Sub(ready.OpenedAt.Time), ready: true,
 	}, now)...)
 	return task, nil
 }
 
 // handedOut is how a task handed out came to the child: the attempts and the
-// time its writing took, whether it was written ahead and kept ready, and
-// whether a card took it rather than the model asking for it in the chat.
+// time its writing took, and whether it was written ahead and kept ready.
 type handedOut struct {
 	attempts int
 	written  time.Duration
 	ready    bool
-	byCard   bool
 }
 
 // acceptedLine is the line of a task handed out: where it stands, how it came
@@ -199,20 +194,5 @@ func (s *Service) acceptedLine(ctx context.Context, p *profile.Profile, account 
 		zap.Int64("seconds_since_request", int64(how.written/time.Second)),
 		zap.Bool("drawing", strings.TrimSpace(task.Drawing) != ""),
 		zap.Bool("ready", how.ready),
-		zap.Bool("by_card", how.byCard),
 	}, s.acceptedFields(ctx, p, account, task, now)...)
-}
-
-// takenText is what the model is told of the task kept that a card took, when
-// the child is still working on it: the model did not ask for it, nor hand it
-// in just then, and it may have been written in another chat, so its words
-// come with it. Nothing for any other task: the model saw it come, in the
-// words of the call that handed it out.
-func takenText(p *profile.Profile) string {
-	task := p.InFlight()
-	if task == nil || !task.Kept || task.TakenAfter == "" {
-		return ""
-	}
-	return fmt.Sprintf("\n\nThe child took task %s on the card, written ahead, and is working on it: say nothing "+
-		"about it until the child answers or asks.\n%s", task.ID, taskWords(task))
 }

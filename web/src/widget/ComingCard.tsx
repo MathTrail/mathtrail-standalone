@@ -11,7 +11,6 @@ import {
 	waitAfter,
 	waitStart,
 } from "./coming";
-import type { Shown } from "./LessonCard";
 import type { Coming } from "./payload";
 import { useService } from "./service";
 import { TaskInCard } from "./TaskCard";
@@ -29,19 +28,9 @@ import { useWords } from "./words";
  * the progress opened over it left open. A task that is not coming is said
  * so, in words true whatever ended its request — the tries spent, the request
  * replaced, or the task gone from the card long since, for a card drawn again
- * with an earlier chat: no task is here, and where the next one comes. The task
- * that comes takes the next one as any task card does, onTaken showing it in
- * the card's place.
+ * with an earlier chat: no task is here, and where the next one comes.
  */
-export function ComingCard({
-	coming,
-	host,
-	onTaken,
-}: {
-	coming: Coming;
-	host: Host;
-	onTaken?: (shown: Shown) => void;
-}) {
+export function ComingCard({ coming, host }: { coming: Coming; host: Host }) {
 	const words = useWords();
 	const wait = useWaitFor(coming.requestId);
 	const finishing = useFinishing(wait);
@@ -79,7 +68,6 @@ export function ComingCard({
 						host={host}
 						wide={wide}
 						grade={whose.grade}
-						onTaken={onTaken}
 					/>
 				)
 			}

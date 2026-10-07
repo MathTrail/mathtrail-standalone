@@ -262,8 +262,8 @@ func decodeStrictJSON(path string, data []byte, v any) error {
 }
 
 // goalsReport is the page's table of goals as Markdown: what the run was,
-// every row under each rule with its mark, what the page says of the paper,
-// and the state of its live numbers.
+// every row with the service's number and its mark, the goal and the ceiling,
+// what the page says of the paper, and the state of its live numbers.
 func goalsReport(f *researchFile, warning string) string {
 	var b strings.Builder
 	bench := &f.Bench
@@ -276,15 +276,15 @@ func goalsReport(f *researchFile, warning string) string {
 		"Computed by the build %s, on the commit %s. Each number has its %s interval, and a goal's mark is read on it.\n\n",
 		strings.Join(rules, ", "), bench.Children, bench.Answers, bench.Seed, bench.Experiment,
 		short(bench.Inputs), short(f.BuiltFrom.Commit), percentOf(bench.Interval))
-	b.WriteString("| Row | Generator | Measure | Earlier rule | Service | Goal | Ceiling |\n|---|---|---|---|---|---|---|\n")
+	b.WriteString("| Row | Generator | Measure | Service | Goal | Ceiling |\n|---|---|---|---|---|---|\n")
 	for i := range bench.Rows {
 		row := &bench.Rows[i]
 		measure := row.Metric
 		if row.ReadAs == "size" {
 			measure += ", its size"
 		}
-		fmt.Fprintf(&b, "| %s | %s | %s | %s | %s | %s | %s |\n", row.ID, row.Generator, measure,
-			valueText(row.Values.Earlier), valueText(row.Values.Service), boundText(row), ceilingText(row.Values.Ceiling))
+		fmt.Fprintf(&b, "| %s | %s | %s | %s | %s | %s |\n", row.ID, row.Generator, measure,
+			valueText(row.Values.Service), boundText(row), ceilingText(row.Values.Ceiling))
 	}
 	if len(f.Paper.Files) == 0 {
 		fmt.Fprintf(&b, "\nThe paper's numbers are of the commit %s. The site ships no PDF of it yet.\n", f.Paper.Commit)
@@ -304,7 +304,7 @@ func goalsReport(f *researchFile, warning string) string {
 
 // roleNames are the parts the page's rules play, as the table's reader knows
 // them.
-var roleNames = map[string]string{"service": "The service", "earlier": "the rule before it", "ceiling": "the ceiling"}
+var roleNames = map[string]string{"service": "The service", "ceiling": "the ceiling"}
 
 // short is a hash cut to the length people read it at.
 func short(hash string) string { return hash[:min(len(hash), 12)] }

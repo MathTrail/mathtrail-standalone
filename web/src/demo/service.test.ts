@@ -103,12 +103,6 @@ describe("the service the demo answers for", () => {
 		});
 	});
 
-	test("takes no task written ahead, since the page keeps none, so the card asks the chat", async () => {
-		expect(await demoService(fenceData()).takeTask("task_fence")).toEqual({
-			kind: "failed",
-		});
-	});
-
 	test("saves no change to a profile, since the page keeps none", async () => {
 		expect(
 			await demoService(fenceData()).saveEdit({ lesson_topic: "" }),

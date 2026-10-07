@@ -1,0 +1,474 @@
+title: How the service works
+description: "How MathTrail works inside: the parts of the service and how they link, a lesson call by call, where its state lives, the profile's file in the parent's Drive and what is sealed in it."
+hero:
+  title: How the service works
+  lead: "MathTrail stands between the chat a family already uses and the parent's Google Drive. The chat's model writes every task, and the service decides whether it reaches the child. It is one program: it calls no model of its own and keeps nothing between requests."
+  chips:
+    - One Go binary on Cloud Run
+    - Stateless
+    - No database
+    - No LLM calls of its own
+    - MCP 2026-07-28 · MCP Apps
+  figure: MathTrail in three tiers
+  client:
+    title: Chat client
+    tag: 1 · client
+    others: other MCP Apps hosts
+    note: The chat's model writes the task, and the card shows it to the child.
+  mcp: "{via} · tool calls over HTTPS"
+  cloud:
+    title: MathTrail on Google Cloud
+    tag: 2 · runtime
+    sub: Cloud Run · one Go binary · stateless
+    core: The core — pure computation
+    around: "Around it: OAuth, the MCP server, the card, sealing, limits."
+  drive: "{via} · with the parent's own token"
+  storage:
+    title: Google Drive
+    tag: 3 · storage
+    note: One file per child, in the parent's own Drive — the only thing kept for long.
+map:
+  title: The map
+  lead: Who talks to whom. Neither the child nor the adult reaches MathTrail directly — they talk to the chat host. Everything in the middle block is a part of one process, not a separate service. Choose any part to see what it does and what it links to.
+  legend: Parts of the service
+  whole: Nothing chosen
+  hint: "Choose a part of the map: everything it links to stays bright, and the rest fades."
+  linked: Links to
+  reset: Clear ✕
+  columns:
+    family:
+      title: The family's chat
+      sub: Claude in a browser, on a computer and on a phone · ChatGPT
+    service:
+      title: MathTrail
+      sub: One Go binary · Cloud Run · a domain of its own
+      tag: between the parts, plain function calls
+    outside:
+      title: Google and GitHub
+      sub: The only services outside the binary
+  groups:
+    people:
+      title: People
+      short: The family's chat
+    host:
+      title: Chat host
+      short: Chat host
+    entry:
+      title: The way in
+      short: MathTrail · the way in
+    tools:
+      title: Tools — read the profile, compute, write it back
+      short: MathTrail · tools
+    core:
+      title: Pure computation — no network
+      short: MathTrail · pure computation
+    around:
+      title: Around the core
+      short: MathTrail · around the core
+    account:
+      title: The parent's Google account
+      short: The parent's Google account
+    cloud:
+      title: Google Cloud
+      short: Google Cloud
+    github:
+      title: GitHub
+      short: GitHub
+  parts:
+    adult:
+      name: Adult
+      sub: Parent or tutor · the one who signs in
+      about: "A parent or a tutor. Owns both the chat account and the Google account: connects MathTrail, signs in once, creates the profile and follows the progress. The only one who signs in."
+    kid:
+      name: Child
+      sub: Grades 1–6 · no sign-in of their own
+      about: Grades 1–6. Solves tasks on the card, in the adult's chat. Has no sign-in of their own.
+    model:
+      name: The host's model
+      sub: Writes the task, the solver, the explanations
+      about: Claude or ChatGPT. Writes the task, a Starlark solver, an explanation behind each wrong option and a self-check; leads the lesson in words wherever cards are not drawn. MathTrail itself calls no model.
+    appsrt:
+      name: MCP Apps runtime
+      sub: The sandboxed frame the card lives in
+      about: Draws the card in a sandboxed frame, passes it the language, the platform and the size, and forwards the card's own calls with the host's token — the card itself never sees the token.
+    cimd:
+      name: Client metadata document
+      sub: The host's client_id is an HTTPS address
+      about: The host names itself by an HTTPS address. MathTrail fetches the document at that address, guarded against SSRF, rather than keeping a registry of clients.
+    router:
+      name: HTTP router
+      sub: /mcp · /oauth/* · /health
+      about: "The only way in: /health, /mcp, the OAuth endpoints and .well-known. Timeouts, a limit on the body's size, an Origin check; the issuer is its own domain, and any other Host gets a 404."
+    authsrv:
+      name: Authorization server
+      sub: OAuth 2.1 + PKCE, consent
+      about: "MathTrail is its own OAuth 2.1 server with PKCE: metadata, a consent screen of its own, sign-in with Google, tokens, renewal and revocation. Everything a server with state would keep is sealed into tokens and cookies."
+    mcpsrv:
+      name: MCP server
+      sub: Streamable HTTP, stateless
+      about: "The protocol: Streamable HTTP 2026-07-28, stateless, on the official Go SDK. It lists and calls the tools, serves the card as a ui:// resource and hands the model its instructions with their version."
+    limits:
+      name: Limits
+      sub: Per address, per account, per day
+      about: A pace per address before sign-in and per account after it, and an overall ceiling, all in memory — then the daily ceilings, which the profile counts. Past a limit, a plain sentence the model passes on.
+    tools:
+      name: Tools
+      about: "Eleven tools of one shape: read the profile, compute, write it back. The model calls most of them; the card calls its own — for the task, the answer, the progress and the profile's form. Nothing secret ever goes into a result."
+    rule:
+      name: The rule
+      sub: Topic, goal, difficulty corridor
+      about: "Picks the brief deterministically: after a mistake, the same topic, to consolidate it; otherwise the topic not seen for the longest; the difficulty from the corridor where the chance of success is 70–85 %."
+    rating:
+      name: Ratings
+      sub: θ, δ, β · Elo over IRT
+      about: P = 0.2 + 0.8·σ(θ + δ − β). Elo moves only on whether an answer is right, with a step that shrinks; a chess scale and eleven ranks; a topic counts as mastered by a cautious estimate.
+    checks:
+      name: Checks
+      sub: What a handed-in task must pass
+      about: "What a handed-in task must pass: its structure and five different options, the letters of the lesson's language, distinct explanations, the solver, the self-check, readability, near-duplicates and the text drawing. Every failure is reported at once."
+    solver:
+      name: Solver
+      sub: Starlark sandbox, step limit
+      about: Runs the model's Starlark program, which tries the options; exactly one must come out right. Limits on steps and time, no network and no files.
+    content:
+      name: Content
+      sub: Catalogs, reference tasks, instructions
+      about: "Everything built into the binary that is not code: the catalogs of topics, traps and skills, the reference tasks, the schemas, the solver templates, the drawing frames and the model's instructions with their version."
+    widget:
+      name: Widget
+      sub: The card · one HTML file
+      about: "The card: Preact built into one HTML file that loads nothing from elsewhere, the languages' dictionaries inside it. The layout works from 320 px, and the buttons fit a finger."
+    store:
+      name: Store
+      sub: The profile and the current task
+      about: Finds the profile by a hidden mark, compares before it writes, reconciles two tabs, restores the file from Drive's pinned revisions when the parent asks — and keeps within a small budget of Drive calls.
+    seal:
+      name: Sealing
+      sub: Tokens and the sealed answer
+      about: "One mechanism, two jobs: it seals the sign-in and Google's tokens into the tokens the host holds, and a task's answer — the current task's and the one written ahead — into the profile. The keys come from Secret Manager and rotate by key id."
+    logs:
+      name: Logging
+      sub: Summaries, no personal data
+      about: "One structured summary per call: the tool, the outcome, the duration, the instructions version; attempts and the reasons for a refusal as events of the task. No personal data, no task text, no answers."
+    boot:
+      name: Container and configuration
+      sub: Environment, version, shutdown
+      about: Wires the parts together and closes them in reverse order, works with timeouts and a graceful shutdown, reads all its configuration from the environment — and refuses to start on Cloud Run with development switches.
+    goauth:
+      name: Google OAuth
+      sub: drive.file alone
+      about: The parent's sign-in with the drive.file scope alone, renewal and revocation. Revoking any token ends all access.
+    gdrive:
+      name: Drive API v3
+      sub: The only long-term storage
+      about: "The only long-term storage: one JSON profile in a visible MathTrail folder of the parent's Drive, read and written with the parent's own token."
+    sm:
+      name: Secret Manager
+      sub: Sealing keys, the client secret
+      about: "The sealing keys and Google's client secret: pinned versions, read once when an instance starts."
+    ar:
+      name: Artifact Registry
+      sub: The image, by digest
+      about: The image of every revision, by digest; old images are deleted.
+    clog:
+      name: Cloud Logging
+      sub: Where stdout goes
+      about: Where the service's stdout goes. The lines children are counted by are kept for 62 days in a bucket of their own.
+    bq:
+      name: BigQuery → Data Studio
+      sub: Counts kept for years
+      about: Counts of use are kept for years and counted again every night; no table holds the name a child is counted under. A private report and a public one, which shows no group of fewer than ten children.
+    ga:
+      name: Actions
+      sub: Build, checks, deploy
+      about: The build, the checks, publishing the image and the deploy through Workload Identity Federation — with no service-account keys.
+    pages:
+      name: Pages
+      sub: This site, the policy and the terms
+      about: "This site: the topics' pages, and the privacy policy and the terms the consent screen links to."
+  links:
+    adult-model: the chat
+    kid-appsrt: the task and its buttons
+    model-kid: text mode, where cards are not drawn
+    adult-authsrv: sign-in with Google and consent, in a browser
+    model-router: tool calls over HTTPS
+    appsrt-router: "the card's own calls: the task, the answer, the progress, the profile's form"
+    mcpsrv-appsrt: the card as a ui:// resource
+    authsrv-cimd: fetches the client's document
+    router-authsrv: /oauth/*
+    router-mcpsrv: /mcp
+    router-limits: checked before sign-in and after it
+    mcpsrv-tools: tools/call
+    widget-mcpsrv: the built-in HTML
+    content-mcpsrv: the server's instructions
+    tools-rule: picks the brief
+    tools-rating: updates the ratings
+    tools-checks: checks a handed-in task
+    tools-store: reads and writes the profile
+    tools-content: the package for writing a task
+    tools-limits: daily ceilings
+    tools-seal: seals the answer and opens it
+    rule-content: the catalogs
+    checks-solver: runs the program
+    checks-content: schemas and limits
+    authsrv-seal: tokens and cookies
+    boot-router: builds it and starts it
+    tools-logs: events
+    authsrv-logs: events
+    store-logs: events
+    limits-logs: events
+    store-gdrive: the file, with the parent's token
+    authsrv-goauth: code, token, renewal, revocation
+    sm-boot: secrets into the environment at start
+    sm-seal: the sealing keys
+    ar-boot: a revision, by digest
+    logs-clog: stdout
+    clog-bq: counted again every night
+    ga-ar: the image
+    ga-pages: publishes the site
+    authsrv-pages: links to the policy and the terms
+    appsrt-pages: a topic's page
+flow:
+  title: A lesson, call by call
+  lead: The model and the card call the same tools and stand on one source of truth — the profile's file in the parent's Drive. For a lesson to go on, they have nothing to tell each other.
+  legend: Scenario
+  scenarios:
+    task: Task
+    answer: Answer
+    signin: Sign-in
+  kinds:
+    call: a call
+    reply: its answer
+    host: inside the host
+  actors:
+    kid: Child
+    card: Card
+    model: The host's model
+    service: MathTrail
+    drive: Drive
+    browser: The parent's browser
+    host: Host
+    google: Google
+  task:
+    rows:
+      - “a new task, please”
+      - next_task
+      - "The host draws the card as soon as the call begins: “Preparing the next task…”"
+      - limits · the rule picks the topic, the level and the difficulty
+      - write the open request
+      - the request is open — fetch the package
+      - get_package
+      - brief · 3 reference tasks · traps · templates · frames
+      - The model writes the task, a Starlark solver and a self-check
+      - submit_task — up to 3 attempts
+      - checks · the solver must find exactly one right option
+      - the task becomes the current one, its answer sealed
+      - read_task — the card asks every 4 s
+      - text · drawing · five options · hint — no answer
+    caption: "Every call reads the profile from Drive as well — those reads are left out. The card that waits never sees the package: its reference tasks carry their answers. While the child solves, the model writes the next task ahead with prepare_task, and when the child asks for another, next_task puts it on a new card at once — without this wait."
+  answer:
+    rows:
+      - presses C
+      - submit_answer — the chat spends no turn
+      - the first answer alone · the seal is opened now · θ and δ move only on whether it is right
+      - write the ratings and the history
+      - right or not · the trap behind C · the solution · the rating before → after
+      - ui/update-model-context — one line on what happened
+      - “why not 6?” — a question in the chat
+      - explains, starting from the trap
+    caption: The press records the answer before anything is explained. If the host's message to the model is lost, the child still sees the result, and the model catches up at its next call.
+  signin:
+    rows:
+      - POST /mcp, no token
+      - 401 · where the metadata is
+      - opens /oauth/authorize · PKCE S256
+      - authorize
+      - "A consent screen of its own: which client, and where it will send the parent back"
+      - sign-in with Google · drive.file alone
+      - back, with Google's code
+      - /oauth/callback
+      - exchange the code
+      - /about — whose Drive is it?
+      - user id = HMAC of the Drive account · Google's tokens sealed into our code
+      - 302 · code = mt1.c.…
+      - hands the code back
+      - /oauth/token · code + verifier
+      - access 15 min · refresh 30 days
+    caption: "The parent signs in once. The service keeps nothing of this exchange: the request travels in a sealed state, and Google's tokens in a sealed code."
+  machine:
+    title: The current task as a state machine
+    lead: Every “only once” rule is a field of the profile, checked within the same read, computation and write. Nothing else remembers anything.
+    forward:
+      - brief ready
+      - sealed, handed out
+      - recorded once
+    turns:
+      - refused, attempts left — no more than three per request
+      - three refusals, or 15 minutes from the request's opening; the day's tasks are not spent, and three refusals count as a failed request of the day
+      - “Another task” before an answer — a skip is recorded, the rating untouched
+      - any later answer — from a second tab or from the model — gets the first result back and writes nothing
+      - the next task, on a new card; the one answered is no longer current
+      - the next task was written ahead — next_task puts it on a new card at once, skipping requested
+      - the seal can no longer be opened — the key rotated twice; nothing is recorded
+state:
+  title: Where the state lives
+  lead: "Everything a server with state would keep in a database is kept by someone else: in a sealed token the chat holds, in a cookie in the parent's browser, or in the parent's own Drive. Restart the service or start a second copy — nothing is lost."
+  self:
+    label: MathTrail itself
+    value: Nothing
+    note: No accounts, no sessions, no registrations, no Google tokens. Every request carries all it needs.
+  stores:
+    tokens:
+      title: The chat's token store
+      sub: Sealed tokens, opaque to the host
+      rows:
+        access:
+          name: Access token
+          life: 15 min
+        refresh:
+          name: Refresh token
+          life: 30 days, ≤ 90
+      note: Sealed inside are Google's tokens, an opaque user id for the limits, and the country the parent signed in from.
+    browser:
+      title: The parent's browser
+      sub: Two cookies, no session
+      rows:
+        approvals:
+          name: Approved clients
+          life: 180 days
+        csrf:
+          name: Sign-in guard (CSRF)
+          life: 10 min
+      note: Losing them costs one more consent screen, or a new sign-in.
+    drive:
+      title: The parent's Drive
+      sub: The only thing kept for long
+      rows:
+        profile:
+          life: until deleted
+      note: The profile, the ratings and the current task, its answer sealed. The parent can open the file, and Drive keeps its history.
+    secrets:
+      title: Secret Manager
+      sub: Read once, when an instance starts
+      rows:
+        keys:
+          name: Sealing keys
+          sub: after a rotation, the previous key is still accepted
+          life: 90 days
+        client:
+          name: Google's client secret
+          life: pinned
+    memory:
+      title: The instance's memory
+      sub: "Caches alone: lost on a restart, and nothing breaks"
+      rows:
+        rates:
+          name: Request rate counters
+          life: minutes
+        location:
+          name: Where the profile's file is
+          life: 10 min
+        clients:
+          name: Clients' documents
+          life: 5 min – 24 h
+  absent:
+    title: Left out of v1 on purpose
+    items:
+      - A database
+      - Queues
+      - A session store
+      - A shared cache
+      - A bank of ready tasks
+      - An LLM API client
+      - REST and OpenAPI
+profile:
+  title: The profile's file
+  lead: "One child, one JSON file: not a cache of some truth on a server, but the truth itself. Every block has a cap, held on every write, so the file never grows without a bound: a usual one keeps within the target, and one near its caps goes past it. Past tasks are kept as fingerprints, not as text."
+  size: The file's size
+  legend: Which size to show
+  typical: Usually
+  cap: Near the caps
+  total: "≈ {kb} KB"
+  kb: "{kb} KB"
+  goal: "target {kb} KB"
+  segment: "{name} · {typical} / {cap} KB"
+  heads:
+    block: Block
+    holds: What it holds
+    writers: Who writes it
+    size: Size
+  blocks:
+    fingerprints:
+      name: Fingerprints
+      holds: Up to 200 sketches of the tasks handed out, for the near-duplicate check — no text, no topic, no date
+    history:
+      name: Rating history
+      holds: Where θ and the topic's δ stood before each recent answer, and θ and every topic at the start of each of the last 7 days with answers
+    ratings:
+      name: Ratings and topics
+      holds: "θ and where the child started; for each topic: δ, the answers, the traps they fell into, mastery and its level"
+    recent:
+      name: Recent answers
+      holds: The last 20 answers and skips — and never fewer than the 5 answers the rule reads
+    sealed:
+      name: Current task, sealed
+      holds: The answer, the trap behind each wrong option, the solution and the solver — one opaque string
+    open:
+      name: Current task, open
+      holds: "What the card shows: the text, the drawing, five options, the hint — and, after the answer, the answer itself"
+    request:
+      name: Open request
+      holds: "While the task is being written: its id, the brief, the attempts used and who picked the topic"
+    service:
+      name: Service and child
+      holds: The schema version, a random UUID, the revision; the pseudonym, the grade, the interests, the notes; the day's counters
+  every-write: every write
+  note: "A task written ahead lies beside the current one and weighs about as much. What the file does not hold: the texts of past tasks, the answer in the open until the child has answered, anything that names the parent, and a rank — ranks are computed when they are shown. Drive has no conditional write, so the file is read again before a save, and the write is refused if it has changed: two tabs never silently overwrite each other."
+seal:
+  title: Sealed — and for how long
+  lead: "One mechanism does two jobs: it seals the sign-in into the tokens the chat holds, and a task's answer — the current task's and the one written ahead — into the profile. Each seal carries its purpose, so an access token cannot pass for a refresh token, and a sealed answer cannot pass for anything else."
+  token:
+    title: A token, taken apart
+    version: the format's version
+    purpose: purpose
+    purposes:
+      c: code
+      a: access
+      r: refresh
+      d: client
+      s: state
+      k: consent
+      t: a task's answer
+    key: key id
+    key-note: taken from the key itself, so a rotation goes unnoticed
+    cipher: ciphertext
+    cipher-note: XChaCha20-Poly1305, a random 192-bit nonce
+    note: "Not a JWT: no one but the service reads it, and no claim can leak into a log from an opaque string."
+  life:
+    title: Lifetimes, on a logarithmic scale
+    ticks:
+      - 1 min
+      - 1 h
+      - 1 day
+      - 1 week
+      - 6 months
+    items:
+      code:
+        name: Authorization code
+        life: 60 s
+      signin:
+        name: Sign-in in progress
+        life: 10 min
+      access:
+        name: Access token
+        life: 15 min
+      refresh:
+        name: Refresh token
+        life: 30 days, sliding, 90 at most
+      key:
+        name: Sealing key
+        life: rotated every 90 days
+      approvals:
+        name: Approved clients
+        life: 180 days
+    note: A server without state cannot mark a code as used, so the code's window is kept small. After a rotation the previous key is still accepted, so neither a token nor a sealed answer is lost when the key changes.

@@ -10,21 +10,13 @@ import (
 	"github.com/MathTrail/mathtrail-standalone/internal/domain/solver"
 )
 
-// Catalog is what the structure check has to know about the catalogs the
-// service ships. It is declared here, by the side that needs it, and it speaks
-// in identifiers.
-type Catalog interface {
-	// HasTrap says whether the trap catalog has this id.
-	HasTrap(id string) bool
-}
-
 // Structure checks a draft against the format: every text the child or the
 // model relies on is there, the ids it names exist, and the self-check says
 // all it has to. Where the task stands — its topic, level and difficulty — is
 // not the draft's to say: the request it is handed in for keeps that.
 //
 // A part the draft could not read is not checked; Decode has already said why.
-func Structure(draft Draft, catalog Catalog) []Problem {
+func Structure(draft Draft, catalog TrapDescriber) []Problem {
 	var problems []Problem
 	if draft.Task != nil {
 		problems = append(problems, checkTask(draft.Task, catalog)...)
@@ -51,7 +43,7 @@ const (
 // on is there and no longer than a card holds, the child is offered five
 // answers they can tell apart, and every wrong one, and only a wrong one,
 // carries the mistake it comes from.
-func checkTask(task *Task, catalog Catalog) []Problem {
+func checkTask(task *Task, catalog TrapDescriber) []Problem {
 	var problems []Problem
 	problems = append(problems, required("task.core_idea", task.CoreIdea)...)
 	problems = append(problems, required("task.question", task.Question)...)
@@ -115,7 +107,7 @@ func checkOptions(task *Task) []Problem {
 // checkDistractors checks that every wrong option, and only a wrong option, is
 // explained, and that each explanation names a mistake the catalog knows. This
 // is what turns a wrong answer into a diagnosis.
-func checkDistractors(task *Task, catalog Catalog) []Problem {
+func checkDistractors(task *Task, catalog TrapDescriber) []Problem {
 	var problems []Problem
 	switch {
 	case task.Distractors == nil:
@@ -140,10 +132,10 @@ func checkDistractors(task *Task, catalog Catalog) []Problem {
 		if utf8.RuneCountInString(distractor.Text) > longestExplanation {
 			long++
 		}
-		switch {
+		switch _, known := catalog.TrapDescription(distractor.Trap); {
 		case distractor.Trap == "":
 			unnamed++
-		case !catalog.HasTrap(distractor.Trap):
+		case !known:
 			unknown[distractor.Trap] = true
 		}
 	}

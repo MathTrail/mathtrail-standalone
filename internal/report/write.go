@@ -39,8 +39,9 @@ func write(out io.Writer, c *counts) error {
 		{"Tasks written ahead", "Asked ahead counts the requests opened for the next task while the child worked " +
 			"on the one on the card, and kept the tasks written for them and kept. Handed out ready counts the " +
 			"tasks handed out that had been kept, out of all handed out; taken by the card, the tasks a card took " +
-			"itself, kept or waited for; let go, the tasks written ahead, kept or still being written, that the " +
-			"lesson moved away from before they were handed out.", c.aheadTable()},
+			"into its own place, kept or waited for, which only an earlier release let a card do; let go, the " +
+			"tasks written ahead, kept or still being written, that the lesson moved away from before they were " +
+			"handed out.", c.aheadTable()},
 		{"Why tasks written ahead were let go", "The reason the lesson moved away from a task: another language " +
 			"of the lessons, another topic the lessons are kept to, a skill kept out since, another place a person " +
 			"asked for, or another version of the instructions. Written says whether the task had been written and " +
