@@ -188,10 +188,10 @@ function headOf(
 	};
 }
 
-// frameOf is the frame the page name of a locale is set in: its menu, the
-// page itself marked, in a group of the menu as well — a section of it is not
-// the page — the header's button, every language of the site to switch to,
-// and the pages the footer leads to.
+// frameOf is the frame the page name of a locale is set in: its menu, with
+// the page itself or the page it lies under marked, in a group of the menu
+// as well, though never a section of a page; the header's button; every
+// language of the site to switch to; and the pages the footer leads to.
 function frameOf(site: Site, locale: string, name: string): PageFrame {
 	const words = site.wordsOf(locale);
 	const hrefOf = ({ page, anchor }: MenuItem) =>
@@ -201,7 +201,8 @@ function frameOf(site: Site, locale: string, name: string): PageFrame {
 	const linkOf = (item: MenuItem): MenuLink => ({
 		href: hrefOf(item),
 		label: words.text(item.label),
-		current: item.anchor === undefined && item.page === name,
+		current: currentOf(item, name),
+		wip: item.wip === true,
 	});
 	const { action } = site.frame;
 	return {
@@ -223,6 +224,22 @@ function frameOf(site: Site, locale: string, name: string): PageFrame {
 		})),
 		footer: footerOf(site, locale),
 	};
+}
+
+// currentOf is how the menu's entry item stands to the page name: it is that
+// page, or the page name lies under, as the page of the topics is to a
+// topic's own, or neither, as a section of a page always is.
+function currentOf(
+	{ page, anchor }: MenuItem,
+	name: string,
+): MenuLink["current"] {
+	if (anchor !== undefined) {
+		return undefined;
+	}
+	if (page === name) {
+		return "page";
+	}
+	return name.startsWith(`${page}/`) ? "parent" : undefined;
 }
 
 // footerOf are the pages the footer of a locale's page leads to, each under

@@ -169,20 +169,11 @@ jobs:
           go-version-file: research/go.mod
           cache-dependency-path: research/go.sum
       - uses: ./.github/actions/just
-      # One run of both recipes holds the paper to its checks once. The
-      # submission is built last, and refuses a TBD left in the text: the build
-      # writes the first on a line of its own, "PAPER-A-TBD: " and what is left,
-      # and the named and the anonymous paper are built by then. Any other
-      # failure fails the job.
+      # One run of both recipes holds the paper to its checks once; the
+      # submission, built last, waits while a TBD is left in the text, which
+      # fails nothing, and the summary says which TBD it waits for.
       - name: Build the named and the anonymous paper, and the one for submission once no TBD is left
-        run: |
-          if just research paper-a paper-a-final 2>&1 | tee "$RUNNER_TEMP/paper.log"; then
-              echo "The paper for submission was built." >> "$GITHUB_STEP_SUMMARY"
-          else
-              waits=$(sed -n '/^PAPER-A-TBD: /{s///p;q}' "$RUNNER_TEMP/paper.log")
-              if [ -z "$waits" ]; then exit 1; fi
-              echo "The paper for submission waits, as the text still holds a TBD: $waits." >> "$GITHUB_STEP_SUMMARY"
-          fi
+        run: just _paper-a-builds >> "$GITHUB_STEP_SUMMARY"
       # Every run makes the named PDF ready for the site, and hands it on only
       # once the paper prints no placeholder: until then the page shows the
       # paper's title alone.
@@ -346,7 +337,7 @@ jobs:
       # weigh what a release's do.
       - id: build
         name: Name the build
-        run: echo "version=$(git describe --tags --always)" >> "$GITHUB_OUTPUT"
+        run: echo "version=$(git describe --tags --match 'v[0-9]*' --always)" >> "$GITHUB_OUTPUT"
       - name: Build the site
         uses: ./.github/actions/site
         with:

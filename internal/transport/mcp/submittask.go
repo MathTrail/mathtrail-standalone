@@ -252,6 +252,7 @@ func (s *Service) review(ctx context.Context, account store.Account, in *submitT
 	if request == nil || request.ID != in.RequestID || !request.Awaited(s.window, now) {
 		return s.stale(p, in.RequestID, now), nil
 	}
+	noteTaskRequest(ctx, request.ID)
 	outcome, err := s.judge(ctx, examined, checks.Against{
 		Asked: &request.Brief, Language: request.Language, Fingerprints: p.TaskFingerprints,
 	})

@@ -332,7 +332,9 @@ func TestARefusalIsAnAnswer(t *testing.T) {
 
 // A call the protocol refuses before any tool runs is the caller's mistake:
 // arguments that do not fit the tool, or a tool nobody defined. It is still a
-// call, so it leaves its line, and the name a caller made up is not written.
+// call, so it leaves its line, and the name a caller made up is not written;
+// a tool the service took away is named, as the cards of earlier chats still
+// call it.
 func TestACallTheProtocolRefusesIsInvalid(t *testing.T) {
 	t.Parallel()
 
@@ -344,6 +346,9 @@ func TestACallTheProtocolRefusesIsInvalid(t *testing.T) {
 	}
 	if _, err := session.CallTool(t.Context(), &mcp.CallToolParams{Name: pseudonym}); err == nil {
 		t.Error("a tool nobody defined was called, want the call refused")
+	}
+	if _, err := session.CallTool(t.Context(), &mcp.CallToolParams{Name: "take_task"}); err == nil {
+		t.Error("a tool taken away was called, want the call refused")
 	}
 
 	h.settle()
@@ -360,6 +365,9 @@ func TestACallTheProtocolRefusesIsInvalid(t *testing.T) {
 	nobody := h.lineOf(t, "other")
 	if got := field(t, nobody, "error"); got != "protocol" {
 		t.Errorf("error = %q, want protocol", got)
+	}
+	if got := field(t, h.lineOf(t, "take_task"), "outcome"); got != "invalid" {
+		t.Errorf("a tool taken away: outcome = %q, want invalid", got)
 	}
 }
 

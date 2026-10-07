@@ -86,6 +86,7 @@ func (s *Service) prepare(ctx context.Context, account store.Account, in *prepar
 
 	now := s.now()
 	if open := s.waitedOpen(p, now); open != nil {
+		noteTaskRequest(ctx, open.ID)
 		return s.packageWords(p, open, fmt.Sprintf("Request %[1]s is open, and the child waits for its task on the "+
 			"card: write it now, to the package below, and hand it in with submit_task and request_id %[1]s.", open.ID))
 	}
@@ -99,6 +100,9 @@ func (s *Service) prepare(ctx context.Context, account store.Account, in *prepar
 	reply, opened, err := s.prepared(p, in, language, now)
 	if err != nil || reply.Payload != nil {
 		return reply, err
+	}
+	if p.OpenRequest != nil {
+		noteTaskRequest(ctx, p.OpenRequest.ID)
 	}
 	if len(gone) > 0 || opened != nil {
 		p.Touch(s.version, now)

@@ -21,6 +21,12 @@ func TaskIDFor(requestID string) string {
 	return "tsk_" + strings.TrimPrefix(requestID, "req_")
 }
 
+// RequestIDFor is the id of the request a task was written for: the task's
+// own, marked as a request's again.
+func RequestIDFor(taskID string) string {
+	return "req_" + strings.TrimPrefix(taskID, "tsk_")
+}
+
 // TaskState is how the task written for a request stands, as a card that
 // waits for that request sees it.
 type TaskState string

@@ -1,0 +1,298 @@
+# Paper A's releases. After every release of the service the artifact of
+# paper A is assembled, named and anonymous: the product at the commit the
+# paper describes, with the experiments, their results and every number the
+# paper prints. The paper is built beside it. When the artifacts, the paper's
+# PDF or its text are new, both copies of the artifact are shown to reproduce
+# the experiments from themselves, the anonymous one to name no commit GitHub
+# serves, and everything is published as a release of its own, under the
+# paper's own tag, paper-a/…, which is never the latest. A pull request that
+# changes how the paper is released, and a run started by hand on a branch,
+# rehearse all of it and publish nothing. Zenodo is no part of it: zenodo.yml,
+# run by hand, is.
+name: Paper
+
+on:
+  workflow_run:
+    workflows: ["Release and deploy"]
+    types: [completed]
+    branches: [main]
+  pull_request:
+    paths:
+      - .github/workflows/paper.yml
+      - research/release/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One run of a branch at a time, a newer one taking the place of one still
+# waiting, so a rehearsal on a branch never displaces main's; a new push to a
+# pull request replaces its run.
+concurrency:
+  group: paper-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # The commit the release was made of, or the one checked out.
+  COMMIT: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  key:
+    name: The paper's version
+    # A release of this repository's own: a fork's pull request from a branch
+    # called main runs no code here.
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      # Only a release of main, or a run started by hand on main, publishes;
+      # every other run rehearses all of it, whether the version is new or not.
+      PUBLISHES: ${{ github.event_name == 'workflow_run' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') }}
+    outputs:
+      tag: ${{ steps.key.outputs.tag }}
+      text: ${{ steps.key.outputs.text }}
+      new: ${{ steps.key.outputs.new }}
+      clean: ${{ steps.paper.outputs.clean }}
+      publishes: ${{ env.PUBLISHES }}
+      # The checks run for a version that is new, and in every rehearsal.
+      checks: ${{ steps.key.outputs.new == 'true' || env.PUBLISHES != 'true' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.COMMIT }}
+          # The whole history: the artifact holds the product at the commit
+          # the paper describes, and the paper's version names this one.
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: research/go.mod
+          cache-dependency-path: research/go.sum
+      - uses: ./.github/actions/just
+      # The anonymous artifact masks every commit the research names, and a
+      # commit of a branch since deleted is reached only through its pull
+      # request, in this repository and in the prototype's.
+      - name: Fetch every pull request's head, here and in the prototype's clone
+        run: |
+          git fetch --quiet origin '+refs/pull/*/head:refs/remotes/pull/*'
+          just research prototype-fetch
+          git --git-dir research/.cache/llm-taskgen-prototype.git fetch --quiet origin '+refs/pull/*/head:refs/pull/*/head'
+      - name: Assemble the artifact, named and anonymous
+        run: just research release named && just research release anonymous
+      # As the release's own run builds it: the submission is built last, and
+      # waits while a TBD is left in the text.
+      - id: paper
+        name: Build the named and the anonymous paper, and the one for submission once no TBD is left
+        run: |
+          just _paper-a-builds >> "$GITHUB_STEP_SUMMARY"
+          left=$(just _paper-placeholders)
+          if [ -z "$left" ]; then
+              echo "clean=true" >> "$GITHUB_OUTPUT"
+          else
+              echo "clean=false" >> "$GITHUB_OUTPUT"
+              echo "The named paper still prints $(wc -l <<< "$left") placeholders, and is left out." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      # The version is what a release would hold: both artifacts, the paper as
+      # a review reads it, which prints no version of its own, and the paper's
+      # text, whose authors the anonymous paper leaves out.
+      - id: key
+        name: Name the version, and ask whether it is out
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          text=$(git rev-parse HEAD:research/paper-a)
+          tag="paper-a/$(cd research && release/version.sh "$text")"
+          {
+              echo "tag=$tag"
+              echo "text=$text"
+          } >> "$GITHUB_OUTPUT"
+          encoded=$(jq -rn --arg tag "$tag" '$tag | @uri')
+          if answer=$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$encoded" --jq .html_url 2>&1); then
+              echo "new=false" >> "$GITHUB_OUTPUT"
+              echo "This version of paper A is out already, as $tag: $answer" >> "$GITHUB_STEP_SUMMARY"
+          elif grep -q 'HTTP 404' <<< "$answer"; then
+              echo "new=true" >> "$GITHUB_OUTPUT"
+              echo "This version of paper A is new: $tag." >> "$GITHUB_STEP_SUMMARY"
+          else
+              echo "$answer" >&2
+              exit 1
+          fi
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: steps.key.outputs.new == 'true' || env.PUBLISHES != 'true'
+        with:
+          name: release-of-the-paper
+          path: |
+            research/release/build/paper-a-artifact.tar.gz
+            research/release/build/paper-a-artifact-anonymous.tar.gz
+            research/paper-a/build/*.pdf
+          retention-days: 7
+          if-no-files-found: error
+          overwrite: true
+
+  check:
+    name: Reproduce from the ${{ matrix.flavour }} artifact
+    needs: key
+    if: needs.key.outputs.checks == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        flavour: [named, anonymous]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.COMMIT }}
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: research/go.mod
+          cache-dependency-path: research/go.sum
+      - uses: ./.github/actions/just
+      # The very bytes the key named, not a copy assembled again.
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-of-the-paper
+          path: research
+      - name: Rerun the experiments from the artifact and hold them to the results it ships
+        env:
+          FLAVOUR: ${{ matrix.flavour }}
+        run: just research release-check "$FLAVOUR" | tee -a "$GITHUB_STEP_SUMMARY"
+
+  leaks:
+    name: The anonymous artifact names no commit
+    needs: key
+    if: needs.key.outputs.checks == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.COMMIT }}
+          persist-credentials: false
+      - uses: ./.github/actions/just
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-of-the-paper
+          path: research
+      - name: Ask GitHub whether a hexadecimal word of the anonymous artifact names a commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tar -xzf research/release/build/paper-a-artifact-anonymous.tar.gz -C "$RUNNER_TEMP"
+          prototype=$(just research --evaluate PROTOTYPE_URL)
+          research/release/leaks.sh "$RUNNER_TEMP/paper-a-artifact-anonymous" "$GITHUB_REPOSITORY" "${prototype#https://github.com/}" |
+              tee -a "$GITHUB_STEP_SUMMARY"
+
+  publish:
+    name: Publish the release of paper A
+    needs: [key, check, leaks]
+    if: needs.key.outputs.new == 'true' && needs.key.outputs.publishes == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      # The release and its tag.
+      contents: write
+      # The short-lived identity the signatures are made with.
+      id-token: write
+    concurrency:
+      group: paper-publish
+      cancel-in-progress: false
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ needs.key.outputs.tag }}
+      TEXT: ${{ needs.key.outputs.text }}
+      CLEAN: ${{ needs.key.outputs.clean }}
+      RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.COMMIT }}
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-of-the-paper
+          path: research
+      # Asked as late as it can be: the tag names what the release holds, so a
+      # version another run published meanwhile is the same release, and is
+      # left alone.
+      - id: due
+        name: Whether the version is still due
+        run: |
+          if [ "paper-a/$(cd research && release/version.sh "$TEXT")" != "$TAG" ]; then
+              echo "What was handed on is not what $TAG names." >&2
+              exit 1
+          fi
+          encoded=$(jq -rn --arg tag "$TAG" '$tag | @uri')
+          if gh api "repos/$GITHUB_REPOSITORY/releases/tags/$encoded" --silent 2>/dev/null; then
+              echo "due=false" >> "$GITHUB_OUTPUT"
+              echo "$TAG was published meanwhile." >> "$GITHUB_STEP_SUMMARY"
+          else
+              echo "due=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+        if: steps.due.outputs.due == 'true'
+        with:
+          cosign-release: v3.1.3
+      # One file for each part, the named paper only once it prints no
+      # placeholder, their sums, and a bundle beside every one, verified with:
+      #   cosign verify-blob --bundle <file>.sigstore.json \
+      #       --certificate-identity https://github.com/<owner>/<repository>/.github/workflows/paper.yml@refs/heads/main \
+      #       --certificate-oidc-issuer https://token.actions.githubusercontent.com <file>
+      - name: Gather, sum and sign what the release holds
+        if: steps.due.outputs.due == 'true'
+        run: |
+          mkdir "$RUNNER_TEMP/release"
+          cp research/release/build/paper-a-artifact.tar.gz research/release/build/paper-a-artifact-anonymous.tar.gz \
+              research/paper-a/build/paper-a-anonymous.pdf "$RUNNER_TEMP/release/"
+          if [ -f research/paper-a/build/paper-a-submission.pdf ]; then
+              cp research/paper-a/build/paper-a-submission.pdf "$RUNNER_TEMP/release/"
+          fi
+          if [ "$CLEAN" = true ]; then
+              cp research/paper-a/build/paper-a.pdf "$RUNNER_TEMP/release/"
+          fi
+          cd "$RUNNER_TEMP/release"
+          sha256sum -- * > SHA256SUMS
+          for file in *; do
+              cosign sign-blob --yes --bundle "$file.sigstore.json" "$file"
+          done
+      - name: Write what the release says
+        if: steps.due.outputs.due == 'true'
+        run: |
+          pin=$(sed -n 's/^commit=//p' research/evidence/product-stats.txt)
+          {
+              echo "Paper A, version of $(git log -1 --format=%cs), commit $(git rev-parse --short=12 HEAD)."
+              echo
+              echo "- \`paper-a-artifact.tar.gz\`: the service at the commit the paper describes, \`$pin\`, with its reference tasks and their solvers, and the research the paper's numbers come from: the experiments with their results, the protocol with its timestamp and its deviations, the evidence ledger and every number the paper prints. MIT."
+              echo "- \`paper-a-artifact-anonymous.tar.gz\`: the same for a double-blind review, with every name and commit that leads to the system or its authors replaced."
+              echo "- \`paper-a-anonymous.pdf\`: the paper as a review reads it; \`paper-a-submission.pdf\` once no TBD is left in it."
+              if [ "$CLEAN" = true ]; then
+                  echo "- \`paper-a.pdf\`: the named paper."
+              else
+                  echo "- The named paper is not here yet: it still prints a placeholder."
+              fi
+              echo "- \`SHA256SUMS\`, and beside every file a cosign bundle, signed by \`.github/workflows/paper.yml\` on main."
+              echo
+              echo "Both artifacts reproduced E-A1 and E-A3 byte for byte, and E-A4's package sizes, on a runner of $RUN. To check one yourself, unpack it and follow its README."
+          } > "$RUNNER_TEMP/notes.md"
+      # A release cut short leaves a draft that would stand in the way of the
+      # next attempt under the same tag.
+      - name: Publish the release
+        if: steps.due.outputs.due == 'true'
+        run: |
+          gh api --paginate "repos/$GITHUB_REPOSITORY/releases?per_page=100" --jq ".[] | select(.draft and .tag_name == \"$TAG\") | .id" |
+              while read -r stale; do gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/$stale"; done
+          gh release create "$TAG" "$RUNNER_TEMP"/release/* \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$COMMIT" \
+              --title "Paper A, $(git log -1 --format=%cs), ${TAG#paper-a/}" \
+              --notes-file "$RUNNER_TEMP/notes.md" \
+              --latest=false
+          echo "Published as $TAG." >> "$GITHUB_STEP_SUMMARY"

@@ -183,6 +183,9 @@ func TestAnIssuedTaskStandsWhereTheRequestAsked(t *testing.T) {
 	if want := profile.TaskIDFor(request.ID); task.ID != want {
 		t.Errorf("the task is %q, want %q, the id its request gives it", task.ID, want)
 	}
+	if got := profile.RequestIDFor(task.ID); got != request.ID {
+		t.Errorf("RequestIDFor(%q) = %q, want %q, the request the task was written for", task.ID, got, request.ID)
+	}
 	want := profile.CurrentTask{
 		Difficulty: brief.Difficulty, Fingerprint: "sketch-of-the-gaps", GradeLevel: brief.GradeLevel,
 		Hint: written().Hint, ID: task.ID, InstructionsVersion: "357968db0310", IssuedAt: profile.At(handed),

@@ -1,6 +1,6 @@
 # What the log adds up to
 
-153 lines of the service's, from 2026-09-28 10:00:00 UTC to 2026-09-30 08:16:30 UTC. 2 more lines, not the service's, were left out.
+167 lines of the service's, from 2026-09-28 10:00:00 UTC to 2026-09-30 09:02:04 UTC. 2 more lines, not the service's, were left out.
 
 ## Tasks
 
@@ -21,7 +21,7 @@ The attempts an accepted task took, and the seconds from its request to its acce
 |---|---|---:|---:|---:|---:|---:|---:|---:|
 | 0a1b2c3d4e5f | claude | 1 | (not logged) | 0 | 2.0 | 95 | 95 | 95 |
 | 88b63e22129c | (call not read) | 1 | 1 | 1 | 1.0 | 70 | 70 | 70 |
-| 88b63e22129c | claude | 2 | 1 | 2 | 1.0 | 35 | 40 | 40 |
+| 88b63e22129c | claude | 3 | 1 | 3 | 1.0 | 40 | 40 | 40 |
 
 ## Tasks written ahead
 
@@ -29,7 +29,7 @@ Asked ahead counts the requests opened for the next task while the child worked 
 
 | Instructions | Host | Asked ahead | Kept | Handed out ready | Taken by the card | Let go |
 |---|---|---:|---:|---:|---:|---:|
-| 88b63e22129c | claude | 2 | 1 | 1 of 2 | 1 | 1 |
+| 88b63e22129c | claude | 2 | 1 | 2 of 3 | 1 | 1 |
 
 ## Why tasks written ahead were let go
 
@@ -38,6 +38,15 @@ The reason the lesson moved away from a task: another language of the lessons, a
 | Instructions | Reason | Written | Let go |
 |---|---|---|---:|
 | 88b63e22129c | language | being written | 1 |
+
+## Tasks written ahead, handed out
+
+How long next_task took when it handed out a task written ahead, which the card shows the moment the call answers: the whole call, and the same less its calls to Drive made before it answered. The hand-out is written after the answer and is part of neither; a call is counted whether that write went through or not, since the card drew the task all the same.
+
+| Instructions | Host | Handed out | Milliseconds, median | Milliseconds, 95th percentile | Without Drive, median | Without Drive, 95th percentile |
+|---|---|---:|---:|---:|---:|---:|
+| 0a1b2c3d4e5f | claude | 1 | 230 | 230 | 60 | 60 |
+| 88b63e22129c | claude | 1 | 260 | 260 | 60 | 60 |
 
 ## Hand-ins by their parts
 
@@ -66,7 +75,7 @@ The tasks accepted on each topic whose line says whether they came with a drawin
 
 | Instructions | Topic | Accepted | With a drawing |
 |---|---|---:|---:|
-| 88b63e22129c | counting.gaps | 1 | 1 |
+| 88b63e22129c | counting.gaps | 2 | 1 |
 | 88b63e22129c | logic.ordering | 1 | 0 |
 | 88b63e22129c | parity.alternation | 1 | 1 |
 
@@ -132,7 +141,7 @@ A pace writes one line for a flood of refusals, and a day's ceiling one for ever
 
 ## Tool calls
 
-Milliseconds are the service's own time for a call, its calls to Drive included; without Drive, the same less the time its calls to Drive took, tied to the call by the request they were made in.
+Milliseconds are the service's own time for a call, from its start to its answer, its calls to Drive included; without Drive, the same less the time its calls to Drive took before it answered, tied to the call by the request they were made in. A write made after the answer is in neither.
 
 | Host | Tool | Calls | Answered | Refused | Failed | Invalid | Milliseconds, median | Milliseconds, 95th percentile | Without Drive, median | Without Drive, 95th percentile |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -142,12 +151,23 @@ Milliseconds are the service's own time for a call, its calls to Drive included;
 | chatgpt | submit_task | 3 | 0 | 3 | 0 | 0 | 310 | 320 | 310 | 320 |
 | claude | get_profile | 1 | 1 | 0 | 0 | 0 | 5 | 5 | 5 | 5 |
 | claude | get_progress | 1 | 1 | 0 | 0 | 0 | 400 | 400 | 70 | 70 |
-| claude | next_task | 4 | 3 | 1 | 0 | 0 | 100 | 300 | 100 | 300 |
+| claude | next_task | 6 | 5 | 1 | 0 | 0 | 120 | 300 | 60 | 300 |
 | claude | prepare_task | 2 | 2 | 0 | 0 | 0 | 150 | 150 | 150 | 150 |
+| claude | read_progress | 1 | 1 | 0 | 0 | 0 | 100 | 100 | 100 | 100 |
 | claude | read_task | 2 | 2 | 0 | 0 | 0 | 70 | 90 | 20 | 30 |
-| claude | submit_answer | 42 | 42 | 0 | 0 | 0 | 80 | 80 | 80 | 80 |
+| claude | submit_answer | 44 | 44 | 0 | 0 | 0 | 80 | 80 | 80 | 80 |
 | claude | submit_task | 4 | 3 | 1 | 0 | 0 | 240 | 300 | 240 | 300 |
 | claude | take_task | 1 | 1 | 0 | 0 | 0 | 1620 | 1620 | 1620 | 1620 |
+
+## Writes after the answer
+
+The writes the child need not wait for — a task written ahead handed out, an answer recorded — are made once the call has answered, while its request is held open; here by the version of the instructions and the tool. Written counts those written as they were made; remade, those made again on a fresh read, because another writer had changed the file meanwhile or it could not be reached; already, those another writer had made; lost, those the file no longer allowed, so that what the call answered is not what the file holds; failed, those that could not be written. Milliseconds run from the hand-over, as the call answers, to the write's end. Calls elsewhere meanwhile counts the calls of the same account that began on another instance while a write was under way: such a call read the file as it was before the write.
+
+| Instructions | Tool | Writes | Written | Remade | Already | Lost | Failed | Milliseconds, median | Milliseconds, 95th percentile | Longest | Calls elsewhere meanwhile |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 0a1b2c3d4e5f | next_task | 1 | 0 | 0 | 0 | 0 | 1 | 4200 | 4200 | 4200 | 0 |
+| 88b63e22129c | next_task | 1 | 1 | 0 | 0 | 0 | 0 | 1620 | 1620 | 1620 | 0 |
+| 88b63e22129c | submit_answer | 2 | 0 | 1 | 0 | 0 | 1 | 900 | 3100 | 3100 | 1 |
 
 ## Traces
 
@@ -176,6 +196,7 @@ The children the counts for grant applications are taken from, by the rules thos
 | Day | Children | Tasks | Answers | Topics won |
 |---|---:|---:|---:|---:|
 | 2026-09-29 | 2 | 3 | 1 | 2 |
+| 2026-09-30 | 1 | 1 | 0 | 0 |
 
 ## The rules of the log
 

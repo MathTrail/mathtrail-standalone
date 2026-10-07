@@ -719,11 +719,16 @@ describe("the site built from this repository", () => {
 					throw new Error(`${homeFile(locale)} has no ${list}`);
 				}
 				return [
-					...(nav[1] ?? "").matchAll(/<a href="([^"]+)"[^>]*>([^<]*)<\/a>/g),
-				].map(([, href, label]) => ({ href, label }));
+					...(nav[1] ?? "").matchAll(/<a href="([^"]+)"[^>]*>(.*?)<\/a>/gs),
+				].map(([, href, inner]) => ({
+					href,
+					label: (inner ?? "").replace(/<[^>]*>/g, ""),
+				}));
 			};
 			const menu = links("s-navlinks");
 			const footer = links("s-footlinks");
+
+			expect(menu.map(({ href }) => href)).toContain(`/${locale}/coach/`);
 			const group = html.match(
 				/<nav class="s-navlinks"[^>]*>.*?<span class="s-nav-group" role="group" aria-label="([^"]*)">(.*?)<\/span>/s,
 			);

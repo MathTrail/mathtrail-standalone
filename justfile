@@ -105,8 +105,9 @@ TF_DIR := "infra/terraform"
 
 # The build identity, stamped into the binary at link time. Computed once per
 # run of just, so that a binary and the image built beside it carry the same
-# words.
-VERSION := `git describe --tags --always --dirty 2>/dev/null || echo dev`
+# words. The service's releases are tagged vMAJOR.MINOR.PATCH and a build is
+# named by them alone: the paper's releases carry tags of their own.
+VERSION := `git describe --tags --match 'v[0-9]*' --always --dirty 2>/dev/null || echo dev`
 COMMIT := `git rev-parse --short HEAD 2>/dev/null || echo unknown`
 DATE := `date -u +%Y-%m-%dT%H:%M:%SZ`
 SYMBOLS := MODULE + "/internal/version"
@@ -514,7 +515,7 @@ web-layout *args: _playwright-pinned
 web-screens version="": _playwright-pinned
     #!/usr/bin/env bash
     set -euo pipefail
-    release="${1:-$(git describe --tags --abbrev=0)}"
+    release="${1:-$(git describe --tags --match 'v[0-9]*' --abbrev=0)}"
     docker run --rm --init --shm-size=1g --user "$(id -u):$(id -g)" -e HOME=/tmp \
         -e VITE_VERSION="$release" \
         -v "{{ justfile_directory() }}:{{ justfile_directory() }}" -w "{{ justfile_directory() }}/web" \
@@ -819,6 +820,24 @@ site-paper:
     fi
     just research paper-a
     just _paper-to-site
+
+# The paper's named and anonymous builds, with the paper's own checks, and the
+# one for submission once no TBD is left in the text. A TBD left is no failure:
+# the line this prints says which one the submission waits for, and what the
+# builds wrote goes to the error stream. Any other failure fails.
+_paper-a-builds:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    log=$(mktemp)
+    trap 'rm -f "$log"' EXIT
+    if just research paper-a paper-a-final 2>&1 | tee "$log" >&2; then
+        echo "The paper for submission was built."
+        exit 0
+    fi
+    # The submission's build writes the first TBD it meets on a line of its own.
+    waits=$(sed -n '/^PAPER-A-TBD: /{s///p;q}' "$log")
+    if [ -z "$waits" ]; then exit 1; fi
+    echo "The paper for submission waits, as the text still holds a TBD: $waits."
 
 # The lines of the paper's sources that still print a placeholder, an author,
 # an affiliation or a mark of something to come, and nothing once none is

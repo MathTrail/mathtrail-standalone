@@ -9,7 +9,9 @@ import (
 	"net/http/httptest"
 	"os"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -246,17 +248,101 @@ func (h *harness) start(t *testing.T, signIn mcpserver.SignIn, served ...mcpserv
 func (h *harness) connect(t *testing.T, version string) *mcp.ClientSession {
 	t.Helper()
 
+	open := newOpenAnswers()
 	client := mcp.NewClient(&mcp.Implementation{Name: "claude-code", Version: "1.0.0"}, nil)
 	session, err := client.Connect(t.Context(), &mcp.StreamableClientTransport{
 		Endpoint:             h.server.URL + "/mcp",
+		HTTPClient:           &http.Client{Transport: answerCounter{base: http.DefaultTransport, open: open}},
 		DisableStandaloneSSE: true,
 		MaxRetries:           -1,
 	}, &mcp.ClientSessionOptions{ProtocolVersion: version})
 	if err != nil {
 		t.Fatalf("Connect() error = %v, want nil", err)
 	}
-	t.Cleanup(func() { _ = session.Close() })
+	sessionAnswers.Store(session, open)
+	t.Cleanup(func() {
+		sessionAnswers.Delete(session)
+		_ = session.Close()
+	})
 	return session
+}
+
+// sessionAnswers are the answers each session a case connected has open, so
+// that a call can wait for the server to be done with its request.
+var sessionAnswers sync.Map
+
+// openAnswers counts the answers a session's requests have opened and the
+// server has not yet ended. An answer reaches the client before the server is
+// done with the request that carried it: the request may be held open while
+// the profile is written after the answer.
+type openAnswers struct {
+	mu     sync.Mutex
+	closed *sync.Cond
+	open   int
+}
+
+// newOpenAnswers counts no answer open yet.
+func newOpenAnswers() *openAnswers {
+	open := &openAnswers{}
+	open.closed = sync.NewCond(&open.mu)
+	return open
+}
+
+// settled waits until every answer the session opened has ended, and says
+// whether they ended within the bound.
+func (a *openAnswers) settled(bound time.Duration) bool {
+	limit := time.AfterFunc(bound, func() {
+		a.mu.Lock()
+		defer a.mu.Unlock()
+		a.closed.Broadcast()
+	})
+	defer limit.Stop()
+	began := time.Now()
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	for a.open > 0 && time.Since(began) < bound {
+		a.closed.Wait()
+	}
+	return a.open == 0
+}
+
+// answerCounter is a client's transport that counts each answer open until the
+// client closes its body, which it does once the server has ended it.
+type answerCounter struct {
+	base http.RoundTripper
+	open *openAnswers
+}
+
+// RoundTrip sends the request and counts its answer open.
+func (c answerCounter) RoundTrip(req *http.Request) (*http.Response, error) {
+	resp, err := c.base.RoundTrip(req)
+	if err != nil {
+		return nil, err
+	}
+	c.open.mu.Lock()
+	c.open.open++
+	c.open.mu.Unlock()
+	resp.Body = &countedBody{ReadCloser: resp.Body, open: c.open}
+	return resp, nil
+}
+
+// countedBody is an answer's body, which counts the answer ended once closed.
+type countedBody struct {
+	io.ReadCloser
+	open *openAnswers
+	once sync.Once
+}
+
+// Close closes the body and counts its answer ended.
+func (b *countedBody) Close() error {
+	err := b.ReadCloser.Close()
+	b.once.Do(func() {
+		b.open.mu.Lock()
+		defer b.open.mu.Unlock()
+		b.open.open--
+		b.open.closed.Broadcast()
+	})
+	return err
 }
 
 // settle waits for every request to be over. An answer can reach the client
@@ -358,8 +444,24 @@ func message(t *testing.T, got received) map[string]any {
 	return decoded
 }
 
-// call calls a tool and expects the protocol to answer.
+// call calls a tool, expects the protocol to answer, and returns once the
+// server is done with the request, the writes it made after the answer
+// included, so that a case reads the store and the log as the call left them.
 func call(t *testing.T, session *mcp.ClientSession, tool string, args any) *mcp.CallToolResult {
+	t.Helper()
+
+	result := callEarly(t, session, tool, args)
+	if open, counting := sessionAnswers.Load(session); counting {
+		if answers, isAnswers := open.(*openAnswers); isAnswers && !answers.settled(10*time.Second) {
+			t.Fatalf("the server was not done with %s's request 10 s after its answer", tool)
+		}
+	}
+	return result
+}
+
+// callEarly calls a tool and returns its answer as soon as it arrives, while
+// the server may still be writing what the call left for after the answer.
+func callEarly(t *testing.T, session *mcp.ClientSession, tool string, args any) *mcp.CallToolResult {
 	t.Helper()
 
 	result, err := session.CallTool(t.Context(), &mcp.CallToolParams{Name: tool, Arguments: args})

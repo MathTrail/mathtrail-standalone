@@ -219,6 +219,7 @@ func (s *Service) ask(ctx context.Context, account store.Account, p *profile.Pro
 ) (Reply[requestOut], error) {
 	skipped, wasSkipped := p.Skip(now)
 	request := p.Ask(asked.brief, asked.mode, p.Student.LessonLanguage(asked.language), now)
+	noteTaskRequest(ctx, request.ID)
 	request.Asked = asked.byPerson
 	if err := s.canPackage(p, request); err != nil {
 		return Reply[requestOut]{}, err
@@ -249,7 +250,8 @@ func (s *Service) ask(ctx context.Context, account store.Account, p *profile.Pro
 
 // serveReady hands the task kept to the child, who asked for the next one in
 // the chat: it is on the card next_task draws at once, and the model is sent on
-// to write the one after it. asked says a person asked for where it stands.
+// to write the one after it. The hand-out is written after the answer, which
+// does not wait for it. asked says a person asked for where it stands.
 func (s *Service) serveReady(ctx context.Context, account store.Account, p *profile.Profile, revision store.Revision,
 	asked bool, now time.Time,
 ) (Reply[requestOut], error) {
@@ -257,15 +259,21 @@ func (s *Service) serveReady(ctx context.Context, account store.Account, p *prof
 	if left := p.InFlight(); left != nil {
 		lead = fmt.Sprintf("Task %s, left on the child's card without an answer, is recorded as skipped.", left.ID)
 	}
-	task, err := s.handOutReady(ctx, account, p, revision, asked, now)
-	if err != nil {
+	handOut := s.handOutKept(account, p.ReadyTask.ID, asked, now)
+	handedOut, err := handOut(p)
+	switch {
+	case err != nil:
 		return Reply[requestOut]{}, err
+	case handedOut.state != changed:
+		return Reply[requestOut]{}, errors.New("mcp: the task kept could not be handed out")
 	}
+	task := p.CurrentTask
+	noteTaskRequest(ctx, profile.RequestIDFor(task.ID))
 	choice, err := s.topicChoiceOf(p, now)
 	if err != nil {
 		return Reply[requestOut]{}, fmt.Errorf("mcp: the choice of the topic: %w", err)
 	}
-	return Reply[requestOut]{
+	reply := Reply[requestOut]{
 		Text: joined(lead, fmt.Sprintf("Task %s, written ahead, is on the child's card now. %s Never say which "+
 			"option is right before the child has answered. %s", task.ID, onTheCardText, aheadNextText),
 			lessonLanguageText(&p.Student)) + "\n\n" + taskWords(task),
@@ -273,7 +281,14 @@ func (s *Service) serveReady(ctx context.Context, account store.Account, p *prof
 			Screen: screenTask, Task: cardOf(task), TopicChoice: choice, LastAnswer: lastAnswerOf(p),
 			Child: childLineOf(&p.Student), Language: task.Language,
 		},
-	}, nil
+	}
+	err = s.writeAfterAnswer(ctx, &lateWrite{
+		tool: "next_task", account: account, profile: p, revision: revision, again: handOut, landed: handedOut.landed,
+	})
+	if err != nil {
+		return Reply[requestOut]{}, err
+	}
+	return reply, nil
 }
 
 // awaitAhead has the card next_task draws wait for the task being written
@@ -287,6 +302,7 @@ func (s *Service) awaitAhead(ctx context.Context, account store.Account, p *prof
 	if err != nil {
 		return Reply[requestOut]{}, err
 	}
+	noteTaskRequest(ctx, request.ID)
 	lead := ""
 	if skipped != nil {
 		lead = fmt.Sprintf("Task %s, left on the child's card without an answer, is recorded as skipped.", skipped.TaskID)
@@ -311,6 +327,7 @@ func (s *Service) awaitAhead(ctx context.Context, account store.Account, p *prof
 // to write it from — for the package. Nothing is written.
 func (s *Service) stillOpen(ctx context.Context, account store.Account, p *profile.Profile, ignored bool) (Reply[requestOut], error) {
 	request := p.OpenRequest
+	noteTaskRequest(ctx, request.ID)
 	if err := s.canPackage(p, request); err != nil {
 		return Reply[requestOut]{}, err
 	}

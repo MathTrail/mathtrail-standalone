@@ -59,6 +59,7 @@
 	--s-hairline: #e9eef6;
 	--s-outline: #747775;
 	--s-tint: #f0f4f9;
+	--s-tint-hover: #e1e7ef;
 	--s-accent: #0b57d0;
 	--s-accent-hover: #0842a0;
 	--s-accent-tint: #d3e3fd;
@@ -76,6 +77,10 @@
 	--s-wip: #fbf3dd;
 	--s-on-wip: #6b4e12;
 	--s-wip-dot: #c9982f;
+	--s-beta: #f6e3b4;
+	--s-beta-current: #f0d48f;
+	--s-beta-edge: #dcb35c;
+	--s-on-beta: #5c4210;
 	--s-slate: #2f5b76;
 	--s-slate-deep: #1d3d52;
 	--s-slate-tint: #e4ecf2;
@@ -92,10 +97,10 @@
 	--s-level-low: #d9dce0;
 	--s-soon: #fef7e0;
 	--s-on-soon: #5c3c00;
-	--s-tech: #eceff3;
-	--s-tech-edge: #d3d9e0;
+	--s-tech: #e1e6ec;
+	--s-tech-edge: #cbd2da;
 	--s-on-tech: #3d4a56;
-	--s-tech-hover: #dde2e8;
+	--s-tech-hover: #d2d9e1;
 	--s-on-tech-hover: #1d2733;
 	--s-tech-current: #2f3a45;
 	--s-bar-history: #4f86ec;
@@ -172,15 +177,19 @@ a:hover {
 	white-space: nowrap;
 }
 
-/* The header: the mark and the name, the menu, and the languages, on a white
-   bar that stays on top as the page scrolls under it. */
+/* The header: the mark and the name, the menu, and the languages, on a
+   blue-grey bar that stays on top as the page scrolls under it. An entry
+   pointed at darkens a step, since the tint it would take on a white page is
+   the bar's own. */
 .s-nav {
 	position: sticky;
 	inset-block-start: 0;
 	z-index: 20;
-	background: rgb(255 255 255 / 92%);
+	/* The tint at 94 %, written out: a colour the stylesheet mixed would leave
+	   the bar clear in a browser that cannot mix one. */
+	background: rgb(240 244 249 / 94%);
 	backdrop-filter: blur(10px);
-	box-shadow: 0 1px 0 var(--s-hairline);
+	box-shadow: 0 1px 0 var(--s-line-soft);
 }
 
 .s-nav-inner {
@@ -236,14 +245,49 @@ a:hover {
 
 .s-navlinks a:hover,
 .s-menu-list a:hover {
-	background: var(--s-tint);
+	background: var(--s-tint-hover);
 	color: var(--s-text);
 }
 
-.s-navlinks a[aria-current="page"],
-.s-menu-list a[aria-current="page"] {
+/* The menu's current entry: the page being read, or the page it lies under,
+   as the page of the topics is to a topic's own. */
+.s-navlinks a[aria-current],
+.s-menu-list a[aria-current] {
 	background: var(--s-accent-tint);
 	color: var(--s-on-tint);
+}
+
+/* The entry of a page still in the making: its word, and beside it a small
+   yellow tag that says the page is in beta. When it is the page being read,
+   the entry is drawn in yellows, ringed, rather than in blue. */
+.s-navlinks a.s-nav-wip,
+.s-menu-list a.s-nav-wip {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+}
+
+.s-navlinks a.s-nav-wip[aria-current],
+.s-menu-list a.s-nav-wip[aria-current] {
+	background: var(--s-wip);
+	box-shadow: inset 0 0 0 1px var(--s-beta-edge);
+	color: var(--s-on-beta);
+}
+
+.s-nav-tag {
+	padding-inline: 5px;
+	border-radius: 4px;
+	background: var(--s-beta);
+	color: var(--s-on-beta);
+	font-size: 0.625rem;
+	font-weight: 700;
+	line-height: 16px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.s-nav-wip[aria-current] .s-nav-tag {
+	background: var(--s-beta-current);
 }
 
 .s-nav-tools {
@@ -312,15 +356,15 @@ a:hover {
 	color: var(--s-on-tech-hover);
 }
 
-.s-navlinks .s-nav-group a[aria-current="page"],
-.s-menu-list .s-nav-group a[aria-current="page"] {
+.s-navlinks .s-nav-group a[aria-current],
+.s-menu-list .s-nav-group a[aria-current] {
 	background: var(--s-tech-current);
 	color: var(--s-page);
 }
 
 /* The menu's button, for a screen too narrow for the menu itself: a
    disclosure, which a browser opens and closes with no script, its list
-   dropping under the header. */
+   dropping under the header on the header's own tint. */
 .s-menu {
 	display: none;
 }
@@ -343,7 +387,7 @@ a:hover {
 
 .s-menu > summary:hover,
 .s-menu[open] > summary {
-	background: var(--s-tint);
+	background: var(--s-tint-hover);
 	color: var(--s-text);
 }
 
@@ -356,9 +400,9 @@ a:hover {
 	gap: var(--space-4);
 	padding-block: var(--space-8) var(--space-16);
 	padding-inline: var(--space-16);
-	background: var(--s-page);
+	background: var(--s-tint);
 	box-shadow:
-		0 1px 0 var(--s-hairline),
+		0 1px 0 var(--s-line-soft),
 		0 12px 24px rgb(60 64 67 / 12%);
 }
 
@@ -512,10 +556,10 @@ a:hover {
 	}
 }
 
-/* The footer: white under a hairline, with the pages, the code and the
-   address in grey. */
+/* The footer: a narrow blue-grey band across the page, with the pages, the
+   code and the address in grey. */
 .s-footer {
-	border-block-start: 1px solid var(--s-hairline);
+	background: var(--s-hairline);
 	color: var(--s-muted);
 	font-size: 0.9375rem;
 }
@@ -524,7 +568,7 @@ a:hover {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-20);
-	padding-block: var(--space-44) var(--space-64);
+	padding-block: var(--space-32);
 }
 
 .s-foot {
@@ -554,12 +598,12 @@ a:hover {
 
 /* A page a component draws: its sections one under another, each opening
    with its heading and a line or two, and the last one keeping its distance
-   from the footer. */
+   from the footer, whatever scripts the page puts after it. */
 .s-section {
 	padding-block-start: 112px;
 }
 
-.s-section:last-child {
+.s-section:last-of-type {
 	padding-block-end: var(--space-64);
 }
 
@@ -973,13 +1017,13 @@ a:hover {
 	}
 }
 
-/* The menu folds behind its button below 1180 px: in Russian, the longer of
-   the site's languages, its seven entries, two of them held together as the
-   technical pages, stop fitting in a row beside the mark and the tools some
-   way under that, with a scroll bar that takes room of its own; an entry more
-   wants the width measured again, as scripts/fold.ts measures it. A phone
-   keeps a narrower margin. */
-@media (max-width: 1179px) {
+/* The menu folds behind its button below 1230 px: in Russian, the longer of
+   the site's languages, its seven entries, the coach's with its tag and two
+   held together as the technical pages, stop fitting in a row beside the mark
+   and the tools some way under that, with a scroll bar that takes room of its
+   own; an entry more, or a wider one, wants the width measured again, as
+   scripts/fold.ts measures it. A phone keeps a narrower margin. */
+@media (max-width: 1229px) {
 	.s-navlinks {
 		display: none;
 	}
@@ -2815,6 +2859,18 @@ a:hover {
 	block-size: 8px;
 	border-radius: var(--radius-round);
 	background: var(--s-wip-dot);
+}
+
+/* The badge of a page written for technical readers rather than for parents,
+   in the greys of the menu's capsule that holds such pages. */
+.s-badge-tech {
+	background: var(--s-tech);
+	box-shadow: inset 0 0 0 1px var(--s-tech-edge);
+	color: var(--s-tech-current);
+}
+
+.s-badge-tech::before {
+	background: var(--s-tech-current);
 }
 
 .s-coach-ideas {

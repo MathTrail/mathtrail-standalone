@@ -74,10 +74,13 @@ type line struct {
 	// Outcome is how a tool call ended, or how an attempt at a task did.
 	Outcome string `json:"outcome"`
 
-	// A tool call: which tool, which chat host, and how long it took.
+	// A tool call: which tool, which chat host, how long it took, and the
+	// screen its answer drew, which a line written before the service named it
+	// leaves unsaid.
 	Tool       string `json:"tool"`
 	Client     string `json:"client"`
 	DurationMS whole  `json:"duration_ms"`
+	Screen     string `json:"screen"`
 
 	// A request for a task, whether it was one already open, and whether it
 	// was for a task written ahead.

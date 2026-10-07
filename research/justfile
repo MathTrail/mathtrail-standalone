@@ -337,6 +337,10 @@ _paper-a-version:
 #
 # A build that hides the system is then read back: the bibliography must not
 # name the project or its repositories, which no check of the text can see.
+# Its PDF's text is read back too, with each word TeX broke at the margin
+# joined again: it may name neither the system nor the author, whose name and
+# address only the named build prints, and it must hold the anonymous author
+# line, or what was read is not the paper.
 #
 # Every build's log is read last. No line may run past the margins, which TeX
 # reports as an overfull box, and a build given a number of pages may not run
@@ -383,6 +387,22 @@ _paper-a-latex jobname pretex='' pages='':
         fi
     fi
     log="paper-a/build/$1.log" pdf="paper-a/build/$1.pdf"
+    if [ -n "$2" ]; then
+        text=$(docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD:/research:ro" {{ TEXLIVE }} \
+            gs -q -dNOPAUSE -dBATCH -sDEVICE=txtwrite -sOutputFile=- "/research/$pdf")
+        if ! grep -q -F 'Anonymous Author' <<<"$text"; then
+            echo "$1: the text read back from $pdf holds no anonymous author line" >&2
+            exit 1
+        fi
+        # The text comes with a carriage return ending each line.
+        words=$(tr -d '\r' <<<"$text" | sed -z 's/-[[:blank:]]*\n[[:space:]]*//g')
+        # Cyrillic is matched byte for byte, so each spelling is listed as it is.
+        if grep -o -i -E 'math[-_ ]?trail|llm[-_]taskgen|r[iy]azanov|rjazanov|altedtech' <<<"$words" >&2 ||
+            grep -o -F -e Матрейл -e Маттрейл -e МатТрейл -e матрейл -e маттрейл -e Рязанов -e рязанов <<<"$words" >&2; then
+            echo "$1: $pdf names the system or its author (above)" >&2
+            exit 1
+        fi
+    fi
     if grep -n -E '^Overfull \\[hv]box' "$log" >&2; then
         echo "$1: the lines above run past the margins" >&2
         exit 1

@@ -1,0 +1,86 @@
+# Paper A on Zenodo, and only by hand: nothing else starts this workflow, and
+# nothing else puts anything on Zenodo. A run takes the newest release of the
+# paper on GitHub and holds its named artifact to the release's sums. Its
+# first step, draft, puts the artifact into a draft of the record, which can
+# be looked at on Zenodo and still thrown away; its second, publish, publishes
+# that draft, which cannot be taken back. The record is the variable
+# ZENODO_RECORD, the number every version of it shares; with none, the draft
+# starts the record. The token is the secret ZENODO_TOKEN of the environment
+# zenodo, which only main may run in.
+name: Zenodo
+
+on:
+  workflow_dispatch:
+    inputs:
+      step:
+        description: "draft puts the newest release of paper A into a draft on Zenodo; publish publishes that draft"
+        type: choice
+        options: [draft, publish]
+        default: draft
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zenodo
+  cancel-in-progress: false
+
+jobs:
+  zenodo:
+    name: Paper A on Zenodo, the ${{ inputs.step }} step
+    # A branch's run could hand Zenodo what main never held.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: zenodo
+    defaults:
+      run:
+        shell: bash
+        working-directory: research
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: research/go.mod
+          cache-dependency-path: research/go.sum
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+        with:
+          cosign-release: v3.1.3
+      # A version on Zenodo is for good, so the artifact is held to sums that
+      # paper.yml signed on main, not merely to sums that lie beside it.
+      - id: release
+        name: Take the newest release of paper A, held to its signed sums
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag=$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+              --jq '.[] | select((.draft | not) and (.tag_name | startswith("paper-a/"))) | [.published_at, .tag_name] | @tsv' |
+              LC_ALL=C sort | tail -n 1 | cut -f2)
+          if [ -z "$tag" ]; then
+              echo "No release of paper A is out yet." >&2
+              exit 1
+          fi
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --dir "$RUNNER_TEMP/paper" \
+              --pattern paper-a-artifact.tar.gz --pattern SHA256SUMS --pattern SHA256SUMS.sigstore.json
+          cd "$RUNNER_TEMP/paper"
+          cosign verify-blob --bundle SHA256SUMS.sigstore.json \
+              --certificate-identity "https://github.com/$GITHUB_REPOSITORY/.github/workflows/paper.yml@refs/heads/main" \
+              --certificate-oidc-issuer https://token.actions.githubusercontent.com SHA256SUMS
+          grep ' paper-a-artifact.tar.gz$' SHA256SUMS | sha256sum --check --strict
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "The release of paper A taken: $tag." >> "$GITHUB_STEP_SUMMARY"
+      - name: Take the step on Zenodo
+        env:
+          ZENODO_TOKEN: ${{ secrets.ZENODO_TOKEN }}
+          RECORD: ${{ vars.ZENODO_RECORD }}
+          STEP: ${{ inputs.step }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          if [ "$STEP" = draft ]; then
+              go run ./tools/zenodo draft -archive "$RUNNER_TEMP/paper/paper-a-artifact.tar.gz" \
+                  -version "$TAG" -record "$RECORD" | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+              go run ./tools/zenodo publish -version "$TAG" -record "$RECORD" | tee -a "$GITHUB_STEP_SUMMARY"
+          fi

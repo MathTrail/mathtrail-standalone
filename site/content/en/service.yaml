@@ -1,6 +1,7 @@
 title: How the service works
 description: "How MathTrail works inside: the parts of the service and how they link, a lesson call by call, where its state lives, the profile's file in the parent's Drive and what is sealed in it."
 hero:
+  badge: For technical readers
   title: How the service works
   lead: "MathTrail stands between the chat a family already uses and the parent's Google Drive. The chat's model writes every task, and the service decides whether it reaches the child. It is one program: it calls no model of its own and keeps nothing between requests."
   chips:

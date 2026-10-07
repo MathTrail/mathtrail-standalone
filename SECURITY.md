@@ -43,7 +43,7 @@ Worth knowing before you look for something that is not there:
 
 ## Supported versions
 
-Every green `main` is published as a signed release, the service is deployed from those releases, and only the newest release is supported. The service names the release it runs at `/health` and in the header of the task card. There is no separate maintenance branch: a fix goes to `main` and is delivered from there.
+Every green `main` is published as a signed release, the service is deployed from those releases, and only the newest release is supported. The service names the release it runs at `/health` and in the header of the task card. There is no separate maintenance branch: a fix goes to `main` and is delivered from there. The service's releases are tagged `vMAJOR.MINOR.PATCH`; the releases tagged `paper-a/…` are of the research paper about the service and its artifact, never the latest release, and no version of the service.
 
 ## Checking that a binary is ours
 
@@ -57,7 +57,7 @@ cosign verify-blob --bundle SHA256SUMS.sigstore.json \
 sha256sum --check --ignore-missing SHA256SUMS
 ```
 
-The first command says the sums were signed by this repository's release workflow, run on `main`; the second, that each binary downloaded beside them is the one they describe — on macOS, `shasum -a 256 --check --ignore-missing SHA256SUMS` does the same. A release cut by hand from another branch names that branch in its certificate instead, and fails the first command as written.
+The first command says the sums were signed by this repository's release workflow, run on `main`; the second, that each binary downloaded beside them is the one they describe — on macOS, `shasum -a 256 --check --ignore-missing SHA256SUMS` does the same. A release cut by hand from another branch names that branch in its certificate instead, and fails the first command as written. A release of the paper is checked the same way, its files signed by the paper's workflow: `--certificate-identity https://github.com/MathTrail/mathtrail-standalone/.github/workflows/paper.yml@refs/heads/main`.
 
 ## How this is kept honest
 

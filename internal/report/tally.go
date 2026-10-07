@@ -137,6 +137,10 @@ type counts struct {
 	letGo    map[letGoFor]int
 	limits   map[string]int
 	tools    map[toolOf]*calls
+	// handOuts are how long next_task took to hand out a task written ahead,
+	// and late how the writes made after an answer went.
+	handOuts map[group]*handOuts
+	late     map[lateOf]*lateWrites
 	// promises and keptUp are the answers weighed against the chance their
 	// tasks were handed out at, by that chance and by how many answers the
 	// child had given; answersLeftOut counts the answers neither takes, by
@@ -170,11 +174,12 @@ func tally(in *input) *counts {
 		tasks: map[group]*tasks{}, handIns: map[handInOf]*handIns{}, mends: map[mendOf]int{},
 		drawings: map[drawnOn]*drawings{}, refusals: map[refusedBy]*refusals{},
 		letGo:  map[letGoFor]int{},
-		limits: map[string]int{}, tools: map[toolOf]*calls{},
+		limits: map[string]int{}, tools: map[toolOf]*calls{}, handOuts: map[group]*handOuts{},
 		promises: map[promisedIn]*cameTrue{}, keptUp: map[keptUpIn]*keptUp{}, answersLeftOut: map[string]int{},
 	}
 	hosts := hostsOf(lines)
 	drive := driveTimes(lines)
+	kept := keptHandedOut(lines)
 	firstSeen := map[string]time.Time{}
 	for i := range lines {
 		l := &lines[i]
@@ -182,6 +187,9 @@ func tally(in *input) *counts {
 		switch l.Message {
 		case eventToolCall:
 			c.toolCall(l, drive)
+			if handedOutKept(l, kept) {
+				c.handOut(l, max(int64(l.DurationMS)-drive[l.request()], 0))
+			}
 		case eventLimitHit:
 			c.limits[l.Limit]++
 		case eventTaskRequested, eventTaskSubmitted, eventTaskAccepted, eventTaskKept, eventTaskDropped:
@@ -199,6 +207,7 @@ func tally(in *input) *counts {
 		}
 	}
 	c.versions = inOrder(firstSeen)
+	c.late = writesAfterAnswer(lines)
 	testedUsers, testedLearners := testChildren(lines)
 	c.testing = testedUsers
 	c.masteries = shownMasteries(lines, hosts, testedUsers)

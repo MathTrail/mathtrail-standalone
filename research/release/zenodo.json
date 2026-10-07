@@ -1,0 +1,27 @@
+{
+  "upload_type": "software",
+  "title": "Artifact of “The Model Writes, the Service Checks: Olympiad-Style Maths Problems for Primary-School Children inside Chat Assistants”",
+  "description": "<p>The artifact of paper A about MathTrail: the service at the commit the paper describes, with its reference tasks and their solvers, and the research its numbers come from. That is the experiments with their results, the protocol with its timestamp and its deviations, the evidence ledger, and every number the paper prints. Unpacked, it reruns each experiment and compares what it writes with the results it ships: its README says how.</p>",
+  "creators": [
+    {
+      "name": "Riazanov, Aleksandr",
+      "affiliation": "Independent Researcher"
+    }
+  ],
+  "access_right": "open",
+  "license": "mit",
+  "keywords": [
+    "large language models",
+    "intelligent tutoring",
+    "mathematics education",
+    "olympiad problems",
+    "Model Context Protocol"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/MathTrail/mathtrail-standalone",
+      "relation": "isSupplementTo",
+      "resource_type": "software"
+    }
+  ]
+}
