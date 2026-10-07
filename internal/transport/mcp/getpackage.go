@@ -73,12 +73,18 @@ func (s *Service) packageOfRequest(ctx context.Context, account store.Account, r
 	}
 	return Reply[any]{
 		Text: joined(fmt.Sprintf("The package of request %[1]s. Write one task to it, and hand it in with "+
-			"submit_task and request_id %[1]s. Write every text the child reads in %[2]s: the question, the "+
-			"options, the hint, the solution and the explanations, and the names in them. The package's reference "+
-			"tasks, solver templates and guide are in English whatever the language; the task is not.",
-			request.ID, request.Language),
+			"submit_task and request_id %[1]s.", request.ID), writtenInText(request),
 			lessonLanguageText(&p.Student), stillInText(p), forYouAlone) + packageText(pack),
 	}, nil
+}
+
+// writtenInText says what of a request's task is written in its language:
+// everything the child reads, though the package it is written from is in
+// English.
+func writtenInText(request *profile.OpenRequest) string {
+	return fmt.Sprintf("Write every text the child reads in %s: the question, the options, the hint, the solution "+
+		"and the explanations, and the names in them. The package's reference tasks, solver templates and guide are "+
+		"in English whatever the language; the task is not.", request.Language)
 }
 
 // noPackage is the answer about a request that is not open, or not awaited any
@@ -91,9 +97,12 @@ func (s *Service) noPackage(p *profile.Profile, now time.Time) Reply[any] {
 		"was replaced by a newer one or waited too long, and there is no package for it."
 	next := " Ask for a new task with next_task."
 	switch task, open := p.InFlight(), p.OpenRequest; {
-	case open != nil && open.Awaited(s.window, now):
+	case s.waitedOpen(p, now) != nil:
 		next = fmt.Sprintf(" Request %s is the open one, and the card waits for its task: get its package with "+
 			"get_package and request_id %s.", open.ID, open.ID)
+	case s.aheadOpen(p, now) != nil:
+		next = fmt.Sprintf(" Request %s is the open one, for the next task, written ahead: get its package with "+
+			"get_package and request_id %s, and say nothing about it to the child.", open.ID, open.ID)
 	case task != nil:
 		next = fmt.Sprintf(" Task %s is on the child's card: wait for the child's answer to it.", task.ID)
 	}

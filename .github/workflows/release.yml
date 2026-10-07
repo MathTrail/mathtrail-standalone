@@ -174,8 +174,8 @@ jobs:
   # The research's data of the release: paper A's experiments held to the
   # results the release's commit keeps, and from that commit the numbers the
   # paper prints and the data of the page "Research", handed to the site as one
-  # artifact. When it fails the site is not published, and the service is
-  # delivered all the same.
+  # artifact, and the paper built from those numbers. When any of it fails the
+  # site is not published, and the service is delivered all the same.
   research:
     name: Make the release's research data
     needs: release

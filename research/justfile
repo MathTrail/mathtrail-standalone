@@ -278,7 +278,7 @@ NUMBERS := "product=evidence/product-stats.txt ledger=evidence/ledger-numbers.tx
 # up. A web address, or the project's name, in any value is hidden as well.
 IDENTIFYING := "commit"
 
-[doc('Build paper A: its numbers, checks of its names and its anonymity, then the named and the anonymous PDF, each checked for its citations and its margins, and the anonymous one for its pages')]
+[doc('Build paper A: its numbers, checks of its names and its anonymity, then the named PDF, which prints its version, and the anonymous one, each checked for its citations and its margins, and the anonymous one for its pages')]
 paper-a: _paper-a-ledger _paper-a-numbers _paper-a-names _paper-a-handtyped _paper-a-anonymity (_paper-a-latex "paper-a") (_paper-a-latex "paper-a-anonymous" '\def\Anonymous{}' PAPER_A_PAGES)
     @echo "paper-a/build/paper-a.pdf and paper-a/build/paper-a-anonymous.pdf"
 
@@ -309,6 +309,22 @@ _paper-a-handtyped:
     for figure in paper-a/figures/*.tex; do figures+=(-labels "$figure"); done
     go run ./tools/handtyped -names paper-a/names-with-digits.txt "${figures[@]}" paper-a/main.tex paper-a/sections/*.tex
 
+# The version of the paper: the date and the short hash of the commit it is
+# built from, marked as modified when the research's tree holds changes that
+# commit does not, a file it does not track among them, so that a build of an
+# edited tree never passes for the commit's. It is printed, and written to
+# paper-a/generated/version.tex, which the named build reads: latexmk builds
+# the paper again when a file it read has changed, and not when only its
+# command line has.
+_paper-a-version:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    version="$(git log -1 --format=%cs), commit $(git rev-parse --short=12 HEAD)"
+    if [ -n "$(git status --porcelain -- .)" ]; then version="$version, modified"; fi
+    mkdir -p paper-a/generated
+    printf '\\def\\Version{%s}\n' "$version" > paper-a/generated/version.tex
+    echo "$version"
+
 # One build of the paper into paper-a/build/, under a job name and with what
 # is read before the preamble.
 #
@@ -325,10 +341,13 @@ _paper-a-handtyped:
 # Every build's log is read last. No line may run past the margins, which TeX
 # reports as an overfull box, and a build given a number of pages may not run
 # longer. The log is the last pass's, the one that wrote the PDF: the size it
-# records must be the PDF's, or the pages it gives are another PDF's.
+# records must be the PDF's, or the pages it gives are another PDF's. The named
+# build's log must name the version just written, or the PDF is one built
+# before it.
 #
 # The PDF carries the pinned commit's date rather than the moment of the build,
-# so the same sources make the same file.
+# so the same sources, the named build's version among them, make the same
+# file.
 [positional-arguments]
 _paper-a-latex jobname pretex='' pages='':
     #!/usr/bin/env bash
@@ -338,6 +357,9 @@ _paper-a-latex jobname pretex='' pages='':
         echo "evidence/product-stats.txt names no commit_date, and the PDF would carry today's" >&2
         exit 1
     fi
+    # The named build prints the version this writes; the others read nothing
+    # of it.
+    version=$({{ JUST }} --justfile {{ quote(justfile()) }} _paper-a-version)
     pretex=()
     if [ -n "$2" ]; then pretex=("-usepretex=$2"); fi
     # TeX breaks the lines of its log at 79 characters unless told otherwise,
@@ -363,6 +385,10 @@ _paper-a-latex jobname pretex='' pages='':
     log="paper-a/build/$1.log" pdf="paper-a/build/$1.pdf"
     if grep -n -E '^Overfull \\[hv]box' "$log" >&2; then
         echo "$1: the lines above run past the margins" >&2
+        exit 1
+    fi
+    if [ -z "$2" ] && ! grep -q -x -F "Paper A: Version of $version." "$log"; then
+        echo "$1: $pdf does not print the version $version" >&2
         exit 1
     fi
     if [ -n "$3" ]; then
@@ -395,10 +421,11 @@ _paper-a-names:
         exit 1
     fi
 
-# The names and the numbers that identify the system — the repository and the
-# commit a reviewer could look up — must reach the named build and not the
-# anonymous one. A test document writes what they expand to into its log,
-# built both ways; each build must write all five lines, and the logs are read.
+# The names and the numbers that identify the system — the repository, the
+# commit a reviewer could look up, and the commit the paper's version names —
+# must reach the named build and not the anonymous one. A test document writes
+# what they expand to into its log, built both ways; each build must write all
+# six lines, and the logs are read.
 _paper-a-anonymity:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -406,19 +433,22 @@ _paper-a-anonymity:
     work=$(mktemp -d)
     trap 'rm -rf "$work"' EXIT
     commit=$(sed -n 's/^commit=//p' evidence/product-stats.txt)
+    # The named build reads the version from the file this writes.
+    {{ JUST }} --justfile {{ quote(justfile()) }} _paper-a-version > /dev/null
+    built_from=$(git rev-parse --short=12 HEAD)
     log() {
         docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
             -v "$PWD:/research" -v "$work:/out" -w /research/paper-a {{ TEXLIVE }} \
             pdflatex -interaction=nonstopmode -halt-on-error -output-directory=/out "$@" > /dev/null
         lines=$(grep '^ANONYMITY-CHECK' "$work/anonymity.log")
-        if [ "$(wc -l <<<"$lines")" -ne 5 ]; then
-            echo "the test document did not write all five lines:" >&2; echo "$lines" >&2; exit 1
+        if [ "$(wc -l <<<"$lines")" -ne 6 ]; then
+            echo "the test document did not write all six lines:" >&2; echo "$lines" >&2; exit 1
         fi
         echo "$lines"
     }
     named=$(log test/anonymity.tex)
     anonymous=$(log '\def\Anonymous{}\input{test/anonymity}')
-    for mark in MathTrail github.com/MathTrail "$commit"; do
+    for mark in MathTrail github.com/MathTrail "$commit" "$built_from"; do
         if ! grep -q -F "$mark" <<<"$named"; then
             echo "the named build lost $mark" >&2; exit 1
         fi

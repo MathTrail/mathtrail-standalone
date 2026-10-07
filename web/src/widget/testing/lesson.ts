@@ -852,6 +852,64 @@ export const notComing = toolResult({
 	task: null,
 });
 
+/**
+ * nextFence is the task written ahead after the fence: a fence of another
+ * length, under an id of its own, that the card takes when the child asks for
+ * another.
+ */
+export const nextFence: Handed = {
+	...fence,
+	task: {
+		...fence.task,
+		id: "task_next_fence",
+		question:
+			"A fence is 20 meters long. Posts stand every 5 meters, including both ends. How many posts are there?",
+		drawing: "|--5--|--5--|--5--|--5--|\n",
+	},
+};
+
+/**
+ * takenAtOnce is what the service tells a card that took the next task when
+ * one was written ahead: that task, on the card at once.
+ */
+export const takenAtOnce = toolResult({ ...nextFence, language: "en" });
+
+/**
+ * takenComing is what the service tells a card that took the next task while
+ * it was still being written: the request the card is to wait for.
+ */
+export const takenComing = toolResult({
+	screen: "coming",
+	request_id: "req_next_fence",
+	child: fence.child,
+	language: "en",
+	last_answer: null,
+});
+
+/**
+ * takenOver is what the service tells a card whose task is no longer the one
+ * being solved, when it asks for the next one: its task is over.
+ */
+export const takenOver = toolResult({
+	screen: "waiting",
+	status: "stale",
+	code: "stale_task",
+	child: fence.child,
+	last_answer: null,
+});
+
+/**
+ * takenLimited is what the service tells a card that asks for the next task
+ * when the day has no room for another.
+ */
+export const takenLimited = toolResult({
+	screen: "waiting",
+	status: "limited",
+	code: "limit_reached",
+	child: fence.child,
+	last_answer: null,
+});
+
 // toolResult is a tool's result with the payload a card is drawn from.
 function toolResult(
 	structuredContent: Record<string, unknown>,

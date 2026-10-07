@@ -787,6 +787,11 @@ func TestAPackageIsHandedOutOnlyForTheOpenRequest(t *testing.T) {
 			askForTheRace(t, session, kept)
 			return "req_another"
 		}, "is the open one, and the card waits for its task: get its package with get_package"},
+		{"another request's id, the next task being written ahead", func(t *testing.T, session *mcp.ClientSession, kept store.Storage, _ *clock) string {
+			raceHandedOut(t, session, kept)
+			prepared(t, session, aheadChoice)
+			return "req_another"
+		}, "is the open one, for the next task, written ahead: get its package with get_package"},
 		{"a request handed out already", func(t *testing.T, session *mcp.ClientSession, kept store.Storage, _ *clock) string {
 			request := askForTheRace(t, session, kept)
 			call(t, session, "submit_task", raceOn(request))

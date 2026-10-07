@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -25,20 +26,20 @@ const (
 )
 
 // nextTaskIn is what next_task takes: the language the task is to be written
-// in, and what the model wants instead of what the rule sets, with its reason.
-// The limits are in the words rather than in the schema, and the rule checks
-// them, saying what is wrong without repeating it.
+// in, and what the child or the adult asked for instead of what the rule sets,
+// with its reason. The limits are in the words rather than in the schema, and
+// the rule checks them, saying what is wrong without repeating it.
 type nextTaskIn struct {
 	Language   string `json:"language" jsonschema:"the language of the chat as a BCP 47 tag, such as en, ru or pt-BR: the task is written in it, unless the profile names a language for the lessons"`
-	Topic      string `json:"topic,omitempty" jsonschema:"a topic of your own instead of the rule's, by its id from the list in this tool's description. Needs a reason"`
-	GradeLevel string `json:"grade_level,omitempty" jsonschema:"a level of your own: 1-2, 3-4 or 5-6, the grades a task is written for. Needs a reason"`
-	Difficulty int    `json:"difficulty,omitempty" jsonschema:"a difficulty of your own inside the level, 1 to 5. Needs a reason"`
-	Reason     string `json:"reason,omitempty" jsonschema:"why the child needs your topic, level or difficulty now, in a sentence of at most 300 characters. Required with any of them"`
+	Topic      string `json:"topic,omitempty" jsonschema:"a topic the child or the adult asked for instead of the rule's, by its id from the list in this tool's description. Needs a reason"`
+	GradeLevel string `json:"grade_level,omitempty" jsonschema:"a level the child or the adult asked for: 1-2, 3-4 or 5-6, the grades a task is written for. Needs a reason"`
+	Difficulty int    `json:"difficulty,omitempty" jsonschema:"a difficulty the child or the adult asked for inside the level, 1 to 5. Needs a reason"`
+	Reason     string `json:"reason,omitempty" jsonschema:"what the child or the adult asked for, in a sentence of at most 300 characters. Required with any of them"`
 }
 
-// choice is what the model asked for instead of the rule, as it was sent: a
-// topic or a level it did not send is empty, and anything it did send is held
-// to the rules as it stands.
+// choice is what was asked for instead of the rule, as it was sent: a topic or
+// a level not sent is empty, and anything sent is held to the rules as it
+// stands.
 func (in *nextTaskIn) choice() tutor.Choice {
 	return tutor.Choice{
 		Topic:      in.Topic,
@@ -67,13 +68,15 @@ func (in *nextTaskIn) differsFrom(request *profile.OpenRequest, student *profile
 		(!chosen && broken.Code == "" && language != "" && language != request.Language)
 }
 
-// requestOut is what next_task hands the card it draws: the request a task is
-// on its way for, with whom it is for and the language it is written in, or
-// why no request was opened. The package to write the task from is in neither
-// the payload nor the words, since the card reads both: the model fetches it
-// with get_package. A host may show the model the payload in place of the
-// words, so what the model acts on is here as well — the request, whether it
-// was open already, and the last answer.
+// requestOut is what a card that asked for the next task is handed — the card
+// next_task draws, and a card that took the next task itself: the task kept,
+// on the card at once, with what the card needs to keep the lessons to a
+// topic; or the request a task is on its way for, with whom it is for and the
+// language it is written in; or why no task comes. The package to write the
+// task from is in neither the payload nor the words, since the card reads
+// both: the model fetches it with get_package. A host may show the model the
+// payload in place of the words, so what the model acts on is here as well —
+// the request, whether it was open already, and the last answer.
 type requestOut struct {
 	Screen      string       `json:"screen"`
 	Status      string       `json:"status,omitempty"`
@@ -83,28 +86,37 @@ type requestOut struct {
 	AlreadyOpen bool         `json:"already_open,omitempty"`
 	LastAnswer  *answerLine  `json:"last_answer"`
 	Child       *childLine   `json:"child"`
-	// Language is the request's, which the card's words are in while it waits
-	// and which its task is written in. It is empty where no request is open.
+	// Task is the task on the card, when the task kept was handed out, and
+	// nothing gives its answer away.
+	Task *cardOut `json:"task,omitempty"`
+	// Language is the lesson's: the task's on the card, and the request's,
+	// which the card's words are in while it waits and which its task is
+	// written in. It is empty where no task comes.
 	Language string `json:"language,omitempty"`
+	// TopicChoice is what the card needs to keep the lessons to a topic, once
+	// the task is on it and the trial series is over.
+	TopicChoice *topicChoiceOut `json:"topic_choice,omitempty"`
 }
 
 func (s *Service) nextTaskTool() Tool {
 	return Define(Spec{
 		Name:  "next_task",
 		Title: "Ask for the next task",
-		Description: "Asks for the child's next task: opens a request and draws the card the task will appear on, " +
-			"which shows the child a wait meanwhile. It does not write the task: you do. At once call get_package " +
-			"with its request_id for what to write it from — the brief, reference tasks and the page on how to write " +
-			"and hand in a task — and hand the task in with submit_task. Always pass language, the language of the " +
-			"chat; when the profile names a language for the lessons, the task is written in that one instead, and " +
-			"you talk in it too. " +
+		Description: "Asks for the child's next task and draws the card it comes to. When a task written ahead is " +
+			"kept for the child, it is on the card at once and the result reads it out: then call prepare_task to " +
+			"write the one after it. Otherwise it opens a request, and the card shows the child a wait meanwhile. " +
+			"It does not write the task: you do. At once call get_package with its request_id for what to write it " +
+			"from — the brief, reference tasks and the page on how to write and hand in a task — and hand the task " +
+			"in with submit_task. Always pass language, the language of the chat; when the profile names a language " +
+			"for the lessons, the task is written in that one instead, and you talk in it too. " +
 			"Called again before the task of the open request is handed in, it hands back that request: hand in " +
 			"the task you wrote for it, or write it now, rather than asking again. A task on the child's card with " +
-			"no answer yet is recorded as skipped, so ask for a new one only when the child wants another. To set a " +
-			"topic, a level or a difficulty other than the rule's, pass it with a short reason. While the profile " +
-			"keeps the lessons to a topic, lesson_topic, every task is on it once the trial series is over: pass no " +
-			"topic of your own then. Never put the child's name in a task. It writes to the profile's file in the " +
-			"adult's Google Drive the request it opens, and the unanswered task it records as skipped." +
+			"no answer yet is recorded as skipped, so ask for a new one only when the child wants another. When the " +
+			"child or the adult asks for a topic, a level or a difficulty, pass it with a short reason; your own " +
+			"idea of what the child needs goes to prepare_task instead. While the profile keeps the lessons to a " +
+			"topic, lesson_topic, every task is on it once the trial series is over: pass no other topic then. " +
+			"Never put the child's name in a task. It writes to the profile's file in the adult's Google Drive the " +
+			"request it opens, the task it hands out and the unanswered task it records as skipped." +
 			"\n\nTopics, by id, with the levels each is taught at:\n" + s.topicList(),
 		Effect:     Adds,
 		Idempotent: true,
@@ -137,7 +149,7 @@ func (s *Service) nextTask(ctx context.Context, account store.Account, in nextTa
 }
 
 // openRequest is one read of the profile and the write of the request it
-// opens, or the request already open.
+// opens, or the request already open — or the task kept, handed out at once.
 func (s *Service) openRequest(ctx context.Context, account store.Account, in nextTaskIn) (Reply[requestOut], error) {
 	p, revision, err := s.store.Load(ctx, account)
 	switch {
@@ -151,7 +163,7 @@ func (s *Service) openRequest(ctx context.Context, account store.Account, in nex
 	}
 
 	now := s.now()
-	if open := p.OpenRequest; open != nil && open.Awaited(s.window, now) {
+	if open := s.waitedOpen(p, now); open != nil {
 		return s.stillOpen(ctx, account, p, in.differsFrom(open, &p.Student, tutor.LessonTopic(p, s.content)))
 	}
 	if limit, count, reached := s.daily.reached(p.Daily.Today(now)); reached {
@@ -160,7 +172,8 @@ func (s *Service) openRequest(ctx context.Context, account store.Account, in nex
 	}
 
 	language, problems := languageOf(in.Language)
-	brief, mode, err := tutor.Next(p, s.content, in.choice())
+	choice := in.choice()
+	brief, mode, err := tutor.Next(p, s.content, choice)
 	var refused *tutor.ChoiceError
 	switch {
 	case errors.As(err, &refused):
@@ -172,8 +185,43 @@ func (s *Service) openRequest(ctx context.Context, account store.Account, in nex
 		return argumentsRefused(p, problems), nil
 	}
 
+	lesson := s.lessonNow(p, language, s.askedPlace(p, choice))
+	gone := s.letGo(p, &lesson, now)
+	asked := lesson.Asked != profile.Place{}
+	var reply Reply[requestOut]
+	switch {
+	case s.aheadOpen(p, now) != nil:
+		reply, err = s.awaitAhead(ctx, account, p, revision, asked, now)
+	case p.ReadyTask != nil:
+		reply, err = s.serveReady(ctx, account, p, revision, asked, now)
+	default:
+		reply, err = s.ask(ctx, account, p, revision, &asking{brief: &brief, mode: mode, language: language, byPerson: asked}, now)
+	}
+	if err != nil {
+		return Reply[requestOut]{}, err
+	}
+	s.sayLetGo(ctx, account, gone)
+	return reply, nil
+}
+
+// asking is a task about to be asked for: its brief and who chose it, the
+// chat's language, and whether a person asked for where it stands instead of
+// the rule.
+type asking struct {
+	brief    *profile.Brief
+	mode     profile.TutorMode
+	language string
+	byPerson bool
+}
+
+// ask opens a request for a task to be written now, the task left on the card
+// without an answer recorded as skipped, and draws the card the task comes to.
+func (s *Service) ask(ctx context.Context, account store.Account, p *profile.Profile, revision store.Revision,
+	asked *asking, now time.Time,
+) (Reply[requestOut], error) {
 	skipped, wasSkipped := p.Skip(now)
-	request := p.Ask(&brief, mode, p.Student.LessonLanguage(language), now)
+	request := p.Ask(asked.brief, asked.mode, p.Student.LessonLanguage(asked.language), now)
+	request.Asked = asked.byPerson
 	if err := s.canPackage(p, request); err != nil {
 		return Reply[requestOut]{}, err
 	}
@@ -197,6 +245,58 @@ func (s *Service) openRequest(ctx context.Context, account store.Account, in nex
 		Payload: requestOut{
 			Screen: screenComing, RequestID: request.ID, LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student),
 			Language: request.Language,
+		},
+	}, nil
+}
+
+// serveReady hands the task kept to the child, who asked for the next one in
+// the chat: it is on the card next_task draws at once, and the model is sent on
+// to write the one after it. asked says a person asked for where it stands.
+func (s *Service) serveReady(ctx context.Context, account store.Account, p *profile.Profile, revision store.Revision,
+	asked bool, now time.Time,
+) (Reply[requestOut], error) {
+	lead := ""
+	if left := p.InFlight(); left != nil {
+		lead = fmt.Sprintf("Task %s, left on the child's card without an answer, is recorded as skipped.", left.ID)
+	}
+	task, err := s.handOutReady(ctx, account, p, revision, "", asked, now)
+	if err != nil {
+		return Reply[requestOut]{}, err
+	}
+	reply, err := s.cardWith(p, task, now)
+	if err != nil {
+		return Reply[requestOut]{}, err
+	}
+	reply.Text = joined(lead, fmt.Sprintf("Task %s, written ahead, is on the child's card now. %s Never say which "+
+		"option is right before the child has answered. %s", task.ID, onTheCardText, aheadNextText),
+		lessonLanguageText(&p.Student)) + "\n\n" + taskWords(task)
+	return reply, nil
+}
+
+// awaitAhead has the card next_task draws wait for the task being written
+// ahead, as for any other: the child asked for the next task before it was
+// handed in. A model whose turn was cut short while it wrote the task is sent
+// to write it now. asked says a person asked for where it stands.
+func (s *Service) awaitAhead(ctx context.Context, account store.Account, p *profile.Profile, revision store.Revision,
+	asked bool, now time.Time,
+) (Reply[requestOut], error) {
+	request, skipped, err := s.waitForAhead(ctx, account, p, revision, "", asked, now)
+	if err != nil {
+		return Reply[requestOut]{}, err
+	}
+	lead := ""
+	if skipped != nil {
+		lead = fmt.Sprintf("Task %s, left on the child's card without an answer, is recorded as skipped.", skipped.TaskID)
+	}
+	return Reply[requestOut]{
+		Text: joined(lead, fmt.Sprintf("Request %[1]s is open, in %[2]s: its task was being written ahead, and now the "+
+			"child waits for it. If you have written it, hand it in with submit_task and request_id %[1]s. If you "+
+			"have not, a turn cut short say, write it now: get its package with get_package and the same request_id. "+
+			"Do not ask for another.", request.ID, request.Language),
+			lessonLanguageText(&p.Student), forYouAlone, s.lastAnswerText(p), noPackageTool),
+		Payload: requestOut{
+			Screen: screenComing, RequestID: request.ID, AlreadyOpen: true, LastAnswer: lastAnswerOf(p),
+			Child: childLineOf(&p.Student), Language: request.Language,
 		},
 	}, nil
 }
@@ -299,7 +399,8 @@ func (s *Service) skippedFields(topic string, level rating.GradeLevel, difficult
 }
 
 // requestFields are what the line about a request keeps of it: where the task
-// is to stand, why, and who chose it.
+// is to stand, why, who chose it, whether it is written ahead, and whether a
+// card asked for it.
 func requestFields(request *profile.OpenRequest, alreadyOpen bool) []zap.Field {
 	return []zap.Field{
 		zap.String("topic", request.Brief.TargetConcept),
@@ -308,5 +409,7 @@ func requestFields(request *profile.OpenRequest, alreadyOpen bool) []zap.Field {
 		zap.String("goal", string(request.Brief.PedagogicalGoal)),
 		zap.String("tutor_mode", string(request.TutorMode)),
 		zap.Bool("already_open", alreadyOpen),
+		zap.Bool("ahead", request.Ahead),
+		zap.Bool("by_card", request.TakenAfter != ""),
 	}
 }

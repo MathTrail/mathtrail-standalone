@@ -32,9 +32,19 @@ func write(out io.Writer, c *counts) error {
 		{"Tasks", "Asked for counts the requests opened; handed in, the attempts judged, of which the checks " +
 			"refused some; out of attempts, the requests whose last attempt was refused.", c.tasksTable()},
 		{"Accepted tasks", "The attempts an accepted task took, and the seconds from its request to its " +
-			"acceptance: the time the chat's model took to write it. With a drawing counts the tasks that came " +
+			"acceptance: the time the chat's model took to write it — for a task written ahead, the time its " +
+			"writing took, though the child had it at once. With a drawing counts the tasks that came " +
 			"with one; where only some lines of a group say whether they did, it counts among those, as 2 of 3, and " +
 			"where none says, it is not logged.", c.acceptedTable()},
+		{"Tasks written ahead", "Asked ahead counts the requests opened for the next task while the child worked " +
+			"on the one on the card, and kept the tasks written for them and kept. Handed out ready counts the " +
+			"tasks handed out that had been kept, out of all handed out; taken by the card, the tasks a card took " +
+			"itself, kept or waited for; let go, the tasks written ahead, kept or still being written, that the " +
+			"lesson moved away from before they were handed out.", c.aheadTable()},
+		{"Why tasks written ahead were let go", "The reason the lesson moved away from a task: another language " +
+			"of the lessons, another topic the lessons are kept to, a skill kept out since, another place a person " +
+			"asked for, or another version of the instructions. Written says whether the task had been written and " +
+			"kept, or was still being written.", c.letGoTable()},
 		{"Drawings by topic", "The tasks accepted on each topic whose line says whether they came with a " +
 			"drawing, and how many of them did. A line written before the service said so is left out.",
 			c.drawingsTable()},
@@ -103,6 +113,46 @@ func (c *counts) tasksTable() *table {
 			t.add(g.version, g.host, number(counted.asked), number(counted.handedIn), number(counted.refused),
 				number(counted.outOfAttempts))
 		}
+	}
+	return t
+}
+
+// aheadTable is, for each group, what became of the tasks written ahead.
+func (c *counts) aheadTable() *table {
+	t := &table{columns: []string{
+		"Instructions", "Host", "Asked ahead", "Kept", "Handed out ready", "Taken by the card", "Let go",
+	}, named: 2}
+	for _, g := range c.groups() {
+		counted := c.tasks[g]
+		if counted.ahead+counted.kept+counted.ready+counted.byCard+counted.letGo == 0 {
+			continue
+		}
+		t.add(g.version, g.host, number(counted.ahead), number(counted.kept),
+			fmt.Sprintf("%d of %d", counted.ready, len(counted.attempts)), number(counted.byCard),
+			number(counted.letGo))
+	}
+	return t
+}
+
+// letGoTable is, under each version, why the tasks written ahead were let go,
+// the reason that let go the most first.
+func (c *counts) letGoTable() *table {
+	t := &table{columns: []string{"Instructions", "Reason", "Written", "Let go"}, named: 3}
+	keys := slices.Collect(maps.Keys(c.letGo))
+	slices.SortFunc(keys, func(a, b letGoFor) int {
+		return cmp.Or(
+			cmp.Compare(slices.Index(c.versions, a.version), slices.Index(c.versions, b.version)),
+			cmp.Compare(c.letGo[b], c.letGo[a]),
+			cmp.Compare(a.reason, b.reason),
+			cmp.Compare(strconv.FormatBool(a.written), strconv.FormatBool(b.written)),
+		)
+	})
+	for _, key := range keys {
+		written := "being written"
+		if key.written {
+			written = "kept"
+		}
+		t.add(key.version, key.reason, written, number(c.letGo[key]))
 	}
 	return t
 }

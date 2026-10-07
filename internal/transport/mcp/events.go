@@ -15,6 +15,8 @@ const (
 	eventTaskRequested  = "task_requested"
 	eventTaskSkipped    = "task_skipped"
 	eventTaskSubmitted  = "task_submitted"
+	eventTaskKept       = "task_kept"
+	eventTaskDropped    = "task_dropped"
 	eventTaskAccepted   = "task_accepted"
 	eventAnswerRecorded = "answer_recorded"
 	eventTopicMastered  = "topic_mastered"

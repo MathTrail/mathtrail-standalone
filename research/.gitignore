@@ -24,7 +24,7 @@
 /archive/
 
 # The numbers the paper prints, written anew from the results by every build of
-# the paper and of the artifact.
+# the paper and of the artifact, and the version the named build prints.
 /paper-a/generated/
 
 # The artifact as it is assembled and unpacked, made anew by

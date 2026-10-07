@@ -317,19 +317,20 @@ func sameMastery(before, after *profile.Topic) bool {
 	return before.MasteredSince.Equal(after.MasteredSince.Time) && *before.MasteredLevel == *after.MasteredLevel
 }
 
-// However a lesson goes — tasks asked for, attempts turned down, tasks handed
-// out and left, seals lost, time passing — the task of a request only moves
-// forward: from being written to the card or to not coming, and from the card
-// to not coming, never back. A card that has been told its task will not come
-// stops asking on the strength of it. A task is being written only inside its
-// request's window, with its count of attempts turned down never falling; and
-// at any moment one task at most is being written, and one at most is on the
-// card.
+// However a lesson goes — tasks asked for now or ahead, attempts turned down,
+// tasks kept, handed out, let go and left, seals lost, time passing — the task
+// of a request only moves forward: from being written to kept ready, to the
+// card or to not coming; from kept to the card or to not coming; and from the
+// card to not coming, never back. A card that has been told its task will not
+// come stops asking on the strength of it. A task is being written only inside
+// its request's window, with its count of attempts turned down never falling;
+// and at any moment one task at most is being written, one at most is kept and
+// one at most is on the card, and none is kept while one is being written.
 func TestTheTaskOfARequestOnlyMovesForward(t *testing.T) {
 	t.Parallel()
 
 	properties := gopter.NewProperties(nil)
-	properties.Property("a task never moves back, and one at a time is written or shown", prop.ForAll(
+	properties.Property("a task never moves back, and one at a time is written, kept or shown", prop.ForAll(
 		func(steps []int) bool {
 			walk := walkALesson(t)
 			for _, step := range steps {
@@ -340,7 +341,7 @@ func TestTheTaskOfARequestOnlyMovesForward(t *testing.T) {
 			}
 			return true
 		},
-		gen.SliceOf(gen.IntRange(0, 6)),
+		gen.SliceOf(gen.IntRange(0, 11)),
 	))
 
 	properties.TestingRun(t)
@@ -351,7 +352,8 @@ const requestWindow = 15 * time.Minute
 
 // forward is where the task of a request may move from where it stands.
 var forward = map[profile.TaskState][]profile.TaskState{
-	profile.TaskBeingWritten: {profile.TaskBeingWritten, profile.TaskOnTheCard, profile.TaskNotComing},
+	profile.TaskBeingWritten: {profile.TaskBeingWritten, profile.TaskKept, profile.TaskOnTheCard, profile.TaskNotComing},
+	profile.TaskKept:         {profile.TaskKept, profile.TaskOnTheCard, profile.TaskNotComing},
 	profile.TaskOnTheCard:    {profile.TaskOnTheCard, profile.TaskNotComing},
 	profile.TaskNotComing:    {profile.TaskNotComing},
 }
@@ -385,22 +387,30 @@ func walkALesson(t *testing.T) *lessonWalk {
 }
 
 // take does one thing a lesson does: ask for a task, turn an attempt down,
-// hand the task out, take it off the card, lose its seal, or let a minute or
-// six pass. An attempt is turned down or a task handed out only while the
-// request is still awaited, as the tool that takes a task makes sure: a task
-// handed in for any other request is stale, and changes nothing.
+// hand the task out, take it off the card, lose its seal, let a minute or six
+// pass, ask for the next task ahead, keep it, hand out the task kept, wait for
+// the task being written ahead once the child asks for it, or let go of the
+// task kept. An attempt is turned down or a task kept or handed out only while
+// the request is still awaited, as the tool that takes a task makes sure: a
+// task handed in for any other request is stale, and changes nothing. A task
+// is written ahead only while nothing else is being written, as the tool that
+// asks for one makes sure.
 func (w *lessonWalk) take(step int) {
-	awaited := w.p.OpenRequest != nil && w.p.OpenRequest.Awaited(requestWindow, w.now)
+	open := w.p.OpenRequest
+	awaited := open != nil && open.Awaited(requestWindow, w.now)
+	if step >= firstStepAhead {
+		w.takeAhead(step, open, awaited)
+		return
+	}
 	switch step {
 	case 0:
-		request := w.p.Ask(&w.brief, profile.TutorRule, "en", w.now)
-		w.last[request.ID] = seenTask{state: profile.TaskBeingWritten, opened: w.now}
+		w.asked(w.p.Ask(&w.brief, profile.TutorRule, "en", w.now))
 	case 1:
 		if awaited {
 			_, _ = w.p.Refuse(w.now)
 		}
 	case 2:
-		if awaited {
+		if awaited && !open.Ahead {
 			_, _ = w.p.Issue(written(), secret(), w.sealer, w.now)
 		}
 	case 3:
@@ -414,12 +424,47 @@ func (w *lessonWalk) take(step int) {
 	}
 }
 
+// firstStepAhead is the first of the steps that write a task ahead.
+const firstStepAhead = 7
+
+// takeAhead does one thing a lesson does with a task written ahead, open being
+// the request open and awaited whether it is still waited for.
+func (w *lessonWalk) takeAhead(step int, open *profile.OpenRequest, awaited bool) {
+	switch step {
+	case 7:
+		if !awaited {
+			if request, err := w.p.AskAhead(&w.brief, profile.TutorRule, "en", "", w.now); err == nil {
+				w.asked(request)
+			}
+		}
+	case 8:
+		if awaited && open.Ahead {
+			_, _ = w.p.Keep(written(), secret(), w.sealer, w.now)
+		}
+	case 9:
+		_, _ = w.p.HandOutReady("", w.now)
+	case 10:
+		if awaited && open.Ahead {
+			w.p.Skip(w.now)
+			open.Await("", w.now)
+		}
+	case 11:
+		w.p.DropReady()
+	}
+}
+
+// asked notes a request just opened as being written.
+func (w *lessonWalk) asked(request *profile.OpenRequest) {
+	w.last[request.ID] = seenTask{state: profile.TaskBeingWritten, opened: w.now}
+}
+
 // movedForward says whether the task of every request asked for moved only
 // forward since the last step, was written only inside its window with no
-// fewer attempts turned down, and whether one task at most is being written
-// and one at most is on the card.
+// fewer attempts turned down, and whether one task at most is being written,
+// one at most is kept and one at most is on the card, with none kept while one
+// is being written.
 func (w *lessonWalk) movedForward() bool {
-	writing, shown := 0, 0
+	writing, kept, shown := 0, 0, 0
 	for id, before := range w.last {
 		state, refused := w.p.TaskFor(id, requestWindow, w.now)
 		if !slices.Contains(forward[before.state], state) {
@@ -431,12 +476,17 @@ func (w *lessonWalk) movedForward() bool {
 				return false
 			}
 			writing++
+		case profile.TaskKept:
+			kept++
 		case profile.TaskOnTheCard:
 			shown++
 		}
 		w.last[id] = seenTask{state: state, refused: refused, opened: before.opened}
 	}
-	return writing <= 1 && shown <= 1
+	if w.p.ReadyTask != nil && w.p.OpenRequest != nil {
+		return false
+	}
+	return writing <= 1 && kept <= 1 && shown <= 1
 }
 
 // Whatever an edit holds, its refusal names each field it found wrong once,

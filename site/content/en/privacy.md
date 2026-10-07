@@ -5,7 +5,7 @@ description: What MathTrail knows about your child, where it is kept, and how to
 
 # Privacy policy
 
-Last updated: 6 October 2026.
+Last updated: 7 October 2026.
 
 MathTrail is a free, open-source project, made and run by ALT EdTech. Questions about this policy or about your child's data go to [altedtech.info@gmail.com](mailto:altedtech.info@gmail.com). How to connect it, and what to do when something looks wrong, is on the [help page](../help/).
 
@@ -48,7 +48,8 @@ It holds:
 - which topics are mastered, the rating numbers behind the difficulty, and a summary of past answers: per topic, when it was last given, how many attempts and successes there were, and which traps came up;
 - where the ratings stood before each of the latest answers, and at the start of each of the last seven days with answers, so that the progress can show what moved since the last task and over the week;
 - a counter of tasks accepted today, which is how the daily limit is kept;
-- the current task, with its answer encrypted so that it cannot be read out of the file before the child answers.
+- the current task, with its answer encrypted so that it cannot be read out of the file before the child answers;
+- the next task, which the chat writes ahead while the child solves the current one, with its answer encrypted the same way, until the child asks for it.
 
 It does not hold the child's name, birth date, school, address, photograph or anything else that identifies them. **The pseudonym is the only name involved, and it never appears inside a task.**
 

@@ -26,6 +26,9 @@ const (
 	// codeAttemptsExhausted is the refusal that spent the last attempt and
 	// closed the request.
 	codeAttemptsExhausted = "attempts_exhausted"
+	// codeTaskKept is a task written ahead and kept, where no task is on the
+	// card: nothing comes to a card drawn from it.
+	codeTaskKept = "task_kept"
 )
 
 // submitTaskIn is what submit_task takes. The three parts of the task are
@@ -33,7 +36,7 @@ const (
 // own: the library that holds arguments to a schema quotes back what broke it,
 // and the answer of this tool is read by the model and may be drawn on a card.
 type submitTaskIn struct {
-	RequestID string `json:"request_id" jsonschema:"the id of the request next_task opened"`
+	RequestID string `json:"request_id" jsonschema:"the id of the request next_task or prepare_task opened"`
 	Brief     any    `json:"brief" jsonschema:"the brief of the package as you received it, as a JSON object: you may change its setting, traps_to_use and constraints, and say why in its rationale"`
 	Task      any    `json:"task" jsonschema:"the task as a JSON object, written as the guide in the package describes"`
 	Solver    string `json:"solver" jsonschema:"the Starlark program that proves the answer, written as the guide in the package describes"`
@@ -161,9 +164,10 @@ func (s *Service) submitTaskTool() Tool {
 			"next_task drew turns into it, without its answer; where cards are shown, the child answers on the card, " +
 			"which records the answer itself, so do not ask for the answer in the chat. Add nothing of your own about " +
 			"the task until the child answers or asks, and never say which option is right before the child has " +
-			"answered, whatever the child asks. Every result carries last_answer, the last answer the child gave, " +
-			"maybe on a card without you. Each call is written to the profile's file in the adult's Google Drive: " +
-			"the attempt it spent, and the task once accepted.",
+			"answered, whatever the child asks. A task written ahead, for a request prepare_task opened, is kept " +
+			"instead, sealed, until the child asks for the next task: say nothing about it. Every result carries " +
+			"last_answer, the last answer the child gave, maybe on a card without you. Each call is written to the " +
+			"profile's file in the adult's Google Drive: the attempt it spent, and the task once accepted.",
 		Effect: Adds,
 	}, s.submitTask)
 }
@@ -209,7 +213,7 @@ func (s *Service) review(ctx context.Context, account store.Account, in *submitT
 	now := s.now()
 	request := p.OpenRequest
 	if request == nil || request.ID != in.RequestID || !request.Awaited(s.window, now) {
-		return s.stale(p, now), nil
+		return s.stale(p, in.RequestID, now), nil
 	}
 	outcome, err := s.judge(ctx, examined, checks.Against{
 		Asked: &request.Brief, Language: request.Language, Fingerprints: p.TaskFingerprints,
@@ -222,8 +226,11 @@ func (s *Service) review(ctx context.Context, account store.Account, in *submitT
 		now: now, started: started,
 	}
 
-	if !outcome.Accepted() {
+	switch {
+	case !outcome.Accepted():
 		return s.refuse(ctx, done)
+	case request.Ahead:
+		return s.keep(ctx, done, in.Solver)
 	}
 	return s.hand(ctx, done, in.Solver)
 }
@@ -265,11 +272,16 @@ func (s *Service) judge(ctx context.Context, examined checks.Examined, against c
 // stale is a task handed in for no request that is open — one that was
 // accepted already, ran out of attempts, was replaced or waited too long — or
 // for another request than the open one. Nothing is judged, spent or written.
-// The card shows the task the child is working on, when there is one: a task
-// handed in twice, the answer to the first gone astray, must not take the task
-// off the card the child is working on. A task that has had its answer is done
-// with, and the card says no task comes to it.
-func (s *Service) stale(p *profile.Profile, now time.Time) Reply[handedInOut] {
+// A task written ahead and kept already is told as kept again: handed in twice,
+// the answer to the first gone astray, it is the same task. Otherwise the card
+// shows the task the child is working on, when there is one: a task handed in
+// twice must not take the task off the card the child is working on. A task
+// that has had its answer is done with, and the card says no task comes to it.
+func (s *Service) stale(p *profile.Profile, requestID string, now time.Time) Reply[handedInOut] {
+	if ready := p.ReadyTask; ready != nil && ready.ID == profile.TaskIDFor(requestID) {
+		return s.keptReply(p, fmt.Sprintf("Task %s was accepted already and is kept: nothing was checked or spent.",
+			ready.ID))
+	}
 	lead := "The request_id is not the open request's: that request was accepted already, ran out of attempts, " +
 		"was replaced by a newer one or waited too long. Nothing was checked or spent."
 	task := p.InFlight()
@@ -284,7 +296,7 @@ func (s *Service) stale(p *profile.Profile, now time.Time) Reply[handedInOut] {
 			language = open.Language
 		}
 		return Reply[handedInOut]{
-			Text: lead + " Ask for a new task with next_task.",
+			Text: lead + " Ask for a new task with next_task only when the child asks for one.",
 			Payload: handedInOut{
 				Screen: screenWaiting, Status: statusStale, Code: codeStaleRequest,
 				LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student), Language: language,
@@ -330,7 +342,7 @@ func (s *Service) record(ctx context.Context, done *reviewed) error {
 // at once. The last attempt closes the request with nothing handed out.
 func (s *Service) refuse(ctx context.Context, done *reviewed) (Reply[handedInOut], error) {
 	p, outcome, attempt := done.profile, done.outcome, done.attempt
-	requestID, language := p.OpenRequest.ID, p.OpenRequest.Language
+	requestID, language, ahead := p.OpenRequest.ID, p.OpenRequest.Language, p.OpenRequest.Ahead
 	exhausted, err := p.Refuse(done.now)
 	if err != nil {
 		return Reply[handedInOut]{}, fmt.Errorf("mcp: refuse the task: %w", err)
@@ -347,7 +359,15 @@ func (s *Service) refuse(ctx context.Context, done *reviewed) (Reply[handedInOut
 	}
 	lead := fmt.Sprintf("Refused, attempt %d of %d: nothing was handed to the child. Fix every reason below and "+
 		"hand the task in again with submit_task and request_id %s; %d left.", attempt, profile.MaxAttempts, requestID, left)
-	if exhausted {
+	switch {
+	case exhausted && ahead:
+		// The child is working on the task on the card and waits for nothing:
+		// a new task asked for now would take that one off the card.
+		payload.Code = codeAttemptsExhausted
+		lead = fmt.Sprintf("Refused, and that was the last of %d attempts: request %s is closed and nothing was "+
+			"kept. The child is working on the task on the card and waits for nothing: say nothing about this, and "+
+			"ask for no new task.", profile.MaxAttempts, requestID)
+	case exhausted:
 		payload.Code = codeAttemptsExhausted
 		lead = fmt.Sprintf("Refused, and that was the last of %d attempts: request %s is closed and nothing was "+
 			"handed to the child. Tell the child this task did not work out, and ask for a new one with next_task.",
@@ -358,18 +378,11 @@ func (s *Service) refuse(ctx context.Context, done *reviewed) (Reply[handedInOut
 
 // hand puts an accepted task on the child's card: the task the request asked
 // for, with everything that gives its answer away sealed, and the request
-// closed.
+// closed. The model is sent on to write the next task ahead.
 func (s *Service) hand(ctx context.Context, done *reviewed, program string) (Reply[handedInOut], error) {
 	p, task := done.profile, done.outcome.Draft.Task
 	request, left := *p.OpenRequest, p.InFlight()
-	issued, err := p.Issue(&profile.Written{
-		Wording:             task.Question,
-		Drawing:             task.Drawing,
-		Options:             task.Options,
-		Hint:                task.Hint,
-		Fingerprint:         checks.Fingerprint(task.Question, request.Language),
-		InstructionsVersion: s.content.InstructionsVersion(),
-	}, secretOf(task, program), s.sealer, done.now)
+	issued, err := p.Issue(s.writtenOf(task, request.Language), secretOf(task, program), s.sealer, done.now)
 	if err != nil {
 		return Reply[handedInOut]{}, fmt.Errorf("mcp: hand the task out: %w", err)
 	}
@@ -380,18 +393,75 @@ func (s *Service) hand(ctx context.Context, done *reviewed, program string) (Rep
 	if left != nil {
 		s.events.write(ctx, done.account, eventTaskSkipped, s.skippedFields(left.Topic, left.GradeLevel, left.Difficulty)...)
 	}
-	s.events.write(ctx, done.account, eventTaskAccepted, append([]zap.Field{
-		zap.String("topic", issued.Topic),
-		zap.String("level", string(issued.GradeLevel)),
-		zap.Int("difficulty", issued.Difficulty),
-		zap.Int("attempts", done.attempt),
-		zap.Int64("seconds_since_request", int64(done.now.Sub(request.OpenedAt.Time)/time.Second)),
-		zap.Bool("drawing", strings.TrimSpace(task.Drawing) != ""),
-	}, s.acceptedFields(ctx, p, done.account, issued, done.now)...)...)
+	s.events.write(ctx, done.account, eventTaskAccepted, s.acceptedLine(ctx, p, done.account, issued, &handedOut{
+		attempts: done.attempt, written: done.now.Sub(request.OpenedAt.Time), byCard: request.TakenAfter != "",
+	}, done.now)...)
 	reply := onTheCard(p, issued, fmt.Sprintf("Accepted at attempt %d: task %s is on the child's card. %s Never say "+
-		"which option is right before the child has answered.", done.attempt, issued.ID, onTheCardText))
+		"which option is right before the child has answered. %s", done.attempt, issued.ID, onTheCardText, aheadNextText))
 	reply.Payload.Attempt = done.attempt
 	return reply, nil
+}
+
+// keep puts an accepted task written ahead aside, sealed, for the child to be
+// handed when they ask for the next one, with the request closed; and tells
+// the model to say nothing of it.
+func (s *Service) keep(ctx context.Context, done *reviewed, program string) (Reply[handedInOut], error) {
+	p, task := done.profile, done.outcome.Draft.Task
+	request := *p.OpenRequest
+	kept, err := p.Keep(s.writtenOf(task, request.Language), secretOf(task, program), s.sealer, done.now)
+	if err != nil {
+		return Reply[handedInOut]{}, fmt.Errorf("mcp: keep the task: %w", err)
+	}
+	if err := s.record(ctx, done); err != nil {
+		return Reply[handedInOut]{}, err
+	}
+
+	s.events.write(ctx, done.account, eventTaskKept,
+		zap.String("topic", kept.Topic),
+		zap.String("level", string(kept.GradeLevel)),
+		zap.Int("difficulty", kept.Difficulty),
+		zap.Int("attempts", done.attempt),
+		zap.Int64("seconds_since_request", int64(done.now.Sub(request.OpenedAt.Time)/time.Second)),
+		zap.Bool("drawing", strings.TrimSpace(kept.Drawing) != ""),
+	)
+	reply := s.keptReply(p, fmt.Sprintf("Accepted at attempt %d and kept: task %s is written ahead.", done.attempt, kept.ID))
+	reply.Payload.Attempt = done.attempt
+	return reply, nil
+}
+
+// keptReply tells the model the task written ahead is kept, sealed, until the
+// child asks for the next task, and that it is to say nothing about it. The
+// payload keeps the shape a card is drawn from: the task the child is working
+// on, when there is one, and else a card no task comes to — the task kept
+// comes to the card that asks for it.
+func (s *Service) keptReply(p *profile.Profile, lead string) Reply[handedInOut] {
+	text := joined(lead, "It reaches the child's card the moment the child asks for the next task. Say nothing "+
+		"about it to the child, and ask for no other task: the child is working on the one on the card.",
+		s.lastAnswerText(p))
+	payload := handedInOut{
+		Screen: screenWaiting, Code: codeTaskKept, LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student),
+	}
+	if task := p.CurrentTask; task != nil {
+		payload = handedInOut{
+			Screen: screenTask, LastAnswer: lastAnswerOf(p), Child: childLineOf(&p.Student), Task: cardOf(task),
+			Language: task.Language,
+		}
+	}
+	return Reply[handedInOut]{Text: text, Payload: payload}
+}
+
+// writtenOf is a task the checks accepted, as the profile keeps it: what the
+// child is shown, its fingerprint in the language it is written in, and the
+// version of the instructions it was written to.
+func (s *Service) writtenOf(task *checks.Task, language string) *profile.Written {
+	return &profile.Written{
+		Wording:             task.Question,
+		Drawing:             task.Drawing,
+		Options:             task.Options,
+		Hint:                task.Hint,
+		Fingerprint:         checks.Fingerprint(task.Question, language),
+		InstructionsVersion: s.content.InstructionsVersion(),
+	}
 }
 
 // secretOf is everything about a task that would give its answer away, as it

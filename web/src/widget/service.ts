@@ -1,7 +1,12 @@
 import { createContext } from "preact";
 import { useContext } from "preact/hooks";
 import type { Letter } from "./choices";
-import type { AnswerOutcome, EditOutcome, TaskStatus } from "./payload";
+import type {
+	AnswerOutcome,
+	EditOutcome,
+	TakeOutcome,
+	TaskStatus,
+} from "./payload";
 
 /**
  * ProgressRead is how a reading of the child's progress ended: the service's
@@ -13,11 +18,11 @@ export type ProgressRead =
 
 /**
  * Service is what a card asks of MathTrail's service: to record the child's
- * answer to a task, to say how the task a card waits for stands, to read the
- * child's progress, and to save a change to the child's profile. In a chat
- * each is a call of one of the service's tools through the host, its reply
- * read before the card sees it; a page that shows a card live answers for the
- * service itself, and calls nobody.
+ * answer to a task, to say how the task a card waits for stands, to take the
+ * next task for the card, to read the child's progress, and to save a change
+ * to the child's profile. In a chat each is a call of one of the service's
+ * tools through the host, its reply read before the card sees it; a page that
+ * shows a card live answers for the service itself, and calls nobody.
  */
 export type Service = {
 	/**
@@ -31,6 +36,11 @@ export type Service = {
 	): Promise<AnswerOutcome>;
 	/** taskStatus says how the task of the request requestId stands. */
 	taskStatus(requestId: string): Promise<TaskStatus>;
+	/**
+	 * takeTask takes the next task for the card that shows the task taskId,
+	 * as the child asked for another on it, and says how it stands.
+	 */
+	takeTask(taskId: string): Promise<TakeOutcome>;
 	/** readProgress reads the child's progress as it stands. */
 	readProgress(): Promise<ProgressRead>;
 	/**
@@ -45,6 +55,7 @@ export type Service = {
 const unreached: Service = {
 	recordAnswer: () => Promise.resolve({ kind: "failed" }),
 	taskStatus: () => Promise.resolve({ kind: "unknown" }),
+	takeTask: () => Promise.resolve({ kind: "failed" }),
 	readProgress: () => Promise.resolve({ kind: "failed" }),
 	saveEdit: () => Promise.resolve({ kind: "failed" }),
 };

@@ -93,9 +93,10 @@ func costOf(t *testing.T, fake *drivetest.Drive, session *mcp.ClientSession, too
 // once the file is known, and a write reads the file, reads it once more to be
 // sure nothing changed it in between, and writes it. A whole task — asked for,
 // its package fetched, handed in, answered — is ten calls on a warm instance,
-// and each look the card waiting for it takes is one more. The profile's own
-// tool and the progress also say where the file is, which takes a search and
-// the folder's name.
+// and each look the card waiting for it takes is one more. A task written
+// ahead costs the same writes, and a card takes it for one read and one write.
+// The profile's own tool and the progress also say where the file is, which
+// takes a search and the folder's name.
 func TestEveryToolStaysWithinItsDriveBudget(t *testing.T) {
 	t.Parallel()
 
@@ -161,6 +162,48 @@ func TestEveryToolStaysWithinItsDriveBudget(t *testing.T) {
 	// The same answer again is told again, and written nowhere.
 	if got := costOf(t, fake, session, "submit_answer", answer); !maps.Equal(got, read) {
 		t.Errorf("submit_answer given again cost %v, want %v", got, read)
+	}
+
+	aheadStaysWithinItsBudget(t, fake, warm, p.CurrentTask.ID)
+}
+
+// aheadStaysWithinItsBudget holds the next task, written ahead after the task
+// on the card, to the Drive budget: its request opened, its package handed
+// back while it is written, it kept, nothing more to write, and a card taking
+// it — and told the same when it asks again.
+func aheadStaysWithinItsBudget(t *testing.T, fake *drivetest.Drive, warm *overDrive, onTheCard string) {
+	t.Helper()
+
+	session := warm.session
+	read := drivetest.Calls{"download": 1}
+	write := drivetest.Calls{"download": 2, "update": 1}
+	for _, step := range []struct {
+		tool string
+		want drivetest.Calls
+	}{
+		{"prepare_task", write},
+		{"prepare_task", read},
+	} {
+		if got := costOf(t, fake, session, step.tool, aheadChoice); !maps.Equal(got, step.want) {
+			t.Errorf("%s on a warm instance cost %v, want %v", step.tool, got, step.want)
+		}
+	}
+	p, _, err := warm.kept.Load(t.Context(), parent)
+	if err != nil || p.OpenRequest == nil {
+		t.Fatalf("Load() = %v, %v, want the request prepare_task opened", p, err)
+	}
+	if got := costOf(t, fake, session, "submit_task", relayOn(p.OpenRequest)); !maps.Equal(got, write) {
+		t.Errorf("submit_task kept ahead cost %v, want %v", got, write)
+	}
+	if got := costOf(t, fake, session, "prepare_task", aheadChoice); !maps.Equal(got, read) {
+		t.Errorf("prepare_task with a task kept cost %v, want %v", got, read)
+	}
+	took := map[string]any{"task_id": onTheCard}
+	if got := costOf(t, fake, session, "take_task", took); !maps.Equal(got, write) {
+		t.Errorf("take_task taking the task kept cost %v, want %v", got, write)
+	}
+	if got := costOf(t, fake, session, "take_task", took); !maps.Equal(got, read) {
+		t.Errorf("take_task asked again cost %v, want %v", got, read)
 	}
 }
 

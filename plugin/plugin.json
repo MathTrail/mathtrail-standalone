@@ -49,8 +49,8 @@
 						{
 							"description": "A task the chat writes and MathTrail checks, shown on a card without its answer.",
 							"prompt": "Let's do a MathTrail task.",
-							"tools_triggered": "next_task, get_package, submit_task",
-							"expected_behavior": "A card appears at once and shows that the task is being prepared. Within a minute or two the task arrives on it, with five options, a hint and Another task. Neither the card nor the chat's messages show the right option until the child answers; the chat's log of tool calls, which shows the task as the model handed it in, is the one place it appears."
+							"tools_triggered": "next_task, get_package, submit_task, prepare_task",
+							"expected_behavior": "A card appears at once and shows that the task is being prepared. Within a minute or two the task arrives on it, with five options, a hint and Another task, and the chat goes on to write the next task ahead without a word about it. Neither the card nor the chat's messages show the right option until the child answers; the chat's log of tool calls, which shows the task as the model handed it in, is the one place it appears."
 						},
 						{
 							"description": "With the task of the first case on the card and not yet answered, an answer of I don't know given in the chat, recorded before anything is explained.",
@@ -61,7 +61,7 @@
 						{
 							"description": "A task on a topic the adult names.",
 							"prompt": "Give us a task on gaps and boundaries.",
-							"tools_triggered": "next_task, get_package, submit_task",
+							"tools_triggered": "next_task, get_package, submit_task, prepare_task",
 							"expected_behavior": "A task on gaps and boundaries, such as the posts and the gaps of a fence, arrives on a card as in the first case."
 						},
 						{

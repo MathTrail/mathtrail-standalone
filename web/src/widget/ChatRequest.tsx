@@ -3,6 +3,22 @@ import type { Host } from "./bridge";
 import { type Key, useWords } from "./words";
 
 /**
+ * lineWait is how long a card waits for the host to take the model's line
+ * before the child's message goes, in milliseconds.
+ */
+export const lineWait = 500;
+
+/** within is promise, waited for no longer than ms. */
+export function within(ms: number, promise: Promise<void>): Promise<void> {
+	return Promise.race([
+		promise,
+		new Promise<void>((resolve) => {
+			setTimeout(resolve, ms);
+		}),
+	]);
+}
+
+/**
  * Request is where something a card asked the chat for stands: not asked
  * yet, on its way, taken by the chat, or refused by it and free to be asked
  * again.

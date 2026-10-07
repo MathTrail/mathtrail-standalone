@@ -65,10 +65,12 @@ var events = map[string][]string{
 		"tool", "outcome", "status", "error", "duration_ms", "instructions_version", "protocol_version", "client",
 		"user", "panic", "stack",
 	},
-	"mcp_panic":      {"panic", "stack", "method", "user"},
-	"task_requested": {"topic", "level", "difficulty", "goal", "tutor_mode", "already_open", "instructions_version", "user"},
-	"task_skipped":   {"topic", "level", "difficulty", "instructions_version", "user"},
-	"solver_run":     {"status", "steps", "duration_ms", "instructions_version", "user"},
+	"mcp_panic": {"panic", "stack", "method", "user"},
+	"task_requested": {
+		"topic", "level", "difficulty", "goal", "tutor_mode", "already_open", "ahead", "by_card", "instructions_version", "user",
+	},
+	"task_skipped": {"topic", "level", "difficulty", "instructions_version", "user"},
+	"solver_run":   {"status", "steps", "duration_ms", "instructions_version", "user"},
 	"task_submitted": {
 		"attempt", "outcome", "primary", "failed", "minor_issues", "duration_ms", "solver_steps", "solver_ms",
 		"instructions_version", "user",
@@ -77,9 +79,15 @@ var events = map[string][]string{
 	// are counted from, and each names its child by the name it is counted
 	// under that month, which leads back to no child.
 	"task_accepted": {
-		"topic", "level", "difficulty", "attempts", "seconds_since_request", "drawing", "instructions_version", "user",
-		"learner", "host", "language", "grade", "cohort", "country", "region", "signin_country",
+		"topic", "level", "difficulty", "attempts", "seconds_since_request", "drawing", "ready", "by_card",
+		"instructions_version", "user", "learner", "host", "language", "grade", "cohort", "country", "region", "signin_country",
 	},
+	// A task written ahead, kept until the child asks for the next one, and one
+	// written ahead and let go once the lesson moved away from it, with why.
+	"task_kept": {
+		"topic", "level", "difficulty", "attempts", "seconds_since_request", "drawing", "instructions_version", "user",
+	},
+	"task_dropped": {"reason", "written", "topic", "level", "difficulty", "instructions_version", "user"},
 	// The chance beside the user is the child's rating, answer by answer, as
 	// far as two places of a chance tell it. The topic, the level, the
 	// difficulty and whether each answer was right let the rating be rebuilt
@@ -183,9 +191,10 @@ func Fits(event, field string, value any) bool {
 		return wholeWithin(value, lowestGrade, highestGrade)
 	case "topics_mastered":
 		return wholeWithin(value, 0, mostTopicsMastered)
-	case "drawing":
+	case "drawing", "ready", "by_card":
 		// Whether the task came with a drawing, and never the drawing itself,
-		// which is the task's text.
+		// which is the task's text; whether it was written ahead and kept; and
+		// whether a card took it.
 		_, isBool := value.(bool)
 		return isBool
 	}

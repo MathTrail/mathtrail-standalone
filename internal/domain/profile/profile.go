@@ -58,6 +58,11 @@ type Profile struct {
 	RatingDays []RatingDay `json:"rating_days,omitempty"`
 	// Ratings is the child's level across every topic.
 	Ratings Ratings `json:"ratings"`
+	// ReadyTask is the next task, written ahead while the child worked on the
+	// one on the card and kept until they ask for another, or nil. It is never
+	// in the file beside an open request: a request is opened ahead only when
+	// no task is kept, and the task it brings is kept or handed out.
+	ReadyTask *ReadyTask `json:"ready_task,omitempty"`
 	// Recent is the history window, oldest first.
 	Recent []Answer `json:"recent"`
 	// Revision is raised on every write. Paired with the revision Drive keeps

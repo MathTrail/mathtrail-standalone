@@ -262,7 +262,7 @@ func TestAReportOfNoLinesSaysSo(t *testing.T) {
 		t.Fatalf("Run() error = %v, want nil", err)
 	}
 	if got := out.String(); !strings.Contains(got, "No lines of the service's were read.") ||
-		strings.Count(got, "None in these lines.") != 14 || strings.Contains(got, "|") {
+		strings.Count(got, "None in these lines.") != 16 || strings.Contains(got, "|") {
 		t.Errorf("the report of no lines is\n%s\nwant it to say there are none, and no table", got)
 	}
 }

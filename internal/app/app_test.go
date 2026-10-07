@@ -521,16 +521,17 @@ func TestContainerServesTheToolsOfTheLesson(t *testing.T) {
 	}
 	slices.Sort(names)
 	want := []string{
-		"edit_profile", "get_package", "get_profile", "get_progress", "next_task", "read_progress", "read_task",
-		"save_profile", "submit_answer", "submit_task",
+		"edit_profile", "get_package", "get_profile", "get_progress", "next_task", "prepare_task", "read_progress",
+		"read_task", "save_profile", "submit_answer", "submit_task", "take_task",
 	}
 	if !slices.Equal(names, want) {
 		t.Errorf("tools = %v, want %v", names, want)
 	}
 
-	// Nothing is kept yet: the profile and a task asked for show the first
-	// sign-in on their screen, and the package of a request says there is no
-	// profile to write a task for, in the words alone it answers in.
+	// Nothing is kept yet: the profile, a task asked for and the next task taken
+	// on a card show the first sign-in on their screen, and the package of a
+	// request and the next task got ready say there is no profile to write a
+	// task for, in the words alone they answer in.
 	for _, call := range []struct {
 		tool, arguments string
 		inWords         bool
@@ -538,6 +539,8 @@ func TestContainerServesTheToolsOfTheLesson(t *testing.T) {
 		{tool: "get_profile", arguments: `{}`},
 		{tool: "next_task", arguments: `{"language":"en"}`},
 		{tool: "get_package", arguments: `{"request_id":"req_none"}`, inWords: true},
+		{tool: "prepare_task", arguments: `{"language":"en"}`, inWords: true},
+		{tool: "take_task", arguments: `{"task_id":"tsk_none"}`},
 	} {
 		payload, words := callTool(t, container, call.tool, call.arguments)
 		switch {
