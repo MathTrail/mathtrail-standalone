@@ -577,8 +577,10 @@ describe("the menu", () => {
 		const doc = page(making, "ru/guide/index.html");
 
 		expect(attributes(doc, ".s-navlinks a", "class")).toEqual(["s-nav-wip"]);
+		expect(attributes(doc, ".s-navlinks a", "aria-current")).toEqual(["page"]);
 		expect(texts(doc, ".s-navlinks a .s-nav-tag")).toEqual(["Beta"]);
 		expect(texts(doc, ".s-navlinks a")).toEqual(["Гид Beta"]);
+		expect(texts(doc, ".s-menu-list a .s-nav-tag")).toEqual(["Beta"]);
 		expect(guide.querySelector(".s-nav-tag")).toBeNull();
 	});
 });

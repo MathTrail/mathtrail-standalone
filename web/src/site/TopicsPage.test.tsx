@@ -135,10 +135,11 @@ const files = renderSite({
 
 // pageAt is the built page at path, read as a document.
 function pageAt(path: string) {
-	return new browser.DOMParser().parseFromString(
-		files.find((candidate) => candidate.path === path)?.data ?? "",
-		"text/html",
-	);
+	const file = files.find((candidate) => candidate.path === path);
+	if (file === undefined) {
+		throw new Error(`the site has no ${path}`);
+	}
+	return new browser.DOMParser().parseFromString(file.data, "text/html");
 }
 
 // topics is the page of the topics in English, read as a document.

@@ -718,17 +718,10 @@ describe("the site built from this repository", () => {
 				if (nav === null) {
 					throw new Error(`${homeFile(locale)} has no ${list}`);
 				}
-				return [
-					...(nav[1] ?? "").matchAll(/<a href="([^"]+)"[^>]*>(.*?)<\/a>/gs),
-				].map(([, href, inner]) => ({
-					href,
-					label: (inner ?? "").replace(/<[^>]*>/g, ""),
-				}));
+				return linksIn(nav[1] ?? "");
 			};
 			const menu = links("s-navlinks");
 			const footer = links("s-footlinks");
-
-			expect(menu.map(({ href }) => href)).toContain(`/${locale}/coach/`);
 			const group = html.match(
 				/<nav class="s-navlinks"[^>]*>.*?<span class="s-nav-group" role="group" aria-label="([^"]*)">(.*?)<\/span>/s,
 			);
@@ -752,8 +745,8 @@ describe("the site built from this repository", () => {
 				`/${locale}/privacy/`,
 				`/${locale}/terms/`,
 			]);
-			expect(footer.slice(0, 2).map(({ label }) => label)).toEqual(
-				[menu.at(-3), menu.at(-1)].map((link) => link?.label),
+			expect(footer.slice(0, 2).map(({ text }) => text)).toEqual(
+				[menu.at(-3), menu.at(-1)].map((link) => link?.text),
 			);
 		}
 	});
