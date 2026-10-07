@@ -20,6 +20,7 @@ import { tmpdir } from "node:os";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import { parseArgs } from "node:util";
 import { build, createServer } from "vite";
+import { fallbackLocale } from "../src/i18n/lookup.ts";
 import {
 	coachPrototypePath,
 	type Photo,
@@ -292,6 +293,16 @@ export function givenTwice(
 		seen.add(path);
 	}
 	return undefined;
+}
+
+/**
+ * homeOf is the address the home page of locale is served at: the bare
+ * domain for the reference locale, the locale's own directory for any other.
+ * It is what the site's addresses say, for a script that opens a built home
+ * page in a browser and runs where the site's own code does not load.
+ */
+export function homeOf(locale: string): string {
+	return locale === fallbackLocale ? "/" : `/${locale}/`;
 }
 
 /**

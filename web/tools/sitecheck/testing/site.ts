@@ -8,6 +8,12 @@ import { dirname, join } from "node:path";
 export const base = "https://example.test";
 
 /**
+ * formerFront is where the English front page was served before the bare
+ * domain, which serves it now.
+ */
+export const formerFront = "/en/";
+
+/**
  * pageAt is a page at address, among a site whose pages are at addresses, that
  * breaks no rule: it names its language, its direction, its title, its
  * description, its own address, every translation the site has of it and the
@@ -20,11 +26,11 @@ export function pageAt(
 ): string {
 	const name = nameOf(address);
 	const alternates = addresses
-		.filter((other) => other !== "/" && nameOf(other) === name)
+		.filter((other) => other !== formerFront && nameOf(other) === name)
 		.map((other) => `${localeOf(other)} ${other}`);
-	alternates.push(name === "" ? "x-default /en/" : `x-default /en/${name}/`);
+	alternates.push(`x-default ${name === "" ? "/" : `/en/${name}/`}`);
 	return [
-		`<!DOCTYPE html><html lang="${localeOf(address) || "en"}" dir="ltr"><head>`,
+		`<!DOCTYPE html><html lang="${localeOf(address)}" dir="ltr"><head>`,
 		`<title>Title</title><meta name="description" content="Description">`,
 		`<link rel="canonical" href="${base}${address}">`,
 		...alternates.map((alternate) => {
@@ -57,7 +63,8 @@ export function redirectAt(to: string): string {
 /**
  * siteAt is every file of a site that breaks no rule and has addresses: a page
  * at each of them, which holds the anchor of every address on it, but for the
- * apex, which sends its reader on to the English front page.
+ * English front page's former address, which sends its reader on to the bare
+ * domain.
  */
 export function siteAt(addresses: readonly string[]): Record<string, string> {
 	const files: Record<string, string> = {
@@ -69,7 +76,7 @@ export function siteAt(addresses: readonly string[]): Record<string, string> {
 			.filter((other) => other.startsWith(`${address}#`))
 			.map((other) => other.slice(address.length + 1));
 		files[`${address.slice(1)}index.html`] =
-			address === "/" ? redirectAt("/en/") : pageAt(address, pages, ids);
+			address === formerFront ? redirectAt("/") : pageAt(address, pages, ids);
 	}
 	return files;
 }
@@ -85,13 +92,14 @@ export async function writeSite(
 	}
 }
 
-// localeOf is the first segment of an address, empty for the apex.
+// localeOf is the language of the page at an address: its first segment, or
+// English for the bare domain's, the English front page.
 function localeOf(address: string): string {
-	return address.split("/")[1] ?? "";
+	return address === "/" ? "en" : (address.split("/")[1] ?? "");
 }
 
 // nameOf is the page an address names within its locale, empty for a front
-// page and for the apex.
+// page.
 function nameOf(address: string): string {
 	return address.split("/").slice(2, -1).join("/");
 }

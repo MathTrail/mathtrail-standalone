@@ -15,7 +15,7 @@
 import { join } from "node:path";
 import { type Browser, chromium, webkit } from "playwright-core";
 import { preview } from "vite";
-import { readSources } from "./prerender-site.ts";
+import { homeOf, readSources } from "./prerender-site.ts";
 
 const web = join(import.meta.dirname, "..");
 const repository = join(web, "..");
@@ -76,7 +76,7 @@ async function menuFit(
 		// is fetched, and the browser's own scripting stays on, since it is what
 		// measures the row.
 		await page.route("**/*.js", (route) => route.abort());
-		const answer = await page.goto(new URL(`${locale}/`, base).href);
+		const answer = await page.goto(new URL(homeOf(locale).slice(1), base).href);
 		if (!answer?.ok()) {
 			throw new Error(
 				`fold: ${built} has no home page in ${locale}: build the site first`,

@@ -234,4 +234,8 @@ describe("connecting", () => {
 	test("is the section on connecting of the home page in the reader's language", () => {
 		expect(connectAddress("ru")).toBe("/ru/#connect");
 	});
+
+	test("is on the bare domain for a reader of English, whose home page is there", () => {
+		expect(connectAddress("en")).toBe("/#connect");
+	});
 });

@@ -5,10 +5,10 @@ import { fallbackLocale } from "../i18n/lookup";
 import { byCodeUnits } from "../i18n/order";
 import { type Dictionary, openWords, type Words } from "../i18n/words";
 import { cardWords } from "../widget/dictionaries";
-import { ApexPage } from "./ApexPage";
 import {
 	address,
 	alternatesOf,
+	formerFront,
 	outputPath,
 	parseBase,
 	sectionAddress,
@@ -28,6 +28,7 @@ import type { SiteData } from "./data";
 import type { FooterLink } from "./Footer";
 import { type Frame, type MenuItem, siteFrame } from "./frame";
 import type { Head } from "./Layout";
+import { MovedPage } from "./MovedPage";
 import { cname, robots, sitemap } from "./metadata";
 import { type Page, sitePages } from "./pages";
 import { openReader } from "./reader";
@@ -42,9 +43,10 @@ export type SiteFile = { readonly path: string; readonly data: string };
 
 /**
  * renderSite draws every file the site's texts and words make: every page of
- * every locale, the apex, and the files a crawler and the host read. It writes
- * nothing. The files come back sorted by path, so that two builds of the same
- * texts are the same bytes, and anything wrong with a text, a dictionary, the
+ * every locale, the page at the address the reference locale's front page
+ * moved from, and the files a crawler and the host read. It writes nothing.
+ * The files come back sorted by path, so that two builds of the same texts
+ * are the same bytes, and anything wrong with a text, a dictionary, the
  * frame, a page's component or the site's data stops the build before a
  * single file is written. The stylesheets and the mark are not among them:
  * they are built and copied beside these.
@@ -99,8 +101,8 @@ export function renderSite({
 				data: drawPage(site, locale, name),
 			})),
 		),
-		{ path: "index.html", data: apex(site) },
-		{ path: "sitemap.xml", data: sitemap(texts, base, fallbackLocale) },
+		{ path: outputPath(formerFront), data: moved(site) },
+		{ path: "sitemap.xml", data: sitemap(texts, base) },
 		{ path: "robots.txt", data: robots(base) },
 		{ path: "CNAME", data: cname(origin) },
 		// The host builds nothing of its own from a site that carries this
@@ -179,7 +181,7 @@ function headOf(
 		title,
 		description,
 		canonical: site.base + address(locale, name),
-		alternates: alternatesOf(site.texts, site.base, fallbackLocale, name),
+		alternates: alternatesOf(site.texts, site.base, name),
 		image: site.base + sharingPicturePath(locale),
 		imageAlt: site.wordsOf(locale).text("share.picture"),
 	};
@@ -225,13 +227,13 @@ function footerOf(site: Site, locale: string): FooterLink[] {
 	}));
 }
 
-// apex draws the page the bare domain serves: it sends the reader on to the
-// reference locale's front page, and its head is that page's but for the
-// translations, which are the front page's to name.
-function apex(site: Site): string {
+// moved draws the page at the address the reference locale's front page moved
+// from: it sends the reader on to the front page, and its head is that page's
+// but for the translations, which are the front page's to name.
+function moved(site: Site): string {
 	return page(
 		site.wordsOf(fallbackLocale),
-		<ApexPage
+		<MovedPage
 			head={{
 				...headOf(site, fallbackLocale, frontPage, site.texts.front),
 				alternates: [],

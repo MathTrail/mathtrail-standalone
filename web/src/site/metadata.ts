@@ -10,16 +10,16 @@ const xhtmlVocabulary = "http://www.w3.org/1999/xhtml";
 
 /**
  * sitemap lists every page of every locale, each with its translations, so
- * that a crawler learns the whole matrix of languages from one file. The apex
- * is not among them: it only sends its reader on to the reference locale's
- * front page, which is.
+ * that a crawler learns the whole matrix of languages from one file. The
+ * address the reference locale's front page moved from is not among them: it
+ * only sends its reader on to the bare domain, which is.
  */
-export function sitemap(texts: Texts, base: string, reference: string): string {
+export function sitemap(texts: Texts, base: string): string {
 	const entry = (served: string, name: string): string =>
 		[
 			"  <url>",
 			`    <loc>${served}</loc>`,
-			...alternatesOf(texts, base, reference, name).map(
+			...alternatesOf(texts, base, name).map(
 				({ hreflang, url }) =>
 					`    <xhtml:link rel="alternate" hreflang="${hreflang}" href="${url}"/>`,
 			),

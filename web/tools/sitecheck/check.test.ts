@@ -24,7 +24,7 @@ function options(): Options {
 // whose name only begins the same.
 function showing(src: string) {
 	return (files: Record<string, string>): void => {
-		files["en/index.html"] = pageAt("/en/", addresses).replace(
+		files["index.html"] = pageAt("/", addresses).replace(
 			"</body>",
 			`<img src="${src}" alt="Us"></body>`,
 		);
@@ -37,7 +37,7 @@ function showing(src: string) {
 function framing(
 	files: Record<string, string>,
 	src: string,
-	framers: readonly string[] = ["/en/"],
+	framers: readonly string[] = ["/"],
 ): void {
 	for (const address of framers) {
 		files[`${address.slice(1)}index.html`] = pageAt(address, addresses).replace(
@@ -84,11 +84,19 @@ describe("check", () => {
 
 	test("passes a page whose shared link shows a picture the site serves", async () => {
 		const dir = await site((files) => {
-			files["en/index.html"] = withPicture(
-				pageAt("/en/", addresses),
+			files["index.html"] = withPicture(
+				pageAt("/", addresses),
 				`${base}/assets/og-en.png`,
 			);
 			files["assets/og-en.png"] = "png";
+		});
+
+		expect(await check(dir, options())).toEqual([]);
+	});
+
+	test("passes the English front page's former address sending its reader on to the bare domain by its whole address", async () => {
+		const dir = await site((files) => {
+			files["en/index.html"] = redirectAt("/").replace("url=/", `url=${base}/`);
 		});
 
 		expect(await check(dir, options())).toEqual([]);
@@ -104,7 +112,7 @@ describe("check", () => {
 		{
 			name: "a link to a page that was never built",
 			change: (files) => {
-				files["en/index.html"] = pageAt("/en/", addresses).replace(
+				files["index.html"] = pageAt("/", addresses).replace(
 					"</body>",
 					`<a href="/en/privacy/">Privacy</a></body>`,
 				);
@@ -115,7 +123,7 @@ describe("check", () => {
 		{
 			name: "a stylesheet loaded from somebody else's domain",
 			change: (files) => {
-				files["en/index.html"] = pageAt("/en/", addresses).replace(
+				files["index.html"] = pageAt("/", addresses).replace(
 					`href="/assets/style.css"`,
 					`href="https://cdn.example.com/style.css"`,
 				);
@@ -156,8 +164,8 @@ describe("check", () => {
 		{
 			name: "a picture for a shared link the site does not have",
 			change: (files) => {
-				files["en/index.html"] = withPicture(
-					pageAt("/en/", addresses),
+				files["index.html"] = withPicture(
+					pageAt("/", addresses),
 					`${base}/assets/og-en.png`,
 				);
 			},
@@ -167,8 +175,8 @@ describe("check", () => {
 		{
 			name: "a picture for a shared link the site does not have, its property in capitals, before one it has",
 			change: (files) => {
-				files["en/index.html"] = withPicture(
-					withPicture(pageAt("/en/", addresses), `${base}/assets/og-en.png`),
+				files["index.html"] = withPicture(
+					withPicture(pageAt("/", addresses), `${base}/assets/og-en.png`),
 					`${base}/assets/style.css`,
 				).replace("og:image", "OG:image");
 			},
@@ -178,8 +186,8 @@ describe("check", () => {
 		{
 			name: "a picture for a shared link on another origin",
 			change: (files) => {
-				files["en/index.html"] = withPicture(
-					pageAt("/en/", addresses),
+				files["index.html"] = withPicture(
+					pageAt("/", addresses),
 					"https://cdn.example.com/og-en.png",
 				);
 			},
@@ -198,86 +206,113 @@ describe("check", () => {
 			contains: "canonical is",
 		},
 		{
-			name: "a page that sends its reader on and names itself as its canonical",
+			name: "a former address that sends its reader on and names itself as its canonical",
 			change: (files) => {
-				files["index.html"] = redirectAt("/en/").replace(
-					`href="${base}/en/"`,
+				files["en/index.html"] = redirectAt("/").replace(
 					`href="${base}/"`,
+					`href="${base}/en/"`,
 				);
 			},
 			rule: "head",
-			contains: `canonical is "${base}/", and the page sends its reader on to "${base}/en/"`,
+			contains: `canonical is "${base}/en/", and the page sends its reader on to "${base}/"`,
 		},
 		{
-			name: "a page that sends its reader on to a page the site does not have",
+			name: "a former address that sends its reader on to a page the site does not have",
 			change: (files) => {
-				files["index.html"] = redirectAt("/fr/");
+				files["en/index.html"] = redirectAt("/fr/");
 			},
 			rule: "head",
-			contains: `sends its reader on to "/fr/", which is no page of the site`,
+			contains: `sends its reader on to "/fr/", and the page has moved to "${base}/"`,
 		},
 		{
-			name: "a page that sends its reader on to a page the site does not have, by its whole address",
+			name: "a former address that sends its reader on to a page the site does not have, by its whole address",
 			change: (files) => {
-				files["index.html"] = redirectAt("/fr/").replace(
+				files["en/index.html"] = redirectAt("/fr/").replace(
 					"url=/fr/",
 					`url=${base}/fr/`,
 				);
 			},
 			rule: "head",
-			contains: `sends its reader on to "${base}/fr/", which is no page of the site`,
+			contains: `sends its reader on to "${base}/fr/", and the page has moved to "${base}/"`,
 		},
 		{
-			name: "a page that sends its reader on to another origin",
+			name: "a former address that sends its reader on to another origin",
 			change: (files) => {
-				files["index.html"] = redirectAt("/en/").replace(
-					"url=/en/",
-					"url=https://other.example/en/",
+				files["en/index.html"] = redirectAt("/").replace(
+					"url=/",
+					"url=https://other.example/",
 				);
 			},
 			rule: "head",
-			contains: `sends its reader on to "https://other.example/en/", which is no page of the site`,
+			contains: `sends its reader on to "https://other.example/", and the page has moved to "${base}/"`,
 		},
 		{
-			name: "a page that sends its reader on to itself",
+			name: "a former address that sends its reader on to itself",
 			change: (files) => {
-				files["index.html"] = redirectAt("/");
+				files["en/index.html"] = redirectAt("/en/");
 			},
 			rule: "head",
-			contains: `sends its reader on to "/", which is the page itself`,
+			contains: `sends its reader on to "/en/", and the page has moved to "${base}/"`,
 		},
 		{
-			name: "a page of a language that sends its reader on",
+			name: "a former address that waits before it sends its reader on, judged as the page it is",
 			change: (files) => {
-				files["ru/index.html"] = redirectAt("/en/").replace(
-					`lang="en"`,
-					`lang="ru"`,
-				);
-			},
-			rule: "head",
-			contains: `sends its reader on to "/en/", and only the apex may`,
-		},
-		{
-			name: "an apex that waits before it sends its reader on, judged as the page it is",
-			change: (files) => {
-				files["index.html"] = redirectAt("/en/").replace(
+				files["en/index.html"] = redirectAt("/").replace(
 					`content="0;`,
 					`content="5;`,
 				);
 			},
 			rule: "head",
-			contains: `canonical is "${base}/en/", and the page is served at "${base}/"`,
+			contains: `the page is served at "${base}/en/", an address it moved from to "${base}/", and does not send its reader on there`,
 		},
 		{
-			name: "a front page that sends a reader with no matching language to the apex",
+			name: "a former address that is the front page again, a second address of it",
 			change: (files) => {
-				files["ru/index.html"] = pageAt("/ru/", addresses).replace(
-					`hreflang="x-default" href="${base}/en/"`,
-					`hreflang="x-default" href="${base}/"`,
+				files["en/index.html"] = pageAt("/en/", addresses);
+			},
+			rule: "head",
+			contains: `the page is served at "${base}/en/", an address it moved from to "${base}/", and does not send its reader on there`,
+		},
+		{
+			name: "a page of a language that sends its reader on",
+			change: (files) => {
+				files["ru/index.html"] = redirectAt("/").replace(
+					`lang="en"`,
+					`lang="ru"`,
 				);
 			},
 			rule: "head",
-			contains: `alternate for "x-default" is "${base}/", and that page is at "${base}/en/"`,
+			contains: `sends its reader on to "/", and a page of a language is read where it is served`,
+		},
+		{
+			name: "a bare domain that sends its reader on rather than being the English front page",
+			change: (files) => {
+				files["index.html"] = redirectAt("/en/");
+			},
+			rule: "head",
+			contains: `sends its reader on to "/en/", and a page of a language is read where it is served`,
+		},
+		{
+			name: "a front page that names the English front page's former address as its English translation",
+			change: (files) => {
+				files["ru/index.html"] = pageAt("/ru/", addresses).replace(
+					`hreflang="en" href="${base}/"`,
+					`hreflang="en" href="${base}/en/"`,
+				);
+			},
+			rule: "head",
+			contains: `alternate for "en" is "${base}/en/", and that page is at "${base}/"`,
+		},
+		{
+			name: "a front page that sends a reader with no matching language to the English front page's former address",
+			change: (files) => {
+				files["ru/index.html"] = pageAt("/ru/", addresses).replace(
+					`hreflang="x-default" href="${base}/"`,
+					`hreflang="x-default" href="${base}/en/"`,
+				);
+			},
+			rule: "head",
+			contains: `alternate for "x-default" is "${base}/en/", and that page is at "${base}/"`,
 		},
 		{
 			name: "a lang that disagrees with the address",
@@ -293,7 +328,7 @@ describe("check", () => {
 		{
 			name: "a translation the page never points at",
 			change: (files) => {
-				files["en/index.html"] = pageAt("/en/", ["/en/"]);
+				files["index.html"] = pageAt("/", ["/"]);
 			},
 			rule: "head",
 			contains: `no alternate for "ru"`,
@@ -392,7 +427,7 @@ describe("check", () => {
 			name: "an anchor the site handed out that its page no longer holds",
 			adjust: (options) => ({
 				...options,
-				published: [...addresses, "/en/#connect"],
+				published: [...addresses, "/#connect"],
 			}),
 			rule: "published",
 			contains: `no element with the id "connect"`,
@@ -419,7 +454,7 @@ describe("check", () => {
 
 	test("keeps an anchor the site handed out while its page holds it", async () => {
 		const dir = await site((files) => {
-			files["en/index.html"] = pageAt("/en/", addresses).replace(
+			files["index.html"] = pageAt("/", addresses).replace(
 				"</body>",
 				`<section id="connect">Connect</section></body>`,
 			);
@@ -428,7 +463,7 @@ describe("check", () => {
 		expect(
 			await check(dir, {
 				...options(),
-				published: [...addresses, "/en/#connect"],
+				published: [...addresses, "/#connect"],
 			}),
 		).toEqual([]);
 	});
@@ -467,7 +502,7 @@ describe("check", () => {
 		expect(
 			(await check(dir, options())).filter(({ rule }) => rule === "weight"),
 		).toEqual(
-			["en/index.html", "ru/index.html"].map((path) => ({
+			["index.html", "ru/index.html"].map((path) => ({
 				path,
 				rule: "weight",
 				message: expect.stringContaining("and the budget is 4096"),
@@ -487,7 +522,7 @@ describe("check", () => {
 
 	test("weighs a framed document once, however many pages frame it", async () => {
 		const dir = await site((files) => {
-			framing(files, "/assets/demo.html", ["/en/", "/ru/"]);
+			framing(files, "/assets/demo.html", ["/", "/ru/"]);
 			files["assets/demo.html"] = "x".repeat(5000);
 		});
 
@@ -546,7 +581,7 @@ describe("check", () => {
 					options(),
 				),
 			),
-		).toEqual(["en/index.html: weight"]);
+		).toEqual(["index.html: weight"]);
 		expect(
 			weighed(
 				await check(await site(showing("/assets/photos/us.webp")), {
@@ -554,7 +589,7 @@ describe("check", () => {
 					photos: "",
 				}),
 			),
-		).toEqual(["en/index.html: weight"]);
+		).toEqual(["index.html: weight"]);
 	});
 
 	test("judges a page that another page frames as a page, not as a frame", async () => {
@@ -622,14 +657,14 @@ describe("check", () => {
 			files["ru/index.html"] = pageAt("/ru/", addresses)
 				.replace(`<meta name="description" content="Description">`, "")
 				.replace("<title>Title</title>", "");
-			files["en/index.html"] = pageAt("/en/", addresses).replace(
+			files["index.html"] = pageAt("/", addresses).replace(
 				"</body>",
 				`<a href="/en/gone/">Gone</a></body>`,
 			);
 		});
 
 		expect((await check(dir, options())).map(lineOf)).toEqual([
-			`en/index.html: link: <a href="/en/gone/"> leads to en/gone/index.html, which the site does not have`,
+			`index.html: link: <a href="/en/gone/"> leads to en/gone/index.html, which the site does not have`,
 			"ru/index.html: head: the page has no description",
 			"ru/index.html: head: the page has no title",
 		]);
@@ -669,7 +704,23 @@ describe("check", () => {
 			name: "a reference locale that was never built",
 			files: siteAt(addresses),
 			options: { ...options(), referenceLocale: "de" },
-			message: `reference locale "de" has no front page`,
+			message: `reference locale "de" is not the site's: the page at its bare domain is in "en"`,
+		},
+		{
+			name: "a reference locale the site has, though not at its bare domain",
+			files: siteAt(addresses),
+			options: { ...options(), referenceLocale: "ru" },
+			message: `reference locale "ru" is not the site's: the page at its bare domain is in "en"`,
+		},
+		{
+			name: "a site with no page at its bare domain",
+			files: Object.fromEntries(
+				Object.entries(siteAt(addresses)).filter(
+					([path]) => path !== "index.html",
+				),
+			),
+			options: options(),
+			message: `the site has no page at its bare domain, the front page of reference locale "en"`,
 		},
 		{
 			name: "a base with a slash at its end",
@@ -719,7 +770,7 @@ describe("a script the site serves", () => {
 	// scripted makes the English front page run the script at /assets/demo.js,
 	// which says text.
 	const scripted = (text: string) => (files: Record<string, string>) => {
-		files["en/index.html"] = pageAt("/en/", addresses).replace(
+		files["index.html"] = pageAt("/", addresses).replace(
 			"</body>",
 			'<script type="module" src="/assets/demo.js"></script></body>',
 		);

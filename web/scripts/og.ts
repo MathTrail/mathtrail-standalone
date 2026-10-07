@@ -15,7 +15,7 @@ import { join } from "node:path";
 import { chromium } from "playwright-core";
 import { preview } from "vite";
 import { sharingPicturePath, sharingPictureSize } from "../src/site/brand.ts";
-import { keptPictureOf, readSources } from "./prerender-site.ts";
+import { homeOf, keptPictureOf, readSources } from "./prerender-site.ts";
 
 const web = join(import.meta.dirname, "..");
 const repository = join(web, "..");
@@ -73,7 +73,9 @@ async function main(): Promise<void> {
 			const page = await browser.newPage({ viewport: sharingPictureSize });
 			await page.route("**/*.js", (route) => route.abort());
 			for (const locale of locales) {
-				const answer = await page.goto(new URL(`${locale}/`, base).href);
+				const answer = await page.goto(
+					new URL(homeOf(locale).slice(1), base).href,
+				);
 				if (!answer?.ok()) {
 					throw new Error(
 						`og: ${built} has no home page in ${locale}: build the site first`,

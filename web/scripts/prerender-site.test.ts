@@ -20,13 +20,16 @@ import fixture from "../../site/research/testdata/research.json";
 import widgetEnglish from "../locales/en.json";
 import widgetRussian from "../locales/ru.json";
 import { byCodeUnits } from "../src/i18n/order.ts";
+import { address, outputPath } from "../src/site/addresses.ts";
 import { photoDirectory, photoPath, photos } from "../src/site/brand.ts";
+import { frontPage } from "../src/site/content.ts";
 import english from "../src/site/locales/en.json";
 import russian from "../src/site/locales/ru.json";
 import { photoDirectory as checkedPhotoDirectory } from "../tools/sitecheck/main.ts";
 import {
 	buildSite,
 	givenTwice,
+	homeOf,
 	keptPhotoOf,
 	main,
 	paperFiles,
@@ -51,18 +54,22 @@ const fontFiles = [
 ];
 
 // scripted are the pages that may run a script: the home pages, whose demo
-// brings their cards alive.
-const scripted: readonly string[] = ["en/index.html", "ru/index.html"];
+// brings their cards alive. The English one is the bare domain's.
+const scripted: readonly string[] = ["index.html", "ru/index.html"];
 
 // carded are the pages that draw a card of the widget, and load its styles.
 const carded: readonly string[] = [
-	"en/index.html",
 	"en/topics/index.html",
 	"en/why/index.html",
+	"index.html",
 	"ru/index.html",
 	"ru/topics/index.html",
 	"ru/why/index.html",
 ];
+
+// moved is the page at the address the English front page moved from: it
+// only sends its reader on, and is no page of a language.
+const moved = "en/index.html";
 
 // framed are the documents of the site a page frames rather than the pages
 // themselves: the coach's prototype is an application of its own, the export
@@ -85,9 +92,21 @@ async function pagesIn(dir: string): Promise<string[]> {
 }
 
 // localePages are the paths of the pages of every language below dir: all
-// but the apex, which has no language of its own.
+// but the page at the address the English front page moved from.
 async function localePages(dir: string): Promise<string[]> {
-	return (await pagesIn(dir)).filter((file) => file.includes("/"));
+	return (await pagesIn(dir)).filter((file) => file !== moved);
+}
+
+// localeOf is the language of the page at path below the site's root: its
+// first directory, or English for the bare domain's, the English front page.
+function localeOf(path: string): string {
+	const slash = path.indexOf("/");
+	return slash < 0 ? "en" : path.slice(0, slash);
+}
+
+// homeFile is the path of the home page of locale below the site's root.
+function homeFile(locale: string): string {
+	return outputPath(homeOf(locale));
 }
 
 // framesIn are the addresses of the documents a page frames, in the order it
@@ -493,16 +512,27 @@ describe("the site built from this repository", () => {
 		}
 	});
 
-	test("sends a reader of the bare domain on to the English front page, loading nothing first", async () => {
-		const apex = await readFile(join(out, "index.html"), "utf8");
+	test("serves the English front page at the bare domain, and sends a reader of its former address on to it, loading nothing first", async () => {
+		const front = await readFile(join(out, "index.html"), "utf8");
+		const former = await readFile(join(out, moved), "utf8");
 
-		expect(apex).toContain(
-			'<meta http-equiv="refresh" content="0; url=/en/"/>',
+		expect(front).not.toContain('http-equiv="refresh"');
+		expect(front).toContain(
+			'<link rel="canonical" href="https://mathtrail.app/"/>',
 		);
-		expect(apex).toContain(
-			'<link rel="canonical" href="https://mathtrail.app/en/"/>',
+		expect(former).toContain('<meta http-equiv="refresh" content="0; url=/"/>');
+		expect(former).toContain(
+			'<link rel="canonical" href="https://mathtrail.app/"/>',
 		);
-		expect(apex).not.toMatch(/rel="stylesheet"|<script|<style/);
+		expect(former).not.toMatch(/rel="stylesheet"|<script|<style/);
+	});
+
+	test("finds every language's home page where the site's addresses serve it", async () => {
+		const sources = await readSources(join(repository, "site", "content"));
+		expect([...sources.keys()]).not.toEqual([]);
+		for (const locale of sources.keys()) {
+			expect(homeOf(locale), locale).toBe(address(locale, frontPage));
+		}
 	});
 
 	test("carries on the home page what its demo needs: the lesson's task, the widget's words in the page's language alone, and an answer for every option", async () => {
@@ -510,7 +540,7 @@ describe("the site built from this repository", () => {
 			["en", widgetEnglish],
 			["ru", widgetRussian],
 		] as const) {
-			const html = await readFile(join(out, locale, "index.html"), "utf8");
+			const html = await readFile(join(out, homeFile(locale)), "utf8");
 			const [, carried] =
 				/<script type="application\/json" data-demo>([^<]*)<\/script>/.exec(
 					html,
@@ -550,9 +580,7 @@ describe("the site built from this repository", () => {
 		const pages = await pagesIn(out);
 		for (const page of pages) {
 			const html = await readFile(join(out, page), "utf8");
-			const locale = page.includes("/")
-				? page.slice(0, page.indexOf("/"))
-				: "en";
+			const locale = localeOf(page);
 			const named = [
 				...html.matchAll(/<meta property="og:image" content="([^"]+)"/g),
 			].map(([, address]) => address ?? "");
@@ -652,13 +680,13 @@ describe("the site built from this repository", () => {
 			.map((entry) => entry.name);
 		expect(locales).toEqual(expect.arrayContaining(["en", "ru"]));
 		for (const locale of locales) {
-			const html = await readFile(join(out, locale, "index.html"), "utf8");
+			const html = await readFile(join(out, homeFile(locale)), "utf8");
 			const links = (list: string) => {
 				const nav = html.match(
 					new RegExp(`<nav class="${list}"[^>]*>(.*?)</nav>`, "s"),
 				);
 				if (nav === null) {
-					throw new Error(`${locale}/index.html has no ${list}`);
+					throw new Error(`${homeFile(locale)} has no ${list}`);
 				}
 				return [
 					...(nav[1] ?? "").matchAll(/<a href="([^"]+)"[^>]*>([^<]*)<\/a>/g),
@@ -688,7 +716,7 @@ describe("the site built from this repository", () => {
 		const pages = await localePages(out);
 		expect(pages).not.toEqual([]);
 		for (const page of pages) {
-			const locale = page.slice(0, page.indexOf("/"));
+			const locale = localeOf(page);
 			const html = await readFile(join(out, page), "utf8");
 			const menu =
 				html.match(/<nav class="s-navlinks"[^>]*>(.*?)<\/nav>/s)?.[1] ?? "";
@@ -707,7 +735,7 @@ describe("the site built from this repository", () => {
 	test("leads every button that asks to add it, the header's first, to the home page's section on connecting, which the home page has", async () => {
 		const pages = await localePages(out);
 		for (const page of pages) {
-			const locale = page.slice(0, page.indexOf("/"));
+			const locale = localeOf(page);
 			const html = await readFile(join(out, page), "utf8");
 			const word = adding[locale] ?? "";
 			const buttons = linksIn(html).filter((link) => link.text.trim() === word);
@@ -716,10 +744,10 @@ describe("the site built from this repository", () => {
 			expect(
 				buttons.map((link) => link.href),
 				page,
-			).toEqual(buttons.map(() => `/${locale}/#connect`));
+			).toEqual(buttons.map(() => `${homeOf(locale)}#connect`));
 		}
 		for (const locale of Object.keys(adding)) {
-			const home = await readFile(join(out, locale, "index.html"), "utf8");
+			const home = await readFile(join(out, homeFile(locale)), "utf8");
 
 			expect(home).toContain(`<section id="lesson"`);
 			expect(home).toContain(`<section id="connect"`);

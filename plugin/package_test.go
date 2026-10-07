@@ -383,7 +383,7 @@ func TestThePackageLeadsWhereMathTrailIs(t *testing.T) {
 	m := readManifest(t)
 	face := m.Extensions.OpenAI.Interface
 	pages := map[string]struct{ got, file string }{
-		site + "/en/":         {face.WebsiteURL, "index.yaml"},
+		site + "/":            {face.WebsiteURL, "index.yaml"},
 		site + "/en/help/":    {face.SupportURL, "help.md"},
 		site + "/en/privacy/": {face.PrivacyPolicyURL, "privacy.md"},
 		site + "/en/terms/":   {face.TermsOfServiceURL, "terms.md"},

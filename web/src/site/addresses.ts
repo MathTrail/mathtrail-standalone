@@ -1,3 +1,4 @@
+import { fallbackLocale } from "../i18n/lookup";
 import { frontPage, type Texts } from "./content";
 
 /**
@@ -37,11 +38,24 @@ export function parseBase(raw: string): URL {
 /**
  * address is where a page is served. Every page is a directory, so an address
  * never carries a file extension and never has to change when the builder
- * behind it does.
+ * behind it does. The reference locale's front page is the bare domain
+ * itself: a reader who types the domain, or follows a link that names nothing
+ * more, lands on the product rather than on a page that sends them on.
  */
 export function address(locale: string, name: string): string {
-	return name === frontPage ? `/${locale}/` : `/${locale}/${name}/`;
+	if (name !== frontPage) {
+		return `/${locale}/${name}/`;
+	}
+	return locale === fallbackLocale ? "/" : `/${locale}/`;
 }
+
+/**
+ * formerFront is where the reference locale's front page was served before it
+ * moved to the bare domain. The address was handed out — to a consent screen,
+ * to the directories, in links already shared — so it keeps a page that sends
+ * its reader on.
+ */
+export const formerFront = `/${fallbackLocale}/`;
 
 /**
  * sectionAddress is where the section with the id anchor is, on the page name
@@ -70,13 +84,11 @@ export type Alternate = { readonly hreflang: string; readonly url: string };
  * alternatesOf lists every translation of the page name — every locale has
  * every page — plus the x-default a reader with no matching language is sent
  * to: the reference locale's version, the copy every other is translated from.
- * A front page is no exception, since the apex only sends its reader on to the
- * reference locale's.
+ * A front page is no exception: the reference locale's is the bare domain.
  */
 export function alternatesOf(
 	texts: Pick<Texts, "locales">,
 	base: string,
-	reference: string,
 	name: string,
 ): Alternate[] {
 	return [
@@ -84,6 +96,6 @@ export function alternatesOf(
 			hreflang: locale,
 			url: base + address(locale, name),
 		})),
-		{ hreflang: "x-default", url: base + address(reference, name) },
+		{ hreflang: "x-default", url: base + address(fallbackLocale, name) },
 	];
 }

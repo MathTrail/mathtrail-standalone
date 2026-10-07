@@ -45,7 +45,7 @@ export type Sources = ReadonlyMap<string, ReadonlyMap<string, string>>;
  * them in: the locales, and the names of the pages, both sorted, so that two
  * builds of the same texts are the same files. Every locale has every page.
  * front is what the reference locale's front page says of itself, which the
- * apex is made of.
+ * page at the address it moved from is made of.
  */
 export type Texts = {
 	readonly locales: readonly string[];
@@ -217,7 +217,7 @@ export function readTexts(sources: Sources, reference: string): Texts {
 	const front = pages.get(reference)?.get(frontPage);
 	if (front === undefined) {
 		throw new Error(
-			`the reference locale "${reference}" has no ${frontPage} page, the text its front page and the apex are made of`,
+			`the reference locale "${reference}" has no ${frontPage} page, the text its front page and the page at the address it moved from are made of`,
 		);
 	}
 	checkWords(texts, reference);
@@ -327,9 +327,9 @@ function documentText(source: string): PageText {
 }
 
 // wordsText reads a page's words, which give its title and its description as
-// they are written: the page's head, the apex and the footer show them with no
-// slot filled and no markup read, so a slot or an emphasis would show as its
-// signs.
+// they are written: the page's head, the page an address that moved serves
+// and the footer show them with no slot filled and no markup read, so a slot
+// or an emphasis would show as its signs.
 function wordsText(source: string): PageText {
 	const words = parsePageWords(source);
 	for (const key of ["title", "description"]) {

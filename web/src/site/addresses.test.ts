@@ -1,5 +1,11 @@
 import { describe, expect, test } from "vitest";
-import { address, alternatesOf, outputPath, parseBase } from "./addresses";
+import {
+	address,
+	alternatesOf,
+	formerFront,
+	outputPath,
+	parseBase,
+} from "./addresses";
 import { readTexts } from "./content";
 
 const base = "https://example.test";
@@ -64,7 +70,8 @@ describe("the base URL", () => {
 
 describe("a page's address", () => {
 	test.each([
-		["en", "index", "/en/", "en/index.html"],
+		["en", "index", "/", "index.html"],
+		["ru", "index", "/ru/", "ru/index.html"],
 		["en", "privacy", "/en/privacy/", "en/privacy/index.html"],
 		["zh-Hans", "terms", "/zh-Hans/terms/", "zh-Hans/terms/index.html"],
 		[
@@ -77,6 +84,11 @@ describe("a page's address", () => {
 		expect(address(locale, name)).toBe(want);
 		expect(outputPath(want)).toBe(file);
 	});
+
+	test("the English front page's former address is /en/, served from en/index.html", () => {
+		expect(formerFront).toBe("/en/");
+		expect(outputPath(formerFront)).toBe("en/index.html");
+	});
 });
 
 describe("a page's translations", () => {
@@ -85,16 +97,16 @@ describe("a page's translations", () => {
 		ru: ["index", "privacy"],
 	});
 
-	test("of a front page send a reader with no match to the reference locale's, not to the apex", () => {
-		expect(alternatesOf(texts, base, "en", "index")).toEqual([
-			{ hreflang: "en", url: "https://example.test/en/" },
+	test("of a front page send a reader with no match to the reference locale's, at the bare domain", () => {
+		expect(alternatesOf(texts, base, "index")).toEqual([
+			{ hreflang: "en", url: "https://example.test/" },
 			{ hreflang: "ru", url: "https://example.test/ru/" },
-			{ hreflang: "x-default", url: "https://example.test/en/" },
+			{ hreflang: "x-default", url: "https://example.test/" },
 		]);
 	});
 
 	test("of any other page send them to the reference locale's", () => {
-		expect(alternatesOf(texts, base, "en", "privacy")).toEqual([
+		expect(alternatesOf(texts, base, "privacy")).toEqual([
 			{ hreflang: "en", url: "https://example.test/en/privacy/" },
 			{ hreflang: "ru", url: "https://example.test/ru/privacy/" },
 			{ hreflang: "x-default", url: "https://example.test/en/privacy/" },
@@ -102,7 +114,7 @@ describe("a page's translations", () => {
 	});
 
 	test("of a page below another lead to the same page in every language", () => {
-		expect(alternatesOf(texts, base, "en", "topics/sample")).toEqual([
+		expect(alternatesOf(texts, base, "topics/sample")).toEqual([
 			{ hreflang: "en", url: "https://example.test/en/topics/sample/" },
 			{ hreflang: "ru", url: "https://example.test/ru/topics/sample/" },
 			{ hreflang: "x-default", url: "https://example.test/en/topics/sample/" },

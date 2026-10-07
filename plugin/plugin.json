@@ -6,9 +6,9 @@
 	"author": {
 		"name": "ALT EdTech",
 		"email": "altedtech.info@gmail.com",
-		"url": "https://mathtrail.app/en/"
+		"url": "https://mathtrail.app/"
 	},
-	"homepage": "https://mathtrail.app/en/",
+	"homepage": "https://mathtrail.app/",
 	"repository": "https://github.com/MathTrail/mathtrail-standalone",
 	"license": "MIT",
 	"keywords": ["maths", "olympiad", "education", "parents", "tutors"],
@@ -29,7 +29,7 @@
 					"Shows progress by topic, the mistakes that repeat and what to practise next",
 					"Keeps the child's profile in one file in the parent's Google Drive"
 				],
-				"websiteURL": "https://mathtrail.app/en/",
+				"websiteURL": "https://mathtrail.app/",
 				"supportURL": "https://mathtrail.app/en/help/",
 				"privacyPolicyURL": "https://mathtrail.app/en/privacy/",
 				"termsOfServiceURL": "https://mathtrail.app/en/terms/",

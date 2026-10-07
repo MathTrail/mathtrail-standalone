@@ -41,7 +41,7 @@ const sources = new Map([
 				text(
 					"MathTrail",
 					"Olympiad maths in your chat.",
-					"# MathTrail\n\nRead the [privacy policy](privacy/).\n",
+					"# MathTrail\n\nRead the [privacy policy](/en/privacy/).\n",
 				),
 			],
 			[
@@ -246,7 +246,7 @@ const pages = [
 ];
 
 describe("the site's files", () => {
-	test("are a page for every text of every locale, the apex, and what a crawler and the host read", () => {
+	test("are a page for every text of every locale, the page at the address the English front page moved from, and what a crawler and the host read", () => {
 		expect(files.map(({ path }) => path)).toEqual([
 			".nojekyll",
 			"CNAME",
@@ -272,7 +272,7 @@ describe("every page", () => {
 		},
 	);
 
-	test.each(pages.filter((path) => path !== "index.html"))(
+	test.each(pages.filter((path) => path !== "en/index.html"))(
 		"%s is light, and loads the tokens before the styles that read them",
 		(path) => {
 			const doc = page(files, path);
@@ -344,9 +344,9 @@ describe("a locale's document", () => {
 
 	test("carries its text, made from Markdown", () => {
 		expect(
-			page(files, "en/index.html").querySelector("main article")?.innerHTML,
+			page(files, "index.html").querySelector("main article")?.innerHTML,
 		).toBe(
-			'<h1>MathTrail</h1>\n<p>Read the <a href="privacy/">privacy policy</a>.</p>\n',
+			'<h1>MathTrail</h1>\n<p>Read the <a href="/en/privacy/">privacy policy</a>.</p>\n',
 		);
 	});
 
@@ -565,38 +565,78 @@ describe("the menu", () => {
 	});
 });
 
-describe("the apex", () => {
-	const apex = page(files, "index.html");
+describe("the bare domain", () => {
+	const front = page(files, "index.html");
 
-	test("sends the reader on at once to the reference locale's front page", () => {
-		expect(attributes(apex, 'meta[http-equiv="refresh"]', "content")).toEqual([
-			"0; url=/en/",
+	test("is the reference locale's front page, at its own address", () => {
+		expect(front.documentElement.lang).toBe("en");
+		expect(front.title).toBe("MathTrail");
+		expect(attributes(front, 'meta[http-equiv="refresh"]', "content")).toEqual(
+			[],
+		);
+		expect(attributes(front, 'link[rel="canonical"]', "href")).toEqual([
+			"https://example.test/",
 		]);
-		expect(attributes(apex, "a", "href")).toEqual(["/en/"]);
-		expect(texts(apex, "a")).toEqual(["MathTrail"]);
+		expect(attributes(front, 'meta[property="og:url"]', "content")).toEqual([
+			"https://example.test/",
+		]);
+	});
+
+	test("is the English translation every front page names, and the page for a reader with none", () => {
+		for (const path of ["index.html", "ru/index.html"]) {
+			expect(
+				attributes(page(files, path), 'link[rel="alternate"]', "href"),
+			).toEqual([
+				"https://example.test/",
+				"https://example.test/ru/",
+				"https://example.test/",
+			]);
+		}
+	});
+
+	test("is where an English page leads home and a Russian one switches to English", () => {
+		const privacy = page(files, "en/privacy/index.html");
+
+		expect(attributes(privacy, "header .s-brand", "href")).toEqual(["/"]);
+		expect(attributes(privacy, "footer .s-brand", "href")).toEqual(["/"]);
+		expect(
+			attributes(page(files, "ru/index.html"), ".s-seg a", "href"),
+		).toEqual(["/", "/ru/"]);
+	});
+});
+
+describe("the address the English front page moved from", () => {
+	const moved = page(files, "en/index.html");
+
+	test("sends the reader on at once to the bare domain, where the page is now", () => {
+		expect(attributes(moved, 'meta[http-equiv="refresh"]', "content")).toEqual([
+			"0; url=/",
+		]);
+		expect(attributes(moved, "a", "href")).toEqual(["/"]);
+		expect(texts(moved, "a")).toEqual(["MathTrail"]);
 	});
 
 	test("stands for that front page in what it tells a search engine and a chat", () => {
-		expect(apex.documentElement.lang).toBe("en");
-		expect(apex.title).toBe("MathTrail");
-		expect(attributes(apex, 'meta[name="description"]', "content")).toEqual([
+		expect(moved.documentElement.lang).toBe("en");
+		expect(moved.title).toBe("MathTrail");
+		expect(attributes(moved, 'meta[name="description"]', "content")).toEqual([
 			"Olympiad maths in your chat.",
 		]);
-		expect(attributes(apex, 'link[rel="canonical"]', "href")).toEqual([
-			"https://example.test/en/",
+		expect(attributes(moved, 'link[rel="canonical"]', "href")).toEqual([
+			"https://example.test/",
 		]);
-		expect(attributes(apex, 'meta[property="og:url"]', "content")).toEqual([
-			"https://example.test/en/",
+		expect(attributes(moved, 'meta[property="og:url"]', "content")).toEqual([
+			"https://example.test/",
 		]);
-		expect(attributes(apex, 'link[rel="alternate"]', "href")).toEqual([]);
+		expect(attributes(moved, 'link[rel="alternate"]', "href")).toEqual([]);
 	});
 
 	test("loads nothing that would keep the refresh waiting", () => {
-		expect(attributes(apex, "link[href]", "rel")).toEqual([
+		expect(attributes(moved, "link[href]", "rel")).toEqual([
 			"canonical",
 			"icon",
 		]);
-		expect(apex.querySelectorAll("script, style, [src]")).toHaveLength(0);
+		expect(moved.querySelectorAll("script, style, [src]")).toHaveLength(0);
 	});
 });
 
