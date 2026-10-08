@@ -139,7 +139,11 @@ jobs:
   check:
     name: Reproduce from the ${{ matrix.flavour }} artifact
     needs: key
-    if: needs.key.outputs.checks == 'true'
+    # Keeps a fork out itself, rather than relying on the key being skipped.
+    if: >-
+      needs.key.outputs.checks == 'true' &&
+      (github.event_name != 'workflow_run' ||
+      github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
@@ -169,7 +173,11 @@ jobs:
   leaks:
     name: The anonymous artifact names no commit
     needs: key
-    if: needs.key.outputs.checks == 'true'
+    # Keeps a fork out itself, rather than relying on the key being skipped.
+    if: >-
+      needs.key.outputs.checks == 'true' &&
+      (github.event_name != 'workflow_run' ||
+      github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -194,7 +202,11 @@ jobs:
   publish:
     name: Publish the release of paper A
     needs: [key, check, leaks]
-    if: needs.key.outputs.new == 'true' && needs.key.outputs.publishes == 'true'
+    # Keeps a fork out itself, rather than relying on the key being skipped.
+    if: >-
+      needs.key.outputs.new == 'true' && needs.key.outputs.publishes == 'true' &&
+      (github.event_name != 'workflow_run' ||
+      github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:

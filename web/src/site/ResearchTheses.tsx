@@ -116,12 +116,25 @@ function Thesis({
 }
 
 // Writes draws who does what: the chat's model writes, MathTrail checks, and
-// the child solves.
+// the child solves. The arrows are drawn rather than typed, so that the row
+// is as wide in every browser as its words make it, whatever font the
+// browser would draw an arrow in.
 function Writes({ page }: { page: PageReader }) {
 	return (
 		<ol class="s-research-writes">
-			{(["model", "service", "child"] as const).map((who) => (
+			{(["model", "service", "child"] as const).map((who, place) => (
 				<li key={who} class={who === "service" ? "s-research-us" : undefined}>
+					{place > 0 && (
+						<svg
+							class="s-research-writes-arrow"
+							viewBox="0 0 22 12"
+							width="22"
+							height="12"
+							aria-hidden="true"
+						>
+							<path d="M1 6h19M15.5 1.5 20 6l-4.5 4.5" />
+						</svg>
+					)}
 					<span class="s-research-box">
 						<span class="s-research-who">
 							{page.text(`theses.writes.${who}`)}

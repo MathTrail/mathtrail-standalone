@@ -23,7 +23,7 @@ The numbers below were taken on 2026-09-29 on the development machine: Docker in
 | Clock | 2 s | Most runs at the step ceiling take 65–400 ms on a processor of their own, and for them the clock is insurance. Sums and products of large numbers, which make a number at every step, are the runs the clock stops first |
 | Wait for a slot | 3 s | Keeps the slowest `submit_task` within the platform's minute (R122) |
 | `concurrency` | 80 requests | Most requests wait on Drive. The sandbox's queue is bounded in time, not in length |
-| `max_instances` | 3 | Unchanged: a cost ceiling (О-24) |
+| `max_instances` | 5 | A cost ceiling (О-24), raised from 3 (R264). Everything on this page is one instance's, so the number moves none of it |
 
 ## The price, and what it bounds
 
